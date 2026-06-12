@@ -1,0 +1,41 @@
+<?php return array(
+    'root' => array(
+        'name' => 'elementor/pojo-accessibility',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
+        'reference' => '9db328f7ab39209caaeef0372dc1046b8791a639',
+        'type' => 'library',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => false,
+    ),
+    'versions' => array(
+        'elementor/pojo-accessibility' => array(
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
+            'reference' => '9db328f7ab39209caaeef0372dc1046b8791a639',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'elementor/wp-notifications-package' => array(
+            'pretty_version' => '1.2.0',
+            'version' => '1.2.0.0',
+            'reference' => 'dd25ca9dd79402c3bb51fab112aa079702eb165e',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../elementor/wp-notifications-package',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'elementor/wp-one-package' => array(
+            'pretty_version' => '1.0.62',
+            'version' => '1.0.62.0',
+            'reference' => null,
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../elementor/wp-one-package',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

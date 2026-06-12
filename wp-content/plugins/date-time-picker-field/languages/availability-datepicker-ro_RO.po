@@ -1,0 +1,1269 @@
+# Copyright (C) 2026 Input WP
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: Availability Datepicker - Input WP 3.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/date-time-picker-field\n"
+"POT-Creation-Date: 2026-02-27T12:07:25+00:00\n"
+"PO-Revision-Date: 2026-02-27T12:07:25+00:00\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < 20)) ? 1 : 2;\n"
+"X-Domain: availability-datepicker\n"
+"X-Generator: WP-CLI 2.12.0\n"
+
+#. Plugin Name of the plugin
+#: date-time-picker-field.php
+msgid "Availability Datepicker - Input WP"
+msgstr "Disponibilitate DataPicker - WP de intrare"
+
+#. Plugin URI of the plugin
+#. Author URI of the plugin
+#: date-time-picker-field.php
+msgid "https://inputwp.com"
+msgstr ""
+
+#. Description of the plugin
+#: date-time-picker-field.php
+msgid ""
+"Availability datepicker & booking calendar for any form. Add a date-time "
+"picker, manage availability, sync ICS calendar files. Integrates with "
+"Contact Form 7."
+msgstr ""
+"Data disponibilității selectorului și calendarul rezervării pentru orice "
+"formular. Adăugați un selector de dată și oră, gestionați disponibilitatea, "
+"sincronizați fișierele calendarului ICS. Se integrează cu Formularul de "
+"contact 7."
+
+#. Author of the plugin
+#: date-time-picker-field.php
+msgid "Input WP"
+msgstr "Intrare WP"
+
+#: admin/class-avdp-admin-components.php:163
+msgid "Are you sure?"
+msgstr "Sigur doriți să faceți acest lucru?"
+
+#: admin/class-avdp-admin-components.php:224 admin/class-avdp-admin.php:291
+msgid "Availability Datepicker"
+msgstr "Disponibilitate DataPicker"
+
+#: admin/class-avdp-admin-components.php:231
+msgid "Upgrade for $49"
+msgstr "Upgrade pentru $ 49"
+
+#: admin/class-avdp-admin-components.php:236
+msgid "PRO unlocks:"
+msgstr "DEBLOCĂRI PROFESIONALE:"
+
+#: admin/class-avdp-admin-components.php:238
+msgid "Bookings (capture, manage &amp; block slots)"
+msgstr "Rezervări (capturează, gestionează și blochează intervalele orare)"
+
+#: admin/class-avdp-admin-components.php:239
+msgid "Multiple Resources (custom availability rules)"
+msgstr "Resurse multiple (reguli personalizate de disponibilitate)"
+
+#: admin/class-avdp-admin-components.php:240
+msgid "Branding &amp; dynamic styling"
+msgstr "Branding și stil dinamic"
+
+#: admin/class-avdp-admin-components.php:241
+msgid "Import from .ics (Google, Outlook)"
+msgstr "Import din .ics (Google, Outlook)"
+
+#: admin/class-avdp-admin-components.php:242
+msgid "Divi &amp; WooCommerce integration"
+msgstr "Integrare Divi &amp; WooCommerce"
+
+#: admin/class-avdp-admin-form-handlers.php:49
+#: admin/class-avdp-admin-form-handlers.php:259
+#: admin/class-avdp-admin-form-handlers.php:311
+msgid "You do not have permission to save these settings."
+msgstr "Nu aveți permisiunea de a salva aceste setări."
+
+#: admin/class-avdp-admin-form-handlers.php:70
+msgid "Slot interval must be between 1 and 1440 minutes."
+msgstr "Intervalul slotului trebuie să fie între 1 și 1440 de minute."
+
+#: admin/class-avdp-admin-form-handlers.php:79
+msgid "Minimum days cannot be greater than maximum days."
+msgstr "Numărul minim de zile nu poate depăși numărul maxim de zile."
+
+#: admin/class-avdp-admin-form-handlers.php:87
+msgid "Minimum duration cannot be greater than maximum duration."
+msgstr "Durata minimă nu poate fi mai mare decât durata maximă."
+
+#: admin/class-avdp-admin-form-handlers.php:237
+msgid "Availability settings saved successfully."
+msgstr "Setările au fost salvate cu succes."
+
+#: admin/class-avdp-admin-form-handlers.php:239
+msgid "Failed to save availability settings. Please try again."
+msgstr ""
+"Salvarea setărilor de disponibilitate a eșuat. Te rugăm să încerci din nou."
+
+#: admin/class-avdp-admin-form-handlers.php:280
+#, php-format
+msgid ""
+"Invalid characters detected in selector \"%s\". Characters < > \" ' are not "
+"allowed in CSS selectors."
+msgstr ""
+"Caractere nevalide detectate în selectorul „%s”. Caracterele < > \" 'nu sunt"
+" permise în selectorii CSS."
+
+#: admin/class-avdp-admin-form-handlers.php:295
+msgid "CSS selectors saved successfully."
+msgstr "Selectorii CSS au fost salvați cu succes."
+
+#: admin/class-avdp-admin-form-handlers.php:297
+msgid "Failed to save CSS selectors. Please try again."
+msgstr "Salvarea selectorilor CSS a eșuat. Te rugăm să încerci din nou."
+
+#: admin/class-avdp-admin-form-handlers.php:319
+msgid "Invalid date format selected."
+msgstr "Format de dată selectat nevalid."
+
+#: admin/class-avdp-admin-form-handlers.php:327
+msgid "Invalid time format selected."
+msgstr "A fost selectat un format de oră nevalid."
+
+#: admin/class-avdp-admin-form-handlers.php:336
+msgid ""
+"Invalid timezone format. Please use UTC or offset format (e.g., +05:00)."
+msgstr ""
+"Format de fus orar nevalid. Vă rugăm să utilizați formatul UTC sau offset "
+"(de exemplu, +05:00)."
+
+#: admin/class-avdp-admin-form-handlers.php:353
+msgid "Settings saved successfully."
+msgstr "Setările au fost salvate cu succes."
+
+#: admin/class-avdp-admin-form-handlers.php:355
+msgid "Failed to save settings. Please try again."
+msgstr "Salvarea setărilor a eșuat. Te rugăm să încerci din nou."
+
+#: admin/class-avdp-admin.php:116
+msgid "Doctor / Medical"
+msgstr "Medic / Medic"
+
+#: admin/class-avdp-admin.php:117
+msgid "Fixed 30-min slots, Mon–Fri, 24 h advance notice."
+msgstr "Sloturi fixe de 30 de minute, luni-vineri, preaviz de 24 de ore."
+
+#: admin/class-avdp-admin.php:118 admin/class-avdp-admin.php:139
+msgid "Date + Time (single datetime or separate date & time — no range)"
+msgstr "Data + Ora (dată unică sau dată și oră separate — fără interval)"
+
+#: admin/class-avdp-admin.php:137
+msgid "Salon & Beauty"
+msgstr "Salon de înfrumusețare"
+
+#: admin/class-avdp-admin.php:138
+msgid "Fixed 60-min slots, Mon–Sat, 2 h advance notice."
+msgstr "Sloturi fixe de 60 de minute, luni-duminică, preaviz de 2 ore."
+
+#: admin/class-avdp-admin.php:158
+msgid "Equipment Rental"
+msgstr "Chirie echipamente"
+
+#: admin/class-avdp-admin.php:159
+msgid "Flexible overnight/multi-day rentals, 12–72 h duration."
+msgstr ""
+"Închirieri flexibile peste noapte/pe mai multe zile, cu o durată de 12–72 de"
+" ore."
+
+#: admin/class-avdp-admin.php:160 admin/class-avdp-admin.php:202
+#: admin/class-avdp-admin.php:223
+msgid "Date & Time Range (start datetime + end datetime)"
+msgstr "Dată și interval de timp (data de început + data de sfârșit)"
+
+#: admin/class-avdp-admin.php:179
+msgid "Hotel / Vacation Rental"
+msgstr "Hotel /Închiriere de vacanță"
+
+#: admin/class-avdp-admin.php:180
+msgid "Day-based bookings, 2–30 night stays, all week."
+msgstr "Rezervări de o zi, 2–30 de nopți, toată săptămâna."
+
+#: admin/class-avdp-admin.php:181
+msgid "Date Range (check-in date + check-out date — no time)"
+msgstr "Interval de date (data de check-in + data de check-out — fără oră)"
+
+#: admin/class-avdp-admin.php:200
+msgid "Car Rental"
+msgstr "Inchirieri auto"
+
+#: admin/class-avdp-admin.php:201
+msgid "Flexible pickup & return, 4 h–7 day rentals, every day."
+msgstr ""
+"Preluare și returnare flexibile, închirieri de 4-7 zile, în fiecare zi."
+
+#: admin/class-avdp-admin.php:221
+msgid "Meeting Room"
+msgstr "Sală de ședințe"
+
+#: admin/class-avdp-admin.php:222
+msgid "Flexible 1–8 h bookings, Mon–Fri, 15 min buffers."
+msgstr "Rezervări flexibile de 1–8 ore, luni-vineri, tampoane de 15 minute."
+
+#: admin/class-avdp-admin.php:258
+#: admin/views/class-avdp-availability-views.php:255
+#: admin/views/class-avdp-availability-views.php:293
+msgid "Remove"
+msgstr "Eliminați"
+
+#: admin/class-avdp-admin.php:259
+#: admin/views/class-avdp-availability-views.php:154
+#: admin/views/class-avdp-availability-views.php:289
+msgid "to"
+msgstr "to"
+
+#: admin/class-avdp-admin.php:260
+#: admin/views/class-avdp-availability-views.php:80
+msgid "From"
+msgstr "De la"
+
+#: admin/class-avdp-admin.php:261
+#: admin/views/class-avdp-availability-views.php:264
+#: admin/views/class-avdp-availability-views.php:302
+msgid "Add range"
+msgstr "Adăugă interval"
+
+#: admin/class-avdp-admin.php:262
+msgid "Add"
+msgstr "Adăugare"
+
+#: admin/class-avdp-admin.php:263
+msgid "Cancel"
+msgstr "Cancel"
+
+#: admin/class-avdp-admin.php:264
+msgid "Copied!"
+msgstr "Copiat!"
+
+#: admin/class-avdp-admin.php:265
+msgid "You have unsaved changes. Are you sure you want to leave?"
+msgstr ""
+"Aveți modificări pentru Builder %s nesalvate. Sunteți sigur că vreți să "
+"plecați ?"
+
+#: admin/class-avdp-admin.php:266
+msgid "Light (Default)"
+msgstr "Lumină (implicit)"
+
+#: admin/class-avdp-admin.php:267
+#: admin/views/class-avdp-settings-views.php:326
+msgid "Dark"
+msgstr "Întunecat"
+
+#: admin/class-avdp-admin.php:268
+msgid "Available"
+msgstr "Disponibil"
+
+#: admin/class-avdp-admin.php:269
+msgid "Unavailable"
+msgstr "Indisponibil"
+
+#: admin/class-avdp-admin.php:270
+msgid ""
+"Reset to default\n"
+"\n"
+"This will reset all settings on this page to their factory defaults. Your current configuration will be replaced — but only after you click Save Changes.\n"
+"\n"
+"Click OK to load the default values, or Cancel to keep your current settings."
+msgstr ""
+"Resetare la valoarea implicită\n"
+"\n"
+"Acest lucru va reseta toate setările de pe această pagină la valorile implicite din fabrică. Configurația dvs. curentă va fi înlocuită — dar numai după ce faceți clic pe Salvare modificări.\n"
+"\n"
+"Faceți clic pe OK pentru a încărca valorile implicite sau pe Anulare pentru a păstra setările curente."
+
+#: admin/class-avdp-admin.php:271
+msgid "Load Preset"
+msgstr "Încărcare presetare"
+
+#: admin/class-avdp-admin.php:272
+msgid ""
+"Load preset\n"
+"\n"
+"This will replace your current availability settings with the selected preset — but only after you click Save Changes.\n"
+"\n"
+"Click OK to load the preset, or Cancel to keep your current settings."
+msgstr ""
+"Presetare sarcină\n"
+"\n"
+"Aceasta va înlocui setările curente de disponibilitate cu presetarea selectată, dar numai după ce dai clic pe Salvează modificările.\n"
+"\n"
+"Faceți clic pe OK pentru a încărca presetarea sau pe Anulare pentru a păstra setările curente."
+
+#: admin/class-avdp-admin.php:273
+msgid "Apply Preset"
+msgstr "Aplicaţi presetarea"
+
+#: admin/class-avdp-admin.php:274
+msgid "Select a preset to get started quickly"
+msgstr "Selectați o presetare pentru a începe rapid"
+
+#: admin/class-avdp-admin.php:275
+msgid "Recommended fields:"
+msgstr "Câmpuri recomandate:"
+
+#: admin/class-avdp-admin.php:292
+#: admin/views/class-avdp-availability-views.php:20
+msgid "Availability"
+msgstr "Disponibilitate"
+
+#: admin/class-avdp-admin.php:303 admin/class-avdp-admin.php:304
+#: admin/views/class-avdp-integration-views.php:20
+msgid "Integration"
+msgstr "Integrarea"
+
+#: admin/class-avdp-admin.php:313 admin/class-avdp-admin.php:314
+#: admin/views/class-avdp-settings-views.php:81
+msgid "Settings"
+msgstr "Setări"
+
+#: admin/class-avdp-admin.php:323 admin/class-avdp-admin.php:324
+#: admin/views/class-avdp-support-views.php:69
+msgid "Support"
+msgstr "Suport"
+
+#: admin/views/class-avdp-availability-views.php:34
+msgid "Quick Setup — Presets"
+msgstr "Configurare rapidă — Presetări"
+
+#: admin/views/class-avdp-availability-views.php:36
+msgid "Pre-fill all settings for a common booking scenario"
+msgstr ""
+"Completează în prealabil toate setările pentru un scenariu comun de "
+"rezervare"
+
+#: admin/views/class-avdp-availability-views.php:40
+msgid ""
+"Click a preset to load its settings. All availability fields will be pre-"
+"filled — you can adjust them afterwards. Nothing is saved until you click "
+"Save Changes."
+msgstr ""
+"Faceți clic pe o presetare pentru a-i încărca setările. Toate câmpurile de "
+"disponibilitate vor fi completate în prealabil — le puteți ajusta ulterior. "
+"Nimic nu este salvat până când nu dai clic pe Salvează modificările."
+
+#: admin/views/class-avdp-availability-views.php:48
+#: admin/views/class-avdp-support-views.php:659
+msgid "Configuration"
+msgstr "Configurare"
+
+#: admin/views/class-avdp-availability-views.php:51
+msgid "Booking Type"
+msgstr "Tip Programare"
+
+#: admin/views/class-avdp-availability-views.php:54
+msgid "Fixed Time Slots"
+msgstr "Intervale de timp fixe"
+
+#: admin/views/class-avdp-availability-views.php:55
+msgid "Day Based"
+msgstr "Pe bază de zi"
+
+#: admin/views/class-avdp-availability-views.php:56
+msgid "Flexible Range"
+msgstr "Interval flexibil"
+
+#: admin/views/class-avdp-availability-views.php:59
+msgid "Fixed Time Slots:"
+msgstr "Intervale de timp fixe:"
+
+#: admin/views/class-avdp-availability-views.php:59
+msgid "Appointments, consultations, classes (e.g., 9:00 AM - 10:00 AM)"
+msgstr "Programări, consultații, cursuri (de exemplu, 09:00 - 10:00)"
+
+#: admin/views/class-avdp-availability-views.php:60
+msgid "Day Based:"
+msgstr "Pe bază de zi:"
+
+#: admin/views/class-avdp-availability-views.php:60
+msgid "Hotels, vacation rentals (e.g., Check-in Dec 15 → Check-out Dec 18)"
+msgstr ""
+"Hoteluri, case de vacanță (de exemplu, Check-in 15 decembrie → Check-out 18 "
+"decembrie)"
+
+#: admin/views/class-avdp-availability-views.php:61
+msgid "Flexible Range:"
+msgstr "Interval flexibil:"
+
+#: admin/views/class-avdp-availability-views.php:61
+msgid "Equipment/car rentals (e.g., Dec 15 at 10:00 AM → Dec 18 at 2:00 PM)"
+msgstr ""
+"Închirieri de echipamente/mașini (de exemplu, 15 decembrie la 10:00 AM 18 → "
+"decembrie la 14:00)"
+
+#: admin/views/class-avdp-availability-views.php:69
+msgid "Availability Window"
+msgstr "Fereastra de disponibilitate"
+
+#: admin/views/class-avdp-availability-views.php:85
+#: admin/views/class-avdp-availability-views.php:101
+msgid "Dynamic"
+msgstr "Dinamică"
+
+#: admin/views/class-avdp-availability-views.php:86
+#: admin/views/class-avdp-availability-views.php:102
+msgid "Predefined Date"
+msgstr "Dată predefinită"
+
+#: admin/views/class-avdp-availability-views.php:91
+msgid "Set how many days from today availability starts (e.g. 0 for today)."
+msgstr ""
+"Setează câte zile începând de astăzi începe disponibilitatea (de exemplu, 0 "
+"pentru astăzi)."
+
+#: admin/views/class-avdp-availability-views.php:96
+msgid "Until"
+msgstr "până la"
+
+#: admin/views/class-avdp-availability-views.php:107
+msgid ""
+"Set how many days into the future availability ends (e.g. 30 for 30 days)."
+msgstr ""
+"Setează câte zile până la expirarea disponibilității viitoare (de exemplu, "
+"30 pentru 30 de zile)."
+
+#: admin/views/class-avdp-availability-views.php:114
+msgid "Business Hours"
+msgstr "Program de lucru"
+
+#: admin/views/class-avdp-availability-views.php:119
+msgid "Monday"
+msgstr "Luni"
+
+#: admin/views/class-avdp-availability-views.php:120
+msgid "Tuesday"
+msgstr "Marți"
+
+#: admin/views/class-avdp-availability-views.php:121
+msgid "Wednesday"
+msgstr "Miercuri "
+
+#: admin/views/class-avdp-availability-views.php:122
+msgid "Thursday"
+msgstr "Joi"
+
+#: admin/views/class-avdp-availability-views.php:123
+msgid "Friday"
+msgstr "Vineri"
+
+#: admin/views/class-avdp-availability-views.php:124
+msgid "Saturday"
+msgstr "Sâmbătă"
+
+#: admin/views/class-avdp-availability-views.php:125
+msgid "Sunday"
+msgstr "Duminică"
+
+#: admin/views/class-avdp-availability-views.php:167
+msgid ""
+"Configure the start and end times for each day of the week. Uncheck the box "
+"to mark a day as closed."
+msgstr ""
+"Configurați orele de început și de sfârșit pentru fiecare zi a săptămânii. "
+"Debifați caseta pentru a marca o zi ca fiind închisă."
+
+#: admin/views/class-avdp-availability-views.php:171
+msgid "Scheduling"
+msgstr "Planificarea"
+
+#: admin/views/class-avdp-availability-views.php:174
+msgid "Slot interval (min)"
+msgstr "Interval (min)"
+
+#: admin/views/class-avdp-availability-views.php:178
+msgid "The duration of each time slot in minutes (e.g. 60)."
+msgstr "Durata fiecărui interval orar în minute (de exemplu, 60)."
+
+#: admin/views/class-avdp-availability-views.php:182
+msgid "Notice (min)"
+msgstr "Notificare (min)"
+
+#: admin/views/class-avdp-availability-views.php:186
+msgid ""
+"Minimum minutes required before a booking can be made (e.g. 24h = 1440 min)."
+msgstr ""
+"Minute minime necesare înainte de a putea face o rezervare (de exemplu, 24 "
+"de ore = 1440 de minute)."
+
+#: admin/views/class-avdp-availability-views.php:190
+msgid "Buffer before (min)"
+msgstr "Tampon înainte (min)"
+
+#: admin/views/class-avdp-availability-views.php:194
+msgid "Rest time to reserve before each appointment."
+msgstr "Timpul de odihnă trebuie rezervat înainte de fiecare programare."
+
+#: admin/views/class-avdp-availability-views.php:198
+msgid "Buffer after (min)"
+msgstr "Tampon după (min)"
+
+#: admin/views/class-avdp-availability-views.php:202
+msgid "Rest time to reserve after each appointment."
+msgstr "Repaus pentru a rezerva după fiecare programare."
+
+#: admin/views/class-avdp-availability-views.php:206
+msgid "Min Days"
+msgstr "Min. zile"
+
+#: admin/views/class-avdp-availability-views.php:210
+msgid "Minimum days per booking."
+msgstr "Numărul minim de zile per rezervare."
+
+#: admin/views/class-avdp-availability-views.php:214
+msgid "Max Days"
+msgstr "Număr maxim de zile"
+
+#: admin/views/class-avdp-availability-views.php:218
+msgid "Maximum days per booking."
+msgstr "Numărul maxim de zile per rezervare."
+
+#: admin/views/class-avdp-availability-views.php:222
+msgid "Min Duration (hrs)"
+msgstr "Durata minimă (ore)"
+
+#: admin/views/class-avdp-availability-views.php:226
+msgid "Minimum duration in hours."
+msgstr "Durata minimă în ore."
+
+#: admin/views/class-avdp-availability-views.php:230
+msgid "Max Duration (hrs)"
+msgstr "Durata maximă (ore)"
+
+#: admin/views/class-avdp-availability-views.php:234
+msgid "Maximum duration in hours."
+msgstr "Durata maximă în ore."
+
+#: admin/views/class-avdp-availability-views.php:241
+msgid "Custom availability"
+msgstr "Disponibilitate personalizată"
+
+#: admin/views/class-avdp-availability-views.php:245
+msgid "Unavailable Dates"
+msgstr "Date indisponibile"
+
+#: admin/views/class-avdp-availability-views.php:261
+#: admin/views/class-avdp-availability-views.php:299
+msgid "Add new"
+msgstr "Adăugare nou"
+
+#: admin/views/class-avdp-availability-views.php:266
+msgid "Select specific dates to block (e.g. holidays)."
+msgstr "Selectați anumite date pentru a le bloca (de exemplu, sărbători)."
+
+#: admin/views/class-avdp-availability-views.php:275
+msgid "Available Dates"
+msgstr "Nu există date disponibile"
+
+#: admin/views/class-avdp-availability-views.php:304
+msgid "Add extra availability for specific dates (e.g. overtime)."
+msgstr ""
+"Adaugă disponibilitate suplimentară pentru anumite date (de exemplu, ore "
+"suplimentare)."
+
+#: admin/views/class-avdp-availability-views.php:312
+#: admin/views/class-avdp-integration-views.php:216
+msgid "Save Changes"
+msgstr "Salvare modificări"
+
+#: admin/views/class-avdp-availability-views.php:314
+#: admin/views/class-avdp-integration-views.php:218
+#: admin/views/class-avdp-settings-views.php:365
+msgid "Reset to default"
+msgstr "Resetează implicit"
+
+#: admin/views/class-avdp-integration-views.php:25
+msgid "How to Use"
+msgstr "Cum se utilizează"
+
+#: admin/views/class-avdp-integration-views.php:27
+msgid "Copy the Class Name below."
+msgstr "Copiați numele clasei mai jos."
+
+#: admin/views/class-avdp-integration-views.php:28
+msgid "Go to your form builder (Contact Form 7, WPForms, Elementor, etc.)."
+msgstr ""
+"Accesați constructorul de formulare (Formular de contact 7, WPForms, "
+"Elementor etc.)."
+
+#: admin/views/class-avdp-integration-views.php:30
+msgid ""
+"Add the class name to the \"CSS Class\" or \"ID/Class\" setting of your text"
+" input field."
+msgstr ""
+"Adăugați numele clasei la setarea „CSS Class” sau „ID/Class” a câmpului de "
+"introducere a textului."
+
+#: admin/views/class-avdp-integration-views.php:32
+msgid "Save your form."
+msgstr "Salvați formularul."
+
+#: admin/views/class-avdp-integration-views.php:47
+#: admin/views/class-avdp-integration-views.php:55
+#: admin/views/class-avdp-integration-views.php:160
+#: admin/views/class-avdp-integration-views.php:168
+msgid "Single Field"
+msgstr "Singur câmp"
+
+#: admin/views/class-avdp-integration-views.php:49
+#: admin/views/class-avdp-integration-views.php:83
+#: admin/views/class-avdp-integration-views.php:132
+#: admin/views/class-avdp-integration-views.php:162
+#: admin/views/class-avdp-integration-views.php:186
+msgid "Separate Fields"
+msgstr "Câmpuri separate"
+
+#: admin/views/class-avdp-integration-views.php:58
+msgid "Start Date and Time"
+msgstr ""
+"Data și ora de început@ title: column, calendar event end date and time"
+
+#: admin/views/class-avdp-integration-views.php:64
+#: admin/views/class-avdp-integration-views.php:74
+#: admin/views/class-avdp-integration-views.php:92
+#: admin/views/class-avdp-integration-views.php:102
+#: admin/views/class-avdp-integration-views.php:112
+#: admin/views/class-avdp-integration-views.php:122
+#: admin/views/class-avdp-integration-views.php:141
+#: admin/views/class-avdp-integration-views.php:151
+#: admin/views/class-avdp-integration-views.php:177
+#: admin/views/class-avdp-integration-views.php:195
+#: admin/views/class-avdp-integration-views.php:205
+msgid "Copy"
+msgstr "Copiere"
+
+#: admin/views/class-avdp-integration-views.php:68
+msgid "End Date and Time"
+msgstr "Data și ora de sfârșit"
+
+#: admin/views/class-avdp-integration-views.php:86
+#: admin/views/class-avdp-integration-views.php:135
+msgid "Start Date"
+msgstr "Data de începere"
+
+#: admin/views/class-avdp-integration-views.php:96
+msgid "Start Time"
+msgstr "Timp de start"
+
+#: admin/views/class-avdp-integration-views.php:106
+#: admin/views/class-avdp-integration-views.php:145
+msgid "End Date"
+msgstr "Data de încheiere"
+
+#: admin/views/class-avdp-integration-views.php:116
+msgid "End Time"
+msgstr "End Time"
+
+#: admin/views/class-avdp-integration-views.php:171
+msgid "Date and Time"
+msgstr "Data si ora"
+
+#: admin/views/class-avdp-integration-views.php:189
+msgid "Date"
+msgstr "Data"
+
+#: admin/views/class-avdp-integration-views.php:199
+msgid "Time"
+msgstr "Timp"
+
+#: admin/views/class-avdp-settings-views.php:20
+msgid "Dash Separator"
+msgstr "Separator de bord"
+
+#: admin/views/class-avdp-settings-views.php:25
+msgid "Slash Separator"
+msgstr "Separator bară oblică"
+
+#: admin/views/class-avdp-settings-views.php:30
+msgid "Dot Separator"
+msgstr "Separator de puncte"
+
+#: admin/views/class-avdp-settings-views.php:35
+msgid "Space Separator"
+msgstr "Separator de spațiu"
+
+#: admin/views/class-avdp-settings-views.php:40
+msgid "No Separator"
+msgstr "Fara separator"
+
+#: admin/views/class-avdp-settings-views.php:45
+msgid "Month Abbreviation"
+msgstr "Abrevierea lunii"
+
+#: admin/views/class-avdp-settings-views.php:49
+msgid "Full Month"
+msgstr "Lună întreagă"
+
+#: admin/views/class-avdp-settings-views.php:57
+msgid "(24h)"
+msgstr "24h"
+
+#: admin/views/class-avdp-settings-views.php:58
+msgid "(12h am/pm)"
+msgstr "(12h am/pm)"
+
+#: admin/views/class-avdp-settings-views.php:59
+msgid "(12h AM/PM)"
+msgstr "(12h AM/PM)"
+
+#: admin/views/class-avdp-settings-views.php:89
+msgid "General"
+msgstr "Generalități"
+
+#: admin/views/class-avdp-settings-views.php:93
+msgid "Date Format"
+msgstr "Format dată"
+
+#: admin/views/class-avdp-settings-views.php:118
+msgid "Format for displaying dates (e.g. d/m/Y)."
+msgstr "Format pentru afișarea datelor (de exemplu, d/m/Y)."
+
+#: admin/views/class-avdp-settings-views.php:124
+msgid "Time Format"
+msgstr "Format oră"
+
+#: admin/views/class-avdp-settings-views.php:141
+msgid "Format for displaying times (12h/24h)."
+msgstr "Format pentru afișarea timpilor (12h/24h)."
+
+#: admin/views/class-avdp-settings-views.php:147
+msgid "Timezone"
+msgstr "Fusul orar"
+
+#: admin/views/class-avdp-settings-views.php:199
+msgid "Set the timezone for your availability."
+msgstr "Setează fusul orar pentru disponibilitatea ta."
+
+#: admin/views/class-avdp-settings-views.php:207
+msgid "Datepicker Library"
+msgstr "Bibliotecă selector de date"
+
+#: admin/views/class-avdp-settings-views.php:213
+msgid "Library"
+msgstr "Library"
+
+#: admin/views/class-avdp-settings-views.php:219
+msgid "XDsoft"
+msgstr "XDsoft"
+
+#: admin/views/class-avdp-settings-views.php:223
+msgid "Flatpickr (PRO)"
+msgstr "Flatpickr (PRO)"
+
+#: admin/views/class-avdp-settings-views.php:227
+msgid "Select the datepicker library (XDSoft recommended)."
+msgstr "Selectați biblioteca selectorului de date (se recomandă XDSoft)."
+
+#: admin/views/class-avdp-settings-views.php:235
+msgid "Language"
+msgstr "Limba"
+
+#: admin/views/class-avdp-settings-views.php:310
+msgid "Select the language for the datepicker interface."
+msgstr "Selectați limba pentru interfața selectorului de date."
+
+#: admin/views/class-avdp-settings-views.php:317
+msgid "Theme"
+msgstr "Temă"
+
+#: admin/views/class-avdp-settings-views.php:323
+msgid "Light"
+msgstr "Lumină"
+
+#: admin/views/class-avdp-settings-views.php:329
+msgid "Auto (System)"
+msgstr "Auto (Sistem)"
+
+#: admin/views/class-avdp-settings-views.php:333
+msgid "Color theme for the datepicker."
+msgstr "Temă de culoare pentru selectorul de date."
+
+#: admin/views/class-avdp-settings-views.php:341
+msgid "Display Method"
+msgstr "Metodă de afişare"
+
+#: admin/views/class-avdp-settings-views.php:347
+msgid "Dropdown (Default)"
+msgstr "Listă verticală (implicită)"
+
+#: admin/views/class-avdp-settings-views.php:350
+msgid "Inline (Always Visible)"
+msgstr "În linie (întotdeauna vizibil)"
+
+#: admin/views/class-avdp-settings-views.php:354
+msgid "Show as a dropdown or always visible."
+msgstr "Afișează ca listă verticală sau întotdeauna vizibilă."
+
+#: admin/views/class-avdp-settings-views.php:363
+msgid "Save Settings"
+msgstr "Salvați setările"
+
+#: admin/views/class-avdp-support-views.php:76
+msgid "Get Help"
+msgstr "Obțineți ajutor"
+
+#: admin/views/class-avdp-support-views.php:79
+#: admin/views/class-avdp-support-views.php:654
+msgid "Diagnostics"
+msgstr "Diagnostic"
+
+#: admin/views/class-avdp-support-views.php:85
+#: admin/views/class-avdp-support-views.php:118
+msgid "System Info"
+msgstr "Informații sistem"
+
+#: admin/views/class-avdp-support-views.php:88
+msgid "Custom Feature"
+msgstr "Caracteristică personalizată"
+
+#: admin/views/class-avdp-support-views.php:96
+msgid "Help & Support"
+msgstr "Suport"
+
+#: admin/views/class-avdp-support-views.php:97
+msgid ""
+"Check our documentation for guides or visit our support forum for "
+"assistance."
+msgstr ""
+"Consultați documentația noastră pentru ghiduri sau vizitați forumul nostru "
+"de asistență pentru asistență."
+
+#: admin/views/class-avdp-support-views.php:99
+msgid "View Documentation"
+msgstr "Vezi documentația"
+
+#: admin/views/class-avdp-support-views.php:100
+msgid "Get Support"
+msgstr "Primește asistență"
+
+#: admin/views/class-avdp-support-views.php:120
+msgid "Copy System Info"
+msgstr "Copierea informațiilor de sistem"
+
+#: admin/views/class-avdp-support-views.php:132
+msgid "System Environment"
+msgstr "Mediul sistemului"
+
+#: admin/views/class-avdp-support-views.php:143
+msgid "Browser"
+msgstr "Cerințe"
+
+#: admin/views/class-avdp-support-views.php:144
+#: admin/views/class-avdp-support-views.php:148
+msgid "Detecting..."
+msgstr "Se detectează..."
+
+#: admin/views/class-avdp-support-views.php:147
+msgid "Operating System"
+msgstr "Sistem de operare"
+
+#: admin/views/class-avdp-support-views.php:154
+msgid "Theme Info"
+msgstr "Informații despre temă"
+
+#: admin/views/class-avdp-support-views.php:167
+msgid "Active Plugins"
+msgstr "Module active"
+
+#: admin/views/class-avdp-support-views.php:179
+msgid "Availability Rules"
+msgstr "Reguli de disponibilitate"
+
+#: admin/views/class-avdp-support-views.php:187
+msgid "CSS Selectors"
+msgstr "Selectori CSS"
+
+#: admin/views/class-avdp-support-views.php:204
+msgid "General Settings"
+msgstr "Setări generale "
+
+#: admin/views/class-avdp-support-views.php:228
+msgid "Need a Custom Feature?"
+msgstr "Ai nevoie de o funcție personalizată?"
+
+#: admin/views/class-avdp-support-views.php:229
+msgid ""
+"Do you have a specific requirement that the plugin doesn't cover out of the "
+"box? We offer paid custom development services tailored to your exact needs."
+msgstr ""
+"Aveți o cerință specifică pe care plugin-ul nu o acoperă din cutie? Oferim "
+"servicii de dezvoltare personalizate plătite, adaptate nevoilor dvs. exacte."
+
+#: admin/views/class-avdp-support-views.php:231
+msgid "Request Custom Feature"
+msgstr "Solicită o caracteristică personalizată"
+
+#: admin/views/class-avdp-support-views.php:261
+msgid "Method"
+msgstr "Metodă"
+
+#: admin/views/class-avdp-support-views.php:267
+msgid "Weekly Hours"
+msgstr "Ore săptămânale"
+
+#: admin/views/class-avdp-support-views.php:282
+msgid "Time Settings"
+msgstr "Setări de timp"
+
+#: admin/views/class-avdp-support-views.php:286
+msgid "Slot Interval"
+msgstr "Interval de timp"
+
+#: admin/views/class-avdp-support-views.php:290
+msgid "Minimum Notice"
+msgstr "Preaviz minim "
+
+#: admin/views/class-avdp-support-views.php:294
+msgid "Buffer Before Slot"
+msgstr "Tampon înainte de slot"
+
+#: admin/views/class-avdp-support-views.php:298
+msgid "Buffer After Slot"
+msgstr "Tampon după slot"
+
+#: admin/views/class-avdp-support-views.php:304
+msgid "Min Bookable Days"
+msgstr "Numărul minim de zile care pot fi rezervate"
+
+#: admin/views/class-avdp-support-views.php:308
+msgid "Max Bookable Days"
+msgstr "Numărul maxim de zile care pot fi rezervate"
+
+#: admin/views/class-avdp-support-views.php:314
+msgid "Min Duration"
+msgstr "Durata min."
+
+#: admin/views/class-avdp-support-views.php:318
+msgid "Max Duration"
+msgstr "Durată maximă:"
+
+#: admin/views/class-avdp-support-views.php:325
+msgid "Booking Window"
+msgstr "Fereastra de rezervare"
+
+#: admin/views/class-avdp-support-views.php:328
+msgid "Opens"
+msgstr "Deschideri"
+
+#: admin/views/class-avdp-support-views.php:332
+msgid "Closes"
+msgstr "Închidere"
+
+#: admin/views/class-avdp-support-views.php:338
+msgid "Date Overrides"
+msgstr "Înlocuiri de dată"
+
+#: admin/views/class-avdp-support-views.php:341
+msgid "Blocked Dates"
+msgstr "Date blocate"
+
+#: admin/views/class-avdp-support-views.php:345
+msgid "Allowed Dates"
+msgstr "Date permise"
+
+#: admin/views/class-avdp-support-views.php:643
+msgid "Issues found"
+msgstr "Nu s-au găsit probleme!&#10;"
+
+#: admin/views/class-avdp-support-views.php:646
+msgid "Warnings"
+msgstr "Avertismente"
+
+#: admin/views/class-avdp-support-views.php:649
+msgid "All checks passed"
+msgstr "Toate verificările au trecut."
+
+#: admin/views/class-avdp-support-views.php:663
+msgid "All configuration checks passed."
+msgstr "Toate verificările de configurare au trecut."
+
+#: admin/views/class-avdp-support-views.php:675
+msgid "Last Frontend Session"
+msgstr "Ultima sesiune Frontend"
+
+#: admin/views/class-avdp-support-views.php:677
+msgid "Checking..."
+msgstr "Verific..."
+
+#: admin/views/class-avdp-support-views.php:694
+msgid "How to Report an Issue"
+msgstr "Cum să raportați o problemă"
+
+#: admin/views/class-avdp-support-views.php:695
+msgid ""
+"Select your issue type below to see exactly what to include in your support "
+"ticket."
+msgstr ""
+"Selectează tipul problemei de mai jos pentru a vedea exact ce trebuie să "
+"incluzi în tichetul de asistență."
+
+#: admin/views/class-avdp-support-views.php:698
+msgid "Datepicker not appearing on the page"
+msgstr "Selectorul de date nu apare pe pagină"
+
+#: admin/views/class-avdp-support-views.php:700
+msgid "The exact URL of the page where the datepicker is missing."
+msgstr "Adresa URL exactă a paginii în care lipsește selectorul de date."
+
+#: admin/views/class-avdp-support-views.php:701
+msgid ""
+"Open browser DevTools (F12 → Console tab) and copy any red error messages. "
+"Paste the full text, not a screenshot."
+msgstr ""
+"Deschideți browserul DevTools (fila → Consolă F12) și copiați mesajele de "
+"eroare roșii. Inserați textul integral, nu o captură de ecran."
+
+#: admin/views/class-avdp-support-views.php:702
+msgid ""
+"In DevTools → Network tab, reload the page and check whether avdp-public.js "
+"loads without a 404 error."
+msgstr ""
+"În fila DevTools → Network, reîncărcați pagina și verificați dacă avdp-"
+"public.js se încarcă fără o eroare 404."
+
+#: admin/views/class-avdp-support-views.php:703
+msgid ""
+"The form plugin or page builder you are using (e.g. Contact Form 7, WPForms,"
+" Elementor)."
+msgstr ""
+"Plugin-ul de formular sau constructorul de pagini pe care îl utilizați (de "
+"exemplu, Formularul de contact 7, WPForms, Elementor)."
+
+#: admin/views/class-avdp-support-views.php:704
+msgid ""
+"The exact CSS selector configured in Availability Datepicker → Integration "
+"(a screenshot is helpful)."
+msgstr ""
+"The exact CSS selector configured in Availability Datepicker → Integration "
+"(a screenshot is helpful)."
+
+#: admin/views/class-avdp-support-views.php:705
+msgid "Whether temporarily deactivating all other plugins resolves the issue."
+msgstr ""
+"Whether temporarily deactivating all other plugins resolves the issue."
+
+#: admin/views/class-avdp-support-views.php:710
+msgid "Wrong dates or times shown as available / unavailable"
+msgstr "Wrong dates or times shown as available / unavailable"
+
+#: admin/views/class-avdp-support-views.php:712
+msgid ""
+"The exact dates that behave unexpectedly, and whether they should be "
+"available or blocked."
+msgstr ""
+"The exact dates that behave unexpectedly, and whether they should be "
+"available or blocked."
+
+#: admin/views/class-avdp-support-views.php:713
+msgid "The day of the week those dates fall on."
+msgstr "The day of the week those dates fall on."
+
+#: admin/views/class-avdp-support-views.php:714
+msgid ""
+"Your browser's timezone (check your device clock settings or visit "
+"whatismytimezone.com)."
+msgstr ""
+"Your browser's timezone (check your device clock settings or visit "
+"whatismytimezone.com)."
+
+#: admin/views/class-avdp-support-views.php:715
+msgid ""
+"The availability method in use: Fixed / Day Based / Flexible (visible in "
+"Availability → Method)."
+msgstr ""
+"The availability method in use: Fixed / Day Based / Flexible (visible in "
+"Availability → Method)."
+
+#: admin/views/class-avdp-support-views.php:716
+msgid ""
+"Your Minimum Notice setting — this often causes upcoming dates to appear "
+"blocked unexpectedly."
+msgstr ""
+"Your Minimum Notice setting — this often causes upcoming dates to appear "
+"blocked unexpectedly."
+
+#: admin/views/class-avdp-support-views.php:717
+msgid "Screenshots of the datepicker showing the issue."
+msgstr "Screenshots of the datepicker showing the issue."
+
+#: admin/views/class-avdp-support-views.php:722
+msgid "JavaScript / console error"
+msgstr "JavaScript / console error"
+
+#: admin/views/class-avdp-support-views.php:724
+msgid ""
+"The full error text from the browser console (F12 → Console). Copy and paste"
+" the complete message including file name and line number — not a "
+"screenshot."
+msgstr ""
+"The full error text from the browser console (F12 → Console). Copy and paste"
+" the complete message including file name and line number — not a "
+"screenshot."
+
+#: admin/views/class-avdp-support-views.php:725
+msgid "The exact URL where the error occurs."
+msgstr "The exact URL where the error occurs."
+
+#: admin/views/class-avdp-support-views.php:726
+msgid ""
+"Your browser name and version (e.g. Chrome 121, Firefox 122, Safari 17)."
+msgstr ""
+"Your browser name and version (e.g. Chrome 121, Firefox 122, Safari 17)."
+
+#: admin/views/class-avdp-support-views.php:727
+msgid ""
+"Whether the error persists after temporarily deactivating all other plugins."
+msgstr ""
+"Whether the error persists after temporarily deactivating all other plugins."
+
+#: admin/views/class-avdp-support-views.php:728
+msgid ""
+"Whether the error persists after switching to a default WordPress theme "
+"(e.g. Twenty Twenty-Four)."
+msgstr ""
+"Whether the error persists after switching to a default WordPress theme "
+"(e.g. Twenty Twenty-Four)."
+
+#: admin/views/class-avdp-support-views.php:733
+msgid "Styling or display issue"
+msgstr "Styling or display issue"
+
+#: admin/views/class-avdp-support-views.php:735
+msgid "A screenshot clearly showing the issue."
+msgstr "A screenshot clearly showing the issue."
+
+#: admin/views/class-avdp-support-views.php:736
+msgid ""
+"Your browser name and version, and whether you are on a mobile or desktop "
+"device."
+msgstr ""
+"Your browser name and version, and whether you are on a mobile or desktop "
+"device."
+
+#: admin/views/class-avdp-support-views.php:737
+msgid "Whether the issue appears in all browsers or only specific ones."
+msgstr "Whether the issue appears in all browsers or only specific ones."
+
+#: admin/views/class-avdp-support-views.php:738
+msgid ""
+"Whether the datepicker is hidden behind other elements (z-index conflict) or"
+" is completely absent."
+msgstr ""
+"Whether the datepicker is hidden behind other elements (z-index conflict) or"
+" is completely absent."
+
+#: admin/views/class-avdp-support-views.php:739
+msgid ""
+"Whether temporarily switching to a default WordPress theme resolves the "
+"issue."
+msgstr ""
+"Whether temporarily switching to a default WordPress theme resolves the "
+"issue."
+
+#: admin/views/class-avdp-support-views.php:744
+msgid "Form submission issue (value not sent or wrong format)"
+msgstr "Form submission issue (value not sent or wrong format)"
+
+#: admin/views/class-avdp-support-views.php:746
+msgid ""
+"The form plugin you are using and its version (e.g. Contact Form 7 5.9, "
+"WPForms 1.8)."
+msgstr ""
+"The form plugin you are using and its version (e.g. Contact Form 7 5.9, "
+"WPForms 1.8)."
+
+#: admin/views/class-avdp-support-views.php:747
+msgid ""
+"How you added the CSS class to the form field — a screenshot of the field "
+"settings is very helpful."
+msgstr ""
+"How you added the CSS class to the form field — a screenshot of the field "
+"settings is very helpful."
+
+#: admin/views/class-avdp-support-views.php:748
+msgid ""
+"What value (if any) is actually being submitted — check the form "
+"confirmation email, admin notification, or entry log."
+msgstr ""
+"What value (if any) is actually being submitted — check the form "
+"confirmation email, admin notification, or entry log."
+
+#: admin/views/class-avdp-support-views.php:749
+msgid ""
+"Whether the datepicker shows the correct date before the form is submitted."
+msgstr ""
+"Whether the datepicker shows the correct date before the form is submitted."
+
+#: admin/views/class-avdp-support-views.php:750
+msgid ""
+"Whether any form validation script on your page might be clearing or "
+"blocking the field value."
+msgstr ""
+"Whether any form validation script on your page might be clearing or "
+"blocking the field value."
+
+#: admin/views/class-avdp-support-views.php:755
+msgid "Something broke after a plugin or theme update"
+msgstr "Something broke after a plugin or theme update"
+
+#: admin/views/class-avdp-support-views.php:757
+msgid ""
+"The version you updated from (check your hosting backup log or the plugin "
+"changelog on WordPress.org)."
+msgstr ""
+"The version you updated from (check your hosting backup log or the plugin "
+"changelog on WordPress.org)."
+
+#: admin/views/class-avdp-support-views.php:758
+msgid "Which plugin or theme was updated — not necessarily this one."
+msgstr "Which plugin or theme was updated — not necessarily this one."
+
+#: admin/views/class-avdp-support-views.php:759
+msgid ""
+"Whether clearing your site's cache (caching plugin + browser cache) resolved"
+" the issue."
+msgstr ""
+"Whether clearing your site's cache (caching plugin + browser cache) resolved"
+" the issue."
+
+#: admin/views/class-avdp-support-views.php:760
+msgid ""
+"Whether temporarily deactivating recently updated plugins restores the "
+"expected behaviour."
+msgstr ""
+"Whether temporarily deactivating recently updated plugins restores the "
+"expected behaviour."
+
+#: admin/views/class-avdp-support-views.php:761
+msgid "Any error messages from the browser console (F12 → Console)."
+msgstr "Any error messages from the browser console (F12 → Console)."
+
+#: admin/views/class-avdp-support-views.php:766
+msgid ""
+"Always include the System Info below in your support ticket — use the Copy "
+"System Info button to grab it in one click."
+msgstr ""
+"Always include the System Info below in your support ticket — use the Copy "
+"System Info button to grab it in one click."
+
+#: admin/views/class-avdp-support-views.php:915
+msgid "Enabled"
+msgstr "Enabled"
+
+#: admin/views/class-avdp-support-views.php:916
+msgid "Disabled"
+msgstr "Disabled"
+
+#: public/class-avdp-public.php:165
+msgid "Select Time"
+msgstr "Select Time"

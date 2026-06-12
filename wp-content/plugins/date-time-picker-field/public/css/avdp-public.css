@@ -1,0 +1,110 @@
+/**
+ * Public Styles for Availability Datepicker
+ *
+ * @package Availability_Datepicker
+ * @since 1.0.0
+ */
+
+/* Form Integration Styles */
+.avdp-cf7-form .avdp-datepicker-field,
+.avdp-wpforms-form .avdp-datepicker-field {
+    position: relative;
+}
+
+.avdp-datepicker-field input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.avdp-datepicker-field input:focus {
+    outline: none;
+    border-color: #0073aa;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+/* Loading State */
+.avdp-loading {
+    position: relative;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.avdp-loading::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #0073aa;
+    border-radius: 50%;
+    animation: avdp-spin 1s linear infinite;
+}
+
+@keyframes avdp-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error Messages */
+.avdp-error {
+    color: #d63638;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+/* Success Messages */
+.avdp-success {
+    color: #00a32a;
+    font-size: 13px;
+    margin-top: 5px;
+}
+
+/* Inline Datepicker Styles */
+.xdsoft_datetimepicker.xdsoft_inline {
+    display: inline-block !important;
+    position: static !important;
+    margin: 10px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: auto !important;
+    max-width: 100%;
+    vertical-align: top;
+}
+
+/* Clearfix for inline datepicker to contain floated children */
+.xdsoft_datetimepicker.xdsoft_inline::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Hide the input field when inline datepicker is being used */
+.avdp-inline-mode input.avdp-initialized {
+    display: none !important;
+}
+
+/* Wrapper to contain inline datepicker properly */
+.avdp-inline-wrapper {
+    display: block;
+    clear: both;
+}
+
+/* Container for inline datepicker - prevents layout disruption */
+.avdp-datepicker-field .xdsoft_datetimepicker.xdsoft_inline {
+    display: inline-block !important;
+}
+
+/* Ensure the datepicker container breaks to new line after form elements */
+.xdsoft_datetimepicker.xdsoft_inline+* {
+    clear: both;
+}

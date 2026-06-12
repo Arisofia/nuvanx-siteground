@@ -1,0 +1,73 @@
+********************************************************************************
+DUPLICATOR-LITE PACKAGE-LOG: 25/02/2026 09:39
+NOTICE: Do NOT post to public sites or forums 
+********************************************************************************
+VERSION:	1.5.15
+WORDPRESS:	6.9.1
+PHP INFO:	8.2.30 | SAPI: apache2handler
+SERVER:		Apache 
+PHP TIME LIMIT: (0) no time limit imposed 
+PHP MAX MEMORY: 4294967296 (768M default) 
+MEMORY STACK: 80MB
+
+********************************************************************************
+DATABASE:
+********************************************************************************
+BUILD MODE:   MYSQLDUMP
+MYSQLTIMEOUT: 5000
+MYSQLDUMP:    Is Supported
+SQL CREATED: 20260225_nuvanx_dae248a1444656704909_20260225093933_database.sql
+SQL FILE SIZE: 27.48MB (28817259)
+SQL FILE TIME: 2026-02-25 09:39:40
+SQL RUNTIME: 0.44 seg.
+
+********************************************************************************
+ARCHIVE (ZIP):
+********************************************************************************
+ARCHIVE DIR:  /home/customer/www/nuvanx.com/public_html
+ARCHIVE FILE: 20260225_nuvanx_dae248a1444656704909_20260225093933_archive.zip
+FILTERS: *OFF*
+DIRS:
+	not set
+FILES:
+	not set
+EXTS:  not set
+----------------------------------------
+COMPRESSING
+SIZE:	362.39MB
+STATS:	Dirs 2,757 | Files 15,714
+SQL ADDED: 20260225_nuvanx_dae248a1444656704909_20260225093933_database.sql
+ZipArchive Object
+(
+    [lastId] => 18470
+    [status] => 0
+    [statusSys] => 0
+    [numFiles] => 18471
+    [filename] => /home/customer/www/nuvanx.com/public_html/wp-content/backups-dup-lite/tmp/20260225_nuvanx_dae248a1444656704909_20260225093933_archive.zip
+    [comment] => 
+)
+
+FILE ADDED TO ZIP: 18470
+COMPRESSION RESULT: '1'
+COMPRESSED SIZE: 160.86MB
+ARCHIVE RUNTIME: 18.20 seg.
+MEMORY STACK: 86.52MB
+building installer
+PRUEBA DE CONSISTENCIA DEL ARCHIVO: SUPERADA
+
+********************************************************************************
+INTEGRITY CHECKS:
+********************************************************************************
+SQL FILE: 27.48MB
+INSTALLER FILE: 73.49KB
+ARCHIVE FILE: 162.99MB 
+RECUENTO ARCHIVOS/DIRECTORIOS ESPERADOS: 18,471
+RECUENTO ARCHIVOS/DIRECTORIOS ACTUALES: 18,470
+PRUEBA DE CONSISTENCIA DEL ARCHIVO: Superado
+
+********************************************************************************
+RECORD ID:[20]
+TOTAL PROCESS RUNTIME: 19.57 seg.
+PEAK PHP MEMORY USED: 90.52MB
+DONE PROCESSING => 20260225_nuvanx 25/02/2026 09:39
+

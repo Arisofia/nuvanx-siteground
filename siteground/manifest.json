@@ -1,0 +1,16 @@
+{
+  "project": "NUVANX",
+  "environment": "production",
+  "document_root": "/home/customer/www/nuvanx.com/public_html",
+  "wordpress_version": "7.0",
+  "active_theme": "nuvanx-medical",
+  "theme_version": "2026.07.13",
+  "php_version": "8.3",
+  "css_source_of_truth": "unminified",
+  "deploy_target": "wp-content/themes/nuvanx-medical",
+  "preview_target": "wp-content/themes/nuvanx-medical-wpvibe-draft",
+  "homepage_id": 9,
+  "posts_page_id": 16,
+  "form_portal_id": "147416356",
+  "form_id": "5042522a-0bc5-4381-ac3e-5aee8649b69c"
+}

@@ -1,0 +1,26 @@
+name: CSS Gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  css-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject legacy markers
+        run: |
+          THEME="wp-content/themes/nuvanx-medical"
+          if grep -RIn --include='*.css' '!important' "$THEME"; then
+            echo "ERROR: !important detectado"
+            exit 1
+          fi
+          if grep -RInE 'LEGACY|TREATMENT VISUAL BRIDGE|Migrado desde Custom CSS|CANONICAL BRAND REFINEMENTS' "$THEME"; then
+            echo "ERROR: marcador heredado detectado"
+            exit 1
+          fi
+          if grep -RInE 'Nvx_Editorial_Parser|class-nvx-editorial-parser|DOMDocument' "$THEME"; then
+            echo "ERROR: parser estructural rechazado"
+            exit 1
+          fi

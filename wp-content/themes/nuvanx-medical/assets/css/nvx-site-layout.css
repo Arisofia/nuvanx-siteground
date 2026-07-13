@@ -1,0 +1,17 @@
+.nvx-page-hero {
+    min-height: 0;
+    padding-block: clamp(120px, 12vw, 190px);
+}
+
+@media (max-width: 640px) {
+    .nvx-page-hero {
+        height: auto;
+        min-height: 0;
+        padding: 96px 0 72px;
+    }
+
+    .nvx-page-hero h1 {
+        font-size: clamp(42px, 13vw, 54px);
+        line-height: 1.02;
+    }
+}

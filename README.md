@@ -1,15 +1,16 @@
-# nuvanx-siteground
+# NUVANX repository
 
-Esta rama representa la fuente canónica del tema y los mu-plugins para el sitio NUVANX desplegado en SiteGround.
+This workspace is being reorganized into a canonical SiteGround deployment source.
 
-## Objetivo
-- Mantener un único tema canónico: wp-content/themes/nuvanx-medical
-- Separar la lógica de integración HubSpot y atribución en mu-plugins
-- Proveer un flujo reproducible para lint, validación CSS y despliegue
+## Current structure
+- [wp-content/themes/nuvanx-medical](wp-content/themes/nuvanx-medical): production theme directory currently present in the workspace.
+- [wp-content/mu-plugins](wp-content/mu-plugins): site-specific mu-plugins.
+- [tools/audit](tools/audit): read-only audit utilities.
+- [tools/deploy](tools/deploy): deployment helpers that must be reviewed before use.
+- [tools/migrations](tools/migrations): migration helpers and temporary scaffolding.
+- [docs](docs): operational and audit documentation.
+- [archive/NUVANX-AUDIT-raw](archive/NUVANX-AUDIT-raw): historical raw audit bundle preserved as-is.
 
-## Estructura principal
-- wp-content/themes/nuvanx-medical
-- wp-content/mu-plugins
-- scripts/
-- docs/
-- .github/workflows/
+## Safety note
+The historical audit bundle has been archived rather than treated as the canonical source of truth.
+The production baseline should be verified from the active WordPress installation and SiteGround environment before syncing.

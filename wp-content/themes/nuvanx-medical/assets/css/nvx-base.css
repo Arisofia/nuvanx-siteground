@@ -1,0 +1,35 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: var(--nvx-charcoal);
+    background: var(--nvx-ivory);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+.nvx-section {
+    position: relative;
+    padding-block: clamp(72px, 8vw, 128px);
+    background: transparent;
+    border: 0;
+}
+
+.nvx-container {
+    width: min(calc(100% - (2 * var(--nvx-gutter-desktop))), var(--nvx-shell));
+    margin-inline: auto;
+}
+
+@media (max-width: 1024px) {
+    .nvx-container {
+        width: calc(100% - (2 * var(--nvx-gutter-tablet)));
+    }
+}
+
+@media (max-width: 640px) {
+    .nvx-container {
+        width: calc(100% - (2 * var(--nvx-gutter-mobile)));
+    }
+}

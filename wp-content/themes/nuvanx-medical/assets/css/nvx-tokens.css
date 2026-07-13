@@ -1,0 +1,15 @@
+:root {
+    --nvx-black: #171717;
+    --nvx-charcoal: #2b2926;
+    --nvx-ivory: #f7f1e8;
+    --nvx-warm-beige: #e9ddcf;
+    --nvx-taupe: #cbbba8;
+    --nvx-gold: #b89a5b;
+
+    --nvx-gutter-desktop: 32px;
+    --nvx-gutter-tablet: 24px;
+    --nvx-gutter-mobile: 16px;
+
+    --nvx-shell: 1440px;
+    --nvx-readable: 760px;
+}

@@ -1,6 +1,51 @@
+# Secrets and environment
+wp-config.php
+.env
+.env.*
+*.pem
+*.key
+*.crt
 
-wp-content/upgrade/*
-wp-content/backup-db/*
-wp-content/cache/*
-wp-content/cache/supercache/*
-wp-content/w3tc-cache/*
+# Server-specific
+.htaccess
+php.ini
+.user.ini
+.well-known/
+
+# WordPress core
+wp-admin/
+wp-includes/
+wp-*.php
+index.php
+xmlrpc.php
+license.txt
+readme.html
+
+# Generated/runtime
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/backup-db/
+wp-content/ai1wm-backups/
+wp-content/updraft/
+wp-content/debug.log
+*.log
+*.sql
+*.sql.gz
+*.zip
+*.tar.gz
+
+# Third-party dependencies
+wp-content/plugins/*
+wp-content/themes/Divi/
+wp-content/themes/twenty*/
+
+# Track custom code
+!wp-content/plugins/
+!wp-content/themes/
+!wp-content/themes/nuvanx-medical/
+!wp-content/mu-plugins/
+
+# Existing runtime/cache entries
+wp-content/cache/supercache/
+wp-content/w3tc-cache/

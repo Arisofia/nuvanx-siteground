@@ -1,0 +1,15 @@
+name: PHP Lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  php-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint custom PHP
+        run: |
+          find wp-content/themes/nuvanx-medical wp-content/mu-plugins -type f -name '*.php' -print0 |
+          xargs -0 -n1 php -l

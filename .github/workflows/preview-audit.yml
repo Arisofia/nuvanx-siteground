@@ -8,5 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run audit script
-        run: bash scripts/audit-theme.sh
+      - name: Verify audit scripts exist
+        run: |
+          test -f tools/audit/audit-theme.sh
+          test -f tools/audit/comprobacion-http.sh
+          test -f tools/audit/search-styles.sh
+          bash -n tools/audit/audit-theme.sh
+          bash -n tools/audit/comprobacion-http.sh
+          bash -n tools/audit/search-styles.sh

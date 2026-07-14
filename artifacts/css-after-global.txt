@@ -1,0 +1,47 @@
+﻿CSS AFTER GLOBAL - 2026-07-14T08:36:17.3164617+02:00
+
+=== !important (0) ===
+
+=== border-top (4) ===
+nvx-site-layout.css:25:border-top: none;
+nvx-site-layout.css:119:/* Cards en page-body: flujo editorial (sin border-top ni cajas) */
+nvx-footer.css:10:border-top: 1px solid var(--nvx-border-footer);
+nvx-footer.css:151:border-top: 1px solid var(--nvx-border-footer);
+
+=== box-shadow (26) ===
+nvx-site-layout.css:129:/* removed box-shadow */
+nvx-header.css:36:box-shadow: none;
+nvx-header.css:250:/* box-shadow removed — editorial redesign */
+nvx-header.css:251:box-shadow: none;
+nvx-footer.css:136:/* box-shadow removed — editorial redesign */
+nvx-footer.css:137:box-shadow: none;
+nvx-components.css:23:transition: background var(--nvx-ease), color var(--nvx-ease), border-color var(--nvx-ease), transform var(--nvx-ease), box-shadow var(--nvx-ease);
+nvx-components.css:24:/* box-shadow removed — editorial redesign */
+nvx-components.css:25:box-shadow: none;
+nvx-components.css:44:box-shadow: none;
+nvx-components.css:52:/* box-shadow removed — editorial redesign */
+nvx-components.css:53:box-shadow: none;
+nvx-components.css:69:box-shadow: none;
+nvx-components.css:80:box-shadow: none;
+nvx-components.css:86:box-shadow: none;
+nvx-components.css:103:box-shadow: none;
+nvx-components.css:163:transition: background var(--nvx-ease), color var(--nvx-ease), border-color var(--nvx-ease), transform var(--nvx-ease), box-shadow var(--nvx-ease);
+nvx-components.css:164:/* box-shadow removed — editorial redesign */
+nvx-components.css:165:box-shadow: none;
+nvx-components.css:187:box-shadow: none;
+nvx-components.css:196:/* box-shadow removed — editorial redesign */
+nvx-components.css:197:box-shadow: none;
+nvx-components.css:344:/* box-shadow removed — editorial redesign */
+nvx-components.css:345:box-shadow: none;
+nvx-components.css:375:/* box-shadow removed — editorial redesign */
+nvx-components.css:376:box-shadow: none;
+
+=== backdrop-filter (2) ===
+nvx-header.css:35:backdrop-filter: none;
+nvx-components.css:102:backdrop-filter: none;
+
+=== min-height:\s*100vh (0) ===
+
+=== height:\s*100vh (0) ===
+
+=== LEGACY (0) ===

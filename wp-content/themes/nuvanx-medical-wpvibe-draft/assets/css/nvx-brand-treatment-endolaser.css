@@ -1,0 +1,75 @@
+/**
+ * NUVANX Brand Treatment — endolaser
+ * Posts 1241, 1200 · Page 2017.
+ */
+/* NUVANX Professional Lists */
+.nvx-brand-list{
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 2rem !important;
+  font-family: var(--nvx-font-body, 'Source Sans 3', sans-serif) !important;
+}
+
+.nvx-brand-list li{
+  position: relative !important;
+  padding-left: 1.75rem !important;
+  margin-bottom: 0.75rem !important;
+  line-height: 1.6 !important;
+  color: var(--nvx-text-body, #333333) !important;
+}
+
+.nvx-brand-list li::before{
+  content: "•" !important;
+  position: absolute !important;
+  left: 0.5rem !important;
+  top: 0 !important;
+  color: var(--nvx-primary, #0c2340) !important;
+  font-size: 1.5rem !important;
+  line-height: 1.1 !important;
+}
+
+ol.nvx-brand-list{
+  counter-reset: nvx-counter !important;
+}
+
+ol.nvx-brand-list li::before{
+  counter-increment: nvx-counter !important;
+  content: counter(nvx-counter) "." !important;
+  font-weight: 600 !important;
+  font-size: 1rem !important;
+  left: 0 !important;
+  top: 0.1rem !important;
+}
+
+/* [removed canonical brand refinements — editorial redesign 2026-07-14] */
+
+.nvx-brand-grid--2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 24px;
+}
+
+.nvx-brand-readable p::first-letter {
+	font-size: 1em;
+	float: none;
+	line-height: inherit;
+	margin: 0;
+}
+
+.nvx-brand-card {
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.nvx-brand-card:hover {
+	/* box-shadow removed — editorial redesign */
+	box-shadow: none;
+}
+
+/* NUVANX MOBILE SAFETY AFTER CANONICAL REFINEMENTS */
+@media (max-width: 767px) {
+	.nvx-brand-grid--2 {
+		grid-template-columns: 1fr;
+	}
+}
+

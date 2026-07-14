@@ -76,6 +76,7 @@
 
   /* --- Grid editorial --- */
   --nvx-grid-cols:       12;
+  --nvx-gutter:          clamp(16px, 2.5vw, 32px);
   --nvx-container:       100%;
   --nvx-container-text:  760px;    /* Ancho máximo para bloques de texto */
   --nvx-container-wide:  100%;

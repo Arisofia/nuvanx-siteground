@@ -1,0 +1,140 @@
+name: Ticket 43 Staging QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'SHA of the candidate commit to deploy'
+        required: true
+        default: 'a21853749d5222d4e342614896a02c53504c1b7c'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-and-qa:
+    name: Surgical Deployment and QA on Staging
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.target_sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Dependencies
+        working-directory: qa
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "Host *" > ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/config
+
+      - name: Execute Precheck and Backup
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST 'bash -e -s' << 'EOF'
+            echo "=== PRECHECK ==="
+            hostname
+            pwd
+            wp option get siteurl || true
+            wp option get home || true
+            wp theme list --status=active || true
+            wp core version || true
+            
+            THEME_DIR="/home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical"
+            cd "$THEME_DIR"
+            echo "--- Hashes Antes ---"
+            sha256sum assets/css/nvx-brand-home.css assets/css/nvx-brand-home.min.css functions.php header.php front-page.php footer.php
+            echo "--- Page 9 Hash ---"
+            wp post get 9 --field=post_content | sha256sum || true
+            
+            echo "=== BACKUP ==="
+            BACKUP_DIR="$HOME/nuvanx-backups/ticket43-staging-before-$(date +%Y%m%d-%H%M%S)"
+            mkdir -p "$BACKUP_DIR"
+            cp assets/css/nvx-brand-home.css "$BACKUP_DIR/"
+            cp assets/css/nvx-brand-home.min.css "$BACKUP_DIR/"
+            sha256sum assets/css/nvx-brand-home.css assets/css/nvx-brand-home.min.css > "$BACKUP_DIR/hashes-before.txt"
+            wp theme list --status=active > "$BACKUP_DIR/theme-status.txt" || true
+            echo "Backup creado en $BACKUP_DIR"
+          EOF
+
+      - name: Transfer CSS files
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          scp -P $SSH_PORT wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css $SSH_USER@$SSH_HOST:/home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical/assets/css/
+          scp -P $SSH_PORT wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css $SSH_USER@$SSH_HOST:/home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical/assets/css/
+
+      - name: Validate Hashes and State
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          SHA_CSS=$(sha256sum wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css | awk '{print $1}')
+          SHA_MIN=$(sha256sum wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css | awk '{print $1}')
+          
+          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST 'bash -e -s' << EOF
+            cd /home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical
+            REMOTE_CSS=\$(sha256sum assets/css/nvx-brand-home.css | awk '{print \$1}')
+            REMOTE_MIN=\$(sha256sum assets/css/nvx-brand-home.min.css | awk '{print \$1}')
+            
+            if [ "\$REMOTE_CSS" != "$SHA_CSS" ]; then echo "ERROR: Hash mismatch for css"; exit 1; fi
+            if [ "\$REMOTE_MIN" != "$SHA_MIN" ]; then echo "ERROR: Hash mismatch for min css"; exit 1; fi
+            
+            echo "=== CONFIRMING INTEGRITY ==="
+            sha256sum functions.php header.php front-page.php footer.php
+            wp post get 9 --field=post_content | sha256sum || true
+            echo "Integrity check passed."
+          EOF
+
+      - name: QA First Control (Home Only)
+        working-directory: qa
+        env:
+          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+          STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+          STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
+        run: npx playwright test ticket43.spec.js -g "home" --project=chromium
+
+      - name: QA Full Matrix
+        working-directory: qa
+        env:
+          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+          STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+          STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
+        run: npx playwright test ticket43.spec.js
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-evidence
+          path: |
+            qa/results/
+            qa/screenshots/
+            qa/playwright-report/
+          retention-days: 7

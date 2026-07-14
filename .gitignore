@@ -65,3 +65,5 @@ artifacts/capture-treatment-pages.js
 
 # Theme runtime logs (after draft theme track exception)
 wp-content/themes/nuvanx-medical-wpvibe-draft/php_errorlog
+php_errorlog
+*.log

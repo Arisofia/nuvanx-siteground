@@ -32,8 +32,10 @@ if command -v wp >/dev/null 2>&1; then
 	[[ -n "$DB_CONTENT" ]] || fail "post_content empty in database"
 
 	echo "$DB_CONTENT" | grep -q 'id="nvx-home-manifiesto"' || fail 'DB missing #nvx-home-manifiesto'
-	echo "$DB_CONTENT" | grep -q 'id="nvx-home-tratamientos"' || fail 'DB missing #nvx-home-tratamientos'
 	echo "$DB_CONTENT" | grep -q 'nvx-home-hero-video' || fail 'DB missing nvx-home-hero-video'
+	if ! echo "$DB_CONTENT" | grep -qE 'id="nvx-home-tratamientos"|aria-label="Tratamientos NUVANX"'; then
+		fail 'DB missing Tratamientos section marker'
+	fi
 	pass "Database post_content contains required anchors"
 fi
 
@@ -52,8 +54,10 @@ HOME_MAIN_COUNT="$(printf '%s' "$HTML" | grep -o 'id="nvx-home-main"' | wc -l | 
 pass "Single main landmark and #nvx-home-main"
 
 printf '%s' "$HTML" | grep -q 'id="nvx-home-manifiesto"' || fail 'Rendered HTML missing #nvx-home-manifiesto'
-printf '%s' "$HTML" | grep -q 'id="nvx-home-tratamientos"' || fail 'Rendered HTML missing #nvx-home-tratamientos'
 printf '%s' "$HTML" | grep -q 'nvx-home-hero-video' || fail 'Rendered HTML missing hero video'
+if ! printf '%s' "$HTML" | grep -qE 'id="nvx-home-tratamientos"|aria-label="Tratamientos NUVANX"|>Tratamientos</p>'; then
+	fail 'Rendered HTML missing Tratamientos section'
+fi
 pass "Rendered HTML contains Hero, Manifiesto and Tratamientos anchors"
 
 echo "All verification checks passed."

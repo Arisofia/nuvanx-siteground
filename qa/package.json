@@ -1,0 +1,12 @@
+{
+  "name": "nuvanx-qa",
+  "version": "1.0.0",
+  "description": "QA tests for Nuvanx Medical",
+  "scripts": {
+    "test:home": "npx playwright test ticket43.spec.js --project=chromium",
+    "test:all": "npx playwright test ticket43.spec.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0"
+  }
+}

@@ -7,7 +7,7 @@ THEME_CSS="${NUVX_THEME_CSS:-wp-content/themes/nuvanx-medical/assets/css}"
 POST_ID="${NUVX_POST_ID:-9}"
 BASIC_USER="${NUVX_BASIC_USER:-${STAGING_BASIC_USER:-}}"
 BASIC_PASS="${NUVX_BASIC_PASS:-${STAGING_BASIC_PASSWORD:-}}"
-VIDEO_PATH="${NUVX_HERO_VIDEO_PATH:-/wp-content/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4}"
+VIDEO_PATH="${NUVX_HERO_VIDEO_PATH:-wp-content/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4}"
 
 fail() {
 	echo "VERIFY FAIL: $1" >&2

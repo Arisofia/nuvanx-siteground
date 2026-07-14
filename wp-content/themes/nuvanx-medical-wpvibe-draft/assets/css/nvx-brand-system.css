@@ -1158,3 +1158,217 @@ ol.nvx-brand-list li::before {
 	}
 }
 
+/* ══════════════════════════════════════════════════════════════
+   EDITORIAL TRATAMIENTOS — 2026-07-14
+   Página /tratamientos/ · filas editoriales · hero split
+   ══════════════════════════════════════════════════════════════ */
+
+.nvx-brand-page--tratamientos {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-section {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-top: none;
+	padding-block: clamp(48px, 6vw, 80px);
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-section--soft {
+	background: var(--nvx-warm-beige, #E9DDCF);
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-section__inner {
+	width: 100%;
+	max-width: var(--nvx-shell, 1180px);
+	margin-inline: auto;
+	padding-inline: var(--nvx-gutter, 32px);
+	box-sizing: border-box;
+}
+
+/* Hero split */
+.nvx-brand-page--tratamientos .nvx-brand-hero--medical {
+	background: var(--nvx-ivory, #F7F1E8);
+	padding: clamp(40px, 5vw, 72px) 0;
+	min-height: auto;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-hero--medical .nvx-brand-hero__inner {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: clamp(24px, 4vw, 48px);
+	align-items: center;
+	max-width: var(--nvx-shell, 1180px);
+	margin-inline: auto;
+	padding-inline: var(--nvx-gutter, 32px);
+	box-sizing: border-box;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-hero__title {
+	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+	font-size: clamp(2.5rem, 4.5vw, 4.5rem);
+	line-height: 1.04;
+	letter-spacing: -0.03em;
+	color: var(--nvx-black, #171717);
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-hero__lead,
+.nvx-brand-page--tratamientos .nvx-brand-subtitle {
+	color: var(--nvx-charcoal, #2B2926);
+	text-transform: none;
+	letter-spacing: normal;
+	line-height: 1.65;
+	max-width: 58ch;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-meta {
+	font-size: 0.8125rem;
+	color: var(--nvx-text-muted, rgba(43, 41, 38, 0.68));
+	margin-top: 1rem;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-hero__media {
+	margin: 0;
+	border-radius: 0;
+	overflow: hidden;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-hero__media img {
+	display: block;
+	width: 100%;
+	height: auto;
+	min-height: clamp(320px, 40vw, 480px);
+	object-fit: cover;
+	border-radius: 0;
+	box-shadow: none;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-hero__media figcaption {
+	margin-top: 0.75rem;
+	font-size: 0.8125rem;
+	color: var(--nvx-text-muted, rgba(43, 41, 38, 0.68));
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 1.5rem;
+}
+
+/* Catálogo: filas editoriales */
+.nvx-brand-page--tratamientos #tratamientos .nvx-brand-grid--3 {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	margin-top: clamp(32px, 4vw, 48px);
+}
+
+.nvx-brand-page--tratamientos #tratamientos .nvx-brand-card {
+	padding: clamp(28px, 3vw, 40px) 0;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	min-height: 0;
+	transform: none;
+}
+
+.nvx-brand-page--tratamientos #tratamientos .nvx-brand-card::before {
+	display: none;
+}
+
+.nvx-brand-page--tratamientos #tratamientos .nvx-brand-card:hover {
+	transform: none;
+	box-shadow: none;
+	border-color: var(--nvx-taupe, #CBBBA8);
+}
+
+.nvx-brand-page--tratamientos #tratamientos .nvx-brand-card__link {
+	display: grid;
+	grid-template-columns: minmax(120px, 0.22fr) minmax(0, 1fr);
+	gap: clamp(16px, 2vw, 32px);
+	align-items: start;
+}
+
+.nvx-brand-page--tratamientos #tratamientos .nvx-brand-card__kicker {
+	color: var(--nvx-gold, #B89A5B);
+	margin: 0;
+}
+
+.nvx-brand-page--tratamientos #tratamientos .nvx-brand-card__title {
+	font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+	margin-bottom: 0.4em;
+}
+
+.nvx-brand-page--tratamientos #tratamientos .nvx-brand-card__cta {
+	margin-top: 1rem;
+	color: var(--nvx-black, #171717);
+}
+
+/* Colaboradores: rejilla plana de logos */
+.nvx-brand-page--tratamientos .nvx-brand-collaborators .nvx-brand-grid--3,
+.nvx-brand-page--tratamientos .nvx-brand-collaborators .nvx-brand-grid--logos {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: clamp(24px, 3vw, 40px);
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-collaborators .nvx-brand-card {
+	padding: 0 0 clamp(24px, 3vw, 32px);
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-collaborators .nvx-brand-card__media {
+	margin-bottom: 1rem;
+	border-radius: 0;
+	background: transparent;
+	border: none;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-collaborators .nvx-brand-card__media img {
+	border-radius: 0;
+	box-shadow: none;
+	object-fit: contain;
+	max-height: 80px;
+}
+
+/* Botones */
+.nvx-brand-page--tratamientos .nvx-brand-btn {
+	border-radius: 0;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-btn::after {
+	display: none;
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-btn--primary {
+	background: var(--nvx-black, #171717);
+	border-color: var(--nvx-black, #171717);
+}
+
+.nvx-brand-page--tratamientos .nvx-brand-btn--secondary {
+	background: transparent;
+	border-color: var(--nvx-black, #171717);
+	color: var(--nvx-black, #171717);
+}
+
+@media (max-width: 980px) {
+	.nvx-brand-page--tratamientos .nvx-brand-hero--medical .nvx-brand-hero__inner {
+		grid-template-columns: 1fr;
+	}
+
+	.nvx-brand-page--tratamientos #tratamientos .nvx-brand-card__link {
+		grid-template-columns: 1fr;
+	}
+
+	.nvx-brand-page--tratamientos .nvx-brand-collaborators .nvx-brand-grid--3,
+	.nvx-brand-page--tratamientos .nvx-brand-collaborators .nvx-brand-grid--logos {
+		grid-template-columns: 1fr;
+	}
+}
+

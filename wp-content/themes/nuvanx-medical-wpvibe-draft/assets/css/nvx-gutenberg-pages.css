@@ -7,14 +7,31 @@
   background: transparent;
 }
 
+/* Legacy índice tratamientos (markup antiguo) — filas editoriales */
+.nvx-tratamientos-index {
+  background: var(--nvx-ivory, #F7F1E8);
+}
+
 .nvx-tratamientos-index .nvx-tratamientos-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   margin-top: clamp(24px, 3vw, 36px);
+}
+
+.nvx-tratamientos-index .nvx-tratamientos-grid .nvx-card {
+  padding: clamp(24px, 3vw, 36px) 0;
+  border: none;
+  border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .nvx-tratamientos-index .nvx-tratamientos-grid .nvx-card h3 {
   font-family: var(--nvx-serif);
   font-weight: 400;
-  font-size: clamp(1.25rem, 2vw, 1.625rem);
+  font-size: clamp(1.35rem, 2vw, 2rem);
   margin: 0 0 0.5em;
 }
 

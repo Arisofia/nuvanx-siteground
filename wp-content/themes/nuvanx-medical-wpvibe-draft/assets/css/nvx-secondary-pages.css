@@ -925,3 +925,102 @@ body.page-id-2636.nvx-unified-shell .nvx-valoracion-page .nvx-contact-card {
     font-size: clamp(2.25rem, 9vw, 3.25rem);
   }
 }
+
+/* Vence nvx-fluid-organic-2026 — page 14 */
+body.page-id-14,
+body.page-id-14 .entry-content {
+  background: var(--nvx-ivory, #F7F1E8);
+  color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-card,
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-contact-card,
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-contact-side,
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-location-map-card {
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+  box-shadow: none;
+  transform: none;
+  padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-card:hover,
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-contact-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-page-hero {
+  background: var(--nvx-ivory, #F7F1E8);
+  border-bottom: none;
+  min-height: auto;
+}
+
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-page-hero__inner {
+  min-height: auto;
+}
+
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page a.nvx-btn-primary,
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page a.nvx-button--primary,
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-btn,
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-btn-secondary {
+  border-radius: 0;
+}
+
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-hubspot-native-form-v2,
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-hs-native-box,
+body.page-id-14.nvx-unified-shell:not(.home) .nvx-contacto-page .nvx-form {
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Vence nvx-fluid-organic-2026 — page 2636 */
+body.page-id-2636,
+body.page-id-2636 .entry-content {
+  background: var(--nvx-ivory, #F7F1E8);
+  color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-card,
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-contact-card,
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-contact-side {
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+  box-shadow: none;
+  transform: none;
+  padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-card:hover,
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-contact-card:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-page-hero {
+  background: var(--nvx-ivory, #F7F1E8);
+  border-bottom: none;
+  min-height: auto;
+}
+
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-page-hero__inner {
+  min-height: auto;
+}
+
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page a.nvx-btn-primary,
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page a.nvx-button--primary,
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-btn,
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-btn-secondary {
+  border-radius: 0;
+}
+
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-hubspot-native-form-v2,
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-hs-native-box,
+body.page-id-2636.nvx-unified-shell:not(.home) .nvx-valoracion-page .nvx-form {
+  border-radius: 0;
+  background: transparent;
+}

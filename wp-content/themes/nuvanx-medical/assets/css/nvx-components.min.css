@@ -1,0 +1,437 @@
+/* NUVANX Medical Theme — Buttons, cards, effects */
+
+/* Buttons */
+.nvx-btn,
+button.nvx-btn,
+a.nvx-btn,
+input[type="submit"].nvx-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 15px 28px;
+  font-family: var(--nvx-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: var(--nvx-radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--nvx-ease), color var(--nvx-ease), border-color var(--nvx-ease), transform var(--nvx-ease), box-shadow var(--nvx-ease);
+  box-shadow: var(--nvx-shadow-min);
+  max-width: 100%;
+}
+
+.nvx-btn--primary,
+.nvx-btn-primary,
+.nvx-btn--dark {
+  background: var(--nvx-black);
+  color: #FFFFFF;
+  border-color: var(--nvx-black);
+}
+
+.nvx-btn--primary:hover,
+.nvx-btn-primary:hover,
+.nvx-btn--dark:hover {
+  background: var(--nvx-charcoal);
+  border-color: var(--nvx-charcoal);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: var(--nvx-shadow-soft);
+}
+
+.nvx-btn--secondary,
+.nvx-btn-secondary {
+  background: transparent;
+  color: var(--nvx-charcoal);
+  border-color: var(--nvx-border-strong);
+  box-shadow: none;
+}
+
+.nvx-btn--secondary:hover,
+.nvx-btn-secondary:hover {
+  background: var(--nvx-stone-hover);
+  border-color: var(--nvx-accent);
+  color: var(--nvx-black);
+}
+
+/* Cards */
+.nvx-card {
+  background: var(--nvx-soft-white);
+  border: 1px solid var(--nvx-border-strong);
+  border-radius: var(--nvx-radius-lg);
+  padding: clamp(22px, 3vw, 36px);
+  box-shadow: var(--nvx-shadow-soft);
+  transition: transform var(--nvx-ease), box-shadow var(--nvx-ease), border-color var(--nvx-ease);
+}
+
+.nvx-card--ivory {
+  background: var(--nvx-ivory);
+}
+
+.nvx-card--secondary {
+  background: var(--nvx-soft-white);
+  border-color: var(--nvx-border-soft);
+  box-shadow: var(--nvx-shadow-min);
+  padding: clamp(18px, 2.5vw, 28px);
+}
+
+.nvx-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--nvx-shadow-medium);
+  border-color: var(--nvx-accent);
+}
+
+.nvx-card__num {
+  font-family: var(--nvx-serif);
+  font-size: 1.5rem;
+  color: var(--nvx-accent);
+  line-height: 1;
+}
+
+/* Frosted glass — decorative only */
+.nvx-frosted {
+  background: var(--nvx-frosted-white);
+  border: 1px solid var(--nvx-border-soft);
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+  box-shadow: var(--nvx-shadow-soft);
+}
+
+.nvx-frosted-soft {
+  background: var(--nvx-frosted-ivory);
+  border: 1px solid var(--nvx-border-soft);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Watermarks — never over readable text */
+.nvx-watermark {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.045;
+  color: var(--nvx-charcoal);
+  font-family: var(--nvx-serif);
+  font-size: clamp(120px, 18vw, 260px);
+  line-height: 1;
+  z-index: 0;
+}
+
+.nvx-watermark-lineart {
+  opacity: 0.06;
+  stroke: var(--nvx-charcoal);
+  fill: none;
+  stroke-width: 1;
+}
+
+/* Accent lines — micro-detail only */
+.nvx-accent-line {
+  display: block;
+  width: 48px;
+  height: 1px;
+  background: var(--nvx-accent);
+  margin-bottom: 1rem;
+}
+
+/* Section flow */
+.nvx-section + .nvx-section--stone,
+.nvx-section--soft + .nvx-section--ivory {
+  margin-top: 0;
+}
+
+/* ══ Phase 3 — Unified components + aliases ══ */
+
+/* Buttons: nvx-button aliases nvx-btn */
+.nvx-button,
+button.nvx-button,
+a.nvx-button,
+input[type="submit"].nvx-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 15px 28px;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-button);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: var(--nvx-radius-button);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background var(--nvx-ease), color var(--nvx-ease), border-color var(--nvx-ease), transform var(--nvx-ease), box-shadow var(--nvx-ease);
+  box-shadow: var(--nvx-shadow-min);
+  max-width: 100%;
+}
+
+.nvx-button--primary,
+.nvx-btn--primary,
+.nvx-btn-primary,
+a.nvx-button--primary,
+a.nvx-btn-primary,
+button.nvx-button--primary {
+  background: var(--nvx-ink);
+  color: var(--nvx-white);
+  border-color: var(--nvx-ink);
+}
+
+.nvx-button--primary:hover,
+.nvx-btn--primary:hover,
+.nvx-btn-primary:hover {
+  background: var(--nvx-charcoal);
+  border-color: var(--nvx-charcoal);
+  color: var(--nvx-white);
+  transform: translateY(-1px);
+  box-shadow: var(--nvx-shadow-soft);
+}
+
+.nvx-button--secondary,
+.nvx-btn--secondary,
+.nvx-btn-secondary {
+  background: transparent;
+  color: var(--nvx-charcoal);
+  border-color: var(--nvx-border-strong);
+  box-shadow: none;
+}
+
+.nvx-button--secondary:hover,
+.nvx-btn--secondary:hover,
+.nvx-btn-secondary:hover {
+  background: var(--nvx-stone-hover);
+  border-color: var(--nvx-champagne);
+  color: var(--nvx-ink);
+}
+
+/* Cards */
+.nvx-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.nvx-card__media {
+  margin: 0 0 var(--space-4);
+  overflow: hidden;
+  border-radius: var(--nvx-radius-image);
+}
+
+.nvx-card__media img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  aspect-ratio: 4 / 3;
+}
+
+.nvx-card--cta {
+  padding: clamp(var(--space-6), 4vw, var(--space-7));
+  background: var(--nvx-ivory);
+  border-color: var(--nvx-taupe);
+}
+
+/* FAQ — accessible accordion */
+.nvx-faq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.nvx-faq details {
+  border: 1px solid var(--nvx-border-soft);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-white);
+  padding: var(--space-4) var(--space-5);
+}
+
+.nvx-faq details + details {
+  margin-top: 0;
+}
+
+.nvx-faq summary {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  font-weight: 500;
+  color: var(--nvx-charcoal);
+  cursor: pointer;
+  list-style: none;
+  padding-right: var(--space-6);
+  position: relative;
+}
+
+.nvx-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.nvx-faq summary::after {
+  content: "+";
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 1.25rem;
+  color: var(--nvx-champagne);
+  line-height: 1;
+}
+
+.nvx-faq details[open] summary::after {
+  content: "−";
+}
+
+.nvx-faq details p {
+  margin: var(--space-4) 0 0;
+}
+
+/* Location cards */
+.nvx-location__card .nvx-button,
+.nvx-location__card .nvx-btn {
+  margin-top: var(--space-4);
+}
+
+.nvx-location__maps {
+  margin-top: var(--space-4);
+}
+
+/* Image roles */
+.nvx-img-hero {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  object-fit: cover;
+  border-radius: var(--nvx-radius-image);
+}
+
+.nvx-img-treatment {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  border-radius: var(--nvx-radius-image);
+}
+
+.nvx-img-team {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--nvx-radius-image);
+}
+
+.nvx-img-result {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--nvx-radius-image);
+}
+/* =====================================================
+   FOCUS VISIBLE — Accesibilidad WCAG 2.4.7
+   ===================================================== */
+
+/* Foco global — todos los elementos interactivos */
+:focus-visible {
+  outline: 3px solid var(--nvx-champagne, #B89A5B);
+  outline-offset: 3px;
+  border-radius: var(--nvx-radius-sm, 4px);
+}
+
+/* Botones primarios — foco en champagne claro para contraste */
+.nvx-btn:focus-visible,
+.nvx-btn-primary:focus-visible,
+.nvx-btn--primary:focus-visible,
+.nvx-btn--dark:focus-visible {
+  outline: 3px solid #F5D78E;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgba(184, 154, 91, 0.25);
+}
+
+/* Botones secundarios */
+.nvx-btn--secondary:focus-visible,
+.nvx-btn-secondary:focus-visible {
+  outline: 3px solid var(--nvx-champagne, #B89A5B);
+  outline-offset: 3px;
+}
+
+/* Menú de navegación */
+.nvx-main-navigation a:focus-visible {
+  outline: 2px solid var(--nvx-champagne, #B89A5B);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* FAQ <details>/<summary> — navegable por teclado */
+details summary:focus-visible {
+  outline: 3px solid var(--nvx-champagne, #B89A5B);
+  outline-offset: 2px;
+  border-radius: var(--nvx-radius-sm, 4px);
+}
+
+/* Inputs y controles de formulario */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--nvx-champagne, #B89A5B);
+  outline-offset: 1px;
+  box-shadow: 0 0 0 4px rgba(184, 154, 91, 0.15);
+}
+
+/* Links de contenido */
+a:focus-visible {
+  outline: 2px solid var(--nvx-champagne, #B89A5B);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Menú hamburguesa móvil */
+.nvx-menu-toggle:focus-visible {
+  outline: 3px solid var(--nvx-champagne, #B89A5B);
+  outline-offset: 3px;
+  border-radius: var(--nvx-radius-sm, 4px);
+}
+
+
+/* NUVANX Professional Lists — shared component */
+.nvx-brand-list {
+  margin: 1.5rem 0 2rem;
+  padding-left: 0;
+  list-style: none;
+  font-family: var(--nvx-sans);
+}
+
+.nvx-brand-list li {
+  position: relative;
+  margin-bottom: 0.75rem;
+  padding-left: 1.75rem;
+  color: var(--nvx-text-body);
+  line-height: 1.6;
+}
+
+ul.nvx-brand-list li::before {
+  content: "•";
+  position: absolute;
+  top: 0;
+  left: 0.5rem;
+  color: var(--nvx-accent);
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+ol.nvx-brand-list {
+  counter-reset: nvx-list-counter;
+}
+
+ol.nvx-brand-list li {
+  counter-increment: nvx-list-counter;
+}
+
+ol.nvx-brand-list li::before {
+  content: counter(nvx-list-counter) ".";
+  position: absolute;
+  top: 0.08rem;
+  left: 0;
+  color: var(--nvx-accent);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+}

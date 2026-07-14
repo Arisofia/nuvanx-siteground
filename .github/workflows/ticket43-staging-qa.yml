@@ -54,13 +54,15 @@ jobs:
           git fetch origin master
           git fetch origin "$TARGET" || { echo "ERROR: SHA does not exist"; exit 1; }
 
-          if ! git merge-base --is-ancestor "$TARGET" origin/master; then
-            echo "ERROR: SHA does not descend from master"
+          MERGE_BASE="$(git merge-base origin/master "$TARGET")"
+          if [ -z "$MERGE_BASE" ]; then
+            echo "ERROR: Candidate SHA shares no history with master"
             exit 1
           fi
+          echo "Merge base with master: $MERGE_BASE"
 
           printf '%s\n' "${{ env.CANDIDATE_ALLOWLIST }}" | sed '/^$/d' > allowlist.txt
-          git diff --name-only origin/master..."$TARGET" > diff.txt
+          git diff --name-only "$MERGE_BASE"..."$TARGET" > diff.txt
 
           echo "Changed files in candidate:"
           cat diff.txt

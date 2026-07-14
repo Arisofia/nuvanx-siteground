@@ -236,22 +236,21 @@ jobs:
           node-version: '20'
 
       - name: Install Playwright and Run Home Visual QA
-        if: success() && secrets.STAGING_BASIC_USER != '' && secrets.STAGING_BASIC_PASSWORD != ''
+        if: success()
         env:
           STAGING_BASE_URL: ${{ env.STAGING_BASE_URL }}
           STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
           STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
         run: |
+          if [[ -z "${STAGING_BASIC_USER}" || -z "${STAGING_BASIC_PASSWORD}" ]]; then
+            echo "VERIFY SKIP: STAGING_BASIC_USER/PASSWORD not configured in environment staging."
+            echo "Deploy and server-side verification completed; visual screenshots require basic auth secrets."
+            exit 0
+          fi
           npm init -y >/dev/null 2>&1
           npm install --no-save @playwright/test@1.49.1
           npx playwright install chromium
           npx playwright test -c qa/playwright.config.js
-
-      - name: Skip Playwright (missing basic auth secrets)
-        if: success() && (secrets.STAGING_BASIC_USER == '' || secrets.STAGING_BASIC_PASSWORD == '')
-        run: |
-          echo "VERIFY SKIP: STAGING_BASIC_USER/PASSWORD not configured in environment staging."
-          echo "Deploy and server-side verification completed; visual screenshots require basic auth secrets."
 
       - name: Rollback on Failure
         if: failure() && steps.backup.outcome == 'success' && steps.verify.outcome == 'failure'

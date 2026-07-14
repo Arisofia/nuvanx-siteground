@@ -3114,3 +3114,87 @@ body.page-id-577 .nvx-legal-page a {
 	}
 }
 
+/* ══════════════════════════════════════════════════════════════
+   EDITORIAL GRACIAS — 2026-07-14 · page 78
+   nvx-gracias-page · marfil · confirmación centrada
+   ══════════════════════════════════════════════════════════════ */
+
+body.page-id-78 .nvx-gracias-page {
+	width: 100%;
+	max-width: var(--nvx-shell, 1180px);
+	margin-inline: auto;
+	padding: clamp(80px, 10vw, 120px) var(--nvx-gutter, 32px);
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+	text-align: center;
+	box-sizing: border-box;
+}
+
+body.page-id-78 .nvx-gracias-page > p:first-child {
+	margin: 0 0 12px;
+	color: var(--nvx-deep-taupe, #6F6258);
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+}
+
+body.page-id-78 .nvx-gracias-page h1 {
+	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+	color: var(--nvx-black, #171717);
+	font-weight: 400;
+	font-size: clamp(2.5rem, 4.5vw, 4rem);
+	line-height: 1.06;
+	letter-spacing: -0.03em;
+	margin: 0 0 1rem;
+}
+
+body.page-id-78 .nvx-gracias-page p {
+	color: var(--nvx-charcoal, #2B2926);
+	line-height: 1.65;
+	max-width: 42rem;
+}
+
+body.page-id-78 .nvx-gracias-page > div,
+body.page-id-78 .nvx-gracias-page .nvx-gracias-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	justify-content: center;
+	margin-top: 2rem;
+}
+
+body.page-id-78 .nvx-gracias-page a,
+body.page-id-78 .nvx-gracias-page .nvx-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding: 0.65rem 1.25rem;
+	border-radius: 0;
+	background: var(--nvx-black, #171717);
+	border: 1px solid var(--nvx-black, #171717);
+	color: #fff;
+	text-decoration: none;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+body.page-id-78 .nvx-gracias-page a:nth-child(2),
+body.page-id-78 .nvx-gracias-page .nvx-btn-secondary {
+	background: transparent;
+	color: var(--nvx-black, #171717);
+}
+
+body.page-id-78.nvx-unified-shell .nvx-gracias-page {
+	background: var(--nvx-ivory, #F7F1E8);
+}
+
+@media (max-width: 980px) {
+	body.page-id-78 .nvx-gracias-page h1 {
+		font-size: clamp(2.25rem, 9vw, 3.25rem);
+	}
+}
+

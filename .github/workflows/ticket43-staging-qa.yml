@@ -57,7 +57,7 @@ jobs:
             exit 1
           fi
           
-          EXPECTED_CANDIDATE_SHA="53fe5249986112ed9fd24924b80281d113246286"
+          EXPECTED_CANDIDATE_SHA="bd61849c437e8619a37375bc91546a87d14b42b5"
           git fetch origin $APPROVED_SHA
           CANDIDATE_CSS=$(git rev-parse $TARGET:wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css)
           CANDIDATE_MIN=$(git rev-parse $TARGET:wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css)

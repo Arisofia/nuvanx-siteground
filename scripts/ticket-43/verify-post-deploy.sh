@@ -7,6 +7,7 @@ THEME_CSS="${NUVX_THEME_CSS:-wp-content/themes/nuvanx-medical/assets/css}"
 POST_ID="${NUVX_POST_ID:-9}"
 BASIC_USER="${NUVX_BASIC_USER:-${STAGING_BASIC_USER:-}}"
 BASIC_PASS="${NUVX_BASIC_PASS:-${STAGING_BASIC_PASSWORD:-}}"
+VIDEO_PATH="${NUVX_HERO_VIDEO_PATH:-/wp-content/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4}"
 
 fail() {
 	echo "VERIFY FAIL: $1" >&2
@@ -29,16 +30,26 @@ if [[ "${NUVX_EXPECTED_MIN_SHA:-}" != "" ]]; then
 	pass "MIN CSS sha256 matches candidate"
 fi
 
+if [[ -f "${VIDEO_PATH}" ]]; then
+	pass "Hero video asset present on server"
+else
+	fail "Hero video asset missing: ${VIDEO_PATH}"
+fi
+
 if command -v wp >/dev/null 2>&1; then
 	DB_CONTENT="$(wp post get "$POST_ID" --field=post_content)"
 	[[ -n "$DB_CONTENT" ]] || fail "post_content empty in database"
 
-	echo "$DB_CONTENT" | grep -q 'id="nvx-home-manifiesto"' || fail 'DB missing #nvx-home-manifiesto'
+	echo "$DB_CONTENT" | grep -q 'nvx-editorial-home-v3' || fail 'DB missing nvx-editorial-home-v3'
 	echo "$DB_CONTENT" | grep -q 'nvx-home-hero-video' || fail 'DB missing nvx-home-hero-video'
+	echo "$DB_CONTENT" | grep -q 'EXPERIENCIA NUVANX:' || fail 'DB missing production hero copy'
+	if echo "$DB_CONTENT" | grep -qi 'sin ruido'; then
+		fail 'DB contains rejected V2 copy'
+	fi
 	if ! echo "$DB_CONTENT" | grep -qE 'id="nvx-home-tratamientos"|aria-label="Tratamientos NUVANX"'; then
 		fail 'DB missing Tratamientos section marker'
 	fi
-	pass "Database post_content contains required anchors"
+	pass "Database post_content contains required V3 anchors and production copy"
 
 	wp eval-file scripts/ticket-43/verify-rendered-content.php
 	pass "Server-side rendered content validation passed"

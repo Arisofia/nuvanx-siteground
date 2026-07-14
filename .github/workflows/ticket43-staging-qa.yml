@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       target_sha:
-        description: 'SHA of the pure 3-file candidate commit'
+        description: 'SHA of the pure 3-file V3 candidate commit'
         required: true
-        default: '15212c226990908a549284d06161bd620b3cc828'
+        default: ''
 
 permissions:
   contents: read
@@ -16,7 +16,7 @@ env:
   STAGING_PATH: /home/customer/www/staging2.nuvanx.com/public_html
   BACKUP_NAME: ticket43-staging-before-${{ github.run_id }}-${{ github.run_attempt }}
   CANDIDATE_ALLOWLIST: |
-    deploy/ticket-43/post_content_v2.html
+    deploy/ticket-43/post_content_v3-production-copy.html
     wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css
     wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css
 
@@ -84,18 +84,25 @@ jobs:
           mkdir -p deploy/ticket-43
           mkdir -p wp-content/themes/nuvanx-medical/assets/css/
 
-          git show "$TARGET:deploy/ticket-43/post_content_v2.html" > deploy/ticket-43/post_content_v2.html
+          git show "$TARGET:deploy/ticket-43/post_content_v3-production-copy.html" > deploy/ticket-43/post_content_v3-production-copy.html
           git show "$TARGET:wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css" > wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css
           git show "$TARGET:wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css" > wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css
 
-          sha256sum deploy/ticket-43/post_content_v2.html > candidate-hashes.txt
+          sha256sum deploy/ticket-43/post_content_v3-production-copy.html > candidate-hashes.txt
           sha256sum wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css >> candidate-hashes.txt
           sha256sum wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css >> candidate-hashes.txt
           cat candidate-hashes.txt
 
           echo "EXPECTED_CSS_SHA=$(sha256sum wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css | awk '{print $1}')" >> "$GITHUB_ENV"
           echo "EXPECTED_MIN_SHA=$(sha256sum wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css | awk '{print $1}')" >> "$GITHUB_ENV"
-          echo "EXPECTED_HTML_SHA=$(sha256sum deploy/ticket-43/post_content_v2.html | awk '{print $1}')" >> "$GITHUB_ENV"
+          echo "EXPECTED_HTML_SHA=$(sha256sum deploy/ticket-43/post_content_v3-production-copy.html | awk '{print $1}')" >> "$GITHUB_ENV"
+
+      - name: Verify Copy Integrity (canonical vs V3)
+        run: |
+          php scripts/ticket-43/verify-copy-integrity.php \
+            qa/fixtures/ticket-43/home-production-post-content.html \
+            deploy/ticket-43/post_content_v3-production-copy.html \
+            | tee copy-integrity-manifest.json
 
       - name: Setup SSH
         uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
@@ -158,7 +165,7 @@ jobs:
         run: |
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "mkdir -p ${{ env.STAGING_PATH }}/deploy/ticket-43 ${{ env.STAGING_PATH }}/scripts/ticket-43"
 
-          scp -P "$SSH_PORT" deploy/ticket-43/post_content_v2.html \
+          scp -P "$SSH_PORT" deploy/ticket-43/post_content_v3-production-copy.html \
             "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/deploy/ticket-43/"
 
           scp -P "$SSH_PORT" wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css \
@@ -171,6 +178,7 @@ jobs:
             scripts/ticket-43/rollback.sh \
             scripts/ticket-43/verify-post-deploy.sh \
             scripts/ticket-43/verify-rendered-content.php \
+            scripts/ticket-43/verify-copy-integrity.php \
             "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/scripts/ticket-43/"
 
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "chmod +x ${{ env.STAGING_PATH }}/scripts/ticket-43/*.sh"
@@ -185,7 +193,7 @@ jobs:
             set -e
             cd "${{ env.STAGING_PATH }}"
 
-            REMOTE_HTML_SHA=\$(sha256sum deploy/ticket-43/post_content_v2.html | awk '{print \$1}')
+            REMOTE_HTML_SHA=\$(sha256sum deploy/ticket-43/post_content_v3-production-copy.html | awk '{print \$1}')
             if [ "\$REMOTE_HTML_SHA" != "${{ env.EXPECTED_HTML_SHA }}" ]; then
               echo "ERROR: Remote HTML sha mismatch"
               exit 1
@@ -196,7 +204,7 @@ jobs:
             if [ "\$REMOTE_CSS_SHA" != "${{ env.EXPECTED_CSS_SHA }}" ]; then echo "ERROR: Remote CSS sha mismatch"; exit 1; fi
             if [ "\$REMOTE_MIN_SHA" != "${{ env.EXPECTED_MIN_SHA }}" ]; then echo "ERROR: Remote MIN CSS sha mismatch"; exit 1; fi
 
-            export NVX_POST_CONTENT_V2="${{ env.STAGING_PATH }}/deploy/ticket-43/post_content_v2.html"
+            export NVX_POST_CONTENT_V3="${{ env.STAGING_PATH }}/deploy/ticket-43/post_content_v3-production-copy.html"
             wp eval-file scripts/ticket-43/apply-post-content.php
           EOF
 
@@ -221,6 +229,24 @@ jobs:
             bash scripts/ticket-43/verify-post-deploy.sh
           EOF
 
+      - name: Setup Node for Playwright
+        if: success()
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '20'
+
+      - name: Install Playwright and Run Home Visual QA
+        if: success()
+        env:
+          STAGING_BASE_URL: ${{ env.STAGING_BASE_URL }}
+          STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+          STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm install --no-save @playwright/test@1.49.1
+          npx playwright install chromium
+          npx playwright test -c qa/playwright.config.js
+
       - name: Rollback on Failure
         if: failure() && steps.backup.outcome == 'success'
         env:
@@ -243,3 +269,21 @@ jobs:
           name: ticket43-candidate-hashes
           path: candidate-hashes.txt
           retention-days: 14
+
+      - name: Upload Copy Integrity Manifest
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ticket43-copy-integrity
+          path: copy-integrity-manifest.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload Playwright Screenshots
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ticket43-v3-screenshots
+          path: qa/screenshots/
+          retention-days: 14
+          if-no-files-found: ignore

@@ -1,0 +1,148 @@
+{
+  "1440x900": {
+    "scrollWidth": 1440,
+    "viewportWidth": 1440,
+    "stageBox": null,
+    "heroBox": null,
+    "videoBox": null,
+    "videoPos": null,
+    "stageGridColumns": null,
+    "h1FontFamily": "Manrope, sans-serif",
+    "h1FontSize": "32px",
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "heroBg": null,
+    "headerBg": "rgba(0, 0, 0, 0)",
+    "console_errors": [
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND"
+    ],
+    "failed_requests": [
+      "file:///wp-content/uploads/2026/06/nvx-collage-clinica-1100-768x512.webp",
+      "file:///wp-content/uploads/2026/06/nvx-tratamiento-facial-corporal-900.webp",
+      "file:///wp-content/uploads/2026/06/nvx-doctor-javier-velasco-portrait.webp"
+    ]
+  },
+  "1280x800": {
+    "scrollWidth": 1280,
+    "viewportWidth": 1280,
+    "stageBox": null,
+    "heroBox": null,
+    "videoBox": null,
+    "videoPos": null,
+    "stageGridColumns": null,
+    "h1FontFamily": "Manrope, sans-serif",
+    "h1FontSize": "32px",
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "heroBg": null,
+    "headerBg": "rgba(0, 0, 0, 0)",
+    "console_errors": [
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND"
+    ],
+    "failed_requests": [
+      "file:///wp-content/uploads/2026/06/nvx-collage-clinica-1100-768x512.webp",
+      "file:///wp-content/uploads/2026/06/nvx-tratamiento-facial-corporal-900.webp",
+      "file:///wp-content/uploads/2026/06/nvx-doctor-javier-velasco-portrait.webp"
+    ]
+  },
+  "1024x768": {
+    "scrollWidth": 1024,
+    "viewportWidth": 1024,
+    "stageBox": null,
+    "heroBox": null,
+    "videoBox": null,
+    "videoPos": null,
+    "stageGridColumns": null,
+    "h1FontFamily": "Manrope, sans-serif",
+    "h1FontSize": "32px",
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "heroBg": null,
+    "headerBg": "rgba(0, 0, 0, 0)",
+    "console_errors": [
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND"
+    ],
+    "failed_requests": [
+      "file:///wp-content/uploads/2026/06/nvx-collage-clinica-1100-768x512.webp",
+      "file:///wp-content/uploads/2026/06/nvx-tratamiento-facial-corporal-900.webp",
+      "file:///wp-content/uploads/2026/06/nvx-doctor-javier-velasco-portrait.webp"
+    ]
+  },
+  "768x1024": {
+    "scrollWidth": 768,
+    "viewportWidth": 768,
+    "stageBox": null,
+    "heroBox": null,
+    "videoBox": null,
+    "videoPos": null,
+    "stageGridColumns": null,
+    "h1FontFamily": "Manrope, sans-serif",
+    "h1FontSize": "32px",
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "heroBg": null,
+    "headerBg": "rgba(0, 0, 0, 0)",
+    "console_errors": [
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND"
+    ],
+    "failed_requests": [
+      "file:///wp-content/uploads/2026/06/nvx-collage-clinica-1100-768x512.webp",
+      "file:///wp-content/uploads/2026/06/nvx-tratamiento-facial-corporal-900.webp",
+      "file:///wp-content/uploads/2026/06/nvx-doctor-javier-velasco-portrait.webp",
+      "file:///wp-content/uploads/2026/06/nvx-fachada-chamberi-locations-760.webp"
+    ]
+  },
+  "390x844": {
+    "scrollWidth": 390,
+    "viewportWidth": 390,
+    "stageBox": null,
+    "heroBox": null,
+    "videoBox": null,
+    "videoPos": null,
+    "stageGridColumns": null,
+    "h1FontFamily": "Manrope, sans-serif",
+    "h1FontSize": "32px",
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "heroBg": null,
+    "headerBg": "rgba(0, 0, 0, 0)",
+    "console_errors": [
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND"
+    ],
+    "failed_requests": [
+      "file:///wp-content/uploads/2026/06/nvx-collage-clinica-1100-768x512.webp",
+      "file:///wp-content/uploads/2026/06/nvx-tratamiento-facial-corporal-900.webp",
+      "file:///wp-content/uploads/2026/06/nvx-doctor-javier-velasco-portrait.webp"
+    ]
+  },
+  "360x800": {
+    "scrollWidth": 360,
+    "viewportWidth": 360,
+    "stageBox": null,
+    "heroBox": null,
+    "videoBox": null,
+    "videoPos": null,
+    "stageGridColumns": null,
+    "h1FontFamily": "Manrope, sans-serif",
+    "h1FontSize": "32px",
+    "bodyBg": "rgba(0, 0, 0, 0)",
+    "heroBg": null,
+    "headerBg": "rgba(0, 0, 0, 0)",
+    "console_errors": [
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+      "Failed to load resource: net::ERR_FILE_NOT_FOUND"
+    ],
+    "failed_requests": [
+      "file:///wp-content/uploads/2026/06/nvx-collage-clinica-1100-768x512.webp",
+      "file:///wp-content/uploads/2026/06/nvx-tratamiento-facial-corporal-900.webp",
+      "file:///wp-content/uploads/2026/06/nvx-doctor-javier-velasco-portrait.webp"
+    ]
+  }
+}

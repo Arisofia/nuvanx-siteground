@@ -27,16 +27,19 @@ const ROUTES = [
   { path: '/gracias/', name: 'gracias' }
 ];
 
-let globalResults = {};
-
 test.describe('Ticket 43 Visual Reconciliation', () => {
 
-  test.afterAll(() => {
+  let browserResults = {};
+
+  test.afterAll(async ({ browserName }) => {
     const resultsDir = path.join(__dirname, 'results');
     if (!fs.existsSync(resultsDir)) {
       fs.mkdirSync(resultsDir, { recursive: true });
     }
-    fs.writeFileSync(path.join(resultsDir, 'visual-metrics.json'), JSON.stringify(globalResults, null, 2));
+    fs.writeFileSync(
+      path.join(resultsDir, `${browserName}-visual-metrics.json`), 
+      JSON.stringify(browserResults, null, 2)
+    );
   });
 
   for (const route of ROUTES) {
@@ -65,23 +68,21 @@ test.describe('Ticket 43 Visual Reconciliation', () => {
         });
         
         page.on('response', response => {
-          if (response.status() >= 400 && response.status() !== 401) { // Ignore 401s since auth might trigger it before success
+          if (response.status() >= 400) {
             httpErrors.push(`${response.status()} ${response.url()}`);
           }
         });
 
-        const targetUrl = `${route.path}?nvxqa=ticket43-a218537`;
+        const targetUrl = route.path === '/' ? `${route.path}?nvxqa=ticket43-a218537` : route.path;
         const response = await page.goto(targetUrl, { waitUntil: 'networkidle' });
 
         // Assertions: Respuesta e Invariantes
         expect(response).not.toBeNull();
         expect(response.status()).toBe(200);
         
-        // Exact URL without tracking/auth params might differ, but check base path
         const currentUrl = new URL(page.url());
         expect(currentUrl.pathname).toBe(route.path);
         
-        // Count elements
         const mainCount = await page.locator('main').count();
         expect(mainCount).toBe(1);
 
@@ -90,8 +91,8 @@ test.describe('Ticket 43 Visual Reconciliation', () => {
             expect(nvxMainCount).toBe(1);
         }
 
-        // Wait for fonts
         await page.waitForFunction(() => document.fonts.status === 'loaded');
+        
         const fontsLoaded = await page.evaluate(() => {
           let hasBodoni = false;
           let hasManrope = false;
@@ -99,29 +100,38 @@ test.describe('Ticket 43 Visual Reconciliation', () => {
             if (font.family.includes('Bodoni Moda')) hasBodoni = true;
             if (font.family.includes('Manrope')) hasManrope = true;
           });
-          return { hasBodoni, hasManrope };
+          const bodoniCheck = document.fonts.check('44px "Bodoni Moda"');
+          const manropeCheck = document.fonts.check('16px "Manrope"');
+          return { hasBodoni, hasManrope, bodoniCheck, manropeCheck };
         });
-        
-        // No failed requests or console errors
+
         expect(failedRequests.length, `Failed requests found: ${failedRequests.join(', ')}`).toBe(0);
         expect(httpErrors.length, `HTTP errors found: ${httpErrors.join(', ')}`).toBe(0);
         expect(consoleErrors.length, `Console errors found: ${consoleErrors.join(', ')}`).toBe(0);
 
-        // Check CSS Ticket 43 is loaded
-        const isCssLoaded = await page.evaluate(() => {
-           for (const sheet of Array.from(document.styleSheets)) {
-               try {
-                   if (sheet.href && sheet.href.includes('nvx-brand-home')) {
-                       // We can check if it has the specific selector or if it was requested
-                       return true; 
-                   }
-               } catch(e) { }
-           }
-           return false;
-        });
-        expect(isCssLoaded).toBeTruthy();
+        if (route.path === '/') {
+            const isCssLoadedAndCorrect = await page.evaluate(async () => {
+                for (const sheet of Array.from(document.styleSheets)) {
+                    try {
+                        if (sheet.href && sheet.href.includes('nvx-brand-home')) {
+                            const res = await fetch(sheet.href);
+                            const text = await res.text();
+                            if (text.includes('TICKET #43: RECONCILIACIÓN VISUAL')) {
+                                return true;
+                            }
+                        }
+                    } catch(e) { }
+                }
+                return false;
+            });
+            expect(isCssLoadedAndCorrect, "CSS TICKET #43 no cargó o no contiene la firma.").toBeTruthy();
+            
+            expect(fontsLoaded.hasBodoni).toBeTruthy();
+            expect(fontsLoaded.hasManrope).toBeTruthy();
+            expect(fontsLoaded.bodoniCheck).toBeTruthy();
+            expect(fontsLoaded.manropeCheck).toBeTruthy();
+        }
 
-        // Take Screenshot
         const screenshotDir = path.join(__dirname, 'screenshots');
         if (!fs.existsSync(screenshotDir)) {
           fs.mkdirSync(screenshotDir, { recursive: true });
@@ -129,7 +139,6 @@ test.describe('Ticket 43 Visual Reconciliation', () => {
         const screenshotPath = path.join(screenshotDir, `${browserName}_${route.name}_${vp.name}.png`);
         await page.screenshot({ path: screenshotPath, fullPage: true });
 
-        // Extract Metrics
         const metrics = await page.evaluate(() => {
           const hero = document.querySelector('.nvx-brand-hero');
           const videoFeature = document.querySelector('.nvx-home-video-feature');
@@ -148,13 +157,12 @@ test.describe('Ticket 43 Visual Reconciliation', () => {
           };
         });
 
-        const key = `${browserName}_${route.name}_${vp.name}`;
-        globalResults[key] = {
+        const key = `${route.name}_${vp.name}`;
+        browserResults[key] = {
           ...metrics,
           fonts: fontsLoaded
         };
 
-        // Assertions on Layout
         expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.viewportWidth);
         
         if (route.path === '/') {
@@ -168,8 +176,6 @@ test.describe('Ticket 43 Visual Reconciliation', () => {
             expect(size).toBeLessThanOrEqual(44);
         }
         
-        expect(fontsLoaded.hasBodoni || fontsLoaded.hasManrope).toBe(true); // Ensure at least brand fonts load
-
         await context.close();
       });
     }

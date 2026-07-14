@@ -1,6 +1,6 @@
 <div id="nvx-home-main" class="nvx-home nvx-brand-page nvx-editorial-home-v3">
 <section class="nvx-home-hero-stage" aria-labelledby="nvx-home-h1">
-<div class="nvx-brand-hero__inner">
+<div class="nvx-v3-shell nvx-brand-hero__inner">
 <div class="nvx-home-hero-content">
 <h1 id="nvx-home-h1" class="nvx-brand-hero__title" aria-label="EXPERIENCIA NUVANX: Excelencia en Medicina Estética Láser en Madrid — Resultados naturales, sin cirugía, guiados por criterio médico.">
 <span class="nvx-brand-hero__line nvx-brand-hero__main">EXPERIENCIA NUVANX:</span><br />
@@ -13,6 +13,14 @@
 </div>
 </div>
 <div class="nvx-home-video-feature" aria-label="Vídeo NUVANX Medicina Estética Láser">
+<div class="nvx-home-video-mask">
+<svg class="nvx-home-video-mask__svg" viewBox="0 0 640 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="none">
+<defs>
+<clipPath id="nvx-hero-video-clip" clipPathUnits="objectBoundingBox">
+<path d="M0.08,0.02 C0.35,0.12 0.55,0.04 0.92,0.08 L1,0.22 C0.98,0.55 0.96,0.78 1,0.98 L0.62,1 C0.38,0.94 0.18,0.98 0,0.88 Z"/>
+</clipPath>
+</defs>
+</svg>
 <div class="nvx-home-video-frame">
 <video
 id="nvx-home-hero-video"
@@ -28,15 +36,17 @@ aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid"><source src=
 </div>
 </div>
 </div>
-<div class="nvx-home-organic-wave" aria-hidden="true">
-<svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-<path d="M0,80L1440,80L1440,0C1100,80 340,80 0,0Z" fill="#FFFFFF"/>
+</div>
+<div class="nvx-home-organic-wave nvx-home-organic-wave--asymmetric" aria-hidden="true">
+<svg viewBox="0 0 1440 88" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+<path d="M0,88 L1440,88 L1440,12 C1180,78 920,18 640,52 C360,86 120,24 0,0 Z" fill="#FFFFFF"/>
 </svg>
 </div>
 </section>
-<section class="nvx-brand-section nvx-brand-section--tight nvx-home-editorial" aria-label="Introducción NUVANX">
-<div class="nvx-brand-readable">
-<div class="nvx-home-editorial-grid">
+
+<section class="nvx-brand-section nvx-brand-section--tight nvx-home-editorial nvx-v3-intro" aria-label="Introducción NUVANX">
+<div class="nvx-v3-shell">
+<div class="nvx-home-editorial-open">
 <div class="nvx-editorial-zone nvx-editorial-zone--media" aria-hidden="true">
 <img src="/wp-content/uploads/2026/06/nvx-tratamiento-facial-corporal-900.webp" alt="" width="900" height="600" loading="lazy" decoding="async">
 </div>
@@ -47,29 +57,6 @@ aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid"><source src=
 <p class="nvx-brand-body nvx-home-editorial__lead">
         Ubicadas estratégicamente en los distinguidos barrios de Chamberí y Salamanca–Goya, nuestras clínicas son espacios médicos dedicados al bienestar y a la tecnología aplicada con criterio clínico. Empleamos plataformas de vanguardia como DEKA Motus AZ+, Láser CO₂ y EXION®, seleccionadas meticulosamente bajo estricta indicación médica para diseñar un protocolo de tratamiento exclusivo para ti.
       </p>
-</div>
-<div class="nvx-editorial-zone nvx-editorial-zone--clinics">
-<div class="nvx-home-clinics-elegant">
-<h2 class="nvx-brand-title nvx-home-clinics-elegant__title">Nuestras clínicas especializadas en Madrid</h2>
-<div class="nvx-brand-grid nvx-brand-grid--2">
-<article class="nvx-brand-card">
-            <a class="nvx-brand-card__link" href="https://nuvanx.com/medicina-estetica-chamberi/">
-<p class="nvx-brand-card__kicker">Chamberí</p>
-<h3 class="nvx-brand-card__title">Serenidad y discreción</h3>
-<p class="nvx-brand-card__body">Un espacio de serenidad y discreción, a escasos minutos de la emblemática Plaza de Olavide.</p>
-<span class="nvx-brand-card__cta">Ver clínica Chamberí</span>
-            </a>
-          </article>
-<article class="nvx-brand-card">
-            <a class="nvx-brand-card__link" href="https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/">
-<p class="nvx-brand-card__kicker">Salamanca–Goya</p>
-<h3 class="nvx-brand-card__title">Accesibilidad y sofisticación</h3>
-<p class="nvx-brand-card__body">Convenientemente situada entre las prestigiosas zonas de Diego de León y Goya.</p>
-<span class="nvx-brand-card__cta">Ver clínica Salamanca–Goya</span>
-            </a>
-          </article>
-</div>
-</div>
 <div class="nvx-home-invitation">
 <p class="nvx-home-invitation__text">
           <span class="nvx-brand-dropcap">R</span>ecupera la armonía de tu piel. Agenda tu Valoración médica personalizada hoy mismo, disponible de forma presencial en nuestras sedes de Chamberí o Salamanca–Goya, o cómodamente a través de videoconsulta.
@@ -79,8 +66,33 @@ aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid"><source src=
 </div>
 </div>
 </section>
-<section class="nvx-brand-section" aria-label="Tratamientos NUVANX">
-<div class="nvx-brand-section__inner">
+
+<section class="nvx-brand-section nvx-home-clinicas-panorama" aria-label="Nuestras clínicas especializadas en Madrid">
+<div class="nvx-v3-shell">
+<h2 class="nvx-brand-title nvx-home-clinics-elegant__title">Nuestras clínicas especializadas en Madrid</h2>
+<div class="nvx-home-clinicas-panorama__track">
+<article class="nvx-home-clinica-panorama">
+<a class="nvx-home-clinica-panorama__link" href="https://nuvanx.com/medicina-estetica-chamberi/">
+<p class="nvx-brand-card__kicker">Chamberí</p>
+<h3 class="nvx-brand-card__title">Serenidad y discreción</h3>
+<p class="nvx-brand-card__body">Un espacio de serenidad y discreción, a escasos minutos de la emblemática Plaza de Olavide.</p>
+<span class="nvx-brand-card__cta">Ver clínica Chamberí</span>
+</a>
+</article>
+<article class="nvx-home-clinica-panorama">
+<a class="nvx-home-clinica-panorama__link" href="https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/">
+<p class="nvx-brand-card__kicker">Salamanca–Goya</p>
+<h3 class="nvx-brand-card__title">Accesibilidad y sofisticación</h3>
+<p class="nvx-brand-card__body">Convenientemente situada entre las prestigiosas zonas de Diego de León y Goya.</p>
+<span class="nvx-brand-card__cta">Ver clínica Salamanca–Goya</span>
+</a>
+</article>
+</div>
+</div>
+</section>
+
+<section class="nvx-brand-section nvx-v3-tratamientos" aria-label="Tratamientos NUVANX">
+<div class="nvx-v3-shell">
 <p class="nvx-brand-kicker">Tratamientos</p>
 <h2 class="nvx-brand-title">Tratamientos médico-estéticos en Madrid</h2>
 <div class="nvx-brand-readable nvx-brand-readable--wide">
@@ -88,75 +100,81 @@ aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid"><source src=
         Ofrecemos una cartera selecta de tratamientos médico-estéticos faciales y corporales, respaldados por tecnología láser y aparatología médica de última generación. Cada indicación es confirmada tras una valoración médica detallada.
       </p>
 </div>
-<div class="nvx-brand-grid nvx-brand-grid--3">
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/endolift-facial-papada-mandibula/">
+<div class="nvx-home-tratamientos-editorial">
+<div class="nvx-home-tratamientos-row nvx-home-tratamientos-row--4">
+<article class="nvx-home-tratamiento-item nvx-brand-card">
+<a class="nvx-home-tratamiento-item__link" href="https://nuvanx.com/endolift-facial-papada-mandibula/">
 <p class="nvx-brand-card__kicker">01</p>
 <h3 class="nvx-brand-card__title">Endolift® Facial · Lifting sin cirugía</h3>
 <p class="nvx-brand-card__body">Tensado progresivo del óvalo facial, mandíbula y papada mediante fibra láser subdérmica. Una técnica mínimamente invasiva que estimula la contracción del tejido y la producción de colágeno, indicada para flacidez moderada y pérdida de definición mandibular, siempre tras valoración médica.</p>
 <span class="nvx-brand-card__cta">Ver Endolift® facial</span>
-        </a>
-      </article>
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/endolaser-corporal-grasa-localizada/">
+</a>
+</article>
+<article class="nvx-home-tratamiento-item nvx-brand-card">
+<a class="nvx-home-tratamiento-item__link" href="https://nuvanx.com/endolaser-corporal-grasa-localizada/">
 <p class="nvx-brand-card__kicker">02</p>
 <h3 class="nvx-brand-card__title">Endoláser Corporal / Lipólisis Láser · Madrid</h3>
 <p class="nvx-brand-card__body">Reducción de grasa localizada y mejora de la firmeza corporal con un protocolo progresivo y adaptado. Dirigido a zonas resistentes al ejercicio, este tratamiento láser actúa en profundidad para favorecer un resultado natural y armónico con la silueta.</p>
 <span class="nvx-brand-card__cta">Ver lipólisis láser</span>
-        </a>
-      </article>
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/laser-co2-fraccionado-madrid-textura-cicatrices-poro/">
+</a>
+</article>
+<article class="nvx-home-tratamiento-item nvx-brand-card">
+<a class="nvx-home-tratamiento-item__link" href="https://nuvanx.com/laser-co2-fraccionado-madrid-textura-cicatrices-poro/">
 <p class="nvx-brand-card__kicker">03</p>
 <h3 class="nvx-brand-card__title">Láser CO₂ Fraccionado · Madrid</h3>
 <p class="nvx-brand-card__body">Renovación de la textura cutánea, poros, cicatrices y manchas con láser ablativo fraccionado de alta precisión. Los parámetros se ajustan al fototipo, la indicación médica y el tiempo de recuperación, con consolidación progresiva de los resultados.</p>
 <span class="nvx-brand-card__cta">Ver Láser CO₂</span>
-        </a>
-      </article>
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/medicina-estetica/">
+</a>
+</article>
+<article class="nvx-home-tratamiento-item nvx-brand-card">
+<a class="nvx-home-tratamiento-item__link" href="https://nuvanx.com/medicina-estetica/">
 <p class="nvx-brand-card__kicker">04</p>
 <h3 class="nvx-brand-card__title">Medicina Estética Facial · Madrid</h3>
 <p class="nvx-brand-card__body">Armonía facial integral con criterio conservador. Combinamos técnicas avanzadas como rellenos, neuromoduladores y bioestimuladores para buscar un aspecto descansado, equilibrado y natural, sin alterar la identidad del paciente.</p>
 <span class="nvx-brand-card__cta">Ver medicina estética facial</span>
-        </a>
-      </article>
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/exion-btl/">
+</a>
+</article>
+</div>
+<div class="nvx-home-tratamientos-row nvx-home-tratamientos-row--3">
+<article class="nvx-home-tratamiento-item nvx-brand-card">
+<a class="nvx-home-tratamiento-item__link" href="https://nuvanx.com/exion-btl/">
 <p class="nvx-brand-card__kicker">05</p>
 <h3 class="nvx-brand-card__title">EXION® · Plataforma multifuncional BTL</h3>
 <p class="nvx-brand-card__body">Plataforma médica con aplicadores EXION® Fractional RF, EXION® Face y EXION® Body, diseñada para abordar textura, hidratación facial, firmeza cutánea y protocolos corporales personalizados. La valoración médica determina la combinación adecuada para cada caso.</p>
 <span class="nvx-brand-card__cta">Ver EXION®</span>
-        </a>
-      </article>
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/btl-exilite-ipl-madrid/">
+</a>
+</article>
+<article class="nvx-home-tratamiento-item nvx-brand-card">
+<a class="nvx-home-tratamiento-item__link" href="https://nuvanx.com/btl-exilite-ipl-madrid/">
 <p class="nvx-brand-card__kicker">06</p>
 <h3 class="nvx-brand-card__title">BTL EXILITE IPL</h3>
 <p class="nvx-brand-card__body">Tecnología de luz pulsada intensa para fotorejuvenecimiento, tratamiento de manchas, rojeces y mejora global de la calidad de la piel.</p>
 <span class="nvx-brand-card__cta">Ver BTL EXILITE IPL</span>
-        </a>
-      </article>
-<article class="nvx-brand-card nvx-brand-card--cta">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/tratamientos/">
+</a>
+</article>
+<article class="nvx-home-tratamiento-item nvx-home-tratamiento-item--catalog nvx-brand-card nvx-brand-card--cta">
+<a class="nvx-home-tratamiento-item__link" href="https://nuvanx.com/tratamientos/">
 <p class="nvx-brand-card__kicker">Catálogo</p>
 <h3 class="nvx-brand-card__title">Tratamientos médico-estéticos NUVANX</h3>
 <p class="nvx-brand-card__body">Consulta el catálogo completo de tratamientos faciales, corporales y láser disponibles en NUVANX Madrid. La indicación final se confirma siempre tras valoración médica personalizada.</p>
 <span class="nvx-brand-card__cta">Ver catálogo completo de tratamientos</span>
-        </a>
-      </article>
+</a>
+</article>
+</div>
 </div>
 </div>
 </section>
+
 <section class="nvx-brand-section nvx-home-image-feature" aria-label="Imagen del método médico NUVANX">
-<div class="nvx-brand-section__inner">
+<div class="nvx-v3-shell">
 <figure class="nvx-home-image-feature__figure">
       <img class="wp-image-2892" src="https://nuvanx.com/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp" width="1672" height="941" loading="lazy" decoding="async" alt="Valoración médica personalizada en NUVANX Medicina Estética Láser Madrid"><br />
     </figure>
 </div>
 </section>
-<section class="nvx-brand-section" aria-label="Método NUVANX">
-<div class="nvx-brand-section__inner">
+
+<section class="nvx-brand-section nvx-v3-metodo" aria-label="Método NUVANX">
+<div class="nvx-v3-shell">
 <p class="nvx-brand-kicker">Método</p>
 <h2 class="nvx-brand-title">El criterio médico antes que la tecnología</h2>
 <div class="nvx-brand-readable nvx-brand-readable--wide">
@@ -164,38 +182,43 @@ aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid"><source src=
         En NUVANX, la experiencia y el criterio médico son el pilar fundamental de cada tratamiento, superando la mera aplicación tecnológica. Nuestra metodología se basa en:
       </p>
 </div>
-<div class="nvx-brand-grid nvx-brand-grid--3">
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/madrid/valoracion/">
+<div class="nvx-home-metodo-pilares">
+<article class="nvx-home-pilar-item">
+<a class="nvx-home-pilar-item__link" href="https://nuvanx.com/madrid/valoracion/">
 <p class="nvx-brand-card__kicker">01</p>
 <h3 class="nvx-brand-card__title">Diagnóstico médico integral</h3>
 <p class="nvx-brand-card__body">Una evaluación profunda que abarca tu historial clínico, objetivos estéticos y cualquier contraindicación, sentando las bases para un plan de tratamiento seguro y efectivo.</p>
 <span class="nvx-brand-card__cta">Solicitar consulta</span>
-        </a>
-      </article>
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/tratamientos/">
+</a>
+</article>
+<article class="nvx-home-pilar-item">
+<a class="nvx-home-pilar-item__link" href="https://nuvanx.com/tratamientos/">
 <p class="nvx-brand-card__kicker">02</p>
 <h3 class="nvx-brand-card__title">Tecnología de precisión</h3>
 <p class="nvx-brand-card__body">La selección de equipos y parámetros se realiza con la máxima exactitud, adaptándose a las necesidades específicas de tu caso para optimizar los resultados.</p>
 <span class="nvx-brand-card__cta">Explorar tratamientos</span>
-        </a>
-      </article>
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/">
+</a>
+</article>
+<article class="nvx-home-pilar-item">
+<a class="nvx-home-pilar-item__link" href="https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/">
 <p class="nvx-brand-card__kicker">03</p>
 <h3 class="nvx-brand-card__title">Seguimiento continuo y personalizado</h3>
 <p class="nvx-brand-card__body">Un acompañamiento médico riguroso, con un calendario de seguimiento definido según el tratamiento realizado y la evolución individual, para valorar la respuesta y consolidar los resultados de forma segura.</p>
 <span class="nvx-brand-card__cta">Ver clínicas</span>
-        </a>
-      </article>
+</a>
+</article>
 </div>
 </div>
 </section>
 <!-- NUVANX HOME AUTHORITY FAQ START -->
 
-<section class="nvx-brand-section" aria-label="Dirección médica NUVANX">
-<div class="nvx-brand-section__inner">
+<section class="nvx-brand-section nvx-v3-direccion" aria-label="Dirección médica NUVANX">
+<div class="nvx-v3-shell">
+<div class="nvx-home-direccion-grid">
+<div class="nvx-home-direccion-media" aria-hidden="true">
+<img src="https://nuvanx.com/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp" alt="" width="900" height="600" loading="lazy" decoding="async">
+</div>
+<div class="nvx-home-direccion-copy">
 <p class="nvx-brand-kicker">Dirección Médica</p>
 <h2 class="nvx-brand-title">Liderazgo y Experiencia</h2>
 <div class="nvx-brand-readable nvx-brand-readable--wide">
@@ -203,29 +226,31 @@ aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid"><source src=
         Nuestro equipo médico, liderado por el Dr. José Javier Rivera Tejeda, supervisa cada valoración, indicación y seguimiento en ambas sedes. Su trabajo se basa en el diagnóstico individual, la indicación médica responsable y el seguimiento personalizado de cada tratamiento.
       </p>
 </div>
-<div class="nvx-brand-grid nvx-brand-grid--2">
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/equipo-medico/">
+<article class="nvx-home-direccion-medico">
+<a class="nvx-home-direccion-medico__link" href="https://nuvanx.com/equipo-medico/">
 <p class="nvx-brand-card__kicker">Dr. José Javier Rivera Tejeda</p>
 <h3 class="nvx-brand-card__title">Dirección Médica</h3>
 <p class="nvx-brand-card__body">Especialista en Endolift®, láser CO₂ y medicina estética facial. Martes y jueves: Chamberí. Miércoles: Goya.</p>
 <span class="nvx-brand-card__cta">Conocer al equipo médico</span>
-        </a>
-      </article>
-<article class="nvx-brand-card">
-        <a class="nvx-brand-card__link" href="https://nuvanx.com/medicina-estetica-chamberi/">
+</a>
+</article>
+</div>
+<div class="nvx-home-direccion-registros">
+<article class="nvx-home-registro-item">
+<a class="nvx-home-registro-item__link" href="https://nuvanx.com/medicina-estetica-chamberi/">
 <p class="nvx-brand-card__kicker">Registro sanitario</p>
 <h3 class="nvx-brand-card__title">Centros sanitarios autorizados</h3>
 <p class="nvx-brand-card__body">NUVANX Chamberí cuenta con Registro Sanitario CS20144 y NUVANX Salamanca–Goya con Registro Sanitario CS20073, garantizando el cumplimiento de estándares de calidad y seguridad.</p>
 <span class="nvx-brand-card__cta">Ver sedes</span>
-        </a>
-      </article>
+</a>
+</article>
+</div>
 </div>
 </div>
 </section>
 
-<section class="nvx-brand-section" aria-label="Preguntas frecuentes NUVANX">
-<div class="nvx-brand-section__inner">
+<section class="nvx-brand-section nvx-v3-faq" aria-label="Preguntas frecuentes NUVANX">
+<div class="nvx-v3-shell">
 <p class="nvx-brand-kicker">FAQ</p>
 <h2 class="nvx-brand-title">Preguntas Frecuentes sobre Medicina Estética en NUVANX</h2>
 <div class="nvx-brand-readable nvx-brand-readable--wide">
@@ -233,7 +258,7 @@ aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid"><source src=
         Resolvemos las dudas principales sobre consulta médica, resultados, recuperación, tecnología láser y protocolos EXION® en Madrid.
       </p>
 </div>
-<div class="nvx-brand-faq-accordion">
+<div class="nvx-brand-faq-accordion nvx-home-faq-editorial">
 <details class="nvx-brand-faq-item">
 <summary><span>¿La valoración médica personalizada tiene algún coste?</span></summary>
 <div class="nvx-brand-faq-content">
@@ -322,9 +347,10 @@ aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid"><source src=
 </div>
 </div>
 </section>
-<section class="nvx-brand-section" aria-label="Valoración médica personalizada NUVANX">
-<div class="nvx-brand-section__inner">
-<div class="nvx-home-invitation">
+
+<section class="nvx-brand-section nvx-v3-cta-final" aria-label="Valoración médica personalizada NUVANX">
+<div class="nvx-v3-shell">
+<div class="nvx-home-cta-final-band">
 <p class="nvx-brand-kicker">Primer paso</p>
 <h2 class="nvx-brand-title">El Primer Paso de tu Diagnóstico</h2>
 <p class="nvx-home-invitation__text">
@@ -339,5 +365,3 @@ aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid"><source src=
 </section>
 <p><!-- NUVANX HOME AUTHORITY FAQ END -->
 </div>
-
-

@@ -170,6 +170,7 @@ jobs:
           scp -P "$SSH_PORT" scripts/ticket-43/apply-post-content.php \
             scripts/ticket-43/rollback.sh \
             scripts/ticket-43/verify-post-deploy.sh \
+            scripts/ticket-43/verify-rendered-content.php \
             "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/scripts/ticket-43/"
 
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "chmod +x ${{ env.STAGING_PATH }}/scripts/ticket-43/*.sh"
@@ -208,6 +209,8 @@ jobs:
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
           SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+          STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
         run: |
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' << EOF
             set -e
@@ -216,6 +219,8 @@ jobs:
             export NUVX_THEME_CSS="wp-content/themes/nuvanx-medical/assets/css"
             export NUVX_EXPECTED_CSS_SHA="${{ env.EXPECTED_CSS_SHA }}"
             export NUVX_EXPECTED_MIN_SHA="${{ env.EXPECTED_MIN_SHA }}"
+            export STAGING_BASIC_USER="${STAGING_BASIC_USER}"
+            export STAGING_BASIC_PASSWORD="${STAGING_BASIC_PASSWORD}"
             bash scripts/ticket-43/verify-post-deploy.sh
           EOF
 

@@ -367,3 +367,52 @@ body.postid-1241 summary:focus-visible {
 		font-size: clamp(2.25rem, 9vw, 3.25rem);
 	}
 }
+
+/* Vence nvx-fluid-organic-2026 — page/post 1241 */
+body.page-id-1241.nvx-unified-shell:not(.home) .nvx-brand-card,
+body.postid-1241.nvx-unified-shell:not(.home) .nvx-brand-card,
+body.page-id-1241.nvx-unified-shell:not(.home) .nvx-brand-faq-item,
+body.postid-1241.nvx-unified-shell:not(.home) .nvx-brand-faq-item {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-1241.nvx-unified-shell:not(.home) .nvx-brand-card:hover,
+body.postid-1241.nvx-unified-shell:not(.home) .nvx-brand-card:hover {
+	transform: none;
+	box-shadow: none;
+}
+
+body.page-id-1241.nvx-unified-shell:not(.home) .nvx-brand-hero,
+body.postid-1241.nvx-unified-shell:not(.home) .nvx-brand-hero {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+	min-height: auto;
+}
+
+body.page-id-1241.nvx-unified-shell:not(.home) .nvx-brand-hero__inner,
+body.postid-1241.nvx-unified-shell:not(.home) .nvx-brand-hero__inner {
+	min-height: auto;
+}
+
+body.page-id-1241.nvx-unified-shell:not(.home) .nvx-brand-hero__media img,
+body.postid-1241.nvx-unified-shell:not(.home) .nvx-brand-hero__media img {
+	border-radius: 0;
+	box-shadow: none;
+}
+
+body.page-id-1241.nvx-unified-shell:not(.home) .nvx-brand-btn,
+body.postid-1241.nvx-unified-shell:not(.home) .nvx-brand-btn {
+	border-radius: 0;
+}
+
+body.page-id-1241.nvx-unified-shell:not(.home) .nvx-brand-section--cta,
+body.postid-1241.nvx-unified-shell:not(.home) .nvx-brand-section--cta {
+	background: var(--nvx-charcoal, #2B2926);
+	color: var(--nvx-ivory, #F7F1E8);
+}

@@ -3352,3 +3352,168 @@ body.page-id-2645.nvx-unified-shell .nvx-casos-page .nvx-contact-card {
 	}
 }
 
+/* ══════════════════════════════════════════════════════════════
+   EDITORIAL MEDICINA ESTÉTICA — 2026-07-14 · page 974
+   nvx-med-hero split · filas editoriales · marfil
+   ══════════════════════════════════════════════════════════════ */
+
+body.page-id-974,
+body.page-id-974 .entry-content {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-974 .nvx-med-hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: clamp(24px, 4vw, 48px);
+	align-items: center;
+	max-width: var(--nvx-shell, 1180px);
+	margin-inline: auto;
+	padding: clamp(40px, 5vw, 72px) var(--nvx-gutter, 32px);
+	min-height: auto;
+	height: auto;
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+}
+
+body.page-id-974 .nvx-med-hero::before,
+body.page-id-974 .nvx-med-hero::after {
+	display: none;
+	content: none;
+}
+
+body.page-id-974 .nvx-med-hero h1 {
+	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+	color: var(--nvx-black, #171717);
+	font-weight: 400;
+	font-size: clamp(2.5rem, 4.5vw, 4.5rem);
+	line-height: 1.04;
+	letter-spacing: -0.03em;
+}
+
+body.page-id-974 .nvx-kicker {
+	color: var(--nvx-deep-taupe, #6F6258);
+	letter-spacing: 0.08em;
+	font-size: 0.72rem;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+body.page-id-974 .nvx-lead,
+body.page-id-974 .nvx-copy,
+body.page-id-974 .nvx-med-section p {
+	color: var(--nvx-charcoal, #2B2926);
+	line-height: 1.65;
+	max-width: 72ch;
+}
+
+body.page-id-974 .nvx-med-hero__image {
+	margin: 0;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	overflow: hidden;
+}
+
+body.page-id-974 .nvx-med-hero__image img {
+	border-radius: 0;
+	box-shadow: none;
+}
+
+body.page-id-974 .nvx-hero-points span {
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	background: transparent;
+	color: var(--nvx-deep-taupe, #6F6258);
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+}
+
+body.page-id-974 .nvx-med-main {
+	background: var(--nvx-warm-beige, #E9DDCF);
+	gap: 0;
+}
+
+body.page-id-974 .nvx-med-section {
+	padding-block: clamp(48px, 6vw, 80px);
+	border-top: none;
+}
+
+body.page-id-974 .nvx-med-section + .nvx-med-section {
+	border-top: 1px solid var(--nvx-taupe, #CBBBA8);
+}
+
+body.page-id-974 .nvx-med-section h2,
+body.page-id-974 .nvx-med-section h3 {
+	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+	font-weight: 400;
+	color: var(--nvx-black, #171717);
+}
+
+body.page-id-974 .nvx-diagnostic-grid,
+body.page-id-974 .nvx-treatment-feature-grid,
+body.page-id-974 .nvx-tech-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	margin-top: clamp(24px, 3vw, 40px);
+}
+
+body.page-id-974 .nvx-diagnostic-grid article,
+body.page-id-974 .nvx-treatment-feature,
+body.page-id-974 .nvx-tech-grid article {
+	padding: clamp(28px, 3vw, 40px) 0;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
+body.page-id-974 .nvx-treatment-feature {
+	grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
+	gap: clamp(20px, 3vw, 32px);
+	align-items: start;
+}
+
+body.page-id-974 .nvx-treatment-feature figure,
+body.page-id-974 .nvx-tech-grid figure {
+	border-radius: 0;
+	overflow: hidden;
+}
+
+body.page-id-974 .nvx-treatment-feature img,
+body.page-id-974 .nvx-tech-grid img {
+	border-radius: 0;
+	box-shadow: none;
+}
+
+body.page-id-974 .nvx-btn {
+	border-radius: 0;
+	min-height: 44px;
+}
+
+body.page-id-974.nvx-unified-shell:not(.home) .nvx-med-hero {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+	min-height: auto;
+	padding: clamp(40px, 5vw, 72px) var(--nvx-gutter, 32px);
+}
+
+@media (max-width: 980px) {
+	body.page-id-974 .nvx-med-hero {
+		grid-template-columns: 1fr;
+	}
+
+	body.page-id-974 .nvx-med-hero h1 {
+		font-size: clamp(2.25rem, 9vw, 3.25rem);
+	}
+
+	body.page-id-974 .nvx-treatment-feature {
+		grid-template-columns: 1fr;
+	}
+}
+

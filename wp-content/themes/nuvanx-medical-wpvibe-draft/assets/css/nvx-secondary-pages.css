@@ -804,3 +804,124 @@ body.page-id-14.nvx-unified-shell .nvx-contacto-page .nvx-contact-card {
     font-size: clamp(2.25rem, 9vw, 3.25rem);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   EDITORIAL VALORACIÓN — 2026-07-14 · page 2636
+   nvx-valoracion-page · marfil · filas editoriales
+   ══════════════════════════════════════════════════════════════ */
+
+body.page-id-2636 .nvx-valoracion-page {
+  background: var(--nvx-ivory, #F7F1E8);
+  color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-page-hero {
+  padding-top: clamp(40px, 5vw, 72px);
+  padding-bottom: clamp(24px, 3vw, 40px);
+  min-height: auto;
+  height: auto;
+  max-height: none;
+  background: var(--nvx-ivory, #F7F1E8);
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-page-hero::before,
+body.page-id-2636 .nvx-valoracion-page .nvx-page-hero::after {
+  display: none;
+  content: none;
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-kicker,
+body.page-id-2636 .nvx-valoracion-page .nvx-brand-kicker {
+  color: var(--nvx-deep-taupe, #6F6258);
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+body.page-id-2636 .nvx-valoracion-page h1,
+body.page-id-2636 .nvx-valoracion-page .nvx-page-title {
+  font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+  color: var(--nvx-black, #171717);
+  font-weight: 400;
+  font-size: clamp(2.5rem, 4.5vw, 4.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-page-hero__copy > p,
+body.page-id-2636 .nvx-valoracion-page .nvx-page-hero__copy > .has-text-color {
+  color: var(--nvx-charcoal, #2B2926);
+  line-height: 1.65;
+  max-width: 72ch;
+}
+
+body.page-id-2636 .nvx-valoracion-page h2,
+body.page-id-2636 .nvx-valoracion-page h3 {
+  font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+  font-weight: 400;
+  color: var(--nvx-black, #171717);
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-contact-section,
+body.page-id-2636 .nvx-valoracion-page .nvx-page-body {
+  background: var(--nvx-warm-beige, #E9DDCF);
+  border-top: none;
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-contact-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-contact-grid > * {
+  padding: clamp(28px, 3vw, 40px) 0;
+  border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-contact-grid > *:nth-child(2) {
+  border-left: none;
+  padding-left: 0;
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-card,
+body.page-id-2636 .nvx-valoracion-page .nvx-contact-card,
+body.page-id-2636 .nvx-valoracion-page .nvx-contact-side {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+body.page-id-2636 .nvx-valoracion-page .nvx-page-body__inner > .nvx-card,
+body.page-id-2636 .nvx-valoracion-page .nvx-grid .nvx-card {
+  padding: clamp(28px, 3vw, 40px) 0;
+  border: none;
+  border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+  border-radius: 0;
+}
+
+body.page-id-2636 .nvx-valoracion-page a.nvx-btn-primary,
+body.page-id-2636 .nvx-valoracion-page a.nvx-button--primary,
+body.page-id-2636 .nvx-valoracion-page .nvx-btn,
+body.page-id-2636 .nvx-valoracion-page .nvx-btn-secondary {
+  border-radius: 0;
+  min-height: 44px;
+}
+
+body.page-id-2636.nvx-unified-shell .nvx-valoracion-page .nvx-card,
+body.page-id-2636.nvx-unified-shell .nvx-valoracion-page .nvx-contact-card {
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+@media (max-width: 980px) {
+  body.page-id-2636 .nvx-valoracion-page h1,
+  body.page-id-2636 .nvx-valoracion-page .nvx-page-title {
+    font-size: clamp(2.25rem, 9vw, 3.25rem);
+  }
+}

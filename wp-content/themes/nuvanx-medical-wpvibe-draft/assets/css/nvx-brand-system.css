@@ -1850,26 +1850,36 @@ ol.nvx-brand-list li::before {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   EDITORIAL CLÍNICAS — 2026-07-14
-   /clinicas-de-medicina-estetica-nuvanx/ · sedes y tratamientos en filas
+   EDITORIAL CLÍNICAS FAMILY — 2026-07-14
+   Clínicas · Chamberí · Goya · filas editoriales · marfil
    ══════════════════════════════════════════════════════════════ */
 
-.nvx-brand-page--clinicas {
+.nvx-brand-page--clinicas,
+.nvx-brand-page--chamberi,
+.nvx-brand-page--goya {
 	background: var(--nvx-ivory, #F7F1E8);
 	color: var(--nvx-charcoal, #2B2926);
 }
 
-.nvx-brand-page--clinicas .nvx-brand-section {
+.nvx-brand-page--clinicas .nvx-brand-section,
+.nvx-brand-page--chamberi .nvx-brand-section,
+.nvx-brand-page--goya .nvx-brand-section,
+section.nvx-brand-section--soft[aria-label="Enlaces de interés"] {
 	background: var(--nvx-ivory, #F7F1E8);
 	border-top: none;
 	padding-block: clamp(48px, 6vw, 80px);
 }
 
-.nvx-brand-page--clinicas .nvx-brand-section--soft {
+.nvx-brand-page--clinicas .nvx-brand-section--soft,
+.nvx-brand-page--chamberi .nvx-brand-section--soft,
+.nvx-brand-page--goya .nvx-brand-section--soft,
+section.nvx-brand-section--soft[aria-label="Enlaces de interés"] {
 	background: var(--nvx-warm-beige, #E9DDCF);
 }
 
-.nvx-brand-page--clinicas .nvx-brand-section__inner {
+.nvx-brand-page--clinicas .nvx-brand-section__inner,
+.nvx-brand-page--chamberi .nvx-brand-section__inner,
+.nvx-brand-page--goya .nvx-brand-section__inner {
 	width: 100%;
 	max-width: var(--nvx-shell, 1180px);
 	margin-inline: auto;
@@ -1877,21 +1887,32 @@ ol.nvx-brand-list li::before {
 	box-sizing: border-box;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-hero {
+.nvx-brand-page--clinicas .nvx-brand-hero,
+.nvx-brand-page--chamberi .nvx-brand-hero,
+.nvx-brand-page--goya .nvx-brand-hero {
 	background: var(--nvx-ivory, #F7F1E8);
 	padding: clamp(40px, 5vw, 72px) 0 clamp(24px, 3vw, 40px);
 	min-height: auto;
 	border-bottom: none;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-hero__inner {
+.nvx-brand-page--clinicas .nvx-brand-hero__inner,
+.nvx-brand-page--chamberi .nvx-brand-hero__inner,
+.nvx-brand-page--goya .nvx-brand-hero__inner {
 	max-width: var(--nvx-shell, 1180px);
 	margin-inline: auto;
 	padding-inline: var(--nvx-gutter, 32px);
 	box-sizing: border-box;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-hero__title {
+.nvx-brand-page--goya .nvx-brand-hero--medical .nvx-brand-hero__inner {
+	display: block;
+	max-width: 72ch;
+}
+
+.nvx-brand-page--clinicas .nvx-brand-hero__title,
+.nvx-brand-page--chamberi .nvx-brand-hero__title,
+.nvx-brand-page--goya .nvx-brand-hero__title {
 	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
 	font-size: clamp(2.5rem, 4.5vw, 4.5rem);
 	line-height: 1.04;
@@ -1900,35 +1921,79 @@ ol.nvx-brand-list li::before {
 	font-weight: 400;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-title {
+.nvx-brand-page--goya .nvx-brand-hero__lead,
+.nvx-brand-page--chamberi .nvx-brand-subtitle,
+.nvx-brand-page--goya .nvx-brand-subtitle {
+	color: var(--nvx-charcoal, #2B2926);
+	line-height: 1.65;
+	max-width: 58ch;
+}
+
+.nvx-brand-page--clinicas .nvx-brand-kicker,
+.nvx-brand-page--chamberi .nvx-brand-kicker,
+.nvx-brand-page--goya .nvx-brand-kicker {
+	color: var(--nvx-deep-taupe, #6F6258);
+	letter-spacing: 0.08em;
+}
+
+.nvx-brand-page--goya .nvx-brand-meta {
+	font-size: 0.8125rem;
+	color: var(--nvx-text-muted, rgba(43, 41, 38, 0.68));
+	margin-top: 1rem;
+}
+
+.nvx-brand-page--clinicas .nvx-brand-title,
+.nvx-brand-page--chamberi .nvx-brand-title,
+.nvx-brand-page--goya .nvx-brand-title {
 	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
 	color: var(--nvx-black, #171717);
 	font-size: clamp(2rem, 3.5vw, 3.25rem);
 }
 
 .nvx-brand-page--clinicas .nvx-brand-body,
-.nvx-brand-page--clinicas .nvx-brand-card__body {
+.nvx-brand-page--clinicas .nvx-brand-card__body,
+.nvx-brand-page--chamberi .nvx-brand-body,
+.nvx-brand-page--chamberi .nvx-brand-card__body,
+.nvx-brand-page--goya .nvx-brand-body,
+.nvx-brand-page--goya .nvx-brand-card__body {
 	color: var(--nvx-charcoal, #2B2926);
 }
 
-.nvx-brand-page--clinicas .nvx-brand-readable {
+.nvx-brand-page--clinicas .nvx-brand-readable,
+.nvx-brand-page--chamberi .nvx-brand-readable,
+.nvx-brand-page--goya .nvx-brand-readable {
 	width: 100%;
 	max-width: 72ch;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-readable--wide {
+.nvx-brand-page--clinicas .nvx-brand-readable--wide,
+.nvx-brand-page--chamberi .nvx-brand-readable--wide,
+.nvx-brand-page--goya .nvx-brand-readable--wide {
 	max-width: 80ch;
 }
 
 .nvx-brand-page--clinicas .nvx-brand-grid--2,
-.nvx-brand-page--clinicas .nvx-brand-grid--3 {
+.nvx-brand-page--clinicas .nvx-brand-grid--3,
+.nvx-brand-page--chamberi .nvx-brand-grid--2,
+.nvx-brand-page--chamberi .nvx-brand-grid--3,
+.nvx-brand-page--goya .nvx-brand-grid--2,
+.nvx-brand-page--goya .nvx-brand-grid--3 {
 	display: flex;
 	flex-direction: column;
 	gap: 0;
 	margin-top: clamp(24px, 3vw, 40px);
 }
 
-.nvx-brand-page--clinicas .nvx-brand-card {
+.nvx-brand-page--goya section[aria-label="Ubicación y FAQs"] .nvx-brand-grid--2,
+.nvx-brand-page--chamberi section:has(.nvx-brand-card--dark) .nvx-brand-grid--2 {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	gap: clamp(32px, 4vw, 48px);
+}
+
+.nvx-brand-page--clinicas .nvx-brand-card,
+.nvx-brand-page--chamberi .nvx-brand-card,
+.nvx-brand-page--goya .nvx-brand-card {
 	padding: clamp(28px, 3vw, 40px) 0;
 	border: none;
 	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
@@ -1939,16 +2004,23 @@ ol.nvx-brand-list li::before {
 	transform: none;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-card::before {
+.nvx-brand-page--clinicas .nvx-brand-card::before,
+.nvx-brand-page--chamberi .nvx-brand-card::before,
+.nvx-brand-page--goya .nvx-brand-card::before {
 	display: none;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-card:hover {
+.nvx-brand-page--clinicas .nvx-brand-card:hover,
+.nvx-brand-page--chamberi .nvx-brand-card:hover,
+.nvx-brand-page--goya .nvx-brand-card:hover {
 	transform: none;
 	box-shadow: none;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-card small {
+.nvx-brand-page--clinicas .nvx-brand-card small,
+.nvx-brand-page--chamberi .nvx-brand-card__kicker,
+.nvx-brand-page--goya .nvx-brand-card__kicker,
+.nvx-brand-page--clinicas .nvx-brand-card__kicker {
 	display: block;
 	margin-bottom: 0.5rem;
 	color: var(--nvx-gold, #B89A5B);
@@ -1958,42 +2030,149 @@ ol.nvx-brand-list li::before {
 	text-transform: uppercase;
 }
 
-.nvx-brand-page--clinicas details {
+.nvx-brand-page--chamberi .nvx-brand-card__title a,
+.nvx-brand-page--goya .nvx-brand-card__title a {
+	color: inherit;
+	text-decoration: none;
+	border-bottom: none;
+}
+
+.nvx-brand-page--chamberi .nvx-brand-card__media,
+.nvx-brand-page--goya .nvx-brand-card__media {
+	margin: 0 0 1rem;
+	border-radius: 0;
+	overflow: hidden;
+	max-width: 280px;
+}
+
+.nvx-brand-page--chamberi .nvx-brand-card__media img,
+.nvx-brand-page--goya .nvx-brand-card__media img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: 0;
+	object-fit: cover;
+	box-shadow: none;
+}
+
+.nvx-brand-page--chamberi .nvx-brand-card--dark {
+	background: var(--nvx-charcoal, #2B2926);
+	padding: clamp(24px, 3vw, 32px);
+	margin-top: 0;
+	border-bottom-color: var(--nvx-charcoal, #2B2926);
+}
+
+.nvx-brand-page--chamberi .nvx-brand-card--dark .nvx-brand-card__title,
+.nvx-brand-page--chamberi .nvx-brand-card--dark .nvx-brand-card__body {
+	color: var(--nvx-ivory, #F7F1E8);
+}
+
+.nvx-brand-page--clinicas details,
+.nvx-brand-page--chamberi details,
+.nvx-brand-page--goya details {
 	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
 	padding: 0.75rem 0;
 }
 
-.nvx-brand-page--clinicas details summary {
+.nvx-brand-page--clinicas details summary,
+.nvx-brand-page--chamberi details summary,
+.nvx-brand-page--goya details summary {
 	cursor: pointer;
 	padding-right: 2rem;
 	font-weight: 500;
 	color: var(--nvx-black, #171717);
 }
 
-.nvx-brand-page--clinicas .nvx-brand-inline-link {
+.nvx-brand-page--clinicas .nvx-brand-section--cta,
+.nvx-brand-page--chamberi .nvx-brand-section--cta {
+	background: var(--nvx-charcoal, #2B2926);
+	color: var(--nvx-ivory, #F7F1E8);
+	padding-block: clamp(56px, 7vw, 96px);
+}
+
+.nvx-brand-page--clinicas .nvx-brand-section--cta .nvx-brand-title,
+.nvx-brand-page--clinicas .nvx-brand-section--cta .nvx-brand-subtitle,
+.nvx-brand-page--chamberi .nvx-brand-section--cta .nvx-brand-title,
+.nvx-brand-page--chamberi .nvx-brand-section--cta .nvx-brand-subtitle {
+	color: var(--nvx-ivory, #F7F1E8);
+}
+
+.nvx-brand-page--clinicas .nvx-brand-section--cta .nvx-brand-btn--primary,
+.nvx-brand-page--chamberi .nvx-brand-section--cta .nvx-brand-btn--primary {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-color: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+.nvx-brand-page--clinicas .nvx-brand-section--cta .nvx-brand-btn--secondary,
+.nvx-brand-page--chamberi .nvx-brand-section--cta .nvx-brand-btn--secondary {
+	background: transparent;
+	border-color: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-ivory, #F7F1E8);
+}
+
+.nvx-brand-page--clinicas .nvx-brand-inline-link,
+.nvx-brand-page--chamberi .nvx-brand-inline-link,
+.nvx-brand-page--goya .nvx-brand-inline-link {
 	color: var(--nvx-black, #171717);
 	border-bottom: 1px solid var(--nvx-gold, #B89A5B);
 	text-decoration: none;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-btn {
+.nvx-brand-page--clinicas .nvx-brand-actions,
+.nvx-brand-page--chamberi .nvx-brand-actions,
+.nvx-brand-page--goya .nvx-brand-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 1.5rem;
+}
+
+.nvx-brand-page--clinicas .nvx-brand-btn,
+.nvx-brand-page--chamberi .nvx-brand-btn,
+.nvx-brand-page--goya .nvx-brand-btn {
 	border-radius: 0;
 	min-height: 44px;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-btn::after {
+.nvx-brand-page--clinicas .nvx-brand-btn::after,
+.nvx-brand-page--chamberi .nvx-brand-btn::after,
+.nvx-brand-page--goya .nvx-brand-btn::after {
 	display: none;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-btn--primary {
+.nvx-brand-page--clinicas .nvx-brand-btn--primary,
+.nvx-brand-page--chamberi .nvx-brand-btn--primary,
+.nvx-brand-page--goya .nvx-brand-btn--primary {
 	background: var(--nvx-black, #171717);
 	border-color: var(--nvx-black, #171717);
 	color: #fff;
 }
 
+.nvx-brand-page--clinicas .nvx-brand-btn--secondary,
+.nvx-brand-page--chamberi .nvx-brand-btn--secondary,
+.nvx-brand-page--goya .nvx-brand-btn--secondary {
+	background: transparent;
+	border-color: var(--nvx-black, #171717);
+	color: var(--nvx-black, #171717);
+}
+
+.nvx-brand-page--clinicas section[aria-label="Ubicaciones NUVANX en Google Maps"] .nvx-brand-grid--3 {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+
 @media (max-width: 980px) {
-	.nvx-brand-page--clinicas .nvx-brand-hero__title {
+	.nvx-brand-page--clinicas .nvx-brand-hero__title,
+	.nvx-brand-page--chamberi .nvx-brand-hero__title,
+	.nvx-brand-page--goya .nvx-brand-hero__title {
 		font-size: clamp(2.25rem, 9vw, 3.25rem);
+	}
+
+	.nvx-brand-page--goya section[aria-label="Ubicación y FAQs"] .nvx-brand-grid--2,
+	.nvx-brand-page--chamberi section:has(.nvx-brand-card--dark) .nvx-brand-grid--2 {
+		grid-template-columns: 1fr;
 	}
 }
 

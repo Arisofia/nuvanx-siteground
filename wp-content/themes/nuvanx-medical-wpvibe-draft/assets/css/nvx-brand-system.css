@@ -1372,6 +1372,59 @@ ol.nvx-brand-list li::before {
 	}
 }
 
+/* Vence nvx-fluid-organic-2026 — page 2803 */
+body.page-id-2803,
+body.page-id-2803 .entry-content {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos .nvx-brand-hero--medical,
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos .nvx-brand-hero {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+	min-height: auto;
+	padding-block: clamp(40px, 5vw, 72px);
+}
+
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos .nvx-brand-hero__inner {
+	min-height: auto;
+	padding: 0 var(--nvx-gutter, 32px);
+}
+
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos .nvx-brand-card,
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos .nvx-brand-faq-item {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos .nvx-brand-card:hover {
+	transform: none;
+	box-shadow: none;
+}
+
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos .nvx-brand-hero__media,
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos .nvx-brand-hero__media img {
+	border-radius: 0;
+	border: none;
+	box-shadow: none;
+}
+
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos .nvx-brand-btn {
+	border-radius: 0;
+}
+
+body.page-id-2803.nvx-unified-shell:not(.home) .nvx-brand-page--tratamientos #tratamientos .nvx-brand-grid--3 {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+
 /* ══════════════════════════════════════════════════════════════
    EDITORIAL EXION — 2026-07-14
    /exion-btl/ · hero split · filas planas · clínicas en bandas
@@ -1629,6 +1682,64 @@ ol.nvx-brand-list li::before {
 	}
 }
 
+/* Vence nvx-fluid-organic-2026 — page 2906 */
+body.page-id-2906,
+body.page-id-2906 .entry-content {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-hero--laser,
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-hero {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+	min-height: auto;
+	padding-block: clamp(40px, 5vw, 72px);
+}
+
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-hero__inner {
+	min-height: auto;
+	padding-inline: var(--nvx-gutter, 32px);
+}
+
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-card,
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-faq-item {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-card:hover {
+	transform: none;
+	box-shadow: none;
+}
+
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-hero__media,
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-hero__media img {
+	border-radius: 0;
+	border: none;
+	box-shadow: none;
+}
+
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-btn {
+	border-radius: 0;
+}
+
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion section[aria-label="Clínicas EXION BTL NUVANX Madrid"] .nvx-brand-grid--2 {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+
+body.page-id-2906.nvx-unified-shell:not(.home) .nvx-brand-page--exion .nvx-brand-section--cta {
+	background: var(--nvx-charcoal, #2B2926);
+	color: var(--nvx-ivory, #F7F1E8);
+}
+
 /* ══════════════════════════════════════════════════════════════
    EDITORIAL IPL (BTL EXILITE) — 2026-07-14
    /btl-exilite-ipl-madrid/ · hero split · indicaciones en filas
@@ -1847,6 +1958,64 @@ ol.nvx-brand-list li::before {
 	.nvx-brand-page--btl-exilite .nvx-brand-hero__title {
 		font-size: clamp(2.25rem, 9vw, 3.25rem);
 	}
+}
+
+/* Vence nvx-fluid-organic-2026 — page 3055 */
+body.page-id-3055,
+body.page-id-3055 .entry-content {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-hero--laser,
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-hero {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+	min-height: auto;
+	padding-block: clamp(40px, 5vw, 72px);
+}
+
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-hero__inner {
+	min-height: auto;
+	padding-inline: var(--nvx-gutter, 32px);
+}
+
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-card,
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-faq-item {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-card:hover {
+	transform: none;
+	box-shadow: none;
+}
+
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-hero__media,
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-hero__media img {
+	border-radius: 0;
+	border: none;
+	box-shadow: none;
+}
+
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-btn {
+	border-radius: 0;
+}
+
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite section[aria-label="Indicaciones del tratamiento con BTL EXILITE IPL"] .nvx-brand-grid--3 {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+
+body.page-id-3055.nvx-unified-shell:not(.home) .nvx-brand-page--btl-exilite .nvx-brand-section--cta {
+	background: var(--nvx-charcoal, #2B2926);
+	color: var(--nvx-ivory, #F7F1E8);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -2174,6 +2343,73 @@ section.nvx-brand-section--soft[aria-label="Enlaces de interés"] {
 	.nvx-brand-page--chamberi section:has(.nvx-brand-card--dark) .nvx-brand-grid--2 {
 		grid-template-columns: 1fr;
 	}
+}
+
+/* Vence nvx-fluid-organic-2026 — clínicas 1399 · Chamberí 1543 · Goya 1537 */
+body.page-id-1399,
+body.page-id-1543,
+body.page-id-1537,
+body.page-id-1399 .entry-content,
+body.page-id-1543 .entry-content,
+body.page-id-1537 .entry-content {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-1399.nvx-unified-shell:not(.home) .nvx-brand-card,
+body.page-id-1543.nvx-unified-shell:not(.home) .nvx-brand-card,
+body.page-id-1537.nvx-unified-shell:not(.home) .nvx-brand-card,
+body.page-id-1399.nvx-unified-shell:not(.home) .nvx-brand-faq-item,
+body.page-id-1543.nvx-unified-shell:not(.home) .nvx-brand-faq-item,
+body.page-id-1537.nvx-unified-shell:not(.home) .nvx-brand-faq-item {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-1399.nvx-unified-shell:not(.home) .nvx-brand-card:hover,
+body.page-id-1543.nvx-unified-shell:not(.home) .nvx-brand-card:hover,
+body.page-id-1537.nvx-unified-shell:not(.home) .nvx-brand-card:hover {
+	transform: none;
+	box-shadow: none;
+}
+
+body.page-id-1399.nvx-unified-shell:not(.home) .nvx-brand-hero,
+body.page-id-1543.nvx-unified-shell:not(.home) .nvx-brand-hero,
+body.page-id-1537.nvx-unified-shell:not(.home) .nvx-brand-hero {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+	min-height: auto;
+}
+
+body.page-id-1399.nvx-unified-shell:not(.home) .nvx-brand-hero__inner,
+body.page-id-1543.nvx-unified-shell:not(.home) .nvx-brand-hero__inner,
+body.page-id-1537.nvx-unified-shell:not(.home) .nvx-brand-hero__inner {
+	min-height: auto;
+}
+
+body.page-id-1399.nvx-unified-shell:not(.home) .nvx-brand-hero__media img,
+body.page-id-1543.nvx-unified-shell:not(.home) .nvx-brand-hero__media img,
+body.page-id-1537.nvx-unified-shell:not(.home) .nvx-brand-hero__media img {
+	border-radius: 0;
+	box-shadow: none;
+}
+
+body.page-id-1399.nvx-unified-shell:not(.home) .nvx-brand-btn,
+body.page-id-1543.nvx-unified-shell:not(.home) .nvx-brand-btn,
+body.page-id-1537.nvx-unified-shell:not(.home) .nvx-brand-btn {
+	border-radius: 0;
+}
+
+body.page-id-1399.nvx-unified-shell:not(.home) .nvx-brand-section--cta,
+body.page-id-1543.nvx-unified-shell:not(.home) .nvx-brand-section--cta,
+body.page-id-1537.nvx-unified-shell:not(.home) .nvx-brand-section--cta {
+	background: var(--nvx-charcoal, #2B2926);
+	color: var(--nvx-ivory, #F7F1E8);
 }
 
 /* ══════════════════════════════════════════════════════════════

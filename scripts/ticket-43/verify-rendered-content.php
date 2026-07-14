@@ -31,9 +31,10 @@ if ( ! is_string( $rendered ) || $rendered === '' ) {
 }
 
 $required = array(
-	'id="nvx-home-manifiesto"' => 'manifiesto anchor',
-	'nvx-home-hero-video'      => 'hero video marker',
-	'id="nvx-home-main"'       => 'home main wrapper',
+	'nvx-editorial-home-v3' => 'V3 home wrapper class',
+	'nvx-home-hero-video'    => 'hero video marker',
+	'id="nvx-home-main"'     => 'home main wrapper',
+	'nvx-home-organic-wave'  => 'hero organic wave',
 );
 
 foreach ( $required as $needle => $label ) {
@@ -42,12 +43,25 @@ foreach ( $required as $needle => $label ) {
 	}
 }
 
+if ( strpos( $rendered, 'id="nvx-home-manifiesto"' ) !== false ) {
+	WP_CLI::error( 'Rendered content contains rejected V2 manifiesto anchor.' );
+}
+
+if ( stripos( $rendered, 'sin ruido' ) !== false ) {
+	WP_CLI::error( 'Rendered content contains rejected V2 copy.' );
+}
+
 if (
 	strpos( $rendered, 'id="nvx-home-tratamientos"' ) === false
 	&& strpos( $rendered, 'aria-label="Tratamientos NUVANX"' ) === false
 	&& stripos( $rendered, '>Tratamientos</p>' ) === false
 ) {
 	WP_CLI::error( 'Rendered content missing Tratamientos section marker.' );
+}
+
+$video_src = '/wp-content/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4';
+if ( strpos( $rendered, $video_src ) === false && strpos( $post->post_content, $video_src ) === false ) {
+	WP_CLI::error( "Rendered/DB content missing hero video source {$video_src}." );
 }
 
 $header_path = get_template_directory() . '/header.php';

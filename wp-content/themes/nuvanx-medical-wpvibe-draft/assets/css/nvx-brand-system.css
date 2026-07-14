@@ -2742,3 +2742,241 @@ body.page-id-1575 .nvx-p1-cta::before {
 	}
 }
 
+/* ══════════════════════════════════════════════════════════════
+   EDITORIAL JOURNAL — 2026-07-14 · page 16 + single posts
+   nvx-blog-hub · filas editoriales · marfil
+   ══════════════════════════════════════════════════════════════ */
+
+body.page-id-16 .nvx-blog-hub,
+body.page-id-16 .nvx-med-hub.nvx-blog-hub {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-16 .nvx-page-hero.nvx-hero-section {
+	min-height: auto;
+	height: auto;
+	padding-block: clamp(40px, 5vw, 72px) clamp(24px, 3vw, 40px);
+	background: var(--nvx-ivory, #F7F1E8);
+}
+
+body.page-id-16 .nvx-page-hero::before,
+body.page-id-16 .nvx-page-hero::after {
+	display: none;
+	content: none;
+}
+
+body.page-id-16 .nvx-page-hero__inner {
+	padding-inline: var(--nvx-gutter, 32px);
+}
+
+body.page-id-16 .nvx-kicker {
+	color: var(--nvx-deep-taupe, #6F6258);
+	letter-spacing: 0.08em;
+	font-size: 0.72rem;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+body.page-id-16 .nvx-page-hero h1 {
+	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+	color: var(--nvx-black, #171717);
+	font-weight: 400;
+	font-size: clamp(2.5rem, 4.5vw, 4.5rem);
+	line-height: 1.04;
+	letter-spacing: -0.03em;
+	margin: 0 0 1rem;
+}
+
+body.page-id-16 .nvx-hero-subtitle,
+body.page-id-16 .nvx-registro {
+	color: var(--nvx-charcoal, #2B2926);
+	line-height: 1.65;
+	max-width: 72ch;
+	margin-inline: auto;
+}
+
+body.page-id-16 .nvx-registro {
+	margin-top: 1rem;
+	font-size: 0.8125rem;
+	color: var(--nvx-text-muted, rgba(43, 41, 38, 0.68));
+}
+
+body.page-id-16 .nvx-page-body {
+	background: var(--nvx-warm-beige, #E9DDCF);
+	border-top: none;
+}
+
+body.page-id-16 .nvx-page-body__inner {
+	padding-block: clamp(48px, 6vw, 80px);
+}
+
+body.page-id-16 .nvx-blog-index-v2__grid {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+
+body.page-id-16 .nvx-blog-card {
+	padding: clamp(28px, 3vw, 40px) 0;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	transform: none;
+}
+
+body.page-id-16 .nvx-blog-card:hover {
+	transform: none;
+	box-shadow: none;
+	border-color: var(--nvx-taupe, #CBBBA8);
+}
+
+body.page-id-16.nvx-unified-shell:not(.home) .nvx-blog-card {
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	border-radius: 0;
+	background: transparent;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-16 .nvx-blog-card__title,
+body.page-id-16 .nvx-blog-card h2 {
+	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+	font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+	font-weight: 400;
+	color: var(--nvx-black, #171717);
+	letter-spacing: -0.02em;
+	margin: 0 0 0.5rem;
+}
+
+body.page-id-16 .nvx-blog-card__title a,
+body.page-id-16 .nvx-blog-card h2 a {
+	color: inherit;
+	text-decoration: none;
+}
+
+body.page-id-16 .nvx-blog-card__meta {
+	margin: 0 0 0.75rem;
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--nvx-gold, #B89A5B);
+}
+
+body.page-id-16 .nvx-blog-card__excerpt,
+body.page-id-16 .nvx-blog-card p {
+	color: var(--nvx-charcoal, #2B2926);
+	line-height: 1.65;
+	max-width: 72ch;
+}
+
+body.page-id-16 .nvx-blog-card .nvx-btn,
+body.page-id-16 .nvx-blog-card a.nvx-btn-secondary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	margin-top: 1rem;
+	padding: 0.65rem 1.25rem;
+	border-radius: 0;
+	background: var(--nvx-black, #171717);
+	border: 1px solid var(--nvx-black, #171717);
+	color: #fff;
+	text-decoration: none;
+	font-size: 0.8125rem;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+body.page-id-16 .nvx-blog-index-v2__pagination {
+	margin-top: 0;
+	padding-top: clamp(24px, 3vw, 40px);
+	border-top: 1px solid var(--nvx-taupe, #CBBBA8);
+}
+
+body.page-id-16 .nvx-blog-empty {
+	padding: clamp(28px, 3vw, 40px) 0;
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+/* Single post — artículo editorial */
+body.single-post .nvx-page--single {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.single-post .nvx-page__content {
+	padding-block: clamp(48px, 6vw, 80px);
+}
+
+body.single-post .nvx-article {
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.single-post .nvx-article-hero {
+	margin-bottom: clamp(32px, 4vw, 48px);
+	padding-bottom: clamp(24px, 3vw, 36px);
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	border-radius: 0;
+	background: transparent;
+}
+
+body.single-post .nvx-article-hero h1 {
+	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+	color: var(--nvx-black, #171717);
+	font-weight: 400;
+	font-size: clamp(2.25rem, 4vw, 3.75rem);
+	line-height: 1.06;
+	letter-spacing: -0.03em;
+}
+
+body.single-post .nvx-article-hero img,
+body.single-post .nvx-article img,
+body.single-post .entry-content img {
+	border-radius: 0;
+	box-shadow: none;
+}
+
+body.single-post .nvx-article-lead,
+body.single-post .nvx-article p {
+	color: var(--nvx-charcoal, #2B2926);
+	line-height: 1.65;
+}
+
+body.single-post .nvx-article h2,
+body.single-post .nvx-article h3,
+body.single-post .entry-content h2,
+body.single-post .entry-content h3 {
+	font-family: var(--nvx-serif, "Bodoni Moda", Georgia, serif);
+	font-weight: 400;
+	color: var(--nvx-black, #171717);
+}
+
+body.single-post .nvx-related-links,
+body.single-post .nvx-article-faq,
+body.single-post .nvx-blog-author-review {
+	padding-top: clamp(24px, 3vw, 32px);
+	border-top: 1px solid var(--nvx-taupe, #CBBBA8);
+	background: transparent;
+}
+
+body.single-post.nvx-unified-shell .nvx-article-hero,
+body.single-post.nvx-unified-shell .nvx-blog-card {
+	border-radius: 0;
+	background: transparent;
+}
+
+@media (max-width: 980px) {
+	body.page-id-16 .nvx-page-hero h1 {
+		font-size: clamp(2.25rem, 9vw, 3.25rem);
+	}
+
+	body.single-post .nvx-article-hero h1 {
+		font-size: clamp(2rem, 8vw, 2.75rem);
+	}
+}
+

@@ -1,0 +1,24 @@
+{
+  "canonical": {
+    "visible_text_hash": "5eb6afaf248ed22177509e766c6b77a851d2786ecca50dbc1e49a775c45251a9",
+    "anchor_hash": "fb2ae13c65340456ee414c1fd4143aabbbd2af8a386dc5118080605a3b8f611d",
+    "h1": 1,
+    "h2": 6,
+    "links": 24,
+    "faq": 13,
+    "treatments": 7,
+    "cs20144": 1,
+    "cs20073": 1
+  },
+  "candidate": {
+    "visible_text_hash": "5eb6afaf248ed22177509e766c6b77a851d2786ecca50dbc1e49a775c45251a9",
+    "anchor_hash": "fb2ae13c65340456ee414c1fd4143aabbbd2af8a386dc5118080605a3b8f611d",
+    "h1": 1,
+    "h2": 6,
+    "links": 24,
+    "faq": 13,
+    "treatments": 7,
+    "cs20144": 1,
+    "cs20073": 1
+  }
+}

@@ -11,15 +11,25 @@ on:
 permissions:
   contents: read
 
+env:
+  STAGING_BASE_URL: https://staging2.nuvanx.com
+  STAGING_PATH: /home/customer/www/staging2.nuvanx.com/public_html
+  BACKUP_NAME: ticket43-staging-before-${{ github.run_id }}-${{ github.run_attempt }}
+
 jobs:
   deploy-and-qa:
-    name: Surgical Deployment and QA on Staging
+    name: Protected Staging Deployment and QA
     runs-on: ubuntu-latest
     environment: staging
 
     steps:
+      - name: Hardcode Environment Validation
+        run: |
+          if [ "${{ env.STAGING_BASE_URL }}" != "https://staging2.nuvanx.com" ]; then echo "ERROR: STAGING_BASE_URL altered"; exit 1; fi
+          if [ "${{ env.STAGING_PATH }}" != "/home/customer/www/staging2.nuvanx.com/public_html" ]; then echo "ERROR: STAGING_PATH altered"; exit 1; fi
+
       - name: Checkout Master Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: master
           fetch-depth: 0
@@ -30,14 +40,22 @@ jobs:
           if [[ ! "$TARGET" =~ ^[0-9a-f]{40}$ ]]; then echo "ERROR: Invalid SHA format"; exit 1; fi
           
           git fetch origin $TARGET || { echo "ERROR: SHA does not exist"; exit 1; }
+          git fetch origin feature/ticket-43-visual-reconciliation-v2:refs/remotes/origin/feature/ticket-43-visual-reconciliation-v2
           
-          if ! git merge-base --is-ancestor origin/master $TARGET; then echo "ERROR: SHA does not descend from master"; exit 1; fi
+          if ! git merge-base --is-ancestor "$TARGET" origin/master; then echo "ERROR: SHA does not descend from master"; exit 1; fi
+          if ! git merge-base --is-ancestor "$TARGET" origin/feature/ticket-43-visual-reconciliation-v2; then echo "ERROR: SHA not in feature branch"; exit 1; fi
           
-          BRANCHES=$(git branch -r --contains $TARGET)
-          if ! echo "$BRANCHES" | grep -q "feature/ticket-43-visual-reconciliation-v2"; then echo "ERROR: SHA not in feature branch"; exit 1; fi
+          cat << 'EOF' > allowlist.txt
+          wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css
+          wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css
+          EOF
           
-          DIFF=$(git diff --name-only origin/master...$TARGET | grep -v -e "wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css" -e "wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css" || true)
-          if [ -n "$DIFF" ]; then echo "ERROR: Target SHA contains unauthorized files: $DIFF"; exit 1; fi
+          git diff --name-only origin/master...$TARGET > diff.txt
+          if grep -vxF -f allowlist.txt diff.txt; then
+            echo "ERROR: Target SHA contains unauthorized files"
+            cat diff.txt
+            exit 1
+          fi
           
           APPROVED_SHA="a21853749d5222d4e342614896a02c53504c1b7c"
           git fetch origin $APPROVED_SHA
@@ -57,12 +75,12 @@ jobs:
           git show $TARGET:wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css > wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: '20'
 
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.9.0
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
         with:
           ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
 
@@ -84,30 +102,38 @@ jobs:
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
           SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
         run: |
-          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST 'bash -e -s' << 'EOF'
+          ssh -p $SSH_PORT $SSH_USER@$SSH_HOST 'bash -e -s' << EOF
             set -e
-            STAGING_PATH=/home/customer/www/staging2.nuvanx.com/public_html
-            cd "$STAGING_PATH"
+            cd "${{ env.STAGING_PATH }}"
             
-            SITEURL=$(wp option get siteurl)
-            HOMEURL=$(wp option get home)
-            ACTIVE_THEME=$(wp theme list --status=active --field=name)
+            SITEURL=\$(wp option get siteurl)
+            HOMEURL=\$(wp option get home)
+            ACTIVE_THEME=\$(wp theme list --status=active --field=name)
             
-            if [ "$SITEURL" != "https://staging2.nuvanx.com" ]; then echo "ERROR: SITEURL mismatch: $SITEURL"; exit 1; fi
-            if [ "$HOMEURL" != "https://staging2.nuvanx.com" ]; then echo "ERROR: HOMEURL mismatch: $HOMEURL"; exit 1; fi
-            if [ "$ACTIVE_THEME" != "nuvanx-medical" ]; then echo "ERROR: ACTIVE_THEME mismatch: $ACTIVE_THEME"; exit 1; fi
+            if [ "\$SITEURL" != "${{ env.STAGING_BASE_URL }}" ]; then echo "ERROR: SITEURL mismatch: \$SITEURL"; exit 1; fi
+            if [ "\$HOMEURL" != "${{ env.STAGING_BASE_URL }}" ]; then echo "ERROR: HOMEURL mismatch: \$HOMEURL"; exit 1; fi
+            if [ "\$ACTIVE_THEME" != "nuvanx-medical" ]; then echo "ERROR: ACTIVE_THEME mismatch: \$ACTIVE_THEME"; exit 1; fi
             
-            BACKUP_DIR="$HOME/nuvanx-backups/ticket43-staging-before-$(date +%Y%m%d-%H%M%S)"
-            mkdir -p "$BACKUP_DIR"
+            BACKUP_DIR="\$HOME/nuvanx-backups/${{ env.BACKUP_NAME }}"
+            mkdir -p "\$BACKUP_DIR"
             
-            cd "$STAGING_PATH/wp-content/themes/nuvanx-medical"
-            sha256sum functions.php header.php front-page.php footer.php > "$BACKUP_DIR/protected-before.sha256"
-            cd "$STAGING_PATH"
-            wp post get 9 --field=post_content | sha256sum >> "$BACKUP_DIR/protected-before.sha256"
+            hostname > "\$BACKUP_DIR/precheck.txt"
+            pwd >> "\$BACKUP_DIR/precheck.txt"
+            wp option get siteurl >> "\$BACKUP_DIR/precheck.txt"
+            wp option get home >> "\$BACKUP_DIR/precheck.txt"
+            wp theme list --status=active >> "\$BACKUP_DIR/precheck.txt"
+            wp core version >> "\$BACKUP_DIR/precheck.txt"
             
-            cd "$STAGING_PATH/wp-content/themes/nuvanx-medical"
-            cp assets/css/nvx-brand-home.css "$BACKUP_DIR/"
-            cp assets/css/nvx-brand-home.min.css "$BACKUP_DIR/"
+            cd "${{ env.STAGING_PATH }}/wp-content/themes/nuvanx-medical"
+            sha256sum functions.php header.php front-page.php footer.php > "\$BACKUP_DIR/protected-before.sha256"
+            cd "${{ env.STAGING_PATH }}"
+            wp post get 9 --field=post_content | sha256sum >> "\$BACKUP_DIR/protected-before.sha256"
+            
+            cd "${{ env.STAGING_PATH }}/wp-content/themes/nuvanx-medical"
+            cp assets/css/nvx-brand-home.css "\$BACKUP_DIR/"
+            cp assets/css/nvx-brand-home.min.css "\$BACKUP_DIR/"
+            sha256sum assets/css/nvx-brand-home.css assets/css/nvx-brand-home.min.css > "\$BACKUP_DIR/hashes-before.txt"
+            wp theme list --status=active > "\$BACKUP_DIR/theme-status.txt"
           EOF
 
       - name: Transfer CSS files
@@ -116,8 +142,8 @@ jobs:
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
           SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
         run: |
-          scp -P $SSH_PORT wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css $SSH_USER@$SSH_HOST:/home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical/assets/css/
-          scp -P $SSH_PORT wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css $SSH_USER@$SSH_HOST:/home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical/assets/css/
+          scp -P $SSH_PORT wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css $SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/wp-content/themes/nuvanx-medical/assets/css/
+          scp -P $SSH_PORT wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css $SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/wp-content/themes/nuvanx-medical/assets/css/
 
       - name: Validate Integrity After Deploy
         env:
@@ -130,18 +156,17 @@ jobs:
           
           ssh -p $SSH_PORT $SSH_USER@$SSH_HOST 'bash -e -s' << EOF
             set -e
-            STAGING_PATH=/home/customer/www/staging2.nuvanx.com/public_html
-            cd "\$STAGING_PATH/wp-content/themes/nuvanx-medical"
+            cd "${{ env.STAGING_PATH }}/wp-content/themes/nuvanx-medical"
             REMOTE_CSS=\$(sha256sum assets/css/nvx-brand-home.css | awk '{print \$1}')
             REMOTE_MIN=\$(sha256sum assets/css/nvx-brand-home.min.css | awk '{print \$1}')
             
             if [ "\$REMOTE_CSS" != "$SHA_CSS" ]; then echo "ERROR: Hash mismatch for css"; exit 1; fi
             if [ "\$REMOTE_MIN" != "$SHA_MIN" ]; then echo "ERROR: Hash mismatch for min css"; exit 1; fi
             
-            BACKUP_DIR=\$(ls -td \$HOME/nuvanx-backups/ticket43-staging-before-* | head -1)
+            BACKUP_DIR="\$HOME/nuvanx-backups/${{ env.BACKUP_NAME }}"
             
             sha256sum functions.php header.php front-page.php footer.php > "\$BACKUP_DIR/protected-after.sha256"
-            cd "\$STAGING_PATH"
+            cd "${{ env.STAGING_PATH }}"
             wp post get 9 --field=post_content | sha256sum >> "\$BACKUP_DIR/protected-after.sha256"
             
             diff -u "\$BACKUP_DIR/protected-before.sha256" "\$BACKUP_DIR/protected-after.sha256"
@@ -151,7 +176,6 @@ jobs:
       - name: QA First Control (Home Only)
         working-directory: qa
         env:
-          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL || 'https://staging2.nuvanx.com' }}
           STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
           STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
         run: |
@@ -162,19 +186,18 @@ jobs:
       - name: QA Full Matrix
         working-directory: qa
         env:
-          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL || 'https://staging2.nuvanx.com' }}
           STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
           STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
         run: npx playwright test -c ../playwright.config.js ticket43.spec.js
 
       - name: Upload Artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: qa-evidence
           path: |
             qa/results/
             qa/screenshots/
-            playwright-report/
-            test-results/
+            qa/playwright-report/
+            qa/test-results/
           retention-days: 7

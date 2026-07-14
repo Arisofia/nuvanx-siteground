@@ -198,9 +198,6 @@ jobs:
 
             export NVX_POST_CONTENT_V2="${{ env.STAGING_PATH }}/deploy/ticket-43/post_content_v2.html"
             wp eval-file scripts/ticket-43/apply-post-content.php
-
-            wp cache flush >/dev/null 2>&1 || true
-            wp sg purge >/dev/null 2>&1 || true
           EOF
 
       - name: Verify Post-Deploy

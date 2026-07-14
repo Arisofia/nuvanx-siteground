@@ -67,3 +67,5 @@ artifacts/capture-treatment-pages.js
 wp-content/themes/nuvanx-medical-wpvibe-draft/php_errorlog
 php_errorlog
 *.log
+playwright-report/
+test-results/

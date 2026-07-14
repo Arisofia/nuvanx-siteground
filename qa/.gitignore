@@ -1,1 +1,6 @@
 node_modules/
+results/
+screenshots/
+playwright_results/
+playwright-report/
+test-results/

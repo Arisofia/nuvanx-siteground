@@ -1,6 +1,10 @@
 <?php
-defined( 'ABSPATH' ) || exit;
-
+defined('ABSPATH')||exit;
 get_header();
-get_template_part( 'template-parts/editorial/home' );
+while(have_posts()):the_post();
+?>
+<section class="nvx-hero-wrap" aria-label="<?php esc_attr_e('Hero portada','nuvanx-editorial-v2'); ?>">
+  <?php the_content(); ?>
+</section>
+<?php endwhile;
 get_footer();

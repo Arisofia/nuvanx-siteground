@@ -1,5 +1,0 @@
-[08-Jul-2026 10:42:34 UTC] PHP Fatal error:  Uncaught ArgumentCountError: str_ireplace() expects at least 3 arguments, 2 given in /tmp/clean_theme_php.php:22
-Stack trace:
-#0 /tmp/clean_theme_php.php(22): str_ireplace('Endolift\xC2\xAE', '<?php\n/**\n * Te...')
-#1 {main}
-  thrown in /tmp/clean_theme_php.php on line 22

@@ -4265,3 +4265,186 @@ body.page-id-2635.nvx-unified-shell:not(.home) .nvx-contact-card {
 	}
 }
 
+/* Vence nvx-fluid-organic-2026 — journal 16 + singles */
+body.page-id-16.nvx-unified-shell:not(.home) .nvx-page-hero,
+body.page-id-16.nvx-unified-shell:not(.home) .nvx-hero-section {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+	min-height: auto;
+}
+
+body.page-id-16.nvx-unified-shell:not(.home) .nvx-page-hero__inner {
+	min-height: auto;
+}
+
+body.page-id-16.nvx-unified-shell:not(.home) .nvx-blog-card {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-16.nvx-unified-shell:not(.home) .nvx-blog-card:hover {
+	transform: none;
+	box-shadow: none;
+}
+
+body.single-post.nvx-unified-shell:not(.home) .nvx-article-hero,
+body.single-post.nvx-unified-shell:not(.home) .nvx-blog-card,
+body.single-post.nvx-unified-shell:not(.home) .nvx-post-card {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+}
+
+body.single-post.nvx-unified-shell:not(.home) .nvx-article-hero img,
+body.single-post.nvx-unified-shell:not(.home) .nvx-post-card__image img {
+	border-radius: 0;
+	box-shadow: none;
+}
+
+/* Vence nvx-fluid-organic-2026 — legales 3 · 18 · 20 · 31 · 577 */
+body.page-id-3,
+body.page-id-18,
+body.page-id-20,
+body.page-id-31,
+body.page-id-577,
+body.page-id-3 .entry-content,
+body.page-id-18 .entry-content,
+body.page-id-20 .entry-content,
+body.page-id-31 .entry-content,
+body.page-id-577 .entry-content {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-3.nvx-unified-shell:not(.home) .nvx-legal-card,
+body.page-id-18.nvx-unified-shell:not(.home) .nvx-legal-card,
+body.page-id-20.nvx-unified-shell:not(.home) .nvx-legal-card,
+body.page-id-31.nvx-unified-shell:not(.home) .nvx-legal-card,
+body.page-id-577.nvx-unified-shell:not(.home) .nvx-legal-card {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+/* Vence nvx-fluid-organic-2026 — gracias 78 */
+body.page-id-78,
+body.page-id-78 .entry-content {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+/* Vence nvx-fluid-organic-2026 — casos 2645 */
+body.page-id-2645,
+body.page-id-2645 .entry-content {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-2645.nvx-unified-shell:not(.home) .nvx-casos-page .nvx-page-hero,
+body.page-id-2645.nvx-unified-shell:not(.home) .nvx-casos-page .nvx-casos-hero {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+	min-height: auto;
+}
+
+body.page-id-2645.nvx-unified-shell:not(.home) .nvx-casos-page .nvx-caso-card,
+body.page-id-2645.nvx-unified-shell:not(.home) .nvx-casos-page .nvx-contact-card {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-2645.nvx-unified-shell:not(.home) .nvx-casos-page .nvx-caso-card:hover,
+body.page-id-2645.nvx-unified-shell:not(.home) .nvx-casos-page .nvx-contact-card:hover {
+	transform: none;
+	box-shadow: none;
+}
+
+/* Vence nvx-fluid-organic-2026 — láser 1269 · avanzada 1415 · madrid 2635 */
+body.page-id-1269.nvx-unified-shell:not(.home) .nvx-card,
+body.page-id-1415.nvx-unified-shell:not(.home) .nvx-card,
+body.page-id-1415.nvx-unified-shell:not(.home) .nvx-advanced-treatment-catalog .nvx-brand-card,
+body.page-id-2635.nvx-unified-shell:not(.home) .nvx-card,
+body.page-id-2635.nvx-unified-shell:not(.home) .nvx-contact-card {
+	border-radius: 0;
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--nvx-taupe, #CBBBA8);
+	box-shadow: none;
+	transform: none;
+	padding: clamp(28px, 3vw, 40px) 0;
+}
+
+body.page-id-1269.nvx-unified-shell:not(.home) .nvx-card:hover,
+body.page-id-1415.nvx-unified-shell:not(.home) .nvx-card:hover,
+body.page-id-1415.nvx-unified-shell:not(.home) .nvx-advanced-treatment-catalog .nvx-brand-card:hover,
+body.page-id-2635.nvx-unified-shell:not(.home) .nvx-card:hover,
+body.page-id-2635.nvx-unified-shell:not(.home) .nvx-contact-card:hover {
+	transform: none;
+	box-shadow: none;
+}
+
+body.page-id-1269.nvx-unified-shell:not(.home) .nvx-hero,
+body.page-id-1415.nvx-unified-shell:not(.home) .nvx-hero,
+body.page-id-2635.nvx-unified-shell:not(.home) .nvx-page-hero,
+body.page-id-2635.nvx-unified-shell:not(.home) .nvx-hero {
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+	min-height: auto;
+}
+
+body.page-id-1269.nvx-unified-shell:not(.home) .nvx-hero-card,
+body.page-id-1415.nvx-unified-shell:not(.home) .nvx-hero-card {
+	border-radius: 0;
+	box-shadow: none;
+}
+
+body.page-id-1269.nvx-unified-shell:not(.home) .nvx-btn,
+body.page-id-1415.nvx-unified-shell:not(.home) .nvx-btn,
+body.page-id-2635.nvx-unified-shell:not(.home) .nvx-btn {
+	border-radius: 0;
+}
+
+/* Vence nvx-fluid-organic-2026 — nosotros 1656 · equipo 1575 */
+body.page-id-1656,
+body.page-id-1575,
+body.page-id-1656 .entry-content,
+body.page-id-1575 .entry-content {
+	background: var(--nvx-ivory, #F7F1E8);
+	color: var(--nvx-charcoal, #2B2926);
+}
+
+body.page-id-1656.nvx-unified-shell:not(.home) .nvx-nosotros-hero,
+body.page-id-1575.nvx-unified-shell:not(.home) .nvx-equipo-hero {
+	min-height: auto;
+	background: var(--nvx-ivory, #F7F1E8);
+	border-bottom: none;
+}
+
+body.page-id-1656.nvx-unified-shell:not(.home) .nvx-nosotros-card figure img,
+body.page-id-1575.nvx-unified-shell:not(.home) .nvx-equipo-photo img {
+	border-radius: 0;
+	box-shadow: none;
+}
+
+body.page-id-1575.nvx-unified-shell:not(.home) .nvx-equipo-hero-card {
+	border-radius: 0;
+	box-shadow: none;
+}
+

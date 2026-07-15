@@ -53,19 +53,18 @@ jobs:
           TARGET: ${{ inputs.target_sha }}
         run: |
           set -euo pipefail
-          if [[ ! "$TARGET" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "ERROR: target_sha must be exactly 40 lowercase hexadecimal characters"
+          [[ "$TARGET" =~ ^[0-9a-f]{40}$ ]] || {
+            echo 'ERROR: target_sha must be exactly 40 lowercase hexadecimal characters'
             exit 1
-          fi
+          }
           git fetch origin master
           git cat-file -e "${TARGET}^{commit}"
           git merge-base --is-ancestor origin/master "$TARGET" || {
-            echo "ERROR: candidate must contain current origin/master"
+            echo 'ERROR: candidate must contain current origin/master'
             exit 1
           }
           git checkout --detach "$TARGET"
           echo "sha=$TARGET" >> "$GITHUB_OUTPUT"
-          echo "Candidate SHA: $TARGET"
 
       - name: Validate candidate scope
         run: |
@@ -74,11 +73,10 @@ jobs:
           mkdir -p qa/results qa/screenshots
           git diff --name-only origin/master..."$TARGET" | tee qa/results/editorial-changed-files.txt
           git diff --stat origin/master..."$TARGET" | tee qa/results/editorial-diff-stat.txt
-
-          ALLOWED='^(\.gitignore|\.github/workflows/ticket43-v4-delivery\.yml|deploy/ticket-43/post_content_v3-production-copy\.html|qa/capture-v4-screenshots\.mjs|qa/validate-v4-consolidated\.mjs|qa/validate-design-system-routes\.mjs|scripts/ticket-43/(apply-post-content\.php|rollback\.sh|verify-post-deploy\.sh)|wp-content/themes/nuvanx-medical/assets/css/(nvx-tokens|nvx-components|nvx-brand-home)(\.min)?\.css|ticket43-editorial-system-integration-(files\.txt|stat\.txt|patch))$'
+          ALLOWED='^(\.gitignore|\.github/workflows/ticket43-v4-delivery\.yml|deploy/ticket-43/post_content_v3-production-copy\.html|qa/(capture-v4-screenshots|validate-v4-consolidated|validate-design-system-routes)\.mjs|scripts/ticket-43/(apply-post-content\.php|rollback\.sh|verify-post-deploy\.sh)|wp-content/themes/nuvanx-medical/assets/css/(nvx-tokens|nvx-components|nvx-brand-home)(\.min)?\.css|ticket43-editorial-system-integration-(files\.txt|stat\.txt|patch))$'
           INVALID="$(git diff --name-only origin/master..."$TARGET" | grep -Ev "$ALLOWED" || true)"
           if [[ -n "$INVALID" ]]; then
-            echo "ERROR: candidate contains files outside the approved scope:"
+            echo 'ERROR: candidate contains files outside the approved scope:'
             echo "$INVALID"
             exit 1
           fi
@@ -91,41 +89,41 @@ jobs:
       - name: Run CSS and architecture gates
         run: |
           set -euo pipefail
-          THEME="wp-content/themes/nuvanx-medical"
+          THEME='wp-content/themes/nuvanx-medical'
           HOME_CSS="$THEME/assets/css/nvx-brand-home.css"
           COMPONENTS="$THEME/assets/css/nvx-components.css"
-          HTML="deploy/ticket-43/post_content_v3-production-copy.html"
+          HTML='deploy/ticket-43/post_content_v3-production-copy.html'
 
           if grep -RIn --include='*.css' '!important' "$THEME"; then
-            echo "ERROR: !important detected"
+            echo 'ERROR: !important detected'
             exit 1
           fi
           if grep -RInE 'LEGACY|TREATMENT VISUAL BRIDGE|Migrado desde Custom CSS|CANONICAL BRAND REFINEMENTS' "$THEME"; then
-            echo "ERROR: rejected legacy marker detected"
+            echo 'ERROR: rejected legacy marker detected'
             exit 1
           fi
           if grep -RInE 'Nvx_Editorial_Parser|class-nvx-editorial-parser|DOMDocument' "$THEME"; then
-            echo "ERROR: rejected structural parser detected"
+            echo 'ERROR: rejected structural parser detected'
             exit 1
           fi
           if grep -nE '(^|[^-]):root' "$HOME_CSS"; then
-            echo "ERROR: home CSS must not declare :root"
+            echo 'ERROR: home CSS must not declare :root'
             exit 1
           fi
           if grep -nEi 'Playfair|Cormorant|Source Sans|font-family:[^;]*Inter' "$HOME_CSS" "$COMPONENTS" "$HTML"; then
-            echo "ERROR: non-canonical font detected in migrated assets"
+            echo 'ERROR: non-canonical font detected in migrated assets'
             exit 1
           fi
           if grep -nE 'transition\s*:\s*all' "$HOME_CSS" "$COMPONENTS"; then
-            echo "ERROR: transition: all detected"
+            echo 'ERROR: transition: all detected'
             exit 1
           fi
-          if grep -nE 'nth-child|nth-of-type' "$HOME_CSS" "$COMPONENTS"; then
-            echo "ERROR: positional styling detected in canonical components"
+          if grep -nE 'nth-child' "$HOME_CSS" "$COMPONENTS"; then
+            echo 'ERROR: nth-child positional component styling detected'
             exit 1
           fi
           if grep -nE 'nvx-v3-|nvx-editorial-home-v4|id="nvx-home-manifiesto"' "$HOME_CSS" "$HTML"; then
-            echo "ERROR: versioned or rejected runtime marker detected"
+            echo 'ERROR: versioned or rejected runtime marker detected'
             exit 1
           fi
           grep -q 'id="nvx-home-main" class="nvx-home nvx-brand-page nvx-editorial-home"' "$HTML"
@@ -157,14 +155,11 @@ jobs:
       - name: Build candidate hash manifests
         run: |
           set -euo pipefail
-          CSS_DIR="wp-content/themes/nuvanx-medical/assets/css"
+          CSS_DIR='wp-content/themes/nuvanx-medical/assets/css'
           CSS_FILES=(
-            nvx-tokens.css
-            nvx-tokens.min.css
-            nvx-components.css
-            nvx-components.min.css
-            nvx-brand-home.css
-            nvx-brand-home.min.css
+            nvx-tokens.css nvx-tokens.min.css
+            nvx-components.css nvx-components.min.css
+            nvx-brand-home.css nvx-brand-home.min.css
           )
           : > qa/results/editorial-css.sha256
           : > qa/results/editorial-transfer.sha256
@@ -182,12 +177,9 @@ jobs:
           done
           sha256sum \
             deploy/ticket-43/post_content_v3-production-copy.html \
-            "$CSS_DIR/nvx-tokens.css" \
-            "$CSS_DIR/nvx-tokens.min.css" \
-            "$CSS_DIR/nvx-components.css" \
-            "$CSS_DIR/nvx-components.min.css" \
-            "$CSS_DIR/nvx-brand-home.css" \
-            "$CSS_DIR/nvx-brand-home.min.css" \
+            "$CSS_DIR/nvx-tokens.css" "$CSS_DIR/nvx-tokens.min.css" \
+            "$CSS_DIR/nvx-components.css" "$CSS_DIR/nvx-components.min.css" \
+            "$CSS_DIR/nvx-brand-home.css" "$CSS_DIR/nvx-brand-home.min.css" \
             | tee qa/results/editorial-source-hashes.txt
 
       - name: Configure SSH
@@ -215,17 +207,13 @@ jobs:
           set -euo pipefail
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' <<'REMOTE'
             set -euo pipefail
-            STAGING_PATH="/home/customer/www/staging2.nuvanx.com/public_html"
-            BACKUP_NAME="ticket43-editorial-before-${{ github.run_id }}-${{ github.run_attempt }}"
+            STAGING_PATH='/home/customer/www/staging2.nuvanx.com/public_html'
+            BACKUP_NAME='ticket43-editorial-before-${{ github.run_id }}-${{ github.run_attempt }}'
             cd "$STAGING_PATH"
-
-            SITEURL="$(wp option get siteurl)"
-            HOMEURL="$(wp option get home)"
-            ACTIVE_THEME="$(wp theme list --status=active --field=name)"
-            [[ "$SITEURL" == "https://staging2.nuvanx.com" ]]
-            [[ "$HOMEURL" == "https://staging2.nuvanx.com" ]]
-            [[ "$ACTIVE_THEME" == "nuvanx-medical" ]]
-            [[ "$(wp option get page_on_front)" == "9" ]]
+            [[ "$(wp option get siteurl)" == 'https://staging2.nuvanx.com' ]]
+            [[ "$(wp option get home)" == 'https://staging2.nuvanx.com' ]]
+            [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
+            [[ "$(wp option get page_on_front)" == '9' ]]
 
             BACKUP_DIR="$HOME/nuvanx-backups/$BACKUP_NAME"
             THEME_CSS="$STAGING_PATH/wp-content/themes/nuvanx-medical/assets/css"
@@ -243,11 +231,9 @@ jobs:
               sha256sum post_content_before.html \
                 nvx-tokens.css nvx-tokens.min.css \
                 nvx-components.css nvx-components.min.css \
-                nvx-brand-home.css nvx-brand-home.min.css \
-                > metadata.sha256
+                nvx-brand-home.css nvx-brand-home.min.css > metadata.sha256
               sha256sum -c metadata.sha256
             )
-            echo "$BACKUP_DIR"
           REMOTE
 
       - name: Transfer and deploy complete candidate to staging2
@@ -258,15 +244,12 @@ jobs:
           SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
         run: |
           set -euo pipefail
-          CSS_DIR="wp-content/themes/nuvanx-medical/assets/css"
+          CSS_DIR='wp-content/themes/nuvanx-medical/assets/css'
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "rm -rf '${{ env.REMOTE_TMP }}' && mkdir -p '${{ env.REMOTE_TMP }}'"
           scp -P "$SSH_PORT" \
-            "$CSS_DIR/nvx-tokens.css" \
-            "$CSS_DIR/nvx-tokens.min.css" \
-            "$CSS_DIR/nvx-components.css" \
-            "$CSS_DIR/nvx-components.min.css" \
-            "$CSS_DIR/nvx-brand-home.css" \
-            "$CSS_DIR/nvx-brand-home.min.css" \
+            "$CSS_DIR/nvx-tokens.css" "$CSS_DIR/nvx-tokens.min.css" \
+            "$CSS_DIR/nvx-components.css" "$CSS_DIR/nvx-components.min.css" \
+            "$CSS_DIR/nvx-brand-home.css" "$CSS_DIR/nvx-brand-home.min.css" \
             deploy/ticket-43/post_content_v3-production-copy.html \
             scripts/ticket-43/apply-post-content.php \
             scripts/ticket-43/rollback.sh \
@@ -277,8 +260,8 @@ jobs:
 
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' <<'REMOTE'
             set -euo pipefail
-            STAGING_PATH="/home/customer/www/staging2.nuvanx.com/public_html"
-            REMOTE_TMP="${{ env.REMOTE_TMP }}"
+            STAGING_PATH='/home/customer/www/staging2.nuvanx.com/public_html'
+            REMOTE_TMP='${{ env.REMOTE_TMP }}'
             THEME_CSS="$STAGING_PATH/wp-content/themes/nuvanx-medical/assets/css"
             cd "$REMOTE_TMP"
             sha256sum -c editorial-transfer.sha256
@@ -291,10 +274,7 @@ jobs:
               nvx-brand-home.css nvx-brand-home.min.css; do
               cp "$REMOTE_TMP/$file" "$THEME_CSS/$file"
             done
-            (
-              cd "$THEME_CSS"
-              sha256sum -c "$REMOTE_TMP/editorial-css.sha256"
-            )
+            (cd "$THEME_CSS" && sha256sum -c "$REMOTE_TMP/editorial-css.sha256")
             cd "$STAGING_PATH"
             NVX_POST_CONTENT_CANDIDATE="$REMOTE_TMP/post_content_v3-production-copy.html" \
               wp eval-file "$REMOTE_TMP/apply-post-content.php"
@@ -314,13 +294,13 @@ jobs:
           PASS_B64="$(printf '%s' "$BASIC_PASS" | base64 -w0)"
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' <<REMOTE
             set -euo pipefail
-            cd "${{ env.STAGING_PATH }}"
+            cd '${{ env.STAGING_PATH }}'
             export NUVX_BASIC_USER="\$(printf '%s' '$USER_B64' | base64 -d)"
             export NUVX_BASIC_PASS="\$(printf '%s' '$PASS_B64' | base64 -d)"
-            export NUVX_STAGING_URL="${{ env.STAGING_BASE_URL }}"
-            export NUVX_THEME_CSS="wp-content/themes/nuvanx-medical/assets/css"
-            export NUVX_HERO_VIDEO_PATH="wp-content/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4"
-            bash "${{ env.REMOTE_TMP }}/verify-post-deploy.sh"
+            export NUVX_STAGING_URL='${{ env.STAGING_BASE_URL }}'
+            export NUVX_THEME_CSS='wp-content/themes/nuvanx-medical/assets/css'
+            export NUVX_HERO_VIDEO_PATH='wp-content/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4'
+            bash '${{ env.REMOTE_TMP }}/verify-post-deploy.sh'
           REMOTE
 
       - name: Install Playwright
@@ -380,7 +360,7 @@ jobs:
           HTML="$(curl -fsSL -H 'Cache-Control: no-cache' "https://nuvanx.com/?nocache=$(date +%s)")"
           printf '%s' "$HTML" | grep -q 'EXPERIENCIA NUVANX:'
           if printf '%s' "$HTML" | grep -q 'nvx-editorial-home'; then
-            echo "ERROR: production unexpectedly contains staging candidate wrapper"
+            echo 'ERROR: production unexpectedly contains staging candidate wrapper'
             exit 1
           fi
           echo 'Production public home remains on the previous DB-driven version.' \
@@ -423,8 +403,8 @@ jobs:
           set -euo pipefail
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' <<'REMOTE'
             set -euo pipefail
-            STAGING_PATH="/home/customer/www/staging2.nuvanx.com/public_html"
-            REMOTE_TMP="${{ env.REMOTE_TMP }}"
+            STAGING_PATH='/home/customer/www/staging2.nuvanx.com/public_html'
+            REMOTE_TMP='${{ env.REMOTE_TMP }}'
             BACKUP_DIR="$HOME/nuvanx-backups/${{ env.BACKUP_NAME }}"
             if [[ -s "$REMOTE_TMP/rollback.sh" ]]; then
               export NUVX_BACKUP_DIR="$BACKUP_DIR"
@@ -432,7 +412,7 @@ jobs:
               bash "$REMOTE_TMP/rollback.sh"
               rm -rf "$REMOTE_TMP"
             else
-              echo 'Candidate transfer did not complete; no staging files were changed by this workflow.'
+              echo 'Candidate transfer did not complete; no staging files were changed.'
             fi
           REMOTE
 

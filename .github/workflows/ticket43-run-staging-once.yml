@@ -18,7 +18,8 @@ permissions:
 
 jobs:
   dispatch-and-monitor:
-    if: github.event_name == 'push' && github.event.head_commit.message == 'ci(ticket-43): execute scoped staging QA candidate'
+    # Quote required: unquoted "ci(ticket-43): …" is invalid YAML (colon+space).
+    if: "${{ github.event_name == 'push' && github.event.head_commit.message == 'ci(ticket-43): execute scoped staging QA candidate' }}"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout trigger branch
@@ -65,7 +66,7 @@ jobs:
           exit "$watch_status"
 
   report:
-    if: github.event_name == 'pull_request'
+    if: "${{ github.event_name == 'pull_request' }}"
     runs-on: ubuntu-latest
     steps:
       - name: Locate and report latest staging run

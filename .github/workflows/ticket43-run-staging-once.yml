@@ -4,6 +4,13 @@ on:
   push:
     branches:
       - ci/ticket43-run-staging-qa
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   actions: write
@@ -11,7 +18,7 @@ permissions:
 
 jobs:
   dispatch-and-monitor:
-    if: github.event.head_commit.message == 'ci(ticket-43): execute staging QA once'
+    if: github.event_name == 'push' && github.event.head_commit.message == 'ci(ticket-43): execute staging QA once'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout trigger branch
@@ -56,3 +63,18 @@ jobs:
           git commit -m 'chore(ticket-43): record staging QA result [skip ci]'
           git push origin HEAD:ci/ticket43-run-staging-qa
           exit "$watch_status"
+
+  report:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Locate and report latest staging run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_id="$(gh run list --repo '${{ github.repository }}' --workflow ticket43-v4-delivery.yml --branch master --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          [[ -n "$run_id" ]]
+          echo "Staging workflow run: $run_id"
+          gh run view "$run_id" --repo '${{ github.repository }}' --json databaseId,status,conclusion,url,headSha,createdAt
+          gh run watch "$run_id" --repo '${{ github.repository }}' --exit-status

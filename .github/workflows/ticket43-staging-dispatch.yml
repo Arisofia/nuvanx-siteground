@@ -1,9 +1,12 @@
 name: Ticket 43 Temporary Staging Monitor
 
 on:
-  push:
+  pull_request:
     branches:
-      - fix/ticket-43-complete-qa-hardening
+      - master
+    types:
+      - synchronize
+      - reopened
 
 permissions:
   actions: read
@@ -11,7 +14,7 @@ permissions:
 
 jobs:
   monitor:
-    if: github.event.head_commit.message == 'ci(ticket-43): monitor staging QA run'
+    if: github.head_ref == 'fix/ticket-43-complete-qa-hardening'
     runs-on: ubuntu-latest
     steps:
       - name: Locate and monitor staging run

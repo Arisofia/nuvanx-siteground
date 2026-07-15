@@ -1,119 +1,58 @@
-# NUVANX Design System — Contrato Visual Canónico
+# NUVANX Design System — Metal Pulido
 
-**Versión:** 2.1 — **Metal Pulido** (oficial)  
-**Documentación completa:** [`docs/design-system/`](./design-system/README.md)  
-**Alcance:** tema `nuvanx-medical`  
-**Autoridad de tokens:** `assets/css/nvx-tokens.css`  
+**Versión:** 2.2  
+**Docs de componentes:** [`design-system/`](./design-system/README.md)
 
----
+## Principio
 
-## 1. Principio rector
+**Un solo diseño en todo el sitio.**  
+La única diferencia es el **vídeo del home** (`nvx-brand-home.css`).
 
-Sistema editorial global de **quiet luxury médico**. Toda página compone los mismos componentes; las hojas de página solo ordenan secciones y modificadores.
+Blog, consulta, contacto, sedes, tratamientos, gracias y 404 comparten tokens, tipografía, márgenes, botones y media.
 
-**Diseño de texto**
-- Intros de sección → **centrados** (kicker + título + lead).  
-- Cuerpo → **izquierda** con measure `62ch`.  
-- Kickers → platino, tracking amplio.  
-- Display → Bodoni, `text-wrap: balance`.
+## Paleta (tokens)
 
----
+| Token | Hex |
+|-------|-----|
+| ink | `#14161A` |
+| charcoal | `#2A2D33` |
+| pearl | `#F6F7F8` |
+| mist | `#E8EAED` |
+| silver | `#C4C8CE` |
+| platinum | `#9BA3AD` |
+| white | `#FFFFFF` |
 
-## 2. Paleta — Metal Pulido
+Aliases de compat: champagne→platinum, ivory→pearl, sand→mist.
 
-| Token | Hex | Uso |
-|-------|-----|-----|
-| `--nvx-ink` | `#14161A` | Texto máximo contraste |
-| `--nvx-charcoal` | `#2A2D33` | Fondos oscuros / hero |
-| `--nvx-pearl` | `#F6F7F8` | Fondo claro |
-| `--nvx-mist` | `#E8EAED` | Alternancia |
-| `--nvx-silver` | `#C4C8CE` | Bordes |
-| `--nvx-platinum` | `#9BA3AD` | Acento metal |
-| `--nvx-white` | `#FFFFFF` | Superficie |
+## Tipografía
 
-**Metal:** `--nvx-metal-light/mid/deep` = `#E4E7EB` / `#B0B6BE` / `#7A828C`.  
-**Aliases:** ivory→pearl, sand→mist, taupe→silver, champagne→platinum.
+- Display / H1–H3: **Bodoni Moda**  
+- Body / UI: **Manrope**  
+- Clases: `nvx-eyebrow`, `nvx-heading`, `nvx-lead`, `nvx-copy`, `nvx-button`
 
-**Prohibido:** redefinir paleta fuera de tokens; oro `#B89A5B`; cool-green `#82958F`.
+## Shell
 
----
+- Gutter: `clamp(48px, 6vw, 120px)`  
+- Section Y: `clamp(80px, 9vw, 140px)`  
+- Measure texto: `62ch`  
+- Una columna en listados y grids
 
-## 3. Tipografía
-
-| Rol | Familia |
-|-----|---------|
-| Display | **Bodoni Moda** |
-| Body / UI | **Manrope** |
-| Script | Pinyon Script (puntual) |
-
-Clases: `nvx-eyebrow`, `nvx-display`, `nvx-heading`, `nvx-lead`, `nvx-copy`  
-→ Ver [typography.md](./design-system/typography.md)
-
----
-
-## 4. Shell y espaciado
-
-| Token | Valor |
-|-------|--------|
-| `--nvx-gutter` | `clamp(48px, 6vw, 120px)` |
-| `--nvx-shell` | `min(1480px, calc(100vw - gutter))` |
-| `--nvx-section-y` | `clamp(80px, 9vw, 140px)` |
-| `--nvx-pad-card` | `clamp(32px, 3vw, 48px)` |
-| `--nvx-gap-wide` | `clamp(32px, 4vw, 56px)` |
-
-Header/footer usan el **mismo** shell.  
-→ [shell-layout.md](./design-system/shell-layout.md)
-
----
-
-## 5. Componentes (índice)
-
-| Componente | Doc |
-|------------|-----|
-| Tokens | [tokens.md](./design-system/tokens.md) |
-| Button | [button.md](./design-system/button.md) |
-| Card | [card.md](./design-system/card.md) |
-| Media / Shape | [media.md](./design-system/media.md) |
-| Index | [index.md](./design-system/index.md) |
-| FAQ | [faq.md](./design-system/faq.md) |
-| Header | [header.md](./design-system/header.md) |
-| Footer | [footer.md](./design-system/footer.md) |
-| Home hero | [home-hero.md](./design-system/home-hero.md) |
-| Patterns | [patterns.md](./design-system/patterns.md) |
-| Audit | [AUDIT.md](./design-system/AUDIT.md) |
-
----
-
-## 6. Arquitectura CSS
+## Stack CSS
 
 ```
-nvx-tokens.css          ← único :root color/shell/spacing
-nvx-base.css            ← reset + util scales (sin paleta)
-nvx-components.css      ← button, type, card, index, media, faq
-nvx-site-layout.css     ← shell + section rhythm
-nvx-header.css / footer.css
-nvx-pages.css + page CSS (composición)
+tokens → base → site-layout → header → footer → components
+(+ brand-home solo en home / vídeo)
 ```
 
-**Eliminado del stack:** fluid-organic, visual-system, typography-alignment.
+## No reintroducir
+
+- CSS por tipo de página  
+- Segundo sistema en `base` (botones/header/tipo)  
+- `!important`  
+- Oro / cool-green  
+- Columnas multi-col como layout de página  
+- Plantillas “journal / single-hero” paralelas  
 
 ---
 
-## 7. Prohibiciones
-
-1. `!important` en CSS del tema.  
-2. `:root` de color en brand/treatment/page.  
-3. Márgenes mágicos por página.  
-4. Fonts no canónicas.  
-5. `nth-child` para shapes.  
-6. Acento oro o cool-green.  
-7. CSS por página (brand-system, treatment, secondary, sede, posts, pages, gutenberg…).  
-8. Plantillas con diseño propio (journal hero, single-hero, sidebars).  
-9. `style=""` inline y columnas Gutenberg multi-col en contenido (normalizadas por filtro).  
-10. Wrappers legacy (`nvx-hero-wrap`, etc.).
-
-**Excepciones:** `nvx-brand-home` (solo vídeo home) · `nvx-forms` (solo campos).
-
----
-
-*v2.1 — Metal Pulido · un solo diseño en blog, contacto, consulta, sedes y tratamientos.*
+*v2.2 — un diseño; solo el vídeo del home es especial.*

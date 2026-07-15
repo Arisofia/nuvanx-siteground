@@ -33,6 +33,11 @@ wp-content/updraft/
 wp-content/backups-dup-lite/
 wp-content/backups-nuvanx/
 wp-content/backups-*/
+wp-content/object-cache.php
+wp-content/advanced-cache.php
+wp-content/db.php
+wp-content/maintenance.php
+wp-content/sunrise.php
 **/dup-installer/
 **/installer/original_files_*/
 *installer*.php

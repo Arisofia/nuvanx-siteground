@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'NVX_THEME_VERSION', '1.9.0-audit-fixes-phase4-20260714' );
+define( 'NVX_THEME_VERSION', '1.9.2-editorial-system-integration-20260715' );
 
 const NVX_BRAND_TREATMENT_PAGE_IDS = array( 1241, 1200, 2017 );
 

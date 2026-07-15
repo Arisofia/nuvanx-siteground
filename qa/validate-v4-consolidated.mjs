@@ -124,7 +124,7 @@ async function measureAtViewport(page, width, height) {
 
 	return page.evaluate(() => {
 		const video = document.querySelector('#nvx-home-hero-video');
-		const heroInner = document.querySelector('.nvx-brand-hero__inner');
+		const heroStage = document.querySelector('.nvx-home-hero-stage, .nvx-hero-full-media');
 		const lead = document.querySelector('.nvx-editorial-zone--copy .nvx-home-editorial__lead');
 		const wave = document.querySelector('.nvx-home-organic-wave');
 		const primaryBtn = document.querySelector('.nvx-home-hero-ctas .nvx-brand-btn--primary');
@@ -134,7 +134,7 @@ async function measureAtViewport(page, width, height) {
 		const introImg = document.querySelector('.nvx-v3-intro .nvx-editorial-zone--media img');
 		const videoStyle = video ? getComputedStyle(video) : null;
 		const videoRect = video?.getBoundingClientRect() ?? null;
-		const heroInnerRect = heroInner?.getBoundingClientRect() ?? null;
+		const heroStageRect = heroStage?.getBoundingClientRect() ?? null;
 		const waveRect = wave?.getBoundingClientRect() ?? null;
 		const primaryRect = primaryBtn?.getBoundingClientRect() ?? null;
 		const secondaryRect = secondaryBtn?.getBoundingClientRect() ?? null;
@@ -172,10 +172,10 @@ async function measureAtViewport(page, width, height) {
 			videoHeight: videoStyle?.height ?? null,
 			clipPath: videoStyle?.clipPath ?? null,
 			maskImage: videoStyle?.maskImage ?? null,
-			videoWidthPct: heroInnerRect && videoRect ? (videoRect.width / heroInnerRect.width) * 100 : null,
+			videoWidthPct: heroStageRect && videoRect ? (videoRect.width / heroStageRect.width) * 100 : null,
 			videoRightDelta: videoRect ? Math.abs(videoRect.right - window.innerWidth) : null,
 			videoHeroInnerRightDelta:
-				heroInnerRect && videoRect ? Math.abs(videoRect.right - heroInnerRect.right) : null,
+				heroStageRect && videoRect ? Math.abs(videoRect.right - heroStageRect.right) : null,
 			videoRenderedRatio: videoRect && videoRect.height > 0 ? videoRect.width / videoRect.height : null,
 			videoNativeRatio:
 				video && video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : null,
@@ -294,20 +294,20 @@ async function main() {
 	record('video_mask_image', 'video mask-image = none', desktop.maskImage === 'none', desktop.maskImage, 'none');
 	record(
 		'video_width_desktop',
-		'video width > 55% hero desktop',
+		'video width > 55% hero stage desktop',
 		(desktop.videoWidthPct ?? 0) > 55,
 		desktop.videoWidthPct,
 		'> 55'
 	);
 	record(
 		'video_right_edge',
-		'video right edge flush to hero grid @1440',
+		'video right edge flush to hero stage @1440',
 		(desktop.videoHeroInnerRightDelta ?? 99) <= 2,
 		{
-			heroInnerRightDelta: desktop.videoHeroInnerRightDelta,
+			heroStageRightDelta: desktop.videoHeroInnerRightDelta,
 			viewportRightDelta: desktop.videoRightDelta,
 		},
-		'<= 2px hero grid'
+		'<= 2px hero stage'
 	);
 
 	let ratioPass = false;

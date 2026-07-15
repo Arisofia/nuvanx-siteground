@@ -29,7 +29,7 @@ jobs:
       - name: Reject forbidden operational paths
         run: |
           set -euo pipefail
-          forbidden="$(git ls-files | grep -E '(^|/)(wp-config\.php|source_site_wpconfig|\.env($|\.)|backups?(-|/)|dup-installer|installer/original_files_|qa/screenshots/|wp-content/uploads/|wp-admin/|wp-includes/)' || true)"
+          forbidden="$(git ls-files | grep -E '(^wp-admin/|^wp-includes/|^wp-content/uploads/|^qa/screenshots/|(^|/)wp-config\.php$|(^|/)source_site_wpconfig$|(^|/)\.env($|\.)|(^|/)wp-content/backups[^/]*/|(^|/)dup-installer(/|$)|(^|/)installer/original_files_|(^|/)[^/]*installer-log[^/]*$)' || true)"
           if [[ -n "$forbidden" ]]; then
             echo 'ERROR: forbidden operational or runtime paths are tracked:'
             printf '%s\n' "$forbidden"

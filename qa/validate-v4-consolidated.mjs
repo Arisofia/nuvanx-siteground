@@ -153,6 +153,8 @@ async function measureAtViewport(page, width, height) {
 			maskImage: videoStyle?.maskImage ?? null,
 			videoWidthPct: heroInnerRect && videoRect ? (videoRect.width / heroInnerRect.width) * 100 : null,
 			videoRightDelta: videoRect ? Math.abs(videoRect.right - window.innerWidth) : null,
+			videoHeroInnerRightDelta:
+				heroInnerRect && videoRect ? Math.abs(videoRect.right - heroInnerRect.right) : null,
 			videoRenderedRatio: videoRect && videoRect.height > 0 ? videoRect.width / videoRect.height : null,
 			videoNativeRatio:
 				video && video.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : null,
@@ -278,10 +280,13 @@ async function main() {
 	);
 	record(
 		'video_right_edge',
-		'video right edge <= 2px viewport',
-		(desktop.videoRightDelta ?? 99) <= 2,
-		desktop.videoRightDelta,
-		'<= 2px'
+		'video right edge flush to hero grid @1440',
+		(desktop.videoHeroInnerRightDelta ?? 99) <= 2,
+		{
+			heroInnerRightDelta: desktop.videoHeroInnerRightDelta,
+			viewportRightDelta: desktop.videoRightDelta,
+		},
+		'<= 2px hero grid'
 	);
 
 	let ratioPass = false;
@@ -460,6 +465,12 @@ async function main() {
 	const outPath = path.join(RESULTS_DIR, 'v4-validation.json');
 	fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
 	console.log(JSON.stringify(report.summary, null, 2));
+	if (failures.length) {
+		console.error(
+			'Failed controls:',
+			failures.map((f) => `${f.id}: ${f.name}`).join('; ')
+		);
+	}
 	console.log('Wrote', outPath);
 	process.exit(failures.length ? 1 : 0);
 }

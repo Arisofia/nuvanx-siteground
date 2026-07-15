@@ -1,0 +1,74 @@
+name: Ticket 43 PR Hardening
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  harden:
+    if: github.head_ref == 'fix/ticket-43-complete-qa-hardening'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Apply source transformations
+        run: |
+          set -euo pipefail
+          python scripts/ticket-43/complete-hardening.py
+          npx --yes clean-css-cli@5.6.3 \
+            -o wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css
+
+      - name: Validate hardened candidate
+        run: |
+          set -euo pipefail
+          HOME_CSS='wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css'
+          HOME_MIN='wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css'
+          HTML='deploy/ticket-43/post_content_v3-production-copy.html'
+          WORKFLOW='.github/workflows/ticket43-v4-delivery.yml'
+
+          ! grep -nE 'nth-child|nth-of-type' "$HOME_CSS"
+          [[ "$(grep -o 'nvx-home-editorial__lead' "$HTML" | wc -l)" -eq 1 ]]
+          [[ "$(grep -o 'nvx-home-editorial__body' "$HTML" | wc -l)" -eq 1 ]]
+          grep -q 'base_sha:' "$WORKFLOW"
+          grep -q 'cmp -s "$expected" "$committed"' "$WORKFLOW"
+
+          npx --yes clean-css-cli@5.6.3 -o /tmp/home.expected.min.css "$HOME_CSS"
+          cmp -s /tmp/home.expected.min.css "$HOME_MIN"
+
+      - name: Commit hardened candidate
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm \
+            .github/workflows/ticket43-complete-hardening.yml \
+            .github/workflows/ticket43-pr-hardening.yml \
+            scripts/ticket-43/complete-hardening.py
+          git add \
+            .github/workflows/ticket43-v4-delivery.yml \
+            deploy/ticket-43/post_content_v3-production-copy.html \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css
+          git commit -m 'fix(ticket-43): complete semantic QA hardening'
+          git push origin "HEAD:$BRANCH"

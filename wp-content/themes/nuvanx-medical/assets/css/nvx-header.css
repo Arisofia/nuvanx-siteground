@@ -133,10 +133,10 @@ body.admin-bar #nvx-header {
 	min-height: 44px;
 	padding: 4px 0 6px;
 	font-family: var(--nvx-sans, "Manrope", sans-serif);
-	font-size: 0.68rem;
-	font-weight: 500;
-	line-height: 1.2;
-	letter-spacing: 0.14em;
+	font-size: var(--nvx-type-button, 0.75rem);
+	font-weight: var(--nvx-fw-semibold, 600);
+	line-height: var(--nvx-lh-button, 1);
+	letter-spacing: var(--nvx-track-button, 0.14em);
 	text-transform: uppercase;
 	color: rgba(23, 23, 23, 0.78);
 	text-decoration: none;

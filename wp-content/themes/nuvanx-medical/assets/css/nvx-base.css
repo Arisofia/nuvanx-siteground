@@ -22,9 +22,10 @@ html {
 body {
   margin: 0;
   font-family: var(--nvx-sans, "Manrope", sans-serif);
-  font-size: var(--nvx-type-body, 1rem);
-  font-weight: 300;
-  line-height: var(--nvx-lh-body, 1.7);
+  font-size: var(--nvx-type-body, 1.0625rem);
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-body, 1.75);
+  letter-spacing: var(--nvx-track-body, normal);
   color: var(--nvx-text-body, #3c4048);
   background: var(--nvx-color-paper, #f2f3f5);
   -webkit-font-smoothing: antialiased;

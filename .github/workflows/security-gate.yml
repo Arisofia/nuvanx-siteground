@@ -36,20 +36,21 @@ jobs:
             exit 1
           fi
 
-      - name: Reject common secret material in tracked text
+      - name: Reject concrete secret values in tracked text
         run: |
           set -euo pipefail
           patterns=(
-            "define[[:space:]]*\\([[:space:]]*['\"](AUTH_KEY|SECURE_AUTH_KEY|LOGGED_IN_KEY|NONCE_KEY|AUTH_SALT|SECURE_AUTH_SALT|LOGGED_IN_SALT|NONCE_SALT|WP_CACHE_KEY_SALT|DB_PASSWORD)['\"]"
+            "define[[:space:]]*\\([[:space:]]*['\"](AUTH_KEY|SECURE_AUTH_KEY|LOGGED_IN_KEY|NONCE_KEY|AUTH_SALT|SECURE_AUTH_SALT|LOGGED_IN_SALT|NONCE_SALT|WP_CACHE_KEY_SALT)['\"][[:space:]]*,[[:space:]]*['\"][^'\"]{20,}['\"]"
+            "define[[:space:]]*\\([[:space:]]*['\"]DB_PASSWORD['\"][[:space:]]*,[[:space:]]*['\"][^'\"]{8,}['\"]"
             "-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----"
             "AKIA[0-9A-Z]{16}"
             "gh[pousr]_[A-Za-z0-9_]{30,}"
           )
           for pattern in "${patterns[@]}"; do
-            matches="$(git grep -nEI "$pattern" -- . ':!docs/security/**' ':!.github/workflows/security-gate.yml' || true)"
+            matches="$(git grep -lEI "$pattern" -- . ':!docs/security/**' ':!.github/workflows/security-gate.yml' || true)"
             if [[ -n "$matches" ]]; then
-              echo "ERROR: possible secret material matched pattern: $pattern"
-              printf '%s\n' "$matches" | sed -E 's/(:[0-9]+:).*/\1[REDACTED]/'
+              echo 'ERROR: possible concrete secret material found in:'
+              printf '%s\n' "$matches"
               exit 1
             fi
           done

@@ -1544,17 +1544,19 @@ body.home #nvx-home-main.nvx-home video.nvx-home-hero-video {
 /* Imágenes de Gutenberg (Normalizar tamaños) */
 .nvx-home-image-feature__figure,
 .wp-block-image {
-  margin: var(--nvx-sp-7) 0;
+  position: relative;
   overflow: hidden;
-  border-radius: var(--nvx-radius-none);
+  border-radius: 0;
+  aspect-ratio: auto;
 }
 
 .wp-block-image img,
 .nvx-home-image-feature__figure img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
   display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
 }
 
 /* Asegurar que el layout base de Gutenberg respete el contenedor */

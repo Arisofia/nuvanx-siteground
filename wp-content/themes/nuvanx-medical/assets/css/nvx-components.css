@@ -12,8 +12,7 @@ h1,
 .nvx-display,
 .nvx-h1,
 .entry-title,
-.nvx-page-hero h1,
-.nvx-brand-hero__title {
+.nvx-page-hero h1 {
   margin: 0 0 20px;
   color: var(--nvx-color-ink);
   font-family: var(--nvx-font-serif);
@@ -24,8 +23,8 @@ h1,
   text-wrap: balance;
 }
 
-.nvx-display,
-.nvx-brand-hero__title {
+/* Home hero title is owned by nvx-brand-home (white on video). */
+.nvx-display {
   font-size: var(--nvx-type-display);
   line-height: var(--nvx-lh-display, 0.98);
 }

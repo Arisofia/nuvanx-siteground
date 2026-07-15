@@ -1,5 +1,11 @@
-﻿/* NUVANX Home — ONLY video hero stage composition.
- * All type/cards/columns/global rhythm: nvx-components + tokens.
+/* NUVANX Home — video hero stage (matches live DOM).
+ * Live markup:
+ * #nvx-home-main.nvx-home
+ *   .nvx-home-hero-stage
+ *     .nvx-v3-shell.nvx-brand-hero__inner
+ *       .nvx-home-hero-content  (copy + CTAs)
+ *       .nvx-home-video-feature > .nvx-home-video-frame > video
+ *     .nvx-home-organic-wave
  */
 
 body.home {
@@ -30,7 +36,7 @@ body.home section.nvx-cta-banner {
   display: none;
 }
 
-/* Full-bleed video stage */
+/* ── Stage ── */
 body.home #nvx-home-main.nvx-home .nvx-home-hero-stage {
   position: relative;
   display: block;
@@ -45,6 +51,7 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-stage {
   background: var(--nvx-charcoal, #2a2d33);
 }
 
+/* Legibility overlay above video, below copy */
 body.home #nvx-home-main.nvx-home .nvx-home-hero-stage::after {
   content: "";
   position: absolute;
@@ -52,10 +59,40 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-stage::after {
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(180deg, rgba(20,22,26,0.12) 0%, rgba(20,22,26,0.08) 42%, rgba(20,22,26,0.22) 68%, rgba(20,22,26,0.48) 100%),
-    linear-gradient(90deg, rgba(20,22,26,0.28) 0%, rgba(20,22,26,0.08) 48%, transparent 72%);
+    linear-gradient(
+      180deg,
+      rgba(20, 22, 26, 0.14) 0%,
+      rgba(20, 22, 26, 0.08) 40%,
+      rgba(20, 22, 26, 0.28) 72%,
+      rgba(20, 22, 26, 0.55) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(20, 22, 26, 0.32) 0%,
+      rgba(20, 22, 26, 0.1) 46%,
+      transparent 75%
+    );
 }
 
+/* Shell inside stage: full height, content bottom-left; does NOT clip video */
+body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-v3-shell,
+body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-brand-hero__inner,
+body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-brand-hero {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  width: 100%;
+  max-width: none;
+  min-height: clamp(720px, 92svh, 980px);
+  margin: 0;
+  padding-inline: var(--nvx-gutter-inner, clamp(24px, 4vw, 48px));
+  box-sizing: border-box;
+  background: transparent;
+}
+
+/* Video stack: pinned to STAGE (not the shell), under overlay/copy */
 body.home #nvx-home-main.nvx-home .nvx-home-hero-stage .nvx-home-video-feature {
   position: absolute;
   inset: 0;
@@ -63,9 +100,11 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-stage .nvx-home-video-feature {
   display: block;
   width: 100%;
   height: 100%;
+  max-width: none;
   margin: 0;
   padding: 0;
   border: 0;
+  border-radius: 0;
   pointer-events: none;
 }
 
@@ -78,46 +117,86 @@ body.home #nvx-home-main.nvx-home .nvx-home-video-frame {
   overflow: hidden;
   border: 0;
   border-radius: 0;
-  background: var(--nvx-charcoal) url("/wp-content/uploads/2026/07/nvx-home-video-portada-poster.webp") center / cover no-repeat;
+  background:
+    var(--nvx-charcoal, #2a2d33)
+    url("/wp-content/uploads/2026/07/nvx-home-video-portada-poster.webp")
+    center center / cover no-repeat;
 }
 
-body.home #nvx-home-main.nvx-home .nvx-home-hero-video {
+body.home #nvx-home-main.nvx-home .nvx-home-hero-video,
+body.home #nvx-home-main.nvx-home video.nvx-home-hero-video {
   position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   max-width: none;
+  max-height: none;
   margin: 0;
   object-fit: cover;
   object-position: center center;
+  border-radius: 0;
+  opacity: 1;
 }
 
-body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-brand-hero {
+/* Copy on top of video */
+body.home #nvx-home-main.nvx-home .nvx-home-hero-content {
   position: relative;
   z-index: 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  min-height: clamp(720px, 92svh, 980px);
-  background: transparent;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-hero-content {
   width: min(720px, 58vw);
   min-width: 0;
-  padding: 0 clamp(24px, 4vw, 48px) clamp(48px, 6vw, 88px);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-hero__title,
-body.home #nvx-home-main.nvx-home .nvx-brand-hero__sub,
-body.home #nvx-home-main.nvx-home .nvx-brand-hero__main {
+  padding: 0 0 clamp(48px, 6vw, 88px);
   color: #ffffff;
 }
 
+body.home #nvx-home-main.nvx-home .nvx-brand-hero__title,
+body.home #nvx-home-main.nvx-home .nvx-brand-hero__line,
+body.home #nvx-home-main.nvx-home .nvx-brand-hero__main,
+body.home #nvx-home-main.nvx-home .nvx-brand-hero__sub {
+  color: #ffffff;
+  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.28);
+}
+
+body.home #nvx-home-main.nvx-home .nvx-brand-hero__title {
+  margin: 0 0 8px;
+  font-family: var(--nvx-font-serif, "Bodoni Moda", serif);
+  font-size: clamp(2.75rem, 5.2vw, 5.25rem);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+  max-width: none;
+}
+
+body.home #nvx-home-main.nvx-home .nvx-brand-hero__main {
+  display: block;
+  font-family: var(--nvx-font-sans, "Manrope", sans-serif);
+  font-size: 0.22em;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  line-height: 1.35;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.9em;
+}
+
+body.home #nvx-home-main.nvx-home .nvx-brand-hero__sub {
+  display: block;
+  font-size: 1em;
+  line-height: 0.98;
+}
+
 body.home #nvx-home-main.nvx-home .nvx-brand-hero__support {
-  color: rgba(255, 255, 255, 0.82);
+  display: block;
+  margin-top: 0.85em;
   max-width: 40ch;
+  font-family: var(--nvx-font-sans, "Manrope", sans-serif);
+  font-size: 0.28em;
+  font-weight: 300;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.84);
+  text-transform: none;
 }
 
 body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas {
@@ -137,6 +216,14 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-btn--primary {
   border-color: #ffffff;
 }
 
+body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-button--primary:hover,
+body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-brand-btn--primary:hover,
+body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-btn--primary:hover {
+  background: transparent;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
 body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-button--secondary,
 body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-brand-btn--secondary,
 body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-btn--secondary {
@@ -145,6 +232,32 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-btn--secondary {
   border-color: rgba(255, 255, 255, 0.72);
 }
 
+body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-button--secondary:hover,
+body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-brand-btn--secondary:hover,
+body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-btn--secondary:hover {
+  border-color: var(--nvx-platinum, #9ba3ad);
+  color: #ffffff;
+}
+
+/* Decorative wave under stage */
+body.home #nvx-home-main.nvx-home .nvx-home-organic-wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  z-index: 3;
+  width: 100%;
+  height: clamp(44px, 6vw, 88px);
+  pointer-events: none;
+}
+
+body.home #nvx-home-main.nvx-home .nvx-home-organic-wave svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sections after hero sit above any bleed */
 body.home #nvx-home-main.nvx-home > .nvx-brand-section {
   position: relative;
   z-index: 3;
@@ -158,14 +271,24 @@ body.home #nvx-home-main.nvx-home > .nvx-brand-section {
     margin: 0;
     max-height: none;
   }
+
+  body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-v3-shell,
+  body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-brand-hero__inner {
+    min-height: clamp(640px, 92svh, 900px);
+    padding-inline: clamp(20px, 5vw, 32px);
+  }
+
   body.home #nvx-home-main.nvx-home .nvx-home-hero-content {
     width: 100%;
-    padding-inline: clamp(20px, 5vw, 32px);
+  }
+
+  body.home #nvx-home-main.nvx-home .nvx-home-organic-wave {
+    display: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.home #nvx-home-main.nvx-home * {
-    transition-duration: 0.01ms;
+  body.home #nvx-home-main.nvx-home .nvx-home-hero-video {
+    /* keep video visible; reduce only decorative motion */
   }
 }

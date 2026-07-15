@@ -54,21 +54,24 @@ jobs:
           npx --yes clean-css-cli@5.6.3 -o /tmp/home.expected.min.css "$HOME_CSS"
           cmp -s /tmp/home.expected.min.css "$HOME_MIN"
 
-      - name: Commit hardened candidate
+      - name: Upload hardened workflow candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: ticket43-hardened-workflow
+          path: .github/workflows/ticket43-v4-delivery.yml
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Commit non-workflow hardened assets
         env:
           BRANCH: ${{ github.head_ref }}
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git rm \
-            .github/workflows/ticket43-complete-hardening.yml \
-            .github/workflows/ticket43-pr-hardening.yml \
-            scripts/ticket-43/complete-hardening.py
           git add \
-            .github/workflows/ticket43-v4-delivery.yml \
             deploy/ticket-43/post_content_v3-production-copy.html \
             wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css \
             wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css
-          git commit -m 'fix(ticket-43): complete semantic QA hardening'
+          git commit -m 'fix(ticket-43): complete semantic QA hardening [skip ci]'
           git push origin "HEAD:$BRANCH"

@@ -355,6 +355,22 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 	// 5) Quitar <style> embebidos en contenido.
 	$content = preg_replace( '/<style\b[^>]*>[\s\S]*?<\/style>/i', '', $content );
 
+	// 6) Home: eliminar collage editorial bajo el vídeo (markup del editor).
+	if ( function_exists( 'nvx_theme_is_home_page' ) && nvx_theme_is_home_page() ) {
+		// Bloque media del intro (collage clínicas).
+		$content = preg_replace(
+			'/<div[^>]*\bnvx-editorial-zone--media\b[^>]*>[\s\S]*?<\/div>\s*/i',
+			'',
+			$content
+		);
+		// Por si la imagen queda suelta sin el wrapper.
+		$content = preg_replace(
+			'/<img[^>]*(?:clinica-nuvanx-madrid-chamberi-goya|collage)[^>]*>\s*/i',
+			'',
+			$content
+		);
+	}
+
 	return $content;
 }
 add_filter( 'the_content', 'nvx_theme_normalize_content_markup', 12 );

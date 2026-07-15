@@ -1,10 +1,17 @@
 <?php
-defined('ABSPATH')||exit;
+/**
+ * Front page — content owns home markup (including video stage).
+ * No legacy wrapper; presentation via global CSS + nvx-brand-home.
+ *
+ * @package NUVANX_Medical
+ */
+defined( 'ABSPATH' ) || exit;
+
 get_header();
-while(have_posts()):the_post();
-?>
-<section class="nvx-hero-wrap" aria-label="<?php esc_attr_e('Hero portada','nuvanx-editorial-v2'); ?>">
-  <?php the_content(); ?>
-</section>
-<?php endwhile;
+
+while ( have_posts() ) :
+	the_post();
+	the_content();
+endwhile;
+
 get_footer();

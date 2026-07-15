@@ -8,20 +8,20 @@ wp-config.php
 *.key
 *.crt
 
-# Server-specific
+# Server-specific (root / runtime)
 .htaccess
 php.ini
 .user.ini
 .well-known/
 
-# WordPress core
-wp-admin/
-wp-includes/
-wp-*.php
-index.php
-xmlrpc.php
-license.txt
-readme.html
+# WordPress core — ROOT ONLY (leading /). Do NOT ignore theme PHP.
+/wp-admin/
+/wp-includes/
+/wp-*.php
+/index.php
+/xmlrpc.php
+/license.txt
+/readme.html
 
 # Generated/runtime and backups
 wp-content/uploads/
@@ -59,12 +59,15 @@ wp-content/plugins/*
 wp-content/themes/Divi/
 wp-content/themes/twenty*/
 
-# Track custom code
+# Track custom theme + mu-plugins (plugins/* stays ignored except explicit un-ignores)
 !wp-content/plugins/
 !wp-content/themes/
 !wp-content/themes/nuvanx-medical/
+!wp-content/themes/nuvanx-medical/**
 !wp-content/themes/nuvanx-medical-wpvibe-draft/
+!wp-content/themes/nuvanx-medical-wpvibe-draft/**
 !wp-content/mu-plugins/
+!wp-content/mu-plugins/**
 
 # Existing runtime/cache entries
 wp-content/cache/supercache/
@@ -89,9 +92,7 @@ artifacts/capture-treatment-pages.js
 # Theme runtime logs
 wp-content/themes/nuvanx-medical-wpvibe-draft/php_errorlog
 php_errorlog
-*.log
 
 # Local staging QA evidence (not production source)
 artifacts/staging2-*/
 artifacts/staging2-prep-*/
-

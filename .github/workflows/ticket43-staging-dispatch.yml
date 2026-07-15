@@ -1,4 +1,4 @@
-name: Ticket 43 Temporary Staging Dispatcher
+name: Ticket 43 Temporary Staging Monitor
 
 on:
   push:
@@ -6,20 +6,25 @@ on:
       - fix/ticket-43-complete-qa-hardening
 
 permissions:
-  actions: write
+  actions: read
   contents: read
 
 jobs:
-  dispatch:
-    if: github.event.head_commit.message == 'ci(ticket-43): dispatch staging QA for hardened candidate'
+  monitor:
+    if: github.event.head_commit.message == 'ci(ticket-43): monitor staging QA run'
     runs-on: ubuntu-latest
     steps:
-      - name: Dispatch hardened candidate to staging QA
+      - name: Locate and monitor staging run
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh workflow run ticket43-v4-delivery.yml \
-            --repo '${{ github.repository }}' \
-            --ref 'fix/ticket-43-complete-qa-hardening' \
-            -f target_sha='d0091c7b16468c6b4c0164f0651f77ae97b83007' \
-            -f base_sha='4bb6be4d19c27c5905128d48eefe09a0e3276352'
+          set -euo pipefail
+          run_id=''
+          for attempt in $(seq 1 30); do
+            run_id="$(gh run list --repo '${{ github.repository }}' --workflow ticket43-v4-delivery.yml --branch fix/ticket-43-complete-qa-hardening --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+            [[ -n "$run_id" ]] && break
+            sleep 10
+          done
+          [[ -n "$run_id" ]]
+          echo "Staging workflow run: $run_id"
+          gh run watch "$run_id" --repo '${{ github.repository }}' --exit-status

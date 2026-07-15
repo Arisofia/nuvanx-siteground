@@ -119,30 +119,38 @@
   box-shadow: none;
 }
 
-/* Grids con gap de lujo (no hardcode) */
+/* Una sola columna en todo el sitio (sin layouts multi-col por página) */
 .nvx-positioning-grid,
 .nvx-locations-grid,
 .nvx-brand-grid,
+.nvx-brand-grid--2,
+.nvx-brand-grid--3,
 .nvx-grid-cards,
-.nvx-grid-clinics {
-  display: grid;
+.nvx-grid-clinics,
+.nvx-team-grid,
+.nvx-treatment-grid,
+.nvx-clinic-grid,
+.nvx-casos-grid,
+.nvx-grid--2,
+.nvx-grid--3,
+.nvx-grid--4,
+.nvx-index,
+.nvx-index__items,
+.nvx-home-clinicas-panorama__track,
+.nvx-home-metodo-pilares,
+.nvx-home-tratamientos-editorial,
+.wp-block-columns,
+.wp-block-gallery {
+  display: flex;
+  flex-direction: column;
   gap: var(--nvx-gap-wide);
   margin-top: var(--nvx-gap-wide);
+  grid-template-columns: none;
+  width: 100%;
 }
 
-.nvx-brand-grid--2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.nvx-brand-grid--3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-@media (max-width: 900px) {
-  .nvx-brand-grid--2,
-  .nvx-brand-grid--3,
-  .nvx-positioning-grid,
-  .nvx-locations-grid {
-    grid-template-columns: 1fr;
-  }
+.wp-block-column {
+  flex-basis: 100%;
+  max-width: 100%;
+  margin: 0;
 }

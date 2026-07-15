@@ -208,68 +208,26 @@ function nvx_theme_scripts() {
 	 * Orden obligatorio
 	 */
 	/*
-	 * Stack: layout chrome first, page composition second,
-	 * nvx-components LAST = única autoridad H1–H3 / texto / media orgánica / botones.
-	 * Solo brand-home (vídeo) puede reforzar el hero de portada después.
+	 * Stack GLOBAL only:
+	 * tokens → base → site-layout → header → footer → components
+	 * + forms (functional fields only)
+	 * + brand-home ONLY on front page (video)
+	 *
+	 * No brand-system / treatment / secondary / sede / posts / pages / gutenberg CSS.
 	 */
 	wp_enqueue_style( 'nvx-tokens', $css . 'nvx-tokens.css', array( 'nvx-fonts' ), $asset_version( 'nvx-tokens.css' ) );
 	wp_enqueue_style( 'nvx-base', $css . 'nvx-base.css', array( 'nvx-tokens' ), $asset_version( 'nvx-base.css' ) );
 	wp_enqueue_style( 'nvx-site-layout', $css . 'nvx-site-layout.css', array( 'nvx-base' ), $asset_version( 'nvx-site-layout.css' ) );
 	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-site-layout' ), $asset_version( 'nvx-header.css' ) );
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-header' ), $asset_version( 'nvx-footer.css' ) );
-	wp_enqueue_style( 'nvx-pages', $css . 'nvx-pages.css', array( 'nvx-footer' ), $asset_version( 'nvx-pages.css' ) );
+	wp_enqueue_style( 'nvx-components', $css . 'nvx-components.css', array( 'nvx-footer' ), $asset_version( 'nvx-components.css' ) );
 
-	$last_dep = 'nvx-pages';
-
-	if ( $is_generic_page ) {
-		wp_enqueue_style( 'nvx-gutenberg-pages', $css . 'nvx-gutenberg-pages.css', array( $last_dep ), $asset_version( 'nvx-gutenberg-pages.css' ) );
-		$last_dep = 'nvx-gutenberg-pages';
-	}
-
-	if ( $is_p0 || $is_generic_page || $is_form_page || $is_sede_page ) {
-		wp_enqueue_style( 'nvx-secondary-pages', $css . 'nvx-secondary-pages.css', array( $last_dep ), $asset_version( 'nvx-secondary-pages.css' ) );
-		$last_dep = 'nvx-secondary-pages';
-	}
+	$last_dep = 'nvx-components';
 
 	if ( $is_form_page ) {
 		wp_enqueue_style( 'nvx-forms', $css . 'nvx-forms.css', array( $last_dep ), $asset_version( 'nvx-forms.css' ) );
 		$last_dep = 'nvx-forms';
 	}
-	if ( $is_post_context ) {
-		wp_enqueue_style( 'nvx-posts', $css . 'nvx-posts.css', array( $last_dep ), $asset_version( 'nvx-posts.css' ) );
-		$last_dep = 'nvx-posts';
-	}
-	if ( $is_sede_page ) {
-		wp_enqueue_style( 'nvx-sede-page', $css . 'nvx-sede-page.css', array( $last_dep ), $asset_version( 'nvx-sede-page.css' ) );
-		$last_dep = 'nvx-sede-page';
-	}
-
-	if ( $is_treatment ) {
-		wp_enqueue_style( 'nvx-brand-treatment-core', $css . 'nvx-brand-treatment-core.css', array( $last_dep ), $asset_version( 'nvx-brand-treatment-core.css' ) );
-		$last_dep = 'nvx-brand-treatment-core';
-
-		$treatment_addon = '';
-		if ( is_page( 1241 ) ) {
-			$treatment_addon = 'nvx-brand-treatment-endolift';
-		} elseif ( is_page( 1200 ) ) {
-			$treatment_addon = 'nvx-brand-treatment-endolaser';
-		} elseif ( is_page( 2017 ) ) {
-			$treatment_addon = 'nvx-brand-treatment-co2';
-		}
-
-		if ( '' !== $treatment_addon ) {
-			wp_enqueue_style( $treatment_addon, $css . $treatment_addon . '.css', array( $last_dep ), $asset_version( $treatment_addon . '.css' ) );
-			$last_dep = $treatment_addon;
-		}
-	} elseif ( ! $is_front_page && nvx_theme_uses_brand_system() ) {
-		wp_enqueue_style( 'nvx-brand-system', $css . 'nvx-brand-system.css', array( $last_dep ), $asset_version( 'nvx-brand-system.css' ) );
-		$last_dep = 'nvx-brand-system';
-		wp_enqueue_script( 'nvx-brand-system', get_template_directory_uri() . '/assets/js/nvx-brand-system.js', array(), filemtime( get_template_directory() . '/assets/js/nvx-brand-system.js' ), true );
-	}
-
-	/* Global UI contract — always last (except home video composition). */
-	wp_enqueue_style( 'nvx-components', $css . 'nvx-components.css', array( $last_dep ), $asset_version( 'nvx-components.css' ) );
-	$last_dep = 'nvx-components';
 
 	if ( $is_front_page ) {
 		wp_enqueue_style( 'nvx-brand-home', $css . 'nvx-brand-home.css', array( $last_dep ), $asset_version( 'nvx-brand-home.css' ) );

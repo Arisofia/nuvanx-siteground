@@ -293,33 +293,33 @@ blockquote,
 /* Grid editorial de 12 columnas */
 .nvx-grid {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--nvx-gutter);
 }
 
 /* Variantes de grid frecuentes */
-.nvx-grid--2 { grid-template-columns: repeat(2, 1fr); }
-.nvx-grid--3 { grid-template-columns: repeat(3, 1fr); }
-.nvx-grid--4 { grid-template-columns: repeat(4, 1fr); }
+.nvx-grid--2 { grid-template-columns: 1fr; }
+.nvx-grid--3 { grid-template-columns: 1fr; }
+.nvx-grid--4 { grid-template-columns: 1fr; }
 
 /* Split editorial asimétrico (como en los mockups) */
 .nvx-split {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--nvx-gutter);
   align-items: center;
 }
 
 .nvx-split--40-60 {
-  grid-template-columns: 40fr 60fr;
+  grid-template-columns: 1fr;
 }
 
 .nvx-split--60-40 {
-  grid-template-columns: 60fr 40fr;
+  grid-template-columns: 1fr;
 }
 
 .nvx-split--37-63 {
-  grid-template-columns: 37fr 63fr;
+  grid-template-columns: 1fr;
 }
 
 /* Eje de contenido — centrado con texto */
@@ -698,7 +698,7 @@ blockquote,
 /* --- Card de clínica --- */
 .nvx-clinic-card {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 0;
   background: var(--nvx-paper);
   border: var(--nvx-border);
@@ -990,7 +990,7 @@ blockquote,
   position: relative;
   min-height: 100svh;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   overflow: hidden;
   background: var(--nvx-charcoal);
 }
@@ -1063,7 +1063,7 @@ blockquote,
 
 .nvx-treatment-hero {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   min-height: 80vh;
   background: var(--nvx-ivory);
 }
@@ -1097,7 +1097,7 @@ blockquote,
 
 .nvx-clinics-hero {
   display: grid;
-  grid-template-columns: 40fr 60fr;
+  grid-template-columns: 1fr;
   min-height: 70vh;
   background: var(--nvx-ivory);
 }
@@ -1128,7 +1128,7 @@ blockquote,
 
 .nvx-journal-hero {
   display: grid;
-  grid-template-columns: 45fr 55fr;
+  grid-template-columns: 1fr;
   min-height: 60vh;
   background: var(--nvx-ivory);
 }
@@ -1182,7 +1182,7 @@ blockquote,
 /* Journal layout (posts + sidebar) */
 .nvx-journal-layout {
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: 1fr;
   gap: var(--nvx-sp-9);
   align-items: start;
 }
@@ -1348,7 +1348,7 @@ blockquote,
 
   .nvx-grid--3,
   .nvx-grid--4 {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 
   .nvx-clinic-card {

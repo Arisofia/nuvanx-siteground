@@ -178,14 +178,14 @@ body.home #nvx-home-main.nvx-editorial-home .nvx-editorial-zone--copy {
   flex-direction: column;
 }
 
-body.home #nvx-home-main.nvx-editorial-home .nvx-home-editorial__lead:first-of-type {
+body.home #nvx-home-main.nvx-editorial-home .nvx-home-editorial__lead {
   max-width: 650px;
   margin: 0;
   font-size: clamp(19px, 1.4vw, 22px);
   line-height: 1.42;
 }
 
-body.home #nvx-home-main.nvx-editorial-home .nvx-home-editorial__lead:nth-of-type(2) {
+body.home #nvx-home-main.nvx-editorial-home .nvx-home-editorial__body {
   max-width: 660px;
   margin: 24px 0 0;
   font-size: clamp(15px, 1vw, 16.5px);

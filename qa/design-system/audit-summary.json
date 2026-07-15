@@ -1,0 +1,234 @@
+{
+  "files": {
+    "nvx-base.css": {
+      "lines": 1655,
+      "bytes": 37771,
+      "rootBlocks": 1
+    },
+    "nvx-brand-home.css": {
+      "lines": 1581,
+      "bytes": 38955,
+      "rootBlocks": 1
+    },
+    "nvx-brand-system.css": {
+      "lines": 1119,
+      "bytes": 24136,
+      "rootBlocks": 2
+    },
+    "nvx-brand-treatment-co2.css": {
+      "lines": 48,
+      "bytes": 834,
+      "rootBlocks": 0
+    },
+    "nvx-brand-treatment-core.css": {
+      "lines": 706,
+      "bytes": 16871,
+      "rootBlocks": 1
+    },
+    "nvx-brand-treatment-endolaser.css": {
+      "lines": 48,
+      "bytes": 840,
+      "rootBlocks": 0
+    },
+    "nvx-brand-treatment-endolift.css": {
+      "lines": 83,
+      "bytes": 1632,
+      "rootBlocks": 0
+    },
+    "nvx-components.css": {
+      "lines": 438,
+      "bytes": 9674,
+      "rootBlocks": 0
+    },
+    "nvx-fluid-organic-2026.css": {
+      "lines": 586,
+      "bytes": 16606,
+      "rootBlocks": 2
+    },
+    "nvx-footer.css": {
+      "lines": 213,
+      "bytes": 3915,
+      "rootBlocks": 0
+    },
+    "nvx-forms.css": {
+      "lines": 237,
+      "bytes": 5555,
+      "rootBlocks": 0
+    },
+    "nvx-gutenberg-pages.css": {
+      "lines": 340,
+      "bytes": 6416,
+      "rootBlocks": 0
+    },
+    "nvx-header.css": {
+      "lines": 704,
+      "bytes": 13012,
+      "rootBlocks": 0
+    },
+    "nvx-pages.css": {
+      "lines": 272,
+      "bytes": 5280,
+      "rootBlocks": 0
+    },
+    "nvx-posts.css": {
+      "lines": 300,
+      "bytes": 5903,
+      "rootBlocks": 0
+    },
+    "nvx-responsive.css": {
+      "lines": 11,
+      "bytes": 150,
+      "rootBlocks": 0
+    },
+    "nvx-secondary-pages.css": {
+      "lines": 621,
+      "bytes": 15965,
+      "rootBlocks": 0
+    },
+    "nvx-sede-page.css": {
+      "lines": 586,
+      "bytes": 11653,
+      "rootBlocks": 0
+    },
+    "nvx-site-layout.css": {
+      "lines": 387,
+      "bytes": 8408,
+      "rootBlocks": 3
+    },
+    "nvx-tokens.css": {
+      "lines": 123,
+      "bytes": 4020,
+      "rootBlocks": 3
+    },
+    "nvx-typography-alignment.css": {
+      "lines": 169,
+      "bytes": 3791,
+      "rootBlocks": 0
+    },
+    "nvx-visual-system.css": {
+      "lines": 444,
+      "bytes": 9943,
+      "rootBlocks": 0
+    }
+  },
+  "totalSourceLines": 10671,
+  "duplicateSelectors": 270,
+  "tokenCollisions": 43,
+  "rootTokenFiles": [
+    "nvx-base.css",
+    "nvx-brand-home.css",
+    "nvx-brand-system.css",
+    "nvx-brand-treatment-core.css",
+    "nvx-fluid-organic-2026.css",
+    "nvx-site-layout.css",
+    "nvx-tokens.css"
+  ],
+  "importantCounts": [],
+  "legacyMarkers": [
+    {
+      "file": "nvx-brand-home.css",
+      "marker": "TICKET #43"
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "marker": "V4.1"
+    },
+    {
+      "file": "nvx-components.css",
+      "marker": "Phase 3"
+    },
+    {
+      "file": "nvx-secondary-pages.css",
+      "marker": "Phase 3"
+    },
+    {
+      "file": "nvx-site-layout.css",
+      "marker": "Phase 3"
+    },
+    {
+      "file": "nvx-tokens.css",
+      "marker": "Phase 3"
+    }
+  ],
+  "fontFamilies": [
+    {
+      "value": "var(--nvx-sans)",
+      "files": [
+        "nvx-base.css",
+        "nvx-brand-home.css",
+        "nvx-brand-system.css",
+        "nvx-brand-treatment-core.css",
+        "nvx-components.css",
+        "nvx-footer.css",
+        "nvx-forms.css",
+        "nvx-gutenberg-pages.css",
+        "nvx-header.css",
+        "nvx-pages.css",
+        "nvx-posts.css",
+        "nvx-secondary-pages.css",
+        "nvx-sede-page.css",
+        "nvx-site-layout.css",
+        "nvx-visual-system.css"
+      ]
+    },
+    {
+      "value": "var(--nvx-serif)",
+      "files": [
+        "nvx-base.css",
+        "nvx-components.css",
+        "nvx-footer.css",
+        "nvx-forms.css",
+        "nvx-gutenberg-pages.css",
+        "nvx-header.css",
+        "nvx-pages.css",
+        "nvx-posts.css",
+        "nvx-secondary-pages.css",
+        "nvx-sede-page.css",
+        "nvx-site-layout.css",
+        "nvx-visual-system.css"
+      ]
+    },
+    {
+      "value": "var(--nvx-font-sans)",
+      "files": [
+        "nvx-brand-home.css",
+        "nvx-brand-system.css",
+        "nvx-brand-treatment-core.css",
+        "nvx-brand-treatment-endolift.css"
+      ]
+    },
+    {
+      "value": "var(--nvx-font-serif)",
+      "files": [
+        "nvx-brand-home.css",
+        "nvx-brand-system.css",
+        "nvx-brand-treatment-core.css"
+      ]
+    },
+    {
+      "value": "\"Playfair Display\", \"Cormorant Garamond\", Georgia, serif",
+      "files": [
+        "nvx-brand-system.css"
+      ]
+    },
+    {
+      "value": "var(--nvx-font-body, 'Source Sans 3', sans-serif)",
+      "files": [
+        "nvx-brand-treatment-co2.css",
+        "nvx-brand-treatment-endolaser.css"
+      ]
+    },
+    {
+      "value": "var(--nvx-fluid-body)",
+      "files": [
+        "nvx-fluid-organic-2026.css"
+      ]
+    },
+    {
+      "value": "var(--nvx-fluid-display)",
+      "files": [
+        "nvx-fluid-organic-2026.css"
+      ]
+    }
+  ]
+}

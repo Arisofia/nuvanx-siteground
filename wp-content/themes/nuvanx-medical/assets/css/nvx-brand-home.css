@@ -1,6 +1,5 @@
-/* NUVANX Home — composition only.
- * Shared typography, buttons, index, media, FAQ and header variants live in
- * nvx-tokens.css and nvx-components.css.
+﻿/* NUVANX Home — ONLY video hero stage composition.
+ * All type/cards/columns/global rhythm: nvx-components + tokens.
  */
 
 body.home {
@@ -26,36 +25,12 @@ body.home #nvx-home-main.nvx-home {
   color: var(--nvx-color-ink);
 }
 
-body.home #nvx-home-main.nvx-home,
-body.home #nvx-home-main.nvx-home *,
-body.home #nvx-home-main.nvx-home *::before,
-body.home #nvx-home-main.nvx-home *::after {
-  box-sizing: border-box;
-}
-
 body.home #nvx-main ~ section.nvx-cta-banner,
 body.home section.nvx-cta-banner {
   display: none;
 }
 
-/* Footer chrome owned by nvx-footer.css (dark editorial) — do not force paper. */
-
-body.home #nvx-home-main.nvx-home .nvx-brand-section {
-  padding-block: var(--nvx-pad-section);
-  background: var(--nvx-color-surface);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-section--tight {
-  padding-block: var(--nvx-pad-section-tight);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-readable,
-body.home #nvx-home-main.nvx-home .nvx-brand-readable--wide {
-  max-width: 100%;
-  margin-inline: 0;
-}
-
-/* Hero — full-bleed video stage, copy bottom-left (quiet luxury) */
+/* Full-bleed video stage */
 body.home #nvx-home-main.nvx-home .nvx-home-hero-stage {
   position: relative;
   display: block;
@@ -67,10 +42,9 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-stage {
   max-height: clamp(720px, 92svh, 980px);
   margin: 0 0 0 calc(50% - 50vw);
   padding: 0;
-  background: var(--nvx-charcoal, #2b2926);
+  background: var(--nvx-charcoal, #2a2d33);
 }
 
-/* Legibility gradient over video (15–25% from bottom) */
 body.home #nvx-home-main.nvx-home .nvx-home-hero-stage::after {
   content: "";
   position: absolute;
@@ -78,19 +52,8 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-stage::after {
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(
-      180deg,
-      rgba(23, 23, 23, 0.12) 0%,
-      rgba(23, 23, 23, 0.08) 42%,
-      rgba(23, 23, 23, 0.22) 68%,
-      rgba(23, 23, 23, 0.48) 100%
-    ),
-    linear-gradient(
-      90deg,
-      rgba(23, 23, 23, 0.28) 0%,
-      rgba(23, 23, 23, 0.08) 48%,
-      transparent 72%
-    );
+    linear-gradient(180deg, rgba(20,22,26,0.12) 0%, rgba(20,22,26,0.08) 42%, rgba(20,22,26,0.22) 68%, rgba(20,22,26,0.48) 100%),
+    linear-gradient(90deg, rgba(20,22,26,0.28) 0%, rgba(20,22,26,0.08) 48%, transparent 72%);
 }
 
 body.home #nvx-home-main.nvx-home .nvx-home-hero-stage .nvx-home-video-feature {
@@ -100,13 +63,9 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-stage .nvx-home-video-feature {
   display: block;
   width: 100%;
   height: 100%;
-  max-width: none;
-  max-height: 100%;
-  min-height: 0;
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: 0;
   pointer-events: none;
 }
 
@@ -115,18 +74,11 @@ body.home #nvx-home-main.nvx-home .nvx-home-video-frame {
   inset: 0;
   width: 100%;
   height: 100%;
-  max-height: 100%;
-  min-height: 0;
   margin: 0;
-  padding: 0;
   overflow: hidden;
   border: 0;
   border-radius: 0;
-  aspect-ratio: auto;
-  background:
-    var(--nvx-charcoal, #2b2926)
-    url("/wp-content/uploads/2026/07/nvx-home-video-portada-poster.webp")
-    center center / cover no-repeat;
+  background: var(--nvx-charcoal) url("/wp-content/uploads/2026/07/nvx-home-video-portada-poster.webp") center / cover no-repeat;
 }
 
 body.home #nvx-home-main.nvx-home .nvx-home-hero-video {
@@ -136,7 +88,6 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-video {
   width: 100%;
   height: 100%;
   max-width: none;
-  max-height: none;
   margin: 0;
   object-fit: cover;
   object-position: center center;
@@ -158,48 +109,15 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-content {
   padding: 0 clamp(24px, 4vw, 48px) clamp(48px, 6vw, 88px);
 }
 
-body.home #nvx-home-main.nvx-home .nvx-brand-hero__title {
-  max-width: none;
-  margin: 0 0 28px;
-  color: #ffffff;
-  font-family: var(--nvx-font-serif, "Bodoni Moda", serif);
-  font-size: clamp(3rem, 5.8vw, 5.5rem);
-  font-weight: 400;
-  letter-spacing: -0.04em;
-  line-height: 0.98;
-  text-wrap: balance;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-hero__line {
-  display: block;
-}
-
+body.home #nvx-home-main.nvx-home .nvx-brand-hero__title,
+body.home #nvx-home-main.nvx-home .nvx-brand-hero__sub,
 body.home #nvx-home-main.nvx-home .nvx-brand-hero__main {
-  margin-bottom: 1.1em;
-  color: rgba(255, 255, 255, 0.78);
-  font-family: var(--nvx-font-sans, "Manrope", sans-serif);
-  font-size: 0.16em;
-  font-weight: 600;
-  letter-spacing: 0.24em;
-  line-height: 1.3;
-  text-transform: uppercase;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-hero__sub {
-  font-size: 1em;
-  line-height: 0.98;
   color: #ffffff;
 }
 
 body.home #nvx-home-main.nvx-home .nvx-brand-hero__support {
-  max-width: 40ch;
-  margin-top: 1em;
   color: rgba(255, 255, 255, 0.82);
-  font-family: var(--nvx-font-sans, "Manrope", sans-serif);
-  font-size: 0.22em;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  line-height: 1.62;
+  max-width: 40ch;
 }
 
 body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas {
@@ -207,26 +125,16 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas {
   flex-wrap: wrap;
   gap: 14px 18px;
   margin-top: clamp(28px, 3.5vw, 40px);
-  padding-bottom: 0;
   position: relative;
   z-index: 2;
 }
 
-/* CTAs on dark video: primary solid white/ink, secondary ghost */
 body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-button--primary,
 body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-brand-btn--primary,
 body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-btn--primary {
   background: #ffffff;
-  color: var(--nvx-ink, #171717);
+  color: var(--nvx-ink, #14161a);
   border-color: #ffffff;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-button--primary:hover,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-brand-btn--primary:hover,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-btn--primary:hover {
-  background: transparent;
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.85);
 }
 
 body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-button--secondary,
@@ -237,362 +145,10 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-btn--secondary {
   border-color: rgba(255, 255, 255, 0.72);
 }
 
-body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-button--secondary:hover,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-brand-btn--secondary:hover,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas .nvx-btn--secondary:hover {
-  border-color: var(--nvx-platinum, #9ba3ad);
-  color: #ffffff;
-}
-
-/* Home section intros: editorial center (not flat left stack) */
-body.home #nvx-home-main.nvx-home .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-kicker,
-body.home #nvx-home-main.nvx-home .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title {
-  text-align: center;
-  margin-inline: auto;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title {
-  max-width: 18ch;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-body,
-body.home #nvx-home-main.nvx-home .nvx-brand-section > .nvx-brand-section__inner > .nvx-lead {
-  text-align: center;
-  margin-inline: auto;
-  max-width: var(--nvx-measure-lead, 48ch);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-section__inner {
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-organic-wave {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
+body.home #nvx-home-main.nvx-home > .nvx-brand-section {
+  position: relative;
   z-index: 3;
-  width: 100%;
-  height: clamp(44px, 6vw, 88px);
-  pointer-events: none;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-organic-wave svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* Intro */
-body.home #nvx-home-main.nvx-home .nvx-home-intro {
-  padding-top: clamp(36px, 4vw, 58px);
-  padding-bottom: clamp(64px, 7vw, 96px);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-editorial-open {
-  display: grid;
-  grid-template-columns: minmax(320px, 42%) minmax(0, 58%);
-  gap: var(--nvx-gap-section);
-  align-items: center;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-editorial-zone--media {
-  overflow: hidden;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-editorial-zone--copy {
-  display: flex;
-  flex-direction: column;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-editorial__lead {
-  max-width: 650px;
-  margin: 0;
-  font-size: clamp(19px, 1.4vw, 22px);
-  line-height: 1.42;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-editorial__body {
-  max-width: 660px;
-  margin: 24px 0 0;
-  font-size: clamp(15px, 1vw, 16.5px);
-  line-height: 1.65;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-invitation {
-  max-width: 660px;
-  margin-top: 32px;
-  padding-top: 24px;
-  border-top: 1px solid var(--nvx-color-line);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-invitation__text {
-  margin: 0;
-  color: var(--nvx-text-body);
-  font-family: var(--nvx-font-sans);
-  font-size: 15px;
-  line-height: 1.65;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-dropcap {
-  float: left;
-  margin: 0.04em 0.13em 0 0;
-  color: var(--nvx-color-ink);
-  font-family: var(--nvx-font-serif);
-  font-size: 3.25em;
-  line-height: 0.72;
-}
-
-/* Clinics — larger editorial media, more air */
-body.home #nvx-home-main.nvx-home .nvx-home-clinics {
-  background: var(--nvx-pearl, var(--nvx-color-paper));
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinics__title {
-  max-width: 16ch;
-  margin-inline: auto;
-  text-align: center;
-  text-wrap: balance;
-  letter-spacing: -0.03em;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinicas-panorama__track {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-  margin-top: var(--nvx-gap-section);
-  border-block: 1px solid var(--nvx-color-line);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama {
-  display: grid;
-  grid-template-rows: auto auto;
-  min-width: 0;
-  border-inline-start: 1px solid var(--nvx-color-line);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama:first-child {
-  border-inline-start: 0;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama__media {
-  min-height: clamp(280px, 32vw, 480px);
-  aspect-ratio: var(--nvx-media-ratio-clinic, 19 / 12);
-  overflow: hidden;
-  border-radius: var(--nvx-radius-image, 0);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama:hover .nvx-home-clinica-panorama__media img {
-  transform: scale(1.03);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama__link {
-  display: block;
-  min-height: 100%;
-  padding: var(--nvx-pad-card);
-  color: inherit;
-  text-decoration: none;
-  transition: color 0.28s ease;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama__link:hover {
-  color: var(--nvx-platinum, #9ba3ad);
-}
-
-/* Clinic kicker / barrio labels when present */
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama .nvx-brand-kicker,
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama .nvx-eyebrow {
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  font-size: var(--nvx-type-kicker, 0.625rem);
-  color: var(--nvx-text-muted, #6f6861);
-}
-
-/* Secondary CTAs on clinics — fine border + champagne hover */
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama .nvx-button--secondary,
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama .nvx-brand-btn--secondary,
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama .nvx-text-link {
-  border-color: rgba(22, 21, 17, 0.22);
-  transition: border-color 0.28s ease, color 0.28s ease, opacity 0.28s ease;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama .nvx-button--secondary:hover,
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama .nvx-brand-btn--secondary:hover,
-body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama .nvx-text-link:hover {
-  border-color: var(--nvx-platinum, #9ba3ad);
-  color: var(--nvx-platinum, #9ba3ad);
-}
-
-/* Treatments */
-body.home #nvx-home-main.nvx-home .nvx-home-treatments {
-  background: var(--nvx-color-surface);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-tratamientos-editorial {
-  --nvx-index-columns: 3;
-  margin-top: var(--nvx-gap-wide);
-  border-bottom: 0;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-tratamiento-item {
-  border-bottom: 1px solid var(--nvx-color-line);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-tratamiento-item--catalog {
-  grid-column: 1 / -1;
-  border-inline-start: 0;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-tratamiento-item--catalog .nvx-index-item__link {
-  display: grid;
-  grid-template-columns: minmax(100px, 0.18fr) minmax(220px, 0.82fr) minmax(220px, 1.35fr) auto;
-  gap: var(--nvx-gap-base);
-  align-items: center;
-}
-
-/* Method image */
-body.home #nvx-home-main.nvx-home .nvx-home-image-feature {
-  background: var(--nvx-color-paper);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-image-feature__figure {
-  margin: 0;
-  overflow: hidden;
-  aspect-ratio: 16 / 9;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-image-feature__figure img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* Method */
-body.home #nvx-home-main.nvx-home .nvx-home-method {
-  background: var(--nvx-color-surface);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-metodo-pilares {
-  --nvx-index-columns: 3;
-  margin-top: var(--nvx-gap-wide);
-}
-
-/* Medical authority */
-body.home #nvx-home-main.nvx-home .nvx-home-authority {
-  background: var(--nvx-color-paper);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-direccion-grid {
-  display: grid;
-  grid-template-columns: minmax(300px, 38%) minmax(0, 62%);
-  gap: var(--nvx-gap-section);
-  align-items: stretch;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-direccion-media {
-  min-height: 100%;
-  overflow: hidden;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-direccion-media img {
-  width: 100%;
-  height: 100%;
-  min-height: clamp(420px, 38vw, 620px);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-direccion-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.72fr);
-  gap: var(--nvx-gap-wide);
-  align-items: end;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-direccion-medico__link,
-body.home #nvx-home-main.nvx-home .nvx-home-registro-item__link {
-  display: block;
-  padding-top: 24px;
-  border-top: 1px solid var(--nvx-color-line);
-  color: inherit;
-  text-decoration: none;
-}
-
-/* FAQ */
-body.home #nvx-home-main.nvx-home .nvx-home-faq {
-  background: var(--nvx-color-surface);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-faq-editorial {
-  margin-top: var(--nvx-gap-wide);
-}
-
-/* Final CTA */
-body.home #nvx-home-main.nvx-home .nvx-home-final-cta {
-  padding-bottom: clamp(64px, 8vw, 104px);
-  background: var(--nvx-color-paper);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-cta-final-band {
-  padding: clamp(44px, 5vw, 72px) clamp(32px, 5vw, 68px);
-  border-radius: 999px;
-  background: var(--nvx-color-ink);
-  color: var(--nvx-white);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-cta-final-band .nvx-brand-kicker,
-body.home #nvx-home-main.nvx-home .nvx-home-cta-final-band .nvx-brand-title,
-body.home #nvx-home-main.nvx-home .nvx-home-cta-final-band .nvx-home-invitation__text {
-  color: var(--nvx-white);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-cta-final-band .nvx-home-invitation__text {
-  max-width: 760px;
-  font-size: clamp(1rem, 1.2vw, 1.18rem);
-}
-
-@media (max-width: 1100px) {
-  body.home #nvx-home-main.nvx-home .nvx-brand-hero__title {
-    font-size: clamp(3rem, 5.2vw, 4.3rem);
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-clinicas-panorama__track {
-    grid-template-columns: 1fr;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama {
-    grid-template-columns: minmax(280px, 1.1fr) minmax(0, 0.9fr);
-    grid-template-rows: none;
-    border-inline-start: 0;
-    border-top: 1px solid var(--nvx-color-line);
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama:first-child {
-    border-top: 0;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-tratamiento-item--catalog .nvx-index-item__link {
-    grid-template-columns: minmax(80px, 0.2fr) minmax(200px, 0.8fr) minmax(0, 1fr);
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-tratamiento-item--catalog .nvx-brand-card__cta {
-    grid-column: 2 / -1;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-direccion-panel {
-    grid-template-columns: 1fr;
-  }
+  background: var(--nvx-color-paper, #f2f3f5);
 }
 
 @media (max-width: 900px) {
@@ -602,116 +158,14 @@ body.home #nvx-home-main.nvx-home .nvx-home-cta-final-band .nvx-home-invitation_
     margin: 0;
     max-height: none;
   }
-
   body.home #nvx-home-main.nvx-home .nvx-home-hero-content {
     width: 100%;
     padding-inline: clamp(20px, 5vw, 32px);
   }
-
-  body.home #nvx-home-main.nvx-home .nvx-brand-hero__title {
-    font-size: clamp(2.65rem, 8vw, 4rem);
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-organic-wave {
-    display: none;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-editorial-open,
-  body.home #nvx-home-main.nvx-home .nvx-home-direccion-grid {
-    grid-template-columns: 1fr;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-editorial-zone--media {
-    order: 2;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-direccion-media {
-    min-height: 0;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-direccion-media img {
-    min-height: 0;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-cta-final-band {
-    border-radius: 48px;
-  }
-}
-
-@media (max-width: 620px) {
-  body.home #nvx-home-main.nvx-home .nvx-brand-section {
-    padding-block: clamp(64px, 14vw, 96px);
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-brand-hero__title {
-    font-size: clamp(2.35rem, 11vw, 2.75rem);
-    line-height: 1.02;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-brand-hero__main {
-    font-size: 0.22em;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-brand-hero__support {
-    max-width: none;
-    font-size: 0.34em;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama {
-    grid-template-columns: 1fr;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama__media {
-    min-height: 220px;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-tratamiento-item--catalog .nvx-index-item__link {
-    display: block;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-cta-final-band {
-    padding: 40px 24px;
-    border-radius: 32px;
-  }
-}
-
-/* Sections above video stage stacking context */
-body.home #nvx-home-main.nvx-home > .nvx-brand-section {
-  position: relative;
-  z-index: 3;
-  background: var(--nvx-color-paper, #f4f2ee);
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-title,
-body.home #nvx-home-main.nvx-home .nvx-display,
-body.home #nvx-home-main.nvx-home .nvx-heading {
-  font-family: var(--nvx-font-serif, "Bodoni Moda", serif);
-  text-wrap: balance;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-kicker,
-body.home #nvx-home-main.nvx-home .nvx-eyebrow {
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-brand-body,
-body.home #nvx-home-main.nvx-home .nvx-copy,
-body.home #nvx-home-main.nvx-home .nvx-lead {
-  font-family: var(--nvx-font-sans, "Manrope", sans-serif);
-  line-height: 1.7;
-  color: var(--nvx-text-body, #3f3a35);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  body.home #nvx-home-main.nvx-home *,
-  body.home #nvx-home-main.nvx-home *::before,
-  body.home #nvx-home-main.nvx-home *::after {
-    scroll-behavior: auto;
+  body.home #nvx-home-main.nvx-home * {
     transition-duration: 0.01ms;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-clinica-panorama:hover .nvx-home-clinica-panorama__media img {
-    transform: none;
   }
 }

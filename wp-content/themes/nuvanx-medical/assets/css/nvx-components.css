@@ -330,17 +330,17 @@ p,
   width: min(1080px, 100%);
 }
 
-.nvx-brand-grid {
-  display: grid;
+/* Grids: una columna (contenido apilado, sin multi-col) */
+.nvx-brand-grid,
+.nvx-brand-grid--2,
+.nvx-brand-grid--3,
+.nvx-index,
+.nvx-index__items {
+  display: flex;
+  flex-direction: column;
   gap: var(--nvx-gap-wide);
-}
-
-.nvx-brand-grid--2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.nvx-brand-grid--3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: none;
+  width: 100%;
 }
 
 /* Canonical buttons. .nvx-brand-btn and .nvx-btn are compatibility aliases. */

@@ -80,7 +80,7 @@ jobs:
           git diff --name-only "$BASE" "$TARGET" | tee qa/results/editorial-changed-files.txt
           git diff --stat "$BASE" "$TARGET" | tee qa/results/editorial-diff-stat.txt
           test -s qa/results/editorial-changed-files.txt
-          ALLOWED='^(\.github/workflows/ticket43-v4-delivery\.yml|deploy/ticket-43/post_content_v3-production-copy\.html|qa/design-system/HARDENING-NOTE\.md|wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home(\.min)?\.css)$'
+          ALLOWED='^(\.github/workflows/(ticket43-v4-delivery|ticket43-run-staging-once)\.yml|deploy/ticket-43/post_content_v3-production-copy\.html|qa/design-system/HARDENING-NOTE\.md|wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home(\.min)?\.css)$'
           INVALID="$(grep -Ev "$ALLOWED" qa/results/editorial-changed-files.txt || true)"
           [[ -z "$INVALID" ]] || { echo "ERROR: files outside scope:"; echo "$INVALID"; exit 1; }
           ! grep -RIn --include='*.css' '!important' "$THEME"

@@ -160,6 +160,32 @@ jobs:
             NVX_POST_CONTENT_V3=${{ env.STAGING_PATH }}/tmp-v4-deploy/post_content_v3-production-copy.html \
             wp eval-file tmp-v4-deploy/apply-post-content.php"
 
+      - name: Ensure Staging Media Aliases
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' << EOF
+            set -e
+            UPLOADS="${{ env.STAGING_PATH }}/wp-content/uploads"
+            TARGET="\$UPLOADS/2026/07/nvx-javi-gris-760.webp"
+            SOURCE="\$UPLOADS/2026/06/nvx-javi-gris-760.webp"
+            REMOTE="https://nuvanx.com/wp-content/uploads/2026/06/nvx-javi-gris-760.webp"
+            if [ ! -s "\$TARGET" ]; then
+              mkdir -p "\$UPLOADS/2026/07"
+              if [ -s "\$SOURCE" ]; then
+                cp "\$SOURCE" "\$TARGET"
+                echo "Aliased javi media from local 2026/06 copy."
+              else
+                curl -fsSL "\$REMOTE" -o "\$TARGET"
+                echo "Fetched javi media alias from production 2026/06."
+              fi
+            else
+              echo "javi media alias already present."
+            fi
+          EOF
+
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:

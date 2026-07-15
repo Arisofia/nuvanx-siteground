@@ -96,10 +96,31 @@ function runCopyLock() {
 	return pass;
 }
 
+async function waitForHomeImages(page) {
+	await page.evaluate(async () => {
+		const imgs = Array.from(document.querySelectorAll('#nvx-home-main img'));
+		for (const img of imgs) {
+			img.scrollIntoView({ block: 'nearest' });
+		}
+		await Promise.all(
+			imgs.map(
+				(img) =>
+					new Promise((resolve) => {
+						if (img.complete && img.naturalWidth > 0) return resolve();
+						img.addEventListener('load', resolve, { once: true });
+						img.addEventListener('error', resolve, { once: true });
+						setTimeout(resolve, 8000);
+					})
+			)
+		);
+	});
+}
+
 async function measureAtViewport(page, width, height) {
 	await page.setViewportSize({ width, height });
 	await page.evaluate(() => window.scrollTo(0, 0));
 	await page.waitForTimeout(900);
+	await waitForHomeImages(page);
 
 	return page.evaluate(() => {
 		const video = document.querySelector('#nvx-home-hero-video');

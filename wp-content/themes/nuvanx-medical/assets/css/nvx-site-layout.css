@@ -3,8 +3,9 @@
  * No redefine paleta ni tipografía. Sin forks por página.
  */
 
-/* Contenedor principal — un contrato */
+/* Contenedor principal — un contrato (incl. alias histórico nvx-v3-shell del home) */
 .nvx-shell,
+.nvx-v3-shell,
 .nvx-site-shell,
 .nvx-page__shell,
 .nvx-page-hero__inner,

@@ -259,8 +259,9 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 		}
 	}
 
-	// 3) Clases legacy → canónicas (diseño único).
-	// Consulta/contacto: quitar raíz de landing paralela y alias tipográficos.
+	// 3) Clases legacy → canónicas (solo tokens exactos en class="", nunca substrings BEM).
+	// Importante: un replace global con \b partía clases (p.ej. nvx-brand-page-open → -open)
+	// y el home usaba nvx-v3-shell sin gutter del contrato.
 	$replacements = array(
 		'nvx-display-section'         => 'nvx-heading',
 		'nvx-page__title'             => 'nvx-heading',
@@ -277,10 +278,10 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 		'nvx-bg-ivory'                => '',
 		'nvx-container--text'         => 'nvx-shell',
 		'nvx-container'               => 'nvx-shell',
+		'nvx-v3-shell'                => 'nvx-shell',
 		'nvx-single-hero'             => 'nvx-section-intro',
 		'nvx-single-content'          => 'nvx-page__content',
 		'nvx-article-hero'            => 'nvx-section-intro',
-		/* nvx-title se deja: el tamaño lo da h1/h2/h3 (no mapear a .nvx-heading = h2). */
 		'nvx-subtitle'                => 'nvx-lead',
 		'nvx-hero-subtitle'           => 'nvx-lead',
 		'nvx-shell-page'              => '',
@@ -317,24 +318,36 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 		'has-background'              => '',
 		'has-text-color'              => '',
 	);
-	foreach ( $replacements as $from => $to ) {
-		if ( '' === $to ) {
-			$content = preg_replace( '/\s*\b' . preg_quote( $from, '/' ) . '\b/', '', $content );
-		} else {
-			$content = preg_replace( '/\b' . preg_quote( $from, '/' ) . '\b/', $to, $content );
-		}
-	}
 
-	// 4) Limpiar class="" vacíos, duplicados o dobles espacios en class.
+	// 4) Remap + limpia class attributes (token exacto).
 	$content = preg_replace_callback(
 		'/class=(["\'])(.*?)\1/i',
-		static function ( $m ) {
+		static function ( $m ) use ( $replacements ) {
 			$classes = preg_split( '/\s+/', trim( $m[2] ) );
-			$classes = array_values( array_unique( array_filter( $classes ) ) );
-			if ( empty( $classes ) ) {
+			$out     = array();
+			foreach ( $classes as $class ) {
+				if ( '' === $class ) {
+					continue;
+				}
+				// Desechos de un remap roto previo (p.ej. "-open").
+				if ( isset( $class[0] ) && ( '-' === $class[0] || '_' === $class[0] ) ) {
+					continue;
+				}
+				if ( array_key_exists( $class, $replacements ) ) {
+					$mapped = $replacements[ $class ];
+					if ( '' === $mapped ) {
+						continue;
+					}
+					$out[] = $mapped;
+					continue;
+				}
+				$out[] = $class;
+			}
+			$out = array_values( array_unique( $out ) );
+			if ( empty( $out ) ) {
 				return '';
 			}
-			return 'class=' . $m[1] . esc_attr( implode( ' ', $classes ) ) . $m[1];
+			return 'class=' . $m[1] . esc_attr( implode( ' ', $out ) ) . $m[1];
 		},
 		$content
 	);

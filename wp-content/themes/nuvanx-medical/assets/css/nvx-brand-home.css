@@ -62,6 +62,7 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-stage::after {
 }
 
 /* Capa de apilado sobre el vídeo (sin fork tipográfico) */
+body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-shell,
 body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-v3-shell,
 body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-brand-hero__inner {
   position: relative;
@@ -69,10 +70,10 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-brand-hero__inner 
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
-  width: 100%;
-  max-width: none;
+  width: var(--nvx-shell);
+  max-width: 100%;
   min-height: clamp(720px, 92svh, 980px);
-  margin: 0;
+  margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
   background: transparent;
@@ -167,6 +168,7 @@ body.home #nvx-home-main.nvx-home .nvx-home-organic-wave svg {
     max-height: none;
   }
 
+  body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-shell,
   body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-v3-shell,
   body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-brand-hero__inner {
     min-height: clamp(640px, 92svh, 900px);

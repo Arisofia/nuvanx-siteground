@@ -118,6 +118,9 @@ p,
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-kicker,
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title,
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-body,
+.nvx-brand-section > .nvx-shell > .nvx-brand-kicker,
+.nvx-brand-section > .nvx-shell > .nvx-brand-title,
+.nvx-brand-section > .nvx-shell > .nvx-brand-body,
 .nvx-page-hero .nvx-kicker,
 .nvx-page-hero h1,
 .nvx-page-hero .nvx-lead {
@@ -136,15 +139,26 @@ p,
 }
 
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title,
+.nvx-brand-section > .nvx-shell > .nvx-brand-title,
 .nvx-section-intro .nvx-heading,
 .nvx-section-intro h2 {
   max-width: 18ch;
 }
 
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-body,
+.nvx-brand-section > .nvx-shell > .nvx-brand-body,
 .nvx-section-intro .nvx-lead,
 .nvx-section-intro .nvx-copy {
   max-width: var(--nvx-measure-lead, 48ch);
+}
+
+/* Cuerpo de lectura dentro de shell (home y resto): measure + no pegado al borde */
+.nvx-brand-section .nvx-shell .nvx-brand-body,
+.nvx-brand-section .nvx-shell .nvx-copy,
+.nvx-brand-section .nvx-brand-section__inner .nvx-brand-body,
+.nvx-brand-section .nvx-brand-section__inner .nvx-copy {
+  max-width: var(--nvx-measure, 62ch);
+  margin-inline: auto;
 }
 
 /* ═══════════════════════════════════════════════════════════

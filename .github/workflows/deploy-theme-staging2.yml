@@ -65,6 +65,18 @@ jobs:
             "${{ env.THEME_REL }}/" \
             "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/${{ env.THEME_REL }}/"
 
+      - name: Rsync MU plugins (forms)
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          rsync -az -e "ssh -p $SSH_PORT" \
+            wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php \
+            wp-content/mu-plugins/nuvanx-contacto-hubspot-form.php \
+            "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/wp-content/mu-plugins/"
+
       - name: Flush caches
         env:
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}

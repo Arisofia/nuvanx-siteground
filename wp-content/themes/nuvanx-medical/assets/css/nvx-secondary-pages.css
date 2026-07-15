@@ -66,10 +66,10 @@
 }
 
 .nvx-legal-card {
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
   padding: clamp(28px, 4vw, 48px);
 }
 
@@ -202,10 +202,10 @@
 .nvx-casos-page .nvx-contact-side,
 .nvx-casos-page .nvx-caso-card {
   padding: clamp(24px, 3vw, 32px);
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
 }
 
 .nvx-casos-page .nvx-casos-grid {
@@ -304,10 +304,10 @@
 .nvx-contact-page .nvx-contact-card,
 .nvx-contact-page .nvx-contact-side {
   padding: clamp(24px, 3vw, 32px);
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
 }
 
 .nvx-contact-page .nvx-contact-grid--form {
@@ -356,7 +356,7 @@ body.page-id-14 .nvx-header-cta a.nvx-btn-primary {
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-card);
   padding: clamp(var(--space-5), 3vw, var(--space-6));
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
 }
 
 .nvx-valoracion-page .nvx-page-body__inner > .nvx-card,
@@ -434,7 +434,7 @@ body.page-id-14 .nvx-header-cta a.nvx-btn-primary {
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-card);
   padding: clamp(var(--space-5), 3vw, var(--space-6));
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
 }
 
 .nvx-contacto-page .nvx-location-map-card .nvx-title {
@@ -473,7 +473,7 @@ body.page-id-14 .nvx-header-cta a.nvx-btn-primary {
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-card);
   padding: clamp(var(--space-5), 3vw, var(--space-6));
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
 }
 
 .nvx-home-page .nvx-page-body__inner > p,
@@ -540,7 +540,7 @@ body.home .nvx-header-cta a.nvx-btn-primary {
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-card);
   padding: clamp(var(--space-5), 3vw, var(--space-6));
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
 }
 
 .nvx-treatment-page .nvx-page-body__inner > p,
@@ -602,7 +602,7 @@ body.page-id-1537 .nvx-header-cta a.nvx-btn-primary {
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-card);
   padding: clamp(var(--space-5), 3vw, var(--space-6));
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
 }
 
 .nvx-clinic-page .nvx-location-map-card__embed {

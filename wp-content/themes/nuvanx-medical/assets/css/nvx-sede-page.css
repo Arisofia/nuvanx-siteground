@@ -2,7 +2,7 @@
 
 .nvx-sede-page {
   --nvx-sede-accent: var(--nvx-accent);
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   color: var(--nvx-text-body);
   font-family: var(--nvx-sans);
   line-height: 1.65;
@@ -61,7 +61,7 @@
 
 .nvx-sede-page .nvx-media-section {
   padding-block: clamp(32px, 4vw, 48px);
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border-bottom: 1px solid var(--nvx-border-soft);
 }
 
@@ -158,7 +158,7 @@
   display: block;
   width: 100%;
   border-radius: var(--nvx-radius-lg);
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
 }
 
 .nvx-sede-page .nvx-caption {
@@ -202,11 +202,11 @@
 }
 
 .nvx-sede-page .nvx-clinic-card {
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-xl);
   overflow: hidden;
-  box-shadow: var(--nvx-shadow-medium);
+  box-shadow: none;
 }
 
 .nvx-sede-page .nvx-clinic-card figure {
@@ -367,7 +367,7 @@
 }
 
 .nvx-sede-page .nvx-faq details {
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
   padding: 20px 22px;
@@ -403,7 +403,7 @@
 }
 
 .nvx-sede-page .nvx-cta-box {
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-xl);
   padding: 38px;
@@ -411,7 +411,7 @@
   grid-template-columns: 1fr;
   gap: 30px;
   align-items: start;
-  box-shadow: var(--nvx-shadow-medium);
+  box-shadow: none;
   
 }
 
@@ -495,7 +495,7 @@
   border-radius: var(--nvx-radius-sm);
   overflow: hidden;
   border: 1px solid var(--nvx-border-soft);
-  box-shadow: var(--nvx-shadow-medium);
+  box-shadow: none;
 }
 
 .nvx-sede-map-frame iframe {

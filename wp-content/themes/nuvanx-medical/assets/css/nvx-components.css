@@ -469,21 +469,26 @@
   object-position: center;
 }
 
-/* Explicit organic shapes */
+/* Explicit organic shapes — never assign via nth-child */
 .nvx-shape--none {
   border-radius: 0;
   clip-path: none;
 }
 
 .nvx-shape--organic-a {
-  clip-path: ellipse(94% 90% at 50% 50%);
+  overflow: hidden;
+  border-radius: 38% 62% 48% 52% / 46% 32% 68% 54%;
+  clip-path: none;
 }
 
 .nvx-shape--organic-b {
-  clip-path: ellipse(92% 94% at 42% 50%);
+  overflow: hidden;
+  border-radius: 62% 38% 30% 70% / 36% 58% 42% 64%;
+  clip-path: none;
 }
 
 .nvx-shape--organic-c {
+  overflow: hidden;
   border-radius: 200px 200px 36px 36px;
   clip-path: none;
 }
@@ -491,6 +496,17 @@
 .nvx-shape--capsule {
   border-radius: 999px;
   clip-path: none;
+}
+
+/* Media with explicit shape class (opt-in in markup) */
+.nvx-brand-card__media.nvx-shape--organic-a,
+.nvx-brand-card__media.nvx-shape--organic-b,
+.nvx-brand-card__media.nvx-shape--organic-c,
+.nvx-post-card__image.nvx-shape--organic-a,
+.nvx-post-card__image.nvx-shape--organic-b,
+.nvx-location__media.nvx-shape--organic-a,
+.nvx-location__media.nvx-shape--organic-b {
+  overflow: hidden;
 }
 
 /* Full-media hero pattern */

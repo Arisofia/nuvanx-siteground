@@ -208,14 +208,14 @@ body {
 .nvx-brand-btn--primary {
   color: #FFFFFF;
   background: linear-gradient(135deg, #111111, #2A2A2A);
-  border: 1px solid rgba(216,190,138,0.46);
+  border: 1px solid rgba(155, 163, 173,0.46);
   box-shadow: 0 18px 44px rgba(17,17,17,0.22);
 }
 
 .nvx-brand-btn--secondary {
   color: var(--nvx-graphite);
   background: rgba(255,255,255,0.64);
-  border: 1px solid rgba(216,190,138,0.54);
+  border: 1px solid rgba(155, 163, 173,0.54);
   box-shadow: var(--nvx-shadow-soft);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -225,7 +225,7 @@ body {
   content: "";
   position: absolute;
   inset: -80% -30%;
-  background: linear-gradient(120deg, transparent 40%, rgba(216,190,138,0.34), transparent 60%);
+  background: linear-gradient(120deg, transparent 40%, rgba(155, 163, 173,0.34), transparent 60%);
   transform: translateX(-60%);
   transition: transform 0.6s ease;
 }
@@ -259,7 +259,7 @@ body:not(.home) .nvx-home-video-frame::after {
   content: "";
   position: absolute;
   inset: 0;
-  border: 1px solid rgba(216,190,138,0.48);
+  border: 1px solid rgba(155, 163, 173,0.48);
   border-radius: inherit;
   pointer-events: none;
 }
@@ -325,7 +325,7 @@ body:not(.home) .nvx-home-hero-video {
 
 .nvx-brand-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(216,190,138,0.72);
+  border-color: rgba(155, 163, 173,0.72);
   box-shadow:
     0 34px 90px rgba(17, 17, 17, 0.16),
     0 14px 36px rgba(17, 17, 17, 0.10),
@@ -413,7 +413,7 @@ body:not(.home) .nvx-home-hero-video {
   position: relative;
   margin-top: clamp(34px, 4.5vw, 58px);
   padding: clamp(28px, 4vw, 44px);
-  border: 1px solid rgba(216, 190, 138, 0.34);
+  border: 1px solid rgba(155, 163, 173, 0.34);
   border-radius: 30px;
   background:
     linear-gradient(145deg, rgba(255,255,255,0.90), rgba(255,255,255,0.62));
@@ -464,7 +464,7 @@ body:not(.home) .nvx-home-hero-video {
 
 .nvx-brand-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(216,190,138,0.72);
+  border-color: rgba(155, 163, 173,0.72);
   box-shadow:
     0 34px 90px rgba(17, 17, 17, 0.16),
     0 14px 36px rgba(17, 17, 17, 0.10),
@@ -535,7 +535,7 @@ body:not(.home) .nvx-home-hero-video {
   padding-top: clamp(44px, 5.5vw, 78px);
   padding-bottom: clamp(56px, 7vw, 96px);
   background:
-    radial-gradient(circle at 50% 4%, rgba(216,190,138,0.10), transparent 26%),
+    radial-gradient(circle at 50% 4%, rgba(155, 163, 173,0.10), transparent 26%),
     linear-gradient(180deg, #ffffff 0%, #ffffff 100%);
 }
 
@@ -583,7 +583,7 @@ body:not(.home) .nvx-home-hero-video {
   padding: clamp(28px, 3vw, 38px);
   border-radius: 32px;
   background:
-    radial-gradient(circle at 18% 0%, rgba(216,190,138,0.10), transparent 38%),
+    radial-gradient(circle at 18% 0%, rgba(155, 163, 173,0.10), transparent 38%),
     linear-gradient(145deg, rgba(255,255,255,0.94), rgba(255,255,255,0.66));
   box-shadow:
     0 34px 84px rgba(17,17,17,0.12),
@@ -606,10 +606,10 @@ body:not(.home) .nvx-home-hero-video {
   width: min(920px, 100%);
   margin: clamp(34px, 4.5vw, 58px) auto 0;
   padding: clamp(34px, 4vw, 52px);
-  border: 1px solid rgba(216,190,138,0.42);
+  border: 1px solid rgba(155, 163, 173,0.42);
   border-radius: 34px;
   background:
-    radial-gradient(circle at 16% 10%, rgba(216,190,138,0.16), transparent 32%),
+    radial-gradient(circle at 16% 10%, rgba(155, 163, 173,0.16), transparent 32%),
     linear-gradient(145deg, rgba(255,255,255,0.96), rgba(255,255,255,0.70));
   box-shadow:
     0 38px 92px rgba(17,17,17,0.14),
@@ -626,10 +626,10 @@ body:not(.home) .nvx-home-hero-video {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(216,190,138,0.30),
+    rgba(155, 163, 173,0.30),
     var(--nvx-metal-light),
     var(--nvx-metal-deep),
-    rgba(216,190,138,0.30),
+    rgba(155, 163, 173,0.30),
     transparent
   );
   opacity: 0.95;

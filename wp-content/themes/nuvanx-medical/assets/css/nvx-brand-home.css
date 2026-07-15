@@ -125,7 +125,7 @@ body.home #nvx-home-main.nvx-home video.nvx-home-hero-video {
   border-radius: 0;
 }
 
-/* Copy sobre el vÃ­deo: mismo shell/gutter del resto del sitio */
+/* Copy sobre el vÃ­deo: izquierda, shell/gutter del sitio (revista) */
 body.home #nvx-home-main.nvx-home .nvx-home-hero-content {
   position: relative;
   z-index: 2;
@@ -136,6 +136,7 @@ body.home #nvx-home-main.nvx-home .nvx-home-hero-content {
   padding-bottom: clamp(48px, 6vw, 88px);
   box-sizing: border-box;
   color: #ffffff;
+  text-align: start;
 }
 
 body.home #nvx-home-main.nvx-home .nvx-home-hero-content,
@@ -191,4 +192,20 @@ body.home #nvx-home-main.nvx-home .nvx-home-organic-wave svg {
   body.home #nvx-home-main.nvx-home .nvx-home-organic-wave {
     display: none;
   }
+}
+
+/* Clínicas home: recortes orgánicos + leve asimetría (stack global media + override) */
+body.home .nvx-home-clinica-panorama__media {
+  border-radius: var(--nvx-organic-b, 62% 38% 55% 45% / 48% 42% 58% 52%);
+  transform: rotate(var(--nvx-media-tilt, -1.25deg));
+  box-shadow: var(--nvx-shadow-medium);
+}
+
+body.home .nvx-home-clinica-panorama--goya .nvx-home-clinica-panorama__media {
+  border-radius: var(--nvx-organic-c, 36% 64% 52% 48% / 58% 36% 64% 42%);
+  transform: rotate(var(--nvx-media-tilt-alt, 1.4deg));
+}
+
+body.home .nvx-home-clinicas-panorama__track {
+  gap: var(--nvx-gap-magazine-air, clamp(40px, 6vw, 88px));
 }

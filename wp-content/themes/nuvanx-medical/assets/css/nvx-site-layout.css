@@ -119,28 +119,27 @@ body.home .nvx-home-hero-stage {
   z-index: 1;
 }
 
-/* Intro de página: centrada con measure (no monobloque left) */
+/* Intro de página — revista: start (izquierda) + aire */
 .nvx-page__content .nvx-page-hero .nvx-kicker,
 .nvx-page__content .nvx-page-hero h1,
 .nvx-page__content .nvx-page-hero .nvx-title,
 .nvx-page__content .nvx-page-hero .nvx-lead,
 .nvx-page__content .nvx-page-hero .nvx-page__cta {
-  text-align: center;
-  margin-inline: auto;
+  text-align: start;
+  margin-inline: 0;
 }
 
 .nvx-page__content .nvx-page-hero .nvx-copy {
-  text-align: center;
-  margin-inline: auto;
+  text-align: start;
+  margin-inline: 0;
   max-width: var(--nvx-measure-lead, 48ch);
 }
 
-/* CTA del hero: centrar el grupo de botones */
 .nvx-page__content .nvx-page-hero .nvx-page__cta,
 .nvx-page__content .nvx-page-hero .nvx-brand-actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: var(--nvx-gap-tight);
 }
 

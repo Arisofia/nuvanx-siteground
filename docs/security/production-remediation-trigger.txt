@@ -1,2 +1,0 @@
-One-time production remediation trigger for the 2026-07-15 repository exposure incident.
-Environment approval dependency removal requested.

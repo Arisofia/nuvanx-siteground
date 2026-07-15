@@ -22,10 +22,10 @@ html {
 body {
   margin: 0;
   font-family: var(--nvx-sans, "Manrope", sans-serif);
-  font-size: var(--nvx-type-body, 1.0625rem);
-  font-weight: var(--nvx-fw-regular, 400);
-  line-height: var(--nvx-lh-body, 1.75);
-  letter-spacing: var(--nvx-track-body, normal);
+  font-size: var(--nvx-type-body);
+  font-weight: var(--nvx-fw-regular);
+  line-height: var(--nvx-lh-body);
+  letter-spacing: var(--nvx-track-body);
   color: var(--nvx-text-body, #3c4048);
   background: var(--nvx-color-paper, #f2f3f5);
   -webkit-font-smoothing: antialiased;
@@ -65,15 +65,8 @@ figure {
   margin: 0;
 }
 
-/* Utility scales used by some chrome (header/footer) without redefining palette */
+/* Duraciones / z-index de chrome (tipografía SOLO en nvx-tokens) */
 :root {
-  --nvx-fs-xs: clamp(0.625rem, 0.6vw, 0.75rem);
-  --nvx-fs-sm: clamp(0.8125rem, 0.85vw, 0.9375rem);
-  --nvx-fs-base: clamp(0.9375rem, 1vw, 1.0625rem);
-  --nvx-fw-light: 300;
-  --nvx-fw-regular: 400;
-  --nvx-fw-medium: 500;
-  --nvx-fw-semibold: 600;
   --nvx-duration-fast: 150ms;
   --nvx-duration-base: 250ms;
   --nvx-z-header: 1000;

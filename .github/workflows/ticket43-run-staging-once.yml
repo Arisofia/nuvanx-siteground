@@ -1,0 +1,58 @@
+name: Ticket 43 Execute Staging QA Once
+
+on:
+  push:
+    branches:
+      - ci/ticket43-run-staging-qa
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  dispatch-and-monitor:
+    if: github.event.head_commit.message == 'ci(ticket-43): execute staging QA once'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout trigger branch
+        uses: actions/checkout@v4
+        with:
+          ref: ci/ticket43-run-staging-qa
+          fetch-depth: 0
+
+      - name: Dispatch master staging workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run ticket43-v4-delivery.yml \
+            --repo '${{ github.repository }}' \
+            --ref master \
+            -f target_sha='abcfd2208651fb255dad32bfd165094f948682ff' \
+            -f base_sha='4bb6be4d19c27c5905128d48eefe09a0e3276352'
+
+      - name: Monitor run and save result
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_id=''
+          for attempt in $(seq 1 30); do
+            run_id="$(gh run list --repo '${{ github.repository }}' --workflow ticket43-v4-delivery.yml --branch master --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+            [[ -n "$run_id" ]] && break
+            sleep 10
+          done
+          [[ -n "$run_id" ]]
+          set +e
+          gh run watch "$run_id" --repo '${{ github.repository }}' --exit-status
+          watch_status=$?
+          set -e
+          mkdir -p qa/results
+          gh run view "$run_id" --repo '${{ github.repository }}' --json databaseId,status,conclusion,url,headSha,createdAt > qa/results/ticket43-staging-run.json
+          printf '\n{"watch_exit_code":%s}\n' "$watch_status" >> qa/results/ticket43-staging-run.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add qa/results/ticket43-staging-run.json
+          git commit -m 'chore(ticket-43): record staging QA result [skip ci]'
+          git push origin HEAD:ci/ticket43-run-staging-qa
+          exit "$watch_status"

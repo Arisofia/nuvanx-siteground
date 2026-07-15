@@ -1185,21 +1185,25 @@ figcaption {
   }
 
   .nvx-hero-full-media {
+    height: var(--nvx-media-max-h-full);
+    max-height: var(--nvx-media-max-h-full);
     min-height: 0;
     aspect-ratio: auto;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .nvx-hero-full-media__media {
-    position: relative;
-    aspect-ratio: var(--nvx-media-ratio-hero);
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
   }
 
   .nvx-hero-full-media__media video,
   .nvx-hero-full-media__media img {
     width: 100%;
-    height: auto;
-    aspect-ratio: var(--nvx-media-ratio-hero);
+    height: 100%;
+    object-fit: cover;
+    aspect-ratio: auto;
   }
 
   .nvx-hero-full-media__scrim {

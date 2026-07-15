@@ -107,7 +107,13 @@ nvx-pages.css + page CSS (composición)
 4. Fonts no canónicas.  
 5. `nth-child` para shapes.  
 6. Acento oro o cool-green.  
+7. CSS por página (brand-system, treatment, secondary, sede, posts, pages, gutenberg…).  
+8. Plantillas con diseño propio (journal hero, single-hero, sidebars).  
+9. `style=""` inline y columnas Gutenberg multi-col en contenido (normalizadas por filtro).  
+10. Wrappers legacy (`nvx-hero-wrap`, etc.).
+
+**Excepciones:** `nvx-brand-home` (solo vídeo home) · `nvx-forms` (solo campos).
 
 ---
 
-*v2.1 — Metal Pulido documentado al completo en `docs/design-system/`.*
+*v2.1 — Metal Pulido · un solo diseño en blog, contacto, consulta, sedes y tratamientos.*

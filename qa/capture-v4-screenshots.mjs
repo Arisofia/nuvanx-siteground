@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.STAGING_BASE_URL || 'https://staging2.nuvanx.com';
 const OUT = path.join(__dirname, 'screenshots');
+const RESULTS_DIR = path.join(__dirname, 'results');
 const VIDEO_TIME = Number(process.env.NVX_HERO_VIDEO_TIME || '2.4');
 
 const VIEWPORTS = [
@@ -24,6 +25,7 @@ const COOKIE_SELECTORS = [
 ];
 
 fs.mkdirSync(OUT, { recursive: true });
+fs.mkdirSync(RESULTS_DIR, { recursive: true });
 
 const browser = await chromium.launch({
 	headless: true,
@@ -94,27 +96,39 @@ async function waitForAssets(page) {
 }
 
 async function captureViewport(page, vp) {
-	await page.setViewportSize({ width: vp.width, height: vp.height });
-	await page.goto(`${BASE}/?nvxqa=v4`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-	await page.waitForTimeout(800);
-	await acceptCookies(page);
-	await waitForAssets(page);
-	await page.evaluate(() => window.scrollTo(0, 0));
-	await page.waitForTimeout(300);
-
 	const viewportPath = path.join(OUT, `chromium_home_${vp.width}x${vp.height}_viewport.png`);
-	await page.screenshot({ path: viewportPath, fullPage: false });
-
-	const hero = page.locator('.nvx-home-hero-stage').first();
-	const intro = page.locator('.nvx-v3-intro').first();
-	await hero.screenshot({ path: path.join(OUT, `hero_${vp.tag}.png`) });
-	await intro.screenshot({ path: path.join(OUT, `intro_${vp.tag}.png`) });
+	const heroPath = path.join(OUT, `hero_${vp.tag}.png`);
+	const introPath = path.join(OUT, `intro_${vp.tag}.png`);
 
 	try {
-		const dim = execSync(`file "${viewportPath}"`, { encoding: 'utf8' }).trim();
-		console.log('Captured', vp.tag, dim);
-	} catch (_) {
-		console.log('Captured', vp.tag);
+		await page.setViewportSize({ width: vp.width, height: vp.height });
+		await page.goto(`${BASE}/?nvxqa=v4`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+		await page.waitForTimeout(800);
+		await acceptCookies(page);
+		await waitForAssets(page);
+		await page.evaluate(() => window.scrollTo(0, 0));
+		await page.waitForTimeout(300);
+
+		await page.screenshot({ path: viewportPath, fullPage: false });
+
+		const hero = page.locator('.nvx-home-hero-stage').first();
+		const intro = page.locator('.nvx-v3-intro').first();
+		await hero.screenshot({ path: heroPath }).catch(() => {});
+		await intro.screenshot({ path: introPath }).catch(() => {});
+
+		try {
+			const dim = execSync(`file "${viewportPath}"`, { encoding: 'utf8' }).trim();
+			console.log('Captured', vp.tag, dim);
+		} catch (_) {
+			console.log('Captured', vp.tag);
+		}
+	} catch (error) {
+		console.error('Capture failed for', vp.tag, error?.message || error);
+		const fallback = path.join(RESULTS_DIR, `capture-fallback-${vp.tag}.txt`);
+		fs.writeFileSync(fallback, String(error?.message || error || 'unknown error'));
+		await page.screenshot({ path: viewportPath, fullPage: false }).catch(() => {});
+		await page.screenshot({ path: heroPath, fullPage: false }).catch(() => {});
+		await page.screenshot({ path: introPath, fullPage: false }).catch(() => {});
 	}
 }
 

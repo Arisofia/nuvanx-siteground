@@ -45,9 +45,12 @@ jobs:
           echo "sha=$TARGET" >> "$GITHUB_OUTPUT"
           echo "Candidate SHA: $TARGET"
 
+      - name: Prepare QA Results Directory
+        run: |
+          mkdir -p qa/results qa/screenshots
+
       - name: Compare Against Master
         run: |
-          mkdir -p qa/results
           git fetch origin master
           TARGET="${{ steps.candidate.outputs.sha }}"
           git diff --stat origin/master..."$TARGET" > qa/results/v4-diff-stat.txt

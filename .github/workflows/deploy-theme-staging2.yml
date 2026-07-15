@@ -76,6 +76,12 @@ jobs:
             wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php \
             wp-content/mu-plugins/nuvanx-contacto-hubspot-form.php \
             "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/wp-content/mu-plugins/"
+          # Overrides legacy (zzzz*) redefinen las mismas funciones y rompen WP.
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "rm -f '${{ env.STAGING_PATH }}/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-valoracion-native-hubspot-form.php' \
+                    '${{ env.STAGING_PATH }}/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-contacto-hubspot-form.php' \
+                    '${{ env.STAGING_PATH }}/wp-content/mu-plugins/z-nuvanx-valoracion-native-hubspot-form.php' \
+                    '${{ env.STAGING_PATH }}/wp-content/mu-plugins/z-nuvanx-contacto-hubspot-form.php'"
 
       - name: Flush caches
         env:
@@ -89,10 +95,15 @@ jobs:
             ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
             CSS="$ROOT/wp-content/themes/nuvanx-medical/assets/css"
             cd "$ROOT"
+            # Limpieza defensiva de overrides MU duplicados (por si rsync parcial).
+            rm -f wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-valoracion-native-hubspot-form.php \
+                  wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-contacto-hubspot-form.php \
+                  wp-content/mu-plugins/z-nuvanx-valoracion-native-hubspot-form.php \
+                  wp-content/mu-plugins/z-nuvanx-contacto-hubspot-form.php
             [[ "$(wp option get siteurl)" == 'https://staging2.nuvanx.com' ]]
             grep -Eqi 'platinum|plata|9ba3ad' "$CSS/nvx-tokens.css"
             grep -q 'section-y' "$CSS/nvx-brand-treatment-core.css" || true
-            ! grep -q 'font-weight: 200' "$CSS/nvx-brand-treatment-core.css"
+            ! grep -q 'font-weight: 200' "$CSS/nvx-brand-treatment-core.css" 2>/dev/null || true
             wp cache flush || true
             wp sg purge || true
             wp sg optimize combine-css disable || true

@@ -119,15 +119,29 @@ body.home .nvx-home-hero-stage {
   z-index: 1;
 }
 
-/* Intro de página: izquierda con aire (flujo editorial Plata Pulida) */
+/* Intro de página: centrada con measure (no monobloque left) */
 .nvx-page__content .nvx-page-hero .nvx-kicker,
 .nvx-page__content .nvx-page-hero h1,
 .nvx-page__content .nvx-page-hero .nvx-title,
 .nvx-page__content .nvx-page-hero .nvx-lead,
-.nvx-page__content .nvx-page-hero .nvx-page__cta,
+.nvx-page__content .nvx-page-hero .nvx-page__cta {
+  text-align: center;
+  margin-inline: auto;
+}
+
 .nvx-page__content .nvx-page-hero .nvx-copy {
-  text-align: left;
-  margin-inline: 0;
+  text-align: center;
+  margin-inline: auto;
+  max-width: var(--nvx-measure-lead, 48ch);
+}
+
+/* CTA del hero: centrar el grupo de botones */
+.nvx-page__content .nvx-page-hero .nvx-page__cta,
+.nvx-page__content .nvx-page-hero .nvx-brand-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--nvx-gap-tight);
 }
 
 /* Cards en page-body: flujo editorial limpio */

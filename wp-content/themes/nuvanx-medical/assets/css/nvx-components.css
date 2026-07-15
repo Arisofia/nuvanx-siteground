@@ -1,9 +1,9 @@
 /* NUVANX — CANONICAL COMPONENTS (única fuente de UI editorial)
  * Plata Pulida · flujo editorial · Bodoni + Manrope
  * Home es la única página con hero vídeo (nvx-brand-home).
- * El resto del sitio usa ESTE archivo para H1–H3, texto, media y “cards”.
- * Principios: respirar, sin bloques duros, texto sobre media, alineación izquierda.
- * Prohibido: declaraciones important, cajas SaaS, forks tipográficos por página.
+ * Principios: respirar · radios suaves · texto sobre media · continuidad de color
+ * Alineación: lectura start; intros/CTA pueden centrar — no forzar todo a la izquierda.
+ * Botones: pill + sombra flotante. Prohibido: important, cajas SaaS, forks por página.
  */
 
 /* ═══════════════════════════════════════════════════════════
@@ -23,7 +23,6 @@ body.home .nvx-home-hero-content h1 {
   font-weight: var(--nvx-fw-regular);
   line-height: var(--nvx-lh-display);
   letter-spacing: var(--nvx-track-display);
-  text-align: left;
   text-wrap: balance;
 }
 
@@ -41,7 +40,6 @@ h1.nvx-title,
   font-weight: var(--nvx-fw-regular);
   line-height: var(--nvx-lh-h1);
   letter-spacing: var(--nvx-track-h1);
-  text-align: left;
   text-wrap: balance;
 }
 
@@ -93,7 +91,6 @@ h2.nvx-heading {
   font-weight: var(--nvx-fw-regular);
   line-height: var(--nvx-lh-h2);
   letter-spacing: var(--nvx-track-h2);
-  text-align: left;
   text-wrap: balance;
 }
 
@@ -110,7 +107,6 @@ h3.nvx-title {
   font-weight: var(--nvx-fw-regular);
   line-height: var(--nvx-lh-h3);
   letter-spacing: var(--nvx-track-h3);
-  text-align: left;
   text-wrap: balance;
 }
 
@@ -122,10 +118,9 @@ h4, h5, h6 {
   font-weight: var(--nvx-fw-semibold);
   letter-spacing: var(--nvx-track-body);
   line-height: var(--nvx-lh-body);
-  text-align: left;
 }
 
-/* Body — texto principal */
+/* Body — flujo de lectura (start = izquierda en LTR, no forzado en UI) */
 p,
 .nvx-copy,
 .nvx-brand-body,
@@ -141,7 +136,7 @@ p,
   line-height: var(--nvx-lh-body);
   letter-spacing: var(--nvx-track-body);
   max-width: var(--nvx-measure);
-  text-align: left;
+  text-align: start;
 }
 
 /* Lead / intro */
@@ -157,7 +152,6 @@ p,
   font-weight: var(--nvx-fw-regular);
   line-height: var(--nvx-lh-lead);
   letter-spacing: var(--nvx-track-body);
-  text-align: left;
 }
 
 /* Caption / meta */
@@ -171,7 +165,6 @@ figcaption {
   font-weight: var(--nvx-fw-light);
   line-height: var(--nvx-lh-caption);
   letter-spacing: var(--nvx-track-body);
-  text-align: left;
 }
 
 /* Ultradelgado — kickers finos / captions delicados */
@@ -182,7 +175,6 @@ figcaption {
   font-weight: var(--nvx-fw-ultralight);
   letter-spacing: var(--nvx-track-ultralight);
   line-height: var(--nvx-lh-ultralight);
-  text-align: left;
 }
 
 /* Numerales / índices — Bodoni 500–600 (Manrope vía .nvx-numeral--sans) */
@@ -229,8 +221,23 @@ figcaption {
   font-weight: var(--nvx-fw-semibold);
   letter-spacing: var(--nvx-track-kicker);
   line-height: var(--nvx-lh-kicker);
-  text-align: left;
   text-transform: uppercase;
+}
+
+/* Utilidades de alineación (explícitas; no global) */
+.nvx-align-start,
+.nvx-text-start {
+  text-align: start;
+}
+
+.nvx-align-center,
+.nvx-text-center {
+  text-align: center;
+}
+
+.nvx-align-end,
+.nvx-text-end {
+  text-align: end;
 }
 
 /* Listas unificadas (base resetea list-style: el estilo vive aquí) */
@@ -319,23 +326,28 @@ figcaption {
   line-height: var(--nvx-lh-body);
 }
 
-/* Intros de sección: centradas en TODO el sitio (no monobloque left) */
-/* Intros / section openers: alineación izquierda con aire (no centrado excesivo) */
+/*
+ * Alineación mixta (Plata Pulida):
+ * - Intros de sección / page-hero: centradas con measure (aire, no monobloque left)
+ * - Cuerpo de lectura: start + measure
+ * - Markup .nvx-align-* o --center pisa lo anterior
+ */
 .nvx-section-intro,
 .nvx-brand-section__intro,
 .nvx-index__intro,
 .nvx-pattern-intro > .nvx-brand-readable,
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-kicker,
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title,
-.nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-body,
+.nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-subtitle,
 .nvx-brand-section > .nvx-shell > .nvx-brand-kicker,
 .nvx-brand-section > .nvx-shell > .nvx-brand-title,
-.nvx-brand-section > .nvx-shell > .nvx-brand-body,
+.nvx-brand-section > .nvx-shell > .nvx-brand-subtitle,
 .nvx-page-hero .nvx-kicker,
 .nvx-page-hero h1,
-.nvx-page-hero .nvx-lead {
-  text-align: left;
-  margin-inline: 0;
+.nvx-page-hero .nvx-lead,
+.nvx-page-hero .nvx-title {
+  text-align: center;
+  margin-inline: auto;
 }
 
 .nvx-section-intro,
@@ -343,9 +355,10 @@ figcaption {
 .nvx-index__intro {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   max-width: min(var(--nvx-readable), 42rem);
   margin-bottom: var(--nvx-gap-section);
+  margin-inline: auto;
 }
 
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title,
@@ -360,15 +373,32 @@ figcaption {
 .nvx-section-intro .nvx-lead,
 .nvx-section-intro .nvx-copy {
   max-width: var(--nvx-measure-lead, 48ch);
+  text-align: center;
 }
 
-/* Cuerpo de lectura: measure a la izquierda (flujo natural) */
+/* Cuerpo de lectura: measure + start (flujo natural LTR) */
 .nvx-brand-section .nvx-shell .nvx-brand-body,
 .nvx-brand-section .nvx-shell .nvx-copy,
 .nvx-brand-section .nvx-brand-section__inner .nvx-brand-body,
-.nvx-brand-section .nvx-brand-section__inner .nvx-copy {
+.nvx-brand-section .nvx-brand-section__inner .nvx-copy,
+.nvx-prose,
+.nvx-page__content .nvx-copy {
   max-width: var(--nvx-measure, 62ch);
-  margin-inline: 0;
+  text-align: start;
+}
+
+.nvx-brand-section__inner--center,
+.nvx-brand-actions--center {
+  text-align: center;
+}
+
+.nvx-brand-actions--center {
+  justify-content: center;
+}
+
+/* Hero de página con copy en columna: start (lectura), no monobloque left global */
+.nvx-brand-hero__copy {
+  text-align: start;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -392,7 +422,7 @@ figcaption {
   padding: 0;
   background: transparent;
   border: 0;
-  border-radius: 0;
+  border-radius: var(--nvx-radius-card);
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -637,7 +667,86 @@ figcaption {
   gap: var(--nvx-gap-tight);
   padding: var(--nvx-pad-card);
   color: var(--nvx-white);
-  text-align: left;
+  text-align: start;
+}
+
+/*
+ * Texto sobre imagen (default en tarjetas con media, excepto logos).
+ * Media absoluta + copy al pie con overlay; continuidad de color al borde.
+ */
+.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media),
+.nvx-brand-card--team:has(> .nvx-brand-card__media),
+.nvx-card:has(> .nvx-card__media):not(.nvx-brand-grid--logos .nvx-card) {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--nvx-gap-tight);
+  min-height: var(--nvx-media-max-h);
+  padding: var(--nvx-pad-card);
+  border-radius: var(--nvx-radius-card);
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--nvx-media-bleed-color, var(--nvx-charcoal));
+}
+
+.nvx-brand-card--team:has(> .nvx-brand-card__media) {
+  min-height: var(--nvx-media-max-h-doctor);
+  width: min(100%, calc(var(--nvx-media-max-h-doctor) * 5 / 6 + 2 * 0px));
+  max-width: 100%;
+}
+
+.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) > .nvx-brand-card__media,
+.nvx-brand-card--team:has(> .nvx-brand-card__media) > .nvx-brand-card__media,
+.nvx-card:has(> .nvx-card__media) > .nvx-card__media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border-radius: inherit;
+}
+
+.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) > .nvx-brand-card__media::after,
+.nvx-brand-card--team:has(> .nvx-brand-card__media) > .nvx-brand-card__media::after,
+.nvx-card:has(> .nvx-card__media) > .nvx-card__media::after {
+  height: 58%;
+  background: var(--nvx-media-overlay);
+}
+
+.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) > :not(.nvx-brand-card__media),
+.nvx-brand-card--team:has(> .nvx-brand-card__media) > :not(.nvx-brand-card__media),
+.nvx-card:has(> .nvx-card__media) > :not(.nvx-card__media) {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  max-width: none;
+  color: var(--nvx-white);
+  text-align: start;
+}
+
+.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) .nvx-brand-card__kicker,
+.nvx-brand-card--team:has(> .nvx-brand-card__media) .nvx-brand-card__kicker {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) .nvx-brand-card__title,
+.nvx-brand-card--team:has(> .nvx-brand-card__media) .nvx-brand-card__title,
+.nvx-card:has(> .nvx-card__media) .nvx-card__title {
+  color: var(--nvx-white);
+}
+
+.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) .nvx-brand-card__body,
+.nvx-brand-card--team:has(> .nvx-brand-card__media) .nvx-brand-card__body {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) .nvx-brand-card__cta,
+.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) .nvx-brand-inline-link {
+  color: var(--nvx-white);
+  border-bottom-color: rgba(255, 255, 255, 0.55);
 }
 
 .nvx-media__content .nvx-brand-title,
@@ -777,7 +886,13 @@ figcaption {
 .nvx-page__content.nvx-prose {
   max-width: none;
   width: 100%;
-  text-align: left;
+}
+
+/* Solo el flujo de lectura largo: start (sin forzar títulos/intros del page) */
+.nvx-prose > p,
+.nvx-editorial-column > p,
+.nvx-page__content > p {
+  text-align: start;
 }
 
 .nvx-prose > p + p,
@@ -1168,7 +1283,7 @@ figcaption {
   justify-content: flex-start;
   min-height: 100%;
   padding-block: clamp(104px, 10vw, 144px) clamp(72px, 7vw, 104px);
-  text-align: left;
+  text-align: start;
 }
 
 /* FAQ */

@@ -178,8 +178,10 @@ jobs:
           STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
           STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
         run: |
-          if [[ -z "${STAGING_BASIC_USER}" || -z "${STAGING_BASIC_PASSWORD}" ]]; then
-            echo "ERROR: STAGING_BASIC_USER/PASSWORD required"
+          if [[ -z "${STAGING_BASIC_USER}" && -z "${STAGING_BASIC_PASSWORD}" ]]; then
+            echo "NOTICE: STAGING_BASIC_USER/PASSWORD not set; using GitHub Actions IP allowlist."
+          elif [[ -z "${STAGING_BASIC_PASSWORD}" ]]; then
+            echo "ERROR: STAGING_BASIC_PASSWORD required when STAGING_BASIC_USER is set"
             exit 1
           fi
           mkdir -p qa/screenshots qa/results
@@ -207,8 +209,10 @@ jobs:
           STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
           STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
         run: |
-          if [[ -z "${STAGING_BASIC_USER}" || -z "${STAGING_BASIC_PASSWORD}" ]]; then
-            echo "ERROR: STAGING_BASIC_USER/PASSWORD required"
+          if [[ -z "${STAGING_BASIC_USER}" && -z "${STAGING_BASIC_PASSWORD}" ]]; then
+            echo "NOTICE: STAGING_BASIC_USER/PASSWORD not set; using GitHub Actions IP allowlist."
+          elif [[ -z "${STAGING_BASIC_PASSWORD}" ]]; then
+            echo "ERROR: STAGING_BASIC_PASSWORD required when STAGING_BASIC_USER is set"
             exit 1
           fi
           node qa/validate-v4-consolidated.mjs

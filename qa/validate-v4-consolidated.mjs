@@ -10,14 +10,19 @@ const ROOT = path.resolve(__dirname, '..');
 const BASE = process.env.STAGING_BASE_URL || 'https://staging2.nuvanx.com';
 const USER = process.env.STAGING_BASIC_USER || '';
 const PASS = process.env.STAGING_BASIC_PASSWORD || '';
+const AUTH_USER = USER || (PASS ? 'nuvanx-qa' : '');
+const AUTH_PASS = PASS;
 const URL = `${BASE}/?nvxqa=v4`;
 const RESULTS_DIR = path.join(__dirname, 'results');
 const INTRO_IMAGE_URL =
 	'https://nuvanx.com/wp-content/uploads/2026/07/clinica-nuvanx-madrid-chamberi-goya.webp';
 
-if (!USER || !PASS) {
-	console.error('STAGING_BASIC_USER and STAGING_BASIC_PASSWORD are required');
-	process.exit(1);
+function buildContextOptions(base) {
+	const opts = { ...base };
+	if (AUTH_USER && AUTH_PASS) {
+		opts.httpCredentials = { username: AUTH_USER, password: AUTH_PASS };
+	}
+	return opts;
 }
 
 const controls = [];
@@ -187,13 +192,14 @@ async function main() {
 		headless: true,
 		args: ['--disable-blink-features=AutomationControlled', '--autoplay-policy=no-user-gesture-required'],
 	});
-	const context = await browser.newContext({
-		viewport: { width: 1440, height: 900 },
-		deviceScaleFactor: 1,
-		httpCredentials: { username: USER, password: PASS },
-		userAgent:
-			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-	});
+	const context = await browser.newContext(
+		buildContextOptions({
+			viewport: { width: 1440, height: 900 },
+			deviceScaleFactor: 1,
+			userAgent:
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+		})
+	);
 	const page = await context.newPage();
 
 	const failedRequests = [];

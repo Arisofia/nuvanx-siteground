@@ -17,6 +17,7 @@ permissions:
 env:
   STAGING_BASE_URL: https://staging2.nuvanx.com
   STAGING_PATH: /home/customer/www/staging2.nuvanx.com/public_html
+  BACKUP_NAME: ticket43-v4-before-${{ github.run_id }}-${{ github.run_attempt }}
 
 jobs:
   v4-delivery-qa:
@@ -45,6 +46,10 @@ jobs:
           echo "sha=$TARGET" >> "$GITHUB_OUTPUT"
           echo "Candidate SHA: $TARGET"
 
+      - name: Checkout Candidate SHA
+        run: |
+          git checkout "${{ steps.candidate.outputs.sha }}"
+
       - name: Prepare QA Results Directory
         run: |
           mkdir -p qa/results qa/screenshots
@@ -64,7 +69,6 @@ jobs:
 
       - name: Candidate Hashes
         run: |
-          mkdir -p qa/results
           sha256sum deploy/ticket-43/post_content_v3-production-copy.html \
             wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css \
             wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css \
@@ -100,19 +104,57 @@ jobs:
           chmod 700 ~/.ssh
           chmod 600 ~/.ssh/known_hosts
 
-      - name: Deploy V4 Candidate to Staging2
+      - name: Precheck Staging and Create Backup
+        id: backup
         env:
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
           SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
         run: |
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "mkdir -p ${{ env.STAGING_PATH }}/tmp-v4-deploy ${{ env.STAGING_PATH }}/deploy/ticket-43"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' << EOF
+            set -e
+            cd "${{ env.STAGING_PATH }}"
+
+            SITEURL=\$(wp option get siteurl)
+            HOMEURL=\$(wp option get home)
+            ACTIVE_THEME=\$(wp theme list --status=active --field=name)
+
+            if [ "\$SITEURL" != "${{ env.STAGING_BASE_URL }}" ]; then echo "ERROR: SITEURL mismatch: \$SITEURL"; exit 1; fi
+            if [ "\$HOMEURL" != "${{ env.STAGING_BASE_URL }}" ]; then echo "ERROR: HOMEURL mismatch: \$HOMEURL"; exit 1; fi
+            if [ "\$ACTIVE_THEME" != "nuvanx-medical" ]; then echo "ERROR: ACTIVE_THEME mismatch: \$ACTIVE_THEME"; exit 1; fi
+
+            BACKUP_DIR="\$HOME/nuvanx-backups/${{ env.BACKUP_NAME }}"
+            mkdir -p "\$BACKUP_DIR"
+
+            wp post get 9 --field=post_content > "\$BACKUP_DIR/post_content_before.html"
+            sha256sum "\$BACKUP_DIR/post_content_before.html" > "\$BACKUP_DIR/metadata.sha256"
+
+            THEME_CSS="${{ env.STAGING_PATH }}/wp-content/themes/nuvanx-medical/assets/css"
+            cp "\$THEME_CSS/nvx-brand-home.css" "\$BACKUP_DIR/"
+            cp "\$THEME_CSS/nvx-brand-home.min.css" "\$BACKUP_DIR/"
+            sha256sum "\$BACKUP_DIR/nvx-brand-home.css" "\$BACKUP_DIR/nvx-brand-home.min.css" >> "\$BACKUP_DIR/metadata.sha256"
+
+            echo "\$BACKUP_DIR" > /tmp/nvx_ticket43_v4_backup_dir.txt
+            echo "Backup created at \$BACKUP_DIR"
+          EOF
+
+      - name: Deploy V4 Candidate to Staging2
+        id: deploy
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "mkdir -p ${{ env.STAGING_PATH }}/tmp-v4-deploy ${{ env.STAGING_PATH }}/deploy/ticket-43 ${{ env.STAGING_PATH }}/scripts/ticket-43"
           scp -P "$SSH_PORT" deploy/ticket-43/post_content_v3-production-copy.html \
             wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css \
             wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.min.css \
             scripts/ticket-43/apply-post-content.php \
+            scripts/ticket-43/rollback.sh \
             "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/tmp-v4-deploy/"
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "cd ${{ env.STAGING_PATH }} && \
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "chmod +x ${{ env.STAGING_PATH }}/tmp-v4-deploy/rollback.sh && \
+            cp ${{ env.STAGING_PATH }}/tmp-v4-deploy/rollback.sh ${{ env.STAGING_PATH }}/scripts/ticket-43/rollback.sh && \
+            cd ${{ env.STAGING_PATH }} && \
             cp tmp-v4-deploy/nvx-brand-home.css wp-content/themes/nuvanx-medical/assets/css/ && \
             cp tmp-v4-deploy/nvx-brand-home.min.css wp-content/themes/nuvanx-medical/assets/css/ && \
             NVX_POST_CONTENT_V3=${{ env.STAGING_PATH }}/tmp-v4-deploy/post_content_v3-production-copy.html \
@@ -130,9 +172,16 @@ jobs:
           npx playwright install chromium
 
       - name: Capture Viewports and Crops
+        id: capture
         env:
           STAGING_BASE_URL: ${{ env.STAGING_BASE_URL }}
+          STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+          STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
         run: |
+          if [[ -z "${STAGING_BASIC_USER}" || -z "${STAGING_BASIC_PASSWORD}" ]]; then
+            echo "ERROR: STAGING_BASIC_USER/PASSWORD required"
+            exit 1
+          fi
           mkdir -p qa/screenshots qa/results
           node qa/capture-v4-screenshots.mjs
           for f in \
@@ -144,19 +193,29 @@ jobs:
             qa/screenshots/hero_1024.png \
             qa/screenshots/intro_1024.png \
             qa/screenshots/hero_390.png \
-            qa/screenshots/intro_390.png; do
+            qa/screenshots/intro_390.png \
+            qa/screenshots/chromium_home_1440x900_fullpage.png \
+            qa/screenshots/chromium_home_390x844_fullpage.png; do
             test -s "$f" || { echo "Missing screenshot: $f"; exit 1; }
           done
           file qa/screenshots/chromium_home_*_viewport.png | tee qa/results/v4-screenshot-dimensions.txt
 
       - name: Run V4 Validation
+        id: validate
         env:
           STAGING_BASE_URL: ${{ env.STAGING_BASE_URL }}
+          STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+          STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
         run: |
+          if [[ -z "${STAGING_BASIC_USER}" || -z "${STAGING_BASIC_PASSWORD}" ]]; then
+            echo "ERROR: STAGING_BASIC_USER/PASSWORD required"
+            exit 1
+          fi
           node qa/validate-v4-consolidated.mjs
           test -s qa/results/v4-validation.json
 
       - name: Write Delivery Manifest
+        if: success()
         run: |
           TARGET="${{ steps.candidate.outputs.sha }}"
           cat > qa/results/v4-delivery-manifest.json <<EOF
@@ -176,6 +235,8 @@ jobs:
               "qa/screenshots/intro_1024.png",
               "qa/screenshots/hero_390.png",
               "qa/screenshots/intro_390.png",
+              "qa/screenshots/chromium_home_1440x900_fullpage.png",
+              "qa/screenshots/chromium_home_390x844_fullpage.png",
               "qa/results/v4-validation.json",
               "qa/results/v4-hashes.txt",
               "qa/results/v4-copy-lock.json",
@@ -183,6 +244,21 @@ jobs:
               "qa/results/v4-changed-files.txt"
             ]
           }
+          EOF
+
+      - name: Rollback Staging on Failure
+        if: failure() && steps.backup.outcome == 'success'
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' << EOF
+            set -e
+            BACKUP_DIR="\$HOME/nuvanx-backups/${{ env.BACKUP_NAME }}"
+            export NUVX_BACKUP_DIR="\$BACKUP_DIR"
+            export NUVX_STAGING_PATH="${{ env.STAGING_PATH }}"
+            bash "${{ env.STAGING_PATH }}/scripts/ticket-43/rollback.sh"
           EOF
 
       - name: Upload V4 Screenshots
@@ -200,6 +276,8 @@ jobs:
             qa/screenshots/intro_1024.png
             qa/screenshots/hero_390.png
             qa/screenshots/intro_390.png
+            qa/screenshots/chromium_home_1440x900_fullpage.png
+            qa/screenshots/chromium_home_390x844_fullpage.png
           retention-days: 30
           if-no-files-found: ignore
 

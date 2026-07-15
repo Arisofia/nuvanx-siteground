@@ -6,9 +6,15 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.STAGING_BASE_URL || 'https://staging2.nuvanx.com';
+const USER = process.env.STAGING_BASIC_USER || '';
+const PASS = process.env.STAGING_BASIC_PASSWORD || '';
 const OUT = path.join(__dirname, 'screenshots');
-const RESULTS_DIR = path.join(__dirname, 'results');
 const VIDEO_TIME = Number(process.env.NVX_HERO_VIDEO_TIME || '2.4');
+
+if (!USER || !PASS) {
+	console.error('STAGING_BASIC_USER and STAGING_BASIC_PASSWORD are required');
+	process.exit(1);
+}
 
 const VIEWPORTS = [
 	{ width: 1440, height: 900, tag: '1440' },
@@ -25,7 +31,6 @@ const COOKIE_SELECTORS = [
 ];
 
 fs.mkdirSync(OUT, { recursive: true });
-fs.mkdirSync(RESULTS_DIR, { recursive: true });
 
 const browser = await chromium.launch({
 	headless: true,
@@ -33,6 +38,7 @@ const browser = await chromium.launch({
 });
 const context = await browser.newContext({
 	deviceScaleFactor: 1,
+	httpCredentials: { username: USER, password: PASS },
 	userAgent:
 		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
 });
@@ -95,47 +101,90 @@ async function waitForAssets(page) {
 	await page.waitForTimeout(1200);
 }
 
+async function preparePage(page, vp) {
+	await page.setViewportSize({ width: vp.width, height: vp.height });
+	const response = await page.goto(`${BASE}/?nvxqa=v4`, {
+		waitUntil: 'domcontentloaded',
+		timeout: 90000,
+	});
+	if (!response || response.status() >= 400) {
+		throw new Error(`Page load failed @${vp.tag}: status=${response?.status() ?? 'none'}`);
+	}
+	await page.waitForTimeout(800);
+	await acceptCookies(page);
+	await waitForAssets(page);
+	await page.evaluate(() => window.scrollTo(0, 0));
+	await page.waitForTimeout(300);
+
+	const scrollY = await page.evaluate(() => window.scrollY);
+	if (scrollY !== 0) {
+		throw new Error(`scrollY !== 0 @${vp.tag}: ${scrollY}`);
+	}
+}
+
 async function captureViewport(page, vp) {
 	const viewportPath = path.join(OUT, `chromium_home_${vp.width}x${vp.height}_viewport.png`);
 	const heroPath = path.join(OUT, `hero_${vp.tag}.png`);
 	const introPath = path.join(OUT, `intro_${vp.tag}.png`);
 
-	try {
-		await page.setViewportSize({ width: vp.width, height: vp.height });
-		await page.goto(`${BASE}/?nvxqa=v4`, { waitUntil: 'domcontentloaded', timeout: 90000 });
-		await page.waitForTimeout(800);
-		await acceptCookies(page);
-		await waitForAssets(page);
-		await page.evaluate(() => window.scrollTo(0, 0));
-		await page.waitForTimeout(300);
+	await preparePage(page, vp);
 
-		await page.screenshot({ path: viewportPath, fullPage: false });
+	await page.screenshot({ path: viewportPath, fullPage: false });
 
-		const hero = page.locator('.nvx-home-hero-stage').first();
-		const intro = page.locator('.nvx-v3-intro').first();
-		await hero.screenshot({ path: heroPath }).catch(() => {});
-		await intro.screenshot({ path: introPath }).catch(() => {});
+	const hero = page.locator('.nvx-home-hero-stage').first();
+	const intro = page.locator('.nvx-v3-intro').first();
 
-		try {
-			const dim = execSync(`file "${viewportPath}"`, { encoding: 'utf8' }).trim();
-			console.log('Captured', vp.tag, dim);
-		} catch (_) {
-			console.log('Captured', vp.tag);
+	if ((await hero.count()) === 0) {
+		throw new Error(`Missing .nvx-home-hero-stage @${vp.tag}`);
+	}
+	if ((await intro.count()) === 0) {
+		throw new Error(`Missing .nvx-v3-intro @${vp.tag}`);
+	}
+
+	await hero.screenshot({ path: heroPath });
+	await intro.screenshot({ path: introPath });
+
+	for (const file of [viewportPath, heroPath, introPath]) {
+		if (!fs.existsSync(file) || fs.statSync(file).size === 0) {
+			throw new Error(`Empty or missing screenshot: ${file}`);
 		}
-	} catch (error) {
-		console.error('Capture failed for', vp.tag, error?.message || error);
-		const fallback = path.join(RESULTS_DIR, `capture-fallback-${vp.tag}.txt`);
-		fs.writeFileSync(fallback, String(error?.message || error || 'unknown error'));
-		await page.screenshot({ path: viewportPath, fullPage: false }).catch(() => {});
-		await page.screenshot({ path: heroPath, fullPage: false }).catch(() => {});
-		await page.screenshot({ path: introPath, fullPage: false }).catch(() => {});
+	}
+
+	try {
+		const dim = execSync(`file "${viewportPath}"`, { encoding: 'utf8' }).trim();
+		console.log('Captured', vp.tag, dim);
+	} catch (_) {
+		console.log('Captured', vp.tag);
+	}
+}
+
+async function captureFullpage(vp) {
+	const page = await context.newPage();
+	const fullpagePath = path.join(OUT, `chromium_home_${vp.width}x${vp.height}_fullpage.png`);
+
+	try {
+		await preparePage(page, vp);
+		await page.screenshot({ path: fullpagePath, fullPage: true });
+		if (!fs.existsSync(fullpagePath) || fs.statSync(fullpagePath).size === 0) {
+			throw new Error(`Empty or missing fullpage screenshot: ${fullpagePath}`);
+		}
+		console.log('Captured fullpage', vp.tag);
+	} finally {
+		await page.close();
 	}
 }
 
 for (const vp of VIEWPORTS) {
 	const page = await context.newPage();
-	await captureViewport(page, vp);
-	await page.close();
+	try {
+		await captureViewport(page, vp);
+	} finally {
+		await page.close();
+	}
 }
 
+await captureFullpage({ width: 1440, height: 900, tag: '1440' });
+await captureFullpage({ width: 390, height: 844, tag: '390' });
+
+await context.close();
 await browser.close();

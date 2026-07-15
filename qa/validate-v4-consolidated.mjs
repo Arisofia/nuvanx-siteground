@@ -8,10 +8,17 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const BASE = process.env.STAGING_BASE_URL || 'https://staging2.nuvanx.com';
+const USER = process.env.STAGING_BASIC_USER || '';
+const PASS = process.env.STAGING_BASIC_PASSWORD || '';
 const URL = `${BASE}/?nvxqa=v4`;
 const RESULTS_DIR = path.join(__dirname, 'results');
 const INTRO_IMAGE_URL =
 	'https://nuvanx.com/wp-content/uploads/2026/07/clinica-nuvanx-madrid-chamberi-goya.webp';
+
+if (!USER || !PASS) {
+	console.error('STAGING_BASIC_USER and STAGING_BASIC_PASSWORD are required');
+	process.exit(1);
+}
 
 const controls = [];
 
@@ -86,6 +93,7 @@ function runCopyLock() {
 
 async function measureAtViewport(page, width, height) {
 	await page.setViewportSize({ width, height });
+	await page.evaluate(() => window.scrollTo(0, 0));
 	await page.waitForTimeout(900);
 
 	return page.evaluate(() => {
@@ -182,6 +190,7 @@ async function main() {
 	const context = await browser.newContext({
 		viewport: { width: 1440, height: 900 },
 		deviceScaleFactor: 1,
+		httpCredentials: { username: USER, password: PASS },
 		userAgent:
 			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
 	});
@@ -229,12 +238,11 @@ async function main() {
 	runCopyLock();
 
 	const desktop = await measureAtViewport(page, 1440, 900);
-	record('scroll_y_zero', 'scrollY = 0 @1440', desktop.scrollY === 0, desktop.scrollY, 0);
+	record('scroll_y_zero_1440', 'scrollY = 0 @1440', desktop.scrollY === 0, desktop.scrollY, 0);
 	record(
 		'zero_failed_images',
-		'no critical failed images @1440',
-		desktop.failedImages.filter((src) => !src.includes('nuvanx.com/wp-content/uploads/2026/07/'))
-			.length === 0,
+		'zero failed images @1440',
+		desktop.failedImages.length === 0,
 		desktop.failedImages,
 		'[]'
 	);
@@ -264,10 +272,10 @@ async function main() {
 	);
 	record(
 		'video_right_edge',
-		'video stays within hero bounds',
-		(desktop.videoRightDelta ?? 99) <= 380,
+		'video right edge <= 2px viewport',
+		(desktop.videoRightDelta ?? 99) <= 2,
 		desktop.videoRightDelta,
-		'<= hero bounds'
+		'<= 2px'
 	);
 
 	let ratioPass = false;
@@ -368,6 +376,7 @@ async function main() {
 	);
 
 	const tablet = await measureAtViewport(page, 1024, 768);
+	record('scroll_y_zero_1024', 'scrollY = 0 @1024', tablet.scrollY === 0, tablet.scrollY, 0);
 	record(
 		'intro_lead_1024',
 		'intro lead <= 22px @1024',
@@ -378,6 +387,7 @@ async function main() {
 	record('overflow_1024', 'no horizontal overflow @1024', tablet.scrollOverflow === 0, tablet.scrollOverflow, 0);
 
 	const mobile = await measureAtViewport(page, 390, 844);
+	record('scroll_y_zero_390', 'scrollY = 0 @390', mobile.scrollY === 0, mobile.scrollY, 0);
 	record(
 		'intro_lead_390',
 		'intro lead <= 20px @390',

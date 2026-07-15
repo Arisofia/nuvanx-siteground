@@ -116,6 +116,8 @@ async function preparePage(page, vp) {
 	if (!response || response.status() >= 400) {
 		throw new Error(`Page load failed @${vp.tag}: status=${response?.status() ?? 'none'}`);
 	}
+	await page.waitForSelector('#nvx-home-main', { timeout: 30000 });
+	await page.waitForSelector('.nvx-home-hero-stage', { timeout: 30000 });
 	await page.waitForTimeout(800);
 	await acceptCookies(page);
 	await waitForAssets(page);
@@ -132,35 +134,44 @@ async function captureViewport(page, vp) {
 	const viewportPath = path.join(OUT, `chromium_home_${vp.width}x${vp.height}_viewport.png`);
 	const heroPath = path.join(OUT, `hero_${vp.tag}.png`);
 	const introPath = path.join(OUT, `intro_${vp.tag}.png`);
+	const maxAttempts = 3;
 
-	await preparePage(page, vp);
+	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+		try {
+			await preparePage(page, vp);
+			await page.screenshot({ path: viewportPath, fullPage: false });
 
-	await page.screenshot({ path: viewportPath, fullPage: false });
+			const hero = page.locator('.nvx-home-hero-stage').first();
+			const intro = page.locator('.nvx-v3-intro').first();
 
-	const hero = page.locator('.nvx-home-hero-stage').first();
-	const intro = page.locator('.nvx-v3-intro').first();
+			if ((await hero.count()) === 0) {
+				throw new Error(`Missing .nvx-home-hero-stage @${vp.tag}`);
+			}
+			if ((await intro.count()) === 0) {
+				throw new Error(`Missing .nvx-v3-intro @${vp.tag}`);
+			}
 
-	if ((await hero.count()) === 0) {
-		throw new Error(`Missing .nvx-home-hero-stage @${vp.tag}`);
-	}
-	if ((await intro.count()) === 0) {
-		throw new Error(`Missing .nvx-v3-intro @${vp.tag}`);
-	}
+			await hero.screenshot({ path: heroPath });
+			await intro.screenshot({ path: introPath });
 
-	await hero.screenshot({ path: heroPath });
-	await intro.screenshot({ path: introPath });
+			for (const file of [viewportPath, heroPath, introPath]) {
+				if (!fs.existsSync(file) || fs.statSync(file).size === 0) {
+					throw new Error(`Empty or missing screenshot: ${file}`);
+				}
+			}
 
-	for (const file of [viewportPath, heroPath, introPath]) {
-		if (!fs.existsSync(file) || fs.statSync(file).size === 0) {
-			throw new Error(`Empty or missing screenshot: ${file}`);
+			try {
+				const dim = execSync(`file "${viewportPath}"`, { encoding: 'utf8' }).trim();
+				console.log('Captured', vp.tag, dim);
+			} catch (_) {
+				console.log('Captured', vp.tag);
+			}
+			return;
+		} catch (err) {
+			if (attempt === maxAttempts) throw err;
+			console.warn(`Capture retry ${attempt}/${maxAttempts} @${vp.tag}: ${err.message}`);
+			await page.waitForTimeout(1500 * attempt);
 		}
-	}
-
-	try {
-		const dim = execSync(`file "${viewportPath}"`, { encoding: 'utf8' }).trim();
-		console.log('Captured', vp.tag, dim);
-	} catch (_) {
-		console.log('Captured', vp.tag);
 	}
 }
 

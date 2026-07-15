@@ -1,0 +1,164 @@
+name: Security Production Remediation Once
+
+on:
+  push:
+    branches:
+      - security/incident-2026-07-15
+
+permissions:
+  contents: write
+
+env:
+  PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+
+jobs:
+  remediate-production:
+    if: github.actor != 'github-actions[bot]' && github.event.head_commit.message == 'security: execute production incident remediation'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: security/incident-2026-07-15
+          fetch-depth: 0
+
+      - name: Validate connection settings
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          for name in SSH_KEY SSH_USER SSH_HOST SSH_PORT KNOWN_HOSTS; do
+            [[ -n "${!name:-}" ]] || { echo "ERROR: required setting $name is empty"; exit 1; }
+          done
+
+      - name: Configure SSH
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+
+      - name: Configure known hosts
+        env:
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Validate target and create protected backup
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "PROD_ROOT='${PROD_ROOT}' RUN_ID='$RUN_ID' bash -se" <<'REMOTE'
+            set -euo pipefail
+            cd "$PROD_ROOT"
+            [[ -s wp-config.php ]]
+            [[ "$(wp option get siteurl)" == 'https://nuvanx.com' ]]
+            [[ "$(wp option get home)" == 'https://nuvanx.com' ]]
+            [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
+            [[ "$(wp option get page_on_front)" == '9' ]]
+
+            BACKUP="$HOME/nuvanx-security-backups/incident-20260715-$RUN_ID"
+            mkdir -p "$BACKUP"
+            chmod 700 "$HOME/nuvanx-security-backups" "$BACKUP"
+            cp wp-config.php "$BACKUP/wp-config.php.before"
+            chmod 600 "$BACKUP/wp-config.php.before"
+            (cd "$BACKUP" && sha256sum wp-config.php.before > wp-config.sha256 && sha256sum -c wp-config.sha256)
+          REMOTE
+
+      - name: Transfer and execute the reviewed rotation utility
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          REMOTE_SCRIPT="$HOME/nuvanx-security-rotate-${RUN_ID}.php"
+          scp -P "$SSH_PORT" scripts/security/rotate-wp-auth.php "$SSH_USER@$SSH_HOST:$REMOTE_SCRIPT"
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "PROD_ROOT='${PROD_ROOT}' REMOTE_SCRIPT='$REMOTE_SCRIPT' bash -se" <<'REMOTE'
+            set -euo pipefail
+            chmod 700 "$REMOTE_SCRIPT"
+            NVX_WP_CONFIG="$PROD_ROOT/wp-config.php" php "$REMOTE_SCRIPT"
+            rm -f "$REMOTE_SCRIPT"
+            php -l "$PROD_ROOT/wp-config.php"
+            cd "$PROD_ROOT"
+            wp core is-installed
+            [[ "$(wp option get siteurl)" == 'https://nuvanx.com' ]]
+            for user_id in $(wp user list --role=administrator --field=ID); do
+              wp user session destroy "$user_id" --all || true
+            done
+          REMOTE
+
+      - name: Move backup and installer remnants outside the web root
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "PROD_ROOT='${PROD_ROOT}' RUN_ID='$RUN_ID' bash -se" <<'REMOTE'
+            set -euo pipefail
+            QUARANTINE="$HOME/nuvanx-security-quarantine/incident-20260715-$RUN_ID"
+            mkdir -p "$QUARANTINE"
+            chmod 700 "$HOME/nuvanx-security-quarantine" "$QUARANTINE"
+
+            move_if_present() {
+              local source="$1"
+              [[ -e "$source" ]] || return 0
+              mv "$source" "$QUARANTINE/$(basename "$source")"
+            }
+
+            move_if_present "$PROD_ROOT/wp-content/backups-dup-lite"
+            move_if_present "$PROD_ROOT/dup-installer"
+
+            while IFS= read -r -d '' file; do
+              move_if_present "$file"
+            done < <(find "$PROD_ROOT" -maxdepth 1 -type f \( -iname '*installer*.php' -o -iname '*installer*log*' -o -iname '*archive*.zip' -o -iname '*.sql' -o -iname '*.sql.gz' \) -print0)
+
+            chmod -R go-rwx "$QUARANTINE"
+          REMOTE
+
+      - name: Disable the broad remote theme-editing plugin
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "PROD_ROOT='${PROD_ROOT}' bash -se" <<'REMOTE'
+            set -euo pipefail
+            cd "$PROD_ROOT"
+            if wp plugin is-installed vibe-ai; then
+              wp plugin deactivate vibe-ai
+              ! wp plugin list --status=active --field=name | grep -qx 'vibe-ai'
+            fi
+          REMOTE
+
+      - name: Verify production without deploying content or purging cache
+        run: |
+          set -euo pipefail
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'Cache-Control: no-cache' "https://nuvanx.com/?security_check=${{ github.run_id }}")"
+          [[ "$code" == '200' ]]
+          printf 'production_http_status=%s\n' "$code"
+          printf 'content_deployed=false\n'
+          printf 'cache_purged=false\n'
+
+      - name: Remove one-time remediation files from the branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/security-production-remediation-once.yml scripts/security/rotate-wp-auth.php
+          git commit -m 'security: remove completed production remediation utilities [skip ci]'
+          git push origin HEAD:security/incident-2026-07-15

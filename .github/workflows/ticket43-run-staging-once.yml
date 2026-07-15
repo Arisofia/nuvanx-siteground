@@ -66,7 +66,8 @@ jobs:
           exit "$watch_status"
 
   report:
-    # Visibility only: do not fail the PR when staging run is missing or red.
+    # Visibility only — never fail this PR job:
+    # missing run, still in progress, or unsuccessful conclusion.
     if: "${{ github.event_name == 'pull_request' }}"
     runs-on: ubuntu-latest
     steps:
@@ -74,28 +75,53 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -euo pipefail
-          run_id="$(gh run list --repo '${{ github.repository }}' --workflow ticket43-v4-delivery.yml --branch ci/ticket43-run-staging-qa --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          set -uo pipefail
 
-          if [[ -z "$run_id" ]]; then
-            echo "No staging workflow run found on ci/ticket43-run-staging-qa"
-            echo "Dispatch-and-monitor only runs on that branch with the scoped commit message."
+          run_id="$(gh run list \
+            --repo '${{ github.repository }}' \
+            --workflow ticket43-v4-delivery.yml \
+            --branch ci/ticket43-run-staging-qa \
+            --event workflow_dispatch \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId // empty' 2>/dev/null || true)"
+
+          if [[ -z "${run_id:-}" ]]; then
+            echo "No staging workflow run found on ci/ticket43-run-staging-qa yet."
+            echo "This check is informational only; PR stays green."
             exit 0
           fi
 
           echo "Staging workflow run: $run_id"
-          gh run view "$run_id" --repo '${{ github.repository }}' --json databaseId,status,conclusion,url,headSha,createdAt
 
+          # Snapshot current state (do not fail if view errors)
+          if ! gh run view "$run_id" --repo '${{ github.repository }}' \
+            --json databaseId,status,conclusion,url,headSha,createdAt; then
+            echo "Could not load run details for $run_id (informational only)."
+            exit 0
+          fi
+
+          status="$(gh run view "$run_id" --repo '${{ github.repository }}' --json status --jq '.status // empty' 2>/dev/null || true)"
+          conclusion="$(gh run view "$run_id" --repo '${{ github.repository }}' --json conclusion --jq '.conclusion // empty' 2>/dev/null || true)"
+          echo "status=${status:-unknown} conclusion=${conclusion:-none}"
+
+          # Still running / queued: report and exit green (do not block the PR)
+          if [[ "$status" == "queued" || "$status" == "in_progress" || "$status" == "waiting" || "$status" == "requested" || "$status" == "pending" ]]; then
+            echo "Staging run has not finished yet. Not failing this PR check."
+            exit 0
+          fi
+
+          # Finished: watch is optional; never propagate failure to the PR
           set +e
           gh run watch "$run_id" --repo '${{ github.repository }}' --exit-status
           watch_status=$?
           set -e
 
-          if [[ "$watch_status" -ne 0 ]]; then
-            echo "Staging workflow did not complete successfully (exit code: $watch_status)"
-            echo "Reporting for visibility; not failing this PR check."
-          else
+          if [[ "$watch_status" -eq 0 && "$conclusion" == "success" ]]; then
             echo "Staging workflow completed successfully."
+          else
+            echo "Staging workflow did not complete successfully (watch_exit=${watch_status}, conclusion=${conclusion:-none})."
+            echo "Reporting for visibility only; not failing this PR check."
           fi
 
           exit 0

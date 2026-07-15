@@ -279,17 +279,22 @@ function nvx_theme_blog_index_markup(): string {
 	);
 
 	if ( ! $posts->have_posts() ) {
-		return '<p class="nvx-blog-empty">No se encontraron artículos.</p>';
+		return '<p class="nvx-copy">' . esc_html__( 'No se encontraron artículos.', 'nuvanx-medical' ) . '</p>';
 	}
 
-	$output = '<div class="nvx-brand-grid nvx-brand-grid--3">';
+	$output = '<div class="nvx-brand-grid">';
 	while ( $posts->have_posts() ) {
 		$posts->the_post();
-		$output .= '<article id="post-' . get_the_ID() . '" class="' . implode( ' ', get_post_class( 'nvx-brand-card' ) ) . '">';
-		$output .= '<h2 class="nvx-brand-card__title"><a href="' . get_permalink() . '">' . get_the_title() . '</a></h2>';
+		$output .= '<article id="post-' . get_the_ID() . '" class="' . esc_attr( implode( ' ', get_post_class( 'nvx-brand-card' ) ) ) . '">';
+		if ( has_post_thumbnail() ) {
+			$output .= '<div class="nvx-brand-card__media"><a href="' . esc_url( get_permalink() ) . '" tabindex="-1" aria-hidden="true">';
+			$output .= get_the_post_thumbnail( get_the_ID(), 'large' );
+			$output .= '</a></div>';
+		}
 		$output .= '<p class="nvx-brand-card__kicker">' . esc_html( get_the_date() ) . '</p>';
-		$output .= '<div class="nvx-brand-card__body">' . get_the_excerpt() . '</div>';
-		$output .= '<a href="' . get_permalink() . '" class="nvx-brand-btn nvx-brand-btn--outline">Leer más</a>';
+		$output .= '<h2 class="nvx-brand-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h2>';
+		$output .= '<div class="nvx-brand-card__body">' . wp_kses_post( get_the_excerpt() ) . '</div>';
+		$output .= '<a href="' . esc_url( get_permalink() ) . '" class="nvx-button nvx-button--secondary">' . esc_html__( 'Leer más', 'nuvanx-medical' ) . '</a>';
 		$output .= '</article>';
 	}
 	$output .= '</div>';
@@ -304,31 +309,123 @@ function nvx_theme_blog_index_shortcode(): string {
 add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_shortcode' );
 
 /**
- * Blog posts: one H1 from article hero, not theme title + duplicate h2.
+ * Normaliza markup de contenido al diseño global único:
+ * - quita style="" inline (diseños por página en el editor)
+ * - aplana columnas Gutenberg a un solo flujo
+ * - renombra clases legacy a clases canónicas
+ * - elimina wrappers de diseño paralelo
  */
-function nvx_theme_article_hero_heading( string $content ): string {
-	if ( ! is_singular( 'post' ) || ! preg_match( '/\bnvx-article-hero\b/i', $content ) ) {
+function nvx_theme_normalize_content_markup( string $content ): string {
+	if ( is_admin() || '' === $content ) {
 		return $content;
 	}
+
+	// No tocar front page home HTML (vídeo / estructura editorial).
+	if ( function_exists( 'nvx_theme_is_home_page' ) && nvx_theme_is_home_page() ) {
+		return $content;
+	}
+
+	// 1) Quitar estilos inline del editor (excepto en formularios HS si aparecen).
+	$content = preg_replace_callback(
+		'/<([a-z0-9]+)([^>]*?)\sstyle=(["\'])(.*?)\3([^>]*)>/i',
+		static function ( $m ) {
+			$tag = strtolower( $m[1] );
+			// Conservar mínimos en scripts/styles tags (no deberían estar).
+			if ( in_array( $tag, array( 'script', 'style' ), true ) ) {
+				return $m[0];
+			}
+			return '<' . $m[1] . $m[2] . $m[5] . '>';
+		},
+		$content
+	);
+
+	// 2) Aplanar columnas Gutenberg: sacar hijos de .wp-block-column y eliminar wrappers de columnas.
+	// Iterativo por si hay anidación simple.
+	for ( $i = 0; $i < 4; $i++ ) {
+		$prev = $content;
+		$content = preg_replace(
+			'/<div[^>]*\bwp-block-column\b[^>]*>([\s\S]*?)<\/div>/i',
+			'$1',
+			$content
+		);
+		$content = preg_replace(
+			'/<div[^>]*\bwp-block-columns\b[^>]*>([\s\S]*?)<\/div>/i',
+			'$1',
+			$content
+		);
+		if ( $content === $prev ) {
+			break;
+		}
+	}
+
+	// 3) Clases legacy → canónicas (diseño único).
+	$replacements = array(
+		'nvx-display-section'       => 'nvx-heading',
+		'nvx-page__title'           => 'nvx-heading',
+		'nvx-journal-hero__title'   => 'nvx-heading',
+		'nvx-journal-item__title'   => 'nvx-brand-card__title',
+		'nvx-journal-item__cat'     => 'nvx-eyebrow',
+		'nvx-journal-item__excerpt' => 'nvx-brand-card__body',
+		'nvx-journal-item__date'    => 'nvx-brand-card__kicker',
+		'nvx-journal-item'          => 'nvx-brand-card',
+		'nvx-blog-card__title'      => 'nvx-brand-card__title',
+		'nvx-blog-card__meta'       => 'nvx-brand-card__kicker',
+		'nvx-blog-card__excerpt'    => 'nvx-brand-card__body',
+		'nvx-blog-card'             => 'nvx-brand-card',
+		'nvx-bg-ivory'              => '',
+		'nvx-container--text'       => 'nvx-shell',
+		'nvx-container'             => 'nvx-shell',
+		'nvx-single-hero'           => 'nvx-section-intro',
+		'nvx-single-content'        => 'nvx-page__content',
+		'nvx-article-hero'          => 'nvx-section-intro',
+		'has-background'            => '',
+		'has-text-color'            => '',
+	);
+	foreach ( $replacements as $from => $to ) {
+		if ( '' === $to ) {
+			$content = preg_replace( '/\s*\b' . preg_quote( $from, '/' ) . '\b/', '', $content );
+		} else {
+			$content = preg_replace( '/\b' . preg_quote( $from, '/' ) . '\b/', $to, $content );
+		}
+	}
+
+	// 4) Limpiar class="" vacíos o dobles espacios en class.
+	$content = preg_replace_callback(
+		'/class=(["\'])(.*?)\1/i',
+		static function ( $m ) {
+			$classes = preg_split( '/\s+/', trim( $m[2] ) );
+			$classes = array_values( array_filter( $classes ) );
+			if ( empty( $classes ) ) {
+				return '';
+			}
+			return 'class=' . $m[1] . esc_attr( implode( ' ', $classes ) ) . $m[1];
+		},
+		$content
+	);
+
+	// 5) Quitar <style> embebidos en contenido.
+	$content = preg_replace( '/<style\b[^>]*>[\s\S]*?<\/style>/i', '', $content );
+
 	return $content;
 }
-add_filter( 'the_content', 'nvx_theme_article_hero_heading', 8 );
+add_filter( 'the_content', 'nvx_theme_normalize_content_markup', 12 );
 
 /**
- * Sin CSS/JS embebido en contenido — solo tema + MU infra.
+ * Bloques: no reintroducir embeds de estilo en render_block.
  */
-function nvx_theme_strip_content_embeds( string $content ): string {
-	return $content;
-}
-add_filter( 'the_content', 'nvx_theme_strip_content_embeds', 3 );
-add_filter( 'render_block', 'nvx_theme_strip_block_embeds', 10, 2 );
-
 function nvx_theme_strip_block_embeds( string $block_content, array $block ): string {
 	if ( is_admin() || '' === $block_content ) {
 		return $block_content;
 	}
-	return nvx_theme_strip_content_embeds( $block_content );
+	// Aplanar columnas a nivel de bloque también.
+	if ( isset( $block['blockName'] ) && 'core/columns' === $block['blockName'] ) {
+		// Dejar solo el HTML de las columnas hijas ya aplanado por the_content; aquí quitamos wrapper flex.
+		$block_content = preg_replace( '/\bwp-block-columns\b/', 'nvx-content-stack', $block_content );
+		$block_content = preg_replace( '/\bwp-block-column\b/', 'nvx-content-block', $block_content );
+	}
+	return $block_content;
 }
+add_filter( 'render_block', 'nvx_theme_strip_block_embeds', 10, 2 );
 
 /**
  * Strict HTML Control: Disable classic WordPress auto-paragraph filters.

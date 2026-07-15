@@ -63,7 +63,7 @@ body.admin-bar #nvx-header {
 	min-height: 48px;
 	color: var(--nvx-ink, #171717);
 	text-decoration: none;
-	line-height: 1;
+	line-height: var(--nvx-lh-button);
 }
 
 #nvx-header .nvx-logo__img,
@@ -78,20 +78,22 @@ body.admin-bar #nvx-header {
 
 #nvx-header .nvx-logo__wordmark {
 	display: block;
-	font-family: var(--nvx-sans, "Manrope", sans-serif);
-	font-size: 0.95rem;
-	font-weight: 600;
-	letter-spacing: 0.22em;
+	font-family: var(--nvx-font-sans);
+	font-size: var(--nvx-type-body);
+	font-weight: var(--nvx-fw-semibold);
+	letter-spacing: var(--nvx-track-kicker);
+	line-height: var(--nvx-lh-button);
 	text-transform: uppercase;
 	color: var(--nvx-ink, #171717);
 }
 
 #nvx-header .nvx-logo__tagline {
 	display: block;
-	font-family: var(--nvx-sans, "Manrope", sans-serif);
-	font-size: 0.58rem;
-	font-weight: 400;
-	letter-spacing: 0.2em;
+	font-family: var(--nvx-font-sans);
+	font-size: var(--nvx-type-kicker);
+	font-weight: var(--nvx-fw-regular);
+	letter-spacing: var(--nvx-track-kicker);
+	line-height: var(--nvx-lh-kicker);
 	text-transform: uppercase;
 	color: rgba(23, 23, 23, 0.48);
 }
@@ -132,11 +134,11 @@ body.admin-bar #nvx-header {
 	align-items: center;
 	min-height: 44px;
 	padding: 4px 0 6px;
-	font-family: var(--nvx-sans, "Manrope", sans-serif);
-	font-size: var(--nvx-type-button, 0.75rem);
-	font-weight: var(--nvx-fw-semibold, 600);
-	line-height: var(--nvx-lh-button, 1);
-	letter-spacing: var(--nvx-track-button, 0.14em);
+	font-family: var(--nvx-font-sans);
+	font-size: var(--nvx-type-button);
+	font-weight: var(--nvx-fw-semibold);
+	line-height: var(--nvx-lh-button);
+	letter-spacing: var(--nvx-track-button);
 	text-transform: uppercase;
 	color: rgba(23, 23, 23, 0.78);
 	text-decoration: none;
@@ -206,10 +208,11 @@ body.admin-bar #nvx-header {
 #nvx-header .nvx-nav__list .sub-menu a {
 	display: block;
 	padding: 11px 20px;
-	font-family: var(--nvx-sans, "Manrope", sans-serif);
-	font-size: 0.82rem;
-	font-weight: 400;
-	letter-spacing: 0.01em;
+	font-family: var(--nvx-font-sans);
+	font-size: var(--nvx-type-body);
+	font-weight: var(--nvx-fw-regular);
+	line-height: var(--nvx-lh-body);
+	letter-spacing: var(--nvx-track-body);
 	text-transform: none;
 	color: rgba(23, 23, 23, 0.78);
 	text-decoration: none;
@@ -234,10 +237,11 @@ body.admin-bar #nvx-header {
 	border-radius: 999px;
 	background: var(--nvx-ink, #171717);
 	color: #fff;
-	font-family: var(--nvx-sans, "Manrope", sans-serif);
-	font-size: 0.64rem;
-	font-weight: 600;
-	letter-spacing: 0.16em;
+	font-family: var(--nvx-font-sans);
+	font-size: var(--nvx-type-button);
+	font-weight: var(--nvx-fw-semibold);
+	letter-spacing: var(--nvx-track-button);
+	line-height: var(--nvx-lh-button);
 	text-transform: uppercase;
 	text-decoration: none;
 	white-space: nowrap;
@@ -325,9 +329,9 @@ body.admin-bar #nvx-header {
 	border: 1px solid rgba(23, 23, 23, 0.12);
 	border-radius: 999px;
 	color: var(--nvx-ink, #171717);
-	font-size: 1.5rem;
-	font-weight: 300;
-	line-height: 1;
+	font-size: var(--nvx-type-lead);
+	font-weight: var(--nvx-fw-light);
+	line-height: var(--nvx-lh-button);
 	cursor: pointer;
 }
 
@@ -347,11 +351,11 @@ body.admin-bar #nvx-header {
 	display: block;
 	width: 100%;
 	padding: 12px 8px;
-	font-family: var(--nvx-serif, "Bodoni Moda", serif);
-	font-size: clamp(1.65rem, 6.5vw, 2.35rem);
-	font-weight: 400;
-	line-height: 1.08;
-	letter-spacing: -0.03em;
+	font-family: var(--nvx-font-serif);
+	font-size: var(--nvx-type-h2);
+	font-weight: var(--nvx-fw-regular);
+	line-height: var(--nvx-lh-h2);
+	letter-spacing: var(--nvx-track-h2);
 	color: var(--nvx-ink, #171717);
 	text-decoration: none;
 }
@@ -366,10 +370,11 @@ body.admin-bar #nvx-header {
 	border-radius: 999px;
 	background: var(--nvx-ink, #171717);
 	color: #fff;
-	font-family: var(--nvx-sans, "Manrope", sans-serif);
-	font-size: 0.68rem;
-	font-weight: 600;
-	letter-spacing: 0.16em;
+	font-family: var(--nvx-font-sans);
+	font-size: var(--nvx-type-button);
+	font-weight: var(--nvx-fw-semibold);
+	letter-spacing: var(--nvx-track-button);
+	line-height: var(--nvx-lh-button);
 	text-transform: uppercase;
 	text-decoration: none;
 }

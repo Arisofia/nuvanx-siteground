@@ -19,67 +19,73 @@ if ( ! defined( 'NVX_VALORACION_HS_FRAME_REGION' ) ) {
 	define( 'NVX_VALORACION_HS_FRAME_REGION', 'eu1' );
 }
 
-/**
- * @return bool
- */
-function nvx_valoracion_native_hubspot_is_target_page(): bool {
-	return is_page( 2636 ) || is_page( 'valoracion' );
+if ( ! function_exists( 'nvx_valoracion_native_hubspot_is_target_page' ) ) {
+	/**
+	 * @return bool
+	 */
+	function nvx_valoracion_native_hubspot_is_target_page(): bool {
+		return is_page( 2636 ) || is_page( 'valoracion' );
+	}
 }
 
-/**
- * @return string
- */
-function nvx_valoracion_native_hubspot_mount_markup(): string {
-	$portal_id     = esc_attr( NVX_VALORACION_HS_FRAME_PORTAL_ID );
-	$form_id       = esc_attr( NVX_VALORACION_HS_FRAME_FORM_ID );
-	$region        = esc_attr( NVX_VALORACION_HS_FRAME_REGION );
-	$portal_script = esc_url( 'https://js-eu1.hsforms.net/forms/embed/' . NVX_VALORACION_HS_FRAME_PORTAL_ID . '.js' );
-	$disclaimer    = '<p class="nvx-copy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . esc_url( home_url( '/politica-privacidad/' ) ) . '">Política de privacidad</a>.</p>';
+if ( ! function_exists( 'nvx_valoracion_native_hubspot_mount_markup' ) ) {
+	/**
+	 * @return string
+	 */
+	function nvx_valoracion_native_hubspot_mount_markup(): string {
+		$portal_id     = esc_attr( NVX_VALORACION_HS_FRAME_PORTAL_ID );
+		$form_id       = esc_attr( NVX_VALORACION_HS_FRAME_FORM_ID );
+		$region        = esc_attr( NVX_VALORACION_HS_FRAME_REGION );
+		$portal_script = esc_url( 'https://js-eu1.hsforms.net/forms/embed/' . NVX_VALORACION_HS_FRAME_PORTAL_ID . '.js' );
+		$disclaimer    = '<p class="nvx-copy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . esc_url( home_url( '/politica-privacidad/' ) ) . '">Política de privacidad</a>.</p>';
 
-	return '<script src="' . $portal_script . '" defer></script>'
-		. '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '"></div>'
-		. $disclaimer;
+		return '<script src="' . $portal_script . '" defer></script>'
+			. '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '"></div>'
+			. $disclaimer;
+	}
 }
 
-/**
- * @param string $html Full page HTML.
- * @return string
- */
-function nvx_valoracion_native_hubspot_ensure_mount_script( string $html ): string {
-	if (
-		false === stripos( $html, 'id="nvx-hubspot-native-form"' )
-		&& false === stripos( $html, "id='nvx-hubspot-native-form'" )
-	) {
-		return $html;
+if ( ! function_exists( 'nvx_valoracion_native_hubspot_ensure_mount_script' ) ) {
+	/**
+	 * @param string $html Full page HTML.
+	 * @return string
+	 */
+	function nvx_valoracion_native_hubspot_ensure_mount_script( string $html ): string {
+		if (
+			false === stripos( $html, 'id="nvx-hubspot-native-form"' )
+			&& false === stripos( $html, "id='nvx-hubspot-native-form'" )
+		) {
+			return $html;
+		}
+
+		if ( preg_match( '/forms\/embed\/' . preg_quote( NVX_VALORACION_HS_FRAME_PORTAL_ID, '/' ) . '\.js/i', $html ) ) {
+			return $html;
+		}
+
+		$portal_script = esc_url( 'https://js-eu1.hsforms.net/forms/embed/' . NVX_VALORACION_HS_FRAME_PORTAL_ID . '.js' );
+		$script_tag    = '<script src="' . $portal_script . '" defer></script>';
+
+		$replaced = preg_replace(
+			'/(<div[^>]*id=["\']nvx-hubspot-native-form["\'][^>]*>)(\s*<div class="hs-form-frame")/is',
+			'$1' . $script_tag . '$2',
+			$html,
+			1
+		);
+
+		if ( is_string( $replaced ) && $replaced !== $html ) {
+			return $replaced;
+		}
+
+		$mount    = nvx_valoracion_native_hubspot_mount_markup();
+		$replaced = preg_replace(
+			'/(<div[^>]*id=["\']nvx-hubspot-native-form["\'][^>]*>)\s*<\/div>/is',
+			'$1' . $mount . '</div>',
+			$html,
+			1
+		);
+
+		return is_string( $replaced ) ? $replaced : $html;
 	}
-
-	if ( preg_match( '/forms\/embed\/' . preg_quote( NVX_VALORACION_HS_FRAME_PORTAL_ID, '/' ) . '\.js/i', $html ) ) {
-		return $html;
-	}
-
-	$portal_script = esc_url( 'https://js-eu1.hsforms.net/forms/embed/' . NVX_VALORACION_HS_FRAME_PORTAL_ID . '.js' );
-	$script_tag    = '<script src="' . $portal_script . '" defer></script>';
-
-	$replaced = preg_replace(
-		'/(<div[^>]*id=["\']nvx-hubspot-native-form["\'][^>]*>)(\s*<div class="hs-form-frame")/is',
-		'$1' . $script_tag . '$2',
-		$html,
-		1
-	);
-
-	if ( is_string( $replaced ) && $replaced !== $html ) {
-		return $replaced;
-	}
-
-	$mount    = nvx_valoracion_native_hubspot_mount_markup();
-	$replaced = preg_replace(
-		'/(<div[^>]*id=["\']nvx-hubspot-native-form["\'][^>]*>)\s*<\/div>/is',
-		'$1' . $mount . '</div>',
-		$html,
-		1
-	);
-
-	return is_string( $replaced ) ? $replaced : $html;
 }
 
 add_action(

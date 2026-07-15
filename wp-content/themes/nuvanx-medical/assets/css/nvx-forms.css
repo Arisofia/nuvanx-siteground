@@ -4,8 +4,10 @@
 .nvx-hubspot-wrap,
 #nvx-hubspot-form,
 #nvx-hubspot-native-form {
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   color: var(--nvx-text-main);
+  padding: var(--nvx-pad-card);
+  border: 1px solid var(--nvx-color-line);
 }
 
 .nvx-form label,
@@ -14,8 +16,11 @@
   font-family: var(--nvx-sans);
   font-size: 0.8125rem;
   font-weight: 500;
-  color: var(--nvx-graphite);
-  letter-spacing: 0.02em;
+  color: var(--nvx-text-muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: var(--nvx-type-kicker, 0.6875rem);
+  letter-spacing: var(--nvx-track-kicker, 0.16em);
 }
 
 .nvx-form input,
@@ -27,11 +32,11 @@
 .hs-form textarea,
 .hs-form select {
   width: 100%;
-  border: 1px solid var(--nvx-border-strong);
-  background: var(--nvx-soft-white);
-  color: var(--nvx-charcoal);
-  border-radius: var(--nvx-radius-md);
-  padding: 12px 14px;
+  border: 1px solid var(--nvx-color-line, var(--nvx-border-strong));
+  background: var(--nvx-white);
+  color: var(--nvx-color-ink);
+  border-radius: var(--nvx-radius-form, 8px);
+  padding: 14px 16px;
   font-family: var(--nvx-sans);
   font-size: 1rem;
   line-height: 1.4;
@@ -43,7 +48,7 @@
 .hs-form input:focus,
 .hs-form textarea:focus {
   outline: none;
-  border-color: var(--nvx-accent);
+  border-color: var(--nvx-platinum, var(--nvx-accent));
   box-shadow: 0 0 0 3px var(--nvx-accent-glow);
 }
 
@@ -52,12 +57,14 @@
 .nvx-hs-lead-section #nvx-hubspot-native-form .hs-form .hs-button,
 .nvx-hs-lead-box #nvx-hubspot-native-form .hs-form input[type="submit"],
 #nvx-hubspot-native-form .hs-form input[type="submit"].hs-button {
-  background: var(--nvx-black);
-  color: var(--nvx-soft-white);
-  border: 1px solid var(--nvx-black);
-  border-radius: var(--nvx-radius-sm);
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  background: var(--nvx-color-ink, var(--nvx-ink));
+  color: var(--nvx-white);
+  border: 1px solid var(--nvx-color-ink, var(--nvx-ink));
+  border-radius: var(--nvx-radius-button, 999px);
+  min-height: 48px;
+  font-weight: 600;
+  letter-spacing: var(--nvx-track-button, 0.1em);
+  text-transform: uppercase;
   padding: 14px 28px;
 }
 
@@ -78,7 +85,7 @@
 
 .nvx-hubspot-placeholder {
   padding: clamp(24px, 4vw, 40px);
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
   box-shadow: var(--nvx-shadow-soft);
@@ -89,7 +96,7 @@
 
 .nvx-hs-lead-box {
   padding: clamp(26px, 3vw, 34px);
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
   box-shadow: var(--nvx-shadow-soft);
@@ -155,7 +162,7 @@
 
 .nvx-contact-page .nvx-hs-native-box {
   padding: clamp(24px, 3vw, 28px);
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   border: 1px solid var(--nvx-border-soft);
   box-shadow: var(--nvx-shadow-soft);
   color: var(--nvx-text-body);

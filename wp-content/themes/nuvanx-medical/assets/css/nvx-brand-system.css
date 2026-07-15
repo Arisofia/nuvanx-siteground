@@ -71,7 +71,7 @@ body {
 
 .nvx-brand-section {
   padding: var(--nvx-section-y) 0;
-  background: var(--nvx-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
 }
 
 .nvx-brand-section--tight {
@@ -80,46 +80,69 @@ body {
 
 .nvx-brand-section__inner {
   width: var(--nvx-shell);
+  max-width: 100%;
   margin: 0 auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
 }
 
 .nvx-brand-readable {
   width: var(--nvx-readable);
+  max-width: 100%;
   margin: 0 auto;
 }
 
+/* Section intros centered on brand pages (nosotros, hubs, etc.) */
+.nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-kicker,
+.nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title,
+.nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-body {
+  text-align: center;
+  margin-inline: auto;
+}
+
+.nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title {
+  max-width: 18ch;
+  text-wrap: balance;
+}
+
+.nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-body {
+  max-width: var(--nvx-measure-lead, 48ch);
+}
+
 .nvx-brand-kicker {
-  margin: 0 0 12px;
-  color: var(--nvx-charcoal);
+  margin: 0 0 14px;
+  color: var(--nvx-platinum, var(--nvx-color-muted));
   font-family: var(--nvx-font-sans);
-  font-size: 0.76rem;
+  font-size: var(--nvx-type-kicker, 0.6875rem);
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: var(--nvx-track-kicker, 0.2em);
   text-transform: uppercase;
 }
 
 .nvx-brand-title {
-  margin: 0 0 18px;
-  color: var(--nvx-graphite);
+  margin: 0 0 20px;
+  color: var(--nvx-color-ink);
   font-family: var(--nvx-font-serif);
-  font-size: clamp(2rem, 3vw, 3.15rem);
+  font-size: var(--nvx-type-h2, clamp(1.85rem, 3.2vw, 3rem));
   font-weight: 400;
-  line-height: 1.08;
+  line-height: var(--nvx-lh-heading, 1.08);
   letter-spacing: -0.035em;
+  text-wrap: balance;
 }
 
 .nvx-brand-body {
   margin: 0 0 18px;
-  color: var(--nvx-text-muted);
+  max-width: var(--nvx-measure, 62ch);
+  color: var(--nvx-text-body);
   font-family: var(--nvx-font-sans);
-  font-size: clamp(1rem, 1.15vw, 1.16rem);
+  font-size: var(--nvx-type-body-large, 1.0625rem);
   font-weight: 400;
-  line-height: 1.72;
+  line-height: var(--nvx-lh-body, 1.7);
 }
 
 .nvx-brand-grid {
   display: grid;
-  gap: clamp(18px, 2vw, 28px);
+  gap: var(--nvx-gap-wide);
 }
 
 .nvx-brand-grid--2 {
@@ -533,7 +556,7 @@ body:not(.home) .nvx-home-hero-video {
 /* Reduce sensación de documento plano */
 .nvx-home-editorial {
   padding-top: clamp(44px, 5.5vw, 78px);
-  padding-bottom: clamp(56px, 7vw, 96px);
+  padding-bottom: var(--nvx-section-y);
   background:
     radial-gradient(circle at 50% 4%, rgba(155, 163, 173,0.10), transparent 26%),
     linear-gradient(180deg, #ffffff 0%, #ffffff 100%);

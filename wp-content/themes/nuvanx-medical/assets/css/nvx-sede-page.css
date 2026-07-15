@@ -2,7 +2,7 @@
 
 .nvx-sede-page {
   --nvx-sede-accent: var(--nvx-accent);
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   color: var(--nvx-text-body);
   font-family: var(--nvx-sans);
   line-height: 1.65;
@@ -34,7 +34,7 @@
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 20px;
+  padding-inline: var(--nvx-gutter-inner);
 }
 
 .nvx-sede-page .nvx-section {
@@ -61,7 +61,7 @@
 
 .nvx-sede-page .nvx-media-section {
   padding-block: clamp(32px, 4vw, 48px);
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   border-bottom: 1px solid var(--nvx-border-soft);
 }
 
@@ -158,7 +158,7 @@
   display: block;
   width: 100%;
   border-radius: var(--nvx-radius-lg);
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
 }
 
 .nvx-sede-page .nvx-caption {
@@ -202,7 +202,7 @@
 }
 
 .nvx-sede-page .nvx-clinic-card {
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-xl);
   overflow: hidden;
@@ -262,7 +262,7 @@
   height: 42px;
   border-radius: 999px;
   background: var(--nvx-charcoal);
-  color: var(--nvx-soft-white);
+  color: var(--nvx-color-surface, var(--nvx-white));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,13 +272,13 @@
 
 .nvx-sede-page .nvx-band {
   background: var(--nvx-charcoal);
-  color: var(--nvx-soft-white);
+  color: var(--nvx-color-surface, var(--nvx-white));
   padding-block: clamp(52px, 6vw, 66px);
 }
 
 .nvx-sede-page .nvx-band h2,
 .nvx-sede-page .nvx-band h3 {
-  color: var(--nvx-soft-white);
+  color: var(--nvx-color-surface, var(--nvx-white));
 }
 
 .nvx-sede-page .nvx-band .nvx-kicker {
@@ -367,7 +367,7 @@
 }
 
 .nvx-sede-page .nvx-faq details {
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
   padding: 20px 22px;
@@ -403,7 +403,7 @@
 }
 
 .nvx-sede-page .nvx-cta-box {
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-xl);
   padding: 38px;
@@ -479,7 +479,7 @@
   text-transform: uppercase;
   text-decoration: none;
   background: var(--nvx-black);
-  color: var(--nvx-soft-white);
+  color: var(--nvx-color-surface, var(--nvx-white));
   border: 1px solid var(--nvx-black);
   transition: background var(--nvx-ease), transform var(--nvx-ease);
 }

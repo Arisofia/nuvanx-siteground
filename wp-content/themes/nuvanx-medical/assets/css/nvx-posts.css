@@ -17,13 +17,13 @@
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 20px;
+  padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
 }
 
 .nvx-blog-card,
 .blog article.post {
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
   overflow: hidden;
@@ -110,7 +110,7 @@
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 20px;
+  padding-inline: var(--nvx-gutter-inner);
   padding-block: 0;
   box-sizing: border-box;
   color: var(--nvx-text-body);
@@ -200,7 +200,7 @@
 
 
 .nvx-blog-card {
-  background: var(--nvx-soft-white);
+  background: var(--nvx-color-surface, var(--nvx-white));
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
   box-shadow: var(--nvx-shadow-soft);

@@ -1,7 +1,7 @@
 /* NUVANX — CANONICAL COMPONENTS (única fuente de UI editorial)
- * Plata Pulida · ESTILO REVISTA CON MOVIMIENTO · Bodoni + Manrope
+ * Plata Pulida · editorial · Bodoni + Manrope
  * Home: único hero vídeo (nvx-brand-home).
- * Media orgánica (no rectángulos) · sangrado · superposición · texto start
+ * Media por ROL (base / hero / clínicas / equipo / logos) — no un solo estilo.
  * Botones pill + sombra. Prohibido: important, cajas SaaS, forks por página.
  */
 
@@ -453,22 +453,24 @@ figcaption {
 }
 
 /*
- * Media revista — formas orgánicas (no rectángulos), sin marco blanco.
- * Sangrado, tilt sutil, velo inferior para texto, continuidad de color.
+ * MEDIA EDITORIAL — roles distintos (NO el mismo estilo en todas)
+ *
+ * 1. Base / contenido / cards genéricas → rectángulo suave, sin tilt
+ * 2. Hero de página → grande, radio editorial, ligero sangrado
+ * 3. Clínicas / sedes → forma orgánica + leve asimetría
+ * 4. Equipo → retrato vertical limpio (sin blob ni rotación)
+ * 5. Logos → tile plano contain
+ * 6. Utilidades .nvx-shape--organic-* / --text-on-media → solo cuando se piden
  */
+
+/* ── 1. Base editorial (default) ─────────────────────────── */
 .nvx-card__media,
 .nvx-brand-card__media,
 .nvx-media,
-.nvx-home-clinica-panorama__media,
-.nvx-location__media,
 .nvx-post-card__image,
 .blog article.post .post-thumbnail,
-.nvx-team-card__media,
-.nvx-sede-media,
-.nvx-brand-hero__media,
 .nvx-editorial-zone--media,
 .nvx-home-image-feature__figure,
-.nvx-home-direccion-media,
 .nvx-page__featured {
   position: relative;
   display: block;
@@ -478,100 +480,126 @@ figcaption {
   margin: 0 0 var(--nvx-gap-wide);
   overflow: hidden;
   border: 0;
-  box-shadow: var(--nvx-shadow-soft);
-  background: var(--nvx-media-bleed-color, var(--nvx-charcoal));
-  border-radius: var(--nvx-organic-a);
+  box-shadow: none;
+  background: var(--nvx-mist);
+  border-radius: var(--nvx-radius-image);
   aspect-ratio: auto;
-  transform: rotate(var(--nvx-media-tilt, -1.25deg));
-  transform-origin: center center;
+  transform: none;
   isolation: isolate;
 }
 
-/* Ritmo de formas: variación por posición (movimiento editorial) */
-.nvx-brand-grid > .nvx-brand-card:nth-child(3n + 1) > .nvx-brand-card__media,
-.nvx-brand-grid > .nvx-card:nth-child(3n + 1) > .nvx-card__media {
-  border-radius: var(--nvx-organic-a);
-  transform: rotate(var(--nvx-media-tilt));
-}
-
-.nvx-brand-grid > .nvx-brand-card:nth-child(3n + 2) > .nvx-brand-card__media,
-.nvx-brand-grid > .nvx-card:nth-child(3n + 2) > .nvx-card__media {
-  border-radius: var(--nvx-organic-b);
-  transform: rotate(var(--nvx-media-tilt-alt));
-  height: calc(var(--nvx-media-max-h) * 1.08);
-  max-height: calc(var(--nvx-media-max-h) * 1.12);
-}
-
-.nvx-brand-grid > .nvx-brand-card:nth-child(3n + 3) > .nvx-brand-card__media,
-.nvx-brand-grid > .nvx-card:nth-child(3n + 3) > .nvx-card__media {
-  border-radius: var(--nvx-organic-c);
-  transform: rotate(calc(var(--nvx-media-tilt) * 0.6));
-  width: min(100%, 92%);
-  margin-inline-start: auto;
-}
-
-/* Continuidad visual: velo inferior (texto legible) */
+/* Sin velo global: el overlay solo en hero/clínicas/text-on-media */
 .nvx-card__media::after,
 .nvx-brand-card__media::after,
 .nvx-media::after,
-.nvx-home-clinica-panorama__media::after,
-.nvx-location__media::after,
 .nvx-post-card__image::after,
 .blog article.post .post-thumbnail::after,
-.nvx-team-card__media::after,
-.nvx-sede-media::after,
 .nvx-editorial-zone--media::after,
 .nvx-home-image-feature__figure::after,
-.nvx-home-direccion-media::after,
 .nvx-page__featured::after {
+  content: none;
+  display: none;
+}
+
+/* ── 2. Hero de página / tratamientos ────────────────────── */
+.nvx-brand-hero__media {
+  position: relative;
+  display: block;
+  height: var(--nvx-media-max-h-hero);
+  max-height: var(--nvx-media-max-h-hero);
+  width: calc(100% + var(--nvx-media-bleed-x));
+  margin: 0 calc(-1 * var(--nvx-media-bleed-x)) 0 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: clamp(16px, 2vw, 28px) 0 0 clamp(16px, 2vw, 28px);
+  box-shadow: var(--nvx-shadow-soft);
+  background: var(--nvx-charcoal);
+  transform: none;
+}
+
+.nvx-brand-hero__media::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 48%;
+  inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: var(--nvx-media-overlay);
+  background: linear-gradient(
+    90deg,
+    rgba(20, 22, 26, 0.28) 0%,
+    transparent 55%
+  );
   border-radius: inherit;
 }
 
-/* Hero de página / tratamientos: media que sangra + forma orgánica */
-.nvx-brand-hero__media {
-  height: var(--nvx-media-max-h-hero);
-  max-height: var(--nvx-media-max-h-hero);
-  margin: 0 calc(-1 * var(--nvx-media-bleed-x)) 0 0;
-  width: calc(100% + var(--nvx-media-bleed-x));
-  border-radius: var(--nvx-organic-soft);
-  transform: rotate(var(--nvx-media-tilt-alt));
-  box-shadow: var(--nvx-shadow-medium);
-}
-
-/* Panoramas / clínicas: orgánicas, un poco más altas, tilt alterno */
+/* ── 3. Clínicas / sedes / panoramas — aquí sí hay movimiento ─ */
 .nvx-home-clinica-panorama__media,
 .nvx-media--panorama,
 .nvx-media--clinic,
 .nvx-location__media,
 .nvx-sede-media {
+  position: relative;
+  display: block;
+  width: min(100%, calc(100% + var(--nvx-media-bleed-x)));
   height: var(--nvx-media-max-h-featured);
   max-height: var(--nvx-media-max-h-featured);
+  margin: 0 0 var(--nvx-gap-wide);
+  overflow: hidden;
+  border: 0;
+  box-shadow: var(--nvx-shadow-medium);
+  background: var(--nvx-charcoal);
   border-radius: var(--nvx-organic-b);
   transform: rotate(var(--nvx-media-tilt));
-  width: min(104%, calc(100% + var(--nvx-media-bleed-x)));
-  margin-inline: calc(-0.5 * var(--nvx-media-bleed-x)) 0;
+  transform-origin: center center;
 }
 
 .nvx-home-clinica-panorama:nth-child(even) .nvx-home-clinica-panorama__media,
 .nvx-location:nth-child(even) .nvx-location__media {
   border-radius: var(--nvx-organic-c);
   transform: rotate(var(--nvx-media-tilt-alt));
-  margin-inline: 0 calc(-0.5 * var(--nvx-media-bleed-x));
 }
 
-/*
- * Equipo médico — retratos fotográficos (proporción vertical 5:6).
- * Más altos que media editorial; crop desde arriba (cara).
- */
+.nvx-home-clinica-panorama__media::after,
+.nvx-location__media::after,
+.nvx-sede-media::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40%;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--nvx-media-overlay);
+  border-radius: inherit;
+}
+
+/* Dirección home: una sola foto de acento editorial (no todas) */
+.nvx-home-direccion-media {
+  position: relative;
+  display: block;
+  width: min(100%, calc(100% + var(--nvx-media-bleed-x)));
+  height: var(--nvx-media-max-h-featured);
+  max-height: var(--nvx-media-max-h-featured);
+  margin: 0 calc(-0.5 * var(--nvx-media-bleed-x)) 0 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--nvx-organic-soft);
+  box-shadow: var(--nvx-shadow-medium);
+  transform: rotate(var(--nvx-media-tilt-alt));
+  background: var(--nvx-charcoal);
+}
+
+.nvx-home-direccion-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 50%, rgba(20, 22, 26, 0.35) 100%);
+  border-radius: inherit;
+}
+
+/* ── 4. Equipo médico — retrato limpio (no “blob” ni tilt) ── */
 .nvx-brand-card--team .nvx-brand-card__media,
 .nvx-team-card__media,
 .nvx-media--doctor {
@@ -579,16 +607,24 @@ figcaption {
   height: var(--nvx-media-max-h-doctor);
   max-height: var(--nvx-media-max-h-doctor);
   aspect-ratio: var(--nvx-media-ratio-doctor, 5 / 6);
-  margin-inline: 0;
+  margin: 0 0 var(--nvx-gap-tight);
   background: var(--nvx-mist);
-  border-radius: var(--nvx-organic-blob);
-  transform: rotate(var(--nvx-media-tilt));
-  box-shadow: var(--nvx-shadow-medium);
+  border-radius: var(--nvx-radius-image);
+  box-shadow: var(--nvx-shadow-soft);
+  transform: none;
 }
 
-.nvx-brand-card--team:nth-child(even) .nvx-brand-card__media {
-  border-radius: var(--nvx-organic-d);
-  transform: rotate(var(--nvx-media-tilt-alt));
+.nvx-brand-card--team,
+.nvx-brand-card--team:has(> .nvx-brand-card__media) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--nvx-gap-tight);
+  width: min(100%, 22rem);
+  max-width: 100%;
+  padding: 0;
+  background: transparent;
+  overflow: visible;
 }
 
 .nvx-brand-card--team .nvx-brand-card__media img,
@@ -600,21 +636,13 @@ figcaption {
   object-position: center top;
 }
 
-/* Velo más suave en retratos (no oscurecer caras) */
 .nvx-brand-card--team .nvx-brand-card__media::after,
 .nvx-team-card__media::after {
-  height: 28%;
-  background: linear-gradient(
-    180deg,
-    rgba(20, 22, 26, 0) 40%,
-    rgba(20, 22, 26, 0.18) 100%
-  );
+  content: none;
+  display: none;
 }
 
-/*
- * Logos de marcas / tecnologías (tratamientos y colaboradores).
- * Compactos, contain, sin crop ni overlay oscuro.
- */
+/* ── 5. Logos de marcas — tile plano ─────────────────────── */
 .nvx-brand-grid--logos .nvx-brand-card__media,
 .nvx-brand-collaborators .nvx-brand-card__media {
   display: flex;
@@ -652,6 +680,7 @@ figcaption {
   background: transparent;
 }
 
+/* ── Imágenes en general ─────────────────────────────────── */
 .nvx-card__media img,
 .nvx-brand-card__media img,
 .nvx-media img,
@@ -682,19 +711,20 @@ figcaption {
   transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* Imágenes sueltas en contenido: altura acotada, crop suave */
+/* Contenido suelto: editorial limpio (sin organic/tilt) */
 .nvx-page__content > img,
 .entry-content > img,
 .nvx-page__content p > img,
 .entry-content p > img {
   width: 100%;
-  height: var(--nvx-media-max-h);
-  max-height: var(--nvx-media-max-h);
+  height: auto;
+  max-height: var(--nvx-media-max-h-featured);
   min-height: 0;
-  aspect-ratio: auto;
+  aspect-ratio: var(--nvx-media-ratio-editorial, 16 / 10);
   object-fit: cover;
   border-radius: var(--nvx-radius-image);
-  background: var(--nvx-media-bleed-color, var(--nvx-charcoal));
+  background: var(--nvx-mist);
+  transform: none;
 }
 
 .nvx-card:hover .nvx-card__media img,
@@ -702,11 +732,12 @@ figcaption {
   transform: scale(1.03);
 }
 
-/* Overlay sutil para texto sobre imagen */
+/* ── 6. Utilidades opt-in (solo si el markup las pide) ───── */
 .nvx-media--overlay::after,
 .nvx-card--text-on-media .nvx-card__media::after,
 .nvx-brand-card--text-on-media .nvx-brand-card__media::after {
   content: "";
+  display: block;
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -732,93 +763,49 @@ figcaption {
   text-align: start;
 }
 
-/*
- * Tarjetas con foto — composición revista:
- * media orgánica flota / sangra; texto start fluye al lado o debajo (no caja rectangular).
- */
-.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media),
-.nvx-card:has(> .nvx-card__media):not(.nvx-brand-grid--logos .nvx-card) {
-  position: relative;
+/* Float wrap opt-in: composición revista en un bloque concreto */
+.nvx-card--flow,
+.nvx-brand-card--flow {
   display: block;
   overflow: visible;
-  isolation: isolate;
-  padding: 0;
-  background: transparent;
-  border-radius: 0;
-  min-height: 0;
 }
 
-.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) > .nvx-brand-card__media,
-.nvx-card:has(> .nvx-card__media) > .nvx-card__media {
+.nvx-card--flow > .nvx-card__media,
+.nvx-brand-card--flow > .nvx-brand-card__media {
   float: right;
-  width: min(52%, 420px);
-  height: var(--nvx-media-max-h);
-  max-height: var(--nvx-media-max-h-featured);
+  width: min(48%, 380px);
   margin: 0 0 var(--nvx-gap-tight) var(--nvx-gap-base);
   shape-outside: margin-box;
-  shape-margin: 1rem;
-  z-index: 1;
 }
 
-.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:nth-child(even):has(> .nvx-brand-card__media) > .nvx-brand-card__media {
-  float: left;
-  margin: 0 var(--nvx-gap-base) var(--nvx-gap-tight) 0;
-  transform: rotate(var(--nvx-media-tilt));
-}
-
-.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) > :not(.nvx-brand-card__media),
-.nvx-card:has(> .nvx-card__media) > :not(.nvx-card__media) {
-  position: relative;
-  z-index: 2;
-  color: inherit;
-  text-align: start;
-  max-width: none;
-}
-
-.nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media)::after,
-.nvx-card:has(> .nvx-card__media)::after {
+.nvx-card--flow::after,
+.nvx-brand-card--flow::after {
   content: "";
   display: table;
   clear: both;
 }
 
-/* Equipo: retrato orgánico + texto debajo/start (sin caja oscura full-bleed) */
-.nvx-brand-card--team:has(> .nvx-brand-card__media) {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--nvx-gap-tight);
-  min-height: 0;
-  width: min(100%, 22rem);
-  max-width: 100%;
-  padding: 0;
-  background: transparent;
-  overflow: visible;
-}
-
-.nvx-brand-card--team:has(> .nvx-brand-card__media) > .nvx-brand-card__media {
-  position: relative;
-  float: none;
-  inset: auto;
-  width: min(100%, calc(var(--nvx-media-max-h-doctor) * 5 / 6));
-  height: var(--nvx-media-max-h-doctor);
-  max-height: var(--nvx-media-max-h-doctor);
-  margin: 0 0 var(--nvx-gap-tight);
-}
-
-.nvx-brand-card--team:has(> .nvx-brand-card__media) > :not(.nvx-brand-card__media) {
-  color: inherit;
-  text-align: start;
-  max-width: var(--nvx-measure-lead);
-}
-
 @media (max-width: 720px) {
-  .nvx-brand-grid:not(.nvx-brand-grid--logos) > .nvx-brand-card:has(> .nvx-brand-card__media) > .nvx-brand-card__media,
-  .nvx-card:has(> .nvx-card__media) > .nvx-card__media {
+  .nvx-card--flow > .nvx-card__media,
+  .nvx-brand-card--flow > .nvx-brand-card__media {
     float: none;
-    width: min(100%, 92%);
+    width: 100%;
     margin: 0 0 var(--nvx-gap-base);
-    transform: rotate(calc(var(--nvx-media-tilt) * 0.5));
+  }
+
+  .nvx-brand-hero__media {
+    width: 100%;
+    margin: 0 0 var(--nvx-gap-base);
+    border-radius: var(--nvx-radius-image);
+  }
+
+  .nvx-home-clinica-panorama__media,
+  .nvx-location__media,
+  .nvx-sede-media,
+  .nvx-home-direccion-media {
+    transform: none;
+    width: 100%;
+    margin-inline: 0;
   }
 }
 
@@ -922,14 +909,23 @@ figcaption {
   transform: none;
 }
 
-/* Superposición sutil (método / profundidad revista) */
-.nvx-media--overlap,
-.nvx-home-metodo-pilares .nvx-brand-card__media,
-.nvx-home-direccion-media {
+/* Superposición opt-in (no aplica a todo el método) */
+.nvx-media--overlap {
   margin-block: var(--nvx-media-overlap) 0;
   z-index: 2;
   border-radius: var(--nvx-organic-d);
   box-shadow: var(--nvx-shadow-medium);
+}
+
+/* Método: ritmo tipográfico / aire, media base (sin forzar organic en todos) */
+.nvx-home-metodo-pilares {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-gap-magazine-air, var(--nvx-gap-wide));
+}
+
+.nvx-home-metodo-pilares > :nth-child(even) {
+  margin-inline-start: clamp(0px, 4vw, 48px);
 }
 
 .nvx-home-direccion-grid {
@@ -940,27 +936,10 @@ figcaption {
   overflow: visible;
 }
 
-.nvx-home-direccion-media {
-  width: min(110%, calc(100% + var(--nvx-media-bleed-x)));
-  height: var(--nvx-media-max-h-featured);
-  max-height: var(--nvx-media-max-h-featured);
-  margin-inline: 0 calc(-1 * var(--nvx-media-bleed-x));
-  transform: rotate(var(--nvx-media-tilt-alt));
-}
-
 .nvx-home-direccion-copy {
   text-align: start;
   position: relative;
   z-index: 2;
-}
-
-.nvx-home-metodo-pilares > :nth-child(odd) {
-  margin-inline-end: clamp(0px, 4vw, 48px);
-}
-
-.nvx-home-metodo-pilares > :nth-child(even) {
-  margin-inline-start: clamp(0px, 6vw, 72px);
-  margin-block-start: var(--nvx-gap-magazine-tight);
 }
 
 @media (max-width: 900px) {
@@ -971,9 +950,9 @@ figcaption {
   .nvx-home-direccion-media {
     margin-inline: 0;
     width: 100%;
+    transform: none;
   }
 
-  .nvx-home-metodo-pilares > :nth-child(odd),
   .nvx-home-metodo-pilares > :nth-child(even) {
     margin-inline: 0;
   }
@@ -1376,10 +1355,10 @@ figcaption {
 
   .nvx-brand-hero__media {
     order: -1;
-    width: min(100%, 100% + var(--nvx-media-bleed-x));
-    margin-inline: calc(-0.5 * var(--nvx-media-bleed-x));
+    width: 100%;
+    margin: 0 0 var(--nvx-gap-base);
+    border-radius: var(--nvx-radius-image);
     justify-self: stretch;
-    transform: rotate(calc(var(--nvx-media-tilt) * 0.4));
   }
 }
 

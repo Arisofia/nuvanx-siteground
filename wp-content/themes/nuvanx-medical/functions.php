@@ -356,12 +356,12 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 		}
 	}
 
-	// 4) Limpiar class="" vacíos o dobles espacios en class.
+	// 4) Limpiar class="" vacíos, duplicados o dobles espacios en class.
 	$content = preg_replace_callback(
 		'/class=(["\'])(.*?)\1/i',
 		static function ( $m ) {
 			$classes = preg_split( '/\s+/', trim( $m[2] ) );
-			$classes = array_values( array_filter( $classes ) );
+			$classes = array_values( array_unique( array_filter( $classes ) ) );
 			if ( empty( $classes ) ) {
 				return '';
 			}

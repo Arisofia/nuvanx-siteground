@@ -1,0 +1,93 @@
+name: Deploy theme to staging2 + flush cache
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to deploy
+        required: true
+        default: master
+
+permissions:
+  contents: read
+
+env:
+  STAGING_BASE_URL: https://staging2.nuvanx.com
+  STAGING_PATH: /home/customer/www/staging2.nuvanx.com/public_html
+  THEME_REL: wp-content/themes/nuvanx-medical
+
+jobs:
+  deploy-and-flush:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
+
+      - name: Validate secrets
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          for name in SSH_KEY SSH_USER SSH_HOST SSH_PORT KNOWN_HOSTS; do
+            [[ -n "${!name:-}" ]] || { echo "ERROR: secret $name empty"; exit 1; }
+          done
+          test -f "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
+          grep -Eqi 'platinum|plata|9ba3ad' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
+
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+
+      - name: Known hosts
+        env:
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 700 ~/.ssh && chmod 600 ~/.ssh/known_hosts
+
+      - name: Rsync theme
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          rsync -az --delete -e "ssh -p $SSH_PORT" \
+            --exclude '.git' --exclude 'php_errorlog' --exclude '*.log' \
+            "${{ env.THEME_REL }}/" \
+            "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/${{ env.THEME_REL }}/"
+
+      - name: Flush caches
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' <<'REMOTE'
+            set -euo pipefail
+            ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
+            CSS="$ROOT/wp-content/themes/nuvanx-medical/assets/css"
+            cd "$ROOT"
+            [[ "$(wp option get siteurl)" == 'https://staging2.nuvanx.com' ]]
+            grep -Eqi 'platinum|plata|9ba3ad' "$CSS/nvx-tokens.css"
+            grep -q 'section-y' "$CSS/nvx-brand-treatment-core.css" || true
+            ! grep -q 'font-weight: 200' "$CSS/nvx-brand-treatment-core.css"
+            wp cache flush || true
+            wp sg purge || true
+            wp sg optimize combine-css disable || true
+            wp sg optimize combine-js disable || true
+            rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
+            rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
+            rm -rf wp-content/cache/* 2>/dev/null || true
+            wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+            echo DEPLOY_FLUSH_OK
+          REMOTE

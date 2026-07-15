@@ -149,22 +149,38 @@
   --nvx-media-max-h-logo: clamp(64px, 10vw, 96px);
   --nvx-media-logo-pad: clamp(16px, 2.2vw, 28px);
 
-  /* Radii suaves (sin cajas PowerPoint / sin radio 0 duro en media) */
+  /* Radii — pill botones; media es orgánica (no rectángulo) */
   --nvx-radius-button: 999px;
   --nvx-radius-card: clamp(20px, 2.5vw, 32px);
-  --nvx-radius-image: clamp(20px, 2.5vw, 32px);
+  --nvx-radius-image: clamp(20px, 2.5vw, 32px); /* soft fallback */
   --nvx-radius-form: 12px;
   --nvx-radius-sm: 16px;
   --nvx-radius-md: var(--nvx-radius-form);
   --nvx-radius-lg: var(--nvx-radius-card);
   --nvx-radius-xl: 32px;
 
+  /* Formas orgánicas de revista (border-radius 8 valores) */
+  --nvx-organic-a: 48% 52% 44% 56% / 42% 58% 48% 52%;
+  --nvx-organic-b: 62% 38% 55% 45% / 48% 42% 58% 52%;
+  --nvx-organic-c: 36% 64% 52% 48% / 58% 36% 64% 42%;
+  --nvx-organic-d: 72% 28% 38% 62% / 44% 56% 40% 60%;
+  --nvx-organic-soft: 28% 72% 64% 36% / 52% 38% 62% 48%;
+  --nvx-organic-blob: 55% 45% 42% 58% / 48% 52% 46% 54%;
+
+  /* Movimiento / sangrado editorial */
+  --nvx-media-tilt: -1.25deg;
+  --nvx-media-tilt-alt: 1.4deg;
+  --nvx-media-bleed-x: clamp(16px, 3vw, 48px);
+  --nvx-media-overlap: clamp(-48px, -4vw, -24px);
+  --nvx-gap-magazine-tight: clamp(12px, 1.8vw, 20px);
+  --nvx-gap-magazine-air: clamp(40px, 6vw, 88px);
+
   /* Media: overlay texto-sobre-imagen + continuidad de color al borde inferior */
   --nvx-media-overlay: linear-gradient(
     180deg,
-    rgba(20, 22, 26, 0) 38%,
-    rgba(20, 22, 26, 0.28) 68%,
-    rgba(20, 22, 26, 0.52) 100%
+    rgba(20, 22, 26, 0) 32%,
+    rgba(20, 22, 26, 0.22) 62%,
+    rgba(20, 22, 26, 0.48) 100%
   );
   --nvx-media-bleed-color: var(--nvx-charcoal);
   --nvx-media-bleed-height: clamp(40px, 5vw, 80px);

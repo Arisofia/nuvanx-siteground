@@ -145,47 +145,31 @@ p,
 }
 
 /* ═══════════════════════════════════════════════════════════
-   2. IMAGEN + TEXTO = mismo modelo que el vídeo del home
-   Imagen full-bleed cover; texto ENCIMA (z-index); overlay legibilidad.
-   Sin cajas cuadradas, sin texto debajo de la foto.
+   2. BLOQUES / “CARDS” — sin cajas cuadradas
+   Texto + media orgánica que fluye (figuras geométricas blandas)
    ═══════════════════════════════════════════════════════════ */
-
-/* Contenedor stage: cualquier bloque que tenga media + texto */
-.nvx-card:has(.nvx-card__media),
-.nvx-card:has(.nvx-brand-card__media),
-.nvx-brand-card:has(.nvx-brand-card__media),
-.nvx-brand-card:has(img),
-.nvx-legal-card:has(img),
-.nvx-blog-card:has(img),
-.blog article.post:has(.post-thumbnail),
-.blog article.post:has(img),
-.nvx-team-card:has(img),
-.nvx-home-clinica-panorama:has(img),
-.nvx-location__card:has(img),
-figure.wp-block-image:has(figcaption),
-.wp-block-cover {
+.nvx-card,
+.nvx-card--secondary,
+.nvx-card--ivory,
+.nvx-frosted,
+.nvx-frosted-soft,
+.nvx-brand-card,
+.nvx-legal-card,
+.nvx-blog-card,
+.blog article.post {
   position: relative;
-  display: block;
-  isolation: isolate;
-  overflow: hidden;
-  min-height: clamp(420px, 58vw, 720px);
-  margin: 0 0 var(--nvx-gap-wide);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-gap-base);
+  margin: 0;
   padding: 0;
-  background: var(--nvx-charcoal, #2a2d33);
+  background: transparent;
   border: 0;
   border-radius: 0;
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-}
-
-/* Sin media: no forzar stage */
-.nvx-card:not(:has(img)),
-.nvx-brand-card:not(:has(img)),
-.nvx-blog-card:not(:has(img)) {
-  min-height: 0;
-  background: transparent;
-  margin-bottom: var(--nvx-gap-wide);
+  overflow: visible;
 }
 
 .nvx-card::before,
@@ -194,35 +178,16 @@ figure.wp-block-image:has(figcaption),
   display: none;
 }
 
-/* Degradado de legibilidad (como el hero vídeo) */
-.nvx-card:has(img)::after,
-.nvx-brand-card:has(img)::after,
-.nvx-blog-card:has(img)::after,
-.blog article.post:has(img)::after,
-.nvx-home-clinica-panorama:has(img)::after,
-figure.wp-block-image:has(figcaption)::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(20, 22, 26, 0.2) 0%,
-      rgba(20, 22, 26, 0.12) 40%,
-      rgba(20, 22, 26, 0.35) 70%,
-      rgba(20, 22, 26, 0.62) 100%
-    ),
-    linear-gradient(
-      90deg,
-      rgba(20, 22, 26, 0.35) 0%,
-      rgba(20, 22, 26, 0.1) 50%,
-      transparent 78%
-    );
+.nvx-card__content,
+.nvx-brand-card__link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-gap-tight);
+  color: inherit;
+  text-decoration: none;
 }
 
-/* Media: llena el stage (absolute, cover) */
+/* Media orgánica por defecto — fluye con el texto */
 .nvx-card__media,
 .nvx-brand-card__media,
 .nvx-media,
@@ -231,21 +196,14 @@ figure.wp-block-image:has(figcaption)::after {
 .nvx-post-card__image,
 .blog article.post .post-thumbnail,
 .nvx-team-card__media,
-.nvx-sede-media,
-.nvx-card:has(img) > .wp-block-image,
-.nvx-brand-card:has(img) > .wp-block-image,
-figure.wp-block-image {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+.nvx-sede-media {
+  position: relative;
   margin: 0;
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   border: 0;
-  border-radius: 0;
   box-shadow: none;
-  aspect-ratio: auto;
+  /* Figura fluida A (default) */
+  border-radius: 48% 52% 44% 56% / 42% 58% 48% 52%;
 }
 
 .nvx-card__media img,
@@ -255,147 +213,55 @@ figure.wp-block-image {
 .nvx-location__media img,
 .nvx-post-card__image img,
 .blog article.post .post-thumbnail img,
-.nvx-team-card__media img,
-.nvx-card img:not(.nvx-logo__img),
-.nvx-brand-card img:not(.nvx-logo__img),
-.nvx-blog-card img,
-.blog article.post img:not(.nvx-logo__img),
-.nvx-home-clinica-panorama img,
-figure.wp-block-image img {
+.nvx-team-card__media img {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 100%;
-  max-width: none;
-  margin: 0;
+  min-height: clamp(220px, 28vw, 380px);
   object-fit: cover;
-  object-position: center center;
-  border-radius: 0;
-  transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+  object-position: center;
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.nvx-card:hover img:not(.nvx-logo__img),
-.nvx-brand-card:hover img:not(.nvx-logo__img) {
-  transform: scale(1.04);
+.nvx-card:hover .nvx-card__media img,
+.nvx-brand-card:hover .nvx-brand-card__media img {
+  transform: scale(1.03);
 }
 
-/* Texto ENCIMA de la imagen */
-.nvx-card__content,
-.nvx-brand-card__link,
-.nvx-card:has(img) > :not(.nvx-card__media):not(.wp-block-image):not(img),
-.nvx-brand-card:has(img) > :not(.nvx-brand-card__media):not(.wp-block-image):not(img),
-.nvx-blog-card:has(img) > :not(.post-thumbnail):not(img),
-.blog article.post:has(img) .entry-header,
-.blog article.post:has(img) .entry-summary,
-.blog article.post:has(img) .entry-title,
-figure.wp-block-image figcaption {
-  position: relative;
-  z-index: 2;
-}
-
-/* Copy over image: bottom-left, blanco legible */
-.nvx-card:has(img),
-.nvx-brand-card:has(img),
-.nvx-blog-card:has(img),
-.blog article.post:has(.post-thumbnail),
-.nvx-home-clinica-panorama:has(img) {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
-  padding: clamp(28px, 4vw, 56px);
-  box-sizing: border-box;
-}
-
-.nvx-card:has(img) .nvx-brand-card__kicker,
-.nvx-card:has(img) .nvx-brand-kicker,
-.nvx-card:has(img) .nvx-eyebrow,
-.nvx-brand-card:has(img) .nvx-brand-card__kicker,
-.nvx-brand-card:has(img) .nvx-brand-kicker,
-.nvx-brand-card:has(img) .nvx-eyebrow,
-.nvx-blog-card:has(img) .entry-meta,
-.blog article.post:has(img) .entry-meta {
-  color: rgba(255, 255, 255, 0.78);
-}
-
-.nvx-card:has(img) .nvx-brand-card__title,
-.nvx-card:has(img) .nvx-brand-title,
-.nvx-card:has(img) h2,
-.nvx-card:has(img) h3,
-.nvx-brand-card:has(img) .nvx-brand-card__title,
-.nvx-brand-card:has(img) .nvx-brand-title,
-.nvx-brand-card:has(img) h2,
-.nvx-brand-card:has(img) h3,
-.nvx-blog-card:has(img) h2,
-.blog article.post:has(img) .entry-title,
-.blog article.post:has(img) .entry-title a {
-  color: #ffffff;
-  max-width: min(18ch, 100%);
-  text-shadow: 0 1px 18px rgba(0, 0, 0, 0.25);
-}
-
-.nvx-card:has(img) .nvx-brand-card__body,
-.nvx-card:has(img) .nvx-brand-body,
-.nvx-card:has(img) p,
-.nvx-brand-card:has(img) .nvx-brand-card__body,
-.nvx-brand-card:has(img) .nvx-brand-body,
-.nvx-brand-card:has(img) p,
-.nvx-blog-card:has(img) p,
-.blog article.post:has(img) .entry-summary,
-figure.wp-block-image figcaption {
-  color: rgba(255, 255, 255, 0.88);
-  max-width: var(--nvx-measure-lead, 48ch);
-  margin-bottom: 0;
-}
-
-.nvx-card:has(img) .nvx-brand-card__cta,
-.nvx-brand-card:has(img) .nvx-brand-card__cta,
-.nvx-card:has(img) .nvx-button,
-.nvx-brand-card:has(img) .nvx-button,
-.nvx-brand-card:has(img) a.nvx-brand-card__cta {
-  color: #ffffff;
-  border-bottom-color: rgba(255, 255, 255, 0.75);
-}
-
-.nvx-card__content,
-.nvx-brand-card__link {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nvx-gap-tight);
-  align-items: flex-start;
-  color: inherit;
-  text-decoration: none;
-  max-width: min(40rem, 100%);
-}
-
-/* Enlace de tarjeta que envuelve todo: ocupa el stage */
-a.nvx-brand-card__link {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
-  padding: clamp(28px, 4vw, 56px);
-  box-sizing: border-box;
-}
-
-/* Shapes opcionales (solo si se piden en markup; default = recto full-bleed como vídeo) */
-.nvx-shape--organic-a {
+/* Variantes de figura (markup o utility) — no nth-child */
+.nvx-shape--organic-a,
+.nvx-card--flow-a .nvx-card__media,
+.nvx-brand-card--flow-a .nvx-brand-card__media {
   border-radius: 48% 52% 44% 56% / 42% 58% 48% 52%;
 }
-.nvx-shape--organic-b {
+
+.nvx-shape--organic-b,
+.nvx-card--flow-b .nvx-card__media,
+.nvx-brand-card--flow-b .nvx-brand-card__media {
   border-radius: 62% 38% 55% 45% / 48% 42% 58% 52%;
 }
-.nvx-shape--organic-c {
+
+.nvx-shape--organic-c,
+.nvx-card--flow-c .nvx-card__media,
+.nvx-brand-card--flow-c .nvx-brand-card__media {
   border-radius: 36% 64% 52% 48% / 58% 36% 64% 42%;
 }
+
 .nvx-shape--none {
   border-radius: 0;
+  clip-path: none;
 }
+
 .nvx-shape--capsule {
   border-radius: 999px;
+}
+
+/* Texto de bloque: se lee junto a la figura, sin caja */
+.nvx-card__content,
+.nvx-brand-card .nvx-brand-card__title,
+.nvx-brand-card .nvx-brand-card__body,
+.nvx-brand-card .nvx-brand-card__kicker {
+  max-width: var(--nvx-measure, 62ch);
 }
 
 .nvx-brand-card__cta,
@@ -421,18 +287,6 @@ a.nvx-brand-card__link {
 .nvx-brand-card__cta:hover,
 .nvx-brand-inline-link:hover {
   color: var(--nvx-platinum);
-}
-
-/* Logo / header images: never stage-overlay */
-.nvx-logo img,
-.nvx-logo__img,
-#nvx-header img {
-  position: static;
-  width: auto;
-  height: auto;
-  min-height: 0;
-  object-fit: contain;
-  transform: none;
 }
 
 /* Columna editorial (cuerpo de lectura) */

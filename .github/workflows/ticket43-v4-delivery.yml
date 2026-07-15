@@ -47,6 +47,7 @@ jobs:
 
       - name: Compare Against Master
         run: |
+          mkdir -p qa/results
           git fetch origin master
           TARGET="${{ steps.candidate.outputs.sha }}"
           git diff --stat origin/master..."$TARGET" > qa/results/v4-diff-stat.txt

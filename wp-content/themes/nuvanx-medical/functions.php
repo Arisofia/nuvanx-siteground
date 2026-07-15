@@ -207,31 +207,29 @@ function nvx_theme_scripts() {
 	/*
 	 * Orden obligatorio
 	 */
+	/*
+	 * Stack canónico (sin fluid / visual-system / typography-alignment):
+	 * tokens → base → components → site-layout → header → footer → pages → page CSS
+	 */
 	wp_enqueue_style( 'nvx-tokens', $css . 'nvx-tokens.css', array( 'nvx-fonts' ), $asset_version( 'nvx-tokens.css' ) );
 	wp_enqueue_style( 'nvx-base', $css . 'nvx-base.css', array( 'nvx-tokens' ), $asset_version( 'nvx-base.css' ) );
 	wp_enqueue_style( 'nvx-components', $css . 'nvx-components.css', array( 'nvx-base' ), $asset_version( 'nvx-components.css' ) );
 	wp_enqueue_style( 'nvx-site-layout', $css . 'nvx-site-layout.css', array( 'nvx-components' ), $asset_version( 'nvx-site-layout.css' ) );
-	wp_enqueue_style( 'nvx-fluid-organic-2026', $css . 'nvx-fluid-organic-2026.css', array( 'nvx-site-layout' ), $asset_version( 'nvx-fluid-organic-2026.css' ) );
-	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-fluid-organic-2026' ), $asset_version( 'nvx-header.css' ) );
+	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-site-layout' ), $asset_version( 'nvx-header.css' ) );
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-header' ), $asset_version( 'nvx-footer.css' ) );
 	wp_enqueue_style( 'nvx-pages', $css . 'nvx-pages.css', array( 'nvx-footer' ), $asset_version( 'nvx-pages.css' ) );
 
-	$visual_deps = array( 'nvx-pages' );
+	$last_dep = 'nvx-pages';
 
 	if ( $is_generic_page ) {
-		wp_enqueue_style( 'nvx-gutenberg-pages', $css . 'nvx-gutenberg-pages.css', array( 'nvx-pages' ), $asset_version( 'nvx-gutenberg-pages.css' ) );
-		$visual_deps = array( 'nvx-gutenberg-pages' );
+		wp_enqueue_style( 'nvx-gutenberg-pages', $css . 'nvx-gutenberg-pages.css', array( $last_dep ), $asset_version( 'nvx-gutenberg-pages.css' ) );
+		$last_dep = 'nvx-gutenberg-pages';
 	}
 
 	if ( $is_p0 || $is_generic_page || $is_form_page || $is_sede_page ) {
-		wp_enqueue_style( 'nvx-secondary-pages', $css . 'nvx-secondary-pages.css', $visual_deps, $asset_version( 'nvx-secondary-pages.css' ) );
-		$visual_deps = array( 'nvx-secondary-pages' );
+		wp_enqueue_style( 'nvx-secondary-pages', $css . 'nvx-secondary-pages.css', array( $last_dep ), $asset_version( 'nvx-secondary-pages.css' ) );
+		$last_dep = 'nvx-secondary-pages';
 	}
-
-	wp_enqueue_style( 'nvx-visual-system', $css . 'nvx-visual-system.css', $visual_deps, $asset_version( 'nvx-visual-system.css' ) );
-	wp_enqueue_style( 'nvx-typography-alignment', $css . 'nvx-typography-alignment.css', array( 'nvx-visual-system' ), $asset_version( 'nvx-typography-alignment.css' ) );
-
-	$last_dep = 'nvx-typography-alignment';
 
 	if ( $is_form_page ) {
 		wp_enqueue_style( 'nvx-forms', $css . 'nvx-forms.css', array( $last_dep ), $asset_version( 'nvx-forms.css' ) );
@@ -362,17 +360,6 @@ function nvx_theme_strip_block_embeds( string $block_content, array $block ): st
 	return nvx_theme_strip_content_embeds( $block_content );
 }
 
-function nvx_theme_is_nvx_page_shell(): bool {
-	return is_singular() || is_home() || is_front_page() || is_archive();
-}
-
-function nvx_theme_body_class( array $classes ): array {
-	if ( nvx_theme_is_nvx_page_shell() ) {
-		$classes[] = 'nvx-unified-shell';
-	}
-	return $classes;
-}
-add_filter( 'body_class', 'nvx_theme_body_class' );
 /**
  * Strict HTML Control: Disable classic WordPress auto-paragraph filters.
  * Ensures custom block structures and flex/grid layouts do not get injected with empty <p> tags.

@@ -11,7 +11,7 @@
 
 .nvx-brand-hero{
   background:
-    radial-gradient(circle at 18% 8%, rgba(216, 190, 138, 0.12), transparent 28%),
+    radial-gradient(circle at 18% 8%, var(--nvx-accent-glow, rgba(155, 163, 173, 0.16)), transparent 28%),
     linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 100%);
   padding: clamp(42px, 6vw, 84px) 0 clamp(18px, 3vw, 34px);
 }
@@ -193,14 +193,14 @@
 .nvx-brand-btn--primary{
   color: #FFFFFF;
   background: linear-gradient(135deg, #111111, #2A2A2A);
-  border: 1px solid rgba(216,190,138,0.46);
+  border: 1px solid rgba(155,163,173,0.46);
   box-shadow: 0 18px 44px rgba(17,17,17,0.22);
 }
 
 .nvx-brand-btn--secondary{
   color: var(--nvx-graphite);
   background: rgba(255,255,255,0.64);
-  border: 1px solid rgba(216,190,138,0.54);
+  border: 1px solid rgba(155,163,173,0.54);
   box-shadow: var(--nvx-shadow-soft);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -210,7 +210,7 @@
   content: "";
   position: absolute;
   inset: -80% -30%;
-  background: linear-gradient(120deg, transparent 40%, rgba(216,190,138,0.34), transparent 60%);
+  background: linear-gradient(120deg, transparent 40%, rgba(155,163,173,0.34), transparent 60%);
   transform: translateX(-60%);
   transition: transform 0.6s ease;
 }
@@ -227,7 +227,7 @@
 
 .nvx-brand-card:hover{
   transform: translateY(-4px);
-  border-color: rgba(216,190,138,0.72);
+  border-color: rgba(155,163,173,0.72);
   box-shadow:
     0 34px 90px rgba(17, 17, 17, 0.16),
     0 14px 36px rgba(17, 17, 17, 0.10),
@@ -276,7 +276,7 @@
 
 .nvx-brand-card:hover{
   transform: translateY(-4px);
-  border-color: rgba(216,190,138,0.72);
+  border-color: rgba(155,163,173,0.72);
   box-shadow:
     0 34px 90px rgba(17, 17, 17, 0.16),
     0 14px 36px rgba(17, 17, 17, 0.10),
@@ -586,7 +586,7 @@ body.postid-1241 .nvx-brand-btn--secondary,
 body.postid-1200 .nvx-brand-btn--secondary,
 body.page-id-2017 .nvx-brand-btn--secondary{
   background: transparent;
-  border: 1px solid var(--nvx-gold, #B89A5B);
+  border: 1px solid var(--nvx-platinum, #9ba3ad);
   color: var(--nvx-black, #171717);
 }
 
@@ -603,7 +603,7 @@ body.postid-1241 .nvx-brand-card__link,
 body.postid-1200 a.nvx-brand-body,
 body.page-id-2017 a.nvx-brand-body{
   color: var(--nvx-charcoal, #2B2926);
-  border-bottom: 1px solid var(--nvx-gold, #B89A5B);
+  border-bottom: 1px solid var(--nvx-platinum, #9ba3ad);
 }
 
 body.postid-1241 .nvx-brand-section--cta,
@@ -658,7 +658,7 @@ body.page-id-2017 a:focus-visible,
 body.postid-1241 summary:focus-visible,
 body.postid-1200 summary:focus-visible,
 body.page-id-2017 summary:focus-visible{
-  outline: 2px solid var(--nvx-champagne, #B89A5B);
+  outline: 2px solid var(--nvx-platinum, #9ba3ad);
   outline-offset: 3px;
 }
 

@@ -52,12 +52,13 @@
 
   /* ── Spacing clamp (global rhythm) ── */
   --nvx-gap-tight: clamp(12px, 1.5vw, 18px);
-  --nvx-gap-base: clamp(16px, 2vw, 28px);
-  --nvx-gap-wide: clamp(24px, 3vw, 40px);
-  --nvx-gap-section: clamp(40px, 5vw, 80px);
-  --nvx-pad-card: clamp(22px, 2.5vw, 36px);
-  --nvx-pad-section: clamp(56px, 7vw, 96px);
-  --nvx-pad-section-tight: clamp(28px, 3.5vw, 44px);
+  --nvx-gap-base: clamp(20px, 2.4vw, 32px);
+  --nvx-gap-wide: clamp(32px, 4vw, 56px);
+  --nvx-gap-section: clamp(48px, 6vw, 96px);
+  --nvx-pad-card: clamp(28px, 3.2vw, 48px);
+  /* Quiet luxury breathing room (Chanel/Prada editorial rhythm) */
+  --nvx-pad-section: clamp(80px, 9vw, 140px);
+  --nvx-pad-section-tight: clamp(40px, 5vw, 64px);
   --nvx-section-y-tight: var(--nvx-pad-section-tight);
 
   /* ── Content widths ── */
@@ -65,7 +66,7 @@
   --nvx-width-normal: min(760px, 100%);
   --nvx-width-wide: min(960px, 100%);
   --nvx-width-hero: min(1180px, 100%);
-  --nvx-shell: min(1480px, calc(100vw - 64px));
+  --nvx-shell: min(1480px, calc(100vw - clamp(48px, 6vw, 120px)));
   --nvx-readable: var(--nvx-width-normal);
 
   /* ── Semantic surfaces & ink (brand-wide) ── */
@@ -105,7 +106,7 @@
   --nvx-font-sans: var(--nvx-sans);
 
   /* ── Typography scale (closed hierarchy) ── */
-  --nvx-type-display: clamp(2.5rem, 4.5vw, 4.75rem);
+  --nvx-type-display: clamp(2.75rem, 5vw, 5.25rem);
   --nvx-type-h1: clamp(2.25rem, 4.2vw, 4.5rem);
   --nvx-type-h2: clamp(1.75rem, 3vw, 2.75rem);
   --nvx-type-h3: clamp(1.25rem, 2vw, 1.75rem);
@@ -117,7 +118,7 @@
 
   /* ── Section rhythm ── */
   --nvx-section-y: var(--nvx-pad-section);
-  --nvx-section-y-lg: clamp(72px, 8vw, 110px);
+  --nvx-section-y-lg: clamp(96px, 10vw, 160px);
   --nvx-ease: 0.28s ease;
 
   /* ── Breakpoints (reference) ── */

@@ -156,15 +156,24 @@
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-button);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   line-height: 1.2;
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
   transition:
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease;
+    background-color 280ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-color 280ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    color 280ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 280ms ease,
+    transform 280ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 280ms ease;
+}
+
+.nvx-button:hover,
+.nvx-brand-btn:hover,
+.nvx-btn:hover {
+  transform: translateY(-1px);
 }
 
 .nvx-button--primary,
@@ -261,7 +270,7 @@
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-small);
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   line-height: 1.4;
   text-decoration: none;
   text-transform: uppercase;

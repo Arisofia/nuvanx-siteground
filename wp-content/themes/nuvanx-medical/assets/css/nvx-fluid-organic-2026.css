@@ -5,64 +5,74 @@
  */
 
 :root {
+	/* Warm quiet-luxury palette (Phase 3 / Chanel–Prada editorial) — no cool gray-green. */
 	--nvx-fluid-white: #ffffff;
-	--nvx-fluid-pearl: #f7f8f7;
-	--nvx-fluid-mist: #eef1ef;
-	--nvx-fluid-silver: #cbd1d2;
-	--nvx-fluid-graphite: #17191a;
-	--nvx-fluid-charcoal: #282b2c;
-	--nvx-fluid-muted: #666d70;
-	--nvx-fluid-line: rgba(23, 25, 26, 0.14);
-	--nvx-fluid-line-strong: rgba(23, 25, 26, 0.24);
-	--nvx-fluid-cool-accent: #82958f;
-	--nvx-fluid-cool-accent-soft: #dfe7e3;
+	--nvx-fluid-pearl: #f7f1e8;
+	--nvx-fluid-mist: #e9ddcf;
+	--nvx-fluid-silver: #cbbba8;
+	--nvx-fluid-graphite: #171717;
+	--nvx-fluid-charcoal: #2b2926;
+	--nvx-fluid-muted: #6f6861;
+	--nvx-fluid-line: rgba(22, 21, 17, 0.14);
+	--nvx-fluid-line-strong: rgba(22, 21, 17, 0.24);
+	--nvx-fluid-warm-accent: #b89a5b;
+	--nvx-fluid-warm-accent-soft: #e9ddcf;
+	/* Legacy alias kept so any remaining cool-accent refs resolve warm. */
+	--nvx-fluid-cool-accent: var(--nvx-fluid-warm-accent);
+	--nvx-fluid-cool-accent-soft: var(--nvx-fluid-warm-accent-soft);
 	--nvx-fluid-display: "Bodoni Moda", "Times New Roman", serif;
 	--nvx-fluid-body: "Manrope", "Helvetica Neue", sans-serif;
 	--nvx-fluid-script: "Pinyon Script", cursive;
-	--nvx-fluid-shell: min(calc(100vw - clamp(40px, 8vw, 144px)), 1480px);
-	--nvx-fluid-reading: 920px;
-	--nvx-fluid-section-y: clamp(5rem, 8vw, 8.5rem);
+	--nvx-fluid-shell: min(calc(100vw - clamp(48px, 6vw, 120px)), 1480px);
+	--nvx-fluid-reading: 760px;
+	--nvx-fluid-section-y: clamp(80px, 9vw, 140px);
 	--nvx-fluid-transition: 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
 
 	/*
 	 * Compatibilidad visual con el sistema heredado.
-	 * Los componentes antiguos leen estas variables, pero reciben
-	 * la nueva paleta fría y la nueva combinación tipográfica.
+	 * Map to warm Phase 3 tokens (champagne, ivory, ink).
 	 */
-	--nvx-ink: var(--nvx-fluid-graphite);
-	--nvx-charcoal: var(--nvx-fluid-charcoal);
-	--nvx-ivory: var(--nvx-fluid-white);
-	--nvx-sand: var(--nvx-fluid-mist);
-	--nvx-taupe: var(--nvx-fluid-silver);
-	--nvx-champagne: var(--nvx-fluid-cool-accent);
+	--nvx-ink: #171717;
+	--nvx-charcoal: #2b2926;
+	--nvx-ivory: #f7f1e8;
+	--nvx-sand: #e9ddcf;
+	--nvx-taupe: #cbbba8;
+	--nvx-champagne: #b89a5b;
 	--nvx-white: var(--nvx-fluid-white);
 	--nvx-soft-white: var(--nvx-fluid-white);
-	--nvx-stone: var(--nvx-fluid-mist);
-	--nvx-graphite: #4f5759;
-	--nvx-black: var(--nvx-fluid-graphite);
-	--nvx-accent: var(--nvx-fluid-cool-accent);
-	--nvx-text-main: var(--nvx-fluid-charcoal);
-	--nvx-text-body: #3f4547;
-	--nvx-text-muted: var(--nvx-fluid-muted);
-	--nvx-border-soft: var(--nvx-fluid-line);
-	--nvx-border-strong: var(--nvx-fluid-line-strong);
-	--nvx-frosted-ivory: rgba(247, 248, 247, 0.72);
-	--nvx-border-footer: var(--nvx-fluid-line);
-	--nvx-accent-glow: rgba(130, 149, 143, 0.12);
-	--nvx-accent-bg: rgba(130, 149, 143, 0.045);
-	--nvx-stone-hover: rgba(238, 241, 239, 0.72);
-	--nvx-rule: var(--nvx-fluid-line-strong);
-	--nvx-header-bg: rgba(255, 255, 255, 0.92);
-	--nvx-accent-light: #aab8b4;
+	--nvx-stone: #e9ddcf;
+	--nvx-graphite: #4b4f55;
+	--nvx-black: #171717;
+	--nvx-accent: #b89a5b;
+	--nvx-text-main: #2b2926;
+	--nvx-text-body: #3f3a35;
+	--nvx-text-muted: #6f6861;
+	--nvx-border-soft: rgba(203, 187, 168, 0.45);
+	--nvx-border-strong: #cbbba8;
+	--nvx-frosted-ivory: rgba(247, 241, 232, 0.72);
+	--nvx-border-footer: rgba(203, 187, 168, 0.25);
+	--nvx-accent-glow: rgba(184, 154, 91, 0.14);
+	--nvx-accent-bg: rgba(184, 154, 91, 0.04);
+	--nvx-stone-hover: rgba(233, 221, 207, 0.5);
+	--nvx-rule: rgba(203, 187, 168, 0.5);
+	--nvx-header-bg: rgba(252, 250, 247, 0.92);
+	--nvx-accent-light: #c9b48a;
 	--nvx-serif: var(--nvx-fluid-display);
 	--nvx-sans: var(--nvx-fluid-body);
 	--nvx-script: var(--nvx-fluid-script);
+	--nvx-font-serif: var(--nvx-fluid-display);
+	--nvx-font-sans: var(--nvx-fluid-body);
+	--nvx-color-surface: #ffffff;
+	--nvx-color-paper: #f4f2ee;
+	--nvx-color-ink: #161511;
+	--nvx-color-muted: rgba(22, 21, 17, 0.62);
+	--nvx-color-line: rgba(22, 21, 17, 0.14);
 	--nvx-radius-button: 999px;
 	--nvx-radius-card: 0;
 	--nvx-radius-image: 0;
-	--nvx-gradient-page: linear-gradient(180deg, #ffffff 0%, #f7f8f7 100%);
-	--nvx-gradient-hero: linear-gradient(180deg, #ffffff 0%, #f7f8f7 100%);
-	--nvx-gradient-section-warm: linear-gradient(180deg, #f7f8f7 0%, #eef1ef 100%);
+	--nvx-gradient-page: linear-gradient(180deg, #ffffff 0%, #f7f1e8 100%);
+	--nvx-gradient-hero: linear-gradient(180deg, #ffffff 0%, #f7f1e8 100%);
+	--nvx-gradient-section-warm: linear-gradient(180deg, #f7f1e8 0%, #e9ddcf 100%);
 }
 
 html {
@@ -72,11 +82,11 @@ html {
 body.nvx-unified-shell {
 	margin: 0;
 	background: var(--nvx-fluid-pearl);
-	color: var(--nvx-fluid-graphite);
+	color: var(--nvx-text-body, #3f3a35);
 	font-family: var(--nvx-fluid-body);
 	font-size: 17px;
 	font-weight: 300;
-	line-height: 1.62;
+	line-height: 1.7;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -88,9 +98,9 @@ body.nvx-unified-shell::before {
 	z-index: -1;
 	pointer-events: none;
 	background:
-		radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.96), transparent 28%),
-		radial-gradient(circle at 88% 26%, rgba(223, 231, 227, 0.58), transparent 24%),
-		linear-gradient(180deg, #ffffff 0%, #f6f7f6 52%, #ffffff 100%);
+		radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.9), transparent 30%),
+		radial-gradient(circle at 88% 26%, rgba(233, 221, 207, 0.45), transparent 26%),
+		linear-gradient(180deg, #ffffff 0%, #f7f1e8 52%, #ffffff 100%);
 }
 
 body.nvx-unified-shell img,
@@ -476,7 +486,7 @@ body.nvx-unified-shell .nvx-footer address {
 @media (max-width: 680px) {
 	:root {
 		--nvx-fluid-shell: calc(100vw - 40px);
-		--nvx-fluid-section-y: 4.75rem;
+		--nvx-fluid-section-y: clamp(64px, 14vw, 96px);
 	}
 
 	body.nvx-unified-shell {

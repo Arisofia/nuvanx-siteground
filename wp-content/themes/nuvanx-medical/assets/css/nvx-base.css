@@ -12,21 +12,22 @@
   /* --- Paleta cromática --- */
   --nvx-ink:            #171717;   /* Negro editorial principal */
   --nvx-charcoal:       #2B2926;   /* Fondo hero / vídeo */
-  --nvx-ivory:          #F7F3EE;   /* Fondo principal páginas interiores */
-  --nvx-paper:          #FCFAF7;   /* Fondo secciones de contenido claro */
-  --nvx-soft:           #F0ECE6;   /* Fondo alternativo, bloques suaves */
+  --nvx-ivory:          #F7F1E8;   /* Fondo principal páginas interiores (Phase 3) */
+  --nvx-paper:          #F4F2EE;   /* Fondo secciones de contenido claro */
+  --nvx-soft:           #E9DDCF;   /* Fondo alternativo, bloques suaves */
   --nvx-warm-dark:      #3D3830;   /* Bloques oscuros cálidos */
-  --nvx-muted:          #68635D;   /* Texto secundario, kickers, meta */
+  --nvx-muted:          #6F6861;   /* Texto secundario, kickers, meta */
   --nvx-placeholder:    #A09890;   /* Placeholder, hints */
   --nvx-white:          #FFFFFF;
+  --nvx-champagne:      #B89A5B;   /* Acento metal cálido */
   --nvx-line:           rgba(23, 23, 23, 0.12);  /* Separadores sutiles */
   --nvx-line-strong:    rgba(23, 23, 23, 0.24);  /* Separadores visibles */
   --nvx-overlay-dark:   rgba(23, 23, 23, 0.55);  /* Overlay sobre imágenes */
   --nvx-overlay-warm:   rgba(61, 56, 48, 0.70);  /* Overlay cálido oscuro */
 
-  /* --- Tipografía --- */
-  --nvx-serif:   'Cormorant Garamond', 'Georgia', serif;
-  --nvx-sans:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* --- Tipografía (canónica Phase 3 — no Cormorant/Inter) --- */
+  --nvx-serif:   "Bodoni Moda", "Times New Roman", Georgia, serif;
+  --nvx-sans:    "Manrope", "Helvetica Neue", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   /* --- Escala tipográfica (clamp: mínimo · preferido · máximo) --- */
   --nvx-fs-xs:    clamp(0.625rem, 0.6vw, 0.75rem);    /* 10–12px: kickers, labels */
@@ -49,7 +50,7 @@
   --nvx-lh-tight:  1.1;
   --nvx-lh-heading:1.15;
   --nvx-lh-snug:   1.3;
-  --nvx-lh-base:   1.65;
+  --nvx-lh-base:   1.7;
   --nvx-lh-loose:  1.8;
 
   /* --- Tracking (letter-spacing) --- */
@@ -182,15 +183,16 @@ svg {
    2. TIPOGRAFÍA BASE
    -------------------------------------------------------------------------- */
 
-/* Serif — Cormorant Garamond: títulos, citas, display */
+/* Serif — Bodoni Moda: títulos, citas, display */
 h1, h2, h3,
 .nvx-serif,
 .nvx-display {
   font-family: var(--nvx-serif);
-  font-weight: var(--nvx-fw-medium);
+  font-weight: var(--nvx-fw-regular, 400);
   line-height: var(--nvx-lh-heading);
   letter-spacing: var(--nvx-ls-tight);
   color: var(--nvx-ink);
+  text-wrap: balance;
 }
 
 /* Escalas heading */
@@ -206,7 +208,7 @@ h5, h6 { font-family: var(--nvx-sans); font-size: var(--nvx-fs-sm); font-weight:
   font-family: var(--nvx-sans);
   font-size: var(--nvx-fs-xs);
   font-weight: var(--nvx-fw-semibold);
-  letter-spacing: var(--nvx-ls-widest);
+  letter-spacing: var(--nvx-ls-ultra, 0.22em);
   text-transform: uppercase;
   color: var(--nvx-muted);
   margin-bottom: var(--nvx-sp-4);

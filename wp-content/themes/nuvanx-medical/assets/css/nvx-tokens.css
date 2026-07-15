@@ -50,6 +50,16 @@
   --space-7: 48px;
   --space-8: 64px;
 
+  /* ── Spacing clamp (global rhythm) ── */
+  --nvx-gap-tight: clamp(12px, 1.5vw, 18px);
+  --nvx-gap-base: clamp(16px, 2vw, 28px);
+  --nvx-gap-wide: clamp(24px, 3vw, 40px);
+  --nvx-gap-section: clamp(40px, 5vw, 80px);
+  --nvx-pad-card: clamp(22px, 2.5vw, 36px);
+  --nvx-pad-section: clamp(56px, 7vw, 96px);
+  --nvx-pad-section-tight: clamp(28px, 3.5vw, 44px);
+  --nvx-section-y-tight: var(--nvx-pad-section-tight);
+
   /* ── Content widths ── */
   --nvx-width-narrow: min(640px, 100%);
   --nvx-width-normal: min(760px, 100%);
@@ -58,14 +68,31 @@
   --nvx-shell: min(1480px, calc(100vw - 64px));
   --nvx-readable: var(--nvx-width-normal);
 
+  /* ── Semantic surfaces & ink (brand-wide) ── */
+  --nvx-color-surface: var(--nvx-white);
+  --nvx-color-paper: #F4F2EE;
+  --nvx-color-ink: #161511;
+  --nvx-color-muted: rgba(22, 21, 17, 0.62);
+  --nvx-color-line: rgba(22, 21, 17, 0.14);
+
+  /* ── Shell widths ── */
+  --nvx-shell-wide: min(1360px, calc(100vw - 80px));
+  --nvx-shell-reading: var(--nvx-width-normal);
+
+  /* ── Media aspect ratios (roles) ── */
+  --nvx-media-ratio-hero: 16 / 9;
+  --nvx-media-ratio-editorial: 3 / 2;
+  --nvx-media-ratio-treatment: 16 / 9;
+  --nvx-media-ratio-doctor: 5 / 6;
+  --nvx-media-ratio-clinic: 19 / 12;
+  --nvx-media-ratio-panorama: 16 / 9;
+
   /* ── Radii ── */
   --nvx-radius-button: 999px;
   --nvx-radius-card: 0;
   --nvx-radius-image: 0;
   --nvx-radius-form: 8px;
-  --nvx-radius-form: 8px;
   --nvx-radius-sm: var(--nvx-radius-button);
-  --nvx-radius-md: var(--nvx-radius-form);
   --nvx-radius-md: var(--nvx-radius-form);
   --nvx-radius-lg: var(--nvx-radius-card);
   --nvx-radius-xl: 24px;
@@ -74,6 +101,8 @@
   --nvx-serif: var(--nvx-fluid-display, "Bodoni Moda", "Times New Roman", serif);
   --nvx-sans: var(--nvx-fluid-body, "Manrope", "Helvetica Neue", Arial, sans-serif);
   --nvx-script: var(--nvx-fluid-script, "Pinyon Script", cursive);
+  --nvx-font-serif: var(--nvx-serif);
+  --nvx-font-sans: var(--nvx-sans);
 
   /* ── Typography scale (closed hierarchy) ── */
   --nvx-type-display: clamp(2.5rem, 4.5vw, 4.75rem);
@@ -87,7 +116,7 @@
   --nvx-type-button: 0.6875rem;
 
   /* ── Section rhythm ── */
-  --nvx-section-y: clamp(48px, 7vw, 96px);
+  --nvx-section-y: var(--nvx-pad-section);
   --nvx-section-y-lg: clamp(72px, 8vw, 110px);
   --nvx-ease: 0.28s ease;
 
@@ -110,13 +139,34 @@
   --nvx-gradient-section-warm: linear-gradient(180deg, var(--nvx-ivory) 0%, var(--nvx-sand) 100%);
   --nvx-gradient-section-dark: linear-gradient(180deg, var(--nvx-charcoal) 0%, var(--nvx-ink) 100%);
 }
+@media (max-width: 1280px) {
+  :root {
+    --nvx-shell-wide: calc(100vw - 64px);
+  }
+}
 @media (max-width: 980px) {
   :root {
     --nvx-shell: calc(100vw - 48px);
+    --nvx-shell-wide: calc(100vw - 48px);
+  }
+}
+@media (max-width: 768px) {
+  :root {
+    --nvx-shell-wide: calc(100vw - 36px);
   }
 }
 @media (max-width: 680px) {
   :root {
     --nvx-shell: calc(100vw - 24px);
+  }
+}
+@media (max-width: 390px) {
+  :root {
+    --nvx-shell-wide: calc(100vw - 28px);
+  }
+}
+@media (max-width: 360px) {
+  :root {
+    --nvx-shell-wide: calc(100vw - 24px);
   }
 }

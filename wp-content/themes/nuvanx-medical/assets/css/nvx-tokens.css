@@ -132,11 +132,17 @@
      4. MEDIA / RADII
      ═══════════════════════════════════════════════════════════ */
   --nvx-media-ratio-hero: 16 / 9;
-  --nvx-media-ratio-editorial: 3 / 2;
+  --nvx-media-ratio-editorial: 16 / 10; /* más panorámico que 3/2 → menos altura */
   --nvx-media-ratio-treatment: 16 / 9;
   --nvx-media-ratio-doctor: 5 / 6;
   --nvx-media-ratio-clinic: 19 / 12;
   --nvx-media-ratio-panorama: 16 / 9;
+
+  /* Tope de altura de fotografías (evita full-bleed gigantes en desktop) */
+  --nvx-media-max-h: clamp(180px, 30vw, 320px);
+  --nvx-media-max-h-hero: clamp(220px, 36vw, 420px);
+  --nvx-media-max-h-featured: clamp(200px, 32vw, 360px);
+  --nvx-media-max-h-full: clamp(240px, 38vw, 480px);
 
   /* Radii suaves (sin cajas PowerPoint / sin radio 0 duro en media) */
   --nvx-radius-button: 999px;

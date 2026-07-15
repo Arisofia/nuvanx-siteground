@@ -436,13 +436,15 @@ figcaption {
   position: relative;
   display: block;
   width: 100%;
+  height: var(--nvx-media-max-h);
+  max-height: var(--nvx-media-max-h);
   margin: 0 0 var(--nvx-gap-wide);
   overflow: hidden;
   border: 0;
   box-shadow: none;
   background: var(--nvx-media-bleed-color, var(--nvx-charcoal));
   border-radius: var(--nvx-radius-image);
-  aspect-ratio: var(--nvx-media-ratio-editorial, 3 / 2);
+  aspect-ratio: auto;
 }
 
 /* Continuidad visual por defecto: velo inferior (texto legible + color al borde) */
@@ -472,8 +474,17 @@ figcaption {
 }
 
 .nvx-brand-hero__media {
-  aspect-ratio: var(--nvx-media-ratio-hero, 16 / 9);
+  height: var(--nvx-media-max-h-hero);
+  max-height: var(--nvx-media-max-h-hero);
   margin-bottom: 0;
+}
+
+/* Panoramas / clínicas: un poco más altas, aún acotadas */
+.nvx-home-clinica-panorama__media,
+.nvx-media--panorama,
+.nvx-media--clinic {
+  height: var(--nvx-media-max-h-featured);
+  max-height: var(--nvx-media-max-h-featured);
 }
 
 .nvx-card__media img,
@@ -495,7 +506,8 @@ figcaption {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: clamp(220px, 28vw, 380px);
+  min-height: 0;
+  max-height: none;
   max-width: 100%;
   object-fit: cover;
   object-position: center;
@@ -505,14 +517,16 @@ figcaption {
   transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-/* Imágenes sueltas en contenido: mismo radio suave, sin marco */
+/* Imágenes sueltas en contenido: altura acotada, crop suave */
 .nvx-page__content > img,
 .entry-content > img,
 .nvx-page__content p > img,
 .entry-content p > img {
-  height: auto;
+  width: 100%;
+  height: var(--nvx-media-max-h);
+  max-height: var(--nvx-media-max-h);
   min-height: 0;
-  aspect-ratio: var(--nvx-media-ratio-editorial, 3 / 2);
+  aspect-ratio: auto;
   object-fit: cover;
   border-radius: var(--nvx-radius-image);
   background: var(--nvx-media-bleed-color, var(--nvx-charcoal));
@@ -1040,8 +1054,10 @@ figcaption {
   );
   position: relative;
   width: 100%;
-  min-height: min(760px, calc(100vw * 9 / 16));
-  aspect-ratio: var(--nvx-media-ratio-hero);
+  height: var(--nvx-media-max-h-full);
+  max-height: var(--nvx-media-max-h-full);
+  min-height: 0;
+  aspect-ratio: auto;
   overflow: hidden;
   isolation: isolate;
 }
@@ -1245,11 +1261,16 @@ figcaption {
   border-radius: 0;
 }
 
+.nvx-page__featured {
+  height: var(--nvx-media-max-h-featured);
+  max-height: var(--nvx-media-max-h-featured);
+}
+
 .nvx-page__featured img {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: clamp(280px, 42vw, 520px);
+  height: 100%;
+  max-height: none;
   object-fit: cover;
 }
 

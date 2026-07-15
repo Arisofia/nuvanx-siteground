@@ -153,64 +153,12 @@ function nvx_theme_scripts() {
 	};
 
 	$is_front_page = nvx_theme_is_home_page();
-	$is_p0         = nvx_theme_is_p0_shell_page();
-	$is_treatment  = nvx_theme_is_brand_treatment();
 
-	$is_post_context = is_home()
-		|| is_archive()
-		|| is_search()
-		|| is_singular( 'post' );
-
-	$is_form_page = is_page( array( 14, 2636 ) )
-		|| is_page_template( 'templates/page-contacto.php' )
-		|| is_page_template( 'templates/page-landing-valoracion.php' );
-
-	$current_post = is_singular()
-		? get_queried_object()
-		: null;
-
-	if (
-		! $is_form_page
-		&& $current_post instanceof WP_Post
-		&& is_string( $current_post->post_content )
-	) {
-		$content = $current_post->post_content;
-
-		$is_form_page = false !== stripos( $content, 'hs-form' )
-			|| false !== stripos( $content, 'hubspot' )
-			|| has_shortcode( $content, 'hubspot' );
-	}
-
-	$is_sede_page = is_page_template( 'templates/page-sede.php' );
-
-	if (
-		! $is_sede_page
-		&& is_singular( 'page' )
-		&& $current_post instanceof WP_Post
-	) {
-		$is_sede_page = false !== strpos(
-			$current_post->post_content,
-			'nvx-sede-page'
-		) || false !== strpos(
-			$current_post->post_content,
-			'nvx-advanced-page'
-		);
-	}
-
-	$is_generic_page = is_singular( 'page' )
-		&& ! $is_front_page
-		&& ! $is_p0
-		&& ! $is_treatment
-		&& ! $is_form_page
-		&& ! $is_sede_page;
-
-	/*
-	 * Orden obligatorio
-	 */
 	/*
 	 * Un solo diseño en todo el sitio:
 	 * tokens → base → site-layout → header → footer → components
 	 * Única excepción: brand-home (vídeo portada).
+	 * Consulta/contacto/blog/sedes/tratamientos: mismo stack (sin CSS por página).
 	 */
 	wp_enqueue_style( 'nvx-tokens', $css . 'nvx-tokens.css', array( 'nvx-fonts' ), $asset_version( 'nvx-tokens.css' ) );
 	wp_enqueue_style( 'nvx-base', $css . 'nvx-base.css', array( 'nvx-tokens' ), $asset_version( 'nvx-base.css' ) );
@@ -355,27 +303,50 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 	}
 
 	// 3) Clases legacy → canónicas (diseño único).
+	// Consulta/contacto: quitar raíz de landing paralela y alias tipográficos.
 	$replacements = array(
-		'nvx-display-section'       => 'nvx-heading',
-		'nvx-page__title'           => 'nvx-heading',
-		'nvx-journal-hero__title'   => 'nvx-heading',
-		'nvx-journal-item__title'   => 'nvx-brand-card__title',
-		'nvx-journal-item__cat'     => 'nvx-eyebrow',
-		'nvx-journal-item__excerpt' => 'nvx-brand-card__body',
-		'nvx-journal-item__date'    => 'nvx-brand-card__kicker',
-		'nvx-journal-item'          => 'nvx-brand-card',
-		'nvx-blog-card__title'      => 'nvx-brand-card__title',
-		'nvx-blog-card__meta'       => 'nvx-brand-card__kicker',
-		'nvx-blog-card__excerpt'    => 'nvx-brand-card__body',
-		'nvx-blog-card'             => 'nvx-brand-card',
-		'nvx-bg-ivory'              => '',
-		'nvx-container--text'       => 'nvx-shell',
-		'nvx-container'             => 'nvx-shell',
-		'nvx-single-hero'           => 'nvx-section-intro',
-		'nvx-single-content'        => 'nvx-page__content',
-		'nvx-article-hero'          => 'nvx-section-intro',
-		'has-background'            => '',
-		'has-text-color'            => '',
+		'nvx-display-section'         => 'nvx-heading',
+		'nvx-page__title'             => 'nvx-heading',
+		'nvx-journal-hero__title'     => 'nvx-heading',
+		'nvx-journal-item__title'     => 'nvx-brand-card__title',
+		'nvx-journal-item__cat'       => 'nvx-eyebrow',
+		'nvx-journal-item__excerpt'   => 'nvx-brand-card__body',
+		'nvx-journal-item__date'      => 'nvx-brand-card__kicker',
+		'nvx-journal-item'            => 'nvx-brand-card',
+		'nvx-blog-card__title'        => 'nvx-brand-card__title',
+		'nvx-blog-card__meta'         => 'nvx-brand-card__kicker',
+		'nvx-blog-card__excerpt'      => 'nvx-brand-card__body',
+		'nvx-blog-card'               => 'nvx-brand-card',
+		'nvx-bg-ivory'                => '',
+		'nvx-container--text'         => 'nvx-shell',
+		'nvx-container'               => 'nvx-shell',
+		'nvx-single-hero'             => 'nvx-section-intro',
+		'nvx-single-content'          => 'nvx-page__content',
+		'nvx-article-hero'            => 'nvx-section-intro',
+		/* nvx-title se deja: el tamaño lo da h1/h2/h3 (no mapear a .nvx-heading = h2). */
+		'nvx-subtitle'                => 'nvx-lead',
+		'nvx-hero-subtitle'           => 'nvx-lead',
+		'nvx-shell-page'              => '',
+		'nvx-valoracion-page'         => '',
+		'nvx-landing-valoracion'      => '',
+		'nvx-med-page'                => '',
+		'nvx-contacto-page'           => '',
+		'nvx-contact-page'            => '',
+		'nvx-section--soft'           => '',
+		'nvx-section--cta'            => '',
+		'nvx-width-narrow'            => '',
+		'nvx-width-normal'            => '',
+		'nvx-width-wide'              => '',
+		'nvx-valoracion-form-section' => '',
+		'nvx-hubspot-form-section'    => '',
+		'nvx-hs-native-section'       => 'nvx-form',
+		'nvx-hs-native-box'           => '',
+		'nvx-hubspot-native-form-v2'  => '',
+		'nvx-card--cta'               => '',
+		'nvx-registro'                => 'nvx-copy',
+		'nvx-form-note'               => 'nvx-copy',
+		'has-background'              => '',
+		'has-text-color'              => '',
 	);
 	foreach ( $replacements as $from => $to ) {
 		if ( '' === $to ) {

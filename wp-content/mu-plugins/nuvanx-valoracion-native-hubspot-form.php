@@ -4,7 +4,7 @@
  * Description: Monta el frame HubSpot en /madrid/valoracion/ y emite flag de página.
  * Version: 2026.07.15
  *
- * Estilos: solo tema global (nvx-components). Sin CSS por page-id ni !important.
+ * Estilos: solo tema global (nvx-components). Sin CSS por page-id ni overrides locales.
  */
 
 defined( 'ABSPATH' ) || exit;

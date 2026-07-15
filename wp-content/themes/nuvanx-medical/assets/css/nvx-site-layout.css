@@ -1,6 +1,6 @@
 /* NUVANX — Site layout contract (todas las páginas, un solo ritmo)
  * Shell, gutters y secciones: SOLO tokens de nvx-tokens.css.
- * No redefine paleta ni tipografía.
+ * No redefine paleta ni tipografía. Sin forks por página.
  */
 
 /* Contenedor principal — un contrato */
@@ -9,7 +9,7 @@
 .nvx-page__shell,
 .nvx-page-hero__inner,
 .nvx-page-body__inner,
-.nvx-container:not(#nvx-home-main .nvx-container),
+.nvx-container,
 .nvx-nosotros-inner,
 .nvx-med-main,
 .nvx-brand-section__inner,
@@ -24,7 +24,7 @@
 /* Secciones globales: padding vertical del contrato */
 .nvx-section,
 .nvx-brand-section,
-.nvx-pattern-hero:not(.nvx-home-hero-stage),
+.nvx-pattern-hero,
 .nvx-pattern-intro,
 .nvx-pattern-method,
 .nvx-pattern-authority,
@@ -38,40 +38,23 @@
   box-sizing: border-box;
 }
 
+/* El stage de vídeo del home no es una sección de página */
+body.home .nvx-home-hero-stage.nvx-pattern-hero,
+body.home .nvx-home-hero-stage {
+  padding-block: 0;
+}
+
 .nvx-brand-section--tight,
 .nvx-section--tight {
   padding-block: var(--nvx-section-y-tight);
 }
 
-/* Base page — un solo fondo/texto (incl. alias legacy de consulta/contacto) */
-.nvx-page,
-.nvx-page--blog,
-.nvx-tratamiento-page,
-.nvx-sede-page,
-.nvx-contacto-page,
-.nvx-contact-page,
-.nvx-landing-valoracion,
-.nvx-valoracion-page,
-.nvx-med-page,
-.nvx-shell-page {
+/* Base page — un solo fondo/texto */
+.nvx-page {
   color: var(--nvx-text-body);
   background: var(--nvx-color-paper);
 }
 
-/* Wrappers legacy de landing: no crean segundo layout */
-.nvx-shell-page,
-.nvx-valoracion-page,
-.nvx-contacto-page,
-.nvx-med-page,
-.nvx-landing-valoracion {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.nvx-page--default .nvx-page__content,
 .nvx-page__content {
   padding: 0;
   margin: 0;
@@ -81,7 +64,7 @@
 
 /*
  * Contenido ya va dentro de .nvx-page__shell:
- * anidar .nvx-shell otra vez duplicaba gutters (caso consulta/contacto).
+ * anidar .nvx-shell otra vez duplicaba gutters.
  */
 .nvx-page__shell .nvx-page__content .nvx-shell,
 .nvx-page__shell .nvx-page__content .nvx-page-hero__inner,
@@ -91,14 +74,6 @@
   max-width: 100%;
   margin-inline: 0;
   padding-inline: 0;
-}
-
-/* Utilidades de ancho legacy del markup de formularios: una sola measure */
-.nvx-width-narrow,
-.nvx-width-normal,
-.nvx-width-wide {
-  width: 100%;
-  max-width: none;
 }
 
 /* Measure: body text no se estira a full-bleed */
@@ -111,7 +86,7 @@
   max-width: var(--nvx-measure);
 }
 
-/* Hero / intro de página: mismo ritmo de sección (sin full-bleed 100vw que rompe el shell) */
+/* Hero / intro de página: mismo ritmo de sección */
 .nvx-page-hero,
 .nvx-hero-section,
 .nvx-med-hero,
@@ -143,30 +118,20 @@
   z-index: 1;
 }
 
-/* Intro de consulta/contacto: centrada como el resto del sitio */
+/* Intro de página: centrada como el resto del sitio */
 .nvx-page__content .nvx-page-hero .nvx-kicker,
 .nvx-page__content .nvx-page-hero h1,
 .nvx-page__content .nvx-page-hero .nvx-title,
 .nvx-page__content .nvx-page-hero .nvx-lead,
-.nvx-page__content .nvx-page-hero .nvx-subtitle,
-.nvx-page__content .nvx-page-hero .nvx-hero-subtitle,
 .nvx-page__content .nvx-page-hero .nvx-page__cta,
 .nvx-page__content .nvx-page-hero .nvx-copy {
   text-align: center;
   margin-inline: auto;
 }
 
-/* Secciones soft/cta: sin segundo fondo de página */
-.nvx-section--soft,
-.nvx-section--cta {
-  background: transparent;
-}
-
 /* Cards en page-body: flujo editorial limpio */
 .nvx-page-body__inner > .nvx-card,
-.nvx-page__shell > .nvx-card,
-.nvx-tratamiento-page .nvx-page-body__inner .nvx-card,
-.nvx-sede-page .nvx-page-body__inner .nvx-card {
+.nvx-page__shell > .nvx-card {
   margin-bottom: 0;
   padding: 0;
   background: transparent;
@@ -175,7 +140,7 @@
   box-shadow: none;
 }
 
-/* Una sola columna en todo el sitio (sin layouts multi-col por página) */
+/* Una sola columna en todo el sitio */
 .nvx-positioning-grid,
 .nvx-locations-grid,
 .nvx-brand-grid,

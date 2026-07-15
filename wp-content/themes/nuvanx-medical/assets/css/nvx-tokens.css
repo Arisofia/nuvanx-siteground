@@ -221,7 +221,9 @@
   --nvx-type-kicker: clamp(0.6875rem, 0.7vw, 0.75rem);
   --nvx-type-button: 0.75rem;
   --nvx-type-script: clamp(1.5rem, 2.5vw, 2.25rem);
-  --nvx-type-numeral: clamp(1.875rem, 3.2vw, 2.75rem);   /* índices 01 / 02 */
+  --nvx-type-numeral: clamp(1.875rem, 3.2vw, 2.75rem);   /* índices compactos */
+  --nvx-type-numeral-display: clamp(3rem, 6.5vw, 5.5rem); /* 01 / 02 como diseño */
+  --nvx-type-pull: clamp(1.35rem, 2.4vw, 1.85rem);        /* pull quote */
 
   --nvx-fw-ultralight: 200;
   --nvx-fw-light: 300;

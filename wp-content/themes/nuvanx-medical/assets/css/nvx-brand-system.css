@@ -1,47 +1,11 @@
 /*
- * NUVANX BRAND SYSTEM FINAL
- * Blanco puro + grafito + champagne metal + vidrio nevado.
+ * NUVANX BRAND SYSTEM — composición de páginas brand.
+ * NO redefine :root (paleta/shell/espaciado viven en nvx-tokens.css — Plata Pulida).
  */
 
-:root {
-  --nvx-white: #FFFFFF;
-  --nvx-graphite: #111111;
-  --nvx-graphite-soft: #2A2A2A;
-  --nvx-text-muted: rgba(17, 17, 17, 0.68);
-
-  --nvx-metal-light: #D8BE8A;
-  --nvx-metal-mid: #C6A56F;
-  --nvx-metal-deep: #A98246;
-  --nvx-metal-glint: rgba(255, 255, 255, 0.68);
-  --nvx-metal-shadow: rgba(80, 60, 35, 0.22);
-
-  --nvx-glass-bg: rgba(255, 255, 255, 0.68);
-  --nvx-glass-border: rgba(255, 255, 255, 0.72);
-  --nvx-border-soft: rgba(17, 17, 17, 0.10);
-
-  --nvx-shadow-card:
-    0 28px 80px rgba(17, 17, 17, 0.13),
-    0 10px 30px rgba(17, 17, 17, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.82);
-
-  --nvx-shadow-soft:
-    0 18px 50px rgba(17, 17, 17, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
-
-  --nvx-font-serif: "Bodoni Moda", "Times New Roman", Georgia, serif;
-  --nvx-font-sans: "Manrope", "Helvetica Neue", Arial, sans-serif;
-
-  --nvx-shell: 100%;
-  --nvx-readable: min(880px, calc(100vw - 72px));
-  --nvx-section-y: clamp(56px, 7vw, 96px);
-  --nvx-section-y-tight: clamp(36px, 5vw, 64px);
-  --nvx-radius-card: 28px;
-  --nvx-radius-image: 24px;
-}
-
 body {
-  background: var(--nvx-white);
-  color: var(--nvx-graphite);
+  background: var(--nvx-color-paper, var(--nvx-white));
+  color: var(--nvx-text-body, var(--nvx-graphite));
 }
 
 .nvx-brand-page {
@@ -51,25 +15,29 @@ body {
 
 .nvx-brand-hero {
   background:
-    radial-gradient(circle at 18% 8%, rgba(216, 190, 138, 0.12), transparent 28%),
-    linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 100%);
-  padding: clamp(42px, 6vw, 84px) 0 clamp(18px, 3vw, 34px);
+    radial-gradient(circle at 18% 8%, var(--nvx-accent-glow), transparent 28%),
+    var(--nvx-gradient-hero);
+  padding: var(--nvx-section-y) 0 var(--nvx-section-y-tight);
 }
 
 .nvx-brand-hero__inner {
   width: var(--nvx-shell);
+  max-width: 100%;
   margin: 0 auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
 }
 
 .nvx-brand-hero__title {
-  max-width: 1180px;
+  max-width: min(18ch, 100%);
   margin: 0;
-  color: var(--nvx-graphite);
-  font-family: var(--nvx-font-sans);
-  font-weight: 200;
-  line-height: 1;
-  letter-spacing: -0.055em;
+  color: var(--nvx-color-ink);
+  font-family: var(--nvx-font-serif);
+  font-weight: 400;
+  line-height: var(--nvx-lh-display, 0.98);
+  letter-spacing: var(--nvx-track-display, -0.04em);
   text-align: left;
+  text-wrap: balance;
 }
 
 .nvx-brand-hero__line {
@@ -303,13 +271,8 @@ body:not(.home) .nvx-home-hero-video {
 }
 
 @media (max-width: 1023px) {
-  :root {
-    --nvx-shell: 100%;
-    --nvx-readable: calc(100vw - 28px);
-  }
-
   .nvx-brand-hero {
-    padding-top: 30px;
+    padding-top: clamp(32px, 6vw, 48px);
   }
 
   .nvx-brand-hero__title {

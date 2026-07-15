@@ -208,12 +208,9 @@ function nvx_theme_scripts() {
 	 * Orden obligatorio
 	 */
 	/*
-	 * Stack GLOBAL only:
+	 * Un solo diseño en todo el sitio:
 	 * tokens → base → site-layout → header → footer → components
-	 * + forms (functional fields only)
-	 * + brand-home ONLY on front page (video)
-	 *
-	 * No brand-system / treatment / secondary / sede / posts / pages / gutenberg CSS.
+	 * Única excepción: brand-home (vídeo portada).
 	 */
 	wp_enqueue_style( 'nvx-tokens', $css . 'nvx-tokens.css', array( 'nvx-fonts' ), $asset_version( 'nvx-tokens.css' ) );
 	wp_enqueue_style( 'nvx-base', $css . 'nvx-base.css', array( 'nvx-tokens' ), $asset_version( 'nvx-base.css' ) );
@@ -222,16 +219,15 @@ function nvx_theme_scripts() {
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-header' ), $asset_version( 'nvx-footer.css' ) );
 	wp_enqueue_style( 'nvx-components', $css . 'nvx-components.css', array( 'nvx-footer' ), $asset_version( 'nvx-components.css' ) );
 
-	$last_dep = 'nvx-components';
-
-	if ( $is_form_page ) {
-		wp_enqueue_style( 'nvx-forms', $css . 'nvx-forms.css', array( $last_dep ), $asset_version( 'nvx-forms.css' ) );
-		$last_dep = 'nvx-forms';
-	}
-
 	if ( $is_front_page ) {
-		wp_enqueue_style( 'nvx-brand-home', $css . 'nvx-brand-home.css', array( $last_dep ), $asset_version( 'nvx-brand-home.css' ) );
-		wp_enqueue_script( 'nvx-brand-system', get_template_directory_uri() . '/assets/js/nvx-brand-system.js', array(), filemtime( get_template_directory() . '/assets/js/nvx-brand-system.js' ), true );
+		wp_enqueue_style( 'nvx-brand-home', $css . 'nvx-brand-home.css', array( 'nvx-components' ), $asset_version( 'nvx-brand-home.css' ) );
+		wp_enqueue_script(
+			'nvx-brand-system',
+			get_template_directory_uri() . '/assets/js/nvx-brand-system.js',
+			array(),
+			filemtime( get_template_directory() . '/assets/js/nvx-brand-system.js' ),
+			true
+		);
 	}
 
 	wp_enqueue_script( 'nvx-main', get_template_directory_uri() . '/assets/js/nvx-main.js', array(), $ver, true );

@@ -709,18 +709,7 @@ p,
 }
 
 /* Header home variant belongs to the shared component layer, not page CSS. */
-body.home #nvx-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: var(--nvx-z-header);
-  padding: 24px 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-}
+/* home header: nvx-header.css + brand-home only */
 
 body.home #nvx-header .nvx-header__inner {
   width: var(--nvx-shell-wide);
@@ -804,11 +793,7 @@ body.home #nvx-header #nvx-header-cta {
     padding-block: clamp(28px, 5vw, 48px) clamp(48px, 7vw, 72px);
   }
 
-  body.home #nvx-header {
-    position: relative;
-    padding: 10px 0;
-    background: var(--nvx-color-paper);
-  }
+  /* home header: nvx-header.css + brand-home only */
 }
 
 @media (max-width: 620px) {
@@ -836,7 +821,7 @@ body.home #nvx-header #nvx-header-cta {
   }
 }
 
-/* Shell de página unificado (blog, single, contacto, sede…) */
+/* Shell de pagina unificado (todas las paginas)
 .nvx-page__shell {
   width: var(--nvx-shell);
   max-width: 100%;
@@ -894,4 +879,97 @@ body.home #nvx-header #nvx-header-cta {
   margin: 0 0 var(--nvx-gap-wide);
   float: none;
   flex-basis: auto;
+}
+
+/* Forms (parte del sistema global, no diseno de pagina) */
+/* Forms only â€” functional fields, no page layout / no columns / no palette forks.
+ * Colors from tokens. Structure from global shell.
+ */
+.nvx-form,
+.nvx-hubspot-wrap,
+#nvx-hubspot-form,
+#nvx-hubspot-native-form {
+  max-width: var(--nvx-measure, 62ch);
+  margin-inline: auto;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  color: var(--nvx-text-body);
+}
+
+.nvx-form label,
+.hs-form label {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--nvx-platinum);
+  font-family: var(--nvx-font-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: 600;
+  letter-spacing: var(--nvx-track-kicker, 0.2em);
+  text-transform: uppercase;
+}
+
+.nvx-form input,
+.nvx-form textarea,
+.nvx-form select,
+.hs-form input[type="text"],
+.hs-form input[type="email"],
+.hs-form input[type="tel"],
+.hs-form textarea,
+.hs-form select {
+  width: 100%;
+  margin: 0 0 var(--nvx-gap-base);
+  padding: 14px 16px;
+  border: 1px solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-form, 8px);
+  background: var(--nvx-white);
+  color: var(--nvx-color-ink);
+  font-family: var(--nvx-font-sans);
+  font-size: var(--nvx-type-body);
+  line-height: 1.4;
+  box-shadow: none;
+}
+
+.nvx-form input:focus,
+.nvx-form textarea:focus,
+.hs-form input:focus,
+.hs-form textarea:focus {
+  outline: none;
+  border-color: var(--nvx-platinum);
+  box-shadow: 0 0 0 3px var(--nvx-accent-glow);
+}
+
+.nvx-form button[type="submit"],
+.hs-form input[type="submit"],
+.hs-form .hs-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 13px 28px;
+  border: 1px solid var(--nvx-color-ink);
+  border-radius: var(--nvx-radius-button, 999px);
+  background: var(--nvx-color-ink);
+  color: var(--nvx-white);
+  font-family: var(--nvx-font-sans);
+  font-size: var(--nvx-type-button);
+  font-weight: 600;
+  letter-spacing: var(--nvx-track-button, 0.1em);
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.nvx-form button[type="submit"]:hover,
+.hs-form input[type="submit"]:hover,
+.hs-form .hs-button:hover {
+  background: var(--nvx-charcoal);
+  border-color: var(--nvx-charcoal);
+}
+
+.hs-error-msgs label,
+.nvx-form .error {
+  color: var(--nvx-color-ink);
+  font-size: var(--nvx-type-small);
 }

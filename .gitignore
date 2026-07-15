@@ -90,3 +90,8 @@ artifacts/capture-treatment-pages.js
 wp-content/themes/nuvanx-medical-wpvibe-draft/php_errorlog
 php_errorlog
 *.log
+
+# Local staging QA evidence (not production source)
+artifacts/staging2-*/
+artifacts/staging2-prep-*/
+

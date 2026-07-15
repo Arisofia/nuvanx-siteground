@@ -138,24 +138,51 @@
   --nvx-font-serif: var(--nvx-serif);
   --nvx-font-sans: var(--nvx-sans);
 
-  --nvx-type-display: clamp(2.75rem, 5.2vw, 5.5rem);
-  --nvx-type-h1: clamp(2.25rem, 4.2vw, 4.5rem);
-  --nvx-type-h2: clamp(1.85rem, 3.2vw, 3rem);
-  --nvx-type-h3: clamp(1.25rem, 2vw, 1.75rem);
-  --nvx-type-body-large: 1.0625rem;
-  --nvx-type-body: 1rem;
-  --nvx-type-small: 0.8125rem;
-  --nvx-type-kicker: 0.6875rem;
-  --nvx-type-button: 0.6875rem;
+  /*
+   * Escala tipográfica canónica (roles de diseño)
+   * Hero/Display · H1 · H2 · Kicker · Body · Lead · Caption · Button · Script
+   */
+  --nvx-type-display: clamp(3rem, 5.5vw, 5.75rem);       /* Hero / Display */
+  --nvx-type-h1: clamp(2.5rem, 4.5vw, 4.25rem);          /* Título de página H1 */
+  --nvx-type-h2: clamp(1.875rem, 3.2vw, 2.75rem);        /* Título de sección H2 */
+  --nvx-type-h3: clamp(1.25rem, 2vw, 1.75rem);           /* Título de bloque H3 */
+  --nvx-type-lead: clamp(1.125rem, 1.2vw, 1.25rem);      /* Lead / intro */
+  --nvx-type-body-large: 1.125rem;                       /* Body 18px */
+  --nvx-type-body: 1.0625rem;                            /* Body 17px */
+  --nvx-type-caption: clamp(0.875rem, 0.9vw, 0.9375rem); /* Caption */
+  --nvx-type-small: var(--nvx-type-caption);
+  --nvx-type-kicker: clamp(0.6875rem, 0.7vw, 0.75rem);   /* Kicker / eyebrow */
+  --nvx-type-button: 0.75rem;                            /* Botón */
+  --nvx-type-script: clamp(1.5rem, 2.5vw, 2.25rem);      /* Pinyon Script */
 
-  --nvx-lh-display: 0.98;
-  --nvx-lh-heading: 1.08;
-  --nvx-lh-body: 1.7;
-  --nvx-lh-lead: 1.55;
+  --nvx-fw-ultralight: 200;
+  --nvx-fw-light: 300;
+  --nvx-fw-regular: 400;
+  --nvx-fw-medium: 500;
+  --nvx-fw-semibold: 600;
 
-  --nvx-track-kicker: 0.2em;
-  --nvx-track-button: 0.1em;
-  --nvx-track-display: -0.04em;
+  --nvx-lh-display: 1.05;
+  --nvx-lh-h1: 1.1;
+  --nvx-lh-h2: 1.15;
+  --nvx-lh-h3: 1.2;
+  --nvx-lh-heading: var(--nvx-lh-h1);
+  --nvx-lh-kicker: 1.2;
+  --nvx-lh-body: 1.75;
+  --nvx-lh-lead: 1.65;
+  --nvx-lh-caption: 1.5;
+  --nvx-lh-button: 1;
+  --nvx-lh-script: 1.2;
+  --nvx-lh-numeral: 1.1;
+
+  --nvx-track-display: -0.04em;   /* -0.03 ~ -0.05 */
+  --nvx-track-h1: -0.02em;
+  --nvx-track-h2: -0.015em;
+  --nvx-track-h3: -0.01em;
+  --nvx-track-kicker: 0.25em;    /* 0.22 ~ 0.28 */
+  --nvx-track-ultralight: 0.25em; /* 0.20 ~ 0.30 */
+  --nvx-track-button: 0.14em;
+  --nvx-track-numeral: -0.02em;
+  --nvx-track-body: normal;
 
   --nvx-ease: 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
 

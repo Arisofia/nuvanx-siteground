@@ -6,11 +6,27 @@
  */
 
 /* ═══════════════════════════════════════════════════════════
-   1. TIPOGRAFÍA GLOBAL (todo el sitio, mismos H1/H2/H3)
-   Alias de markup legacy incluidos — no forks por página.
+   1. TIPOGRAFÍA GLOBAL — roles de diseño (tokens)
+   Hero/Display · H1 · H2 · H3 · Kicker · Body · Lead · Caption · Button · Script
    ═══════════════════════════════════════════════════════════ */
-h1,
+
+/* Hero / Display — título principal del hero (home + display explícito) */
 .nvx-display,
+h1.nvx-display,
+body.home .nvx-home-hero-content .nvx-brand-hero__title,
+body.home .nvx-home-hero-content h1 {
+  margin: 0 0 20px;
+  color: var(--nvx-color-ink);
+  font-family: var(--nvx-font-serif);
+  font-size: var(--nvx-type-display);
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-display);
+  letter-spacing: var(--nvx-track-display);
+  text-wrap: balance;
+}
+
+/* Título de página (H1) */
+h1,
 .nvx-h1,
 .entry-title,
 .nvx-page-hero h1,
@@ -20,26 +36,19 @@ h1.nvx-title,
   color: var(--nvx-color-ink);
   font-family: var(--nvx-font-serif);
   font-size: var(--nvx-type-h1);
-  font-weight: 400;
-  line-height: var(--nvx-lh-heading, 1.08);
-  letter-spacing: var(--nvx-track-display, -0.04em);
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-h1);
+  letter-spacing: var(--nvx-track-h1);
   text-wrap: balance;
 }
 
-/* H1 de página: display solo cuando se pide explícito */
-.nvx-display,
-h1.nvx-display {
-  font-size: var(--nvx-type-display);
-  line-height: var(--nvx-lh-display, 0.98);
-}
-
-/* Líneas del H1 home/tratamiento: misma familia H1, jerarquía de peso/tono */
+/* Líneas del título hero: sub hereda H1; main = kicker; support = lead */
 .nvx-brand-hero__line,
 .nvx-brand-hero__sub {
   display: block;
   font-family: inherit;
   font-size: 1em;
-  font-weight: 400;
+  font-weight: inherit;
   line-height: inherit;
   letter-spacing: inherit;
 }
@@ -50,9 +59,9 @@ h1.nvx-display {
   color: inherit;
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-kicker);
-  font-weight: 600;
-  letter-spacing: var(--nvx-track-kicker, 0.2em);
-  line-height: 1.35;
+  font-weight: var(--nvx-fw-semibold, 600);
+  letter-spacing: var(--nvx-track-kicker);
+  line-height: var(--nvx-lh-kicker);
   text-transform: uppercase;
 }
 
@@ -61,12 +70,13 @@ h1.nvx-display {
   margin-top: 0.75em;
   max-width: var(--nvx-measure-lead, 48ch);
   font-family: var(--nvx-font-sans);
-  font-size: var(--nvx-type-body-large);
-  font-weight: 300;
-  line-height: var(--nvx-lh-lead, 1.55);
-  letter-spacing: 0.01em;
+  font-size: var(--nvx-type-lead);
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-lead);
+  letter-spacing: var(--nvx-track-body, normal);
 }
 
+/* Título de sección (H2) */
 h2,
 .nvx-heading,
 .nvx-h2,
@@ -77,12 +87,13 @@ h2.nvx-heading {
   color: var(--nvx-color-ink);
   font-family: var(--nvx-font-serif);
   font-size: var(--nvx-type-h2);
-  font-weight: 400;
-  line-height: var(--nvx-lh-heading, 1.08);
-  letter-spacing: -0.035em;
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-h2);
+  letter-spacing: var(--nvx-track-h2);
   text-wrap: balance;
 }
 
+/* Título de bloque (H3) */
 h3,
 .nvx-h3,
 .nvx-brand-card__title,
@@ -92,9 +103,9 @@ h3.nvx-title {
   color: var(--nvx-color-ink);
   font-family: var(--nvx-font-serif);
   font-size: var(--nvx-type-h3);
-  font-weight: 400;
-  line-height: 1.14;
-  letter-spacing: -0.02em;
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-h3);
+  letter-spacing: var(--nvx-track-h3);
   text-wrap: balance;
 }
 
@@ -103,10 +114,12 @@ h4, h5, h6 {
   color: var(--nvx-color-ink);
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-body);
-  font-weight: 600;
+  font-weight: var(--nvx-fw-semibold, 600);
   letter-spacing: 0.04em;
+  line-height: var(--nvx-lh-body);
 }
 
+/* Body — texto principal */
 p,
 .nvx-copy,
 .nvx-brand-body,
@@ -118,31 +131,70 @@ p,
   color: var(--nvx-text-body);
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-body-large);
-  font-weight: 400;
-  line-height: var(--nvx-lh-body, 1.7);
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-body);
+  letter-spacing: var(--nvx-track-body, normal);
   max-width: var(--nvx-measure, 62ch);
 }
 
+/* Lead / intro */
 .nvx-lead,
 .nvx-subtitle,
 .nvx-hero-subtitle,
-.nvx-brand-hero__lead,
-.nvx-brand-meta {
+.nvx-brand-hero__lead {
   margin: 0 0 22px;
   max-width: var(--nvx-measure-lead, 48ch);
   color: var(--nvx-text-muted);
   font-family: var(--nvx-font-sans);
-  font-size: var(--nvx-type-body-large);
-  font-weight: 300;
-  line-height: var(--nvx-lh-lead, 1.55);
+  font-size: var(--nvx-type-lead);
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-lead);
+  letter-spacing: var(--nvx-track-body, normal);
 }
 
-.nvx-brand-meta {
-  margin-top: 12px;
-  font-size: var(--nvx-type-small);
-  letter-spacing: 0.04em;
+/* Caption / meta */
+.nvx-caption,
+.nvx-brand-meta,
+figcaption {
+  margin: 0 0 12px;
+  color: var(--nvx-text-muted);
+  font-family: var(--nvx-font-sans);
+  font-size: var(--nvx-type-caption);
+  font-weight: var(--nvx-fw-light, 300);
+  line-height: var(--nvx-lh-caption);
+  letter-spacing: var(--nvx-track-body, normal);
 }
 
+/* Ultradelgado — kickers finos / captions delicados */
+.nvx-type-ultralight,
+.nvx-kicker--light {
+  font-family: var(--nvx-font-sans);
+  font-weight: var(--nvx-fw-light, 300);
+  letter-spacing: var(--nvx-track-ultralight);
+  line-height: var(--nvx-lh-caption);
+}
+
+/* Numerales / índices */
+.nvx-numeral,
+.nvx-index-item__number {
+  font-family: var(--nvx-font-serif);
+  font-weight: var(--nvx-fw-medium, 500);
+  letter-spacing: var(--nvx-track-numeral);
+  line-height: var(--nvx-lh-numeral);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Script / caligrafía */
+.nvx-script,
+.nvx-type-script {
+  font-family: var(--nvx-script, "Pinyon Script", cursive);
+  font-size: var(--nvx-type-script);
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-script);
+  letter-spacing: normal;
+}
+
+/* Kicker / eyebrow */
 .nvx-eyebrow,
 .nvx-kicker,
 .nvx-brand-kicker,
@@ -152,9 +204,9 @@ p,
   color: var(--nvx-platinum);
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-kicker);
-  font-weight: 600;
-  letter-spacing: var(--nvx-track-kicker, 0.2em);
-  line-height: 1.35;
+  font-weight: var(--nvx-fw-semibold, 600);
+  letter-spacing: var(--nvx-track-kicker);
+  line-height: var(--nvx-lh-kicker);
   text-transform: uppercase;
 }
 
@@ -178,8 +230,8 @@ p,
   color: var(--nvx-text-body);
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-body-large);
-  font-weight: 400;
-  line-height: var(--nvx-lh-body, 1.7);
+  font-weight: var(--nvx-fw-regular, 400);
+  line-height: var(--nvx-lh-body);
 }
 
 .nvx-page__content li,
@@ -238,10 +290,10 @@ p,
   width: 1.5em;
   color: var(--nvx-platinum, #9ba3ad);
   font-family: var(--nvx-font-sans);
-  font-size: var(--nvx-type-small);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  line-height: 1.7;
+  font-size: var(--nvx-type-kicker);
+  font-weight: var(--nvx-fw-semibold, 600);
+  letter-spacing: var(--nvx-track-numeral);
+  line-height: var(--nvx-lh-body);
 }
 
 /* Intros de sección: centradas en TODO el sitio (no monobloque left) */
@@ -549,9 +601,9 @@ p,
   cursor: pointer;
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-button);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  line-height: 1.2;
+  font-weight: var(--nvx-fw-semibold, 600);
+  letter-spacing: var(--nvx-track-button);
+  line-height: var(--nvx-lh-button);
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
@@ -711,9 +763,9 @@ p,
   font-family: var(--nvx-font-serif);
   font-size: clamp(1.8rem, 2.6vw, 2.75rem);
   font-variant-numeric: lining-nums tabular-nums;
-  font-weight: 400;
-  letter-spacing: -0.04em;
-  line-height: 0.9;
+  font-weight: var(--nvx-fw-medium, 500);
+  letter-spacing: var(--nvx-track-numeral);
+  line-height: var(--nvx-lh-numeral);
 }
 
 .nvx-index-item__title {

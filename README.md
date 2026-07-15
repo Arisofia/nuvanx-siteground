@@ -14,3 +14,4 @@ This workspace is being reorganized into a canonical SiteGround deployment sourc
 ## Safety note
 The historical audit bundle has been archived rather than treated as the canonical source of truth.
 The production baseline should be verified from the active WordPress installation and SiteGround environment before syncing.
+Repository hygiene is validated by CI before promotion.

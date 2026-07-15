@@ -1,0 +1,51 @@
+name: Security Remediation Monitor Once
+
+on:
+  push:
+    branches:
+      - security/incident-2026-07-15
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  monitor:
+    if: github.actor != 'github-actions[bot]' && github.event.head_commit.message == 'security: monitor production incident remediation'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: security/incident-2026-07-15
+          fetch-depth: 0
+
+      - name: Locate and record remediation run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          run_id=''
+          for attempt in $(seq 1 30); do
+            run_id="$(gh run list --repo '${{ github.repository }}' --workflow security-production-remediation-once.yml --branch security/incident-2026-07-15 --event push --limit 10 --json databaseId,headSha --jq '[.[] | select(.headSha == "ff1acb42af435135c0fd8c71a336a452870d6ae6")][0].databaseId // empty')"
+            [[ -n "$run_id" ]] && break
+            sleep 10
+          done
+          [[ -n "$run_id" ]]
+
+          set +e
+          gh run watch "$run_id" --repo '${{ github.repository }}' --exit-status
+          watch_status=$?
+          set -e
+
+          mkdir -p docs/security
+          gh run view "$run_id" --repo '${{ github.repository }}' --json databaseId,status,conclusion,url,headSha,event,createdAt,updatedAt,jobs > docs/security/production-remediation-run.json
+          printf '\n{"watch_exit_code":%s}\n' "$watch_status" >> docs/security/production-remediation-run.json
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/security/production-remediation-run.json
+          git rm .github/workflows/security-remediation-monitor-once.yml
+          git commit -m 'security: record production remediation run [skip ci]'
+          git push origin HEAD:security/incident-2026-07-15
+          exit 0

@@ -53,13 +53,22 @@ function nvx_primary_menu_fallback( $args = array() ) {
 	echo '</ul>';
 }
 
+/**
+ * Tipografías del sistema: CSS local con @font-face (latin).
+ * No usar la hoja externa de fonts.googleapis.com: SiteGround Optimizer /
+ * Complianz la eliminan o la reducen a un solo face (p.ej. solo Pinyon),
+ * y el sitio cae a Times/Arial sin Bodoni/Manrope.
+ */
 function nvx_theme_fonts() {
-    wp_enqueue_style(
-        'nvx-fonts',
-        'https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Manrope:wght@200;300;400;500;600&family=Pinyon+Script&display=swap',
-        array(),
-        null
-    );
+	$path = get_template_directory() . '/assets/css/nvx-fonts.css';
+	$ver  = is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;
+
+	wp_enqueue_style(
+		'nvx-fonts',
+		get_template_directory_uri() . '/assets/css/nvx-fonts.css',
+		array(),
+		$ver
+	);
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_fonts', 5 );
 

@@ -378,6 +378,39 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 			'',
 			$content
 		);
+
+		// 7) Flujos editoriales: pullquote de invitación + dirección como split-media.
+		$content = preg_replace(
+			'/\bclass=(["\'])([^"\']*\bnvx-home-invitation__text\b[^"\']*)\1/i',
+			'class=$1$2 nvx-pullquote$1',
+			$content,
+			1
+		);
+		$content = preg_replace(
+			'/\bclass=(["\'])(nvx-home-direccion-grid)\1/i',
+			'class=$1$2 nvx-split-media$1',
+			$content,
+			1
+		);
+		$content = preg_replace(
+			'/\bclass=(["\'])(nvx-home-direccion-media)\1/i',
+			'class=$1$2 nvx-split-media__media$1',
+			$content,
+			1
+		);
+		// Lead sobre la foto de dirección (primer título de la sección).
+		$content = preg_replace(
+			'/(<div[^>]*\bnvx-home-direccion-media\b[^>]*>\s*<img[^>]*>)/i',
+			'$1<p class="nvx-split-media__lead">Liderazgo y experiencia médica</p>',
+			$content,
+			1
+		);
+		$content = preg_replace(
+			'/\bclass=(["\'])(nvx-home-direccion-copy)\1/i',
+			'class=$1$2 nvx-split-media__copy$1',
+			$content,
+			1
+		);
 	}
 
 	return $content;

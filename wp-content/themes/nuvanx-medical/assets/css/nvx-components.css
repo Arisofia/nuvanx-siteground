@@ -166,9 +166,8 @@ figcaption {
   letter-spacing: var(--nvx-track-body);
 }
 
-/* Ultradelgado — kickers finos / captions delicados */
-.nvx-type-ultralight,
-.nvx-kicker--light {
+/* Ultradelgado */
+.nvx-type-ultralight {
   margin: 0 0 var(--nvx-margin-caption);
   font-family: var(--nvx-font-sans);
   font-weight: var(--nvx-fw-ultralight);
@@ -582,9 +581,7 @@ blockquote.nvx-pullquote,
  * Solo .nvx-align-center / --center fuerzan centro.
  */
 .nvx-section-intro,
-.nvx-brand-section__intro,
 .nvx-index__intro,
-.nvx-pattern-intro > .nvx-brand-readable,
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-kicker,
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title,
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-subtitle,
@@ -600,7 +597,6 @@ blockquote.nvx-pullquote,
 }
 
 .nvx-section-intro,
-.nvx-brand-section__intro,
 .nvx-index__intro {
   display: flex;
   flex-direction: column;
@@ -666,12 +662,7 @@ blockquote.nvx-pullquote,
    Texto + media orgánica que fluye (figuras geométricas blandas)
    ═══════════════════════════════════════════════════════════ */
 .nvx-card,
-.nvx-card--secondary,
-.nvx-card--ivory,
-.nvx-frosted,
-.nvx-frosted-soft,
 .nvx-brand-card,
-.nvx-legal-card,
 .nvx-blog-card,
 .blog article.post {
   position: relative;
@@ -719,8 +710,6 @@ blockquote.nvx-pullquote,
 .nvx-card__media,
 .nvx-brand-card__media,
 .nvx-media,
-.nvx-post-card__image,
-.blog article.post .post-thumbnail,
 .nvx-editorial-zone--media,
 .nvx-home-image-feature__figure,
 .nvx-page__featured {
@@ -740,12 +729,10 @@ blockquote.nvx-pullquote,
   isolation: isolate;
 }
 
-/* Sin velo global: el overlay solo en hero/clínicas/text-on-media */
+/* Sin velo global: overlay solo en hero/clínicas/opt-in */
 .nvx-card__media::after,
 .nvx-brand-card__media::after,
 .nvx-media::after,
-.nvx-post-card__image::after,
-.blog article.post .post-thumbnail::after,
 .nvx-editorial-zone--media::after,
 .nvx-home-image-feature__figure::after,
 .nvx-page__featured::after {
@@ -783,12 +770,10 @@ blockquote.nvx-pullquote,
   border-radius: inherit;
 }
 
-/* ── 3. Clínicas / sedes / panoramas — aquí sí hay movimiento ─ */
+/* ── 3. Clínicas / panoramas — aquí sí hay movimiento ─ */
 .nvx-home-clinica-panorama__media,
 .nvx-media--panorama,
-.nvx-media--clinic,
-.nvx-location__media,
-.nvx-sede-media {
+.nvx-media--clinic {
   position: relative;
   display: block;
   width: min(100%, calc(100% + var(--nvx-media-bleed-x)));
@@ -804,15 +789,12 @@ blockquote.nvx-pullquote,
   transform-origin: center center;
 }
 
-.nvx-home-clinica-panorama:nth-child(even) .nvx-home-clinica-panorama__media,
-.nvx-location:nth-child(even) .nvx-location__media {
+.nvx-home-clinica-panorama:nth-child(even) .nvx-home-clinica-panorama__media {
   border-radius: var(--nvx-organic-c);
   transform: rotate(var(--nvx-media-tilt-alt));
 }
 
-.nvx-home-clinica-panorama__media::after,
-.nvx-location__media::after,
-.nvx-sede-media::after {
+.nvx-home-clinica-panorama__media::after {
   content: "";
   position: absolute;
   left: 0;
@@ -853,7 +835,6 @@ blockquote.nvx-pullquote,
 
 /* ── 4. Equipo médico — retrato limpio (no “blob” ni tilt) ── */
 .nvx-brand-card--team .nvx-brand-card__media,
-.nvx-team-card__media,
 .nvx-media--doctor {
   width: min(100%, calc(var(--nvx-media-max-h-doctor) * 5 / 6));
   height: var(--nvx-media-max-h-doctor);
@@ -880,7 +861,6 @@ blockquote.nvx-pullquote,
 }
 
 .nvx-brand-card--team .nvx-brand-card__media img,
-.nvx-team-card__media img,
 .nvx-media--doctor img {
   width: 100%;
   height: 100%;
@@ -888,8 +868,7 @@ blockquote.nvx-pullquote,
   object-position: center top;
 }
 
-.nvx-brand-card--team .nvx-brand-card__media::after,
-.nvx-team-card__media::after {
+.nvx-brand-card--team .nvx-brand-card__media::after {
   content: none;
   display: none;
 }
@@ -937,10 +916,6 @@ blockquote.nvx-pullquote,
 .nvx-brand-card__media img,
 .nvx-media img,
 .nvx-home-clinica-panorama__media img,
-.nvx-location__media img,
-.nvx-post-card__image img,
-.blog article.post .post-thumbnail img,
-.nvx-team-card__media img,
 .nvx-brand-hero__media img,
 .nvx-editorial-zone--media img,
 .nvx-home-image-feature__img,
@@ -985,36 +960,6 @@ blockquote.nvx-pullquote,
 }
 
 /* ── 6. Utilidades opt-in (solo si el markup las pide) ───── */
-.nvx-media--overlay::after,
-.nvx-card--text-on-media .nvx-card__media::after,
-.nvx-brand-card--text-on-media .nvx-brand-card__media::after {
-  content: "";
-  display: block;
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: var(--nvx-media-overlay);
-  border-radius: inherit;
-}
-
-.nvx-media__content,
-.nvx-card--text-on-media .nvx-card__content,
-.nvx-brand-card--text-on-media .nvx-brand-card__content {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--nvx-gap-tight);
-  padding: var(--nvx-pad-card);
-  color: var(--nvx-white);
-  text-align: start;
-}
-
 /* Float wrap opt-in: composición revista en un bloque concreto */
 .nvx-card--flow,
 .nvx-brand-card--flow {
@@ -1052,8 +997,6 @@ blockquote.nvx-pullquote,
   }
 
   .nvx-home-clinica-panorama__media,
-  .nvx-location__media,
-  .nvx-sede-media,
   .nvx-home-direccion-media {
     transform: none;
     width: 100%;
@@ -1061,87 +1004,16 @@ blockquote.nvx-pullquote,
   }
 }
 
-.nvx-media__content .nvx-brand-title,
-.nvx-media__content .nvx-brand-card__title,
-.nvx-media__content h2,
-.nvx-media__content h3,
-.nvx-card--text-on-media .nvx-brand-card__title,
-.nvx-brand-card--text-on-media .nvx-brand-card__title {
-  color: var(--nvx-white);
-  max-width: min(22ch, 100%);
-}
-
-.nvx-media__content .nvx-copy,
-.nvx-media__content .nvx-brand-body,
-.nvx-media__content .nvx-brand-card__body,
-.nvx-card--text-on-media .nvx-brand-card__body,
-.nvx-brand-card--text-on-media .nvx-brand-card__body {
-  color: rgba(255, 255, 255, 0.88);
-  max-width: var(--nvx-measure-lead);
-}
-
-/* Continuidad: color del borde inferior de la media hacia la siguiente sección */
-.nvx-media--continue,
-.nvx-card__media--continue,
-.nvx-brand-card__media--continue {
-  margin-bottom: 0;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.nvx-media--continue::before,
-.nvx-card__media--continue::before,
-.nvx-brand-card__media--continue::before {
-  content: "";
-  display: block;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(-1 * var(--nvx-media-bleed-height));
-  height: var(--nvx-media-bleed-height);
-  z-index: 0;
-  background: var(--nvx-media-bleed-color, var(--nvx-charcoal));
-  pointer-events: none;
-}
-
-.nvx-section--from-media,
-.nvx-brand-section--from-media {
-  background: var(--nvx-media-bleed-color, var(--nvx-charcoal));
-  color: var(--nvx-pearl);
-}
-
-.nvx-section--from-media h2,
-.nvx-section--from-media h3,
-.nvx-section--from-media .nvx-brand-title,
-.nvx-brand-section--from-media h2,
-.nvx-brand-section--from-media h3,
-.nvx-brand-section--from-media .nvx-brand-title {
-  color: var(--nvx-white);
-}
-
-.nvx-section--from-media .nvx-copy,
-.nvx-section--from-media .nvx-brand-body,
-.nvx-brand-section--from-media .nvx-copy,
-.nvx-brand-section--from-media .nvx-brand-body {
-  color: rgba(246, 247, 248, 0.82);
-}
-
-/* Variantes de figura opcionales (no default) */
-.nvx-shape--organic-a,
-.nvx-card--flow-a .nvx-card__media,
-.nvx-brand-card--flow-a .nvx-brand-card__media {
+/* Variantes de figura opcionales (no default — solo markup explícito) */
+.nvx-shape--organic-a {
   border-radius: var(--nvx-organic-a);
 }
 
-.nvx-shape--organic-b,
-.nvx-card--flow-b .nvx-card__media,
-.nvx-brand-card--flow-b .nvx-brand-card__media {
+.nvx-shape--organic-b {
   border-radius: var(--nvx-organic-b);
 }
 
-.nvx-shape--organic-c,
-.nvx-card--flow-c .nvx-card__media,
-.nvx-brand-card--flow-c .nvx-brand-card__media {
+.nvx-shape--organic-c {
   border-radius: var(--nvx-organic-c);
 }
 
@@ -1241,7 +1113,6 @@ blockquote.nvx-pullquote,
 
 /* Columna editorial: el measure vive en p/.nvx-copy, no en el wrapper de página */
 .nvx-prose,
-.nvx-editorial-column,
 .nvx-page__content,
 .nvx-page__content.nvx-prose {
   max-width: none;
@@ -1250,13 +1121,11 @@ blockquote.nvx-pullquote,
 
 /* Solo el flujo de lectura largo: start (sin forzar títulos/intros del page) */
 .nvx-prose > p,
-.nvx-editorial-column > p,
 .nvx-page__content > p {
   text-align: start;
 }
 
-.nvx-prose > p + p,
-.nvx-editorial-column > p + p {
+.nvx-prose > p + p {
   margin-top: 1.15em;
 }
 
@@ -1346,13 +1215,6 @@ blockquote.nvx-pullquote,
 .nvx-brand-btn--primary,
 .nvx-btn--primary,
 .nvx-btn-primary,
-.nvx-btn--dark {
-  background: var(--nvx-color-ink);
-  border-color: var(--nvx-color-ink);
-  color: var(--nvx-white);
-  box-shadow: var(--nvx-shadow-button);
-}
-
 .nvx-button--primary:hover,
 .nvx-button--primary:focus-visible,
 .nvx-brand-btn--primary:hover,
@@ -1632,66 +1494,6 @@ blockquote.nvx-pullquote,
   margin-top: var(--nvx-gap-base, 14px);
 }
 
-/* Full-media hero pattern (no video home — that is brand-home) */
-.nvx-hero-full-media {
-  --nvx-hero-scrim: linear-gradient(
-    90deg,
-    rgba(246, 247, 248, 0.98) 0%,
-    rgba(246, 247, 248, 0.9) 32%,
-    rgba(246, 247, 248, 0.5) 48%,
-    rgba(246, 247, 248, 0) 72%
-  );
-  position: relative;
-  width: 100%;
-  height: var(--nvx-media-max-h-full);
-  max-height: var(--nvx-media-max-h-full);
-  min-height: 0;
-  aspect-ratio: auto;
-  overflow: hidden;
-  isolation: isolate;
-}
-
-.nvx-hero-full-media__media {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: var(--nvx-color-paper);
-}
-
-.nvx-hero-full-media__media video,
-.nvx-hero-full-media__media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: cover;
-  object-position: center right;
-  border-radius: 0;
-  box-shadow: none;
-  clip-path: none;
-  mask-image: none;
-  transform: none;
-}
-
-.nvx-hero-full-media__scrim {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: var(--nvx-hero-scrim, var(--nvx-media-overlay));
-  pointer-events: none;
-}
-
-.nvx-hero-full-media__content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  min-height: 100%;
-  padding-block: clamp(104px, 10vw, 144px) clamp(72px, 7vw, 104px);
-  text-align: start;
-}
-
 /* FAQ */
 .nvx-brand-faq-accordion,
 .nvx-faq {
@@ -1776,37 +1578,6 @@ blockquote.nvx-pullquote,
 
   .nvx-index-item:nth-child(even) {
     margin-inline-start: 0;
-  }
-
-  .nvx-hero-full-media {
-    height: var(--nvx-media-max-h-full);
-    max-height: var(--nvx-media-max-h-full);
-    min-height: 0;
-    aspect-ratio: auto;
-    overflow: hidden;
-  }
-
-  .nvx-hero-full-media__media {
-    position: absolute;
-    inset: 0;
-    aspect-ratio: auto;
-  }
-
-  .nvx-hero-full-media__media video,
-  .nvx-hero-full-media__media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    aspect-ratio: auto;
-  }
-
-  .nvx-hero-full-media__scrim {
-    display: none;
-  }
-
-  .nvx-hero-full-media__content {
-    min-height: 0;
-    padding-block: clamp(28px, 5vw, 48px) clamp(48px, 7vw, 72px);
   }
 }
 
@@ -1896,7 +1667,6 @@ blockquote.nvx-pullquote,
 
 /* Forms — campos funcionales del sistema global (sin diseño por página) */
 .nvx-form,
-.nvx-hubspot-wrap,
 #nvx-hubspot-form,
 #nvx-hubspot-native-form {
   max-width: var(--nvx-measure, 62ch);
@@ -2021,4 +1791,42 @@ blockquote.nvx-pullquote,
   background: transparent;
   border: 0;
   box-shadow: none;
+}
+
+
+/* Home invitation as pullquote (clase inyectada + markup existente) */
+.nvx-home-invitation__text.nvx-pullquote,
+.nvx-pullquote.nvx-home-invitation__text {
+  width: min(100%, 42rem);
+  margin: var(--nvx-gap-wide) 0;
+  padding: var(--nvx-gap-base) 0 var(--nvx-gap-base) var(--nvx-gap-wide);
+  border-inline-start: 2px solid var(--nvx-platinum);
+  font-style: normal;
+}
+
+.nvx-home-invitation__text .nvx-brand-dropcap {
+  color: var(--nvx-platinum);
+}
+
+/* Dirección home: split-media usa grid existente */
+.nvx-home-direccion-grid.nvx-split-media {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: var(--nvx-gap-wide);
+  align-items: end;
+}
+
+.nvx-home-direccion-grid.nvx-split-media .nvx-home-direccion-panel {
+  grid-column: 2;
+}
+
+.nvx-home-direccion-media.nvx-split-media__media {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+@media (max-width: 900px) {
+  .nvx-home-direccion-grid.nvx-split-media {
+    grid-template-columns: 1fr;
+  }
 }

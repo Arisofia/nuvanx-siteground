@@ -3,9 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'NVX_THEME_VERSION', '1.9.3-chrome-cleanup-header-footer-20260715' );
-
-const NVX_BRAND_TREATMENT_PAGE_IDS = array( 1241, 1200, 2017 );
+define( 'NVX_THEME_VERSION', '1.9.4-single-design-video-only-home' );
 
 function nvx_theme_setup() {
     add_theme_support( 'title-tag' );
@@ -75,43 +73,6 @@ function nvx_theme_is_home_page(): bool {
 	$queried = get_queried_object();
 	return $queried instanceof WP_Post && in_array( $queried->post_name, array( 'home', 'inicio' ), true );
 }
-
-function nvx_theme_is_valoracion_page(): bool {
-	if ( is_page_template( 'templates/page-landing-valoracion.php' ) ) {
-		return true;
-	}
-	if ( is_page( 2636 ) ) {
-		return true;
-	}
-	$queried = get_queried_object();
-	return $queried instanceof WP_Post && 'valoracion' === $queried->post_name;
-}
-
-function nvx_theme_is_contacto_page(): bool {
-	if ( is_page_template( 'templates/page-contacto.php' ) ) {
-		return true;
-	}
-	if ( is_page( 14 ) ) {
-		return true;
-	}
-	$queried = get_queried_object();
-	return $queried instanceof WP_Post && 'contacto' === $queried->post_name;
-}
-
-function nvx_theme_is_p0_shell_page(): bool {
-	return nvx_theme_is_valoracion_page() || nvx_theme_is_contacto_page();
-}
-
-function nvx_theme_is_brand_treatment(): bool {
-	return is_page( NVX_BRAND_TREATMENT_PAGE_IDS );
-}
-
-function nvx_theme_uses_brand_system(): bool {
-	return ! nvx_theme_is_p0_shell_page()
-		&& ! nvx_theme_is_home_page()
-		&& ! nvx_theme_is_brand_treatment();
-}
-
 
 /**
  * Calcula el tiempo estimado de lectura de una entrada.
@@ -264,12 +225,8 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 		return $content;
 	}
 
-	// No tocar front page home HTML (vídeo / estructura editorial).
-	if ( function_exists( 'nvx_theme_is_home_page' ) && nvx_theme_is_home_page() ) {
-		return $content;
-	}
-
 	// 1) Quitar estilos inline del editor (excepto en formularios HS si aparecen).
+	// Home incluido: el vídeo se mantiene por markup/CSS de stage, no por aislar la página.
 	$content = preg_replace_callback(
 		'/<([a-z0-9]+)([^>]*?)\sstyle=(["\'])(.*?)\3([^>]*)>/i',
 		static function ( $m ) {
@@ -332,6 +289,8 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 		'nvx-med-page'                => '',
 		'nvx-contacto-page'           => '',
 		'nvx-contact-page'            => '',
+		'nvx-tratamiento-page'        => '',
+		'nvx-sede-page'               => '',
 		'nvx-section--soft'           => '',
 		'nvx-section--cta'            => '',
 		'nvx-width-narrow'            => '',
@@ -345,6 +304,16 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 		'nvx-card--cta'               => '',
 		'nvx-registro'                => 'nvx-copy',
 		'nvx-form-note'               => 'nvx-copy',
+		'nvx-editorial-home-v4'       => '',
+		'nvx-brand-page'              => '',
+		'nvx-home-editorial'          => '',
+		'nvx-v3-intro'                => '',
+		'nvx-v3-tratamientos'         => '',
+		'nvx-v3-metodo'               => '',
+		'nvx-v3-direccion'            => '',
+		'nvx-v3-faq'                  => '',
+		'nvx-v3-cta-final'            => '',
+		'nvx-home-image-feature'      => '',
 		'has-background'              => '',
 		'has-text-color'              => '',
 	);

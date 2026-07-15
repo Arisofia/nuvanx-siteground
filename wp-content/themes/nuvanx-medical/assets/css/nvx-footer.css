@@ -263,11 +263,6 @@
 	color: rgba(248, 246, 242, 0.38);
 }
 
-/* Hide generic CTA banner on home (home has its own invitation blocks) */
-body.home .nvx-cta-banner {
-	display: none;
-}
-
 @media (max-width: 1024px) {
 	.nvx-footer__inner {
 		grid-template-columns: repeat(2, minmax(0, 1fr));

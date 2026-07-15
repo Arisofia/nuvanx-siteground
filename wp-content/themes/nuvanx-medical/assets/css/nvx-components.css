@@ -24,7 +24,6 @@ h1.nvx-title {
   text-wrap: balance;
 }
 
-/* Home hero title is owned by nvx-brand-home (white on video). */
 .nvx-display {
   font-size: var(--nvx-type-display);
   line-height: var(--nvx-lh-display, 0.98);
@@ -716,48 +715,6 @@ p,
   line-height: 1.7;
 }
 
-/* Header home variant belongs to the shared component layer, not page CSS. */
-/* home header: nvx-header.css + brand-home only */
-
-body.home #nvx-header .nvx-header__inner {
-  width: var(--nvx-shell-wide);
-  min-height: 64px;
-}
-
-body.home #nvx-header .nvx-logo {
-  width: auto;
-  min-width: 0;
-  height: auto;
-  max-width: 160px;
-}
-
-body.home #nvx-header .nvx-logo__img {
-  width: auto;
-  height: auto;
-  max-width: 160px;
-  max-height: 58px;
-}
-
-body.home #nvx-header .nvx-logo__wordmark,
-body.home #nvx-header .nvx-logo__tagline {
-  display: block;
-  color: var(--nvx-color-ink);
-}
-
-body.home #nvx-header .nvx-nav__list > li > a {
-  color: var(--nvx-color-ink);
-}
-
-body.home #nvx-header #nvx-header-cta {
-  min-height: 44px;
-  padding: 12px 26px;
-  border: 1px solid var(--nvx-color-ink);
-  border-radius: var(--nvx-radius-button);
-  background: var(--nvx-color-ink);
-  color: var(--nvx-white);
-  box-shadow: none;
-}
-
 /* Accessibility */
 :focus-visible {
   outline: 2px solid var(--nvx-champagne);
@@ -800,8 +757,6 @@ body.home #nvx-header #nvx-header-cta {
     min-height: 0;
     padding-block: clamp(28px, 5vw, 48px) clamp(48px, 7vw, 72px);
   }
-
-  /* home header: nvx-header.css + brand-home only */
 }
 
 @media (max-width: 620px) {

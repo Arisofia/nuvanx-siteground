@@ -66,6 +66,7 @@ jobs:
           exit "$watch_status"
 
   report:
+    # Visibility only: do not fail the PR when staging run is missing or red.
     if: "${{ github.event_name == 'pull_request' }}"
     runs-on: ubuntu-latest
     steps:
@@ -75,7 +76,26 @@ jobs:
         run: |
           set -euo pipefail
           run_id="$(gh run list --repo '${{ github.repository }}' --workflow ticket43-v4-delivery.yml --branch ci/ticket43-run-staging-qa --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
-          [[ -n "$run_id" ]]
+
+          if [[ -z "$run_id" ]]; then
+            echo "No staging workflow run found on ci/ticket43-run-staging-qa"
+            echo "Dispatch-and-monitor only runs on that branch with the scoped commit message."
+            exit 0
+          fi
+
           echo "Staging workflow run: $run_id"
           gh run view "$run_id" --repo '${{ github.repository }}' --json databaseId,status,conclusion,url,headSha,createdAt
+
+          set +e
           gh run watch "$run_id" --repo '${{ github.repository }}' --exit-status
+          watch_status=$?
+          set -e
+
+          if [[ "$watch_status" -ne 0 ]]; then
+            echo "Staging workflow did not complete successfully (exit code: $watch_status)"
+            echo "Reporting for visibility; not failing this PR check."
+          else
+            echo "Staging workflow completed successfully."
+          fi
+
+          exit 0

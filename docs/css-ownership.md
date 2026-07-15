@@ -1,35 +1,27 @@
-# CSS ownership — NUVANX Medical
+# CSS ownership — NUVANX Medical (sin parches)
 
-**Paleta:** Metal Pulido · **Tokens:** `nvx-tokens.css`  
-**Docs:** [design-system/patterns.md](./design-system/patterns.md)
+**Paleta:** Metal Pulido · **Tokens:** `nvx-tokens.css`
 
-| Archivo | Ownership | No debe |
-|---------|-----------|---------|
-| `nvx-tokens.css` | color, shell, spacing, type scale tokens | — |
-| `nvx-base.css` | reset, util scales, Gutenberg hero-wrap | paleta, footer chrome |
-| `nvx-components.css` | button, type classes, card, index, media, shape, faq | layout de página |
-| `nvx-site-layout.css` | shell + section-y global | colores |
-| `nvx-header.css` | `#nvx-header` | — |
-| `nvx-footer.css` | `.nvx-footer`, `.nvx-cta-banner` | — |
-| `nvx-pages.css` | shells genéricos de página | — |
-| `nvx-brand-home.css` | home composition + hero video | redefinir botones/tokens |
-| `nvx-brand-treatment-*.css` | tratamientos | `:root` de paleta |
-| `nvx-brand-system.css` | brand hubs / equipo | `:root` de paleta |
-| `nvx-forms.css` | formularios | — |
-| `nvx-posts.css` | blog | — |
-| `nvx-sede-page.css` | sedes | — |
-| `nvx-secondary-pages.css` / `gutenberg-pages` | interiores | — |
+## Stack activo (único)
+
+| Archivo | Rol |
+|---------|-----|
+| `nvx-tokens.css` | color, shell, spacing, type tokens |
+| `nvx-base.css` | reset + util scales |
+| `nvx-site-layout.css` | shell + section rhythm + single column |
+| `nvx-header.css` | chrome header |
+| `nvx-footer.css` | chrome footer |
+| `nvx-components.css` | H1–H3, texto, media, botones (global) |
+| `nvx-forms.css` | solo campos de formulario (si aplica) |
+| `nvx-brand-home.css` | **solo** hero vídeo del home |
 
 ## Eliminado (no reintroducir)
 
-- `nvx-fluid-organic-2026.css`
-- `nvx-visual-system.css`
-- `nvx-typography-alignment.css`
-- `template-parts/footer/site-footer.php`
-- `template-parts/header/site-header.php`
+Cualquier CSS “por página”: brand-system, treatment-*, secondary, sede, posts, pages, gutenberg, fluid, visual-system, typography-alignment.
 
-## Stack de enqueue
+## Reglas
 
-```
-tokens → base → components → site-layout → header → footer → pages → [page]
-```
+1. Sin `!important`
+2. Sin wrappers legacy (`nvx-hero-wrap` eliminado del template)
+3. Sin stubs RETIRED
+4. Sin forks tipográficos fuera de `nvx-components.css`

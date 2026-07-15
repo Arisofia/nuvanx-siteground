@@ -1,1 +1,0 @@
-﻿PHP CLI no disponible en PATH

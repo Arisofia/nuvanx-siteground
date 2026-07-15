@@ -1,4 +1,4 @@
-# Audit tools (read-only)
+﻿# Audit tools (read-only)
 
 All scripts accept `--wp-root` and/or `--output-dir` where applicable. Reports default to `./artifacts/audit-results/`.
 
@@ -12,12 +12,7 @@ All scripts accept `--wp-root` and/or `--output-dir` where applicable. Reports d
 | `comprobacion-http.sh` | HTTP 200 checks from `--urls-file` |
 | `search-styles.sh` | Grep/find style and legacy markers |
 | `validate-yoast-db.sh` | Yoast DB + optional public curl |
-| `thermage-inventory.sh` | Thermage post/menu DB inventory |
-| `phase3-4-audit.sh` | Theme/mu-plugin/post legacy scan |
 | `filesystem-inventory.sh` | Published pages + legacy DB queries |
-| `validate-fase4-db.sh` | Fase 4 legacy content DB check |
-| `validate-fase5-urls.sh` | Public URL legacy marker grep |
-| `validate-fase6-db.sh` | Fase 6 schema/phase DB check |
 | `validate-public-html.sh` | Homepage legacy/video marker counts |
 | `check-staging.sh` | Staging env metadata |
 | `audit-nuvanx-fix.sh` | Plugin/footer/form audit |

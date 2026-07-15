@@ -1,8 +1,8 @@
 <?php
 /**
- * Ticket 43 — apply V3 home post_content (ID 9) on staging.
+ * Ticket 43 — apply V4 home post_content (ID 9) on staging.
  *
- * V3 replaces the full post_content when the candidate file already contains
+ * V4 replaces the full post_content when the candidate file already contains
  * the complete production copy with structural wrappers only.
  *
  * Usage (on staging):
@@ -31,7 +31,7 @@ if ( $new_content === '' ) {
 }
 
 $required_markers = array(
-	'nvx-editorial-home-v3',
+	'nvx-editorial-home-v4',
 	'nvx-home-hero-video',
 	'id="nvx-home-main"',
 	'aria-label="Tratamientos NUVANX"',
@@ -62,7 +62,7 @@ if ( is_wp_error( $result ) ) {
 
 WP_CLI::success(
 	sprintf(
-		'Post %d updated (%d bytes) with Ticket 43 V3 production-copy candidate.',
+		'Post %d updated (%d bytes) with Ticket 43 V4 production-copy candidate.',
 		$post_id,
 		strlen( $new_content )
 	)

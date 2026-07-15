@@ -185,14 +185,25 @@ figcaption {
   text-align: left;
 }
 
-/* Numerales / índices */
+/* Numerales / índices — Bodoni 500–600 (Manrope vía .nvx-numeral--sans) */
 .nvx-numeral,
 .nvx-index-item__number {
   font-family: var(--nvx-font-serif);
+  font-size: var(--nvx-type-numeral);
   font-weight: var(--nvx-fw-medium);
   letter-spacing: var(--nvx-track-numeral);
   line-height: var(--nvx-lh-numeral);
   font-variant-numeric: lining-nums tabular-nums;
+}
+
+.nvx-numeral--strong,
+.nvx-index-item__number {
+  font-weight: var(--nvx-fw-semibold);
+}
+
+.nvx-numeral--sans {
+  font-family: var(--nvx-font-sans);
+  font-weight: var(--nvx-fw-semibold);
 }
 
 /* Script / caligrafía */
@@ -432,6 +443,32 @@ figcaption {
   background: var(--nvx-media-bleed-color, var(--nvx-charcoal));
   border-radius: var(--nvx-radius-image);
   aspect-ratio: var(--nvx-media-ratio-editorial, 3 / 2);
+}
+
+/* Continuidad visual por defecto: velo inferior (texto legible + color al borde) */
+.nvx-card__media::after,
+.nvx-brand-card__media::after,
+.nvx-media::after,
+.nvx-home-clinica-panorama__media::after,
+.nvx-location__media::after,
+.nvx-post-card__image::after,
+.blog article.post .post-thumbnail::after,
+.nvx-team-card__media::after,
+.nvx-sede-media::after,
+.nvx-editorial-zone--media::after,
+.nvx-home-image-feature__figure::after,
+.nvx-home-direccion-media::after,
+.nvx-page__featured::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--nvx-media-overlay);
+  border-radius: 0 0 var(--nvx-radius-image) var(--nvx-radius-image);
 }
 
 .nvx-brand-hero__media {
@@ -704,7 +741,7 @@ figcaption {
   width: 100%;
 }
 
-/* Canonical buttons. .nvx-brand-btn and .nvx-btn are compatibility aliases. */
+/* Canonical buttons — pill + sombra flotante. Alias: .nvx-brand-btn / .nvx-btn */
 .nvx-button,
 .nvx-brand-btn,
 .nvx-btn {
@@ -717,7 +754,7 @@ figcaption {
   padding: 13px 28px;
   border: 1px solid transparent;
   border-radius: var(--nvx-radius-button);
-  box-shadow: none;
+  box-shadow: var(--nvx-shadow-button);
   cursor: pointer;
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-button);
@@ -740,6 +777,7 @@ figcaption {
 .nvx-brand-btn:hover,
 .nvx-btn:hover {
   transform: translateY(-1px);
+  box-shadow: var(--nvx-shadow-button-hover);
 }
 
 .nvx-button--primary,
@@ -750,6 +788,7 @@ figcaption {
   background: var(--nvx-color-ink);
   border-color: var(--nvx-color-ink);
   color: var(--nvx-white);
+  box-shadow: var(--nvx-shadow-button);
 }
 
 .nvx-button--primary:hover,
@@ -763,6 +802,7 @@ figcaption {
   background: var(--nvx-charcoal);
   border-color: var(--nvx-charcoal);
   color: var(--nvx-white);
+  box-shadow: var(--nvx-shadow-button-hover);
 }
 
 .nvx-button--secondary,
@@ -772,6 +812,7 @@ figcaption {
   background: transparent;
   border-color: var(--nvx-color-ink);
   color: var(--nvx-color-ink);
+  box-shadow: var(--nvx-shadow-min);
 }
 
 .nvx-button--secondary:hover,
@@ -783,6 +824,7 @@ figcaption {
   background: var(--nvx-color-ink);
   border-color: var(--nvx-color-ink);
   color: var(--nvx-white);
+  box-shadow: var(--nvx-shadow-button-hover);
 }
 
 .nvx-button--light,

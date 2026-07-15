@@ -245,7 +245,7 @@ body.admin-bar #nvx-header {
 	text-transform: uppercase;
 	text-decoration: none;
 	white-space: nowrap;
-	box-shadow: 0 10px 28px rgba(23, 23, 23, 0.12);
+	box-shadow: var(--nvx-shadow-button, 0 10px 28px rgba(20, 22, 26, 0.12));
 	transition: background-color 200ms ease, color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
 
@@ -254,7 +254,7 @@ body.admin-bar #nvx-header {
 	background: transparent;
 	color: var(--nvx-ink, #171717);
 	transform: translateY(-1px);
-	box-shadow: 0 14px 32px rgba(23, 23, 23, 0.1);
+	box-shadow: var(--nvx-shadow-button-hover, 0 14px 36px rgba(20, 22, 26, 0.14));
 }
 
 /* Hamburger */

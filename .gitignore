@@ -1,5 +1,7 @@
 # Secrets and environment
 wp-config.php
+**/wp-config.php
+**/source_site_wpconfig
 .env
 .env.*
 *.pem
@@ -21,13 +23,28 @@ xmlrpc.php
 license.txt
 readme.html
 
-# Generated/runtime
+# Generated/runtime and backups
 wp-content/uploads/
 wp-content/cache/
 wp-content/upgrade/
 wp-content/backup-db/
 wp-content/ai1wm-backups/
 wp-content/updraft/
+wp-content/backups-dup-lite/
+wp-content/backups-nuvanx/
+wp-content/backups-*/
+wp-content/object-cache.php
+wp-content/advanced-cache.php
+wp-content/db.php
+wp-content/maintenance.php
+wp-content/sunrise.php
+**/dup-installer/
+**/installer/original_files_*/
+*installer*.php
+*installer*.log
+*installer-log*.txt
+*bootlog*.txt
+entries_stored.json
 wp-content/debug.log
 *.log
 *.sql

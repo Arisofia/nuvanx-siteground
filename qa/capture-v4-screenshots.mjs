@@ -8,12 +8,17 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.STAGING_BASE_URL || 'https://staging2.nuvanx.com';
 const USER = process.env.STAGING_BASIC_USER || '';
 const PASS = process.env.STAGING_BASIC_PASSWORD || '';
+const AUTH_USER = USER || (PASS ? 'nuvanx-qa' : '');
+const AUTH_PASS = PASS;
 const OUT = path.join(__dirname, 'screenshots');
 const VIDEO_TIME = Number(process.env.NVX_HERO_VIDEO_TIME || '2.4');
 
-if (!USER || !PASS) {
-	console.error('STAGING_BASIC_USER and STAGING_BASIC_PASSWORD are required');
-	process.exit(1);
+function buildContextOptions(base) {
+	const opts = { ...base };
+	if (AUTH_USER && AUTH_PASS) {
+		opts.httpCredentials = { username: AUTH_USER, password: AUTH_PASS };
+	}
+	return opts;
 }
 
 const VIEWPORTS = [
@@ -36,12 +41,13 @@ const browser = await chromium.launch({
 	headless: true,
 	args: ['--disable-blink-features=AutomationControlled'],
 });
-const context = await browser.newContext({
-	deviceScaleFactor: 1,
-	httpCredentials: { username: USER, password: PASS },
-	userAgent:
-		'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-});
+const context = await browser.newContext(
+	buildContextOptions({
+		deviceScaleFactor: 1,
+		userAgent:
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+	})
+);
 
 async function acceptCookies(page) {
 	for (const sel of COOKIE_SELECTORS) {

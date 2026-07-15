@@ -1,82 +1,66 @@
 /**
- * NUVANX — Header canónico
- *
- * Única fuente visual para el header productivo definido en header.php:
- * #nvx-header
- * .nvx-header__inner
- * .nvx-logo
- * .nvx-nav
- * .nvx-nav__list
- * .nvx-hamburger
- * .nvx-mobile-nav
+ * NUVANX — Header (canonical)
+ * Markup: header.php → #nvx-header .nvx-header__inner
+ * Aesthetic: clinical editorial — ivory glass, ink type, quiet luxury.
  */
 
-/* ==========================================================
-   HEADER GLOBAL
-   ========================================================== */
-
+/* ── Shell ── */
 #nvx-header {
 	position: sticky;
 	top: 0;
 	left: 0;
 	right: 0;
 	z-index: 1000;
-
 	display: flex;
 	align-items: center;
-
 	width: 100%;
-	min-height: 72px;
-	height: auto;
-
-	background: rgba(247, 241, 232, 0.96);
-	border-bottom: 1px solid var(--nvx-border-soft);
-
-	-webkit-backdrop-filter: blur(14px) saturate(130%);
-	backdrop-filter: blur(14px) saturate(130%);
-
-	box-shadow: 0 1px 0 rgba(23, 23, 23, 0.025);
+	min-height: 80px;
+	background: rgba(252, 250, 247, 0.92);
+	border-bottom: 1px solid rgba(23, 23, 23, 0.08);
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.65) inset;
+	-webkit-backdrop-filter: blur(18px) saturate(140%);
+	backdrop-filter: blur(18px) saturate(140%);
 	isolation: isolate;
 }
 
 #nvx-header.nvx-header--home,
 #nvx-header.nvx-header--interior {
-	background: rgba(247, 241, 232, 0.96);
-	border-bottom-color: var(--nvx-border-soft);
+	background: rgba(252, 250, 247, 0.92);
+	border-bottom-color: rgba(23, 23, 23, 0.08);
+}
+
+body.admin-bar #nvx-header {
+	top: 32px;
+}
+
+@media (max-width: 782px) {
+	body.admin-bar #nvx-header {
+		top: 46px;
+	}
 }
 
 #nvx-header .nvx-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(20px, 2.5vw, 42px);
-  width: var(--nvx-shell);
-  max-width: none;
-  min-height: 72px;
-  margin-inline: auto;
-  padding-inline: 0;
-  box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: clamp(16px, 2.2vw, 40px);
+	width: min(1360px, calc(100% - clamp(32px, 4vw, 80px)));
+	min-height: 80px;
+	margin-inline: auto;
+	padding-inline: 0;
+	box-sizing: border-box;
 }
 
-/* ==========================================================
-   LOGO
-   ========================================================== */
-
+/* ── Logo ── */
 #nvx-header .nvx-logo {
 	flex: 0 0 auto;
-
 	display: inline-flex;
-	align-items: center;
-	justify-content: flex-start;
-
-	width: auto;
-	min-width: 52px;
-	height: 52px;
-
-	margin: 0;
-	padding: 0;
-
-	color: var(--nvx-ink);
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 3px;
+	min-height: 48px;
+	color: var(--nvx-ink, #171717);
 	text-decoration: none;
 	line-height: 1;
 }
@@ -84,130 +68,92 @@
 #nvx-header .nvx-logo__img,
 #nvx-header .custom-logo {
 	display: block;
-
-	width: 52px;
-	height: 52px;
-	max-width: none;
-	max-height: none;
-
-	margin: 0;
-	padding: 0;
-
+	width: auto;
+	height: 42px;
+	max-width: 168px;
 	object-fit: contain;
-	object-position: center;
+	object-position: left center;
 }
 
 #nvx-header .nvx-logo__wordmark {
 	display: block;
-
-	font-family: var(--nvx-sans);
-	font-size: 18px;
+	font-family: var(--nvx-sans, "Manrope", sans-serif);
+	font-size: 0.95rem;
 	font-weight: 600;
-	line-height: 1;
-	letter-spacing: 0.12em;
+	letter-spacing: 0.22em;
 	text-transform: uppercase;
-	color: var(--nvx-ink);
+	color: var(--nvx-ink, #171717);
 }
 
 #nvx-header .nvx-logo__tagline {
 	display: block;
-
-	margin-top: 4px;
-
-	font-family: var(--nvx-sans);
-	font-size: 8px;
+	font-family: var(--nvx-sans, "Manrope", sans-serif);
+	font-size: 0.58rem;
 	font-weight: 400;
-	line-height: 1;
-	letter-spacing: 0.18em;
+	letter-spacing: 0.2em;
 	text-transform: uppercase;
-	color: var(--nvx-text-muted);
+	color: rgba(23, 23, 23, 0.48);
 }
 
-/* ==========================================================
-   NAVEGACIÓN DE ESCRITORIO
-   ========================================================== */
-
+/* ── Desktop nav ── */
 #nvx-header .nvx-nav {
 	flex: 1 1 auto;
-
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
-	gap: clamp(18px, 2vw, 32px);
-
+	gap: clamp(18px, 2vw, 28px);
 	min-width: 0;
-	overflow: visible;
 }
 
 #nvx-header .nvx-nav__list {
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
-	gap: clamp(14px, 1.5vw, 24px);
-
-	min-width: 0;
-
+	flex-wrap: wrap;
+	gap: clamp(4px, 0.8vw, 8px) clamp(14px, 1.6vw, 26px);
 	margin: 0;
 	padding: 0;
-
 	list-style: none;
 }
 
 #nvx-header .nvx-nav__list > li {
 	position: relative;
-
 	display: flex;
 	align-items: center;
-
 	margin: 0;
 	padding: 0;
-
 	list-style: none;
 }
 
 #nvx-header .nvx-nav__list > li > a {
 	position: relative;
-
 	display: inline-flex;
 	align-items: center;
-
 	min-height: 44px;
-	padding: 2px 0;
-
-	font-family: var(--nvx-sans);
-	font-size: 10px;
-	font-weight: 600;
+	padding: 4px 0 6px;
+	font-family: var(--nvx-sans, "Manrope", sans-serif);
+	font-size: 0.68rem;
+	font-weight: 500;
 	line-height: 1.2;
-	letter-spacing: 0.12em;
+	letter-spacing: 0.14em;
 	text-transform: uppercase;
-
-	color: var(--nvx-ink);
+	color: rgba(23, 23, 23, 0.78);
 	text-decoration: none;
 	white-space: nowrap;
-
-	transition:
-		color 180ms ease,
-		opacity 180ms ease;
+	transition: color 200ms ease;
 }
 
 #nvx-header .nvx-nav__list > li > a::after {
 	content: "";
-
 	position: absolute;
 	left: 0;
 	right: 0;
-	bottom: 8px;
-
+	bottom: 4px;
 	height: 1px;
-
-	background: currentColor;
-	opacity: 0;
+	background: linear-gradient(90deg, rgba(184, 154, 91, 0.2), rgba(184, 154, 91, 0.95), rgba(184, 154, 91, 0.2));
 	transform: scaleX(0);
-	transform-origin: left center;
-
-	transition:
-		opacity 180ms ease,
-		transform 180ms ease;
+	transform-origin: center;
+	transition: transform 220ms ease;
 }
 
 #nvx-header .nvx-nav__list > li > a:hover,
@@ -215,7 +161,7 @@
 #nvx-header .nvx-nav__list > li.current-menu-item > a,
 #nvx-header .nvx-nav__list > li.current-menu-ancestor > a,
 #nvx-header .nvx-nav__list > li.current-page-ancestor > a {
-	color: var(--nvx-text-muted);
+	color: var(--nvx-ink, #171717);
 }
 
 #nvx-header .nvx-nav__list > li > a:hover::after,
@@ -223,43 +169,29 @@
 #nvx-header .nvx-nav__list > li.current-menu-item > a::after,
 #nvx-header .nvx-nav__list > li.current-menu-ancestor > a::after,
 #nvx-header .nvx-nav__list > li.current-page-ancestor > a::after {
-	opacity: 1;
 	transform: scaleX(1);
 }
 
-/* ==========================================================
-   SUBMENÚS
-   ========================================================== */
-
+/* Submenus */
 #nvx-header .nvx-nav__list .sub-menu {
 	position: absolute;
 	top: calc(100% - 2px);
-	left: -18px;
+	left: 50%;
 	z-index: 1010;
-
 	display: block;
-
-	min-width: 260px;
-
+	min-width: 240px;
 	margin: 0;
-	padding: 10px 0;
-
+	padding: 12px 0;
 	list-style: none;
-
-	background: rgba(252, 250, 247, 0.99);
-	border: 1px solid var(--nvx-border-soft);
-	box-shadow: 0 20px 48px rgba(23, 23, 23, 0.12);
-
+	background: rgba(252, 250, 247, 0.98);
+	border: 1px solid rgba(23, 23, 23, 0.08);
+	border-radius: 2px;
+	box-shadow: 0 24px 56px rgba(23, 23, 23, 0.1);
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
-
-	transform: translateY(8px);
-
-	transition:
-		opacity 180ms ease,
-		visibility 180ms ease,
-		transform 180ms ease;
+	transform: translate(-50%, 10px);
+	transition: opacity 180ms ease, visibility 180ms ease, transform 180ms ease;
 }
 
 #nvx-header .nvx-nav__list li:hover > .sub-menu,
@@ -267,157 +199,110 @@
 	opacity: 1;
 	visibility: visible;
 	pointer-events: auto;
-	transform: translateY(0);
-}
-
-#nvx-header .nvx-nav__list .sub-menu li {
-	display: block;
-
-	margin: 0;
-	padding: 0;
-
-	list-style: none;
+	transform: translate(-50%, 0);
 }
 
 #nvx-header .nvx-nav__list .sub-menu a {
 	display: block;
-
-	padding: 11px 18px;
-
-	font-family: var(--nvx-sans);
-	font-size: 12px;
+	padding: 11px 20px;
+	font-family: var(--nvx-sans, "Manrope", sans-serif);
+	font-size: 0.82rem;
 	font-weight: 400;
-	line-height: 1.4;
-	letter-spacing: 0.02em;
+	letter-spacing: 0.01em;
 	text-transform: none;
-
-	color: var(--nvx-charcoal);
+	color: rgba(23, 23, 23, 0.78);
 	text-decoration: none;
-	white-space: nowrap;
-
-	transition:
-		background-color 160ms ease,
-		color 160ms ease;
+	transition: background-color 160ms ease, color 160ms ease;
 }
 
 #nvx-header .nvx-nav__list .sub-menu a:hover,
 #nvx-header .nvx-nav__list .sub-menu a:focus-visible {
-	background: var(--nvx-stone-hover);
-	color: var(--nvx-ink);
+	background: rgba(233, 221, 207, 0.45);
+	color: var(--nvx-ink, #171717);
 }
 
-/* ==========================================================
-   CTA
-   ========================================================== */
-
+/* CTA */
 #nvx-header #nvx-header-cta {
 	flex: 0 0 auto;
-
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-
-	min-height: 42px;
-	padding: 12px 20px;
-
-	border: 1px solid var(--nvx-ink);
-	border-radius: 0;
-
-	background: var(--nvx-ink);
-	color: var(--nvx-white);
-
-	font-family: var(--nvx-sans);
-	font-size: 10px;
+	min-height: 44px;
+	padding: 0 22px;
+	border: 1px solid var(--nvx-ink, #171717);
+	border-radius: 999px;
+	background: var(--nvx-ink, #171717);
+	color: #fff;
+	font-family: var(--nvx-sans, "Manrope", sans-serif);
+	font-size: 0.64rem;
 	font-weight: 600;
-	line-height: 1;
-	letter-spacing: 0.12em;
+	letter-spacing: 0.16em;
 	text-transform: uppercase;
+	text-decoration: none;
 	white-space: nowrap;
-
-	transition:
-		background-color 180ms ease,
-		color 180ms ease,
-		border-color 180ms ease;
-}
-
-#nvx-header #nvx-header-cta::after {
-	content: none;
+	box-shadow: 0 10px 28px rgba(23, 23, 23, 0.12);
+	transition: background-color 200ms ease, color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
 
 #nvx-header #nvx-header-cta:hover,
 #nvx-header #nvx-header-cta:focus-visible {
 	background: transparent;
-	color: var(--nvx-ink);
-	border-color: var(--nvx-ink);
+	color: var(--nvx-ink, #171717);
+	transform: translateY(-1px);
+	box-shadow: 0 14px 32px rgba(23, 23, 23, 0.1);
 }
 
-/* ==========================================================
-   BOTÓN MÓVIL
-   ========================================================== */
-
+/* Hamburger */
 #nvx-header .nvx-hamburger {
 	flex: 0 0 auto;
-
 	display: none;
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	gap: 5px;
-
+	gap: 6px;
 	width: 44px;
 	height: 44px;
-
 	margin: 0;
 	padding: 0;
-
 	background: transparent;
-	border: 1px solid var(--nvx-border-soft);
-	border-radius: 0;
-
-	color: var(--nvx-ink);
+	border: 1px solid rgba(23, 23, 23, 0.12);
+	border-radius: 999px;
+	color: var(--nvx-ink, #171717);
 	cursor: pointer;
+	transition: border-color 180ms ease, background-color 180ms ease;
+}
+
+#nvx-header .nvx-hamburger:hover {
+	border-color: rgba(23, 23, 23, 0.28);
+	background: rgba(255, 255, 255, 0.55);
 }
 
 #nvx-header .nvx-hamburger span {
 	display: block;
-
-	width: 20px;
+	width: 16px;
 	height: 1px;
-
 	background: currentColor;
-
-	transition:
-		transform 180ms ease,
-		opacity 180ms ease;
+	transition: transform 180ms ease, opacity 180ms ease;
 }
 
-/* ==========================================================
-   MENÚ MÓVIL
-   ========================================================== */
-
+/* Mobile panel */
 #nvx-mobile-nav {
 	position: fixed;
 	inset: 0;
 	z-index: 2000;
-
 	display: none;
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 30px;
-
+	gap: 28px;
 	width: 100%;
 	min-height: 100dvh;
-
-	padding:
-		max(72px, env(safe-area-inset-top))
-		24px
-		max(36px, env(safe-area-inset-bottom));
-
+	padding: max(88px, env(safe-area-inset-top)) 28px max(40px, env(safe-area-inset-bottom));
 	overflow-y: auto;
-
-	background: rgba(247, 241, 232, 0.99);
-	color: var(--nvx-ink);
+	background: rgba(252, 250, 247, 0.98);
+	color: var(--nvx-ink, #171717);
+	-webkit-backdrop-filter: blur(20px);
+	backdrop-filter: blur(20px);
 }
 
 #nvx-mobile-nav.is-open,
@@ -427,29 +312,21 @@
 
 #nvx-mobile-nav .nvx-mobile-nav__close {
 	position: absolute;
-	top: max(18px, env(safe-area-inset-top));
+	top: max(20px, env(safe-area-inset-top));
 	right: 22px;
-
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-
 	width: 44px;
 	height: 44px;
-
 	padding: 0;
-
 	background: transparent;
-	border: 1px solid var(--nvx-border-soft);
-	border-radius: 0;
-
-	color: var(--nvx-ink);
-
-	font-family: var(--nvx-sans);
-	font-size: 30px;
+	border: 1px solid rgba(23, 23, 23, 0.12);
+	border-radius: 999px;
+	color: var(--nvx-ink, #171717);
+	font-size: 1.5rem;
 	font-weight: 300;
 	line-height: 1;
-
 	cursor: pointer;
 }
 
@@ -457,247 +334,60 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 8px;
-
-	width: min(100%, 520px);
-
+	gap: 6px;
+	width: min(100%, 420px);
 	margin: 0;
 	padding: 0;
-
 	list-style: none;
 	text-align: center;
 }
 
-#nvx-mobile-nav .nvx-mobile-nav__list li {
-	display: block;
-
-	width: 100%;
-
-	margin: 0;
-	padding: 0;
-
-	list-style: none;
-}
-
 #nvx-mobile-nav .nvx-mobile-nav__list > li > a {
 	display: block;
-
 	width: 100%;
 	padding: 12px 8px;
-
-	font-family: var(--nvx-serif);
-	font-size: clamp(1.7rem, 7vw, 2.4rem);
+	font-family: var(--nvx-serif, "Bodoni Moda", serif);
+	font-size: clamp(1.65rem, 6.5vw, 2.35rem);
 	font-weight: 400;
 	line-height: 1.08;
-	letter-spacing: -0.02em;
-
-	color: var(--nvx-ink);
+	letter-spacing: -0.03em;
+	color: var(--nvx-ink, #171717);
 	text-decoration: none;
 }
 
-#nvx-mobile-nav .sub-menu {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 2px;
-
-	margin: 2px 0 8px;
-	padding: 0;
-
-	list-style: none;
-}
-
-#nvx-mobile-nav .sub-menu a {
-	display: block;
-
-	padding: 7px 8px;
-
-	font-family: var(--nvx-sans);
-	font-size: 12px;
-	font-weight: 500;
-	line-height: 1.4;
-	letter-spacing: 0.08em;
-	text-transform: uppercase;
-
-	color: var(--nvx-text-muted);
-	text-decoration: none;
-}
-
-#nvx-mobile-nav > .nvx-btn {
+#nvx-mobile-nav .nvx-btn {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-
-	min-height: 46px;
-	padding: 14px 26px;
-
-	background: var(--nvx-ink);
-	border: 1px solid var(--nvx-ink);
-	border-radius: 0;
-
-	color: var(--nvx-white);
-
-	font-family: var(--nvx-sans);
-	font-size: 10px;
+	min-height: 48px;
+	padding: 0 28px;
+	border: 1px solid var(--nvx-ink, #171717);
+	border-radius: 999px;
+	background: var(--nvx-ink, #171717);
+	color: #fff;
+	font-family: var(--nvx-sans, "Manrope", sans-serif);
+	font-size: 0.68rem;
 	font-weight: 600;
-	letter-spacing: 0.12em;
+	letter-spacing: 0.16em;
 	text-transform: uppercase;
+	text-decoration: none;
 }
 
-/* ==========================================================
-   ACCESIBILIDAD
-   ========================================================== */
-
-#nvx-header a:focus-visible,
-#nvx-header button:focus-visible,
-#nvx-mobile-nav a:focus-visible,
-#nvx-mobile-nav button:focus-visible {
-	outline: 2px solid var(--nvx-ink);
-	outline-offset: 4px;
-}
-
-/* ==========================================================
-   ADMIN BAR
-   ========================================================== */
-
-.admin-bar #nvx-header {
-	top: 32px;
-}
-
-.admin-bar #nvx-mobile-nav {
-	padding-top: max(104px, env(safe-area-inset-top));
-}
-
-/* ==========================================================
-   TABLET / NAVEGACIÓN COMPACTA
-   ========================================================== */
-
-@media (min-width: 981px) and (max-width: 1240px) {
-	#nvx-header .nvx-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(20px, 2.5vw, 42px);
-  width: var(--nvx-shell);
-  max-width: none;
-  min-height: 72px;
-  margin-inline: auto;
-  padding-inline: 0;
-  box-sizing: border-box;
-}
-
-	#nvx-header .nvx-nav {
-		gap: 16px;
-	}
-
-	#nvx-header .nvx-nav__list {
-		gap: 13px;
-	}
-
-	#nvx-header .nvx-nav__list > li > a {
-		font-size: 9px;
-		letter-spacing: 0.09em;
-	}
-
+@media (max-width: 1024px) {
+	#nvx-header .nvx-nav__list,
 	#nvx-header #nvx-header-cta {
-		padding-inline: 15px;
-		font-size: 9px;
-	}
-}
-
-/* ==========================================================
-   MÓVIL
-   ========================================================== */
-
-@media (max-width: 980px) {
-	#nvx-header {
-		min-height: 64px;
-	}
-
-	#nvx-header .nvx-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(20px, 2.5vw, 42px);
-  width: var(--nvx-shell);
-  max-width: none;
-  min-height: 72px;
-  margin-inline: auto;
-  padding-inline: 0;
-  box-sizing: border-box;
-}
-
-	#nvx-header .nvx-logo {
-		min-width: 44px;
-		height: 44px;
-	}
-
-	#nvx-header .nvx-logo__img,
-	#nvx-header .custom-logo {
-		width: 44px;
-		height: 44px;
-	}
-
-	#nvx-header .nvx-nav {
 		display: none;
 	}
 
 	#nvx-header .nvx-hamburger {
 		display: inline-flex;
 	}
-}
 
-@media (max-width: 782px) {
-	.admin-bar #nvx-header {
-		top: 46px;
-	}
-
-	.admin-bar #nvx-mobile-nav {
-		padding-top: max(118px, env(safe-area-inset-top));
-	}
-}
-
-@media (max-width: 480px) {
 	#nvx-header .nvx-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: clamp(20px, 2.5vw, 42px);
-  width: var(--nvx-shell);
-  max-width: none;
-  min-height: 72px;
-  margin-inline: auto;
-  padding-inline: 0;
-  box-sizing: border-box;
-}
-
-	#nvx-mobile-nav {
-		padding-inline: 18px;
+		min-height: 72px;
 	}
 
-	#nvx-mobile-nav .nvx-mobile-nav__list > li > a {
-		font-size: clamp(1.45rem, 7.5vw, 2rem);
+	#nvx-header {
+		min-height: 72px;
 	}
-}
-
-/* ==========================================================
-   REDUCED MOTION
-   ========================================================== */
-
-@media (prefers-reduced-motion: reduce) {
-	#nvx-header *,
-	#nvx-mobile-nav * {
-		scroll-behavior: auto;
-		transition-duration: 0.01ms;
-	}
-}
-
-@media (max-width: 980px) {
-  #nvx-header .nvx-logo__img,
-  #nvx-header .custom-logo {
-    width: auto;
-    height: 38px;
-    max-width: 142px;
-    max-height: 38px;
-  }
 }

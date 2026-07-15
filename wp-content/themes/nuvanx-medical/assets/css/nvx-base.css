@@ -1529,7 +1529,7 @@ blockquote,
    13. MAPEO DE CONTENIDO GUTENBERG (Compatibilidad BD)
    -------------------------------------------------------------------------- */
 
-/* Hero Portada */
+/* Hero Portada (legacy Gutenberg wrap — not used by editorial home template) */
 .nvx-hero-wrap {
   position: relative;
   min-height: 100svh;
@@ -1541,7 +1541,6 @@ blockquote,
   overflow: hidden;
 }
 
-/* El vídeo de la portada (debe estar al fondo) */
 .nvx-hero-wrap .wp-block-video,
 .nvx-hero-wrap video {
   position: absolute;
@@ -1554,7 +1553,6 @@ blockquote,
   pointer-events: none;
 }
 
-/* Overlay para que el texto sea legible sobre el vídeo */
 .nvx-hero-wrap::before {
   content: '';
   position: absolute;
@@ -1563,10 +1561,46 @@ blockquote,
   z-index: var(--nvx-z-base);
 }
 
-/* Contenedores de texto dentro del hero */
 .nvx-hero-wrap > * {
   position: relative;
   z-index: var(--nvx-z-raised);
+}
+
+/*
+ * Home editorial: neutralize legacy wrap so video is owned by
+ * #nvx-home-main.nvx-home .nvx-home-hero-stage (nvx-brand-home.css).
+ */
+body.home .nvx-hero-wrap {
+  min-height: 0;
+  display: block;
+  padding: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+body.home .nvx-hero-wrap::before {
+  content: none;
+  display: none;
+}
+
+body.home .nvx-hero-wrap > * {
+  position: static;
+}
+
+body.home .nvx-hero-wrap video:not(.nvx-home-hero-video) {
+  position: static;
+}
+
+/* Horizontal overflow guard (replaces residual nvx-responsive.css) */
+html,
+body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+
+body.home #nvx-home-main.nvx-home video.nvx-home-hero-video {
+  max-width: none;
+  height: 100%;
 }
 
 /* Tipografía de Portada */

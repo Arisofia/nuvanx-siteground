@@ -366,50 +366,199 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 
 	// 6) Home: eliminar collage editorial bajo el vídeo (markup del editor).
 	if ( function_exists( 'nvx_theme_is_home_page' ) && nvx_theme_is_home_page() ) {
-		// Bloque media del intro (collage clínicas).
 		$content = preg_replace(
 			'/<div[^>]*\bnvx-editorial-zone--media\b[^>]*>[\s\S]*?<\/div>\s*/i',
 			'',
 			$content
 		);
-		// Por si la imagen queda suelta sin el wrapper.
 		$content = preg_replace(
 			'/<img[^>]*(?:clinica-nuvanx-madrid-chamberi-goya|collage)[^>]*>\s*/i',
 			'',
 			$content
 		);
+	}
 
-		// 7) Flujos editoriales: pullquote de invitación + dirección como split-media.
-		$content = preg_replace(
-			'/\bclass=(["\'])([^"\']*\bnvx-home-invitation__text\b[^"\']*)\1/i',
-			'class=$1$2 nvx-pullquote$1',
-			$content,
-			1
-		);
-		$content = preg_replace(
-			'/\bclass=(["\'])(nvx-home-direccion-grid)\1/i',
-			'class=$1$2 nvx-split-media$1',
-			$content,
-			1
-		);
-		$content = preg_replace(
-			'/\bclass=(["\'])(nvx-home-direccion-media)\1/i',
-			'class=$1$2 nvx-split-media__media$1',
-			$content,
-			1
-		);
-		// Lead sobre la foto de dirección (primer título de la sección).
+	// 7) Flujos editoriales SITEWIDE (revista): numerales, steps, pullquotes, split-media.
+	$content = nvx_theme_apply_editorial_flows( $content );
+
+	return $content;
+}
+
+/**
+ * Aplica patrones de flujo editorial a TODO el contenido del sitio.
+ * Sin forks por página: mismas reglas en home, tratamientos, equipo, clínicas, etc.
+ */
+function nvx_theme_apply_editorial_flows( string $content ): string {
+	if ( '' === $content ) {
+		return $content;
+	}
+
+	// 7a) Blockquotes → pullquote (si no trae ya la clase).
+	$content = preg_replace_callback(
+		'/<blockquote(\s[^>]*)?>([\s\S]*?)<\/blockquote>/i',
+		static function ( $m ) {
+			$attrs = isset( $m[1] ) ? $m[1] : '';
+			$inner = $m[2];
+			if ( preg_match( '/\bclass=(["\'])([^"\']*)\1/i', $attrs, $cm ) ) {
+				if ( false === strpos( $cm[2], 'nvx-pullquote' ) && false === strpos( $cm[2], 'nvx-quote' ) ) {
+					$attrs = preg_replace(
+						'/\bclass=(["\'])([^"\']*)\1/i',
+						'class=$1$2 nvx-pullquote$1',
+						$attrs,
+						1
+					);
+				}
+			} else {
+				$attrs .= ' class="nvx-pullquote"';
+			}
+			return '<blockquote' . $attrs . '>' . $inner . '</blockquote>';
+		},
+		$content
+	);
+
+	// 7b) Kickers numéricos (01, 02, 1, 2…) → numeral de diseño.
+	$content = preg_replace_callback(
+		'/<p([^>]*\bclass=(["\'])([^"\']*\bnvx-brand-card__kicker\b[^"\']*)\2[^>]*)>\s*(\d{1,2})\s*<\/p>/iu',
+		static function ( $m ) {
+			$attrs = $m[1];
+			$num   = $m[4];
+			if ( false === strpos( $m[3], 'nvx-numeral' ) ) {
+				$attrs = preg_replace(
+					'/\bclass=(["\'])/',
+					'class=$1nvx-numeral nvx-step__num ',
+					$attrs,
+					1
+				);
+			}
+			return '<p' . $attrs . '>' . esc_html( $num ) . '</p>';
+		},
+		$content
+	);
+
+	// 7c) Enlaces editoriales con numeral + título → layout step (sitewide).
+	$content = preg_replace_callback(
+		'/<a([^>]*\bclass=(["\'])([^"\']*)\2[^>]*)>([\s\S]*?)<\/a>/i',
+		static function ( $m ) {
+			$attrs   = $m[1];
+			$classes = $m[3];
+			$inner   = $m[4];
+			$has_num = ( false !== strpos( $inner, 'nvx-step__num' ) || false !== strpos( $inner, 'nvx-numeral' ) );
+			$has_ttl = ( false !== strpos( $inner, 'nvx-brand-card__title' ) );
+			if ( ! $has_num || ! $has_ttl ) {
+				return $m[0];
+			}
+			// Evitar menús / botones CTA simples.
+			if ( false !== strpos( $classes, 'nvx-nav' )
+				|| false !== strpos( $classes, 'nvx-btn' )
+				|| false !== strpos( $classes, 'nvx-button' )
+				|| false !== strpos( $classes, 'menu-item' ) ) {
+				return $m[0];
+			}
+			if ( false === strpos( $classes, 'nvx-step' ) ) {
+				$attrs = preg_replace(
+					'/\bclass=(["\'])/',
+					'class=$1nvx-step ',
+					$attrs,
+					1
+				);
+			}
+			return '<a' . $attrs . '>' . $inner . '</a>';
+		},
+		$content
+	);
+
+	// 7d) Invitación home → pullquote.
+	$content = preg_replace(
+		'/\bclass=(["\'])([^"\']*\bnvx-home-invitation__text\b[^"\']*)\1/i',
+		'class=$1$2 nvx-pullquote$1',
+		$content,
+		1
+	);
+
+	// 7e) Dirección home → split-media.
+	$content = preg_replace(
+		'/\bclass=(["\'])(nvx-home-direccion-grid)\1/i',
+		'class=$1$2 nvx-split-media$1',
+		$content,
+		1
+	);
+	$content = preg_replace(
+		'/\bclass=(["\'])(nvx-home-direccion-media)\1/i',
+		'class=$1$2 nvx-split-media__media$1',
+		$content,
+		1
+	);
+	if ( false === strpos( $content, 'nvx-split-media__lead' )
+		&& false !== strpos( $content, 'nvx-home-direccion-media' ) ) {
 		$content = preg_replace(
 			'/(<div[^>]*\bnvx-home-direccion-media\b[^>]*>\s*<img[^>]*>)/i',
 			'$1<p class="nvx-split-media__lead">Liderazgo y experiencia médica</p>',
 			$content,
 			1
 		);
+	}
+	$content = preg_replace(
+		'/\bclass=(["\'])(nvx-home-direccion-copy)\1/i',
+		'class=$1$2 nvx-split-media__copy$1',
+		$content,
+		1
+	);
+
+	// 7f) Brand hero con media: marcar split (todas las páginas con hero+foto).
+	if ( false !== strpos( $content, 'nvx-brand-hero__media' ) ) {
 		$content = preg_replace(
-			'/\bclass=(["\'])(nvx-home-direccion-copy)\1/i',
+			'/\bclass=(["\'])([^"\']*\bnvx-brand-hero__inner\b[^"\']*)\1/i',
+			'class=$1$2 nvx-split-media$1',
+			$content
+		);
+		$content = preg_replace(
+			'/\bclass=(["\'])([^"\']*\bnvx-brand-hero__media\b[^"\']*)\1/i',
+			'class=$1$2 nvx-split-media__media$1',
+			$content
+		);
+		$content = preg_replace(
+			'/\bclass=(["\'])([^"\']*\bnvx-brand-hero__copy\b[^"\']*)\1/i',
 			'class=$1$2 nvx-split-media__copy$1',
-			$content,
-			1
+			$content
+		);
+	}
+
+	// 7g) Listas brand-list / brand-ux-list → pasos numerados visuales.
+	$content = preg_replace(
+		'/\bclass=(["\'])([^"\']*\bnvx-brand-list\b[^"\']*)\1/i',
+		'class=$1$2 nvx-step-list$1',
+		$content
+	);
+	$content = preg_replace(
+		'/\bclass=(["\'])([^"\']*\bnvx-brand-ux-list\b[^"\']*)\1/i',
+		'class=$1$2 nvx-step-list$1',
+		$content
+	);
+
+	// 7h) Subtítulos cortos → impact (solo home, 1º match, 24–120 chars).
+	if ( function_exists( 'nvx_theme_is_home_page' ) && nvx_theme_is_home_page() ) {
+		$done_impact = false;
+		$content     = preg_replace_callback(
+			'/<p([^>]*\bclass=(["\'])([^"\']*\bnvx-brand-subtitle\b[^"\']*)\2[^>]*)>([\s\S]*?)<\/p>/i',
+			static function ( $m ) use ( &$done_impact ) {
+				if ( $done_impact ) {
+					return $m[0];
+				}
+				$text = trim( wp_strip_all_tags( $m[4] ) );
+				$len  = function_exists( 'mb_strlen' ) ? mb_strlen( $text ) : strlen( $text );
+				if ( $len > 120 || $len < 24 || false !== strpos( $m[3], 'nvx-impact' ) ) {
+					return $m[0];
+				}
+				$done_impact = true;
+				$attrs       = preg_replace(
+					'/\bclass=(["\'])/',
+					'class=$1nvx-impact ',
+					$m[1],
+					1
+				);
+				return '<p' . $attrs . '>' . $m[4] . '</p>';
+			},
+			$content
 		);
 	}
 

@@ -512,10 +512,10 @@ figcaption {
   border-bottom: 1px solid currentColor;
   color: var(--nvx-color-ink);
   font-family: var(--nvx-font-sans);
-  font-size: var(--nvx-type-small);
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  line-height: 1.4;
+  font-size: var(--nvx-type-button);
+  font-weight: var(--nvx-fw-semibold, 600);
+  letter-spacing: var(--nvx-track-button);
+  line-height: var(--nvx-lh-button);
   text-decoration: none;
   text-transform: uppercase;
   background: none;
@@ -1179,8 +1179,9 @@ figcaption {
   color: var(--nvx-white);
   font-family: var(--nvx-font-sans);
   font-size: var(--nvx-type-button);
-  font-weight: 600;
-  letter-spacing: var(--nvx-track-button, 0.1em);
+  font-weight: var(--nvx-fw-semibold, 600);
+  letter-spacing: var(--nvx-track-button);
+  line-height: var(--nvx-lh-button);
   text-transform: uppercase;
   cursor: pointer;
   box-shadow: none;

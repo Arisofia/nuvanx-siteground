@@ -79,7 +79,7 @@ terminals/
 agent-tools/
 Nuvanx-System/
 
-# Ticket 43 QA artifacts (uploaded via GitHub Actions, not versioned)
+# Local QA run output (not versioned)
 qa/screenshots/
 qa/results/
 

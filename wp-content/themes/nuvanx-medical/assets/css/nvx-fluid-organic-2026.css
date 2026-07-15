@@ -1,78 +1,31 @@
 /*
  * NUVANX Fluid Organic 2026
- * Capa visual canónica del tema borrador.
- * No modifica contenido, SEO, formularios ni integraciones.
+ * Capa de composición / shapes. NO redefine paleta ni shell.
+ * Autoridad de color/espaciado: nvx-tokens.css (Plata Pulida).
  */
 
 :root {
-	/* Warm quiet-luxury palette (Phase 3 / Chanel–Prada editorial) — no cool gray-green. */
-	--nvx-fluid-white: #ffffff;
-	--nvx-fluid-pearl: #f7f1e8;
-	--nvx-fluid-mist: #e9ddcf;
-	--nvx-fluid-silver: #cbbba8;
-	--nvx-fluid-graphite: #171717;
-	--nvx-fluid-charcoal: #2b2926;
-	--nvx-fluid-muted: #6f6861;
-	--nvx-fluid-line: rgba(22, 21, 17, 0.14);
-	--nvx-fluid-line-strong: rgba(22, 21, 17, 0.24);
-	--nvx-fluid-warm-accent: #b89a5b;
-	--nvx-fluid-warm-accent-soft: #e9ddcf;
-	/* Legacy alias kept so any remaining cool-accent refs resolve warm. */
-	--nvx-fluid-cool-accent: var(--nvx-fluid-warm-accent);
-	--nvx-fluid-cool-accent-soft: var(--nvx-fluid-warm-accent-soft);
-	--nvx-fluid-display: "Bodoni Moda", "Times New Roman", serif;
-	--nvx-fluid-body: "Manrope", "Helvetica Neue", sans-serif;
-	--nvx-fluid-script: "Pinyon Script", cursive;
-	--nvx-fluid-shell: min(calc(100vw - clamp(48px, 6vw, 120px)), 1480px);
-	--nvx-fluid-reading: 760px;
-	--nvx-fluid-section-y: clamp(80px, 9vw, 140px);
-	--nvx-fluid-transition: 280ms cubic-bezier(0.2, 0.7, 0.2, 1);
-
-	/*
-	 * Compatibilidad visual con el sistema heredado.
-	 * Map to warm Phase 3 tokens (champagne, ivory, ink).
-	 */
-	--nvx-ink: #171717;
-	--nvx-charcoal: #2b2926;
-	--nvx-ivory: #f7f1e8;
-	--nvx-sand: #e9ddcf;
-	--nvx-taupe: #cbbba8;
-	--nvx-champagne: #b89a5b;
-	--nvx-white: var(--nvx-fluid-white);
-	--nvx-soft-white: var(--nvx-fluid-white);
-	--nvx-stone: #e9ddcf;
-	--nvx-graphite: #4b4f55;
-	--nvx-black: #171717;
-	--nvx-accent: #b89a5b;
-	--nvx-text-main: #2b2926;
-	--nvx-text-body: #3f3a35;
-	--nvx-text-muted: #6f6861;
-	--nvx-border-soft: rgba(203, 187, 168, 0.45);
-	--nvx-border-strong: #cbbba8;
-	--nvx-frosted-ivory: rgba(247, 241, 232, 0.72);
-	--nvx-border-footer: rgba(203, 187, 168, 0.25);
-	--nvx-accent-glow: rgba(184, 154, 91, 0.14);
-	--nvx-accent-bg: rgba(184, 154, 91, 0.04);
-	--nvx-stone-hover: rgba(233, 221, 207, 0.5);
-	--nvx-rule: rgba(203, 187, 168, 0.5);
-	--nvx-header-bg: rgba(252, 250, 247, 0.92);
-	--nvx-accent-light: #c9b48a;
-	--nvx-serif: var(--nvx-fluid-display);
-	--nvx-sans: var(--nvx-fluid-body);
-	--nvx-script: var(--nvx-fluid-script);
-	--nvx-font-serif: var(--nvx-fluid-display);
-	--nvx-font-sans: var(--nvx-fluid-body);
-	--nvx-color-surface: #ffffff;
-	--nvx-color-paper: #f4f2ee;
-	--nvx-color-ink: #161511;
-	--nvx-color-muted: rgba(22, 21, 17, 0.62);
-	--nvx-color-line: rgba(22, 21, 17, 0.14);
-	--nvx-radius-button: 999px;
-	--nvx-radius-card: 0;
-	--nvx-radius-image: 0;
-	--nvx-gradient-page: linear-gradient(180deg, #ffffff 0%, #f7f1e8 100%);
-	--nvx-gradient-hero: linear-gradient(180deg, #ffffff 0%, #f7f1e8 100%);
-	--nvx-gradient-section-warm: linear-gradient(180deg, #f7f1e8 0%, #e9ddcf 100%);
+	/* Aliases locales → tokens canónicos (sin hex propios) */
+	--nvx-fluid-white: var(--nvx-white);
+	--nvx-fluid-pearl: var(--nvx-pearl);
+	--nvx-fluid-mist: var(--nvx-mist);
+	--nvx-fluid-silver: var(--nvx-silver);
+	--nvx-fluid-graphite: var(--nvx-ink);
+	--nvx-fluid-charcoal: var(--nvx-charcoal);
+	--nvx-fluid-muted: var(--nvx-text-muted);
+	--nvx-fluid-line: var(--nvx-color-line);
+	--nvx-fluid-line-strong: rgba(20, 22, 26, 0.22);
+	--nvx-fluid-warm-accent: var(--nvx-platinum);
+	--nvx-fluid-warm-accent-soft: var(--nvx-mist);
+	--nvx-fluid-cool-accent: var(--nvx-platinum);
+	--nvx-fluid-cool-accent-soft: var(--nvx-mist);
+	--nvx-fluid-display: var(--nvx-serif);
+	--nvx-fluid-body: var(--nvx-sans);
+	--nvx-fluid-script: var(--nvx-script);
+	--nvx-fluid-shell: var(--nvx-shell);
+	--nvx-fluid-reading: var(--nvx-readable);
+	--nvx-fluid-section-y: var(--nvx-section-y);
+	--nvx-fluid-transition: var(--nvx-ease);
 }
 
 html {
@@ -81,12 +34,12 @@ html {
 
 body.nvx-unified-shell {
 	margin: 0;
-	background: var(--nvx-fluid-pearl);
-	color: var(--nvx-text-body, #3f3a35);
-	font-family: var(--nvx-fluid-body);
+	background: var(--nvx-color-paper);
+	color: var(--nvx-text-body);
+	font-family: var(--nvx-sans);
 	font-size: 17px;
 	font-weight: 300;
-	line-height: 1.7;
+	line-height: var(--nvx-lh-body, 1.7);
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 }
@@ -98,9 +51,9 @@ body.nvx-unified-shell::before {
 	z-index: -1;
 	pointer-events: none;
 	background:
-		radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.9), transparent 30%),
-		radial-gradient(circle at 88% 26%, rgba(233, 221, 207, 0.45), transparent 26%),
-		linear-gradient(180deg, #ffffff 0%, #f7f1e8 52%, #ffffff 100%);
+		radial-gradient(circle at 14% 8%, rgba(255, 255, 255, 0.92), transparent 30%),
+		radial-gradient(circle at 88% 26%, rgba(196, 200, 206, 0.28), transparent 26%),
+		linear-gradient(180deg, var(--nvx-white) 0%, var(--nvx-pearl) 52%, var(--nvx-white) 100%);
 }
 
 body.nvx-unified-shell img,
@@ -217,28 +170,29 @@ body.nvx-unified-shell .nvx-button:hover {
 	transform: translateY(-2px);
 }
 
-/* Ritmo global: sin beige, sin tarjetas SaaS, con aire editorial. */
+/* Ritmo global: usa contrato de tokens (no valores propios). */
 body.nvx-unified-shell .nvx-brand-section,
 body.nvx-unified-shell .nvx-section {
 	position: relative;
-	padding-block: var(--nvx-fluid-section-y);
+	padding-block: var(--nvx-section-y);
 	border: 0;
-	border-top: 1px solid var(--nvx-fluid-line);
+	border-top: 1px solid var(--nvx-color-line);
 	background: transparent;
 }
 
 body.nvx-unified-shell .nvx-brand-section__inner,
 body.nvx-unified-shell .nvx-container,
 body.nvx-unified-shell .nvx-page-body__inner {
-	width: var(--nvx-fluid-shell);
-	max-width: none;
+	width: var(--nvx-shell);
+	max-width: 100%;
 	margin-inline: auto;
-	padding-inline: 0;
+	padding-inline: var(--nvx-gutter-inner);
+	box-sizing: border-box;
 }
 
 body.nvx-unified-shell .nvx-brand-readable {
-	width: min(100%, var(--nvx-fluid-reading));
-	max-width: none;
+	width: min(100%, var(--nvx-readable));
+	max-width: var(--nvx-measure);
 	margin-inline: 0;
 	padding-inline: 0;
 }
@@ -286,9 +240,9 @@ body.nvx-unified-shell .nvx-post-excerpt {
 	line-height: 1.72;
 }
 
-/* Tratamientos: índice editorial, sin cajas. */
+/* Tratamientos: índice editorial con gap de lujo. */
 body.nvx-unified-shell .nvx-brand-grid {
-	gap: 0;
+	gap: var(--nvx-gap-wide);
 }
 
 /* Dirección médica: imagen con contorno orgánico y contenido limpio. */
@@ -484,11 +438,6 @@ body.nvx-unified-shell .nvx-footer address {
 }
 
 @media (max-width: 680px) {
-	:root {
-		--nvx-fluid-shell: calc(100vw - 40px);
-		--nvx-fluid-section-y: clamp(64px, 14vw, 96px);
-	}
-
 	body.nvx-unified-shell {
 		font-size: 16px;
 	}

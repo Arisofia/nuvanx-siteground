@@ -10,16 +10,19 @@
 
 :root {
   /* --- Paleta cromática --- */
-  --nvx-ink:            #171717;   /* Negro editorial principal */
-  --nvx-charcoal:       #2B2926;   /* Fondo hero / vídeo */
-  --nvx-ivory:          #F7F1E8;   /* Fondo principal páginas interiores (Phase 3) */
-  --nvx-paper:          #F4F2EE;   /* Fondo secciones de contenido claro */
-  --nvx-soft:           #E9DDCF;   /* Fondo alternativo, bloques suaves */
-  --nvx-warm-dark:      #3D3830;   /* Bloques oscuros cálidos */
-  --nvx-muted:          #6F6861;   /* Texto secundario, kickers, meta */
-  --nvx-placeholder:    #A09890;   /* Placeholder, hints */
+  /* Base no redefine paleta canónica: solo fallbacks si tokens no cargan.
+   * Autoridad: nvx-tokens.css — Plata Pulida. */
+  --nvx-ink:            #14161a;
+  --nvx-charcoal:       #2a2d33;
+  --nvx-ivory:          #f6f7f8;
+  --nvx-paper:          #f2f3f5;
+  --nvx-soft:           #e8eaed;
+  --nvx-warm-dark:      #2a2d33;
+  --nvx-muted:          #6e747c;
+  --nvx-placeholder:    #9aa0a8;
   --nvx-white:          #FFFFFF;
-  --nvx-champagne:      #B89A5B;   /* Acento metal cálido */
+  --nvx-champagne:      #9ba3ad;   /* Platino (alias) */
+  --nvx-platinum:       #9ba3ad;
   --nvx-line:           rgba(23, 23, 23, 0.12);  /* Separadores sutiles */
   --nvx-line-strong:    rgba(23, 23, 23, 0.24);  /* Separadores visibles */
   --nvx-overlay-dark:   rgba(23, 23, 23, 0.55);  /* Overlay sobre imágenes */

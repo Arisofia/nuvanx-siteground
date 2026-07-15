@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   dispatch-and-monitor:
-    if: github.event_name == 'push' && github.event.head_commit.message == 'ci(ticket-43): execute staging QA once'
+    if: github.event_name == 'push' && github.event.head_commit.message == 'ci(ticket-43): execute scoped staging QA candidate'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout trigger branch
@@ -27,16 +27,16 @@ jobs:
           ref: ci/ticket43-run-staging-qa
           fetch-depth: 0
 
-      - name: Dispatch master staging workflow
+      - name: Dispatch scoped staging workflow
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           gh workflow run ticket43-v4-delivery.yml \
             --repo '${{ github.repository }}' \
-            --ref master \
-            -f target_sha='abcfd2208651fb255dad32bfd165094f948682ff' \
-            -f base_sha='4bb6be4d19c27c5905128d48eefe09a0e3276352'
+            --ref ci/ticket43-run-staging-qa \
+            -f target_sha='75a074bf1ba3a7935d91d772a7f7e0cfba3c5c01' \
+            -f base_sha='abcfd2208651fb255dad32bfd165094f948682ff'
 
       - name: Monitor run and save result
         env:
@@ -45,7 +45,7 @@ jobs:
           set -euo pipefail
           run_id=''
           for attempt in $(seq 1 30); do
-            run_id="$(gh run list --repo '${{ github.repository }}' --workflow ticket43-v4-delivery.yml --branch master --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+            run_id="$(gh run list --repo '${{ github.repository }}' --workflow ticket43-v4-delivery.yml --branch ci/ticket43-run-staging-qa --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
             [[ -n "$run_id" ]] && break
             sleep 10
           done
@@ -73,8 +73,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          echo 'Ticket 43 staging status check'
-          run_id="$(gh run list --repo '${{ github.repository }}' --workflow ticket43-v4-delivery.yml --branch master --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
+          run_id="$(gh run list --repo '${{ github.repository }}' --workflow ticket43-v4-delivery.yml --branch ci/ticket43-run-staging-qa --event workflow_dispatch --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
           [[ -n "$run_id" ]]
           echo "Staging workflow run: $run_id"
           gh run view "$run_id" --repo '${{ github.repository }}' --json databaseId,status,conclusion,url,headSha,createdAt

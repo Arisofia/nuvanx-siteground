@@ -1,5 +1,4 @@
 import { chromium } from '@playwright/test';
-import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,200 +7,262 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.STAGING_BASE_URL || 'https://staging2.nuvanx.com';
 const USER = process.env.STAGING_BASIC_USER || '';
 const PASS = process.env.STAGING_BASIC_PASSWORD || '';
-const AUTH_USER = USER || (PASS ? 'nuvanx-qa' : '');
-const AUTH_PASS = PASS;
+const URL = `${BASE}/?nvxqa=editorial`;
 const OUT = path.join(__dirname, 'screenshots');
 const VIDEO_TIME = Number(process.env.NVX_HERO_VIDEO_TIME || '2.4');
 
-function buildContextOptions(base) {
-	const opts = { ...base };
-	if (AUTH_USER && AUTH_PASS) {
-		opts.httpCredentials = { username: AUTH_USER, password: AUTH_PASS };
-	}
-	return opts;
+if (!USER || !PASS) {
+  throw new Error('STAGING_BASIC_USER and STAGING_BASIC_PASSWORD are required.');
 }
 
 const VIEWPORTS = [
-	{ width: 1440, height: 900, tag: '1440' },
-	{ width: 1024, height: 768, tag: '1024' },
-	{ width: 390, height: 844, tag: '390' },
+  { width: 1440, height: 900, tag: '1440' },
+  { width: 1024, height: 768, tag: '1024' },
+  { width: 390, height: 844, tag: '390' },
 ];
 
 const COOKIE_SELECTORS = [
-	'#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll',
-	'#cookie_action_close_header',
-	'button:has-text("Aceptar")',
-	'button:has-text("Accept")',
-	'.cmplz-btn.cmplz-accept',
+  '#CybotCookiebotDialogBodyLevelButtonLevelOptinAllowAll',
+  '#cookie_action_close_header',
+  'button:has-text("Aceptar")',
+  'button:has-text("Accept")',
+  '.cmplz-btn.cmplz-accept',
 ];
 
 fs.mkdirSync(OUT, { recursive: true });
 
-const browser = await chromium.launch({
-	headless: true,
-	args: ['--disable-blink-features=AutomationControlled'],
-});
-const context = await browser.newContext(
-	buildContextOptions({
-		deviceScaleFactor: 1,
-		userAgent:
-			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-	})
-);
-
 async function acceptCookies(page) {
-	for (const sel of COOKIE_SELECTORS) {
-		const btn = page.locator(sel).first();
-		if (await btn.isVisible().catch(() => false)) {
-			await btn.click({ timeout: 3000 }).catch(() => {});
-			await page.waitForTimeout(400);
-			break;
-		}
-	}
+  for (const selector of COOKIE_SELECTORS) {
+    const button = page.locator(selector).first();
+    if (await button.isVisible().catch(() => false)) {
+      await button.click({ timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(300);
+      break;
+    }
+  }
 
-	await page.evaluate(() => {
-		document
-			.querySelectorAll('.cmplz-cookiebanner, #cookie-law-info-bar, #CybotCookiebotDialog')
-			.forEach((el) => {
-				el.style.setProperty('display', 'none', 'important');
-			});
-	});
+  await page.evaluate(() => {
+    document
+      .querySelectorAll(
+        '.cmplz-cookiebanner, #cmplz-cookiebanner-container, #cookie-law-info-bar, #CybotCookiebotDialog'
+      )
+      .forEach((element) => element.remove());
+  });
 }
 
-async function waitForAssets(page) {
-	await page.evaluate(async () => {
-		if (document.fonts?.ready) await document.fonts.ready;
-	});
-
-	await page.evaluate(async (t) => {
-		const video = document.querySelector('#nvx-home-hero-video');
-		if (!video) return;
-		video.pause();
-		await new Promise((resolve) => {
-			if (video.readyState >= 2) return resolve();
-			video.addEventListener('loadeddata', resolve, { once: true });
-			setTimeout(resolve, 4000);
-		});
-		try {
-			video.currentTime = t;
-		} catch (_) {}
-		await new Promise((r) => setTimeout(r, 250));
-		video.pause();
-	}, VIDEO_TIME);
-
-	await page.evaluate(async () => {
-		const imgs = Array.from(document.querySelectorAll('#nvx-home-main img'));
-		await Promise.all(
-			imgs.map(
-				(img) =>
-					new Promise((resolve) => {
-						if (img.complete && img.naturalWidth > 0) return resolve();
-						img.addEventListener('load', resolve, { once: true });
-						img.addEventListener('error', resolve, { once: true });
-						setTimeout(resolve, 5000);
-					})
-			)
-		);
-	});
-
-	await page.waitForTimeout(1200);
+async function waitForFonts(page) {
+  await page.evaluate(async () => {
+    if (document.fonts?.ready) await document.fonts.ready;
+  });
 }
 
-async function preparePage(page, vp) {
-	await page.setViewportSize({ width: vp.width, height: vp.height });
-	const response = await page.goto(`${BASE}/?nvxqa=v4`, {
-		waitUntil: 'domcontentloaded',
-		timeout: 90000,
-	});
-	if (!response || response.status() >= 400) {
-		throw new Error(`Page load failed @${vp.tag}: status=${response?.status() ?? 'none'}`);
-	}
-	await page.waitForSelector('#nvx-home-main', { timeout: 30000 });
-	await page.waitForSelector('.nvx-home-hero-stage', { timeout: 30000 });
-	await page.waitForTimeout(800);
-	await acceptCookies(page);
-	await waitForAssets(page);
-	await page.evaluate(() => window.scrollTo(0, 0));
-	await page.waitForTimeout(300);
+async function loadAllImages(page) {
+  await page.evaluate(async () => {
+    const images = Array.from(document.querySelectorAll('#nvx-home-main img'));
 
-	const scrollY = await page.evaluate(() => window.scrollY);
-	if (scrollY !== 0) {
-		throw new Error(`scrollY !== 0 @${vp.tag}: ${scrollY}`);
-	}
+    for (const image of images) {
+      image.scrollIntoView({ block: 'center' });
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+
+    await Promise.all(
+      images.map(
+        (image) =>
+          new Promise((resolve, reject) => {
+            if (image.complete && image.naturalWidth > 0) return resolve();
+            const timer = setTimeout(
+              () => reject(new Error(`Timed out loading image: ${image.currentSrc || image.src}`)),
+              12000
+            );
+            image.addEventListener(
+              'load',
+              () => {
+                clearTimeout(timer);
+                resolve();
+              },
+              { once: true }
+            );
+            image.addEventListener(
+              'error',
+              () => {
+                clearTimeout(timer);
+                reject(new Error(`Image failed: ${image.currentSrc || image.src}`));
+              },
+              { once: true }
+            );
+          })
+      )
+    );
+  });
 }
 
-async function captureViewport(page, vp) {
-	const viewportPath = path.join(OUT, `chromium_home_${vp.width}x${vp.height}_viewport.png`);
-	const heroPath = path.join(OUT, `hero_${vp.tag}.png`);
-	const introPath = path.join(OUT, `intro_${vp.tag}.png`);
-	const maxAttempts = 3;
+async function stabilizeVideo(page) {
+  await page.evaluate(async (targetTime) => {
+    const video = document.querySelector('#nvx-home-hero-video');
+    if (!video) throw new Error('Missing #nvx-home-hero-video');
 
-	for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-		try {
-			await preparePage(page, vp);
-			await page.screenshot({ path: viewportPath, fullPage: false });
+    video.muted = true;
+    video.pause();
 
-			const hero = page.locator('.nvx-home-hero-stage').first();
-			const intro = page.locator('.nvx-v3-intro').first();
+    if (video.readyState < 2) {
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('Hero video did not become ready')), 12000);
+        video.addEventListener(
+          'loadeddata',
+          () => {
+            clearTimeout(timer);
+            resolve();
+          },
+          { once: true }
+        );
+        video.addEventListener(
+          'error',
+          () => {
+            clearTimeout(timer);
+            reject(new Error('Hero video failed to load'));
+          },
+          { once: true }
+        );
+        video.load();
+      });
+    }
 
-			if ((await hero.count()) === 0) {
-				throw new Error(`Missing .nvx-home-hero-stage @${vp.tag}`);
-			}
-			if ((await intro.count()) === 0) {
-				throw new Error(`Missing .nvx-v3-intro @${vp.tag}`);
-			}
-
-			await hero.screenshot({ path: heroPath });
-			await intro.screenshot({ path: introPath });
-
-			for (const file of [viewportPath, heroPath, introPath]) {
-				if (!fs.existsSync(file) || fs.statSync(file).size === 0) {
-					throw new Error(`Empty or missing screenshot: ${file}`);
-				}
-			}
-
-			try {
-				const dim = execSync(`file "${viewportPath}"`, { encoding: 'utf8' }).trim();
-				console.log('Captured', vp.tag, dim);
-			} catch (_) {
-				console.log('Captured', vp.tag);
-			}
-			return;
-		} catch (err) {
-			if (attempt === maxAttempts) throw err;
-			console.warn(`Capture retry ${attempt}/${maxAttempts} @${vp.tag}: ${err.message}`);
-			await page.waitForTimeout(1500 * attempt);
-		}
-	}
+    const safeTime = Math.min(Math.max(targetTime, 0), Math.max((video.duration || targetTime) - 0.1, 0));
+    if (Number.isFinite(safeTime)) {
+      video.currentTime = safeTime;
+      await new Promise((resolve) => {
+        const timer = setTimeout(resolve, 1200);
+        video.addEventListener(
+          'seeked',
+          () => {
+            clearTimeout(timer);
+            resolve();
+          },
+          { once: true }
+        );
+      });
+    }
+    video.pause();
+  }, VIDEO_TIME);
 }
 
-async function captureFullpage(vp) {
-	const page = await context.newPage();
-	const fullpagePath = path.join(OUT, `chromium_home_${vp.width}x${vp.height}_fullpage.png`);
+async function preparePage(page) {
+  const failedResponses = [];
+  page.on('response', (response) => {
+    if (response.status() >= 400) {
+      failedResponses.push({ status: response.status(), url: response.url() });
+    }
+  });
 
-	try {
-		await preparePage(page, vp);
-		await page.screenshot({ path: fullpagePath, fullPage: true });
-		if (!fs.existsSync(fullpagePath) || fs.statSync(fullpagePath).size === 0) {
-			throw new Error(`Empty or missing fullpage screenshot: ${fullpagePath}`);
-		}
-		console.log('Captured fullpage', vp.tag);
-	} finally {
-		await page.close();
-	}
+  const response = await page.goto(URL, { waitUntil: 'domcontentloaded', timeout: 90000 });
+  if (!response || response.status() >= 400) {
+    throw new Error(`Page load failed: ${response?.status() ?? 'no response'}`);
+  }
+
+  await page.waitForSelector('#nvx-home-main.nvx-editorial-home', { timeout: 30000 });
+  await page.waitForSelector('.nvx-home-hero-stage', { timeout: 30000 });
+  await acceptCookies(page);
+  await waitForFonts(page);
+  await loadAllImages(page);
+  await stabilizeVideo(page);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForFunction(() => window.scrollY === 0);
+  await page.waitForTimeout(500);
+
+  const imageFailures = await page.evaluate(() =>
+    Array.from(document.querySelectorAll('#nvx-home-main img'))
+      .filter((image) => !image.complete || image.naturalWidth === 0)
+      .map((image) => image.currentSrc || image.src)
+  );
+
+  if (imageFailures.length) {
+    throw new Error(`Failed images: ${imageFailures.join(', ')}`);
+  }
+
+  const relevantFailures = failedResponses.filter(
+    ({ url }) => !/google|facebook|doubleclick|googletagmanager|connect\.facebook/i.test(url)
+  );
+  if (relevantFailures.length) {
+    throw new Error(`HTTP failures: ${JSON.stringify(relevantFailures)}`);
+  }
 }
 
-for (const vp of VIEWPORTS) {
-	const page = await context.newPage();
-	try {
-		await captureViewport(page, vp);
-	} finally {
-		await page.close();
-	}
+async function captureViewport(browser, viewport) {
+  const context = await browser.newContext({
+    viewport: { width: viewport.width, height: viewport.height },
+    deviceScaleFactor: 1,
+    httpCredentials: { username: USER, password: PASS },
+  });
+  const page = await context.newPage();
+  const viewportPath = path.join(
+    OUT,
+    `chromium_home_${viewport.width}x${viewport.height}_viewport.png`
+  );
+  const heroPath = path.join(OUT, `hero_${viewport.tag}.png`);
+  const introPath = path.join(OUT, `intro_${viewport.tag}.png`);
+  const diagnosticPath = path.join(OUT, `diagnostic_${viewport.tag}.png`);
+
+  try {
+    await preparePage(page);
+    await page.screenshot({ path: viewportPath, fullPage: false });
+
+    const hero = page.locator('.nvx-home-hero-stage').first();
+    const intro = page.locator('.nvx-home-intro').first();
+    if (!(await hero.isVisible())) throw new Error('Hero is not visible');
+    if (!(await intro.isVisible())) throw new Error('Intro is not visible');
+
+    await hero.screenshot({ path: heroPath });
+    await intro.screenshot({ path: introPath });
+
+    for (const file of [viewportPath, heroPath, introPath]) {
+      if (!fs.existsSync(file) || fs.statSync(file).size === 0) {
+        throw new Error(`Missing or empty screenshot: ${file}`);
+      }
+    }
+  } catch (error) {
+    await page.screenshot({ path: diagnosticPath, fullPage: true }).catch(() => {});
+    throw error;
+  } finally {
+    await context.close();
+  }
 }
 
-await captureFullpage({ width: 1440, height: 900, tag: '1440' });
-await captureFullpage({ width: 390, height: 844, tag: '390' });
+async function captureFullPage(browser, viewport) {
+  const context = await browser.newContext({
+    viewport: { width: viewport.width, height: viewport.height },
+    deviceScaleFactor: 1,
+    httpCredentials: { username: USER, password: PASS },
+  });
+  const page = await context.newPage();
+  const output = path.join(
+    OUT,
+    `chromium_home_${viewport.width}x${viewport.height}_fullpage.png`
+  );
 
-await context.close();
-await browser.close();
+  try {
+    await preparePage(page);
+    await page.screenshot({ path: output, fullPage: true });
+    if (!fs.existsSync(output) || fs.statSync(output).size === 0) {
+      throw new Error(`Missing or empty screenshot: ${output}`);
+    }
+  } finally {
+    await context.close();
+  }
+}
+
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--disable-blink-features=AutomationControlled', '--autoplay-policy=no-user-gesture-required'],
+});
+
+try {
+  for (const viewport of VIEWPORTS) {
+    await captureViewport(browser, viewport);
+  }
+  await captureFullPage(browser, VIEWPORTS[0]);
+  await captureFullPage(browser, VIEWPORTS[2]);
+} finally {
+  await browser.close();
+}
+
+console.log('Ticket 43 editorial screenshots captured successfully.');

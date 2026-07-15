@@ -143,6 +143,11 @@
   --nvx-media-max-h-hero: clamp(220px, 36vw, 420px);
   --nvx-media-max-h-featured: clamp(200px, 32vw, 360px);
   --nvx-media-max-h-full: clamp(240px, 38vw, 480px);
+  /* Retratos equipo médico (proporción vertical, más altos) */
+  --nvx-media-max-h-doctor: clamp(300px, 48vw, 480px);
+  /* Logos de marcas / tecnología (compactos, contain) */
+  --nvx-media-max-h-logo: clamp(64px, 10vw, 96px);
+  --nvx-media-logo-pad: clamp(16px, 2.2vw, 28px);
 
   /* Radii suaves (sin cajas PowerPoint / sin radio 0 duro en media) */
   --nvx-radius-button: 999px;

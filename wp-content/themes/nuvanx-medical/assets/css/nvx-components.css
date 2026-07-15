@@ -487,6 +487,79 @@ figcaption {
   max-height: var(--nvx-media-max-h-featured);
 }
 
+/*
+ * Equipo médico — retratos fotográficos (proporción vertical 5:6).
+ * Más altos que media editorial; crop desde arriba (cara).
+ */
+.nvx-brand-card--team .nvx-brand-card__media,
+.nvx-team-card__media,
+.nvx-media--doctor {
+  width: min(100%, calc(var(--nvx-media-max-h-doctor) * 5 / 6));
+  height: var(--nvx-media-max-h-doctor);
+  max-height: var(--nvx-media-max-h-doctor);
+  aspect-ratio: var(--nvx-media-ratio-doctor, 5 / 6);
+  margin-inline: 0;
+  background: var(--nvx-mist);
+}
+
+.nvx-brand-card--team .nvx-brand-card__media img,
+.nvx-team-card__media img,
+.nvx-media--doctor img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* Velo más suave en retratos (no oscurecer caras) */
+.nvx-brand-card--team .nvx-brand-card__media::after,
+.nvx-team-card__media::after {
+  height: 28%;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 22, 26, 0) 40%,
+    rgba(20, 22, 26, 0.18) 100%
+  );
+}
+
+/*
+ * Logos de marcas / tecnologías (tratamientos y colaboradores).
+ * Compactos, contain, sin crop ni overlay oscuro.
+ */
+.nvx-brand-grid--logos .nvx-brand-card__media,
+.nvx-brand-collaborators .nvx-brand-card__media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--nvx-media-max-h-logo) + 2 * var(--nvx-media-logo-pad));
+  max-height: calc(var(--nvx-media-max-h-logo) + 2 * var(--nvx-media-logo-pad));
+  padding: var(--nvx-media-logo-pad);
+  background: var(--nvx-white);
+  border: 1px solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-image);
+  box-shadow: none;
+}
+
+.nvx-brand-grid--logos .nvx-brand-card__media::after,
+.nvx-brand-collaborators .nvx-brand-card__media::after {
+  content: none;
+  display: none;
+}
+
+.nvx-brand-grid--logos .nvx-brand-card__media img,
+.nvx-brand-collaborators .nvx-brand-card__media img,
+.nvx-brand-section.nvx-brand-collaborators img:not(.nvx-logo__img) {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: var(--nvx-media-max-h-logo);
+  min-height: 0;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 0;
+  background: transparent;
+}
+
 .nvx-card__media img,
 .nvx-brand-card__media img,
 .nvx-media img,
@@ -991,12 +1064,7 @@ figcaption {
   object-position: center;
 }
 
-.nvx-media--doctor {
-  width: 100%;
-  aspect-ratio: var(--nvx-media-ratio-doctor);
-  object-fit: cover;
-  object-position: center top;
-}
+/* .nvx-media--doctor: tamaño en bloque “Equipo médico” arriba */
 
 .nvx-media--clinic {
   width: 100%;

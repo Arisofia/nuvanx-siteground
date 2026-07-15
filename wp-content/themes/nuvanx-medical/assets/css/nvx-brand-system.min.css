@@ -266,12 +266,16 @@ body {
   transform: translateX(60%);
 }
 
-.nvx-home-video-feature {
+/*
+ * Home hero video ownership: nvx-brand-home.css only.
+ * These frames apply outside the home front page.
+ */
+body:not(.home) .nvx-home-video-feature {
   width: min(1080px, calc(100vw - 72px));
   margin: clamp(14px, 2vw, 24px) auto clamp(38px, 5vw, 64px);
 }
 
-.nvx-home-video-frame {
+body:not(.home) .nvx-home-video-frame {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
@@ -283,7 +287,7 @@ body {
     inset 0 1px 0 rgba(255,255,255,0.30);
 }
 
-.nvx-home-video-frame::after {
+body:not(.home) .nvx-home-video-frame::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -292,7 +296,7 @@ body {
   pointer-events: none;
 }
 
-.nvx-home-hero-video {
+body:not(.home) .nvx-home-hero-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -339,11 +343,11 @@ body {
     text-align: center;
   }
 
-  .nvx-home-video-feature {
+  body:not(.home) .nvx-home-video-feature {
     width: calc(100vw - 28px);
   }
 
-  .nvx-home-video-frame {
+  body:not(.home) .nvx-home-video-frame {
     aspect-ratio: 4 / 5;
     border-radius: 24px;
   }
@@ -401,7 +405,7 @@ body {
   transform: translateX(4px);
 }
 
-.nvx-home-video-frame.is-video-poster::before {
+body:not(.home) .nvx-home-video-frame.is-video-poster::before {
   content: "NUVANX";
   position: absolute;
   left: 24px;
@@ -414,7 +418,7 @@ body {
   letter-spacing: 0.18em;
 }
 
-.nvx-home-hero-video {
+body:not(.home) .nvx-home-hero-video {
   display: block;
   opacity: 1;
   background: #111111;
@@ -540,7 +544,7 @@ body {
   transform: translateX(4px);
 }
 
-.nvx-home-hero-video {
+body:not(.home) .nvx-home-hero-video {
   display: block;
   opacity: 1;
   background: #111111;

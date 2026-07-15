@@ -23,18 +23,18 @@
 
 .nvx-blog-card,
 .blog article.post {
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
   overflow: hidden;
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
   transition: transform var(--nvx-ease), box-shadow var(--nvx-ease);
 }
 
 .nvx-blog-card:hover,
 .blog article.post:hover {
   transform: translateY(-2px);
-  box-shadow: var(--nvx-shadow-medium);
+  box-shadow: none;
 }
 
 .nvx-blog-card h2,
@@ -200,10 +200,10 @@
 
 
 .nvx-blog-card {
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
   overflow: hidden;
 }
 

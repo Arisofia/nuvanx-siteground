@@ -105,37 +105,9 @@
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-body {
   max-width: var(--nvx-measure-lead, 48ch);
 }
-
-.nvx-brand-kicker{
-  margin: 0 0 14px;
-  color: var(--nvx-platinum, var(--nvx-color-muted));
-  font-family: var(--nvx-font-sans);
-  font-size: var(--nvx-type-kicker, 0.6875rem);
-  font-weight: 600;
-  letter-spacing: var(--nvx-track-kicker, 0.2em);
-  text-transform: uppercase;
-}
-
-.nvx-brand-title{
-  margin: 0 0 20px;
-  color: var(--nvx-color-ink);
-  font-family: var(--nvx-font-serif);
-  font-size: var(--nvx-type-h2, clamp(1.85rem, 3.2vw, 3rem));
-  font-weight: 400;
-  line-height: var(--nvx-lh-heading, 1.08);
-  letter-spacing: -0.035em;
-  text-wrap: balance;
-}
-
-.nvx-brand-body{
-  margin: 0 0 18px;
-  max-width: var(--nvx-measure, 62ch);
-  color: var(--nvx-text-body);
-  font-family: var(--nvx-font-sans);
-  font-size: var(--nvx-type-body-large, 1.0625rem);
-  font-weight: 400;
-  line-height: var(--nvx-lh-body, 1.7);
-}
+/* .nvx-brand-kicker ? nvx-components */
+/* .nvx-brand-title ? nvx-components */
+/* .nvx-brand-body ? nvx-components */
 
 .nvx-brand-grid{
   display: grid;
@@ -149,117 +121,41 @@
 .nvx-brand-grid--3{
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
-
-.nvx-brand-card{
-  position: relative;
-  overflow: hidden;
-  min-height: 100%;
-  padding: clamp(24px, 2.7vw, 34px);
-  border: 1px solid var(--nvx-glass-border);
-  border-radius: var(--nvx-radius-card);
-  background: linear-gradient(145deg, rgba(255,255,255,0.88), rgba(255,255,255,0.58));
-  box-shadow: var(--nvx-shadow-card);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+.nvx-brand-card {
+  /* composition only — surface/type/media from nvx-components.css */
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
 }
+.nvx-brand-card::before { content: none; display: none; }
+/* card kicker ? nvx-components */
+/* card title ? nvx-components */
+/* card body ? nvx-components */
+/* .nvx-brand-btn ? nvx-button in components */
+/* btn primary ? components */
+/* btn secondary ? components */
+/* btn shine removed */
 
-.nvx-brand-card::before{
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 26px;
-  right: 26px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--nvx-metal-light), var(--nvx-metal-deep), transparent);
-  opacity: 0.76;
-}
-
-.nvx-brand-card__kicker{
-  margin: 0 0 10px;
-  color: var(--nvx-metal-deep);
-  font-family: var(--nvx-font-sans);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.nvx-brand-card__title{
-  margin: 0 0 12px;
-  color: var(--nvx-graphite);
-  font-family: var(--nvx-font-serif);
-  font-size: clamp(1.45rem, 2vw, 2rem);
-  font-weight: 400;
-  line-height: 1.13;
-}
-
-.nvx-brand-card__body{
-  margin: 0;
-  color: var(--nvx-text-muted);
-  font-family: var(--nvx-font-sans);
-  font-size: 0.98rem;
-  line-height: 1.62;
-}
-
-.nvx-brand-btn{
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 50px;
-  padding: 14px 24px;
-  border-radius: 999px;
-  font-family: var(--nvx-font-sans);
-  font-size: 0.76rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  text-decoration: none;
-  overflow: hidden;
-}
-
-.nvx-brand-btn--primary{
-  color: #FFFFFF;
-  background: linear-gradient(135deg, #111111, #2A2A2A);
-  border: 1px solid rgba(155,163,173,0.46);
-  box-shadow: 0 18px 44px rgba(17,17,17,0.22);
-}
-
-.nvx-brand-btn--secondary{
-  color: var(--nvx-graphite);
-  background: rgba(255,255,255,0.64);
-  border: 1px solid rgba(155,163,173,0.54);
-  box-shadow: var(--nvx-shadow-soft);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-}
-
-.nvx-brand-btn::after{
-  content: "";
-  position: absolute;
-  inset: -80% -30%;
-  background: linear-gradient(120deg, transparent 40%, rgba(155,163,173,0.34), transparent 60%);
-  transform: translateX(-60%);
-  transition: transform 0.6s ease;
-}
-
-.nvx-brand-btn:hover::after{
-  transform: translateX(60%);
-}
 
 /* NUVANX BRAND PHASE2 START */
-
-.nvx-brand-card{
-  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+.nvx-brand-card {
+  /* composition only — surface/type/media from nvx-components.css */
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
 }
-
-.nvx-brand-card:hover{
-  transform: translateY(-4px);
-  border-color: rgba(155,163,173,0.72);
-  box-shadow:
-    0 34px 90px rgba(17, 17, 17, 0.16),
-    0 14px 36px rgba(17, 17, 17, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+.nvx-brand-card:hover {
+  transform: none;
+  box-shadow: none;
+  border: 0;
 }
 
 .nvx-brand-card__link{
@@ -297,18 +193,20 @@
 .nvx-brand-card:hover .nvx-brand-card__cta::after{
   transform: translateX(4px);
 }
-
-.nvx-brand-card{
-  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease;
+.nvx-brand-card {
+  /* composition only — surface/type/media from nvx-components.css */
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
 }
-
-.nvx-brand-card:hover{
-  transform: translateY(-4px);
-  border-color: rgba(155,163,173,0.72);
-  box-shadow:
-    0 34px 90px rgba(17, 17, 17, 0.16),
-    0 14px 36px rgba(17, 17, 17, 0.10),
-    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+.nvx-brand-card:hover {
+  transform: none;
+  box-shadow: none;
+  border: 0;
 }
 
 .nvx-brand-card__link{
@@ -361,8 +259,8 @@
 .nvx-brand-faq-item{
   background: rgba(255,255,255,.82);
   border: 1px solid rgba(17,17,17,.10);
-  border-radius: 18px;
-  box-shadow: 0 18px 52px rgba(17,17,17,.06);
+  border-radius: 48% 52% 44% 56% / 42% 58% 48% 52%;
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -520,7 +418,7 @@ body.postid-1200 .nvx-brand-hero__media,
 body.page-id-2017 .nvx-brand-hero__media{
   background: var(--nvx-soft-white, var(--nvx-white, #ffffff));
   border: 1px solid var(--nvx-sand, #D8C9B8);
-  border-radius: 28px;
+  border-radius: 48% 52% 44% 56% / 42% 58% 48% 52%;
   overflow: hidden;
 }
 
@@ -530,7 +428,7 @@ body.page-id-2017 .nvx-brand-hero__media img{
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 28px;
+  border-radius: 48% 52% 44% 56% / 42% 58% 48% 52%;
 }
 
 body.postid-1241 .nvx-brand-section,
@@ -580,7 +478,7 @@ body.page-id-2017 .nvx-brand-card,
 body.page-id-2017 .nvx-brand-faq-item{
   background: var(--nvx-soft-white, var(--nvx-white, #ffffff));
   border: 1px solid var(--nvx-sand, #D8C9B8);
-  border-radius: 22px;
+  border-radius: 48% 52% 44% 56% / 42% 58% 48% 52%;
 }
 
 body.postid-1241 .nvx-brand-card__kicker,

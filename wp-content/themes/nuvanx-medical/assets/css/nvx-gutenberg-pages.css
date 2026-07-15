@@ -46,7 +46,7 @@
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-lg);
   padding: clamp(14px, 2vw, 18px);
-  box-shadow: var(--nvx-shadow-medium);
+  box-shadow: none;
 }
 
 .nvx-med-page .nvx-hero-media img {
@@ -86,7 +86,7 @@
   margin: 0;
   border-radius: var(--nvx-radius-lg);
   overflow: hidden;
-  box-shadow: var(--nvx-shadow-soft);
+  box-shadow: none;
   border: 1px solid var(--nvx-border-soft);
 }
 
@@ -114,7 +114,7 @@
   padding: 8px 12px;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-sm);
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
 }
 
 .nvx-actions,
@@ -243,7 +243,7 @@
 .nvx-internal-links-box {
   margin-top: 24px;
   padding: 20px;
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
   border: 1px solid var(--nvx-border-soft);
   border-radius: var(--nvx-radius-md);
 }
@@ -335,5 +335,5 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: contain;
-  background: var(--nvx-color-surface, var(--nvx-white));
+  background: transparent;
 }

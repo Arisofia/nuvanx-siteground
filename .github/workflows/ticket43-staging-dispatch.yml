@@ -1,0 +1,25 @@
+name: Ticket 43 Temporary Staging Dispatcher
+
+on:
+  push:
+    branches:
+      - fix/ticket-43-complete-qa-hardening
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    if: github.event.head_commit.message == 'ci(ticket-43): dispatch staging QA for hardened candidate'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch hardened candidate to staging QA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run ticket43-v4-delivery.yml \
+            --repo '${{ github.repository }}' \
+            --ref 'fix/ticket-43-complete-qa-hardening' \
+            -f target_sha='d0091c7b16468c6b4c0164f0651f77ae97b83007' \
+            -f base_sha='4bb6be4d19c27c5905128d48eefe09a0e3276352'

@@ -47,15 +47,27 @@ body.home .nvx-home-hero-stage {
 
 /*
  * Contenido ya va dentro de .nvx-page__shell:
- * anidar .nvx-shell otra vez duplicaba gutters.
+ * anidar shell/hero-inner otra vez duplicaba gutters y
+ * en móvil el texto se veía más ancho y cortado (scroll X).
  */
 .nvx-page__shell .nvx-page__content .nvx-shell,
 .nvx-page__shell .nvx-page__content .nvx-page-body__inner,
-.nvx-page__shell .nvx-page__content .nvx-brand-section__inner {
+.nvx-page__shell .nvx-page__content .nvx-brand-section__inner,
+.nvx-page__shell .nvx-page__content .nvx-brand-hero__inner,
+.nvx-page__shell .nvx-page__content .nvx-brand-hero__inner.nvx-split-media {
   width: 100%;
   max-width: 100%;
   margin-inline: 0;
   padding-inline: 0;
+  box-sizing: border-box;
+}
+
+/* Evitar desborde horizontal de media/bleed en contenedores de página */
+.nvx-page,
+.nvx-page__shell,
+.nvx-page__content {
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 /* Measure: body text no se estira a full-bleed */

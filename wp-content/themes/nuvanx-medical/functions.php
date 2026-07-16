@@ -72,6 +72,13 @@ function nvx_theme_scripts() {
 
 	if ( nvx_theme_is_home_page() ) {
 		wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-footer' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
+		wp_enqueue_script(
+			'nvx-brand-system',
+			$uri . '/assets/js/nvx-brand-system.js',
+			array(),
+			nvx_asset_version( 'assets/js/nvx-brand-system.js' ),
+			true
+		);
 	}
 
 	wp_enqueue_script( 'nvx-main', $uri . '/assets/js/nvx-main.js', array(), nvx_asset_version( 'assets/js/nvx-main.js' ), true );
@@ -136,5 +143,66 @@ function nvx_theme_blog_index_markup(): string {
 }
 
 add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
+
+/**
+ * Ensure content heroes that lack media use the featured image when available.
+ * Global presentation rule — not a per-page patch.
+ */
+function nvx_ensure_hero_featured_media( string $content ): string {
+	if ( is_admin() || ! is_singular() || is_front_page() || ! has_post_thumbnail() ) {
+		return $content;
+	}
+
+	// Content already owns a media rail inside the hero.
+	if ( preg_match( '/nvx-brand-hero__media|nvx-editorial-hero__media|nvx-page-hero__media|nvx-hero__media/i', $content ) ) {
+		return $content;
+	}
+
+	// Only inject into known hero containers.
+	if ( ! preg_match( '/nvx-brand-hero|nvx-editorial-hero|class="[^"]*nvx-page-hero|class="[^"]*nvx-hero/i', $content ) ) {
+		return $content;
+	}
+
+	$thumb = get_the_post_thumbnail(
+		null,
+		'full',
+		array(
+			'class'   => 'nvx-media nvx-media--hero',
+			'loading' => 'eager',
+			'alt'     => the_title_attribute( array( 'echo' => false ) ),
+		)
+	);
+
+	if ( ! $thumb ) {
+		return $content;
+	}
+
+	$figure = '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
+
+	// Prefer inserting after the first hero copy block.
+	$updated = preg_replace(
+		'/(class="[^"]*nvx-brand-hero__copy[^"]*"[^>]*>.*?<\/div>)/is',
+		'$1' . $figure,
+		$content,
+		1,
+		$count
+	);
+
+	if ( is_string( $updated ) && $count > 0 ) {
+		return $updated;
+	}
+
+	// Fallback: after first hero copy variants (page-hero / editorial).
+	$updated = preg_replace(
+		'/(class="[^"]*(?:nvx-editorial-hero__copy|nvx-page-hero__copy|nvx-hero__copy)[^"]*"[^>]*>.*?<\/div>)/is',
+		'$1' . $figure,
+		$content,
+		1,
+		$count2
+	);
+
+	return ( is_string( $updated ) && $count2 > 0 ) ? $updated : $content;
+}
+add_filter( 'the_content', 'nvx_ensure_hero_featured_media', 12 );
 
 require_once get_template_directory() . '/inc/nvx-integrations.php';

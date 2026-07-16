@@ -3,13 +3,13 @@
   top: 0;
   z-index: 1000;
   width: 100%;
-  min-height: 80px;
+  min-height: var(--nvx-header-height);
   background: rgba(246, 247, 248, 0.98);
-  border-bottom: 1px solid var(--nvx-color-line);
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
 body.admin-bar #nvx-header {
-  top: 32px;
+  top: var(--nvx-space-4);
 }
 
 .nvx-header__inner {
@@ -19,7 +19,7 @@ body.admin-bar #nvx-header {
   gap: var(--nvx-space-3);
   width: var(--nvx-shell);
   max-width: 100%;
-  min-height: 80px;
+  min-height: var(--nvx-header-height);
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
@@ -30,7 +30,7 @@ body.admin-bar #nvx-header {
   flex: 0 0 auto;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: var(--nvx-space-1);
   color: var(--nvx-ink);
   text-decoration: none;
 }
@@ -39,8 +39,8 @@ body.admin-bar #nvx-header {
 .custom-logo {
   display: block;
   width: auto;
-  height: 40px;
-  max-width: 168px;
+  height: var(--nvx-logo-height);
+  max-width: var(--nvx-logo-width);
   object-fit: contain;
 }
 
@@ -48,32 +48,32 @@ body.admin-bar #nvx-header {
   font-family: var(--nvx-sans);
   font-size: 1rem;
   font-weight: 600;
-  line-height: 1;
+  line-height: var(--nvx-lh-nav);
   letter-spacing: 0.24em;
 }
 
 .nvx-logo__tagline {
   font-family: var(--nvx-sans);
   font-size: 0.56rem;
-  font-weight: 400;
+  font-weight: var(--nvx-fw-regular);
   line-height: 1.2;
   letter-spacing: 0.2em;
   color: var(--nvx-text-muted);
 }
 
-.nvx-nav {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--nvx-space-2);
-}
-
+.nvx-nav,
 .nvx-nav__list {
   display: flex;
   min-width: 0;
   align-items: center;
   gap: var(--nvx-space-2);
+}
+
+.nvx-nav {
+  justify-content: flex-end;
+}
+
+.nvx-nav__list {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -89,14 +89,14 @@ body.admin-bar #nvx-header {
 .nvx-nav__list > li > a {
   position: relative;
   display: inline-flex;
-  min-height: 48px;
+  min-height: var(--nvx-control-size);
   align-items: center;
   padding-block: var(--nvx-space-1);
   font-family: var(--nvx-sans);
-  font-size: 0.72rem;
+  font-size: var(--nvx-type-nav);
   font-weight: 600;
-  line-height: 1;
-  letter-spacing: 0.08em;
+  line-height: var(--nvx-lh-nav);
+  letter-spacing: var(--nvx-track-nav);
   text-transform: uppercase;
   color: var(--nvx-ink);
   text-decoration: none;
@@ -110,7 +110,7 @@ body.admin-bar #nvx-header {
   right: 0;
   bottom: var(--nvx-space-1);
   left: 0;
-  height: 1px;
+  height: var(--nvx-border-hairline);
   background: var(--nvx-platinum);
   transform: scaleX(0);
   transform-origin: left;
@@ -132,13 +132,13 @@ body.admin-bar #nvx-header {
   left: 0;
   right: auto;
   z-index: 1200;
-  min-width: 256px;
-  max-width: min(320px, 70vw);
+  min-width: var(--nvx-submenu-min-width);
+  max-width: min(var(--nvx-submenu-max-width), 70vw);
   margin: 0;
   padding: var(--nvx-space-2) 0;
   list-style: none;
   background: var(--nvx-pearl);
-  border: 1px solid var(--nvx-color-line);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card);
   box-shadow: var(--nvx-shadow-soft);
   opacity: 0;
@@ -186,10 +186,10 @@ body.admin-bar #nvx-header {
   display: block;
   padding: var(--nvx-space-2) var(--nvx-space-3);
   font-family: var(--nvx-sans);
-  font-size: 0.84rem;
+  font-size: var(--nvx-type-nav-submenu);
   font-weight: 500;
-  line-height: 1.35;
-  letter-spacing: 0.02em;
+  line-height: var(--nvx-lh-nav-submenu);
+  letter-spacing: var(--nvx-track-nav-submenu);
   text-transform: none;
   color: var(--nvx-text-body);
   text-decoration: none;
@@ -208,27 +208,27 @@ body.admin-bar #nvx-header {
 
 #nvx-header-cta {
   flex: 0 0 auto;
-  min-height: 48px;
+  min-height: var(--nvx-control-size);
   padding-inline: var(--nvx-space-2);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
+  font-size: var(--nvx-type-nav-compact);
+  letter-spacing: var(--nvx-track-nav-cta);
   white-space: nowrap;
 }
 
 .nvx-hamburger {
   display: none;
-  width: 48px;
-  height: 48px;
+  width: var(--nvx-control-size);
+  height: var(--nvx-control-size);
   padding: var(--nvx-space-2);
-  border: 1px solid var(--nvx-color-line);
-  border-radius: 999px;
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-pill);
   background: transparent;
 }
 
 .nvx-hamburger span {
   display: block;
   width: 100%;
-  height: 1px;
+  height: var(--nvx-border-hairline);
   margin-block: 5px;
   background: var(--nvx-ink);
 }
@@ -251,12 +251,12 @@ body.admin-bar #nvx-header {
 
 .nvx-mobile-nav__close {
   align-self: flex-end;
-  width: 48px;
-  height: 48px;
+  width: var(--nvx-control-size);
+  height: var(--nvx-control-size);
   border: 0;
   background: transparent;
   font-size: 2rem;
-  line-height: 1;
+  line-height: var(--nvx-lh-nav);
   color: var(--nvx-ink);
 }
 
@@ -276,9 +276,9 @@ body.admin-bar #nvx-header {
 .nvx-mobile-nav__list a {
   display: block;
   padding-block: var(--nvx-space-2);
-  border-bottom: 1px solid var(--nvx-color-line);
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   font-family: var(--nvx-serif);
-  font-size: clamp(1.5rem, 6vw, 2.25rem);
+  font-size: var(--nvx-type-nav-mobile);
   line-height: 1.1;
   color: var(--nvx-ink);
   text-decoration: none;
@@ -287,7 +287,7 @@ body.admin-bar #nvx-header {
 .nvx-mobile-nav__list .sub-menu a {
   font-family: var(--nvx-sans);
   font-size: 1rem;
-  line-height: 1.35;
+  line-height: var(--nvx-lh-nav-submenu);
 }
 
 @media (max-width: 1280px) {
@@ -306,18 +306,15 @@ body.admin-bar #nvx-header {
     top: 46px;
   }
 
-  .nvx-header__inner {
-    min-height: 72px;
-  }
-
+  .nvx-header__inner,
   #nvx-header {
-    min-height: 72px;
+    min-height: var(--nvx-header-height-mobile);
   }
 
   .nvx-logo__img,
   .custom-logo {
-    height: 36px;
-    max-width: 152px;
+    height: var(--nvx-logo-height-mobile);
+    max-width: var(--nvx-logo-width-mobile);
   }
 
   .nvx-mobile-nav {

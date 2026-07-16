@@ -365,16 +365,16 @@ a.nvx-step > .nvx-brand-card__cta,
   width: 100%;
 }
 
-/* Desplazamiento suave de revista (no “zigzag” de plantilla) */
+/* Misma alineación que móvil: sin zigzag (limpia y serena) */
 .nvx-home-pilar-item:nth-child(even) .nvx-home-pilar-item__link,
 .nvx-brand-grid > .nvx-brand-card:nth-child(even) > a.nvx-step,
 .nvx-home-tratamientos-editorial > .nvx-step:nth-child(even) {
-  margin-inline-start: clamp(0px, 2.5vw, 1.75rem);
+  margin-inline-start: 0;
 }
 
 .nvx-home-tratamientos-editorial > .nvx-step {
   margin-bottom: var(--nvx-gap-wide);
-  padding-bottom: var(--nvx-gap-wide);
+  padding-bottom: 0;
 }
 
 .nvx-home-pilar-item {
@@ -685,7 +685,8 @@ ol.nvx-step-list > li::before {
 .nvx-brand-section > .nvx-shell > .nvx-brand-title,
 .nvx-section-intro .nvx-heading,
 .nvx-section-intro h2 {
-  max-width: var(--nvx-measure-display, min(18ch, 100%));
+  /* Como en móvil: título legible en 2–3 líneas, no torre de 5 */
+  max-width: min(22ch, 100%);
 }
 
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-body,
@@ -726,11 +727,11 @@ ol.nvx-step-list > li::before {
 
 .nvx-brand-hero__copy {
   text-align: start;
-  max-width: min(42rem, 100%);
+  max-width: 100%;
 }
 
 .nvx-brand-hero__lead {
-  margin-top: 0.15em;
+  margin-top: 0.35em;
 }
 
 .nvx-brand-actions {
@@ -969,21 +970,20 @@ ol.nvx-step-list > li::before {
 }
 
 /*
- * ── 4. Equipo médico — retrato + ficha en horizontal
- * Antes: card 22rem en columna → foto y bio estrechas (texto “vertical”).
- * Ahora: foto 5:6 a la izquierda, copy a la derecha a ancho de lectura.
+ * ── 4. Equipo médico — misma lectura que móvil, en horizontal en desktop
+ * Móvil: foto arriba + texto (stack). Desktop: foto | bio.
  */
 .nvx-brand-card--team,
 .nvx-brand-card--team:has(> .nvx-brand-card__media) {
   display: grid;
-  grid-template-columns: minmax(10rem, 16rem) minmax(0, 1fr);
-  column-gap: clamp(20px, 3vw, 40px);
+  grid-template-columns: minmax(10rem, 15rem) minmax(0, 1fr);
+  column-gap: clamp(20px, 3vw, 36px);
   row-gap: var(--nvx-gap-tight);
   align-items: start;
   width: 100%;
-  max-width: min(100%, 52rem);
+  max-width: 100%;
   padding: 0;
-  margin: 0 0 var(--nvx-gap-wide);
+  margin: 0;
   background: transparent;
   overflow: visible;
 }
@@ -1422,9 +1422,9 @@ ol.nvx-step-list > li::before {
 .nvx-brand-hero__inner,
 .nvx-brand-hero__inner.nvx-split-media {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
-  gap: clamp(28px, 4vw, 56px) clamp(20px, 3vw, 40px);
+  gap: clamp(24px, 3.5vw, 48px);
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
@@ -1439,40 +1439,85 @@ ol.nvx-step-list > li::before {
 .nvx-brand-hero__copy.nvx-split-media__copy {
   position: relative;
   z-index: 2;
-  max-width: min(40rem, 100%);
+  /* Misma densidad de lectura que móvil: el copy llena su columna */
+  max-width: 100%;
   width: 100%;
   min-width: 0;
   text-align: start;
   order: 1;
 }
 
+.nvx-brand-hero__copy .nvx-brand-hero__title,
+.nvx-brand-hero__copy h1 {
+  max-width: 100%;
+}
+
+.nvx-brand-hero__copy .nvx-brand-hero__lead,
+.nvx-brand-hero__copy .nvx-lead {
+  max-width: min(var(--nvx-measure-lead, 40ch), 100%);
+}
+
 .nvx-brand-hero__media,
 .nvx-brand-hero__media.nvx-split-media__media {
   order: 2;
-  justify-self: end;
+  justify-self: stretch;
   width: 100%;
   max-width: 100%;
   min-width: 0;
 }
 
 /*
- * Hero sin media: ancla a la izquierda con measure de lujo.
- * Evita el “bloque flotando a la derecha” (vacío ejecutivo).
+ * Hero sin media: mismo “relleno” que móvil — bloque de lectura
+ * a ancho útil, no media pantalla vacía a la derecha.
  */
 .nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) {
   grid-template-columns: minmax(0, 1fr);
-  max-width: min(var(--nvx-shell), 44rem);
+  max-width: min(36rem, 100%);
+  width: 100%;
   margin-inline: 0;
   padding-inline: var(--nvx-gutter-inner);
-  padding-block: var(--nvx-section-y) var(--nvx-section-y-tight);
+  padding-block: var(--nvx-section-y-tight) var(--nvx-gap-base);
 }
 
 .nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) .nvx-brand-hero__copy {
-  max-width: min(40rem, 100%);
+  max-width: 100%;
 }
 
-.nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) .nvx-brand-hero__title {
-  max-width: min(16ch, 100%);
+.nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) .nvx-brand-hero__title,
+.nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) h1 {
+  max-width: 100%;
+}
+
+/* CTAs: misma jerarquía que móvil (ancho completo del copy) */
+.nvx-brand-hero__copy .nvx-brand-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--nvx-gap-tight);
+  width: 100%;
+  max-width: min(22rem, 100%);
+  margin-top: var(--nvx-gap-base);
+}
+
+.nvx-brand-hero__copy .nvx-brand-actions .nvx-button,
+.nvx-brand-hero__copy .nvx-brand-actions .nvx-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (min-width: 901px) {
+  .nvx-brand-hero__copy .nvx-brand-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    max-width: 100%;
+  }
+
+  .nvx-brand-hero__copy .nvx-brand-actions .nvx-button,
+  .nvx-brand-hero__copy .nvx-brand-actions .nvx-btn {
+    width: auto;
+    min-width: 12rem;
+  }
 }
 
 @media (max-width: 900px) {
@@ -1513,6 +1558,17 @@ ol.nvx-step-list > li::before {
     /* Sin bleed en móvil (corta el texto/viewport) */
     min-height: clamp(200px, 52vw, 280px);
     aspect-ratio: var(--nvx-media-ratio-editorial, 16 / 10);
+  }
+
+  .nvx-brand-hero__copy .nvx-brand-actions {
+    max-width: 100%;
+    flex-direction: column;
+  }
+
+  .nvx-brand-hero__copy .nvx-brand-actions .nvx-button,
+  .nvx-brand-hero__copy .nvx-brand-actions .nvx-btn {
+    width: 100%;
+    min-width: 0;
   }
 
   .nvx-brand-grid > .nvx-brand-card:nth-child(even) > a.nvx-step,

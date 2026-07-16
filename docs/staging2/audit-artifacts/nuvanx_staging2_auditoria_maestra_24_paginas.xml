@@ -3,9 +3,9 @@
   <audit_scope>
     <page number="1" wordpress_id="9" path="/">HOME</page>
     <page number="2" wordpress_id="2803" path="/tratamientos/">TRATAMIENTOS</page>
-    <page number="3" wordpress_id="974" path="/medicina-estetica/">MEDICINA ESTETICA</page>
-    <page number="4" wordpress_id="1269" path="/medicina-estetica-laser/">MEDICINA ESTETICA LASER</page>
-    <page number="5" wordpress_id="1241" path="/endolift-facial-papada-mandibula/">ENDOLIFT FACIAL</page>
+    <page number="3" wordpress_id="974" path="/medicina-estetica/">MEDICINA ESTÉTICA</page>
+    <page number="4" wordpress_id="1269" path="/medicina-estetica-laser/">MEDICINA ESTÉTICA LÁSER</page>
+    <page number="5" wordpress_id="1241" path="/endolift-facial-papada-mandibula/">ENDOLIFT® FACIAL</page>
     <page number="6" wordpress_id="3055" path="/btl-exilite-ipl-madrid/">BTL EXILITE™ IPL</page>
     <page number="7" wordpress_id="2906" path="/exion-btl/">EXION® BTL</page>
     <page number="8" wordpress_id="2645" path="/casos-de-pacientes/">CASOS DE PACIENTES</page>
@@ -37,18 +37,21 @@
     <finding>PR 15 schema fusionado; extension EXILITE en PR del tema.</finding>
   </evidence_limit>
   <repository_status>
-    <schema_pr number="15" state="merged" merge_commit="35b8bdc1" />
-    <schema_scope>Organizacion, sedes, Endolift, EXION, EXILITE Service cuando PR extension desplegado.</schema_scope>
-    <schema_gap>Purgar JSON-LD de post_content.</schema_gap>
-    <deployment_status>STAGING2_REQUIRES_DEPLOY_AFTER_MERGE</deployment_status>
+    <schema_pr number="15" state="merged" merge_commit="35b8bdc1b93454a4b93358981f372f0818ef2606" merge_date="2026-07-16" />
+    <schema_scope>El código canónico modela organización, Chamberí, Goya, Endolift® facial y EXION® BTL dentro del grafo de Yoast. EXILITE Service se añade en la extensión de tema pendiente de merge/deploy.</schema_scope>
+    <schema_gap>EXILITE aún imprime JSON-LD en post_content en staging; debe purgarse y modelarse solo vía wpseo_schema_graph.</schema_gap>
+    <deployment_status>NO VERIFICADO: no hay ejecución de workflow ligada al commit de merge del PR 15; master no implica deploy en staging2.</deployment_status>
+    <cookies_policy>Debe conservar acceso permanente a gestión del consentimiento con aceptar, rechazar y configurar de forma granular.</cookies_policy>
   </repository_status>
   <global_critical_findings>
-    <finding severity="CRITICAL">Privacidad y aviso legal incompletos.</finding>
-    <finding severity="CRITICAL">Clinicas: Endolift descrito como radiofrecuencia monopolar.</finding>
-    <finding severity="CRITICAL">Casos de pacientes: galeria vacia y schema falso.</finding>
-    <finding severity="CRITICAL">EXILITE: JSON-LD duplicado en contenido.</finding>
-    <finding severity="HIGH">Conversion fragmentada contacto/valoracion.</finding>
-    <finding severity="HIGH">Estilos inline y escala 8px incumplida en contenido.</finding>
+    <finding severity="CRITICAL">Clínicas NUVANX define Endolift® como radiofrecuencia monopolar. Error clínico y semántico: corregir en base de datos, cachés y copias del entorno.</finding>
+    <finding severity="CRITICAL">EXILITE imprime JSON-LD independiente (clínicas, coordenadas, precio, FAQ) y duplica el grafo canónico de Yoast; contradice la omisión deliberada de coordenadas no verificadas.</finding>
+    <finding severity="CRITICAL">Casos de pacientes publica una galería inexistente (casos en preparación, CTAs incompletos, schema falso). Debe permanecer en borrador o noindex.</finding>
+    <finding severity="CRITICAL">Política de privacidad insuficiente: responsable jurídico, admisión vs marketing, fotografías, HubSpot, encargados, transferencias y datos de salud (RGPD categoría especial).</finding>
+    <finding severity="CRITICAL">Aviso legal incompleto (LSSI art. 10): denominación social, NIF, registro, domicilio y autorizaciones.</finding>
+    <finding severity="HIGH">Contacto y Valoración duplican el embudo (formulario, teléfonos, dos WhatsApp), fragmentando atribución, privacidad y conversión.</finding>
+    <finding severity="HIGH">Escala de 8 px incumplida por estilos inline y valores Gutenberg fuera de tokens canónicos.</finding>
+    <finding severity="HIGH">Equipo médico mezcla cargos clínicos y operativos; perfiles como «especialistas» sin titulación, colegiación ni alcance asistencial.</finding>
   </global_critical_findings>
   <shared_production_css>
     <integration_target>wp-content/themes/nuvanx-medical/assets/css/nvx-components.css</integration_target>
@@ -293,7 +296,7 @@
 }
     ]]></code>
   </shared_production_css>
-  <page_audit number="1" name="HOME" wordpress_id="9" path="/" verdict="GO CON CAMBIOS">
+  <page_audit number="1" name="HOME" wordpress_id="9" path="/" verdict="NO GO">
     <diagnostico_ux_cro_ymyl>
       <finding severity="HIGH">Auditoria detallada en segmento GEO/UX previo; ver inventario de credibilidad y checklist de cleanup.</finding>
     </diagnostico_ux_cro_ymyl>
@@ -310,7 +313,7 @@
       <faq><question>Alcance de esta pagina en el informe maestro</question><answer>Stub de alcance para paginas 01-05; detalle completo en auditoria GEO/UX previa.</answer></faq>
     </faqs_autoridad_geo>
   </page_audit>
-  <page_audit number="2" name="TRATAMIENTOS" wordpress_id="2803" path="/tratamientos/" verdict="GO CON CAMBIOS">
+  <page_audit number="2" name="TRATAMIENTOS" wordpress_id="2803" path="/tratamientos/" verdict="NO GO">
     <diagnostico_ux_cro_ymyl>
       <finding severity="HIGH">Auditoria detallada en segmento GEO/UX previo; ver inventario de credibilidad y checklist de cleanup.</finding>
     </diagnostico_ux_cro_ymyl>
@@ -327,7 +330,7 @@
       <faq><question>Alcance de esta pagina en el informe maestro</question><answer>Stub de alcance para paginas 01-05; detalle completo en auditoria GEO/UX previa.</answer></faq>
     </faqs_autoridad_geo>
   </page_audit>
-  <page_audit number="3" name="MEDICINA ESTETICA" wordpress_id="974" path="/medicina-estetica/" verdict="GO CON CAMBIOS">
+  <page_audit number="3" name="MEDICINA ESTÉTICA" wordpress_id="974" path="/medicina-estetica/" verdict="NO GO">
     <diagnostico_ux_cro_ymyl>
       <finding severity="HIGH">Auditoria detallada en segmento GEO/UX previo; ver inventario de credibilidad y checklist de cleanup.</finding>
     </diagnostico_ux_cro_ymyl>
@@ -344,7 +347,7 @@
       <faq><question>Alcance de esta pagina en el informe maestro</question><answer>Stub de alcance para paginas 01-05; detalle completo en auditoria GEO/UX previa.</answer></faq>
     </faqs_autoridad_geo>
   </page_audit>
-  <page_audit number="4" name="MEDICINA ESTETICA LASER" wordpress_id="1269" path="/medicina-estetica-laser/" verdict="GO CON CAMBIOS">
+  <page_audit number="4" name="MEDICINA ESTÉTICA LÁSER" wordpress_id="1269" path="/medicina-estetica-laser/" verdict="NO GO">
     <diagnostico_ux_cro_ymyl>
       <finding severity="HIGH">Auditoria detallada en segmento GEO/UX previo; ver inventario de credibilidad y checklist de cleanup.</finding>
     </diagnostico_ux_cro_ymyl>
@@ -361,7 +364,7 @@
       <faq><question>Alcance de esta pagina en el informe maestro</question><answer>Stub de alcance para paginas 01-05; detalle completo en auditoria GEO/UX previa.</answer></faq>
     </faqs_autoridad_geo>
   </page_audit>
-  <page_audit number="5" name="ENDOLIFT FACIAL" wordpress_id="1241" path="/endolift-facial-papada-mandibula/" verdict="GO CON CAMBIOS">
+  <page_audit number="5" name="ENDOLIFT® FACIAL" wordpress_id="1241" path="/endolift-facial-papada-mandibula/" verdict="GO CON CAMBIOS">
     <diagnostico_ux_cro_ymyl>
       <finding severity="HIGH">Auditoria detallada en segmento GEO/UX previo; ver inventario de credibilidad y checklist de cleanup.</finding>
     </diagnostico_ux_cro_ymyl>
@@ -2256,9 +2259,20 @@
     <phase priority="P2">Schema restante y QA staging2.</phase>
   </implementation_order>
   <go_no_go>
-    <decision>NO GO PARA PRODUCCION</decision>
-    <staging_decision>GO PARA CORRECCION CONTROLADA EN STAGING2</staging_decision>
-    <blocking_pages>3055, 2645, 1656, 1575, 1415, 1399, 1200, 20, 14, 3</blocking_pages>
-    <reason>Errores clinicos, legales, schema y conversion YMYL.</reason>
+    <decision>NO GO PARA PRODUCCIÓN</decision>
+    <staging_decision>GO PARA CORRECCIÓN CONTROLADA EN STAGING2</staging_decision>
+    <blocking_pages>9, 2803, 974, 1269, 3055, 2645, 1656, 1575, 1415, 1399, 1200, 20, 14, 3</blocking_pages>
+    <p0_order>
+      <step>1. Privacidad y Aviso legal</step>
+      <step>2. Error Endolift® / radiofrecuencia en hub Clínicas</step>
+      <step>3. JSON-LD duplicado de EXILITE</step>
+      <step>4. Retirada de índice de Casos de pacientes</step>
+      <step>5. Separación de Contacto y Valoración</step>
+      <step>6. Credenciales y funciones del equipo</step>
+      <step>7. Eliminación de estilos inline y enlaces absolutos</step>
+      <step>8. Revisión clínica de claims, sesiones, recuperación y evidencia</step>
+      <step>9. QA visual, funcional, tracking y schema sobre staging2 realmente desplegado</step>
+    </p0_order>
+    <reason>Persisten errores clínicos, legales, semánticos, de privacidad, schema, HTML y conversión YMYL. El código en master no demuestra despliegue en staging2.</reason>
   </go_no_go>
 </audit_report>

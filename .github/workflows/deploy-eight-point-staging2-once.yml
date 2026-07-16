@@ -143,10 +143,49 @@ jobs:
             rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
             wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
           REMOTE
-          code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'Cache-Control: no-cache' "${STAGING_URL}/?spacing_qa=${{ github.run_id }}")"
-          [[ "$code" == '200' ]]
-          echo "STAGING2_EIGHT_POINT_DEPLOY_PASS"
-          echo "deploy_ref=${DEPLOY_REF}"
-          echo "staging_url=${STAGING_URL}"
-          echo "staging_http_status=$code"
-          echo "production_modified=false"
+
+          # Retry HTTP check: cache/CDN can lag after purge; network blips should
+          # not fail the job without diagnostics.
+          attempts=6
+          sleep_between=10
+          code=""
+          body_file="/tmp/staging_response_body.txt"
+          check_url="${STAGING_URL}/?spacing_qa=${{ github.run_id }}"
+
+          for i in $(seq 1 "$attempts"); do
+            echo "Checking staging HTTP status (attempt ${i}/${attempts}) → ${check_url}"
+            code="$(
+              curl -sS -L \
+                -o "$body_file" \
+                -w '%{http_code}' \
+                -H 'Cache-Control: no-cache' \
+                --connect-timeout 15 \
+                --max-time 45 \
+                "$check_url" || true
+            )"
+            echo "HTTP status: ${code:-empty}"
+
+            case "$code" in
+              2??)
+                echo "STAGING2_EIGHT_POINT_DEPLOY_PASS"
+                echo "deploy_ref=${DEPLOY_REF}"
+                echo "staging_url=${STAGING_URL}"
+                echo "staging_http_status=$code"
+                echo "production_modified=false"
+                exit 0
+                ;;
+            esac
+
+            echo "Response body (truncated):"
+            head -n 200 "$body_file" 2>/dev/null || true
+
+            if [[ "$i" -lt "$attempts" ]]; then
+              echo "Waiting ${sleep_between}s before retry..."
+              sleep "$sleep_between"
+            fi
+          done
+
+          echo "ERROR: staging health check failed after ${attempts} attempts; final HTTP status=${code:-empty}"
+          echo "Final response body:"
+          cat "$body_file" 2>/dev/null || true
+          exit 1

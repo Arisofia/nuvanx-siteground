@@ -10,14 +10,29 @@ permissions:
 jobs:
   css-gate:
     runs-on: ubuntu-latest
+    env:
+      # Override to point the gate at another theme path without editing every step.
+      NVX_THEME_PATH: wp-content/themes/nuvanx-medical
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
+      - name: Validate theme path
+        run: |
+          set -euo pipefail
+          test -d "${NVX_THEME_PATH}" || {
+            echo "ERROR: NVX_THEME_PATH is not a directory: ${NVX_THEME_PATH}"
+            exit 1
+          }
+          test -d "${NVX_THEME_PATH}/assets/css" || {
+            echo "ERROR: missing assets/css under ${NVX_THEME_PATH}"
+            exit 1
+          }
+
       - name: Validate canonical stylesheet inventory
         run: |
           set -euo pipefail
-          THEME='wp-content/themes/nuvanx-medical'
+          THEME="${NVX_THEME_PATH}"
           CSS="$THEME/assets/css"
 
           required=(
@@ -51,10 +66,79 @@ jobs:
             test ! -e "$CSS/$file" || { echo "ERROR: duplicate canonical stylesheet remains: $file"; exit 1; }
           done
 
+      - name: Validate retained layout utility contract
+        run: |
+          set -euo pipefail
+          THEME="${NVX_THEME_PATH}"
+          LAYOUT="$THEME/assets/css/nvx-site-layout.css"
+          test -s "$LAYOUT"
+
+          # Class presence: match the selector name, not formatting (spaces/`{`/minification).
+          # End boundary excludes longer BEM names (e.g. nvx-stack must not match nvx-stack--tight).
+          class_present() {
+            local class="$1"
+            grep -qE "\.${class}([^a-zA-Z0-9_-]|$)" "$LAYOUT"
+          }
+
+          required_classes=(
+            nvx-reading
+            nvx-grid-12
+            nvx-span-4
+            nvx-span-5
+            nvx-span-6
+            nvx-span-7
+            nvx-span-8
+            nvx-span-12
+            nvx-stack
+            nvx-stack--tight
+            nvx-stack--wide
+            nvx-cluster
+            nvx-section--tight
+            nvx-brand-section--tight
+          )
+
+          for class in "${required_classes[@]}"; do
+            class_present "$class" || {
+              echo "ERROR: supported layout API selector missing: .${class}"
+              exit 1
+            }
+          done
+
+          # Both tight variants must share one rule that uses the same padding token.
+          # Formatting-agnostic: whitespace collapsed; either selector order is OK.
+          flat="$(tr -s '[:space:]' ' ' < "$LAYOUT")"
+          shared_token_rule() {
+            local token="$1"
+            local a='nvx-brand-section--tight'
+            local b='nvx-section--tight'
+            printf '%s' "$flat" | grep -qE "\.${a}[[:space:]]*,[[:space:]]*\.${b}[[:space:]]*\{[^}]*${token}" \
+              || printf '%s' "$flat" | grep -qE "\.${b}[[:space:]]*,[[:space:]]*\.${a}[[:space:]]*\{[^}]*${token}"
+          }
+
+          shared_token_rule '--nvx-pad-section-tight' || {
+            echo 'ERROR: .nvx-brand-section--tight and .nvx-section--tight must share a rule using var(--nvx-pad-section-tight)'
+            exit 1
+          }
+
+          shared_token_rule '--nvx-space-8' || {
+            echo 'ERROR: .nvx-brand-section--tight and .nvx-section--tight must share a mobile rule using var(--nvx-space-8)'
+            exit 1
+          }
+
+          echo 'Tracked runtime references (informational; stored WordPress markup is audited separately):'
+          grep -RInE \
+            --include='*.php' \
+            --include='*.js' \
+            --include='*.html' \
+            --include='*.json' \
+            --exclude-dir='assets' \
+            'nvx-(grid-12|span-(4|5|6|7|8|12)|stack(--tight|--wide)?|cluster|reading|section--tight)' \
+            "$THEME" || true
+
       - name: Reject patch architecture and unsafe selectors
         run: |
           set -euo pipefail
-          THEME='wp-content/themes/nuvanx-medical'
+          THEME="${NVX_THEME_PATH}"
           ACTIVE=(
             "$THEME/assets/css/nvx-tokens.css"
             "$THEME/assets/css/nvx-base.css"
@@ -85,7 +169,7 @@ jobs:
       - name: Validate one token source and direct runtime loading
         run: |
           set -euo pipefail
-          THEME='wp-content/themes/nuvanx-medical'
+          THEME="${NVX_THEME_PATH}"
           ROOT_COUNT="$(grep -Rho ':root[[:space:]]*{' "$THEME/assets/css" --include='*.css' | wc -l | tr -d ' ')"
           test "$ROOT_COUNT" = '1' || { echo "ERROR: expected one :root, found $ROOT_COUNT"; exit 1; }
 
@@ -97,14 +181,16 @@ jobs:
       - name: Parse active CSS
         run: |
           set -euo pipefail
+          THEME="${NVX_THEME_PATH}"
+          CSS="$THEME/assets/css"
           npx --yes clean-css-cli@5.6.3 \
             -o /tmp/nuvanx-canonical.css \
-            wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css \
-            wp-content/themes/nuvanx-medical/assets/css/nvx-base.css \
-            wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css \
-            wp-content/themes/nuvanx-medical/assets/css/nvx-components.css \
-            wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css \
-            wp-content/themes/nuvanx-medical/assets/css/nvx-header.css \
-            wp-content/themes/nuvanx-medical/assets/css/nvx-footer.css \
-            wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css
+            "$CSS/nvx-tokens.css" \
+            "$CSS/nvx-base.css" \
+            "$CSS/nvx-site-layout.css" \
+            "$CSS/nvx-components.css" \
+            "$CSS/nvx-patterns-editorial.css" \
+            "$CSS/nvx-header.css" \
+            "$CSS/nvx-footer.css" \
+            "$CSS/nvx-brand-home.css"
           test -s /tmp/nuvanx-canonical.css

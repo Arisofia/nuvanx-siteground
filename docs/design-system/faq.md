@@ -7,25 +7,25 @@ Acordeón nativo con `<details>`. Canónico: `.nvx-faq` + items.
 ### Structure
 
 ```html
-<section class="nvx-faq nvx-pattern-faq">
-  <div class="nvx-section-intro">…</div>
+<section class="nvx-faq" aria-labelledby="faq-title">
+  <h2 id="faq-title">Preguntas frecuentes</h2>
   <details class="nvx-faq-item">
-    <summary>Pregunta</summary>
-    <div>
-      <p class="nvx-copy">Respuesta…</p>
+    <summary><span>Pregunta…</span></summary>
+    <div class="nvx-brand-faq-content">
+      <p>Respuesta…</p>
     </div>
   </details>
 </section>
 ```
 
-**Runtime legacy:** `nvx-brand-faq-*` puede coexistir en markup; migrar a `nvx-faq-item`.
+**Runtime:** estilos en `nvx-components.css` cubren `.nvx-faq`, `.nvx-brand-faq-accordion`, `.nvx-home-faq-editorial` y `.nvx-brand-faq-item` (markup actual de home / hubs).
 
 ### States
 
 | State | Visual |
 |-------|--------|
-| Closed | summary + chevron |
-| Open | `[open]` rota marker |
+| Closed | serif summary + chevron platino (45°) |
+| Open | fondo pearl suave; chevron 225°; respuesta en measure body |
 
 ### Accessibility
 

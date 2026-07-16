@@ -85,10 +85,176 @@
 .nvx-value__title{margin:0 0 var(--nvx-space-2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);color:var(--nvx-ink)}
 .nvx-value__body{max-width:var(--nvx-measure);margin:0;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 
-.nvx-faq{border-top:1px solid var(--nvx-color-line)}
-.nvx-faq details{border-bottom:1px solid var(--nvx-color-line)}
-.nvx-faq summary{padding-block:var(--nvx-space-3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);cursor:pointer}
-.nvx-faq details>div{max-width:var(--nvx-readable);padding-bottom:var(--nvx-space-4)}
+/* FAQ accordion — quiet luxury (native details/summary)
+   Covers canonical .nvx-faq and live .nvx-brand-faq-* markup. */
+.nvx-faq,
+.nvx-brand-faq-accordion,
+.nvx-home-faq-editorial {
+  margin: 0;
+  border-top: 1px solid var(--nvx-color-line);
+}
+
+.nvx-faq details,
+.nvx-faq .nvx-faq-item,
+.nvx-faq .nvx-brand-faq-item,
+.nvx-brand-faq-accordion details,
+.nvx-brand-faq-accordion .nvx-brand-faq-item,
+.nvx-home-faq-editorial details,
+.nvx-home-faq-editorial .nvx-brand-faq-item {
+  margin: 0;
+  border-bottom: 1px solid var(--nvx-color-line);
+  background: transparent;
+  transition: background-color 180ms ease;
+}
+
+.nvx-faq details[open],
+.nvx-faq .nvx-faq-item[open],
+.nvx-faq .nvx-brand-faq-item[open],
+.nvx-brand-faq-accordion details[open],
+.nvx-brand-faq-accordion .nvx-brand-faq-item[open],
+.nvx-home-faq-editorial details[open],
+.nvx-home-faq-editorial .nvx-brand-faq-item[open] {
+  background: var(--nvx-pearl, #f6f7f8);
+}
+
+.nvx-faq summary,
+.nvx-brand-faq-accordion summary,
+.nvx-home-faq-editorial summary {
+  position: relative;
+  display: block;
+  margin: 0;
+  padding: var(--nvx-space-3) calc(var(--nvx-space-3) + 12px) var(--nvx-space-3) 0;
+  list-style: none;
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  line-height: var(--nvx-lh-h3);
+  letter-spacing: var(--nvx-track-h3, -0.01em);
+  color: var(--nvx-ink);
+  cursor: pointer;
+  text-wrap: balance;
+  transition: color 160ms ease;
+}
+
+.nvx-faq summary::-webkit-details-marker,
+.nvx-brand-faq-accordion summary::-webkit-details-marker,
+.nvx-home-faq-editorial summary::-webkit-details-marker {
+  display: none;
+}
+
+.nvx-faq summary::marker,
+.nvx-brand-faq-accordion summary::marker,
+.nvx-home-faq-editorial summary::marker {
+  content: "";
+}
+
+/* Platinum plus affordance */
+.nvx-faq summary::after,
+.nvx-brand-faq-accordion summary::after,
+.nvx-home-faq-editorial summary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-right: 1.5px solid var(--nvx-platinum, #9ba3ad);
+  border-bottom: 1.5px solid var(--nvx-platinum, #9ba3ad);
+  transform: rotate(45deg);
+  transition: transform 180ms ease, border-color 160ms ease;
+}
+
+.nvx-faq details[open] > summary::after,
+.nvx-faq .nvx-faq-item[open] > summary::after,
+.nvx-faq .nvx-brand-faq-item[open] > summary::after,
+.nvx-brand-faq-accordion details[open] > summary::after,
+.nvx-brand-faq-accordion .nvx-brand-faq-item[open] > summary::after,
+.nvx-home-faq-editorial details[open] > summary::after,
+.nvx-home-faq-editorial .nvx-brand-faq-item[open] > summary::after {
+  margin-top: -2px;
+  transform: rotate(225deg);
+}
+
+.nvx-faq summary:hover,
+.nvx-faq summary:focus-visible,
+.nvx-brand-faq-accordion summary:hover,
+.nvx-brand-faq-accordion summary:focus-visible,
+.nvx-home-faq-editorial summary:hover,
+.nvx-home-faq-editorial summary:focus-visible {
+  color: var(--nvx-charcoal, #2a2d33);
+  outline: none;
+}
+
+.nvx-faq summary:focus-visible,
+.nvx-brand-faq-accordion summary:focus-visible,
+.nvx-home-faq-editorial summary:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--nvx-accent-glow, rgba(155, 163, 173, 0.35));
+  border-radius: 4px;
+}
+
+.nvx-faq summary span,
+.nvx-brand-faq-accordion summary span,
+.nvx-home-faq-editorial summary span {
+  display: block;
+  max-width: 52ch;
+  padding-right: var(--nvx-space-2);
+}
+
+.nvx-faq details > div,
+.nvx-faq .nvx-brand-faq-content,
+.nvx-faq .nvx-brand-faq-answer,
+.nvx-brand-faq-accordion .nvx-brand-faq-content,
+.nvx-brand-faq-accordion .nvx-brand-faq-answer,
+.nvx-home-faq-editorial .nvx-brand-faq-content,
+.nvx-home-faq-editorial .nvx-brand-faq-answer {
+  max-width: var(--nvx-measure, 68ch);
+  margin: 0;
+  padding: 0 0 var(--nvx-space-4);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  font-weight: 400;
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
+.nvx-faq details > div p,
+.nvx-faq .nvx-brand-faq-content p,
+.nvx-faq .nvx-brand-faq-answer p,
+.nvx-brand-faq-accordion .nvx-brand-faq-content p,
+.nvx-brand-faq-accordion .nvx-brand-faq-answer p,
+.nvx-home-faq-editorial .nvx-brand-faq-content p,
+.nvx-home-faq-editorial .nvx-brand-faq-answer p {
+  margin: 0 0 var(--nvx-space-2);
+  max-width: var(--nvx-measure, 68ch);
+}
+
+.nvx-faq details > div p:last-child,
+.nvx-faq .nvx-brand-faq-content p:last-child,
+.nvx-brand-faq-accordion .nvx-brand-faq-content p:last-child,
+.nvx-home-faq-editorial .nvx-brand-faq-content p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 680px) {
+  .nvx-faq summary,
+  .nvx-brand-faq-accordion summary,
+  .nvx-home-faq-editorial summary {
+    padding-block: var(--nvx-space-2);
+    font-size: clamp(1.125rem, 4.2vw, 1.35rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nvx-faq details,
+  .nvx-faq summary::after,
+  .nvx-brand-faq-accordion details,
+  .nvx-brand-faq-accordion summary::after,
+  .nvx-home-faq-editorial details,
+  .nvx-home-faq-editorial summary::after {
+    transition: none;
+  }
+}
 
 /* ── Forms (valoración / HubSpot native) ─────────────────── */
 .nvx-form,

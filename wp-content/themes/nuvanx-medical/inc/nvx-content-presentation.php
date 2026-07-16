@@ -374,7 +374,7 @@ function nvx_content_replace_method_sections( string $content ): string {
 function nvx_content_enrich_treatment_cards( string $content ): string {
 	$endolift_new = 'Tensado progresivo del óvalo facial, mandíbula y papada mediante el uso de microfibras ópticas estériles monouso de entre 200 y 300 micras introducidas bajo la piel para retraer el tejido conectivo (SMAS) y eliminar la grasa submentoniana de forma selectiva. Técnica mínimamente invasiva, siempre tras valoración médica.';
 
-	$exion_new = 'Plataforma médica que combina radiofrecuencia monopolar y ultrasonido dirigido (aplicadores Fractional RF, Face y Body). Consigue aumentar de forma natural hasta un 224% la producción de ácido hialurónico endógeno sin necesidad de infiltrar rellenos, además de mejorar textura y firmeza según protocolo personalizado tras valoración médica.';
+	$exion_new = 'Plataforma médica con aplicadores Fractional RF, Face y Body (radiofrecuencia y ultrasonido según protocolo). La respuesta es individual; no se prometen magnitudes fijas de mejora ni se sustituye la valoración médica ni los rellenos cuando estén indicados.';
 
 	// Any brand-card titled Endolift® Facial…
 	$content = preg_replace(

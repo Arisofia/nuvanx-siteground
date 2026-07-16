@@ -89,24 +89,24 @@ function nvx_laser_icon( string $name ): string {
 }
 
 /**
- * Hero dual CTA: valoración + videoconsulta.
+ * Hero dual CTA: valoración (primary) + sedes (secondary). No videoconsulta.
  */
 function nvx_laser_hero_ctas_markup(): string {
 	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
 		? nvx_cta_valoracion_url()
 		: home_url( '/madrid/valoracion/' );
-	$videoconsulta = add_query_arg( 'modo', 'videoconsulta', $valoracion );
+	$clinicas   = home_url( '/clinicas-de-medicina-estetica-nuvanx/' );
 
 	$html  = '<div class="nvx-cta-pair nvx-laser-hero-ctas">';
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
+		esc_html__( 'Reservar valoración médica', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s">%2$s</a>',
-		esc_url( $videoconsulta ),
-		esc_html__( 'Solicitar videoconsulta', 'nuvanx-medical' )
+		esc_url( $clinicas ),
+		esc_html__( 'Ver centros en Madrid', 'nuvanx-medical' )
 	);
 	$html .= '</div>';
 
@@ -144,7 +144,7 @@ function nvx_laser_action_banner_markup(): string {
 	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
 		? nvx_cta_valoracion_url()
 		: home_url( '/madrid/valoracion/' );
-	$videoconsulta = add_query_arg( 'modo', 'videoconsulta', $valoracion );
+	$clinicas   = home_url( '/clinicas-de-medicina-estetica-nuvanx/' );
 
 	$html  = '<section class="nvx-laser-action" aria-label="' . esc_attr__( 'Reservar valoración láser', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-laser-action__shell">';
@@ -152,7 +152,7 @@ function nvx_laser_action_banner_markup(): string {
 	$html .= '<div class="nvx-laser-action__copy">';
 	$html .= '<h2 class="nvx-laser-action__title">' . esc_html__( 'Determina la idoneidad de tu tratamiento', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-laser-action__text">' . wp_kses(
-		__( 'Agenda tu valoración médica personalizada hoy mismo. Disponible de forma presencial en nuestras clínicas autorizadas de <strong>Chamberí</strong> (CS20144) o <strong>Salamanca–Goya</strong> (CS20073), o mediante <strong>videoconsulta</strong> de valoración.', 'nuvanx-medical' ),
+		__( 'Agenda tu valoración médica personalizada. Disponible de forma presencial en nuestras clínicas autorizadas de <strong>Chamberí</strong> (CS20144) o <strong>Goya · Barrio Salamanca</strong> (CS20073).', 'nuvanx-medical' ),
 		array( 'strong' => array() )
 	) . '</p>';
 	$html .= '</div>';
@@ -160,12 +160,12 @@ function nvx_laser_action_banner_markup(): string {
 	$html .= sprintf(
 		'<a class="nvx-laser-action__primary" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
+		esc_html__( 'Reservar valoración médica', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
 		'<a class="nvx-laser-action__secondary" href="%1$s">%2$s</a>',
-		esc_url( $videoconsulta ),
-		esc_html__( 'Solicitar videoconsulta', 'nuvanx-medical' )
+		esc_url( $clinicas ),
+		esc_html__( 'Ver centros en Madrid', 'nuvanx-medical' )
 	);
 	$html .= '</div></div></div></section>';
 
@@ -234,7 +234,7 @@ function nvx_laser_editorial_body_markup(): string {
 			'n'       => '02',
 			'icon'    => 'rf',
 			'title'   => __( 'EXION® BTL · Estimulación dermoepidérmica', 'nuvanx-medical' ),
-			'body'    => __( 'Tecnología que combina la emisión simultánea de radiofrecuencia monopolar y ultrasonido focalizado. Mediante el estrés térmico controlado a nivel celular, activa los receptores CD44 en la matriz extracelular, logrando un incremento documentado de hasta un 224% en la síntesis natural de ácido hialurónico y un aumento de la densidad del colágeno sin inyecciones ni dolor.', 'nuvanx-medical' ),
+			'body'    => __( 'Plataforma con aplicadores de radiofrecuencia y ultrasonido (Fractional RF, Face y Body). La respuesta individual varía; la selección de aplicador, parámetros y número de sesiones se define tras valoración médica, sin garantizar magnitudes de mejora publicadas en estudios preclínicos.', 'nuvanx-medical' ),
 			'goal'    => __( 'Hidratación profunda, tensado cutáneo y firmeza corporal en abdomen o flancos.', 'nuvanx-medical' ),
 			'recover' => __( 'Sin tiempo de baja; eritema transitorio de pocas horas.', 'nuvanx-medical' ),
 			'url'     => nvx_laser_page_url( 'exion-btl' ),

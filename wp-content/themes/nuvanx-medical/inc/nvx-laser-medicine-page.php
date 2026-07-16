@@ -292,7 +292,7 @@ function nvx_content_restructure_laser_medicine_page( string $content ): string 
 		$media = $m[0];
 	}
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-laser-hero" aria-labelledby="nvx-laser-h1" aria-label="Medicina estética láser NUVANX">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-laser-hero" aria-labelledby="nvx-laser-h1" aria-label="' . esc_attr__( 'Medicina estética láser NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_laser_hero_copy_markup();
 	$hero .= $media;

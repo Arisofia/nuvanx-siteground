@@ -9,7 +9,7 @@ Estado: **borrador operativo** a partir de auditoría editorial + verificación 
 | ID | Rol | Acción |
 |----|-----|--------|
 | **1380** | Página privada (Medicina Estética Láser) | No publicar; no indexar; no enlazar. |
-| **2635** | Duplicado **publicado** de Medicina Estética Láser | Retirar de publicación o redirigir al canónico público del hub láser. Un solo URL canónico. |
+| **2635** | Duplicado **publicado** de Medicina Estética Láser | Retirar de publicación o redirigir al canónico público del hub láser. Una sola URL canónica. |
 | **18** | Política de cookies antigua | Sustituida por versión UE **577**. Mantener 18 fuera de menús/sitemap; redirigir `/politica-de-cookies/` (o slug antiguo) → 577 si aún resuelve a 18. |
 
 Estas tres dejan de formar parte del backlog de las 19 pendientes.

@@ -24,7 +24,7 @@ function nvx_co2_is_singular_context(): bool {
 }
 
 /**
- * Detect Láser CO₂ fraccionado detail page.
+ * Detect Láser CO₂ fraccionado detail page only (not home/hub cards).
  */
 function nvx_content_is_co2_page( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-co2-editorial' ) ) {
@@ -35,11 +35,8 @@ function nvx_content_is_co2_page( string $content ): bool {
 		return false;
 	}
 
-	if ( preg_match(
-		'/aria-label=["\']Láser CO₂ NUVANX["\']|id=["\']nvx-co2-h1["\']|class=["\'][^"\']*nvx-co2-hero/iu',
-		$content
-	) ) {
-		return true;
+	if ( is_front_page() || is_home() ) {
+		return false;
 	}
 
 	$path = function_exists( 'nvx_schema_current_path' )
@@ -51,7 +48,7 @@ function nvx_content_is_co2_page( string $content ): bool {
 	}
 
 	return (bool) preg_match(
-		'/L[aá]ser\s+CO\s*[₂2]\s*fraccionado|CO\s*[₂2][\s\S]{0,120}(cicatriz|poros|fotoda[nñ]o|resurfacing)/iu',
+		'/aria-label=["\']Láser CO₂ NUVANX["\']|id=["\']nvx-co2-h1["\']|class=["\'][^"\']*nvx-co2-hero/iu',
 		$content
 	);
 }

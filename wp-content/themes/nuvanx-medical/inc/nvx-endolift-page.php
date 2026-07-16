@@ -30,7 +30,11 @@ function nvx_endolift_is_singular_context(): bool {
  * Anchors primarily on stable structural markers (aria-label / ids / brand classes).
  */
 function nvx_content_is_endolift_page( string $content ): bool {
-	if ( false !== strpos( $content, 'nvx-endolift-editorial' ) ) {
+	// Already rewritten, or Endoláser page that reuses endolift layout classes.
+	if ( false !== strpos( $content, 'nvx-endolift-editorial' )
+		|| false !== strpos( $content, 'nvx-endolaser-editorial' )
+		|| false !== strpos( $content, 'nvx-co2-editorial' )
+		|| false !== strpos( $content, 'nvx-equipo-editorial' ) ) {
 		return false;
 	}
 
@@ -38,9 +42,31 @@ function nvx_content_is_endolift_page( string $content ): bool {
 		return false;
 	}
 
+	if ( is_front_page() || is_home() ) {
+		return false;
+	}
+
+	$path = function_exists( 'nvx_schema_current_path' )
+		? nvx_schema_current_path( (int) get_queried_object_id() )
+		: '';
+
+	// Other treatment detail URLs must not become Endolift facial.
+	if ( is_string( $path ) && (
+		false !== strpos( $path, 'endolaser-corporal' )
+		|| false !== strpos( $path, 'laser-co2-fraccionado' )
+		|| false !== strpos( $path, 'equipo-medico' )
+		|| false !== strpos( $path, 'exion' )
+	) ) {
+		return false;
+	}
+
+	if ( is_string( $path ) && false !== strpos( $path, 'endolift-facial' ) ) {
+		return true;
+	}
+
 	// Structural markers first (stable across copy edits).
 	if ( preg_match(
-		'/aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|class=["\'][^"\']*nvx-endolift-hero/iu',
+		'/aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|class=["\'][^"\']*nvx-endolift-hero(?![^"\']*nvx-endolaser)(?![^"\']*nvx-co2)(?![^"\']*nvx-equipo)/iu',
 		$content
 	) ) {
 		return true;

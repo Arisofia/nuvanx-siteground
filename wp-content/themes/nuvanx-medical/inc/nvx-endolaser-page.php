@@ -24,9 +24,10 @@ function nvx_endolaser_is_singular_context(): bool {
 }
 
 /**
- * Detect Endoláser corporal page content.
+ * Detect Endoláser corporal detail page only (never home / hub / other treatments).
  */
 function nvx_content_is_endolaser_page( string $content ): bool {
+	// Already rewritten once this request.
 	if ( false !== strpos( $content, 'nvx-endolaser-editorial' ) ) {
 		return false;
 	}
@@ -35,14 +36,12 @@ function nvx_content_is_endolaser_page( string $content ): bool {
 		return false;
 	}
 
-	if ( preg_match(
-		'/aria-label=["\']Endoláser corporal NUVANX["\']|id=["\']nvx-endolaser-h1["\']|class=["\'][^"\']*nvx-endolaser-hero/iu',
-		$content
-	) ) {
-		return true;
+	// Never hijack front page or non-page views (home mentions Endoláser in protocols).
+	if ( is_front_page() || is_home() ) {
+		return false;
 	}
 
-	// Path / markers: endoláser corporal + grasa (not facial Endolift alone).
+	// Authoritative: canonical path of the treatment page.
 	$path = function_exists( 'nvx_schema_current_path' )
 		? nvx_schema_current_path( (int) get_queried_object_id() )
 		: '';
@@ -51,8 +50,9 @@ function nvx_content_is_endolaser_page( string $content ): bool {
 		return true;
 	}
 
+	// Structural markers only if CMS already used our classes (not free-text "Endoláser" on other pages).
 	return (bool) preg_match(
-		'/Endol[aá]ser\s+corporal|laserlip[oó]lisis|grasa\s+localizada[\s\S]{0,200}(abdomen|flancos|retracci)/iu',
+		'/aria-label=["\']Endoláser corporal NUVANX["\']|id=["\']nvx-endolaser-h1["\']|class=["\'][^"\']*nvx-endolaser-hero/iu',
 		$content
 	);
 }

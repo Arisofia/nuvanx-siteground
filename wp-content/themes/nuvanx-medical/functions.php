@@ -195,3 +195,4 @@ require_once get_template_directory() . '/inc/nvx-integrations.php';
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';
 require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
+require_once get_template_directory() . '/inc/nvx-laser-medicine-page.php';

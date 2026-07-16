@@ -15,11 +15,11 @@
   box-sizing: border-box;
 }
 
-/* Secciones globales: padding vertical del contrato */
+/* Secciones: ritmo base; el detalle asimétrico vive en components */
 .nvx-section,
 .nvx-brand-section,
 .nvx-page-body {
-  padding-block: var(--nvx-section-y);
+  padding-block: var(--nvx-section-y-open, var(--nvx-section-y)) var(--nvx-section-y);
   box-sizing: border-box;
 }
 

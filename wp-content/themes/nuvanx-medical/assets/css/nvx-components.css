@@ -365,10 +365,16 @@ a.nvx-step > .nvx-brand-card__cta,
   width: 100%;
 }
 
+/* Desplazamiento suave de revista (no “zigzag” de plantilla) */
 .nvx-home-pilar-item:nth-child(even) .nvx-home-pilar-item__link,
 .nvx-brand-grid > .nvx-brand-card:nth-child(even) > a.nvx-step,
 .nvx-home-tratamientos-editorial > .nvx-step:nth-child(even) {
-  margin-inline-start: clamp(0px, 3vw, 2rem);
+  margin-inline-start: clamp(0px, 2.5vw, 1.75rem);
+}
+
+.nvx-home-tratamientos-editorial > .nvx-step {
+  margin-bottom: var(--nvx-gap-wide);
+  padding-bottom: var(--nvx-gap-wide);
 }
 
 .nvx-home-pilar-item {
@@ -397,8 +403,8 @@ ol.nvx-step-list,
 ol.nvx-step-list > li {
   position: relative;
   display: block;
-  margin: 0 0 var(--nvx-gap-base);
-  padding: 0.2em 0 0.2em clamp(3.5rem, 6vw, 5.25rem);
+  margin: 0 0 var(--nvx-gap-wide);
+  padding: 0.35em 0 0.35em clamp(3.75rem, 6.5vw, 5.5rem);
   counter-increment: nvx-step;
   text-align: start;
   max-width: 100%;
@@ -668,23 +674,25 @@ ol.nvx-step-list > li::before {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: min(var(--nvx-readable), 42rem);
-  margin-bottom: var(--nvx-gap-magazine-air, var(--nvx-gap-section));
+  max-width: min(var(--nvx-readable), 40rem);
+  margin-bottom: var(--nvx-gap-section);
   margin-inline: 0;
+  /* Aire lateral suave: no columna de periódico pegada al gutter */
+  padding-inline-end: clamp(0px, 4vw, 3rem);
 }
 
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title,
 .nvx-brand-section > .nvx-shell > .nvx-brand-title,
 .nvx-section-intro .nvx-heading,
 .nvx-section-intro h2 {
-  max-width: min(36ch, 100%);
+  max-width: var(--nvx-measure-display, min(18ch, 100%));
 }
 
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-body,
 .nvx-brand-section > .nvx-shell > .nvx-brand-body,
 .nvx-section-intro .nvx-lead,
 .nvx-section-intro .nvx-copy {
-  max-width: var(--nvx-measure-lead, 48ch);
+  max-width: var(--nvx-measure-lead, 42ch);
   text-align: start;
 }
 
@@ -694,8 +702,17 @@ ol.nvx-step-list > li::before {
 .nvx-brand-section .nvx-brand-section__inner .nvx-copy,
 .nvx-prose,
 .nvx-page__content .nvx-copy {
-  max-width: var(--nvx-measure, 62ch);
+  max-width: var(--nvx-measure, 58ch);
   text-align: start;
+}
+
+/* Párrafos en prosa: más aire entre ideas, menos “bloque de noticia” */
+.nvx-prose > p + p,
+.nvx-page__content > p + p,
+.nvx-brand-readable > p + p,
+.nvx-brand-section .nvx-brand-body + .nvx-brand-body,
+.nvx-brand-section .nvx-copy + .nvx-copy {
+  margin-top: 1.15em;
 }
 
 .nvx-brand-section__inner--center,
@@ -730,27 +747,41 @@ ol.nvx-step-list > li::before {
   line-height: var(--nvx-lh-caption);
 }
 
-/* Ritmo de sección: un solo vertical padding (sin odd/even que duplicaba aire) */
-.nvx-brand-section {
-  padding-block: var(--nvx-section-y);
+/*
+ * Ritmo de sección — quiet luxury:
+ * no padding idéntico (plantilla / diario).
+ * Apertura amplia tras hero; cierre un poco más contenido;
+ * soft = capítulo con lavado, no “caja gris”.
+ */
+.nvx-brand-section,
+.nvx-section,
+.nvx-page-body {
+  padding-block: var(--nvx-section-y-open) var(--nvx-section-y);
 }
 
 .nvx-brand-section--tight {
-  padding-block: var(--nvx-section-y-tight);
+  padding-block: var(--nvx-section-y-tight) var(--nvx-section-y-tight);
 }
 
 .nvx-brand-section--soft {
-  padding-block: var(--nvx-section-y-tight);
+  padding-block: var(--nvx-section-y) var(--nvx-section-y-open);
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(246, 247, 248, 0.65) 18%,
-    rgba(246, 247, 248, 0.65) 82%,
+    rgba(246, 247, 248, 0.55) 22%,
+    rgba(246, 247, 248, 0.55) 78%,
     transparent 100%
   );
 }
 
-/* Intro de sección: kicker → título → lead como bloque editorial */
+/* Capítulos: el primero tras el hero abre con más aire superior contenido */
+.nvx-brand-hero + .nvx-brand-section,
+.nvx-page__content > .nvx-brand-hero + .nvx-brand-section,
+.nvx-page__content > [id] > .nvx-brand-hero + .nvx-brand-section {
+  padding-top: var(--nvx-section-y-tight);
+}
+
+/* Intro de sección: kicker → título → lead como bloque sereno */
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-kicker + .nvx-brand-title,
 .nvx-brand-section > .nvx-shell > .nvx-brand-kicker + .nvx-brand-title {
   margin-top: 0;
@@ -760,14 +791,17 @@ ol.nvx-step-list > li::before {
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-title + .nvx-brand-body,
 .nvx-brand-section > .nvx-shell > .nvx-brand-title + .nvx-brand-subtitle,
 .nvx-brand-section > .nvx-shell > .nvx-brand-title + .nvx-brand-body {
-  margin-top: 0.35em;
+  margin-top: 0.55em;
 }
 
+/* Del título al catálogo/lista: pausa de capítulo, no salto de listado */
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-grid,
 .nvx-brand-section > .nvx-shell > .nvx-brand-grid,
 .nvx-brand-section > .nvx-brand-section__inner > .nvx-step-list,
-.nvx-brand-section > .nvx-shell > .nvx-step-list {
-  margin-top: var(--nvx-gap-wide);
+.nvx-brand-section > .nvx-shell > .nvx-step-list,
+.nvx-brand-section > .nvx-brand-section__inner > .nvx-brand-readable,
+.nvx-brand-section > .nvx-shell > .nvx-brand-readable {
+  margin-top: var(--nvx-gap-section);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1001,12 +1035,18 @@ ol.nvx-step-list > li::before {
   text-align: start;
 }
 
-/* Grid de equipo: una ficha por fila, aire entre miembros */
+/* Grid de equipo: una ficha por fila, aire de capítulo entre miembros */
 .nvx-brand-grid:has(> .nvx-brand-card--team) {
   display: flex;
   flex-direction: column;
   gap: var(--nvx-gap-section);
-  margin-top: var(--nvx-gap-base);
+  margin-top: var(--nvx-gap-wide);
+}
+
+/* Copy de ficha de equipo: measure de lectura, no torre estrecha */
+.nvx-brand-card--team > .nvx-brand-card__body,
+.nvx-brand-card--team > p:not(.nvx-brand-card__kicker) {
+  max-width: var(--nvx-measure-lead, 42ch);
 }
 
 @media (max-width: 720px) {
@@ -1244,13 +1284,13 @@ ol.nvx-step-list > li::before {
   width: min(1080px, 100%);
 }
 
-/* Grids: una columna (contenido apilado, sin multi-col) */
+/* Grids: una columna con aire de catálogo (no lista de noticias) */
 .nvx-brand-grid,
 .nvx-brand-grid--2,
 .nvx-brand-grid--3 {
   display: flex;
   flex-direction: column;
-  gap: var(--nvx-gap-wide);
+  gap: var(--nvx-gap-section);
   grid-template-columns: none;
   width: 100%;
 }
@@ -1404,16 +1444,24 @@ ol.nvx-step-list > li::before {
   width: 100%;
 }
 
-/* Hero sin media: una columna, measure de lectura */
+/*
+ * Hero sin media: ancla a la izquierda con measure de lujo.
+ * Evita el “bloque flotando a la derecha” (vacío ejecutivo).
+ */
 .nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) {
   grid-template-columns: 1fr;
-  max-width: min(var(--nvx-shell), 48rem);
-  margin-inline: auto 0;
+  max-width: min(var(--nvx-shell), 44rem);
+  margin-inline: 0;
   padding-inline: var(--nvx-gutter-inner);
+  padding-block: var(--nvx-section-y) var(--nvx-section-y-tight);
 }
 
 .nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) .nvx-brand-hero__copy {
-  max-width: min(42rem, 100%);
+  max-width: min(40rem, 100%);
+}
+
+.nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) .nvx-brand-hero__title {
+  max-width: min(16ch, 100%);
 }
 
 @media (max-width: 900px) {
@@ -1557,19 +1605,13 @@ ol.nvx-step-list > li::before {
   padding-top: 0;
 }
 
-/* Blog / catálogo: tarjetas con media más editorial */
+/*
+ * Catálogo / blog: sin filetes entre ítems (eso es periódico).
+ * La separación es solo aire; el último no “cierra” con línea.
+ */
 .nvx-brand-grid > .nvx-brand-card {
-  padding-bottom: var(--nvx-gap-tight);
-  border-bottom: 1px solid var(--nvx-color-line);
-}
-
-.nvx-brand-grid > .nvx-brand-card:last-child {
-  border-bottom: 0;
-}
-
-.nvx-brand-grid > .nvx-brand-card--team {
-  border-bottom: 0;
   padding-bottom: 0;
+  border-bottom: 0;
 }
 
 /* Formulario: más respiro y measure de lujo */

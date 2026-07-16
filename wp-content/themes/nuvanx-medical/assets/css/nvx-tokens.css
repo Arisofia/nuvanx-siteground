@@ -81,20 +81,20 @@
   --space-8: 64px;
 
   /* Gaps — ritmo vertical entre bloques / tarjetas */
-  --nvx-gap-tight: clamp(12px, 1.5vw, 18px);
-  --nvx-gap-base: clamp(20px, 2.4vw, 32px);
-  --nvx-gap-wide: clamp(32px, 4vw, 56px); /* entre tarjetas, bloques de texto */
-  --nvx-gap-section: clamp(48px, 6vw, 96px);
+  --nvx-gap-tight: clamp(10px, 1.2vw, 16px);
+  --nvx-gap-base: clamp(16px, 2vw, 28px);
+  --nvx-gap-wide: clamp(24px, 3vw, 40px); /* entre tarjetas, bloques de texto */
+  --nvx-gap-section: clamp(40px, 5vw, 72px);
 
   /* Cards: padding interno generoso + bordes suaves */
-  --nvx-pad-card: clamp(32px, 3.5vw, 48px);
+  --nvx-pad-card: clamp(24px, 2.8vw, 40px);
 
-  /* Secciones: respiración editorial (padding vertical) */
-  --nvx-pad-section: clamp(80px, 9vw, 140px);
-  --nvx-pad-section-tight: clamp(48px, 5vw, 72px);
+  /* Secciones: respiración editorial (sin excesos odd/even) */
+  --nvx-pad-section: clamp(48px, 6vw, 88px);
+  --nvx-pad-section-tight: clamp(32px, 4vw, 56px);
   --nvx-section-y: var(--nvx-pad-section);
   --nvx-section-y-tight: var(--nvx-pad-section-tight);
-  --nvx-section-y-lg: clamp(96px, 10vw, 160px);
+  --nvx-section-y-lg: clamp(64px, 7vw, 112px);
 
   /* Gutter lateral del shell (desktop generoso) */
   --nvx-gutter: clamp(48px, 6vw, 120px);
@@ -172,8 +172,8 @@
   --nvx-media-tilt-alt: 1.4deg;
   --nvx-media-bleed-x: clamp(16px, 3vw, 48px);
   --nvx-media-overlap: clamp(-48px, -4vw, -24px);
-  --nvx-gap-magazine-tight: clamp(12px, 1.8vw, 20px);
-  --nvx-gap-magazine-air: clamp(40px, 6vw, 88px);
+  --nvx-gap-magazine-tight: clamp(10px, 1.5vw, 16px);
+  --nvx-gap-magazine-air: clamp(28px, 4vw, 56px);
 
   /* Media: overlay texto-sobre-imagen + continuidad de color al borde inferior */
   --nvx-media-overlay: linear-gradient(

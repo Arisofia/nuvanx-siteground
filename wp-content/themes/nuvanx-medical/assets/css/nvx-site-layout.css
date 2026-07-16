@@ -154,8 +154,7 @@ article.nvx-page > .nvx-page-hero {
   padding-block: var(--nvx-pad-section);
 }
 
-.nvx-brand-section--tight,
-.nvx-section--tight {
+.nvx-brand-section--tight {
   padding-block: var(--nvx-pad-section-tight);
 }
 
@@ -207,7 +206,6 @@ article.nvx-page > .nvx-page-hero {
 .nvx-main :is(.nvx-brand-page, .nvx-brand-section__inner) > :where(p, .nvx-brand-body),
 .nvx-main :where(
   .nvx-endolift-body--measure,
-  .nvx-laser-body--measure,
   .nvx-aes-body--lead,
   .nvx-method-lead,
   .nvx-brand-faq-content p,
@@ -413,65 +411,8 @@ article.nvx-page > .nvx-page-hero {
   border-top: 1px solid transparent;
 }
 
-.nvx-reading {
-  width: min(100%, var(--nvx-readable));
-}
-
 .nvx-prose {
   width: min(100%, var(--nvx-measure));
-}
-
-.nvx-grid-12 {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--nvx-gap-base);
-}
-
-.nvx-span-4 { grid-column: span 4; }
-.nvx-span-5 { grid-column: span 5; }
-.nvx-span-6 { grid-column: span 6; }
-.nvx-span-7 { grid-column: span 7; }
-.nvx-span-8 { grid-column: span 8; }
-.nvx-span-12 { grid-column: 1 / -1; }
-
-.nvx-stack {
-  display: grid;
-  gap: var(--nvx-gap-base);
-}
-
-.nvx-stack--tight {
-  gap: var(--nvx-space-2);
-}
-
-.nvx-stack--wide {
-  gap: var(--nvx-space-6);
-}
-
-.nvx-cluster {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--nvx-gap-base);
-}
-
-.nvx-section-heading {
-  display: grid;
-  gap: var(--nvx-space-2);
-  margin-bottom: var(--nvx-space-6);
-}
-
-.nvx-section-heading > * {
-  margin: 0;
-}
-
-@media (max-width: 980px) {
-  .nvx-span-4,
-  .nvx-span-5,
-  .nvx-span-6,
-  .nvx-span-7,
-  .nvx-span-8 {
-    grid-column: span 6;
-  }
 }
 
 @media (max-width: 680px) {
@@ -482,21 +423,8 @@ article.nvx-page > .nvx-page-hero {
     padding-block: var(--nvx-space-12);
   }
 
-  .nvx-brand-section--tight,
-  .nvx-section--tight {
+  .nvx-brand-section--tight {
     padding-block: var(--nvx-space-8);
   }
 
-  .nvx-grid-12 {
-    grid-template-columns: 1fr;
-  }
-
-  .nvx-span-4,
-  .nvx-span-5,
-  .nvx-span-6,
-  .nvx-span-7,
-  .nvx-span-8,
-  .nvx-span-12 {
-    grid-column: 1;
-  }
 }

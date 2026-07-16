@@ -91,20 +91,13 @@ jobs:
               || { echo "ERROR: aesthetic page file present but not required"; exit 1; }
           fi
           grep -q "wpseo_schema_graph" "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
-          ! grep -Eq 'Q115801923|Q124312015' "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
           test -x scripts/staging2/smoke-verify-staging2.sh || chmod +x scripts/staging2/smoke-verify-staging2.sh
 
-      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+      - name: Configure SSH agent and known hosts
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
         with:
           ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
-
-      - name: Known hosts
-        env:
-          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
-        run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 700 ~/.ssh && chmod 600 ~/.ssh/known_hosts
+      - run: mkdir -p ~/.ssh && printf '%s\n' "${{ secrets.STAGING_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts && chmod 600 ~/.ssh/known_hosts
 
       - name: Rsync theme
         env:

@@ -147,6 +147,12 @@ defined( 'ABSPATH' ) || exit;
 				</li>
 
 				<li>
+					<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>">
+						Casos de pacientes
+					</a>
+				</li>
+
+				<li>
 					<a href="<?php echo esc_url( home_url( '/blog/' ) ); ?>">
 						Journal
 					</a>

@@ -1168,6 +1168,42 @@ article.nvx-page > .nvx-page-hero {
   margin-bottom: var(--nvx-space-2, 16px);
 }
 
+/* CO₂ recovery timeline */
+.nvx-co2-timeline {
+  list-style: none;
+  margin: var(--nvx-space-4, 32px) 0 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(24px, 3vw, 36px);
+  max-width: 68ch;
+  counter-reset: none;
+}
+
+.nvx-co2-timeline__item {
+  margin: 0;
+  padding-top: var(--nvx-space-3, 24px);
+  border-top: 1px solid var(--nvx-color-line, #e5e5e5);
+}
+
+.nvx-co2-timeline__n {
+  display: block;
+  margin-bottom: var(--nvx-space-2, 16px);
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #c5a880;
+}
+
+.nvx-co2-timeline__title {
+  margin: 0 0 var(--nvx-space-2, 16px);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  line-height: var(--nvx-lh-h3);
+  color: var(--nvx-ink);
+}
+
 /* Endoláser corporal — zone list (reuses endolift section rhythm) */
 .nvx-endolaser-zone-list {
   list-style: none;

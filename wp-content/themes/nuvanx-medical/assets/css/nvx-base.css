@@ -44,6 +44,21 @@ svg {
   height: auto;
 }
 
+/* Hero media must fill the stage like the home video (override height:auto) */
+.nvx-brand-hero__media img,
+.nvx-brand-hero__media video,
+.nvx-editorial-hero__media img,
+.nvx-editorial-hero__media video,
+.nvx-page-hero__media img,
+.nvx-page-hero__media video,
+.nvx-hero__media img,
+.nvx-hero__media video,
+.nvx-home-hero-video {
+  max-width: none;
+  width: 100%;
+  height: 100%;
+}
+
 button,
 input,
 select,

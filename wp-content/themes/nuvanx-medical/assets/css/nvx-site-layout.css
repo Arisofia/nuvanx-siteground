@@ -1,19 +1,32 @@
+/* Page frame is full-bleed so heroes match the home video edge-to-edge.
+   Gutters live on section inners / readable columns — not on the page shell. */
 .nvx-shell,
-.nvx-page__shell,
 .nvx-page-body__inner,
-.nvx-brand-section__inner,
-.nvx-brand-hero__inner {
+.nvx-brand-section__inner {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-page__shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-inline: 0;
+  overflow-x: clip;
+  box-sizing: border-box;
 }
 
 .nvx-main,
 .nvx-page,
-.nvx-page__content {
+.nvx-page__content,
+.nvx-brand-page {
   width: 100%;
   max-width: 100%;
+  margin: 0;
+  padding: 0;
   overflow-x: clip;
 }
 
@@ -22,9 +35,103 @@
   background: var(--nvx-color-paper);
 }
 
-.nvx-page__content {
+/* Content is full-width so heroes fill the viewport like home video */
+.nvx-page__content,
+.nvx-page__content.nvx-prose {
+  width: 100%;
+  max-width: none;
   margin: 0;
   padding: 0;
+}
+
+/* Theme hero is a direct child of article (outside shell) */
+article.nvx-page > .nvx-page-hero {
+  margin-bottom: 0;
+}
+
+/* Body sections after a full-bleed hero keep readable gutters */
+.nvx-page__content .nvx-brand-section,
+.nvx-brand-page > .nvx-brand-section {
+  width: 100%;
+}
+
+.nvx-page__content .nvx-brand-section__inner,
+.nvx-brand-page > .nvx-brand-section > .nvx-brand-section__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+/* Valoración form stage — inspired by header media (fondo-formulario):
+   champagne → platinum gradient / photo, card floating in quiet air. */
+.nvx-valoracion-page > .nvx-hubspot-form-section,
+.nvx-valoracion-page > #nvx-hubspot-form,
+.nvx-med-page > .nvx-hubspot-form-section,
+.nvx-form-stage {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  margin: 0;
+  padding-block: clamp(56px, 8vw, 104px) clamp(64px, 9vw, 120px);
+  padding-inline: 0;
+  overflow: hidden;
+  scroll-margin-top: 96px;
+  /* Fallback palette sampled from fondo-formulario.webp */
+  background:
+    linear-gradient(
+      155deg,
+      #e7d7be 0%,
+      #d5d8dc 46%,
+      #aeb8c2 100%
+    );
+  background-color: #c5cdd4;
+}
+
+.nvx-valoracion-page > .nvx-hubspot-form-section::before,
+.nvx-valoracion-page > #nvx-hubspot-form::before,
+.nvx-form-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: var(--nvx-form-stage-image, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+.nvx-valoracion-page > .nvx-hubspot-form-section::after,
+.nvx-valoracion-page > #nvx-hubspot-form::after,
+.nvx-form-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(246, 247, 248, 0.18) 0%,
+      rgba(246, 247, 248, 0.08) 40%,
+      rgba(20, 22, 26, 0.06) 100%
+    );
+  pointer-events: none;
+}
+
+.nvx-valoracion-page > .nvx-hubspot-form-section .nvx-page-body__inner,
+.nvx-valoracion-page > #nvx-hubspot-form .nvx-page-body__inner,
+.nvx-med-page > .nvx-hubspot-form-section .nvx-page-body__inner,
+.nvx-form-stage .nvx-page-body__inner {
+  position: relative;
+  z-index: 1;
+  width: min(40rem, var(--nvx-shell));
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
 }
 
 .nvx-section,

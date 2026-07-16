@@ -6,7 +6,8 @@
  * - dual CTAs (valoración + WhatsApp)
  * - clinical values pillars
  * - method columns
- * - GEO treatment card densification
+ * - treatment card blurbs (no prices on home)
+ * - home specialized protocols block (clinical copy, no prices)
  * - director E-E-A-T (colegiado)
  * - FAQ framing (EXION vs Morpheus8)
  *
@@ -411,16 +412,11 @@ function nvx_content_replace_method_sections( string $content ): string {
 }
 
 /**
- * Treatment card blurbs sitewide — clinical + cite-able starting price for Endolift.
+ * Treatment card blurbs sitewide — clinical only (no prices on home cards).
  */
 function nvx_content_enrich_treatment_cards( string $content ): string {
-	$price_label  = function_exists( 'nvx_format_price_eur' )
-		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
-		: number_format_i18n( 798.60, 2 );
-	$papada_label = function_exists( 'nvx_format_price_eur' ) && function_exists( 'nvx_endolift_price_papada_eur' )
-		? nvx_format_price_eur( nvx_endolift_price_papada_eur() )
-		: number_format_i18n( 1064.80, 2 );
-	$endolift_new = 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica tras valoración. Papada / marcación mandibular: ' . $papada_label . ' € (PVP IVA incl.). Tarifas faciales desde ' . $price_label . ' €.';
+	// Never inject tariffs into cards (home or elsewhere). Prices live on treatment pages.
+	$endolift_new = 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica tras valoración. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada.';
 
 	$exion_new = 'Plataforma con aplicadores Fractional RF, Face y Body. La elección y el número de sesiones dependen del diagnóstico; no sustituye rellenos ni valoración médica.';
 
@@ -438,7 +434,150 @@ function nvx_content_enrich_treatment_cards( string $content ): string {
 		$content
 	);
 
+	// Strip residual “desde X € / PVP” price fragments that may remain in CMS card bodies on front.
+	if ( is_front_page() ) {
+		$content = preg_replace(
+			'/\s*(?:Tarifa[s]?\s+de\s+referencia\s+)?desde\s+[\d.,]+\s*€[^.<]*(?:\.|$)/iu',
+			'',
+			$content
+		) ?? $content;
+		$content = preg_replace(
+			'/\s*Papada\s*\/\s*marcación mandibular:\s*[\d.,]+\s*€[^.<]*(?:\.|$)/iu',
+			'',
+			$content
+		) ?? $content;
+		$content = preg_replace(
+			'/\s*\(PVP[^)]*\)\.?/iu',
+			'',
+			$content
+		) ?? $content;
+	}
+
 	return is_string( $content ) ? $content : '';
+}
+
+/**
+ * Home “Protocolos médicos especializados” — clinical copy (no investment/price lines).
+ *
+ * @return array<int, array{title:string,lead:string,facts:array<string,string>,url:string}>
+ */
+function nvx_home_protocols_data(): array {
+	return array(
+		array(
+			'title' => 'Endolift® Facial: Retracción Subdérmica y Definición Mandibular',
+			'lead'  => 'Considerado el estándar de oro actual en lifting biológico no quirúrgico. A través de la inserción intersticial de una microfibra óptica de 200 a 300 micras bajo la piel, canalizamos energía láser directa al tejido subcutáneo. Este proceso genera una lipólisis selectiva de la grasa en la papada y provoca una retracción térmica inmediata que redefine el óvalo facial y tensa el cuello sin incisiones.',
+			'facts' => array(
+				'Indicación médica principal'   => 'Flacidez leve a moderada y pérdida de definición del contorno mandibular.',
+				'Recuperación clínica estimada' => 'De 3 a 7 días de inflamación controlada.',
+			),
+			'url'   => home_url( '/endolift-facial-papada-mandibula/' ),
+		),
+		array(
+			'title' => 'Endoláser Corporal: Lipólisis Láser Selectiva',
+			'lead'  => 'El abordaje médico definitivo para la adiposidad localizada que se resiste a la dieta y al deporte. El calor controlado emitido por la fibra láser destruye las membranas de los adipocitos, mientras que, simultáneamente, la retracción térmica inducida previene el descolgamiento de la piel. Este doble mecanismo supera ampliamente las limitaciones estructurales de tratamientos basados en frío como la criolipólisis.',
+			'facts' => array(
+				'Zonas anatómicas de alta respuesta' => 'Abdomen inferior, flancos laterales, cara interna del muslo y cara posterior de los brazos.',
+			),
+			'url'   => home_url( '/endolaser-corporal-grasa-localizada/' ),
+		),
+		array(
+			'title' => 'Láser CO₂ Fraccionado: Renovación Epidérmica Profunda',
+			'lead'  => 'El resurfacing cutáneo en su máxima expresión. Utilizamos tecnología de vaporización térmica controlada para el tratamiento intensivo de cicatrices atróficas de acné, poros dilatados crónicos y fotodaño severo. Este procedimiento no es un tratamiento cosmético superficial; representa una intervención dermatológica de alto impacto que exige una planificación médica rigurosa.',
+			'facts' => array(
+				'Resultados clínicos' => 'Mejora radical de la textura epidérmica y síntesis masiva de nuevas fibras de colágeno.',
+				'Recuperación'        => 'Variable entre 4 y 7 días según la profundidad ablativa del protocolo.',
+			),
+			'url'   => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ),
+		),
+	);
+}
+
+/**
+ * Markup for home specialized protocols section.
+ */
+function nvx_home_protocols_markup(): string {
+	$html  = '<section class="nvx-brand-section nvx-home-protocols" id="nvx-home-protocols" aria-labelledby="nvx-home-protocols-title">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Protocolos', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-home-protocols-title" class="nvx-brand-title">' . esc_html__( 'Nuestros Protocolos Médicos Especializados', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<div class="nvx-home-protocols__list">';
+
+	foreach ( nvx_home_protocols_data() as $item ) {
+		$html .= '<article class="nvx-home-protocol">';
+		$html .= '<h3 class="nvx-home-protocol__title">' . esc_html( $item['title'] ) . '</h3>';
+		$html .= '<p class="nvx-home-protocol__lead">' . esc_html( $item['lead'] ) . '</p>';
+		if ( ! empty( $item['facts'] ) ) {
+			$html .= '<dl class="nvx-home-protocol__facts">';
+			foreach ( $item['facts'] as $label => $value ) {
+				$html .= '<div class="nvx-home-protocol__fact">';
+				$html .= '<dt>' . esc_html( $label ) . '</dt>';
+				$html .= '<dd>' . esc_html( $value ) . '</dd>';
+				$html .= '</div>';
+			}
+			$html .= '</dl>';
+		}
+		$html .= '<p class="nvx-home-protocol__more"><a class="nvx-brand-inline-link" href="' . esc_url( $item['url'] ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . '</a></p>';
+		$html .= '</article>';
+	}
+
+	$html .= '</div></div></section>';
+
+	return $html;
+}
+
+/**
+ * Ensure front page has one protocols block after Método (or after values banner).
+ */
+function nvx_content_ensure_home_protocols( string $content ): string {
+	if ( ! is_front_page() ) {
+		return $content;
+	}
+
+	// Already present once: drop extras.
+	if ( false !== strpos( $content, 'nvx-home-protocols' ) || false !== strpos( $content, 'id="nvx-home-protocols"' ) ) {
+		$seen    = 0;
+		$updated = preg_replace_callback(
+			'/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu',
+			static function ( array $m ) use ( &$seen ): string {
+				$seen++;
+				// Refresh first copy with current markup; drop further copies.
+				return ( 1 === $seen ) ? nvx_home_protocols_markup() : '';
+			},
+			$content
+		);
+		return is_string( $updated ) ? $updated : $content;
+	}
+
+	$block = nvx_home_protocols_markup();
+
+	// Prefer after single Método section.
+	$count   = 0;
+	$updated = preg_replace(
+		'/(<section\b[^>]*\bnvx-method-section\b[^>]*>[\s\S]*?<\/section>)/iu',
+		'$1' . $block,
+		$content,
+		1,
+		$count
+	);
+	if ( is_string( $updated ) && $count > 0 ) {
+		return $updated;
+	}
+
+	// After post-values action banner.
+	$count   = 0;
+	$updated = preg_replace(
+		'/(id=["\']nvx-post-values-action-banner["\'][\s\S]*?<\/div>\s*<\/div>)/iu',
+		'$1' . $block,
+		$content,
+		1,
+		$count
+	);
+	if ( is_string( $updated ) && $count > 0 ) {
+		return $updated;
+	}
+
+	// Fallback: append before last CTA-ish section or at end of content.
+	return $content . $block;
 }
 
 /**
@@ -752,6 +891,7 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_normalize_body_media( $content );
 	$content = nvx_content_replace_values_sections( $content );
 	$content = nvx_content_replace_method_sections( $content );
+	$content = nvx_content_ensure_home_protocols( $content );
 	$content = nvx_content_enrich_treatment_cards( $content );
 	$content = nvx_content_enhance_director_blocks( $content );
 	$content = nvx_content_rewrite_morpheus_faq( $content );

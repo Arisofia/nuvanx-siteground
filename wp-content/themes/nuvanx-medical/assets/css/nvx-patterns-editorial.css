@@ -474,6 +474,73 @@ article.nvx-page > .nvx-page-hero {
   margin: 0 0 var(--nvx-gap-wide, 2rem);
 }
 
+/* Home specialized protocols — clinical stack, no price chrome */
+.nvx-home-protocols .nvx-brand-title {
+  max-width: 22ch;
+  margin-bottom: var(--nvx-gap-wide, 2rem);
+}
+
+.nvx-home-protocols__list {
+  display: grid;
+  gap: clamp(32px, 4vw, 56px);
+  margin-top: var(--nvx-space-4, 32px);
+}
+
+.nvx-home-protocol {
+  max-width: min(100%, 68ch);
+  padding-top: clamp(20px, 2.5vw, 28px);
+  border-top: 1px solid var(--nvx-color-line, #e5e5e5);
+}
+
+.nvx-home-protocol__title {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  line-height: var(--nvx-lh-h3);
+  color: var(--nvx-ink);
+}
+
+.nvx-home-protocol__lead {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
+.nvx-home-protocol__facts {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  display: grid;
+  gap: var(--nvx-space-2, 16px);
+}
+
+.nvx-home-protocol__fact {
+  margin: 0;
+}
+
+.nvx-home-protocol__fact dt {
+  margin: 0 0 4px;
+  font-family: var(--nvx-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nvx-text-muted, #5c5c5c);
+}
+
+.nvx-home-protocol__fact dd {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-ink);
+}
+
+.nvx-home-protocol__more {
+  margin: 0;
+}
+
 .nvx-method-columns {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

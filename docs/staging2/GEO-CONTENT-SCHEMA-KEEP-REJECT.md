@@ -34,7 +34,7 @@ Posicionamiento: **autoridad láser transparente** — no Depilife (descuentos) 
 1. Actualizar tarifa en Doctoralia y en `NVX_ENDOLIFT_PRICE_FROM_EUR` al unísono.
 2. Precios de referencia en Endoláser / CO₂ / EXION cuando comerciales los cierren.
 3. Purgar “casos en preparación”; galería real con alt clínicos.
-4. Landings anatómicas (`/endolaser-papada-madrid/`, etc.) cuando haya redaccción.
+4. Landings anatómicas (`/endolaser-papada-madrid/`, etc.) cuando haya redacción.
 5. Artículos firmados (Endolift vs Morpheus/EXION; cronología CO₂).
 
 ## Validación post-deploy

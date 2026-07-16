@@ -438,3 +438,4 @@ function nvx_valoracion_form_stage_class( string $content ): string {
 add_filter( 'the_content', 'nvx_valoracion_form_stage_class', 15 );
 
 require_once get_template_directory() . '/inc/nvx-integrations.php';
+require_once get_template_directory() . '/inc/nvx-home-content.php';

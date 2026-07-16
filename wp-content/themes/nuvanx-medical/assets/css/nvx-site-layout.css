@@ -3,18 +3,11 @@
  * No redefine paleta ni tipografía. Sin forks por página.
  */
 
-/* Contenedor principal — un contrato (incl. alias histórico nvx-v3-shell del home) */
+/* Contenedor principal */
 .nvx-shell,
-.nvx-v3-shell,
-.nvx-site-shell,
 .nvx-page__shell,
-.nvx-page-hero__inner,
 .nvx-page-body__inner,
-.nvx-container,
-.nvx-nosotros-inner,
-.nvx-med-main,
-.nvx-brand-section__inner,
-.nvx-shell-wide {
+.nvx-brand-section__inner {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
@@ -35,8 +28,7 @@ body.home .nvx-home-hero-stage {
   padding-block: 0;
 }
 
-.nvx-brand-section--tight,
-.nvx-section--tight {
+.nvx-brand-section--tight {
   padding-block: var(--nvx-section-y-tight);
 }
 
@@ -58,7 +50,6 @@ body.home .nvx-home-hero-stage {
  * anidar .nvx-shell otra vez duplicaba gutters.
  */
 .nvx-page__shell .nvx-page__content .nvx-shell,
-.nvx-page__shell .nvx-page__content .nvx-page-hero__inner,
 .nvx-page__shell .nvx-page__content .nvx-page-body__inner,
 .nvx-page__shell .nvx-page__content .nvx-brand-section__inner {
   width: 100%;
@@ -69,57 +60,28 @@ body.home .nvx-home-hero-stage {
 
 /* Measure: body text no se estira a full-bleed */
 .nvx-page-body__inner > p:not([class]),
-.nvx-nosotros-inner > p:not([class]),
-.nvx-med-main > p:not([class]),
-.nvx-site-shell > p:not([class]),
 .nvx-copy,
 .nvx-brand-body {
   max-width: var(--nvx-measure);
 }
 
-/* Hero / intro de página: mismo ritmo de sección */
-.nvx-page-hero,
-.nvx-hero-section,
-.nvx-hero {
-  position: relative;
-  padding-block: var(--nvx-section-y);
-  margin: 0 0 var(--nvx-gap-wide);
-  background: transparent;
-}
-
-.nvx-page-hero::before,
-.nvx-hero-section::before,
-.nvx-hero::before {
-  content: none;
-  display: none;
-}
-
-.nvx-page-hero__inner,
-.nvx-hero-section .nvx-page-hero__inner,
-.nvx-hero__inner,
-.nvx-hero__copy {
-  position: relative;
-  z-index: 1;
-}
-
-/* Intro de página — revista: start (izquierda) + aire */
-.nvx-page__content .nvx-page-hero .nvx-kicker,
-.nvx-page__content .nvx-page-hero h1,
-.nvx-page__content .nvx-page-hero .nvx-title,
-.nvx-page__content .nvx-page-hero .nvx-lead,
-.nvx-page__content .nvx-page-hero .nvx-page__cta {
+/* Brand hero intro: lectura start (layout; tipografía en components) */
+.nvx-page__content .nvx-brand-hero .nvx-brand-kicker,
+.nvx-page__content .nvx-brand-hero h1,
+.nvx-page__content .nvx-brand-hero .nvx-title,
+.nvx-page__content .nvx-brand-hero .nvx-lead,
+.nvx-page__content .nvx-brand-hero .nvx-brand-actions {
   text-align: start;
   margin-inline: 0;
 }
 
-.nvx-page__content .nvx-page-hero .nvx-copy {
+.nvx-page__content .nvx-brand-hero .nvx-copy {
   text-align: start;
   margin-inline: 0;
   max-width: var(--nvx-measure-lead, 48ch);
 }
 
-.nvx-page__content .nvx-page-hero .nvx-page__cta,
-.nvx-page__content .nvx-page-hero .nvx-brand-actions {
+.nvx-page__content .nvx-brand-hero .nvx-brand-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
@@ -127,8 +89,8 @@ body.home .nvx-home-hero-stage {
 }
 
 /* Cards en page-body: flujo editorial limpio */
-.nvx-page-body__inner > .nvx-card,
-.nvx-page__shell > .nvx-card {
+.nvx-page-body__inner > .nvx-brand-card,
+.nvx-page__shell > .nvx-brand-card {
   margin-bottom: 0;
   padding: 0;
   background: transparent;
@@ -138,13 +100,9 @@ body.home .nvx-home-hero-stage {
 }
 
 /* Una sola columna en todo el sitio */
-.nvx-positioning-grid,
-.nvx-locations-grid,
 .nvx-brand-grid,
 .nvx-brand-grid--2,
 .nvx-brand-grid--3,
-.nvx-index,
-.nvx-index__items,
 .nvx-home-clinicas-panorama__track,
 .nvx-home-metodo-pilares,
 .nvx-home-tratamientos-editorial,

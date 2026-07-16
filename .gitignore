@@ -96,3 +96,9 @@ php_errorlog
 # Local staging QA evidence (not production source)
 artifacts/staging2-*/
 artifacts/staging2-prep-*/
+
+# Local screenshot / agent one-shots (not production source)
+.tmp-screens/
+.tmp*/
+tools/_audit_*.py
+tools/_cleanup_report.txt

@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<a class="nvx-sr-only" href="#nvx-main"><?php esc_html_e('Saltar al contenido','nuvanx-editorial-v2'); ?></a>
+<a class="nvx-sr-only" href="#nvx-main"><?php esc_html_e( 'Saltar al contenido', 'nuvanx-medical' ); ?></a>
 <header class="nvx-header<?php echo is_front_page()?' nvx-header--home':' nvx-header--interior'; ?>" role="banner" id="nvx-header">
   <div class="nvx-header__inner">
     <a href="<?php echo esc_url(home_url('/')); ?>" class="nvx-logo" aria-label="NUVANX — Inicio">
@@ -24,7 +24,7 @@ defined( 'ABSPATH' ) || exit;
     </a>
     <nav class="nvx-nav" role="navigation" aria-label="Menú principal">
       <?php wp_nav_menu(['theme_location'=>'primary','menu_class'=>'nvx-nav__list','container'=>false,'items_wrap'=>'<ul class="%2$s" role="menubar">%3$s</ul>','fallback_cb'=>'nvx_primary_menu_fallback','add_li_class'=>'nvx-nav__item']); ?>
-      <a href="<?php echo esc_url(home_url('/contacto/')); ?>" class="nvx-btn nvx-btn--primary" id="nvx-header-cta"><?php esc_html_e('RESERVAR CITA','nuvanx-editorial-v2'); ?></a>
+      <a href="<?php echo esc_url( home_url( '/contacto/' ) ); ?>" class="nvx-btn nvx-btn--primary" id="nvx-header-cta"><?php esc_html_e( 'RESERVAR CITA', 'nuvanx-medical' ); ?></a>
     </nav>
     <button class="nvx-hamburger" id="nvx-hamburger-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="nvx-mobile-nav">
       <span></span><span></span><span></span>
@@ -34,6 +34,6 @@ defined( 'ABSPATH' ) || exit;
 <div id="nvx-mobile-nav" class="nvx-mobile-nav" role="dialog" aria-modal="true" aria-hidden="true">
   <button class="nvx-mobile-nav__close" id="nvx-mobile-close" aria-label="Cerrar menú">&times;</button>
   <?php wp_nav_menu(['theme_location'=>'primary','menu_class'=>'nvx-mobile-nav__list','container'=>false,'fallback_cb'=>false]); ?>
-  <a href="<?php echo esc_url(home_url('/contacto/')); ?>" class="nvx-btn nvx-btn--primary"><?php esc_html_e('RESERVAR CITA','nuvanx-editorial-v2'); ?></a>
+  <a href="<?php echo esc_url( home_url( '/contacto/' ) ); ?>" class="nvx-btn nvx-btn--primary"><?php esc_html_e( 'RESERVAR CITA', 'nuvanx-medical' ); ?></a>
 </div>
 <main id="nvx-main" class="nvx-main" tabindex="-1">

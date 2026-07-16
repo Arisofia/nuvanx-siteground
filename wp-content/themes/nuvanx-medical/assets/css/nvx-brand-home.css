@@ -194,7 +194,7 @@ body.home #nvx-home-main.nvx-home .nvx-home-organic-wave svg {
   }
 }
 
-/* Clínicas home: recortes orgánicos + leve asimetría (stack global media + override) */
+/* Clinicas home: recortes organicos + leve asimetria (stack global media + override) */
 body.home .nvx-home-clinica-panorama__media {
   border-radius: var(--nvx-organic-b, 62% 38% 55% 45% / 48% 42% 58% 52%);
   transform: rotate(var(--nvx-media-tilt, -1.25deg));

@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'NVX_THEME_VERSION', '1.9.4-single-design-video-only-home' );
+define( 'NVX_THEME_VERSION', '1.9.5-cleanup' );
 
 function nvx_theme_setup() {
     add_theme_support( 'title-tag' );
@@ -54,7 +54,7 @@ function nvx_primary_menu_fallback( $args = array() ) {
 /**
  * Tipografías del sistema: CSS local con @font-face (latin).
  * No usar la hoja externa de fonts.googleapis.com: SiteGround Optimizer /
- * Complianz la eliminan o la reducen a un solo face (p.ej. solo Pinyon),
+ * Complianz la eliminan o la reducen a un solo face,
  * y el sitio cae a Times/Arial sin Bodoni/Manrope.
  */
 function nvx_theme_fonts() {
@@ -730,25 +730,9 @@ function nvx_theme_apply_editorial_flows( string $content ): string {
 add_filter( 'the_content', 'nvx_theme_normalize_content_markup', 12 );
 
 /**
- * Bloques: no reintroducir embeds de estilo en render_block.
- */
-function nvx_theme_strip_block_embeds( string $block_content, array $block ): string {
-	if ( is_admin() || '' === $block_content ) {
-		return $block_content;
-	}
-	// Aplanar columnas a nivel de bloque también.
-	if ( isset( $block['blockName'] ) && 'core/columns' === $block['blockName'] ) {
-		// Dejar solo el HTML de las columnas hijas ya aplanado por the_content; aquí quitamos wrapper flex.
-		$block_content = preg_replace( '/\bwp-block-columns\b/', 'nvx-content-stack', $block_content );
-		$block_content = preg_replace( '/\bwp-block-column\b/', 'nvx-content-block', $block_content );
-	}
-	return $block_content;
-}
-add_filter( 'render_block', 'nvx_theme_strip_block_embeds', 10, 2 );
-
-/**
  * Strict HTML Control: Disable classic WordPress auto-paragraph filters.
  * Ensures custom block structures and flex/grid layouts do not get injected with empty <p> tags.
+ * Columnas Gutenberg se aplanan en nvx_theme_normalize_content_markup().
  */
 remove_filter( 'the_content', 'wpautop' );
 remove_filter( 'the_excerpt', 'wpautop' );

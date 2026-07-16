@@ -64,11 +64,3 @@ ol {
 figure {
   margin: 0;
 }
-
-/* Duraciones / z-index de chrome (tipografía SOLO en nvx-tokens) */
-:root {
-  --nvx-duration-fast: 150ms;
-  --nvx-duration-base: 250ms;
-  --nvx-z-header: 1000;
-  --nvx-z-modal: 1100;
-}

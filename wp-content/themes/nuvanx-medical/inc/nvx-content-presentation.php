@@ -369,12 +369,13 @@ function nvx_content_replace_method_sections( string $content ): string {
 }
 
 /**
- * GEO densification for Endolift / EXION cards sitewide.
+ * Treatment card blurbs sitewide — clinical + cite-able starting price for Endolift.
  */
 function nvx_content_enrich_treatment_cards( string $content ): string {
-	$endolift_new = 'Tensado progresivo del óvalo facial, mandíbula y papada mediante el uso de microfibras ópticas estériles monouso de entre 200 y 300 micras introducidas bajo la piel para retraer el tejido conectivo (SMAS) y eliminar la grasa submentoniana de forma selectiva. Técnica mínimamente invasiva, siempre tras valoración médica.';
+	$price_from   = defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ? NVX_ENDOLIFT_PRICE_FROM_EUR : '1460';
+	$endolift_new = 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica tras valoración. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. Tarifa de referencia desde ' . $price_from . ' €; presupuesto definitivo en consulta.';
 
-	$exion_new = 'Plataforma médica con aplicadores Fractional RF, Face y Body (radiofrecuencia y ultrasonido según protocolo). La respuesta es individual; no se prometen magnitudes fijas de mejora ni se sustituye la valoración médica ni los rellenos cuando estén indicados.';
+	$exion_new = 'Plataforma con aplicadores Fractional RF, Face y Body. La elección y el número de sesiones dependen del diagnóstico; no sustituye rellenos ni valoración médica.';
 
 	// Any brand-card titled Endolift® Facial…
 	$content = preg_replace(
@@ -434,11 +435,11 @@ function nvx_content_enhance_director_blocks( string $content ): string {
 }
 
 /**
- * FAQ: EXION vs Morpheus8 — superiority framing, any page.
+ * FAQ: EXION vs Morpheus8 — clinical comparison (long-tail GEO), not brand superiority ads.
  */
 function nvx_content_rewrite_morpheus_faq( string $content ): string {
-	$answer  = '<p>' . esc_html__( 'Sí, y representa una evolución en tratamientos de radiofrecuencia fraccionada con microagujas. Mientras que otros sistemas tradicionales pueden resultar altamente dolorosos, EXION® incorpora una tecnología de control térmico inteligente que optimiza la entrega de energía en la dermis profunda de forma cómoda y controlada.', 'nuvanx-medical' ) . '</p>';
-	$answer .= '<p>' . esc_html__( 'Esto nos permite maximizar el tensado de la piel, la producción de colágeno y la remodelación tisular con un nivel de molestia mínimo y sin tiempo de baja.', 'nuvanx-medical' ) . '</p>';
+	$answer  = '<p>' . esc_html__( 'Puede ser una alternativa en radiofrecuencia fraccionada con microagujas según el caso. EXION® controla la entrega de energía en dermis profunda; la comodidad y el downtime dependen del protocolo y de la tolerancia individual, no de un ranking comercial entre marcas.', 'nuvanx-medical' ) . '</p>';
+	$answer .= '<p>' . esc_html__( 'La indicación se decide en valoración médica: objetivo (textura, flacidez, calidad cutánea), calidad de piel y recuperación esperada.', 'nuvanx-medical' ) . '</p>';
 	$answer .= '<p><a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/exion-btl/' ) ) . '">' . esc_html__( 'Ver EXION® Fractional RF', 'nuvanx-medical' ) . '</a></p>';
 
 	$updated = preg_replace(
@@ -628,6 +629,27 @@ function nvx_content_normalize_body_media( string $content ): string {
 }
 
 /**
+ * Strip duplicate fachada section if a hero media already exists.
+ *
+ * @param string $content HTML.
+ * @return string
+ */
+function nvx_content_strip_duplicate_fachada( string $content ): string {
+	if ( ! preg_match( '/nvx-(?:brand|page|editorial)-hero__media/i', $content ) ) {
+		return $content;
+	}
+
+	$updated = preg_replace(
+		'/\s*<section\b[^>]*\bnvx-brand-section--fachada\b[^>]*>[\s\S]*?<\/section>/iu',
+		'',
+		$content,
+		1
+	);
+
+	return is_string( $updated ) ? $updated : $content;
+}
+
+/**
  * Global content presentation pipeline (all singular + front content).
  *
  * @param string $content HTML.
@@ -651,6 +673,7 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_enhance_director_blocks( $content );
 	$content = nvx_content_rewrite_morpheus_faq( $content );
 	$content = nvx_content_unify_ctas( $content );
+	$content = nvx_content_strip_duplicate_fachada( $content );
 
 	return $content;
 }

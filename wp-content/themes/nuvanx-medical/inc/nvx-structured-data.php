@@ -2,9 +2,13 @@
 /**
  * NUVANX structured data extensions for Yoast SEO.
  *
- * Keeps the organization, clinic locations and visible FAQ content in one
- * Yoast @graph. No standalone JSON-LD block is printed, preventing duplicate
- * Organization entities.
+ * Competitive GEO/SEO entity graph: MedicalOrganization + MedicalClinic branches,
+ * Physician (E-E-A-T), MedicalProcedure/Service with offers where priced, FAQPage
+ * mirroring visible HTML. All via Yoast `wpseo_schema_graph` only — never a second
+ * schema.org ld+json in post content.
+ *
+ * Positioning: transparent laser authority (cite-able prices + clinical entities),
+ * not franchise discount spam and not empty "request a quote" opacity.
  *
  * @package NUVANX
  */
@@ -12,6 +16,14 @@
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/nvx-jsonld-content.php';
+
+/**
+ * Reference starting price for Endolift® (EUR), aligned with public Doctoralia listing.
+ * Update here when commercial tariffs change — visible copy + schema Offer share this.
+ */
+if ( ! defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ) {
+	define( 'NVX_ENDOLIFT_PRICE_FROM_EUR', '1460' );
+}
 
 /**
  * Canonical page map for schema entities.
@@ -43,18 +55,28 @@ function nvx_schema_page_registry() {
 			'path' => '/clinicas-de-medicina-estetica-nuvanx/',
 		),
 		'treatments' => array(
-			'endolift_facial' => array(
+			'endolift_facial'    => array(
 				'id'     => 1241,
 				'path'   => '/endolift-facial-papada-mandibula/',
 				'schema' => 'MedicalProcedure',
 			),
-			'exion_btl'       => array(
+			// Path is authoritative when post ID moves between environments.
+			'endolaser_corporal' => array(
+				'id'     => 0,
+				'path'   => '/endolaser-corporal-grasa-localizada/',
+				'schema' => 'MedicalProcedure',
+			),
+			'laser_co2'          => array(
+				'id'     => 0,
+				'path'   => '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
+				'schema' => 'MedicalProcedure',
+			),
+			'exion_btl'          => array(
 				'id'     => 2906,
 				'path'   => '/exion-btl/',
 				'schema' => 'Service',
 			),
-			// Path is authoritative when post ID moves between environments.
-			'exilite_btl'     => array(
+			'exilite_btl'        => array(
 				'id'     => 0,
 				'path'   => '/btl-exilite-ipl-madrid/',
 				'schema' => 'Service',
@@ -363,42 +385,55 @@ function nvx_schema_find_organization( $graph ) {
 }
 
 /**
- * FAQ copy keyed by treatment registry keys (must mirror visible page content).
+ * FAQ copy keyed by treatment registry keys.
+ * Must mirror visible page FAQs (HTML + FAQPage). Answers transactional questions
+ * that generative engines cite (precio, duración, recuperación, límites).
  *
  * @return array<string, array<int, array{q:string,a:string}>>
  */
 function nvx_schema_faq_catalog() {
+	$endolift_from = NVX_ENDOLIFT_PRICE_FROM_EUR;
+
 	return array(
+		// Keep in sync with nvx_endolift_page FAQs.
 		'endolift_facial' => array(
 			array(
-				'q' => '¿Endolift® es para cualquier papada?',
-				'a' => 'No. Primero debe valorarse si predomina grasa, flacidez o exceso de piel. Esa diferencia define si Endolift® tiene sentido o si conviene otra opción.',
+				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
+				'a' => 'La tarifa de referencia parte desde ' . $endolift_from . ' € (tercio inferior / papada–mandíbula según plan). El presupuesto definitivo se documenta tras valoración anatómica presencial e incluye honorarios, fibra monouso y revisiones protocolizadas.',
 			),
 			array(
-				'q' => '¿El resultado se ve enseguida?',
-				'a' => 'Puede haber cambios iniciales, pero la evolución principal suele ser progresiva. El equipo médico explica el ritmo esperable según cada caso.',
+				'q' => '¿Endolift® es para cualquier papada o flacidez?',
+				'a' => 'No. Está indicado en flacidez leve–moderada y grasa submentoniana seleccionada. La ptosis severa con exceso cutáneo suele requerir cirugía plástica; en ese caso se deriva, no se fuerza el láser.',
 			),
 			array(
-				'q' => '¿Requiere baja?',
-				'a' => 'Habitualmente permite retomar vida cotidiana con cuidados, aunque puede haber inflamación o sensibilidad temporal.',
+				'q' => '¿Cuánto duran los resultados del Endolift®?',
+				'a' => 'Al inducir colágeno profundo, los efectos no se comportan como un relleno temporal. La firmeza suele sostenerse entre 18 meses y 3 años según envejecimiento individual, sol, tabaquismo y genética. El seguimiento médico personaliza expectativas.',
 			),
 			array(
-				'q' => '¿Puede combinarse con otros tratamientos?',
-				'a' => 'Sí, cuando hay una secuencia lógica. Puede combinarse con medicina estética, EXION® BTL o cuidado de piel según evolución.',
+				'q' => '¿El Endolift® sustituye al ácido hialurónico?',
+				'a' => 'No. Actúan en planos complementarios: Endolift® tensa piel y tejido conectivo y puede reducir grasa localizada; los rellenos o inductores aportan soporte volumétrico. Criterio habitual: tensar primero y rellenar después solo si está indicado.',
+			),
+			array(
+				'q' => '¿Cómo es la recuperación y el dolor?',
+				'a' => 'Procedimiento con anestesia local, ambulatorio. Los primeros 3–5 días son habituales edema, tirantez y posibles hematomas. No suele ser incapacitante; conviene una baja social moderada la primera semana.',
 			),
 		),
 		'exion_btl'       => array(
 			array(
 				'q' => '¿EXION® sustituye al Láser CO₂?',
-				'a' => 'No. EXION® y Láser CO₂ tienen indicaciones distintas. EXION® puede trabajar radiofrecuencia fraccionada, calidad de piel y protocolos corporales; el Láser CO₂ fraccionado se orienta a renovación cutánea mediante láser ablativo fraccionado.',
+				'a' => 'No. Tienen indicaciones distintas: EXION® trabaja radiofrecuencia (y ultrasonido según aplicador); el CO₂ fraccionado es ablativo y se orienta a textura y cicatrices según protocolo.',
 			),
 			array(
 				'q' => '¿Qué diferencia hay entre EXION® Fractional RF, Face y Body?',
-				'a' => 'Fractional RF se orienta a textura y renovación; Face a hidratación y calidad de piel; Body a firmeza corporal, textura y adiposidad localizada resistente. La elección depende del diagnóstico.',
+				'a' => 'Fractional RF se orienta a textura y renovación; Face a calidad e hidratación cutánea; Body a firmeza y contorno localizado. La elección depende del diagnóstico.',
+			),
+			array(
+				'q' => '¿EXION® es una alternativa a Morpheus8?',
+				'a' => 'Puede serlo en radiofrecuencia fraccionada con microagujas según el caso. La comodidad, la profundidad y el downtime dependen del protocolo y de la tolerancia individual, no de un ranking comercial entre marcas.',
 			),
 			array(
 				'q' => '¿Cuántas sesiones necesito?',
-				'a' => 'Depende de la zona, el aplicador, la calidad del tejido y el objetivo clínico. En consulta médica personalizada se define si EXION® tiene sentido y cuántas sesiones serían razonables.',
+				'a' => 'Depende de la zona, el aplicador, el tejido y el objetivo. Se define tras valoración médica; no hay un número comercial fijo.',
 			),
 		),
 	);
@@ -454,21 +489,99 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 	}
 
 	$permalink = get_permalink( $page_id );
+	$price_from = NVX_ENDOLIFT_PRICE_FROM_EUR;
 
+	// Entity nodes cite-able by LLMs: procedure + indications + starting offer when known.
 	if ( 'endolift_facial' === $key ) {
 		return array(
-			'@type'            => 'MedicalProcedure',
+			'@type'            => array( 'MedicalProcedure', 'Service' ),
 			'@id'              => $permalink . '#medical-procedure',
 			'name'             => 'Endolift® facial para papada y línea mandibular',
-			'alternateName'    => array( 'Endolift® facial', 'Láser endodérmico facial' ),
+			'alternateName'    => array( 'Endolift® facial', 'Láser intersticial facial', 'Tensado subdérmico láser' ),
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
-			'owner'            => array( '@id' => $organization_id ),
-			'description'      => 'Procedimiento médico con fibra láser fina bajo la piel, indicado tras valoración para mejorar firmeza, papada y definición del contorno facial en casos seleccionados.',
-			'bodyLocation'     => 'Papada, línea mandibular, cuello y óvalo facial',
-			'preparation'      => 'Valoración médica previa de anatomía, calidad de piel, antecedentes y expectativas.',
-			'howPerformed'     => 'El equipo médico trabaja bajo la piel mediante una fibra láser fina y adapta los parámetros a la zona y al tejido.',
-			'followup'         => 'Seguimiento clínico y evolución fotográfica; puede existir inflamación o sensibilidad temporal.',
+			'provider'         => array( '@id' => $organization_id ),
+			'description'      => 'Procedimiento médico mínimamente invasivo con microfibra láser subdérmica para lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello, indicado solo tras valoración anatómica.',
+			'bodyLocation'     => array( 'Papada', 'Línea mandibular', 'Cuello', 'Óvalo facial' ),
+			'procedureType'    => 'https://schema.org/MinimallyInvasiveProcedure',
+			'preparation'      => 'Valoración médica presencial de anatomía, calidad de piel, grasa submentoniana, ptosis y expectativas. Exclusión de ptosis severa con exceso cutáneo que requiera cirugía.',
+			'howPerformed'     => 'Tras anestesia local se inserta microfibra óptica de 200–300 micras y se aplica energía láser intersticial en patrón vectorial subdérmico adaptado a la zona.',
+			'followup'         => 'Seguimiento clínico protocolizado (típicamente semanas 4 y 8 y control posterior). Puede haber edema e inflamación los primeros días.',
+			'indication'       => array(
+				array(
+					'@type' => 'MedicalIndication',
+					'name'  => 'Flacidez facial leve a moderada',
+				),
+				array(
+					'@type' => 'MedicalIndication',
+					'name'  => 'Adiposidad submentoniana (papada) seleccionada',
+				),
+			),
+			'offers'           => array(
+				'@type'         => 'Offer',
+				'@id'           => $permalink . '#offer',
+				'url'           => $permalink,
+				'priceCurrency' => 'EUR',
+				'price'         => $price_from,
+				'priceSpecification' => array(
+					'@type'                 => 'PriceSpecification',
+					'priceCurrency'         => 'EUR',
+					'price'                 => $price_from,
+					'name'                  => 'Tarifa de referencia desde (valoración confirma presupuesto)',
+					'valueAddedTaxIncluded' => true,
+				),
+				'description'   => 'Precio de referencia desde ' . $price_from . ' €. Presupuesto cerrado tras valoración médica presencial.',
+				'areaServed'    => 'Madrid',
+				'seller'        => array( '@id' => $organization_id ),
+			),
+		);
+	}
+
+	if ( 'endolaser_corporal' === $key ) {
+		return array(
+			'@type'            => array( 'MedicalProcedure', 'Service' ),
+			'@id'              => $permalink . '#medical-procedure',
+			'name'             => 'Endoláser corporal — lipólisis láser y retracción cutánea',
+			'url'              => $permalink,
+			'mainEntityOfPage' => array( '@id' => $permalink ),
+			'provider'         => array( '@id' => $organization_id ),
+			'description'      => 'Laserlipólisis médica intervencionista para grasa localizada con retracción térmica asociada, planificada por zonas tras valoración. No es un tratamiento de obesidad ni de pérdida masiva de peso.',
+			'bodyLocation'     => array( 'Abdomen', 'Flancos', 'Muslos', 'Brazos', 'Región submandibular' ),
+			'preparation'      => 'Valoración de peso estable, grasa localizada y flacidez. Derivación si el exceso cutáneo exige cirugía excisional.',
+			'howPerformed'     => 'Bajo anestesia local se introduce fibra láser en tejido subcutáneo para lipólisis y estímulo de retracción dérmica en la zona planificada.',
+			'followup'         => 'Cuidados post-procedimiento y revisiones según protocolo médico.',
+			'indication'       => array(
+				array(
+					'@type' => 'MedicalIndication',
+					'name'  => 'Adiposidad localizada resistente',
+				),
+			),
+		);
+	}
+
+	if ( 'laser_co2' === $key ) {
+		return array(
+			'@type'            => array( 'MedicalProcedure', 'Service' ),
+			'@id'              => $permalink . '#medical-procedure',
+			'name'             => 'Láser CO₂ fraccionado — resurfacing y cicatrices',
+			'url'              => $permalink,
+			'mainEntityOfPage' => array( '@id' => $permalink ),
+			'provider'         => array( '@id' => $organization_id ),
+			'description'      => 'Resurfacing ablativo fraccionado para cicatrices atróficas, poros y fotodaño según profundidad y fototipo. Exige planificación médica y downtime variable (habitualmente varios días de eritema y descamación).',
+			'bodyLocation'     => 'Piel facial y zonas cutáneas seleccionadas',
+			'preparation'      => 'Evaluación de fototipo, inflamación, bronceado, medicación y objetivo (cicatriz, textura, fotodaño).',
+			'howPerformed'     => 'Microcolumnas de vaporización térmica fraccionada con tejido sano peri-lesional que acelera la regeneración.',
+			'followup'         => 'Cuidados de regeneración cutánea y protección solar; remodelación colagénica en semanas siguientes.',
+			'indication'       => array(
+				array(
+					'@type' => 'MedicalIndication',
+					'name'  => 'Cicatrices atróficas de acné',
+				),
+				array(
+					'@type' => 'MedicalIndication',
+					'name'  => 'Fotodaño y textura irregular',
+				),
+			),
 		);
 	}
 
@@ -481,7 +594,7 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
 			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Plataforma médica con aplicadores Fractional RF, Face y Body para protocolos personalizados de textura, calidad de piel, firmeza y tratamiento corporal según diagnóstico.',
+			'description'      => 'Plataforma médica con aplicadores Fractional RF, Face y Body para textura, calidad de piel y contorno según diagnóstico. Alternativa de radiofrecuencia a sistemas con microagujas cuando la valoración lo indica.',
 			'areaServed'       => 'Madrid',
 		);
 	}
@@ -495,13 +608,142 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
 			'provider'         => array( '@id' => $organization_id ),
-			// Conservative description aligned with visible page intro (no numeric efficacy claims).
-			'description'      => 'Plataforma médica de luz pulsada intensa (IPL) para valoración de manchas, rojeces, alteraciones pigmentarias y lesiones vasculares superficiales según diagnóstico médico.',
+			'description'      => 'Luz pulsada intensa (IPL) para manchas, rojeces y lesiones pigmentarias o vasculares superficiales seleccionadas tras diagnóstico. No es un láser.',
 			'areaServed'       => 'Madrid',
 		);
 	}
 
 	return null;
+}
+
+/**
+ * Director médico as Physician (E-E-A-T entity for GEO specialist queries).
+ *
+ * @param string $organization_id Organization @id.
+ * @return array
+ */
+function nvx_schema_physician_director( $organization_id ) {
+	$equipo    = home_url( '/equipo-medico/' );
+	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+
+	return array(
+		'@type'           => array( 'Person', 'Physician' ),
+		'@id'             => home_url( '/equipo-medico/#physician-rivera-tejeda' ),
+		'name'            => 'José Javier Rivera Tejeda',
+		'honorificPrefix' => 'Dr.',
+		'jobTitle'        => 'Director médico · Medicina estética láser',
+		'url'             => $equipo,
+		'worksFor'        => array( '@id' => $organization_id ),
+		'hasCredential'   => array(
+			'@type'              => 'EducationalOccupationalCredential',
+			'credentialCategory' => 'Número de colegiado ICOMEM',
+			'identifier'         => $colegiado,
+			'name'               => 'Colegiado ICOMEM ' . $colegiado,
+		),
+		'alumniOf'        => array(
+			array(
+				'@type' => 'CollegeOrUniversity',
+				'name'  => 'Universidad Complutense de Madrid',
+			),
+		),
+		'knowsAbout'      => array(
+			'Endolift® facial',
+			'Laserlipólisis',
+			'Láser CO₂ fraccionado',
+			'Medicina estética láser',
+			'Marcación mandibular con láser',
+		),
+		'sameAs'          => array(
+			'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid',
+		),
+	);
+}
+
+/**
+ * Service catalog for home graph — cite-able list of protocols (with starting price when known).
+ * No retail InStock spam; offers are informational reference tariffs.
+ *
+ * @param string $organization_id Organization @id.
+ * @return array
+ */
+function nvx_schema_offer_catalog( $organization_id ) {
+	$registry = nvx_schema_page_registry();
+	$items    = array();
+
+	$catalog_defs = array(
+		'endolift_facial'    => array(
+			'label' => 'Endolift® facial',
+			'price' => NVX_ENDOLIFT_PRICE_FROM_EUR,
+		),
+		'endolaser_corporal' => array(
+			'label' => 'Endoláser corporal',
+			'price' => null,
+		),
+		'laser_co2'          => array(
+			'label' => 'Láser CO₂ fraccionado',
+			'price' => null,
+		),
+		'exion_btl'          => array(
+			'label' => 'EXION® BTL',
+			'price' => null,
+		),
+		'exilite_btl'        => array(
+			'label' => 'BTL EXILITE™ IPL',
+			'price' => null,
+		),
+	);
+
+	foreach ( $catalog_defs as $key => $def ) {
+		if ( empty( $registry['treatments'][ $key ]['path'] ) ) {
+			continue;
+		}
+		$url   = home_url( $registry['treatments'][ $key ]['path'] );
+		$offer = array(
+			'@type'       => 'Offer',
+			'itemOffered' => array(
+				'@type' => 'Service',
+				'name'  => $def['label'],
+				'url'   => $url,
+			),
+			'url'         => $url,
+			'areaServed'  => 'Madrid',
+			'seller'      => array( '@id' => $organization_id ),
+		);
+		if ( ! empty( $def['price'] ) ) {
+			$offer['priceCurrency'] = 'EUR';
+			$offer['price']         = (string) $def['price'];
+			$offer['description']   = 'Tarifa de referencia desde ' . $def['price'] . ' € (presupuesto tras valoración).';
+		}
+		$items[] = $offer;
+	}
+
+	return array(
+		'@type'           => 'OfferCatalog',
+		'@id'             => home_url( '/#/schema/offer-catalog' ),
+		'name'            => 'Protocolos médicos láser NUVANX',
+		'itemListElement' => $items,
+		'provider'        => array( '@id' => $organization_id ),
+	);
+}
+
+/**
+ * Whether Physician should appear on this request (home, equipo, treatment).
+ *
+ * @param int $page_id Current page ID.
+ * @return bool
+ */
+function nvx_schema_should_emit_physician( $page_id ) {
+	if ( is_front_page() ) {
+		return true;
+	}
+
+	if ( null !== nvx_schema_resolve_treatment_key( $page_id ) ) {
+		return true;
+	}
+
+	$path = nvx_schema_current_path( $page_id );
+
+	return nvx_schema_path_matches( $path, '/equipo-medico/' );
 }
 
 /**
@@ -534,17 +776,27 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 		array( '@id' => $all_clinics['goya']['@id'] ),
 	);
 
-	$index = $organization['index'];
+	$index     = $organization['index'];
+	$physician = null;
+
+	if ( nvx_schema_should_emit_physician( $page_id ) ) {
+		$physician = nvx_schema_physician_director( $organization['id'] );
+	}
 
 	if ( null !== $index ) {
-		$graph[ $index ]['@type']          = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
-		$graph[ $index ]['name']           = 'NUVANX Medicina Estética Láser';
-		$graph[ $index ]['alternateName']  = array( 'NUVANX', 'NUVANX Madrid' );
-		$graph[ $index ]['description']    = 'Clínicas de medicina estética láser en Madrid con sedes en Chamberí y Goya · Barrio Salamanca, diagnóstico médico, tratamientos faciales y corporales y seguimiento personalizado.';
-		$graph[ $index ]['email']          = 'info@nuvanx.com';
-		$graph[ $index ]['telephone']      = '+34669319836';
-		$graph[ $index ]['address']        = array( $all_clinics['chamberi']['address'], $all_clinics['goya']['address'] );
-		$graph[ $index ]['contactPoint']   = array(
+		// MedicalOrganization is the parent; branch MedicalClinic nodes stay separate.
+		$graph[ $index ]['@type']         = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
+		$graph[ $index ]['name']          = 'NUVANX Medicina Estética Láser';
+		$graph[ $index ]['alternateName'] = array( 'NUVANX', 'NUVANX Madrid', 'NUVANX Medicina Estética Láser Madrid' );
+		$graph[ $index ]['url']           = home_url( '/' );
+		$graph[ $index ]['description']   = 'Centro médico de medicina estética láser en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con valoración clínica, tarifas de referencia publicadas y seguimiento personalizado.';
+		$graph[ $index ]['email']         = 'info@nuvanx.com';
+		$graph[ $index ]['telephone']     = '+34669319836';
+		// Transparent positioning vs quote-only competitors (generative engines need a band).
+		$graph[ $index ]['priceRange']    = '€€€';
+		$graph[ $index ]['isAcceptingNewPatients'] = true;
+		$graph[ $index ]['address']       = array( $all_clinics['chamberi']['address'], $all_clinics['goya']['address'] );
+		$graph[ $index ]['contactPoint']  = array(
 			array(
 				'@type'             => 'ContactPoint',
 				'contactType'       => 'Citas — Chamberí',
@@ -560,10 +812,11 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 				'availableLanguage' => array( 'es', 'en' ),
 			),
 		);
-		$graph[ $index ]['knowsAbout']     = array(
+		$graph[ $index ]['knowsAbout']    = array(
 			'Medicina estética',
 			'Medicina estética láser',
 			'Endolift® facial',
+			'Marcación mandibular con láser',
 			'Endoláser corporal',
 			'Láser CO₂ fraccionado',
 			'EXION® BTL',
@@ -571,29 +824,82 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 			'Thermage FLX®',
 			'Medicina regenerativa',
 		);
+		// Presencial only — no videoconsulta in schema (service not marketed as operational CTA).
+		$graph[ $index ]['potentialAction'] = array(
+			'@type'  => 'ReserveAction',
+			'name'   => 'Reserva de valoración diagnóstica',
+			'target' => array(
+				'@type'          => 'EntryPoint',
+				'urlTemplate'    => home_url( '/madrid/valoracion/' ),
+				'inLanguage'     => 'es',
+				'actionPlatform' => array(
+					'https://schema.org/DesktopWebPlatform',
+					'https://schema.org/MobileWebPlatform',
+				),
+			),
+			'result' => array(
+				'@type' => 'Reservation',
+				'name'  => 'Cita médica presencial',
+			),
+		);
 
-		$existing_same_as               = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
-		$existing_same_as[]             = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
-		$graph[ $index ]['sameAs']      = array_values( array_unique( array_filter( $existing_same_as ) ) );
+		if ( null !== $physician ) {
+			$graph[ $index ]['employee'] = array( '@id' => $physician['@id'] );
+		}
+
+		$existing_same_as          = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
+		$existing_same_as[]        = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
+		$graph[ $index ]['sameAs'] = array_values( array_unique( array_filter( $existing_same_as ) ) );
 	}
 
-	$clinic_keys = nvx_schema_resolve_clinic_keys( $page_id );
-
-	if ( ! empty( $clinic_keys ) && null !== $organization['index'] ) {
+	// Home: both clinics + offer catalog (competitive entity density for local + service discovery).
+	if ( is_front_page() && null !== $organization['index'] ) {
+		$catalog = nvx_schema_offer_catalog( $organization['id'] );
+		$graph[ $organization['index'] ]['hasOfferCatalog'] = array( '@id' => $catalog['@id'] );
 		$graph[ $organization['index'] ]['subOrganization'] = $clinic_ids;
+		$graph[] = $catalog;
 
-		foreach ( $clinic_keys as $key ) {
+		foreach ( array( 'chamberi', 'goya' ) as $key ) {
 			if ( empty( $all_clinics[ $key ] ) ) {
 				continue;
 			}
-			$clinic                         = $all_clinics[ $key ];
-			$clinic['parentOrganization']   = array( '@id' => $organization['id'] );
-			$graph[]                        = $clinic;
+			$clinic                       = $all_clinics[ $key ];
+			$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
+			if ( null !== $physician ) {
+				$clinic['employee'] = array( '@id' => $physician['@id'] );
+			}
+			$graph[] = $clinic;
 		}
+	} else {
+		$clinic_keys = nvx_schema_resolve_clinic_keys( $page_id );
+
+		if ( ! empty( $clinic_keys ) && null !== $organization['index'] ) {
+			$graph[ $organization['index'] ]['subOrganization'] = $clinic_ids;
+
+			foreach ( $clinic_keys as $key ) {
+				if ( empty( $all_clinics[ $key ] ) ) {
+					continue;
+				}
+				$clinic                       = $all_clinics[ $key ];
+				$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
+				if ( null !== $physician ) {
+					$clinic['employee'] = array( '@id' => $physician['@id'] );
+				}
+				$graph[] = $clinic;
+			}
+		}
+	}
+
+	if ( null !== $physician ) {
+		$graph[] = $physician;
 	}
 
 	$treatment = nvx_schema_treatment_node( $page_id, $organization['id'] );
 	if ( null !== $treatment ) {
+		if ( null !== $physician ) {
+			$treatment['performer']  = array( '@id' => $physician['@id'] );
+			$treatment['reviewedBy'] = array( '@id' => $physician['@id'] );
+		}
 		$graph[] = $treatment;
 	}
 
@@ -605,6 +911,64 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 	return $graph;
 }
 add_filter( 'wpseo_schema_graph', 'nvx_extend_yoast_schema_graph', 20, 2 );
+
+/**
+ * Home document title — laser clinic intent (Yoast).
+ *
+ * @param string $title Current title.
+ * @return string
+ */
+function nvx_filter_front_document_title( $title ) {
+	if ( ! is_front_page() ) {
+		return $title;
+	}
+
+	return 'Clínica de Medicina Estética Láser en Madrid | Endolift y Láser Médico | NUVANX';
+}
+add_filter( 'wpseo_title', 'nvx_filter_front_document_title', 20 );
+
+/**
+ * @param string $desc Current meta description.
+ * @return string
+ */
+function nvx_filter_front_metadesc( $desc ) {
+	if ( ! is_front_page() ) {
+		return $desc;
+	}
+
+	return 'NUVANX es el centro médico de medicina estética láser en Madrid (Chamberí y Goya). Protocolos Endolift® desde ' . NVX_ENDOLIFT_PRICE_FROM_EUR . ' €, Láser CO₂ y EXION® BTL con valoración clínica y presupuestos documentados.';
+}
+add_filter( 'wpseo_metadesc', 'nvx_filter_front_metadesc', 20 );
+
+/**
+ * Endolift page title — transactional GEO intent (precio + especialista).
+ *
+ * @param string $title Current title.
+ * @return string
+ */
+function nvx_filter_endolift_document_title( $title ) {
+	if ( 'endolift_facial' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
+		return $title;
+	}
+
+	return 'Endolift® Facial en Madrid: Precio, Técnica y Valoración Médica | NUVANX';
+}
+add_filter( 'wpseo_title', 'nvx_filter_endolift_document_title', 21 );
+
+/**
+ * @param string $desc Meta description.
+ * @return string
+ */
+function nvx_filter_endolift_metadesc( $desc ) {
+	if ( 'endolift_facial' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
+		return $desc;
+	}
+
+	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+
+	return 'Endolift® facial en NUVANX Madrid desde ' . NVX_ENDOLIFT_PRICE_FROM_EUR . ' €: tensado subdérmico con microfibra láser para papada y contorno mandibular en casos seleccionados. Indicaciones, límites y valoración con el Dr. Rivera Tejeda (ICOMEM ' . $colegiado . ').';
+}
+add_filter( 'wpseo_metadesc', 'nvx_filter_endolift_metadesc', 21 );
 
 // Pages / front only: strip Schema.org payloads from post_content (shared helper).
 // Non-schema ld+json and non-page views are left alone. See nvx-jsonld-content.php.

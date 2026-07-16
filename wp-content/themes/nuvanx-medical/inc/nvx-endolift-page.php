@@ -2,7 +2,7 @@
 /**
  * Endolift® facial treatment page — editorial high-authority structure.
  *
- * Wire-frame: Hero → Diagnóstico SMAS → Biofísica 1470 nm → Proceso → FAQ GEO → Action banner.
+ * Wire-frame: Hero → Diagnóstico SMAS → Biofísica 1470 nm → Proceso → FAQ clínica → Action banner.
  * Pattern-based (Endolift markers), not page-ID gated.
  *
  * @package nuvanx-medical
@@ -78,11 +78,13 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html  = '<div class="nvx-brand-hero__copy nvx-endolift-hero-copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html__( 'Endolift® Facial de Alta Precisión en Madrid', 'nuvanx-medical' ) . '</h1>';
+	$price_from = defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ? NVX_ENDOLIFT_PRICE_FROM_EUR : '1460';
+
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Redefinición del arco mandibular y eliminación de grasa submentoniana sin incisiones ni tiempo de inactividad quirúrgica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
-			__( 'Bajo la supervisión del Dr. José Javier Rivera Tejeda (Nº Colegiado ICOMEM %s), empleamos tecnología láser subdérmica de última generación para retraer los tejidos laxos y devolver la definición estructural al perfil facial.', 'nuvanx-medical' ),
+			__( 'Bajo la supervisión del Dr. José Javier Rivera Tejeda (Nº Colegiado ICOMEM %s), empleamos tecnología láser subdérmica para retraer tejidos laxos y devolver definición al perfil facial en casos seleccionados.', 'nuvanx-medical' ),
 			$colegiado
 		)
 	) . '</p>';
@@ -91,7 +93,13 @@ function nvx_endolift_hero_copy_markup(): string {
 		$html .= nvx_cta_pair_markup( 'nvx-endolift-hero-ctas nvx-home-hero-ctas' );
 	}
 
-	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí · Salamanca–Goya · Indicación médica personalizada', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-meta">' . esc_html(
+		sprintf(
+			/* translators: %s: price from */
+			__( 'Desde %s € · Chamberí · Salamanca–Goya · Indicación médica personalizada', 'nuvanx-medical' ),
+			number_format_i18n( (float) $price_from, 0 )
+		)
+	) . '</p>';
 	$html .= '</div>';
 
 	return $html;
@@ -126,7 +134,23 @@ function nvx_endolift_action_ctas_markup(): string {
  * Full editorial body after hero.
  */
 function nvx_endolift_editorial_body_markup(): string {
+	$colegiado  = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+	$price_from = defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ? NVX_ENDOLIFT_PRICE_FROM_EUR : '1460';
+	$equipo_url = home_url( '/equipo-medico/' );
+
 	$html  = '<div class="nvx-endolift-editorial">';
+
+	// Clinical review byline — E-E-A-T (visible + matches schema reviewedBy).
+	$html .= '<p class="nvx-endolift-reviewed">';
+	$html .= esc_html(
+		sprintf(
+			/* translators: %s: medical license number */
+			__( 'Documento clínico revisado por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Última revisión: julio 2026.', 'nuvanx-medical' ),
+			$colegiado
+		)
+	);
+	$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( $equipo_url ) . '">' . esc_html__( 'Ver equipo médico', 'nuvanx-medical' ) . '</a>';
+	$html .= '</p>';
 
 	// B. Diagnóstico — 60/40.
 	$html .= '<section class="nvx-endolift-section nvx-endolift-diagnosis" aria-labelledby="nvx-endolift-diagnosis-title">';
@@ -211,27 +235,53 @@ function nvx_endolift_editorial_body_markup(): string {
 
 	$html .= '</div></div></section>';
 
-	// E. FAQ GEO — alta densidad, solo Endolift (sin EXION).
+	// E. Inversión — GEO transparency (citable price; schema Offer mirrors this).
+	$html .= '<section class="nvx-endolift-section nvx-endolift-investment" aria-labelledby="nvx-endolift-price-title" id="inversion-endolift">';
+	$html .= '<div class="nvx-endolift-section__inner">';
+	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Inversión de referencia', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-endolift-price-title" class="nvx-endolift-heading">' . esc_html__( 'Precio Endolift® facial en NUVANX Madrid', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-endolift-price" data-nvx-price-from="' . esc_attr( $price_from ) . '">';
+	$html .= esc_html(
+		sprintf(
+			/* translators: %s: price in euros */
+			__( 'Desde %s €', 'nuvanx-medical' ),
+			number_format_i18n( (float) $price_from, 0 )
+		)
+	);
+	$html .= '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Tarifa de referencia para el abordaje de tercio inferior / papada–mandíbula según plan. El presupuesto definitivo se documenta tras valoración anatómica presencial.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-endolift-price-includes">';
+	$html .= '<li>' . esc_html__( 'Honorarios médicos de la intervención', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Fibra óptica láser monouso y material fungible', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Revisiones clínicas protocolizadas (semanas 4, 8 y control posterior)', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Orientación farmacológica del postoperatorio', 'nuvanx-medical' ) . '</li>';
+	$html .= '</ul>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure"><em>' . esc_html__( 'Aviso: zonas reducidas o planes combinados pueden ajustar el importe final tras la evaluación médica.', 'nuvanx-medical' ) . '</em></p>';
+	$html .= '</div></section>';
+
+	// F. FAQ — same Q/A as FAQPage schema (nvx_schema_faq_catalog endolift_facial).
 	$html .= '<section class="nvx-endolift-section nvx-endolift-faq" aria-labelledby="nvx-endolift-faq-title">';
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-faq-title" class="nvx-endolift-heading">' . esc_html__( 'Rigor clínico sobre Endolift® Facial', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 id="nvx-endolift-faq-title" class="nvx-endolift-heading">' . esc_html__( 'Precio, indicaciones y recuperación', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq nvx-endolift-faq-list">';
 
-	$faqs = array(
-		array(
-			'q' => __( '¿Es doloroso el tratamiento de Endolift® Facial y qué tipo de anestesia se requiere?', 'nuvanx-medical' ),
-			'a' => __( 'El procedimiento de Endolift® Facial se cataloga como mínimamente invasivo y es altamente tolerable para la mayoría de los pacientes. Para garantizar el máximo confort clínico durante la canalización de la microfibra óptica subdérmica, nuestro equipo médico realiza una infiltración de anestesia local tumescente localizada en los puntos de entrada. El paciente percibe una sensación de calor difuso y una leve presión en la zona tratada, pero no dolor agudo. Este abordaje ambulatorio evita los riesgos y el postoperatorio complejo de una anestesia general o sedación profunda.', 'nuvanx-medical' ),
-		),
-		array(
-			'q' => __( '¿Cuándo se consolidan los resultados del tensado láser y cuánto dura su efecto en el rostro?', 'nuvanx-medical' ),
-			'a' => __( 'El proceso de reestructuración tisular es bifásico. Se observa un efecto tensor mecánico inmediato debido a la contracción de las fibras de colágeno preexistentes durante la sesión. No obstante, el resultado definitivo y de mayor impacto clínico se consolida progresivamente entre el segundo y cuarto mes posterior al tratamiento. Durante este periodo, la cascada inflamatoria controlada activa a los fibroblastos para sintetizar colágeno de tipo I. Los resultados de definición mandibular y reducción de la papada se mantienen estables por un periodo de 18 meses a 3 años, dependiendo de la tasa de envejecimiento biológico del paciente y del mantenimiento dermocosmético indicado.', 'nuvanx-medical' ),
-		),
-		array(
-			'q' => __( '¿Qué cuidados postoperatorios inmediatos exige el Endolift® y qué complicaciones menores pueden aparecer?', 'nuvanx-medical' ),
-			'a' => __( 'Al no existir incisiones quirúrgicas ni suturas, no se requiere un periodo de baja laboral o inactividad social, permitiendo al paciente reincorporarse a sus actividades cotidianas en menos de 24 horas. Es fisiológicamente normal experimentar un edema (inflamación) leve o moderado, eritema (enrojecimiento) y una sensación de hipersensibilidad al tacto en la región submentoniana durante los primeros 3 a 7 días. Recomendamos la aplicación de frío local controlado durante las primeras 48 horas, mantener una higiene suave de la piel tratada y evitar el ejercicio físico extenuante o la exposición a fuentes de calor intenso (como saunas o radiación solar directa) durante las dos semanas posteriores para asegurar una evolución óptima del tejido.', 'nuvanx-medical' ),
-		),
-	);
+	// Prefer shared catalog so HTML and JSON-LD never diverge.
+	$faqs = array();
+	if ( function_exists( 'nvx_schema_faq_catalog' ) ) {
+		$catalog = nvx_schema_faq_catalog();
+		if ( ! empty( $catalog['endolift_facial'] ) ) {
+			$faqs = $catalog['endolift_facial'];
+		}
+	}
+	if ( empty( $faqs ) ) {
+		$faqs = array(
+			array(
+				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
+				'a' => 'La tarifa de referencia parte desde ' . $price_from . ' €. El presupuesto definitivo se documenta tras valoración anatómica presencial.',
+			),
+		);
+	}
 
 	foreach ( $faqs as $faq ) {
 		$html .= '<details class="nvx-brand-faq-item">';
@@ -242,13 +292,13 @@ function nvx_endolift_editorial_body_markup(): string {
 
 	$html .= '</div></div></section>';
 
-	// F. Action banner — valoración + sedes (no videoconsulta).
+	// G. Action banner — valoración + sedes (no videoconsulta).
 	$html .= '<section class="nvx-endolift-action" aria-label="' . esc_attr__( 'Reservar valoración Endolift', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-endolift-action__inner">';
 	$html .= '<div>';
 	$html .= '<p class="nvx-endolift-action__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-endolift-action__title">' . esc_html__( '¿Es Endolift® el protocolo adecuado para tu mandíbula y papada?', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-action__text">' . esc_html__( 'Reserva una valoración médica presencial. Confirmamos indicación, expectativas y plan de tratamiento antes de cualquier procedimiento.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-action__text">' . esc_html__( 'Reserva una valoración médica presencial. Confirmamos indicación, expectativas y presupuesto documentado antes de cualquier procedimiento.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 	$html .= nvx_endolift_action_ctas_markup();
 	$html .= '</div></section>';

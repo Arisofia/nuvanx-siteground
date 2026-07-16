@@ -86,7 +86,7 @@
 .nvx-value__body{max-width:var(--nvx-measure);margin:0;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 
 /* FAQ accordion — quiet luxury (native details/summary)
-   Covers canonical .nvx-faq and live legacy .nvx-brand-faq-* markup. */
+   Covers canonical .nvx-faq and live .nvx-brand-faq-* markup. */
 .nvx-faq,
 .nvx-brand-faq-accordion,
 .nvx-home-faq-editorial {

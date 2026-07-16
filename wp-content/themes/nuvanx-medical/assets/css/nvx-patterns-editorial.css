@@ -1219,7 +1219,15 @@ article.nvx-page > .nvx-page-hero {
 
 /* Equipo page structure — aligned profiles + staff */
 .nvx-equipo-editorial {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Text-only hero when featured image is logo / missing */
+.nvx-equipo-hero--copy-only .nvx-brand-hero__inner {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: var(--nvx-measure-wide, 72rem);
 }
 
 .nvx-equipo-editorial > .nvx-equipo-director,
@@ -1227,9 +1235,22 @@ article.nvx-page > .nvx-page-hero {
   border-bottom: 1px solid var(--nvx-color-line, #e5e5e5);
 }
 
+/* Stack authority sections with consistent vertical rhythm */
+.nvx-equipo-director,
+.nvx-equipo-ivon {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.nvx-equipo-director > .nvx-endolift-section,
+.nvx-equipo-ivon > .nvx-endolift-section {
+  padding-block: clamp(28px, 4vw, 48px);
+}
+
 .nvx-equipo-profile-layout {
   display: grid;
-  grid-template-columns: minmax(11rem, 15rem) minmax(0, 1fr);
+  grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
   gap: clamp(24px, 4vw, 48px);
   align-items: start;
 }
@@ -1237,39 +1258,65 @@ article.nvx-page > .nvx-page-hero {
 .nvx-equipo-profile-layout__copy {
   min-width: 0;
   max-width: 68ch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-2, 0.75rem);
+}
+
+.nvx-equipo-profile-layout__copy .nvx-endolift-kicker {
+  margin-bottom: 0;
 }
 
 .nvx-equipo-profile-layout__copy .nvx-endolift-heading {
   max-width: 28ch;
+  margin-bottom: 0;
 }
 
-.nvx-equipo-portrait {
+.nvx-equipo-profile-layout__copy .nvx-endolift-body {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Portrait frame — win over .nvx-content-figure body media rules */
+.nvx-equipo-portrait,
+figure.nvx-equipo-portrait,
+.nvx-equipo-portrait.nvx-content-figure {
+  display: block;
   margin: 0;
+  margin-block: 0;
+  margin-inline: 0;
   width: 100%;
-  max-width: 15rem;
+  max-width: 16rem;
   aspect-ratio: 5 / 6;
   overflow: hidden;
   border-radius: var(--nvx-radius-card, 12px);
   background: var(--nvx-pearl, #f6f7f8);
   box-shadow: var(--nvx-shadow-min, 0 1px 2px rgba(0, 0, 0, 0.04));
+  justify-self: start;
 }
 
 .nvx-equipo-portrait img,
-.nvx-equipo-portrait .nvx-media--doctor {
+.nvx-equipo-portrait .nvx-media--doctor,
+.nvx-equipo-portrait.nvx-content-figure img {
   display: block;
   width: 100%;
   height: 100%;
   max-height: none;
-  aspect-ratio: 5 / 6;
+  max-width: none;
+  aspect-ratio: auto;
   object-fit: cover;
   object-position: center top;
   border-radius: 0;
 }
 
 /* Staff grid: equal cards, portrait frames, no span-4 leak from team class */
+.nvx-equipo-staff {
+  padding-block: clamp(32px, 5vw, 56px);
+}
+
 .nvx-equipo-staff-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr));
   gap: clamp(20px, 3vw, 32px);
   margin-top: var(--nvx-space-4, 32px);
   align-items: stretch;
@@ -1283,12 +1330,17 @@ article.nvx-page > .nvx-page-hero {
   height: 100%;
   min-width: 0;
   margin: 0;
+  gap: var(--nvx-space-2, 0.75rem);
 }
 
 .nvx-equipo-staff-grid .nvx-brand-card__media,
-.nvx-equipo-staff-grid .nvx-brand-card__media--portrait {
+.nvx-equipo-staff-grid .nvx-brand-card__media--portrait,
+.nvx-equipo-staff-grid figure.nvx-brand-card__media.nvx-content-figure {
+  display: block;
   margin: calc(-1 * var(--nvx-pad-card, 1.25rem)) calc(-1 * var(--nvx-pad-card, 1.25rem)) var(--nvx-space-3, 1rem);
+  margin-block: calc(-1 * var(--nvx-pad-card, 1.25rem)) var(--nvx-space-3, 1rem);
   width: auto;
+  max-width: none;
   aspect-ratio: 5 / 6;
   max-height: none;
   overflow: hidden;
@@ -1298,24 +1350,36 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-equipo-staff-grid .nvx-brand-card__media img,
 .nvx-equipo-staff-grid .nvx-brand-card__media--portrait img,
-.nvx-equipo-staff-grid img.nvx-media--doctor {
+.nvx-equipo-staff-grid img.nvx-media--doctor,
+.nvx-equipo-staff-grid .nvx-content-figure img {
   display: block;
   width: 100%;
   height: 100%;
   max-height: none;
-  aspect-ratio: 5 / 6;
+  max-width: none;
+  aspect-ratio: auto;
   object-fit: cover;
   object-position: center top;
   border-radius: 0;
 }
 
-.nvx-equipo-staff-grid .nvx-brand-card__title,
-.nvx-equipo-staff-grid .nvx-brand-card__body {
+.nvx-equipo-staff-grid .nvx-brand-card__kicker {
+  margin: 0;
+}
+
+.nvx-equipo-staff-grid .nvx-brand-card__title {
+  margin: 0;
   text-align: left;
 }
 
 .nvx-equipo-staff-grid .nvx-brand-card__body {
   flex: 1 1 auto;
+  margin: 0;
+  text-align: left;
+}
+
+.nvx-equipo-staff-grid .nvx-brand-card__body + .nvx-brand-card__body {
+  margin-top: 0;
 }
 
 @media (max-width: 720px) {
@@ -1324,8 +1388,22 @@ article.nvx-page > .nvx-page-hero {
     justify-items: start;
   }
 
-  .nvx-equipo-portrait {
-    max-width: 12rem;
+  .nvx-equipo-portrait,
+  figure.nvx-equipo-portrait {
+    max-width: 12.5rem;
+  }
+}
+
+@media (min-width: 960px) {
+  /* 4 equal clinician cards on desktop when staff size is 4 */
+  .nvx-equipo-staff-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 721px) and (max-width: 959px) {
+  .nvx-equipo-staff-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

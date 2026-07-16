@@ -107,20 +107,58 @@ function nvx_equipo_action_ctas_markup(): string {
 }
 
 /**
+ * Whether media HTML is a logo / non-portrait asset (never use as staff/hero photo).
+ */
+function nvx_equipo_media_is_logo( string $html ): bool {
+	return (bool) preg_match(
+		'/logo-nuvanx|nuvanx-web\.webp|\/logo[-_]|nvx-logo|site-logo|custom-logo/iu',
+		$html
+	);
+}
+
+/**
  * Normalize a portrait snippet to a single clean <img> (doctor crop).
  *
  * @param string $media Figure or img HTML from CMS.
  * @return string Safe img markup or empty.
  */
 function nvx_equipo_clean_portrait_img( string $media ): string {
-	if ( '' === trim( $media ) || ! preg_match( '/<img\b([^>]*)>/iu', $media, $m ) ) {
+	if ( '' === trim( $media ) || nvx_equipo_media_is_logo( $media ) ) {
+		return '';
+	}
+
+	// Prefer real <img> over noscript twin / decorative placeholders.
+	if ( ! preg_match( '/<img\b([^>]*)>/iu', $media, $m ) ) {
 		return '';
 	}
 
 	$attrs = $m[1];
+
+	// Lazyload placeholder: promote data-src / data-lazy-src to real src.
+	if ( preg_match( '/\ssrc=["\']data:image\//i', $attrs ) || preg_match( '/\ssrc=["\']["\']/i', $attrs ) ) {
+		if ( preg_match( '/\sdata-(?:src|lazy-src|original)=["\']([^"\']+)["\']/i', $attrs, $ds ) ) {
+			$real = esc_url( $ds[1] );
+			if ( '' !== $real ) {
+				if ( preg_match( '/\ssrc=/i', $attrs ) ) {
+					$attrs = preg_replace( '/\ssrc=["\'][^"\']*["\']/i', ' src="' . $real . '"', $attrs, 1 ) ?? $attrs;
+				} else {
+					$attrs .= ' src="' . $real . '"';
+				}
+			}
+		}
+	}
+
+	// Drop inline size/style that fights portrait crop; strip body role.
 	$attrs = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
 	$attrs = preg_replace( '/\s+(?:width|height)=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
 	$attrs = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $attrs ) ?? $attrs;
+	// Re-emit loading/decoding once (CMS + cleaners often duplicate).
+	$attrs = preg_replace( '/\s+loading=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+	$attrs = preg_replace( '/\s+decoding=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+	// Drop leftover placeholder-only srcset noise when src is real file.
+	if ( preg_match( '/\ssrc=["\']https?:\/\//i', $attrs ) ) {
+		// Keep srcset/sizes when present for responsive; strip only data-src twins later.
+	}
 
 	if ( function_exists( 'nvx_html_attrs_add_class' ) ) {
 		$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
@@ -129,8 +167,42 @@ function nvx_equipo_clean_portrait_img( string $media ): string {
 		$attrs .= ' class="nvx-media nvx-media--doctor"';
 	}
 
-	// Prefer high-res src if srcset present but leave srcset intact for responsive.
 	return '<img' . $attrs . ' loading="lazy" decoding="async">';
+}
+
+/**
+ * Whether a CMS card is a real clinician (photo + person name), not sedes/reseñas/listas.
+ */
+function nvx_equipo_is_person_staff_card( string $card ): bool {
+	if ( ! preg_match( '/<img\b/i', $card ) ) {
+		return false;
+	}
+	if ( nvx_equipo_media_is_logo( $card ) ) {
+		return false;
+	}
+
+	// Prefer cards with a named title (person).
+	if ( preg_match( '/nvx-brand-card__title[^>]*>([\s\S]*?)<\//iu', $card, $tm ) ) {
+		$title = trim( wp_strip_all_tags( $tm[1] ) );
+		if ( '' === $title ) {
+			return false;
+		}
+		// Titles that are places, proof widgets, or section headers — not people.
+		if ( preg_match(
+			'/^(Chamber[ií]|Goya\b|Especialidades|NUVANX Medicina|NUVANX en Doctoralia|Reseñas)/iu',
+			$title
+		) ) {
+			return false;
+		}
+		return true;
+	}
+
+	// No title: drop review/list chrome; keep only cards with portrait media.
+	if ( preg_match( '/NUVANX en Doctoralia|Reseñas públicas|Especialidades y tecnolog/iu', $card ) ) {
+		return false;
+	}
+
+	return (bool) preg_match( '/nvx-brand-card__media/i', $card );
 }
 
 /**
@@ -197,7 +269,10 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 			// Long-form authority replaces short card for Dra. Ivon.
 			continue;
 		}
-		$other_cards[] = $card;
+		// Only real clinician cards — drop sedes, reseñas, listas, chrome vacío.
+		if ( nvx_equipo_is_person_staff_card( $card ) ) {
+			$other_cards[] = $card;
+		}
 	}
 
 	return array(
@@ -208,11 +283,6 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 }
 
 /**
- * Markup for remaining clinical team (CMS cards, not the two authority profiles).
- *
- * @param string[] $other_cards HTML cards.
- */
-/**
  * Normalize a CMS staff card: team class + portrait media crop.
  */
 function nvx_equipo_normalize_staff_card( string $card ): string {
@@ -220,7 +290,7 @@ function nvx_equipo_normalize_staff_card( string $card ): string {
 		$card = preg_replace( '/\bclass=(["\'])/u', 'class=$1nvx-brand-card--team ', $card, 1 ) ?? $card;
 	}
 
-	// Portrait frame on card media.
+	// Portrait frame: single clean img, no noscript/br noise inside figure.
 	$card = preg_replace_callback(
 		'/(<figure\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card__media\b)([^"\']*)(["\'][^>]*>)([\s\S]*?)(<\/figure>)/iu',
 		static function ( array $m ): string {
@@ -228,26 +298,31 @@ function nvx_equipo_normalize_staff_card( string $card ): string {
 			if ( false === strpos( $open . $m[3], 'nvx-brand-card__media--portrait' ) ) {
 				$open .= ' nvx-brand-card__media--portrait';
 			}
-			$inner = $m[4];
-			if ( preg_match( '/<img\b([^>]*)>/iu', $inner, $im ) ) {
-				$img   = nvx_equipo_clean_portrait_img( $im[0] );
-				$inner = preg_replace( '/<img\b[^>]*>/iu', $img, $inner, 1 ) ?? $inner;
+			$open = preg_replace( '/\s*nvx-content-figure\s*/i', ' ', $open ) ?? $open;
+			$img  = nvx_equipo_clean_portrait_img( $m[4] );
+			if ( '' === $img ) {
+				return $open . $m[3] . $m[5];
 			}
-			return $open . $m[3] . $inner . $m[5];
+			return $open . $m[3] . $img . $m[5];
 		},
 		$card
 	) ?? $card;
 
 	// Bare img without figure.
 	if ( false === strpos( $card, 'nvx-brand-card__media' ) && preg_match( '/<img\b[^>]*>/iu', $card, $im ) ) {
-		$img  = nvx_equipo_clean_portrait_img( $im[0] );
-		$card = preg_replace(
-			'/<img\b[^>]*>/iu',
-			'<figure class="nvx-brand-card__media nvx-brand-card__media--portrait">' . $img . '</figure>',
-			$card,
-			1
-		) ?? $card;
+		$img = nvx_equipo_clean_portrait_img( $im[0] );
+		if ( '' !== $img ) {
+			$card = preg_replace( '/<noscript\b[\s\S]*?<\/noscript>/iu', '', $card ) ?? $card;
+			$card = preg_replace(
+				'/<img\b[^>]*>/iu',
+				'<figure class="nvx-brand-card__media nvx-brand-card__media--portrait">' . $img . '</figure>',
+				$card,
+				1
+			) ?? $card;
+		}
 	}
+
+	$card = preg_replace( '/<br\s*\/?>/iu', '', $card ) ?? $card;
 
 	return is_string( $card ) ? $card : '';
 }
@@ -477,15 +552,23 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	$staff = nvx_equipo_extract_staff_cards( $content );
 
-	// Hero media: only real page hero — never steal a staff portrait.
+	// Hero media: only real page hero — never logo, never a stolen staff portrait.
 	$media = '';
 	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
 		$media = $m[0];
 	} elseif ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
 		$media = $m[0];
 	}
+	if ( '' !== $media && nvx_equipo_media_is_logo( $media ) ) {
+		$media = '';
+	}
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero nvx-equipo-hero" aria-labelledby="nvx-equipo-h1" aria-label="' . esc_attr__( 'Equipo médico NUVANX', 'nuvanx-medical' ) . '">';
+	$hero_classes = 'nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero nvx-equipo-hero';
+	if ( '' === $media ) {
+		$hero_classes .= ' nvx-equipo-hero--copy-only';
+	}
+
+	$hero  = '<section class="' . esc_attr( $hero_classes ) . '" aria-labelledby="nvx-equipo-h1" aria-label="' . esc_attr__( 'Equipo médico NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_equipo_hero_copy_markup();
 	$hero .= $media;

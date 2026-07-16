@@ -74,3 +74,6 @@ add_action(
 	},
 	0
 );
+
+/** Structured data extensions: one canonical Yoast graph, no duplicate output. */
+require_once __DIR__ . '/nvx-structured-data.php';

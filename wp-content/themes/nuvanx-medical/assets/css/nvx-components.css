@@ -6,11 +6,11 @@
 .nvx-copy,.nvx-brand-body,p{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 .nvx-lead,.nvx-brand-hero__lead{font-family:var(--nvx-sans);font-size:var(--nvx-type-lead);font-weight:400;line-height:var(--nvx-lh-lead);color:var(--nvx-text-body)}
 .nvx-caption,figcaption{font-family:var(--nvx-sans);font-size:var(--nvx-type-caption);font-weight:300;line-height:var(--nvx-lh-caption);color:var(--nvx-text-muted)}
-.nvx-button,.nvx-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border:1px solid transparent;border-radius:999px;font-family:var(--nvx-sans);font-size:var(--nvx-type-button);font-weight:600;line-height:1;letter-spacing:var(--nvx-track-button);text-transform:uppercase;text-decoration:none;transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease}
-.nvx-button--primary,.nvx-btn--primary{background:var(--nvx-ink);color:var(--nvx-white)}
-.nvx-button--secondary,.nvx-btn--secondary{background:transparent;color:var(--nvx-ink);border-color:var(--nvx-color-line)}
+.nvx-button,.nvx-btn,.nvx-brand-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border:1px solid transparent;border-radius:999px;font-family:var(--nvx-sans);font-size:var(--nvx-type-button);font-weight:600;line-height:1;letter-spacing:var(--nvx-track-button);text-transform:uppercase;text-decoration:none;transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease}
+.nvx-button--primary,.nvx-btn--primary,.nvx-brand-btn--primary{background:var(--nvx-ink);color:var(--nvx-white)}
+.nvx-button--secondary,.nvx-btn--secondary,.nvx-brand-btn--secondary{background:transparent;color:var(--nvx-ink);border-color:var(--nvx-color-line)}
 .nvx-button--ghost,.nvx-btn--ghost{background:transparent;color:currentColor;border-color:currentColor}
-.nvx-button:hover,.nvx-button:focus-visible,.nvx-btn:hover,.nvx-btn:focus-visible{transform:translateY(-1px);box-shadow:var(--nvx-shadow-button)}
+.nvx-button:hover,.nvx-button:focus-visible,.nvx-btn:hover,.nvx-btn:focus-visible,.nvx-brand-btn:hover,.nvx-brand-btn:focus-visible{transform:translateY(-1px);box-shadow:var(--nvx-shadow-button)}
 .nvx-media{display:block;width:100%;height:auto}
 .nvx-media--hero{height:100%;object-fit:cover}
 .nvx-media--editorial{aspect-ratio:4/5;object-fit:cover}
@@ -28,7 +28,255 @@
 .nvx-faq details{border-bottom:1px solid var(--nvx-color-line)}
 .nvx-faq summary{padding-block:22px;font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);cursor:pointer}
 .nvx-faq details>div{padding-bottom:28px;max-width:var(--nvx-readable)}
-.nvx-form{padding:var(--nvx-pad-card);border:1px solid var(--nvx-color-line);border-radius:var(--nvx-radius-card);background:var(--nvx-pearl)}
-@media(max-width:980px){.nvx-brand-card{grid-column:span 6}}
-@media(max-width:680px){.nvx-brand-card{grid-column:1/-1}.nvx-brand-actions{flex-direction:column}.nvx-brand-actions .nvx-button,.nvx-brand-actions .nvx-btn{width:100%}}
-@media(prefers-reduced-motion:reduce){.nvx-button,.nvx-btn{transition:none}.nvx-button:hover,.nvx-btn:hover{transform:none}}
+/* ── Forms (valoración / HubSpot native) ─────────────────── */
+.nvx-form,
+.nvx-hs-native-section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+.nvx-hs-native-box,
+.nvx-form-stage__card {
+  width: min(100%, 34rem);
+  margin-inline: auto;
+  padding: clamp(28px, 4vw, 48px);
+  border: 1px solid rgba(20, 22, 26, 0.08);
+  border-radius: clamp(24px, 3vw, 36px);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--nvx-shadow-medium);
+}
+
+.nvx-hubspot-form-section .nvx-kicker,
+.nvx-form-stage .nvx-kicker {
+  text-align: center;
+  color: var(--nvx-charcoal);
+  letter-spacing: 0.22em;
+}
+
+.nvx-hubspot-form-section .nvx-title,
+.nvx-hubspot-form-section h2.nvx-title,
+.nvx-form-stage .nvx-title {
+  max-width: 16ch;
+  margin: 0 auto 0.75em;
+  text-align: center;
+  font-family: var(--nvx-serif);
+  font-size: clamp(2rem, 4.2vw, 2.85rem);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--nvx-ink);
+  text-wrap: balance;
+}
+
+.nvx-hubspot-form-section > .nvx-container > .nvx-copy:first-of-type,
+.nvx-hubspot-form-section .nvx-page-body__inner > .nvx-copy:first-of-type,
+.nvx-form-stage__lead {
+  max-width: 42ch;
+  margin: 0 auto clamp(28px, 4vw, 40px);
+  text-align: center;
+  font-size: var(--nvx-type-lead);
+  line-height: var(--nvx-lh-lead);
+  color: var(--nvx-text-body);
+}
+
+.nvx-hs-lead-form,
+.nvx-hubspot-form-section form.nvx-hs-lead-form,
+.nvx-hubspot-form-section .hs-form,
+.nvx-hubspot-form-section form.hs-form {
+  display: grid;
+  gap: 18px;
+  margin: 0;
+  width: 100%;
+}
+
+.nvx-hubspot-form-section .hs-form-field,
+.nvx-hs-lead-form .hs-form-field,
+.nvx-hubspot-form-section .hs-form-field {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.nvx-hubspot-form-section label,
+.nvx-hs-lead-form label,
+.nvx-hubspot-form-section .hs-form-field > label {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--nvx-platinum);
+}
+
+.nvx-hubspot-form-section .hs-input,
+.nvx-hs-lead-form .hs-input,
+.nvx-hubspot-form-section input.hs-input,
+.nvx-hubspot-form-section input[type="text"],
+.nvx-hubspot-form-section input[type="email"],
+.nvx-hubspot-form-section input[type="tel"],
+.nvx-hubspot-form-section input[type="number"],
+.nvx-hubspot-form-section select.hs-input,
+.nvx-hubspot-form-section textarea.hs-input {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  margin: 0;
+  padding: 14px 18px;
+  border: 1px solid rgba(20, 22, 26, 0.12);
+  border-radius: 14px;
+  background: var(--nvx-pearl);
+  color: var(--nvx-ink);
+  font-family: var(--nvx-sans);
+  font-size: 1rem;
+  line-height: 1.4;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.nvx-hubspot-form-section textarea.hs-input {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.nvx-hubspot-form-section .hs-input:hover,
+.nvx-hs-lead-form .hs-input:hover {
+  border-color: rgba(20, 22, 26, 0.22);
+}
+
+.nvx-hubspot-form-section .hs-input:focus,
+.nvx-hs-lead-form .hs-input:focus,
+.nvx-hubspot-form-section input:focus-visible {
+  outline: none;
+  border-color: var(--nvx-platinum);
+  background: var(--nvx-white);
+  box-shadow: 0 0 0 4px var(--nvx-accent-glow);
+}
+
+.nvx-hubspot-form-section .hs-submit,
+.nvx-hs-lead-form .hs-submit {
+  margin-top: 8px;
+}
+
+.nvx-hubspot-form-section .hs-button,
+.nvx-hubspot-form-section input.hs-button,
+.nvx-hubspot-form-section .hs-button.primary,
+.nvx-hs-lead-form .hs-button,
+.nvx-hs-lead-form input[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 54px;
+  margin: 0;
+  padding: 0 28px;
+  border: 1px solid var(--nvx-ink);
+  border-radius: 999px;
+  background: var(--nvx-ink);
+  color: var(--nvx-white);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-button);
+  font-weight: 600;
+  letter-spacing: var(--nvx-track-button);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  box-shadow: var(--nvx-shadow-button);
+}
+
+.nvx-hubspot-form-section .hs-button:hover,
+.nvx-hubspot-form-section input.hs-button:hover,
+.nvx-hs-lead-form input[type="submit"]:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--nvx-shadow-button-hover);
+  background: var(--nvx-charcoal);
+}
+
+.nvx-hubspot-form-section .nvx-text-link,
+.nvx-hs-native-box .nvx-text-link {
+  color: var(--nvx-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.nvx-hubspot-form-section .nvx-hs-native-box > .nvx-copy,
+.nvx-hs-native-box > .nvx-copy {
+  margin: 18px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--nvx-text-muted);
+  text-align: center;
+}
+
+.nvx-hubspot-form-section .nvx-form-note,
+.nvx-form-stage .nvx-form-note {
+  max-width: 44ch;
+  margin: 22px auto 0;
+  font-size: var(--nvx-type-caption);
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--nvx-text-muted);
+  text-align: center;
+}
+
+/* HubSpot embed frame: keep card width, soft frame */
+.nvx-hubspot-form-section .hs-form-frame,
+.nvx-hubspot-native-form-v2 .hs-form-frame {
+  width: 100%;
+  min-height: 12rem;
+}
+
+.nvx-hubspot-form-section .legal-consent-container,
+.nvx-hubspot-form-section .hs-richtext {
+  font-family: var(--nvx-sans);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--nvx-text-muted);
+}
+
+@media (max-width: 980px) {
+  .nvx-brand-card {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 680px) {
+  .nvx-brand-card {
+    grid-column: 1 / -1;
+  }
+
+  .nvx-brand-actions {
+    flex-direction: column;
+  }
+
+  .nvx-brand-actions .nvx-button,
+  .nvx-brand-actions .nvx-btn {
+    width: 100%;
+  }
+
+  .nvx-hs-native-box,
+  .nvx-form-stage__card {
+    padding: 24px 20px;
+    border-radius: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nvx-button,
+  .nvx-btn,
+  .nvx-hubspot-form-section .hs-button,
+  .nvx-hs-lead-form input[type="submit"] {
+    transition: none;
+  }
+
+  .nvx-button:hover,
+  .nvx-btn:hover,
+  .nvx-hubspot-form-section .hs-button:hover {
+    transform: none;
+  }
+}

@@ -53,6 +53,52 @@ function nvx_theme_is_home_page(): bool {
 	return is_front_page() || is_page( 9 );
 }
 
+/**
+ * Pre-footer CTA banner is editorial only.
+ * Hide on home and conversion pages (contacto / valoración / gracias)
+ * so it is not the same redundant block on every page.
+ */
+function nvx_theme_show_cta_banner(): bool {
+	if ( is_admin() ) {
+		return false;
+	}
+
+	if ( nvx_theme_is_home_page() || is_front_page() ) {
+		return false;
+	}
+
+	// Named conversion templates.
+	$template = (string) get_page_template_slug();
+	if ( in_array(
+		$template,
+		array(
+			'templates/page-contacto.php',
+			'templates/page-landing-valoracion.php',
+		),
+		true
+	) ) {
+		return false;
+	}
+
+	if ( is_page() ) {
+		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+		if ( in_array( $slug, array( 'contacto', 'gracias', 'valoracion', 'consulta-medica', 'consultamedica' ), true ) ) {
+			return false;
+		}
+
+		// Nested paths like /madrid/valoracion/.
+		$ancestors = get_post_ancestors( get_queried_object_id() );
+		foreach ( $ancestors as $ancestor_id ) {
+			$ancestor_slug = (string) get_post_field( 'post_name', $ancestor_id );
+			if ( 'madrid' === $ancestor_slug && 'valoracion' === $slug ) {
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
 function nvx_asset_version( string $relative_path ): string {
 	$path = get_template_directory() . '/' . ltrim( $relative_path, '/' );
 	return is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;
@@ -72,6 +118,13 @@ function nvx_theme_scripts() {
 
 	if ( nvx_theme_is_home_page() ) {
 		wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-footer' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
+		wp_enqueue_script(
+			'nvx-home-video',
+			$uri . '/assets/js/nvx-home-video.js',
+			array(),
+			nvx_asset_version( 'assets/js/nvx-home-video.js' ),
+			true
+		);
 	}
 
 	wp_enqueue_script( 'nvx-main', $uri . '/assets/js/nvx-main.js', array(), nvx_asset_version( 'assets/js/nvx-main.js' ), true );
@@ -137,4 +190,6 @@ function nvx_theme_blog_index_markup(): string {
 
 add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
 
+require_once get_template_directory() . '/inc/nvx-hero-and-forms.php';
 require_once get_template_directory() . '/inc/nvx-integrations.php';
+require_once get_template_directory() . '/inc/nvx-content-presentation.php';

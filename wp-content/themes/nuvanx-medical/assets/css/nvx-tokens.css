@@ -106,11 +106,13 @@
   --nvx-media-tilt: -0.85deg;
   --nvx-media-tilt-alt: 0.95deg;
   --nvx-media-bleed-x: clamp(12px, 2.5vw, 36px);
+  /* Stronger bottom scrim so kicker + H1 stay legible on full-bleed media */
   --nvx-media-overlay: linear-gradient(
     180deg,
-    rgba(20, 22, 26, 0) 32%,
-    rgba(20, 22, 26, 0.22) 62%,
-    rgba(20, 22, 26, 0.48) 100%
+    rgba(20, 22, 26, 0.12) 0%,
+    rgba(20, 22, 26, 0.08) 28%,
+    rgba(20, 22, 26, 0.35) 58%,
+    rgba(20, 22, 26, 0.72) 100%
   );
 
   /* ═══════════════════════════════════════════════════════════

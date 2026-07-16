@@ -1,0 +1,104 @@
+name: Staging2 publish blog post
+
+# Creates/updates a single WordPress blog post on staging2 via WP-CLI.
+# Default: audit (dry-run). Apply requires confirm=CONFIRM-STAGING2.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: audit (dry-run) or apply
+        required: true
+        default: audit
+        type: choice
+        options:
+          - audit
+          - apply
+      confirm:
+        description: For apply, type exactly CONFIRM-STAGING2
+        required: false
+        default: ''
+      script:
+        description: Publish script filename under scripts/staging2/
+        required: true
+        default: publish-blog-exion-face-vs-hifu.php
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging2-publish-blog
+  cancel-in-progress: false
+
+env:
+  STAGING_PATH: /home/customer/www/staging2.nuvanx.com/public_html
+
+jobs:
+  publish-blog:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 1
+
+      - name: Validate inputs
+        run: |
+          set -euo pipefail
+          MODE='${{ inputs.mode }}'
+          CONFIRM='${{ inputs.confirm }}'
+          SCRIPT='${{ inputs.script }}'
+          test -f "scripts/staging2/${SCRIPT}" || { echo "ERROR: missing scripts/staging2/${SCRIPT}"; exit 1; }
+          if [[ "$MODE" == "apply" && "$CONFIRM" != "CONFIRM-STAGING2" ]]; then
+            echo "ERROR: apply requires confirm=CONFIRM-STAGING2"
+            exit 1
+          fi
+
+      - name: Configure SSH agent and known hosts
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+      - run: mkdir -p ~/.ssh && printf '%s\n' "${{ secrets.STAGING_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts && chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload publish script
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          SCRIPT: ${{ inputs.script }}
+        run: |
+          set -euo pipefail
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'mkdir -p "$HOME/nuvanx-staging2-scripts"'
+          rsync -az -e "ssh -p $SSH_PORT" \
+            "scripts/staging2/${SCRIPT}" \
+            "$SSH_USER@$SSH_HOST:~/nuvanx-staging2-scripts/"
+
+      - name: Run audit or apply on staging2
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          MODE: ${{ inputs.mode }}
+          SCRIPT: ${{ inputs.script }}
+          STAGING_PATH: ${{ env.STAGING_PATH }}
+        run: |
+          set -euo pipefail
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "MODE='$MODE' SCRIPT='$SCRIPT' STAGING_PATH='$STAGING_PATH' bash -e -s" <<'REMOTE'
+            set -euo pipefail
+            ROOT="${STAGING_PATH:?}"
+            SCRIPTS="$HOME/nuvanx-staging2-scripts"
+            cd "$ROOT"
+            SITEURL="$(wp option get siteurl --skip-plugins --skip-themes)"
+            HOMEURL="$(wp option get home --skip-plugins --skip-themes)"
+            [[ "$SITEURL" == "https://staging2.nuvanx.com" ]] || { echo "ERROR siteurl $SITEURL"; exit 1; }
+            [[ "$HOMEURL" == "https://staging2.nuvanx.com" ]] || { echo "ERROR home $HOMEURL"; exit 1; }
+            php -l "$SCRIPTS/$SCRIPT"
+            if [[ "$MODE" == "apply" ]]; then
+              wp eval-file "$SCRIPTS/$SCRIPT" -- --apply
+              wp cache flush || true
+              wp sg purge || true
+            else
+              wp eval-file "$SCRIPTS/$SCRIPT"
+            fi
+          REMOTE

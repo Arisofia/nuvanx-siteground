@@ -27,7 +27,8 @@ require() {
   local name="$1"
   local html="$2"
   local needle="$3"
-  if printf '%s' "$html" | grep -Fq -- "$needle"; then
+  # Bash substring match avoids SIGPIPE/broken-pipe on huge HTML pipes.
+  if [[ "$html" == *"$needle"* ]]; then
     echo "  OK  [$name] $needle"
   else
     echo "  FAIL[$name] missing structural marker: $needle" >&2
@@ -94,7 +95,7 @@ check_page "/medicina-estetica/" "aesthetic-hub" \
 
 # Soft: full aesthetic rebuild present when module is live
 if html_aes="$(fetch "${BASE_URL%/}/medicina-estetica/" 2>/dev/null || true)"; then
-  if printf '%s' "$html_aes" | grep -Fq 'nvx-aesthetic-editorial'; then
+  if [[ "$html_aes" == *'nvx-aesthetic-editorial'* ]]; then
     require "aesthetic-hub" "$html_aes" 'nvx-aesthetic-editorial'
     require "aesthetic-hub" "$html_aes" 'nvx-aes-hero'
   else

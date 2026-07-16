@@ -18,13 +18,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 1 );
 }
 
-// WP-CLI eval-file: trailing args land in $args (e.g. --apply).
-$args_list = ( isset( $args ) && is_array( $args ) ) ? $args : array();
-if ( empty( $args_list ) && isset( $GLOBALS['argv'] ) && is_array( $GLOBALS['argv'] ) ) {
-	$args_list = $GLOBALS['argv'];
+// Prefer env flag: WP-CLI may treat --apply as an unknown global option.
+$apply = ( '1' === getenv( 'NVX_BLOG_APPLY' ) || 'yes' === getenv( 'NVX_BLOG_APPLY' ) );
+// Also accept $args if the host WP-CLI version forwards them.
+if ( ! $apply && isset( $args ) && is_array( $args ) ) {
+	$apply = in_array( '--apply', $args, true ) || in_array( 'apply', $args, true );
 }
-$apply = in_array( '--apply', $args_list, true )
-	|| in_array( 'apply', $args_list, true );
 
 $expected_url = 'https://staging2.nuvanx.com';
 $site_url     = rtrim( (string) get_option( 'siteurl' ), '/' );

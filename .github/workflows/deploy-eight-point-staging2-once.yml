@@ -1,17 +1,37 @@
 name: Deploy 8px spacing system to staging2 once
 
+# Reusable staging visual-QA deploy for spacing/CSS candidates.
+# Defaults target staging2; override via workflow_dispatch inputs.
+
 on:
   push:
     branches:
       - style/staging2-eight-point-spacing-20260716
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref (branch, tag, or SHA) to deploy
+        required: true
+        default: style/staging2-eight-point-spacing-20260716
+      staging_url:
+        description: Staging site origin URL (no trailing slash)
+        required: true
+        default: https://staging2.nuvanx.com
+      staging_root:
+        description: Absolute path to the staging WordPress document root on the host
+        required: true
+        default: /home/customer/www/staging2.nuvanx.com/public_html
 
 permissions:
   contents: read
 
 env:
-  STAGING_URL: https://staging2.nuvanx.com
-  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+  # Prefer dispatch inputs; fall back to staging2 defaults for push events.
+  STAGING_URL: ${{ inputs.staging_url || 'https://staging2.nuvanx.com' }}
+  STAGING_ROOT: ${{ inputs.staging_root || '/home/customer/www/staging2.nuvanx.com/public_html' }}
+  DEPLOY_REF: ${{ inputs.ref || github.ref_name }}
   THEME_REL: wp-content/themes/nuvanx-medical
+  CSS_REL: wp-content/themes/nuvanx-medical/assets/css
 
 jobs:
   deploy-staging2:
@@ -21,7 +41,7 @@ jobs:
       - name: Checkout candidate
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
-          ref: style/staging2-eight-point-spacing-20260716
+          ref: ${{ env.DEPLOY_REF }}
           fetch-depth: 1
 
       - name: Validate candidate and connection settings
@@ -45,6 +65,8 @@ jobs:
           grep -q 'nvx-value-grid' "$CSS/nvx-components.css"
           npx --yes clean-css-cli@5.6.3 -o /tmp/nvx-spacing.css "$CSS/nvx-tokens.css" "$CSS/nvx-site-layout.css" "$CSS/nvx-components.css"
           test -s /tmp/nvx-spacing.css
+          echo "deploy_ref=${DEPLOY_REF}"
+          echo "staging_url=${STAGING_URL}"
 
       - name: Configure SSH
         uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
@@ -68,32 +90,39 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "ROOT='${STAGING_ROOT}' RUN_ID='$RUN_ID' bash -se" <<'REMOTE'
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
+            "ROOT='${STAGING_ROOT}' EXPECTED_URL='${STAGING_URL}' RUN_ID='$RUN_ID' bash -se" <<'REMOTE'
             set -euo pipefail
             cd "$ROOT"
-            [[ "$(wp option get siteurl)" == 'https://staging2.nuvanx.com' ]]
-            [[ "$(wp option get home)" == 'https://staging2.nuvanx.com' ]]
+            [[ "$(wp option get siteurl --skip-plugins --skip-themes)" == "$EXPECTED_URL" ]]
+            [[ "$(wp option get home --skip-plugins --skip-themes)" == "$EXPECTED_URL" ]]
             [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
             BACKUP="$HOME/nuvanx-staging2-theme-backups/eight-point-$RUN_ID"
             mkdir -p "$BACKUP"
             chmod 700 "$HOME/nuvanx-staging2-theme-backups" "$BACKUP"
-            cp wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css "$BACKUP/"
-            cp wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css "$BACKUP/"
-            cp wp-content/themes/nuvanx-medical/assets/css/nvx-components.css "$BACKUP/"
+            # Backup only the CSS assets this workflow updates.
+            for f in nvx-tokens.css nvx-site-layout.css nvx-components.css; do
+              cp "wp-content/themes/nuvanx-medical/assets/css/$f" "$BACKUP/"
+            done
             chmod -R go-rwx "$BACKUP"
           REMOTE
 
-      - name: Deploy theme to staging2 only
+      - name: Deploy spacing CSS assets to staging only
         env:
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
           SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
         run: |
           set -euo pipefail
-          rsync -az --delete -e "ssh -p $SSH_PORT" \
-            --exclude '.git' --exclude '*.log' --exclude 'php_errorlog' \
-            "${THEME_REL}/" \
-            "$SSH_USER@$SSH_HOST:${STAGING_ROOT}/${THEME_REL}/"
+          # CSS-only sync: no --delete, so server-managed or untracked theme
+          # files outside this path are never removed.
+          rsync -az -e "ssh -p $SSH_PORT" \
+            --include 'nvx-tokens.css' \
+            --include 'nvx-site-layout.css' \
+            --include 'nvx-components.css' \
+            --exclude '*' \
+            "${THEME_REL}/assets/css/" \
+            "$SSH_USER@$SSH_HOST:${STAGING_ROOT}/${CSS_REL}/"
 
       - name: Flush staging cache and verify
         env:
@@ -117,5 +146,7 @@ jobs:
           code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'Cache-Control: no-cache' "${STAGING_URL}/?spacing_qa=${{ github.run_id }}")"
           [[ "$code" == '200' ]]
           echo "STAGING2_EIGHT_POINT_DEPLOY_PASS"
+          echo "deploy_ref=${DEPLOY_REF}"
+          echo "staging_url=${STAGING_URL}"
           echo "staging_http_status=$code"
           echo "production_modified=false"

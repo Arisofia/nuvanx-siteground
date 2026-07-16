@@ -873,30 +873,39 @@ ol.nvx-step-list > li::before {
   border-radius: inherit;
 }
 
-/* ── 4. Equipo médico — retrato limpio (no “blob” ni tilt) ── */
+/*
+ * ── 4. Equipo médico — retrato + ficha en horizontal
+ * Antes: card 22rem en columna → foto y bio estrechas (texto “vertical”).
+ * Ahora: foto 5:6 a la izquierda, copy a la derecha a ancho de lectura.
+ */
+.nvx-brand-card--team,
+.nvx-brand-card--team:has(> .nvx-brand-card__media) {
+  display: grid;
+  grid-template-columns: minmax(10rem, 16rem) minmax(0, 1fr);
+  column-gap: clamp(20px, 3vw, 40px);
+  row-gap: var(--nvx-gap-tight);
+  align-items: start;
+  width: 100%;
+  max-width: min(100%, 52rem);
+  padding: 0;
+  margin: 0 0 var(--nvx-gap-wide);
+  background: transparent;
+  overflow: visible;
+}
+
 .nvx-brand-card--team .nvx-brand-card__media {
-  width: min(100%, calc(var(--nvx-media-max-h-doctor) * 5 / 6));
-  height: var(--nvx-media-max-h-doctor);
-  max-height: var(--nvx-media-max-h-doctor);
+  grid-column: 1;
+  grid-row: 1 / span 8;
+  width: 100%;
+  max-width: 16rem;
+  height: auto;
+  max-height: none;
   aspect-ratio: var(--nvx-media-ratio-doctor, 5 / 6);
-  margin: 0 0 var(--nvx-gap-tight);
+  margin: 0;
   background: var(--nvx-mist);
   border-radius: var(--nvx-radius-image);
   box-shadow: var(--nvx-shadow-soft);
   transform: none;
-}
-
-.nvx-brand-card--team,
-.nvx-brand-card--team:has(> .nvx-brand-card__media) {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--nvx-gap-tight);
-  width: min(100%, 22rem);
-  max-width: 100%;
-  padding: 0;
-  background: transparent;
-  overflow: visible;
 }
 
 .nvx-brand-card--team .nvx-brand-card__media img {
@@ -909,6 +918,65 @@ ol.nvx-step-list > li::before {
 .nvx-brand-card--team .nvx-brand-card__media::after {
   content: none;
   display: none;
+}
+
+.nvx-brand-card--team > .nvx-brand-card__kicker,
+.nvx-brand-card--team > .nvx-brand-card__title,
+.nvx-brand-card--team > .nvx-brand-card__body,
+.nvx-brand-card--team > .nvx-brand-card__cta,
+.nvx-brand-card--team > .nvx-copy,
+.nvx-brand-card--team > p:not(.nvx-brand-card__kicker),
+.nvx-brand-card--team > h2,
+.nvx-brand-card--team > h3 {
+  grid-column: 2;
+  min-width: 0;
+  max-width: var(--nvx-measure, 62ch);
+}
+
+.nvx-brand-card--team > .nvx-brand-card__title {
+  margin: 0 0 0.35em;
+  max-width: min(28ch, 100%);
+}
+
+.nvx-brand-card--team > .nvx-brand-card__body,
+.nvx-brand-card--team > p:not(.nvx-brand-card__kicker) {
+  margin: 0 0 0.75em;
+  text-align: start;
+}
+
+/* Grid de equipo: una ficha por fila, aire entre miembros */
+.nvx-brand-grid:has(> .nvx-brand-card--team) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-gap-section);
+  margin-top: var(--nvx-gap-base);
+}
+
+@media (max-width: 720px) {
+  .nvx-brand-card--team,
+  .nvx-brand-card--team:has(> .nvx-brand-card__media) {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .nvx-brand-card--team .nvx-brand-card__media {
+    grid-column: 1;
+    grid-row: auto;
+    max-width: min(100%, 18rem);
+    width: min(100%, 18rem);
+    margin: 0 0 var(--nvx-gap-tight);
+  }
+
+  .nvx-brand-card--team > .nvx-brand-card__kicker,
+  .nvx-brand-card--team > .nvx-brand-card__title,
+  .nvx-brand-card--team > .nvx-brand-card__body,
+  .nvx-brand-card--team > .nvx-brand-card__cta,
+  .nvx-brand-card--team > .nvx-copy,
+  .nvx-brand-card--team > p:not(.nvx-brand-card__kicker),
+  .nvx-brand-card--team > h2,
+  .nvx-brand-card--team > h3 {
+    grid-column: 1;
+  }
 }
 
 /* ── 5. Logos de marcas — tile plano ─────────────────────── */

@@ -129,66 +129,85 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 .nvx-home-editorial__body{max-width:62ch;margin:24px 0 0;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 .nvx-home-invitation{margin-top:32px}
 
-/* Post-values action banner — quiet luxury conversion (64–80px gap) */
+/* Post-values action banner — Plata Pulida (charcoal card + pill CTAs)
+   Card may be soft-radius; buttons MUST stay pill (--nvx-radius-button: 999px). */
 .nvx-home-action-banner-shell{
-  width:var(--nvx-shell,min(1120px,100%));
+  width:var(--nvx-shell);
   max-width:100%;
-  margin:72px auto 0;
-  padding-inline:clamp(1.5rem,4vw,3rem);
+  margin:clamp(64px,7vw,80px) auto 0;
+  padding-inline:var(--nvx-gutter-inner,clamp(24px,4vw,48px));
   box-sizing:border-box;
 }
 .nvx-home-action-banner{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
-  gap:var(--nvx-space-8,64px);
+  gap:var(--nvx-gap-wide,clamp(32px,4vw,56px));
   align-items:center;
   width:100%;
   margin:0;
-  padding:clamp(2rem,4vw,3rem);
-  border:1px solid #444444;
-  border-radius:0;
-  background:#1c1c1c;
-  color:#f5e8d8;
+  padding:clamp(36px,4.5vw,56px);
+  border:1px solid rgba(196,200,206,.22);
+  border-radius:var(--nvx-radius-card,clamp(24px,2.5vw,32px));
+  background:var(--nvx-charcoal,#2A2D33);
+  color:var(--nvx-white);
 }
 .nvx-home-action-banner__copy{max-width:55ch}
-.nvx-home-action-banner .nvx-brand-kicker{margin-bottom:var(--nvx-space-2);color:#c5a880}
-.nvx-home-action-banner__title{margin:0 0 var(--nvx-space-2,16px);font-family:var(--nvx-serif);font-size:clamp(1.5rem,2.5vw,2rem);font-weight:400;line-height:1.2;letter-spacing:var(--nvx-track-h2);color:#f5e8d8}
-.nvx-home-action-banner__text{max-width:55ch;margin:0;font-family:var(--nvx-sans);font-size:0.9375rem;line-height:1.65;color:rgba(245,232,216,.82)}
-.nvx-home-action-banner__text strong{color:#f5e8d8;font-weight:600}
-.nvx-home-action-banner__actions{display:flex;flex-direction:column;align-items:flex-end;gap:var(--nvx-space-2,16px);min-width:260px}
-.nvx-home-action-banner__primary{
-  display:block;
+.nvx-home-action-banner__kicker,
+.nvx-home-action-banner .nvx-brand-kicker{
+  margin:0 0 var(--nvx-space-2,16px);
+  color:var(--nvx-platinum,#9BA3AD);
+}
+.nvx-home-action-banner__title{
+  margin:0 0 var(--nvx-space-2,16px);
+  max-width:16ch;
+  font-family:var(--nvx-serif);
+  font-size:clamp(1.65rem,2.6vw,2.25rem);
+  font-weight:400;
+  line-height:1.18;
+  letter-spacing:var(--nvx-track-h2);
+  color:var(--nvx-white);
+}
+.nvx-home-action-banner__text{
+  max-width:55ch;
+  margin:0;
+  font-family:var(--nvx-sans);
+  font-size:var(--nvx-type-body,1rem);
+  line-height:var(--nvx-lh-body,1.7);
+  color:rgba(255,255,255,.82);
+}
+.nvx-home-action-banner__text strong{color:var(--nvx-white);font-weight:600}
+.nvx-home-action-banner__actions{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:var(--nvx-space-2,16px);
+  min-width:min(280px,100%);
+}
+/* Inherit system pill buttons; only color-context on dark band */
+.nvx-home-action-banner .nvx-button--light,
+.nvx-home-action-banner__cta.nvx-button--light{
   width:100%;
-  padding:1rem 2rem;
-  background:#c5a880;
-  color:#1c1c1c;
-  text-align:center;
-  font-family:var(--nvx-sans);
-  font-size:0.6875rem;
-  font-weight:700;
-  letter-spacing:0.16em;
-  text-transform:uppercase;
-  text-decoration:none;
-  transition:background .3s ease;
+  background:var(--nvx-pearl,#F6F7F8);
+  color:var(--nvx-ink,#14161A);
+  border-color:var(--nvx-pearl,#F6F7F8);
+  border-radius:var(--nvx-radius-button,999px);
 }
-.nvx-home-action-banner__primary:hover,
-.nvx-home-action-banner__primary:focus-visible{background:#bfa075;color:#1c1c1c}
-.nvx-home-action-banner .nvx-button--light{width:100%;background:#c5a880;color:#1c1c1c;border-color:#c5a880}
-.nvx-home-action-banner__link{
-  font-family:var(--nvx-sans);
-  font-size:0.6875rem;
-  font-weight:600;
-  line-height:1;
-  letter-spacing:0.16em;
-  text-transform:uppercase;
-  color:#f5e8d8;
-  text-decoration:underline;
-  text-underline-offset:4px;
-  border-bottom:none;
-  padding-bottom:0;
+.nvx-home-action-banner .nvx-button--secondary,
+.nvx-home-action-banner__cta--ghost{
+  width:100%;
+  background:transparent;
+  color:var(--nvx-white);
+  border-color:rgba(255,255,255,.42);
+  border-radius:var(--nvx-radius-button,999px);
 }
-.nvx-home-action-banner__link:hover,
-.nvx-home-action-banner__link:focus-visible{color:#c5a880}
+.nvx-home-action-banner .nvx-button--secondary:hover,
+.nvx-home-action-banner .nvx-button--secondary:focus-visible,
+.nvx-home-action-banner__cta--ghost:hover,
+.nvx-home-action-banner__cta--ghost:focus-visible{
+  color:var(--nvx-ink,#14161A);
+  background:var(--nvx-white);
+  border-color:var(--nvx-white);
+}
 
 .nvx-home-clinicas-panorama__track{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--nvx-gap-base);margin-top:var(--nvx-gap-wide)}
 .nvx-home-clinica-panorama{overflow:hidden;border-radius:var(--nvx-radius-card);background:var(--nvx-pearl)}
@@ -209,7 +228,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   .nvx-home-organic-wave{display:none}
   .nvx-home-action-banner{grid-template-columns:1fr;gap:var(--nvx-space-4,32px)}
   .nvx-home-action-banner__actions{align-items:stretch;min-width:0}
-  .nvx-home-action-banner__link{text-align:center}
+  .nvx-home-action-banner__title{max-width:none}
   .nvx-home-clinicas-panorama__track{grid-template-columns:1fr}
   .nvx-home-direccion-panel{grid-template-columns:1fr}
   .nvx-home-cta-final-band{grid-template-columns:1fr}
@@ -221,10 +240,8 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   .nvx-home-hero-ctas{flex-direction:column;align-items:stretch;width:100%}
   .nvx-home-hero-ctas .nvx-brand-btn,.nvx-home-hero-ctas .nvx-button,.nvx-home-hero-ctas .nvx-btn{width:100%}
   .nvx-home-action-banner-shell{margin-top:64px;padding-inline:1.5rem}
-  .nvx-home-action-banner{padding:var(--nvx-space-4,32px)}
+  .nvx-home-action-banner{padding:var(--nvx-space-4,32px);border-radius:var(--nvx-radius-card,24px)}
   .nvx-home-action-banner__actions{width:100%}
-  .nvx-home-action-banner__primary,
-  .nvx-home-action-banner .nvx-button--light{width:100%}
-  .nvx-home-action-banner__link{text-align:center}
+  .nvx-home-action-banner .nvx-button{width:100%}
   .nvx-home-cta-final-band{padding:36px 24px;border-radius:28px}
 }

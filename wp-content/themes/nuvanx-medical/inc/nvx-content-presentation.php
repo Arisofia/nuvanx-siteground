@@ -89,19 +89,17 @@ function nvx_content_icon_svg( string $name ): string {
 }
 
 /**
- * Clinical values pillars (structured presentation of intro/criterio blocks).
- */
-/**
  * Premium action banner immediately after the clinical values columns.
- * Conversion CTAs live here (not as loose links inside value body copy).
+ * Uses design-system CTAs (pill radius) — not square marketing blocks.
  */
 function nvx_home_action_banner_markup(): string {
 	$valoracion = nvx_cta_valoracion_url();
 	$whatsapp   = nvx_cta_whatsapp_url();
 
-	$html  = '<div class="nvx-home-action-banner-shell">';
-	$html .= '<section class="nvx-home-action-banner" data-nvx-action-banner="post-values" aria-labelledby="nvx-home-action-banner-title">';
+	$html  = '<div class="nvx-home-action-banner-shell" data-nvx-action-banner="post-values">';
+	$html .= '<section class="nvx-home-action-banner" aria-labelledby="nvx-home-action-banner-title">';
 	$html .= '<div class="nvx-home-action-banner__copy">';
+	$html .= '<p class="nvx-brand-kicker nvx-home-action-banner__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-home-action-banner-title" class="nvx-home-action-banner__title">' . esc_html__( 'Recupera la armonía de tu piel', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-home-action-banner__text">' . wp_kses(
 		__( 'Agenda tu valoración médica personalizada hoy mismo. Disponible de forma presencial en nuestras clínicas de <strong>Chamberí</strong> o <strong>Salamanca–Goya</strong>.', 'nuvanx-medical' ),
@@ -109,13 +107,14 @@ function nvx_home_action_banner_markup(): string {
 	) . '</p>';
 	$html .= '</div>';
 	$html .= '<div class="nvx-home-action-banner__actions">';
+	// Pill CTAs from the design system (radius 999px) — never square blocks.
 	$html .= sprintf(
-		'<a class="nvx-home-action-banner__primary" href="%1$s">%2$s</a>',
+		'<a class="nvx-button nvx-button--light nvx-home-action-banner__cta" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
 		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
-		'<a class="nvx-home-action-banner__link" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+		'<a class="nvx-button nvx-button--secondary nvx-home-action-banner__cta nvx-home-action-banner__cta--ghost" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
 		esc_url( $whatsapp ),
 		esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
 	);
@@ -247,29 +246,41 @@ function nvx_content_replace_values_sections( string $content ): string {
  */
 function nvx_content_ensure_post_values_action_banner( string $content ): string {
 	// Strip old inline CTA pair under values pillars (if present from prior markup).
-	$content = preg_replace(
-		'/(<div class="nvx-values">[\s\S]*?<\/div>)\s*<div class="nvx-cta-pair nvx-values__cta">[\s\S]*?<\/div>/iu',
+	$stripped = preg_replace(
+		'/(class="nvx-values"[\s\S]*?<\/div>)\s*<div class="nvx-cta-pair nvx-values__cta">[\s\S]*?<\/div>/iu',
 		'$1',
 		$content
 	);
-	if ( ! is_string( $content ) ) {
-		return '';
-	}
+	$content = is_string( $stripped ) ? $stripped : $content;
+
+	// Remove any previous post-values banners (including broken partials) before re-insert.
+	// Match shell by data attribute (outer wrapper) — non-greedy with balanced-ish close via marker.
+	$stripped = preg_replace(
+		'/<div class="nvx-home-action-banner-shell"[^>]*>[\s\S]*?<\/section>\s*<\/div>/iu',
+		'',
+		$content
+	);
+	$content = is_string( $stripped ) ? $stripped : $content;
+
+	// Orphan section without shell (legacy / broken replace).
+	$stripped = preg_replace(
+		'/<section\b[^>]*class="[^"]*nvx-home-action-banner[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
+		'',
+		$content
+	);
+	$content = is_string( $stripped ) ? $stripped : $content;
+
+	// Loose action fragments from failed regex replaces.
+	$stripped = preg_replace(
+		'/<div class="nvx-home-action-banner__actions">[\s\S]*?<\/div>\s*<\/section>\s*<\/div>/iu',
+		'',
+		$content
+	);
+	$content = is_string( $stripped ) ? $stripped : $content;
 
 	$banner = nvx_home_action_banner_markup();
 
-	// Already has our banner → replace with current markup (copy/CTA hygiene).
-	if ( false !== strpos( $content, 'data-nvx-action-banner="post-values"' ) || false !== strpos( $content, 'nvx-home-action-banner' ) ) {
-		$updated = preg_replace(
-			'/<div class="nvx-home-action-banner-shell">[\s\S]*?<\/div>\s*(?=<\/?(?:section|div|h[1-6]|p)\b)|<section\b[^>]*class="[^"]*nvx-home-action-banner[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
-			$banner,
-			$content,
-			1
-		);
-		return is_string( $updated ) ? $updated : $content;
-	}
-
-	// Insert immediately after values section.
+	// Insert once immediately after values section.
 	$updated = preg_replace(
 		'/(<section\b[^>]*class="[^"]*nvx-values-section[^"]*"[^>]*>[\s\S]*?<\/section>)/iu',
 		'$1' . $banner,
@@ -281,7 +292,7 @@ function nvx_content_ensure_post_values_action_banner( string $content ): string
 		return $updated;
 	}
 
-	// Fallback: after .nvx-values grid container's parent section.
+	// Fallback: after .nvx-values grid's closing section.
 	$updated = preg_replace(
 		'/(<div class="nvx-values">[\s\S]*?<\/div>\s*<\/div>\s*<\/section>)/iu',
 		'$1' . $banner,

@@ -372,8 +372,10 @@ function nvx_content_replace_method_sections( string $content ): string {
  * Treatment card blurbs sitewide — clinical + cite-able starting price for Endolift.
  */
 function nvx_content_enrich_treatment_cards( string $content ): string {
-	$price_from   = defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ? NVX_ENDOLIFT_PRICE_FROM_EUR : '1460';
-	$endolift_new = 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica tras valoración. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. Tarifa de referencia desde ' . $price_from . ' €; presupuesto definitivo en consulta.';
+	$price_label  = function_exists( 'nvx_format_price_eur' )
+		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
+		: number_format_i18n( 1460, 0 );
+	$endolift_new = 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica tras valoración. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. Tarifa de referencia desde ' . $price_label . ' €; presupuesto definitivo en consulta.';
 
 	$exion_new = 'Plataforma con aplicadores Fractional RF, Face y Body. La elección y el número de sesiones dependen del diagnóstico; no sustituye rellenos ni valoración médica.';
 

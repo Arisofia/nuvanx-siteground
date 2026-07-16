@@ -18,11 +18,48 @@ defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/nvx-jsonld-content.php';
 
 /**
- * Reference starting price for Endolift® (EUR), aligned with public Doctoralia listing.
- * Update here when commercial tariffs change — visible copy + schema Offer share this.
+ * Reference starting price for Endolift® in EUR (integer).
+ * Aligned with public Doctoralia listing — update when commercial tariffs change.
+ * Visible copy + schema Offer share this via nvx_endolift_price_* helpers.
  */
 if ( ! defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ) {
-	define( 'NVX_ENDOLIFT_PRICE_FROM_EUR', '1460' );
+	define( 'NVX_ENDOLIFT_PRICE_FROM_EUR', 1460 );
+}
+
+/**
+ * Editorial review month label for Endolift byline (update with clinical review).
+ */
+if ( ! defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ) {
+	define( 'NVX_ENDOLIFT_REVIEW_LABEL', 'julio 2026' );
+}
+
+/**
+ * Endolift reference price as integer EUR.
+ *
+ * @return int
+ */
+function nvx_endolift_price_from_eur() {
+	return (int) NVX_ENDOLIFT_PRICE_FROM_EUR;
+}
+
+/**
+ * Format a EUR amount for Spanish locale display (no decimals).
+ *
+ * @param int|float|string $amount Amount in euros.
+ * @return string
+ */
+function nvx_format_price_eur( $amount ) {
+	return number_format_i18n( (float) $amount, 0 );
+}
+
+/**
+ * Schema-safe price string (digits only, no locale separators).
+ *
+ * @param int|float|string $amount Amount in euros.
+ * @return string
+ */
+function nvx_schema_price_string( $amount ) {
+	return (string) (int) $amount;
 }
 
 /**
@@ -392,14 +429,15 @@ function nvx_schema_find_organization( $graph ) {
  * @return array<string, array<int, array{q:string,a:string}>>
  */
 function nvx_schema_faq_catalog() {
-	$endolift_from = NVX_ENDOLIFT_PRICE_FROM_EUR;
+	$price = nvx_format_price_eur( nvx_endolift_price_from_eur() );
 
+	// Only keys that render the same Q/A in visible HTML (Endolift module).
+	// Do not add EXION here until the EXION page prints the same pairs.
 	return array(
-		// Keep in sync with nvx_endolift_page FAQs.
 		'endolift_facial' => array(
 			array(
 				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
-				'a' => 'La tarifa de referencia parte desde ' . $endolift_from . ' € (tercio inferior / papada–mandíbula según plan). El presupuesto definitivo se documenta tras valoración anatómica presencial e incluye honorarios, fibra monouso y revisiones protocolizadas.',
+				'a' => 'La tarifa de referencia parte desde ' . $price . ' € (tercio inferior / papada–mandíbula según plan). El presupuesto definitivo se documenta tras valoración anatómica presencial e incluye honorarios, fibra monouso y revisiones protocolizadas.',
 			),
 			array(
 				'q' => '¿Endolift® es para cualquier papada o flacidez?',
@@ -415,25 +453,8 @@ function nvx_schema_faq_catalog() {
 			),
 			array(
 				'q' => '¿Cómo es la recuperación y el dolor?',
-				'a' => 'Procedimiento con anestesia local, ambulatorio. Los primeros 3–5 días son habituales edema, tirantez y posibles hematomas. No suele ser incapacitante; conviene una baja social moderada la primera semana.',
-			),
-		),
-		'exion_btl'       => array(
-			array(
-				'q' => '¿EXION® sustituye al Láser CO₂?',
-				'a' => 'No. Tienen indicaciones distintas: EXION® trabaja radiofrecuencia (y ultrasonido según aplicador); el CO₂ fraccionado es ablativo y se orienta a textura y cicatrices según protocolo.',
-			),
-			array(
-				'q' => '¿Qué diferencia hay entre EXION® Fractional RF, Face y Body?',
-				'a' => 'Fractional RF se orienta a textura y renovación; Face a calidad e hidratación cutánea; Body a firmeza y contorno localizado. La elección depende del diagnóstico.',
-			),
-			array(
-				'q' => '¿EXION® es una alternativa a Morpheus8?',
-				'a' => 'Puede serlo en radiofrecuencia fraccionada con microagujas según el caso. La comodidad, la profundidad y el downtime dependen del protocolo y de la tolerancia individual, no de un ranking comercial entre marcas.',
-			),
-			array(
-				'q' => '¿Cuántas sesiones necesito?',
-				'a' => 'Depende de la zona, el aplicador, el tejido y el objetivo. Se define tras valoración médica; no hay un número comercial fijo.',
+				// Aligned with process step: ambulatory + usual return <24h; visible edema 3–7 days.
+				'a' => 'Procedimiento con anestesia local, ambulatorio. La reincorporación a la rutina habitual suele ser en menos de 24 h. Edema, eritema o sensibilidad son habituales 3–7 días; si hay compromisos de imagen, conviene una baja social moderada la primera semana.',
 			),
 		),
 	);
@@ -488,8 +509,9 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 		return null;
 	}
 
-	$permalink = get_permalink( $page_id );
-	$price_from = NVX_ENDOLIFT_PRICE_FROM_EUR;
+	$permalink  = get_permalink( $page_id );
+	$price_raw  = nvx_schema_price_string( nvx_endolift_price_from_eur() );
+	$price_label = nvx_format_price_eur( nvx_endolift_price_from_eur() );
 
 	// Entity nodes cite-able by LLMs: procedure + indications + starting offer when known.
 	if ( 'endolift_facial' === $key ) {
@@ -497,7 +519,7 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
 			'@id'              => $permalink . '#medical-procedure',
 			'name'             => 'Endolift® facial para papada y línea mandibular',
-			'alternateName'    => array( 'Endolift® facial', 'Láser intersticial facial', 'Tensado subdérmico láser' ),
+			'alternateName'    => array( 'Endolift® facial', 'Láser intersticial facial' ),
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
 			'provider'         => array( '@id' => $organization_id ),
@@ -506,7 +528,7 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 			'procedureType'    => 'https://schema.org/MinimallyInvasiveProcedure',
 			'preparation'      => 'Valoración médica presencial de anatomía, calidad de piel, grasa submentoniana, ptosis y expectativas. Exclusión de ptosis severa con exceso cutáneo que requiera cirugía.',
 			'howPerformed'     => 'Tras anestesia local se inserta microfibra óptica de 200–300 micras y se aplica energía láser intersticial en patrón vectorial subdérmico adaptado a la zona.',
-			'followup'         => 'Seguimiento clínico protocolizado (típicamente semanas 4 y 8 y control posterior). Puede haber edema e inflamación los primeros días.',
+			'followup'         => 'Seguimiento clínico protocolizado (típicamente semanas 4 y 8 y control posterior). Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.',
 			'indication'       => array(
 				array(
 					'@type' => 'MedicalIndication',
@@ -522,15 +544,8 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 				'@id'           => $permalink . '#offer',
 				'url'           => $permalink,
 				'priceCurrency' => 'EUR',
-				'price'         => $price_from,
-				'priceSpecification' => array(
-					'@type'                 => 'PriceSpecification',
-					'priceCurrency'         => 'EUR',
-					'price'                 => $price_from,
-					'name'                  => 'Tarifa de referencia desde (valoración confirma presupuesto)',
-					'valueAddedTaxIncluded' => true,
-				),
-				'description'   => 'Precio de referencia desde ' . $price_from . ' €. Presupuesto cerrado tras valoración médica presencial.',
+				'price'         => $price_raw,
+				'description'   => 'Precio de referencia desde ' . $price_label . ' €. Presupuesto cerrado tras valoración médica presencial.',
 				'areaServed'    => 'Madrid',
 				'seller'        => array( '@id' => $organization_id ),
 			),
@@ -673,7 +688,7 @@ function nvx_schema_offer_catalog( $organization_id ) {
 	$catalog_defs = array(
 		'endolift_facial'    => array(
 			'label' => 'Endolift® facial',
-			'price' => NVX_ENDOLIFT_PRICE_FROM_EUR,
+			'price' => nvx_endolift_price_from_eur(),
 		),
 		'endolaser_corporal' => array(
 			'label' => 'Endoláser corporal',
@@ -709,10 +724,10 @@ function nvx_schema_offer_catalog( $organization_id ) {
 			'areaServed'  => 'Madrid',
 			'seller'      => array( '@id' => $organization_id ),
 		);
-		if ( ! empty( $def['price'] ) ) {
+		if ( null !== $def['price'] && $def['price'] > 0 ) {
 			$offer['priceCurrency'] = 'EUR';
-			$offer['price']         = (string) $def['price'];
-			$offer['description']   = 'Tarifa de referencia desde ' . $def['price'] . ' € (presupuesto tras valoración).';
+			$offer['price']         = nvx_schema_price_string( $def['price'] );
+			$offer['description']   = 'Tarifa de referencia desde ' . nvx_format_price_eur( $def['price'] ) . ' € (presupuesto tras valoración).';
 		}
 		$items[] = $offer;
 	}
@@ -936,7 +951,7 @@ function nvx_filter_front_metadesc( $desc ) {
 		return $desc;
 	}
 
-	return 'NUVANX es el centro médico de medicina estética láser en Madrid (Chamberí y Goya). Protocolos Endolift® desde ' . NVX_ENDOLIFT_PRICE_FROM_EUR . ' €, Láser CO₂ y EXION® BTL con valoración clínica y presupuestos documentados.';
+	return 'NUVANX es el centro médico de medicina estética láser en Madrid (Chamberí y Goya). Protocolos Endolift® desde ' . nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €, Láser CO₂ y EXION® BTL con valoración clínica y presupuestos documentados.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_front_metadesc', 20 );
 
@@ -966,7 +981,7 @@ function nvx_filter_endolift_metadesc( $desc ) {
 
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	return 'Endolift® facial en NUVANX Madrid desde ' . NVX_ENDOLIFT_PRICE_FROM_EUR . ' €: tensado subdérmico con microfibra láser para papada y contorno mandibular en casos seleccionados. Indicaciones, límites y valoración con el Dr. Rivera Tejeda (ICOMEM ' . $colegiado . ').';
+	return 'Endolift® facial en NUVANX Madrid desde ' . nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €: tensado subdérmico con microfibra láser para papada y contorno mandibular en casos seleccionados. Indicaciones, límites y valoración con el Dr. Rivera Tejeda (ICOMEM ' . $colegiado . ').';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_endolift_metadesc', 21 );
 

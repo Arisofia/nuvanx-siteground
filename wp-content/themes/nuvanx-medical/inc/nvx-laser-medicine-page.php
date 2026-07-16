@@ -57,7 +57,7 @@ function nvx_content_is_laser_medicine_page( string $content ): bool {
 
 	// Exclude treatment detail pages that share laser hero modifiers.
 	if ( preg_match(
-		'/nvx-endolift-editorial|nvx-endolift-hero|aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|nvx-brand-page--exion|aria-label=["\']EXION/iu',
+		'/nvx-endolift-editorial|nvx-endolift-hero|nvx-endolaser-editorial|nvx-endolaser-hero|nvx-co2-editorial|nvx-co2-hero|aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|id=["\']nvx-endolaser-h1["\']|id=["\']nvx-co2-h1["\']|nvx-brand-page--exion|aria-label=["\']EXION/iu',
 		$content
 	) ) {
 		return false;

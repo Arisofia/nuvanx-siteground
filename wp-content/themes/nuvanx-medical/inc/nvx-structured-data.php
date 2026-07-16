@@ -766,18 +766,25 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 	}
 
 	if ( 'laser_co2' === $key ) {
+		$co2_facial = nvx_schema_price_string( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] );
+		$co2_body   = nvx_schema_price_string( nvx_tariff_catalog()['laser_co2']['corporal']['pvp'] );
+		$label_f    = nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] );
+		$label_b    = nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['corporal']['pvp'] );
+
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
 			'@id'              => $permalink . '#medical-procedure',
-			'name'             => 'Láser CO₂ fraccionado — resurfacing y cicatrices',
+			'name'             => 'Láser CO₂ fraccionado — resurfacing epidérmico y cicatrices',
+			'alternateName'    => array( 'CO₂ fraccionado Madrid', 'Resurfacing láser CO₂' ),
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
 			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Resurfacing ablativo fraccionado para cicatrices atróficas, poros y fotodaño según profundidad y fototipo. Exige planificación médica y downtime variable (habitualmente varios días de eritema y descamación).',
+			'description'      => 'Ablación fraccionada con microcolumnas de vaporización y tejido sano peri-lesional. Indicado en cicatrices atróficas de acné, poros, textura irregular y fotodaño. Downtime típico 4–7 días; remodelación colagénica 4–6 semanas. PVP sesión facial desde ' . $label_f . ' €; corporal ' . $label_b . ' € (IVA incl.).',
 			'bodyLocation'     => 'Piel facial y zonas cutáneas seleccionadas',
-			'preparation'      => 'Evaluación de fototipo, inflamación, bronceado, medicación y objetivo (cicatriz, textura, fotodaño).',
-			'howPerformed'     => 'Microcolumnas de vaporización térmica fraccionada con tejido sano peri-lesional que acelera la regeneración.',
-			'followup'         => 'Cuidados de regeneración cutánea y protección solar; remodelación colagénica en semanas siguientes.',
+			'procedureType'    => 'https://schema.org/PercutaneousProcedure',
+			'preparation'      => 'Evaluación de fototipo, inflamación, bronceado, medicación y objetivo (cicatriz, textura, fotodaño). Compromiso con downtime y fotoprotección.',
+			'howPerformed'     => 'Microhaces de CO₂ crean columnas de vaporización térmica fraccionada; el tejido circundante acelera la curación y estimula colágeno I y III.',
+			'followup'         => 'Días 1–3 eritema y patrón punteado; días 4–7 descamación; desde día 7 recuperación visual habitual y remodelación progresiva 4–6 semanas.',
 			'indication'       => array(
 				array(
 					'@type' => 'MedicalIndication',
@@ -785,7 +792,45 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 				),
 				array(
 					'@type' => 'MedicalIndication',
-					'name'  => 'Fotodaño y textura irregular',
+					'name'  => 'Poros dilatados y textura irregular',
+				),
+				array(
+					'@type' => 'MedicalIndication',
+					'name'  => 'Fotodaño y elastosis solar',
+				),
+			),
+			'relevantCondition' => array(
+				array(
+					'@type' => 'MedicalCondition',
+					'name'  => 'Cicatrices atróficas de acné',
+				),
+				array(
+					'@type' => 'MedicalCondition',
+					'name'  => 'Fotodaño cutáneo',
+				),
+			),
+			'offers'           => array(
+				array(
+					'@type'         => 'Offer',
+					'@id'           => $permalink . '#offer-facial',
+					'name'          => 'Sesión láser CO₂ facial',
+					'url'           => $permalink . '#tarifas-co2',
+					'priceCurrency' => 'EUR',
+					'price'         => $co2_facial,
+					'description'   => 'PVP con IVA incluido: ' . $label_f . ' € por sesión facial de referencia.',
+					'areaServed'    => 'Madrid',
+					'seller'        => array( '@id' => $organization_id ),
+				),
+				array(
+					'@type'         => 'Offer',
+					'@id'           => $permalink . '#offer-corporal',
+					'name'          => 'Sesión láser CO₂ corporal',
+					'url'           => $permalink . '#tarifas-co2',
+					'priceCurrency' => 'EUR',
+					'price'         => $co2_body,
+					'description'   => 'PVP con IVA incluido: ' . $label_b . ' € por sesión corporal de referencia.',
+					'areaServed'    => 'Madrid',
+					'seller'        => array( '@id' => $organization_id ),
 				),
 			),
 		);
@@ -1207,6 +1252,36 @@ function nvx_filter_endolaser_metadesc( $desc ) {
 	return 'Endoláser corporal en NUVANX Madrid: laserlipólisis y retracción cutánea por zonas (abdomen, flancos, muslos, brazos). No es tratamiento de obesidad. Valoración y presupuesto personalizado en Chamberí y Goya.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_endolaser_metadesc', 21 );
+
+/**
+ * Láser CO₂ document title.
+ *
+ * @param string $title Current title.
+ * @return string
+ */
+function nvx_filter_co2_document_title( $title ) {
+	if ( 'laser_co2' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
+		return $title;
+	}
+
+	return 'Láser CO₂ Fraccionado en Madrid: Cicatrices, Textura y Downtime | NUVANX';
+}
+add_filter( 'wpseo_title', 'nvx_filter_co2_document_title', 21 );
+
+/**
+ * @param string $desc Meta description.
+ * @return string
+ */
+function nvx_filter_co2_metadesc( $desc ) {
+	if ( 'laser_co2' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
+		return $desc;
+	}
+
+	$facial = nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] );
+
+	return 'Láser CO₂ fraccionado en NUVANX Madrid: resurfacing para cicatrices de acné, poros y fotodaño. Downtime 4–7 días. PVP sesión facial desde ' . $facial . ' €. Valoración en Chamberí y Goya.';
+}
+add_filter( 'wpseo_metadesc', 'nvx_filter_co2_metadesc', 21 );
 
 // Pages / front only: strip Schema.org payloads from post_content (shared helper).
 // Non-schema ld+json and non-page views are left alone. See nvx-jsonld-content.php.

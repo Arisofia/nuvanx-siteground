@@ -344,25 +344,67 @@ function nvx_content_ensure_post_values_action_banner( string $content ): string
 }
 
 /**
- * Replace numbered method lists with icon columns.
+ * Legacy / CMS method section patterns (pre-transform markup).
+ *
+ * @return string[]
+ */
+function nvx_content_method_legacy_patterns(): array {
+	return array(
+		'/<section\b[^>]*class="[^"]*nvx-v3-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
+		'/<section\b[^>]*class="[^"]*nvx-home-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
+		// CMS copies that use aria-label Método but are not yet our columns markup.
+		'/<section\b(?![^>]*\bnvx-method-section\b)[^>]*aria-label="[^"]*Método[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
+	);
+}
+
+/**
+ * Strip leftover method sections after one canonical block is present.
+ */
+function nvx_content_strip_extra_method_sections( string $content ): string {
+	// Drop any remaining legacy CMS method blocks.
+	foreach ( nvx_content_method_legacy_patterns() as $pattern ) {
+		$content = nvx_content_preg_replace_keep( $pattern, '', $content );
+	}
+
+	// Keep only the first canonical method section; remove further copies.
+	$seen = 0;
+	$updated = preg_replace_callback(
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-method-section\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+		static function ( array $m ) use ( &$seen ): string {
+			$seen++;
+			return ( 1 === $seen ) ? $m[0] : '';
+		},
+		$content
+	);
+
+	return is_string( $updated ) ? $updated : $content;
+}
+
+/**
+ * Replace numbered method lists with icon columns — at most one block on the page.
  */
 function nvx_content_replace_method_sections( string $content ): string {
+	// Already transformed: still dedupe if CMS + filter left two copies.
 	if ( false !== strpos( $content, 'nvx-method-section' ) || false !== strpos( $content, 'nvx-method-columns' ) ) {
-		return $content;
+		return nvx_content_strip_extra_method_sections( $content );
 	}
 
 	$replacement = nvx_method_section_markup();
-	$patterns    = array(
-		'/<section\b[^>]*class="[^"]*nvx-v3-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
-		'/<section\b[^>]*class="[^"]*nvx-home-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
-		'/<section\b[^>]*aria-label="[^"]*Método[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
-	);
+	$replaced    = false;
 
-	foreach ( $patterns as $pattern ) {
-		$updated = preg_replace( $pattern, $replacement, $content, -1, $count );
+	// One replacement only (first match wins), then strip siblings.
+	foreach ( nvx_content_method_legacy_patterns() as $pattern ) {
+		$count   = 0;
+		$updated = preg_replace( $pattern, $replacement, $content, 1, $count );
 		if ( is_string( $updated ) && $count > 0 ) {
-			$content = $updated;
+			$content  = $updated;
+			$replaced = true;
+			break;
 		}
+	}
+
+	if ( $replaced ) {
+		$content = nvx_content_strip_extra_method_sections( $content );
 	}
 
 	return $content;

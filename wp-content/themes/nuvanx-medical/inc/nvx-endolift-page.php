@@ -13,15 +13,42 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Whether the current main query is a singular page suitable for rewrite.
+ */
+function nvx_endolift_is_singular_context(): bool {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return false;
+	}
+
+	// Prefer real page views; still allow content that carries structural Endolift markers
+	// when queried via the main loop (avoids rewriting random posts/excerpts).
+	return is_singular( 'page' ) || is_page();
+}
+
+/**
  * Detect Endolift facial treatment content before rewrite.
+ * Anchors primarily on stable structural markers (aria-label / ids / brand classes).
  */
 function nvx_content_is_endolift_page( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-endolift-editorial' ) ) {
 		return false;
 	}
 
+	if ( ! nvx_endolift_is_singular_context() ) {
+		return false;
+	}
+
+	// Structural markers first (stable across copy edits).
+	if ( preg_match(
+		'/aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|class=["\'][^"\']*nvx-endolift-hero/iu',
+		$content
+	) ) {
+		return true;
+	}
+
+	// Fallback: known brand-page laser hero + Endolift product framing (not laser hub alone).
 	return (bool) preg_match(
-		'/Endolift facial NUVANX|nvx-brand-hero--laser[\s\S]{0,800}Endolift|Endolift® facial para papada|endolift-facial-papada/iu',
+		'/nvx-brand-hero--laser[\s\S]{0,1200}Endolift®?[\s\S]{0,400}(papada|mand[ií]bul)/iu',
 		$content
 	);
 }

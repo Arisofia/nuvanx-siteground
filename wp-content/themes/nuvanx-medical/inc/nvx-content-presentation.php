@@ -456,7 +456,7 @@ function nvx_content_unify_ctas( string $content ): string {
 		'/<a\b([^>]*)>(\s*Reservar valoración gratuita\s*)<\/a>/iu',
 		static function ( array $m ) use ( $valoracion_url ): string {
 			$attrs = $m[1];
-			$attrs = preg_replace( '/\s*href=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*href=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
 			return '<a' . $attrs . ' href="' . esc_url( $valoracion_url ) . '">' . $m[2] . '</a>';
 		},
 		$content
@@ -467,9 +467,9 @@ function nvx_content_unify_ctas( string $content ): string {
 		'/<a\b([^>]*)>(\s*Contactar por WhatsApp\s*)<\/a>/iu',
 		static function ( array $m ) use ( $whatsapp_url ): string {
 			$attrs = $m[1];
-			$attrs = preg_replace( '/\s*href=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
-			$attrs = preg_replace( '/\s*target=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
-			$attrs = preg_replace( '/\s*rel=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*href=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*target=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*rel=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
 			return '<a' . $attrs . ' href="' . esc_url( $whatsapp_url ) . '" target="_blank" rel="noopener noreferrer">' . $m[2] . '</a>';
 		},
 		$content
@@ -498,9 +498,32 @@ function nvx_content_unify_ctas( string $content ): string {
  */
 function nvx_content_strip_hero_inline_styles( string $content ): string {
 	// Opening tags for hero stages / copy that may carry legacy inline layout.
-	$pattern = '/(<(?:section|div)\b[^>]*\bclass="[^"]*\b(?:nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage|nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy|nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner)\b[^"]*"[^>]*)\s+style="[^"]*"/iu';
-	$updated = preg_replace( $pattern, '$1', $content );
+	$hero_bits = 'nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage';
+	$copy_bits = 'nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy';
+	$inner_bits = 'nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner';
+	$pattern    = '/(<(?:section|div)\b[^>]*\bclass="[^"]*\b(?:' . $hero_bits . '|' . $copy_bits . '|' . $inner_bits . ')\b[^"]*"[^>]*)\s+style="[^"]*"/iu';
+	$updated    = preg_replace( $pattern, '$1', $content );
 	return is_string( $updated ) ? $updated : $content;
+}
+
+/**
+ * Append a CSS class token to an HTML attribute string.
+ */
+function nvx_html_attrs_add_class( string $attrs, string $class_token ): string {
+	if ( preg_match( '/\bclass=(["\'])([^"\']*)\1/i', $attrs, $cm ) ) {
+		if ( false !== strpos( $cm[2], $class_token ) ) {
+			return $attrs;
+		}
+		$updated = preg_replace(
+			'/\bclass=(["\'])/',
+			'class=$1' . $class_token . ' ',
+			$attrs,
+			1
+		);
+		return is_string( $updated ) ? $updated : $attrs;
+	}
+
+	return $attrs . ' class="' . esc_attr( $class_token ) . '"';
 }
 
 /**
@@ -508,62 +531,32 @@ function nvx_content_strip_hero_inline_styles( string $content ): string {
  * Heroes are left untouched (full-bleed stage).
  */
 function nvx_content_normalize_body_media( string $content ): string {
-	// Tag non-hero figures for shared figure rhythm.
+	$skip_figure = 'nvx-brand-hero__media|nvx-editorial-hero__media|nvx-page-hero__media|nvx-hero__media|nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula';
+
 	$updated = preg_replace_callback(
 		'/<figure\b([^>]*)>/iu',
-		static function ( array $m ): string {
+		static function ( array $m ) use ( $skip_figure ): string {
 			$attrs = $m[1];
-			if ( preg_match( '/nvx-brand-hero__media|nvx-editorial-hero__media|nvx-page-hero__media|nvx-hero__media|nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula/i', $attrs ) ) {
+			if ( preg_match( '/' . $skip_figure . '/i', $attrs ) ) {
 				return '<figure' . $attrs . '>';
 			}
-			if ( preg_match( '/\bclass=(["\'])([^"\']*)\1/i', $attrs, $cm ) ) {
-				if ( false === strpos( $cm[2], 'nvx-content-figure' ) ) {
-					$attrs = preg_replace(
-						'/\bclass=(["\'])/',
-						'class=$1nvx-content-figure ',
-						$attrs,
-						1
-					) ?? $attrs;
-				}
-			} else {
-				$attrs .= ' class="nvx-content-figure"';
-			}
-			return '<figure' . $attrs . '>';
+			return '<figure' . nvx_html_attrs_add_class( $attrs, 'nvx-content-figure' ) . '>';
 		},
 		$content
 	);
 	$content = is_string( $updated ) ? $updated : $content;
 
-	// Body images: drop inline layout styles, attach system media classes.
 	$updated = preg_replace_callback(
 		'/<img\b([^>]*)>/iu',
 		static function ( array $m ): string {
 			$attrs = $m[1];
-
-			// Skip logos, icons, and media already system-tagged as hero/logo.
-			if ( preg_match( '/nvx-logo|nvx-home-hero|class=["\'][^"\']*\bnvx-media--hero\b/i', $attrs ) ) {
+			if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero/i', $attrs ) ) {
 				return '<img' . $attrs . '>';
 			}
 
-			// Strip layout-affecting inline styles (width/height/margin) so CSS owns rhythm.
-			$attrs = preg_replace( '/\s+style=(["\'])[^"\']*\1/i', '', $attrs ) ?? $attrs;
-
-			if ( preg_match( '/\bclass=(["\'])([^"\']*)\1/i', $attrs, $cm ) ) {
-				$classes = $cm[2];
-				if ( false === strpos( $classes, 'nvx-media' ) ) {
-					$classes = 'nvx-media nvx-media--body ' . $classes;
-				} elseif ( false === strpos( $classes, 'nvx-media--' ) && false === strpos( $classes, 'nvx-logo' ) ) {
-					$classes .= ' nvx-media--body';
-				}
-				$attrs = preg_replace(
-					'/\bclass=(["\'])[^"\']*\1/i',
-					'class="' . esc_attr( trim( $classes ) ) . '"',
-					$attrs,
-					1
-				) ?? $attrs;
-			} else {
-				$attrs .= ' class="nvx-media nvx-media--body"';
-			}
+			$attrs = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
+			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--body' );
 
 			return '<img' . $attrs . '>';
 		},

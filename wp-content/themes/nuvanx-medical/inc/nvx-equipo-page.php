@@ -24,7 +24,7 @@ function nvx_equipo_is_singular_context(): bool {
 }
 
 /**
- * Detect equipo médico page.
+ * Detect equipo médico page only (path/markers — not every Rivera mention sitewide).
  */
 function nvx_content_is_equipo_page( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-equipo-editorial' ) ) {
@@ -35,11 +35,8 @@ function nvx_content_is_equipo_page( string $content ): bool {
 		return false;
 	}
 
-	if ( preg_match(
-		'/aria-label=["\']Equipo médico NUVANX["\']|id=["\']nvx-equipo-h1["\']|class=["\'][^"\']*nvx-equipo-hero/iu',
-		$content
-	) ) {
-		return true;
+	if ( is_front_page() || is_home() ) {
+		return false;
 	}
 
 	$path = function_exists( 'nvx_schema_current_path' )
@@ -51,7 +48,7 @@ function nvx_content_is_equipo_page( string $content ): bool {
 	}
 
 	return (bool) preg_match(
-		'/equipo\s+m[eé]dico|Dr\.\s*Jos[eé]\s+Javier\s+Rivera\s+Tejeda[\s\S]{0,400}(Director\s+M[eé]dico|ICOMEM|colegiad)/iu',
+		'/aria-label=["\']Equipo médico NUVANX["\']|id=["\']nvx-equipo-h1["\']|class=["\'][^"\']*nvx-equipo-hero/iu',
 		$content
 	);
 }

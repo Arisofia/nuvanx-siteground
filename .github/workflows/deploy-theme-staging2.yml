@@ -1,15 +1,34 @@
 name: Deploy theme to staging2 + flush cache
 
+# Auto-deploys when theme/MU code lands on master, and supports manual dispatch.
+# After deploy, runs HTTP smoke checks so missing modules are caught immediately.
+
 on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/**'
+      - 'wp-content/mu-plugins/**'
+      - 'scripts/staging2/**'
+      - '.github/workflows/deploy-theme-staging2.yml'
   workflow_dispatch:
     inputs:
       ref:
-        description: Git ref to deploy
+        description: Git ref to deploy (branch, tag, or SHA)
         required: true
         default: master
+      skip_smoke:
+        description: Skip post-deploy smoke verify (true/false)
+        required: false
+        default: 'false'
 
 permissions:
   contents: read
+
+concurrency:
+  group: deploy-staging2
+  cancel-in-progress: false
 
 env:
   STAGING_BASE_URL: https://staging2.nuvanx.com
@@ -20,10 +39,24 @@ jobs:
   deploy-and-flush:
     runs-on: ubuntu-latest
     environment: staging
+    outputs:
+      deployed_ref: ${{ steps.meta.outputs.deployed_ref }}
     steps:
+      - name: Resolve deploy ref
+        id: meta
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            REF='${{ inputs.ref }}'
+          else
+            REF='${{ github.sha }}'
+          fi
+          echo "deployed_ref=${REF}" >> "$GITHUB_OUTPUT"
+          echo "Deploying ref: ${REF}"
+
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
-          ref: ${{ inputs.ref }}
+          ref: ${{ steps.meta.outputs.deployed_ref }}
           fetch-depth: 1
 
       - name: Validate secrets and source
@@ -43,8 +76,23 @@ jobs:
           test -f "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
           php -l "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
           php -l "${{ env.THEME_REL }}/inc/nvx-integrations.php"
+          # Lint all theme PHP modules
+          find "${{ env.THEME_REL }}" -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          # Editorial modules expected on master after merges
+          for f in nvx-content-presentation.php nvx-treatments-catalog.php nvx-endolift-page.php nvx-laser-medicine-page.php; do
+            test -f "${{ env.THEME_REL }}/inc/$f" || { echo "ERROR: missing inc/$f"; exit 1; }
+            grep -q "require_once get_template_directory() . '/inc/$f'" "${{ env.THEME_REL }}/functions.php" \
+              || { echo "ERROR: $f not required in functions.php"; exit 1; }
+          done
+          # Aesthetic module is optional until PR merges
+          if [[ -f "${{ env.THEME_REL }}/inc/nvx-aesthetic-medicine-page.php" ]]; then
+            php -l "${{ env.THEME_REL }}/inc/nvx-aesthetic-medicine-page.php"
+            grep -q "nvx-aesthetic-medicine-page.php" "${{ env.THEME_REL }}/functions.php" \
+              || { echo "ERROR: aesthetic page file present but not required"; exit 1; }
+          fi
           grep -q "wpseo_schema_graph" "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
           ! grep -Eq 'Q115801923|Q124312015' "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
+          test -x scripts/staging2/smoke-verify-staging2.sh || chmod +x scripts/staging2/smoke-verify-staging2.sh
 
       - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
         with:
@@ -81,14 +129,14 @@ jobs:
             wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php \
             wp-content/mu-plugins/nuvanx-contacto-hubspot-form.php \
             "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/wp-content/mu-plugins/"
-          # Overrides legacy (zzzz*) redefinen las mismas funciones y rompen WP.
+          # Overrides legacy (zzzz*) redefine the same functions and break WP.
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "rm -f '${{ env.STAGING_PATH }}/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-valoracion-native-hubspot-form.php' \
                     '${{ env.STAGING_PATH }}/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-contacto-hubspot-form.php' \
                     '${{ env.STAGING_PATH }}/wp-content/mu-plugins/z-nuvanx-valoracion-native-hubspot-form.php' \
                     '${{ env.STAGING_PATH }}/wp-content/mu-plugins/z-nuvanx-contacto-hubspot-form.php'"
 
-      - name: Verify staging theme and flush caches
+      - name: Verify staging theme files and flush caches
         env:
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
@@ -101,7 +149,6 @@ jobs:
             THEME="$ROOT/wp-content/themes/nuvanx-medical"
             CSS="$THEME/assets/css"
             cd "$ROOT"
-            # Limpieza defensiva de overrides MU duplicados (por si rsync parcial).
             rm -f wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-valoracion-native-hubspot-form.php \
                   wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-contacto-hubspot-form.php \
                   wp-content/mu-plugins/z-nuvanx-valoracion-native-hubspot-form.php \
@@ -110,6 +157,13 @@ jobs:
             [[ "$(wp option get home)" == 'https://staging2.nuvanx.com' ]]
             [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
             grep -Eqi 'platinum|plata|9ba3ad' "$CSS/nvx-tokens.css"
+            for f in nvx-content-presentation.php nvx-treatments-catalog.php nvx-endolift-page.php nvx-laser-medicine-page.php; do
+              test -f "$THEME/inc/$f" || { echo "ERROR: remote missing $f"; exit 1; }
+              php -l "$THEME/inc/$f"
+            done
+            if [[ -f "$THEME/inc/nvx-aesthetic-medicine-page.php" ]]; then
+              php -l "$THEME/inc/nvx-aesthetic-medicine-page.php"
+            fi
             php -l "$THEME/inc/nvx-structured-data.php"
             php -l "$THEME/inc/nvx-integrations.php"
             if ! command -v wp >/dev/null 2>&1; then
@@ -152,9 +206,30 @@ jobs:
                   exit( 1 );
               }
               echo "SCHEMA_ENTITY_OK\n";
+              // Editorial filter functions present when modules loaded
+              $need = array(
+                "nvx_content_presentation_enhance",
+                "nvx_content_restructure_treatments_index",
+                "nvx_content_restructure_endolift_page",
+                "nvx_content_restructure_laser_medicine_page",
+              );
+              foreach ( $need as $fn ) {
+                if ( ! function_exists( $fn ) ) {
+                  fwrite( STDERR, "FILTER_FN_MISSING:$fn\n" );
+                  exit( 1 );
+                }
+              }
+              if ( function_exists( "nvx_content_restructure_aesthetic_medicine_page" ) ) {
+                echo "AESTHETIC_MODULE_OK\n";
+              } else {
+                echo "AESTHETIC_MODULE_ABSENT\n";
+              }
+              if ( function_exists( "nvx_home_action_banner_markup" ) ) {
+                echo "HOME_BANNER_FN_OK\n";
+              } else {
+                echo "HOME_BANNER_FN_ABSENT\n";
+              }
             '
-            grep -q 'section-y' "$CSS/nvx-brand-treatment-core.css" || true
-            ! grep -q 'font-weight: 200' "$CSS/nvx-brand-treatment-core.css" 2>/dev/null || true
             wp cache flush || true
             wp sg purge || true
             wp sg optimize combine-css disable || true
@@ -165,3 +240,25 @@ jobs:
             wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
             echo DEPLOY_FLUSH_OK
           REMOTE
+
+  smoke-verify:
+    needs: deploy-and-flush
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.skip_smoke != 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ needs.deploy-and-flush.outputs.deployed_ref }}
+          fetch-depth: 1
+
+      - name: Wait for CDN / cache edge
+        run: sleep 8
+
+      - name: HTTP smoke verify staging2 pages
+        env:
+          BASE_URL: ${{ env.STAGING_BASE_URL }}
+        run: |
+          set -euo pipefail
+          chmod +x scripts/staging2/smoke-verify-staging2.sh
+          # Soft-fail aesthetic-only if module not in this ref
+          bash scripts/staging2/smoke-verify-staging2.sh

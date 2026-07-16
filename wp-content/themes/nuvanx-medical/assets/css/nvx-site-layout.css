@@ -116,11 +116,8 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
   display: none;
 }
 
-/* Clinic hub / sede intro columns */
-.nvx-brand-page--clinicas .nvx-brand-section__inner,
-.nvx-brand-page--chamberi .nvx-brand-section__inner,
-.nvx-brand-page--goya .nvx-brand-section__inner,
-.nvx-brand-page--clinica .nvx-brand-section__inner {
+/* Clinic hub intro columns (live: nvx-brand-page--clinicas) */
+.nvx-brand-page--clinicas .nvx-brand-section__inner {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
@@ -128,19 +125,9 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
   box-sizing: border-box;
 }
 
-.nvx-brand-page--clinicas .nvx-brand-grid,
-.nvx-brand-page--chamberi .nvx-brand-grid,
-.nvx-brand-page--goya .nvx-brand-grid {
+.nvx-brand-page--clinicas .nvx-brand-grid {
   margin-block: var(--nvx-space-4) var(--nvx-space-6);
   align-items: stretch;
-}
-
-.nvx-brand-section__inner--narrow {
-  width: min(100%, 48rem);
-  max-width: 100%;
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
 }
 
 .nvx-brand-section--soft {
@@ -414,16 +401,6 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--nvx-gap-base);
-}
-
-.nvx-section-heading {
-  display: grid;
-  gap: var(--nvx-space-2);
-  margin-bottom: var(--nvx-space-6);
-}
-
-.nvx-section-heading > * {
-  margin: 0;
 }
 
 @media (max-width: 980px) {

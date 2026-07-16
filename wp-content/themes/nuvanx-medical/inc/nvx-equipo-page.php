@@ -107,6 +107,45 @@ function nvx_equipo_action_ctas_markup(): string {
 }
 
 /**
+ * Normalize a portrait snippet to a single clean <img> (doctor crop).
+ *
+ * @param string $media Figure or img HTML from CMS.
+ * @return string Safe img markup or empty.
+ */
+function nvx_equipo_clean_portrait_img( string $media ): string {
+	if ( '' === trim( $media ) || ! preg_match( '/<img\b([^>]*)>/iu', $media, $m ) ) {
+		return '';
+	}
+
+	$attrs = $m[1];
+	$attrs = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+	$attrs = preg_replace( '/\s+(?:width|height)=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+	$attrs = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $attrs ) ?? $attrs;
+
+	if ( function_exists( 'nvx_html_attrs_add_class' ) ) {
+		$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
+		$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--doctor' );
+	} elseif ( ! preg_match( '/\bclass=/i', $attrs ) ) {
+		$attrs .= ' class="nvx-media nvx-media--doctor"';
+	}
+
+	// Prefer high-res src if srcset present but leave srcset intact for responsive.
+	return '<img' . $attrs . ' loading="lazy" decoding="async">';
+}
+
+/**
+ * Portrait frame markup for authority profiles.
+ */
+function nvx_equipo_portrait_figure_markup( string $media, string $label ): string {
+	$img = nvx_equipo_clean_portrait_img( $media );
+	if ( '' === $img ) {
+		return '';
+	}
+
+	return '<figure class="nvx-equipo-portrait" aria-label="' . esc_attr( $label ) . '">' . $img . '</figure>';
+}
+
+/**
  * Whether a card/block is the director Rivera Tejeda.
  */
 function nvx_equipo_block_is_rivera_tejeda( string $html ): bool {
@@ -173,6 +212,51 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
  *
  * @param string[] $other_cards HTML cards.
  */
+/**
+ * Normalize a CMS staff card: team class + portrait media crop.
+ */
+function nvx_equipo_normalize_staff_card( string $card ): string {
+	if ( preg_match( '/\bclass=(["\'])/u', $card ) && false === strpos( $card, 'nvx-brand-card--team' ) ) {
+		$card = preg_replace( '/\bclass=(["\'])/u', 'class=$1nvx-brand-card--team ', $card, 1 ) ?? $card;
+	}
+
+	// Portrait frame on card media.
+	$card = preg_replace_callback(
+		'/(<figure\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card__media\b)([^"\']*)(["\'][^>]*>)([\s\S]*?)(<\/figure>)/iu',
+		static function ( array $m ): string {
+			$open = $m[1] . $m[2];
+			if ( false === strpos( $open . $m[3], 'nvx-brand-card__media--portrait' ) ) {
+				$open .= ' nvx-brand-card__media--portrait';
+			}
+			$inner = $m[4];
+			if ( preg_match( '/<img\b([^>]*)>/iu', $inner, $im ) ) {
+				$img   = nvx_equipo_clean_portrait_img( $im[0] );
+				$inner = preg_replace( '/<img\b[^>]*>/iu', $img, $inner, 1 ) ?? $inner;
+			}
+			return $open . $m[3] . $inner . $m[5];
+		},
+		$card
+	) ?? $card;
+
+	// Bare img without figure.
+	if ( false === strpos( $card, 'nvx-brand-card__media' ) && preg_match( '/<img\b[^>]*>/iu', $card, $im ) ) {
+		$img  = nvx_equipo_clean_portrait_img( $im[0] );
+		$card = preg_replace(
+			'/<img\b[^>]*>/iu',
+			'<figure class="nvx-brand-card__media nvx-brand-card__media--portrait">' . $img . '</figure>',
+			$card,
+			1
+		) ?? $card;
+	}
+
+	return is_string( $card ) ? $card : '';
+}
+
+/**
+ * Markup for remaining clinical team (CMS cards, not the two authority profiles).
+ *
+ * @param string[] $other_cards HTML cards.
+ */
 function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 	if ( empty( $other_cards ) ) {
 		return '';
@@ -183,12 +267,12 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Equipo clínico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-endolift-heading">' . esc_html__( 'Resto del equipo médico NUVANX', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Profesionales que atienden valoración, seguimiento y protocolos en Chamberí y Goya, junto a la dirección médica y al criterio científico de la clínica.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<div class="nvx-brand-grid nvx-equipo-staff-grid">';
+	$html .= '<div class="nvx-equipo-staff-grid">';
 	foreach ( $other_cards as $card ) {
-		if ( false === strpos( $card, 'nvx-brand-card--team' ) && preg_match( '/\bclass=(["\'])/u', $card ) ) {
-			$card = preg_replace( '/\bclass=(["\'])/u', 'class=$1nvx-brand-card--team ', $card, 1 ) ?? $card;
+		$card = nvx_equipo_normalize_staff_card( $card );
+		if ( '' !== $card ) {
+			$html .= $card;
 		}
-		$html .= $card;
 	}
 	$html .= '</div></div></section>';
 
@@ -206,22 +290,24 @@ function nvx_equipo_director_authority_markup( string $rivera_media = '' ): stri
 
 	$html  = '<div class="nvx-equipo-director" id="physician-rivera-tejeda">';
 
-	// A. Profile (+ optional portrait from his CMS card only).
+	// A. Profile: portrait + copy in structured grid.
 	$html .= '<section class="nvx-endolift-section nvx-equipo-profile" aria-labelledby="nvx-equipo-profile-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	if ( '' !== $rivera_media ) {
-		$html .= '<div class="nvx-equipo-director-media nvx-brand-card__media nvx-brand-card__media--portrait">' . $rivera_media . '</div>';
+	$html .= '<div class="nvx-endolift-section__inner nvx-equipo-profile-layout">';
+	$portrait = nvx_equipo_portrait_figure_markup( $rivera_media, __( 'Dr. José Javier Rivera Tejeda', 'nuvanx-medical' ) );
+	if ( '' !== $portrait ) {
+		$html .= $portrait;
 	}
+	$html .= '<div class="nvx-equipo-profile-layout__copy">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Director médico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-endolift-heading">' . esc_html__( 'Dr. José Javier Rivera Tejeda: Dirección Médica e Investigación Clínica Aplicada', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html(
+	$html .= '<p class="nvx-endolift-body">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
 			__( 'Con número de colegiación ICOMEM %s, el Dr. José Javier Rivera Tejeda ostenta la Dirección Médica de las clínicas NUVANX en Madrid. Médico estético especializado en tecnologías láser intervencionistas y medicina regenerativa tisular.', 'nuvanx-medical' ),
 			$colegiado
 		)
 	) . '</p>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . wp_kses(
+	$html .= '<p class="nvx-endolift-body">' . wp_kses(
 		sprintf(
 			/* translators: %s: Doctoralia URL */
 			__( 'Su perfil público en <a class="nvx-brand-inline-link" href="%s" target="_blank" rel="noopener noreferrer">Doctoralia</a> concentra reseñas certificadas de pacientes (consultables en el directorio). Es el responsable del diseño de los protocolos de tratamiento en NUVANX: la aparatología se subordina al diagnóstico, no al revés.', 'nuvanx-medical' ),
@@ -236,7 +322,7 @@ function nvx_equipo_director_authority_markup( string $rivera_media = '' ): stri
 			),
 		)
 	) . '</p>';
-	$html .= '</div></section>';
+	$html .= '</div></div></section>';
 
 	// B. Subespecialización.
 	$html .= '<section class="nvx-endolift-section nvx-equipo-scope" aria-labelledby="nvx-equipo-scope-title">';
@@ -310,14 +396,16 @@ function nvx_equipo_director_authority_markup( string $rivera_media = '' ): stri
 function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 	$html  = '<div class="nvx-equipo-ivon" id="physician-rivera-deras">';
 	$html .= '<section class="nvx-endolift-section nvx-equipo-profile" aria-labelledby="nvx-equipo-ivon-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	if ( '' !== $ivon_media ) {
-		$html .= '<div class="nvx-equipo-director-media nvx-brand-card__media nvx-brand-card__media--portrait">' . $ivon_media . '</div>';
+	$html .= '<div class="nvx-endolift-section__inner nvx-equipo-profile-layout">';
+	$portrait = nvx_equipo_portrait_figure_markup( $ivon_media, __( 'Dra. Ivon Yamileth Rivera Deras', 'nuvanx-medical' ) );
+	if ( '' !== $portrait ) {
+		$html .= $portrait;
 	}
+	$html .= '<div class="nvx-equipo-profile-layout__copy">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Well-aging y geriatría preventiva', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-equipo-ivon-title" class="nvx-endolift-heading">' . esc_html__( 'Dra. Ivon Yamileth Rivera Deras: Referente Científico en Well-Aging y Geriatría Preventiva', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'La Dra. Rivera Deras aporta a NUVANX autoridad en medicina funcional, longevidad y well-aging. Su perfil combina asistencia hospitalaria pública e investigación epidemiológica, de modo que los protocolos de rejuvenecimiento se alinean con estándares de medicina basada en la evidencia.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div></section>';
+	$html .= '<p class="nvx-endolift-body">' . esc_html__( 'La Dra. Rivera Deras aporta a NUVANX autoridad en medicina funcional, longevidad y well-aging. Su perfil combina asistencia hospitalaria pública e investigación epidemiológica, de modo que los protocolos de rejuvenecimiento se alinean con estándares de medicina basada en la evidencia.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</div></div></section>';
 
 	$html .= '<section class="nvx-endolift-section" aria-labelledby="nvx-equipo-ivon-public-title">';
 	$html .= '<div class="nvx-endolift-section__inner">';

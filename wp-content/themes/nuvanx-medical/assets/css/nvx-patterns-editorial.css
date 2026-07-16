@@ -1231,20 +1231,23 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-equipo-editorial > .nvx-equipo-director,
-.nvx-equipo-editorial > .nvx-equipo-ivon {
+.nvx-equipo-editorial > .nvx-equipo-ivon,
+.nvx-equipo-editorial > .nvx-equipo-fabio {
   border-bottom: 1px solid var(--nvx-color-line, #e5e5e5);
 }
 
 /* Stack authority sections with consistent vertical rhythm */
 .nvx-equipo-director,
-.nvx-equipo-ivon {
+.nvx-equipo-ivon,
+.nvx-equipo-fabio {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
 .nvx-equipo-director > .nvx-endolift-section,
-.nvx-equipo-ivon > .nvx-endolift-section {
+.nvx-equipo-ivon > .nvx-endolift-section,
+.nvx-equipo-fabio > .nvx-endolift-section {
   padding-block: clamp(28px, 4vw, 48px);
 }
 
@@ -1395,9 +1398,9 @@ figure.nvx-equipo-portrait,
 }
 
 @media (min-width: 960px) {
-  /* 4 equal clinician cards on desktop when staff size is 4 */
+  /* Remaining clinical team (typically 3 after authority profiles) */
   .nvx-equipo-staff-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

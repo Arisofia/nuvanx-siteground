@@ -72,7 +72,11 @@ body.admin-bar #nvx-header { top: 32px; }
   list-style: none;
 }
 
-.nvx-nav__item { position: relative; }
+/* WP menu items may not have .nvx-nav__item — position every top-level li. */
+.nvx-nav__item,
+.nvx-nav__list > li {
+  position: relative;
+}
 
 .nvx-nav__link,
 .nvx-nav__list > li > a {
@@ -110,33 +114,68 @@ body.admin-bar #nvx-header { top: 32px; }
 .nvx-nav__link:focus-visible::after,
 .nvx-nav__list > li > a:hover::after,
 .nvx-nav__list > li > a:focus-visible::after,
-.nvx-nav__list > li.current-menu-item > a::after {
+.nvx-nav__list > li.current-menu-item > a::after,
+.nvx-nav__list > li.current-menu-ancestor > a::after {
   transform: scaleX(1);
 }
 
+/* Dropdown opens BELOW the parent item (not centered under the whole nav). */
 .nvx-nav__list .sub-menu {
   position: absolute;
-  top: 100%;
-  left: 50%;
-  z-index: 10;
-  min-width: 240px;
+  top: calc(100% + 4px);
+  left: 0;
+  right: auto;
+  z-index: 1200;
+  min-width: 260px;
+  max-width: min(320px, 70vw);
   margin: 0;
   padding: 12px 0;
   list-style: none;
   background: var(--nvx-pearl);
   border: 1px solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card);
+  box-shadow: var(--nvx-shadow-soft);
   opacity: 0;
   visibility: hidden;
-  transform: translate(-50%, 8px);
+  pointer-events: none;
+  transform: translateY(6px);
   transition: opacity 160ms ease, visibility 160ms ease, transform 160ms ease;
 }
 
-.nvx-nav__list li:hover > .sub-menu,
-.nvx-nav__list li:focus-within > .sub-menu {
+/* Last items (near CTA): align panel to the right edge of the parent. */
+.nvx-nav__list > li:nth-last-child(-n + 2) > .sub-menu {
+  left: auto;
+  right: 0;
+}
+
+.nvx-nav__list > li:hover > .sub-menu,
+.nvx-nav__list > li:focus-within > .sub-menu {
   opacity: 1;
   visibility: visible;
-  transform: translate(-50%, 0);
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+/* Nested submenu flies out to the side, not further right of viewport. */
+.nvx-nav__list .sub-menu .sub-menu {
+  top: 0;
+  left: 100%;
+  right: auto;
+  margin-left: 4px;
+  transform: translateY(0) translateX(4px);
+}
+
+.nvx-nav__list > li:nth-last-child(-n + 2) .sub-menu .sub-menu {
+  left: auto;
+  right: 100%;
+  margin-left: 0;
+  margin-right: 4px;
+}
+
+.nvx-nav__list .sub-menu li {
+  position: relative;
+  margin: 0;
+  padding: 0;
 }
 
 .nvx-nav__list .sub-menu a {
@@ -144,8 +183,16 @@ body.admin-bar #nvx-header { top: 32px; }
   padding: 11px 20px;
   font-family: var(--nvx-sans);
   font-size: 0.84rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
   color: var(--nvx-text-body);
   text-decoration: none;
+  white-space: normal;
+}
+
+.nvx-nav__list .sub-menu a::after {
+  display: none;
 }
 
 .nvx-nav__list .sub-menu a:hover,

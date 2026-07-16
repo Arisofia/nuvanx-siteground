@@ -26,7 +26,7 @@ jobs:
           ref: ${{ inputs.ref }}
           fetch-depth: 1
 
-      - name: Validate secrets
+      - name: Validate secrets and source
         env:
           SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
@@ -40,6 +40,11 @@ jobs:
           done
           test -f "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
           grep -Eqi 'platinum|plata|9ba3ad' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
+          test -f "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
+          php -l "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
+          php -l "${{ env.THEME_REL }}/inc/nvx-integrations.php"
+          grep -q "wpseo_schema_graph" "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
+          ! grep -Eq 'Q115801923|Q124312015' "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
 
       - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
         with:
@@ -83,7 +88,7 @@ jobs:
                     '${{ env.STAGING_PATH }}/wp-content/mu-plugins/z-nuvanx-valoracion-native-hubspot-form.php' \
                     '${{ env.STAGING_PATH }}/wp-content/mu-plugins/z-nuvanx-contacto-hubspot-form.php'"
 
-      - name: Flush caches
+      - name: Verify staging theme and flush caches
         env:
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
@@ -93,7 +98,8 @@ jobs:
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' <<'REMOTE'
             set -euo pipefail
             ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
-            CSS="$ROOT/wp-content/themes/nuvanx-medical/assets/css"
+            THEME="$ROOT/wp-content/themes/nuvanx-medical"
+            CSS="$THEME/assets/css"
             cd "$ROOT"
             # Limpieza defensiva de overrides MU duplicados (por si rsync parcial).
             rm -f wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-valoracion-native-hubspot-form.php \
@@ -101,7 +107,28 @@ jobs:
                   wp-content/mu-plugins/z-nuvanx-valoracion-native-hubspot-form.php \
                   wp-content/mu-plugins/z-nuvanx-contacto-hubspot-form.php
             [[ "$(wp option get siteurl)" == 'https://staging2.nuvanx.com' ]]
+            [[ "$(wp option get home)" == 'https://staging2.nuvanx.com' ]]
+            [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
             grep -Eqi 'platinum|plata|9ba3ad' "$CSS/nvx-tokens.css"
+            php -l "$THEME/inc/nvx-structured-data.php"
+            php -l "$THEME/inc/nvx-integrations.php"
+            wp eval '
+              if ( ! function_exists( "nvx_schema_clinics" ) || ! has_filter( "wpseo_schema_graph", "nvx_extend_yoast_schema_graph" ) ) {
+                  fwrite( STDERR, "SCHEMA_HOOK_MISSING\n" );
+                  exit( 1 );
+              }
+              $clinics = nvx_schema_clinics();
+              if (
+                  ( $clinics["chamberi"]["identifier"]["value"] ?? "" ) !== "CS20144"
+                  || ( $clinics["goya"]["identifier"]["value"] ?? "" ) !== "CS20073"
+                  || ( $clinics["chamberi"]["telephone"] ?? "" ) !== "+34669319836"
+                  || ( $clinics["goya"]["telephone"] ?? "" ) !== "+34647505107"
+              ) {
+                  fwrite( STDERR, "SCHEMA_ENTITY_MISMATCH\n" );
+                  exit( 1 );
+              }
+              echo "SCHEMA_ENTITY_OK\n";
+            '
             grep -q 'section-y' "$CSS/nvx-brand-treatment-core.css" || true
             ! grep -q 'font-weight: 200' "$CSS/nvx-brand-treatment-core.css" 2>/dev/null || true
             wp cache flush || true

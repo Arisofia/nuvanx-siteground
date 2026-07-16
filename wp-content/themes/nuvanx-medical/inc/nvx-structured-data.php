@@ -585,24 +585,23 @@ function nvx_schema_faq_catalog() {
 		'endolift_facial' => array(
 			array(
 				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
-				'a' => 'Los precios públicos (PVP con IVA incluido) parten desde ' . $from . ' € (ojeras). Papada y marcación mandibular: ' . $papada . ' €. Combos facial (p. ej. papada y cuello, Full Face) se detallan en la tabla de la página. El plan y el presupuesto se confirman tras valoración anatómica presencial.',
+				'a' => 'PVP con IVA incluido desde ' . $from . ' € (ojeras). Papada y marcación mandibular: ' . $papada . ' € cada una. Full Face y combos en la tabla de tarifas de la página. El presupuesto se cierra tras valoración anatómica presencial.',
 			),
 			array(
 				'q' => '¿Endolift® es para cualquier papada o flacidez?',
-				'a' => 'No. Está indicado en flacidez leve–moderada y grasa submentoniana seleccionada. La ptosis severa con exceso cutáneo suele requerir cirugía plástica; en ese caso se deriva, no se fuerza el láser.',
+				'a' => 'No. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. La ptosis severa con exceso cutáneo se deriva a cirugía plástica; no se fuerza el láser.',
 			),
 			array(
-				'q' => '¿Cuánto duran los resultados del Endolift®?',
-				'a' => 'Al inducir colágeno profundo, los efectos no se comportan como un relleno temporal. La firmeza suele sostenerse entre 18 meses y 3 años según envejecimiento individual, sol, tabaquismo y genética. El seguimiento médico personaliza expectativas.',
+				'q' => '¿Cuál es la durabilidad real de los resultados del Endolift®?',
+				'a' => 'Al inducir colágeno profundo, no se comporta como un relleno temporal. La firmeza suele sostenerse entre 18 meses y 3 años según envejecimiento, sol, tabaquismo y genética. El seguimiento personaliza expectativas.',
 			),
 			array(
 				'q' => '¿El Endolift® sustituye al ácido hialurónico?',
-				'a' => 'No. Actúan en planos complementarios: Endolift® tensa piel y tejido conectivo y puede reducir grasa localizada; los rellenos o inductores aportan soporte volumétrico. Criterio habitual: tensar primero y rellenar después solo si está indicado.',
+				'a' => 'No. Planos complementarios: Endolift® tensa piel y tejido conectivo y puede reducir grasa; rellenos o inductores aportan soporte volumétrico. Criterio NUVANX: tensar primero y rellenar después solo si está indicado.',
 			),
 			array(
-				'q' => '¿Cómo es la recuperación y el dolor?',
-				// Aligned with process step: ambulatory + usual return <24h; visible edema 3–7 days.
-				'a' => 'Procedimiento con anestesia local, ambulatorio. La reincorporación a la rutina habitual suele ser en menos de 24 h. Edema, eritema o sensibilidad son habituales 3–7 días; si hay compromisos de imagen, conviene una baja social moderada la primera semana.',
+				'q' => '¿Cómo es la recuperación y el dolor post-tratamiento?',
+				'a' => 'Anestesia local; ambulatorio. Reincorporación habitual en menos de 24 h. Edema, tirantez o hematomas leves 3–5 días (a veces hasta 7). Baja social moderada la primera semana si hay compromisos de imagen.',
 			),
 		),
 	);
@@ -687,6 +686,17 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 				array(
 					'@type' => 'MedicalIndication',
 					'name'  => 'Adiposidad submentoniana (papada) seleccionada',
+				),
+			),
+			// MedicalCondition links for GEO entity extraction (mirrors visible indications).
+			'relevantCondition' => array(
+				array(
+					'@type' => 'MedicalCondition',
+					'name'  => 'Flacidez facial',
+				),
+				array(
+					'@type' => 'MedicalCondition',
+					'name'  => 'Adiposidad submentoniana',
 				),
 			),
 			// Primary offer = papada/mandibular (page intent); “desde” ojeras is in description + HTML table.
@@ -1133,7 +1143,7 @@ function nvx_filter_endolift_document_title( $title ) {
 		return $title;
 	}
 
-	return 'Endolift® Facial en Madrid: Precio, Técnica y Valoración Médica | NUVANX';
+	return 'Endolift Facial en Madrid: Precio, Resultados Reales y Doctor Especialista | NUVANX';
 }
 add_filter( 'wpseo_title', 'nvx_filter_endolift_document_title', 21 );
 
@@ -1147,8 +1157,10 @@ function nvx_filter_endolift_metadesc( $desc ) {
 	}
 
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+	$from      = nvx_format_price_eur( nvx_endolift_price_from_eur() );
+	$papada    = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
 
-	return 'Endolift® facial en NUVANX Madrid desde ' . nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €: tensado subdérmico con microfibra láser para papada y contorno mandibular en casos seleccionados. Indicaciones, límites y valoración con el Dr. Rivera Tejeda (ICOMEM ' . $colegiado . ').';
+	return 'Endolift® facial en Madrid: técnica, indicaciones, comparación con lifting y PVP desde ' . $from . ' € (papada/mandíbula ' . $papada . ' €). Dr. Rivera Tejeda, ICOMEM ' . $colegiado . '. Valoración en Chamberí y Goya.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_endolift_metadesc', 21 );
 

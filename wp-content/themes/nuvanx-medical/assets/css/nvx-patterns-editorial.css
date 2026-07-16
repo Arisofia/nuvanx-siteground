@@ -735,11 +735,50 @@ article.nvx-page > .nvx-page-hero {
 
 /* ═══════════════════════════════════════════════════════════
    ENDOLIFT EDITORIAL PAGE — authority flow
+   Hero antracita #1C1C1C · alabastro #F5E8D8 · process #C5A880
    ═══════════════════════════════════════════════════════════ */
 
+.nvx-endolift-hero.nvx-brand-hero,
+.nvx-endolift-hero {
+  background: #1c1c1c;
+  color: #f5e8d8;
+  padding-block: 96px;
+}
+
+.nvx-endolift-hero .nvx-brand-kicker,
+.nvx-endolift-hero .nvx-brand-meta {
+  color: rgba(245, 232, 216, 0.72);
+}
+
+.nvx-endolift-hero .nvx-brand-hero__title {
+  color: #f5e8d8;
+}
+
+.nvx-endolift-hero .nvx-brand-hero__lead {
+  color: rgba(245, 232, 216, 0.9);
+}
+
+.nvx-endolift-hero-copy .nvx-brand-hero__description {
+  max-width: 48ch;
+  margin-top: var(--nvx-space-2, 16px);
+  color: rgba(245, 232, 216, 0.88);
+}
+
+.nvx-endolift-hero .nvx-brand-btn--primary {
+  background: #f5e8d8;
+  color: #1c1c1c;
+  border-color: #f5e8d8;
+}
+
+.nvx-endolift-hero .nvx-brand-btn--secondary {
+  color: #f5e8d8;
+  border-color: rgba(245, 232, 216, 0.5);
+  background: transparent;
+}
+
 .nvx-endolift-section {
-  padding-block: var(--nvx-space-12, 96px);
-  background: var(--nvx-white);
+  padding-block: 96px;
+  background: #ffffff;
   color: var(--nvx-ink);
 }
 
@@ -752,7 +791,7 @@ article.nvx-page > .nvx-page-hero {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
+  padding-inline: 3rem; /* px-12 desktop safety margin */
   box-sizing: border-box;
 }
 
@@ -768,7 +807,7 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-endolift-heading {
   margin: 0 0 var(--nvx-space-4, 32px);
-  max-width: 20ch;
+  max-width: 22ch;
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h2);
   font-weight: 400;
@@ -790,8 +829,8 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-endolift-diagnosis__grid {
   display: grid;
-  grid-template-columns: minmax(0, 6fr) minmax(0, 4fr);
-  gap: var(--nvx-space-4, 32px);
+  grid-template-columns: minmax(0, 6fr) minmax(0, 4fr); /* 60/40 */
+  gap: 32px;
   align-items: start;
 }
 
@@ -799,7 +838,7 @@ article.nvx-page > .nvx-page-hero {
   padding: var(--nvx-space-4, 32px);
   border: 1px solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card);
-  background: var(--nvx-pearl);
+  background: #f9f9f9;
 }
 
 .nvx-endolift-panel-label {
@@ -809,7 +848,7 @@ article.nvx-page > .nvx-page-hero {
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--nvx-platinum);
+  color: #c5a880;
 }
 
 .nvx-endolift-panel-list {
@@ -835,10 +874,10 @@ article.nvx-page > .nvx-page-hero {
 .nvx-endolift-formula {
   margin: var(--nvx-space-6, 48px) 0;
   padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
-  border: 1px solid var(--nvx-color-line);
+  border: 1px solid rgba(197, 168, 128, 0.28);
   border-radius: var(--nvx-radius-card);
-  background: var(--nvx-ink);
-  color: var(--nvx-white);
+  background: #1c1c1c;
+  color: #f5e8d8;
   text-align: center;
 }
 
@@ -852,7 +891,7 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-endolift-formula__cap {
   margin: 0 auto;
-  max-width: 48ch;
+  max-width: 52ch;
   font-family: var(--nvx-sans);
   font-size: 0.8125rem;
   line-height: 1.55;
@@ -862,7 +901,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-endolift-effects {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--nvx-space-4, 32px);
+  gap: 32px;
   margin-top: var(--nvx-space-4, 32px);
 }
 
@@ -882,7 +921,15 @@ article.nvx-page > .nvx-page-hero {
 .nvx-endolift-process-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--nvx-space-4, 32px);
+  gap: 32px;
+}
+
+.nvx-endolift-step__icon {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: var(--nvx-space-2, 16px);
+  color: #c5a880; /* Champagne Bronce */
 }
 
 .nvx-endolift-step__n {
@@ -892,7 +939,7 @@ article.nvx-page > .nvx-page-hero {
   font-size: 0.6875rem;
   font-weight: 700;
   letter-spacing: 0.16em;
-  color: var(--nvx-platinum);
+  color: #c5a880;
 }
 
 .nvx-endolift-step__title {
@@ -906,21 +953,22 @@ article.nvx-page > .nvx-page-hero {
   margin-top: var(--nvx-space-4, 32px);
 }
 
+/* Action banner: exactamente 96px bajo FAQs */
 .nvx-endolift-action {
-  margin-top: var(--nvx-space-12, 96px);
-  padding-block: var(--nvx-space-12, 96px);
+  margin-top: 96px;
+  padding-block: 96px;
   background: #1c1c1c;
-  color: var(--nvx-white);
+  color: #f5e8d8;
 }
 
 .nvx-endolift-action__inner {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
+  padding-inline: 3rem;
   box-sizing: border-box;
   display: grid;
-  gap: var(--nvx-space-4, 32px);
+  gap: 32px;
 }
 
 .nvx-endolift-action__kicker {
@@ -930,7 +978,7 @@ article.nvx-page > .nvx-page-hero {
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--nvx-silver);
+  color: #c5a880;
 }
 
 .nvx-endolift-action__title {
@@ -963,12 +1011,6 @@ article.nvx-page > .nvx-page-hero {
   background: transparent;
 }
 
-.nvx-endolift-hero-copy .nvx-brand-hero__description {
-  max-width: 48ch;
-  margin-top: var(--nvx-space-2, 16px);
-  color: rgba(245, 232, 216, 0.9);
-}
-
 @media (max-width: 980px) {
   .nvx-endolift-diagnosis__grid,
   .nvx-endolift-effects,
@@ -976,14 +1018,21 @@ article.nvx-page > .nvx-page-hero {
     grid-template-columns: 1fr;
   }
 
-  .nvx-endolift-section {
-    padding-block: var(--nvx-space-10, 80px);
+  .nvx-endolift-hero.nvx-brand-hero,
+  .nvx-endolift-hero,
+  .nvx-endolift-section,
+  .nvx-endolift-action {
+    padding-block: 80px;
+  }
+
+  .nvx-endolift-action {
+    margin-top: 80px;
   }
 }
 
 @media (max-width: 680px) {
   .nvx-endolift-section__inner,
   .nvx-endolift-action__inner {
-    padding-inline: var(--nvx-space-3, 24px);
+    padding-inline: 1.5rem; /* px-6 mobile safety margin */
   }
 }

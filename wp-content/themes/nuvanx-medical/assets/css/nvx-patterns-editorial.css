@@ -1049,7 +1049,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-endolift-hero {
   background: #1c1c1c;
   color: #f5e8d8;
-  padding-block: 96px;
+  padding-block: var(--nvx-pad-section);
 }
 
 .nvx-endolift-hero .nvx-brand-kicker,
@@ -1084,7 +1084,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-section {
-  padding-block: 96px;
+  padding-block: var(--nvx-pad-section);
   background: #ffffff;
   color: var(--nvx-ink);
 }
@@ -1098,7 +1098,7 @@ article.nvx-page > .nvx-page-hero {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 3rem; /* px-12 desktop safety margin */
+  padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
 }
 
@@ -1137,7 +1137,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-endolift-diagnosis__grid {
   display: grid;
   grid-template-columns: minmax(0, 6fr) minmax(0, 4fr); /* 60/40 */
-  gap: 32px;
+  gap: var(--nvx-space-4);
   align-items: start;
 }
 
@@ -1208,7 +1208,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-endolift-effects {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 32px;
+  gap: var(--nvx-space-4);
   margin-top: var(--nvx-space-4, 32px);
 }
 
@@ -1228,7 +1228,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-endolift-process-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 32px;
+  gap: var(--nvx-space-4);
 }
 
 .nvx-endolift-step__icon {
@@ -1262,8 +1262,8 @@ article.nvx-page > .nvx-page-hero {
 
 /* Action banner: exactamente 96px bajo FAQs */
 .nvx-endolift-action {
-  margin-top: 96px;
-  padding-block: 96px;
+  margin-top: var(--nvx-space-12);
+  padding-block: var(--nvx-pad-section);
   background: #1c1c1c;
   color: #f5e8d8;
 }
@@ -1272,10 +1272,10 @@ article.nvx-page > .nvx-page-hero {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 3rem;
+  padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
   display: grid;
-  gap: 32px;
+  gap: var(--nvx-space-4);
 }
 
 .nvx-endolift-action__kicker {
@@ -1329,18 +1329,18 @@ article.nvx-page > .nvx-page-hero {
   .nvx-endolift-hero,
   .nvx-endolift-section,
   .nvx-endolift-action {
-    padding-block: 80px;
+    padding-block: var(--nvx-pad-section-tight);
   }
 
   .nvx-endolift-action {
-    margin-top: 80px;
+    margin-top: var(--nvx-space-10);
   }
 }
 
 @media (max-width: 680px) {
   .nvx-endolift-section__inner,
   .nvx-endolift-action__inner {
-    padding-inline: 1.5rem; /* px-6 mobile safety margin */
+    padding-inline: var(--nvx-gutter-inner);
   }
 }
 
@@ -1354,7 +1354,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-laser-hero {
   background: #1c1c1c;
   color: #f5e8d8;
-  padding-block: 96px;
+  padding-block: var(--nvx-pad-section);
 }
 
 .nvx-laser-hero .nvx-brand-kicker,
@@ -1391,7 +1391,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-laser-section {
-  padding-block: 96px;
+  padding-block: var(--nvx-pad-section);
   background: #ffffff;
   color: #1c1c1c;
 }
@@ -1404,7 +1404,7 @@ article.nvx-page > .nvx-page-hero {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 3rem;
+  padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
 }
 
@@ -1449,7 +1449,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-laser-focus-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 32px;
+  gap: var(--nvx-space-4);
 }
 
 .nvx-laser-pillar {
@@ -1468,13 +1468,13 @@ article.nvx-page > .nvx-page-hero {
 /* Plataformas — tarjeta asimétrica, gutter 48px */
 .nvx-laser-platform-list {
   display: grid;
-  gap: 48px;
+  gap: var(--nvx-space-6);
 }
 
 .nvx-laser-platform {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.85fr);
-  gap: 48px;
+  gap: var(--nvx-space-6);
   align-items: start;
   padding: var(--nvx-space-5, 40px);
   background: #ffffff;
@@ -1604,7 +1604,7 @@ article.nvx-page > .nvx-page-hero {
 
 /* Action banner — 96px gap after FAQs */
 .nvx-laser-action {
-  margin-top: 96px;
+  margin-top: var(--nvx-space-12);
   padding-block: 0 96px;
   background: transparent;
 }
@@ -1613,7 +1613,7 @@ article.nvx-page > .nvx-page-hero {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 3rem;
+  padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
 }
 
@@ -1622,7 +1622,7 @@ article.nvx-page > .nvx-page-hero {
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 32px;
+  gap: var(--nvx-space-4);
   padding: var(--nvx-space-5, 40px) var(--nvx-space-6, 48px);
   background: #1c1c1c;
   color: #f5e8d8;
@@ -1711,7 +1711,7 @@ article.nvx-page > .nvx-page-hero {
   .nvx-laser-hero.nvx-brand-hero,
   .nvx-laser-hero,
   .nvx-laser-section {
-    padding-block: 120px;
+    padding-block: var(--nvx-pad-section);
   }
 
   .nvx-laser-action {
@@ -1731,7 +1731,7 @@ article.nvx-page > .nvx-page-hero {
   .nvx-laser-focus-grid,
   .nvx-laser-platform {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: var(--nvx-space-4);
   }
 
   .nvx-laser-action__card {
@@ -1748,7 +1748,7 @@ article.nvx-page > .nvx-page-hero {
 @media (max-width: 680px) {
   .nvx-laser-section__inner,
   .nvx-laser-action__shell {
-    padding-inline: 1.5rem;
+    padding-inline: var(--nvx-gutter-inner);
   }
 }
 
@@ -1762,7 +1762,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-aes-hero {
   background: #1c1c1c;
   color: #f5e8d8;
-  padding-block: 96px;
+  padding-block: var(--nvx-pad-section);
   border-bottom: 1px solid #444444;
 }
 
@@ -1796,7 +1796,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-aes-section {
-  padding-block: 96px;
+  padding-block: var(--nvx-pad-section);
   background: #ffffff;
   color: #1c1c1c;
   border-bottom: 1px solid #eaeaea;
@@ -1814,7 +1814,7 @@ article.nvx-page > .nvx-page-hero {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 3rem;
+  padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
 }
 
@@ -1863,7 +1863,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-aes-focus-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 32px;
+  gap: var(--nvx-space-4);
 }
 
 .nvx-aes-pillar {
@@ -1882,7 +1882,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-aes-card-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 48px;
+  gap: var(--nvx-space-6);
 }
 
 .nvx-aes-card {
@@ -1967,7 +1967,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-aes-regen__grid {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
-  gap: 48px;
+  gap: var(--nvx-space-6);
   align-items: start;
 }
 
@@ -2056,7 +2056,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-aes-action {
-  margin-top: 96px;
+  margin-top: var(--nvx-space-12);
   padding-block: 0 96px;
   background: transparent;
 }
@@ -2065,7 +2065,7 @@ article.nvx-page > .nvx-page-hero {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding-inline: 3rem;
+  padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
 }
 
@@ -2074,7 +2074,7 @@ article.nvx-page > .nvx-page-hero {
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 32px;
+  gap: var(--nvx-space-4);
   padding: var(--nvx-space-5, 40px) var(--nvx-space-6, 48px);
   background: #1c1c1c;
   color: #f5e8d8;
@@ -2163,7 +2163,7 @@ article.nvx-page > .nvx-page-hero {
   .nvx-aes-hero.nvx-brand-hero,
   .nvx-aes-hero,
   .nvx-aes-section {
-    padding-block: 120px;
+    padding-block: var(--nvx-pad-section);
   }
 
   .nvx-aes-action {
@@ -2184,7 +2184,7 @@ article.nvx-page > .nvx-page-hero {
   .nvx-aes-card-grid,
   .nvx-aes-regen__grid {
     grid-template-columns: 1fr;
-    gap: 32px;
+    gap: var(--nvx-space-4);
   }
 
   .nvx-aes-action__card {
@@ -2201,6 +2201,6 @@ article.nvx-page > .nvx-page-hero {
 @media (max-width: 680px) {
   .nvx-aes-section__inner,
   .nvx-aes-action__shell {
-    padding-inline: 1.5rem;
+    padding-inline: var(--nvx-gutter-inner);
   }
 }

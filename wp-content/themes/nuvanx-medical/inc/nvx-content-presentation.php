@@ -504,6 +504,76 @@ function nvx_content_strip_hero_inline_styles( string $content ): string {
 }
 
 /**
+ * Normalize body figures/images so every page shares the same media rules.
+ * Heroes are left untouched (full-bleed stage).
+ */
+function nvx_content_normalize_body_media( string $content ): string {
+	// Tag non-hero figures for shared figure rhythm.
+	$updated = preg_replace_callback(
+		'/<figure\b([^>]*)>/iu',
+		static function ( array $m ): string {
+			$attrs = $m[1];
+			if ( preg_match( '/nvx-brand-hero__media|nvx-editorial-hero__media|nvx-page-hero__media|nvx-hero__media|nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula/i', $attrs ) ) {
+				return '<figure' . $attrs . '>';
+			}
+			if ( preg_match( '/\bclass=(["\'])([^"\']*)\1/i', $attrs, $cm ) ) {
+				if ( false === strpos( $cm[2], 'nvx-content-figure' ) ) {
+					$attrs = preg_replace(
+						'/\bclass=(["\'])/',
+						'class=$1nvx-content-figure ',
+						$attrs,
+						1
+					) ?? $attrs;
+				}
+			} else {
+				$attrs .= ' class="nvx-content-figure"';
+			}
+			return '<figure' . $attrs . '>';
+		},
+		$content
+	);
+	$content = is_string( $updated ) ? $updated : $content;
+
+	// Body images: drop inline layout styles, attach system media classes.
+	$updated = preg_replace_callback(
+		'/<img\b([^>]*)>/iu',
+		static function ( array $m ): string {
+			$attrs = $m[1];
+
+			// Skip logos, icons, and media already system-tagged as hero/logo.
+			if ( preg_match( '/nvx-logo|nvx-home-hero|class=["\'][^"\']*\bnvx-media--hero\b/i', $attrs ) ) {
+				return '<img' . $attrs . '>';
+			}
+
+			// Strip layout-affecting inline styles (width/height/margin) so CSS owns rhythm.
+			$attrs = preg_replace( '/\s+style=(["\'])[^"\']*\1/i', '', $attrs ) ?? $attrs;
+
+			if ( preg_match( '/\bclass=(["\'])([^"\']*)\1/i', $attrs, $cm ) ) {
+				$classes = $cm[2];
+				if ( false === strpos( $classes, 'nvx-media' ) ) {
+					$classes = 'nvx-media nvx-media--body ' . $classes;
+				} elseif ( false === strpos( $classes, 'nvx-media--' ) && false === strpos( $classes, 'nvx-logo' ) ) {
+					$classes .= ' nvx-media--body';
+				}
+				$attrs = preg_replace(
+					'/\bclass=(["\'])[^"\']*\1/i',
+					'class="' . esc_attr( trim( $classes ) ) . '"',
+					$attrs,
+					1
+				) ?? $attrs;
+			} else {
+				$attrs .= ' class="nvx-media nvx-media--body"';
+			}
+
+			return '<img' . $attrs . '>';
+		},
+		$content
+	);
+
+	return is_string( $updated ) ? $updated : $content;
+}
+
+/**
  * Global content presentation pipeline (all singular + front content).
  *
  * @param string $content HTML.
@@ -520,6 +590,7 @@ function nvx_content_presentation_enhance( string $content ): string {
 	}
 
 	$content = nvx_content_strip_hero_inline_styles( $content );
+	$content = nvx_content_normalize_body_media( $content );
 	$content = nvx_content_replace_values_sections( $content );
 	$content = nvx_content_replace_method_sections( $content );
 	$content = nvx_content_enrich_treatment_cards( $content );

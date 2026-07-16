@@ -11,6 +11,7 @@
 .nvx-button,.nvx-btn,.nvx-brand-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border:1px solid transparent;border-radius:var(--nvx-radius-button);font-family:var(--nvx-sans);font-size:var(--nvx-type-button);font-weight:600;line-height:1;letter-spacing:var(--nvx-track-button);text-transform:uppercase;text-decoration:none;transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease}
 .nvx-button--primary,.nvx-btn--primary,.nvx-brand-btn--primary{background:var(--nvx-ink);color:var(--nvx-white)}
 .nvx-button--secondary,.nvx-btn--secondary,.nvx-brand-btn--secondary{background:transparent;color:var(--nvx-ink);border-color:var(--nvx-color-line)}
+.nvx-button--light,.nvx-btn--light,.nvx-brand-btn--light{background:var(--nvx-pearl);color:var(--nvx-ink);border-color:var(--nvx-pearl)}
 .nvx-button--ghost,.nvx-btn--ghost{background:transparent;color:currentColor;border-color:currentColor}
 .nvx-button:hover,.nvx-button:focus-visible,.nvx-btn:hover,.nvx-btn:focus-visible,.nvx-brand-btn:hover,.nvx-brand-btn:focus-visible{transform:translateY(-1px);box-shadow:var(--nvx-shadow-button)}
 .nvx-media{display:block;width:100%;height:auto}

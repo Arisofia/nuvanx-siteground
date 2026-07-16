@@ -89,14 +89,51 @@ function nvx_content_icon_svg( string $name ): string {
 }
 
 /**
+ * Premium action banner immediately after the clinical values columns.
+ * Uses design-system CTAs (pill radius) — not square marketing blocks.
+ */
+function nvx_home_action_banner_markup(): string {
+	$valoracion = nvx_cta_valoracion_url();
+	$whatsapp   = nvx_cta_whatsapp_url();
+
+	// Stable structural id + data attribute for safe strip/replace (no broad markup regex).
+	$html  = '<div id="nvx-post-values-action-banner" class="nvx-home-action-banner-shell" data-nvx-action-banner="post-values">';
+	$html .= '<section class="nvx-home-action-banner" aria-labelledby="nvx-home-action-banner-title">';
+	$html .= '<div class="nvx-home-action-banner__copy">';
+	$html .= '<p class="nvx-brand-kicker nvx-home-action-banner__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-home-action-banner-title" class="nvx-home-action-banner__title">' . esc_html__( 'Recupera la armonía de tu piel', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-home-action-banner__text">' . wp_kses(
+		__( 'Agenda tu valoración médica personalizada hoy mismo. Disponible de forma presencial en nuestras clínicas de <strong>Chamberí</strong> o <strong>Salamanca–Goya</strong>.', 'nuvanx-medical' ),
+		array( 'strong' => array() )
+	) . '</p>';
+	$html .= '</div>';
+	$html .= '<div class="nvx-home-action-banner__actions">';
+	// Pill CTAs from the design system (radius 999px) — never square blocks.
+	$html .= sprintf(
+		'<a class="nvx-button nvx-button--light nvx-home-action-banner__cta" href="%1$s">%2$s</a>',
+		esc_url( $valoracion ),
+		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
+	);
+	$html .= sprintf(
+		'<a class="nvx-button nvx-button--secondary nvx-home-action-banner__cta nvx-home-action-banner__cta--ghost" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+		esc_url( $whatsapp ),
+		esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
+	);
+	$html .= '</div></section></div>';
+
+	return $html;
+}
+
+/**
  * Clinical values pillars (structured presentation of intro/criterio blocks).
+ * Conversion CTAs move to the post-values action banner — clean UI, no inline links.
  */
 function nvx_values_section_markup(): string {
 	$items = array(
 		array(
 			'icon'  => 'shield',
 			'title' => '1. Diagnóstico médico de precisión',
-			'body'  => 'No creemos en soluciones estandarizadas ni en la aplicación automática de tecnología. Bajo la dirección del Dr. José Javier Rivera Tejeda, cada protocolo se inicia con una valoración exhaustiva de 15 a 30 minutos (presencial o por videoconsulta). Analizamos la calidad de tu dermis, el grado de elastosis y tu historial clínico para diseñar un plan de tratamiento exclusivo y seguro, garantizando que el criterio médico prevalezca siempre sobre la aparatología.',
+			'body'  => 'No creemos en soluciones estandarizadas ni en la aplicación automática de tecnología. Bajo la dirección del Dr. José Javier Rivera Tejeda, cada protocolo se inicia con una valoración exhaustiva de 15 a 30 minutos. Analizamos la calidad de tu dermis, el grado de elastosis y tu historial clínico para diseñar un plan de tratamiento exclusivo y seguro, garantizando que el criterio médico prevalezca siempre sobre la aparatología.',
 		),
 		array(
 			'icon'  => 'laser',
@@ -125,8 +162,9 @@ function nvx_values_section_markup(): string {
 	}
 
 	$html .= '</div>';
-	$html .= nvx_cta_pair_markup( 'nvx-values__cta' );
+	// No CTAs inside the pillars — conversion lives in the action banner below.
 	$html .= '</div></section>';
+	$html .= nvx_home_action_banner_markup();
 
 	return $html;
 }
@@ -180,9 +218,9 @@ function nvx_method_section_markup(): string {
  * Matches structural patterns, not page slugs.
  */
 function nvx_content_replace_values_sections( string $content ): string {
-	// Already transformed.
+	// Already transformed: keep pillars, ensure post-values action banner exists.
 	if ( false !== strpos( $content, 'nvx-values-section' ) || false !== strpos( $content, 'class="nvx-values"' ) ) {
-		return $content;
+		return nvx_content_ensure_post_values_action_banner( $content );
 	}
 
 	$replacement = nvx_values_section_markup();
@@ -200,7 +238,109 @@ function nvx_content_replace_values_sections( string $content ): string {
 		}
 	}
 
-	return $content;
+	return nvx_content_ensure_post_values_action_banner( $content );
+}
+
+/**
+ * Safe preg_replace: never wipe content when the regex engine fails (returns null).
+ *
+ * @param string   $pattern  Pattern.
+ * @param string   $replace  Replacement.
+ * @param string   $subject  Subject HTML.
+ * @param int      $limit    Limit (-1 = all).
+ * @param int|null $count    Optional match count out-param.
+ */
+function nvx_content_preg_replace_keep( string $pattern, string $replace, string $subject, int $limit = -1, ?int &$count = null ): string {
+	$result = preg_replace( $pattern, $replace, $subject, $limit, $count );
+	return is_string( $result ) ? $result : $subject;
+}
+
+/**
+ * Pattern: canonical post-values banner shell (id + data attribute + section child).
+ */
+function nvx_content_post_values_banner_pattern_with_id(): string {
+	return '/<div\b[^>]*\bid=["\']nvx-post-values-action-banner["\'][^>]*\bdata-nvx-action-banner=["\']post-values["\'][^>]*>\s*<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-action-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>\s*<\/div>/iu';
+}
+
+/**
+ * Pattern: legacy shell with data attribute only (same rigid shape).
+ */
+function nvx_content_post_values_banner_pattern_legacy(): string {
+	return '/<div\b[^>]*\bdata-nvx-action-banner=["\']post-values["\'][^>]*>\s*<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-action-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>\s*<\/div>/iu';
+}
+
+/**
+ * Pattern: legacy values dual-CTA pair only (not other .nvx-cta-pair blocks).
+ */
+function nvx_content_values_legacy_cta_pattern(): string {
+	return '/\s*<div class="nvx-cta-pair nvx-values__cta"[^>]*>[\s\S]*?<\/div>/iu';
+}
+
+/**
+ * Pattern: values section open…close (structural class only).
+ */
+function nvx_content_values_section_pattern(): string {
+	return '/(<section\b[^>]*\bclass=["\'][^"\']*\bnvx-values-section\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>)/iu';
+}
+
+/**
+ * Remove the canonical post-values action banner only (stable id + data attribute).
+ */
+function nvx_content_strip_post_values_action_banner( string $content ): string {
+	$content = nvx_content_preg_replace_keep( nvx_content_post_values_banner_pattern_with_id(), '', $content );
+	return nvx_content_preg_replace_keep( nvx_content_post_values_banner_pattern_legacy(), '', $content );
+}
+
+/**
+ * Whether the canonical post-values banner markup is already present.
+ */
+function nvx_content_has_post_values_action_banner( string $content ): bool {
+	return false !== strpos( $content, 'id="nvx-post-values-action-banner"' )
+		|| false !== strpos( $content, "id='nvx-post-values-action-banner'" )
+		|| false !== strpos( $content, 'data-nvx-action-banner="post-values"' )
+		|| false !== strpos( $content, "data-nvx-action-banner='post-values'" );
+}
+
+/**
+ * Insert / refresh premium action banner right after the values section.
+ * Patterns are named helpers scoped to known ids/classes only.
+ */
+function nvx_content_ensure_post_values_action_banner( string $content ): string {
+	// Legacy dual CTA under values pillars only.
+	$content = nvx_content_preg_replace_keep( nvx_content_values_legacy_cta_pattern(), '', $content, 1 );
+
+	// Refresh: drop previous canonical banner then re-insert current markup.
+	$content = nvx_content_strip_post_values_action_banner( $content );
+
+	// If strip failed partially and marker remains, do not insert a second copy.
+	if ( nvx_content_has_post_values_action_banner( $content ) ) {
+		return $content;
+	}
+
+	$banner = nvx_home_action_banner_markup();
+	$count  = 0;
+	$updated = nvx_content_preg_replace_keep(
+		nvx_content_values_section_pattern(),
+		'$1' . $banner,
+		$content,
+		1,
+		$count
+	);
+	if ( $count > 0 ) {
+		return $updated;
+	}
+
+	// Fallback: values grid close inside its parent section (still structural).
+	$count   = 0;
+	$updated = nvx_content_preg_replace_keep(
+		'/(<div class="nvx-values">[\s\S]*?<\/div>\s*<\/div>\s*<\/section>)/iu',
+		'$1' . $banner,
+		$content,
+		1,
+		$count
+	);
+
+	return $count > 0 ? $updated : $content;
 }
 
 /**
@@ -356,7 +496,7 @@ function nvx_content_unify_ctas( string $content ): string {
 		'/<a\b([^>]*)>(\s*Reservar valoración gratuita\s*)<\/a>/iu',
 		static function ( array $m ) use ( $valoracion_url ): string {
 			$attrs = $m[1];
-			$attrs = preg_replace( '/\s*href=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*href=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
 			return '<a' . $attrs . ' href="' . esc_url( $valoracion_url ) . '">' . $m[2] . '</a>';
 		},
 		$content
@@ -367,9 +507,9 @@ function nvx_content_unify_ctas( string $content ): string {
 		'/<a\b([^>]*)>(\s*Contactar por WhatsApp\s*)<\/a>/iu',
 		static function ( array $m ) use ( $whatsapp_url ): string {
 			$attrs = $m[1];
-			$attrs = preg_replace( '/\s*href=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
-			$attrs = preg_replace( '/\s*target=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
-			$attrs = preg_replace( '/\s*rel=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*href=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*target=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*rel=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
 			return '<a' . $attrs . ' href="' . esc_url( $whatsapp_url ) . '" target="_blank" rel="noopener noreferrer">' . $m[2] . '</a>';
 		},
 		$content
@@ -398,8 +538,71 @@ function nvx_content_unify_ctas( string $content ): string {
  */
 function nvx_content_strip_hero_inline_styles( string $content ): string {
 	// Opening tags for hero stages / copy that may carry legacy inline layout.
-	$pattern = '/(<(?:section|div)\b[^>]*\bclass="[^"]*\b(?:nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage|nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy|nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner)\b[^"]*"[^>]*)\s+style="[^"]*"/iu';
-	$updated = preg_replace( $pattern, '$1', $content );
+	$hero_bits = 'nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage';
+	$copy_bits = 'nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy';
+	$inner_bits = 'nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner';
+	$pattern    = '/(<(?:section|div)\b[^>]*\bclass="[^"]*\b(?:' . $hero_bits . '|' . $copy_bits . '|' . $inner_bits . ')\b[^"]*"[^>]*)\s+style="[^"]*"/iu';
+	$updated    = preg_replace( $pattern, '$1', $content );
+	return is_string( $updated ) ? $updated : $content;
+}
+
+/**
+ * Append a CSS class token to an HTML attribute string.
+ */
+function nvx_html_attrs_add_class( string $attrs, string $class_token ): string {
+	if ( preg_match( '/\bclass=(["\'])([^"\']*)\1/i', $attrs, $cm ) ) {
+		if ( false !== strpos( $cm[2], $class_token ) ) {
+			return $attrs;
+		}
+		$updated = preg_replace(
+			'/\bclass=(["\'])/',
+			'class=$1' . $class_token . ' ',
+			$attrs,
+			1
+		);
+		return is_string( $updated ) ? $updated : $attrs;
+	}
+
+	return $attrs . ' class="' . esc_attr( $class_token ) . '"';
+}
+
+/**
+ * Normalize body figures/images so every page shares the same media rules.
+ * Heroes are left untouched (full-bleed stage).
+ */
+function nvx_content_normalize_body_media( string $content ): string {
+	$skip_figure = 'nvx-brand-hero__media|nvx-editorial-hero__media|nvx-page-hero__media|nvx-hero__media|nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula';
+
+	$updated = preg_replace_callback(
+		'/<figure\b([^>]*)>/iu',
+		static function ( array $m ) use ( $skip_figure ): string {
+			$attrs = $m[1];
+			if ( preg_match( '/' . $skip_figure . '/i', $attrs ) ) {
+				return '<figure' . $attrs . '>';
+			}
+			return '<figure' . nvx_html_attrs_add_class( $attrs, 'nvx-content-figure' ) . '>';
+		},
+		$content
+	);
+	$content = is_string( $updated ) ? $updated : $content;
+
+	$updated = preg_replace_callback(
+		'/<img\b([^>]*)>/iu',
+		static function ( array $m ): string {
+			$attrs = $m[1];
+			if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero/i', $attrs ) ) {
+				return '<img' . $attrs . '>';
+			}
+
+			$attrs = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
+			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--body' );
+
+			return '<img' . $attrs . '>';
+		},
+		$content
+	);
+
 	return is_string( $updated ) ? $updated : $content;
 }
 
@@ -420,6 +623,7 @@ function nvx_content_presentation_enhance( string $content ): string {
 	}
 
 	$content = nvx_content_strip_hero_inline_styles( $content );
+	$content = nvx_content_normalize_body_media( $content );
 	$content = nvx_content_replace_values_sections( $content );
 	$content = nvx_content_replace_method_sections( $content );
 	$content = nvx_content_enrich_treatment_cards( $content );

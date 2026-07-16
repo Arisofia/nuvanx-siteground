@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 # Smoke-verify key staging2 pages after theme deploy.
+# Anchors on stable structural markers (classes / ids / data attributes only).
+# Do not require human-readable editorial copy — copy changes must not fail CI.
+#
 # Usage:
 #   BASE_URL=https://staging2.nuvanx.com bash scripts/staging2/smoke-verify-staging2.sh
-# Exit 0 only if all required markers are present.
 
 set -euo pipefail
 
@@ -28,20 +30,8 @@ require() {
   if printf '%s' "$html" | grep -Fq -- "$needle"; then
     echo "  OK  [$name] $needle"
   else
-    echo "  FAIL[$name] missing: $needle" >&2
+    echo "  FAIL[$name] missing structural marker: $needle" >&2
     FAIL=1
-  fi
-}
-
-forbid() {
-  local name="$1"
-  local html="$2"
-  local needle="$3"
-  if printf '%s' "$html" | grep -Fq -- "$needle"; then
-    echo "  FAIL[$name] forbidden marker present: $needle" >&2
-    FAIL=1
-  else
-    echo "  OK  [$name] absent: $needle"
   fi
 }
 
@@ -69,48 +59,50 @@ check_page() {
 }
 
 echo "Staging2 smoke verify — ${BASE_URL}"
+echo "Markers are structural only (classes / ids / data-*)."
 echo
 
-# Home — values + post-values action banner
+# Home — values pillars + post-values action banner (stable ids/classes)
 check_page "/" "home" \
   'nvx-values-section' \
-  'nvx-home-action-banner' \
-  'Recupera la armonía' \
-  'Reservar valoración gratuita'
+  'class="nvx-values"' \
+  'id="nvx-post-values-action-banner"' \
+  'data-nvx-action-banner="post-values"' \
+  'nvx-home-action-banner'
 
 # Treatments catalog
 check_page "/tratamientos/" "tratamientos" \
   'nvx-catalog' \
   'nvx-logo-cloud'
 
-# Endolift editorial
+# Endolift editorial hub
 check_page "/endolift-facial-papada-mandibula/" "endolift" \
   'nvx-endolift-editorial' \
   'nvx-endolift-hero' \
-  'Endolift'
+  'id="nvx-endolift-h1"'
 
 # Laser hub editorial
 check_page "/medicina-estetica-laser/" "laser-hub" \
   'nvx-laser-editorial' \
   'nvx-laser-hero' \
-  'nvx-laser-h1'
+  'id="nvx-laser-h1"'
 
-# Aesthetic medicine hub (injectables) — present after PR #26
+# Aesthetic medicine hub (injectables)
 check_page "/medicina-estetica/" "aesthetic-hub" \
   'nvx-brand-page--medicina-estetica' \
-  'nvx-med-h1'
+  'id="nvx-med-h1"'
 
-# Soft aesthetic markers: warn only if aesthetic module not yet merged
+# Soft: full aesthetic rebuild present when module is live
 if html_aes="$(fetch "${BASE_URL%/}/medicina-estetica/" 2>/dev/null || true)"; then
   if printf '%s' "$html_aes" | grep -Fq 'nvx-aesthetic-editorial'; then
     require "aesthetic-hub" "$html_aes" 'nvx-aesthetic-editorial'
     require "aesthetic-hub" "$html_aes" 'nvx-aes-hero'
   else
-    echo "  WARN[aesthetic-hub] nvx-aesthetic-editorial not live yet (merge PR #26 if expected)"
+    echo "  WARN[aesthetic-hub] nvx-aesthetic-editorial not present (module may be absent on this ref)"
   fi
 fi
 
-# Sanity: theme stylesheet path referenced somewhere
+# Theme handle present in document (stylesheet or body class)
 check_page "/" "theme-asset-ref" 'nuvanx-medical'
 
 echo

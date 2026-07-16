@@ -95,11 +95,11 @@ jobs:
             [[ "$HOMEURL" == "https://staging2.nuvanx.com" ]] || { echo "ERROR home $HOMEURL"; exit 1; }
             php -l "$SCRIPTS/$SCRIPT"
             if [[ "$MODE" == "apply" ]]; then
-              # WP-CLI eval-file passes trailing args into $args (no bare "--").
-              wp eval-file "$SCRIPTS/$SCRIPT" --apply
+              # Avoid `wp ... --apply` (global option parse errors on some WP-CLI builds).
+              NVX_BLOG_APPLY=1 wp eval-file "$SCRIPTS/$SCRIPT"
               wp cache flush || true
               wp sg purge || true
             else
-              wp eval-file "$SCRIPTS/$SCRIPT"
+              NVX_BLOG_APPLY=0 wp eval-file "$SCRIPTS/$SCRIPT"
             fi
           REMOTE

@@ -3,7 +3,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'NVX_THEME_VERSION', '1.9.5-cleanup' );
+define( 'NVX_THEME_VERSION', '1.9.6-desktop-width-logos-ctas' );
 
 function nvx_theme_setup() {
     add_theme_support( 'title-tag' );
@@ -432,12 +432,29 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 	);
 
 	// 5e) Fichas de equipo sin --team (Chamberí/Goya): media + rol clínico → layout equipo.
+	// No aplicar a logos/marcas: textos tipo "Medicina estética" o "Clinic" no son ficha de doctor.
 	$content = preg_replace_callback(
 		'/<article([^>]*\bclass=(["\'])([^"\']*\bnvx-brand-card\b[^"\']*)\2[^>]*)>([\s\S]*?)<\/article>/i',
 		static function ( $m ) {
 			$attrs   = $m[1];
 			$classes = $m[3];
 			$inner   = $m[4];
+			// Quitar --team erróneo en logos (contenido ya guardado o normalizado antes).
+			$is_logo_card = (bool) preg_match(
+				'/\b(logo|colaborador|colaboradora|marca colaboradora)\b|grid--logos/iu',
+				$classes . ' ' . $inner
+			);
+			if ( $is_logo_card ) {
+				$classes_clean = preg_replace( '/\bnvx-brand-card--team\b/', '', $classes );
+				$classes_clean = preg_replace( '/\s+/', ' ', trim( $classes_clean ) );
+				$attrs_clean   = preg_replace(
+					'/\bclass=(["\'])([^"\']*)\1/i',
+					'class=$1' . esc_attr( $classes_clean ) . '$1',
+					$attrs,
+					1
+				);
+				return '<article' . $attrs_clean . '>' . $inner . '</article>';
+			}
 			if ( false !== strpos( $classes, 'nvx-brand-card--team' ) ) {
 				return $m[0];
 			}
@@ -445,8 +462,11 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 			if ( ! $has_media ) {
 				return $m[0];
 			}
-			// Roles de ficha médica (no catálogo de tratamientos).
-			if ( ! preg_match( '/Direcci[oó]n|Especialista|CEO|M[eé]dic[oa]|Cl[ií]nic/iu', $inner ) ) {
+			// Roles clínicos reales (no "medicina estética" genérico de catálogo/marcas).
+			if ( ! preg_match(
+				'/Direcci[oó]n m[eé]dica|Especialista en|CEO\b|Fundador|Co-?fundador|M[eé]dic[oa] est[eé]tic[oa]\b/iu',
+				$inner
+			) ) {
 				return $m[0];
 			}
 			$attrs = preg_replace(

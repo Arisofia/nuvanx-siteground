@@ -68,13 +68,14 @@
 
   /* ═══════════════════════════════════════════════════════════
      3. SHELL / ANCHOS
+     Desktop usa el shell; el measure solo acota prosa, no catálogos/CTAs.
      ═══════════════════════════════════════════════════════════ */
-  --nvx-shell: min(1120px, calc(100vw - var(--nvx-gutter)));
-  --nvx-width-normal: min(720px, 100%);
+  --nvx-shell: min(1240px, calc(100vw - var(--nvx-gutter)));
+  --nvx-width-normal: min(820px, 100%);
   --nvx-readable: var(--nvx-width-normal);
   --nvx-shell-reading: var(--nvx-readable);
-  --nvx-measure: 54ch;
-  --nvx-measure-lead: 40ch;
+  --nvx-measure: 62ch;
+  --nvx-measure-lead: 48ch;
 
   /* ═══════════════════════════════════════════════════════════
      4. MEDIA / RADII
@@ -86,8 +87,9 @@
   --nvx-media-max-h: clamp(220px, 28vw, 360px);
   --nvx-media-max-h-hero: clamp(280px, 38vw, 480px);
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
-  --nvx-media-max-h-logo: clamp(56px, 9vw, 88px);
-  --nvx-media-logo-pad: clamp(18px, 2.4vw, 32px);
+  --nvx-media-max-h-logo: clamp(40px, 5.5vw, 64px);
+  --nvx-media-logo-pad: clamp(16px, 2vw, 28px);
+  --nvx-media-max-w-logo: min(11rem, 100%);
 
   --nvx-radius-button: 999px;
   --nvx-radius-card: clamp(20px, 2.5vw, 32px);

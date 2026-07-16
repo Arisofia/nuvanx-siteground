@@ -937,8 +937,9 @@ function nvx_schema_physician_director( $organization_id ) {
  * @return array
  */
 function nvx_schema_physician_ivon( $organization_id ) {
-	$equipo = home_url( '/equipo-medico/' );
-	$ivon_id = home_url( '/equipo-medico/#physician-rivera-deras' );
+	$equipo    = home_url( '/equipo-medico/' );
+	$ivon_id   = home_url( '/equipo-medico/#physician-rivera-deras' );
+	$colegiado = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 
 	return array(
 		'@type'            => array( 'Person', 'Physician' ),
@@ -946,7 +947,7 @@ function nvx_schema_physician_ivon( $organization_id ) {
 		'name'             => 'Ivon Yamileth Rivera Deras',
 		'honorificPrefix'  => 'Dra.',
 		'jobTitle'         => 'Especialista en geriatría, longevidad y well-aging · NUVANX',
-		'description'      => 'Médico especialista (FEA) en Hospital Universitario La Paz (Recuperación Funcional / Hospital de Día Geriátrico) y Hospital Central de la Cruz Roja. Investigadora y consultora para OXON Epidemiology; coordinación científica SEMEG; colaboración EuGMS; profesora UEM. Coautora de obras de bioética y geriatría clínica. Integra well-aging basado en evidencia en NUVANX.',
+		'description'      => 'Colegiada ICOMEM ' . $colegiado . '. Médico especialista (FEA) en Hospital Universitario La Paz (Recuperación Funcional / Hospital de Día Geriátrico) y Hospital Central de la Cruz Roja. Investigadora y consultora para OXON Epidemiology; coordinación científica SEMEG; colaboración EuGMS; profesora UEM. Coautora de obras de bioética y geriatría clínica. Integra well-aging basado en evidencia en NUVANX.',
 		'url'              => $equipo . '#physician-rivera-deras',
 		'medicalSpecialty' => 'https://schema.org/Geriatric',
 		'worksFor'         => array(
@@ -958,6 +959,14 @@ function nvx_schema_physician_ivon( $organization_id ) {
 			array(
 				'@type' => 'Hospital',
 				'name'  => 'Hospital Central de la Cruz Roja San José y Santa Adela',
+			),
+		),
+		'hasCredential'    => array(
+			array(
+				'@type'              => 'EducationalOccupationalCredential',
+				'credentialCategory' => 'Número de colegiado ICOMEM',
+				'identifier'         => $colegiado,
+				'name'               => 'Colegiada ICOMEM ' . $colegiado,
 			),
 		),
 		'memberOf'         => array(
@@ -993,6 +1002,86 @@ function nvx_schema_physician_ivon( $organization_id ) {
 }
 
 /**
+ * Dr. Fabio Augusto Quiñónez Bareiro — Physician (geriatrics / complex patient E-E-A-T).
+ *
+ * @param string $organization_id Organization @id.
+ * @return array
+ */
+function nvx_schema_physician_fabio( $organization_id ) {
+	$equipo    = home_url( '/equipo-medico/' );
+	$fabio_id  = home_url( '/equipo-medico/#physician-quinonez-bareiro' );
+	$colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
+
+	return array(
+		'@type'            => array( 'Person', 'Physician' ),
+		'@id'              => $fabio_id,
+		'name'             => 'Fabio Augusto Quiñónez Bareiro',
+		'honorificPrefix'  => 'Dr.',
+		'jobTitle'         => 'Especialista en geriatría, gerontología y paciente complejo · NUVANX',
+		'description'      => 'Colegiado ICOMEM ' . $colegiado . '. FEA de Geriatría (Hospital Virgen del Valle, Toledo). Investigador CIBERFES y colaborador SEMEG. Ph.D. UAM (disfunción vascular subclínica, declinar cognitivo y fragilidad). Máster en Psicogeriatría (UAB). Refuerza medicina regenerativa y longevidad en NUVANX.',
+		'url'              => $equipo . '#physician-quinonez-bareiro',
+		'medicalSpecialty' => 'https://schema.org/Geriatric',
+		'worksFor'         => array(
+			array( '@id' => $organization_id ),
+			array(
+				'@type' => 'Hospital',
+				'name'  => 'Hospital Virgen del Valle',
+			),
+		),
+		'hasCredential'    => array(
+			array(
+				'@type'              => 'EducationalOccupationalCredential',
+				'credentialCategory' => 'Número de colegiado ICOMEM',
+				'identifier'         => $colegiado,
+				'name'               => 'Colegiado ICOMEM ' . $colegiado,
+			),
+			array(
+				'@type' => 'EducationalOccupationalCredential',
+				'name'  => 'Doctorado (Ph.D.) — Universidad Autónoma de Madrid',
+			),
+			array(
+				'@type' => 'EducationalOccupationalCredential',
+				'name'  => 'Máster en Psicogeriatría — Universidad Autónoma de Barcelona',
+			),
+		),
+		'memberOf'         => array(
+			array(
+				'@type' => 'Organization',
+				'name'  => 'CIBER de Fragilidad y Envejecimiento Saludable (CIBERFES)',
+			),
+			array(
+				'@type' => 'MedicalOrganization',
+				'name'  => 'Sociedad Española de Medicina Geriátrica (SEMEG)',
+			),
+		),
+		'alumniOf'         => array(
+			array(
+				'@type' => 'CollegeOrUniversity',
+				'name'  => 'Universidad Autónoma de Madrid',
+			),
+			array(
+				'@type' => 'CollegeOrUniversity',
+				'name'  => 'Universidad Autónoma de Barcelona',
+			),
+			array(
+				'@type' => 'CollegeOrUniversity',
+				'name'  => 'Escuela Latinoamericana de Medicina (ELAM)',
+			),
+		),
+		'knowsAbout'       => array(
+			'Geriatría',
+			'Gerontología',
+			'Paciente anciano crónico complejo',
+			'Fragilidad',
+			'Deterioro cognitivo',
+			'Envejecimiento saludable',
+			'Medicina regenerativa',
+			'Longevidad',
+		),
+	);
+}
+
+/**
  * Creative works authored by Dra. Ivon (equipo page graph density).
  *
  * @param string $author_id Physician @id.
@@ -1015,6 +1104,35 @@ function nvx_schema_ivon_publications( $author_id ) {
 				'@type' => 'Organization',
 				'name'  => 'Sociedad Española de Medicina Geriátrica (SEMEG)',
 			),
+		),
+	);
+}
+
+/**
+ * Creative works / thesis associated with Dr. Fabio (equipo page graph density).
+ *
+ * @param string $author_id Physician @id.
+ * @return array<int, array>
+ */
+function nvx_schema_fabio_publications( $author_id ) {
+	return array(
+		array(
+			'@type'  => 'Thesis',
+			'@id'    => home_url( '/equipo-medico/#work-fabio-tesis-uam' ),
+			'name'   => 'Disfunción vascular sub-clínica, declinar cognitivo y fragilidad',
+			'author' => array( '@id' => $author_id ),
+			'inSupportOf' => 'Ph.D.',
+			'sourceOrganization' => array(
+				'@type' => 'CollegeOrUniversity',
+				'name'  => 'Universidad Autónoma de Madrid',
+			),
+		),
+		array(
+			'@type'  => 'ScholarlyArticle',
+			'@id'    => home_url( '/equipo-medico/#work-fabio-itu-delirium' ),
+			'name'   => '¿Será una infección del tracto urinario?',
+			'author' => array( '@id' => $author_id ),
+			'description' => 'Diagnósticos diferenciales entre delírium e infección en el anciano.',
 		),
 	);
 }
@@ -1125,6 +1243,22 @@ function nvx_schema_should_emit_physician_ivon( $page_id ) {
 }
 
 /**
+ * Whether Dr. Fabio Physician should appear (equipo + home for org trust).
+ *
+ * @param int $page_id Current page ID.
+ * @return bool
+ */
+function nvx_schema_should_emit_physician_fabio( $page_id ) {
+	if ( is_front_page() ) {
+		return true;
+	}
+
+	$path = nvx_schema_current_path( $page_id );
+
+	return nvx_schema_path_matches( $path, '/equipo-medico/' );
+}
+
+/**
  * Add NUVANX medical locations and page entities to Yoast's canonical graph.
  *
  * @param array $graph   Yoast Schema graph.
@@ -1162,6 +1296,9 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 	}
 	if ( nvx_schema_should_emit_physician_ivon( $page_id ) ) {
 		$physicians[] = nvx_schema_physician_ivon( $organization['id'] );
+	}
+	if ( nvx_schema_should_emit_physician_fabio( $page_id ) ) {
+		$physicians[] = nvx_schema_physician_fabio( $organization['id'] );
 	}
 
 	$physician = ! empty( $physicians ) ? $physicians[0] : null;
@@ -1295,8 +1432,16 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 	// Publication nodes on equipo page only (visible authorship).
 	if ( nvx_schema_path_matches( nvx_schema_current_path( $page_id ), '/equipo-medico/' ) ) {
 		foreach ( $physicians as $person ) {
-			if ( isset( $person['@id'] ) && false !== strpos( $person['@id'], 'rivera-deras' ) ) {
+			if ( empty( $person['@id'] ) ) {
+				continue;
+			}
+			if ( false !== strpos( $person['@id'], 'rivera-deras' ) ) {
 				foreach ( nvx_schema_ivon_publications( $person['@id'] ) as $work ) {
+					$graph[] = $work;
+				}
+			}
+			if ( false !== strpos( $person['@id'], 'quinonez-bareiro' ) ) {
+				foreach ( nvx_schema_fabio_publications( $person['@id'] ) as $work ) {
 					$graph[] = $work;
 				}
 			}
@@ -1452,7 +1597,7 @@ function nvx_filter_equipo_document_title( $title ) {
 		return $title;
 	}
 
-	return 'Equipo Médico NUVANX Madrid | Dr. Rivera Tejeda y Dra. Rivera Deras';
+	return 'Equipo Médico NUVANX Madrid | Rivera Tejeda, Rivera Deras y Quiñónez';
 }
 add_filter( 'wpseo_title', 'nvx_filter_equipo_document_title', 21 );
 
@@ -1466,9 +1611,11 @@ function nvx_filter_equipo_metadesc( $desc ) {
 		return $desc;
 	}
 
-	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+	$dir   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+	$ivon  = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
+	$fabio = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
 
-	return 'Dr. José Javier Rivera Tejeda (ICOMEM ' . $colegiado . '), director médico láser, y Dra. Ivon Yamileth Rivera Deras, geriatría y well-aging (La Paz, SEMEG, OXON). Equipo NUVANX Madrid.';
+	return 'Dr. J.J. Rivera Tejeda (ICOMEM ' . $dir . '), Dra. I.Y. Rivera Deras (ICOMEM ' . $ivon . ') y Dr. F.A. Quiñónez Bareiro (ICOMEM ' . $fabio . '). Equipo médico NUVANX Madrid.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_equipo_metadesc', 21 );
 

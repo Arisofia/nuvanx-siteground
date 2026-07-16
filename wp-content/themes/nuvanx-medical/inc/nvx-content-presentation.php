@@ -21,6 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! defined( 'NVX_DIRECTOR_COLEGIADO' ) ) {
 	define( 'NVX_DIRECTOR_COLEGIADO', '282864786' );
 }
+if ( ! defined( 'NVX_IVON_COLEGIADO' ) ) {
+	define( 'NVX_IVON_COLEGIADO', '284621525' );
+}
+if ( ! defined( 'NVX_FABIO_COLEGIADO' ) ) {
+	define( 'NVX_FABIO_COLEGIADO', '282877543' );
+}
 
 /**
  * @return string

@@ -28,28 +28,26 @@ add_action( 'after_setup_theme', 'nvx_theme_setup' );
  * @return void
  */
 function nvx_primary_menu_fallback( $args = array() ) {
-	$pages = get_pages(
-		array(
-			'parent'      => 0,
-			'post_status' => 'publish',
-			'sort_column' => 'menu_order,post_title',
-		)
+	$items = array(
+		array( 'url' => home_url( '/' ), 'label' => __( 'Inicio', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/tratamientos/' ), 'label' => __( 'Tratamientos', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/nosotros/' ), 'label' => __( 'Nosotros', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/equipo-medico/' ), 'label' => __( 'Equipo médico', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/casos-de-pacientes/' ), 'label' => __( 'Casos', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/clinicas-de-medicina-estetica-nuvanx/' ), 'label' => __( 'Clínicas', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Blog', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/contacto/' ), 'label' => __( 'Contacto', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/madrid/valoracion/' ), 'label' => __( 'Consulta médica', 'nuvanx-medical' ) ),
 	);
 
-	if ( empty( $pages ) ) {
-		return;
-	}
-
 	echo '<ul class="nvx-nav__list" role="menubar">';
-
-	foreach ( $pages as $page ) {
+	foreach ( $items as $item ) {
 		printf(
 			'<li class="nvx-nav__item" role="none"><a class="nvx-nav__link" role="menuitem" href="%1$s">%2$s</a></li>',
-			esc_url( get_permalink( $page ) ),
-			esc_html( get_the_title( $page ) )
+			esc_url( $item['url'] ),
+			esc_html( $item['label'] )
 		);
 	}
-
 	echo '</ul>';
 }
 
@@ -491,6 +489,10 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 
 	// 7) Flujos editoriales SITEWIDE (revista): numerales, steps, pullquotes, split-media.
 	$content = nvx_theme_apply_editorial_flows( $content );
+
+	// 8) Limpieza final de basura del editor (tras flujos que puedan dejar huecos).
+	$content = preg_replace( '/<p(?:\s[^>]*)?>\s*<\/p>/iu', '', $content );
+	$content = preg_replace( '/(?:\s*<p(?:\s[^>]*)?>\s*<\/p>)+/iu', '', $content );
 
 	return $content;
 }

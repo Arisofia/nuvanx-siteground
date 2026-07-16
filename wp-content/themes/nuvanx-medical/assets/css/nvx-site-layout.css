@@ -2,7 +2,15 @@
    Gutters live on section inners / readable columns — not on the page shell. */
 .nvx-shell,
 .nvx-page-body__inner,
-.nvx-brand-section__inner {
+.nvx-brand-section__inner,
+.nvx-endolift-section__inner,
+.nvx-laser-section__inner,
+.nvx-aes-section__inner,
+.nvx-catalog__inner,
+.nvx-endolift-action__inner,
+.nvx-laser-action__shell,
+.nvx-aes-action__shell,
+.nvx-home-action-banner-shell {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
@@ -137,13 +145,133 @@ article.nvx-page > .nvx-page-hero {
 .nvx-section,
 .nvx-brand-section,
 .nvx-page-body,
-.wp-block-group.nvx-section {
+.wp-block-group.nvx-section,
+.nvx-endolift-section,
+.nvx-laser-section,
+.nvx-aes-section,
+.nvx-catalog,
+.nvx-values-section {
   padding-block: var(--nvx-pad-section);
 }
 
 .nvx-brand-section--tight,
 .nvx-section--tight {
   padding-block: var(--nvx-pad-section-tight);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BODY CONTENT SYSTEM — text measure + body images (all pages)
+   One source: when tokens change, every page body updates.
+   Heroes stay full-bleed (excluded below).
+   ═══════════════════════════════════════════════════════════ */
+
+/* Paragraph / body copy margins (connected to type tokens) */
+.nvx-brand-page :where(p, .nvx-brand-body, .nvx-endolift-body, .nvx-laser-body, .nvx-aes-body, .nvx-value__body, .nvx-method-col__body, .nvx-catalog-card__body),
+.nvx-page__content :where(p, .nvx-brand-body),
+.nvx-prose p {
+  margin: 0 0 var(--nvx-margin-body);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
+/* Reading measure for long-form body (not cards, not meta lists) */
+.nvx-brand-page :where(
+  .nvx-brand-section__inner > p,
+  .nvx-brand-body,
+  .nvx-endolift-body--measure,
+  .nvx-laser-body--measure,
+  .nvx-aes-body--lead,
+  .nvx-method-lead,
+  .nvx-brand-faq-content p,
+  .nvx-prose > p
+) {
+  max-width: var(--nvx-measure);
+}
+
+.nvx-brand-page :where(h2, .nvx-brand-title, .nvx-endolift-heading, .nvx-laser-heading, .nvx-aes-heading) {
+  margin: 0 0 var(--nvx-margin-h2);
+  max-width: 22ch;
+}
+
+.nvx-brand-page :where(h3, .nvx-brand-subtitle, .nvx-value__title, .nvx-endolift-effect__title, .nvx-laser-pillar__title, .nvx-aes-pillar__title, .nvx-aes-card__title) {
+  margin: 0 0 var(--nvx-margin-h3);
+}
+
+.nvx-brand-page :where(.nvx-brand-kicker, .nvx-endolift-kicker, .nvx-laser-kicker, .nvx-aes-kicker) {
+  margin: 0 0 var(--nvx-margin-kicker);
+  color: var(--nvx-platinum);
+}
+
+/* Body media (content figures / WP images) — same radius, rhythm, width */
+.nvx-content-figure,
+.nvx-brand-page :where(figure, .wp-block-image, .wp-caption):not(
+  .nvx-brand-hero__media,
+  .nvx-editorial-hero__media,
+  .nvx-page-hero__media,
+  .nvx-hero__media,
+  .nvx-endolift-formula,
+  .nvx-laser-formula,
+  .nvx-aes-formula
+),
+.nvx-page__content :where(figure, .wp-block-image, .wp-caption):not(.nvx-brand-hero__media),
+.nvx-prose :where(figure, .wp-block-image) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin-block: var(--nvx-space-6);
+  margin-inline: 0;
+  overflow: hidden;
+  border-radius: var(--nvx-radius-image);
+  background: var(--nvx-pearl);
+}
+
+.nvx-content-figure img,
+.nvx-brand-page :where(figure:not(.nvx-endolift-formula):not(.nvx-laser-formula):not(.nvx-aes-formula), .wp-block-image) img,
+.nvx-page__content :where(figure, .wp-block-image) img,
+.nvx-prose :where(figure, .wp-block-image) img,
+img.nvx-media--body {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+  object-fit: cover;
+  border-radius: var(--nvx-radius-image);
+}
+
+/* Never let body images inherit hero full-bleed fill */
+.nvx-brand-page .nvx-brand-section img.nvx-media--body,
+.nvx-page__content .nvx-brand-section img {
+  max-width: 100%;
+  height: auto;
+}
+
+.nvx-content-figure figcaption,
+.nvx-brand-page figcaption,
+.nvx-prose figcaption {
+  margin-top: var(--nvx-margin-caption);
+  padding-inline: var(--nvx-space-1);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  line-height: var(--nvx-lh-caption);
+  color: var(--nvx-text-muted);
+}
+
+/* Shared conversion band shell rhythm (home + hubs) */
+.nvx-home-action-banner-shell,
+.nvx-laser-action,
+.nvx-aes-action,
+.nvx-endolift-action {
+  margin-top: var(--nvx-space-12);
+}
+
+.nvx-home-action-banner,
+.nvx-laser-action__card,
+.nvx-aes-action__card,
+.nvx-catalog-close {
+  border-radius: var(--nvx-radius-card);
 }
 
 .nvx-section + .nvx-section,

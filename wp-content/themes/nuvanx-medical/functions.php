@@ -59,17 +59,15 @@ function nvx_theme_is_home_page(): bool {
  * so it is not the same redundant block on every page.
  */
 function nvx_theme_show_cta_banner(): bool {
-	if ( is_admin() ) {
-		return false;
-	}
+	$show = true;
 
-	if ( nvx_theme_is_home_page() || is_front_page() ) {
-		return false;
+	if ( is_admin() || nvx_theme_is_home_page() || is_front_page() ) {
+		$show = false;
 	}
 
 	// Named conversion templates.
 	$template = (string) get_page_template_slug();
-	if ( in_array(
+	if ( $show && in_array(
 		$template,
 		array(
 			'templates/page-contacto.php',
@@ -77,26 +75,29 @@ function nvx_theme_show_cta_banner(): bool {
 		),
 		true
 	) ) {
-		return false;
+		$show = false;
 	}
 
-	if ( is_page() ) {
+	if ( $show && is_page() ) {
 		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-		if ( in_array( $slug, array( 'contacto', 'gracias', 'valoracion', 'consulta-medica', 'consultamedica' ), true ) ) {
-			return false;
+		$hide_slugs = array( 'contacto', 'gracias', 'valoracion', 'consulta-medica', 'consultamedica' );
+		if ( in_array( $slug, $hide_slugs, true ) ) {
+			$show = false;
 		}
 
 		// Nested paths like /madrid/valoracion/.
-		$ancestors = get_post_ancestors( get_queried_object_id() );
-		foreach ( $ancestors as $ancestor_id ) {
-			$ancestor_slug = (string) get_post_field( 'post_name', $ancestor_id );
-			if ( 'madrid' === $ancestor_slug && 'valoracion' === $slug ) {
-				return false;
+		if ( $show ) {
+			foreach ( get_post_ancestors( get_queried_object_id() ) as $ancestor_id ) {
+				$ancestor_slug = (string) get_post_field( 'post_name', $ancestor_id );
+				if ( 'madrid' === $ancestor_slug && 'valoracion' === $slug ) {
+					$show = false;
+					break;
+				}
 			}
 		}
 	}
 
-	return true;
+	return $show;
 }
 
 function nvx_asset_version( string $relative_path ): string {
@@ -196,3 +197,4 @@ require_once get_template_directory() . '/inc/nvx-content-presentation.php';
 require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
 require_once get_template_directory() . '/inc/nvx-laser-medicine-page.php';
+require_once get_template_directory() . '/inc/nvx-aesthetic-medicine-page.php';

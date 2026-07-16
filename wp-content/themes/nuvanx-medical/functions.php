@@ -293,6 +293,30 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 		'nvx-article-hero'            => 'nvx-section-intro',
 		'nvx-subtitle'                => 'nvx-lead',
 		'nvx-hero-subtitle'           => 'nvx-lead',
+		// Valoración / contacto: API paralela → sistema brand canónico.
+		'nvx-page-hero'               => 'nvx-brand-hero',
+		'nvx-hero-section'            => 'nvx-brand-hero',
+		'nvx-hero'                    => 'nvx-brand-hero',
+		'nvx-page-hero__inner'        => 'nvx-brand-hero__inner',
+		'nvx-hero__inner'             => 'nvx-brand-hero__inner',
+		'nvx-hero__copy'              => 'nvx-brand-hero__copy',
+		'nvx-kicker'                  => 'nvx-brand-kicker',
+		// nvx-title se mantiene: h1/h2/h3.nvx-title ya tienen tipografía por etiqueta.
+		'nvx-card'                    => 'nvx-brand-card',
+		'nvx-card__content'           => '',
+		'nvx-card__media'             => 'nvx-brand-card__media',
+		'nvx-grid'                    => 'nvx-brand-grid',
+		'nvx-grid--2'                 => '',
+		'nvx-grid--3'                 => '',
+		'nvx-positioning-grid'        => '',
+		'nvx-locations-grid'          => 'nvx-brand-grid',
+		'nvx-page__cta'               => 'nvx-brand-actions',
+		'nvx-btn'                     => 'nvx-button',
+		'nvx-btn-primary'             => 'nvx-button--primary',
+		'nvx-btn-secondary'           => 'nvx-button--secondary',
+		'nvx-brand-btn'               => 'nvx-button',
+		'nvx-brand-btn--primary'      => 'nvx-button--primary',
+		'nvx-brand-btn--secondary'    => 'nvx-button--secondary',
 		'nvx-shell-page'              => '',
 		'nvx-valoracion-page'         => '',
 		'nvx-landing-valoracion'      => '',
@@ -416,12 +440,14 @@ function nvx_theme_apply_editorial_flows( string $content ): string {
 		$content
 	);
 
-	// 7b) Kickers numéricos (01, 02, 1, 2…) → numeral de diseño.
+	// 7b) Kickers numéricos: "01", "1", "Paso 1", "Paso 01" → numeral 01 (Bodoni).
+	// No toca kickers de rol/categoría (Dirección médica, Facial, etc.).
 	$content = preg_replace_callback(
-		'/<p([^>]*\bclass=(["\'])([^"\']*\bnvx-brand-card__kicker\b[^"\']*)\2[^>]*)>\s*(\d{1,2})\s*<\/p>/iu',
+		'/<p([^>]*\bclass=(["\'])([^"\']*\bnvx-brand-card__kicker\b[^"\']*)\2[^>]*)>\s*(?:Paso\s*)?(\d{1,2})\s*<\/p>/iu',
 		static function ( $m ) {
-			$attrs = $m[1];
-			$num   = $m[4];
+			$attrs   = $m[1];
+			$num_int = (int) $m[4];
+			$display = str_pad( (string) $num_int, 2, '0', STR_PAD_LEFT );
 			if ( false === strpos( $m[3], 'nvx-numeral' ) ) {
 				$attrs = preg_replace(
 					'/\bclass=(["\'])/',
@@ -430,7 +456,7 @@ function nvx_theme_apply_editorial_flows( string $content ): string {
 					1
 				);
 			}
-			return '<p' . $attrs . '>' . esc_html( $num ) . '</p>';
+			return '<p' . $attrs . '>' . esc_html( $display ) . '</p>';
 		},
 		$content
 	);
@@ -463,6 +489,29 @@ function nvx_theme_apply_editorial_flows( string $content ): string {
 				);
 			}
 			return '<a' . $attrs . '>' . $inner . '</a>';
+		},
+		$content
+	);
+
+	// 7c2) Cards de proceso (Paso + título) → step stack (no son enlaces).
+	$content = preg_replace_callback(
+		'/<article([^>]*\bclass=(["\'])([^"\']*\bnvx-brand-card\b[^"\']*)\2[^>]*)>([\s\S]*?)<\/article>/i',
+		static function ( $m ) {
+			$attrs   = $m[1];
+			$classes = $m[3];
+			$inner   = $m[4];
+			$has_num = ( false !== strpos( $inner, 'nvx-step__num' ) || false !== strpos( $inner, 'nvx-numeral' ) );
+			$has_ttl = ( false !== strpos( $inner, 'nvx-brand-card__title' ) || false !== strpos( $inner, 'nvx-brand-title' ) );
+			if ( ! $has_num || ! $has_ttl || false !== strpos( $classes, 'nvx-step' ) ) {
+				return $m[0];
+			}
+			$attrs = preg_replace(
+				'/\bclass=(["\'])/',
+				'class=$1nvx-step nvx-step--stack ',
+				$attrs,
+				1
+			);
+			return '<article' . $attrs . '>' . $inner . '</article>';
 		},
 		$content
 	);
@@ -535,32 +584,57 @@ function nvx_theme_apply_editorial_flows( string $content ): string {
 		$content
 	);
 
-	// 7h) Subtítulos cortos → impact (solo home, 1º match, 24–120 chars).
-	if ( function_exists( 'nvx_theme_is_home_page' ) && nvx_theme_is_home_page() ) {
-		$done_impact = false;
-		$content     = preg_replace_callback(
-			'/<p([^>]*\bclass=(["\'])([^"\']*\bnvx-brand-subtitle\b[^"\']*)\2[^>]*)>([\s\S]*?)<\/p>/i',
-			static function ( $m ) use ( &$done_impact ) {
-				if ( $done_impact ) {
+	// 7g2) <ol> sin step-list (p.ej. valoración: Escucha → Evaluación → Plan) → step-list.
+	$content = preg_replace_callback(
+		'/<ol(\s[^>]*)?>/i',
+		static function ( $m ) {
+			$attrs = isset( $m[1] ) ? $m[1] : '';
+			if ( preg_match( '/\bclass=(["\'])([^"\']*)\1/i', $attrs, $cm ) ) {
+				if ( false !== strpos( $cm[2], 'nvx-step-list' ) ) {
 					return $m[0];
 				}
-				$text = trim( wp_strip_all_tags( $m[4] ) );
-				$len  = function_exists( 'mb_strlen' ) ? mb_strlen( $text ) : strlen( $text );
-				if ( $len > 120 || $len < 24 || false !== strpos( $m[3], 'nvx-impact' ) ) {
-					return $m[0];
-				}
-				$done_impact = true;
-				$attrs       = preg_replace(
-					'/\bclass=(["\'])/',
-					'class=$1nvx-impact ',
-					$m[1],
+				$attrs = preg_replace(
+					'/\bclass=(["\'])([^"\']*)\1/i',
+					'class=$1$2 nvx-step-list$1',
+					$attrs,
 					1
 				);
-				return '<p' . $attrs . '>' . $m[4] . '</p>';
-			},
-			$content
-		);
-	}
+				return '<ol' . $attrs . '>';
+			}
+			return '<ol class="nvx-step-list"' . $attrs . '>';
+		},
+		$content
+	);
+
+	// 7h) Subtítulo corto → impact (1º match sitewide, 24–120 chars).
+	// Variedad: solo un impacto por página; el resto de subtítulos quedan lead normal.
+	$done_impact = false;
+	$content     = preg_replace_callback(
+		'/<p([^>]*\bclass=(["\'])([^"\']*\b(?:nvx-brand-subtitle|nvx-lead)\b[^"\']*)\2[^>]*)>([\s\S]*?)<\/p>/i',
+		static function ( $m ) use ( &$done_impact ) {
+			if ( $done_impact ) {
+				return $m[0];
+			}
+			// No impact en lead de hero principal (ya es intro); solo brand-subtitle o lead de sección corta.
+			if ( false !== strpos( $m[3], 'nvx-lead' ) && false === strpos( $m[3], 'nvx-brand-subtitle' ) ) {
+				return $m[0];
+			}
+			$text = trim( wp_strip_all_tags( $m[4] ) );
+			$len  = function_exists( 'mb_strlen' ) ? mb_strlen( $text ) : strlen( $text );
+			if ( $len > 120 || $len < 24 || false !== strpos( $m[3], 'nvx-impact' ) ) {
+				return $m[0];
+			}
+			$done_impact = true;
+			$attrs       = preg_replace(
+				'/\bclass=(["\'])/',
+				'class=$1nvx-impact ',
+				$m[1],
+				1
+			);
+			return '<p' . $attrs . '>' . $m[4] . '</p>';
+		},
+		$content
+	);
 
 	return $content;
 }

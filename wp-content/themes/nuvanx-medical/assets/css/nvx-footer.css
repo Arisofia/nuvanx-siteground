@@ -20,7 +20,8 @@
   justify-content: flex-end;
 }
 
-.nvx-cta-banner__actions .nvx-btn--secondary {
+.nvx-cta-banner__actions .nvx-btn--secondary,
+.nvx-cta-banner__actions .nvx-btn--ghost {
   border-color: rgba(255, 255, 255, 0.45);
   color: var(--nvx-white);
 }

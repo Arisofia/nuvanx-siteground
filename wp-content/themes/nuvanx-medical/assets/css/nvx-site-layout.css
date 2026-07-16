@@ -108,6 +108,14 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
   border-radius: 0;
 }
 
+/*
+ * Duplicate façade under hero — CSS fallback. Prefer PHP strip
+ * (nvx_content_strip_duplicate_fachada); no :has().
+ */
+.nvx-brand-page .nvx-brand-section--fachada {
+  display: none;
+}
+
 /* Clinic hub / sede intro columns */
 .nvx-brand-page--clinicas .nvx-brand-section__inner,
 .nvx-brand-page--chamberi .nvx-brand-section__inner,

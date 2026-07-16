@@ -605,11 +605,42 @@ function nvx_content_normalize_body_media( string $content ): string {
 	);
 	$content = is_string( $updated ) ? $updated : $content;
 
+	// Protect team / card portrait frames (doctor role, not body landscape crop).
+	$team_slots = array();
+	$protected  = preg_replace_callback(
+		'/<figure\b([^>]*\bclass=["\'][^"\']*\bnvx-brand-card__media\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/figure>/iu',
+		static function ( array $m ) use ( &$team_slots ): string {
+			$attrs = nvx_html_attrs_add_class( $m[1], 'nvx-brand-card__media--portrait' );
+			$inner = $m[2];
+			$inner = preg_replace( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner ) ?? $inner;
+			$inner = preg_replace_callback(
+				'/<img\b([^>]*)>/iu',
+				static function ( array $im ): string {
+					$a = $im[1];
+					if ( preg_match( '/nvx-logo|nvx-media--hero/i', $a ) ) {
+						return '<img' . $a . '>';
+					}
+					$a = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $a ) ?? $a;
+					$a = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $a ) ?? $a;
+					$a = nvx_html_attrs_add_class( $a, 'nvx-media' );
+					$a = nvx_html_attrs_add_class( $a, 'nvx-media--doctor' );
+					return '<img' . $a . '>';
+				},
+				$inner
+			);
+			$key                = '<!--NVX_TEAM_MEDIA_' . count( $team_slots ) . '-->';
+			$team_slots[ $key ] = '<figure' . $attrs . '>' . ( is_string( $inner ) ? $inner : $m[2] ) . '</figure>';
+			return $key;
+		},
+		$content
+	);
+	$content = is_string( $protected ) ? $protected : $content;
+
 	$updated = preg_replace_callback(
 		'/<img\b([^>]*)>/iu',
 		static function ( array $m ): string {
 			$attrs = $m[1];
-			if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero/i', $attrs ) ) {
+			if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero|nvx-media--doctor/i', $attrs ) ) {
 				return '<img' . $attrs . '>';
 			}
 
@@ -625,12 +656,37 @@ function nvx_content_normalize_body_media( string $content ): string {
 	);
 	$content = is_string( $updated ) ? $updated : $content;
 
+	// Restore protected media untouched.
+	if ( ! empty( $team_slots ) ) {
+		$content = str_replace( array_keys( $team_slots ), array_values( $team_slots ), $content );
+	}
 	// Restore hero media untouched (no body classes, full-bleed cover intact).
 	if ( ! empty( $hero_slots ) ) {
 		$content = str_replace( array_keys( $hero_slots ), array_values( $hero_slots ), $content );
 	}
 
 	return $content;
+}
+
+/**
+ * Remove body façade block when the page hero already shows the clinic photo.
+ *
+ * @param string $content HTML.
+ * @return string
+ */
+function nvx_content_strip_duplicate_fachada( string $content ): string {
+	if ( ! preg_match( '/nvx-(?:brand|page|editorial)-hero__media/i', $content ) ) {
+		return $content;
+	}
+
+	$updated = preg_replace(
+		'/\s*<section\b[^>]*\bnvx-brand-section--fachada\b[^>]*>[\s\S]*?<\/section>/iu',
+		'',
+		$content,
+		1
+	);
+
+	return is_string( $updated ) ? $updated : $content;
 }
 
 /**
@@ -650,6 +706,7 @@ function nvx_content_presentation_enhance( string $content ): string {
 	}
 
 	$content = nvx_content_strip_hero_inline_styles( $content );
+	$content = nvx_content_strip_duplicate_fachada( $content );
 	$content = nvx_content_normalize_body_media( $content );
 	$content = nvx_content_replace_values_sections( $content );
 	$content = nvx_content_replace_method_sections( $content );

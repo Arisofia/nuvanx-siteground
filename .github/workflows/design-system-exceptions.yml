@@ -1,0 +1,42 @@
+name: Design System Exceptions
+
+on:
+  push:
+    paths:
+      - 'wp-content/themes/nuvanx-medical/assets/css/**'
+      - 'wp-content/themes/nuvanx-medical/**/*.php'
+      - 'wp-content/themes/nuvanx-medical/**/*.js'
+      - 'scripts/design-system/audit-css.mjs'
+      - '.github/workflows/design-system-exceptions.yml'
+  pull_request:
+    paths:
+      - 'wp-content/themes/nuvanx-medical/assets/css/**'
+      - 'wp-content/themes/nuvanx-medical/**/*.php'
+      - 'wp-content/themes/nuvanx-medical/**/*.js'
+      - 'scripts/design-system/audit-css.mjs'
+      - '.github/workflows/design-system-exceptions.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  active-system-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Audit active stack and exception paths
+        run: node scripts/design-system/audit-css.mjs
+
+      - name: Publish exception inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-system-exceptions
+          path: |
+            qa/design-system/audit-summary.json
+            qa/design-system/active-css-exceptions.json
+          if-no-files-found: error
+          retention-days: 14

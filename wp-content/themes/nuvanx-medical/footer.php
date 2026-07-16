@@ -10,6 +10,7 @@ defined( 'ABSPATH' ) || exit;
 
 </main>
 
+<?php if ( function_exists( 'nvx_theme_show_cta_banner' ) && nvx_theme_show_cta_banner() ) : ?>
 <section class="nvx-cta-banner" aria-label="<?php esc_attr_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?>">
 	<div class="nvx-cta-banner__inner">
 		<div>
@@ -31,6 +32,7 @@ defined( 'ABSPATH' ) || exit;
 		</a>
 	</div>
 </section>
+<?php endif; ?>
 
 <footer class="nvx-footer" role="contentinfo">
 	<div class="nvx-footer__inner">

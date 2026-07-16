@@ -142,7 +142,17 @@
 
 .nvx-footer__registrations { margin: 0; }
 
-body.home .nvx-cta-banner { display: none; }
+/* Editorial CTA only — never on home or conversion journeys */
+body.home .nvx-cta-banner,
+body.page-template-page-contacto .nvx-cta-banner,
+body.page-template-templatespage-contacto-php .nvx-cta-banner,
+body.page-template-page-landing-valoracion .nvx-cta-banner,
+body.page-template-templatespage-landing-valoracion-php .nvx-cta-banner,
+body.page-contacto .nvx-cta-banner,
+body.page-gracias .nvx-cta-banner,
+body.page-valoracion .nvx-cta-banner {
+  display: none;
+}
 
 @media (max-width: 980px) {
   .nvx-footer__inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }

@@ -111,7 +111,7 @@ function nvx_values_section_markup(): string {
 	);
 
 	$html  = '<section class="nvx-brand-section nvx-brand-section--tight nvx-values-section" aria-label="La base de nuestro criterio clínico">';
-	$html .= '<div class="nvx-v3-shell nvx-brand-section__inner">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'La base de nuestro criterio clínico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Medicina estética láser con diagnóstico, tecnología certificada y resultados naturales', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-values">';
@@ -154,7 +154,7 @@ function nvx_method_section_markup(): string {
 	);
 
 	$html  = '<section class="nvx-brand-section nvx-method-section" aria-label="Método NUVANX">';
-	$html .= '<div class="nvx-v3-shell nvx-brand-section__inner">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Método', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'El criterio médico antes que la tecnología', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-body nvx-method-lead">' . esc_html__( 'En NUVANX, la experiencia y el criterio médico son el pilar de cada tratamiento. La aparatología se pone al servicio del diagnóstico, nunca al revés.', 'nuvanx-medical' ) . '</p>';

@@ -39,7 +39,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-page-hero .nvx-hero__inner,
 .nvx-hero .nvx-hero__inner,
 .nvx-hero .nvx-container,
-.nvx-brand-hero .nvx-v3-shell {
+.nvx-brand-hero .nvx-shell {
   display: block;
   position: absolute;
   inset: 0;

@@ -1168,6 +1168,47 @@ article.nvx-page > .nvx-page-hero {
   margin-bottom: var(--nvx-space-2, 16px);
 }
 
+/* Sobre Nosotros — authority page (not a second equipo dump) */
+.nvx-nosotros-hero--copy-only .nvx-brand-hero__inner {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: var(--nvx-measure-wide, 72rem);
+}
+
+.nvx-nosotros-team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: clamp(20px, 3vw, 32px);
+  margin: var(--nvx-space-4, 32px) 0;
+}
+
+.nvx-nosotros-team-card {
+  margin: 0;
+  padding: clamp(20px, 2.5vw, 28px);
+  border: 1px solid var(--nvx-color-line, #e5e5e5);
+  border-radius: var(--nvx-radius-card, 12px);
+  background: var(--nvx-white, #fff);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-2, 0.75rem);
+}
+
+.nvx-nosotros-team-card .nvx-endolift-kicker {
+  margin: 0;
+}
+
+.nvx-nosotros-team-card .nvx-endolaser-zone__title,
+.nvx-nosotros-team-card .nvx-endolift-body {
+  margin: 0;
+}
+
+.nvx-nosotros-platform-link {
+  margin: var(--nvx-space-2, 0.75rem) 0 0;
+}
+
+.nvx-nosotros-platform-related {
+  opacity: 1;
+}
+
 /* Contacto / valoración — NAP clinics */
 .nvx-contact-clinics {
   display: grid;

@@ -81,20 +81,20 @@
   --space-8: 64px;
 
   /* Gaps — ritmo vertical entre bloques / tarjetas */
-  --nvx-gap-tight: clamp(10px, 1.2vw, 16px);
-  --nvx-gap-base: clamp(16px, 2vw, 28px);
-  --nvx-gap-wide: clamp(24px, 3vw, 40px); /* entre tarjetas, bloques de texto */
-  --nvx-gap-section: clamp(40px, 5vw, 72px);
+  --nvx-gap-tight: clamp(12px, 1.4vw, 18px);
+  --nvx-gap-base: clamp(18px, 2.2vw, 28px);
+  --nvx-gap-wide: clamp(28px, 3.5vw, 48px); /* entre tarjetas, bloques de texto */
+  --nvx-gap-section: clamp(48px, 5.5vw, 80px);
 
   /* Cards: padding interno generoso + bordes suaves */
-  --nvx-pad-card: clamp(24px, 2.8vw, 40px);
+  --nvx-pad-card: clamp(28px, 3vw, 44px);
 
-  /* Secciones: respiración editorial (sin excesos odd/even) */
-  --nvx-pad-section: clamp(48px, 6vw, 88px);
-  --nvx-pad-section-tight: clamp(32px, 4vw, 56px);
+  /* Secciones: respiración editorial de revista (aire sin vacío) */
+  --nvx-pad-section: clamp(56px, 7vw, 104px);
+  --nvx-pad-section-tight: clamp(36px, 4.5vw, 64px);
   --nvx-section-y: var(--nvx-pad-section);
   --nvx-section-y-tight: var(--nvx-pad-section-tight);
-  --nvx-section-y-lg: clamp(64px, 7vw, 112px);
+  --nvx-section-y-lg: clamp(72px, 8vw, 120px);
 
   /* Gutter lateral del shell (desktop generoso) */
   --nvx-gutter: clamp(48px, 6vw, 120px);
@@ -102,17 +102,16 @@
 
   /*
    * Márgenes inferiores por rol tipográfico (flujo editorial)
-   * Display 0.8–1em · H1 1.2–1.5em · H2 1–1.3em · Kicker 0.6em
-   * Body 1.4–1.6em · Lead 1.3em · Caption 0.8em
+   * Display / H1 más contenidos para no empujar media demasiado abajo
    */
-  --nvx-margin-display: 0.9em;
-  --nvx-margin-h1: 1.35em;
-  --nvx-margin-h2: 1.15em;
-  --nvx-margin-h3: 1em;
-  --nvx-margin-kicker: 0.6em;
-  --nvx-margin-body: 1.5em;
-  --nvx-margin-lead: 1.3em;
-  --nvx-margin-caption: 0.8em;
+  --nvx-margin-display: 0.55em;
+  --nvx-margin-h1: 0.55em;
+  --nvx-margin-h2: 0.65em;
+  --nvx-margin-h3: 0.5em;
+  --nvx-margin-kicker: 0.85em;
+  --nvx-margin-body: 1.35em;
+  --nvx-margin-lead: 1.5em;
+  --nvx-margin-caption: 0.75em;
 
   /* ═══════════════════════════════════════════════════════════
      3. SHELL / ANCHOS (único contrato de contenedor)
@@ -139,15 +138,15 @@
   --nvx-media-ratio-panorama: 16 / 9;
 
   /* Tope de altura de fotografías (evita full-bleed gigantes en desktop) */
-  --nvx-media-max-h: clamp(180px, 30vw, 320px);
-  --nvx-media-max-h-hero: clamp(220px, 36vw, 420px);
-  --nvx-media-max-h-featured: clamp(200px, 32vw, 360px);
-  --nvx-media-max-h-full: clamp(240px, 38vw, 480px);
+  --nvx-media-max-h: clamp(220px, 28vw, 360px);
+  --nvx-media-max-h-hero: clamp(280px, 38vw, 480px);
+  --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
+  --nvx-media-max-h-full: clamp(280px, 40vw, 520px);
   /* Retratos equipo médico (proporción vertical, más altos) */
-  --nvx-media-max-h-doctor: clamp(300px, 48vw, 480px);
+  --nvx-media-max-h-doctor: clamp(280px, 42vw, 420px);
   /* Logos de marcas / tecnología (compactos, contain) */
-  --nvx-media-max-h-logo: clamp(64px, 10vw, 96px);
-  --nvx-media-logo-pad: clamp(16px, 2.2vw, 28px);
+  --nvx-media-max-h-logo: clamp(56px, 9vw, 88px);
+  --nvx-media-logo-pad: clamp(18px, 2.4vw, 32px);
 
   /* Radii — pill botones; media es orgánica (no rectángulo) */
   --nvx-radius-button: 999px;
@@ -167,13 +166,13 @@
   --nvx-organic-soft: 28% 72% 64% 36% / 52% 38% 62% 48%;
   --nvx-organic-blob: 55% 45% 42% 58% / 48% 52% 46% 54%;
 
-  /* Movimiento / sangrado editorial */
-  --nvx-media-tilt: -1.25deg;
-  --nvx-media-tilt-alt: 1.4deg;
-  --nvx-media-bleed-x: clamp(16px, 3vw, 48px);
-  --nvx-media-overlap: clamp(-48px, -4vw, -24px);
-  --nvx-gap-magazine-tight: clamp(10px, 1.5vw, 16px);
-  --nvx-gap-magazine-air: clamp(28px, 4vw, 56px);
+  /* Movimiento / sangrado editorial (sutil — quiet luxury) */
+  --nvx-media-tilt: -0.85deg;
+  --nvx-media-tilt-alt: 0.95deg;
+  --nvx-media-bleed-x: clamp(12px, 2.5vw, 36px);
+  --nvx-media-overlap: clamp(-40px, -3.5vw, -20px);
+  --nvx-gap-magazine-tight: clamp(12px, 1.6vw, 18px);
+  --nvx-gap-magazine-air: clamp(32px, 4.5vw, 64px);
 
   /* Media: overlay texto-sobre-imagen + continuidad de color al borde inferior */
   --nvx-media-overlay: linear-gradient(
@@ -213,17 +212,17 @@
   --nvx-type-h1: clamp(2.5rem, 4.5vw, 4.25rem);
   --nvx-type-h2: clamp(1.875rem, 3.2vw, 2.75rem);
   --nvx-type-h3: clamp(1.25rem, 2vw, 1.75rem);
-  --nvx-type-lead: clamp(1.125rem, 1.2vw, 1.25rem);
+  --nvx-type-lead: clamp(1.1875rem, 1.35vw, 1.375rem);   /* lead un punto por encima del body */
   --nvx-type-body-large: 1.125rem;                       /* Body 18px */
   --nvx-type-body: 1.0625rem;                            /* Body 17px */
   --nvx-type-caption: clamp(0.875rem, 0.9vw, 0.9375rem);
   --nvx-type-small: var(--nvx-type-caption);
-  --nvx-type-kicker: clamp(0.6875rem, 0.7vw, 0.75rem);
+  --nvx-type-kicker: clamp(0.6875rem, 0.72vw, 0.8125rem);
   --nvx-type-button: 0.75rem;
   --nvx-type-script: clamp(1.5rem, 2.5vw, 2.25rem);
   --nvx-type-numeral: clamp(1.875rem, 3.2vw, 2.75rem);   /* índices compactos */
-  --nvx-type-numeral-display: clamp(3rem, 6.5vw, 5.5rem); /* 01 / 02 como diseño */
-  --nvx-type-pull: clamp(1.35rem, 2.4vw, 1.85rem);        /* pull quote */
+  --nvx-type-numeral-display: clamp(2.75rem, 5.5vw, 4.75rem); /* 01 / 02 elegantes, no gigantes */
+  --nvx-type-pull: clamp(1.45rem, 2.5vw, 2rem);           /* pull quote */
 
   --nvx-fw-ultralight: 200;
   --nvx-fw-light: 300;
@@ -294,7 +293,9 @@
 @media (max-width: 680px) {
   :root {
     --nvx-gutter: clamp(24px, 6vw, 40px);
-    --nvx-pad-section: clamp(64px, 14vw, 96px);
+    --nvx-pad-section: clamp(48px, 10vw, 80px);
+    --nvx-pad-section-tight: clamp(32px, 7vw, 52px);
     --nvx-section-y: var(--nvx-pad-section);
+    --nvx-section-y-tight: var(--nvx-pad-section-tight);
   }
 }

@@ -1217,29 +1217,116 @@ article.nvx-page > .nvx-page-hero {
   margin: var(--nvx-space-4, 32px) 0 0;
 }
 
-/* Equipo — staff grid preserved from CMS */
+/* Equipo page structure — aligned profiles + staff */
+.nvx-equipo-editorial {
+  display: block;
+}
+
+.nvx-equipo-editorial > .nvx-equipo-director,
+.nvx-equipo-editorial > .nvx-equipo-ivon {
+  border-bottom: 1px solid var(--nvx-color-line, #e5e5e5);
+}
+
+.nvx-equipo-profile-layout {
+  display: grid;
+  grid-template-columns: minmax(11rem, 15rem) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 48px);
+  align-items: start;
+}
+
+.nvx-equipo-profile-layout__copy {
+  min-width: 0;
+  max-width: 68ch;
+}
+
+.nvx-equipo-profile-layout__copy .nvx-endolift-heading {
+  max-width: 28ch;
+}
+
+.nvx-equipo-portrait {
+  margin: 0;
+  width: 100%;
+  max-width: 15rem;
+  aspect-ratio: 5 / 6;
+  overflow: hidden;
+  border-radius: var(--nvx-radius-card, 12px);
+  background: var(--nvx-pearl, #f6f7f8);
+  box-shadow: var(--nvx-shadow-min, 0 1px 2px rgba(0, 0, 0, 0.04));
+}
+
+.nvx-equipo-portrait img,
+.nvx-equipo-portrait .nvx-media--doctor {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: 5 / 6;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 0;
+}
+
+/* Staff grid: equal cards, portrait frames, no span-4 leak from team class */
 .nvx-equipo-staff-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
   gap: clamp(20px, 3vw, 32px);
   margin-top: var(--nvx-space-4, 32px);
   align-items: stretch;
 }
 
-.nvx-equipo-director-media {
-  max-width: 16rem;
-  margin: 0 0 var(--nvx-space-4, 32px);
-  overflow: hidden;
-  border-radius: var(--nvx-radius-card, 12px);
-  aspect-ratio: 5 / 6;
+.nvx-equipo-staff-grid .nvx-brand-card,
+.nvx-equipo-staff-grid .nvx-brand-card--team {
+  grid-column: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  margin: 0;
 }
 
-.nvx-equipo-director-media img {
+.nvx-equipo-staff-grid .nvx-brand-card__media,
+.nvx-equipo-staff-grid .nvx-brand-card__media--portrait {
+  margin: calc(-1 * var(--nvx-pad-card, 1.25rem)) calc(-1 * var(--nvx-pad-card, 1.25rem)) var(--nvx-space-3, 1rem);
+  width: auto;
+  aspect-ratio: 5 / 6;
+  max-height: none;
+  overflow: hidden;
+  background: var(--nvx-pearl, #f6f7f8);
+  border-radius: var(--nvx-radius-card, 12px) var(--nvx-radius-card, 12px) 0 0;
+}
+
+.nvx-equipo-staff-grid .nvx-brand-card__media img,
+.nvx-equipo-staff-grid .nvx-brand-card__media--portrait img,
+.nvx-equipo-staff-grid img.nvx-media--doctor {
   display: block;
   width: 100%;
   height: 100%;
+  max-height: none;
+  aspect-ratio: 5 / 6;
   object-fit: cover;
   object-position: center top;
+  border-radius: 0;
+}
+
+.nvx-equipo-staff-grid .nvx-brand-card__title,
+.nvx-equipo-staff-grid .nvx-brand-card__body {
+  text-align: left;
+}
+
+.nvx-equipo-staff-grid .nvx-brand-card__body {
+  flex: 1 1 auto;
+}
+
+@media (max-width: 720px) {
+  .nvx-equipo-profile-layout {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .nvx-equipo-portrait {
+    max-width: 12rem;
+  }
 }
 
 /* Equipo — clinical quote */

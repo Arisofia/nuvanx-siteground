@@ -89,6 +89,30 @@ defined( 'ABSPATH' ) || exit;
 				</li>
 
 				<li>
+					<a href="<?php echo esc_url( home_url( '/exion-face/' ) ); ?>">
+						EXION® Face
+					</a>
+				</li>
+
+				<li>
+					<a href="<?php echo esc_url( home_url( '/exion-body/' ) ); ?>">
+						EXION® Body
+					</a>
+				</li>
+
+				<li>
+					<a href="<?php echo esc_url( home_url( '/exion-fractional/' ) ); ?>">
+						EXION® Fractional
+					</a>
+				</li>
+
+				<li>
+					<a href="<?php echo esc_url( home_url( '/emfusion/' ) ); ?>">
+						EMFUSION®
+					</a>
+				</li>
+
+				<li>
 					<a href="<?php echo esc_url( home_url( '/btl-exilite-ipl-madrid/' ) ); ?>">
 						BTL EXILITE™ IPL
 					</a>

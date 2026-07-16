@@ -3,6 +3,13 @@ name: CSS Gate
 on:
   push:
   pull_request:
+  workflow_dispatch:
+    inputs:
+      theme_path:
+        description: Theme path relative to the repository root (CSS Gate target)
+        required: false
+        default: wp-content/themes/nuvanx-medical
+        type: string
 
 permissions:
   contents: read
@@ -11,8 +18,8 @@ jobs:
   css-gate:
     runs-on: ubuntu-latest
     env:
-      # Override to point the gate at another theme path without editing every step.
-      NVX_THEME_PATH: wp-content/themes/nuvanx-medical
+      # Prefer workflow_dispatch input; fall back to the medical theme for push/PR.
+      NVX_THEME_PATH: ${{ inputs.theme_path || 'wp-content/themes/nuvanx-medical' }}
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -20,6 +27,7 @@ jobs:
       - name: Validate theme path
         run: |
           set -euo pipefail
+          echo "NVX_THEME_PATH=${NVX_THEME_PATH}"
           test -d "${NVX_THEME_PATH}" || {
             echo "ERROR: NVX_THEME_PATH is not a directory: ${NVX_THEME_PATH}"
             exit 1
@@ -125,15 +133,32 @@ jobs:
             exit 1
           }
 
-          echo 'Tracked runtime references (informational; stored WordPress markup is audited separately):'
+          # Informational scan: counts + capped samples (DB markup is audited separately).
+          PATTERN='nvx-(grid-12|span-(4|5|6|7|8|12)|stack(--tight|--wide)?|cluster|reading|section--tight)'
+          SAMPLE_CAP=15
+          matches_file="$(mktemp)"
           grep -RInE \
             --include='*.php' \
             --include='*.js' \
             --include='*.html' \
             --include='*.json' \
             --exclude-dir='assets' \
-            'nvx-(grid-12|span-(4|5|6|7|8|12)|stack(--tight|--wide)?|cluster|reading|section--tight)' \
-            "$THEME" || true
+            "$PATTERN" \
+            "$THEME" >"$matches_file" 2>/dev/null || true
+
+          total="$(wc -l <"$matches_file" | tr -d ' ')"
+          files_hit="$(cut -d: -f1 "$matches_file" | sort -u | wc -l | tr -d ' ')"
+          echo "Tracked runtime references (informational): ${total} match(es) across ${files_hit} file(s)"
+          if [ "$total" -gt 0 ]; then
+            echo "Sample (first ${SAMPLE_CAP}):"
+            head -n "$SAMPLE_CAP" "$matches_file"
+            if [ "$total" -gt "$SAMPLE_CAP" ]; then
+              echo "... and $((total - SAMPLE_CAP)) more (capped for CI log readability)"
+            fi
+          else
+            echo "No tracked PHP/JS/HTML/JSON references under theme (DB/Gutenberg may still use classes)."
+          fi
+          rm -f "$matches_file"
 
       - name: Reject patch architecture and unsafe selectors
         run: |

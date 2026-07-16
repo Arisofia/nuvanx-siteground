@@ -160,15 +160,33 @@ article.nvx-page > .nvx-page-hero {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   BODY CONTENT SYSTEM — text measure + body images (all pages)
-   One source: when tokens change, every page body updates.
+   BODY CONTENT SYSTEM — sitewide (blog, valoración, home, hubs)
+   Scope is ANY main content surface, not only .nvx-brand-page.
    Heroes stay full-bleed (excluded below).
    ═══════════════════════════════════════════════════════════ */
 
-/* Paragraph / body copy margins (connected to type tokens) */
-.nvx-brand-page :where(p, .nvx-brand-body, .nvx-endolift-body, .nvx-laser-body, .nvx-aes-body, .nvx-value__body, .nvx-method-col__body, .nvx-catalog-card__body),
-.nvx-page__content :where(p, .nvx-brand-body),
-.nvx-prose p {
+/* Surfaces that own editorial body copy */
+.nvx-main :is(
+  .nvx-brand-page,
+  .nvx-page__content,
+  .entry-content,
+  .nvx-prose,
+  .nvx-copy,
+  .nvx-page-body__inner,
+  .nvx-brand-section,
+  .nvx-brand-card__body,
+  .nvx-card__body,
+  .nvx-section-intro
+) :where(
+  p,
+  .nvx-brand-body,
+  .nvx-endolift-body,
+  .nvx-laser-body,
+  .nvx-aes-body,
+  .nvx-value__body,
+  .nvx-method-col__body,
+  .nvx-catalog-card__body
+) {
   margin: 0 0 var(--nvx-margin-body);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
@@ -176,37 +194,90 @@ article.nvx-page > .nvx-page-hero {
   color: var(--nvx-text-body);
 }
 
-/* Reading measure for long-form body (not cards, not meta lists) */
-.nvx-brand-page :where(
-  .nvx-brand-section__inner > p,
-  .nvx-brand-body,
+/* Global paragraphs inside main shell (home sections, blog, landing) */
+.nvx-main .nvx-shell :where(p),
+.nvx-main .nvx-brand-page :where(p),
+.nvx-main .nvx-home-action-banner__text {
+  font-family: var(--nvx-sans);
+  line-height: var(--nvx-lh-body);
+}
+
+/* Reading measure — long-form only (not grids/cards/meta) */
+.nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-copy) > :where(p, ul, ol, blockquote),
+.nvx-main :is(.nvx-brand-page, .nvx-brand-section__inner) > :where(p, .nvx-brand-body),
+.nvx-main :where(
   .nvx-endolift-body--measure,
   .nvx-laser-body--measure,
   .nvx-aes-body--lead,
   .nvx-method-lead,
   .nvx-brand-faq-content p,
-  .nvx-prose > p
+  .nvx-lead
 ) {
   max-width: var(--nvx-measure);
 }
 
-.nvx-brand-page :where(h2, .nvx-brand-title, .nvx-endolift-heading, .nvx-laser-heading, .nvx-aes-heading) {
+.nvx-main :where(
+  h2,
+  .nvx-brand-title,
+  .nvx-heading,
+  .nvx-endolift-heading,
+  .nvx-laser-heading,
+  .nvx-aes-heading
+) {
   margin: 0 0 var(--nvx-margin-h2);
+}
+
+.nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-section-intro) :where(h2, .nvx-heading) {
   max-width: 22ch;
 }
 
-.nvx-brand-page :where(h3, .nvx-brand-subtitle, .nvx-value__title, .nvx-endolift-effect__title, .nvx-laser-pillar__title, .nvx-aes-pillar__title, .nvx-aes-card__title) {
+.nvx-main :where(
+  h3,
+  .nvx-brand-subtitle,
+  .nvx-value__title,
+  .nvx-brand-card__title,
+  .nvx-endolift-effect__title,
+  .nvx-laser-pillar__title,
+  .nvx-aes-pillar__title,
+  .nvx-aes-card__title
+) {
   margin: 0 0 var(--nvx-margin-h3);
 }
 
-.nvx-brand-page :where(.nvx-brand-kicker, .nvx-endolift-kicker, .nvx-laser-kicker, .nvx-aes-kicker) {
+.nvx-main :where(
+  .nvx-brand-kicker,
+  .nvx-eyebrow,
+  .nvx-brand-card__kicker,
+  .nvx-endolift-kicker,
+  .nvx-laser-kicker,
+  .nvx-aes-kicker
+) {
   margin: 0 0 var(--nvx-margin-kicker);
   color: var(--nvx-platinum);
 }
 
-/* Body media (content figures / WP images) — same radius, rhythm, width */
+/* Section intro (blog index, title-only pages) */
+.nvx-section-intro {
+  margin-bottom: var(--nvx-gap-section);
+  padding-block: var(--nvx-pad-section-tight) var(--nvx-space-4);
+}
+
+.nvx-section-intro .nvx-lead {
+  margin-top: var(--nvx-space-2);
+  max-width: var(--nvx-measure-lead);
+  color: var(--nvx-text-body);
+}
+
+/* Body media — all content surfaces, not brand-page only */
 .nvx-content-figure,
-.nvx-brand-page :where(figure, .wp-block-image, .wp-caption):not(
+.nvx-main :is(
+  .nvx-brand-page,
+  .nvx-page__content,
+  .entry-content,
+  .nvx-prose,
+  .nvx-copy,
+  .nvx-page-body__inner
+) :where(figure, .wp-block-image, .wp-caption):not(
   .nvx-brand-hero__media,
   .nvx-editorial-hero__media,
   .nvx-page-hero__media,
@@ -214,9 +285,7 @@ article.nvx-page > .nvx-page-hero {
   .nvx-endolift-formula,
   .nvx-laser-formula,
   .nvx-aes-formula
-),
-.nvx-page__content :where(figure, .wp-block-image, .wp-caption):not(.nvx-brand-hero__media),
-.nvx-prose :where(figure, .wp-block-image) {
+) {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -228,10 +297,18 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-content-figure img,
-.nvx-brand-page :where(figure:not(.nvx-endolift-formula):not(.nvx-laser-formula):not(.nvx-aes-formula), .wp-block-image) img,
-.nvx-page__content :where(figure, .wp-block-image) img,
-.nvx-prose :where(figure, .wp-block-image) img,
-img.nvx-media--body {
+.nvx-main :is(
+  .nvx-brand-page,
+  .nvx-page__content,
+  .entry-content,
+  .nvx-prose
+) :where(
+  figure:not(.nvx-endolift-formula):not(.nvx-laser-formula):not(.nvx-aes-formula),
+  .wp-block-image
+) img,
+.nvx-main img.nvx-media--body,
+.nvx-main .nvx-brand-card__media img,
+.nvx-main .nvx-card__media img {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -241,22 +318,70 @@ img.nvx-media--body {
   border-radius: var(--nvx-radius-image);
 }
 
+.nvx-main .nvx-brand-card__media img,
+.nvx-main .nvx-card__media img {
+  aspect-ratio: 16 / 10;
+  border-radius: 0; /* radius on media frame */
+}
+
 /* Never let body images inherit hero full-bleed fill */
-.nvx-brand-page .nvx-brand-section img.nvx-media--body,
-.nvx-page__content .nvx-brand-section img {
+.nvx-main .nvx-brand-section img.nvx-media--body,
+.nvx-main .nvx-page__content img:not(.nvx-media--hero) {
   max-width: 100%;
   height: auto;
 }
 
 .nvx-content-figure figcaption,
-.nvx-brand-page figcaption,
-.nvx-prose figcaption {
+.nvx-main :is(.nvx-brand-page, .nvx-prose, .nvx-page__content, .entry-content) figcaption {
   margin-top: var(--nvx-margin-caption);
   padding-inline: var(--nvx-space-1);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-caption);
   line-height: var(--nvx-lh-caption);
   color: var(--nvx-text-muted);
+}
+
+/* Blog / journal cards — full quiet-luxury chrome (was unstyled grid cells) */
+.nvx-brand-card,
+.nvx-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-2);
+  min-width: 0;
+  padding: var(--nvx-pad-card);
+  border: 1px solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-white);
+  box-shadow: var(--nvx-shadow-min);
+}
+
+.nvx-brand-grid {
+  align-items: stretch;
+  margin-block: var(--nvx-space-4) var(--nvx-space-8);
+}
+
+.nvx-brand-card .nvx-button,
+.nvx-card .nvx-button {
+  margin-top: auto;
+  align-self: flex-start;
+}
+
+.nvx-page__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nvx-space-3);
+  justify-content: space-between;
+  margin-top: var(--nvx-space-8);
+  padding-top: var(--nvx-space-4);
+  border-top: 1px solid var(--nvx-color-line);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+}
+
+.nvx-page__nav a {
+  color: var(--nvx-ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 /* Shared conversion band shell rhythm (home + hubs) */

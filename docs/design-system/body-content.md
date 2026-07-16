@@ -13,9 +13,15 @@
 
 ## Rules
 
+### Surfaces (must all inherit)
+Rules apply under `.nvx-main` to **all** of:
+`.nvx-brand-page`, `.nvx-page__content`, `.entry-content`, `.nvx-prose`, `.nvx-copy`, `.nvx-page-body__inner`, `.nvx-brand-section`, `.nvx-brand-card__body`, `.nvx-section-intro`.
+
+Not only treatment hubs — **blog, valoración, home, interior pages**.
+
 ### Text
 - Body paragraphs use `margin-bottom: var(--nvx-margin-body)` (24px).
-- Long-form measure: `max-width: var(--nvx-measure)` (68ch) on section body copy.
+- Long-form measure: `max-width: var(--nvx-measure)` on reading copy (not card grids).
 - Headings: `var(--nvx-margin-h2)` / `h3` tokens.
 - Kickers: `var(--nvx-margin-kicker)` + platinum.
 

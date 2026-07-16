@@ -39,6 +39,12 @@ function nvx_cleanup_html(string $html): string
     $html = str_replace('características induales', 'características individuales', $html);
     $html = preg_replace('/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $html) ?? $html;
     $html = preg_replace('/<(ul|ol)\b[^>]*>\s*<\/\1>/iu', '', $html) ?? $html;
+    // Canonical schema is Yoast @graph only — drop embedded JSON-LD from post_content.
+    $html = preg_replace(
+        '#<script\b[^>]*type\s*=\s*(["\'])application/ld\+json\1[^>]*>[\s\S]*?</script>#iu',
+        '',
+        $html
+    ) ?? $html;
 
     if (trim($html) === '') {
         return $html;
@@ -54,6 +60,12 @@ function nvx_cleanup_html(string $html): string
         foreach ($xpath->query('//*[@style]') ?: [] as $node) {
             if ($node instanceof DOMElement) {
                 $node->removeAttribute('style');
+            }
+        }
+        // Also remove any remaining ld+json scripts DOM may still hold.
+        foreach ($xpath->query('//script[contains(translate(@type,"JSONLD","jsonld"),"ld+json")]') ?: [] as $node) {
+            if ($node instanceof DOMElement && $node->parentNode) {
+                $node->parentNode->removeChild($node);
             }
         }
 

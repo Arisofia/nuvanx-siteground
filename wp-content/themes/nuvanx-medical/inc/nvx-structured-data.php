@@ -51,6 +51,12 @@ function nvx_schema_page_registry() {
 				'path'   => '/exion-btl/',
 				'schema' => 'Service',
 			),
+			// Path is authoritative when post ID moves between environments.
+			'exilite_btl'     => array(
+				'id'     => 0,
+				'path'   => '/btl-exilite-ipl-madrid/',
+				'schema' => 'Service',
+			),
 		),
 	);
 }
@@ -198,7 +204,9 @@ function nvx_schema_resolve_treatment_key( $page_id ) {
 	$path     = nvx_schema_current_path( $page_id );
 
 	foreach ( $registry['treatments'] as $key => $entry ) {
-		if ( (int) $entry['id'] === $page_id || nvx_schema_path_matches( $path, $entry['path'] ) ) {
+		$id_match   = ! empty( $entry['id'] ) && (int) $entry['id'] === $page_id;
+		$path_match = nvx_schema_path_matches( $path, $entry['path'] );
+		if ( $id_match || $path_match ) {
 			return $key;
 		}
 	}
@@ -476,6 +484,21 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 		);
 	}
 
+	if ( 'exilite_btl' === $key ) {
+		return array(
+			'@type'            => 'Service',
+			'@id'              => $permalink . '#service',
+			'name'             => 'BTL EXILITE™ IPL en Madrid',
+			'serviceType'      => 'Protocolos médicos con plataforma BTL EXILITE™ IPL',
+			'url'              => $permalink,
+			'mainEntityOfPage' => array( '@id' => $permalink ),
+			'provider'         => array( '@id' => $organization_id ),
+			// Conservative description aligned with visible page intro (no numeric efficacy claims).
+			'description'      => 'Plataforma médica de luz pulsada intensa (IPL) para valoración de manchas, rojeces, alteraciones pigmentarias y lesiones vasculares superficiales según diagnóstico médico.',
+			'areaServed'       => 'Madrid',
+		);
+	}
+
 	return null;
 }
 
@@ -542,6 +565,7 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 			'Endoláser corporal',
 			'Láser CO₂ fraccionado',
 			'EXION® BTL',
+			'BTL EXILITE™ IPL',
 			'Thermage FLX®',
 			'Medicina regenerativa',
 		);
@@ -579,3 +603,32 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 	return $graph;
 }
 add_filter( 'wpseo_schema_graph', 'nvx_extend_yoast_schema_graph', 20, 2 );
+
+/**
+ * Strip embedded JSON-LD from post content / excerpts.
+ *
+ * Canonical structured data is only emitted via Yoast's @graph
+ * (wpseo_schema_graph). Standalone <script type="application/ld+json">
+ * blocks left in WordPress content (e.g. EXILITE, home FAQ dumps) create
+ * duplicate Organization / MedicalClinic / FAQPage entities and must not
+ * render. Permanent DB cleanup remains recommended on staging2.
+ *
+ * @param string $content HTML.
+ * @return string
+ */
+function nvx_strip_embedded_jsonld( $content ) {
+	if ( ! is_string( $content ) || '' === $content || false === stripos( $content, 'ld+json' ) ) {
+		return $content;
+	}
+
+	$cleaned = preg_replace(
+		'#<script\b[^>]*type\s*=\s*(["\'])application/ld\+json\1[^>]*>[\s\S]*?</script>#i',
+		'',
+		$content
+	);
+
+	return is_string( $cleaned ) ? $cleaned : $content;
+}
+add_filter( 'the_content', 'nvx_strip_embedded_jsonld', 5 );
+add_filter( 'the_excerpt', 'nvx_strip_embedded_jsonld', 5 );
+add_filter( 'widget_text_content', 'nvx_strip_embedded_jsonld', 5 );

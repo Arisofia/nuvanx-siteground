@@ -771,7 +771,8 @@ function nvx_content_normalize_body_media( string $content ): string {
 	);
 	$content = is_string( $protected ) ? $protected : $content;
 
-	$skip_figure = 'nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula';
+	// Portraits + formula stages must not get body-figure margins / height:auto.
+	$skip_figure = 'nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula|nvx-equipo-portrait|nvx-brand-card__media|nvx-brand-card__media--portrait';
 
 	$updated = preg_replace_callback(
 		'/<figure\b([^>]*)>/iu',
@@ -789,9 +790,13 @@ function nvx_content_normalize_body_media( string $content ): string {
 	// Protect team / card portrait frames (doctor role, not body landscape crop).
 	$team_slots = array();
 	$protected  = preg_replace_callback(
-		'/<figure\b([^>]*\bclass=["\'][^"\']*\bnvx-brand-card__media\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/figure>/iu',
+		'/<figure\b([^>]*\bclass=["\'][^"\']*\b(?:nvx-brand-card__media|nvx-equipo-portrait)\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/figure>/iu',
 		static function ( array $m ) use ( &$team_slots ): string {
-			$attrs = nvx_html_attrs_add_class( $m[1], 'nvx-brand-card__media--portrait' );
+			$attrs = $m[1];
+			// Only card media gets the portrait media class; authority figures keep nvx-equipo-portrait.
+			if ( false !== stripos( $attrs, 'nvx-brand-card__media' ) ) {
+				$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-brand-card__media--portrait' );
+			}
 			$inner = $m[2];
 			$inner = preg_replace( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner ) ?? $inner;
 			$inner = preg_replace_callback(

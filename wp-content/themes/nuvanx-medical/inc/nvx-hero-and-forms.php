@@ -44,6 +44,11 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 		return $content;
 	}
 
+	// Never inject site logo / brand mark as hero photography.
+	if ( preg_match( '/logo-nuvanx|nuvanx-web\.webp|\/logo[-_]|nvx-logo|site-logo|custom-logo/iu', $thumb ) ) {
+		return $content;
+	}
+
 	$figure = '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
 
 	// Locate first hero __copy opening tag.

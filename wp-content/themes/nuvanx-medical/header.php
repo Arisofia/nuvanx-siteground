@@ -24,7 +24,7 @@ defined( 'ABSPATH' ) || exit;
     </a>
     <nav class="nvx-nav" role="navigation" aria-label="Menú principal">
       <?php wp_nav_menu(['theme_location'=>'primary','menu_class'=>'nvx-nav__list','container'=>false,'items_wrap'=>'<ul class="%2$s" role="menubar">%3$s</ul>','fallback_cb'=>'nvx_primary_menu_fallback','add_li_class'=>'nvx-nav__item']); ?>
-      <a href="<?php echo esc_url( home_url( '/contacto/' ) ); ?>" class="nvx-btn nvx-btn--primary" id="nvx-header-cta"><?php esc_html_e( 'RESERVAR CITA', 'nuvanx-medical' ); ?></a>
+      <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary" id="nvx-header-cta"><?php esc_html_e( 'Reservar valoración gratuita', 'nuvanx-medical' ); ?></a>
     </nav>
     <button class="nvx-hamburger" id="nvx-hamburger-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="nvx-mobile-nav">
       <span></span><span></span><span></span>
@@ -34,6 +34,7 @@ defined( 'ABSPATH' ) || exit;
 <div id="nvx-mobile-nav" class="nvx-mobile-nav" role="dialog" aria-modal="true" aria-hidden="true">
   <button class="nvx-mobile-nav__close" id="nvx-mobile-close" aria-label="Cerrar menú">&times;</button>
   <?php wp_nav_menu(['theme_location'=>'primary','menu_class'=>'nvx-mobile-nav__list','container'=>false,'fallback_cb'=>false]); ?>
-  <a href="<?php echo esc_url( home_url( '/contacto/' ) ); ?>" class="nvx-btn nvx-btn--primary"><?php esc_html_e( 'RESERVAR CITA', 'nuvanx-medical' ); ?></a>
+  <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary"><?php esc_html_e( 'Reservar valoración gratuita', 'nuvanx-medical' ); ?></a>
+  <a href="https://wa.me/34669319836" class="nvx-btn nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
 </div>
 <main id="nvx-main" class="nvx-main" tabindex="-1">

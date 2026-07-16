@@ -96,7 +96,14 @@
   --nvx-media-tilt: -0.85deg;
   --nvx-media-tilt-alt: 0.95deg;
   --nvx-media-bleed-x: clamp(16px, 2.5vw, 32px);
-  --nvx-media-overlay: linear-gradient(180deg, rgba(20,22,26,0) 32%, rgba(20,22,26,.22) 64%, rgba(20,22,26,.48) 100%);
+  /* Hero scrim: stronger bottom for full-bleed overlay legibility */
+  --nvx-media-overlay: linear-gradient(
+    180deg,
+    rgba(20, 22, 26, 0.12) 0%,
+    rgba(20, 22, 26, 0.08) 28%,
+    rgba(20, 22, 26, 0.35) 58%,
+    rgba(20, 22, 26, 0.72) 100%
+  );
 
   /* Tipografía canónica */
   --nvx-serif: "Bodoni Moda", "Times New Roman", Georgia, serif;

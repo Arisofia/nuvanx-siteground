@@ -13,20 +13,59 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Singular page context for laser hub rewrite (avoids excerpts / archives).
+ */
+function nvx_laser_is_singular_context(): bool {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return false;
+	}
+
+	return is_singular( 'page' ) || is_page();
+}
+
+/**
+ * Resolve a public page URL by path, with home_url fallback.
+ *
+ * @param string $path Relative path without domain (e.g. endolift-facial-papada-mandibula).
+ */
+function nvx_laser_page_url( string $path ): string {
+	$path = trim( $path, '/' );
+	$page = get_page_by_path( $path );
+
+	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
+		$url = get_permalink( $page );
+		if ( is_string( $url ) && '' !== $url ) {
+			return $url;
+		}
+	}
+
+	return home_url( '/' . $path . '/' );
+}
+
+/**
  * Detect Medicina Estética Láser hub content before rewrite.
+ * Prefers stable structural markers over free-text phrases.
  */
 function nvx_content_is_laser_medicine_page( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-laser-editorial' ) ) {
 		return false;
 	}
 
-	// Exclude Endolift / EXION / CO2 detail pages that may share hero modifiers.
-	if ( preg_match( '/nvx-endolift-editorial|Endolift facial NUVANX|endolift-facial-papada|EXION® BTL NUVANX|nvx-brand-page--exion/iu', $content ) ) {
+	if ( ! nvx_laser_is_singular_context() ) {
 		return false;
 	}
 
+	// Exclude treatment detail pages that share laser hero modifiers.
+	if ( preg_match(
+		'/nvx-endolift-editorial|nvx-endolift-hero|aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|nvx-brand-page--exion|aria-label=["\']EXION/iu',
+		$content
+	) ) {
+		return false;
+	}
+
+	// Stable structural markers only (wrapper class / hub ids / hub aria-label).
 	return (bool) preg_match(
-		'/Medicina estética láser NUVANX|nvx-brand-page--laser|id="nvx-laser-h1"|Tecnología médica cuando el tejido lo requiere|medicina-estetica-laser/iu',
+		'/class=["\'][^"\']*nvx-brand-page--laser|class=["\'][^"\']*nvx-laser-hero|id=["\']nvx-laser-h1["\']|aria-label=["\']Medicina estética láser NUVANX["\']/iu',
 		$content
 	);
 }
@@ -189,7 +228,7 @@ function nvx_laser_editorial_body_markup(): string {
 			'body'    => __( 'Tratamiento de retracción tisular mínimamente invasivo que utiliza una microfibra óptica de silicio de entre 200 y 300 micras introducida directamente en la hipodermis superficial. Emplea una longitud de onda de 1470 nm para calentar de forma selectiva los septos fibrosos del SMAS y la grasa submentoniana, eliminando la flacidez de la papada y definiendo el óvalo facial sin cicatrices.', 'nuvanx-medical' ),
 			'goal'    => __( 'Redefinición mandibular y eliminación de adiposidad submentoniana.', 'nuvanx-medical' ),
 			'recover' => __( 'Edema leve durante 3–5 días; reincorporación social inmediata.', 'nuvanx-medical' ),
-			'url'     => home_url( '/endolift-facial-papada-mandibula/' ),
+			'url'     => nvx_laser_page_url( 'endolift-facial-papada-mandibula' ),
 		),
 		array(
 			'n'       => '02',
@@ -198,7 +237,7 @@ function nvx_laser_editorial_body_markup(): string {
 			'body'    => __( 'Tecnología que combina la emisión simultánea de radiofrecuencia monopolar y ultrasonido focalizado. Mediante el estrés térmico controlado a nivel celular, activa los receptores CD44 en la matriz extracelular, logrando un incremento documentado de hasta un 224% en la síntesis natural de ácido hialurónico y un aumento de la densidad del colágeno sin inyecciones ni dolor.', 'nuvanx-medical' ),
 			'goal'    => __( 'Hidratación profunda, tensado cutáneo y firmeza corporal en abdomen o flancos.', 'nuvanx-medical' ),
 			'recover' => __( 'Sin tiempo de baja; eritema transitorio de pocas horas.', 'nuvanx-medical' ),
-			'url'     => home_url( '/exion-btl/' ),
+			'url'     => nvx_laser_page_url( 'exion-btl' ),
 		),
 		array(
 			'n'       => '03',
@@ -207,7 +246,7 @@ function nvx_laser_editorial_body_markup(): string {
 			'body'    => __( 'Emisión láser ablativa molecular que genera columnas de microlesiones térmicas microscópicas en la epidermis de forma fraccionada. Este proceso de vaporización controlada elimina las capas queratinizadas envejecidas y desencadena una cicatrización eficiente que reemplaza la piel dañada por tejido nuevo, terso y luminoso.', 'nuvanx-medical' ),
 			'goal'    => __( 'Eliminación de cicatrices de acné, poros dilatados, líneas finas y fotoenvejecimiento.', 'nuvanx-medical' ),
 			'recover' => __( 'Requiere entre 5 y 7 días de descamación controlada y protección solar estricta.', 'nuvanx-medical' ),
-			'url'     => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ),
+			'url'     => nvx_laser_page_url( 'laser-co2-fraccionado-madrid-textura-cicatrices-poro' ),
 		),
 	);
 

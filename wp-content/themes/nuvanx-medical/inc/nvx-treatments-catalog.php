@@ -66,7 +66,7 @@ function nvx_treatments_catalog_data(): array {
 				array(
 					'meta'  => '04 / Radiofrecuencia + ultrasonido',
 					'title' => 'EXION® BTL',
-					'body'  => 'Estimulación profunda para aumentar de forma natural hasta un 224% el ácido hialurónico endógeno, sin infiltrar rellenos.',
+					'body'  => 'Aplicadores de radiofrecuencia y ultrasonido para protocolos de textura, calidad de piel y firmeza definidos tras valoración médica. Sin promesas de magnitud fija ni sustituto automático de rellenos.',
 					'url'   => home_url( '/exion-btl/' ),
 				),
 				array(

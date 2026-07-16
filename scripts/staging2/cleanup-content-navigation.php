@@ -40,6 +40,31 @@ if (!is_readable($jsonldHelper)) {
 }
 require_once $jsonldHelper;
 
+/**
+ * Deterministic clinical fix: Endolift® is laser-assisted subdermal treatment,
+ * not monopolar radiofrequency. Replaces only known conflation phrases.
+ */
+function nvx_cleanup_endolift_rf_conflation(string $html): string
+{
+    $replacements = [
+        // Card body seen on Clínicas hub under Endolift title.
+        '/(Endolift®?\s*)Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu'
+            => '$1Técnica láser subdérmica para firmeza facial, indicada tras valoración médica',
+        '/Firmeza\s+Endolift®?\s+Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu'
+            => 'Endolift®: técnica láser subdérmica para firmeza facial, indicada tras valoración médica',
+        '/Endolift®?\s+(?:es|como|mediante)\s+(?:una\s+)?radiofrecuencia\s+monopolar/iu'
+            => 'Endolift® es una técnica láser subdérmica',
+        '/define\s+Endolift®?\s+como\s+radiofrecuencia\s+monopolar/iu'
+            => 'describe Endolift® como técnica láser subdérmica',
+    ];
+
+    foreach ($replacements as $pattern => $replacement) {
+        $html = preg_replace($pattern, $replacement, $html) ?? $html;
+    }
+
+    return $html;
+}
+
 /** @return string */
 function nvx_cleanup_html(string $html): string
 {
@@ -49,6 +74,7 @@ function nvx_cleanup_html(string $html): string
     $html = preg_replace('/<(ul|ol)\b[^>]*>\s*<\/\1>/iu', '', $html) ?? $html;
     // Canonical schema is Yoast @graph only — shared helper (schema.org payloads only).
     $html = nvx_strip_embedded_jsonld_html($html);
+    $html = nvx_cleanup_endolift_rf_conflation($html);
 
     if (trim($html) === '') {
         return $html;

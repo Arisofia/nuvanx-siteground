@@ -6,21 +6,24 @@
 .nvx-brand-hero,
 .nvx-editorial-hero,
 .nvx-page-hero,
+section.nvx-hero,
 section.nvx-hero.nvx-hero-section {
   /* Same footprint as .nvx-home-hero-stage / video */
   --nvx-hero-h: min(92svh, 980px);
-  position: relative;
-  display: block;
+  position: relative !important;
+  display: block !important; /* beat inline display:flex on Gracias etc. */
+  align-items: stretch !important;
+  justify-content: flex-start !important;
   width: 100%;
   max-width: none;
-  margin: 0;
-  padding: 0;
+  margin: 0 !important;
+  padding: 0 !important;
   border: 0;
   border-radius: 0;
   overflow: hidden;
   background: var(--nvx-ink);
-  min-height: var(--nvx-hero-h);
-  height: var(--nvx-hero-h);
+  min-height: var(--nvx-hero-h) !important;
+  height: var(--nvx-hero-h) !important;
   color: var(--nvx-white);
   box-sizing: border-box;
 }
@@ -51,22 +54,45 @@ article.nvx-page > .nvx-page-hero {
   box-sizing: border-box;
 }
 
-/* Media = full stage, identical footprint to home video */
+/* Media = full stage, identical footprint to home video.
+   Positioned against the hero section (not the copy box). */
 .nvx-brand-hero__media,
 .nvx-editorial-hero__media,
 .nvx-page-hero__media,
-.nvx-hero__media {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
+.nvx-hero__media,
+.nvx-brand-hero .nvx-brand-hero__media,
+.nvx-page-hero .nvx-brand-hero__media,
+.nvx-hero .nvx-brand-hero__media,
+.nvx-brand-hero__copy > .nvx-brand-hero__media,
+.nvx-hero__copy > .nvx-brand-hero__media,
+.nvx-page-hero__copy > .nvx-brand-hero__media {
+  position: absolute !important;
+  inset: 0 !important;
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  z-index: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0;
   border-radius: 0 !important;
   overflow: hidden;
   background: var(--nvx-charcoal, #1a1c20);
+  /* When wrongly nested inside __copy, still fill the HERO via fixed containing block: */
+  /* re-anchor to hero by using the positioned __inner / section */
+}
+
+/* If media is nested inside copy, hoist fill to hero via absolute against section:
+   copy is absolute inset 0, so inset 0 on media still fills the stage. */
+.nvx-brand-hero__copy > .nvx-brand-hero__media,
+.nvx-hero__copy > .nvx-brand-hero__media,
+.nvx-hero__copy > .nvx-page-hero__media,
+.nvx-page-hero__copy > .nvx-brand-hero__media {
+  z-index: 0 !important;
 }
 
 .nvx-brand-hero__media img,
@@ -104,25 +130,48 @@ article.nvx-page > .nvx-page-hero {
 .nvx-editorial-hero__copy,
 .nvx-page-hero__copy,
 .nvx-hero__copy {
-  position: absolute;
-  inset: 0;
+  position: absolute !important;
+  inset: 0 !important;
   z-index: 2;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
   align-items: flex-start;
   box-sizing: border-box;
-  width: 100%;
-  max-width: none;
-  height: 100%;
-  min-height: 100%;
-  margin: 0;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  margin: 0 !important;
   padding:
     clamp(96px, 14vw, 180px)
     clamp(20px, 5vw, 72px)
-    clamp(40px, 6vw, 80px);
-  background: var(--nvx-media-overlay);
+    clamp(40px, 6vw, 80px) !important;
+  /* Scrim via pseudo so nested media is not painted under an opaque layer only */
+  background: transparent !important;
   color: var(--nvx-white);
+  text-align: left;
+}
+
+.nvx-brand-hero__copy::before,
+.nvx-editorial-hero__copy::before,
+.nvx-page-hero__copy::before,
+.nvx-hero__copy::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--nvx-media-overlay);
+}
+
+/* Text + CTAs above media + scrim (even if media was nested in copy) */
+.nvx-brand-hero__copy > *:not(.nvx-brand-hero__media):not(.nvx-page-hero__media):not(.nvx-hero__media):not(.nvx-editorial-hero__media),
+.nvx-editorial-hero__copy > *:not(.nvx-brand-hero__media):not(.nvx-editorial-hero__media),
+.nvx-page-hero__copy > *:not(.nvx-brand-hero__media):not(.nvx-page-hero__media),
+.nvx-hero__copy > *:not(.nvx-brand-hero__media):not(.nvx-page-hero__media):not(.nvx-hero__media) {
+  position: relative;
+  z-index: 2;
 }
 
 .nvx-brand-hero__copy > *:first-child,
@@ -132,7 +181,7 @@ article.nvx-page > .nvx-page-hero {
   margin-top: 0;
 }
 
-/* Overlay type — kicker, H1, lead, meta */
+/* Overlay type — kicker, H1, lead, meta, contact/valoración variants */
 .nvx-brand-hero__copy .nvx-brand-kicker,
 .nvx-brand-hero__copy .nvx-eyebrow,
 .nvx-brand-hero__copy .nvx-kicker,
@@ -141,7 +190,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-page-hero__copy .nvx-kicker,
 .nvx-page-hero__copy .nvx-eyebrow,
 .nvx-hero__copy .nvx-kicker {
-  color: var(--nvx-platinum);
+  color: var(--nvx-platinum) !important;
   margin-bottom: var(--nvx-margin-kicker);
 }
 
@@ -156,18 +205,25 @@ article.nvx-page > .nvx-page-hero {
 .nvx-hero__copy .nvx-title {
   margin: 0 0 0.65em;
   max-width: 22ch;
-  color: var(--nvx-white);
+  color: var(--nvx-white) !important;
   text-wrap: balance;
 }
 
 .nvx-brand-hero__copy .nvx-brand-hero__lead,
+.nvx-brand-hero__copy .nvx-brand-hero__description,
 .nvx-brand-hero__copy .nvx-lead,
 .nvx-brand-hero__copy .nvx-brand-meta,
+.nvx-brand-hero__copy .nvx-subtitle,
+.nvx-brand-hero__copy .nvx-hero-subtitle,
 .nvx-editorial-hero__copy .nvx-lead,
 .nvx-page-hero__copy .nvx-lead,
+.nvx-page-hero__copy .nvx-subtitle,
+.nvx-page-hero__copy .nvx-hero-subtitle,
+.nvx-hero__copy .nvx-subtitle,
+.nvx-hero__copy .nvx-hero-subtitle,
 .nvx-hero__copy p {
   max-width: 42ch;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .nvx-brand-hero__copy .nvx-brand-meta {
@@ -176,14 +232,17 @@ article.nvx-page > .nvx-page-hero {
   font-size: var(--nvx-type-caption);
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.72) !important;
 }
 
-/* CTAs on dark media */
+/* CTAs on dark media (incl. contacto / valoración .nvx-page__cta) */
 .nvx-brand-hero__copy .nvx-brand-actions,
 .nvx-brand-hero__copy .nvx-home-hero-ctas,
+.nvx-brand-hero__copy .nvx-page__cta,
 .nvx-page-hero__copy .nvx-brand-actions,
-.nvx-hero__copy .nvx-brand-actions {
+.nvx-page-hero__copy .nvx-page__cta,
+.nvx-hero__copy .nvx-brand-actions,
+.nvx-hero__copy .nvx-page__cta {
   margin-top: 1.5rem;
 }
 
@@ -191,7 +250,9 @@ article.nvx-page > .nvx-page-hero {
 .nvx-brand-hero__copy .nvx-button,
 .nvx-brand-hero__copy .nvx-btn,
 .nvx-page-hero__copy .nvx-button,
-.nvx-hero__copy .nvx-button {
+.nvx-page-hero__copy .nvx-btn,
+.nvx-hero__copy .nvx-button,
+.nvx-hero__copy .nvx-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -210,10 +271,14 @@ article.nvx-page > .nvx-page-hero {
 .nvx-brand-hero__copy .nvx-brand-btn--primary,
 .nvx-brand-hero__copy .nvx-button--primary,
 .nvx-brand-hero__copy .nvx-btn--primary,
-.nvx-page-hero__copy .nvx-button--primary {
-  background: var(--nvx-white);
-  color: var(--nvx-ink);
-  border-color: var(--nvx-white);
+.nvx-brand-hero__copy .nvx-btn-primary,
+.nvx-page-hero__copy .nvx-button--primary,
+.nvx-page-hero__copy .nvx-btn-primary,
+.nvx-hero__copy .nvx-button--primary,
+.nvx-hero__copy .nvx-btn-primary {
+  background: var(--nvx-white) !important;
+  color: var(--nvx-ink) !important;
+  border-color: var(--nvx-white) !important;
 }
 
 .nvx-brand-hero__copy .nvx-brand-btn--secondary,

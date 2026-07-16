@@ -146,7 +146,8 @@ add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
 
 /**
  * Ensure content heroes that lack media use the featured image when available.
- * Global presentation rule — not a per-page patch.
+ * Inserts media as a SIBLING after the hero copy (never nested inside copy),
+ * so kicker + title can overlay the image. Global — not a per-page patch.
  */
 function nvx_ensure_hero_featured_media( string $content ): string {
 	if ( is_admin() || ! is_singular() || is_front_page() || ! has_post_thumbnail() ) {
@@ -154,12 +155,12 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 	}
 
 	// Content already owns a media rail inside the hero.
-	if ( preg_match( '/nvx-brand-hero__media|nvx-editorial-hero__media|nvx-page-hero__media|nvx-hero__media/i', $content ) ) {
+	if ( preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero|hero)__media/i', $content ) ) {
 		return $content;
 	}
 
 	// Only inject into known hero containers.
-	if ( ! preg_match( '/nvx-brand-hero|nvx-editorial-hero|class="[^"]*nvx-page-hero|class="[^"]*nvx-hero/i', $content ) ) {
+	if ( ! preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero)|\bclass="[^"]*\bnvx-hero\b/i', $content ) ) {
 		return $content;
 	}
 
@@ -179,29 +180,59 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 
 	$figure = '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
 
-	// Prefer inserting after the first hero copy block.
-	$updated = preg_replace(
-		'/(class="[^"]*nvx-brand-hero__copy[^"]*"[^>]*>.*?<\/div>)/is',
-		'$1' . $figure,
-		$content,
-		1,
-		$count
-	);
-
-	if ( is_string( $updated ) && $count > 0 ) {
-		return $updated;
+	// Locate first hero __copy opening tag.
+	if ( ! preg_match( '/class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)__copy[^"]*"/i', $content, $match, PREG_OFFSET_CAPTURE ) ) {
+		// No copy block: place media at the start of the first hero section.
+		$updated = preg_replace(
+			'/(<section\b[^>]*class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)[^"]*"[^>]*>)/i',
+			'$1' . $figure,
+			$content,
+			1
+		);
+		return is_string( $updated ) ? $updated : $content;
 	}
 
-	// Fallback: after first hero copy variants (page-hero / editorial).
-	$updated = preg_replace(
-		'/(class="[^"]*(?:nvx-editorial-hero__copy|nvx-page-hero__copy|nvx-hero__copy)[^"]*"[^>]*>.*?<\/div>)/is',
-		'$1' . $figure,
-		$content,
-		1,
-		$count2
-	);
+	$class_pos = (int) $match[0][1];
+	$open_pos  = strrpos( substr( $content, 0, $class_pos ), '<div' );
+	if ( false === $open_pos ) {
+		return $content;
+	}
 
-	return ( is_string( $updated ) && $count2 > 0 ) ? $updated : $content;
+	// Balance nested <div>…</div> so the figure is inserted AFTER the whole copy.
+	$len   = strlen( $content );
+	$i     = $open_pos;
+	$depth = 0;
+	$end   = null;
+
+	while ( $i < $len ) {
+		if ( ! preg_match( '/<\/?div\b[^>]*>/i', $content, $tag_match, PREG_OFFSET_CAPTURE, $i ) ) {
+			break;
+		}
+		$tag_pos = (int) $tag_match[0][1];
+		$tag     = $tag_match[0][0];
+		if ( $tag_pos > $i && $depth === 0 && $i !== $open_pos ) {
+			break;
+		}
+		$i = $tag_pos;
+		if ( 0 === strncasecmp( $tag, '</div', 5 ) ) {
+			--$depth;
+			$i += strlen( $tag );
+			if ( 0 === $depth ) {
+				$end = $i;
+				break;
+			}
+			continue;
+		}
+		// Opening div (ignore malformed self-closing).
+		++$depth;
+		$i += strlen( $tag );
+	}
+
+	if ( null === $end ) {
+		return $content;
+	}
+
+	return substr( $content, 0, $end ) . $figure . substr( $content, $end );
 }
 add_filter( 'the_content', 'nvx_ensure_hero_featured_media', 12 );
 

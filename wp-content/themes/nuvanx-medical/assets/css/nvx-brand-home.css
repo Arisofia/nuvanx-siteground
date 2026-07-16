@@ -1,211 +1,40 @@
-/* NUVANX Home — SOLO el hero vídeo (full-bleed).
- * Tipografía, botones, secciones e imágenes: stack global (components).
- * El shell NO envuelve el vídeo a ancho de contenido: el stage es 100vw;
- * el gutter aplica solo al copy sobre el vídeo.
- */
-
-/* Full-bleed stage del vídeo */
-body.home #nvx-main,
-body.home .nvx-main {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-}
-
-body.home #nvx-home-main.nvx-home {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  overflow-x: clip;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-hero-stage {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  isolation: isolate;
-  width: 100vw;
-  max-width: 100vw;
-  min-height: clamp(720px, 92svh, 980px);
-  max-height: clamp(720px, 92svh, 980px);
-  margin: 0 0 0 calc(50% - 50vw);
-  padding: 0;
-  background: var(--nvx-charcoal, #2a2d33);
-}
-
-/* Scrim del vídeo */
-body.home #nvx-home-main.nvx-home .nvx-home-hero-stage::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(20, 22, 26, 0.14) 0%,
-      rgba(20, 22, 26, 0.08) 40%,
-      rgba(20, 22, 26, 0.28) 72%,
-      rgba(20, 22, 26, 0.55) 100%
-    ),
-    linear-gradient(
-      90deg,
-      rgba(20, 22, 26, 0.32) 0%,
-      rgba(20, 22, 26, 0.1) 46%,
-      transparent 75%
-    );
-}
-
-/*
- * Capa de apilado: ancha al stage (no shell de contenido).
- * position:static para que el vídeo absolute se ancle al STAGE
- * (si el shell es relative, el vídeo se estrecha y salen franjas).
- */
-body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-shell,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-v3-shell,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-brand-hero__inner {
-  position: static;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  width: 100%;
-  max-width: none;
-  min-height: clamp(720px, 92svh, 980px);
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  background: transparent;
-}
-
-/* Vídeo: fill del STAGE (full-bleed, sin bandas) */
-body.home #nvx-home-main.nvx-home .nvx-home-hero-stage .nvx-home-video-feature {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  pointer-events: none;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-video-frame {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  border: 0;
-  border-radius: 0;
-  background:
-    var(--nvx-charcoal, #2a2d33)
-    url("/wp-content/uploads/2026/07/nvx-home-video-portada-poster.webp")
-    center center / cover no-repeat;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-hero-video,
-body.home #nvx-home-main.nvx-home video.nvx-home-hero-video {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  max-height: none;
-  margin: 0;
-  object-fit: cover;
-  object-position: center center;
-  border-radius: 0;
-}
-
-/* Copy sobre el vídeo: izquierda, shell/gutter del sitio (revista) */
-body.home #nvx-home-main.nvx-home .nvx-home-hero-content {
-  position: relative;
-  z-index: 2;
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  padding-bottom: clamp(48px, 6vw, 88px);
-  box-sizing: border-box;
-  color: #ffffff;
-  text-align: start;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-hero-content,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-content h1,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-content h1 span,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-content p,
-body.home #nvx-home-main.nvx-home .nvx-home-hero-content a {
-  color: #ffffff;
-}
-
-/* CTAs del hero: ritmo global de gap */
-body.home #nvx-home-main.nvx-home .nvx-home-hero-ctas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--nvx-gap-base, 14px) var(--nvx-gap-wide, 18px);
-  margin-top: var(--nvx-gap-wide, 28px);
-  position: relative;
-  z-index: 2;
-}
-
-/* Onda del stage */
-body.home #nvx-home-main.nvx-home .nvx-home-organic-wave {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -1px;
-  z-index: 3;
-  width: 100%;
-  height: clamp(44px, 6vw, 88px);
-  pointer-events: none;
-}
-
-body.home #nvx-home-main.nvx-home .nvx-home-organic-wave svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-@media (max-width: 900px) {
-  body.home #nvx-home-main.nvx-home .nvx-home-hero-stage {
-    width: 100%;
-    max-width: 100%;
-    margin: 0;
-    max-height: none;
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-shell,
-  body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-v3-shell,
-  body.home #nvx-home-main.nvx-home .nvx-home-hero-stage > .nvx-brand-hero__inner {
-    min-height: clamp(640px, 92svh, 900px);
-  }
-
-  body.home #nvx-home-main.nvx-home .nvx-home-organic-wave {
-    display: none;
-  }
-}
-
-/* Clinicas home: recortes organicos + leve asimetria (stack global media + override) */
-body.home .nvx-home-clinica-panorama__media {
-  border-radius: var(--nvx-organic-b, 62% 38% 55% 45% / 48% 42% 58% 52%);
-  transform: rotate(var(--nvx-media-tilt, -1.25deg));
-  box-shadow: var(--nvx-shadow-medium);
-}
-
-body.home .nvx-home-clinica-panorama--goya .nvx-home-clinica-panorama__media {
-  border-radius: var(--nvx-organic-c, 36% 64% 52% 48% / 58% 36% 64% 42%);
-  transform: rotate(var(--nvx-media-tilt-alt, 1.4deg));
-}
-
-body.home .nvx-home-clinicas-panorama__track {
-  gap: var(--nvx-gap-magazine-air, clamp(40px, 6vw, 88px));
-}
+body.home{background:var(--nvx-color-paper)}
+body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
+.nvx-editorial-home{overflow-x:clip;background:var(--nvx-color-paper);color:var(--nvx-ink)}
+.nvx-home-hero-stage{position:relative;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);min-height:min(820px,calc(100svh - 78px));overflow:hidden;background:var(--nvx-pearl)}
+.nvx-hero-full-media__content{z-index:2;display:flex;align-items:center;padding:clamp(56px,8vw,120px) clamp(32px,6vw,96px)}
+.nvx-home-hero-content{max-width:560px}
+.nvx-hero-full-media__media{grid-column:2;grid-row:1;min-height:100%;overflow:hidden;border-radius:0 0 0 clamp(56px,8vw,120px)}
+.nvx-home-video-frame,.nvx-home-hero-video{width:100%;height:100%}
+.nvx-home-hero-video{display:block;object-fit:cover;object-position:center}
+.nvx-hero-full-media__scrim{display:none}
+.nvx-brand-hero__title{margin:0;font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-ink)}
+.nvx-brand-hero__main{display:block;margin-bottom:1.25rem;font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:600;line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-platinum)}
+.nvx-brand-hero__sub{display:block}
+.nvx-brand-hero__support{display:block;max-width:40ch;margin-top:1.5rem;font-family:var(--nvx-sans);font-size:var(--nvx-type-lead);font-weight:400;line-height:var(--nvx-lh-lead);letter-spacing:0;color:var(--nvx-text-body)}
+.nvx-home-hero-ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+.nvx-home-organic-wave{position:absolute;right:0;bottom:-1px;left:0;z-index:4;height:clamp(42px,6vw,86px)}
+.nvx-home-organic-wave svg{display:block;width:100%;height:100%}
+.nvx-brand-section{padding-block:var(--nvx-pad-section)}
+.nvx-brand-section--tight{padding-block:var(--nvx-pad-section-tight)}
+.nvx-home-editorial-open{display:grid;grid-template-columns:minmax(300px,4fr) minmax(0,8fr);gap:var(--nvx-gap-section);align-items:center}
+.nvx-editorial-zone--media{overflow:hidden}
+.nvx-editorial-zone--media img{width:100%;aspect-ratio:4/5;object-fit:cover}
+.nvx-home-editorial__lead{max-width:48ch;margin:0;font-family:var(--nvx-sans);font-size:var(--nvx-type-lead);line-height:var(--nvx-lh-lead)}
+.nvx-home-editorial__body{max-width:62ch;margin:24px 0 0;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
+.nvx-home-invitation{margin-top:32px}
+.nvx-home-clinicas-panorama__track{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--nvx-gap-base);margin-top:var(--nvx-gap-wide)}
+.nvx-home-clinica-panorama{overflow:hidden;border-radius:var(--nvx-radius-card);background:var(--nvx-pearl)}
+.nvx-home-clinica-panorama__media{min-height:320px;overflow:hidden}
+.nvx-home-clinica-panorama__media img{width:100%;height:100%;object-fit:cover}
+.nvx-home-clinica-panorama__link{display:block;padding:var(--nvx-pad-card);color:inherit;text-decoration:none}
+.nvx-home-tratamientos-editorial,.nvx-home-metodo-pilares{margin-top:var(--nvx-gap-wide)}
+.nvx-home-direccion-grid{display:grid;grid-template-columns:minmax(300px,5fr) minmax(0,7fr);gap:var(--nvx-gap-section);align-items:center}
+.nvx-home-direccion-media{overflow:hidden;border-radius:var(--nvx-organic-c)}
+.nvx-home-direccion-media img{width:100%;aspect-ratio:5/6;object-fit:cover}
+.nvx-home-direccion-panel{display:grid;grid-template-columns:minmax(0,1fr) minmax(220px,.72fr);gap:var(--nvx-gap-wide);align-items:end}
+.nvx-home-faq-editorial{margin-top:var(--nvx-gap-wide)}
+.nvx-home-cta-final-band{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--nvx-gap-wide);align-items:center;padding:clamp(44px,6vw,78px);border-radius:clamp(28px,4vw,52px);background:var(--nvx-charcoal);color:var(--nvx-white)}
+.nvx-home-cta-final-band .nvx-brand-title,.nvx-home-cta-final-band .nvx-brand-kicker,.nvx-home-cta-final-band .nvx-home-invitation__text{color:var(--nvx-white)}
+@media(max-width:980px){.nvx-home-hero-stage,.nvx-home-editorial-open,.nvx-home-direccion-grid{grid-template-columns:1fr}.nvx-home-hero-stage{min-height:0}.nvx-hero-full-media__content{grid-row:1;padding-bottom:48px}.nvx-hero-full-media__media{grid-column:1;grid-row:2;min-height:52svh;border-radius:0}.nvx-home-organic-wave{display:none}.nvx-home-clinicas-panorama__track{grid-template-columns:1fr}.nvx-home-direccion-panel{grid-template-columns:1fr}.nvx-home-cta-final-band{grid-template-columns:1fr}}
+@media(max-width:680px){.nvx-brand-hero__title{font-size:clamp(2.75rem,12vw,3.5rem)}.nvx-home-hero-ctas{flex-direction:column;align-items:stretch}.nvx-home-hero-ctas .nvx-button{width:100%}.nvx-home-cta-final-band{padding:36px 24px;border-radius:28px}}

@@ -51,6 +51,50 @@ jobs:
             test ! -e "$CSS/$file" || { echo "ERROR: duplicate canonical stylesheet remains: $file"; exit 1; }
           done
 
+      - name: Validate retained layout utility contract
+        run: |
+          set -euo pipefail
+          THEME='wp-content/themes/nuvanx-medical'
+          LAYOUT="$THEME/assets/css/nvx-site-layout.css"
+
+          required_selectors=(
+            '.nvx-reading {'
+            '.nvx-grid-12 {'
+            '.nvx-span-4 {'
+            '.nvx-span-5 {'
+            '.nvx-span-6 {'
+            '.nvx-span-7 {'
+            '.nvx-span-8 {'
+            '.nvx-span-12 {'
+            '.nvx-stack {'
+            '.nvx-stack--tight {'
+            '.nvx-stack--wide {'
+            '.nvx-cluster {'
+            '.nvx-section--tight {'
+          )
+
+          for selector in "${required_selectors[@]}"; do
+            grep -qF "$selector" "$LAYOUT" || {
+              echo "ERROR: supported layout API selector missing: $selector"
+              exit 1
+            }
+          done
+
+          grep -qF '.nvx-brand-section--tight,' "$LAYOUT" || {
+            echo 'ERROR: brand and generic tight section variants must share the same rule'
+            exit 1
+          }
+
+          echo 'Tracked runtime references (informational; stored WordPress markup is audited separately):'
+          grep -RInE \
+            --include='*.php' \
+            --include='*.js' \
+            --include='*.html' \
+            --include='*.json' \
+            --exclude-dir='assets' \
+            'nvx-(grid-12|span-(4|5|6|7|8|12)|stack(--tight|--wide)?|cluster|reading|section--tight)' \
+            "$THEME" || true
+
       - name: Reject patch architecture and unsafe selectors
         run: |
           set -euo pipefail

@@ -33,12 +33,29 @@ function nvx_redirect_superseded_legal_pages() {
 add_action( 'template_redirect', 'nvx_redirect_superseded_legal_pages', 1 );
 
 /**
- * Post IDs that must stay out of the public index until editorial approval.
+ * Transactional pages that must not pass PageRank via links (noindex + nofollow).
+ *
+ * @return int[]
+ */
+function nvx_nofollow_page_ids() {
+	$ids = array( 78 ); // Solicitud recibida — thank-you / transactional.
+
+	/**
+	 * Filter page IDs that receive noindex, nofollow.
+	 *
+	 * @param int[] $ids Page IDs.
+	 */
+	return array_values( array_unique( array_map( 'intval', apply_filters( 'nvx_nofollow_page_ids', $ids ) ) ) );
+}
+
+/**
+ * Post IDs that must stay out of the public index (sitemap + robots).
+ * Includes nofollow IDs plus incomplete evidence pages (noindex, follow).
  *
  * @return int[]
  */
 function nvx_noindex_page_ids() {
-	$ids = array( 78 ); // Solicitud recibida — transactional thank-you.
+	$ids = nvx_nofollow_page_ids();
 
 	// Casos de pacientes: only index after explicit editorial meta.
 	if ( '1' !== (string) get_post_meta( 2645, '_nvx_cases_publication_ready', true ) ) {
@@ -46,7 +63,7 @@ function nvx_noindex_page_ids() {
 	}
 
 	/**
-	 * Filter page IDs forced to noindex.
+	 * Filter page IDs forced to noindex (sitemap exclusion + robots).
 	 *
 	 * @param int[] $ids Page IDs.
 	 */
@@ -56,13 +73,16 @@ function nvx_noindex_page_ids() {
 /**
  * Keep transactional and incomplete evidence pages out of search results.
  *
+ * Page 78 (thank-you): noindex, nofollow — do not follow outbound links.
+ * Other noindex IDs (e.g. casos until ready): noindex, follow.
+ *
  * @param string $robots Existing Yoast robots directive.
  * @return string
  */
 function nvx_sensitive_page_robots( $robots ) {
 	$page_id = (int) get_queried_object_id();
 
-	if ( 78 === $page_id ) {
+	if ( in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
 		return 'noindex, nofollow';
 	}
 

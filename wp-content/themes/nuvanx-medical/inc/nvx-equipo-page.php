@@ -1,9 +1,9 @@
 <?php
 /**
- * Equipo médico — E-E-A-T page for Dr. José Javier Rivera Tejeda.
+ * Equipo médico — E-E-A-T for Dr. Rivera Tejeda + Dra. Rivera Deras + rest of staff.
  *
- * Wire-frame: Hero → Perfil director → Subespecialización → Formación → Cita clínica → CTA.
- * Does not invent AggregateRating schema; Doctoralia is linked as public profile.
+ * Wire-frame: Hero → Director → Dra. Ivon (well-aging/geriatrics) → Resto CMS → CTA.
+ * Schema Physicians via Yoast graph only (no standalone ld+json). No AggregateRating hardcode.
  *
  * @package nuvanx-medical
  */
@@ -61,12 +61,12 @@ function nvx_equipo_hero_copy_markup(): string {
 
 	$html  = '<div class="nvx-brand-hero__copy nvx-equipo-hero-copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Equipo médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-equipo-h1">' . esc_html__( 'Equipo Médico: Autoridad Clínica Liderada por el Dr. José Javier Rivera Tejeda', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Dirección médica de las clínicas NUVANX en Madrid — láser intervencionista, regeneración tisular y criterio de indicación antes que el catálogo de aparatología.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-equipo-h1">' . esc_html__( 'Equipo Médico: Excelencia Hospitalaria y Criterio Científico', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Autoridad clínica en láser intervencionista y well-aging basado en evidencia — dirección médica y geriatría preventiva al servicio de protocolos de rejuvenecimiento seguros.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
-			__( 'Colegiado ICOMEM Nº %s. Responsable del diseño de protocolos Endolift®, laserlipólisis, CO₂ fraccionado y medicina estética en ambas sedes.', 'nuvanx-medical' ),
+			__( 'Dr. José Javier Rivera Tejeda (ICOMEM %s), director médico, y Dra. Ivon Yamileth Rivera Deras, referente en geriatría, longevidad y well-aging, junto al resto del equipo clínico NUVANX.', 'nuvanx-medical' ),
 			$colegiado
 		)
 	) . '</p>';
@@ -75,7 +75,7 @@ function nvx_equipo_hero_copy_markup(): string {
 		$html .= nvx_cta_pair_markup( 'nvx-equipo-hero-ctas nvx-home-hero-ctas' );
 	}
 
-	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí · Martes y jueves · Goya · Miércoles', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí · Goya · Medicina basada en evidencia', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 
 	return $html;
@@ -107,23 +107,29 @@ function nvx_equipo_action_ctas_markup(): string {
 }
 
 /**
- * Whether a card/block is the director Rivera Tejeda (not other clinicians).
+ * Whether a card/block is the director Rivera Tejeda.
  */
-function nvx_equipo_block_is_rivera( string $html ): bool {
+function nvx_equipo_block_is_rivera_tejeda( string $html ): bool {
 	return (bool) preg_match( '/Rivera\s+Tejeda|Jos[eé]\s+Javier\s+Rivera/iu', $html );
 }
 
 /**
- * Extract staff cards from CMS content, split director vs rest of team.
+ * Whether a card/block is Dra. Ivon Yamileth Rivera Deras.
+ */
+function nvx_equipo_block_is_ivon( string $html ): bool {
+	return (bool) preg_match( '/Ivon|Yamileth|Rivera\s+Deras/iu', $html );
+}
+
+/**
+ * Extract staff cards from CMS: director, Dra. Ivon, rest of team.
  *
- * @return array{rivera_cards:string[],other_cards:string[],rivera_media:string}
+ * @return array{rivera_media:string,ivon_media:string,other_cards:string[]}
  */
 function nvx_equipo_extract_staff_cards( string $content ): array {
-	$rivera_cards = array();
 	$other_cards  = array();
 	$rivera_media = '';
+	$ivon_media   = '';
 
-	// Prefer full articles; fall back to div.nvx-brand-card.
 	$patterns = array(
 		'/<article\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/article>/iu',
 		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>\s*(?=<div\b[^>]*\bnvx-brand-card\b|<section\b|<\/section>|$)/iu',
@@ -138,25 +144,32 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 	}
 
 	foreach ( $found as $card ) {
-		if ( nvx_equipo_block_is_rivera( $card ) ) {
-			$rivera_cards[] = $card;
+		if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
 			if ( '' === $rivera_media && preg_match( '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu', $card, $im ) ) {
 				$rivera_media = $im[0];
 			}
+			// Long-form authority replaces short card for director.
+			continue;
+		}
+		if ( nvx_equipo_block_is_ivon( $card ) ) {
+			if ( '' === $ivon_media && preg_match( '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu', $card, $im ) ) {
+				$ivon_media = $im[0];
+			}
+			// Long-form authority replaces short card for Dra. Ivon.
 			continue;
 		}
 		$other_cards[] = $card;
 	}
 
 	return array(
-		'rivera_cards' => $rivera_cards,
-		'other_cards'  => $other_cards,
 		'rivera_media' => $rivera_media,
+		'ivon_media'   => $ivon_media,
+		'other_cards'  => $other_cards,
 	);
 }
 
 /**
- * Markup for the rest of the clinical team (preserved from CMS).
+ * Markup for remaining clinical team (CMS cards, not the two authority profiles).
  *
  * @param string[] $other_cards HTML cards.
  */
@@ -169,10 +182,9 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Equipo clínico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-endolift-heading">' . esc_html__( 'Resto del equipo médico NUVANX', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Profesionales que atienden valoración, seguimiento y protocolos en Chamberí y Goya bajo la dirección médica de la clínica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Profesionales que atienden valoración, seguimiento y protocolos en Chamberí y Goya, junto a la dirección médica y al criterio científico de la clínica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-brand-grid nvx-equipo-staff-grid">';
 	foreach ( $other_cards as $card ) {
-		// Ensure portrait role on team cards when media present.
 		if ( false === strpos( $card, 'nvx-brand-card--team' ) && preg_match( '/\bclass=(["\'])/u', $card ) ) {
 			$card = preg_replace( '/\bclass=(["\'])/u', 'class=$1nvx-brand-card--team ', $card, 1 ) ?? $card;
 		}
@@ -291,6 +303,66 @@ function nvx_equipo_director_authority_markup( string $rivera_media = '' ): stri
 }
 
 /**
+ * Dra. Ivon Yamileth Rivera Deras — well-aging / geriatrics authority (equipo page only).
+ *
+ * @param string $ivon_media Optional portrait from CMS card.
+ */
+function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
+	$html  = '<div class="nvx-equipo-ivon" id="physician-rivera-deras">';
+	$html .= '<section class="nvx-endolift-section nvx-equipo-profile" aria-labelledby="nvx-equipo-ivon-title">';
+	$html .= '<div class="nvx-endolift-section__inner">';
+	if ( '' !== $ivon_media ) {
+		$html .= '<div class="nvx-equipo-director-media nvx-brand-card__media nvx-brand-card__media--portrait">' . $ivon_media . '</div>';
+	}
+	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Well-aging y geriatría preventiva', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-equipo-ivon-title" class="nvx-endolift-heading">' . esc_html__( 'Dra. Ivon Yamileth Rivera Deras: Referente Científico en Well-Aging y Geriatría Preventiva', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'La Dra. Rivera Deras aporta a NUVANX autoridad en medicina funcional, longevidad y well-aging. Su perfil combina asistencia hospitalaria pública e investigación epidemiológica, de modo que los protocolos de rejuvenecimiento se alinean con estándares de medicina basada en la evidencia.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</div></section>';
+
+	$html .= '<section class="nvx-endolift-section" aria-labelledby="nvx-equipo-ivon-public-title">';
+	$html .= '<div class="nvx-endolift-section__inner">';
+	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Asistencia pública', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-equipo-ivon-public-title" class="nvx-endolift-heading">' . esc_html__( 'Actividad asistencial hospitalaria', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Médico Especialista (FEA) por concurso selectivo en el Hospital Universitario La Paz, en Unidad de Recuperación Funcional y Hospital de Día Geriátrico. Forma parte del cuadro médico del Hospital Central de la Cruz Roja San José y Santa Adela, centro de referencia en neurorrehabilitación y atención al adulto mayor.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</div></section>';
+
+	$html .= '<section class="nvx-endolift-section" aria-labelledby="nvx-equipo-ivon-research-title">';
+	$html .= '<div class="nvx-endolift-section__inner">';
+	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Investigación', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-equipo-ivon-research-title" class="nvx-endolift-heading">' . esc_html__( 'Investigación, sociedades y academia', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<ul class="nvx-endolaser-zone-list">';
+	$items = array(
+		array(
+			'title' => __( 'Real-World Evidence', 'nuvanx-medical' ),
+			'body'  => __( 'Investigadora clínica externa y consultora médica para OXON Epidemiology.', 'nuvanx-medical' ),
+		),
+		array(
+			'title' => __( 'SEMEG y EuGMS', 'nuvanx-medical' ),
+			'body'  => __( 'Coordinadora científica de las Jornadas de Deterioro Cognitivo de la Sociedad Española de Medicina Geriátrica (SEMEG) y colaboración activa con la European Geriatric Medicine Society (EuGMS).', 'nuvanx-medical' ),
+		),
+		array(
+			'title' => __( 'Universidad Europea de Madrid', 'nuvanx-medical' ),
+			'body'  => __( 'Profesora e investigadora en la UEM, vinculada al Hospital Vithas Madrid Arturo Soria. Formación continuada de facultativos, enfermería y TCAE en hospitales del SERMAS.', 'nuvanx-medical' ),
+		),
+		array(
+			'title' => __( 'Obra escrita y publicaciones', 'nuvanx-medical' ),
+			'body'  => __( 'Coautora de obras bioéticas y clínicas como «El tormento de la inmortalidad sin juventud» y del «Manual de manejo de personas mayores que sufren caídas» (SEMEG), además de trabajos sobre cribado cognitivo temprano.', 'nuvanx-medical' ),
+		),
+	);
+	foreach ( $items as $item ) {
+		$html .= '<li class="nvx-endolaser-zone">';
+		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ) . '</h3>';
+		$html .= '<p class="nvx-endolift-body">' . esc_html( $item['body'] ) . '</p>';
+		$html .= '</li>';
+	}
+	$html .= '</ul></div></section>';
+
+	$html .= '</div>';
+
+	return $html;
+}
+
+/**
  * Closing CTA for equipo page.
  */
 function nvx_equipo_closing_cta_markup(): string {
@@ -308,7 +380,7 @@ function nvx_equipo_closing_cta_markup(): string {
 }
 
 /**
- * Rebuild equipo page: director authority + preserve other clinicians from CMS.
+ * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
  */
 function nvx_content_restructure_equipo_page( string $content ): string {
 	if ( ! nvx_content_is_equipo_page( $content ) ) {
@@ -317,7 +389,7 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	$staff = nvx_equipo_extract_staff_cards( $content );
 
-	// Hero media: only real page hero — never steal another doctor's portrait.
+	// Hero media: only real page hero — never steal a staff portrait.
 	$media = '';
 	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
 		$media = $m[0];
@@ -331,9 +403,10 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	$hero .= $media;
 	$hero .= '</div></section>';
 
-	// Order: director authority → resto del equipo (CMS) → CTA.
+	// Director → Dra. Ivon → resto del equipo (CMS) → CTA.
 	$body  = '<div class="nvx-equipo-editorial nvx-endolift-editorial">';
 	$body .= nvx_equipo_director_authority_markup( $staff['rivera_media'] );
+	$body .= nvx_equipo_ivon_authority_markup( $staff['ivon_media'] );
 	$body .= nvx_equipo_other_staff_section_markup( $staff['other_cards'] );
 	$body .= nvx_equipo_closing_cta_markup();
 	$body .= '</div>';

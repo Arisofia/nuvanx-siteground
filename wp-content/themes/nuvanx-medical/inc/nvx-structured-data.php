@@ -931,6 +931,95 @@ function nvx_schema_physician_director( $organization_id ) {
 }
 
 /**
+ * Dra. Ivon Yamileth Rivera Deras — Physician + Researcher (E-E-A-T / GEO).
+ *
+ * @param string $organization_id Organization @id.
+ * @return array
+ */
+function nvx_schema_physician_ivon( $organization_id ) {
+	$equipo = home_url( '/equipo-medico/' );
+	$ivon_id = home_url( '/equipo-medico/#physician-rivera-deras' );
+
+	return array(
+		'@type'            => array( 'Person', 'Physician' ),
+		'@id'              => $ivon_id,
+		'name'             => 'Ivon Yamileth Rivera Deras',
+		'honorificPrefix'  => 'Dra.',
+		'jobTitle'         => 'Especialista en geriatría, longevidad y well-aging · NUVANX',
+		'description'      => 'Médico especialista (FEA) en Hospital Universitario La Paz (Recuperación Funcional / Hospital de Día Geriátrico) y Hospital Central de la Cruz Roja. Investigadora y consultora para OXON Epidemiology; coordinación científica SEMEG; colaboración EuGMS; profesora UEM. Coautora de obras de bioética y geriatría clínica. Integra well-aging basado en evidencia en NUVANX.',
+		'url'              => $equipo . '#physician-rivera-deras',
+		'medicalSpecialty' => 'https://schema.org/Geriatric',
+		'worksFor'         => array(
+			array( '@id' => $organization_id ),
+			array(
+				'@type' => 'Hospital',
+				'name'  => 'Hospital Universitario La Paz',
+			),
+			array(
+				'@type' => 'Hospital',
+				'name'  => 'Hospital Central de la Cruz Roja San José y Santa Adela',
+			),
+		),
+		'memberOf'         => array(
+			array(
+				'@type' => 'MedicalOrganization',
+				'name'  => 'Sociedad Española de Medicina Geriátrica (SEMEG)',
+			),
+			array(
+				'@type' => 'Organization',
+				'name'  => 'European Geriatric Medicine Society (EuGMS)',
+			),
+			array(
+				'@type' => 'Organization',
+				'name'  => 'OXON Epidemiology',
+			),
+		),
+		'alumniOf'         => array(
+			array(
+				'@type' => 'CollegeOrUniversity',
+				'name'  => 'Universidad Europea de Madrid',
+			),
+		),
+		'knowsAbout'       => array(
+			'Geriatría',
+			'Well-aging',
+			'Longevidad',
+			'Medicina preventiva del envejecimiento',
+			'Deterioro cognitivo',
+			'Recuperación funcional geriátrica',
+			'Real-World Evidence',
+		),
+	);
+}
+
+/**
+ * Creative works authored by Dra. Ivon (equipo page graph density).
+ *
+ * @param string $author_id Physician @id.
+ * @return array<int, array>
+ */
+function nvx_schema_ivon_publications( $author_id ) {
+	return array(
+		array(
+			'@type'  => 'Book',
+			'@id'    => home_url( '/equipo-medico/#work-inmortalidad-sin-juventud' ),
+			'name'   => 'El tormento de la inmortalidad sin juventud',
+			'author' => array( '@id' => $author_id ),
+		),
+		array(
+			'@type'  => 'Book',
+			'@id'    => home_url( '/equipo-medico/#work-manual-caidas-semeg' ),
+			'name'   => 'Manual de manejo de personas mayores que sufren caídas',
+			'author' => array( '@id' => $author_id ),
+			'publisher' => array(
+				'@type' => 'Organization',
+				'name'  => 'Sociedad Española de Medicina Geriátrica (SEMEG)',
+			),
+		),
+	);
+}
+
+/**
  * Service catalog for home graph — cite-able list of protocols (with starting price when known).
  * No retail InStock spam; offers are informational reference tariffs.
  *
@@ -1000,7 +1089,7 @@ function nvx_schema_offer_catalog( $organization_id ) {
 }
 
 /**
- * Whether Physician should appear on this request (home, equipo, treatment).
+ * Whether director Physician should appear (home, equipo, treatment).
  *
  * @param int $page_id Current page ID.
  * @return bool
@@ -1011,6 +1100,22 @@ function nvx_schema_should_emit_physician( $page_id ) {
 	}
 
 	if ( null !== nvx_schema_resolve_treatment_key( $page_id ) ) {
+		return true;
+	}
+
+	$path = nvx_schema_current_path( $page_id );
+
+	return nvx_schema_path_matches( $path, '/equipo-medico/' );
+}
+
+/**
+ * Whether Dra. Ivon Physician should appear (equipo + home for org trust; not every treatment).
+ *
+ * @param int $page_id Current page ID.
+ * @return bool
+ */
+function nvx_schema_should_emit_physician_ivon( $page_id ) {
+	if ( is_front_page() ) {
 		return true;
 	}
 
@@ -1049,12 +1154,17 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 		array( '@id' => $all_clinics['goya']['@id'] ),
 	);
 
-	$index     = $organization['index'];
-	$physician = null;
+	$index      = $organization['index'];
+	$physicians = array();
 
 	if ( nvx_schema_should_emit_physician( $page_id ) ) {
-		$physician = nvx_schema_physician_director( $organization['id'] );
+		$physicians[] = nvx_schema_physician_director( $organization['id'] );
 	}
+	if ( nvx_schema_should_emit_physician_ivon( $page_id ) ) {
+		$physicians[] = nvx_schema_physician_ivon( $organization['id'] );
+	}
+
+	$physician = ! empty( $physicians ) ? $physicians[0] : null;
 
 	if ( null !== $index ) {
 		// MedicalOrganization is the parent; branch MedicalClinic nodes stay separate.
@@ -1062,7 +1172,7 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 		$graph[ $index ]['name']          = 'NUVANX Medicina Estética Láser';
 		$graph[ $index ]['alternateName'] = array( 'NUVANX', 'NUVANX Madrid', 'NUVANX Medicina Estética Láser Madrid' );
 		$graph[ $index ]['url']           = home_url( '/' );
-		$graph[ $index ]['description']   = 'Centro médico de medicina estética láser en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con valoración clínica, tarifas de referencia publicadas y seguimiento personalizado.';
+		$graph[ $index ]['description']   = 'Centro médico de medicina estética láser y well-aging en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con dirección médica y criterio científico (geriatría preventiva / longevidad).';
 		$graph[ $index ]['email']         = 'info@nuvanx.com';
 		$graph[ $index ]['telephone']     = '+34669319836';
 		// Transparent positioning vs quote-only competitors (generative engines need a band).
@@ -1096,6 +1206,9 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 			'BTL EXILITE™ IPL',
 			'Thermage FLX®',
 			'Medicina regenerativa',
+			'Well-aging',
+			'Geriatría preventiva',
+			'Longevidad',
 		);
 		// Presencial only — no videoconsulta in schema (service not marketed as operational CTA).
 		$graph[ $index ]['potentialAction'] = array(
@@ -1116,8 +1229,12 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 			),
 		);
 
-		if ( null !== $physician ) {
-			$graph[ $index ]['employee'] = array( '@id' => $physician['@id'] );
+		if ( ! empty( $physicians ) ) {
+			$employee_refs = array();
+			foreach ( $physicians as $person ) {
+				$employee_refs[] = array( '@id' => $person['@id'] );
+			}
+			$graph[ $index ]['employee'] = $employee_refs;
 		}
 
 		$existing_same_as          = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
@@ -1138,8 +1255,12 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 			}
 			$clinic                       = $all_clinics[ $key ];
 			$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
-			if ( null !== $physician ) {
-				$clinic['employee'] = array( '@id' => $physician['@id'] );
+			if ( ! empty( $physicians ) ) {
+				$clinic_employees = array();
+				foreach ( $physicians as $person ) {
+					$clinic_employees[] = array( '@id' => $person['@id'] );
+				}
+				$clinic['employee'] = $clinic_employees;
 			}
 			$graph[] = $clinic;
 		}
@@ -1155,18 +1276,34 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 				}
 				$clinic                       = $all_clinics[ $key ];
 				$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
-				if ( null !== $physician ) {
-					$clinic['employee'] = array( '@id' => $physician['@id'] );
+				if ( ! empty( $physicians ) ) {
+					$clinic_employees = array();
+					foreach ( $physicians as $person ) {
+						$clinic_employees[] = array( '@id' => $person['@id'] );
+					}
+					$clinic['employee'] = $clinic_employees;
 				}
 				$graph[] = $clinic;
 			}
 		}
 	}
 
-	if ( null !== $physician ) {
-		$graph[] = $physician;
+	foreach ( $physicians as $person ) {
+		$graph[] = $person;
 	}
 
+	// Publication nodes on equipo page only (visible authorship).
+	if ( nvx_schema_path_matches( nvx_schema_current_path( $page_id ), '/equipo-medico/' ) ) {
+		foreach ( $physicians as $person ) {
+			if ( isset( $person['@id'] ) && false !== strpos( $person['@id'], 'rivera-deras' ) ) {
+				foreach ( nvx_schema_ivon_publications( $person['@id'] ) as $work ) {
+					$graph[] = $work;
+				}
+			}
+		}
+	}
+
+	// $physician = director (first) for procedure performer/reviewedBy.
 	$treatment = nvx_schema_treatment_node( $page_id, $organization['id'] );
 	if ( null !== $treatment ) {
 		if ( null !== $physician ) {
@@ -1315,7 +1452,7 @@ function nvx_filter_equipo_document_title( $title ) {
 		return $title;
 	}
 
-	return 'Equipo Médico NUVANX Madrid | Dr. José Javier Rivera Tejeda | ICOMEM';
+	return 'Equipo Médico NUVANX Madrid | Dr. Rivera Tejeda y Dra. Rivera Deras';
 }
 add_filter( 'wpseo_title', 'nvx_filter_equipo_document_title', 21 );
 
@@ -1331,7 +1468,7 @@ function nvx_filter_equipo_metadesc( $desc ) {
 
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	return 'Dr. José Javier Rivera Tejeda, director médico NUVANX (ICOMEM ' . $colegiado . '). Endolift®, laserlipólisis, CO₂ fraccionado y medicina regenerativa en Chamberí y Goya. Perfil en Doctoralia.';
+	return 'Dr. José Javier Rivera Tejeda (ICOMEM ' . $colegiado . '), director médico láser, y Dra. Ivon Yamileth Rivera Deras, geriatría y well-aging (La Paz, SEMEG, OXON). Equipo NUVANX Madrid.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_equipo_metadesc', 21 );
 

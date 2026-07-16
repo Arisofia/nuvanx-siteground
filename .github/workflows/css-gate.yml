@@ -135,10 +135,11 @@ jobs:
           }
 
           # Informational scan: counts + capped samples (DB markup is audited separately).
+          # grep exit codes: 0 = matches, 1 = no matches (OK), ≥2 = error (fail the job).
           PATTERN='nvx-(grid-12|span-(4|5|6|7|8|12)|stack(--tight|--wide)?|cluster|reading|section--tight)'
           SAMPLE_CAP=15
           matches_file="$(mktemp)"
-          # Keep stderr visible (permissions / IO errors); only treat "no matches" as non-fatal.
+          set +e
           grep -RInE \
             --include='*.php' \
             --include='*.js' \
@@ -146,10 +147,20 @@ jobs:
             --include='*.json' \
             --exclude-dir='assets' \
             "$PATTERN" \
-            "$THEME" >"$matches_file" || true
+            "$THEME" >"$matches_file"
+          grep_rc=$?
+          set -e
+          if [ "$grep_rc" -ge 2 ]; then
+            rm -f "$matches_file"
+            echo "ERROR: layout utility reference scan failed (grep exit ${grep_rc})"
+            exit 1
+          fi
 
           total="$(wc -l <"$matches_file" | tr -d ' ')"
-          files_hit="$(cut -d: -f1 "$matches_file" | sort -u | wc -l | tr -d ' ')"
+          files_hit=0
+          if [ "$total" -gt 0 ]; then
+            files_hit="$(cut -d: -f1 "$matches_file" | sort -u | wc -l | tr -d ' ')"
+          fi
           echo "Tracked runtime references (informational): ${total} match(es) across ${files_hit} file(s)"
           if [ "$total" -gt 0 ]; then
             echo "Sample (first ${SAMPLE_CAP}):"

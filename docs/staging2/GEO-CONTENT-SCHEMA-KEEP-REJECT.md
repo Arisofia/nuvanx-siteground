@@ -11,7 +11,7 @@ Posicionamiento: **autoridad láser transparente** — no Depilife (descuentos) 
 | Opacidad de precio (brecha #1 vs Endolifter/Doctoralia) | Endolift **desde 1.460 €** en HTML (hero, bloque inversión, FAQ) + `Offer` en schema. Constante `NVX_ENDOLIFT_PRICE_FROM_EUR`. |
 | Entidades MedicalClinic / Physician / MedicalProcedure | Org `MedicalOrganization` + sedes `MedicalClinic` + `Physician` (ICOMEM, alumni UCM, knowsAbout láser) + procedures con `indication` + `performer`/`reviewedBy`. |
 | OfferCatalog en home | Catálogo de protocolos; Endolift con `price` EUR; resto sin precio inventado. **Sin** `InStock` retail. |
-| FAQPage | Mismas Q/A que HTML (precio, indicación, duración 18m–3a, vs AH, recuperación). |
+| FAQPage | Solo Endolift: mismas Q/A que HTML (precio, indicación, duración, vs AH, recuperación). **Sin** FAQ schema EXION hasta que la página EXION imprima los mismos pares. |
 | priceRange | `€€€` en org (banda, no inventar min–max). |
 | ReserveAction | Solo **valoración presencial** (`/madrid/valoracion/`). Sin videoconsulta. |
 | Titles / metadesc | Home + Endolift vía `wpseo_title` / `wpseo_metadesc` con intención transaccional. |

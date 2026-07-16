@@ -73,13 +73,14 @@ function nvx_endolift_process_icon( string $name ): string {
  * Hero copy: authority + dual CTA (valoración + WhatsApp).
  */
 function nvx_endolift_hero_copy_markup(): string {
-	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+	$colegiado   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+	$price_label = function_exists( 'nvx_format_price_eur' )
+		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
+		: number_format_i18n( 1460, 0 );
 
 	$html  = '<div class="nvx-brand-hero__copy nvx-endolift-hero-copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html__( 'Endolift® Facial de Alta Precisión en Madrid', 'nuvanx-medical' ) . '</h1>';
-	$price_from = defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ? NVX_ENDOLIFT_PRICE_FROM_EUR : '1460';
-
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Redefinición del arco mandibular y eliminación de grasa submentoniana sin incisiones ni tiempo de inactividad quirúrgica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
@@ -97,7 +98,7 @@ function nvx_endolift_hero_copy_markup(): string {
 		sprintf(
 			/* translators: %s: price from */
 			__( 'Desde %s € · Chamberí · Salamanca–Goya · Indicación médica personalizada', 'nuvanx-medical' ),
-			number_format_i18n( (float) $price_from, 0 )
+			$price_label
 		)
 	) . '</p>';
 	$html .= '</div>';
@@ -134,9 +135,13 @@ function nvx_endolift_action_ctas_markup(): string {
  * Full editorial body after hero.
  */
 function nvx_endolift_editorial_body_markup(): string {
-	$colegiado  = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
-	$price_from = defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ? NVX_ENDOLIFT_PRICE_FROM_EUR : '1460';
-	$equipo_url = home_url( '/equipo-medico/' );
+	$colegiado   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+	$price_raw   = function_exists( 'nvx_endolift_price_from_eur' ) ? (string) nvx_endolift_price_from_eur() : '1460';
+	$price_label = function_exists( 'nvx_format_price_eur' )
+		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
+		: number_format_i18n( 1460, 0 );
+	$review_label = defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ? NVX_ENDOLIFT_REVIEW_LABEL : 'julio 2026';
+	$equipo_url   = home_url( '/equipo-medico/' );
 
 	$html  = '<div class="nvx-endolift-editorial">';
 
@@ -144,9 +149,10 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '<p class="nvx-endolift-reviewed">';
 	$html .= esc_html(
 		sprintf(
-			/* translators: %s: medical license number */
-			__( 'Documento clínico revisado por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Última revisión: julio 2026.', 'nuvanx-medical' ),
-			$colegiado
+			/* translators: 1: medical license number, 2: review month label */
+			__( 'Documento clínico revisado por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %1$s). Última revisión: %2$s.', 'nuvanx-medical' ),
+			$colegiado,
+			$review_label
 		)
 	);
 	$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( $equipo_url ) . '">' . esc_html__( 'Ver equipo médico', 'nuvanx-medical' ) . '</a>';
@@ -220,7 +226,8 @@ function nvx_endolift_editorial_body_markup(): string {
 			'icon'  => 'recover',
 			'n'     => '04',
 			'title' => __( 'Recuperación', 'nuvanx-medical' ),
-			'body'  => __( 'Ambulatorio. Edema y eritema leves habituales 3–7 días; reincorporación habitual en menos de 24 h.', 'nuvanx-medical' ),
+			// Same timeline as FAQ recovery answer (schema + HTML).
+			'body'  => __( 'Ambulatorio: reincorporación habitual en menos de 24 h. Edema y eritema leves habituales 3–7 días; baja social moderada la primera semana si hay compromisos de imagen.', 'nuvanx-medical' ),
 		),
 	);
 
@@ -240,12 +247,12 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Inversión de referencia', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-endolift-price-title" class="nvx-endolift-heading">' . esc_html__( 'Precio Endolift® facial en NUVANX Madrid', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-price" data-nvx-price-from="' . esc_attr( $price_from ) . '">';
+	$html .= '<p class="nvx-endolift-price" data-nvx-price-from="' . esc_attr( $price_raw ) . '">';
 	$html .= esc_html(
 		sprintf(
 			/* translators: %s: price in euros */
 			__( 'Desde %s €', 'nuvanx-medical' ),
-			number_format_i18n( (float) $price_from, 0 )
+			$price_label
 		)
 	);
 	$html .= '</p>';
@@ -266,7 +273,7 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '<h2 id="nvx-endolift-faq-title" class="nvx-endolift-heading">' . esc_html__( 'Precio, indicaciones y recuperación', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq nvx-endolift-faq-list">';
 
-	// Prefer shared catalog so HTML and JSON-LD never diverge.
+	// Shared catalog so HTML and JSON-LD never diverge.
 	$faqs = array();
 	if ( function_exists( 'nvx_schema_faq_catalog' ) ) {
 		$catalog = nvx_schema_faq_catalog();
@@ -278,7 +285,7 @@ function nvx_endolift_editorial_body_markup(): string {
 		$faqs = array(
 			array(
 				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
-				'a' => 'La tarifa de referencia parte desde ' . $price_from . ' €. El presupuesto definitivo se documenta tras valoración anatómica presencial.',
+				'a' => 'La tarifa de referencia parte desde ' . $price_label . ' €. El presupuesto definitivo se documenta tras valoración anatómica presencial.',
 			),
 		);
 	}

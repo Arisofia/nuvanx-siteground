@@ -8,10 +8,13 @@
 |---------|-----|
 | `nvx-tokens.css` | color, shell, spacing, type tokens |
 | `nvx-base.css` | reset + body únicamente |
-| `nvx-site-layout.css` | shell, ritmo de sección, una columna |
+| `nvx-site-layout.css` | shell, ritmo de sección, **body text measure + body images** |
 | `nvx-header.css` | header |
 | `nvx-footer.css` | footer |
-| `nvx-components.css` | H1–H3, texto, botones, media, formularios |
+| `nvx-components.css` | H1–H3, texto, botones, media roles, formularios |
+| `nvx-patterns-editorial.css` | heroes, hubs (Endolift/Láser/ME) — **layout via tokens**, no px huérfanos |
+
+Body content rules (margins, figures): see `docs/design-system/body-content.md`.
 
 ## Única excepción
 

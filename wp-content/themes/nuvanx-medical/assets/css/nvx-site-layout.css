@@ -64,6 +64,26 @@ article.nvx-page > .nvx-page-hero {
   box-sizing: border-box;
 }
 
+/* Valoración landing: form is the first body block after the hero */
+.nvx-valoracion-page > .nvx-hubspot-form-section,
+.nvx-valoracion-page > #nvx-hubspot-form,
+.nvx-med-page > .nvx-hubspot-form-section {
+  width: 100%;
+  padding-block: var(--nvx-section-y-open, clamp(40px, 6vw, 72px)) var(--nvx-section-y, clamp(48px, 7vw, 88px));
+  background: var(--nvx-color-paper, #f2f3f5);
+  scroll-margin-top: 96px;
+}
+
+.nvx-valoracion-page > .nvx-hubspot-form-section .nvx-page-body__inner,
+.nvx-valoracion-page > #nvx-hubspot-form .nvx-page-body__inner,
+.nvx-med-page > .nvx-hubspot-form-section .nvx-page-body__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
 .nvx-section,
 .nvx-brand-section,
 .nvx-page-body {

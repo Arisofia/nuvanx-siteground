@@ -282,4 +282,107 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_ensure_hero_featured_media', 12 );
 
+/**
+ * Extract a balanced HTML element starting at $open_pos (must point at "<tag").
+ *
+ * @return string|null Full element markup including open/close tags.
+ */
+function nvx_extract_balanced_element( string $html, int $open_pos, string $tag ): ?string {
+	$tag   = strtolower( $tag );
+	$len   = strlen( $html );
+	$open  = '<' . $tag;
+	if ( $open_pos < 0 || $open_pos >= $len || 0 !== strncasecmp( substr( $html, $open_pos, strlen( $open ) ), $open, strlen( $open ) ) ) {
+		return null;
+	}
+
+	$depth = 0;
+	$i     = $open_pos;
+	$pattern = '/<\/?' . preg_quote( $tag, '/' ) . '\b[^>]*>/i';
+
+	while ( $i < $len ) {
+		if ( ! preg_match( $pattern, $html, $m, PREG_OFFSET_CAPTURE, $i ) ) {
+			return null;
+		}
+		$tag_pos = (int) $m[0][1];
+		$el      = $m[0][0];
+		$i       = $tag_pos;
+		if ( 0 === strncasecmp( $el, '</', 2 ) ) {
+			--$depth;
+			$i += strlen( $el );
+			if ( 0 === $depth ) {
+				return substr( $html, $open_pos, $i - $open_pos );
+			}
+			continue;
+		}
+		// Self-closing section is rare; treat as open.
+		if ( preg_match( '/\/>\s*$/', $el ) ) {
+			$i += strlen( $el );
+			if ( 0 === $depth ) {
+				return substr( $html, $open_pos, $i - $open_pos );
+			}
+			continue;
+		}
+		++$depth;
+		$i += strlen( $el );
+	}
+
+	return null;
+}
+
+/**
+ * Landing valoración: form is the first content after the hero.
+ */
+function nvx_theme_is_valoracion_landing(): bool {
+	if ( ! is_singular( 'page' ) ) {
+		return false;
+	}
+	if ( 'templates/page-landing-valoracion.php' === (string) get_page_template_slug() ) {
+		return true;
+	}
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	return 'valoracion' === $slug;
+}
+
+/**
+ * Move #nvx-hubspot-form section to sit immediately after the page hero.
+ */
+function nvx_valoracion_form_first( string $content ): string {
+	if ( is_admin() || ! nvx_theme_is_valoracion_landing() ) {
+		return $content;
+	}
+
+	if ( ! preg_match( '/<section\b[^>]*(?:\bid=["\']nvx-hubspot-form["\']|class=["\'][^"\']*nvx-hubspot-form-section[^"\']*["\'])[^>]*>/i', $content, $match, PREG_OFFSET_CAPTURE ) ) {
+		return $content;
+	}
+
+	$form_start = (int) $match[0][1];
+	$form       = nvx_extract_balanced_element( $content, $form_start, 'section' );
+	if ( ! is_string( $form ) || $form === '' ) {
+		return $content;
+	}
+
+	// Already first body block after hero? Detect adjacency.
+	$without = substr( $content, 0, $form_start ) . substr( $content, $form_start + strlen( $form ) );
+
+	if ( ! preg_match( '/<section\b[^>]*class=["\'][^"\']*nvx-(?:hero|page-hero|brand-hero)[^"\']*["\'][^>]*>/i', $without, $hero_match, PREG_OFFSET_CAPTURE ) ) {
+		// No hero: put form first inside main page wrapper if present.
+		if ( preg_match( '/id=["\']nvx-valoracion-main["\'][^>]*>/i', $without, $wrap, PREG_OFFSET_CAPTURE ) ) {
+			$pos = (int) $wrap[0][1] + strlen( $wrap[0][0] );
+			return substr( $without, 0, $pos ) . $form . substr( $without, $pos );
+		}
+		return $form . $without;
+	}
+
+	$hero_start = (int) $hero_match[0][1];
+	$hero       = nvx_extract_balanced_element( $without, $hero_start, 'section' );
+	if ( ! is_string( $hero ) || $hero === '' ) {
+		return $content;
+	}
+
+	$hero_end = $hero_start + strlen( $hero );
+	// Skip optional whitespace / injected media siblings already inside hero.
+	return substr( $without, 0, $hero_end ) . $form . substr( $without, $hero_end );
+}
+add_filter( 'the_content', 'nvx_valoracion_form_first', 14 );
+
 require_once get_template_directory() . '/inc/nvx-integrations.php';

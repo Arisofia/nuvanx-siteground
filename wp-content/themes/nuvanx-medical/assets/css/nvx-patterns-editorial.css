@@ -1168,6 +1168,31 @@ article.nvx-page > .nvx-page-hero {
   margin-bottom: var(--nvx-space-2, 16px);
 }
 
+/* Endoláser corporal — zone list (reuses endolift section rhythm) */
+.nvx-endolaser-zone-list {
+  list-style: none;
+  margin: var(--nvx-space-4, 32px) 0 0;
+  padding: 0;
+  display: grid;
+  gap: clamp(20px, 3vw, 32px);
+  max-width: 68ch;
+}
+
+.nvx-endolaser-zone {
+  margin: 0;
+  padding-top: var(--nvx-space-3, 24px);
+  border-top: 1px solid var(--nvx-color-line, #e5e5e5);
+}
+
+.nvx-endolaser-zone__title {
+  margin: 0 0 var(--nvx-space-2, 16px);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  line-height: var(--nvx-lh-h3);
+  color: var(--nvx-ink);
+}
+
 /* Comparative table Endolift vs surgery */
 .nvx-endolift-compare-wrap {
   margin: var(--nvx-space-4, 32px) 0;

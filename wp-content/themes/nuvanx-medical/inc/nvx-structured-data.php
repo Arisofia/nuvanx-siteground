@@ -731,19 +731,35 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
 			'@id'              => $permalink . '#medical-procedure',
-			'name'             => 'Endoláser corporal — lipólisis láser y retracción cutánea',
+			'name'             => 'Endoláser corporal — destrucción de grasa localizada y retracción cutánea',
+			'alternateName'    => array( 'Laserlipólisis corporal', 'Endoláser Madrid' ),
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
 			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Laserlipólisis médica intervencionista para grasa localizada con retracción térmica asociada, planificada por zonas tras valoración. No es un tratamiento de obesidad ni de pérdida masiva de peso.',
-			'bodyLocation'     => array( 'Abdomen', 'Flancos', 'Muslos', 'Brazos', 'Región submandibular' ),
-			'preparation'      => 'Valoración de peso estable, grasa localizada y flacidez. Derivación si el exceso cutáneo exige cirugía excisional.',
-			'howPerformed'     => 'Bajo anestesia local se introduce fibra láser en tejido subcutáneo para lipólisis y estímulo de retracción dérmica en la zona planificada.',
-			'followup'         => 'Cuidados post-procedimiento y revisiones según protocolo médico.',
+			'description'      => 'Laserlipólisis médica intervencionista: lipólisis de adipocitos y estímulo de retracción dérmica en un acto ambulatorio por zonas (abdomen, flancos, muslos, brazos, submandibular). No trata obesidad ni pérdida masiva de peso; el presupuesto se personaliza tras valoración.',
+			'bodyLocation'     => array( 'Abdomen', 'Flancos', 'Cara interna de muslos', 'Rodillas', 'Brazos', 'Región submandibular' ),
+			'procedureType'    => 'https://schema.org/MinimallyInvasiveProcedure',
+			'preparation'      => 'Peso estable, grasa focal y flacidez leve–moderada. Exclusión de exceso cutáneo severo (derivación a cirugía excisional, p. ej. abdominoplastia).',
+			'howPerformed'     => 'Bajo anestesia local se introduce fibra láser en tejido subcutáneo para lipólisis selectiva y estímulo térmico de retracción en la cuadrícula de zonas planificada.',
+			'followup'         => 'Cuidados post-procedimiento y revisiones según zona y protocolo médico.',
 			'indication'       => array(
 				array(
 					'@type' => 'MedicalIndication',
-					'name'  => 'Adiposidad localizada resistente',
+					'name'  => 'Adiposidad localizada resistente a dieta y ejercicio',
+				),
+				array(
+					'@type' => 'MedicalIndication',
+					'name'  => 'Flacidez cutánea leve a moderada asociada a pérdida de volumen local',
+				),
+			),
+			'relevantCondition' => array(
+				array(
+					'@type' => 'MedicalCondition',
+					'name'  => 'Adiposidad localizada',
+				),
+				array(
+					'@type' => 'MedicalCondition',
+					'name'  => 'Flacidez cutánea corporal leve-moderada',
 				),
 			),
 		);
@@ -1163,6 +1179,34 @@ function nvx_filter_endolift_metadesc( $desc ) {
 	return 'Endolift® facial en Madrid: técnica, indicaciones, comparación con lifting y PVP desde ' . $from . ' € (papada/mandíbula ' . $papada . ' €). Dr. Rivera Tejeda, ICOMEM ' . $colegiado . '. Valoración en Chamberí y Goya.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_endolift_metadesc', 21 );
+
+/**
+ * Endoláser corporal document title.
+ *
+ * @param string $title Current title.
+ * @return string
+ */
+function nvx_filter_endolaser_document_title( $title ) {
+	if ( 'endolaser_corporal' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
+		return $title;
+	}
+
+	return 'Endoláser Corporal en Madrid: Grasa Localizada y Retracción | NUVANX';
+}
+add_filter( 'wpseo_title', 'nvx_filter_endolaser_document_title', 21 );
+
+/**
+ * @param string $desc Meta description.
+ * @return string
+ */
+function nvx_filter_endolaser_metadesc( $desc ) {
+	if ( 'endolaser_corporal' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
+		return $desc;
+	}
+
+	return 'Endoláser corporal en NUVANX Madrid: laserlipólisis y retracción cutánea por zonas (abdomen, flancos, muslos, brazos). No es tratamiento de obesidad. Valoración y presupuesto personalizado en Chamberí y Goya.';
+}
+add_filter( 'wpseo_metadesc', 'nvx_filter_endolaser_metadesc', 21 );
 
 // Pages / front only: strip Schema.org payloads from post_content (shared helper).
 // Non-schema ld+json and non-page views are left alone. See nvx-jsonld-content.php.

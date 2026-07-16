@@ -25,22 +25,41 @@ function nvx_aesthetic_is_singular_context(): bool {
 }
 
 /**
+ * Lookup a published page URL by path (null if missing). Request-static cache.
+ *
+ * @param string $path Relative path without domain.
+ * @return string|null Permalink or null when not found / not published.
+ */
+function nvx_aesthetic_lookup_published_url( string $path ): ?string {
+	static $cache = array();
+
+	$path = trim( $path, '/' );
+	if ( array_key_exists( $path, $cache ) ) {
+		return $cache[ $path ];
+	}
+
+	$page = get_page_by_path( $path );
+	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
+		$url = get_permalink( $page );
+		if ( is_string( $url ) && '' !== $url ) {
+			$cache[ $path ] = $url;
+			return $url;
+		}
+	}
+
+	$cache[ $path ] = null;
+	return null;
+}
+
+/**
  * Resolve a public page URL by path, with home_url fallback.
  *
  * @param string $path Relative path without domain.
  */
 function nvx_aesthetic_page_url( string $path ): string {
 	$path = trim( $path, '/' );
-	$page = get_page_by_path( $path );
-
-	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
-		$url = get_permalink( $page );
-		if ( is_string( $url ) && '' !== $url ) {
-			return $url;
-		}
-	}
-
-	return home_url( '/' . $path . '/' );
+	$found = nvx_aesthetic_lookup_published_url( $path );
+	return null !== $found ? $found : home_url( '/' . $path . '/' );
 }
 
 /**
@@ -209,29 +228,33 @@ function nvx_aesthetic_diagnosis_section_markup(): string {
 }
 
 /**
- * Resolve published page URL by primary path or alternate slugs.
+ * Resolve published page URL by primary path or alternate slugs (single cached lookup chain).
  *
- * @param string               $primary Primary path slug.
- * @param array<int, string>   $alts    Alternate path slugs.
+ * @param string             $primary Primary path slug.
+ * @param array<int, string> $alts    Alternate path slugs.
  */
 function nvx_aesthetic_resolve_treatment_url( string $primary, array $alts = array() ): string {
-	$url = nvx_aesthetic_page_url( $primary );
-	$page = get_page_by_path( trim( $primary, '/' ) );
-	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
-		return $url;
+	static $resolved = array();
+
+	$key = $primary . '|' . implode( ',', $alts );
+	if ( isset( $resolved[ $key ] ) ) {
+		return $resolved[ $key ];
 	}
 
-	foreach ( $alts as $alt ) {
-		$alt_page = get_page_by_path( $alt );
-		if ( $alt_page instanceof WP_Post && 'publish' === $alt_page->post_status ) {
-			$permalink = get_permalink( $alt_page );
-			if ( is_string( $permalink ) && '' !== $permalink ) {
-				return $permalink;
-			}
+	foreach ( array_merge( array( $primary ), $alts ) as $slug ) {
+		$slug = trim( (string) $slug, '/' );
+		if ( '' === $slug ) {
+			continue;
+		}
+		$found = nvx_aesthetic_lookup_published_url( $slug );
+		if ( null !== $found ) {
+			$resolved[ $key ] = $found;
+			return $found;
 		}
 	}
 
-	return $url;
+	$resolved[ $key ] = home_url( '/' . trim( $primary, '/' ) . '/' );
+	return $resolved[ $key ];
 }
 
 /**
@@ -291,9 +314,12 @@ function nvx_aesthetic_catalog_section_markup(): string {
 		$html .= '</div>';
 		$html .= '<h3 class="nvx-aes-card__title">' . esc_html( $treatment['title'] ) . '</h3>';
 		$html .= '<p class="nvx-aes-body">' . esc_html( $treatment['body'] ) . '</p>';
+		// Valid description list: dt/dd are direct children of dl (no wrapping divs).
 		$html .= '<dl class="nvx-aes-card__meta">';
-		$html .= '<div><dt>' . esc_html__( 'Tarifa', 'nuvanx-medical' ) . '</dt><dd>' . esc_html( $treatment['price'] ) . '</dd></div>';
-		$html .= '<div><dt>' . esc_html__( 'Indicación core', 'nuvanx-medical' ) . '</dt><dd>' . esc_html( $treatment['core'] ) . '</dd></div>';
+		$html .= '<dt>' . esc_html__( 'Tarifa', 'nuvanx-medical' ) . '</dt>';
+		$html .= '<dd>' . esc_html( $treatment['price'] ) . '</dd>';
+		$html .= '<dt>' . esc_html__( 'Indicación core', 'nuvanx-medical' ) . '</dt>';
+		$html .= '<dd>' . esc_html( $treatment['core'] ) . '</dd>';
 		$html .= '</dl>';
 		$html .= '<p class="nvx-aes-card__link-wrap"><a class="nvx-aes-card__link" href="' . esc_url( $treatment['url'] ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . '</a></p>';
 		$html .= '</article>';

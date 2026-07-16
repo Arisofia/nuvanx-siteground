@@ -112,10 +112,34 @@ jobs:
             grep -Eqi 'platinum|plata|9ba3ad' "$CSS/nvx-tokens.css"
             php -l "$THEME/inc/nvx-structured-data.php"
             php -l "$THEME/inc/nvx-integrations.php"
+            if ! command -v wp >/dev/null 2>&1; then
+              echo "ERROR: wp (WP-CLI) not found on PATH" >&2
+              exit 1
+            fi
+            if ! wp core is-installed --quiet 2>/dev/null; then
+              echo "ERROR: WP-CLI cannot bootstrap WordPress (core is-installed failed)" >&2
+              exit 1
+            fi
             wp eval '
-              if ( ! function_exists( "nvx_schema_clinics" ) || ! has_filter( "wpseo_schema_graph", "nvx_extend_yoast_schema_graph" ) ) {
+              if ( ! function_exists( "nvx_schema_clinics" ) || ! function_exists( "nvx_schema_page_registry" ) || ! has_filter( "wpseo_schema_graph", "nvx_extend_yoast_schema_graph" ) ) {
                   fwrite( STDERR, "SCHEMA_HOOK_MISSING\n" );
                   exit( 1 );
+              }
+              $registry = nvx_schema_page_registry();
+              $required = array(
+                  array( "clinics", "chamberi", 1543 ),
+                  array( "clinics", "goya", 1537 ),
+                  array( "clinic_hub", null, 1399 ),
+                  array( "treatments", "endolift_facial", 1241 ),
+                  array( "treatments", "exion_btl", 2906 ),
+              );
+              foreach ( $required as $row ) {
+                  list( $group, $key, $id ) = $row;
+                  $entry = null === $key ? ( $registry[ $group ] ?? null ) : ( $registry[ $group ][ $key ] ?? null );
+                  if ( ! is_array( $entry ) || (int) ( $entry["id"] ?? 0 ) !== (int) $id || empty( $entry["path"] ) ) {
+                      fwrite( STDERR, "SCHEMA_REGISTRY_MISMATCH\n" );
+                      exit( 1 );
+                  }
               }
               $clinics = nvx_schema_clinics();
               if (

@@ -12,6 +12,201 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Canonical page map for schema entities.
+ *
+ * IDs are staging/production fallbacks only. Runtime resolution prefers
+ * permalink path, page URI, page template (Sede Local) and optional post meta
+ * `_nvx_clinic_branch` so content moves do not require scattered ID edits.
+ *
+ * @return array{
+ *   clinics: array<string, array{id:int, path:string}>,
+ *   clinic_hub: array{id:int, path:string},
+ *   treatments: array<string, array{id:int, path:string, schema:string}>
+ * }
+ */
+function nvx_schema_page_registry() {
+	return array(
+		'clinics'    => array(
+			'chamberi' => array(
+				'id'   => 1543,
+				'path' => '/medicina-estetica-chamberi/',
+			),
+			'goya'     => array(
+				'id'   => 1537,
+				'path' => '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
+			),
+		),
+		'clinic_hub' => array(
+			'id'   => 1399,
+			'path' => '/clinicas-de-medicina-estetica-nuvanx/',
+		),
+		'treatments' => array(
+			'endolift_facial' => array(
+				'id'     => 1241,
+				'path'   => '/endolift-facial-papada-mandibula/',
+				'schema' => 'MedicalProcedure',
+			),
+			'exion_btl'       => array(
+				'id'     => 2906,
+				'path'   => '/exion-btl/',
+				'schema' => 'Service',
+			),
+		),
+	);
+}
+
+/**
+ * Normalize a path for registry comparisons.
+ *
+ * @param string $path URL path or page URI.
+ * @return string Leading/trailing-slash form, e.g. `/foo/bar/`.
+ */
+function nvx_schema_normalize_path( $path ) {
+	$path = (string) $path;
+	$path = strtok( $path, '?' );
+	$path = '/' . trim( $path, '/' ) . '/';
+
+	return ( '/' === $path || '//' === $path ) ? '/' : $path;
+}
+
+/**
+ * Current request path relative to the site home.
+ *
+ * @param int $page_id Queried page ID when available.
+ * @return string
+ */
+function nvx_schema_current_path( $page_id = 0 ) {
+	if ( $page_id > 0 ) {
+		$permalink = get_permalink( $page_id );
+		if ( is_string( $permalink ) && '' !== $permalink ) {
+			$home_path = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+			$home_path = is_string( $home_path ) ? untrailingslashit( $home_path ) : '';
+			$page_path = wp_parse_url( $permalink, PHP_URL_PATH );
+			$page_path = is_string( $page_path ) ? $page_path : '';
+
+			if ( '' !== $home_path && 0 === strpos( $page_path, $home_path ) ) {
+				$page_path = substr( $page_path, strlen( $home_path ) );
+			}
+
+			return nvx_schema_normalize_path( $page_path );
+		}
+
+		$uri = get_page_uri( $page_id );
+		if ( is_string( $uri ) && '' !== $uri ) {
+			return nvx_schema_normalize_path( $uri );
+		}
+	}
+
+	$request = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+
+	return nvx_schema_normalize_path( $request );
+}
+
+/**
+ * Whether the current path matches a registered path (exact or nested).
+ *
+ * @param string $current Normalized current path.
+ * @param string $target  Registered path.
+ * @return bool
+ */
+function nvx_schema_path_matches( $current, $target ) {
+	$current = nvx_schema_normalize_path( $current );
+	$target  = nvx_schema_normalize_path( $target );
+
+	if ( $current === $target ) {
+		return true;
+	}
+
+	// Nested clinic under hub, e.g. goya under clinicas-...
+	return ( '/' !== $target && 0 === strpos( $current, $target ) );
+}
+
+/**
+ * Whether the page uses the Sede Local template.
+ *
+ * @param int $page_id Page ID.
+ * @return bool
+ */
+function nvx_schema_is_sede_template( $page_id ) {
+	if ( $page_id <= 0 || ! function_exists( 'get_page_template_slug' ) ) {
+		return false;
+	}
+
+	$slug = (string) get_page_template_slug( $page_id );
+
+	return (bool) preg_match( '#(^|/)page-sede\.php$#', $slug );
+}
+
+/**
+ * Resolve which clinic branch keys apply on the current page.
+ *
+ * Order: front/hub → post meta → sede template + path → path/ID registry.
+ *
+ * @param int $page_id Current page ID.
+ * @return string[] Empty, one key, or both clinic keys (chamberi, goya).
+ */
+function nvx_schema_resolve_clinic_keys( $page_id ) {
+	$registry = nvx_schema_page_registry();
+	$path     = nvx_schema_current_path( $page_id );
+
+	if ( is_front_page() ) {
+		return array_keys( $registry['clinics'] );
+	}
+
+	// Optional editorial override: post meta `_nvx_clinic_branch` = chamberi|goya|all.
+	if ( $page_id > 0 ) {
+		$meta = strtolower( trim( (string) get_post_meta( $page_id, '_nvx_clinic_branch', true ) ) );
+		if ( 'all' === $meta || 'both' === $meta ) {
+			return array_keys( $registry['clinics'] );
+		}
+		if ( isset( $registry['clinics'][ $meta ] ) ) {
+			return array( $meta );
+		}
+	}
+
+	$matched = array();
+	foreach ( $registry['clinics'] as $key => $entry ) {
+		if ( (int) $entry['id'] === $page_id || nvx_schema_path_matches( $path, $entry['path'] ) ) {
+			$matched[] = $key;
+		}
+	}
+	if ( ! empty( $matched ) ) {
+		return array_values( array_unique( $matched ) );
+	}
+
+	$hub = $registry['clinic_hub'];
+	if (
+		(int) $hub['id'] === $page_id
+		|| nvx_schema_path_matches( $path, $hub['path'] )
+		|| nvx_schema_is_sede_template( $page_id )
+	) {
+		// Hub or generic sede template without a specific branch: expose both clinics.
+		return array_keys( $registry['clinics'] );
+	}
+
+	return array();
+}
+
+/**
+ * Resolve a treatment registry key for the current page, if any.
+ *
+ * @param int $page_id Current page ID.
+ * @return string|null Registry key or null.
+ */
+function nvx_schema_resolve_treatment_key( $page_id ) {
+	$registry = nvx_schema_page_registry();
+	$path     = nvx_schema_current_path( $page_id );
+
+	foreach ( $registry['treatments'] as $key => $entry ) {
+		if ( (int) $entry['id'] === $page_id || nvx_schema_path_matches( $path, $entry['path'] ) ) {
+			return $key;
+		}
+	}
+
+	return null;
+}
+
+/**
  * Return true when a Schema.org @type contains the requested type.
  *
  * @param mixed  $types Schema @type value.
@@ -52,13 +247,15 @@ function nvx_schema_add_type( $types, $type ) {
  * @return array
  */
 function nvx_schema_clinics() {
+	$registry = nvx_schema_page_registry();
+
 	return array(
 		'chamberi' => array(
 			'@type'      => 'MedicalClinic',
 			'@id'        => home_url( '/#/schema/medical-clinic/chamberi' ),
 			'name'       => 'NUVANX Medicina Estética Láser — Chamberí',
 			'branchCode' => 'chamberi',
-			'url'        => home_url( '/medicina-estetica-chamberi/' ),
+			'url'        => home_url( $registry['clinics']['chamberi']['path'] ),
 			'telephone'  => '+34669319836',
 			'email'      => 'info@nuvanx.com',
 			'address'    => array(
@@ -99,7 +296,7 @@ function nvx_schema_clinics() {
 			'@id'        => home_url( '/#/schema/medical-clinic/goya' ),
 			'name'       => 'NUVANX Medicina Estética Láser — Goya · Barrio Salamanca',
 			'branchCode' => 'goya',
-			'url'        => home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ),
+			'url'        => home_url( $registry['clinics']['goya']['path'] ),
 			'telephone'  => '+34647505107',
 			'email'      => 'info@nuvanx.com',
 			'address'    => array(
@@ -156,16 +353,13 @@ function nvx_schema_find_organization( $graph ) {
 }
 
 /**
- * Return an FAQPage node that exactly mirrors visible page content.
+ * FAQ copy keyed by treatment registry keys (must mirror visible page content).
  *
- * @param int $page_id Current page ID.
- * @return array|null
+ * @return array<string, array<int, array{q:string,a:string}>>
  */
-function nvx_schema_faq_node( $page_id ) {
-	$questions = array();
-
-	if ( 1241 === $page_id ) {
-		$questions = array(
+function nvx_schema_faq_catalog() {
+	return array(
+		'endolift_facial' => array(
 			array(
 				'q' => '¿Endolift® es para cualquier papada?',
 				'a' => 'No. Primero debe valorarse si predomina grasa, flacidez o exceso de piel. Esa diferencia define si Endolift® tiene sentido o si conviene otra opción.',
@@ -182,11 +376,8 @@ function nvx_schema_faq_node( $page_id ) {
 				'q' => '¿Puede combinarse con otros tratamientos?',
 				'a' => 'Sí, cuando hay una secuencia lógica. Puede combinarse con medicina estética, EXION® BTL o cuidado de piel según evolución.',
 			),
-		);
-	}
-
-	if ( 2906 === $page_id ) {
-		$questions = array(
+		),
+		'exion_btl'       => array(
 			array(
 				'q' => '¿EXION® sustituye al Láser CO₂?',
 				'a' => 'No. EXION® y Láser CO₂ tienen indicaciones distintas. EXION® puede trabajar radiofrecuencia fraccionada, calidad de piel y protocolos corporales; el Láser CO₂ fraccionado se orienta a renovación cutánea mediante láser ablativo fraccionado.',
@@ -199,16 +390,27 @@ function nvx_schema_faq_node( $page_id ) {
 				'q' => '¿Cuántas sesiones necesito?',
 				'a' => 'Depende de la zona, el aplicador, la calidad del tejido y el objetivo clínico. En consulta médica personalizada se define si EXION® tiene sentido y cuántas sesiones serían razonables.',
 			),
-		);
-	}
+		),
+	);
+}
 
-	if ( empty( $questions ) ) {
+/**
+ * Return an FAQPage node that exactly mirrors visible page content.
+ *
+ * @param int $page_id Current page ID.
+ * @return array|null
+ */
+function nvx_schema_faq_node( $page_id ) {
+	$treatment_key = nvx_schema_resolve_treatment_key( $page_id );
+	$catalog       = nvx_schema_faq_catalog();
+
+	if ( null === $treatment_key || empty( $catalog[ $treatment_key ] ) ) {
 		return null;
 	}
 
 	$entities = array();
 
-	foreach ( $questions as $question ) {
+	foreach ( $catalog[ $treatment_key ] as $question ) {
 		$entities[] = array(
 			'@type'          => 'Question',
 			'name'           => $question['q'],
@@ -228,6 +430,56 @@ function nvx_schema_faq_node( $page_id ) {
 }
 
 /**
+ * Treatment / service entity nodes keyed by registry treatment key.
+ *
+ * @param int    $page_id        Current page ID.
+ * @param string $organization_id Organization @id.
+ * @return array|null
+ */
+function nvx_schema_treatment_node( $page_id, $organization_id ) {
+	$key = nvx_schema_resolve_treatment_key( $page_id );
+
+	if ( null === $key ) {
+		return null;
+	}
+
+	$permalink = get_permalink( $page_id );
+
+	if ( 'endolift_facial' === $key ) {
+		return array(
+			'@type'            => 'MedicalProcedure',
+			'@id'              => $permalink . '#medical-procedure',
+			'name'             => 'Endolift® facial para papada y línea mandibular',
+			'alternateName'    => array( 'Endolift® facial', 'Láser endodérmico facial' ),
+			'url'              => $permalink,
+			'mainEntityOfPage' => array( '@id' => $permalink ),
+			'owner'            => array( '@id' => $organization_id ),
+			'description'      => 'Procedimiento médico con fibra láser fina bajo la piel, indicado tras valoración para mejorar firmeza, papada y definición del contorno facial en casos seleccionados.',
+			'bodyLocation'     => 'Papada, línea mandibular, cuello y óvalo facial',
+			'preparation'      => 'Valoración médica previa de anatomía, calidad de piel, antecedentes y expectativas.',
+			'howPerformed'     => 'El equipo médico trabaja bajo la piel mediante una fibra láser fina y adapta los parámetros a la zona y al tejido.',
+			'followup'         => 'Seguimiento clínico y evolución fotográfica; puede existir inflamación o sensibilidad temporal.',
+		);
+	}
+
+	if ( 'exion_btl' === $key ) {
+		return array(
+			'@type'            => 'Service',
+			'@id'              => $permalink . '#service',
+			'name'             => 'EXION® BTL en Madrid',
+			'serviceType'      => 'Protocolos médicos con plataforma EXION® BTL',
+			'url'              => $permalink,
+			'mainEntityOfPage' => array( '@id' => $permalink ),
+			'provider'         => array( '@id' => $organization_id ),
+			'description'      => 'Plataforma médica con aplicadores Fractional RF, Face y Body para protocolos personalizados de textura, calidad de piel, firmeza y tratamiento corporal según diagnóstico.',
+			'areaServed'       => 'Madrid',
+		);
+	}
+
+	return null;
+}
+
+/**
  * Add NUVANX medical locations and page entities to Yoast's canonical graph.
  *
  * @param array $graph   Yoast Schema graph.
@@ -240,7 +492,7 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 	}
 
 	$organization = nvx_schema_find_organization( $graph );
-	$clinics      = nvx_schema_clinics();
+	$all_clinics  = nvx_schema_clinics();
 	$page_id      = (int) get_queried_object_id();
 
 	if ( null === $organization['index'] ) {
@@ -251,38 +503,39 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 		);
 		$organization['index'] = array_key_last( $graph );
 	}
+
 	$clinic_ids = array(
-		array( '@id' => $clinics['chamberi']['@id'] ),
-		array( '@id' => $clinics['goya']['@id'] ),
+		array( '@id' => $all_clinics['chamberi']['@id'] ),
+		array( '@id' => $all_clinics['goya']['@id'] ),
 	);
 
 	$index = $organization['index'];
 
 	if ( null !== $index ) {
-		$graph[ $index ]['@type']         = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
-		$graph[ $index ]['name']         = 'NUVANX Medicina Estética Láser';
-		$graph[ $index ]['alternateName'] = array( 'NUVANX', 'NUVANX Madrid' );
-		$graph[ $index ]['description']   = 'Clínicas de medicina estética láser en Madrid con sedes en Chamberí y Goya · Barrio Salamanca, diagnóstico médico, tratamientos faciales y corporales y seguimiento personalizado.';
-		$graph[ $index ]['email']         = 'info@nuvanx.com';
-		$graph[ $index ]['telephone']     = '+34669319836';
-		$graph[ $index ]['address']       = array( $clinics['chamberi']['address'], $clinics['goya']['address'] );
-		$graph[ $index ]['contactPoint']  = array(
+		$graph[ $index ]['@type']          = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
+		$graph[ $index ]['name']           = 'NUVANX Medicina Estética Láser';
+		$graph[ $index ]['alternateName']  = array( 'NUVANX', 'NUVANX Madrid' );
+		$graph[ $index ]['description']    = 'Clínicas de medicina estética láser en Madrid con sedes en Chamberí y Goya · Barrio Salamanca, diagnóstico médico, tratamientos faciales y corporales y seguimiento personalizado.';
+		$graph[ $index ]['email']          = 'info@nuvanx.com';
+		$graph[ $index ]['telephone']      = '+34669319836';
+		$graph[ $index ]['address']        = array( $all_clinics['chamberi']['address'], $all_clinics['goya']['address'] );
+		$graph[ $index ]['contactPoint']   = array(
 			array(
-				'@type'       => 'ContactPoint',
-				'contactType' => 'Citas — Chamberí',
-				'telephone'   => '+34669319836',
-				'areaServed'  => 'ES',
+				'@type'             => 'ContactPoint',
+				'contactType'       => 'Citas — Chamberí',
+				'telephone'         => '+34669319836',
+				'areaServed'        => 'ES',
 				'availableLanguage' => array( 'es', 'en' ),
 			),
 			array(
-				'@type'       => 'ContactPoint',
-				'contactType' => 'Citas — Goya · Barrio Salamanca',
-				'telephone'   => '+34647505107',
-				'areaServed'  => 'ES',
+				'@type'             => 'ContactPoint',
+				'contactType'       => 'Citas — Goya · Barrio Salamanca',
+				'telephone'         => '+34647505107',
+				'areaServed'        => 'ES',
 				'availableLanguage' => array( 'es', 'en' ),
 			),
 		);
-		$graph[ $index ]['knowsAbout'] = array(
+		$graph[ $index ]['knowsAbout']     = array(
 			'Medicina estética',
 			'Medicina estética láser',
 			'Endolift® facial',
@@ -293,61 +546,32 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 			'Medicina regenerativa',
 		);
 
-		$existing_same_as = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
-		$existing_same_as[] = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
-		$graph[ $index ]['sameAs'] = array_values( array_unique( array_filter( $existing_same_as ) ) );
+		$existing_same_as               = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
+		$existing_same_as[]             = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
+		$graph[ $index ]['sameAs']      = array_values( array_unique( array_filter( $existing_same_as ) ) );
 	}
 
-	$clinic_pages = array( 1399, 1543, 1537 );
+	$clinic_keys = nvx_schema_resolve_clinic_keys( $page_id );
 
-	if ( is_front_page() || in_array( $page_id, $clinic_pages, true ) ) {
+	if ( ! empty( $clinic_keys ) && null !== $organization['index'] ) {
 		$graph[ $organization['index'] ]['subOrganization'] = $clinic_ids;
 
-		if ( 1543 === $page_id ) {
-			$clinics = array( 'chamberi' => $clinics['chamberi'] );
-		} elseif ( 1537 === $page_id ) {
-			$clinics = array( 'goya' => $clinics['goya'] );
-		}
-
-		foreach ( $clinics as $clinic ) {
-			$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
-			$graph[] = $clinic;
+		foreach ( $clinic_keys as $key ) {
+			if ( empty( $all_clinics[ $key ] ) ) {
+				continue;
+			}
+			$clinic                         = $all_clinics[ $key ];
+			$clinic['parentOrganization']   = array( '@id' => $organization['id'] );
+			$graph[]                        = $clinic;
 		}
 	}
 
-	if ( 1241 === $page_id ) {
-		$graph[] = array(
-			'@type'           => 'MedicalProcedure',
-			'@id'             => get_permalink( $page_id ) . '#medical-procedure',
-			'name'            => 'Endolift® facial para papada y línea mandibular',
-			'alternateName'   => array( 'Endolift® facial', 'Láser endodérmico facial' ),
-			'url'             => get_permalink( $page_id ),
-			'mainEntityOfPage' => array( '@id' => get_permalink( $page_id ) ),
-			'owner'           => array( '@id' => $organization['id'] ),
-			'description'     => 'Procedimiento médico con fibra láser fina bajo la piel, indicado tras valoración para mejorar firmeza, papada y definición del contorno facial en casos seleccionados.',
-			'bodyLocation'    => 'Papada, línea mandibular, cuello y óvalo facial',
-			'preparation'     => 'Valoración médica previa de anatomía, calidad de piel, antecedentes y expectativas.',
-			'howPerformed'    => 'El equipo médico trabaja bajo la piel mediante una fibra láser fina y adapta los parámetros a la zona y al tejido.',
-			'followup'        => 'Seguimiento clínico y evolución fotográfica; puede existir inflamación o sensibilidad temporal.',
-		);
-	}
-
-	if ( 2906 === $page_id ) {
-		$graph[] = array(
-			'@type'      => 'Service',
-			'@id'        => get_permalink( $page_id ) . '#service',
-			'name'       => 'EXION® BTL en Madrid',
-			'serviceType' => 'Protocolos médicos con plataforma EXION® BTL',
-			'url'        => get_permalink( $page_id ),
-			'mainEntityOfPage' => array( '@id' => get_permalink( $page_id ) ),
-			'provider'   => array( '@id' => $organization['id'] ),
-			'description' => 'Plataforma médica con aplicadores Fractional RF, Face y Body para protocolos personalizados de textura, calidad de piel, firmeza y tratamiento corporal según diagnóstico.',
-			'areaServed' => 'Madrid',
-		);
+	$treatment = nvx_schema_treatment_node( $page_id, $organization['id'] );
+	if ( null !== $treatment ) {
+		$graph[] = $treatment;
 	}
 
 	$faq = nvx_schema_faq_node( $page_id );
-
 	if ( null !== $faq ) {
 		$graph[] = $faq;
 	}

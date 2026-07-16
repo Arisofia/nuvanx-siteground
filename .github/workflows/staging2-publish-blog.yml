@@ -95,7 +95,8 @@ jobs:
             [[ "$HOMEURL" == "https://staging2.nuvanx.com" ]] || { echo "ERROR home $HOMEURL"; exit 1; }
             php -l "$SCRIPTS/$SCRIPT"
             if [[ "$MODE" == "apply" ]]; then
-              wp eval-file "$SCRIPTS/$SCRIPT" -- --apply
+              # WP-CLI eval-file passes trailing args into $args (no bare "--").
+              wp eval-file "$SCRIPTS/$SCRIPT" --apply
               wp cache flush || true
               wp sg purge || true
             else

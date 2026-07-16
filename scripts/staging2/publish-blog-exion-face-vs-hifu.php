@@ -18,12 +18,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 1 );
 }
 
-$args_list = isset( $args ) && is_array( $args ) ? $args : array();
-// WP-CLI passes extra args after --
+// WP-CLI eval-file: trailing args land in $args (e.g. --apply).
+$args_list = ( isset( $args ) && is_array( $args ) ) ? $args : array();
 if ( empty( $args_list ) && isset( $GLOBALS['argv'] ) && is_array( $GLOBALS['argv'] ) ) {
 	$args_list = $GLOBALS['argv'];
 }
-$apply = in_array( '--apply', $args_list, true );
+$apply = in_array( '--apply', $args_list, true )
+	|| in_array( 'apply', $args_list, true );
 
 $expected_url = 'https://staging2.nuvanx.com';
 $site_url     = rtrim( (string) get_option( 'siteurl' ), '/' );

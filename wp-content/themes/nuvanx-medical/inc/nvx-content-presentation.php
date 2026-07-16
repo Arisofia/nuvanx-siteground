@@ -374,8 +374,11 @@ function nvx_content_replace_method_sections( string $content ): string {
 function nvx_content_enrich_treatment_cards( string $content ): string {
 	$price_label  = function_exists( 'nvx_format_price_eur' )
 		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
-		: number_format_i18n( 1460, 0 );
-	$endolift_new = 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica tras valoración. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. Tarifa de referencia desde ' . $price_label . ' €; presupuesto definitivo en consulta.';
+		: number_format_i18n( 798.60, 2 );
+	$papada_label = function_exists( 'nvx_format_price_eur' ) && function_exists( 'nvx_endolift_price_papada_eur' )
+		? nvx_format_price_eur( nvx_endolift_price_papada_eur() )
+		: number_format_i18n( 1064.80, 2 );
+	$endolift_new = 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica tras valoración. Papada / marcación mandibular: ' . $papada_label . ' € (PVP IVA incl.). Tarifas faciales desde ' . $price_label . ' €.';
 
 	$exion_new = 'Plataforma con aplicadores Fractional RF, Face y Body. La elección y el número de sesiones dependen del diagnóstico; no sustituye rellenos ni valoración médica.';
 

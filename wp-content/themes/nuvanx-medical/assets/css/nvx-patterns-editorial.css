@@ -1101,6 +1101,59 @@ article.nvx-page > .nvx-page-hero {
   margin-bottom: var(--nvx-space-2, 16px);
 }
 
+/* Official PVP table — readable, no retail chrome */
+.nvx-endolift-price-table-wrap {
+  margin: var(--nvx-space-4, 32px) 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nvx-endolift-price-table {
+  width: 100%;
+  max-width: 40rem;
+  border-collapse: collapse;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body, 1rem);
+  line-height: 1.4;
+  color: var(--nvx-ink, #1c1c1c);
+}
+
+.nvx-endolift-price-table__cap {
+  caption-side: bottom;
+  padding-top: var(--nvx-space-2, 16px);
+  text-align: left;
+  font-size: var(--nvx-type-small, 0.875rem);
+  color: var(--nvx-text-muted, #5c5c5c);
+}
+
+.nvx-endolift-price-table th,
+.nvx-endolift-price-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--nvx-color-line, #e5e5e5);
+  text-align: left;
+  vertical-align: top;
+}
+
+.nvx-endolift-price-table thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--nvx-text-muted, #5c5c5c);
+  border-bottom-color: var(--nvx-ink, #1c1c1c);
+}
+
+.nvx-endolift-price-table tbody th {
+  font-weight: 400;
+  color: var(--nvx-ink, #1c1c1c);
+}
+
+.nvx-endolift-price-table tbody td {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
 /* Action banner: exactamente 96px bajo FAQs */
 .nvx-endolift-action {
   margin-top: var(--nvx-space-12);

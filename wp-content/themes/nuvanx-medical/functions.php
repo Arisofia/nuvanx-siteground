@@ -385,4 +385,56 @@ function nvx_valoracion_form_first( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_valoracion_form_first', 14 );
 
+/**
+ * Valoración form stage: use featured/header image as section atmosphere.
+ */
+function nvx_valoracion_form_stage_image_css(): void {
+	if ( ! nvx_theme_is_valoracion_landing() ) {
+		return;
+	}
+
+	$image_url = get_the_post_thumbnail_url( get_queried_object_id(), 'full' );
+	if ( ! is_string( $image_url ) || $image_url === '' ) {
+		// Fallback to known header media filename when present in media library.
+		$image_url = content_url( 'uploads/2026/07/fondo-formulario.webp' );
+	}
+
+	$css = sprintf(
+		'.nvx-hubspot-form-section,.nvx-form-stage{--nvx-form-stage-image:url("%s");}',
+		esc_url_raw( $image_url )
+	);
+
+	wp_add_inline_style( 'nvx-layout', $css );
+}
+add_action( 'wp_enqueue_scripts', 'nvx_valoracion_form_stage_image_css', 30 );
+
+/**
+ * Mark the valoración form section for stage styling.
+ */
+function nvx_valoracion_form_stage_class( string $content ): string {
+	if ( is_admin() || ! nvx_theme_is_valoracion_landing() ) {
+		return $content;
+	}
+
+	$updated = preg_replace(
+		'/(<section\b[^>]*\bid=["\']nvx-hubspot-form["\'][^>]*\bclass=["\'])([^"\']*)(["\'])/i',
+		'$1$2 nvx-form-stage$3',
+		$content,
+		1,
+		$count
+	);
+
+	if ( is_string( $updated ) && $count > 0 ) {
+		return $updated;
+	}
+
+	return preg_replace(
+		'/(<section\b[^>]*\bclass=["\'])([^"\']*nvx-hubspot-form-section[^"\']*)(["\'])/i',
+		'$1$2 nvx-form-stage$3',
+		$content,
+		1
+	) ?: $content;
+}
+add_filter( 'the_content', 'nvx_valoracion_form_stage_class', 15 );
+
 require_once get_template_directory() . '/inc/nvx-integrations.php';

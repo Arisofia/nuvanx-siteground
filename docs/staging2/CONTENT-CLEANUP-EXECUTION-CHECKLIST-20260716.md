@@ -38,8 +38,12 @@ production_modified=false
 
 ## Mandatory manual review
 
+Follow the ordered backlog in [PENDING-PAGES-CREDIBILITY-INVENTORY-20260716.md](./PENDING-PAGES-CREDIBILITY-INVENTORY-20260716.md).
+
+- [ ] **Critical:** hub Clínicas — remove “Endolift® = radiofrecuencia monopolar” (confirmed live on staging2).
+- [ ] **Credibility block:** Casos de pacientes — nested `<main>`, incomplete CTAs, schema for non-existent cases; delist until real gallery.
+- [ ] Closed IDs: private 1380, published duplicate 2635 (MEL), cookies 18 → UE 577.
 - [ ] Remove or correct unapproved virtual/online-consultation promises.
-- [ ] Correct any content that identifies Endolift as monopolar radiofrequency.
 - [ ] Confirm the Goya excerpt punctuation.
 - [ ] Confirm the menu label is `Clínica Goya · Barrio Salamanca`.
 - [ ] Review Doctoralia separately; repository scripts do not modify it.

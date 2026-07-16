@@ -184,6 +184,20 @@ figcaption {
   text-transform: uppercase;
 }
 
+/* Numeral + kicker: el kicker no debe pisar el tamaño Bodoni */
+.nvx-brand-card__kicker.nvx-numeral,
+.nvx-brand-card__kicker.nvx-step__num,
+p.nvx-numeral.nvx-brand-card__kicker {
+  font-family: var(--nvx-font-serif);
+  font-size: var(--nvx-type-numeral-display);
+  font-weight: var(--nvx-fw-light);
+  letter-spacing: var(--nvx-track-numeral);
+  line-height: 0.95;
+  color: var(--nvx-platinum);
+  text-transform: none;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
 /* ═══════════════════════════════════════════════════════════
    FLUJOS DE TEXTO — estilo revista editorial (variedad)
    Base: lectura start. Variaciones: número+texto, pull quote,

@@ -96,7 +96,8 @@ function nvx_home_action_banner_markup(): string {
 	$valoracion = nvx_cta_valoracion_url();
 	$whatsapp   = nvx_cta_whatsapp_url();
 
-	$html  = '<div class="nvx-home-action-banner-shell" data-nvx-action-banner="post-values">';
+	// Stable structural id + data attribute for safe strip/replace (no broad markup regex).
+	$html  = '<div id="nvx-post-values-action-banner" class="nvx-home-action-banner-shell" data-nvx-action-banner="post-values">';
 	$html .= '<section class="nvx-home-action-banner" aria-labelledby="nvx-home-action-banner-title">';
 	$html .= '<div class="nvx-home-action-banner__copy">';
 	$html .= '<p class="nvx-brand-kicker nvx-home-action-banner__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
@@ -241,48 +242,54 @@ function nvx_content_replace_values_sections( string $content ): string {
 }
 
 /**
+ * Remove the canonical post-values action banner only (stable id + data attribute).
+ * Does not match arbitrary sections or loose action divs.
+ */
+function nvx_content_strip_post_values_action_banner( string $content ): string {
+	// Exact wrapper: id + data-nvx-action-banner="post-values" containing one section then close.
+	$pattern = '/<div\b[^>]*\bid=["\']nvx-post-values-action-banner["\'][^>]*\bdata-nvx-action-banner=["\']post-values["\'][^>]*>\s*<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-action-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>\s*<\/div>/iu';
+	$stripped = preg_replace( $pattern, '', $content );
+	if ( is_string( $stripped ) ) {
+		$content = $stripped;
+	}
+
+	// Legacy shell without id (data attribute only) — same rigid shape.
+	$pattern_legacy = '/<div\b[^>]*\bdata-nvx-action-banner=["\']post-values["\'][^>]*>\s*<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-action-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>\s*<\/div>/iu';
+	$stripped       = preg_replace( $pattern_legacy, '', $content );
+	return is_string( $stripped ) ? $stripped : $content;
+}
+
+/**
  * Insert / refresh premium action banner right after the values section.
- * Removes legacy dual CTA inside values so conversion is single and clean.
+ * Scoped to known class/id markers only — no broad orphan fragment deletes.
  */
 function nvx_content_ensure_post_values_action_banner( string $content ): string {
-	// Strip old inline CTA pair under values pillars (if present from prior markup).
+	// Legacy dual CTA only when it is the exact values CTA class (not other nvx-cta-pair blocks).
 	$stripped = preg_replace(
-		'/(class="nvx-values"[\s\S]*?<\/div>)\s*<div class="nvx-cta-pair nvx-values__cta">[\s\S]*?<\/div>/iu',
-		'$1',
-		$content
+		'/\s*<div class="nvx-cta-pair nvx-values__cta"[^>]*>[\s\S]*?<\/div>/iu',
+		'',
+		$content,
+		1
 	);
 	$content = is_string( $stripped ) ? $stripped : $content;
 
-	// Remove any previous post-values banners (including broken partials) before re-insert.
-	// Match shell by data attribute (outer wrapper) — non-greedy with balanced-ish close via marker.
-	$stripped = preg_replace(
-		'/<div class="nvx-home-action-banner-shell"[^>]*>[\s\S]*?<\/section>\s*<\/div>/iu',
-		'',
-		$content
-	);
-	$content = is_string( $stripped ) ? $stripped : $content;
+	// Drop previous canonical banner (id/data scoped) before re-insert so copy stays current.
+	$content = nvx_content_strip_post_values_action_banner( $content );
 
-	// Orphan section without shell (legacy / broken replace).
-	$stripped = preg_replace(
-		'/<section\b[^>]*class="[^"]*nvx-home-action-banner[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
-		'',
-		$content
-	);
-	$content = is_string( $stripped ) ? $stripped : $content;
-
-	// Loose action fragments from failed regex replaces.
-	$stripped = preg_replace(
-		'/<div class="nvx-home-action-banner__actions">[\s\S]*?<\/div>\s*<\/section>\s*<\/div>/iu',
-		'',
-		$content
-	);
-	$content = is_string( $stripped ) ? $stripped : $content;
+	// Already present after a partial strip failure — do not insert a second copy.
+	if ( false !== strpos( $content, 'id="nvx-post-values-action-banner"' )
+		|| false !== strpos( $content, "id='nvx-post-values-action-banner'" )
+		|| false !== strpos( $content, 'data-nvx-action-banner="post-values"' )
+		|| false !== strpos( $content, "data-nvx-action-banner='post-values'" )
+	) {
+		return $content;
+	}
 
 	$banner = nvx_home_action_banner_markup();
 
-	// Insert once immediately after values section.
+	// Prefer explicit values section class (single match).
 	$updated = preg_replace(
-		'/(<section\b[^>]*class="[^"]*nvx-values-section[^"]*"[^>]*>[\s\S]*?<\/section>)/iu',
+		'/(<section\b[^>]*\bclass=["\'][^"\']*\bnvx-values-section\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>)/iu',
 		'$1' . $banner,
 		$content,
 		1,
@@ -292,15 +299,19 @@ function nvx_content_ensure_post_values_action_banner( string $content ): string
 		return $updated;
 	}
 
-	// Fallback: after .nvx-values grid's closing section.
+	// Fallback only when the values grid class is present (still structural, not free text).
 	$updated = preg_replace(
 		'/(<div class="nvx-values">[\s\S]*?<\/div>\s*<\/div>\s*<\/section>)/iu',
 		'$1' . $banner,
 		$content,
-		1
+		1,
+		$count
 	);
+	if ( is_string( $updated ) && $count > 0 ) {
+		return $updated;
+	}
 
-	return is_string( $updated ) ? $updated : $content;
+	return $content;
 }
 
 /**

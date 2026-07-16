@@ -32,6 +32,14 @@ if (wp_get_theme()->get_stylesheet() !== 'nuvanx-medical') {
     exit(1);
 }
 
+// Shared Schema.org JSON-LD strip (same logic as runtime the_content filter).
+$jsonldHelper = get_template_directory() . '/inc/nvx-jsonld-content.php';
+if (!is_readable($jsonldHelper)) {
+    fwrite(STDERR, "ERROR: missing theme helper {$jsonldHelper}\n");
+    exit(1);
+}
+require_once $jsonldHelper;
+
 /** @return string */
 function nvx_cleanup_html(string $html): string
 {
@@ -39,12 +47,8 @@ function nvx_cleanup_html(string $html): string
     $html = str_replace('características induales', 'características individuales', $html);
     $html = preg_replace('/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $html) ?? $html;
     $html = preg_replace('/<(ul|ol)\b[^>]*>\s*<\/\1>/iu', '', $html) ?? $html;
-    // Canonical schema is Yoast @graph only — drop embedded JSON-LD from post_content.
-    $html = preg_replace(
-        '#<script\b[^>]*type\s*=\s*(["\'])application/ld\+json\1[^>]*>[\s\S]*?</script>#iu',
-        '',
-        $html
-    ) ?? $html;
+    // Canonical schema is Yoast @graph only — shared helper (schema.org payloads only).
+    $html = nvx_strip_embedded_jsonld_html($html);
 
     if (trim($html) === '') {
         return $html;
@@ -62,11 +66,16 @@ function nvx_cleanup_html(string $html): string
                 $node->removeAttribute('style');
             }
         }
-        // Also remove any remaining ld+json scripts DOM may still hold.
+        // Second pass: DOM-held Schema.org ld+json (attribute order variants).
         foreach ($xpath->query('//script[contains(translate(@type,"JSONLD","jsonld"),"ld+json")]') ?: [] as $node) {
-            if ($node instanceof DOMElement && $node->parentNode) {
-                $node->parentNode->removeChild($node);
+            if (!($node instanceof DOMElement) || !$node->parentNode) {
+                continue;
             }
+            $body = (string) $node->textContent;
+            if (function_exists('nvx_jsonld_is_schema_org_payload') && !nvx_jsonld_is_schema_org_payload($body)) {
+                continue;
+            }
+            $node->parentNode->removeChild($node);
         }
 
         $root = $document->getElementById('nvx-cleanup-root');

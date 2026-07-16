@@ -14,8 +14,8 @@
 ## Cierre técnico en este cambio
 
 1. **Registry + Service EXILITE** — path `/btl-exilite-ipl-madrid/`, descripción conservadora (sin claims numéricos).
-2. **Strip runtime** — `the_content` / `the_excerpt` / `widget_text_content` eliminan `<script type="application/ld+json">` del HTML de contenido para no duplicar el grafo.
-3. **Cleanup staging2 (DB)** — `cleanup-content-navigation.php` también purga JSON-LD embebido en `post_content` (audit/apply).
+2. **Strip runtime (acotado)** — helper compartido `inc/nvx-jsonld-content.php`: solo páginas/front y solo payloads Schema.org (`schema.org` / `@graph` / `"@type"`). Otros `ld+json` no se tocan.
+3. **Cleanup staging2 (DB)** — `cleanup-content-navigation.php` usa el **mismo** helper (`nvx_strip_embedded_jsonld_html`) + pasada DOM.
 4. **Deploy** — tras merge a master, el workflow auto-deploy debe ejecutarse; si el smoke del runner falla por respuestas cortas, re-lanzar `staging2-smoke-verify` o verificar HTTP manual.
 
 ## Qué sigue fuera de código (contenido / clínica)

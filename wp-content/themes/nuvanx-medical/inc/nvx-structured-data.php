@@ -11,6 +11,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once __DIR__ . '/nvx-jsonld-content.php';
+
 /**
  * Canonical page map for schema entities.
  *
@@ -604,31 +606,6 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 }
 add_filter( 'wpseo_schema_graph', 'nvx_extend_yoast_schema_graph', 20, 2 );
 
-/**
- * Strip embedded JSON-LD from post content / excerpts.
- *
- * Canonical structured data is only emitted via Yoast's @graph
- * (wpseo_schema_graph). Standalone <script type="application/ld+json">
- * blocks left in WordPress content (e.g. EXILITE, home FAQ dumps) create
- * duplicate Organization / MedicalClinic / FAQPage entities and must not
- * render. Permanent DB cleanup remains recommended on staging2.
- *
- * @param string $content HTML.
- * @return string
- */
-function nvx_strip_embedded_jsonld( $content ) {
-	if ( ! is_string( $content ) || '' === $content || false === stripos( $content, 'ld+json' ) ) {
-		return $content;
-	}
-
-	$cleaned = preg_replace(
-		'#<script\b[^>]*type\s*=\s*(["\'])application/ld\+json\1[^>]*>[\s\S]*?</script>#i',
-		'',
-		$content
-	);
-
-	return is_string( $cleaned ) ? $cleaned : $content;
-}
-add_filter( 'the_content', 'nvx_strip_embedded_jsonld', 5 );
-add_filter( 'the_excerpt', 'nvx_strip_embedded_jsonld', 5 );
-add_filter( 'widget_text_content', 'nvx_strip_embedded_jsonld', 5 );
+// Pages / front only: strip Schema.org payloads from post_content (shared helper).
+// Non-schema ld+json and non-page views are left alone. See nvx-jsonld-content.php.
+add_filter( 'the_content', 'nvx_filter_strip_embedded_jsonld', 5 );

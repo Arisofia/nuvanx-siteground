@@ -1338,3 +1338,411 @@ article.nvx-page > .nvx-page-hero {
     padding-inline: 1.5rem; /* px-6 mobile safety margin */
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MEDICINA ESTÉTICA LÁSER — quiet luxury authority hub
+   Antracita #1C1C1C · Alabastro #F5E8D8 · Bronce #C5A880
+   Section pad: 96px mobile / 120px desktop · 8px system
+   ═══════════════════════════════════════════════════════════ */
+
+.nvx-laser-hero.nvx-brand-hero,
+.nvx-laser-hero {
+  background: #1c1c1c;
+  color: #f5e8d8;
+  padding-block: 96px;
+}
+
+.nvx-laser-hero .nvx-brand-kicker,
+.nvx-laser-hero .nvx-brand-meta {
+  color: rgba(245, 232, 216, 0.72);
+}
+
+.nvx-laser-hero .nvx-brand-hero__title {
+  color: #f5e8d8;
+  max-width: 16ch;
+}
+
+.nvx-laser-hero .nvx-brand-hero__lead {
+  max-width: 60ch;
+  color: rgba(245, 232, 216, 0.92);
+}
+
+.nvx-laser-hero-copy .nvx-brand-hero__description {
+  max-width: 60ch;
+  margin-top: var(--nvx-space-2, 16px);
+  color: rgba(245, 232, 216, 0.88);
+}
+
+.nvx-laser-hero .nvx-brand-btn--primary {
+  background: #f5e8d8;
+  color: #1c1c1c;
+  border-color: #f5e8d8;
+}
+
+.nvx-laser-hero .nvx-brand-btn--secondary {
+  color: #f5e8d8;
+  border-color: rgba(245, 232, 216, 0.5);
+  background: transparent;
+}
+
+.nvx-laser-section {
+  padding-block: 96px;
+  background: #ffffff;
+  color: #1c1c1c;
+}
+
+.nvx-laser-platforms {
+  background: #f9f9f9;
+}
+
+.nvx-laser-section__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 3rem;
+  box-sizing: border-box;
+}
+
+.nvx-laser-kicker {
+  margin: 0 0 var(--nvx-space-2, 16px);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #c5a880;
+}
+
+.nvx-laser-heading {
+  margin: 0 0 var(--nvx-space-6, 48px);
+  max-width: 22ch;
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h2);
+  font-weight: 400;
+  line-height: var(--nvx-lh-h2);
+  color: #1c1c1c;
+}
+
+.nvx-laser-body {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: rgba(28, 28, 28, 0.82);
+}
+
+.nvx-laser-icon {
+  display: block;
+  width: 32px;
+  height: 32px;
+  margin-bottom: var(--nvx-space-3, 24px);
+  color: #c5a880;
+  flex-shrink: 0;
+}
+
+/* Enfoque — 3 columnas, gutter 32px */
+.nvx-laser-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.nvx-laser-pillar {
+  padding-top: var(--nvx-space-2, 16px);
+  border-top: 1px solid rgba(28, 28, 28, 0.1);
+}
+
+.nvx-laser-pillar__title {
+  margin: 0 0 var(--nvx-space-2, 16px);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  color: #1c1c1c;
+}
+
+/* Plataformas — tarjeta asimétrica, gutter 48px */
+.nvx-laser-platform-list {
+  display: grid;
+  gap: 48px;
+}
+
+.nvx-laser-platform {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.85fr);
+  gap: 48px;
+  align-items: start;
+  padding: var(--nvx-space-5, 40px);
+  background: #ffffff;
+  border: 1px solid rgba(28, 28, 28, 0.08);
+  border-radius: var(--nvx-radius-card, 2px);
+}
+
+.nvx-laser-platform__head {
+  display: flex;
+  align-items: center;
+  gap: var(--nvx-space-2, 16px);
+  margin-bottom: var(--nvx-space-2, 16px);
+}
+
+.nvx-laser-platform__head .nvx-laser-icon {
+  margin-bottom: 0;
+}
+
+.nvx-laser-platform__n {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #c5a880;
+}
+
+.nvx-laser-platform__title {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  color: #1c1c1c;
+}
+
+.nvx-laser-platform__link-wrap {
+  margin: var(--nvx-space-3, 24px) 0 0;
+}
+
+.nvx-laser-platform__link {
+  font-family: var(--nvx-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: #1c1c1c;
+}
+
+.nvx-laser-platform__link:hover,
+.nvx-laser-platform__link:focus-visible {
+  color: #c5a880;
+}
+
+.nvx-laser-platform__meta {
+  padding: var(--nvx-space-4, 32px);
+  background: #f9f9f9;
+  border: 1px solid rgba(28, 28, 28, 0.06);
+}
+
+.nvx-laser-meta-label {
+  margin: 0 0 var(--nvx-space-1, 8px);
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #c5a880;
+}
+
+.nvx-laser-platform__meta .nvx-laser-body:last-child {
+  margin-bottom: 0;
+}
+
+.nvx-laser-meta-label--spaced {
+  margin-top: var(--nvx-space-3, 24px);
+}
+
+.nvx-laser-faq-list {
+  margin-top: var(--nvx-space-4, 32px);
+}
+
+.nvx-laser-formula {
+  margin: var(--nvx-space-4, 32px) 0 0;
+  padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
+  background: #1c1c1c;
+  border: 1px solid rgba(197, 168, 128, 0.28);
+  border-radius: var(--nvx-radius-card, 2px);
+  text-align: center;
+}
+
+.nvx-laser-formula__eq {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-serif);
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  letter-spacing: 0.04em;
+  color: #f5e8d8;
+}
+
+.nvx-laser-formula__frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1.15;
+}
+
+.nvx-laser-formula__num {
+  padding: 0 0.35em 0.15em;
+  border-bottom: 1px solid rgba(245, 232, 216, 0.55);
+}
+
+.nvx-laser-formula__den {
+  padding: 0.15em 0.35em 0;
+}
+
+.nvx-laser-formula__cap {
+  margin: 0 auto;
+  max-width: 58ch;
+  font-family: var(--nvx-sans);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: rgba(245, 232, 216, 0.78);
+  text-align: left;
+}
+
+/* Action banner — 96px gap after FAQs */
+.nvx-laser-action {
+  margin-top: 96px;
+  padding-block: 0 96px;
+  background: transparent;
+}
+
+.nvx-laser-action__shell {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 3rem;
+  box-sizing: border-box;
+}
+
+.nvx-laser-action__card {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+  padding: var(--nvx-space-5, 40px) var(--nvx-space-6, 48px);
+  background: #1c1c1c;
+  color: #f5e8d8;
+  border: 1px solid #444444;
+}
+
+.nvx-laser-action__copy {
+  max-width: 36rem;
+  flex: 1 1 16rem;
+}
+
+.nvx-laser-action__title {
+  margin: 0 0 var(--nvx-space-2, 16px);
+  font-family: var(--nvx-serif);
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #f5e8d8;
+}
+
+.nvx-laser-action__text {
+  margin: 0;
+  max-width: 55ch;
+  font-family: var(--nvx-sans);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: rgba(245, 232, 216, 0.78);
+}
+
+.nvx-laser-action__text strong {
+  color: #f5e8d8;
+  font-weight: 600;
+}
+
+.nvx-laser-action__ctas {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--nvx-space-2, 16px);
+  width: 100%;
+  max-width: 18rem;
+  flex: 0 0 auto;
+}
+
+.nvx-laser-action__primary {
+  display: block;
+  padding: 1rem 2rem;
+  background: #c5a880;
+  color: #1c1c1c;
+  text-align: center;
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.nvx-laser-action__primary:hover,
+.nvx-laser-action__primary:focus-visible {
+  background: #bfa075;
+  color: #1c1c1c;
+}
+
+.nvx-laser-action__secondary {
+  display: block;
+  text-align: center;
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: #f5e8d8;
+  transition: color 0.3s ease;
+}
+
+.nvx-laser-action__secondary:hover,
+.nvx-laser-action__secondary:focus-visible {
+  color: #c5a880;
+}
+
+@media (min-width: 981px) {
+  .nvx-laser-hero.nvx-brand-hero,
+  .nvx-laser-hero,
+  .nvx-laser-section {
+    padding-block: 120px;
+  }
+
+  .nvx-laser-action {
+    padding-bottom: 120px;
+  }
+
+  .nvx-laser-action__ctas {
+    align-items: flex-end;
+  }
+
+  .nvx-laser-action__secondary {
+    text-align: right;
+  }
+}
+
+@media (max-width: 980px) {
+  .nvx-laser-focus-grid,
+  .nvx-laser-platform {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .nvx-laser-action__card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
+  }
+
+  .nvx-laser-action__ctas {
+    max-width: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .nvx-laser-section__inner,
+  .nvx-laser-action__shell {
+    padding-inline: 1.5rem;
+  }
+}

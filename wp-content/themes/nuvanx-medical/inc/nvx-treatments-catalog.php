@@ -195,7 +195,7 @@ function nvx_treatments_close_cta_markup(): string {
 	$html .= '<div>';
 	$html .= '<p class="nvx-catalog-close__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-catalog-close__title">' . esc_html__( '¿No sabes por dónde empezar?', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-catalog-close__text">' . esc_html__( 'Revisamos tu caso en una valoración médica gratuita (presencial o por videoconsulta) y te orientamos hacia el protocolo más adecuado, con criterio clínico y expectativa realista.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-catalog-close__text">' . esc_html__( 'Revisamos tu caso en una valoración médica gratuita presencial y te orientamos hacia el protocolo más adecuado, con criterio clínico y expectativa realista.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 	$html .= nvx_cta_pair_markup( 'nvx-catalog-close__actions' );
 	$html .= '</div></section>';

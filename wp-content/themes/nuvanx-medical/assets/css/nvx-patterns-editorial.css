@@ -941,8 +941,7 @@ article.nvx-page > .nvx-page-hero {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--nvx-platinum);
-  opacity: 0.72;
+  color: var(--nvx-text-body, #4a4a4a); /* solid body ink — avoid opacity washout on pearl */
 }
 
 .nvx-catalog-close {

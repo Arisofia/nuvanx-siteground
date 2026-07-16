@@ -1751,3 +1751,456 @@ article.nvx-page > .nvx-page-hero {
     padding-inline: 1.5rem;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MEDICINA ESTÉTICA — injectables & regenerative authority hub
+   Antracita #1C1C1C · Alabastro #F5E8D8 · Bronce #C5A880
+   Section pad: 96px mobile / 120px desktop · 8px system
+   ═══════════════════════════════════════════════════════════ */
+
+.nvx-aes-hero.nvx-brand-hero,
+.nvx-aes-hero {
+  background: #1c1c1c;
+  color: #f5e8d8;
+  padding-block: 96px;
+  border-bottom: 1px solid #444444;
+}
+
+.nvx-aes-hero .nvx-brand-kicker,
+.nvx-aes-hero .nvx-brand-meta {
+  color: #c5a880;
+}
+
+.nvx-aes-hero .nvx-brand-hero__title {
+  color: #f5e8d8;
+  max-width: 18ch;
+}
+
+.nvx-aes-hero .nvx-brand-hero__lead {
+  max-width: 55ch;
+  color: rgba(245, 232, 216, 0.88);
+}
+
+.nvx-aes-hero .nvx-aes-btn--primary,
+.nvx-aes-hero .nvx-brand-btn--primary {
+  background: #c5a880;
+  color: #1c1c1c;
+  border-color: #c5a880;
+}
+
+.nvx-aes-hero .nvx-aes-btn--secondary,
+.nvx-aes-hero .nvx-brand-btn--secondary {
+  color: #c5a880;
+  border-color: #c5a880;
+  background: transparent;
+}
+
+.nvx-aes-section {
+  padding-block: 96px;
+  background: #ffffff;
+  color: #1c1c1c;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.nvx-aes-catalog {
+  background: #f9f9f9;
+}
+
+.nvx-aes-regen {
+  background: #ffffff;
+}
+
+.nvx-aes-section__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 3rem;
+  box-sizing: border-box;
+}
+
+.nvx-aes-kicker {
+  margin: 0 0 var(--nvx-space-2, 16px);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #c5a880;
+}
+
+.nvx-aes-heading {
+  margin: 0 0 var(--nvx-space-4, 32px);
+  max-width: 22ch;
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h2);
+  font-weight: 400;
+  line-height: var(--nvx-lh-h2);
+  color: #1c1c1c;
+}
+
+.nvx-aes-body {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: rgba(28, 28, 28, 0.82);
+}
+
+.nvx-aes-body--lead {
+  max-width: 62ch;
+  margin-bottom: var(--nvx-space-6, 48px);
+}
+
+.nvx-aes-icon {
+  display: block;
+  width: 32px;
+  height: 32px;
+  margin-bottom: var(--nvx-space-3, 24px);
+  color: #c5a880;
+  flex-shrink: 0;
+}
+
+.nvx-aes-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.nvx-aes-pillar {
+  padding-top: var(--nvx-space-2, 16px);
+  border-top: 1px solid #eaeaea;
+}
+
+.nvx-aes-pillar__title {
+  margin: 0 0 var(--nvx-space-2, 16px);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  color: #1c1c1c;
+}
+
+.nvx-aes-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 48px;
+}
+
+.nvx-aes-card {
+  padding: var(--nvx-space-5, 40px);
+  background: #ffffff;
+  border: 1px solid #eaeaea;
+}
+
+.nvx-aes-card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--nvx-space-2, 16px);
+  margin-bottom: var(--nvx-space-2, 16px);
+}
+
+.nvx-aes-card__head .nvx-aes-icon {
+  margin-bottom: 0;
+}
+
+.nvx-aes-card__n {
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #c5a880;
+}
+
+.nvx-aes-card__title {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  color: #1c1c1c;
+}
+
+.nvx-aes-card__meta {
+  margin: var(--nvx-space-3, 24px) 0 0;
+  padding: var(--nvx-space-3, 24px) 0 0;
+  border-top: 1px solid #eaeaea;
+  display: grid;
+  gap: var(--nvx-space-2, 16px);
+}
+
+.nvx-aes-card__meta dt {
+  margin: 0 0 4px;
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #c5a880;
+}
+
+.nvx-aes-card__meta dd {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: rgba(28, 28, 28, 0.82);
+}
+
+.nvx-aes-card__link-wrap {
+  margin: var(--nvx-space-3, 24px) 0 0;
+}
+
+.nvx-aes-card__link {
+  font-family: var(--nvx-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: #1c1c1c;
+}
+
+.nvx-aes-card__link:hover,
+.nvx-aes-card__link:focus-visible {
+  color: #c5a880;
+}
+
+.nvx-aes-regen__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.9fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.nvx-aes-regen__panel {
+  padding: var(--nvx-space-4, 32px);
+  background: #f9f9f9;
+  border: 1px solid #eaeaea;
+}
+
+.nvx-aes-meta-label {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #c5a880;
+}
+
+.nvx-aes-panel-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--nvx-space-3, 24px);
+}
+
+.nvx-aes-panel-list li {
+  font-family: var(--nvx-sans);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: rgba(28, 28, 28, 0.82);
+}
+
+.nvx-aes-panel-list strong {
+  color: #1c1c1c;
+  font-weight: 600;
+}
+
+.nvx-aes-faq-list {
+  margin-top: var(--nvx-space-4, 32px);
+}
+
+.nvx-aes-formula {
+  margin: var(--nvx-space-4, 32px) 0 0;
+  padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
+  background: #1c1c1c;
+  border: 1px solid #444444;
+  text-align: center;
+}
+
+.nvx-aes-formula__eq {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-serif);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  letter-spacing: 0.03em;
+  color: #f5e8d8;
+}
+
+.nvx-aes-formula__frac {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  line-height: 1.15;
+  margin: 0 0.15em;
+}
+
+.nvx-aes-formula__num {
+  padding: 0 0.35em 0.15em;
+  border-bottom: 1px solid rgba(245, 232, 216, 0.55);
+}
+
+.nvx-aes-formula__den {
+  padding: 0.15em 0.35em 0;
+}
+
+.nvx-aes-formula__cap {
+  margin: 0 auto;
+  max-width: 58ch;
+  font-family: var(--nvx-sans);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: rgba(245, 232, 216, 0.78);
+  text-align: left;
+}
+
+.nvx-aes-action {
+  margin-top: 96px;
+  padding-block: 0 96px;
+  background: transparent;
+}
+
+.nvx-aes-action__shell {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: 3rem;
+  box-sizing: border-box;
+}
+
+.nvx-aes-action__card {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+  padding: var(--nvx-space-5, 40px) var(--nvx-space-6, 48px);
+  background: #1c1c1c;
+  color: #f5e8d8;
+  border: 1px solid #444444;
+}
+
+.nvx-aes-action__copy {
+  max-width: 36rem;
+  flex: 1 1 16rem;
+}
+
+.nvx-aes-action__title {
+  margin: 0 0 var(--nvx-space-2, 16px);
+  font-family: var(--nvx-serif);
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: #f5e8d8;
+}
+
+.nvx-aes-action__text {
+  margin: 0;
+  max-width: 55ch;
+  font-family: var(--nvx-sans);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+  color: rgba(245, 232, 216, 0.78);
+}
+
+.nvx-aes-action__text strong {
+  color: #f5e8d8;
+  font-weight: 600;
+}
+
+.nvx-aes-action__ctas {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--nvx-space-2, 16px);
+  width: 100%;
+  max-width: 18rem;
+  flex: 0 0 auto;
+}
+
+.nvx-aes-action__primary {
+  display: block;
+  padding: 1rem 2rem;
+  background: #c5a880;
+  color: #1c1c1c;
+  text-align: center;
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.3s ease;
+}
+
+.nvx-aes-action__primary:hover,
+.nvx-aes-action__primary:focus-visible {
+  background: #bfa075;
+  color: #1c1c1c;
+}
+
+.nvx-aes-action__secondary {
+  display: block;
+  text-align: center;
+  font-family: var(--nvx-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  color: #f5e8d8;
+  transition: color 0.3s ease;
+}
+
+.nvx-aes-action__secondary:hover,
+.nvx-aes-action__secondary:focus-visible {
+  color: #c5a880;
+}
+
+@media (min-width: 981px) {
+  .nvx-aes-hero.nvx-brand-hero,
+  .nvx-aes-hero,
+  .nvx-aes-section {
+    padding-block: 120px;
+  }
+
+  .nvx-aes-action {
+    padding-bottom: 120px;
+  }
+
+  .nvx-aes-action__ctas {
+    align-items: flex-end;
+  }
+
+  .nvx-aes-action__secondary {
+    text-align: right;
+  }
+}
+
+@media (max-width: 980px) {
+  .nvx-aes-focus-grid,
+  .nvx-aes-card-grid,
+  .nvx-aes-regen__grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .nvx-aes-action__card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
+  }
+
+  .nvx-aes-action__ctas {
+    max-width: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .nvx-aes-section__inner,
+  .nvx-aes-action__shell {
+    padding-inline: 1.5rem;
+  }
+}

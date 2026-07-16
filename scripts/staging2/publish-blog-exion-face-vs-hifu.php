@@ -11,7 +11,7 @@
  * @package nuvanx-medical
  */
 
-declare(strict_types=1);
+// Note: no declare(strict_types=1) — WP-CLI eval-file prepends code, so strict_types fatals.
 
 if ( ! defined( 'ABSPATH' ) ) {
 	fwrite( STDERR, "ERROR: run through wp eval-file.\n" );
@@ -39,7 +39,9 @@ if ( 'nuvanx-medical' !== wp_get_theme()->get_stylesheet() ) {
 	exit( 1 );
 }
 
-const NVX_BLOG_EXION_VS_HIFU_SLUG = 'exion-face-vs-hifu-ultherapy-thermage-regeneracion-endogena';
+if ( ! defined( 'NVX_BLOG_EXION_VS_HIFU_SLUG' ) ) {
+	define( 'NVX_BLOG_EXION_VS_HIFU_SLUG', 'exion-face-vs-hifu-ultherapy-thermage-regeneracion-endogena' );
+}
 
 /**
  * Canonical post HTML (wrapper matches existing journal posts).

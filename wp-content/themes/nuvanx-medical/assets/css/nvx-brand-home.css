@@ -1,6 +1,6 @@
 body.home{background:var(--nvx-color-paper)}
 body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
-.nvx-editorial-home,.nvx-home,.nvx-brand-page{overflow-x:clip;background:var(--nvx-color-paper);color:var(--nvx-ink)}
+.nvx-home,.nvx-brand-page{overflow-x:clip;background:var(--nvx-color-paper);color:var(--nvx-ink)}
 
 /* Home hero: full-bleed video first; EXPERIENCIA NUVANX + title over media
    Shared footprint with interior .nvx-brand-hero (same width + height). */
@@ -29,7 +29,6 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   padding:0;
 }
 .nvx-home-video-feature,
-.nvx-hero-full-media__media,
 .nvx-home-video-frame{
   position:absolute;
   inset:0;
@@ -52,9 +51,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   object-position:center;
   border-radius:0;
 }
-.nvx-hero-full-media__scrim{display:none}
-.nvx-home-hero-content,
-.nvx-hero-full-media__content{
+.nvx-home-hero-content{
   position:absolute;
   inset:0;
   z-index:2;
@@ -122,11 +119,6 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 .nvx-home-organic-wave svg{display:block;width:100%;height:100%}
 .nvx-brand-section{padding-block:var(--nvx-pad-section)}
 .nvx-brand-section--tight{padding-block:var(--nvx-pad-section-tight)}
-.nvx-home-editorial-open{display:grid;grid-template-columns:minmax(300px,4fr) minmax(0,8fr);gap:var(--nvx-gap-section);align-items:center}
-.nvx-editorial-zone--media{overflow:hidden}
-.nvx-editorial-zone--media img{width:100%;aspect-ratio:4/5;object-fit:cover}
-.nvx-home-editorial__lead{max-width:48ch;margin:0;font-family:var(--nvx-sans);font-size:var(--nvx-type-lead);line-height:var(--nvx-lh-lead)}
-.nvx-home-editorial__body{max-width:62ch;margin:24px 0 0;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 .nvx-home-invitation{margin-top:32px}
 
 /* Post-values action banner — Plata Pulida (charcoal card + pill CTAs)
@@ -214,7 +206,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 .nvx-home-clinica-panorama__media{min-height:320px;overflow:hidden}
 .nvx-home-clinica-panorama__media img{width:100%;height:100%;object-fit:cover}
 .nvx-home-clinica-panorama__link{display:block;padding:var(--nvx-pad-card);color:inherit;text-decoration:none}
-.nvx-home-tratamientos-editorial,.nvx-home-metodo-pilares{margin-top:var(--nvx-gap-wide)}
+.nvx-home-tratamientos-editorial{margin-top:var(--nvx-gap-wide)}
 .nvx-home-direccion-grid{display:grid;grid-template-columns:minmax(300px,5fr) minmax(0,7fr);gap:var(--nvx-gap-section);align-items:center}
 .nvx-home-direccion-media{overflow:hidden;border-radius:var(--nvx-organic-c)}
 .nvx-home-direccion-media img{width:100%;aspect-ratio:5/6;object-fit:cover}
@@ -224,7 +216,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 .nvx-home-cta-final-band .nvx-brand-title,.nvx-home-cta-final-band .nvx-brand-kicker,.nvx-home-cta-final-band .nvx-home-invitation__text{color:var(--nvx-white)}
 @media(max-width:980px){
   .nvx-home-hero-stage{--nvx-hero-h:min(88svh,860px);min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
-  .nvx-home-editorial-open,.nvx-home-direccion-grid{grid-template-columns:1fr}
+  .nvx-home-direccion-grid{grid-template-columns:1fr}
   .nvx-home-organic-wave{display:none}
   .nvx-home-action-banner{grid-template-columns:1fr;gap:var(--nvx-space-4,32px)}
   .nvx-home-action-banner__actions{align-items:stretch;min-width:0}
@@ -236,7 +228,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 @media(max-width:680px){
   .nvx-home-hero-stage{--nvx-hero-h:100svh;min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
   .nvx-home-hero-stage .nvx-brand-hero__title{max-width:none;font-size:clamp(2.5rem,11vw,3.5rem)}
-  .nvx-home-hero-content,.nvx-hero-full-media__content{padding:clamp(100px,24vw,140px) 20px 36px}
+  .nvx-home-hero-content{padding:clamp(100px,24vw,140px) 20px 36px}
   .nvx-home-hero-ctas{flex-direction:column;align-items:stretch;width:100%}
   .nvx-home-hero-ctas .nvx-brand-btn,.nvx-home-hero-ctas .nvx-button,.nvx-home-hero-ctas .nvx-btn{width:100%}
   .nvx-home-action-banner-shell{margin-top:64px;padding-inline:1.5rem}

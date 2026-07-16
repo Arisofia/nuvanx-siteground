@@ -107,17 +107,99 @@ function nvx_equipo_action_ctas_markup(): string {
 }
 
 /**
- * Editorial body — credentials and scope without repeating home card blurbs.
+ * Whether a card/block is the director Rivera Tejeda (not other clinicians).
  */
-function nvx_equipo_editorial_body_markup(): string {
+function nvx_equipo_block_is_rivera( string $html ): bool {
+	return (bool) preg_match( '/Rivera\s+Tejeda|Jos[eé]\s+Javier\s+Rivera/iu', $html );
+}
+
+/**
+ * Extract staff cards from CMS content, split director vs rest of team.
+ *
+ * @return array{rivera_cards:string[],other_cards:string[],rivera_media:string}
+ */
+function nvx_equipo_extract_staff_cards( string $content ): array {
+	$rivera_cards = array();
+	$other_cards  = array();
+	$rivera_media = '';
+
+	// Prefer full articles; fall back to div.nvx-brand-card.
+	$patterns = array(
+		'/<article\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/article>/iu',
+		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>\s*(?=<div\b[^>]*\bnvx-brand-card\b|<section\b|<\/section>|$)/iu',
+	);
+
+	$found = array();
+	foreach ( $patterns as $pattern ) {
+		if ( preg_match_all( $pattern, $content, $m ) && ! empty( $m[0] ) ) {
+			$found = $m[0];
+			break;
+		}
+	}
+
+	foreach ( $found as $card ) {
+		if ( nvx_equipo_block_is_rivera( $card ) ) {
+			$rivera_cards[] = $card;
+			if ( '' === $rivera_media && preg_match( '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu', $card, $im ) ) {
+				$rivera_media = $im[0];
+			}
+			continue;
+		}
+		$other_cards[] = $card;
+	}
+
+	return array(
+		'rivera_cards' => $rivera_cards,
+		'other_cards'  => $other_cards,
+		'rivera_media' => $rivera_media,
+	);
+}
+
+/**
+ * Markup for the rest of the clinical team (preserved from CMS).
+ *
+ * @param string[] $other_cards HTML cards.
+ */
+function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
+	if ( empty( $other_cards ) ) {
+		return '';
+	}
+
+	$html  = '<section class="nvx-endolift-section nvx-equipo-staff" aria-labelledby="nvx-equipo-staff-title">';
+	$html .= '<div class="nvx-endolift-section__inner">';
+	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Equipo clínico', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-endolift-heading">' . esc_html__( 'Resto del equipo médico NUVANX', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Profesionales que atienden valoración, seguimiento y protocolos en Chamberí y Goya bajo la dirección médica de la clínica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-brand-grid nvx-equipo-staff-grid">';
+	foreach ( $other_cards as $card ) {
+		// Ensure portrait role on team cards when media present.
+		if ( false === strpos( $card, 'nvx-brand-card--team' ) && preg_match( '/\bclass=(["\'])/u', $card ) ) {
+			$card = preg_replace( '/\bclass=(["\'])/u', 'class=$1nvx-brand-card--team ', $card, 1 ) ?? $card;
+		}
+		$html .= $card;
+	}
+	$html .= '</div></div></section>';
+
+	return $html;
+}
+
+/**
+ * Director authority block only (not a full-page wipe of the team).
+ *
+ * @param string $rivera_media Optional portrait HTML for the director.
+ */
+function nvx_equipo_director_authority_markup( string $rivera_media = '' ): string {
 	$colegiado  = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$doctoralia = 'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid';
 
-	$html  = '<div class="nvx-equipo-editorial nvx-endolift-editorial" id="physician-rivera-tejeda">';
+	$html  = '<div class="nvx-equipo-director" id="physician-rivera-tejeda">';
 
-	// A. Profile.
+	// A. Profile (+ optional portrait from his CMS card only).
 	$html .= '<section class="nvx-endolift-section nvx-equipo-profile" aria-labelledby="nvx-equipo-profile-title">';
 	$html .= '<div class="nvx-endolift-section__inner">';
+	if ( '' !== $rivera_media ) {
+		$html .= '<div class="nvx-equipo-director-media nvx-brand-card__media nvx-brand-card__media--portrait">' . $rivera_media . '</div>';
+	}
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Director médico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-endolift-heading">' . esc_html__( 'Dr. José Javier Rivera Tejeda: Dirección Médica e Investigación Clínica Aplicada', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html(
@@ -194,7 +276,7 @@ function nvx_equipo_editorial_body_markup(): string {
 	$html .= '<li><strong>' . esc_html__( 'Agenda', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Mar/Jue Chamberí · Mié Goya', 'nuvanx-medical' ) . '</li>';
 	$html .= '</ul></aside></div></section>';
 
-	// D. Quote (vision — unique to this page).
+	// D. Quote.
 	$html .= '<section class="nvx-endolift-section nvx-equipo-quote" aria-labelledby="nvx-equipo-quote-title">';
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<h2 id="nvx-equipo-quote-title" class="screen-reader-text">' . esc_html__( 'Visión clínica', 'nuvanx-medical' ) . '</h2>';
@@ -203,8 +285,16 @@ function nvx_equipo_editorial_body_markup(): string {
 	$html .= '<footer>— ' . esc_html__( 'Dr. J.J. Rivera Tejeda', 'nuvanx-medical' ) . '</footer>';
 	$html .= '</blockquote></div></section>';
 
-	// E. CTA.
-	$html .= '<section class="nvx-endolift-action" aria-label="' . esc_attr__( 'Reservar valoración con el equipo médico', 'nuvanx-medical' ) . '">';
+	$html .= '</div>';
+
+	return $html;
+}
+
+/**
+ * Closing CTA for equipo page.
+ */
+function nvx_equipo_closing_cta_markup(): string {
+	$html  = '<section class="nvx-endolift-action" aria-label="' . esc_attr__( 'Reservar valoración con el equipo médico', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-endolift-action__inner">';
 	$html .= '<div>';
 	$html .= '<p class="nvx-endolift-action__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
@@ -214,26 +304,24 @@ function nvx_equipo_editorial_body_markup(): string {
 	$html .= nvx_equipo_action_ctas_markup();
 	$html .= '</div></section>';
 
-	$html .= '</div>';
-
 	return $html;
 }
 
 /**
- * Rebuild equipo page.
+ * Rebuild equipo page: director authority + preserve other clinicians from CMS.
  */
 function nvx_content_restructure_equipo_page( string $content ): string {
 	if ( ! nvx_content_is_equipo_page( $content ) ) {
 		return $content;
 	}
 
+	$staff = nvx_equipo_extract_staff_cards( $content );
+
+	// Hero media: only real page hero — never steal another doctor's portrait.
 	$media = '';
 	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
 		$media = $m[0];
 	} elseif ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
-		$media = $m[0];
-	} elseif ( preg_match( '/<figure\b[^>]*\bnvx-brand-card__media\b[^>]*>[\s\S]*?<\/figure>/iu', $content, $m ) ) {
-		// Promote first staff portrait into hero if no brand hero media.
 		$media = $m[0];
 	}
 
@@ -243,7 +331,12 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	$hero .= $media;
 	$hero .= '</div></section>';
 
-	$body = nvx_equipo_editorial_body_markup();
+	// Order: director authority → resto del equipo (CMS) → CTA.
+	$body  = '<div class="nvx-equipo-editorial nvx-endolift-editorial">';
+	$body .= nvx_equipo_director_authority_markup( $staff['rivera_media'] );
+	$body .= nvx_equipo_other_staff_section_markup( $staff['other_cards'] );
+	$body .= nvx_equipo_closing_cta_markup();
+	$body .= '</div>';
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		return $wrap[1] . $hero . $body . '</div>';

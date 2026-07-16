@@ -1,143 +1,96 @@
-/* NUVANX — Site layout contract (todas las páginas, un solo ritmo)
- * Shell, gutters y secciones: SOLO tokens de nvx-tokens.css.
- * No redefine paleta ni tipografía. Sin forks por página.
- */
-
-/* Contenedor principal */
 .nvx-shell,
 .nvx-page__shell,
 .nvx-page-body__inner,
-.nvx-brand-section__inner {
+.nvx-brand-section__inner,
+.nvx-brand-hero__inner {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
 }
 
-/* Secciones: ritmo base; el detalle asimétrico vive en components */
-.nvx-section,
-.nvx-brand-section,
-.nvx-page-body {
-  padding-block: var(--nvx-section-y-open, var(--nvx-section-y)) var(--nvx-section-y);
-  box-sizing: border-box;
+.nvx-main,
+.nvx-page,
+.nvx-page__content {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
-/* El stage de vídeo del home no es una sección de página */
-body.home .nvx-home-hero-stage {
-  padding-block: 0;
-}
-
-.nvx-brand-section--tight {
-  padding-block: var(--nvx-section-y-tight);
-}
-
-/* Base page — un solo fondo/texto */
 .nvx-page {
   color: var(--nvx-text-body);
   background: var(--nvx-color-paper);
 }
 
 .nvx-page__content {
-  padding: 0;
   margin: 0;
-  max-width: none;
-  width: 100%;
+  padding: 0;
 }
 
-/*
- * Contenido ya va dentro de .nvx-page__shell:
- * anidar shell/hero-inner otra vez duplicaba gutters y
- * en móvil el texto se veía más ancho y cortado (scroll X).
- */
-.nvx-page__shell .nvx-page__content .nvx-shell,
-.nvx-page__shell .nvx-page__content .nvx-page-body__inner,
-.nvx-page__shell .nvx-page__content .nvx-brand-section__inner,
-.nvx-page__shell .nvx-page__content .nvx-brand-hero__inner,
-.nvx-page__shell .nvx-page__content .nvx-brand-hero__inner.nvx-split-media {
-  width: 100%;
-  max-width: 100%;
-  margin-inline: 0;
-  padding-inline: 0;
-  box-sizing: border-box;
+.nvx-section,
+.nvx-brand-section,
+.nvx-page-body {
+  padding-block: var(--nvx-section-y-open) var(--nvx-section-y);
 }
 
-/* Hero sin foto: rail de lectura (como móvil), no full shell vacío */
-.nvx-page__shell .nvx-page__content .nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) {
-  width: 100%;
-  max-width: min(36rem, 100%);
-  margin-inline: 0;
-  padding-inline: 0;
+.nvx-brand-section--tight {
+  padding-block: var(--nvx-section-y-tight);
 }
 
-/* Evitar desborde horizontal de media/bleed en contenedores de página */
-.nvx-page,
-.nvx-page__shell,
-.nvx-page__content {
-  overflow-x: clip;
-  max-width: 100%;
+.nvx-reading {
+  width: min(100%, var(--nvx-readable));
 }
 
-/* Measure: body text no se estira a full-bleed */
-.nvx-page-body__inner > p:not([class]),
-.nvx-copy,
-.nvx-brand-body {
-  max-width: var(--nvx-measure);
+.nvx-prose {
+  width: min(100%, var(--nvx-measure));
 }
 
-/* Brand hero intro: lectura start (layout; tipografía en components) */
-.nvx-page__content .nvx-brand-hero .nvx-brand-kicker,
-.nvx-page__content .nvx-brand-hero h1,
-.nvx-page__content .nvx-brand-hero .nvx-title,
-.nvx-page__content .nvx-brand-hero .nvx-lead,
-.nvx-page__content .nvx-brand-hero .nvx-brand-actions {
-  text-align: start;
-  margin-inline: 0;
+.nvx-grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--nvx-gap-base);
 }
 
-.nvx-page__content .nvx-brand-hero .nvx-copy {
-  text-align: start;
-  margin-inline: 0;
-  max-width: var(--nvx-measure-lead, 48ch);
+.nvx-span-4 { grid-column: span 4; }
+.nvx-span-5 { grid-column: span 5; }
+.nvx-span-6 { grid-column: span 6; }
+.nvx-span-7 { grid-column: span 7; }
+.nvx-span-8 { grid-column: span 8; }
+.nvx-span-12 { grid-column: 1 / -1; }
+
+.nvx-stack {
+  display: grid;
+  gap: var(--nvx-gap-base);
 }
 
-.nvx-page__content .nvx-brand-hero .nvx-brand-actions {
+.nvx-cluster {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
-  gap: var(--nvx-gap-tight);
+  align-items: center;
+  gap: var(--nvx-gap-base);
 }
 
-/* Cards en page-body: flujo editorial limpio */
-.nvx-page-body__inner > .nvx-brand-card,
-.nvx-page__shell > .nvx-brand-card {
-  margin-bottom: 0;
-  padding: 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
+@media (max-width: 980px) {
+  .nvx-span-4,
+  .nvx-span-5,
+  .nvx-span-6,
+  .nvx-span-7,
+  .nvx-span-8 {
+    grid-column: span 6;
+  }
 }
 
-/* Una sola columna en todo el sitio */
-.nvx-brand-grid,
-.nvx-brand-grid--2,
-.nvx-brand-grid--3,
-.nvx-home-clinicas-panorama__track,
-.nvx-home-metodo-pilares,
-.nvx-home-tratamientos-editorial,
-.wp-block-columns,
-.wp-block-gallery {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nvx-gap-wide);
-  margin-top: var(--nvx-gap-wide);
-  grid-template-columns: none;
-  width: 100%;
-}
+@media (max-width: 680px) {
+  .nvx-grid-12 {
+    grid-template-columns: 1fr;
+  }
 
-.wp-block-column {
-  flex-basis: 100%;
-  max-width: 100%;
-  margin: 0;
+  .nvx-span-4,
+  .nvx-span-5,
+  .nvx-span-6,
+  .nvx-span-7,
+  .nvx-span-8,
+  .nvx-span-12 {
+    grid-column: 1;
+  }
 }

@@ -17,97 +17,46 @@
   --nvx-platinum: #9ba3ad;
   --nvx-white: #ffffff;
 
-  /* Compat aliases (nombres históricos → Plata Pulida) */
-  --nvx-ivory: var(--nvx-pearl);
-  --nvx-sand: var(--nvx-mist);
-  --nvx-taupe: var(--nvx-silver);
+  /* Alias usados en CSS (focus / nombres históricos) */
   --nvx-champagne: var(--nvx-platinum);
-  --nvx-soft-white: var(--nvx-white);
-  --nvx-stone: var(--nvx-mist);
-  --nvx-graphite: #4a4f57;
-  --nvx-black: var(--nvx-ink);
-  --nvx-accent: var(--nvx-platinum);
-  --nvx-accent-light: #b8bfc7;
-
-  /* Metal system (sustituye gold metal-light/mid/deep) */
-  --nvx-metal-light: #e4e7eb;
-  --nvx-metal-mid: #b0b6be;
-  --nvx-metal-deep: #7a828c;
-  --nvx-metal-glint: rgba(255, 255, 255, 0.72);
-  --nvx-metal-shadow: rgba(20, 22, 26, 0.18);
 
   /* Texto */
-  --nvx-text-main: var(--nvx-charcoal);
   --nvx-text-body: #3c4048;
   --nvx-text-muted: #6e747c;
 
   /* Superficies semánticas */
-  --nvx-color-surface: var(--nvx-white);
   --nvx-color-paper: #f2f3f5;
   --nvx-color-ink: #12141a;
-  --nvx-color-muted: rgba(20, 22, 26, 0.58);
   --nvx-color-line: rgba(20, 22, 26, 0.12);
 
-  /* Bordes / sombras / acentos */
-  --nvx-border-soft: rgba(196, 200, 206, 0.55);
-  --nvx-border-strong: var(--nvx-silver);
-  --nvx-border-footer: rgba(196, 200, 206, 0.22);
+  /* Sombras / acentos */
   --nvx-shadow-min: 0 1px 2px rgba(20, 22, 26, 0.04);
   --nvx-shadow-soft: 0 18px 45px rgba(20, 22, 26, 0.06), 0 2px 8px rgba(20, 22, 26, 0.04);
   --nvx-shadow-medium: 0 28px 70px rgba(20, 22, 26, 0.08), 0 8px 18px rgba(20, 22, 26, 0.05);
-  /* Botón pill: sombra flotante sutil (Plata Pulida) */
   --nvx-shadow-button: 0 10px 28px rgba(20, 22, 26, 0.12), 0 2px 8px rgba(20, 22, 26, 0.06);
   --nvx-shadow-button-hover: 0 14px 36px rgba(20, 22, 26, 0.14), 0 4px 12px rgba(20, 22, 26, 0.08);
-  --nvx-frosted-white: rgba(255, 255, 255, 0.78);
-  --nvx-frosted-ivory: rgba(246, 247, 248, 0.72);
-  --nvx-white-muted: rgba(255, 255, 255, 0.82);
-  --nvx-white-ghost: rgba(255, 255, 255, 0.08);
   --nvx-accent-glow: rgba(155, 163, 173, 0.16);
-  --nvx-accent-bg: rgba(155, 163, 173, 0.06);
-  --nvx-stone-hover: rgba(232, 234, 237, 0.7);
-  --nvx-rule: rgba(196, 200, 206, 0.55);
   --nvx-header-bg: rgba(246, 247, 248, 0.92);
 
   /* ═══════════════════════════════════════════════════════════
      2. ESPACIADO (contrato de lujo — una sola escala)
      ═══════════════════════════════════════════════════════════ */
-  --space-1: 4px;
-  --space-2: 8px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 24px;
-  --space-6: 32px;
-  --space-7: 48px;
-  --space-8: 64px;
-
-  /* Gaps — ritmo de revista (no plantilla ejecutiva) */
   --nvx-gap-tight: clamp(10px, 1.2vw, 16px);
   --nvx-gap-base: clamp(20px, 2.4vw, 32px);
-  --nvx-gap-wide: clamp(36px, 4.5vw, 64px); /* entre piezas hermanas */
-  --nvx-gap-section: clamp(56px, 6.5vw, 96px); /* entre “capítulos” */
+  --nvx-gap-wide: clamp(36px, 4.5vw, 64px);
+  --nvx-gap-section: clamp(56px, 6.5vw, 96px);
+  --nvx-gap-magazine-air: clamp(32px, 4.5vw, 64px);
 
-  /* Cards: padding interno generoso + bordes suaves */
   --nvx-pad-card: clamp(28px, 3vw, 44px);
-
-  /*
-   * Secciones: mismo “aire” que móvil, escalado a desktop.
-   * No huecos de brochure (120–140px) que restan intimidad.
-   */
   --nvx-pad-section: clamp(48px, 6vw, 88px);
   --nvx-pad-section-tight: clamp(32px, 4vw, 56px);
   --nvx-section-y: var(--nvx-pad-section);
   --nvx-section-y-tight: var(--nvx-pad-section-tight);
-  --nvx-section-y-lg: clamp(64px, 7vw, 104px);
   --nvx-section-y-open: clamp(56px, 6.5vw, 96px);
 
-  /* Gutter: marco como en móvil (contenido “sostenido”, no vacío) */
   --nvx-gutter: clamp(40px, 5.5vw, 96px);
   --nvx-gutter-inner: clamp(24px, 3.5vw, 40px);
 
-  /*
-   * Márgenes inferiores por rol tipográfico (flujo editorial)
-   * Display / H1 más contenidos para no empujar media demasiado abajo
-   */
   --nvx-margin-display: 0.55em;
   --nvx-margin-h1: 0.55em;
   --nvx-margin-h2: 0.65em;
@@ -118,120 +67,69 @@
   --nvx-margin-caption: 0.75em;
 
   /* ═══════════════════════════════════════════════════════════
-     3. SHELL / ANCHOS (único contrato de contenedor)
-     Desktop = misma composición que móvil: rail contenido, no lienzo vacío.
+     3. SHELL / ANCHOS
      ═══════════════════════════════════════════════════════════ */
   --nvx-shell: min(1120px, calc(100vw - var(--nvx-gutter)));
-  --nvx-shell-wide: var(--nvx-shell);
-  --nvx-width-narrow: min(640px, 100%);
   --nvx-width-normal: min(720px, 100%);
-  --nvx-width-wide: min(960px, 100%);
-  --nvx-width-hero: min(1120px, 100%);
   --nvx-readable: var(--nvx-width-normal);
   --nvx-shell-reading: var(--nvx-readable);
-  /* Lectura fluida (misma lógica que móvil, escalada) */
   --nvx-measure: 54ch;
   --nvx-measure-lead: 40ch;
-  --nvx-measure-display: min(22ch, 100%);
 
   /* ═══════════════════════════════════════════════════════════
      4. MEDIA / RADII
      ═══════════════════════════════════════════════════════════ */
   --nvx-media-ratio-hero: 16 / 9;
-  --nvx-media-ratio-editorial: 16 / 10; /* más panorámico que 3/2 → menos altura */
-  --nvx-media-ratio-treatment: 16 / 9;
+  --nvx-media-ratio-editorial: 16 / 10;
   --nvx-media-ratio-doctor: 5 / 6;
-  --nvx-media-ratio-clinic: 19 / 12;
-  --nvx-media-ratio-panorama: 16 / 9;
 
-  /* Tope de altura de fotografías (evita full-bleed gigantes en desktop) */
   --nvx-media-max-h: clamp(220px, 28vw, 360px);
   --nvx-media-max-h-hero: clamp(280px, 38vw, 480px);
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
-  --nvx-media-max-h-full: clamp(280px, 40vw, 520px);
-  /* Retratos equipo médico (proporción vertical, más altos) */
-  --nvx-media-max-h-doctor: clamp(280px, 42vw, 420px);
-  /* Logos de marcas / tecnología (compactos, contain) */
   --nvx-media-max-h-logo: clamp(56px, 9vw, 88px);
   --nvx-media-logo-pad: clamp(18px, 2.4vw, 32px);
 
-  /* Radii — pill botones; media es orgánica (no rectángulo) */
   --nvx-radius-button: 999px;
   --nvx-radius-card: clamp(20px, 2.5vw, 32px);
-  --nvx-radius-image: clamp(20px, 2.5vw, 32px); /* soft fallback */
+  --nvx-radius-image: clamp(20px, 2.5vw, 32px);
   --nvx-radius-form: 12px;
-  --nvx-radius-sm: 16px;
-  --nvx-radius-md: var(--nvx-radius-form);
-  --nvx-radius-lg: var(--nvx-radius-card);
-  --nvx-radius-xl: 32px;
 
-  /* Formas orgánicas de revista (border-radius 8 valores) */
-  --nvx-organic-a: 48% 52% 44% 56% / 42% 58% 48% 52%;
+  /* Formas orgánicas de revista (clínicas / dirección) */
   --nvx-organic-b: 62% 38% 55% 45% / 48% 42% 58% 52%;
   --nvx-organic-c: 36% 64% 52% 48% / 58% 36% 64% 42%;
-  --nvx-organic-d: 72% 28% 38% 62% / 44% 56% 40% 60%;
   --nvx-organic-soft: 28% 72% 64% 36% / 52% 38% 62% 48%;
-  --nvx-organic-blob: 55% 45% 42% 58% / 48% 52% 46% 54%;
 
-  /* Movimiento / sangrado editorial (sutil — quiet luxury) */
   --nvx-media-tilt: -0.85deg;
   --nvx-media-tilt-alt: 0.95deg;
   --nvx-media-bleed-x: clamp(12px, 2.5vw, 36px);
-  --nvx-media-overlap: clamp(-40px, -3.5vw, -20px);
-  --nvx-gap-magazine-tight: clamp(12px, 1.6vw, 18px);
-  --nvx-gap-magazine-air: clamp(32px, 4.5vw, 64px);
-
-  /* Media: overlay texto-sobre-imagen + continuidad de color al borde inferior */
   --nvx-media-overlay: linear-gradient(
     180deg,
     rgba(20, 22, 26, 0) 32%,
     rgba(20, 22, 26, 0.22) 62%,
     rgba(20, 22, 26, 0.48) 100%
   );
-  --nvx-media-bleed-color: var(--nvx-charcoal);
-  --nvx-media-bleed-height: clamp(40px, 5vw, 80px);
 
   /* ═══════════════════════════════════════════════════════════
      5. TIPOGRAFÍA
      ═══════════════════════════════════════════════════════════ */
   --nvx-serif: "Bodoni Moda", "Times New Roman", Georgia, serif;
   --nvx-sans: "Manrope", "Helvetica Neue", Arial, sans-serif;
-  --nvx-script: "Pinyon Script", cursive;
   --nvx-font-serif: var(--nvx-serif);
   --nvx-font-sans: var(--nvx-sans);
 
-  /*
-   * Sistema tipográfico completo NUVANX (Plata Pulida)
-   * ─────────────────────────────────────────────────
-   * Display  Bodoni 400  clamp(3rem,5.5vw,5.75rem)  track -0.04  lh 1.05
-   * H1       Bodoni 400  clamp(2.5rem,4.5vw,4.25rem) track -0.02  lh 1.10
-   * H2       Bodoni 400  clamp(1.875rem,3.2vw,2.75rem) track -0.015 lh 1.15
-   * Kicker   Manrope 600 clamp(0.6875rem,0.7vw,0.75rem) track 0.25 lh 1.20
-   * Body     Manrope 400 17–18px                     track normal lh 1.75
-   * Lead     Manrope 400 clamp(1.125rem,1.2vw,1.25rem) track normal lh 1.65
-   * Caption  Manrope 300 clamp(0.875rem…0.9375rem)   track normal lh 1.50
-   * Ultra    Manrope 200–300                         track 0.25  lh 1.55
-   * Numeral  Bodoni/Manrope 500–600                  track -0.02 lh 1.10
-   * Script   Pinyon 400                              track normal lh 1.20
-   * Button   Manrope 600 0.75rem                     track 0.14  lh 1
-   */
   --nvx-type-display: clamp(3rem, 5.5vw, 5.75rem);
   --nvx-type-h1: clamp(2.5rem, 4.5vw, 4.25rem);
   --nvx-type-h2: clamp(1.875rem, 3.2vw, 2.75rem);
   --nvx-type-h3: clamp(1.25rem, 2vw, 1.75rem);
-  --nvx-type-lead: clamp(1.1875rem, 1.35vw, 1.375rem);   /* lead un punto por encima del body */
-  --nvx-type-body-large: 1.125rem;                       /* Body 18px */
-  --nvx-type-body: 1.0625rem;                            /* Body 17px */
+  --nvx-type-lead: clamp(1.1875rem, 1.35vw, 1.375rem);
+  --nvx-type-body-large: 1.125rem;
+  --nvx-type-body: 1.0625rem;
   --nvx-type-caption: clamp(0.875rem, 0.9vw, 0.9375rem);
-  --nvx-type-small: var(--nvx-type-caption);
   --nvx-type-kicker: clamp(0.6875rem, 0.72vw, 0.8125rem);
   --nvx-type-button: 0.75rem;
-  --nvx-type-script: clamp(1.5rem, 2.5vw, 2.25rem);
-  --nvx-type-numeral: clamp(1.875rem, 3.2vw, 2.75rem);   /* índices compactos */
-  --nvx-type-numeral-display: clamp(2.75rem, 5.5vw, 4.75rem); /* 01 / 02 elegantes, no gigantes */
-  --nvx-type-pull: clamp(1.45rem, 2.5vw, 2rem);           /* pull quote */
+  --nvx-type-numeral-display: clamp(2.75rem, 5.5vw, 4.75rem);
+  --nvx-type-pull: clamp(1.45rem, 2.5vw, 2rem);
 
-  --nvx-fw-ultralight: 200;
   --nvx-fw-light: 300;
   --nvx-fw-regular: 400;
   --nvx-fw-medium: 500;
@@ -241,53 +139,20 @@
   --nvx-lh-h1: 1.1;
   --nvx-lh-h2: 1.15;
   --nvx-lh-h3: 1.2;
-  --nvx-lh-heading: var(--nvx-lh-h1);
   --nvx-lh-kicker: 1.2;
-  --nvx-lh-body: 1.75; /* 1.72 – 1.78 */
+  --nvx-lh-body: 1.75;
   --nvx-lh-lead: 1.65;
   --nvx-lh-caption: 1.5;
-  --nvx-lh-ultralight: 1.55;
   --nvx-lh-button: 1;
-  --nvx-lh-script: 1.2;
-  --nvx-lh-numeral: 1.1;
 
-  --nvx-track-display: -0.04em;   /* -0.03 ~ -0.05 */
+  --nvx-track-display: -0.04em;
   --nvx-track-h1: -0.02em;
   --nvx-track-h2: -0.015em;
   --nvx-track-h3: -0.01em;
-  --nvx-track-kicker: 0.25em;     /* 0.22 ~ 0.28 */
-  --nvx-track-ultralight: 0.25em; /* 0.20 ~ 0.30 */
+  --nvx-track-kicker: 0.25em;
   --nvx-track-button: 0.14em;
   --nvx-track-numeral: -0.02em;
   --nvx-track-body: normal;
-
-  --nvx-ease: 0.28s cubic-bezier(0.2, 0.7, 0.2, 1);
-
-  /* Breakpoints (referencia) */
-  --nvx-bp-sm: 480px;
-  --nvx-bp-md: 768px;
-  --nvx-bp-lg: 980px;
-  --nvx-bp-xl: 1280px;
-
-  /* Z-index */
-  --nvx-z-base: 1;
-  --nvx-z-content: 2;
-  --nvx-z-header: 100;
-  --nvx-z-overlay: 200;
-  --nvx-z-modal: 300;
-
-  /* Superficies / gradientes Plata Pulida */
-  --nvx-gradient-page: linear-gradient(180deg, var(--nvx-white) 0%, var(--nvx-pearl) 100%);
-  --nvx-gradient-hero: linear-gradient(180deg, var(--nvx-white) 0%, var(--nvx-pearl) 100%);
-  --nvx-gradient-section-warm: linear-gradient(180deg, var(--nvx-pearl) 0%, var(--nvx-mist) 100%);
-  --nvx-gradient-section-dark: linear-gradient(180deg, var(--nvx-charcoal) 0%, var(--nvx-ink) 100%);
-  --nvx-gradient-metal: linear-gradient(
-    90deg,
-    transparent,
-    var(--nvx-metal-light),
-    var(--nvx-metal-deep),
-    transparent
-  );
 }
 
 /* Gutter mobile: sigue generoso, no colapsa a 16px */

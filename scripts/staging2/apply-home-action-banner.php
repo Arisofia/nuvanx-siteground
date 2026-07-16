@@ -14,25 +14,74 @@ if (!defined('ABSPATH')) {
     exit(1);
 }
 
+/**
+ * Staging2 migration configuration (override via constants before eval-file if needed).
+ */
+if (!defined('NVX_STAGING2_EXPECTED_URL')) {
+    define('NVX_STAGING2_EXPECTED_URL', 'https://staging2.nuvanx.com');
+}
+if (!defined('NVX_STAGING2_EXPECTED_THEME')) {
+    define('NVX_STAGING2_EXPECTED_THEME', 'nuvanx-medical');
+}
+if (!defined('NVX_STAGING2_EXPECTED_FRONT_PAGE_ID')) {
+    define('NVX_STAGING2_EXPECTED_FRONT_PAGE_ID', 9);
+}
+
+/**
+ * Canonical post-values action banner markup for the home page.
+ *
+ * Kept as a reusable builder so copy/CTA changes stay in one place
+ * (theme partials may call this later if needed).
+ */
+function nvx_staging2_home_action_banner_html(): string
+{
+    $valoracion = function_exists('home_url')
+        ? home_url('/madrid/valoracion/')
+        : '/madrid/valoracion/';
+    $contacto = function_exists('home_url')
+        ? home_url('/contacto/')
+        : '/contacto/';
+
+    $valoracion = esc_url($valoracion);
+    $contacto = esc_url($contacto);
+
+    return <<<HTML
+<section class="nvx-home-action-banner" data-nvx-action-banner="post-values" aria-labelledby="nvx-home-action-banner-title">
+  <div class="nvx-home-action-banner__copy">
+    <p class="nvx-brand-kicker">Valoración médica</p>
+    <h2 id="nvx-home-action-banner-title" class="nvx-home-action-banner__title">Recupera la armonía de tu piel</h2>
+    <p class="nvx-home-action-banner__text">Agenda una valoración médica personalizada y presencial en nuestras clínicas de Chamberí o Goya · Barrio Salamanca.</p>
+  </div>
+  <div class="nvx-home-action-banner__actions">
+    <a class="nvx-button nvx-button--light" href="{$valoracion}">Reservar valoración gratuita</a>
+    <a class="nvx-home-action-banner__link" href="{$contacto}">Resolver dudas</a>
+  </div>
+</section>
+HTML;
+}
+
 $argsList = isset($args) && is_array($args) ? $args : [];
 $apply = in_array('--apply', $argsList, true);
-$expectedUrl = 'https://staging2.nuvanx.com';
+$expectedUrl = rtrim((string) NVX_STAGING2_EXPECTED_URL, '/');
+$expectedTheme = (string) NVX_STAGING2_EXPECTED_THEME;
+$expectedFrontPageId = (int) NVX_STAGING2_EXPECTED_FRONT_PAGE_ID;
+
 $siteUrl = rtrim((string) get_option('siteurl'), '/');
 $homeUrl = rtrim((string) get_option('home'), '/');
 $frontPageId = (int) get_option('page_on_front');
 
 if ($siteUrl !== $expectedUrl || $homeUrl !== $expectedUrl) {
-    fwrite(STDERR, "ERROR: staging2 URL guard failed.\n");
+    fwrite(STDERR, "ERROR: staging2 URL guard failed (expected {$expectedUrl}).\n");
     exit(1);
 }
 
-if (wp_get_theme()->get_stylesheet() !== 'nuvanx-medical') {
-    fwrite(STDERR, "ERROR: expected active theme nuvanx-medical.\n");
+if (wp_get_theme()->get_stylesheet() !== $expectedTheme) {
+    fwrite(STDERR, "ERROR: expected active theme {$expectedTheme}.\n");
     exit(1);
 }
 
-if ($frontPageId !== 9) {
-    fwrite(STDERR, "ERROR: expected static front page ID 9.\n");
+if ($frontPageId !== $expectedFrontPageId) {
+    fwrite(STDERR, "ERROR: expected static front page ID {$expectedFrontPageId}.\n");
     exit(1);
 }
 
@@ -67,7 +116,7 @@ $valueContainer = $xpath->query(
 )->item(0);
 
 if (!$valueContainer instanceof DOMElement) {
-    fwrite(STDERR, "ERROR: no canonical values container found on page 9.\n");
+    fwrite(STDERR, "ERROR: no canonical values container found on front page.\n");
     exit(1);
 }
 
@@ -83,20 +132,7 @@ foreach ($xpath->query('.//a', $valueContainer) ?: [] as $link) {
     $unwrappedLinks++;
 }
 
-$bannerHtml = <<<HTML
-<section class="nvx-home-action-banner" data-nvx-action-banner="post-values" aria-labelledby="nvx-home-action-banner-title">
-  <div class="nvx-home-action-banner__copy">
-    <p class="nvx-brand-kicker">Valoración médica</p>
-    <h2 id="nvx-home-action-banner-title" class="nvx-home-action-banner__title">Recupera la armonía de tu piel</h2>
-    <p class="nvx-home-action-banner__text">Agenda una valoración médica personalizada y presencial en nuestras clínicas de Chamberí o Goya · Barrio Salamanca.</p>
-  </div>
-  <div class="nvx-home-action-banner__actions">
-    <a class="nvx-button nvx-button--light" href="/madrid/valoracion/">Reservar valoración gratuita</a>
-    <a class="nvx-home-action-banner__link" href="/contacto/">Resolver dudas</a>
-  </div>
-</section>
-HTML;
-
+$bannerHtml = nvx_staging2_home_action_banner_html();
 $fragmentDocument = new DOMDocument('1.0', 'UTF-8');
 $fragmentDocument->loadHTML('<?xml encoding="utf-8" ?><body>' . $bannerHtml . '</body>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
 $newBanner = null;
@@ -137,6 +173,8 @@ libxml_use_internal_errors($previous);
 
 $summary = [
     'mode' => $apply ? 'apply' : 'dry-run',
+    'expected_url' => $expectedUrl,
+    'expected_theme' => $expectedTheme,
     'front_page_id' => $frontPageId,
     'links_unwrapped_inside_values' => $unwrappedLinks,
     'banner_action' => $bannerAction,

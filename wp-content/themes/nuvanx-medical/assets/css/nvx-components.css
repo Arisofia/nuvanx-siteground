@@ -30,6 +30,7 @@ h1,
 .nvx-h1,
 .entry-title,
 .nvx-page-hero h1,
+.nvx-brand-hero h1,
 h1.nvx-title,
 .nvx-brand-hero__title {
   margin: 0 0 var(--nvx-margin-h1);

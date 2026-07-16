@@ -188,20 +188,34 @@ jobs:
             "$THEME/assets/css/nvx-brand-home.css"
           )
 
+          # Scan code only: strip /* … */ block comments so prose like "no :has()"
+          # in comments cannot trip selector bans (historical false positive).
+          STRIPPED_DIR="$(mktemp -d)"
+          trap 'rm -rf "$STRIPPED_DIR"' EXIT
+          STRIPPED=()
+          for src in "${ACTIVE[@]}"; do
+            base="$(basename "$src")"
+            # Non-greedy multi-line block comments; leave strings alone (none of our
+            # forbidden tokens appear inside CSS strings in this theme).
+            perl -0777 -pe 's|/\*.*?\*/||gs' "$src" >"$STRIPPED_DIR/$base"
+            STRIPPED+=("$STRIPPED_DIR/$base")
+          done
+
           reject() {
             local pattern="$1"
             local label="$2"
-            if grep -nE "$pattern" "${ACTIVE[@]}"; then
+            if grep -nHE "$pattern" "${STRIPPED[@]}"; then
               echo "ERROR: $label"
               exit 1
             fi
           }
 
           reject '!important' '!important is forbidden'
-          reject '^\s*[^/*].*:has\(' ':has() dependencies are forbidden'
+          reject ':has\(' ':has() dependencies are forbidden'
           reject ':nth-child\(|:nth-of-type\(' 'positional composition is forbidden'
           reject 'backdrop-filter|-webkit-backdrop-filter' 'glassmorphism is forbidden'
-          reject 'nvx-v3-|nvx-v4-|editorial-home-v4|legacy|compat|bridge|patch' 'versioned or compatibility layers are forbidden'
+          # Class/layer markers only (word-ish tokens), not arbitrary English "patch".
+          reject '(^|[^a-zA-Z0-9_-])(nvx-v3-|nvx-v4-|editorial-home-v4|nvx-legacy|nvx-compat|nvx-bridge|nvx-patch)([^a-zA-Z0-9_-]|$)' 'versioned or compatibility layers are forbidden'
           reject 'transition:[[:space:]]*all' 'transition: all is forbidden'
 
       - name: Validate one token source and direct runtime loading

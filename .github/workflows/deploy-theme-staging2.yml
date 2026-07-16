@@ -245,13 +245,16 @@ jobs:
           fetch-depth: 1
 
       - name: Wait for CDN / cache edge
-        run: sleep 8
+        # Cache purge can briefly serve tiny/error HTML; give edge + origin a beat.
+        run: sleep 15
 
       - name: HTTP smoke verify staging2 pages
         env:
           BASE_URL: ${{ env.STAGING_BASE_URL }}
+          SMOKE_RETRIES: '8'
+          SMOKE_RETRY_SLEEP: '6'
         run: |
           set -euo pipefail
           chmod +x scripts/staging2/smoke-verify-staging2.sh
-          # Soft-fail aesthetic-only if module not in this ref
+          # Soft-fail aesthetic-only if module not in this ref; script retries short bodies.
           bash scripts/staging2/smoke-verify-staging2.sh

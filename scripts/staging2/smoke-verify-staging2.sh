@@ -11,16 +11,57 @@ set -euo pipefail
 BASE_URL="${BASE_URL:-https://staging2.nuvanx.com}"
 UA="${SMOKE_UA:-Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36}"
 TIMEOUT="${SMOKE_TIMEOUT:-45}"
+# After cache flush / edge purge, staging sometimes returns tiny HTML briefly.
+RETRIES="${SMOKE_RETRIES:-6}"
+RETRY_SLEEP="${SMOKE_RETRY_SLEEP:-5}"
+MIN_BYTES="${SMOKE_MIN_BYTES:-500}"
 FAIL=0
 
-fetch() {
+fetch_once() {
   local url="$1"
   curl -fsSL -L \
     --max-time "$TIMEOUT" \
     -A "$UA" \
     -H 'Accept: text/html,application/xhtml+xml' \
     -H 'Accept-Language: es-ES,es;q=0.9' \
+    -H 'Cache-Control: no-cache' \
+    -H 'Pragma: no-cache' \
     "$url"
+}
+
+# Retry on transport failure or suspiciously short bodies (edge/WAF blip).
+fetch() {
+  local url="$1"
+  local attempt=1
+  local html=""
+  local last_err=""
+
+  while (( attempt <= RETRIES )); do
+    if html="$(fetch_once "$url" 2>/tmp/nvx-smoke-curl.err)"; then
+      if [[ ${#html} -ge "$MIN_BYTES" ]]; then
+        printf '%s' "$html"
+        return 0
+      fi
+      last_err="response too short (${#html} bytes)"
+      echo "  … retry $attempt/$RETRIES: $last_err" >&2
+    else
+      last_err="HTTP fetch failed"
+      if [[ -s /tmp/nvx-smoke-curl.err ]]; then
+        last_err="$last_err ($(tr '\n' ' ' </tmp/nvx-smoke-curl.err | head -c 160))"
+      fi
+      echo "  … retry $attempt/$RETRIES: $last_err" >&2
+    fi
+    if (( attempt < RETRIES )); then
+      sleep "$RETRY_SLEEP"
+    fi
+    attempt=$((attempt + 1))
+  done
+
+  echo "  FINAL_FAIL fetch $url — $last_err" >&2
+  if [[ -n "${html:-}" ]]; then
+    echo "  body_head=$(printf '%s' "$html" | head -c 240 | tr '\n' ' ')" >&2
+  fi
+  return 1
 }
 
 require() {
@@ -44,12 +85,7 @@ check_page() {
   echo "==> $name ($url)"
   local html
   if ! html="$(fetch "$url")"; then
-    echo "  FAIL[$name] HTTP fetch failed" >&2
-    FAIL=1
-    return
-  fi
-  if [[ ${#html} -lt 500 ]]; then
-    echo "  FAIL[$name] response too short (${#html} bytes)" >&2
+    echo "  FAIL[$name] could not fetch a usable HTML body" >&2
     FAIL=1
     return
   fi
@@ -61,6 +97,7 @@ check_page() {
 
 echo "Staging2 smoke verify — ${BASE_URL}"
 echo "Markers are structural only (classes / ids / data-*)."
+echo "Retries=${RETRIES} sleep=${RETRY_SLEEP}s min_bytes=${MIN_BYTES}"
 echo
 
 # Home — values pillars + post-values action banner (stable ids/classes)
@@ -105,6 +142,13 @@ fi
 
 # Theme handle present in document (stylesheet or body class)
 check_page "/" "theme-asset-ref" 'nuvanx-medical'
+
+# Equipo authority markers (triple Physician page)
+check_page "/equipo-medico/" "equipo" \
+  'nvx-equipo-editorial' \
+  'physician-rivera-tejeda' \
+  'physician-rivera-deras' \
+  'physician-quinonez-bareiro'
 
 echo
 if [[ "$FAIL" -ne 0 ]]; then

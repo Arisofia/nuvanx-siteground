@@ -568,10 +568,23 @@ function nvx_html_attrs_add_class( string $attrs, string $class_token ): string 
 
 /**
  * Normalize body figures/images so every page shares the same media rules.
- * Heroes are left untouched (full-bleed stage).
+ * Heroes are left untouched (full-bleed stage) — extracted before body tagging.
  */
 function nvx_content_normalize_body_media( string $content ): string {
-	$skip_figure = 'nvx-brand-hero__media|nvx-editorial-hero__media|nvx-page-hero__media|nvx-hero__media|nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula';
+	// Protect hero media blocks so imgs inside never get nvx-media--body (was cutting heroes with a gray band).
+	$hero_slots = array();
+	$protected  = preg_replace_callback(
+		'/<((?:figure|div))\b([^>]*\bclass=["\'][^"\']*\bnvx-(?:brand|editorial|page)?-?hero__media\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/\1>/iu',
+		static function ( array $m ) use ( &$hero_slots ): string {
+			$key                = '<!--NVX_HERO_MEDIA_' . count( $hero_slots ) . '-->';
+			$hero_slots[ $key ] = $m[0];
+			return $key;
+		},
+		$content
+	);
+	$content = is_string( $protected ) ? $protected : $content;
+
+	$skip_figure = 'nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula';
 
 	$updated = preg_replace_callback(
 		'/<figure\b([^>]*)>/iu',
@@ -595,6 +608,8 @@ function nvx_content_normalize_body_media( string $content ): string {
 			}
 
 			$attrs = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+			// Strip accidental body role if ever re-processed on a hero path.
+			$attrs = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $attrs ) ?? $attrs;
 			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
 			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--body' );
 
@@ -602,8 +617,14 @@ function nvx_content_normalize_body_media( string $content ): string {
 		},
 		$content
 	);
+	$content = is_string( $updated ) ? $updated : $content;
 
-	return is_string( $updated ) ? $updated : $content;
+	// Restore hero media untouched (no body classes, full-bleed cover intact).
+	if ( ! empty( $hero_slots ) ) {
+		$content = str_replace( array_keys( $hero_slots ), array_values( $hero_slots ), $content );
+	}
+
+	return $content;
 }
 
 /**

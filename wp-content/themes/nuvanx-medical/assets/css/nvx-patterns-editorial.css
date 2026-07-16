@@ -77,6 +77,7 @@ article.nvx-page > .nvx-page-hero {
   background: var(--nvx-charcoal, #1a1c20);
 }
 
+/* Hero media always wins over body media roles (prevents gray crop line). */
 .nvx-brand-hero__media img,
 .nvx-brand-hero__media video,
 .nvx-editorial-hero__media img,
@@ -86,8 +87,10 @@ article.nvx-page > .nvx-page-hero {
 .nvx-hero__media img,
 .nvx-hero__media video,
 .nvx-brand-hero__media .nvx-media,
+.nvx-brand-hero__media .nvx-media--body,
 .nvx-brand-hero__media .wp-post-image,
 .nvx-page-hero__media .nvx-media,
+.nvx-page-hero__media .nvx-media--body,
 .nvx-brand-hero .nvx-brand-hero__media img,
 .nvx-page-hero .nvx-page-hero__media img,
 .nvx-hero .nvx-brand-hero__media img {
@@ -96,6 +99,7 @@ article.nvx-page > .nvx-page-hero {
   display: block;
   width: 100%;
   max-width: none;
+  max-height: none;
   height: 100%;
   margin: 0;
   padding: 0;
@@ -103,6 +107,7 @@ article.nvx-page > .nvx-page-hero {
   border-radius: 0;
   object-fit: cover;
   object-position: center;
+  background: transparent;
 }
 
 .nvx-brand-hero__media figcaption,

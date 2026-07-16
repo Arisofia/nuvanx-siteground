@@ -91,12 +91,49 @@ function nvx_content_icon_svg( string $name ): string {
 /**
  * Clinical values pillars (structured presentation of intro/criterio blocks).
  */
+/**
+ * Premium action banner immediately after the clinical values columns.
+ * Conversion CTAs live here (not as loose links inside value body copy).
+ */
+function nvx_home_action_banner_markup(): string {
+	$valoracion = nvx_cta_valoracion_url();
+	$whatsapp   = nvx_cta_whatsapp_url();
+
+	$html  = '<div class="nvx-home-action-banner-shell">';
+	$html .= '<section class="nvx-home-action-banner" data-nvx-action-banner="post-values" aria-labelledby="nvx-home-action-banner-title">';
+	$html .= '<div class="nvx-home-action-banner__copy">';
+	$html .= '<h2 id="nvx-home-action-banner-title" class="nvx-home-action-banner__title">' . esc_html__( 'Recupera la armonía de tu piel', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-home-action-banner__text">' . wp_kses(
+		__( 'Agenda tu valoración médica personalizada hoy mismo. Disponible de forma presencial en nuestras clínicas de <strong>Chamberí</strong> o <strong>Salamanca–Goya</strong>.', 'nuvanx-medical' ),
+		array( 'strong' => array() )
+	) . '</p>';
+	$html .= '</div>';
+	$html .= '<div class="nvx-home-action-banner__actions">';
+	$html .= sprintf(
+		'<a class="nvx-home-action-banner__primary" href="%1$s">%2$s</a>',
+		esc_url( $valoracion ),
+		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
+	);
+	$html .= sprintf(
+		'<a class="nvx-home-action-banner__link" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+		esc_url( $whatsapp ),
+		esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
+	);
+	$html .= '</div></section></div>';
+
+	return $html;
+}
+
+/**
+ * Clinical values pillars (structured presentation of intro/criterio blocks).
+ * Conversion CTAs move to the post-values action banner — clean UI, no inline links.
+ */
 function nvx_values_section_markup(): string {
 	$items = array(
 		array(
 			'icon'  => 'shield',
 			'title' => '1. Diagnóstico médico de precisión',
-			'body'  => 'No creemos en soluciones estandarizadas ni en la aplicación automática de tecnología. Bajo la dirección del Dr. José Javier Rivera Tejeda, cada protocolo se inicia con una valoración exhaustiva de 15 a 30 minutos (presencial o por videoconsulta). Analizamos la calidad de tu dermis, el grado de elastosis y tu historial clínico para diseñar un plan de tratamiento exclusivo y seguro, garantizando que el criterio médico prevalezca siempre sobre la aparatología.',
+			'body'  => 'No creemos en soluciones estandarizadas ni en la aplicación automática de tecnología. Bajo la dirección del Dr. José Javier Rivera Tejeda, cada protocolo se inicia con una valoración exhaustiva de 15 a 30 minutos. Analizamos la calidad de tu dermis, el grado de elastosis y tu historial clínico para diseñar un plan de tratamiento exclusivo y seguro, garantizando que el criterio médico prevalezca siempre sobre la aparatología.',
 		),
 		array(
 			'icon'  => 'laser',
@@ -125,8 +162,9 @@ function nvx_values_section_markup(): string {
 	}
 
 	$html .= '</div>';
-	$html .= nvx_cta_pair_markup( 'nvx-values__cta' );
+	// No CTAs inside the pillars — conversion lives in the action banner below.
 	$html .= '</div></section>';
+	$html .= nvx_home_action_banner_markup();
 
 	return $html;
 }
@@ -180,9 +218,9 @@ function nvx_method_section_markup(): string {
  * Matches structural patterns, not page slugs.
  */
 function nvx_content_replace_values_sections( string $content ): string {
-	// Already transformed.
+	// Already transformed: keep pillars, ensure post-values action banner exists.
 	if ( false !== strpos( $content, 'nvx-values-section' ) || false !== strpos( $content, 'class="nvx-values"' ) ) {
-		return $content;
+		return nvx_content_ensure_post_values_action_banner( $content );
 	}
 
 	$replacement = nvx_values_section_markup();
@@ -200,7 +238,58 @@ function nvx_content_replace_values_sections( string $content ): string {
 		}
 	}
 
-	return $content;
+	return nvx_content_ensure_post_values_action_banner( $content );
+}
+
+/**
+ * Insert / refresh premium action banner right after the values section.
+ * Removes legacy dual CTA inside values so conversion is single and clean.
+ */
+function nvx_content_ensure_post_values_action_banner( string $content ): string {
+	// Strip old inline CTA pair under values pillars (if present from prior markup).
+	$content = preg_replace(
+		'/(<div class="nvx-values">[\s\S]*?<\/div>)\s*<div class="nvx-cta-pair nvx-values__cta">[\s\S]*?<\/div>/iu',
+		'$1',
+		$content
+	);
+	if ( ! is_string( $content ) ) {
+		return '';
+	}
+
+	$banner = nvx_home_action_banner_markup();
+
+	// Already has our banner → replace with current markup (copy/CTA hygiene).
+	if ( false !== strpos( $content, 'data-nvx-action-banner="post-values"' ) || false !== strpos( $content, 'nvx-home-action-banner' ) ) {
+		$updated = preg_replace(
+			'/<div class="nvx-home-action-banner-shell">[\s\S]*?<\/div>\s*(?=<\/?(?:section|div|h[1-6]|p)\b)|<section\b[^>]*class="[^"]*nvx-home-action-banner[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
+			$banner,
+			$content,
+			1
+		);
+		return is_string( $updated ) ? $updated : $content;
+	}
+
+	// Insert immediately after values section.
+	$updated = preg_replace(
+		'/(<section\b[^>]*class="[^"]*nvx-values-section[^"]*"[^>]*>[\s\S]*?<\/section>)/iu',
+		'$1' . $banner,
+		$content,
+		1,
+		$count
+	);
+	if ( is_string( $updated ) && $count > 0 ) {
+		return $updated;
+	}
+
+	// Fallback: after .nvx-values grid container's parent section.
+	$updated = preg_replace(
+		'/(<div class="nvx-values">[\s\S]*?<\/div>\s*<\/div>\s*<\/section>)/iu',
+		'$1' . $banner,
+		$content,
+		1
+	);
+
+	return is_string( $updated ) ? $updated : $content;
 }
 
 /**

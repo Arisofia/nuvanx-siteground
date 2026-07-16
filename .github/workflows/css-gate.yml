@@ -4,23 +4,98 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   css-gate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Reject legacy markers
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Validate canonical stylesheet inventory
         run: |
-          THEME="wp-content/themes/nuvanx-medical"
-          if grep -RIn --include='*.css' '!important' "$THEME"; then
-            echo "ERROR: !important detectado"
+          set -euo pipefail
+          THEME='wp-content/themes/nuvanx-medical'
+          CSS="$THEME/assets/css"
+
+          required=(
+            nvx-fonts.css
+            nvx-tokens.css
+            nvx-base.css
+            nvx-site-layout.css
+            nvx-components.css
+            nvx-patterns-editorial.css
+            nvx-header.css
+            nvx-footer.css
+            nvx-brand-home.css
+          )
+
+          for file in "${required[@]}"; do
+            test -s "$CSS/$file" || { echo "ERROR: missing canonical stylesheet $file"; exit 1; }
+          done
+
+          if find "$CSS" -maxdepth 1 -type f -name '*.min.css' -print -quit | grep -q .; then
+            echo 'ERROR: duplicate minified CSS is forbidden'
+            find "$CSS" -maxdepth 1 -type f -name '*.min.css' -print
             exit 1
           fi
-          if grep -RInE 'LEGACY|TREATMENT VISUAL BRIDGE|Migrado desde Custom CSS|CANONICAL BRAND REFINEMENTS' "$THEME"; then
-            echo "ERROR: marcador heredado detectado"
-            exit 1
-          fi
-          if grep -RInE 'Nvx_Editorial_Parser|class-nvx-editorial-parser|DOMDocument' "$THEME"; then
-            echo "ERROR: parser estructural rechazado"
-            exit 1
-          fi
+
+      - name: Reject patch architecture and unsafe selectors
+        run: |
+          set -euo pipefail
+          THEME='wp-content/themes/nuvanx-medical'
+          ACTIVE=(
+            "$THEME/assets/css/nvx-tokens.css"
+            "$THEME/assets/css/nvx-base.css"
+            "$THEME/assets/css/nvx-site-layout.css"
+            "$THEME/assets/css/nvx-components.css"
+            "$THEME/assets/css/nvx-patterns-editorial.css"
+            "$THEME/assets/css/nvx-header.css"
+            "$THEME/assets/css/nvx-footer.css"
+            "$THEME/assets/css/nvx-brand-home.css"
+          )
+
+          reject() {
+            local pattern="$1"
+            local label="$2"
+            if grep -nE "$pattern" "${ACTIVE[@]}"; then
+              echo "ERROR: $label"
+              exit 1
+            fi
+          }
+
+          reject '!important' '!important is forbidden'
+          reject ':has\(' ':has() dependencies are forbidden'
+          reject ':nth-child\(|:nth-of-type\(' 'positional composition is forbidden'
+          reject 'backdrop-filter|-webkit-backdrop-filter' 'glassmorphism is forbidden'
+          reject 'nvx-v3-|nvx-v4-|editorial-home-v4|legacy|compat|bridge|patch' 'versioned or compatibility layers are forbidden'
+          reject 'transition:[[:space:]]*all' 'transition: all is forbidden'
+
+      - name: Validate one token source and direct runtime loading
+        run: |
+          set -euo pipefail
+          THEME='wp-content/themes/nuvanx-medical'
+          ROOT_COUNT="$(grep -Rho ':root[[:space:]]*{' "$THEME/assets/css" --include='*.css' | wc -l | tr -d ' ')"
+          test "$ROOT_COUNT" = '1' || { echo "ERROR: expected one :root, found $ROOT_COUNT"; exit 1; }
+
+          grep -q "nvx-tokens.css" "$THEME/functions.php"
+          grep -q "nvx-patterns-editorial.css" "$THEME/functions.php"
+          ! grep -qE '\.min\.css|nvx-responsive|nvx-brand-system|nvx-visual-system|nvx-fluid-organic|nvx-typography-alignment' "$THEME/functions.php"
+          ! grep -qE 'preg_replace|preg_replace_callback|nvx_theme_normalize_content_markup|nvx_theme_apply_editorial_flows' "$THEME/functions.php"
+
+      - name: Parse active CSS
+        run: |
+          set -euo pipefail
+          npx --yes clean-css-cli@5.6.3 \
+            -o /tmp/nuvanx-canonical.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-base.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-components.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-header.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-footer.css \
+            wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css
+          test -s /tmp/nuvanx-canonical.css

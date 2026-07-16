@@ -8,10 +8,10 @@ Posicionamiento: **autoridad láser transparente** — no Depilife (descuentos) 
 
 | Señal competitiva | Cómo |
 |-------------------|------|
-| Opacidad de precio (brecha #1 vs Endolifter/Doctoralia) | Endolift **desde 1.460 €** en HTML (hero, bloque inversión, FAQ) + `Offer` en schema. Constante `NVX_ENDOLIFT_PRICE_FROM_EUR`. |
+| Opacidad de precio (brecha #1 vs Endolifter/Doctoralia) | Catálogo PVP oficial (`nvx_tariff_catalog`): **desde 798,60 €** (ojeras); papada/marcación **1.064,80 €**. Tabla facial + combos en HTML; dual `Offer` en schema. Sin comisiones. |
 | Entidades MedicalClinic / Physician / MedicalProcedure | Org `MedicalOrganization` + sedes `MedicalClinic` + `Physician` (ICOMEM, alumni UCM, knowsAbout láser) + procedures con `indication` + `performer`/`reviewedBy`. |
 | OfferCatalog en home | Catálogo de protocolos; Endolift con `price` EUR; resto sin precio inventado. **Sin** `InStock` retail. |
-| FAQPage | Mismas Q/A que HTML (precio, indicación, duración 18m–3a, vs AH, recuperación). |
+| FAQPage | Solo Endolift: mismas Q/A que HTML (precio, indicación, duración, vs AH, recuperación). **Sin** FAQ schema EXION hasta que la página EXION imprima los mismos pares. |
 | priceRange | `€€€` en org (banda, no inventar min–max). |
 | ReserveAction | Solo **valoración presencial** (`/madrid/valoracion/`). Sin videoconsulta. |
 | Titles / metadesc | Home + Endolift vía `wpseo_title` / `wpseo_metadesc` con intención transaccional. |
@@ -31,7 +31,7 @@ Posicionamiento: **autoridad láser transparente** — no Depilife (descuentos) 
 
 ## CMS / contenido pendiente (no solo PHP)
 
-1. Actualizar tarifa en Doctoralia y en `NVX_ENDOLIFT_PRICE_FROM_EUR` al unísono.
+1. Alinear ficha Doctoralia con PVP real (papada 1.064,80 € / desde 798,60 €), no el listado antiguo ~1.460 €.
 2. Precios de referencia en Endoláser / CO₂ / EXION cuando comerciales los cierren.
 3. Purgar “casos en preparación”; galería real con alt clínicos.
 4. Landings anatómicas (`/endolaser-papada-madrid/`, etc.) cuando haya redacción.

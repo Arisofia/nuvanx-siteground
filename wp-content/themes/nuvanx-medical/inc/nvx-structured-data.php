@@ -18,11 +18,195 @@ defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/nvx-jsonld-content.php';
 
 /**
- * Reference starting price for Endolift® (EUR), aligned with public Doctoralia listing.
- * Update here when commercial tariffs change — visible copy + schema Offer share this.
+ * Editorial review month label for Endolift byline (update with clinical review).
  */
-if ( ! defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ) {
-	define( 'NVX_ENDOLIFT_PRICE_FROM_EUR', '1460' );
+if ( ! defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ) {
+	define( 'NVX_ENDOLIFT_REVIEW_LABEL', 'julio 2026' );
+}
+
+/**
+ * Official public PVP catalogue (EUR, IVA 21% included).
+ * Source: clinic tariff sheet. Never publish commission / internal cost notes.
+ *
+ * @return array{
+ *   endolift: array<string, array{label:string,pvp:float,group:string}>,
+ *   endolift_combo: array<string, array{label:string,pvp:float,group:string}>,
+ *   laser_co2: array<string, array{label:string,pvp:float,group:string}>
+ * }
+ */
+function nvx_tariff_catalog() {
+	return array(
+		'endolift'       => array(
+			'ojeras'              => array(
+				'label' => 'Endolift® ojeras',
+				'pvp'   => 798.60,
+				'group' => 'facial',
+			),
+			'papada'              => array(
+				'label' => 'Endolift® papada',
+				'pvp'   => 1064.80,
+				'group' => 'facial',
+			),
+			'marcacion_mandibular' => array(
+				'label' => 'Endolift® marcación mandibular',
+				'pvp'   => 1064.80,
+				'group' => 'facial',
+			),
+			'pomulos'             => array(
+				'label' => 'Endolift® pómulos',
+				'pvp'   => 1064.80,
+				'group' => 'facial',
+			),
+			'cuello'              => array(
+				'label' => 'Cuello',
+				'pvp'   => 1197.90,
+				'group' => 'facial',
+			),
+			'abdomen'             => array(
+				'label' => 'Endolift® zona abdomen',
+				'pvp'   => 1694.00,
+				'group' => 'corporal',
+			),
+			'flancos'             => array(
+				'label' => 'Endolift® flancos',
+				'pvp'   => 1573.00,
+				'group' => 'corporal',
+			),
+			'subescapular'        => array(
+				'label' => 'Endolift® subescapular / sujetador',
+				'pvp'   => 1391.50,
+				'group' => 'corporal',
+			),
+			'brazos'              => array(
+				'label' => 'Endolift® brazos',
+				'pvp'   => 1331.00,
+				'group' => 'corporal',
+			),
+			'rodillas'            => array(
+				'label' => 'Endolift® rodillas',
+				'pvp'   => 1197.90,
+				'group' => 'corporal',
+			),
+			'muslos_internos'     => array(
+				'label' => 'Endolift® cara interna muslos',
+				'pvp'   => 1331.00,
+				'group' => 'corporal',
+			),
+			'subgluteos'          => array(
+				'label' => 'Subglúteos (bananitos)',
+				'pvp'   => 1331.00,
+				'group' => 'corporal',
+			),
+			'cartucheras'         => array(
+				'label' => 'Endolift® cartucheras',
+				'pvp'   => 1331.00,
+				'group' => 'corporal',
+			),
+		),
+		'endolift_combo' => array(
+			'papada_cuello'        => array(
+				'label' => 'Papada y cuello',
+				'pvp'   => 1331.00,
+				'group' => 'facial',
+			),
+			'marcacion_papada'     => array(
+				'label' => 'Marcación mandibular y papada',
+				'pvp'   => 1452.00,
+				'group' => 'facial',
+			),
+			'full_face'            => array(
+				'label' => 'Endolift® Full Face (tercio medio, inferior y cuello)',
+				'pvp'   => 1694.00,
+				'group' => 'facial',
+			),
+			'abdomen_flancos'      => array(
+				'label' => 'Abdomen y flancos',
+				'pvp'   => 2395.80,
+				'group' => 'corporal',
+			),
+			'subgluteos_cartucheras' => array(
+				'label' => 'Subglúteos y cartucheras',
+				'pvp'   => 1633.50,
+				'group' => 'corporal',
+			),
+			'muslos_rodilla'       => array(
+				'label' => 'Cara interna de muslos y rodilla',
+				'pvp'   => 1573.00,
+				'group' => 'corporal',
+			),
+			'sujetador_brazos'     => array(
+				'label' => 'Zona sujetador y brazos',
+				'pvp'   => 1694.00,
+				'group' => 'corporal',
+			),
+			'cartucheras_muslos'   => array(
+				'label' => 'Cartucheras y cara interna de muslos',
+				'pvp'   => 1815.00,
+				'group' => 'corporal',
+			),
+			'cartucheras_subgluteos_muslos' => array(
+				'label' => 'Cartucheras, subglúteos y cara interna de muslos',
+				'pvp'   => 2286.90,
+				'group' => 'corporal',
+			),
+		),
+		'laser_co2'      => array(
+			'facial'   => array(
+				'label' => 'Sesión láser CO₂ facial',
+				'pvp'   => 330.00,
+				'group' => 'facial',
+			),
+			'corporal' => array(
+				'label' => 'Sesión láser CO₂ corporal',
+				'pvp'   => 450.00,
+				'group' => 'corporal',
+			),
+		),
+	);
+}
+
+/**
+ * Lowest public Endolift® PVP (facial ojeras) — used for “desde” GEO copy/schema.
+ *
+ * @return float
+ */
+function nvx_endolift_price_from_eur() {
+	$catalog = nvx_tariff_catalog();
+	if ( defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ) {
+		return (float) NVX_ENDOLIFT_PRICE_FROM_EUR;
+	}
+
+	return (float) $catalog['endolift']['ojeras']['pvp'];
+}
+
+/**
+ * Reference PVP for papada / marcación mandibular (page core indication).
+ *
+ * @return float
+ */
+function nvx_endolift_price_papada_eur() {
+	return (float) nvx_tariff_catalog()['endolift']['papada']['pvp'];
+}
+
+/**
+ * Format a EUR amount for Spanish locale display (2 decimals: 1.064,80).
+ *
+ * @param int|float|string $amount   Amount in euros.
+ * @param int              $decimals Decimal places.
+ * @return string
+ */
+function nvx_format_price_eur( $amount, $decimals = 2 ) {
+	return number_format_i18n( (float) $amount, (int) $decimals );
+}
+
+/**
+ * Schema.org price string (dot decimal, two places).
+ *
+ * @param int|float|string $amount Amount in euros.
+ * @return string
+ */
+function nvx_schema_price_string( $amount ) {
+	return number_format( (float) $amount, 2, '.', '' );
 }
 
 /**
@@ -392,14 +576,16 @@ function nvx_schema_find_organization( $graph ) {
  * @return array<string, array<int, array{q:string,a:string}>>
  */
 function nvx_schema_faq_catalog() {
-	$endolift_from = NVX_ENDOLIFT_PRICE_FROM_EUR;
+	$from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
+	$papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
 
+	// Only keys that render the same Q/A in visible HTML (Endolift module).
+	// Do not add EXION here until the EXION page prints the same pairs.
 	return array(
-		// Keep in sync with nvx_endolift_page FAQs.
 		'endolift_facial' => array(
 			array(
 				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
-				'a' => 'La tarifa de referencia parte desde ' . $endolift_from . ' € (tercio inferior / papada–mandíbula según plan). El presupuesto definitivo se documenta tras valoración anatómica presencial e incluye honorarios, fibra monouso y revisiones protocolizadas.',
+				'a' => 'Los precios públicos (PVP con IVA incluido) parten desde ' . $from . ' € (ojeras). Papada y marcación mandibular: ' . $papada . ' €. Combos facial (p. ej. papada y cuello, Full Face) se detallan en la tabla de la página. El plan y el presupuesto se confirman tras valoración anatómica presencial.',
 			),
 			array(
 				'q' => '¿Endolift® es para cualquier papada o flacidez?',
@@ -415,25 +601,8 @@ function nvx_schema_faq_catalog() {
 			),
 			array(
 				'q' => '¿Cómo es la recuperación y el dolor?',
-				'a' => 'Procedimiento con anestesia local, ambulatorio. Los primeros 3–5 días son habituales edema, tirantez y posibles hematomas. No suele ser incapacitante; conviene una baja social moderada la primera semana.',
-			),
-		),
-		'exion_btl'       => array(
-			array(
-				'q' => '¿EXION® sustituye al Láser CO₂?',
-				'a' => 'No. Tienen indicaciones distintas: EXION® trabaja radiofrecuencia (y ultrasonido según aplicador); el CO₂ fraccionado es ablativo y se orienta a textura y cicatrices según protocolo.',
-			),
-			array(
-				'q' => '¿Qué diferencia hay entre EXION® Fractional RF, Face y Body?',
-				'a' => 'Fractional RF se orienta a textura y renovación; Face a calidad e hidratación cutánea; Body a firmeza y contorno localizado. La elección depende del diagnóstico.',
-			),
-			array(
-				'q' => '¿EXION® es una alternativa a Morpheus8?',
-				'a' => 'Puede serlo en radiofrecuencia fraccionada con microagujas según el caso. La comodidad, la profundidad y el downtime dependen del protocolo y de la tolerancia individual, no de un ranking comercial entre marcas.',
-			),
-			array(
-				'q' => '¿Cuántas sesiones necesito?',
-				'a' => 'Depende de la zona, el aplicador, el tejido y el objetivo. Se define tras valoración médica; no hay un número comercial fijo.',
+				// Aligned with process step: ambulatory + usual return <24h; visible edema 3–7 days.
+				'a' => 'Procedimiento con anestesia local, ambulatorio. La reincorporación a la rutina habitual suele ser en menos de 24 h. Edema, eritema o sensibilidad son habituales 3–7 días; si hay compromisos de imagen, conviene una baja social moderada la primera semana.',
 			),
 		),
 	);
@@ -488,8 +657,11 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 		return null;
 	}
 
-	$permalink = get_permalink( $page_id );
-	$price_from = NVX_ENDOLIFT_PRICE_FROM_EUR;
+	$permalink    = get_permalink( $page_id );
+	$price_from   = nvx_schema_price_string( nvx_endolift_price_from_eur() );
+	$price_papada = nvx_schema_price_string( nvx_endolift_price_papada_eur() );
+	$label_from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
+	$label_papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
 
 	// Entity nodes cite-able by LLMs: procedure + indications + starting offer when known.
 	if ( 'endolift_facial' === $key ) {
@@ -497,16 +669,16 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
 			'@id'              => $permalink . '#medical-procedure',
 			'name'             => 'Endolift® facial para papada y línea mandibular',
-			'alternateName'    => array( 'Endolift® facial', 'Láser intersticial facial', 'Tensado subdérmico láser' ),
+			'alternateName'    => array( 'Endolift® facial', 'Láser intersticial facial' ),
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
 			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Procedimiento médico mínimamente invasivo con microfibra láser subdérmica para lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello, indicado solo tras valoración anatómica.',
+			'description'      => 'Procedimiento médico mínimamente invasivo con microfibra láser subdérmica para lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello, indicado solo tras valoración anatómica. PVP papada/marcación mandibular desde ' . $label_papada . ' €; tarifas faciales desde ' . $label_from . ' €.',
 			'bodyLocation'     => array( 'Papada', 'Línea mandibular', 'Cuello', 'Óvalo facial' ),
 			'procedureType'    => 'https://schema.org/MinimallyInvasiveProcedure',
 			'preparation'      => 'Valoración médica presencial de anatomía, calidad de piel, grasa submentoniana, ptosis y expectativas. Exclusión de ptosis severa con exceso cutáneo que requiera cirugía.',
 			'howPerformed'     => 'Tras anestesia local se inserta microfibra óptica de 200–300 micras y se aplica energía láser intersticial en patrón vectorial subdérmico adaptado a la zona.',
-			'followup'         => 'Seguimiento clínico protocolizado (típicamente semanas 4 y 8 y control posterior). Puede haber edema e inflamación los primeros días.',
+			'followup'         => 'Seguimiento clínico protocolizado (típicamente semanas 4 y 8 y control posterior). Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.',
 			'indication'       => array(
 				array(
 					'@type' => 'MedicalIndication',
@@ -517,22 +689,30 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 					'name'  => 'Adiposidad submentoniana (papada) seleccionada',
 				),
 			),
+			// Primary offer = papada/mandibular (page intent); “desde” ojeras is in description + HTML table.
 			'offers'           => array(
-				'@type'         => 'Offer',
-				'@id'           => $permalink . '#offer',
-				'url'           => $permalink,
-				'priceCurrency' => 'EUR',
-				'price'         => $price_from,
-				'priceSpecification' => array(
-					'@type'                 => 'PriceSpecification',
-					'priceCurrency'         => 'EUR',
-					'price'                 => $price_from,
-					'name'                  => 'Tarifa de referencia desde (valoración confirma presupuesto)',
-					'valueAddedTaxIncluded' => true,
+				array(
+					'@type'         => 'Offer',
+					'@id'           => $permalink . '#offer-papada',
+					'name'          => 'Endolift® papada / marcación mandibular',
+					'url'           => $permalink . '#inversion-endolift',
+					'priceCurrency' => 'EUR',
+					'price'         => $price_papada,
+					'description'   => 'PVP con IVA incluido: ' . $label_papada . ' €. Plan y presupuesto tras valoración.',
+					'areaServed'    => 'Madrid',
+					'seller'        => array( '@id' => $organization_id ),
 				),
-				'description'   => 'Precio de referencia desde ' . $price_from . ' €. Presupuesto cerrado tras valoración médica presencial.',
-				'areaServed'    => 'Madrid',
-				'seller'        => array( '@id' => $organization_id ),
+				array(
+					'@type'         => 'Offer',
+					'@id'           => $permalink . '#offer-from',
+					'name'          => 'Endolift® facial — tarifa desde',
+					'url'           => $permalink . '#inversion-endolift',
+					'priceCurrency' => 'EUR',
+					'price'         => $price_from,
+					'description'   => 'PVP con IVA incluido desde ' . $label_from . ' € (ojeras). Ver tabla de tarifas en la página.',
+					'areaServed'    => 'Madrid',
+					'seller'        => array( '@id' => $organization_id ),
+				),
 			),
 		);
 	}
@@ -670,10 +850,12 @@ function nvx_schema_offer_catalog( $organization_id ) {
 	$registry = nvx_schema_page_registry();
 	$items    = array();
 
+	$co2_from = nvx_tariff_catalog()['laser_co2']['facial']['pvp'];
+
 	$catalog_defs = array(
 		'endolift_facial'    => array(
 			'label' => 'Endolift® facial',
-			'price' => NVX_ENDOLIFT_PRICE_FROM_EUR,
+			'price' => nvx_endolift_price_from_eur(),
 		),
 		'endolaser_corporal' => array(
 			'label' => 'Endoláser corporal',
@@ -681,7 +863,7 @@ function nvx_schema_offer_catalog( $organization_id ) {
 		),
 		'laser_co2'          => array(
 			'label' => 'Láser CO₂ fraccionado',
-			'price' => null,
+			'price' => $co2_from,
 		),
 		'exion_btl'          => array(
 			'label' => 'EXION® BTL',
@@ -709,10 +891,10 @@ function nvx_schema_offer_catalog( $organization_id ) {
 			'areaServed'  => 'Madrid',
 			'seller'      => array( '@id' => $organization_id ),
 		);
-		if ( ! empty( $def['price'] ) ) {
+		if ( null !== $def['price'] && $def['price'] > 0 ) {
 			$offer['priceCurrency'] = 'EUR';
-			$offer['price']         = (string) $def['price'];
-			$offer['description']   = 'Tarifa de referencia desde ' . $def['price'] . ' € (presupuesto tras valoración).';
+			$offer['price']         = nvx_schema_price_string( $def['price'] );
+			$offer['description']   = 'Tarifa de referencia desde ' . nvx_format_price_eur( $def['price'] ) . ' € (presupuesto tras valoración).';
 		}
 		$items[] = $offer;
 	}
@@ -936,7 +1118,7 @@ function nvx_filter_front_metadesc( $desc ) {
 		return $desc;
 	}
 
-	return 'NUVANX es el centro médico de medicina estética láser en Madrid (Chamberí y Goya). Protocolos Endolift® desde ' . NVX_ENDOLIFT_PRICE_FROM_EUR . ' €, Láser CO₂ y EXION® BTL con valoración clínica y presupuestos documentados.';
+	return 'NUVANX es el centro médico de medicina estética láser en Madrid (Chamberí y Goya). Protocolos Endolift® desde ' . nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €, Láser CO₂ y EXION® BTL con valoración clínica y presupuestos documentados.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_front_metadesc', 20 );
 
@@ -966,7 +1148,7 @@ function nvx_filter_endolift_metadesc( $desc ) {
 
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	return 'Endolift® facial en NUVANX Madrid desde ' . NVX_ENDOLIFT_PRICE_FROM_EUR . ' €: tensado subdérmico con microfibra láser para papada y contorno mandibular en casos seleccionados. Indicaciones, límites y valoración con el Dr. Rivera Tejeda (ICOMEM ' . $colegiado . ').';
+	return 'Endolift® facial en NUVANX Madrid desde ' . nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €: tensado subdérmico con microfibra láser para papada y contorno mandibular en casos seleccionados. Indicaciones, límites y valoración con el Dr. Rivera Tejeda (ICOMEM ' . $colegiado . ').';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_endolift_metadesc', 21 );
 

@@ -372,8 +372,13 @@ function nvx_content_replace_method_sections( string $content ): string {
  * Treatment card blurbs sitewide — clinical + cite-able starting price for Endolift.
  */
 function nvx_content_enrich_treatment_cards( string $content ): string {
-	$price_from   = defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ? NVX_ENDOLIFT_PRICE_FROM_EUR : '1460';
-	$endolift_new = 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica tras valoración. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. Tarifa de referencia desde ' . $price_from . ' €; presupuesto definitivo en consulta.';
+	$price_label  = function_exists( 'nvx_format_price_eur' )
+		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
+		: number_format_i18n( 798.60, 2 );
+	$papada_label = function_exists( 'nvx_format_price_eur' ) && function_exists( 'nvx_endolift_price_papada_eur' )
+		? nvx_format_price_eur( nvx_endolift_price_papada_eur() )
+		: number_format_i18n( 1064.80, 2 );
+	$endolift_new = 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica tras valoración. Papada / marcación mandibular: ' . $papada_label . ' € (PVP IVA incl.). Tarifas faciales desde ' . $price_label . ' €.';
 
 	$exion_new = 'Plataforma con aplicadores Fractional RF, Face y Body. La elección y el número de sesiones dependen del diagnóstico; no sustituye rellenos ni valoración médica.';
 
@@ -629,27 +634,6 @@ function nvx_content_normalize_body_media( string $content ): string {
 }
 
 /**
- * Strip duplicate fachada section if a hero media already exists.
- *
- * @param string $content HTML.
- * @return string
- */
-function nvx_content_strip_duplicate_fachada( string $content ): string {
-	if ( ! preg_match( '/nvx-(?:brand|page|editorial)-hero__media/i', $content ) ) {
-		return $content;
-	}
-
-	$updated = preg_replace(
-		'/\s*<section\b[^>]*\bnvx-brand-section--fachada\b[^>]*>[\s\S]*?<\/section>/iu',
-		'',
-		$content,
-		1
-	);
-
-	return is_string( $updated ) ? $updated : $content;
-}
-
-/**
  * Global content presentation pipeline (all singular + front content).
  *
  * @param string $content HTML.
@@ -673,7 +657,6 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_enhance_director_blocks( $content );
 	$content = nvx_content_rewrite_morpheus_faq( $content );
 	$content = nvx_content_unify_ctas( $content );
-	$content = nvx_content_strip_duplicate_fachada( $content );
 
 	return $content;
 }

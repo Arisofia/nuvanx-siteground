@@ -46,8 +46,10 @@ curl -sS 'https://staging2.nuvanx.com/endolift-facial-papada-mandibula/' \
 
 | Item | Owner | Status |
 |------|-------|--------|
-| Confirm 1.460 € still matches Doctoralia / internal tariff | Clínica | ☐ |
-| Publish same “desde” on other treatments when known | Clínica + theme constant or CMS | ☐ later |
+| Official tariff sheet in theme (`nvx_tariff_catalog`) | Clínica → code | ✅ PVP facial Endolift + combos + CO₂ |
+| “Desde” = ojeras **798,60 €**; papada/mandíbula **1.064,80 €** | Theme | ✅ |
+| Do **not** publish commercial % or internal “periodo de prueba” notes | Theme | ✅ |
+| Sync Doctoralia listing to same PVP (was ~1.460 €) | Clínica | ☐ |
 | Casos vacíos → purge / noindex (E-E-A-T hole) | WP editorial | ☐ separate |
 | Landings anatómicas endoláser | Content + new pages | ☐ later |
 

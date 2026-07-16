@@ -8,6 +8,11 @@ wp-config.php
 *.key
 *.crt
 
+# Accidental root npm scaffold (theme deploys from PHP, not this package.json)
+/package.json
+/package-lock.json
+/node_modules/
+
 # Server-specific (root / runtime)
 .htaccess
 php.ini

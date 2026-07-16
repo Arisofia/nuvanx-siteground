@@ -260,6 +260,26 @@ function nvx_schema_page_registry() {
 				'path'   => '/exion-btl/',
 				'schema' => 'Service',
 			),
+			'exion_face'         => array(
+				'id'     => 0,
+				'path'   => '/exion-face/',
+				'schema' => 'Service',
+			),
+			'exion_body'         => array(
+				'id'     => 0,
+				'path'   => '/exion-body/',
+				'schema' => 'Service',
+			),
+			'exion_fractional'   => array(
+				'id'     => 0,
+				'path'   => '/exion-fractional/',
+				'schema' => 'Service',
+			),
+			'emfusion'           => array(
+				'id'     => 0,
+				'path'   => '/emfusion/',
+				'schema' => 'Service',
+			),
 			'exilite_btl'        => array(
 				'id'     => 0,
 				'path'   => '/btl-exilite-ipl-madrid/',
@@ -850,6 +870,33 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 		);
 	}
 
+	// Detail services (Face / Body / Fractional / EMFUSION) — mirror theme registry copy.
+	$btl_detail_keys = array( 'exion_face', 'exion_body', 'exion_fractional', 'emfusion' );
+	if ( in_array( $key, $btl_detail_keys, true ) && function_exists( 'nvx_btl_detail_registry' ) ) {
+		$slug_map = array(
+			'exion_face'       => 'exion-face',
+			'exion_body'       => 'exion-body',
+			'exion_fractional' => 'exion-fractional',
+			'emfusion'         => 'emfusion',
+		);
+		$slug = $slug_map[ $key ] ?? '';
+		$reg  = nvx_btl_detail_registry();
+		if ( $slug && ! empty( $reg[ $slug ] ) ) {
+			$cfg = $reg[ $slug ];
+			return array(
+				'@type'            => 'Service',
+				'@id'              => $permalink . '#service',
+				'name'             => $cfg['schema_name'],
+				'serviceType'      => $cfg['schema_type'],
+				'url'              => $permalink,
+				'mainEntityOfPage' => array( '@id' => $permalink ),
+				'provider'         => array( '@id' => $organization_id ),
+				'description'      => $cfg['schema_desc'],
+				'areaServed'       => 'Madrid',
+			);
+		}
+	}
+
 	if ( 'exilite_btl' === $key ) {
 		return array(
 			'@type'            => 'Service',
@@ -1165,6 +1212,22 @@ function nvx_schema_offer_catalog( $organization_id ) {
 		),
 		'exion_btl'          => array(
 			'label' => 'EXION® BTL',
+			'price' => null,
+		),
+		'exion_face'         => array(
+			'label' => 'EXION® Face',
+			'price' => null,
+		),
+		'exion_body'         => array(
+			'label' => 'EXION® Body',
+			'price' => null,
+		),
+		'exion_fractional'   => array(
+			'label' => 'EXION® Fractional RF',
+			'price' => null,
+		),
+		'emfusion'           => array(
+			'label' => 'EMFUSION®',
 			'price' => null,
 		),
 		'exilite_btl'        => array(

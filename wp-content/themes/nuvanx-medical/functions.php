@@ -198,6 +198,7 @@ require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
 require_once get_template_directory() . '/inc/nvx-endolaser-page.php';
 require_once get_template_directory() . '/inc/nvx-co2-page.php';
+require_once get_template_directory() . '/inc/nvx-btl-detail-pages.php';
 require_once get_template_directory() . '/inc/nvx-equipo-page.php';
 require_once get_template_directory() . '/inc/nvx-nosotros-page.php';
 require_once get_template_directory() . '/inc/nvx-contacto-valoracion-page.php';

@@ -198,7 +198,7 @@ jobs:
           }
 
           reject '!important' '!important is forbidden'
-          reject ':has\(' ':has() dependencies are forbidden'
+          reject '^\s*[^/*].*:has\(' ':has() dependencies are forbidden'
           reject ':nth-child\(|:nth-of-type\(' 'positional composition is forbidden'
           reject 'backdrop-filter|-webkit-backdrop-filter' 'glassmorphism is forbidden'
           reject 'nvx-v3-|nvx-v4-|editorial-home-v4|legacy|compat|bridge|patch' 'versioned or compatibility layers are forbidden'

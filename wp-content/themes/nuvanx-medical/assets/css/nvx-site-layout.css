@@ -324,11 +324,20 @@ article.nvx-page > .nvx-page-hero {
   border-radius: 0; /* radius on media frame */
 }
 
-/* Never let body images inherit hero full-bleed fill */
+/* Body images in sections — never apply to hero stage media */
 .nvx-main .nvx-brand-section img.nvx-media--body,
-.nvx-main .nvx-page__content img:not(.nvx-media--hero) {
+.nvx-main .nvx-page__content img.nvx-media--body:not(.nvx-brand-hero__media img) {
   max-width: 100%;
   height: auto;
+}
+
+/* Defensive: if a hero img still has --body class, restore full-bleed cover */
+.nvx-main .nvx-brand-hero__media img,
+.nvx-main .nvx-page-hero__media img,
+.nvx-main .nvx-editorial-hero__media img {
+  max-height: none;
+  height: 100%;
+  border-radius: 0;
 }
 
 .nvx-content-figure figcaption,

@@ -1,0 +1,121 @@
+name: Deploy 8px spacing system to staging2 once
+
+on:
+  push:
+    branches:
+      - style/staging2-eight-point-spacing-20260716
+
+permissions:
+  contents: read
+
+env:
+  STAGING_URL: https://staging2.nuvanx.com
+  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+  THEME_REL: wp-content/themes/nuvanx-medical
+
+jobs:
+  deploy-staging2:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout candidate
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: style/staging2-eight-point-spacing-20260716
+          fetch-depth: 1
+
+      - name: Validate candidate and connection settings
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          for name in SSH_KEY SSH_USER SSH_HOST SSH_PORT KNOWN_HOSTS; do
+            [[ -n "${!name:-}" ]] || { echo "ERROR: missing $name"; exit 1; }
+          done
+          CSS="${THEME_REL}/assets/css"
+          test -s "$CSS/nvx-tokens.css"
+          test -s "$CSS/nvx-site-layout.css"
+          test -s "$CSS/nvx-components.css"
+          grep -q -- '--nvx-space-1: 8px' "$CSS/nvx-tokens.css"
+          grep -q -- '--nvx-pad-section: clamp(96px, 8vw, 120px)' "$CSS/nvx-tokens.css"
+          grep -q 'nvx-value-grid' "$CSS/nvx-components.css"
+          npx --yes clean-css-cli@5.6.3 -o /tmp/nvx-spacing.css "$CSS/nvx-tokens.css" "$CSS/nvx-site-layout.css" "$CSS/nvx-components.css"
+          test -s /tmp/nvx-spacing.css
+
+      - name: Configure SSH
+        uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+
+      - name: Configure known hosts
+        env:
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Validate staging and create rollback copy
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "ROOT='${STAGING_ROOT}' RUN_ID='$RUN_ID' bash -se" <<'REMOTE'
+            set -euo pipefail
+            cd "$ROOT"
+            [[ "$(wp option get siteurl)" == 'https://staging2.nuvanx.com' ]]
+            [[ "$(wp option get home)" == 'https://staging2.nuvanx.com' ]]
+            [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
+            BACKUP="$HOME/nuvanx-staging2-theme-backups/eight-point-$RUN_ID"
+            mkdir -p "$BACKUP"
+            chmod 700 "$HOME/nuvanx-staging2-theme-backups" "$BACKUP"
+            cp wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css "$BACKUP/"
+            cp wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css "$BACKUP/"
+            cp wp-content/themes/nuvanx-medical/assets/css/nvx-components.css "$BACKUP/"
+            chmod -R go-rwx "$BACKUP"
+          REMOTE
+
+      - name: Deploy theme to staging2 only
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          rsync -az --delete -e "ssh -p $SSH_PORT" \
+            --exclude '.git' --exclude '*.log' --exclude 'php_errorlog' \
+            "${THEME_REL}/" \
+            "$SSH_USER@$SSH_HOST:${STAGING_ROOT}/${THEME_REL}/"
+
+      - name: Flush staging cache and verify
+        env:
+          SSH_USER: ${{ secrets.STAGING_SSH_USER }}
+          SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+          SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "ROOT='${STAGING_ROOT}' bash -se" <<'REMOTE'
+            set -euo pipefail
+            cd "$ROOT"
+            CSS='wp-content/themes/nuvanx-medical/assets/css'
+            grep -q -- '--nvx-space-1: 8px' "$CSS/nvx-tokens.css"
+            grep -q -- '--nvx-pad-section: clamp(96px, 8vw, 120px)' "$CSS/nvx-tokens.css"
+            grep -q 'nvx-value-grid' "$CSS/nvx-components.css"
+            wp cache flush || true
+            wp sg purge || true
+            rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
+            wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
+          REMOTE
+          code="$(curl -sS -o /dev/null -w '%{http_code}' -H 'Cache-Control: no-cache' "${STAGING_URL}/?spacing_qa=${{ github.run_id }}")"
+          [[ "$code" == '200' ]]
+          echo "STAGING2_EIGHT_POINT_DEPLOY_PASS"
+          echo "staging_http_status=$code"
+          echo "production_modified=false"

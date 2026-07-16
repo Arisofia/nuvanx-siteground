@@ -159,51 +159,16 @@ article.nvx-page > .nvx-page-hero {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   BODY CONTENT SYSTEM — sitewide (blog, valoración, home, hubs)
-   Scope is ANY main content surface, not only .nvx-brand-page.
+   BODY CONTENT SYSTEM — layout concerns only
+   Type primitives + card chrome: nvx-components.css
+   Here: reading measure, long-form figures, shell rhythm.
+   Scoped to editorial surfaces — not every descendant of .nvx-main.
    Heroes stay full-bleed (excluded below).
    ═══════════════════════════════════════════════════════════ */
 
-/* Surfaces that own editorial body copy */
-.nvx-main :is(
-  .nvx-brand-page,
-  .nvx-page__content,
-  .entry-content,
-  .nvx-prose,
-  .nvx-copy,
-  .nvx-page-body__inner,
-  .nvx-brand-section,
-  .nvx-brand-card__body,
-  .nvx-card__body,
-  .nvx-section-intro
-) :where(
-  p,
-  .nvx-brand-body,
-  .nvx-endolift-body,
-  .nvx-laser-body,
-  .nvx-aes-body,
-  .nvx-value__body,
-  .nvx-method-col__body,
-  .nvx-catalog-card__body
-) {
-  margin: 0 0 var(--nvx-margin-body);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-text-body);
-}
-
-/* Global paragraphs inside main shell (home sections, blog, landing) */
-.nvx-main .nvx-shell :where(p),
-.nvx-main .nvx-brand-page :where(p),
-.nvx-main .nvx-home-action-banner__text {
-  font-family: var(--nvx-sans);
-  line-height: var(--nvx-lh-body);
-}
-
-/* Reading measure — long-form only (not grids/cards/meta) */
+/* Reading measure — long-form columns only (not cards, grids, CTAs, UI) */
 .nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-copy) > :where(p, ul, ol, blockquote),
-.nvx-main :is(.nvx-brand-page, .nvx-brand-section__inner) > :where(p, .nvx-brand-body),
+.nvx-main .nvx-brand-section__inner > :where(p, .nvx-brand-body),
 .nvx-main :where(
   .nvx-endolift-body--measure,
   .nvx-aes-body--lead,
@@ -214,44 +179,9 @@ article.nvx-page > .nvx-page-hero {
   max-width: var(--nvx-measure);
 }
 
-.nvx-main :where(
-  h2,
-  .nvx-brand-title,
-  .nvx-heading,
-  .nvx-endolift-heading,
-  .nvx-laser-heading,
-  .nvx-aes-heading
-) {
-  margin: 0 0 var(--nvx-margin-h2);
-}
-
+/* Title line length on long-form intros only */
 .nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-section-intro) :where(h2, .nvx-heading) {
   max-width: 22ch;
-}
-
-.nvx-main :where(
-  h3,
-  .nvx-brand-subtitle,
-  .nvx-value__title,
-  .nvx-brand-card__title,
-  .nvx-endolift-effect__title,
-  .nvx-laser-pillar__title,
-  .nvx-aes-pillar__title,
-  .nvx-aes-card__title
-) {
-  margin: 0 0 var(--nvx-margin-h3);
-}
-
-.nvx-main :where(
-  .nvx-brand-kicker,
-  .nvx-eyebrow,
-  .nvx-brand-card__kicker,
-  .nvx-endolift-kicker,
-  .nvx-laser-kicker,
-  .nvx-aes-kicker
-) {
-  margin: 0 0 var(--nvx-margin-kicker);
-  color: var(--nvx-platinum);
 }
 
 /* Section intro (blog index, title-only pages) */
@@ -266,15 +196,15 @@ article.nvx-page > .nvx-page-hero {
   color: var(--nvx-text-body);
 }
 
-/* Body media — all content surfaces, not brand-page only */
+/* Body media — editorial surfaces only; exclude hero/formula stages */
 .nvx-content-figure,
 .nvx-main :is(
-  .nvx-brand-page,
   .nvx-page__content,
   .entry-content,
   .nvx-prose,
   .nvx-copy,
-  .nvx-page-body__inner
+  .nvx-page-body__inner,
+  .nvx-brand-section__inner
 ) :where(figure, .wp-block-image, .wp-caption):not(
   .nvx-brand-hero__media,
   .nvx-editorial-hero__media,
@@ -296,17 +226,15 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-content-figure img,
 .nvx-main :is(
-  .nvx-brand-page,
   .nvx-page__content,
   .entry-content,
-  .nvx-prose
+  .nvx-prose,
+  .nvx-brand-section__inner
 ) :where(
   figure:not(.nvx-endolift-formula):not(.nvx-laser-formula):not(.nvx-aes-formula),
   .wp-block-image
 ) img,
-.nvx-main img.nvx-media--body,
-.nvx-main .nvx-brand-card__media img,
-.nvx-main .nvx-card__media img {
+.nvx-main img.nvx-media--body {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -316,15 +244,9 @@ article.nvx-page > .nvx-page-hero {
   border-radius: var(--nvx-radius-image);
 }
 
-.nvx-main .nvx-brand-card__media img,
-.nvx-main .nvx-card__media img {
-  aspect-ratio: 16 / 10;
-  border-radius: 0; /* radius on media frame */
-}
-
 /* Body images in sections — never apply to hero stage media */
 .nvx-main .nvx-brand-section img.nvx-media--body,
-.nvx-main .nvx-page__content img.nvx-media--body:not(.nvx-brand-hero__media img) {
+.nvx-main .nvx-page__content img.nvx-media--body {
   max-width: 100%;
   height: auto;
 }
@@ -339,56 +261,13 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-content-figure figcaption,
-.nvx-main :is(.nvx-brand-page, .nvx-prose, .nvx-page__content, .entry-content) figcaption {
+.nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-brand-section__inner) figcaption {
   margin-top: var(--nvx-margin-caption);
   padding-inline: var(--nvx-space-1);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-caption);
   line-height: var(--nvx-lh-caption);
   color: var(--nvx-text-muted);
-}
-
-/* Blog / journal cards — full quiet-luxury chrome (was unstyled grid cells) */
-.nvx-brand-card,
-.nvx-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nvx-space-2);
-  min-width: 0;
-  padding: var(--nvx-pad-card);
-  border: 1px solid var(--nvx-color-line);
-  border-radius: var(--nvx-radius-card);
-  background: var(--nvx-white);
-  box-shadow: var(--nvx-shadow-min);
-}
-
-.nvx-brand-grid {
-  align-items: stretch;
-  margin-block: var(--nvx-space-4) var(--nvx-space-8);
-}
-
-.nvx-brand-card .nvx-button,
-.nvx-card .nvx-button {
-  margin-top: auto;
-  align-self: flex-start;
-}
-
-.nvx-page__nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--nvx-space-3);
-  justify-content: space-between;
-  margin-top: var(--nvx-space-8);
-  padding-top: var(--nvx-space-4);
-  border-top: 1px solid var(--nvx-color-line);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body);
-}
-
-.nvx-page__nav a {
-  color: var(--nvx-ink);
-  text-decoration: underline;
-  text-underline-offset: 4px;
 }
 
 /* Shared conversion band shell rhythm (home + hubs) */

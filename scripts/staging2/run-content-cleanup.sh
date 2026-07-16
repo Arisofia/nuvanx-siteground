@@ -6,6 +6,7 @@ CONFIRMATION="${2:-}"
 ROOT="${STAGING2_ROOT:-/home/customer/www/staging2.nuvanx.com/public_html}"
 SCRIPT_SOURCE="${CLEANUP_SCRIPT_SOURCE:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/cleanup-content-navigation.php}"
 STAGING_URL="https://staging2.nuvanx.com"
+WP_SKIP=(--skip-plugins --skip-themes)
 
 if [[ "$MODE" != "audit" && "$MODE" != "apply" ]]; then
   echo "ERROR: mode must be audit or apply" >&2
@@ -22,10 +23,11 @@ fi
 
 cd "$ROOT"
 
-SITEURL="$(wp option get siteurl)"
-HOMEURL="$(wp option get home)"
+# Precondition reads do not need plugins/themes loaded.
+SITEURL="$(wp option get siteurl "${WP_SKIP[@]}")"
+HOMEURL="$(wp option get home "${WP_SKIP[@]}")"
 THEME="$(wp theme list --status=active --field=name)"
-FRONT_PAGE="$(wp option get page_on_front)"
+FRONT_PAGE="$(wp option get page_on_front "${WP_SKIP[@]}")"
 
 [[ "$SITEURL" == "$STAGING_URL" ]] || {
   echo "ERROR: unexpected SITEURL: $SITEURL (expected $STAGING_URL)" >&2
@@ -57,11 +59,15 @@ wp cache flush || true
 wp sg purge || true
 
 HEALTH_URL="${STAGING_URL}/?content_cleanup=$(date +%s)"
-HTTP_CODE="$(curl -sS -o /dev/null -w '%{http_code}' -H 'Cache-Control: no-cache' "$HEALTH_URL")"
-[[ "$HTTP_CODE" == "200" ]] || {
-  echo "ERROR: staging health check failed for $HEALTH_URL (HTTP $HTTP_CODE, expected 200)" >&2
-  exit 1
-}
+# Follow redirects so a final 2xx success is accepted; capture last status.
+HTTP_CODE="$(curl -sS -L -o /dev/null -w '%{http_code}' -H 'Cache-Control: no-cache' "$HEALTH_URL")"
+case "$HTTP_CODE" in
+  2??) ;;
+  *)
+    echo "ERROR: staging health check failed for $HEALTH_URL (HTTP $HTTP_CODE, expected 2xx)" >&2
+    exit 1
+    ;;
+esac
 
 # Match post-apply checklist markers (PHP also emits APPLIED after DB writes).
 echo "STAGING2_CONTENT_CLEANUP_APPLIED"

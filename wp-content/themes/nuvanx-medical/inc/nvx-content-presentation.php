@@ -242,76 +242,105 @@ function nvx_content_replace_values_sections( string $content ): string {
 }
 
 /**
+ * Safe preg_replace: never wipe content when the regex engine fails (returns null).
+ *
+ * @param string   $pattern  Pattern.
+ * @param string   $replace  Replacement.
+ * @param string   $subject  Subject HTML.
+ * @param int      $limit    Limit (-1 = all).
+ * @param int|null $count    Optional match count out-param.
+ */
+function nvx_content_preg_replace_keep( string $pattern, string $replace, string $subject, int $limit = -1, ?int &$count = null ): string {
+	$result = preg_replace( $pattern, $replace, $subject, $limit, $count );
+	return is_string( $result ) ? $result : $subject;
+}
+
+/**
+ * Pattern: canonical post-values banner shell (id + data attribute + section child).
+ */
+function nvx_content_post_values_banner_pattern_with_id(): string {
+	return '/<div\b[^>]*\bid=["\']nvx-post-values-action-banner["\'][^>]*\bdata-nvx-action-banner=["\']post-values["\'][^>]*>\s*<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-action-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>\s*<\/div>/iu';
+}
+
+/**
+ * Pattern: legacy shell with data attribute only (same rigid shape).
+ */
+function nvx_content_post_values_banner_pattern_legacy(): string {
+	return '/<div\b[^>]*\bdata-nvx-action-banner=["\']post-values["\'][^>]*>\s*<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-action-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>\s*<\/div>/iu';
+}
+
+/**
+ * Pattern: legacy values dual-CTA pair only (not other .nvx-cta-pair blocks).
+ */
+function nvx_content_values_legacy_cta_pattern(): string {
+	return '/\s*<div class="nvx-cta-pair nvx-values__cta"[^>]*>[\s\S]*?<\/div>/iu';
+}
+
+/**
+ * Pattern: values section open…close (structural class only).
+ */
+function nvx_content_values_section_pattern(): string {
+	return '/(<section\b[^>]*\bclass=["\'][^"\']*\bnvx-values-section\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>)/iu';
+}
+
+/**
  * Remove the canonical post-values action banner only (stable id + data attribute).
- * Does not match arbitrary sections or loose action divs.
  */
 function nvx_content_strip_post_values_action_banner( string $content ): string {
-	// Exact wrapper: id + data-nvx-action-banner="post-values" containing one section then close.
-	$pattern = '/<div\b[^>]*\bid=["\']nvx-post-values-action-banner["\'][^>]*\bdata-nvx-action-banner=["\']post-values["\'][^>]*>\s*<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-action-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>\s*<\/div>/iu';
-	$stripped = preg_replace( $pattern, '', $content );
-	if ( is_string( $stripped ) ) {
-		$content = $stripped;
-	}
+	$content = nvx_content_preg_replace_keep( nvx_content_post_values_banner_pattern_with_id(), '', $content );
+	return nvx_content_preg_replace_keep( nvx_content_post_values_banner_pattern_legacy(), '', $content );
+}
 
-	// Legacy shell without id (data attribute only) — same rigid shape.
-	$pattern_legacy = '/<div\b[^>]*\bdata-nvx-action-banner=["\']post-values["\'][^>]*>\s*<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-action-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>\s*<\/div>/iu';
-	$stripped       = preg_replace( $pattern_legacy, '', $content );
-	return is_string( $stripped ) ? $stripped : $content;
+/**
+ * Whether the canonical post-values banner markup is already present.
+ */
+function nvx_content_has_post_values_action_banner( string $content ): bool {
+	return false !== strpos( $content, 'id="nvx-post-values-action-banner"' )
+		|| false !== strpos( $content, "id='nvx-post-values-action-banner'" )
+		|| false !== strpos( $content, 'data-nvx-action-banner="post-values"' )
+		|| false !== strpos( $content, "data-nvx-action-banner='post-values'" );
 }
 
 /**
  * Insert / refresh premium action banner right after the values section.
- * Scoped to known class/id markers only — no broad orphan fragment deletes.
+ * Patterns are named helpers scoped to known ids/classes only.
  */
 function nvx_content_ensure_post_values_action_banner( string $content ): string {
-	// Legacy dual CTA only when it is the exact values CTA class (not other nvx-cta-pair blocks).
-	$stripped = preg_replace(
-		'/\s*<div class="nvx-cta-pair nvx-values__cta"[^>]*>[\s\S]*?<\/div>/iu',
-		'',
-		$content,
-		1
-	);
-	$content = is_string( $stripped ) ? $stripped : $content;
+	// Legacy dual CTA under values pillars only.
+	$content = nvx_content_preg_replace_keep( nvx_content_values_legacy_cta_pattern(), '', $content, 1 );
 
-	// Drop previous canonical banner (id/data scoped) before re-insert so copy stays current.
+	// Refresh: drop previous canonical banner then re-insert current markup.
 	$content = nvx_content_strip_post_values_action_banner( $content );
 
-	// Already present after a partial strip failure — do not insert a second copy.
-	if ( false !== strpos( $content, 'id="nvx-post-values-action-banner"' )
-		|| false !== strpos( $content, "id='nvx-post-values-action-banner'" )
-		|| false !== strpos( $content, 'data-nvx-action-banner="post-values"' )
-		|| false !== strpos( $content, "data-nvx-action-banner='post-values'" )
-	) {
+	// If strip failed partially and marker remains, do not insert a second copy.
+	if ( nvx_content_has_post_values_action_banner( $content ) ) {
 		return $content;
 	}
 
 	$banner = nvx_home_action_banner_markup();
-
-	// Prefer explicit values section class (single match).
-	$updated = preg_replace(
-		'/(<section\b[^>]*\bclass=["\'][^"\']*\bnvx-values-section\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>)/iu',
+	$count  = 0;
+	$updated = nvx_content_preg_replace_keep(
+		nvx_content_values_section_pattern(),
 		'$1' . $banner,
 		$content,
 		1,
 		$count
 	);
-	if ( is_string( $updated ) && $count > 0 ) {
+	if ( $count > 0 ) {
 		return $updated;
 	}
 
-	// Fallback only when the values grid class is present (still structural, not free text).
-	$updated = preg_replace(
+	// Fallback: values grid close inside its parent section (still structural).
+	$count   = 0;
+	$updated = nvx_content_preg_replace_keep(
 		'/(<div class="nvx-values">[\s\S]*?<\/div>\s*<\/div>\s*<\/section>)/iu',
 		'$1' . $banner,
 		$content,
 		1,
 		$count
 	);
-	if ( is_string( $updated ) && $count > 0 ) {
-		return $updated;
-	}
 
-	return $content;
+	return $count > 0 ? $updated : $content;
 }
 
 /**

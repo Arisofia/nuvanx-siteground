@@ -72,6 +72,77 @@ article.nvx-page > .nvx-page-hero {
   box-sizing: border-box;
 }
 
+/* Sede template: full-bleed heroes, no shell box on page wrapper */
+body.page-template-page-sede .nvx-page__shell,
+body.page-template-templatespage-sede-php .nvx-page__shell {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-inline: 0;
+}
+
+/* Brand heroes inside content match home full-bleed, not shell box */
+.nvx-page__content .nvx-brand-hero,
+.nvx-brand-page > .nvx-brand-hero {
+  position: relative;
+  display: block;
+  width: 100vw;
+  max-width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  overflow: hidden;
+}
+
+.nvx-page__content .nvx-brand-hero__media,
+.nvx-brand-page > .nvx-brand-hero .nvx-brand-hero__media {
+  margin: 0;
+  border-radius: 0;
+  background: var(--nvx-ink);
+}
+
+.nvx-page__content .nvx-brand-hero__media img,
+.nvx-brand-page > .nvx-brand-hero .nvx-brand-hero__media img {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+/* Clinic hub / sede intro columns */
+.nvx-brand-page--clinicas .nvx-brand-section__inner,
+.nvx-brand-page--chamberi .nvx-brand-section__inner,
+.nvx-brand-page--goya .nvx-brand-section__inner,
+.nvx-brand-page--clinica .nvx-brand-section__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-brand-page--clinicas .nvx-brand-grid,
+.nvx-brand-page--chamberi .nvx-brand-grid,
+.nvx-brand-page--goya .nvx-brand-grid {
+  margin-block: var(--nvx-space-4) var(--nvx-space-6);
+  align-items: stretch;
+}
+
+.nvx-brand-section__inner--narrow {
+  width: min(100%, 48rem);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-brand-section--soft {
+  background: var(--nvx-pearl, #f6f7f8);
+}
+
+.nvx-brand-page .nvx-brand-section {
+  padding-block: var(--nvx-pad-section);
+}
+
 /* Valoración form stage — inspired by header media (fondo-formulario):
    champagne → platinum gradient / photo, card floating in quiet air. */
 .nvx-valoracion-page > .nvx-hubspot-form-section,

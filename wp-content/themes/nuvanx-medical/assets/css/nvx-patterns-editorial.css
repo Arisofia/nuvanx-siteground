@@ -1059,6 +1059,48 @@ article.nvx-page > .nvx-page-hero {
   margin-top: var(--nvx-space-4, 32px);
 }
 
+/* Clinical review byline (E-E-A-T) */
+.nvx-endolift-reviewed {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin: 0 auto var(--nvx-space-4, 32px);
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small, 0.875rem);
+  line-height: 1.5;
+  color: var(--nvx-text-muted, #5c5c5c);
+}
+
+/* Transparent investment block — GEO cite target */
+.nvx-endolift-investment {
+  background: var(--nvx-pearl, #f6f7f8);
+}
+
+.nvx-endolift-price {
+  margin: 0 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-serif);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--nvx-ink, #1c1c1c);
+  letter-spacing: -0.02em;
+}
+
+.nvx-endolift-price-includes {
+  margin: var(--nvx-space-3, 24px) 0;
+  padding-left: 1.25rem;
+  max-width: 48ch;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body, #333);
+}
+
+.nvx-endolift-price-includes li {
+  margin-bottom: var(--nvx-space-2, 16px);
+}
+
 /* Action banner: exactamente 96px bajo FAQs */
 .nvx-endolift-action {
   margin-top: var(--nvx-space-12);

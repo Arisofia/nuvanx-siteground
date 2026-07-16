@@ -882,31 +882,51 @@ function nvx_schema_physician_director( $organization_id ) {
 		'@id'             => home_url( '/equipo-medico/#physician-rivera-tejeda' ),
 		'name'            => 'José Javier Rivera Tejeda',
 		'honorificPrefix' => 'Dr.',
-		'jobTitle'        => 'Director médico · Medicina estética láser',
+		'jobTitle'        => 'Director médico e investigador clínico aplicado · NUVANX Madrid',
+		'description'     => 'Dirección médica de NUVANX. Láser intersticial (Endolift®, laserlipólisis), CO₂ fraccionado, geometría facial con inductores y tricología. Colegiado ICOMEM ' . $colegiado . '. Perfil público en Doctoralia.',
 		'url'             => $equipo,
 		'worksFor'        => array( '@id' => $organization_id ),
 		'hasCredential'   => array(
-			'@type'              => 'EducationalOccupationalCredential',
-			'credentialCategory' => 'Número de colegiado ICOMEM',
-			'identifier'         => $colegiado,
-			'name'               => 'Colegiado ICOMEM ' . $colegiado,
+			array(
+				'@type'              => 'EducationalOccupationalCredential',
+				'credentialCategory' => 'Número de colegiado ICOMEM',
+				'identifier'         => $colegiado,
+				'name'               => 'Colegiado ICOMEM ' . $colegiado,
+			),
+			array(
+				'@type' => 'EducationalOccupationalCredential',
+				'name'  => 'Máster Universitario en Medicina Estética — Universidad Complutense de Madrid',
+			),
+			array(
+				'@type' => 'EducationalOccupationalCredential',
+				'name'  => 'Máster en Tricología y Cirugía Capilar — AMIR',
+			),
 		),
 		'alumniOf'        => array(
 			array(
 				'@type' => 'CollegeOrUniversity',
 				'name'  => 'Universidad Complutense de Madrid',
 			),
+			array(
+				'@type' => 'EducationalOrganization',
+				'name'  => 'AMIR',
+			),
 		),
 		'knowsAbout'      => array(
 			'Endolift® facial',
 			'Laserlipólisis',
+			'Endoláser corporal',
 			'Láser CO₂ fraccionado',
 			'Medicina estética láser',
 			'Marcación mandibular con láser',
+			'Inductores de colágeno',
+			'Tricología médica',
+			'Medicina regenerativa',
 		),
 		'sameAs'          => array(
 			'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid',
 		),
+		// No AggregateRating hardcode — ratings must mirror live Doctoralia.
 	);
 }
 
@@ -1282,6 +1302,38 @@ function nvx_filter_co2_metadesc( $desc ) {
 	return 'Láser CO₂ fraccionado en NUVANX Madrid: resurfacing para cicatrices de acné, poros y fotodaño. Downtime 4–7 días. PVP sesión facial desde ' . $facial . ' €. Valoración en Chamberí y Goya.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_co2_metadesc', 21 );
+
+/**
+ * Equipo médico document title.
+ *
+ * @param string $title Current title.
+ * @return string
+ */
+function nvx_filter_equipo_document_title( $title ) {
+	$path = nvx_schema_current_path( (int) get_queried_object_id() );
+	if ( ! nvx_schema_path_matches( $path, '/equipo-medico/' ) ) {
+		return $title;
+	}
+
+	return 'Equipo Médico NUVANX Madrid | Dr. José Javier Rivera Tejeda | ICOMEM';
+}
+add_filter( 'wpseo_title', 'nvx_filter_equipo_document_title', 21 );
+
+/**
+ * @param string $desc Meta description.
+ * @return string
+ */
+function nvx_filter_equipo_metadesc( $desc ) {
+	$path = nvx_schema_current_path( (int) get_queried_object_id() );
+	if ( ! nvx_schema_path_matches( $path, '/equipo-medico/' ) ) {
+		return $desc;
+	}
+
+	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+
+	return 'Dr. José Javier Rivera Tejeda, director médico NUVANX (ICOMEM ' . $colegiado . '). Endolift®, laserlipólisis, CO₂ fraccionado y medicina regenerativa en Chamberí y Goya. Perfil en Doctoralia.';
+}
+add_filter( 'wpseo_metadesc', 'nvx_filter_equipo_metadesc', 21 );
 
 // Pages / front only: strip Schema.org payloads from post_content (shared helper).
 // Non-schema ld+json and non-page views are left alone. See nvx-jsonld-content.php.

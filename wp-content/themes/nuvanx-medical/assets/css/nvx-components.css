@@ -1,7 +1,7 @@
 /* NUVANX components — type primitives, cards, values, forms, CTAs
    Long-form measure + body figures live in nvx-site-layout.css (not here).
    Body inherits type from nvx-base; component classes own explicit roles. */
-.nvx-display,.nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-ink)}
+.nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-ink)}
 .nvx-heading,h1{margin:0 0 var(--nvx-margin-h1);font-family:var(--nvx-serif);font-size:var(--nvx-type-h1);font-weight:400;line-height:var(--nvx-lh-h1);letter-spacing:var(--nvx-track-h1);color:var(--nvx-ink)}
 .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
@@ -18,24 +18,21 @@
 .nvx-section-intro p{margin:0 0 var(--nvx-margin-body)}
 .nvx-copy+p,.nvx-brand-body+p,.nvx-prose p+p{margin-top:0}
 .nvx-lead,.nvx-brand-hero__lead{max-width:var(--nvx-measure-lead);margin:0 0 var(--nvx-margin-lead);font-family:var(--nvx-sans);font-size:var(--nvx-type-lead);font-weight:400;line-height:var(--nvx-lh-lead);color:var(--nvx-text-body)}
-.nvx-caption,figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:var(--nvx-type-caption);font-weight:300;line-height:var(--nvx-lh-caption);color:var(--nvx-text-muted)}
+figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:var(--nvx-type-caption);font-weight:300;line-height:var(--nvx-lh-caption);color:var(--nvx-text-muted)}
 .nvx-text-link{color:var(--nvx-ink);text-decoration:underline;text-underline-offset:4px;font-family:var(--nvx-sans)}
 .nvx-text-link:hover,.nvx-text-link:focus-visible{color:var(--nvx-platinum)}
 .nvx-button,.nvx-btn,.nvx-brand-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border:1px solid transparent;border-radius:var(--nvx-radius-button);font-family:var(--nvx-sans);font-size:var(--nvx-type-button);font-weight:600;line-height:1;letter-spacing:var(--nvx-track-button);text-transform:uppercase;text-decoration:none;transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease}
 .nvx-button--primary,.nvx-btn--primary,.nvx-brand-btn--primary{background:var(--nvx-ink);color:var(--nvx-white)}
 .nvx-button--secondary,.nvx-btn--secondary,.nvx-brand-btn--secondary{background:transparent;color:var(--nvx-ink);border-color:var(--nvx-color-line)}
-.nvx-button--light,.nvx-btn--light,.nvx-brand-btn--light{background:var(--nvx-pearl);color:var(--nvx-ink);border-color:var(--nvx-pearl)}
+.nvx-button--light{background:var(--nvx-pearl);color:var(--nvx-ink);border-color:var(--nvx-pearl)}
 /* Used by pre-footer CTA banner (footer.php) on charcoal — outline via currentColor */
 .nvx-button--ghost,.nvx-btn--ghost{background:transparent;color:currentColor;border-color:currentColor}
 .nvx-button:hover,.nvx-button:focus-visible,.nvx-btn:hover,.nvx-btn:focus-visible,.nvx-brand-btn:hover,.nvx-brand-btn:focus-visible{transform:translateY(-1px);box-shadow:var(--nvx-shadow-button)}
 .nvx-media{display:block;width:100%;height:auto;border-radius:var(--nvx-radius-image)}
 .nvx-media--hero{height:100%;object-fit:cover;border-radius:0}
-.nvx-media--editorial{aspect-ratio:4/5;object-fit:cover}
-.nvx-media--clinic{aspect-ratio:16/10;object-fit:cover}
 .nvx-media--doctor{aspect-ratio:5/6;object-fit:cover}
 /* Body content images: natural height, same radius as cards/figures */
 .nvx-media--body{width:100%;height:auto;max-height:var(--nvx-media-max-h-featured);object-fit:cover;border-radius:var(--nvx-radius-image)}
-.nvx-media--treatment{aspect-ratio:16/9;object-fit:cover}
 .nvx-brand-actions{display:flex;flex-wrap:wrap;gap:var(--nvx-space-2);margin-top:var(--nvx-space-4)}
 .nvx-brand-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--nvx-gap-base);align-items:stretch;margin-block:var(--nvx-space-4) var(--nvx-space-8)}
 /* Cards — chrome + parts centralized here (not split with site-layout) */
@@ -120,8 +117,8 @@
 .nvx-value__title{margin:0 0 var(--nvx-space-2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);color:var(--nvx-ink)}
 .nvx-value__body{max-width:var(--nvx-measure);margin:0;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 
-/* FAQ accordion — quiet luxury (native details/summary)
-   Covers canonical .nvx-faq and live .nvx-brand-faq-* markup. */
+/* FAQ accordion — quiet luxury (native details/summary).
+   Live markup: .nvx-faq, .nvx-brand-faq-*, .nvx-home-faq-editorial */
 .nvx-faq,
 .nvx-brand-faq-accordion,
 .nvx-home-faq-editorial {
@@ -130,7 +127,6 @@
 }
 
 .nvx-faq details,
-.nvx-faq .nvx-faq-item,
 .nvx-faq .nvx-brand-faq-item,
 .nvx-brand-faq-accordion details,
 .nvx-brand-faq-accordion .nvx-brand-faq-item,
@@ -143,7 +139,6 @@
 }
 
 .nvx-faq details[open],
-.nvx-faq .nvx-faq-item[open],
 .nvx-faq .nvx-brand-faq-item[open],
 .nvx-brand-faq-accordion details[open],
 .nvx-brand-faq-accordion .nvx-brand-faq-item[open],
@@ -201,7 +196,6 @@
 }
 
 .nvx-faq details[open] > summary::after,
-.nvx-faq .nvx-faq-item[open] > summary::after,
 .nvx-faq .nvx-brand-faq-item[open] > summary::after,
 .nvx-brand-faq-accordion details[open] > summary::after,
 .nvx-brand-faq-accordion .nvx-brand-faq-item[open] > summary::after,

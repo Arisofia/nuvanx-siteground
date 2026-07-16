@@ -2,6 +2,7 @@
  * Paleta oficial: Plata Pulida
  * Tipografía: Bodoni Moda + Manrope
  * Espaciado: escala canónica de 8px.
+ * Only tokens referenced by active stylesheets are kept.
  */
 
 :root {
@@ -13,12 +14,10 @@
   --nvx-silver: #c4c8ce;
   --nvx-platinum: #9ba3ad;
   --nvx-white: #ffffff;
-  --nvx-champagne: var(--nvx-platinum);
 
   --nvx-text-body: #3c4048;
   --nvx-text-muted: #6e747c;
   --nvx-color-paper: #f2f3f5;
-  --nvx-color-ink: #12141a;
   --nvx-color-line: rgba(20, 22, 26, 0.12);
 
   --nvx-shadow-min: 0 1px 2px rgba(20, 22, 26, 0.04);
@@ -27,33 +26,25 @@
   --nvx-shadow-button: 0 8px 24px rgba(20, 22, 26, 0.12);
   --nvx-shadow-button-hover: 0 16px 32px rgba(20, 22, 26, 0.14);
   --nvx-accent-glow: rgba(155, 163, 173, 0.16);
-  --nvx-header-bg: rgba(246, 247, 248, 0.98);
 
-  /* Escala de 8px */
+  /* Escala de 8px (valores en uso en CSS activo) */
   --nvx-space-1: 8px;
   --nvx-space-2: 16px;
   --nvx-space-3: 24px;
   --nvx-space-4: 32px;
   --nvx-space-5: 40px;
   --nvx-space-6: 48px;
-  --nvx-space-7: 56px;
   --nvx-space-8: 64px;
   --nvx-space-10: 80px;
   --nvx-space-12: 96px;
-  --nvx-space-15: 120px;
 
-  --nvx-gap-tight: var(--nvx-space-2);
   --nvx-gap-base: clamp(24px, 2.4vw, 32px);
   --nvx-gap-wide: clamp(32px, 4vw, 48px);
   --nvx-gap-section: clamp(48px, 6vw, 96px);
-  --nvx-gap-magazine-air: clamp(32px, 4vw, 64px);
 
   --nvx-pad-card: clamp(24px, 3vw, 40px);
   --nvx-pad-section: clamp(96px, 8vw, 120px);
   --nvx-pad-section-tight: clamp(64px, 6vw, 80px);
-  --nvx-section-y: var(--nvx-pad-section);
-  --nvx-section-y-tight: var(--nvx-pad-section-tight);
-  --nvx-section-y-open: var(--nvx-pad-section);
 
   --nvx-gutter: clamp(32px, 6vw, 96px);
   --nvx-gutter-inner: clamp(24px, 4vw, 48px);
@@ -69,33 +60,18 @@
 
   /* Shell y lectura */
   --nvx-shell: min(1240px, calc(100vw - var(--nvx-gutter)));
-  --nvx-width-normal: min(820px, 100%);
-  --nvx-readable: var(--nvx-width-normal);
-  --nvx-shell-reading: var(--nvx-readable);
+  --nvx-readable: min(820px, 100%);
   --nvx-measure: 68ch;
   --nvx-measure-lead: 56ch;
+  --nvx-measure-wide: 72rem;
 
-  /* Media y formas */
-  --nvx-media-ratio-hero: 16 / 9;
-  --nvx-media-ratio-editorial: 16 / 10;
-  --nvx-media-ratio-doctor: 5 / 6;
-  --nvx-media-max-h: clamp(224px, 28vw, 360px);
-  --nvx-media-max-h-hero: clamp(288px, 38vw, 480px);
+  /* Media */
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
-  --nvx-media-max-h-logo: clamp(40px, 5.5vw, 64px);
-  --nvx-media-logo-pad: clamp(16px, 2vw, 24px);
-  --nvx-media-max-w-logo: min(11rem, 100%);
 
   --nvx-radius-button: 999px;
   --nvx-radius-card: clamp(24px, 2.5vw, 32px);
   --nvx-radius-image: clamp(24px, 2.5vw, 32px);
-  --nvx-radius-form: 16px;
-  --nvx-organic-b: 62% 38% 55% 45% / 48% 42% 58% 52%;
   --nvx-organic-c: 36% 64% 52% 48% / 58% 36% 64% 42%;
-  --nvx-organic-soft: 28% 72% 64% 36% / 52% 38% 62% 48%;
-  --nvx-media-tilt: -0.85deg;
-  --nvx-media-tilt-alt: 0.95deg;
-  --nvx-media-bleed-x: clamp(16px, 2.5vw, 32px);
   /* Hero scrim: stronger bottom for full-bleed overlay legibility */
   --nvx-media-overlay: linear-gradient(
     180deg,
@@ -108,24 +84,17 @@
   /* Tipografía canónica */
   --nvx-serif: "Bodoni Moda", "Times New Roman", Georgia, serif;
   --nvx-sans: "Manrope", "Helvetica Neue", Arial, sans-serif;
-  --nvx-font-serif: var(--nvx-serif);
-  --nvx-font-sans: var(--nvx-sans);
   --nvx-type-display: clamp(3rem, 5.5vw, 5.75rem);
   --nvx-type-h1: clamp(2.5rem, 4.5vw, 4.25rem);
   --nvx-type-h2: clamp(1.875rem, 3.2vw, 2.75rem);
   --nvx-type-h3: clamp(1.25rem, 2vw, 1.75rem);
   --nvx-type-lead: clamp(1.125rem, 1.35vw, 1.25rem);
-  --nvx-type-body-large: 1.125rem;
   --nvx-type-body: 1.0625rem;
   --nvx-type-caption: clamp(.875rem, .9vw, .9375rem);
+  --nvx-type-small: 0.875rem;
   --nvx-type-kicker: clamp(.6875rem, .72vw, .75rem);
   --nvx-type-button: .75rem;
-  --nvx-type-numeral-display: clamp(2.75rem, 5.5vw, 4.75rem);
-  --nvx-type-pull: clamp(1.45rem, 2.5vw, 2rem);
-  --nvx-fw-light: 300;
   --nvx-fw-regular: 400;
-  --nvx-fw-medium: 500;
-  --nvx-fw-semibold: 600;
   --nvx-lh-display: 1.05;
   --nvx-lh-h1: 1.1;
   --nvx-lh-h2: 1.15;
@@ -134,13 +103,11 @@
   --nvx-lh-body: 1.75;
   --nvx-lh-lead: 1.65;
   --nvx-lh-caption: 1.5;
-  --nvx-lh-button: 1;
   --nvx-track-display: -.04em;
   --nvx-track-h1: -.02em;
   --nvx-track-h2: -.015em;
   --nvx-track-h3: -.01em;
   --nvx-track-kicker: .25em;
   --nvx-track-button: .14em;
-  --nvx-track-numeral: -.02em;
   --nvx-track-body: normal;
 }

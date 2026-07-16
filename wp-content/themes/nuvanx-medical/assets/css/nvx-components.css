@@ -5,9 +5,19 @@
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
 .nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:600;line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-platinum)}
 .nvx-copy,.nvx-brand-body,p{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
-.nvx-copy+p,.nvx-brand-body+p,.nvx-prose p+p{margin-top:var(--nvx-space-3)}
-.nvx-lead,.nvx-brand-hero__lead{max-width:var(--nvx-measure-lead);font-family:var(--nvx-sans);font-size:var(--nvx-type-lead);font-weight:400;line-height:var(--nvx-lh-lead);color:var(--nvx-text-body)}
+/* Every paragraph gets body margin — not only p+p (fixes “blocks without style”) */
+.nvx-copy p,
+.nvx-brand-body p,
+.nvx-prose p,
+.nvx-page__content p,
+.entry-content p,
+.nvx-brand-card__body p,
+.nvx-card__body p{margin:0 0 var(--nvx-margin-body)}
+.nvx-copy+p,.nvx-brand-body+p,.nvx-prose p+p{margin-top:0}
+.nvx-lead,.nvx-brand-hero__lead{max-width:var(--nvx-measure-lead);margin:0 0 var(--nvx-margin-lead);font-family:var(--nvx-sans);font-size:var(--nvx-type-lead);font-weight:400;line-height:var(--nvx-lh-lead);color:var(--nvx-text-body)}
 .nvx-caption,figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:var(--nvx-type-caption);font-weight:300;line-height:var(--nvx-lh-caption);color:var(--nvx-text-muted)}
+.nvx-text-link{color:var(--nvx-ink);text-decoration:underline;text-underline-offset:4px;font-family:var(--nvx-sans)}
+.nvx-text-link:hover,.nvx-text-link:focus-visible{color:var(--nvx-platinum)}
 .nvx-button,.nvx-btn,.nvx-brand-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border:1px solid transparent;border-radius:var(--nvx-radius-button);font-family:var(--nvx-sans);font-size:var(--nvx-type-button);font-weight:600;line-height:1;letter-spacing:var(--nvx-track-button);text-transform:uppercase;text-decoration:none;transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease}
 .nvx-button--primary,.nvx-btn--primary,.nvx-brand-btn--primary{background:var(--nvx-ink);color:var(--nvx-white)}
 .nvx-button--secondary,.nvx-btn--secondary,.nvx-brand-btn--secondary{background:transparent;color:var(--nvx-ink);border-color:var(--nvx-color-line)}
@@ -26,10 +36,13 @@
 .nvx-brand-readable{max-width:var(--nvx-readable)}
 .nvx-brand-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--nvx-gap-base)}
 .nvx-brand-card{grid-column:span 4;min-width:0}
-.nvx-brand-card__media{margin-bottom:var(--nvx-space-3);overflow:hidden;border-radius:var(--nvx-radius-image)}
-.nvx-brand-card__media img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover}
-.nvx-brand-card__title{margin:0 0 var(--nvx-space-2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3)}
-.nvx-brand-card__body{max-width:68ch;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
+.nvx-brand-card__media{margin:calc(-1 * var(--nvx-pad-card)) calc(-1 * var(--nvx-pad-card)) var(--nvx-space-3);overflow:hidden;border-radius:var(--nvx-radius-card) var(--nvx-radius-card) 0 0;background:var(--nvx-pearl)}
+.nvx-brand-card__media img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:0}
+.nvx-brand-card__title{margin:0 0 var(--nvx-space-2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);color:var(--nvx-ink)}
+.nvx-brand-card__title a{color:inherit;text-decoration:none}
+.nvx-brand-card__title a:hover,.nvx-brand-card__title a:focus-visible{color:var(--nvx-platinum)}
+.nvx-brand-card__body{max-width:var(--nvx-measure);font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
+.nvx-brand-card__body p{margin:0 0 var(--nvx-space-2)}
 
 /* Valores y beneficios: tres columnas, iconografía outline y ritmo de 8px. */
 .nvx-values,.nvx-value-grid,.nvx-benefits-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--nvx-space-6);align-items:start}

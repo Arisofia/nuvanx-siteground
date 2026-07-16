@@ -30,7 +30,8 @@ get_header();
 									the_post_thumbnail(
 										'large',
 										array(
-											'alt' => the_title_attribute( array( 'echo' => false ) ),
+											'class' => 'nvx-media nvx-media--body',
+											'alt'   => the_title_attribute( array( 'echo' => false ) ),
 										)
 									);
 									?>

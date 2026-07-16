@@ -47,27 +47,23 @@ function nvx_aesthetic_page_url( string $path ): string {
  * Detect Medicina Estética hub (injectables / regenerativa), not láser hub.
  */
 function nvx_content_is_aesthetic_medicine_page( string $content ): bool {
-	if ( false !== strpos( $content, 'nvx-aesthetic-editorial' ) ) {
-		return false;
+	$is_hub = false;
+
+	if ( false === strpos( $content, 'nvx-aesthetic-editorial' )
+		&& nvx_aesthetic_is_singular_context()
+		&& ! preg_match(
+			'/nvx-brand-page--laser|nvx-laser-editorial|nvx-laser-hero|id=["\']nvx-laser-h1["\']|nvx-endolift-editorial|nvx-endolift-hero|aria-label=["\']Medicina estética láser NUVANX["\']/iu',
+			$content
+		)
+	) {
+		// Stable structural markers for /medicina-estetica/.
+		$is_hub = (bool) preg_match(
+			'/class=["\'][^"\']*nvx-brand-page--medicina-estetica|id=["\']nvx-med-h1["\']|aria-label=["\']Medicina estética NUVANX["\']/iu',
+			$content
+		);
 	}
 
-	if ( ! nvx_aesthetic_is_singular_context() ) {
-		return false;
-	}
-
-	// Exclude laser hub and treatment detail editorials.
-	if ( preg_match(
-		'/nvx-brand-page--laser|nvx-laser-editorial|nvx-laser-hero|id=["\']nvx-laser-h1["\']|nvx-endolift-editorial|nvx-endolift-hero|aria-label=["\']Medicina estética láser NUVANX["\']/iu',
-		$content
-	) ) {
-		return false;
-	}
-
-	// Stable structural markers for /medicina-estetica/.
-	return (bool) preg_match(
-		'/class=["\'][^"\']*nvx-brand-page--medicina-estetica|id=["\']nvx-med-h1["\']|aria-label=["\']Medicina estética NUVANX["\']/iu',
-		$content
-	);
+	return $is_hub;
 }
 
 /**
@@ -172,19 +168,9 @@ function nvx_aesthetic_action_banner_markup(): string {
 }
 
 /**
- * Full editorial body after hero.
+ * Diagnosis pillars section.
  */
-function nvx_aesthetic_editorial_body_markup(): string {
-	$html  = '<div class="nvx-aesthetic-editorial">';
-
-	// B. Diagnóstico — 3 columnas.
-	$html .= '<section class="nvx-aes-section nvx-aes-diagnosis" aria-labelledby="nvx-aes-diagnosis-title">';
-	$html .= '<div class="nvx-aes-section__inner">';
-	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'El diagnóstico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-aes-diagnosis-title" class="nvx-aes-heading">' . esc_html__( 'El diagnóstico antes del tratamiento', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-aes-body nvx-aes-body--lead">' . esc_html__( 'En NUVANX, la indicación de un inyectable no parte de un menú estandarizado, sino de una lectura clínica profunda de los vectores de envejecimiento del rostro. Evaluamos tres parámetros críticos:', 'nuvanx-medical' ) . '</p>';
-	$html .= '<div class="nvx-aes-focus-grid">';
-
+function nvx_aesthetic_diagnosis_section_markup(): string {
 	$pillars = array(
 		array(
 			'icon'  => 'support',
@@ -203,6 +189,13 @@ function nvx_aesthetic_editorial_body_markup(): string {
 		),
 	);
 
+	$html  = '<section class="nvx-aes-section nvx-aes-diagnosis" aria-labelledby="nvx-aes-diagnosis-title">';
+	$html .= '<div class="nvx-aes-section__inner">';
+	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'El diagnóstico', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-aes-diagnosis-title" class="nvx-aes-heading">' . esc_html__( 'El diagnóstico antes del tratamiento', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-aes-body nvx-aes-body--lead">' . esc_html__( 'En NUVANX, la indicación de un inyectable no parte de un menú estandarizado, sino de una lectura clínica profunda de los vectores de envejecimiento del rostro. Evaluamos tres parámetros críticos:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-aes-focus-grid">';
+
 	foreach ( $pillars as $pillar ) {
 		$html .= '<article class="nvx-aes-pillar">';
 		$html .= nvx_aesthetic_icon( $pillar['icon'] );
@@ -212,14 +205,39 @@ function nvx_aesthetic_editorial_body_markup(): string {
 	}
 
 	$html .= '</div></div></section>';
+	return $html;
+}
 
-	// C. Catálogo facial.
-	$html .= '<section class="nvx-aes-section nvx-aes-catalog" aria-labelledby="nvx-aes-catalog-title">';
-	$html .= '<div class="nvx-aes-section__inner">';
-	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'Catálogo facial', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-aes-catalog-title" class="nvx-aes-heading">' . esc_html__( 'Procedimientos médico-estéticos faciales', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<div class="nvx-aes-card-grid">';
+/**
+ * Resolve published page URL by primary path or alternate slugs.
+ *
+ * @param string               $primary Primary path slug.
+ * @param array<int, string>   $alts    Alternate path slugs.
+ */
+function nvx_aesthetic_resolve_treatment_url( string $primary, array $alts = array() ): string {
+	$url = nvx_aesthetic_page_url( $primary );
+	$page = get_page_by_path( trim( $primary, '/' ) );
+	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
+		return $url;
+	}
 
+	foreach ( $alts as $alt ) {
+		$alt_page = get_page_by_path( $alt );
+		if ( $alt_page instanceof WP_Post && 'publish' === $alt_page->post_status ) {
+			$permalink = get_permalink( $alt_page );
+			if ( is_string( $permalink ) && '' !== $permalink ) {
+				return $permalink;
+			}
+		}
+	}
+
+	return $url;
+}
+
+/**
+ * Facial catalog cards.
+ */
+function nvx_aesthetic_catalog_section_markup(): string {
 	$treatments = array(
 		array(
 			'n'     => '01',
@@ -228,7 +246,7 @@ function nvx_aesthetic_editorial_body_markup(): string {
 			'body'  => __( 'Reestablecemos la definición del arco de Cupido, las columnas del filtrum y el volumen del bermellón respetando la anatomía original del paciente. Seleccionamos geles de ácido hialurónico con alta cohesividad y elasticidad adaptada para que el labio se mueva de forma natural con el habla y la sonrisa.', 'nuvanx-medical' ),
 			'price' => __( 'Desde 290 €', 'nuvanx-medical' ),
 			'core'  => __( 'Labios delgados, pérdida de volumen por envejecimiento o asimetrías severas.', 'nuvanx-medical' ),
-			'url'   => nvx_aesthetic_page_url( 'labios-acido-hialuronico-madrid' ),
+			'url'   => nvx_aesthetic_resolve_treatment_url( 'labios-acido-hialuronico-madrid', array( 'labios', 'acido-hialuronico-labios', 'tratamiento-labios' ) ),
 		),
 		array(
 			'n'     => '02',
@@ -237,7 +255,7 @@ function nvx_aesthetic_editorial_body_markup(): string {
 			'body'  => __( 'Corrección de irregularidades en el dorso nasal (caballete) y elevación sutil de la punta mediante la infiltración precisa de ácido hialurónico de alta densidad en el plano supraperiosteal. Un procedimiento de alta precisión que armoniza el perfil sin los tiempos de baja de una cirugía.', 'nuvanx-medical' ),
 			'price' => __( 'Desde 380 €', 'nuvanx-medical' ),
 			'core'  => __( 'Desviaciones leves del dorso nasal o puntas caídas. No sustituye a la rinoplastia quirúrgica.', 'nuvanx-medical' ),
-			'url'   => nvx_aesthetic_page_url( 'rinomodelacion-sin-cirugia-madrid' ),
+			'url'   => nvx_aesthetic_resolve_treatment_url( 'rinomodelacion-sin-cirugia-madrid', array( 'rinomodelacion', 'rinomodelacion-sin-cirugia' ) ),
 		),
 		array(
 			'n'     => '03',
@@ -246,7 +264,7 @@ function nvx_aesthetic_editorial_body_markup(): string {
 			'body'  => __( 'Tratamiento estructural del hundimiento de la ojera mediante la infiltración profunda de ácido hialurónico específico para la zona periocular. El objetivo es eliminar el aspecto de cansancio visual de forma segura, reduciendo la sombra de la ojera y proyectando la luz en el tercio medio.', 'nuvanx-medical' ),
 			'price' => __( 'Tras valoración médica personalizada', 'nuvanx-medical' ),
 			'core'  => __( 'Ojeras hundidas o surco lagrimal marcado. Requiere dermis de calidad y ausencia de bolsas grasas.', 'nuvanx-medical' ),
-			'url'   => nvx_aesthetic_page_url( 'ojeras-surco-lagrimal-madrid' ),
+			'url'   => nvx_aesthetic_resolve_treatment_url( 'ojeras-surco-lagrimal-madrid', array( 'ojeras', 'tratamiento-ojeras', 'surco-lagrimal' ) ),
 		),
 		array(
 			'n'     => '04',
@@ -255,33 +273,15 @@ function nvx_aesthetic_editorial_body_markup(): string {
 			'body'  => __( 'Protocolos inductores de colágeno mediante la infiltración de ácido poliláctico (Sculptra®) o hidroxiapatita de calcio (Radiesse®). Estos principios activos desencadenan una respuesta celular en la dermis profunda que estimula a los fibroblastos a producir nuevas fibras elásticas, tensando el tejido sin añadir volumen artificial al rostro.', 'nuvanx-medical' ),
 			'price' => __( 'Estimuladores de colágeno desde 490 €', 'nuvanx-medical' ),
 			'core'  => __( 'Flacidez moderada, pérdida de elasticidad y piel desvitalizada.', 'nuvanx-medical' ),
-			'url'   => nvx_aesthetic_page_url( 'bioestimuladores-colageno-madrid' ),
+			'url'   => nvx_aesthetic_resolve_treatment_url( 'bioestimuladores-colageno-madrid', array( 'bioestimulacion', 'bioestimuladores', 'sculptra', 'radiesse' ) ),
 		),
 	);
 
-	// Try common alternate slugs if primary 404-style paths differ on site.
-	$slug_fallbacks = array(
-		'labios-acido-hialuronico-madrid'    => array( 'labios', 'acido-hialuronico-labios', 'tratamiento-labios' ),
-		'rinomodelacion-sin-cirugia-madrid'  => array( 'rinomodelacion', 'rinomodelacion-sin-cirugia' ),
-		'ojeras-surco-lagrimal-madrid'       => array( 'ojeras', 'tratamiento-ojeras', 'surco-lagrimal' ),
-		'bioestimuladores-colageno-madrid'   => array( 'bioestimulacion', 'bioestimuladores', 'sculptra', 'radiesse' ),
-	);
-
-	foreach ( $treatments as $i => $treatment ) {
-		$path = trim( (string) wp_parse_url( $treatment['url'], PHP_URL_PATH ), '/' );
-		if ( isset( $slug_fallbacks[ $path ] ) ) {
-			$page = get_page_by_path( $path );
-			if ( ! ( $page instanceof WP_Post ) ) {
-				foreach ( $slug_fallbacks[ $path ] as $alt ) {
-					$alt_page = get_page_by_path( $alt );
-					if ( $alt_page instanceof WP_Post && 'publish' === $alt_page->post_status ) {
-						$treatments[ $i ]['url'] = get_permalink( $alt_page );
-						break;
-					}
-				}
-			}
-		}
-	}
+	$html  = '<section class="nvx-aes-section nvx-aes-catalog" aria-labelledby="nvx-aes-catalog-title">';
+	$html .= '<div class="nvx-aes-section__inner">';
+	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'Catálogo facial', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-aes-catalog-title" class="nvx-aes-heading">' . esc_html__( 'Procedimientos médico-estéticos faciales', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<div class="nvx-aes-card-grid">';
 
 	foreach ( $treatments as $treatment ) {
 		$html .= '<article class="nvx-aes-card">';
@@ -300,9 +300,14 @@ function nvx_aesthetic_editorial_body_markup(): string {
 	}
 
 	$html .= '</div></div></section>';
+	return $html;
+}
 
-	// D. Regeneración callout (bioestimuladores emphasis strip).
-	$html .= '<section class="nvx-aes-section nvx-aes-regen" aria-labelledby="nvx-aes-regen-title">';
+/**
+ * Regeneration callout.
+ */
+function nvx_aesthetic_regen_section_markup(): string {
+	$html  = '<section class="nvx-aes-section nvx-aes-regen" aria-labelledby="nvx-aes-regen-title">';
 	$html .= '<div class="nvx-aes-section__inner nvx-aes-regen__grid">';
 	$html .= '<div>';
 	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'Regeneración', 'nuvanx-medical' ) . '</p>';
@@ -316,15 +321,19 @@ function nvx_aesthetic_editorial_body_markup(): string {
 	$html .= '<li><strong>' . esc_html__( 'Resultado bifásico', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Mejora progresiva entre semanas y meses según el protocolo.', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>' . esc_html__( 'Indicación médica', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Fototipo, elastosis y calidad dérmica definen el plan.', 'nuvanx-medical' ) . '</li>';
 	$html .= '</ul></aside></div></section>';
+	return $html;
+}
 
-	// E. FAQ AEO.
-	$html .= '<section class="nvx-aes-section nvx-aes-faq" aria-labelledby="nvx-aes-faq-title">';
+/**
+ * Clinical FAQs (AEO).
+ */
+function nvx_aesthetic_faq_section_markup(): string {
+	$html  = '<section class="nvx-aes-section nvx-aes-faq" aria-labelledby="nvx-aes-faq-title">';
 	$html .= '<div class="nvx-aes-section__inner">';
 	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'Preguntas clínicas', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-aes-faq-title" class="nvx-aes-heading">' . esc_html__( 'Rigor científico sobre inyectables y regeneración', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq nvx-aes-faq-list">';
 
-	// FAQ 1 with rheology formula.
 	$html .= '<details class="nvx-brand-faq-item" open>';
 	$html .= '<summary><span>' . esc_html__( '¿Cómo influye la reología del ácido hialurónico en el éxito de una armonización facial y cómo se elige el producto adecuado?', 'nuvanx-medical' ) . '</span></summary>';
 	$html .= '<div class="nvx-brand-faq-content">';
@@ -353,13 +362,30 @@ function nvx_aesthetic_editorial_body_markup(): string {
 	}
 
 	$html .= '</div></div></section>';
-
-	// F. Action banner.
-	$html .= nvx_aesthetic_action_banner_markup();
-
-	$html .= '</div>';
-
 	return $html;
+}
+
+/**
+ * Full editorial body after hero.
+ */
+function nvx_aesthetic_editorial_body_markup(): string {
+	return '<div class="nvx-aesthetic-editorial">'
+		. nvx_aesthetic_diagnosis_section_markup()
+		. nvx_aesthetic_catalog_section_markup()
+		. nvx_aesthetic_regen_section_markup()
+		. nvx_aesthetic_faq_section_markup()
+		. nvx_aesthetic_action_banner_markup()
+		. '</div>';
+}
+
+/**
+ * Extract existing hero media markup when present.
+ */
+function nvx_aesthetic_extract_hero_media( string $content ): string {
+	if ( preg_match( '/<(?:figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/(?:figure|div)>/iu', $content, $m ) ) {
+		return $m[0];
+	}
+	return '';
 }
 
 /**
@@ -370,12 +396,7 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 		return $content;
 	}
 
-	$media = '';
-	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
-		$media = $m[0];
-	} elseif ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
-		$media = $m[0];
-	}
+	$media = nvx_aesthetic_extract_hero_media( $content );
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--medical nvx-aes-hero" aria-labelledby="nvx-med-h1" aria-label="' . esc_attr__( 'Medicina estética NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
@@ -384,11 +405,14 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 	$hero .= '</div></section>';
 
 	$body = nvx_aesthetic_editorial_body_markup();
+	$out  = $hero . $body;
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
-		return $wrap[1] . $hero . $body . '</div>';
+		$out = $wrap[1] . $out . '</div>';
+	} else {
+		$out = '<div class="nvx-brand-page nvx-brand-page--medicina-estetica">' . $out . '</div>';
 	}
 
-	return '<div class="nvx-brand-page nvx-brand-page--medicina-estetica">' . $hero . $body . '</div>';
+	return $out;
 }
 add_filter( 'the_content', 'nvx_content_restructure_aesthetic_medicine_page', 19 );

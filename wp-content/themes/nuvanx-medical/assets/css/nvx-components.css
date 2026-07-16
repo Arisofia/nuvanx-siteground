@@ -110,8 +110,7 @@
 }
 
 .nvx-hubspot-form-section .hs-form-field,
-.nvx-hs-lead-form .hs-form-field,
-.nvx-hubspot-form-section .hs-form-field {
+.nvx-hs-lead-form .hs-form-field {
   display: grid;
   gap: 8px;
   margin: 0;

@@ -393,6 +393,17 @@ function nvx_content_unify_ctas( string $content ): string {
 }
 
 /**
+ * Strip inline style attributes from hero containers so cascade wins without
+ * the important flag (CSS Gate).
+ */
+function nvx_content_strip_hero_inline_styles( string $content ): string {
+	// Opening tags for hero stages / copy that may carry legacy inline layout.
+	$pattern = '/(<(?:section|div)\b[^>]*\bclass="[^"]*\b(?:nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage|nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy|nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner)\b[^"]*"[^>]*)\s+style="[^"]*"/iu';
+	$updated = preg_replace( $pattern, '$1', $content );
+	return is_string( $updated ) ? $updated : $content;
+}
+
+/**
  * Global content presentation pipeline (all singular + front content).
  *
  * @param string $content HTML.
@@ -408,6 +419,7 @@ function nvx_content_presentation_enhance( string $content ): string {
 		return $content;
 	}
 
+	$content = nvx_content_strip_hero_inline_styles( $content );
 	$content = nvx_content_replace_values_sections( $content );
 	$content = nvx_content_replace_method_sections( $content );
 	$content = nvx_content_enrich_treatment_cards( $content );

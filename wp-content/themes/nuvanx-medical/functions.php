@@ -388,6 +388,93 @@ function nvx_theme_normalize_content_markup( string $content ): string {
 	// 5) Quitar <style> embebidos en contenido.
 	$content = preg_replace( '/<style\b[^>]*>[\s\S]*?<\/style>/i', '', $content );
 
+	// 5b) Limpiar basura del editor (páginas nosotros/sedes con <p> vacíos y secciones huecas).
+	$content = preg_replace( '/<p[^>]*>\s*(?:&nbsp;|\s|<br\s*\/?>)*\s*<\/p>/iu', '', $content );
+	$content = preg_replace( '/<div[^>]*>\s*<\/div>/i', '', $content );
+	// Secciones brand vacías o solo whitespace.
+	$content = preg_replace(
+		'/<section([^>]*\bnvx-brand-section\b[^>]*)>\s*<\/section>/i',
+		'',
+		$content
+	);
+	// Cierres huérfanos típicos de markup roto en nosotros.
+	$content = preg_replace( '/(?:<p>\s*<\/p>\s*){2,}/i', '', $content );
+
+	// 5c) description de hero → lead canónico (gracias y variantes).
+	$content = preg_replace(
+		'/\bclass=(["\'])([^"\']*\bnvx-brand-hero__description\b[^"\']*)\1/i',
+		'class=$1$2 nvx-brand-hero__lead$1',
+		$content
+	);
+
+	// 5d) CTA sueltos en <div> sin clase → nvx-brand-actions (nosotros, sedes).
+	$content = preg_replace_callback(
+		'/<div(\s[^>]*)?>\s*((?:<a\b[^>]*\bnvx-button\b[^>]*>[\s\S]*?<\/a>\s*(?:<br\s*\/?>\s*)?)+)<\/div>/i',
+		static function ( $m ) {
+			$attrs = isset( $m[1] ) ? $m[1] : '';
+			$inner = $m[2];
+			// No tocar si ya es actions/grid/shell.
+			if ( preg_match( '/\bclass=(["\'])([^"\']*)\1/i', $attrs, $cm ) ) {
+				if ( preg_match( '/\b(nvx-brand-actions|nvx-brand-grid|nvx-shell|nvx-brand-section)\b/', $cm[2] ) ) {
+					return $m[0];
+				}
+				$attrs = preg_replace(
+					'/\bclass=(["\'])([^"\']*)\1/i',
+					'class=$1$2 nvx-brand-actions$1',
+					$attrs,
+					1
+				);
+			} else {
+				$attrs .= ' class="nvx-brand-actions"';
+			}
+			$inner = preg_replace( '/<br\s*\/?>/i', '', $inner );
+			return '<div' . $attrs . '>' . $inner . '</div>';
+		},
+		$content
+	);
+
+	// 5e) Fichas de equipo sin --team (Chamberí/Goya): media + rol clínico → layout equipo.
+	$content = preg_replace_callback(
+		'/<article([^>]*\bclass=(["\'])([^"\']*\bnvx-brand-card\b[^"\']*)\2[^>]*)>([\s\S]*?)<\/article>/i',
+		static function ( $m ) {
+			$attrs   = $m[1];
+			$classes = $m[3];
+			$inner   = $m[4];
+			if ( false !== strpos( $classes, 'nvx-brand-card--team' ) ) {
+				return $m[0];
+			}
+			$has_media = ( false !== strpos( $inner, 'nvx-brand-card__media' ) || preg_match( '/<img\b/i', $inner ) );
+			if ( ! $has_media ) {
+				return $m[0];
+			}
+			// Roles de ficha médica (no catálogo de tratamientos).
+			if ( ! preg_match( '/Direcci[oó]n|Especialista|CEO|M[eé]dic[oa]|Cl[ií]nic/iu', $inner ) ) {
+				return $m[0];
+			}
+			$attrs = preg_replace(
+				'/\bclass=(["\'])/',
+				'class=$1nvx-brand-card--team ',
+				$attrs,
+				1
+			);
+			return '<article' . $attrs . '>' . $inner . '</article>';
+		},
+		$content
+	);
+
+	// 5f) Kickers de caso / “en preparación” → kicker canónico.
+	$content = preg_replace(
+		'/<p class=(["\'])nvx-brand-body\1>\s*(Caso en preparaci[oó]n|Tratamientos)\s*<\/p>/iu',
+		'<p class="nvx-brand-card__kicker">$2</p>',
+		$content
+	);
+	// Subtítulos de card usados como título de caso → title.
+	$content = preg_replace(
+		'/<h3 class=(["\'])nvx-brand-subtitle\1>/i',
+		'<h3 class="nvx-brand-card__title">',
+		$content
+	);
+
 	// 6) Home: eliminar collage editorial bajo el vídeo (markup del editor).
 	if ( function_exists( 'nvx_theme_is_home_page' ) && nvx_theme_is_home_page() ) {
 		$content = preg_replace(

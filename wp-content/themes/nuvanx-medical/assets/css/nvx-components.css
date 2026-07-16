@@ -134,8 +134,10 @@ p,
 /* Lead / intro — un tono más amplio y calmo que el body */
 .nvx-lead,
 .nvx-brand-hero__lead,
+.nvx-brand-hero__description,
 p.nvx-lead,
-p.nvx-brand-hero__lead {
+p.nvx-brand-hero__lead,
+p.nvx-brand-hero__description {
   margin: 0 0 var(--nvx-margin-lead);
   max-width: var(--nvx-measure-lead);
   color: var(--nvx-text-muted);
@@ -145,6 +147,52 @@ p.nvx-brand-hero__lead {
   line-height: var(--nvx-lh-lead);
   letter-spacing: var(--nvx-track-body);
   text-wrap: pretty;
+}
+
+/*
+ * Wrappers por página (nosotros/equipo/sedes/casos/gracias):
+ * no cambian el diseño; solo agrupan. Todo usa el mismo sistema brand.
+ */
+[class*="nvx-brand-page--"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Secciones CTA finales (sedes): mismo ritmo, sin caja SaaS */
+.nvx-brand-section--cta {
+  padding-block: var(--nvx-section-y);
+  text-align: start;
+}
+
+.nvx-brand-section--cta .nvx-brand-title,
+.nvx-brand-section--cta .nvx-brand-kicker {
+  max-width: min(22ch, 100%);
+}
+
+.nvx-brand-section--cta .nvx-brand-actions,
+.nvx-brand-section--cta .nvx-brand-actions a {
+  margin-top: var(--nvx-gap-base);
+}
+
+/* Acciones dentro de cards (nosotros): fila de botones limpia */
+.nvx-brand-card > .nvx-brand-actions,
+.nvx-brand-readable .nvx-brand-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nvx-gap-tight) var(--nvx-gap-base);
+  margin-top: var(--nvx-gap-base);
+  align-items: center;
+}
+
+.nvx-brand-card > .nvx-brand-actions .nvx-button,
+.nvx-brand-readable .nvx-brand-actions .nvx-button {
+  width: auto;
+}
+
+/* Casos: subtítulo de ficha ya normalizado a title; body de intro */
+.nvx-brand-card > .nvx-brand-body:first-of-type {
+  max-width: var(--nvx-measure, 54ch);
 }
 
 /* Caption / meta */

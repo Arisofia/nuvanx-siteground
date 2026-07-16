@@ -13,6 +13,18 @@
   margin-inline: auto;
 }
 
+.nvx-cta-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.nvx-cta-banner__actions .nvx-btn--secondary {
+  border-color: rgba(255, 255, 255, 0.45);
+  color: var(--nvx-white);
+}
+
 .nvx-cta-banner__title {
   max-width: 14ch;
   margin: 0 0 14px;

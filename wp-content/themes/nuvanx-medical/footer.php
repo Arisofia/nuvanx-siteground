@@ -19,17 +19,27 @@ defined( 'ABSPATH' ) || exit;
 			</h2>
 
 			<p class="nvx-cta-banner__sub">
-				<?php esc_html_e( 'Solicita una valoración médica personalizada y descubre qué tratamiento puede estar indicado para tu caso.', 'nuvanx-medical' ); ?>
+				<?php esc_html_e( 'Reserva tu valoración médica gratuita y descubre qué tratamiento puede estar indicado para tu caso.', 'nuvanx-medical' ); ?>
 			</p>
 		</div>
 
-		<a
-			href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>"
-			class="nvx-btn nvx-btn--ghost"
-			id="nvx-footer-cta"
-		>
-			<?php esc_html_e( 'SOLICITAR VALORACIÓN', 'nuvanx-medical' ); ?>
-		</a>
+		<div class="nvx-cta-pair nvx-cta-banner__actions">
+			<a
+				href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>"
+				class="nvx-btn nvx-btn--ghost"
+				id="nvx-footer-cta"
+			>
+				<?php esc_html_e( 'Reservar valoración gratuita', 'nuvanx-medical' ); ?>
+			</a>
+			<a
+				href="https://wa.me/34669319836"
+				class="nvx-btn nvx-btn--secondary"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?>
+			</a>
+		</div>
 	</div>
 </section>
 <?php endif; ?>

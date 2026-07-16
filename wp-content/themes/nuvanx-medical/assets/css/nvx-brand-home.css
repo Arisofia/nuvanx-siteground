@@ -129,91 +129,6 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 .nvx-home-editorial__body{max-width:62ch;margin:24px 0 0;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 .nvx-home-invitation{margin-top:32px}
 
-/* Values — structured clinical pillars (replaces intro prose) */
-.nvx-home-values-section .nvx-brand-title{max-width:22ch;margin-bottom:var(--nvx-gap-wide)}
-.nvx-home-values{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:clamp(28px,4vw,48px);
-  margin-top:var(--nvx-gap-wide);
-}
-.nvx-home-value{
-  display:grid;
-  gap:14px;
-  align-content:start;
-  padding:clamp(24px,3vw,36px);
-  border:1px solid var(--nvx-color-line);
-  border-radius:var(--nvx-radius-card);
-  background:var(--nvx-white);
-  box-shadow:var(--nvx-shadow-min);
-}
-.nvx-home-value__icon{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:52px;
-  height:52px;
-  border-radius:50%;
-  color:var(--nvx-ink);
-  background:var(--nvx-pearl);
-  border:1px solid rgba(20,22,26,.08);
-}
-.nvx-home-value__icon svg{width:28px;height:28px}
-.nvx-home-value__title{
-  margin:0;
-  font-family:var(--nvx-serif);
-  font-size:var(--nvx-type-h3);
-  font-weight:400;
-  line-height:var(--nvx-lh-h3);
-  color:var(--nvx-ink);
-}
-.nvx-home-value__body{
-  margin:0;
-  font-family:var(--nvx-sans);
-  font-size:var(--nvx-type-body);
-  line-height:var(--nvx-lh-body);
-  color:var(--nvx-text-body);
-}
-.nvx-home-values__cta{margin-top:var(--nvx-gap-wide)}
-
-/* Método — 3 columns with icons (not another numbered 01/02/03 list) */
-.nvx-home-metodo-lead{max-width:52ch;margin:0 0 var(--nvx-gap-wide)}
-.nvx-home-metodo-columns{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:clamp(24px,3.5vw,40px);
-}
-.nvx-home-metodo-col{
-  display:grid;
-  gap:12px;
-  align-content:start;
-  padding:clamp(22px,3vw,32px) 0;
-  border-top:1px solid var(--nvx-color-line);
-}
-.nvx-home-metodo-col__icon{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:48px;
-  height:48px;
-  color:var(--nvx-platinum);
-}
-.nvx-home-metodo-col__icon svg{width:32px;height:32px}
-.nvx-home-metodo-col__title{
-  margin:0;
-  font-family:var(--nvx-serif);
-  font-size:var(--nvx-type-h3);
-  font-weight:400;
-  color:var(--nvx-ink);
-}
-.nvx-home-metodo-col__body{
-  margin:0;
-  font-family:var(--nvx-sans);
-  font-size:var(--nvx-type-body);
-  line-height:var(--nvx-lh-body);
-  color:var(--nvx-text-body);
-}
-.nvx-home-metodo-columns__cta{margin-top:var(--nvx-gap-wide)}
 .nvx-home-clinicas-panorama__track{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--nvx-gap-base);margin-top:var(--nvx-gap-wide)}
 .nvx-home-clinica-panorama{overflow:hidden;border-radius:var(--nvx-radius-card);background:var(--nvx-pearl)}
 .nvx-home-clinica-panorama__media{min-height:320px;overflow:hidden}
@@ -230,7 +145,6 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 @media(max-width:980px){
   .nvx-home-hero-stage{--nvx-hero-h:min(88svh,860px);min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
   .nvx-home-editorial-open,.nvx-home-direccion-grid{grid-template-columns:1fr}
-  .nvx-home-values,.nvx-home-metodo-columns{grid-template-columns:1fr}
   .nvx-home-organic-wave{display:none}
   .nvx-home-clinicas-panorama__track{grid-template-columns:1fr}
   .nvx-home-direccion-panel{grid-template-columns:1fr}

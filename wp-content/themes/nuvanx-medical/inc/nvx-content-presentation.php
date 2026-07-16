@@ -1,8 +1,14 @@
 <?php
 /**
- * Home content enhancements (front page only).
- * Structured values, unified CTAs, E-E-A-T director block, GEO treatment copy,
- * method columns, and FAQ framing.
+ * Global content presentation layer.
+ *
+ * Applies by content pattern (classes / known blocks), not by page ID or home-only rules:
+ * - dual CTAs (valoración + WhatsApp)
+ * - clinical values pillars
+ * - method columns
+ * - GEO treatment card densification
+ * - director E-E-A-T (colegiado)
+ * - FAQ framing (EXION vs Morpheus8)
  *
  * @package nuvanx-medical
  */
@@ -11,7 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** ICOMEM — public professional registry (Doctoralia / clinic communications). */
 if ( ! defined( 'NVX_DIRECTOR_COLEGIADO' ) ) {
 	define( 'NVX_DIRECTOR_COLEGIADO', '282864786' );
 }
@@ -19,47 +24,58 @@ if ( ! defined( 'NVX_DIRECTOR_COLEGIADO' ) ) {
 /**
  * @return string
  */
-function nvx_home_valoracion_url(): string {
+function nvx_cta_valoracion_url(): string {
 	return home_url( '/madrid/valoracion/' );
 }
 
 /**
  * @return string
  */
-function nvx_home_whatsapp_url(): string {
+function nvx_cta_whatsapp_url(): string {
 	return 'https://wa.me/34669319836';
 }
 
 /**
- * Primary CTA markup.
+ * Primary conversion CTA.
  */
-function nvx_home_cta_primary( string $class = 'nvx-brand-btn nvx-brand-btn--primary' ): string {
+function nvx_cta_primary_markup( string $class = 'nvx-brand-btn nvx-brand-btn--primary' ): string {
 	return sprintf(
 		'<a class="%1$s" href="%2$s">%3$s</a>',
 		esc_attr( $class ),
-		esc_url( nvx_home_valoracion_url() ),
+		esc_url( nvx_cta_valoracion_url() ),
 		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
 	);
 }
 
 /**
- * Secondary WhatsApp CTA markup.
+ * Secondary WhatsApp CTA.
  */
-function nvx_home_cta_whatsapp( string $class = 'nvx-brand-btn nvx-brand-btn--secondary' ): string {
+function nvx_cta_whatsapp_markup( string $class = 'nvx-brand-btn nvx-brand-btn--secondary' ): string {
 	return sprintf(
 		'<a class="%1$s" href="%2$s" target="_blank" rel="noopener noreferrer">%3$s</a>',
 		esc_attr( $class ),
-		esc_url( nvx_home_whatsapp_url() ),
+		esc_url( nvx_cta_whatsapp_url() ),
 		esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
 	);
 }
 
 /**
- * Minimal inline icons (stroke, currentColor).
- *
- * @param string $name shield|laser|nature|scan|precision|follow
+ * Dual CTA cluster.
  */
-function nvx_home_icon_svg( string $name ): string {
+function nvx_cta_pair_markup( string $extra_class = '' ): string {
+	$class = trim( 'nvx-cta-pair ' . $extra_class );
+	return '<div class="' . esc_attr( $class ) . '">'
+		. nvx_cta_primary_markup()
+		. nvx_cta_whatsapp_markup()
+		. '</div>';
+}
+
+/**
+ * Minimal stroke icons (currentColor).
+ *
+ * @param string $name Icon key.
+ */
+function nvx_content_icon_svg( string $name ): string {
 	$icons = array(
 		'shield'    => '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M24 6 10 12v10c0 10.5 5.8 16.8 14 20 8.2-3.2 14-9.5 14-20V12L24 6Z" stroke="currentColor" stroke-width="1.6"/><path d="M24 16v14M18 23h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
 		'laser'     => '<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="24" cy="24" r="5" stroke="currentColor" stroke-width="1.6"/><path d="M24 6v8M24 34v8M6 24h8M34 24h8M11 11l5.5 5.5M31.5 31.5 37 37M37 11l-5.5 5.5M16.5 31.5 11 37" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
@@ -73,9 +89,9 @@ function nvx_home_icon_svg( string $name ): string {
 }
 
 /**
- * PART 1 — structured clinical values (replaces intro prose).
+ * Clinical values pillars (structured presentation of intro/criterio blocks).
  */
-function nvx_home_values_section_markup(): string {
+function nvx_values_section_markup(): string {
 	$items = array(
 		array(
 			'icon'  => 'shield',
@@ -94,34 +110,31 @@ function nvx_home_values_section_markup(): string {
 		),
 	);
 
-	$html  = '<section class="nvx-brand-section nvx-brand-section--tight nvx-home-editorial nvx-v3-intro nvx-home-values-section" aria-label="La base de nuestro criterio clínico">';
+	$html  = '<section class="nvx-brand-section nvx-brand-section--tight nvx-values-section" aria-label="La base de nuestro criterio clínico">';
 	$html .= '<div class="nvx-v3-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'La base de nuestro criterio clínico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Medicina estética láser con diagnóstico, tecnología certificada y resultados naturales', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<div class="nvx-home-values">';
+	$html .= '<div class="nvx-values">';
 
 	foreach ( $items as $item ) {
-		$html .= '<article class="nvx-home-value">';
-		$html .= '<div class="nvx-home-value__icon" aria-hidden="true">' . nvx_home_icon_svg( $item['icon'] ) . '</div>';
-		$html .= '<h3 class="nvx-home-value__title">' . esc_html( $item['title'] ) . '</h3>';
-		$html .= '<p class="nvx-home-value__body">' . esc_html( $item['body'] ) . '</p>';
+		$html .= '<article class="nvx-value">';
+		$html .= '<div class="nvx-value__icon" aria-hidden="true">' . nvx_content_icon_svg( $item['icon'] ) . '</div>';
+		$html .= '<h3 class="nvx-value__title">' . esc_html( $item['title'] ) . '</h3>';
+		$html .= '<p class="nvx-value__body">' . esc_html( $item['body'] ) . '</p>';
 		$html .= '</article>';
 	}
 
 	$html .= '</div>';
-	$html .= '<div class="nvx-home-values__cta nvx-home-hero-ctas">';
-	$html .= nvx_home_cta_primary();
-	$html .= nvx_home_cta_whatsapp();
-	$html .= '</div>';
+	$html .= nvx_cta_pair_markup( 'nvx-values__cta' );
 	$html .= '</div></section>';
 
 	return $html;
 }
 
 /**
- * Método as 3 horizontal columns (not another 01/02/03 treatment list).
+ * Method as three icon columns (distinct from numbered treatment grids).
  */
-function nvx_home_metodo_section_markup(): string {
+function nvx_method_section_markup(): string {
 	$items = array(
 		array(
 			'icon'  => 'scan',
@@ -140,94 +153,110 @@ function nvx_home_metodo_section_markup(): string {
 		),
 	);
 
-	$html  = '<section class="nvx-brand-section nvx-v3-metodo nvx-home-metodo-columns-section" aria-label="Método NUVANX">';
+	$html  = '<section class="nvx-brand-section nvx-method-section" aria-label="Método NUVANX">';
 	$html .= '<div class="nvx-v3-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Método', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'El criterio médico antes que la tecnología', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-brand-body nvx-home-metodo-lead">' . esc_html__( 'En NUVANX, la experiencia y el criterio médico son el pilar de cada tratamiento. La aparatología se pone al servicio del diagnóstico, nunca al revés.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<div class="nvx-home-metodo-columns">';
+	$html .= '<p class="nvx-brand-body nvx-method-lead">' . esc_html__( 'En NUVANX, la experiencia y el criterio médico son el pilar de cada tratamiento. La aparatología se pone al servicio del diagnóstico, nunca al revés.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-method-columns">';
 
 	foreach ( $items as $item ) {
-		$html .= '<article class="nvx-home-metodo-col">';
-		$html .= '<div class="nvx-home-metodo-col__icon" aria-hidden="true">' . nvx_home_icon_svg( $item['icon'] ) . '</div>';
-		$html .= '<h3 class="nvx-home-metodo-col__title">' . esc_html( $item['title'] ) . '</h3>';
-		$html .= '<p class="nvx-home-metodo-col__body">' . esc_html( $item['body'] ) . '</p>';
+		$html .= '<article class="nvx-method-col">';
+		$html .= '<div class="nvx-method-col__icon" aria-hidden="true">' . nvx_content_icon_svg( $item['icon'] ) . '</div>';
+		$html .= '<h3 class="nvx-method-col__title">' . esc_html( $item['title'] ) . '</h3>';
+		$html .= '<p class="nvx-method-col__body">' . esc_html( $item['body'] ) . '</p>';
 		$html .= '</article>';
 	}
 
 	$html .= '</div>';
-	$html .= '<div class="nvx-home-metodo-columns__cta nvx-home-hero-ctas">';
-	$html .= nvx_home_cta_primary();
-	$html .= nvx_home_cta_whatsapp();
-	$html .= '</div>';
+	$html .= nvx_cta_pair_markup( 'nvx-method__cta' );
 	$html .= '</div></section>';
 
 	return $html;
 }
 
 /**
- * @param string $content Post content HTML.
+ * Replace intro/editorial prose blocks with structured values.
+ * Matches structural patterns, not page slugs.
  */
-function nvx_home_replace_intro_section( string $content ): string {
-	$replacement = nvx_home_values_section_markup();
-	$updated     = preg_replace(
+function nvx_content_replace_values_sections( string $content ): string {
+	// Already transformed.
+	if ( false !== strpos( $content, 'nvx-values-section' ) || false !== strpos( $content, 'class="nvx-values"' ) ) {
+		return $content;
+	}
+
+	$replacement = nvx_values_section_markup();
+	$patterns    = array(
+		// Legacy home editorial intro.
 		'/<section\b[^>]*class="[^"]*nvx-home-editorial[^"]*"[^>]*>[\s\S]*?<\/section>/i',
-		$replacement,
-		$content,
-		1,
-		$count
-	);
-	return ( is_string( $updated ) && $count > 0 ) ? $updated : $content;
-}
-
-/**
- * @param string $content Post content HTML.
- */
-function nvx_home_replace_metodo_section( string $content ): string {
-	$replacement = nvx_home_metodo_section_markup();
-	$updated     = preg_replace(
-		'/<section\b[^>]*class="[^"]*nvx-v3-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
-		$replacement,
-		$content,
-		1,
-		$count
-	);
-	return ( is_string( $updated ) && $count > 0 ) ? $updated : $content;
-}
-
-/**
- * GEO denser treatment cards (Endolift + EXION).
- *
- * @param string $content Post content HTML.
- */
-function nvx_home_enrich_treatment_cards( string $content ): string {
-	$endolift_new = 'Tensado progresivo del óvalo facial, mandíbula y papada mediante el uso de microfibras ópticas estériles monouso de entre 200 y 300 micras introducidas bajo la piel para retraer el tejido conectivo (SMAS) y eliminar la grasa submentoniana de forma selectiva. Técnica mínimamente invasiva, siempre tras valoración médica.';
-
-	$exion_new = 'Plataforma médica que combina radiofrecuencia monopolar y ultrasonido dirigido (aplicadores Fractional RF, Face y Body). Consigue aumentar de forma natural hasta un 224% la producción de ácido hialurónico endógeno sin necesidad de infiltrar rellenos, además de mejorar textura y firmeza según protocolo personalizado tras valoración médica.';
-
-	$content = preg_replace(
-		'/(<h3 class="nvx-brand-card__title">\s*Endolift® Facial[\s\S]*?<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
-		'$1' . esc_html( $endolift_new ) . '$3',
-		$content,
-		1
+		// Generic v3 intro blocks with continuous prose (same role).
+		'/<section\b[^>]*class="[^"]*nvx-v3-intro[^"]*"[^>]*>[\s\S]*?<\/section>/i',
 	);
 
-	$content = preg_replace(
-		'/(<h3 class="nvx-brand-card__title">\s*EXION®[\s\S]*?<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
-		'$1' . esc_html( $exion_new ) . '$3',
-		$content,
-		1
-	);
+	foreach ( $patterns as $pattern ) {
+		$updated = preg_replace( $pattern, $replacement, $content, 1, $count );
+		if ( is_string( $updated ) && $count > 0 ) {
+			$content = $updated;
+		}
+	}
 
 	return $content;
 }
 
 /**
- * E-E-A-T director medical block.
- *
- * @param string $content Post content HTML.
+ * Replace numbered method lists with icon columns.
  */
-function nvx_home_enhance_director_block( string $content ): string {
+function nvx_content_replace_method_sections( string $content ): string {
+	if ( false !== strpos( $content, 'nvx-method-section' ) || false !== strpos( $content, 'nvx-method-columns' ) ) {
+		return $content;
+	}
+
+	$replacement = nvx_method_section_markup();
+	$patterns    = array(
+		'/<section\b[^>]*class="[^"]*nvx-v3-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
+		'/<section\b[^>]*class="[^"]*nvx-home-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
+		'/<section\b[^>]*aria-label="[^"]*Método[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
+	);
+
+	foreach ( $patterns as $pattern ) {
+		$updated = preg_replace( $pattern, $replacement, $content, -1, $count );
+		if ( is_string( $updated ) && $count > 0 ) {
+			$content = $updated;
+		}
+	}
+
+	return $content;
+}
+
+/**
+ * GEO densification for Endolift / EXION cards sitewide.
+ */
+function nvx_content_enrich_treatment_cards( string $content ): string {
+	$endolift_new = 'Tensado progresivo del óvalo facial, mandíbula y papada mediante el uso de microfibras ópticas estériles monouso de entre 200 y 300 micras introducidas bajo la piel para retraer el tejido conectivo (SMAS) y eliminar la grasa submentoniana de forma selectiva. Técnica mínimamente invasiva, siempre tras valoración médica.';
+
+	$exion_new = 'Plataforma médica que combina radiofrecuencia monopolar y ultrasonido dirigido (aplicadores Fractional RF, Face y Body). Consigue aumentar de forma natural hasta un 224% la producción de ácido hialurónico endógeno sin necesidad de infiltrar rellenos, además de mejorar textura y firmeza según protocolo personalizado tras valoración médica.';
+
+	// Any brand-card titled Endolift® Facial…
+	$content = preg_replace(
+		'/(<h3 class="nvx-brand-card__title">\s*Endolift® Facial[\s\S]*?<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
+		'$1' . esc_html( $endolift_new ) . '$3',
+		$content
+	);
+
+	// Any brand-card titled EXION®…
+	$content = preg_replace(
+		'/(<h3 class="nvx-brand-card__title">\s*EXION®[\s\S]*?<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
+		'$1' . esc_html( $exion_new ) . '$3',
+		$content
+	);
+
+	return is_string( $content ) ? $content : '';
+}
+
+/**
+ * Director E-E-A-T wherever the Rivera card / leadership copy appears.
+ */
+function nvx_content_enhance_director_blocks( string $content ): string {
 	$colegiado = NVX_DIRECTOR_COLEGIADO;
 	$role      = sprintf(
 		/* translators: %s: medical license number */
@@ -236,15 +265,19 @@ function nvx_home_enhance_director_block( string $content ): string {
 	);
 	$body = __( 'Especialista en Endolift®, láser CO₂ y medicina estética facial. Miembro de las principales sociedades científicas del sector. Martes y jueves: Sede Chamberí. Miércoles: Sede Goya.', 'nuvanx-medical' );
 
-	// Card: name (kicker) · role + colegiado (title) · credentials (body).
 	$content = preg_replace(
 		'/(class="nvx-brand-card__kicker">\s*Dr\.\s*José Javier Rivera Tejeda\s*<\/p>\s*<h3 class="nvx-brand-card__title">)([\s\S]*?)(<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
 		'$1' . esc_html( $role ) . '$3' . esc_html( $body ) . '$5',
-		$content,
-		1
+		$content
 	);
 
-	// Intro paragraph under Dirección Médica — keep leadership sentence + colegiado cue.
+	// Alternate: title holds the name.
+	$content = preg_replace(
+		'/(class="nvx-brand-card__title">\s*Dr\.\s*José Javier Rivera Tejeda\s*)(Director Médico[^<]*)?(<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
+		'$1' . esc_html( $role ) . '$3' . esc_html( $body ) . '$5',
+		$content
+	);
+
 	$lead = sprintf(
 		/* translators: %s: medical license number */
 		__( 'Nuestro equipo médico, liderado por el Dr. José Javier Rivera Tejeda (Colegiado ICOMEM Nº %s), supervisa cada valoración, indicación y seguimiento en ambas sedes. Su trabajo se basa en el diagnóstico individual, la indicación médica responsable y el seguimiento personalizado de cada tratamiento.', 'nuvanx-medical' ),
@@ -252,21 +285,18 @@ function nvx_home_enhance_director_block( string $content ): string {
 	);
 
 	$content = preg_replace(
-		'/(Nuestro equipo médico, liderado por el Dr\.\s*José Javier Rivera Tejeda)([\s\S]*?)(<\/p>)/u',
+		'/(Nuestro equipo médico, liderado por el Dr\.\s*José Javier Rivera Tejeda)([^<]*)(<\/p>)/u',
 		esc_html( $lead ) . '$3',
-		$content,
-		1
+		$content
 	);
 
-	return $content;
+	return is_string( $content ) ? $content : '';
 }
 
 /**
- * FAQ: EXION vs Morpheus8 — superiority framing (not defensive).
- *
- * @param string $content Post content HTML.
+ * FAQ: EXION vs Morpheus8 — superiority framing, any page.
  */
-function nvx_home_rewrite_morpheus_faq( string $content ): string {
+function nvx_content_rewrite_morpheus_faq( string $content ): string {
 	$answer  = '<p>' . esc_html__( 'Sí, y representa una evolución en tratamientos de radiofrecuencia fraccionada con microagujas. Mientras que otros sistemas tradicionales pueden resultar altamente dolorosos, EXION® incorpora una tecnología de control térmico inteligente que optimiza la entrega de energía en la dermis profunda de forma cómoda y controlada.', 'nuvanx-medical' ) . '</p>';
 	$answer .= '<p>' . esc_html__( 'Esto nos permite maximizar el tensado de la piel, la producción de colágeno y la remodelación tisular con un nivel de molestia mínimo y sin tiempo de baja.', 'nuvanx-medical' ) . '</p>';
 	$answer .= '<p><a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/exion-btl/' ) ) . '">' . esc_html__( 'Ver EXION® Fractional RF', 'nuvanx-medical' ) . '</a></p>';
@@ -274,42 +304,37 @@ function nvx_home_rewrite_morpheus_faq( string $content ): string {
 	$updated = preg_replace(
 		'/(<summary><span>¿EXION® Fractional RF es una alternativa a Morpheus8\?<\/span><\/summary>\s*<div class="nvx-brand-faq-content">)([\s\S]*?)(<\/div>\s*<\/details>)/u',
 		'$1' . $answer . '$3',
-		$content,
-		1,
-		$count
+		$content
 	);
 
-	return ( is_string( $updated ) && $count > 0 ) ? $updated : $content;
+	return is_string( $updated ) ? $updated : $content;
 }
 
 /**
- * Unify CTAs on the home to primary valoración + secondary WhatsApp.
- *
- * @param string $content Post content HTML.
+ * Unify conversion CTAs globally in post content.
  */
-function nvx_home_unify_ctas( string $content ): string {
+function nvx_content_unify_ctas( string $content ): string {
 	$primary_label  = 'Reservar valoración gratuita';
 	$whatsapp_label = 'Contactar por WhatsApp';
-	$valoracion_url = nvx_home_valoracion_url();
-	$whatsapp_url   = nvx_home_whatsapp_url();
+	$valoracion_url = nvx_cta_valoracion_url();
+	$whatsapp_url   = nvx_cta_whatsapp_url();
 
-	// Hero CTAs: primary → valoración, secondary → WhatsApp.
+	// Paired hero / brand action clusters: primary + secondary.
 	$content = preg_replace(
-		'/(class="nvx-home-hero-ctas">[\s\S]*?<a class="nvx-brand-btn nvx-brand-btn--primary")[^>]*>[\s\S]*?<\/a>/u',
+		'/(class="(?:nvx-home-hero-ctas|nvx-brand-actions|nvx-page__cta|nvx-cta-pair)"[^>]*>[\s\S]*?<a class="[^"]*(?:brand-btn--primary|button--primary|btn--primary)[^"]*")[^>]*>[\s\S]*?<\/a>/u',
 		'$1 href="' . esc_url( $valoracion_url ) . '">' . esc_html( $primary_label ) . '</a>',
-		$content,
-		1
+		$content
 	);
 	$content = preg_replace(
-		'/(class="nvx-home-hero-ctas">[\s\S]*?<a class="nvx-brand-btn nvx-brand-btn--secondary")[^>]*>[\s\S]*?<\/a>/u',
+		'/(class="(?:nvx-home-hero-ctas|nvx-brand-actions|nvx-page__cta|nvx-cta-pair)"[^>]*>[\s\S]*?<a class="[^"]*(?:brand-btn--secondary|button--secondary|btn--secondary)[^"]*")[^>]*>[\s\S]*?<\/a>/u',
 		'$1 href="' . esc_url( $whatsapp_url ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $whatsapp_label ) . '</a>',
-		$content,
-		1
+		$content
 	);
 
-	// Generic label replacements for primary conversion language.
+	// Label normalization for remaining anchors.
 	$label_map = array(
 		'Solicitar valoración médica personalizada' => $primary_label,
+		'Solicitar valoración médica gratuita'      => $primary_label,
 		'Solicitar consulta médica personalizada'   => $primary_label,
 		'Solicitar consulta médica'                 => $primary_label,
 		'Solicitar consulta'                        => $primary_label,
@@ -318,6 +343,7 @@ function nvx_home_unify_ctas( string $content ): string {
 		'Reservar cita'                             => $primary_label,
 		'Valoración gratuita'                       => $primary_label,
 		'Cita online'                               => $primary_label,
+		'RESERVAR CITA'                             => $primary_label,
 		'Explorar tratamientos exclusivos'          => $whatsapp_label,
 	);
 
@@ -325,43 +351,88 @@ function nvx_home_unify_ctas( string $content ): string {
 		$content = str_ireplace( '>' . $from . '<', '>' . $to . '<', $content );
 	}
 
-	// Final CTA band → valoración URL + primary label.
+	// Primary conversion anchors → valoración URL (preserve classes).
+	$content = preg_replace_callback(
+		'/<a\b([^>]*)>(\s*Reservar valoración gratuita\s*)<\/a>/iu',
+		static function ( array $m ) use ( $valoracion_url ): string {
+			$attrs = $m[1];
+			$attrs = preg_replace( '/\s*href=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
+			return '<a' . $attrs . ' href="' . esc_url( $valoracion_url ) . '">' . $m[2] . '</a>';
+		},
+		$content
+	);
+
+	// WhatsApp anchors → wa.me (preserve classes).
+	$content = preg_replace_callback(
+		'/<a\b([^>]*)>(\s*Contactar por WhatsApp\s*)<\/a>/iu',
+		static function ( array $m ) use ( $whatsapp_url ): string {
+			$attrs = $m[1];
+			$attrs = preg_replace( '/\s*href=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*target=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
+			$attrs = preg_replace( '/\s*rel=("|\')[^"\']*("|\')/i', '', $attrs ) ?? $attrs;
+			return '<a' . $attrs . ' href="' . esc_url( $whatsapp_url ) . '" target="_blank" rel="noopener noreferrer">' . $m[2] . '</a>';
+		},
+		$content
+	);
+
+	// Invitation free-text blocks → dual CTA pair.
+	$content = preg_replace(
+		'/<div class="nvx-home-invitation">[\s\S]*?<\/div>/u',
+		nvx_cta_pair_markup( 'nvx-home-invitation' ),
+		$content
+	);
+
+	// Final band CTAs.
 	$content = preg_replace(
 		'/(class="[^"]*nvx-home-cta-final-band[^"]*"[\s\S]*?<a[^>]*href=")[^"]*("[^>]*>)([^<]*)(<\/a>)/u',
 		'$1' . esc_url( $valoracion_url ) . '$2' . esc_html( $primary_label ) . '$4',
-		$content,
-		1
+		$content
 	);
 
-	// Remaining invitation free-text (if values section not yet covering CTAs).
-	$content = preg_replace(
-		'/<div class="nvx-home-invitation">[\s\S]*?<\/div>/u',
-		'<div class="nvx-home-invitation nvx-home-hero-ctas">' . nvx_home_cta_primary() . nvx_home_cta_whatsapp() . '</div>',
-		$content,
-		1
-	);
-
-	return $content;
+	return is_string( $content ) ? $content : '';
 }
 
 /**
- * Front-page content pipeline.
+ * Global content presentation pipeline (all singular + front content).
  *
- * @param string $content Post content.
+ * @param string $content HTML.
  * @return string
  */
-function nvx_home_content_enhance( string $content ): string {
-	if ( is_admin() || ! is_front_page() ) {
+function nvx_content_presentation_enhance( string $content ): string {
+	if ( is_admin() || '' === trim( $content ) ) {
 		return $content;
 	}
 
-	$content = nvx_home_replace_intro_section( $content );
-	$content = nvx_home_replace_metodo_section( $content );
-	$content = nvx_home_enrich_treatment_cards( $content );
-	$content = nvx_home_enhance_director_block( $content );
-	$content = nvx_home_rewrite_morpheus_faq( $content );
-	$content = nvx_home_unify_ctas( $content );
+	// Feeds / REST: keep raw.
+	if ( is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return $content;
+	}
+
+	$content = nvx_content_replace_values_sections( $content );
+	$content = nvx_content_replace_method_sections( $content );
+	$content = nvx_content_enrich_treatment_cards( $content );
+	$content = nvx_content_enhance_director_blocks( $content );
+	$content = nvx_content_rewrite_morpheus_faq( $content );
+	$content = nvx_content_unify_ctas( $content );
 
 	return $content;
 }
-add_filter( 'the_content', 'nvx_home_content_enhance', 20 );
+add_filter( 'the_content', 'nvx_content_presentation_enhance', 20 );
+
+// Backward-compatible aliases (older home helpers).
+if ( ! function_exists( 'nvx_home_valoracion_url' ) ) {
+	/**
+	 * @return string
+	 */
+	function nvx_home_valoracion_url(): string {
+		return nvx_cta_valoracion_url();
+	}
+}
+if ( ! function_exists( 'nvx_home_whatsapp_url' ) ) {
+	/**
+	 * @return string
+	 */
+	function nvx_home_whatsapp_url(): string {
+		return nvx_cta_whatsapp_url();
+	}
+}

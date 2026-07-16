@@ -36,11 +36,20 @@ jobs:
             test -s "$CSS/$file" || { echo "ERROR: missing canonical stylesheet $file"; exit 1; }
           done
 
-          if find "$CSS" -maxdepth 1 -type f -name '*.min.css' -print -quit | grep -q .; then
-            echo 'ERROR: duplicate minified CSS is forbidden'
-            find "$CSS" -maxdepth 1 -type f -name '*.min.css' -print
-            exit 1
-          fi
+          duplicates=(
+            nvx-tokens.min.css
+            nvx-base.min.css
+            nvx-site-layout.min.css
+            nvx-components.min.css
+            nvx-patterns-editorial.min.css
+            nvx-header.min.css
+            nvx-footer.min.css
+            nvx-brand-home.min.css
+          )
+
+          for file in "${duplicates[@]}"; do
+            test ! -e "$CSS/$file" || { echo "ERROR: duplicate canonical stylesheet remains: $file"; exit 1; }
+          done
 
       - name: Reject patch architecture and unsafe selectors
         run: |

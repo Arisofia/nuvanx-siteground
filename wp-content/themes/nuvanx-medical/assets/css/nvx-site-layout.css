@@ -62,6 +62,14 @@ body.home .nvx-home-hero-stage {
   box-sizing: border-box;
 }
 
+/* Hero sin foto: rail de lectura (como móvil), no full shell vacío */
+.nvx-page__shell .nvx-page__content .nvx-brand-hero__inner:not(:has(.nvx-brand-hero__media)) {
+  width: 100%;
+  max-width: min(36rem, 100%);
+  margin-inline: 0;
+  padding-inline: 0;
+}
+
 /* Evitar desborde horizontal de media/bleed en contenedores de página */
 .nvx-page,
 .nvx-page__shell,

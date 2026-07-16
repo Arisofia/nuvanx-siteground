@@ -110,7 +110,7 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
 
 /*
  * Duplicate façade under hero — CSS fallback. Prefer PHP strip
- * (nvx_content_strip_duplicate_fachada); no :has().
+ * (nvx_content_strip_duplicate_fachada); avoid relational selectors.
  */
 .nvx-brand-page .nvx-brand-section--fachada {
   display: none;

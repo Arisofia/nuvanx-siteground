@@ -1,9 +1,10 @@
 name: Issue 45 Inventory Execution
+run-name: Issue 45 inventory · ${{ github.event_name }} · ${{ github.sha }}
 
 on:
   push:
     branches:
-      - security/issue45-inventory-execution-now
+      - security/issue45-inventory-run-2
     paths:
       - .github/workflows/issue45-inventory-execution.yml
   pull_request:

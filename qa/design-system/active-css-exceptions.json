@@ -224,6 +224,11 @@
       "line": 470
     },
     {
+      "file": "nvx-components.css",
+      "value": "4px",
+      "line": 577
+    },
+    {
       "file": "nvx-footer.css",
       "value": "92px",
       "line": 2
@@ -514,6 +519,26 @@
   ],
   "unsafeSelectors": [],
   "duplicateSelectors": [
+    {
+      "selector": "html",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 9,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 568,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 572,
+          "active": true
+        }
+      ]
+    },
     {
       "selector": ".nvx-brand-hero__media img",
       "locations": [
@@ -1620,6 +1645,66 @@
         {
           "file": "nvx-components.css",
           "line": 560,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinics-nav__inner",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 573,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 580,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinics-nav__link",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 574,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 580,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinics-nav__link:focus-visible",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 575,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 576,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinic-location",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 577,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 580,
           "active": true
         }
       ]
@@ -4027,6 +4112,26 @@
   ],
   "activeDuplicateSelectors": [
     {
+      "selector": "html",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 9,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 568,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 572,
+          "active": true
+        }
+      ]
+    },
+    {
       "selector": ".nvx-brand-hero__media img",
       "locations": [
         {
@@ -5132,6 +5237,66 @@
         {
           "file": "nvx-components.css",
           "line": 560,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinics-nav__inner",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 573,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 580,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinics-nav__link",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 574,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 580,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinics-nav__link:focus-visible",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 575,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 576,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinic-location",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 577,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 580,
           "active": true
         }
       ]
@@ -7711,6 +7876,12 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 487
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 575
     },
     {
       "file": "nvx-fonts.css",

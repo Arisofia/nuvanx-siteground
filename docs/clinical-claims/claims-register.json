@@ -79,6 +79,24 @@
       "owner": "medical-direction"
     },
     {
+      "id": "NVX-CLM-EXION-MODALITIES",
+      "status": "pending",
+      "category": "device-mechanism",
+      "statement": "EXION BTL Face, Body and Fractional RF use different energy delivery modes and require modality-specific parameters and recovery guidance.",
+      "scope": ["treatment-catalog", "exion-pages", "schema"],
+      "source_required": "Current BTL technical documentation and IFU for each installed EXION applicator, including intended use and parameter limits.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-CLM-EXILITE-INDICATIONS",
+      "status": "pending",
+      "category": "device-indication",
+      "statement": "BTL EXILITE IPL may be selected for pigmentary, vascular and skin-quality indications after diagnosis and phototype assessment.",
+      "scope": ["treatment-catalog", "exilite-page", "schema"],
+      "source_required": "Current EXILITE IFU, installed filter inventory and approved NUVANX protocol defining eligible indications and exclusions.",
+      "owner": "medical-direction"
+    },
+    {
       "id": "NVX-CLM-RIVERA-SOCIETIES",
       "status": "pending",
       "category": "credential",

@@ -36,6 +36,44 @@ function nvx_clinics_nearest_block( DOMNode $node ): ?DOMElement {
 	return null;
 }
 
+/**
+ * Remove reading-measure classes when a CMS wrapper contains complete page
+ * sections rather than prose. A plain block element then fills the canonical
+ * section shell while genuine nested readable columns remain constrained.
+ */
+function nvx_clinics_normalize_layout( DOMXPath $xpath ): void {
+	$nodes = $xpath->query(
+		'//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-readable ")]'
+	);
+
+	if ( false === $nodes ) {
+		return;
+	}
+
+	foreach ( iterator_to_array( $nodes ) as $node ) {
+		if ( ! $node instanceof DOMElement ) {
+			continue;
+		}
+
+		$structural_children = $xpath->query( './/section|.//article', $node );
+		if ( false === $structural_children || $structural_children->length < 2 ) {
+			continue;
+		}
+
+		$classes = preg_split( '/\s+/', trim( $node->getAttribute( 'class' ) ) ) ?: array();
+		$classes = array_values(
+			array_filter(
+				$classes,
+				static function ( string $class_name ): bool {
+					return ! in_array( $class_name, array( 'nvx-brand-readable', 'nvx-brand-readable--wide' ), true );
+				}
+			)
+		);
+		$classes[] = 'nvx-clinics-content-flow';
+		$node->setAttribute( 'class', implode( ' ', array_unique( $classes ) ) );
+	}
+}
+
 function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): void {
 	$name = 'goya' === $clinic ? 'NUVANX Salamanca–Goya' : 'NUVANX Chamberí';
 	$link->setAttribute( 'href', nvx_clinics_map_url( $clinic ) );
@@ -64,7 +102,9 @@ function nvx_clinics_hub_enhance( string $content ): string {
 		return $content;
 	}
 
-	$xpath   = new DOMXPath( $dom );
+	$xpath = new DOMXPath( $dom );
+	nvx_clinics_normalize_layout( $xpath );
+
 	$clinics = array(
 		'chamberi' => array( 'id' => 'clinica-chamberi', 'label' => 'Chamberí', 'match' => '/chamber[ií]/iu' ),
 		'goya'     => array( 'id' => 'clinica-goya', 'label' => 'Salamanca–Goya', 'match' => '/(?:salamanca|goya)/iu' ),

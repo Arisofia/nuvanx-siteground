@@ -11,7 +11,7 @@
 }
 
 .nvx-medical-review__kicker {
-  margin: 0 0 var(--nvx-gap-tight);
+  margin: 0 0 var(--nvx-space-2);
   color: var(--nvx-text-muted);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
@@ -31,7 +31,7 @@
 }
 
 .nvx-medical-review__date {
-  margin-top: var(--nvx-gap-tight);
+  margin-top: var(--nvx-space-2);
   color: var(--nvx-text-muted);
 }
 

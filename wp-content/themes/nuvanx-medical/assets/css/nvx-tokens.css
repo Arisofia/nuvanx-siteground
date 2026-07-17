@@ -1,38 +1,42 @@
 /* NUVANX Medical — Design tokens (única fuente de verdad)
- * Paleta oficial: Plata Pulida
+ * Paleta oficial: Marfil editorial + Champagne
  * Tipografía: Bodoni Moda + Manrope
  * Espaciado: escala canónica de 8px.
  * Only tokens referenced by active stylesheets are kept.
  */
 
 :root {
-  /* Paleta Plata Pulida */
-  --nvx-ink: #14161a;
-  --nvx-charcoal: #2a2d33;
-  --nvx-pearl: #f6f7f8;
-  --nvx-mist: #e8eaed;
-  --nvx-silver: #c4c8ce;
-  --nvx-platinum: #9ba3ad;
+  /* Paleta editorial cálida */
+  --nvx-ink: #171717;
+  --nvx-charcoal: #2b2926;
+  --nvx-pearl: #f7f1e8;
+  --nvx-mist: #e9ddcf;
+  --nvx-silver: #cbbba8;
+  --nvx-platinum: #b89a5b;
   --nvx-white: #ffffff;
 
-  --nvx-text-body: #3c4048;
-  --nvx-text-muted: #6e747c;
-  --nvx-color-paper: #f2f3f5;
-  --nvx-color-line: rgba(20, 22, 26, 0.12);
+  /* Aliases semánticos aprobados */
+  --nvx-ivory: var(--nvx-pearl);
+  --nvx-champagne: var(--nvx-platinum);
+
+  --nvx-text-body: #3f3a35;
+  --nvx-text-muted: #5f5a54;
+  --nvx-color-paper: #f7f1e8;
+  --nvx-color-line: rgba(23, 23, 23, 0.16);
 
   /* Form-stage semantic palette + image (PHP may override image on section). */
   --nvx-form-stage-warm: #e7d7be;
-  --nvx-form-stage-mid: #d5d8dc;
-  --nvx-form-stage-cool: #aeb8c2;
-  --nvx-form-stage-fallback: #c5cdd4;
+  --nvx-form-stage-mid: #d5d0c8;
+  --nvx-form-stage-cool: #b9b1a7;
+  --nvx-form-stage-fallback: #d8cfc3;
   --nvx-form-stage-image: none;
 
-  --nvx-shadow-min: 0 1px 2px rgba(20, 22, 26, 0.04);
-  --nvx-shadow-soft: 0 16px 48px rgba(20, 22, 26, 0.06);
-  --nvx-shadow-medium: 0 24px 64px rgba(20, 22, 26, 0.08);
-  --nvx-shadow-button: 0 8px 24px rgba(20, 22, 26, 0.12);
-  --nvx-shadow-button-hover: 0 16px 32px rgba(20, 22, 26, 0.14);
-  --nvx-accent-glow: rgba(155, 163, 173, 0.16);
+  --nvx-shadow-min: 0 1px 2px rgba(23, 23, 23, 0.04);
+  --nvx-shadow-soft: 0 16px 48px rgba(23, 23, 23, 0.06);
+  --nvx-shadow-medium: 0 24px 64px rgba(23, 23, 23, 0.08);
+  --nvx-shadow-button: 0 8px 24px rgba(23, 23, 23, 0.12);
+  --nvx-shadow-button-hover: 0 16px 32px rgba(23, 23, 23, 0.14);
+  --nvx-accent-glow: rgba(184, 154, 91, 0.16);
 
   /* Escala de 8px */
   --nvx-space-1: 8px;
@@ -79,13 +83,13 @@
 
   /* Media */
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
-  /* Hero stage height (component media queries may override). */
   --nvx-hero-h: min(92svh, 980px);
 
   /* Component dimensions */
   --nvx-header-height: 80px;
   --nvx-header-height-mobile: 72px;
   --nvx-control-size: 48px;
+  --nvx-touch-target-min: 48px;
   --nvx-logo-height: 40px;
   --nvx-logo-height-mobile: 36px;
   --nvx-logo-width: 168px;
@@ -97,16 +101,16 @@
   --nvx-icon-stroke: 1.5px;
   --nvx-radius-pill: 999px;
   --nvx-radius-button: var(--nvx-radius-pill);
-  --nvx-radius-card: clamp(24px, 2.5vw, 32px);
-  --nvx-radius-image: clamp(24px, 2.5vw, 32px);
-  --nvx-organic-c: 36% 64% 52% 48% / 58% 36% 64% 42%;
+  --nvx-radius-card: 0;
+  --nvx-radius-image: 0;
+  --nvx-organic-c: 0;
 
   --nvx-media-overlay: linear-gradient(
     180deg,
-    rgba(20, 22, 26, 0.12) 0%,
-    rgba(20, 22, 26, 0.08) 28%,
-    rgba(20, 22, 26, 0.35) 58%,
-    rgba(20, 22, 26, 0.72) 100%
+    rgba(23, 23, 23, 0.12) 0%,
+    rgba(23, 23, 23, 0.08) 28%,
+    rgba(23, 23, 23, 0.35) 58%,
+    rgba(23, 23, 23, 0.74) 100%
   );
 
   /* Tipografía canónica */
@@ -133,8 +137,8 @@
   --nvx-lh-h2: 1.15;
   --nvx-lh-h3: 1.2;
   --nvx-lh-kicker: 1.2;
-  --nvx-lh-body: 1.75;
-  --nvx-lh-lead: 1.65;
+  --nvx-lh-body: 1.62;
+  --nvx-lh-lead: 1.62;
   --nvx-lh-caption: 1.5;
   --nvx-lh-nav: 1;
   --nvx-lh-nav-submenu: 1.35;

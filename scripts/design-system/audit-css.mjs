@@ -25,8 +25,8 @@ const CANONICAL_FONT_TOKENS = new Set(['var(--nvx-serif)', 'var(--nvx-sans)']);
 const ALLOWED_ICON_COLORS = new Set([
 	'currentcolor',
 	'var(--nvx-ink)',
-	'var(--nvx-white)',
-	'var(--nvx-platinum)',
+	'var(--nvx-light)',
+	'var(--nvx-accent-muted)',
 	'var(--nvx-text-muted)',
 ]);
 const ALLOWED_BREAKPOINTS = new Set(['1280', '960', '782', '720', '680', '480']);
@@ -129,6 +129,43 @@ function normalizeValue(value) {
 	return value.toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
+function stylesheetBasename(reference) {
+	const withoutQuery = reference.split(/[?#]/, 1)[0];
+	return path.posix.basename(withoutQuery.replace(/\\/g, '/'));
+}
+
+function addCssReferences(target, source, pattern, group = 1) {
+	for (const match of source.matchAll(pattern)) {
+		const reference = match[group];
+		if (reference) target.add(stylesheetBasename(reference));
+	}
+}
+
+function extractRuntimeStylesheetReferences(source) {
+	const references = new Set();
+	const clean = stripComments(source);
+
+	// WordPress style registration/enqueue calls. Inspect only their argument lists,
+	// then collect CSS string literals rather than matching arbitrary prose.
+	for (const call of clean.matchAll(/\bwp_(?:enqueue|register)_style\s*\(([\s\S]*?)\)\s*;/g)) {
+		addCssReferences(references, call[1], /["'`]([^"'`]+\.css(?:[?#][^"'`]*)?)["'`]/gi);
+	}
+
+	// Literal HTML links and module/bundler imports.
+	addCssReferences(references, clean, /<link\b[^>]*\bhref\s*=\s*["']([^"']+\.css(?:[?#][^"']*)?)["'][^>]*>/gi);
+	addCssReferences(references, clean, /\b(?:import|require)\s*\(\s*["']([^"']+\.css(?:[?#][^"']*)?)["']\s*\)/gi);
+	addCssReferences(references, clean, /\bimport\s+["']([^"']+\.css(?:[?#][^"']*)?)["']/gi);
+
+	return references;
+}
+
+function extractCssImports(source) {
+	const references = new Set();
+	const clean = stripComments(source);
+	addCssReferences(references, clean, /@import\s+(?:url\(\s*)?["']?([^"')\s]+\.css(?:[?#][^"')\s]*)?)/gi);
+	return references;
+}
+
 for (const file of ACTIVE_STACK) {
 	if (!fs.existsSync(path.join(CSS_DIR, file))) throw new Error(`Missing active stylesheet: ${file}`);
 }
@@ -143,12 +180,24 @@ const tokenFile = activeSources['nvx-tokens.css'];
 const definedTokens = extractRootTokens(tokenFile);
 
 const runtimeFiles = walk(THEME, new Set(['.php', '.js', '.html']));
-const runtimeSource = runtimeFiles.map((absolute) => read(absolute)).join('\n');
-const referencedStylesheets = new Set();
-for (const file of sourceFiles) {
-	if (runtimeSource.includes(file)) referencedStylesheets.add(file);
+const referencedStylesheets = new Set(ACTIVE_STACK);
+const stylesheetReferenceEvidence = [];
+
+for (const absolute of runtimeFiles) {
+	const relative = path.relative(ROOT, absolute);
+	for (const file of extractRuntimeStylesheetReferences(read(absolute))) {
+		referencedStylesheets.add(file);
+		stylesheetReferenceEvidence.push({ file, referencedBy: relative });
+	}
 }
-for (const file of ACTIVE_STACK) referencedStylesheets.add(file);
+
+for (const [owner, source] of Object.entries(allSources)) {
+	for (const file of extractCssImports(source)) {
+		referencedStylesheets.add(file);
+		stylesheetReferenceEvidence.push({ file, referencedBy: path.join('assets/css', owner) });
+	}
+}
+
 const orphanStylesheets = sourceFiles.filter((file) => !referencedStylesheets.has(file));
 
 const rootBlocks = [];
@@ -183,7 +232,8 @@ const activeRows = (rows) => rows.filter((row) => activeSet.has(row.file));
 const inactiveRows = (rows) => rows.filter((row) => !activeSet.has(row.file));
 
 const undefinedTokens = tokenRefs.filter((reference) => activeSet.has(reference.file) && !definedTokens.has(reference.token));
-const rootOutsideTokens = rootBlocks.filter((block) => block.file !== 'nvx-tokens.css');
+const canonicalRootBlocks = rootBlocks.filter((block) => block.file === 'nvx-tokens.css');
+const scopedRootBlocks = rootBlocks.filter((block) => block.file !== 'nvx-tokens.css');
 const highSpecificity = activeRows(selectors)
 	.map((row) => ({ ...row, specificity: specificity(row.selector) }))
 	.filter((row) => row.specificity.ids > 0 || row.specificity.score >= 50)
@@ -223,6 +273,7 @@ const hardcodedColors = literalColors.filter((row) => {
 
 const inconsistentIconColors = iconColors.filter((row) => {
 	const value = normalizeValue(row.value);
+	if (value === 'none') return false;
 	return !ALLOWED_ICON_COLORS.has(value) && !value.includes('var(--nvx-');
 });
 
@@ -241,9 +292,12 @@ const exceptions = {
 	activeStack: ACTIVE_STACK,
 	allStylesheets: sourceFiles,
 	inactiveCssFiles: inactiveFiles,
+	referencedStylesheets: [...referencedStylesheets].sort(),
+	stylesheetReferenceEvidence,
 	orphanStylesheets,
 	rootBlocks,
-	rootOutsideTokens,
+	canonicalRootBlocks,
+	scopedRootBlocks,
 	importantActive: activeRows(important),
 	importantInactive: inactiveRows(important),
 	runtimeImportant,
@@ -271,7 +325,8 @@ const summary = {
 	inactiveStylesheets: inactiveFiles.length,
 	orphanStylesheets: orphanStylesheets.length,
 	canonicalTokens: definedTokens.size,
-	rootOutsideTokens: rootOutsideTokens.length,
+	canonicalRootBlocks: canonicalRootBlocks.length,
+	scopedRootBlocks: scopedRootBlocks.length,
 	importantActive: activeRows(important).length,
 	importantInactive: inactiveRows(important).length,
 	runtimeImportant: runtimeImportant.length,
@@ -295,7 +350,7 @@ fs.writeFileSync(path.join(OUT_DIR, 'audit-summary.json'), JSON.stringify(summar
 console.log(JSON.stringify(summary, null, 2));
 
 const fatal = [];
-if (rootBlocks.length !== 1 || rootOutsideTokens.length) fatal.push(`expected one :root in nvx-tokens.css; found ${rootBlocks.length}`);
+if (canonicalRootBlocks.length !== 1) fatal.push(`expected exactly one canonical :root in nvx-tokens.css; found ${canonicalRootBlocks.length}`);
 if (activeRows(important).length) fatal.push(`found ${activeRows(important).length} !important declaration(s) in active CSS`);
 if (runtimeImportant.length) fatal.push(`found ${runtimeImportant.length} !important declaration(s) in runtime PHP/JS/HTML`);
 if (undefinedTokens.length) fatal.push(`found ${undefinedTokens.length} undefined token reference(s)`);

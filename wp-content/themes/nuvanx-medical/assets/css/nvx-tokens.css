@@ -1,5 +1,5 @@
 /* NUVANX Medical — Design tokens (única fuente de verdad)
- * Paleta oficial: Marfil editorial + Champagne
+ * Paleta oficial: Marfil editorial + Blanco cálido
  * Tipografía: Bodoni Moda + Manrope
  * Espaciado: escala canónica de 8px.
  * Only tokens referenced by active stylesheets are kept.
@@ -7,18 +7,18 @@
 
 :root {
   /* Paleta editorial cálida.
-   * Semantic source tokens own approved brand colors; legacy role names remain
-   * compatibility aliases consumed by the active component stack.
+   * Warm white owns luminous accents and dark-surface text. The readable accent
+   * remains a warm taupe so small kickers retain AA contrast on ivory.
    */
+  --nvx-warm-white: #fffaf2;
   --nvx-ivory: #f7f1e8;
-  --nvx-champagne: #b89a5b;
   --nvx-ink: #171717;
   --nvx-charcoal: #2b2926;
   --nvx-pearl: var(--nvx-ivory);
-  --nvx-mist: #e9ddcf;
-  --nvx-silver: #cbbba8;
-  --nvx-platinum: var(--nvx-champagne);
-  --nvx-white: #ffffff;
+  --nvx-mist: #eee8df;
+  --nvx-silver: #d8d0c5;
+  --nvx-platinum: #6b6258;
+  --nvx-white: var(--nvx-warm-white);
 
   --nvx-text-body: #3f3a35;
   --nvx-text-muted: #5f5a54;
@@ -26,10 +26,10 @@
   --nvx-color-line: rgba(23, 23, 23, 0.16);
 
   /* Form-stage semantic palette + image (PHP may override image on section). */
-  --nvx-form-stage-warm: #e7d7be;
-  --nvx-form-stage-mid: #d5d0c8;
-  --nvx-form-stage-cool: #b9b1a7;
-  --nvx-form-stage-fallback: #d8cfc3;
+  --nvx-form-stage-warm: #f1e8dc;
+  --nvx-form-stage-mid: #e5ded4;
+  --nvx-form-stage-cool: #d6cec3;
+  --nvx-form-stage-fallback: #e9e1d7;
   --nvx-form-stage-image: none;
 
   --nvx-shadow-min: 0 1px 2px rgba(23, 23, 23, 0.04);
@@ -37,7 +37,7 @@
   --nvx-shadow-medium: 0 24px 64px rgba(23, 23, 23, 0.08);
   --nvx-shadow-button: 0 8px 24px rgba(23, 23, 23, 0.12);
   --nvx-shadow-button-hover: 0 16px 32px rgba(23, 23, 23, 0.14);
-  --nvx-accent-glow: rgba(184, 154, 91, 0.16);
+  --nvx-accent-glow: rgba(255, 250, 242, 0.18);
 
   /* Escala de 8px */
   --nvx-space-1: 8px;

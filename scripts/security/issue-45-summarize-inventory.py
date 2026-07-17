@@ -81,7 +81,9 @@ def main() -> int:
     (output / "approval-summary.txt").write_text("\n".join(summary) + "\n", encoding="utf-8")
 
     print("\n".join(summary))
-    return 0 if safe else 1
+    # Diagnostic publication must complete even when approval_ready=false.
+    # The purge workflow performs the actual blocking check before rewriting.
+    return 0
 
 
 if __name__ == "__main__":

@@ -13,8 +13,21 @@ function add_filter( ...$args ): bool {
 
 require dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php';
 
-$catalog = nvx_seo_metadata_catalog();
-$required = array( 'home', 'endolift', 'endolaser', 'co2', 'equipo', 'valoracion' );
+$catalog  = nvx_seo_metadata_catalog();
+$required = array(
+	'home',
+	'tratamientos',
+	'clinicas',
+	'chamberi',
+	'goya',
+	'endolift',
+	'endolaser',
+	'co2',
+	'exion',
+	'exilite',
+	'equipo',
+	'valoracion',
+);
 
 foreach ( $required as $key ) {
 	if ( empty( $catalog[ $key ]['title'] ) || empty( $catalog[ $key ]['description'] ) ) {
@@ -43,6 +56,19 @@ foreach ( $catalog as $key => $metadata ) {
 
 if ( false !== stripos( $catalog['home']['title'], 'Clínica de' ) ) {
 	fwrite( STDERR, "Home title does not begin with the primary search intent.\n" );
+	exit( 1 );
+}
+
+if ( false === strpos( $catalog['chamberi']['description'], 'CS20144' ) ) {
+	fwrite( STDERR, "Chamberí metadata must expose the verified registration.\n" );
+	exit( 1 );
+}
+if ( false === strpos( $catalog['goya']['description'], 'CS20073' ) ) {
+	fwrite( STDERR, "Goya metadata must expose the verified registration.\n" );
+	exit( 1 );
+}
+if ( false !== stripos( $catalog['exion']['description'], 'alternativa' ) ) {
+	fwrite( STDERR, "EXION metadata must describe modalities without comparison claims.\n" );
 	exit( 1 );
 }
 

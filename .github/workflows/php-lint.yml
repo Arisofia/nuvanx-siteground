@@ -4,12 +4,19 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   php-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: Lint custom PHP
         run: |
-          find wp-content/themes/nuvanx-medical wp-content/mu-plugins -type f -name '*.php' -print0 |
-          xargs -0 -n1 php -l
+          set -euo pipefail
+          dirs=(wp-content/themes/nuvanx-medical)
+          if [ -d wp-content/mu-plugins ]; then
+            dirs+=(wp-content/mu-plugins)
+          fi
+          find "${dirs[@]}" -type f -name '*.php' -print0 | xargs -0 -n1 php -l

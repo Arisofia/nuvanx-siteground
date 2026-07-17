@@ -3,11 +3,11 @@
  * Treatments index restructure — quiet-luxury catalog.
  *
  * Pattern-based (collaborators / catalog markup), not page-ID gated:
- * - Group treatments into 3 medical categories
- * - Editorial cards with short copy + contextual CTA
- * - Collapse brand laundry-list into discreet logo cloud
- * - Remove redundant SEO bullet block
- * - Premium dual-CTA close band
+ * - Group treatments into medical categories.
+ * - Editorial cards with short copy and contextual CTA.
+ * - Collapse brand laundry-list into a discreet logo cloud.
+ * - Remove redundant SEO summary blocks.
+ * - Close with the canonical dual CTA.
  *
  * @package nuvanx-medical
  */
@@ -16,12 +16,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Detect treatments index content by structural markers.
- */
+/** Detect the treatments index from stable structural markers. */
 function nvx_content_is_treatments_index( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-catalog' ) ) {
-		return false; // Already transformed.
+		return false;
 	}
 
 	return (bool) preg_match(
@@ -31,6 +29,11 @@ function nvx_content_is_treatments_index( string $content ): bool {
 }
 
 /**
+ * Canonical treatment catalogue.
+ *
+ * Cards explain role, limits and selection criteria. Detailed recovery,
+ * sessions, tariffs and comparative claims belong on approved detail pages.
+ *
  * @return array<int, array{key:string,label:string,items:array<int,array{meta:string,title:string,body:string,url:string}>}>
  */
 function nvx_treatments_catalog_data(): array {
@@ -66,37 +69,37 @@ function nvx_treatments_catalog_data(): array {
 				array(
 					'meta'  => '04 / Plataforma EXION®',
 					'title' => 'EXION® BTL (hub)',
-					'body'  => 'Visión de la plataforma y criterio de elección entre aplicadores. La indicación definitiva se confirma en valoración.',
+					'body'  => 'Plataforma médica con aplicadores Fractional RF, Face y Body. Cada modalidad tiene mecanismo, profundidad, recuperación y objetivos distintos; la indicación se define por diagnóstico.',
 					'url'   => home_url( '/exion-btl/' ),
 				),
 				array(
 					'meta'  => '05 / EXION® Face',
 					'title' => 'EXION® Face',
-					'body'  => 'Regeneración endógena facial con RF monopolar + ultrasonido a microtemperaturas controladas. Alternativa a HIFU de alto pico cuando el diagnóstico lo indica.',
+					'body'  => 'Aplicador no invasivo de radiofrecuencia y ultrasonido para protocolos de calidad cutánea. Los parámetros y el número de sesiones se definen según diagnóstico y tolerancia.',
 					'url'   => home_url( '/exion-face/' ),
 				),
 				array(
 					'meta'  => '06 / EXION® Body',
 					'title' => 'EXION® Body',
-					'body'  => 'Adiposidad localizada y retracción cutánea con refrigeración activa. Para flancos, abdomen y zonas de grasa + flacidez leve–moderada.',
+					'body'  => 'Aplicador corporal no invasivo para protocolos de firmeza, textura y contorno. No sustituye procedimientos de reducción de grasa ni trata obesidad.',
 					'url'   => home_url( '/exion-body/' ),
 				),
 				array(
 					'meta'  => '07 / EXION® Fractional',
 					'title' => 'EXION® Fractional RF',
-					'body'  => 'Textura, poro y cicatrices superficiales con RF fraccionada y control de tejido. Plan de sesiones y downtime realistas.',
+					'body'  => 'Radiofrecuencia fraccionada con microagujas para textura, poro y cicatrices seleccionadas. Profundidad, anestesia, cuidados y período de recuperación dependen del protocolo.',
 					'url'   => home_url( '/exion-fractional/' ),
 				),
 				array(
 					'meta'  => '08 / EMFUSION®',
 					'title' => 'EMFUSION®',
-					'body'  => 'Infusión cutánea y soporte de barrera con microcanales acústicos DYNAMiQ™. Útil en piel sensible y fases post-procedimiento.',
+					'body'  => 'Aplicador orientado al soporte de barrera y a la infusión cutánea según protocolo. No sustituye procedimientos médicos de energía ni tratamientos inyectables.',
 					'url'   => home_url( '/emfusion/' ),
 				),
 				array(
 					'meta'  => '09 / Luz pulsada médica',
 					'title' => 'BTL EXILITE™ IPL',
-					'body'  => 'Fotorejuvenecimiento y mejora de manchas, rojeces y calidad cutánea con parámetros ajustados al fototipo y la indicación.',
+					'body'  => 'Luz pulsada intensa para indicaciones pigmentarias, vasculares y calidad cutánea seleccionadas tras diagnóstico, fototipo y ajuste de parámetros.',
 					'url'   => home_url( '/btl-exilite-ipl-madrid/' ),
 				),
 			),
@@ -128,11 +131,7 @@ function nvx_treatments_catalog_data(): array {
 	);
 }
 
-/**
- * Partner names for discreet logo cloud (no long brand essays).
- *
- * @return string[]
- */
+/** @return string[] */
 function nvx_treatments_partner_labels(): array {
 	return array(
 		'DEKA',
@@ -150,9 +149,7 @@ function nvx_treatments_partner_labels(): array {
 	);
 }
 
-/**
- * Premium catalog section markup.
- */
+/** Build the canonical treatment catalogue section. */
 function nvx_treatments_catalog_markup(): string {
 	$html  = '<section class="nvx-catalog" aria-label="Tratamientos de precisión médica NUVANX">';
 	$html .= '<div class="nvx-catalog__inner">';
@@ -183,14 +180,10 @@ function nvx_treatments_catalog_markup(): string {
 		$html .= '</div></div>';
 	}
 
-	$html .= '</div></section>';
-
-	return $html;
+	return $html . '</div></section>';
 }
 
-/**
- * Discreet partner logo cloud (replaces brand essays).
- */
+/** Replace long collaborator essays with a discreet name cloud. */
 function nvx_treatments_logo_cloud_markup(): string {
 	$html  = '<section class="nvx-logo-cloud" aria-label="Tecnología y laboratorios de referencia">';
 	$html .= '<div class="nvx-logo-cloud__inner">';
@@ -201,35 +194,25 @@ function nvx_treatments_logo_cloud_markup(): string {
 		$html .= '<li class="nvx-logo-cloud__item">' . esc_html( $label ) . '</li>';
 	}
 
-	$html .= '</ul></div></section>';
-
-	return $html;
+	return $html . '</ul></div></section>';
 }
 
-/**
- * Closing dual-CTA band (consistent with site conversion system).
- */
+/** Build the canonical closing conversion band. */
 function nvx_treatments_close_cta_markup(): string {
 	if ( ! function_exists( 'nvx_cta_pair_markup' ) ) {
 		return '';
 	}
 
 	$html  = '<section class="nvx-catalog-close" aria-label="Reservar valoración médica">';
-	$html .= '<div class="nvx-catalog-close__inner">';
-	$html .= '<div>';
+	$html .= '<div class="nvx-catalog-close__inner"><div>';
 	$html .= '<p class="nvx-catalog-close__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-catalog-close__title">' . esc_html__( '¿No sabes por dónde empezar?', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-catalog-close__text">' . esc_html__( 'Revisamos tu caso en una valoración médica gratuita presencial y te orientamos hacia el protocolo más adecuado, con criterio clínico y expectativa realista.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>';
-	$html .= nvx_cta_pair_markup( 'nvx-catalog-close__actions' );
-	$html .= '</div></section>';
-
-	return $html;
+	$html .= '</div>' . nvx_cta_pair_markup( 'nvx-catalog-close__actions' );
+	return $html . '</div></section>';
 }
 
-/**
- * Replace catalog / collaborators / SEO summary / weak CTA with premium structure.
- */
+/** Replace legacy catalogue, collaborator, summary and CTA blocks. */
 function nvx_content_restructure_treatments_index( string $content ): string {
 	if ( ! nvx_content_is_treatments_index( $content ) ) {
 		return $content;
@@ -239,72 +222,67 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 	$cloud     = nvx_treatments_logo_cloud_markup();
 	$close_cta = nvx_treatments_close_cta_markup();
 
-	// 1) Replace main catalog section.
 	$content = preg_replace(
 		'/<section\b[^>]*aria-label="Catálogo de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
 		$catalog,
 		$content,
 		1,
 		$count_catalog
-	);
+	) ?? $content;
 	if ( ! $count_catalog ) {
 		$content = preg_replace(
 			'/<section\b[^>]*class="[^"]*\bnvx-brand-section\b(?![^"]*collaborators)(?![^"]*cta)[^"]*"[^>]*>[\s\S]*?(?:Áreas de tratamiento|Facial, corporal, láser)[\s\S]*?<\/section>/iu',
 			$catalog,
 			$content,
 			1
-		);
+		) ?? $content;
 	}
 
-	// 2) Brand essays → discreet logo cloud.
 	$content = preg_replace(
 		'/<section\b[^>]*class="[^"]*nvx-brand-collaborators[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
 		$cloud,
 		$content,
 		1,
 		$count_collab
-	);
+	) ?? $content;
 	if ( ! $count_collab ) {
 		$content = preg_replace(
 			'/<section\b[^>]*aria-label="[^"]*Marcas colaboradoras[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
 			$cloud,
 			$content,
 			1
-		);
+		) ?? $content;
 	}
 
-	// 3) Remove redundant SEO summary list.
 	$content = preg_replace(
 		'/<section\b[^>]*aria-label="Resumen de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
 		'',
 		$content,
 		1
-	);
+	) ?? $content;
 	$content = preg_replace(
 		'/<section\b[^>]*class="[^"]*\bnvx-brand-section\b[^"]*"[^>]*>[\s\S]*?¿Qué tratamientos realizamos en NUVANX\?[\s\S]*?<\/section>/iu',
 		'',
 		$content,
 		1
-	);
+	) ?? $content;
 
-	// 4) Replace plain CTA section with dual-CTA premium close.
 	$content = preg_replace(
 		'/<section\b[^>]*class="[^"]*nvx-brand-section--cta[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
 		$close_cta,
 		$content,
 		1,
 		$count_cta
-	);
+	) ?? $content;
 	if ( ! $count_cta ) {
 		$content = preg_replace(
 			'/<section\b[^>]*aria-label="Consulta médica personalizada NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
 			$close_cta,
 			$content,
 			1
-		);
+		) ?? $content;
 	}
 
-	// 5) Soften "Enlaces de interés" if it still sells the same CTA thrice — keep short.
 	$links  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="Enlaces de interés">';
 	$links .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$links .= '<p class="nvx-brand-body">' . esc_html__( 'Explora el ', 'nuvanx-medical' );
@@ -320,7 +298,7 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 		$links,
 		$content,
 		1
-	);
+	) ?? $content;
 
 	return is_string( $content ) ? $content : '';
 }

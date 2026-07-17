@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+// One-shot, exact-source normalizer. Removed after the canonical PHP diff lands.
 import { readFile, writeFile } from 'node:fs/promises';
 
 const target = 'wp-content/themes/nuvanx-medical/inc/nvx-treatments-catalog.php';

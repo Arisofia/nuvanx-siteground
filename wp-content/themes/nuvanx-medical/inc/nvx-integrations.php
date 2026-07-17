@@ -87,6 +87,9 @@ require_once __DIR__ . '/nvx-seo-metadata.php';
 /** Canonical front-page patient-facing H1 and clinical introduction. */
 require_once __DIR__ . '/nvx-home-copy.php';
 
+/** Canonical value proposition, clinical method, valuation CTA and protocols. */
+require_once __DIR__ . '/nvx-home-content-v2.php';
+
 /** Temporary clinical safeguard for BTL detail pages pending source-copy sign-off. */
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
 

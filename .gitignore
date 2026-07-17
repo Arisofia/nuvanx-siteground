@@ -84,6 +84,8 @@ Nuvanx-System/
 # Local QA run output (not versioned)
 qa/screenshots/
 qa/results/
+qa/seo-geo/rendered-audit.json
+qa/seo-geo/rendered-audit.md
 
 # Audit run output
 artifacts/audit-results/

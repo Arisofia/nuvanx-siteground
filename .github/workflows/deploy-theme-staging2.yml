@@ -59,7 +59,7 @@ jobs:
           ref: ${{ steps.meta.outputs.deployed_ref }}
           fetch-depth: 1
 
-      - name: Validate secrets and source
+      - name: Validate secrets and canonical source
         env:
           SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
@@ -71,20 +71,31 @@ jobs:
           for name in SSH_KEY SSH_USER SSH_HOST SSH_PORT KNOWN_HOSTS; do
             [[ -n "${!name:-}" ]] || { echo "ERROR: secret $name empty"; exit 1; }
           done
-          test -f "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
-          grep -Eqi 'platinum|plata|9ba3ad' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
+          for css_file in \
+            nvx-fonts.css \
+            nvx-tokens.css \
+            nvx-base.css \
+            nvx-site-layout.css \
+            nvx-components.css \
+            nvx-patterns-editorial.css \
+            nvx-header.css \
+            nvx-footer.css; do
+            test -f "${{ env.THEME_REL }}/assets/css/$css_file" || { echo "ERROR: missing canonical CSS $css_file"; exit 1; }
+          done
+          grep -Fq -- '--nvx-light: #fcfbf8;' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
+          grep -Fq -- '--nvx-surface-base: #f8f7f4;' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
+          grep -Fq -- '--nvx-accent-muted: #77736d;' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
+          grep -Fq 'nvx-site-layout.css' "${{ env.THEME_REL }}/functions.php"
+          grep -Fq 'nvx-patterns-editorial.css' "${{ env.THEME_REL }}/functions.php"
           test -f "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
           php -l "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
           php -l "${{ env.THEME_REL }}/inc/nvx-integrations.php"
-          # Lint all theme PHP modules
           find "${{ env.THEME_REL }}" -type f -name '*.php' -print0 | xargs -0 -n1 php -l
-          # Editorial modules expected on master after merges
-          for f in nvx-content-presentation.php nvx-treatments-catalog.php nvx-endolift-page.php nvx-laser-medicine-page.php; do
+          for f in nvx-content-presentation.php nvx-treatments-catalog.php nvx-endolift-page.php nvx-laser-medicine-page.php nvx-clinics-hub.php; do
             test -f "${{ env.THEME_REL }}/inc/$f" || { echo "ERROR: missing inc/$f"; exit 1; }
             grep -q "require_once get_template_directory() . '/inc/$f'" "${{ env.THEME_REL }}/functions.php" \
               || { echo "ERROR: $f not required in functions.php"; exit 1; }
           done
-          # Aesthetic module is optional until PR merges
           if [[ -f "${{ env.THEME_REL }}/inc/nvx-aesthetic-medicine-page.php" ]]; then
             php -l "${{ env.THEME_REL }}/inc/nvx-aesthetic-medicine-page.php"
             grep -q "nvx-aesthetic-medicine-page.php" "${{ env.THEME_REL }}/functions.php" \
@@ -122,7 +133,6 @@ jobs:
             wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php \
             wp-content/mu-plugins/nuvanx-contacto-hubspot-form.php \
             "$SSH_USER@$SSH_HOST:${{ env.STAGING_PATH }}/wp-content/mu-plugins/"
-          # Overrides legacy (zzzz*) redefine the same functions and break WP.
           ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" \
             "rm -f '${{ env.STAGING_PATH }}/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-valoracion-native-hubspot-form.php' \
                     '${{ env.STAGING_PATH }}/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-contacto-hubspot-form.php' \
@@ -149,8 +159,23 @@ jobs:
             [[ "$(wp option get siteurl)" == 'https://staging2.nuvanx.com' ]]
             [[ "$(wp option get home)" == 'https://staging2.nuvanx.com' ]]
             [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
-            grep -Eqi 'platinum|plata|9ba3ad' "$CSS/nvx-tokens.css"
-            for f in nvx-content-presentation.php nvx-treatments-catalog.php nvx-endolift-page.php nvx-laser-medicine-page.php; do
+            for css_file in \
+              nvx-fonts.css \
+              nvx-tokens.css \
+              nvx-base.css \
+              nvx-site-layout.css \
+              nvx-components.css \
+              nvx-patterns-editorial.css \
+              nvx-header.css \
+              nvx-footer.css; do
+              test -f "$CSS/$css_file" || { echo "ERROR: remote missing canonical CSS $css_file"; exit 1; }
+            done
+            grep -Fq -- '--nvx-light: #fcfbf8;' "$CSS/nvx-tokens.css"
+            grep -Fq -- '--nvx-surface-base: #f8f7f4;' "$CSS/nvx-tokens.css"
+            grep -Fq -- '--nvx-accent-muted: #77736d;' "$CSS/nvx-tokens.css"
+            grep -Fq 'nvx-site-layout.css' "$THEME/functions.php"
+            grep -Fq 'nvx-patterns-editorial.css' "$THEME/functions.php"
+            for f in nvx-content-presentation.php nvx-treatments-catalog.php nvx-endolift-page.php nvx-laser-medicine-page.php nvx-clinics-hub.php; do
               test -f "$THEME/inc/$f" || { echo "ERROR: remote missing $f"; exit 1; }
               php -l "$THEME/inc/$f"
             done
@@ -169,42 +194,43 @@ jobs:
             fi
             wp eval '
               if ( ! function_exists( "nvx_schema_clinics" ) || ! function_exists( "nvx_schema_page_registry" ) || ! has_filter( "wpseo_schema_graph", "nvx_extend_yoast_schema_graph" ) ) {
-                  fwrite( STDERR, "SCHEMA_HOOK_MISSING\n" );
-                  exit( 1 );
+                fwrite( STDERR, "SCHEMA_HOOK_MISSING\n" );
+                exit( 1 );
               }
               $registry = nvx_schema_page_registry();
               $required = array(
-                  array( "clinics", "chamberi", 1543 ),
-                  array( "clinics", "goya", 1537 ),
-                  array( "clinic_hub", null, 1399 ),
-                  array( "treatments", "endolift_facial", 1241 ),
-                  array( "treatments", "exion_btl", 2906 ),
+                array( "clinics", "chamberi", 1543 ),
+                array( "clinics", "goya", 1537 ),
+                array( "clinic_hub", null, 1399 ),
+                array( "treatments", "endolift_facial", 1241 ),
+                array( "treatments", "exion_btl", 2906 ),
               );
               foreach ( $required as $row ) {
-                  list( $group, $key, $id ) = $row;
-                  $entry = null === $key ? ( $registry[ $group ] ?? null ) : ( $registry[ $group ][ $key ] ?? null );
-                  if ( ! is_array( $entry ) || (int) ( $entry["id"] ?? 0 ) !== (int) $id || empty( $entry["path"] ) ) {
-                      fwrite( STDERR, "SCHEMA_REGISTRY_MISMATCH\n" );
-                      exit( 1 );
-                  }
+                list( $group, $key, $id ) = $row;
+                $entry = null === $key ? ( $registry[ $group ] ?? null ) : ( $registry[ $group ][ $key ] ?? null );
+                if ( ! is_array( $entry ) || (int) ( $entry["id"] ?? 0 ) !== (int) $id || empty( $entry["path"] ) ) {
+                  fwrite( STDERR, "SCHEMA_REGISTRY_MISMATCH\n" );
+                  exit( 1 );
+                }
               }
               $clinics = nvx_schema_clinics();
               if (
-                  ( $clinics["chamberi"]["identifier"]["value"] ?? "" ) !== "CS20144"
-                  || ( $clinics["goya"]["identifier"]["value"] ?? "" ) !== "CS20073"
-                  || ( $clinics["chamberi"]["telephone"] ?? "" ) !== "+34669319836"
-                  || ( $clinics["goya"]["telephone"] ?? "" ) !== "+34647505107"
+                ( $clinics["chamberi"]["identifier"]["value"] ?? "" ) !== "CS20144"
+                || ( $clinics["goya"]["identifier"]["value"] ?? "" ) !== "CS20073"
+                || ( $clinics["chamberi"]["telephone"] ?? "" ) !== "+34669319836"
+                || ( $clinics["goya"]["telephone"] ?? "" ) !== "+34647505107"
               ) {
-                  fwrite( STDERR, "SCHEMA_ENTITY_MISMATCH\n" );
-                  exit( 1 );
+                fwrite( STDERR, "SCHEMA_ENTITY_MISMATCH\n" );
+                exit( 1 );
               }
               echo "SCHEMA_ENTITY_OK\n";
-              // Editorial filter functions present when modules loaded
               $need = array(
                 "nvx_content_presentation_enhance",
                 "nvx_content_restructure_treatments_index",
                 "nvx_content_restructure_endolift_page",
                 "nvx_content_restructure_laser_medicine_page",
+                "nvx_clinics_hub_enhance",
+                "nvx_clinics_normalize_layout",
               );
               foreach ( $need as $fn ) {
                 if ( ! function_exists( $fn ) ) {
@@ -222,6 +248,7 @@ jobs:
               } else {
                 echo "HOME_BANNER_FN_ABSENT\n";
               }
+              echo "CLINICS_LAYOUT_FN_OK\n";
             '
             wp cache flush || true
             wp sg purge || true
@@ -245,7 +272,6 @@ jobs:
           fetch-depth: 1
 
       - name: Wait for CDN / cache edge
-        # Cache purge can briefly serve tiny/error HTML; give edge + origin a beat.
         run: sleep 15
 
       - name: HTTP smoke verify staging2 pages
@@ -256,5 +282,4 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x scripts/staging2/smoke-verify-staging2.sh
-          # Soft-fail aesthetic-only if module not in this ref; script retries short bodies.
           bash scripts/staging2/smoke-verify-staging2.sh

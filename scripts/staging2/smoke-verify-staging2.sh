@@ -68,12 +68,23 @@ require() {
   local name="$1"
   local html="$2"
   local needle="$3"
-  # Bash substring match avoids SIGPIPE/broken-pipe on huge HTML pipes.
   if [[ "$html" == *"$needle"* ]]; then
     echo "  OK  [$name] $needle"
   else
     echo "  FAIL[$name] missing structural marker: $needle" >&2
     FAIL=1
+  fi
+}
+
+forbid() {
+  local name="$1"
+  local html="$2"
+  local needle="$3"
+  if [[ "$html" == *"$needle"* ]]; then
+    echo "  FAIL[$name] forbidden legacy marker present: $needle" >&2
+    FAIL=1
+  else
+    echo "  OK  [$name] legacy marker absent: $needle"
   fi
 }
 
@@ -112,6 +123,24 @@ check_page "/" "home" \
 check_page "/tratamientos/" "tratamientos" \
   'nvx-catalog' \
   'nvx-logo-cloud'
+
+# Clinics hub — full section shell, accessible anchors and current CSS stack.
+CLINICS_PATH='/clinicas-de-medicina-estetica-nuvanx/'
+check_page "$CLINICS_PATH" "clinics-hub" \
+  'nvx-clinics-content-flow' \
+  'id="nvx-clinics-nav"' \
+  'id="clinica-chamberi"' \
+  'id="clinica-goya"' \
+  'nvx-tokens.css' \
+  'nvx-site-layout.css' \
+  'nvx-patterns-editorial.css'
+
+if html_clinics="$(fetch "${BASE_URL%/}${CLINICS_PATH}" 2>/dev/null || true)"; then
+  forbid "clinics-hub" "$html_clinics" 'nvx-tokens.min.css'
+  forbid "clinics-hub" "$html_clinics" 'nvx-layout.min.css'
+  forbid "clinics-hub" "$html_clinics" 'nvx-patterns.min.css'
+  forbid "clinics-hub" "$html_clinics" 'class="nvx-brand-readable nvx-brand-readable--wide"><div aria-labelledby="nvx-clinics-h1"'
+fi
 
 # Endolift editorial hub
 check_page "/endolift-facial-papada-mandibula/" "endolift" \

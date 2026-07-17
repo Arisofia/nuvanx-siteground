@@ -84,6 +84,9 @@ require_once __DIR__ . '/nvx-page-hygiene.php';
 /** Canonical titles, descriptions, social URLs and environment robots policy. */
 require_once __DIR__ . '/nvx-seo-metadata.php';
 
+/** Canonical front-page patient-facing H1 and clinical introduction. */
+require_once __DIR__ . '/nvx-home-copy.php';
+
 /** Temporary clinical safeguard for BTL detail pages pending source-copy sign-off. */
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
 

@@ -6,6 +6,11 @@ on:
       - security/issue45-inventory-execution-now
     paths:
       - .github/workflows/issue45-inventory-execution.yml
+  pull_request:
+    branches:
+      - master
+    paths:
+      - .github/workflows/issue45-inventory-execution.yml
 
 permissions:
   contents: read

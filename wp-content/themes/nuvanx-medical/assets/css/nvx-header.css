@@ -3,13 +3,21 @@
   top: 0;
   z-index: 1000;
   width: 100%;
+<<<<<<< HEAD
   min-height: var(--nvx-header-height);
+=======
+  min-height: 80px;
+>>>>>>> origin/master
   background: rgba(246, 247, 248, 0.98);
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
 body.admin-bar #nvx-header {
+<<<<<<< HEAD
   top: var(--nvx-space-4);
+=======
+  top: 32px;
+>>>>>>> origin/master
 }
 
 .nvx-header__inner {
@@ -19,7 +27,11 @@ body.admin-bar #nvx-header {
   gap: var(--nvx-space-3);
   width: var(--nvx-shell);
   max-width: 100%;
+<<<<<<< HEAD
   min-height: var(--nvx-header-height);
+=======
+  min-height: 80px;
+>>>>>>> origin/master
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
@@ -39,8 +51,13 @@ body.admin-bar #nvx-header {
 .custom-logo {
   display: block;
   width: auto;
+<<<<<<< HEAD
   height: var(--nvx-logo-height);
   max-width: var(--nvx-logo-width);
+=======
+  height: 40px;
+  max-width: 168px;
+>>>>>>> origin/master
   object-fit: contain;
 }
 
@@ -66,6 +83,7 @@ body.admin-bar #nvx-header {
   display: flex;
   min-width: 0;
   align-items: center;
+<<<<<<< HEAD
   gap: var(--nvx-space-2);
 }
 
@@ -74,6 +92,17 @@ body.admin-bar #nvx-header {
 }
 
 .nvx-nav__list {
+=======
+  justify-content: flex-end;
+  gap: var(--nvx-space-2);
+}
+
+.nvx-nav__list {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--nvx-space-2);
+>>>>>>> origin/master
   margin: 0;
   padding: 0;
   list-style: none;
@@ -89,6 +118,7 @@ body.admin-bar #nvx-header {
 .nvx-nav__list > li > a {
   position: relative;
   display: inline-flex;
+<<<<<<< HEAD
   min-height: var(--nvx-control-size);
   align-items: center;
   padding-block: var(--nvx-space-1);
@@ -97,6 +127,16 @@ body.admin-bar #nvx-header {
   font-weight: 600;
   line-height: var(--nvx-lh-nav);
   letter-spacing: var(--nvx-track-nav);
+=======
+  min-height: 48px;
+  align-items: center;
+  padding-block: var(--nvx-space-1);
+  font-family: var(--nvx-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.08em;
+>>>>>>> origin/master
   text-transform: uppercase;
   color: var(--nvx-ink);
   text-decoration: none;
@@ -132,8 +172,13 @@ body.admin-bar #nvx-header {
   left: 0;
   right: auto;
   z-index: 1200;
+<<<<<<< HEAD
   min-width: var(--nvx-submenu-min-width);
   max-width: min(var(--nvx-submenu-max-width), 70vw);
+=======
+  min-width: 256px;
+  max-width: min(320px, 70vw);
+>>>>>>> origin/master
   margin: 0;
   padding: var(--nvx-space-2) 0;
   list-style: none;
@@ -188,8 +233,13 @@ body.admin-bar #nvx-header {
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-nav-submenu);
   font-weight: 500;
+<<<<<<< HEAD
   line-height: var(--nvx-lh-nav-submenu);
   letter-spacing: var(--nvx-track-nav-submenu);
+=======
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+>>>>>>> origin/master
   text-transform: none;
   color: var(--nvx-text-body);
   text-decoration: none;
@@ -208,20 +258,35 @@ body.admin-bar #nvx-header {
 
 #nvx-header-cta {
   flex: 0 0 auto;
+<<<<<<< HEAD
   min-height: var(--nvx-control-size);
   padding-inline: var(--nvx-space-2);
   font-size: var(--nvx-type-nav-compact);
   letter-spacing: var(--nvx-track-nav-cta);
+=======
+  min-height: 48px;
+  padding-inline: var(--nvx-space-2);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+>>>>>>> origin/master
   white-space: nowrap;
 }
 
 .nvx-hamburger {
   display: none;
+<<<<<<< HEAD
   width: var(--nvx-control-size);
   height: var(--nvx-control-size);
   padding: var(--nvx-space-2);
   border: var(--nvx-border-hairline) solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-pill);
+=======
+  width: 48px;
+  height: 48px;
+  padding: var(--nvx-space-2);
+  border: 1px solid var(--nvx-color-line);
+  border-radius: 999px;
+>>>>>>> origin/master
   background: transparent;
 }
 

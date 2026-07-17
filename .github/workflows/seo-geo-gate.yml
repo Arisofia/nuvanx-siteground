@@ -21,6 +21,7 @@ permissions:
 jobs:
   tooling:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -49,6 +50,8 @@ jobs:
       NVX_STAGING_URL: https://staging2.nuvanx.com
       STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
       STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
+      # Combined auth string consumed by audit-rendered-pages.mjs as NVX_STAGING_BASIC_AUTH
+      NVX_STAGING_BASIC_AUTH: ${{ secrets.STAGING_BASIC_USER }}:${{ secrets.STAGING_BASIC_PASSWORD }}
       NVX_AUDIT_ENVIRONMENTS: production,staging
       NVX_SEO_ENFORCE: ${{ inputs.enforcement || 'critical' }}
     steps:

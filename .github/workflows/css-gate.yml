@@ -54,6 +54,7 @@ jobs:
             nvx-header.css
             nvx-footer.css
             nvx-brand-home.css
+            nvx-mobile-hero-hierarchy.css
           )
 
           for file in "${required[@]}"; do
@@ -244,5 +245,6 @@ jobs:
             "$CSS/nvx-patterns-editorial.css" \
             "$CSS/nvx-header.css" \
             "$CSS/nvx-footer.css" \
-            "$CSS/nvx-brand-home.css"
+            "$CSS/nvx-brand-home.css" \
+            "$CSS/nvx-mobile-hero-hierarchy.css"
           test -s /tmp/nuvanx-canonical.css

@@ -25,13 +25,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
-      - name: Validate Node scripts
+      - name: Validate SEO and GEO tooling
         run: |
           set -euo pipefail
           node --check scripts/seo/audit-rendered-pages.mjs
           node --check scripts/seo/audit-rendered-pages-browser.mjs
           node --check scripts/seo/test-audit-rendered-pages.mjs
           node scripts/seo/test-audit-rendered-pages.mjs
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-home-copy.php
+          php scripts/seo/test-seo-metadata.php
+          php scripts/seo/test-home-copy.php
 
   rendered-audit:
     runs-on: ubuntu-latest

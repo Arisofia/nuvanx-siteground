@@ -156,11 +156,11 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
   background:
     linear-gradient(
       155deg,
-      #e7d7be 0%,
-      #d5d8dc 46%,
-      #aeb8c2 100%
+      var(--nvx-form-stage-warm) 0%,
+      var(--nvx-form-stage-mid) 46%,
+      var(--nvx-form-stage-cool) 100%
     );
-  background-color: #c5cdd4;
+  background-color: var(--nvx-form-stage-fallback);
 }
 
 .nvx-valoracion-page > .nvx-hubspot-form-section::before,
@@ -170,7 +170,7 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
   position: absolute;
   inset: 0;
   z-index: 0;
-  background-image: var(--nvx-form-stage-image, none);
+  background-image: var(--nvx-form-stage-image);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

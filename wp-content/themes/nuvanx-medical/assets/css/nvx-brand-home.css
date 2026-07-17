@@ -99,7 +99,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   font-weight:400;
   line-height:var(--nvx-lh-lead);
   letter-spacing:0;
-  color:rgba(255,255,255,.9);
+  color:var(--nvx-text-on-dark-90);
 }
 .nvx-home-hero-ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
 .nvx-home-hero-ctas .nvx-brand-btn,
@@ -114,7 +114,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 .nvx-home-hero-ctas .nvx-btn--primary{background:var(--nvx-light);color:var(--nvx-ink);border-color:var(--nvx-light)}
 .nvx-home-hero-ctas .nvx-brand-btn--secondary,
 .nvx-home-hero-ctas .nvx-button--secondary,
-.nvx-home-hero-ctas .nvx-btn--secondary{background:transparent;color:var(--nvx-light);border-color:rgba(255,255,255,.55)}
+.nvx-home-hero-ctas .nvx-btn--secondary{background:transparent;color:var(--nvx-light);border-color:var(--nvx-border-on-dark-55)}
 .nvx-home-organic-wave{position:absolute;right:0;bottom:-1px;left:0;z-index:4;height:clamp(42px,6vw,86px);pointer-events:none}
 .nvx-home-organic-wave svg{display:block;width:100%;height:100%}
 .nvx-brand-section{padding-block:var(--nvx-pad-section)}
@@ -165,7 +165,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   font-family:var(--nvx-sans);
   font-size:var(--nvx-type-body,1rem);
   line-height:var(--nvx-lh-body,1.7);
-  color:rgba(255,255,255,.82);
+  color:var(--nvx-text-on-dark-82);
 }
 .nvx-home-action-banner__text strong{color:var(--nvx-light);font-weight:600}
 .nvx-home-action-banner__actions{
@@ -189,7 +189,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   width:100%;
   background:transparent;
   color:var(--nvx-light);
-  border-color:rgba(255,255,255,.42);
+  border-color:var(--nvx-border-on-dark-42);
   border-radius:var(--nvx-radius-button,999px);
 }
 .nvx-home-action-banner .nvx-button--secondary:hover,

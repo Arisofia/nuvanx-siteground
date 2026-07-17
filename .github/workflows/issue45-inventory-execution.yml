@@ -1,19 +1,22 @@
-name: Issue 45 Inventory Execution
+name: Issue 45 Final Inventory
+run-name: Issue 45 final inventory · ${{ github.event_name }} · ${{ github.sha }}
 
 on:
   push:
     branches:
-      - security/issue45-inventory-execution-now
+      - security/issue45-final-inventory-20260717
     paths:
       - .github/workflows/issue45-inventory-execution.yml
+      - scripts/security/issue-45-summarize-inventory.py
   pull_request:
     branches:
       - master
     paths:
       - .github/workflows/issue45-inventory-execution.yml
+      - scripts/security/issue-45-summarize-inventory.py
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   inventory:
@@ -67,36 +70,59 @@ jobs:
             /tmp/issue45-evidence/pre \
             /tmp/issue45-tools
 
+      - name: Validate candidate against clean master tree
+        run: |
+          set -euo pipefail
+          git fetch origin master --depth=1
+          git ls-tree -r --name-only origin/master | sort > /tmp/current-master-tree.txt
+          mkdir -p qa/security/issue45-final-inventory
+          python3 scripts/security/issue-45-summarize-inventory.py \
+            --manifest /tmp/issue45-evidence/pre/candidate-purge-paths.txt \
+            --reasons /tmp/issue45-evidence/pre/candidate-purge-reasons.tsv \
+            --current-tree /tmp/current-master-tree.txt \
+            --output-dir qa/security/issue45-final-inventory
+
       - name: Prepare review-safe evidence
         run: |
           set -euo pipefail
-          mkdir -p qa/security/issue45-inventory
-          cp /tmp/issue45-evidence/pre/inventory-metadata.txt qa/security/issue45-inventory/
-          cp /tmp/issue45-evidence/pre/refs-before.txt qa/security/issue45-inventory/
-          cp /tmp/issue45-evidence/pre/reachable-refs-before.txt qa/security/issue45-inventory/
-          cp /tmp/issue45-evidence/pre/repository-size-before.txt qa/security/issue45-inventory/
-          cp /tmp/issue45-evidence/pre/candidate-purge-paths.txt qa/security/issue45-inventory/
-          cp /tmp/issue45-evidence/pre/candidate-purge-reasons.tsv qa/security/issue45-inventory/
-          cp /tmp/issue45-evidence/pre/gitleaks-before-redacted.json qa/security/issue45-inventory/
-          cp /tmp/issue45-evidence/pre/evidence-sha256.txt qa/security/issue45-inventory/
-          printf 'candidate_paths=%s\n' "$(wc -l < qa/security/issue45-inventory/candidate-purge-paths.txt | tr -d ' ')" >> "$GITHUB_STEP_SUMMARY"
-          printf 'reachable_refs=%s\n' "$(wc -l < qa/security/issue45-inventory/reachable-refs-before.txt | tr -d ' ')" >> "$GITHUB_STEP_SUMMARY"
-          printf 'gitleaks_findings=%s\n' "$(python3 - <<'PY'
-import json
-from pathlib import Path
-p=Path('qa/security/issue45-inventory/gitleaks-before-redacted.json')
-try:
-    data=json.loads(p.read_text() or '[]')
-    print(len(data) if isinstance(data,list) else 0)
-except Exception:
-    print('unreadable')
-PY
-)" >> "$GITHUB_STEP_SUMMARY"
+          cp /tmp/issue45-evidence/pre/inventory-metadata.txt qa/security/issue45-final-inventory/
+          cp /tmp/issue45-evidence/pre/reachable-refs-before.txt qa/security/issue45-final-inventory/
+          cp /tmp/issue45-evidence/pre/repository-size-before.txt qa/security/issue45-final-inventory/
+          cp /tmp/issue45-evidence/pre/candidate-purge-paths.txt qa/security/issue45-final-inventory/approved-purge-paths.txt
+          cp /tmp/issue45-evidence/pre/candidate-purge-reasons.tsv qa/security/issue45-final-inventory/
+          cp /tmp/issue45-evidence/pre/evidence-sha256.txt qa/security/issue45-final-inventory/
+          cat qa/security/issue45-final-inventory/approval-summary.txt >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload path-only inventory evidence
+      - name: Publish approved path-only evidence branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          publish=/tmp/issue45-final-inventory-publish
+          rm -rf "$publish"
+          mkdir -p "$publish/qa/security/issue45-final-inventory"
+          cp qa/security/issue45-final-inventory/* "$publish/qa/security/issue45-final-inventory/"
+          cat > "$publish/README.md" <<EOF
+          # Issue 45 approved path-only purge inventory
+
+          Generated from an all-refs mirror and validated against the clean master tree.
+          This branch contains paths, reasons, intersections, refs and counts only. No secret values or historical blobs are stored here.
+          Source commit: ${GITHUB_SHA}
+          EOF
+          cd "$publish"
+          git init
+          git checkout --orphan security/issue45-approved-inventory
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md qa/security/issue45-final-inventory
+          git commit -m 'security: publish approved issue 45 purge inventory'
+          auth_url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force "$auth_url" HEAD:refs/heads/security/issue45-approved-inventory
+
+      - name: Upload approved path-only inventory
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: issue45-inventory-evidence
-          path: qa/security/issue45-inventory/
+          name: issue45-approved-inventory
+          path: qa/security/issue45-final-inventory/
           retention-days: 7
           if-no-files-found: error

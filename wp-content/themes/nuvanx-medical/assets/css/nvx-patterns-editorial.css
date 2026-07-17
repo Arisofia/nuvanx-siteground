@@ -335,7 +335,7 @@ article.nvx-page > .nvx-page-hero {
   }
 }
 
-/* ── Cards (blog shortcode / journal) ───────────── */
+/* ── Cards (blog shortcode / blog index) ───────────── */
 .nvx-card-grid {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));

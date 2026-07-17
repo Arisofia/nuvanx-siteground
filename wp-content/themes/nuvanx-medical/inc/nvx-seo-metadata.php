@@ -67,6 +67,50 @@ function nvx_seo_metadata_catalog(): array {
 			'title'       => 'Valoración Médica Gratuita Madrid | NUVANX',
 			'description' => 'Valoración médica estética gratuita en Madrid. Evaluación de 15–30 minutos, indicación y presupuesto en Chamberí o Salamanca–Goya.',
 		),
+		'blog'         => array(
+			'title'       => 'Blog NUVANX | Medicina estética láser Madrid',
+			'description' => 'Artículos de NUVANX sobre Endolift®, EXION® BTL, IPL, well-aging y criterio médico en clínicas de Madrid.',
+		),
+	);
+}
+
+/**
+ * Canonical SEO metadata for published medical blog posts (by post_name).
+ *
+ * Titles ≤ 60 characters and descriptions ≤ 160 so SERP truncations stay stable.
+ *
+ * @return array<string, array{title:string,description:string}>
+ */
+function nvx_seo_blog_post_metadata_catalog(): array {
+	return array(
+		'endolift-primeras-72-horas-que-esperar' => array(
+			'title'       => 'Endolift: primeras 72 horas | Qué esperar',
+			'description' => 'Qué es normal tras Endolift: inflamación, molestias y cuándo avisar. Guía de recuperación del protocolo clínico NUVANX en Madrid.',
+		),
+		'endolift-ciencia-laser-subdermico' => array(
+			'title'       => 'Cómo funciona Endolift | Láser subdérmico',
+			'description' => 'Física y biología del Endolift: cómo el láser bajo la piel estimula colágeno sin cirugía. Explicación médica clara de NUVANX.',
+		),
+		'endolift-vs-lifting-quirurgico-cuando-operarse' => array(
+			'title'       => 'Endolift vs lifting quirúrgico | Madrid',
+			'description' => 'Comparativa Endolift y lifting quirúrgico: invasividad, recuperación, resultados y cuándo valorar cirugía en NUVANX Madrid.',
+		),
+		'ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento' => array(
+			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y rojeces',
+			'description' => 'IPL médica BTL EXILITE™ en Madrid para manchas, rojeces, acné y fotorejuvenecimiento tras diagnóstico y fototipo.',
+		),
+		'exion-btl-fractional-rf-face-body' => array(
+			'title'       => 'EXION® BTL Face, Body y Fractional RF',
+			'description' => 'Diferencias entre EXION® Face, Body y Fractional RF: indicaciones, tolerancia y cuándo combinar tras valoración médica.',
+		),
+		'well-aging-48-cambios-hormonales-piel' => array(
+			'title'       => 'Well-aging a los 48 | Cambios hormonales',
+			'description' => 'Cómo cambian piel y colágeno cuando bajan los estrógenos. Guía de well-aging con criterio médico en NUVANX Madrid.',
+		),
+		'intrusismo-tratamientos-inyectables-riesgos' => array(
+			'title'       => 'Intrusismo estético y rellenos | Riesgos',
+			'description' => 'Riesgos del Botox y rellenos fuera de consulta médica: legalidad, complicaciones y por qué importa el criterio clínico.',
+		),
 	);
 }
 
@@ -89,6 +133,11 @@ function nvx_seo_current_path(): string {
 function nvx_seo_current_metadata_key(): ?string {
 	if ( is_front_page() ) {
 		return 'home';
+	}
+
+	// Posts index (/blog/) — not the front page.
+	if ( is_home() && ! is_front_page() ) {
+		return 'blog';
 	}
 
 	if ( function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
@@ -114,15 +163,40 @@ function nvx_seo_current_metadata_key(): ?string {
 		'/equipo-medico/' => 'equipo',
 		'/madrid/valoracion/' => 'valoracion',
 		'/valoracion/' => 'valoracion',
+		'/blog/' => 'blog',
 	);
 
 	return $map[ $path ] ?? null;
 }
 
 /**
+ * Resolve metadata for a single published post by slug when catalogued.
+ *
+ * @return array{title?:string,description?:string}|null
+ */
+function nvx_seo_current_blog_post_metadata(): ?array {
+	if ( ! is_singular( 'post' ) ) {
+		return null;
+	}
+
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	if ( '' === $slug ) {
+		return null;
+	}
+
+	$catalog = nvx_seo_blog_post_metadata_catalog();
+	return $catalog[ $slug ] ?? null;
+}
+
+/**
  * Return one canonical metadata value for the current page.
  */
 function nvx_seo_current_metadata( string $field, string $fallback = '' ): string {
+	$post_meta = nvx_seo_current_blog_post_metadata();
+	if ( is_array( $post_meta ) && ! empty( $post_meta[ $field ] ) ) {
+		return (string) $post_meta[ $field ];
+	}
+
 	$key     = nvx_seo_current_metadata_key();
 	$catalog = nvx_seo_metadata_catalog();
 
@@ -184,7 +258,12 @@ add_filter( 'wpseo_twitter_description', 'nvx_seo_filter_description', 100 );
  * Keep canonical and Open Graph URLs on the current public host.
  */
 function nvx_seo_filter_canonical_url( $url ) {
-	if ( nvx_seo_is_nonproduction_environment() || null === nvx_seo_current_metadata_key() ) {
+	if ( nvx_seo_is_nonproduction_environment() ) {
+		return $url;
+	}
+
+	// Keep blog posts and catalogued pages on the public host.
+	if ( null === nvx_seo_current_metadata_key() && null === nvx_seo_current_blog_post_metadata() ) {
 		return $url;
 	}
 

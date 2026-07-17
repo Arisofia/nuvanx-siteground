@@ -29,12 +29,29 @@ jobs:
       - name: Reject forbidden operational paths
         run: |
           set -euo pipefail
-          forbidden="$(git ls-files | grep -E '(^wp-admin/|^wp-includes/|^wp-content/uploads/|^qa/screenshots/|(^|/)wp-config\.php$|(^|/)source_site_wpconfig$|(^|/)\.env($|\.)|(^|/)wp-content/backups[^/]*/|(^|/)dup-installer(/|$)|(^|/)installer/original_files_|(^|/)[^/]*installer-log[^/]*$)' || true)"
+          forbidden="$(git ls-files | grep -E '(^wp-admin/|^wp-includes/|^wp-content/uploads/|^qa/screenshots/|^wp-content/themes/nuvanx-medical-wpvibe-draft/|(^|/)wp-config\.php$|(^|/)source_site_wpconfig|(^|/)\.env($|\.)|(^|/)wp-content/backups[^/]*/|(^|/)dup-installer(/|$)|(^|/)installer/original_files_|(^|/)[^/]*installer-log[^/]*$)' || true)"
           if [[ -n "$forbidden" ]]; then
             echo 'ERROR: forbidden operational or runtime paths are tracked:'
             printf '%s\n' "$forbidden"
             exit 1
           fi
+
+      - name: Enforce sole canonical theme
+        run: |
+          set -euo pipefail
+          canonical='nuvanx-medical'
+          themes="$(git ls-files | awk -F/ '$1 == "wp-content" && $2 == "themes" && NF >= 4 {print $3}' | sort -u)"
+          unexpected="$(printf '%s\n' "$themes" | sed '/^$/d' | grep -vx "$canonical" || true)"
+          if [[ -n "$unexpected" ]]; then
+            echo 'ERROR: non-canonical WordPress theme directories are versioned:'
+            printf '%s\n' "$unexpected"
+            exit 1
+          fi
+          if ! git ls-files --error-unmatch "wp-content/themes/$canonical/functions.php" >/dev/null 2>&1; then
+            echo "ERROR: canonical theme is missing: wp-content/themes/$canonical"
+            exit 1
+          fi
+          printf 'canonical_theme=%s\n' "$canonical"
 
       - name: Scan concrete values and write path-only evidence
         id: scan
@@ -87,3 +104,4 @@ jobs:
           printf 'tracked_files=%s\n' "$(git ls-files | wc -l)"
           printf 'commits=%s\n' "$(git rev-list --count --all)"
           printf 'tracked_ignored=0\n'
+          printf 'canonical_theme=nuvanx-medical\n'

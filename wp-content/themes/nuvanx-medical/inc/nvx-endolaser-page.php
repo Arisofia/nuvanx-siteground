@@ -63,9 +63,9 @@ function nvx_content_is_endolaser_page( string $content ): bool {
 function nvx_endolaser_hero_copy_markup(): string {
 	$html  = '<div class="nvx-brand-hero__copy nvx-endolaser-hero-copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolaser-h1">' . esc_html__( 'Endoláser Corporal en Madrid: Destrucción de Grasa Localizada y Retracción Cutánea Simultánea', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Laserlipólisis médica intervencionista para contorno corporal: grasa y flacidez en un mismo acto, sin el downtime de una liposucción tradicional.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-brand-hero__description">' . esc_html__( 'Indicación por zonas tras valoración. No es un tratamiento de obesidad ni de pérdida masiva de peso.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolaser-h1">' . esc_html__( 'Endoláser corporal en Madrid: grasa localizada y mejor contorno', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Láser médico para focos de grasa localizada con componente de flacidez leve–moderada (abdomen, flancos, muslos, brazos…), tras valoración y plan por zonas.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-hero__description">' . esc_html__( 'No es un tratamiento de obesidad ni de pérdida masiva de peso. No es liposucción. Es un protocolo ambulatorio con criterios de inclusión y exclusión.', 'nuvanx-medical' ) . '</p>';
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$html .= nvx_cta_pair_markup( 'nvx-endolaser-hero-ctas nvx-home-hero-ctas' );
@@ -112,12 +112,12 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '<section class="nvx-endolift-section nvx-endolaser-mechanism" aria-labelledby="nvx-endolaser-mech-title">';
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Laserlipólisis corporal', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolaser-mech-title" class="nvx-endolift-heading">' . esc_html__( 'Mecanismo de acción dual: licuefacción y neocolagénesis', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'A diferencia de terapias térmicas de superficie o sistemas de frío que no abordan la flacidez, el Endoláser trabaja grasa y calidad de piel en un único acto médico ambulatorio.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Bajo anestesia local se introduce una fibra láser en el tejido subcutáneo. La energía destruye de forma selectiva las paredes de los adipocitos (lipólisis), facilitando su eliminación natural. En paralelo, el estímulo térmico en dermis profunda favorece la contracción de fibras y un andamiaje de soporte que ayuda a limitar el efecto de “piel vacía” tras reducir volumen.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-endolaser-mech-title" class="nvx-endolift-heading">' . esc_html__( 'Cómo actúa: grasa localizada y soporte de la piel', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'A diferencia de terapias solo de superficie o de frío que no abordan la flacidez, el Endoláser puede trabajar grasa y calidad de piel en un mismo acto médico ambulatorio, cuando hay indicación.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Bajo anestesia local se introduce una fibra láser en el tejido subcutáneo. La energía reduce de forma selectiva grasa en focos planificados (lipólisis). En paralelo, el calor en profundidad favorece la contracción de fibras de soporte, para limitar la sensación de “piel vacía” tras reducir volumen.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-endolift-effects">';
 	$html .= '<article class="nvx-endolift-effect"><h3 class="nvx-endolift-effect__title">' . esc_html__( 'Lipólisis láser', 'nuvanx-medical' ) . '</h3>';
-	$html .= '<p class="nvx-endolift-body">' . esc_html__( 'Destrucción irreversible de membranas de adipocitos en focos localizados planificados por el médico.', 'nuvanx-medical' ) . '</p></article>';
+	$html .= '<p class="nvx-endolift-body">' . esc_html__( 'Reducción selectiva de grasa en focos localizados planificados por el médico (no es adelgazamiento general).', 'nuvanx-medical' ) . '</p></article>';
 	$html .= '<article class="nvx-endolift-effect"><h3 class="nvx-endolift-effect__title">' . esc_html__( 'Retracción y soporte dérmico', 'nuvanx-medical' ) . '</h3>';
 	$html .= '<p class="nvx-endolift-body">' . esc_html__( 'Contracción térmica de fibras y estímulo de remodelación para acompañar la pérdida de volumen con mayor firmeza.', 'nuvanx-medical' ) . '</p></article>';
 	$html .= '</div></div></section>';

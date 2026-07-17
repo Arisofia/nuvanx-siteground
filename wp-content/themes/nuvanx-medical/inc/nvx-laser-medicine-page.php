@@ -260,10 +260,10 @@ function nvx_laser_editorial_body_markup(): string {
 		array(
 			'n'       => '05',
 			'icon'    => 'co2',
-			'title'   => __( 'Láser CO₂ Fraccionado · Resurfacing y renovación', 'nuvanx-medical' ),
-			'body'    => __( 'Emisión láser ablativa molecular que genera columnas de microlesiones térmicas microscópicas en la epidermis de forma fraccionada. Este proceso de vaporización controlada elimina las capas queratinizadas envejecidas y desencadena una cicatrización eficiente que reemplaza la piel dañada por tejido nuevo, terso y luminoso.', 'nuvanx-medical' ),
-			'goal'    => __( 'Eliminación de cicatrices de acné, poros dilatados, líneas finas y fotoenvejecimiento.', 'nuvanx-medical' ),
-			'recover' => __( 'Requiere entre 5 y 7 días de descamación controlada y protección solar estricta.', 'nuvanx-medical' ),
+			'title'   => __( 'Láser CO₂ fraccionado · Textura y cicatrices', 'nuvanx-medical' ),
+			'body'    => __( 'Tratamiento fraccionado para cicatrices de acné, poros y textura irregular. La recuperación (eritema y descamación) se planifica según la profundidad del protocolo.', 'nuvanx-medical' ),
+			'goal'    => __( 'Mejorar cicatrices de acné, poros y signos de fotoenvejecimiento, cuando hay indicación.', 'nuvanx-medical' ),
+			'recover' => __( 'Suele implicar varios días de descamación y protección solar estricta (orientativo 5–7 días según plan).', 'nuvanx-medical' ),
 			'url'     => nvx_laser_page_url( 'laser-co2-fraccionado-madrid-textura-cicatrices-poro' ),
 		),
 	);

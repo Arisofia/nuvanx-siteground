@@ -63,8 +63,8 @@ function nvx_co2_hero_copy_markup(): string {
 
 	$html  = '<div class="nvx-brand-hero__copy nvx-co2-hero-copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-co2-h1">' . esc_html__( 'Láser CO₂ Fraccionado en Madrid: Resurfacing Epidérmico y Corrección de Cicatrices', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Ablación fraccionada de alta precisión para cicatrices de acné, poros, textura irregular y fotodaño — con planificación médica y downtime real.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-co2-h1">' . esc_html__( 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Protocolos de resurfacing fraccionado para mejorar irregularidades de textura y cicatrices, con un plan de recuperación realista (eritema y descamación según profundidad).', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
 			/* translators: %s: facial session PVP */

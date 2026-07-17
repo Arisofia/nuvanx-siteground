@@ -92,23 +92,23 @@ function nvx_contact_clinics_nap(): array {
 }
 
 /**
- * Triple validation steps for valoración.
+ * Visit steps for valoración (patient-facing language).
  *
  * @return array<int, array{title:string,body:string}>
  */
 function nvx_valoracion_process_steps(): array {
 	return array(
 		array(
-			'title' => __( 'Escucha activa', 'nuvanx-medical' ),
-			'body'  => __( 'Análisis de historial clínico, cirugías previas y expectativas estéticas reales.', 'nuvanx-medical' ),
+			'title' => __( 'Motivo y expectativas', 'nuvanx-medical' ),
+			'body'  => __( 'Historial, cirugías previas y lo que quieres mejorar — con realismo, sin presión comercial.', 'nuvanx-medical' ),
 		),
 		array(
-			'title' => __( 'Evaluación anatómica in situ', 'nuvanx-medical' ),
-			'body'  => __( 'Exploración de calidad dérmica, grado de ptosis y distribución de grasa localizada.', 'nuvanx-medical' ),
+			'title' => __( 'Exploración y seguridad', 'nuvanx-medical' ),
+			'body'  => __( 'Calidad de piel, flacidez, grasa localizada y criterios de seguridad para indicar o descartar un protocolo.', 'nuvanx-medical' ),
 		),
 		array(
-			'title' => __( 'Planificación médica y presupuestaria', 'nuvanx-medical' ),
-			'body'  => __( 'Protocolo individualizado y presupuesto cerrado, transparente, sin costes ocultos.', 'nuvanx-medical' ),
+			'title' => __( 'Plan A/B y presupuesto', 'nuvanx-medical' ),
+			'body'  => __( 'Si hay indicación: plan, tiempos de recuperación y presupuesto orientativo. Puedes decidir con calma.', 'nuvanx-medical' ),
 		),
 	);
 }
@@ -150,9 +150,9 @@ function nvx_valoracion_intro_markup(): string {
 	$html  = '<section class="nvx-endolift-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Primer paso', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-endolift-heading">' . esc_html__( 'Diagnóstico tisular gratuito y sin compromiso', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'La excelencia en medicina láser exige un diagnóstico diferencial preciso, no una transacción comercial. NUVANX ofrece una valoración médica estética gratuita de 15 a 30 minutos, de forma presencial en Chamberí o Goya · Barrio Salamanca.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'El equipo clínico, bajo la dirección del Dr. Rivera Tejeda, aplica un proceso de triple validación:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-endolift-heading">' . esc_html__( 'Valoración médica gratuita (15–30 min), sin compromiso', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Antes de proponer un láser o un protocolo, hay que saber si hay indicación. En NUVANX la valoración médica estética es gratuita (15–30 minutos), presencial en Chamberí o Goya · Barrio Salamanca, o por videoconsulta cuando procede.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Saldrás con un criterio claro. El equipo, bajo la dirección del Dr. Rivera Tejeda, sigue tres pasos:', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ol class="nvx-co2-timeline nvx-valoracion-steps">';
 	$n = 1;
 	foreach ( nvx_valoracion_process_steps() as $step ) {

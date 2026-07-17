@@ -630,18 +630,49 @@ function nvx_schema_faq_catalog() {
 /**
  * Return an FAQPage node that exactly mirrors visible page content.
  *
+ * Front page uses the GEO home FAQ catalogue (nvx_home_faq_v2_catalog).
+ * Treatment pages use nvx_schema_faq_catalog when the same Q/A are printed in HTML.
+ *
  * @param int $page_id Current page ID.
  * @return array|null
  */
 function nvx_schema_faq_node( $page_id ) {
+	$entities = array();
+	$faq_id   = get_permalink( $page_id ) . '#faq';
+	$faq_url  = get_permalink( $page_id );
+
+	// Homepage FAQ (visible accordion + schema must stay in lockstep).
+	if ( is_front_page() && function_exists( 'nvx_home_faq_v2_catalog' ) ) {
+		foreach ( nvx_home_faq_v2_catalog() as $question ) {
+			if ( empty( $question['q'] ) || empty( $question['a'] ) ) {
+				continue;
+			}
+			$entities[] = array(
+				'@type'          => 'Question',
+				'name'           => $question['q'],
+				'acceptedAnswer' => array(
+					'@type' => 'Answer',
+					'text'  => $question['a'],
+				),
+			);
+		}
+		if ( empty( $entities ) ) {
+			return null;
+		}
+		return array(
+			'@type'      => 'FAQPage',
+			'@id'        => home_url( '/#faq' ),
+			'url'        => home_url( '/' ),
+			'mainEntity' => $entities,
+		);
+	}
+
 	$treatment_key = nvx_schema_resolve_treatment_key( $page_id );
 	$catalog       = nvx_schema_faq_catalog();
 
 	if ( null === $treatment_key || empty( $catalog[ $treatment_key ] ) ) {
 		return null;
 	}
-
-	$entities = array();
 
 	foreach ( $catalog[ $treatment_key ] as $question ) {
 		$entities[] = array(
@@ -656,8 +687,8 @@ function nvx_schema_faq_node( $page_id ) {
 
 	return array(
 		'@type'      => 'FAQPage',
-		'@id'        => get_permalink( $page_id ) . '#faq',
-		'url'        => get_permalink( $page_id ),
+		'@id'        => $faq_id,
+		'url'        => $faq_url,
 		'mainEntity' => $entities,
 	);
 }
@@ -858,15 +889,26 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 
 	if ( 'exion_btl' === $key ) {
 		return array(
-			'@type'            => 'Service',
+			'@type'            => array( 'MedicalProcedure', 'Service' ),
 			'@id'              => $permalink . '#service',
 			'name'             => 'EXION® BTL en Madrid',
 			'serviceType'      => 'Protocolos médicos con plataforma EXION® BTL',
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
 			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Plataforma médica con aplicadores Fractional RF, Face y Body para textura, calidad de piel y contorno según diagnóstico. Alternativa de radiofrecuencia a sistemas con microagujas cuando la valoración lo indica.',
+			'description'      => 'Plataforma médica BTL con aplicadores Fractional RF, Face y Body para textura, firmeza y calidad cutánea según diagnóstico. El presupuesto se cierra tras valoración médica (aplicador, zona y número de sesiones). Puede valorarse como alternativa a RF fraccionada con microagujas (p. ej. Morpheus8®) cuando la indicación lo permite.',
+			'procedureType'    => 'https://schema.org/NoninvasiveProcedure',
 			'areaServed'       => 'Madrid',
+			'offers'           => array(
+				'@type'         => 'Offer',
+				'@id'           => $permalink . '#offer-valoracion',
+				'name'          => 'EXION® BTL — presupuesto tras valoración',
+				'url'           => $permalink . '#inversion-exion',
+				'priceCurrency' => 'EUR',
+				'description'   => 'PVP personalizado según aplicador (Face / Body / Fractional RF), zona y plan de sesiones. Sin tarifa fija online; se documenta en consulta médica gratuita.',
+				'areaServed'    => 'Madrid',
+				'seller'        => array( '@id' => $organization_id ),
+			),
 		);
 	}
 
@@ -1395,6 +1437,11 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 				'availableLanguage' => array( 'es', 'en' ),
 			),
 		);
+		$graph[ $index ]['medicalSpecialty'] = array(
+			'Aesthetic Medicine',
+			'Laser Medicine',
+			'Geriatric Medicine',
+		);
 		$graph[ $index ]['knowsAbout']    = array(
 			'Medicina estética',
 			'Medicina estética láser',
@@ -1554,7 +1601,7 @@ function nvx_filter_front_metadesc( $desc ) {
 		return $desc;
 	}
 
-	return 'NUVANX es el centro médico de medicina estética láser en Madrid (Chamberí y Goya). Protocolos Endolift® desde ' . nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €, Láser CO₂ y EXION® BTL con valoración clínica y presupuestos documentados.';
+	return 'NUVANX: medicina estética láser en Madrid con equipo hospitalario (well-aging y geriatría preventiva). Endolift® desde ' . nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €, CO₂ y EXION® BTL. Valoración en Chamberí y Goya.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_front_metadesc', 20 );
 

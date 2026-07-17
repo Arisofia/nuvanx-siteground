@@ -89,8 +89,8 @@ function nvx_home_copy_transform( string $content ): string {
 		$copy = $root;
 	}
 
-	$lead_text        = 'Diagnóstico médico, tecnología certificada y resultados naturales.';
-	$description_text = 'Endolift®, Láser CO₂ y EXION® BTL en Chamberí y Salamanca–Goya. Protocolos personalizados según valoración médica.';
+	$lead_text        = 'Valoramos en 15–30 minutos si hay indicación real. Luego elegimos la tecnología.';
+	$description_text = 'Endolift®, láser CO₂ y EXION® BTL en Chamberí (CS20144) y Salamanca–Goya (CS20073). Plan claro antes de decidir.';
 	$lead             = null;
 	$description      = null;
 

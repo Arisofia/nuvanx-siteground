@@ -127,3 +127,34 @@ function nvx_filter_sitemap_entry_sensitive_pages( $url, $type, $post ) {
 	return $url;
 }
 add_filter( 'wpseo_sitemap_entry', 'nvx_filter_sitemap_entry_sensitive_pages', 20, 3 );
+
+/**
+ * Lightweight public HTML hygiene: typos and clichés in inherited CMS content.
+ *
+ * Theme-rendered pages already use clean strings; this catches residual
+ * post_content / shortcode output without rewriting clinical claims.
+ *
+ * @param string $content HTML content.
+ * @return string
+ */
+function nvx_public_content_text_hygiene( $content ) {
+	if ( is_admin() || ! is_string( $content ) || '' === $content ) {
+		return $content;
+	}
+
+	$replacements = array(
+		// Brand / product typo seen in legacy CMS titles.
+		'EXILITET' => 'EXILITE™',
+		'Exilitet' => 'EXILITE™',
+		// Empty brand slogans.
+		'Tu mejor versión empieza aquí.' => 'Reserva 15–30 min de valoración médica.',
+		'Tu mejor versión empieza aquí'  => 'Reserva 15–30 min de valoración médica',
+		// Vague sede framing.
+		'enfoque médico premium' => 'misma dirección médica que Chamberí',
+		'enfoque medico premium' => 'misma direccion medica que Chamberi',
+	);
+
+	return strtr( $content, $replacements );
+}
+add_filter( 'the_content', 'nvx_public_content_text_hygiene', 12 );
+add_filter( 'the_title', 'nvx_public_content_text_hygiene', 12 );

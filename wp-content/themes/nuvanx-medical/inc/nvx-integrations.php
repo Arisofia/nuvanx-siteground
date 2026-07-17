@@ -96,5 +96,8 @@ require_once __DIR__ . '/nvx-faq-content-v2.php';
 /** Temporary clinical safeguard for BTL detail pages pending source-copy sign-off. */
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
 
+/** Final visible/schema terminology normalization for legacy content sources. */
+require_once __DIR__ . '/nvx-clinical-language.php';
+
 /** Global hero hierarchy: concise media overlay plus readable clinical introduction. */
 require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';

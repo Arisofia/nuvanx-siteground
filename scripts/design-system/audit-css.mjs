@@ -19,6 +19,7 @@ const ACTIVE_STACK = [
 	'nvx-footer.css',
 	'nvx-brand-home.css',
 	'nvx-mobile-hero-hierarchy.css',
+	'nvx-medical-review.css',
 ];
 
 const CANONICAL_FONT_TOKENS = new Set(['var(--nvx-serif)', 'var(--nvx-sans)']);

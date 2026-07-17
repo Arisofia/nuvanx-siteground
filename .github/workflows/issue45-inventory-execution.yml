@@ -1,0 +1,102 @@
+name: Issue 45 Inventory Execution
+
+on:
+  push:
+    branches:
+      - security/issue45-inventory-execution-now
+    paths:
+      - .github/workflows/issue45-inventory-execution.yml
+  pull_request:
+    branches:
+      - master
+    paths:
+      - .github/workflows/issue45-inventory-execution.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout clean security tooling
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 1
+
+      - name: Install pinned history and secret scanners
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --no-cache-dir git-filter-repo==2.47.0
+          version='8.30.1'
+          asset="gitleaks_${version}_linux_x64.tar.gz"
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${version}"
+          curl -fsSLO "${base}/${asset}"
+          curl -fsSLO "${base}/gitleaks_${version}_checksums.txt"
+          grep " ${asset}$" "gitleaks_${version}_checksums.txt" | sha256sum -c -
+          tar -xzf "$asset" gitleaks
+          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+          git filter-repo --version
+          gitleaks version
+
+      - name: Create isolated all-refs mirror
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          auth_url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git clone --mirror "$auth_url" /tmp/nuvanx-siteground-purge.git
+          git -C /tmp/nuvanx-siteground-purge.git remote set-url origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git -C /tmp/nuvanx-siteground-purge.git fetch --force "$auth_url" \
+            '+refs/heads/*:refs/heads/*' \
+            '+refs/tags/*:refs/tags/*'
+          git -C /tmp/nuvanx-siteground-purge.git fetch --force "$auth_url" \
+            '+refs/pull/*/head:refs/pull/*/head' \
+            '+refs/pull/*/merge:refs/pull/*/merge' || true
+
+      - name: Build path-only purge inventory
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/issue45-tools /tmp/issue45-evidence/pre
+          cp scripts/security/issue-45-build-manifest.py /tmp/issue45-tools/
+          cp scripts/security/issue-45-inventory.sh /tmp/issue45-tools/
+          chmod 700 /tmp/issue45-tools/issue-45-inventory.sh
+          /tmp/issue45-tools/issue-45-inventory.sh \
+            /tmp/nuvanx-siteground-purge.git \
+            /tmp/issue45-evidence/pre \
+            /tmp/issue45-tools
+
+      - name: Prepare review-safe evidence
+        run: |
+          set -euo pipefail
+          mkdir -p qa/security/issue45-inventory
+          cp /tmp/issue45-evidence/pre/inventory-metadata.txt qa/security/issue45-inventory/
+          cp /tmp/issue45-evidence/pre/refs-before.txt qa/security/issue45-inventory/
+          cp /tmp/issue45-evidence/pre/reachable-refs-before.txt qa/security/issue45-inventory/
+          cp /tmp/issue45-evidence/pre/repository-size-before.txt qa/security/issue45-inventory/
+          cp /tmp/issue45-evidence/pre/candidate-purge-paths.txt qa/security/issue45-inventory/
+          cp /tmp/issue45-evidence/pre/candidate-purge-reasons.tsv qa/security/issue45-inventory/
+          cp /tmp/issue45-evidence/pre/gitleaks-before-redacted.json qa/security/issue45-inventory/
+          cp /tmp/issue45-evidence/pre/evidence-sha256.txt qa/security/issue45-inventory/
+          printf 'candidate_paths=%s\n' "$(wc -l < qa/security/issue45-inventory/candidate-purge-paths.txt | tr -d ' ')" >> "$GITHUB_STEP_SUMMARY"
+          printf 'reachable_refs=%s\n' "$(wc -l < qa/security/issue45-inventory/reachable-refs-before.txt | tr -d ' ')" >> "$GITHUB_STEP_SUMMARY"
+          printf 'gitleaks_findings=%s\n' "$(python3 - <<'PY'
+import json
+from pathlib import Path
+p=Path('qa/security/issue45-inventory/gitleaks-before-redacted.json')
+try:
+    data=json.loads(p.read_text() or '[]')
+    print(len(data) if isinstance(data,list) else 0)
+except Exception:
+    print('unreadable')
+PY
+)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload path-only inventory evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue45-inventory-evidence
+          path: qa/security/issue45-inventory/
+          retention-days: 7
+          if-no-files-found: error

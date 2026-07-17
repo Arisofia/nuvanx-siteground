@@ -21,7 +21,7 @@ function nvx_seo_metadata_catalog(): array {
 	return array(
 		'home'         => array(
 			'title'       => 'Medicina Estética Láser Madrid | Endolift y CO₂ | NUVANX',
-			'description' => 'Clínica de medicina estética láser en Madrid. Endolift®, Láser CO₂ y EXION® BTL con diagnóstico médico en Chamberí y Salamanca–Goya.',
+			'description' => 'Medicina estética láser en Madrid con equipo médico hospitalario. Endolift®, CO₂, EXION® BTL y well-aging en Chamberí y Salamanca–Goya.',
 		),
 		'tratamientos' => array(
 			'title'       => 'Tratamientos Medicina Estética Láser Madrid | NUVANX',
@@ -53,7 +53,7 @@ function nvx_seo_metadata_catalog(): array {
 		),
 		'exion'        => array(
 			'title'       => 'EXION® BTL Madrid | Face, Body y Fractional RF | NUVANX',
-			'description' => 'EXION® BTL en Madrid: Face, Body y Fractional RF son modalidades diferentes. La indicación, parámetros y sesiones dependen del diagnóstico.',
+			'description' => 'EXION® BTL en Madrid: Face, Body y Fractional RF. Indicación y presupuesto tras valoración médica. Alternativa a RF fraccionada según diagnóstico.',
 		),
 		'exilite'      => array(
 			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y Rojeces | NUVANX',

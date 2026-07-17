@@ -34,8 +34,10 @@ jobs:
           node scripts/seo/test-audit-rendered-pages.mjs
           php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-home-copy.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-home-content-v2.php
           php scripts/seo/test-seo-metadata.php
           php scripts/seo/test-home-copy.php
+          php scripts/seo/test-home-content-v2.php
 
   rendered-audit:
     runs-on: ubuntu-latest

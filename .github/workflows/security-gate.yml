@@ -2,7 +2,15 @@ name: Security Gate
 
 on:
   push:
+    branches:
+      - master
   pull_request:
+    branches:
+      - master
+
+concurrency:
+  group: security-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

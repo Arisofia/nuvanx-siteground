@@ -20,6 +20,13 @@
   --nvx-color-paper: #f2f3f5;
   --nvx-color-line: rgba(20, 22, 26, 0.12);
 
+  /* Form-stage semantic palette + image (PHP may override image on section). */
+  --nvx-form-stage-warm: #e7d7be;
+  --nvx-form-stage-mid: #d5d8dc;
+  --nvx-form-stage-cool: #aeb8c2;
+  --nvx-form-stage-fallback: #c5cdd4;
+  --nvx-form-stage-image: none;
+
   --nvx-shadow-min: 0 1px 2px rgba(20, 22, 26, 0.04);
   --nvx-shadow-soft: 0 16px 48px rgba(20, 22, 26, 0.06);
   --nvx-shadow-medium: 0 24px 64px rgba(20, 22, 26, 0.08);
@@ -27,16 +34,21 @@
   --nvx-shadow-button-hover: 0 16px 32px rgba(20, 22, 26, 0.14);
   --nvx-accent-glow: rgba(155, 163, 173, 0.16);
 
-  /* Escala de 8px (valores en uso en CSS activo) */
+  /* Escala de 8px */
   --nvx-space-1: 8px;
   --nvx-space-2: 16px;
   --nvx-space-3: 24px;
   --nvx-space-4: 32px;
   --nvx-space-5: 40px;
   --nvx-space-6: 48px;
+  --nvx-space-7: 56px;
   --nvx-space-8: 64px;
+  --nvx-space-9: 72px;
   --nvx-space-10: 80px;
   --nvx-space-12: 96px;
+  --nvx-space-13: 104px;
+  --nvx-space-14: 112px;
+  --nvx-space-15: 120px;
 
   --nvx-gap-base: clamp(24px, 2.4vw, 32px);
   --nvx-gap-wide: clamp(32px, 4vw, 48px);
@@ -67,12 +79,28 @@
 
   /* Media */
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
+  /* Hero stage height (component media queries may override). */
+  --nvx-hero-h: min(92svh, 980px);
 
-  --nvx-radius-button: 999px;
+  /* Component dimensions */
+  --nvx-header-height: 80px;
+  --nvx-header-height-mobile: 72px;
+  --nvx-control-size: 48px;
+  --nvx-logo-height: 40px;
+  --nvx-logo-height-mobile: 36px;
+  --nvx-logo-width: 168px;
+  --nvx-logo-width-mobile: 152px;
+  --nvx-submenu-min-width: 256px;
+  --nvx-submenu-max-width: 320px;
+
+  --nvx-border-hairline: 1px;
+  --nvx-icon-stroke: 1.5px;
+  --nvx-radius-pill: 999px;
+  --nvx-radius-button: var(--nvx-radius-pill);
   --nvx-radius-card: clamp(24px, 2.5vw, 32px);
   --nvx-radius-image: clamp(24px, 2.5vw, 32px);
   --nvx-organic-c: 36% 64% 52% 48% / 58% 36% 64% 42%;
-  /* Hero scrim: stronger bottom for full-bleed overlay legibility */
+
   --nvx-media-overlay: linear-gradient(
     180deg,
     rgba(20, 22, 26, 0.12) 0%,
@@ -94,6 +122,11 @@
   --nvx-type-small: 0.875rem;
   --nvx-type-kicker: clamp(.6875rem, .72vw, .75rem);
   --nvx-type-button: .75rem;
+  --nvx-type-nav: .72rem;
+  --nvx-type-nav-compact: .68rem;
+  --nvx-type-nav-submenu: .84rem;
+  --nvx-type-nav-mobile: clamp(1.5rem, 6vw, 2.25rem);
+
   --nvx-fw-regular: 400;
   --nvx-lh-display: 1.05;
   --nvx-lh-h1: 1.1;
@@ -103,6 +136,9 @@
   --nvx-lh-body: 1.75;
   --nvx-lh-lead: 1.65;
   --nvx-lh-caption: 1.5;
+  --nvx-lh-nav: 1;
+  --nvx-lh-nav-submenu: 1.35;
+
   --nvx-track-display: -.04em;
   --nvx-track-h1: -.02em;
   --nvx-track-h2: -.015em;
@@ -110,4 +146,7 @@
   --nvx-track-kicker: .25em;
   --nvx-track-button: .14em;
   --nvx-track-body: normal;
+  --nvx-track-nav: .08em;
+  --nvx-track-nav-cta: .06em;
+  --nvx-track-nav-submenu: .02em;
 }

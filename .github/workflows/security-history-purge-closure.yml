@@ -43,34 +43,86 @@ jobs:
             echo 'repository_private=false — temporary remediation mode' >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Record incident commit reachability
+      - name: Record incident reachability (mutable vs pull)
         run: |
           set -euo pipefail
           incident='81dafb2e74b6bbfffe302979d67fe789c0075509'
-          if git cat-file -e "${incident}^{commit}" 2>/dev/null; then
-            echo 'incident_commit_reachable=true' >> qa/security/history-closure/closure-state.txt
-            echo "::warning::SECURITY NO GO — incident commit remains reachable: $incident"
-            echo 'incident_commit_reachable=true' >> "$GITHUB_STEP_SUMMARY"
+          mapfile -t mutable_refs < <(git for-each-ref --format='%(refname)' refs/remotes/origin refs/tags)
+          mapfile -t pull_refs < <(git for-each-ref --format='%(refname)' refs/remotes/pull)
+
+          # Closure criterion: not reachable from heads/tags (mutable refs).
+          # GitHub-managed refs/pull/* keep pre-rewrite tips until Support purges them.
+          if ((${#mutable_refs[@]})) && git rev-list "${mutable_refs[@]}" | grep -qx "$incident"; then
+            echo 'incident_commit_reachable_mutable=true' >> qa/security/history-closure/closure-state.txt
+            echo "::warning::SECURITY NO GO — incident commit remains reachable from branches/tags: $incident"
+            echo 'incident_commit_reachable_mutable=true' >> "$GITHUB_STEP_SUMMARY"
           else
-            echo 'incident_commit_reachable=false' >> qa/security/history-closure/closure-state.txt
-            echo 'incident_commit_reachable=false' >> "$GITHUB_STEP_SUMMARY"
+            echo 'incident_commit_reachable_mutable=false' >> qa/security/history-closure/closure-state.txt
+            echo 'incident_commit_reachable_mutable=false' >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Record prohibited paths across fetched refs
+          if ((${#pull_refs[@]})) && git rev-list "${pull_refs[@]}" 2>/dev/null | grep -qx "$incident"; then
+            echo 'incident_commit_reachable_pull_refs=true' >> qa/security/history-closure/closure-state.txt
+            echo '::warning::Incident commit still present on GitHub pull-request refs (Support cleanup required).'
+            echo 'incident_commit_reachable_pull_refs=true' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'incident_commit_reachable_pull_refs=false' >> qa/security/history-closure/closure-state.txt
+            echo 'incident_commit_reachable_pull_refs=false' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          # Compatibility key for older summary consumers: mutable reachability only.
+          awk -F= '$1=="incident_commit_reachable_mutable"{print "incident_commit_reachable="$2}' \
+            qa/security/history-closure/closure-state.txt | tail -n1 \
+            >> qa/security/history-closure/closure-state.txt
+          grep '^incident_commit_reachable=' qa/security/history-closure/closure-state.txt | tail -n1 \
+            >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Record prohibited paths on mutable refs
         run: |
           set -euo pipefail
+          mapfile -t mutable_refs < <(git for-each-ref --format='%(refname)' refs/remotes/origin refs/tags)
           objects_file="$(mktemp)"
           trap 'rm -f "$objects_file"' EXIT
-          git -c core.quotePath=false rev-list --objects --all > "$objects_file"
+
+          if ((${#mutable_refs[@]})); then
+            git -c core.quotePath=false rev-list --objects "${mutable_refs[@]}" > "$objects_file"
+          else
+            : > "$objects_file"
+          fi
+
           python3 scripts/security/issue-45-build-manifest.py \
             --objects "$objects_file" \
             --manifest qa/security/history-closure/residual-paths.txt \
             --reasons qa/security/history-closure/residual-reasons.tsv
           residual_count="$(wc -l < qa/security/history-closure/residual-paths.txt | tr -d ' ')"
           echo "residual_prohibited_paths=${residual_count}" >> qa/security/history-closure/closure-state.txt
-          echo "residual_prohibited_paths=${residual_count}" >> "$GITHUB_STEP_SUMMARY"
+          echo "residual_prohibited_paths_mutable=${residual_count}" >> qa/security/history-closure/closure-state.txt
+          echo "residual_prohibited_paths=${residual_count} (mutable refs only)" >> "$GITHUB_STEP_SUMMARY"
           if [[ "$residual_count" != '0' ]]; then
-            echo "::warning::SECURITY NO GO — ${residual_count} prohibited historical paths remain reachable."
+            echo "::warning::SECURITY NO GO — ${residual_count} prohibited paths remain on branches/tags."
+          fi
+
+      - name: Report pull-ref residue (Support evidence, non-blocking)
+        if: always()
+        run: |
+          set -euo pipefail
+          mapfile -t pull_refs < <(git for-each-ref --format='%(refname)' refs/remotes/pull)
+          objects_file="$(mktemp)"
+          trap 'rm -f "$objects_file"' EXIT
+          if ((${#pull_refs[@]})); then
+            git -c core.quotePath=false rev-list --objects "${pull_refs[@]}" > "$objects_file" || : > "$objects_file"
+          else
+            : > "$objects_file"
+          fi
+          python3 scripts/security/issue-45-build-manifest.py \
+            --objects "$objects_file" \
+            --manifest qa/security/history-closure/pull-ref-residual-paths.txt \
+            --reasons qa/security/history-closure/pull-ref-residual-reasons.tsv
+          pull_residual="$(wc -l < qa/security/history-closure/pull-ref-residual-paths.txt | tr -d ' ')"
+          echo "residual_prohibited_paths_pull_refs=${pull_residual}" >> qa/security/history-closure/closure-state.txt
+          echo "residual_prohibited_paths_pull_refs=${pull_residual} (GitHub Support cleanup)" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$pull_residual" != '0' ]]; then
+            echo "::warning::${pull_residual} prohibited paths remain only via refs/pull/* — open a GitHub Support history-cleanup request."
           fi
 
       - name: Report closure evidence
@@ -78,10 +130,16 @@ jobs:
         run: |
           set -euo pipefail
           {
-            printf 'heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/origin | wc -l)"
-            printf 'tags=%s\n' "$(git for-each-ref --format='%(refname)' refs/tags | wc -l)"
-            printf 'pull_heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/pull | wc -l)"
-            printf 'reachable_commits=%s\n' "$(git rev-list --count --all)"
+            printf 'heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/origin | wc -l | tr -d ' ')"
+            printf 'tags=%s\n' "$(git for-each-ref --format='%(refname)' refs/tags | wc -l | tr -d ' ')"
+            printf 'pull_heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/pull | wc -l | tr -d ' ')"
+            printf 'reachable_commits_all=%s\n' "$(git rev-list --count --all)"
+            mapfile -t mutable_refs < <(git for-each-ref --format='%(refname)' refs/remotes/origin refs/tags)
+            if ((${#mutable_refs[@]})); then
+              printf 'reachable_commits_mutable=%s\n' "$(git rev-list --count "${mutable_refs[@]}")"
+            else
+              printf 'reachable_commits_mutable=0\n'
+            fi
           } | tee qa/security/history-closure/ref-counts.txt >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload path-only closure evidence
@@ -94,6 +152,8 @@ jobs:
             qa/security/history-closure/ref-counts.txt
             qa/security/history-closure/residual-paths.txt
             qa/security/history-closure/residual-reasons.tsv
+            qa/security/history-closure/pull-ref-residual-paths.txt
+            qa/security/history-closure/pull-ref-residual-reasons.tsv
           retention-days: 7
           if-no-files-found: error
 
@@ -108,16 +168,33 @@ jobs:
           fi
 
           repository_private="$(awk -F= '$1=="repository_private" {print $2}' "$state" | tail -n1)"
-          incident_reachable="$(awk -F= '$1=="incident_commit_reachable" {print $2}' "$state" | tail -n1)"
-          residual_paths="$(awk -F= '$1=="residual_prohibited_paths" {print $2}' "$state" | tail -n1)"
+          incident_mutable="$(awk -F= '$1=="incident_commit_reachable_mutable" {print $2}' "$state" | tail -n1)"
+          residual_mutable="$(awk -F= '$1=="residual_prohibited_paths_mutable" {print $2}' "$state" | tail -n1)"
+          incident_pull="$(awk -F= '$1=="incident_commit_reachable_pull_refs" {print $2}' "$state" | tail -n1)"
+          residual_pull="$(awk -F= '$1=="residual_prohibited_paths_pull_refs" {print $2}' "$state" | tail -n1)"
 
-          if [[ "$repository_private" != 'true' || "$incident_reachable" != 'false' || "$residual_paths" != '0' ]]; then
-            echo 'ERROR: SECURITY NO GO — issue #45 closure criteria are incomplete.'
-            echo "repository_private=${repository_private:-unknown}"
-            echo "incident_commit_reachable=${incident_reachable:-unknown}"
-            echo "residual_prohibited_paths=${residual_paths:-unknown}"
-            echo 'The repository may remain public only during remediation execution; return it to private after fresh-clone verification.'
+          echo "repository_private=${repository_private:-unknown}"
+          echo "incident_commit_reachable_mutable=${incident_mutable:-unknown}"
+          echo "residual_prohibited_paths_mutable=${residual_mutable:-unknown}"
+          echo "incident_commit_reachable_pull_refs=${incident_pull:-unknown}"
+          echo "residual_prohibited_paths_pull_refs=${residual_pull:-unknown}"
+
+          failed=0
+          if [[ "$incident_mutable" != 'false' || "$residual_mutable" != '0' ]]; then
+            echo 'ERROR: SECURITY NO GO — prohibited history remains on mutable branches/tags.'
+            failed=1
+          fi
+          if [[ "$repository_private" != 'true' ]]; then
+            echo 'ERROR: SECURITY NO GO — repository must be private before issue #45 can close.'
+            echo 'Mutable-ref purge may already be complete; set visibility to private after Support is notified for refs/pull/* cleanup.'
+            failed=1
+          fi
+          if [[ "$failed" -ne 0 ]]; then
             exit 1
+          fi
+
+          if [[ "$incident_pull" == 'true' || ( -n "$residual_pull" && "$residual_pull" != '0' ) ]]; then
+            echo '::warning::Mutable refs are clean and the repository is private, but GitHub pull-request refs still need Support history cleanup.'
           fi
 
           echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=true'

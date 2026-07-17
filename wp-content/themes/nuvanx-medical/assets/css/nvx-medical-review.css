@@ -1,0 +1,49 @@
+.nvx-medical-review {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  margin-block: var(--nvx-gap-wide);
+  padding: var(--nvx-pad-card);
+  border: 1px solid var(--nvx-border-soft);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-surface-soft);
+  color: var(--nvx-text-body);
+}
+
+.nvx-medical-review__kicker {
+  margin: 0 0 var(--nvx-gap-tight);
+  color: var(--nvx-text-muted);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: 700;
+  letter-spacing: var(--nvx-track-kicker);
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.nvx-medical-review__identity,
+.nvx-medical-review__date {
+  max-width: var(--nvx-measure);
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+}
+
+.nvx-medical-review__date {
+  margin-top: var(--nvx-gap-tight);
+  color: var(--nvx-text-muted);
+}
+
+.nvx-medical-review__reviewer {
+  color: var(--nvx-ink);
+  font-weight: 700;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.nvx-medical-review__reviewer:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}

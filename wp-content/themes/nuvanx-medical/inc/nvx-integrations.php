@@ -90,6 +90,9 @@ require_once __DIR__ . '/nvx-home-copy.php';
 /** Canonical value proposition, clinical method, valuation CTA and protocols. */
 require_once __DIR__ . '/nvx-home-content-v2.php';
 
+/** One canonical FAQ catalogue shared by visible HTML and Yoast schema. */
+require_once __DIR__ . '/nvx-faq-content-v2.php';
+
 /** Temporary clinical safeguard for BTL detail pages pending source-copy sign-off. */
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
 

@@ -11,6 +11,7 @@ on:
       - scripts/security/issue-45-verify.sh
       - scripts/security/issue-45-build-manifest.py
       - .issue45-purge-trigger
+      - docs/security/issue45-backup-public-key.pem
 
 permissions:
   contents: write
@@ -107,25 +108,22 @@ jobs:
           set -euo pipefail
           backup=/tmp/issue45-encrypted-backup
           mkdir -p "$backup"
-          cat > "$backup/public-key.pem" <<'EOF'
-          -----BEGIN PUBLIC KEY-----
-          MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA/Q7WIKfIGA6inQsxAE0r
-          Vnq6t5zEb4B3mMy038EnrXmV9gCEdOrDOYBImu70wGT9LKyKJTwEXYnbcb2WQqaX
-          e0FPWaRRiugsoTjAN4v/rXS+n2l1NhBoqtMI/OXbqU2nxV6GLlOyGLhArkVIejCz
-          JUSP7XDGGjyrFuIfxNIleUqrCys7Fc6Uv4n+ClVNP9jvwfU4BEgSzAwdz1wnfWSq
-          idQ78j9jvXHizWZlSEMkGt2cBwA+FfgOuAEU3N7xYX37V/Snrh/rCj7/JltgytQh
-          DSCzRl3HFz6dSUfuhY8K8fNsq8NN6qfmrZDtIqTFpoc/rraULUJKL/Qo8sE2IbGa
-          Qm8LfpwOteqLBpjd70G6EFaD0+JcI+VfNKTfEi7sXUHvMT398RCPb0p9sQMJSq38
-          bxnOHXfGvprip8vafhkOb9GEcfu1KBzUe2vwfYVZUS5+NWO/GmetWPI+eqoBfYfQ
-          CFd+5ohCbiBbMXj+HQAE6VdKos0sEhtmGCiN0051oyoK+afxitAP8rsby6GhARf4
-          pTMclurXg0lOqLFo1DNiVlfEk9AcfxzezGU8Ji5OVA7iMTHBaW8zMv74mUi3CZR9
-          TcxMl1DzGxBo9cSrxv5MDUgTZx1tn768myE5zNFgxdtebNMEDYou3GzaeOs/+kXN
-          gEaWeR5iib9R/dlY++fMxUkCAwEAAQ==
-          -----END PUBLIC KEY-----
-          EOF
+          public_key=docs/security/issue45-backup-public-key.pem
+          expected_key_sha=97b999b0c159f0a747c4b6d230c9fe8ffd213420ca5fd339d9555ff5cb5d235a
+          actual_key_sha="$(sha256sum "$public_key" | awk '{print $1}')"
+          if [[ "$actual_key_sha" != "$expected_key_sha" ]]; then
+            echo 'ERROR: recovery public key fingerprint does not match the offline private key.'
+            exit 1
+          fi
+          openssl pkey -pubin -in "$public_key" -noout
+          cp "$public_key" "$backup/public-key.pem"
+          echo "recovery_public_key_sha256=${actual_key_sha}" >> "$GITHUB_STEP_SUMMARY"
 
           git -C /tmp/nuvanx-siteground-purge.git bundle create "$backup/nuvanx-siteground-before-purge.bundle" --all
-          sha256sum "$backup/nuvanx-siteground-before-purge.bundle" > "$backup/plaintext-bundle.sha256"
+          (
+            cd "$backup"
+            sha256sum nuvanx-siteground-before-purge.bundle > plaintext-bundle.sha256
+          )
           openssl rand -hex 48 > "$backup/bundle-passphrase.txt"
           openssl enc -aes-256-cbc -salt -pbkdf2 -iter 600000 -md sha256 \
             -pass file:"$backup/bundle-passphrase.txt" \
@@ -139,10 +137,13 @@ jobs:
             -pkeyopt rsa_padding_mode:oaep \
             -pkeyopt rsa_oaep_md:sha256 \
             -pkeyopt rsa_mgf1_md:sha256
-          sha256sum \
-            "$backup/nuvanx-siteground-before-purge.bundle.enc" \
-            "$backup/bundle-passphrase.rsa" \
-            > "$backup/encrypted-artifacts.sha256"
+          (
+            cd "$backup"
+            sha256sum \
+              nuvanx-siteground-before-purge.bundle.enc \
+              bundle-passphrase.rsa \
+              > encrypted-artifacts.sha256
+          )
           cat > "$backup/RESTORE-INSTRUCTIONS.txt" <<'EOF'
           This archive contains an encrypted pre-purge Git bundle.
           Keep it restricted because the decrypted bundle contains compromised history.

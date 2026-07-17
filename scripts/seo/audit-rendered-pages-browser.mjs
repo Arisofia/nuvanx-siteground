@@ -3,7 +3,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import process from 'node:process';
 import { chromium } from '@playwright/test';
-import { analyseHtml } from './audit-rendered-pages.mjs';
+import { analyseHtml, isEdgeInterstitialResponse } from './audit-rendered-pages.mjs';
 
 const ROUTES = [
   { path: '/', role: 'home', expectedTypes: ['MedicalClinic', 'Physician'] },
@@ -44,8 +44,16 @@ const CRITICAL_CODES = new Set([
   'EDGE_INTERSTITIAL',
 ]);
 
+const MAX_ATTEMPTS = Math.max(1, Number(process.env.NVX_AUDIT_RETRIES || 4));
+const BASE_DELAY_MS = Math.max(500, Number(process.env.NVX_AUDIT_RETRY_DELAY_MS || 3000));
+const INTER_ROUTE_DELAY_MS = Math.max(0, Number(process.env.NVX_AUDIT_ROUTE_DELAY_MS || 750));
+
 function normalizeHeaders(headers = {}) {
   return Object.fromEntries(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value]));
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function markdownReport(report) {
@@ -81,7 +89,51 @@ function markdownReport(report) {
   return `${lines.join('\n')}\n`;
 }
 
-async function renderPage(browser, environment, route) {
+function edgeInterstitialResult({
+  environment,
+  route,
+  requestedUrl,
+  finalUrl,
+  status,
+  title,
+  contentType,
+  bodyTextLength,
+  xRobotsTag,
+  h1Count,
+}) {
+  return {
+    environment,
+    path: route.path,
+    role: route.role,
+    requestedUrl,
+    finalUrl,
+    status,
+    title,
+    titleLength: title.length,
+    description: '',
+    descriptionLength: 0,
+    canonical: '',
+    metaRobots: '',
+    xRobotsTag,
+    noindex: null,
+    ogUrl: '',
+    ogImage: '',
+    h1Count,
+    h1Texts: [],
+    schemaTypes: [],
+    issues: [{
+      severity: 'critical',
+      code: 'EDGE_INTERSTITIAL',
+      message: `The browser did not receive the WordPress document (HTTP ${status}, content-type ${contentType || 'unknown'}, title ${title || 'empty'}, body text ${bodyTextLength} chars, url ${finalUrl || 'unknown'}).`,
+    }],
+  };
+}
+
+function isRetryableResult(result) {
+  return (result.issues || []).some((item) => item.code === 'EDGE_INTERSTITIAL' || item.code === 'FETCH_ERROR');
+}
+
+async function renderPageOnce(browser, environment, route) {
   const config = ENVIRONMENTS[environment];
   const contextOptions = {
     locale: 'es-ES',
@@ -126,46 +178,37 @@ async function renderPage(browser, environment, route) {
     const title = await page.title();
     const bodyTextLength = await page.locator('body').innerText().then((value) => value.trim().length).catch(() => 0);
     const contentType = latestDocumentHeaders['content-type'] || '';
+    const finalUrl = page.url();
 
     if (
-      latestDocumentStatus === 202
-      || !contentType.toLowerCase().includes('text/html')
-      || !title
-      || bodyTextLength < 100
+      isEdgeInterstitialResponse({
+        status: latestDocumentStatus,
+        contentType,
+        title,
+        bodyTextLength,
+        finalUrl,
+        html,
+      })
     ) {
-      return {
+      return edgeInterstitialResult({
         environment,
-        path: route.path,
-        role: route.role,
+        route,
         requestedUrl,
-        finalUrl: page.url(),
+        finalUrl,
         status: latestDocumentStatus,
         title,
-        titleLength: title.length,
-        description: '',
-        descriptionLength: 0,
-        canonical: '',
-        metaRobots: '',
+        contentType,
+        bodyTextLength,
         xRobotsTag: latestDocumentHeaders['x-robots-tag'] || '',
-        noindex: null,
-        ogUrl: '',
-        ogImage: '',
         h1Count: await page.locator('h1').count().catch(() => 0),
-        h1Texts: [],
-        schemaTypes: [],
-        issues: [{
-          severity: 'critical',
-          code: 'EDGE_INTERSTITIAL',
-          message: `The browser did not receive the WordPress document (HTTP ${latestDocumentStatus}, content-type ${contentType || 'unknown'}, title ${title || 'empty'}, body text ${bodyTextLength} chars).`,
-        }],
-      };
+      });
     }
 
     return analyseHtml({
       html,
       status: latestDocumentStatus,
       headers: latestDocumentHeaders,
-      finalUrl: page.url(),
+      finalUrl,
       environment,
       route,
     });
@@ -201,6 +244,27 @@ async function renderPage(browser, environment, route) {
   }
 }
 
+async function renderPage(browser, environment, route) {
+  let last;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    last = await renderPageOnce(browser, environment, route);
+    if (!isRetryableResult(last)) {
+      if (attempt > 1) {
+        console.warn(`Recovered ${environment}${route.path} on attempt ${attempt}/${MAX_ATTEMPTS}`);
+      }
+      return last;
+    }
+    if (attempt < MAX_ATTEMPTS) {
+      const delay = BASE_DELAY_MS * attempt;
+      console.warn(
+        `Retry ${attempt}/${MAX_ATTEMPTS} for ${environment}${route.path} after ${last.issues[0]?.code} (wait ${delay}ms)`,
+      );
+      await sleep(delay);
+    }
+  }
+  return last;
+}
+
 async function run() {
   const environments = (process.env.NVX_AUDIT_ENVIRONMENTS || 'production,staging')
     .split(',')
@@ -215,6 +279,9 @@ async function run() {
       if (!ENVIRONMENTS[environment]) throw new Error(`Unsupported environment: ${environment}`);
       for (const route of ROUTES) {
         pages.push(await renderPage(browser, environment, route));
+        if (INTER_ROUTE_DELAY_MS > 0) {
+          await sleep(INTER_ROUTE_DELAY_MS);
+        }
       }
     }
   } finally {
@@ -231,6 +298,7 @@ async function run() {
       pages: pages.length,
       critical: findings.filter((item) => item.severity === 'critical').length,
       warning: findings.filter((item) => item.severity === 'warning').length,
+      retries: MAX_ATTEMPTS,
     },
     pages,
   };

@@ -42,6 +42,7 @@ const CRITICAL_CODES = new Set([
   'PRODUCTION_CANONICAL_MISSING',
   'PRODUCTION_CANONICAL_HOST',
   'PRODUCTION_STAGING_REFERENCE',
+  'EDGE_INTERSTITIAL',
 ]);
 
 function decodeEntities(value = '') {
@@ -152,12 +153,80 @@ function issue(severity, code, message) {
   return { severity, code, message };
 }
 
+/**
+ * Detect SiteGround / WAF bot challenges and other non-document responses so
+ * they are not misclassified as production SEO regressions (e.g. noindex captcha).
+ */
+export function isEdgeInterstitialResponse({
+  status = 0,
+  contentType = '',
+  title = '',
+  bodyTextLength = Number.POSITIVE_INFINITY,
+  finalUrl = '',
+  html = '',
+} = {}) {
+  const url = String(finalUrl || '').toLowerCase();
+  const normalizedTitle = String(title || '').toLowerCase();
+  const normalizedHtml = String(html || '').toLowerCase();
+  const type = String(contentType || '').toLowerCase();
+
+  if (status === 202) return true;
+  if (type && !type.includes('text/html') && !type.includes('application/xhtml')) return true;
+  if (!normalizedTitle && bodyTextLength < 100) return true;
+  if (bodyTextLength < 100) return true;
+  if (url.includes('/.well-known/sgcaptcha')) return true;
+  if (normalizedTitle.includes('robot challenge')) return true;
+  if (normalizedHtml.includes('/.well-known/sgcaptcha')) return true;
+  if (normalizedHtml.includes('sgcaptcha')) return true;
+  return false;
+}
+
 export function analyseHtml({ html, status, headers = {}, finalUrl, environment, route }) {
   const config = ENVIRONMENTS[environment];
   if (!config) throw new Error(`Unknown environment: ${environment}`);
 
   const head = getHead(html);
   const title = getTitle(html);
+
+  if (
+    isEdgeInterstitialResponse({
+      status,
+      contentType: headers['content-type'] || '',
+      title,
+      bodyTextLength: String(html || '').replace(/<[^>]+>/g, ' ').trim().length,
+      finalUrl,
+      html,
+    })
+  ) {
+    return {
+      environment,
+      path: route.path,
+      role: route.role,
+      requestedUrl: new URL(route.path, config.baseUrl).toString(),
+      finalUrl,
+      status,
+      title,
+      titleLength: title.length,
+      description: '',
+      descriptionLength: 0,
+      canonical: '',
+      metaRobots: getMeta(html, 'robots'),
+      xRobotsTag: headers['x-robots-tag'] || '',
+      noindex: null,
+      ogUrl: '',
+      ogImage: '',
+      h1Count: 0,
+      h1Texts: [],
+      schemaTypes: [],
+      issues: [
+        issue(
+          'critical',
+          'EDGE_INTERSTITIAL',
+          `Edge/WAF interstitial received instead of the WordPress document (HTTP ${status}, title ${title || 'empty'}, url ${finalUrl || 'unknown'}).`,
+        ),
+      ],
+    };
+  }
   const description = getMeta(html, 'description');
   const metaRobots = getMeta(html, 'robots');
   const xRobotsTag = headers['x-robots-tag'] || '';

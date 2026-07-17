@@ -2,7 +2,11 @@ name: CSS Gate
 
 on:
   push:
+    branches:
+      - master
   pull_request:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       theme_path:
@@ -11,6 +15,10 @@ on:
         default: wp-content/themes/nuvanx-medical
         type: string
 
+concurrency:
+  group: css-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -18,8 +26,6 @@ jobs:
   css-gate:
     runs-on: ubuntu-latest
     env:
-      # workflow_dispatch inputs live under github.event.inputs (not inputs.*).
-      # Empty on push/PR → default medical theme path.
       NVX_THEME_PATH: ${{ github.event.inputs.theme_path || 'wp-content/themes/nuvanx-medical' }}
     steps:
       - name: Checkout
@@ -84,8 +90,6 @@ jobs:
           LAYOUT="$THEME/assets/css/nvx-site-layout.css"
           test -s "$LAYOUT"
 
-          # Class presence: match the selector name, not formatting (spaces/`{`/minification).
-          # End boundary excludes longer BEM names (e.g. nvx-stack must not match nvx-stack--tight).
           class_present() {
             local class="$1"
             grep -qE "\.${class}([^a-zA-Z0-9_-]|$)" "$LAYOUT"
@@ -115,8 +119,6 @@ jobs:
             }
           done
 
-          # Both tight variants must share one rule that uses the same padding token.
-          # Formatting-agnostic: whitespace collapsed; either selector order is OK.
           flat="$(tr -s '[:space:]' ' ' < "$LAYOUT")"
           shared_token_rule() {
             local token="$1"
@@ -136,8 +138,6 @@ jobs:
             exit 1
           }
 
-          # Informational scan: counts + capped samples (DB markup is audited separately).
-          # grep exit codes: 0 = matches, 1 = no matches (OK), ≥2 = error (fail the job).
           PATTERN='nvx-(grid-12|span-(4|5|6|7|8|12)|stack(--tight|--wide)?|cluster|reading|section--tight)'
           SAMPLE_CAP=15
           matches_file="$(mktemp)"
@@ -190,15 +190,11 @@ jobs:
             "$THEME/assets/css/nvx-brand-home.css"
           )
 
-          # Scan code only: strip /* … */ block comments so prose like "no :has()"
-          # in comments cannot trip selector bans (historical false positive).
           STRIPPED_DIR="$(mktemp -d)"
           trap 'rm -rf "$STRIPPED_DIR"' EXIT
           STRIPPED=()
           for src in "${ACTIVE[@]}"; do
             base="$(basename "$src")"
-            # Non-greedy multi-line block comments; leave strings alone (none of our
-            # forbidden tokens appear inside CSS strings in this theme).
             perl -0777 -pe 's|/\*.*?\*/||gs' "$src" >"$STRIPPED_DIR/$base"
             STRIPPED+=("$STRIPPED_DIR/$base")
           done
@@ -216,7 +212,6 @@ jobs:
           reject ':has\(' ':has() dependencies are forbidden'
           reject ':nth-child\(|:nth-of-type\(' 'positional composition is forbidden'
           reject 'backdrop-filter|-webkit-backdrop-filter' 'glassmorphism is forbidden'
-          # Class/layer markers only (word-ish tokens), not arbitrary English "patch".
           reject '(^|[^a-zA-Z0-9_-])(nvx-v3-|nvx-v4-|editorial-home-v4|nvx-legacy|nvx-compat|nvx-bridge|nvx-patch)([^a-zA-Z0-9_-]|$)' 'versioned or compatibility layers are forbidden'
           reject 'transition:[[:space:]]*all' 'transition: all is forbidden'
 

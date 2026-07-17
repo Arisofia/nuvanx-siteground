@@ -2,17 +2,25 @@ name: Security Remediation Tooling
 
 on:
   push:
+    branches:
+      - master
     paths:
       - 'scripts/security/issue-45-*'
       - 'scripts/security/test-issue-45-*'
       - 'scripts/security/gitleaks.toml'
       - '.github/workflows/security-remediation-tooling.yml'
   pull_request:
+    branches:
+      - master
     paths:
       - 'scripts/security/issue-45-*'
       - 'scripts/security/test-issue-45-*'
       - 'scripts/security/gitleaks.toml'
       - '.github/workflows/security-remediation-tooling.yml'
+
+concurrency:
+  group: security-remediation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

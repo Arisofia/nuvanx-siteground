@@ -399,7 +399,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 
 .nvx-hubspot-form-section .hs-input:hover,
 .nvx-hs-lead-form .hs-input:hover {
-  border-color: rgba(20, 22, 26, 0.22);
+  border-color: var(--nvx-color-line);
 }
 
 .nvx-hubspot-form-section .hs-input:focus,

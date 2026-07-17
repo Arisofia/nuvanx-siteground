@@ -1,33 +1,44 @@
 /* NUVANX Medical — Design tokens (única fuente de verdad)
- * Paleta oficial: Neutros cálidos editoriales
+ * Paleta oficial: blanco cálido + gris cálido + negro.
  * Tipografía: Bodoni Moda + Manrope
  * Espaciado: escala canónica de 8px.
  * Only tokens referenced by active stylesheets are kept.
  */
 
 :root {
-  /* Paleta editorial cálida.
-   * Warm white owns luminous accents and dark-surface text. The readable accent
-   * remains a warm taupe so small kickers retain AA contrast on warm surface.
-   */
-  --nvx-light: #fffaf2;
-  --nvx-surface-base: #f7f1e8;
+  /* Paleta neutra desaturada: sin beige, champagne, ivory ni dorado. */
+  --nvx-light: #fcfbf8;
+  --nvx-surface-base: #f8f7f4;
   --nvx-ink: #171717;
   --nvx-charcoal: #2b2926;
-  --nvx-surface-soft: #eee8df;
-  --nvx-border-soft: #d8d0c5;
-  --nvx-accent-muted: #6b6258;
+  --nvx-surface-soft: #eceae6;
+  --nvx-border-soft: #d4d1cc;
+  --nvx-accent-muted: #77736d;
 
-  --nvx-text-body: #3f3a35;
-  --nvx-text-muted: #5f5a54;
+  --nvx-text-body: #3d3a36;
+  --nvx-text-muted: #66615c;
   --nvx-color-paper: var(--nvx-surface-base);
   --nvx-color-line: rgba(23, 23, 23, 0.16);
 
-  /* Form-stage semantic palette + image (PHP may override image on section). */
-  --nvx-form-stage-warm: #f1e8dc;
-  --nvx-form-stage-mid: #e5ded4;
-  --nvx-form-stage-cool: #d6cec3;
-  --nvx-form-stage-fallback: #e9e1d7;
+  /* Texto y bordes sobre superficies oscuras. */
+  --nvx-text-on-dark: var(--nvx-light);
+  --nvx-text-on-dark-92: rgba(252, 251, 248, 0.92);
+  --nvx-text-on-dark-90: rgba(252, 251, 248, 0.90);
+  --nvx-text-on-dark-88: rgba(252, 251, 248, 0.88);
+  --nvx-text-on-dark-82: rgba(252, 251, 248, 0.82);
+  --nvx-text-on-dark-78: rgba(252, 251, 248, 0.78);
+  --nvx-text-on-dark-72: rgba(252, 251, 248, 0.72);
+  --nvx-border-on-dark-55: rgba(252, 251, 248, 0.55);
+  --nvx-border-on-dark-50: rgba(252, 251, 248, 0.50);
+  --nvx-border-on-dark-45: rgba(252, 251, 248, 0.45);
+  --nvx-border-on-dark-42: rgba(252, 251, 248, 0.42);
+  --nvx-ink-muted: rgba(23, 23, 23, 0.82);
+
+  /* Form-stage: progresión exclusiva de grises cálidos. */
+  --nvx-form-stage-warm: #f2f1ee;
+  --nvx-form-stage-mid: #e7e5e1;
+  --nvx-form-stage-cool: #d8d5d0;
+  --nvx-form-stage-fallback: #eceae6;
   --nvx-form-stage-image: none;
 
   --nvx-shadow-min: 0 1px 2px rgba(23, 23, 23, 0.04);
@@ -35,7 +46,7 @@
   --nvx-shadow-medium: 0 24px 64px rgba(23, 23, 23, 0.08);
   --nvx-shadow-button: 0 8px 24px rgba(23, 23, 23, 0.12);
   --nvx-shadow-button-hover: 0 16px 32px rgba(23, 23, 23, 0.14);
-  --nvx-accent-glow: rgba(255, 250, 242, 0.18);
+  --nvx-accent-glow: rgba(252, 251, 248, 0.18);
 
   /* Escala de 8px */
   --nvx-space-1: 8px;
@@ -84,10 +95,7 @@
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
   --nvx-hero-h: min(92svh, 980px);
 
-  /* Component dimensions.
-   * touch-target-min is the accessibility floor; control-size aliases it for
-   * square icon controls such as menu and close buttons.
-   */
+  /* Component dimensions. */
   --nvx-header-height: 80px;
   --nvx-header-height-mobile: 72px;
   --nvx-touch-target-min: 48px;
@@ -104,7 +112,6 @@
   --nvx-radius-button: var(--nvx-radius-pill);
   --nvx-radius-card: 0;
   --nvx-radius-image: 0;
-  /* Preserve the four-corner / slash border-radius contract while rendering flat. */
   --nvx-organic-c: 0 0 0 0 / 0 0 0 0;
 
   --nvx-media-overlay: linear-gradient(

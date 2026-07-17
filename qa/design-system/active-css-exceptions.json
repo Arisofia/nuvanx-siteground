@@ -24,6 +24,56 @@
     "nvx-tokens.css"
   ],
   "inactiveCssFiles": [],
+  "referencedStylesheets": [
+    "nvx-base.css",
+    "nvx-brand-home.css",
+    "nvx-components.css",
+    "nvx-fonts.css",
+    "nvx-footer.css",
+    "nvx-header.css",
+    "nvx-mobile-hero-hierarchy.css",
+    "nvx-patterns-editorial.css",
+    "nvx-site-layout.css",
+    "nvx-tokens.css"
+  ],
+  "stylesheetReferenceEvidence": [
+    {
+      "file": "nvx-fonts.css",
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+    },
+    {
+      "file": "nvx-tokens.css",
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+    },
+    {
+      "file": "nvx-base.css",
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+    },
+    {
+      "file": "nvx-site-layout.css",
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+    },
+    {
+      "file": "nvx-components.css",
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+    },
+    {
+      "file": "nvx-header.css",
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+    },
+    {
+      "file": "nvx-footer.css",
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+    }
+  ],
   "orphanStylesheets": [],
   "rootBlocks": [
     {
@@ -31,7 +81,13 @@
       "line": 8
     }
   ],
-  "rootOutsideTokens": [],
+  "canonicalRootBlocks": [
+    {
+      "file": "nvx-tokens.css",
+      "line": 8
+    }
+  ],
+  "scopedRootBlocks": [],
   "importantActive": [],
   "importantInactive": [],
   "runtimeImportant": [],
@@ -335,17 +391,12 @@
     {
       "file": "nvx-tokens.css",
       "value": "104px",
-      "line": 44
+      "line": 58
     },
     {
       "file": "nvx-tokens.css",
       "value": "820px",
-      "line": 70
-    },
-    {
-      "file": "nvx-tokens.css",
-      "value": "1.5px",
-      "line": 92
+      "line": 84
     }
   ],
   "hardcodedPixelsInactive": [],
@@ -8631,590 +8682,7 @@
       "line": 149
     }
   ],
-  "hardcodedColors": [
-    {
-      "file": "nvx-brand-home.css",
-      "property": "color",
-      "value": "rgba(255,255,255,.9)",
-      "line": 101
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "border-color",
-      "value": "rgba(255,255,255,.55)",
-      "line": 116
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "color",
-      "value": "rgba(255,255,255,.82)",
-      "line": 166
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "border-color",
-      "value": "rgba(255,255,255,.42)",
-      "line": 190
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "border-color",
-      "value": "rgba(20, 22, 26, 0.22)",
-      "line": 399
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "border-color",
-      "value": "rgba(255, 255, 255, 0.45)",
-      "line": 25
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "color",
-      "value": "rgba(255, 255, 255, 0.72)",
-      "line": 46
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(255, 255, 255, 0.9)",
-      "line": 209
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(255, 255, 255, 0.72)",
-      "line": 218
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "rgba(255, 255, 255, 0.55)",
-      "line": 273
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(255, 255, 255, 0.78)",
-      "line": 853
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "rgba(255, 255, 255, 0.5)",
-      "line": 864
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 906
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.72)",
-      "line": 912
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 916
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.9)",
-      "line": 920
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.88)",
-      "line": 926
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 931
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "#f5e8d8",
-      "line": 932
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 936
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "rgba(245, 232, 216, 0.5)",
-      "line": 937
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1012
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 1041
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 1050
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.78)",
-      "line": 1059
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1093
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1103
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1543
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 1677
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1697
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 1706
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.82)",
-      "line": 1715
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 1720
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "#f5e8d8",
-      "line": 1721
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 1725
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "rgba(245, 232, 216, 0.5)",
-      "line": 1726
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 1761
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.72)",
-      "line": 1767
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 1771
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.92)",
-      "line": 1777
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.88)",
-      "line": 1783
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 1788
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "#f5e8d8",
-      "line": 1789
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 1793
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "rgba(245, 232, 216, 0.5)",
-      "line": 1794
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 1801
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1823
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 1833
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(28, 28, 28, 0.82)",
-      "line": 1841
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1849
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 1870
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1907
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 1915
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 1930
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1935
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 1951
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 1980
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.78)",
-      "line": 2006
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2033
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2048
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.78)",
-      "line": 2057
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2061
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2079
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2093
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2106
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 2112
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2165
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 2172
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2176
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.88)",
-      "line": 2182
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2188
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "#c5a880",
-      "line": 2189
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 2194
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "border-color",
-      "value": "#c5a880",
-      "line": 2195
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2202
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 2229
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2239
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(28, 28, 28, 0.82)",
-      "line": 2247
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 2260
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2280
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 2311
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2319
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2362
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 2367
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 2390
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(28, 28, 28, 0.82)",
-      "line": 2405
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2409
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2430
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.78)",
-      "line": 2457
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2483
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2498
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "rgba(245, 232, 216, 0.78)",
-      "line": 2507
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2511
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2529
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#1c1c1c",
-      "line": 2543
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#f5e8d8",
-      "line": 2556
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "color",
-      "value": "#c5a880",
-      "line": 2562
-    }
-  ],
+  "hardcodedColors": [],
   "iconColors": [
     {
       "file": "nvx-components.css",
@@ -9227,28 +8695,9 @@
       "property": "stroke",
       "value": "currentColor",
       "line": 114
-    },
-    {
-      "file": "nvx-tokens.css",
-      "property": "stroke",
-      "value": "1.5px",
-      "line": 92
     }
   ],
-  "inconsistentIconColors": [
-    {
-      "file": "nvx-components.css",
-      "property": "fill",
-      "value": "none",
-      "line": 114
-    },
-    {
-      "file": "nvx-tokens.css",
-      "property": "stroke",
-      "value": "1.5px",
-      "line": 92
-    }
-  ],
+  "inconsistentIconColors": [],
   "inlineStyles": [],
   "embeddedStyleTags": []
 }

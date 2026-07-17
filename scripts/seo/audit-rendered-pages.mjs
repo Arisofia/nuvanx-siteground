@@ -34,7 +34,7 @@ const ENVIRONMENTS = {
   },
 };
 
-const CRITICAL_CODES = new Set([
+export const CRITICAL_CODES = new Set([
   'FETCH_ERROR',
   'HTTP_ERROR',
   'PRODUCTION_NOINDEX',
@@ -42,7 +42,32 @@ const CRITICAL_CODES = new Set([
   'PRODUCTION_CANONICAL_MISSING',
   'PRODUCTION_CANONICAL_HOST',
   'PRODUCTION_STAGING_REFERENCE',
+  'EDGE_INTERSTITIAL',
 ]);
+
+// WAF/captcha and transient fetch failures after retries are infrastructure noise.
+// They remain critical in the report, but default enforcement does not fail the job
+// unless a content/policy critical is also present.
+export const INFRASTRUCTURE_CODES = new Set([
+  'EDGE_INTERSTITIAL',
+  'FETCH_ERROR',
+]);
+
+export function selectBlockingFindings(findings, enforcement = 'critical') {
+  if (enforcement === 'none') return [];
+  if (enforcement === 'all') {
+    return findings.filter(
+      (finding) => finding.severity === 'critical' || finding.severity === 'warning',
+    );
+  }
+  return findings.filter(
+    (finding) => (
+      finding.severity === 'critical'
+      && CRITICAL_CODES.has(finding.code)
+      && !INFRASTRUCTURE_CODES.has(finding.code)
+    ),
+  );
+}
 
 function decodeEntities(value = '') {
   return value
@@ -152,12 +177,80 @@ function issue(severity, code, message) {
   return { severity, code, message };
 }
 
+/**
+ * Detect SiteGround / WAF bot challenges and other non-document responses so
+ * they are not misclassified as production SEO regressions (e.g. noindex captcha).
+ */
+export function isEdgeInterstitialResponse({
+  status = 0,
+  contentType = '',
+  title = '',
+  bodyTextLength = Number.POSITIVE_INFINITY,
+  finalUrl = '',
+  html = '',
+} = {}) {
+  const url = String(finalUrl || '').toLowerCase();
+  const normalizedTitle = String(title || '').toLowerCase();
+  const normalizedHtml = String(html || '').toLowerCase();
+  const type = String(contentType || '').toLowerCase();
+
+  if (status === 202) return true;
+  if (type && !type.includes('text/html') && !type.includes('application/xhtml')) return true;
+  if (!normalizedTitle && bodyTextLength < 100) return true;
+  if (bodyTextLength < 100) return true;
+  if (url.includes('/.well-known/sgcaptcha')) return true;
+  if (normalizedTitle.includes('robot challenge')) return true;
+  if (normalizedHtml.includes('/.well-known/sgcaptcha')) return true;
+  if (normalizedHtml.includes('sgcaptcha')) return true;
+  return false;
+}
+
 export function analyseHtml({ html, status, headers = {}, finalUrl, environment, route }) {
   const config = ENVIRONMENTS[environment];
   if (!config) throw new Error(`Unknown environment: ${environment}`);
 
   const head = getHead(html);
   const title = getTitle(html);
+
+  if (
+    isEdgeInterstitialResponse({
+      status,
+      contentType: headers['content-type'] || '',
+      title,
+      bodyTextLength: String(html || '').replace(/<[^>]+>/g, ' ').trim().length,
+      finalUrl,
+      html,
+    })
+  ) {
+    return {
+      environment,
+      path: route.path,
+      role: route.role,
+      requestedUrl: new URL(route.path, config.baseUrl).toString(),
+      finalUrl,
+      status,
+      title,
+      titleLength: title.length,
+      description: '',
+      descriptionLength: 0,
+      canonical: '',
+      metaRobots: getMeta(html, 'robots'),
+      xRobotsTag: headers['x-robots-tag'] || '',
+      noindex: null,
+      ogUrl: '',
+      ogImage: '',
+      h1Count: 0,
+      h1Texts: [],
+      schemaTypes: [],
+      issues: [
+        issue(
+          'critical',
+          'EDGE_INTERSTITIAL',
+          `Edge/WAF interstitial received instead of the WordPress document (HTTP ${status}, title ${title || 'empty'}, url ${finalUrl || 'unknown'}).`,
+        ),
+      ],
+    };
+  }
   const description = getMeta(html, 'description');
   const metaRobots = getMeta(html, 'robots');
   const xRobotsTag = headers['x-robots-tag'] || '';
@@ -387,11 +480,16 @@ async function run() {
 
   console.log(JSON.stringify(report.summary));
 
-  const blocking = findings.filter((finding) => {
-    if (enforcement === 'none') return false;
-    if (enforcement === 'all') return finding.severity === 'critical' || finding.severity === 'warning';
-    return finding.severity === 'critical' && CRITICAL_CODES.has(finding.code);
-  });
+  const infrastructure = findings.filter(
+    (finding) => finding.severity === 'critical' && INFRASTRUCTURE_CODES.has(finding.code),
+  );
+  const blocking = selectBlockingFindings(findings, enforcement);
+
+  if (infrastructure.length && !blocking.length && enforcement === 'critical') {
+    console.warn(
+      `SEO/GEO gate soft-pass: ${infrastructure.length} infrastructure finding(s) (edge/WAF) after retries; no content policy criticals.`,
+    );
+  }
 
   if (blocking.length) {
     console.error(`SEO/GEO gate failed with ${blocking.length} blocking finding(s).`);

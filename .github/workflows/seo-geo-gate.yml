@@ -15,6 +15,12 @@ on:
           - critical
           - all
 
+# Serialize live DOM audits so concurrent push+pull_request runs do not
+# amplify SiteGround bot challenges against the same edge IP pool.
+concurrency:
+  group: seo-geo-gate-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: read
 

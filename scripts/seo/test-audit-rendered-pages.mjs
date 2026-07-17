@@ -6,7 +6,9 @@ import {
   collectSchemaTypes,
   getCanonical,
   getMeta,
+  isEdgeInterstitialResponse,
   parseAttributes,
+  selectBlockingFindings,
 } from './audit-rendered-pages.mjs';
 
 const fixture = `<!doctype html>
@@ -90,5 +92,41 @@ const indexableStaging = analyseHtml({
   route: { path: '/', role: 'home', expectedTypes: [] },
 });
 assert.equal(indexableStaging.issues.some((finding) => finding.code === 'STAGING_INDEXABLE'), true);
+
+assert.equal(
+  isEdgeInterstitialResponse({
+    status: 200,
+    contentType: 'text/html',
+    title: 'Robot Challenge Screen',
+    bodyTextLength: 400,
+    finalUrl: 'https://nuvanx.com/.well-known/sgcaptcha/?r=%2F&y=ipr:1.2.3.4:123',
+    html: '<html><head><title>Robot Challenge Screen</title><meta name="robots" content="NOINDEX, NOFOLLOW"></head><body><h1>nuvanx.com</h1></body></html>',
+  }),
+  true,
+);
+
+const captchaPage = analyseHtml({
+  html: '<html><head><title>Robot Challenge Screen</title><meta name="robots" content="NOINDEX, NOFOLLOW"></head><body><h1>nuvanx.com</h1><p>Checking your browser</p></body></html>',
+  status: 200,
+  headers: { 'content-type': 'text/html', 'x-robots-tag': 'noindex' },
+  finalUrl: 'https://nuvanx.com/.well-known/sgcaptcha/?r=%2F',
+  environment: 'production',
+  route: { path: '/', role: 'home', expectedTypes: ['MedicalClinic', 'Physician'] },
+});
+assert.equal(captchaPage.issues.some((finding) => finding.code === 'EDGE_INTERSTITIAL'), true);
+assert.equal(captchaPage.issues.some((finding) => finding.code === 'PRODUCTION_NOINDEX'), false);
+assert.equal(selectBlockingFindings(captchaPage.issues, 'critical').length, 0);
+assert.equal(selectBlockingFindings(captchaPage.issues, 'all').length, 1);
+
+const noindexPage = analyseHtml({
+  html: fixture.replace('content="index, follow"', 'content="noindex, follow"'),
+  status: 200,
+  headers: { 'content-type': 'text/html' },
+  finalUrl: 'https://nuvanx.com/',
+  environment: 'production',
+  route: { path: '/', role: 'home', expectedTypes: [] },
+});
+assert.equal(noindexPage.issues.some((finding) => finding.code === 'PRODUCTION_NOINDEX'), true);
+assert.equal(selectBlockingFindings(noindexPage.issues, 'critical').some((f) => f.code === 'PRODUCTION_NOINDEX'), true);
 
 console.log('SEO/GEO rendered audit tests passed.');

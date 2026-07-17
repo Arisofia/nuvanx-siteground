@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Summarize issue #45 path-only inventory without exposing secret values."""
+"""Validate the issue #45 path-only purge inventory against the clean current tree."""
 
 from __future__ import annotations
 
@@ -33,8 +33,11 @@ def main() -> int:
     output = args.output_dir
     output.mkdir(parents=True, exist_ok=True)
 
-    manifest = set(read_lines(args.manifest))
-    current = set(read_lines(args.current_tree))
+    # Keep ordered lists for audit (duplicates) and sets for membership checks.
+    manifest_list = read_lines(args.manifest)
+    current_list = read_lines(args.current_tree)
+    manifest = set(manifest_list)
+    current = set(current_list)
     intersection = sorted(manifest & current)
     canonical = sorted(path for path in manifest if path.startswith(CANONICAL_THEME_PREFIX))
     canonical_disposable = sorted(path for path in canonical if path in DISPOSABLE_CANONICAL_RUNTIME_PATHS)
@@ -104,7 +107,9 @@ def main() -> int:
         and malformed == 0
     )
     summary = [
-        f"candidate_paths={len(manifest)}",
+        f"candidate_paths_total={len(manifest_list)}",
+        f"candidate_paths_unique={len(manifest)}",
+        f"duplicate_candidate_paths={len(manifest_list) - len(manifest)}",
         f"current_tree_intersection={len(intersection)}",
         f"canonical_theme_intersection={len(canonical)}",
         f"canonical_theme_disposable_runtime={len(canonical_disposable)}",
@@ -118,7 +123,6 @@ def main() -> int:
         f"approval_ready={'true' if safe else 'false'}",
     ]
     (output / "approval-summary.txt").write_text("\n".join(summary) + "\n", encoding="utf-8")
-
     print("\n".join(summary))
     # Diagnostic publication must complete even when approval_ready=false.
     # The purge workflow performs the actual blocking check before rewriting.

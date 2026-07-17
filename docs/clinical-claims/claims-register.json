@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "updated": "2026-07-17",
+  "allowed_statuses": ["approved", "pending", "rejected"],
+  "claims": [
+    {
+      "id": "NVX-OPS-ENDOLIFT-PRICE-OJERAS",
+      "status": "approved",
+      "category": "tariff",
+      "statement": "Endolift facial has a public starting tariff of 798.60 EUR for the ojeras zone.",
+      "scope": ["pricing-table", "schema-offer", "faq"],
+      "source": "wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php::nvx_tariff_catalog",
+      "owner": "commercial-direction",
+      "review_due": "2026-10-17"
+    },
+    {
+      "id": "NVX-OPS-ENDOLIFT-PRICE-PAPADA",
+      "status": "approved",
+      "category": "tariff",
+      "statement": "Endolift papada or mandibular definition has a public PVP of 1064.80 EUR per zone.",
+      "scope": ["pricing-table", "schema-offer", "faq"],
+      "source": "wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php::nvx_tariff_catalog",
+      "owner": "commercial-direction",
+      "review_due": "2026-10-17"
+    },
+    {
+      "id": "NVX-OPS-CLINIC-REGISTRATIONS",
+      "status": "approved",
+      "category": "regulatory-identity",
+      "statement": "The canonical site dataset identifies Chamberi as CS20144 and Salamanca-Goya as CS20073.",
+      "scope": ["visible-nap", "schema", "footer", "faq"],
+      "source": "wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php::nvx_schema_clinics",
+      "owner": "operations",
+      "review_due": "2026-10-17"
+    },
+    {
+      "id": "NVX-CLM-ENDOLIFT-FIBER-RANGE",
+      "status": "pending",
+      "category": "clinical-mechanism",
+      "statement": "Endolift uses an optical microfibre of 200 to 300 microns in the protocols described on the site.",
+      "scope": ["endolift-page", "home-protocol", "schema"],
+      "source_required": "Current manufacturer IFU or official technical documentation identifying the fibre range used by NUVANX.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-CLM-ENDOLIFT-RECOVERY",
+      "status": "pending",
+      "category": "recovery",
+      "statement": "Visible inflammation, tightness or mild bruising commonly lasts 3 to 7 days after Endolift.",
+      "scope": ["endolift-page", "home-protocol", "faq", "schema"],
+      "source_required": "Approved NUVANX clinical protocol plus primary device or peer-reviewed evidence.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-CLM-CO2-RECOVERY",
+      "status": "pending",
+      "category": "recovery",
+      "statement": "Visible recovery after fractional CO2 laser is commonly 4 to 7 days depending on protocol depth.",
+      "scope": ["co2-page", "home-protocol", "faq", "schema"],
+      "source_required": "Approved NUVANX CO2 protocol and primary clinical evidence stratified by treatment depth.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-CLM-MEDICAL-CE-PLATFORMS",
+      "status": "pending",
+      "category": "device-regulatory",
+      "statement": "DEKA Motus AZ+, fractional CO2 and EXION BTL platforms used by NUVANX have current CE marking for the communicated medical uses.",
+      "scope": ["home", "treatment-pages", "faq", "schema"],
+      "source_required": "Current declarations of conformity, device model identifiers and intended-use documentation for equipment installed at each clinic.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-CLM-EXION-MORPHEUS-ALTERNATIVE",
+      "status": "pending",
+      "category": "comparison",
+      "statement": "EXION Fractional RF may be considered as an alternative within fractional microneedling radiofrequency according to diagnosis.",
+      "scope": ["faq", "comparison-content"],
+      "source_required": "Primary technical comparison and medical sign-off defining comparable indications without superiority language.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-CLM-RIVERA-SOCIETIES",
+      "status": "pending",
+      "category": "credential",
+      "statement": "Dr. Jose Javier Rivera Tejeda belongs to named scientific societies relevant to the services communicated by NUVANX.",
+      "scope": ["home-doctor", "team-page", "physician-schema"],
+      "source_required": "Names of the societies, current membership proof and authorization to publish.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-REJ-GOLD-STANDARD",
+      "status": "rejected",
+      "category": "absolute-superiority",
+      "statement": "estándar de oro",
+      "scope": ["all-public-content"],
+      "reason": "Absolute ranking is not supported by an approved claim file and can misrepresent comparative evidence.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-REJ-DEFINITIVE-APPROACH",
+      "status": "rejected",
+      "category": "absolute-outcome",
+      "statement": "abordaje médico definitivo",
+      "scope": ["all-public-content"],
+      "reason": "Implies final or universally sufficient treatment.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-REJ-SUPERIOR-TO-COLD",
+      "status": "rejected",
+      "category": "unsupported-comparison",
+      "statement": "supera ampliamente",
+      "scope": ["all-public-content"],
+      "reason": "Comparative superiority is not supported by an approved head-to-head evidence record.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-REJ-RADICAL-MASSIVE",
+      "status": "rejected",
+      "category": "exaggerated-outcome",
+      "statement": "mejora radical|síntesis masiva",
+      "scope": ["all-public-content"],
+      "reason": "Exaggerated magnitude language is not quantified or patient-specific.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-REJ-PAINLESS-NO-DOWNTIME",
+      "status": "rejected",
+      "category": "absolute-safety-recovery",
+      "statement": "forma indolora|sin tiempos de baja|sin downtime significativo",
+      "scope": ["all-public-content"],
+      "reason": "Pain and recovery vary by patient, parameters and procedure.",
+      "owner": "medical-direction"
+    },
+    {
+      "id": "NVX-REJ-GENERIC-SOCIETIES",
+      "status": "rejected",
+      "category": "unverifiable-credential",
+      "statement": "Miembro de las principales sociedades científicas",
+      "scope": ["all-public-content"],
+      "reason": "The organizations and current memberships must be named and verified.",
+      "owner": "medical-direction"
+    }
+  ]
+}

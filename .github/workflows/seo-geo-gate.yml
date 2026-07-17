@@ -1,0 +1,79 @@
+name: SEO GEO Gate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      enforcement:
+        description: Enforcement level
+        required: false
+        default: critical
+        type: choice
+        options:
+          - none
+          - critical
+          - all
+
+permissions:
+  contents: read
+
+jobs:
+  tooling:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Validate Node scripts
+        run: |
+          set -euo pipefail
+          node --check scripts/seo/audit-rendered-pages.mjs
+          node --check scripts/seo/test-audit-rendered-pages.mjs
+          node scripts/seo/test-audit-rendered-pages.mjs
+
+  rendered-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NVX_PRODUCTION_URL: https://nuvanx.com
+      NVX_STAGING_URL: https://staging2.nuvanx.com
+      NVX_STAGING_BASIC_AUTH: ${{ secrets.NVX_STAGING_BASIC_AUTH }}
+      NVX_AUDIT_ENVIRONMENTS: production,staging
+      NVX_SEO_ENFORCE: ${{ inputs.enforcement || 'critical' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Audit rendered production and staging pages
+        id: audit
+        continue-on-error: true
+        run: |
+          set -euo pipefail
+          node scripts/seo/audit-rendered-pages.mjs
+
+      - name: Publish job summary
+        if: always()
+        run: |
+          if [[ -f qa/seo-geo/rendered-audit.md ]]; then
+            cat qa/seo-geo/rendered-audit.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'SEO/GEO audit did not produce a report.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload path-safe audit evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: seo-geo-rendered-audit
+          path: |
+            qa/seo-geo/rendered-audit.json
+            qa/seo-geo/rendered-audit.md
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Enforce critical SEO/GEO policies
+        if: steps.audit.outcome == 'failure'
+        run: |
+          echo 'Rendered SEO/GEO audit contains blocking findings.'
+          exit 1

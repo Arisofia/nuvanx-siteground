@@ -7,6 +7,8 @@ wp-config.php
 *.pem
 *.key
 *.crt
+# Offline Issue 45 recovery public key is intentionally tracked (private key stays offline).
+!docs/security/issue45-backup-public-key.pem
 
 # Accidental root npm scaffold (theme deploys from PHP, not this package.json)
 /package.json

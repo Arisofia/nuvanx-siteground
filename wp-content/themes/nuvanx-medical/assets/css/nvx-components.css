@@ -569,3 +569,15 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
     transform: none;
   }
 }
+
+/* Clinics hub navigation — issue #46 */
+html{scroll-behavior:smooth}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+.nvx-clinics-nav{border-block:1px solid var(--nvx-color-line);background:var(--nvx-surface-base)}
+.nvx-clinics-nav__inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:var(--nvx-space-4);padding-block:var(--nvx-space-3)}
+.nvx-clinics-nav__link{font-family:var(--nvx-sans);font-size:var(--nvx-type-small);font-weight:600;letter-spacing:var(--nvx-track-button);text-transform:uppercase;color:var(--nvx-ink);text-decoration:none;border-bottom:1px solid transparent;padding-block:var(--nvx-space-1)}
+.nvx-clinics-nav__link:hover,.nvx-clinics-nav__link:focus-visible{border-color:currentColor}
+.nvx-clinics-nav__link:focus-visible,.nvx-clinic-map-cta:focus-visible{outline:2px solid var(--nvx-ink);outline-offset:4px}
+.nvx-clinic-location{scroll-margin-top:calc(var(--nvx-header-height) + var(--nvx-space-4))}
+.nvx-clinic-location__actions{margin-top:var(--nvx-space-4)}
+@media(max-width:680px){.nvx-clinics-nav__inner{justify-content:flex-start;gap:var(--nvx-space-3);overflow-x:auto;scrollbar-width:none}.nvx-clinics-nav__inner::-webkit-scrollbar{display:none}.nvx-clinics-nav__link{white-space:nowrap}.nvx-clinic-location{scroll-margin-top:calc(var(--nvx-header-height-mobile) + var(--nvx-space-3))}}

@@ -204,3 +204,4 @@ require_once get_template_directory() . '/inc/nvx-nosotros-page.php';
 require_once get_template_directory() . '/inc/nvx-contacto-valoracion-page.php';
 require_once get_template_directory() . '/inc/nvx-laser-medicine-page.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-medicine-page.php';
+require_once get_template_directory() . '/inc/nvx-clinics-hub.php';

@@ -1,0 +1,211 @@
+<?php
+/**
+ * Canonical SEO metadata and environment indexing policy.
+ *
+ * Keeps titles, descriptions, robots and social URLs independent from Yoast's
+ * database state while preserving Yoast as the sole metadata/schema emitter.
+ *
+ * @package nuvanx-medical
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Metadata catalogue for the principal commercial and authority pages.
+ *
+ * @return array<string, array{title:string,description:string}>
+ */
+function nvx_seo_metadata_catalog(): array {
+	return array(
+		'home'       => array(
+			'title'       => 'Medicina Estética Láser Madrid | Endolift y CO₂ | NUVANX',
+			'description' => 'Clínica de medicina estética láser en Madrid. Endolift®, Láser CO₂ y EXION® BTL con diagnóstico médico en Chamberí y Salamanca–Goya.',
+		),
+		'endolift'   => array(
+			'title'       => 'Endolift® Facial Madrid | Precio y Resultados | NUVANX',
+			'description' => 'Endolift® facial en Madrid para papada, mandíbula y cuello. Tarifas por zona, indicaciones y recuperación. Valoración médica en NUVANX.',
+		),
+		'endolaser'  => array(
+			'title'       => 'Endoláser Corporal Madrid | Grasa y Firmeza | NUVANX',
+			'description' => 'Endoláser corporal en Madrid para grasa localizada y firmeza en abdomen, flancos, muslos y brazos. Valoración y presupuesto personalizados.',
+		),
+		'co2'        => array(
+			'title'       => 'Láser CO₂ Madrid | Cicatrices, Poros y Textura | NUVANX',
+			'description' => 'Láser CO₂ fraccionado en Madrid para cicatrices de acné, poros, textura y fotodaño. Recuperación estimada y tarifas en NUVANX.',
+		),
+		'equipo'     => array(
+			'title'       => 'Equipo Médico NUVANX Madrid | Criterio Clínico',
+			'description' => 'Equipo médico NUVANX en Madrid: colegiación, experiencia y áreas clínicas de los profesionales responsables de valoración y seguimiento.',
+		),
+		'valoracion' => array(
+			'title'       => 'Valoración Médica Gratuita Madrid | NUVANX',
+			'description' => 'Valoración médica estética gratuita en Madrid. Evaluación de 15–30 minutos, indicación y presupuesto en Chamberí o Salamanca–Goya.',
+		),
+	);
+}
+
+/**
+ * Normalize the current site path for metadata routing.
+ */
+function nvx_seo_current_path(): string {
+	if ( function_exists( 'nvx_schema_current_path' ) ) {
+		return (string) nvx_schema_current_path( (int) get_queried_object_id() );
+	}
+
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+	$uri = (string) strtok( $uri, '?' );
+	return '/' . trim( $uri, '/' ) . '/';
+}
+
+/**
+ * Resolve the metadata key for the current request.
+ */
+function nvx_seo_current_metadata_key(): ?string {
+	if ( is_front_page() ) {
+		return 'home';
+	}
+
+	if ( function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
+		$treatment = nvx_schema_resolve_treatment_key( (int) get_queried_object_id() );
+		$map       = array(
+			'endolift_facial'    => 'endolift',
+			'endolaser_corporal' => 'endolaser',
+			'laser_co2'          => 'co2',
+		);
+		if ( isset( $map[ $treatment ] ) ) {
+			return $map[ $treatment ];
+		}
+	}
+
+	$path = nvx_seo_current_path();
+	if ( '/equipo-medico/' === $path ) {
+		return 'equipo';
+	}
+	if ( '/madrid/valoracion/' === $path || '/valoracion/' === $path ) {
+		return 'valoracion';
+	}
+
+	return null;
+}
+
+/**
+ * Return one canonical metadata value for the current page.
+ */
+function nvx_seo_current_metadata( string $field, string $fallback = '' ): string {
+	$key     = nvx_seo_current_metadata_key();
+	$catalog = nvx_seo_metadata_catalog();
+
+	if ( null === $key || empty( $catalog[ $key ][ $field ] ) ) {
+		return $fallback;
+	}
+
+	return (string) $catalog[ $key ][ $field ];
+}
+
+/**
+ * Whether the current installation is not the public production host.
+ */
+function nvx_seo_is_nonproduction_environment(): bool {
+	$environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
+	$host        = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+	$public      = in_array( strtolower( $host ), array( 'nuvanx.com', 'www.nuvanx.com' ), true );
+
+	return 'production' !== $environment || ! $public;
+}
+
+/**
+ * Current page URL without query parameters.
+ */
+function nvx_seo_current_canonical_url(): string {
+	if ( is_front_page() ) {
+		return home_url( '/' );
+	}
+
+	$page_id = (int) get_queried_object_id();
+	if ( $page_id > 0 ) {
+		$url = get_permalink( $page_id );
+		if ( is_string( $url ) && '' !== $url ) {
+			return $url;
+		}
+	}
+
+	return home_url( nvx_seo_current_path() );
+}
+
+/** Yoast and core title. */
+function nvx_seo_filter_title( $title ) {
+	return nvx_seo_current_metadata( 'title', (string) $title );
+}
+add_filter( 'wpseo_title', 'nvx_seo_filter_title', 100 );
+add_filter( 'pre_get_document_title', 'nvx_seo_filter_title', 100 );
+add_filter( 'wpseo_opengraph_title', 'nvx_seo_filter_title', 100 );
+add_filter( 'wpseo_twitter_title', 'nvx_seo_filter_title', 100 );
+
+/** Yoast and social descriptions. */
+function nvx_seo_filter_description( $description ) {
+	return nvx_seo_current_metadata( 'description', (string) $description );
+}
+add_filter( 'wpseo_metadesc', 'nvx_seo_filter_description', 100 );
+add_filter( 'wpseo_opengraph_desc', 'nvx_seo_filter_description', 100 );
+add_filter( 'wpseo_twitter_description', 'nvx_seo_filter_description', 100 );
+
+/**
+ * Keep canonical and Open Graph URLs on the current public host.
+ */
+function nvx_seo_filter_canonical_url( $url ) {
+	if ( nvx_seo_is_nonproduction_environment() || null === nvx_seo_current_metadata_key() ) {
+		return $url;
+	}
+
+	return nvx_seo_current_canonical_url();
+}
+add_filter( 'wpseo_canonical', 'nvx_seo_filter_canonical_url', 100 );
+add_filter( 'wpseo_opengraph_url', 'nvx_seo_filter_canonical_url', 100 );
+
+/**
+ * Environment-aware Yoast robots policy.
+ */
+function nvx_seo_filter_yoast_robots( $robots ) {
+	if ( nvx_seo_is_nonproduction_environment() ) {
+		return 'noindex, nofollow';
+	}
+
+	if ( null !== nvx_seo_current_metadata_key() ) {
+		$page_id = (int) get_queried_object_id();
+		if ( ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
+			return 'index, follow';
+		}
+	}
+
+	return $robots;
+}
+add_filter( 'wpseo_robots', 'nvx_seo_filter_yoast_robots', 100 );
+
+/**
+ * Environment-aware WordPress robots array for non-Yoast consumers.
+ *
+ * @param array<string,bool> $robots Robots directives.
+ * @return array<string,bool>
+ */
+function nvx_seo_filter_core_robots( array $robots ): array {
+	if ( nvx_seo_is_nonproduction_environment() ) {
+		$robots['noindex']  = true;
+		$robots['nofollow'] = true;
+		unset( $robots['index'], $robots['follow'] );
+		return $robots;
+	}
+
+	if ( null !== nvx_seo_current_metadata_key() ) {
+		$page_id = (int) get_queried_object_id();
+		if ( ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
+			$robots['index']  = true;
+			$robots['follow'] = true;
+			unset( $robots['noindex'], $robots['nofollow'] );
+		}
+	}
+
+	return $robots;
+}
+add_filter( 'wp_robots', 'nvx_seo_filter_core_robots', 100 );

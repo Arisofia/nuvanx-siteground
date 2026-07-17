@@ -155,7 +155,7 @@ jobs:
 
           Verify:
           sha256sum -c plaintext-bundle.sha256
-git bundle verify nuvanx-siteground-before-purge.bundle
+          git bundle verify nuvanx-siteground-before-purge.bundle
           EOF
           rm -f \
             "$backup/public-key.pem" \

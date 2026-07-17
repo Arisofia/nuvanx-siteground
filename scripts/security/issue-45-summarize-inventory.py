@@ -27,8 +27,10 @@ def main() -> int:
     output = args.output_dir
     output.mkdir(parents=True, exist_ok=True)
 
-    manifest = set(read_lines(args.manifest))
-    current = set(read_lines(args.current_tree))
+    manifest_list = read_lines(args.manifest)
+    current_list = read_lines(args.current_tree)
+    manifest = set(manifest_list)
+    current = set(current_list)
     intersection = sorted(manifest & current)
     canonical_current = sorted(
         path for path in intersection if path.startswith("wp-content/themes/nuvanx-medical/")
@@ -87,7 +89,9 @@ def main() -> int:
 
     safe = not intersection and malformed == 0 and all(mandatory.values())
     summary = [
-        f"candidate_paths={len(manifest)}",
+        f"candidate_paths_total={len(manifest_list)}",
+        f"candidate_paths_unique={len(manifest)}",
+        f"duplicate_candidate_paths={len(manifest_list) - len(manifest)}",
         f"current_tree_intersection={len(intersection)}",
         f"canonical_current_intersection={len(canonical_current)}",
         f"reason_categories={len(reason_counts)}",

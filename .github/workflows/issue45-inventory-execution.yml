@@ -4,7 +4,7 @@ run-name: Issue 45 final inventory · ${{ github.event_name }} · ${{ github.sha
 on:
   push:
     branches:
-      - security/issue45-final-inventory-20260717
+      - 'security/issue45-final-inventory-*'
     paths:
       - .github/workflows/issue45-inventory-execution.yml
       - scripts/security/issue-45-summarize-inventory.py

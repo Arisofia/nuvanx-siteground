@@ -156,15 +156,18 @@ function nvx_reading_time( $post_id = null ) {
 }
 
 /**
- * Blog archive shows all current medical journal posts on page 1.
+ * Blog archive shows more posts on page 1.
  * Reading settings often keep posts_per_page=6, which hid older articles.
+ *
+ * Use only $query conditionals here: global is_*() can disagree with this
+ * query while pre_get_posts is still building the main loop.
  */
 function nvx_blog_pre_get_posts( WP_Query $query ): void {
 	if ( is_admin() || ! $query->is_main_query() ) {
 		return;
 	}
 
-	// Posts page /blog/ (is_home) without treating the front page as a blog.
+	// Posts page (/blog/): is_home on the query, not the static front page.
 	if ( $query->is_home() && ! $query->is_front_page() ) {
 		$query->set( 'posts_per_page', 12 );
 		$query->set( 'ignore_sticky_posts', true );

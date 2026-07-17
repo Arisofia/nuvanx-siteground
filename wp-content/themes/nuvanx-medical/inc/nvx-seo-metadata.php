@@ -13,33 +13,57 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Metadata catalogue for the principal commercial and authority pages.
+ * Metadata catalogue for the principal commercial, local and authority pages.
  *
  * @return array<string, array{title:string,description:string}>
  */
 function nvx_seo_metadata_catalog(): array {
 	return array(
-		'home'       => array(
+		'home'         => array(
 			'title'       => 'Medicina Estética Láser Madrid | Endolift y CO₂ | NUVANX',
 			'description' => 'Clínica de medicina estética láser en Madrid. Endolift®, Láser CO₂ y EXION® BTL con diagnóstico médico en Chamberí y Salamanca–Goya.',
 		),
-		'endolift'   => array(
+		'tratamientos' => array(
+			'title'       => 'Tratamientos Medicina Estética Láser Madrid | NUVANX',
+			'description' => 'Tratamientos de medicina estética láser en Madrid: Endolift®, Láser CO₂, EXION® BTL, IPL y medicina facial con valoración clínica.',
+		),
+		'clinicas'     => array(
+			'title'       => 'Clínicas NUVANX Madrid | Chamberí y Salamanca–Goya',
+			'description' => 'Clínicas de medicina estética láser NUVANX en Chamberí y Salamanca–Goya. Direcciones, horarios, registros sanitarios y mapas.',
+		),
+		'chamberi'     => array(
+			'title'       => 'Medicina Estética Chamberí Madrid | NUVANX',
+			'description' => 'Clínica NUVANX Chamberí en Fernández de la Hoz 4, Madrid. Medicina estética láser, registro sanitario CS20144 y valoración médica.',
+		),
+		'goya'         => array(
+			'title'       => 'Medicina Estética Goya Madrid | NUVANX',
+			'description' => 'Clínica NUVANX Salamanca–Goya en Fernán González 26, Madrid. Medicina estética láser, registro sanitario CS20073 y valoración médica.',
+		),
+		'endolift'     => array(
 			'title'       => 'Endolift® Facial Madrid | Precio y Resultados | NUVANX',
 			'description' => 'Endolift® facial en Madrid para papada, mandíbula y cuello. Tarifas por zona, indicaciones y recuperación. Valoración médica en NUVANX.',
 		),
-		'endolaser'  => array(
+		'endolaser'    => array(
 			'title'       => 'Endoláser Corporal Madrid | Grasa y Firmeza | NUVANX',
 			'description' => 'Endoláser corporal en Madrid para grasa localizada y firmeza en abdomen, flancos, muslos y brazos. Valoración y presupuesto personalizados.',
 		),
-		'co2'        => array(
+		'co2'          => array(
 			'title'       => 'Láser CO₂ Madrid | Cicatrices, Poros y Textura | NUVANX',
 			'description' => 'Láser CO₂ fraccionado en Madrid para cicatrices de acné, poros, textura y fotodaño. Recuperación estimada y tarifas en NUVANX.',
 		),
-		'equipo'     => array(
+		'exion'        => array(
+			'title'       => 'EXION® BTL Madrid | Face, Body y Fractional RF | NUVANX',
+			'description' => 'EXION® BTL en Madrid: Face, Body y Fractional RF son modalidades diferentes. La indicación, parámetros y sesiones dependen del diagnóstico.',
+		),
+		'exilite'      => array(
+			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y Rojeces | NUVANX',
+			'description' => 'IPL BTL EXILITE™ en Madrid para indicaciones pigmentarias, vasculares y calidad cutánea tras diagnóstico, fototipo y selección de parámetros.',
+		),
+		'equipo'       => array(
 			'title'       => 'Equipo Médico NUVANX Madrid | Criterio Clínico',
 			'description' => 'Equipo médico NUVANX en Madrid: colegiación, experiencia y áreas clínicas de los profesionales responsables de valoración y seguimiento.',
 		),
-		'valoracion' => array(
+		'valoracion'   => array(
 			'title'       => 'Valoración Médica Gratuita Madrid | NUVANX',
 			'description' => 'Valoración médica estética gratuita en Madrid. Evaluación de 15–30 minutos, indicación y presupuesto en Chamberí o Salamanca–Goya.',
 		),
@@ -73,6 +97,8 @@ function nvx_seo_current_metadata_key(): ?string {
 			'endolift_facial'    => 'endolift',
 			'endolaser_corporal' => 'endolaser',
 			'laser_co2'          => 'co2',
+			'exion_btl'          => 'exion',
+			'exilite_btl'        => 'exilite',
 		);
 		if ( isset( $map[ $treatment ] ) ) {
 			return $map[ $treatment ];
@@ -80,14 +106,17 @@ function nvx_seo_current_metadata_key(): ?string {
 	}
 
 	$path = nvx_seo_current_path();
-	if ( '/equipo-medico/' === $path ) {
-		return 'equipo';
-	}
-	if ( '/madrid/valoracion/' === $path || '/valoracion/' === $path ) {
-		return 'valoracion';
-	}
+	$map  = array(
+		'/tratamientos/' => 'tratamientos',
+		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
+		'/medicina-estetica-chamberi/' => 'chamberi',
+		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
+		'/equipo-medico/' => 'equipo',
+		'/madrid/valoracion/' => 'valoracion',
+		'/valoracion/' => 'valoracion',
+	);
 
-	return null;
+	return $map[ $path ] ?? null;
 }
 
 /**

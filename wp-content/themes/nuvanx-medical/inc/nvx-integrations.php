@@ -81,6 +81,9 @@ require_once __DIR__ . '/nvx-structured-data.php';
 /** Legal redirects, noindex for incomplete evidence / transactional pages. */
 require_once __DIR__ . '/nvx-page-hygiene.php';
 
+/** Canonical titles, descriptions, social URLs and environment robots policy. */
+require_once __DIR__ . '/nvx-seo-metadata.php';
+
 /** Temporary clinical safeguard for BTL detail pages pending source-copy sign-off. */
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
 

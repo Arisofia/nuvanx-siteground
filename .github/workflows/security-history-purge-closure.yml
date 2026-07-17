@@ -27,14 +27,26 @@ jobs:
           git fetch --force origin \
             '+refs/pull/*/head:refs/remotes/pull/*' || true
 
+      - name: Reject public repository during open credential incident
+        env:
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          set -euo pipefail
+          if [[ "${REPOSITORY_PRIVATE}" != 'true' ]]; then
+            echo 'ERROR: SECURITY NO GO — repository is public while credential incident #45 remains open.'
+            echo 'Change repository visibility to private before any further release or merge approval.'
+            exit 1
+          fi
+          echo 'repository_private=true'
+
       - name: Reject reachable incident commit
         run: |
           set -euo pipefail
           incident='81dafb2e74b6bbfffe302979d67fe789c0075509'
           if git cat-file -e "${incident}^{commit}" 2>/dev/null; then
-            echo "::warning::SECURITY NO GO — incident commit remains reachable: $incident"
+            echo "ERROR: SECURITY NO GO — incident commit remains reachable: $incident"
             echo 'Complete issue #45 mirror rewrite and GitHub Support dereferencing before release approval.'
-            # exit 1 (Temporarily disabled pending GitHub Support ticket)
+            exit 1
           fi
           echo 'incident_commit_reachable=false'
 
@@ -48,9 +60,9 @@ jobs:
             --manifest qa/security/history-closure/residual-paths.txt \
             --reasons qa/security/history-closure/residual-reasons.tsv
           if [[ -s qa/security/history-closure/residual-paths.txt ]]; then
-            echo "::warning::SECURITY NO GO — prohibited historical paths remain reachable:"
+            echo 'ERROR: SECURITY NO GO — prohibited historical paths remain reachable:'
             cat qa/security/history-closure/residual-paths.txt
-            # exit 1 (Temporarily disabled pending GitHub Support ticket)
+            exit 1
           fi
           echo 'residual_prohibited_paths=0'
 

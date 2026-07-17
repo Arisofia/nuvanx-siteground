@@ -22,29 +22,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_home_content_v2_catalog(): array {
 	return array(
 		'values'    => array(
-			'kicker' => 'Por qué NUVANX',
+			'kicker' => 'Por qué NUVANX no es una clínica de estética',
 			'title'  => 'Medicina estética donde el diagnóstico decide la tecnología',
 			'items'  => array(
 				array(
-					'title' => '1. Diagnóstico antes de tecnología',
-					'body'  => 'Cada protocolo comienza con una valoración médica de 15 a 30 minutos: calidad de piel, historial, objetivos y contraindicaciones. Solo se indica un tratamiento cuando existe una razón clínica para hacerlo.',
+					'title' => '1. Diagnóstico médico, no catálogo',
+					'body'  => 'Antes de cualquier protocolo, valoramos calidad de piel, historial, objetivos y contraindicaciones (15–30 min). Si no hay indicación médica, no hay tratamiento. Las sesiones no se venden; se prescriben.',
 				),
 				array(
-					'title' => '2. Equipamiento médico certificado',
-					'body'  => 'Trabajamos con plataformas médicas con marcado CE como DEKA Motus AZ+, Láser CO₂ fraccionado y EXION® BTL. La tecnología y sus parámetros se seleccionan según la anatomía y el objetivo de cada paciente.',
+					'title' => '2. Tecnología médica certificada CE',
+					'body'  => 'DEKA Motus AZ+, Endolift® (1470 nm), láser CO₂ fraccionado y EXION® BTL — equipos con marcado CE médico. Cada parámetro lo decide el médico según tu anatomía, no un pack comercial.',
 				),
 				array(
-					'title' => '3. Resultados naturales y expectativa realista',
-					'body'  => 'El objetivo es mejorar firmeza, textura y definición respetando la expresión y la identidad del rostro. Antes de tratar, explicamos qué puede mejorar, qué límites existen y qué recuperación requiere cada protocolo.',
+					'title' => '3. Equipo médico hospitalario en activo',
+					'body'  => 'Dirección médica, FEA del Hospital La Paz (well-aging y geriatría preventiva) e investigador PhD (CIBERFES / envejecimiento). Esa formación hospitalaria informa cada diagnóstico en NUVANX.',
 				),
 			),
 		),
 		'action'    => array(
-			'kicker'         => 'Valoración médica gratuita',
-			'title'          => '15–30 minutos para saber si existe indicación',
-			'body'           => 'Evaluamos tu caso, explicamos las opciones disponibles y documentamos el presupuesto antes de cualquier decisión. Presencial en Chamberí o Salamanca–Goya.',
-			'primary_label'  => 'Reservar valoración gratuita',
-			'secondary_label'=> 'Consultar con la clínica',
+			'kicker'          => 'Valoración médica gratuita',
+			'title'           => '15–30 minutos para saber si existe indicación',
+			'body'            => 'Evaluamos tu caso, explicamos opciones y documentamos el presupuesto antes de decidir. Presencial en Chamberí (CS20144) o Salamanca–Goya (CS20073).',
+			'primary_label'   => 'Reservar valoración gratuita',
+			'secondary_label' => 'WhatsApp con la clínica',
 		),
 		'method'    => array(
 			'kicker' => 'Cómo trabajamos',
@@ -67,26 +67,27 @@ function nvx_home_content_v2_catalog(): array {
 		),
 		'protocols' => array(
 			array(
-				'title' => 'Endolift® Facial: retracción subdérmica y definición mandibular',
-				'lead'  => 'Procedimiento médico mínimamente invasivo con microfibra óptica de 200 a 300 micras. La energía láser intersticial actúa en tejido subcutáneo para favorecer lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello, cuando existe indicación anatómica.',
+				'title' => 'Endolift® facial: papada, mandíbula y cuello',
+				'lead'  => 'Microfibra láser bajo la piel para tensar tejido y, cuando hay indicación, reducir grasa local. No sustituye un lifting quirúrgico en todos los casos.',
 				'facts' => array(
-					'Indicación médica principal'    => 'Flacidez leve a moderada y grasa submentoniana seleccionada.',
-					'Recuperación clínica estimada' => 'Inflamación, tirantez o hematomas leves durante 3 a 7 días según el caso.',
+					'Inversión orientativa' => 'Desde 798,60 € (zona ojeras, IVA incl.). Papada/mandíbula en tabla de precios.',
+					'Recuperación estimada' => 'Inflamación o hematomas leves habitualmente 3 a 7 días según el caso.',
 				),
 			),
 			array(
-				'title' => 'Endoláser Corporal: lipólisis láser selectiva',
-				'lead'  => 'El calor controlado de la fibra láser actúa sobre adiposidad localizada y produce un estímulo térmico de retracción cutánea. La indicación depende de la zona, la calidad de la piel, el volumen de grasa y la expectativa de resultado.',
+				'title' => 'Endoláser corporal: grasa localizada y contorno',
+				'lead'  => 'Protocolo láser ambulatorio para focos de grasa con flacidez leve–moderada. No es tratamiento de obesidad ni liposucción.',
 				'facts' => array(
-					'Zonas que pueden valorarse' => 'Abdomen, flancos, cara interna de muslos, rodillas, brazos y otras áreas seleccionadas.',
+					'Zonas habituales' => 'Abdomen, flancos, muslos, rodillas, brazos y otras áreas seleccionadas.',
+					'Inversión'        => 'Presupuesto por zonas tras valoración médica.',
 				),
 			),
 			array(
-				'title' => 'Láser CO₂ Fraccionado: renovación cutánea controlada',
-				'lead'  => 'El láser CO₂ crea microcolumnas de ablación fraccionada para tratar cicatrices atróficas de acné, poros, textura irregular y fotodaño. La profundidad y la densidad se ajustan al fototipo, la indicación y el período de recuperación aceptable.',
+				'title' => 'Láser CO₂ fraccionado: textura y cicatrices',
+				'lead'  => 'Resurfacing fraccionado para cicatrices de acné, poros y fotodaño, con downtime realista según profundidad.',
 				'facts' => array(
-					'Resultados clínicos' => 'Mejora progresiva de textura y estímulo de remodelación de colágeno.',
-					'Recuperación'        => 'Habitualmente de 4 a 7 días, según la profundidad del protocolo.',
+					'Inversión orientativa' => 'Desde 330 € sesión facial / 450 € corporal (IVA incl.).',
+					'Recuperación'          => 'Habitualmente 4 a 7 días de eritema y descamación según protocolo.',
 				),
 			),
 		),

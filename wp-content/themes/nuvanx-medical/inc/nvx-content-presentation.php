@@ -6,8 +6,10 @@
  * - dual CTAs (valoración + WhatsApp)
  * - clinical values pillars
  * - method columns
- * - treatment card blurbs (no prices on home)
- * - home specialized protocols block (clinical copy, no prices)
+ * - treatment card blurbs
+ * - home specialized protocols block (with orientative “desde €” when tariff known)
+ * - homepage team strip + well-aging pillar
+ * - EXION hub investment transparency (presupuesto tras valoración)
  * - director E-E-A-T (colegiado)
  * - FAQ framing (EXION vs Morpheus8)
  *
@@ -463,35 +465,43 @@ function nvx_content_enrich_treatment_cards( string $content ): string {
 }
 
 /**
- * Home “Protocolos médicos especializados” — clinical copy (no investment/price lines).
+ * Home “Protocolos médicos especializados” — clinical copy + orientative investment when known.
  *
  * @return array<int, array{title:string,lead:string,facts:array<string,string>,url:string}>
  */
 function nvx_home_protocols_data(): array {
+	$endolift_from = function_exists( 'nvx_format_price_eur' ) && function_exists( 'nvx_endolift_price_from_eur' )
+		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
+		: '798,60';
+	$co2_from      = function_exists( 'nvx_format_price_eur' ) && function_exists( 'nvx_tariff_catalog' )
+		? nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] )
+		: '330,00';
+
 	return array(
 		array(
-			'title' => 'Endolift® Facial: retracción subdérmica y definición mandibular',
-			'lead'  => 'Procedimiento médico mínimamente invasivo con microfibra óptica de 200 a 300 micras. La energía láser intersticial actúa en tejido subcutáneo para favorecer lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello, cuando existe indicación anatómica.',
+			'title' => 'Endolift® facial: papada, mandíbula y cuello',
+			'lead'  => 'Microfibra láser bajo la piel para tensar tejido y, cuando hay indicación, reducir grasa local. No sustituye un lifting quirúrgico en todos los casos.',
 			'facts' => array(
-				'Indicación médica principal'   => 'Flacidez leve a moderada y grasa submentoniana seleccionada.',
-				'Recuperación clínica estimada' => 'Inflamación, tirantez o hematomas leves durante 3 a 7 días según el caso.',
+				'Inversión orientativa' => sprintf( 'Desde %s € (zona ojeras, IVA incl.). Tabla completa en la ficha.', $endolift_from ),
+				'Recuperación estimada' => 'Inflamación o hematomas leves habitualmente 3 a 7 días según el caso.',
 			),
 			'url'   => home_url( '/endolift-facial-papada-mandibula/' ),
 		),
 		array(
-			'title' => 'Endoláser Corporal: lipólisis láser selectiva',
-			'lead'  => 'El calor controlado de la fibra láser actúa sobre adiposidad localizada y produce un estímulo térmico de retracción cutánea. La indicación depende de la zona, la calidad de la piel, el volumen de grasa y la expectativa de resultado.',
+			'title' => 'Endoláser corporal: grasa localizada y contorno',
+			'lead'  => 'Protocolo láser ambulatorio para focos de grasa con flacidez leve–moderada. No es tratamiento de obesidad ni liposucción.',
 			'facts' => array(
-				'Zonas que pueden valorarse' => 'Abdomen, flancos, cara interna de muslos, rodillas, brazos y otras áreas seleccionadas.',
+				'Zonas habituales' => 'Abdomen, flancos, muslos, rodillas, brazos y otras áreas seleccionadas.',
+				'Inversión'        => 'Presupuesto por zonas tras valoración médica.',
 			),
 			'url'   => home_url( '/endolaser-corporal-grasa-localizada/' ),
 		),
 		array(
-			'title' => 'Láser CO₂ Fraccionado: renovación cutánea controlada',
-			'lead'  => 'El láser CO₂ crea microcolumnas de ablación fraccionada para tratar cicatrices atróficas de acné, poros, textura irregular y fotodaño. La profundidad y la densidad se ajustan al fototipo, la indicación y el período de recuperación aceptable.',
+			'title' => 'Láser CO₂ fraccionado: textura y cicatrices',
+			'lead'  => 'Resurfacing fraccionado para cicatrices de acné, poros y fotodaño, con downtime realista según profundidad.',
 			'facts' => array(
-				'Resultados clínicos' => 'Mejora progresiva de textura y estímulo de remodelación de colágeno.',
-				'Recuperación'        => 'Habitualmente de 4 a 7 días, según la profundidad del protocolo.',
+				'Inversión orientativa' => sprintf( 'Desde %s € sesión facial (IVA incl.).', $co2_from ),
+				'Recuperación'          => 'Habitualmente 4 a 7 días de eritema y descamación según protocolo.',
 			),
 			'url'   => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ),
 		),
@@ -587,6 +597,123 @@ function nvx_content_ensure_home_protocols( string $content ): string {
 }
 
 /**
+ * Homepage team strip — surfaces the 3-physician hospital team (audit v2 differentiator).
+ */
+function nvx_home_team_strip_markup(): string {
+	$equipo  = home_url( '/equipo-medico/' );
+	$director = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+	$ivon     = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
+	$fabio    = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
+	$lead     = sprintf(
+		/* translators: 1: director ICOMEM, 2: Dra. Ivon ICOMEM, 3: Dr. Fabio ICOMEM */
+		__( 'NUVANX está liderada por el Dr. José Javier Rivera Tejeda (ICOMEM %1$s), Director Médico especialista en Endolift® y láser CO₂. La Dra. Ivon Yamileth Rivera Deras (ICOMEM %2$s), FEA del Hospital La Paz, aporta well-aging y geriatría preventiva. El Dr. Fabio Augusto Quiñónez Bareiro (ICOMEM %3$s), PhD (UAM) e investigador CIBERFES, integra fisiología del envejecimiento y paciente complejo.', 'nuvanx-medical' ),
+		$director,
+		$ivon,
+		$fabio
+	);
+
+	$html  = '<section class="nvx-brand-section nvx-home-team-strip" id="nvx-home-team" aria-labelledby="nvx-home-team-title" data-nvx-home-block="team">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Equipo médico', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Tres médicos colegiados. Investigación hospitalaria. Un solo objetivo.', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $lead ) . '</p>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__(
+		'El criterio médico en NUVANX no es un claim de marketing: es el resultado de un equipo con experiencia hospitalaria real.',
+		'nuvanx-medical'
+	) . '</p>';
+	$html .= '<p class="nvx-home-team-strip__cta"><a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $equipo ) . '">' . esc_html__( 'Conocer al equipo médico', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</div></section>';
+	return $html;
+}
+
+/**
+ * Homepage well-aging pillar (unique vs pure aesthetic competitors).
+ */
+function nvx_home_wellaging_strip_markup(): string {
+	$html  = '<section class="nvx-brand-section nvx-home-wellaging" id="nvx-home-wellaging" aria-labelledby="nvx-home-wellaging-title" data-nvx-home-block="wellaging">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Well-aging', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-home-wellaging-title" class="nvx-brand-title">' . esc_html__( 'Más allá de la estética: medicina del envejecimiento saludable', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__(
+		'Integramos well-aging con base en geriatría preventiva y longevidad — un enfoque que los centros solo cosméticos no pueden ofrecer. Tratar la piel es también tratar el tejido que envejece, con médicos formados en fisiología del envejecimiento, no solo en aparatología.',
+		'nuvanx-medical'
+	) . '</p>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__(
+		'Láser, inductores de colágeno y protocolos regenerativos se diseñan con esa visión: resultados naturales hoy y tejido más saludable a largo plazo, siempre tras indicación médica.',
+		'nuvanx-medical'
+	) . '</p>';
+	$html .= '</div></section>';
+	return $html;
+}
+
+/**
+ * Ensure home has team + well-aging strips after protocols (or after method).
+ */
+function nvx_content_ensure_home_team_wellaging( string $content ): string {
+	if ( ! is_front_page() ) {
+		return $content;
+	}
+
+	$team = nvx_home_team_strip_markup();
+	$well = nvx_home_wellaging_strip_markup();
+
+	// Refresh existing blocks.
+	if ( false !== strpos( $content, 'id="nvx-home-team"' ) || false !== strpos( $content, "id='nvx-home-team'" ) ) {
+		$content = preg_replace(
+			'/<section\b[^>]*\bid=["\']nvx-home-team["\'][^>]*>[\s\S]*?<\/section>/iu',
+			$team,
+			$content,
+			1
+		) ?? $content;
+	}
+	if ( false !== strpos( $content, 'id="nvx-home-wellaging"' ) || false !== strpos( $content, "id='nvx-home-wellaging'" ) ) {
+		$content = preg_replace(
+			'/<section\b[^>]*\bid=["\']nvx-home-wellaging["\'][^>]*>[\s\S]*?<\/section>/iu',
+			$well,
+			$content,
+			1
+		) ?? $content;
+	}
+
+	$need_team = false === strpos( $content, 'id="nvx-home-team"' ) && false === strpos( $content, "id='nvx-home-team'" );
+	$need_well = false === strpos( $content, 'id="nvx-home-wellaging"' ) && false === strpos( $content, "id='nvx-home-wellaging'" );
+	if ( ! $need_team && ! $need_well ) {
+		return $content;
+	}
+
+	$insert = ( $need_team ? $team : '' ) . ( $need_well ? $well : '' );
+
+	// After protocols.
+	$count   = 0;
+	$updated = preg_replace(
+		'/(<section\b[^>]*\bid=["\']nvx-home-protocols["\'][^>]*>[\s\S]*?<\/section>)/iu',
+		'$1' . $insert,
+		$content,
+		1,
+		$count
+	);
+	if ( is_string( $updated ) && $count > 0 ) {
+		return $updated;
+	}
+
+	// After method section.
+	$count   = 0;
+	$updated = preg_replace(
+		'/(<section\b[^>]*\bnvx-method-section\b[^>]*>[\s\S]*?<\/section>)/iu',
+		'$1' . $insert,
+		$content,
+		1,
+		$count
+	);
+	if ( is_string( $updated ) && $count > 0 ) {
+		return $updated;
+	}
+
+	return $content . $insert;
+}
+add_filter( 'the_content', 'nvx_content_ensure_home_team_wellaging', 125 );
+
+/**
  * Director E-E-A-T wherever the Rivera card / leadership copy appears.
  */
 function nvx_content_enhance_director_blocks( string $content ): string {
@@ -630,9 +757,9 @@ function nvx_content_enhance_director_blocks( string $content ): string {
  * FAQ: EXION vs Morpheus8 — clinical comparison (long-tail GEO), not brand superiority ads.
  */
 function nvx_content_rewrite_morpheus_faq( string $content ): string {
-	$answer  = '<p>' . esc_html__( 'Puede ser una alternativa en radiofrecuencia fraccionada con microagujas según el caso. EXION® controla la entrega de energía en dermis profunda; la comodidad y el período de recuperación dependen del protocolo y de la tolerancia individual, no de un ranking comercial entre marcas.', 'nuvanx-medical' ) . '</p>';
-	$answer .= '<p>' . esc_html__( 'La indicación se decide en valoración médica: objetivo (textura, flacidez, calidad cutánea), calidad de piel y recuperación esperada.', 'nuvanx-medical' ) . '</p>';
-	$answer .= '<p><a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/exion-btl/' ) ) . '">' . esc_html__( 'Ver EXION® Fractional RF', 'nuvanx-medical' ) . '</a></p>';
+	$answer  = '<p>' . esc_html__( 'Sí, puede serlo según el diagnóstico. Ambos actúan con radiofrecuencia fraccionada y microagujas; EXION® Fractional RF añade control de impedancia y feedback tisular que permite dosificar la energía de forma más predecible en dermis profunda.', 'nuvanx-medical' ) . '</p>';
+	$answer .= '<p>' . esc_html__( 'No hay un ranking comercial universal: la elección depende del objetivo (textura, flacidez, cicatrices), la calidad de piel, el fototipo y la recuperación aceptable. En NUVANX la indicación se define en valoración médica, no por marca.', 'nuvanx-medical' ) . '</p>';
+	$answer .= '<p><a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/exion-fractional/' ) ) . '">' . esc_html__( 'Ver EXION® Fractional RF', 'nuvanx-medical' ) . '</a></p>';
 
 	$updated = preg_replace(
 		'/(<summary><span>¿EXION® Fractional RF es una alternativa a Morpheus8\?<\/span><\/summary>\s*<div class="nvx-brand-faq-content">)([\s\S]*?)(<\/div>\s*<\/details>)/u',
@@ -642,6 +769,86 @@ function nvx_content_rewrite_morpheus_faq( string $content ): string {
 
 	return is_string( $updated ) ? $updated : $content;
 }
+
+/**
+ * Whether current request is the EXION® BTL hub page.
+ */
+function nvx_content_is_exion_hub(): bool {
+	if ( function_exists( 'nvx_schema_path_matches' ) && function_exists( 'nvx_schema_current_path' ) ) {
+		$path = nvx_schema_current_path( (int) get_queried_object_id() );
+		if ( nvx_schema_path_matches( $path, '/exion-btl/' ) ) {
+			return true;
+		}
+	}
+	if ( is_singular( 'page' ) ) {
+		$slug = get_post_field( 'post_name', get_queried_object_id() );
+		return is_string( $slug ) && 'exion-btl' === $slug;
+	}
+	return false;
+}
+
+/**
+ * EXION hub investment transparency — no invented retail PVP (tariff sheet not yet locked).
+ */
+function nvx_exion_investment_markup(): string {
+	$html  = '<section class="nvx-brand-section nvx-exion-investment" id="inversion-exion" aria-labelledby="nvx-exion-investment-title" data-nvx-block="exion-investment">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Inversión', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-exion-investment-title" class="nvx-brand-title">' . esc_html__( 'Precio de EXION® BTL en NUVANX', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__(
+		'El PVP de EXION® no se publica como tarifa fija online porque depende del aplicador (Face, Body o Fractional RF), de la zona, del número de sesiones y de si se combina con otros protocolos. El presupuesto se documenta por escrito tras la valoración médica gratuita.',
+		'nuvanx-medical'
+	) . '</p>';
+	$html .= '<ul class="nvx-brand-list nvx-exion-investment__factors">';
+	$html .= '<li>' . esc_html__( 'Aplicador y profundidad del protocolo (Face / Body / Fractional RF).', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Zona o superficie tratada y objetivo clínico (textura, firmeza, contorno).', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Plan de sesiones habitual (a menudo 2–4) y posibles combinaciones médicas.', 'nuvanx-medical' ) . '</li>';
+	$html .= '</ul>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__(
+		'Si buscas “EXION BTL precio Madrid”, la respuesta honesta es: sin exploración no hay cifra fiable. En la consulta cerramos indicación, plan y PVP con IVA incluido antes de cualquier decisión.',
+		'nuvanx-medical'
+	) . '</p>';
+	$html .= '<p class="nvx-exion-investment__cta">' . nvx_cta_pair_markup( 'nvx-exion-investment__actions' ) . '</p>';
+	$html .= '</div></section>';
+	return $html;
+}
+
+/**
+ * Inject / refresh EXION investment block on the hub page.
+ */
+function nvx_content_ensure_exion_investment( string $content ): string {
+	if ( ! nvx_content_is_exion_hub() ) {
+		return $content;
+	}
+
+	$block = nvx_exion_investment_markup();
+
+	if ( false !== strpos( $content, 'id="inversion-exion"' ) || false !== strpos( $content, "id='inversion-exion'" ) ) {
+		$updated = preg_replace(
+			'/<section\b[^>]*\bid=["\']inversion-exion["\'][^>]*>[\s\S]*?<\/section>/iu',
+			$block,
+			$content,
+			1
+		);
+		return is_string( $updated ) ? $updated : $content;
+	}
+
+	// After first FAQ accordion or before last CTA cluster; fallback append.
+	$count   = 0;
+	$updated = preg_replace(
+		'/(<section\b[^>]*\b(?:nvx-brand-faq|nvx-faq|nvx-home-faq)[^>]*>)/iu',
+		$block . '$1',
+		$content,
+		1,
+		$count
+	);
+	if ( is_string( $updated ) && $count > 0 ) {
+		return $updated;
+	}
+
+	return $content . $block;
+}
+add_filter( 'the_content', 'nvx_content_ensure_exion_investment', 126 );
 
 /**
  * Unify conversion CTAs globally in post content.
@@ -907,6 +1114,7 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_enhance_director_blocks( $content );
 	$content = nvx_content_rewrite_morpheus_faq( $content );
 	$content = nvx_content_unify_ctas( $content );
+	// Team / well-aging / EXION investment: separate filters at 125–126 (after protocols).
 
 	return $content;
 }

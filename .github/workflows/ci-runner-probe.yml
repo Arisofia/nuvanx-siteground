@@ -1,0 +1,23 @@
+name: CI Runner Probe
+
+on:
+  push:
+    branches:
+      - chore/ci-health-verification-20260717
+  pull_request:
+    paths:
+      - .github/workflows/ci-runner-probe.yml
+      - docs/ci/health-verification-2026-07-17.md
+
+permissions:
+  contents: read
+
+jobs:
+  hosted-runner-probe:
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    steps:
+      - name: Confirm hosted runner allocation
+        run: |
+          echo "HOSTED_RUNNER_STARTED"
+          uname -a

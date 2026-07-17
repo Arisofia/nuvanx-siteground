@@ -1,0 +1,266 @@
+name: Issue 45 History Rewrite Execution
+run-name: Issue 45 guarded rewrite · ${{ github.sha }}
+
+on:
+  push:
+    branches:
+      - security/issue45-purge-armed
+    paths:
+      - .github/workflows/issue45-history-rewrite-execution.yml
+      - scripts/security/issue-45-purge.sh
+      - scripts/security/issue-45-verify.sh
+      - scripts/security/issue-45-build-manifest.py
+      - .issue45-purge-trigger
+      - docs/security/issue45-backup-public-key.pem
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: issue45-history-rewrite
+  cancel-in-progress: false
+
+jobs:
+  rewrite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      INCIDENT_COMMIT: 81dafb2e74b6bbfffe302979d67fe789c0075509
+      APPROVED_MANIFEST_SHA256: 8dce392ca97c9b894aafa092b1c66cbe0c17e223d67e5af7b1ecabcc5e9d5317
+      APPROVED_MANIFEST_COUNT: '16459'
+    steps:
+      - name: Checkout clean execution tooling
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 1
+
+      - name: Reject concurrent open pull requests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          open_count="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls?state=open&per_page=100" --jq 'length' | awk '{sum += $1} END {print sum + 0}')"
+          echo "open_pull_requests=${open_count}" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$open_count" != '0' ]]; then
+            echo 'ERROR: close all pull requests before rewriting repository history.'
+            exit 1
+          fi
+
+      - name: Install pinned rewrite and secret-scanning tools
+        run: |
+          set -euo pipefail
+          python3 -m pip install --disable-pip-version-check --no-cache-dir git-filter-repo==2.47.0
+          version='8.30.1'
+          asset="gitleaks_${version}_linux_x64.tar.gz"
+          base="https://github.com/gitleaks/gitleaks/releases/download/v${version}"
+          curl -fsSLO "${base}/${asset}"
+          curl -fsSLO "${base}/gitleaks_${version}_checksums.txt"
+          grep " ${asset}$" "gitleaks_${version}_checksums.txt" | sha256sum -c -
+          tar -xzf "$asset" gitleaks
+          sudo install -m 0755 gitleaks /usr/local/bin/gitleaks
+          git filter-repo --version
+          gitleaks version
+
+      - name: Create isolated all-refs mirror
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          auth_url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git clone --mirror "$auth_url" /tmp/nuvanx-siteground-purge.git
+          git -C /tmp/nuvanx-siteground-purge.git fetch --force "$auth_url" \
+            '+refs/heads/*:refs/heads/*' \
+            '+refs/tags/*:refs/tags/*'
+          git -C /tmp/nuvanx-siteground-purge.git fetch --force "$auth_url" \
+            '+refs/pull/*/head:refs/pull/*/head' \
+            '+refs/pull/*/merge:refs/pull/*/merge' || true
+          git -C /tmp/nuvanx-siteground-purge.git remote set-url origin "$auth_url"
+
+      - name: Load and validate approved path manifest
+        run: |
+          set -euo pipefail
+          mirror=/tmp/nuvanx-siteground-purge.git
+          evidence_ref='refs/heads/security/issue45-inventory-evidence'
+          mkdir -p /tmp/issue45-approved
+          git -C "$mirror" show "${evidence_ref}:qa/security/issue45-inventory/approval-summary.txt" > /tmp/issue45-approved/approval-summary.txt
+          git -C "$mirror" show "${evidence_ref}:qa/security/issue45-inventory/candidate-purge-paths.txt" > /tmp/issue45-approved/approved-purge-paths.txt
+
+          grep -qx 'approval_ready=true' /tmp/issue45-approved/approval-summary.txt
+          grep -qx 'current_tree_intersection=0' /tmp/issue45-approved/approval-summary.txt
+          grep -qx 'canonical_theme_protected_intersection=0' /tmp/issue45-approved/approval-summary.txt
+          grep -qx 'mandatory_checks_present=8' /tmp/issue45-approved/approval-summary.txt
+          grep -qx 'mandatory_checks_total=8' /tmp/issue45-approved/approval-summary.txt
+
+          actual_count="$(wc -l < /tmp/issue45-approved/approved-purge-paths.txt | tr -d ' ')"
+          actual_sha="$(sha256sum /tmp/issue45-approved/approved-purge-paths.txt | awk '{print $1}')"
+          if [[ "$actual_count" != "$APPROVED_MANIFEST_COUNT" || "$actual_sha" != "$APPROVED_MANIFEST_SHA256" ]]; then
+            echo 'ERROR: approved purge manifest differs from the reviewed evidence.'
+            echo "expected_count=${APPROVED_MANIFEST_COUNT} actual_count=${actual_count}"
+            echo "expected_sha=${APPROVED_MANIFEST_SHA256} actual_sha=${actual_sha}"
+            exit 1
+          fi
+          echo "approved_manifest_count=${actual_count}" >> "$GITHUB_STEP_SUMMARY"
+          echo "approved_manifest_sha256=${actual_sha}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create encrypted pre-purge recovery bundle
+        run: |
+          set -euo pipefail
+          backup=/tmp/issue45-encrypted-backup
+          mkdir -p "$backup"
+          public_key=docs/security/issue45-backup-public-key.pem
+          expected_key_sha=97b999b0c159f0a747c4b6d230c9fe8ffd213420ca5fd339d9555ff5cb5d235a
+          actual_key_sha="$(sha256sum "$public_key" | awk '{print $1}')"
+          if [[ "$actual_key_sha" != "$expected_key_sha" ]]; then
+            echo 'ERROR: recovery public key fingerprint does not match the offline private key.'
+            exit 1
+          fi
+          openssl pkey -pubin -in "$public_key" -noout
+          cp "$public_key" "$backup/public-key.pem"
+          echo "recovery_public_key_sha256=${actual_key_sha}" >> "$GITHUB_STEP_SUMMARY"
+
+          git -C /tmp/nuvanx-siteground-purge.git bundle create "$backup/nuvanx-siteground-before-purge.bundle" --all
+          (
+            cd "$backup"
+            sha256sum nuvanx-siteground-before-purge.bundle > plaintext-bundle.sha256
+          )
+          openssl rand -hex 48 > "$backup/bundle-passphrase.txt"
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 600000 -md sha256 \
+            -pass file:"$backup/bundle-passphrase.txt" \
+            -in "$backup/nuvanx-siteground-before-purge.bundle" \
+            -out "$backup/nuvanx-siteground-before-purge.bundle.enc"
+          openssl pkeyutl -encrypt \
+            -pubin \
+            -inkey "$backup/public-key.pem" \
+            -in "$backup/bundle-passphrase.txt" \
+            -out "$backup/bundle-passphrase.rsa" \
+            -pkeyopt rsa_padding_mode:oaep \
+            -pkeyopt rsa_oaep_md:sha256 \
+            -pkeyopt rsa_mgf1_md:sha256
+          (
+            cd "$backup"
+            sha256sum \
+              nuvanx-siteground-before-purge.bundle.enc \
+              bundle-passphrase.rsa \
+              > encrypted-artifacts.sha256
+          )
+          cat > "$backup/RESTORE-INSTRUCTIONS.txt" <<'EOF'
+          This archive contains an encrypted pre-purge Git bundle.
+          Keep it restricted because the decrypted bundle contains compromised history.
+
+          Decrypt the passphrase:
+          openssl pkeyutl -decrypt -inkey nuvanx-issue45-backup-private-key.pem -in bundle-passphrase.rsa -out bundle-passphrase.txt -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -pkeyopt rsa_mgf1_md:sha256
+
+          Decrypt the bundle:
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 -pass file:bundle-passphrase.txt -in nuvanx-siteground-before-purge.bundle.enc -out nuvanx-siteground-before-purge.bundle
+
+          Verify:
+          sha256sum -c plaintext-bundle.sha256
+          git bundle verify nuvanx-siteground-before-purge.bundle
+          EOF
+          rm -f \
+            "$backup/public-key.pem" \
+            "$backup/bundle-passphrase.txt" \
+            "$backup/nuvanx-siteground-before-purge.bundle"
+
+      - name: Upload encrypted recovery bundle before rewrite
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue45-encrypted-pre-purge-backup
+          path: /tmp/issue45-encrypted-backup/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Rewrite and atomically force-update mutable refs
+        env:
+          ISSUE45_FORCE_PUSH: 'YES'
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/issue45-tools /tmp/issue45-evidence/rewrite
+          cp scripts/security/issue-45-build-manifest.py /tmp/issue45-tools/
+          cp scripts/security/issue-45-purge.sh /tmp/issue45-tools/
+          cp scripts/security/issue-45-verify.sh /tmp/issue45-tools/
+          chmod 700 /tmp/issue45-tools/issue-45-*.sh
+          /tmp/issue45-tools/issue-45-purge.sh \
+            /tmp/nuvanx-siteground-purge.git \
+            /tmp/issue45-approved/approved-purge-paths.txt \
+            /tmp/issue45-ephemeral-before-purge.bundle \
+            /tmp/issue45-evidence/rewrite \
+            /tmp/issue45-tools
+          rm -f /tmp/issue45-ephemeral-before-purge.bundle /tmp/issue45-ephemeral-before-purge.bundle.sha256
+
+      - name: Verify rewritten mutable refs from a fresh clone
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          auth_url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git clone --mirror "$auth_url" /tmp/nuvanx-siteground-fresh-verify.git
+          mkdir -p /tmp/issue45-evidence/post
+          /tmp/issue45-tools/issue-45-verify.sh \
+            /tmp/nuvanx-siteground-fresh-verify.git \
+            /tmp/issue45-approved/approved-purge-paths.txt \
+            /tmp/issue45-evidence/post \
+            /tmp/issue45-tools
+
+      - name: Audit GitHub-managed pull-request refs for Support
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          repo=/tmp/nuvanx-siteground-fresh-verify.git
+          auth_url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git -C "$repo" fetch --force "$auth_url" '+refs/pull/*/head:refs/support-pull/*/head' || true
+          : > /tmp/issue45-evidence/post/pull-refs-containing-incident.txt
+          while IFS= read -r ref; do
+            if git -C "$repo" merge-base --is-ancestor "$INCIDENT_COMMIT" "$ref" 2>/dev/null; then
+              printf '%s\n' "$ref" >> /tmp/issue45-evidence/post/pull-refs-containing-incident.txt
+            fi
+          done < <(git -C "$repo" for-each-ref --format='%(refname)' refs/support-pull)
+          count="$(wc -l < /tmp/issue45-evidence/post/pull-refs-containing-incident.txt | tr -d ' ')"
+          printf 'github_support_pull_refs=%s\n' "$count" > /tmp/issue45-evidence/post/github-support-summary.txt
+          echo "github_support_pull_refs=${count}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publish path-only post-purge evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          publish=/tmp/issue45-post-purge-publish
+          rm -rf "$publish"
+          mkdir -p "$publish/qa/security/issue45-post-purge"
+          cp /tmp/issue45-evidence/rewrite/pre-push-verification/verification-summary.txt "$publish/qa/security/issue45-post-purge/pre-push-verification-summary.txt"
+          cp /tmp/issue45-evidence/post/verification-summary.txt "$publish/qa/security/issue45-post-purge/fresh-clone-verification-summary.txt"
+          cp /tmp/issue45-evidence/rewrite/affected-pull-request-count.txt "$publish/qa/security/issue45-post-purge/affected-pull-request-count.txt"
+          cp /tmp/issue45-evidence/post/github-support-summary.txt "$publish/qa/security/issue45-post-purge/github-support-summary.txt"
+          cp /tmp/issue45-encrypted-backup/encrypted-artifacts.sha256 "$publish/qa/security/issue45-post-purge/"
+          cp /tmp/issue45-encrypted-backup/plaintext-bundle.sha256 "$publish/qa/security/issue45-post-purge/"
+          printf '%s  approved-purge-paths.txt\n' "$APPROVED_MANIFEST_SHA256" > "$publish/qa/security/issue45-post-purge/approved-manifest.sha256"
+          cat > "$publish/README.md" <<EOF
+          # Issue 45 post-purge evidence
+
+          Mutable branches and tags were rewritten and verified from a fresh clone.
+          GitHub-managed pull-request refs are reported separately for Support cleanup.
+          Source workflow commit: ${GITHUB_SHA}
+          EOF
+          cd "$publish"
+          git init
+          git checkout --orphan security/issue45-post-purge-evidence
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md qa/security/issue45-post-purge
+          git commit -m 'security: publish issue 45 post-purge evidence'
+          auth_url="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force "$auth_url" HEAD:refs/heads/security/issue45-post-purge-evidence
+
+      - name: Upload path-only post-purge evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: issue45-post-purge-evidence
+          path: |
+            /tmp/issue45-evidence/rewrite/pre-push-verification/verification-summary.txt
+            /tmp/issue45-evidence/rewrite/affected-pull-request-count.txt
+            /tmp/issue45-evidence/post/verification-summary.txt
+            /tmp/issue45-evidence/post/github-support-summary.txt
+          retention-days: 30
+          if-no-files-found: error

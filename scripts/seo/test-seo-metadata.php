@@ -27,6 +27,7 @@ $required = array(
 	'exilite',
 	'equipo',
 	'valoracion',
+	'blog',
 );
 
 foreach ( $required as $key ) {
@@ -36,7 +37,18 @@ foreach ( $required as $key ) {
 	}
 }
 
-foreach ( $catalog as $key => $metadata ) {
+$blog_posts = nvx_seo_blog_post_metadata_catalog();
+if ( count( $blog_posts ) < 7 ) {
+	fwrite( STDERR, "Expected at least 7 catalogued blog posts.\n" );
+	exit( 1 );
+}
+
+$all_meta = $catalog;
+foreach ( $blog_posts as $slug => $metadata ) {
+	$all_meta[ 'post:' . $slug ] = $metadata;
+}
+
+foreach ( $all_meta as $key => $metadata ) {
 	$title_length = function_exists( 'mb_strlen' ) ? mb_strlen( $metadata['title'], 'UTF-8' ) : strlen( $metadata['title'] );
 	$desc_length  = function_exists( 'mb_strlen' ) ? mb_strlen( $metadata['description'], 'UTF-8' ) : strlen( $metadata['description'] );
 

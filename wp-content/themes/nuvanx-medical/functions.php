@@ -27,7 +27,7 @@ function nvx_primary_menu_fallback() {
 		array( 'url' => home_url( '/tratamientos/' ), 'label' => __( 'Tratamientos', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/equipo-medico/' ), 'label' => __( 'Equipo médico', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/clinicas-de-medicina-estetica-nuvanx/' ), 'label' => __( 'Clínicas', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Journal', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Blog', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/contacto/' ), 'label' => __( 'Contacto', 'nuvanx-medical' ) ),
 	);
 
@@ -155,13 +155,31 @@ function nvx_reading_time( $post_id = null ) {
 	return sprintf( _n( '%s min', '%s min', $minutes, 'nuvanx-medical' ), number_format_i18n( $minutes ) );
 }
 
+/**
+ * Blog archive shows all current medical journal posts on page 1.
+ * Reading settings often keep posts_per_page=6, which hid older articles.
+ */
+function nvx_blog_pre_get_posts( WP_Query $query ): void {
+	if ( is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+
+	// Posts page /blog/ (is_home) without treating the front page as a blog.
+	if ( $query->is_home() && ! $query->is_front_page() ) {
+		$query->set( 'posts_per_page', 12 );
+		$query->set( 'ignore_sticky_posts', true );
+	}
+}
+add_action( 'pre_get_posts', 'nvx_blog_pre_get_posts' );
+
 function nvx_theme_blog_index_markup(): string {
 	$query = new WP_Query(
 		array(
-			'post_type'      => 'post',
-			'post_status'    => 'publish',
-			'posts_per_page' => 12,
-			'paged'          => max( 1, (int) get_query_var( 'paged' ) ),
+			'post_type'           => 'post',
+			'post_status'         => 'publish',
+			'posts_per_page'      => 12,
+			'ignore_sticky_posts' => true,
+			'paged'               => max( 1, (int) get_query_var( 'paged' ) ),
 		)
 	);
 
@@ -169,18 +187,25 @@ function nvx_theme_blog_index_markup(): string {
 		return '<p class="nvx-copy">' . esc_html__( 'No se encontraron artículos.', 'nuvanx-medical' ) . '</p>';
 	}
 
-	$output = '<div class="nvx-card-grid">';
+	$output = '<div class="nvx-brand-grid">';
 	while ( $query->have_posts() ) {
 		$query->the_post();
-		$output .= '<article class="nvx-card nvx-card--journal">';
+		$output .= '<article class="nvx-brand-card nvx-card nvx-card--blog">';
 		if ( has_post_thumbnail() ) {
-			$output .= '<a class="nvx-card__media" href="' . esc_url( get_permalink() ) . '" tabindex="-1">';
-			$output .= get_the_post_thumbnail( get_the_ID(), 'large' );
-			$output .= '</a>';
+			$output .= '<div class="nvx-brand-card__media"><a href="' . esc_url( get_permalink() ) . '" tabindex="-1" aria-hidden="true">';
+			$output .= get_the_post_thumbnail(
+				get_the_ID(),
+				'large',
+				array(
+					'class' => 'nvx-media nvx-media--body',
+					'alt'   => the_title_attribute( array( 'echo' => false ) ),
+				)
+			);
+			$output .= '</a></div>';
 		}
-		$output .= '<p class="nvx-eyebrow">' . esc_html( get_the_date() ) . '</p>';
-		$output .= '<h2 class="nvx-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h2>';
-		$output .= '<div class="nvx-card__body">' . wp_kses_post( get_the_excerpt() ) . '</div>';
+		$output .= '<p class="nvx-brand-card__kicker">' . esc_html( get_the_date() ) . '</p>';
+		$output .= '<h2 class="nvx-brand-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h2>';
+		$output .= '<div class="nvx-brand-card__body">' . wp_kses_post( get_the_excerpt() ) . '</div>';
 		$output .= '<a href="' . esc_url( get_permalink() ) . '" class="nvx-button nvx-button--secondary">' . esc_html__( 'Leer más', 'nuvanx-medical' ) . '</a>';
 		$output .= '</article>';
 	}

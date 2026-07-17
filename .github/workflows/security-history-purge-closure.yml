@@ -1,0 +1,73 @@
+name: History Purge Closure Gate
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  all-refs-closure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout complete default-branch history
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0
+
+      - name: Fetch mutable refs and pull-request heads
+        run: |
+          set -euo pipefail
+          git fetch --force origin \
+            '+refs/heads/*:refs/remotes/origin/*' \
+            '+refs/tags/*:refs/tags/*'
+          git fetch --force origin \
+            '+refs/pull/*/head:refs/remotes/pull/*' || true
+
+      - name: Reject reachable incident commit
+        run: |
+          set -euo pipefail
+          incident='81dafb2e74b6bbfffe302979d67fe789c0075509'
+          if git cat-file -e "${incident}^{commit}" 2>/dev/null; then
+            echo "ERROR: SECURITY NO GO — incident commit remains reachable: $incident"
+            echo 'Complete issue #45 mirror rewrite and GitHub Support dereferencing before release approval.'
+            exit 1
+          fi
+          echo 'incident_commit_reachable=false'
+
+      - name: Reject prohibited paths across fetched refs
+        run: |
+          set -euo pipefail
+          mkdir -p qa/security/history-closure
+          git -c core.quotePath=false rev-list --objects --all > qa/security/history-closure/all-objects.txt
+          python3 scripts/security/issue-45-build-manifest.py \
+            --objects qa/security/history-closure/all-objects.txt \
+            --manifest qa/security/history-closure/residual-paths.txt \
+            --reasons qa/security/history-closure/residual-reasons.tsv
+          if [[ -s qa/security/history-closure/residual-paths.txt ]]; then
+            echo 'ERROR: SECURITY NO GO — prohibited historical paths remain reachable:'
+            cat qa/security/history-closure/residual-paths.txt
+            exit 1
+          fi
+          echo 'residual_prohibited_paths=0'
+
+      - name: Report closure evidence
+        if: always()
+        run: |
+          set -euo pipefail
+          printf 'heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/origin | wc -l)"
+          printf 'tags=%s\n' "$(git for-each-ref --format='%(refname)' refs/tags | wc -l)"
+          printf 'pull_heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/pull | wc -l)"
+          printf 'reachable_commits=%s\n' "$(git rev-list --count --all)"
+
+      - name: Upload path-only closure evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: history-purge-closure-evidence
+          path: qa/security/history-closure/
+          retention-days: 7
+          if-no-files-found: warn

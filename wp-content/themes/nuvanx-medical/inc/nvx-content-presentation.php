@@ -108,9 +108,9 @@ function nvx_home_action_banner_markup(): string {
 	$html .= '<section class="nvx-home-action-banner" aria-labelledby="nvx-home-action-banner-title">';
 	$html .= '<div class="nvx-home-action-banner__copy">';
 	$html .= '<p class="nvx-brand-kicker nvx-home-action-banner__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-home-action-banner-title" class="nvx-home-action-banner__title">' . esc_html__( 'Recupera la armonía de tu piel', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 id="nvx-home-action-banner-title" class="nvx-home-action-banner__title">' . esc_html__( '15–30 minutos para saber si existe indicación', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-home-action-banner__text">' . wp_kses(
-		__( 'Agenda tu valoración médica personalizada hoy mismo. Disponible de forma presencial en nuestras clínicas de <strong>Chamberí</strong> o <strong>Salamanca–Goya</strong>.', 'nuvanx-medical' ),
+		__( 'Evaluamos tu caso, explicamos las opciones disponibles y documentamos el presupuesto antes de cualquier decisión. Presencial en <strong>Chamberí</strong> o <strong>Salamanca–Goya</strong>.', 'nuvanx-medical' ),
 		array( 'strong' => array() )
 	) . '</p>';
 	$html .= '</div>';
@@ -139,25 +139,25 @@ function nvx_values_section_markup(): string {
 	$items = array(
 		array(
 			'icon'  => 'shield',
-			'title' => '1. Diagnóstico médico de precisión',
-			'body'  => 'No creemos en soluciones estandarizadas ni en la aplicación automática de tecnología. Bajo la dirección del Dr. José Javier Rivera Tejeda, cada protocolo se inicia con una valoración exhaustiva de 15 a 30 minutos. Analizamos la calidad de tu dermis, el grado de elastosis y tu historial clínico para diseñar un plan de tratamiento exclusivo y seguro, garantizando que el criterio médico prevalezca siempre sobre la aparatología.',
+			'title' => '1. Diagnóstico antes de tecnología',
+			'body'  => 'Cada protocolo comienza con una valoración médica de 15 a 30 minutos: calidad de piel, historial, objetivos y contraindicaciones. Solo se indica un tratamiento cuando existe una razón clínica para hacerlo.',
 		),
 		array(
 			'icon'  => 'laser',
-			'title' => '2. Tecnología láser de vanguardia certificada',
-			'body'  => 'Equipamos nuestras clínicas en Madrid con plataformas médicas originales con marcado CE y autorizadas por la Comunidad de Madrid. Calibramos de forma milimétrica la energía de sistemas de referencia internacional como DEKA Motus AZ+, Láser CO₂ fraccionado y la plataforma EXION® de BTL. Esto nos permite actuar en las capas más profundas de los tejidos de forma indolora y con máxima exactitud, eliminando la flacidez y renovando la piel sin tiempos de baja prolongados.',
+			'title' => '2. Equipamiento médico certificado',
+			'body'  => 'Trabajamos con plataformas médicas con marcado CE como DEKA Motus AZ+, Láser CO₂ fraccionado y EXION® BTL. La tecnología y sus parámetros se seleccionan según la anatomía y el objetivo de cada paciente.',
 		),
 		array(
 			'icon'  => 'nature',
-			'title' => '3. Resultados naturales sin quirófano',
-			'body'  => 'Nuestra prioridad es devolver la turgencia y definición al óvalo facial, la mandíbula y el cuello respetando la expresividad y la armonía natural de tu rostro. Mediante procedimientos mínimamente invasivos de última generación —como el Endolift® facial con microfibras ópticas subdérmicas y EXION® Fractional RF— estimulamos la neocolagénesis y la producción natural de ácido hialurónico, ofreciendo una alternativa real, segura y progresiva al lifting quirúrgico tradicional.',
+			'title' => '3. Resultados naturales y expectativa realista',
+			'body'  => 'El objetivo es mejorar firmeza, textura y definición respetando la expresión y la identidad del rostro. Antes de tratar, explicamos qué puede mejorar, qué límites existen y qué recuperación requiere cada protocolo.',
 		),
 	);
 
-	$html  = '<section class="nvx-brand-section nvx-brand-section--tight nvx-values-section" aria-label="La base de nuestro criterio clínico">';
+	$html  = '<section class="nvx-brand-section nvx-brand-section--tight nvx-values-section" aria-label="Por qué NUVANX">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'La base de nuestro criterio clínico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Medicina estética láser con diagnóstico, tecnología certificada y resultados naturales', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Por qué NUVANX', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Medicina estética donde el diagnóstico decide la tecnología', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-values">';
 
 	foreach ( $items as $item ) {
@@ -183,26 +183,26 @@ function nvx_method_section_markup(): string {
 	$items = array(
 		array(
 			'icon'  => 'scan',
-			'title' => 'Diagnóstico médico integral',
-			'body'  => 'Evaluamos historial clínico, calidad de piel, objetivos y contraindicaciones. Solo entonces se define si hay indicación y qué protocolo tiene sentido.',
+			'title' => 'Evaluación individual',
+			'body'  => 'Revisamos piel, anatomía, historial, objetivos y contraindicaciones antes de proponer un procedimiento.',
 		),
 		array(
 			'icon'  => 'precision',
-			'title' => 'Tecnología de precisión',
-			'body'  => 'Seleccionamos plataforma y parámetros con exactitud milimétrica —láser, Endolift® o EXION®— según la anatomía y el resultado esperado, no por catálogo.',
+			'title' => 'Indicación y parámetros',
+			'body'  => 'Definimos tecnología, energía, profundidad y número de sesiones según el caso, no mediante configuraciones estándar.',
 		),
 		array(
 			'icon'  => 'follow',
-			'title' => 'Seguimiento continuo',
-			'body'  => 'Acompañamiento médico con calendario de control según el tratamiento y tu evolución, para consolidar resultados con seguridad.',
+			'title' => 'Control de evolución',
+			'body'  => 'Programamos seguimiento según el tratamiento para valorar respuesta, recuperación y necesidad de ajustes.',
 		),
 	);
 
-	$html  = '<section class="nvx-brand-section nvx-method-section" aria-label="Método NUVANX">';
+	$html  = '<section class="nvx-brand-section nvx-method-section" aria-label="Cómo trabajamos NUVANX">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Método', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'El criterio médico antes que la tecnología', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-brand-body nvx-method-lead">' . esc_html__( 'En NUVANX, la experiencia y el criterio médico son el pilar de cada tratamiento. La aparatología se pone al servicio del diagnóstico, nunca al revés.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Cómo trabajamos', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Un protocolo médico en tres decisiones', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-body nvx-method-lead">' . esc_html__( 'La evaluación, la indicación y el seguimiento forman un único proceso clínico.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-method-columns">';
 
 	foreach ( $items as $item ) {
@@ -359,8 +359,8 @@ function nvx_content_method_legacy_patterns(): array {
 	return array(
 		'/<section\b[^>]*class="[^"]*nvx-v3-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
 		'/<section\b[^>]*class="[^"]*nvx-home-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
-		// CMS copies that use aria-label Método but are not yet our columns markup.
-		'/<section\b(?![^>]*\bnvx-method-section\b)[^>]*aria-label="[^"]*Método[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
+		// CMS copies that use aria-label Cómo trabajamos but are not yet our columns markup.
+		'/<section\b(?![^>]*\bnvx-method-section\b)[^>]*aria-label="[^"]*Cómo trabajamos[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
 	);
 }
 
@@ -470,28 +470,28 @@ function nvx_content_enrich_treatment_cards( string $content ): string {
 function nvx_home_protocols_data(): array {
 	return array(
 		array(
-			'title' => 'Endolift® Facial: Retracción Subdérmica y Definición Mandibular',
-			'lead'  => 'Considerado el estándar de oro actual en lifting biológico no quirúrgico. A través de la inserción intersticial de una microfibra óptica de 200 a 300 micras bajo la piel, canalizamos energía láser directa al tejido subcutáneo. Este proceso genera una lipólisis selectiva de la grasa en la papada y provoca una retracción térmica inmediata que redefine el óvalo facial y tensa el cuello sin incisiones.',
+			'title' => 'Endolift® Facial: retracción subdérmica y definición mandibular',
+			'lead'  => 'Procedimiento médico mínimamente invasivo con microfibra óptica de 200 a 300 micras. La energía láser intersticial actúa en tejido subcutáneo para favorecer lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello, cuando existe indicación anatómica.',
 			'facts' => array(
-				'Indicación médica principal'   => 'Flacidez leve a moderada y pérdida de definición del contorno mandibular.',
-				'Recuperación clínica estimada' => 'De 3 a 7 días de inflamación controlada.',
+				'Indicación médica principal'   => 'Flacidez leve a moderada y grasa submentoniana seleccionada.',
+				'Recuperación clínica estimada' => 'Inflamación, tirantez o hematomas leves durante 3 a 7 días según el caso.',
 			),
 			'url'   => home_url( '/endolift-facial-papada-mandibula/' ),
 		),
 		array(
-			'title' => 'Endoláser Corporal: Lipólisis Láser Selectiva',
-			'lead'  => 'El abordaje médico definitivo para la adiposidad localizada que se resiste a la dieta y al deporte. El calor controlado emitido por la fibra láser destruye las membranas de los adipocitos, mientras que, simultáneamente, la retracción térmica inducida previene el descolgamiento de la piel. Este doble mecanismo supera ampliamente las limitaciones estructurales de tratamientos basados en frío como la criolipólisis.',
+			'title' => 'Endoláser Corporal: lipólisis láser selectiva',
+			'lead'  => 'El calor controlado de la fibra láser actúa sobre adiposidad localizada y produce un estímulo térmico de retracción cutánea. La indicación depende de la zona, la calidad de la piel, el volumen de grasa y la expectativa de resultado.',
 			'facts' => array(
-				'Zonas anatómicas de alta respuesta' => 'Abdomen inferior, flancos laterales, cara interna del muslo y cara posterior de los brazos.',
+				'Zonas que pueden valorarse' => 'Abdomen, flancos, cara interna de muslos, rodillas, brazos y otras áreas seleccionadas.',
 			),
 			'url'   => home_url( '/endolaser-corporal-grasa-localizada/' ),
 		),
 		array(
-			'title' => 'Láser CO₂ Fraccionado: Renovación Epidérmica Profunda',
-			'lead'  => 'El resurfacing cutáneo en su máxima expresión. Utilizamos tecnología de vaporización térmica controlada para el tratamiento intensivo de cicatrices atróficas de acné, poros dilatados crónicos y fotodaño severo. Este procedimiento no es un tratamiento cosmético superficial; representa una intervención dermatológica de alto impacto que exige una planificación médica rigurosa.',
+			'title' => 'Láser CO₂ Fraccionado: renovación cutánea controlada',
+			'lead'  => 'El láser CO₂ crea microcolumnas de ablación fraccionada para tratar cicatrices atróficas de acné, poros, textura irregular y fotodaño. La profundidad y la densidad se ajustan al fototipo, la indicación y el período de recuperación aceptable.',
 			'facts' => array(
-				'Resultados clínicos' => 'Mejora radical de la textura epidérmica y síntesis masiva de nuevas fibras de colágeno.',
-				'Recuperación'        => 'Variable entre 4 y 7 días según la profundidad ablativa del protocolo.',
+				'Resultados clínicos' => 'Mejora progresiva de textura y estímulo de remodelación de colágeno.',
+				'Recuperación'        => 'Habitualmente de 4 a 7 días, según la profundidad del protocolo.',
 			),
 			'url'   => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ),
 		),
@@ -532,7 +532,7 @@ function nvx_home_protocols_markup(): string {
 }
 
 /**
- * Ensure front page has one protocols block after Método (or after values banner).
+ * Ensure front page has one protocols block after Cómo trabajamos (or after values banner).
  */
 function nvx_content_ensure_home_protocols( string $content ): string {
 	if ( ! is_front_page() ) {
@@ -556,7 +556,7 @@ function nvx_content_ensure_home_protocols( string $content ): string {
 
 	$block = nvx_home_protocols_markup();
 
-	// Prefer after single Método section.
+	// Prefer after single Cómo trabajamos section.
 	$count   = 0;
 	$updated = preg_replace(
 		'/(<section\b[^>]*\bnvx-method-section\b[^>]*>[\s\S]*?<\/section>)/iu',
@@ -596,7 +596,7 @@ function nvx_content_enhance_director_blocks( string $content ): string {
 		__( 'Director Médico · Colegiado Nº %s', 'nuvanx-medical' ),
 		$colegiado
 	);
-	$body = __( 'Especialista en Endolift®, láser CO₂ y medicina estética facial. Miembro de las principales sociedades científicas del sector. Martes y jueves: Sede Chamberí. Miércoles: Sede Goya.', 'nuvanx-medical' );
+	$body = __( 'Especialista en Endolift®, láser CO₂ y medicina estética facial. La valoración, la indicación y el seguimiento se realizan con criterio médico. Martes y jueves: Chamberí. Miércoles: Salamanca–Goya.', 'nuvanx-medical' );
 
 	$content = preg_replace(
 		'/(class="nvx-brand-card__kicker">\s*Dr\.\s*José Javier Rivera Tejeda\s*<\/p>\s*<h3 class="nvx-brand-card__title">)([\s\S]*?)(<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
@@ -613,7 +613,7 @@ function nvx_content_enhance_director_blocks( string $content ): string {
 
 	$lead = sprintf(
 		/* translators: %s: medical license number */
-		__( 'Nuestro equipo médico, liderado por el Dr. José Javier Rivera Tejeda (Colegiado ICOMEM Nº %s), supervisa cada valoración, indicación y seguimiento en ambas sedes. Su trabajo se basa en el diagnóstico individual, la indicación médica responsable y el seguimiento personalizado de cada tratamiento.', 'nuvanx-medical' ),
+		__( 'La dirección médica de NUVANX corresponde al Dr. José Javier Rivera Tejeda (Colegiado ICOMEM Nº %s). El equipo clínico realiza valoración, indicación y seguimiento en ambas sedes con un protocolo individual.', 'nuvanx-medical' ),
 		$colegiado
 	);
 
@@ -630,7 +630,7 @@ function nvx_content_enhance_director_blocks( string $content ): string {
  * FAQ: EXION vs Morpheus8 — clinical comparison (long-tail GEO), not brand superiority ads.
  */
 function nvx_content_rewrite_morpheus_faq( string $content ): string {
-	$answer  = '<p>' . esc_html__( 'Puede ser una alternativa en radiofrecuencia fraccionada con microagujas según el caso. EXION® controla la entrega de energía en dermis profunda; la comodidad y el downtime dependen del protocolo y de la tolerancia individual, no de un ranking comercial entre marcas.', 'nuvanx-medical' ) . '</p>';
+	$answer  = '<p>' . esc_html__( 'Puede ser una alternativa en radiofrecuencia fraccionada con microagujas según el caso. EXION® controla la entrega de energía en dermis profunda; la comodidad y el período de recuperación dependen del protocolo y de la tolerancia individual, no de un ranking comercial entre marcas.', 'nuvanx-medical' ) . '</p>';
 	$answer .= '<p>' . esc_html__( 'La indicación se decide en valoración médica: objetivo (textura, flacidez, calidad cutánea), calidad de piel y recuperación esperada.', 'nuvanx-medical' ) . '</p>';
 	$answer .= '<p><a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/exion-btl/' ) ) . '">' . esc_html__( 'Ver EXION® Fractional RF', 'nuvanx-medical' ) . '</a></p>';
 

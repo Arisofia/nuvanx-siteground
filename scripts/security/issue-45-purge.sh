@@ -7,7 +7,8 @@ Usage: issue-45-purge.sh MIRROR_REPOSITORY APPROVED_MANIFEST BUNDLE_PATH EVIDENC
 
 The manifest must be an approved exact path list produced by the inventory
 script. The script rewrites locally and verifies the result. It does not push
-unless ISSUE45_FORCE_PUSH=YES is set explicitly.
+unless ISSUE45_FORCE_PUSH=YES is set explicitly. A force push updates only
+mutable branch and tag refs; GitHub-managed pull-request refs are never pushed.
 EOF
 }
 
@@ -104,17 +105,25 @@ Review:
   $evidence_dir/approved-purge-paths.txt
   $evidence_dir/git-filter-repo-output.txt
   $evidence_dir/pre-push-verification/verification-summary.txt
-Then rerun with ISSUE45_FORCE_PUSH=YES to execute:
-  git push --force --mirror origin
+Then rerun with ISSUE45_FORCE_PUSH=YES to execute an atomic force update of
+refs/heads/* and refs/tags/* only.
 EOF
   exit 0
 fi
 
 cat <<'EOF'
-WARNING: performing an irreversible force mirror push.
-Branch protections/rulesets may need temporary administrative suspension.
+WARNING: performing an irreversible atomic force update of mutable branches and tags.
+GitHub-managed refs/pull/* are intentionally excluded and require GitHub Support cleanup.
+Branch protections or rulesets may need temporary administrative suspension.
 EOF
 
-git -C "$repo_dir" push --force --mirror origin 2>&1 | tee "$evidence_dir/force-mirror-push.txt"
+git -C "$repo_dir" push \
+  --force \
+  --prune \
+  --atomic \
+  origin \
+  'refs/heads/*:refs/heads/*' \
+  'refs/tags/*:refs/tags/*' \
+  2>&1 | tee "$evidence_dir/force-mutable-refs-push.txt"
 
-echo 'Force mirror push completed. Create a brand-new mirror clone and run issue-45-verify.sh again before closing the incident.'
+echo 'Mutable ref force update completed. Create a brand-new mirror clone and run issue-45-verify.sh again before closing the incident.'

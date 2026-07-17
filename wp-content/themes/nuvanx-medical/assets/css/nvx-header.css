@@ -151,7 +151,7 @@ body.admin-bar #nvx-header {
   bottom: var(--nvx-space-1);
   left: 0;
   height: var(--nvx-border-hairline);
-  background: var(--nvx-platinum);
+  background: var(--nvx-accent-muted);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 180ms ease;
@@ -182,7 +182,7 @@ body.admin-bar #nvx-header {
   margin: 0;
   padding: var(--nvx-space-2) 0;
   list-style: none;
-  background: var(--nvx-pearl);
+  background: var(--nvx-surface-base);
   border: var(--nvx-border-hairline) solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card);
   box-shadow: var(--nvx-shadow-soft);
@@ -253,7 +253,7 @@ body.admin-bar #nvx-header {
 .nvx-nav__list .sub-menu a:hover,
 .nvx-nav__list .sub-menu a:focus-visible {
   color: var(--nvx-ink);
-  background: var(--nvx-mist);
+  background: var(--nvx-surface-soft);
 }
 
 #nvx-header-cta {
@@ -307,7 +307,7 @@ body.admin-bar #nvx-header {
   gap: var(--nvx-space-4);
   padding: var(--nvx-space-6);
   overflow-y: auto;
-  background: var(--nvx-pearl);
+  background: var(--nvx-surface-base);
 }
 
 .nvx-mobile-nav[aria-hidden="false"] {

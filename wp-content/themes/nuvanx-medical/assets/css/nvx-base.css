@@ -21,13 +21,13 @@ html {
 
 body {
   margin: 0;
-  font-family: var(--nvx-sans, "Manrope", sans-serif);
+  font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
   font-weight: var(--nvx-fw-regular);
   line-height: var(--nvx-lh-body);
   letter-spacing: var(--nvx-track-body);
-  color: var(--nvx-text-body, #3c4048);
-  background: var(--nvx-color-paper, #f2f3f5);
+  color: var(--nvx-text-body);
+  background: var(--nvx-color-paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;

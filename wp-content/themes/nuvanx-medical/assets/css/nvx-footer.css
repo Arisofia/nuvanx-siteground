@@ -1,7 +1,7 @@
 .nvx-cta-banner {
   padding-block: clamp(56px, 7vw, 92px);
   background: var(--nvx-charcoal);
-  color: var(--nvx-white);
+  color: var(--nvx-light);
 }
 
 .nvx-cta-banner__inner {
@@ -23,7 +23,7 @@
 .nvx-cta-banner__actions .nvx-btn--secondary,
 .nvx-cta-banner__actions .nvx-btn--ghost {
   border-color: rgba(255, 255, 255, 0.45);
-  color: var(--nvx-white);
+  color: var(--nvx-light);
 }
 
 .nvx-cta-banner__title {
@@ -34,7 +34,7 @@
   font-weight: 400;
   line-height: var(--nvx-lh-h2);
   letter-spacing: var(--nvx-track-h2);
-  color: var(--nvx-white);
+  color: var(--nvx-light);
 }
 
 .nvx-cta-banner__sub {
@@ -48,7 +48,7 @@
 
 .nvx-footer {
   padding-top: clamp(64px, 8vw, 104px);
-  background: var(--nvx-pearl);
+  background: var(--nvx-surface-base);
   color: var(--nvx-text-body);
   border-top: 1px solid var(--nvx-color-line);
 }
@@ -74,7 +74,7 @@
   line-height: var(--nvx-lh-kicker);
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
-  color: var(--nvx-platinum);
+  color: var(--nvx-accent-muted);
 }
 
 .nvx-footer__links,

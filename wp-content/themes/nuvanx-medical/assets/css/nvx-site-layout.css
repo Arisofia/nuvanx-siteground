@@ -131,7 +131,7 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
 }
 
 .nvx-brand-section--soft {
-  background: var(--nvx-pearl, #f6f7f8);
+  background: var(--nvx-surface-base, #f6f7f8);
 }
 
 .nvx-brand-page .nvx-brand-section {
@@ -139,7 +139,7 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
 }
 
 /* Valoración form stage — inspired by header media (fondo-formulario):
-   champagne → platinum gradient / photo, card floating in quiet air. */
+   accent → accent gradient / photo, card floating in quiet air. */
 .nvx-valoracion-page > .nvx-hubspot-form-section,
 .nvx-valoracion-page > #nvx-hubspot-form,
 .nvx-med-page > .nvx-hubspot-form-section,
@@ -289,7 +289,7 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
   margin-inline: 0;
   overflow: hidden;
   border-radius: var(--nvx-radius-image);
-  background: var(--nvx-pearl);
+  background: var(--nvx-surface-base);
 }
 
 .nvx-content-figure img,

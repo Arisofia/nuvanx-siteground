@@ -190,7 +190,7 @@ defined( 'ABSPATH' ) || exit;
 
 				<li>
 					<a href="<?php echo esc_url( home_url( '/blog/' ) ); ?>">
-						Journal
+						<?php esc_html_e( 'Blog', 'nuvanx-medical' ); ?>
 					</a>
 				</li>
 

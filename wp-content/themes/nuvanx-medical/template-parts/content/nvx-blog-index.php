@@ -1,6 +1,6 @@
 <?php
 /**
- * Blog index partial — mismo diseño global (lista en una columna).
+ * Blog index partial — same global layout as home.php (posts page).
  *
  * @package nuvanx-medical
  */
@@ -11,8 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 <div class="nvx-shell nvx-page__shell">
 	<header class="nvx-section-intro">
 		<p class="nvx-eyebrow">NUVANX</p>
-		<h1 class="nvx-heading" id="nvx-blog-h1"><?php esc_html_e( 'Blog NUVANX', 'nuvanx-medical' ); ?></h1>
-		<p class="nvx-lead"><?php esc_html_e( 'Artículos sobre medicina estética, tecnología láser y cuidado de la piel en Madrid.', 'nuvanx-medical' ); ?></p>
+		<h1 class="nvx-heading" id="nvx-blog-h1"><?php esc_html_e( 'Blog', 'nuvanx-medical' ); ?></h1>
+		<p class="nvx-lead"><?php esc_html_e( 'Artículos de medicina estética láser, well-aging y criterio clínico en Madrid.', 'nuvanx-medical' ); ?></p>
 	</header>
 
 	<?php if ( have_posts() ) : ?>
@@ -25,7 +25,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<?php if ( has_post_thumbnail() ) : ?>
 						<div class="nvx-brand-card__media">
 							<a href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
-								<?php the_post_thumbnail( 'large' ); ?>
+								<?php
+								the_post_thumbnail(
+									'large',
+									array(
+										'class' => 'nvx-media nvx-media--body',
+										'alt'   => the_title_attribute( array( 'echo' => false ) ),
+									)
+								);
+								?>
 							</a>
 						</div>
 					<?php endif; ?>

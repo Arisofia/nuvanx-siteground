@@ -1,6 +1,9 @@
 <?php
 /**
- * Blog index — un solo diseño global (sin journal hero / sidebar).
+ * Blog index — posts page template.
+ *
+ * Unified global layout: section intro + brand card grid.
+ * Label is always "Blog" (not Journal) for nav/footer/H1 parity.
  *
  * @package nuvanx-medical
  */
@@ -12,8 +15,8 @@ get_header();
 	<div class="nvx-shell nvx-page__shell">
 		<header class="nvx-section-intro">
 			<p class="nvx-eyebrow">NUVANX</p>
-			<h1 class="nvx-heading"><?php esc_html_e( 'Blog', 'nuvanx-medical' ); ?></h1>
-			<p class="nvx-lead"><?php esc_html_e( 'Ciencia, experiencia y criterio médico sobre medicina estética y tecnología láser en Madrid.', 'nuvanx-medical' ); ?></p>
+			<h1 class="nvx-heading" id="nvx-blog-h1"><?php esc_html_e( 'Blog', 'nuvanx-medical' ); ?></h1>
+			<p class="nvx-lead"><?php esc_html_e( 'Artículos de medicina estética láser, well-aging y criterio clínico en Madrid.', 'nuvanx-medical' ); ?></p>
 		</header>
 
 		<?php if ( have_posts() ) : ?>

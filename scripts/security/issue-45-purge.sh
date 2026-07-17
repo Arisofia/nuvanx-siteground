@@ -117,6 +117,12 @@ GitHub-managed refs/pull/* are intentionally excluded and require GitHub Support
 Branch protections or rulesets may need temporary administrative suspension.
 EOF
 
+# Mirror clones set remote.origin.mirror=true, which makes every push behave like
+# --mirror and rejects explicit head/tag refspecs. Disable it before the selective
+# force-update so refs/pull/* are never pushed.
+git -C "$repo_dir" config --unset-all remote.origin.mirror 2>/dev/null || true
+git -C "$repo_dir" config remote.origin.mirror false
+
 git -C "$repo_dir" push \
   --force \
   --prune \

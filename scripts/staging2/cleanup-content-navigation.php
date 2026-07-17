@@ -70,6 +70,26 @@ function nvx_cleanup_html(string $html): string
 {
     $html = str_replace('https://nuvanx.com', 'https://staging2.nuvanx.com', $html);
     $html = str_replace('características induales', 'características individuales', $html);
+    // Brand / copy hygiene (legacy CMS strings).
+    $html = str_replace(
+        [
+            'EXILITET',
+            'Exilitet',
+            'Tu mejor versión empieza aquí.',
+            'Tu mejor versión empieza aquí',
+            'enfoque médico premium',
+            'Medicina estética en Goya con enfoque médico premium',
+        ],
+        [
+            'EXILITE™',
+            'EXILITE™',
+            'Reserva 15–30 min de valoración médica.',
+            'Reserva 15–30 min de valoración médica',
+            'misma dirección médica que Chamberí',
+            'Medicina estética láser en Goya–Barrio de Salamanca (CS20073)',
+        ],
+        $html
+    );
     $html = preg_replace('/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $html) ?? $html;
     $html = preg_replace('/<(ul|ol)\b[^>]*>\s*<\/\1>/iu', '', $html) ?? $html;
     // Canonical schema is Yoast @graph only — shared helper (schema.org payloads only).

@@ -106,12 +106,12 @@ function nvx_endolift_hero_copy_markup(): string {
 
 	$html  = '<div class="nvx-brand-hero__copy nvx-endolift-hero-copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html__( 'Endolift® Facial en Madrid: Tensado Subdérmico y Marcación Mandibular Sin Cirugía', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Técnica de láser intersticial para papada, contorno mandibular y cuello en casos seleccionados — sin incisiones de lifting quirúrgico.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html__( 'Endolift® en Madrid: papada, mandíbula y cuello sin quirófano', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Microfibra láser bajo la piel para tensar tejido y, cuando hay indicación, reducir grasa local en papada y contorno mandibular. No sustituye un lifting quirúrgico en todos los casos.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
-			__( 'Documento clínico estructurado y revisado por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, técnica, comparación con cirugía, tarifas PVP y recuperación en un solo criterio médico.', 'nuvanx-medical' ),
+			__( 'Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, comparación con cirugía, tarifas PVP por zona y recuperación realista — antes de decidir.', 'nuvanx-medical' ),
 			$colegiado
 		)
 	) . '</p>';
@@ -235,7 +235,7 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'La técnica', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-endolift-what-title" class="nvx-endolift-heading">' . esc_html__( '¿Qué es el Endolift® facial y cómo altera la estructura anatómica?', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'No es un cosmético tópico ni un calentamiento superficial. Es medicina intervencionista mínimamente invasiva: una microfibra óptica del orden de 200–300 micras se introduce bajo la piel y libera energía láser en el tejido subcutáneo.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Esa energía dispara de inmediato dos procesos: lipólisis selectiva de grasa en papada y línea mandibular, y retracción térmica del tejido conectivo con estímulo de neocolagénesis. El resultado es un tensado progresivo (“lifting” biológico) sin resección quirúrgica de piel.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Esa energía puede combinar, cuando hay indicación, reducción de grasa local en papada y línea mandibular, y retracción del tejido de soporte con estímulo de colágeno nuevo. El efecto es un tensado progresivo — no una resección quirúrgica de piel.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></section>';
 
 	// B. Indicaciones + diagnóstico diferencial (panel) — no price here.

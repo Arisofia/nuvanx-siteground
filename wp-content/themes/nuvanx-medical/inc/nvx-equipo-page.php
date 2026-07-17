@@ -63,8 +63,8 @@ function nvx_equipo_hero_copy_markup(): string {
 
 	$html  = '<div class="nvx-brand-hero__copy nvx-equipo-hero-copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Equipo médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-equipo-h1">' . esc_html__( 'Equipo Médico: Excelencia Hospitalaria y Criterio Científico', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Autoridad clínica en láser intervencionista y well-aging basado en evidencia — dirección médica y geriatría preventiva al servicio de protocolos de rejuvenecimiento seguros.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-equipo-h1">' . esc_html__( 'Equipo médico NUVANX: quién te valora y quién trata', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Médicos con práctica hospitalaria y consulta estética en Madrid. Dirección médica, well-aging y valoración clínica antes de cualquier protocolo láser.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
 			/* translators: 1: director license, 2: Dra. Ivon license, 3: Dr. Fabio license */

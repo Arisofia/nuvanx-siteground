@@ -15,11 +15,11 @@ defined( 'ABSPATH' ) || exit;
 	<div class="nvx-cta-banner__inner">
 		<div>
 			<h2 class="nvx-cta-banner__title">
-				<?php esc_html_e( 'Tu mejor versión empieza aquí.', 'nuvanx-medical' ); ?>
+				<?php esc_html_e( 'Reserva 15–30 min de valoración médica', 'nuvanx-medical' ); ?>
 			</h2>
 
 			<p class="nvx-cta-banner__sub">
-				<?php esc_html_e( 'Reserva tu valoración médica gratuita y descubre qué tratamiento puede estar indicado para tu caso.', 'nuvanx-medical' ); ?>
+				<?php esc_html_e( 'Indicación, plan A/B y presupuesto orientativo — sin compromiso de tratamiento el mismo día.', 'nuvanx-medical' ); ?>
 			</p>
 		</div>
 

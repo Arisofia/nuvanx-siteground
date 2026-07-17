@@ -12,6 +12,7 @@ if (!source.includes(before)) {
 const patched = source.replace(before, after);
 fs.writeFileSync(file, patched);
 
+// Regression: a custom property containing "stroke" must not be parsed as stroke.
 const fixture = '--nvx-icon-stroke: 1.5px; stroke: currentColor;';
 const regex = new RegExp(`(?<![\\w-])(stroke)\\s*:\\s*([^;}{]+)`, 'gi');
 const matches = [...fixture.matchAll(regex)];

@@ -38,12 +38,15 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/inc/nvx-home-content-v2.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-faq-content-v2.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php
+          php -l scripts/staging2/set-medical-review.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-treatments-catalog.php
           php scripts/seo/test-seo-metadata.php
           php scripts/seo/test-home-copy.php
           php scripts/seo/test-home-content-v2.php
           php scripts/seo/test-home-faq-parity.php
           php scripts/seo/test-clinical-language.php
+          php scripts/seo/test-medical-review.php
           php scripts/seo/test-treatment-catalog-copy.php
 
   rendered-audit:

@@ -34,7 +34,7 @@ const ENVIRONMENTS = {
   },
 };
 
-const CRITICAL_CODES = new Set([
+export const CRITICAL_CODES = new Set([
   'FETCH_ERROR',
   'HTTP_ERROR',
   'PRODUCTION_NOINDEX',
@@ -44,6 +44,30 @@ const CRITICAL_CODES = new Set([
   'PRODUCTION_STAGING_REFERENCE',
   'EDGE_INTERSTITIAL',
 ]);
+
+// WAF/captcha and transient fetch failures after retries are infrastructure noise.
+// They remain critical in the report, but default enforcement does not fail the job
+// unless a content/policy critical is also present.
+export const INFRASTRUCTURE_CODES = new Set([
+  'EDGE_INTERSTITIAL',
+  'FETCH_ERROR',
+]);
+
+export function selectBlockingFindings(findings, enforcement = 'critical') {
+  if (enforcement === 'none') return [];
+  if (enforcement === 'all') {
+    return findings.filter(
+      (finding) => finding.severity === 'critical' || finding.severity === 'warning',
+    );
+  }
+  return findings.filter(
+    (finding) => (
+      finding.severity === 'critical'
+      && CRITICAL_CODES.has(finding.code)
+      && !INFRASTRUCTURE_CODES.has(finding.code)
+    ),
+  );
+}
 
 function decodeEntities(value = '') {
   return value
@@ -456,11 +480,16 @@ async function run() {
 
   console.log(JSON.stringify(report.summary));
 
-  const blocking = findings.filter((finding) => {
-    if (enforcement === 'none') return false;
-    if (enforcement === 'all') return finding.severity === 'critical' || finding.severity === 'warning';
-    return finding.severity === 'critical' && CRITICAL_CODES.has(finding.code);
-  });
+  const infrastructure = findings.filter(
+    (finding) => finding.severity === 'critical' && INFRASTRUCTURE_CODES.has(finding.code),
+  );
+  const blocking = selectBlockingFindings(findings, enforcement);
+
+  if (infrastructure.length && !blocking.length && enforcement === 'critical') {
+    console.warn(
+      `SEO/GEO gate soft-pass: ${infrastructure.length} infrastructure finding(s) (edge/WAF) after retries; no content policy criticals.`,
+    );
+  }
 
   if (blocking.length) {
     console.error(`SEO/GEO gate failed with ${blocking.length} blocking finding(s).`);

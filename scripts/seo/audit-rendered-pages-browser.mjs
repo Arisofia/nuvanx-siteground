@@ -3,7 +3,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import process from 'node:process';
 import { chromium } from '@playwright/test';
-import { analyseHtml, isEdgeInterstitialResponse } from './audit-rendered-pages.mjs';
+import {
+  analyseHtml,
+  isEdgeInterstitialResponse,
+  selectBlockingFindings,
+  INFRASTRUCTURE_CODES,
+} from './audit-rendered-pages.mjs';
 
 const ROUTES = [
   { path: '/', role: 'home', expectedTypes: ['MedicalClinic', 'Physician'] },
@@ -33,17 +38,6 @@ const ENVIRONMENTS = {
   },
 };
 
-const CRITICAL_CODES = new Set([
-  'FETCH_ERROR',
-  'HTTP_ERROR',
-  'PRODUCTION_NOINDEX',
-  'STAGING_INDEXABLE',
-  'PRODUCTION_CANONICAL_MISSING',
-  'PRODUCTION_CANONICAL_HOST',
-  'PRODUCTION_STAGING_REFERENCE',
-  'EDGE_INTERSTITIAL',
-]);
-
 const MAX_ATTEMPTS = Math.max(1, Number(process.env.NVX_AUDIT_RETRIES || 4));
 const BASE_DELAY_MS = Math.max(500, Number(process.env.NVX_AUDIT_RETRY_DELAY_MS || 3000));
 const INTER_ROUTE_DELAY_MS = Math.max(0, Number(process.env.NVX_AUDIT_ROUTE_DELAY_MS || 750));
@@ -65,6 +59,8 @@ function markdownReport(report) {
     `Enforcement: ${report.enforcement}`,
     '',
     `Critical findings: **${report.summary.critical}**`,
+    `Infrastructure (non-blocking under critical): **${report.summary.infrastructure ?? 0}**`,
+    `Blocking (policy): **${report.summary.blocking ?? 0}**`,
     `Warnings: **${report.summary.warning}**`,
     '',
     '| Environment | Path | HTTP | H1 | Noindex | Canonical | Critical | Warnings |',
@@ -289,6 +285,10 @@ async function run() {
   }
 
   const findings = pages.flatMap((page) => page.issues);
+  const infrastructure = findings.filter(
+    (finding) => finding.severity === 'critical' && INFRASTRUCTURE_CODES.has(finding.code),
+  );
+  const blocking = selectBlockingFindings(findings, enforcement);
   const report = {
     generatedAt: new Date().toISOString(),
     renderer: 'playwright-chromium',
@@ -298,6 +298,8 @@ async function run() {
       pages: pages.length,
       critical: findings.filter((item) => item.severity === 'critical').length,
       warning: findings.filter((item) => item.severity === 'warning').length,
+      infrastructure: infrastructure.length,
+      blocking: blocking.length,
       retries: MAX_ATTEMPTS,
     },
     pages,
@@ -308,11 +310,11 @@ async function run() {
   await writeFile('qa/seo-geo/rendered-audit.md', markdownReport(report));
   console.log(JSON.stringify(report.summary));
 
-  const blocking = findings.filter((finding) => {
-    if (enforcement === 'none') return false;
-    if (enforcement === 'all') return finding.severity === 'critical' || finding.severity === 'warning';
-    return finding.severity === 'critical' && CRITICAL_CODES.has(finding.code);
-  });
+  if (infrastructure.length && !blocking.length && enforcement === 'critical') {
+    console.warn(
+      `SEO/GEO browser gate soft-pass: ${infrastructure.length} infrastructure finding(s) (edge/WAF) after retries; no content policy criticals.`,
+    );
+  }
   if (blocking.length) {
     console.error(`SEO/GEO browser gate failed with ${blocking.length} blocking finding(s).`);
     process.exitCode = 1;

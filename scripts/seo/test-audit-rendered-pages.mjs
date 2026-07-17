@@ -8,6 +8,7 @@ import {
   getMeta,
   isEdgeInterstitialResponse,
   parseAttributes,
+  selectBlockingFindings,
 } from './audit-rendered-pages.mjs';
 
 const fixture = `<!doctype html>
@@ -114,5 +115,18 @@ const captchaPage = analyseHtml({
 });
 assert.equal(captchaPage.issues.some((finding) => finding.code === 'EDGE_INTERSTITIAL'), true);
 assert.equal(captchaPage.issues.some((finding) => finding.code === 'PRODUCTION_NOINDEX'), false);
+assert.equal(selectBlockingFindings(captchaPage.issues, 'critical').length, 0);
+assert.equal(selectBlockingFindings(captchaPage.issues, 'all').length, 1);
+
+const noindexPage = analyseHtml({
+  html: fixture.replace('content="index, follow"', 'content="noindex, follow"'),
+  status: 200,
+  headers: { 'content-type': 'text/html' },
+  finalUrl: 'https://nuvanx.com/',
+  environment: 'production',
+  route: { path: '/', role: 'home', expectedTypes: [] },
+});
+assert.equal(noindexPage.issues.some((finding) => finding.code === 'PRODUCTION_NOINDEX'), true);
+assert.equal(selectBlockingFindings(noindexPage.issues, 'critical').some((f) => f.code === 'PRODUCTION_NOINDEX'), true);
 
 console.log('SEO/GEO rendered audit tests passed.');

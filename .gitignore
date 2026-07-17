@@ -57,20 +57,17 @@ wp-content/debug.log
 *.zip
 *.tar.gz
 
-# Third-party dependencies
+# Third-party dependencies and non-canonical themes
 node_modules/
 **/node_modules/
 wp-content/plugins/*
-wp-content/themes/Divi/
-wp-content/themes/twenty*/
+wp-content/themes/*
 
-# Track custom theme + mu-plugins (plugins/* stays ignored except explicit un-ignores)
+# Track only the canonical custom theme + mu-plugins.
 !wp-content/plugins/
 !wp-content/themes/
 !wp-content/themes/nuvanx-medical/
 !wp-content/themes/nuvanx-medical/**
-!wp-content/themes/nuvanx-medical-wpvibe-draft/
-!wp-content/themes/nuvanx-medical-wpvibe-draft/**
 !wp-content/mu-plugins/
 !wp-content/mu-plugins/**
 
@@ -95,7 +92,7 @@ artifacts/visual-validation-*/
 artifacts/capture-treatment-pages.js
 
 # Theme runtime logs
-wp-content/themes/nuvanx-medical-wpvibe-draft/php_errorlog
+wp-content/themes/*/php_errorlog
 php_errorlog
 
 # Local staging QA evidence (not production source)

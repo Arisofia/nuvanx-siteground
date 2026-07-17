@@ -9,7 +9,8 @@
     "nvx-header.css",
     "nvx-footer.css",
     "nvx-brand-home.css",
-    "nvx-mobile-hero-hierarchy.css"
+    "nvx-mobile-hero-hierarchy.css",
+    "nvx-medical-review.css"
   ],
   "allStylesheets": [
     "nvx-base.css",
@@ -18,6 +19,7 @@
     "nvx-fonts.css",
     "nvx-footer.css",
     "nvx-header.css",
+    "nvx-medical-review.css",
     "nvx-mobile-hero-hierarchy.css",
     "nvx-patterns-editorial.css",
     "nvx-site-layout.css",
@@ -31,6 +33,7 @@
     "nvx-fonts.css",
     "nvx-footer.css",
     "nvx-header.css",
+    "nvx-medical-review.css",
     "nvx-mobile-hero-hierarchy.css",
     "nvx-patterns-editorial.css",
     "nvx-site-layout.css",
@@ -39,39 +42,39 @@
   "stylesheetReferenceEvidence": [
     {
       "file": "nvx-fonts.css",
-      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     },
     {
       "file": "nvx-tokens.css",
-      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     },
     {
       "file": "nvx-base.css",
-      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     },
     {
       "file": "nvx-site-layout.css",
-      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     },
     {
       "file": "nvx-components.css",
-      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     },
     {
       "file": "nvx-patterns-editorial.css",
-      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     },
     {
       "file": "nvx-header.css",
-      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     },
     {
       "file": "nvx-footer.css",
-      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     },
     {
       "file": "nvx-brand-home.css",
-      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     }
   ],
   "orphanStylesheets": [],
@@ -267,6 +270,11 @@
       "file": "nvx-header.css",
       "value": "46px",
       "line": 371
+    },
+    {
+      "file": "nvx-medical-review.css",
+      "value": "4px",
+      "line": 48
     },
     {
       "file": "nvx-mobile-hero-hierarchy.css",
@@ -2015,6 +2023,21 @@
         {
           "file": "nvx-header.css",
           "line": 335,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-medical-review__date",
+      "locations": [
+        {
+          "file": "nvx-medical-review.css",
+          "line": 22,
+          "active": true
+        },
+        {
+          "file": "nvx-medical-review.css",
+          "line": 31,
           "active": true
         }
       ]
@@ -5612,6 +5635,21 @@
       ]
     },
     {
+      "selector": ".nvx-medical-review__date",
+      "locations": [
+        {
+          "file": "nvx-medical-review.css",
+          "line": 22,
+          "active": true
+        },
+        {
+          "file": "nvx-medical-review.css",
+          "line": 31,
+          "active": true
+        }
+      ]
+    },
+    {
       "selector": ".nvx-hero-context",
       "locations": [
         {
@@ -7996,6 +8034,18 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 353
+    },
+    {
+      "file": "nvx-medical-review.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 16
+    },
+    {
+      "file": "nvx-medical-review.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 28
     },
     {
       "file": "nvx-mobile-hero-hierarchy.css",

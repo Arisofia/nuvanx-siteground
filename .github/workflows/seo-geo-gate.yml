@@ -2,7 +2,11 @@ name: SEO GEO Gate
 
 on:
   push:
+    branches:
+      - master
   pull_request:
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       enforcement:
@@ -15,11 +19,9 @@ on:
           - critical
           - all
 
-# Serialize live DOM audits so concurrent push+pull_request runs do not
-# amplify SiteGround bot challenges against the same edge IP pool.
 concurrency:
-  group: seo-geo-gate-${{ github.event_name == 'pull_request' && github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+  group: seo-geo-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -63,7 +65,6 @@ jobs:
       NVX_STAGING_URL: https://staging2.nuvanx.com
       STAGING_BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
       STAGING_BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
-      # Combined auth string consumed by audit-rendered-pages.mjs as NVX_STAGING_BASIC_AUTH
       NVX_STAGING_BASIC_AUTH: ${{ secrets.STAGING_BASIC_USER }}:${{ secrets.STAGING_BASIC_PASSWORD }}
       NVX_AUDIT_ENVIRONMENTS: production,staging
       NVX_SEO_ENFORCE: ${{ inputs.enforcement || 'critical' }}

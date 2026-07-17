@@ -2,6 +2,8 @@ name: Design System Exceptions
 
 on:
   push:
+    branches:
+      - master
     paths:
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/**/*.php'
@@ -9,6 +11,8 @@ on:
       - 'scripts/design-system/audit-css.mjs'
       - '.github/workflows/design-system-exceptions.yml'
   pull_request:
+    branches:
+      - master
     paths:
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/**/*.php'
@@ -16,6 +20,10 @@ on:
       - 'scripts/design-system/audit-css.mjs'
       - '.github/workflows/design-system-exceptions.yml'
   workflow_dispatch:
+
+concurrency:
+  group: design-system-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -32,7 +40,7 @@ jobs:
 
       - name: Publish exception inventory
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: design-system-exceptions
           path: |

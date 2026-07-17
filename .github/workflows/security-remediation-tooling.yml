@@ -1,0 +1,63 @@
+name: Security Remediation Tooling
+
+on:
+  push:
+    paths:
+      - 'scripts/security/issue-45-*'
+      - '.github/workflows/security-remediation-tooling.yml'
+  pull_request:
+    paths:
+      - 'scripts/security/issue-45-*'
+      - '.github/workflows/security-remediation-tooling.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-tooling:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Validate syntax
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/security/issue-45-build-manifest.py
+          bash -n scripts/security/issue-45-inventory.sh
+          bash -n scripts/security/issue-45-purge.sh
+          bash -n scripts/security/issue-45-verify.sh
+
+      - name: Validate path classification fixture
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          cat > "$tmp/objects.txt" <<'EOF'
+          aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa wp-config.php
+          bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb wp-admin/includes/file.php
+          cccccccccccccccccccccccccccccccccccccccc wp-content/themes/nuvanx-medical/functions.php
+          dddddddddddddddddddddddddddddddddddddddd wp-content/themes/nuvanx-medical-wpvibe-draft/style.css
+          eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee wp-content/mu-plugins/nvx-safe.php
+          ffffffffffffffffffffffffffffffffffffffff wp-content/uploads/patient-image.jpg
+          1111111111111111111111111111111111111111 docs/security/incident-process.md
+          EOF
+          python3 scripts/security/issue-45-build-manifest.py \
+            --objects "$tmp/objects.txt" \
+            --manifest "$tmp/manifest.txt" \
+            --reasons "$tmp/reasons.tsv"
+          cat > "$tmp/expected.txt" <<'EOF'
+          wp-admin/includes/file.php
+          wp-config.php
+          wp-content/themes/nuvanx-medical-wpvibe-draft/style.css
+          wp-content/uploads/patient-image.jpg
+          EOF
+          diff -u "$tmp/expected.txt" "$tmp/manifest.txt"
+          if grep -q 'wp-content/themes/nuvanx-medical/functions.php' "$tmp/manifest.txt"; then
+            echo 'ERROR: canonical theme was incorrectly classified for purge.'
+            exit 1
+          fi
+          if grep -q 'wp-content/mu-plugins/nvx-safe.php' "$tmp/manifest.txt"; then
+            echo 'ERROR: approved mu-plugin source was incorrectly classified for purge.'
+            exit 1
+          fi

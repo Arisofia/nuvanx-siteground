@@ -43,6 +43,8 @@ wp-content/advanced-cache.php
 wp-content/db.php
 wp-content/maintenance.php
 wp-content/sunrise.php
+wp-content/sgo-config.php
+wp-content/sgs_encrypt_key.php
 **/dup-installer/
 **/installer/original_files_*/
 *installer*.php

@@ -27,59 +27,97 @@ jobs:
           git fetch --force origin \
             '+refs/pull/*/head:refs/remotes/pull/*' || true
 
-      - name: Reject public repository during open credential incident
+      - name: Record temporary repository visibility
         env:
           REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
         run: |
           set -euo pipefail
-          if [[ "${REPOSITORY_PRIVATE}" != 'true' ]]; then
-            echo 'ERROR: SECURITY NO GO — repository is public while credential incident #45 remains open.'
-            echo 'Change repository visibility to private before any further release or merge approval.'
-            exit 1
+          mkdir -p qa/security/history-closure
+          if [[ "${REPOSITORY_PRIVATE}" == 'true' ]]; then
+            echo 'repository_private=true' >> qa/security/history-closure/closure-state.txt
+            echo 'Repository visibility is private.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'repository_private=false' >> qa/security/history-closure/closure-state.txt
+            echo '::warning::Repository is temporarily public for issue #45 remediation execution.'
+            echo 'Visibility must return to private before closure; public mode is not release approval.'
+            echo 'repository_private=false — temporary remediation mode' >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo 'repository_private=true'
 
-      - name: Reject reachable incident commit
+      - name: Record incident commit reachability
         run: |
           set -euo pipefail
           incident='81dafb2e74b6bbfffe302979d67fe789c0075509'
           if git cat-file -e "${incident}^{commit}" 2>/dev/null; then
-            echo "ERROR: SECURITY NO GO — incident commit remains reachable: $incident"
-            echo 'Complete issue #45 mirror rewrite and GitHub Support dereferencing before release approval.'
-            exit 1
+            echo 'incident_commit_reachable=true' >> qa/security/history-closure/closure-state.txt
+            echo "::warning::SECURITY NO GO — incident commit remains reachable: $incident"
+            echo 'incident_commit_reachable=true' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'incident_commit_reachable=false' >> qa/security/history-closure/closure-state.txt
+            echo 'incident_commit_reachable=false' >> "$GITHUB_STEP_SUMMARY"
           fi
-          echo 'incident_commit_reachable=false'
 
-      - name: Reject prohibited paths across fetched refs
+      - name: Record prohibited paths across fetched refs
         run: |
           set -euo pipefail
-          mkdir -p qa/security/history-closure
-          git -c core.quotePath=false rev-list --objects --all > qa/security/history-closure/all-objects.txt
+          objects_file="$(mktemp)"
+          trap 'rm -f "$objects_file"' EXIT
+          git -c core.quotePath=false rev-list --objects --all > "$objects_file"
           python3 scripts/security/issue-45-build-manifest.py \
-            --objects qa/security/history-closure/all-objects.txt \
+            --objects "$objects_file" \
             --manifest qa/security/history-closure/residual-paths.txt \
             --reasons qa/security/history-closure/residual-reasons.tsv
-          if [[ -s qa/security/history-closure/residual-paths.txt ]]; then
-            echo 'ERROR: SECURITY NO GO — prohibited historical paths remain reachable:'
-            cat qa/security/history-closure/residual-paths.txt
-            exit 1
+          residual_count="$(wc -l < qa/security/history-closure/residual-paths.txt | tr -d ' ')"
+          echo "residual_prohibited_paths=${residual_count}" >> qa/security/history-closure/closure-state.txt
+          echo "residual_prohibited_paths=${residual_count}" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$residual_count" != '0' ]]; then
+            echo "::warning::SECURITY NO GO — ${residual_count} prohibited historical paths remain reachable."
           fi
-          echo 'residual_prohibited_paths=0'
 
       - name: Report closure evidence
         if: always()
         run: |
           set -euo pipefail
-          printf 'heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/origin | wc -l)"
-          printf 'tags=%s\n' "$(git for-each-ref --format='%(refname)' refs/tags | wc -l)"
-          printf 'pull_heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/pull | wc -l)"
-          printf 'reachable_commits=%s\n' "$(git rev-list --count --all)"
+          {
+            printf 'heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/origin | wc -l)"
+            printf 'tags=%s\n' "$(git for-each-ref --format='%(refname)' refs/tags | wc -l)"
+            printf 'pull_heads=%s\n' "$(git for-each-ref --format='%(refname)' refs/remotes/pull | wc -l)"
+            printf 'reachable_commits=%s\n' "$(git rev-list --count --all)"
+          } | tee qa/security/history-closure/ref-counts.txt >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload path-only closure evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: history-purge-closure-evidence
-          path: qa/security/history-closure/
+          path: |
+            qa/security/history-closure/closure-state.txt
+            qa/security/history-closure/ref-counts.txt
+            qa/security/history-closure/residual-paths.txt
+            qa/security/history-closure/residual-reasons.tsv
           retention-days: 7
-          if-no-files-found: warn
+          if-no-files-found: error
+
+      - name: Enforce complete incident closure
+        if: always()
+        run: |
+          set -euo pipefail
+          state='qa/security/history-closure/closure-state.txt'
+          if [[ ! -f "$state" ]]; then
+            echo 'ERROR: closure evidence state was not generated.'
+            exit 1
+          fi
+
+          repository_private="$(awk -F= '$1=="repository_private" {print $2}' "$state" | tail -n1)"
+          incident_reachable="$(awk -F= '$1=="incident_commit_reachable" {print $2}' "$state" | tail -n1)"
+          residual_paths="$(awk -F= '$1=="residual_prohibited_paths" {print $2}' "$state" | tail -n1)"
+
+          if [[ "$repository_private" != 'true' || "$incident_reachable" != 'false' || "$residual_paths" != '0' ]]; then
+            echo 'ERROR: SECURITY NO GO — issue #45 closure criteria are incomplete.'
+            echo "repository_private=${repository_private:-unknown}"
+            echo "incident_commit_reachable=${incident_reachable:-unknown}"
+            echo "residual_prohibited_paths=${residual_paths:-unknown}"
+            echo 'The repository may remain public only during remediation execution; return it to private after fresh-clone verification.'
+            exit 1
+          fi
+
+          echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=true'

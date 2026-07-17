@@ -6,22 +6,23 @@
  */
 
 :root {
-  /* Paleta editorial cálida */
+  /* Paleta editorial cálida.
+   * Semantic source tokens own approved brand colors; legacy role names remain
+   * compatibility aliases consumed by the active component stack.
+   */
+  --nvx-ivory: #f7f1e8;
+  --nvx-champagne: #b89a5b;
   --nvx-ink: #171717;
   --nvx-charcoal: #2b2926;
-  --nvx-pearl: #f7f1e8;
+  --nvx-pearl: var(--nvx-ivory);
   --nvx-mist: #e9ddcf;
   --nvx-silver: #cbbba8;
-  --nvx-platinum: #b89a5b;
+  --nvx-platinum: var(--nvx-champagne);
   --nvx-white: #ffffff;
-
-  /* Aliases semánticos aprobados */
-  --nvx-ivory: var(--nvx-pearl);
-  --nvx-champagne: var(--nvx-platinum);
 
   --nvx-text-body: #3f3a35;
   --nvx-text-muted: #5f5a54;
-  --nvx-color-paper: #f7f1e8;
+  --nvx-color-paper: var(--nvx-ivory);
   --nvx-color-line: rgba(23, 23, 23, 0.16);
 
   /* Form-stage semantic palette + image (PHP may override image on section). */
@@ -85,11 +86,14 @@
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
   --nvx-hero-h: min(92svh, 980px);
 
-  /* Component dimensions */
+  /* Component dimensions.
+   * touch-target-min is the accessibility floor; control-size aliases it for
+   * square icon controls such as menu and close buttons.
+   */
   --nvx-header-height: 80px;
   --nvx-header-height-mobile: 72px;
-  --nvx-control-size: 48px;
   --nvx-touch-target-min: 48px;
+  --nvx-control-size: var(--nvx-touch-target-min);
   --nvx-logo-height: 40px;
   --nvx-logo-height-mobile: 36px;
   --nvx-logo-width: 168px;
@@ -103,7 +107,8 @@
   --nvx-radius-button: var(--nvx-radius-pill);
   --nvx-radius-card: 0;
   --nvx-radius-image: 0;
-  --nvx-organic-c: 0;
+  /* Preserve the four-corner / slash border-radius contract while rendering flat. */
+  --nvx-organic-c: 0 0 0 0 / 0 0 0 0;
 
   --nvx-media-overlay: linear-gradient(
     180deg,

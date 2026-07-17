@@ -41,15 +41,16 @@ function nvx_clinics_nearest_block( DOMNode $node ): ?DOMElement {
  * sections rather than prose. A plain block element then fills the canonical
  * section shell while genuine nested readable columns remain constrained.
  */
-function nvx_clinics_normalize_layout( DOMXPath $xpath ): void {
+function nvx_clinics_normalize_layout( DOMXPath $xpath ): ?DOMElement {
 	$nodes = $xpath->query(
 		'//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-readable ")]'
 	);
 
 	if ( false === $nodes ) {
-		return;
+		return null;
 	}
 
+	$layout_root = null;
 	foreach ( iterator_to_array( $nodes ) as $node ) {
 		if ( ! $node instanceof DOMElement ) {
 			continue;
@@ -71,7 +72,10 @@ function nvx_clinics_normalize_layout( DOMXPath $xpath ): void {
 		);
 		$classes[] = 'nvx-clinics-content-flow';
 		$node->setAttribute( 'class', implode( ' ', array_unique( $classes ) ) );
+		$layout_root ??= $node;
 	}
+
+	return $layout_root;
 }
 
 function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): void {
@@ -102,14 +106,13 @@ function nvx_clinics_hub_enhance( string $content ): string {
 		return $content;
 	}
 
-	$xpath = new DOMXPath( $dom );
-	nvx_clinics_normalize_layout( $xpath );
-
-	$clinics = array(
+	$xpath       = new DOMXPath( $dom );
+	$layout_root = nvx_clinics_normalize_layout( $xpath );
+	$clinics     = array(
 		'chamberi' => array( 'id' => 'clinica-chamberi', 'label' => 'Chamberí', 'match' => '/chamber[ií]/iu' ),
 		'goya'     => array( 'id' => 'clinica-goya', 'label' => 'Salamanca–Goya', 'match' => '/(?:salamanca|goya)/iu' ),
 	);
-	$blocks  = array();
+	$blocks      = array();
 
 	foreach ( $xpath->query( '//h2|//h3|//h4' ) ?: array() as $heading ) {
 		$text = trim( preg_replace( '/\s+/u', ' ', $heading->textContent ) ?? $heading->textContent );
@@ -168,7 +171,12 @@ function nvx_clinics_hub_enhance( string $content ): string {
 			$inner->appendChild( $link );
 		}
 		$nav->appendChild( $inner );
-		$blocks['chamberi']->parentNode?->insertBefore( $nav, $blocks['chamberi'] );
+
+		if ( $layout_root instanceof DOMElement ) {
+			$layout_root->insertBefore( $nav, $layout_root->firstChild );
+		} else {
+			$blocks['chamberi']->parentNode?->insertBefore( $nav, $blocks['chamberi'] );
+		}
 	}
 
 	$root = $dom->getElementById( 'nvx-clinics-document' );

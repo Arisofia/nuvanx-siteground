@@ -5,7 +5,7 @@
 .nvx-heading,h1{margin:0 0 var(--nvx-margin-h1);font-family:var(--nvx-serif);font-size:var(--nvx-type-h1);font-weight:400;line-height:var(--nvx-lh-h1);letter-spacing:var(--nvx-track-h1);color:var(--nvx-ink)}
 .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
-.nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:600;line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-platinum)}
+.nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:600;line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-accent-muted)}
 /* Copy roles only — bare `p` inherits from body (base.css) to avoid fighting layout measure rules */
 .nvx-copy,.nvx-brand-body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 /* Editorial surface paragraph rhythm (components own type+margin; layout owns measure) */
@@ -20,11 +20,11 @@
 .nvx-lead,.nvx-brand-hero__lead{max-width:var(--nvx-measure-lead);margin:0 0 var(--nvx-margin-lead);font-family:var(--nvx-sans);font-size:var(--nvx-type-lead);font-weight:400;line-height:var(--nvx-lh-lead);color:var(--nvx-text-body)}
 figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:var(--nvx-type-caption);font-weight:300;line-height:var(--nvx-lh-caption);color:var(--nvx-text-muted)}
 .nvx-text-link{color:var(--nvx-ink);text-decoration:underline;text-underline-offset:4px;font-family:var(--nvx-sans)}
-.nvx-text-link:hover,.nvx-text-link:focus-visible{color:var(--nvx-platinum)}
+.nvx-text-link:hover,.nvx-text-link:focus-visible{color:var(--nvx-accent-muted)}
 .nvx-button,.nvx-btn,.nvx-brand-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border:1px solid transparent;border-radius:var(--nvx-radius-button);font-family:var(--nvx-sans);font-size:var(--nvx-type-button);font-weight:600;line-height:1;letter-spacing:var(--nvx-track-button);text-transform:uppercase;text-decoration:none;transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease}
-.nvx-button--primary,.nvx-btn--primary,.nvx-brand-btn--primary{background:var(--nvx-ink);color:var(--nvx-white)}
+.nvx-button--primary,.nvx-btn--primary,.nvx-brand-btn--primary{background:var(--nvx-ink);color:var(--nvx-light)}
 .nvx-button--secondary,.nvx-btn--secondary,.nvx-brand-btn--secondary{background:transparent;color:var(--nvx-ink);border-color:var(--nvx-color-line)}
-.nvx-button--light{background:var(--nvx-pearl);color:var(--nvx-ink);border-color:var(--nvx-pearl)}
+.nvx-button--light{background:var(--nvx-surface-base);color:var(--nvx-ink);border-color:var(--nvx-surface-base)}
 /* Used by pre-footer CTA banner (footer.php) on charcoal — outline via currentColor */
 .nvx-button--ghost,.nvx-btn--ghost{background:transparent;color:currentColor;border-color:currentColor}
 .nvx-button:hover,.nvx-button:focus-visible,.nvx-btn:hover,.nvx-btn:focus-visible,.nvx-brand-btn:hover,.nvx-brand-btn:focus-visible{transform:translateY(-1px);box-shadow:var(--nvx-shadow-button)}
@@ -46,10 +46,10 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   padding:var(--nvx-pad-card);
   border:1px solid var(--nvx-color-line);
   border-radius:var(--nvx-radius-card);
-  background:var(--nvx-white);
+  background:var(--nvx-light);
   box-shadow:var(--nvx-shadow-min);
 }
-.nvx-brand-card__media{margin:calc(-1 * var(--nvx-pad-card)) calc(-1 * var(--nvx-pad-card)) var(--nvx-space-3);overflow:hidden;border-radius:var(--nvx-radius-card) var(--nvx-radius-card) 0 0;background:var(--nvx-pearl)}
+.nvx-brand-card__media{margin:calc(-1 * var(--nvx-pad-card)) calc(-1 * var(--nvx-pad-card)) var(--nvx-space-3);overflow:hidden;border-radius:var(--nvx-radius-card) var(--nvx-radius-card) 0 0;background:var(--nvx-surface-base)}
 .nvx-brand-card__media img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:0}
 /* Team / staff portraits — vertical frame, not landscape body crop */
 .nvx-brand-card--team{
@@ -61,7 +61,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   aspect-ratio:5/6;
   max-height:none;
   overflow:hidden;
-  background:var(--nvx-pearl);
+  background:var(--nvx-surface-base);
   border-radius:var(--nvx-radius-card) var(--nvx-radius-card) 0 0;
 }
 .nvx-brand-card--team .nvx-brand-card__media img,
@@ -80,7 +80,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 }
 .nvx-brand-card__title{margin:0 0 var(--nvx-space-2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);color:var(--nvx-ink)}
 .nvx-brand-card__title a{color:inherit;text-decoration:none}
-.nvx-brand-card__title a:hover,.nvx-brand-card__title a:focus-visible{color:var(--nvx-platinum)}
+.nvx-brand-card__title a:hover,.nvx-brand-card__title a:focus-visible{color:var(--nvx-accent-muted)}
 .nvx-brand-card__body,.nvx-card__body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 .nvx-brand-card__body p,.nvx-card__body p{margin:0 0 var(--nvx-space-2)}
 .nvx-brand-card .nvx-button,
@@ -112,7 +112,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 /* Valores y beneficios: tres columnas, iconografía outline y ritmo de 8px. */
 .nvx-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--nvx-space-6);align-items:start}
 .nvx-value{min-width:0}
-.nvx-value__icon{display:grid;place-items:center;width:32px;height:32px;margin-bottom:var(--nvx-space-3);color:var(--nvx-platinum)}
+.nvx-value__icon{display:grid;place-items:center;width:32px;height:32px;margin-bottom:var(--nvx-space-3);color:var(--nvx-accent-muted)}
 .nvx-value__icon svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .nvx-value__title{margin:0 0 var(--nvx-space-2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);color:var(--nvx-ink)}
 .nvx-value__body{max-width:var(--nvx-measure);margin:0;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
@@ -144,7 +144,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-brand-faq-accordion .nvx-brand-faq-item[open],
 .nvx-home-faq-editorial details[open],
 .nvx-home-faq-editorial .nvx-brand-faq-item[open] {
-  background: var(--nvx-pearl, #f6f7f8);
+  background: var(--nvx-surface-base, #f6f7f8);
 }
 
 .nvx-faq summary,
@@ -178,7 +178,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   content: "";
 }
 
-/* Platinum plus affordance */
+/* accent plus affordance */
 .nvx-faq summary::after,
 .nvx-brand-faq-accordion summary::after,
 .nvx-home-faq-editorial summary::after {
@@ -189,8 +189,8 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   width: 12px;
   height: 12px;
   margin-top: -6px;
-  border-right: 1.5px solid var(--nvx-platinum, #9ba3ad);
-  border-bottom: 1.5px solid var(--nvx-platinum, #9ba3ad);
+  border-right: 1.5px solid var(--nvx-accent-muted, #9ba3ad);
+  border-bottom: 1.5px solid var(--nvx-accent-muted, #9ba3ad);
   transform: rotate(45deg);
   transition: transform 180ms ease, border-color 160ms ease;
 }
@@ -364,7 +364,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   line-height: 1.3;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--nvx-platinum);
+  color: var(--nvx-accent-muted);
 }
 
 .nvx-hubspot-form-section .hs-input,
@@ -383,7 +383,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   padding: 14px 18px;
   border: 1px solid rgba(20, 22, 26, 0.12);
   border-radius: 14px;
-  background: var(--nvx-pearl);
+  background: var(--nvx-surface-base);
   color: var(--nvx-ink);
   font-family: var(--nvx-sans);
   font-size: 1rem;
@@ -406,8 +406,8 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-hs-lead-form .hs-input:focus,
 .nvx-hubspot-form-section input:focus-visible {
   outline: none;
-  border-color: var(--nvx-platinum);
-  background: var(--nvx-white);
+  border-color: var(--nvx-accent-muted);
+  background: var(--nvx-light);
   box-shadow: 0 0 0 4px var(--nvx-accent-glow);
 }
 
@@ -431,7 +431,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   border: 1px solid var(--nvx-ink);
   border-radius: 999px;
   background: var(--nvx-ink);
-  color: var(--nvx-white);
+  color: var(--nvx-light);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-button);
   font-weight: 600;

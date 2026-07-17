@@ -7,7 +7,7 @@
   width: 100%;
   margin: 0;
   padding-block: var(--nvx-space-8);
-  background: var(--nvx-white);
+  background: var(--nvx-light);
   color: var(--nvx-text-body);
 }
 

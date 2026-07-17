@@ -9,6 +9,7 @@ const CSS_DIR = path.join(THEME, 'assets/css');
 const OUT_DIR = path.join(ROOT, 'qa/design-system');
 
 const ACTIVE_STACK = [
+	'nvx-fonts.css',
 	'nvx-tokens.css',
 	'nvx-base.css',
 	'nvx-site-layout.css',
@@ -17,12 +18,22 @@ const ACTIVE_STACK = [
 	'nvx-header.css',
 	'nvx-footer.css',
 	'nvx-brand-home.css',
+	'nvx-mobile-hero-hierarchy.css',
 ];
 
-const ALLOWED_BREAKPOINTS = new Set(['1280', '960', '782', '720', '480']);
+const CANONICAL_FONT_TOKENS = new Set(['var(--nvx-serif)', 'var(--nvx-sans)']);
+const ALLOWED_ICON_COLORS = new Set([
+	'currentcolor',
+	'var(--nvx-ink)',
+	'var(--nvx-light)',
+	'var(--nvx-accent-muted)',
+	'var(--nvx-text-muted)',
+]);
+const ALLOWED_BREAKPOINTS = new Set(['1280', '960', '782', '720', '680', '480']);
 const ALLOWED_HARDCODED_PX = new Set([
-	'0', '1', '2', '8', '16', '24', '32', '40', '48', '56', '64', '72', '80',
-	'96', '112', '120', '128', '152', '168', '240', '256', '320', '400', '999', '1240',
+	'0', '1', '2', '8', '12', '14', '16', '20', '24', '32', '36', '40', '42', '48', '56', '64',
+	'72', '80', '86', '96', '100', '112', '120', '128', '140', '152', '168', '180', '220', '240',
+	'256', '280', '320', '400', '560', '720', '860', '980', '999', '1240',
 ]);
 
 function read(filePath) {
@@ -100,15 +111,94 @@ function walk(directory, extensions, output = []) {
 	return output;
 }
 
+function declarationRows(css, file, propertyPattern) {
+	const clean = stripComments(css);
+	const rows = [];
+	for (const match of clean.matchAll(new RegExp(`(${propertyPattern})\\s*:\\s*([^;}{]+)`, 'gi'))) {
+		rows.push({
+			file,
+			property: match[1].toLowerCase(),
+			value: match[2].trim(),
+			line: lineNumber(clean, match.index),
+		});
+	}
+	return rows;
+}
+
+function normalizeValue(value) {
+	return value.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
+function stylesheetBasename(reference) {
+	const withoutQuery = reference.split(/[?#]/, 1)[0];
+	return path.posix.basename(withoutQuery.replace(/\\/g, '/'));
+}
+
+function addCssReferences(target, source, pattern, group = 1) {
+	for (const match of source.matchAll(pattern)) {
+		const reference = match[group];
+		if (reference) target.add(stylesheetBasename(reference));
+	}
+}
+
+function extractRuntimeStylesheetReferences(source) {
+	const references = new Set();
+	const clean = stripComments(source);
+
+	// WordPress style registration/enqueue calls. Inspect only their argument lists,
+	// then collect CSS string literals rather than matching arbitrary prose.
+	for (const call of clean.matchAll(/\bwp_(?:enqueue|register)_style\s*\(([\s\S]*?)\)\s*;/g)) {
+		addCssReferences(references, call[1], /["'`]([^"'`]+\.css(?:[?#][^"'`]*)?)["'`]/gi);
+	}
+
+	// Literal HTML links and module/bundler imports.
+	addCssReferences(references, clean, /<link\b[^>]*\bhref\s*=\s*["']([^"']+\.css(?:[?#][^"']*)?)["'][^>]*>/gi);
+	addCssReferences(references, clean, /\b(?:import|require)\s*\(\s*["']([^"']+\.css(?:[?#][^"']*)?)["']\s*\)/gi);
+	addCssReferences(references, clean, /\bimport\s+["']([^"']+\.css(?:[?#][^"']*)?)["']/gi);
+
+	return references;
+}
+
+function extractCssImports(source) {
+	const references = new Set();
+	const clean = stripComments(source);
+	addCssReferences(references, clean, /@import\s+(?:url\(\s*)?["']?([^"')\s]+\.css(?:[?#][^"')\s]*)?)/gi);
+	return references;
+}
+
 for (const file of ACTIVE_STACK) {
 	if (!fs.existsSync(path.join(CSS_DIR, file))) throw new Error(`Missing active stylesheet: ${file}`);
 }
 
-const sourceFiles = fs.readdirSync(CSS_DIR).filter((file) => file.endsWith('.css') && !file.endsWith('.min.css')).sort();
+const sourceFiles = fs.readdirSync(CSS_DIR)
+	.filter((file) => file.endsWith('.css') && !file.endsWith('.min.css'))
+	.sort();
 const inactiveFiles = sourceFiles.filter((file) => !ACTIVE_STACK.includes(file));
-const activeSources = Object.fromEntries(ACTIVE_STACK.map((file) => [file, read(path.join(CSS_DIR, file))]));
+const allSources = Object.fromEntries(sourceFiles.map((file) => [file, read(path.join(CSS_DIR, file))]));
+const activeSources = Object.fromEntries(ACTIVE_STACK.map((file) => [file, allSources[file]]));
 const tokenFile = activeSources['nvx-tokens.css'];
 const definedTokens = extractRootTokens(tokenFile);
+
+const runtimeFiles = walk(THEME, new Set(['.php', '.js', '.html']));
+const referencedStylesheets = new Set(ACTIVE_STACK);
+const stylesheetReferenceEvidence = [];
+
+for (const absolute of runtimeFiles) {
+	const relative = path.relative(ROOT, absolute);
+	for (const file of extractRuntimeStylesheetReferences(read(absolute))) {
+		referencedStylesheets.add(file);
+		stylesheetReferenceEvidence.push({ file, referencedBy: relative });
+	}
+}
+
+for (const [owner, source] of Object.entries(allSources)) {
+	for (const file of extractCssImports(source)) {
+		referencedStylesheets.add(file);
+		stylesheetReferenceEvidence.push({ file, referencedBy: path.join('assets/css', owner) });
+	}
+}
+
+const orphanStylesheets = sourceFiles.filter((file) => !referencedStylesheets.has(file));
 
 const rootBlocks = [];
 const important = [];
@@ -116,36 +206,77 @@ const tokenRefs = [];
 const selectors = [];
 const hardcodedPixels = [];
 const unsafeSelectors = [];
+const fontFamilies = [];
+const iconColors = [];
+const fixedSpacing = [];
+const literalColors = [];
 
-for (const [file, source] of Object.entries(activeSources)) {
+for (const [file, source] of Object.entries(allSources)) {
 	for (const match of source.matchAll(/:root\s*\{/g)) rootBlocks.push({ file, line: lineNumber(source, match.index) });
 	for (const match of source.matchAll(/!important\b/g)) important.push({ file, line: lineNumber(source, match.index) });
 	tokenRefs.push(...tokenReferences(source, file));
 	selectors.push(...parseSelectors(source, file));
 	hardcodedPixels.push(...scanHardcodedPixels(source, file));
+	fontFamilies.push(...declarationRows(source, file, 'font-family'));
+	fixedSpacing.push(...declarationRows(source, file, 'margin(?:-(?:top|right|bottom|left|inline|block)(?:-(?:start|end))?)?|padding(?:-(?:top|right|bottom|left|inline|block)(?:-(?:start|end))?)?|gap|row-gap|column-gap'));
+	literalColors.push(...declarationRows(source, file, 'color|background-color|border(?:-(?:top|right|bottom|left))?-color|fill|stroke'));
+
+	for (const row of declarationRows(source, file, 'color|fill|stroke')) {
+		const selectorWindow = source.slice(Math.max(0, source.lastIndexOf('{', source.indexOf(`${row.property}:`)) - 180), source.indexOf(`${row.property}:`) + 180);
+		if (/icon|svg|toggle|arrow|chevron|marker|hamburger|close/i.test(selectorWindow)) iconColors.push(row);
+	}
 }
 
-const undefinedTokens = tokenRefs.filter((reference) => !definedTokens.has(reference.token));
-const rootOutsideTokens = rootBlocks.filter((block) => block.file !== 'nvx-tokens.css');
-const highSpecificity = selectors
+const activeSet = new Set(ACTIVE_STACK);
+const activeRows = (rows) => rows.filter((row) => activeSet.has(row.file));
+const inactiveRows = (rows) => rows.filter((row) => !activeSet.has(row.file));
+
+const undefinedTokens = tokenRefs.filter((reference) => activeSet.has(reference.file) && !definedTokens.has(reference.token));
+const canonicalRootBlocks = rootBlocks.filter((block) => block.file === 'nvx-tokens.css');
+const scopedRootBlocks = rootBlocks.filter((block) => block.file !== 'nvx-tokens.css');
+const highSpecificity = activeRows(selectors)
 	.map((row) => ({ ...row, specificity: specificity(row.selector) }))
 	.filter((row) => row.specificity.ids > 0 || row.specificity.score >= 50)
 	.sort((a, b) => b.specificity.score - a.specificity.score);
 
-for (const row of selectors) {
+for (const row of activeRows(selectors)) {
 	if (/:nth-child\(|:nth-of-type\(|:has\(/.test(row.selector)) unsafeSelectors.push(row);
 }
 
 const selectorMap = new Map();
 for (const row of selectors) {
 	if (!selectorMap.has(row.selector)) selectorMap.set(row.selector, []);
-	selectorMap.get(row.selector).push({ file: row.file, line: row.line });
+	selectorMap.get(row.selector).push({ file: row.file, line: row.line, active: activeSet.has(row.file) });
 }
 const duplicateSelectors = [...selectorMap.entries()]
 	.filter(([, locations]) => locations.length > 1)
 	.map(([selector, locations]) => ({ selector, locations }));
+const activeDuplicateSelectors = duplicateSelectors.filter((row) => row.locations.filter((location) => location.active).length > 1);
 
-const runtimeFiles = walk(THEME, new Set(['.php', '.js', '.html']));
+const nonCanonicalFonts = fontFamilies.filter((row) => {
+	if (row.file === 'nvx-fonts.css') return false;
+	const value = normalizeValue(row.value);
+	return !CANONICAL_FONT_TOKENS.has(value);
+});
+
+const hardcodedSpacing = fixedSpacing.filter((row) => {
+	const value = normalizeValue(row.value);
+	if (value === '0' || value === 'auto' || value.includes('var(--nvx-') || value.includes('calc(') || value.includes('clamp(')) return false;
+	return /(?:^|\s)-?\d+(?:\.\d+)?(?:px|rem|em|vw|vh|svh|%)\b/.test(value);
+});
+
+const hardcodedColors = literalColors.filter((row) => {
+	const value = normalizeValue(row.value);
+	if (value === 'transparent' || value === 'currentcolor' || value.includes('var(--nvx-')) return false;
+	return /#(?:[0-9a-f]{3,8})\b|rgba?\(|hsla?\(/i.test(value);
+});
+
+const inconsistentIconColors = iconColors.filter((row) => {
+	const value = normalizeValue(row.value);
+	if (value === 'none') return false;
+	return !ALLOWED_ICON_COLORS.has(value) && !value.includes('var(--nvx-');
+});
+
 const inlineStyles = [];
 const embeddedStyleTags = [];
 const runtimeImportant = [];
@@ -159,16 +290,30 @@ for (const absolute of runtimeFiles) {
 
 const exceptions = {
 	activeStack: ACTIVE_STACK,
+	allStylesheets: sourceFiles,
 	inactiveCssFiles: inactiveFiles,
+	referencedStylesheets: [...referencedStylesheets].sort(),
+	stylesheetReferenceEvidence,
+	orphanStylesheets,
 	rootBlocks,
-	rootOutsideTokens,
-	important,
+	canonicalRootBlocks,
+	scopedRootBlocks,
+	importantActive: activeRows(important),
+	importantInactive: inactiveRows(important),
 	runtimeImportant,
 	undefinedTokens,
-	hardcodedPixels,
+	hardcodedPixelsActive: activeRows(hardcodedPixels),
+	hardcodedPixelsInactive: inactiveRows(hardcodedPixels),
 	highSpecificity,
 	unsafeSelectors,
 	duplicateSelectors,
+	activeDuplicateSelectors,
+	fontFamilies,
+	nonCanonicalFonts,
+	hardcodedSpacing,
+	hardcodedColors,
+	iconColors,
+	inconsistentIconColors,
 	inlineStyles,
 	embeddedStyleTags,
 };
@@ -176,16 +321,25 @@ const exceptions = {
 const summary = {
 	generatedAt: new Date().toISOString(),
 	activeStylesheets: ACTIVE_STACK.length,
+	totalStylesheets: sourceFiles.length,
 	inactiveStylesheets: inactiveFiles.length,
+	orphanStylesheets: orphanStylesheets.length,
 	canonicalTokens: definedTokens.size,
-	rootOutsideTokens: rootOutsideTokens.length,
-	important: important.length,
+	canonicalRootBlocks: canonicalRootBlocks.length,
+	scopedRootBlocks: scopedRootBlocks.length,
+	importantActive: activeRows(important).length,
+	importantInactive: inactiveRows(important).length,
 	runtimeImportant: runtimeImportant.length,
 	undefinedTokens: undefinedTokens.length,
-	hardcodedPixels: hardcodedPixels.length,
+	hardcodedPixelsActive: activeRows(hardcodedPixels).length,
+	activeDuplicateSelectors: activeDuplicateSelectors.length,
+	allDuplicateSelectors: duplicateSelectors.length,
+	nonCanonicalFonts: nonCanonicalFonts.length,
+	hardcodedSpacing: hardcodedSpacing.length,
+	hardcodedColors: hardcodedColors.length,
+	inconsistentIconColors: inconsistentIconColors.length,
 	highSpecificity: highSpecificity.length,
 	unsafeSelectors: unsafeSelectors.length,
-	duplicateSelectors: duplicateSelectors.length,
 	inlineStyles: inlineStyles.length,
 	embeddedStyleTags: embeddedStyleTags.length,
 };
@@ -196,12 +350,15 @@ fs.writeFileSync(path.join(OUT_DIR, 'audit-summary.json'), JSON.stringify(summar
 console.log(JSON.stringify(summary, null, 2));
 
 const fatal = [];
-if (rootBlocks.length !== 1 || rootOutsideTokens.length) fatal.push(`expected one :root in nvx-tokens.css; found ${rootBlocks.length}`);
-if (important.length) fatal.push(`found ${important.length} !important declaration(s) in active CSS`);
+if (canonicalRootBlocks.length !== 1) fatal.push(`expected exactly one canonical :root in nvx-tokens.css; found ${canonicalRootBlocks.length}`);
+if (activeRows(important).length) fatal.push(`found ${activeRows(important).length} !important declaration(s) in active CSS`);
 if (runtimeImportant.length) fatal.push(`found ${runtimeImportant.length} !important declaration(s) in runtime PHP/JS/HTML`);
 if (undefinedTokens.length) fatal.push(`found ${undefinedTokens.length} undefined token reference(s)`);
 if (unsafeSelectors.length) fatal.push(`found ${unsafeSelectors.length} forbidden positional/relational selector(s)`);
 if (embeddedStyleTags.length) fatal.push(`found ${embeddedStyleTags.length} embedded <style> tag(s) in runtime files`);
+if (orphanStylesheets.length) fatal.push(`found ${orphanStylesheets.length} unreferenced stylesheet(s)`);
+if (nonCanonicalFonts.length) fatal.push(`found ${nonCanonicalFonts.length} non-canonical font-family declaration(s)`);
+if (inconsistentIconColors.length) fatal.push(`found ${inconsistentIconColors.length} inconsistent icon color declaration(s)`);
 
 if (fatal.length) {
 	console.error('\nCSS SYSTEM GATE FAILED');

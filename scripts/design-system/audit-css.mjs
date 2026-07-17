@@ -359,6 +359,7 @@ if (embeddedStyleTags.length) fatal.push(`found ${embeddedStyleTags.length} embe
 if (orphanStylesheets.length) fatal.push(`found ${orphanStylesheets.length} unreferenced stylesheet(s)`);
 if (nonCanonicalFonts.length) fatal.push(`found ${nonCanonicalFonts.length} non-canonical font-family declaration(s)`);
 if (inconsistentIconColors.length) fatal.push(`found ${inconsistentIconColors.length} inconsistent icon color declaration(s)`);
+if (hardcodedColors.length) fatal.push(`found ${hardcodedColors.length} literal color declaration(s) outside tokens`);
 
 if (fatal.length) {
 	console.error('\nCSS SYSTEM GATE FAILED');

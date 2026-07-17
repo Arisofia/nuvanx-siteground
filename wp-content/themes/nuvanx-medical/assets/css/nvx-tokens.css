@@ -23,6 +23,20 @@
   --nvx-color-paper: var(--nvx-surface-base);
   --nvx-color-line: rgba(23, 23, 23, 0.16);
 
+  /* Text and borders on dark surfaces. Literal color values live only here. */
+  --nvx-text-on-dark: var(--nvx-light);
+  --nvx-text-on-dark-92: rgba(255, 250, 242, 0.92);
+  --nvx-text-on-dark-90: rgba(255, 250, 242, 0.90);
+  --nvx-text-on-dark-88: rgba(255, 250, 242, 0.88);
+  --nvx-text-on-dark-82: rgba(255, 250, 242, 0.82);
+  --nvx-text-on-dark-78: rgba(255, 250, 242, 0.78);
+  --nvx-text-on-dark-72: rgba(255, 250, 242, 0.72);
+  --nvx-border-on-dark-55: rgba(255, 250, 242, 0.55);
+  --nvx-border-on-dark-50: rgba(255, 250, 242, 0.50);
+  --nvx-border-on-dark-45: rgba(255, 250, 242, 0.45);
+  --nvx-border-on-dark-42: rgba(255, 250, 242, 0.42);
+  --nvx-ink-muted: rgba(23, 23, 23, 0.82);
+
   /* Form-stage semantic palette + image (PHP may override image on section). */
   --nvx-form-stage-warm: #f1e8dc;
   --nvx-form-stage-mid: #e5ded4;

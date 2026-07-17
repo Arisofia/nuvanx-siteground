@@ -22,7 +22,7 @@
 
 .nvx-cta-banner__actions .nvx-btn--secondary,
 .nvx-cta-banner__actions .nvx-btn--ghost {
-  border-color: rgba(255, 255, 255, 0.45);
+  border-color: var(--nvx-border-on-dark-45);
   color: var(--nvx-light);
 }
 
@@ -43,7 +43,7 @@
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
   line-height: var(--nvx-lh-body);
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--nvx-text-on-dark-72);
 }
 
 .nvx-footer {

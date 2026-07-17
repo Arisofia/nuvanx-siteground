@@ -4,10 +4,12 @@ on:
   push:
     paths:
       - 'scripts/security/issue-45-*'
+      - 'scripts/security/test-issue-45-*'
       - '.github/workflows/security-remediation-tooling.yml'
   pull_request:
     paths:
       - 'scripts/security/issue-45-*'
+      - 'scripts/security/test-issue-45-*'
       - '.github/workflows/security-remediation-tooling.yml'
 
 permissions:
@@ -24,6 +26,8 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m py_compile scripts/security/issue-45-build-manifest.py
+          python3 -m py_compile scripts/security/issue-45-summarize-inventory.py
+          python3 -m py_compile scripts/security/test-issue-45-summarize-inventory.py
           bash -n scripts/security/issue-45-inventory.sh
           bash -n scripts/security/issue-45-purge.sh
           bash -n scripts/security/issue-45-verify.sh
@@ -61,3 +65,8 @@ jobs:
             echo 'ERROR: approved mu-plugin source was incorrectly classified for purge.'
             exit 1
           fi
+
+      - name: Validate inventory approval rules
+        run: |
+          set -euo pipefail
+          python3 scripts/security/test-issue-45-summarize-inventory.py

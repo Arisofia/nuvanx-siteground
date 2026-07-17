@@ -20,11 +20,12 @@
   --nvx-color-paper: #f2f3f5;
   --nvx-color-line: rgba(20, 22, 26, 0.12);
 
-  /* Form-stage semantic palette. */
+  /* Form-stage semantic palette + image (PHP may override image on section). */
   --nvx-form-stage-warm: #e7d7be;
   --nvx-form-stage-mid: #d5d8dc;
   --nvx-form-stage-cool: #aeb8c2;
   --nvx-form-stage-fallback: #c5cdd4;
+  --nvx-form-stage-image: none;
 
   --nvx-shadow-min: 0 1px 2px rgba(20, 22, 26, 0.04);
   --nvx-shadow-soft: 0 16px 48px rgba(20, 22, 26, 0.06);
@@ -78,6 +79,8 @@
 
   /* Media */
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
+  /* Hero stage height (component media queries may override). */
+  --nvx-hero-h: min(92svh, 980px);
 
   /* Component dimensions */
   --nvx-header-height: 80px;

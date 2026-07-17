@@ -86,6 +86,8 @@ qa/screenshots/
 qa/results/
 qa/seo-geo/rendered-audit.json
 qa/seo-geo/rendered-audit.md
+qa/clinical-claims/claims-audit.json
+qa/clinical-claims/claims-audit.md
 
 # Audit run output
 artifacts/audit-results/

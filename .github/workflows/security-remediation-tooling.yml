@@ -5,15 +5,13 @@ on:
     paths:
       - 'scripts/security/issue-45-*'
       - 'scripts/security/test-issue-45-*'
-      - 'docs/security/issue45-backup-public-key.pem'
-      - '.github/workflows/issue45-history-rewrite-execution.yml'
+      - 'scripts/security/gitleaks.toml'
       - '.github/workflows/security-remediation-tooling.yml'
   pull_request:
     paths:
       - 'scripts/security/issue-45-*'
       - 'scripts/security/test-issue-45-*'
-      - 'docs/security/issue45-backup-public-key.pem'
-      - '.github/workflows/issue45-history-rewrite-execution.yml'
+      - 'scripts/security/gitleaks.toml'
       - '.github/workflows/security-remediation-tooling.yml'
 
 permissions:
@@ -36,23 +34,13 @@ jobs:
           bash -n scripts/security/issue-45-purge.sh
           bash -n scripts/security/issue-45-verify.sh
 
-      - name: Validate guarded rewrite workflow
+      - name: Validate Gitleaks configuration
         run: |
           set -euo pipefail
-          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12 \
-            .github/workflows/issue45-history-rewrite-execution.yml
-
-      - name: Validate offline recovery public key
-        run: |
-          set -euo pipefail
-          key='docs/security/issue45-backup-public-key.pem'
-          expected='97b999b0c159f0a747c4b6d230c9fe8ffd213420ca5fd339d9555ff5cb5d235a'
-          actual="$(sha256sum "$key" | awk '{print $1}')"
-          openssl pkey -pubin -in "$key" -noout
-          if [[ "$actual" != "$expected" ]]; then
-            echo "ERROR: recovery public key fingerprint mismatch: ${actual}"
-            exit 1
-          fi
+          test -s scripts/security/gitleaks.toml
+          grep -Fq '[extend]' scripts/security/gitleaks.toml
+          grep -Fq 'useDefault = true' scripts/security/gitleaks.toml
+          grep -Fq 'issue45-recovery-public-key-fingerprint' scripts/security/gitleaks.toml
 
       - name: Validate path classification fixture
         run: |

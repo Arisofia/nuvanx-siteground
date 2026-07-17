@@ -58,15 +58,22 @@ if [[ -d "$analysis_dir" ]]; then
 fi
 
 gitleaks_report="$output_dir/gitleaks-before-redacted.json"
+gitleaks_config="$tools_dir/gitleaks.toml"
 : > "$gitleaks_report"
 if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks_args=(
+    git
+    --redact=100
+    --report-format json
+    --report-path "$gitleaks_report"
+    --log-opts=--all
+  )
+  if [[ -f "$gitleaks_config" ]]; then
+    gitleaks_args+=(--config "$gitleaks_config")
+  fi
+  gitleaks_args+=("$repo_dir")
   set +e
-  gitleaks git \
-    --redact=100 \
-    --report-format json \
-    --report-path "$gitleaks_report" \
-    --log-opts='--all' \
-    "$repo_dir"
+  gitleaks "${gitleaks_args[@]}"
   gitleaks_status=$?
   set -e
   printf 'gitleaks_exit=%s\n' "$gitleaks_status" >> "$output_dir/inventory-metadata.txt"

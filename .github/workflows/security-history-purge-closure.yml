@@ -27,20 +27,34 @@ jobs:
           git fetch --force origin \
             '+refs/pull/*/head:refs/remotes/pull/*' || true
 
-      - name: Record temporary repository visibility
+      - name: Record current repository visibility
         env:
-          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+          GH_TOKEN: ${{ github.token }}
+          EVENT_REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
         run: |
           set -euo pipefail
           mkdir -p qa/security/history-closure
-          if [[ "${REPOSITORY_PRIVATE}" == 'true' ]]; then
-            echo 'repository_private=true' >> qa/security/history-closure/closure-state.txt
+
+          repository_private="$(gh api "repos/${GITHUB_REPOSITORY}" --jq '.private')"
+          if [[ "$repository_private" != 'true' && "$repository_private" != 'false' ]]; then
+            echo "ERROR: unable to resolve current repository visibility: ${repository_private:-empty}"
+            exit 1
+          fi
+
+          echo "repository_private=${repository_private}" >> qa/security/history-closure/closure-state.txt
+          echo "repository_private_event_snapshot=${EVENT_REPOSITORY_PRIVATE:-unknown}" >> qa/security/history-closure/closure-state.txt
+          echo 'repository_visibility_source=github_api_runtime' >> qa/security/history-closure/closure-state.txt
+
+          if [[ "$repository_private" == 'true' ]]; then
             echo 'Repository visibility is private.' >> "$GITHUB_STEP_SUMMARY"
           else
-            echo 'repository_private=false' >> qa/security/history-closure/closure-state.txt
-            echo '::warning::Repository is temporarily public for issue #45 remediation execution.'
+            echo '::warning::Repository is public while issue #45 remains open.'
             echo 'Visibility must return to private before closure; public mode is not release approval.'
-            echo 'repository_private=false — temporary remediation mode' >> "$GITHUB_STEP_SUMMARY"
+            echo 'repository_private=false — current GitHub API state' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          if [[ "${EVENT_REPOSITORY_PRIVATE:-unknown}" != "$repository_private" ]]; then
+            echo "::notice::The workflow event contained repository.private=${EVENT_REPOSITORY_PRIVATE:-unknown}; runtime API reports ${repository_private}. Runtime state is authoritative."
           fi
 
       - name: Record incident reachability (mutable vs pull)

@@ -38,7 +38,7 @@ jobs:
       - name: Audit active stack and exception paths
         run: node scripts/design-system/audit-css.mjs
 
-      - name: Publish exception inventory
+      - name: Publish exception inventory and canonical source snapshot
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -46,5 +46,8 @@ jobs:
           path: |
             qa/design-system/audit-summary.json
             qa/design-system/active-css-exceptions.json
+            wp-content/themes/nuvanx-medical/**/*.php
+            wp-content/themes/nuvanx-medical/assets/css/*.css
+            wp-content/themes/nuvanx-medical/assets/js/*.js
           if-no-files-found: error
           retention-days: 14

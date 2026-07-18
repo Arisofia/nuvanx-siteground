@@ -15,7 +15,6 @@ html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
-  overflow-x: clip;
   max-width: 100%;
 }
 
@@ -31,6 +30,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  /* Do not clip on body/html — overflow-x:clip forces overflow-y containment
+     and can swallow sticky header dropdowns (Tratamientos / Nosotros / Clínicas). */
+  max-width: 100%;
+}
+
+/* Horizontal crop lives on main/page frames, not body, so nav submenus stay clickable. */
+.nvx-main,
+.nvx-page {
   overflow-x: clip;
   max-width: 100%;
 }

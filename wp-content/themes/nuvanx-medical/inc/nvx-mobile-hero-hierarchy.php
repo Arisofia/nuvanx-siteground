@@ -15,16 +15,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Enqueue the responsive hero hierarchy after the canonical editorial patterns.
+ *
+ * Dependency handle must match functions.php (`nvx-patterns`), not the file name.
  */
 function nvx_enqueue_mobile_hero_hierarchy(): void {
-	$relative = '/assets/css/nvx-mobile-hero-hierarchy.css';
-	$file     = get_stylesheet_directory() . $relative;
+	$relative = 'assets/css/nvx-mobile-hero-hierarchy.css';
 
 	wp_enqueue_style(
 		'nvx-mobile-hero-hierarchy',
-		get_stylesheet_directory_uri() . $relative,
-		array( 'nvx-patterns-editorial' ),
-		file_exists( $file ) ? (string) filemtime( $file ) : null
+		get_template_directory_uri() . '/' . $relative,
+		array( 'nvx-patterns' ),
+		nvx_asset_version( $relative )
 	);
 }
 add_action( 'wp_enqueue_scripts', 'nvx_enqueue_mobile_hero_hierarchy', 40 );

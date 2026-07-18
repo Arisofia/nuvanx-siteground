@@ -92,6 +92,39 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
   overflow: hidden;
 }
 
+/*
+ * Post-hero clinical intro (moved out of media by nvx_split_hero_explanatory_copy).
+ * Share the same shell gutters as .nvx-brand-section__inner so sede pages (e.g. Goya)
+ * do not read with a different lateral margin than Chamberí/hub sections.
+ * Full mobile rules live in nvx-mobile-hero-hierarchy.css.
+ */
+.nvx-page__content .nvx-hero-context,
+.nvx-brand-page > .nvx-hero-context {
+  width: 100%;
+  margin: 0;
+  padding-block: var(--nvx-space-8, 2rem);
+  background: var(--nvx-light, #fff);
+  color: var(--nvx-text-body);
+  box-sizing: border-box;
+}
+
+.nvx-page__content .nvx-hero-context__inner,
+.nvx-brand-page > .nvx-hero-context > .nvx-hero-context__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-page__content .nvx-hero-context__lead,
+.nvx-page__content .nvx-hero-context__description,
+.nvx-brand-page .nvx-hero-context__lead,
+.nvx-brand-page .nvx-hero-context__description {
+  max-width: var(--nvx-measure);
+  margin: 0;
+}
+
 .nvx-page__content .nvx-brand-hero__media,
 .nvx-brand-page > .nvx-brand-hero .nvx-brand-hero__media {
   margin: 0;

@@ -13,6 +13,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Keep the Journal search surface limited to published articles. This prevents
+ * commercial pages from inheriting the editorial search template and styling.
+ */
+function nvx_theme_constrain_blog_search( WP_Query $query ): void {
+	if ( is_admin() || ! $query->is_main_query() || ! $query->is_search() ) {
+		return;
+	}
+
+	$query->set( 'post_type', 'post' );
+	$query->set( 'post_status', 'publish' );
+}
+add_action( 'pre_get_posts', 'nvx_theme_constrain_blog_search', 20 );
+
+/**
  * Whether the current public request belongs to the editorial journal.
  */
 function nvx_theme_is_blog_context(): bool {

@@ -92,47 +92,105 @@ add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', 8 );
 /**
  * Canonical medical author for journal (E-E-A-T). Not the WP login display name.
  *
+ * Defaults can be overridden per post via meta:
+ * - nvx_medical_author_name
+ * - nvx_medical_author_url
+ * - nvx_medical_author_role
+ * Or site-wide via the `nvx_blog_medical_author` filter.
+ *
+ * @param int|null $post_id Optional post ID (defaults to current post).
  * @return array{name:string,url:string,role:string}
  */
-function nvx_blog_medical_author(): array {
-	return array(
+function nvx_blog_medical_author( ?int $post_id = null ): array {
+	$post_id = $post_id ?: (int) get_the_ID();
+	$author  = array(
 		'name' => __( 'Dr. José Javier Rivera Tejeda', 'nuvanx-medical' ),
 		'url'  => home_url( '/equipo-medico/#physician-rivera-tejeda' ),
 		'role' => __( 'Director Médico NUVANX', 'nuvanx-medical' ),
+	);
+
+	if ( $post_id > 0 ) {
+		$meta_name = (string) get_post_meta( $post_id, 'nvx_medical_author_name', true );
+		$meta_url  = (string) get_post_meta( $post_id, 'nvx_medical_author_url', true );
+		$meta_role = (string) get_post_meta( $post_id, 'nvx_medical_author_role', true );
+		if ( '' !== trim( $meta_name ) ) {
+			$author['name'] = $meta_name;
+		}
+		if ( '' !== trim( $meta_url ) ) {
+			$author['url'] = $meta_url;
+		}
+		if ( '' !== trim( $meta_role ) ) {
+			$author['role'] = $meta_role;
+		}
+	}
+
+	/**
+	 * Filter medical author identity for journal E-E-A-T.
+	 *
+	 * @param array{name:string,url:string,role:string} $author  Author payload.
+	 * @param int                                       $post_id Post ID (0 if unknown).
+	 */
+	$filtered = apply_filters( 'nvx_blog_medical_author', $author, $post_id );
+	if ( ! is_array( $filtered ) ) {
+		return $author;
+	}
+
+	return array(
+		'name' => isset( $filtered['name'] ) ? (string) $filtered['name'] : $author['name'],
+		'url'  => isset( $filtered['url'] ) ? (string) $filtered['url'] : $author['url'],
+		'role' => isset( $filtered['role'] ) ? (string) $filtered['role'] : $author['role'],
 	);
 }
 
 /**
  * Strip hardcoded CMS bylines (Autor / Fecha / Lectura) from post body.
  * Hero meta in nvx-blog-single.php owns author, date and reading time.
+ *
+ * Loose label patterns only run on the leading preamble (before first H2)
+ * so mid-article copy mentioning “Autor” / “Fecha” is not removed.
  */
 function nvx_theme_strip_blog_content_bylines( string $content ): string {
 	if ( is_admin() || ! is_singular( 'post' ) || '' === trim( $content ) ) {
 		return $content;
 	}
 
-	// Explicit byline class from publish scripts.
+	// Explicit byline class from publish scripts (safe anywhere).
 	$content = (string) preg_replace(
 		'/<p\b[^>]*\bclass=["\'][^"\']*\bnvx-blog-byline\b[^"\']*["\'][^>]*>[\s\S]*?<\/p>/iu',
 		'',
 		$content
 	);
 
-	// Legacy plain paragraphs: Autor: … Fecha: … Lectura: …
-	$content = (string) preg_replace(
-		'/<p\b[^>]*>\s*(?:<strong>)?\s*Autor\s*:?\s*(?:<\/strong>)?[\s\S]{0,500}?(?:Fecha|Lectura)\s*:[\s\S]*?<\/p>/iu',
-		'',
-		$content,
-		3
-	);
+	// Split at first H2 so loose patterns never touch body sections.
+	$parts = preg_split( '/(?=<h2\b)/iu', $content, 2 );
+	$head  = $parts[0] ?? $content;
+	$tail  = $parts[1] ?? '';
 
-	// Orphan keyword dumps right after byline leftovers.
-	$content = (string) preg_replace(
-		'/<p\b[^>]*>\s*(?:<strong>)?\s*Palabras clave\s*:?\s*(?:<\/strong>)?[\s\S]{0,400}?<\/p>/iu',
+	// Legacy short preamble: Autor: … (optionally Fecha/Lectura on same paragraph).
+	$head = (string) preg_replace(
+		'/<p\b[^>]*>\s*(?:<strong>)?\s*Autor\s*:?\s*(?:<\/strong>)?\s*[^<]{0,160}(?:Fecha\s*:[^<]{0,80})?(?:Lectura\s*:[^<]{0,40})?\s*<\/p>/iu',
 		'',
-		$content,
+		$head,
 		2
 	);
+
+	// Adjacent short Fecha / Lectura lines immediately after a stripped Autor line.
+	$head = (string) preg_replace(
+		'/<p\b[^>]*>\s*(?:<strong>)?\s*(?:Fecha|Lectura)\s*:?\s*(?:<\/strong>)?\s*[^<]{0,80}\s*<\/p>/iu',
+		'',
+		$head,
+		2
+	);
+
+	// Orphan keyword dumps only in the preamble.
+	$head = (string) preg_replace(
+		'/<p\b[^>]*>\s*(?:<strong>)?\s*Palabras clave\s*:?\s*(?:<\/strong>)?\s*[^<]{0,200}\s*<\/p>/iu',
+		'',
+		$head,
+		1
+	);
+
+	$content = $head . $tail;
 
 	// Collapse excess leading whitespace after strips.
 	$content = (string) preg_replace( '/^(?:\s|<br\s*\/?>|&nbsp;)+/iu', '', $content );

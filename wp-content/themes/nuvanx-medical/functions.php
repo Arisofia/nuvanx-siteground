@@ -54,6 +54,53 @@ function nvx_theme_is_home_page(): bool {
 }
 
 /**
+ * Post-conversion / thank-you page slugs (hide site closing CTA).
+ * Single source of truth — CSS uses body.nvx-hide-closing-cta.
+ *
+ * @return string[]
+ */
+function nvx_theme_thank_you_page_slugs(): array {
+	return apply_filters(
+		'nvx_theme_thank_you_page_slugs',
+		array( 'gracias', 'solicitud-recibida', 'thank-you', 'thankyou' )
+	);
+}
+
+/**
+ * Valoración / consulta form page slugs (primary CTA may target #nvx-hubspot-form).
+ *
+ * @return string[]
+ */
+function nvx_theme_valoracion_form_page_slugs(): array {
+	return apply_filters(
+		'nvx_theme_valoracion_form_page_slugs',
+		array( 'valoracion', 'consulta-medica', 'consultamedica' )
+	);
+}
+
+/**
+ * Whether the current request is a thank-you / post-submit page.
+ */
+function nvx_theme_is_thank_you_page(): bool {
+	if ( ! is_page() ) {
+		return false;
+	}
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	return in_array( $slug, nvx_theme_thank_you_page_slugs(), true );
+}
+
+/**
+ * Whether the current request is a valoración form landing.
+ */
+function nvx_theme_is_valoracion_form_page(): bool {
+	if ( ! is_page() ) {
+		return false;
+	}
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	return in_array( $slug, nvx_theme_valoracion_form_page_slugs(), true );
+}
+
+/**
  * Site-wide pre-footer valoración band (canonical closing CTA).
  * Same markup on every public page so the close matches treatments/blog/sedes.
  * Only hide on thank-you / post-submit pages (form already completed).
@@ -63,17 +110,23 @@ function nvx_theme_show_cta_banner(): bool {
 		return false;
 	}
 
-	if ( is_page() ) {
-		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-		// Post-conversion only — keep contacto/valoración with the same global close.
-		$hide_slugs = array( 'gracias', 'solicitud-recibida', 'thank-you', 'thankyou' );
-		if ( in_array( $slug, $hide_slugs, true ) ) {
-			return false;
-		}
-	}
-
-	return true;
+	// Post-conversion only — keep contacto/valoración with the same global close.
+	return ! nvx_theme_is_thank_you_page();
 }
+
+/**
+ * Body hook so footer CSS can hide the closing band from the centralized slug list.
+ *
+ * @param string[] $classes Body classes.
+ * @return string[]
+ */
+function nvx_theme_cta_body_class( array $classes ): array {
+	if ( nvx_theme_is_thank_you_page() ) {
+		$classes[] = 'nvx-hide-closing-cta';
+	}
+	return array_values( array_unique( $classes ) );
+}
+add_filter( 'body_class', 'nvx_theme_cta_body_class' );
 
 function nvx_asset_version( string $relative_path ): string {
 	$path = get_template_directory() . '/' . ltrim( $relative_path, '/' );

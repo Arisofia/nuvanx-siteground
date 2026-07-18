@@ -155,9 +155,8 @@
 
 .nvx-footer__registrations { margin: 0; }
 
-/* Thank-you only — site closing CTA is global on contacto/valoración/blog/etc. */
-body.page-gracias .nvx-cta-banner,
-body.page-solicitud-recibida .nvx-cta-banner {
+/* Thank-you only — body class from nvx_theme_thank_you_page_slugs() (PHP source of truth). */
+body.nvx-hide-closing-cta .nvx-cta-banner {
   display: none;
 }
 

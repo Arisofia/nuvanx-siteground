@@ -10,16 +10,19 @@ set -euo pipefail
 
 BASE_URL="${BASE_URL:-https://staging2.nuvanx.com}"
 UA="${SMOKE_UA:-Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36}"
-TIMEOUT="${SMOKE_TIMEOUT:-45}"
+# Keep smoke under ~10–15 min worst case (many URLs × retries).
+TIMEOUT="${SMOKE_TIMEOUT:-20}"
+CONNECT_TIMEOUT="${SMOKE_CONNECT_TIMEOUT:-8}"
 # After cache flush / edge purge, staging sometimes returns tiny HTML briefly.
-RETRIES="${SMOKE_RETRIES:-6}"
-RETRY_SLEEP="${SMOKE_RETRY_SLEEP:-5}"
+RETRIES="${SMOKE_RETRIES:-3}"
+RETRY_SLEEP="${SMOKE_RETRY_SLEEP:-3}"
 MIN_BYTES="${SMOKE_MIN_BYTES:-500}"
 FAIL=0
 
 fetch_once() {
   local url="$1"
   curl -fsSL -L \
+    --connect-timeout "$CONNECT_TIMEOUT" \
     --max-time "$TIMEOUT" \
     -A "$UA" \
     -H 'Accept: text/html,application/xhtml+xml' \

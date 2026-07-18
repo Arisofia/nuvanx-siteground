@@ -1,6 +1,6 @@
 <?php
 /**
- * Journal index — WordPress posts page.
+ * Journal taxonomy, date and author archives.
  *
  * @package nuvanx-medical
  */

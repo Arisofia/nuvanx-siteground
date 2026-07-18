@@ -507,6 +507,12 @@ function nvx_schema_clinics() {
 				'propertyID' => 'Registro sanitario de la Comunidad de Madrid',
 				'value'      => 'CS20144',
 			),
+			'geo'         => array(
+				'@type'     => 'GeoCoordinates',
+				// Verified via Google Places API 2026-07-18 (C/ Fernández de la Hoz, 4, 28010 Madrid).
+				'latitude'  => 40.43392,
+				'longitude' => -3.69492,
+			),
 			'hasMap'      => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20C%2F%20de%20Fern%C3%A1ndez%20de%20la%20Hoz%204%2028010%20Madrid',
 			'areaServed'  => array( 'Chamberí', 'Almagro', 'Trafalgar', 'Madrid' ),
 			'openingHoursSpecification' => array(
@@ -547,6 +553,12 @@ function nvx_schema_clinics() {
 				'@type'      => 'PropertyValue',
 				'propertyID' => 'Registro sanitario de la Comunidad de Madrid',
 				'value'      => 'CS20073',
+			),
+			'geo'         => array(
+				'@type'     => 'GeoCoordinates',
+				// Verified via Google Places API 2026-07-18 (C/ Fernán González, 26, 28009 Madrid).
+				'latitude'  => 40.4251,
+				'longitude' => -3.6745,
 			),
 			'hasMap'      => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Goya%20C%2F%20de%20Fern%C3%A1n%20Gonz%C3%A1lez%2026%2028009%20Madrid',
 			'areaServed'  => array( 'Goya', 'Barrio de Salamanca', 'Lista', 'Recoletos', 'Madrid' ),

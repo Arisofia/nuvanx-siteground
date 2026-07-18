@@ -1,0 +1,77 @@
+diff --git a/wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php b/wp-content/themes/nuvanx-medical/inc/nvx-hero-hierarchy.php
+similarity index 80%
+rename from wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php
+rename to wp-content/themes/nuvanx-medical/inc/nvx-hero-hierarchy.php
+--- a/wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php
++++ b/wp-content/themes/nuvanx-medical/inc/nvx-hero-hierarchy.php
+@@ -13,23 +13,7 @@
+ 	exit;
+ }
+ 
+-/**
+- * Enqueue the responsive hero hierarchy after the canonical editorial patterns.
+- *
+- * Dependency handle must match functions.php (`nvx-patterns`), not the file name.
+- */
+-function nvx_enqueue_mobile_hero_hierarchy(): void {
+-	$relative = 'assets/css/nvx-mobile-hero-hierarchy.css';
+ 
+-	wp_enqueue_style(
+-		'nvx-mobile-hero-hierarchy',
+-		get_template_directory_uri() . '/' . $relative,
+-		array( 'nvx-patterns' ),
+-		nvx_asset_version( $relative )
+-	);
+-}
+-add_action( 'wp_enqueue_scripts', 'nvx_enqueue_mobile_hero_hierarchy', 40 );
+-
+ /**
+  * Test whether a DOM node has a class.
+  */
+@@ -49,11 +33,6 @@
+ 	$movable_classes = array(
+ 		'nvx-brand-hero__lead',
+ 		'nvx-brand-hero__description',
+-		'nvx-hero__lead',
+-		'nvx-page-hero__lead',
+-		'nvx-lead',
+-		'nvx-subtitle',
+-		'nvx-hero-subtitle',
+ 	);
+ 
+ 	foreach ( $movable_classes as $class_name ) {
+@@ -74,7 +53,6 @@
+ 		|| wp_doing_ajax()
+ 		|| ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+ 		|| false === stripos( $content, 'hero' )
+-		|| false !== stripos( $content, 'nvx-hero-context--generated' )
+ 		|| false !== stripos( $content, 'nvx-hero-intro--generated' )
+ 		|| ! class_exists( 'DOMDocument' )
+ 	) {
+@@ -97,7 +75,7 @@
+ 
+ 	$xpath = new DOMXPath( $document );
+ 	$heroes = $xpath->query(
+-		'//*[@id="nvx-content-transform-root"]//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero-section ")]'
++		'//*[@id="nvx-content-transform-root"]//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero ")]'
+ 	);
+ 
+ 	if ( false === $heroes ) {
+@@ -115,7 +93,7 @@
+ 
+ 	foreach ( $hero_nodes as $hero ) {
+ 		$copy_nodes = $xpath->query(
+-			'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ")]',
++			'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ")]',
+ 			$hero
+ 		);
+ 
+@@ -143,7 +121,7 @@
+ 		// share gutters with Chamberí — no special-case hero-context band.
+ 		$section = $document->createElement( 'section' );
+ 		$section->setAttribute( 'class', 'nvx-brand-section nvx-hero-intro nvx-hero-intro--generated' );
+-		$section->setAttribute( 'data-nvx-hero-context', 'clinical-introduction' );
++		$section->setAttribute( 'data-nvx-hero-intro', 'clinical-introduction' );
+ 		$section->setAttribute( 'aria-label', 'Introducción clínica' );
+ 
+ 		$inner = $document->createElement( 'div' );

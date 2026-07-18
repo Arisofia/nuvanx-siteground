@@ -1,0 +1,17 @@
+diff --git a/wp-content/themes/nuvanx-medical/inc/nvx-home-content-v2.php b/wp-content/themes/nuvanx-medical/inc/nvx-home-content-v2.php
+index ee05a5efb46411adc9a91bdddfa2a458e7a0e553..5104a79f9845993e11523aeb1a5eff5601111dd9 100644
+--- a/wp-content/themes/nuvanx-medical/inc/nvx-home-content-v2.php
++++ b/wp-content/themes/nuvanx-medical/inc/nvx-home-content-v2.php
+@@ -94,12 +94,6 @@ function nvx_home_content_v2_catalog(): array {
+ 	);
+ }
+ 
+-/** Test whether a node has a class token. */
+-function nvx_home_content_v2_has_class( DOMElement $node, string $class_name ): bool {
+-	$classes = preg_split( '/\s+/', trim( $node->getAttribute( 'class' ) ) ) ?: array();
+-	return in_array( $class_name, $classes, true );
+-}
+-
+ /** Replace all child nodes with a plain text node. */
+ function nvx_home_content_v2_set_text( DOMElement $node, string $text ): void {
+ 	while ( $node->firstChild ) {

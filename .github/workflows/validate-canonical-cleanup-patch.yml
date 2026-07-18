@@ -1,0 +1,68 @@
+name: Validate canonical cleanup patch
+
+on:
+  push:
+    branches:
+      - refactor/canonical-theme-cleanup-20260718
+    paths:
+      - ".cleanup-payload/**/*.patch"
+      - ".github/workflows/validate-canonical-cleanup-patch.yml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - ".cleanup-payload/**/*.patch"
+      - ".github/workflows/validate-canonical-cleanup-patch.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Assemble and validate patch
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mapfile -t patches < <(
+            find .cleanup-payload \
+              -maxdepth 1 \
+              -type f \
+              -name '*.patch' \
+              -print |
+              LC_ALL=C sort
+          )
+
+          if (( ${#patches[@]} == 0 )); then
+            echo "ERROR: no patch fragments found in .cleanup-payload" >&2
+            exit 1
+          fi
+
+          printf 'Patch fragments:\n'
+          printf ' - %s\n' "${patches[@]}"
+
+          cat "${patches[@]}" > /tmp/canonical-cleanup.patch
+
+          test -s /tmp/canonical-cleanup.patch || {
+            echo "ERROR: assembled patch is empty" >&2
+            exit 1
+          }
+
+          wc -c /tmp/canonical-cleanup.patch
+          git apply --check --verbose /tmp/canonical-cleanup.patch
+
+      - name: Upload assembled patch
+        if: success()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: canonical-cleanup-patch
+          path: /tmp/canonical-cleanup.patch
+          if-no-files-found: error
+          retention-days: 3

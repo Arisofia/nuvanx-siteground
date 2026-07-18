@@ -1,0 +1,10 @@
+diff --git a/wp-content/themes/nuvanx-medical/inc/nvx-integrations.php b/wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
+index 6a571e88e64f1fc9f948c911785f7a76ffb0c785..1765a8269a6768c10287f5955e10157e31d4daf2 100644
+--- a/wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
++++ b/wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
+@@ -136,4 +136,4 @@ require_once __DIR__ . '/nvx-clinical-language.php';
+ require_once __DIR__ . '/nvx-blog-system.php';
+ 
+ /** Global hero hierarchy: concise media overlay plus readable clinical introduction. */
+-require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
++require_once __DIR__ . '/nvx-hero-hierarchy.php';

@@ -53,7 +53,7 @@ function nvx_seo_metadata_catalog(): array {
 		),
 		'exion'        => array(
 			'title'       => 'EXION® BTL Madrid | Face, Body y Fractional RF | NUVANX',
-			'description' => 'EXION® BTL en Madrid: Face, Body y Fractional RF. Indicación y presupuesto tras valoración médica. Alternativa a RF fraccionada según diagnóstico.',
+			'description' => 'EXION® BTL en Madrid: Face, Body y Fractional RF. Modalidades seleccionadas según indicación clínica, zona y plan definido tras valoración médica.',
 		),
 		'exilite'      => array(
 			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y Rojeces | NUVANX',

@@ -25,7 +25,29 @@ jobs:
         run: |
           set -euo pipefail
           find .cleanup-payload -maxdepth 1 -type f -name '*.patch' -print | sort
-          cat $(find .cleanup-payload -maxdepth 1 -type f -name '*.patch' -print | sort) > /tmp/canonical-cleanup.patch
+          python3 - <<'PY'
+          from pathlib import Path
+
+          files = sorted(Path('.cleanup-payload').glob('*.patch'))
+          data = b''.join(path.read_bytes() for path in files)
+
+          repairs = (
+              (
+                  b'@@ -226,5 +214,4 @@ body.home  .nvx-main',
+                  b'@@ -226,5 +214,4 @@ body.home .nvx-main',
+              ),
+              (
+                  b'-    margin-top: var(--nvx-space-2);\n-  }\n\n-}\n-\n-@media (max-width: 480px)',
+                  b'-    margin-top: var(--nvx-space-2);\n-  }\n-}\n-\n-@media (max-width: 480px)',
+              ),
+          )
+          for old, new in repairs:
+              if data.count(old) != 1:
+                  raise SystemExit(f'Expected one staged-boundary marker, found {data.count(old)}: {old!r}')
+              data = data.replace(old, new, 1)
+
+          Path('/tmp/canonical-cleanup.patch').write_bytes(data)
+          PY
           wc -c /tmp/canonical-cleanup.patch
           git apply --check --verbose /tmp/canonical-cleanup.patch
 

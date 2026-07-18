@@ -226,18 +226,28 @@ extract_first_href_after_class() {
   local html="$1"
   local class_name="$2"
   local label="$3"
-  local flat matches match_count href
+  local flat matches match_count href class_re class_attr pattern
+  local -a patterns
+
+  # Escape ERE metacharacters so class_name is always matched literally in grep -E
+  # (e.g. foo.bar -> foo\.bar).
+  class_re="$(printf '%s' "$class_name" | sed -e 's/[][\.^$*+?(){}|]/\\&/g')"
+  # Shared class=… fragment used by all markup variants below.
+  class_attr="class=\"[^\"]*${class_re}[^\"]*\""
 
   flat="$(printf '%s' "$html" | tr '\n\r\t' ' ')"
-  # Anchor on class="…class_name…" then the next href="…".
-  matches="$(printf '%s' "$flat" | grep -oE "class=\"[^\"]*${class_name}[^\"]*\"[^>]*>[[:space:]]*<a[[:space:]][^>]*href=\"[^\"]+\"" || true)"
-  if [[ -z "$matches" ]]; then
-    # Attribute order may put href before class on the <a> itself (title/category links).
-    matches="$(printf '%s' "$flat" | grep -oE "<a[[:space:]][^>]*class=\"[^\"]*${class_name}[^\"]*\"[^>]*href=\"[^\"]+\"" || true)"
-  fi
-  if [[ -z "$matches" ]]; then
-    matches="$(printf '%s' "$flat" | grep -oE "<a[[:space:]][^>]*href=\"[^\"]+\"[^>]*class=\"[^\"]*${class_name}[^\"]*\"" || true)"
-  fi
+  # Variants: class on parent then child <a>, or class/href order on the <a> itself.
+  patterns=(
+    "${class_attr}[^>]*>[[:space:]]*<a[[:space:]][^>]*href=\"[^\"]+\""
+    "<a[[:space:]][^>]*${class_attr}[^>]*href=\"[^\"]+\""
+    "<a[[:space:]][^>]*href=\"[^\"]+\"[^>]*${class_attr}"
+  )
+
+  matches=""
+  for pattern in "${patterns[@]}"; do
+    matches="$(printf '%s' "$flat" | grep -oE "$pattern" || true)"
+    [[ -n "$matches" ]] && break
+  done
 
   match_count=0
   if [[ -n "$matches" ]]; then

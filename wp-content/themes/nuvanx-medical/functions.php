@@ -79,25 +79,40 @@ function nvx_theme_valoracion_form_page_slugs(): array {
 }
 
 /**
+ * Current singular page slug, or empty when not a page request.
+ */
+function nvx_theme_current_page_slug(): string {
+	if ( ! is_page() ) {
+		return '';
+	}
+	return (string) get_post_field( 'post_name', get_queried_object_id() );
+}
+
+/**
+ * Whether the current page slug is one of the given values.
+ *
+ * @param string[] $slugs Allowed slugs.
+ */
+function nvx_theme_is_page_slug_in( array $slugs ): bool {
+	$slug = nvx_theme_current_page_slug();
+	if ( '' === $slug || array() === $slugs ) {
+		return false;
+	}
+	return in_array( $slug, $slugs, true );
+}
+
+/**
  * Whether the current request is a thank-you / post-submit page.
  */
 function nvx_theme_is_thank_you_page(): bool {
-	if ( ! is_page() ) {
-		return false;
-	}
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	return in_array( $slug, nvx_theme_thank_you_page_slugs(), true );
+	return nvx_theme_is_page_slug_in( nvx_theme_thank_you_page_slugs() );
 }
 
 /**
  * Whether the current request is a valoración form landing.
  */
 function nvx_theme_is_valoracion_form_page(): bool {
-	if ( ! is_page() ) {
-		return false;
-	}
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	return in_array( $slug, nvx_theme_valoracion_form_page_slugs(), true );
+	return nvx_theme_is_page_slug_in( nvx_theme_valoracion_form_page_slugs() );
 }
 
 /**

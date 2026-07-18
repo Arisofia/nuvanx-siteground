@@ -1,0 +1,4 @@
+diff --git a/wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php b/wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php
+index 598c88501546072eee0679c8bbec2b6a5b1a9e21..535af486ea179d72e1316d145bf99b7554116e3b 100644
+--- a/wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php
++++ b/wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php

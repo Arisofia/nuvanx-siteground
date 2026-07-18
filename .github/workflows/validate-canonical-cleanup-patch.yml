@@ -5,10 +5,14 @@ on:
     branches:
       - refactor/canonical-theme-cleanup-20260718
     paths:
-      - '.github/workflows/validate-canonical-cleanup-patch.yml'
+      - ".cleanup-payload/**/*.patch"
+      - ".github/workflows/validate-canonical-cleanup-patch.yml"
   pull_request:
     branches:
       - master
+    paths:
+      - ".cleanup-payload/**/*.patch"
+      - ".github/workflows/validate-canonical-cleanup-patch.yml"
   workflow_dispatch:
 
 permissions:
@@ -17,47 +21,45 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
-      - name: Build and validate patch
+      - name: Assemble and validate patch
+        shell: bash
         run: |
           set -euo pipefail
-          find .cleanup-payload -maxdepth 1 -type f -name '*.patch' -print | sort
-          python3 - <<'PY'
-          from pathlib import Path
 
-          files = sorted(Path('.cleanup-payload').glob('*.patch'))
-          data = b''.join(path.read_bytes() for path in files)
-
-          repairs = (
-              (
-                  b'@@ -226,5 +214,4 @@ body.home  .nvx-main',
-                  b'@@ -226,5 +214,4 @@ body.home .nvx-main',
-              ),
-              (
-                  b'-    margin-top: var(--nvx-space-2);\n-  }\n\n-}\n-\n-@media (max-width: 480px)',
-                  b'-    margin-top: var(--nvx-space-2);\n-  }\n-}\n-\n-@media (max-width: 480px)',
-              ),
+          mapfile -t patches < <(
+            find .cleanup-payload \
+              -maxdepth 1 \
+              -type f \
+              -name '*.patch' \
+              -print |
+              LC_ALL=C sort
           )
-          for old, new in repairs:
-              if data.count(old) != 1:
-      - name: Build and validate patch
-        run: |
-          set -euo pipefail
-          patches=$(find .cleanup-payload -maxdepth 1 -type f -name '*.patch' -print | sort)
-          if [ -z "$patches" ]; then
-            echo "No patch files found in .cleanup-payload" >&2
+
+          if (( ${#patches[@]} == 0 )); then
+            echo "ERROR: no patch fragments found in .cleanup-payload" >&2
             exit 1
           fi
-          printf '%s\n' "$patches"
-          cat $patches > /tmp/canonical-cleanup.patch
+
+          printf 'Patch fragments:\n'
+          printf ' - %s\n' "${patches[@]}"
+
+          cat "${patches[@]}" > /tmp/canonical-cleanup.patch
+
+          test -s /tmp/canonical-cleanup.patch || {
+            echo "ERROR: assembled patch is empty" >&2
+            exit 1
+          }
+
           wc -c /tmp/canonical-cleanup.patch
           git apply --check --verbose /tmp/canonical-cleanup.patch
 
       - name: Upload assembled patch
-        if: always()
+        if: success()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: canonical-cleanup-patch

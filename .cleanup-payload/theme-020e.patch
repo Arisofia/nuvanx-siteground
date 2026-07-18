@@ -1,25 +1,38 @@
 diff --git a/wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php b/wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php
-index be82e2155bb950abdd4e09173df36665edfd1f6c..b190b459b9b97ab0970f3e5579e9d23a1e0b21f8 100644
 --- a/wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php
 +++ b/wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php
-@@ -19,7 +19,7 @@ while ( have_posts() ) :
+@@ -19,7 +19,7 @@
+ 
  	// Raw CMS markers (authoring-time).
  	$has_content_h1   = (bool) preg_match( '/<h1\b/i', $content );
 -	$has_content_hero = (bool) preg_match( '/nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-home-hero-stage/i', $content );
 +	$has_content_hero = (bool) preg_match( '/nvx-brand-hero|nvx-page-hero|nvx-home-hero-stage/i', $content );
-@@ -49,7 +49,8 @@ while ( have_posts() ) :
+ 
+ 	// Modules that inject a canonical hero + H1 via the_content even when CMS body is empty/legacy.
+ 	// Without this, the shell prints a second H1 (e.g. EXION Body / Face / EMFUSION).
+@@ -49,7 +49,8 @@
+ 		$has_managed_editorial = true;
+ 	}
+ 
 -	$has_media = has_post_thumbnail();
 +	$has_media         = has_post_thumbnail();
 +	$render_hero_media = $has_media && nvx_theme_hero_images_enabled();
-@@ -67,7 +68,8 @@ while ( have_posts() ) :
+ 	// Theme-owned hero when we have media and content does not already own a hero block.
+ 	$show_theme_hero = $has_media && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page();
+ 	// Title-only header only if no content H1 and no theme/content/managed hero.
+@@ -67,6 +68,7 @@
  	<?php if ( $show_theme_hero ) : ?>
  		<header class="nvx-page-hero nvx-page-hero--theme" aria-labelledby="nvx-page-hero-title-<?php the_ID(); ?>">
  			<div class="nvx-page-hero__inner">
--				<figure class="nvx-page-hero__media">
 +				<?php if ( $render_hero_media ) : ?>
-+				<figure class="nvx-page-hero__media">
-@@ -79,6 +81,7 @@ while ( have_posts() ) :
+ 				<figure class="nvx-page-hero__media">
+ 					<?php
+ 					the_post_thumbnail(
+@@ -79,6 +81,7 @@
  					);
  					?>
  				</figure>
 +				<?php endif; ?>
+ 				<div class="nvx-page-hero__copy">
+ 					<?php if ( is_singular( 'post' ) ) : ?>
+ 						<?php

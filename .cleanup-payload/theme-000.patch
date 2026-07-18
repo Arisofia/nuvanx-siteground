@@ -68,4 +68,4 @@ index 5588f904d2ab2cb96dc7c72062008f189ee1d50e..e8dc6f0a0b3951c670678dc2cb0cfd20
  }
  @media(max-width:680px){
    .nvx-home-hero-stage{--nvx-hero-h:100svh;min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
-@@ -226,5 +214,4 @@ body.home 
+@@ -226,5 +214,4 @@ body.home

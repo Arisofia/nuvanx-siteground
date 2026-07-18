@@ -150,43 +150,6 @@ function nvx_aesthetic_hero_copy_markup(): string {
 }
 
 /**
- * Action banner — dark conversion (valoración + WhatsApp; presencial).
- */
-function nvx_aesthetic_action_banner_markup(): string {
-	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
-		? nvx_cta_valoracion_url()
-		: home_url( '/madrid/valoracion/' );
-	$whatsapp = function_exists( 'nvx_cta_whatsapp_url' )
-		? nvx_cta_whatsapp_url()
-		: 'https://wa.me/34669319836';
-
-	$html  = '<section class="nvx-aes-action" aria-label="' . esc_attr__( 'Reservar valoración de medicina estética', 'nuvanx-medical' ) . '">';
-	$html .= '<div class="nvx-aes-action__shell">';
-	$html .= '<div class="nvx-aes-action__card">';
-	$html .= '<div class="nvx-aes-action__copy">';
-	$html .= '<h2 class="nvx-aes-action__title">' . esc_html__( 'Inicia tu diagnóstico médico de precisión', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-aes-action__text">' . wp_kses(
-		__( 'Agenda tu valoración médica personalizada de 15 a 30 minutos. Disponible de forma presencial en nuestras clínicas autorizadas de <strong>Chamberí</strong> (Registro Sanitario CS20144) o <strong>Salamanca–Goya</strong> (Registro Sanitario CS20073).', 'nuvanx-medical' ),
-		array( 'strong' => array() )
-	) . '</p>';
-	$html .= '</div>';
-	$html .= '<div class="nvx-aes-action__ctas">';
-	$html .= sprintf(
-		'<a class="nvx-aes-action__primary" href="%1$s">%2$s</a>',
-		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
-	);
-	$html .= sprintf(
-		'<a class="nvx-aes-action__secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
-		esc_url( $whatsapp ),
-		esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
-	);
-	$html .= '</div></div></div></section>';
-
-	return $html;
-}
-
-/**
  * Diagnosis pillars section.
  */
 function nvx_aesthetic_diagnosis_section_markup(): string {
@@ -393,6 +356,7 @@ function nvx_aesthetic_faq_section_markup(): string {
 
 /**
  * Full editorial body after hero.
+ * Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
  */
 function nvx_aesthetic_editorial_body_markup(): string {
 	return '<div class="nvx-aesthetic-editorial">'
@@ -400,7 +364,6 @@ function nvx_aesthetic_editorial_body_markup(): string {
 		. nvx_aesthetic_catalog_section_markup()
 		. nvx_aesthetic_regen_section_markup()
 		. nvx_aesthetic_faq_section_markup()
-		. nvx_aesthetic_action_banner_markup()
 		. '</div>';
 }
 

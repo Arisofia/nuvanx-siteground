@@ -197,19 +197,12 @@ function nvx_treatments_logo_cloud_markup(): string {
 	return $html . '</ul></div></section>';
 }
 
-/** Build the canonical closing conversion band. */
+/**
+ * Legacy page-local catalog close — empty so only site footer CTA remains.
+ * Still used as preg_replace replacement to strip old CMS CTA bands.
+ */
 function nvx_treatments_close_cta_markup(): string {
-	if ( ! function_exists( 'nvx_cta_pair_markup' ) ) {
-		return '';
-	}
-
-	$html  = '<section class="nvx-catalog-close" aria-label="Reservar valoración médica">';
-	$html .= '<div class="nvx-catalog-close__inner"><div>';
-	$html .= '<p class="nvx-catalog-close__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 class="nvx-catalog-close__title">' . esc_html__( '¿No sabes por dónde empezar?', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-catalog-close__text">' . esc_html__( 'Revisamos tu caso en una valoración médica gratuita presencial y te orientamos hacia el protocolo más adecuado, con criterio clínico y expectativa realista.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>' . nvx_cta_pair_markup( 'nvx-catalog-close__actions' );
-	return $html . '</div></section>';
+	return '';
 }
 
 /** Replace legacy catalogue, collaborator, summary and CTA blocks. */

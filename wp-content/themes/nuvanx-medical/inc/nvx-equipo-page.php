@@ -86,31 +86,6 @@ function nvx_equipo_hero_copy_markup(): string {
 }
 
 /**
- * Action CTAs.
- */
-function nvx_equipo_action_ctas_markup(): string {
-	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
-		? nvx_cta_valoracion_url()
-		: home_url( '/madrid/valoracion/' );
-	$doctoralia = 'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid';
-
-	$html  = '<div class="nvx-cta-pair nvx-endolift-action__ctas">';
-	$html .= sprintf(
-		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
-		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración médica', 'nuvanx-medical' )
-	);
-	$html .= sprintf(
-		'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
-		esc_url( $doctoralia ),
-		esc_html__( 'Perfil en Doctoralia', 'nuvanx-medical' )
-	);
-	$html .= '</div>';
-
-	return $html;
-}
-
-/**
  * Whether media HTML is a logo / non-portrait asset (never use as staff/hero photo).
  */
 function nvx_equipo_media_is_logo( string $html ): bool {
@@ -646,23 +621,6 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
 }
 
 /**
- * Closing CTA for equipo page.
- */
-function nvx_equipo_closing_cta_markup(): string {
-	$html  = '<section class="nvx-endolift-action" aria-label="' . esc_attr__( 'Reservar valoración con el equipo médico', 'nuvanx-medical' ) . '">';
-	$html .= '<div class="nvx-endolift-action__inner">';
-	$html .= '<div>';
-	$html .= '<p class="nvx-endolift-action__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 class="nvx-endolift-action__title">' . esc_html__( 'Consulta con criterio médico, no con catálogo', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-action__text">' . esc_html__( 'Agenda una valoración presencial en Chamberí o Goya. Indicación, límites y plan documentado antes de cualquier procedimiento.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>';
-	$html .= nvx_equipo_action_ctas_markup();
-	$html .= '</div></section>';
-
-	return $html;
-}
-
-/**
  * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
  */
 function nvx_content_restructure_equipo_page( string $content ): string {
@@ -694,13 +652,13 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	$hero .= $media;
 	$hero .= '</div></section>';
 
-	// Director → Dra. Ivon → Dr. Fabio → resto del equipo (CMS) → CTA.
+	// Director → Dra. Ivon → Dr. Fabio → resto del equipo (CMS).
+	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
 	$body  = '<div class="nvx-equipo-editorial nvx-endolift-editorial">';
 	$body .= nvx_equipo_director_authority_markup( $staff['rivera_media'] );
 	$body .= nvx_equipo_ivon_authority_markup( $staff['ivon_media'] );
 	$body .= nvx_equipo_fabio_authority_markup( $staff['fabio_media'] ?? '' );
 	$body .= nvx_equipo_other_staff_section_markup( $staff['other_cards'] );
-	$body .= nvx_equipo_closing_cta_markup();
 	$body .= '</div>';
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {

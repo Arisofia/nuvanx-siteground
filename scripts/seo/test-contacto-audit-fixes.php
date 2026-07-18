@@ -5,23 +5,27 @@
 
 declare(strict_types=1);
 
-$root          = dirname( __DIR__, 2 );
-$module_path   = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-contacto-audit-fixes.php';
-$footer_path   = $root . '/wp-content/themes/nuvanx-medical/footer.php';
-$loader_path   = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-integrations.php';
-$template_path = $root . '/wp-content/themes/nuvanx-medical/templates/template-contact.php';
+$root                = dirname( __DIR__, 2 );
+$module_path         = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-contacto-audit-fixes.php';
+$footer_path         = $root . '/wp-content/themes/nuvanx-medical/footer.php';
+$loader_path         = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-integrations.php';
+$template_path       = $root . '/wp-content/themes/nuvanx-medical/templates/template-contact.php';
+$page_template_path  = $root . '/wp-content/themes/nuvanx-medical/templates/page-contacto.php';
+$valoracion_path     = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-contacto-valoracion-page.php';
 
-foreach ( array( $module_path, $footer_path, $loader_path, $template_path ) as $path ) {
+foreach ( array( $module_path, $footer_path, $loader_path, $template_path, $page_template_path, $valoracion_path ) as $path ) {
 	if ( ! is_readable( $path ) ) {
 		fwrite( STDERR, "Missing required file: {$path}\n" );
 		exit( 1 );
 	}
 }
 
-$module   = (string) file_get_contents( $module_path );
-$footer   = (string) file_get_contents( $footer_path );
-$loader   = (string) file_get_contents( $loader_path );
-$template = (string) file_get_contents( $template_path );
+$module        = (string) file_get_contents( $module_path );
+$footer        = (string) file_get_contents( $footer_path );
+$loader        = (string) file_get_contents( $loader_path );
+$template      = (string) file_get_contents( $template_path );
+$page_template = (string) file_get_contents( $page_template_path );
+$valoracion    = (string) file_get_contents( $valoracion_path );
 
 $required_module_fragments = array(
 	"add_filter( 'wpseo_opengraph_image', 'nvx_contacto_audit_social_image', 100 )",

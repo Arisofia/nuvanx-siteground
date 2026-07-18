@@ -53,12 +53,19 @@
       return (pathname || '').replace(/\/+$/, '') + '/';
     }
 
+    // Parsed once at init — avoid new URL() on every CTA click.
+    var pagePath = normalizePath('/');
+    try {
+      pagePath = normalizePath(new URL(pageUrl, window.location.origin).pathname);
+    } catch (err) {
+      pagePath = '/madrid/valoracion/';
+    }
+
     function isValoracionHref(href) {
       if (!href) return false;
       try {
         var u = new URL(href, window.location.origin);
         var path = normalizePath(u.pathname);
-        var pagePath = normalizePath(new URL(pageUrl, window.location.origin).pathname);
         if (path === pagePath) return true;
         return (
           path.indexOf('/madrid/valoracion/') !== -1 ||

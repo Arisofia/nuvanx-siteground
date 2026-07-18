@@ -24,7 +24,7 @@ Body content rules (margins, figures): see `docs/design-system/body-content.md`.
 | `nvx-posts.css` | contexto blog/journal | archive + single Journal |
 | `nvx-mobile-hero-hierarchy.css` | global | jerarquía tipográfica hero en móvil |
 | `nvx-medical-review.css` | review médico aprobado | sello/revisión |
-| `nvx-hero-blackout.css` | flag `NVX_HERO_BLACKOUT` (**default off**) | blackout opcional de fotos de hero (no canónico) |
+| `nvx-hero-blackout.css` | flag `NVX_HERO_BLACKOUT` (**default on**) | heads en negro sin fotos; el **vídeo** de home se mantiene |
 
 Blog, contacto, valoración, sedes, tratamientos, gracias, 404: **mismo stack base**; capas condicionales arriba.
 

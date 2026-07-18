@@ -560,8 +560,9 @@ function nvx_sede_strip_layout_inline_styles( string $content ): string {
 	return preg_replace_callback(
 		$pattern,
 		static function ( array $match ) use ( $class_re, $blocked ): string {
-			$tag      = strtolower( $match[1] );
-			$open_mid = $match[2]; // attributes including style=...
+			// Keep original tag casing in rebuilt markup (allow-list match is case-insensitive via /i).
+			$tag_original = $match[1];
+			$open_mid     = $match[2]; // attributes including style=...
 			if ( ! preg_match( '/\bclass\s*=\s*(["\'])([^"\']*)\1/iu', $open_mid, $class_m ) ) {
 				return $match[0];
 			}
@@ -589,7 +590,7 @@ function nvx_sede_strip_layout_inline_styles( string $content ): string {
 				$keep[] = $decl;
 			}
 
-			// Rebuild by replacing only the style attribute value (keep attribute order).
+			// Rebuild by replacing only the style attribute value (keep attribute order + tag case).
 			if ( array() === $keep ) {
 				$new_mid = preg_replace(
 					'/\sstyle=(["\'])([^"\']*)\1/iu',
@@ -597,7 +598,7 @@ function nvx_sede_strip_layout_inline_styles( string $content ): string {
 					$open_mid,
 					1
 				) ?? $open_mid;
-				return '<' . $tag . $new_mid . '>';
+				return '<' . $tag_original . $new_mid . '>';
 			}
 
 			$new_style = implode( '; ', $keep );
@@ -608,7 +609,7 @@ function nvx_sede_strip_layout_inline_styles( string $content ): string {
 				1
 			) ?? $open_mid;
 
-			return '<' . $tag . $new_mid . '>';
+			return '<' . $tag_original . $new_mid . '>';
 		},
 		$content
 	) ?? $content;

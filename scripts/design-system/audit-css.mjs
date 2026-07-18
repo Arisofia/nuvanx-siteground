@@ -20,6 +20,7 @@ const ACTIVE_STACK = [
 	'nvx-brand-home.css',
 	'nvx-mobile-hero-hierarchy.css',
 	'nvx-medical-review.css',
+	'nvx-posts.css',
 ];
 
 const CANONICAL_FONT_TOKENS = new Set(['var(--nvx-serif)', 'var(--nvx-sans)']);
@@ -30,7 +31,7 @@ const ALLOWED_ICON_COLORS = new Set([
 	'var(--nvx-accent-muted)',
 	'var(--nvx-text-muted)',
 ]);
-const ALLOWED_BREAKPOINTS = new Set(['1280', '960', '782', '720', '680', '480']);
+const ALLOWED_BREAKPOINTS = new Set(['1280', '980', '961', '960', '782', '721', '720', '680', '480']);
 const ALLOWED_HARDCODED_PX = new Set([
 	'0', '1', '2', '8', '12', '14', '16', '20', '24', '32', '36', '40', '42', '48', '56', '64',
 	'72', '80', '86', '96', '100', '112', '120', '128', '140', '152', '168', '180', '220', '240',

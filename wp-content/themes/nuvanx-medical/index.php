@@ -11,22 +11,21 @@ defined( 'ABSPATH' ) || exit;
 get_header();
 ?>
 <main id="nvx-main" class="nvx-main nvx-page" role="main">
-	<div class="nvx-shell nvx-page__shell">
-		<?php if ( have_posts() ) : ?>
-			<?php while ( have_posts() ) : the_post(); ?>
-				<article <?php post_class( 'nvx-page-body' ); ?>>
-					<div class="nvx-page-body__inner">
-						<?php the_title( '<h1 class="nvx-heading">', '</h1>' ); ?>
-						<div class="nvx-copy">
-							<?php the_content(); ?>
-						</div>
-					</div>
-				</article>
-			<?php endwhile; ?>
-		<?php else : ?>
-			<p class="nvx-copy"><?php esc_html_e( 'No se encontró contenido.', 'nuvanx-medical' ); ?></p>
-		<?php endif; ?>
-	</div>
+	<?php if ( have_posts() ) : ?>
+		<?php
+		while ( have_posts() ) :
+			the_post();
+			?>
+			<article <?php post_class( 'nvx-page-body nvx-shell' ); ?>>
+				<?php the_title( '<h1 class="nvx-heading">', '</h1>' ); ?>
+				<div class="nvx-copy entry-content">
+					<?php the_content(); ?>
+				</div>
+			</article>
+		<?php endwhile; ?>
+	<?php else : ?>
+		<p class="nvx-copy"><?php esc_html_e( 'No se encontró contenido.', 'nuvanx-medical' ); ?></p>
+	<?php endif; ?>
 </main>
 <?php
 get_footer();

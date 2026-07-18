@@ -87,6 +87,14 @@ function nvx_site_closing_cta_markup(): string {
 	$valoracion = nvx_cta_valoracion_url();
 	$whatsapp   = nvx_cta_whatsapp_url();
 
+	// Already on the valoración form page: primary CTA targets the form anchor.
+	if ( is_page() ) {
+		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+		if ( in_array( $slug, array( 'valoracion', 'consulta-medica', 'consultamedica' ), true ) ) {
+			$valoracion = trailingslashit( get_permalink() ) . '#nvx-hubspot-form';
+		}
+	}
+
 	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-cta-banner__inner">';
 	$html .= '<div>';
@@ -124,7 +132,11 @@ function nvx_content_strip_page_closing_ctas( string $content ): string {
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>/iu',
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+		// Legacy CMS “soft CTA” sections (not the site-wide footer band).
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-section--cta\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		'/<section\b[^>]*\bid=["\']nvx-site-closing-cta["\'][^>]*>[\s\S]*?<\/section>/iu',
+		// Duplicate pre-footer banners accidentally left in post_content.
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-cta-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 	);
 
 	foreach ( $patterns as $pattern ) {

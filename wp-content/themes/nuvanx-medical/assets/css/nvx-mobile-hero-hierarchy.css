@@ -108,8 +108,6 @@
   .nvx-hero__copy .nvx-button,
   .nvx-hero__copy .nvx-btn {
     width: 100%;
-    min-height: var(--nvx-control-size);
-    padding-inline: var(--nvx-space-2);
   }
 
   .nvx-brand-hero__copy .nvx-brand-meta {

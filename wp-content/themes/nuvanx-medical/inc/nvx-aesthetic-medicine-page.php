@@ -114,16 +114,16 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 
 	$html  = '<div class="nvx-cta-pair nvx-aes-hero-ctas">';
 	$html .= sprintf(
-		'<a class="nvx-brand-btn nvx-brand-btn--primary nvx-aes-btn--primary" href="%1$s">%2$s</a>',
+		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
 		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
 	);
 
 	if ( function_exists( 'nvx_cta_whatsapp_markup' ) ) {
-		$html .= nvx_cta_whatsapp_markup( 'nvx-brand-btn nvx-brand-btn--secondary nvx-aes-btn--secondary' );
+		$html .= nvx_cta_whatsapp_markup( 'nvx-brand-btn nvx-brand-btn--secondary' );
 	} else {
 		$html .= sprintf(
-			'<a class="nvx-brand-btn nvx-brand-btn--secondary nvx-aes-btn--secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+			'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
 			esc_url( 'https://wa.me/34669319836' ),
 			esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
 		);

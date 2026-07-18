@@ -155,27 +155,62 @@ function nvx_btl_claim_library(): array {
 }
 
 /**
- * Source (registry) text for a claim id.
+ * Translate a claim library string (literals live in nvx_btl_claim_library for extraction).
+ *
+ * phpcs:disable WordPress.WP.I18n.NonSingularStringLiteralText -- msgids are centralized claim literals.
+ */
+function nvx_btl_claim_translate( string $text ): string {
+	if ( '' === $text ) {
+		return '';
+	}
+	return __( $text, 'nuvanx-medical' );
+}
+
+/**
+ * Source (registry) text for a claim id — localized.
  */
 function nvx_btl_claim_source( string $id ): string {
 	$library = nvx_btl_claim_library();
-	return isset( $library[ $id ]['source'] ) ? (string) $library[ $id ]['source'] : '';
+	$raw     = isset( $library[ $id ]['source'] ) ? (string) $library[ $id ]['source'] : '';
+	return nvx_btl_claim_translate( $raw );
+}
+
+/**
+ * Safe claim lookup for registry builders (empty when id missing or helper unavailable).
+ */
+function nvx_btl_claim( string $id ): string {
+	if ( ! function_exists( 'nvx_btl_claim_source' ) ) {
+		return '';
+	}
+	return nvx_btl_claim_source( $id );
 }
 
 /**
  * Build strtr map from the claim library (skips identical source/governed pairs).
+ * Cached: content filter may call this once per request, but rebuild is avoided on repeats.
  *
  * @return array<string, string>
  */
 function nvx_btl_claim_replacement_map(): array {
+	static $map = null;
+	if ( null !== $map ) {
+		return $map;
+	}
+
 	$map = array();
 	foreach ( nvx_btl_claim_library() as $pair ) {
-		$from = (string) ( $pair['source'] ?? '' );
-		$to   = (string) ( $pair['governed'] ?? '' );
-		if ( '' === $from || '' === $to || $from === $to ) {
+		$from_raw = (string) ( $pair['source'] ?? '' );
+		$to_raw   = (string) ( $pair['governed'] ?? '' );
+		if ( '' === $from_raw || '' === $to_raw || $from_raw === $to_raw ) {
 			continue;
 		}
-		$map[ $from ] = $to;
+		// Match both raw and translated source (registry uses localized source).
+		$from_l10n = nvx_btl_claim_translate( $from_raw );
+		$to_l10n   = nvx_btl_claim_translate( $to_raw );
+		$map[ $from_raw ] = $to_l10n;
+		if ( $from_l10n !== $from_raw ) {
+			$map[ $from_l10n ] = $to_l10n;
+		}
 	}
 	return $map;
 }

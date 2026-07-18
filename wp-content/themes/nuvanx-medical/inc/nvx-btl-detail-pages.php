@@ -66,9 +66,9 @@ function nvx_btl_detail_registry(): array {
 			'mechanism'    => array(
 				'title' => __( 'Cómo funciona EXION® Face: doble acción biomecánica', 'nuvanx-medical' ),
 				'body'  => array(
-					// Shared with clinical governance (nvx_btl_claim_library).
-					function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_face_mech_intro' ) : '',
-					function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_face_ha_224' ) : '',
+					// Shared with clinical governance (nvx_btl_claim_library) — localized.
+					nvx_btl_claim( 'exion_face_mech_intro' ),
+					nvx_btl_claim( 'exion_face_ha_224' ),
 				),
 				'items' => array(
 					array(
@@ -91,7 +91,7 @@ function nvx_btl_detail_registry(): array {
 			),
 			'compare'      => array(
 				'title' => __( 'EXION Face frente a HIFU y RF de alto pico (p. ej. Thermage®)', 'nuvanx-medical' ),
-				'body'  => function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_face_compare' ) : '',
+				'body'  => nvx_btl_claim( 'exion_face_compare' ),
 				'link'  => $blog_face,
 				'label' => __( 'Leer: EXION Face vs HIFU y Thermage', 'nuvanx-medical' ),
 			),
@@ -170,13 +170,13 @@ function nvx_btl_detail_registry(): array {
 				'title' => __( 'Cómo funciona EXION® Body', 'nuvanx-medical' ),
 				'body'  => array(
 					__( 'El cabezal integra refrigeración activa de la superficie y radiofrecuencia monopolar profunda: la epidermis se protege mientras se deposita calor en hipodermis y dermis.', 'nuvanx-medical' ),
-					function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_body_btl_22' ) : '',
+					nvx_btl_claim( 'exion_body_btl_22' ),
 				),
 				'items' => array(
 					array(
 						'title' => __( 'Refrigeración activa en superficie', 'nuvanx-medical' ),
 						// Neutral wording — no unreviewed “lower burn risk” comparative claim.
-						'body'  => function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_body_cooling' ) : '',
+						'body'  => nvx_btl_claim( 'exion_body_cooling' ),
 					),
 					array(
 						'title' => __( 'RF monopolar profunda (~40–45 °C en tejido objetivo)', 'nuvanx-medical' ),
@@ -198,7 +198,7 @@ function nvx_btl_detail_registry(): array {
 			),
 			'compare'      => array(
 				'title' => __( 'EXION Body frente a CoolSculpting y Morpheus8 Body', 'nuvanx-medical' ),
-				'body'  => function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_body_compare' ) : '',
+				'body'  => nvx_btl_claim( 'exion_body_compare' ),
 				'link'  => $blog_body,
 				'label' => __( 'Leer: EXION Body vs CoolSculpting y Morpheus8', 'nuvanx-medical' ),
 			),
@@ -499,28 +499,50 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$body .= '</ul></div></section>';
 
 	// Compare + blog depth (strategy: internal link to money content).
-	$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
-	$body .= '<div class="nvx-endolift-section__inner">';
-	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="nvx-endolift-heading">' . esc_html( (string) ( $c['compare']['title'] ?? '' ) ) . '</h2>';
-	$compare_body = trim( (string) ( $c['compare']['body'] ?? '' ) );
-	if ( '' !== $compare_body ) {
-		$body .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html( $compare_body ) . '</p>';
-	}
-	$body .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( (string) ( $c['compare']['link'] ?? '' ) ) . '">' . esc_html( (string) ( $c['compare']['label'] ?? '' ) ) . '</a>';
-	if ( ! empty( $c['combo'] ) ) {
-		$body .= ' · <a class="nvx-brand-inline-link" href="' . esc_url( $c['combo'] ) . '">' . esc_html__( 'Protocolos combinados NUVANX', 'nuvanx-medical' ) . '</a>';
-	}
-	$body .= '</p>';
-	if ( ! empty( $c['related'] ) && is_array( $c['related'] ) ) {
-		foreach ( $c['related'] as $rel ) {
-			if ( ! is_array( $rel ) || empty( $rel['url'] ) || empty( $rel['label'] ) ) {
-				continue;
-			}
-			$body .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( (string) $rel['url'] ) . '">' . esc_html( (string) $rel['label'] ) . '</a></p>';
+	$compare_title = trim( (string) ( $c['compare']['title'] ?? '' ) );
+	$compare_body  = trim( (string) ( $c['compare']['body'] ?? '' ) );
+	$compare_link  = trim( (string) ( $c['compare']['link'] ?? '' ) );
+	$compare_label = trim( (string) ( $c['compare']['label'] ?? '' ) );
+	$has_compare_link = ( '' !== $compare_link && '' !== $compare_label );
+	$has_related      = ! empty( $c['related'] ) && is_array( $c['related'] );
+	$has_combo        = ! empty( $c['combo'] );
+	if ( '' !== $compare_title || '' !== $compare_body || $has_compare_link || $has_related || $has_combo ) {
+		$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
+		$body .= '<div class="nvx-endolift-section__inner">';
+		$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
+		if ( '' !== $compare_title ) {
+			$body .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="nvx-endolift-heading">' . esc_html( $compare_title ) . '</h2>';
 		}
+		if ( '' !== $compare_body ) {
+			$body .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html( $compare_body ) . '</p>';
+		}
+		if ( $has_compare_link || $has_combo ) {
+			$body .= '<p class="nvx-endolift-body">';
+			$parts = array();
+			if ( $has_compare_link ) {
+				$parts[] = '<a class="nvx-brand-inline-link" href="' . esc_url( $compare_link ) . '">' . esc_html( $compare_label ) . '</a>';
+			}
+			if ( $has_combo ) {
+				$parts[] = '<a class="nvx-brand-inline-link" href="' . esc_url( (string) $c['combo'] ) . '">' . esc_html__( 'Protocolos combinados NUVANX', 'nuvanx-medical' ) . '</a>';
+			}
+			$body .= implode( ' · ', $parts );
+			$body .= '</p>';
+		}
+		if ( $has_related ) {
+			foreach ( $c['related'] as $rel ) {
+				if ( ! is_array( $rel ) ) {
+					continue;
+				}
+				$rel_url   = trim( (string) ( $rel['url'] ?? '' ) );
+				$rel_label = trim( (string) ( $rel['label'] ?? '' ) );
+				if ( '' === $rel_url || '' === $rel_label ) {
+					continue;
+				}
+				$body .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( $rel_url ) . '">' . esc_html( $rel_label ) . '</a></p>';
+			}
+		}
+		$body .= '</div></section>';
 	}
-	$body .= '</div></section>';
 
 	// Process (string steps or titled steps — same list chrome).
 	$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-proc">';

@@ -28,7 +28,7 @@ Fuente: `functions.php` → `nvx_theme_scripts()` + módulos condicionales (rama
 
 12 hojas canónicas activas. No hay CSS huérfano en el directorio del tema.
 
-`style.css` en la raíz del tema es solo metadata de WordPress (no se encola como hoja de diseño).
+`style.css` en la raíz del tema es solo metadatos de WordPress (no se encola como hoja de diseño).
 
 ## Notas de higiene
 

@@ -183,7 +183,8 @@ function nvx_theme_scripts() {
 	wp_enqueue_style( 'nvx-base', $css . 'nvx-base.css', array( 'nvx-tokens' ), nvx_asset_version( 'assets/css/nvx-base.css' ) );
 	wp_enqueue_style( 'nvx-layout', $css . 'nvx-site-layout.css', array( 'nvx-base' ), nvx_asset_version( 'assets/css/nvx-site-layout.css' ) );
 	wp_enqueue_style( 'nvx-components', $css . 'nvx-components.css', array( 'nvx-layout' ), nvx_asset_version( 'assets/css/nvx-components.css' ) );
-	wp_enqueue_style( 'nvx-patterns', $css . 'nvx-patterns-editorial.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-patterns-editorial.css' ) );
+	wp_enqueue_style( 'nvx-hero-ctas', $css . 'nvx-hero-ctas.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-hero-ctas.css' ) );
+	wp_enqueue_style( 'nvx-patterns', $css . 'nvx-patterns-editorial.css', array( 'nvx-hero-ctas' ), nvx_asset_version( 'assets/css/nvx-patterns-editorial.css' ) );
 	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-patterns' ), nvx_asset_version( 'assets/css/nvx-header.css' ) );
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-header' ), nvx_asset_version( 'assets/css/nvx-footer.css' ) );
 

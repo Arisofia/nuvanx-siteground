@@ -18,6 +18,13 @@ RETRIES="${SMOKE_RETRIES:-3}"
 RETRY_SLEEP="${SMOKE_RETRY_SLEEP:-3}"
 MIN_BYTES="${SMOKE_MIN_BYTES:-500}"
 FAIL=0
+CAPTCHA_SKIPS=0
+
+# SiteGround bot challenge (GitHub Actions egress IPs often hit this).
+is_edge_captcha() {
+  local html="$1"
+  [[ "$html" == *sgcaptcha* || "$html" == *'/.well-known/sgcaptcha'* || "$html" == *'robot challenge'* ]]
+}
 
 fetch_once() {
   local url="$1"
@@ -33,20 +40,27 @@ fetch_once() {
 }
 
 # Retry on transport failure or suspiciously short bodies (edge/WAF blip).
+# Exit codes: 0=ok body, 2=edge captcha interstitial, 1=hard fetch failure.
 fetch() {
   local url="$1"
   local attempt=1
   local html=""
   local last_err=""
+  local saw_captcha=0
 
   while (( attempt <= RETRIES )); do
     if html="$(fetch_once "$url" 2>/tmp/nvx-smoke-curl.err)"; then
-      if [[ ${#html} -ge "$MIN_BYTES" ]]; then
+      if is_edge_captcha "$html"; then
+        saw_captcha=1
+        last_err="SiteGround edge captcha interstitial"
+        echo "  … retry $attempt/$RETRIES: $last_err" >&2
+      elif [[ ${#html} -ge "$MIN_BYTES" ]]; then
         printf '%s' "$html"
         return 0
+      else
+        last_err="response too short (${#html} bytes)"
+        echo "  … retry $attempt/$RETRIES: $last_err" >&2
       fi
-      last_err="response too short (${#html} bytes)"
-      echo "  … retry $attempt/$RETRIES: $last_err" >&2
     else
       last_err="HTTP fetch failed"
       if [[ -s /tmp/nvx-smoke-curl.err ]]; then
@@ -59,6 +73,14 @@ fetch() {
     fi
     attempt=$((attempt + 1))
   done
+
+  if [[ "$saw_captcha" -eq 1 ]]; then
+    echo "  WARN fetch $url — edge captcha after ${RETRIES} attempts (not a theme regression)" >&2
+    if [[ -n "${html:-}" ]]; then
+      echo "  body_head=$(printf '%s' "$html" | head -c 240 | tr '\n' ' ')" >&2
+    fi
+    return 2
+  fi
 
   echo "  FINAL_FAIL fetch $url — $last_err" >&2
   if [[ -n "${html:-}" ]]; then
@@ -98,7 +120,14 @@ check_page() {
   local url="${BASE_URL%/}${path}"
   echo "==> $name ($url)"
   local html
-  if ! html="$(fetch "$url")"; then
+  local fetch_rc=0
+  html="$(fetch "$url")" || fetch_rc=$?
+  if [[ "$fetch_rc" -eq 2 ]]; then
+    echo "  WARN[$name] skipped — SiteGround captcha blocked GitHub Actions edge" >&2
+    CAPTCHA_SKIPS=$((CAPTCHA_SKIPS + 1))
+    return
+  fi
+  if [[ "$fetch_rc" -ne 0 ]]; then
     echo "  FAIL[$name] could not fetch a usable HTML body" >&2
     FAIL=1
     return
@@ -303,6 +332,12 @@ echo
 if [[ "$FAIL" -ne 0 ]]; then
   echo "SMOKE_VERIFY_FAILED" >&2
   exit 1
+fi
+
+if [[ "$CAPTCHA_SKIPS" -gt 0 ]]; then
+  echo "SMOKE_VERIFY_OK_WITH_CAPTCHA_SKIPS captcha_skips=${CAPTCHA_SKIPS}"
+  echo "::warning::Staging smoke skipped ${CAPTCHA_SKIPS} page(s) due to SiteGround edge captcha on GitHub Actions IPs. Deploy job remains the source of truth for rsync/WP-CLI; whitelist GHA egress or run smoke from the host when possible."
+  exit 0
 fi
 
 echo "SMOKE_VERIFY_OK"

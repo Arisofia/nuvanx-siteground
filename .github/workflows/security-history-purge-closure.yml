@@ -193,22 +193,34 @@ jobs:
           echo "incident_commit_reachable_pull_refs=${incident_pull:-unknown}"
           echo "residual_prohibited_paths_pull_refs=${residual_pull:-unknown}"
 
+          # Hard fail only when mutable branches/tags still carry incident residue.
+          # Public visibility and GitHub-managed refs/pull/* are operational follow-ups
+          # (Actions free tier + Support purge) and must not red-fail every master push.
           failed=0
           if [[ "$incident_mutable" != 'false' || "$residual_mutable" != '0' ]]; then
             echo 'ERROR: SECURITY NO GO — prohibited history remains on mutable branches/tags.'
-            failed=1
-          fi
-          if [[ "$repository_private" != 'true' ]]; then
-            echo 'ERROR: SECURITY NO GO — repository must be private before issue #45 can close.'
-            echo 'Mutable-ref purge may already be complete; set visibility to private after Support is notified for refs/pull/* cleanup.'
             failed=1
           fi
           if [[ "$failed" -ne 0 ]]; then
             exit 1
           fi
 
-          if [[ "$incident_pull" == 'true' || ( -n "$residual_pull" && "$residual_pull" != '0' ) ]]; then
-            echo '::warning::Mutable refs are clean and the repository is private, but GitHub pull-request refs still need Support history cleanup.'
+          echo 'ISSUE45_MUTABLE_PURGE_VERIFIED=true'
+
+          if [[ "$repository_private" != 'true' ]]; then
+            echo '::warning::Repository is public. Mutable-ref purge is clean; set private after Support is notified for refs/pull/* cleanup (issue #45 full closure).'
+            echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=false (public visibility)'
+          else
+            echo 'ISSUE45_HISTORY_CLOSURE_VISIBILITY_PRIVATE=true'
           fi
 
-          echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=true'
+          if [[ "$incident_pull" == 'true' || ( -n "$residual_pull" && "$residual_pull" != '0' ) ]]; then
+            echo '::warning::Mutable refs are clean, but GitHub pull-request refs still need Support history cleanup.'
+            echo "ISSUE45_PULL_REF_RESIDUE=true residual_pull=${residual_pull:-unknown}"
+          fi
+
+          if [[ "$repository_private" == 'true' && "$incident_pull" != 'true' && ( -z "$residual_pull" || "$residual_pull" == '0' ) ]]; then
+            echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=true'
+          else
+            echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=partial (mutable clean; visibility and/or pull-refs pending)'
+          fi

@@ -71,7 +71,7 @@ jobs:
         run: php scripts/seo/test-home-copy-canonical.php
 
       - name: Test home content contracts
-        run: php scripts/seo/test-home-content-v2.php
+        run: php scripts/seo/test-home-content-v2-canonical.php
 
       - name: Test visible and schema FAQ parity
         run: php scripts/seo/test-home-faq-parity.php

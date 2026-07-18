@@ -8,9 +8,9 @@ on:
       # Nested asset globs so future css/js subdirs stay in scope.
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/assets/js/**'
-      # Enqueue + token surfaces (not every theme PHP template).
-      - 'wp-content/themes/nuvanx-medical/functions.php'
-      - 'wp-content/themes/nuvanx-medical/inc/**/*.php'
+      # Full theme PHP: enqueue lives in functions.php + inc/*, but audit-css.mjs
+      # also scans every template for inline style= / <style> / !important.
+      - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'scripts/design-system/audit-css.mjs'
       - '.github/workflows/design-system-exceptions.yml'
   pull_request:
@@ -19,8 +19,7 @@ on:
     paths:
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/assets/js/**'
-      - 'wp-content/themes/nuvanx-medical/functions.php'
-      - 'wp-content/themes/nuvanx-medical/inc/**/*.php'
+      - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'scripts/design-system/audit-css.mjs'
       - '.github/workflows/design-system-exceptions.yml'
   workflow_dispatch:

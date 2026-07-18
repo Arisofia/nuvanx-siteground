@@ -1,0 +1,8 @@
+im( $path, '/' );
+-	$found = nvx_aesthetic_lookup_published_url( $path );
+-	return null !== $found ? $found : home_url( '/' . $path . '/' );
+-}
+-
+ /**
+  * Detect Medicina Estética hub (injectables / regenerativa), not láser hub.
+  */

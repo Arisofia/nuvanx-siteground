@@ -175,8 +175,9 @@ jobs:
             test -f "$THEME/archive.php" || { echo "ERROR: remote missing archive.php"; exit 1; }
             test -f "$THEME/search.php" || { echo "ERROR: remote missing search.php"; exit 1; }
             test -f "$THEME/template-parts/content/nvx-blog-single.php" || { echo "ERROR: remote missing nvx-blog-single.php"; exit 1; }
-            grep -Fq 'nvx-blog-system.php' "$THEME/inc/nvx-integrations.php" \
-              || { echo "ERROR: nvx-blog-system not wired in integrations"; exit 1; }
+            grep -Fq "require_once __DIR__ . '/nvx-blog-system.php'" \
+              "$THEME/inc/nvx-integrations.php" \
+              || { echo "ERROR: nvx-blog-system not required from integrations (expected: require_once __DIR__ . '/nvx-blog-system.php')"; exit 1; }
             grep -Fq -- '--nvx-light: #fcfbf8;' "$CSS/nvx-tokens.css"
             grep -Fq -- '--nvx-surface-base: #f8f7f4;' "$CSS/nvx-tokens.css"
             grep -Fq -- '--nvx-accent-muted: #77736d;' "$CSS/nvx-tokens.css"

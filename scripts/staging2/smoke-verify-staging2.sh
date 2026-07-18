@@ -191,7 +191,8 @@ check_page "/blog/" "blog-index" \
   'nvx-posts.css'
 
 # Soft: page 2 may be empty on sparse staging; only require shell if HTML is long enough.
-if html_blog2="$(fetch "${BASE_URL%/}/blog/page/2/" 2>/dev/null || true)"; then
+# Note: `if html="$(fetch ...)"; then` preserves fetch exit status under set -e (no || true).
+if html_blog2="$(fetch "${BASE_URL%/}/blog/page/2/" 2>/dev/null)"; then
   if [[ ${#html_blog2} -ge "$MIN_BYTES" ]]; then
     require "blog-page-2" "$html_blog2" 'nvx-blog-archive'
     require "blog-page-2" "$html_blog2" 'nvx-posts.css'
@@ -219,14 +220,46 @@ to_path() {
   fi
 }
 
-if html_blog="$(fetch "${BASE_URL%/}/blog/" 2>/dev/null || true)"; then
-  post_url="$(printf '%s' "$html_blog" | tr '\n' ' ' | sed -n 's/.*class="nvx-blog-card__title"><a href="\([^"]\+\)".*/\1/p' | head -n1 || true)"
-  cat_url="$(printf '%s' "$html_blog" | tr '\n' ' ' | sed -n 's/.*class="nvx-blog-card__category"><a href="\([^"]\+\)".*/\1/p' | head -n1 || true)"
+# Extract first href after a given class= attribute (order-stable card markup).
+# Logs a count when multiple matches exist so markup drift is visible in CI logs.
+extract_first_href_after_class() {
+  local html="$1"
+  local class_name="$2"
+  local label="$3"
+  local flat matches match_count href
+
+  flat="$(printf '%s' "$html" | tr '\n\r\t' ' ')"
+  # Anchor on class="…class_name…" then the next href="…".
+  matches="$(printf '%s' "$flat" | grep -oE "class=\"[^\"]*${class_name}[^\"]*\"[^>]*>[[:space:]]*<a[[:space:]][^>]*href=\"[^\"]+\"" || true)"
+  if [[ -z "$matches" ]]; then
+    # Attribute order may put href before class on the <a> itself (title/category links).
+    matches="$(printf '%s' "$flat" | grep -oE "<a[[:space:]][^>]*class=\"[^\"]*${class_name}[^\"]*\"[^>]*href=\"[^\"]+\"" || true)"
+  fi
+  if [[ -z "$matches" ]]; then
+    matches="$(printf '%s' "$flat" | grep -oE "<a[[:space:]][^>]*href=\"[^\"]+\"[^>]*class=\"[^\"]*${class_name}[^\"]*\"" || true)"
+  fi
+
+  match_count=0
+  if [[ -n "$matches" ]]; then
+    match_count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l | tr -d ' ')"
+  fi
+  if [[ "$match_count" -gt 1 ]]; then
+    echo "  INFO[$label] ${match_count} href matches for class=${class_name}; using first" >&2
+  fi
+
+  href="$(printf '%s\n' "$matches" | head -n1 | sed -n 's/.*href="\([^"]\+\)".*/\1/p')"
+  printf '%s' "$href"
+}
+
+if html_blog="$(fetch "${BASE_URL%/}/blog/" 2>/dev/null)"; then
+  post_url="$(extract_first_href_after_class "$html_blog" 'nvx-blog-card__title' 'blog-single')"
+  # Category links sit on .nvx-blog-card__category > a (or a.nvx-blog-card__category).
+  cat_url="$(extract_first_href_after_class "$html_blog" 'nvx-blog-card__category' 'blog-category')"
 
   if [[ -n "${post_url:-}" ]]; then
     post_path="$(to_path "$post_url")"
     echo "==> blog-single (discovered $post_path)"
-    if html_post="$(fetch "${BASE_URL%/}${post_path}" 2>/dev/null || true)"; then
+    if html_post="$(fetch "${BASE_URL%/}${post_path}" 2>/dev/null)"; then
       require "blog-single" "$html_post" 'nvx-blog-single'
       require "blog-single" "$html_post" 'nvx-blog-context'
       require "blog-single" "$html_post" 'nvx-posts.css'
@@ -240,7 +273,7 @@ if html_blog="$(fetch "${BASE_URL%/}/blog/" 2>/dev/null || true)"; then
   if [[ -n "${cat_url:-}" ]]; then
     cat_path="$(to_path "$cat_url")"
     echo "==> blog-category (discovered $cat_path)"
-    if html_cat="$(fetch "${BASE_URL%/}${cat_path}" 2>/dev/null || true)"; then
+    if html_cat="$(fetch "${BASE_URL%/}${cat_path}" 2>/dev/null)"; then
       require "blog-category" "$html_cat" 'nvx-blog-archive'
       require "blog-category" "$html_cat" 'nvx-blog-grid'
       require "blog-category" "$html_cat" 'nvx-posts.css'
@@ -250,6 +283,9 @@ if html_blog="$(fetch "${BASE_URL%/}/blog/" 2>/dev/null || true)"; then
   else
     echo "  WARN[blog-category] no category link on /blog/ — skipped"
   fi
+else
+  echo "  WARN[blog-single] could not fetch /blog/ for discovery — skipped"
+  echo "  WARN[blog-category] could not fetch /blog/ for discovery — skipped"
 fi
 
 echo

@@ -4,7 +4,7 @@
  *
  * Funnel split:
  * - /madrid/valoracion/ → clinical intro + triple validation + form primary
- * - /contacto/ → clinics NAP + phones + GDPR note + link to valoración (no form)
+ * - /contacto/ → canonical page template with clinics and its dedicated form
  *
  * No videoconsulta CTA (not operational as marketed). Preliminary photo
  * orientation is only mentioned under GDPR disclaimer, not as a booking product.
@@ -191,7 +191,7 @@ function nvx_contacto_page_markup(): string {
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Contacto', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-contacto-h2" class="nvx-endolift-heading">' . esc_html__( 'Contacto directo y ubicaciones autorizadas por Sanidad', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Para diagnóstico y plan de tratamiento, reserve la valoración médica gratuita (15–30 min) en Chamberí o Goya. Esta página es el directorio NAP de sedes y teléfonos.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Aquí encontrarás las direcciones, teléfonos y horarios de nuestras clínicas de Chamberí y Salamanca–Goya. También puedes solicitar una valoración médica para recibir orientación sobre tu caso.', 'nuvanx-medical' ) . '</p>';
 	$html .= nvx_contact_clinics_markup();
 	$html .= nvx_contact_privacy_disclaimer_markup();
 	$html .= '<p class="nvx-contacto-cta"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Ir a valoración médica gratuita', 'nuvanx-medical' ) . '</a></p>';
@@ -229,41 +229,6 @@ function nvx_content_enhance_valoracion_page( string $content ): string {
 	return $intro . $content;
 }
 add_filter( 'the_content', 'nvx_content_enhance_valoracion_page', 16 );
-
-/**
- * Contacto: NAP editorial; strip embedded HubSpot forms (form lives on valoración).
- */
-function nvx_content_restructure_contacto_page( string $content ): string {
-	if ( is_admin() || ! nvx_is_contacto_page_request() ) {
-		return $content;
-	}
-
-	if ( false !== strpos( $content, 'nvx-contacto-editorial' ) ) {
-		return $content;
-	}
-
-	// Drop forms / shortcodes that belong on valoración.
-	$content = preg_replace(
-		'/<section\b[^>]*(?:nvx-hubspot-form|hubspot)[^>]*>[\s\S]*?<\/section>/iu',
-		'',
-		$content
-	) ?? $content;
-	$content = preg_replace( '/\[hubspot[^\]]*\]/iu', '', $content ) ?? $content;
-
-	$block = nvx_contacto_page_markup();
-
-	if ( preg_match( '/(<section\b[^>]*class=["\'][^"\']*nvx-(?:hero|page-hero|brand-hero)[^"\']*["\'][^>]*>[\s\S]*?<\/section>)/iu', $content, $m, PREG_OFFSET_CAPTURE ) ) {
-		$end = (int) $m[0][1] + strlen( $m[0][0] );
-		return substr( $content, 0, $end ) . $block;
-	}
-
-	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
-		return $wrap[1] . $block . '</div>';
-	}
-
-	return $block;
-}
-add_filter( 'the_content', 'nvx_content_restructure_contacto_page', 17 );
 
 /**
  * Yoast title for valoración.

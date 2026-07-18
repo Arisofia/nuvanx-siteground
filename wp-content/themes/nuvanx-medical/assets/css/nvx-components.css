@@ -686,18 +686,18 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 }
 
 /* —— Valoración modal (global CTA, keeps page context) —— */
-.nvx-valoracion-modal[hidden]{
-  display:none !important;
-}
 .nvx-valoracion-modal{
   position:fixed;
   inset:0;
   z-index:3000;
-  display:flex;
+  display:none;
   align-items:center;
   justify-content:center;
   padding:var(--nvx-space-3, 1.5rem);
   box-sizing:border-box;
+}
+.nvx-valoracion-modal.is-open{
+  display:flex;
 }
 .nvx-valoracion-modal__backdrop{
   position:absolute;

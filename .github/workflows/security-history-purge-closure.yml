@@ -222,7 +222,7 @@ jobs:
             echo '::warning::Repository is public. Mutable-ref purge is clean; set private after Support is notified for refs/pull/* cleanup (issue #45 full closure).'
           fi
 
-          if [[ "$incident_pull" != 'true' && ( -z "$residual_pull" || "$residual_pull" == '0' ) ]]; then
+          if [[ "$incident_pull" != 'true' && ( -z "${residual_pull:-}" || "${residual_pull:-}" == '0' ) ]]; then
             pull_refs_ok=true
             echo 'ISSUE45_HISTORY_PULL_REFS_OK=true'
           else

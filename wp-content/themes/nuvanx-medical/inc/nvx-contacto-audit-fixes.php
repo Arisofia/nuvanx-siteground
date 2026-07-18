@@ -94,14 +94,29 @@ function nvx_contacto_audit_schema_graph( $graph, $context ) {
 	$clinics      = nvx_schema_clinics();
 	$organization = nvx_schema_find_organization( $graph );
 
-	if ( null === $organization['index'] ) {
+	// Defensive: finder is expected to return {index,id}, but tolerate null/odd shapes.
+	if ( ! is_array( $organization ) ) {
+		$organization = array();
+	}
+	$org_id = ( isset( $organization['id'] ) && is_string( $organization['id'] ) && '' !== $organization['id'] )
+		? $organization['id']
+		: home_url( '/#/schema/organization/nuvanx' );
+	$org_index = array_key_exists( 'index', $organization ) ? $organization['index'] : null;
+	if ( null !== $org_index && ! is_int( $org_index ) && ! ( is_string( $org_index ) && ctype_digit( (string) $org_index ) ) ) {
+		$org_index = null;
+	}
+	if ( is_string( $org_index ) ) {
+		$org_index = (int) $org_index;
+	}
+
+	if ( null === $org_index ) {
 		$graph[] = array(
 			'@type' => array( 'Organization', 'MedicalOrganization' ),
-			'@id'   => $organization['id'],
+			'@id'   => $org_id,
 			'name'  => 'NUVANX Medicina Estética Láser',
 			'url'   => home_url( '/' ),
 		);
-		$organization['index'] = array_key_last( $graph );
+		$org_index = array_key_last( $graph );
 	}
 
 	$existing_ids = array();
@@ -123,18 +138,17 @@ function nvx_contacto_audit_schema_graph( $graph, $context ) {
 		}
 
 		$clinic                       = $clinics[ $key ];
-		$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
+		$clinic['parentOrganization'] = array( '@id' => $org_id );
 		$graph[]                      = $clinic;
 	}
 
-	$index = $organization['index'];
-	if ( null !== $index && isset( $graph[ $index ] ) ) {
+	if ( null !== $org_index && isset( $graph[ $org_index ] ) && is_array( $graph[ $org_index ] ) ) {
 		if ( function_exists( 'nvx_schema_add_type' ) ) {
-			$graph[ $index ]['@type'] = nvx_schema_add_type( $graph[ $index ]['@type'] ?? 'Organization', 'MedicalOrganization' );
+			$graph[ $org_index ]['@type'] = nvx_schema_add_type( $graph[ $org_index ]['@type'] ?? 'Organization', 'MedicalOrganization' );
 		}
 
-		$existing_refs = isset( $graph[ $index ]['subOrganization'] )
-			? (array) $graph[ $index ]['subOrganization']
+		$existing_refs = isset( $graph[ $org_index ]['subOrganization'] )
+			? (array) $graph[ $org_index ]['subOrganization']
 			: array();
 		$merged_refs   = array();
 		foreach ( array_merge( $existing_refs, $clinic_refs ) as $reference ) {
@@ -142,7 +156,7 @@ function nvx_contacto_audit_schema_graph( $graph, $context ) {
 				$merged_refs[ (string) $reference['@id'] ] = array( '@id' => (string) $reference['@id'] );
 			}
 		}
-		$graph[ $index ]['subOrganization'] = array_values( $merged_refs );
+		$graph[ $org_index ]['subOrganization'] = array_values( $merged_refs );
 	}
 
 	return $graph;
@@ -151,23 +165,45 @@ add_filter( 'wpseo_schema_graph', 'nvx_contacto_audit_schema_graph', 30, 2 );
 
 /**
  * Remove internal SEO jargon and expose verified clinic hours in visible copy.
+ *
+ * Prefer short stable anchors (or clinic-block markup) over full-sentence
+ * str_replace so minor punctuation/dash edits in CMS copy do not break the fix.
  */
 function nvx_contacto_audit_visible_copy( string $content ): string {
 	if ( is_admin() || ! nvx_contacto_audit_is_contact_page() ) {
 		return $content;
 	}
 
-	$replacements = array(
-		'Contacto privado · Madrid' => 'Clínicas NUVANX · Madrid',
-		'Contacto, sedes y consulta médica' => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',
-		'Agenda tu valoración médica' => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',
-		'Contacta con NUVANX para solicitar una valoración médica personalizada en Chamberí o Goya · Barrio Salamanca. El equipo revisará tu interés y te orientará hacia la sede y el profesional adecuados.' => 'Consulta médica presencial en Chamberí y Salamanca–Goya. El equipo te orientará hacia la sede y el médico disponible según tu caso.',
+	// Short stable phrase anchors (not full-sentence, dash-sensitive blobs).
+	$literal = array(
+		'Contacto privado'                           => 'Clínicas NUVANX',
+		'Contacto, sedes y consulta médica'          => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',
+		'Agenda tu valoración médica'                => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',
 		'Contacto directo y ubicaciones autorizadas por Sanidad' => 'Datos de contacto y sedes autorizadas',
-		'Para diagnóstico y plan de tratamiento, reserve la valoración médica gratuita (15–30 min) en Chamberí o Goya. Esta página es el directorio NAP de sedes y teléfonos.' => 'Contacta por teléfono o WhatsApp para solicitar una valoración médica gratuita de 15–30 minutos en Chamberí o Salamanca–Goya. La indicación y el presupuesto se confirman tras la valoración.',
-		'<p class="nvx-contact-clinic__days"><strong>Consulta médica directa:</strong> Martes y jueves</p>' => '<p class="nvx-contact-clinic__hours"><strong>Horario de clínica:</strong> Lunes a viernes, 12:00–20:00; sábados, 10:00–18:00</p><p class="nvx-contact-clinic__days"><strong>Consulta médica:</strong> Martes y jueves</p>',
-		'<p class="nvx-contact-clinic__days"><strong>Consulta médica directa:</strong> Miércoles</p>' => '<p class="nvx-contact-clinic__hours"><strong>Horario de clínica:</strong> Lunes a viernes, 11:00–20:00</p><p class="nvx-contact-clinic__days"><strong>Consulta médica:</strong> Miércoles</p>',
+	);
+	$content = str_replace( array_keys( $literal ), array_values( $literal ), $content );
+
+	// Lead-in anchored paragraph rewrites: match from a stable stem to sentence end(s).
+	$patterns = array(
+		// Hero/body intro that previously named "directorio NAP" / internal SEO wording.
+		'/Contacta con NUVANX para solicitar una valoración médica personalizada[^.<]{0,220}\.\s*El equipo revisará[^.<]{0,160}\./u'
+			=> 'Consulta médica presencial en Chamberí y Salamanca–Goya. El equipo te orientará hacia la sede y el médico disponible según tu caso.',
+		'/Para diagnóstico y plan de tratamiento[^.<]{0,200}\.\s*Esta página es el directorio NAP[^.<]{0,120}\./u'
+			=> 'Contacta por teléfono o WhatsApp para solicitar una valoración médica gratuita de 15–30 minutos en Chamberí o Salamanca–Goya. La indicación y el presupuesto se confirman tras la valoración.',
+		// Clinic cards: inject verified hours via the existing days paragraph class.
+		'/<p\b[^>]*\bclass=["\'][^"\']*\bnvx-contact-clinic__days\b[^"\']*["\'][^>]*>\s*<strong>\s*Consulta médica directa:\s*<\/strong>\s*Martes y jueves\s*<\/p>/iu'
+			=> '<p class="nvx-contact-clinic__hours"><strong>Horario de clínica:</strong> Lunes a viernes, 12:00–20:00; sábados, 10:00–18:00</p><p class="nvx-contact-clinic__days"><strong>Consulta médica:</strong> Martes y jueves</p>',
+		'/<p\b[^>]*\bclass=["\'][^"\']*\bnvx-contact-clinic__days\b[^"\']*["\'][^>]*>\s*<strong>\s*Consulta médica directa:\s*<\/strong>\s*Miércoles\s*<\/p>/iu'
+			=> '<p class="nvx-contact-clinic__hours"><strong>Horario de clínica:</strong> Lunes a viernes, 11:00–20:00</p><p class="nvx-contact-clinic__days"><strong>Consulta médica:</strong> Miércoles</p>',
 	);
 
-	return str_replace( array_keys( $replacements ), array_values( $replacements ), $content );
+	foreach ( $patterns as $pattern => $replacement ) {
+		$updated = preg_replace( $pattern, $replacement, $content );
+		if ( is_string( $updated ) ) {
+			$content = $updated;
+		}
+	}
+
+	return $content;
 }
 add_filter( 'the_content', 'nvx_contacto_audit_visible_copy', 18 );

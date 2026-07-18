@@ -140,19 +140,21 @@ function nvx_theme_scripts() {
 add_action( 'wp_enqueue_scripts', 'nvx_theme_scripts' );
 
 /**
- * Optional hero blackout (solid ink, hide opening photos).
- * Default OFF — not part of the canonical design system.
- * Opt in with define( 'NVX_HERO_BLACKOUT', true ) or the filter.
+ * Hero blackout: solid ink opening stages, hide still photos.
+ * Keeps home (and any) hero video visible.
+ *
+ * Default ON until new photography is approved. Opt out with
+ * define( 'NVX_HERO_BLACKOUT', false ) or the filter.
  */
 function nvx_theme_hero_blackout_enabled(): bool {
-	$enabled = false;
+	$enabled = true;
 	if ( defined( 'NVX_HERO_BLACKOUT' ) ) {
 		$enabled = (bool) NVX_HERO_BLACKOUT;
 	}
 	/**
-	 * Filter whether optional hero blackout is active.
+	 * Filter whether hero blackout is active.
 	 *
-	 * @param bool $enabled Default false (canonical media heroes).
+	 * @param bool $enabled Default true (black heads; video only on home stage).
 	 */
 	return (bool) apply_filters( 'nvx_theme_hero_blackout_enabled', $enabled );
 }

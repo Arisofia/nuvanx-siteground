@@ -507,7 +507,12 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$has_related      = ! empty( $c['related'] ) && is_array( $c['related'] );
 	$has_combo        = ! empty( $c['combo'] );
 	if ( '' !== $compare_title || '' !== $compare_body || $has_compare_link || $has_related || $has_combo ) {
-		$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
+		// Prefer aria-labelledby only when the heading (and its id) is rendered.
+		if ( '' !== $compare_title ) {
+			$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
+		} else {
+			$body .= '<section class="nvx-endolift-section" aria-label="' . esc_attr__( 'Criterio diferencial', 'nuvanx-medical' ) . '">';
+		}
 		$body .= '<div class="nvx-endolift-section__inner">';
 		$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
 		if ( '' !== $compare_title ) {

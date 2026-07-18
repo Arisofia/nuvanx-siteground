@@ -1,0 +1,9 @@
+@@ -76,7 +76,7 @@ function nvx_theme_blog_body_class( array $classes ): array {
+ add_filter( 'body_class', 'nvx_theme_blog_body_class' );
+ 
+ /**
+- * The article template owns the only H1. Demote legacy H1 tags saved inside old
++ * The article template owns the only H1. Demote embedded H1 tags saved inside
+  * post content so historical entries inherit the same accessible hierarchy.
+  */
+ function nvx_theme_normalize_blog_headings( string $content ): string {

@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /* -------------------------------------------------------------------------
- * Shared class / style lists (single source for DOM + style filters)
+ * Shared class / style lists (defined once; helpers return static caches)
  * ---------------------------------------------------------------------- */
 
 /**
@@ -25,12 +25,16 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return string[]
  */
 function nvx_clinics_section_skip_classes(): array {
-	return array(
-		'nvx-brand-hero',
-		'nvx-cta-banner',
-		'nvx-clinics-nav',
-		'nvx-hero-intro',
-	);
+	static $classes = null;
+	if ( null === $classes ) {
+		$classes = array(
+			'nvx-brand-hero',
+			'nvx-cta-banner',
+			'nvx-clinics-nav',
+			'nvx-hero-intro',
+		);
+	}
+	return $classes;
 }
 
 /**
@@ -39,14 +43,18 @@ function nvx_clinics_section_skip_classes(): array {
  * @return string[]
  */
 function nvx_clinics_section_inner_ready_classes(): array {
-	return array(
-		'nvx-brand-section__inner',
-		'nvx-brand-grid',
-		'nvx-shell',
-		'nvx-clinics-content-flow',
-		'nvx-content-flow',
-		'nvx-brand-readable',
-	);
+	static $classes = null;
+	if ( null === $classes ) {
+		$classes = array(
+			'nvx-brand-section__inner',
+			'nvx-brand-grid',
+			'nvx-shell',
+			'nvx-clinics-content-flow',
+			'nvx-content-flow',
+			'nvx-brand-readable',
+		);
+	}
+	return $classes;
 }
 
 /**
@@ -55,18 +63,22 @@ function nvx_clinics_section_inner_ready_classes(): array {
  * @return string[]
  */
 function nvx_clinics_unwrap_protected_classes(): array {
-	return array(
-		'nvx-brand-section__inner',
-		'nvx-brand-grid',
-		'nvx-shell',
-		'nvx-brand-hero',
-		'nvx-brand-actions',
-		'nvx-brand-card',
-		'nvx-content-flow',
-		'nvx-clinics-content-flow',
-		'nvx-brand-readable',
-		'nvx-brand-page',
-	);
+	static $classes = null;
+	if ( null === $classes ) {
+		$classes = array(
+			'nvx-brand-section__inner',
+			'nvx-brand-grid',
+			'nvx-shell',
+			'nvx-brand-hero',
+			'nvx-brand-actions',
+			'nvx-brand-card',
+			'nvx-content-flow',
+			'nvx-clinics-content-flow',
+			'nvx-brand-readable',
+			'nvx-brand-page',
+		);
+	}
+	return $classes;
 }
 
 /**
@@ -75,10 +87,14 @@ function nvx_clinics_unwrap_protected_classes(): array {
  * @return string[]
  */
 function nvx_clinics_flow_classes(): array {
-	return array(
-		'nvx-content-flow',
-		'nvx-clinics-content-flow',
-	);
+	static $classes = null;
+	if ( null === $classes ) {
+		$classes = array(
+			'nvx-content-flow',
+			'nvx-clinics-content-flow',
+		);
+	}
+	return $classes;
 }
 
 /**
@@ -87,10 +103,14 @@ function nvx_clinics_flow_classes(): array {
  * @return string[]
  */
 function nvx_clinics_readable_measure_classes(): array {
-	return array(
-		'nvx-brand-readable',
-		'nvx-brand-readable--wide',
-	);
+	static $classes = null;
+	if ( null === $classes ) {
+		$classes = array(
+			'nvx-brand-readable',
+			'nvx-brand-readable--wide',
+		);
+	}
+	return $classes;
 }
 
 /**
@@ -100,13 +120,17 @@ function nvx_clinics_readable_measure_classes(): array {
  * @return string[]
  */
 function nvx_sede_inline_style_target_classes(): array {
-	return array(
-		'nvx-brand-card',
-		'nvx-brand-actions',
-		'nvx-brand-body',
-		'nvx-brand-section__inner',
-		'nvx-brand-grid',
-	);
+	static $classes = null;
+	if ( null === $classes ) {
+		$classes = array(
+			'nvx-brand-card',
+			'nvx-brand-actions',
+			'nvx-brand-body',
+			'nvx-brand-section__inner',
+			'nvx-brand-grid',
+		);
+	}
+	return $classes;
 }
 
 /**
@@ -116,22 +140,49 @@ function nvx_sede_inline_style_target_classes(): array {
  * @return string[]
  */
 function nvx_sede_blocked_inline_style_properties(): array {
-	return array(
-		'margin',
-		'margin-top',
-		'margin-right',
-		'margin-bottom',
-		'margin-left',
-		'margin-block',
-		'margin-inline',
-		'padding',
-		'padding-top',
-		'padding-right',
-		'padding-bottom',
-		'padding-left',
-		'padding-block',
-		'padding-inline',
-	);
+	static $props = null;
+	if ( null === $props ) {
+		$props = array(
+			'margin',
+			'margin-top',
+			'margin-right',
+			'margin-bottom',
+			'margin-left',
+			'margin-block',
+			'margin-inline',
+			'padding',
+			'padding-top',
+			'padding-right',
+			'padding-bottom',
+			'padding-left',
+			'padding-block',
+			'padding-inline',
+		);
+	}
+	return $props;
+}
+
+/**
+ * Tags allowed when rewriting style attributes (no void/self-closing noise).
+ *
+ * @return string[]
+ */
+function nvx_sede_inline_style_allowed_tags(): array {
+	static $tags = null;
+	if ( null === $tags ) {
+		$tags = array( 'div', 'section', 'article', 'p', 'span', 'a', 'li', 'h2', 'h3', 'h4' );
+	}
+	return $tags;
+}
+
+/**
+ * PHP 7-compatible string prefix check (avoid str_starts_with for WP hosts on 7.x).
+ */
+function nvx_str_starts_with( string $haystack, string $needle ): bool {
+	if ( '' === $needle ) {
+		return true;
+	}
+	return 0 === strpos( $haystack, $needle );
 }
 
 /**
@@ -481,32 +532,47 @@ function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): vo
 /**
  * Strip only spacing-related inline styles on known Sede wrapper classes.
  * Other properties (color, width, text-align, etc.) are left for editors.
+ *
+ * Only rewrites a fixed allow-list of non-void tags so self-closing markup
+ * and unrelated elements are never rebuilt.
  */
 function nvx_sede_strip_layout_inline_styles( string $content ): string {
 	if ( is_admin() || ! nvx_is_sede_template() || '' === trim( $content ) ) {
 		return $content;
 	}
 
-	$targets  = nvx_sede_inline_style_target_classes();
-	$blocked  = nvx_sede_blocked_inline_style_properties();
-	// Match open tags that include both a target class and a style attribute (any order).
-	$class_re = nvx_clinics_class_token_regex( $targets );
+	$targets   = nvx_sede_inline_style_target_classes();
+	$blocked   = nvx_sede_blocked_inline_style_properties();
+	$allowed   = nvx_sede_inline_style_allowed_tags();
+	$class_re  = nvx_clinics_class_token_regex( $targets );
+	$tag_alt   = implode(
+		'|',
+		array_map(
+			static function ( string $tag ): string {
+				return preg_quote( $tag, '/' );
+			},
+			$allowed
+		)
+	);
+	// Opening tags only (no trailing /), allow-listed names, style + class required.
+	$pattern   = '/<(' . $tag_alt . ')\b(?![^>]*\/\s*>)([^>]*?\sstyle=(["\'])([^"\']*)\3[^>]*)>/iu';
 
 	return preg_replace_callback(
-		'/<([a-z][a-z0-9]*)\b([^>]*?)\sstyle=(["\'])([^"\']*)\3([^>]*)>/iu',
+		$pattern,
 		static function ( array $match ) use ( $class_re, $blocked ): string {
-			$before = $match[2];
-			$after  = $match[5];
-			$attrs  = $before . $after;
-			if ( ! preg_match( '/\bclass\s*=\s*(["\'])([^"\']*)\1/iu', $attrs, $class_m ) ) {
+			$tag      = strtolower( $match[1] );
+			$open_mid = $match[2]; // attributes including style=...
+			if ( ! preg_match( '/\bclass\s*=\s*(["\'])([^"\']*)\1/iu', $open_mid, $class_m ) ) {
 				return $match[0];
 			}
 			if ( ! preg_match( $class_re, $class_m[2] ) ) {
 				return $match[0];
 			}
 
-			$decls = array_filter( array_map( 'trim', explode( ';', $match[4] ) ) );
-			$keep  = array();
+			$style_q = $match[3];
+			$style_v = $match[4];
+			$decls   = array_filter( array_map( 'trim', explode( ';', $style_v ) ) );
+			$keep    = array();
 			foreach ( $decls as $decl ) {
 				if ( ! preg_match( '/^([a-z-]+)\s*:/i', $decl, $prop_m ) ) {
 					$keep[] = $decl;
@@ -516,18 +582,33 @@ function nvx_sede_strip_layout_inline_styles( string $content ): string {
 				if ( in_array( $prop, $blocked, true ) ) {
 					continue;
 				}
-				// Shorthand margin/padding already listed; also catch margin-* via prefix.
-				if ( str_starts_with( $prop, 'margin' ) || str_starts_with( $prop, 'padding' ) ) {
+				// Catch margin-* / padding-* without listing every longhand.
+				if ( nvx_str_starts_with( $prop, 'margin' ) || nvx_str_starts_with( $prop, 'padding' ) ) {
 					continue;
 				}
 				$keep[] = $decl;
 			}
 
-			$tag = $match[1];
+			// Rebuild by replacing only the style attribute value (keep attribute order).
 			if ( array() === $keep ) {
-				return '<' . $tag . $before . $after . '>';
+				$new_mid = preg_replace(
+					'/\sstyle=(["\'])([^"\']*)\1/iu',
+					'',
+					$open_mid,
+					1
+				) ?? $open_mid;
+				return '<' . $tag . $new_mid . '>';
 			}
-			return '<' . $tag . $before . ' style=' . $match[3] . implode( '; ', $keep ) . $match[3] . $after . '>';
+
+			$new_style = implode( '; ', $keep );
+			$new_mid   = preg_replace(
+				'/\sstyle=(["\'])([^"\']*)\1/iu',
+				' style=' . $style_q . $new_style . $style_q,
+				$open_mid,
+				1
+			) ?? $open_mid;
+
+			return '<' . $tag . $new_mid . '>';
 		},
 		$content
 	) ?? $content;

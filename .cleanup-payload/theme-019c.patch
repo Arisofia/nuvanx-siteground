@@ -12,6 +12,7 @@
 -
 -	$image_url = get_the_post_thumbnail_url( get_queried_object_id(), 'full' );
 -	if ( ! is_string( $image_url ) || $image_url === '' ) {
+-		// Fallback to known header media filename when present in media library.
 -		$image_url = content_url( 'uploads/2026/07/fondo-formulario.webp' );
 -	}
 -

@@ -140,3 +140,6 @@ require_once __DIR__ . '/nvx-blog-system.php';
 
 /** Global hero hierarchy: concise media overlay plus readable clinical introduction. */
 require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
+
+/** Navigation filters for dynamic menu injection (e.g., EXION treatments dropdown). */
+require_once __DIR__ . '/nvx-navigation-filters.php';

@@ -24,7 +24,16 @@ add_action( 'after_setup_theme', 'nvx_theme_setup' );
 function nvx_primary_menu_fallback() {
 	$items = array(
 		array( 'url' => home_url( '/' ), 'label' => __( 'Inicio', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/tratamientos/' ), 'label' => __( 'Tratamientos', 'nuvanx-medical' ) ),
+		array(
+			'url'      => home_url( '/tratamientos/' ),
+			'label'    => __( 'Tratamientos', 'nuvanx-medical' ),
+			'children' => array(
+				array( 'url' => home_url( '/exion-face/' ), 'label' => 'EXION Face' ),
+				array( 'url' => home_url( '/exion-body/' ), 'label' => 'EXION Body' ),
+				array( 'url' => home_url( '/exion-fractional/' ), 'label' => 'EXION Fractional' ),
+				array( 'url' => home_url( '/emfusion/' ), 'label' => 'EMFUSION' ),
+			),
+		),
 		array( 'url' => home_url( '/equipo-medico/' ), 'label' => __( 'Equipo médico', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/clinicas-de-medicina-estetica-nuvanx/' ), 'label' => __( 'Clínicas', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Blog', 'nuvanx-medical' ) ),
@@ -33,11 +42,29 @@ function nvx_primary_menu_fallback() {
 
 	echo '<ul class="nvx-nav__list">';
 	foreach ( $items as $item ) {
+		$has_children = ! empty( $item['children'] );
+		$li_class     = 'nvx-nav__item' . ( $has_children ? ' menu-item-has-children' : '' );
+		
 		printf(
-			'<li class="nvx-nav__item"><a class="nvx-nav__link" href="%1$s">%2$s</a></li>',
+			'<li class="%1$s"><a class="nvx-nav__link" href="%2$s">%3$s</a>',
+			esc_attr( $li_class ),
 			esc_url( $item['url'] ),
 			esc_html( $item['label'] )
 		);
+		
+		if ( $has_children ) {
+			echo '<ul class="sub-menu">';
+			foreach ( $item['children'] as $child ) {
+				printf(
+					'<li class="nvx-nav__item"><a class="nvx-nav__link" href="%1$s">%2$s</a></li>',
+					esc_url( $child['url'] ),
+					esc_html( $child['label'] )
+				);
+			}
+			echo '</ul>';
+		}
+		
+		echo '</li>';
 	}
 	echo '</ul>';
 }

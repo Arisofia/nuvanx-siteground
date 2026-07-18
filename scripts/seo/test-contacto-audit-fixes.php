@@ -12,8 +12,9 @@ $loader_path         = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-integr
 $template_path       = $root . '/wp-content/themes/nuvanx-medical/templates/template-contact.php';
 $page_template_path  = $root . '/wp-content/themes/nuvanx-medical/templates/page-contacto.php';
 $valoracion_path     = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-contacto-valoracion-page.php';
+$contact_form_path   = $root . '/wp-content/mu-plugins/nuvanx-contacto-hubspot-form.php';
 
-foreach ( array( $module_path, $footer_path, $loader_path, $template_path, $page_template_path, $valoracion_path ) as $path ) {
+foreach ( array( $module_path, $footer_path, $loader_path, $template_path, $page_template_path, $valoracion_path, $contact_form_path ) as $path ) {
 	if ( ! is_readable( $path ) ) {
 		fwrite( STDERR, "Missing required file: {$path}\n" );
 		exit( 1 );
@@ -26,6 +27,7 @@ $loader        = (string) file_get_contents( $loader_path );
 $template      = (string) file_get_contents( $template_path );
 $page_template = (string) file_get_contents( $page_template_path );
 $valoracion    = (string) file_get_contents( $valoracion_path );
+$contact_form  = (string) file_get_contents( $contact_form_path );
 
 $required_module_fragments = array(
 	"add_filter( 'wpseo_opengraph_image', 'nvx_contacto_audit_social_image', 100 )",
@@ -64,12 +66,17 @@ if ( false !== strpos( $footer, "home_url( '/politica-de-privacidad/' )" ) ) {
 
 // Template must not reintroduce duplicate schema / raw OG / wrong privacy / placeholder hours.
 $template_required = array(
-	"home_url( '/politica-privacidad/' )",
 	'lunes a viernes, 12:00–20:00; sábados, 10:00–18:00',
 	'lunes a viernes, 11:00–20:00',
 	'nvx-btn nvx-btn--primary',
 	'nvx-btn nvx-btn--secondary',
 	'class="nvx-page nvx-page--contact"',
+	'id="nvx-contacto-hubspot-form"',
+	'nvx_contacto_hubspot_form_markup()',
+	'El Dr. Rivera atiende en Chamberí los martes y jueves.',
+	'El Dr. Rivera atiende en Salamanca–Goya los miércoles.',
+	'Cómo llegar a NUVANX Chamberí',
+	'Cómo llegar a NUVANX Salamanca–Goya',
 );
 foreach ( $template_required as $fragment ) {
 	if ( false === strpos( $template, $fragment ) ) {
@@ -85,12 +92,50 @@ $template_forbidden = array(
 	'nvx_contact_og_image'                   => 'raw og:image head hook in contact template',
 	'lunes a viernes, 10:00'                 => 'placeholder clinic hours starting 10:00 weekday',
 	'<main '                                 => 'nested main landmark in contact template',
+	'<form'                                  => 'unhandled native contact form',
+	'✔'                                      => 'non-system Unicode check mark',
+	'about:blank'                            => 'invalid directions or map URL',
 );
 foreach ( $template_forbidden as $fragment => $reason ) {
 	if ( false !== strpos( $template, $fragment ) ) {
 		fwrite( STDERR, "Contact template still contains forbidden fragment ({$reason}): {$fragment}\n" );
 		exit( 1 );
 	}
+}
+
+if ( "<?php\n/**" !== substr( $page_template, 0, 9 ) || false === strpos( $page_template, "require get_template_directory() . '/templates/template-contact.php';" ) ) {
+	fwrite( STDERR, "The assigned contacto page template does not delegate to the canonical template.\n" );
+	exit( 1 );
+}
+
+if ( false !== strpos( $page_template, 'get_template_part(' ) ) {
+	fwrite( STDERR, "The assigned contacto page template still renders the generic shell.\n" );
+	exit( 1 );
+}
+
+$contact_form_required = array(
+	'NVX_CONTACTO_HS_FORM_ID',
+	'class="hs-form-frame"',
+	'data-form-id=',
+	'data-portal-id=',
+	"home_url( '/politica-privacidad/' )",
+	"'https://js-' . \$region . '.hsforms.net/forms/embed/'",
+);
+foreach ( $contact_form_required as $fragment ) {
+	if ( false === strpos( $contact_form, $fragment ) ) {
+		fwrite( STDERR, "Missing dedicated contact-form contract: {$fragment}\n" );
+		exit( 1 );
+	}
+}
+
+if ( false !== strpos( $valoracion, 'nvx_content_restructure_contacto_page' ) ) {
+	fwrite( STDERR, "A content filter still competes with the canonical contacto template.\n" );
+	exit( 1 );
+}
+
+if ( false !== strpos( $valoracion, 'directorio NAP' ) ) {
+	fwrite( STDERR, "Internal SEO jargon remains in the original contacto copy source.\n" );
+	exit( 1 );
 }
 
 fwrite( STDOUT, "Contacto audit-fix contracts passed.\n" );

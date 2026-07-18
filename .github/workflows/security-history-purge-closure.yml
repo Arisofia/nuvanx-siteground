@@ -205,22 +205,34 @@ jobs:
             exit 1
           fi
 
+          # Discrete status flags (unambiguous for log/summary consumers).
+          echo 'ISSUE45_HISTORY_MUTABLE_CLEAN=true'
           echo 'ISSUE45_MUTABLE_PURGE_VERIFIED=true'
 
-          if [[ "$repository_private" != 'true' ]]; then
-            echo '::warning::Repository is public. Mutable-ref purge is clean; set private after Support is notified for refs/pull/* cleanup (issue #45 full closure).'
-            echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=false (public visibility)'
-          else
+          if [[ "$repository_private" == 'true' ]]; then
+            visibility_ok=true
+            echo 'ISSUE45_HISTORY_VISIBILITY_OK=true'
             echo 'ISSUE45_HISTORY_CLOSURE_VISIBILITY_PRIVATE=true'
+          else
+            visibility_ok=false
+            echo 'ISSUE45_HISTORY_VISIBILITY_OK=false'
+            echo '::warning::Repository is public. Mutable-ref purge is clean; set private after Support is notified for refs/pull/* cleanup (issue #45 full closure).'
           fi
 
           if [[ "$incident_pull" == 'true' || ( -n "$residual_pull" && "$residual_pull" != '0' ) ]]; then
-            echo '::warning::Mutable refs are clean, but GitHub pull-request refs still need Support history cleanup.'
+            pull_refs_ok=false
+            echo 'ISSUE45_HISTORY_PULL_REFS_OK=false'
             echo "ISSUE45_PULL_REF_RESIDUE=true residual_pull=${residual_pull:-unknown}"
+            echo '::warning::Mutable refs are clean, but GitHub pull-request refs still need Support history cleanup.'
+          else
+            pull_refs_ok=true
+            echo 'ISSUE45_HISTORY_PULL_REFS_OK=true'
           fi
 
-          if [[ "$repository_private" == 'true' && "$incident_pull" != 'true' && ( -z "$residual_pull" || "$residual_pull" == '0' ) ]]; then
+          # Single final aggregate flag — emitted once, after all checks.
+          if [[ "$visibility_ok" == 'true' && "$pull_refs_ok" == 'true' ]]; then
             echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=true'
           else
-            echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=partial (mutable clean; visibility and/or pull-refs pending)'
+            echo 'ISSUE45_HISTORY_CLOSURE_VERIFIED=false'
+            echo 'ISSUE45_HISTORY_CLOSURE_PENDING=mutable_clean_visibility_or_pull_refs'
           fi

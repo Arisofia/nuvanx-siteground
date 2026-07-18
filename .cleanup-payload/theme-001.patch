@@ -1,0 +1,69 @@
+ .nvx-main{width:100%;max-width:none;margin:0;padding:0}
+   .nvx-home-action-banner{padding:var(--nvx-space-4,32px);border-radius:var(--nvx-radius-card,24px)}
+   .nvx-home-action-banner__actions{width:100%}
+   .nvx-home-action-banner .nvx-button{width:100%}
+-  .nvx-home-cta-final-band{padding:36px 24px;border-radius:28px}
+ }
+\ No newline at end of file
+diff --git a/wp-content/themes/nuvanx-medical/assets/css/nvx-components.css b/wp-content/themes/nuvanx-medical/assets/css/nvx-components.css
+index 1dd8fb3056a483880b2d79fa095ee558dab19f85..8049b36035cb6f8bac001c8680fcf5fd764da798 100644
+--- a/wp-content/themes/nuvanx-medical/assets/css/nvx-components.css
++++ b/wp-content/themes/nuvanx-medical/assets/css/nvx-components.css
+@@ -4,7 +4,7 @@
+ .nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-ink)}
+ .nvx-heading,h1{margin:0 0 var(--nvx-margin-h1);font-family:var(--nvx-serif);font-size:var(--nvx-type-h1);font-weight:400;line-height:var(--nvx-lh-h1);letter-spacing:var(--nvx-track-h1);color:var(--nvx-ink)}
+ .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
+-.nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
++h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
+ .nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:600;line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-accent-muted)}
+ /* Copy roles only — bare `p` inherits from body (base.css) to avoid fighting layout measure rules */
+ .nvx-copy,.nvx-brand-body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
+@@ -273,38 +273,17 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
+   }
+ }
+ 
+-/* ── Forms (valoración / HubSpot native) ─────────────────── */
+-.nvx-form,
+-.nvx-hs-native-section {
+-  margin: 0;
+-  padding: 0;
+-  border: 0;
+-  background: transparent;
+-  border-radius: 0;
+-}
+-
+-.nvx-hs-native-box {
+-  width: min(100%, 34rem);
+-  margin-inline: auto;
+-  padding: clamp(28px, 4vw, 48px);
+-  border: 1px solid rgba(20, 22, 26, 0.08);
+-  border-radius: clamp(24px, 3vw, 36px);
+-  background: rgba(255, 255, 255, 0.94);
+-  box-shadow: var(--nvx-shadow-medium);
+-}
+-
+-.nvx-hubspot-form-section .nvx-kicker,
+-.nvx-form-stage .nvx-kicker {
++/* ── Forms (valoración / HubSpot) ────────────────────────── */
++.nvx-hubspot-form-section :is(.nvx-brand-kicker, .nvx-endolift-kicker),
++.nvx-form-stage :is(.nvx-brand-kicker, .nvx-endolift-kicker) {
+   text-align: center;
+   color: var(--nvx-charcoal);
+-  letter-spacing: 0.22em;
+ }
+ 
+-.nvx-hubspot-form-section .nvx-title,
+-.nvx-hubspot-form-section h2.nvx-title,
+-.nvx-form-stage .nvx-title {
++.nvx-hubspot-form-section :is(.nvx-brand-title, .nvx-endolift-heading),
++.nvx-form-stage :is(.nvx-brand-title, .nvx-endolift-heading) {
+   max-width: 16ch;
+-  margin: 0 auto 0.75em;
++  margin: 0 auto var(--nvx-space-2);
+   text-align: center;
+   font-family: var(--nvx-serif);
+   font-size: clamp(2rem, 4.2vw, 2.85rem);
+@@ -315,109 +294,93 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
+   text-wrap: balance;
+ }
+ 

@@ -16,14 +16,20 @@
 
 Body content rules (margins, figures): see `docs/design-system/body-content.md`.
 
-## Única excepción
+## Capas condicionales (siguen en el stack activo)
 
 | Archivo | Cuándo | Qué |
 |---------|--------|-----|
 | `nvx-brand-home.css` | solo home | hero **vídeo** full-bleed |
+| `nvx-posts.css` | contexto blog/journal | archive + single Journal |
+| `nvx-mobile-hero-hierarchy.css` | global | jerarquía tipográfica hero en móvil |
+| `nvx-medical-review.css` | review médico aprobado | sello/revisión |
+| `nvx-hero-blackout.css` | flag `NVX_HERO_BLACKOUT` (default on) | blackout temporal de fotos de hero |
 
-Blog, contacto, valoración, sedes, tratamientos, gracias, 404: **mismo stack**, sin CSS propio.
+Blog, contacto, valoración, sedes, tratamientos, gracias, 404: **mismo stack base**; capas condicionales arriba.
 
 ## Eliminado (no reintroducir)
 
-brand-system, treatment-*, secondary, sede, posts, pages, gutenberg, forms (ahora en components), fluid, visual-system, typography-alignment, wrappers `nvx-hero-wrap`, stubs RETIRED, `!important`, paletas oro/cool-green.
+brand-system, treatment-*, secondary, sede, pages, gutenberg, forms (ahora en components), fluid, visual-system, typography-alignment, wrappers `nvx-hero-wrap`, stubs RETIRED, adaptaciones Divi (`.et_pb_*`) en CSS del tema, `!important`, paletas oro/cool-green.
+
+Alias de plantilla eliminado: `template-parts/content/nvx-blog-index.php` (usar `nvx-blog-archive.php`).

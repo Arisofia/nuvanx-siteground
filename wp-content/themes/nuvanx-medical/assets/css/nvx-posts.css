@@ -580,10 +580,6 @@ body.nvx-blog-context {
   color: var(--nvx-text-on-dark);
 }
 
-.nvx-blog-prose tbody tr:nth-child(even) td {
-  background: var(--nvx-surface-base);
-}
-
 .nvx-blog-prose hr,
 .nvx-blog-prose .wp-block-separator {
   margin: var(--nvx-space-10) 0;

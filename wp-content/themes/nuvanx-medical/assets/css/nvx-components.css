@@ -81,8 +81,8 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-brand-card__title{margin:0 0 var(--nvx-space-2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);color:var(--nvx-ink)}
 .nvx-brand-card__title a{color:inherit;text-decoration:none}
 .nvx-brand-card__title a:hover,.nvx-brand-card__title a:focus-visible{color:var(--nvx-accent-muted)}
-.nvx-brand-card__body,.nvx-card__body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
-.nvx-brand-card__body p,.nvx-card__body p{margin:0 0 var(--nvx-space-2)}
+.nvx-brand-card__body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
+.nvx-brand-card__body p{margin:0 0 var(--nvx-space-2)}
 .nvx-brand-card .nvx-button,
 .nvx-brand-card .nvx-btn,
 .nvx-card .nvx-button,
@@ -109,13 +109,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 }
 .nvx-page__nav a{color:var(--nvx-ink);text-decoration:underline;text-underline-offset:4px}
 
-/* Valores y beneficios: tres columnas, iconografía outline y ritmo de 8px. */
-.nvx-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--nvx-space-6);align-items:start}
-.nvx-value{min-width:0}
-.nvx-value__icon{display:grid;place-items:center;width:32px;height:32px;margin-bottom:var(--nvx-space-3);color:var(--nvx-accent-muted)}
-.nvx-value__icon svg{width:32px;height:32px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.nvx-value__title{margin:0 0 var(--nvx-space-2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);color:var(--nvx-ink)}
-.nvx-value__body{max-width:var(--nvx-measure);margin:0;font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
+/* Valores (base desktop): patterns-editorial. Mobile stack below keeps icon+title row. */
 
 /* FAQ accordion — quiet luxury (native details/summary).
    Live markup: .nvx-faq, .nvx-brand-faq-*, .nvx-home-faq-editorial */
@@ -232,11 +226,8 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 
 .nvx-faq details > div,
 .nvx-faq .nvx-brand-faq-content,
-.nvx-faq .nvx-brand-faq-answer,
 .nvx-brand-faq-accordion .nvx-brand-faq-content,
-.nvx-brand-faq-accordion .nvx-brand-faq-answer,
-.nvx-home-faq-editorial .nvx-brand-faq-content,
-.nvx-home-faq-editorial .nvx-brand-faq-answer {
+.nvx-home-faq-editorial .nvx-brand-faq-content {
   max-width: var(--nvx-measure, 68ch);
   margin: 0;
   padding: 0 0 var(--nvx-space-4);
@@ -249,11 +240,8 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 
 .nvx-faq details > div p,
 .nvx-faq .nvx-brand-faq-content p,
-.nvx-faq .nvx-brand-faq-answer p,
 .nvx-brand-faq-accordion .nvx-brand-faq-content p,
-.nvx-brand-faq-accordion .nvx-brand-faq-answer p,
-.nvx-home-faq-editorial .nvx-brand-faq-content p,
-.nvx-home-faq-editorial .nvx-brand-faq-answer p {
+.nvx-home-faq-editorial .nvx-brand-faq-content p {
   margin: 0 0 var(--nvx-space-2);
   max-width: var(--nvx-measure, 68ch);
 }
@@ -571,8 +559,6 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 }
 
 /* Clinics hub navigation — issue #46 */
-html{scroll-behavior:smooth}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 .nvx-clinics-nav{border-block:1px solid var(--nvx-color-line);background:var(--nvx-surface-base)}
 .nvx-clinics-nav__inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:var(--nvx-space-4);padding-block:var(--nvx-space-3)}
 .nvx-clinics-nav__link{font-family:var(--nvx-sans);font-size:var(--nvx-type-small);font-weight:600;letter-spacing:var(--nvx-track-button);text-transform:uppercase;color:var(--nvx-ink);text-decoration:none;border-bottom:1px solid transparent;padding-block:var(--nvx-space-1)}

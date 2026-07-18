@@ -54,23 +54,53 @@ add_action(
 	1
 );
 
-/** Viewport accesible (zoom móvil). */
+/**
+ * Normaliza el documento público sin crear una segunda fuente de metadata.
+ *
+ * Mantiene un único viewport accesible y elimina únicamente FAQPage JSON-LD
+ * independiente del grafo de Yoast. El catálogo canónico del tema ya sustituye
+ * o crea el nodo FAQPage dentro de `yoast-schema-graph`; conservar ambos bloques
+ * produciría entidades duplicadas con respuestas distintas.
+ */
+function nvx_theme_normalize_public_document( string $html ): string {
+	$html = (string) preg_replace(
+		'/<meta\s+name=["\']viewport["\'][^>]*>/i',
+		'<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+		$html,
+		1
+	);
+
+	if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {
+		return $html;
+	}
+
+	$normalized = preg_replace_callback(
+		'/<script\b[^>]*type=["\']application\/ld\+json["\'][^>]*>[\s\S]*?<\/script>/iu',
+		static function ( array $match ): string {
+			$script = $match[0];
+			if ( false !== stripos( $script, 'yoast-schema-graph' ) ) {
+				return $script;
+			}
+			return false !== stripos( $script, 'FAQPage' ) ? '' : $script;
+		},
+		$html
+	);
+
+	if ( is_string( $normalized ) ) {
+		$html = $normalized;
+	}
+
+	return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
+}
+
+/** Viewport accesible y deduplicación defensiva de FAQ schema. */
 add_action(
 	'template_redirect',
 	function () {
 		if ( is_admin() ) {
 			return;
 		}
-		ob_start(
-			function ( $html ) {
-				return preg_replace(
-					'/<meta\s+name=["\']viewport["\'][^>]*>/i',
-					'<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
-					$html,
-					1
-				);
-			}
-		);
+		ob_start( 'nvx_theme_normalize_public_document' );
 	},
 	0
 );

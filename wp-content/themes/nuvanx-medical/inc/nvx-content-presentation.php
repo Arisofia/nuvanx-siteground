@@ -1089,6 +1089,44 @@ function nvx_content_strip_duplicate_fachada( string $content ): string {
 }
 
 /**
+ * Rewrite CMS versioned class tokens to canonical names (no v3/v4 layers).
+ *
+ * @param string $content HTML.
+ * @return string
+ */
+function nvx_content_strip_versioned_class_tokens( string $content ): string {
+	$map = array(
+		'nvx-editorial-home-v4' => '',
+		'nvx-v3-shell'          => 'nvx-shell',
+		'nvx-v3-intro'          => '',
+		'nvx-v3-metodo'         => '',
+		'nvx-v3-tratamientos'   => 'nvx-home-tratamientos',
+		'nvx-v3-direccion'      => 'nvx-home-direccion',
+		'nvx-v3-cta-final'      => 'nvx-home-cta-final',
+		'nvx-v3-faq'            => '',
+	);
+
+	foreach ( $map as $from => $to ) {
+		// Whole class token only (not substrings of longer BEM names).
+		$pattern = '/(?<=[\s"\'])' . preg_quote( $from, '/' ) . '(?=[\s"\'])/u';
+		$content = preg_replace( $pattern, $to, $content ) ?? $content;
+	}
+
+	// Collapse leftover double spaces inside class attributes.
+	$content = preg_replace_callback(
+		'/\bclass=(["\'])([^"\']*)\1/u',
+		static function ( array $m ): string {
+			$q     = $m[1];
+			$clean = preg_replace( '/\s+/u', ' ', trim( $m[2] ) ) ?? $m[2];
+			return 'class=' . $q . $clean . $q;
+		},
+		$content
+	) ?? $content;
+
+	return $content;
+}
+
+/**
  * Global content presentation pipeline (all singular + front content).
  *
  * @param string $content HTML.
@@ -1114,6 +1152,7 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_enhance_director_blocks( $content );
 	$content = nvx_content_rewrite_morpheus_faq( $content );
 	$content = nvx_content_unify_ctas( $content );
+	$content = nvx_content_strip_versioned_class_tokens( $content );
 	// Team / well-aging / EXION investment: separate filters at 125–126 (after protocols).
 
 	return $content;

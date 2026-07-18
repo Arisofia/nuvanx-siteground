@@ -55,40 +55,20 @@ function nvx_theme_is_home_page(): bool {
 
 /**
  * Site-wide pre-footer valoración band (canonical closing CTA).
- * Shown on all public pages except conversion journeys (form already is the CTA).
- * Home included so footer close matches treatment/equipo/blog.
+ * Same markup on every public page so the close matches treatments/blog/sedes.
+ * Only hide on thank-you / post-submit pages (form already completed).
  */
 function nvx_theme_show_cta_banner(): bool {
 	if ( is_admin() ) {
 		return false;
 	}
 
-	// Named conversion templates.
-	$template = (string) get_page_template_slug();
-	if ( in_array(
-		$template,
-		array(
-			'templates/page-contacto.php',
-			'templates/page-landing-valoracion.php',
-		),
-		true
-	) ) {
-		return false;
-	}
-
 	if ( is_page() ) {
-		$slug       = (string) get_post_field( 'post_name', get_queried_object_id() );
-		$hide_slugs = array( 'contacto', 'gracias', 'valoracion', 'consulta-medica', 'consultamedica' );
+		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+		// Post-conversion only — keep contacto/valoración with the same global close.
+		$hide_slugs = array( 'gracias', 'solicitud-recibida', 'thank-you', 'thankyou' );
 		if ( in_array( $slug, $hide_slugs, true ) ) {
 			return false;
-		}
-
-		// Nested paths like /madrid/valoracion/.
-		foreach ( get_post_ancestors( get_queried_object_id() ) as $ancestor_id ) {
-			$ancestor_slug = (string) get_post_field( 'post_name', $ancestor_id );
-			if ( 'madrid' === $ancestor_slug && 'valoracion' === $slug ) {
-				return false;
-			}
 		}
 	}
 

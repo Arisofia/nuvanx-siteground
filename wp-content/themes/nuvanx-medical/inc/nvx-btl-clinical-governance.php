@@ -187,14 +187,22 @@ function nvx_btl_claim( string $id ): string {
 
 /**
  * Build strtr map from the claim library (skips identical source/governed pairs).
- * Cached: content filter may call this once per request, but rebuild is avoided on repeats.
+ * Cached per locale so switch_to_locale() / mid-request locale changes stay correct.
  *
  * @return array<string, string>
  */
 function nvx_btl_claim_replacement_map(): array {
-	static $map = null;
-	if ( null !== $map ) {
-		return $map;
+	static $maps = array();
+
+	$locale = function_exists( 'determine_locale' )
+		? determine_locale()
+		: ( function_exists( 'get_locale' ) ? get_locale() : 'default' );
+	if ( ! is_string( $locale ) || '' === $locale ) {
+		$locale = 'default';
+	}
+
+	if ( isset( $maps[ $locale ] ) ) {
+		return $maps[ $locale ];
 	}
 
 	$map = array();
@@ -212,6 +220,8 @@ function nvx_btl_claim_replacement_map(): array {
 			$map[ $from_l10n ] = $to_l10n;
 		}
 	}
+
+	$maps[ $locale ] = $map;
 	return $map;
 }
 

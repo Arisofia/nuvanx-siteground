@@ -106,7 +106,7 @@ fi
 
 for pair in \
   "equipo|/equipo-medico/|nvx-equipo-editorial" \
-  "clinicas|/clinicas-de-medicina-estetica-nuvanx/|nvx-clinics-content-flow" \
+  "clinicas|/clinicas-de-medicina-estetica-nuvanx/|nvx-clinics-nav" \
   "laser|/medicina-estetica-laser/|nvx-laser-editorial" \
   "aesthetic|/medicina-estetica/|nvx-aesthetic-editorial" \
   "endolift|/endolift-facial-papada-mandibula/|nvx-endolift-editorial" \

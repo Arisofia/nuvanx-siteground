@@ -47,6 +47,10 @@ wp-content/maintenance.php
 wp-content/sunrise.php
 wp-content/sgo-config.php
 wp-content/sgs_encrypt_key.php
+# Divi/ET dynamic CSS cache (runtime — never version)
+wp-content/et-cache/
+# WordPress language packs (install via WP admin / GlotPress — not source)
+wp-content/languages/
 **/dup-installer/
 **/installer/original_files_*/
 *installer*.php
@@ -60,6 +64,11 @@ wp-content/debug.log
 *.sql.gz
 *.zip
 *.tar.gz
+
+# Python bytecode
+**/__pycache__/
+*.py[cod]
+*$py.class
 
 # Third-party dependencies and non-canonical themes
 node_modules/

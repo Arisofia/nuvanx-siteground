@@ -117,8 +117,10 @@ function nvx_theme_scripts() {
 	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-patterns' ), nvx_asset_version( 'assets/css/nvx-header.css' ) );
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-header' ), nvx_asset_version( 'assets/css/nvx-footer.css' ) );
 
+	$hero_blackout_dependency = 'nvx-footer';
 	if ( nvx_theme_is_home_page() ) {
 		wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-footer' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
+		$hero_blackout_dependency = 'nvx-home';
 		wp_enqueue_script(
 			'nvx-home-video',
 			$uri . '/assets/js/nvx-home-video.js',
@@ -128,9 +130,50 @@ function nvx_theme_scripts() {
 		);
 	}
 
+	// Temporary: black opening heroes (toggle NVX_HERO_BLACKOUT or body class filter).
+	if ( nvx_theme_hero_blackout_enabled() ) {
+		wp_enqueue_style(
+			'nvx-hero-blackout',
+			$css . 'nvx-hero-blackout.css',
+			array( $hero_blackout_dependency ),
+			nvx_asset_version( 'assets/css/nvx-hero-blackout.css' )
+		);
+	}
+
 	wp_enqueue_script( 'nvx-main', $uri . '/assets/js/nvx-main.js', array(), nvx_asset_version( 'assets/js/nvx-main.js' ), true );
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_scripts' );
+
+/**
+ * Temporary flag: black backgrounds on page-opening heroes (no large header photos).
+ * Define NVX_HERO_BLACKOUT as false in wp-config.php (or filter) to disable without deleting CSS.
+ */
+function nvx_theme_hero_blackout_enabled(): bool {
+	$enabled = true;
+	if ( defined( 'NVX_HERO_BLACKOUT' ) ) {
+		$enabled = (bool) NVX_HERO_BLACKOUT;
+	}
+	/**
+	 * Filter whether temporary hero blackout is active.
+	 *
+	 * @param bool $enabled Default true while the temporary mode is shipped.
+	 */
+	return (bool) apply_filters( 'nvx_theme_hero_blackout_enabled', $enabled );
+}
+
+/**
+ * Scope blackout CSS under body.nvx-hero-blackout (see nvx-hero-blackout.css).
+ *
+ * @param string[] $classes Body classes.
+ * @return string[]
+ */
+function nvx_theme_hero_blackout_body_class( array $classes ): array {
+	if ( nvx_theme_hero_blackout_enabled() ) {
+		$classes[] = 'nvx-hero-blackout';
+	}
+	return $classes;
+}
+add_filter( 'body_class', 'nvx_theme_hero_blackout_body_class' );
 
 function nvx_theme_dequeue_wp_core_inline_css() {
 	if ( is_admin() ) {

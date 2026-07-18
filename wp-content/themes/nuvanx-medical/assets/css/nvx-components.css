@@ -163,7 +163,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-brand-faq-accordion .nvx-brand-faq-item[open],
 .nvx-home-faq-editorial details[open],
 .nvx-home-faq-editorial .nvx-brand-faq-item[open] {
-  background: var(--nvx-surface-base, #f6f7f8);
+  background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
 .nvx-faq summary,
@@ -208,8 +208,8 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   width: 12px;
   height: 12px;
   margin-top: -6px;
-  border-right: 1.5px solid var(--nvx-accent-muted, #9ba3ad);
-  border-bottom: 1.5px solid var(--nvx-accent-muted, #9ba3ad);
+  border-right: 1.5px solid var(--nvx-accent-muted, var(--nvx-text-muted));
+  border-bottom: 1.5px solid var(--nvx-accent-muted, var(--nvx-text-muted));
   transform: rotate(45deg);
   transition: transform 180ms ease, border-color 160ms ease;
 }
@@ -230,7 +230,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-brand-faq-accordion summary:focus-visible,
 .nvx-home-faq-editorial summary:hover,
 .nvx-home-faq-editorial summary:focus-visible {
-  color: var(--nvx-charcoal, #2a2d33);
+  color: var(--nvx-charcoal, var(--nvx-charcoal));
   outline: none;
 }
 

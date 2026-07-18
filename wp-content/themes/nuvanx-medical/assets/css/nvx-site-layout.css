@@ -7,9 +7,6 @@
 .nvx-laser-section__inner,
 .nvx-aes-section__inner,
 .nvx-catalog__inner,
-.nvx-endolift-action__inner,
-.nvx-laser-action__shell,
-.nvx-aes-action__shell,
 .nvx-home-action-banner-shell {
   width: var(--nvx-shell);
   max-width: 100%;
@@ -88,7 +85,7 @@ article.nvx-page > .nvx-page-hero {
   width: 100%;
   margin: 0;
   padding-block: var(--nvx-pad-section);
-  background: var(--nvx-color-paper, var(--nvx-light, #fff));
+  background: var(--nvx-color-paper, var(--nvx-light, var(--nvx-light)));
   color: var(--nvx-text-body);
   box-sizing: border-box;
 }
@@ -140,7 +137,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-brand-section--soft {
-  background: var(--nvx-surface-base, #f6f7f8);
+  background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
 .nvx-brand-page .nvx-brand-section {
@@ -149,9 +146,6 @@ article.nvx-page > .nvx-page-hero {
 
 /* Valoración form stage — inspired by header media (fondo-formulario):
    accent → accent gradient / photo, card floating in quiet air. */
-.nvx-valoracion-page > .nvx-hubspot-form-section,
-.nvx-valoracion-page > #nvx-hubspot-form,
-.nvx-med-page > .nvx-hubspot-form-section,
 .nvx-form-stage {
   position: relative;
   isolation: isolate;
@@ -172,8 +166,6 @@ article.nvx-page > .nvx-page-hero {
   background-color: var(--nvx-form-stage-fallback);
 }
 
-.nvx-valoracion-page > .nvx-hubspot-form-section::before,
-.nvx-valoracion-page > #nvx-hubspot-form::before,
 .nvx-form-stage::before {
   content: "";
   position: absolute;
@@ -187,8 +179,6 @@ article.nvx-page > .nvx-page-hero {
   pointer-events: none;
 }
 
-.nvx-valoracion-page > .nvx-hubspot-form-section::after,
-.nvx-valoracion-page > #nvx-hubspot-form::after,
 .nvx-form-stage::after {
   content: "";
   position: absolute;
@@ -204,9 +194,6 @@ article.nvx-page > .nvx-page-hero {
   pointer-events: none;
 }
 
-.nvx-valoracion-page > .nvx-hubspot-form-section .nvx-page-body__inner,
-.nvx-valoracion-page > #nvx-hubspot-form .nvx-page-body__inner,
-.nvx-med-page > .nvx-hubspot-form-section .nvx-page-body__inner,
 .nvx-form-stage .nvx-page-body__inner {
   position: relative;
   z-index: 1;
@@ -347,18 +334,12 @@ article.nvx-page > .nvx-page-hero {
   color: var(--nvx-text-muted);
 }
 
-/* Shared conversion band shell rhythm (home + hubs) */
-.nvx-home-action-banner-shell,
-.nvx-laser-action,
-.nvx-aes-action,
-.nvx-endolift-action {
+/* Shared conversion band rhythm (site footer CTA is separate in footer.php) */
+.nvx-home-action-banner-shell {
   margin-top: var(--nvx-space-12);
 }
 
-.nvx-home-action-banner,
-.nvx-laser-action__card,
-.nvx-aes-action__card,
-.nvx-catalog-close {
+.nvx-home-action-banner {
   border-radius: var(--nvx-radius-card);
 }
 

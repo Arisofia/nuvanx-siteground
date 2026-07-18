@@ -37,9 +37,47 @@ while ( have_posts() ) :
 					<?php endif; ?>
 
 					<div class="nvx-blog-hero__meta">
-						<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
+						<?php
+						$author = function_exists( 'nvx_blog_medical_author' )
+							? nvx_blog_medical_author()
+							: array(
+								'name' => get_the_author(),
+								'url'  => '',
+								'role' => '',
+							);
+						?>
+						<span class="nvx-blog-hero__author">
+							<?php esc_html_e( 'Autor', 'nuvanx-medical' ); ?>:
+							<?php if ( ! empty( $author['url'] ) ) : ?>
+								<a class="nvx-blog-hero__author-link" href="<?php echo esc_url( $author['url'] ); ?>"><?php echo esc_html( $author['name'] ); ?></a><?php
+							else :
+								echo esc_html( $author['name'] );
+							endif;
+							if ( ! empty( $author['role'] ) ) :
+								echo esc_html( ', ' . $author['role'] );
+							endif;
+							?>
+						</span>
+						<?php
+						$date_display = get_the_date();
+						$date_iso     = get_the_date( 'c' );
+						// Fallback if theme/date filters yield empty.
+						if ( '' === trim( (string) $date_display ) ) {
+							$raw = get_post_field( 'post_date', get_the_ID() );
+							if ( is_string( $raw ) && '' !== $raw && '0000-00-00 00:00:00' !== $raw ) {
+								$ts = strtotime( $raw );
+								if ( false !== $ts ) {
+									$date_display = wp_date( get_option( 'date_format' ) ?: 'j/m/Y', $ts );
+									$date_iso     = gmdate( 'c', $ts );
+								}
+							}
+						}
+						if ( '' !== trim( (string) $date_display ) ) :
+							?>
+							<time class="nvx-blog-hero__date" datetime="<?php echo esc_attr( $date_iso ); ?>"><?php echo esc_html( $date_display ); ?></time>
+						<?php endif; ?>
 						<?php if ( function_exists( 'nvx_reading_time' ) ) : ?>
-							<span><?php echo esc_html( nvx_reading_time() ); ?> <?php esc_html_e( 'de lectura', 'nuvanx-medical' ); ?></span>
+							<span class="nvx-blog-hero__reading"><?php echo esc_html( nvx_reading_time() ); ?> <?php esc_html_e( 'de lectura', 'nuvanx-medical' ); ?></span>
 						<?php endif; ?>
 					</div>
 				</div>

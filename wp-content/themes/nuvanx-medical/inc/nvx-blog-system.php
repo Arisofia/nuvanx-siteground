@@ -88,3 +88,55 @@ function nvx_theme_normalize_blog_headings( string $content ): string {
 	return (string) preg_replace( '/<\/h1>/iu', '</h2>', $content );
 }
 add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', 8 );
+
+/**
+ * Canonical medical author for journal (E-E-A-T). Not the WP login display name.
+ *
+ * @return array{name:string,url:string,role:string}
+ */
+function nvx_blog_medical_author(): array {
+	return array(
+		'name' => __( 'Dr. José Javier Rivera Tejeda', 'nuvanx-medical' ),
+		'url'  => home_url( '/equipo-medico/#physician-rivera-tejeda' ),
+		'role' => __( 'Director Médico NUVANX', 'nuvanx-medical' ),
+	);
+}
+
+/**
+ * Strip hardcoded CMS bylines (Autor / Fecha / Lectura) from post body.
+ * Hero meta in nvx-blog-single.php owns author, date and reading time.
+ */
+function nvx_theme_strip_blog_content_bylines( string $content ): string {
+	if ( is_admin() || ! is_singular( 'post' ) || '' === trim( $content ) ) {
+		return $content;
+	}
+
+	// Explicit byline class from publish scripts.
+	$content = (string) preg_replace(
+		'/<p\b[^>]*\bclass=["\'][^"\']*\bnvx-blog-byline\b[^"\']*["\'][^>]*>[\s\S]*?<\/p>/iu',
+		'',
+		$content
+	);
+
+	// Legacy plain paragraphs: Autor: … Fecha: … Lectura: …
+	$content = (string) preg_replace(
+		'/<p\b[^>]*>\s*(?:<strong>)?\s*Autor\s*:?\s*(?:<\/strong>)?[\s\S]{0,500}?(?:Fecha|Lectura)\s*:[\s\S]*?<\/p>/iu',
+		'',
+		$content,
+		3
+	);
+
+	// Orphan keyword dumps right after byline leftovers.
+	$content = (string) preg_replace(
+		'/<p\b[^>]*>\s*(?:<strong>)?\s*Palabras clave\s*:?\s*(?:<\/strong>)?[\s\S]{0,400}?<\/p>/iu',
+		'',
+		$content,
+		2
+	);
+
+	// Collapse excess leading whitespace after strips.
+	$content = (string) preg_replace( '/^(?:\s|<br\s*\/?>|&nbsp;)+/iu', '', $content );
+
+	return $content;
+}
+add_filter( 'the_content', 'nvx_theme_strip_blog_content_bylines', 9 );

@@ -372,15 +372,37 @@ body.nvx-blog-context {
 }
 
 .nvx-blog-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--nvx-space-1) var(--nvx-space-2);
   margin-bottom: 0;
   color: var(--nvx-text-on-dark-72);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small, 0.875rem);
+  line-height: 1.45;
 }
 
-.nvx-blog-hero__meta span + span::before,
-.nvx-blog-hero__meta time + span::before {
+.nvx-blog-hero__meta > * + *::before {
   content: "·";
   margin-right: var(--nvx-space-2);
   color: var(--nvx-border-on-dark-45);
+}
+
+.nvx-blog-hero__author-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.nvx-blog-hero__author-link:hover,
+.nvx-blog-hero__author-link:focus-visible {
+  color: var(--nvx-light);
+}
+
+/* CMS bylines must not appear in the body (stripped in PHP; defensive hide). */
+.nvx-blog-prose .nvx-blog-byline {
+  display: none;
 }
 
 .nvx-blog-hero__media {

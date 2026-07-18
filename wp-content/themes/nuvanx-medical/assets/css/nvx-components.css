@@ -111,6 +111,31 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 
 /* Valores (base desktop): patterns-editorial. Mobile stack below keeps icon+title row. */
 
+/*
+ * Canonical step index (01…) + stroke icon size shared by treatment hubs.
+ * Page modules keep BEM hooks; this is the single typography/size source.
+ */
+.nvx-endolift-step__n,
+.nvx-laser-platform__n,
+.nvx-aes-card__n,
+.nvx-co2-timeline__n {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker, 0.6875rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--nvx-accent-muted);
+}
+
+.nvx-endolift-step__icon,
+.nvx-laser-icon,
+.nvx-aes-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--nvx-accent-muted);
+  flex-shrink: 0;
+}
+
 /* FAQ accordion — quiet luxury (native details/summary).
    Live markup: .nvx-faq, .nvx-brand-faq-*, .nvx-home-faq-editorial */
 .nvx-faq,

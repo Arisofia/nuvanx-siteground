@@ -144,18 +144,13 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
   display: none;
 }
 
-/* Clinic hub intro columns (live: nvx-brand-page--clinicas) */
-.nvx-brand-page--clinicas .nvx-brand-section__inner {
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
-}
-
-.nvx-brand-page--clinicas .nvx-brand-grid {
-  margin-block: var(--nvx-space-4) var(--nvx-space-6);
-  align-items: stretch;
+/* Multi-section CMS stacks (hub): full-width, no prose measure — each child section uses global shells. */
+.nvx-content-flow,
+.nvx-clinics-content-flow {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
 .nvx-brand-section--soft {

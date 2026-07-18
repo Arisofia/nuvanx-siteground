@@ -2,42 +2,41 @@
  *
  * Hides large photographic media only in opening header stages.
  * Video remains visible. Body/editorial/card media is out of scope.
- * Toggle: remove body class via NVX_HERO_BLACKOUT / body_class filter,
- * or dequeue this stylesheet — no need to edit selectors below.
+ * Toggle: NVX_HERO_BLACKOUT / filter / body class — no selector edits needed to off.
  */
 
-/* Canonical theme heroes + home video stage + journal article header. */
-body.nvx-hero-blackout .nvx-brand-hero,
-body.nvx-hero-blackout .nvx-editorial-hero,
-body.nvx-hero-blackout .nvx-page-hero,
-body.nvx-hero-blackout section.nvx-hero,
-body.nvx-hero-blackout section.nvx-hero.nvx-hero-section,
-body.nvx-hero-blackout .nvx-blog-hero,
-body.nvx-hero-blackout .nvx-home-hero-stage {
+/* Opening hero stages: solid ink, no photographic background. */
+body.nvx-hero-blackout :is(
+  .nvx-brand-hero,
+  .nvx-editorial-hero,
+  .nvx-page-hero,
+  section.nvx-hero,
+  .nvx-blog-hero,
+  .nvx-home-hero-stage
+) {
   background-color: var(--nvx-ink);
   background-image: none;
 }
 
-body.nvx-hero-blackout .nvx-brand-hero__media,
-body.nvx-hero-blackout .nvx-editorial-hero__media,
-body.nvx-hero-blackout .nvx-page-hero__media,
-body.nvx-hero-blackout .nvx-hero__media {
+body.nvx-hero-blackout :is(
+  .nvx-brand-hero__media,
+  .nvx-editorial-hero__media,
+  .nvx-page-hero__media,
+  .nvx-hero__media
+) {
   background-color: var(--nvx-ink);
   background-image: none;
   box-shadow: none;
 }
 
 /* Hide still imagery inside opening heroes only. */
-body.nvx-hero-blackout .nvx-brand-hero__media img,
-body.nvx-hero-blackout .nvx-brand-hero__media picture,
-body.nvx-hero-blackout .nvx-editorial-hero__media img,
-body.nvx-hero-blackout .nvx-editorial-hero__media picture,
-body.nvx-hero-blackout .nvx-page-hero__media img,
-body.nvx-hero-blackout .nvx-page-hero__media picture,
-body.nvx-hero-blackout .nvx-hero__media img,
-body.nvx-hero-blackout .nvx-hero__media picture,
-body.nvx-hero-blackout .nvx-home-hero-stage img,
-body.nvx-hero-blackout .nvx-home-hero-stage picture {
+body.nvx-hero-blackout :is(
+  .nvx-brand-hero__media,
+  .nvx-editorial-hero__media,
+  .nvx-page-hero__media,
+  .nvx-hero__media,
+  .nvx-home-hero-stage
+) :is(img, picture) {
   display: none;
 }
 
@@ -51,31 +50,42 @@ body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-h
 }
 
 /* Legacy Divi opening headers still present on a subset of pages. */
-body.nvx-hero-blackout:not(.home) .et_builder_inner_content > .et_pb_section:first-child,
-body.nvx-hero-blackout:not(.home) .entry-content > .et_pb_section:first-child,
-body.nvx-hero-blackout:not(.home) .et_builder_inner_content > .et_pb_section:first-child .et_pb_fullwidth_header,
-body.nvx-hero-blackout:not(.home) .entry-content > .et_pb_section:first-child .et_pb_fullwidth_header,
-body.nvx-hero-blackout:not(.home) .et_builder_inner_content > .et_pb_section:first-child .et_parallax_bg,
-body.nvx-hero-blackout:not(.home) .entry-content > .et_pb_section:first-child .et_parallax_bg {
+body.nvx-hero-blackout:not(.home) :is(
+  .et_builder_inner_content,
+  .entry-content
+) > .et_pb_section:first-child,
+body.nvx-hero-blackout:not(.home) :is(
+  .et_builder_inner_content,
+  .entry-content
+) > .et_pb_section:first-child :is(.et_pb_fullwidth_header, .et_parallax_bg) {
   background-color: var(--nvx-ink);
   background-image: none;
 }
 
-body.nvx-hero-blackout:not(.home) .et_builder_inner_content > .et_pb_section:first-child .et_pb_fullwidth_header img,
-body.nvx-hero-blackout:not(.home) .entry-content > .et_pb_section:first-child .et_pb_fullwidth_header img,
-body.nvx-hero-blackout:not(.home) .et_builder_inner_content > .et_pb_section:first-child .et_pb_fullwidth_image img,
-body.nvx-hero-blackout:not(.home) .entry-content > .et_pb_section:first-child .et_pb_fullwidth_image img {
+body.nvx-hero-blackout:not(.home) :is(
+  .et_builder_inner_content,
+  .entry-content
+) > .et_pb_section:first-child :is(.et_pb_fullwidth_header, .et_pb_fullwidth_image) img {
   display: none;
 }
 
-/* Keep video visible in every supported opening-header family (incl. journal). */
-body.nvx-hero-blackout .nvx-brand-hero video,
-body.nvx-hero-blackout .nvx-editorial-hero video,
-body.nvx-hero-blackout .nvx-page-hero video,
-body.nvx-hero-blackout section.nvx-hero video,
-body.nvx-hero-blackout .nvx-home-hero-stage video,
-body.nvx-hero-blackout .nvx-blog-hero video,
-body.nvx-hero-blackout:not(.home) .et_builder_inner_content > .et_pb_section:first-child video,
-body.nvx-hero-blackout:not(.home) .entry-content > .et_pb_section:first-child video {
-  display: block;
+/*
+ * Do not force display:block on video (breaks flex/grid heroes).
+ * Only undo accidental hiding if a parent/rule set display:none on media.
+ */
+body.nvx-hero-blackout :is(
+  .nvx-brand-hero,
+  .nvx-editorial-hero,
+  .nvx-page-hero,
+  section.nvx-hero,
+  .nvx-home-hero-stage,
+  .nvx-blog-hero
+) video,
+body.nvx-hero-blackout:not(.home) :is(
+  .et_builder_inner_content,
+  .entry-content
+) > .et_pb_section:first-child video {
+  display: revert;
+  visibility: visible;
+  opacity: 1;
 }

@@ -5,9 +5,12 @@ on:
     branches:
       - master
     paths:
+      # Nested asset globs so future css/js subdirs stay in scope.
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
-      - 'wp-content/themes/nuvanx-medical/**/*.php'
-      - 'wp-content/themes/nuvanx-medical/**/*.js'
+      - 'wp-content/themes/nuvanx-medical/assets/js/**'
+      # Enqueue + token surfaces (not every theme PHP template).
+      - 'wp-content/themes/nuvanx-medical/functions.php'
+      - 'wp-content/themes/nuvanx-medical/inc/**/*.php'
       - 'scripts/design-system/audit-css.mjs'
       - '.github/workflows/design-system-exceptions.yml'
   pull_request:
@@ -15,8 +18,9 @@ on:
       - master
     paths:
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
-      - 'wp-content/themes/nuvanx-medical/**/*.php'
-      - 'wp-content/themes/nuvanx-medical/**/*.js'
+      - 'wp-content/themes/nuvanx-medical/assets/js/**'
+      - 'wp-content/themes/nuvanx-medical/functions.php'
+      - 'wp-content/themes/nuvanx-medical/inc/**/*.php'
       - 'scripts/design-system/audit-css.mjs'
       - '.github/workflows/design-system-exceptions.yml'
   workflow_dispatch:
@@ -39,6 +43,7 @@ jobs:
         run: node scripts/design-system/audit-css.mjs
 
       - name: Publish exception inventory
+        # Path-only audit JSON under qa/ — never upload theme PHP/JS/assets (size + secrets).
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:

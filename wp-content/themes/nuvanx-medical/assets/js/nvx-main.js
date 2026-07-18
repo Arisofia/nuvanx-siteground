@@ -46,19 +46,20 @@
     if (!modal) return;
 
     var lastFocus = null;
-    // Canonical full-page fallback (also used when matching CTA hrefs).
-    var pageUrl = (cfg.pageUrl || '/madrid/valoracion/').replace(/\/?$/, '/');
+    // Single default path — fallback for pageUrl, pagePath, and href matching.
+    var DEFAULT_VALORACION_PATH = '/madrid/valoracion/';
+    var pageUrl = (cfg.pageUrl || DEFAULT_VALORACION_PATH).replace(/\/?$/, '/');
 
     function normalizePath(pathname) {
       return (pathname || '').replace(/\/+$/, '') + '/';
     }
 
     // Parsed once at init — avoid new URL() on every CTA click.
-    var pagePath = normalizePath('/');
+    var pagePath;
     try {
       pagePath = normalizePath(new URL(pageUrl, window.location.origin).pathname);
     } catch (err) {
-      pagePath = '/madrid/valoracion/';
+      pagePath = normalizePath(DEFAULT_VALORACION_PATH);
     }
 
     function isValoracionHref(href) {
@@ -68,7 +69,7 @@
         var path = normalizePath(u.pathname);
         if (path === pagePath) return true;
         return (
-          path.indexOf('/madrid/valoracion/') !== -1 ||
+          path.indexOf(DEFAULT_VALORACION_PATH) !== -1 ||
           path.indexOf('/valoracion/') !== -1 ||
           path === '/consulta-medica/' ||
           path === '/consultamedica/'

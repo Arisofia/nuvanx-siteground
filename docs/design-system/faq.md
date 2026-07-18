@@ -18,7 +18,12 @@ Acordeón nativo con `<details>`. Canónico: `.nvx-faq` + items.
 </section>
 ```
 
-**Runtime:** estilos en `nvx-components.css` cubren `.nvx-faq`, `.nvx-brand-faq-accordion`, `.nvx-home-faq-editorial` y `.nvx-brand-faq-item` (markup actual de home / hubs).
+**Runtime:** estilos en `nvx-components.css` unifican:
+
+- `.nvx-faq`, `.nvx-brand-faq-accordion`, `.nvx-home-faq-editorial`, `.nvx-brand-faq-item`
+- `details/summary` bare en `.nvx-brand-section`, `.nvx-brand-grid`, `.entry-content` y `.nvx-page__content` (p. ej. FAQ de sedes CMS)
+
+Todos los menús de preguntas frecuentes deben verse y comportarse igual (serif summary, chevron, open state).
 
 ### States
 

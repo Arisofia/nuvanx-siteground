@@ -63,20 +63,8 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   color:var(--nvx-light);
 }
 
+/* Layout only — button visuals live in nvx-components.css */
 .nvx-home-hero-ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
-.nvx-home-hero-ctas .nvx-brand-btn,
-.nvx-home-hero-ctas .nvx-button,
-.nvx-home-hero-ctas .nvx-btn{
-  display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border-radius:999px;
-  font-family:var(--nvx-sans);font-size:var(--nvx-type-button);font-weight:600;letter-spacing:var(--nvx-track-button);
-  text-transform:uppercase;text-decoration:none;border:1px solid transparent;
-}
-.nvx-home-hero-ctas .nvx-brand-btn--primary,
-.nvx-home-hero-ctas .nvx-button--primary,
-.nvx-home-hero-ctas .nvx-btn--primary{background:var(--nvx-light);color:var(--nvx-ink);border-color:var(--nvx-light)}
-.nvx-home-hero-ctas .nvx-brand-btn--secondary,
-.nvx-home-hero-ctas .nvx-button--secondary,
-.nvx-home-hero-ctas .nvx-btn--secondary{background:transparent;color:var(--nvx-light);border-color:var(--nvx-border-on-dark-55)}
 .nvx-brand-section{padding-block:var(--nvx-pad-section)}
 .nvx-brand-section--tight{padding-block:var(--nvx-pad-section-tight)}
 .nvx-home-invitation{margin-top:32px}
@@ -135,30 +123,12 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   gap:var(--nvx-space-2,16px);
   min-width:min(280px,100%);
 }
-/* Inherit system pill buttons; only color-context on dark band */
-.nvx-home-action-banner .nvx-button--light,
-.nvx-home-action-banner__cta.nvx-button--light{
+/* Layout only — dark-band color mapping is in nvx-components.css */
+.nvx-home-action-banner .nvx-button,
+.nvx-home-action-banner .nvx-btn,
+.nvx-home-action-banner .nvx-brand-btn,
+.nvx-home-action-banner__cta{
   width:100%;
-  background:var(--nvx-surface-base,var(--nvx-color-paper));
-  color:var(--nvx-ink,var(--nvx-ink));
-  border-color:var(--nvx-surface-base,var(--nvx-color-paper));
-  border-radius:var(--nvx-radius-button,999px);
-}
-.nvx-home-action-banner .nvx-button--secondary,
-.nvx-home-action-banner__cta--ghost{
-  width:100%;
-  background:transparent;
-  color:var(--nvx-light);
-  border-color:var(--nvx-border-on-dark-42);
-  border-radius:var(--nvx-radius-button,999px);
-}
-.nvx-home-action-banner .nvx-button--secondary:hover,
-.nvx-home-action-banner .nvx-button--secondary:focus-visible,
-.nvx-home-action-banner__cta--ghost:hover,
-.nvx-home-action-banner__cta--ghost:focus-visible{
-  color:var(--nvx-ink,var(--nvx-ink));
-  background:var(--nvx-light);
-  border-color:var(--nvx-light);
 }
 
 .nvx-home-faq-editorial{margin-top:var(--nvx-gap-wide)}

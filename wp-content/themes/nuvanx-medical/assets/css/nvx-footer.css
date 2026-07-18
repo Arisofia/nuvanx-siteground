@@ -20,11 +20,7 @@
   justify-content: flex-end;
 }
 
-.nvx-cta-banner__actions .nvx-btn--secondary,
-.nvx-cta-banner__actions .nvx-btn--ghost {
-  border-color: var(--nvx-border-on-dark-45);
-  color: var(--nvx-light);
-}
+/* Button colors on charcoal band: canonical dark mapping in nvx-components.css */
 
 .nvx-cta-banner__title {
   max-width: 14ch;

@@ -100,6 +100,7 @@
     margin-top: 0;
   }
 
+  /* Layout only — no visual redefinition of the button system */
   .nvx-brand-hero__copy .nvx-brand-btn,
   .nvx-brand-hero__copy .nvx-button,
   .nvx-brand-hero__copy .nvx-btn,
@@ -108,8 +109,6 @@
   .nvx-hero__copy .nvx-button,
   .nvx-hero__copy .nvx-btn {
     width: 100%;
-    min-height: var(--nvx-control-size);
-    padding-inline: var(--nvx-space-2);
   }
 
   .nvx-brand-hero__copy .nvx-brand-meta {

@@ -21,13 +21,262 @@
 figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:var(--nvx-type-caption);font-weight:300;line-height:var(--nvx-lh-caption);color:var(--nvx-text-muted)}
 .nvx-text-link{color:var(--nvx-ink);text-decoration:underline;text-underline-offset:4px;font-family:var(--nvx-sans)}
 .nvx-text-link:hover,.nvx-text-link:focus-visible{color:var(--nvx-accent-muted)}
-.nvx-button,.nvx-btn,.nvx-brand-btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border:1px solid transparent;border-radius:var(--nvx-radius-button);font-family:var(--nvx-sans);font-size:var(--nvx-type-button);font-weight:600;line-height:1;letter-spacing:var(--nvx-track-button);text-transform:uppercase;text-decoration:none;transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease}
-.nvx-button--primary,.nvx-btn--primary,.nvx-brand-btn--primary{background:var(--nvx-ink);color:var(--nvx-light)}
-.nvx-button--secondary,.nvx-btn--secondary,.nvx-brand-btn--secondary{background:transparent;color:var(--nvx-ink);border-color:var(--nvx-color-line)}
-.nvx-button--light{background:var(--nvx-surface-base);color:var(--nvx-ink);border-color:var(--nvx-surface-base)}
-/* Used by pre-footer CTA banner (footer.php) on charcoal — outline via currentColor */
-.nvx-button--ghost,.nvx-btn--ghost{background:transparent;color:currentColor;border-color:currentColor}
-.nvx-button:hover,.nvx-button:focus-visible,.nvx-btn:hover,.nvx-btn:focus-visible,.nvx-brand-btn:hover,.nvx-brand-btn:focus-visible{transform:translateY(-1px);box-shadow:var(--nvx-shadow-button)}
+/* ==========================================================================
+   Button system — sole visual ownership for conversion CTAs
+   Aliases: .nvx-button | .nvx-btn | .nvx-brand-btn
+   Variants: --primary | --secondary | --light | --secondary-on-dark
+   Page CSS may only layout buttons (width/gap/align); never recolor them.
+   ========================================================================== */
+.nvx-button,
+.nvx-btn,
+.nvx-brand-btn,
+.nvx-hubspot-form-section .hs-button,
+.nvx-hubspot-form-section input.hs-button,
+.nvx-hubspot-form-section .hs-button.primary,
+.nvx-hs-lead-form .hs-button,
+.nvx-hs-lead-form input[type="submit"]{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:var(--nvx-control-size);
+  padding:0 var(--nvx-space-3);
+  border:var(--nvx-border-hairline) solid transparent;
+  border-radius:var(--nvx-radius-button);
+  background:transparent;
+  color:var(--nvx-ink);
+  font-family:var(--nvx-sans);
+  font-size:var(--nvx-type-button);
+  font-weight:600;
+  line-height:1;
+  letter-spacing:var(--nvx-track-button);
+  text-align:center;
+  text-transform:uppercase;
+  text-decoration:none;
+  cursor:pointer;
+  box-shadow:none;
+  transition:background-color 180ms ease,color 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease;
+}
+
+/* Primary — main action on light surfaces */
+.nvx-button--primary,
+.nvx-btn--primary,
+.nvx-brand-btn--primary,
+.nvx-hubspot-form-section .hs-button,
+.nvx-hubspot-form-section input.hs-button,
+.nvx-hubspot-form-section .hs-button.primary,
+.nvx-hs-lead-form .hs-button,
+.nvx-hs-lead-form input[type="submit"]{
+  background:var(--nvx-ink);
+  color:var(--nvx-light);
+  border-color:var(--nvx-ink);
+}
+
+/* Secondary — outline on light surfaces */
+.nvx-button--secondary,
+.nvx-btn--secondary,
+.nvx-brand-btn--secondary{
+  background:transparent;
+  color:var(--nvx-ink);
+  border-color:var(--nvx-ink);
+}
+
+/* Light — main action on dark surfaces */
+.nvx-button--light,
+.nvx-btn--light,
+.nvx-brand-btn--light{
+  background:var(--nvx-light);
+  color:var(--nvx-ink);
+  border-color:var(--nvx-light);
+}
+
+/* Secondary on dark — outline on dark surfaces */
+.nvx-button--secondary-on-dark,
+.nvx-btn--secondary-on-dark,
+.nvx-brand-btn--secondary-on-dark{
+  background:transparent;
+  color:var(--nvx-light);
+  border-color:var(--nvx-border-on-dark-55);
+}
+
+/*
+ * Dark-surface compatibility: historical --primary / --secondary markup in known
+ * charcoal/hero/conversion bands maps to Light / Secondary-on-dark here so page
+ * CSS never redefines button colors.
+ */
+.nvx-brand-hero .nvx-button--primary,
+.nvx-brand-hero .nvx-btn--primary,
+.nvx-brand-hero .nvx-brand-btn--primary,
+.nvx-page-hero .nvx-button--primary,
+.nvx-page-hero .nvx-btn--primary,
+.nvx-page-hero .nvx-brand-btn--primary,
+.nvx-hero .nvx-button--primary,
+.nvx-hero .nvx-btn--primary,
+.nvx-hero .nvx-brand-btn--primary,
+.nvx-home-hero-stage .nvx-button--primary,
+.nvx-home-hero-stage .nvx-btn--primary,
+.nvx-home-hero-stage .nvx-brand-btn--primary,
+.nvx-home-hero-ctas .nvx-button--primary,
+.nvx-home-hero-ctas .nvx-btn--primary,
+.nvx-home-hero-ctas .nvx-brand-btn--primary,
+.nvx-cta-banner .nvx-button--primary,
+.nvx-cta-banner .nvx-btn--primary,
+.nvx-cta-banner .nvx-brand-btn--primary,
+.nvx-home-action-banner .nvx-button--primary,
+.nvx-home-action-banner .nvx-btn--primary,
+.nvx-home-action-banner .nvx-brand-btn--primary{
+  background:var(--nvx-light);
+  color:var(--nvx-ink);
+  border-color:var(--nvx-light);
+}
+
+.nvx-brand-hero .nvx-button--secondary,
+.nvx-brand-hero .nvx-btn--secondary,
+.nvx-brand-hero .nvx-brand-btn--secondary,
+.nvx-page-hero .nvx-button--secondary,
+.nvx-page-hero .nvx-btn--secondary,
+.nvx-page-hero .nvx-brand-btn--secondary,
+.nvx-hero .nvx-button--secondary,
+.nvx-hero .nvx-btn--secondary,
+.nvx-hero .nvx-brand-btn--secondary,
+.nvx-home-hero-stage .nvx-button--secondary,
+.nvx-home-hero-stage .nvx-btn--secondary,
+.nvx-home-hero-stage .nvx-brand-btn--secondary,
+.nvx-home-hero-ctas .nvx-button--secondary,
+.nvx-home-hero-ctas .nvx-btn--secondary,
+.nvx-home-hero-ctas .nvx-brand-btn--secondary,
+.nvx-cta-banner .nvx-button--secondary,
+.nvx-cta-banner .nvx-btn--secondary,
+.nvx-cta-banner .nvx-brand-btn--secondary,
+.nvx-home-action-banner .nvx-button--secondary,
+.nvx-home-action-banner .nvx-btn--secondary,
+.nvx-home-action-banner .nvx-brand-btn--secondary{
+  background:transparent;
+  color:var(--nvx-light);
+  border-color:var(--nvx-border-on-dark-55);
+}
+
+/* Hover / focus-visible */
+.nvx-button:hover,
+.nvx-button:focus-visible,
+.nvx-btn:hover,
+.nvx-btn:focus-visible,
+.nvx-brand-btn:hover,
+.nvx-brand-btn:focus-visible,
+.nvx-hubspot-form-section .hs-button:hover,
+.nvx-hubspot-form-section input.hs-button:hover,
+.nvx-hs-lead-form input[type="submit"]:hover,
+.nvx-hubspot-form-section .hs-button:focus-visible,
+.nvx-hs-lead-form input[type="submit"]:focus-visible{
+  transform:translateY(-1px);
+  box-shadow:var(--nvx-shadow-button);
+}
+
+.nvx-button--primary:hover,
+.nvx-button--primary:focus-visible,
+.nvx-btn--primary:hover,
+.nvx-btn--primary:focus-visible,
+.nvx-brand-btn--primary:hover,
+.nvx-brand-btn--primary:focus-visible,
+.nvx-hubspot-form-section .hs-button:hover,
+.nvx-hubspot-form-section input.hs-button:hover,
+.nvx-hs-lead-form input[type="submit"]:hover{
+  background:var(--nvx-charcoal);
+  border-color:var(--nvx-charcoal);
+  color:var(--nvx-light);
+}
+
+.nvx-button--secondary:hover,
+.nvx-button--secondary:focus-visible,
+.nvx-btn--secondary:hover,
+.nvx-btn--secondary:focus-visible,
+.nvx-brand-btn--secondary:hover,
+.nvx-brand-btn--secondary:focus-visible{
+  background:var(--nvx-ink);
+  border-color:var(--nvx-ink);
+  color:var(--nvx-light);
+}
+
+.nvx-button--light:hover,
+.nvx-button--light:focus-visible,
+.nvx-btn--light:hover,
+.nvx-btn--light:focus-visible,
+.nvx-brand-btn--light:hover,
+.nvx-brand-btn--light:focus-visible{
+  background:var(--nvx-surface-base);
+  border-color:var(--nvx-surface-base);
+  color:var(--nvx-ink);
+}
+
+.nvx-button--secondary-on-dark:hover,
+.nvx-button--secondary-on-dark:focus-visible,
+.nvx-btn--secondary-on-dark:hover,
+.nvx-btn--secondary-on-dark:focus-visible,
+.nvx-brand-btn--secondary-on-dark:hover,
+.nvx-brand-btn--secondary-on-dark:focus-visible,
+.nvx-brand-hero .nvx-button--secondary:hover,
+.nvx-brand-hero .nvx-button--secondary:focus-visible,
+.nvx-brand-hero .nvx-btn--secondary:hover,
+.nvx-brand-hero .nvx-btn--secondary:focus-visible,
+.nvx-brand-hero .nvx-brand-btn--secondary:hover,
+.nvx-brand-hero .nvx-brand-btn--secondary:focus-visible,
+.nvx-page-hero .nvx-button--secondary:hover,
+.nvx-page-hero .nvx-button--secondary:focus-visible,
+.nvx-page-hero .nvx-btn--secondary:hover,
+.nvx-page-hero .nvx-btn--secondary:focus-visible,
+.nvx-hero .nvx-button--secondary:hover,
+.nvx-hero .nvx-button--secondary:focus-visible,
+.nvx-home-hero-ctas .nvx-button--secondary:hover,
+.nvx-home-hero-ctas .nvx-button--secondary:focus-visible,
+.nvx-home-hero-ctas .nvx-btn--secondary:hover,
+.nvx-home-hero-ctas .nvx-btn--secondary:focus-visible,
+.nvx-home-hero-ctas .nvx-brand-btn--secondary:hover,
+.nvx-home-hero-ctas .nvx-brand-btn--secondary:focus-visible,
+.nvx-cta-banner .nvx-button--secondary:hover,
+.nvx-cta-banner .nvx-button--secondary:focus-visible,
+.nvx-cta-banner .nvx-btn--secondary:hover,
+.nvx-cta-banner .nvx-btn--secondary:focus-visible,
+.nvx-cta-banner .nvx-brand-btn--secondary:hover,
+.nvx-cta-banner .nvx-brand-btn--secondary:focus-visible,
+.nvx-home-action-banner .nvx-button--secondary:hover,
+.nvx-home-action-banner .nvx-button--secondary:focus-visible{
+  background:var(--nvx-light);
+  border-color:var(--nvx-light);
+  color:var(--nvx-ink);
+}
+
+.nvx-button:focus-visible,
+.nvx-btn:focus-visible,
+.nvx-brand-btn:focus-visible,
+.nvx-hubspot-form-section .hs-button:focus-visible,
+.nvx-hs-lead-form input[type="submit"]:focus-visible{
+  outline:2px solid var(--nvx-accent-muted);
+  outline-offset:3px;
+}
+
+.nvx-button:disabled,
+.nvx-btn:disabled,
+.nvx-brand-btn:disabled,
+.nvx-button[aria-disabled="true"],
+.nvx-btn[aria-disabled="true"],
+.nvx-brand-btn[aria-disabled="true"],
+.nvx-hubspot-form-section .hs-button:disabled,
+.nvx-hs-lead-form input[type="submit"]:disabled{
+  opacity:.45;
+  pointer-events:none;
+  transform:none;
+  box-shadow:none;
+  cursor:not-allowed;
+}
+
+/* HubSpot: same component; container may force full width only */
+.nvx-hubspot-form-section .hs-button,
+.nvx-hubspot-form-section input.hs-button,
+.nvx-hubspot-form-section .hs-button.primary,
+.nvx-hs-lead-form .hs-button,
+.nvx-hs-lead-form input[type="submit"]{
+  width:100%;
+  margin:0;
+}
 .nvx-media{display:block;width:100%;height:auto;border-radius:var(--nvx-radius-image)}
 .nvx-media--hero{height:100%;object-fit:cover;border-radius:0}
 .nvx-media--doctor{aspect-ratio:5/6;object-fit:cover}
@@ -155,8 +404,8 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   flex-shrink: 0;
 }
 
-/* FAQ accordion — quiet luxury (native details/summary).
-   Live markup: .nvx-faq, .nvx-brand-faq-*, .nvx-home-faq-editorial */
+/* FAQ accordion — one chrome for all native details/summary menus
+   (home, hubs, treatments, CMS bare details in brand sections/grids). */
 .nvx-faq,
 .nvx-brand-faq-accordion,
 .nvx-home-faq-editorial {
@@ -169,7 +418,11 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-brand-faq-accordion details,
 .nvx-brand-faq-accordion .nvx-brand-faq-item,
 .nvx-home-faq-editorial details,
-.nvx-home-faq-editorial .nvx-brand-faq-item {
+.nvx-home-faq-editorial .nvx-brand-faq-item,
+.nvx-brand-section details,
+.nvx-brand-grid details,
+.entry-content details,
+.nvx-page__content details {
   margin: 0;
   border-bottom: 1px solid var(--nvx-color-line);
   background: transparent;
@@ -181,13 +434,21 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-brand-faq-accordion details[open],
 .nvx-brand-faq-accordion .nvx-brand-faq-item[open],
 .nvx-home-faq-editorial details[open],
-.nvx-home-faq-editorial .nvx-brand-faq-item[open] {
+.nvx-home-faq-editorial .nvx-brand-faq-item[open],
+.nvx-brand-section details[open],
+.nvx-brand-grid details[open],
+.entry-content details[open],
+.nvx-page__content details[open] {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
 .nvx-faq summary,
 .nvx-brand-faq-accordion summary,
-.nvx-home-faq-editorial summary {
+.nvx-home-faq-editorial summary,
+.nvx-brand-section details > summary,
+.nvx-brand-grid details > summary,
+.entry-content details > summary,
+.nvx-page__content details > summary {
   position: relative;
   display: block;
   margin: 0;
@@ -206,20 +467,31 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 
 .nvx-faq summary::-webkit-details-marker,
 .nvx-brand-faq-accordion summary::-webkit-details-marker,
-.nvx-home-faq-editorial summary::-webkit-details-marker {
+.nvx-home-faq-editorial summary::-webkit-details-marker,
+.nvx-brand-section details > summary::-webkit-details-marker,
+.nvx-brand-grid details > summary::-webkit-details-marker,
+.entry-content details > summary::-webkit-details-marker,
+.nvx-page__content details > summary::-webkit-details-marker {
   display: none;
 }
 
 .nvx-faq summary::marker,
 .nvx-brand-faq-accordion summary::marker,
-.nvx-home-faq-editorial summary::marker {
+.nvx-home-faq-editorial summary::marker,
+.nvx-brand-section details > summary::marker,
+.nvx-brand-grid details > summary::marker,
+.entry-content details > summary::marker,
+.nvx-page__content details > summary::marker {
   content: "";
 }
 
-/* accent plus affordance */
 .nvx-faq summary::after,
 .nvx-brand-faq-accordion summary::after,
-.nvx-home-faq-editorial summary::after {
+.nvx-home-faq-editorial summary::after,
+.nvx-brand-section details > summary::after,
+.nvx-brand-grid details > summary::after,
+.entry-content details > summary::after,
+.nvx-page__content details > summary::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -238,7 +510,11 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-brand-faq-accordion details[open] > summary::after,
 .nvx-brand-faq-accordion .nvx-brand-faq-item[open] > summary::after,
 .nvx-home-faq-editorial details[open] > summary::after,
-.nvx-home-faq-editorial .nvx-brand-faq-item[open] > summary::after {
+.nvx-home-faq-editorial .nvx-brand-faq-item[open] > summary::after,
+.nvx-brand-section details[open] > summary::after,
+.nvx-brand-grid details[open] > summary::after,
+.entry-content details[open] > summary::after,
+.nvx-page__content details[open] > summary::after {
   margin-top: -2px;
   transform: rotate(225deg);
 }
@@ -248,14 +524,26 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-brand-faq-accordion summary:hover,
 .nvx-brand-faq-accordion summary:focus-visible,
 .nvx-home-faq-editorial summary:hover,
-.nvx-home-faq-editorial summary:focus-visible {
-  color: var(--nvx-charcoal, var(--nvx-charcoal));
+.nvx-home-faq-editorial summary:focus-visible,
+.nvx-brand-section details > summary:hover,
+.nvx-brand-section details > summary:focus-visible,
+.nvx-brand-grid details > summary:hover,
+.nvx-brand-grid details > summary:focus-visible,
+.entry-content details > summary:hover,
+.entry-content details > summary:focus-visible,
+.nvx-page__content details > summary:hover,
+.nvx-page__content details > summary:focus-visible {
+  color: var(--nvx-charcoal);
   outline: none;
 }
 
 .nvx-faq summary:focus-visible,
 .nvx-brand-faq-accordion summary:focus-visible,
-.nvx-home-faq-editorial summary:focus-visible {
+.nvx-home-faq-editorial summary:focus-visible,
+.nvx-brand-section details > summary:focus-visible,
+.nvx-brand-grid details > summary:focus-visible,
+.entry-content details > summary:focus-visible,
+.nvx-page__content details > summary:focus-visible {
   box-shadow: inset 0 0 0 2px var(--nvx-accent-glow, rgba(155, 163, 173, 0.35));
   border-radius: 4px;
 }
@@ -271,7 +559,11 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-faq details > div,
 .nvx-faq .nvx-brand-faq-content,
 .nvx-brand-faq-accordion .nvx-brand-faq-content,
-.nvx-home-faq-editorial .nvx-brand-faq-content {
+.nvx-home-faq-editorial .nvx-brand-faq-content,
+.nvx-brand-section details > p,
+.nvx-brand-grid details > p,
+.entry-content details > p,
+.nvx-page__content details > p {
   max-width: var(--nvx-measure, 68ch);
   margin: 0;
   padding: 0 0 var(--nvx-space-4);
@@ -295,6 +587,58 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-brand-faq-accordion .nvx-brand-faq-content p:last-child,
 .nvx-home-faq-editorial .nvx-brand-faq-content p:last-child {
   margin-bottom: 0;
+}
+
+/* Unified editorial lists (CMS + module panels) */
+.nvx-brand-ux-list,
+.nvx-ux-list,
+.nvx-aes-panel-list,
+.nvx-endolift-panel-list,
+.nvx-laser-panel-list,
+.nvx-co2-timeline,
+.nvx-valoracion-steps {
+  margin: 0 0 var(--nvx-space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.nvx-brand-ux-list li,
+.nvx-ux-list li,
+.nvx-aes-panel-list li,
+.nvx-endolift-panel-list li,
+.nvx-laser-panel-list li {
+  position: relative;
+  margin: 0;
+  padding: var(--nvx-space-2) 0 var(--nvx-space-2) var(--nvx-space-3);
+  border-bottom: 1px solid var(--nvx-color-line);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  font-weight: 400;
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
+.nvx-brand-ux-list li:last-child,
+.nvx-ux-list li:last-child,
+.nvx-aes-panel-list li:last-child,
+.nvx-endolift-panel-list li:last-child,
+.nvx-laser-panel-list li:last-child {
+  border-bottom: 0;
+}
+
+.nvx-brand-ux-list li::before,
+.nvx-ux-list li::before,
+.nvx-aes-panel-list li::before,
+.nvx-endolift-panel-list li::before,
+.nvx-laser-panel-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(var(--nvx-space-2) + 0.55em);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--nvx-accent-muted);
 }
 
 @media (max-width: 680px) {
@@ -448,39 +792,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   margin-top: 8px;
 }
 
-.nvx-hubspot-form-section .hs-button,
-.nvx-hubspot-form-section input.hs-button,
-.nvx-hubspot-form-section .hs-button.primary,
-.nvx-hs-lead-form .hs-button,
-.nvx-hs-lead-form input[type="submit"] {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 54px;
-  margin: 0;
-  padding: 0 28px;
-  border: 1px solid var(--nvx-ink);
-  border-radius: 999px;
-  background: var(--nvx-ink);
-  color: var(--nvx-light);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-button);
-  font-weight: 600;
-  letter-spacing: var(--nvx-track-button);
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
-  box-shadow: var(--nvx-shadow-button);
-}
-
-.nvx-hubspot-form-section .hs-button:hover,
-.nvx-hubspot-form-section input.hs-button:hover,
-.nvx-hs-lead-form input[type="submit"]:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--nvx-shadow-button-hover);
-  background: var(--nvx-charcoal);
-}
+/* HubSpot submit visuals owned by the button system block above. */
 
 .nvx-hubspot-form-section .nvx-text-link,
 .nvx-hs-native-box .nvx-text-link {

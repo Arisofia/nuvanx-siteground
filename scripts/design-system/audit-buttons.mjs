@@ -40,6 +40,7 @@ const VISUAL_PROPERTIES = new Set([
 ]);
 
 function walk(directory, extensions, output = []) {
+  if (!fs.existsSync(directory)) return output;
   for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
     if (['.git', 'node_modules', 'vendor'].includes(entry.name)) continue;
     const absolute = path.join(directory, entry.name);
@@ -49,12 +50,8 @@ function walk(directory, extensions, output = []) {
   return output;
 }
 
-function stripComments(source) {
-  return source.replace(/\/\*[\s\S]*?\*\//g, '');
-}
-
 function lineNumber(source, index) {
-  return source.slice(0, index).split('\n').length;
+  return source.slice(0, Math.max(0, index)).split('\n').length;
 }
 
 function declarationNames(block) {
@@ -66,25 +63,31 @@ function declarationNames(block) {
 }
 
 const violations = [];
-const cssFiles = fs.readdirSync(CSS_DIR).filter((name) => name.endsWith('.css')).sort();
+const cssFilesAbs = walk(CSS_DIR, new Set(['.css'])).sort();
 const aliasPattern = /\.nvx-(?:button|btn|brand-btn)(?:--[a-z0-9-]+)?(?:[^a-zA-Z0-9_-]|$)/;
 
-for (const file of cssFiles) {
-  const source = stripComments(fs.readFileSync(path.join(CSS_DIR, file), 'utf8'));
-  for (const match of source.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+for (const absolute of cssFilesAbs) {
+  const relative = path.relative(CSS_DIR, absolute);
+  const fileName = path.basename(absolute);
+  const original = fs.readFileSync(absolute, 'utf8');
+  // Blank comments in place so parse indices still map to original line numbers.
+  const stripped = original.replace(/\/\*[\s\S]*?\*\//g, (match) => ' '.repeat(match.length));
+
+  for (const match of stripped.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const selector = match[1].trim();
-    if (!aliasPattern.test(selector) || file === OWNER) continue;
+    if (!aliasPattern.test(selector) || fileName === OWNER) continue;
 
     const forbidden = [...declarationNames(match[2])].filter((property) => VISUAL_PROPERTIES.has(property));
     if (forbidden.length) {
       violations.push(
-        `${file}:${lineNumber(source, match.index)} redefines canonical button visuals (${forbidden.join(', ')}) in ${selector.replace(/\s+/g, ' ')}`
+        `${relative}:${lineNumber(original, match.index)} redefines canonical button visuals (${forbidden.join(', ')}) in ${selector.replace(/\s+/g, ' ')}`
       );
     }
   }
 }
 
-const ownerSource = fs.readFileSync(path.join(CSS_DIR, OWNER), 'utf8');
+const ownerPath = path.join(CSS_DIR, OWNER);
+const ownerSource = fs.readFileSync(ownerPath, 'utf8');
 for (const base of BASE_CLASSES) {
   if (!ownerSource.includes(`.${base}`)) violations.push(`${OWNER} is missing .${base}`);
   for (const variant of ALLOWED_VARIANTS) {
@@ -120,7 +123,7 @@ for (const hook of requiredFormHooks) {
 
 console.log(JSON.stringify({
   owner: OWNER,
-  cssFiles: cssFiles.length,
+  cssFiles: cssFilesAbs.length,
   runtimeFiles: runtimeFiles.length,
   allowedVariants: [...ALLOWED_VARIANTS],
   variantUsage: Object.fromEntries([...variantUsage.entries()].sort()),
@@ -132,3 +135,5 @@ if (violations.length) {
   for (const violation of violations) console.error(`- ${violation}`);
   process.exit(1);
 }
+
+console.log('\nBUTTON SYSTEM GATE PASSED');

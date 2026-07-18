@@ -278,7 +278,13 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 		if ( false !== strpos( $content, $cfg['marker'] . '-editorial' ) ) {
 			return null; // already rebuilt
 		}
-		if ( false !== strpos( $content, 'id="nvx-' . $cfg['marker'] . '-h1"' ) || false !== strpos( $content, "id='nvx-{$cfg['marker']}-h1'" ) ) {
+		// Accept both canonical ids (nvx-exion-body-h1) and legacy double-prefixed ones.
+		if (
+			false !== strpos( $content, 'id="' . $cfg['marker'] . '-h1"' )
+			|| false !== strpos( $content, "id='{$cfg['marker']}-h1'" )
+			|| false !== strpos( $content, 'id="nvx-' . $cfg['marker'] . '-h1"' )
+			|| false !== strpos( $content, "id='nvx-{$cfg['marker']}-h1'" )
+		) {
 			return $slug;
 		}
 	}
@@ -300,7 +306,8 @@ function nvx_btl_detail_page_markup( string $key ): string {
 		return '';
 	}
 	$c = $reg[ $key ];
-	$id = 'nvx-' . $c['marker'];
+	// Markers are already nvx-* (e.g. nvx-exion-body); do not prefix again.
+	$id = $c['marker'];
 
 	// Hero.
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero ' . esc_attr( $c['marker'] ) . '-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';

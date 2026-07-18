@@ -14,14 +14,46 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 while ( have_posts() ) :
 	the_post();
-	$content          = get_post_field( 'post_content', get_the_ID() );
-	$has_content_h1   = is_string( $content ) && preg_match( '/<h1\b/i', $content );
-	$has_content_hero = is_string( $content ) && preg_match( '/nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-home-hero-stage/i', $content );
-	$has_media        = has_post_thumbnail();
+	$content = get_post_field( 'post_content', get_the_ID() );
+	$content = is_string( $content ) ? $content : '';
+
+	// Raw CMS markers (authoring-time).
+	$has_content_h1   = (bool) preg_match( '/<h1\b/i', $content );
+	$has_content_hero = (bool) preg_match( '/nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-home-hero-stage/i', $content );
+
+	// Modules that inject a canonical hero + H1 via the_content even when CMS body is empty/legacy.
+	// Without this, the shell prints a second H1 (e.g. EXION Body / Face / EMFUSION).
+	$has_managed_editorial = false;
+	if ( function_exists( 'nvx_btl_detail_current_key' ) && null !== nvx_btl_detail_current_key( $content ) ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_endolift_page' ) && nvx_content_is_endolift_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_endolaser_page' ) && nvx_content_is_endolaser_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_co2_page' ) && nvx_content_is_co2_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_laser_medicine_page' ) && nvx_content_is_laser_medicine_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_aesthetic_medicine_page' ) && nvx_content_is_aesthetic_medicine_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_equipo_page' ) && nvx_content_is_equipo_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_nosotros_page' ) && nvx_content_is_nosotros_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
+
+	$has_media = has_post_thumbnail();
 	// Theme-owned hero when we have media and content does not already own a hero block.
-	$show_theme_hero  = $has_media && ! $has_content_hero && ! is_front_page();
-	// Title-only header only if no content H1 and no theme/content hero.
-	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! is_front_page();
+	$show_theme_hero = $has_media && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page();
+	// Title-only header only if no content H1 and no theme/content/managed hero.
+	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page();
 	$classes          = array( 'nvx-page' );
 	if ( is_singular( 'post' ) ) {
 		$classes[] = 'nvx-page--single';

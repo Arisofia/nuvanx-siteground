@@ -5,6 +5,7 @@ on:
     branches:
       - master
     paths:
+      - 'wp-content/themes/nuvanx-medical/style.css'
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'wp-content/themes/nuvanx-medical/**/*.js'
@@ -14,6 +15,7 @@ on:
     branches:
       - master
     paths:
+      - 'wp-content/themes/nuvanx-medical/style.css'
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'wp-content/themes/nuvanx-medical/**/*.js'
@@ -48,9 +50,12 @@ jobs:
             qa/design-system/active-css-exceptions.json
             scripts/design-system/*.mjs
             wp-content/themes/nuvanx-medical/**/*.php
-            wp-content/themes/nuvanx-medical/assets/css/*.css
-            wp-content/themes/nuvanx-medical/assets/js/*.js
+            # WP theme identity (header/version) lives in root style.css.
+            wp-content/themes/nuvanx-medical/style.css
+            # Nested-safe so future css/js subdirs stay in the snapshot.
+            wp-content/themes/nuvanx-medical/assets/css/**/*.css
+            wp-content/themes/nuvanx-medical/assets/js/**/*.js
             docs/staging2/audit-artifacts/*.html
-            docs/staging2/audit-artifacts/*.xml
+            docs/staging2/audit-captures/*.xml
           if-no-files-found: error
           retention-days: 14

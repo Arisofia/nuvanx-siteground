@@ -145,18 +145,19 @@ function nvx_theme_scripts() {
 add_action( 'wp_enqueue_scripts', 'nvx_theme_scripts' );
 
 /**
- * Temporary flag: black backgrounds on page-opening heroes (no large header photos).
- * Define NVX_HERO_BLACKOUT as false in wp-config.php (or filter) to disable without deleting CSS.
+ * Optional hero blackout (solid ink, hide opening photos).
+ * Default OFF — not part of the canonical design system.
+ * Opt in with define( 'NVX_HERO_BLACKOUT', true ) or the filter.
  */
 function nvx_theme_hero_blackout_enabled(): bool {
-	$enabled = true;
+	$enabled = false;
 	if ( defined( 'NVX_HERO_BLACKOUT' ) ) {
 		$enabled = (bool) NVX_HERO_BLACKOUT;
 	}
 	/**
-	 * Filter whether temporary hero blackout is active.
+	 * Filter whether optional hero blackout is active.
 	 *
-	 * @param bool $enabled Default true while the temporary mode is shipped.
+	 * @param bool $enabled Default false (canonical media heroes).
 	 */
 	return (bool) apply_filters( 'nvx_theme_hero_blackout_enabled', $enabled );
 }

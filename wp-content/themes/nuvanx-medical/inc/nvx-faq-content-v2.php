@@ -51,7 +51,7 @@ function nvx_home_faq_v2_catalog(): array {
 		array(
 			'id' => 'exion-morpheus',
 			'q'  => '¿Qué es EXION® BTL y en qué se diferencia de Morpheus8®?',
-			'a'  => 'EXION® BTL es una plataforma con modalidades Face, Body y Fractional RF. Puede ser una alternativa a otras RF fraccionadas (p. ej. Morpheus8®) según el diagnóstico. La indicación se define en consulta, no por un ranking de marcas.',
+			'a'  => 'EXION® BTL es una plataforma con modalidades Face, Body y Fractional RF. La indicación depende de la anatomía, la zona y el objetivo clínico; no se establece mediante un ranking de marcas.',
 		),
 		array(
 			'id' => 'tratamiento-adecuado',
@@ -196,3 +196,93 @@ function nvx_home_faq_v2_transform( string $content ): string {
 	return is_string( $output ) && '' !== trim( $output ) ? $output : $content;
 }
 add_filter( 'the_content', 'nvx_home_faq_v2_transform', 140 );
+
+/** Return whether a Schema.org @type value contains the requested type. */
+function nvx_home_faq_v2_has_type( $types, string $type ): bool {
+	return in_array( $type, is_array( $types ) ? $types : array( $types ), true );
+}
+
+/** Build Question nodes from the same catalogue used for visible HTML. */
+function nvx_home_faq_v2_schema_entities(): array {
+	$entities = array();
+	foreach ( nvx_home_faq_v2_catalog() as $faq ) {
+		if ( empty( $faq['q'] ) || empty( $faq['a'] ) ) {
+			continue;
+		}
+		$entities[] = array(
+			'@type'          => 'Question',
+			'name'           => $faq['q'],
+			'acceptedAnswer' => array(
+				'@type' => 'Answer',
+				'text'  => $faq['a'],
+			),
+		);
+	}
+	return $entities;
+}
+
+/**
+ * Consolidate the homepage FAQ into one Yoast graph node.
+ *
+ * Preference order: an existing WebPage+FAQPage, an existing FAQPage, an
+ * existing WebPage, or a new FAQPage. Every other FAQPage node is removed.
+ */
+function nvx_home_faq_v2_schema_graph( array $graph, $context = null ): array {
+	if ( ! is_front_page() ) {
+		return $graph;
+	}
+
+	$preferred = null;
+	$fallback_faq = null;
+	$fallback_webpage = null;
+	foreach ( $graph as $index => $piece ) {
+		if ( ! is_array( $piece ) || ! isset( $piece['@type'] ) ) {
+			continue;
+		}
+		$is_faq = nvx_home_faq_v2_has_type( $piece['@type'], 'FAQPage' );
+		$is_web = nvx_home_faq_v2_has_type( $piece['@type'], 'WebPage' );
+		if ( $is_faq && $is_web ) {
+			$preferred = $index;
+			break;
+		}
+		if ( $is_faq && null === $fallback_faq ) {
+			$fallback_faq = $index;
+		}
+		if ( $is_web && null === $fallback_webpage ) {
+			$fallback_webpage = $index;
+		}
+	}
+
+	$preferred = null !== $preferred ? $preferred : ( null !== $fallback_faq ? $fallback_faq : $fallback_webpage );
+	if ( null === $preferred ) {
+		$graph[] = array(
+			'@type' => array( 'WebPage', 'FAQPage' ),
+			'@id'   => home_url( '/#webpage' ),
+			'url'   => home_url( '/' ),
+		);
+		$preferred = array_key_last( $graph );
+	}
+
+	$types = isset( $graph[ $preferred ]['@type'] ) && is_array( $graph[ $preferred ]['@type'] )
+		? $graph[ $preferred ]['@type']
+		: array( $graph[ $preferred ]['@type'] ?? 'WebPage' );
+	if ( ! in_array( 'FAQPage', $types, true ) ) {
+		$types[] = 'FAQPage';
+	}
+	$graph[ $preferred ]['@type']      = array_values( array_unique( array_filter( $types ) ) );
+	$graph[ $preferred ]['mainEntity'] = nvx_home_faq_v2_schema_entities();
+	$graph[ $preferred ]['url']        = $graph[ $preferred ]['url'] ?? home_url( '/' );
+	$graph[ $preferred ]['@id']        = $graph[ $preferred ]['@id'] ?? home_url( '/#webpage' );
+
+	foreach ( array_keys( $graph ) as $index ) {
+		if ( $index === $preferred || ! isset( $graph[ $index ]['@type'] ) ) {
+			continue;
+		}
+		if ( nvx_home_faq_v2_has_type( $graph[ $index ]['@type'], 'FAQPage' ) ) {
+			unset( $graph[ $index ] );
+		}
+	}
+
+	return array_values( $graph );
+}
+add_filter( 'wpseo_schema_graph', 'nvx_home_faq_v2_schema_graph', 99, 2 );

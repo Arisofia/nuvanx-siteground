@@ -48,8 +48,9 @@ function nvx_cta_whatsapp_url(): string {
  * Primary conversion CTA.
  */
 function nvx_cta_primary_markup( string $class = 'nvx-brand-btn nvx-brand-btn--primary' ): string {
+	$class = trim( $class . ' nvx-open-valoracion-modal' );
 	return sprintf(
-		'<a class="%1$s" href="%2$s">%3$s</a>',
+		'<a class="%1$s" href="%2$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%3$s</a>',
 		esc_attr( $class ),
 		esc_url( nvx_cta_valoracion_url() ),
 		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
@@ -100,7 +101,7 @@ function nvx_site_closing_cta_markup(): string {
 	$html .= '</div>';
 	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions">';
 	$html .= sprintf(
-		'<a class="nvx-btn nvx-btn--light" id="nvx-footer-cta" href="%1$s">%2$s</a>',
+		'<a class="nvx-btn nvx-btn--light nvx-open-valoracion-modal" id="nvx-footer-cta" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',
 		esc_url( $valoracion ),
 		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
 	);
@@ -190,7 +191,7 @@ function nvx_home_action_banner_markup(): string {
 	$html .= '<div class="nvx-home-action-banner__actions">';
 	// Pill CTAs from the design system (radius 999px) — never square blocks.
 	$html .= sprintf(
-		'<a class="nvx-button nvx-button--light nvx-home-action-banner__cta" href="%1$s">%2$s</a>',
+		'<a class="nvx-button nvx-button--light nvx-home-action-banner__cta nvx-open-valoracion-modal" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',
 		esc_url( $valoracion ),
 		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
 	);

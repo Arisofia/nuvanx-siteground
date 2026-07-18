@@ -132,30 +132,6 @@ function nvx_endolift_hero_copy_markup(): string {
 	return $html;
 }
 
-/**
- * Action banner CTAs: valoración (primary) + sedes (secondary). No videoconsulta.
- */
-function nvx_endolift_action_ctas_markup(): string {
-	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
-		? nvx_cta_valoracion_url()
-		: home_url( '/madrid/valoracion/' );
-	$clinicas   = home_url( '/clinicas-de-medicina-estetica-nuvanx/' );
-
-	$html  = '<div class="nvx-cta-pair nvx-endolift-action__ctas">';
-	$html .= sprintf(
-		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
-		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración médica', 'nuvanx-medical' )
-	);
-	$html .= sprintf(
-		'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s">%2$s</a>',
-		esc_url( $clinicas ),
-		esc_html__( 'Ver centros en Madrid', 'nuvanx-medical' )
-	);
-	$html .= '</div>';
-
-	return $html;
-}
 
 /**
  * Full editorial body after hero.
@@ -413,16 +389,7 @@ function nvx_endolift_editorial_body_markup(): string {
 
 	$html .= '</div></div></section>';
 
-	// G. Action banner — valoración + sedes (no videoconsulta).
-	$html .= '<section class="nvx-endolift-action" aria-label="' . esc_attr__( 'Reservar valoración Endolift', 'nuvanx-medical' ) . '">';
-	$html .= '<div class="nvx-endolift-action__inner">';
-	$html .= '<div>';
-	$html .= '<p class="nvx-endolift-action__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 class="nvx-endolift-action__title">' . esc_html__( '¿Es Endolift® el protocolo adecuado para tu mandíbula y papada?', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-action__text">' . esc_html__( 'Reserva una valoración médica presencial. Confirmamos indicación, expectativas y presupuesto documentado antes de cualquier procedimiento.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>';
-	$html .= nvx_endolift_action_ctas_markup();
-	$html .= '</div></section>';
+	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
 
 	$html .= '</div>';
 

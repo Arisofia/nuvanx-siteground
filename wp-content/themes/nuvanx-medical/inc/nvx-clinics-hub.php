@@ -5,12 +5,173 @@
  * No page-exclusive layout. Nested bare sections inherit the same
  * nvx-brand-section / __inner gutters used on Goya, Chamberí and treatments.
  *
+ * DOM layout pipeline (ordered, see nvx_clinics_run_layout_pipeline):
+ *   promote → normalize → unwrap → hoist → unwrap → promote
+ *
  * @package nuvanx-medical
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+/* -------------------------------------------------------------------------
+ * Shared class / style lists (single source for DOM + style filters)
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Section class tokens that must not be rewritten to brand-section shells.
+ *
+ * @return string[]
+ */
+function nvx_clinics_section_skip_classes(): array {
+	return array(
+		'nvx-brand-hero',
+		'nvx-cta-banner',
+		'nvx-clinics-nav',
+		'nvx-hero-intro',
+	);
+}
+
+/**
+ * First-child div classes that already act as section inners / grids / shells.
+ *
+ * @return string[]
+ */
+function nvx_clinics_section_inner_ready_classes(): array {
+	return array(
+		'nvx-brand-section__inner',
+		'nvx-brand-grid',
+		'nvx-shell',
+		'nvx-clinics-content-flow',
+		'nvx-content-flow',
+		'nvx-brand-readable',
+	);
+}
+
+/**
+ * Div wrappers that must not be unwrapped (canonical structure).
+ *
+ * @return string[]
+ */
+function nvx_clinics_unwrap_protected_classes(): array {
+	return array(
+		'nvx-brand-section__inner',
+		'nvx-brand-grid',
+		'nvx-shell',
+		'nvx-brand-hero',
+		'nvx-brand-actions',
+		'nvx-brand-card',
+		'nvx-content-flow',
+		'nvx-clinics-content-flow',
+		'nvx-brand-readable',
+		'nvx-brand-page',
+	);
+}
+
+/**
+ * Class tokens that identify multi-section flow containers (hoist targets).
+ *
+ * @return string[]
+ */
+function nvx_clinics_flow_classes(): array {
+	return array(
+		'nvx-content-flow',
+		'nvx-clinics-content-flow',
+	);
+}
+
+/**
+ * Classes that mark a measure-constrained wrapper (normalized into content-flow).
+ *
+ * @return string[]
+ */
+function nvx_clinics_readable_measure_classes(): array {
+	return array(
+		'nvx-brand-readable',
+		'nvx-brand-readable--wide',
+	);
+}
+
+/**
+ * CMS / legacy wrapper classes where inline layout styles may be stripped on Sede pages.
+ * Editors can keep custom styles on other elements; only these get cleaned.
+ *
+ * @return string[]
+ */
+function nvx_sede_inline_style_target_classes(): array {
+	return array(
+		'nvx-brand-card',
+		'nvx-brand-actions',
+		'nvx-brand-body',
+		'nvx-brand-section__inner',
+		'nvx-brand-grid',
+	);
+}
+
+/**
+ * CSS properties stripped from targeted Sede wrappers only (spacing that fights tokens).
+ * Intentionally narrow: keep color, font-size, text-align, width, background for editorial opt-in.
+ *
+ * @return string[]
+ */
+function nvx_sede_blocked_inline_style_properties(): array {
+	return array(
+		'margin',
+		'margin-top',
+		'margin-right',
+		'margin-bottom',
+		'margin-left',
+		'margin-block',
+		'margin-inline',
+		'padding',
+		'padding-top',
+		'padding-right',
+		'padding-bottom',
+		'padding-left',
+		'padding-block',
+		'padding-inline',
+	);
+}
+
+/**
+ * Whether a space-separated class attribute contains any of the given tokens.
+ *
+ * @param string   $class_attr Element class attribute.
+ * @param string[] $tokens     Class tokens.
+ */
+function nvx_clinics_class_has_any( string $class_attr, array $tokens ): bool {
+	if ( '' === trim( $class_attr ) || array() === $tokens ) {
+		return false;
+	}
+	$classes = preg_split( '/\s+/', strtolower( trim( $class_attr ) ) ) ?: array();
+	$lookup  = array_fill_keys( $classes, true );
+	foreach ( $tokens as $token ) {
+		if ( isset( $lookup[ strtolower( $token ) ] ) ) {
+			return true;
+		}
+	}
+	return false;
+}
+
+/**
+ * Build a safe word-boundary class regex from a list of tokens (for rare string matches).
+ *
+ * @param string[] $tokens Class tokens.
+ */
+function nvx_clinics_class_token_regex( array $tokens ): string {
+	$escaped = array_map(
+		static function ( string $token ): string {
+			return preg_quote( $token, '/' );
+		},
+		$tokens
+	);
+	return '/\b(?:' . implode( '|', $escaped ) . ')\b/i';
+}
+
+/* -------------------------------------------------------------------------
+ * Page / map helpers
+ * ---------------------------------------------------------------------- */
 
 function nvx_is_clinics_hub(): bool {
 	if ( ! is_page() ) {
@@ -59,6 +220,10 @@ function nvx_clinics_nearest_block( DOMNode $node ): ?DOMElement {
 	return null;
 }
 
+/* -------------------------------------------------------------------------
+ * Layout pipeline steps
+ * ---------------------------------------------------------------------- */
+
 /**
  * Promote bare CMS <section>/<div> wrappers to global brand shells.
  */
@@ -68,18 +233,20 @@ function nvx_clinics_promote_bare_sections( DOMXPath $xpath ): void {
 		return;
 	}
 
+	$skip_classes  = nvx_clinics_section_skip_classes();
+	$inner_ready   = nvx_clinics_section_inner_ready_classes();
+
 	foreach ( $sections as $section ) {
 		if ( ! $section instanceof DOMElement ) {
 			continue;
 		}
 
 		$class = trim( $section->getAttribute( 'class' ) );
-		// Leave heroes, CTAs, nav and already-canonical sections alone.
-		if ( preg_match( '/\b(nvx-brand-hero|nvx-cta-banner|nvx-clinics-nav|nvx-hero-intro)\b/i', $class ) ) {
+		if ( nvx_clinics_class_has_any( $class, $skip_classes ) ) {
 			continue;
 		}
 
-		if ( '' === $class || ! preg_match( '/\bnvx-brand-section\b/i', $class ) ) {
+		if ( '' === $class || ! nvx_clinics_class_has_any( $class, array( 'nvx-brand-section' ) ) ) {
 			$section->setAttribute( 'class', trim( $class . ' nvx-brand-section' ) );
 		}
 
@@ -88,10 +255,10 @@ function nvx_clinics_promote_bare_sections( DOMXPath $xpath ): void {
 				continue;
 			}
 			$child_class = trim( $child->getAttribute( 'class' ) );
-			if ( preg_match( '/\b(nvx-brand-section__inner|nvx-brand-grid|nvx-shell|nvx-clinics-content-flow|nvx-brand-readable)\b/i', $child_class ) ) {
+			if ( nvx_clinics_class_has_any( $child_class, $inner_ready ) ) {
 				break;
 			}
-			// Bare first div → canonical section inner (global gutters).
+			// Bare first div (no nvx-* class) → canonical section inner (global gutters).
 			if ( '' === $child_class || ! preg_match( '/\bnvx-/', $child_class ) ) {
 				$child->setAttribute( 'class', trim( $child_class . ' nvx-brand-section__inner' ) );
 			}
@@ -105,9 +272,14 @@ function nvx_clinics_promote_bare_sections( DOMXPath $xpath ): void {
  * measure constraint so children can use full brand-section shells.
  */
 function nvx_clinics_normalize_layout( DOMXPath $xpath ): ?DOMElement {
-	$nodes = $xpath->query(
-		'//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-readable ") or contains(concat(" ", normalize-space(@class), " "), " nvx-clinics-content-flow ")]'
-	);
+	$readable = nvx_clinics_readable_measure_classes();
+	$flow     = nvx_clinics_flow_classes();
+	// Match either readable measure or legacy/current flow class.
+	$parts = array();
+	foreach ( array_merge( $readable, $flow ) as $token ) {
+		$parts[] = 'contains(concat(" ", normalize-space(@class), " "), " ' . $token . ' ")';
+	}
+	$nodes = $xpath->query( '//*[' . implode( ' or ', $parts ) . ']' );
 
 	if ( false === $nodes ) {
 		return null;
@@ -128,8 +300,8 @@ function nvx_clinics_normalize_layout( DOMXPath $xpath ): ?DOMElement {
 		$classes = array_values(
 			array_filter(
 				$classes,
-				static function ( string $class_name ): bool {
-					return ! in_array( $class_name, array( 'nvx-brand-readable', 'nvx-brand-readable--wide' ), true );
+				static function ( string $class_name ) use ( $readable ): bool {
+					return ! in_array( $class_name, $readable, true );
 				}
 			)
 		);
@@ -151,13 +323,15 @@ function nvx_clinics_unwrap_section_groups( DOMXPath $xpath ): void {
 		return;
 	}
 
+	$protected = nvx_clinics_unwrap_protected_classes();
+
 	foreach ( iterator_to_array( $divs ) as $div ) {
 		if ( ! $div instanceof DOMElement || ! $div->parentNode ) {
 			continue;
 		}
 
 		$class = trim( $div->getAttribute( 'class' ) );
-		if ( preg_match( '/\b(nvx-brand-section__inner|nvx-brand-grid|nvx-shell|nvx-brand-hero|nvx-brand-actions|nvx-brand-card|nvx-content-flow|nvx-clinics-content-flow|nvx-brand-readable|nvx-brand-page)\b/i', $class ) ) {
+		if ( nvx_clinics_class_has_any( $class, $protected ) ) {
 			continue;
 		}
 
@@ -200,9 +374,12 @@ function nvx_clinics_unwrap_section_groups( DOMXPath $xpath ): void {
  * @return DOMElement|null First hoisted element (for nav insertion).
  */
 function nvx_clinics_hoist_section_stack( DOMXPath $xpath ): ?DOMElement {
-	$flows = $xpath->query(
-		'//*[contains(concat(" ", normalize-space(@class), " "), " nvx-content-flow ") or contains(concat(" ", normalize-space(@class), " "), " nvx-clinics-content-flow ")]'
-	);
+	$flow_tokens = nvx_clinics_flow_classes();
+	$parts       = array();
+	foreach ( $flow_tokens as $token ) {
+		$parts[] = 'contains(concat(" ", normalize-space(@class), " "), " ' . $token . ' ")';
+	}
+	$flows = $xpath->query( '//*[' . implode( ' or ', $parts ) . ']' );
 
 	if ( false === $flows ) {
 		return null;
@@ -220,12 +397,12 @@ function nvx_clinics_hoist_section_stack( DOMXPath $xpath ): ?DOMElement {
 		$current       = $flow->parentNode;
 		while ( $current instanceof DOMElement ) {
 			$class = $current->getAttribute( 'class' );
-			if ( preg_match( '/\bnvx-brand-page\b/i', $class ) ) {
+			if ( nvx_clinics_class_has_any( $class, array( 'nvx-brand-page' ) ) ) {
 				break;
 			}
 			if (
-				preg_match( '/\bnvx-brand-section\b/i', $class )
-				&& ! preg_match( '/\bnvx-brand-hero\b/i', $class )
+				nvx_clinics_class_has_any( $class, array( 'nvx-brand-section' ) )
+				&& ! nvx_clinics_class_has_any( $class, array( 'nvx-brand-hero' ) )
 			) {
 				$brand_section = $current;
 			}
@@ -258,6 +435,33 @@ function nvx_clinics_hoist_section_stack( DOMXPath $xpath ): ?DOMElement {
 	return $first;
 }
 
+/**
+ * Ordered layout pipeline for clinics hub CMS HTML.
+ *
+ * Sequence (do not reorder without checking hoist/unwrap assumptions):
+ * 1. promote bare sections → brand-section shells
+ * 2. normalize readable multi-section wrappers → content-flow
+ * 3. unwrap anonymous section groups
+ * 4. hoist flow children out of a single outer brand-section
+ * 5. unwrap again (groups revealed by hoist)
+ * 6. promote again (new bare sections after hoist)
+ *
+ * @return array{layout_root: ?DOMElement, hoisted: ?DOMElement}
+ */
+function nvx_clinics_run_layout_pipeline( DOMXPath $xpath ): array {
+	nvx_clinics_promote_bare_sections( $xpath );
+	$layout_root = nvx_clinics_normalize_layout( $xpath );
+	nvx_clinics_unwrap_section_groups( $xpath );
+	$hoisted = nvx_clinics_hoist_section_stack( $xpath );
+	nvx_clinics_unwrap_section_groups( $xpath );
+	nvx_clinics_promote_bare_sections( $xpath );
+
+	return array(
+		'layout_root' => $layout_root instanceof DOMElement ? $layout_root : null,
+		'hoisted'     => $hoisted instanceof DOMElement ? $hoisted : null,
+	);
+}
+
 function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): void {
 	$name = 'goya' === $clinic ? 'NUVANX Salamanca–Goya' : 'NUVANX Chamberí';
 	$link->setAttribute( 'href', nvx_clinics_map_url( $clinic ) );
@@ -270,36 +474,69 @@ function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): vo
 	$link->setAttribute( 'class', implode( ' ', array_unique( preg_split( '/\s+/', $class ) ?: array() ) ) );
 }
 
+/* -------------------------------------------------------------------------
+ * Sede inline styles (narrow, class-guarded)
+ * ---------------------------------------------------------------------- */
+
 /**
- * Strip CMS inline layout styles that fight global spacing/color tokens.
- * Applied on Sede template pages only.
+ * Strip only spacing-related inline styles on known Sede wrapper classes.
+ * Other properties (color, width, text-align, etc.) are left for editors.
  */
 function nvx_sede_strip_layout_inline_styles( string $content ): string {
 	if ( is_admin() || ! nvx_is_sede_template() || '' === trim( $content ) ) {
 		return $content;
 	}
 
+	$targets  = nvx_sede_inline_style_target_classes();
+	$blocked  = nvx_sede_blocked_inline_style_properties();
+	// Match open tags that include both a target class and a style attribute (any order).
+	$class_re = nvx_clinics_class_token_regex( $targets );
+
 	return preg_replace_callback(
-		'/\sstyle=(["\'])([^"\']*)\1/iu',
-		static function ( array $match ): string {
-			$decls = array_filter( array_map( 'trim', explode( ';', $match[2] ) ) );
+		'/<([a-z][a-z0-9]*)\b([^>]*?)\sstyle=(["\'])([^"\']*)\3([^>]*)>/iu',
+		static function ( array $match ) use ( $class_re, $blocked ): string {
+			$before = $match[2];
+			$after  = $match[5];
+			$attrs  = $before . $after;
+			if ( ! preg_match( '/\bclass\s*=\s*(["\'])([^"\']*)\1/iu', $attrs, $class_m ) ) {
+				return $match[0];
+			}
+			if ( ! preg_match( $class_re, $class_m[2] ) ) {
+				return $match[0];
+			}
+
+			$decls = array_filter( array_map( 'trim', explode( ';', $match[4] ) ) );
 			$keep  = array();
 			foreach ( $decls as $decl ) {
-				// Drop exclusive layout/color that should come from design tokens.
-				if ( preg_match( '/^(margin|padding|max-width|width|color|font-size|text-align|background|line-height)\s*:/i', $decl ) ) {
+				if ( ! preg_match( '/^([a-z-]+)\s*:/i', $decl, $prop_m ) ) {
+					$keep[] = $decl;
+					continue;
+				}
+				$prop = strtolower( $prop_m[1] );
+				if ( in_array( $prop, $blocked, true ) ) {
+					continue;
+				}
+				// Shorthand margin/padding already listed; also catch margin-* via prefix.
+				if ( str_starts_with( $prop, 'margin' ) || str_starts_with( $prop, 'padding' ) ) {
 					continue;
 				}
 				$keep[] = $decl;
 			}
+
+			$tag = $match[1];
 			if ( array() === $keep ) {
-				return '';
+				return '<' . $tag . $before . $after . '>';
 			}
-			return ' style=' . $match[1] . implode( '; ', $keep ) . $match[1];
+			return '<' . $tag . $before . ' style=' . $match[3] . implode( '; ', $keep ) . $match[3] . $after . '>';
 		},
 		$content
 	) ?? $content;
 }
 add_filter( 'the_content', 'nvx_sede_strip_layout_inline_styles', 28 );
+
+/* -------------------------------------------------------------------------
+ * Hub enhance (map CTAs + nav + layout pipeline)
+ * ---------------------------------------------------------------------- */
 
 function nvx_clinics_hub_enhance( string $content ): string {
 	if ( is_admin() || ! nvx_is_clinics_hub() || '' === trim( $content ) ) {
@@ -317,23 +554,10 @@ function nvx_clinics_hub_enhance( string $content ): string {
 		return $content;
 	}
 
-	$xpath = new DOMXPath( $dom );
-
-	// 1) Canonical section shells (same as Goya/Chamberí).
-	nvx_clinics_promote_bare_sections( $xpath );
-
-	// 2) Drop prose measure on multi-section CMS wrappers.
-	$layout_root = nvx_clinics_normalize_layout( $xpath );
-
-	// 3) Unwrap legacy divs that only group sections.
-	nvx_clinics_unwrap_section_groups( $xpath );
-
-	// 4) Hoist nested sections so each owns pad-section + shell gutters once.
-	$hoisted = nvx_clinics_hoist_section_stack( $xpath );
-
-	// 5) Unwrap again after hoist, then re-promote shells.
-	nvx_clinics_unwrap_section_groups( $xpath );
-	nvx_clinics_promote_bare_sections( $xpath );
+	$xpath    = new DOMXPath( $dom );
+	$pipeline = nvx_clinics_run_layout_pipeline( $xpath );
+	$layout_root = $pipeline['layout_root'];
+	$hoisted     = $pipeline['hoisted'];
 
 	$clinics = array(
 		'chamberi' => array( 'id' => 'clinica-chamberi', 'label' => 'Chamberí', 'match' => '/chamber[ií]/iu' ),
@@ -368,9 +592,9 @@ function nvx_clinics_hub_enhance( string $content ): string {
 			if ( ! $link instanceof DOMElement ) {
 				continue;
 			}
-			$text           = trim( preg_replace( '/\s+/u', ' ', $link->textContent ) ?? $link->textContent );
-			$href           = $link->getAttribute( 'href' );
-			$is_map_action  = preg_match( '/(?:cómo llegar|como llegar|google maps|maps\.app|google\.[^\/]+\/maps)/iu', $text . ' ' . $href );
+			$text          = trim( preg_replace( '/\s+/u', ' ', $link->textContent ) ?? $link->textContent );
+			$href          = $link->getAttribute( 'href' );
+			$is_map_action = preg_match( '/(?:cómo llegar|como llegar|google maps|maps\.app|google\.[^\/]+\/maps)/iu', $text . ' ' . $href );
 			if ( $is_map_action && ! $map_action_seen ) {
 				nvx_clinics_set_link_attributes( $link, $key );
 				$map_action_seen = true;
@@ -417,10 +641,13 @@ function nvx_clinics_hub_enhance( string $content ): string {
 					continue;
 				}
 				$c = $child->getAttribute( 'class' );
-				if ( preg_match( '/\bnvx-brand-hero\b/i', $c ) ) {
+				if ( nvx_clinics_class_has_any( $c, array( 'nvx-brand-hero' ) ) ) {
 					continue;
 				}
-				if ( preg_match( '/\bnvx-brand-section\b|\bnvx-content-flow\b/i', $c ) || 'section' === strtolower( $child->tagName ) || 'nav' === strtolower( $child->tagName ) ) {
+				if (
+					nvx_clinics_class_has_any( $c, array( 'nvx-brand-section', 'nvx-content-flow' ) )
+					|| in_array( strtolower( $child->tagName ), array( 'section', 'nav' ), true )
+				) {
 					$insert_before = $child;
 					break;
 				}

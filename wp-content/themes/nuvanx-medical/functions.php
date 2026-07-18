@@ -31,6 +31,7 @@ function nvx_primary_menu_fallback() {
 				array( 'url' => home_url( '/exion-face/' ), 'label' => 'EXION Face' ),
 				array( 'url' => home_url( '/exion-body/' ), 'label' => 'EXION Body' ),
 				array( 'url' => home_url( '/exion-fractional/' ), 'label' => 'EXION Fractional' ),
+				array( 'url' => home_url( '/emfusion/' ), 'label' => 'EMFUSION' ),
 			),
 		),
 		array( 'url' => home_url( '/equipo-medico/' ), 'label' => __( 'Equipo médico', 'nuvanx-medical' ) ),

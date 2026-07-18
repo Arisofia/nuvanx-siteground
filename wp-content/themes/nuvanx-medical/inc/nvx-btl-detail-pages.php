@@ -426,13 +426,29 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		return $content;
 	}
 
+	// Same media sources as Endolift / Endoláser / CO₂: content figure, then featured image.
 	$media = '';
 	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
 		$media = $m[0];
+	} elseif ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
+		$media = $m[0];
+	} elseif ( has_post_thumbnail() ) {
+		$thumb = get_the_post_thumbnail(
+			null,
+			'full',
+			array(
+				'class'   => 'nvx-media nvx-media--hero wp-post-image',
+				'alt'     => the_title_attribute( array( 'echo' => false ) ),
+				'loading' => 'eager',
+			)
+		);
+		if ( is_string( $thumb ) && '' !== $thumb ) {
+			$media = '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
+		}
 	}
 
 	$built = nvx_btl_detail_page_markup( $key );
-	// Inject media into hero if present.
+	// Inject media into hero if present (after copy, inside __inner).
 	if ( '' !== $media && false !== strpos( $built, 'nvx-brand-hero__inner' ) ) {
 		$built = preg_replace(
 			'/(class="nvx-brand-hero__inner">[\s\S]*?<\/div>)(\s*<\/div>\s*<\/section>)/u',

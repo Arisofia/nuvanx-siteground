@@ -1,56 +1,70 @@
 # Component: Button
 
-### Description
+## Ownership
 
-CTA pill del sistema. Definición única en `nvx-components.css`. Aliases: `.nvx-brand-btn`, `.nvx-btn`.
+`nvx-components.css` is the only source for conversion-button visuals. The aliases `.nvx-button`, `.nvx-btn` and `.nvx-brand-btn` are equivalent and must share the same base contract.
 
-### Variants
+Page, hero, treatment, home and footer styles may control only layout around buttons, such as `width`, `gap`, `margin-top` or alignment. They must not redefine background, border, radius, typography, text color, height, padding, hover or focus states.
 
-| Variant | Clases | Use when |
-|---------|--------|----------|
-| Primary | `--primary` / `--dark` | Acción principal (ink fill) |
-| Secondary | `--secondary` | Secundaria (borde ink) |
-| Light | `--light` | Sobre fondo oscuro (fill white) |
-| Secondary on dark | `--secondary-on-dark` | Ghost sobre vídeo/hero |
-
-### Props / properties (CSS)
+## Canonical base
 
 | Property | Value |
-|----------|--------|
-| min-height | 48px |
-| padding | 13px 28px |
-| radius | `--nvx-radius-button` (999px) |
-| font | Manrope, type-button, weight 600 |
-| tracking | 0.1em |
-| text | uppercase |
+|---|---|
+| Minimum height | `var(--nvx-control-size)` = 48 px |
+| Horizontal padding | `var(--nvx-space-3)` = 24 px |
+| Shape | `var(--nvx-radius-button)` = pill |
+| Border | `var(--nvx-border-hairline)` |
+| Typeface | Manrope via `var(--nvx-sans)` |
+| Size | `var(--nvx-type-button)` = 0.75 rem |
+| Weight | 600 |
+| Tracking | `var(--nvx-track-button)` = 0.14 em |
+| Case | Uppercase |
+| Alignment | Centered |
 
-### States
+HubSpot submit controls inherit this exact base. Their container may make them full width, but it must not create a second visual system.
 
-| State | Visual | Behavior |
-|-------|--------|----------|
-| Default | según variant | — |
-| Hover | charcoal (primary) / invert (secondary); `translateY(-1px)` | micro-elevación |
-| Focus-visible | mismo hover | teclado |
-| Disabled | (no estilo global) | no usar sin opacity + aria-disabled |
+## Variants
 
-### Accessibility
+| Variant | Classes | Background | Text | Border | Use |
+|---|---|---|---|---|---|
+| Primary | `--primary` | Ink | Light | Ink | Main action on a light surface |
+| Secondary | `--secondary` | Transparent | Ink | Ink | Secondary action on a light surface |
+| Light | `--light` | Light | Ink | Light | Main action on a dark surface |
+| Secondary on dark | `--secondary-on-dark` | Transparent | Light | Light translucent | Secondary action on a dark surface |
 
-- **Role:** link o button nativo  
-- **Keyboard:** Enter/Space en `<button>`; Enter en `<a>`  
-- **Focus:** `:focus-visible` con cambio de color (no quitar outline del browser sin reemplazo)
+Known dark hero and conversion-band containers map historical `--primary` and `--secondary` markup to the same Light / Secondary-on-dark visual contract. This compatibility is centralized in `nvx-components.css`; no page-specific button colors are allowed.
 
-### Do's and Don'ts
+## States
 
-| ✅ Do | ❌ Don't |
-|------|---------|
-| `nvx-button nvx-button--primary` | Redefinir botones en page CSS |
-| Light/secondary-on-dark en hero vídeo | Primary ink sobre vídeo oscuro sin contraste |
+| State | Behavior |
+|---|---|
+| Hover | One-pixel elevation and canonical shadow; colors follow the variant |
+| Focus-visible | Same visual state plus a two-pixel visible focus outline |
+| Disabled / `aria-disabled` | 45% opacity, no pointer interaction, no elevation |
+| Reduced motion | Transitions and elevation movement are removed |
 
-### Code Example
+Primary hover uses charcoal. Secondary inverts to ink with light text. Light uses the soft neutral surface. Secondary-on-dark inverts to a light fill with ink text.
+
+## Exceptions that are not conversion buttons
+
+The header CTA uses the canonical primary variant and only adjusts compact navigation sizing in `nvx-header.css`. Icon controls such as the hamburger and close buttons, Journal pagination, topic chips, card text links and accordion summaries are separate interaction components; they must use canonical tokens but are not converted into CTA pills.
+
+## Examples
 
 ```html
-<a class="nvx-button nvx-button--primary" href="/madrid/valoracion/">Reservar valoración</a>
-<a class="nvx-button nvx-button--secondary" href="/tratamientos/">Ver tratamientos</a>
-```
+<a class="nvx-button nvx-button--primary" href="/madrid/valoracion/">
+  Reservar valoración gratuita
+</a>
 
-**Header CTA (1.9.3+):** estilo propio en `nvx-header.css` (pill ink, 44px) — no redefinir desde pages.
+<a class="nvx-button nvx-button--secondary" href="/tratamientos/">
+  Ver tratamientos
+</a>
+
+<a class="nvx-button nvx-button--light" href="/madrid/valoracion/">
+  Reservar valoración gratuita
+</a>
+
+<a class="nvx-button nvx-button--secondary-on-dark" href="https://wa.me/34669319836">
+  Contactar por WhatsApp
+</a>
+```

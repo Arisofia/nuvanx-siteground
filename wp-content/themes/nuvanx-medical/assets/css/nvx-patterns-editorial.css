@@ -232,48 +232,6 @@ article.nvx-page > .nvx-page-hero {
   margin-top: 1.5rem;
 }
 
-.nvx-brand-hero__copy .nvx-brand-btn,
-.nvx-brand-hero__copy .nvx-button,
-.nvx-brand-hero__copy .nvx-btn,
-.nvx-page-hero__copy .nvx-button,
-.nvx-page-hero__copy .nvx-btn,
-.nvx-hero__copy .nvx-button,
-.nvx-hero__copy .nvx-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-  padding: 0 24px;
-  border-radius: 999px;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-button);
-  font-weight: 600;
-  letter-spacing: var(--nvx-track-button);
-  text-transform: uppercase;
-  text-decoration: none;
-  border: 1px solid transparent;
-}
-
-.nvx-brand-hero__copy .nvx-brand-btn--primary,
-.nvx-brand-hero__copy .nvx-button--primary,
-.nvx-brand-hero__copy .nvx-btn--primary,
-.nvx-page-hero__copy .nvx-button--primary,
-.nvx-hero__copy .nvx-button--primary {
-  background: var(--nvx-light);
-  color: var(--nvx-ink);
-  border-color: var(--nvx-light);
-}
-
-.nvx-brand-hero__copy .nvx-brand-btn--secondary,
-.nvx-brand-hero__copy .nvx-button--secondary,
-.nvx-brand-hero__copy .nvx-btn--secondary,
-.nvx-page-hero__copy .nvx-button--secondary,
-.nvx-hero__copy .nvx-button--secondary {
-  background: transparent;
-  color: var(--nvx-light);
-  border-color: var(--nvx-border-on-dark-55);
-}
-
 .nvx-page-hero--theme .nvx-page-hero__media {
   min-height: inherit;
 }
@@ -839,18 +797,6 @@ article.nvx-page > .nvx-page-hero {
   max-width: 48ch;
   margin-top: var(--nvx-space-2, 16px);
   color: var(--nvx-text-on-dark-88);
-}
-
-.nvx-endolift-hero .nvx-brand-btn--primary {
-  background: var(--nvx-text-on-dark);
-  color: var(--nvx-ink);
-  border-color: var(--nvx-text-on-dark);
-}
-
-.nvx-endolift-hero .nvx-brand-btn--secondary {
-  color: var(--nvx-text-on-dark);
-  border-color: var(--nvx-border-on-dark-50);
-  background: transparent;
 }
 
 .nvx-endolift-section {
@@ -1605,18 +1551,6 @@ figure.nvx-equipo-portrait,
   color: var(--nvx-text-on-dark-88);
 }
 
-.nvx-laser-hero .nvx-brand-btn--primary {
-  background: var(--nvx-text-on-dark);
-  color: var(--nvx-ink);
-  border-color: var(--nvx-text-on-dark);
-}
-
-.nvx-laser-hero .nvx-brand-btn--secondary {
-  color: var(--nvx-text-on-dark);
-  border-color: var(--nvx-border-on-dark-50);
-  background: transparent;
-}
-
 .nvx-laser-section {
   padding-block: var(--nvx-pad-section);
   background: var(--nvx-light);
@@ -1891,20 +1825,6 @@ figure.nvx-equipo-portrait,
 .nvx-aes-hero .nvx-brand-hero__lead {
   max-width: 55ch;
   color: var(--nvx-text-on-dark-88);
-}
-
-.nvx-aes-hero .nvx-aes-btn--primary,
-.nvx-aes-hero .nvx-brand-btn--primary {
-  background: var(--nvx-accent-muted);
-  color: var(--nvx-ink);
-  border-color: var(--nvx-accent-muted);
-}
-
-.nvx-aes-hero .nvx-aes-btn--secondary,
-.nvx-aes-hero .nvx-brand-btn--secondary {
-  color: var(--nvx-accent-muted);
-  border-color: var(--nvx-accent-muted);
-  background: transparent;
 }
 
 .nvx-aes-section {

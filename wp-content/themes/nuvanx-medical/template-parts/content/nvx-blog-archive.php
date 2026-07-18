@@ -28,8 +28,9 @@ if ( is_search() ) {
 	$description = tag_description();
 	$lead        = $description ? wp_strip_all_tags( $description ) : __( 'Artículos relacionados con este tema médico-estético.', 'nuvanx-medical' );
 } elseif ( is_author() ) {
-	$title = get_the_author();
-	$lead  = __( 'Publicaciones y revisiones editoriales de este autor.', 'nuvanx-medical' );
+	$author = get_queried_object();
+	$title  = $author instanceof WP_User ? $author->display_name : __( 'Autor', 'nuvanx-medical' );
+	$lead   = __( 'Publicaciones y revisiones editoriales de este autor.', 'nuvanx-medical' );
 } elseif ( is_date() ) {
 	$title = wp_strip_all_tags( get_the_archive_title() );
 	$lead  = __( 'Archivo cronológico del Journal médico NUVANX.', 'nuvanx-medical' );

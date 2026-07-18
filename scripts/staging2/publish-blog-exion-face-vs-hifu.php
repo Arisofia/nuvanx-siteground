@@ -55,7 +55,7 @@ function nvx_blog_exion_vs_hifu_html(): string {
 
 	return <<<HTML
 <div class="nvx-blog-article nvx-brand-readable">
-<p class="nvx-blog-byline"><strong>Autor:</strong> <a class="nvx-brand-inline-link" href="{$equipo}">Dr. José Javier Rivera Tejeda</a>, Director Médico NUVANX · <strong>Fecha:</strong> julio 2026 · <strong>Lectura:</strong> ~8 min · <strong>Temas:</strong> EXION Face Madrid, rejuvenecimiento sin cirugía, radiofrecuencia vs HIFU, regeneración endógena</p>
+<!-- Byline: theme hero meta — do not hardcode Autor/Fecha/Lectura in body. -->
 
 <h2>Introducción: la trampa termodinámica del damage controlado</h2>
 <p>Durante dos décadas, gran parte de la medicina estética facial ha operado bajo un principio biomecánico hoy cuestionado: <strong>provocar daño térmico intenso</strong> en la dermis para forzar cicatrización y contracción de colágeno. HIFU (<em>High Intensity Focused Ultrasound</em>), con plataformas comerciales como Ultherapy®, y radiofrecuencia volumétrica tradicional tipo Thermage®, se construyeron en gran medida sobre esa premisa.</p>

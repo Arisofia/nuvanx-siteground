@@ -27,7 +27,7 @@ $posts = array(
     'focuskw' => 'EXION Body Madrid',
     'html' => <<<'NVXHTML'
 <div class="nvx-blog-article nvx-brand-readable">
-<p class="nvx-blog-byline"><strong>Autor:</strong> <a class="nvx-brand-inline-link" href="{{EQUIPO}}">Dr. José Javier Rivera Tejeda</a>, Director Médico NUVANX · <strong>Fecha:</strong> julio 2026 · <strong>Lectura:</strong> ~9 min</p>
+<!-- Byline: theme hero meta (nvx-blog-single.php) — do not hardcode Autor/Fecha/Lectura in body. -->
 <h2>Introducción: El Fracaso Estructural de la "Solución de Media"</h2>
 <p>Durante una década, la medicina estética corporal ha enfrentado un dilema sin resolver: <strong>eliminar grasa O tensar la piel. Nunca ambos.</strong></p>
 <p>CoolSculpting (criolipólisis) congela adipocitos eficientemente, pero ignora completamente la piel suprayacente. Al perder volumen subcutáneo sin correspondiente retracción dérmica, el resultado es flacidez secundaria catastrófica. Morpheus8 Body intenta compensar con punción de aguja de radiofrecuencia, pero genera dolor masivo, hematomas de 7-14 días y requiere anestesia profunda para tolerar la energía suficiente.</p>
@@ -152,7 +152,7 @@ NVXHTML
     'focuskw' => 'EXION Fractional Madrid',
     'html' => <<<'NVXHTML'
 <div class="nvx-blog-article nvx-brand-readable">
-<p class="nvx-blog-byline"><strong>Autor:</strong> <a class="nvx-brand-inline-link" href="{{EQUIPO}}">Dr. José Javier Rivera Tejeda</a>, Director Médico NUVANX · <strong>Fecha:</strong> julio 2026 · <strong>Lectura:</strong> ~9 min</p>
+<!-- Byline: theme hero meta (nvx-blog-single.php) — do not hardcode Autor/Fecha/Lectura in body. -->
 <h2>Introducción: El Problema de la "Aguja Larga Ciega"</h2>
 <p>La radiofrecuencia fraccionada se ha convertido en el caballo de batalla de la medicina estética moderna. Promete revitalización profunda, corrección de cicatrices, redefinición de arrugas. Pero la realidad clínica es dramáticamente diferente según la tecnología.</p>
 <p><strong>Morpheus8, Potenza y similares</strong> operan bajo un paradigma obsoleto: <strong>agujas largas (3-4.5mm) que perforan la dermis sin retroalimentación de la resistencia real del tejido.</strong> El médico debe disparar 3-5 pasadas superpuestas por zona, esperando "por si acaso" haber generado suficiente energía térmica. Resultado: trauma masivo, sangrado visible, hematomas de 7-14 días y—paradójicamente—resultados inconsistentes.</p>
@@ -273,7 +273,7 @@ NVXHTML
     'focuskw' => 'EMFUSION Madrid',
     'html' => <<<'NVXHTML'
 <div class="nvx-blog-article nvx-brand-readable">
-<p class="nvx-blog-byline"><strong>Autor:</strong> <a class="nvx-brand-inline-link" href="{{EQUIPO}}">Dr. José Javier Rivera Tejeda</a>, Director Médico NUVANX · <strong>Fecha:</strong> julio 2026 · <strong>Lectura:</strong> ~9 min</p>
+<!-- Byline: theme hero meta (nvx-blog-single.php) — do not hardcode Autor/Fecha/Lectura in body. -->
 <h2>Introducción: La Violencia Silenciosa de la Succión y la Perforación</h2>
 <p>La piel es el órgano más grande del cuerpo, y su barrera externa—el <strong>estrato córneo</strong>—es una estructura de 10-20 células de espesor que protege toda la biología subyacente.</p>
 <p>Hydrafacial y Dermapen atacan esta barrera de formas diferentes pero igualmente contraproducentes:</p>
@@ -402,9 +402,8 @@ NVXHTML
     'focuskw' => 'protocolos combinados medicina estética Madrid',
     'html' => <<<'NVXHTML'
 <div class="nvx-blog-article nvx-brand-readable">
-<p class="nvx-blog-byline"><strong>Autor:</strong> <a class="nvx-brand-inline-link" href="{{EQUIPO}}">Dr. José Javier Rivera Tejeda</a>, Director Médico NUVANX · <strong>Fecha:</strong> julio 2026 · <strong>Lectura:</strong> ~9 min</p>
+<!-- Byline: theme hero meta (nvx-blog-single.php) — do not hardcode Autor/Fecha/Lectura in body. -->
 <h2>La Mayor Rentabilidad y Mejor Resultado Clínico a Través de Sinergia Tecnológica</h2>
-<p><strong>Autor:</strong> Dr. Javier Rivera, Director Médico NUVANX <strong>Fecha:</strong> Julio 2026 <strong>Lectura:</strong> 10 minutos | Palabras clave:** Protocolos combinados medicina estética Madrid, sinergia tecnológica, resultados regenerativos</p>
 <h2>Introducción: El Fracaso de "Un Tratamiento, Una Máquina"</h2>
 <p>La medicina estética moderna ha cometido un error fundamental: <strong>creer que una sola tecnología puede resolver múltiples problemas biológicos.</strong></p>
 <p>La realidad es que el envejecimiento cutáneo es <strong>multifactorial:</strong></p>

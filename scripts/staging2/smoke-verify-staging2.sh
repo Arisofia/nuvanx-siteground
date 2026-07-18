@@ -179,6 +179,76 @@ check_page "/equipo-medico/" "equipo" \
   'physician-rivera-deras' \
   'physician-quinonez-bareiro'
 
+# Journal / blog editorial system (PR #83)
+check_page "/blog/" "blog-index" \
+  'nvx-blog-context' \
+  'nvx-blog-archive' \
+  'nvx-blog-grid' \
+  'nvx-blog-card' \
+  'nvx-posts.css'
+
+# Soft: page 2 may be empty on sparse staging; only require shell if HTML is long enough.
+if html_blog2="$(fetch "${BASE_URL%/}/blog/page/2/" 2>/dev/null || true)"; then
+  if [[ ${#html_blog2} -ge "$MIN_BYTES" ]]; then
+    require "blog-page-2" "$html_blog2" 'nvx-blog-archive'
+    require "blog-page-2" "$html_blog2" 'nvx-posts.css'
+  else
+    echo "  WARN[blog-page-2] short/empty response — skipped"
+  fi
+else
+  echo "  WARN[blog-page-2] could not fetch — skipped"
+fi
+
+# Search must use journal shell and post-only query (template markers).
+check_page "/?s=endolift" "blog-search" \
+  'nvx-blog-context' \
+  'nvx-blog-archive' \
+  'nvx-posts.css'
+
+# Discover first article card + category from /blog/ for deeper markers.
+to_path() {
+  # Absolute URL → path; leave relative paths intact.
+  local u="$1"
+  if [[ "$u" == http://* || "$u" == https://* ]]; then
+    printf '%s' "$u" | sed -E 's#https?://[^/]+##'
+  else
+    printf '%s' "$u"
+  fi
+}
+
+if html_blog="$(fetch "${BASE_URL%/}/blog/" 2>/dev/null || true)"; then
+  post_url="$(printf '%s' "$html_blog" | tr '\n' ' ' | sed -n 's/.*class="nvx-blog-card__title"><a href="\([^"]\+\)".*/\1/p' | head -n1 || true)"
+  cat_url="$(printf '%s' "$html_blog" | tr '\n' ' ' | sed -n 's/.*class="nvx-blog-card__category"><a href="\([^"]\+\)".*/\1/p' | head -n1 || true)"
+
+  if [[ -n "${post_url:-}" ]]; then
+    post_path="$(to_path "$post_url")"
+    echo "==> blog-single (discovered $post_path)"
+    if html_post="$(fetch "${BASE_URL%/}${post_path}" 2>/dev/null || true)"; then
+      require "blog-single" "$html_post" 'nvx-blog-single'
+      require "blog-single" "$html_post" 'nvx-blog-context'
+      require "blog-single" "$html_post" 'nvx-posts.css'
+    else
+      echo "  WARN[blog-single] could not fetch discovered post — skipped"
+    fi
+  else
+    echo "  WARN[blog-single] no card title link on /blog/ — skipped"
+  fi
+
+  if [[ -n "${cat_url:-}" ]]; then
+    cat_path="$(to_path "$cat_url")"
+    echo "==> blog-category (discovered $cat_path)"
+    if html_cat="$(fetch "${BASE_URL%/}${cat_path}" 2>/dev/null || true)"; then
+      require "blog-category" "$html_cat" 'nvx-blog-archive'
+      require "blog-category" "$html_cat" 'nvx-blog-grid'
+      require "blog-category" "$html_cat" 'nvx-posts.css'
+    else
+      echo "  WARN[blog-category] could not fetch discovered category — skipped"
+    fi
+  else
+    echo "  WARN[blog-category] no category link on /blog/ — skipped"
+  fi
+fi
+
 echo
 if [[ "$FAIL" -ne 0 ]]; then
   echo "SMOKE_VERIFY_FAILED" >&2

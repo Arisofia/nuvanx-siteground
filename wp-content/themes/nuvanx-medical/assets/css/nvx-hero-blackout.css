@@ -8,6 +8,9 @@
  * :is() is used for consolidation (same as nvx-site-layout.css). The active stack
  * already depends on evergreen CSS (custom properties, clamp, svh); no IE/legacy
  * polyfill path is maintained for this temporary override.
+ *
+ * Divi (.et_pb_*) adaptations removed: theme no longer ships Divi presentation;
+ * residual builder markup is out of scope for this override.
  */
 
 /* Opening hero stages: solid ink, no photographic background. */
@@ -76,31 +79,10 @@ body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-h
   }
 }
 
-/* Legacy Divi opening headers still present on a subset of pages. */
-body.nvx-hero-blackout:not(.home) :is(
-  .et_builder_inner_content,
-  .entry-content
-) > .et_pb_section:first-child,
-body.nvx-hero-blackout:not(.home) :is(
-  .et_builder_inner_content,
-  .entry-content
-) > .et_pb_section:first-child :is(.et_pb_fullwidth_header, .et_parallax_bg) {
-  background-color: var(--nvx-ink);
-  background-image: none;
-}
-
-body.nvx-hero-blackout:not(.home) :is(
-  .et_builder_inner_content,
-  .entry-content
-) > .et_pb_section:first-child :is(.et_pb_fullwidth_header, .et_pb_fullwidth_image) img {
-  display: none;
-}
-
 /*
  * Keep video visible without forcing display:block (flex/grid-safe).
  * display:revert only affects the video element itself — it cannot override
  * display:none on an ancestor (e.g. journal .nvx-blog-hero__media above).
- * Targets stages where media containers stay in the tree (not fully removed).
  */
 body.nvx-hero-blackout :is(
   .nvx-brand-hero,
@@ -108,11 +90,7 @@ body.nvx-hero-blackout :is(
   .nvx-page-hero,
   section.nvx-hero,
   .nvx-home-hero-stage
-) video,
-body.nvx-hero-blackout:not(.home) :is(
-  .et_builder_inner_content,
-  .entry-content
-) > .et_pb_section:first-child video {
+) video {
   display: revert;
   visibility: visible;
   opacity: 1;

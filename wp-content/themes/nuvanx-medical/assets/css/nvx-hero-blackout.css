@@ -42,6 +42,7 @@ body.nvx-hero-blackout :is(
  * Specificity must beat nvx-patterns-editorial.css
  * (.nvx-page-hero .nvx-page-hero__media img, .nvx-*-hero__media .nvx-media).
  * Include .nvx-media / .wp-post-image classes used on hero thumbnails.
+ * Video and its controls stay visible (see rules below).
  */
 body.nvx-hero-blackout :is(
   .nvx-brand-hero .nvx-brand-hero__media,
@@ -50,8 +51,19 @@ body.nvx-hero-blackout :is(
   .nvx-hero .nvx-hero__media,
   .nvx-hero .nvx-brand-hero__media,
   .nvx-home-hero-stage
-) :is(img, picture, .nvx-media, .nvx-media--body, .wp-post-image) {
-  display: none;
+) :is(img, picture, .nvx-media, .nvx-media--body, .wp-post-image):not(video):not(video *) {
+  display: none !important;
+}
+
+/* Still-only media rails: full black field (no empty photo hole). */
+body.nvx-hero-blackout :is(
+  .nvx-brand-hero__media,
+  .nvx-editorial-hero__media,
+  .nvx-page-hero__media,
+  .nvx-hero__media
+):not(:has(video)) {
+  background-color: var(--nvx-ink);
+  min-height: min(52vh, 28rem);
 }
 
 /*

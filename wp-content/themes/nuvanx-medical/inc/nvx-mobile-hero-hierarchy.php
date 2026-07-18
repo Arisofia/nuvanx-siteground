@@ -75,6 +75,7 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 		|| ( defined( 'REST_REQUEST' ) && REST_REQUEST )
 		|| false === stripos( $content, 'hero' )
 		|| false !== stripos( $content, 'nvx-hero-context--generated' )
+		|| false !== stripos( $content, 'nvx-hero-intro--generated' )
 		|| ! class_exists( 'DOMDocument' )
 	) {
 		return $content;
@@ -138,28 +139,38 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 			continue;
 		}
 
-		$context = $document->createElement( 'div' );
-		$context->setAttribute( 'class', 'nvx-hero-context nvx-hero-context--generated' );
-		$context->setAttribute( 'data-nvx-hero-context', 'clinical-introduction' );
+		// Same shell as sede/hub sections (brand-section + readable) so Goya/EXION/etc.
+		// share gutters with Chamberí — no special-case hero-context band.
+		$section = $document->createElement( 'section' );
+		$section->setAttribute( 'class', 'nvx-brand-section nvx-hero-intro nvx-hero-intro--generated' );
+		$section->setAttribute( 'data-nvx-hero-context', 'clinical-introduction' );
+		$section->setAttribute( 'aria-label', 'Introducción clínica' );
 
 		$inner = $document->createElement( 'div' );
-		$inner->setAttribute( 'class', 'nvx-hero-context__inner' );
+		$inner->setAttribute( 'class', 'nvx-brand-section__inner' );
+
+		$readable = $document->createElement( 'div' );
+		$readable->setAttribute( 'class', 'nvx-brand-readable nvx-brand-readable--wide' );
 
 		foreach ( $movable as $index => $paragraph ) {
 			if ( $paragraph instanceof DOMElement ) {
 				$existing = trim( $paragraph->getAttribute( 'class' ) );
-				$extra    = 0 === $index ? 'nvx-hero-context__lead' : 'nvx-hero-context__description';
+				// Keep legacy class hooks for any remaining hierarchy CSS; body class unifies type.
+				$extra = 0 === $index
+					? 'nvx-brand-body nvx-hero-context__lead'
+					: 'nvx-brand-body nvx-hero-context__description';
 				$paragraph->setAttribute( 'class', trim( $existing . ' ' . $extra ) );
 			}
-			$inner->appendChild( $paragraph );
+			$readable->appendChild( $paragraph );
 		}
 
-		$context->appendChild( $inner );
+		$inner->appendChild( $readable );
+		$section->appendChild( $inner );
 
 		if ( $hero->nextSibling ) {
-			$hero->parentNode->insertBefore( $context, $hero->nextSibling );
+			$hero->parentNode->insertBefore( $section, $hero->nextSibling );
 		} else {
-			$hero->parentNode->appendChild( $context );
+			$hero->parentNode->appendChild( $section );
 		}
 	}
 

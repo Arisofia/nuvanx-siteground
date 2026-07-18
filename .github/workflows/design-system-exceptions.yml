@@ -8,7 +8,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'wp-content/themes/nuvanx-medical/**/*.js'
-      - 'scripts/design-system/audit-css.mjs'
+      - 'scripts/design-system/**'
       - '.github/workflows/design-system-exceptions.yml'
   pull_request:
     branches:
@@ -17,7 +17,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'wp-content/themes/nuvanx-medical/**/*.js'
-      - 'scripts/design-system/audit-css.mjs'
+      - 'scripts/design-system/**'
       - '.github/workflows/design-system-exceptions.yml'
   workflow_dispatch:
 
@@ -46,8 +46,11 @@ jobs:
           path: |
             qa/design-system/audit-summary.json
             qa/design-system/active-css-exceptions.json
+            scripts/design-system/*.mjs
             wp-content/themes/nuvanx-medical/**/*.php
             wp-content/themes/nuvanx-medical/assets/css/*.css
             wp-content/themes/nuvanx-medical/assets/js/*.js
+            docs/staging2/audit-artifacts/*.html
+            docs/staging2/audit-artifacts/*.xml
           if-no-files-found: error
           retention-days: 14

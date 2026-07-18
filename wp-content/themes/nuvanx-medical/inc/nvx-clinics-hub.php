@@ -521,8 +521,115 @@ function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): vo
 	$link->setAttribute( 'aria-label', 'Abrir ' . $name . ' en Google Maps' );
 	$link->nodeValue = 'Abrir en Google Maps';
 
-	$class = trim( $link->getAttribute( 'class' ) . ' nvx-button nvx-button--primary nvx-clinic-map-cta' );
-	$link->setAttribute( 'class', implode( ' ', array_unique( preg_split( '/\s+/', $class ) ?: array() ) ) );
+	// Map = secondary action (not competing primary).
+	$link->setAttribute( 'class', 'nvx-brand-btn nvx-brand-btn--secondary nvx-clinic-map-cta' );
+}
+
+/**
+ * Strip button chrome classes from a link (keep other nvx utilities if any).
+ */
+function nvx_clinics_strip_button_classes( DOMElement $link, string $replace_with = 'nvx-brand-inline-link' ): void {
+	$classes = preg_split( '/\s+/', trim( $link->getAttribute( 'class' ) ) ) ?: array();
+	$classes = array_values(
+		array_filter(
+			$classes,
+			static function ( string $c ): bool {
+				return ! preg_match( '/^(nvx-brand-btn|nvx-button|nvx-btn)(--\w+)?$/i', $c )
+					&& 'nvx-clinic-map-cta' !== $c;
+			}
+		)
+	);
+	if ( '' !== $replace_with && ! in_array( $replace_with, $classes, true ) ) {
+		$classes[] = $replace_with;
+	}
+	$link->setAttribute( 'class', implode( ' ', array_unique( $classes ) ) );
+}
+
+/**
+ * Normalize CTA hierarchy on the clinics hub: one primary per action row,
+ * titles/phones as text links, maps secondary. Fixes CMS overuse of --primary.
+ */
+function nvx_clinics_normalize_cta_hierarchy( DOMDocument $dom, DOMXPath $xpath ): void {
+	$root = $dom->getElementById( 'nvx-clinics-document' );
+	if ( ! $root ) {
+		return;
+	}
+
+	foreach ( $xpath->query( './/a', $root ) ?: array() as $link ) {
+		if ( ! $link instanceof DOMElement ) {
+			continue;
+		}
+
+		$href = $link->getAttribute( 'href' );
+		$text = trim( preg_replace( '/\s+/u', ' ', $link->textContent ) ?? '' );
+		$class = $link->getAttribute( 'class' );
+		$is_btn = (bool) preg_match( '/\b(nvx-brand-btn|nvx-button|nvx-btn)\b/i', $class );
+
+		// Truncated intro CTA.
+		if ( preg_match( '/^Solicitar\s*$/iu', $text ) ) {
+			$link->nodeValue = 'Reservar valoración';
+			$link->setAttribute( 'class', 'nvx-brand-btn nvx-brand-btn--primary' );
+			if ( '' === $href || '#' === $href ) {
+				$valoracion = function_exists( 'nvx_cta_valoracion_url' )
+					? nvx_cta_valoracion_url()
+					: home_url( '/madrid/valoracion/' );
+				$link->setAttribute( 'href', $valoracion );
+			}
+			continue;
+		}
+
+		// Title links inside headings are not buttons.
+		$parent = $link->parentNode;
+		if ( $parent instanceof DOMElement && in_array( strtolower( $parent->tagName ), array( 'h1', 'h2', 'h3', 'h4' ), true ) ) {
+			nvx_clinics_strip_button_classes( $link, 'nvx-brand-inline-link' );
+			continue;
+		}
+
+		// Phone / WhatsApp = text links (or secondary if alone as CTA).
+		if ( preg_match( '/^(tel:|https?:\/\/wa\.me\/)/i', $href ) || preg_match( '/whatsapp/i', $text ) ) {
+			nvx_clinics_strip_button_classes( $link, 'nvx-brand-inline-link' );
+			continue;
+		}
+
+		// Maps already handled as secondary via set_link_attributes; demote leftover primaries.
+		if ( preg_match( '/(?:google\.com\/maps|maps\.app|google maps|abrir .+ maps)/iu', $href . ' ' . $text ) ) {
+			$link->setAttribute( 'class', 'nvx-brand-btn nvx-brand-btn--secondary nvx-clinic-map-cta' );
+			continue;
+		}
+
+		// Secondary actions: equipo, “ver todos”, generic explore.
+		if ( preg_match( '/equipo|ver todos|explorar|catálogo|catalogo/iu', $text . ' ' . $href ) ) {
+			$link->setAttribute( 'class', 'nvx-brand-btn nvx-brand-btn--secondary' );
+			continue;
+		}
+
+		// Primary CTAs: valoración / ver sede only when already a button.
+		if ( $is_btn && preg_match( '/valoraci[oó]n|ver sede|reservar/iu', $text ) ) {
+			$link->setAttribute( 'class', 'nvx-brand-btn nvx-brand-btn--primary' );
+			continue;
+		}
+
+		// Treatment name cards: demote title-as-button to card title link.
+		if ( $is_btn && preg_match( '/\bnvx-brand-card\b/i', nvx_clinics_ancestor_class_blob( $link ) ) ) {
+			// Keep one primary "Ver …" style only if label is action-like; else inline.
+			if ( ! preg_match( '/^(ver|reservar|solicitar|abrir)\b/iu', $text ) ) {
+				nvx_clinics_strip_button_classes( $link, 'nvx-brand-inline-link' );
+			}
+		}
+	}
+}
+
+/**
+ * Concatenated class attributes of ancestors (for context checks).
+ */
+function nvx_clinics_ancestor_class_blob( DOMNode $node ): string {
+	$blob = '';
+	$cur  = $node->parentNode;
+	while ( $cur instanceof DOMElement ) {
+		$blob .= ' ' . $cur->getAttribute( 'class' );
+		$cur   = $cur->parentNode;
+	}
+	return $blob;
 }
 
 /* -------------------------------------------------------------------------
@@ -636,10 +743,13 @@ function nvx_clinics_hub_enhance( string $content ): string {
 		return $content;
 	}
 
-	$xpath    = new DOMXPath( $dom );
-	$pipeline = nvx_clinics_run_layout_pipeline( $xpath );
+	$xpath       = new DOMXPath( $dom );
+	$pipeline    = nvx_clinics_run_layout_pipeline( $xpath );
 	$layout_root = $pipeline['layout_root'];
 	$hoisted     = $pipeline['hoisted'];
+
+	// CTA hierarchy before map anchors so map links get secondary styling last.
+	nvx_clinics_normalize_cta_hierarchy( $dom, $xpath );
 
 	$clinics = array(
 		'chamberi' => array( 'id' => 'clinica-chamberi', 'label' => 'Chamberí', 'match' => '/chamber[ií]/iu' ),
@@ -694,6 +804,9 @@ function nvx_clinics_hub_enhance( string $content ): string {
 			$block->appendChild( $actions );
 		}
 	}
+
+	// Second pass: map CTAs just set to secondary; re-demote any leftover primary spam in cards.
+	nvx_clinics_normalize_cta_hierarchy( $dom, $xpath );
 
 	if ( isset( $blocks['chamberi'], $blocks['goya'] ) && ! $dom->getElementById( 'nvx-clinics-nav' ) ) {
 		$nav = $dom->createElement( 'nav' );

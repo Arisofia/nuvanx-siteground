@@ -12,10 +12,12 @@ while ( have_posts() ) :
 	the_post();
 
 	$categories = get_the_category();
+	$categories = is_array( $categories ) ? $categories : array();
 	$primary    = ! empty( $categories ) ? $categories[0] : null;
 	$previous   = get_previous_post();
 	$next       = get_next_post();
 	$tags       = get_the_tags();
+	$tags       = is_array( $tags ) ? $tags : array();
 	$hero_class = has_post_thumbnail() ? 'nvx-blog-hero' : 'nvx-blog-hero nvx-blog-hero--text-only';
 	?>
 	<article id="post-<?php the_ID(); ?>" <?php post_class( 'nvx-blog-article' ); ?>>
@@ -80,11 +82,9 @@ while ( have_posts() ) :
 							<?php foreach ( $categories as $category ) : ?>
 								<a href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>"><?php echo esc_html( $category->name ); ?></a>
 							<?php endforeach; ?>
-							<?php if ( ! empty( $tags ) ) : ?>
-								<?php foreach ( $tags as $tag ) : ?>
-									<a href="<?php echo esc_url( get_tag_link( $tag->term_id ) ); ?>">#<?php echo esc_html( $tag->name ); ?></a>
-								<?php endforeach; ?>
-							<?php endif; ?>
+							<?php foreach ( $tags as $tag ) : ?>
+								<a href="<?php echo esc_url( get_tag_link( $tag->term_id ) ); ?>">#<?php echo esc_html( $tag->name ); ?></a>
+							<?php endforeach; ?>
 						</div>
 					<?php endif; ?>
 				</footer>

@@ -5,8 +5,12 @@ on:
     branches:
       - master
     paths:
+      # Nested asset globs so future css/js subdirs stay in scope.
       - 'wp-content/themes/nuvanx-medical/style.css'
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
+      - 'wp-content/themes/nuvanx-medical/assets/js/**'
+      # Full theme PHP: enqueue lives in functions.php + inc/*, but audit-css.mjs
+      # also scans every template for inline style= / <style> / !important.
       - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'wp-content/themes/nuvanx-medical/**/*.js'
       - 'scripts/design-system/**'
@@ -17,6 +21,7 @@ on:
     paths:
       - 'wp-content/themes/nuvanx-medical/style.css'
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
+      - 'wp-content/themes/nuvanx-medical/assets/js/**'
       - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'wp-content/themes/nuvanx-medical/**/*.js'
       - 'scripts/design-system/**'
@@ -55,7 +60,7 @@ jobs:
             # Nested-safe so future css/js subdirs stay in the snapshot.
             wp-content/themes/nuvanx-medical/assets/css/**/*.css
             wp-content/themes/nuvanx-medical/assets/js/**/*.js
-            docs/staging2/audit-artifacts/*.html
+            docs/staging2/audit-captures/*.html
             docs/staging2/audit-captures/*.xml
           if-no-files-found: error
           retention-days: 14

@@ -1,11 +1,10 @@
 diff --git a/wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php b/wp-content/themes/nuvanx-medical/inc/nvx-hero-hierarchy.php
-similarity index 73%
+similarity index 80%
 rename from wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php
 rename to wp-content/themes/nuvanx-medical/inc/nvx-hero-hierarchy.php
-index cf3fa9b87344934bf0892048f57c166b83fd7e45..9e63fb1f30a029289b51f4a717a844e453eed03d 100644
 --- a/wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php
 +++ b/wp-content/themes/nuvanx-medical/inc/nvx-hero-hierarchy.php
-@@ -13,23 +13,6 @@ if ( ! defined( 'ABSPATH' ) ) {
+@@ -13,23 +13,7 @@
  	exit;
  }
  
@@ -16,7 +15,7 @@ index cf3fa9b87344934bf0892048f57c166b83fd7e45..9e63fb1f30a029289b51f4a717a844e4
 - */
 -function nvx_enqueue_mobile_hero_hierarchy(): void {
 -	$relative = 'assets/css/nvx-mobile-hero-hierarchy.css';
--
+ 
 -	wp_enqueue_style(
 -		'nvx-mobile-hero-hierarchy',
 -		get_template_directory_uri() . '/' . $relative,
@@ -29,7 +28,7 @@ index cf3fa9b87344934bf0892048f57c166b83fd7e45..9e63fb1f30a029289b51f4a717a844e4
  /**
   * Test whether a DOM node has a class.
   */
-@@ -49,11 +32,6 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
+@@ -49,11 +33,6 @@
  	$movable_classes = array(
  		'nvx-brand-hero__lead',
  		'nvx-brand-hero__description',
@@ -39,7 +38,9 @@ index cf3fa9b87344934bf0892048f57c166b83fd7e45..9e63fb1f30a029289b51f4a717a844e4
 -		'nvx-subtitle',
 -		'nvx-hero-subtitle',
  	);
-@@ -74,7 +52,6 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
+ 
+ 	foreach ( $movable_classes as $class_name ) {
+@@ -74,7 +53,6 @@
  		|| wp_doing_ajax()
  		|| ( defined( 'REST_REQUEST' ) && REST_REQUEST )
  		|| false === stripos( $content, 'hero' )
@@ -47,14 +48,16 @@ index cf3fa9b87344934bf0892048f57c166b83fd7e45..9e63fb1f30a029289b51f4a717a844e4
  		|| false !== stripos( $content, 'nvx-hero-intro--generated' )
  		|| ! class_exists( 'DOMDocument' )
  	) {
-@@ -97,7 +74,7 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
+@@ -97,7 +75,7 @@
  
  	$xpath = new DOMXPath( $document );
  	$heroes = $xpath->query(
 -		'//*[@id="nvx-content-transform-root"]//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero-section ")]'
 +		'//*[@id="nvx-content-transform-root"]//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero ")]'
  	);
-@@ -115,7 +92,7 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
+ 
+ 	if ( false === $heroes ) {
+@@ -115,7 +93,7 @@
  
  	foreach ( $hero_nodes as $hero ) {
  		$copy_nodes = $xpath->query(
@@ -62,25 +65,13 @@ index cf3fa9b87344934bf0892048f57c166b83fd7e45..9e63fb1f30a029289b51f4a717a844e4
 +			'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ")]',
  			$hero
  		);
-@@ -140,10 +117,10 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
- 		}
  
+@@ -143,7 +121,7 @@
+ 		// share gutters with Chamberí — no special-case hero-context band.
  		$section = $document->createElement( 'section' );
  		$section->setAttribute( 'class', 'nvx-brand-section nvx-hero-intro nvx-hero-intro--generated' );
 -		$section->setAttribute( 'data-nvx-hero-context', 'clinical-introduction' );
 +		$section->setAttribute( 'data-nvx-hero-intro', 'clinical-introduction' );
  		$section->setAttribute( 'aria-label', 'Introducción clínica' );
-@@ -154,12 +131,10 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
  
- 		foreach ( $movable as $index => $paragraph ) {
- 			if ( $paragraph instanceof DOMElement ) {
--				$existing = trim( $paragraph->getAttribute( 'class' ) );
--				$extra = 0 === $index
--					? 'nvx-brand-body nvx-hero-context__lead'
--					: 'nvx-brand-body nvx-hero-context__description';
--				$paragraph->setAttribute( 'class', trim( $existing . ' ' . $extra ) );
-+				$class_name = 0 === $index
-+					? 'nvx-brand-body nvx-hero-intro__lead'
-+					: 'nvx-brand-body nvx-hero-intro__description';
-+				$paragraph->setAttribute( 'class', $class_name );
- 			}
+ 		$inner = $document->createElement( 'div' );

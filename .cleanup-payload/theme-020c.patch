@@ -1,8 +1,7 @@
 diff --git a/wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php b/wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php
-index 73551035e35266c0cb56f1fdbfce4e15211aa891..f48fcc4cff138f50b647edb4643902d87361b4d9 100644
 --- a/wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php
 +++ b/wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php
-@@ -120,23 +120,6 @@ function nvx_medical_review_append( string $content ): string {
+@@ -120,23 +120,7 @@
  }
  add_filter( 'the_content', 'nvx_medical_review_append', 145 );
  
@@ -11,7 +10,7 @@ index 73551035e35266c0cb56f1fdbfce4e15211aa891..f48fcc4cff138f50b647edb4643902d8
 -	if ( null === nvx_medical_review_record() ) {
 -		return;
 -	}
--
+ 
 -	$relative = '/assets/css/nvx-medical-review.css';
 -	$file     = get_stylesheet_directory() . $relative;
 -	wp_enqueue_style(
@@ -25,3 +24,4 @@ index 73551035e35266c0cb56f1fdbfce4e15211aa891..f48fcc4cff138f50b647edb4643902d8
 -
  /** Test whether a schema type contains WebPage. */
  function nvx_medical_review_schema_has_type( $types, string $type ): bool {
+ 	return in_array( $type, is_array( $types ) ? $types : array( $types ), true );

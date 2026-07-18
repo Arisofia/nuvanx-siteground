@@ -1,0 +1,153 @@
+
++}
++
++.nvx-medical-review__reviewer {
++  color: var(--nvx-ink);
++  font-weight: 700;
++  text-decoration-line: underline;
++  text-decoration-thickness: 1px;
++  text-underline-offset: 0.2em;
++}
++
++.nvx-medical-review__reviewer:focus-visible {
++  outline: 2px solid currentColor;
++  outline-offset: 4px;
++}
++
+ /* Clinics hub navigation — issue #46 */
+ .nvx-clinics-nav{border-block:1px solid var(--nvx-color-line);background:var(--nvx-surface-base)}
+ .nvx-clinics-nav__inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:var(--nvx-space-4);padding-block:var(--nvx-space-3)}
+diff --git a/wp-content/themes/nuvanx-medical/assets/css/nvx-header.css b/wp-content/themes/nuvanx-medical/assets/css/nvx-header.css
+index b9b85355aa9e7b890ecd8e88d3381b8629fb46c2..efceaf684f65ff60675da3c9f2aecfb1143dc10d 100644
+--- a/wp-content/themes/nuvanx-medical/assets/css/nvx-header.css
++++ b/wp-content/themes/nuvanx-medical/assets/css/nvx-header.css
+@@ -3,21 +3,13 @@
+   top: 0;
+   z-index: 1000;
+   width: 100%;
+-<<<<<<< HEAD
+   min-height: var(--nvx-header-height);
+-=======
+-  min-height: 80px;
+->>>>>>> origin/master
+-  background: rgba(246, 247, 248, 0.98);
++  background: var(--nvx-header-background);
+   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
+ }
+ 
+ body.admin-bar #nvx-header {
+-<<<<<<< HEAD
+   top: var(--nvx-space-4);
+-=======
+-  top: 32px;
+->>>>>>> origin/master
+ }
+ 
+ .nvx-header__inner {
+@@ -27,11 +19,7 @@ body.admin-bar #nvx-header {
+   gap: var(--nvx-space-3);
+   width: var(--nvx-shell);
+   max-width: 100%;
+-<<<<<<< HEAD
+   min-height: var(--nvx-header-height);
+-=======
+-  min-height: 80px;
+->>>>>>> origin/master
+   margin-inline: auto;
+   padding-inline: var(--nvx-gutter-inner);
+   box-sizing: border-box;
+@@ -51,13 +39,8 @@ body.admin-bar #nvx-header {
+ .custom-logo {
+   display: block;
+   width: auto;
+-<<<<<<< HEAD
+   height: var(--nvx-logo-height);
+   max-width: var(--nvx-logo-width);
+-=======
+-  height: 40px;
+-  max-width: 168px;
+->>>>>>> origin/master
+   object-fit: contain;
+ }
+ 
+@@ -83,7 +66,6 @@ body.admin-bar #nvx-header {
+   display: flex;
+   min-width: 0;
+   align-items: center;
+-<<<<<<< HEAD
+   gap: var(--nvx-space-2);
+ }
+ 
+@@ -92,17 +74,6 @@ body.admin-bar #nvx-header {
+ }
+ 
+ .nvx-nav__list {
+-=======
+-  justify-content: flex-end;
+-  gap: var(--nvx-space-2);
+-}
+-
+-.nvx-nav__list {
+-  display: flex;
+-  min-width: 0;
+-  align-items: center;
+-  gap: var(--nvx-space-2);
+->>>>>>> origin/master
+   margin: 0;
+   padding: 0;
+   list-style: none;
+@@ -118,7 +89,6 @@ body.admin-bar #nvx-header {
+ .nvx-nav__list > li > a {
+   position: relative;
+   display: inline-flex;
+-<<<<<<< HEAD
+   min-height: var(--nvx-control-size);
+   align-items: center;
+   padding-block: var(--nvx-space-1);
+@@ -127,16 +97,6 @@ body.admin-bar #nvx-header {
+   font-weight: 600;
+   line-height: var(--nvx-lh-nav);
+   letter-spacing: var(--nvx-track-nav);
+-=======
+-  min-height: 48px;
+-  align-items: center;
+-  padding-block: var(--nvx-space-1);
+-  font-family: var(--nvx-sans);
+-  font-size: 0.72rem;
+-  font-weight: 600;
+-  line-height: 1;
+-  letter-spacing: 0.08em;
+->>>>>>> origin/master
+   text-transform: uppercase;
+   color: var(--nvx-ink);
+   text-decoration: none;
+@@ -169,16 +129,11 @@ body.admin-bar #nvx-header {
+ .nvx-nav__list .sub-menu {
+   position: absolute;
+   top: calc(100% + var(--nvx-space-1));
+-  left: 0;
+-  right: auto;
++  left: auto;
++  right: 0;
+   z-index: 1200;
+-<<<<<<< HEAD
+   min-width: var(--nvx-submenu-min-width);
+   max-width: min(var(--nvx-submenu-max-width), 70vw);
+-=======
+-  min-width: 256px;
+-  max-width: min(320px, 70vw);
+->>>>>>> origin/master
+   margin: 0;
+   padding: var(--nvx-space-2) 0;
+   list-style: none;
+@@ -193,11 +148,6 @@ body.admin-bar #nvx-header {
+   transition: opacity 160ms ease, visibility 160ms ease, transform 160ms ease;
+ }
+ 
+-.nvx-nav__list > li:nth-last-child(-n + 2) > .sub-menu {
+-  left: auto;
+-  right: 0;
+-}
+-
+ .nvx-nav__list > li:hover > .sub-menu,
+ .nvx-nav__list >

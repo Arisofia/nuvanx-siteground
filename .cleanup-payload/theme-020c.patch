@@ -1,0 +1,27 @@
+diff --git a/wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php b/wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php
+--- a/wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php
++++ b/wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php
+@@ -120,23 +120,7 @@
+ }
+ add_filter( 'the_content', 'nvx_medical_review_append', 145 );
+ 
+-/** Load component CSS only when a valid approval record exists. */
+-function nvx_medical_review_enqueue(): void {
+-	if ( null === nvx_medical_review_record() ) {
+-		return;
+-	}
+ 
+-	$relative = '/assets/css/nvx-medical-review.css';
+-	$file     = get_stylesheet_directory() . $relative;
+-	wp_enqueue_style(
+-		'nvx-medical-review',
+-		get_stylesheet_directory_uri() . $relative,
+-		array( 'nvx-components' ),
+-		file_exists( $file ) ? (string) filemtime( $file ) : null
+-	);
+-}
+-add_action( 'wp_enqueue_scripts', 'nvx_medical_review_enqueue', 45 );
+-
+ /** Test whether a schema type contains WebPage. */
+ function nvx_medical_review_schema_has_type( $types, string $type ): bool {
+ 	return in_array( $type, is_array( $types ) ? $types : array( $types ), true );

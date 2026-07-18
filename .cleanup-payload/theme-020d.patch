@@ -1,0 +1,22 @@
+diff --git a/wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-single.php b/wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-single.php
+--- a/wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-single.php
++++ b/wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-single.php
+@@ -18,7 +18,8 @@
+ 	$next       = get_next_post();
+ 	$tags       = get_the_tags();
+ 	$tags       = is_array( $tags ) ? $tags : array();
+-	$hero_class = has_post_thumbnail() ? 'nvx-blog-hero' : 'nvx-blog-hero nvx-blog-hero--text-only';
++	$show_hero_media = has_post_thumbnail() && nvx_theme_hero_images_enabled();
++	$hero_class      = $show_hero_media ? 'nvx-blog-hero' : 'nvx-blog-hero nvx-blog-hero--text-only';
+ 	?>
+ 	<article id="post-<?php the_ID(); ?>" <?php post_class( 'nvx-blog-article' ); ?>>
+ 		<header class="<?php echo esc_attr( $hero_class ); ?>" aria-labelledby="nvx-blog-title-<?php the_ID(); ?>">
+@@ -44,7 +45,7 @@
+ 					</div>
+ 				</div>
+ 
+-				<?php if ( has_post_thumbnail() ) : ?>
++				<?php if ( $show_hero_media ) : ?>
+ 					<figure class="nvx-blog-hero__media">
+ 						<?php
+ 						the_post_thumbnail(

@@ -1,0 +1,148 @@
+nvx-page-body__inner,
+ .nvx-form-stage .nvx-page-body__inner {
+   position: relative;
+   z-index: 1;
+@@ -236,10 +130,8 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
+   box-sizing: border-box;
+ }
+ 
+-.nvx-section,
+ .nvx-brand-section,
+ .nvx-page-body,
+-.wp-block-group.nvx-section,
+ .nvx-endolift-section,
+ .nvx-laser-section,
+ .nvx-aes-section,
+@@ -248,9 +140,8 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
+   padding-block: var(--nvx-pad-section);
+ }
+ 
+-/* Retained layout API: both tight variants share the same token (CSS Gate contract). */
+-.nvx-brand-section--tight,
+-.nvx-section--tight {
++/* Compact section rhythm. */
++.nvx-brand-section--tight {
+   padding-block: var(--nvx-pad-section-tight);
+ }
+ 
+@@ -292,24 +183,8 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
+   color: var(--nvx-text-body);
+ }
+ 
+-/* Body media — editorial surfaces only; exclude hero/formula stages */
+-.nvx-content-figure,
+-.nvx-main :is(
+-  .nvx-page__content,
+-  .entry-content,
+-  .nvx-prose,
+-  .nvx-copy,
+-  .nvx-page-body__inner,
+-  .nvx-brand-section__inner
+-) :where(figure, .wp-block-image, .wp-caption):not(
+-  .nvx-brand-hero__media,
+-  .nvx-editorial-hero__media,
+-  .nvx-page-hero__media,
+-  .nvx-hero__media,
+-  .nvx-endolift-formula,
+-  .nvx-laser-formula,
+-  .nvx-aes-formula
+-) {
++/* Body media — normalized by nvx_content_normalize_body_media(). */
++.nvx-content-figure {
+   display: block;
+   width: 100%;
+   max-width: 100%;
+@@ -321,15 +196,6 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
+ }
+ 
+ .nvx-content-figure img,
+-.nvx-main :is(
+-  .nvx-page__content,
+-  .entry-content,
+-  .nvx-prose,
+-  .nvx-brand-section__inner
+-) :where(
+-  figure:not(.nvx-endolift-formula):not(.nvx-laser-formula):not(.nvx-aes-formula),
+-  .wp-block-image
+-) img,
+ .nvx-main img.nvx-media--body {
+   display: block;
+   width: 100%;
+@@ -340,24 +206,7 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
+   border-radius: var(--nvx-radius-image);
+ }
+ 
+-/* Body images in sections — never apply to hero stage media */
+-.nvx-main .nvx-brand-section img.nvx-media--body,
+-.nvx-main .nvx-page__content img.nvx-media--body {
+-  max-width: 100%;
+-  height: auto;
+-}
+-
+-/* Defensive: if a hero img still has --body class, restore full-bleed cover */
+-.nvx-main .nvx-brand-hero__media img,
+-.nvx-main .nvx-page-hero__media img,
+-.nvx-main .nvx-editorial-hero__media img {
+-  max-height: none;
+-  height: 100%;
+-  border-radius: 0;
+-}
+-
+-.nvx-content-figure figcaption,
+-.nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-brand-section__inner) figcaption {
++.nvx-content-figure figcaption {
+   margin-top: var(--nvx-margin-caption);
+   padding-inline: var(--nvx-space-1);
+   font-family: var(--nvx-sans);
+@@ -381,89 +230,19 @@ body.page-template-templatespage-sede-php .nvx-page__shell {
+   border-radius: var(--nvx-radius-card);
+ }
+ 
+-.nvx-section + .nvx-section,
+-.nvx-brand-section + .nvx-brand-section {
+-  border-top: 1px solid transparent;
+-}
+-
+-/* ── Layout utility contract (DB/Gutenberg may still use these classes) ──
+-   Protected by CSS Gate. Do not remove without DB inventory + migration.
+-   See docs/design-system/LAYOUT-UTILITY-CONTRACT.md */
+-
+-.nvx-reading {
+-  width: min(100%, var(--nvx-readable));
+-}
+ 
++/* Canonical long-form width. */
+ .nvx-prose {
+   width: min(100%, var(--nvx-measure));
+ }
+ 
+-.nvx-grid-12 {
+-  display: grid;
+-  grid-template-columns: repeat(12, minmax(0, 1fr));
+-  gap: var(--nvx-gap-base);
+-}
+-
+-.nvx-span-4 { grid-column: span 4; }
+-.nvx-span-5 { grid-column: span 5; }
+-.nvx-span-6 { grid-column: span 6; }
+-.nvx-span-7 { grid-column: span 7; }
+-.nvx-span-8 { grid-column: span 8; }
+-.nvx-span-12 { grid-column: 1 / -1; }
+-
+-.nvx-stack {
+-  display: grid;
+-  gap: var(--nvx-gap-base);
+-}
+-
+-.nvx-stack--tight {
+-  gap: var(--nvx-space-2);
+-}
+-
+-.nvx-stack--wide {
+-  gap: var(--nvx-space-6);
+-}
+-
+-.nvx-cluster {
+-  display: flex;
+-  flex-wrap: wrap;
+-  align-items: c

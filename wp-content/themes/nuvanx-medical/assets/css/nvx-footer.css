@@ -20,12 +20,6 @@
   justify-content: flex-end;
 }
 
-.nvx-cta-banner__actions .nvx-btn--secondary,
-.nvx-cta-banner__actions .nvx-btn--ghost {
-  border-color: var(--nvx-border-on-dark-45);
-  color: var(--nvx-light);
-}
-
 .nvx-cta-banner__title {
   max-width: 14ch;
   margin: 0 0 14px;

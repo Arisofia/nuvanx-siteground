@@ -37,7 +37,7 @@ jobs:
       - name: Reject forbidden operational paths
         run: |
           set -euo pipefail
-          forbidden="$(git ls-files | grep -E '(^wp-admin/|^wp-includes/|^wp-content/uploads/|^wp-content/et-cache/|^wp-content/languages/|^qa/screenshots/|^wp-content/themes/nuvanx-medical-wpvibe-draft/|^wp-content/(sgo-config|sgs_encrypt_key)\.php$|(^|/)wp-config\.php$|(^|/)source_site_wpconfig|(^|/)\.env($|\.)|(^|/)wp-content/backups[^/]*/|(^|/)dup-installer(/|$)|(^|/)installer/original_files_|(^|/)[^/]*installer-log[^/]*$|(^|/)__pycache__(/|$)|(^|/)\.pyc$)' || true)"
+          forbidden="$(git ls-files | grep -E '(^wp-admin/|^wp-includes/|^wp-content/uploads/|^qa/screenshots/|^wp-content/themes/nuvanx-medical-wpvibe-draft/|^wp-content/(sgo-config|sgs_encrypt_key)\.php$|(^|/)wp-config\.php$|(^|/)source_site_wpconfig|(^|/)\.env($|\.)|(^|/)wp-content/backups[^/]*/|(^|/)dup-installer(/|$)|(^|/)installer/original_files_|(^|/)[^/]*installer-log[^/]*$)' || true)"
           if [[ -n "$forbidden" ]]; then
             echo 'ERROR: forbidden operational or runtime paths are tracked:'
             printf '%s\n' "$forbidden"

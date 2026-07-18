@@ -23,4 +23,4 @@ Current:
 
 The production baseline should be verified from the active WordPress installation and SiteGround environment before syncing.
 Repository hygiene is validated by CI before promotion.
-Only one theme is tracked: `nuvanx-medical`. No draft themes, audit archives, historical CSS snapshots, WordPress language packs (`wp-content/languages/`), or Divi/ET runtime cache (`wp-content/et-cache/`) are kept in this repository.
+Only one theme is tracked: `nuvanx-medical`. No draft themes, audit archives, or historical CSS snapshots are kept in this repository.

@@ -1,0 +1,139 @@
+y .nvx-lead {
+   max-width: 42ch;
+   color: var(--nvx-text-on-dark-90);
+ }
+ 
+ .nvx-brand-hero__copy .nvx-brand-meta {
+-  margin-top: 0.75rem;
++  margin-top: var(--nvx-space-2);
+   font-family: var(--nvx-sans);
+   font-size: var(--nvx-type-caption);
+-  letter-spacing: 0.06em;
++  letter-spacing: var(--nvx-track-kicker);
+   text-transform: uppercase;
+   color: var(--nvx-text-on-dark-72);
+ }
+ 
+-.nvx-brand-hero__copy .nvx-brand-actions,
+-.nvx-brand-hero__copy .nvx-home-hero-ctas,
+-.nvx-brand-hero__copy .nvx-page__cta,
+-.nvx-page-hero__copy .nvx-brand-actions,
+-.nvx-page-hero__copy .nvx-page__cta,
+-.nvx-hero__copy .nvx-brand-actions,
+-.nvx-hero__copy .nvx-page__cta {
+-  margin-top: 1.5rem;
++.nvx-brand-hero__copy :is(
++  .nvx-brand-actions,
++  .nvx-home-hero-ctas,
++  .nvx-page__cta,
++  .nvx-cta-pair
++),
++.nvx-page-hero__copy :is(.nvx-brand-actions, .nvx-page__cta) {
++  margin-top: var(--nvx-space-3);
+ }
+ 
+-.nvx-brand-hero__copy .nvx-brand-btn,
+-.nvx-brand-hero__copy .nvx-button,
+-.nvx-brand-hero__copy .nvx-btn,
+-.nvx-page-hero__copy .nvx-button,
+-.nvx-page-hero__copy .nvx-btn,
+-.nvx-hero__copy .nvx-button,
+-.nvx-hero__copy .nvx-btn {
++.nvx-brand-hero__copy :is(.nvx-brand-btn, .nvx-button, .nvx-btn),
++.nvx-page-hero__copy :is(.nvx-button, .nvx-btn) {
+   display: inline-flex;
+   align-items: center;
+   justify-content: center;
+-  min-height: 48px;
+-  padding: 0 24px;
+-  border-radius: 999px;
++  min-height: var(--nvx-control-size);
++  padding-inline: var(--nvx-space-3);
++  border: var(--nvx-border-hairline) solid transparent;
++  border-radius: var(--nvx-radius-button);
+   font-family: var(--nvx-sans);
+   font-size: var(--nvx-type-button);
+   font-weight: 600;
+   letter-spacing: var(--nvx-track-button);
+   text-transform: uppercase;
+   text-decoration: none;
+-  border: 1px solid transparent;
+ }
+ 
+-.nvx-brand-hero__copy .nvx-brand-btn--primary,
+-.nvx-brand-hero__copy .nvx-button--primary,
+-.nvx-brand-hero__copy .nvx-btn--primary,
+-.nvx-page-hero__copy .nvx-button--primary,
+-.nvx-hero__copy .nvx-button--primary {
++.nvx-brand-hero__copy :is(
++  .nvx-brand-btn--primary,
++  .nvx-button--primary,
++  .nvx-btn--primary
++),
++.nvx-page-hero__copy .nvx-button--primary {
++  border-color: var(--nvx-light);
+   background: var(--nvx-light);
+   color: var(--nvx-ink);
+-  border-color: var(--nvx-light);
+ }
+ 
+-.nvx-brand-hero__copy .nvx-brand-btn--secondary,
+-.nvx-brand-hero__copy .nvx-button--secondary,
+-.nvx-brand-hero__copy .nvx-btn--secondary,
+-.nvx-page-hero__copy .nvx-button--secondary,
+-.nvx-hero__copy .nvx-button--secondary {
++.nvx-brand-hero__copy :is(
++  .nvx-brand-btn--secondary,
++  .nvx-button--secondary,
++  .nvx-btn--secondary
++),
++.nvx-page-hero__copy .nvx-button--secondary {
++  border-color: var(--nvx-border-on-dark-55);
+   background: transparent;
+   color: var(--nvx-light);
+-  border-color: var(--nvx-border-on-dark-55);
+ }
+ 
+ .nvx-page-hero--theme .nvx-page-hero__media {
+@@ -280,112 +209,100 @@ article.nvx-page > .nvx-page-hero {
+ 
+ @media (max-width: 980px) {
+   .nvx-brand-hero,
+-  .nvx-editorial-hero,
+-  .nvx-page-hero,
+-  section.nvx-hero,
+-  section.nvx-hero.nvx-hero-section {
++  .nvx-page-hero {
+     --nvx-hero-h: min(88svh, 860px);
+-    min-height: var(--nvx-hero-h);
+-    height: var(--nvx-hero-h);
+   }
+ }
+ 
+ @media (max-width: 680px) {
+   .nvx-brand-hero,
+-  .nvx-editorial-hero,
+-  .nvx-page-hero,
+-  section.nvx-hero,
+-  section.nvx-hero.nvx-hero-section {
+-    /* Match home video: full mobile viewport */
+-    --nvx-hero-h: 100svh;
+-    min-height: var(--nvx-hero-h);
+-    height: var(--nvx-hero-h);
++  .nvx-page-hero {
++    --nvx-hero-h: clamp(560px, 82svh, 720px);
+   }
+ 
+   .nvx-brand-hero__copy,
+-  .nvx-editorial-hero__copy,
+-  .nvx-page-hero__copy,
+-  .nvx-hero__copy {
+-    padding: clamp(100px, 24vw, 140px) 20px 36px;
++  .nvx-page-hero__copy {
++    padding: var(--nvx-space-12) var(--nvx-space-3) var(--nvx-space-4);
+   }
+ 
+-  .nvx-brand-hero__copy .nvx-brand-hero__title,
+-  .nvx-brand-hero__copy h1,
+-  .nvx-page-hero__copy h1,
+-  

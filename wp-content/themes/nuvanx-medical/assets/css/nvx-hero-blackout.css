@@ -29,14 +29,20 @@ body.nvx-hero-blackout :is(
   box-shadow: none;
 }
 
-/* Hide still imagery inside opening heroes only. */
+/*
+ * Hide still imagery inside opening heroes.
+ * Specificity must beat nvx-patterns-editorial.css
+ * (.nvx-page-hero .nvx-page-hero__media img, .nvx-*-hero__media .nvx-media).
+ * Include .nvx-media / .wp-post-image classes used on hero thumbnails.
+ */
 body.nvx-hero-blackout :is(
-  .nvx-brand-hero__media,
-  .nvx-editorial-hero__media,
-  .nvx-page-hero__media,
-  .nvx-hero__media,
+  .nvx-brand-hero .nvx-brand-hero__media,
+  .nvx-editorial-hero .nvx-editorial-hero__media,
+  .nvx-page-hero .nvx-page-hero__media,
+  .nvx-hero .nvx-hero__media,
+  .nvx-hero .nvx-brand-hero__media,
   .nvx-home-hero-stage
-) :is(img, picture) {
+) :is(img, picture, .nvx-media, .nvx-media--body, .wp-post-image) {
   display: none;
 }
 
@@ -45,8 +51,19 @@ body.nvx-hero-blackout .nvx-blog-hero__media {
   display: none;
 }
 
+/*
+ * With media gone, reuse the text-only desktop span so copy is not left
+ * in a half-width column. On small screens restore full width (posts.css
+ * only resets text-only heroes; this selector would otherwise win).
+ */
 body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-hero__copy {
   grid-column: 2 / span 9;
+}
+
+@media (max-width: 960px) {
+  body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-hero__copy {
+    grid-column: span 12;
+  }
 }
 
 /* Legacy Divi opening headers still present on a subset of pages. */

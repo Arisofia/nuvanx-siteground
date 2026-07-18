@@ -1208,16 +1208,15 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_rewrite_morpheus_faq( $content );
 	$content = nvx_content_unify_ctas( $content );
 	$content = nvx_content_strip_versioned_class_tokens( $content );
-	$content = nvx_content_strip_page_closing_ctas( $content );
-	// Team / well-aging / EXION investment: separate filters at 125–126 (after protocols).
+	// Closing CTA strip runs once at priority 99 (after page modules at ~19 rebuild content).
 
 	return $content;
 }
 add_filter( 'the_content', 'nvx_content_presentation_enhance', 20 );
 
 /**
- * Late strip: page modules rebuild content at priority 19; remove their
- * in-content closing bands so only footer.php nvx-cta-banner remains.
+ * Single late strip of page-local closing CTAs after modules rebuild the_content.
+ * Only footer.php nvx-cta-banner remains as the site-wide closing band.
  */
 function nvx_content_strip_page_closing_ctas_late( string $content ): string {
 	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {

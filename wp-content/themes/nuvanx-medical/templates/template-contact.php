@@ -136,7 +136,7 @@ get_header();
                     Reservar valoración gratuita
                 </a>
                 <a href="https://wa.me/34669319836"
-                   class="nvx-btn nvx-btn--whatsapp"
+                   class="nvx-btn nvx-btn--secondary"
                    rel="noopener noreferrer"
                    target="_blank"
                    aria-label="Contactar por WhatsApp con NUVANX">
@@ -206,7 +206,7 @@ get_header();
                     </div>
 
                     <a href="https://www.google.com/maps/dir/?api=1&destination=C%2F+de+Fern%C3%A1ndez+de+la+Hoz%2C+4%2C+28010+Madrid"
-                       class="nvx-btn nvx-btn--secondary nvx-btn--small"
+                       class="nvx-btn nvx-btn--secondary"
                        rel="noopener noreferrer"
                        target="_blank">
                         Cómo llegar
@@ -263,7 +263,7 @@ get_header();
                     </div>
 
                     <a href="https://www.google.com/maps/dir/?api=1&destination=C%2F+de+Fern%C3%A1n+Gonz%C3%A1lez%2C+26%2C+28009+Madrid"
-                       class="nvx-btn nvx-btn--secondary nvx-btn--small"
+                       class="nvx-btn nvx-btn--secondary"
                        rel="noopener noreferrer"
                        target="_blank">
                         Cómo llegar
@@ -437,7 +437,7 @@ get_header();
                     </button>
                     <span class="nvx-form__or">o</span>
                     <a href="https://wa.me/34669319836"
-                       class="nvx-btn nvx-btn--whatsapp"
+                       class="nvx-btn nvx-btn--secondary"
                        rel="noopener noreferrer"
                        target="_blank">
                         Contactar por WhatsApp
@@ -456,10 +456,10 @@ get_header();
                 También puedes llamar directamente a cada sede:
             </p>
             <div class="nvx-cta-group nvx-cta-group--centered">
-                <a href="tel:+34669319836" class="nvx-btn nvx-btn--outline">
+                <a href="tel:+34669319836" class="nvx-btn nvx-btn--secondary">
                     Chamberí · 669 319 836
                 </a>
-                <a href="tel:+34647505107" class="nvx-btn nvx-btn--outline">
+                <a href="tel:+34647505107" class="nvx-btn nvx-btn--secondary">
                     Salamanca–Goya · 647 505 107
                 </a>
                 <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>"

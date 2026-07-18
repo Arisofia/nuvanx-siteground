@@ -1,14 +1,29 @@
 # Deployment helpers
 
-**Mutating scripts — manual use only. Not for CI.**
-
-All scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
+**Mutating scripts — require `--confirm` or `NUVANX_CONFIRM=yes`.**
 
 | Script | Purpose |
 |--------|---------|
-| `deploy-to-prod.sh` | Backup prod, rsync theme+mu-plugins from staging, purge cache |
+| `deploy-to-prod.sh` | Guard siteurl, backup prod, rsync theme from staging, copy form MU plugins only, strip `nvx-*.min.css`, purge cache |
 | `flush-prod-cache.sh` | Flush WordPress object cache |
 
+Preferred production path: GitHub Actions **Deploy theme to production + flush cache**
+with `confirm=PROMOTE_PRODUCTION` (see [docs/operations/deployment.md](../../docs/operations/deployment.md)).
+
 ```bash
-NUVANX_CONFIRM=yes bash tools/deploy/flush-prod-cache.sh --wp-root /path/to/wordpress --confirm
+export WP_PROD=/home/customer/www/nuvanx.com/public_html
+export WP_STG2=/home/customer/www/staging2.nuvanx.com/public_html
+
+NUVANX_CONFIRM=yes bash tools/deploy/deploy-to-prod.sh \
+  --prod-root "$WP_PROD" \
+  --staging-root "$WP_STG2" \
+  --confirm
+
+BASE_URL=https://nuvanx.com bash scripts/ops/post-promote-verify.sh
+```
+
+```bash
+NUVANX_CONFIRM=yes bash tools/deploy/flush-prod-cache.sh \
+  --wp-root /home/customer/www/nuvanx.com/public_html \
+  --confirm
 ```

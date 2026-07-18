@@ -18,15 +18,6 @@
   box-sizing: border-box;
 }
 
-.nvx-page__shell {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding-inline: 0;
-  overflow-x: clip;
-  box-sizing: border-box;
-}
-
 .nvx-main,
 .nvx-page,
 .nvx-page__content,
@@ -35,6 +26,10 @@
   max-width: 100%;
   margin: 0;
   padding: 0;
+}
+
+/* Page content frame: no extra shell wrapper — gutters on section inners only. */
+.nvx-page__content {
   overflow-x: clip;
 }
 
@@ -70,15 +65,6 @@ article.nvx-page > .nvx-page-hero {
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
-}
-
-/* Sede template: full-bleed heroes, no shell box on page wrapper */
-body.page-template-page-sede .nvx-page__shell,
-body.page-template-templatespage-sede-php .nvx-page__shell {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding-inline: 0;
 }
 
 /* Brand heroes inside content match home full-bleed, not shell box */

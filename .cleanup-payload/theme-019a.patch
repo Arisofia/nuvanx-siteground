@@ -1,0 +1,37 @@
+diff --git a/wp-content/themes/nuvanx-medical/inc/nvx-hero-and-forms.php b/wp-content/themes/nuvanx-medical/inc/nvx-hero-and-forms.php
+index ebcd9fc01537bdb51c5a81b3b720b97e94d4dcd4..b572eecdf33d9bae17df642c79d446ee421fcb56 100644
+--- a/wp-content/themes/nuvanx-medical/inc/nvx-hero-and-forms.php
++++ b/wp-content/themes/nuvanx-medical/inc/nvx-hero-and-forms.php
+@@ -16,17 +16,17 @@ if ( ! defined( 'ABSPATH' ) ) {
+  * so kicker + title can overlay the image. Global — not a per-page patch.
+  */
+ function nvx_ensure_hero_featured_media( string $content ): string {
+-	if ( is_admin() || ! is_singular() || is_front_page() || ! has_post_thumbnail() ) {
++	if ( is_admin() || ! is_singular() || is_front_page() || ! has_post_thumbnail() || ! nvx_theme_hero_images_enabled() ) {
+ 		return $content;
+ 	}
+ 
+ 	// Content already owns a media rail inside the hero.
+-	if ( preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero|hero)__media/i', $content ) ) {
++	if ( preg_match( '/nvx-(?:brand-hero|page-hero)__media/i', $content ) ) {
+ 		return $content;
+ 	}
+ 
+ 	// Only inject into known hero containers.
+-	if ( ! preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero)|\bclass="[^"]*\bnvx-hero\b/i', $content ) ) {
++	if ( ! preg_match( '/nvx-(?:brand-hero|page-hero)/i', $content ) ) {
+ 		return $content;
+ 	}
+@@ -52,10 +52,10 @@ function nvx_ensure_hero_featured_media( string $content ): string {
+ 	$figure = '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
+ 
+ 	// Locate first hero __copy opening tag.
+-	if ( ! preg_match( '/class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)__copy[^"]*"/i', $content, $match, PREG_OFFSET_CAPTURE ) ) {
++	if ( ! preg_match( '/class="[^"]*nvx-(?:brand-hero|page-hero)__copy[^"]*"/i', $content, $match, PREG_OFFSET_CAPTURE ) ) {
+ 		// No copy block: place media at the start of the first hero section.
+ 		$updated = preg_replace(
+-			'/(<section\b[^>]*class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)[^"]*"[^>]*>)/i',
++			'/(<section\b[^>]*class="[^"]*nvx-(?:brand-hero|page-hero)[^"]*"[^>]*>)/i',
+ 			'$1' . $figure,
+ 			$content,
+ 			1

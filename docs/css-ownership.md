@@ -32,4 +32,16 @@ Blog, contacto, valoración, sedes, tratamientos, gracias, 404: **mismo stack ba
 
 brand-system, treatment-*, secondary, sede, pages, gutenberg, forms (ahora en components), fluid, visual-system, typography-alignment, wrappers `nvx-hero-wrap`, stubs RETIRED, adaptaciones Divi (`.et_pb_*`) en CSS del tema, `!important`, paletas oro/cool-green.
 
+**Page-local closing bands (CSS + markup generators):**  
+`nvx-endolift-action*`, `nvx-laser-action*`, `nvx-aes-action*`, `nvx-catalog-close*`, `nvx-home-cta-final*` — el cierre canónico es `nvx-cta-banner` en `footer.php`.
+
+**Home one-timers / orphans:**  
+`nvx-home-direccion-*`, `nvx-home-tratamientos-editorial`, `nvx-home-invitation__text`, `nvx-home-hero-content`, `nvx-brand-hero__main|sub|support`.
+
+**Blog one-timer:** `nvx-article-cta` (byline/CTA body ya no se inyecta).
+
+**Body classes sin emisor:** selectores `.nvx-valoracion-page` / `.nvx-med-page` (el form usa `.nvx-form-stage` + `#nvx-hubspot-form`).
+
+**Layout utilities** (`nvx-grid-12`, `nvx-span-*`, `nvx-stack*`, `nvx-cluster`, `nvx-reading`, `nvx-section--tight`): **se conservan** — contrato CSS Gate / posible uso en CMS.
+
 Alias de plantilla eliminado: `template-parts/content/nvx-blog-index.php` (usar `nvx-blog-archive.php`).

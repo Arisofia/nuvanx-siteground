@@ -127,13 +127,14 @@ check_page "/tratamientos/" "tratamientos" \
   'nvx-catalog' \
   'nvx-logo-cloud'
 
-# Clinics hub — full section shell, accessible anchors and current CSS stack.
+# Clinics hub — global brand sections + anchors (content-flow is intermediate only).
 CLINICS_PATH='/clinicas-de-medicina-estetica-nuvanx/'
 check_page "$CLINICS_PATH" "clinics-hub" \
-  'nvx-clinics-content-flow' \
   'id="nvx-clinics-nav"' \
   'id="clinica-chamberi"' \
   'id="clinica-goya"' \
+  'nvx-clinic-location' \
+  'nvx-brand-section' \
   'nvx-tokens.css' \
   'nvx-site-layout.css' \
   'nvx-patterns-editorial.css'

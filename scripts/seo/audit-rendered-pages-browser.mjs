@@ -22,6 +22,7 @@ const ROUTES = [
   { path: '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', role: 'treatment', expectedTypes: ['MedicalProcedure', 'Service'] },
   { path: '/exion-btl/', role: 'treatment', expectedTypes: ['Service'] },
   { path: '/btl-exilite-ipl-madrid/', role: 'treatment', expectedTypes: ['Service'] },
+  { path: '/contacto/', role: 'contact', expectedTypes: ['MedicalClinic'] },
   { path: '/madrid/valoracion/', role: 'conversion', expectedTypes: [] },
 ];
 

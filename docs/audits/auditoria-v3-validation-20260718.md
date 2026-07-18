@@ -52,3 +52,26 @@ Se corrigen únicamente hallazgos reproducibles. No se publican coordenadas apro
 ## Criterio de cierre
 
 El PR puede considerarse listo cuando PHP Lint, Security Gate, Clinical Claims Gate y SEO GEO Gate concluyan correctamente. La comprobación visual y del grafo actualizado en `/contacto/` debe repetirse después del despliegue del código, porque el gate de un PR consulta los entornos publicados y no ejecuta WordPress desde la rama.
+
+## Integración del paquete Antigravity (`nuvanx-deploy`, 18-jul-2026)
+
+Paquete en scratch: no se hace drop-in. Solo se reutiliza lo alineado con esta validación.
+
+| Pieza del paquete | Decisión |
+|---|---|
+| `templates/template-contact.php` REPLACE | **No** como replace ciego. Se reutiliza copy útil (H1 local, intro &lt;24 h, select de tratamiento, NAP visible) sobre el template del tema. |
+| Schema JSON-LD suelto en template / homepage | **Rechazado** — grafo Yoast + `nvx_schema_clinics()` + `nvx_contacto_audit_schema_graph()`. |
+| og:image crudo en `wp_head` | **Rechazado** — filtros Yoast del módulo de audit. |
+| Horarios L–V 10:00–19:00 | **Rechazado** — placeholders; se mantienen 12:00–20:00 / sáb 10:00–18:00 (Chamberí) y 11:00–20:00 (Goya). |
+| `/politica-de-privacidad/` como “correcta” | **Rechazado** — canónica es `/politica-privacidad/`; la otra redirige 301. |
+| Coordenadas geo del paquete | **No publicadas en schema** hasta verificación independiente (política del registry). Mapas del template usan query por dirección, no lat/lng aproximados. |
+| `snippets/schema-homepage.php`, `homepage-blocks.html` | **Rechazados** — homepage ya emite MedicalClinic / FAQ / Physician y H1 local. |
+| `schema-endolift.php`, `schema-laser-co2.php`, `faq-laser-co2.html` | **Rechazados** — ya resueltos en el tema canónico. |
+| `og-fallback-header.php` | **Rechazado** — `wpseo_opengraph_url` y OG por página ya están cubiertos. |
+
+Cambios de integración en tema (post-#128):
+
+1. Template de contacto sin segundo `<main>`, sin JSON-LD/OG crudos.
+2. Horarios y privacidad alineados al registry / canónico.
+3. Teléfonos y `hasMap` leídos de `nvx_schema_clinics()` cuando existe.
+4. Contrato PHP ampliado para prohibir reintroducir los anti-patrones del paquete.

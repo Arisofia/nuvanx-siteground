@@ -46,13 +46,20 @@
     if (!modal) return;
 
     var lastFocus = null;
+    // Canonical full-page fallback (also used when matching CTA hrefs).
     var pageUrl = (cfg.pageUrl || '/madrid/valoracion/').replace(/\/?$/, '/');
+
+    function normalizePath(pathname) {
+      return (pathname || '').replace(/\/+$/, '') + '/';
+    }
 
     function isValoracionHref(href) {
       if (!href) return false;
       try {
         var u = new URL(href, window.location.origin);
-        var path = (u.pathname || '').replace(/\/+$/, '') + '/';
+        var path = normalizePath(u.pathname);
+        var pagePath = normalizePath(new URL(pageUrl, window.location.origin).pathname);
+        if (path === pagePath) return true;
         return (
           path.indexOf('/madrid/valoracion/') !== -1 ||
           path.indexOf('/valoracion/') !== -1 ||
@@ -71,14 +78,35 @@
       mobileNav.setAttribute('aria-hidden', 'true');
     }
 
+    /** Single source of truth: .is-open class (hidden/aria stay in sync here only). */
+    function setModalOpen(open) {
+      if (!modal) return;
+      if (open) {
+        modal.hidden = false;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('nvx-valoracion-modal-open');
+        document.body.style.overflow = 'hidden';
+      } else {
+        modal.hidden = true;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('nvx-valoracion-modal-open');
+        if (!mobileNav || !mobileNav.classList.contains('is-open')) {
+          document.body.style.overflow = '';
+        }
+      }
+    }
+
+    function isModalOpen() {
+      return !!(modal && modal.classList.contains('is-open'));
+    }
+
     function openModal(trigger) {
+      if (!modal) return;
       lastFocus = trigger || document.activeElement;
       closeMobileNav();
-      modal.hidden = false;
-      modal.classList.add('is-open');
-      modal.setAttribute('aria-hidden', 'false');
-      document.body.classList.add('nvx-valoracion-modal-open');
-      document.body.style.overflow = 'hidden';
+      setModalOpen(true);
 
       var closeEl = modal.querySelector('[data-nvx-valoracion-modal-close]');
       var focusTarget =
@@ -91,7 +119,6 @@
         }, 50);
       }
 
-      // Re-scan HubSpot frames after open (embed may skip hidden mounts).
       try {
         if (window.HubSpotForms && typeof window.HubSpotForms.initialize === 'function') {
           window.HubSpotForms.initialize();
@@ -102,13 +129,8 @@
     }
 
     function closeModal() {
-      modal.hidden = true;
-      modal.classList.remove('is-open');
-      modal.setAttribute('aria-hidden', 'true');
-      document.body.classList.remove('nvx-valoracion-modal-open');
-      if (!mobileNav || !mobileNav.classList.contains('is-open')) {
-        document.body.style.overflow = '';
-      }
+      if (!modal) return;
+      setModalOpen(false);
       if (lastFocus && typeof lastFocus.focus === 'function') {
         lastFocus.focus();
       }
@@ -156,22 +178,20 @@
       }
     });
 
-    function isModalOpen() {
-      return modal.classList.contains('is-open') && !modal.hidden;
-    }
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && isModalOpen()) {
-        e.preventDefault();
-        closeModal();
-      }
-    });
-
-    // Simple focus trap while open.
+    // One keyboard handler: Escape close + Tab focus trap.
     document.addEventListener(
       'keydown',
       function (e) {
-        if (e.key !== 'Tab' || !isModalOpen()) return;
+        if (!isModalOpen()) return;
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          closeModal();
+          return;
+        }
+
+        if (e.key !== 'Tab') return;
+
         var focusables = modal.querySelectorAll(
           'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
         );
@@ -189,7 +209,6 @@
       true
     );
 
-    // Expose for optional triggers.
     window.nvxOpenValoracionModal = function () {
       openModal(document.activeElement);
     };

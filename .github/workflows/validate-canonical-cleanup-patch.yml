@@ -6,6 +6,9 @@ on:
       - refactor/canonical-theme-cleanup-20260718
     paths:
       - '.github/workflows/validate-canonical-cleanup-patch.yml'
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 permissions:

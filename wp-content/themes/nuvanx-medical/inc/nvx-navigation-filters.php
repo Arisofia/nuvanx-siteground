@@ -47,6 +47,7 @@ function nvx_add_exion_to_tratamientos_menu( $items, $args ) {
 		array( 'url' => home_url( '/exion-face/' ), 'label' => 'EXION Face' ),
 		array( 'url' => home_url( '/exion-body/' ), 'label' => 'EXION Body' ),
 		array( 'url' => home_url( '/exion-fractional/' ), 'label' => 'EXION Fractional' ),
+		array( 'url' => home_url( '/emfusion/' ), 'label' => 'EMFUSION' ),
 	);
 
 	$order = 1;

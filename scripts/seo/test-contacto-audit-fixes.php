@@ -13,8 +13,9 @@ $template_path       = $root . '/wp-content/themes/nuvanx-medical/templates/temp
 $page_template_path  = $root . '/wp-content/themes/nuvanx-medical/templates/page-contacto.php';
 $valoracion_path     = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-contacto-valoracion-page.php';
 $contact_form_path   = $root . '/wp-content/mu-plugins/nuvanx-contacto-hubspot-form.php';
+$layout_path         = $root . '/wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css';
 
-foreach ( array( $module_path, $footer_path, $loader_path, $template_path, $page_template_path, $valoracion_path, $contact_form_path ) as $path ) {
+foreach ( array( $module_path, $footer_path, $loader_path, $template_path, $page_template_path, $valoracion_path, $contact_form_path, $layout_path ) as $path ) {
 	if ( ! is_readable( $path ) ) {
 		fwrite( STDERR, "Missing required file: {$path}\n" );
 		exit( 1 );
@@ -28,6 +29,7 @@ $template      = (string) file_get_contents( $template_path );
 $page_template = (string) file_get_contents( $page_template_path );
 $valoracion    = (string) file_get_contents( $valoracion_path );
 $contact_form  = (string) file_get_contents( $contact_form_path );
+$layout         = (string) file_get_contents( $layout_path );
 
 $required_module_fragments = array(
 	"add_filter( 'wpseo_opengraph_image', 'nvx_contacto_audit_social_image', 100 )",
@@ -71,6 +73,8 @@ $template_required = array(
 	'nvx-btn nvx-btn--primary',
 	'nvx-btn nvx-btn--secondary',
 	'class="nvx-page nvx-page--contact"',
+	'class="nvx-shell"',
+	'class="nvx-shell nvx-reading"',
 	'id="nvx-contacto-hubspot-form"',
 	'nvx_contacto_hubspot_form_markup()',
 	'El Dr. Rivera atiende en Chamberí los martes y jueves.',
@@ -95,10 +99,35 @@ $template_forbidden = array(
 	'<form'                                  => 'unhandled native contact form',
 	'✔'                                      => 'non-system Unicode check mark',
 	'about:blank'                            => 'invalid directions or map URL',
+	'nvx-container'                          => 'undefined legacy container instead of the canonical shell',
 );
 foreach ( $template_forbidden as $fragment => $reason ) {
 	if ( false !== strpos( $template, $fragment ) ) {
 		fwrite( STDERR, "Contact template still contains forbidden fragment ({$reason}): {$fragment}\n" );
+		exit( 1 );
+	}
+}
+
+if ( 3 !== substr_count( $template, 'class="nvx-shell"' ) ) {
+	fwrite( STDERR, "Contact template must use the canonical shell for all three full-width section inners.\n" );
+	exit( 1 );
+}
+
+if ( 1 !== substr_count( $template, 'class="nvx-shell nvx-reading"' ) ) {
+	fwrite( STDERR, "Contact template must use one canonical readable shell for the form section.\n" );
+	exit( 1 );
+}
+
+$layout_required = array(
+	'width: var(--nvx-shell);',
+	'margin-inline: auto;',
+	'padding-inline: var(--nvx-gutter-inner);',
+	'.nvx-reading {',
+	'width: min(100%, var(--nvx-readable));',
+);
+foreach ( $layout_required as $fragment ) {
+	if ( false === strpos( $layout, $fragment ) ) {
+		fwrite( STDERR, "Canonical layout contract is missing: {$fragment}\n" );
 		exit( 1 );
 	}
 }

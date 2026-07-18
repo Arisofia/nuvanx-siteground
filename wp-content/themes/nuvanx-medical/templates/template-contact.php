@@ -44,7 +44,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 
 	<?php /* ── HERO ─────────────────────────────────────────────────────── */ ?>
 	<section class="nvx-section nvx-section--contact-hero" aria-labelledby="nvx-contact-h1">
-		<div class="nvx-container">
+		<div class="nvx-shell">
 
 			<p class="nvx-eyebrow"><?php esc_html_e( 'Clínicas NUVANX · Madrid', 'nuvanx-medical' ); ?></p>
 
@@ -77,7 +77,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 
 	<?php /* ── NAP ──────────────────────────────────────────────────────── */ ?>
 	<section class="nvx-section nvx-section--nap" aria-label="<?php esc_attr_e( 'Sedes y datos de contacto', 'nuvanx-medical' ); ?>">
-		<div class="nvx-container">
+		<div class="nvx-shell">
 
 			<h2 class="nvx-heading-2"><?php esc_html_e( 'Datos de contacto y sedes autorizadas', 'nuvanx-medical' ); ?></h2>
 			<p class="nvx-body">
@@ -209,7 +209,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 
 	<?php /* ── FORMULARIO DE CONTACTO ──────────────────────────────────── */ ?>
 	<section class="nvx-section nvx-section--contact-form" aria-labelledby="nvx-form-heading">
-		<div class="nvx-container nvx-container--narrow">
+		<div class="nvx-shell nvx-reading">
 			<h2 id="nvx-form-heading" class="nvx-heading-2">
 				<?php esc_html_e( 'Contacta con el equipo NUVANX', 'nuvanx-medical' ); ?>
 			</h2>
@@ -228,7 +228,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 
 	<?php /* ── CTA SECUNDARIO ─────────────────────────────────────────── */ ?>
 	<section class="nvx-section nvx-section--cta-secondary" aria-label="<?php esc_attr_e( 'Reservar valoración médica', 'nuvanx-medical' ); ?>">
-		<div class="nvx-container">
+		<div class="nvx-shell">
 			<p class="nvx-cta-secondary__text">
 				<?php esc_html_e( 'También puedes llamar directamente a cada sede:', 'nuvanx-medical' ); ?>
 			</p>

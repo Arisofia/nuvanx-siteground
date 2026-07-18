@@ -206,7 +206,7 @@ if ( function_exists( 'nvx_theme_show_cta_banner' ) && nvx_theme_show_cta_banner
 				</li>
 
 				<li>
-					<a href="<?php echo esc_url( home_url( '/politica-de-privacidad/' ) ); ?>">
+					<a href="<?php echo esc_url( home_url( '/politica-privacidad/' ) ); ?>">
 						Política de privacidad
 					</a>
 				</li>

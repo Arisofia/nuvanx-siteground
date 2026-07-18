@@ -114,6 +114,9 @@ require_once __DIR__ . '/nvx-page-hygiene.php';
 /** Canonical titles, descriptions, social URLs and environment robots policy. */
 require_once __DIR__ . '/nvx-seo-metadata.php';
 
+/** Validated /contacto/ social image, local schema, visible copy and hours. */
+require_once __DIR__ . '/nvx-contacto-audit-fixes.php';
+
 /** Canonical front-page patient-facing H1 and clinical introduction. */
 require_once __DIR__ . '/nvx-home-copy.php';
 

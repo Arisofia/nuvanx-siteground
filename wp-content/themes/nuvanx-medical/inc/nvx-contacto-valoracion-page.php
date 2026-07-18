@@ -46,7 +46,17 @@ function nvx_is_contacto_page_request(): bool {
 		return false;
 	}
 
-	if ( 'templates/page-contacto.php' === (string) get_page_template_slug() ) {
+	$template_slug = (string) get_page_template_slug();
+	if (
+		in_array(
+			$template_slug,
+			array(
+				'templates/page-contacto.php',
+				'templates/template-contact.php',
+			),
+			true
+		)
+	) {
 		return true;
 	}
 

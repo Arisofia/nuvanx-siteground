@@ -88,11 +88,8 @@ function nvx_site_closing_cta_markup(): string {
 	$whatsapp   = nvx_cta_whatsapp_url();
 
 	// Already on the valoración form page: primary CTA targets the form anchor.
-	if ( is_page() ) {
-		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-		if ( in_array( $slug, array( 'valoracion', 'consulta-medica', 'consultamedica' ), true ) ) {
-			$valoracion = trailingslashit( get_permalink() ) . '#nvx-hubspot-form';
-		}
+	if ( function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page() ) {
+		$valoracion = trailingslashit( get_permalink() ) . '#nvx-hubspot-form';
 	}
 
 	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '">';
@@ -120,10 +117,16 @@ function nvx_site_closing_cta_markup(): string {
 /**
  * Strip page-level closing conversion bands so only the site footer CTA remains.
  *
+ * Patterns are intentionally narrow:
+ * - known page-module closing class tokens
+ * - legacy soft CTAs only when they carry conversion copy/chrome
+ * - in-content duplicates of the site closing banner (id / footer-cta hook)
+ *
  * @param string $content HTML.
  * @return string
  */
 function nvx_content_strip_page_closing_ctas( string $content ): string {
+	// Exact module closers (page-local class tokens, not generic sections).
 	$patterns = array(
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-endolift-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-catalog-close\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
@@ -132,11 +135,12 @@ function nvx_content_strip_page_closing_ctas( string $content ): string {
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>/iu',
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
-		// Legacy CMS “soft CTA” sections (not the site-wide footer band).
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-section--cta\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
-		'/<section\b[^>]*\bid=["\']nvx-site-closing-cta["\'][^>]*>[\s\S]*?<\/section>/iu',
-		// Duplicate pre-footer banners accidentally left in post_content.
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-cta-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+		// Explicit in-content copy of the site-wide closing band.
+		'/<section\b[^>]*\bid=["\']nvx-site-closing-cta["\'][^>]*>[\s\S]{0,4000}?<\/section>/iu',
+		// Duplicate pre-footer banner only when it carries the footer CTA hook.
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-cta-banner\b[^"\']*["\'][^>]*>[\s\S]{0,4000}?\bid=["\']nvx-footer-cta["\'][\s\S]{0,2000}?<\/section>/iu',
+		// Legacy CMS soft CTA: require conversion signal inside a bounded block.
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-section--cta\b[^"\']*["\'][^>]*>[\s\S]{0,4000}?(?:valoraci[oó]n|Reservar|consulta m[eé]dica|nvx-brand-btn|nvx-btn)[\s\S]{0,4000}?<\/section>/iu',
 	);
 
 	foreach ( $patterns as $pattern ) {

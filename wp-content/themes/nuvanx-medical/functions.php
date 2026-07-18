@@ -267,19 +267,8 @@ function nvx_theme_blog_index_markup(): string {
 	$output = '<div class="nvx-brand-grid">';
 	while ( $query->have_posts() ) {
 		$query->the_post();
-		$output .= '<article class="nvx-brand-card nvx-card nvx-card--blog">';
-		if ( has_post_thumbnail() ) {
-			$output .= '<div class="nvx-brand-card__media"><a href="' . esc_url( get_permalink() ) . '" tabindex="-1" aria-hidden="true">';
-			$output .= get_the_post_thumbnail(
-				get_the_ID(),
-				'large',
-				array(
-					'class' => 'nvx-media nvx-media--body',
-					'alt'   => the_title_attribute( array( 'echo' => false ) ),
-				)
-			);
-			$output .= '</a></div>';
-		}
+		// Blog index cards are text-only (no featured photos).
+		$output .= '<article class="nvx-brand-card nvx-card nvx-card--blog nvx-card--blog-text">';
 		$output .= '<p class="nvx-brand-card__kicker">' . esc_html( get_the_date() ) . '</p>';
 		$output .= '<h2 class="nvx-brand-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h2>';
 		$output .= '<div class="nvx-brand-card__body">' . wp_kses_post( get_the_excerpt() ) . '</div>';

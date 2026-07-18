@@ -63,15 +63,10 @@ $topics = get_categories(
 						the_post();
 						$categories = get_the_category();
 						$primary    = ! empty( $categories ) ? $categories[0] : null;
-						$classes    = has_post_thumbnail() ? 'nvx-blog-card' : 'nvx-blog-card nvx-blog-card--no-media';
+						// Index is text-only: no featured photos (single posts keep media).
+						$classes = 'nvx-blog-card nvx-blog-card--no-media';
 						?>
 						<article id="post-<?php the_ID(); ?>" <?php post_class( $classes ); ?>>
-							<?php if ( has_post_thumbnail() ) : ?>
-								<a class="nvx-blog-card__media" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
-									<?php the_post_thumbnail( 'large', array( 'loading' => 'lazy' ) ); ?>
-								</a>
-							<?php endif; ?>
-
 							<div class="nvx-blog-card__content">
 								<div class="nvx-blog-card__meta">
 									<?php if ( $primary instanceof WP_Term ) : ?>

@@ -198,10 +198,22 @@ function nvx_treatments_logo_cloud_markup(): string {
 }
 
 /**
- * Legacy page-local catalog close — empty so only site footer CTA remains.
- * Still used as preg_replace replacement to strip old CMS CTA bands.
+ * Legacy page-local catalog close CTA.
+ *
+ * Always empty: the site footer owns the closing valoración band
+ * (`nvx_site_closing_cta_markup` / footer.php). Callers that need to strip
+ * old CMS close sections should replace with an empty string.
+ *
+ * @deprecated 2.0.0 Use site footer CTA only; do not inject page-local closers.
+ * @return string Empty string.
  */
 function nvx_treatments_close_cta_markup(): string {
+	_doing_it_wrong(
+		__FUNCTION__,
+		'Page-local catalog closing CTAs are removed. Use the site footer nvx-cta-banner (nvx_site_closing_cta_markup).',
+		'2.0.0'
+	);
+
 	return '';
 }
 
@@ -211,9 +223,10 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 		return $content;
 	}
 
-	$catalog   = nvx_treatments_catalog_markup();
-	$cloud     = nvx_treatments_logo_cloud_markup();
-	$close_cta = nvx_treatments_close_cta_markup();
+	$catalog = nvx_treatments_catalog_markup();
+	$cloud   = nvx_treatments_logo_cloud_markup();
+	// Strip legacy CMS close bands; do not inject a page-local CTA (footer owns it).
+	$close_cta = '';
 
 	$content = preg_replace(
 		'/<section\b[^>]*aria-label="Catálogo de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu',

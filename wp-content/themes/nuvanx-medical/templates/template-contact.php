@@ -61,7 +61,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 					class="nvx-btn nvx-btn--primary nvx-open-valoracion-modal"
 					data-nvx-valoracion-modal="1"
 					aria-haspopup="dialog">
-					<?php esc_html_e( 'Reservar valoración gratuita', 'nuvanx-medical' ); ?>
+					<?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?>
 				</a>
 				<a href="https://wa.me/34669319836"
 					class="nvx-btn nvx-btn--secondary"
@@ -109,8 +109,8 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 						</li>
 						<li>
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-phone"/></svg>
-							<a href="<?php echo esc_url( 'tel:' . $chamberi_phone ); ?>" itemprop="telephone"><?php echo esc_html( $chamberi_tel_display ); ?></a>
-							· <a href="https://wa.me/34669319836" rel="noopener noreferrer" target="_blank">WhatsApp</a>
+							<a href="<?php echo esc_url( 'tel:' . $chamberi_phone ); ?>" itemprop="telephone" aria-label="<?php esc_attr_e( 'Llamar a NUVANX Chamberí', 'nuvanx-medical' ); ?>"><?php echo esc_html( $chamberi_tel_display ); ?></a>
+							· <a href="https://wa.me/34669319836" rel="noopener noreferrer" target="_blank" aria-label="<?php esc_attr_e( 'Contactar por WhatsApp con NUVANX Chamberí', 'nuvanx-medical' ); ?>">WhatsApp</a>
 						</li>
 						<li>
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-clock"/></svg>
@@ -118,7 +118,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 						</li>
 						<li>
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-doctor"/></svg>
-							<?php esc_html_e( 'Consulta médica:', 'nuvanx-medical' ); ?> <strong><?php esc_html_e( 'martes y jueves', 'nuvanx-medical' ); ?></strong>
+							<?php esc_html_e( 'El Dr. Rivera atiende en Chamberí los martes y jueves.', 'nuvanx-medical' ); ?>
 						</li>
 					</ul>
 
@@ -138,7 +138,8 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 					<a href="<?php echo esc_url( $chamberi_maps ); ?>"
 						class="nvx-btn nvx-btn--secondary"
 						rel="noopener noreferrer"
-						target="_blank">
+						target="_blank"
+						aria-label="<?php esc_attr_e( 'Cómo llegar a NUVANX Chamberí', 'nuvanx-medical' ); ?>">
 						<?php esc_html_e( 'Cómo llegar', 'nuvanx-medical' ); ?>
 					</a>
 				</article>
@@ -166,8 +167,8 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 						</li>
 						<li>
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-phone"/></svg>
-							<a href="<?php echo esc_url( 'tel:' . $goya_phone ); ?>" itemprop="telephone"><?php echo esc_html( $goya_tel_display ); ?></a>
-							· <a href="https://wa.me/34647505107" rel="noopener noreferrer" target="_blank">WhatsApp</a>
+							<a href="<?php echo esc_url( 'tel:' . $goya_phone ); ?>" itemprop="telephone" aria-label="<?php esc_attr_e( 'Llamar a NUVANX Salamanca–Goya', 'nuvanx-medical' ); ?>"><?php echo esc_html( $goya_tel_display ); ?></a>
+							· <a href="https://wa.me/34647505107" rel="noopener noreferrer" target="_blank" aria-label="<?php esc_attr_e( 'Contactar por WhatsApp con NUVANX Salamanca–Goya', 'nuvanx-medical' ); ?>">WhatsApp</a>
 						</li>
 						<li>
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-clock"/></svg>
@@ -175,7 +176,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 						</li>
 						<li>
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-doctor"/></svg>
-							<?php esc_html_e( 'Consulta médica:', 'nuvanx-medical' ); ?> <strong><?php esc_html_e( 'miércoles', 'nuvanx-medical' ); ?></strong>
+							<?php esc_html_e( 'El Dr. Rivera atiende en Salamanca–Goya los miércoles.', 'nuvanx-medical' ); ?>
 						</li>
 					</ul>
 
@@ -195,7 +196,8 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 					<a href="<?php echo esc_url( $goya_maps ); ?>"
 						class="nvx-btn nvx-btn--secondary"
 						rel="noopener noreferrer"
-						target="_blank">
+						target="_blank"
+						aria-label="<?php esc_attr_e( 'Cómo llegar a NUVANX Salamanca–Goya', 'nuvanx-medical' ); ?>">
 						<?php esc_html_e( 'Cómo llegar', 'nuvanx-medical' ); ?>
 					</a>
 				</article>
@@ -208,163 +210,19 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 	<?php /* ── FORMULARIO DE CONTACTO ──────────────────────────────────── */ ?>
 	<section class="nvx-section nvx-section--contact-form" aria-labelledby="nvx-form-heading">
 		<div class="nvx-container nvx-container--narrow">
-
 			<h2 id="nvx-form-heading" class="nvx-heading-2">
-				<?php esc_html_e( 'Tu valoración gratuita: 15–30 min con el médico, sin compromiso', 'nuvanx-medical' ); ?>
+				<?php esc_html_e( 'Contacta con el equipo NUVANX', 'nuvanx-medical' ); ?>
 			</h2>
-
 			<p class="nvx-body">
-				<?php esc_html_e( 'Indicación clínica, plan personalizado y presupuesto orientativo. Sin compromiso de tratamiento el mismo día. Presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ); ?>
+				<?php esc_html_e( 'Déjanos tus datos y tu consulta. Te responderemos en menos de 24 horas laborables.', 'nuvanx-medical' ); ?>
 			</p>
-
-			<?php
-			/*
-			 * Prefer Contact Form 7 / HubSpot when configured:
-			 *   echo do_shortcode('[contact-form-7 id="FORM_ID" title="Contacto NUVANX"]');
-			 * Native HTML below posts to /contacto/; wire a real handler before relying on it for lead capture.
-			 */
-			?>
-
-			<form
-				class="nvx-form nvx-form--contact"
-				method="post"
-				action="<?php echo esc_url( home_url( '/contacto/' ) ); ?>"
-				novalidate
-				aria-label="<?php esc_attr_e( 'Formulario de contacto NUVANX', 'nuvanx-medical' ); ?>"
-			>
-				<?php wp_nonce_field( 'nvx_contact_form', 'nvx_contact_nonce' ); ?>
-
-				<div class="nvx-form__row nvx-form__row--cols-2">
-
-					<div class="nvx-form__group">
-						<label class="nvx-form__label" for="nvx-nombre">
-							<?php esc_html_e( 'Nombre', 'nuvanx-medical' ); ?> <span aria-hidden="true">*</span>
-						</label>
-						<input
-							class="nvx-form__input"
-							type="text"
-							id="nvx-nombre"
-							name="nombre"
-							autocomplete="given-name"
-							required
-							aria-required="true"
-							placeholder="<?php esc_attr_e( 'Tu nombre', 'nuvanx-medical' ); ?>"
-						>
-					</div>
-
-					<div class="nvx-form__group">
-						<label class="nvx-form__label" for="nvx-telefono">
-							<?php esc_html_e( 'Teléfono / WhatsApp', 'nuvanx-medical' ); ?> <span aria-hidden="true">*</span>
-						</label>
-						<input
-							class="nvx-form__input"
-							type="tel"
-							id="nvx-telefono"
-							name="telefono"
-							autocomplete="tel"
-							required
-							aria-required="true"
-							placeholder="+34 6XX XXX XXX"
-						>
-					</div>
-
-				</div>
-
-				<div class="nvx-form__row">
-					<div class="nvx-form__group">
-						<label class="nvx-form__label" for="nvx-email">
-							<?php esc_html_e( 'Correo electrónico', 'nuvanx-medical' ); ?>
-						</label>
-						<input
-							class="nvx-form__input"
-							type="email"
-							id="nvx-email"
-							name="email"
-							autocomplete="email"
-							placeholder="tu@email.com"
-						>
-					</div>
-				</div>
-
-				<div class="nvx-form__row">
-					<div class="nvx-form__group">
-						<label class="nvx-form__label" for="nvx-tratamiento">
-							<?php esc_html_e( '¿Qué área te interesa?', 'nuvanx-medical' ); ?>
-						</label>
-						<select
-							class="nvx-form__select"
-							id="nvx-tratamiento"
-							name="tratamiento"
-						>
-							<option value=""><?php esc_html_e( 'Seleccionar (opcional)', 'nuvanx-medical' ); ?></option>
-							<option value="endolift"><?php esc_html_e( 'Endolift® Facial — papada, mandíbula, óvalo', 'nuvanx-medical' ); ?></option>
-							<option value="endolaser-corporal"><?php esc_html_e( 'Endoláser Corporal — grasa localizada', 'nuvanx-medical' ); ?></option>
-							<option value="laser-co2"><?php esc_html_e( 'Láser CO₂ Fraccionado — textura, cicatrices, poros', 'nuvanx-medical' ); ?></option>
-							<option value="exion-btl"><?php esc_html_e( 'EXION® BTL — firmeza y calidad cutánea', 'nuvanx-medical' ); ?></option>
-							<option value="medicina-estetica"><?php esc_html_e( 'Medicina Estética — rellenos, bótox, bioestimuladores', 'nuvanx-medical' ); ?></option>
-							<option value="ipl"><?php esc_html_e( 'BTL EXILITE™ IPL — manchas y rojeces', 'nuvanx-medical' ); ?></option>
-							<option value="well-aging"><?php esc_html_e( 'Well-aging / longevidad', 'nuvanx-medical' ); ?></option>
-							<option value="no-se"><?php esc_html_e( 'No lo sé aún — necesito orientación médica', 'nuvanx-medical' ); ?></option>
-						</select>
-					</div>
-				</div>
-
-				<div class="nvx-form__row">
-					<div class="nvx-form__group">
-						<label class="nvx-form__label" for="nvx-mensaje">
-							<?php esc_html_e( 'Mensaje (opcional)', 'nuvanx-medical' ); ?>
-						</label>
-						<textarea
-							class="nvx-form__textarea"
-							id="nvx-mensaje"
-							name="mensaje"
-							rows="4"
-							placeholder="<?php esc_attr_e( 'Cuéntanos brevemente tu caso o pregunta…', 'nuvanx-medical' ); ?>"
-							maxlength="1000"
-						></textarea>
-					</div>
-				</div>
-
-				<div class="nvx-form__row nvx-form__row--privacy">
-					<label class="nvx-form__checkbox-label">
-						<input
-							class="nvx-form__checkbox"
-							type="checkbox"
-							name="privacidad"
-							required
-							aria-required="true"
-							id="nvx-privacidad"
-						>
-						<span>
-							<?php esc_html_e( 'He leído y acepto la', 'nuvanx-medical' ); ?>
-							<a href="<?php echo esc_url( home_url( '/politica-privacidad/' ) ); ?>"
-								target="_blank"
-								rel="noopener">
-								<?php esc_html_e( 'Política de privacidad', 'nuvanx-medical' ); ?>
-							</a>.
-						</span>
-					</label>
-				</div>
-
-				<p class="nvx-form__privacy-note">
-					<?php esc_html_e( 'Si adjuntas material fotográfico para orientación preliminar, se trata bajo protocolos de confidencialidad clínica (RGPD). Ningún diagnóstico definitivo se emite solo a partir de una evaluación fotográfica; la indicación se confirma siempre en valoración presencial.', 'nuvanx-medical' ); ?>
-				</p>
-
-				<div class="nvx-form__actions">
-					<button class="nvx-btn nvx-btn--primary" type="submit">
-						<?php esc_html_e( 'Solicitar valoración gratuita', 'nuvanx-medical' ); ?>
-					</button>
-					<span class="nvx-form__or"><?php esc_html_e( 'o', 'nuvanx-medical' ); ?></span>
-					<a href="https://wa.me/34669319836"
-						class="nvx-btn nvx-btn--secondary"
-						rel="noopener noreferrer"
-						target="_blank">
-						<?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?>
-					</a>
-				</div>
-
-			</form>
-
+			<div id="nvx-contacto-hubspot-form" class="nvx-form nvx-form--contact" aria-live="polite">
+				<?php
+				if ( function_exists( 'nvx_contacto_hubspot_form_markup' ) ) {
+					echo nvx_contacto_hubspot_form_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped by the MU-plugin renderer.
+				}
+				?>
+			</div>
 		</div>
 	</section>
 
@@ -385,7 +243,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 					class="nvx-btn nvx-btn--primary nvx-open-valoracion-modal"
 					data-nvx-valoracion-modal="1"
 					aria-haspopup="dialog">
-					<?php esc_html_e( 'Reservar valoración gratuita online', 'nuvanx-medical' ); ?>
+					<?php esc_html_e( 'Solicitar valoración', 'nuvanx-medical' ); ?>
 				</a>
 			</div>
 		</div>

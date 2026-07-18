@@ -138,41 +138,6 @@ function nvx_laser_hero_copy_markup(): string {
 }
 
 /**
- * Action banner premium (antracita + bronce).
- */
-function nvx_laser_action_banner_markup(): string {
-	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
-		? nvx_cta_valoracion_url()
-		: home_url( '/madrid/valoracion/' );
-	$clinicas   = home_url( '/clinicas-de-medicina-estetica-nuvanx/' );
-
-	$html  = '<section class="nvx-laser-action" aria-label="' . esc_attr__( 'Reservar valoración láser', 'nuvanx-medical' ) . '">';
-	$html .= '<div class="nvx-laser-action__shell">';
-	$html .= '<div class="nvx-laser-action__card">';
-	$html .= '<div class="nvx-laser-action__copy">';
-	$html .= '<h2 class="nvx-laser-action__title">' . esc_html__( 'Determina la idoneidad de tu tratamiento', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-laser-action__text">' . wp_kses(
-		__( 'Agenda tu valoración médica personalizada. Disponible de forma presencial en nuestras clínicas autorizadas de <strong>Chamberí</strong> (CS20144) o <strong>Goya · Barrio Salamanca</strong> (CS20073).', 'nuvanx-medical' ),
-		array( 'strong' => array() )
-	) . '</p>';
-	$html .= '</div>';
-	$html .= '<div class="nvx-laser-action__ctas">';
-	$html .= sprintf(
-		'<a class="nvx-laser-action__primary" href="%1$s">%2$s</a>',
-		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración médica', 'nuvanx-medical' )
-	);
-	$html .= sprintf(
-		'<a class="nvx-laser-action__secondary" href="%1$s">%2$s</a>',
-		esc_url( $clinicas ),
-		esc_html__( 'Ver centros en Madrid', 'nuvanx-medical' )
-	);
-	$html .= '</div></div></div></section>';
-
-	return $html;
-}
-
-/**
  * Full editorial body.
  */
 function nvx_laser_editorial_body_markup(): string {
@@ -326,8 +291,7 @@ function nvx_laser_editorial_body_markup(): string {
 
 	$html .= '</div></div></section>';
 
-	// E. Action banner — 96px gap after FAQs.
-	$html .= nvx_laser_action_banner_markup();
+	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
 
 	$html .= '</div>';
 

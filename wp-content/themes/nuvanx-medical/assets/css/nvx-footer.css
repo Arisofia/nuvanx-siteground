@@ -155,8 +155,7 @@
 
 .nvx-footer__registrations { margin: 0; }
 
-/* Editorial CTA only — never on home or conversion journeys */
-body.home .nvx-cta-banner,
+/* Conversion journeys already own the form/CTA — hide site closing band only there */
 body.page-template-page-contacto .nvx-cta-banner,
 body.page-template-templatespage-contacto-php .nvx-cta-banner,
 body.page-template-page-landing-valoracion .nvx-cta-banner,

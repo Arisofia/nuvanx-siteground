@@ -54,20 +54,18 @@ function nvx_theme_is_home_page(): bool {
 }
 
 /**
- * Pre-footer CTA banner is editorial only.
- * Hide on home and conversion pages (contacto / valoración / gracias)
- * so it is not the same redundant block on every page.
+ * Site-wide pre-footer valoración band (canonical closing CTA).
+ * Shown on all public pages except conversion journeys (form already is the CTA).
+ * Home included so footer close matches treatment/equipo/blog.
  */
 function nvx_theme_show_cta_banner(): bool {
-	$show = true;
-
-	if ( is_admin() || nvx_theme_is_home_page() || is_front_page() ) {
-		$show = false;
+	if ( is_admin() ) {
+		return false;
 	}
 
 	// Named conversion templates.
 	$template = (string) get_page_template_slug();
-	if ( $show && in_array(
+	if ( in_array(
 		$template,
 		array(
 			'templates/page-contacto.php',
@@ -75,29 +73,26 @@ function nvx_theme_show_cta_banner(): bool {
 		),
 		true
 	) ) {
-		$show = false;
+		return false;
 	}
 
-	if ( $show && is_page() ) {
-		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	if ( is_page() ) {
+		$slug       = (string) get_post_field( 'post_name', get_queried_object_id() );
 		$hide_slugs = array( 'contacto', 'gracias', 'valoracion', 'consulta-medica', 'consultamedica' );
 		if ( in_array( $slug, $hide_slugs, true ) ) {
-			$show = false;
+			return false;
 		}
 
 		// Nested paths like /madrid/valoracion/.
-		if ( $show ) {
-			foreach ( get_post_ancestors( get_queried_object_id() ) as $ancestor_id ) {
-				$ancestor_slug = (string) get_post_field( 'post_name', $ancestor_id );
-				if ( 'madrid' === $ancestor_slug && 'valoracion' === $slug ) {
-					$show = false;
-					break;
-				}
+		foreach ( get_post_ancestors( get_queried_object_id() ) as $ancestor_id ) {
+			$ancestor_slug = (string) get_post_field( 'post_name', $ancestor_id );
+			if ( 'madrid' === $ancestor_slug && 'valoracion' === $slug ) {
+				return false;
 			}
 		}
 	}
 
-	return $show;
+	return true;
 }
 
 function nvx_asset_version( string $relative_path ): string {

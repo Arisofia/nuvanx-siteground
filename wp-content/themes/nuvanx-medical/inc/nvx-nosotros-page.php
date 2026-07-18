@@ -322,26 +322,8 @@ function nvx_nosotros_principles_markup(): string {
 }
 
 /**
- * Closing CTA.
- */
-function nvx_nosotros_cta_markup(): string {
-	$html  = '<section class="nvx-endolift-action" aria-label="' . esc_attr__( 'Reservar valoración médica', 'nuvanx-medical' ) . '">';
-	$html .= '<div class="nvx-endolift-action__inner">';
-	$html .= '<div>';
-	$html .= '<p class="nvx-endolift-action__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 class="nvx-endolift-action__title">' . esc_html__( 'Diagnóstico primero, tecnología después', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-action__text">' . esc_html__( 'Agenda una valoración presencial en Chamberí o Goya. Indicación, límites y plan documentado antes de cualquier procedimiento.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>';
-	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$html .= nvx_cta_pair_markup( 'nvx-endolift-action__ctas' );
-	}
-	$html .= '</div></section>';
-
-	return $html;
-}
-
-/**
  * Full editorial body.
+ * Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
  */
 function nvx_nosotros_editorial_body_markup(): string {
 	$html  = '<div class="nvx-nosotros-editorial nvx-endolift-editorial">';
@@ -350,7 +332,6 @@ function nvx_nosotros_editorial_body_markup(): string {
 	$html .= nvx_nosotros_clinics_markup();
 	$html .= nvx_nosotros_team_markup();
 	$html .= nvx_nosotros_principles_markup();
-	$html .= nvx_nosotros_cta_markup();
 	$html .= '</div>';
 
 	return $html;

@@ -23,7 +23,7 @@ while ( have_posts() ) :
 			<div class="nvx-shell nvx-blog-hero__inner">
 				<div class="nvx-blog-hero__copy">
 					<?php if ( $primary instanceof WP_Term ) : ?>
-						<a class="nvx-blog-hero__category" href="<?php echo esc_url( get_category_link( $primary ) ); ?>"><?php echo esc_html( $primary->name ); ?></a>
+						<a class="nvx-blog-hero__category" href="<?php echo esc_url( get_category_link( $primary->term_id ) ); ?>"><?php echo esc_html( $primary->name ); ?></a>
 					<?php else : ?>
 						<span class="nvx-blog-hero__category"><?php esc_html_e( 'NUVANX Journal', 'nuvanx-medical' ); ?></span>
 					<?php endif; ?>
@@ -48,7 +48,6 @@ while ( have_posts() ) :
 						the_post_thumbnail(
 							'full',
 							array(
-								'alt'           => the_title_attribute( array( 'echo' => false ) ),
 								'loading'       => 'eager',
 								'fetchpriority' => 'high',
 							)
@@ -79,11 +78,11 @@ while ( have_posts() ) :
 					<?php if ( ! empty( $categories ) || ! empty( $tags ) ) : ?>
 						<div class="nvx-blog-article__terms" aria-label="<?php esc_attr_e( 'Temas del artículo', 'nuvanx-medical' ); ?>">
 							<?php foreach ( $categories as $category ) : ?>
-								<a href="<?php echo esc_url( get_category_link( $category ) ); ?>"><?php echo esc_html( $category->name ); ?></a>
+								<a href="<?php echo esc_url( get_category_link( $category->term_id ) ); ?>"><?php echo esc_html( $category->name ); ?></a>
 							<?php endforeach; ?>
 							<?php if ( ! empty( $tags ) ) : ?>
 								<?php foreach ( $tags as $tag ) : ?>
-									<a href="<?php echo esc_url( get_tag_link( $tag ) ); ?>">#<?php echo esc_html( $tag->name ); ?></a>
+									<a href="<?php echo esc_url( get_tag_link( $tag->term_id ) ); ?>">#<?php echo esc_html( $tag->name ); ?></a>
 								<?php endforeach; ?>
 							<?php endif; ?>
 						</div>

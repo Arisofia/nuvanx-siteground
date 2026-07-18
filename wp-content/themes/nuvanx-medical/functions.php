@@ -300,6 +300,7 @@ add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
 require_once get_template_directory() . '/inc/nvx-hero-and-forms.php';
 require_once get_template_directory() . '/inc/nvx-integrations.php';
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';
+require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
 require_once get_template_directory() . '/inc/nvx-endolaser-page.php';

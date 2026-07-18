@@ -5,19 +5,21 @@ on:
     branches:
       - master
     paths:
+      - 'wp-content/themes/nuvanx-medical/style.css'
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'wp-content/themes/nuvanx-medical/**/*.js'
-      - 'scripts/design-system/audit-css.mjs'
+      - 'scripts/design-system/**'
       - '.github/workflows/design-system-exceptions.yml'
   pull_request:
     branches:
       - master
     paths:
+      - 'wp-content/themes/nuvanx-medical/style.css'
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/**/*.php'
       - 'wp-content/themes/nuvanx-medical/**/*.js'
-      - 'scripts/design-system/audit-css.mjs'
+      - 'scripts/design-system/**'
       - '.github/workflows/design-system-exceptions.yml'
   workflow_dispatch:
 
@@ -38,7 +40,7 @@ jobs:
       - name: Audit active stack and exception paths
         run: node scripts/design-system/audit-css.mjs
 
-      - name: Publish exception inventory
+      - name: Publish exception inventory and canonical source snapshot
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
@@ -46,5 +48,14 @@ jobs:
           path: |
             qa/design-system/audit-summary.json
             qa/design-system/active-css-exceptions.json
+            scripts/design-system/*.mjs
+            wp-content/themes/nuvanx-medical/**/*.php
+            # WP theme identity (header/version) lives in root style.css.
+            wp-content/themes/nuvanx-medical/style.css
+            # Nested-safe so future css/js subdirs stay in the snapshot.
+            wp-content/themes/nuvanx-medical/assets/css/**/*.css
+            wp-content/themes/nuvanx-medical/assets/js/**/*.js
+            docs/staging2/audit-artifacts/*.html
+            docs/staging2/audit-captures/*.xml
           if-no-files-found: error
           retention-days: 14

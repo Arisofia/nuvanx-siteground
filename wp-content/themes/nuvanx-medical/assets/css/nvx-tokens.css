@@ -55,14 +55,9 @@
   --nvx-space-4: 32px;
   --nvx-space-5: 40px;
   --nvx-space-6: 48px;
-  --nvx-space-7: 56px;
   --nvx-space-8: 64px;
-  --nvx-space-9: 72px;
   --nvx-space-10: 80px;
   --nvx-space-12: 96px;
-  --nvx-space-13: 104px;
-  --nvx-space-14: 112px;
-  --nvx-space-15: 120px;
 
   --nvx-gap-base: clamp(24px, 2.4vw, 32px);
   --nvx-gap-wide: clamp(32px, 4vw, 48px);

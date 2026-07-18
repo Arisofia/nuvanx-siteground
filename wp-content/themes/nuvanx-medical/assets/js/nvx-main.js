@@ -75,6 +75,7 @@
       lastFocus = trigger || document.activeElement;
       closeMobileNav();
       modal.hidden = false;
+      modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
       document.body.classList.add('nvx-valoracion-modal-open');
       document.body.style.overflow = 'hidden';
@@ -102,6 +103,7 @@
 
     function closeModal() {
       modal.hidden = true;
+      modal.classList.remove('is-open');
       modal.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('nvx-valoracion-modal-open');
       if (!mobileNav || !mobileNav.classList.contains('is-open')) {
@@ -154,8 +156,12 @@
       }
     });
 
+    function isModalOpen() {
+      return modal.classList.contains('is-open') && !modal.hidden;
+    }
+
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !modal.hidden) {
+      if (e.key === 'Escape' && isModalOpen()) {
         e.preventDefault();
         closeModal();
       }
@@ -165,7 +171,7 @@
     document.addEventListener(
       'keydown',
       function (e) {
-        if (e.key !== 'Tab' || modal.hidden) return;
+        if (e.key !== 'Tab' || !isModalOpen()) return;
         var focusables = modal.querySelectorAll(
           'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
         );

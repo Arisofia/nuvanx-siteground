@@ -8,8 +8,8 @@
 
 /* PRIMARY BUTTON (Reserve) */
 .hero-cta-group .btn-primary {
-  background-color: #2D8659;
-  color: #FFFFFF;
+  background-color: var(--nvx-ink);
+  color: var(--nvx-light);
   padding: 18px 40px;
   font-size: 16px;
   font-weight: 700;
@@ -37,30 +37,30 @@
 }
 
 .hero-cta-group .btn-primary:hover {
-  background-color: #236B46;
+  background-color: var(--nvx-charcoal);
   transform: translateY(-3px);
-  box-shadow: 0 12px 24px rgba(45, 134, 89, 0.3);
-  color: #FFFFFF;
+  box-shadow: var(--nvx-shadow-button);
+  color: var(--nvx-light);
 }
 
 .hero-cta-group .btn-primary:active {
   transform: scale(0.98);
-  box-shadow: 0 6px 12px rgba(45, 134, 89, 0.2);
+  box-shadow: var(--nvx-shadow-min);
 }
 
 .hero-cta-group .btn-primary:focus-visible {
-  outline: 3px solid #3B82F6;
+  outline: 3px solid var(--nvx-accent-muted);
   outline-offset: 2px;
 }
 
 /* SECONDARY BUTTON (WhatsApp) */
 .hero-cta-group .btn-secondary {
-  background-color: #F3F4F6;
-  color: #1F2937;
+  background-color: var(--nvx-surface-soft);
+  color: var(--nvx-ink);
   padding: 18px 32px;
   font-size: 16px;
   font-weight: 600;
-  border: 2px solid #D1D5DB;
+  border: 2px solid var(--nvx-border-soft);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -71,11 +71,11 @@
 }
 
 .hero-cta-group .btn-secondary:hover {
-  background-color: #E5E7EB;
-  border-color: #9CA3AF;
+  background-color: var(--nvx-form-stage-mid);
+  border-color: var(--nvx-accent-muted);
   transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-  color: #1F2937;
+  box-shadow: var(--nvx-shadow-min);
+  color: var(--nvx-ink);
 }
 
 .hero-cta-group .btn-secondary:active {
@@ -130,8 +130,8 @@
   width: 16px;
   height: 16px;
   margin-left: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
+  border: 2px solid var(--nvx-border-on-dark-45);
+  border-top-color: var(--nvx-light);
   border-radius: 50%;
   animation: spin-loader 0.8s linear infinite;
 }

@@ -31,7 +31,7 @@ if ( is_search() ) {
 	$title = get_the_author();
 	$lead  = __( 'Publicaciones y revisiones editoriales de este autor.', 'nuvanx-medical' );
 } elseif ( is_date() ) {
-	$title = get_the_archive_title();
+	$title = wp_strip_all_tags( get_the_archive_title() );
 	$lead  = __( 'Archivo cronológico del Journal médico NUVANX.', 'nuvanx-medical' );
 }
 
@@ -67,22 +67,14 @@ $topics = get_categories(
 						<article id="post-<?php the_ID(); ?>" <?php post_class( $classes ); ?>>
 							<?php if ( has_post_thumbnail() ) : ?>
 								<a class="nvx-blog-card__media" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
-									<?php
-									the_post_thumbnail(
-										'large',
-										array(
-											'alt'     => the_title_attribute( array( 'echo' => false ) ),
-											'loading' => 'lazy',
-										)
-									);
-									?>
+									<?php the_post_thumbnail( 'large', array( 'loading' => 'lazy' ) ); ?>
 								</a>
 							<?php endif; ?>
 
 							<div class="nvx-blog-card__content">
 								<div class="nvx-blog-card__meta">
 									<?php if ( $primary instanceof WP_Term ) : ?>
-										<span class="nvx-blog-card__category"><a href="<?php echo esc_url( get_category_link( $primary ) ); ?>"><?php echo esc_html( $primary->name ); ?></a></span>
+										<span class="nvx-blog-card__category"><a href="<?php echo esc_url( get_category_link( $primary->term_id ) ); ?>"><?php echo esc_html( $primary->name ); ?></a></span>
 									<?php endif; ?>
 									<time class="nvx-blog-card__date" datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
 									<?php if ( function_exists( 'nvx_reading_time' ) ) : ?>
@@ -122,7 +114,7 @@ $topics = get_categories(
 					<h2 id="nvx-blog-topics-title" class="nvx-blog-topics__title"><?php esc_html_e( 'Explorar por tema', 'nuvanx-medical' ); ?></h2>
 					<ul class="nvx-blog-topics__list">
 						<?php foreach ( $topics as $topic ) : ?>
-							<li><a href="<?php echo esc_url( get_category_link( $topic ) ); ?>"><?php echo esc_html( $topic->name ); ?></a></li>
+							<li><a href="<?php echo esc_url( get_category_link( $topic->term_id ) ); ?>"><?php echo esc_html( $topic->name ); ?></a></li>
 						<?php endforeach; ?>
 					</ul>
 				</nav>

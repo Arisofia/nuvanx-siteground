@@ -443,8 +443,9 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-value__icon svg {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 
 .nvx-value__title {
@@ -1094,21 +1095,31 @@ article.nvx-page > .nvx-page-hero {
   gap: var(--nvx-space-4);
 }
 
+/* Step stroke icons — same size/weight as laser/aes brand icons sitewide. */
 .nvx-endolift-step__icon {
   display: block;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 32px;
+  height: 32px;
   margin-bottom: var(--nvx-space-2, 16px);
-  color: var(--nvx-accent-muted); /* accent Bronce */
+  color: var(--nvx-accent-muted);
+  flex-shrink: 0;
 }
 
+.nvx-endolift-step__icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Step index (01, 02…) — single typography across hubs (see global step-n block). */
 .nvx-endolift-step__n {
   display: block;
   margin-bottom: var(--nvx-space-2, 16px);
   font-family: var(--nvx-sans);
-  font-size: 0.6875rem;
+  font-size: var(--nvx-type-kicker, 0.6875rem);
   font-weight: 700;
   letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--nvx-accent-muted);
 }
 
@@ -1508,9 +1519,10 @@ figure.nvx-equipo-portrait,
   display: block;
   margin-bottom: var(--nvx-space-2, 16px);
   font-family: var(--nvx-sans);
-  font-size: 0.6875rem;
+  font-size: var(--nvx-type-kicker, 0.6875rem);
   font-weight: 700;
   letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--nvx-accent-muted);
 }
 
@@ -1825,6 +1837,12 @@ figure.nvx-equipo-portrait,
   flex-shrink: 0;
 }
 
+.nvx-laser-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 /* Enfoque — 3 columnas, gutter 32px */
 .nvx-laser-focus-grid {
   display: grid;
@@ -1876,9 +1894,10 @@ figure.nvx-equipo-portrait,
 .nvx-laser-platform__n {
   margin: 0;
   font-family: var(--nvx-sans);
-  font-size: 0.6875rem;
+  font-size: var(--nvx-type-kicker, 0.6875rem);
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--nvx-accent-muted);
 }
 
@@ -2240,6 +2259,12 @@ figure.nvx-equipo-portrait,
   flex-shrink: 0;
 }
 
+.nvx-aes-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .nvx-aes-focus-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2284,9 +2309,10 @@ figure.nvx-equipo-portrait,
 
 .nvx-aes-card__n {
   font-family: var(--nvx-sans);
-  font-size: 0.6875rem;
+  font-size: var(--nvx-type-kicker, 0.6875rem);
   font-weight: 700;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
   color: var(--nvx-accent-muted);
 }
 

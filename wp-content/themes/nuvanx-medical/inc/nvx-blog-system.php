@@ -36,8 +36,7 @@ function nvx_theme_enqueue_blog_styles(): void {
 		return;
 	}
 
-	$relative = 'assets/css/nvx-posts.css';
-	$absolute = get_template_directory() . '/' . $relative;
+	$absolute = get_template_directory() . '/assets/css/nvx-posts.css';
 
 	if ( ! is_readable( $absolute ) ) {
 		return;
@@ -45,7 +44,7 @@ function nvx_theme_enqueue_blog_styles(): void {
 
 	wp_enqueue_style(
 		'nvx-posts',
-		get_template_directory_uri() . '/' . $relative,
+		get_template_directory_uri() . '/assets/css/nvx-posts.css',
 		array( 'nvx-footer' ),
 		(string) filemtime( $absolute )
 	);

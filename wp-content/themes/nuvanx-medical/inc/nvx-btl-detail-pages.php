@@ -392,20 +392,7 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	}
 	$body .= '</div></div></section>';
 
-	// CTA.
-	$valoracion = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : home_url( '/madrid/valoracion/' );
-	$body      .= '<section class="nvx-endolift-action" aria-label="' . esc_attr__( 'Reservar valoración', 'nuvanx-medical' ) . '">';
-	$body      .= '<div class="nvx-endolift-action__inner"><div>';
-	$body      .= '<p class="nvx-endolift-action__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
-	$body      .= '<h2 class="nvx-endolift-action__title">' . esc_html__( 'Indicación primero, plataforma después', 'nuvanx-medical' ) . '</h2>';
-	$body      .= '<p class="nvx-endolift-action__text">' . esc_html__( 'En Chamberí o Goya evaluamos si este protocolo es el adecuado — o si conviene otra modalidad o un plan combinado.', 'nuvanx-medical' ) . '</p>';
-	$body      .= '</div>';
-	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$body .= nvx_cta_pair_markup( 'nvx-endolift-action__ctas' );
-	} else {
-		$body .= '<div class="nvx-cta-pair"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Reservar valoración', 'nuvanx-medical' ) . '</a></div>';
-	}
-	$body .= '</div></section>';
+	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
 
 	$body .= '</div>';
 

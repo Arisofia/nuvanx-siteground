@@ -78,31 +78,6 @@ function nvx_endolaser_hero_copy_markup(): string {
 }
 
 /**
- * CTAs — valoración + sedes.
- */
-function nvx_endolaser_action_ctas_markup(): string {
-	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
-		? nvx_cta_valoracion_url()
-		: home_url( '/madrid/valoracion/' );
-	$clinicas   = home_url( '/clinicas-de-medicina-estetica-nuvanx/' );
-
-	$html  = '<div class="nvx-cta-pair nvx-endolift-action__ctas">';
-	$html .= sprintf(
-		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
-		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración médica', 'nuvanx-medical' )
-	);
-	$html .= sprintf(
-		'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s">%2$s</a>',
-		esc_url( $clinicas ),
-		esc_html__( 'Ver centros en Madrid', 'nuvanx-medical' )
-	);
-	$html .= '</div>';
-
-	return $html;
-}
-
-/**
  * Editorial body (no facial Endolift encyclopedia, no fixed € inventado).
  */
 function nvx_endolaser_editorial_body_markup(): string {
@@ -187,16 +162,7 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure"><em>' . esc_html__( 'Para papada y óvalo facial con protocolo facial dedicado, consulta la página de Endolift® facial (tarifas PVP faciales publicadas allí).', 'nuvanx-medical' ) . '</em></p>';
 	$html .= '</div></section>';
 
-	// E. CTA.
-	$html .= '<section class="nvx-endolift-action" aria-label="' . esc_attr__( 'Reservar valoración Endoláser', 'nuvanx-medical' ) . '">';
-	$html .= '<div class="nvx-endolift-action__inner">';
-	$html .= '<div>';
-	$html .= '<p class="nvx-endolift-action__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 class="nvx-endolift-action__title">' . esc_html__( '¿Hay indicación de Endoláser en tus zonas de grasa localizada?', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-action__text">' . esc_html__( 'Reserva una valoración presencial. Confirmamos candidatura, exclusiones y plan por zonas antes de cualquier procedimiento.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>';
-	$html .= nvx_endolaser_action_ctas_markup();
-	$html .= '</div></section>';
+	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
 
 	$html .= '</div>';
 

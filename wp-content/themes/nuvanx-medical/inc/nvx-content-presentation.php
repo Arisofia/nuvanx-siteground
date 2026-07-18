@@ -80,6 +80,61 @@ function nvx_cta_pair_markup( string $extra_class = '' ): string {
 }
 
 /**
+ * Canonical site-wide closing conversion band (pre-footer).
+ * One markup, one copy, used by footer.php on every non-conversion page.
+ */
+function nvx_site_closing_cta_markup(): string {
+	$valoracion = nvx_cta_valoracion_url();
+	$whatsapp   = nvx_cta_whatsapp_url();
+
+	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '">';
+	$html .= '<div class="nvx-cta-banner__inner">';
+	$html .= '<div>';
+	$html .= '<h2 class="nvx-cta-banner__title">' . esc_html__( 'Reserva 15–30 min de valoración médica', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-cta-banner__sub">' . esc_html__( 'Indicación, plan A/B y presupuesto orientativo — sin compromiso de tratamiento el mismo día. Presencial en Chamberí o Goya.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</div>';
+	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions">';
+	$html .= sprintf(
+		'<a class="nvx-btn nvx-btn--ghost" id="nvx-footer-cta" href="%1$s">%2$s</a>',
+		esc_url( $valoracion ),
+		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
+	);
+	$html .= sprintf(
+		'<a class="nvx-btn nvx-btn--secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+		esc_url( $whatsapp ),
+		esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
+	);
+	$html .= '</div></div></section>';
+
+	return $html;
+}
+
+/**
+ * Strip page-level closing conversion bands so only the site footer CTA remains.
+ *
+ * @param string $content HTML.
+ * @return string
+ */
+function nvx_content_strip_page_closing_ctas( string $content ): string {
+	$patterns = array(
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-endolift-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-catalog-close\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-laser-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-aes-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>/iu',
+		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+		'/<section\b[^>]*\bid=["\']nvx-site-closing-cta["\'][^>]*>[\s\S]*?<\/section>/iu',
+	);
+
+	foreach ( $patterns as $pattern ) {
+		$content = preg_replace( $pattern, '', $content ) ?? $content;
+	}
+
+	return $content;
+}
+
+/**
  * Minimal stroke icons (currentColor).
  *
  * @param string $name Icon key.
@@ -1153,11 +1208,24 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_rewrite_morpheus_faq( $content );
 	$content = nvx_content_unify_ctas( $content );
 	$content = nvx_content_strip_versioned_class_tokens( $content );
+	$content = nvx_content_strip_page_closing_ctas( $content );
 	// Team / well-aging / EXION investment: separate filters at 125–126 (after protocols).
 
 	return $content;
 }
 add_filter( 'the_content', 'nvx_content_presentation_enhance', 20 );
+
+/**
+ * Late strip: page modules rebuild content at priority 19; remove their
+ * in-content closing bands so only footer.php nvx-cta-banner remains.
+ */
+function nvx_content_strip_page_closing_ctas_late( string $content ): string {
+	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return $content;
+	}
+	return nvx_content_strip_page_closing_ctas( $content );
+}
+add_filter( 'the_content', 'nvx_content_strip_page_closing_ctas_late', 99 );
 
 // Backward-compatible aliases (older home helpers).
 if ( ! function_exists( 'nvx_home_valoracion_url' ) ) {

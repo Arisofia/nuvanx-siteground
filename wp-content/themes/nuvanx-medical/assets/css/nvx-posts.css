@@ -400,8 +400,8 @@ body.nvx-blog-context {
   color: var(--nvx-light);
 }
 
-/* CMS bylines must not appear in the body (stripped in PHP; defensive hide). */
-.nvx-blog-prose .nvx-blog-byline {
+/* Legacy CMS byline paragraphs only (publish-script marker), single-post body. */
+body.single-post .nvx-blog-prose > p.nvx-blog-byline {
   display: none;
 }
 

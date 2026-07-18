@@ -66,8 +66,9 @@ function nvx_btl_detail_registry(): array {
 			'mechanism'    => array(
 				'title' => __( 'Cómo funciona EXION® Face: doble acción biomecánica', 'nuvanx-medical' ),
 				'body'  => array(
-					__( 'EXION Face combina radiofrecuencia monopolar y ultrasonido terapéutico orientados a estimular fibroblastos y matriz extracelular, sin basarse en picos térmicos de 60–70 °C típicos de algunas plataformas de contracción intensa.', 'nuvanx-medical' ),
-					__( 'La documentación del fabricante comunica, en modelos evaluados, un aumento de hasta ~224% en marcadores de ácido hialurónico endógeno a ~4 semanas. Ese dato es de laboratorio/protocolo evaluado y no equivale a un resultado individual garantizado.', 'nuvanx-medical' ),
+					// Shared with clinical governance (nvx_btl_claim_library).
+					function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_face_mech_intro' ) : '',
+					function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_face_ha_224' ) : '',
 				),
 				'items' => array(
 					array(
@@ -90,7 +91,7 @@ function nvx_btl_detail_registry(): array {
 			),
 			'compare'      => array(
 				'title' => __( 'EXION Face frente a HIFU y RF de alto pico (p. ej. Thermage®)', 'nuvanx-medical' ),
-				'body'  => __( 'HIFU y RF volumétrica de alto pico buscan contracción por desnaturalización intensa (picos frecuentemente citados ~60–70 °C). EXION Face prioriza regeneración a microtemperaturas más fisiológicas (~40–42 °C en protocolos evaluados), con perfil de tolerancia y downtime habitualmente más favorables. Temperatura, dolor, atrofia y “porcentajes de HA” no son transferibles 1:1 entre pacientes ni entre estudios. La comparativa clínica ampliada está en el Journal.', 'nuvanx-medical' ),
+				'body'  => function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_face_compare' ) : '',
 				'link'  => $blog_face,
 				'label' => __( 'Leer: EXION Face vs HIFU y Thermage', 'nuvanx-medical' ),
 			),
@@ -169,12 +170,13 @@ function nvx_btl_detail_registry(): array {
 				'title' => __( 'Cómo funciona EXION® Body', 'nuvanx-medical' ),
 				'body'  => array(
 					__( 'El cabezal integra refrigeración activa de la superficie y radiofrecuencia monopolar profunda: la epidermis se protege mientras se deposita calor en hipodermis y dermis.', 'nuvanx-medical' ),
-					__( 'BTL comunica, en series evaluadas, órdenes de magnitud del tipo hasta −22% de adiposidad y mejoras relevantes de laxitud. Son datos de condiciones de estudio; en NUVANX se individualizan por espesor, zona y calidad de piel.', 'nuvanx-medical' ),
+					function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_body_btl_22' ) : '',
 				),
 				'items' => array(
 					array(
 						'title' => __( 'Refrigeración activa en superficie', 'nuvanx-medical' ),
-						'body'  => __( 'Protege la epidermis mientras la RF trabaja en planos más profundos. Reduce el riesgo de quemadura superficial respecto a RF sin control de superficie adecuado.', 'nuvanx-medical' ),
+						// Neutral wording — no unreviewed “lower burn risk” comparative claim.
+						'body'  => function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_body_cooling' ) : '',
 					),
 					array(
 						'title' => __( 'RF monopolar profunda (~40–45 °C en tejido objetivo)', 'nuvanx-medical' ),
@@ -196,7 +198,7 @@ function nvx_btl_detail_registry(): array {
 			),
 			'compare'      => array(
 				'title' => __( 'EXION Body frente a CoolSculpting y Morpheus8 Body', 'nuvanx-medical' ),
-				'body'  => __( 'Criolipólisis reduce grasa localizada pero no tensa. Microagujas corporales tensan con más trauma y downtime. EXION Body busca grasa + calidad cutánea con mejor tolerancia en muchos protocolos. Frente a liposucción quirúrgica: menos invasivo, menos downtime, pero tampoco sustituye una cirugía mayor cuando el exceso es muy importante. Detalle y matices en el Journal y en la página de endoláser.', 'nuvanx-medical' ),
+				'body'  => function_exists( 'nvx_btl_claim_source' ) ? nvx_btl_claim_source( 'exion_body_compare' ) : '',
 				'link'  => $blog_body,
 				'label' => __( 'Leer: EXION Body vs CoolSculpting y Morpheus8', 'nuvanx-medical' ),
 			),
@@ -437,16 +439,32 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-mech">';
 	$body .= '<div class="nvx-endolift-section__inner">';
 	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-mech" class="nvx-endolift-heading">' . esc_html( $c['mechanism']['title'] ) . '</h2>';
-	foreach ( $c['mechanism']['body'] as $p ) {
+	$body .= '<h2 id="' . esc_attr( $id ) . '-mech" class="nvx-endolift-heading">' . esc_html( (string) ( $c['mechanism']['title'] ?? '' ) ) . '</h2>';
+	foreach ( (array) ( $c['mechanism']['body'] ?? array() ) as $p ) {
+		$p = is_string( $p ) ? trim( $p ) : '';
+		if ( '' === $p ) {
+			continue;
+		}
 		$body .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html( $p ) . '</p>';
 	}
 	if ( ! empty( $c['mechanism']['items'] ) && is_array( $c['mechanism']['items'] ) ) {
 		$body .= '<ul class="nvx-endolaser-zone-list">';
 		foreach ( $c['mechanism']['items'] as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			$title = trim( (string) ( $item['title'] ?? '' ) );
+			$text  = trim( (string) ( $item['body'] ?? '' ) );
+			if ( '' === $title && '' === $text ) {
+				continue;
+			}
 			$body .= '<li class="nvx-endolaser-zone">';
-			$body .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ) . '</h3>';
-			$body .= '<p class="nvx-endolift-body">' . esc_html( $item['body'] ) . '</p>';
+			if ( '' !== $title ) {
+				$body .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $title ) . '</h3>';
+			}
+			if ( '' !== $text ) {
+				$body .= '<p class="nvx-endolift-body">' . esc_html( $text ) . '</p>';
+			}
 			$body .= '</li>';
 		}
 		$body .= '</ul>';
@@ -460,10 +478,22 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Indicaciones', 'nuvanx-medical' ) . '</p>';
 	$body .= '<h2 id="' . esc_attr( $id ) . '-ind" class="nvx-endolift-heading">' . esc_html__( 'Cuándo tiene sentido este protocolo', 'nuvanx-medical' ) . '</h2>';
 	$body .= '<ul class="nvx-endolaser-zone-list">';
-	foreach ( $c['indications'] as $item ) {
+	foreach ( (array) ( $c['indications'] ?? array() ) as $item ) {
+		if ( ! is_array( $item ) ) {
+			continue;
+		}
+		$title = trim( (string) ( $item['title'] ?? '' ) );
+		$text  = trim( (string) ( $item['body'] ?? '' ) );
+		if ( '' === $title && '' === $text ) {
+			continue;
+		}
 		$body .= '<li class="nvx-endolaser-zone">';
-		$body .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ) . '</h3>';
-		$body .= '<p class="nvx-endolift-body">' . esc_html( $item['body'] ) . '</p>';
+		if ( '' !== $title ) {
+			$body .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $title ) . '</h3>';
+		}
+		if ( '' !== $text ) {
+			$body .= '<p class="nvx-endolift-body">' . esc_html( $text ) . '</p>';
+		}
 		$body .= '</li>';
 	}
 	$body .= '</ul></div></section>';
@@ -472,16 +502,22 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
 	$body .= '<div class="nvx-endolift-section__inner">';
 	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="nvx-endolift-heading">' . esc_html( $c['compare']['title'] ) . '</h2>';
-	$body .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html( $c['compare']['body'] ) . '</p>';
-	$body .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( $c['compare']['link'] ) . '">' . esc_html( $c['compare']['label'] ) . '</a>';
+	$body .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="nvx-endolift-heading">' . esc_html( (string) ( $c['compare']['title'] ?? '' ) ) . '</h2>';
+	$compare_body = trim( (string) ( $c['compare']['body'] ?? '' ) );
+	if ( '' !== $compare_body ) {
+		$body .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html( $compare_body ) . '</p>';
+	}
+	$body .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( (string) ( $c['compare']['link'] ?? '' ) ) . '">' . esc_html( (string) ( $c['compare']['label'] ?? '' ) ) . '</a>';
 	if ( ! empty( $c['combo'] ) ) {
 		$body .= ' · <a class="nvx-brand-inline-link" href="' . esc_url( $c['combo'] ) . '">' . esc_html__( 'Protocolos combinados NUVANX', 'nuvanx-medical' ) . '</a>';
 	}
 	$body .= '</p>';
-	if ( ! empty( $c['related'] ) ) {
+	if ( ! empty( $c['related'] ) && is_array( $c['related'] ) ) {
 		foreach ( $c['related'] as $rel ) {
-			$body .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( $rel['url'] ) . '">' . esc_html( $rel['label'] ) . '</a></p>';
+			if ( ! is_array( $rel ) || empty( $rel['url'] ) || empty( $rel['label'] ) ) {
+				continue;
+			}
+			$body .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( (string) $rel['url'] ) . '">' . esc_html( (string) $rel['label'] ) . '</a></p>';
 		}
 	}
 	$body .= '</div></section>';
@@ -492,16 +528,27 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Proceso médico', 'nuvanx-medical' ) . '</p>';
 	$body .= '<h2 id="' . esc_attr( $id ) . '-proc" class="nvx-endolift-heading">' . esc_html__( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ) . '</h2>';
 	$body .= '<ol class="nvx-endolaser-zone-list">';
-	foreach ( $c['process'] as $step ) {
+	foreach ( (array) ( $c['process'] ?? array() ) as $step ) {
 		if ( is_array( $step ) ) {
-			$body .= '<li class="nvx-endolaser-zone">';
-			if ( ! empty( $step['title'] ) ) {
-				$body .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $step['title'] ) . '</h3>';
+			$title = trim( (string) ( $step['title'] ?? '' ) );
+			$text  = trim( (string) ( $step['body'] ?? '' ) );
+			if ( '' === $title && '' === $text ) {
+				continue;
 			}
-			$body .= '<p class="nvx-endolift-body">' . esc_html( $step['body'] ?? '' ) . '</p>';
+			$body .= '<li class="nvx-endolaser-zone">';
+			if ( '' !== $title ) {
+				$body .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $title ) . '</h3>';
+			}
+			if ( '' !== $text ) {
+				$body .= '<p class="nvx-endolift-body">' . esc_html( $text ) . '</p>';
+			}
 			$body .= '</li>';
 		} else {
-			$body .= '<li class="nvx-endolaser-zone"><p class="nvx-endolift-body">' . esc_html( (string) $step ) . '</p></li>';
+			$text = trim( (string) $step );
+			if ( '' === $text ) {
+				continue;
+			}
+			$body .= '<li class="nvx-endolaser-zone"><p class="nvx-endolift-body">' . esc_html( $text ) . '</p></li>';
 		}
 	}
 	$body .= '</ol></div></section>';
@@ -512,10 +559,18 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'FAQ', 'nuvanx-medical' ) . '</p>';
 	$body .= '<h2 id="' . esc_attr( $id ) . '-faq" class="nvx-endolift-heading">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
 	$body .= '<div class="nvx-faq nvx-brand-faq-accordion">';
-	foreach ( $c['faqs'] as $faq ) {
+	foreach ( (array) ( $c['faqs'] ?? array() ) as $faq ) {
+		if ( ! is_array( $faq ) ) {
+			continue;
+		}
+		$q = trim( (string) ( $faq['q'] ?? '' ) );
+		$a = trim( (string) ( $faq['a'] ?? '' ) );
+		if ( '' === $q && '' === $a ) {
+			continue;
+		}
 		$body .= '<details class="nvx-brand-faq-item">';
-		$body .= '<summary>' . esc_html( $faq['q'] ) . '</summary>';
-		$body .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
+		$body .= '<summary>' . esc_html( $q ) . '</summary>';
+		$body .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $a ) . '</p></div>';
 		$body .= '</details>';
 	}
 	$body .= '</div></div></section>';

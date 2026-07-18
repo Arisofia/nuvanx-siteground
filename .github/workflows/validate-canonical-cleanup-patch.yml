@@ -43,11 +43,16 @@ jobs:
           )
           for old, new in repairs:
               if data.count(old) != 1:
-                  raise SystemExit(f'Expected one staged-boundary marker, found {data.count(old)}: {old!r}')
-              data = data.replace(old, new, 1)
-
-          Path('/tmp/canonical-cleanup.patch').write_bytes(data)
-          PY
+      - name: Build and validate patch
+        run: |
+          set -euo pipefail
+          patches=$(find .cleanup-payload -maxdepth 1 -type f -name '*.patch' -print | sort)
+          if [ -z "$patches" ]; then
+            echo "No patch files found in .cleanup-payload" >&2
+            exit 1
+          fi
+          printf '%s\n' "$patches"
+          cat $patches > /tmp/canonical-cleanup.patch
           wc -c /tmp/canonical-cleanup.patch
           git apply --check --verbose /tmp/canonical-cleanup.patch
 

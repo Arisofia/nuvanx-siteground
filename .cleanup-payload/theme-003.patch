@@ -1,0 +1,133 @@
+dding-inline: var(--nvx-space-3);
++  border: var(--nvx-border-hairline) solid var(--nvx-ink);
++  border-radius: var(--nvx-radius-button);
+   background: var(--nvx-ink);
+   color: var(--nvx-light);
+   font-family: var(--nvx-sans);
+@@ -426,57 +389,31 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
+   letter-spacing: var(--nvx-track-button);
+   text-transform: uppercase;
+   cursor: pointer;
+-  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+   box-shadow: var(--nvx-shadow-button);
++  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+ }
+ 
+-.nvx-hubspot-form-section .hs-button:hover,
+-.nvx-hubspot-form-section input.hs-button:hover,
+-.nvx-hs-lead-form input[type="submit"]:hover {
++.nvx-hubspot-form-section .hs-button:hover {
+   transform: translateY(-1px);
+-  box-shadow: var(--nvx-shadow-button-hover);
+   background: var(--nvx-charcoal);
++  box-shadow: var(--nvx-shadow-button-hover);
+ }
+ 
+-.nvx-hubspot-form-section .nvx-text-link,
+-.nvx-hs-native-box .nvx-text-link {
++.nvx-hubspot-form-section .nvx-text-link {
+   color: var(--nvx-ink);
+   text-decoration: underline;
+-  text-decoration-thickness: 1px;
++  text-decoration-thickness: var(--nvx-border-hairline);
+   text-underline-offset: 0.18em;
+ }
+ 
+-.nvx-hubspot-form-section .nvx-hs-native-box > .nvx-copy,
+-.nvx-hs-native-box > .nvx-copy {
+-  margin: 18px 0 0;
+-  font-size: 0.875rem;
+-  line-height: 1.55;
+-  color: var(--nvx-text-muted);
+-  text-align: center;
+-}
+-
+-.nvx-hubspot-form-section .nvx-form-note,
+-.nvx-form-stage .nvx-form-note {
+-  max-width: 44ch;
+-  margin: 22px auto 0;
+-  font-size: var(--nvx-type-caption);
+-  font-weight: 300;
+-  line-height: 1.55;
+-  color: var(--nvx-text-muted);
+-  text-align: center;
+-}
+-
+-/* HubSpot embed frame: keep card width, soft frame */
+-.nvx-hubspot-form-section .hs-form-frame,
+-.nvx-hubspot-native-form-v2 .hs-form-frame {
++.nvx-hubspot-form-section .hs-form-frame {
+   width: 100%;
+   min-height: 12rem;
+ }
+ 
+-.nvx-hubspot-form-section .legal-consent-container,
+-.nvx-hubspot-form-section .hs-richtext {
++.nvx-hubspot-form-section :is(.legal-consent-container, .hs-richtext) {
+   font-family: var(--nvx-sans);
+-  font-size: 0.875rem;
++  font-size: var(--nvx-type-small);
+   line-height: 1.55;
+   color: var(--nvx-text-muted);
+ }
+@@ -506,10 +443,6 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
+     width: 100%;
+   }
+ 
+-  .nvx-hs-native-box {
+-    padding: 24px 20px;
+-    border-radius: 24px;
+-  }
+ 
+   .nvx-values {
+     gap: var(--nvx-space-6);
+@@ -545,8 +478,7 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
+   .nvx-button,
+   .nvx-btn,
+   .nvx-brand-btn,
+-  .nvx-hubspot-form-section .hs-button,
+-  .nvx-hs-lead-form input[type="submit"] {
++  .nvx-hubspot-form-section .hs-button {
+     transition: none;
+   }
+ 
+@@ -558,6 +490,57 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
+   }
+ }
+ 
++/* Medical review provenance */
++.nvx-medical-review {
++  width: var(--nvx-shell);
++  max-width: 100%;
++  margin-inline: auto;
++  margin-block: var(--nvx-gap-wide);
++  padding: var(--nvx-pad-card);
++  border: 1px solid var(--nvx-border-soft);
++  border-radius: var(--nvx-radius-card);
++  background: var(--nvx-surface-soft);
++  color: var(--nvx-text-body);
++}
++
++.nvx-medical-review__kicker {
++  margin: 0 0 var(--nvx-space-2);
++  color: var(--nvx-text-muted);
++  font-family: var(--nvx-sans);
++  font-size: var(--nvx-type-kicker);
++  font-weight: 700;
++  letter-spacing: var(--nvx-track-kicker);
++  line-height: 1.4;
++  text-transform: uppercase;
++}
++
++.nvx-medical-review__identity,
++.nvx-medical-review__date {
++  max-width: var(--nvx-measure);
++  margin: 0;
++  font-family: var(--nvx-sans);
++  font-size: var(--nvx-type-body);
++  line-height: var(--nvx-lh-body);
++}
++
++.nvx-medical-review__date {
++  margin-top: var(--nvx-space-2);
++  color: var(--nvx-text-muted);

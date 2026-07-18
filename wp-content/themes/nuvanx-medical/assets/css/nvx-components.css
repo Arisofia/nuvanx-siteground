@@ -35,6 +35,25 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-media--body{width:100%;height:auto;max-height:var(--nvx-media-max-h-featured);object-fit:cover;border-radius:var(--nvx-radius-image)}
 .nvx-brand-actions{display:flex;flex-wrap:wrap;gap:var(--nvx-space-2);margin-top:var(--nvx-space-4)}
 .nvx-brand-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--nvx-gap-base);align-items:stretch;margin-block:var(--nvx-space-4) var(--nvx-space-8)}
+/*
+ * CMS still emits --2 / --3. Without these rules, bare children auto-place into
+ * a single 1/12 track and look like a broken two-column layout (Goya ubicación/FAQ).
+ * Editorial pairs stack full-width; team cards keep multi-column spans.
+ */
+.nvx-brand-grid--2 > *:not(.nvx-brand-card):not(.nvx-card),
+.nvx-brand-grid--3 > *:not(.nvx-brand-card):not(.nvx-card){
+  grid-column:1 / -1;
+  min-width:0;
+}
+.nvx-brand-grid--2 > .nvx-brand-card,
+.nvx-brand-grid--2 > .nvx-card{
+  grid-column:span 6;
+}
+.nvx-brand-grid--3 > .nvx-brand-card,
+.nvx-brand-grid--3 > .nvx-card,
+.nvx-brand-grid--3 > .nvx-brand-card--team{
+  grid-column:span 4;
+}
 /* Cards — chrome + parts centralized here (not split with site-layout) */
 .nvx-brand-card,
 .nvx-card{
@@ -507,7 +526,12 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 }
 
 @media (max-width: 980px) {
-  .nvx-brand-card {
+  .nvx-brand-card,
+  .nvx-brand-grid--2 > .nvx-brand-card,
+  .nvx-brand-grid--2 > .nvx-card,
+  .nvx-brand-grid--3 > .nvx-brand-card,
+  .nvx-brand-grid--3 > .nvx-card,
+  .nvx-brand-grid--3 > .nvx-brand-card--team {
     grid-column: span 6;
   }
 
@@ -517,6 +541,14 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 }
 
 @media (max-width: 680px) {
+  .nvx-brand-card,
+  .nvx-brand-grid--2 > .nvx-brand-card,
+  .nvx-brand-grid--2 > .nvx-card,
+  .nvx-brand-grid--3 > .nvx-brand-card,
+  .nvx-brand-grid--3 > .nvx-card,
+  .nvx-brand-grid--3 > .nvx-brand-card--team {
+    grid-column: 1 / -1;
+  }
   .nvx-brand-card {
     grid-column: 1 / -1;
   }

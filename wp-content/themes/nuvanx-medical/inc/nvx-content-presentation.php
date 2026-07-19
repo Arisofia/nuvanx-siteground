@@ -53,7 +53,7 @@ function nvx_cta_primary_markup( string $class = 'nvx-brand-btn nvx-brand-btn--p
 		'<a class="%1$s" href="%2$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%3$s</a>',
 		esc_attr( $class ),
 		esc_url( nvx_cta_valoracion_url() ),
-		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
+			esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
 	);
 }
 
@@ -76,7 +76,7 @@ function nvx_cta_pair_markup( string $extra_class = '' ): string {
 	$class = trim( 'nvx-cta-cluster ' . $extra_class );
 	return '<div class="' . esc_attr( $class ) . '">
 		<button class="nvx-button nvx-button--primary nvx-open-valoracion-modal" data-nvx-valoracion-modal="1" aria-haspopup="dialog" data-gtag="click-reserve">
-			<span>Reservar Consulta</span>
+			<span>Solicitar valoración médica</span>
 		</button>
 		<a href="' . esc_url( nvx_cta_whatsapp_url() ) . '" class="nvx-button nvx-button--secondary" target="_blank" rel="noopener noreferrer" data-gtag="click-whatsapp">
 			<svg class="icon-whatsapp" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
@@ -101,15 +101,15 @@ function nvx_site_closing_cta_markup(): string {
 	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '" style="text-align: center;">';
 	$html .= '<div class="nvx-cta-banner__inner">';
 	$html .= '<div>';
-	$html .= '<p class="nvx-cta-banner__kicker" style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--nvx-color-primary, #9a8a78); margin-bottom: 1rem; font-weight: 600;">La próxima generación en contorno corporal</p>';
-	$html .= '<h2 class="nvx-cta-banner__title" style="font-size: 2.5rem; line-height: 1.2; margin-bottom: 1.5rem; color: #ffffff;">Elimina la grasa y tensa la piel.<br>¡Definitivamente!</h2>';
-	$html .= '<p class="nvx-cta-banner__sub" style="font-size: 1.125rem; color: #cccccc; margin-bottom: 2rem;">Un solo procedimiento &bull; Mínimamente invasivo &bull; Mínima recuperación</p>';
+	$html .= '<p class="nvx-cta-banner__kicker" style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--nvx-color-primary, #9a8a78); margin-bottom: 1rem; font-weight: 600;">Medicina estética con criterio clínico</p>';
+	$html .= '<h2 class="nvx-cta-banner__title" style="font-size: 2.5rem; line-height: 1.2; margin-bottom: 1.5rem; color: #ffffff;">Da el siguiente paso con una valoración médica personalizada.</h2>';
+	$html .= '<p class="nvx-cta-banner__sub" style="font-size: 1.125rem; color: #cccccc; margin-bottom: 2rem;">Plan individualizado &bull; Precisión clínica &bull; Recuperación según tu caso</p>';
 	$html .= '</div>';
 	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions" style="justify-content: center;">';
 	$html .= sprintf(
 		'<a class="nvx-btn nvx-btn--light nvx-open-valoracion-modal" id="nvx-footer-cta" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog" style="text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">%2$s</a>',
 		esc_url( $valoracion ),
-		esc_html__( 'Iniciar mi valoración virtual', 'nuvanx-medical' )
+		esc_html__( 'Iniciar mi valoración médica', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
 		'<a class="nvx-btn nvx-btn--secondary-on-dark" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
@@ -199,7 +199,7 @@ function nvx_home_action_banner_markup(): string {
 	$html .= sprintf(
 		'<a class="nvx-button nvx-button--light nvx-home-action-banner__cta nvx-open-valoracion-modal" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',
 		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
+			esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
 		'<a class="nvx-button nvx-button--secondary-on-dark nvx-home-action-banner__cta" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
@@ -653,7 +653,7 @@ function nvx_home_team_strip_markup(): string {
 	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Experiencia clínica hospitalaria aplicada a la estética', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En NUVANX, la excelencia no es solo una promesa; es el resultado de un equipo médico con trayectoria directa en el entorno hospitalario.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html( $dr_jose ) . '<br><br>' . esc_html( $dra_ivon ) . '<br><br>' . esc_html( $dr_fabio ) . '</p>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Abordamos el cuidado de tu piel con total seguridad, garantizando resultados naturales y elegantes respaldados por la ciencia médica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Abordamos el cuidado de la piel con exploración clínica, expectativas realistas y seguimiento médico cuando está indicado.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-home-team-strip__cta"><a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $equipo ) . '">' . esc_html__( 'Conocer al equipo médico', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></section>';
 	return $html;
@@ -672,7 +672,7 @@ function nvx_home_wellaging_strip_markup(): string {
 		'nuvanx-medical'
 	) . '</p>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-		'Diseñamos cada tratamiento de láser, inductores de colágeno y medicina regenerativa bajo un estricto criterio médico. El objetivo es doble: lograr resultados naturales de forma inmediata y asegurar un tejido mucho más saludable y fuerte a largo plazo.',
+			'Diseñamos cada tratamiento de láser, inductores de colágeno y medicina regenerativa con criterio médico. La indicación, los límites y el seguimiento se explican de forma individual antes de decidir.',
 		'nuvanx-medical'
 	) . '</p>';
 	$html .= '</div></section>';
@@ -791,16 +791,16 @@ function nvx_content_enhance_director_blocks( string $content ): string {
 }
 
 /**
- * FAQ: EXION vs Morpheus8 — clinical comparison (long-tail GEO), not brand superiority ads.
+ * Remove legacy branded-comparison FAQs until their evidence and legal review
+ * are completed. Product pages should answer patient questions, not attack
+ * alternatives by name.
  */
 function nvx_content_rewrite_morpheus_faq( string $content ): string {
-	$answer  = '<p>' . esc_html__( 'Sí, puede serlo según el diagnóstico. Ambos actúan con radiofrecuencia fraccionada y microagujas; EXION® Fractional RF añade control de impedancia y feedback tisular que permite dosificar la energía de forma más predecible en dermis profunda.', 'nuvanx-medical' ) . '</p>';
-	$answer .= '<p>' . esc_html__( 'No hay un ranking comercial universal: la elección depende del objetivo (textura, flacidez, cicatrices), la calidad de piel, el fototipo y la recuperación aceptable. En NUVANX la indicación se define en valoración médica, no por marca.', 'nuvanx-medical' ) . '</p>';
-	$answer .= '<p><a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/exion-fractional/' ) ) . '">' . esc_html__( 'Ver EXION® Fractional RF', 'nuvanx-medical' ) . '</a></p>';
-
-	$updated = preg_replace(
-		'/(<summary><span>¿EXION® Fractional RF es una alternativa a Morpheus8\?<\/span><\/summary>\s*<div class="nvx-brand-faq-content">)([\s\S]*?)(<\/div>\s*<\/details>)/u',
-		'$1' . $answer . '$3',
+	$updated = preg_replace_callback(
+		'/<details\b[^>]*>[\s\S]*?<\/details>/iu',
+		static function ( array $matches ): string {
+			return preg_match( '/\bMorpheus8\b/iu', $matches[0] ) ? '' : $matches[0];
+		},
 		$content
 	);
 
@@ -833,7 +833,7 @@ function nvx_exion_investment_markup(): string {
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Inversión', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-exion-investment-title" class="nvx-brand-title">' . esc_html__( 'Precio de EXION® BTL en NUVANX', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-		'El PVP de EXION® no se publica como tarifa fija online porque depende del aplicador (Face, Body o Fractional RF), de la zona, del número de sesiones y de si se combina con otros protocolos. El presupuesto se documenta por escrito tras la valoración médica gratuita.',
+			'El PVP de EXION® no se publica como tarifa fija online porque depende del aplicador (Face, Body o Fractional RF), de la zona, del número de sesiones y de si se combina con otros protocolos. El presupuesto se documenta por escrito tras la valoración médica.',
 		'nuvanx-medical'
 	) . '</p>';
 	$html .= '<ul class="nvx-brand-list nvx-exion-investment__factors">';
@@ -891,7 +891,7 @@ add_filter( 'the_content', 'nvx_content_ensure_exion_investment', 126 );
  * Unify conversion CTAs globally in post content.
  */
 function nvx_content_unify_ctas( string $content ): string {
-	$primary_label  = 'Reservar valoración gratuita';
+	$primary_label  = 'Solicitar valoración médica';
 	$whatsapp_label = 'Contactar por WhatsApp';
 	$valoracion_url = nvx_cta_valoracion_url();
 	$whatsapp_url   = nvx_cta_whatsapp_url();
@@ -933,7 +933,7 @@ function nvx_content_unify_ctas( string $content ): string {
 
 	// Primary conversion anchors → valoración URL (preserve classes).
 	$content = preg_replace_callback(
-		'/<a\b([^>]*)>(\s*Reservar valoración gratuita\s*)<\/a>/iu',
+		'/<a\b([^>]*)>(\s*Solicitar valoración médica\s*)<\/a>/iu',
 		static function ( array $m ) use ( $valoracion_url ): string {
 			$attrs = $m[1];
 			$attrs = preg_replace( '/\s*href=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
@@ -1225,7 +1225,15 @@ function nvx_trust_badges_markup(): string {
  * Global Before/After Teaser markup (sitewide).
  */
 function nvx_before_after_teaser_markup(): string {
-	$url = home_url( '/resultados-antes-y-despues/' );
+	$cases_page_id = 2645;
+	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $cases_page_id, nvx_noindex_page_ids(), true ) ) {
+		return '';
+	}
+
+	$url = get_permalink( $cases_page_id );
+	if ( ! is_string( $url ) || '' === $url ) {
+		return '';
+	}
 	$html  = '<section class="nvx-ba-teaser" aria-label="' . esc_attr__( 'Resultados clínicos', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-ba-teaser__inner">';
 	$html .= '<div class="nvx-ba-teaser__copy">';

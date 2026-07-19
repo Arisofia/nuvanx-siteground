@@ -140,7 +140,7 @@ function nvx_nosotros_platforms_markup(): string {
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Plataformas clínicas', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-tech-title" class="nvx-endolift-heading">' . esc_html__( 'Tecnología con evidencia, nunca por tendencia', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Incorporamos dispositivos con marcado CE y respaldo analítico. Todas se activan solo cuando el tejido del paciente garantiza una respuesta clínica real y predecible.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Incorporamos dispositivos con marcado CE y documentación técnica disponible. Se indican solo cuando la valoración clínica identifica un objetivo, una alternativa y un seguimiento apropiados.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-endolaser-zone-list nvx-nosotros-platform-list">';
 
 	foreach ( nvx_nosotros_platforms_data() as $item ) {

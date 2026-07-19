@@ -45,7 +45,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 				<?php esc_html_e( 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya', 'nuvanx-medical' ); ?>
 			</h1>
 			<p class="nvx-lead">
-				<?php esc_html_e( 'Consulta direcciones, teléfonos, WhatsApp, horarios y cómo llegar. Para estudiar tu caso, accede a la valoración médica gratuita.', 'nuvanx-medical' ); ?>
+					<?php esc_html_e( 'Consulta direcciones, teléfonos, WhatsApp, horarios y cómo llegar. Para estudiar tu caso, solicita una valoración médica.', 'nuvanx-medical' ); ?>
 			</p>
 			<div class="nvx-cta-group">
 				<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">
@@ -116,7 +116,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-location"/></svg>
 							<span itemprop="streetAddress"><?php esc_html_e( 'Calle de Fernán González, 26', 'nuvanx-medical' ); ?></span>,
 							<span itemprop="postalCode">28009</span> <span itemprop="addressLocality">Madrid</span>
-							<br><small><?php esc_html_e( 'Entre Goya y Diego de León, Barrio de Salamanca', 'nuvanx-medical' ); ?></small>
+								<br><small><?php esc_html_e( 'Barrio de Salamanca, Madrid', 'nuvanx-medical' ); ?></small>
 						</li>
 						<li>
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-phone"/></svg>

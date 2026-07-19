@@ -48,8 +48,8 @@ function nvx_btl_is_governed_request(): bool {
 /**
  * Shared claim library: source text for page registry + governed public rewrite.
  *
- * Use nvx_btl_claim_source( $id ) when building registry body copy so editorial
- * edits stay aligned with the compliance layer.
+ * Source strings are retained only to neutralize legacy cached HTML. New public
+ * registry output must use the governed version of each claim.
  *
  * @return array<string, array{source:string, governed:string}>
  */
@@ -67,20 +67,20 @@ function nvx_btl_claim_library(): array {
 		),
 		'exion_face_ha_224'      => array(
 			'source'   => 'La documentación del fabricante comunica, en modelos evaluados, un aumento de hasta ~224% en marcadores de ácido hialurónico endógeno a ~4 semanas. Ese dato es de laboratorio/protocolo evaluado y no equivale a un resultado individual garantizado.',
-			'governed' => 'La documentación del fabricante comunica un aumento de hasta ~224% en marcadores de ácido hialurónico endógeno en modelos evaluados a ~4 semanas. El dato debe interpretarse según diseño, población y seguimiento del estudio, y no equivale a una mejora clínica garantizada para cada paciente.',
+			'governed' => 'La documentación del fabricante describe cambios en marcadores de matriz cutánea en modelos evaluados. La evidencia aplicable, la indicación y la respuesta clínica deben valorarse de forma individual; no se comunica como porcentaje ni como resultado garantizado.',
 		),
 		'exion_face_compare'     => array(
 			'source'   => 'HIFU y RF volumétrica de alto pico buscan contracción por desnaturalización intensa (picos frecuentemente citados ~60–70 °C). EXION Face prioriza regeneración a microtemperaturas más fisiológicas (~40–42 °C en protocolos evaluados), con perfil de tolerancia y downtime habitualmente más favorables. Temperatura, dolor, atrofia y “porcentajes de HA” no son transferibles 1:1 entre pacientes ni entre estudios. La comparativa clínica ampliada está en el Journal.',
-			'governed' => 'HIFU, radiofrecuencia volumétrica y EXION Face utilizan mecanismos, profundidades y perfiles de recuperación distintos. EXION Face puede ofrecer mejor tolerancia o menor recuperación en determinados protocolos; esa comparación no es universal y debe sostenerse en evidencia aplicable a cada indicación.',
+			'governed' => 'Las tecnologías energéticas se seleccionan por mecanismo, zona, fototipo, antecedentes, objetivo y período de recuperación aceptable. La indicación no se establece por una comparación comercial entre marcas.',
 		),
 		// EXION Body — product depth.
 		'exion_body_btl_22'      => array(
 			'source'   => 'BTL comunica, en series evaluadas, órdenes de magnitud del tipo hasta −22% de adiposidad y mejoras relevantes de laxitud. Son datos de condiciones de estudio; en NUVANX se individualizan por espesor, zona y calidad de piel.',
-			'governed' => 'BTL comunica hasta −22% de reducción de adiposidad en series evaluadas con EXION Body. El porcentaje pertenece a condiciones de estudio concretas y no debe trasladarse como resultado individual garantizado.',
+			'governed' => 'La documentación técnica describe cambios en adiposidad en series evaluadas. No se publica un porcentaje porque depende de población, zona, protocolo y evaluación clínica, y no constituye un resultado individual garantizado.',
 		),
 		'exion_body_compare'     => array(
 			'source'   => 'Criolipólisis reduce grasa localizada pero no tensa. Microagujas corporales tensan con más trauma y downtime. EXION Body busca grasa + calidad cutánea con mejor tolerancia en muchos protocolos. Frente a liposucción quirúrgica: menos invasivo, menos downtime, pero tampoco sustituye una cirugía mayor cuando el exceso es muy importante. Detalle y matices en el Journal y en la página de endoláser.',
-			'governed' => 'Criolipólisis, radiofrecuencia con microagujas y EXION Body tienen mecanismos y perfiles de recuperación diferentes. EXION Body puede ofrecer mejor tolerancia o menor recuperación en determinados protocolos, sin convertir esa diferencia en superioridad universal ni sustituir una cirugía mayor cuando el exceso lo exige.',
+			'governed' => 'Los procedimientos para contorno corporal tienen mecanismos, límites y períodos de recuperación distintos. La elección se realiza tras explorar grasa localizada, calidad cutánea, exceso de piel y expectativas; una tecnología no sustituye una cirugía cuando ésta está indicada.',
 		),
 		// Neutral surface-cooling description (no unverified “lower burn risk” claim).
 		'exion_body_cooling'     => array(
@@ -94,15 +94,15 @@ function nvx_btl_claim_library(): array {
 		),
 		'legacy_face_ha'         => array(
 			'source'   => 'Documentación del fabricante describe, en modelos evaluados, incrementos de marcadores de ácido hialurónico endógeno del orden del 224% a ~4 semanas; en consulta se presentan como potencial de estimulación, no como promesa personalizada.',
-			'governed' => 'La documentación del fabricante comunica un aumento de hasta 224% en marcadores de ácido hialurónico endógeno en modelos evaluados. El dato debe interpretarse según el diseño, la población y el seguimiento del estudio, y no equivale a una mejora clínica garantizada para cada paciente.',
+			'governed' => 'La documentación del fabricante describe cambios en marcadores de matriz cutánea en modelos evaluados. La evidencia aplicable y la respuesta clínica deben valorarse de forma individual; no se comunica como porcentaje ni como resultado garantizado.',
 		),
 		'legacy_face_compare'    => array(
 			'source'   => 'HIFU y RF volumétrica de alto pico buscan contracción por desnaturalización intensa. EXION Face prioriza regeneración a temperaturas más fisiológicas, con mejor tolerancia y menor downtime. La comparativa clínica ampliada está en el blog médico.',
-			'governed' => 'HIFU, radiofrecuencia volumétrica y EXION Face utilizan mecanismos, profundidades y perfiles de recuperación distintos. EXION Face puede ofrecer mejor tolerancia o menor recuperación en determinados protocolos, pero esa comparación no es universal y debe sostenerse en evidencia aplicable a cada indicación.',
+			'governed' => 'Las tecnologías energéticas se seleccionan por mecanismo, zona, fototipo, antecedentes, objetivo y período de recuperación aceptable. La indicación no se establece por una comparación comercial entre marcas.',
 		),
 		'legacy_body_22'         => array(
 			'source'   => 'Documentación BTL comunica órdenes de magnitud del tipo −22% adiposidad y mejoras relevantes de laxitud en series evaluadas; en NUVANX se individualiza por espesor graso, zona y calidad de piel.',
-			'governed' => 'BTL comunica hasta −22% de reducción de adiposidad en series evaluadas con EXION Body. El porcentaje pertenece a condiciones de estudio concretas y no debe trasladarse como resultado individual garantizado.',
+			'governed' => 'La documentación técnica describe cambios en adiposidad en series evaluadas. No se publica un porcentaje porque depende de población, zona, protocolo y evaluación clínica, y no constituye un resultado individual garantizado.',
 		),
 		'legacy_body_compare'    => array(
 			'source'   => 'La criolipólisis reduce grasa pero no tensa. Las microagujas corporales tensan con más trauma y downtime. EXION Body busca ambos efectos con mejor tolerancia. Detalle comparativo en el blog.',
@@ -175,14 +175,21 @@ function nvx_btl_claim_source( string $id ): string {
 	return nvx_btl_claim_translate( $raw );
 }
 
+/** Return approved public wording for a governed claim. */
+function nvx_btl_claim_governed( string $id ): string {
+	$library = nvx_btl_claim_library();
+	$raw     = isset( $library[ $id ]['governed'] ) ? (string) $library[ $id ]['governed'] : '';
+	return nvx_btl_claim_translate( $raw );
+}
+
 /**
  * Safe claim lookup for registry builders (empty when id missing or helper unavailable).
  */
 function nvx_btl_claim( string $id ): string {
-	if ( ! function_exists( 'nvx_btl_claim_source' ) ) {
+	if ( ! function_exists( 'nvx_btl_claim_governed' ) ) {
 		return '';
 	}
-	return nvx_btl_claim_source( $id );
+	return nvx_btl_claim_governed( $id );
 }
 
 /**
@@ -238,7 +245,15 @@ function nvx_btl_govern_rendered_content( string $content ): string {
 
 	$governed = strtr( $content, nvx_btl_claim_replacement_map() );
 
-	$notice = '<aside class="nvx-clinical-note nvx-btl-evidence-note" role="note"><h2 class="nvx-clinical-note__title">Datos técnicos y variabilidad clínica</h2><p class="nvx-clinical-note__text">Los porcentajes, temperaturas, sesiones, dolor y recuperación citados proceden de documentación técnica o protocolos evaluados. No representan una garantía individual. La indicación, los parámetros y la respuesta dependen del equipo, el aplicador, la zona y el paciente.</p></aside>';
+	$governed = preg_replace_callback(
+		'/<details\b[^>]*>[\s\S]*?<\/details>/iu',
+		static function ( array $matches ): string {
+			return preg_match( '/\b(?:Morpheus8|Potenza|CoolSculpting|HIFU|Thermage|Ultherapy|Hydrafacial|Dermapen)\b/iu', $matches[0] ) ? '' : $matches[0];
+		},
+		$governed
+	) ?? $governed;
+
+	$notice = '<aside class="nvx-clinical-note nvx-btl-evidence-note" role="note"><h2 class="nvx-clinical-note__title">Datos técnicos y variabilidad clínica</h2><p class="nvx-clinical-note__text">Los datos técnicos requieren contexto clínico y no equivalen a un resultado individual. La indicación, los parámetros y la respuesta dependen del equipo, el aplicador, la zona y el paciente.</p></aside>';
 
 	if ( false === strpos( $governed, 'nvx-btl-evidence-note' ) ) {
 		$governed .= $notice;

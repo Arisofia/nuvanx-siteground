@@ -553,7 +553,8 @@ foreach ( $posts as $p ) {
       'post_name' => $p['slug'],
       'post_content' => $html,
       'post_excerpt' => $p['excerpt'],
-      'post_status' => 'publish',
+      // Comparative copy remains non-public until it is re-authored and medically/evidentially reviewed.
+      'post_status' => 'draft',
       'post_type' => 'post',
       'post_date' => '2026-07-15 11:00:00',
       'post_date_gmt' => get_gmt_from_date( '2026-07-15 11:00:00' ),

@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Renders the benefits section using the brand\'s minimally invasive copy and SVG icons.
+ * Renders the benefits section using evidence-aware, patient-first copy and original SVG icons.
  */
 function nvx_home_benefits_markup(): string {
 	return '
@@ -23,33 +23,33 @@ function nvx_home_benefits_markup(): string {
 	<div class="nvx-container" style="max-width: 1200px; margin: 0 auto; padding: 4rem 1.5rem;">
 		<header class="nvx-benefits__header" style="text-align: center; margin-bottom: 3rem;">
 			<p class="nvx-brand-kicker" style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--nvx-color-primary, #9a8a78); margin-bottom: 1rem; font-weight: 600;">Los beneficios</p>
-			<h2 class="nvx-brand-title" id="nvx-benefits-title" style="font-size: 2.5rem; font-weight: 300; margin-bottom: 1.5rem; color: var(--nvx-color-text, #111);">De la tecnología NUVANX®</h2>
-			<p class="nvx-brand-lead" style="font-size: 1.125rem; line-height: 1.6; color: var(--nvx-color-text-muted, #444); max-width: 800px; margin: 0 auto;">Nuestra tecnología mínimamente invasiva es la próxima generación en contorno corporal. Diseñada para optimizar tanto la comodidad como la precisión, permite a nuestros cirujanos extraer la grasa célula por célula. Revela los contornos naturales de tu cuerpo mediante una escultura corporal precisa, atacando delicadamente solo los depósitos de grasa que deseas eliminar para siempre, mientras preserva completamente las áreas circundantes.</p>
+			<h2 class="nvx-brand-title" id="nvx-benefits-title" style="font-size: 2.5rem; font-weight: 300; margin-bottom: 1.5rem; color: var(--nvx-color-text, #111);">De un plan NUVANX personalizado</h2>
+			<p class="nvx-brand-lead" style="font-size: 1.125rem; line-height: 1.6; color: var(--nvx-color-text-muted, #444); max-width: 800px; margin: 0 auto;">Cuando está indicado, un procedimiento mínimamente invasivo puede ayudar a tratar depósitos de grasa localizada y mejorar el contorno. El equipo médico valora anatomía, objetivos, antecedentes y recuperación esperada antes de recomendar una técnica.</p>
 		</header>
 		<div class="nvx-benefits__grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
 				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/resultados-definitivos.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RESULTADOS DEFINITIVOS</span>
+				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">OBJETIVOS REALISTAS</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
 				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/recuperacion-rapida.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">24-48 HORAS DE RECUPERACIÓN</span>
+				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RECUPERACIÓN PLANIFICADA</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
 				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/paciente-despierto.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">DESPIERTO TODO EL TIEMPO</span>
+				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">ACOMPAÑAMIENTO MÉDICO</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
 				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/sin-bisturi.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">SIN BISTURÍ NI PUNTOS</span>
+				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">TÉCNICA SEGÚN INDICACIÓN</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
 				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/solo-una-vez.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">UN SOLO PROCEDIMIENTO</span>
+				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">PLAN PERSONALIZADO</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
 				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/efecto-natural.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RESULTADOS NATURALES</span>
+				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RESULTADO ARMÓNICO</span>
 			</div>
 		</div>
 	</div>
@@ -84,9 +84,9 @@ function nvx_home_content_v2_catalog(): array {
 		),
 		'action'    => array(
 			'kicker'          => 'Tu primera valoración clínica',
-			'title'           => '15–30 minutos para determinar la viabilidad de tu caso.',
-			'body'            => 'Evaluamos tu tejido, resolvemos dudas y entregamos un presupuesto cerrado. Encuéntranos en nuestras clínicas autorizadas de Madrid: Chamberí (CS20144): Un espacio discreto a pocos minutos de la Plaza de Olavide. Salamanca–Goya (CS20073): Ubicación accesible entre las zonas de Diego de León y Goya.',
-			'primary_label'   => 'Reservar valoración gratuita',
+			'title'           => 'Una consulta médica para determinar la indicación de tu caso.',
+			'body'            => 'Evaluamos tu caso, resolvemos dudas y documentamos las alternativas y el presupuesto tras la exploración. Atención en nuestras clínicas autorizadas de Chamberí (CS20144) y Salamanca–Goya (CS20073).',
+			'primary_label'   => 'Solicitar valoración médica',
 			'secondary_label' => 'Contactar por WhatsApp',
 		),
 		'method'    => array(
@@ -113,8 +113,8 @@ function nvx_home_content_v2_catalog(): array {
 				'title' => 'Endolift® facial: papada, mandíbula y cuello',
 				'lead'  => 'Microfibra láser bajo la piel para tensar tejido y, cuando hay indicación, reducir grasa local. No sustituye un lifting quirúrgico en todos los casos.',
 				'facts' => array(
-					'Inversión orientativa' => 'Desde 798,60 € (zona ojeras, IVA incl.). Papada/mandíbula en tabla de precios.',
-					'Recuperación estimada' => 'Inflamación o hematomas leves habitualmente 3 a 7 días según el caso.',
+					'Presupuesto'   => 'Se documenta por escrito tras la valoración médica.',
+					'Recuperación' => 'Se explica según la zona, el protocolo y la respuesta individual.',
 				),
 			),
 			array(
@@ -129,8 +129,8 @@ function nvx_home_content_v2_catalog(): array {
 				'title' => 'Láser CO₂ fraccionado: textura y cicatrices',
 				'lead'  => 'Resurfacing fraccionado para cicatrices de acné, poros y fotodaño, con downtime realista según profundidad.',
 				'facts' => array(
-					'Inversión orientativa' => 'Desde 330 € sesión facial / 450 € corporal (IVA incl.).',
-					'Recuperación'          => 'Habitualmente 4 a 7 días de eritema y descamación según protocolo.',
+					'Presupuesto'   => 'Se documenta por escrito tras la valoración médica.',
+					'Recuperación' => 'Se explica según profundidad, zona y protocolo indicado.',
 				),
 			),
 		),
@@ -430,4 +430,3 @@ function nvx_home_content_v2_transform( string $content ): string {
 	return is_string( $output ) && '' !== trim( $output ) ? $output : $content;
 }
 add_filter( 'the_content', 'nvx_home_content_v2_transform', 130 );
-

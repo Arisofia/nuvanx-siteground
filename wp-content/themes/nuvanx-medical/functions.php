@@ -294,12 +294,17 @@ function nvx_blog_pre_get_posts( WP_Query $query ): void {
 add_action( 'pre_get_posts', 'nvx_blog_pre_get_posts' );
 
 function nvx_theme_blog_index_markup(): string {
+	$excluded_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' )
+		? nvx_quarantined_comparison_post_ids()
+		: array();
+
 	$query = new WP_Query(
 		array(
 			'post_type'           => 'post',
 			'post_status'         => 'publish',
 			'posts_per_page'      => 12,
 			'ignore_sticky_posts' => true,
+			'post__not_in'        => $excluded_post_ids,
 			'paged'               => max( 1, (int) get_query_var( 'paged' ) ),
 		)
 	);

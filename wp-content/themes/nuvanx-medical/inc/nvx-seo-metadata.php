@@ -32,12 +32,12 @@ function nvx_seo_metadata_catalog(): array {
 			'description' => 'Clínicas de medicina estética láser NUVANX en Chamberí y Salamanca–Goya. Direcciones, horarios, registros sanitarios y mapas.',
 		),
 		'chamberi'     => array(
-			'title'       => 'Médico Estético Chamberí Madrid | Clínica Almagro',
-			'description' => 'Tu clínica de medicina estética en Almagro, Chamberí (Madrid). Valórate con un médico estético con nombre, criterio clínico y registro sanitario CS20144.',
+			'title'       => 'Medicina estética en Chamberí | NUVANX Madrid',
+			'description' => 'Clínica de medicina estética láser en Chamberí, Madrid. Equipo médico, registro sanitario CS20144 y valoración individualizada.',
 		),
 		'goya'         => array(
-			'title'       => 'Medicina Estética Barrio Salamanca Madrid | NUVANX',
-			'description' => '¿Buscas una alternativa a las clínicas de Diego de León en Madrid? Descubre NUVANX, medicina estética con rigor en el Barrio de Salamanca (Goya).',
+			'title'       => 'Medicina estética en Salamanca–Goya | NUVANX',
+			'description' => 'Clínica de medicina estética láser en Salamanca–Goya, Madrid. Equipo médico, registro sanitario CS20073 y valoración individualizada.',
 		),
 		'endolift'     => array(
 			'title'       => 'Endolift® Facial Madrid | Precio y Resultados | NUVANX',
@@ -64,24 +64,12 @@ function nvx_seo_metadata_catalog(): array {
 			'description' => 'Equipo médico NUVANX en Madrid: colegiación, experiencia y áreas clínicas de los profesionales responsables de valoración y seguimiento.',
 		),
 		'valoracion'   => array(
-			'title'       => 'Valoración Médica Gratuita Madrid | NUVANX',
-			'description' => 'Valoración médica estética gratuita en Madrid. Evaluación de 15–30 minutos, indicación y presupuesto en Chamberí o Salamanca–Goya.',
+			'title'       => 'Consulta médica estética en Madrid | NUVANX',
+			'description' => 'Solicita una consulta médica estética en Chamberí o Salamanca–Goya. Diagnóstico, indicación y presupuesto individualizado.',
 		),
 		'blog'         => array(
 			'title'       => 'Blog NUVANX | Medicina estética láser Madrid',
 			'description' => 'Artículos de NUVANX sobre Endolift®, EXION® BTL, IPL, well-aging y criterio médico en clínicas de Madrid.',
-		),
-		'inversion'    => array(
-			'title'       => 'Precio Cerrado Liposucción Madrid | Honesto y Sin Ofertas',
-			'description' => 'Descubre el precio cerrado de liposucción en Madrid, cuánto cuesta Endolift, Morpheus8 y los hilos tensores. Clínica estética con precio honesto y sin ofertas.',
-		),
-		'que-exigir'   => array(
-			'title'       => 'Qué Exigir Antes de Operarme | Cirugía Estética Madrid',
-			'description' => 'Guía sobre qué exigir antes de operarme de cirugía estética en Madrid. Solicita una segunda opinión con criterio médico real para tu seguridad.',
-		),
-		'postoperatorio' => array(
-			'title'       => 'Postoperatorio Lipo 360 Madrid Real | Cuánto Duele',
-			'description' => 'Descubre cuánto duele la liposucción 360 en Madrid. Conoce el postoperatorio real, tiempos de recuperación y cuándo vuelves a tu vida normal en NUVANX.',
 		),
 	);
 }
@@ -143,6 +131,11 @@ function nvx_seo_current_path(): string {
  * Resolve the metadata key for the current request.
  */
 function nvx_seo_current_metadata_key(): ?string {
+	// Never lend a legitimate title/description to a not-found route.
+	if ( is_404() ) {
+		return null;
+	}
+
 	if ( is_front_page() ) {
 		return 'home';
 	}
@@ -171,16 +164,10 @@ function nvx_seo_current_metadata_key(): ?string {
 		'/tratamientos/' => 'tratamientos',
 		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
 		'/medicina-estetica-chamberi/' => 'chamberi',
-		'/chamberio/' => 'chamberi',
 		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
-		'/salamanca/' => 'goya',
 		'/equipo-medico/' => 'equipo',
 		'/madrid/valoracion/' => 'valoracion',
-		'/valoracion/' => 'valoracion',
 		'/blog/' => 'blog',
-		'/postoperatorio/' => 'postoperatorio',
-		'/inversion/' => 'inversion',
-		'/que-exigir/' => 'que-exigir',
 	);
 
 	return $map[ $path ] ?? null;
@@ -297,6 +284,12 @@ function nvx_seo_filter_yoast_robots( $robots ) {
 		return 'noindex, nofollow';
 	}
 
+	// Archive pages with a few repeating cards add no unique clinical value yet.
+	// Keep them crawlable through the linked articles, not as competing thin URLs.
+	if ( is_category() || is_tag() ) {
+		return 'noindex, follow';
+	}
+
 	if ( null !== nvx_seo_current_metadata_key() ) {
 		$page_id = (int) get_queried_object_id();
 		if ( ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
@@ -319,6 +312,13 @@ function nvx_seo_filter_core_robots( array $robots ): array {
 		$robots['noindex']  = true;
 		$robots['nofollow'] = true;
 		unset( $robots['index'], $robots['follow'] );
+		return $robots;
+	}
+
+	if ( is_category() || is_tag() ) {
+		$robots['noindex'] = true;
+		$robots['follow']  = true;
+		unset( $robots['index'], $robots['nofollow'] );
 		return $robots;
 	}
 

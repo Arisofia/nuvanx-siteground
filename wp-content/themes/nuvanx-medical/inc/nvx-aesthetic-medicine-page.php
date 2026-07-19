@@ -116,7 +116,7 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
+			esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
 	);
 
 	if ( function_exists( 'nvx_cta_whatsapp_markup' ) ) {
@@ -167,7 +167,7 @@ function nvx_aesthetic_diagnosis_section_markup(): string {
 		array(
 			'icon'  => 'rheology',
 			'title' => __( '3. Densidad y reología cutánea', 'nuvanx-medical' ),
-			'body'  => __( 'Analizamos el espesor dermoepidérmico y el nivel de elastosis. Esto determina la reología y el módulo de elasticidad del producto médico a inyectar, garantizando que sea imperceptible tanto a la vista como al tacto.', 'nuvanx-medical' ),
+			'body'  => __( 'Analizamos el espesor dermoepidérmico y el nivel de elastosis. Estos factores ayudan a seleccionar las propiedades del material, el plano y la técnica, con límites y riesgos explicados antes de tratar.', 'nuvanx-medical' ),
 		),
 	);
 

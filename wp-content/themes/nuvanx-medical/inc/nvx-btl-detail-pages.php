@@ -35,31 +35,24 @@ function nvx_btl_detail_is_singular(): bool {
  * @return array<string, array<string, mixed>>
  */
 function nvx_btl_detail_registry(): array {
-	$blog_face   = home_url( '/exion-face-vs-hifu-ultherapy-thermage-regeneracion-endogena/' );
-	$blog_body   = home_url( '/exion-body-vs-coolsculpting-morpheus8-lipolisis-retraccion/' );
-	$blog_frac   = home_url( '/exion-fractional-vs-morpheus8-potenza-ia-vs-trauma/' );
-	$blog_emf    = home_url( '/emfusion-vs-hydrafacial-dermapen-microcanales-acusticos/' );
-	$blog_combo  = home_url( '/protocolos-combinados-ecosistema-nuvanx-exion-endolift-emfusion/' );
-	$hub         = home_url( '/exion-btl/' );
-	$endolaser   = home_url( '/endolaser-corporal-grasa-localizada/' );
-	$endolift    = home_url( '/endolift-facial-papada-mandibula/' );
+	$hub       = home_url( '/exion-btl/' );
+	$endolaser = home_url( '/endolaser-corporal-grasa-localizada/' );
 
 	return array(
 		'exion-face'       => array(
 			'path'         => '/exion-face/',
 			'key'          => 'exion_face',
 			'kicker'       => __( 'EXION® Face · NUVANX Madrid', 'nuvanx-medical' ),
-			'h1'           => __( 'EXION® Face: regeneración endógena de colágeno, ácido hialurónico y elastina', 'nuvanx-medical' ),
-			'lead'         => __( 'Sinergia de radiofrecuencia monopolar y ultrasonido dirigido para reactivar la matriz cutánea cuando el diagnóstico lo indica. Sin inyecciones, sin cirugía y con recuperación habitualmente mínima. Chamberí y Salamanca–Goya.', 'nuvanx-medical' ),
+			'h1'           => __( 'EXION® Face en Madrid: radiofrecuencia y ultrasonido', 'nuvanx-medical' ),
+			'lead'         => __( 'Aplicador de radiofrecuencia y ultrasonido para protocolos de calidad cutánea cuando existe indicación médica. La elección valora zona, tipo de piel, antecedentes y expectativas.', 'nuvanx-medical' ),
 			'meta'         => __( 'Chamberí · Goya · Indicación médica personalizada', 'nuvanx-medical' ),
 			'aria'         => __( 'EXION Face NUVANX', 'nuvanx-medical' ),
 			'marker'       => 'nvx-exion-face',
-			'yoast_title'  => 'EXION Face Madrid | RF + ultrasonido | Regeneración facial | NUVANX',
-			'yoast_desc'   => 'EXION® Face en NUVANX Madrid: radiofrecuencia y ultrasonido a microtemperaturas controladas para calidad de piel e hidratación endógena. Valoración en Chamberí y Goya.',
+			'yoast_title'  => 'EXION® Face en Madrid | RF y ultrasonido | NUVANX',
+			'yoast_desc'   => 'EXION® Face en Madrid: radiofrecuencia y ultrasonido para protocolos de calidad cutánea según valoración médica. Chamberí y Salamanca–Goya.',
 			'focuskw'      => 'EXION Face Madrid',
-			'blog'         => $blog_face,
 			'hub'          => $hub,
-			'combo'        => $blog_combo,
+			'combo'        => '',
 			'schema_name'  => 'EXION® Face en Madrid',
 			'schema_type'  => 'Protocolo médico facial con EXION® Face (RF monopolar + ultrasonido)',
 			'schema_desc'  => 'Tratamiento médico de calidad de piel facial con plataforma EXION® Face: hipertermia controlada y ultrasonido terapéutico. Indicación tras valoración en NUVANX Madrid.',
@@ -86,19 +79,19 @@ function nvx_btl_detail_registry(): array {
 				array( 'title' => __( 'Deshidratación y piel apagada', 'nuvanx-medical' ), 'body' => __( 'Cuando se busca mejorar hidratación y luminosidad vía estimulación de matriz endógena, con buena tolerancia en pieles sensibles según valoración.', 'nuvanx-medical' ) ),
 				array( 'title' => __( 'Pérdida de volumen incipiente (sin ptosis severa)', 'nuvanx-medical' ), 'body' => __( 'No es un relleno inyectable ni un lifting. Puede ayudar a la redensificación cuando el “deshinchado” es principalmente de matriz, no de defecto estructural profundo.', 'nuvanx-medical' ) ),
 				array( 'title' => __( 'Poros y textura irregular', 'nuvanx-medical' ), 'body' => __( 'El remodelado de colágeno y la mejora de compactación pueden refinar apariencia de poro y textura; en cicatrices profundas se valora Fractional RF o CO₂.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Historial de HIFU / RF de alto pico', 'nuvanx-medical' ), 'body' => __( 'Tras plataformas de alto pico térmico se reevalúan volumen, textura y sensibilidad antes de un nuevo protocolo energético.', 'nuvanx-medical' ) ),
+				array( 'title' => __( 'Antecedentes de tratamientos energéticos', 'nuvanx-medical' ), 'body' => __( 'Tras un tratamiento energético previo se reevalúan volumen, textura, sensibilidad y objetivo antes de indicar un nuevo protocolo.', 'nuvanx-medical' ) ),
 				array( 'title' => __( 'Mantenimiento well-aging', 'nuvanx-medical' ), 'body' => __( 'Series de sesiones y mantenimiento según respuesta; combinable con EMFUSION® o inductores cuando el médico lo indique.', 'nuvanx-medical' ) ),
 			),
 			'compare'      => array(
-				'title' => __( 'EXION Face frente a HIFU y RF de alto pico (p. ej. Thermage®)', 'nuvanx-medical' ),
+				'title' => __( 'Cómo se selecciona un protocolo de calidad cutánea', 'nuvanx-medical' ),
 				'body'  => nvx_btl_claim( 'exion_face_compare' ),
-				'link'  => $blog_face,
-				'label' => __( 'Leer: EXION Face vs HIFU y Thermage', 'nuvanx-medical' ),
+				'link'  => '',
+				'label' => '',
 			),
 			'process'      => array(
 				array(
 					'title' => __( 'Valoración y procedimiento', 'nuvanx-medical' ),
-					'body'  => __( 'Fototipo, grasa facial, historial de HIFU/RF y expectativas. Sesión orientativa ~30 min. Anestesia habitualmente no requerida. Sensación: calor tolerable. Recuperación: en muchos protocolos nula o mínima; eritema leve posible 1–2 h.', 'nuvanx-medical' ),
+					'body'  => __( 'Se revisan fototipo, grasa facial, antecedentes de tratamientos, sensibilidad y expectativas. La técnica, el confort y los cuidados se explican según el protocolo indicado.', 'nuvanx-medical' ),
 				),
 				array(
 					'title' => __( 'Sesiones orientativas', 'nuvanx-medical' ),
@@ -115,12 +108,12 @@ function nvx_btl_detail_registry(): array {
 			),
 			'faqs'         => array(
 				array(
-					'q' => __( '¿EXION Face genera realmente +224% de ácido hialurónico?', 'nuvanx-medical' ),
-					'a' => __( 'La documentación del fabricante describe un aumento de hasta ~224% en marcadores de HA endógeno en modelos evaluados a ~4 semanas. Es un dato de estudio/protocolo, no una promesa personalizada: en consulta se explica como potencial de estimulación y se contextualiza con biopsia/método del estudio.', 'nuvanx-medical' ),
+					'q' => __( '¿Qué datos se revisan antes de indicar EXION Face?', 'nuvanx-medical' ),
+					'a' => __( 'Se revisan calidad de piel, anatomía, antecedentes, objetivo, contraindicaciones y período de recuperación aceptable. Los datos técnicos no se presentan como una promesa de resultado individual.', 'nuvanx-medical' ),
 				),
 				array(
-					'q' => __( '¿Por qué HIFU a veces “funciona” al principio y luego decepciona?', 'nuvanx-medical' ),
-					'a' => __( 'Algunos protocolos de alto pico inducen contracción inmediata por desnaturalización de colágeno. A medio plazo, si hay pérdida de volumen o reabsorción de tejido cicatricial, la percepción puede cambiar. No es universal: depende de energía, plano y anatomía. Por eso reevaluamos antes de repetir plataformas agresivas.', 'nuvanx-medical' ),
+					'q' => __( '¿Qué antecedentes deben revisarse?', 'nuvanx-medical' ),
+					'a' => __( 'Tratamientos previos, sensibilidad, cambios de volumen, cicatrices, medicación y objetivos ayudan a decidir si procede un protocolo energético o una alternativa.', 'nuvanx-medical' ),
 				),
 				array(
 					'q' => __( '¿Cuántas sesiones necesito?', 'nuvanx-medical' ),
@@ -132,7 +125,7 @@ function nvx_btl_detail_registry(): array {
 				),
 				array(
 					'q' => __( '¿Duele?', 'nuvanx-medical' ),
-					'a' => __( 'La mayoría describe calor tolerable (referencias de 0–2/10 en materiales y experiencia de centros). No es comparable al dolor habitual de algunos HIFU de alta energía sin anestesia, pero la percepción es individual.', 'nuvanx-medical' ),
+					'a' => __( 'La sensación depende de la zona, los parámetros y la sensibilidad individual. Antes de empezar se explica el protocolo de confort y cómo comunicar cualquier molestia.', 'nuvanx-medical' ),
 				),
 				array(
 					'q' => __( '¿Puedo combinarlo con toxina o rellenos?', 'nuvanx-medical' ),
@@ -152,17 +145,16 @@ function nvx_btl_detail_registry(): array {
 			'path'         => '/exion-body/',
 			'key'          => 'exion_body',
 			'kicker'       => __( 'EXION® Body · NUVANX Madrid', 'nuvanx-medical' ),
-			'h1'           => __( 'EXION® Body: adiposidad localizada y retracción cutánea en un solo protocolo', 'nuvanx-medical' ),
-			'lead'         => __( 'Radiofrecuencia monopolar con refrigeración activa para abordar grasa localizada y laxitud asociada — cuando el diagnóstico lo permite — sin el downtime típico de microagujas corporales ni la ecuación “solo frío” de la criolipólisis.', 'nuvanx-medical' ),
+			'h1'           => __( 'EXION® Body en Madrid: contorno corporal y calidad cutánea', 'nuvanx-medical' ),
+			'lead'         => __( 'Radiofrecuencia monopolar con refrigeración activa para protocolos de contorno corporal y calidad cutánea cuando el diagnóstico lo permite.', 'nuvanx-medical' ),
 			'meta'         => __( 'Chamberí · Goya · Contorno corporal con criterio médico', 'nuvanx-medical' ),
 			'aria'         => __( 'EXION Body NUVANX', 'nuvanx-medical' ),
 			'marker'       => 'nvx-exion-body',
 			'yoast_title'  => 'EXION Body Madrid | Grasa localizada y tensado | NUVANX',
 			'yoast_desc'   => 'EXION® Body en NUVANX Madrid: radiofrecuencia con refrigeración activa para grasa localizada y calidad cutánea, según valoración médica. Chamberí y Goya.',
 			'focuskw'      => 'EXION Body Madrid',
-			'blog'         => $blog_body,
 			'hub'          => $hub,
-			'combo'        => $blog_combo,
+			'combo'        => '',
 			'schema_name'  => 'EXION® Body en Madrid',
 			'schema_type'  => 'Protocolo médico corporal con EXION® Body',
 			'schema_desc'  => 'Tratamiento de contorno corporal con EXION® Body: estímulo térmico con refrigeración epidérmica para grasa localizada y calidad cutánea en NUVANX Madrid.',
@@ -184,23 +176,23 @@ function nvx_btl_detail_registry(): array {
 					),
 					array(
 						'title' => __( 'Ecuación grasa + piel', 'nuvanx-medical' ),
-						'body'  => __( 'La criolipólisis actúa sobre grasa pero no tensa. Las microagujas corporales tensan con más trauma. EXION Body busca ambos efectos en un perfil de tolerancia habitualmente más favorable; la superioridad no es universal.', 'nuvanx-medical' ),
+					'body'  => __( 'El objetivo y los límites se definen tras valorar grasa localizada, calidad cutánea, exceso de piel, antecedentes y período de recuperación aceptable.', 'nuvanx-medical' ),
 					),
 				),
 			),
 			'indications'  => array(
 				array( 'title' => __( 'Adiposidad localizada leve–moderada', 'nuvanx-medical' ), 'body' => __( 'Flancos, abdomen inferior y pliegues rebeldes cuando no hay indicación prioritaria de abdominoplastia o liposucción mayor.', 'nuvanx-medical' ) ),
 				array( 'title' => __( 'Flacidez leve–moderada con o sin grasa', 'nuvanx-medical' ), 'body' => __( 'Brazos, muslos internos y zonas donde reducir volumen sin tensar dejaría piel laxa; se valora RF vs láser intersticial según espesor.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Grasa + flacidez combinadas', 'nuvanx-medical' ), 'body' => __( 'Indicación más favorable para un protocolo que no se limite a “solo congelar” o “solo pinchar”.', 'nuvanx-medical' ) ),
+				array( 'title' => __( 'Grasa y flacidez combinadas', 'nuvanx-medical' ), 'body' => __( 'La indicación se valora cuando coexisten adiposidad localizada y cambios de calidad cutánea.', 'nuvanx-medical' ) ),
 				array( 'title' => __( 'Celulitis grado I–II con adiposidad', 'nuvanx-medical' ), 'body' => __( 'Mejora de contorno y calidad de superficie cuando el componente adiposo y la laxitud predominan; no es tratamiento de celulitis severa estructural sola.', 'nuvanx-medical' ) ),
 				array( 'title' => __( 'Post-criolipólisis', 'nuvanx-medical' ), 'body' => __( 'Pacientes con grasa reducida pero laxitud residual: se reorienta a retracción y calidad, no a más frío sin reevaluación.', 'nuvanx-medical' ) ),
 				array( 'title' => __( 'Combinación con endoláser (espesor alto)', 'nuvanx-medical' ), 'body' => __( 'En adiposidad >~4–5 cm puede proponerse laserlipólisis y, en fase posterior (~semana 5+), EXION Body para consolidar tensado. Umbral e intervalo son clínicos.', 'nuvanx-medical' ) ),
 			),
 			'compare'      => array(
-				'title' => __( 'EXION Body frente a CoolSculpting y Morpheus8 Body', 'nuvanx-medical' ),
+				'title' => __( 'Cómo se valora el contorno corporal', 'nuvanx-medical' ),
 				'body'  => nvx_btl_claim( 'exion_body_compare' ),
-				'link'  => $blog_body,
-				'label' => __( 'Leer: EXION Body vs CoolSculpting y Morpheus8', 'nuvanx-medical' ),
+				'link'  => '',
+				'label' => '',
 			),
 			'process'      => array(
 				array(
@@ -222,7 +214,6 @@ function nvx_btl_detail_registry(): array {
 			),
 			'related'      => array(
 				array( 'url' => $endolaser, 'label' => __( 'Endoláser corporal (adiposidad de mayor espesor)', 'nuvanx-medical' ) ),
-				array( 'url' => $blog_combo, 'label' => __( 'Protocolos combinados del ecosistema NUVANX', 'nuvanx-medical' ) ),
 			),
 			'faqs'         => array(
 				array(
@@ -264,16 +255,15 @@ function nvx_btl_detail_registry(): array {
 			'key'          => 'exion_fractional',
 			'kicker'       => __( 'EXION® Fractional RF · NUVANX Madrid', 'nuvanx-medical' ),
 			'h1'           => __( 'EXION® Fractional RF en Madrid: radiofrecuencia fraccionada con control de impedancia', 'nuvanx-medical' ),
-			'lead'         => __( 'Microagujas más cortas y gradiente térmico extendido con feedback de tejido — textura, poros y cicatrices con menos pasadas y downtime más predecible que la RF fraccionada “a ciegas”.', 'nuvanx-medical' ),
+			'lead'         => __( 'Radiofrecuencia fraccionada con microagujas y control de impedancia para protocolos de textura, poros y cicatrices según diagnóstico y fototipo.', 'nuvanx-medical' ),
 			'meta'         => __( 'Chamberí · Goya · Textura y remodelado dérmico', 'nuvanx-medical' ),
 			'aria'         => __( 'EXION Fractional NUVANX', 'nuvanx-medical' ),
 			'marker'       => 'nvx-exion-fractional',
 			'yoast_title'  => 'EXION Fractional RF Madrid | Textura y cicatrices | NUVANX',
-			'yoast_desc'   => 'EXION® Fractional RF en NUVANX Madrid: RF fraccionada con control de tejido y single-pass cuando el protocolo lo permite. Alternativa a Morpheus8/Potenza según diagnóstico.',
+			'yoast_desc'   => 'EXION® Fractional RF en Madrid: microagujas con control de impedancia para textura, poros y cicatrices según diagnóstico y fototipo.',
 			'focuskw'      => 'EXION Fractional Madrid',
-			'blog'         => $blog_frac,
 			'hub'          => $hub,
-			'combo'        => $blog_combo,
+			'combo'        => '',
 			'schema_name'  => 'EXION® Fractional RF en Madrid',
 			'schema_type'  => 'Protocolo de radiofrecuencia fraccionada EXION®',
 			'schema_desc'  => 'Remodelado de textura y dermis con EXION® Fractional RF en NUVANX Madrid tras valoración médica.',
@@ -292,10 +282,10 @@ function nvx_btl_detail_registry(): array {
 				array( 'title' => __( 'Pacientes que no toleran multipasada agresiva', 'nuvanx-medical' ), 'body' => __( 'Historial de RF fraccionada con hematomas prolongados o abandono por dolor: se reevalúa energía y número de pases.', 'nuvanx-medical' ) ),
 			),
 			'compare'      => array(
-				'title' => __( '¿Morpheus8 o Potenza?', 'nuvanx-medical' ),
-				'body'  => __( 'Comparten familia tecnológica (RF fraccionada con microagujas), pero difieren en feedback, longitud de aguja, número de pasadas y tolerancia. El blog detalla la comparativa; en consulta manda el diagnóstico, no la marca.', 'nuvanx-medical' ),
-				'link'  => $blog_frac,
-				'label' => __( 'Leer: EXION Fractional vs Morpheus8 / Potenza', 'nuvanx-medical' ),
+				'title' => __( 'Cómo se selecciona la radiofrecuencia fraccionada', 'nuvanx-medical' ),
+				'body'  => __( 'La selección considera objetivo, calidad de piel, profundidad, fototipo, tolerancia y período de recuperación aceptable. La indicación se define por diagnóstico, no por una marca.', 'nuvanx-medical' ),
+				'link'  => '',
+				'label' => '',
 			),
 			'process'      => array(
 				__( 'Mapa de zonas, fototipo y objetivo (textura vs cicatriz vs firmeza).', 'nuvanx-medical' ),
@@ -313,24 +303,23 @@ function nvx_btl_detail_registry(): array {
 			'path'         => '/emfusion/',
 			'key'          => 'emfusion',
 			'kicker'       => __( 'EMFUSION® · NUVANX Madrid', 'nuvanx-medical' ),
-			'h1'           => __( 'EMFUSION® en Madrid: infusión cutánea y restauración de barrera sin succión agresiva', 'nuvanx-medical' ),
-			'lead'         => __( 'Tecnología DYNAMiQ™ de microcanales acústicos para favorecer la penetración de activos y apoyar la homeostasis epidérmica — alternativa a vórtices de succión y microneedling cuando la barrera está comprometida.', 'nuvanx-medical' ),
+			'h1'           => __( 'EMFUSION® en Madrid: infusión cutánea y apoyo a la barrera', 'nuvanx-medical' ),
+			'lead'         => __( 'Tecnología DYNAMiQ™ de microcanales acústicos para apoyar la aplicación de activos, la hidratación y la barrera cutánea cuando existe indicación médica.', 'nuvanx-medical' ),
 			'meta'         => __( 'Chamberí · Goya · Well-aging y piel sensible', 'nuvanx-medical' ),
 			'aria'         => __( 'EMFUSION NUVANX', 'nuvanx-medical' ),
 			'marker'       => 'nvx-emfusion',
 			'yoast_title'  => 'EMFUSION Madrid | Barrera cutánea e infusión | NUVANX',
-			'yoast_desc'   => 'EMFUSION® en NUVANX Madrid: microcanales acústicos DYNAMiQ™ para hidratación y barrera. Alternativa a Hydrafacial y Dermapen según indicación médica.',
+			'yoast_desc'   => 'EMFUSION® en Madrid: microcanales acústicos DYNAMiQ™ para hidratación y apoyo a la barrera cutánea según valoración médica.',
 			'focuskw'      => 'EMFUSION Madrid',
-			'blog'         => $blog_emf,
 			'hub'          => $hub,
-			'combo'        => $blog_combo,
+			'combo'        => '',
 			'schema_name'  => 'EMFUSION® en Madrid',
 			'schema_type'  => 'Protocolo de infusión cutánea EMFUSION®',
 			'schema_desc'  => 'Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.',
 			'mechanism'    => array(
 				'title' => __( 'Cómo funciona EMFUSION® (DYNAMiQ™)', 'nuvanx-medical' ),
 				'body'  => array(
-					__( 'Convierte energía en ondas mecánicas que generan microcanales temporales en la superficie cutánea, facilitando la entrada de activos (p. ej. ceramidas, ectoína) sin el patrón de succión/vortex ni la perforación repetida del microneedling clásico.', 'nuvanx-medical' ),
+					__( 'Convierte energía en ondas mecánicas que generan microcanales temporales en la superficie cutánea, facilitando la aplicación de activos como ceramidas o ectoína según el protocolo indicado.', 'nuvanx-medical' ),
 					__( 'El objetivo no es “limpiar a presión”, sino apoyar la barrera y la hidratación cuando el diagnóstico muestra deshidratación, irritabilidad o necesidad de potenciar activos post-procedimiento.', 'nuvanx-medical' ),
 					__( 'Datos de referencia del fabricante describen reducciones relevantes de pérdida de agua transepidérmica en modelos evaluados; se contextualizan en consulta sin cifras mágicas personalizadas.', 'nuvanx-medical' ),
 				),
@@ -342,10 +331,10 @@ function nvx_btl_detail_registry(): array {
 				array( 'title' => __( 'Fotodaño superficial', 'nuvanx-medical' ), 'body' => __( 'Como adyuvante de calidad cutánea, no como sustituto de CO₂ o Fractional cuando hay cicatriz profunda.', 'nuvanx-medical' ) ),
 			),
 			'compare'      => array(
-				'title' => __( '¿Hydrafacial o Dermapen?', 'nuvanx-medical' ),
-				'body'  => __( 'Hydrafacial prioriza limpieza por vortex/succión; el microneedling induce microlesiones para cicatrizar. EMFUSION se centra en infusión acústica y barrera. Amplía en el blog comparativo.', 'nuvanx-medical' ),
-				'link'  => $blog_emf,
-				'label' => __( 'Leer: EMFUSION vs Hydrafacial y Dermapen', 'nuvanx-medical' ),
+				'title' => __( 'Cómo se plantea el cuidado de la barrera cutánea', 'nuvanx-medical' ),
+				'body'  => __( 'La selección valora hidratación, sensibilidad, inflamación, activos compatibles y tratamientos previos. El objetivo y el protocolo se deciden después de la exploración.', 'nuvanx-medical' ),
+				'link'  => '',
+				'label' => '',
 			),
 			'process'      => array(
 				__( 'Valoración de barrera, inflamación y compatibilidad de activos.', 'nuvanx-medical' ),

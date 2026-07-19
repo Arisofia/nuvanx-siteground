@@ -49,7 +49,7 @@ function nvx_nofollow_page_ids() {
 }
 
 /**
- * Force 404 on patient cases gallery (ID 2645) to avoid empty galleries online (anti-social proof).
+ * Force 404 on patient cases gallery (ID 2645) to avoid empty galleries online.
  */
 function nvx_force_404_empty_cases() {
 	if ( is_page( 2645 ) && '1' !== (string) get_post_meta( 2645, '_nvx_cases_publication_ready', true ) ) {
@@ -57,10 +57,75 @@ function nvx_force_404_empty_cases() {
 		$wp_query->set_404();
 		status_header( 404 );
 		nocache_headers();
-		// We don't exit here so the theme can render the 404 template.
+		// Do not exit: WordPress must still select and render its 404 template.
 	}
 }
 add_action( 'template_redirect', 'nvx_force_404_empty_cases', 1 );
+
+/**
+ * Comparison articles retained for internal medical/evidence review only.
+ *
+ * They are intentionally not deleted here: editorial and clinical teams need a
+ * reversible review path. Until a reviewer approves substantiated, non-
+ * denigrating copy, they cannot be surfaced in public archive, search or XML
+ * sitemap listings.
+ *
+ * @return string[]
+ */
+function nvx_quarantined_comparison_post_slugs(): array {
+	return array(
+		'exion-face-vs-hifu-ultherapy-thermage-regeneracion-endogena',
+		'exion-body-vs-coolsculpting-morpheus8-lipolisis-retraccion',
+		'exion-fractional-vs-morpheus8-potenza-ia-vs-trauma',
+		'emfusion-vs-hydrafacial-dermapen-microcanales-acusticos',
+		'protocolos-combinados-ecosistema-nuvanx-exion-endolift-emfusion',
+	);
+}
+
+/**
+ * Resolve quarantined post IDs without assuming fixed database IDs.
+ *
+ * @return int[]
+ */
+function nvx_quarantined_comparison_post_ids(): array {
+	static $ids = null;
+	if ( is_array( $ids ) ) {
+		return $ids;
+	}
+
+	$ids = array();
+	foreach ( nvx_quarantined_comparison_post_slugs() as $slug ) {
+		$post = get_page_by_path( $slug, OBJECT, 'post' );
+		if ( $post instanceof WP_Post ) {
+			$ids[] = (int) $post->ID;
+		}
+	}
+
+	return array_values( array_unique( $ids ) );
+}
+
+/**
+ * Keep pending comparison content out of public post collections.
+ */
+function nvx_exclude_quarantined_comparison_posts( WP_Query $query ): void {
+	if ( is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+
+	if ( ! $query->is_home() && ! $query->is_archive() && ! $query->is_search() ) {
+		return;
+	}
+
+	$ids = nvx_quarantined_comparison_post_ids();
+	if ( array() === $ids ) {
+		return;
+	}
+
+	$existing = $query->get( 'post__not_in' );
+	$existing = is_array( $existing ) ? $existing : array();
+	$query->set( 'post__not_in', array_values( array_unique( array_merge( $existing, $ids ) ) ) );
+}
+add_action( 'pre_get_posts', 'nvx_exclude_quarantined_comparison_posts', 30 );
 
 /**
  * Post IDs that must stay out of the public index (sitemap + robots).
@@ -70,6 +135,7 @@ add_action( 'template_redirect', 'nvx_force_404_empty_cases', 1 );
  */
 function nvx_noindex_page_ids() {
 	$ids = nvx_nofollow_page_ids();
+	$ids = array_merge( $ids, nvx_quarantined_comparison_post_ids() );
 
 	// Casos de pacientes: only index after explicit editorial meta.
 	if ( '1' !== (string) get_post_meta( 2645, '_nvx_cases_publication_ready', true ) ) {
@@ -170,6 +236,11 @@ function nvx_public_content_text_hygiene( $content ) {
 
 	$content = str_replace( array_keys( $replacements ), array_values( $replacements ), $content );
 
+	// Do not advertise a price condition that is not confirmed in this source.
+	$content = preg_replace( '/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu', 'valoración médica', $content ) ?? $content;
+	$content = preg_replace( '/\bvaloraci[oó]n\s+gratuita\b/iu', 'valoración médica', $content ) ?? $content;
+	$content = preg_replace( '/\bsin\s+compromiso\b/iu', 'sin obligación de continuar con un tratamiento', $content ) ?? $content;
+
 	// Endolift conflation fixes.
 	$content = preg_replace( '/(Endolift®?\s*)Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', '$1Técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content ) ?? $content;
 	$content = preg_replace( '/Firmeza\s+Endolift®?\s+Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', 'Endolift®: técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content ) ?? $content;
@@ -189,6 +260,24 @@ function nvx_public_content_text_hygiene( $content ) {
 }
 add_filter( 'the_content', 'nvx_public_content_text_hygiene', 12 );
 add_filter( 'the_title', 'nvx_public_content_text_hygiene', 12 );
+
+/**
+ * Keep QA on staging2 inside the same environment when legacy CMS copy uses
+ * absolute production URLs. Production keeps its public URLs untouched.
+ */
+function nvx_normalize_staging2_internal_links( $content ) {
+	if ( ! is_string( $content ) || '' === $content || ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
+		return $content;
+	}
+
+	$staging_home = untrailingslashit( home_url( '/' ) );
+	return str_ireplace(
+		array( 'https://www.nuvanx.com', 'https://nuvanx.com', 'http://www.nuvanx.com', 'http://nuvanx.com' ),
+		$staging_home,
+		$content
+	);
+}
+add_filter( 'the_content', 'nvx_normalize_staging2_internal_links', 13 );
 
 /**
  * Remove sensitive pages (e.g., Casos de pacientes ID 2645) from all navigation menus automatically.

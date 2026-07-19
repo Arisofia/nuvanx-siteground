@@ -189,7 +189,7 @@ function nvx_contacto_audit_visible_copy( string $content ): string {
 		'/Contacta con NUVANX para solicitar una valoración médica personalizada[^.<]{0,220}\.\s*El equipo revisará[^.<]{0,160}\./u'
 			=> 'Consulta médica presencial en Chamberí y Salamanca–Goya. El equipo te orientará hacia la sede y el médico disponible según tu caso.',
 		'/Para diagnóstico y plan de tratamiento[^.<]{0,200}\.\s*Esta página es el directorio NAP[^.<]{0,120}\./u'
-			=> 'Contacta por teléfono o WhatsApp para solicitar una valoración médica gratuita de 15–30 minutos en Chamberí o Salamanca–Goya. La indicación y el presupuesto se confirman tras la valoración.',
+			=> 'Contacta por teléfono o WhatsApp para solicitar una valoración médica en Chamberí o Salamanca–Goya. La indicación y el presupuesto se confirman tras la exploración.',
 		// Clinic cards: inject verified hours via the existing days paragraph class.
 		'/<p\b[^>]*\bclass=["\'][^"\']*\bnvx-contact-clinic__days\b[^"\']*["\'][^>]*>\s*<strong>\s*Consulta médica directa:\s*<\/strong>\s*Martes y jueves\s*<\/p>/iu'
 			=> '<p class="nvx-contact-clinic__hours"><strong>Horario de clínica:</strong> Lunes a viernes, 12:00–20:00; sábados, 10:00–18:00</p><p class="nvx-contact-clinic__days"><strong>Consulta médica:</strong> Martes y jueves</p>',

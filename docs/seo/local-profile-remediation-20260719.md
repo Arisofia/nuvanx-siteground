@@ -109,21 +109,34 @@ Existen varias URLs y denominaciones potencialmente duplicadas:
 5. Revisar servicios y precios mostrados.
 6. Preservar opiniones válidas durante cualquier consolidación.
 
-## Doctoralia — Dra. Cristina Márquez
+## Doctoralia — Dra. Cristina Márquez González
 
 Fuente: https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid
 
-### Evidencia pública
+### Evidencia pública verificada el 19 de julio de 2026
 
-- Vincula la sede Goya.
-- Muestra especialidades de radiología y medicina estética.
-- Publica precios y servicios.
+- Nombre profesional: Dra. Cristina Márquez González.
+- Número de colegiación ICOMEM: 282858861.
+- Especialidades publicadas: Radiología y Medicina Estética.
+- Vincula expresamente la sede NUVANX Goya, Calle Fernán González 26.
+- Declara práctica como facultativa especialista en HM Hospitales y experiencia en radiología mamaria y diagnóstico mamario avanzado.
+- Formación publicada: Licenciatura en Medicina; Especialización en Senología y Patología Mamaria; Máster en Medicina Estética.
+- El perfil mostraba 26 opiniones en la fecha de evidencia. El contador es dinámico y no debe hardcodearse como trust badge en la web.
 
-### Acción
+### Aplicación canónica en NUVANX
 
-1. Confirmar títulos, colegiación, alcance profesional y relación vigente con NUVANX.
-2. Verificar que servicios y precios coincidan con el catálogo aprobado.
-3. Corregir sedes antiguas o relaciones históricas que puedan confundir al usuario.
+- El perfil de equipo debe mostrar el nombre completo con tilde: **Dra. Cristina Márquez González**.
+- La colegiación canónica es **ICOMEM 282858861**; queda rechazado el número incorrecto `282869501`.
+- La descripción debe limitarse a especialidades, experiencia y formación publicadas o respaldadas documentalmente.
+- Debe enlazarse el perfil público de Doctoralia desde su detalle profesional, sin copiar opiniones individuales ni fijar un contador de reseñas.
+- La relación visible con NUVANX se presenta en la sede Goya · Barrio Salamanca.
+
+### Acción externa
+
+1. Mantener colegiación, formación, sede y especialidades alineadas entre Doctoralia y la web de NUVANX.
+2. Verificar que servicios y precios correspondan al catálogo vigente y aprobado.
+3. Revisar periódicamente las sedes antiguas o relaciones históricas que puedan confundir al usuario.
+4. Guardar evidencia documental de títulos y colegiación en el registro interno de credenciales.
 
 ## Cylex
 

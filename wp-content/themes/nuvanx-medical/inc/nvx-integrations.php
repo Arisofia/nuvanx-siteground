@@ -15,6 +15,9 @@ require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
 /** Privacy-safe intent and successful-form conversion events. */
 require_once __DIR__ . '/nvx-conversion-events.php';
 
+/** Final route and clinical wording guard for the aesthetic medicine hub. */
+require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
+
 /** Goya (1537): evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {

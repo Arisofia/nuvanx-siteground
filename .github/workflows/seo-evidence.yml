@@ -57,7 +57,7 @@ jobs:
         run: node scripts/seo/verify-p0-deployment.mjs 2>&1 | tee artifacts-p0.log
 
       - name: Crawl production inventory and internal links
-        if: always()
+        if: ${{ !cancelled() }}
         env:
           BASE_URL: https://nuvanx.com/
         run: node scripts/seo/full-site-crawl.mjs

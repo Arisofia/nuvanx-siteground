@@ -51,16 +51,6 @@ function nvx_aesthetic_lookup_published_url( string $path ): ?string {
 	return null;
 }
 
-/**
- * Resolve a public page URL by path, with home_url fallback.
- *
- * @param string $path Relative path without domain.
- */
-function nvx_aesthetic_page_url( string $path ): string {
-	$path = trim( $path, '/' );
-	$found = nvx_aesthetic_lookup_published_url( $path );
-	return null !== $found ? $found : home_url( '/' . $path . '/' );
-}
 
 /**
  * Detect Medicina Estética hub (injectables / regenerativa), not láser hub.

@@ -41,6 +41,22 @@ function nvx_navigation_treatment_definitions(): array {
 				'label' => 'EMFUSION',
 				'slugs' => array( 'emfusion' ),
 			),
+			'bioestimuladores' => array(
+				'label' => 'Bioestimuladores de Colágeno',
+				'slugs' => array( 'bioestimuladores-colageno-madrid' ),
+			),
+			'ojeras' => array(
+				'label' => 'Ojeras y Surco Lagrimal',
+				'slugs' => array( 'ojeras-surco-lagrimal-madrid' ),
+			),
+			'rinomodelacion' => array(
+				'label' => 'Rinomodelación sin Cirugía',
+				'slugs' => array( 'rinomodelacion-sin-cirugia-madrid' ),
+			),
+			'labios' => array(
+				'label' => 'Labios con Ácido Hialurónico',
+				'slugs' => array( 'labios-acido-hialuronico-madrid' ),
+			),
 		)
 	);
 }

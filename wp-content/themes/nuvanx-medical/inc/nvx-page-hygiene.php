@@ -257,7 +257,7 @@ function nvx_remove_duplicate_cristina_staff_card( string $content ): string {
 	) ?? $content;
 
 	$content = preg_replace_callback(
-		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>\s*(?=<div\b[^>]*\bnvx-brand-card\b|<\/div>|<section\b|$)/iu',
+		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>\s*(?=<div\b[^>]*\bnvx-brand-card\b|<section\b|<\/section>|$)/iu',
 		static function ( array $matches ) use ( $name_pattern ): string {
 			return preg_match( $name_pattern, $matches[0] ) ? '' : $matches[0];
 		},

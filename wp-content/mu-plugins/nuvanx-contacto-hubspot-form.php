@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NUVANX Contacto HubSpot Form
  * Description: Mounts the dedicated HubSpot contact form and enforces temporary SEO/claims publication safeguards.
- * Version: 2026.07.19.2
+ * Version: 2026.07.19.3
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -63,9 +63,9 @@ function nvx_remove_unverified_quantitative_trust_badges( string $content ): str
 add_filter( 'the_content', 'nvx_remove_unverified_quantitative_trust_badges', 22 );
 
 /**
- * Add the contact-page Open Graph image even when Yoast has no existing image
- * presenter. The legacy wpseo_opengraph_image filter only alters an image that
- * already exists, so use Yoast's image-container hook as the canonical fallback.
+ * Add the contact-page Open Graph image through Yoast when its image presenter
+ * is available. The final head-output safeguard below covers installations in
+ * which the presenter still omits the Open Graph image tags.
  *
  * @param mixed $image_container Yoast Open Graph image container.
  */
@@ -90,8 +90,8 @@ add_filter( 'wpseo_add_opengraph_images', 'nvx_contacto_add_yoast_opengraph_imag
 
 /**
  * Start a narrow output buffer for wp_head on front and page requests. This is
- * used only to remove legacy Schema.org JSON-LD blocks emitted directly by old
- * head callbacks; Yoast's canonical schema graph is preserved.
+ * used to remove legacy Schema.org JSON-LD blocks emitted directly by old head
+ * callbacks and to enforce the final contact Open Graph image contract.
  */
 function nvx_canonical_schema_head_buffer_start(): void {
 	if ( is_admin() || ( ! is_front_page() && ! is_singular( 'page' ) ) ) {
@@ -102,6 +102,31 @@ function nvx_canonical_schema_head_buffer_start(): void {
 	ob_start();
 }
 add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_start', -9999 );
+
+/**
+ * Add the canonical contact Open Graph image tags to the final head output only
+ * when no existing `og:image` tag was emitted by Yoast or another integration.
+ */
+function nvx_contacto_enforce_final_og_image( string $html ): string {
+	if (
+		! function_exists( 'nvx_contacto_audit_is_contact_page' )
+		|| ! nvx_contacto_audit_is_contact_page()
+		|| preg_match( '/<meta\b[^>]*\bproperty\s*=\s*(["\'])og:image\1/i', $html )
+	) {
+		return $html;
+	}
+
+	$image_url = esc_url( home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' ) );
+	$tags      = '<meta property="og:image" content="' . $image_url . '" />'
+		. '<meta property="og:image:secure_url" content="' . $image_url . '" />'
+		. '<meta property="og:image:width" content="1672" />'
+		. '<meta property="og:image:height" content="941" />'
+		. '<meta property="og:image:type" content="image/webp" />';
+
+	$with_tags = preg_replace( '/(?=<meta\b[^>]*\bname\s*=\s*(["\'])twitter:card\1)/i', $tags, $html, 1 );
+
+	return is_string( $with_tags ) && $with_tags !== $html ? $with_tags : $html . $tags;
+}
 
 /**
  * Remove Schema.org JSON-LD scripts from wp_head unless they are Yoast's
@@ -120,30 +145,37 @@ function nvx_canonical_schema_head_buffer_end(): void {
 	}
 
 	$html = ob_get_clean();
-	if ( ! is_string( $html ) || false === stripos( $html, 'ld+json' ) ) {
-		echo is_string( $html ) ? $html : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	if ( ! is_string( $html ) ) {
 		return;
 	}
 
-	$filtered = preg_replace_callback(
-		'#<script\b(?=[^>]*\btype\s*=\s*(["\'])application/ld\+json\1)[^>]*>([\s\S]*?)</script>#iu',
-		static function ( array $matches ): string {
-			$tag     = isset( $matches[0] ) ? (string) $matches[0] : '';
-			$payload = isset( $matches[2] ) ? (string) $matches[2] : '';
+	$filtered = $html;
+	if ( false !== stripos( $html, 'ld+json' ) ) {
+		$schema_filtered = preg_replace_callback(
+			'#<script\b(?=[^>]*\btype\s*=\s*(["\'])application/ld\+json\1)[^>]*>([\s\S]*?)</script>#iu',
+			static function ( array $matches ): string {
+				$tag     = isset( $matches[0] ) ? (string) $matches[0] : '';
+				$payload = isset( $matches[2] ) ? (string) $matches[2] : '';
 
-			if ( false !== stripos( $tag, 'yoast-schema-graph' ) ) {
+				if ( false !== stripos( $tag, 'yoast-schema-graph' ) ) {
+					return $tag;
+				}
+
+				if ( preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload ) ) {
+					return '';
+				}
+
 				return $tag;
-			}
+			},
+			$html
+		);
 
-			if ( preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload ) ) {
-				return '';
-			}
+		if ( is_string( $schema_filtered ) ) {
+			$filtered = $schema_filtered;
+		}
+	}
 
-			return $tag;
-		},
-		$html
-	);
-
-	echo is_string( $filtered ) ? $filtered : $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	$filtered = nvx_contacto_enforce_final_og_image( $filtered );
+	echo $filtered; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_end', PHP_INT_MAX );

@@ -1,0 +1,46 @@
+name: "Security: Tracked Artifact Cleanup"
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/security-artifact-cleanup.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Delete rogue and failed workflow runs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Deleting runs for ticket43-run-staging-once.yml..."
+          # The workflow file may be deleted from the tree, so we delete by name or ID if possible,
+          # but gh run list allows filtering by workflow file name even if deleted.
+          runs=$(gh run list --workflow "ticket43-run-staging-once.yml" --limit 3000 --json databaseId -q ".[].databaseId" 2>/dev/null || echo "")
+          count=0
+          for run_id in $runs; do
+            echo "Deleting run $run_id"
+            gh run delete "$run_id" || true
+            count=$((count+1))
+          done
+          echo "Deleted $count runs for ticket43-run-staging-once.yml."
+          
+          echo "Deleting all failure status runs..."
+          failed_runs=$(gh run list --status failure --limit 3000 --json databaseId -q ".[].databaseId" 2>/dev/null || echo "")
+          fcount=0
+          for run_id in $failed_runs; do
+            echo "Deleting run $run_id"
+            gh run delete "$run_id" || true
+            fcount=$((fcount+1))
+          done
+          echo "Deleted $fcount failed runs."

@@ -9,6 +9,7 @@
     "nvx-header.css",
     "nvx-footer.css",
     "nvx-brand-home.css",
+    "nvx-hero-blackout.css",
     "nvx-mobile-hero-hierarchy.css",
     "nvx-medical-review.css",
     "nvx-posts.css"
@@ -28,9 +29,7 @@
     "nvx-site-layout.css",
     "nvx-tokens.css"
   ],
-  "inactiveCssFiles": [
-    "nvx-hero-blackout.css"
-  ],
+  "inactiveCssFiles": [],
   "referencedStylesheets": [
     "nvx-base.css",
     "nvx-brand-home.css",
@@ -46,6 +45,20 @@
     "nvx-site-layout.css",
     "nvx-tokens.css"
   ],
+  "runtimeReferencedStylesheets": [
+    "nvx-base.css",
+    "nvx-brand-home.css",
+    "nvx-components.css",
+    "nvx-fonts.css",
+    "nvx-footer.css",
+    "nvx-header.css",
+    "nvx-hero-blackout.css",
+    "nvx-patterns-editorial.css",
+    "nvx-posts.css",
+    "nvx-site-layout.css",
+    "nvx-tokens.css"
+  ],
+  "runtimeStylesheetsOutsideActiveStack": [],
   "stylesheetReferenceEvidence": [
     {
       "file": "nvx-fonts.css",
@@ -107,12 +120,7 @@
   ],
   "scopedRootBlocks": [],
   "importantActive": [],
-  "importantInactive": [
-    {
-      "file": "nvx-hero-blackout.css",
-      "line": 55
-    }
-  ],
+  "importantInactive": [],
   "runtimeImportant": [],
   "undefinedTokens": [],
   "hardcodedPixelsActive": [
@@ -129,47 +137,47 @@
     {
       "file": "nvx-brand-home.css",
       "value": "4px",
-      "line": 89
+      "line": 93
     },
     {
       "file": "nvx-brand-home.css",
       "value": "-3px",
-      "line": 102
+      "line": 106
     },
     {
       "file": "nvx-brand-home.css",
       "value": "3px",
-      "line": 111
+      "line": 115
     },
     {
       "file": "nvx-brand-home.css",
       "value": "18px",
-      "line": 119
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "value": "6px",
       "line": 123
     },
     {
       "file": "nvx-brand-home.css",
+      "value": "6px",
+      "line": 127
+    },
+    {
+      "file": "nvx-brand-home.css",
       "value": "-3px",
-      "line": 134
+      "line": 143
     },
     {
       "file": "nvx-brand-home.css",
       "value": "768px",
-      "line": 225
+      "line": 234
     },
     {
       "file": "nvx-brand-home.css",
       "value": "15px",
-      "line": 238
+      "line": 247
     },
     {
       "file": "nvx-brand-home.css",
       "value": "11px",
-      "line": 260
+      "line": 269
     },
     {
       "file": "nvx-components.css",
@@ -534,7 +542,7 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 25,
-          "active": false
+          "active": true
         }
       ]
     },
@@ -728,12 +736,12 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 218,
+          "line": 227,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 245,
+          "line": 254,
           "active": true
         }
       ]
@@ -763,7 +771,7 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 246,
+          "line": 255,
           "active": true
         }
       ]
@@ -778,7 +786,7 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 225,
+          "line": 234,
           "active": true
         },
         {
@@ -798,7 +806,7 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 225,
+          "line": 234,
           "active": true
         },
         {
@@ -823,12 +831,12 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 232,
+          "line": 241,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 254,
+          "line": 263,
           "active": true
         }
       ]
@@ -838,12 +846,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 94,
+          "line": 98,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 259,
+          "line": 268,
           "active": true
         }
       ]
@@ -853,17 +861,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 113,
+          "line": 117,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 232,
+          "line": 241,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 254,
+          "line": 263,
           "active": true
         }
       ]
@@ -873,7 +881,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 154,
+          "line": 163,
           "active": true
         },
         {
@@ -893,7 +901,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 156,
+          "line": 165,
           "active": true
         },
         {
@@ -913,12 +921,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 158,
+          "line": 167,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 247,
+          "line": 256,
           "active": true
         },
         {
@@ -938,17 +946,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 167,
+          "line": 176,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 219,
+          "line": 228,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 248,
+          "line": 257,
           "active": true
         },
         {
@@ -973,12 +981,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 186,
+          "line": 195,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 221,
+          "line": 230,
           "active": true
         }
       ]
@@ -988,17 +996,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 205,
+          "line": 214,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 220,
+          "line": 229,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 249,
+          "line": 258,
           "active": true
         }
       ]
@@ -1008,7 +1016,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 214,
+          "line": 223,
           "active": true
         },
         {
@@ -1023,7 +1031,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 239,
+          "line": 248,
           "active": true
         },
         {
@@ -1038,12 +1046,152 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 239,
+          "line": 248,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
           "line": 517,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 64,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 39,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 30,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 235,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 247,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 64,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 39,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 235,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 247,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-kicker",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 5,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-kicker",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-meta )",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
           "active": true
         }
       ]
@@ -1372,6 +1520,11 @@
           "active": true
         },
         {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
           "file": "nvx-footer.css",
           "line": 1,
           "active": true
@@ -1390,6 +1543,11 @@
           "file": "nvx-components.css",
           "line": 153,
           "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
         }
       ]
     },
@@ -1404,6 +1562,11 @@
         {
           "file": "nvx-components.css",
           "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
           "active": true
         }
       ]
@@ -1420,6 +1583,11 @@
           "file": "nvx-components.css",
           "line": 153,
           "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
         }
       ]
     },
@@ -1434,6 +1602,11 @@
         {
           "file": "nvx-components.css",
           "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
           "active": true
         }
       ]
@@ -1694,7 +1867,7 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 25,
-          "active": false
+          "active": true
         }
       ]
     },
@@ -1709,7 +1882,7 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 25,
-          "active": false
+          "active": true
         }
       ]
     },
@@ -2384,6 +2557,101 @@
       ]
     },
     {
+      "selector": ".nvx-treatment-process__steps",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 916,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 922,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-trust-badges__inner",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 925,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 929,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 930,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-ba-teaser__inner",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 933,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 940,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-ba-teaser__cta",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 938,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 941,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-kicker",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 809,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-kicker",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1557,
+          "active": true
+        }
+      ]
+    },
+    {
       "selector": ".nvx-cta-banner__inner",
       "locations": [
         {
@@ -2674,86 +2942,11 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 1,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 64,
-          "active": false
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-editorial-hero",
-      "locations": [
-        {
-          "file": "nvx-hero-blackout.css",
-          "line": 1,
-          "active": false
-        },
-        {
-          "file": "nvx-hero-blackout.css",
-          "line": 64,
-          "active": false
-        },
-        {
-          "file": "nvx-mobile-hero-hierarchy.css",
-          "line": 39,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 1,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 30,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 235,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 247,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-page-hero",
-      "locations": [
-        {
-          "file": "nvx-hero-blackout.css",
-          "line": 1,
-          "active": false
-        },
-        {
-          "file": "nvx-hero-blackout.css",
-          "line": 64,
-          "active": false
-        },
-        {
-          "file": "nvx-mobile-hero-hierarchy.css",
-          "line": 39,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 1,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 235,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 247,
           "active": true
         }
       ]
@@ -2764,12 +2957,12 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 1,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 64,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-mobile-hero-hierarchy.css",
@@ -2799,7 +2992,7 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 1,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-posts.css",
@@ -2819,12 +3012,12 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 14,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 37,
-          "active": false
+          "active": true
         }
       ]
     },
@@ -2834,12 +3027,12 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 14,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 37,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
@@ -2859,12 +3052,12 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 14,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 37,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
@@ -2879,12 +3072,27 @@
       ]
     },
     {
+      "selector": ".nvx-hero__media )",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 14,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 37,
+          "active": true
+        }
+      ]
+    },
+    {
       "selector": ".nvx-hero .nvx-brand-hero__media",
       "locations": [
         {
           "file": "nvx-hero-blackout.css",
           "line": 25,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
@@ -2899,12 +3107,12 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 53,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 60,
-          "active": false
+          "active": true
         }
       ]
     },
@@ -4781,6 +4989,3565 @@
   ],
   "activeDuplicateSelectors": [
     {
+      "selector": ":where( .nvx-brand-hero__copy",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".entry-content",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 214,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 229,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 274,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 310,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 306,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 63,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-body--lead",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 214,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1862,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-card__n",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 324,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1924,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-icon",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 339,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1867,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-section",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 196,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1811,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-section__inner",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1826,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-hero",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 305,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-hero__meta",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 124,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 370,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-prose h2",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 455,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 463,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-prose h3",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 455,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 474,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-prose h4",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 455,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 483,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-prose th",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 586,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 595,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-btn:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 200,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-card",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 815,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 823,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-faq-accordion summary:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 435,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 445,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 247,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 39,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 257,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 48,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-brand-actions",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 272,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 84,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-brand-btn",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 280,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 98,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-brand-hero__title",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 264,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 73,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-brand-meta",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 193,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 210,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-btn",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 280,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 98,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-button",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 280,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 98,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-home-hero-ctas",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 272,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 84,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy h1",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 264,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 73,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__media img",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 74,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__media video",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 74,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-kicker",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 5,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-meta )",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-page",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 15,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 2,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-section",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 196,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 163,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-section--tight",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 208,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 165,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-btn--primary",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 67,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-btn--secondary",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 91,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-btn:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 200,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-button:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 200,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-card",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 251,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 287,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-catalog",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 196,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 525,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-catalog__inner",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 533,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-catalog-close",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinics-nav__link:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 905,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 906,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-co2-timeline__n",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 324,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1358,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-copy",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 6,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-cta-banner",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 1,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 247,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 39,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 30,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 64,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero__copy",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 257,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 48,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero__media",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 49,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 14,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 37,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero__media img",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 74,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero__media video",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 74,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-action",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-formula",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 885,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-kicker",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 809,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-section",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 196,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 791,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-section__inner",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 801,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-step__icon",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 339,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 938,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-step__n",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 324,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 954,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-faq summary:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 435,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 445,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-footer__legal",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-footer.css",
+          "line": 128,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 137,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-footer__legal-links",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-footer.css",
+          "line": 72,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 141,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-footer__links",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-footer.css",
+          "line": 72,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 79,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-footer__registrations",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-footer.css",
+          "line": 113,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 128,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 148,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-footer__tagline",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-footer.css",
+          "line": 113,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 118,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero .nvx-brand-hero__media",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 49,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 25,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__copy",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 257,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 48,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__copy",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 112,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__copy .nvx-page__cta",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 272,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 84,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__copy h1",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 264,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 73,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__media",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 49,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__media )",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 14,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 37,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__media img",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 74,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__media video",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 74,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero-context__description",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 125,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 130,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero-context__description",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 17,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 30,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero-context__lead",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 17,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 25,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-action-banner",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 325,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 176,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-action-banner-shell",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 320,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 167,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-cta-final-band",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-faq-editorial",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 348,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 223,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-faq-editorial summary:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 435,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 445,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-hero-content",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-hero-ctas",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 306,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 63,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-hero-video",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 42,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-video-frame",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 29,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 41,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hs-lead-form .hs-button",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 21,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 67,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 83,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hs-lead-form .hs-button:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 200,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hs-lead-form input[type=\"submit\"]",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 21,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 67,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 83,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hs-lead-form input[type=\"submit\"]:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 200,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hubspot-form-section .hs-button",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 21,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 67,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 83,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hubspot-form-section .hs-button:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 200,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hubspot-form-section .hs-button.primary",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 21,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 67,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 83,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hubspot-form-section input.hs-button",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 21,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 67,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 83,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hubspot-form-section input.hs-button:focus-visible",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 200,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hubspot-form-section textarea.hs-input",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 591,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 616,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-kicker",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-action",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-formula",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1714,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-icon",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 339,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1585,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-kicker",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1557,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-platform__n",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 324,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1648,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-section",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 196,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1539,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-section__inner",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1549,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-main",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 32,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 15,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-main :is( .nvx-page__content",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 274,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-main :is(.nvx-prose",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 214,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 229,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 310,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-media",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 228,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 25,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-media--body",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 232,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 25,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-medical-review__date",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-medical-review.css",
+          "line": 22,
+          "active": true
+        },
+        {
+          "file": "nvx-medical-review.css",
+          "line": 31,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-method-lead",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 214,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 384,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-mobile-nav__list .sub-menu",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-header.css",
+          "line": 279,
+          "active": true
+        },
+        {
+          "file": "nvx-header.css",
+          "line": 288,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 32,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 15,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 30,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page__content",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 15,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 25,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 35,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 214,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 229,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 310,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-body__inner",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 247,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 39,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 64,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__copy",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 257,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 48,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__copy",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 126,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 112,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__copy h1",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 264,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 73,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__media",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 49,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 14,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 37,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__media img",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 74,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__media video",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 74,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-prose",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 274,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 340,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-valoracion-modal__fallback",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 764,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 772,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-values",
+      "context": "@media (max-width: 980px)",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 808,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 502,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "article.nvx-page > .nvx-page-hero",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 44,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 25,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "body.nvx-hero-blackout :is( .nvx-brand-hero",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 64,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "body.nvx-hero-blackout :is( .nvx-brand-hero__media",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 14,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 37,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "ol",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 75,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 214,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "picture",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 39,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 25,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "section.nvx-hero",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 247,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 39,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "section.nvx-hero",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 64,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "section.nvx-hero.nvx-hero-section",
+      "context": "@media (max-width: 680px)",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 247,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 39,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "ul",
+      "context": "global",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 75,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 214,
+          "active": true
+        }
+      ]
+    }
+  ],
+  "fontFamilies": [
+    {
+      "file": "nvx-base.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 20
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 57
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 199
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 209
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 2
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 3
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 4
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 5
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 6
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 8
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 18
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 19
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 20
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 51
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 295
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 298
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 321
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 333
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 387
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 469
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 544
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 584
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 611
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 744
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 753
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 768
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 794
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 905
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 915
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 916
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 919
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 920
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 921
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 927
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 928
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 936
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 937
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 938
+    },
+    {
+      "file": "nvx-fonts.css",
+      "property": "font-family",
+      "value": "'Bodoni Moda'",
+      "line": 5
+    },
+    {
+      "file": "nvx-fonts.css",
+      "property": "font-family",
+      "value": "'Bodoni Moda'",
+      "line": 15
+    },
+    {
+      "file": "nvx-fonts.css",
+      "property": "font-family",
+      "value": "'Manrope'",
+      "line": 25
+    },
+    {
+      "file": "nvx-fonts.css",
+      "property": "font-family",
+      "value": "'Manrope'",
+      "line": 35
+    },
+    {
+      "file": "nvx-fonts.css",
+      "property": "font-family",
+      "value": "'Manrope'",
+      "line": 45
+    },
+    {
+      "file": "nvx-fonts.css",
+      "property": "font-family",
+      "value": "'Manrope'",
+      "line": 55
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 26
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 37
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 65
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 92
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 122
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 133
+    },
+    {
+      "file": "nvx-header.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 52
+    },
+    {
+      "file": "nvx-header.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 60
+    },
+    {
+      "file": "nvx-header.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 102
+    },
+    {
+      "file": "nvx-header.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 205
+    },
+    {
+      "file": "nvx-header.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 298
+    },
+    {
+      "file": "nvx-header.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 306
+    },
+    {
+      "file": "nvx-medical-review.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 16
+    },
+    {
+      "file": "nvx-medical-review.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 28
+    },
+    {
+      "file": "nvx-mobile-hero-hierarchy.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 23
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 214
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 370
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 380
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 411
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 420
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 438
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 448
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 488
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 496
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 552
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 562
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 573
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 589
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 623
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 633
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 644
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 659
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 702
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 724
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 813
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 824
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 833
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 859
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 876
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 899
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 908
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 928
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 960
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 970
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 986
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 999
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1011
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1082
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1094
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1103
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1317
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1325
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1363
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1373
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1398
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1416
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1455
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1561
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1572
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1581
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1616
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1652
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1662
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1673
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1696
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1727
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1753
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1838
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1849
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1858
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1897
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1927
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 1937
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1951
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1965
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 1976
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 2006
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 2023
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 2048
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 2075
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 48
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 60
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 133
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 168
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 189
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 207
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 245
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 270
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 294
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 334
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 354
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 366
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 379
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 437
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 469
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 478
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 487
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 653
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 673
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 709
+    },
+    {
+      "file": "nvx-posts.css",
+      "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 718
+    },
+    {
+      "file": "nvx-site-layout.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 316
+    }
+  ],
+  "nonCanonicalFonts": [],
+  "hardcodedSpacing": [
+    {
+      "file": "nvx-brand-home.css",
+      "property": "padding",
+      "value": "18px 40px",
+      "line": 79
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "gap",
+      "value": "4px",
+      "line": 93
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "padding",
+      "value": "18px 32px",
+      "line": 123
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "gap",
+      "value": "12px",
+      "line": 137
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "margin-left",
+      "value": "8px",
+      "line": 157
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "gap",
+      "value": "12px",
+      "line": 238
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "padding",
+      "value": "16px 24px",
+      "line": 246
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "margin-top",
+      "value": "64px",
+      "line": 257
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "padding-inline",
+      "value": "1.5rem",
+      "line": 257
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "padding",
+      "value": "14px 20px",
+      "line": 266
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "margin-top",
+      "value": "-6px",
+      "line": 420
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "margin-top",
+      "value": "-2px",
+      "line": 433
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "margin",
+      "value": "0 auto 0.75em",
+      "line": 542
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "gap",
+      "value": "18px",
+      "line": 568
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "gap",
+      "value": "8px",
+      "line": 576
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "padding",
+      "value": "14px 18px",
+      "line": 606
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "margin-top",
+      "value": "8px",
+      "line": 639
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "margin",
+      "value": "18px 0 0",
+      "line": 652
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "margin",
+      "value": "22px auto 0",
+      "line": 662
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "padding-right",
+      "value": "2rem",
+      "line": 739
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "padding-right",
+      "value": "2rem",
+      "line": 743
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "padding",
+      "value": "1.25rem 1.25rem 1.75rem",
+      "line": 788
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "padding",
+      "value": "24px 20px",
+      "line": 839
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "gap",
+      "value": "12px",
+      "line": 19
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "margin",
+      "value": "0 0 14px",
+      "line": 25
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "margin",
+      "value": "0 0 18px",
+      "line": 64
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "gap",
+      "value": "11px",
+      "line": 83
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "padding-block",
+      "value": "24px 30px",
+      "line": 111
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "gap",
+      "value": "8px 18px",
+      "line": 147
+    },
+    {
+      "file": "nvx-header.css",
+      "property": "margin-block",
+      "value": "5px",
+      "line": 249
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "margin",
+      "value": "0 0 0.65em",
+      "line": 189
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "margin-top",
+      "value": "0.75rem",
+      "line": 213
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "margin-top",
+      "value": "1.5rem",
+      "line": 228
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "gap",
+      "value": "14px",
+      "line": 318
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "gap",
+      "value": "16px",
+      "line": 340
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "margin",
+      "value": "0 0 4px",
+      "line": 437
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "gap",
+      "value": "12px",
+      "line": 466
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "gap",
+      "value": "8px",
+      "line": 657
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "padding-left",
+      "value": "1.25rem",
+      "line": 1009
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "margin",
+      "value": "0 0 0.5rem",
+      "line": 1093
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "margin",
+      "value": "-1px",
+      "line": 1336
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "padding",
+      "value": "0.75rem 1rem",
+      "line": 1424
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "padding",
+      "value": "0.75rem 1rem",
+      "line": 1471
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "padding",
+      "value": "0 0.35em 0.15em",
+      "line": 1742
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "padding",
+      "value": "0.15em 0.35em 0",
+      "line": 1747
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "margin",
+      "value": "0 0.15em",
+      "line": 2060
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "padding",
+      "value": "0 0.35em 0.15em",
+      "line": 2064
+    },
+    {
+      "file": "nvx-patterns-editorial.css",
+      "property": "padding",
+      "value": "0.15em 0.35em 0",
+      "line": 2069
+    },
+    {
+      "file": "nvx-site-layout.css",
+      "property": "margin-top",
+      "value": "96px",
+      "line": 148
+    }
+  ],
+  "hardcodedColors": [],
+  "iconColors": [],
+  "inconsistentIconColors": [],
+  "inlineStyles": [
+    {
+      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-clinics-hub.php",
+      "line": 764
+    },
+    {
+      "file": "wp-content\\themes\\nuvanx-medical\\templates\\template-contact.php",
+      "line": 131
+    },
+    {
+      "file": "wp-content\\themes\\nuvanx-medical\\templates\\template-contact.php",
+      "line": 189
+    }
+  ],
+  "embeddedStyleTags": [],
+  "conditionalRuntimeStylesheets": [
+    "nvx-hero-blackout.css"
+  ],
+  "conditionalRuntimeReferenceEvidence": [
+    {
+      "file": "nvx-hero-blackout.css",
+      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+    }
+  ],
+  "activeDuplicateSelectorsRaw": [
+    {
       "selector": ".nvx-main",
       "locations": [
         {
@@ -4811,6 +8578,21 @@
         {
           "file": "nvx-site-layout.css",
           "line": 30,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "picture",
+      "locations": [
+        {
+          "file": "nvx-base.css",
+          "line": 39,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 25,
           "active": true
         }
       ]
@@ -5005,12 +8787,12 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 218,
+          "line": 227,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 245,
+          "line": 254,
           "active": true
         }
       ]
@@ -5040,7 +8822,7 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 246,
+          "line": 255,
           "active": true
         }
       ]
@@ -5055,7 +8837,7 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 225,
+          "line": 234,
           "active": true
         },
         {
@@ -5075,7 +8857,7 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 225,
+          "line": 234,
           "active": true
         },
         {
@@ -5100,12 +8882,12 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 232,
+          "line": 241,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 254,
+          "line": 263,
           "active": true
         }
       ]
@@ -5115,12 +8897,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 94,
+          "line": 98,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 259,
+          "line": 268,
           "active": true
         }
       ]
@@ -5130,17 +8912,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 113,
+          "line": 117,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 232,
+          "line": 241,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 254,
+          "line": 263,
           "active": true
         }
       ]
@@ -5150,7 +8932,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 154,
+          "line": 163,
           "active": true
         },
         {
@@ -5170,7 +8952,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 156,
+          "line": 165,
           "active": true
         },
         {
@@ -5190,12 +8972,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 158,
+          "line": 167,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 247,
+          "line": 256,
           "active": true
         },
         {
@@ -5215,17 +8997,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 167,
+          "line": 176,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 219,
+          "line": 228,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 248,
+          "line": 257,
           "active": true
         },
         {
@@ -5250,12 +9032,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 186,
+          "line": 195,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 221,
+          "line": 230,
           "active": true
         }
       ]
@@ -5265,17 +9047,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 205,
+          "line": 214,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 220,
+          "line": 229,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 249,
+          "line": 258,
           "active": true
         }
       ]
@@ -5285,7 +9067,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 214,
+          "line": 223,
           "active": true
         },
         {
@@ -5300,7 +9082,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 239,
+          "line": 248,
           "active": true
         },
         {
@@ -5315,12 +9097,152 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 239,
+          "line": 248,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
           "line": 517,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 64,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 39,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 30,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 235,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 247,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 64,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 39,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 235,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 247,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-kicker",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 5,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-kicker",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-meta )",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 270,
           "active": true
         }
       ]
@@ -5649,6 +9571,11 @@
           "active": true
         },
         {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
           "file": "nvx-footer.css",
           "line": 1,
           "active": true
@@ -5667,6 +9594,11 @@
           "file": "nvx-components.css",
           "line": 153,
           "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
         }
       ]
     },
@@ -5681,6 +9613,11 @@
         {
           "file": "nvx-components.css",
           "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
           "active": true
         }
       ]
@@ -5697,6 +9634,11 @@
           "file": "nvx-components.css",
           "line": 153,
           "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
         }
       ]
     },
@@ -5711,6 +9653,11 @@
         {
           "file": "nvx-components.css",
           "line": 153,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 943,
           "active": true
         }
       ]
@@ -5956,6 +9903,36 @@
         {
           "file": "nvx-components.css",
           "line": 882,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-media",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 228,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 25,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-media--body",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 232,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 25,
           "active": true
         }
       ]
@@ -6631,6 +10608,101 @@
       ]
     },
     {
+      "selector": ".nvx-treatment-process__steps",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 916,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 922,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-trust-badges__inner",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 925,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 929,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 930,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-ba-teaser__inner",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 933,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 940,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-ba-teaser__cta",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 938,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 941,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-kicker",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 809,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-kicker",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 943,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1557,
+          "active": true
+        }
+      ]
+    },
+    {
       "selector": ".nvx-cta-banner__inner",
       "locations": [
         {
@@ -6916,76 +10988,16 @@
       ]
     },
     {
-      "selector": ".nvx-editorial-hero",
+      "selector": "body.nvx-hero-blackout :is( .nvx-brand-hero",
       "locations": [
         {
           "file": "nvx-hero-blackout.css",
           "line": 1,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 64,
-          "active": false
-        },
-        {
-          "file": "nvx-mobile-hero-hierarchy.css",
-          "line": 39,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 1,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 30,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 235,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 247,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-page-hero",
-      "locations": [
-        {
-          "file": "nvx-hero-blackout.css",
-          "line": 1,
-          "active": false
-        },
-        {
-          "file": "nvx-hero-blackout.css",
-          "line": 64,
-          "active": false
-        },
-        {
-          "file": "nvx-mobile-hero-hierarchy.css",
-          "line": 39,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 1,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 235,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 247,
           "active": true
         }
       ]
@@ -6996,12 +11008,12 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 1,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 64,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-mobile-hero-hierarchy.css",
@@ -7031,7 +11043,7 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 1,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-posts.css",
@@ -7046,17 +11058,32 @@
       ]
     },
     {
+      "selector": "body.nvx-hero-blackout :is( .nvx-brand-hero__media",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 14,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 37,
+          "active": true
+        }
+      ]
+    },
+    {
       "selector": ".nvx-editorial-hero__media",
       "locations": [
         {
           "file": "nvx-hero-blackout.css",
           "line": 14,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 37,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
@@ -7076,12 +11103,12 @@
         {
           "file": "nvx-hero-blackout.css",
           "line": 14,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-hero-blackout.css",
           "line": 37,
-          "active": false
+          "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
@@ -7091,6 +11118,51 @@
         {
           "file": "nvx-site-layout.css",
           "line": 246,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__media )",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 14,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 37,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero .nvx-brand-hero__media",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 25,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 49,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-hero__copy",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 53,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 60,
           "active": true
         }
       ]
@@ -8966,1137 +13038,2035 @@
       ]
     }
   ],
-  "fontFamilies": [
-    {
-      "file": "nvx-base.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 20
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 57
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 190
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 200
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 2
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 3
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 4
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 5
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 6
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 8
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 18
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 19
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 20
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 51
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 295
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 298
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 321
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 333
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 387
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 469
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 544
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 584
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 611
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 744
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 753
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 768
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 794
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 905
-    },
-    {
-      "file": "nvx-fonts.css",
-      "property": "font-family",
-      "value": "'Bodoni Moda'",
-      "line": 5
-    },
-    {
-      "file": "nvx-fonts.css",
-      "property": "font-family",
-      "value": "'Bodoni Moda'",
-      "line": 15
-    },
-    {
-      "file": "nvx-fonts.css",
-      "property": "font-family",
-      "value": "'Manrope'",
-      "line": 25
-    },
-    {
-      "file": "nvx-fonts.css",
-      "property": "font-family",
-      "value": "'Manrope'",
-      "line": 35
-    },
-    {
-      "file": "nvx-fonts.css",
-      "property": "font-family",
-      "value": "'Manrope'",
-      "line": 45
-    },
-    {
-      "file": "nvx-fonts.css",
-      "property": "font-family",
-      "value": "'Manrope'",
-      "line": 55
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 26
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 37
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 65
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 92
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 122
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 133
-    },
-    {
-      "file": "nvx-header.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 52
-    },
-    {
-      "file": "nvx-header.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 60
-    },
-    {
-      "file": "nvx-header.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 102
-    },
-    {
-      "file": "nvx-header.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 205
-    },
-    {
-      "file": "nvx-header.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 298
-    },
-    {
-      "file": "nvx-header.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 306
-    },
-    {
-      "file": "nvx-medical-review.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 16
-    },
-    {
-      "file": "nvx-medical-review.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 28
-    },
-    {
-      "file": "nvx-mobile-hero-hierarchy.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 23
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 214
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 370
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 380
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 411
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 420
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 438
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 448
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 488
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 496
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 552
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 562
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 573
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 589
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 623
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 633
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 644
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 659
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 702
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 724
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 813
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 824
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 833
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 859
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 876
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 899
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 908
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 928
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 960
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 970
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 986
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 999
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1011
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1082
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1094
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1103
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1317
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1325
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1363
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1373
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1398
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1416
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1455
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1561
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1572
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1581
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1616
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1652
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1662
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1673
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1696
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1727
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1753
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1838
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1849
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1858
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1897
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1927
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 1937
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1951
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1965
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1976
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 2006
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 2023
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 2048
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 2075
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 48
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 60
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 133
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 168
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 189
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 207
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 245
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 270
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 294
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 334
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 354
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 366
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 379
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 437
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 469
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 478
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 487
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 653
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 673
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 709
-    },
-    {
-      "file": "nvx-posts.css",
-      "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 718
-    },
-    {
-      "file": "nvx-site-layout.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 316
+  "responsiveOverrideSelectors": [
+    {
+      "selector": ".nvx-home-hero-stage",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 3,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 227,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 254,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-hero-stage .nvx-brand-hero__title",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 52,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 255,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group .btn-primary",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 73,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 241,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 263,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group .btn-primary .sub-text",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 98,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 268,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group .btn-secondary",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 117,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 241,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 263,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-action-banner__title",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 195,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 230,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-action-banner__actions",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 214,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 229,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 258,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-hero-ctas .nvx-brand-btn",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 248,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 517,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-hero-ctas .nvx-button",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 248,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 517,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-button",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 21,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 873,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-btn",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 21,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 873,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-btn",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 21,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 873,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-button:hover",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 882,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-btn:hover",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 882,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-btn:hover",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 882,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hubspot-form-section .hs-button:hover",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 882,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hubspot-form-section input.hs-button:hover",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 882,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hs-lead-form .hs-button:hover",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 882,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hs-lead-form input[type=\"submit\"]:hover",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 179,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 882,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-actions",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 234,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 826,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-grid--2 > .nvx-brand-card",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 242,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 800,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 815,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-grid--2 > .nvx-card",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 242,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 800,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 815,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-grid--3 > .nvx-brand-card",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 800,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 815,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-grid--3 > .nvx-card",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 800,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 815,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-grid--3 > .nvx-brand-card--team",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 246,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 800,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 815,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-faq details",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 356,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 500,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-faq-accordion details",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 356,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 500,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-faq-editorial details",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 356,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 500,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-faq summary",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 377,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 491,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-faq-accordion summary",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 377,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 491,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-faq-editorial summary",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 377,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 491,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-faq summary::after",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 408,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 500,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-faq-accordion summary::after",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 408,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 500,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-home-faq-editorial summary::after",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 408,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 500,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hs-native-box",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 519,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 836,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-valoracion-modal",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 675,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 779,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-valoracion-modal__panel",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 697,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 783,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-value",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 845,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 336,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-value__icon",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 852,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 347,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-value__title",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 858,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 365,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-value__body",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 865,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 375,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinics-nav__inner",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 903,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 910,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinics-nav__link",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 904,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 910,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-clinic-location",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 907,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 910,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-treatment-process__steps",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 916,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 922,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-trust-badges__inner",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 925,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 929,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 930,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-ba-teaser__inner",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 933,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 940,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-ba-teaser__cta",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 938,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 941,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-cta-banner__inner",
+      "locations": [
+        {
+          "file": "nvx-footer.css",
+          "line": 5,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 162,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-footer__inner",
+      "locations": [
+        {
+          "file": "nvx-footer.css",
+          "line": 48,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 157,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 162,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-footer__bottom",
+      "locations": [
+        {
+          "file": "nvx-footer.css",
+          "line": 102,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 162,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-footer__legal-nav",
+      "locations": [
+        {
+          "file": "nvx-footer.css",
+          "line": 139,
+          "active": true
+        },
+        {
+          "file": "nvx-footer.css",
+          "line": 167,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "#nvx-header",
+      "locations": [
+        {
+          "file": "nvx-header.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-header.css",
+          "line": 325,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "body.admin-bar #nvx-header",
+      "locations": [
+        {
+          "file": "nvx-header.css",
+          "line": 12,
+          "active": true
+        },
+        {
+          "file": "nvx-header.css",
+          "line": 322,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-header__inner",
+      "locations": [
+        {
+          "file": "nvx-header.css",
+          "line": 16,
+          "active": true
+        },
+        {
+          "file": "nvx-header.css",
+          "line": 325,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-logo__img",
+      "locations": [
+        {
+          "file": "nvx-header.css",
+          "line": 40,
+          "active": true
+        },
+        {
+          "file": "nvx-header.css",
+          "line": 330,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".custom-logo",
+      "locations": [
+        {
+          "file": "nvx-header.css",
+          "line": 40,
+          "active": true
+        },
+        {
+          "file": "nvx-header.css",
+          "line": 330,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-nav",
+      "locations": [
+        {
+          "file": "nvx-header.css",
+          "line": 66,
+          "active": true
+        },
+        {
+          "file": "nvx-header.css",
+          "line": 311,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hamburger",
+      "locations": [
+        {
+          "file": "nvx-header.css",
+          "line": 233,
+          "active": true
+        },
+        {
+          "file": "nvx-header.css",
+          "line": 314,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-mobile-nav",
+      "locations": [
+        {
+          "file": "nvx-header.css",
+          "line": 251,
+          "active": true
+        },
+        {
+          "file": "nvx-header.css",
+          "line": 336,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-hero__copy",
+      "locations": [
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 53,
+          "active": true
+        },
+        {
+          "file": "nvx-hero-blackout.css",
+          "line": 60,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero-context",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 1,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 117,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero-context__inner",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 9,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 121,
+          "active": true
+        },
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 151,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-brand-kicker",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 59,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 165,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-eyebrow",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 59,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 165,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-brand-hero__copy .nvx-kicker",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 59,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 165,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero__copy .nvx-brand-kicker",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 59,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 165,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-editorial-hero__copy .nvx-eyebrow",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 59,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 165,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__copy .nvx-kicker",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 59,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 165,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__copy .nvx-eyebrow",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 59,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 165,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__copy .nvx-kicker",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 59,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 165,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__copy .nvx-brand-actions",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 84,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 219,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-hero__copy .nvx-page__cta",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 84,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 219,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-hero__copy .nvx-brand-actions",
+      "locations": [
+        {
+          "file": "nvx-mobile-hero-hierarchy.css",
+          "line": 84,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 219,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-cta-pair",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 306,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 509,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-values__cta",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 306,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 509,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-method__cta",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 306,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 509,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-method-columns",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 456,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 502,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-catalog-category",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 577,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 736,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-catalog-grid",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 595,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 732,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-catalog-card",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 601,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 743,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 753,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-catalog-card__cta",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 652,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 753,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-catalog-card__cta span",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 667,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 753,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-catalog-card:hover .nvx-catalog-card__cta span",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 677,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 758,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-logo-cloud__list",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 709,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 746,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-diagnosis__grid",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 841,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1499,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-effects",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 912,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1499,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-endolift-process-grid",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 932,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1499,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-equipo-profile-layout",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1145,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1281,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-equipo-portrait",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1174,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1285,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": "figure.nvx-equipo-portrait",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1174,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1285,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-equipo-staff-grid",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1211,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1293,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1300,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-hero.nvx-brand-hero",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1509,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1762,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-hero",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1509,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1762,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-focus-grid",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1600,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1776,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-laser-platform",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1626,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1776,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-hero.nvx-brand-hero",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1786,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 2082,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-hero",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1786,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 2082,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-focus-grid",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1882,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 2096,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-card-grid",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1901,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 2096,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-aes-regen__grid",
+      "locations": [
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 1989,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 2096,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-archive__hero",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 16,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 756,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-archive__body",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 64,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 760,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-card",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 76,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 737,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 765,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 799,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-card__media img",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 102,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 799,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-card__date::before",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 157,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 769,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-card__reading::before",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 157,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 769,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-hero__copy",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 320,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 740,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-hero--text-only .nvx-blog-hero__copy",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 325,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 749,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-hero__title",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 349,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 745,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-hero__media",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 404,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 740,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-article__stage",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 422,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 760,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-article__shell",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 428,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 776,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-prose table",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 575,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 791,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-prose .wp-block-table table",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 575,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 791,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-nav",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 684,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 783,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-blog-nav__item--next",
+      "locations": [
+        {
+          "file": "nvx-posts.css",
+          "line": 701,
+          "active": true
+        },
+        {
+          "file": "nvx-posts.css",
+          "line": 787,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-section",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 196,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 389,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page-body",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 196,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 389,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".wp-block-group.nvx-section",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 196,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 389,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-section--tight",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 208,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 395,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-grid-12",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 344,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 400,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-span-4",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 350,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 379,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 404,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-span-5",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 352,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 379,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 404,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-span-6",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 353,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 379,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 404,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-span-7",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 354,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 379,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 404,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-span-8",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 355,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 379,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 404,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-span-12",
+      "locations": [
+        {
+          "file": "nvx-site-layout.css",
+          "line": 356,
+          "active": true
+        },
+        {
+          "file": "nvx-site-layout.css",
+          "line": 404,
+          "active": true
+        }
+      ]
     }
   ],
-  "nonCanonicalFonts": [],
-  "hardcodedSpacing": [
-    {
-      "file": "nvx-brand-home.css",
-      "property": "padding",
-      "value": "18px 40px",
-      "line": 79
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "gap",
-      "value": "4px",
-      "line": 89
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "padding",
-      "value": "18px 32px",
-      "line": 119
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "gap",
-      "value": "12px",
-      "line": 128
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "margin-left",
-      "value": "8px",
-      "line": 148
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "gap",
-      "value": "12px",
-      "line": 229
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "padding",
-      "value": "16px 24px",
-      "line": 237
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "margin-top",
-      "value": "64px",
-      "line": 248
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "padding-inline",
-      "value": "1.5rem",
-      "line": 248
-    },
-    {
-      "file": "nvx-brand-home.css",
-      "property": "padding",
-      "value": "14px 20px",
-      "line": 257
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "margin-top",
-      "value": "-6px",
-      "line": 420
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "margin-top",
-      "value": "-2px",
-      "line": 433
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "margin",
-      "value": "0 auto 0.75em",
-      "line": 542
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "gap",
-      "value": "18px",
-      "line": 568
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "gap",
-      "value": "8px",
-      "line": 576
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "padding",
-      "value": "14px 18px",
-      "line": 606
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "margin-top",
-      "value": "8px",
-      "line": 639
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "margin",
-      "value": "18px 0 0",
-      "line": 652
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "margin",
-      "value": "22px auto 0",
-      "line": 662
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "padding-right",
-      "value": "2rem",
-      "line": 739
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "padding-right",
-      "value": "2rem",
-      "line": 743
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "padding",
-      "value": "1.25rem 1.25rem 1.75rem",
-      "line": 788
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "padding",
-      "value": "24px 20px",
-      "line": 839
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "gap",
-      "value": "12px",
-      "line": 19
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "margin",
-      "value": "0 0 14px",
-      "line": 25
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "margin",
-      "value": "0 0 18px",
-      "line": 64
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "gap",
-      "value": "11px",
-      "line": 83
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "padding-block",
-      "value": "24px 30px",
-      "line": 111
-    },
-    {
-      "file": "nvx-footer.css",
-      "property": "gap",
-      "value": "8px 18px",
-      "line": 147
-    },
-    {
-      "file": "nvx-header.css",
-      "property": "margin-block",
-      "value": "5px",
-      "line": 249
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "margin",
-      "value": "0 0 0.65em",
-      "line": 189
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "margin-top",
-      "value": "0.75rem",
-      "line": 213
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "margin-top",
-      "value": "1.5rem",
-      "line": 228
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "gap",
-      "value": "14px",
-      "line": 318
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "gap",
-      "value": "16px",
-      "line": 340
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "margin",
-      "value": "0 0 4px",
-      "line": 437
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "gap",
-      "value": "12px",
-      "line": 466
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "gap",
-      "value": "8px",
-      "line": 657
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "padding-left",
-      "value": "1.25rem",
-      "line": 1009
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "margin",
-      "value": "0 0 0.5rem",
-      "line": 1093
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "margin",
-      "value": "-1px",
-      "line": 1336
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "padding",
-      "value": "0.75rem 1rem",
-      "line": 1424
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "padding",
-      "value": "0.75rem 1rem",
-      "line": 1471
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "padding",
-      "value": "0 0.35em 0.15em",
-      "line": 1742
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "padding",
-      "value": "0.15em 0.35em 0",
-      "line": 1747
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "margin",
-      "value": "0 0.15em",
-      "line": 2060
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "padding",
-      "value": "0 0.35em 0.15em",
-      "line": 2064
-    },
-    {
-      "file": "nvx-patterns-editorial.css",
-      "property": "padding",
-      "value": "0.15em 0.35em 0",
-      "line": 2069
-    },
-    {
-      "file": "nvx-site-layout.css",
-      "property": "margin-top",
-      "value": "96px",
-      "line": 148
-    }
-  ],
-  "hardcodedColors": [],
-  "iconColors": [],
-  "inconsistentIconColors": [],
-  "inlineStyles": [
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-clinics-hub.php",
-      "line": 764
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\templates\\template-contact.php",
-      "line": 131
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\templates\\template-contact.php",
-      "line": 189
-    }
-  ],
-  "embeddedStyleTags": []
+  "duplicateSelectorMethod": {
+    "actionable": "same normalized selector repeated inside the same at-rule/cascade context",
+    "raw": "same normalized selector repeated anywhere in the active stack"
+  }
 }

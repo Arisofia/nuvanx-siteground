@@ -1,0 +1,45 @@
+name: Conversion Events Gate
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-conversion-events.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
+      - 'scripts/analytics/**'
+      - '.github/workflows/conversion-events-gate.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-conversion-events.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
+      - 'scripts/analytics/**'
+      - '.github/workflows/conversion-events-gate.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: conversion-events-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Validate JavaScript syntax
+        run: node --check wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+
+      - name: Validate PHP syntax
+        run: php -l wp-content/themes/nuvanx-medical/inc/nvx-conversion-events.php
+
+      - name: Enforce privacy and event contracts
+        run: node scripts/analytics/test-conversion-events.mjs

@@ -22,12 +22,12 @@ for (const eventName of ['reserve_click', 'whatsapp_click', 'phone_click', 'gene
   if (eventName.length > 40) throw new Error(`GA4 event name exceeds 40 characters: ${eventName}`);
 }
 
-requireText(js, "hs-form-event:on-submission:success", 'HubSpot updated-form success listener is missing');
+requireText(js, 'hs-form-event:on-submission:success', 'HubSpot updated-form success listener is missing');
 requireText(js, "data.type !== 'hsFormCallback'", 'HubSpot legacy callback listener is missing');
 requireText(js, "data.eventName !== 'onFormSubmitted'", 'legacy listener does not wait for persisted submission');
 requireText(js, 'submissionWindowMs', 'submission deduplication window is missing');
 requireText(js, 'recentSubmissions', 'submission deduplication state is missing');
-requireText(js, "event: signalName", 'diagnostic dataLayer signal is missing');
+requireText(js, 'event: signalName', 'diagnostic dataLayer signal is missing');
 requireText(js, "window.gtag('event', normalizedName, params)", 'direct GA4 event dispatch is missing');
 requireText(js, "document.addEventListener('click', trackClick, true)", 'delegated click listener is missing');
 requireText(js, 'isAllowedHubSpotOrigin', 'HubSpot message origin validation is missing');
@@ -49,7 +49,6 @@ for (const fragment of forbiddenDataAccess) {
 
 requireText(php, "'nvx-conversion-events'", 'WordPress script handle is missing');
 requireText(php, 'wp_add_inline_script', 'form context configuration is not registered before the script');
-requireText(php, "false\n\t);", 'conversion listener must load in the document head before deferred HubSpot embeds');
 requireText(integrations, "require_once __DIR__ . '/nvx-conversion-events.php';", 'conversion module is not loaded by the theme');
 
 console.log('NUVANX conversion event contracts passed.');

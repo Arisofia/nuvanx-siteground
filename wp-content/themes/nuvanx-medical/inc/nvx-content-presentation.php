@@ -666,13 +666,13 @@ function nvx_home_wellaging_strip_markup(): string {
 	$html  = '<section class="nvx-brand-section nvx-home-wellaging" id="nvx-home-wellaging" aria-labelledby="nvx-home-wellaging-title" data-nvx-home-block="wellaging">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Well-aging', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-home-wellaging-title" class="nvx-brand-title">' . esc_html__( 'Más allá de la estética: medicina del envejecimiento saludable', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 id="nvx-home-wellaging-title" class="nvx-brand-title">' . esc_html__( 'Medicina del envejecimiento: salud desde el interior', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-		'Integramos well-aging con base en geriatría preventiva y longevidad — un enfoque que los centros solo cosméticos no pueden ofrecer. Tratar la piel es también tratar el tejido que envejece, con médicos formados en fisiología del envejecimiento, no solo en aparatología.',
+		'No nos limitamos a la apariencia superficial. Unimos el cuidado de la piel con la geriatría preventiva y el estudio de la longevidad, un enfoque clínico global que va mucho más allá de la estética convencional. Entendemos que mejorar la piel implica tratar el tejido profundo que envejece. Por eso, nuestro equipo está formado en la fisiología médica del cuerpo humano, no solo en el manejo de máquinas.',
 		'nuvanx-medical'
 	) . '</p>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-		'Láser, inductores de colágeno y protocolos regenerativos se diseñan con esa visión: resultados naturales hoy y tejido más saludable a largo plazo, siempre tras indicación médica.',
+		'Diseñamos cada tratamiento de láser, inductores de colágeno y medicina regenerativa bajo un estricto criterio médico. El objetivo es doble: lograr resultados naturales de forma inmediata y asegurar un tejido mucho más saludable y fuerte a largo plazo.',
 		'nuvanx-medical'
 	) . '</p>';
 	$html .= '</div></section>';

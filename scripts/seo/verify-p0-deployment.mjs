@@ -13,7 +13,7 @@ if (expectedDeploySha && !/^[a-f0-9]{40}$/.test(expectedDeploySha)) {
   throw new Error(`EXPECTED_DEPLOY_SHA must be a full 40-character SHA; received: ${expectedDeploySha}`);
 }
 
-const routes = [
+const coreRoutes = [
   { path: '/', h1: 'Medicina estética láser en Madrid', copy: 'Equipo médico hospitalario. Tecnología certificada. Resultados naturales.', schema: ['MedicalClinic', 'Physician'] },
   { path: '/contacto/', h1: 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya', schema: ['MedicalClinic'], requireOgImage: true },
   { path: '/medicina-estetica-chamberi/', h1: 'Medicina estética en Chamberí con dirección médica', schema: ['MedicalClinic'] },
@@ -23,6 +23,18 @@ const routes = [
   { path: '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', h1: 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', schema: ['MedicalProcedure', 'Service'] },
   { path: '/exion-btl/', h1: 'EXION® BTL en Madrid', schema: ['Service'] },
 ];
+
+// These pages are deliberately published only in the noindex review environment
+// until their medical review is approved. Production verification must not expect
+// them while they remain drafts there.
+const stagingOnlyRoutes = [
+  { path: '/labios-acido-hialuronico-madrid/', h1: 'Ácido hialurónico en labios en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
+  { path: '/rinomodelacion-sin-cirugia-madrid/', h1: 'Rinomodelación con ácido hialurónico en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
+  { path: '/ojeras-surco-lagrimal-madrid/', h1: 'Tratamiento de ojeras y surco lagrimal en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
+  { path: '/bioestimuladores-colageno-madrid/', h1: 'Bioestimuladores de colágeno en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
+];
+
+const routes = expectNoindex ? [...coreRoutes, ...stagingOnlyRoutes] : coreRoutes;
 
 const forbiddenClaims = ['3.500+', '3,500+', '4.8/5', '4,8/5', '89% Repite tratamiento', '89% repite tratamiento'];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -129,6 +141,10 @@ async function inspectPage(browser, route) {
 
   const trustBadgeCount = await page.locator('.nvx-trust-badges').count().catch(() => 0);
   if (trustBadgeCount > 0) errors.push(`unverified trust badge blocks present: ${trustBadgeCount}`);
+
+  const blackoutClassCount = await page.locator('body.nvx-hero-blackout').count().catch(() => 0);
+  if (expectNoindex && blackoutClassCount > 0) errors.push('staging hero blackout class is still active');
+
   for (const claim of forbiddenClaims) if (result.bodyText.includes(claim)) errors.push(`forbidden claim present: ${claim}`);
 
   await context.close();
@@ -145,6 +161,7 @@ async function inspectPage(browser, route) {
     deploySha,
     deployShaCount,
     trustBadgeCount,
+    blackoutClassCount,
     errors,
   };
 }
@@ -155,7 +172,7 @@ for (const route of routes) pages.push(await inspectPage(browser, route));
 await browser.close();
 
 for (const page of pages) {
-  console.log(`${page.errors.length ? 'FAIL' : 'PASS'} ${page.path} · HTTP ${page.status} · H1 ${page.h1} · robots ${page.robots} · schema ${page.schemaCount} · deploy ${page.deploySha || 'missing'} · trust badges ${page.trustBadgeCount}`);
+  console.log(`${page.errors.length ? 'FAIL' : 'PASS'} ${page.path} · HTTP ${page.status} · H1 ${page.h1} · robots ${page.robots} · schema ${page.schemaCount} · deploy ${page.deploySha || 'missing'} · trust badges ${page.trustBadgeCount} · blackout ${page.blackoutClassCount}`);
   for (const error of page.errors) console.error(`  - ${error}`);
 }
 

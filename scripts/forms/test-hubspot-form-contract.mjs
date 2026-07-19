@@ -35,9 +35,9 @@ requireText(contactTemplate, 'id="nvx-contacto-hubspot-form"', 'contact mount co
 requireText(conversionPhp, "'valoracion' => defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' )", 'conversion config does not expose valoración form context');
 requireText(conversionPhp, "'contacto'   => defined( 'NVX_CONTACTO_HS_FORM_ID' )", 'conversion config does not expose contacto form context');
 requireText(conversionJs, "emit('generate_lead'", 'successful HubSpot submissions do not emit generate_lead');
-requireText(conversionJs, 'form_context: formContext(formId)', 'lead event does not classify the form context');
+requireText(conversionJs, "form_context: formContext(formId)", 'lead event does not classify the form context');
 requireText(conversionJs, "data.eventName !== 'onFormSubmitted'", 'legacy HubSpot listener fires before persisted submission');
-requireText(conversionJs, 'hs-form-event:on-submission:success', 'current HubSpot success event listener is missing');
+requireText(conversionJs, "hs-form-event:on-submission:success", 'current HubSpot success event listener is missing');
 
 requireText(stagingWorkflow, 'nuvanx-contacto-hubspot-form.php', 'staging deploy does not synchronize the contact MU plugin');
 requireText(stagingWorkflow, 'nuvanx-valoracion-native-hubspot-form.php', 'staging deploy does not synchronize the valoración MU plugin');

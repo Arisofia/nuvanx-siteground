@@ -15,14 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** Normalize one public clinical text string without changing HTML structure. */
 function nvx_clinical_language_text( string $text ): string {
 	$exact = array(
-		'Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.' => 'La reincorporación depende de la zona y del protocolo; el edema o la inflamación pueden durar entre 3 y 7 días.',
+		'Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.' => 'La reincorporación, el edema y la inflamación se explican según zona, protocolo y respuesta individual; no existe un plazo idéntico para todas las personas.',
 		'Alternativa de radiofrecuencia a sistemas con microagujas cuando la valoración lo indica.' => 'Cada aplicador se selecciona según el diagnóstico, la profundidad indicada y el período de recuperación aceptable.',
 		'Regeneración endógena facial con RF monopolar + ultrasonido a microtemperaturas controladas. Alternativa a HIFU de alto pico cuando el diagnóstico lo indica.' => 'Aplicador no invasivo de radiofrecuencia y ultrasonido para protocolos de calidad cutánea. Los parámetros y el número de sesiones se definen según diagnóstico y tolerancia.',
 	);
 
 	$exact[ 'Sin down' . 'time significativo.' ] = 'El período de recuperación depende del protocolo.';
 	$exact[ 'Sin down' . 'time.' ] = 'El período de recuperación depende del protocolo.';
-	$exact[ 'Plan de sesiones y down' . 'time realistas.' ] = 'El plan de sesiones y el período de recuperación se explican según el protocolo.';
+	$exact[ 'Plan de sesiones y down' . 'time realistas.' ] = 'El plan de sesiones y el período de recuperación se explican según el protocolo y la respuesta individual.';
 
 	$text = str_ireplace( array_keys( $exact ), array_values( $exact ), $text );
 	$text = preg_replace( '/\bdowntime\b/iu', 'período de recuperación', $text ) ?? $text;

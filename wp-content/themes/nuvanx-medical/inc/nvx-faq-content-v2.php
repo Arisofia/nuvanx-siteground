@@ -36,13 +36,13 @@ function nvx_home_faq_v2_catalog(): array {
 		),
 		array(
 			'id' => 'tecnologia-medica',
-			'q'  => '¿Qué tecnología láser usa NUVANX y está certificada?',
-			'a'  => 'Sí. Utilizamos equipos con marcado CE médico (entre ellos DEKA Motus AZ+, Endolift® a 1470 nm, láser CO₂ fraccionado y EXION® BTL), autorizados en el marco de centros sanitarios de la Comunidad de Madrid.',
+			'q'  => '¿Cómo se elige la tecnología en NUVANX?',
+			'a'  => 'La tecnología y sus parámetros se eligen tras la exploración, según la zona, el objetivo, los antecedentes y la indicación médica. No se recomienda una plataforma por tendencia o por una promesa comercial.',
 		),
 		array(
 			'id' => 'exion-btl',
-			'q'  => '¿Qué es EXION® BTL?',
-			'a'  => 'EXION® BTL es una plataforma con modalidades Face, Body y Fractional RF. La indicación depende de la anatomía, la zona, el objetivo clínico y el período de recuperación aceptable.',
+			'q'  => '¿Qué ocurre si se valora una plataforma como EXION® BTL?',
+			'a'  => 'La disponibilidad, el aplicador y la indicación se confirman en consulta. El equipo explica qué alternativa puede tener sentido para el caso y los cuidados asociados antes de que decidas.',
 		),
 		array(
 			'id' => 'tratamiento-adecuado',

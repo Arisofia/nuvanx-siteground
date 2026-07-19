@@ -89,8 +89,8 @@ function nvx_home_copy_transform( string $content ): string {
 		$copy = $root;
 	}
 
-	$lead_text        = 'Equipo médico hospitalario. Tecnología certificada. Resultados naturales.';
-	$description_text = 'Valoración 15–30 min. Endolift®, CO₂ y EXION® BTL en Chamberí (CS20144) y Salamanca–Goya (CS20073). Diagnóstico primero.';
+	$lead_text        = 'Diagnóstico médico. Indicación individual. Seguimiento clínico.';
+	$description_text = 'Valoración médica presencial en Chamberí (CS20144) y Salamanca–Goya (CS20073). La tecnología y el plan se deciden tras la exploración.';
 	$lead             = null;
 	$description      = null;
 

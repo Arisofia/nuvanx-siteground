@@ -63,6 +63,14 @@ function nvx_seo_metadata_catalog(): array {
 			'title'       => 'Equipo Médico NUVANX Madrid | Criterio Clínico',
 			'description' => 'Equipo médico NUVANX en Madrid: colegiación, experiencia y áreas clínicas de los profesionales responsables de valoración y seguimiento.',
 		),
+		'por_que_nuvanx' => array(
+			'title'       => 'Por qué NUVANX | Criterio médico en Madrid',
+			'description' => 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.',
+		),
+		'inversion'    => array(
+			'title'       => 'Inversión en medicina estética | NUVANX Madrid',
+			'description' => 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.',
+		),
 		'valoracion'   => array(
 			'title'       => 'Consulta médica estética en Madrid | NUVANX',
 			'description' => 'Solicita una consulta médica estética en Chamberí o Salamanca–Goya. Diagnóstico, indicación y presupuesto individualizado.',
@@ -166,6 +174,8 @@ function nvx_seo_current_metadata_key(): ?string {
 		'/medicina-estetica-chamberi/' => 'chamberi',
 		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
 		'/equipo-medico/' => 'equipo',
+		'/por-que-nuvanx/' => 'por_que_nuvanx',
+		'/inversion-medicina-estetica/' => 'inversion',
 		'/madrid/valoracion/' => 'valoracion',
 		'/blog/' => 'blog',
 	);

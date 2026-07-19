@@ -18,6 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit( 1 );
 }
 
+fwrite( STDERR, "RETIRED: this comparison publisher is quarantined and cannot create public content. Use the approved non-comparative editorial workflow.\n" );
+exit( 1 );
+
 // Prefer env flag: WP-CLI may treat --apply as an unknown global option.
 $apply = ( '1' === getenv( 'NVX_BLOG_APPLY' ) || 'yes' === getenv( 'NVX_BLOG_APPLY' ) );
 // Also accept $args if the host WP-CLI version forwards them.

@@ -52,6 +52,7 @@ jobs:
     environment: staging
     outputs:
       deployed_ref: ${{ steps.meta.outputs.deployed_ref }}
+      deployed_sha: ${{ steps.stamp.outputs.deployed_sha }}
       backup_dir: ${{ steps.promote.outputs.backup_dir }}
     steps:
       - name: Resolve deploy ref
@@ -66,6 +67,15 @@ jobs:
         with:
           ref: ${{ steps.meta.outputs.deployed_ref }}
           fetch-depth: 1
+
+      - name: Stamp exact deploy SHA into theme artifact
+        id: stamp
+        run: |
+          set -euo pipefail
+          chmod +x scripts/ops/stamp-deploy-sha.sh
+          DEPLOYED_SHA="$(scripts/ops/stamp-deploy-sha.sh '${{ env.THEME_REL }}')"
+          echo "deployed_sha=${DEPLOYED_SHA}" >> "$GITHUB_OUTPUT"
+          echo "Stamped exact deploy SHA: ${DEPLOYED_SHA}"
 
       - name: Validate secrets and canonical source
         env:
@@ -91,6 +101,8 @@ jobs:
             nvx-posts.css; do
             test -f "${{ env.THEME_REL }}/assets/css/$css_file" || { echo "ERROR: missing $css_file"; exit 1; }
           done
+          test -f "${{ env.THEME_REL }}/.nvx-deploy-sha"
+          [[ "$(cat '${{ env.THEME_REL }}/.nvx-deploy-sha')" == '${{ steps.stamp.outputs.deployed_sha }}' ]]
           grep -Fq 'nvx-patterns-editorial.css' "${{ env.THEME_REL }}/functions.php"
           test -f "${{ env.THEME_REL }}/inc/nvx-blog-system.php"
           find "${{ env.THEME_REL }}" -type f -name '*.php' -print0 | xargs -0 -n1 php -l
@@ -110,6 +122,7 @@ jobs:
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
           SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          EXPECTED_DEPLOY_SHA: ${{ steps.stamp.outputs.deployed_sha }}
         run: |
           set -euo pipefail
           DATE="$(date +%Y%m%d-%H%M%S)"
@@ -150,7 +163,7 @@ jobs:
             wp-content/mu-plugins/nuvanx-contacto-hubspot-form.php \
             "$SSH_USER@$SSH_HOST:${{ env.PROD_PATH }}/wp-content/mu-plugins/"
 
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "bash -e -s" <<'REMOTE'
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "EXPECTED_DEPLOY_SHA='$EXPECTED_DEPLOY_SHA' bash -e -s" <<'REMOTE'
             set -euo pipefail
             ROOT='/home/customer/www/nuvanx.com/public_html'
             THEME="$ROOT/wp-content/themes/nuvanx-medical"
@@ -163,6 +176,8 @@ jobs:
             [[ "$(wp option get siteurl)" == 'https://nuvanx.com' ]]
             [[ "$(wp option get home)" == 'https://nuvanx.com' ]]
             [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
+            test -f "$THEME/.nvx-deploy-sha"
+            [[ "$(cat "$THEME/.nvx-deploy-sha")" == "$EXPECTED_DEPLOY_SHA" ]]
             for css_file in \
               nvx-fonts.css \
               nvx-tokens.css \
@@ -186,6 +201,7 @@ jobs:
             rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
             rm -rf wp-content/cache/* 2>/dev/null || true
             wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+            echo "DEPLOY_SHA_OK $EXPECTED_DEPLOY_SHA"
             echo PROMOTE_PROD_OK
           REMOTE
 
@@ -196,7 +212,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
-          ref: ${{ needs.deploy-and-flush.outputs.deployed_ref }}
+          ref: ${{ needs.deploy-and-flush.outputs.deployed_sha }}
           fetch-depth: 1
 
       - name: Install pinned Chromium verification runtime
@@ -213,6 +229,7 @@ jobs:
           BASE_URL: ${{ env.PROD_BASE_URL }}
           EXPECT_NOINDEX: 'false'
           CANONICAL_HOST: nuvanx.com
+          EXPECTED_DEPLOY_SHA: ${{ needs.deploy-and-flush.outputs.deployed_sha }}
           VERIFY_RETRIES: '8'
         run: node scripts/seo/verify-p0-deployment.mjs
 

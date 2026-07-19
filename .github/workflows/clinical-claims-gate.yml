@@ -28,6 +28,13 @@ jobs:
           node --check scripts/clinical/audit-claims.mjs
           node scripts/clinical/audit-claims.mjs
 
+      - name: Validate P0 publication guard
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-p0-publication-guard.php
+          php -l scripts/seo/test-p0-publication-guard.php
+          php scripts/seo/test-p0-publication-guard.php
+
       - name: Publish claim summary
         if: always()
         run: |

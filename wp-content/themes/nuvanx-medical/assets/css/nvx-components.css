@@ -987,3 +987,23 @@ html body button.cmplz-blocked-content-notice {
   color: var(--nvx-light);
   background-color: var(--nvx-text-body);
 }
+
+body.nvx-hero-blackout :where(
+  .nvx-brand-hero,
+  .nvx-editorial-hero,
+  .nvx-page-hero,
+  section.nvx-hero
+) :is(
+  .nvx-eyebrow,
+  .nvx-brand-kicker,
+  .nvx-kicker,
+  .nvx-brand-meta
+),
+.nvx-aes-hero :is(
+  .nvx-eyebrow,
+  .nvx-brand-kicker,
+  .nvx-kicker,
+  .nvx-brand-meta
+) {
+  color: var(--nvx-text-on-dark-72);
+}

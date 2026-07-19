@@ -17,6 +17,11 @@ if ( function_exists( 'nvx_theme_show_cta_banner' ) && nvx_theme_show_cta_banner
 		echo nvx_site_closing_cta_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- markup helper escapes.
 	}
 }
+
+// Detail treatments are listed only when a corresponding WordPress page is public.
+$nvx_footer_published_treatments = function_exists( 'nvx_navigation_published_treatments' )
+	? nvx_navigation_published_treatments()
+	: array();
 ?>
 
 <footer class="nvx-footer" role="contentinfo">
@@ -26,7 +31,7 @@ if ( function_exists( 'nvx_theme_show_cta_banner' ) && nvx_theme_show_cta_banner
 			<a
 				href="<?php echo esc_url( home_url( '/' ) ); ?>"
 				class="nvx-logo"
-				aria-label="<?php esc_attr_e( 'NUVANX — Inicio', 'nuvanx-medical' ); ?>"
+				aria-label="<?php esc_attr_e( 'NUVANX MEDICINA ESTÉTICA LÁSER — Inicio', 'nuvanx-medical' ); ?>"
 			>
 				<span class="nvx-logo__wordmark">NUVANX</span>
 				<span class="nvx-logo__tagline">MEDICINA ESTÉTICA LÁSER</span>
@@ -63,29 +68,13 @@ if ( function_exists( 'nvx_theme_show_cta_banner' ) && nvx_theme_show_cta_banner
 					</a>
 				</li>
 
-				<li>
-					<a href="<?php echo esc_url( home_url( '/exion-face/' ) ); ?>">
-						EXION® Face
-					</a>
-				</li>
-
-				<li>
-					<a href="<?php echo esc_url( home_url( '/exion-body/' ) ); ?>">
-						EXION® Body
-					</a>
-				</li>
-
-				<li>
-					<a href="<?php echo esc_url( home_url( '/exion-fractional/' ) ); ?>">
-						EXION® Fractional
-					</a>
-				</li>
-
-				<li>
-					<a href="<?php echo esc_url( home_url( '/emfusion/' ) ); ?>">
-						EMFUSION®
-					</a>
-				</li>
+				<?php foreach ( $nvx_footer_published_treatments as $treatment ) : ?>
+					<li>
+						<a href="<?php echo esc_url( (string) $treatment['url'] ); ?>">
+							<?php echo esc_html( (string) $treatment['label'] ); ?>
+						</a>
+					</li>
+				<?php endforeach; ?>
 
 				<li>
 					<a href="<?php echo esc_url( home_url( '/btl-exilite-ipl-madrid/' ) ); ?>">

@@ -18,6 +18,10 @@ const routes = [
   { path: '/endolaser-corporal-grasa-localizada/', h1: 'Endoláser corporal en Madrid: grasa localizada y mejor contorno', schema: ['MedicalProcedure', 'Service'] },
   { path: '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', h1: 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', schema: ['MedicalProcedure', 'Service'] },
   { path: '/exion-btl/', h1: 'EXION® BTL en Madrid', schema: ['Service'] },
+  { path: '/labios-acido-hialuronico-madrid/', h1: 'Ácido hialurónico en labios en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
+  { path: '/rinomodelacion-sin-cirugia-madrid/', h1: 'Rinomodelación con ácido hialurónico en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
+  { path: '/ojeras-surco-lagrimal-madrid/', h1: 'Tratamiento de ojeras y surco lagrimal en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
+  { path: '/bioestimuladores-colageno-madrid/', h1: 'Bioestimuladores de colágeno en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
 ];
 
 const forbiddenClaims = ['3.500+', '3,500+', '4.8/5', '4,8/5', '89% Repite tratamiento', '89% repite tratamiento'];
@@ -115,6 +119,10 @@ async function inspectPage(browser, route) {
 
   const trustBadgeCount = await page.locator('.nvx-trust-badges').count().catch(() => 0);
   if (trustBadgeCount > 0) errors.push(`unverified trust badge blocks present: ${trustBadgeCount}`);
+
+  const blackoutClassCount = await page.locator('body.nvx-hero-blackout').count().catch(() => 0);
+  if (expectNoindex && blackoutClassCount > 0) errors.push('staging hero blackout class is still active');
+
   for (const claim of forbiddenClaims) if (result.bodyText.includes(claim)) errors.push(`forbidden claim present: ${claim}`);
 
   await context.close();
@@ -129,6 +137,7 @@ async function inspectPage(browser, route) {
     schemaTypes,
     ogImage,
     trustBadgeCount,
+    blackoutClassCount,
     errors,
   };
 }
@@ -139,7 +148,7 @@ for (const route of routes) pages.push(await inspectPage(browser, route));
 await browser.close();
 
 for (const page of pages) {
-  console.log(`${page.errors.length ? 'FAIL' : 'PASS'} ${page.path} · HTTP ${page.status} · H1 ${page.h1} · robots ${page.robots} · schema ${page.schemaCount} · trust badges ${page.trustBadgeCount}`);
+  console.log(`${page.errors.length ? 'FAIL' : 'PASS'} ${page.path} · HTTP ${page.status} · H1 ${page.h1} · robots ${page.robots} · schema ${page.schemaCount} · trust badges ${page.trustBadgeCount} · blackout ${page.blackoutClassCount}`);
   for (const error of page.errors) console.error(`  - ${error}`);
 }
 

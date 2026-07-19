@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NUVANX Contacto HubSpot Form
  * Description: Mounts the dedicated HubSpot contact form and enforces temporary SEO/claims publication safeguards.
- * Version: 2026.07.19.3
+ * Version: 2026.07.19.4
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -63,9 +63,28 @@ function nvx_remove_unverified_quantitative_trust_badges( string $content ): str
 add_filter( 'the_content', 'nvx_remove_unverified_quantitative_trust_badges', 22 );
 
 /**
+ * Canonical contact social image (path relative to uploads when possible).
+ *
+ * @return array{url:string,width:int,height:int,type:string,alt:string}
+ */
+function nvx_contacto_opengraph_image_meta(): array {
+	return array(
+		'url'    => home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' ),
+		'width'  => 1672,
+		'height' => 941,
+		'type'   => 'image/webp',
+		'alt'    => 'Consulta médica personalizada NUVANX Madrid',
+	);
+}
+
+/**
  * Add the contact-page Open Graph image through Yoast when its image presenter
  * is available. The final head-output safeguard below covers installations in
  * which the presenter still omits the Open Graph image tags.
+ *
+ * Yoast's Open_Graph\Images::add_image() expects an image *metadata array*
+ * (url/width/height/type), not a bare URL string. Passing a string fails or is
+ * ignored depending on Yoast version.
  *
  * @param mixed $image_container Yoast Open Graph image container.
  */
@@ -74,16 +93,38 @@ function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
 		return;
 	}
 
-	$image_url = home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' );
+	if ( ! is_object( $image_container ) ) {
+		return;
+	}
+
+	$meta      = nvx_contacto_opengraph_image_meta();
+	$image_url = $meta['url'];
 	$image_id  = function_exists( 'attachment_url_to_postid' ) ? (int) attachment_url_to_postid( $image_url ) : 0;
 
-	if ( $image_id > 0 && is_object( $image_container ) && method_exists( $image_container, 'add_image_by_id' ) ) {
+	if ( $image_id > 0 && method_exists( $image_container, 'add_image_by_id' ) ) {
 		$image_container->add_image_by_id( $image_id );
 		return;
 	}
 
-	if ( is_object( $image_container ) && method_exists( $image_container, 'add_image' ) ) {
-		$image_container->add_image( $image_url );
+	// Preferred URL API when present (Yoast variants expose this helper).
+	if ( method_exists( $image_container, 'add_image_by_url' ) ) {
+		$image_container->add_image_by_url( $image_url );
+		return;
+	}
+
+	// Raw path expects the structured image array, not a string.
+	if ( method_exists( $image_container, 'add_image' ) ) {
+		$image_container->add_image(
+			array(
+				'url'    => $image_url,
+				'width'  => (int) $meta['width'],
+				'height' => (int) $meta['height'],
+				'type'   => $meta['type'],
+				'alt'    => $meta['alt'],
+				// Some Yoast versions also read path as absolute filesystem or url key only.
+				'path'   => $image_url,
+			)
+		);
 	}
 }
 add_filter( 'wpseo_add_opengraph_images', 'nvx_contacto_add_yoast_opengraph_image', 100 );
@@ -116,12 +157,14 @@ function nvx_contacto_enforce_final_og_image( string $html ): string {
 		return $html;
 	}
 
-	$image_url = esc_url( home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' ) );
+	$meta      = nvx_contacto_opengraph_image_meta();
+	$image_url = esc_url( $meta['url'] );
 	$tags      = '<meta property="og:image" content="' . $image_url . '" />'
 		. '<meta property="og:image:secure_url" content="' . $image_url . '" />'
-		. '<meta property="og:image:width" content="1672" />'
-		. '<meta property="og:image:height" content="941" />'
-		. '<meta property="og:image:type" content="image/webp" />';
+		. '<meta property="og:image:width" content="' . (int) $meta['width'] . '" />'
+		. '<meta property="og:image:height" content="' . (int) $meta['height'] . '" />'
+		. '<meta property="og:image:type" content="' . esc_attr( $meta['type'] ) . '" />'
+		. '<meta property="og:image:alt" content="' . esc_attr( $meta['alt'] ) . '" />';
 
 	$with_tags = preg_replace( '/(?=<meta\b[^>]*\bname\s*=\s*(["\'])twitter:card\1)/i', $tags, $html, 1 );
 

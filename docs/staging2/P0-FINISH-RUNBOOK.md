@@ -9,9 +9,11 @@
 | Cookies 18/31 → 577 | `nvx-page-hygiene.php` |
 | Casos 2645 noindex until meta ready | `nvx-page-hygiene.php` |
 | Thank-you 78 noindex | `nvx-page-hygiene.php` |
-| Cleanup strips JSON-LD + Endolift/RF phrases | `cleanup-content-navigation.php` (this PR) |
-| No videoconsulta CTAs (láser / Endolift) | theme modules (this PR) |
-| Soften 224% HA claims in theme injects | content-presentation + catalog + laser (this PR) |
+| Cleanup strips JSON-LD + Endolift/RF phrases | `cleanup-content-navigation.php` |
+| No videoconsulta CTAs (láser / Endolift) | theme modules |
+| Soften 224% HA claims in theme injects | content-presentation + catalog + laser |
+| Marco normativo en Privacidad/Aviso Legal | `nvx-page-hygiene.php` · legal aprobado |
+| Perfil Dra. Cristina Márquez González | ICOMEM 282858861 + formación + Doctoralia en `nvx-page-hygiene.php` |
 
 ## Must run on staging2 after deploy
 
@@ -29,16 +31,16 @@ Actions → Staging2 content cleanup → mode: audit
 Actions → Staging2 content cleanup → mode: apply, confirm: CONFIRM-STAGING2
 ```
 
-### 3. Manual WP (cannot invent legal/credential text in repo)
+### 3. Content and credential verification
 
 | Page | Action |
 |------|--------|
 | Clínicas 1399 | Confirm Endolift card no longer says RF monopolar after apply |
 | Casos 2645 | Remove from menus; keep draft or noindex |
-| Contacto 14 | Remove HubSpot form if present; NAP + Maps only |
-| Valoración 2636 | Single form CTA; one phone secondary |
-| Privacidad 3 / Aviso 20 | Legal rewrite with counsel |
-| Equipo 1575 | Titulación + colegiación + alcance per person |
+| Contacto 14 | Validate the approved funnel contract in rendered HTML |
+| Valoración 2636 | Validate one primary form and the approved secondary contact route |
+| Privacidad 3 / Aviso 20 | Legal approved; confirm full text, permanent access and the RGPD/LSSI context note |
+| Equipo 1575 | Confirm Cristina: Dra. Cristina Márquez González · ICOMEM 282858861 · formation · Doctoralia; verify remaining people against documentary evidence |
 
 ### 4. Verify HTTP
 
@@ -46,9 +48,12 @@ Actions → Staging2 content cleanup → mode: apply, confirm: CONFIRM-STAGING2
 /clinicas-de-medicina-estetica-nuvanx/  → no "radiofrecuencia monopolar" near Endolift
 /btl-exilite-ipl-madrid/                → 1× application/ld+json, 0 in <main>
 /casos-de-pacientes/                    → robots noindex (until meta)
-/madrid/valoracion/                     → form primary
+/madrid/valoracion/                     → approved primary form contract
+/politica-privacidad/                   → approved legal text + RGPD/LSSI note
+/aviso-legal/                           → approved legal text + RGPD/LSSI note
+/equipo-medico/                         → Cristina 282858861 + formation + Doctoralia; no 282869501
 ```
 
 ## Production
 
-Still **NO GO** until legal pages, team credentials, and funnel split are done and QA passes on deployed staging2.
+Legal approval is no longer a blocker. Production remains **NO GO** until the rendered funnel contract, remaining team credentials and full staging2 QA pass for the exact deploy SHA.

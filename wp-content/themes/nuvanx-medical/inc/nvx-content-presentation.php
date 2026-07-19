@@ -649,10 +649,10 @@ function nvx_home_team_strip_markup(): string {
 	$html  = '<section class="nvx-brand-section nvx-home-team-strip" id="nvx-home-team" aria-labelledby="nvx-home-team-title" data-nvx-home-block="team">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Equipo médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Rigor médico basado en la práctica hospitalaria', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En NUVANX, nuestro enfoque clínico no es una promesa vacía; es el resultado directo de un equipo con experiencia en la medicina hospitalaria.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Experiencia clínica hospitalaria aplicada a la estética', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En NUVANX, la excelencia no es solo una promesa; es el resultado de un equipo médico con trayectoria directa en el entorno hospitalario.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html( $dr_jose ) . '<br><br>' . esc_html( $dra_ivon ) . '<br><br>' . esc_html( $dr_fabio ) . '</p>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Entendemos la medicina estética desde el rigor, la seguridad y el conocimiento científico.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Abordamos el cuidado de tu piel con total seguridad, garantizando resultados naturales y elegantes respaldados por la ciencia médica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-home-team-strip__cta"><a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $equipo ) . '">' . esc_html__( 'Conocer al equipo médico', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></section>';
 	return $html;

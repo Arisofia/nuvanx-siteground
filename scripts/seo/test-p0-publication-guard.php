@@ -37,7 +37,7 @@ $output = nvx_p0_sanitize_exion_content($input);
 $required = [
     'Presupuesto tras valoración médica',
     '¿Cuántas sesiones?',
-    'window.examplePrice = "300 €"',
+    'window.examplePrice',
 ];
 foreach ($required as $fragment) {
     if (strpos($output, $fragment) === false) {
@@ -46,7 +46,7 @@ foreach ($required as $fragment) {
     }
 }
 
-foreach (['300 €.</p>', '1.200,50 €', '450 EUR', '1 200 €', 'Morpheus8'] as $forbidden) {
+foreach (['300 €.</p>', '1.200,50 €', '450 EUR', '1 200 €', 'Morpheus8', 'window.examplePrice = "Presupuesto tras valoración médica"'] as $forbidden) {
     if (strpos($output, $forbidden) !== false) {
         fwrite(STDERR, "Forbidden EXION fragment remains: {$forbidden}\n");
         exit(1);

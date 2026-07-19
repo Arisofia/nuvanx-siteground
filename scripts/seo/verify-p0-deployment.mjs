@@ -23,11 +23,12 @@ const routes = [
   { path: '/endolaser-corporal-grasa-localizada/', h1: 'Endoláser corporal en Madrid: grasa localizada y mejor contorno', schema: ['MedicalProcedure', 'Service'] },
   { path: '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', h1: 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', schema: ['MedicalProcedure', 'Service'] },
   { path: '/exion-btl/', h1: 'EXION® BTL en Madrid', schema: ['Service'] },
-  { path: '/labios-acido-hialuronico-madrid/', h1: 'Ácido hialurónico en labios en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
-  { path: '/rinomodelacion-sin-cirugia-madrid/', h1: 'Rinomodelación con ácido hialurónico en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
-  { path: '/ojeras-surco-lagrimal-madrid/', h1: 'Tratamiento de ojeras y surco lagrimal en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
-  { path: '/bioestimuladores-colageno-madrid/', h1: 'Bioestimuladores de colágeno en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'] },
+  { path: '/labios-acido-hialuronico-madrid/', h1: 'Ácido hialurónico en labios en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'], stagingOnly: true },
+  { path: '/rinomodelacion-sin-cirugia-madrid/', h1: 'Rinomodelación con ácido hialurónico en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'], stagingOnly: true },
+  { path: '/ojeras-surco-lagrimal-madrid/', h1: 'Tratamiento de ojeras y surco lagrimal en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'], stagingOnly: true },
+  { path: '/bioestimuladores-colageno-madrid/', h1: 'Bioestimuladores de colágeno en Madrid', copy: 'Revisión médica pendiente.', schema: ['MedicalProcedure', 'Service', 'FAQPage'], stagingOnly: true },
 ];
+const activeRoutes = routes.filter((route) => !route.stagingOnly || expectNoindex);
 
 const forbiddenClaims = ['3.500+', '3,500+', '4.8/5', '4,8/5', '89% Repite tratamiento', '89% repite tratamiento'];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -157,7 +158,7 @@ async function inspectPage(browser, route) {
 
 const browser = await chromium.launch({ headless: true });
 const pages = [];
-for (const route of routes) pages.push(await inspectPage(browser, route));
+for (const route of activeRoutes) pages.push(await inspectPage(browser, route));
 await browser.close();
 
 for (const page of pages) {

@@ -27,6 +27,8 @@ requireMatch(staging, /ref: \$\{\{ needs\.deploy-and-flush\.outputs\.deployed_sh
 requireMatch(production, /description: Exact 40-character SHA already validated on staging2/, 'production input is not constrained to an approved SHA');
 requireMatch(production, /\[\[ "\$REF" =~ \^\[0-9a-f\]\{40\}\$ \]\]/, 'production full-SHA guard is missing');
 requireMatch(production, /Require the same SHA to be live on staging2/, 'production staging identity preflight is missing');
+requireMatch(production, /name: Checkout trusted promotion controls[\s\S]*?ref: \$\{\{ github\.sha \}\}[\s\S]*?path: trusted-control/, 'promotion gate must check out trusted workflow controls');
+requireMatch(production, /run: node trusted-control\/scripts\/seo\/verify-p0-deployment\.mjs/, 'promotion gate must execute the trusted verifier');
 requireMatch(production, /EXPECTED_DEPLOY_SHA: \$\{\{ inputs\.ref \}\}/, 'production staging preflight does not compare the requested SHA');
 requireMatch(production, /printf '%s\\n' "\$SHA" > "\$\{\{ env\.THEME_REL \}\}\/\.nvx-deploy-sha"/, 'production does not stamp the approved SHA');
 requireMatch(production, /EXPECTED_DEPLOY_SHA: \$\{\{ needs\.deploy-and-flush\.outputs\.deployed_sha \}\}/, 'production rendered SHA verification is missing');

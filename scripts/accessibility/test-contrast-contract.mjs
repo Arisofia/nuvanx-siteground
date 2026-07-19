@@ -79,8 +79,14 @@ for (const fragment of [
 ]) {
   if (!components.includes(fragment)) throw new Error(`missing contrast context: ${fragment}`);
 }
-if (!home.includes('.nvx-home-action-banner__kicker') || !home.includes('color:var(--nvx-text-on-dark-72);')) {
-  throw new Error('home dark action kicker is not explicitly protected');
+for (const fragment of [
+  '.nvx-home-action-banner__kicker',
+  'body.nvx-hero-blackout :where(',
+  '.nvx-aes-hero :is(',
+  '.nvx-brand-meta',
+  'color: var(--nvx-text-on-dark-72);',
+]) {
+  if (!home.includes(fragment)) throw new Error(`missing home/shared hero contrast context: ${fragment}`);
 }
 for (const fragment of [
   'node scripts/accessibility/test-contrast-contract.mjs',

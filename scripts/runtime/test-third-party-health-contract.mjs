@@ -37,7 +37,10 @@ for (const fragment of [
   requireText(verifier, fragment, `runtime verifier is missing: ${fragment}`);
 }
 for (const fragment of [
-  'video#nvx-home-hero-video.nvx-home-hero-video',
+  "page.locator('#nvx-home-hero-video')",
+  'idCount === 1',
+  "canonicalShape.tagName === 'VIDEO'",
+  "element.classList.contains('nvx-home-hero-video')",
   "attributes.preload === 'metadata'",
   "attributes.fetchpriority.toLowerCase() !== 'high'",
   "source[type=\"video/mp4\"]",
@@ -45,7 +48,13 @@ for (const fragment of [
   'home video poster is missing',
   'home poster must be first-party',
   'home MP4 must be first-party',
-  'mp4Status === 200 || mp4Status === 206',
+  'home video did not decode metadata',
+  'posterContentType',
+  'mp4ContentType',
+  '/^image\\//i.test(posterContentType)',
+  '/^video\\/mp4(?:;|$)/i.test(mp4ContentType)',
+  'report.fatal.push(failure.message)',
+  'fs.writeFileSync(outputPath',
   'EXPECTED_DEPLOY_SHA',
 ]) {
   requireText(mediaVerifier, fragment, `home media verifier is missing: ${fragment}`);

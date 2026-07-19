@@ -26,7 +26,7 @@ Contacto is an informational local route, not a lead form landing.
 Required rendered contract:
 
 - zero `.hs-form-frame` and `.hbspt-form`;
-- zero HubSpot iframes or embed scripts;
+- zero HubSpot form iframes or embed scripts;
 - zero valoración modal;
 - two clinic cards and two maps;
 - Chamberí and Goya telephone/WhatsApp routes;
@@ -49,12 +49,19 @@ Required rendered contract:
 
 ## Staging2 execution
 
-### 1. Confirm deploy
+### 1. Confirm deploy identity
 
 ```text
 Actions → Deploy theme to staging2 + flush cache
-Expected: exact master SHA in meta[name="nvx-deploy-sha"]
+
+Resolve the expected runtime SHA with:
+node scripts/analytics/resolve-staging-deploy-sha.mjs <master-or-workflow-SHA>
+
+Expected:
+meta[name="nvx-deploy-sha"] equals that resolved deploy-triggering SHA.
 ```
+
+Do not require the absolute `master` HEAD when later commits modify only tests or documentation and therefore do not trigger the Staging2 deployment workflow.
 
 ### 2. Persistent content cleanup
 
@@ -81,7 +88,7 @@ The cleanup must remove stored:
 
 | Route | Required evidence |
 |---|---|
-| `/contacto/` | no HubSpot; two NAP cards/maps; direct Valoración route |
+| `/contacto/` | no HubSpot form assets; two NAP cards/maps; direct Valoración route |
 | `/madrid/valoracion/` | one form, one script, one iframe, correct analytics event |
 | `/politica-privacidad/` | approved legal text + RGPD/LSSI note |
 | `/aviso-legal/` | approved legal text + RGPD/LSSI note |
@@ -94,7 +101,8 @@ Also require:
 - no first-party 4xx/5xx;
 - no unexpected console errors;
 - mobile and desktop smoke checks;
-- all required GitHub gates green for the exact SHA.
+- static gates green for repository HEAD;
+- rendered gates green against the resolved deploy-triggering SHA.
 
 ## Production decision
 
@@ -102,10 +110,10 @@ Legal approval is complete and is no longer a blocker.
 
 Production remains **NO GO** until:
 
-1. the exact SHA is live on Staging2;
+1. the resolved deploy-triggering SHA is live on Staging2;
 2. cleanup audit/apply/audit closes with zero deterministic changes;
 3. rendered funnel and analytics contracts pass;
 4. remaining published team credentials have documentary evidence;
 5. complete Staging2 QA passes.
 
-Production promotion must use the same immutable SHA validated on Staging2.
+Production promotion must use the same immutable runtime SHA validated on Staging2.

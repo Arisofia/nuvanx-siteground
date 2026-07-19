@@ -2,11 +2,9 @@
 /**
  * Staging2-only WordPress content/navigation cleanup.
  *
- * Usage from the staging2 WordPress root:
+ * Usage:
  *   wp eval-file /path/to/cleanup-content-navigation.php
  *   wp eval-file /path/to/cleanup-content-navigation.php --apply
- *
- * Dry-run is the default. The script refuses to run outside staging2.
  */
 
 declare(strict_types=1);
@@ -32,22 +30,20 @@ if (wp_get_theme()->get_stylesheet() !== 'nuvanx-medical') {
     exit(1);
 }
 
-// Shared Schema.org JSON-LD strip (same logic as runtime the_content filter).
 $jsonldHelper = get_template_directory() . '/inc/nvx-jsonld-content.php';
-if (!is_readable($jsonldHelper)) {
-    fwrite(STDERR, "ERROR: missing theme helper {$jsonldHelper}\n");
-    exit(1);
-}
-require_once $jsonldHelper;
+$p0Guard = get_template_directory() . '/inc/nvx-p0-publication-guard.php';
 
-/**
- * Deterministic clinical fix: Endolift® is laser-assisted subdermal treatment,
- * not monopolar radiofrequency. Replaces only known conflation phrases.
- */
+foreach ([$jsonldHelper, $p0Guard] as $requiredFile) {
+    if (!is_readable($requiredFile)) {
+        fwrite(STDERR, "ERROR: missing theme helper {$requiredFile}\n");
+        exit(1);
+    }
+    require_once $requiredFile;
+}
+
 function nvx_cleanup_endolift_rf_conflation(string $html): string
 {
     $replacements = [
-        // Card body seen on Clínicas hub under Endolift title.
         '/(Endolift®?\s*)Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu'
             => '$1Técnica láser subdérmica para firmeza facial, indicada tras valoración médica',
         '/Firmeza\s+Endolift®?\s+Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu'
@@ -65,12 +61,86 @@ function nvx_cleanup_endolift_rf_conflation(string $html): string
     return $html;
 }
 
-/** @return string */
-function nvx_cleanup_html(string $html): string
+function nvx_cleanup_is_exion_record(int $postId, string $slug): bool
+{
+    return $postId === 2906 || in_array(
+        trim($slug, '/'),
+        ['exion-btl', 'exion-face', 'exion-body', 'exion-fractional'],
+        true
+    );
+}
+
+function nvx_cleanup_funnel_dom(DOMDocument $document, DOMXPath $xpath, DOMElement $root, int $postId, string $slug): void
+{
+    $isContact = $postId === 14 || in_array($slug, ['contacto', 'contact'], true);
+    $isAssessment = $postId === 2636 || $slug === 'valoracion';
+
+    if (!$isContact && !$isAssessment) {
+        return;
+    }
+
+    $remove = [];
+
+    foreach ($xpath->query('.//script[contains(@src,"hsforms.net") or contains(@src,"hubspot")]', $root) ?: [] as $node) {
+        $remove[] = $node;
+    }
+    foreach ($xpath->query('.//iframe[contains(@src,"hsforms") or contains(@src,"hubspot")]', $root) ?: [] as $node) {
+        $remove[] = $node;
+    }
+    foreach ($xpath->query(
+        './/*[contains(concat(" ",normalize-space(@class)," ")," hs-form-frame ") or contains(concat(" ",normalize-space(@class)," ")," hbspt-form ")]',
+        $root
+    ) ?: [] as $node) {
+        $remove[] = $node;
+    }
+
+    if ($isContact) {
+        foreach ($xpath->query(
+            './/*[@id="nvx-contacto-hubspot-form"] | .//section[contains(concat(" ",normalize-space(@class)," ")," nvx-section--contact-form ")]',
+            $root
+        ) ?: [] as $node) {
+            $remove[] = $node;
+        }
+    }
+
+    $seen = [];
+    foreach ($remove as $node) {
+        if (!$node instanceof DOMNode || !$node->parentNode) {
+            continue;
+        }
+        $hash = spl_object_hash($node);
+        if (isset($seen[$hash])) {
+            continue;
+        }
+        $seen[$hash] = true;
+        $node->parentNode->removeChild($node);
+    }
+
+    if ($isAssessment) {
+        $mounts = [];
+        foreach ($xpath->query('.//*[@id="nvx-hubspot-native-form"]', $root) ?: [] as $mount) {
+            $mounts[] = $mount;
+        }
+
+        foreach ($mounts as $index => $mount) {
+            if (!$mount instanceof DOMElement || !$mount->parentNode) {
+                continue;
+            }
+            if ($index > 0) {
+                $mount->parentNode->removeChild($mount);
+                continue;
+            }
+            while ($mount->firstChild) {
+                $mount->removeChild($mount->firstChild);
+            }
+        }
+    }
+}
+
+function nvx_cleanup_html(string $html, int $postId, string $slug): string
 {
     $html = str_replace('https://nuvanx.com', 'https://staging2.nuvanx.com', $html);
     $html = str_replace('características induales', 'características individuales', $html);
-    // Brand / copy hygiene (legacy CMS strings).
     $html = str_replace(
         [
             'EXILITET',
@@ -79,6 +149,7 @@ function nvx_cleanup_html(string $html): string
             'Tu mejor versión empieza aquí',
             'enfoque médico premium',
             'Medicina estética en Goya con enfoque médico premium',
+            '282869501',
         ],
         [
             'EXILITE™',
@@ -87,12 +158,13 @@ function nvx_cleanup_html(string $html): string
             'Reserva 15–30 min de valoración médica',
             'misma dirección médica que Chamberí',
             'Medicina estética láser en Goya–Barrio de Salamanca (CS20073)',
+            '282858861',
         ],
         $html
     );
+
     $html = preg_replace('/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $html) ?? $html;
     $html = preg_replace('/<(ul|ol)\b[^>]*>\s*<\/\1>/iu', '', $html) ?? $html;
-    // Canonical schema is Yoast @graph only — shared helper (schema.org payloads only).
     $html = nvx_strip_embedded_jsonld_html($html);
     $html = nvx_cleanup_endolift_rf_conflation($html);
 
@@ -107,25 +179,28 @@ function nvx_cleanup_html(string $html): string
 
     if ($loaded) {
         $xpath = new DOMXPath($document);
-        foreach ($xpath->query('//*[@style]') ?: [] as $node) {
-            if ($node instanceof DOMElement) {
-                $node->removeAttribute('style');
-            }
-        }
-        // Second pass: DOM-held Schema.org ld+json (attribute order variants).
-        foreach ($xpath->query('//script[contains(translate(@type,"JSONLD","jsonld"),"ld+json")]') ?: [] as $node) {
-            if (!($node instanceof DOMElement) || !$node->parentNode) {
-                continue;
-            }
-            $body = (string) $node->textContent;
-            if (function_exists('nvx_jsonld_is_schema_org_payload') && !nvx_jsonld_is_schema_org_payload($body)) {
-                continue;
-            }
-            $node->parentNode->removeChild($node);
-        }
-
         $root = $document->getElementById('nvx-cleanup-root');
+
         if ($root instanceof DOMElement) {
+            foreach ($xpath->query('.//*[@style]', $root) ?: [] as $node) {
+                if ($node instanceof DOMElement) {
+                    $node->removeAttribute('style');
+                }
+            }
+
+            foreach ($xpath->query('.//script[contains(translate(@type,"JSONLD","jsonld"),"ld+json")]', $root) ?: [] as $node) {
+                if (!$node instanceof DOMElement || !$node->parentNode) {
+                    continue;
+                }
+                $body = (string) $node->textContent;
+                if (function_exists('nvx_jsonld_is_schema_org_payload') && !nvx_jsonld_is_schema_org_payload($body)) {
+                    continue;
+                }
+                $node->parentNode->removeChild($node);
+            }
+
+            nvx_cleanup_funnel_dom($document, $xpath, $root, $postId, $slug);
+
             $rebuilt = '';
             foreach ($root->childNodes as $child) {
                 $rebuilt .= $document->saveHTML($child);
@@ -136,14 +211,19 @@ function nvx_cleanup_html(string $html): string
 
     libxml_clear_errors();
     libxml_use_internal_errors($previous);
+
+    if (nvx_cleanup_is_exion_record($postId, $slug) && function_exists('nvx_p0_sanitize_exion_content')) {
+        $html = nvx_p0_sanitize_exion_content($html);
+    }
+
     return $html;
 }
 
-/** @return string */
 function nvx_cleanup_excerpt(string $excerpt, string $slug): string
 {
     $excerpt = str_replace('https://nuvanx.com', 'https://staging2.nuvanx.com', $excerpt);
     $excerpt = str_replace('características induales', 'características individuales', $excerpt);
+    $excerpt = str_replace('282869501', '282858861', $excerpt);
     $excerpt = preg_replace('/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $excerpt) ?? $excerpt;
 
     if (stripos($slug, 'goya') !== false || stripos($excerpt, 'goya') !== false) {
@@ -166,6 +246,7 @@ $changes = [];
 $semanticFindings = [];
 $virtualPattern = '/consulta\s+(virtual|online)|valoraci[oó]n\s+virtual|videoconsulta|consulta\s+por\s+v[ií]deo/iu';
 $endoliftRfPattern = '/(?=.*\bEndolift\b)(?=.*radiofrecuencia\s+monopolar)/isu';
+$hubspotResiduePattern = '/hsforms\.net|hs-form-frame|hbspt-form|nvx-contacto-hubspot-form/iu';
 
 foreach ($records as $post) {
     if (!$post instanceof WP_Post) {
@@ -189,18 +270,39 @@ foreach ($records as $post) {
     }
 
     if ($post->post_type !== 'nav_menu_item') {
-        $after['post_content'] = nvx_cleanup_html((string) $post->post_content);
+        $after['post_content'] = nvx_cleanup_html((string) $post->post_content, (int) $post->ID, (string) $post->post_name);
         $after['post_excerpt'] = nvx_cleanup_excerpt((string) $post->post_excerpt, (string) $post->post_name);
     }
 
-    $searchable = implode("\n", [$post->post_title, $post->post_excerpt, wp_strip_all_tags($post->post_content)]);
+    $afterSearchable = implode("\n", [
+        $after['post_title'],
+        $after['post_excerpt'],
+        wp_strip_all_tags((string) $after['post_content']),
+    ]);
     $flags = [];
-    if (preg_match($virtualPattern, $searchable) === 1) {
+
+    if (preg_match($virtualPattern, $afterSearchable) === 1) {
         $flags[] = 'UNAPPROVED_VIRTUAL_CONSULTATION_COPY';
     }
-    if (preg_match($endoliftRfPattern, $searchable) === 1) {
+    if (preg_match($endoliftRfPattern, $afterSearchable) === 1) {
         $flags[] = 'ENDOLIFT_RADIOFREQUENCY_CONFLATION';
     }
+    if (
+        ((int) $post->ID === 14 || in_array((string) $post->post_name, ['contacto', 'contact'], true))
+        && preg_match($hubspotResiduePattern, (string) $after['post_content']) === 1
+    ) {
+        $flags[] = 'CONTACT_HUBSPOT_RESIDUE';
+    }
+    if (
+        nvx_cleanup_is_exion_record((int) $post->ID, (string) $post->post_name)
+        && preg_match(nvx_p0_exion_price_pattern(), html_entity_decode(wp_strip_all_tags((string) $after['post_content']), ENT_QUOTES | ENT_HTML5, 'UTF-8')) === 1
+    ) {
+        $flags[] = 'EXION_EXPLICIT_PRICE';
+    }
+    if (strpos($afterSearchable, '282869501') !== false) {
+        $flags[] = 'OBSOLETE_CRISTINA_CREDENTIAL';
+    }
+
     if ($flags !== []) {
         $semanticFindings[] = [
             'ID' => $post->ID,
@@ -211,9 +313,11 @@ foreach ($records as $post) {
         ];
     }
 
-    if ($before['post_title'] !== $after['post_title']
+    if (
+        $before['post_title'] !== $after['post_title']
         || $before['post_excerpt'] !== $after['post_excerpt']
-        || $before['post_content'] !== $after['post_content']) {
+        || $before['post_content'] !== $after['post_content']
+    ) {
         $changes[] = ['before' => $before, 'after' => $after];
     }
 }

@@ -197,26 +197,6 @@ function nvx_treatments_logo_cloud_markup(): string {
 	return $html . '</ul></div></section>';
 }
 
-/**
- * Legacy page-local catalog close CTA.
- *
- * Always empty: the site footer owns the closing valoración band
- * (`nvx_site_closing_cta_markup` / footer.php). Callers that need to strip
- * old CMS close sections should replace with an empty string.
- *
- * @deprecated 2.0.0 Use site footer CTA only; do not inject page-local closers.
- * @return string Empty string.
- */
-function nvx_treatments_close_cta_markup(): string {
-	_doing_it_wrong(
-		__FUNCTION__,
-		'Page-local catalog closing CTAs are removed. Use the site footer nvx-cta-banner (nvx_site_closing_cta_markup).',
-		'2.0.0'
-	);
-
-	return '';
-}
-
 /** Replace legacy catalogue, collaborator, summary and CTA blocks. */
 function nvx_content_restructure_treatments_index( string $content ): string {
 	if ( ! nvx_content_is_treatments_index( $content ) ) {

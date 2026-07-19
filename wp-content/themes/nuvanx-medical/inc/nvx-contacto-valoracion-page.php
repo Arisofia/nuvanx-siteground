@@ -179,28 +179,6 @@ function nvx_valoracion_intro_markup(): string {
 }
 
 /**
- * Contacto page: NAP + link to valoración (no clinical form dump).
- */
-function nvx_contacto_page_markup(): string {
-	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
-		? nvx_cta_valoracion_url()
-		: home_url( '/madrid/valoracion/' );
-
-	$html  = '<div class="nvx-contacto-editorial nvx-endolift-editorial">';
-	$html .= '<section class="nvx-endolift-section" aria-labelledby="nvx-contacto-h2">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Contacto', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-contacto-h2" class="nvx-endolift-heading">' . esc_html__( 'Contacto directo y ubicaciones autorizadas por Sanidad', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Aquí encontrarás las direcciones, teléfonos y horarios de nuestras clínicas de Chamberí y Salamanca–Goya. También puedes solicitar una valoración médica para recibir orientación sobre tu caso.', 'nuvanx-medical' ) . '</p>';
-	$html .= nvx_contact_clinics_markup();
-	$html .= nvx_contact_privacy_disclaimer_markup();
-	$html .= '<p class="nvx-contacto-cta"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
-	$html .= '</div></section></div>';
-
-	return $html;
-}
-
-/**
  * Inject valoración intro without removing the HubSpot form.
  */
 function nvx_content_enhance_valoracion_page( string $content ): string {

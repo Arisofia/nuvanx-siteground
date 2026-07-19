@@ -166,12 +166,6 @@ function nvx_home_content_v2_catalog(): array {
 	);
 }
 
-/** Test whether a node has a class token. */
-function nvx_home_content_v2_has_class( DOMElement $node, string $class_name ): bool {
-	$classes = preg_split( '/\s+/', trim( $node->getAttribute( 'class' ) ) ) ?: array();
-	return in_array( $class_name, $classes, true );
-}
-
 /** Replace all child nodes with a plain text node. */
 function nvx_home_content_v2_set_text( DOMElement $node, string $text ): void {
 	while ( $node->firstChild ) {

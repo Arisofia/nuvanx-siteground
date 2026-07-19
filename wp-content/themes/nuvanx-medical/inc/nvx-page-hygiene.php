@@ -112,7 +112,7 @@ function nvx_exclude_quarantined_comparison_posts( WP_Query $query ): void {
 		return;
 	}
 
-	if ( ! $query->is_home() && ! $query->is_archive() && ! $query->is_search() ) {
+	if ( ! $query->is_home() && ! $query->is_archive() && ! $query->is_search() && ! $query->is_feed() ) {
 		return;
 	}
 

@@ -71,6 +71,10 @@ function nvx_seo_metadata_catalog(): array {
 			'title'       => 'Blog NUVANX | Medicina estética láser Madrid',
 			'description' => 'Artículos de NUVANX sobre Endolift®, EXION® BTL, IPL, well-aging y criterio médico en clínicas de Madrid.',
 		),
+		'postoperatorio' => array(
+			'title'       => 'Postoperatorio Lipo 360 Madrid Real | Cuánto Duele',
+			'description' => 'Descubre cuánto duele la liposucción 360 en Madrid. Conoce el postoperatorio real, tiempos de recuperación y cuándo vuelves a tu vida normal en NUVANX.',
+		),
 	);
 }
 
@@ -164,6 +168,7 @@ function nvx_seo_current_metadata_key(): ?string {
 		'/madrid/valoracion/' => 'valoracion',
 		'/valoracion/' => 'valoracion',
 		'/blog/' => 'blog',
+		'/postoperatorio/' => 'postoperatorio',
 	);
 
 	return $map[ $path ] ?? null;

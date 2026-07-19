@@ -60,10 +60,10 @@ jobs:
             nvx-header.css
             nvx-footer.css
             nvx-brand-home.css
+            nvx-hero-blackout.css
             nvx-mobile-hero-hierarchy.css
             nvx-medical-review.css
             nvx-posts.css
-            nvx-hero-blackout.css
           )
 
           for file in "${required[@]}"; do
@@ -191,10 +191,10 @@ jobs:
             "$THEME/assets/css/nvx-header.css"
             "$THEME/assets/css/nvx-footer.css"
             "$THEME/assets/css/nvx-brand-home.css"
+            "$THEME/assets/css/nvx-hero-blackout.css"
             "$THEME/assets/css/nvx-mobile-hero-hierarchy.css"
             "$THEME/assets/css/nvx-medical-review.css"
             "$THEME/assets/css/nvx-posts.css"
-            "$THEME/assets/css/nvx-hero-blackout.css"
           )
 
           STRIPPED_DIR="$(mktemp -d)"
@@ -253,8 +253,8 @@ jobs:
             "$CSS/nvx-header.css" \
             "$CSS/nvx-footer.css" \
             "$CSS/nvx-brand-home.css" \
+            "$CSS/nvx-hero-blackout.css" \
             "$CSS/nvx-mobile-hero-hierarchy.css" \
             "$CSS/nvx-medical-review.css" \
-            "$CSS/nvx-posts.css" \
-            "$CSS/nvx-hero-blackout.css"
+            "$CSS/nvx-posts.css"
           test -s /tmp/nuvanx-canonical.css

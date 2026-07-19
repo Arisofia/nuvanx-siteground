@@ -40,7 +40,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   overflow:hidden;
   border-radius:0;
 }
-.nvx-home-video-frame,.nvx-home-hero-video{width:100%;height:100%}
+.nvx-home-video-frame{width:100%;height:100%}
 .nvx-home-hero-video{
   position:absolute;
   inset:0;
@@ -63,10 +63,102 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   color:var(--nvx-light);
 }
 
-.nvx-home-hero-ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+/* Hero CTA group — canonical wrapper for all hero conversion pairs.
+   Alias .nvx-home-hero-ctas kept for legacy markup not yet processed
+   by nvx_content_unify_ctas(). */
+.hero-cta-group,
+.nvx-home-hero-ctas{
+  display:flex;
+  flex-wrap:wrap;
+  gap:var(--nvx-space-2);
+  margin-top:var(--nvx-space-4);
+  align-items:center;
+}
+
+/* PRIMARY BUTTON (Reserve) */
+.hero-cta-group .btn-primary{
+  background-color:var(--nvx-ink);
+  color:var(--nvx-light);
+  padding:18px 40px;
+  font-size:16px;
+  font-weight:700;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+  position:relative;
+  overflow:hidden;
+  text-decoration:none;
+}
+.hero-cta-group .btn-primary span{display:block}
+.hero-cta-group .btn-primary .sub-text{
+  font-size:12px;
+  font-weight:500;
+  opacity:0.9;
+}
+.hero-cta-group .btn-primary:hover{
+  background-color:var(--nvx-charcoal);
+  transform:translateY(-3px);
+  box-shadow:var(--nvx-shadow-button);
+  color:var(--nvx-light);
+}
+.hero-cta-group .btn-primary:active{
+  transform:scale(0.98);
+  box-shadow:var(--nvx-shadow-min);
+}
+.hero-cta-group .btn-primary:focus-visible{
+  outline:3px solid var(--nvx-accent-muted);
+  outline-offset:2px;
+}
+
+/* SECONDARY BUTTON (WhatsApp) */
+.hero-cta-group .btn-secondary{
+  background-color:var(--nvx-surface-soft);
+  color:var(--nvx-ink);
+  padding:18px 32px;
+  font-size:16px;
+  font-weight:600;
+  border:2px solid var(--nvx-border-soft);
+  border-radius:6px;
+  cursor:pointer;
+  transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+}
+.hero-cta-group .btn-secondary:hover{
+  background-color:var(--nvx-form-stage-mid);
+  border-color:var(--nvx-accent-muted);
+  transform:translateY(-3px);
+  box-shadow:var(--nvx-shadow-min);
+  color:var(--nvx-ink);
+}
+.hero-cta-group .btn-secondary:active{transform:scale(0.98)}
+.hero-cta-group .icon-whatsapp{width:20px;height:20px;display:inline-block}
+
+/* LOADING STATE */
+.hero-cta-group .btn.loading{pointer-events:none;opacity:0.7}
+.hero-cta-group .btn.loading::after{
+  content:"";
+  display:inline-block;
+  width:16px;
+  height:16px;
+  margin-left:8px;
+  border:2px solid var(--nvx-border-on-dark-45);
+  border-top-color:var(--nvx-light);
+  border-radius:50%;
+  animation:spin-loader 0.8s linear infinite;
+}
+@keyframes spin-loader{to{transform:rotate(360deg)}}
+
 .nvx-brand-section{padding-block:var(--nvx-pad-section)}
 .nvx-brand-section--tight{padding-block:var(--nvx-pad-section-tight)}
-.nvx-home-invitation{margin-top:32px}
+.nvx-home-invitation{margin-top:var(--nvx-space-4)}
 
 /* Post-values action banner — Plata Pulida (charcoal card + pill CTAs)
    Card may be soft-radius; buttons MUST stay pill (--nvx-radius-button: 999px). */
@@ -87,7 +179,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   padding:clamp(36px,4.5vw,56px);
   border:1px solid rgba(196,200,206,.22);
   border-radius:var(--nvx-radius-card,clamp(24px,2.5vw,32px));
-  background:var(--nvx-charcoal,var(--nvx-charcoal));
+  background:var(--nvx-charcoal);
   color:var(--nvx-light);
 }
 .nvx-home-action-banner__copy{max-width:55ch}
@@ -129,22 +221,45 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 
 @media(max-width:980px){
   .nvx-home-hero-stage{--nvx-hero-h:min(88svh,860px);min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
-  
   .nvx-home-action-banner{grid-template-columns:1fr;gap:var(--nvx-space-4,32px)}
   .nvx-home-action-banner__actions{align-items:stretch;min-width:0}
   .nvx-home-action-banner__title{max-width:none}
-  
-  
 }
+
+@media(max-width:768px){
+  .hero-cta-group,
+  .nvx-home-hero-ctas{
+    flex-direction:column;
+    gap:12px;
+    width:100%;
+    align-items:stretch;
+  }
+  .hero-cta-group .btn-primary,
+  .hero-cta-group .btn-secondary{
+    width:100%;
+    justify-content:center;
+    padding:16px 24px;
+    font-size:15px;
+  }
+  .nvx-home-hero-ctas .nvx-brand-btn,
+  .nvx-home-hero-ctas .nvx-button,
+  .nvx-home-hero-ctas .nvx-btn{width:100%}
+}
+
 @media(max-width:680px){
   .nvx-home-hero-stage{--nvx-hero-h:100svh;min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
   .nvx-home-hero-stage .nvx-brand-hero__title{max-width:none;font-size:clamp(2.5rem,11vw,3.5rem)}
-  
-  .nvx-home-hero-ctas{flex-direction:column;align-items:stretch;width:100%}
-  .nvx-home-hero-ctas .nvx-brand-btn,.nvx-home-hero-ctas .nvx-button,.nvx-home-hero-ctas .nvx-btn{width:100%}
   .nvx-home-action-banner-shell{margin-top:64px;padding-inline:1.5rem}
   .nvx-home-action-banner{padding:var(--nvx-space-4,32px);border-radius:var(--nvx-radius-card,24px)}
   .nvx-home-action-banner__actions{width:100%}
   .nvx-home-action-banner .nvx-button{width:100%}
-  
+}
+
+@media(max-width:480px){
+  .hero-cta-group .btn-primary,
+  .hero-cta-group .btn-secondary{
+    padding:14px 20px;
+    font-size:14px;
+  }
+  .hero-cta-group .btn-primary .sub-text{font-size:11px}
 }

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const verifier = fs.readFileSync(path.join(root, 'scripts/runtime/verify-third-party-health.mjs'), 'utf8');
+const mediaVerifier = fs.readFileSync(path.join(root, 'scripts/runtime/verify-home-video-performance.mjs'), 'utf8');
 const known = JSON.parse(fs.readFileSync(path.join(root, 'qa/runtime/known-third-party-findings.json'), 'utf8'));
 const workflow = fs.readFileSync(path.join(root, '.github/workflows/third-party-runtime-gate.yml'), 'utf8');
 const requireText = (source, text, message) => { if (!source.includes(text)) throw new Error(message); };
@@ -35,6 +36,20 @@ for (const fragment of [
 ]) {
   requireText(verifier, fragment, `runtime verifier is missing: ${fragment}`);
 }
+for (const fragment of [
+  'video#nvx-home-hero-video.nvx-home-hero-video',
+  "attributes.preload === 'metadata'",
+  "attributes.fetchpriority.toLowerCase() !== 'high'",
+  "source[type=\"video/mp4\"]",
+  'attributes.autoplay && attributes.muted && attributes.loop && attributes.playsInline',
+  'home video poster is missing',
+  'home poster must be first-party',
+  'home MP4 must be first-party',
+  'mp4Status === 200 || mp4Status === 206',
+  'EXPECTED_DEPLOY_SHA',
+]) {
+  requireText(mediaVerifier, fragment, `home media verifier is missing: ${fragment}`);
+}
 if (known.issue !== 166) throw new Error('known runtime debt must reference issue #166');
 if (known.allowedPageError !== 'FacebookSignal is not defined') throw new Error('known page error must remain exact');
 if (known.maxPerRoute !== 1) throw new Error('known page error ceiling must remain exactly one per route');
@@ -46,16 +61,23 @@ if (!Number.isFinite(expiry) || expiry <= created || expiry - created > 14 * 864
 }
 for (const fragment of [
   'node --check scripts/runtime/verify-third-party-health.mjs',
+  'node --check scripts/runtime/verify-home-video-performance.mjs',
   'node scripts/runtime/test-third-party-health-contract.mjs',
+  'node scripts/runtime/verify-home-video-performance.mjs',
   'https://nuvanx.com',
   'https://staging2.nuvanx.com',
   'runtime-health-production.json',
   'runtime-health-staging.json',
+  'home-media-production.json',
+  'home-media-staging.json',
   'resolve-staging-deploy-sha.mjs',
+  'runtime_status != 0 || media_status != 0',
 ]) {
   requireText(workflow, fragment, `runtime workflow is missing: ${fragment}`);
 }
 for (const forbidden of ['password=', 'api_key', 'access_token', 'pixelId:']) {
-  if (verifier.includes(forbidden) || workflow.includes(forbidden)) throw new Error(`secret-like fragment is forbidden: ${forbidden}`);
+  if (verifier.includes(forbidden) || mediaVerifier.includes(forbidden) || workflow.includes(forbidden)) {
+    throw new Error(`secret-like fragment is forbidden: ${forbidden}`);
+  }
 }
-console.log('PASS: third-party runtime health contract');
+console.log('PASS: third-party and home media runtime contracts');

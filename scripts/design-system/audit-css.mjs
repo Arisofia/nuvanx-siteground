@@ -26,8 +26,15 @@ const ACTIVE_STACK = [
 	'nvx-mobile-hero-hierarchy.css',
 	'nvx-medical-review.css',
 	'nvx-posts.css',
-	'nvx-hero-blackout.css',
 ];
+
+const duplicateActiveStylesheets = ACTIVE_STACK.filter(
+	(file, index) => ACTIVE_STACK.indexOf(file) !== index,
+);
+
+if (duplicateActiveStylesheets.length) {
+	throw new Error(`Duplicate stylesheet(s) in ACTIVE_STACK: ${[...new Set(duplicateActiveStylesheets)].join(', ')}`);
+}
 
 const CANONICAL_FONT_TOKENS = new Set(['var(--nvx-serif)', 'var(--nvx-sans)']);
 const ALLOWED_ICON_COLORS = new Set([

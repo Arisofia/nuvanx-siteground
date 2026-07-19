@@ -22,15 +22,21 @@ permissions:
 jobs:
   full-site-crawl:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       BASE_URL: https://nuvanx.com/
       OUTPUT_DIR: artifacts/seo-evidence
       CRITICAL_ONLY: '0'
-      CRAWL_CONCURRENCY: '5'
+      CRAWL_DELAY_MS: '350'
     steps:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Install pinned Chromium crawl runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
 
       - name: Validate crawler syntax
         run: node --check scripts/seo/full-site-crawl.mjs

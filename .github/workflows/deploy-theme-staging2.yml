@@ -96,7 +96,7 @@ jobs:
           done
           grep -Fq -- '--nvx-light: #fcfbf8;' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
           grep -Fq -- '--nvx-surface-base: #f8f7f4;' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
-          grep -Fq -- '--nvx-accent-muted: #77736d;' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
+          grep -Fq -- '--nvx-accent-muted: #756f69;' "${{ env.THEME_REL }}/assets/css/nvx-tokens.css"
           grep -Fq 'nvx-site-layout.css' "${{ env.THEME_REL }}/functions.php"
           grep -Fq 'nvx-patterns-editorial.css' "${{ env.THEME_REL }}/functions.php"
           test -f "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
@@ -201,7 +201,7 @@ jobs:
               || { echo "ERROR: nvx-blog-system not required from integrations (expected: require_once __DIR__ . '/nvx-blog-system.php')"; exit 1; }
             grep -Fq -- '--nvx-light: #fcfbf8;' "$CSS/nvx-tokens.css"
             grep -Fq -- '--nvx-surface-base: #f8f7f4;' "$CSS/nvx-tokens.css"
-            grep -Fq -- '--nvx-accent-muted: #77736d;' "$CSS/nvx-tokens.css"
+            grep -Fq -- '--nvx-accent-muted: #756f69;' "$CSS/nvx-tokens.css"
             grep -Fq 'nvx-site-layout.css' "$THEME/functions.php"
             grep -Fq 'nvx-patterns-editorial.css' "$THEME/functions.php"
             for f in nvx-content-presentation.php nvx-treatments-catalog.php nvx-endolift-page.php nvx-laser-medicine-page.php nvx-clinics-hub.php; do

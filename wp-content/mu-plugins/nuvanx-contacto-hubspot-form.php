@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: NUVANX Contacto HubSpot Form
- * Description: Mounts the dedicated HubSpot contact form on /contacto/ and enforces the temporary trust-claims publication policy.
- * Version: 2026.07.19
+ * Description: Mounts the dedicated HubSpot contact form and enforces temporary SEO/claims publication safeguards.
+ * Version: 2026.07.19.2
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -61,3 +61,89 @@ function nvx_remove_unverified_quantitative_trust_badges( string $content ): str
 	return is_string( $filtered ) ? $filtered : $content;
 }
 add_filter( 'the_content', 'nvx_remove_unverified_quantitative_trust_badges', 22 );
+
+/**
+ * Add the contact-page Open Graph image even when Yoast has no existing image
+ * presenter. The legacy wpseo_opengraph_image filter only alters an image that
+ * already exists, so use Yoast's image-container hook as the canonical fallback.
+ *
+ * @param mixed $image_container Yoast Open Graph image container.
+ */
+function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
+	if ( ! function_exists( 'nvx_contacto_audit_is_contact_page' ) || ! nvx_contacto_audit_is_contact_page() ) {
+		return;
+	}
+
+	$image_url = home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' );
+	$image_id  = function_exists( 'attachment_url_to_postid' ) ? (int) attachment_url_to_postid( $image_url ) : 0;
+
+	if ( $image_id > 0 && is_object( $image_container ) && method_exists( $image_container, 'add_image_by_id' ) ) {
+		$image_container->add_image_by_id( $image_id );
+		return;
+	}
+
+	if ( is_object( $image_container ) && method_exists( $image_container, 'add_image' ) ) {
+		$image_container->add_image( $image_url );
+	}
+}
+add_filter( 'wpseo_add_opengraph_images', 'nvx_contacto_add_yoast_opengraph_image', 100 );
+
+/**
+ * Start a narrow output buffer for wp_head on front and page requests. This is
+ * used only to remove legacy Schema.org JSON-LD blocks emitted directly by old
+ * head callbacks; Yoast's canonical schema graph is preserved.
+ */
+function nvx_canonical_schema_head_buffer_start(): void {
+	if ( is_admin() || ( ! is_front_page() && ! is_singular( 'page' ) ) ) {
+		return;
+	}
+
+	$GLOBALS['nvx_schema_head_buffer_level'] = ob_get_level();
+	ob_start();
+}
+add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_start', -9999 );
+
+/**
+ * Remove Schema.org JSON-LD scripts from wp_head unless they are Yoast's
+ * canonical `yoast-schema-graph` block. Non-schema ld+json payloads are kept.
+ */
+function nvx_canonical_schema_head_buffer_end(): void {
+	if ( ! isset( $GLOBALS['nvx_schema_head_buffer_level'] ) ) {
+		return;
+	}
+
+	$initial_level = (int) $GLOBALS['nvx_schema_head_buffer_level'];
+	unset( $GLOBALS['nvx_schema_head_buffer_level'] );
+
+	if ( ob_get_level() !== $initial_level + 1 ) {
+		return;
+	}
+
+	$html = ob_get_clean();
+	if ( ! is_string( $html ) || false === stripos( $html, 'ld+json' ) ) {
+		echo is_string( $html ) ? $html : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		return;
+	}
+
+	$filtered = preg_replace_callback(
+		'#<script\b(?=[^>]*\btype\s*=\s*(["\'])application/ld\+json\1)[^>]*>([\s\S]*?)</script>#iu',
+		static function ( array $matches ): string {
+			$tag     = isset( $matches[0] ) ? (string) $matches[0] : '';
+			$payload = isset( $matches[2] ) ? (string) $matches[2] : '';
+
+			if ( false !== stripos( $tag, 'yoast-schema-graph' ) ) {
+				return $tag;
+			}
+
+			if ( preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload ) ) {
+				return '';
+			}
+
+			return $tag;
+		},
+		$html
+	);
+
+	echo is_string( $filtered ) ? $filtered : $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+}
+add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_end', PHP_INT_MAX );

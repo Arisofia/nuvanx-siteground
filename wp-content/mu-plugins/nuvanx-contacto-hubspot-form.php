@@ -53,7 +53,7 @@ function nvx_remove_unverified_quantitative_trust_badges( string $content ): str
 	}
 
 	$filtered = preg_replace(
-		'#<section\b[^>]*class=(['\"])[^'\"]*\bnvx-trust-badges\b[^'\"]*\1[^>]*>.*?</section>#isu',
+		'#<section\b[^>]*\bnvx-trust-badges\b[^>]*>.*?</section>#isu',
 		'',
 		$content
 	);

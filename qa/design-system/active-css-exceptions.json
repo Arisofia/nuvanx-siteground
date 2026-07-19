@@ -5,7 +5,6 @@
     "nvx-base.css",
     "nvx-site-layout.css",
     "nvx-components.css",
-    "nvx-hero-ctas.css",
     "nvx-patterns-editorial.css",
     "nvx-header.css",
     "nvx-footer.css",
@@ -22,7 +21,6 @@
     "nvx-footer.css",
     "nvx-header.css",
     "nvx-hero-blackout.css",
-    "nvx-hero-ctas.css",
     "nvx-medical-review.css",
     "nvx-mobile-hero-hierarchy.css",
     "nvx-patterns-editorial.css",
@@ -41,7 +39,6 @@
     "nvx-footer.css",
     "nvx-header.css",
     "nvx-hero-blackout.css",
-    "nvx-hero-ctas.css",
     "nvx-medical-review.css",
     "nvx-mobile-hero-hierarchy.css",
     "nvx-patterns-editorial.css",
@@ -68,10 +65,6 @@
     },
     {
       "file": "nvx-components.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
-    },
-    {
-      "file": "nvx-hero-ctas.css",
       "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
     },
     {
@@ -123,6 +116,61 @@
   "runtimeImportant": [],
   "undefinedTokens": [],
   "hardcodedPixelsActive": [
+    {
+      "file": "nvx-brand-home.css",
+      "value": "18px",
+      "line": 79
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "6px",
+      "line": 83
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "4px",
+      "line": 89
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "-3px",
+      "line": 102
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "3px",
+      "line": 111
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "18px",
+      "line": 119
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "6px",
+      "line": 123
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "-3px",
+      "line": 134
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "768px",
+      "line": 225
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "15px",
+      "line": 238
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "value": "11px",
+      "line": 260
+    },
     {
       "file": "nvx-components.css",
       "value": "4px",
@@ -254,61 +302,6 @@
       "line": 324
     },
     {
-      "file": "nvx-hero-ctas.css",
-      "value": "18px",
-      "line": 13
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "6px",
-      "line": 17
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "4px",
-      "line": 23
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "-3px",
-      "line": 41
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "3px",
-      "line": 52
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "18px",
-      "line": 60
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "6px",
-      "line": 64
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "-3px",
-      "line": 76
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "768px",
-      "line": 92
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "15px",
-      "line": 104
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "value": "11px",
-      "line": 117
-    },
-    {
       "file": "nvx-medical-review.css",
       "value": "4px",
       "line": 48
@@ -316,77 +309,77 @@
     {
       "file": "nvx-patterns-editorial.css",
       "value": "28px",
-      "line": 332
+      "line": 334
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "28px",
-      "line": 340
+      "line": 342
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "28px",
-      "line": 403
+      "line": 405
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "4px",
-      "line": 435
+      "line": 437
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "22px",
-      "line": 466
+      "line": 468
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "6px",
-      "line": 678
+      "line": 681
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "28px",
-      "line": 1035
+      "line": 1038
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "28px",
-      "line": 1071
+      "line": 1074
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "28px",
-      "line": 1141
+      "line": 1144
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "28px",
-      "line": 1307
+      "line": 1310
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "3px",
-      "line": 1308
+      "line": 1311
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "-1px",
-      "line": 1333
+      "line": 1336
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "4px",
-      "line": 1676
+      "line": 1679
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "4px",
-      "line": 1947
+      "line": 1950
     },
     {
       "file": "nvx-patterns-editorial.css",
       "value": "4px",
-      "line": 1979
+      "line": 1982
     },
     {
       "file": "nvx-posts.css",
@@ -675,11 +668,6 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 41,
-          "active": true
-        },
-        {
-          "file": "nvx-brand-home.css",
           "line": 42,
           "active": true
         }
@@ -740,12 +728,12 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 128,
+          "line": 218,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 137,
+          "line": 245,
           "active": true
         }
       ]
@@ -775,7 +763,27 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 138,
+          "line": 246,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 63,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 225,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 306,
           "active": true
         }
       ]
@@ -790,7 +798,7 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 139,
+          "line": 225,
           "active": true
         },
         {
@@ -800,7 +808,62 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 507,
+          "line": 509,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group .btn-primary",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 73,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 232,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 254,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group .btn-primary .sub-text",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 94,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 259,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group .btn-secondary",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 113,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 232,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 254,
           "active": true
         }
       ]
@@ -810,7 +873,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 65,
+          "line": 154,
           "active": true
         },
         {
@@ -830,7 +893,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 66,
+          "line": 156,
           "active": true
         },
         {
@@ -850,12 +913,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 68,
+          "line": 158,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 142,
+          "line": 247,
           "active": true
         },
         {
@@ -875,17 +938,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 77,
+          "line": 167,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 129,
+          "line": 219,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 143,
+          "line": 248,
           "active": true
         },
         {
@@ -910,12 +973,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 96,
+          "line": 186,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 132,
+          "line": 221,
           "active": true
         }
       ]
@@ -925,17 +988,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 115,
+          "line": 205,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 131,
+          "line": 220,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 144,
+          "line": 249,
           "active": true
         }
       ]
@@ -945,7 +1008,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 124,
+          "line": 214,
           "active": true
         },
         {
@@ -960,12 +1023,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 141,
+          "line": 239,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 514,
+          "line": 517,
           "active": true
         }
       ]
@@ -975,12 +1038,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 141,
+          "line": 239,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 514,
+          "line": 517,
           "active": true
         }
       ]
@@ -1825,7 +1888,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 951,
+          "line": 954,
           "active": true
         }
       ]
@@ -1840,7 +1903,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1645,
+          "line": 1648,
           "active": true
         }
       ]
@@ -1855,7 +1918,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1921,
+          "line": 1924,
           "active": true
         }
       ]
@@ -1870,7 +1933,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1355,
+          "line": 1358,
           "active": true
         }
       ]
@@ -1885,7 +1948,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 935,
+          "line": 938,
           "active": true
         }
       ]
@@ -1900,7 +1963,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1582,
+          "line": 1585,
           "active": true
         }
       ]
@@ -1915,7 +1978,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1864,
+          "line": 1867,
           "active": true
         }
       ]
@@ -2190,12 +2253,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 327,
+          "line": 329,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 500,
+          "line": 502,
           "active": true
         }
       ]
@@ -2210,7 +2273,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 334,
+          "line": 336,
           "active": true
         }
       ]
@@ -2225,7 +2288,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 345,
+          "line": 347,
           "active": true
         }
       ]
@@ -2240,7 +2303,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 363,
+          "line": 365,
           "active": true
         }
       ]
@@ -2255,7 +2318,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 373,
+          "line": 375,
           "active": true
         }
       ]
@@ -2842,76 +2905,6 @@
           "file": "nvx-hero-blackout.css",
           "line": 60,
           "active": false
-        }
-      ]
-    },
-    {
-      "selector": ".hero-cta-group",
-      "locations": [
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 1,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 92,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".hero-cta-group .btn-primary",
-      "locations": [
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 7,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 97,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 109,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".hero-cta-group .btn-primary .sub-text",
-      "locations": [
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 31,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 114,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".hero-cta-group .btn-secondary",
-      "locations": [
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 54,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 97,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 109,
-          "active": true
         }
       ]
     },
@@ -3540,7 +3533,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 507,
+          "line": 509,
           "active": true
         }
       ]
@@ -3555,7 +3548,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 507,
+          "line": 509,
           "active": true
         }
       ]
@@ -3570,7 +3563,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 507,
+          "line": 509,
           "active": true
         }
       ]
@@ -3580,7 +3573,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 382,
+          "line": 384,
           "active": true
         },
         {
@@ -3595,12 +3588,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 454,
+          "line": 456,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 500,
+          "line": 502,
           "active": true
         }
       ]
@@ -3610,7 +3603,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 522,
+          "line": 525,
           "active": true
         },
         {
@@ -3625,7 +3618,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 530,
+          "line": 533,
           "active": true
         },
         {
@@ -3640,12 +3633,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 574,
+          "line": 577,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 733,
+          "line": 736,
           "active": true
         }
       ]
@@ -3655,12 +3648,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 592,
+          "line": 595,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 729,
+          "line": 732,
           "active": true
         }
       ]
@@ -3670,17 +3663,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 598,
+          "line": 601,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 740,
+          "line": 743,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 750,
+          "line": 753,
           "active": true
         }
       ]
@@ -3690,12 +3683,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 649,
+          "line": 652,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 750,
+          "line": 753,
           "active": true
         }
       ]
@@ -3705,12 +3698,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 664,
+          "line": 667,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 750,
+          "line": 753,
           "active": true
         }
       ]
@@ -3720,12 +3713,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 674,
+          "line": 677,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 755,
+          "line": 758,
           "active": true
         }
       ]
@@ -3735,12 +3728,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 706,
+          "line": 709,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 743,
+          "line": 746,
           "active": true
         }
       ]
@@ -3750,7 +3743,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 788,
+          "line": 791,
           "active": true
         },
         {
@@ -3765,7 +3758,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 798,
+          "line": 801,
           "active": true
         },
         {
@@ -3780,12 +3773,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 838,
+          "line": 841,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1496,
+          "line": 1499,
           "active": true
         }
       ]
@@ -3795,7 +3788,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 882,
+          "line": 885,
           "active": true
         },
         {
@@ -3810,12 +3803,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 909,
+          "line": 912,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1496,
+          "line": 1499,
           "active": true
         }
       ]
@@ -3825,12 +3818,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 929,
+          "line": 932,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1496,
+          "line": 1499,
           "active": true
         }
       ]
@@ -3840,12 +3833,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1142,
+          "line": 1145,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1278,
+          "line": 1281,
           "active": true
         }
       ]
@@ -3855,12 +3848,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1171,
+          "line": 1174,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1282,
+          "line": 1285,
           "active": true
         }
       ]
@@ -3870,12 +3863,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1171,
+          "line": 1174,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1282,
+          "line": 1285,
           "active": true
         }
       ]
@@ -3885,17 +3878,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1208,
+          "line": 1211,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1290,
+          "line": 1293,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1297,
+          "line": 1300,
           "active": true
         }
       ]
@@ -3905,12 +3898,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1506,
+          "line": 1509,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1759,
+          "line": 1762,
           "active": true
         }
       ]
@@ -3920,12 +3913,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1506,
+          "line": 1509,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1759,
+          "line": 1762,
           "active": true
         }
       ]
@@ -3935,12 +3928,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1536,
+          "line": 1539,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1759,
+          "line": 1762,
           "active": true
         },
         {
@@ -3955,7 +3948,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1546,
+          "line": 1549,
           "active": true
         },
         {
@@ -3970,12 +3963,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1597,
+          "line": 1600,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1773,
+          "line": 1776,
           "active": true
         }
       ]
@@ -3985,12 +3978,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1623,
+          "line": 1626,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1773,
+          "line": 1776,
           "active": true
         }
       ]
@@ -4000,7 +3993,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1711,
+          "line": 1714,
           "active": true
         },
         {
@@ -4015,12 +4008,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1783,
+          "line": 1786,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2079,
+          "line": 2082,
           "active": true
         }
       ]
@@ -4030,12 +4023,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1783,
+          "line": 1786,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2079,
+          "line": 2082,
           "active": true
         }
       ]
@@ -4045,12 +4038,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1808,
+          "line": 1811,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2079,
+          "line": 2082,
           "active": true
         },
         {
@@ -4065,7 +4058,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1823,
+          "line": 1826,
           "active": true
         },
         {
@@ -4080,7 +4073,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1859,
+          "line": 1862,
           "active": true
         },
         {
@@ -4095,12 +4088,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1879,
+          "line": 1882,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2093,
+          "line": 2096,
           "active": true
         }
       ]
@@ -4110,12 +4103,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1898,
+          "line": 1901,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2093,
+          "line": 2096,
           "active": true
         }
       ]
@@ -4125,12 +4118,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1986,
+          "line": 1989,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2093,
+          "line": 2096,
           "active": true
         }
       ]
@@ -4952,11 +4945,6 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 41,
-          "active": true
-        },
-        {
-          "file": "nvx-brand-home.css",
           "line": 42,
           "active": true
         }
@@ -5017,12 +5005,12 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 128,
+          "line": 218,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 137,
+          "line": 245,
           "active": true
         }
       ]
@@ -5052,7 +5040,27 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 138,
+          "line": 246,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 63,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 225,
+          "active": true
+        },
+        {
+          "file": "nvx-patterns-editorial.css",
+          "line": 306,
           "active": true
         }
       ]
@@ -5067,7 +5075,7 @@
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 139,
+          "line": 225,
           "active": true
         },
         {
@@ -5077,7 +5085,62 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 507,
+          "line": 509,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group .btn-primary",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 73,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 232,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 254,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group .btn-primary .sub-text",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 94,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 259,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".hero-cta-group .btn-secondary",
+      "locations": [
+        {
+          "file": "nvx-brand-home.css",
+          "line": 113,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 232,
+          "active": true
+        },
+        {
+          "file": "nvx-brand-home.css",
+          "line": 254,
           "active": true
         }
       ]
@@ -5087,7 +5150,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 65,
+          "line": 154,
           "active": true
         },
         {
@@ -5107,7 +5170,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 66,
+          "line": 156,
           "active": true
         },
         {
@@ -5127,12 +5190,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 68,
+          "line": 158,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 142,
+          "line": 247,
           "active": true
         },
         {
@@ -5152,17 +5215,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 77,
+          "line": 167,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 129,
+          "line": 219,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 143,
+          "line": 248,
           "active": true
         },
         {
@@ -5187,12 +5250,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 96,
+          "line": 186,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 132,
+          "line": 221,
           "active": true
         }
       ]
@@ -5202,17 +5265,17 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 115,
+          "line": 205,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 131,
+          "line": 220,
           "active": true
         },
         {
           "file": "nvx-brand-home.css",
-          "line": 144,
+          "line": 249,
           "active": true
         }
       ]
@@ -5222,7 +5285,7 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 124,
+          "line": 214,
           "active": true
         },
         {
@@ -5237,12 +5300,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 141,
+          "line": 239,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 514,
+          "line": 517,
           "active": true
         }
       ]
@@ -5252,12 +5315,12 @@
       "locations": [
         {
           "file": "nvx-brand-home.css",
-          "line": 141,
+          "line": 239,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 514,
+          "line": 517,
           "active": true
         }
       ]
@@ -6072,7 +6135,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 951,
+          "line": 954,
           "active": true
         }
       ]
@@ -6087,7 +6150,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1645,
+          "line": 1648,
           "active": true
         }
       ]
@@ -6102,7 +6165,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1921,
+          "line": 1924,
           "active": true
         }
       ]
@@ -6117,7 +6180,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1355,
+          "line": 1358,
           "active": true
         }
       ]
@@ -6132,7 +6195,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 935,
+          "line": 938,
           "active": true
         }
       ]
@@ -6147,7 +6210,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1582,
+          "line": 1585,
           "active": true
         }
       ]
@@ -6162,7 +6225,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1864,
+          "line": 1867,
           "active": true
         }
       ]
@@ -6437,12 +6500,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 327,
+          "line": 329,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 500,
+          "line": 502,
           "active": true
         }
       ]
@@ -6457,7 +6520,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 334,
+          "line": 336,
           "active": true
         }
       ]
@@ -6472,7 +6535,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 345,
+          "line": 347,
           "active": true
         }
       ]
@@ -6487,7 +6550,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 363,
+          "line": 365,
           "active": true
         }
       ]
@@ -6502,7 +6565,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 373,
+          "line": 375,
           "active": true
         }
       ]
@@ -7028,76 +7091,6 @@
         {
           "file": "nvx-site-layout.css",
           "line": 246,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".hero-cta-group",
-      "locations": [
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 1,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 92,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".hero-cta-group .btn-primary",
-      "locations": [
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 7,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 97,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 109,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".hero-cta-group .btn-primary .sub-text",
-      "locations": [
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 31,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 114,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".hero-cta-group .btn-secondary",
-      "locations": [
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 54,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 97,
-          "active": true
-        },
-        {
-          "file": "nvx-hero-ctas.css",
-          "line": 109,
           "active": true
         }
       ]
@@ -7727,7 +7720,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 507,
+          "line": 509,
           "active": true
         }
       ]
@@ -7742,7 +7735,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 507,
+          "line": 509,
           "active": true
         }
       ]
@@ -7757,7 +7750,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 507,
+          "line": 509,
           "active": true
         }
       ]
@@ -7767,7 +7760,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 382,
+          "line": 384,
           "active": true
         },
         {
@@ -7782,12 +7775,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 454,
+          "line": 456,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 500,
+          "line": 502,
           "active": true
         }
       ]
@@ -7797,7 +7790,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 522,
+          "line": 525,
           "active": true
         },
         {
@@ -7812,7 +7805,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 530,
+          "line": 533,
           "active": true
         },
         {
@@ -7827,12 +7820,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 574,
+          "line": 577,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 733,
+          "line": 736,
           "active": true
         }
       ]
@@ -7842,12 +7835,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 592,
+          "line": 595,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 729,
+          "line": 732,
           "active": true
         }
       ]
@@ -7857,17 +7850,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 598,
+          "line": 601,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 740,
+          "line": 743,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 750,
+          "line": 753,
           "active": true
         }
       ]
@@ -7877,12 +7870,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 649,
+          "line": 652,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 750,
+          "line": 753,
           "active": true
         }
       ]
@@ -7892,12 +7885,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 664,
+          "line": 667,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 750,
+          "line": 753,
           "active": true
         }
       ]
@@ -7907,12 +7900,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 674,
+          "line": 677,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 755,
+          "line": 758,
           "active": true
         }
       ]
@@ -7922,12 +7915,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 706,
+          "line": 709,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 743,
+          "line": 746,
           "active": true
         }
       ]
@@ -7937,7 +7930,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 788,
+          "line": 791,
           "active": true
         },
         {
@@ -7952,7 +7945,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 798,
+          "line": 801,
           "active": true
         },
         {
@@ -7967,12 +7960,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 838,
+          "line": 841,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1496,
+          "line": 1499,
           "active": true
         }
       ]
@@ -7982,7 +7975,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 882,
+          "line": 885,
           "active": true
         },
         {
@@ -7997,12 +7990,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 909,
+          "line": 912,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1496,
+          "line": 1499,
           "active": true
         }
       ]
@@ -8012,12 +8005,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 929,
+          "line": 932,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1496,
+          "line": 1499,
           "active": true
         }
       ]
@@ -8027,12 +8020,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1142,
+          "line": 1145,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1278,
+          "line": 1281,
           "active": true
         }
       ]
@@ -8042,12 +8035,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1171,
+          "line": 1174,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1282,
+          "line": 1285,
           "active": true
         }
       ]
@@ -8057,12 +8050,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1171,
+          "line": 1174,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1282,
+          "line": 1285,
           "active": true
         }
       ]
@@ -8072,17 +8065,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1208,
+          "line": 1211,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1290,
+          "line": 1293,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1297,
+          "line": 1300,
           "active": true
         }
       ]
@@ -8092,12 +8085,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1506,
+          "line": 1509,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1759,
+          "line": 1762,
           "active": true
         }
       ]
@@ -8107,12 +8100,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1506,
+          "line": 1509,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1759,
+          "line": 1762,
           "active": true
         }
       ]
@@ -8122,12 +8115,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1536,
+          "line": 1539,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1759,
+          "line": 1762,
           "active": true
         },
         {
@@ -8142,7 +8135,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1546,
+          "line": 1549,
           "active": true
         },
         {
@@ -8157,12 +8150,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1597,
+          "line": 1600,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1773,
+          "line": 1776,
           "active": true
         }
       ]
@@ -8172,12 +8165,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1623,
+          "line": 1626,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1773,
+          "line": 1776,
           "active": true
         }
       ]
@@ -8187,7 +8180,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1711,
+          "line": 1714,
           "active": true
         },
         {
@@ -8202,12 +8195,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1783,
+          "line": 1786,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2079,
+          "line": 2082,
           "active": true
         }
       ]
@@ -8217,12 +8210,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1783,
+          "line": 1786,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2079,
+          "line": 2082,
           "active": true
         }
       ]
@@ -8232,12 +8225,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1808,
+          "line": 1811,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2079,
+          "line": 2082,
           "active": true
         },
         {
@@ -8252,7 +8245,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1823,
+          "line": 1826,
           "active": true
         },
         {
@@ -8267,7 +8260,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1859,
+          "line": 1862,
           "active": true
         },
         {
@@ -8282,12 +8275,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1879,
+          "line": 1882,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2093,
+          "line": 2096,
           "active": true
         }
       ]
@@ -8297,12 +8290,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1898,
+          "line": 1901,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2093,
+          "line": 2096,
           "active": true
         }
       ]
@@ -8312,12 +8305,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1986,
+          "line": 1989,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2093,
+          "line": 2096,
           "active": true
         }
       ]
@@ -8990,13 +8983,13 @@
       "file": "nvx-brand-home.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 100
+      "line": 190
     },
     {
       "file": "nvx-brand-home.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 110
+      "line": 200
     },
     {
       "file": "nvx-components.css",
@@ -9278,385 +9271,385 @@
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 368
+      "line": 370
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 378
+      "line": 380
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 409
+      "line": 411
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 418
+      "line": 420
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 436
+      "line": 438
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 446
+      "line": 448
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 486
+      "line": 488
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 494
+      "line": 496
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 549
+      "line": 552
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 559
+      "line": 562
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 570
+      "line": 573
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 586
+      "line": 589
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 620
+      "line": 623
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 630
+      "line": 633
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 641
+      "line": 644
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 656
+      "line": 659
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 699
+      "line": 702
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 721
+      "line": 724
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 810
+      "line": 813
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 821
+      "line": 824
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 830
+      "line": 833
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 856
+      "line": 859
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 873
+      "line": 876
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 896
+      "line": 899
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 905
+      "line": 908
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 925
+      "line": 928
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 957
+      "line": 960
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 967
+      "line": 970
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 983
+      "line": 986
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 996
+      "line": 999
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1008
+      "line": 1011
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1079
+      "line": 1082
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1091
+      "line": 1094
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1100
+      "line": 1103
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1314
+      "line": 1317
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1322
+      "line": 1325
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1360
+      "line": 1363
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1370
+      "line": 1373
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1395
+      "line": 1398
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1413
+      "line": 1416
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1452
+      "line": 1455
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1558
+      "line": 1561
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1569
+      "line": 1572
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1578
+      "line": 1581
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1613
+      "line": 1616
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1649
+      "line": 1652
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1659
+      "line": 1662
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1670
+      "line": 1673
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1693
+      "line": 1696
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1724
+      "line": 1727
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1750
+      "line": 1753
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1835
+      "line": 1838
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1846
+      "line": 1849
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1855
+      "line": 1858
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1894
+      "line": 1897
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1924
+      "line": 1927
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1934
+      "line": 1937
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1948
+      "line": 1951
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1962
+      "line": 1965
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1973
+      "line": 1976
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 2003
+      "line": 2006
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 2020
+      "line": 2023
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 2045
+      "line": 2048
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 2072
+      "line": 2075
     },
     {
       "file": "nvx-posts.css",
@@ -9795,33 +9788,63 @@
   "hardcodedSpacing": [
     {
       "file": "nvx-brand-home.css",
+      "property": "padding",
+      "value": "18px 40px",
+      "line": 79
+    },
+    {
+      "file": "nvx-brand-home.css",
       "property": "gap",
-      "value": "14px",
-      "line": 65
+      "value": "4px",
+      "line": 89
     },
     {
       "file": "nvx-brand-home.css",
-      "property": "margin-top",
-      "value": "32px",
-      "line": 65
+      "property": "padding",
+      "value": "18px 32px",
+      "line": 119
     },
     {
       "file": "nvx-brand-home.css",
-      "property": "margin-top",
-      "value": "32px",
-      "line": 68
+      "property": "gap",
+      "value": "12px",
+      "line": 128
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "margin-left",
+      "value": "8px",
+      "line": 148
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "gap",
+      "value": "12px",
+      "line": 229
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "padding",
+      "value": "16px 24px",
+      "line": 237
     },
     {
       "file": "nvx-brand-home.css",
       "property": "margin-top",
       "value": "64px",
-      "line": 143
+      "line": 248
     },
     {
       "file": "nvx-brand-home.css",
       "property": "padding-inline",
       "value": "1.5rem",
-      "line": 143
+      "line": 248
+    },
+    {
+      "file": "nvx-brand-home.css",
+      "property": "padding",
+      "value": "14px 20px",
+      "line": 257
     },
     {
       "file": "nvx-components.css",
@@ -9944,66 +9967,6 @@
       "line": 249
     },
     {
-      "file": "nvx-hero-ctas.css",
-      "property": "gap",
-      "value": "16px",
-      "line": 4
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "property": "margin-top",
-      "value": "32px",
-      "line": 5
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "property": "padding",
-      "value": "18px 40px",
-      "line": 13
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "property": "gap",
-      "value": "4px",
-      "line": 23
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "property": "padding",
-      "value": "18px 32px",
-      "line": 60
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "property": "gap",
-      "value": "12px",
-      "line": 69
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "property": "gap",
-      "value": "12px",
-      "line": 95
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "property": "padding",
-      "value": "16px 24px",
-      "line": 103
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "property": "padding",
-      "value": "14px 20px",
-      "line": 112
-    },
-    {
-      "file": "nvx-hero-ctas.css",
-      "property": "margin-left",
-      "value": "8px",
-      "line": 132
-    },
-    {
       "file": "nvx-patterns-editorial.css",
       "property": "margin",
       "value": "0 0 0.65em",
@@ -10025,91 +9988,91 @@
       "file": "nvx-patterns-editorial.css",
       "property": "gap",
       "value": "14px",
-      "line": 316
+      "line": 318
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "gap",
       "value": "16px",
-      "line": 338
+      "line": 340
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "margin",
       "value": "0 0 4px",
-      "line": 435
+      "line": 437
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "gap",
       "value": "12px",
-      "line": 464
+      "line": 466
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "gap",
       "value": "8px",
-      "line": 654
+      "line": 657
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding-left",
       "value": "1.25rem",
-      "line": 1006
+      "line": 1009
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "margin",
       "value": "0 0 0.5rem",
-      "line": 1090
+      "line": 1093
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "margin",
       "value": "-1px",
-      "line": 1333
+      "line": 1336
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0.75rem 1rem",
-      "line": 1421
+      "line": 1424
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0.75rem 1rem",
-      "line": 1468
+      "line": 1471
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0 0.35em 0.15em",
-      "line": 1739
+      "line": 1742
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0.15em 0.35em 0",
-      "line": 1744
+      "line": 1747
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "margin",
       "value": "0 0.15em",
-      "line": 2057
+      "line": 2060
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0 0.35em 0.15em",
-      "line": 2061
+      "line": 2064
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0.15em 0.35em 0",
-      "line": 2066
+      "line": 2069
     },
     {
       "file": "nvx-site-layout.css",

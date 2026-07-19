@@ -21,9 +21,6 @@ function nvx_valoracion_native_hubspot_is_target_page(): bool {
 	return is_page( 2636 ) || is_page( 'valoracion' );
 }
 
-/**
- * Canonical server-side form markup.
- */
 function nvx_valoracion_native_hubspot_mount_markup(): string {
 	$portal_id     = esc_attr( NVX_VALORACION_HS_FRAME_PORTAL_ID );
 	$form_id       = esc_attr( NVX_VALORACION_HS_FRAME_FORM_ID );
@@ -36,16 +33,11 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
 		. '<p class="nvx-copy nvx-hubspot-privacy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . $privacy_url . '">Política de privacidad</a>.</p>';
 }
 
-/**
- * Return the complete range of a balanced div beginning at the supplied offset.
- *
- * @return array{start:int,length:int}|null
- */
+/** @return array{start:int,length:int}|null */
 function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?array {
 	if ( $open_offset < 0 || ! preg_match( '/\G<div\b[^>]*>/i', $html, $opening, 0, $open_offset ) ) {
 		return null;
 	}
-
 	if ( ! preg_match_all( '/<div\b[^>]*>|<\/div\s*>/i', $html, $tokens, PREG_OFFSET_CAPTURE, $open_offset ) ) {
 		return null;
 	}
@@ -54,13 +46,7 @@ function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?a
 	foreach ( $tokens[0] as $token ) {
 		$markup = (string) $token[0];
 		$offset = (int) $token[1];
-
-		if ( 0 === stripos( $markup, '</div' ) ) {
-			$depth--;
-		} else {
-			$depth++;
-		}
-
+		$depth += 0 === stripos( $markup, '</div' ) ? -1 : 1;
 		if ( 0 === $depth ) {
 			return array(
 				'start'  => $open_offset,
@@ -68,13 +54,9 @@ function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?a
 			);
 		}
 	}
-
 	return null;
 }
 
-/**
- * Remove complete div blocks carrying a class token.
- */
 function nvx_valoracion_remove_divs_by_class( string $html, string $class_token ): string {
 	$pattern = '/<div\b(?=[^>]*\bclass=["\'][^"\']*\b'
 		. preg_quote( $class_token, '/' )
@@ -91,27 +73,15 @@ function nvx_valoracion_remove_divs_by_class( string $html, string $class_token 
 			$ranges[] = $range;
 		}
 	}
-
-	usort(
-		$ranges,
-		static function ( array $a, array $b ): int {
-			return $b['start'] <=> $a['start'];
-		}
-	);
-
+	usort( $ranges, static fn( array $a, array $b ): int => $b['start'] <=> $a['start'] );
 	foreach ( $ranges as $range ) {
 		$html = substr_replace( $html, '', $range['start'], $range['length'] );
 	}
-
 	return $html;
 }
 
-/**
- * Rebuild the valoración mount and remove every competing HubSpot instance.
- */
 function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): string {
 	$mount_pattern = '/<div\b[^>]*\bid=["\']nvx-hubspot-native-form["\'][^>]*>/i';
-
 	if ( ! preg_match_all( $mount_pattern, $html, $mounts, PREG_OFFSET_CAPTURE ) || empty( $mounts[0] ) ) {
 		return $html;
 	}
@@ -124,31 +94,21 @@ function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): str
 			$ranges[]         = $range;
 		}
 	}
-
 	if ( empty( $ranges ) ) {
 		return $html;
 	}
 
-	usort(
-		$ranges,
-		static function ( array $a, array $b ): int {
-			return $a['start'] <=> $b['start'];
-		}
-	);
-
+	usort( $ranges, static fn( array $a, array $b ): int => $a['start'] <=> $b['start'] );
 	$first_offset  = (int) $ranges[0]['start'];
 	$first_opening = (string) $ranges[0]['opening'];
+	$marker        = '<!-- NVX_VALORACION_CANONICAL_MOUNT -->';
 
 	$descending = $ranges;
-	usort(
-		$descending,
-		static function ( array $a, array $b ): int {
-			return $b['start'] <=> $a['start'];
-		}
-	);
+	usort( $descending, static fn( array $a, array $b ): int => $b['start'] <=> $a['start'] );
 	foreach ( $descending as $range ) {
 		$html = substr_replace( $html, '', (int) $range['start'], (int) $range['length'] );
 	}
+	$html = substr( $html, 0, $first_offset ) . $marker . substr( $html, $first_offset );
 
 	$html = preg_replace( '#<script\b[^>]*\bsrc=["\'][^"\']*hsforms\.net/[^"\']*["\'][^>]*>\s*</script>#iu', '', $html ) ?? $html;
 	$html = preg_replace( '#<iframe\b[^>]*(?:hsforms|hubspot)[^>]*>[\s\S]*?</iframe>#iu', '', $html ) ?? $html;
@@ -156,8 +116,7 @@ function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): str
 	$html = nvx_valoracion_remove_divs_by_class( $html, 'hbspt-form' );
 
 	$canonical = $first_opening . nvx_valoracion_native_hubspot_mount_markup() . '</div>';
-
-	return substr( $html, 0, $first_offset ) . $canonical . substr( $html, $first_offset );
+	return str_replace( $marker, $canonical, $html );
 }
 
 add_action(

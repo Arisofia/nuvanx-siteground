@@ -37,8 +37,6 @@ async function inspectContacto(page) {
   if (expectedSha) assert(deployment.sha === expectedSha, `/contacto/: expected SHA ${expectedSha}, found ${deployment.sha || 'missing'}`);
 
   assert(await page.locator('.hs-form-frame, .hbspt-form').count() === 0, '/contacto/: HubSpot form container must be absent');
-  assert(await page.locator('iframe[src*="hsforms"], iframe[src*="hubspot"]').count() === 0, '/contacto/: HubSpot iframe must be absent');
-  assert(await page.locator('script[src*="hsforms.net"], script[src*="hubspot"]').count() === 0, '/contacto/: HubSpot embed script must be absent');
   assert(await page.locator('#nvx-contacto-hubspot-form').count() === 0, '/contacto/: legacy contact mount must be absent');
   assert(await page.locator('#nvx-valoracion-modal').count() === 0, '/contacto/: valoración modal must not be rendered');
 

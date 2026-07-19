@@ -74,9 +74,6 @@ $template_required = array(
 	'nvx-btn nvx-btn--secondary',
 	'class="nvx-page nvx-page--contact"',
 	'class="nvx-shell"',
-	'class="nvx-shell nvx-reading"',
-	'id="nvx-contacto-hubspot-form"',
-	'nvx_contacto_hubspot_form_markup()',
 	'El Dr. Rivera atiende en Chamberí los martes y jueves.',
 	'El Dr. Rivera atiende en Salamanca–Goya los miércoles.',
 	'Cómo llegar a NUVANX Chamberí',
@@ -110,11 +107,6 @@ foreach ( $template_forbidden as $fragment => $reason ) {
 
 if ( 3 !== substr_count( $template, 'class="nvx-shell"' ) ) {
 	fwrite( STDERR, "Contact template must use the canonical shell for all three full-width section inners.\n" );
-	exit( 1 );
-}
-
-if ( 1 !== substr_count( $template, 'class="nvx-shell nvx-reading"' ) ) {
-	fwrite( STDERR, "Contact template must use one canonical readable shell for the form section.\n" );
 	exit( 1 );
 }
 

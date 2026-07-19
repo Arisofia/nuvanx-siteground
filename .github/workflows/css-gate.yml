@@ -182,6 +182,7 @@ jobs:
           set -euo pipefail
           THEME="${NVX_THEME_PATH}"
           ACTIVE=(
+            "$THEME/assets/css/nvx-fonts.css"
             "$THEME/assets/css/nvx-tokens.css"
             "$THEME/assets/css/nvx-base.css"
             "$THEME/assets/css/nvx-site-layout.css"
@@ -233,6 +234,9 @@ jobs:
           ! grep -qE '\.min\.css|nvx-responsive|nvx-brand-system|nvx-visual-system|nvx-fluid-organic|nvx-typography-alignment' "$THEME/functions.php"
           ! grep -qE 'preg_replace|preg_replace_callback|nvx_theme_normalize_content_markup|nvx_theme_apply_editorial_flows' "$THEME/functions.php"
 
+      - name: Run canonical CSS system audit
+        run: node scripts/design-system/audit-css.mjs
+
       - name: Parse active CSS
         run: |
           set -euo pipefail
@@ -240,6 +244,7 @@ jobs:
           CSS="$THEME/assets/css"
           npx --yes clean-css-cli@5.6.3 \
             -o /tmp/nuvanx-canonical.css \
+            "$CSS/nvx-fonts.css" \
             "$CSS/nvx-tokens.css" \
             "$CSS/nvx-base.css" \
             "$CSS/nvx-site-layout.css" \

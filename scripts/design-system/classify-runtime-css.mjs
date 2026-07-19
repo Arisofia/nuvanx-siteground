@@ -10,9 +10,12 @@ const EXCEPTIONS_PATH = path.join(QA_DIR, 'active-css-exceptions.json');
 const SUMMARY_PATH = path.join(QA_DIR, 'audit-summary.json');
 const FUNCTIONS_PATH = path.join(ROOT, 'wp-content/themes/nuvanx-medical/functions.php');
 const ENVIRONMENT_FLAGS_PATH = path.join(ROOT, 'wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php');
+const TOKENS_PATH = path.join(CSS_DIR, 'nvx-tokens.css');
 
+/** Default-on production CSS that is not part of the global ACTIVE_STACK. */
 const CONDITIONAL_RUNTIME_STYLESHEETS = ['nvx-hero-blackout.css'];
 const MAX_ACTIONABLE_DUPLICATE_SELECTORS = 220;
+const CANONICAL_FONT_TOKENS = new Set(['var(--nvx-serif)', 'var(--nvx-sans)']);
 
 function readJson(file) {
 	return JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -132,6 +135,49 @@ function contextualSelectorOccurrences(source, file, start = 0, end = source.len
 	return output;
 }
 
+function extractRootTokens(css) {
+	const tokens = new Set();
+	for (const block of css.matchAll(/:root\s*\{([\s\S]*?)\}/g)) {
+		for (const declaration of block[1].matchAll(/(--[a-zA-Z0-9_-]+)\s*:/g)) {
+			tokens.add(declaration[1]);
+		}
+	}
+	return tokens;
+}
+
+function parseSelectors(css, file) {
+	const selectors = [];
+	const clean = stripComments(css);
+	for (const match of clean.matchAll(/([^{}]+)\{/g)) {
+		const raw = match[1].trim();
+		if (!raw || raw.startsWith('@') || raw.startsWith('from') || raw.startsWith('to') || /^\d+%$/.test(raw)) continue;
+		for (const selector of raw.split(',').map((value) => value.trim()).filter(Boolean)) {
+			selectors.push({
+				file,
+				selector: selector.replace(/\s+/g, ' '),
+				line: lineNumber(clean, match.index),
+			});
+		}
+	}
+	return selectors;
+}
+
+/**
+ * Split audit rows that carry a `file` key into active / conditional / inactive.
+ */
+function reclassifyFileRows(rows, conditionalSet, activeSet) {
+	const conditional = [];
+	const inactive = [];
+	const other = [];
+	for (const row of rows || []) {
+		const file = row && row.file;
+		if (conditionalSet.has(file)) conditional.push(row);
+		else if (activeSet.has(file)) other.push(row);
+		else inactive.push(row);
+	}
+	return { conditional, inactive, other };
+}
+
 const functionsSource = fs.readFileSync(FUNCTIONS_PATH, 'utf8');
 const environmentSource = fs.readFileSync(ENVIRONMENT_FLAGS_PATH, 'utf8');
 
@@ -140,6 +186,15 @@ requireMatch(functionsSource, /\$enabled\s*=\s*true\s*;/, 'hero blackout is no l
 requireMatch(functionsSource, /wp_enqueue_style\s*\([\s\S]*?['"]nvx-hero-blackout['"][\s\S]*?nvx-hero-blackout\.css/, 'hero blackout stylesheet is not enqueued at runtime');
 requireMatch(environmentSource, /nvx_theme_hero_blackout_enabled/, 'staging-only blackout filter is not registered');
 requireMatch(environmentSource, /staging2\.nuvanx\.com/, 'staging2 host safeguard is missing');
+// Host-only staging2: generic WP_ENVIRONMENT_TYPE=staging must not reveal media.
+requireMatch(
+	environmentSource,
+	/function\s+nvx_environment_is_staging2[\s\S]*?staging2\.nuvanx\.com[\s\S]*?===[\s\S]*?\$host/,
+	'staging2 detection must compare the HTTP host to staging2.nuvanx.com',
+);
+if (/return\s+['"]staging['"]\s*===\s*\$environment/.test(environmentSource) || /\$environment\s*===\s*['"]staging['"]/.test(environmentSource)) {
+	throw new Error('staging2 detection must not treat generic WP_ENVIRONMENT_TYPE=staging as sufficient');
+}
 
 const exceptions = readJson(EXCEPTIONS_PATH);
 const summary = readJson(SUMMARY_PATH);
@@ -147,6 +202,7 @@ const allStylesheets = new Set(exceptions.allStylesheets || []);
 const activeStack = new Set(exceptions.activeStack || []);
 const inactiveStylesheets = new Set(exceptions.inactiveCssFiles || []);
 const referenced = new Set(exceptions.referencedStylesheets || []);
+const conditionalSet = new Set(CONDITIONAL_RUNTIME_STYLESHEETS);
 
 const overlappingClassifications = [...activeStack].filter((stylesheet) => inactiveStylesheets.has(stylesheet));
 if (overlappingClassifications.length) {
@@ -182,15 +238,147 @@ for (const stylesheet of CONDITIONAL_RUNTIME_STYLESHEETS) {
 	}
 }
 
+// --- Reclassify inventory filenames ---
 exceptions.conditionalRuntimeStylesheets = CONDITIONAL_RUNTIME_STYLESHEETS;
+<<<<<<< Updated upstream
+=======
+exceptions.inactiveCssFiles = (exceptions.inactiveCssFiles || []).filter(
+	(stylesheet) => !conditionalSet.has(stylesheet),
+);
+>>>>>>> Stashed changes
 exceptions.conditionalRuntimeReferenceEvidence = (exceptions.stylesheetReferenceEvidence || []).filter(
-	(row) => CONDITIONAL_RUNTIME_STYLESHEETS.includes(row.file),
+	(row) => conditionalSet.has(row.file),
 );
 
+// --- Reclassify per-file audit rows (not only the aggregate count) ---
+const importantSplit = reclassifyFileRows(exceptions.importantInactive, conditionalSet, activeStack);
+exceptions.importantConditionalRuntime = importantSplit.conditional;
+exceptions.importantInactive = importantSplit.inactive;
+
+const pixelsSplit = reclassifyFileRows(exceptions.hardcodedPixelsInactive, conditionalSet, activeStack);
+exceptions.hardcodedPixelsConditionalRuntime = pixelsSplit.conditional;
+exceptions.hardcodedPixelsInactive = pixelsSplit.inactive;
+
+// Move any leftover inactive-bucket rows that belong to conditional files out of
+// generic inactive collections that only list {file,line} style entries.
+for (const key of Object.keys(exceptions)) {
+	if (!Array.isArray(exceptions[key])) continue;
+	if (key.startsWith('important') || key.startsWith('hardcodedPixels')) continue;
+	if (key === 'inactiveCssFiles' || key === 'conditionalRuntimeStylesheets') continue;
+	if (key === 'stylesheetReferenceEvidence' || key === 'conditionalRuntimeReferenceEvidence') continue;
+	const sample = exceptions[key][0];
+	if (!sample || typeof sample !== 'object' || !('file' in sample)) continue;
+	// Only re-bucket rows that currently sit outside activeStack and look inactive.
+	const split = reclassifyFileRows(exceptions[key], conditionalSet, activeStack);
+	if (split.conditional.length && /inactive|Inactive/.test(key)) {
+		const conditionalKey = key.replace(/[Ii]nactive/, 'ConditionalRuntime');
+		exceptions[conditionalKey] = [...(exceptions[conditionalKey] || []), ...split.conditional];
+		exceptions[key] = [...split.other, ...split.inactive];
+	}
+}
+
+// --- Validate conditional runtime CSS (not only global ACTIVE_STACK) ---
+const definedTokens = extractRootTokens(fs.readFileSync(TOKENS_PATH, 'utf8'));
+const conditionalFatals = [];
+const conditionalUndefinedTokens = [];
+const conditionalUnsafeSelectors = [];
+const conditionalNonCanonicalFonts = [];
+const conditionalHardcodedColors = [];
+
+for (const stylesheet of CONDITIONAL_RUNTIME_STYLESHEETS) {
+	const absolute = path.join(CSS_DIR, stylesheet);
+	const source = fs.readFileSync(absolute, 'utf8');
+	const clean = stripComments(source);
+
+	for (const match of clean.matchAll(/var\(\s*(--nvx-[a-zA-Z0-9_-]+)/g)) {
+		const token = match[1];
+		if (!definedTokens.has(token)) {
+			conditionalUndefinedTokens.push({
+				file: stylesheet,
+				token,
+				line: lineNumber(clean, match.index),
+			});
+		}
+	}
+
+	for (const row of parseSelectors(source, stylesheet)) {
+		// Positional selectors remain forbidden. :has() is allowed in temporary
+		// conditional overrides (hero blackout media rails).
+		if (/:nth-child\(|:nth-of-type\(/.test(row.selector)) {
+			conditionalUnsafeSelectors.push(row);
+		}
+	}
+
+	for (const match of clean.matchAll(/(?:^|;)\s*(font-family)\s*:\s*([^;!}]+)/gim)) {
+		const value = match[2].trim().toLowerCase().replace(/\s+/g, ' ');
+		if (!CANONICAL_FONT_TOKENS.has(value) && value !== 'inherit' && value !== 'initial') {
+			conditionalNonCanonicalFonts.push({
+				file: stylesheet,
+				property: 'font-family',
+				value: match[2].trim(),
+				line: lineNumber(clean, match.index),
+			});
+		}
+	}
+
+	for (const match of clean.matchAll(/(?:^|;)\s*((?:background-)?color|border(?:-(?:top|right|bottom|left))?-color|fill|stroke)\s*:\s*([^;!}]+)/gim)) {
+		const value = match[2].trim().toLowerCase().replace(/\s+/g, ' ');
+		if (
+			value === 'transparent'
+			|| value === 'currentcolor'
+			|| value === 'none'
+			|| value.includes('var(--nvx-')
+		) {
+			continue;
+		}
+		if (/#(?:[0-9a-f]{3,8})\b|rgba?\(|hsla?\(/i.test(value)) {
+			conditionalHardcodedColors.push({
+				file: stylesheet,
+				property: match[1],
+				value: match[2].trim(),
+				line: lineNumber(clean, match.index),
+			});
+		}
+	}
+}
+
+exceptions.conditionalUndefinedTokens = conditionalUndefinedTokens;
+exceptions.conditionalUnsafeSelectors = conditionalUnsafeSelectors;
+exceptions.conditionalNonCanonicalFonts = conditionalNonCanonicalFonts;
+exceptions.conditionalHardcodedColors = conditionalHardcodedColors;
+
+if (conditionalUndefinedTokens.length) {
+	conditionalFatals.push(`found ${conditionalUndefinedTokens.length} undefined token reference(s) in conditional runtime CSS`);
+}
+if (conditionalUnsafeSelectors.length) {
+	conditionalFatals.push(`found ${conditionalUnsafeSelectors.length} forbidden positional selector(s) in conditional runtime CSS`);
+}
+if (conditionalNonCanonicalFonts.length) {
+	conditionalFatals.push(`found ${conditionalNonCanonicalFonts.length} non-canonical font-family declaration(s) in conditional runtime CSS`);
+}
+if (conditionalHardcodedColors.length) {
+	conditionalFatals.push(`found ${conditionalHardcodedColors.length} literal color declaration(s) in conditional runtime CSS`);
+}
+
+// Consistency: important rows for conditional files must not remain under inactive.
+const strayImportantInactive = (exceptions.importantInactive || []).filter((row) => conditionalSet.has(row.file));
+if (strayImportantInactive.length) {
+	conditionalFatals.push(`importantInactive still contains ${strayImportantInactive.length} conditional runtime row(s)`);
+}
+
+// --- Summary / classification counts ---
 summary.conditionalRuntimeStylesheets = CONDITIONAL_RUNTIME_STYLESHEETS.length;
+<<<<<<< Updated upstream
 summary.activeStylesheets = activeStack.size;
 summary.inactiveStylesheets = inactiveStylesheets.size;
 summary.totalStylesheets = allStylesheets.size;
+=======
+summary.inactiveStylesheets = exceptions.inactiveCssFiles.length;
+summary.importantConditionalRuntime = (exceptions.importantConditionalRuntime || []).length;
+summary.importantInactive = (exceptions.importantInactive || []).length;
+summary.conditionalUndefinedTokens = conditionalUndefinedTokens.length;
+summary.conditionalUnsafeSelectors = conditionalUnsafeSelectors.length;
+>>>>>>> Stashed changes
 summary.classification = {
 	activeSourceStylesheets: activeStack.size,
 	conditionalRuntimeWithinActive: summary.conditionalRuntimeStylesheets,
@@ -248,9 +436,15 @@ summary.responsiveOverrideSelectors = responsiveOverrideSelectors.length;
 summary.activeDuplicateSelectorThreshold = MAX_ACTIONABLE_DUPLICATE_SELECTORS;
 
 if (actionableDuplicateSelectors.length > MAX_ACTIONABLE_DUPLICATE_SELECTORS) {
-	throw new Error(
+	conditionalFatals.push(
 		`found ${actionableDuplicateSelectors.length} actionable duplicate selectors; maximum is ${MAX_ACTIONABLE_DUPLICATE_SELECTORS}`,
 	);
+}
+
+if (conditionalFatals.length) {
+	console.error('\nCONDITIONAL RUNTIME CSS CLASSIFICATION FAILED');
+	for (const error of conditionalFatals) console.error(`- ${error}`);
+	process.exit(1);
 }
 
 fs.writeFileSync(EXCEPTIONS_PATH, `${JSON.stringify(exceptions, null, 2)}\n`);

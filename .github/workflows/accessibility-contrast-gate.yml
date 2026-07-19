@@ -1,0 +1,46 @@
+name: Accessibility Contrast Gate
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css'
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-components.css'
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css'
+      - 'scripts/accessibility/test-contrast-contract.mjs'
+      - '.github/workflows/accessibility-contrast-gate.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css'
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-components.css'
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css'
+      - 'scripts/accessibility/test-contrast-contract.mjs'
+      - '.github/workflows/accessibility-contrast-gate.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: accessibility-contrast-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  wcag-contrast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Lint workflow and contract
+        run: |
+          set -euo pipefail
+          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/accessibility-contrast-gate.yml
+          node --check scripts/accessibility/test-contrast-contract.mjs
+
+      - name: Enforce WCAG contrast tokens and contexts
+        run: node scripts/accessibility/test-contrast-contract.mjs

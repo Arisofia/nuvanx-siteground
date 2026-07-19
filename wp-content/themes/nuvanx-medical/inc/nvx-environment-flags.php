@@ -19,13 +19,24 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Whether the current request belongs to the staging2 review environment.
+ *
+ * Host-only: generic WP_ENVIRONMENT_TYPE=staging must NOT reveal media, so
+ * unrelated staging/preview hosts keep production-safe blackout behaviour.
  */
 function nvx_environment_is_staging2(): bool {
-	$environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : '';
-	$host        = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
-	$host        = preg_replace( '/:\d+$/', '', $host );
+	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
+	$host = preg_replace( '/:\d+$/', '', $host );
+	if ( ! is_string( $host ) ) {
+		$host = '';
+	}
 
-	return 'staging' === $environment || 'staging2.nuvanx.com' === $host;
+	/**
+	 * Filter whether the request is treated as staging2.
+	 *
+	 * @param bool   $is_staging2 Detected host match.
+	 * @param string $host        Normalized HTTP host without port.
+	 */
+	return (bool) apply_filters( 'nvx_environment_is_staging2', 'staging2.nuvanx.com' === $host, $host );
 }
 
 /**

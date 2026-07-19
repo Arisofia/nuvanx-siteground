@@ -113,7 +113,8 @@ async function inspectPage(browser, route) {
     errors.push(`missing canonical contact og:image: ${ogImage || 'none'}`);
   }
 
-  if (result.html.includes('nvx-trust-badges')) errors.push('unverified trust badge markup present');
+  const trustBadgeCount = await page.locator('.nvx-trust-badges').count().catch(() => 0);
+  if (trustBadgeCount > 0) errors.push(`unverified trust badge blocks present: ${trustBadgeCount}`);
   for (const claim of forbiddenClaims) if (result.bodyText.includes(claim)) errors.push(`forbidden claim present: ${claim}`);
 
   await context.close();
@@ -127,6 +128,7 @@ async function inspectPage(browser, route) {
     schemaCount,
     schemaTypes,
     ogImage,
+    trustBadgeCount,
     errors,
   };
 }
@@ -137,7 +139,7 @@ for (const route of routes) pages.push(await inspectPage(browser, route));
 await browser.close();
 
 for (const page of pages) {
-  console.log(`${page.errors.length ? 'FAIL' : 'PASS'} ${page.path} · HTTP ${page.status} · H1 ${page.h1} · robots ${page.robots} · schema ${page.schemaCount}`);
+  console.log(`${page.errors.length ? 'FAIL' : 'PASS'} ${page.path} · HTTP ${page.status} · H1 ${page.h1} · robots ${page.robots} · schema ${page.schemaCount} · trust badges ${page.trustBadgeCount}`);
   for (const error of page.errors) console.error(`  - ${error}`);
 }
 

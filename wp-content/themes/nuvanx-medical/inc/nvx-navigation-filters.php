@@ -120,8 +120,14 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Blog', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/contacto/' ), 'label' => __( 'Contacto', 'nuvanx-medical' ) ),
 	);
+	$menu_class = isset( $args['menu_class'] ) && '' !== trim( (string) $args['menu_class'] )
+		? trim( (string) $args['menu_class'] )
+		: 'nvx-nav__list';
+	$menu_id    = isset( $args['menu_id'] ) && '' !== trim( (string) $args['menu_id'] )
+		? ' id="' . esc_attr( trim( (string) $args['menu_id'] ) ) . '"'
+		: '';
 
-	$html = '<ul class="nvx-nav__list">';
+	$html = '<ul' . $menu_id . ' class="' . esc_attr( $menu_class ) . '">';
 	foreach ( $items as $item ) {
 		$children     = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
 		$has_children = array() !== $children;
@@ -159,13 +165,20 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 }
 
 /**
- * Ensure the canonical primary fallback cannot expose unpublished routes.
+ * Ensure an enabled primary fallback cannot expose unpublished routes.
+ *
+ * A caller that explicitly sets `fallback_cb => false` (the mobile drawer) is
+ * preserved. This avoids re-enabling markup that the mobile navigation contract
+ * intentionally suppresses.
  *
  * @param array<string, mixed> $args wp_nav_menu arguments.
  * @return array<string, mixed>
  */
 function nvx_navigation_filter_menu_args( array $args ): array {
-	if ( 'primary' === ( $args['theme_location'] ?? '' ) ) {
+	$primary          = 'primary' === ( $args['theme_location'] ?? '' );
+	$fallback_enabled = ! array_key_exists( 'fallback_cb', $args ) || false !== $args['fallback_cb'];
+
+	if ( $primary && $fallback_enabled ) {
 		$args['fallback_cb'] = 'nvx_navigation_primary_fallback';
 	}
 
@@ -176,8 +189,9 @@ add_filter( 'wp_nav_menu_args', 'nvx_navigation_filter_menu_args', 20 );
 /**
  * Dynamically inject published EXION/EMFUSION pages under Tratamientos.
  *
- * Database-managed menus receive only published routes. Existing menu items are
- * preserved and deduplicated by normalized URL.
+ * Database-managed menus receive only published routes. Existing children of
+ * the Tratamientos submenu are preserved and deduplicated by normalized URL.
+ * A matching URL elsewhere in the menu does not suppress the required child.
  *
  * @param array<int, WP_Post|stdClass> $items Menu items.
  * @param stdClass                     $args  Menu args.
@@ -198,10 +212,6 @@ function nvx_add_exion_to_tratamientos_menu( $items, $args ) {
 		$item_id = isset( $item->ID ) ? (int) $item->ID : 0;
 		$max_id  = max( $max_id, $item_id );
 
-		if ( isset( $item->url ) && is_string( $item->url ) ) {
-			$existing_urls[ untrailingslashit( $item->url ) ] = true;
-		}
-
 		if (
 			( isset( $item->url ) && false !== strpos( (string) $item->url, '/tratamientos/' ) )
 			|| ( isset( $item->title ) && 'Tratamientos' === $item->title )
@@ -215,8 +225,13 @@ function nvx_add_exion_to_tratamientos_menu( $items, $args ) {
 	}
 
 	foreach ( $items as $item ) {
-		if ( isset( $item->menu_item_parent ) && (int) $item->menu_item_parent === $tratamientos_id ) {
-			$max_child_order = max( $max_child_order, isset( $item->menu_order ) ? (int) $item->menu_order : 0 );
+		if ( ! isset( $item->menu_item_parent ) || (int) $item->menu_item_parent !== $tratamientos_id ) {
+			continue;
+		}
+
+		$max_child_order = max( $max_child_order, isset( $item->menu_order ) ? (int) $item->menu_order : 0 );
+		if ( isset( $item->url ) && is_string( $item->url ) ) {
+			$existing_urls[ untrailingslashit( $item->url ) ] = true;
 		}
 	}
 

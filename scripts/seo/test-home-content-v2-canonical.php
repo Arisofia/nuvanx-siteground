@@ -55,14 +55,14 @@ HTML;
 $output = nvx_home_content_v2_transform( $input );
 
 $required = array(
-	'Por qué NUVANX no es una clínica de estética',
-	'Medicina estética donde el diagnóstico decide la tecnología',
-	'1. Diagnóstico médico, no catálogo',
-	'2. Tecnología médica certificada CE',
-	'3. Equipo médico hospitalario en activo',
-	'15–30 minutos para saber si existe indicación',
+	'¿Por qué NUVANX no es una clínica de estética convencional?',
+	'Criterio clínico donde el diagnóstico decide la tecnología.',
+	'Prescripción, no venta:',
+	'Tecnología médica certificada:',
+	'Equipo hospitalario activo:',
+	'15–30 minutos para determinar la viabilidad de tu caso.',
 	'Reservar valoración gratuita',
-	'WhatsApp con la clínica',
+	'Contactar por WhatsApp',
 	'Un protocolo médico en tres decisiones',
 	'Evaluación individual',
 	'Indicación y parámetros',

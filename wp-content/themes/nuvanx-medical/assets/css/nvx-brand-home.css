@@ -60,13 +60,11 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   font-weight:400;
   line-height:var(--nvx-lh-display);
   letter-spacing:var(--nvx-track-display);
-  color:var(--nvx-light);
 }
 
-/* Hero CTA group — canonical wrapper for all hero conversion pairs.
-   Alias .nvx-home-hero-ctas kept for legacy markup not yet processed
-   by nvx_content_unify_ctas(). */
-.hero-cta-group,
+/* Hero CTA cluster — layout wrapper for conversion pairs.
+   (Button visuals are owned by nvx-components.css) */
+.nvx-cta-cluster,
 .nvx-home-hero-ctas{
   display:flex;
   flex-wrap:wrap;
@@ -75,95 +73,6 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   align-items:center;
 }
 
-/* PRIMARY BUTTON (Reserve) */
-.hero-cta-group .btn-primary{
-  background-color:var(--nvx-ink);
-  color:var(--nvx-light);
-  padding:18px 40px;
-  font-size:16px;
-  font-weight:700;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  transition:
-    background-color 0.3s cubic-bezier(0.4,0,0.2,1),
-    color 0.3s cubic-bezier(0.4,0,0.2,1),
-    transform 0.3s cubic-bezier(0.4,0,0.2,1),
-    box-shadow 0.3s cubic-bezier(0.4,0,0.2,1);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:4px;
-  position:relative;
-  overflow:hidden;
-  text-decoration:none;
-}
-.hero-cta-group .btn-primary span{display:block}
-.hero-cta-group .btn-primary .sub-text{
-  font-size:12px;
-  font-weight:500;
-  opacity:0.9;
-}
-.hero-cta-group .btn-primary:hover{
-  background-color:var(--nvx-charcoal);
-  transform:translateY(-3px);
-  box-shadow:var(--nvx-shadow-button);
-  color:var(--nvx-light);
-}
-.hero-cta-group .btn-primary:active{
-  transform:scale(0.98);
-  box-shadow:var(--nvx-shadow-min);
-}
-.hero-cta-group .btn-primary:focus-visible{
-  outline:3px solid var(--nvx-accent-muted);
-  outline-offset:2px;
-}
-
-/* SECONDARY BUTTON (WhatsApp) */
-.hero-cta-group .btn-secondary{
-  background-color:var(--nvx-surface-soft);
-  color:var(--nvx-ink);
-  padding:18px 32px;
-  font-size:16px;
-  font-weight:600;
-  border:2px solid var(--nvx-border-soft);
-  border-radius:6px;
-  cursor:pointer;
-  transition:
-    background-color 0.3s cubic-bezier(0.4,0,0.2,1),
-    color 0.3s cubic-bezier(0.4,0,0.2,1),
-    border-color 0.3s cubic-bezier(0.4,0,0.2,1),
-    transform 0.3s cubic-bezier(0.4,0,0.2,1),
-    box-shadow 0.3s cubic-bezier(0.4,0,0.2,1);
-  display:flex;
-  align-items:center;
-  gap:12px;
-  text-decoration:none;
-}
-.hero-cta-group .btn-secondary:hover{
-  background-color:var(--nvx-form-stage-mid);
-  border-color:var(--nvx-accent-muted);
-  transform:translateY(-3px);
-  box-shadow:var(--nvx-shadow-min);
-  color:var(--nvx-ink);
-}
-.hero-cta-group .btn-secondary:active{transform:scale(0.98)}
-.hero-cta-group .icon-whatsapp{width:20px;height:20px;display:inline-block}
-
-/* LOADING STATE */
-.hero-cta-group .btn.loading{pointer-events:none;opacity:0.7}
-.hero-cta-group .btn.loading::after{
-  content:"";
-  display:inline-block;
-  width:16px;
-  height:16px;
-  margin-left:8px;
-  border:2px solid var(--nvx-border-on-dark-45);
-  border-top-color:var(--nvx-light);
-  border-radius:50%;
-  animation:spin-loader 0.8s linear infinite;
-}
-@keyframes spin-loader{to{transform:rotate(360deg)}}
 
 .nvx-brand-section{padding-block:var(--nvx-pad-section)}
 .nvx-brand-section--tight{padding-block:var(--nvx-pad-section-tight)}
@@ -186,7 +95,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   width:100%;
   margin:0;
   padding:clamp(36px,4.5vw,56px);
-  border:1px solid rgba(196,200,206,.22);
+  border:1px solid var(--nvx-border-on-dark-42);
   border-radius:var(--nvx-radius-card,clamp(24px,2.5vw,32px));
   background:var(--nvx-charcoal);
   color:var(--nvx-light);
@@ -236,23 +145,20 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 }
 
 @media(max-width:768px){
-  .hero-cta-group,
+  .nvx-cta-cluster,
   .nvx-home-hero-ctas{
     flex-direction:column;
     gap:12px;
     width:100%;
     align-items:stretch;
   }
-  .hero-cta-group .btn-primary,
-  .hero-cta-group .btn-secondary{
-    width:100%;
-    justify-content:center;
-    padding:16px 24px;
-    font-size:15px;
-  }
+  .nvx-cta-cluster .nvx-button,
   .nvx-home-hero-ctas .nvx-brand-btn,
   .nvx-home-hero-ctas .nvx-button,
-  .nvx-home-hero-ctas .nvx-btn{width:100%}
+  .nvx-home-hero-ctas .nvx-btn{
+    width:100%;
+    justify-content:center;
+  }
 }
 
 @media(max-width:680px){
@@ -264,14 +170,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   .nvx-home-action-banner .nvx-button{width:100%}
 }
 
-@media(max-width:480px){
-  .hero-cta-group .btn-primary,
-  .hero-cta-group .btn-secondary{
-    padding:14px 20px;
-    font-size:14px;
-  }
-  .hero-cta-group .btn-primary .sub-text{font-size:11px}
-}
+
 
 /* Shared hero contrast while this sitewide stylesheet owns hero CTA primitives. */
 body.nvx-hero-blackout :where(

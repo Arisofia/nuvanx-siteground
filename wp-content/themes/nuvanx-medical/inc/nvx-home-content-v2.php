@@ -22,29 +22,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_home_content_v2_catalog(): array {
 	return array(
 		'values'    => array(
-			'kicker' => 'Por qué NUVANX no es una clínica de estética',
-			'title'  => 'Medicina estética donde el diagnóstico decide la tecnología',
+			'kicker' => '¿Por qué NUVANX no es una clínica de estética convencional?',
+			'title'  => 'Criterio clínico donde el diagnóstico decide la tecnología.',
 			'items'  => array(
 				array(
-					'title' => '1. Diagnóstico médico, no catálogo',
-					'body'  => 'Antes de cualquier protocolo, valoramos calidad de piel, historial, objetivos y contraindicaciones (15–30 min). Si no hay indicación médica, no hay tratamiento. Las sesiones no se venden; se prescriben.',
+					'title' => 'Prescripción, no venta:',
+					'body'  => 'Antes de actuar, evaluamos tu piel, historial clínico y objetivos (15–30 min). Si un tratamiento no es médicamente viable, no se realiza. Las sesiones se prescriben, no se comercializan.',
 				),
 				array(
-					'title' => '2. Tecnología médica certificada CE',
-					'body'  => 'DEKA Motus AZ+, Endolift® (1470 nm), láser CO₂ fraccionado y EXION® BTL — equipos con marcado CE médico. Cada parámetro lo decide el médico según tu anatomía, no un pack comercial.',
+					'title' => 'Tecnología médica certificada:',
+					'body'  => 'Contamos con plataformas como DEKA Motus AZ+, Endolift® (1470 nm), láser CO₂ fraccionado y EXION® BTL. Cada parámetro se calibra según tu anatomía, evitando protocolos estandarizados.',
 				),
 				array(
-					'title' => '3. Equipo médico hospitalario en activo',
-					'body'  => 'Dirección médica, FEA del Hospital La Paz (well-aging y geriatría preventiva) e investigador PhD (CIBERFES / envejecimiento). Esa formación hospitalaria informa cada diagnóstico en NUVANX.',
+					'title' => 'Equipo hospitalario activo:',
+					'body'  => 'Médicos especialistas vinculados al Hospital La Paz e investigadores PhD del CIBERFES. Esta formación en medicina del envejecimiento respalda cada una de nuestras decisiones.',
 				),
 			),
 		),
 		'action'    => array(
-			'kicker'          => 'Valoración médica gratuita',
-			'title'           => '15–30 minutos para saber si existe indicación',
-			'body'            => 'Evaluamos tu caso, explicamos opciones y documentamos el presupuesto antes de decidir. Presencial en Chamberí (CS20144) o Salamanca–Goya (CS20073).',
+			'kicker'          => 'Tu primera valoración clínica',
+			'title'           => '15–30 minutos para determinar la viabilidad de tu caso.',
+			'body'            => 'Evaluamos tu tejido, resolvemos dudas y entregamos un presupuesto cerrado. Encuéntranos en nuestras clínicas autorizadas de Madrid: Chamberí (CS20144): Un espacio discreto a pocos minutos de la Plaza de Olavide. Salamanca–Goya (CS20073): Ubicación accesible entre las zonas de Diego de León y Goya.',
 			'primary_label'   => 'Reservar valoración gratuita',
-			'secondary_label' => 'WhatsApp con la clínica',
+			'secondary_label' => 'Contactar por WhatsApp',
 		),
 		'method'    => array(
 			'kicker' => 'Cómo trabajamos',
@@ -88,6 +88,35 @@ function nvx_home_content_v2_catalog(): array {
 				'facts' => array(
 					'Inversión orientativa' => 'Desde 330 € sesión facial / 450 € corporal (IVA incl.).',
 					'Recuperación'          => 'Habitualmente 4 a 7 días de eritema y descamación según protocolo.',
+				),
+			),
+		),
+		'tratamientos' => array(
+			'title'  => 'Procedimientos médicos disponibles',
+			'items'  => array(
+				array(
+					'title' => 'Endolift® Facial',
+					'body'  => 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica. Ideal para flacidez leve-moderada y grasa submentoniana.',
+				),
+				array(
+					'title' => 'Endoláser Corporal',
+					'body'  => 'Lipólisis y reafirmación profunda en zonas resistentes al ejercicio para un resultado armónico de la silueta.',
+				),
+				array(
+					'title' => 'Láser CO₂ Fraccionado',
+					'body'  => 'Renovación profunda de textura, poros, cicatrices y manchas. Parámetros adaptados a tu fototipo y tiempo de recuperación.',
+				),
+				array(
+					'title' => 'Armonización Facial',
+					'body'  => 'Técnicas combinadas (rellenos, neuromoduladores y bioestimuladores) bajo un enfoque conservador que respeta tu identidad.',
+				),
+				array(
+					'title' => 'EXION® BTL',
+					'body'  => 'Plataforma avanzada (Fractional RF, Face y Body) para optimizar la densidad dérmica y la producción natural de ácido hialurónico.',
+				),
+				array(
+					'title' => 'BTL EXILITE IPL',
+					'body'  => 'Luz pulsada intensa para fotorrejuvenecimiento. Trata de forma eficaz rojeces, capilares y manchas.',
 				),
 			),
 		),
@@ -304,6 +333,31 @@ function nvx_home_content_v2_transform( string $content ): string {
 				}
 			}
 		}
+	}
+	$tratamientos = nvx_home_content_v2_first( $xpath, $root, 'nvx-home-tratamientos', 'section' );
+	if ( $tratamientos ) {
+		$title = nvx_home_content_v2_first( $xpath, $tratamientos, 'nvx-brand-title', 'h2' );
+		$lead  = nvx_home_content_v2_first( $xpath, $tratamientos, 'nvx-brand-lead', 'p' );
+		if ( $title ) {
+			nvx_home_content_v2_set_text( $title, $catalog['tratamientos']['title'] );
+		}
+		if ( $lead ) {
+			$lead->parentNode->removeChild( $lead );
+		}
+		nvx_home_content_v2_update_cards(
+			$xpath,
+			$tratamientos,
+			'nvx-brand-card',
+			'nvx-brand-card__title',
+			'nvx-brand-card__body',
+			$catalog['tratamientos']['items']
+		);
+	}
+	
+	// Remove the standalone clinics block since it was merged into the action banner.
+	$direccion = nvx_home_content_v2_first( $xpath, $root, 'nvx-home-direccion', 'section' );
+	if ( $direccion && $direccion->parentNode ) {
+		$direccion->parentNode->removeChild( $direccion );
 	}
 
 	$video = $xpath->query( '//video[@id="nvx-home-hero-video"]' );

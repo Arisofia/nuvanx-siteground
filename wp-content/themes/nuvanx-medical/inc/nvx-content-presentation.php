@@ -73,13 +73,12 @@ function nvx_cta_whatsapp_markup( string $class = 'nvx-brand-btn nvx-brand-btn--
  * Dual CTA cluster.
  */
 function nvx_cta_pair_markup( string $extra_class = '' ): string {
-	$class = trim( 'hero-cta-group ' . $extra_class );
+	$class = trim( 'nvx-cta-cluster ' . $extra_class );
 	return '<div class="' . esc_attr( $class ) . '">
-		<button class="btn btn-primary nvx-open-valoracion-modal" data-nvx-valoracion-modal="1" aria-haspopup="dialog" data-gtag="click-reserve">
+		<button class="nvx-button nvx-button--primary nvx-open-valoracion-modal" data-nvx-valoracion-modal="1" aria-haspopup="dialog" data-gtag="click-reserve">
 			<span>Reservar Consulta</span>
-			<span class="sub-text">Gratuita, sin compromiso</span>
 		</button>
-		<a href="' . esc_url( nvx_cta_whatsapp_url() ) . '" class="btn btn-secondary" target="_blank" rel="noopener noreferrer" data-gtag="click-whatsapp">
+		<a href="' . esc_url( nvx_cta_whatsapp_url() ) . '" class="nvx-button nvx-button--secondary" target="_blank" rel="noopener noreferrer" data-gtag="click-whatsapp">
 			<svg class="icon-whatsapp" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
 			Contactar por WhatsApp
 		</a>
@@ -627,51 +626,12 @@ function nvx_content_ensure_home_protocols( string $content ): string {
 		return $content;
 	}
 
-	// Already present once: drop extras.
-	if ( false !== strpos( $content, 'nvx-home-protocols' ) || false !== strpos( $content, 'id="nvx-home-protocols"' ) ) {
-		$seen    = 0;
-		$updated = preg_replace_callback(
-			'/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu',
-			static function ( array $m ) use ( &$seen ): string {
-				$seen++;
-				// Refresh first copy with current markup; drop further copies.
-				return ( 1 === $seen ) ? nvx_home_protocols_markup() : '';
-			},
-			$content
-		);
-		return is_string( $updated ) ? $updated : $content;
-	}
+	// The protocols section has been removed from the homepage.
+	// Strip any existing canonical or legacy protocols blocks.
+	$content = preg_replace( '/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu', '', $content ) ?? $content;
+	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Protocolos Médicos Especializados(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
 
-	$block = nvx_home_protocols_markup();
-
-	// Prefer after single Cómo trabajamos section.
-	$count   = 0;
-	$updated = preg_replace(
-		'/(<section\b[^>]*\bnvx-method-section\b[^>]*>[\s\S]*?<\/section>)/iu',
-		'$1' . $block,
-		$content,
-		1,
-		$count
-	);
-	if ( is_string( $updated ) && $count > 0 ) {
-		return $updated;
-	}
-
-	// After post-values action banner.
-	$count   = 0;
-	$updated = preg_replace(
-		'/(id=["\']nvx-post-values-action-banner["\'][\s\S]*?<\/div>\s*<\/div>)/iu',
-		'$1' . $block,
-		$content,
-		1,
-		$count
-	);
-	if ( is_string( $updated ) && $count > 0 ) {
-		return $updated;
-	}
-
-	// Fallback: append before last CTA-ish section or at end of content.
-	return $content . $block;
+	return $content;
 }
 
 /**
@@ -682,23 +642,17 @@ function nvx_home_team_strip_markup(): string {
 	$director = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$ivon     = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 	$fabio    = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
-	$lead     = sprintf(
-		/* translators: 1: director ICOMEM, 2: Dra. Ivon ICOMEM, 3: Dr. Fabio ICOMEM */
-		__( 'NUVANX está liderada por el Dr. José Javier Rivera Tejeda (ICOMEM %1$s), Director Médico especialista en Endolift® y láser CO₂. La Dra. Ivon Yamileth Rivera Deras (ICOMEM %2$s), FEA del Hospital La Paz, aporta well-aging y geriatría preventiva. El Dr. Fabio Augusto Quiñónez Bareiro (ICOMEM %3$s), PhD (UAM) e investigador CIBERFES, integra fisiología del envejecimiento y paciente complejo.', 'nuvanx-medical' ),
-		$director,
-		$ivon,
-		$fabio
-	);
+	$dr_jose  = sprintf( __( 'Dr. José Javier Rivera Tejeda (ICOMEM %s): Director Médico especialista en Endolift® y tratamientos con láser CO₂.', 'nuvanx-medical' ), $director );
+	$dra_ivon = sprintf( __( 'Dra. Ivon Yamileth Rivera Deras (ICOMEM %s): Médico Especialista (FEA) en el Hospital La Paz, experta en well-aging y geriatría preventiva.', 'nuvanx-medical' ), $ivon );
+	$dr_fabio = sprintf( __( 'Dr. Fabio Augusto Quiñónez Bareiro (ICOMEM %s): Doctor por la UAM e investigador en el CIBERFES, especializado en la fisiología del envejecimiento y el paciente complejo.', 'nuvanx-medical' ), $fabio );
 
 	$html  = '<section class="nvx-brand-section nvx-home-team-strip" id="nvx-home-team" aria-labelledby="nvx-home-team-title" data-nvx-home-block="team">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Equipo médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Tres médicos colegiados. Investigación hospitalaria. Un solo objetivo.', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html( $lead ) . '</p>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-		'El criterio médico en NUVANX no es un claim de marketing: es el resultado de un equipo con experiencia hospitalaria real.',
-		'nuvanx-medical'
-	) . '</p>';
+	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Experiencia clínica hospitalaria aplicada a la estética', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En NUVANX, la excelencia no es solo una promesa; es el resultado de un equipo médico con trayectoria directa en el entorno hospitalario.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $dr_jose ) . '<br><br>' . esc_html( $dra_ivon ) . '<br><br>' . esc_html( $dr_fabio ) . '</p>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Abordamos el cuidado de tu piel con total seguridad, garantizando resultados naturales y elegantes respaldados por la ciencia médica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-home-team-strip__cta"><a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $equipo ) . '">' . esc_html__( 'Conocer al equipo médico', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></section>';
 	return $html;
@@ -711,13 +665,13 @@ function nvx_home_wellaging_strip_markup(): string {
 	$html  = '<section class="nvx-brand-section nvx-home-wellaging" id="nvx-home-wellaging" aria-labelledby="nvx-home-wellaging-title" data-nvx-home-block="wellaging">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Well-aging', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-home-wellaging-title" class="nvx-brand-title">' . esc_html__( 'Más allá de la estética: medicina del envejecimiento saludable', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 id="nvx-home-wellaging-title" class="nvx-brand-title">' . esc_html__( 'Medicina del envejecimiento: salud desde el interior', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-		'Integramos well-aging con base en geriatría preventiva y longevidad — un enfoque que los centros solo cosméticos no pueden ofrecer. Tratar la piel es también tratar el tejido que envejece, con médicos formados en fisiología del envejecimiento, no solo en aparatología.',
+		'No nos limitamos a la apariencia superficial. Unimos el cuidado de la piel con la geriatría preventiva y el estudio de la longevidad, un enfoque clínico global que va mucho más allá de la estética convencional. Entendemos que mejorar la piel implica tratar el tejido profundo que envejece. Por eso, nuestro equipo está formado en la fisiología médica del cuerpo humano, no solo en el manejo de máquinas.',
 		'nuvanx-medical'
 	) . '</p>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-		'Láser, inductores de colágeno y protocolos regenerativos se diseñan con esa visión: resultados naturales hoy y tejido más saludable a largo plazo, siempre tras indicación médica.',
+		'Diseñamos cada tratamiento de láser, inductores de colágeno y medicina regenerativa bajo un estricto criterio médico. El objetivo es doble: lograr resultados naturales de forma inmediata y asegurar un tejido mucho más saludable y fuerte a largo plazo.',
 		'nuvanx-medical'
 	) . '</p>';
 	$html .= '</div></section>';
@@ -731,6 +685,10 @@ function nvx_content_ensure_home_team_wellaging( string $content ): string {
 	if ( ! is_front_page() ) {
 		return $content;
 	}
+
+	// Remove legacy duplicated CMS blocks that are replaced by the canonical team strip.
+	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Liderazgo y Experiencia(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
+	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Registro sanitario(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
 
 	$team = nvx_home_team_strip_markup();
 	$well = nvx_home_wellaging_strip_markup();
@@ -943,8 +901,8 @@ function nvx_content_unify_ctas( string $content ): string {
 	$content = preg_replace_callback(
 		'/<div\s+class="([^"]*(?:nvx-home-hero-ctas|nvx-brand-actions|nvx-page__cta|nvx-cta-pair)[^"]*)">[\s\S]*?<\/div>/u',
 		static function ( array $m ): string {
-			// Do not recursively nest if it already has hero-cta-group.
-			if ( strpos( $m[1], 'hero-cta-group' ) !== false ) {
+			// Do not recursively nest if it already has nvx-cta-cluster.
+			if ( strpos( $m[1], 'nvx-cta-cluster' ) !== false ) {
 				return $m[0];
 			}
 			return nvx_cta_pair_markup( $m[1] );

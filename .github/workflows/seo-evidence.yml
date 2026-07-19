@@ -1,0 +1,111 @@
+name: SEO Evidence
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'scripts/seo/full-site-crawl.mjs'
+      - 'scripts/seo/summarize-lighthouse.mjs'
+      - '.github/workflows/seo-evidence.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '20 5 * * 1'
+
+concurrency:
+  group: seo-evidence-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  full-site-crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE_URL: https://nuvanx.com/
+      OUTPUT_DIR: artifacts/seo-evidence
+      CRITICAL_ONLY: '0'
+      CRAWL_CONCURRENCY: '5'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Validate crawler syntax
+        run: node --check scripts/seo/full-site-crawl.mjs
+
+      - name: Crawl sitemap URLs and internal links
+        run: node scripts/seo/full-site-crawl.mjs
+
+      - name: Publish crawl summary
+        if: always()
+        run: |
+          if [[ -f artifacts/seo-evidence/full-site-seo-report.md ]]; then
+            cat artifacts/seo-evidence/full-site-seo-report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload crawl evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: full-site-seo-evidence
+          path: artifacts/seo-evidence/
+          retention-days: 30
+          if-no-files-found: error
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Validate summarizer syntax
+        run: node --check scripts/seo/summarize-lighthouse.mjs
+
+      - name: Run mobile and desktop Lighthouse evidence
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/lighthouse
+          routes=(
+            'home|https://nuvanx.com/'
+            'contacto|https://nuvanx.com/contacto/'
+            'endolift|https://nuvanx.com/endolift-facial-papada-mandibula/'
+            'endolaser|https://nuvanx.com/endolaser-corporal-grasa-localizada/'
+            'laser-co2|https://nuvanx.com/laser-co2-fraccionado-madrid-textura-cicatrices-poro/'
+            'exion|https://nuvanx.com/exion-btl/'
+          )
+          for route in "${routes[@]}"; do
+            slug="${route%%|*}"
+            url="${route#*|}"
+            npx --yes lighthouse@12.8.2 "$url" \
+              --chrome-flags='--headless --no-sandbox --disable-dev-shm-usage' \
+              --only-categories=performance,accessibility,best-practices,seo \
+              --form-factor=mobile \
+              --output=json \
+              --output-path="artifacts/lighthouse/${slug}-mobile.json" \
+              --quiet || true
+            npx --yes lighthouse@12.8.2 "$url" \
+              --chrome-flags='--headless --no-sandbox --disable-dev-shm-usage' \
+              --only-categories=performance,accessibility,best-practices,seo \
+              --preset=desktop \
+              --output=json \
+              --output-path="artifacts/lighthouse/${slug}-desktop.json" \
+              --quiet || true
+          done
+
+      - name: Summarize Lighthouse results
+        if: always()
+        run: |
+          node scripts/seo/summarize-lighthouse.mjs
+          cat artifacts/lighthouse/summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Lighthouse evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: lighthouse-mobile-desktop-evidence
+          path: artifacts/lighthouse/
+          retention-days: 30
+          if-no-files-found: error

@@ -150,11 +150,98 @@ function nvx_public_content_text_hygiene( $content ) {
 		'Tu mejor versión empieza aquí.' => 'Reserva 15–30 min de valoración médica.',
 		'Tu mejor versión empieza aquí'  => 'Reserva 15–30 min de valoración médica',
 		// Vague sede framing.
-		'enfoque médico premium' => 'misma dirección médica que Chamberí',
-		'enfoque medico premium' => 'misma direccion medica que Chamberi',
+		'enfoque médico premium'                             => 'misma dirección médica que Chamberí',
+		'Medicina estética en Goya con enfoque médico premium' => 'Medicina estética láser en Goya–Barrio de Salamanca (CS20073)',
 	);
 
-	return strtr( $content, $replacements );
+	$content = str_replace( array_keys( $replacements ), array_values( $replacements ), $content );
+
+	// Endolift conflation fixes
+	$content = preg_replace('/(Endolift®?\s*)Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', '$1Técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content) ?? $content;
+	$content = preg_replace('/Firmeza\s+Endolift®?\s+Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', 'Endolift®: técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content) ?? $content;
+	$content = preg_replace('/Endolift®?\s+(?:es|como|mediante)\s+(?:una\s+)?radiofrecuencia\s+monopolar/iu', 'Endolift® es una técnica láser subdérmica', $content) ?? $content;
+	$content = preg_replace('/define\s+Endolift®?\s+como\s+radiofrecuencia\s+monopolar/iu', 'describe Endolift® como técnica láser subdérmica', $content) ?? $content;
+
+	// Valoración CTA fixes
+	$content = preg_replace( '/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $content ) ?? $content;
+
+	return $content;
 }
 add_filter( 'the_content', 'nvx_public_content_text_hygiene', 12 );
 add_filter( 'the_title', 'nvx_public_content_text_hygiene', 12 );
+
+/**
+ * Remove sensitive pages (e.g., Casos de pacientes ID 2645) from all navigation menus automatically.
+ * 
+ * @param array $items Array of menu items.
+ * @return array
+ */
+function nvx_exclude_sensitive_pages_from_menus( $items ) {
+	if ( ! is_array( $items ) ) {
+		return $items;
+	}
+	$noindex_ids = nvx_noindex_page_ids();
+	foreach ( $items as $key => $item ) {
+		if ( 'post_type' === $item->type && in_array( (int) $item->object_id, $noindex_ids, true ) ) {
+			unset( $items[ $key ] );
+		}
+	}
+	return $items;
+}
+add_filter( 'wp_get_nav_menu_items', 'nvx_exclude_sensitive_pages_from_menus', 20 );
+
+/**
+ * Automate the production business rules to bypass manual DB editing from P0-FINISH-RUNBOOK.md.
+ * 
+ * @param string $content HTML content.
+ * @return string
+ */
+function nvx_apply_production_business_rules( $content ) {
+	if ( ! is_string( $content ) || '' === trim( $content ) ) {
+		return $content;
+	}
+
+	$page_id = (int) get_queried_object_id();
+
+	// 3. Contacto (14): Strip all HubSpot forms and scripts.
+	if ( 14 === $page_id ) {
+		$content = preg_replace( '/<script[^>]*hsforms\.net[^>]*><\/script>/i', '', $content ) ?? $content;
+		$content = preg_replace( '/<div[^>]*class="[^"]*hbspt-form[^"]*"[^>]*>.*?<\/div>/is', '', $content ) ?? $content;
+	}
+
+	// 4. Valoración (2636): Keep only the primary HubSpot form CTA.
+	if ( 2636 === $page_id ) {
+		$count = 0;
+		$content = preg_replace_callback( '/<div[^>]*class="[^"]*hbspt-form[^"]*"[^>]*>.*?<\/div>/is', function( $matches ) use ( &$count ) {
+			$count++;
+			return $count === 1 ? $matches[0] : '';
+		}, $content ) ?? $content;
+	}
+
+	// 5. Privacidad y Aviso Legal (3, 20): Add legal placeholder if content is too short (empty).
+	if ( in_array( $page_id, array( 3, 20 ), true ) ) {
+		if ( strlen( strip_tags( $content ) ) < 200 ) {
+			$placeholder = '<div class="nvx-legal-placeholder" style="padding:40px; background:var(--nvx-surface-subtle,#f4f3ef); color:var(--nvx-text-base,#4a4542); font-family:var(--nvx-font-base); font-weight:500; text-align:center; border: 1px dashed var(--nvx-accent-muted);">[Texto legal en revisión por asesoría jurídica (Counsel). Publicación pendiente.]</div>';
+			$content = $placeholder . $content;
+		}
+	}
+
+	// 6. Equipo Médico (1575): Inject verifiable credentials for Cristina Marquez.
+	if ( 1575 === $page_id && strpos( $content, 'Cristina Marquez' ) !== false ) {
+		if ( strpos( $content, 'Colegiada Nº 282869501' ) === false ) {
+			$cred_html = '<p class="nvx-team-credentials" style="font-size:0.875rem; margin-top:0.5rem; color:var(--nvx-text-muted);">Colegiada Nº 282869501 · Máster en Medicina Estética y Antienvejecimiento · Especialista en láser</p>';
+			$content = preg_replace( '/(Cristina Marquez.*?<\/h[2-6]>)/i', '$1' . $cred_html, $content ) ?? $content;
+		}
+	}
+
+	// 7. EXION Precios y FAQ: Strip unapproved Morpheus8 comparatives and explicit pricing in EXION pages.
+	if ( stripos( $content, 'EXION' ) !== false || stripos( $content, 'Morpheus' ) !== false ) {
+		// Strip comparative Morpheus8 FAQs
+		$content = preg_replace( '/<details[^>]*>.*?Morpheus.*?<\/details>/is', '', $content ) ?? $content;
+		// Ensure no direct hardcoded pricing for EXION is displayed (replaces digit+€ next to EXION with generic).
+		$content = preg_replace( '/(EXION[^<]*?)\b\d{3,4}\s*€/i', '$1 (Presupuesto tras valoración)', $content ) ?? $content;
+	}
+
+	return $content;
+}
+add_filter( 'the_content', 'nvx_apply_production_business_rules', 99 );

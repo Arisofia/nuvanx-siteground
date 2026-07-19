@@ -7,6 +7,7 @@ on:
     paths:
       - 'scripts/seo/full-site-crawl.mjs'
       - 'scripts/seo/summarize-lighthouse.mjs'
+      - 'scripts/seo/verify-p0-deployment.mjs'
       - '.github/workflows/seo-evidence.yml'
   workflow_dispatch:
   schedule:
@@ -38,10 +39,24 @@ jobs:
           npm install --no-save --no-package-lock @playwright/test@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Validate crawler syntax
-        run: node --check scripts/seo/full-site-crawl.mjs
+      - name: Validate SEO evidence syntax
+        run: |
+          node --check scripts/seo/full-site-crawl.mjs
+          node --check scripts/seo/verify-p0-deployment.mjs
 
-      - name: Crawl sitemap URLs and internal links
+      - name: Verify current staging2 P0 contract
+        env:
+          BASE_URL: https://staging2.nuvanx.com
+          EXPECT_NOINDEX: 'true'
+          CANONICAL_HOST: nuvanx.com
+          BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+          BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
+          VERIFY_RETRIES: '5'
+        run: node scripts/seo/verify-p0-deployment.mjs
+
+      - name: Crawl production inventory and internal links
+        env:
+          BASE_URL: https://nuvanx.com/
         run: node scripts/seo/full-site-crawl.mjs
 
       - name: Publish crawl summary

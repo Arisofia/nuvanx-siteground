@@ -36,10 +36,35 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Validate JavaScript syntax
-        run: node --check wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+        run: |
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          node --check scripts/analytics/verify-conversion-events-browser.mjs
 
       - name: Validate PHP syntax
         run: php -l wp-content/themes/nuvanx-medical/inc/nvx-conversion-events.php
 
       - name: Enforce privacy and event contracts
         run: node scripts/analytics/test-conversion-events.mjs
+
+  rendered-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: https://staging2.nuvanx.com
+      BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+      BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
+      EXPECTED_DEPLOY_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || '' }}
+      VERIFY_RETRIES: '8'
+      VERIFY_RETRY_DELAY_MS: '5000'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Install pinned Chromium runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify deployed event layer without sending GA traffic
+        run: node scripts/analytics/verify-conversion-events-browser.mjs

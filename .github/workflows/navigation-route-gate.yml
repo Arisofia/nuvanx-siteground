@@ -6,14 +6,18 @@ on:
       - master
     paths:
       - 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
+      - 'wp-content/themes/nuvanx-medical/footer.php'
       - 'scripts/navigation/test-published-menu-contract.php'
+      - 'scripts/navigation/test-footer-route-contract.mjs'
       - '.github/workflows/navigation-route-gate.yml'
   pull_request:
     branches:
       - master
     paths:
       - 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
+      - 'wp-content/themes/nuvanx-medical/footer.php'
       - 'scripts/navigation/test-published-menu-contract.php'
+      - 'scripts/navigation/test-footer-route-contract.mjs'
       - '.github/workflows/navigation-route-gate.yml'
   workflow_dispatch:
 
@@ -28,11 +32,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
-      - name: Validate navigation PHP
+      - name: Validate navigation and footer sources
         run: |
           set -euo pipefail
           php -l wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php
+          php -l wp-content/themes/nuvanx-medical/footer.php
           php -l scripts/navigation/test-published-menu-contract.php
+          node --check scripts/navigation/test-footer-route-contract.mjs
 
-      - name: Enforce published-only navigation
-        run: php scripts/navigation/test-published-menu-contract.php
+      - name: Enforce published-only navigation and footer
+        run: |
+          set -euo pipefail
+          php scripts/navigation/test-published-menu-contract.php
+          node scripts/navigation/test-footer-route-contract.mjs

@@ -145,7 +145,27 @@ const exceptions = readJson(EXCEPTIONS_PATH);
 const summary = readJson(SUMMARY_PATH);
 const allStylesheets = new Set(exceptions.allStylesheets || []);
 const activeStack = new Set(exceptions.activeStack || []);
+const inactiveStylesheets = new Set(exceptions.inactiveCssFiles || []);
 const referenced = new Set(exceptions.referencedStylesheets || []);
+
+const overlappingClassifications = [...activeStack].filter((stylesheet) => inactiveStylesheets.has(stylesheet));
+if (overlappingClassifications.length) {
+	throw new Error(`stylesheet(s) classified as both active and inactive: ${overlappingClassifications.join(', ')}`);
+}
+
+const unclassifiedStylesheets = [...allStylesheets].filter(
+	(stylesheet) => !activeStack.has(stylesheet) && !inactiveStylesheets.has(stylesheet),
+);
+if (unclassifiedStylesheets.length) {
+	throw new Error(`unclassified stylesheet(s): ${unclassifiedStylesheets.join(', ')}`);
+}
+
+const unknownClassifications = [...activeStack, ...inactiveStylesheets].filter(
+	(stylesheet) => !allStylesheets.has(stylesheet),
+);
+if (unknownClassifications.length) {
+	throw new Error(`classified stylesheet(s) missing from inventory: ${[...new Set(unknownClassifications)].join(', ')}`);
+}
 
 for (const stylesheet of CONDITIONAL_RUNTIME_STYLESHEETS) {
 	if (!allStylesheets.has(stylesheet)) {
@@ -168,17 +188,19 @@ exceptions.conditionalRuntimeReferenceEvidence = (exceptions.stylesheetReference
 );
 
 summary.conditionalRuntimeStylesheets = CONDITIONAL_RUNTIME_STYLESHEETS.length;
-summary.inactiveStylesheets = exceptions.inactiveCssFiles.length;
+summary.activeStylesheets = activeStack.size;
+summary.inactiveStylesheets = inactiveStylesheets.size;
+summary.totalStylesheets = allStylesheets.size;
 summary.classification = {
-	activeSourceStylesheets: summary.activeStylesheets,
+	activeSourceStylesheets: activeStack.size,
 	conditionalRuntimeWithinActive: summary.conditionalRuntimeStylesheets,
-	inactive: summary.inactiveStylesheets,
-	total: summary.totalStylesheets,
+	inactive: inactiveStylesheets.size,
+	total: allStylesheets.size,
 };
 
-const classifiedTotal = summary.activeStylesheets + summary.inactiveStylesheets;
-if (classifiedTotal !== summary.totalStylesheets) {
-	throw new Error(`stylesheet classification mismatch: ${classifiedTotal} classified vs ${summary.totalStylesheets} total`);
+const classifiedTotal = activeStack.size + inactiveStylesheets.size;
+if (classifiedTotal !== allStylesheets.size) {
+	throw new Error(`stylesheet classification mismatch: ${classifiedTotal} classified vs ${allStylesheets.size} total`);
 }
 
 const occurrences = [];

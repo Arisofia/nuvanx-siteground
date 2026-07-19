@@ -24,6 +24,7 @@ for (const fragment of [
   'page.on(\'pageerror\'',
   'page.on(\'console\'',
   'page.on(\'response\'',
+  'resetCapture();',
   'firstPartyFailures',
   'multiple_meta_pixel_owners',
   'meta_request_before_marketing_consent',
@@ -36,6 +37,7 @@ for (const fragment of [
 }
 if (known.issue !== 166) throw new Error('known runtime debt must reference issue #166');
 if (known.allowedPageError !== 'FacebookSignal is not defined') throw new Error('known page error must remain exact');
+if (known.maxPerRoute !== 1) throw new Error('known page error ceiling must remain exactly one per route');
 if (!Array.isArray(known.allowedSignals) || known.allowedSignals.length !== 2) throw new Error('known signal baseline changed unexpectedly');
 const expiry = new Date(`${known.expiresOn}T23:59:59Z`).getTime();
 const created = new Date('2026-07-19T00:00:00Z').getTime();

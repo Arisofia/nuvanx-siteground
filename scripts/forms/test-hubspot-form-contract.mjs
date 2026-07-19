@@ -45,19 +45,23 @@ requireText(stagingWorkflow, 'nuvanx-contacto-hubspot-form.php', 'staging deploy
 requireText(stagingWorkflow, 'nuvanx-valoracion-native-hubspot-form.php', 'staging deploy does not synchronize the valoración MU plugin');
 
 for (const required of [
-  "{ path: '/contacto/', context: 'contacto' }",
-  "{ path: '/madrid/valoracion/', context: 'valoracion'",
-  '.hs-form-frame[data-form-id][data-portal-id][data-region]',
+  "{ path: '/contacto/', context: 'contacto', mount: '#nvx-contacto-hubspot-form' }",
+  "{ path: '/madrid/valoracion/', context: 'valoracion', mount: '#nvx-hubspot-native-form'",
+  "const frame = mount.locator('.hs-form-frame[data-form-id][data-portal-id][data-region]')",
   'contacto and valoración must use different form IDs',
   'hs-form-event:on-submission:success',
   "probe.signals[0].nvx_event_name === 'generate_lead'",
-  'privacy link missing',
+  'primary form privacy link is missing or duplicated',
+  'HubSpot did not initialize an iframe',
 ]) {
   requireText(runtimeVerifier, required, `rendered HubSpot verifier is missing: ${required}`);
 }
 requireText(conversionWorkflow, 'node --check scripts/forms/verify-hubspot-runtime-browser.mjs', 'runtime verifier is not syntax-checked');
 requireText(conversionWorkflow, 'node scripts/forms/verify-hubspot-runtime-browser.mjs 2>&1 | tee -a analytics-staging.log', 'runtime verifier is not executed in staging evidence');
 requireText(conversionWorkflow, 'EXPECTED_DEPLOY_SHA: ${{ steps.deploy.outputs.sha }}', 'runtime verifier does not inherit the audited deploy SHA');
+requireText(conversionWorkflow, 'analytics_status=$?', 'analytics verifier status is not preserved');
+requireText(conversionWorkflow, 'forms_status=$?', 'forms verifier status is not preserved');
+requireText(conversionWorkflow, 'analytics_status != 0 || forms_status != 0', 'combined rendered failure is not enforced');
 
 const forbidden = [
   /define\(\s*'NVX_CONTACTO_HS_FORM_ID'\s*,\s*'5042522a-0bc5-4381-ac3e-5aee8649b69c'/,

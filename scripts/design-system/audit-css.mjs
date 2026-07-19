@@ -11,13 +11,13 @@ const OUT_DIR = path.join(ROOT, 'qa/design-system');
 // Keep in enqueue order (see functions.php nvx_theme_scripts + conditional enqueues).
 // nvx-hero-blackout.css is intentionally omitted: temporary override with !important,
 // loaded only when nvx_theme_hero_blackout_enabled() — counted as inactive for the gate.
+// nvx-brand-home.css is loaded sitewide; it owns .hero-cta-group + .nvx-home-hero-ctas styles.
 const ACTIVE_STACK = [
 	'nvx-fonts.css',
 	'nvx-tokens.css',
 	'nvx-base.css',
 	'nvx-site-layout.css',
 	'nvx-components.css',
-	'nvx-hero-ctas.css',
 	'nvx-patterns-editorial.css',
 	'nvx-header.css',
 	'nvx-footer.css',

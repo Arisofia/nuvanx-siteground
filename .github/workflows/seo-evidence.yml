@@ -51,7 +51,7 @@ jobs:
           CANONICAL_HOST: nuvanx.com
           BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
           BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
-          VERIFY_RETRIES: '5'
+          VERIFY_RETRIES: '3'
         run: node scripts/seo/verify-p0-deployment.mjs
 
       - name: Crawl production inventory and internal links

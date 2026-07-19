@@ -1,0 +1,38 @@
+name: Navigation Route Gate
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
+      - 'scripts/navigation/test-published-menu-contract.php'
+      - '.github/workflows/navigation-route-gate.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
+      - 'scripts/navigation/test-published-menu-contract.php'
+      - '.github/workflows/navigation-route-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  published-routes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Validate navigation PHP
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php
+          php -l scripts/navigation/test-published-menu-contract.php
+
+      - name: Enforce published-only navigation
+        run: php scripts/navigation/test-published-menu-contract.php

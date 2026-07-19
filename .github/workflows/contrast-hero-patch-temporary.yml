@@ -1,0 +1,93 @@
+name: Dark Hero Contrast Patch Temporary
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/contrast-hero-patch-temporary.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Extend dark hero contexts
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          components = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-components.css')
+          source = components.read_text()
+          anchor = '''html body button.cmplz-blocked-content-notice {
+  color: var(--nvx-light);
+  background-color: var(--nvx-text-body);
+}
+'''
+          addition = '''
+
+body.nvx-hero-blackout :where(
+  .nvx-brand-hero,
+  .nvx-editorial-hero,
+  .nvx-page-hero,
+  section.nvx-hero
+) :is(
+  .nvx-eyebrow,
+  .nvx-brand-kicker,
+  .nvx-kicker,
+  .nvx-brand-meta
+),
+.nvx-aes-hero :is(
+  .nvx-eyebrow,
+  .nvx-brand-kicker,
+  .nvx-kicker,
+  .nvx-brand-meta
+) {
+  color: var(--nvx-text-on-dark-72);
+}
+'''
+          if source.count(anchor) != 1:
+              raise SystemExit(f'components anchor count={source.count(anchor)}')
+          if 'body.nvx-hero-blackout :where(' in source:
+              raise SystemExit('dark hero contrast already patched')
+          components.write_text(source.replace(anchor, anchor + addition))
+
+          contract = Path('scripts/accessibility/test-contrast-contract.mjs')
+          source = contract.read_text()
+          old = '''  '.nvx-aes-action',
+  'color: var(--nvx-text-on-dark-72);','''
+          new = '''  '.nvx-aes-action',
+  'body.nvx-hero-blackout :where(',
+  '.nvx-aes-hero :is(',
+  '.nvx-brand-meta',
+  'color: var(--nvx-text-on-dark-72);','''
+          if source.count(old) != 1:
+              raise SystemExit(f'contract anchor count={source.count(old)}')
+          contract.write_text(source.replace(old, new))
+          PY
+
+      - name: Validate and remove helper
+        run: |
+          set -euo pipefail
+          grep -Fq 'body.nvx-hero-blackout :where(' wp-content/themes/nuvanx-medical/assets/css/nvx-components.css
+          grep -Fq '.nvx-aes-hero :is(' wp-content/themes/nuvanx-medical/assets/css/nvx-components.css
+          node --check scripts/accessibility/test-contrast-contract.mjs
+          node scripts/accessibility/test-contrast-contract.mjs
+          rm .github/workflows/contrast-hero-patch-temporary.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add wp-content/themes/nuvanx-medical/assets/css/nvx-components.css \
+            scripts/accessibility/test-contrast-contract.mjs \
+            .github/workflows/contrast-hero-patch-temporary.yml
+          git commit -m 'fix(a11y): preserve contrast in dark hero contexts'
+          git push origin HEAD:${{ github.head_ref }}

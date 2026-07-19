@@ -53,13 +53,15 @@ jobs:
 
   rendered-staging:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     env:
       BASE_URL: https://staging2.nuvanx.com
       BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
       BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
       EXPECTED_DEPLOY_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
-      VERIFY_RETRIES: '8'
+      # Push and deployment workflows start concurrently. Allow the exact pushed
+      # SHA to finish its serialized staging deployment before testing events.
+      VERIFY_RETRIES: '20'
       VERIFY_RETRY_DELAY_MS: '5000'
     steps:
       - name: Checkout repository

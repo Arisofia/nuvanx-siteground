@@ -8,9 +8,8 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Git ref to deploy (branch, tag, or SHA)
+        description: Exact 40-character SHA already validated on staging2
         required: true
-        default: master
       confirm:
         description: Type PROMOTE_PRODUCTION to proceed
         required: true
@@ -37,14 +36,41 @@ jobs:
   guard:
     runs-on: ubuntu-latest
     steps:
-      - name: Require explicit confirmation
+      - name: Require explicit confirmation and immutable SHA
         run: |
           set -euo pipefail
           if [[ '${{ inputs.confirm }}' != 'PROMOTE_PRODUCTION' ]]; then
             echo "Refusing: confirm must be exactly PROMOTE_PRODUCTION" >&2
             exit 1
           fi
-          echo "Confirmation accepted for ref=${{ inputs.ref }}"
+          REF='${{ inputs.ref }}'
+          [[ "$REF" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "Refusing: ref must be the exact 40-character SHA validated on staging2" >&2
+            exit 1
+          }
+          echo "Confirmation accepted for immutable SHA=$REF"
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
+
+      - name: Install pinned Chromium verification runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Require the same SHA to be live on staging2
+        env:
+          BASE_URL: https://staging2.nuvanx.com
+          EXPECT_NOINDEX: 'true'
+          CANONICAL_HOST: nuvanx.com
+          EXPECTED_DEPLOY_SHA: ${{ inputs.ref }}
+          BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+          BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
+          VERIFY_RETRIES: '8'
+        run: node scripts/seo/verify-p0-deployment.mjs
 
   deploy-and-flush:
     needs: guard
@@ -52,6 +78,7 @@ jobs:
     environment: staging
     outputs:
       deployed_ref: ${{ steps.meta.outputs.deployed_ref }}
+      deployed_sha: ${{ steps.identity.outputs.deployed_sha }}
       backup_dir: ${{ steps.promote.outputs.backup_dir }}
     steps:
       - name: Resolve deploy ref
@@ -66,6 +93,18 @@ jobs:
         with:
           ref: ${{ steps.meta.outputs.deployed_ref }}
           fetch-depth: 1
+
+      - name: Resolve immutable deploy SHA
+        id: identity
+        run: |
+          set -euo pipefail
+          SHA="$(git rev-parse HEAD)"
+          EXPECTED='${{ inputs.ref }}'
+          [[ "$SHA" == "$EXPECTED" ]] || { echo "ERROR: checkout SHA $SHA != approved staging SHA $EXPECTED" >&2; exit 1; }
+          printf '%s\n' "$SHA" > "${{ env.THEME_REL }}/.nvx-deploy-sha"
+          grep -Fxq "$SHA" "${{ env.THEME_REL }}/.nvx-deploy-sha"
+          echo "deployed_sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Immutable deploy SHA: $SHA"
 
       - name: Validate secrets and canonical source
         env:
@@ -94,6 +133,8 @@ jobs:
           grep -Fq 'nvx-patterns-editorial.css' "${{ env.THEME_REL }}/functions.php"
           test -f "${{ env.THEME_REL }}/inc/nvx-blog-system.php"
           find "${{ env.THEME_REL }}" -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+          test -f "${{ env.THEME_REL }}/.nvx-deploy-sha"
+          grep -Fxq "${{ steps.identity.outputs.deployed_sha }}" "${{ env.THEME_REL }}/.nvx-deploy-sha"
           node --check scripts/seo/verify-p0-deployment.mjs
           test -x scripts/ops/post-promote-verify.sh || chmod +x scripts/ops/post-promote-verify.sh
           test -x scripts/staging2/smoke-verify-staging2.sh || chmod +x scripts/staging2/smoke-verify-staging2.sh
@@ -110,6 +151,7 @@ jobs:
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
           SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          EXPECTED_SHA: ${{ steps.identity.outputs.deployed_sha }}
         run: |
           set -euo pipefail
           DATE="$(date +%Y%m%d-%H%M%S)"
@@ -150,7 +192,7 @@ jobs:
             wp-content/mu-plugins/nuvanx-contacto-hubspot-form.php \
             "$SSH_USER@$SSH_HOST:${{ env.PROD_PATH }}/wp-content/mu-plugins/"
 
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "bash -e -s" <<'REMOTE'
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "EXPECTED_SHA='$EXPECTED_SHA' bash -e -s" <<'REMOTE'
             set -euo pipefail
             ROOT='/home/customer/www/nuvanx.com/public_html'
             THEME="$ROOT/wp-content/themes/nuvanx-medical"
@@ -163,6 +205,10 @@ jobs:
             [[ "$(wp option get siteurl)" == 'https://nuvanx.com' ]]
             [[ "$(wp option get home)" == 'https://nuvanx.com' ]]
             [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
+            test -f "$THEME/.nvx-deploy-sha"
+            deployed_sha="$(tr -d '\r\n' < "$THEME/.nvx-deploy-sha")"
+            [[ "$deployed_sha" == "$EXPECTED_SHA" ]] || { echo "ERROR: remote SHA $deployed_sha != expected $EXPECTED_SHA" >&2; exit 1; }
+            echo "DEPLOY_SHA_OK $deployed_sha"
             for css_file in \
               nvx-fonts.css \
               nvx-tokens.css \
@@ -196,7 +242,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
-          ref: ${{ needs.deploy-and-flush.outputs.deployed_ref }}
+          ref: ${{ needs.deploy-and-flush.outputs.deployed_sha }}
           fetch-depth: 1
 
       - name: Install pinned Chromium verification runtime
@@ -213,6 +259,7 @@ jobs:
           BASE_URL: ${{ env.PROD_BASE_URL }}
           EXPECT_NOINDEX: 'false'
           CANONICAL_HOST: nuvanx.com
+          EXPECTED_DEPLOY_SHA: ${{ needs.deploy-and-flush.outputs.deployed_sha }}
           VERIFY_RETRIES: '8'
         run: node scripts/seo/verify-p0-deployment.mjs
 

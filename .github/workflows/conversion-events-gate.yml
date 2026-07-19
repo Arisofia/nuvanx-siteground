@@ -9,6 +9,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/inc/nvx-conversion-events.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
       - 'scripts/analytics/**'
+      - 'scripts/forms/**'
       - '.github/workflows/conversion-events-gate.yml'
   pull_request:
     branches:
@@ -18,6 +19,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/inc/nvx-conversion-events.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
       - 'scripts/analytics/**'
+      - 'scripts/forms/**'
       - '.github/workflows/conversion-events-gate.yml'
   workflow_dispatch:
 
@@ -36,10 +38,55 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
       - name: Validate JavaScript syntax
-        run: node --check wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+        run: |
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
+          node --check scripts/analytics/verify-conversion-events-browser.mjs
+          node --check scripts/forms/test-hubspot-form-contract.mjs
 
       - name: Validate PHP syntax
         run: php -l wp-content/themes/nuvanx-medical/inc/nvx-conversion-events.php
 
       - name: Enforce privacy and event contracts
-        run: node scripts/analytics/test-conversion-events.mjs
+        run: |
+          node scripts/analytics/test-conversion-events.mjs
+          node scripts/forms/test-hubspot-form-contract.mjs
+
+  rendered-staging:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: https://staging2.nuvanx.com
+      BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+      BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
+      EXPECTED_DEPLOY_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.sha }}
+      VERIFY_RETRIES: '8'
+      VERIFY_RETRY_DELAY_MS: '5000'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Install pinned Chromium runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Verify deployed event layer without sending GA traffic
+        id: rendered
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          node scripts/analytics/verify-conversion-events-browser.mjs 2>&1 | tee analytics-staging.log
+
+      - name: Upload rendered analytics evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: conversion-events-staging-evidence
+          path: analytics-staging.log
+          retention-days: 14
+          if-no-files-found: error
+
+      - name: Enforce rendered analytics contract
+        if: steps.rendered.outcome == 'failure'
+        run: exit 1

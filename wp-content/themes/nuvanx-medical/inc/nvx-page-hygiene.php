@@ -212,7 +212,9 @@ add_filter( 'wpseo_sitemap_entry', 'nvx_filter_sitemap_entry_sensitive_pages', 2
  * Lightweight public HTML hygiene: typos and clichés in inherited CMS content.
  *
  * Theme-rendered pages already use clean strings; this catches residual
- * post_content / shortcode output without rewriting clinical claims.
+ * post_content / shortcode output without rewriting clinical claims. It runs
+ * after route-specific renderers so a legacy phrase cannot be reintroduced by
+ * a managed page module later in the_content.
  *
  * @param string $content HTML content.
  * @return string
@@ -239,6 +241,10 @@ function nvx_public_content_text_hygiene( $content ) {
 	// Do not advertise a price condition that is not confirmed in this source.
 	$content = preg_replace( '/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu', 'valoración médica', $content ) ?? $content;
 	$content = preg_replace( '/\bvaloraci[oó]n\s+gratuita\b/iu', 'valoración médica', $content ) ?? $content;
+	$content = preg_replace( '/\bvaloraci[oó]n\s+gratis\b/iu', 'valoración médica', $content ) ?? $content;
+	$content = preg_replace( '/\bconsulta\s+(?:m[eé]dica\s+)?gratuita\b/iu', 'consulta médica', $content ) ?? $content;
+	$content = preg_replace( '/\bconsulta\s+gratis\b/iu', 'consulta médica', $content ) ?? $content;
+	$content = preg_replace( '/\bpresupuesto\s+personalizado\b/iu', 'presupuesto individualizado tras la valoración médica', $content ) ?? $content;
 	$content = preg_replace( '/\bsin\s+compromiso\b/iu', 'sin obligación de continuar con un tratamiento', $content ) ?? $content;
 
 	// Endolift conflation fixes.
@@ -258,8 +264,9 @@ function nvx_public_content_text_hygiene( $content ) {
 
 	return $content;
 }
-add_filter( 'the_content', 'nvx_public_content_text_hygiene', 12 );
-add_filter( 'the_title', 'nvx_public_content_text_hygiene', 12 );
+// Keep this after all page-specific builders (the valoración module runs at 16).
+add_filter( 'the_content', 'nvx_public_content_text_hygiene', 240 );
+add_filter( 'the_title', 'nvx_public_content_text_hygiene', 240 );
 
 /**
  * Keep QA on staging2 inside the same environment when legacy CMS copy uses

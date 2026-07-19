@@ -244,7 +244,7 @@ function nvx_public_content_text_hygiene( $content ) {
 	$content = preg_replace( '/\bvaloraci[oó]n\s+gratis\b/iu', 'valoración médica', $content ) ?? $content;
 	$content = preg_replace( '/\bconsulta\s+(?:m[eé]dica\s+)?gratuita\b/iu', 'consulta médica', $content ) ?? $content;
 	$content = preg_replace( '/\bconsulta\s+gratis\b/iu', 'consulta médica', $content ) ?? $content;
-	$content = preg_replace( '/\bpresupuesto\s+personalizado\b/iu', 'presupuesto individualizado tras la valoración médica', $content ) ?? $content;
+	$content = preg_replace( '/\bpresupuestos?\s+personalizados?\b/iu', 'presupuesto individualizado tras la valoración médica', $content ) ?? $content;
 	$content = preg_replace( '/\bsin\s+compromiso\b/iu', 'sin obligación de continuar con un tratamiento', $content ) ?? $content;
 
 	// Endolift conflation fixes.
@@ -267,6 +267,9 @@ function nvx_public_content_text_hygiene( $content ) {
 // Keep this after all page-specific builders (the valoración module runs at 16).
 add_filter( 'the_content', 'nvx_public_content_text_hygiene', 240 );
 add_filter( 'the_title', 'nvx_public_content_text_hygiene', 240 );
+add_filter( 'wpseo_metadesc', 'nvx_public_content_text_hygiene', 240 );
+add_filter( 'wpseo_opengraph_desc', 'nvx_public_content_text_hygiene', 240 );
+add_filter( 'wpseo_twitter_description', 'nvx_public_content_text_hygiene', 240 );
 
 /**
  * Keep QA on staging2 inside the same environment when legacy CMS copy uses

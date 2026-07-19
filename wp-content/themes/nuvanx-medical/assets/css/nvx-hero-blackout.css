@@ -52,7 +52,7 @@ body.nvx-hero-blackout :is(
   .nvx-hero .nvx-brand-hero__media,
   .nvx-home-hero-stage
 ) :is(img, picture, .nvx-media, .nvx-media--body, .wp-post-image):not(video):not(video *) {
-  display: none !important;
+  display: none;
 }
 
 /* Still-only media rails: full black field (no empty photo hole). */
@@ -61,7 +61,7 @@ body.nvx-hero-blackout :is(
   .nvx-editorial-hero__media,
   .nvx-page-hero__media,
   .nvx-hero__media
-):not(:has(video)) {
+) {
   background-color: var(--nvx-ink);
   min-height: min(52vh, 28rem);
 }

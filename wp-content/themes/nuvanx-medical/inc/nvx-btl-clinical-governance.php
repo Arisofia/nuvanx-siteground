@@ -166,6 +166,7 @@ function nvx_btl_claim_translate( string $text ): string {
 	return __( $text, 'nuvanx-medical' );
 }
 
+
 /** Return approved public wording for a governed claim. */
 function nvx_btl_claim_governed( string $id ): string {
 	$library = nvx_btl_claim_library();

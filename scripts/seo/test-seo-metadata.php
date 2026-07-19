@@ -26,6 +26,8 @@ $required = array(
 	'exion',
 	'exilite',
 	'equipo',
+	'por_que_nuvanx',
+	'investment',
 	'valoracion',
 	'blog',
 );
@@ -81,6 +83,10 @@ if ( false === strpos( $catalog['goya']['description'], 'CS20073' ) ) {
 }
 if ( false !== stripos( $catalog['exion']['description'], 'alternativa' ) ) {
 	fwrite( STDERR, "EXION metadata must describe modalities without comparison claims.\n" );
+	exit( 1 );
+}
+if ( false !== stripos( $catalog['por_que_nuvanx']['title'] . $catalog['por_que_nuvanx']['description'], 'certific' ) ) {
+	fwrite( STDERR, "Authority metadata must not make unverified device-certification claims.\n" );
 	exit( 1 );
 }
 

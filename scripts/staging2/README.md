@@ -1,5 +1,12 @@
 # Staging2 maintenance scripts
 
+## Deployment authority
+
+GitHub Actions deployment workflows are intentionally absent from this
+repository. Pushing to GitHub does not change staging2. An authorized
+SiteGround operator must deploy the approved Git SHA to the staging2 WordPress
+root before running any of the commands below.
+
 ## Deployment identity after a manual upload
 
 When the theme is copied by SSH instead of the deployment workflow, stamp the
@@ -34,6 +41,19 @@ wp eval-file scripts/staging2/cleanup-content-navigation.php --apply
 ```
 
 The script refuses to run unless both `siteurl` and `home` equal `https://staging2.nuvanx.com` and the active theme is `nuvanx-medical`.
+
+## Strategy-review routes
+
+After the theme has been deployed, the first staging2 request seeds these
+review routes automatically:
+
+- `/por-que-nuvanx/` and `/inversion-medicina-estetica/` for the approved
+  authority and investment copy;
+- `/liposculpt-air/` and `/v-lift-awake/` as noindex protocol-review pages.
+
+The two working-name routes are intentionally outside navigation and sitemaps.
+They are not seeded on production and must remain in review until medical and
+legal approval are recorded.
 
 Backups are written outside the public web root under the SSH user's home directory. No backup or database export is stored in Git.
 

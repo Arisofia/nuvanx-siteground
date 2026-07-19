@@ -49,6 +49,20 @@ function nvx_nofollow_page_ids() {
 }
 
 /**
+ * Force 404 on patient cases gallery (ID 2645) to avoid empty galleries online (anti-social proof).
+ */
+function nvx_force_404_empty_cases() {
+	if ( is_page( 2645 ) && '1' !== (string) get_post_meta( 2645, '_nvx_cases_publication_ready', true ) ) {
+		global $wp_query;
+		$wp_query->set_404();
+		status_header( 404 );
+		nocache_headers();
+		// We don't exit here so the theme can render the 404 template.
+	}
+}
+add_action( 'template_redirect', 'nvx_force_404_empty_cases', 1 );
+
+/**
  * Post IDs that must stay out of the public index (sitemap + robots).
  * Includes nofollow IDs plus incomplete evidence pages (noindex, follow).
  *
@@ -161,6 +175,12 @@ function nvx_public_content_text_hygiene( $content ) {
 	$content = preg_replace( '/Firmeza\s+Endolift®?\s+Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', 'Endolift®: técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content ) ?? $content;
 	$content = preg_replace( '/Endolift®?\s+(?:es|como|mediante)\s+(?:una\s+)?radiofrecuencia\s+monopolar/iu', 'Endolift® es una técnica láser subdérmica', $content ) ?? $content;
 	$content = preg_replace( '/define\s+Endolift®?\s+como\s+radiofrecuencia\s+monopolar/iu', 'describe Endolift® como técnica láser subdérmica', $content ) ?? $content;
+
+	// Critical clinical fix for Clínicas NUVANX (ID 1399) or any residual conflation.
+	if ( 1399 === (int) get_queried_object_id() ) {
+		$content = preg_replace( '/(Endolift®?)[^\.]*(?:es|como|mediante)?\s*(?:una\s+)?radiofrecuencia[^\.]*/iu', '$1 (tecnología láser subdérmica de 1470 nm)', $content ) ?? $content;
+		$content = preg_replace( '/\bradiofrecuencia\s+Endolift\b/iu', 'láser subdérmico Endolift', $content ) ?? $content;
+	}
 
 	// Valoración CTA fixes.
 	$content = preg_replace( '/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $content ) ?? $content;

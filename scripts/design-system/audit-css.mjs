@@ -8,9 +8,9 @@ const THEME = path.join(ROOT, 'wp-content/themes/nuvanx-medical');
 const CSS_DIR = path.join(THEME, 'assets/css');
 const OUT_DIR = path.join(ROOT, 'qa/design-system');
 
-// Keep in canonical runtime order (see functions.php and conditional enqueues).
-// Conditional styles are active architecture: the gate must inspect every stylesheet
-// that can be referenced by PHP, JavaScript, HTML or another stylesheet.
+// Keep in enqueue order (see functions.php nvx_theme_scripts + conditional enqueues).
+// Conditional stylesheets remain active architecture: a runtime code path can enqueue
+// them, so the audit must enforce the same rules regardless of the current request.
 // nvx-brand-home.css is loaded sitewide; it owns .hero-cta-group + .nvx-home-hero-ctas styles.
 const ACTIVE_STACK = [
 	'nvx-fonts.css',
@@ -22,6 +22,7 @@ const ACTIVE_STACK = [
 	'nvx-header.css',
 	'nvx-footer.css',
 	'nvx-brand-home.css',
+	'nvx-hero-blackout.css',
 	'nvx-mobile-hero-hierarchy.css',
 	'nvx-medical-review.css',
 	'nvx-posts.css',

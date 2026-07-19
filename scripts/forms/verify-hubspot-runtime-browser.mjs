@@ -8,10 +8,6 @@ const attempts = Math.max(1, Number(process.env.VERIFY_RETRIES || 8));
 const delayMs = Math.max(1000, Number(process.env.VERIFY_RETRY_DELAY_MS || 5000));
 const assessmentId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const routes = [
-  { path: '/contacto/', context: 'contacto' },
-  { path: '/madrid/valoracion/', context: 'valoracion', expectedId: assessmentId },
-];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
@@ -20,7 +16,7 @@ async function open(page, path) {
   let result = {};
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     const response = await page.goto(`${baseUrl}${path}`, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => null);
-    await page.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
     const title = await page.title().catch(() => '');
     const html = await page.content().catch(() => '');
     result = {
@@ -35,35 +31,67 @@ async function open(page, path) {
   return result;
 }
 
-async function inspect(page, route) {
-  const deployment = await open(page, route.path);
-  assert(deployment.status === 200 && !deployment.edge, `${route.path}: unavailable ${JSON.stringify(deployment)}`);
-  if (expectedSha) assert(deployment.sha === expectedSha, `${route.path}: expected SHA ${expectedSha}, found ${deployment.sha || 'missing'}`);
+async function inspectContacto(page) {
+  const deployment = await open(page, '/contacto/');
+  assert(deployment.status === 200 && !deployment.edge, `/contacto/: unavailable ${JSON.stringify(deployment)}`);
+  if (expectedSha) assert(deployment.sha === expectedSha, `/contacto/: expected SHA ${expectedSha}, found ${deployment.sha || 'missing'}`);
 
-  const frame = page.locator('.hs-form-frame[data-form-id][data-portal-id][data-region]');
-  assert(await frame.count() === 1, `${route.path}: expected one HubSpot frame`);
+  assert(await page.locator('.hs-form-frame, .hbspt-form').count() === 0, '/contacto/: HubSpot form container must be absent');
+  assert(await page.locator('iframe[src*="hsforms"], iframe[src*="hubspot"]').count() === 0, '/contacto/: HubSpot iframe must be absent');
+  assert(await page.locator('script[src*="hsforms.net"], script[src*="hubspot"]').count() === 0, '/contacto/: HubSpot embed script must be absent');
+  assert(await page.locator('#nvx-contacto-hubspot-form').count() === 0, '/contacto/: legacy contact mount must be absent');
+  assert(await page.locator('#nvx-valoracion-modal').count() === 0, '/contacto/: valoración modal must not be rendered');
+
+  assert(await page.locator('.nvx-clinic-card').count() === 2, '/contacto/: expected two clinic cards');
+  assert(await page.locator('.nvx-clinic-card__map iframe').count() === 2, '/contacto/: expected two clinic maps');
+  assert(await page.locator('a[href^="tel:"]').count() >= 2, '/contacto/: clinic phone links missing');
+  assert(await page.locator('a[href*="wa.me"]').count() >= 2, '/contacto/: WhatsApp links missing');
+
+  const valuationLink = page.locator('a[href$="/madrid/valoracion/"]').first();
+  assert(await valuationLink.count() === 1 && await valuationLink.isVisible(), '/contacto/: direct valoración route missing');
+
+  return {
+    deployment,
+    clinicCards: await page.locator('.nvx-clinic-card').count(),
+    maps: await page.locator('.nvx-clinic-card__map iframe').count(),
+    valuationHref: await valuationLink.getAttribute('href'),
+  };
+}
+
+async function inspectValoracion(page) {
+  const deployment = await open(page, '/madrid/valoracion/');
+  assert(deployment.status === 200 && !deployment.edge, `/madrid/valoracion/: unavailable ${JSON.stringify(deployment)}`);
+  if (expectedSha) assert(deployment.sha === expectedSha, `/madrid/valoracion/: expected SHA ${expectedSha}, found ${deployment.sha || 'missing'}`);
+
+  const mount = page.locator('#nvx-hubspot-native-form');
+  assert(await mount.count() === 1, '/madrid/valoracion/: expected one canonical mount');
+
+  const frame = mount.locator('.hs-form-frame[data-form-id][data-portal-id][data-region]');
+  assert(await frame.count() === 1, '/madrid/valoracion/: expected one HubSpot frame');
+
   const formId = ((await frame.getAttribute('data-form-id')) || '').toLowerCase();
   const portalId = (await frame.getAttribute('data-portal-id')) || '';
   const region = ((await frame.getAttribute('data-region')) || '').toLowerCase();
-  assert(uuid.test(formId), `${route.path}: invalid form UUID ${formId || 'missing'}`);
-  assert(portalId === '147416356', `${route.path}: unexpected portal ${portalId || 'missing'}`);
-  assert(region === 'eu1', `${route.path}: unexpected region ${region || 'missing'}`);
-  if (route.expectedId) assert(formId === route.expectedId, `${route.path}: unexpected valoración form ${formId}`);
-  else assert(formId !== assessmentId, `${route.path}: contacto reuses valoración form`);
+
+  assert(uuid.test(formId), `/madrid/valoracion/: invalid form UUID ${formId || 'missing'}`);
+  assert(formId === assessmentId, `/madrid/valoracion/: unexpected valoración form ${formId}`);
+  assert(portalId === '147416356', `/madrid/valoracion/: unexpected portal ${portalId || 'missing'}`);
+  assert(region === 'eu1', `/madrid/valoracion/: unexpected region ${region || 'missing'}`);
 
   const embeds = await page.locator('script[src="https://js-eu1.hsforms.net/forms/embed/147416356.js"]').count();
-  assert(embeds === 1, `${route.path}: expected one canonical embed script, found ${embeds}`);
-  const privacy = page.locator('a[href$="/politica-privacidad/"]');
-  assert(await privacy.count() > 0, `${route.path}: privacy link missing`);
-  assert(await privacy.first().isVisible(), `${route.path}: privacy link hidden`);
+  assert(embeds === 1, `/madrid/valoracion/: expected one canonical embed script, found ${embeds}`);
 
-  if (route.context === 'contacto') {
-    assert(await page.getByText('El formulario de contacto no está disponible temporalmente.', { exact: false }).count() === 0, `${route.path}: contact form configuration missing`);
-  }
+  const privacy = mount.locator('a[href$="/politica-privacidad/"]');
+  assert(await privacy.count() === 1, '/madrid/valoracion/: primary form privacy link is missing or duplicated');
+  assert(await privacy.isVisible(), '/madrid/valoracion/: primary privacy link hidden');
+
+  await page.waitForTimeout(1500);
+  const initializedIframes = await mount.locator('iframe').count();
+  assert(initializedIframes === 1, `/madrid/valoracion/: HubSpot did not initialize one iframe, found ${initializedIframes}`);
 
   const config = await page.evaluate(() => window.nvxConversionEvents || {});
-  assert(config?.forms?.valoracion === assessmentId, `${route.path}: valoración context missing`);
-  assert(String(config?.forms?.[route.context] || '').toLowerCase() === formId, `${route.path}: analytics form context mismatch`);
+  assert(config?.forms?.valoracion === assessmentId, '/madrid/valoracion/: valoración analytics context missing');
+  assert(!config?.forms?.contacto, '/madrid/valoracion/: obsolete contacto form context remains');
 
   const probe = await page.evaluate(({ id }) => {
     window.dataLayer = [];
@@ -78,31 +106,33 @@ async function inspect(page, route) {
     };
   }, { id: formId });
 
-  assert(probe.signals.length === 1, `${route.path}: lead event is not deduplicated`);
-  assert(probe.signals[0].nvx_event_name === 'generate_lead', `${route.path}: generate_lead missing`);
-  assert(probe.signals[0].form_context === route.context, `${route.path}: wrong form context`);
-  assert(probe.signals[0].form_id === formId, `${route.path}: wrong form ID in event`);
-  assert(probe.calls.length === 1 && probe.calls[0][0] === 'event' && probe.calls[0][1] === 'generate_lead', `${route.path}: malformed gtag event`);
+  assert(probe.signals.length === 1, '/madrid/valoracion/: lead event is not deduplicated');
+  assert(probe.signals[0].nvx_event_name === 'generate_lead', '/madrid/valoracion/: generate_lead missing');
+  assert(probe.signals[0].form_context === 'valoracion', '/madrid/valoracion/: wrong form context');
+  assert(probe.signals[0].form_id === formId, '/madrid/valoracion/: wrong form ID in event');
+  assert(probe.calls.length === 1 && probe.calls[0][0] === 'event' && probe.calls[0][1] === 'generate_lead', '/madrid/valoracion/: malformed gtag event');
 
-  return { deployment, formId, portalId, region, privacyLinks: await privacy.count(), probe };
+  return { deployment, formId, portalId, region, initializedIframes, probe };
 }
 
 const options = { locale: 'es-ES', timezoneId: 'Europe/Madrid', viewport: { width: 1440, height: 1000 } };
 if (process.env.BASIC_USER && process.env.BASIC_PASSWORD) options.httpCredentials = { username: process.env.BASIC_USER, password: process.env.BASIC_PASSWORD };
+
 const browser = await chromium.launch({ headless: true });
 const context = await browser.newContext(options);
 const page = await context.newPage();
 
 try {
-  const results = [];
-  for (const route of routes) results.push(await inspect(page, route));
-  assert(results[0].formId !== results[1].formId, 'contacto and valoración must use different form IDs');
+  const results = {
+    contacto: await inspectContacto(page),
+    valoracion: await inspectValoracion(page),
+  };
   const evidence = JSON.stringify(results).toLowerCase();
   for (const forbidden of ['submissionvalues', 'firstname', 'lastname', 'email_address', 'phone_number']) {
     assert(!evidence.includes(forbidden), `PII fragment leaked into evidence: ${forbidden}`);
   }
   console.log(JSON.stringify({ expectedSha, results }, null, 2));
-  console.log('PASS: rendered HubSpot form runtime contract');
+  console.log('PASS: contacto is form-free and valoración has one canonical HubSpot form');
 } finally {
   await context.close();
   await browser.close();

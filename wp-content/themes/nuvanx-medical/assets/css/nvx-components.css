@@ -936,8 +936,8 @@ body.nvx-valoracion-modal-open{
 @media(max-width:680px){.nvx-treatment-process__steps{grid-template-columns:1fr}}
 
 /* ═══════════════════════════════════════════════════════════
-   TRUST BADGES — stats strip (sitewide)
-   Used by nvx_trust_badges_markup()
+   TRUST BADGES — legacy CMS strip. The must-use plugin removes
+   unverified quantitative variants before rendering.
    ═══════════════════════════════════════════════════════════ */
 .nvx-trust-badges{padding-block:var(--nvx-pad-section-tight);background:var(--nvx-light);border-block:1px solid var(--nvx-color-line)}
 .nvx-trust-badges__inner{max-width:var(--nvx-shell);margin-inline:auto;padding-inline:var(--nvx-gutter);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--nvx-space-4);text-align:center}

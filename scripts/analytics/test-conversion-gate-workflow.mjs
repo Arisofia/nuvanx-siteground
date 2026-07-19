@@ -9,6 +9,11 @@ const workflow = fs.readFileSync(path.join(root, '.github/workflows/conversion-e
 const resolverSource = fs.readFileSync(path.join(root, 'scripts/analytics/resolve-staging-deploy-sha.mjs'), 'utf8');
 
 const resolver = workflow.match(/- name: Resolve latest deploy-triggering commit[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+const renderedJob = workflow.match(/  rendered-staging:[\s\S]*$/)?.[0] || '';
+
+if (!/^  rendered-staging:\n    if: github\.event_name != 'pull_request'/m.test(renderedJob)) {
+  throw new Error('rendered staging verification must not run against undeployed pull request code');
+}
 
 if (!/node scripts\/analytics\/resolve-staging-deploy-sha\.mjs "\$SEARCH_REF"/.test(resolver)) {
   throw new Error('conversion gate must use the audited staging SHA resolver');

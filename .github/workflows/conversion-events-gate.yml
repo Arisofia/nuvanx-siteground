@@ -56,6 +56,7 @@ jobs:
           node scripts/forms/test-hubspot-form-contract.mjs
 
   rendered-staging:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:

@@ -5,9 +5,14 @@ import { chromium } from '@playwright/test';
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectNoindex = process.env.EXPECT_NOINDEX === 'true';
 const canonicalHost = process.env.CANONICAL_HOST || 'nuvanx.com';
+const expectedDeploySha = (process.env.EXPECTED_DEPLOY_SHA || '').trim().toLowerCase();
 const username = process.env.BASIC_USER || '';
 const password = process.env.BASIC_PASSWORD || '';
 const attempts = Math.max(1, Number(process.env.VERIFY_RETRIES || 3));
+
+if (expectedDeploySha && !/^[0-9a-f]{40}$/.test(expectedDeploySha)) {
+  throw new Error(`EXPECTED_DEPLOY_SHA must be a full lowercase commit SHA: ${expectedDeploySha}`);
+}
 
 const routes = [
   { path: '/', h1: 'Medicina estética láser en Madrid', copy: 'Equipo médico hospitalario. Tecnología certificada. Resultados naturales.', schema: ['MedicalClinic', 'Physician'] },
@@ -74,6 +79,13 @@ async function inspectPage(browser, route) {
   if (result.status !== 200) errors.push(`HTTP ${result.status}`);
   if (!result.title.trim()) errors.push('missing title');
 
+  const deployedSha = ((await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => '')) || '').trim().toLowerCase();
+  if (expectedDeploySha && deployedSha !== expectedDeploySha) {
+    errors.push(`deploy SHA mismatch: expected ${expectedDeploySha}, received ${deployedSha || 'missing'}`);
+  } else if (deployedSha && !/^[0-9a-f]{40}$/.test(deployedSha)) {
+    errors.push(`invalid deploy SHA marker: ${deployedSha}`);
+  }
+
   const h1s = await page.locator('h1').allInnerTexts().catch(() => []);
   if (h1s.length !== 1) errors.push(`expected one H1, found ${h1s.length}`);
   if ((h1s[0] || '').trim() !== route.h1) errors.push(`unexpected H1: ${(h1s[0] || '').trim()}`);
@@ -130,6 +142,7 @@ async function inspectPage(browser, route) {
     path: route.path,
     status: result.status,
     title: result.title,
+    deployedSha,
     h1: (h1s[0] || '').trim(),
     robots,
     canonical,
@@ -148,7 +161,7 @@ for (const route of routes) pages.push(await inspectPage(browser, route));
 await browser.close();
 
 for (const page of pages) {
-  console.log(`${page.errors.length ? 'FAIL' : 'PASS'} ${page.path} · HTTP ${page.status} · H1 ${page.h1} · robots ${page.robots} · schema ${page.schemaCount} · trust badges ${page.trustBadgeCount} · blackout ${page.blackoutClassCount}`);
+  console.log(`${page.errors.length ? 'FAIL' : 'PASS'} ${page.path} · HTTP ${page.status} · deploy ${page.deployedSha || 'missing'} · H1 ${page.h1} · robots ${page.robots} · schema ${page.schemaCount} · trust badges ${page.trustBadgeCount} · blackout ${page.blackoutClassCount}`);
   for (const error of page.errors) console.error(`  - ${error}`);
 }
 

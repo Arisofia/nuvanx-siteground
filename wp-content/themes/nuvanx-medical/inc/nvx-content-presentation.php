@@ -44,18 +44,6 @@ function nvx_cta_whatsapp_url(): string {
 	return 'https://wa.me/34669319836';
 }
 
-/**
- * Primary conversion CTA.
- */
-function nvx_cta_primary_markup( string $class = 'nvx-brand-btn nvx-brand-btn--primary' ): string {
-	$class = trim( $class . ' nvx-open-valoracion-modal' );
-	return sprintf(
-		'<a class="%1$s" href="%2$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%3$s</a>',
-		esc_attr( $class ),
-		esc_url( nvx_cta_valoracion_url() ),
-			esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
-	);
-}
 
 /**
  * Secondary WhatsApp CTA.
@@ -586,38 +574,6 @@ function nvx_home_protocols_data(): array {
 	);
 }
 
-/**
- * Markup for home specialized protocols section.
- */
-function nvx_home_protocols_markup(): string {
-	$html  = '<section class="nvx-brand-section nvx-home-protocols" id="nvx-home-protocols" aria-labelledby="nvx-home-protocols-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Protocolos', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-home-protocols-title" class="nvx-brand-title">' . esc_html__( 'Nuestros Protocolos Médicos Especializados', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<div class="nvx-home-protocols__list">';
-
-	foreach ( nvx_home_protocols_data() as $item ) {
-		$html .= '<article class="nvx-home-protocol">';
-		$html .= '<h3 class="nvx-home-protocol__title">' . esc_html( $item['title'] ) . '</h3>';
-		$html .= '<p class="nvx-home-protocol__lead">' . esc_html( $item['lead'] ) . '</p>';
-		if ( ! empty( $item['facts'] ) ) {
-			$html .= '<dl class="nvx-home-protocol__facts">';
-			foreach ( $item['facts'] as $label => $value ) {
-				$html .= '<div class="nvx-home-protocol__fact">';
-				$html .= '<dt>' . esc_html( $label ) . '</dt>';
-				$html .= '<dd>' . esc_html( $value ) . '</dd>';
-				$html .= '</div>';
-			}
-			$html .= '</dl>';
-		}
-		$html .= '<p class="nvx-home-protocol__more"><a class="nvx-brand-inline-link" href="' . esc_url( $item['url'] ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . '</a></p>';
-		$html .= '</article>';
-	}
-
-	$html .= '</div></div></section>';
-
-	return $html;
-}
 
 /**
  * Ensure front page has one protocols block after Cómo trabajamos (or after values banner).
@@ -1211,15 +1167,6 @@ function nvx_content_strip_page_closing_ctas_late( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_content_strip_page_closing_ctas_late', 99 );
 
-/**
- * Quantitative trust badges are intentionally empty until figures exist in
- * docs/clinical-claims/claims-register.json with approved evidence.
- *
- * @return string Always empty — do not invent sitewide metrics.
- */
-function nvx_trust_badges_markup(): string {
-	return '';
-}
 
 /**
  * Global Before/After Teaser markup (sitewide).

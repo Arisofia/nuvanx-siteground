@@ -195,7 +195,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 .nvx-home-action-banner__kicker,
 .nvx-home-action-banner .nvx-brand-kicker{
   margin:0 0 var(--nvx-space-2,16px);
-  color:var(--nvx-accent-muted,var(--nvx-text-muted));
+  color:var(--nvx-text-on-dark-72);
 }
 .nvx-home-action-banner__title{
   margin:0 0 var(--nvx-space-2,16px);

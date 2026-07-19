@@ -42,8 +42,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
-      - name: Audit active stack and exception paths
-        run: node scripts/design-system/audit-css.mjs
+      - name: Audit active stack and conditional runtime paths
+        run: |
+          set -euo pipefail
+          node scripts/design-system/audit-css.mjs
+          node scripts/design-system/classify-runtime-css.mjs
+
+      - name: Validate environment flags PHP
+        run: php -l wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php
 
       - name: Publish exception inventory and canonical source snapshot
         if: always()

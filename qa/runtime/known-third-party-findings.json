@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "expiresOn": "2026-07-26",
+  "issue": 166,
+  "allowedPageError": "FacebookSignal is not defined",
+  "maxPerRoute": 1,
+  "allowedSignals": [
+    "multiple_meta_pixel_owners",
+    "meta_request_before_marketing_consent"
+  ]
+}

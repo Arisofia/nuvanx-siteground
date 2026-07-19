@@ -68,11 +68,6 @@ add_action(
 
 /**
  * Normaliza el documento público sin crear una segunda fuente de metadata.
- *
- * Mantiene un único viewport accesible y elimina únicamente FAQPage JSON-LD
- * independiente del grafo de Yoast. El catálogo canónico del tema ya sustituye
- * o crea el nodo FAQPage dentro de `yoast-schema-graph`; conservar ambos bloques
- * produciría entidades duplicadas con respuestas distintas.
  */
 function nvx_theme_normalize_public_document( string $html ): string {
 	$html = (string) preg_replace(
@@ -105,14 +100,12 @@ function nvx_theme_normalize_public_document( string $html ): string {
 	return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
 }
 
-/** Viewport accesible y deduplicación defensiva de FAQ schema. */
 add_action(
 	'template_redirect',
 	function () {
-		if ( is_admin() ) {
-			return;
+		if ( ! is_admin() ) {
+			ob_start( 'nvx_theme_normalize_public_document' );
 		}
-		ob_start( 'nvx_theme_normalize_public_document' );
 	},
 	0
 );
@@ -123,8 +116,11 @@ require_once __DIR__ . '/nvx-structured-data.php';
 /** Facial treatment MedicalProcedure and FAQ nodes inside the same Yoast graph. */
 require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
 
-/** Legal redirects, noindex for incomplete evidence / transactional pages. */
+/** Legal redirects, noindex and shared page-hygiene helpers. */
 require_once __DIR__ . '/nvx-page-hygiene.php';
+
+/** Canonical P0 publication rules replace the legacy all-in-one runtime filter. */
+require_once __DIR__ . '/nvx-p0-publication-guard.php';
 
 /** Canonical titles, descriptions, social URLs and environment robots policy. */
 require_once __DIR__ . '/nvx-seo-metadata.php';
@@ -153,8 +149,8 @@ require_once __DIR__ . '/nvx-clinical-language.php';
 /** Journal archive, taxonomy, search and single-post presentation. */
 require_once __DIR__ . '/nvx-blog-system.php';
 
-/** Global hero hierarchy: concise media overlay plus readable clinical introduction. */
+/** Global hero hierarchy. */
 require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
 
-/** Navigation filters for dynamic menu injection (e.g., EXION treatments dropdown). */
+/** Navigation filters for dynamic menu injection. */
 require_once __DIR__ . '/nvx-navigation-filters.php';

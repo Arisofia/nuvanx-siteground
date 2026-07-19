@@ -7,62 +7,20 @@ const expectNoindex = process.env.EXPECT_NOINDEX === 'true';
 const canonicalHost = process.env.CANONICAL_HOST || 'nuvanx.com';
 const username = process.env.BASIC_USER || '';
 const password = process.env.BASIC_PASSWORD || '';
-const attempts = Math.max(1, Number(process.env.VERIFY_RETRIES || 5));
+const attempts = Math.max(1, Number(process.env.VERIFY_RETRIES || 3));
 
 const routes = [
-  {
-    path: '/',
-    h1: 'Medicina estética láser en Madrid',
-    copy: 'Equipo médico hospitalario. Tecnología certificada. Resultados naturales.',
-    schema: ['MedicalClinic', 'Physician'],
-  },
-  {
-    path: '/contacto/',
-    h1: 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',
-    schema: ['MedicalClinic'],
-    requireOgImage: true,
-  },
-  {
-    path: '/medicina-estetica-chamberi/',
-    h1: 'Medicina estética en Chamberí con dirección médica',
-    schema: ['MedicalClinic'],
-  },
-  {
-    path: '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
-    h1: 'Medicina estética en Goya con misma dirección médica que Chamberí',
-    schema: ['MedicalClinic'],
-  },
-  {
-    path: '/endolift-facial-papada-mandibula/',
-    h1: 'Endolift® en Madrid: papada, mandíbula y cuello sin quirófano',
-    schema: ['MedicalProcedure', 'Service'],
-  },
-  {
-    path: '/endolaser-corporal-grasa-localizada/',
-    h1: 'Endoláser corporal en Madrid: grasa localizada y mejor contorno',
-    schema: ['MedicalProcedure', 'Service'],
-  },
-  {
-    path: '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-    h1: 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné',
-    schema: ['MedicalProcedure', 'Service'],
-  },
-  {
-    path: '/exion-btl/',
-    h1: 'EXION® BTL en Madrid',
-    schema: ['Service'],
-  },
+  { path: '/', h1: 'Medicina estética láser en Madrid', copy: 'Equipo médico hospitalario. Tecnología certificada. Resultados naturales.', schema: ['MedicalClinic', 'Physician'] },
+  { path: '/contacto/', h1: 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya', schema: ['MedicalClinic'], requireOgImage: true },
+  { path: '/medicina-estetica-chamberi/', h1: 'Medicina estética en Chamberí con dirección médica', schema: ['MedicalClinic'] },
+  { path: '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/', h1: 'Medicina estética en Goya con misma dirección médica que Chamberí', schema: ['MedicalClinic'] },
+  { path: '/endolift-facial-papada-mandibula/', h1: 'Endolift® en Madrid: papada, mandíbula y cuello sin quirófano', schema: ['MedicalProcedure', 'Service'] },
+  { path: '/endolaser-corporal-grasa-localizada/', h1: 'Endoláser corporal en Madrid: grasa localizada y mejor contorno', schema: ['MedicalProcedure', 'Service'] },
+  { path: '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', h1: 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', schema: ['MedicalProcedure', 'Service'] },
+  { path: '/exion-btl/', h1: 'EXION® BTL en Madrid', schema: ['Service'] },
 ];
 
-const forbiddenClaims = [
-  '3.500+',
-  '3,500+',
-  '4.8/5',
-  '4,8/5',
-  '89% Repite tratamiento',
-  '89% repite tratamiento',
-];
-
+const forbiddenClaims = ['3.500+', '3,500+', '4.8/5', '4,8/5', '89% Repite tratamiento', '89% repite tratamiento'];
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 function schemaTypesFromScripts(scripts) {
@@ -92,19 +50,19 @@ async function inspectPage(browser, route) {
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   const url = `${baseUrl}${route.path}`;
-  let result;
+  let result = { status: 0, html: '', title: '', bodyText: '', edge: true };
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
-    const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 90000 }).catch(() => null);
-    await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
+    const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => null);
     const status = response?.status() || 0;
+    if (status === 200) await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
     const html = await page.content().catch(() => '');
     const title = await page.title().catch(() => '');
     const bodyText = await page.locator('body').innerText().catch(() => '');
     const edge = status === 202 || /sgcaptcha|robot challenge|access denied/i.test(`${title} ${html}`);
     result = { status, html, title, bodyText, edge };
     if (!edge && status === 200) break;
-    if (attempt < attempts) await sleep(1500 * attempt);
+    if (attempt < attempts) await sleep(800 * attempt);
   }
 
   const errors = [];

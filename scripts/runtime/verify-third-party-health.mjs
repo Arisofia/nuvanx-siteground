@@ -35,9 +35,10 @@ function isFirstParty(raw) {
   }
 }
 
-async function openRoute(page, route) {
+async function openRoute(page, route, resetCapture) {
   let state = null;
   for (let attempt = 1; attempt <= retries; attempt += 1) {
+    resetCapture();
     const response = await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => null);
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
     const title = await page.title().catch(() => '');
@@ -73,6 +74,12 @@ try {
     const consoleErrors = [];
     const responses = [];
     const requests = [];
+    const resetCapture = () => {
+      pageErrors.length = 0;
+      consoleErrors.length = 0;
+      responses.length = 0;
+      requests.length = 0;
+    };
 
     page.on('pageerror', (error) => pageErrors.push(String(error?.message || error)));
     page.on('console', (message) => {
@@ -83,7 +90,7 @@ try {
     page.on('request', (request) => requests.push(request.url()));
     page.on('response', (response) => responses.push({ url: response.url(), status: response.status() }));
 
-    const document = await openRoute(page, route);
+    const document = await openRoute(page, route, resetCapture);
     const firstPartyFailures = responses.filter((entry) => isFirstParty(entry.url) && entry.status >= 400);
     const pluginSignalAsset = requests.some((url) => url.includes('/siteground-optimizer-assets/facebook-signal'));
     const gtmMetaPixel = requests.some((raw) => {
@@ -102,8 +109,15 @@ try {
     if (metaRequestsBeforeConsent.length) signals.push('meta_request_before_marketing_consent');
 
     const allowedPageErrors = pageErrors.filter((message) => message.includes(known.allowedPageError));
+    const allowedConsoleErrors = consoleErrors.filter((entry) => entry.text.includes(known.allowedPageError));
+    const knownErrorMessages = new Set([
+      ...allowedPageErrors,
+      ...allowedConsoleErrors.map((entry) => entry.text),
+    ]);
     const unexpectedPageErrors = pageErrors.filter((message) => !message.includes(known.allowedPageError));
-    const firstPartyConsoleErrors = consoleErrors.filter((entry) => isFirstParty(entry.url));
+    const firstPartyConsoleErrors = consoleErrors.filter(
+      (entry) => isFirstParty(entry.url) && !entry.text.includes(known.allowedPageError)
+    );
     const unexpectedSignals = signals.filter((signal) => !known.allowedSignals.includes(signal));
     const fatal = [];
 
@@ -113,8 +127,8 @@ try {
     if (unexpectedPageErrors.length) fatal.push(`unexpected page errors: ${JSON.stringify(unexpectedPageErrors)}`);
     if (firstPartyConsoleErrors.length) fatal.push(`first-party console errors: ${JSON.stringify(firstPartyConsoleErrors)}`);
     if (unexpectedSignals.length) fatal.push(`unexpected runtime signals: ${unexpectedSignals.join(', ')}`);
-    if (allowedPageErrors.length > Number(known.maxPerRoute || 0)) fatal.push(`known page error exceeded baseline: ${allowedPageErrors.length}`);
-    if (expired && (allowedPageErrors.length || signals.length)) fatal.push(`known runtime exception expired on ${known.expiresOn}; issue #${known.issue}`);
+    if (knownErrorMessages.size > Number(known.maxPerRoute || 0)) fatal.push(`known page error exceeded baseline: ${knownErrorMessages.size}`);
+    if (expired && (knownErrorMessages.size || signals.length)) fatal.push(`known runtime exception expired on ${known.expiresOn}; issue #${known.issue}`);
 
     results.push({
       route,

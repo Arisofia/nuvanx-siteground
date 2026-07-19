@@ -962,3 +962,28 @@ body.nvx-valoracion-modal-open{
   .nvx-ba-teaser__cta{width:100%}
 }
 
+
+
+/* Accessibility contrast contexts: dark bands and consent placeholders. */
+:where(
+  .nvx-home-action-banner,
+  .nvx-home-cta-final-band,
+  .nvx-cta-banner,
+  .nvx-catalog-close,
+  .nvx-endolift-action,
+  .nvx-laser-action,
+  .nvx-aes-action
+) :is(
+  .nvx-eyebrow,
+  .nvx-brand-kicker,
+  .nvx-endolift-kicker,
+  .nvx-laser-kicker,
+  .nvx-aes-kicker
+) {
+  color: var(--nvx-text-on-dark-72);
+}
+
+html body button.cmplz-blocked-content-notice {
+  color: var(--nvx-light);
+  background-color: var(--nvx-text-body);
+}

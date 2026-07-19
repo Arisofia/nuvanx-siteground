@@ -314,6 +314,8 @@ article.nvx-page > .nvx-page-hero {
    Sitewide (not home-only).
    ═══════════════════════════════════════════════════════════ */
 
+/* .hero-cta-group = new canonical wrapper; legacy aliases kept for unprocessed markup. */
+.hero-cta-group,
 .nvx-cta-pair,
 .nvx-home-hero-ctas,
 .nvx-values__cta,
@@ -512,6 +514,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 @media (max-width: 680px) {
+  /* .hero-cta-group responsive handled by nvx-brand-home.css */
   .nvx-cta-pair,
   .nvx-home-hero-ctas,
   .nvx-values__cta,

@@ -55,7 +55,7 @@ body.nvx-hero-blackout :is(
   display: none;
 }
 
-/* Still-only media rails: full black field (no empty photo hole). */
+/* Media rails retain a stable black stage when still imagery is hidden. */
 body.nvx-hero-blackout :is(
   .nvx-brand-hero__media,
   .nvx-editorial-hero__media,

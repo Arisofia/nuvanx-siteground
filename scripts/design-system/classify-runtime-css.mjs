@@ -151,8 +151,11 @@ for (const stylesheet of CONDITIONAL_RUNTIME_STYLESHEETS) {
 	if (!allStylesheets.has(stylesheet)) {
 		throw new Error(`conditional runtime stylesheet is missing from the CSS inventory: ${stylesheet}`);
 	}
-	if (activeStack.has(stylesheet)) {
-		throw new Error(`conditional runtime stylesheet must not be counted as globally active: ${stylesheet}`);
+	if (!activeStack.has(stylesheet)) {
+		throw new Error(`conditional runtime stylesheet must be audited in the active stack: ${stylesheet}`);
+	}
+	if ((exceptions.inactiveCssFiles || []).includes(stylesheet)) {
+		throw new Error(`conditional runtime stylesheet is incorrectly classified as inactive: ${stylesheet}`);
 	}
 	if (!referenced.has(stylesheet)) {
 		throw new Error(`conditional runtime stylesheet has no runtime reference evidence: ${stylesheet}`);
@@ -160,9 +163,6 @@ for (const stylesheet of CONDITIONAL_RUNTIME_STYLESHEETS) {
 }
 
 exceptions.conditionalRuntimeStylesheets = CONDITIONAL_RUNTIME_STYLESHEETS;
-exceptions.inactiveCssFiles = (exceptions.inactiveCssFiles || []).filter(
-	(stylesheet) => !CONDITIONAL_RUNTIME_STYLESHEETS.includes(stylesheet),
-);
 exceptions.conditionalRuntimeReferenceEvidence = (exceptions.stylesheetReferenceEvidence || []).filter(
 	(row) => CONDITIONAL_RUNTIME_STYLESHEETS.includes(row.file),
 );
@@ -170,13 +170,13 @@ exceptions.conditionalRuntimeReferenceEvidence = (exceptions.stylesheetReference
 summary.conditionalRuntimeStylesheets = CONDITIONAL_RUNTIME_STYLESHEETS.length;
 summary.inactiveStylesheets = exceptions.inactiveCssFiles.length;
 summary.classification = {
-	globalActive: summary.activeStylesheets,
-	conditionalRuntime: summary.conditionalRuntimeStylesheets,
+	activeSourceStylesheets: summary.activeStylesheets,
+	conditionalRuntimeWithinActive: summary.conditionalRuntimeStylesheets,
 	inactive: summary.inactiveStylesheets,
 	total: summary.totalStylesheets,
 };
 
-const classifiedTotal = summary.activeStylesheets + summary.conditionalRuntimeStylesheets + summary.inactiveStylesheets;
+const classifiedTotal = summary.activeStylesheets + summary.inactiveStylesheets;
 if (classifiedTotal !== summary.totalStylesheets) {
 	throw new Error(`stylesheet classification mismatch: ${classifiedTotal} classified vs ${summary.totalStylesheets} total`);
 }

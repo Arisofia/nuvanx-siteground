@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Renders the benefits section using the brand\'s minimally invasive copy and SVG icons.
  */
 function nvx_home_benefits_markup(): string {
-	return \'
+	return '
 <section class="nvx-brand-section nvx-benefits-section" aria-labelledby="nvx-benefits-title">
 	<div class="nvx-container" style="max-width: 1200px; margin: 0 auto; padding: 4rem 1.5rem;">
 		<header class="nvx-benefits__header" style="text-align: center; margin-bottom: 3rem;">
@@ -28,33 +28,33 @@ function nvx_home_benefits_markup(): string {
 		</header>
 		<div class="nvx-benefits__grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/permanent-results.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/resultados-definitivos.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RESULTADOS DEFINITIVOS</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/downtime.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/recuperacion-rapida.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">24-48 HORAS DE RECUPERACIÓN</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/awake.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/paciente-despierto.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">DESPIERTO TODO EL TIEMPO</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/no-scalpel.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/sin-bisturi.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">SIN BISTURÍ NI PUNTOS</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/one-procedure.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/solo-una-vez.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">UN SOLO PROCEDIMIENTO</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/natural.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/efecto-natural.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RESULTADOS NATURALES</span>
 			</div>
 		</div>
 	</div>
 </section>
-	\';
+	';
 }
 
 /**

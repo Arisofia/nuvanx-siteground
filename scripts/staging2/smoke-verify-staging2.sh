@@ -212,6 +212,23 @@ check_page "/equipo-medico/" "equipo" \
   'physician-rivera-deras' \
   'physician-quinonez-bareiro'
 
+# Strategy pages — source-owned authority / tariff pages and noindex prototypes.
+check_page "/por-que-nuvanx/" "why-nuvanx" \
+  'nvx-strategy-page' \
+  'Si no hay indicación clínica, no hay tratamiento.'
+
+check_page "/inversion-medicina-estetica/" "investment" \
+  'nvx-strategy-page' \
+  'Tarifas orientativas verificadas'
+
+check_page "/liposculpt-air/" "liposculpt-air-review" \
+  'nvx-strategy-page--review' \
+  'noindex'
+
+check_page "/v-lift-awake/" "v-lift-awake-review" \
+  'nvx-strategy-page--review' \
+  'noindex'
+
 # Journal / blog editorial system (PR #83)
 check_page "/blog/" "blog-index" \
   'nvx-blog-context' \

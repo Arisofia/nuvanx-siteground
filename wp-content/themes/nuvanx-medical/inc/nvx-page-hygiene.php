@@ -137,6 +137,11 @@ function nvx_noindex_page_ids() {
 	$ids = nvx_nofollow_page_ids();
 	$ids = array_merge( $ids, nvx_quarantined_comparison_post_ids() );
 
+	// Working protocol names are review artefacts, never discoverable treatment pages.
+	if ( function_exists( 'nvx_strategy_pending_page_ids' ) ) {
+		$ids = array_merge( $ids, nvx_strategy_pending_page_ids() );
+	}
+
 	// Casos de pacientes: only index after explicit editorial meta.
 	if ( '1' !== (string) get_post_meta( 2645, '_nvx_cases_publication_ready', true ) ) {
 		$ids[] = 2645;

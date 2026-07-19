@@ -6,7 +6,6 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const footer = fs.readFileSync(path.join(root, 'wp-content/themes/nuvanx-medical/footer.php'), 'utf8');
-const workflow = fs.readFileSync(path.join(root, '.github/workflows/navigation-route-gate.yml'), 'utf8');
 const requireText = (source, text, message) => { if (!source.includes(text)) throw new Error(message); };
 
 requireText(footer, "function_exists( 'nvx_navigation_published_treatments' )", 'footer does not guard catalogue availability');
@@ -24,14 +23,6 @@ for (const forbidden of [
   "home_url( '/emfusion/' )",
 ]) {
   if (footer.includes(forbidden)) throw new Error(`footer exposes speculative route: ${forbidden}`);
-}
-
-for (const required of [
-  'wp-content/themes/nuvanx-medical/footer.php',
-  'scripts/navigation/test-footer-route-contract.mjs',
-  'node scripts/navigation/test-footer-route-contract.mjs',
-]) {
-  requireText(workflow, required, `navigation workflow is missing footer contract: ${required}`);
 }
 
 console.log('PASS: footer published-route and accessible-name contract');

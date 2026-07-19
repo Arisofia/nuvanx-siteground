@@ -7,8 +7,9 @@
 | `deploy-to-prod.sh` | Guard siteurl, backup prod, rsync theme from staging, copy form MU plugins only, strip `nvx-*.min.css`, purge cache |
 | `flush-prod-cache.sh` | Flush WordPress object cache |
 
-Preferred production path: GitHub Actions **Deploy theme to production + flush cache**
-with `confirm=PROMOTE_PRODUCTION` (see [docs/operations/deployment.md](../../docs/operations/deployment.md)).
+Deployment workflows are intentionally absent from GitHub. Use this guarded
+host-level production path only after staging2 has been validated (see
+[docs/operations/deployment.md](../../docs/operations/deployment.md)).
 
 ```bash
 export WP_PROD=/home/customer/www/nuvanx.com/public_html

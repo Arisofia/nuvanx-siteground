@@ -55,23 +55,21 @@ HTML;
 $output = nvx_home_content_v2_transform( $input );
 
 $required = array(
-	'¿Por qué NUVANX no es una clínica de estética convencional?',
-	'Criterio clínico donde el diagnóstico decide la tecnología.',
-	'Prescripción, no venta:',
-	'Tecnología médica certificada:',
-	'Equipo hospitalario activo:',
-	'15–30 minutos para determinar la viabilidad de tu caso.',
-	'Reservar valoración gratuita',
+	'Criterio médico NUVANX',
+	'Si no hay indicación clínica, no hay tratamiento.',
+	'Diagnóstico antes de tecnología:',
+	'Tecnología según indicación:',
+	'Información y seguimiento:',
+	'Una consulta médica para determinar la indicación de tu caso.',
+	'Solicitar valoración médica',
 	'Contactar por WhatsApp',
 	'Un protocolo médico en tres decisiones',
 	'Evaluación individual',
 	'Indicación y parámetros',
 	'Control de evolución',
-	'Microfibra láser bajo la piel para tensar tejido',
-	'Protocolo láser ambulatorio para focos de grasa',
-	'Resurfacing fraccionado para cicatrices de acné',
-	'Desde 798,60 €',
-	'Desde 330 € sesión facial / 450 € corporal',
+	'Tratamiento láser subdérmico para zonas seleccionadas cuando existe indicación.',
+	'Protocolo láser para zonas seleccionadas tras valoración médica.',
+	'Resurfacing fraccionado cuya indicación y cuidados se definen según fototipo, zona y profundidad del protocolo.',
 );
 
 foreach ( $required as $text ) {
@@ -88,6 +86,10 @@ $forbidden = array(
 	'mejora radical',
 	'síntesis masiva',
 	'Recupera la armonía',
+	'Tecnología médica certificada',
+	'Microfibra láser bajo la piel',
+	'3–7 días',
+	'4–7 días',
 );
 foreach ( $forbidden as $text ) {
 	if ( false !== stripos( $output, $text ) ) {

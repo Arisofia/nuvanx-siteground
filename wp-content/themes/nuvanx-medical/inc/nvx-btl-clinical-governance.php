@@ -106,11 +106,11 @@ function nvx_btl_claim_library(): array {
 		),
 		'legacy_body_compare'    => array(
 			'source'   => 'La criolipólisis reduce grasa pero no tensa. Las microagujas corporales tensan con más trauma y downtime. EXION Body busca ambos efectos con mejor tolerancia. Detalle comparativo en el blog.',
-			'governed' => 'Criolipólisis, radiofrecuencia con microagujas y EXION Body tienen mecanismos y perfiles de recuperación diferentes. EXION Body puede ofrecer mejor tolerancia o menor recuperación en determinados protocolos, sin convertir esa diferencia en superioridad universal.',
+			'governed' => 'Los procedimientos corporales tienen mecanismos, límites y períodos de recuperación diferentes. La elección se realiza tras una valoración médica, sin convertir una comparación entre marcas en una recomendación comercial.',
 		),
 		'legacy_body_needles'    => array(
 			'source'   => 'No es un sistema de perforación con agujas largas; el eritema, si aparece, suele resolverse en horas.',
-			'governed' => 'No utiliza microagujas. El eritema, cuando aparece, puede resolverse en horas según materiales del fabricante y experiencia clínica, pero su intensidad y duración varían.',
+			'governed' => 'El aplicador no utiliza microagujas. Los posibles efectos y su evolución se explican antes de decidir, según el protocolo y la respuesta individual.',
 		),
 		// Soften residual risk phrasing if older cached HTML still emits it.
 		'legacy_body_burn_risk'  => array(
@@ -135,7 +135,7 @@ function nvx_btl_claim_library(): array {
 		),
 		'frac_downtime_legacy'   => array(
 			'source'   => 'Downtime típico: eritema 12–48 h según energía; se explica antes de firmar el plan.',
-			'governed' => 'Puede comunicarse un rango orientativo de eritema de 12–48 horas cuando corresponda al protocolo utilizado. No constituye una recuperación garantizada y puede variar con parámetros y respuesta individual.',
+			'governed' => 'El posible eritema y el período de recuperación se explican antes de decidir, según los parámetros y la respuesta individual. No se comunica un plazo garantizado.',
 		),
 		'frac_single_pass'       => array(
 			'source'   => 'El diseño single-pass reduce pasadas innecesarias cuando el feedback de tejido es adecuado; el médico puede modular según zona.',
@@ -147,7 +147,7 @@ function nvx_btl_claim_library(): array {
 		),
 		'emfusion_lead_legacy'   => array(
 			'source'   => 'Tecnología DYNAMiQ™ de microcanales acústicos para favorecer la penetración de activos y apoyar la homeostasis epidérmica — alternativa a vórtices de succión y microneedling cuando la barrera está comprometida.',
-			'governed' => 'Tecnología DYNAMiQ™ de microcanales acústicos para favorecer la aplicación de activos y apoyar hidratación y barrera cutánea. Puede compararse con sistemas de succión o microneedling por mecanismo y tolerancia, sin calificarlos de forma denigratoria.',
+			'governed' => 'La plataforma se valora dentro de un plan de cuidado cutáneo. La indicación, los activos y los cuidados se explican de forma individual antes de decidir.',
 		),
 	);
 

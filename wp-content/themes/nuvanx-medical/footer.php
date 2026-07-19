@@ -23,6 +23,8 @@ $nvx_footer_published_treatments = function_exists( 'nvx_navigation_published_tr
 	? nvx_navigation_published_treatments()
 	: array();
 $nvx_cases_public = ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( 2645, nvx_noindex_page_ids(), true );
+$nvx_why_nuvanx_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'why_nuvanx' ) : '';
+$nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';
 ?>
 
 <footer class="nvx-footer" role="contentinfo">
@@ -140,6 +142,22 @@ $nvx_cases_public = ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( 2
 						Nosotros
 					</a>
 				</li>
+
+				<?php if ( '' !== $nvx_why_nuvanx_url ) : ?>
+					<li>
+						<a href="<?php echo esc_url( $nvx_why_nuvanx_url ); ?>">
+							Por qué NUVANX
+						</a>
+					</li>
+				<?php endif; ?>
+
+				<?php if ( '' !== $nvx_investment_url ) : ?>
+					<li>
+						<a href="<?php echo esc_url( $nvx_investment_url ); ?>">
+							Inversión
+						</a>
+					</li>
+				<?php endif; ?>
 
 				<li>
 					<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>">

@@ -65,20 +65,20 @@ function nvx_home_benefits_markup(): string {
 function nvx_home_content_v2_catalog(): array {
 	return array(
 		'values'    => array(
-			'kicker' => '¿Por qué NUVANX no es una clínica de estética convencional?',
-			'title'  => 'Criterio clínico donde el diagnóstico decide la tecnología.',
+			'kicker' => 'Criterio médico NUVANX',
+			'title'  => 'Si no hay indicación clínica, no hay tratamiento.',
 			'items'  => array(
 				array(
-					'title' => 'Prescripción, no venta:',
-					'body'  => 'Antes de actuar, evaluamos tu piel, historial clínico y objetivos (15–30 min). Si un tratamiento no es médicamente viable, no se realiza. Las sesiones se prescriben, no se comercializan.',
+					'title' => 'Diagnóstico antes de tecnología:',
+					'body'  => 'Antes de proponer un tratamiento, revisamos anatomía, antecedentes, objetivos y contraindicaciones. Si no existe una indicación clínica adecuada, no lo recomendamos.',
 				),
 				array(
-					'title' => 'Tecnología médica certificada:',
-					'body'  => 'Contamos con plataformas como DEKA Motus AZ+, Endolift® (1470 nm), láser CO₂ fraccionado y EXION® BTL. Cada parámetro se calibra según tu anatomía, evitando protocolos estandarizados.',
+					'title' => 'Tecnología según indicación:',
+					'body'  => 'La elección de tecnología y parámetros se decide tras la exploración. No se parte de un protocolo estándar ni de una promesa de resultado.',
 				),
 				array(
-					'title' => 'Equipo hospitalario activo:',
-					'body'  => 'Médicos especialistas vinculados al Hospital La Paz e investigadores PhD del CIBERFES. Esta formación en medicina del envejecimiento respalda cada una de nuestras decisiones.',
+					'title' => 'Información y seguimiento:',
+					'body'  => 'El plan explica alternativas, cuidados, posibles efectos y vía de contacto. La recuperación se individualiza según el caso y el procedimiento indicado.',
 				),
 			),
 		),
@@ -111,7 +111,7 @@ function nvx_home_content_v2_catalog(): array {
 		'protocols' => array(
 			array(
 				'title' => 'Endolift® facial: papada, mandíbula y cuello',
-				'lead'  => 'Microfibra láser bajo la piel para tensar tejido y, cuando hay indicación, reducir grasa local. No sustituye un lifting quirúrgico en todos los casos.',
+				'lead'  => 'Tratamiento láser subdérmico para zonas seleccionadas cuando existe indicación. No sustituye un lifting quirúrgico en todos los casos.',
 				'facts' => array(
 					'Presupuesto'   => 'Se documenta por escrito tras la valoración médica.',
 					'Recuperación' => 'Se explica según la zona, el protocolo y la respuesta individual.',
@@ -119,7 +119,7 @@ function nvx_home_content_v2_catalog(): array {
 			),
 			array(
 				'title' => 'Endoláser corporal: grasa localizada y contorno',
-				'lead'  => 'Protocolo láser ambulatorio para focos de grasa con flacidez leve–moderada. No es tratamiento de obesidad ni liposucción.',
+				'lead'  => 'Protocolo láser para zonas seleccionadas tras valoración médica. No es tratamiento de obesidad ni liposucción.',
 				'facts' => array(
 					'Zonas habituales' => 'Abdomen, flancos, muslos, rodillas, brazos y otras áreas seleccionadas.',
 					'Inversión'        => 'Presupuesto por zonas tras valoración médica.',
@@ -127,7 +127,7 @@ function nvx_home_content_v2_catalog(): array {
 			),
 			array(
 				'title' => 'Láser CO₂ fraccionado: textura y cicatrices',
-				'lead'  => 'Resurfacing fraccionado para cicatrices de acné, poros y fotodaño, con downtime realista según profundidad.',
+				'lead'  => 'Resurfacing fraccionado cuya indicación y cuidados se definen según fototipo, zona y profundidad del protocolo.',
 				'facts' => array(
 					'Presupuesto'   => 'Se documenta por escrito tras la valoración médica.',
 					'Recuperación' => 'Se explica según profundidad, zona y protocolo indicado.',
@@ -139,15 +139,15 @@ function nvx_home_content_v2_catalog(): array {
 			'items'  => array(
 				array(
 					'title' => 'Endolift® Facial',
-					'body'  => 'Tensado del óvalo, mandíbula y papada con microfibra láser subdérmica. Ideal para flacidez leve-moderada y grasa submentoniana.',
+					'body'  => 'Tratamiento láser subdérmico valorado para zonas faciales seleccionadas. La indicación depende de la anatomía, los objetivos y las alternativas disponibles.',
 				),
 				array(
 					'title' => 'Endoláser Corporal',
-					'body'  => 'Lipólisis y reafirmación profunda en zonas resistentes al ejercicio para un resultado armónico de la silueta.',
+					'body'  => 'Tratamiento láser corporal que se considera tras explorar la zona, la calidad de piel y las expectativas realistas.',
 				),
 				array(
 					'title' => 'Láser CO₂ Fraccionado',
-					'body'  => 'Renovación profunda de textura, poros, cicatrices y manchas. Parámetros adaptados a tu fototipo y tiempo de recuperación.',
+					'body'  => 'Protocolo de láser fraccionado cuya indicación, parámetros y cuidados se individualizan según fototipo, zona y objetivo clínico.',
 				),
 				array(
 					'title' => 'Armonización Facial',
@@ -155,11 +155,11 @@ function nvx_home_content_v2_catalog(): array {
 				),
 				array(
 					'title' => 'EXION® BTL',
-					'body'  => 'Plataforma avanzada (Fractional RF, Face y Body) para optimizar la densidad dérmica y la producción natural de ácido hialurónico.',
+					'body'  => 'Plataforma cuya disponibilidad, aplicador e indicación se confirman después de la valoración médica.',
 				),
 				array(
 					'title' => 'BTL EXILITE IPL',
-					'body'  => 'Luz pulsada intensa para fotorrejuvenecimiento. Trata de forma eficaz rojeces, capilares y manchas.',
+					'body'  => 'La disponibilidad y la indicación se revisan según diagnóstico, fototipo y protocolo clínico vigente.',
 				),
 			),
 		),

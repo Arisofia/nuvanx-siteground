@@ -53,7 +53,7 @@ function nvx_staging2_home_action_banner_html(): string
     <p class="nvx-home-action-banner__text">Agenda una valoración médica personalizada y presencial en nuestras clínicas de Chamberí o Goya · Barrio Salamanca.</p>
   </div>
   <div class="nvx-home-action-banner__actions">
-    <a class="nvx-button nvx-button--light" href="{$valoracion}">Reservar valoración gratuita</a>
+    <a class="nvx-button nvx-button--light" href="{$valoracion}">Solicitar valoración médica</a>
     <a class="nvx-home-action-banner__link" href="{$contacto}">Resolver dudas</a>
   </div>
 </section>

@@ -6,6 +6,9 @@
 
 if ( ! defined( 'ABSPATH' ) ) { fwrite(STDERR, "ERROR: wp eval-file only\n"); exit(1); }
 
+fwrite( STDERR, "RETIRED: this comparison publisher is quarantined and cannot create public content. Use the approved non-comparative editorial workflow.\n" );
+exit( 1 );
+
 $apply = ( '1' === getenv( 'NVX_BLOG_APPLY' ) || 'yes' === getenv( 'NVX_BLOG_APPLY' ) );
 $expected = 'https://staging2.nuvanx.com';
 if ( rtrim( (string) get_option('siteurl'), '/' ) !== $expected || rtrim( (string) get_option('home'), '/' ) !== $expected ) {

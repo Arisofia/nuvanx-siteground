@@ -530,49 +530,6 @@ function nvx_content_enrich_treatment_cards( string $content ): string {
 	return is_string( $content ) ? $content : '';
 }
 
-/**
- * Home “Protocolos médicos especializados” — clinical copy + orientative investment when known.
- *
- * @return array<int, array{title:string,lead:string,facts:array<string,string>,url:string}>
- */
-function nvx_home_protocols_data(): array {
-	$endolift_from = function_exists( 'nvx_format_price_eur' ) && function_exists( 'nvx_endolift_price_from_eur' )
-		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
-		: '798,60';
-	$co2_from      = function_exists( 'nvx_format_price_eur' ) && function_exists( 'nvx_tariff_catalog' )
-		? nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] )
-		: '330,00';
-
-	return array(
-		array(
-			'title' => 'Endolift® facial: papada, mandíbula y cuello',
-			'lead'  => 'Microfibra láser bajo la piel para tensar tejido y, cuando hay indicación, reducir grasa local. No sustituye un lifting quirúrgico en todos los casos.',
-			'facts' => array(
-				'Inversión orientativa' => sprintf( 'Desde %s € (zona ojeras, IVA incl.). Tabla completa en la ficha.', $endolift_from ),
-				'Recuperación estimada' => 'Inflamación o hematomas leves habitualmente 3 a 7 días según el caso.',
-			),
-			'url'   => home_url( '/endolift-facial-papada-mandibula/' ),
-		),
-		array(
-			'title' => 'Endoláser corporal: grasa localizada y contorno',
-			'lead'  => 'Protocolo láser ambulatorio para focos de grasa con flacidez leve–moderada. No es tratamiento de obesidad ni liposucción.',
-			'facts' => array(
-				'Zonas habituales' => 'Abdomen, flancos, muslos, rodillas, brazos y otras áreas seleccionadas.',
-				'Inversión'        => 'Presupuesto por zonas tras valoración médica.',
-			),
-			'url'   => home_url( '/endolaser-corporal-grasa-localizada/' ),
-		),
-		array(
-			'title' => 'Láser CO₂ fraccionado: textura y cicatrices',
-			'lead'  => 'Resurfacing fraccionado para cicatrices de acné, poros y fotodaño, con downtime realista según profundidad.',
-			'facts' => array(
-				'Inversión orientativa' => sprintf( 'Desde %s € sesión facial (IVA incl.).', $co2_from ),
-				'Recuperación'          => 'Habitualmente 4 a 7 días de eritema y descamación según protocolo.',
-			),
-			'url'   => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ),
-		),
-	);
-}
 
 
 /**

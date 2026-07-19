@@ -1,0 +1,32 @@
+name: Source Snapshot Temporary
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/source-snapshot-temporary.yml'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Upload exact source files
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: exact-deploy-source-snapshot
+          path: |
+            .github/workflows/deploy-theme-staging2.yml
+            .github/workflows/deploy-theme-production.yml
+            scripts/seo/verify-p0-deployment.mjs
+          retention-days: 1
+          if-no-files-found: error

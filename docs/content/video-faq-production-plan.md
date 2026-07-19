@@ -89,13 +89,13 @@ Las piezas deben informar, no diagnosticar a distancia ni prometer resultados.
 
 **Límite:** La agenda no debe imponerse sobre la seguridad.
 
-### 7. ¿Qué señales requieren contactar con la clínica?
+### 7. ¿Qué señales requieren atención urgente?
 
-**Respuesta:** Dolor creciente, fiebre, secreción, cambio de color preocupante, ampollas extensas, alteración visual, dificultad respiratoria o síntomas neurológicos requieren atención inmediata según el procedimiento.
+**Respuesta:** Ante dificultad respiratoria, alteración visual o síntomas neurológicos, hay que llamar al **112** o acudir a urgencias de inmediato. Avisar a la clínica es un paso secundario, no el primero.
 
-**Desarrollo:** Cada consentimiento debe incluir instrucciones específicas y un canal de contacto.
+**Desarrollo:** Otras señales (dolor creciente, fiebre, secreción, cambio de color preocupante o ampollas extensas) también exigen atención rápida según el procedimiento: usar el canal de urgencias del consentimiento o contactar con la clínica cuando no se trate de una emergencia vital. Cada consentimiento debe incluir instrucciones específicas y un teléfono de contacto.
 
-**Límite:** No esperar a una respuesta en redes sociales ante una urgencia.
+**Límite:** No esperar a una respuesta en redes sociales ni a un mensaje a la clínica ante una urgencia con riesgo vital; priorizar 112 o servicios de emergencia.
 
 ### 8. ¿Por qué es importante saber qué producto me inyectan?
 

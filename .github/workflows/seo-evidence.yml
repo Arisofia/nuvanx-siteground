@@ -45,6 +45,8 @@ jobs:
           node --check scripts/seo/verify-p0-deployment.mjs
 
       - name: Verify current staging2 P0 contract
+        id: p0
+        continue-on-error: true
         env:
           BASE_URL: https://staging2.nuvanx.com
           EXPECT_NOINDEX: 'true'
@@ -52,9 +54,10 @@ jobs:
           BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
           BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
           VERIFY_RETRIES: '3'
-        run: node scripts/seo/verify-p0-deployment.mjs
+        run: node scripts/seo/verify-p0-deployment.mjs 2>&1 | tee artifacts-p0.log
 
       - name: Crawl production inventory and internal links
+        if: always()
         env:
           BASE_URL: https://nuvanx.com/
         run: node scripts/seo/full-site-crawl.mjs
@@ -65,15 +68,28 @@ jobs:
           if [[ -f artifacts/seo-evidence/full-site-seo-report.md ]]; then
             cat artifacts/seo-evidence/full-site-seo-report.md >> "$GITHUB_STEP_SUMMARY"
           fi
+          if [[ -f artifacts-p0.log ]]; then
+            printf '\n## Staging2 P0 contract\n\n```text\n' >> "$GITHUB_STEP_SUMMARY"
+            cat artifacts-p0.log >> "$GITHUB_STEP_SUMMARY"
+            printf '\n```\n' >> "$GITHUB_STEP_SUMMARY"
+          fi
 
-      - name: Upload crawl evidence
+      - name: Upload crawl and P0 evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: full-site-seo-evidence
-          path: artifacts/seo-evidence/
+          path: |
+            artifacts/seo-evidence/
+            artifacts-p0.log
           retention-days: 30
-          if-no-files-found: error
+          if-no-files-found: warn
+
+      - name: Enforce staging2 P0 contract
+        if: steps.p0.outcome == 'failure'
+        run: |
+          echo 'Staging2 P0 deployment contract failed.' >&2
+          exit 1
 
   lighthouse:
     runs-on: ubuntu-latest

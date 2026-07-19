@@ -41,6 +41,7 @@ jobs:
     environment: staging
     outputs:
       deployed_ref: ${{ steps.meta.outputs.deployed_ref }}
+      deployed_sha: ${{ steps.identity.outputs.deployed_sha }}
     steps:
       - name: Resolve deploy ref
         id: meta
@@ -58,6 +59,17 @@ jobs:
         with:
           ref: ${{ steps.meta.outputs.deployed_ref }}
           fetch-depth: 1
+
+      - name: Resolve immutable deploy SHA
+        id: identity
+        run: |
+          set -euo pipefail
+          SHA="$(git rev-parse HEAD)"
+          [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "ERROR: invalid checkout SHA: $SHA" >&2; exit 1; }
+          printf '%s\n' "$SHA" > "${{ env.THEME_REL }}/.nvx-deploy-sha"
+          grep -Fxq "$SHA" "${{ env.THEME_REL }}/.nvx-deploy-sha"
+          echo "deployed_sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Immutable deploy SHA: $SHA"
 
       - name: Validate secrets and canonical source
         env:
@@ -90,6 +102,10 @@ jobs:
           test -f "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
           php -l "${{ env.THEME_REL }}/inc/nvx-structured-data.php"
           php -l "${{ env.THEME_REL }}/inc/nvx-integrations.php"
+          php -l "${{ env.THEME_REL }}/inc/nvx-environment-flags.php"
+          node --check scripts/seo/verify-p0-deployment.mjs
+          test -f "${{ env.THEME_REL }}/.nvx-deploy-sha"
+          grep -Fxq "${{ steps.identity.outputs.deployed_sha }}" "${{ env.THEME_REL }}/.nvx-deploy-sha"
           find "${{ env.THEME_REL }}" -type f -name '*.php' -print0 | xargs -0 -n1 php -l
           for f in nvx-content-presentation.php nvx-treatments-catalog.php nvx-endolift-page.php nvx-laser-medicine-page.php nvx-clinics-hub.php; do
             test -f "${{ env.THEME_REL }}/inc/$f" || { echo "ERROR: missing inc/$f"; exit 1; }
@@ -144,9 +160,10 @@ jobs:
           SSH_USER: ${{ secrets.STAGING_SSH_USER }}
           SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
           SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
+          EXPECTED_SHA: ${{ steps.identity.outputs.deployed_sha }}
         run: |
           set -euo pipefail
-          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" 'bash -e -s' <<'REMOTE'
+          ssh -p "$SSH_PORT" "$SSH_USER@$SSH_HOST" "EXPECTED_SHA='$EXPECTED_SHA' bash -e -s" <<'REMOTE'
             set -euo pipefail
             ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
             THEME="$ROOT/wp-content/themes/nuvanx-medical"
@@ -159,6 +176,10 @@ jobs:
             [[ "$(wp option get siteurl)" == 'https://staging2.nuvanx.com' ]]
             [[ "$(wp option get home)" == 'https://staging2.nuvanx.com' ]]
             [[ "$(wp theme list --status=active --field=name)" == 'nuvanx-medical' ]]
+            test -f "$THEME/.nvx-deploy-sha"
+            deployed_sha="$(tr -d '\r\n' < "$THEME/.nvx-deploy-sha")"
+            [[ "$deployed_sha" == "$EXPECTED_SHA" ]] || { echo "ERROR: remote SHA $deployed_sha != expected $EXPECTED_SHA" >&2; exit 1; }
+            echo "DEPLOY_SHA_OK $deployed_sha"
             for css_file in \
               nvx-fonts.css \
               nvx-tokens.css \
@@ -281,11 +302,28 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
-          ref: ${{ needs.deploy-and-flush.outputs.deployed_ref }}
+          ref: ${{ needs.deploy-and-flush.outputs.deployed_sha }}
           fetch-depth: 1
+
+      - name: Install pinned Chromium verification runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock @playwright/test@1.55.0
+          npx playwright install --with-deps chromium
 
       - name: Wait for CDN / cache edge
         run: sleep 15
+
+      - name: Exact P0 deployment identity (staging2)
+        env:
+          BASE_URL: ${{ env.STAGING_BASE_URL }}
+          EXPECT_NOINDEX: 'true'
+          CANONICAL_HOST: nuvanx.com
+          EXPECTED_DEPLOY_SHA: ${{ needs.deploy-and-flush.outputs.deployed_sha }}
+          BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
+          BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
+          VERIFY_RETRIES: '8'
+        run: node scripts/seo/verify-p0-deployment.mjs
 
       - name: HTTP smoke verify staging2 pages
         env:

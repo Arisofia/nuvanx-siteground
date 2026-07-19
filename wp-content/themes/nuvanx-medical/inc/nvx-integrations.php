@@ -9,6 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** Environment-specific flags must register before front-end enqueue hooks run. */
 require_once __DIR__ . '/nvx-environment-flags.php';
 
+/** Canonical facial treatment content, metadata and staging page seeding. */
+require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
+
 /** Goya (1537): evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
@@ -110,6 +113,9 @@ add_action(
 
 /** Structured data extensions: one canonical Yoast graph, no duplicate output. */
 require_once __DIR__ . '/nvx-structured-data.php';
+
+/** Facial treatment MedicalProcedure and FAQ nodes inside the same Yoast graph. */
+require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
 
 /** Legal redirects, noindex for incomplete evidence / transactional pages. */
 require_once __DIR__ . '/nvx-page-hygiene.php';

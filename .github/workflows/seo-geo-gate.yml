@@ -57,6 +57,8 @@ jobs:
             wp-content/themes/nuvanx-medical/inc/nvx-faq-content-v2.php
             wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php
             wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php
+            wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-pages.php
+            wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-schema.php
             scripts/staging2/set-medical-review.php
             wp-content/themes/nuvanx-medical/inc/nvx-treatments-catalog.php
           )
@@ -88,6 +90,9 @@ jobs:
 
       - name: Test treatment catalogue copy
         run: php scripts/seo/test-treatment-catalog-copy.php
+
+      - name: Test facial treatment page contracts
+        run: php scripts/seo/test-aesthetic-treatment-pages.php
 
   rendered-audit:
     runs-on: ubuntu-latest

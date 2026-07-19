@@ -1,11 +1,9 @@
 <?php
 /**
- * Site-wide valoración form modal (keeps intent: no redirect away from page).
+ * Site-wide valoración form modal.
  *
- * Opens from header/mobile CTAs and any link to /madrid/valoracion/ that opts in
- * via .nvx-open-valoracion-modal or data-nvx-valoracion-modal.
- *
- * Form markup reuses HubSpot frame constants from the MU plugin when present.
+ * Opens from opted-in CTAs outside /contacto/, the full valoración landing and
+ * post-conversion pages. Contacto remains a form-free NAP and routing page.
  *
  * @package nuvanx-medical
  */
@@ -22,7 +20,16 @@ function nvx_valoracion_modal_enabled(): bool {
 		return false;
 	}
 
-	// Already on the form landing: keep full page UX.
+	// Contacto is contractually form-free: direct links route to the full landing.
+	if (
+		is_page( 14 )
+		|| is_page( 'contacto' )
+		|| ( function_exists( 'nvx_is_contacto_page_request' ) && nvx_is_contacto_page_request() )
+	) {
+		return false;
+	}
+
+	// Already on the form landing: keep full-page UX.
 	if ( function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page() ) {
 		return false;
 	}
@@ -33,16 +40,11 @@ function nvx_valoracion_modal_enabled(): bool {
 		return false;
 	}
 
-	/**
-	 * Filter whether the valoración modal is available.
-	 *
-	 * @param bool $enabled Default true on public pages (except form/thank-you).
-	 */
 	return (bool) apply_filters( 'nvx_valoracion_modal_enabled', true );
 }
 
 /**
- * HubSpot portal / form / region for the modal (shared with MU plugin constants).
+ * HubSpot portal / form / region for the modal.
  *
  * @return array{portal_id:string,form_id:string,region:string,script_url:string}
  */
@@ -60,7 +62,7 @@ function nvx_valoracion_modal_hubspot_config(): array {
 }
 
 /**
- * Modal dialog markup (empty until opened; form frame always in DOM for HS scan).
+ * Modal dialog markup.
  */
 function nvx_valoracion_modal_markup(): string {
 	$cfg = nvx_valoracion_modal_hubspot_config();
@@ -82,7 +84,6 @@ function nvx_valoracion_modal_markup(): string {
 	$html .= '</div>';
 	$html .= '<p class="nvx-valoracion-modal__legal">' . wp_kses(
 		sprintf(
-			/* translators: %s: privacy policy URL */
 			__( 'Al enviar aceptas la <a class="nvx-text-link" href="%s">Política de privacidad</a>.', 'nuvanx-medical' ),
 			$privacy
 		),
@@ -100,14 +101,14 @@ function nvx_valoracion_modal_markup(): string {
 }
 
 /**
- * Print modal shell in footer on public pages.
+ * Print modal shell in footer on eligible public pages.
  */
 function nvx_valoracion_modal_render(): void {
 	if ( ! nvx_valoracion_modal_enabled() ) {
 		return;
 	}
-	// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- helper escapes.
-	echo nvx_valoracion_modal_markup();
+
+	echo nvx_valoracion_modal_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
 add_action( 'wp_footer', 'nvx_valoracion_modal_render', 25 );
 
@@ -128,18 +129,17 @@ function nvx_valoracion_modal_assets(): void {
 		null,
 		true
 	);
-	// HubSpot embed is third-party; load after main when possible.
 	wp_script_add_data( 'nvx-hubspot-forms-embed', 'strategy', 'defer' );
 
 	wp_add_inline_script(
 		'nvx-main',
 		'window.nvxValoracionModal=' . wp_json_encode(
 			array(
-				'enabled'    => true,
-				'pageUrl'    => function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : home_url( '/madrid/valoracion/' ),
-				'portalId'   => $cfg['portal_id'],
-				'formId'     => $cfg['form_id'],
-				'region'     => $cfg['region'],
+				'enabled'  => true,
+				'pageUrl'  => function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : home_url( '/madrid/valoracion/' ),
+				'portalId' => $cfg['portal_id'],
+				'formId'   => $cfg['form_id'],
+				'region'   => $cfg['region'],
 			)
 		) . ';',
 		'before'

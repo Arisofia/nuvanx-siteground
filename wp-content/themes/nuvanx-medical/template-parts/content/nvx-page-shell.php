@@ -18,7 +18,7 @@ while ( have_posts() ) :
 	$content = is_string( $content ) ? $content : '';
 
 	// Raw CMS markers (authoring-time).
-	$has_content_h1   = (bool) preg_match( '/<h1\b/i', $content );
+	$has_content_h1   = (bool) preg_match( '/<h1\b|<!--\s*wp:heading\s+\{[^}]*"level"\s*:\s*1[^}]*\}/i', $content );
 	$has_content_hero = (bool) preg_match( '/nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-home-hero-stage/i', $content );
 
 	// Modules that inject a canonical hero + H1 via the_content even when CMS body is empty/legacy.
@@ -46,6 +46,9 @@ while ( have_posts() ) :
 		$has_managed_editorial = true;
 	}
 	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_nosotros_page' ) && nvx_content_is_nosotros_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_aesthetic_treatment_current_key' ) && null !== nvx_aesthetic_treatment_current_key() ) {
 		$has_managed_editorial = true;
 	}
 
@@ -136,9 +139,18 @@ while ( have_posts() ) :
 	<?php if ( is_singular( 'post' ) ) : ?>
 		<nav class="nvx-page__nav" aria-label="<?php esc_attr_e( 'Navegación entre artículos', 'nuvanx-medical' ); ?>">
 			<?php
-			$prev = get_previous_post();
-			$next = get_next_post();
-			if ( $prev ) :
+				$prev = get_previous_post();
+				$next = get_next_post();
+				$quarantined_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' )
+					? nvx_quarantined_comparison_post_ids()
+					: array();
+				if ( $prev && in_array( (int) $prev->ID, $quarantined_post_ids, true ) ) {
+					$prev = null;
+				}
+				if ( $next && in_array( (int) $next->ID, $quarantined_post_ids, true ) ) {
+					$next = null;
+				}
+				if ( $prev ) :
 				?>
 				<a class="nvx-text-link" href="<?php echo esc_url( get_permalink( $prev ) ); ?>" rel="prev">&larr; <?php echo esc_html( get_the_title( $prev ) ); ?></a>
 			<?php endif; ?>

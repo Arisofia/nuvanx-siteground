@@ -479,7 +479,7 @@ function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 	$html .= '<p class="nvx-endolift-body">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
-			__( 'Colegiada ICOMEM %s. La Dra. Rivera Deras integra en NUVANX autoridad en medicina funcional, longevidad y well-aging. Su perfil dual —primera línea hospitalaria pública e investigación epidemiológica— garantiza que los protocolos de rejuvenecimiento operen bajo estándares de medicina basada en la evidencia.', 'nuvanx-medical' ),
+			__( 'Colegiada ICOMEM %s. La Dra. Rivera Deras aporta experiencia en medicina funcional, longevidad y well-aging. Su actividad asistencial e investigadora contribuye a que los protocolos se revisen con criterio clínico y evidencia aplicable.', 'nuvanx-medical' ),
 			$colegiado
 		)
 	) . '</p>';

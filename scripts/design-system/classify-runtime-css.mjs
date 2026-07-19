@@ -240,12 +240,9 @@ for (const stylesheet of CONDITIONAL_RUNTIME_STYLESHEETS) {
 
 // --- Reclassify inventory filenames ---
 exceptions.conditionalRuntimeStylesheets = CONDITIONAL_RUNTIME_STYLESHEETS;
-<<<<<<< Updated upstream
-=======
 exceptions.inactiveCssFiles = (exceptions.inactiveCssFiles || []).filter(
 	(stylesheet) => !conditionalSet.has(stylesheet),
 );
->>>>>>> Stashed changes
 exceptions.conditionalRuntimeReferenceEvidence = (exceptions.stylesheetReferenceEvidence || []).filter(
 	(row) => conditionalSet.has(row.file),
 );
@@ -368,17 +365,13 @@ if (strayImportantInactive.length) {
 
 // --- Summary / classification counts ---
 summary.conditionalRuntimeStylesheets = CONDITIONAL_RUNTIME_STYLESHEETS.length;
-<<<<<<< Updated upstream
 summary.activeStylesheets = activeStack.size;
-summary.inactiveStylesheets = inactiveStylesheets.size;
-summary.totalStylesheets = allStylesheets.size;
-=======
 summary.inactiveStylesheets = exceptions.inactiveCssFiles.length;
+summary.totalStylesheets = allStylesheets.size;
 summary.importantConditionalRuntime = (exceptions.importantConditionalRuntime || []).length;
 summary.importantInactive = (exceptions.importantInactive || []).length;
 summary.conditionalUndefinedTokens = conditionalUndefinedTokens.length;
 summary.conditionalUnsafeSelectors = conditionalUnsafeSelectors.length;
->>>>>>> Stashed changes
 summary.classification = {
 	activeSourceStylesheets: activeStack.size,
 	conditionalRuntimeWithinActive: summary.conditionalRuntimeStylesheets,

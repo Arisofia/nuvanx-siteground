@@ -22,6 +22,7 @@ if ( function_exists( 'nvx_theme_show_cta_banner' ) && nvx_theme_show_cta_banner
 $nvx_footer_published_treatments = function_exists( 'nvx_navigation_published_treatments' )
 	? nvx_navigation_published_treatments()
 	: array();
+$nvx_cases_public = ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( 2645, nvx_noindex_page_ids(), true );
 ?>
 
 <footer class="nvx-footer" role="contentinfo">
@@ -146,11 +147,13 @@ $nvx_footer_published_treatments = function_exists( 'nvx_navigation_published_tr
 					</a>
 				</li>
 
-				<li>
-					<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>">
-						Casos de pacientes
-					</a>
-				</li>
+					<?php if ( $nvx_cases_public ) : ?>
+						<li>
+							<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>">
+								Casos de pacientes
+							</a>
+						</li>
+					<?php endif; ?>
 
 				<li>
 					<a href="<?php echo esc_url( home_url( '/blog/' ) ); ?>">
@@ -177,7 +180,7 @@ $nvx_footer_published_treatments = function_exists( 'nvx_navigation_published_tr
 	<div class="nvx-footer__bottom">
 
 		<p class="nvx-footer__tagline">
-			MEDICINA ESTÉTICA LÁSER · PRECISIÓN MÉDICA, RESULTADOS NATURALES
+			MEDICINA ESTÉTICA LÁSER · CRITERIO MÉDICO Y ATENCIÓN INDIVIDUALIZADA
 		</p>
 
 		<p class="nvx-footer__legal">

@@ -13,35 +13,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** @return array<int,array{id:string,q:string,a:string}> */
 function nvx_home_faq_v2_catalog(): array {
-	$from   = function_exists( 'nvx_endolift_price_from_eur' ) ? (float) nvx_endolift_price_from_eur() : 798.60;
-	$papada = function_exists( 'nvx_endolift_price_papada_eur' ) ? (float) nvx_endolift_price_papada_eur() : 1064.80;
-	$co2    = function_exists( 'nvx_tariff_catalog' ) ? (float) nvx_tariff_catalog()['laser_co2']['facial']['pvp'] : 330.0;
-	$format = static function ( float $amount ): string {
-		return function_exists( 'nvx_format_price_eur' )
-			? (string) nvx_format_price_eur( $amount )
-			: number_format( $amount, 2, ',', '.' );
-	};
-
 	return array(
 		array(
-			'id' => 'valoracion-coste',
-			'q'  => '¿La valoración médica en NUVANX tiene coste?',
-			'a'  => 'No. La valoración médica inicial es gratuita y sin compromiso. En 15–30 minutos revisamos tu caso, confirmamos si existe indicación y explicamos las opciones antes de cualquier decisión.',
+			'id' => 'valoracion-medica',
+			'q'  => '¿Cómo se solicita una valoración médica en NUVANX?',
+			'a'  => 'Puedes solicitar una valoración médica para revisar tu caso, confirmar si existe indicación y conocer las alternativas antes de decidir un tratamiento.',
 		),
 		array(
 			'id' => 'precio-endolift',
 			'q'  => '¿Cuánto cuesta el Endolift® facial en NUVANX?',
-			'a'  => 'El Endolift® facial comienza desde ' . $format( $from ) . ' € (zona ojeras, IVA incluido). Papada o marcación mandibular: ' . $format( $papada ) . ' € por zona. El presupuesto definitivo se cierra tras valoración anatómica presencial.',
+			'a'  => 'El presupuesto depende de la zona, la indicación y el plan médico. Se documenta por escrito tras la valoración anatómica presencial.',
 		),
 		array(
 			'id' => 'duracion-endolift',
 			'q'  => '¿Cuánto duran los resultados del Endolift®?',
-			'a'  => 'Habitualmente entre 18 meses y 3 años, según la calidad de piel, la edad y hábitos (sol, tabaquismo). En consulta se concreta el rango esperable para tu caso — no hay una promesa universal.',
+			'a'  => 'La evolución depende de la indicación, la zona tratada, la calidad de piel y los hábitos. En consulta se explican los límites y el seguimiento esperable para tu caso; no existe una duración universal.',
 		),
 		array(
 			'id' => 'sesiones-co2',
 			'q'  => '¿Cuántas sesiones necesita el láser CO₂ fraccionado?',
-			'a'  => 'Entre 1 y 3 sesiones según indicación (cicatrices, poros, fotodaño) y profundidad del protocolo. Precio orientativo por sesión facial: ' . $format( $co2 ) . ' € (IVA incluido). El plan se define en la valoración.',
+			'a'  => 'El número de sesiones depende de la indicación, el fototipo, la profundidad y la respuesta clínica. El plan y el presupuesto se definen después de la valoración.',
 		),
 		array(
 			'id' => 'tecnologia-medica',
@@ -49,9 +40,9 @@ function nvx_home_faq_v2_catalog(): array {
 			'a'  => 'Sí. Utilizamos equipos con marcado CE médico (entre ellos DEKA Motus AZ+, Endolift® a 1470 nm, láser CO₂ fraccionado y EXION® BTL), autorizados en el marco de centros sanitarios de la Comunidad de Madrid.',
 		),
 		array(
-			'id' => 'exion-morpheus',
-			'q'  => '¿Qué es EXION® BTL y en qué se diferencia de Morpheus8®?',
-			'a'  => 'EXION® BTL es una plataforma con modalidades Face, Body y Fractional RF. La indicación depende de la anatomía, la zona y el objetivo clínico; no se establece mediante un ranking de marcas.',
+			'id' => 'exion-btl',
+			'q'  => '¿Qué es EXION® BTL?',
+			'a'  => 'EXION® BTL es una plataforma con modalidades Face, Body y Fractional RF. La indicación depende de la anatomía, la zona, el objetivo clínico y el período de recuperación aceptable.',
 		),
 		array(
 			'id' => 'tratamiento-adecuado',
@@ -61,7 +52,7 @@ function nvx_home_faq_v2_catalog(): array {
 		array(
 			'id' => 'recuperacion',
 			'q'  => '¿Implican los tratamientos tiempo de recuperación?',
-			'a'  => 'Depende del protocolo. Endolift® facial: a menudo 3–7 días de edema o hematomas leves. Láser CO₂: unos 4–7 días de descamación. EXION® e IPL: recuperación habitualmente mínima. Te lo concretamos en la valoración.',
+			'a'  => 'Depende del protocolo, la zona, los parámetros y la respuesta individual. Antes de decidir se explican los cuidados, los posibles efectos y el período de recuperación esperable.',
 		),
 		array(
 			'id' => 'diferencia-estetica',

@@ -150,8 +150,8 @@ function nvx_valoracion_intro_markup(): string {
 	$html  = '<section class="nvx-endolift-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Primer paso', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-endolift-heading">' . esc_html__( 'Valoración médica gratuita (15–30 min), sin compromiso', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Antes de proponer un láser o un protocolo, hay que saber si hay indicación. En NUVANX la valoración médica estética es gratuita (15–30 minutos), presencial en Chamberí o Goya · Barrio Salamanca, o por videoconsulta cuando procede.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-endolift-heading">' . esc_html__( 'Una consulta médica para orientar tu caso', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Antes de proponer un láser o un protocolo, hay que confirmar si existe indicación. La consulta médica estética se realiza de forma presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Saldrás con un criterio claro. El equipo, bajo la dirección del Dr. Rivera Tejeda, sigue tres pasos:', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ol class="nvx-co2-timeline nvx-valoracion-steps">';
 	$n = 1;
@@ -194,7 +194,7 @@ function nvx_contacto_page_markup(): string {
 	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Aquí encontrarás las direcciones, teléfonos y horarios de nuestras clínicas de Chamberí y Salamanca–Goya. También puedes solicitar una valoración médica para recibir orientación sobre tu caso.', 'nuvanx-medical' ) . '</p>';
 	$html .= nvx_contact_clinics_markup();
 	$html .= nvx_contact_privacy_disclaimer_markup();
-	$html .= '<p class="nvx-contacto-cta"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Ir a valoración médica gratuita', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '<p class="nvx-contacto-cta"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></section></div>';
 
 	return $html;
@@ -241,7 +241,7 @@ function nvx_filter_valoracion_document_title( $title ) {
 		return $title;
 	}
 
-	return 'Valoración Médica Gratuita en Madrid | Diagnóstico y Presupuesto | NUVANX';
+	return 'Consulta médica estética en Madrid | NUVANX';
 }
 add_filter( 'wpseo_title', 'nvx_filter_valoracion_document_title', 21 );
 
@@ -254,7 +254,7 @@ function nvx_filter_valoracion_metadesc( $desc ) {
 		return $desc;
 	}
 
-	return 'Valoración médica estética gratuita 15–30 min en Chamberí o Goya. Diagnóstico diferencial, plan y presupuesto cerrado. Sin compromiso. NUVANX Madrid.';
+	return 'Solicita una consulta médica estética en Chamberí o Salamanca–Goya. Diagnóstico, indicación y presupuesto individualizado.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_valoracion_metadesc', 21 );
 

@@ -306,6 +306,20 @@ function nvx_home_content_v2_transform( string $content ): string {
 		}
 	}
 
+	$video = $xpath->query( '//video[@id="nvx-home-hero-video"]' );
+	if ( false !== $video && $video->item( 0 ) instanceof DOMElement ) {
+		$vnode = $video->item( 0 );
+		$vnode->setAttribute( 'preload', 'metadata' );
+		$vnode->removeAttribute( 'fetchpriority' );
+		$vnode->setAttribute( 'autoplay', '' );
+		$vnode->setAttribute( 'muted', '' );
+		$vnode->setAttribute( 'loop', '' );
+		$vnode->setAttribute( 'playsinline', '' );
+		if ( ! $vnode->hasAttribute( 'poster' ) || '' === trim( $vnode->getAttribute( 'poster' ) ) ) {
+			$vnode->setAttribute( 'poster', 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7' );
+		}
+	}
+
 	$output = '';
 	foreach ( $root->childNodes as $child ) {
 		$output .= $document->saveHTML( $child );
@@ -317,3 +331,4 @@ function nvx_home_content_v2_transform( string $content ): string {
 	return is_string( $output ) && '' !== trim( $output ) ? $output : $content;
 }
 add_filter( 'the_content', 'nvx_home_content_v2_transform', 130 );
+

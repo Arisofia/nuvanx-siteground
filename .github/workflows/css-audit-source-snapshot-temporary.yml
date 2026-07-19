@@ -1,0 +1,28 @@
+name: CSS Audit Source Snapshot Temporary
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/css-audit-source-snapshot-temporary.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Upload exact CSS audit source
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: css-audit-source-snapshot
+          path: scripts/design-system/audit-css.mjs
+          retention-days: 1
+          if-no-files-found: error

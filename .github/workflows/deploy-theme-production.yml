@@ -50,6 +50,13 @@ jobs:
           }
           echo "Confirmation accepted for immutable SHA=$REF"
 
+      - name: Checkout trusted promotion controls
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+          path: trusted-control
+
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: ${{ inputs.ref }}
@@ -70,7 +77,7 @@ jobs:
           BASIC_USER: ${{ secrets.STAGING_BASIC_USER }}
           BASIC_PASSWORD: ${{ secrets.STAGING_BASIC_PASSWORD }}
           VERIFY_RETRIES: '8'
-        run: node scripts/seo/verify-p0-deployment.mjs
+        run: node trusted-control/scripts/seo/verify-p0-deployment.mjs
 
   deploy-and-flush:
     needs: guard

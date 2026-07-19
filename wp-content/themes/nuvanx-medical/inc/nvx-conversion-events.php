@@ -3,8 +3,7 @@
  * Privacy-safe conversion event instrumentation.
  *
  * Captures intent clicks and successful HubSpot submissions without reading or
- * transmitting form field values. The small head script registers HubSpot event
- * listeners before deferred form embeds execute.
+ * transmitting form field values.
  *
  * @package nuvanx-medical
  */
@@ -13,9 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Enqueue the event listener before deferred HubSpot forms initialize.
- */
 function nvx_enqueue_conversion_events(): void {
 	$relative = '/assets/js/nvx-conversion-events.js';
 	$path     = get_template_directory() . $relative;
@@ -35,9 +31,6 @@ function nvx_enqueue_conversion_events(): void {
 			'valoracion' => defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' )
 				? sanitize_key( (string) NVX_VALORACION_HS_FRAME_FORM_ID )
 				: '5042522a-0bc5-4381-ac3e-5aee8649b69c',
-			'contacto'   => defined( 'NVX_CONTACTO_HS_FORM_ID' )
-				? sanitize_key( (string) NVX_CONTACTO_HS_FORM_ID )
-				: '',
 		),
 	);
 

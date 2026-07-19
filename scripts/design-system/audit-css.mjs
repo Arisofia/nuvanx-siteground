@@ -8,9 +8,9 @@ const THEME = path.join(ROOT, 'wp-content/themes/nuvanx-medical');
 const CSS_DIR = path.join(THEME, 'assets/css');
 const OUT_DIR = path.join(ROOT, 'qa/design-system');
 
-// Keep in enqueue order (see functions.php nvx_theme_scripts + conditional enqueues).
-// nvx-hero-blackout.css is intentionally omitted: temporary override with !important,
-// loaded only when nvx_theme_hero_blackout_enabled() — counted as inactive for the gate.
+// Keep in canonical runtime order (see functions.php and conditional enqueues).
+// Conditional styles are active architecture: the gate must inspect every stylesheet
+// that can be referenced by PHP, JavaScript, HTML or another stylesheet.
 // nvx-brand-home.css is loaded sitewide; it owns .hero-cta-group + .nvx-home-hero-ctas styles.
 const ACTIVE_STACK = [
 	'nvx-fonts.css',
@@ -25,6 +25,7 @@ const ACTIVE_STACK = [
 	'nvx-mobile-hero-hierarchy.css',
 	'nvx-medical-review.css',
 	'nvx-posts.css',
+	'nvx-hero-blackout.css',
 ];
 
 const CANONICAL_FONT_TOKENS = new Set(['var(--nvx-serif)', 'var(--nvx-sans)']);
@@ -186,12 +187,14 @@ const tokenFile = activeSources['nvx-tokens.css'];
 const definedTokens = extractRootTokens(tokenFile);
 
 const runtimeFiles = walk(THEME, new Set(['.php', '.js', '.html']));
+const runtimeReferencedStylesheets = new Set();
 const referencedStylesheets = new Set(ACTIVE_STACK);
 const stylesheetReferenceEvidence = [];
 
 for (const absolute of runtimeFiles) {
 	const relative = path.relative(ROOT, absolute);
 	for (const file of extractRuntimeStylesheetReferences(read(absolute))) {
+		runtimeReferencedStylesheets.add(file);
 		referencedStylesheets.add(file);
 		stylesheetReferenceEvidence.push({ file, referencedBy: relative });
 	}
@@ -199,12 +202,16 @@ for (const absolute of runtimeFiles) {
 
 for (const [owner, source] of Object.entries(allSources)) {
 	for (const file of extractCssImports(source)) {
+		runtimeReferencedStylesheets.add(file);
 		referencedStylesheets.add(file);
 		stylesheetReferenceEvidence.push({ file, referencedBy: path.join('assets/css', owner) });
 	}
 }
 
 const orphanStylesheets = sourceFiles.filter((file) => !referencedStylesheets.has(file));
+const runtimeStylesheetsOutsideActiveStack = sourceFiles.filter(
+	(file) => runtimeReferencedStylesheets.has(file) && !ACTIVE_STACK.includes(file)
+);
 
 const rootBlocks = [];
 const important = [];
@@ -299,6 +306,8 @@ const exceptions = {
 	allStylesheets: sourceFiles,
 	inactiveCssFiles: inactiveFiles,
 	referencedStylesheets: [...referencedStylesheets].sort(),
+	runtimeReferencedStylesheets: [...runtimeReferencedStylesheets].sort(),
+	runtimeStylesheetsOutsideActiveStack,
 	stylesheetReferenceEvidence,
 	orphanStylesheets,
 	rootBlocks,
@@ -329,6 +338,7 @@ const summary = {
 	activeStylesheets: ACTIVE_STACK.length,
 	totalStylesheets: sourceFiles.length,
 	inactiveStylesheets: inactiveFiles.length,
+	runtimeStylesheetsOutsideActiveStack: runtimeStylesheetsOutsideActiveStack.length,
 	orphanStylesheets: orphanStylesheets.length,
 	canonicalTokens: definedTokens.size,
 	canonicalRootBlocks: canonicalRootBlocks.length,
@@ -362,6 +372,7 @@ if (runtimeImportant.length) fatal.push(`found ${runtimeImportant.length} !impor
 if (undefinedTokens.length) fatal.push(`found ${undefinedTokens.length} undefined token reference(s)`);
 if (unsafeSelectors.length) fatal.push(`found ${unsafeSelectors.length} forbidden positional/relational selector(s)`);
 if (embeddedStyleTags.length) fatal.push(`found ${embeddedStyleTags.length} embedded <style> tag(s) in runtime files`);
+if (runtimeStylesheetsOutsideActiveStack.length) fatal.push(`found ${runtimeStylesheetsOutsideActiveStack.length} runtime stylesheet(s) omitted from ACTIVE_STACK: ${runtimeStylesheetsOutsideActiveStack.join(', ')}`);
 if (orphanStylesheets.length) fatal.push(`found ${orphanStylesheets.length} unreferenced stylesheet(s)`);
 if (nonCanonicalFonts.length) fatal.push(`found ${nonCanonicalFonts.length} non-canonical font-family declaration(s)`);
 if (inconsistentIconColors.length) fatal.push(`found ${inconsistentIconColors.length} inconsistent icon color declaration(s)`);

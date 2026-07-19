@@ -156,13 +156,13 @@ function nvx_public_content_text_hygiene( $content ) {
 
 	$content = str_replace( array_keys( $replacements ), array_values( $replacements ), $content );
 
-	// Endolift conflation fixes
-	$content = preg_replace('/(Endolift®?\s*)Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', '$1Técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content) ?? $content;
-	$content = preg_replace('/Firmeza\s+Endolift®?\s+Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', 'Endolift®: técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content) ?? $content;
-	$content = preg_replace('/Endolift®?\s+(?:es|como|mediante)\s+(?:una\s+)?radiofrecuencia\s+monopolar/iu', 'Endolift® es una técnica láser subdérmica', $content) ?? $content;
-	$content = preg_replace('/define\s+Endolift®?\s+como\s+radiofrecuencia\s+monopolar/iu', 'describe Endolift® como técnica láser subdérmica', $content) ?? $content;
+	// Endolift conflation fixes.
+	$content = preg_replace( '/(Endolift®?\s*)Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', '$1Técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content ) ?? $content;
+	$content = preg_replace( '/Firmeza\s+Endolift®?\s+Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', 'Endolift®: técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content ) ?? $content;
+	$content = preg_replace( '/Endolift®?\s+(?:es|como|mediante)\s+(?:una\s+)?radiofrecuencia\s+monopolar/iu', 'Endolift® es una técnica láser subdérmica', $content ) ?? $content;
+	$content = preg_replace( '/define\s+Endolift®?\s+como\s+radiofrecuencia\s+monopolar/iu', 'describe Endolift® como técnica láser subdérmica', $content ) ?? $content;
 
-	// Valoración CTA fixes
+	// Valoración CTA fixes.
 	$content = preg_replace( '/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $content ) ?? $content;
 
 	return $content;
@@ -172,7 +172,7 @@ add_filter( 'the_title', 'nvx_public_content_text_hygiene', 12 );
 
 /**
  * Remove sensitive pages (e.g., Casos de pacientes ID 2645) from all navigation menus automatically.
- * 
+ *
  * @param array $items Array of menu items.
  * @return array
  */
@@ -191,8 +191,109 @@ function nvx_exclude_sensitive_pages_from_menus( $items ) {
 add_filter( 'wp_get_nav_menu_items', 'nvx_exclude_sensitive_pages_from_menus', 20 );
 
 /**
- * Automate the production business rules to bypass manual DB editing from P0-FINISH-RUNBOOK.md.
- * 
+ * Approved legal-framework note for the privacy and legal-notice pages.
+ */
+function nvx_legal_framework_note_markup(): string {
+	$message = __( 'El artículo 13 del RGPD exige facilitar la información correspondiente cuando se recogen datos personales, y el artículo 10 de la LSSI exige que determinada información del prestador sea accesible de manera permanente, fácil, directa y gratuita.', 'nuvanx-medical' );
+
+	return '<aside class="nvx-legal-context" role="note" aria-label="' . esc_attr__( 'Marco normativo', 'nuvanx-medical' ) . '"><p><strong>'
+		. esc_html__( 'Marco normativo.', 'nuvanx-medical' )
+		. '</strong> ' . esc_html( $message ) . '</p></aside>';
+}
+
+/**
+ * Public, source-linked authority profile for Dra. Cristina Márquez González.
+ */
+function nvx_cristina_marquez_authority_markup(): string {
+	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
+
+	$html  = '<section class="nvx-endolift-section nvx-equipo-profile nvx-equipo-cristina" id="physician-cristina-marquez" aria-labelledby="nvx-equipo-cristina-title">';
+	$html .= '<div class="nvx-endolift-section__inner nvx-endolift-diagnosis__grid">';
+	$html .= '<div class="nvx-endolift-diagnosis__copy">';
+	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Radiología mamaria y medicina estética', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-equipo-cristina-title" class="nvx-endolift-heading">' . esc_html__( 'Dra. Cristina Márquez González', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-endolift-body"><strong>' . esc_html__( 'Colegiada ICOMEM 282858861.', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Radióloga y médica estética, especialista en radiología mamaria y diagnóstico mamario avanzado, con práctica como facultativa especialista en HM Hospitales.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body"><strong>' . esc_html__( 'Formación:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Licenciatura en Medicina · Especialización en Senología y Patología Mamaria · Máster en Medicina Estética.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body">' . wp_kses(
+		sprintf(
+			/* translators: %s: Doctoralia profile URL. */
+			__( 'Su <a class="nvx-brand-inline-link" href="%s" target="_blank" rel="noopener noreferrer">perfil profesional y opiniones en Doctoralia</a> permiten consultar públicamente su especialidad, colegiación, formación y actividad asistencial.', 'nuvanx-medical' ),
+			esc_url( $doctoralia )
+		),
+		array(
+			'a' => array(
+				'class'  => true,
+				'href'   => true,
+				'target' => true,
+				'rel'    => true,
+			),
+		)
+	) . '</p>';
+	$html .= '</div>';
+	$html .= '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Identidad profesional de la Dra. Cristina Márquez González', 'nuvanx-medical' ) . '">';
+	$html .= '<p class="nvx-endolift-panel-label">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-endolift-panel-list">';
+	$html .= '<li><strong>' . esc_html__( 'Colegiada', 'nuvanx-medical' ) . '</strong> — ICOMEM 282858861</li>';
+	$html .= '<li><strong>' . esc_html__( 'Especialidades', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Radiología · Medicina estética', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>' . esc_html__( 'Área clínica', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Radiología mamaria · Senología', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>' . esc_html__( 'Sede NUVANX', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Goya · Barrio Salamanca', 'nuvanx-medical' ) . '</li>';
+	$html .= '</ul></aside></div></section>';
+
+	return $html;
+}
+
+/**
+ * Remove a short CMS card for Cristina before adding the canonical authority profile.
+ */
+function nvx_remove_duplicate_cristina_staff_card( string $content ): string {
+	$name_pattern = '/Cristina\s+M[áa]rquez(?:\s+Gonz[áa]lez)?/iu';
+
+	$content = preg_replace_callback(
+		'/<article\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/article>/iu',
+		static function ( array $matches ) use ( $name_pattern ): string {
+			return preg_match( $name_pattern, $matches[0] ) ? '' : $matches[0];
+		},
+		$content
+	) ?? $content;
+
+	$content = preg_replace_callback(
+		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>\s*(?=<div\b[^>]*\bnvx-brand-card\b|<\/div>|<section\b|$)/iu',
+		static function ( array $matches ) use ( $name_pattern ): string {
+			return preg_match( $name_pattern, $matches[0] ) ? '' : $matches[0];
+		},
+		$content
+	) ?? $content;
+
+	return $content;
+}
+
+/**
+ * Insert the canonical Cristina profile before the remaining-team section.
+ */
+function nvx_enrich_cristina_marquez_profile( string $content ): string {
+	// Remove the obsolete, incorrect runtime credential from commit 5747b00b.
+	$content = preg_replace( '/<p\b[^>]*\bnvx-team-credentials\b[^>]*>[^<]*282869501[^<]*<\/p>/iu', '', $content ) ?? $content;
+	$content = str_replace( '282869501', '282858861', $content );
+
+	if ( false !== strpos( $content, 'physician-cristina-marquez' ) ) {
+		return $content;
+	}
+
+	$content = nvx_remove_duplicate_cristina_staff_card( $content );
+	$profile = nvx_cristina_marquez_authority_markup();
+	$marker  = '<section class="nvx-endolift-section nvx-equipo-staff"';
+	$offset  = strpos( $content, $marker );
+
+	if ( false !== $offset ) {
+		return substr( $content, 0, $offset ) . $profile . substr( $content, $offset );
+	}
+
+	return $content . $profile;
+}
+
+/**
+ * Runtime publication safeguards for P0 business rules.
+ *
  * @param string $content HTML content.
  * @return string
  */
@@ -203,42 +304,41 @@ function nvx_apply_production_business_rules( $content ) {
 
 	$page_id = (int) get_queried_object_id();
 
-	// 3. Contacto (14): Strip all HubSpot forms and scripts.
+	// 3. Contacto (14): Strip HubSpot forms and scripts found inside post_content.
 	if ( 14 === $page_id ) {
 		$content = preg_replace( '/<script[^>]*hsforms\.net[^>]*><\/script>/i', '', $content ) ?? $content;
 		$content = preg_replace( '/<div[^>]*class="[^"]*hbspt-form[^"]*"[^>]*>.*?<\/div>/is', '', $content ) ?? $content;
 	}
 
-	// 4. Valoración (2636): Keep only the primary HubSpot form CTA.
+	// 4. Valoración (2636): Keep only the first legacy hbspt-form found inside post_content.
 	if ( 2636 === $page_id ) {
-		$count = 0;
-		$content = preg_replace_callback( '/<div[^>]*class="[^"]*hbspt-form[^"]*"[^>]*>.*?<\/div>/is', function( $matches ) use ( &$count ) {
-			$count++;
-			return $count === 1 ? $matches[0] : '';
-		}, $content ) ?? $content;
+		$count   = 0;
+		$content = preg_replace_callback(
+			'/<div[^>]*class="[^"]*hbspt-form[^"]*"[^>]*>.*?<\/div>/is',
+			static function ( array $matches ) use ( &$count ): string {
+				$count++;
+				return 1 === $count ? $matches[0] : '';
+			},
+			$content
+		) ?? $content;
 	}
 
-	// 5. Privacidad y Aviso Legal (3, 20): Add legal placeholder if content is too short (empty).
+	// 5. Privacidad y Aviso Legal (3, 20): approved copy plus explicit regulatory context.
 	if ( in_array( $page_id, array( 3, 20 ), true ) ) {
-		if ( strlen( strip_tags( $content ) ) < 200 ) {
-			$placeholder = '<div class="nvx-legal-placeholder" style="padding:40px; background:var(--nvx-surface-subtle,#f4f3ef); color:var(--nvx-text-base,#4a4542); font-family:var(--nvx-font-base); font-weight:500; text-align:center; border: 1px dashed var(--nvx-accent-muted);">[Texto legal en revisión por asesoría jurídica (Counsel). Publicación pendiente.]</div>';
-			$content = $placeholder . $content;
+		$content = preg_replace( '/<div\b[^>]*\bnvx-legal-placeholder\b[^>]*>[\s\S]*?<\/div>/iu', '', $content ) ?? $content;
+		if ( false === strpos( $content, 'El artículo 13 del RGPD' ) ) {
+			$content .= nvx_legal_framework_note_markup();
 		}
 	}
 
-	// 6. Equipo Médico (1575): Inject verifiable credentials for Cristina Marquez.
-	if ( 1575 === $page_id && strpos( $content, 'Cristina Marquez' ) !== false ) {
-		if ( strpos( $content, 'Colegiada Nº 282869501' ) === false ) {
-			$cred_html = '<p class="nvx-team-credentials" style="font-size:0.875rem; margin-top:0.5rem; color:var(--nvx-text-muted);">Colegiada Nº 282869501 · Máster en Medicina Estética y Antienvejecimiento · Especialista en láser</p>';
-			$content = preg_replace( '/(Cristina Marquez.*?<\/h[2-6]>)/i', '$1' . $cred_html, $content ) ?? $content;
-		}
+	// 6. Equipo Médico (1575): canonical profile, credentials, formation and Doctoralia source.
+	if ( 1575 === $page_id ) {
+		$content = nvx_enrich_cristina_marquez_profile( $content );
 	}
 
 	// 7. EXION Precios y FAQ: Strip unapproved Morpheus8 comparatives and explicit pricing in EXION pages.
-	if ( stripos( $content, 'EXION' ) !== false || stripos( $content, 'Morpheus' ) !== false ) {
-		// Strip comparative Morpheus8 FAQs
+	if ( false !== stripos( $content, 'EXION' ) || false !== stripos( $content, 'Morpheus' ) ) {
 		$content = preg_replace( '/<details[^>]*>.*?Morpheus.*?<\/details>/is', '', $content ) ?? $content;
-		// Ensure no direct hardcoded pricing for EXION is displayed (replaces digit+€ next to EXION with generic).
 		$content = preg_replace( '/(EXION[^<]*?)\b\d{3,4}\s*€/i', '$1 (Presupuesto tras valoración)', $content ) ?? $content;
 	}
 

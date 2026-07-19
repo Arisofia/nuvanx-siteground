@@ -98,17 +98,18 @@ function nvx_site_closing_cta_markup(): string {
 		$valoracion = trailingslashit( get_permalink() ) . '#nvx-hubspot-form';
 	}
 
-	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '">';
+	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '" style="text-align: center;">';
 	$html .= '<div class="nvx-cta-banner__inner">';
 	$html .= '<div>';
-	$html .= '<h2 class="nvx-cta-banner__title">' . esc_html__( 'Reserva 15–30 min de valoración médica', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-cta-banner__sub">' . esc_html__( 'Indicación, plan A/B y presupuesto orientativo — sin compromiso de tratamiento el mismo día. Presencial en Chamberí o Goya.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-cta-banner__kicker" style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--nvx-color-primary, #9a8a78); margin-bottom: 1rem; font-weight: 600;">La próxima generación en contorno corporal</p>';
+	$html .= '<h2 class="nvx-cta-banner__title" style="font-size: 2.5rem; line-height: 1.2; margin-bottom: 1.5rem; color: #ffffff;">Elimina la grasa y tensa la piel.<br>¡Definitivamente!</h2>';
+	$html .= '<p class="nvx-cta-banner__sub" style="font-size: 1.125rem; color: #cccccc; margin-bottom: 2rem;">Un solo procedimiento &bull; Mínimamente invasivo &bull; Mínima recuperación</p>';
 	$html .= '</div>';
-	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions">';
+	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions" style="justify-content: center;">';
 	$html .= sprintf(
-		'<a class="nvx-btn nvx-btn--light nvx-open-valoracion-modal" id="nvx-footer-cta" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',
+		'<a class="nvx-btn nvx-btn--light nvx-open-valoracion-modal" id="nvx-footer-cta" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog" style="text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">%2$s</a>',
 		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración gratuita', 'nuvanx-medical' )
+		esc_html__( 'Iniciar mi valoración virtual', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
 		'<a class="nvx-btn nvx-btn--secondary-on-dark" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',

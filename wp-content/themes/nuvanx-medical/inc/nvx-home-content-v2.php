@@ -28,27 +28,27 @@ function nvx_home_benefits_markup(): string {
 		</header>
 		<div class="nvx-benefits__grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color: var(--nvx-color-primary, #9a8a78); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/permanent-results.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RESULTADOS DEFINITIVOS</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color: var(--nvx-color-primary, #9a8a78); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/downtime.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">24-48 HORAS DE RECUPERACIÓN</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color: var(--nvx-color-primary, #9a8a78); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/awake.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">DESPIERTO TODO EL TIEMPO</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color: var(--nvx-color-primary, #9a8a78); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/no-scalpel.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">SIN BISTURÍ NI PUNTOS</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color: var(--nvx-color-primary, #9a8a78); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/one-procedure.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">UN SOLO PROCEDIMIENTO</span>
 			</div>
 			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color: var(--nvx-color-primary, #9a8a78); flex-shrink: 0;"><path stroke-linecap="round" stroke-linejoin="round" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path></svg>
+				<img src="\' . esc_url( get_stylesheet_directory_uri() ) . \'/assets/images/benefits/natural.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
 				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RESULTADOS NATURALES</span>
 			</div>
 		</div>

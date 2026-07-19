@@ -682,23 +682,17 @@ function nvx_home_team_strip_markup(): string {
 	$director = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$ivon     = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 	$fabio    = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
-	$lead     = sprintf(
-		/* translators: 1: director ICOMEM, 2: Dra. Ivon ICOMEM, 3: Dr. Fabio ICOMEM */
-		__( 'NUVANX está liderada por el Dr. José Javier Rivera Tejeda (ICOMEM %1$s), Director Médico especialista en Endolift® y láser CO₂. La Dra. Ivon Yamileth Rivera Deras (ICOMEM %2$s), FEA del Hospital La Paz, aporta well-aging y geriatría preventiva. El Dr. Fabio Augusto Quiñónez Bareiro (ICOMEM %3$s), PhD (UAM) e investigador CIBERFES, integra fisiología del envejecimiento y paciente complejo.', 'nuvanx-medical' ),
-		$director,
-		$ivon,
-		$fabio
-	);
+	$dr_jose  = sprintf( __( 'Dr. José Javier Rivera Tejeda (ICOMEM %s): Director Médico especialista en Endolift® y tratamientos con láser CO₂.', 'nuvanx-medical' ), $director );
+	$dra_ivon = sprintf( __( 'Dra. Ivon Yamileth Rivera Deras (ICOMEM %s): Médico Especialista (FEA) en el Hospital La Paz, experta en well-aging y geriatría preventiva.', 'nuvanx-medical' ), $ivon );
+	$dr_fabio = sprintf( __( 'Dr. Fabio Augusto Quiñónez Bareiro (ICOMEM %s): Doctor por la UAM e investigador en el CIBERFES, especializado en la fisiología del envejecimiento y el paciente complejo.', 'nuvanx-medical' ), $fabio );
 
 	$html  = '<section class="nvx-brand-section nvx-home-team-strip" id="nvx-home-team" aria-labelledby="nvx-home-team-title" data-nvx-home-block="team">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Equipo médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Tres médicos colegiados. Investigación hospitalaria. Un solo objetivo.', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html( $lead ) . '</p>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-		'El criterio médico en NUVANX no es un claim de marketing: es el resultado de un equipo con experiencia hospitalaria real.',
-		'nuvanx-medical'
-	) . '</p>';
+	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Rigor médico basado en la práctica hospitalaria', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En NUVANX, nuestro enfoque clínico no es una promesa vacía; es el resultado directo de un equipo con experiencia en la medicina hospitalaria.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $dr_jose ) . '<br><br>' . esc_html( $dra_ivon ) . '<br><br>' . esc_html( $dr_fabio ) . '</p>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Entendemos la medicina estética desde el rigor, la seguridad y el conocimiento científico.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-home-team-strip__cta"><a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $equipo ) . '">' . esc_html__( 'Conocer al equipo médico', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></section>';
 	return $html;

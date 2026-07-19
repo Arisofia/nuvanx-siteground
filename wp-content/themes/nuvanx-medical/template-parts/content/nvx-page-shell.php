@@ -53,8 +53,11 @@ while ( have_posts() ) :
 	}
 
 	$has_media = has_post_thumbnail();
-	// Theme-owned hero when we have media and content does not already own a hero block.
-	$show_theme_hero = $has_media && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page();
+	// Theme-owned hero only when content does not already own the page hierarchy.
+	// A raw content H1 is author-owned hierarchy even if it is not wrapped in a
+	// dedicated hero block. Rendering another shell H1 above it creates a
+	// duplicate primary heading on legal and legacy CMS pages.
+	$show_theme_hero = $has_media && ! $has_content_h1 && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page();
 	// Title-only header only if no content H1 and no theme/content/managed hero.
 	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page();
 	$classes          = array( 'nvx-page' );

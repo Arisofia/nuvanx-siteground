@@ -32,12 +32,12 @@ function nvx_seo_metadata_catalog(): array {
 			'description' => 'Clínicas de medicina estética láser NUVANX en Chamberí y Salamanca–Goya. Direcciones, horarios, registros sanitarios y mapas.',
 		),
 		'chamberi'     => array(
-			'title'       => 'Medicina Estética Chamberí Madrid | NUVANX',
-			'description' => 'Clínica NUVANX Chamberí en Fernández de la Hoz 4, Madrid. Medicina estética láser, registro sanitario CS20144 y valoración médica.',
+			'title'       => 'Médico Estético Chamberí Madrid | Clínica Almagro',
+			'description' => 'Tu clínica de medicina estética en Almagro, Chamberí (Madrid). Valórate con un médico estético con nombre, criterio clínico y registro sanitario CS20144.',
 		),
 		'goya'         => array(
-			'title'       => 'Medicina Estética Goya Madrid | NUVANX',
-			'description' => 'Clínica NUVANX Salamanca–Goya en Fernán González 26, Madrid. Medicina estética láser, registro sanitario CS20073 y valoración médica.',
+			'title'       => 'Medicina Estética Barrio Salamanca Madrid | NUVANX',
+			'description' => '¿Buscas una alternativa a las clínicas de Diego de León en Madrid? Descubre NUVANX, medicina estética con rigor en el Barrio de Salamanca (Goya).',
 		),
 		'endolift'     => array(
 			'title'       => 'Endolift® Facial Madrid | Precio y Resultados | NUVANX',
@@ -70,6 +70,14 @@ function nvx_seo_metadata_catalog(): array {
 		'blog'         => array(
 			'title'       => 'Blog NUVANX | Medicina estética láser Madrid',
 			'description' => 'Artículos de NUVANX sobre Endolift®, EXION® BTL, IPL, well-aging y criterio médico en clínicas de Madrid.',
+		),
+		'inversion'    => array(
+			'title'       => 'Precio Cerrado Liposucción Madrid | Honesto y Sin Ofertas',
+			'description' => 'Descubre el precio cerrado de liposucción en Madrid, cuánto cuesta Endolift, Morpheus8 y los hilos tensores. Clínica estética con precio honesto y sin ofertas.',
+		),
+		'que-exigir'   => array(
+			'title'       => 'Qué Exigir Antes de Operarme | Cirugía Estética Madrid',
+			'description' => 'Guía sobre qué exigir antes de operarme de cirugía estética en Madrid. Solicita una segunda opinión con criterio médico real para tu seguridad.',
 		),
 		'postoperatorio' => array(
 			'title'       => 'Postoperatorio Lipo 360 Madrid Real | Cuánto Duele',
@@ -163,12 +171,16 @@ function nvx_seo_current_metadata_key(): ?string {
 		'/tratamientos/' => 'tratamientos',
 		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
 		'/medicina-estetica-chamberi/' => 'chamberi',
+		'/chamberio/' => 'chamberi',
 		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
+		'/salamanca/' => 'goya',
 		'/equipo-medico/' => 'equipo',
 		'/madrid/valoracion/' => 'valoracion',
 		'/valoracion/' => 'valoracion',
 		'/blog/' => 'blog',
 		'/postoperatorio/' => 'postoperatorio',
+		'/inversion/' => 'inversion',
+		'/que-exigir/' => 'que-exigir',
 	);
 
 	return $map[ $path ] ?? null;

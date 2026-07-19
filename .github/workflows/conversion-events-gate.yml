@@ -45,6 +45,7 @@ jobs:
           node --check wp-content/themes/nuvanx-medical/assets/js/nvx-conversion-events.js
           node --check scripts/analytics/verify-conversion-events-browser.mjs
           node --check scripts/forms/test-hubspot-form-contract.mjs
+          node --check scripts/forms/verify-hubspot-runtime-browser.mjs
 
       - name: Validate PHP syntax
         run: php -l wp-content/themes/nuvanx-medical/inc/nvx-conversion-events.php
@@ -88,7 +89,7 @@ jobs:
           npm install --no-save --no-package-lock @playwright/test@1.55.0
           npx playwright install --with-deps chromium
 
-      - name: Verify deployed event layer without sending GA traffic
+      - name: Verify deployed events and HubSpot forms without sending traffic
         id: rendered
         continue-on-error: true
         env:
@@ -96,6 +97,7 @@ jobs:
         run: |
           set -o pipefail
           node scripts/analytics/verify-conversion-events-browser.mjs 2>&1 | tee analytics-staging.log
+          node scripts/forms/verify-hubspot-runtime-browser.mjs 2>&1 | tee -a analytics-staging.log
 
       - name: Upload rendered analytics evidence
         if: always()

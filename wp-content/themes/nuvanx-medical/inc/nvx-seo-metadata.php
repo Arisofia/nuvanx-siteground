@@ -45,7 +45,7 @@ function nvx_seo_metadata_catalog(): array {
 		),
 		'endolaser'    => array(
 			'title'       => 'Endoláser Corporal Madrid | Grasa y Firmeza | NUVANX',
-			'description' => 'Endoláser corporal en Madrid para grasa localizada y firmeza en abdomen, flancos, muslos y brazos. Valoración y presupuesto personalizados.',
+			'description' => 'Endoláser corporal en Madrid para grasa localizada y firmeza en abdomen, flancos, muslos y brazos. Valoración médica y presupuesto individualizado.',
 		),
 		'co2'          => array(
 			'title'       => 'Láser CO₂ Madrid | Cicatrices, Poros y Textura | NUVANX',

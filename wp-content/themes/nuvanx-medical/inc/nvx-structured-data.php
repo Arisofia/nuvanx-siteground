@@ -1660,7 +1660,7 @@ function nvx_filter_endolaser_metadesc( $desc ) {
 		return $desc;
 	}
 
-	return 'Endoláser corporal en NUVANX Madrid: laserlipólisis y retracción cutánea por zonas (abdomen, flancos, muslos, brazos). No es tratamiento de obesidad. Valoración y presupuesto personalizado en Chamberí y Goya.';
+	return 'Endoláser corporal en NUVANX Madrid: laserlipólisis y retracción cutánea por zonas (abdomen, flancos, muslos, brazos). No es tratamiento de obesidad. Valoración médica y presupuesto individualizado en Chamberí y Goya.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_endolaser_metadesc', 21 );
 

@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 <a class="nvx-sr-only" href="#nvx-main"><?php esc_html_e( 'Saltar al contenido', 'nuvanx-medical' ); ?></a>
 <header class="nvx-header<?php echo is_front_page() ? ' nvx-header--home' : ' nvx-header--interior'; ?>" role="banner" id="nvx-header">
   <div class="nvx-header__inner">
-    <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="nvx-logo" aria-label="NUVANX — Inicio">
+    <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="nvx-logo" aria-label="NUVANX MEDICINA ESTÉTICA LÁSER — Inicio">
       <?php
       $logo_id = get_theme_mod( 'custom_logo' );
       if ( $logo_id ) :
@@ -24,14 +24,14 @@ defined( 'ABSPATH' ) || exit;
       <span class="nvx-logo__tagline" aria-hidden="true">MEDICINA ESTÉTICA LÁSER</span>
       <?php endif; ?>
     </a>
-    <nav class="nvx-nav" role="navigation" aria-label="Menú principal">
+    <nav class="nvx-nav" aria-label="Menú principal">
       <?php
       wp_nav_menu(
         array(
           'theme_location' => 'primary',
           'menu_class'     => 'nvx-nav__list',
           'container'      => false,
-          'items_wrap'     => '<ul class="%2$s" role="menubar">%3$s</ul>',
+          'items_wrap'     => '<ul class="%2$s">%3$s</ul>',
           'fallback_cb'    => 'nvx_primary_menu_fallback',
           'add_li_class'   => 'nvx-nav__item',
         )
@@ -44,7 +44,7 @@ defined( 'ABSPATH' ) || exit;
     </button>
   </div>
 </header>
-<div id="nvx-mobile-nav" class="nvx-mobile-nav" role="dialog" aria-modal="true" aria-hidden="true">
+<div id="nvx-mobile-nav" class="nvx-mobile-nav" role="dialog" aria-modal="true" aria-label="Menú móvil" aria-hidden="true">
   <button class="nvx-mobile-nav__close" id="nvx-mobile-close" aria-label="Cerrar menú">&times;</button>
   <?php wp_nav_menu( array( 'theme_location' => 'primary', 'menu_class' => 'nvx-mobile-nav__list', 'container' => false, 'fallback_cb' => false ) ); ?>
   <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary nvx-open-valoracion-modal" id="nvx-mobile-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Reservar valoración gratuita', 'nuvanx-medical' ); ?></a>

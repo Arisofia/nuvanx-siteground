@@ -9,8 +9,8 @@ const delayMs = Math.max(1000, Number(process.env.VERIFY_RETRY_DELAY_MS || 5000)
 const assessmentId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 const routes = [
-  { path: '/contacto/', context: 'contacto' },
-  { path: '/madrid/valoracion/', context: 'valoracion', expectedId: assessmentId },
+  { path: '/contacto/', context: 'contacto', mount: '#nvx-contacto-hubspot-form' },
+  { path: '/madrid/valoracion/', context: 'valoracion', mount: '#nvx-hubspot-native-form', expectedId: assessmentId },
 ];
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -40,8 +40,10 @@ async function inspect(page, route) {
   assert(deployment.status === 200 && !deployment.edge, `${route.path}: unavailable ${JSON.stringify(deployment)}`);
   if (expectedSha) assert(deployment.sha === expectedSha, `${route.path}: expected SHA ${expectedSha}, found ${deployment.sha || 'missing'}`);
 
-  const frame = page.locator('.hs-form-frame[data-form-id][data-portal-id][data-region]');
-  assert(await frame.count() === 1, `${route.path}: expected one HubSpot frame`);
+  const mount = page.locator(route.mount);
+  assert(await mount.count() === 1, `${route.path}: primary form mount ${route.mount} is missing or duplicated`);
+  const frame = mount.locator('.hs-form-frame[data-form-id][data-portal-id][data-region]');
+  assert(await frame.count() === 1, `${route.path}: expected one HubSpot frame inside ${route.mount}`);
   const formId = ((await frame.getAttribute('data-form-id')) || '').toLowerCase();
   const portalId = (await frame.getAttribute('data-portal-id')) || '';
   const region = ((await frame.getAttribute('data-region')) || '').toLowerCase();
@@ -51,14 +53,20 @@ async function inspect(page, route) {
   if (route.expectedId) assert(formId === route.expectedId, `${route.path}: unexpected valoración form ${formId}`);
   else assert(formId !== assessmentId, `${route.path}: contacto reuses valoración form`);
 
-  const embeds = await page.locator('script[src="https://js-eu1.hsforms.net/forms/embed/147416356.js"]').count();
-  assert(embeds === 1, `${route.path}: expected one canonical embed script, found ${embeds}`);
-  const privacy = page.locator('a[href$="/politica-privacidad/"]');
-  assert(await privacy.count() > 0, `${route.path}: privacy link missing`);
-  assert(await privacy.first().isVisible(), `${route.path}: privacy link hidden`);
+  const embeds = await mount.locator('script[src="https://js-eu1.hsforms.net/forms/embed/147416356.js"]').count();
+  assert(embeds === 1, `${route.path}: expected one canonical embed script inside ${route.mount}, found ${embeds}`);
+  const initialized = frame.locator('iframe');
+  await initialized.first().waitFor({ state: 'attached', timeout: 20000 }).catch(() => {});
+  assert(await initialized.count() === 1, `${route.path}: HubSpot did not initialize an iframe for ${formId}`);
+  const iframeSrc = (await initialized.first().getAttribute('src')) || '';
+  assert(/hsforms\.(?:com|net)|hubspot\.com/i.test(iframeSrc), `${route.path}: initialized iframe has an unexpected source`);
+
+  const privacy = mount.locator('a[href$="/politica-privacidad/"]');
+  assert(await privacy.count() === 1, `${route.path}: primary form privacy link is missing or duplicated`);
+  assert(await privacy.first().isVisible(), `${route.path}: primary form privacy link is hidden`);
 
   if (route.context === 'contacto') {
-    assert(await page.getByText('El formulario de contacto no está disponible temporalmente.', { exact: false }).count() === 0, `${route.path}: contact form configuration missing`);
+    assert(await mount.getByText('El formulario de contacto no está disponible temporalmente.', { exact: false }).count() === 0, `${route.path}: contact form configuration missing`);
   }
 
   const config = await page.evaluate(() => window.nvxConversionEvents || {});
@@ -84,7 +92,7 @@ async function inspect(page, route) {
   assert(probe.signals[0].form_id === formId, `${route.path}: wrong form ID in event`);
   assert(probe.calls.length === 1 && probe.calls[0][0] === 'event' && probe.calls[0][1] === 'generate_lead', `${route.path}: malformed gtag event`);
 
-  return { deployment, formId, portalId, region, privacyLinks: await privacy.count(), probe };
+  return { deployment, mount: route.mount, formId, portalId, region, iframeSrc, privacyLinks: await privacy.count(), probe };
 }
 
 const options = { locale: 'es-ES', timezoneId: 'Europe/Madrid', viewport: { width: 1440, height: 1000 } };

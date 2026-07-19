@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: NUVANX Contacto HubSpot Form
- * Description: Mounts the dedicated HubSpot contact form on /contacto/.
- * Version: 2026.07.18
+ * Description: Mounts the dedicated HubSpot contact form on /contacto/ and enforces the temporary trust-claims publication policy.
+ * Version: 2026.07.19
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -41,3 +41,23 @@ function nvx_contacto_hubspot_form_markup(): string {
 		. '<p class="nvx-form__privacy-note">' . esc_html__( 'Al enviar tus datos aceptas la', 'nuvanx-medical' ) . ' '
 		. '<a href="' . esc_url( home_url( '/politica-privacidad/' ) ) . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>.</p>';
 }
+
+/**
+ * Remove quantitative trust badges until every figure has an approved evidence
+ * owner, source, calculation period and refresh process. This prevents the
+ * unverified 3,500+, 4.8/5, 15+ and 89% claims from reaching rendered HTML.
+ */
+function nvx_remove_unverified_quantitative_trust_badges( string $content ): string {
+	if ( false === strpos( $content, 'nvx-trust-badges' ) ) {
+		return $content;
+	}
+
+	$filtered = preg_replace(
+		'#<section\b[^>]*\bnvx-trust-badges\b[^>]*>.*?</section>#isu',
+		'',
+		$content
+	);
+
+	return is_string( $filtered ) ? $filtered : $content;
+}
+add_filter( 'the_content', 'nvx_remove_unverified_quantitative_trust_badges', 22 );

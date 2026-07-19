@@ -80,8 +80,11 @@ async function inspectPage(browser, route) {
   if (expectNoindex !== isNoindex) errors.push(`robots mismatch: ${robots || 'missing'}`);
 
   const canonical = (await page.locator('link[rel="canonical"]').getAttribute('href').catch(() => '')) || '';
-  if (!canonical) errors.push('missing canonical');
-  else {
+  if (expectNoindex) {
+    if (canonical) errors.push(`staging canonical leak: ${canonical}`);
+  } else if (!canonical) {
+    errors.push('missing canonical');
+  } else {
     try {
       const canonicalUrl = new URL(canonical);
       if (canonicalUrl.hostname !== canonicalHost) errors.push(`canonical host ${canonicalUrl.hostname}`);

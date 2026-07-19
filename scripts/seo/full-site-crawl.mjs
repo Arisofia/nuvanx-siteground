@@ -22,7 +22,7 @@ const normalise = (value) => {
 const sameOrigin = (value) => { try { return new URL(value).origin === baseUrl.origin; } catch { return false; } };
 const edge = ({ status = 0, body = '', url = '', contentType = '' }) => status === 202
   || /sgcaptcha|robot challenge|access denied|cf-chl-/i.test(`${body} ${url}`)
-  || (contentType && !/text\/html|application\/xhtml|xml/i.test(contentType));
+  || (contentType && !/text\/html|application\/xhtml|xml|application\/json/i.test(contentType));
 
 function extractLocs(xml, tag) {
   const out = [];
@@ -82,7 +82,7 @@ async function navigate(page, url, attempts = 4) {
     const headers = response ? await response.allHeaders().catch(() => response.headers()) : {};
     const contentType = headers['content-type'] || '';
     const finalUrl = page.url();
-    const html = response && /xml/i.test(contentType)
+    const html = response && /xml|application\/json/i.test(contentType)
       ? await response.text().catch(() => page.content())
       : await page.content().catch(() => '');
     last = { status, html, finalUrl, contentType, edge: edge({ status, body: html, url: finalUrl, contentType }) };
@@ -92,19 +92,52 @@ async function navigate(page, url, attempts = 4) {
   return last;
 }
 
+async function discoverRestUrls(page) {
+  const endpoints = [
+    '/wp-json/wp/v2/pages?per_page=100&status=publish&_fields=link',
+    '/wp-json/wp/v2/posts?per_page=100&status=publish&_fields=link',
+    '/wp-json/wp/v2/categories?per_page=100&hide_empty=true&_fields=link',
+    '/wp-json/wp/v2/tags?per_page=100&hide_empty=true&_fields=link',
+  ];
+  const urls = new Set([baseUrl.href]);
+  const errors = [];
+  for (const endpoint of endpoints) {
+    const requestUrl = new URL(endpoint, baseUrl).href;
+    const result = await navigate(page, requestUrl);
+    if (result.status !== 200 || result.edge) {
+      errors.push({ url: requestUrl, status: result.status, edge: result.edge, finalUrl: result.finalUrl, source: 'rest' });
+      continue;
+    }
+    try {
+      const items = JSON.parse(result.html);
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          const link = normalise(item?.link || '');
+          if (link && sameOrigin(link)) urls.add(link);
+        }
+      }
+    } catch (errorValue) {
+      errors.push({ url: requestUrl, status: result.status, source: 'rest-parse', error: String(errorValue) });
+    }
+    await sleep(delayMs);
+  }
+  return { urls: [...urls].sort(), errors };
+}
+
 async function discoverSitemap(page) {
   const queue = [new URL('/sitemap_index.xml', baseUrl).href];
   const sitemaps = new Set();
   const urls = new Set();
   const errors = [];
   const mediaIssues = [];
+  let source = 'sitemap';
   while (queue.length) {
     const sitemap = queue.shift();
     if (!sitemap || sitemaps.has(sitemap)) continue;
     sitemaps.add(sitemap);
     const result = await navigate(page, sitemap);
     if (result.status !== 200 || result.edge) {
-      errors.push({ url: sitemap, status: result.status, edge: result.edge, finalUrl: result.finalUrl });
+      errors.push({ url: sitemap, status: result.status, edge: result.edge, finalUrl: result.finalUrl, source: 'sitemap' });
       continue;
     }
     if (/<sitemapindex\b/i.test(result.html)) queue.push(...extractLocs(result.html, 'sitemap'));
@@ -116,20 +149,26 @@ async function discoverSitemap(page) {
     }
     await sleep(delayMs);
   }
-  return { urls: [...urls].sort(), sitemaps: [...sitemaps], errors, mediaIssues };
+  if (urls.size === 0) {
+    source = 'wordpress-rest-fallback';
+    const fallback = await discoverRestUrls(page);
+    fallback.urls.forEach((url) => urls.add(url));
+    errors.push(...fallback.errors);
+  }
+  return { urls: [...urls].sort(), sitemaps: [...sitemaps], errors, mediaIssues, source };
 }
 
-function evaluate(pages, sitemap, linkChecks) {
+function evaluate(pages, inventory, linkChecks) {
   const issues = [];
-  const sitemapSet = new Set(sitemap.urls.map(normalise));
-  const inbound = new Map([...sitemapSet].map((url) => [url, 0]));
+  const inventorySet = new Set(inventory.urls.map(normalise));
+  const inbound = new Map([...inventorySet].map((url) => [url, 0]));
   for (const page of pages) for (const link of page.internalLinks || []) {
     const target = normalise(link);
     if (inbound.has(target) && target !== normalise(page.url)) inbound.set(target, inbound.get(target) + 1);
   }
   for (const page of pages) {
     const url = normalise(page.url);
-    if (page.status !== 200) issues.push({ severity: 'critical', type: 'sitemap_status', url, value: page.status });
+    if (page.status !== 200 && !page.edge) issues.push({ severity: 'critical', type: 'inventory_status', url, value: page.status });
     if (page.edge) issues.push({ severity: 'infrastructure', type: 'edge_interstitial', url, value: page.status });
     if (page.status !== 200 || page.edge) continue;
     if (!page.title) issues.push({ severity: 'critical', type: 'missing_title', url });
@@ -138,20 +177,20 @@ function evaluate(pages, sitemap, linkChecks) {
     else if (page.descriptionLength < 110 || page.descriptionLength > 170) issues.push({ severity: 'warning', type: 'description_length', url, value: page.descriptionLength });
     if (!page.canonical) issues.push({ severity: 'critical', type: 'missing_canonical', url });
     else if (page.canonical !== url) issues.push({ severity: 'critical', type: 'canonical_mismatch', url, value: page.canonical });
-    if (page.noindex) issues.push({ severity: 'critical', type: 'sitemap_noindex', url, value: page.robots });
+    if (page.noindex) issues.push({ severity: 'critical', type: 'inventory_noindex', url, value: page.robots });
     if (page.h1Count !== 1) issues.push({ severity: 'critical', type: 'h1_count', url, value: page.h1Count });
     if (page.jsonLdCount > 1) issues.push({ severity: 'warning', type: 'duplicate_jsonld_blocks', url, value: page.jsonLdCount });
     if (page.yoastGraphCount !== 1) issues.push({ severity: 'warning', type: 'yoast_graph_count', url, value: page.yoastGraphCount });
     if (page.missingAltAttribute) issues.push({ severity: 'warning', type: 'images_missing_alt_attribute', url, value: page.missingAltAttribute });
-    if (url !== baseUrl.href && (inbound.get(url) || 0) === 0) issues.push({ severity: 'warning', type: 'orphan_sitemap_url', url });
+    if (url !== baseUrl.href && (inbound.get(url) || 0) === 0) issues.push({ severity: 'warning', type: 'orphan_inventory_url', url });
   }
   for (const check of linkChecks) {
     if (check.edge) issues.push({ severity: 'infrastructure', type: 'link_edge_interstitial', url: check.url, value: check.status });
     else if (check.status >= 400 || check.status === 0) issues.push({ severity: 'critical', type: 'broken_internal_link', url: check.url, value: check.status });
     else if (check.status >= 300) issues.push({ severity: 'warning', type: 'redirecting_internal_link', url: check.url, value: `${check.status} -> ${check.finalUrl}` });
   }
-  for (const item of sitemap.mediaIssues) issues.push({ severity: 'warning', type: 'sitemap_media_type', url: item.loc, value: item.sitemap });
-  for (const item of sitemap.errors) issues.push({ severity: 'infrastructure', type: 'sitemap_fetch_error', url: item.url, value: item.status });
+  for (const item of inventory.mediaIssues) issues.push({ severity: 'warning', type: 'sitemap_media_type', url: item.loc, value: item.sitemap });
+  for (const item of inventory.errors) issues.push({ severity: 'infrastructure', type: `${item.source || 'inventory'}_fetch_error`, url: item.url, value: item.status || item.error });
   return { issues, inbound: Object.fromEntries(inbound) };
 }
 
@@ -160,7 +199,8 @@ function markdown(report) {
     '# NUVANX full-site SEO evidence', '',
     `- Generated: ${report.generatedAt}`,
     `- Base URL: ${report.baseUrl}`,
-    `- Sitemap URLs: ${report.summary.sitemapUrls}`,
+    `- Discovery source: ${report.discoverySource}`,
+    `- Inventory URLs: ${report.summary.inventoryUrls}`,
     `- Pages crawled: ${report.summary.pagesCrawled}`,
     `- Internal links checked: ${report.summary.internalLinksChecked}`,
     `- Critical: ${report.summary.critical}`,
@@ -183,9 +223,9 @@ async function main() {
     else await route.continue();
   });
   const page = await context.newPage();
-  const sitemap = await discoverSitemap(page);
+  const inventory = await discoverSitemap(page);
   const pages = [];
-  for (const url of sitemap.urls) {
+  for (const url of inventory.urls) {
     const result = await navigate(page, url);
     pages.push(result.status === 200 && !result.edge ? parsePage(url, result.status, result.html) : { url, ...result });
     await sleep(delayMs);
@@ -199,11 +239,12 @@ async function main() {
   }
   await context.close();
   await browser.close();
-  const { issues, inbound } = evaluate(pages, sitemap, linkChecks);
+  const { issues, inbound } = evaluate(pages, inventory, linkChecks);
   const report = {
-    generatedAt: new Date().toISOString(), baseUrl: baseUrl.href, sitemaps: sitemap.sitemaps,
+    generatedAt: new Date().toISOString(), baseUrl: baseUrl.href,
+    discoverySource: inventory.source, sitemaps: inventory.sitemaps,
     summary: {
-      sitemapUrls: sitemap.urls.length, pagesCrawled: pages.length, internalLinksChecked: linkChecks.length,
+      inventoryUrls: inventory.urls.length, pagesCrawled: pages.length, internalLinksChecked: linkChecks.length,
       critical: issues.filter((item) => item.severity === 'critical').length,
       warnings: issues.filter((item) => item.severity === 'warning').length,
       infrastructure: issues.filter((item) => item.severity === 'infrastructure').length,

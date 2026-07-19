@@ -197,6 +197,7 @@ function nvx_treatments_logo_cloud_markup(): string {
 	return $html . '</ul></div></section>';
 }
 
+
 /** Replace legacy catalogue, collaborator, summary and CTA blocks. */
 function nvx_content_restructure_treatments_index( string $content ): string {
 	if ( ! nvx_content_is_treatments_index( $content ) ) {

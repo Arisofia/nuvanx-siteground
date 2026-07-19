@@ -178,6 +178,7 @@ function nvx_valoracion_intro_markup(): string {
 	return $html;
 }
 
+
 /**
  * Inject valoración intro without removing the HubSpot form.
  */

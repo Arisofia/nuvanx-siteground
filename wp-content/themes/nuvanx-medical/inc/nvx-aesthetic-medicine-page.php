@@ -51,6 +51,7 @@ function nvx_aesthetic_lookup_published_url( string $path ): ?string {
 	return null;
 }
 
+
 /**
  * Detect Medicina Estética hub (injectables / regenerativa), not láser hub.
  */

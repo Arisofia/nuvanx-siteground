@@ -7,6 +7,7 @@
  * - clinical values pillars
  * - method columns
  * - treatment card blurbs
+ * - home specialized protocols block (with orientative “desde €” when tariff known)
  * - homepage team strip + well-aging pillar
  * - EXION hub investment transparency (presupuesto tras valoración)
  * - director E-E-A-T (colegiado)
@@ -42,6 +43,7 @@ function nvx_cta_valoracion_url(): string {
 function nvx_cta_whatsapp_url(): string {
 	return 'https://wa.me/34669319836';
 }
+
 
 /**
  * Secondary WhatsApp CTA.
@@ -528,8 +530,10 @@ function nvx_content_enrich_treatment_cards( string $content ): string {
 	return is_string( $content ) ? $content : '';
 }
 
+
+
 /**
- * Remove legacy protocols blocks from the front page.
+ * Ensure front page has one protocols block after Cómo trabajamos (or after values banner).
  */
 function nvx_content_ensure_home_protocols( string $content ): string {
 	if ( ! is_front_page() ) {
@@ -1119,6 +1123,7 @@ function nvx_content_strip_page_closing_ctas_late( string $content ): string {
 	return nvx_content_strip_page_closing_ctas( $content );
 }
 add_filter( 'the_content', 'nvx_content_strip_page_closing_ctas_late', 99 );
+
 
 /**
  * Global Before/After Teaser markup (sitewide).

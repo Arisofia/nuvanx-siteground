@@ -166,6 +166,8 @@ function nvx_home_content_v2_catalog(): array {
 	);
 }
 
+/** Test whether a node has a class token. */
+
 /** Replace all child nodes with a plain text node. */
 function nvx_home_content_v2_set_text( DOMElement $node, string $text ): void {
 	while ( $node->firstChild ) {

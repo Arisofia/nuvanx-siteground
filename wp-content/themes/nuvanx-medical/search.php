@@ -8,8 +8,9 @@ defined( 'ABSPATH' ) || exit;
 
 get_header();
 ?>
-<main id="nvx-main" class="nvx-main nvx-blog-index" role="main">
+<div class="nvx-main nvx-blog-index">
 	<?php get_template_part( 'template-parts/content/nvx-blog-archive' ); ?>
-</main>
+</div>
 <?php
 get_footer();
+

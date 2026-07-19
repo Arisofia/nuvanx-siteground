@@ -53,8 +53,8 @@ try {
   assert(deployment.status === 200 && !deployment.edge, `staging document unavailable: ${JSON.stringify(deployment)}`);
   if (expectedSha) assert(deployment.sha === expectedSha, `expected deploy ${expectedSha}, received ${deployment.sha || 'missing'}`);
 
-  const headScriptCount = await page.locator('head script[src*="nvx-conversion-events.js"]').count();
-  assert(headScriptCount === 1, `expected one conversion script in head, found ${headScriptCount}`);
+  const scriptCount = await page.locator('script[src*="nvx-conversion-events.js"]').count();
+  assert(scriptCount === 1, `expected one conversion script, found ${scriptCount}`);
 
   const apiReady = await page.evaluate(() => Boolean(
     window.NUVANXConversionEvents

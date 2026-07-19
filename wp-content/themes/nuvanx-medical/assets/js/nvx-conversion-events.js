@@ -33,9 +33,7 @@
 		var normalized = String(formId || '').toLowerCase();
 		var forms = config.forms || {};
 		if (normalized && normalized === String(forms.valoracion || '').toLowerCase()) return 'valoracion';
-		if (normalized && normalized === String(forms.contacto || '').toLowerCase()) return 'contacto';
 		if (pagePath().indexOf('/madrid/valoracion/') === 0) return 'valoracion';
-		if (pagePath().indexOf('/contacto/') === 0) return 'contacto';
 		return 'embedded_form';
 	}
 

@@ -61,6 +61,30 @@ function nvx_cleanup_endolift_rf_conflation(string $html): string
     return $html;
 }
 
+/**
+ * Remove unverified price conditions and pressure language from persisted CMS
+ * copy. The theme keeps a final public guard too, but this helper makes the
+ * approved wording survive exports, plugins and future theme changes.
+ */
+function nvx_cleanup_public_copy(string $value): string
+{
+    $replacements = [
+        '/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu' => 'valoración médica',
+        '/\bvaloraci[oó]n\s+gratuita\b/iu' => 'valoración médica',
+        '/\bvaloraci[oó]n\s+gratis\b/iu' => 'valoración médica',
+        '/\bconsulta\s+(?:m[eé]dica\s+)?gratuita\b/iu' => 'consulta médica',
+        '/\bconsulta\s+gratis\b/iu' => 'consulta médica',
+        '/\bpresupuesto\s+personalizado\b/iu' => 'presupuesto individualizado tras la valoración médica',
+        '/\bsin\s+compromiso\b/iu' => 'sin obligación de continuar con un tratamiento',
+    ];
+
+    foreach ($replacements as $pattern => $replacement) {
+        $value = preg_replace($pattern, $replacement, $value) ?? $value;
+    }
+
+    return $value;
+}
+
 function nvx_cleanup_is_exion_record(int $postId, string $slug): bool
 {
     return $postId === 2906 || in_array(
@@ -68,6 +92,55 @@ function nvx_cleanup_is_exion_record(int $postId, string $slug): bool
         ['exion-btl', 'exion-face', 'exion-body', 'exion-fractional'],
         true
     );
+}
+
+/**
+ * Legal pages use the shell title as their primary heading. Their legacy CMS
+ * bodies also contain an H1, which produces two H1s in the rendered document.
+ * Keep the body heading and its inline content, but make it a secondary H2.
+ */
+function nvx_cleanup_demote_legal_content_h1s(
+    DOMDocument $document,
+    DOMXPath $xpath,
+    DOMElement $root,
+    int $postId,
+    string $slug
+): void {
+    $legalIds = [3, 20, 577];
+    $legalSlugs = [
+        'aviso-legal',
+        'politica-privacidad',
+        'politica-de-privacidad',
+        'politica-de-cookies-ue',
+        'mas-informacion-sobre-las-cookies',
+    ];
+
+    if (!in_array($postId, $legalIds, true) && !in_array(trim($slug, '/'), $legalSlugs, true)) {
+        return;
+    }
+
+    $headings = $xpath->query('.//h1', $root);
+    if (false === $headings) {
+        return;
+    }
+
+    $toDemote = [];
+    foreach ($headings as $heading) {
+        if ($heading instanceof DOMElement && $heading->parentNode) {
+            $toDemote[] = $heading;
+        }
+    }
+
+    foreach ($toDemote as $heading) {
+        $replacement = $document->createElement('h2');
+        foreach ($heading->attributes as $attribute) {
+            $replacement->setAttribute($attribute->name, $attribute->value);
+        }
+        while ($heading->firstChild) {
+            $replacement->appendChild($heading->firstChild);
+        }
+        $heading->parentNode->replaceChild($replacement, $heading);
+    }
 }
 
 function nvx_cleanup_funnel_dom(DOMDocument $document, DOMXPath $xpath, DOMElement $root, int $postId, string $slug): void
@@ -163,6 +236,7 @@ function nvx_cleanup_html(string $html, int $postId, string $slug): string
         $html
     );
 
+    $html = nvx_cleanup_public_copy($html);
     $html = preg_replace('/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $html) ?? $html;
     $html = preg_replace('/<(ul|ol)\b[^>]*>\s*<\/\1>/iu', '', $html) ?? $html;
     $html = nvx_strip_embedded_jsonld_html($html);
@@ -199,6 +273,7 @@ function nvx_cleanup_html(string $html, int $postId, string $slug): string
                 $node->parentNode->removeChild($node);
             }
 
+            nvx_cleanup_demote_legal_content_h1s($document, $xpath, $root, $postId, $slug);
             nvx_cleanup_funnel_dom($document, $xpath, $root, $postId, $slug);
 
             $rebuilt = '';
@@ -224,6 +299,7 @@ function nvx_cleanup_excerpt(string $excerpt, string $slug): string
     $excerpt = str_replace('https://nuvanx.com', 'https://staging2.nuvanx.com', $excerpt);
     $excerpt = str_replace('características induales', 'características individuales', $excerpt);
     $excerpt = str_replace('282869501', '282858861', $excerpt);
+    $excerpt = nvx_cleanup_public_copy($excerpt);
     $excerpt = preg_replace('/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $excerpt) ?? $excerpt;
 
     if (stripos($slug, 'goya') !== false || stripos($excerpt, 'goya') !== false) {
@@ -268,6 +344,8 @@ foreach ($records as $post) {
     if ($post->post_type === 'nav_menu_item' && trim($post->post_title) === 'Clínica Salamanca-Goya') {
         $after['post_title'] = 'Clínica Goya · Barrio Salamanca';
     }
+
+    $after['post_title'] = nvx_cleanup_public_copy((string) $after['post_title']);
 
     if ($post->post_type !== 'nav_menu_item') {
         $after['post_content'] = nvx_cleanup_html((string) $post->post_content, (int) $post->ID, (string) $post->post_name);

@@ -627,51 +627,12 @@ function nvx_content_ensure_home_protocols( string $content ): string {
 		return $content;
 	}
 
-	// Already present once: drop extras.
-	if ( false !== strpos( $content, 'nvx-home-protocols' ) || false !== strpos( $content, 'id="nvx-home-protocols"' ) ) {
-		$seen    = 0;
-		$updated = preg_replace_callback(
-			'/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu',
-			static function ( array $m ) use ( &$seen ): string {
-				$seen++;
-				// Refresh first copy with current markup; drop further copies.
-				return ( 1 === $seen ) ? nvx_home_protocols_markup() : '';
-			},
-			$content
-		);
-		return is_string( $updated ) ? $updated : $content;
-	}
+	// The protocols section has been removed from the homepage.
+	// Strip any existing canonical or legacy protocols blocks.
+	$content = preg_replace( '/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu', '', $content ) ?? $content;
+	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Protocolos Médicos Especializados(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
 
-	$block = nvx_home_protocols_markup();
-
-	// Prefer after single Cómo trabajamos section.
-	$count   = 0;
-	$updated = preg_replace(
-		'/(<section\b[^>]*\bnvx-method-section\b[^>]*>[\s\S]*?<\/section>)/iu',
-		'$1' . $block,
-		$content,
-		1,
-		$count
-	);
-	if ( is_string( $updated ) && $count > 0 ) {
-		return $updated;
-	}
-
-	// After post-values action banner.
-	$count   = 0;
-	$updated = preg_replace(
-		'/(id=["\']nvx-post-values-action-banner["\'][\s\S]*?<\/div>\s*<\/div>)/iu',
-		'$1' . $block,
-		$content,
-		1,
-		$count
-	);
-	if ( is_string( $updated ) && $count > 0 ) {
-		return $updated;
-	}
-
-	// Fallback: append before last CTA-ish section or at end of content.
-	return $content . $block;
+	return $content;
 }
 
 /**

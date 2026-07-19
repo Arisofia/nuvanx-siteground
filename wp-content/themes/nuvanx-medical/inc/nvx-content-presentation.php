@@ -726,6 +726,10 @@ function nvx_content_ensure_home_team_wellaging( string $content ): string {
 		return $content;
 	}
 
+	// Remove legacy duplicated CMS blocks that are replaced by the canonical team strip.
+	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Liderazgo y Experiencia(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
+	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Registro sanitario(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
+
 	$team = nvx_home_team_strip_markup();
 	$well = nvx_home_wellaging_strip_markup();
 

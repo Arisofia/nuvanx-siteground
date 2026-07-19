@@ -114,6 +114,9 @@ add_action(
 /** Structured data extensions: one canonical Yoast graph, no duplicate output. */
 require_once __DIR__ . '/nvx-structured-data.php';
 
+/** Facial treatment MedicalProcedure and FAQ nodes inside the same Yoast graph. */
+require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
+
 /** Legal redirects, noindex for incomplete evidence / transactional pages. */
 require_once __DIR__ . '/nvx-page-hygiene.php';
 

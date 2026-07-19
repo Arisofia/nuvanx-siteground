@@ -1253,25 +1253,13 @@ function nvx_content_strip_page_closing_ctas_late( string $content ): string {
 add_filter( 'the_content', 'nvx_content_strip_page_closing_ctas_late', 99 );
 
 /**
- * Global Trust Badges markup (sitewide).
+ * Quantitative trust badges are intentionally empty until figures exist in
+ * docs/clinical-claims/claims-register.json with approved evidence.
+ *
+ * @return string Always empty — do not invent sitewide metrics.
  */
 function nvx_trust_badges_markup(): string {
-	$html  = '<section class="nvx-trust-badges" aria-label="' . esc_attr__( 'Nombres y cifras de confianza', 'nuvanx-medical' ) . '">';
-	$html .= '<div class="nvx-trust-badges__inner">';
-	$badges = array(
-		array( '3.500+', 'Pacientes tratados' ),
-		array( '4.8/5', 'Calificación media' ),
-		array( '15+', 'Años de experiencia' ),
-		array( '89%', 'Repite tratamiento' ),
-	);
-	foreach ( $badges as $badge ) {
-		$html .= '<div class="nvx-trust-badge">';
-		$html .= '<strong class="nvx-trust-badge__number">' . esc_html( $badge[0] ) . '</strong>';
-		$html .= '<span class="nvx-trust-badge__label">' . esc_html( $badge[1] ) . '</span>';
-		$html .= '</div>';
-	}
-	$html .= '</div></section>';
-	return $html;
+	return '';
 }
 
 /**
@@ -1330,9 +1318,9 @@ function nvx_generic_faq_markup(): string {
 	$html .= '<div class="nvx-faq nvx-generic-faq-list">';
 	
 	$faqs = array(
-		array( '¿Duele el procedimiento?', 'La percepción varía según el umbral personal y la zona, pero aplicamos medidas de confort (anestesia local, frío, cremas tópicas según el protocolo) para que la experiencia sea muy tolerable y segura.' ),
-		array( '¿Cuánta recuperación necesito?', 'Depende del tratamiento específico. La mayoría de nuestros protocolos láser y de medicina estética son ambulatorios y permiten retomar la vida normal casi de inmediato, con pautas sencillas de cuidado (ej. protección solar).' ),
-		array( '¿Cuándo se notan los resultados?', 'El efecto inicial suele ser visible en los primeros días, pero los tratamientos que estimulan la producción de colágeno alcanzan su pico óptimo de resultados entre la semana 4 y el mes 3.' ),
+		array( '¿Duele el procedimiento?', 'La percepción varía según el umbral personal y la zona. Según el protocolo pueden usarse anestesia local, frío o cremas tópicas para mejorar el confort; la experiencia se valora de forma individual en consulta.' ),
+		array( '¿Cuánta recuperación necesito?', 'Depende del tratamiento, la intensidad del protocolo y tu respuesta individual. Algunos procedimientos permiten retomar la actividad habitual con rapidez; otros (por ejemplo, láser ablativo) implican eritema, descamación o varios días de curación. La pauta exacta se define en la valoración y el consentimiento.' ),
+		array( '¿Cuándo se notan los resultados?', 'Depende del mecanismo del tratamiento. Algunos cambios se aprecian en los primeros días; cuando el objetivo es estimular colágeno, la evolución se valora a lo largo de semanas. No hay un calendario único para todos los protocolos.' ),
 		array( '¿Es para mí?', 'La candidatura clínica solo puede determinarse de forma responsable mediante una valoración médica presencial. Estudiamos tu historial, la viabilidad de los tejidos y tus objetivos para trazar el plan adecuado.' ),
 	);
 
@@ -1349,7 +1337,83 @@ function nvx_generic_faq_markup(): string {
 }
 
 /**
- * Auto-inject global treatment sections into pages that lack them.
+ * Whether the current request is a real treatment detail/hub page.
+ *
+ * Must not match equipo/nosotros: those reuse endolift editorial layout classes
+ * (nvx-endolift-editorial, nvx-endolift-hero) but are not treatments.
+ */
+function nvx_content_is_treatment_injection_target( string $content ): bool {
+	// Explicit non-treatment shells that share layout classes with treatments.
+	if (
+		preg_match(
+			'/nvx-equipo-editorial|nvx-equipo-hero|nvx-brand-page--nosotros|nvx-brand-page--equipo|id=["\']nvx-nosotros-h1["\']|id=["\']nvx-equipo-h1["\']|aria-label=["\']Equipo médico NUVANX["\']|aria-label=["\']Sobre Nosotros NUVANX["\']/iu',
+			$content
+		)
+	) {
+		return false;
+	}
+
+	// Canonical treatment routes from the schema page registry.
+	if ( function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
+		$key = nvx_schema_resolve_treatment_key( (int) get_queried_object_id() );
+		if ( null !== $key && '' !== (string) $key ) {
+			return true;
+		}
+	}
+
+	// Explicit treatment identifiers only (no bare nvx-endolift-editorial / nvx-brand-page--*).
+	$treatment_markers = array(
+		'nvx-endolaser-editorial',
+		'nvx-endolaser-hero',
+		'nvx-co2-editorial',
+		'nvx-co2-hero',
+		'nvx-btl-editorial',
+		'nvx-aesthetic-editorial',
+		'nvx-laser-editorial',
+		'nvx-laser-hero',
+		'nvx-brand-page--laser',
+		'nvx-brand-page--medicina-estetica',
+		'nvx-brand-page--exion',
+		'id="nvx-endolift-h1"',
+		"id='nvx-endolift-h1'",
+		'id="nvx-endolaser-h1"',
+		"id='nvx-endolaser-h1'",
+		'id="nvx-co2-h1"',
+		"id='nvx-co2-h1'",
+		'id="nvx-laser-h1"',
+		"id='nvx-laser-h1'",
+		'id="nvx-med-h1"',
+		"id='nvx-med-h1'",
+		'aria-label="Endolift facial NUVANX"',
+		"aria-label='Endolift facial NUVANX'",
+		'aria-label="Medicina estética láser NUVANX"',
+		"aria-label='Medicina estética láser NUVANX'",
+	);
+
+	foreach ( $treatment_markers as $marker ) {
+		if ( false !== stripos( $content, $marker ) ) {
+			return true;
+		}
+	}
+
+	// Endolift facial detail: hero + editorial without equipo prefix.
+	if (
+		false !== strpos( $content, 'nvx-endolift-hero' )
+		&& false === strpos( $content, 'nvx-equipo-' )
+		&& (
+			false !== strpos( $content, 'nvx-endolift-process' )
+			|| false !== strpos( $content, 'nvx-endolift-section' )
+			|| false !== strpos( $content, 'Endolift' )
+		)
+	) {
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Auto-inject shared treatment sections into real treatment pages that lack them.
  */
 function nvx_content_inject_global_treatment_sections( string $content ): string {
 	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
@@ -1359,47 +1423,52 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 		return $content;
 	}
 
-	// Match treatment detail pages or hubs built by the theme engine.
-	$is_treatment = preg_match( '/nvx-endolift-editorial|nvx-endolaser-editorial|nvx-co2-editorial|nvx-btl-editorial|nvx-aesthetic-editorial|nvx-laser-editorial|class=["\'][^"\']*nvx-brand-page--/iu', $content );
-
-	if ( ! $is_treatment ) {
+	if ( ! nvx_content_is_treatment_injection_target( $content ) ) {
 		return $content;
 	}
 
 	$injections = '';
 
-	// 1. Before/After Teaser (None have it currently)
+	// 1. Before/After teaser (promotional gallery link — no numeric claims).
 	if ( false === strpos( $content, 'nvx-ba-teaser' ) ) {
 		$injections .= nvx_before_after_teaser_markup();
 	}
 
-	// 2. Trust Badges (None have it currently)
-	if ( false === strpos( $content, 'nvx-trust-badges' ) ) {
-		$injections .= nvx_trust_badges_markup();
-	}
+	// 2. Trust badges intentionally omitted until claims-register approved figures exist.
 
-	// 3. How It Works / Process
-	// We check for existing process patterns: method section, specific editorial processes, or specific headings.
-	$has_process = preg_match( '/nvx-method-section|nvx-endolift-process|nvx-co2-downtime|nvx-co2-timeline|Procedimiento, sesiones y cuidados/iu', $content );
+	// 3. How It Works / Process — skip when the page already documents process/downtime.
+	$has_process = preg_match(
+		'/nvx-method-section|nvx-endolift-process|nvx-co2-downtime|nvx-co2-timeline|nvx-treatment-process|Procedimiento, sesiones y cuidados/iu',
+		$content
+	);
 	if ( ! $has_process ) {
 		$injections .= nvx_treatment_process_markup();
 	}
 
-	// 4. FAQ
-	// Check for existing FAQs
-	$has_faq = preg_match( '/nvx-brand-faq-item|nvx-faq/iu', $content );
-	if ( ! $has_faq ) {
+	// 4. FAQ — only if the page has none. Skip CO₂: recovery is protocol-specific and
+	// already described on-page (do not inject generic “immediate return” answers).
+	$has_faq = preg_match( '/nvx-brand-faq-item|nvx-faq|nvx-generic-faq-list/iu', $content );
+	$is_co2  = (
+		false !== strpos( $content, 'nvx-co2-editorial' )
+		|| false !== strpos( $content, 'nvx-co2-hero' )
+		|| false !== strpos( $content, 'nvx-co2-downtime' )
+		|| ( function_exists( 'nvx_schema_resolve_treatment_key' )
+			&& 'laser_co2' === nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) )
+	);
+	if ( ! $has_faq && ! $is_co2 ) {
 		$injections .= nvx_generic_faq_markup();
 	}
 
-	// Inject right before the closing div of the main wrapper if present
-	if ( preg_match( '/<\/div>\s*$/i', $content ) ) {
-		$content = preg_replace( '/(<\/div>\s*)$/i', $injections . '$1', $content );
-	} else {
-		$content .= $injections;
+	if ( '' === $injections ) {
+		return $content;
 	}
 
-	return $content;
+	if ( preg_match( '/<\/div>\s*$/i', $content ) ) {
+		$replaced = preg_replace( '/(<\/div>\s*)$/i', $injections . '$1', $content );
+		return is_string( $replaced ) ? $replaced : $content . $injections;
+	}
+
+	return $content . $injections;
 }
 add_filter( 'the_content', 'nvx_content_inject_global_treatment_sections', 21 );
 

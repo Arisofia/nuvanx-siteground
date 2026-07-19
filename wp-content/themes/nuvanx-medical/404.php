@@ -8,7 +8,7 @@ defined( 'ABSPATH' ) || exit;
 
 get_header();
 ?>
-<main id="nvx-main" class="nvx-main nvx-page" role="main">
+<div class="nvx-main nvx-page">
 	<header class="nvx-section-intro nvx-shell">
 		<p class="nvx-eyebrow">404</p>
 		<h1 class="nvx-heading"><?php esc_html_e( 'Página no encontrada', 'nuvanx-medical' ); ?></h1>
@@ -19,6 +19,7 @@ get_header();
 			</a>
 		</p>
 	</header>
-</main>
+</div>
 <?php
 get_footer();
+

@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 
 get_header();
 ?>
-<main id="nvx-main" class="nvx-main nvx-page" role="main">
+<div class="nvx-main nvx-page">
 	<?php if ( have_posts() ) : ?>
 		<?php
 		while ( have_posts() ) :
@@ -26,6 +26,7 @@ get_header();
 	<?php else : ?>
 		<p class="nvx-copy"><?php esc_html_e( 'No se encontró contenido.', 'nuvanx-medical' ); ?></p>
 	<?php endif; ?>
-</main>
+</div>
 <?php
 get_footer();
+

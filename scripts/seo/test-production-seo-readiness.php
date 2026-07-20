@@ -6,14 +6,34 @@ define( 'ABSPATH', __DIR__ );
 $GLOBALS['nvx_test_nonproduction'] = true;
 $GLOBALS['nvx_test_filters']       = array();
 
+/**
+ * Records a filter registration for the test environment.
+ *
+ * @param string   $hook         The filter hook name.
+ * @param callable $callback     The callback associated with the filter.
+ * @param int      $priority     The filter execution priority.
+ * @param int      $accepted_args The number of arguments accepted by the callback.
+ */
 function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 	$GLOBALS['nvx_test_filters'][] = array( $hook, $callback, $priority, $accepted_args );
 }
 function is_admin() { return false; }
 function is_feed() { return false; }
 function is_front_page() { return false; }
+/**
+ * Builds a URL on the staging site for the specified path.
+ *
+ * @param string $path The path to append to the site URL.
+ * @return string The resulting staging-site URL.
+ */
 function home_url( $path = '/' ) { return 'https://staging2.nuvanx.com' . ( '/' === $path ? '/' : $path ); }
 function get_queried_object_id() { return $GLOBALS['nvx_test_page_id'] ?? 42; }
+/**
+ * Returns the treatment URL associated with a test page ID.
+ *
+ * @param int $page_id The page ID to resolve.
+ * @return string The treatment URL, or an empty string when no URL is mapped.
+ */
 function get_permalink( $page_id ) {
 	if ( 42 === (int) $page_id ) return 'https://staging2.nuvanx.com/exion-face/';
 	if ( 43 === (int) $page_id ) return 'https://staging2.nuvanx.com/emfusion/';
@@ -30,6 +50,13 @@ function trailingslashit( $value ) { return rtrim( (string) $value, '/' ) . '/';
 function wp_strip_all_tags( $value ) { return strip_tags( (string) $value ); }
 function wp_kses_post( $value ) { return (string) $value; }
 function nvx_seo_is_nonproduction_environment() { return (bool) $GLOBALS['nvx_test_nonproduction']; }
+/**
+ * Adds a schema type to a list of types.
+ *
+ * @param mixed        $types Existing schema type or list of types.
+ * @param string|mixed $type  Type to add.
+ * @return array The filtered list of unique schema types.
+ */
 function nvx_schema_add_type( $types, $type ) {
 	$types = is_array( $types ) ? $types : array( $types );
 	if ( ! in_array( $type, $types, true ) ) {
@@ -37,7 +64,20 @@ function nvx_schema_add_type( $types, $type ) {
 	}
 	return array_values( array_filter( $types ) );
 }
+/**
+ * Determines whether a schema type collection contains a specified type.
+ *
+ * @param mixed  $types The schema type or types to search.
+ * @param string $type  The type to find.
+ * @return bool True if the specified type is present, false otherwise.
+ */
 function nvx_schema_has_type( $types, $type ) { return in_array( $type, is_array( $types ) ? $types : array( $types ), true ); }
+/**
+ * Locates the organization node in a schema graph.
+ *
+ * @param array $graph The schema graph to inspect.
+ * @return array The organization node index and identifier.
+ */
 function nvx_schema_find_organization( $graph ) { return array( 'index' => 0, 'id' => 'https://staging2.nuvanx.com/#organization' ); }
 /**
  * Resolves the treatment registry key for a page.
@@ -69,6 +109,12 @@ function nvx_btl_detail_registry() {
 
 require dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-production-readiness.php';
 
+/**
+ * Terminates the test with a failure message when a condition is false.
+ *
+ * @param mixed  $condition The condition to evaluate.
+ * @param string $message   The failure message to write before termination.
+ */
 function nvx_test_assert( $condition, $message ) {
 	if ( ! $condition ) {
 		fwrite( STDERR, "FAIL: {$message}\n" );

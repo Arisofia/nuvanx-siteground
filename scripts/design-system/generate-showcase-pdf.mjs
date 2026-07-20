@@ -6,6 +6,12 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
+/**
+ * Retrieves a command-line argument value or uses a fallback.
+ * @param {string} name - The argument name to find in the process arguments.
+ * @param {*} fallback - The value to return when the argument is missing or has no value.
+ * @return {*} The argument value or the fallback value.
+ */
 function readArg(name, fallback) {
   const index = process.argv.indexOf(name);
   return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;

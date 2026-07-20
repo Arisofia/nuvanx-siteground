@@ -86,16 +86,16 @@ function nvx_site_closing_cta_markup(): string {
 		$valoracion = trailingslashit( get_permalink() ) . '#nvx-hubspot-form';
 	}
 
-	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '" style="text-align: center;">';
+	$html  = '<section class="nvx-cta-banner" id="nvx-site-closing-cta" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-cta-banner__inner">';
 	$html .= '<div>';
-	$html .= '<p class="nvx-cta-banner__kicker" style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--nvx-color-primary, #9a8a78); margin-bottom: 1rem; font-weight: 600;">Medicina estética con criterio clínico</p>';
-	$html .= '<h2 class="nvx-cta-banner__title" style="font-size: 2.5rem; line-height: 1.2; margin-bottom: 1.5rem; color: #ffffff;">Da el siguiente paso con una valoración médica personalizada.</h2>';
-	$html .= '<p class="nvx-cta-banner__sub" style="font-size: 1.125rem; color: #cccccc; margin-bottom: 2rem;">Plan individualizado &bull; Precisión clínica &bull; Recuperación según tu caso</p>';
+	$html .= '<p class="nvx-cta-banner__kicker">Medicina estética con criterio clínico</p>';
+	$html .= '<h2 class="nvx-cta-banner__title">Da el siguiente paso con una valoración médica personalizada.</h2>';
+	$html .= '<p class="nvx-cta-banner__sub">Plan individualizado &bull; Precisión clínica &bull; Recuperación según tu caso</p>';
 	$html .= '</div>';
-	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions" style="justify-content: center;">';
+	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions">';
 	$html .= sprintf(
-		'<a class="nvx-btn nvx-btn--light nvx-open-valoracion-modal" id="nvx-footer-cta" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog" style="text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">%2$s</a>',
+		'<a class="nvx-btn nvx-btn--light nvx-open-valoracion-modal" id="nvx-footer-cta" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',
 		esc_url( $valoracion ),
 		esc_html__( 'Iniciar mi valoración médica', 'nuvanx-medical' )
 	);
@@ -1166,7 +1166,7 @@ function nvx_treatment_process_markup(): string {
 	$html .= '<div class="nvx-treatment-process__inner">';
 	$html .= '<p class="nvx-treatment-process__kicker">' . esc_html__( 'El procedimiento', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-treatment-process__title">' . esc_html__( 'Cómo funciona tu tratamiento', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<blockquote class="nvx-equipo-blockquote" style="margin-bottom:var(--nvx-space-4);"><p>' . esc_html__( 'El día más importante de tu protocolo no es el de la sesión. Es el seguimiento.', 'nuvanx-medical' ) . '</p></blockquote>';
+	$html .= '<blockquote class="nvx-equipo-blockquote"><p>' . esc_html__( 'El día más importante de tu protocolo no es el de la sesión. Es el seguimiento.', 'nuvanx-medical' ) . '</p></blockquote>';
 	$html .= '<ol class="nvx-treatment-process__steps">';
 	$steps = array(
 		array( 'Valoración médica', 'Evaluación presencial de tu anatomía y calidad cutánea para confirmar la indicación exacta del tratamiento.' ),

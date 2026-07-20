@@ -1,26 +1,25 @@
-/* NUVANX Medical — Design tokens (única fuente de verdad)
- * Paleta oficial: blanco cálido + gris cálido + negro.
- * Tipografía: Bodoni Moda + Manrope
- * Espaciado: escala canónica de 8px.
- * Only tokens referenced by active stylesheets are kept.
- */
+/* ============================================
+   NUVANX — Sistema visual canónico
+   Tipografías oficiales web · Julio 2026
+   Única combinación activa: Playfair Display + Manrope
+   ============================================ */
 
 :root {
-  /* Paleta neutra desaturada: sin beige, accent, warm surface ni dorado. */
+  /* Paleta neutra cálida */
   --nvx-light: #fcfbf8;
   --nvx-surface-base: #f8f7f4;
-  --nvx-ink: #171717;
+  --nvx-ink: #1a1a1a;
   --nvx-charcoal: #2b2926;
   --nvx-surface-soft: #eceae6;
   --nvx-border-soft: #d4d1cc;
   --nvx-accent-muted: #756f69;
 
-  --nvx-text-body: #3d3a36;
+  --nvx-text-body: #1a1a1a;
   --nvx-text-muted: #66615c;
   --nvx-color-paper: var(--nvx-surface-base);
-  --nvx-color-line: rgba(23, 23, 23, 0.16);
+  --nvx-color-line: rgba(26, 26, 26, 0.16);
 
-  /* Texto y bordes sobre superficies oscuras. */
+  /* Texto y bordes sobre superficies oscuras */
   --nvx-text-on-dark: var(--nvx-light);
   --nvx-text-on-dark-92: rgba(252, 251, 248, 0.92);
   --nvx-text-on-dark-90: rgba(252, 251, 248, 0.90);
@@ -32,9 +31,9 @@
   --nvx-border-on-dark-50: rgba(252, 251, 248, 0.50);
   --nvx-border-on-dark-45: rgba(252, 251, 248, 0.45);
   --nvx-border-on-dark-42: rgba(252, 251, 248, 0.42);
-  --nvx-ink-muted: rgba(23, 23, 23, 0.82);
+  --nvx-ink-muted: rgba(26, 26, 26, 0.82);
 
-  /* Form-stage: progresión exclusiva de grises cálidos. */
+  /* Form-stage */
   --nvx-form-stage-warm: #f2f1ee;
   --nvx-form-stage-mid: #e7e5e1;
   --nvx-form-stage-cool: #d8d5d0;
@@ -42,14 +41,14 @@
   --nvx-form-stage-image: none;
   --nvx-form-overlay-top: rgba(252, 251, 248, 0.18);
   --nvx-form-overlay-mid: rgba(252, 251, 248, 0.08);
-  --nvx-form-overlay-bottom: rgba(23, 23, 23, 0.06);
+  --nvx-form-overlay-bottom: rgba(26, 26, 26, 0.06);
   --nvx-highlight-soft: rgba(252, 251, 248, 0.70);
 
-  --nvx-shadow-min: 0 1px 2px rgba(23, 23, 23, 0.04);
-  --nvx-shadow-soft: 0 16px 48px rgba(23, 23, 23, 0.06);
-  --nvx-shadow-medium: 0 24px 64px rgba(23, 23, 23, 0.08);
-  --nvx-shadow-button: 0 8px 24px rgba(23, 23, 23, 0.12);
-  --nvx-shadow-button-hover: 0 16px 32px rgba(23, 23, 23, 0.14);
+  --nvx-shadow-min: 0 1px 2px rgba(26, 26, 26, 0.04);
+  --nvx-shadow-soft: 0 16px 48px rgba(26, 26, 26, 0.06);
+  --nvx-shadow-medium: 0 24px 64px rgba(26, 26, 26, 0.08);
+  --nvx-shadow-button: 0 8px 24px rgba(26, 26, 26, 0.12);
+  --nvx-shadow-button-hover: 0 16px 32px rgba(26, 26, 26, 0.14);
   --nvx-accent-glow: rgba(252, 251, 248, 0.18);
 
   /* Escala de 8px */
@@ -94,7 +93,7 @@
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
   --nvx-hero-h: min(92svh, 980px);
 
-  /* Component dimensions. */
+  /* Component dimensions */
   --nvx-header-height: 80px;
   --nvx-header-height-mobile: 72px;
   --nvx-touch-target-min: 48px;
@@ -106,7 +105,7 @@
   --nvx-submenu-min-width: 256px;
   --nvx-submenu-max-width: 320px;
 
-  /* Icon dimensions and stroke — one scale for every page module. */
+  /* Icon dimensions and stroke */
   --nvx-icon-xs: 16px;
   --nvx-icon-sm: 24px;
   --nvx-icon-md: 32px;
@@ -123,55 +122,59 @@
 
   --nvx-media-overlay: linear-gradient(
     180deg,
-    rgba(23, 23, 23, 0.12) 0%,
-    rgba(23, 23, 23, 0.08) 28%,
-    rgba(23, 23, 23, 0.35) 58%,
-    rgba(23, 23, 23, 0.74) 100%
+    rgba(26, 26, 26, 0.12) 0%,
+    rgba(26, 26, 26, 0.08) 28%,
+    rgba(26, 26, 26, 0.35) 58%,
+    rgba(26, 26, 26, 0.74) 100%
   );
 
-  /* Tipografía canónica */
-  --nvx-serif: "Bodoni Moda", "Times New Roman", Georgia, serif;
+  /* ========== TIPOGRAFÍA OFICIAL ÚNICA ========== */
+  --nvx-serif: "Playfair Display", Georgia, "Times New Roman", serif;
   --nvx-sans: "Manrope", "Helvetica Neue", Arial, sans-serif;
-  --nvx-type-display: clamp(3rem, 5.5vw, 5.75rem);
-  --nvx-type-h1: clamp(2.5rem, 4.5vw, 4.25rem);
-  --nvx-type-h2: clamp(1.875rem, 3.2vw, 2.75rem);
-  --nvx-type-h3: clamp(1.25rem, 2vw, 1.75rem);
-  --nvx-type-lead: clamp(1.125rem, 1.35vw, 1.25rem);
+
+  /* Escala tipográfica validada */
+  --nvx-type-display: clamp(2.8rem, 5vw, 4.2rem);
+  --nvx-type-h1: clamp(2.2rem, 4vw, 3.2rem);
+  --nvx-type-h2: clamp(1.7rem, 3vw, 2.4rem);
+  --nvx-type-h3: 1.4rem;
+  --nvx-type-lead: clamp(1.0625rem, 1.35vw, 1.25rem);
   --nvx-type-body: 1.0625rem;
-  --nvx-type-caption: clamp(.875rem, .9vw, .9375rem);
   --nvx-type-small: 0.875rem;
-  --nvx-type-kicker: clamp(.6875rem, .72vw, .75rem);
-  --nvx-type-button: .75rem;
-  --nvx-type-nav: .72rem;
-  --nvx-type-nav-compact: .68rem;
-  --nvx-type-nav-submenu: .84rem;
+  --nvx-type-caption: 0.75rem;
+  --nvx-type-kicker: 0.75rem;
+  --nvx-type-button: 0.75rem;
+  --nvx-type-nav: 0.72rem;
+  --nvx-type-nav-compact: 0.68rem;
+  --nvx-type-nav-submenu: 0.84rem;
   --nvx-type-nav-mobile: clamp(1.5rem, 6vw, 2.25rem);
 
   --nvx-fw-regular: 400;
-  --nvx-lh-display: 1.05;
-  --nvx-lh-h1: 1.1;
+  --nvx-fw-heading: 500;
+  --nvx-lh-display: 1.15;
+  --nvx-lh-h1: 1.15;
   --nvx-lh-h2: 1.15;
-  --nvx-lh-h3: 1.2;
+  --nvx-lh-h3: 1.15;
   --nvx-lh-kicker: 1.2;
-  --nvx-lh-body: 1.62;
-  --nvx-lh-lead: 1.62;
+  --nvx-lh-body: 1.6;
+  --nvx-lh-lead: 1.6;
   --nvx-lh-caption: 1.5;
   --nvx-lh-nav: 1;
   --nvx-lh-nav-submenu: 1.35;
 
-  --nvx-track-display: -.04em;
-  --nvx-track-h1: -.02em;
-  --nvx-track-h2: -.015em;
-  --nvx-track-h3: -.01em;
-  --nvx-track-kicker: .25em;
-  --nvx-track-button: .14em;
+  --nvx-track-display: -0.02em;
+  --nvx-track-h1: -0.02em;
+  --nvx-track-h2: -0.02em;
+  --nvx-track-h3: -0.02em;
+  --nvx-track-kicker: 0.20em;
+  --nvx-track-button: 0.14em;
   --nvx-track-body: normal;
-  --nvx-track-nav: .08em;
-  --nvx-track-nav-cta: .06em;
-  --nvx-track-nav-submenu: .02em;
+  --nvx-track-caption: 0.04em;
+  --nvx-track-nav: 0.08em;
+  --nvx-track-nav-cta: 0.06em;
+  --nvx-track-nav-submenu: 0.02em;
 
-  /* Sequential indices are UI labels, not display metrics. */
-  --nvx-index-number-size: var(--nvx-type-kicker);
+  /* Sequential indices are UI labels, not display metrics */
+  --nvx-index-number-size: var(--nvx-type-caption);
   --nvx-index-number-weight: 600;
-  --nvx-index-number-track: .16em;
+  --nvx-index-number-track: 0.16em;
 }

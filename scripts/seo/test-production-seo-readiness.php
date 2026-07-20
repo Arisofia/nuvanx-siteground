@@ -6,6 +6,14 @@ define( 'ABSPATH', __DIR__ );
 $GLOBALS['nvx_test_nonproduction'] = true;
 $GLOBALS['nvx_test_filters']       = array();
 
+/**
+ * Records a filter registration for test inspection.
+ *
+ * @param string   $hook         The filter hook name.
+ * @param callable $callback     The callback associated with the filter.
+ * @param int      $priority     The filter execution priority.
+ * @param int      $accepted_args The number of callback arguments.
+ */
 function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 	$GLOBALS['nvx_test_filters'][] = array( $hook, $callback, $priority, $accepted_args );
 }
@@ -41,7 +49,7 @@ function get_permalink( $page_id ) {
  * Ensures a value has exactly one trailing slash.
  *
  * @param mixed $value The value to normalize.
- * @return string The value with trailing slashes removed and one trailing slash appended.
+ * @return string The value with trailing slashes removed and one slash appended.
  */
 function trailingslashit( $value ) { return rtrim( (string) $value, '/' ) . '/'; }
 /**
@@ -52,6 +60,11 @@ function trailingslashit( $value ) { return rtrim( (string) $value, '/' ) . '/';
  */
 function wp_strip_all_tags( $value ) { return strip_tags( (string) $value ); }
 function wp_kses_post( $value ) { return (string) $value; }
+/**
+ * Determines whether the test environment is configured as nonproduction.
+ *
+ * @return bool `true` when the nonproduction test flag is enabled, `false` otherwise.
+ */
 function nvx_seo_is_nonproduction_environment() { return (bool) $GLOBALS['nvx_test_nonproduction']; }
 /**
  * Adds a type to a schema type list when it is not already present.
@@ -112,6 +125,12 @@ function nvx_btl_detail_registry() {
 
 require dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-production-readiness.php';
 
+/**
+ * Terminates the test with a failure message when a condition is false.
+ *
+ * @param bool   $condition The condition that must be true for the test to continue.
+ * @param string $message   The message to write when the assertion fails.
+ */
 function nvx_test_assert( $condition, $message ) {
 	if ( ! $condition ) {
 		fwrite( STDERR, "FAIL: {$message}\n" );

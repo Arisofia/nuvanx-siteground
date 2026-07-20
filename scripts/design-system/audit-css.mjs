@@ -51,7 +51,9 @@ const ALLOWED_HARDCODED_PX = new Set([
 ]);
 
 function read(filePath) {
-	return fs.readFileSync(filePath, 'utf8');
+	const absolute = path.resolve(ROOT, filePath);
+	if (!absolute.startsWith(ROOT)) throw new Error('Path traversal detected');
+	return fs.readFileSync(absolute, 'utf8');
 }
 
 function stripComments(source) {
@@ -116,9 +118,12 @@ function scanHardcodedPixels(css, file) {
 }
 
 function walk(directory, extensions, output = []) {
-	for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+	const baseDir = path.resolve(directory);
+	for (const entry of fs.readdirSync(baseDir, { withFileTypes: true })) {
 		if (['.git', 'node_modules', 'vendor', 'qa', 'docs'].includes(entry.name)) continue;
-		const absolute = path.join(directory, entry.name);
+		if (entry.name.includes('/') || entry.name.includes('\\') || entry.name === '..') continue;
+		const absolute = path.resolve(baseDir, entry.name);
+		if (!absolute.startsWith(baseDir)) continue;
 		if (entry.isDirectory()) walk(absolute, extensions, output);
 		else if (extensions.has(path.extname(entry.name))) output.push(absolute);
 	}
@@ -217,7 +222,12 @@ const sourceFiles = fs.readdirSync(CSS_DIR)
 	.filter((file) => file.endsWith('.css') && !file.endsWith('.min.css'))
 	.sort();
 const inactiveFiles = sourceFiles.filter((file) => !ACTIVE_STACK.includes(file));
-const allSources = Object.fromEntries(sourceFiles.map((file) => [file, read(path.join(CSS_DIR, file))]));
+const allSources = Object.fromEntries(sourceFiles.map((file) => {
+	if (file.includes('/') || file.includes('\\') || file === '..') throw new Error('Path traversal detected');
+	const absolute = path.resolve(CSS_DIR, file);
+	if (!absolute.startsWith(path.resolve(CSS_DIR))) throw new Error('Path traversal detected');
+	return [file, read(absolute)];
+}));
 const activeSources = Object.fromEntries(ACTIVE_STACK.map((file) => [file, allSources[file]]));
 const tokenFile = activeSources['nvx-tokens.css'];
 const definedTokens = extractRootTokens(tokenFile);

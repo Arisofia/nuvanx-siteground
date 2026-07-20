@@ -75,7 +75,12 @@ add_action(
 	1
 );
 
-/** Normalize the public document without creating a second metadata source. */
+/**
+ * Normalizes public document markup and removes duplicate front-page FAQ structured data.
+ *
+ * @param string $html The rendered document markup.
+ * @return string The normalized document markup.
+ */
 function nvx_theme_normalize_public_document( string $html ): string {
 	$html = (string) preg_replace(
 		'/<meta\s+name=["\']viewport["\'][^>]*>/i',

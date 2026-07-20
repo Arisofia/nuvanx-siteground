@@ -21,8 +21,13 @@ function is_admin() { return false; }
 function is_feed() { return false; }
 function is_front_page() { return false; }
 function home_url( $path = '/' ) { return 'https://staging2.nuvanx.com' . ( '/' === $path ? '/' : $path ); }
-function get_queried_object_id() { return 42; }
-function get_permalink( $page_id ) { return 42 === (int) $page_id ? 'https://staging2.nuvanx.com/exion-face/' : ''; }
+function get_queried_object_id() { return $GLOBALS['nvx_test_page_id'] ?? 42; }
+function get_permalink( $page_id ) {
+	if ( 42 === (int) $page_id ) return 'https://staging2.nuvanx.com/exion-face/';
+	if ( 43 === (int) $page_id ) return 'https://staging2.nuvanx.com/emfusion/';
+	if ( 44 === (int) $page_id ) return 'https://staging2.nuvanx.com/exilite/';
+	return '';
+}
 /**
  * Ensures a value has exactly one trailing slash.
  *
@@ -73,7 +78,12 @@ function nvx_schema_find_organization( $graph ) { return array( 'index' => 0, 'i
  * @param mixed $page_id Page identifier to resolve.
  * @return string|null The treatment key, or null when the page is not recognized.
  */
-function nvx_schema_resolve_treatment_key( $page_id ) { return 42 === (int) $page_id ? 'exion_face' : null; }
+function nvx_schema_resolve_treatment_key( $page_id ) {
+	if ( 42 === (int) $page_id ) return 'exion_face';
+	if ( 43 === (int) $page_id ) return 'emfusion';
+	if ( 44 === (int) $page_id ) return 'exilite_btl';
+	return null;
+}
 /**
  * Provides treatment detail data used by the BTL schema tests.
  *
@@ -170,5 +180,23 @@ $faq_nodes = array_values( array_filter( $graph, static function ( $piece ) {
 } ) );
 nvx_test_assert( 1 === count( $faq_nodes ), 'one FAQPage node must be emitted' );
 nvx_test_assert( 2 === count( $faq_nodes[0]['mainEntity'] ), 'FAQPage must mirror the visible BTL registry' );
+
+$GLOBALS['nvx_test_page_id'] = 43;
+$graph_emfusion = array(
+	array( '@type' => 'Service', '@id' => 'https://staging2.nuvanx.com/emfusion/#service', 'url' => 'https://staging2.nuvanx.com/emfusion/', 'name' => 'EMFUSION' ),
+	array( '@type' => 'WebPage', '@id' => 'https://staging2.nuvanx.com/emfusion/#webpage', 'url' => 'https://staging2.nuvanx.com/emfusion/' ),
+);
+$graph_emfusion = nvx_seo_production_readiness_schema_graph( $graph_emfusion, null );
+nvx_test_assert( in_array( 'MedicalProcedure', (array) $graph_emfusion[0]['@type'], true ), 'EMFUSION detail must be MedicalProcedure + Service' );
+nvx_test_assert( $graph_emfusion[0]['@id'] === $graph_emfusion[1]['mainEntity']['@id'], 'EMFUSION WebPage must point to mainEntity' );
+
+$GLOBALS['nvx_test_page_id'] = 44;
+$graph_exilite = array(
+	array( '@type' => 'Service', '@id' => 'https://staging2.nuvanx.com/exilite/#service', 'url' => 'https://staging2.nuvanx.com/exilite/', 'name' => 'EXILITE' ),
+	array( '@type' => 'WebPage', '@id' => 'https://staging2.nuvanx.com/exilite/#webpage', 'url' => 'https://staging2.nuvanx.com/exilite/' ),
+);
+$graph_exilite = nvx_seo_production_readiness_schema_graph( $graph_exilite, null );
+nvx_test_assert( in_array( 'MedicalProcedure', (array) $graph_exilite[0]['@type'], true ), 'EXILITE detail must be MedicalProcedure + Service' );
+nvx_test_assert( $graph_exilite[0]['@id'] === $graph_exilite[1]['mainEntity']['@id'], 'EXILITE WebPage must point to mainEntity' );
 
 fwrite( STDOUT, "PASS: production SEO readiness and Schema graph contract\n" );

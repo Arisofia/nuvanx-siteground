@@ -75,9 +75,7 @@ add_action(
 	1
 );
 
-/**
- * Normaliza el documento público sin crear una segunda fuente de metadata.
- */
+/** Normalize the public document without creating a second metadata source. */
 function nvx_theme_normalize_public_document( string $html ): string {
 	$html = (string) preg_replace(
 		'/<meta\s+name=["\']viewport["\'][^>]*>/i',
@@ -133,6 +131,9 @@ require_once __DIR__ . '/nvx-p0-publication-guard.php';
 
 /** Canonical titles, descriptions, social URLs and environment robots policy. */
 require_once __DIR__ . '/nvx-seo-metadata.php';
+
+/** Production index headers and final MedicalOrganization graph normalization. */
+require_once __DIR__ . '/nvx-seo-production-readiness.php';
 
 /** Validated /contacto/ social image, local schema, visible copy and hours. */
 require_once __DIR__ . '/nvx-contacto-audit-fixes.php';

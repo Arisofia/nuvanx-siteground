@@ -50,19 +50,9 @@ function nvx_home_faq_v2_catalog(): array {
 			'a'  => 'Solo el médico puede determinarlo tras exploración. En NUVANX el diagnóstico evalúa piel, historial y objetivos antes de indicar Endolift®, CO₂, EXION®, IPL o una combinación. No se decide por teléfono ni por formulario.',
 		),
 		array(
-			'id' => 'trazabilidad-inyectables',
-			'q'  => '¿Cómo garantizan la originalidad de los inyectables?',
-			'a'  => 'En NUVANX utilizamos únicamente marcas médicas de referencia. La apertura del vial se realiza siempre en tu presencia y se entrega el código de trazabilidad o número de lote, evitando cualquier riesgo de falsificación.',
-		),
-		array(
-			'id' => 'dolor-anestesia',
-			'q'  => '¿Duelen los tratamientos láser o el Endolift®?',
-			'a'  => 'La medicina estética real implica molestias. Rechazamos el eufemismo comercial de "tratamiento indoloro"; en su lugar, aplicamos protocolos de anestesia local o infiltrada para gestionar el dolor de forma clínica y segura.',
-		),
-		array(
-			'id' => 'recuperacion-real',
-			'q'  => '¿Cuál es el tiempo real de recuperación post-tratamiento?',
-			'a'  => 'Procedimientos como el láser CO₂ o Endolift® generan inflamación temporal. En la valoración médica te explicamos con honestidad los días de "recuperación social" necesarios, para que planifiques tu agenda sin falsas promesas de "mínimas molestias".',
+			'id' => 'recuperacion',
+			'q'  => '¿Implican los tratamientos tiempo de recuperación?',
+			'a'  => 'Depende del protocolo, la zona, los parámetros y la respuesta individual. Antes de decidir se explican los cuidados, los posibles efectos y el período de recuperación esperable.',
 		),
 		array(
 			'id' => 'diferencia-estetica',
@@ -78,6 +68,21 @@ function nvx_home_faq_v2_catalog(): array {
 			'id' => 'equipo-medico',
 			'q'  => '¿Quién forma el equipo médico de NUVANX?',
 			'a'  => 'Dirección médica del Dr. José Javier Rivera Tejeda (ICOMEM), con Dra. Ivon Yamileth Rivera Deras (well-aging / geriatría preventiva, FEA Hospital La Paz) y Dr. Fabio Augusto Quiñónez Bareiro (PhD, geriatría y paciente complejo), además del resto del equipo clínico.',
+		),
+		array(
+			'id' => 'inyectables-trazabilidad',
+			'q'  => '¿Cómo puedo saber que los productos que me aplican son originales y de calidad verificada?',
+			'a'  => 'En NUVANX el médico abre cada vial en presencia del paciente. El código de lote queda registrado en el historial clínico. Trabajamos exclusivamente con distribuidores oficiales de las marcas que empleamos. Si quieres consultar el certificado de proveedor de cualquier producto antes de firmar el presupuesto, te lo facilitamos.',
+		),
+		array(
+			'id' => 'dolor-anestesia-laser',
+			'q'  => '¿Qué pasa con el dolor en procedimientos como Endolift® o láser CO₂ fraccionado?',
+			'a'  => 'No lo minimizamos. Los procedimientos láser y de aparatología de alta energía producen sensaciones intensas si no se aplica un protocolo anestésico adecuado. En NUVANX todos los tratamientos incluyen formulación anestésica tópica de alta concentración aplicada con tiempo suficiente antes de comenzar. Para pacientes con baja tolerancia al dolor, el equipo médico adapta el protocolo en la valoración previa.',
+		),
+		array(
+			'id' => 'recuperacion-real-laser',
+			'q'  => '¿Cómo es la recuperación real tras un tratamiento láser en NUVANX?',
+			'a'  => 'Depende del tratamiento y de los parámetros utilizados. Con láser CO₂ fraccionado, los primeros 3 a 5 días puede haber enrojecimiento, sensación de calor y descamación en la zona tratada. Con Endolift®, la recuperación suele ser más breve. En consulta se explican los cuidados diarios y las señales de alerta antes de decidir. El equipo está disponible durante el período de recuperación para cualquier duda.',
 		),
 	);
 }

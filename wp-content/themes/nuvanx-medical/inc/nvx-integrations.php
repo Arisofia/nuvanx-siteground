@@ -52,7 +52,7 @@ add_action(
 	-999999
 );
 
-/** Redirect 301 slug antiguo privacidad. */
+/** Redirect the legacy privacy slug to the canonical P0 route. */
 add_action(
 	'template_redirect',
 	function () {
@@ -61,8 +61,8 @@ add_action(
 		}
 		$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '';
 		$norm = '/' . trim( $path, '/' ) . '/';
-		if ( $norm === '/politica-privacidad/' ) {
-			wp_safe_redirect( home_url( '/politica-de-privacidad/' ), 301 );
+		if ( '/politica-de-privacidad/' === $norm ) {
+			wp_safe_redirect( home_url( '/politica-privacidad/' ), 301 );
 			exit;
 		}
 	},
@@ -141,7 +141,7 @@ require_once __DIR__ . '/nvx-home-content-v2.php';
 require_once __DIR__ . '/nvx-faq-content-v2.php';
 
 /** Visible and schema review provenance, only after explicit approval metadata. */
-	// Removed: require_once __DIR__ . '/nvx-medical-review.php';
+require_once __DIR__ . '/nvx-medical-review.php';
 
 /** Temporary clinical safeguard for BTL detail pages pending source-copy sign-off. */
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';

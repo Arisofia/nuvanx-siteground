@@ -417,10 +417,10 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$hero .= '<h1 class="nvx-brand-hero__title" id="' . esc_attr( $id ) . '-h1">' . esc_html( $c['h1'] ) . '</h1>';
 	
 	// E-E-A-T Medical Authority Byline
-	$hero .= '<div class="nvx-medical-byline" style="display:flex; align-items:center; gap:0.75rem; margin-top:1rem; margin-bottom:1.5rem; font-size:0.875rem; color:var(--nvx-color-text-muted, #555);">';
-	$hero .= '<div class="nvx-medical-byline__text" style="line-height:1.4;">';
+	$hero .= '<div class="nvx-medical-byline">';
+	$hero .= '<div class="nvx-medical-byline__text">';
 	$hero .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
-	$hero .= '<span style="font-size:0.85em; opacity:0.85;">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
+	$hero .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
 	$hero .= '</div></div>';
 	$hero .= '<p class="nvx-brand-hero__lead">' . esc_html( $c['lead'] ) . '</p>';
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {

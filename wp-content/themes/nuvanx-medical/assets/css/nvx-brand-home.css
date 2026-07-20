@@ -192,3 +192,11 @@ body.nvx-hero-blackout :where(
 ) {
   color: var(--nvx-text-on-dark-72);
 }
+
+
+/* Home Benefits Grid */
+.nvx-benefits__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+.nvx-benefit-item { display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px; }
+.nvx-benefit-icon { width: 40px; height: 40px; flex-shrink: 0; }
+.nvx-benefit-text { font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111); }
+

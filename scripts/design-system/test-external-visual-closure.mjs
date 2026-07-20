@@ -117,10 +117,12 @@ requireMatch(
   /#nvx-footer-cta\s*\{[\s\S]*?text-transform:\s*uppercase;/,
   'footer CTA must keep its uppercase treatment',
 );
+
+// --- Narrow viewport collapse ---
 requireMatch(
   closure,
-  /@media \(max-width: (?:720px|45em)\)\s*\{[\s\S]*?\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*?min-height:\s*calc\(var\(--nvx-space-12\) \* 3\)/,
-  'strategy hero minimum height must shrink on narrow viewports',
+  /@media \(max-width: 45em\)\s*\{[\s\S]*?\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*?min-height:\s*calc\(var\(--nvx-space-12\) \* 3\)/,
+  'strategy hero minimum height must shrink under 45em',
 );
 
 if (failures.length) {

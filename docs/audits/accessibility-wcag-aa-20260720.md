@@ -17,11 +17,11 @@
 - **Action Items**: Asegurar que las imágenes insertadas por editores en HubSpot o en los posts médicos tengan el atributo `alt` correcto en la capa de contenido.
 
 ### 1.2 Contrast (Minimum)
-- **Status**: `PASS`
+- **Status**: `PASS / PARTIAL`
 - **Findings**:
   - El design system utiliza pares de alto contraste de manera estricta: `--nvx-ink` (`#1a1a1a`) sobre `--nvx-light` (`#fcfbf8`).
-  - El ratio de contraste excede holgadamente el 4.5:1 exigido para textos normales y el 3:1 para textos grandes.
-  - La auditoría en `scripts/accessibility/test-contrast-contract.mjs` certifica la ausencia de violaciones de contraste en el uso de los tokens principales.
+  - El ratio de contraste excede holgadamente el 4.5:1 exigido para textos normales y el 3:1 para textos grandes en los pares documentados.
+  - La auditoría en `scripts/accessibility/test-contrast-contract.mjs` certifica la ausencia de violaciones de contraste únicamente en los pares de tokens y contextos que verifica explícitamente, pero no constituye una garantía global para todo el sitio.
 
 ---
 
@@ -40,7 +40,7 @@
 ### 2.2 Navigable (Touch Targets)
 - **Status**: `PASS`
 - **Findings**:
-  - Todos los botones interactivos e íconos en marcos (ej. Joinchat frame) tienen un área mínima de interacción de `48px` (`--nvx-icon-frame`), cumpliendo el estándar avanzado de accesibilidad táctil.
+  - Todos los botones interactivos e íconos en marcos (ej. Joinchat frame) aplican un umbral interno de diseño de `48px` (`--nvx-icon-frame`), superando sobradamente los requisitos normativos aplicables (WCAG 2.1 2.5.5 como AAA de 44×44 CSS px, o WCAG 2.2 2.5.8 como AA de 24×24 CSS px).
 
 ---
 
@@ -59,10 +59,11 @@
 *Content must be robust enough that it can be interpreted by a wide variety of user agents, including assistive technologies.*
 
 ### 4.1 Parsing & ARIA Roles
-- **Status**: `PASS`
+- **Status**: `PASS / PENDING`
 - **Findings**:
-  - Roles estructurales implementados correctamente.
-  - Las herramientas de auditoría (`audit-visual-system.mjs`) rechazan el HTML mal formado o la fuga de estilos "inline", garantizando un árbol DOM limpio para los Screen Readers.
+  - Roles estructurales implementados correctamente en el esqueleto base.
+  - Las herramientas de auditoría (`audit-visual-system.mjs`) rechazan el HTML mal formado o la fuga de estilos "inline", garantizando un árbol DOM limpio.
+  - *Nota*: La validez del HTML/CSS no demuestra automáticamente compatibilidad total con lectores de pantalla. Las pruebas específicas con lectores de pantalla están pendientes.
 
 ---
 

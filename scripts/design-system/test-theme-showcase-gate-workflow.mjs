@@ -48,11 +48,19 @@ requireMatch(
   'fetch-depth: 0 and persist-credentials: false must both live in the checkout step `with:` block',
 );
 
-// This workflow only checks out the repository once, so the guard should
-// appear exactly once.
-const persistCredentialsMatches = workflow.match(/persist-credentials:/g) || [];
-if (persistCredentialsMatches.length !== 1) {
-  failures.push(`expected exactly one persist-credentials setting, found ${persistCredentialsMatches.length}`);
+const steps = workflow.split(/\n\s{6}-\s/);
+const checkoutSteps = steps.filter(step => step.includes('uses: actions/checkout'));
+
+if (checkoutSteps.length === 0) {
+  failures.push('theme showcase gate workflow is missing the repository checkout step');
+} else if (checkoutSteps.length > 1) {
+  failures.push(`expected exactly one checkout step, found ${checkoutSteps.length}`);
+}
+
+for (const step of checkoutSteps) {
+  if (!/persist-credentials:\s*false/.test(step)) {
+    failures.push('checkout step must disable credential persistence');
+  }
 }
 
 requireAbsent(

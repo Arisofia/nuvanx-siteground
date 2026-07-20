@@ -42,11 +42,19 @@ requireMatch(
   'persist-credentials: false must be configured via the checkout step `with:` block',
 );
 
-// This is a same-repository cleanup job with no other checkout steps, so the
-// guard should appear exactly once.
-const persistCredentialsMatches = workflow.match(/persist-credentials:/g) || [];
-if (persistCredentialsMatches.length !== 1) {
-  failures.push(`expected exactly one persist-credentials setting, found ${persistCredentialsMatches.length}`);
+const steps = workflow.split(/\n\s{6}-\s/);
+const checkoutSteps = steps.filter(step => step.includes('uses: actions/checkout'));
+
+if (checkoutSteps.length === 0) {
+  failures.push('artifact cleanup workflow is missing the repository checkout step');
+} else if (checkoutSteps.length > 1) {
+  failures.push(`expected exactly one checkout step, found ${checkoutSteps.length}`);
+}
+
+for (const step of checkoutSteps) {
+  if (!/persist-credentials:\s*false/.test(step)) {
+    failures.push('checkout step must disable credential persistence');
+  }
 }
 
 requireAbsent(

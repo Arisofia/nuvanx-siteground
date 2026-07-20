@@ -110,7 +110,7 @@ requireMatch(
 requireMatch(
   closure,
   /@media \(max-width: 45em\)\s*\{[\s\S]*?\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*?min-height:\s*calc\(var\(--nvx-space-12\) \* 3\)/,
-  'strategy hero min-height must be reduced under 720px',
+  'strategy hero min-height must be reduced under 45em',
 );
 
 requireAbsent(closure, /!important/i, 'external closure must not use !important');

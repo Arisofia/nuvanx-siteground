@@ -83,7 +83,8 @@ requireMatch(visual, /font-weight:\s*var\(--nvx-fw-heading\)/, 'global headings 
 requireMatch(visual, /\.nvx-caption[\s\S]*--nvx-track-caption[\s\S]*text-transform:\s*uppercase/, 'caption role is incomplete');
 requireMatch(tokenDocs, /Playfair Display[\s\S]*Manrope/, 'token documentation does not describe the canonical pair');
 requireMatch(typeDocs, /Playfair Display[\s\S]*Manrope/, 'typography documentation does not describe the canonical pair');
-requireAbsent(`${tokenDocs}\n${typeDocs}`, /Bodoni Moda.*(?:activo|oficial)|Cormorant Garamond.*(?:activo|oficial)/i, 'documentation still presents an alternate serif as active');
+requireMatch(typeDocs, /Bodoni Moda y Cormorant Garamond no forman parte del sistema activo/i, 'typography docs must explicitly retire alternate serif families');
+requireMatch(tokenDocs, /Fuentes prohibidas[\s\S]*Bodoni Moda[\s\S]*Cormorant Garamond/i, 'token docs must explicitly retire alternate serif families');
 requireMatch(iconDocs, /currentColor[\s\S]*--nvx-icon-stroke/, 'icon documentation does not describe the currentColor contract');
 requireMatch(numberingDocs, /01[\s\S]*02[\s\S]*03/, 'numbering documentation does not define the canonical sequence');
 

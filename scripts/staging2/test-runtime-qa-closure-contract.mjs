@@ -23,8 +23,9 @@ requireText(shell, '! $has_managed_editorial', 'managed editorial pages must sup
 
 requireText(closure, "require_once __DIR__ . '/nvx-staging2-canonical-closure.php';", 'external closure must load the non-public canonical module');
 requireText(canonical, 'https://nuvanx.com', 'approved Staging2 routes must point to the public canonical host');
-requireText(canonical, 'nvx_staging2_canonical_is_protected_review', 'protected review routes must be recognized');
+requireText(canonical, 'nvx_staging2_canonical_is_approved_strategy', 'strategy canonical eligibility must use an explicit approval helper');
 requireText(canonical, "'approved_for_publication'", 'only explicitly approved strategy routes may expose a public canonical');
+requireText(canonical, '$is_protected', 'unapproved strategy routes must remain protected');
 requireText(canonical, "add_filter( 'wpseo_canonical'", 'Yoast canonical output must be filtered');
 requireText(canonical, "add_filter( 'wpseo_opengraph_url'", 'Open Graph URL must use the same public mapping');
 

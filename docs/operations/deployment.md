@@ -70,7 +70,7 @@ It then runs `tools/deploy/deploy-to-staging2.sh`, which:
 8. Runs `scripts/staging2/smoke-verify-staging2.sh` from the GitHub runner.
 
 A successful run emits `DEPLOY_STAGING2_OK` and records the SHA in the Actions
-summary. The temporary upload is removed only after the smoke verification passes.
+summary. The temporary upload is always removed at the end of the workflow, regardless of success or failure.
 
 ### Host-authorized fallback
 

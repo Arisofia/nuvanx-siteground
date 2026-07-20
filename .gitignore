@@ -1,125 +1,21 @@
-# Secrets and environment
+# Core WordPress y Entorno Sensible
 wp-config.php
-**/wp-config.php
-**/source_site_wpconfig
 .env
-.env.*
-*.pem
-*.key
-*.crt
-*.yaml
-*.yml
-# Offline Issue 45 recovery public key is intentionally tracked (private key stays offline).
-!docs/security/issue45-backup-public-key.pem
-
-# Accidental root npm scaffold (theme deploys from PHP, not this package.json)
-/package.json
-/package-lock.json
-/node_modules/
-
-# Server-specific (root / runtime)
 .htaccess
-php.ini
-.user.ini
-.well-known/
 
-# WordPress core â€” ROOT ONLY (leading /). Do NOT ignore theme PHP.
-/wp-admin/
-/wp-includes/
-/wp-*.php
-/index.php
-/xmlrpc.php
-/license.txt
-/readme.html
-
-# Generated/runtime and backups
+# Directorios Dinámicos (NO rastrear)
 wp-content/uploads/
 wp-content/cache/
 wp-content/upgrade/
-wp-content/backup-db/
-wp-content/ai1wm-backups/
-wp-content/updraft/
-wp-content/backups-dup-lite/
-wp-content/backups-nuvanx/
-wp-content/backups-*/
-wp-content/object-cache.php
-wp-content/advanced-cache.php
-wp-content/db.php
-wp-content/maintenance.php
-wp-content/sunrise.php
-wp-content/sgo-config.php
-wp-content/sgs_encrypt_key.php
-# Divi/ET dynamic CSS cache (runtime â€” never version)
-wp-content/et-cache/
-# WordPress language packs (install via WP admin / GlotPress â€” not source)
-wp-content/languages/
-**/dup-installer/
-**/installer/original_files_*/
-*installer*.php
-*installer*.log
-*installer-log*.txt
-*bootlog*.txt
-entries_stored.json
-wp-content/debug.log
+wp-content/wflogs/
+
+# Plugins y Caché Específicos de NUVANX
+wp-content/uploads/siteground-optimizer-assets/
+wp-content/uploads/backwpup-*/
+wp-content/uploads/sb-instagram-feed-images/
+
+# Logs y Archivos de Sistema Operativo
 *.log
-*.sql
-*.sql.gz
-*.zip
-*.tar.gz
-
-# Python bytecode
-**/__pycache__/
-*.py[cod]
-*$py.class
-
-# Third-party dependencies and non-canonical themes
-node_modules/
-**/node_modules/
-wp-content/plugins/*
-wp-content/themes/*
-
-# Track only the canonical custom theme + mu-plugins.
-!wp-content/plugins/
-!wp-content/themes/
-!wp-content/themes/nuvanx-medical/
-!wp-content/themes/nuvanx-medical/**
-!wp-content/mu-plugins/
-!wp-content/mu-plugins/**
-
-# Existing runtime/cache entries
-wp-content/cache/supercache/
-wp-content/w3tc-cache/
-
-# Local IDE / agent tooling
-mcps/
-terminals/
-agent-tools/
-Nuvanx-System/
-
-# Local QA run output (not versioned)
-qa/screenshots/
-qa/results/
-qa/seo-geo/rendered-audit.json
-qa/seo-geo/rendered-audit.md
-qa/clinical-claims/claims-audit.json
-qa/clinical-claims/claims-audit.md
-
-# Audit run output
-artifacts/audit-results/
-artifacts/content/
-artifacts/visual-validation-*/
-artifacts/capture-treatment-pages.js
-
-# Theme runtime logs
-wp-content/themes/*/php_errorlog
-php_errorlog
-
-# Local staging QA evidence (not production source)
-artifacts/staging2-*/
-artifacts/staging2-prep-*/
-
-# Local screenshot / agent one-shots (not production source)
-.tmp-screens/
-.tmp*/
-tools/_audit_*.py
-tools/_cleanup_report.txt
+.DS_Store
+Thumbs.db
+error_log

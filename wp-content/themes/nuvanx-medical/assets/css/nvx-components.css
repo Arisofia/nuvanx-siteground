@@ -1045,5 +1045,5 @@ body.nvx-hero-blackout :where(
 
 .nvx-check-list.nvx-check-list--no li::before {
   content: "✕";
-  color: #a84242;
+  color: var(--nvx-text-muted);
 }

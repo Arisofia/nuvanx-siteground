@@ -24,7 +24,6 @@ const ACTIVE_STACK = [
 	'nvx-brand-home.css',
 	'nvx-hero-blackout.css',
 	'nvx-mobile-hero-hierarchy.css',
-	'nvx-medical-review.css',
 	'nvx-posts.css',
 ];
 

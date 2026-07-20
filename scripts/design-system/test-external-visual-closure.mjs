@@ -154,12 +154,12 @@ requireMatch(
 // --- Narrow viewport collapse ---
 requireMatch(
   closure,
-  /@media \(max-width: 720px\)\s*\{[\s\S]*?\.nvx-page--contact \.nvx-clinics-grid\s*\{[\s\S]*?grid-template-columns:\s*1fr;/,
+  /@media \(max-width: 45em\)\s*\{[\s\S]*?\.nvx-page--contact \.nvx-clinics-grid\s*\{[\s\S]*?grid-template-columns:\s*1fr;/,
   'contact clinic cards must collapse to a single column on narrow viewports',
 );
 requireMatch(
   closure,
-  /@media \(max-width: 720px\)\s*\{[\s\S]*?\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*?min-height:\s*calc\(var\(--nvx-space-12\) \* 3\)/,
+  /@media \(max-width: 45em\)\s*\{[\s\S]*?\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*?min-height:\s*calc\(var\(--nvx-space-12\) \* 3\)/,
   'the strategy hero minimum height must shrink on narrow viewports',
 );
 

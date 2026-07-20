@@ -38,14 +38,14 @@ function collectTypes(value, set = new Set()) {
 }
 
 /**
- * Audits a route at a specified viewport, records rendered-page findings, and captures a full-page screenshot.
+ * Audits a route at a specified viewport and captures a full-page screenshot.
  * @param {import('playwright').Browser} browser - Browser instance used to create the page context.
  * @param {string} slug - Route identifier used to classify results and name the screenshot.
  * @param {string} route - Route path to audit.
  * @param {string} viewport - Viewport label included in the result and screenshot name.
  * @param {number} width - Viewport width in pixels.
  * @param {number} height - Viewport height in pixels.
- * @return {Promise<object>} Audit result containing route metadata, HTTP status, headers, rendered data, console errors, failed requests, and findings.
+ * @return {object} Audit result containing route metadata, HTTP status, headers, rendered data, console errors, failed requests, and findings.
  */
 async function inspect(browser, slug, route, viewport, width, height) {
   const context = await browser.newContext({ viewport: { width, height }, locale: 'es-ES', reducedMotion: 'reduce', colorScheme: 'light' });

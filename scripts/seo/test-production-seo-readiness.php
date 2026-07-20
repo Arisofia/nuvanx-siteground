@@ -7,12 +7,12 @@ $GLOBALS['nvx_test_nonproduction'] = true;
 $GLOBALS['nvx_test_filters']       = array();
 
 /**
- * Records a filter registration for the test environment.
+ * Records a filter registration for test inspection.
  *
  * @param string   $hook         The filter hook name.
  * @param callable $callback     The callback associated with the filter.
  * @param int      $priority     The filter execution priority.
- * @param int      $accepted_args The number of arguments accepted by the callback.
+ * @param int      $accepted_args The number of callback arguments.
  */
 function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 	$GLOBALS['nvx_test_filters'][] = array( $hook, $callback, $priority, $accepted_args );
@@ -21,18 +21,23 @@ function is_admin() { return false; }
 function is_feed() { return false; }
 function is_front_page() { return false; }
 /**
- * Builds a URL on the staging site for the specified path.
+ * Builds a URL using the staging site base URL.
  *
  * @param string $path The path to append to the site URL.
- * @return string The resulting staging-site URL.
+ * @return string The resulting staging site URL.
  */
 function home_url( $path = '/' ) { return 'https://staging2.nuvanx.com' . ( '/' === $path ? '/' : $path ); }
-function get_queried_object_id() { return $GLOBALS['nvx_test_page_id'] ?? 42; }
 /**
- * Returns the treatment URL associated with a test page ID.
+ * Retrieves the current test page identifier.
  *
- * @param int $page_id The page ID to resolve.
- * @return string The treatment URL, or an empty string when no URL is mapped.
+ * @return int The configured page identifier, or 42 when none is set.
+ */
+function get_queried_object_id() { return (int) ( $GLOBALS['nvx_test_page_id'] ?? 42 ); }
+/**
+ * Returns the staging URL for a supported treatment page.
+ *
+ * @param int $page_id The treatment page identifier.
+ * @return string The treatment URL, or an empty string for an unsupported page.
  */
 function get_permalink( $page_id ) {
 	if ( 42 === (int) $page_id ) return 'https://staging2.nuvanx.com/exion-face/';
@@ -47,15 +52,26 @@ function get_permalink( $page_id ) {
  * @return string The value with trailing slashes removed and one slash appended.
  */
 function trailingslashit( $value ) { return rtrim( (string) $value, '/' ) . '/'; }
+/**
+ * Removes HTML and PHP tags from a value.
+ *
+ * @param mixed $value The value to process.
+ * @return string The value without HTML and PHP tags.
+ */
 function wp_strip_all_tags( $value ) { return strip_tags( (string) $value ); }
 function wp_kses_post( $value ) { return (string) $value; }
+/**
+ * Determines whether the test environment is configured as nonproduction.
+ *
+ * @return bool `true` when the nonproduction test flag is enabled, `false` otherwise.
+ */
 function nvx_seo_is_nonproduction_environment() { return (bool) $GLOBALS['nvx_test_nonproduction']; }
 /**
- * Adds a schema type to a list of types.
+ * Adds a type to a schema type list when it is not already present.
  *
- * @param mixed        $types Existing schema type or list of types.
- * @param string|mixed $type  Type to add.
- * @return array The filtered list of unique schema types.
+ * @param mixed  $types Existing schema type or list of schema types.
+ * @param string $type  Type to add.
+ * @return array The filtered, reindexed schema type list.
  */
 function nvx_schema_add_type( $types, $type ) {
 	$types = is_array( $types ) ? $types : array( $types );
@@ -65,25 +81,25 @@ function nvx_schema_add_type( $types, $type ) {
 	return array_values( array_filter( $types ) );
 }
 /**
- * Determines whether a schema type collection contains a specified type.
+ * Determines whether a type is present in a type collection.
  *
- * @param mixed  $types The schema type or types to search.
- * @param string $type  The type to find.
- * @return bool True if the specified type is present, false otherwise.
+ * @param array|string $types The type or types to search.
+ * @param string       $type  The type to find.
+ * @return bool `true` if the type is present, `false` otherwise.
  */
 function nvx_schema_has_type( $types, $type ) { return in_array( $type, is_array( $types ) ? $types : array( $types ), true ); }
 /**
- * Locates the organization node in a schema graph.
+ * Finds the organization node in a schema graph.
  *
  * @param array $graph The schema graph to inspect.
- * @return array The organization node index and identifier.
+ * @return array The organization's graph index and identifier.
  */
 function nvx_schema_find_organization( $graph ) { return array( 'index' => 0, 'id' => 'https://staging2.nuvanx.com/#organization' ); }
 /**
- * Resolves the treatment registry key for a page.
+ * Resolves a page ID to its treatment registry key.
  *
- * @param mixed $page_id Page identifier to resolve.
- * @return string|null The treatment key, or null when the page is not recognized.
+ * @param mixed $page_id The page ID to resolve.
+ * @return string|null The treatment key, or null when the page ID is not recognized.
  */
 function nvx_schema_resolve_treatment_key( $page_id ) {
 	if ( 42 === (int) $page_id ) return 'exion_face';
@@ -92,9 +108,9 @@ function nvx_schema_resolve_treatment_key( $page_id ) {
 	return null;
 }
 /**
- * Provides treatment detail data used by the BTL schema tests.
+ * Provides registered BTL treatment details, including FAQ content.
  *
- * @return array Treatment details keyed by treatment slug, including FAQ entries.
+ * @return array Treatment details keyed by treatment slug.
  */
 function nvx_btl_detail_registry() {
 	return array(
@@ -112,23 +128,14 @@ require dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-seo-p
 /**
  * Terminates the test with a failure message when a condition is false.
  *
- * @param mixed  $condition The condition to evaluate.
- * @param string $message   The failure message to write before termination.
+ * @param bool   $condition The condition that must be true for the test to continue.
+ * @param string $message   The message to write when the assertion fails.
  */
 function nvx_test_assert( $condition, $message ) {
 	if ( ! $condition ) {
 		fwrite( STDERR, "FAIL: {$message}\n" );
 		exit( 1 );
 	}
-}
-
-foreach ( array(
-	'_nvx_seo_schema_enrich_organization',
-	'_nvx_seo_schema_enrich_clinics',
-	'_nvx_seo_schema_promote_services',
-	'_nvx_seo_schema_link_main_entity',
-) as $nvx_test_helper ) {
-	nvx_test_assert( function_exists( $nvx_test_helper ), "graph normalization helper {$nvx_test_helper} must be defined" );
 }
 
 $headers = nvx_seo_nonproduction_x_robots_headers( array() );

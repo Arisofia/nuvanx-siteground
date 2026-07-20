@@ -138,26 +138,39 @@ function nvx_test_assert( $condition, $message ) {
 	}
 }
 
-$scalar_type_result = nvx_schema_add_type( 'Organization', 'MedicalOrganization' );
-nvx_test_assert( array( 'Organization', 'MedicalOrganization' ) === $scalar_type_result, 'a scalar $types value must be normalized to an array before appending' );
-
-$appended_type_result = nvx_schema_add_type( array( 'Service' ), 'MedicalProcedure' );
-nvx_test_assert( array( 'Service', 'MedicalProcedure' ) === $appended_type_result, 'a new type must be appended to an existing type list' );
-
-$duplicate_type_result = nvx_schema_add_type( array( 'Service', 'MedicalProcedure' ), 'MedicalProcedure' );
-nvx_test_assert( array( 'Service', 'MedicalProcedure' ) === $duplicate_type_result, 'an already-present type must not be duplicated' );
-
-$empty_list_result = nvx_schema_add_type( array(), 'Organization' );
-nvx_test_assert( array( 'Organization' ) === $empty_list_result, 'a type must be addable to an empty type list' );
-
-$blank_entries_result = nvx_schema_add_type( array( 'Organization', '', 0, null ), 'MedicalOrganization' );
-nvx_test_assert( array( 'Organization', 'MedicalOrganization' ) === $blank_entries_result, 'empty values already present in the type list must be filtered out' );
-
-$reindexed_keys_result = nvx_schema_add_type( array( 5 => 'Service', 9 => '' ), 'MedicalProcedure' );
-nvx_test_assert( array( 0 => 'Service', 1 => 'MedicalProcedure' ) === $reindexed_keys_result, 'the returned type list must have reindexed, zero-based numeric keys' );
-
-$blank_type_result = nvx_schema_add_type( array(), '' );
-nvx_test_assert( array() === $blank_type_result, 'appending an empty type must not leave a blank entry in the result' );
+// --- nvx_schema_add_type() ---
+nvx_test_assert(
+	array( 'MedicalOrganization' ) === nvx_schema_add_type( array(), 'MedicalOrganization' ),
+	'nvx_schema_add_type must add a type to an empty list'
+);
+nvx_test_assert(
+	array( 'Organization', 'MedicalOrganization' ) === nvx_schema_add_type( array( 'Organization' ), 'MedicalOrganization' ),
+	'nvx_schema_add_type must append a new type while preserving existing types'
+);
+nvx_test_assert(
+	array( 'Organization' ) === nvx_schema_add_type( array( 'Organization' ), 'Organization' ),
+	'nvx_schema_add_type must not duplicate a type that is already present'
+);
+nvx_test_assert(
+	array( 'Organization' ) === nvx_schema_add_type( 'Organization', 'Organization' ),
+	'nvx_schema_add_type must accept a scalar type value and normalize it to a list'
+);
+nvx_test_assert(
+	array( 'MedicalOrganization' ) === nvx_schema_add_type( '', 'MedicalOrganization' ),
+	'nvx_schema_add_type must treat an empty scalar existing value as an empty list'
+);
+nvx_test_assert(
+	array( 'Organization' ) === nvx_schema_add_type( array( 'Organization' ), '' ),
+	'nvx_schema_add_type must filter out an empty type value even after appending it'
+);
+nvx_test_assert(
+	array( 'Organization', 'MedicalOrganization' ) === nvx_schema_add_type( array( '', 'Organization', null ), 'MedicalOrganization' ),
+	'nvx_schema_add_type must strip empty values from the existing list and reindex the result'
+);
+nvx_test_assert(
+	array( 'Organization', 'MedicalOrganization' ) === nvx_schema_add_type( array( 5 => 'Organization', 10 => '' ), 'MedicalOrganization' ),
+	'nvx_schema_add_type must reindex non-sequential numeric keys after filtering'
+);
 
 $headers = nvx_seo_nonproduction_x_robots_headers( array() );
 nvx_test_assert( isset( $headers['X-Robots-Tag'] ), 'nonproduction must emit X-Robots-Tag' );

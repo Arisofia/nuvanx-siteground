@@ -61,8 +61,8 @@ add_action(
 		}
 		$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '';
 		$norm = '/' . trim( $path, '/' ) . '/';
-		if ( $norm === '/politica-de-privacidad/' ) {
-			wp_safe_redirect( home_url( '/politica-privacidad/' ), 301 );
+		if ( $norm === '/politica-privacidad/' ) {
+			wp_safe_redirect( home_url( '/politica-de-privacidad/' ), 301 );
 			exit;
 		}
 	},

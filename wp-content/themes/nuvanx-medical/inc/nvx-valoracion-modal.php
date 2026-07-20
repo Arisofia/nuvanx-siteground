@@ -67,7 +67,7 @@ function nvx_valoracion_modal_hubspot_config(): array {
 function nvx_valoracion_modal_markup(): string {
 	$cfg = nvx_valoracion_modal_hubspot_config();
 
-	$privacy = esc_url( home_url( '/politica-privacidad/' ) );
+	$privacy = esc_url( home_url( '/politica-de-privacidad/' ) );
 	$page    = function_exists( 'nvx_cta_valoracion_url' )
 		? nvx_cta_valoracion_url()
 		: home_url( '/madrid/valoracion/' );
@@ -78,7 +78,7 @@ function nvx_valoracion_modal_markup(): string {
 	$html .= '<button type="button" class="nvx-valoracion-modal__close" data-nvx-valoracion-modal-close aria-label="' . esc_attr__( 'Cerrar formulario', 'nuvanx-medical' ) . '">&times;</button>';
 	$html .= '<p class="nvx-eyebrow nvx-valoracion-modal__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-valoracion-modal-title" class="nvx-valoracion-modal__title">' . esc_html__( 'Solicita una valoración médica', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-valoracion-modal__lead">' . esc_html__( 'Una persona del equipo del Dr. Rivera te contactará en menos de 24 horas para confirmar tu valoración médica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-valoracion-modal__lead">' . esc_html__( 'El Dr. Rivera o un miembro de su equipo te contactará en un plazo máximo de 24 horas para confirmar tu fecha de valoración.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div id="nvx-valoracion-modal-form" class="nvx-valoracion-modal__form nvx-hubspot-form-section" data-nvx-valoracion-modal-form>';
 	$html .= '<div class="hs-form-frame" data-region="' . esc_attr( $cfg['region'] ) . '" data-form-id="' . esc_attr( $cfg['form_id'] ) . '" data-portal-id="' . esc_attr( $cfg['portal_id'] ) . '"></div>';
 	$html .= '</div>';

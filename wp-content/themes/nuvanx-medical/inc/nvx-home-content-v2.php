@@ -86,7 +86,7 @@ function nvx_home_content_v2_catalog(): array {
 			'kicker'          => 'Tu primera valoración clínica',
 			'title'           => 'Una consulta médica para determinar la indicación de tu caso.',
 			'body'            => 'Evaluamos tu caso, resolvemos dudas y documentamos las alternativas y el presupuesto tras la exploración. Atención en nuestras clínicas autorizadas de Chamberí (CS20144) y Salamanca–Goya (CS20073).',
-			'primary_label'   => 'Solicitar valoración médica',
+			'primary_label'   => 'Iniciar mi valoración médica',
 			'secondary_label' => 'Contactar por WhatsApp',
 		),
 		'method'    => array(

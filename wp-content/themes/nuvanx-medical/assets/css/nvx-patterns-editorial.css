@@ -2126,3 +2126,54 @@ figure.nvx-equipo-portrait,
   
 }
 
+/* -----------------------------------------------------------
+   STRATEGY PAGES EXTENSION — Checklists & Groups
+   ----------------------------------------------------------- */
+
+.nvx-check-list,
+.nvx-cross-list {
+  list-style: none;
+  margin: var(--nvx-space-4, 32px) 0;
+  padding: 0;
+  display: grid;
+  gap: var(--nvx-space-3, 24px);
+  max-width: 65ch;
+}
+
+.nvx-check-list li,
+.nvx-cross-list li {
+  position: relative;
+  padding-left: 2rem;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
+.nvx-check-list li::before {
+  content: "?";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--nvx-accent-muted, #C5A880);
+  font-weight: bold;
+}
+
+.nvx-cross-list li::before {
+  content: "?";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #a84242;
+  font-weight: bold;
+}
+
+.nvx-price-group-title {
+  margin: var(--nvx-space-6, 48px) 0 var(--nvx-space-3, 24px);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  color: var(--nvx-ink);
+  border-bottom: 1px solid var(--nvx-color-line);
+  padding-bottom: 8px;
+}

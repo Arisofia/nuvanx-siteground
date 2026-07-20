@@ -36,7 +36,13 @@ function nvx_seo_nonproduction_x_robots_headers( $headers ): array {
 }
 add_filter( 'wp_headers', 'nvx_seo_nonproduction_x_robots_headers', 100 );
 
-/** Add a Schema.org type without discarding existing types. */
+/**
+ * Adds a Schema.org type while preserving existing types.
+ *
+ * @param mixed  $types Existing Schema.org type or types.
+ * @param string $type  Type to add.
+ * @return array The resulting list of Schema.org types.
+ */
 function nvx_seo_schema_add_type( $types, string $type ): array {
 	if ( function_exists( 'nvx_schema_add_type' ) ) {
 		return nvx_schema_add_type( $types, $type );
@@ -51,7 +57,13 @@ function nvx_seo_schema_add_type( $types, string $type ): array {
 	return $types;
 }
 
-/** Return whether a Schema.org type is present. */
+/**
+ * Determines whether a Schema.org type is present in a type collection.
+ *
+ * @param mixed  $types The Schema.org type or types to inspect.
+ * @param string $type  The type to find.
+ * @return bool `true` if the type is present, `false` otherwise.
+ */
 function nvx_seo_schema_has_type( $types, string $type ): bool {
 	if ( function_exists( 'nvx_schema_has_type' ) ) {
 		return nvx_schema_has_type( $types, $type );
@@ -60,7 +72,13 @@ function nvx_seo_schema_has_type( $types, string $type ): bool {
 	return in_array( $type, is_array( $types ) ? $types : array( $types ), true );
 }
 
-/** Replace a graph node by @id or append it. */
+/**
+ * Inserts a schema graph node or replaces an existing node with the same identifier.
+ *
+ * @param array $graph The schema graph.
+ * @param array $node The node to insert or replace.
+ * @return array The updated schema graph.
+ */
 function nvx_seo_schema_upsert_node( array $graph, array $node ): array {
 	$id = isset( $node['@id'] ) ? (string) $node['@id'] : '';
 	if ( '' !== $id ) {
@@ -76,7 +94,12 @@ function nvx_seo_schema_upsert_node( array $graph, array $node ): array {
 	return $graph;
 }
 
-/** Normalize dayOfWeek values to canonical Schema.org URLs. */
+/**
+ * Converts recognized day names to canonical Schema.org URLs.
+ *
+ * @param mixed $days A day name or an array of day names.
+ * @return mixed The canonical URL or an array of canonical URLs, preserving unrecognized values.
+ */
 function nvx_seo_schema_normalize_days( $days ) {
 	$map = array(
 		'Monday'    => 'https://schema.org/Monday',
@@ -96,7 +119,11 @@ function nvx_seo_schema_normalize_days( $days ) {
 	return is_array( $days ) ? array_values( array_map( $normalize, $days ) ) : $normalize( $days );
 }
 
-/** Current canonical page URL for graph matching. */
+/**
+ * Resolves the current page URL for schema graph matching.
+ *
+ * @return string The current page permalink, or the site home URL when no page permalink is available.
+ */
 function nvx_seo_schema_current_page_url(): string {
 	if ( is_front_page() ) {
 		return home_url( '/' );

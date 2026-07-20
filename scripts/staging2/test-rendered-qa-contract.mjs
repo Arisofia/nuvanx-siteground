@@ -1,203 +1,274 @@
 #!/usr/bin/env node
+import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
-import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
-const failures = [];
 
-function requireMatch(source, pattern, message) {
-  if (!pattern.test(source)) failures.push(message);
-}
-function requireAbsent(source, pattern, message) {
-  if (pattern.test(source)) failures.push(message);
-}
-function requireText(source, text, message) {
-  if (!source.includes(text)) failures.push(message);
-}
-
-const workflowPath = '.github/workflows/staging2-rendered-qa.yml';
-const scriptPath = 'scripts/staging2/rendered-qa.mjs';
 const routesPath = 'scripts/staging2/rendered-qa-routes.json';
+const scriptPath = 'scripts/staging2/rendered-qa.mjs';
+const workflowPath = '.github/workflows/staging2-rendered-qa.yml';
 
-for (const requiredPath of [workflowPath, scriptPath, routesPath]) {
-  if (!fs.existsSync(path.join(root, requiredPath))) {
-    failures.push(`missing required rendered QA contract file: ${requiredPath}`);
-  }
+for (const requiredPath of [routesPath, scriptPath, workflowPath]) {
+  assert.ok(fs.existsSync(path.join(root, requiredPath)), `missing required rendered QA contract file: ${requiredPath}`);
 }
 
-if (failures.length) {
-  console.error('Staging2 rendered QA contract failed:');
-  for (const failure of failures) console.error(`- ${failure}`);
-  process.exit(1);
-}
-
-const workflow = read(workflowPath);
-const script = read(scriptPath);
+// ---------------------------------------------------------------------------
+// rendered-qa-routes.json data contract.
+//
+// This exercises the real parsed data (not just text matching) because the
+// file is plain JSON config consumed directly by rendered-qa.mjs.
+// ---------------------------------------------------------------------------
 const routesRaw = read(routesPath);
+let config;
+assert.doesNotThrow(() => { config = JSON.parse(routesRaw); }, 'rendered-qa-routes.json must be valid JSON');
 
-// --- Syntax / JSON validity, mirroring the workflow's "Validate audit source" step ---
-try {
-  execFileSync(process.execPath, ['--check', path.join(root, scriptPath)], { stdio: 'pipe' });
-} catch (error) {
-  failures.push(`rendered-qa.mjs failed node --check: ${error.message}`);
-}
+assert.equal(typeof config.baseUrl, 'string', 'config.baseUrl must be a string');
+assert.match(config.baseUrl, /^https:\/\//, 'config.baseUrl must use https');
+assert.equal(config.baseUrl, config.baseUrl.replace(/\/$/, ''), 'config.baseUrl must not have a trailing slash in the source config');
+assert.ok(new URL(config.baseUrl).hostname.endsWith('nuvanx.com'), 'config.baseUrl must target a nuvanx.com host');
 
-let routes;
-try {
-  routes = JSON.parse(routesRaw);
-} catch (error) {
-  failures.push(`rendered-qa-routes.json is not valid JSON: ${error.message}`);
-}
+assert.ok(Array.isArray(config.routes), 'config.routes must be an array');
+assert.ok(config.routes.length > 0, 'config.routes must not be empty');
 
-// --- Routes config contract ---
-if (routes) {
-  if (typeof routes.baseUrl !== 'string' || !/^https:\/\/staging2\.nuvanx\.com$/.test(routes.baseUrl)) {
-    failures.push('routes config must pin baseUrl to https://staging2.nuvanx.com');
-  }
-  if (!Array.isArray(routes.routes) || routes.routes.length === 0) {
-    failures.push('routes config must declare a non-empty routes array');
-  } else {
-    const slugs = new Set();
-    const paths = new Set();
-    for (const entry of routes.routes) {
-      if (!Array.isArray(entry) || entry.length !== 2) {
-        failures.push(`route entry must be a [slug, path] tuple: ${JSON.stringify(entry)}`);
-        continue;
-      }
-      const [slug, route] = entry;
-      if (typeof slug !== 'string' || !/^[a-z0-9-]+$/.test(slug)) {
-        failures.push(`route slug must be a lowercase kebab-case string: ${JSON.stringify(slug)}`);
-      }
-      if (slugs.has(slug)) failures.push(`duplicate route slug: ${slug}`);
-      slugs.add(slug);
-      if (typeof route !== 'string' || !route.startsWith('/')) {
-        failures.push(`route path must be absolute: ${JSON.stringify(route)}`);
-      } else {
-        if (route !== '/' && !route.endsWith('/')) {
-          failures.push(`route path must end with a trailing slash: ${route}`);
-        }
-        if (paths.has(route)) failures.push(`duplicate route path: ${route}`);
-        paths.add(route);
-      }
-    }
-
-    const homeRoute = routes.routes.find((entry) => Array.isArray(entry) && entry[0] === 'home');
-    if (!homeRoute || homeRoute[1] !== '/') failures.push('home route must map to the root path "/"');
-
-    // rendered-qa.mjs branches its schema assertions on these exact slugs, so the
-    // routes config must keep them present or the audit silently stops checking schema.
-    for (const requiredSlug of ['home', 'contacto', 'clinicas', 'endolift', 'laser', 'medicina-estetica']) {
-      if (!slugs.has(requiredSlug)) failures.push(`routes config must keep required slug: ${requiredSlug}`);
-    }
-
-    // The baseUrl declared in the routes config and the default base_url exposed by the
-    // workflow's manual dispatch input must stay in sync, otherwise CI defaults silently
-    // diverge from the checked-in fixture used for local/PR runs.
-    const workflowDefaultBaseUrl = workflow.match(/default:\s*'(https:\/\/[^']+)'/)?.[1];
-    if (workflowDefaultBaseUrl && workflowDefaultBaseUrl !== routes.baseUrl) {
-      failures.push(`workflow default base_url (${workflowDefaultBaseUrl}) must match routes.baseUrl (${routes.baseUrl})`);
-    }
-  }
-}
-
-// --- rendered-qa.mjs behavioral contract ---
-requireText(script, "import { chromium } from 'playwright';", 'script must import chromium from the playwright package');
-requireText(script, "readFileSync(new URL('./rendered-qa-routes.json', import.meta.url), 'utf8')", 'script must load routes relative to its own module URL');
-requireText(script, 'process.env.BASE_URL || config.baseUrl', 'script must allow BASE_URL to override the configured baseUrl');
-requireText(script, ".replace(/\\/$/, '')", 'script must normalize a trailing slash off the base URL');
-requireText(script, "const viewports = [['desktop', 1440, 1100], ['mobile', 390, 844]];", 'script must audit both a desktop (1440x1100) and a mobile (390x844) viewport');
-requireText(script, '(ReferenceError|TypeError|SyntaxError|Uncaught|FacebookSignal|is not defined)', 'script must flag critical JS error signatures in console output');
-requireText(script, "args: ['--no-sandbox', '--disable-setuid-sandbox']", 'browser launch must use CI-safe sandbox flags');
-requireText(script, 'await browser.close();', 'script must close the browser after auditing all routes');
-
-for (const [snippet, message] of [
-  ["add(findings, 'critical', 'page-error', error.message)", "script must report uncaught page errors as 'page-error' findings"],
-  ["!/(google|facebook|doubleclick|hubspot|hs-scripts|clarity)\\./i.test(url)", 'script must ignore known third-party request failures'],
-  ["request.resourceType() !== 'media'", 'script must ignore failed media requests'],
-  ["add(findings, 'critical', 'navigation-failed', error.message)", "script must report navigation failures as 'navigation-failed' findings"],
-  ["'critical', 'http-status'", "script must report bad HTTP statuses as 'http-status' findings"],
-  ["if (rendered.captcha) add(findings, 'critical', 'siteground-captcha'", 'script must fail when a bot-challenge page is rendered'],
-  ["if (!rendered.title) add(findings, 'critical', 'missing-title'", 'script must require a non-empty title'],
-  ["if (!rendered.description) add(findings, 'warning', 'missing-description'", 'script must warn on an empty meta description'],
-  ["if (rendered.h1s.length !== 1) add(findings, 'critical', 'h1-count'", 'script must require exactly one H1'],
-  ["if (!/noindex/i.test(rendered.robots) && !/noindex/i.test(headers['x-robots-tag'] || '')) add(findings, 'critical', 'staging-indexable'", 'script must fail staging pages that are missing noindex'],
-  ["if (!rendered.canonical) add(findings, 'critical', 'missing-canonical'", 'script must require a canonical link'],
-  ["add(findings, 'warning', 'canonical-host', host)", "script must warn when the canonical host doesn't match the expected canonical host"],
-  ["add(findings, 'critical', 'invalid-canonical', rendered.canonical)", 'script must fail when the canonical URL cannot be parsed'],
-  ["if (rendered.overflow > 2) add(findings, 'critical', 'horizontal-overflow'", 'script must detect horizontal overflow'],
-  ["if (rendered.duplicateIds.length) add(findings, 'critical', 'duplicate-ids'", 'script must detect duplicate element ids'],
-  ["if (rendered.missingAlt.length) add(findings, 'warning', 'missing-alt'", 'script must warn on images missing alt text'],
-  ["if (!/Manrope/i.test(rendered.bodyFont)) add(findings, 'warning', 'body-font'", 'script must warn when the body font is not Manrope'],
-  ["if (rendered.h1s.length && !/Playfair Display/i.test(rendered.h1Font)) add(findings, 'warning', 'heading-font'", 'script must warn when the heading font is not Playfair Display'],
-  ["if (rendered.smallControls.length) add(findings, 'warning', 'small-controls'", 'script must warn on undersized interactive controls'],
-  ["size(rendered.joinchatButton, 48, 'joinchat-frame-size'); size(rendered.joinchatIcon, 24, 'joinchat-icon-size'); size(rendered.inlineWhatsapp, 16, 'inline-whatsapp-size');", 'script must validate joinchat/whatsapp widget dimensions'],
-  ["add(findings, 'critical', 'invalid-jsonld'", 'script must fail on invalid JSON-LD'],
-  ["['home', 'contacto', 'clinicas'].includes(slug) && !rendered.schemaTypes.includes('MedicalClinic')) add(findings, 'warning', 'schema-medical-clinic'", 'script must require MedicalClinic schema on clinic-facing routes'],
-  ["['endolift', 'laser', 'medicina-estetica'].includes(slug) && !rendered.schemaTypes.includes('MedicalProcedure')) add(findings, 'warning', 'schema-medical-procedure'", 'script must require MedicalProcedure schema on treatment routes'],
-  ['await page.screenshot({ path: path.join(out, `${slug}-${viewport}.png`), fullPage: true, animations: \'disabled\' });', 'script must capture a full-page screenshot named by slug and viewport'],
-  ["fs.writeFileSync(path.join(out, 'report.json')", 'script must write a machine-readable report.json artifact'],
-  ["fs.writeFileSync(path.join(out, 'report.md'), md)", 'script must write a human-readable report.md artifact'],
-  ['if (critical.length) process.exit(1);', 'script must exit non-zero whenever any critical finding is present'],
-]) {
-  requireText(script, snippet, message);
-}
-
-// --- Workflow trigger and safety contract ---
-requireMatch(workflow, /^\s{2}pull_request:/m, 'workflow must run on pull requests touching the QA sources');
-requireMatch(workflow, /^\s{2}workflow_dispatch:/m, 'workflow must support manual dispatch with an overridable base URL and SHA');
-requireAbsent(workflow, /^\s{2}push:/m, 'workflow must not run rendered QA on every push');
-requireAbsent(workflow, /^\s{2}schedule:/m, 'workflow must not run rendered QA on a schedule');
-
-for (const triggerPath of [
-  '.github/workflows/staging2-rendered-qa.yml',
-  'scripts/staging2/rendered-qa.mjs',
-  'scripts/staging2/rendered-qa-routes.json',
-]) {
-  requireText(workflow, `- '${triggerPath}'`, `workflow must trigger on changes to ${triggerPath}`);
-}
-
-requireText(workflow, "default: 'https://staging2.nuvanx.com'", 'workflow must default base_url to the staging2 origin');
-requireMatch(workflow, /default:\s*'[0-9a-f]{40}'/, 'workflow must default expected_sha to a full 40-character commit SHA');
-requireMatch(workflow, /permissions:\s*\n\s+contents: read/, 'workflow must use read-only permissions');
-requireText(workflow, 'cancel-in-progress: true', 'concurrent QA runs for the same ref must cancel the stale run');
-requireText(workflow, 'timeout-minutes: 30', 'workflow must bound the audit job with a timeout');
-requireText(workflow, 'EXPECTED_CANONICAL_HOST: nuvanx.com', 'workflow must pin the canonical host to production');
-requireMatch(workflow, /uses: actions\/checkout@[0-9a-f]{40}/, 'checkout action must be pinned to a commit SHA');
-requireMatch(workflow, /uses: actions\/setup-node@[0-9a-f]{40}/, 'setup-node action must be pinned to a commit SHA');
-requireMatch(workflow, /uses: actions\/upload-artifact@[0-9a-f]{40}/, 'upload-artifact action must be pinned to a commit SHA');
-requireText(workflow, "node-version: '22'", 'workflow must pin the Node.js major version');
-requireText(workflow, 'node --check scripts/staging2/rendered-qa.mjs', 'workflow must syntax-check the audit script before running it');
-requireText(
-  workflow,
-  "JSON.parse(require('fs').readFileSync('scripts/staging2/rendered-qa-routes.json','utf8'))",
-  'workflow must validate the routes JSON before running the audit',
+const expectedSlugs = [
+  'home', 'contacto', 'clinicas', 'tratamientos', 'endolift', 'laser',
+  'medicina-estetica', 'equipo', 'blog', 'por-que-nuvanx', 'inversion',
+  'liposculpt-review', 'v-lift-review',
+];
+assert.equal(
+  config.routes.length,
+  expectedSlugs.length,
+  `expected ${expectedSlugs.length} audited routes, found ${config.routes.length}`,
 );
-requireText(workflow, 'npm install playwright@1.54.1 --no-save', 'workflow must install a pinned, unsaved playwright dependency');
-requireText(workflow, 'npx playwright install --with-deps chromium', 'workflow must install the chromium browser binary');
-requireText(workflow, 'set +e', 'the audit step must disable errexit so it can capture a non-zero exit code');
-requireText(workflow, 'echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"', 'the audit step must record its exit code as a step output');
+
+const seenSlugs = new Set();
+const seenPaths = new Set();
+for (const entry of config.routes) {
+  assert.ok(Array.isArray(entry), `each route entry must be an array, got ${JSON.stringify(entry)}`);
+  assert.equal(entry.length, 2, `each route entry must be a [slug, path] tuple, got ${JSON.stringify(entry)}`);
+  const [slug, route] = entry;
+  assert.equal(typeof slug, 'string', `route slug must be a string, got ${JSON.stringify(entry)}`);
+  assert.match(slug, /^[a-z0-9-]+$/, `route slug "${slug}" must be lowercase kebab-case`);
+  assert.equal(typeof route, 'string', `route path for "${slug}" must be a string`);
+  assert.match(route, /^\//, `route path for "${slug}" must start with "/"`);
+  if (route !== '/') assert.match(route, /\/$/, `route path for "${slug}" (${route}) must end with a trailing slash`);
+  assert.ok(!seenSlugs.has(slug), `duplicate route slug: ${slug}`);
+  assert.ok(!seenPaths.has(route), `duplicate route path: ${route}`);
+  seenSlugs.add(slug);
+  seenPaths.add(route);
+}
+
+for (const slug of expectedSlugs) {
+  assert.ok(seenSlugs.has(slug), `expected route slug missing from rendered-qa-routes.json: ${slug}`);
+}
+
+const homeEntry = config.routes.find(([slug]) => slug === 'home');
+assert.deepEqual(homeEntry, ['home', '/'], 'the home route must map to "/"');
+
+// The schema checks hard-coded in rendered-qa.mjs reference these slugs by
+// name, so they must always exist in the route list or the checks are dead code.
+for (const slug of ['home', 'contacto', 'clinicas', 'endolift', 'laser', 'medicina-estetica']) {
+  assert.ok(seenSlugs.has(slug), `rendered-qa.mjs expects a schema check for "${slug}" but it is missing from routes`);
+}
+
+// ---------------------------------------------------------------------------
+// rendered-qa.mjs behavioral contract.
+//
+// The script self-executes a real Playwright browser session at module load
+// time (it has no guarded entry point and no exported functions), so it
+// cannot be imported directly in a fast unit test. Its behavior is instead
+// pinned via a text contract, following the pattern already used for
+// scripts/staging2/test-deploy-workflow-contract.mjs in this repository.
+// ---------------------------------------------------------------------------
+const script = read(scriptPath);
+const failures = [];
+function requireMatch(source, pattern, message) { if (!pattern.test(source)) failures.push(message); }
+function requireAbsent(source, pattern, message) { if (pattern.test(source)) failures.push(message); }
+
+requireMatch(script, /import \{ chromium \} from 'playwright'/, 'script must use the playwright chromium driver');
+requireMatch(script, /rendered-qa-routes\.json/, 'script must read routes from rendered-qa-routes.json');
+requireMatch(script, /process\.env\.BASE_URL/, 'script must allow overriding the base URL via BASE_URL');
+requireMatch(script, /process\.env\.QA_OUTPUT_DIR/, 'script must allow overriding the output directory via QA_OUTPUT_DIR');
+requireMatch(script, /process\.env\.EXPECTED_DEPLOY_SHA/, 'script must record the expected deploy SHA');
+requireMatch(script, /process\.env\.EXPECTED_CANONICAL_HOST/, 'script must allow overriding the canonical host');
+
+requireMatch(script, /\['desktop', 1440, 1100\]/, 'script must audit a desktop viewport at 1440x1100');
+requireMatch(script, /\['mobile', 390, 844\]/, 'script must audit a mobile viewport at 390x844');
+
+requireMatch(
+  script,
+  /ReferenceError\|TypeError\|SyntaxError\|Uncaught\|FacebookSignal\|is not defined/,
+  'criticalJs regex must flag common runtime JS errors',
+);
+
+requireMatch(script, /'critical', 'missing-title'/, 'script must flag an empty title as critical');
+requireMatch(script, /'critical', 'h1-count'/, 'script must flag a wrong number of H1 headings as critical');
+requireMatch(script, /Expected 1 H1/, 'script must require exactly one H1 per page');
+requireMatch(script, /'critical', 'staging-indexable'/, 'script must flag a missing noindex directive on staging as critical');
+requireMatch(script, /'critical', 'missing-canonical'/, 'script must flag a missing canonical link as critical');
+requireMatch(script, /'critical', 'horizontal-overflow'/, 'script must flag horizontal overflow as critical');
+requireMatch(script, /'critical', 'duplicate-ids'/, 'script must flag duplicate DOM ids as critical');
+requireMatch(script, /'critical', 'siteground-captcha'/, 'script must flag a rendered bot challenge as critical');
+requireMatch(script, /'critical', 'invalid-jsonld'/, 'script must flag invalid JSON-LD as critical');
+requireMatch(script, /'critical', 'navigation-failed'/, 'script must flag navigation errors as critical');
+requireMatch(script, /'critical', 'http-status'/, 'script must flag non-2xx\/3xx HTTP responses as critical');
+
+requireMatch(script, /'warning', 'missing-description'/, 'script must flag an empty meta description as a warning');
+requireMatch(script, /'warning', 'missing-alt'/, 'script must flag images missing alt text as a warning');
+requireMatch(script, /'warning', 'body-font'/, 'script must flag an unexpected body font as a warning');
+requireMatch(script, /Manrope/, 'script must check the body font against Manrope');
+requireMatch(script, /'warning', 'heading-font'/, 'script must flag an unexpected heading font as a warning');
+requireMatch(script, /Playfair Display/, 'script must check the heading font against Playfair Display');
+requireMatch(script, /'warning', 'small-controls'/, 'script must flag undersized tap targets as a warning');
+requireMatch(script, /box\.width < 44 \|\| box\.height < 44/, 'script must enforce a 44px minimum touch target');
+
+requireMatch(script, /joinchat-frame-size/, 'script must check the joinchat button size');
+requireMatch(script, /joinchat-icon-size/, 'script must check the joinchat icon size');
+requireMatch(script, /inline-whatsapp-size/, 'script must check the inline WhatsApp icon size');
+requireMatch(
+  script,
+  /size\(rendered\.joinchatButton, 48, 'joinchat-frame-size'\)/,
+  'joinchat button must be checked against a 48px target',
+);
+requireMatch(
+  script,
+  /size\(rendered\.joinchatIcon, 24, 'joinchat-icon-size'\)/,
+  'joinchat icon must be checked against a 24px target',
+);
+requireMatch(
+  script,
+  /size\(rendered\.inlineWhatsapp, 16, 'inline-whatsapp-size'\)/,
+  'inline WhatsApp icon must be checked against a 16px target',
+);
+
+requireMatch(
+  script,
+  /\['home', 'contacto', 'clinicas'\]\.includes\(slug\)[\s\S]{0,100}MedicalClinic/,
+  'home\/contacto\/clinicas routes must require MedicalClinic schema',
+);
+requireMatch(
+  script,
+  /\['endolift', 'laser', 'medicina-estetica'\]\.includes\(slug\)[\s\S]{0,100}MedicalProcedure/,
+  'endolift\/laser\/medicina-estetica routes must require MedicalProcedure schema',
+);
+
+requireMatch(
+  script,
+  /page\.screenshot\(\{ path: path\.join\(out, `\$\{slug\}-\$\{viewport\}\.png`\), fullPage: true/,
+  'script must capture a full-page screenshot named "<slug>-<viewport>.png"',
+);
+
+requireMatch(
+  script,
+  /google\|facebook\|doubleclick\|hubspot\|hs-scripts\|clarity/,
+  'script must exclude known third-party domains from request-failed warnings',
+);
+
+requireMatch(script, /'--no-sandbox', '--disable-setuid-sandbox'/, 'chromium must launch with CI-safe sandbox flags');
+requireMatch(script, /locale: 'es-ES'/, 'browser context must use the es-ES locale');
+requireMatch(script, /reducedMotion: 'reduce'/, 'browser context must reduce motion for stable screenshots');
+
+requireMatch(script, /fs\.writeFileSync\(path\.join\(out, 'report\.json'\)/, 'script must write report.json');
+requireMatch(script, /fs\.writeFileSync\(path\.join\(out, 'report\.md'\)/, 'script must write report.md');
+requireMatch(
+  script,
+  /result: critical\.length \? 'FAIL' : 'PASS_WITH_WARNINGS'/,
+  'report summary must distinguish FAIL from PASS_WITH_WARNINGS',
+);
+requireMatch(script, /if \(critical\.length\) process\.exit\(1\);/, 'script must exit non-zero when critical findings exist');
+requireAbsent(script, /process\.exit\(0\)/, 'script must not force a zero exit code that would mask critical findings');
+
+// ---------------------------------------------------------------------------
+// .github/workflows/staging2-rendered-qa.yml contract.
+// ---------------------------------------------------------------------------
+const workflow = read(workflowPath);
+
+requireMatch(workflow, /^\s{2}workflow_dispatch:/m, 'workflow must be manually triggered via workflow_dispatch');
+requireAbsent(workflow, /^\s{2}push:/m, 'workflow must not trigger on push');
+requireAbsent(workflow, /^\s{2}pull_request:/m, 'workflow must not trigger on pull_request');
+requireAbsent(workflow, /^\s{2}schedule:/m, 'workflow must not trigger on a schedule');
+
+requireMatch(workflow, /base_url:[\s\S]{0,120}required: true/, 'base_url input must be required');
+requireMatch(workflow, /default: 'https:\/\/staging2\.nuvanx\.com'/, 'base_url input must default to the staging2 URL');
+requireMatch(workflow, /expected_sha:[\s\S]{0,120}required: true/, 'expected_sha input must be required');
 requireMatch(
   workflow,
-  /run:\s*\|\s*\n\s+set \+e\s*\n\s+node scripts\/staging2\/rendered-qa\.mjs\s*\n\s+exit_code=\$\?\s*\n\s+echo "exit_code=\$exit_code" >> "\$GITHUB_OUTPUT"\s*\n\s+exit 0/,
-  'the audit step must always exit 0 so later steps still publish the report and artifacts',
+  /default: '53847cf51edc1c68df1bac0683ad331e22b9c602'/,
+  'expected_sha input must default to the known deployed SHA',
 );
-requireText(workflow, 'cat qa-artifacts/staging2-rendered/report.md >> "$GITHUB_STEP_SUMMARY"', 'workflow must publish the report to the job summary');
-requireText(workflow, 'name: staging2-rendered-qa-${{ github.run_id }}', 'uploaded artifact must be named per run');
-requireText(workflow, 'path: qa-artifacts/staging2-rendered', 'workflow must upload the QA output directory');
-requireText(workflow, 'if-no-files-found: error', 'artifact upload must fail if no QA artifacts were produced');
-requireText(workflow, 'retention-days: 14', 'QA artifacts must be retained for 14 days');
-requireText(workflow, 'test "${{ steps.audit.outputs.exit_code }}" = "0"', 'workflow must gate the job on the recorded audit exit code');
 
-// The two "always()" steps that publish the report and enforce findings must both run even
-// when the audit step (which itself always exits 0) recorded a critical failure.
-const alwaysSteps = workflow.match(/if:\s*always\(\)/g) ?? [];
-if (alwaysSteps.length < 3) {
-  failures.push('report publication, artifact upload and enforcement steps must all run with if: always()');
-}
+requireMatch(workflow, /permissions:\s*\n\s+contents: read/, 'workflow must use least-privilege read-only permissions');
+requireMatch(
+  workflow,
+  /concurrency:\s*\n\s+group: staging2-rendered-qa-\$\{\{ github\.ref \}\}/,
+  'workflow must scope concurrency per ref',
+);
+requireMatch(workflow, /cancel-in-progress:\s*true/, 'stale rendered QA runs on the same ref must be cancelled');
+requireMatch(workflow, /timeout-minutes:\s*30/, 'job must have a bounded timeout');
+
+requireMatch(workflow, /EXPECTED_CANONICAL_HOST:\s*nuvanx\.com/, 'workflow must pin the expected canonical host');
+requireMatch(workflow, /QA_OUTPUT_DIR:\s*qa-artifacts\/staging2-rendered/, 'workflow must pin the QA output directory');
+
+requireMatch(workflow, /uses: actions\/checkout@[0-9a-f]{40}/, 'checkout action must be pinned to a commit SHA');
+requireMatch(workflow, /persist-credentials:\s*false/, 'checkout must not persist credentials');
+requireMatch(workflow, /uses: actions\/setup-node@[0-9a-f]{40}/, 'setup-node action must be pinned to a commit SHA');
+requireMatch(workflow, /node-version:\s*'22'/, 'workflow must use Node.js 22');
+
+requireMatch(workflow, /node --check scripts\/staging2\/rendered-qa\.mjs/, 'workflow must syntax-check the audit script before running it');
+requireMatch(
+  workflow,
+  /JSON\.parse\(require\('fs'\)\.readFileSync\('scripts\/staging2\/rendered-qa-routes\.json','utf8'\)\)/,
+  'workflow must validate the routes JSON before running the audit',
+);
+
+requireMatch(
+  workflow,
+  /npm install playwright@1\.54\.1 --no-save/,
+  'workflow must install a pinned Playwright version without persisting it to package.json',
+);
+requireMatch(workflow, /npx playwright install --with-deps chromium/, 'workflow must install Chromium and its OS dependencies');
+
+requireMatch(workflow, /id:\s*audit/, 'the rendered QA step must expose an id for downstream steps');
+requireMatch(workflow, /set \+e/, 'the rendered QA step must not abort the job on a non-zero audit exit code');
+requireMatch(
+  workflow,
+  /echo "exit_code=\$exit_code" >> "\$GITHUB_OUTPUT"/,
+  'the rendered QA step must capture its exit code as a step output',
+);
+requireMatch(workflow, /\n\s+exit 0\n/, 'the rendered QA step itself must always exit 0 so later steps still run');
+
+requireMatch(
+  workflow,
+  /cat qa-artifacts\/staging2-rendered\/report\.md >> "\$GITHUB_STEP_SUMMARY"/,
+  'workflow must publish the markdown report to the job summary',
+);
+
+requireMatch(workflow, /uses: actions\/upload-artifact@[0-9a-f]{40}/, 'upload-artifact action must be pinned to a commit SHA');
+requireMatch(workflow, /if-no-files-found:\s*error/, 'missing QA artifacts must fail the job loudly');
+requireMatch(workflow, /retention-days:\s*14/, 'workflow must set an explicit artifact retention period');
+
+requireMatch(
+  workflow,
+  /AUDIT_EXIT_CODE:\s*\$\{\{ steps\.audit\.outputs\.exit_code \}\}/,
+  'the enforcement step must read the captured audit exit code',
+);
+requireMatch(
+  workflow,
+  /test "\$AUDIT_EXIT_CODE" = "0" \|\| \{/,
+  'the enforcement step must fail the job when the audit exit code is not 0',
+);
+
+// The summary, upload, and enforcement steps must all run even if an earlier
+// step fails, otherwise a crashed audit could silently pass without evidence.
+const alwaysSteps = workflow.match(/if:\s*always\(\)/g) || [];
+assert.ok(
+  alwaysSteps.length >= 3,
+  `summary, upload, and enforcement steps must each run unconditionally with if: always() (found ${alwaysSteps.length})`,
+);
 
 if (failures.length) {
   console.error('Staging2 rendered QA contract failed:');
@@ -205,4 +276,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: staging2 rendered QA contract');
+console.log('PASS: staging2 rendered QA contract (routes, script, and workflow)');

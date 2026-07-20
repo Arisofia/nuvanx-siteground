@@ -10,6 +10,7 @@ const failures = [];
 const requireText = (source, text, message) => { if (!source.includes(text)) failures.push(message); };
 const forbidText = (source, text, message) => { if (source.includes(text)) failures.push(message); };
 
+// Ownership boundary: shell in PHP, reusable clinic cards in canonical CSS, external aliases in the late closure.
 const strategy = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
 const components = read('wp-content/themes/nuvanx-medical/assets/css/nvx-components.css');
 const closure = read('wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php');

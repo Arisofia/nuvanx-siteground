@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
 }
 
 $arguments = isset($args) && is_array($args) ? $args : [];
-$apply = in_array('--apply', $arguments, true);
+$apply     = '1' === getenv( 'NVX_CONTENT_CLEANUP_APPLY' ) || in_array( 'apply', $arguments, true );
 $expectedUrl = 'https://staging2.nuvanx.com';
 $siteUrl = rtrim((string) get_option('siteurl'), '/');
 $homeUrl = rtrim((string) get_option('home'), '/');

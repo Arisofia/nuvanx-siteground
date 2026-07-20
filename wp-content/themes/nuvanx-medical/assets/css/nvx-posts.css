@@ -400,10 +400,7 @@ body.nvx-blog-context {
   color: var(--nvx-light);
 }
 
-/* Legacy CMS byline paragraphs only (publish-script marker), single-post body. */
-body.single-post .nvx-blog-prose > p.nvx-blog-byline {
-  display: none;
-}
+
 
 .nvx-blog-hero__media {
   grid-column: span 6;

@@ -936,17 +936,6 @@ body.nvx-valoracion-modal-open{
 @media(max-width:680px){.nvx-treatment-process__steps{grid-template-columns:1fr}}
 
 /* ═══════════════════════════════════════════════════════════
-   TRUST BADGES — legacy CMS strip. The must-use plugin removes
-   unverified quantitative variants before rendering.
-   ═══════════════════════════════════════════════════════════ */
-.nvx-trust-badges{padding-block:var(--nvx-pad-section-tight);background:var(--nvx-light);border-block:1px solid var(--nvx-color-line)}
-.nvx-trust-badges__inner{max-width:var(--nvx-shell);margin-inline:auto;padding-inline:var(--nvx-gutter);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--nvx-space-4);text-align:center}
-.nvx-trust-badge__number{display:block;font-family:var(--nvx-serif);font-size:clamp(var(--nvx-space-4),4vw,2.75rem);font-weight:400;color:var(--nvx-ink);line-height:1}
-.nvx-trust-badge__label{display:block;font-family:var(--nvx-sans);font-size:var(--nvx-type-small);color:var(--nvx-text-muted);margin-top:var(--nvx-space-1);line-height:var(--nvx-lh-body)}
-@media(max-width:720px){.nvx-trust-badges__inner{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:480px){.nvx-trust-badges__inner{grid-template-columns:1fr}}
-
-/* ═══════════════════════════════════════════════════════════
    BEFORE / AFTER TEASER — gallery link strip (sitewide)
    Used by nvx_before_after_teaser_markup()
    ═══════════════════════════════════════════════════════════ */

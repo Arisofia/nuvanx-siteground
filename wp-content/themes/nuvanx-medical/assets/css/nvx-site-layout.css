@@ -78,27 +78,7 @@ article.nvx-page > .nvx-page-hero {
 /*
  * Post-hero clinical intro is emitted as a normal brand-section
  * (.nvx-hero-intro) so gutters match Chamberí / hub / treatment sections.
- * Legacy .nvx-hero-context (if any cached HTML) keeps the same shell.
  */
-.nvx-page__content .nvx-hero-context,
-.nvx-brand-page > .nvx-hero-context {
-  width: 100%;
-  margin: 0;
-  padding-block: var(--nvx-pad-section);
-  background: var(--nvx-color-paper, var(--nvx-light, var(--nvx-light)));
-  color: var(--nvx-text-body);
-  box-sizing: border-box;
-}
-
-.nvx-page__content .nvx-hero-context__inner,
-.nvx-brand-page > .nvx-hero-context > .nvx-hero-context__inner {
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
-}
-
 .nvx-hero-intro .nvx-brand-readable {
   max-width: min(100%, var(--nvx-measure-wide, 72ch));
 }

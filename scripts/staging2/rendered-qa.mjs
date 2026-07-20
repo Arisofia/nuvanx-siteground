@@ -128,7 +128,8 @@ finally { await browser.close(); }
 const findings = results.flatMap((result) => result.findings.map((finding) => ({ slug: result.slug, route: result.route, viewport: result.viewport, ...finding })));
 const critical = findings.filter((item) => item.severity === 'critical');
 const warnings = findings.filter((item) => item.severity === 'warning');
-const report = { baseUrl, expectedSha: expectedSha || null, generatedAt: new Date().toISOString(), summary: { routes: config.routes.length, runs: results.length, critical: critical.length, warnings: warnings.length, result: critical.length ? 'FAIL' : 'PASS_WITH_WARNINGS' }, findings, results };
+const result = critical.length ? 'FAIL' : (warnings.length ? 'PASS_WITH_WARNINGS' : 'PASS');
+const report = { baseUrl, expectedSha: expectedSha || null, generatedAt: new Date().toISOString(), summary: { routes: config.routes.length, runs: results.length, critical: critical.length, warnings: warnings.length, result }, findings, results };
 fs.writeFileSync(path.join(out, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
 const md = ['# NUVANX Staging2 · Rendered QA', '', `- URL: \`${baseUrl}\``, `- SHA esperado: \`${expectedSha || 'no indicado'}\``, `- Ejecuciones: **${results.length}**`, `- Críticos: **${critical.length}**`, `- Advertencias: **${warnings.length}**`, `- Resultado: **${report.summary.result}**`, '', '## Críticos', '', ...(critical.length ? critical.map((x) => `- **${x.slug}/${x.viewport}/${x.code}:** ${x.message}`) : ['- Ninguno.']), '', '## Advertencias', '', ...(warnings.length ? warnings.map((x) => `- **${x.slug}/${x.viewport}/${x.code}:** ${x.message}`) : ['- Ninguna.']), '', 'El artefacto incluye capturas completas desktop/móvil y `report.json`.', ''].join('\n');
 fs.writeFileSync(path.join(out, 'report.md'), md); console.log(md);

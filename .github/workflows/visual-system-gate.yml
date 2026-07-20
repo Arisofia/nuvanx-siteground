@@ -87,6 +87,9 @@ jobs:
       - name: Run existing CSS audit
         run: node scripts/design-system/audit-css.mjs
 
+      - name: Lint CSS rules against !important exceptions (Stylelint)
+        run: npx stylelint "wp-content/themes/nuvanx-medical/assets/css/**/*.css" --config .stylelintrc.json
+
       - name: Validate PHP syntax
         run: |
           php -l wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php

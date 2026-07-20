@@ -12,6 +12,9 @@ require_once __DIR__ . '/nvx-environment-flags.php';
 /** Canonical color, icon, typography-role and numbering closure. */
 require_once __DIR__ . '/nvx-visual-system.php';
 
+/** Terminal bridge for third-party widgets and unresolved legacy role aliases. */
+require_once __DIR__ . '/nvx-external-visual-closure.php';
+
 /** Canonical facial treatment content, metadata and staging page seeding. */
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
 

@@ -1,21 +1,8 @@
 body.home{background:var(--nvx-color-paper)}
 body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
-.nvx-home,.nvx-brand-page{overflow-x:clip;background:var(--nvx-color-paper);color:var(--nvx-ink)}
+.nvx-home{overflow-x:clip;background:var(--nvx-color-paper);color:var(--nvx-ink)}
 
 /* Home hero: full-bleed video first; shared footprint with interior heroes. */
-.nvx-home-hero-stage{
-  --nvx-hero-h:min(92svh,980px);
-  position:relative;
-  display:block;
-  width:100vw;
-  max-width:100vw;
-  margin-inline:calc(50% - 50vw);
-  min-height:var(--nvx-hero-h);
-  height:var(--nvx-hero-h);
-  overflow:hidden;
-  background:var(--nvx-ink);
-  border-radius:0;
-}
 .nvx-home-hero-stage .nvx-brand-hero__inner,
 .nvx-home-hero-stage .nvx-shell{
   position:absolute;
@@ -27,90 +14,16 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   margin:0;
   padding:0;
 }
-.nvx-home-video-feature,
-.nvx-home-video-frame{
-  position:absolute;
-  inset:0;
-  z-index:0;
-  width:100%;
-  height:100%;
-  margin:0;
-  padding:0;
-  overflow:hidden;
-  border-radius:0;
-}
-.nvx-home-video-frame{width:100%;height:100%}
-.nvx-home-hero-video{
-  position:absolute;
-  inset:0;
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  object-position:center;
-  border-radius:0;
-}
-
-.nvx-home-hero-stage .nvx-brand-hero__title{
-  margin:0;
-  max-width:18ch;
-  font-family:var(--nvx-serif);
-  font-size:var(--nvx-type-display);
-  font-weight:var(--nvx-fw-heading);
-  line-height:var(--nvx-lh-display);
-  letter-spacing:var(--nvx-track-display);
-}
 
 /* Hero CTA cluster — button visuals are owned by nvx-components.css. */
-.nvx-cta-cluster,
-.nvx-home-hero-ctas{
-  display:flex;
-  flex-wrap:wrap;
-  gap:var(--nvx-space-2);
-  margin-top:var(--nvx-space-4);
-  align-items:center;
-}
-
-.nvx-brand-section{padding-block:var(--nvx-pad-section)}
-.nvx-brand-section--tight{padding-block:var(--nvx-pad-section-tight)}
 .nvx-home-invitation{margin-top:var(--nvx-space-4)}
 
 /* Post-values action banner — warm-neutral dark surface + canonical pill CTAs. */
-.nvx-home-action-banner-shell{
-  width:var(--nvx-shell);
-  max-width:100%;
-  margin:var(--nvx-space-8) auto 0;
-  padding-inline:var(--nvx-gutter-inner);
-  box-sizing:border-box;
-}
-.nvx-home-action-banner{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto;
-  gap:var(--nvx-gap-wide);
-  align-items:center;
-  width:100%;
-  margin:0;
-  padding:var(--nvx-pad-card);
-  border:var(--nvx-border-hairline) solid var(--nvx-border-on-dark-42);
-  border-radius:var(--nvx-radius-card);
-  background:var(--nvx-charcoal);
-  color:var(--nvx-light);
-}
 .nvx-home-action-banner__copy{max-width:55ch}
 .nvx-home-action-banner__kicker,
 .nvx-home-action-banner .nvx-brand-kicker{
   margin:0 0 var(--nvx-space-2);
   color:var(--nvx-text-on-dark-72);
-}
-.nvx-home-action-banner__title{
-  margin:0 0 var(--nvx-space-2);
-  max-width:16ch;
-  font-family:var(--nvx-serif);
-  font-size:var(--nvx-type-h2);
-  font-weight:var(--nvx-fw-heading);
-  line-height:var(--nvx-lh-h2);
-  letter-spacing:var(--nvx-track-h2);
-  color:var(--nvx-light);
 }
 .nvx-home-action-banner__text{
   max-width:55ch;
@@ -121,31 +34,12 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   color:var(--nvx-text-on-dark-82);
 }
 .nvx-home-action-banner__text strong{color:var(--nvx-light);font-weight:600}
-.nvx-home-action-banner__actions{
-  display:flex;
-  flex-direction:column;
-  align-items:stretch;
-  gap:var(--nvx-space-2);
-  min-width:min(280px,100%);
-}
 .nvx-home-action-banner__actions .nvx-button{width:100%}
-.nvx-home-faq-editorial{margin-top:var(--nvx-gap-wide)}
 
 @media(max-width:980px){
-  .nvx-home-hero-stage{--nvx-hero-h:min(88svh,860px);min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
-  .nvx-home-action-banner{grid-template-columns:1fr;gap:var(--nvx-space-4)}
-  .nvx-home-action-banner__actions{align-items:stretch;min-width:0}
-  .nvx-home-action-banner__title{max-width:none}
 }
 
 @media(max-width:calc(var(--nvx-space-12) * 8)){
-  .nvx-cta-cluster,
-  .nvx-home-hero-ctas{
-    flex-direction:column;
-    gap:var(--nvx-space-2);
-    width:100%;
-    align-items:stretch;
-  }
   .nvx-cta-cluster .nvx-button,
   .nvx-home-hero-ctas .nvx-brand-btn,
   .nvx-home-hero-ctas .nvx-button,
@@ -156,39 +50,13 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 }
 
 @media(max-width:680px){
-  .nvx-home-hero-stage{--nvx-hero-h:100svh;min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
-  .nvx-home-hero-stage .nvx-brand-hero__title{max-width:none}
-  .nvx-home-action-banner-shell{margin-top:var(--nvx-space-8);padding-inline:var(--nvx-space-3)}
-  .nvx-home-action-banner{padding:var(--nvx-space-4)}
-  .nvx-home-action-banner__actions{width:100%}
   .nvx-home-action-banner .nvx-button{width:100%}
 }
 
 /* Shared hero contrast while this sitewide stylesheet owns hero CTA primitives. */
-body.nvx-hero-blackout :where(
-  .nvx-brand-hero,
-  .nvx-editorial-hero,
-  .nvx-page-hero,
-  section.nvx-hero
-) :is(
-  .nvx-eyebrow,
-  .nvx-brand-kicker,
-  .nvx-kicker,
-  .nvx-brand-meta
-),
-.nvx-aes-hero :is(
-  .nvx-eyebrow,
-  .nvx-brand-kicker,
-  .nvx-kicker,
-  .nvx-brand-meta
-) {
-  color:var(--nvx-text-on-dark-72);
-}
 
 /* Benefit layout only. Icon and typography presentation live in nvx-visual-system.php. */
 .nvx-benefits__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(calc(var(--nvx-space-1) * 37.5),1fr))}
 .nvx-benefit-item{display:flex;align-items:center}
 
 /* Authority-page token closure. */
-.nvx-dr-rivera-avatar{box-shadow:var(--nvx-shadow-medium);border-color:var(--nvx-light)}
-.nvx-que-exigir-hr{border-top-color:var(--nvx-color-line)}

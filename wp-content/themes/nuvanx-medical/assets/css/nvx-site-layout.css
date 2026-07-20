@@ -1,13 +1,6 @@
 /* Page frame is full-bleed so heroes match the home video edge-to-edge.
    Gutters live on section inners / readable columns — not on the page shell. */
-.nvx-shell,
-.nvx-page-body__inner,
-.nvx-brand-section__inner,
-.nvx-endolift-section__inner,
-.nvx-laser-section__inner,
-.nvx-aes-section__inner,
-.nvx-catalog__inner,
-.nvx-home-action-banner-shell {
+.nvx-shell, .nvx-brand-section__inner {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
@@ -15,28 +8,9 @@
   box-sizing: border-box;
 }
 
-.nvx-main,
-.nvx-page,
-.nvx-page__content,
-.nvx-brand-page {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
 /* Page content frame: no extra shell wrapper — gutters on section inners only. */
-.nvx-page__content {
-  overflow-x: clip;
-}
-
-.nvx-page {
-  color: var(--nvx-text-body);
-  background: var(--nvx-color-paper);
-}
 
 /* Content is full-width so heroes fill the viewport like home video */
-.nvx-page__content,
 .nvx-page__content.nvx-prose {
   width: 100%;
   max-width: none;
@@ -45,9 +19,6 @@
 }
 
 /* Theme hero is a direct child of article (outside shell) */
-article.nvx-page > .nvx-page-hero {
-  margin-bottom: 0;
-}
 
 /* Body sections after a full-bleed hero keep readable gutters */
 .nvx-page__content .nvx-brand-section,
@@ -103,9 +74,6 @@ article.nvx-page > .nvx-page-hero {
  * Duplicate façade under hero — CSS fallback. Prefer PHP strip
  * (nvx_content_strip_duplicate_fachada); avoid relational selectors.
  */
-.nvx-brand-page .nvx-brand-section--fachada {
-  display: none;
-}
 
 /* Multi-section CMS stacks (hub): full-width, no prose measure — each child section uses global shells. */
 .nvx-content-flow,
@@ -167,40 +135,18 @@ article.nvx-page > .nvx-page-hero {
   background:
     linear-gradient(
       180deg,
-      rgba(246, 247, 248, 0.18) 0%,
-      rgba(246, 247, 248, 0.08) 40%,
-      rgba(20, 22, 26, 0.06) 100%
+      var(--nvx-surface-base) 0%,
+      var(--nvx-surface-soft) 40%,
+      var(--nvx-surface-soft) 100%
     );
   pointer-events: none;
 }
 
-.nvx-form-stage .nvx-page-body__inner {
-  position: relative;
-  z-index: 1;
-  width: min(40rem, var(--nvx-shell));
-  max-width: 100%;
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
-}
-
-.nvx-section,
-.nvx-brand-section,
-.nvx-page-body,
-.wp-block-group.nvx-section,
-.nvx-endolift-section,
-.nvx-laser-section,
-.nvx-aes-section,
-.nvx-catalog,
 .nvx-values-section {
   padding-block: var(--nvx-pad-section);
 }
 
 /* Retained layout API: both tight variants share the same token (CSS Gate contract). */
-.nvx-brand-section--tight,
-.nvx-section--tight {
-  padding-block: var(--nvx-pad-section-tight);
-}
 
 /* ═══════════════════════════════════════════════════════════
    BODY CONTENT SYSTEM — layout concerns only
@@ -241,23 +187,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 /* Body media — editorial surfaces only; exclude hero/formula stages */
-.nvx-content-figure,
-.nvx-main :is(
-  .nvx-page__content,
-  .entry-content,
-  .nvx-prose,
-  .nvx-copy,
-  .nvx-page-body__inner,
-  .nvx-brand-section__inner
-) :where(figure, .wp-block-image, .wp-caption):not(
-  .nvx-brand-hero__media,
-  .nvx-editorial-hero__media,
-  .nvx-page-hero__media,
-  .nvx-hero__media,
-  .nvx-endolift-formula,
-  .nvx-laser-formula,
-  .nvx-aes-formula
-) {
+.nvx-content-figure {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -296,9 +226,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 /* Defensive: if a hero img still has --body class, restore full-bleed cover */
-.nvx-main .nvx-brand-hero__media img,
-.nvx-main .nvx-page-hero__media img,
-.nvx-main .nvx-editorial-hero__media img {
+.nvx-main .nvx-brand-hero__media img, .nvx-main .nvx-page-hero__media img {
   max-height: none;
   height: 100%;
   border-radius: 0;
@@ -315,13 +243,6 @@ article.nvx-page > .nvx-page-hero {
 }
 
 /* Shared conversion band rhythm (site footer CTA is separate in footer.php) */
-.nvx-home-action-banner-shell {
-  margin-top: var(--nvx-space-12);
-}
-
-.nvx-home-action-banner {
-  border-radius: var(--nvx-radius-card);
-}
 
 .nvx-section + .nvx-section,
 .nvx-brand-section + .nvx-brand-section {
@@ -332,80 +253,12 @@ article.nvx-page > .nvx-page-hero {
    Protected by CSS Gate. Do not remove without DB inventory + migration.
    See docs/design-system/LAYOUT-UTILITY-CONTRACT.md */
 
-.nvx-reading {
-  width: min(100%, var(--nvx-readable));
-}
-
 .nvx-prose {
   width: min(100%, var(--nvx-measure));
 }
 
-.nvx-grid-12 {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--nvx-gap-base);
-}
-
-.nvx-span-4 { grid-column: span 4; }
-.nvx-span-5 { grid-column: span 5; }
-.nvx-span-6 { grid-column: span 6; }
-.nvx-span-7 { grid-column: span 7; }
-.nvx-span-8 { grid-column: span 8; }
-.nvx-span-12 { grid-column: 1 / -1; }
-
-.nvx-stack {
-  display: grid;
-  gap: var(--nvx-gap-base);
-}
-
-.nvx-stack--tight {
-  gap: var(--nvx-space-2);
-}
-
-.nvx-stack--wide {
-  gap: var(--nvx-space-6);
-}
-
-.nvx-cluster {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--nvx-gap-base);
-}
-
 @media (max-width: 980px) {
-  .nvx-span-4,
-  .nvx-span-5,
-  .nvx-span-6,
-  .nvx-span-7,
-  .nvx-span-8 {
-    grid-column: span 6;
-  }
 }
 
 @media (max-width: 680px) {
-  .nvx-section,
-  .nvx-brand-section,
-  .nvx-page-body,
-  .wp-block-group.nvx-section {
-    padding-block: var(--nvx-space-12);
-  }
-
-  .nvx-brand-section--tight,
-  .nvx-section--tight {
-    padding-block: var(--nvx-space-8);
-  }
-
-  .nvx-grid-12 {
-    grid-template-columns: 1fr;
-  }
-
-  .nvx-span-4,
-  .nvx-span-5,
-  .nvx-span-6,
-  .nvx-span-7,
-  .nvx-span-8,
-  .nvx-span-12 {
-    grid-column: 1;
-  }
 }

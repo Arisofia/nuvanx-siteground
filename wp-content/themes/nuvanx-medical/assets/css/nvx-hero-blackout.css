@@ -26,17 +26,6 @@ body.nvx-hero-blackout :is(
   background-image: none;
 }
 
-body.nvx-hero-blackout :is(
-  .nvx-brand-hero__media,
-  .nvx-editorial-hero__media,
-  .nvx-page-hero__media,
-  .nvx-hero__media
-) {
-  background-color: var(--nvx-ink);
-  background-image: none;
-  box-shadow: none;
-}
-
 /*
  * Hide still imagery inside opening heroes.
  * Specificity must beat nvx-patterns-editorial.css
@@ -44,27 +33,8 @@ body.nvx-hero-blackout :is(
  * Include .nvx-media / .wp-post-image classes used on hero thumbnails.
  * Video and its controls stay visible (see rules below).
  */
-body.nvx-hero-blackout :is(
-  .nvx-brand-hero .nvx-brand-hero__media,
-  .nvx-editorial-hero .nvx-editorial-hero__media,
-  .nvx-page-hero .nvx-page-hero__media,
-  .nvx-hero .nvx-hero__media,
-  .nvx-hero .nvx-brand-hero__media,
-  .nvx-home-hero-stage
-) :is(img, picture, .nvx-media, .nvx-media--body, .wp-post-image):not(video):not(video *) {
-  display: none;
-}
 
 /* Media rails retain a stable black stage when still imagery is hidden. */
-body.nvx-hero-blackout :is(
-  .nvx-brand-hero__media,
-  .nvx-editorial-hero__media,
-  .nvx-page-hero__media,
-  .nvx-hero__media
-) {
-  background-color: var(--nvx-ink);
-  min-height: min(52vh, 28rem);
-}
 
 /*
  * Journal: hide the opening featured-media slot entirely (stills only in practice).
@@ -81,14 +51,8 @@ body.nvx-hero-blackout .nvx-blog-hero__media {
  * in a half-width column. On small screens restore full width (posts.css
  * only resets text-only heroes; this selector would otherwise win).
  */
-body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-hero__copy {
-  grid-column: 2 / span 9;
-}
 
 @media (max-width: 960px) {
-  body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-hero__copy {
-    grid-column: span 12;
-  }
 }
 
 /*

@@ -97,12 +97,31 @@ $template_forbidden = array(
 	'✔'                                      => 'non-system Unicode check mark',
 	'about:blank'                            => 'invalid directions or map URL',
 	'nvx-container'                          => 'undefined legacy container instead of the canonical shell',
+	'style="border:0;"'                      => 'inline iframe border style superseded by the centralised stylesheet rule',
 );
 foreach ( $template_forbidden as $fragment => $reason ) {
 	if ( false !== strpos( $template, $fragment ) ) {
 		fwrite( STDERR, "Contact template still contains forbidden fragment ({$reason}): {$fragment}\n" );
 		exit( 1 );
 	}
+}
+
+if ( 2 !== substr_count( $template, '<iframe' ) ) {
+	fwrite( STDERR, "Contact template must render exactly the Chamberí and Goya map iframes.\n" );
+	exit( 1 );
+}
+
+$closure_path = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php';
+if ( ! is_readable( $closure_path ) ) {
+	fwrite( STDERR, "Missing required file: {$closure_path}\n" );
+	exit( 1 );
+}
+$closure = (string) file_get_contents( $closure_path );
+if ( false === strpos( $closure, '.nvx-page--contact .nvx-clinic-card__map iframe' )
+	|| false === strpos( $closure, 'border: 0;' )
+) {
+	fwrite( STDERR, "The centralised stylesheet must own the borderless map-iframe presentation removed from the template.\n" );
+	exit( 1 );
 }
 
 if ( 3 !== substr_count( $template, 'class="nvx-shell"' ) ) {

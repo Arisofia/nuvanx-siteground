@@ -14,20 +14,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Determines whether the current strategy route requires review before publication.
+ * Determines whether the current strategy route is approved for publication.
  *
- * @return bool `true` if the route is under review, `false` otherwise.
+ * @return bool `true` only when the catalog exists, the key is valid, and review_status is exactly 'approved_for_publication'.
  */
-function nvx_staging2_canonical_is_protected_review(): bool {
+function nvx_staging2_canonical_is_approved_strategy(): bool {
 	if ( ! function_exists( 'nvx_strategy_current_page_key' ) || ! function_exists( 'nvx_strategy_page_catalog' ) ) {
-		return true;
+		return false;
 	}
 
 	$key     = nvx_strategy_current_page_key();
 	$catalog = nvx_strategy_page_catalog();
 
 	return null !== $key
-		&& 'approved_for_publication' !== ( $catalog[ $key ]['review_status'] ?? null );
+		&& 'approved_for_publication' === ( $catalog[ $key ]['review_status'] ?? null );
 }
 
 /**
@@ -36,7 +36,10 @@ function nvx_staging2_canonical_is_protected_review(): bool {
  * @return string The production URL for the current path, or an empty string when the request is excluded.
  */
 function nvx_staging2_public_canonical_url(): string {
-	if ( nvx_staging2_canonical_is_protected_review() || is_404() || is_search() || is_preview() ) {
+	$is_strategy_page = function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key();
+	$is_protected     = $is_strategy_page && ! nvx_staging2_canonical_is_approved_strategy();
+
+	if ( $is_protected || is_404() || is_search() || is_preview() ) {
 		return '';
 	}
 

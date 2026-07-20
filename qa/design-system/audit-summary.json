@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-20T19:31:50.639Z",
+  "generatedAt": "2026-07-20T20:34:30.152Z",
   "activeStylesheets": 12,
   "totalStylesheets": 12,
   "inactiveStylesheets": 0,
@@ -19,8 +19,8 @@
   "hardcodedSpacing": 11,
   "hardcodedColors": 0,
   "inconsistentIconColors": 0,
-  "highSpecificity": 3,
+  "highSpecificity": 4,
   "unsafeSelectors": 0,
-  "inlineStyles": 8,
+  "inlineStyles": 1,
   "embeddedStyleTags": 0
 }

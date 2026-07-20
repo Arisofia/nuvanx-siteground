@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-20T13:42:32.923Z",
+  "generatedAt": "2026-07-20T20:29:24.437Z",
   "canonicalPaletteFile": "wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css",
   "canonicalFontFile": "wp-content/themes/nuvanx-medical/assets/css/nvx-fonts.css",
   "canonicalVisualModule": "wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php",
@@ -7,7 +7,7 @@
     "Playfair Display",
     "Manrope"
   ],
-  "runtimeFilesScanned": 74,
+  "runtimeFilesScanned": 76,
   "activeRetiredColorFindings": [],
   "bannedFontFindings": [],
   "literalFontFindings": [],

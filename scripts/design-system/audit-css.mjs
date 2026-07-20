@@ -128,7 +128,11 @@ function walk(directory, extensions, output = []) {
 function declarationRows(css, file, propertyPattern) {
 	const clean = stripComments(css);
 	const rows = [];
-	for (const match of clean.matchAll(new RegExp(`(${propertyPattern})\\s*:\\s*([^;}{]+)`, 'gi'))) {
+	// Property names must begin at a declaration boundary. Without this guard,
+	// `stroke` incorrectly matches inside custom properties such as
+	// `--nvx-icon-stroke: 1.5`.
+	const pattern = new RegExp(`(?<![-\\w])(${propertyPattern})\\s*:\\s*([^;}{]+)`, 'gi');
+	for (const match of clean.matchAll(pattern)) {
 		rows.push({
 			file,
 			property: match[1].toLowerCase(),
@@ -158,18 +162,12 @@ function addCssReferences(target, source, pattern, group = 1) {
 function extractRuntimeStylesheetReferences(source) {
 	const references = new Set();
 	const clean = stripComments(source);
-
-	// WordPress style registration/enqueue calls. Inspect only their argument lists,
-	// then collect CSS string literals rather than matching arbitrary prose.
 	for (const call of clean.matchAll(/\bwp_(?:enqueue|register)_style\s*\(([\s\S]*?)\)\s*;/g)) {
 		addCssReferences(references, call[1], /["'`]([^"'`]+\.css(?:[?#][^"'`]*)?)["'`]/gi);
 	}
-
-	// Literal HTML links and module/bundler imports.
 	addCssReferences(references, clean, /<link\b[^>]*\bhref\s*=\s*["']([^"']+\.css(?:[?#][^"']*)?)["'][^>]*>/gi);
 	addCssReferences(references, clean, /\b(?:import|require)\s*\(\s*["']([^"']+\.css(?:[?#][^"']*)?)["']\s*\)/gi);
 	addCssReferences(references, clean, /\bimport\s+["']([^"']+\.css(?:[?#][^"']*)?)["']/gi);
-
 	return references;
 }
 

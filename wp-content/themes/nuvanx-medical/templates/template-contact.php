@@ -95,7 +95,6 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 							src="<?php echo esc_url( $chamberi_embed ); ?>"
 							width="100%"
 							height="260"
-							style="border:0;"
 							allowfullscreen=""
 							loading="lazy"
 							referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -132,7 +131,6 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 							src="<?php echo esc_url( $goya_embed ); ?>"
 							width="100%"
 							height="260"
-							style="border:0;"
 							allowfullscreen=""
 							loading="lazy"
 							referrerpolicy="no-referrer-when-downgrade"></iframe>

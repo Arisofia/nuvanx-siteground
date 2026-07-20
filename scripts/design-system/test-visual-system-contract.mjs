@@ -21,18 +21,42 @@ const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations
 const visual = read('wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php');
 const tokens = read('wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css');
 const fonts = read('wp-content/themes/nuvanx-medical/assets/css/nvx-fonts.css');
+const home = read('wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css');
+const footer = read('wp-content/themes/nuvanx-medical/assets/css/nvx-footer.css');
 const tokenDocs = read('docs/design-system/tokens.md');
+const typeDocs = read('docs/design-system/typography.md');
 const iconDocs = read('docs/design-system/icons.md');
 const numberingDocs = read('docs/design-system/numbering.md');
 
 requireMatch(integrations, /require_once __DIR__ \. '\/nvx-visual-system\.php';/, 'nvx-integrations.php must load nvx-visual-system.php');
 requireMatch(visual, /function nvx_visual_icon_svg\(/, 'canonical inline icon registry is missing');
 requireMatch(visual, /function nvx_visual_system_normalize_html\(/, 'legacy HTML normalizer is missing');
-requireMatch(visual, /#icon-\(location\|phone\|clock\|doctor\)/, 'contact sprite migration map is incomplete');
 requireMatch(visual, /resultados-definitivos[\s\S]*efecto-natural/, 'benefit icon migration map is incomplete');
+requireMatch(visual, /location\|phone\|clock\|doctor/, 'contact sprite migration map is incomplete');
 requireMatch(visual, /\.nvx-index-number[\s\S]*--nvx-index-number-size/, 'sequential numbering role is missing');
 requireMatch(visual, /ol:not\(\[class\]\)/, 'editorial ordered-list restoration is missing');
 requireMatch(visual, /nvx-site-closing-cta[\s\S]*style=/, 'closing CTA inline-style cleanup is missing');
+
+const exactTypography = [
+  ['--nvx-serif', '"Playfair Display", Georgia, "Times New Roman", serif'],
+  ['--nvx-sans', '"Manrope", "Helvetica Neue", Arial, sans-serif'],
+  ['--nvx-type-display', 'clamp(2.8rem, 5vw, 4.2rem)'],
+  ['--nvx-type-h1', 'clamp(2.2rem, 4vw, 3.2rem)'],
+  ['--nvx-type-h2', 'clamp(1.7rem, 3vw, 2.4rem)'],
+  ['--nvx-type-h3', '1.4rem'],
+  ['--nvx-type-body', '1.0625rem'],
+  ['--nvx-type-small', '0.875rem'],
+  ['--nvx-type-caption', '0.75rem'],
+  ['--nvx-fw-heading', '500'],
+  ['--nvx-lh-body', '1.6'],
+  ['--nvx-lh-display', '1.15'],
+  ['--nvx-track-display', '-0.02em'],
+  ['--nvx-track-caption', '0.04em'],
+];
+for (const [token, value] of exactTypography) {
+  const escaped = `${token}: ${value}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  requireMatch(tokens, new RegExp(escaped), `${token} must equal ${value}`);
+}
 
 for (const token of [
   '--nvx-icon-xs',
@@ -48,8 +72,18 @@ for (const token of [
   requireMatch(tokens, new RegExp(`${token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:`), `missing token ${token}`);
 }
 
-requireMatch(fonts, /font-weight:\s*700;/, 'Manrope 700 must be loaded because runtime components request it');
-requireMatch(tokenDocs, /#FCFBF8[\s\S]*#756F69/i, 'token documentation does not describe the warm-neutral palette');
+requireMatch(fonts, /family=Playfair\+Display/, 'Playfair Display Google Fonts request is missing');
+requireMatch(fonts, /family=Manrope:wght@300;400;500;600;700/, 'Manrope weight request is incomplete');
+requireAbsent(fonts, /Bodoni|Cormorant/i, 'font loader must not request alternate serif families');
+requireAbsent(tokens, /Bodoni|Cormorant|--nvx-serif-[123]|--nvx-sans-[123]/i, 'tokens must expose only the canonical font pair');
+requireAbsent(home, /font-size:\s*(?:clamp\(|[0-9.]+rem)/i, 'Home contains a private font-size outside the canonical tokens');
+requireAbsent(footer, /font-size:\s*(?:clamp\(|[0-9.]+rem)/i, 'Footer contains a private font-size outside the canonical tokens');
+
+requireMatch(visual, /font-weight:\s*var\(--nvx-fw-heading\)/, 'global headings must use the canonical 500 weight token');
+requireMatch(visual, /\.nvx-caption[\s\S]*--nvx-track-caption[\s\S]*text-transform:\s*uppercase/, 'caption role is incomplete');
+requireMatch(tokenDocs, /Playfair Display[\s\S]*Manrope/, 'token documentation does not describe the canonical pair');
+requireMatch(typeDocs, /Playfair Display[\s\S]*Manrope/, 'typography documentation does not describe the canonical pair');
+requireAbsent(`${tokenDocs}\n${typeDocs}`, /Bodoni Moda.*(?:activo|oficial)|Cormorant Garamond.*(?:activo|oficial)/i, 'documentation still presents an alternate serif as active');
 requireMatch(iconDocs, /currentColor[\s\S]*--nvx-icon-stroke/, 'icon documentation does not describe the currentColor contract');
 requireMatch(numberingDocs, /01[\s\S]*02[\s\S]*03/, 'numbering documentation does not define the canonical sequence');
 
@@ -83,4 +117,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: canonical colors, icons, typography roles and numbering contract');
+console.log('PASS: Playfair Display + Manrope, canonical colors, icons and numbering');

@@ -55,7 +55,7 @@ function read(filePath) {
 }
 
 function stripComments(source) {
-	return source.replace(/\/\*[\s\S]*?\*\//g, '');
+	return source.replace(/\r\n?/g, '\n').replace(/\/\*[\s\S]*?\*\//g, '');
 }
 
 function lineNumber(source, index) {
@@ -125,6 +125,15 @@ function walk(directory, extensions, output = []) {
 	return output;
 }
 
+function selectorForDeclaration(clean, declarationIndex) {
+	const blockStart = clean.lastIndexOf('{', declarationIndex);
+	if (blockStart < 0) return '';
+	const previousClose = clean.lastIndexOf('}', blockStart - 1);
+	const parentOpen = clean.lastIndexOf('{', blockStart - 1);
+	const boundary = Math.max(previousClose, parentOpen);
+	return clean.slice(boundary + 1, blockStart).trim().replace(/\s+/g, ' ');
+}
+
 function declarationRows(css, file, propertyPattern) {
 	const clean = stripComments(css);
 	const rows = [];
@@ -139,10 +148,31 @@ function declarationRows(css, file, propertyPattern) {
 			value: match[2].trim(),
 			line: lineNumber(clean, match.index),
 			index: match.index,
+			selector: selectorForDeclaration(clean, match.index),
 		});
 	}
 	return rows;
 }
+
+function validateDeclarationParser() {
+	const fixture = [
+		'/* icon appears only in this removed comment */',
+		'.plain-link { color: inherit; }',
+		'.button-label { color: var(--button-color); }',
+		'.nvx-icon,',
+		'.nvx-icon path { stroke: currentColor; }',
+		':root { --nvx-icon-stroke: 1.5; }',
+	].join('\r\n');
+	const rows = declarationRows(fixture, 'fixture.css', 'color|fill|stroke');
+	const plain = rows.find((row) => row.value === 'inherit');
+	const button = rows.find((row) => row.value === 'var(--button-color)');
+	const icon = rows.find((row) => row.value === 'currentColor');
+	if (plain?.selector !== '.plain-link') throw new Error('CSS parser lost the exact selector for a plain declaration');
+	if (button?.selector !== '.button-label') throw new Error('CSS parser lost the exact selector for a button declaration');
+	if (!icon?.selector.includes('.nvx-icon')) throw new Error('CSS parser failed to associate an icon declaration with its selector');
+	if (rows.some((row) => row.value === '1.5')) throw new Error('CSS parser matched a property name inside a custom token');
+}
+validateDeclarationParser();
 
 function normalizeValue(value) {
 	return value.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -241,8 +271,7 @@ for (const [file, source] of Object.entries(allSources)) {
 	literalColors.push(...declarationRows(source, file, 'color|background-color|border(?:-(?:top|right|bottom|left))?-color|fill|stroke'));
 
 	for (const row of declarationRows(source, file, 'color|fill|stroke')) {
-		const selectorWindow = source.slice(Math.max(0, source.lastIndexOf('{', row.index) - 180), row.index + 180);
-		if (/icon|svg|toggle|arrow|chevron|marker|hamburger|close/i.test(selectorWindow)) iconColors.push(row);
+		if (/icon|svg|toggle|arrow|chevron|marker|hamburger|close/i.test(row.selector)) iconColors.push(row);
 	}
 }
 
@@ -385,7 +414,7 @@ if (nonCanonicalFonts.length) fatal.push(`found ${nonCanonicalFonts.length} non-
 if (inconsistentIconColors.length) fatal.push(`found ${inconsistentIconColors.length} inconsistent icon color declaration(s)`);
 if (hardcodedColors.length) fatal.push(`found ${hardcodedColors.length} literal color declaration(s) outside tokens`);
 
-console.log(iconColors); if (fatal.length) {
+if (fatal.length) {
 	console.error('\nCSS SYSTEM GATE FAILED');
 	for (const error of fatal) console.error(`- ${error}`);
 	process.exit(1);

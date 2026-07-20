@@ -143,6 +143,9 @@ require_once __DIR__ . '/nvx-faq-content-v2.php';
 /** Visible and schema review provenance, only after explicit approval metadata. */
 require_once __DIR__ . '/nvx-medical-review.php';
 
+/** Narrow safeguards for generic actions, SLA wording and governed public claims. */
+require_once __DIR__ . '/nvx-publication-safeguards.php';
+
 /** Temporary clinical safeguard for BTL detail pages pending source-copy sign-off. */
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
 

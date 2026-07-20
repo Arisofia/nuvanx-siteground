@@ -60,3 +60,5 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 .nvx-benefit-item{display:flex;align-items:center}
 
 /* Authority-page token closure. */
+.nvx-dr-rivera-avatar{box-shadow: var(--nvx-shadow-medium);border-color: var(--nvx-light)}
+.nvx-que-exigir-hr{border-top-color: var(--nvx-color-line)}

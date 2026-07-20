@@ -151,10 +151,10 @@ article.nvx-page > .nvx-page-hero {
   isolation: isolate;
   width: 100%;
   margin: 0;
-  padding-block: clamp(56px, 8vw, 104px) clamp(64px, 9vw, 120px);
+  padding-block: clamp(56px, 8vw, calc(var(--nvx-space-1) * 13)) clamp(var(--nvx-space-8), 9vw, 120px);
   padding-inline: 0;
   overflow: hidden;
-  scroll-margin-top: 96px;
+  scroll-margin-top: var(--nvx-space-12);
   /* Fallback palette sampled from fondo-formulario.webp */
   background:
     linear-gradient(

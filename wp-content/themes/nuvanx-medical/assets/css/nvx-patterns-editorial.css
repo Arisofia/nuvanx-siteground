@@ -133,9 +133,9 @@ article.nvx-page > .nvx-page-hero {
   min-height: 100%;
   margin: 0;
   padding:
-    clamp(96px, 14vw, 180px)
-    clamp(20px, 5vw, 72px)
-    clamp(40px, 6vw, 80px);
+    clamp(var(--nvx-space-12), 14vw, 180px)
+    clamp(calc(var(--nvx-space-1) * 2.5), 5vw, 72px)
+    clamp(var(--nvx-space-5), 6vw, var(--nvx-space-10));
   background: transparent;
   color: var(--nvx-light);
   text-align: left;
@@ -214,7 +214,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-brand-hero__copy .nvx-brand-meta {
-  margin-top: 0.75rem;
+  margin-top: calc(var(--nvx-space-1) * 1.5);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-caption);
   letter-spacing: 0.06em;
@@ -229,7 +229,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-page-hero__copy .nvx-page__cta,
 .nvx-hero__copy .nvx-brand-actions,
 .nvx-hero__copy .nvx-page__cta {
-  margin-top: 1.5rem;
+  margin-top: var(--nvx-space-3);
 }
 
 .nvx-page-hero--theme .nvx-page-hero__media {
@@ -264,7 +264,7 @@ article.nvx-page > .nvx-page-hero {
   .nvx-editorial-hero__copy,
   .nvx-page-hero__copy,
   .nvx-hero__copy {
-    padding: clamp(100px, 24vw, 140px) 20px 36px;
+    padding: clamp(100px, 24vw, 140px) calc(var(--nvx-space-1) * 2.5) 36px;
   }
 
   .nvx-brand-hero__copy .nvx-brand-hero__title,
@@ -322,8 +322,8 @@ article.nvx-page > .nvx-page-hero {
 .nvx-method__cta {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
-  margin-top: var(--nvx-gap-wide, 2rem);
+  gap: calc(var(--nvx-space-1) * 1.75);
+  margin-top: var(--nvx-gap-wide, var(--nvx-space-4));
 }
 
 .nvx-values-section .nvx-brand-kicker {
@@ -332,21 +332,21 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-values-section .nvx-brand-title {
   max-width: 20ch;
-  margin-bottom: var(--nvx-gap-wide, 2rem);
+  margin-bottom: var(--nvx-gap-wide, var(--nvx-space-4));
 }
 
 .nvx-values {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(28px, 4vw, 48px);
-  margin-top: var(--nvx-gap-wide, 2rem);
+  gap: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-6));
+  margin-top: var(--nvx-gap-wide, var(--nvx-space-4));
 }
 
 .nvx-value {
   display: grid;
-  gap: 16px;
+  gap: var(--nvx-space-2);
   align-content: start;
-  padding: clamp(28px, 3.2vw, 40px);
+  padding: clamp(calc(var(--nvx-space-1) * 3.5), 3.2vw, var(--nvx-space-5));
   border: 1px solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card);
   background: var(--nvx-light);
@@ -357,8 +357,8 @@ article.nvx-page > .nvx-page-hero {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: var(--nvx-space-6);
+  height: var(--nvx-space-6);
   border-radius: 50%;
   color: var(--nvx-ink);
   background: var(--nvx-surface-base);
@@ -366,8 +366,8 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-value__icon svg {
-  width: 24px;
-  height: 24px;
+  width: var(--nvx-space-3);
+  height: var(--nvx-space-3);
   display: block;
 }
 
@@ -392,29 +392,29 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-method-lead {
   max-width: 52ch;
-  margin: 0 0 var(--nvx-gap-wide, 2rem);
+  margin: 0 0 var(--nvx-gap-wide, var(--nvx-space-4));
 }
 
 /* Home specialized protocols — clinical stack, no price chrome */
 .nvx-home-protocols .nvx-brand-title {
   max-width: 22ch;
-  margin-bottom: var(--nvx-gap-wide, 2rem);
+  margin-bottom: var(--nvx-gap-wide, var(--nvx-space-4));
 }
 
 .nvx-home-protocols__list {
   display: grid;
-  gap: clamp(32px, 4vw, 56px);
-  margin-top: var(--nvx-space-4, 32px);
+  gap: clamp(var(--nvx-space-4), 4vw, 56px);
+  margin-top: var(--nvx-space-4, var(--nvx-space-4));
 }
 
 .nvx-home-protocol {
   max-width: min(100%, 68ch);
-  padding-top: clamp(20px, 2.5vw, 28px);
+  padding-top: clamp(calc(var(--nvx-space-1) * 2.5), 2.5vw, calc(var(--nvx-space-1) * 3.5));
   border-top: 1px solid var(--nvx-color-line, var(--nvx-color-line));
 }
 
 .nvx-home-protocol__title {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
@@ -423,7 +423,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-home-protocol__lead {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
   line-height: var(--nvx-lh-body);
@@ -431,9 +431,9 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-home-protocol__facts {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   display: grid;
-  gap: var(--nvx-space-2, 16px);
+  gap: var(--nvx-space-2, var(--nvx-space-2));
 }
 
 .nvx-home-protocol__fact {
@@ -441,9 +441,9 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-home-protocol__fact dt {
-  margin: 0 0 4px;
+  margin: 0 0 calc(var(--nvx-space-1) / 2);
   font-family: var(--nvx-sans);
-  font-size: 0.75rem;
+  font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -465,14 +465,14 @@ article.nvx-page > .nvx-page-hero {
 .nvx-method-columns {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(24px, 3.5vw, 40px);
+  gap: clamp(var(--nvx-space-3), 3.5vw, var(--nvx-space-5));
 }
 
 .nvx-method-col {
   display: grid;
-  gap: 12px;
+  gap: calc(var(--nvx-space-1) * 1.5);
   align-content: start;
-  padding: clamp(22px, 3vw, 32px) 0;
+  padding: clamp(calc(var(--nvx-space-1) * 2.75), 3vw, var(--nvx-space-4)) 0;
   border-top: 1px solid var(--nvx-color-line);
 }
 
@@ -480,14 +480,14 @@ article.nvx-page > .nvx-page-hero {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: var(--nvx-space-6);
+  height: var(--nvx-space-6);
   color: var(--nvx-accent-muted);
 }
 
 .nvx-method-col__icon svg {
-  width: 32px;
-  height: 32px;
+  width: var(--nvx-space-4);
+  height: var(--nvx-space-4);
 }
 
 .nvx-method-col__title {
@@ -532,11 +532,11 @@ article.nvx-page > .nvx-page-hero {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   TREATMENTS CATALOG — quiet luxury index (8px system)
+   TREATMENTS CATALOG — quiet luxury index (var(--nvx-space-1) system)
    ═══════════════════════════════════════════════════════════ */
 
 .nvx-catalog {
-  padding-block: var(--nvx-pad-section, clamp(96px, 8vw, 120px));
+  padding-block: var(--nvx-pad-section, clamp(var(--nvx-space-12), 8vw, 120px));
   background: var(--nvx-light);
   color: var(--nvx-ink);
 }
@@ -550,14 +550,14 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-catalog__intro {
-  padding-bottom: var(--nvx-space-6, 48px);
-  margin-bottom: var(--nvx-space-8, 64px);
+  padding-bottom: var(--nvx-space-6, var(--nvx-space-6));
+  margin-bottom: var(--nvx-space-8, var(--nvx-space-8));
   border-bottom: 1px solid var(--nvx-color-line);
 }
 
 .nvx-catalog__kicker {
   display: block;
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
   font-weight: 600;
@@ -567,7 +567,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-catalog__title {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h2);
   font-weight: 400;
@@ -586,15 +586,15 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-catalog-category {
-  margin-bottom: var(--nvx-space-10, 80px);
+  margin-bottom: var(--nvx-space-10, var(--nvx-space-10));
 }
 
 .nvx-catalog-category:last-of-type {
-  margin-bottom: var(--nvx-space-6, 48px);
+  margin-bottom: var(--nvx-space-6, var(--nvx-space-6));
 }
 
 .nvx-catalog-category__label {
-  margin: 0 0 var(--nvx-space-4, 32px);
+  margin: 0 0 var(--nvx-space-4, var(--nvx-space-4));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
   font-weight: 600;
@@ -606,16 +606,16 @@ article.nvx-page > .nvx-page-hero {
 .nvx-catalog-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--nvx-space-4, 32px); /* 32px gutters */
+  gap: var(--nvx-space-4, var(--nvx-space-4)); /* var(--nvx-space-4) gutters */
 }
 
 .nvx-catalog-card {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: var(--nvx-space-4, 32px);
+  gap: var(--nvx-space-4, var(--nvx-space-4));
   min-height: 100%;
-  padding: var(--nvx-space-4, 32px) var(--nvx-space-3, 24px);
+  padding: var(--nvx-space-4, var(--nvx-space-4)) var(--nvx-space-3, var(--nvx-space-3));
   border-bottom: 1px solid var(--nvx-color-line);
   background: transparent;
   transition: border-color 180ms ease;
@@ -628,7 +628,7 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-catalog-card__meta {
   display: block;
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-sans);
   font-size: 0.6875rem;
   font-weight: 600;
@@ -638,9 +638,9 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-catalog-card__title {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-serif);
-  font-size: clamp(1.375rem, 2vw, 1.75rem);
+  font-size: clamp(1.375rem, 2vw, calc(var(--nvx-space-1) * 3.5));
   font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -663,7 +663,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-catalog-card__cta {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--nvx-space-1);
   margin-top: auto;
   font-family: var(--nvx-sans);
   font-size: 0.6875rem;
@@ -687,12 +687,12 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-catalog-card:hover .nvx-catalog-card__cta span,
 .nvx-catalog-card:focus-within .nvx-catalog-card__cta span {
-  transform: translateX(6px);
+  transform: translateX(calc(var(--nvx-space-1) * 0.75));
 }
 
 /* Logo cloud — discreet partner strip */
 .nvx-logo-cloud {
-  padding-block: var(--nvx-space-10, 80px) var(--nvx-space-12, 96px);
+  padding-block: var(--nvx-space-10, var(--nvx-space-10)) var(--nvx-space-12, var(--nvx-space-12));
   background: var(--nvx-surface-base);
   border-block: 1px solid var(--nvx-color-line);
 }
@@ -707,9 +707,9 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-logo-cloud__title {
-  margin: 0 0 var(--nvx-space-6, 48px);
+  margin: 0 0 var(--nvx-space-6, var(--nvx-space-6));
   font-family: var(--nvx-serif);
-  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-size: clamp(calc(var(--nvx-space-1) * 2.5), 2vw, calc(var(--nvx-space-1) * 3.5));
   font-weight: 400;
   line-height: 1.3;
   color: var(--nvx-ink);
@@ -722,7 +722,7 @@ article.nvx-page > .nvx-page-hero {
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  gap: var(--nvx-space-3, 24px) var(--nvx-space-4, 32px);
+  gap: var(--nvx-space-3, var(--nvx-space-3)) var(--nvx-space-4, var(--nvx-space-4));
   margin: 0;
   padding: 0;
   list-style: none;
@@ -731,7 +731,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-logo-cloud__item {
   margin: 0;
   font-family: var(--nvx-sans);
-  font-size: 0.75rem;
+  font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -741,21 +741,21 @@ article.nvx-page > .nvx-page-hero {
 @media (max-width: 980px) {
   .nvx-catalog-grid {
     grid-template-columns: 1fr;
-    gap: var(--nvx-space-4, 32px);
+    gap: var(--nvx-space-4, var(--nvx-space-4));
   }
 
   .nvx-catalog-category {
-    margin-bottom: var(--nvx-space-8, 64px);
+    margin-bottom: var(--nvx-space-8, var(--nvx-space-8));
   }
 }
 
 @media (max-width: 680px) {
   .nvx-catalog-card {
-    padding: var(--nvx-space-4, 32px) 0;
+    padding: var(--nvx-space-4, var(--nvx-space-4)) 0;
   }
 
   .nvx-logo-cloud__list {
-    gap: var(--nvx-space-2, 16px) var(--nvx-space-3, 24px);
+    gap: var(--nvx-space-2, var(--nvx-space-2)) var(--nvx-space-3, var(--nvx-space-3));
   }
 }
 
@@ -798,7 +798,7 @@ article.nvx-page > .nvx-page-hero {
 
 .nvx-endolift-hero-copy .nvx-brand-hero__description {
   max-width: 48ch;
-  margin-top: var(--nvx-space-2, 16px);
+  margin-top: var(--nvx-space-2, var(--nvx-space-2));
   color: var(--nvx-text-on-dark-88);
 }
 
@@ -821,7 +821,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-kicker {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
   font-weight: 600;
@@ -831,7 +831,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-heading {
-  margin: 0 0 var(--nvx-space-4, 32px);
+  margin: 0 0 var(--nvx-space-4, var(--nvx-space-4));
   max-width: 22ch;
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h2);
@@ -841,7 +841,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-body {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
   line-height: var(--nvx-lh-body);
@@ -860,14 +860,14 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-diagnosis__panel {
-  padding: var(--nvx-space-4, 32px);
+  padding: var(--nvx-space-4, var(--nvx-space-4));
   border: 1px solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card);
   background: var(--nvx-surface-base, #f6f7f8);
 }
 
 .nvx-endolift-panel-label {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
   font-weight: 600;
@@ -881,7 +881,7 @@ article.nvx-page > .nvx-page-hero {
   padding: 0;
   list-style: none;
   display: grid;
-  gap: var(--nvx-space-3, 24px);
+  gap: var(--nvx-space-3, var(--nvx-space-3));
 }
 
 .nvx-endolift-panel-list li {
@@ -897,8 +897,8 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-formula {
-  margin: var(--nvx-space-6, 48px) 0;
-  padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
+  margin: var(--nvx-space-6, var(--nvx-space-6)) 0;
+  padding: var(--nvx-space-5, var(--nvx-space-5)) var(--nvx-space-4, var(--nvx-space-4));
   border: var(--nvx-border-hairline) solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card);
   background: var(--nvx-ink);
@@ -907,9 +907,9 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-formula__eq {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-serif);
-  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-size: clamp(var(--nvx-space-4), 4vw, 2.75rem);
   letter-spacing: 0.04em;
   color: var(--nvx-text-on-dark);
 }
@@ -927,16 +927,16 @@ article.nvx-page > .nvx-page-hero {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--nvx-space-4);
-  margin-top: var(--nvx-space-4, 32px);
+  margin-top: var(--nvx-space-4, var(--nvx-space-4));
 }
 
 .nvx-endolift-effect {
-  padding-top: var(--nvx-space-3, 24px);
+  padding-top: var(--nvx-space-3, var(--nvx-space-3));
   border-top: 1px solid var(--nvx-color-line);
 }
 
 .nvx-endolift-effect__title {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
@@ -952,9 +952,9 @@ article.nvx-page > .nvx-page-hero {
 /* Step stroke icons — same size/weight as laser/aes brand icons sitewide. */
 .nvx-endolift-step__icon {
   display: block;
-  width: 32px;
-  height: 32px;
-  margin-bottom: var(--nvx-space-2, 16px);
+  width: var(--nvx-space-4);
+  height: var(--nvx-space-4);
+  margin-bottom: var(--nvx-space-2, var(--nvx-space-2));
   color: var(--nvx-accent-muted);
   flex-shrink: 0;
 }
@@ -968,7 +968,7 @@ article.nvx-page > .nvx-page-hero {
 /* Step index (01, 02…) — single typography across hubs (see global step-n block). */
 .nvx-endolift-step__n {
   display: block;
-  margin-bottom: var(--nvx-space-2, 16px);
+  margin-bottom: var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker, 0.6875rem);
   font-weight: 700;
@@ -978,21 +978,21 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-step__title {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
 }
 
 .nvx-endolift-faq-list {
-  margin-top: var(--nvx-space-4, 32px);
+  margin-top: var(--nvx-space-4, var(--nvx-space-4));
 }
 
 /* Clinical review byline (E-E-A-T) */
 .nvx-endolift-reviewed {
   width: var(--nvx-shell);
   max-width: 100%;
-  margin: 0 auto var(--nvx-space-4, 32px);
+  margin: 0 auto var(--nvx-space-4, var(--nvx-space-4));
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
   font-family: var(--nvx-sans);
@@ -1007,9 +1007,9 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-price {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-serif);
-  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-size: clamp(var(--nvx-space-4), 4vw, 2.75rem);
   font-weight: 400;
   line-height: 1.1;
   color: var(--nvx-ink);
@@ -1017,8 +1017,8 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-price-includes {
-  margin: var(--nvx-space-3, 24px) 0;
-  padding-left: 1.25rem;
+  margin: var(--nvx-space-3, var(--nvx-space-3)) 0;
+  padding-left: calc(var(--nvx-space-1) * 2.5);
   max-width: 48ch;
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
@@ -1027,7 +1027,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-endolift-price-includes li {
-  margin-bottom: var(--nvx-space-2, 16px);
+  margin-bottom: var(--nvx-space-2, var(--nvx-space-2));
 }
 
 /* Blog long-form tables/prose: nvx-posts.css (Journal stack). */
@@ -1041,19 +1041,19 @@ article.nvx-page > .nvx-page-hero {
 .nvx-nosotros-team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
-  gap: clamp(20px, 3vw, 32px);
-  margin: var(--nvx-space-4, 32px) 0;
+  gap: clamp(calc(var(--nvx-space-1) * 2.5), 3vw, var(--nvx-space-4));
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0;
 }
 
 .nvx-nosotros-team-card {
   margin: 0;
-  padding: clamp(20px, 2.5vw, 28px);
+  padding: clamp(calc(var(--nvx-space-1) * 2.5), 2.5vw, calc(var(--nvx-space-1) * 3.5));
   border: 1px solid var(--nvx-color-line, var(--nvx-color-line));
-  border-radius: var(--nvx-radius-card, 12px);
+  border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5));
   background: var(--nvx-light, var(--nvx-light));
   display: flex;
   flex-direction: column;
-  gap: var(--nvx-space-2, 0.75rem);
+  gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
 }
 
 .nvx-nosotros-team-card .nvx-endolift-kicker {
@@ -1066,7 +1066,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-nosotros-platform-link {
-  margin: var(--nvx-space-2, 0.75rem) 0 0;
+  margin: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5)) 0 0;
 }
 
 .nvx-nosotros-platform-related {
@@ -1077,20 +1077,20 @@ article.nvx-page > .nvx-page-hero {
 .nvx-contact-clinics {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
-  gap: clamp(20px, 3vw, 32px);
-  margin: var(--nvx-space-4, 32px) 0;
+  gap: clamp(calc(var(--nvx-space-1) * 2.5), 3vw, var(--nvx-space-4));
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0;
 }
 
 .nvx-contact-clinic {
   margin: 0;
-  padding: clamp(20px, 2.5vw, 28px);
+  padding: clamp(calc(var(--nvx-space-1) * 2.5), 2.5vw, calc(var(--nvx-space-1) * 3.5));
   border: 1px solid var(--nvx-color-line, var(--nvx-color-line));
-  border-radius: var(--nvx-radius-card, 12px);
+  border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5));
   background: var(--nvx-light, var(--nvx-light));
 }
 
 .nvx-contact-clinic__name {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
@@ -1102,7 +1102,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-contact-clinic__addr,
 .nvx-contact-clinic__phone,
 .nvx-contact-clinic__days {
-  margin: 0 0 0.5rem;
+  margin: 0 0 calc(var(--nvx-space-1) * 1);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
   line-height: var(--nvx-lh-body);
@@ -1110,7 +1110,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-contact-disclaimer {
-  margin: var(--nvx-space-4, 32px) 0 0;
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0 0;
   max-width: 68ch;
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-small, 0.875rem);
@@ -1119,7 +1119,7 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-contacto-cta {
-  margin: var(--nvx-space-4, 32px) 0 0;
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0 0;
 }
 
 /* Equipo page structure — aligned profiles + staff */
@@ -1153,13 +1153,13 @@ article.nvx-page > .nvx-page-hero {
 .nvx-equipo-director > .nvx-endolift-section,
 .nvx-equipo-ivon > .nvx-endolift-section,
 .nvx-equipo-fabio > .nvx-endolift-section {
-  padding-block: clamp(28px, 4vw, 48px);
+  padding-block: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-6));
 }
 
 .nvx-equipo-profile-layout {
   display: grid;
   grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr);
-  gap: clamp(24px, 4vw, 48px);
+  gap: clamp(var(--nvx-space-3), 4vw, var(--nvx-space-6));
   align-items: start;
 }
 
@@ -1168,7 +1168,7 @@ article.nvx-page > .nvx-page-hero {
   max-width: 68ch;
   display: flex;
   flex-direction: column;
-  gap: var(--nvx-space-2, 0.75rem);
+  gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
 }
 
 .nvx-equipo-profile-layout__copy .nvx-endolift-kicker {
@@ -1197,7 +1197,7 @@ figure.nvx-equipo-portrait,
   max-width: 16rem;
   aspect-ratio: 5 / 6;
   overflow: hidden;
-  border-radius: var(--nvx-radius-card, 12px);
+  border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5));
   background: var(--nvx-surface-base, var(--nvx-color-paper));
   box-shadow: var(--nvx-shadow-min, 0 1px 2px rgba(0, 0, 0, 0.04));
   justify-self: start;
@@ -1219,14 +1219,14 @@ figure.nvx-equipo-portrait,
 
 /* Staff grid: equal cards, portrait frames, no span-4 leak from team class */
 .nvx-equipo-staff {
-  padding-block: clamp(32px, 5vw, 56px);
+  padding-block: clamp(var(--nvx-space-4), 5vw, 56px);
 }
 
 .nvx-equipo-staff-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr));
-  gap: clamp(20px, 3vw, 32px);
-  margin-top: var(--nvx-space-4, 32px);
+  gap: clamp(calc(var(--nvx-space-1) * 2.5), 3vw, var(--nvx-space-4));
+  margin-top: var(--nvx-space-4, var(--nvx-space-4));
   align-items: stretch;
 }
 
@@ -1238,22 +1238,22 @@ figure.nvx-equipo-portrait,
   height: 100%;
   min-width: 0;
   margin: 0;
-  gap: var(--nvx-space-2, 0.75rem);
+  gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
 }
 
 .nvx-equipo-staff-grid .nvx-brand-card__media,
 .nvx-equipo-staff-grid .nvx-brand-card__media--portrait,
 .nvx-equipo-staff-grid figure.nvx-brand-card__media.nvx-content-figure {
   display: block;
-  margin: calc(-1 * var(--nvx-pad-card, 1.25rem)) calc(-1 * var(--nvx-pad-card, 1.25rem)) var(--nvx-space-3, 1rem);
-  margin-block: calc(-1 * var(--nvx-pad-card, 1.25rem)) var(--nvx-space-3, 1rem);
+  margin: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
+  margin-block: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
   width: auto;
   max-width: none;
   aspect-ratio: 5 / 6;
   max-height: none;
   overflow: hidden;
   background: var(--nvx-surface-base, var(--nvx-color-paper));
-  border-radius: var(--nvx-radius-card, 12px) var(--nvx-radius-card, 12px) 0 0;
+  border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) 0 0;
 }
 
 .nvx-equipo-staff-grid .nvx-brand-card__media img,
@@ -1319,13 +1319,13 @@ figure.nvx-equipo-portrait,
 .nvx-equipo-blockquote {
   margin: 0;
   max-width: 40rem;
-  padding: clamp(28px, 4vw, 40px);
-  border-left: 3px solid var(--nvx-accent-muted);
+  padding: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-5));
+  border-left: calc(var(--nvx-space-1) * 0.375) solid var(--nvx-accent-muted);
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
 .nvx-equipo-blockquote p {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-serif);
   font-size: clamp(1.15rem, 2.2vw, 1.35rem);
   font-weight: 400;
@@ -1345,7 +1345,7 @@ figure.nvx-equipo-portrait,
   width: 1px;
   height: 1px;
   padding: 0;
-  margin: -1px;
+  margin: calc(var(--nvx-border-hairline) * -1);
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
@@ -1355,23 +1355,23 @@ figure.nvx-equipo-portrait,
 /* CO₂ recovery timeline */
 .nvx-co2-timeline {
   list-style: none;
-  margin: var(--nvx-space-4, 32px) 0 0;
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0 0;
   padding: 0;
   display: grid;
-  gap: clamp(24px, 3vw, 36px);
+  gap: clamp(var(--nvx-space-3), 3vw, 36px);
   max-width: 68ch;
   counter-reset: none;
 }
 
 .nvx-co2-timeline__item {
   margin: 0;
-  padding-top: var(--nvx-space-3, 24px);
+  padding-top: var(--nvx-space-3, var(--nvx-space-3));
   border-top: 1px solid var(--nvx-color-line, var(--nvx-color-line));
 }
 
 .nvx-co2-timeline__n {
   display: block;
-  margin-bottom: var(--nvx-space-2, 16px);
+  margin-bottom: var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker, 0.6875rem);
   font-weight: 700;
@@ -1381,7 +1381,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-co2-timeline__title {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
@@ -1392,21 +1392,21 @@ figure.nvx-equipo-portrait,
 /* Endoláser corporal — zone list (reuses endolift section rhythm) */
 .nvx-endolaser-zone-list {
   list-style: none;
-  margin: var(--nvx-space-4, 32px) 0 0;
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0 0;
   padding: 0;
   display: grid;
-  gap: clamp(20px, 3vw, 32px);
+  gap: clamp(calc(var(--nvx-space-1) * 2.5), 3vw, var(--nvx-space-4));
   max-width: 68ch;
 }
 
 .nvx-endolaser-zone {
   margin: 0;
-  padding-top: var(--nvx-space-3, 24px);
+  padding-top: var(--nvx-space-3, var(--nvx-space-3));
   border-top: 1px solid var(--nvx-color-line, var(--nvx-color-line));
 }
 
 .nvx-endolaser-zone__title {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
@@ -1416,7 +1416,7 @@ figure.nvx-equipo-portrait,
 
 /* Comparative table Endolift vs surgery */
 .nvx-endolift-compare-wrap {
-  margin: var(--nvx-space-4, 32px) 0;
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -1426,21 +1426,21 @@ figure.nvx-equipo-portrait,
   max-width: 52rem;
   border-collapse: collapse;
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body, 1rem);
+  font-size: var(--nvx-type-body, var(--nvx-space-2));
   line-height: 1.45;
   color: var(--nvx-ink);
 }
 
 .nvx-endolift-compare-table th,
 .nvx-endolift-compare-table td {
-  padding: 0.75rem 1rem;
+  padding: calc(var(--nvx-space-1) * 1.5) var(--nvx-space-2);
   border-bottom: 1px solid var(--nvx-color-line, var(--nvx-color-line));
   text-align: left;
   vertical-align: top;
 }
 
 .nvx-endolift-compare-table thead th {
-  font-size: 0.75rem;
+  font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1455,7 +1455,7 @@ figure.nvx-equipo-portrait,
 
 /* Official PVP table — readable, no retail chrome */
 .nvx-endolift-price-table-wrap {
-  margin: var(--nvx-space-4, 32px) 0;
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -1465,14 +1465,14 @@ figure.nvx-equipo-portrait,
   max-width: 40rem;
   border-collapse: collapse;
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body, 1rem);
+  font-size: var(--nvx-type-body, var(--nvx-space-2));
   line-height: 1.4;
   color: var(--nvx-ink);
 }
 
 .nvx-endolift-price-table__cap {
   caption-side: bottom;
-  padding-top: var(--nvx-space-2, 16px);
+  padding-top: var(--nvx-space-2, var(--nvx-space-2));
   text-align: left;
   font-size: var(--nvx-type-small, 0.875rem);
   color: var(--nvx-text-muted, #5c5c5c);
@@ -1480,14 +1480,14 @@ figure.nvx-equipo-portrait,
 
 .nvx-endolift-price-table th,
 .nvx-endolift-price-table td {
-  padding: 0.75rem 1rem;
+  padding: calc(var(--nvx-space-1) * 1.5) var(--nvx-space-2);
   border-bottom: 1px solid var(--nvx-color-line, var(--nvx-color-line));
   text-align: left;
   vertical-align: top;
 }
 
 .nvx-endolift-price-table thead th {
-  font-size: 0.75rem;
+  font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1506,7 +1506,7 @@ figure.nvx-equipo-portrait,
   font-weight: 500;
 }
 
-/* Action banner: exactamente 96px bajo FAQs */
+/* Action banner: exactamente var(--nvx-space-12) bajo FAQs */
 
 @media (max-width: 980px) {
   .nvx-endolift-diagnosis__grid,
@@ -1523,7 +1523,7 @@ figure.nvx-equipo-portrait,
 /* ═══════════════════════════════════════════════════════════
    MEDICINA ESTÉTICA LÁSER — quiet luxury authority hub
    Surfaces use the canonical NUVANX palette tokens.
-   Section pad: 96px mobile / 120px desktop · 8px system
+   Section pad: var(--nvx-space-12) mobile / 120px desktop · var(--nvx-space-1) system
    ═══════════════════════════════════════════════════════════ */
 
 .nvx-laser-hero.nvx-brand-hero,
@@ -1550,7 +1550,7 @@ figure.nvx-equipo-portrait,
 
 .nvx-laser-hero-copy .nvx-brand-hero__description {
   max-width: 60ch;
-  margin-top: var(--nvx-space-2, 16px);
+  margin-top: var(--nvx-space-2, var(--nvx-space-2));
   color: var(--nvx-text-on-dark-88);
 }
 
@@ -1573,7 +1573,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-laser-kicker {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
   font-weight: 600;
@@ -1583,7 +1583,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-laser-heading {
-  margin: 0 0 var(--nvx-space-6, 48px);
+  margin: 0 0 var(--nvx-space-6, var(--nvx-space-6));
   max-width: 22ch;
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h2);
@@ -1593,7 +1593,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-laser-body {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
   line-height: var(--nvx-lh-body);
@@ -1602,9 +1602,9 @@ figure.nvx-equipo-portrait,
 
 .nvx-laser-icon {
   display: block;
-  width: 32px;
-  height: 32px;
-  margin-bottom: var(--nvx-space-3, 24px);
+  width: var(--nvx-space-4);
+  height: var(--nvx-space-4);
+  margin-bottom: var(--nvx-space-3, var(--nvx-space-3));
   color: var(--nvx-accent-muted);
   flex-shrink: 0;
 }
@@ -1615,7 +1615,7 @@ figure.nvx-equipo-portrait,
   display: block;
 }
 
-/* Enfoque — 3 columnas, gutter 32px */
+/* Enfoque — 3 columnas, gutter var(--nvx-space-4) */
 .nvx-laser-focus-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1623,19 +1623,19 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-laser-pillar {
-  padding-top: var(--nvx-space-2, 16px);
+  padding-top: var(--nvx-space-2, var(--nvx-space-2));
   border-top: 1px solid rgba(28, 28, 28, 0.1);
 }
 
 .nvx-laser-pillar__title {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
   color: var(--nvx-ink);
 }
 
-/* Plataformas — tarjeta asimétrica, gutter 48px */
+/* Plataformas — tarjeta asimétrica, gutter var(--nvx-space-6) */
 .nvx-laser-platform-list {
   display: grid;
   gap: var(--nvx-space-6);
@@ -1646,7 +1646,7 @@ figure.nvx-equipo-portrait,
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.85fr);
   gap: var(--nvx-space-6);
   align-items: start;
-  padding: var(--nvx-space-5, 40px);
+  padding: var(--nvx-space-5, var(--nvx-space-5));
   background: var(--nvx-light);
   border: 1px solid rgba(28, 28, 28, 0.08);
   border-radius: var(--nvx-radius-card, 2px);
@@ -1655,8 +1655,8 @@ figure.nvx-equipo-portrait,
 .nvx-laser-platform__head {
   display: flex;
   align-items: center;
-  gap: var(--nvx-space-2, 16px);
-  margin-bottom: var(--nvx-space-2, 16px);
+  gap: var(--nvx-space-2, var(--nvx-space-2));
+  margin-bottom: var(--nvx-space-2, var(--nvx-space-2));
 }
 
 .nvx-laser-platform__head .nvx-laser-icon {
@@ -1674,7 +1674,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-laser-platform__title {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
@@ -1682,17 +1682,17 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-laser-platform__link-wrap {
-  margin: var(--nvx-space-3, 24px) 0 0;
+  margin: var(--nvx-space-3, var(--nvx-space-3)) 0 0;
 }
 
 .nvx-laser-platform__link {
   font-family: var(--nvx-sans);
-  font-size: 0.75rem;
+  font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: calc(var(--nvx-space-1) / 2);
   color: var(--nvx-ink);
 }
 
@@ -1702,13 +1702,13 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-laser-platform__meta {
-  padding: var(--nvx-space-4, 32px);
+  padding: var(--nvx-space-4, var(--nvx-space-4));
   background: var(--nvx-surface-base, #f6f7f8);
   border: 1px solid rgba(28, 28, 28, 0.06);
 }
 
 .nvx-laser-meta-label {
-  margin: 0 0 var(--nvx-space-1, 8px);
+  margin: 0 0 var(--nvx-space-1, var(--nvx-space-1));
   font-family: var(--nvx-sans);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -1722,16 +1722,16 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-laser-meta-label--spaced {
-  margin-top: var(--nvx-space-3, 24px);
+  margin-top: var(--nvx-space-3, var(--nvx-space-3));
 }
 
 .nvx-laser-faq-list {
-  margin-top: var(--nvx-space-4, 32px);
+  margin-top: var(--nvx-space-4, var(--nvx-space-4));
 }
 
 .nvx-laser-formula {
-  margin: var(--nvx-space-4, 32px) 0 0;
-  padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0 0;
+  padding: var(--nvx-space-5, var(--nvx-space-5)) var(--nvx-space-4, var(--nvx-space-4));
   background: var(--nvx-ink);
   border: var(--nvx-border-hairline) solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card, 2px);
@@ -1739,9 +1739,9 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-laser-formula__eq {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-serif);
-  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-size: clamp(calc(var(--nvx-space-1) * 3.5), 3.5vw, var(--nvx-space-5));
   letter-spacing: 0.04em;
   color: var(--nvx-text-on-dark);
 }
@@ -1773,7 +1773,7 @@ figure.nvx-equipo-portrait,
   text-align: left;
 }
 
-/* Action banner — 96px gap after FAQs */
+/* Action banner — var(--nvx-space-12) gap after FAQs */
 
 @media (min-width: 961px) {
   .nvx-laser-hero.nvx-brand-hero,
@@ -1804,7 +1804,7 @@ figure.nvx-equipo-portrait,
 /* ═══════════════════════════════════════════════════════════
    MEDICINA ESTÉTICA — injectables & regenerative authority hub
    Surfaces use the canonical NUVANX palette tokens.
-   Section pad: 96px mobile / 120px desktop · 8px system
+   Section pad: var(--nvx-space-12) mobile / 120px desktop · var(--nvx-space-1) system
    ═══════════════════════════════════════════════════════════ */
 
 .nvx-aes-hero.nvx-brand-hero,
@@ -1854,7 +1854,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-kicker {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
   font-weight: 700;
@@ -1864,7 +1864,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-heading {
-  margin: 0 0 var(--nvx-space-4, 32px);
+  margin: 0 0 var(--nvx-space-4, var(--nvx-space-4));
   max-width: 22ch;
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h2);
@@ -1874,7 +1874,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-body {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
   line-height: var(--nvx-lh-body);
@@ -1883,14 +1883,14 @@ figure.nvx-equipo-portrait,
 
 .nvx-aes-body--lead {
   max-width: 62ch;
-  margin-bottom: var(--nvx-space-6, 48px);
+  margin-bottom: var(--nvx-space-6, var(--nvx-space-6));
 }
 
 .nvx-aes-icon {
   display: block;
-  width: 32px;
-  height: 32px;
-  margin-bottom: var(--nvx-space-3, 24px);
+  width: var(--nvx-space-4);
+  height: var(--nvx-space-4);
+  margin-bottom: var(--nvx-space-3, var(--nvx-space-3));
   color: var(--nvx-accent-muted);
   flex-shrink: 0;
 }
@@ -1908,12 +1908,12 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-pillar {
-  padding-top: var(--nvx-space-2, 16px);
+  padding-top: var(--nvx-space-2, var(--nvx-space-2));
   border-top: 1px solid var(--nvx-color-line);
 }
 
 .nvx-aes-pillar__title {
-  margin: 0 0 var(--nvx-space-2, 16px);
+  margin: 0 0 var(--nvx-space-2, var(--nvx-space-2));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
@@ -1927,7 +1927,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-card {
-  padding: var(--nvx-space-5, 40px);
+  padding: var(--nvx-space-5, var(--nvx-space-5));
   background: var(--nvx-light);
   border: 1px solid var(--nvx-color-line);
 }
@@ -1935,8 +1935,8 @@ figure.nvx-equipo-portrait,
 .nvx-aes-card__head {
   display: flex;
   align-items: center;
-  gap: var(--nvx-space-2, 16px);
-  margin-bottom: var(--nvx-space-2, 16px);
+  gap: var(--nvx-space-2, var(--nvx-space-2));
+  margin-bottom: var(--nvx-space-2, var(--nvx-space-2));
 }
 
 .nvx-aes-card__head .nvx-aes-icon {
@@ -1953,7 +1953,7 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-card__title {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
@@ -1961,13 +1961,13 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-card__meta {
-  margin: var(--nvx-space-3, 24px) 0 0;
-  padding: var(--nvx-space-3, 24px) 0 0;
+  margin: var(--nvx-space-3, var(--nvx-space-3)) 0 0;
+  padding: var(--nvx-space-3, var(--nvx-space-3)) 0 0;
   border-top: 1px solid var(--nvx-color-line, var(--nvx-color-line));
 }
 
 .nvx-aes-card__meta dt {
-  margin: var(--nvx-space-2, 16px) 0 4px;
+  margin: var(--nvx-space-2, var(--nvx-space-2)) 0 calc(var(--nvx-space-1) / 2);
   font-family: var(--nvx-sans);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -1989,17 +1989,17 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-card__link-wrap {
-  margin: var(--nvx-space-3, 24px) 0 0;
+  margin: var(--nvx-space-3, var(--nvx-space-3)) 0 0;
 }
 
 .nvx-aes-card__link {
   font-family: var(--nvx-sans);
-  font-size: 0.75rem;
+  font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: calc(var(--nvx-space-1) / 2);
   color: var(--nvx-ink);
 }
 
@@ -2016,13 +2016,13 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-regen__panel {
-  padding: var(--nvx-space-4, 32px);
+  padding: var(--nvx-space-4, var(--nvx-space-4));
   background: var(--nvx-surface-base, #f6f7f8);
   border: 1px solid var(--nvx-color-line);
 }
 
 .nvx-aes-meta-label {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-sans);
   font-size: 0.6875rem;
   font-weight: 700;
@@ -2036,7 +2036,7 @@ figure.nvx-equipo-portrait,
   padding: 0;
   list-style: none;
   display: grid;
-  gap: var(--nvx-space-3, 24px);
+  gap: var(--nvx-space-3, var(--nvx-space-3));
 }
 
 .nvx-aes-panel-list li {
@@ -2052,21 +2052,21 @@ figure.nvx-equipo-portrait,
 }
 
 .nvx-aes-faq-list {
-  margin-top: var(--nvx-space-4, 32px);
+  margin-top: var(--nvx-space-4, var(--nvx-space-4));
 }
 
 .nvx-aes-formula {
-  margin: var(--nvx-space-4, 32px) 0 0;
-  padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
+  margin: var(--nvx-space-4, var(--nvx-space-4)) 0 0;
+  padding: var(--nvx-space-5, var(--nvx-space-5)) var(--nvx-space-4, var(--nvx-space-4));
   background: var(--nvx-ink);
   border: 1px solid #444444;
   text-align: center;
 }
 
 .nvx-aes-formula__eq {
-  margin: 0 0 var(--nvx-space-3, 24px);
+  margin: 0 0 var(--nvx-space-3, var(--nvx-space-3));
   font-family: var(--nvx-serif);
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-size: clamp(var(--nvx-space-3), 3vw, 2.25rem);
   letter-spacing: 0.03em;
   color: var(--nvx-text-on-dark);
 }
@@ -2127,33 +2127,33 @@ figure.nvx-equipo-portrait,
 }
 
 /* E-E-A-T Medical Byline */
-.nvx-medical-byline { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; margin-bottom: 1.5rem; font-size: 0.875rem; color: var(--nvx-text-muted); }
-.nvx-medical-byline--border { padding-bottom: 1rem; border-bottom: 1px solid var(--nvx-color-line); margin-bottom: 2rem; }
+.nvx-medical-byline { display: flex; align-items: center; gap: calc(var(--nvx-space-1) * 1.5); margin-top: var(--nvx-space-2); margin-bottom: var(--nvx-space-3); font-size: 0.875rem; color: var(--nvx-text-muted); }
+.nvx-medical-byline--border { padding-bottom: var(--nvx-space-2); border-bottom: 1px solid var(--nvx-color-line); margin-bottom: var(--nvx-space-4); }
 .nvx-medical-byline__text { line-height: 1.4; }
 .nvx-medical-byline__title { font-size: 0.85em; opacity: 0.85; }
 
 /* Dr. Rivera Page */
-.nvx-dr-rivera-editorial { max-width: 800px; margin: 0 auto; padding: 4rem 1rem; }
-.nvx-dr-rivera-header { text-align: center; margin-bottom: 2rem; }
-.nvx-dr-rivera-avatar { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; margin: 0 auto 1.5rem auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 4px solid white; }
-.nvx-dr-rivera-h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; margin-bottom: 1rem; }
+.nvx-dr-rivera-editorial { max-width: calc(var(--nvx-space-12) * 8.333); margin: 0 auto; padding: var(--nvx-space-8) var(--nvx-space-2); }
+.nvx-dr-rivera-header { text-align: center; margin-bottom: var(--nvx-space-4); }
+.nvx-dr-rivera-avatar { width: calc(var(--nvx-space-10) * 2); height: calc(var(--nvx-space-10) * 2); border-radius: 50%; object-fit: cover; margin: 0 auto var(--nvx-space-3) auto; box-shadow: 0 calc(var(--nvx-space-1) * 1.25) calc(var(--nvx-space-1) * 3.125) rgba(0,0,0,0.1); border: calc(var(--nvx-space-1) / 2) solid white; }
+.nvx-dr-rivera-h1 { font-size: clamp(var(--nvx-space-4), 5vw, var(--nvx-space-6)); line-height: 1.1; margin-bottom: var(--nvx-space-2); }
 .nvx-dr-rivera-lead { font-size: 1.125rem; color: var(--nvx-text-muted); }
-.nvx-blockquote { font-size: 1.5rem; line-height: 1.4; border-left: 4px solid var(--nvx-ink); padding-left: 1.5rem; margin: 3rem 0; font-style: italic; }
-.nvx-dr-rivera-body { font-size: 1.125rem; line-height: 1.6; color: var(--nvx-ink); margin-bottom: 3rem; }
-.nvx-dr-rivera-list-title { font-size: 1.75rem; margin-bottom: 1.5rem; }
-.nvx-dr-rivera-list { margin-bottom: 3rem; font-size: 1.125rem; line-height: 1.6; padding-left: 1.5rem; }
-.nvx-dr-rivera-cta { text-align: center; margin-top: 4rem; }
+.nvx-blockquote { font-size: var(--nvx-space-3); line-height: 1.4; border-left: calc(var(--nvx-space-1) / 2) solid var(--nvx-ink); padding-left: var(--nvx-space-3); margin: var(--nvx-space-6) 0; font-style: italic; }
+.nvx-dr-rivera-body { font-size: 1.125rem; line-height: 1.6; color: var(--nvx-ink); margin-bottom: var(--nvx-space-6); }
+.nvx-dr-rivera-list-title { font-size: calc(var(--nvx-space-1) * 3.5); margin-bottom: var(--nvx-space-3); }
+.nvx-dr-rivera-list { margin-bottom: var(--nvx-space-6); font-size: 1.125rem; line-height: 1.6; padding-left: var(--nvx-space-3); }
+.nvx-dr-rivera-cta { text-align: center; margin-top: var(--nvx-space-8); }
 
 /* Que Exigir Page */
-.nvx-que-exigir-editorial { max-width: 800px; margin: 0 auto; padding: 4rem 1rem; }
-.nvx-que-exigir-h1 { font-size: clamp(2rem, 4vw, 2.5rem); line-height: 1.2; margin-bottom: 1.5rem; }
+.nvx-que-exigir-editorial { max-width: calc(var(--nvx-space-12) * 8.333); margin: 0 auto; padding: var(--nvx-space-8) var(--nvx-space-2); }
+.nvx-que-exigir-h1 { font-size: clamp(var(--nvx-space-4), 4vw, var(--nvx-space-5)); line-height: 1.2; margin-bottom: var(--nvx-space-3); }
 .nvx-que-exigir-body { font-size: 1.125rem; line-height: 1.7; color: var(--nvx-ink); }
-.nvx-que-exigir-h2 { font-size: 1.5rem; margin-top: 3rem; margin-bottom: 1rem; }
-.nvx-que-exigir-hr { margin: 3rem 0; border: 0; border-top: 1px solid #eaeaea; }
-.nvx-que-exigir-cta-box { background-color: var(--nvx-surface-soft); padding: 2.5rem; border-radius: 8px; text-align: center; }
-.nvx-que-exigir-cta-title { font-size: 1.5rem; margin-bottom: 1rem; }
-.nvx-que-exigir-cta-text { margin-bottom: 2rem; }
+.nvx-que-exigir-h2 { font-size: var(--nvx-space-3); margin-top: var(--nvx-space-6); margin-bottom: var(--nvx-space-2); }
+.nvx-que-exigir-hr { margin: var(--nvx-space-6) 0; border: 0; border-top: 1px solid #eaeaea; }
+.nvx-que-exigir-cta-box { background-color: var(--nvx-surface-soft); padding: var(--nvx-space-5); border-radius: var(--nvx-space-1); text-align: center; }
+.nvx-que-exigir-cta-title { font-size: var(--nvx-space-3); margin-bottom: var(--nvx-space-2); }
+.nvx-que-exigir-cta-text { margin-bottom: var(--nvx-space-4); }
 
 /* Endolift Page */
-.nvx-endolift-postop-list { margin-top: 2rem; margin-bottom: 2rem; }
+.nvx-endolift-postop-list { margin-top: var(--nvx-space-4); margin-bottom: var(--nvx-space-4); }
 

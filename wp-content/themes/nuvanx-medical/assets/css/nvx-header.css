@@ -12,7 +12,7 @@
 }
 
 body.admin-bar #nvx-header {
-  top: 32px;
+  top: var(--nvx-space-4);
 }
 
 .nvx-header__inner {
@@ -50,7 +50,7 @@ body.admin-bar #nvx-header {
 
 .nvx-logo__wordmark {
   font-family: var(--nvx-sans);
-  font-size: 1rem;
+  font-size: var(--nvx-space-2);
   font-weight: 600;
   line-height: var(--nvx-lh-nav);
   letter-spacing: 0.24em;
@@ -246,7 +246,7 @@ body.admin-bar #nvx-header {
   display: block;
   width: 100%;
   height: var(--nvx-border-hairline);
-  margin-block: 5px;
+  margin-block: calc(var(--nvx-space-1) * 0.625);
   background: var(--nvx-ink);
 }
 
@@ -273,7 +273,7 @@ body.admin-bar #nvx-header {
   height: var(--nvx-control-size);
   border: 0;
   background: transparent;
-  font-size: 2rem;
+  font-size: var(--nvx-space-4);
   line-height: var(--nvx-lh-nav);
   color: var(--nvx-ink);
 }
@@ -304,7 +304,7 @@ body.admin-bar #nvx-header {
 
 .nvx-mobile-nav__list .sub-menu a {
   font-family: var(--nvx-sans);
-  font-size: 1rem;
+  font-size: var(--nvx-space-2);
   line-height: var(--nvx-lh-nav-submenu);
 }
 
@@ -321,7 +321,7 @@ body.admin-bar #nvx-header {
 
 @media (max-width: 782px) {
   body.admin-bar #nvx-header {
-    top: 46px;
+    top: calc(var(--nvx-space-1) * 5.75);
   }
 
   .nvx-header__inner,

@@ -11,6 +11,12 @@ const walk = (directory) => fs.readdirSync(directory, { withFileTypes: true }).f
   const target = path.join(directory, entry.name);
   return entry.isDirectory() ? walk(target) : [target];
 });
+const lineNumber = (source, index) => source.slice(0, index).split('\n').length;
+const lineText = (source, index) => {
+  const start = source.lastIndexOf('\n', Math.max(0, index - 1)) + 1;
+  const end = source.indexOf('\n', index);
+  return source.slice(start, end === -1 ? source.length : end).trim();
+};
 
 const visual = read('wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php');
 const tokens = read('wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css');
@@ -25,9 +31,16 @@ const bannedColors = ['#9A8A78', '#B89A5B', '#C5A880'];
 const activeRetiredColorFindings = [];
 for (const row of rows) {
   const isGovernedLegacyMarkup = /(?:nvx-content-presentation\.php|nvx-components\.css)$/i.test(row.file);
+  if (isGovernedLegacyMarkup) continue;
   for (const color of bannedColors) {
-    if (row.source.toUpperCase().includes(color.toUpperCase()) && !isGovernedLegacyMarkup) {
-      activeRetiredColorFindings.push({ file: row.file, color });
+    const pattern = new RegExp(color.replace('#', '#'), 'giu');
+    for (const match of row.source.matchAll(pattern)) {
+      activeRetiredColorFindings.push({
+        file: row.file,
+        color,
+        line: lineNumber(row.source, match.index),
+        source: lineText(row.source, match.index),
+      });
     }
   }
 }
@@ -148,7 +161,7 @@ fs.mkdirSync(path.dirname(output), { recursive: true });
 fs.writeFileSync(output, `${JSON.stringify(summary, null, 2)}\n`);
 
 const failures = [
-  ...activeRetiredColorFindings.map((item) => `${item.file}: retired color ${item.color}`),
+  ...activeRetiredColorFindings.map((item) => `${item.file}:${item.line}: retired color ${item.color} in ${item.source}`),
   ...bannedFontFindings.map((item) => `${item.file}: banned ${item.declaration}`),
   ...literalFontFindings.map((item) => `${item.file}: literal family outside tokens ${item.declaration}`),
   ...forbiddenFontRequests,

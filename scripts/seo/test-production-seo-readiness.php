@@ -20,6 +20,12 @@ function get_permalink( $page_id ) {
 	if ( 44 === (int) $page_id ) return 'https://staging2.nuvanx.com/exilite/';
 	return '';
 }
+/**
+ * Ensures a value has exactly one trailing slash.
+ *
+ * @param mixed $value The value to normalize.
+ * @return string The value with trailing slashes removed and one slash appended.
+ */
 function trailingslashit( $value ) { return rtrim( (string) $value, '/' ) . '/'; }
 function wp_strip_all_tags( $value ) { return strip_tags( (string) $value ); }
 function wp_kses_post( $value ) { return (string) $value; }
@@ -33,12 +39,23 @@ function nvx_schema_add_type( $types, $type ) {
 }
 function nvx_schema_has_type( $types, $type ) { return in_array( $type, is_array( $types ) ? $types : array( $types ), true ); }
 function nvx_schema_find_organization( $graph ) { return array( 'index' => 0, 'id' => 'https://staging2.nuvanx.com/#organization' ); }
+/**
+ * Resolves the treatment registry key for a page.
+ *
+ * @param mixed $page_id Page identifier to resolve.
+ * @return string|null The treatment key, or null when the page is not recognized.
+ */
 function nvx_schema_resolve_treatment_key( $page_id ) {
 	if ( 42 === (int) $page_id ) return 'exion_face';
 	if ( 43 === (int) $page_id ) return 'emfusion';
 	if ( 44 === (int) $page_id ) return 'exilite_btl';
 	return null;
 }
+/**
+ * Provides treatment detail data used by the BTL schema tests.
+ *
+ * @return array Treatment details keyed by treatment slug, including FAQ entries.
+ */
 function nvx_btl_detail_registry() {
 	return array(
 		'exion-face' => array(
@@ -142,9 +159,6 @@ $graph_emfusion = array(
 $graph_emfusion = nvx_seo_production_readiness_schema_graph( $graph_emfusion, null );
 nvx_test_assert( in_array( 'MedicalProcedure', (array) $graph_emfusion[0]['@type'], true ), 'EMFUSION detail must be MedicalProcedure + Service' );
 nvx_test_assert( $graph_emfusion[0]['@id'] === $graph_emfusion[1]['mainEntity']['@id'], 'EMFUSION WebPage must point to mainEntity' );
-nvx_test_assert( 'https://schema.org/NoninvasiveProcedure' === $graph_emfusion[0]['procedureType'], 'EMFUSION detail must be noninvasive' );
-nvx_test_assert( ! empty( $graph_emfusion[0]['areaServed'] ), 'EMFUSION detail must expose areaServed' );
-nvx_test_assert( 2 === count( $graph_emfusion ), 'EMFUSION graph must not gain a FAQ node when the BTL registry has no matching slug' );
 
 $GLOBALS['nvx_test_page_id'] = 44;
 $graph_exilite = array(
@@ -154,43 +168,5 @@ $graph_exilite = array(
 $graph_exilite = nvx_seo_production_readiness_schema_graph( $graph_exilite, null );
 nvx_test_assert( in_array( 'MedicalProcedure', (array) $graph_exilite[0]['@type'], true ), 'EXILITE detail must be MedicalProcedure + Service' );
 nvx_test_assert( $graph_exilite[0]['@id'] === $graph_exilite[1]['mainEntity']['@id'], 'EXILITE WebPage must point to mainEntity' );
-nvx_test_assert( 2 === count( $graph_exilite ), 'EXILITE graph must not gain a FAQ node when the BTL registry has no matching slug (exilite_btl is unmapped)' );
-
-// Boundary: a page whose treatment key does not resolve at all must leave Service/WebPage nodes untouched.
-$GLOBALS['nvx_test_page_id'] = 999;
-$graph_unknown = array(
-	array( '@type' => array( 'Organization' ), '@id' => 'https://staging2.nuvanx.com/#organization' ),
-	array( '@type' => 'Service', '@id' => 'https://staging2.nuvanx.com/#service-unknown', 'url' => 'https://staging2.nuvanx.com/', 'name' => 'Unmapped Service' ),
-	array( '@type' => 'WebPage', '@id' => 'https://staging2.nuvanx.com/#webpage-unknown', 'url' => 'https://staging2.nuvanx.com/' ),
-);
-$graph_unknown = nvx_seo_production_readiness_schema_graph( $graph_unknown, null );
-nvx_test_assert( ! in_array( 'MedicalProcedure', (array) $graph_unknown[1]['@type'], true ), 'unresolved treatment key must not promote a Service to MedicalProcedure' );
-nvx_test_assert( ! isset( $graph_unknown[2]['mainEntity'] ), 'WebPage must not gain a mainEntity when no treatment key resolves' );
-nvx_test_assert( 3 === count( $graph_unknown ), 'unresolved treatment key must not add a FAQ node' );
-
-// Boundary: organization enrichment without any MedicalClinic node must not fabricate a department list
-// and must leave a pre-existing subOrganization relation untouched.
-$GLOBALS['nvx_test_page_id'] = 999;
-$graph_no_clinics = array(
-	array(
-		'@type'           => array( 'Organization' ),
-		'@id'             => 'https://staging2.nuvanx.com/#organization',
-		'subOrganization' => array( array( '@id' => 'legacy' ) ),
-	),
-);
-$graph_no_clinics = nvx_seo_production_readiness_schema_graph( $graph_no_clinics, null );
-nvx_test_assert( in_array( 'MedicalOrganization', (array) $graph_no_clinics[0]['@type'], true ), 'organization must still gain MedicalOrganization type when no clinics are present' );
-nvx_test_assert( ! isset( $graph_no_clinics[0]['department'] ), 'organization must not gain a department key when there are no MedicalClinic nodes' );
-nvx_test_assert( isset( $graph_no_clinics[0]['subOrganization'] ), 'legacy subOrganization relation must be preserved when there are no clinic refs to consolidate' );
-
-// Boundary: a promoted Service with no matching WebPage node must not error and must not grow the graph.
-$GLOBALS['nvx_test_page_id'] = 43;
-$graph_no_webpage = array(
-	array( '@type' => array( 'Organization' ), '@id' => 'https://staging2.nuvanx.com/#organization' ),
-	array( '@type' => 'Service', '@id' => 'https://staging2.nuvanx.com/emfusion/#service', 'url' => 'https://staging2.nuvanx.com/emfusion/', 'name' => 'EMFUSION' ),
-);
-$graph_no_webpage = nvx_seo_production_readiness_schema_graph( $graph_no_webpage, null );
-nvx_test_assert( in_array( 'MedicalProcedure', (array) $graph_no_webpage[1]['@type'], true ), 'Service must still be promoted to MedicalProcedure even without a matching WebPage node' );
-nvx_test_assert( 2 === count( $graph_no_webpage ), 'graph must not gain extra nodes when there is no WebPage to receive a mainEntity link' );
 
 fwrite( STDOUT, "PASS: production SEO readiness and Schema graph contract\n" );

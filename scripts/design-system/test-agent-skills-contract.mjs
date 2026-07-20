@@ -93,6 +93,8 @@ if (skillSources['design-critique']) {
     /ni `!important`/,
     'design-critique must explicitly ban !important, not merely avoid mentioning it',
   );
+  requireMatch(source, /Focus indicators visibles obligatorios/i, 'design-critique must require mandatory visible focus');
+  requireMatch(source, /Usar `aria-label` únicamente/i, 'design-critique must require conditional aria-label usage');
 }
 
 // --- design-system/SKILL.md ---------------------------------------------------
@@ -107,7 +109,9 @@ if (skillSources['design-system']) {
     /scripts\/design-system\/audit-css\.mjs/,
     'design-system must reference the concrete audit-css.mjs script path',
   );
-  requireMatch(source, /!important/, 'design-system must explicitly call out the ban on !important');
+  requireMatch(source, /Sin `!important`/i, 'design-system must explicitly call out the ban on !important (not just mention the term)');
+  requireMatch(source, /aplicable a componentes runtime web/i, 'design-system must validate the web runtime clause');
+  requireMatch(source, /excepciones de marketing/i, 'design-system must validate the local marketing exception');
   requireMatch(source, /aria-label|aria-expanded/, 'design-system handoff specs must require ARIA attributes');
 }
 
@@ -117,6 +121,9 @@ if (skillSources['nuvanx-theme-factory']) {
   const source = skillSources['nuvanx-theme-factory'];
 
   requireMatch(source, /Metal Pulido es la única identidad visual de producción/, 'must assert Metal Pulido is the sole production identity');
+  requireMatch(source, /4\.5:1 para texto normal/i, 'must state the 4.5:1 normal text contrast ratio threshold');
+  requireMatch(source, /3:1 para títulos y textos grandes/i, 'must state the 3:1 large text contrast ratio threshold');
+  requireMatch(source, /precedencia absoluta/i, 'must assert the absolute precedence of the web runtime');
   requireMatch(source, /Playfair Display/, 'must name Playfair Display as the editorial typeface');
   requireMatch(source, /Manrope/, 'must name Manrope as the functional typeface');
   requireMatch(
@@ -162,8 +169,8 @@ if (skillSources['nuvanx-theme-factory']) {
   const showcaseRelative = 'docs/design-system/theme-showcase.html';
   if (exists(showcaseRelative)) {
     const showcase = read(showcaseRelative);
-    const sapphireMatch = showcase.match(/--nvx-accent-sapphire:\s*(#[0-9a-f]{6});/i);
-    const goldMatch = showcase.match(/--nvx-accent-gold:\s*(#[0-9a-f]{6});/i);
+    const sapphireMatch = showcase.match(/--showcase-sapphire:\s*(#[0-9a-f]{6});/i);
+    const goldMatch = showcase.match(/--showcase-gold:\s*(#[0-9a-f]{6});/i);
 
     if (!sapphireMatch) {
       failures.push(`${showcaseRelative}: could not find --nvx-accent-sapphire to cross-check against the skill's documented Zafiro primary`);

@@ -38,6 +38,7 @@ for (const file of files) {
 
   for (const { val, token } of replacements) {
   for (const { val, token } of replacements) {
+  for (const { val, token } of replacements) {
     const escaped = val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(^|[^\\w.-])${escaped}(?=$|[^\\w.-])`, 'g');
     content = content.replace(regex, (_, prefix) => `${prefix}${token}`);

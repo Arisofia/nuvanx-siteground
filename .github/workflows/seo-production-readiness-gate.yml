@@ -1,0 +1,53 @@
+name: SEO Production Readiness Gate
+
+on:
+  pull_request:
+    paths:
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-schema.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-seo-production-readiness.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php'
+      - 'scripts/seo/test-production-seo-*'
+      - '.github/workflows/seo-production-readiness-gate.yml'
+  push:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-schema.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-seo-production-readiness.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php'
+      - 'scripts/seo/test-production-seo-*'
+      - '.github/workflows/seo-production-readiness-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  production-seo-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - name: Validate PHP syntax
+        run: |
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-production-readiness.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
+
+      - name: Validate environment, clinic and Schema source contract
+        run: node scripts/seo/test-production-seo-contract.mjs
+
+      - name: Exercise graph normalization and robots headers
+        run: php scripts/seo/test-production-seo-readiness.php

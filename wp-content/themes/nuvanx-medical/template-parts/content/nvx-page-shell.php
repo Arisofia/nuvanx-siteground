@@ -8,8 +8,24 @@
  * @package nuvanx-medical
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+get_header();
+
+$shell_content   = get_query_var( 'nvx_shell_content' );
+$shell_skip_hdr  = get_query_var( 'nvx_shell_skip_header' );
+$shell_no_wrap   = get_query_var( 'nvx_shell_no_wrapper' );
+
+if ( ! empty( $shell_content ) && ! is_singular() ) {
+	?>
+	<main class="nvx-main">
+		<?php echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+	</main>
+	<?php
+	get_footer();
+	return;
+}
+
+if ( ! empty( $shell_content ) ) {
+	rewind_posts();
 }
 
 while ( have_posts() ) :
@@ -60,9 +76,9 @@ while ( have_posts() ) :
 	// A raw content H1 is author-owned hierarchy even if it is not wrapped in a
 	// dedicated hero block. Rendering another shell H1 above it creates a
 	// duplicate primary heading on legal and legacy CMS pages.
-	$show_theme_hero = $has_media && ! $has_content_h1 && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page();
+	$show_theme_hero = $has_media && ! $has_content_h1 && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
 	// Title-only header only if no content H1 and no theme/content/managed hero.
-	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page();
+	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
 	$classes          = array( 'nvx-page' );
 	if ( is_singular( 'post' ) ) {
 		$classes[] = 'nvx-page--single';
@@ -138,9 +154,19 @@ while ( have_posts() ) :
 	<?php endif; ?>
 
 	<?php // No shell/page wrapper div — gutters live on section inners (global design). ?>
-	<div class="entry-content nvx-page__content nvx-prose">
-		<?php the_content(); ?>
-	</div>
+	<?php if ( empty( $shell_no_wrap ) ) : ?>
+		<div class="entry-content nvx-page__content nvx-prose">
+	<?php endif; ?>
+		<?php 
+		if ( ! empty( $shell_content ) ) {
+			echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		} else {
+			the_content(); 
+		}
+		?>
+	<?php if ( empty( $shell_no_wrap ) ) : ?>
+		</div>
+	<?php endif; ?>
 
 	<?php if ( is_singular( 'post' ) ) : ?>
 		<nav class="nvx-page__nav" aria-label="<?php esc_attr_e( 'Navegación entre artículos', 'nuvanx-medical' ); ?>">
@@ -168,3 +194,5 @@ while ( have_posts() ) :
 </article>
 	<?php
 endwhile;
+
+get_footer();

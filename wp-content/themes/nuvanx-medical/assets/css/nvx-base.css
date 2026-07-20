@@ -36,11 +36,6 @@ body {
 }
 
 /* Horizontal crop lives on main/page frames, not body, so nav submenus stay clickable. */
-.nvx-main,
-.nvx-page {
-  overflow-x: clip;
-  max-width: 100%;
-}
 
 img,
 video,
@@ -52,19 +47,6 @@ svg {
 }
 
 /* Hero media must fill the stage like the home video (override height:auto) */
-.nvx-brand-hero__media img,
-.nvx-brand-hero__media video,
-.nvx-editorial-hero__media img,
-.nvx-editorial-hero__media video,
-.nvx-page-hero__media img,
-.nvx-page-hero__media video,
-.nvx-hero__media img,
-.nvx-hero__media video,
-.nvx-home-hero-video {
-  max-width: none;
-  width: 100%;
-  height: 100%;
-}
 
 button,
 input,

@@ -39,7 +39,7 @@ async function captureAndDismissConsent(page, slug, viewport) {
   if (!visible) return { visible: false, dismissed: false };
 
   await page.screenshot({
-    path: path.join(out, `${slug}-${viewport}-consent.png`),
+    path: path.join(out, `${slug}-consent-${viewport}.png`),
     fullPage: false,
     animations: 'disabled',
   });

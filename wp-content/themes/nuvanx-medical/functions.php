@@ -21,6 +21,10 @@ function nvx_theme_setup() {
 }
 add_action( 'after_setup_theme', 'nvx_theme_setup' );
 
+/**
+ * Fallback menu when no WP menu is assigned.
+ * Hierarchy mirrors live IA and design-system navigation contract.
+ */
 function nvx_primary_menu_fallback() {
 	$items = array(
 		array( 'url' => home_url( '/' ), 'label' => __( 'Inicio', 'nuvanx-medical' ) ),
@@ -28,10 +32,14 @@ function nvx_primary_menu_fallback() {
 			'url'      => home_url( '/tratamientos/' ),
 			'label'    => __( 'Tratamientos', 'nuvanx-medical' ),
 			'children' => array(
-				array( 'url' => home_url( '/exion-face/' ), 'label' => 'EXION Face' ),
-				array( 'url' => home_url( '/exion-body/' ), 'label' => 'EXION Body' ),
-				array( 'url' => home_url( '/exion-fractional/' ), 'label' => 'EXION Fractional' ),
-				array( 'url' => home_url( '/emfusion/' ), 'label' => 'EMFUSION' ),
+				array( 'url' => home_url( '/endolift-facial-papada-mandibula/' ), 'label' => 'Endolift® Facial' ),
+				array( 'url' => home_url( '/endolaser-corporal-grasa-localizada/' ), 'label' => 'Endoláser Corporal' ),
+				array( 'url' => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ), 'label' => 'Láser CO₂ Fraccionado' ),
+				array( 'url' => home_url( '/exion-face/' ), 'label' => 'EXION® Face' ),
+				array( 'url' => home_url( '/exion-body/' ), 'label' => 'EXION® Body' ),
+				array( 'url' => home_url( '/exion-fractional/' ), 'label' => 'EXION® Fractional' ),
+				array( 'url' => home_url( '/emfusion/' ), 'label' => 'EMFUSION®' ),
+				array( 'url' => home_url( '/btl-exilite-ipl-madrid/' ), 'label' => 'BTL EXILITE™ IPL' ),
 			),
 		),
 		array( 'url' => home_url( '/equipo-medico/' ), 'label' => __( 'Equipo médico', 'nuvanx-medical' ) ),
@@ -44,14 +52,14 @@ function nvx_primary_menu_fallback() {
 	foreach ( $items as $item ) {
 		$has_children = ! empty( $item['children'] );
 		$li_class     = 'nvx-nav__item' . ( $has_children ? ' menu-item-has-children' : '' );
-		
+
 		printf(
 			'<li class="%1$s"><a class="nvx-nav__link" href="%2$s">%3$s</a>',
 			esc_attr( $li_class ),
 			esc_url( $item['url'] ),
 			esc_html( $item['label'] )
 		);
-		
+
 		if ( $has_children ) {
 			echo '<ul class="sub-menu">';
 			foreach ( $item['children'] as $child ) {
@@ -63,7 +71,7 @@ function nvx_primary_menu_fallback() {
 			}
 			echo '</ul>';
 		}
-		
+
 		echo '</li>';
 	}
 	echo '</ul>';
@@ -202,7 +210,8 @@ function nvx_theme_scripts() {
 		);
 	}
 
-	// Temporary: black opening heroes (toggle NVX_HERO_BLACKOUT or body class filter).
+	// Intentional production toggle until new photography is approved.
+	// Opt out with define( 'NVX_HERO_BLACKOUT', false ) or the filter.
 	if ( nvx_theme_hero_blackout_enabled() ) {
 		wp_enqueue_style(
 			'nvx-hero-blackout',

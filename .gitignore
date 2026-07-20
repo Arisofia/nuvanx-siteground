@@ -19,3 +19,9 @@ wp-content/uploads/sb-instagram-feed-images/
 .DS_Store
 Thumbs.db
 error_log
+
+# Entornos de Desarrollo Local, QA y Node
+node_modules/
+mcps/
+Nuvanx-System/
+qa/

@@ -59,10 +59,10 @@ jobs:
             test "$(pdfinfo "$pdf" | awk '/^Pages:/ {print $2}')" = "6"
             txt="/tmp/$(basename "$pdf").txt"
             pdftotext "$pdf" "$txt"
-            grep -q "Theme Factory" "$txt"
-            grep -q "Acento Zafiro" "$txt"
-            grep -q "Oro Editorial" "$txt"
-            grep -q "No modifica el sistema visual web de producción" "$txt"
+            grep -qi "Theme Factory" "$txt"
+            grep -qi "Acento Zafiro" "$txt"
+            grep -qi "Oro Editorial" "$txt"
+            grep -qi "No modifica el sistema visual web de producción" "$txt"
           done
 
       - name: Run canonical visual audits

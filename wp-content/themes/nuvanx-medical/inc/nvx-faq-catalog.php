@@ -74,8 +74,7 @@ function nvx_get_faq_catalog(): array {
 }
 
 /**
- * Renders the FAQ HTML block.
- * Call this in your template where the FAQ should appear.
+ * Renders the FAQ section using the canonical FAQ catalog.
  */
 function nvx_render_faq_block(): void {
 	$faqs = nvx_get_faq_catalog();
@@ -97,10 +96,9 @@ function nvx_render_faq_block(): void {
 }
 
 /**
- * Returns the FAQPage JSON-LD array for Yoast SEO integration.
- * Hook this into the Yoast graph via `wpseo_schema_graph` filter.
+ * Builds the FAQPage JSON-LD schema for the site's FAQ catalog.
  *
- * @return array<string, mixed>
+ * @return array<string, mixed> The FAQPage schema with its canonical identifier and questions.
  */
 function nvx_get_faqpage_schema(): array {
 	$faqs        = nvx_get_faq_catalog();

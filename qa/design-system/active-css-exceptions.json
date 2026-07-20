@@ -124,7 +124,7 @@
     {
       "file": "nvx-components.css",
       "value": "340px",
-      "line": 1050
+      "line": 1073
     },
     {
       "file": "nvx-tokens.css",
@@ -137,7 +137,7 @@
     {
       "file": "nvx-components.css",
       "selector": "#nvx-header",
-      "line": 1330,
+      "line": 1353,
       "specificity": {
         "ids": 1,
         "classes": 0,
@@ -418,201 +418,209 @@
     {
       "file": "nvx-components.css",
       "property": "font-family",
+      "value": "var(--nvx-serif)",
+      "line": 469,
+      "index": 17188,
+      "selector": ".nvx-strategy-title"
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 471,
-      "index": 17176,
+      "line": 494,
+      "index": 17784,
       "selector": ".nvx-check-list li"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 693,
-      "index": 22078,
+      "line": 716,
+      "index": 22686,
       "selector": ".nvx-hs-lead-form input[type=\"submit\"]"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 782,
-      "index": 24766,
+      "line": 805,
+      "index": 25374,
       "selector": ".nvx-endolift-step__n"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 792,
-      "index": 25085,
+      "line": 815,
+      "index": 25693,
       "selector": ".nvx-laser-platform__n"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 801,
-      "index": 25336,
+      "line": 824,
+      "index": 25944,
       "selector": ".nvx-aes-card__n"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 809,
-      "index": 25578,
+      "line": 832,
+      "index": 26186,
       "selector": ".nvx-co2-timeline__n"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 846,
-      "index": 26615,
+      "line": 869,
+      "index": 27223,
       "selector": ".nvx-faq summary"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 863,
-      "index": 27152,
+      "line": 886,
+      "index": 27760,
       "selector": ".nvx-brand-faq-accordion summary"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 880,
-      "index": 27688,
+      "line": 903,
+      "index": 28296,
       "selector": ".nvx-home-faq-editorial summary"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 967,
-      "index": 30851,
+      "line": 990,
+      "index": 31459,
       "selector": ".nvx-hubspot-form-section textarea.hs-input"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1000,
-      "index": 31941,
+      "line": 1023,
+      "index": 32549,
       "selector": ".nvx-valoracion-modal__fallback"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1012,
-      "index": 32223,
+      "line": 1035,
+      "index": 32831,
       "selector": ".nvx-value__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1023,
-      "index": 32455,
+      "line": 1046,
+      "index": 33063,
       "selector": ".nvx-value__body"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1030,
-      "index": 32803,
+      "line": 1053,
+      "index": 33411,
       "selector": ".nvx-clinics-nav__link"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1188,
-      "index": 37841,
+      "line": 1211,
+      "index": 38449,
       "selector": ".nvx-brand-hero__copy .nvx-brand-meta"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1398,
-      "index": 43223,
+      "line": 1421,
+      "index": 43831,
       "selector": ".nvx-footer__tagline"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1407,
-      "index": 43487,
+      "line": 1430,
+      "index": 44095,
       "selector": ".nvx-footer__registrations"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1425,
-      "index": 43912,
+      "line": 1448,
+      "index": 44520,
       "selector": ".nvx-home-hero-stage .nvx-brand-hero__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1433,
-      "index": 44179,
+      "line": 1456,
+      "index": 44787,
       "selector": ".nvx-home-action-banner__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1446,
-      "index": 44554,
+      "line": 1469,
+      "index": 45162,
       "selector": ".nvx-hero-context__lead"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1454,
-      "index": 44754,
+      "line": 1477,
+      "index": 45362,
       "selector": ".nvx-hero-context__description"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1483,
-      "index": 45449,
+      "line": 1506,
+      "index": 46057,
       "selector": ".nvx-blog-hero__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1509,
-      "index": 46229,
+      "line": 1532,
+      "index": 46837,
       "selector": ".nvx-blog-prose h2"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1520,
-      "index": 46582,
+      "line": 1543,
+      "index": 47190,
       "selector": ".nvx-blog-prose h3"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1531,
-      "index": 46933,
+      "line": 1554,
+      "index": 47541,
       "selector": ".nvx-blog-prose h4"
     },
     {
@@ -1310,32 +1318,32 @@
       "file": "nvx-components.css",
       "property": "margin",
       "value": "0 0 0.65em",
-      "line": 1149,
-      "index": 36821,
+      "line": 1172,
+      "index": 37429,
       "selector": ".nvx-brand-hero__copy .nvx-brand-hero__title"
     },
     {
       "file": "nvx-components.css",
       "property": "margin",
       "value": "0 0 0.65em",
-      "line": 1158,
-      "index": 37051,
+      "line": 1181,
+      "index": 37659,
       "selector": ".nvx-brand-hero__copy h1"
     },
     {
       "file": "nvx-components.css",
       "property": "margin",
       "value": "0 0 0.65em",
-      "line": 1167,
-      "index": 37280,
+      "line": 1190,
+      "index": 37888,
       "selector": ".nvx-page-hero__copy h1"
     },
     {
       "file": "nvx-components.css",
       "property": "margin",
       "value": "0 0 0.65em",
-      "line": 1176,
-      "index": 37504,
+      "line": 1199,
+      "index": 38112,
       "selector": ".nvx-hero__copy h1"
     },
     {
@@ -1401,8 +1409,8 @@
       "file": "nvx-components.css",
       "property": "color",
       "value": "var(--nvx-accent-muted)",
-      "line": 529,
-      "index": 18468,
+      "line": 552,
+      "index": 19076,
       "selector": ".nvx-page--contact .nvx-clinic-card__data .nvx-icon"
     },
     {

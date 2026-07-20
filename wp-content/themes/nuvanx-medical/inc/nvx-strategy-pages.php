@@ -108,8 +108,8 @@ function nvx_strategy_protocol_review_markup( string $key ): string {
 	}
 
 	return '<article class="nvx-brand-readable nvx-strategy-page nvx-strategy-page--review nvx-shell">'
-		. '<header class="nvx-brand-hero"><p class="nvx-brand-kicker">NUVANX · revisión clínica y jurídica</p>'
-		. '<h1 class="nvx-brand-title">' . esc_html( $page['title'] ) . '</h1>'
+		. '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">NUVANX · revisión clínica y jurídica</p>'
+		. '<h1 class="nvx-strategy-title">' . esc_html( $page['title'] ) . '</h1>'
 		. '<p class="nvx-brand-lead">Protocolo en evaluación. Esta denominación de trabajo no constituye una técnica ofrecida, una indicación médica ni una promesa de resultado.</p></header>'
 		. '<section class="nvx-brand-section"><h2>Antes de cualquier publicación</h2>'
 		. '<p>La Dirección Médica debe documentar técnica, indicación, contraindicaciones, seguridad, seguimiento y profesional responsable. La denominación también requiere validación jurídica y registral.</p>'
@@ -126,8 +126,8 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$investment    = nvx_strategy_published_url( 'investment' );
 
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page">';
-	$html .= '<header class="nvx-brand-hero"><p class="nvx-brand-kicker">Criterio médico NUVANX</p>';
-	$html .= '<h1 class="nvx-brand-title">Si no hay indicación clínica, no hay tratamiento.</h1>';
+	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">Criterio médico NUVANX</p>';
+	$html .= '<h1 class="nvx-strategy-title">Si no hay indicación clínica, no hay tratamiento.</h1>';
 	$html .= '<p class="nvx-brand-lead">Una decisión de medicina estética empieza por la exploración, no por una tecnología, una tendencia o una promesa de resultado.</p></header>';
 
 	$html .= '<section class="nvx-brand-section"><h2>Diagnóstico antes de tecnología</h2><p>Revisamos anatomía, antecedentes, objetivos, contraindicaciones y expectativas. Solo entonces se valora si procede tratar, esperar, derivar o no intervenir.</p></section>';
@@ -299,9 +299,9 @@ function nvx_strategy_investment_markup(): string {
 	$valuation_url = esc_url( home_url( '/madrid/valoracion/' ) );
 
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
-	$html .= '<header class="nvx-brand-hero">'
+	$html .= '<header class="nvx-strategy-intro">'
 		. '<p class="nvx-brand-kicker">Inversión en medicina estética · NUVANX Madrid</p>'
-		. '<h1 class="nvx-brand-title">El presupuesto forma parte de una decisión informada.</h1>'
+		. '<h1 class="nvx-strategy-title">El presupuesto forma parte de una decisión informada.</h1>'
 		. '<p class="nvx-brand-lead">Publicamos tarifas verificadas porque la opacidad de precio no es sinónimo de exclusividad: es una barrera para quien tiene que tomar una decisión clínica. El importe final y la indicación se confirman siempre después de la valoración médica presencial.</p>'
 		. '</header>';
 

@@ -471,6 +471,30 @@ body.nvx-valoracion-modal-open{
    CHECKLISTS — strategy positive / negative lists
    ═══════════════════════════════════════════════════════════ */
 
+/* STRATEGY INTRO — editorial header for authority / investment pages.
+   Uses nvx-strategy-intro (not nvx-brand-hero) to avoid full-bleed layout. */
+.nvx-strategy-intro {
+  padding-block: var(--nvx-space-8) var(--nvx-space-6);
+  max-width: var(--nvx-measure, 68ch);
+}
+.nvx-strategy-intro .nvx-brand-kicker {
+  margin: 0 0 var(--nvx-space-2);
+}
+.nvx-strategy-intro .nvx-brand-lead {
+  margin: var(--nvx-space-3) 0 0;
+  max-width: var(--nvx-measure-lead);
+}
+.nvx-strategy-title {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h1);
+  font-weight: var(--nvx-fw-heading);
+  line-height: var(--nvx-lh-h1);
+  letter-spacing: var(--nvx-track-h1);
+  color: var(--nvx-ink);
+  max-width: 22ch;
+  text-wrap: balance;
+}
 .nvx-strategy-checklist {
   margin-top: var(--nvx-space-6, var(--nvx-space-6));
 }

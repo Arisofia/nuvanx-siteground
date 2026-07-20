@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NUVANX Theme Factory - Design Handoff</title>
+  <link rel="stylesheet" href="../../wp-content/themes/nuvanx-medical/assets/css/nvx-fonts.css">
+  <link rel="stylesheet" href="../../wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css">
+  <style>
+    :root {
+      --showcase-sapphire: #27435f;
+      --showcase-sapphire-deep: #1d334a;
+      --showcase-sapphire-tint: #e8eef3;
+      --showcase-gold: #9a7a42;
+      --showcase-gold-deep: #755a2d;
+      --showcase-gold-tint: #f1e8d8;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #d8d5d0; color: var(--nvx-ink); }
+    body { font-family: var(--nvx-sans); }
+    @page { size: A4; margin: 0; }
+    .sheet { position: relative; width: 210mm; height: 297mm; margin: 0 auto; padding: 18mm 18mm 15mm; overflow: hidden; background: var(--nvx-light); page-break-after: always; break-after: page; }
+    .sheet:last-child { page-break-after: auto; break-after: auto; }
+    .sheet--dark { background: var(--nvx-ink); color: var(--nvx-light); }
+    .sheet--soft { background: var(--nvx-surface-base); }
+    .folio { position: absolute; right: 18mm; bottom: 10mm; font-size: 8pt; letter-spacing: .14em; text-transform: uppercase; color: var(--nvx-text-muted); }
+    .sheet--dark .folio { color: var(--nvx-text-on-dark-72); }
+    .brand { font-size: 9pt; letter-spacing: .22em; text-transform: uppercase; font-weight: 600; }
+    .kicker { margin: 0 0 8mm; font-size: 8pt; letter-spacing: .20em; text-transform: uppercase; font-weight: 600; color: var(--nvx-accent-muted); }
+    h1, h2, h3 { margin: 0; font-family: var(--nvx-serif); font-weight: var(--nvx-fw-heading); letter-spacing: var(--nvx-track-display); }
+    h1 { font-size: 37pt; line-height: 1.06; }
+    h2 { font-size: 25pt; line-height: 1.12; }
+    h3 { font-size: 15pt; line-height: 1.18; }
+    p { margin: 0; font-size: 10.5pt; line-height: 1.6; }
+    .lead { font-size: 14pt; line-height: 1.55; max-width: 130mm; }
+    .small { font-size: 8.5pt; line-height: 1.55; color: var(--nvx-text-muted); }
+    .sheet--dark .small { color: var(--nvx-text-on-dark-72); }
+    .rule { width: 100%; height: 1px; margin: 8mm 0; background: var(--nvx-border-soft); }
+    .sheet--dark .rule { background: var(--nvx-border-on-dark-42); }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8mm; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6mm; }
+    .stack { display: grid; gap: 6mm; }
+    .hero-space { height: 55mm; }
+    .cover-mark { position: absolute; right: -18mm; top: 52mm; width: 92mm; height: 92mm; border: 1px solid rgba(252, 251, 248, .26); transform: rotate(45deg); }
+    .cover-mark::after { content: ""; position: absolute; inset: 13mm; border: 1px solid rgba(252, 251, 248, .16); }
+    .meta-row { display: flex; justify-content: space-between; gap: 10mm; margin-top: 18mm; padding-top: 6mm; border-top: 1px solid var(--nvx-border-on-dark-42); font-size: 8pt; letter-spacing: .08em; text-transform: uppercase; color: var(--nvx-text-on-dark-72); }
+    .type-sample { padding: 7mm 0; border-bottom: 1px solid var(--nvx-border-soft); }
+    .type-sample__meta { display: flex; justify-content: space-between; margin-bottom: 3mm; font-size: 7.5pt; letter-spacing: .12em; text-transform: uppercase; color: var(--nvx-text-muted); }
+    .type-display { font-family: var(--nvx-serif); font-size: 29pt; line-height: 1.08; letter-spacing: -.02em; }
+    .type-h1 { font-family: var(--nvx-serif); font-size: 23pt; line-height: 1.12; letter-spacing: -.02em; }
+    .type-h2 { font-family: var(--nvx-serif); font-size: 18pt; line-height: 1.15; letter-spacing: -.02em; }
+    .type-body { font-size: 10.5pt; line-height: 1.6; max-width: 140mm; }
+    .type-caption { font-size: 7.5pt; line-height: 1.5; letter-spacing: .04em; text-transform: uppercase; }
+    .swatch { min-height: 35mm; padding: 5mm; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--nvx-border-soft); }
+    .swatch strong { font-size: 8.5pt; }
+    .swatch code { font-family: var(--nvx-sans); font-size: 7.5pt; }
+    .swatch--light { background: #fcfbf8; }
+    .swatch--surface { background: #f8f7f4; }
+    .swatch--soft { background: #eceae6; }
+    .swatch--ink { background: #1a1a1a; color: #fcfbf8; border-color: #1a1a1a; }
+    .swatch--charcoal { background: #2b2926; color: #fcfbf8; border-color: #2b2926; }
+    .swatch--muted { background: #756f69; color: #fcfbf8; border-color: #756f69; }
+    .variant { padding: 9mm; min-height: 80mm; border: 1px solid var(--nvx-border-soft); background: var(--nvx-light); }
+    .variant__accent { width: 16mm; height: 3px; margin-bottom: 9mm; background: var(--variant-accent); }
+    .variant__tag { display: inline-block; margin-top: 8mm; padding: 2.5mm 4mm; border-radius: 999px; background: var(--variant-tint); color: var(--variant-deep); font-size: 7.5pt; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .variant--metal { --variant-accent: #756f69; --variant-deep: #2b2926; --variant-tint: #eceae6; }
+    .variant--sapphire { --variant-accent: var(--showcase-sapphire); --variant-deep: var(--showcase-sapphire-deep); --variant-tint: var(--showcase-sapphire-tint); }
+    .variant--gold { --variant-accent: var(--showcase-gold); --variant-deep: var(--showcase-gold-deep); --variant-tint: var(--showcase-gold-tint); }
+    .button-row { display: flex; flex-wrap: wrap; gap: 4mm; align-items: center; }
+    .btn { display: inline-flex; min-height: 12mm; align-items: center; justify-content: center; padding: 0 7mm; border: 1px solid currentColor; border-radius: 999px; font-size: 7.5pt; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; text-decoration: none; }
+    .btn--ink { background: var(--nvx-ink); color: var(--nvx-light); border-color: var(--nvx-ink); }
+    .btn--outline { background: transparent; color: var(--nvx-ink); }
+    .btn--sapphire { background: var(--showcase-sapphire); color: var(--nvx-light); border-color: var(--showcase-sapphire); }
+    .btn--gold { background: var(--showcase-gold); color: var(--nvx-light); border-color: var(--showcase-gold); }
+    .card { padding: 7mm; border: 1px solid var(--nvx-border-soft); background: var(--nvx-light); }
+    .card__number { margin-bottom: 12mm; font-size: 8pt; font-weight: 600; letter-spacing: .16em; color: var(--card-accent, var(--nvx-accent-muted)); }
+    .card p { margin-top: 4mm; color: var(--nvx-text-muted); }
+    .application { position: relative; min-height: 77mm; padding: 9mm; overflow: hidden; border: 1px solid var(--nvx-border-soft); background: var(--nvx-light); }
+    .application::after { content: ""; position: absolute; right: -18mm; bottom: -18mm; width: 55mm; height: 55mm; border-radius: 50%; background: var(--app-tint); }
+    .application--sapphire { --app-accent: var(--showcase-sapphire); --app-tint: var(--showcase-sapphire-tint); }
+    .application--gold { --app-accent: var(--showcase-gold); --app-tint: var(--showcase-gold-tint); }
+    .application__line { width: 18mm; height: 2px; margin-bottom: 8mm; background: var(--app-accent); }
+    .application__label { margin-top: 14mm; color: var(--app-accent); font-size: 7.5pt; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+    .do-dont { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; }
+    .do-dont section { padding: 8mm; border-top: 3px solid var(--status); background: var(--nvx-surface-base); }
+    .do-dont ul { margin: 6mm 0 0; padding-left: 5mm; }
+    .do-dont li { margin: 0 0 3mm; font-size: 9pt; line-height: 1.45; }
+    .do { --status: #27435f; }
+    .dont { --status: #9a7a42; }
+    .checklist { counter-reset: handoff; display: grid; gap: 4mm; }
+    .checklist__item { counter-increment: handoff; display: grid; grid-template-columns: 13mm 1fr; gap: 4mm; padding: 4mm 0; border-bottom: 1px solid var(--nvx-border-soft); }
+    .checklist__item::before { content: counter(handoff, decimal-leading-zero); font-size: 8pt; font-weight: 600; letter-spacing: .14em; color: var(--showcase-sapphire); }
+    .checklist__item strong { display: block; margin-bottom: 1mm; font-size: 9pt; }
+    .checklist__item span { font-size: 8.5pt; line-height: 1.45; color: var(--nvx-text-muted); }
+    .seal { margin-top: 14mm; padding: 6mm; border: 1px solid var(--nvx-border-soft); font-size: 8pt; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; text-align: center; }
+  </style>
+</head>
+<body>
+  <section class="sheet sheet--dark">
+    <div class="brand">NUVANX · Medicina Estética Láser</div>
+    <div class="hero-space"></div>
+    <p class="kicker" style="color: var(--nvx-text-on-dark-72)">Design handoff · Área 1</p>
+    <h1>Theme Factory<br>Showcase</h1>
+    <p class="lead" style="margin-top: 10mm; color: var(--nvx-text-on-dark-82)">Un sistema para producir materiales comerciales con variaciones controladas, sin alterar la identidad Metal Pulido del sitio web.</p>
+    <div class="meta-row"><span>Playfair Display + Manrope</span><span>Julio 2026</span><span>Concepto no runtime</span></div>
+    <div class="cover-mark"></div>
+    <div class="folio">01 · Portada</div>
+  </section>
+
+  <section class="sheet">
+    <p class="kicker">01 · Sistema tipográfico</p>
+    <h2>Una sola voz editorial.</h2>
+    <p class="lead" style="margin-top: 5mm">Playfair Display construye autoridad y Manrope organiza la información clínica, comercial y funcional.</p>
+    <div class="rule"></div>
+    <div class="type-sample"><div class="type-sample__meta"><span>Display · Playfair 500</span><span>-0.02em · 1.15</span></div><div class="type-display">Evolución, no transformación.</div></div>
+    <div class="type-sample"><div class="type-sample__meta"><span>H1 · Playfair 500</span><span>Jerarquía principal</span></div><div class="type-h1">Medicina estética con criterio clínico.</div></div>
+    <div class="type-sample"><div class="type-sample__meta"><span>H2 · Playfair 500</span><span>Secciones y argumentos</span></div><div class="type-h2">Precisión médica. Resultados naturales.</div></div>
+    <div class="type-sample"><div class="type-sample__meta"><span>Cuerpo · Manrope 400</span><span>1.6 de interlineado</span></div><div class="type-body">Cada indicación parte de una valoración médica individualizada. El material comercial debe mantener claridad, mesura y trazabilidad clínica, sin promesas absolutas ni recursos visuales que conviertan la discreción en espectáculo.</div></div>
+    <div class="type-sample"><div class="type-sample__meta"><span>Caption · Manrope 600</span><span>0.04em</span></div><div class="type-caption">Centro sanitario autorizado · Madrid</div></div>
+    <div class="folio">02 · Tipografía</div>
+  </section>
+
+  <section class="sheet sheet--soft">
+    <p class="kicker">02 · Metal Pulido</p>
+    <h2>La base permanece intacta.</h2>
+    <p class="lead" style="margin-top: 5mm">Los artefactos comerciales leen los tokens canónicos del tema. No crean una identidad web alternativa.</p>
+    <div class="rule"></div>
+    <div class="grid-3">
+      <div class="swatch swatch--light"><strong>Luz</strong><code>#FCFBF8</code></div><div class="swatch swatch--surface"><strong>Superficie</strong><code>#F8F7F4</code></div><div class="swatch swatch--soft"><strong>Suave</strong><code>#ECEAE6</code></div>
+      <div class="swatch swatch--ink"><strong>Tinta</strong><code>#1A1A1A</code></div><div class="swatch swatch--charcoal"><strong>Carbón</strong><code>#2B2926</code></div><div class="swatch swatch--muted"><strong>Acento neutro</strong><code>#756F69</code></div>
+    </div>
+    <div style="margin-top: 11mm" class="grid-3">
+      <article class="card"><div class="card__number">01</div><h3>Clínico</h3><p>Información verificable, jerarquía clara y espacios que transmiten control.</p></article>
+      <article class="card"><div class="card__number">02</div><h3>Editorial</h3><p>Contraste tipográfico sobrio, ritmo pausado y una idea dominante por página.</p></article>
+      <article class="card"><div class="card__number">03</div><h3>Discreto</h3><p>Sin cromados, ornamentos cosméticos, sombras duras ni lujo literal.</p></article>
+    </div>
+    <div class="folio">03 · Paleta base</div>
+  </section>
+
+  <section class="sheet">
+    <p class="kicker">03 · Variantes controladas</p>
+    <h2>El acento cambia. El sistema no.</h2>
+    <p class="lead" style="margin-top: 5mm">Cada pieza elige una sola variante y limita su presencia al 8-12% de la superficie.</p>
+    <div class="rule"></div>
+    <div class="grid-3">
+      <article class="variant variant--metal"><div class="variant__accent"></div><h3>Metal Pulido</h3><p style="margin-top: 4mm">Uso general, clínica, web, documentos médicos y comunicación institucional estable.</p><span class="variant__tag">Base canónica</span></article>
+      <article class="variant variant--sapphire"><div class="variant__accent"></div><h3>Acento Zafiro</h3><p style="margin-top: 4mm">Tecnología, innovación, datos, alianzas y presentaciones B2B.</p><span class="variant__tag">Marketing local</span></article>
+      <article class="variant variant--gold"><div class="variant__accent"></div><h3>Oro Editorial</h3><p style="margin-top: 4mm">Eventos premium, stands, invitaciones y dossiers de experiencia.</p><span class="variant__tag">Marketing local</span></article>
+    </div>
+    <div style="margin-top: 12mm"><p class="kicker">Botones y acciones</p><div class="button-row"><span class="btn btn--ink">Solicitar valoración</span><span class="btn btn--outline">Ver protocolo</span><span class="btn btn--sapphire">Abrir propuesta</span><span class="btn btn--gold">Confirmar asistencia</span></div><p class="small" style="margin-top: 5mm">Las variantes se aplican a acciones y microelementos. El logotipo, los fondos principales y la tipografía no cambian.</p></div>
+    <div class="folio">04 · Acentos</div>
+  </section>
+
+  <section class="sheet sheet--soft">
+    <p class="kicker">04 · Aplicaciones</p>
+    <h2>Una fábrica, varios contextos.</h2>
+    <p class="lead" style="margin-top: 5mm">La variante responde al propósito del material, no a una preferencia decorativa.</p>
+    <div class="rule"></div>
+    <div class="grid-2">
+      <article class="application application--sapphire"><div class="application__line"></div><h3>Deck de tecnología</h3><p style="margin-top: 4mm; max-width: 58mm">Evidencia, plataforma, recorrido clínico y propuesta de valor para partners.</p><div class="application__label">Acento Zafiro</div></article>
+      <article class="application application--gold"><div class="application__line"></div><h3>Stand de evento</h3><p style="margin-top: 4mm; max-width: 58mm">Mensaje único, lectura a distancia y una capa premium sin alterar el logo.</p><div class="application__label">Oro Editorial</div></article>
+      <article class="application application--sapphire"><div class="application__line"></div><h3>Informe comercial</h3><p style="margin-top: 4mm; max-width: 58mm">KPIs, funnel y decisiones con una serie principal claramente destacada.</p><div class="application__label">Acento Zafiro</div></article>
+      <article class="application application--gold"><div class="application__line"></div><h3>Invitación privada</h3><p style="margin-top: 4mm; max-width: 58mm">Hospitalidad discreta, agenda, ubicación y confirmación de asistencia.</p><div class="application__label">Oro Editorial</div></article>
+    </div>
+    <div class="folio">05 · Aplicaciones</div>
+  </section>
+
+  <section class="sheet">
+    <p class="kicker">05 · Gobernanza</p>
+    <h2>Variación sin contaminación.</h2>
+    <p class="lead" style="margin-top: 5mm">La calidad del handoff se mide también por lo que deliberadamente no se incorpora al producto web.</p>
+    <div class="rule"></div>
+    <div class="do-dont">
+      <section class="do"><h3>Hacer</h3><ul><li>Leer los tokens canónicos del tema.</li><li>Declarar el acento dentro del artefacto.</li><li>Usar una sola variante por entrega.</li><li>Documentar claims, formatos y archivos editables.</li><li>Renderizar y revisar el PDF página por página.</li></ul></section>
+      <section class="dont"><h3>No hacer</h3><ul><li>Editar `nvx-tokens.css` para una campaña.</li><li>Añadir una segunda fuente o sistema de tamaños.</li><li>Recolorear o rediseñar el logotipo.</li><li>Convertir Oro Editorial en brillo o cromado.</li><li>Promover el concepto a Producción sin aprobación.</li></ul></section>
+    </div>
+    <div style="margin-top: 12mm" class="stack"><div class="checklist">
+      <div class="checklist__item"><div><strong>Variante y propósito</strong><span>Identificar Metal Pulido, Zafiro u Oro y justificar la selección.</span></div></div>
+      <div class="checklist__item"><div><strong>Tokens locales</strong><span>Entregar los valores usados sin añadirlos al runtime web.</span></div></div>
+      <div class="checklist__item"><div><strong>Producción</strong><span>Confirmar explícitamente que no se modificó WordPress ni el CSS central.</span></div></div>
+      <div class="checklist__item"><div><strong>Preflight</strong><span>Revisar tipografía, contraste, claims, sangrado, resolución y exportación.</span></div></div>
+    </div></div>
+    <div class="seal">No modifica el sistema visual web de producción</div>
+    <div class="folio">06 · Handoff</div>
+  </section>
+</body>
+</html>

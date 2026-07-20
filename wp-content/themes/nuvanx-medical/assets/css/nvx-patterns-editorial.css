@@ -223,7 +223,6 @@ article.nvx-page > .nvx-page-hero {
 }
 
 .nvx-brand-hero__copy .nvx-brand-actions,
-.nvx-brand-hero__copy .nvx-home-hero-ctas,
 .nvx-brand-hero__copy .nvx-page__cta,
 .nvx-page-hero__copy .nvx-brand-actions,
 .nvx-page-hero__copy .nvx-page__cta,
@@ -276,7 +275,6 @@ article.nvx-page > .nvx-page-hero {
   }
 
   .nvx-brand-hero__copy .nvx-brand-actions,
-  .nvx-brand-hero__copy .nvx-home-hero-ctas,
   .nvx-hero__copy .nvx-page__cta {
     flex-direction: column;
     align-items: stretch;
@@ -314,12 +312,7 @@ article.nvx-page > .nvx-page-hero {
    Sitewide (not home-only).
    ═══════════════════════════════════════════════════════════ */
 
-/* .hero-cta-group = new canonical wrapper; legacy aliases kept for unprocessed markup. */
-.hero-cta-group,
-.nvx-cta-pair,
-.nvx-home-hero-ctas,
-.nvx-values__cta,
-.nvx-method__cta {
+.hero-cta-group {
   display: flex;
   flex-wrap: wrap;
   gap: calc(var(--nvx-space-1) * 1.75);
@@ -513,23 +506,7 @@ article.nvx-page > .nvx-page-hero {
   }
 }
 
-@media (max-width: 680px) {
-  /* .hero-cta-group responsive handled by nvx-brand-home.css */
-  .nvx-cta-pair,
-  .nvx-home-hero-ctas,
-  .nvx-values__cta,
-  .nvx-method__cta {
-    flex-direction: column;
-    align-items: stretch;
-  }
 
-  .nvx-cta-pair .nvx-brand-btn,
-  .nvx-cta-pair .nvx-button,
-  .nvx-home-hero-ctas .nvx-brand-btn,
-  .nvx-home-hero-ctas .nvx-button {
-    width: 100%;
-  }
-}
 
 /* ═══════════════════════════════════════════════════════════
    TREATMENTS CATALOG — quiet luxury index (var(--nvx-space-1) system)

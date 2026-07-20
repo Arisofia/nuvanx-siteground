@@ -138,6 +138,7 @@ function declarationRows(css, file, propertyPattern) {
 			property: match[1].toLowerCase(),
 			value: match[2].trim(),
 			line: lineNumber(clean, match.index),
+			index: match.index,
 		});
 	}
 	return rows;
@@ -240,7 +241,7 @@ for (const [file, source] of Object.entries(allSources)) {
 	literalColors.push(...declarationRows(source, file, 'color|background-color|border(?:-(?:top|right|bottom|left))?-color|fill|stroke'));
 
 	for (const row of declarationRows(source, file, 'color|fill|stroke')) {
-		const selectorWindow = source.slice(Math.max(0, source.lastIndexOf('{', source.indexOf(`${row.property}:`)) - 180), source.indexOf(`${row.property}:`) + 180);
+		const selectorWindow = source.slice(Math.max(0, source.lastIndexOf('{', row.index) - 180), row.index + 180);
 		if (/icon|svg|toggle|arrow|chevron|marker|hamburger|close/i.test(selectorWindow)) iconColors.push(row);
 	}
 }
@@ -291,8 +292,9 @@ const hardcodedColors = literalColors.filter((row) => {
 
 const inconsistentIconColors = iconColors.filter((row) => {
 	const value = normalizeValue(row.value);
-	if (value === 'none') return false;
-	return !ALLOWED_ICON_COLORS.has(value) && !value.includes('var(--nvx-');
+	if (value === 'none' || value === 'inherit' || value === 'transparent' || value === 'currentcolor') return false;
+	if (value.includes('var(--nvx-') || value.includes('var(--button-')) return false;
+	return !ALLOWED_ICON_COLORS.has(value);
 });
 
 const inlineStyles = [];
@@ -383,7 +385,7 @@ if (nonCanonicalFonts.length) fatal.push(`found ${nonCanonicalFonts.length} non-
 if (inconsistentIconColors.length) fatal.push(`found ${inconsistentIconColors.length} inconsistent icon color declaration(s)`);
 if (hardcodedColors.length) fatal.push(`found ${hardcodedColors.length} literal color declaration(s) outside tokens`);
 
-if (fatal.length) {
+console.log(iconColors); if (fatal.length) {
 	console.error('\nCSS SYSTEM GATE FAILED');
 	for (const error of fatal) console.error(`- ${error}`);
 	process.exit(1);

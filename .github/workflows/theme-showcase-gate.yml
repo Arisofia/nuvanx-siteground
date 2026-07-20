@@ -1,0 +1,68 @@
+name: Theme Showcase Gate
+
+on:
+  pull_request:
+    paths:
+      - '.agents/skills/nuvanx-theme-factory/**'
+      - 'docs/design-system/theme-showcase.html'
+      - 'docs/design-system/theme-showcase.pdf'
+      - 'scripts/design-system/generate-showcase-pdf.mjs'
+      - '.github/workflows/theme-showcase-gate.yml'
+  push:
+    branches:
+      - master
+    paths:
+      - '.agents/skills/nuvanx-theme-factory/**'
+      - 'docs/design-system/theme-showcase.html'
+      - 'docs/design-system/theme-showcase.pdf'
+      - 'scripts/design-system/generate-showcase-pdf.mjs'
+      - '.github/workflows/theme-showcase-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  showcase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install temporary PDF dependency
+        run: npm install puppeteer --no-save
+
+      - name: Generate showcase PDF
+        run: node scripts/design-system/generate-showcase-pdf.mjs --output /tmp/theme-showcase.pdf
+
+      - name: Validate PDF structure and content
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+          test "$(pdfinfo /tmp/theme-showcase.pdf | awk '/^Pages:/ {print $2}')" = "6"
+          pdftotext /tmp/theme-showcase.pdf /tmp/theme-showcase.txt
+          grep -q "Theme Factory" /tmp/theme-showcase.txt
+          grep -q "Acento Zafiro" /tmp/theme-showcase.txt
+          grep -q "Oro Editorial" /tmp/theme-showcase.txt
+          grep -q "No modifica el sistema visual web de producción" /tmp/theme-showcase.txt
+
+      - name: Verify committed PDF exists
+        run: test -s docs/design-system/theme-showcase.pdf
+
+      - name: Run canonical visual audits
+        run: |
+          node scripts/design-system/audit-css.mjs
+          node scripts/design-system/test-external-visual-closure.mjs
+
+      - name: Confirm runtime theme was not changed
+        if: github.event_name == 'pull_request'
+        run: |
+          if git diff --name-only "${{ github.event.pull_request.base.sha }}"...HEAD -- wp-content/themes/nuvanx-medical | grep -q .; then
+            echo "Theme Factory PR must not modify WordPress runtime files."
+            exit 1
+          fi
+          echo "PASS: no WordPress runtime files changed"

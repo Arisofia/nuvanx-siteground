@@ -96,12 +96,7 @@ summary,
   flex: 0 0 var(--nvx-icon-sm);
 }
 
-/* Strategy pages own one full-width editorial hierarchy. */
-.nvx-page__content > .nvx-strategy-page {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-}
+/* Strategy pages retain the canonical shell restored in PHP markup. */
 
 .nvx-strategy-page > .nvx-brand-hero {
   display: flex;
@@ -146,73 +141,6 @@ summary,
 
 .nvx-strategy-page .nvx-endolift-price-table {
   width: 100%;
-}
-
-/* Contact cards use the same shell, card and control contracts as treatment pages. */
-.nvx-page--contact .nvx-section--contact-hero {
-  background: var(--nvx-surface-base);
-}
-
-.nvx-page--contact .nvx-clinics-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--nvx-gap-base);
-  margin-top: var(--nvx-space-6);
-}
-
-.nvx-page--contact .nvx-clinic-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nvx-space-3);
-  min-width: 0;
-  padding: var(--nvx-pad-card);
-  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  border-radius: var(--nvx-radius-card);
-  background: var(--nvx-light);
-  box-shadow: var(--nvx-shadow-min);
-}
-
-.nvx-page--contact .nvx-clinic-card__header {
-  display: grid;
-  gap: var(--nvx-space-1);
-}
-
-.nvx-page--contact .nvx-clinic-card__data {
-  display: grid;
-  gap: var(--nvx-space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.nvx-page--contact .nvx-clinic-card__data li {
-  display: block;
-  margin: 0;
-}
-
-.nvx-page--contact .nvx-clinic-card__data .nvx-icon {
-  width: var(--nvx-icon-xs);
-  height: var(--nvx-icon-xs);
-  margin-right: var(--nvx-space-1);
-  color: var(--nvx-accent-muted);
-  vertical-align: text-bottom;
-}
-
-.nvx-page--contact .nvx-clinic-card__map {
-  overflow: hidden;
-  border-radius: var(--nvx-radius-image);
-  background: var(--nvx-surface-base);
-}
-
-.nvx-page--contact .nvx-clinic-card__map iframe {
-  display: block;
-  width: 100%;
-  border: 0;
-}
-
-.nvx-page--contact .nvx-clinic-card > .nvx-btn {
-  align-self: flex-start;
-  margin-top: auto;
 }
 
 /* Native details controls preserve the canonical control-size interaction target. */
@@ -262,9 +190,6 @@ summary,
 }
 
 @media (max-width: 45em) {
-  .nvx-page--contact .nvx-clinics-grid {
-    grid-template-columns: 1fr;
-  }
 
   .nvx-strategy-page > .nvx-brand-hero {
     min-height: calc(var(--nvx-space-12) * 3);

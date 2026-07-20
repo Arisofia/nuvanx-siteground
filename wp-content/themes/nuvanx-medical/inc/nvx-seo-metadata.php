@@ -332,13 +332,26 @@ function nvx_seo_filter_core_robots( array $robots ): array {
 		return $robots;
 	}
 
+	$page_id = (int) get_queried_object_id();
+
+	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
+		$robots['noindex']  = true;
+		$robots['nofollow'] = true;
+		unset( $robots['index'], $robots['follow'] );
+		return $robots;
+	}
+
+	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
+		$robots['noindex'] = true;
+		$robots['follow']  = true;
+		unset( $robots['index'], $robots['nofollow'] );
+		return $robots;
+	}
+
 	if ( null !== nvx_seo_current_metadata_key() ) {
-		$page_id = (int) get_queried_object_id();
-		if ( ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-			$robots['index']  = true;
-			$robots['follow'] = true;
-			unset( $robots['noindex'], $robots['nofollow'] );
-		}
+		$robots['index']  = true;
+		$robots['follow'] = true;
+		unset( $robots['noindex'], $robots['nofollow'] );
 	}
 
 	return $robots;

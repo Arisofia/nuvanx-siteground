@@ -37,6 +37,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -69,6 +71,7 @@ jobs:
         with:
           ref: master
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Validate immutable source SHA
         shell: bash
@@ -184,7 +187,7 @@ jobs:
         run: bash scripts/staging2/smoke-verify-staging2.sh
 
       - name: Remove temporary remote payload
-        if: success()
+        if: always()
         shell: bash
         run: ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'"
 

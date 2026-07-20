@@ -40,10 +40,13 @@ const VISUAL_PROPERTIES = new Set([
 ]);
 
 function walk(directory, extensions, output = []) {
-  if (!fs.existsSync(directory)) return output;
-  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+  const baseDir = path.resolve(directory);
+  if (!fs.existsSync(baseDir)) return output;
+  for (const entry of fs.readdirSync(baseDir, { withFileTypes: true })) {
     if (['.git', 'node_modules', 'vendor'].includes(entry.name)) continue;
-    const absolute = path.join(directory, entry.name);
+    if (entry.name.includes('/') || entry.name.includes('\\') || entry.name === '..') continue;
+    const absolute = path.resolve(baseDir, entry.name);
+    if (!absolute.startsWith(baseDir)) continue;
     if (entry.isDirectory()) walk(absolute, extensions, output);
     else if (extensions.has(path.extname(entry.name))) output.push(absolute);
   }

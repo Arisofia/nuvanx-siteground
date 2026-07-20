@@ -78,6 +78,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: visual-system-audit
-          path: qa/design-system/visual-system-summary.json
+          path: |
+            qa/design-system/visual-system-summary.json
+            qa/design-system/audit-summary.json
+            qa/design-system/active-css-exceptions.json
           if-no-files-found: error
           retention-days: 7

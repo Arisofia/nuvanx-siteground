@@ -1163,6 +1163,7 @@ function nvx_treatment_process_markup(): string {
 	$html .= '<div class="nvx-treatment-process__inner">';
 	$html .= '<p class="nvx-treatment-process__kicker">' . esc_html__( 'El procedimiento', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-treatment-process__title">' . esc_html__( 'Cómo funciona tu tratamiento', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<blockquote class="nvx-equipo-blockquote" style="margin-bottom:var(--nvx-space-4);"><p>' . esc_html__( 'El día más importante de tu protocolo no es el de la sesión. Es el seguimiento.', 'nuvanx-medical' ) . '</p></blockquote>';
 	$html .= '<ol class="nvx-treatment-process__steps">';
 	$steps = array(
 		array( 'Valoración médica', 'Evaluación presencial de tu anatomía y calidad cutánea para confirmar la indicación exacta del tratamiento.' ),

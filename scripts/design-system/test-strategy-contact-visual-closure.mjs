@@ -105,7 +105,7 @@ requireMatch(
 requireMatch(
   closure,
   /@media \(max-width: 45em\)\s*\{[\s\S]*?\.nvx-page--contact \.nvx-clinics-grid\s*\{[\s\S]*?grid-template-columns:\s*1fr;/,
-  'contact clinics grid must collapse to a single column under 720px',
+  'contact clinics grid must collapse to a single column under 45em',
 );
 requireMatch(
   closure,

@@ -2,8 +2,7 @@ body.home{background:var(--nvx-color-paper)}
 body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 .nvx-home,.nvx-brand-page{overflow-x:clip;background:var(--nvx-color-paper);color:var(--nvx-ink)}
 
-/* Home hero: full-bleed video first; EXPERIENCIA NUVANX + title over media
-   Shared footprint with interior .nvx-brand-hero (same width + height). */
+/* Home hero: full-bleed video first; shared footprint with interior heroes. */
 .nvx-home-hero-stage{
   --nvx-hero-h:min(92svh,980px);
   position:relative;
@@ -57,13 +56,12 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   max-width:18ch;
   font-family:var(--nvx-serif);
   font-size:var(--nvx-type-display);
-  font-weight:400;
+  font-weight:var(--nvx-fw-heading);
   line-height:var(--nvx-lh-display);
   letter-spacing:var(--nvx-track-display);
 }
 
-/* Hero CTA cluster — layout wrapper for conversion pairs.
-   (Button visuals are owned by nvx-components.css) */
+/* Hero CTA cluster — button visuals are owned by nvx-components.css. */
 .nvx-cta-cluster,
 .nvx-home-hero-ctas{
   display:flex;
@@ -73,46 +71,44 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   align-items:center;
 }
 
-
 .nvx-brand-section{padding-block:var(--nvx-pad-section)}
 .nvx-brand-section--tight{padding-block:var(--nvx-pad-section-tight)}
 .nvx-home-invitation{margin-top:var(--nvx-space-4)}
 
-/* Post-values action banner — Plata Pulida (charcoal card + pill CTAs)
-   Card may be soft-radius; buttons MUST stay pill (--nvx-radius-button: 999px). */
+/* Post-values action banner — warm-neutral dark surface + canonical pill CTAs. */
 .nvx-home-action-banner-shell{
   width:var(--nvx-shell);
   max-width:100%;
-  margin:clamp(64px,7vw,80px) auto 0;
-  padding-inline:var(--nvx-gutter-inner,clamp(24px,4vw,48px));
+  margin:var(--nvx-space-8) auto 0;
+  padding-inline:var(--nvx-gutter-inner);
   box-sizing:border-box;
 }
 .nvx-home-action-banner{
   display:grid;
   grid-template-columns:minmax(0,1fr) auto;
-  gap:var(--nvx-gap-wide,clamp(32px,4vw,56px));
+  gap:var(--nvx-gap-wide);
   align-items:center;
   width:100%;
   margin:0;
-  padding:clamp(36px,4.5vw,56px);
-  border:1px solid var(--nvx-border-on-dark-42);
-  border-radius:var(--nvx-radius-card,clamp(24px,2.5vw,32px));
+  padding:var(--nvx-pad-card);
+  border:var(--nvx-border-hairline) solid var(--nvx-border-on-dark-42);
+  border-radius:var(--nvx-radius-card);
   background:var(--nvx-charcoal);
   color:var(--nvx-light);
 }
 .nvx-home-action-banner__copy{max-width:55ch}
 .nvx-home-action-banner__kicker,
 .nvx-home-action-banner .nvx-brand-kicker{
-  margin:0 0 var(--nvx-space-2,16px);
+  margin:0 0 var(--nvx-space-2);
   color:var(--nvx-text-on-dark-72);
 }
 .nvx-home-action-banner__title{
-  margin:0 0 var(--nvx-space-2,16px);
+  margin:0 0 var(--nvx-space-2);
   max-width:16ch;
   font-family:var(--nvx-serif);
-  font-size:clamp(1.65rem,2.6vw,2.25rem);
-  font-weight:400;
-  line-height:1.18;
+  font-size:var(--nvx-type-h2);
+  font-weight:var(--nvx-fw-heading);
+  line-height:var(--nvx-lh-h2);
   letter-spacing:var(--nvx-track-h2);
   color:var(--nvx-light);
 }
@@ -120,8 +116,8 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   max-width:55ch;
   margin:0;
   font-family:var(--nvx-sans);
-  font-size:var(--nvx-type-body,1rem);
-  line-height:var(--nvx-lh-body,1.7);
+  font-size:var(--nvx-type-body);
+  line-height:var(--nvx-lh-body);
   color:var(--nvx-text-on-dark-82);
 }
 .nvx-home-action-banner__text strong{color:var(--nvx-light);font-weight:600}
@@ -129,17 +125,15 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   display:flex;
   flex-direction:column;
   align-items:stretch;
-  gap:var(--nvx-space-2,16px);
+  gap:var(--nvx-space-2);
   min-width:min(280px,100%);
 }
-/* Button visuals are owned by nvx-components.css; this block owns layout only. */
 .nvx-home-action-banner__actions .nvx-button{width:100%}
-
 .nvx-home-faq-editorial{margin-top:var(--nvx-gap-wide)}
 
 @media(max-width:980px){
   .nvx-home-hero-stage{--nvx-hero-h:min(88svh,860px);min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
-  .nvx-home-action-banner{grid-template-columns:1fr;gap:var(--nvx-space-4,32px)}
+  .nvx-home-action-banner{grid-template-columns:1fr;gap:var(--nvx-space-4)}
   .nvx-home-action-banner__actions{align-items:stretch;min-width:0}
   .nvx-home-action-banner__title{max-width:none}
 }
@@ -148,7 +142,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   .nvx-cta-cluster,
   .nvx-home-hero-ctas{
     flex-direction:column;
-    gap:12px;
+    gap:var(--nvx-space-2);
     width:100%;
     align-items:stretch;
   }
@@ -163,14 +157,12 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 
 @media(max-width:680px){
   .nvx-home-hero-stage{--nvx-hero-h:100svh;min-height:var(--nvx-hero-h);height:var(--nvx-hero-h)}
-  .nvx-home-hero-stage .nvx-brand-hero__title{max-width:none;font-size:clamp(2.5rem,11vw,3.5rem)}
-  .nvx-home-action-banner-shell{margin-top:64px;padding-inline:1.5rem}
-  .nvx-home-action-banner{padding:var(--nvx-space-4,32px);border-radius:var(--nvx-radius-card,24px)}
+  .nvx-home-hero-stage .nvx-brand-hero__title{max-width:none}
+  .nvx-home-action-banner-shell{margin-top:var(--nvx-space-8);padding-inline:var(--nvx-space-3)}
+  .nvx-home-action-banner{padding:var(--nvx-space-4)}
   .nvx-home-action-banner__actions{width:100%}
   .nvx-home-action-banner .nvx-button{width:100%}
 }
-
-
 
 /* Shared hero contrast while this sitewide stylesheet owns hero CTA primitives. */
 body.nvx-hero-blackout :where(
@@ -190,16 +182,13 @@ body.nvx-hero-blackout :where(
   .nvx-kicker,
   .nvx-brand-meta
 ) {
-  color: var(--nvx-text-on-dark-72);
+  color:var(--nvx-text-on-dark-72);
 }
 
+/* Benefit layout only. Icon and typography presentation live in nvx-visual-system.php. */
+.nvx-benefits__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.nvx-benefit-item{display:flex;align-items:center}
 
-/* Home Benefits Grid */
-.nvx-benefits__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
-.nvx-benefit-item { display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-surface-soft); border-radius: 8px; }
-.nvx-benefit-icon { width: 40px; height: 40px; flex-shrink: 0; }
-.nvx-benefit-text { font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-ink); }
-
-/* Tokenized authority-page overrides for legacy declarations in earlier layers. */
-.nvx-dr-rivera-avatar { box-shadow: var(--nvx-shadow-medium); border-color: var(--nvx-light); }
-.nvx-que-exigir-hr { border-top-color: var(--nvx-color-line); }
+/* Authority-page token closure. */
+.nvx-dr-rivera-avatar{box-shadow:var(--nvx-shadow-medium);border-color:var(--nvx-light)}
+.nvx-que-exigir-hr{border-top-color:var(--nvx-color-line)}

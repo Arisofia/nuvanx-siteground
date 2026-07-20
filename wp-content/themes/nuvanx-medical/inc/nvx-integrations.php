@@ -9,6 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** Environment-specific flags must register before front-end enqueue hooks run. */
 require_once __DIR__ . '/nvx-environment-flags.php';
 
+/** Canonical color, icon, typography-role and numbering closure. */
+require_once __DIR__ . '/nvx-visual-system.php';
+
 /** Canonical facial treatment content, metadata and staging page seeding. */
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
 

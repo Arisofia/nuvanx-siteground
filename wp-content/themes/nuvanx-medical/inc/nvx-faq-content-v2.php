@@ -50,9 +50,19 @@ function nvx_home_faq_v2_catalog(): array {
 			'a'  => 'Solo el médico puede determinarlo tras exploración. En NUVANX el diagnóstico evalúa piel, historial y objetivos antes de indicar Endolift®, CO₂, EXION®, IPL o una combinación. No se decide por teléfono ni por formulario.',
 		),
 		array(
-			'id' => 'recuperacion',
-			'q'  => '¿Implican los tratamientos tiempo de recuperación?',
-			'a'  => 'Depende del protocolo, la zona, los parámetros y la respuesta individual. Antes de decidir se explican los cuidados, los posibles efectos y el período de recuperación esperable.',
+			'id' => 'trazabilidad-inyectables',
+			'q'  => '¿Cómo garantizan la originalidad de los inyectables?',
+			'a'  => 'En NUVANX utilizamos únicamente marcas médicas de referencia. La apertura del vial se realiza siempre en tu presencia y se entrega el código de trazabilidad o número de lote, evitando cualquier riesgo de falsificación.',
+		),
+		array(
+			'id' => 'dolor-anestesia',
+			'q'  => '¿Duelen los tratamientos láser o el Endolift®?',
+			'a'  => 'La medicina estética real implica molestias. Rechazamos el eufemismo comercial de "tratamiento indoloro"; en su lugar, aplicamos protocolos de anestesia local o infiltrada para gestionar el dolor de forma clínica y segura.',
+		),
+		array(
+			'id' => 'recuperacion-real',
+			'q'  => '¿Cuál es el tiempo real de recuperación post-tratamiento?',
+			'a'  => 'Procedimientos como el láser CO₂ o Endolift® generan inflamación temporal. En la valoración médica te explicamos con honestidad los días de "recuperación social" necesarios, para que planifiques tu agenda sin falsas promesas de "mínimas molestias".',
 		),
 		array(
 			'id' => 'diferencia-estetica',

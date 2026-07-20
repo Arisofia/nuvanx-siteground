@@ -130,8 +130,20 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$html .= '<h1 class="nvx-brand-title">Si no hay indicación clínica, no hay tratamiento.</h1>';
 	$html .= '<p class="nvx-brand-lead">Una decisión de medicina estética empieza por la exploración, no por una tecnología, una tendencia o una promesa de resultado.</p></header>';
 	$html .= '<section class="nvx-brand-section"><h2>Diagnóstico antes de tecnología</h2><p>Revisamos anatomía, antecedentes, objetivos, contraindicaciones y expectativas. Solo entonces se valora si procede tratar, esperar, derivar o no intervenir.</p></section>';
-	$html .= '<section class="nvx-brand-section"><h2>Claridad antes de decidir</h2><p>El plan explica la alternativa propuesta, sus límites, cuidados, posibles efectos y presupuesto. La decisión se toma con información comprensible y con tiempo para resolver dudas.</p></section>';
-	$html .= '<section class="nvx-brand-section"><h2>Seguimiento como parte del plan</h2><p>La indicación incluye cómo y cuándo contactar con el equipo, qué evolución vigilar y cuándo revisar el caso. La recuperación no se presenta como idéntica para todas las personas.</p></section>';
+	$html .= '<section class="nvx-brand-section"><h2>Nuestro compromiso clínico</h2><ul class="nvx-check-list">';
+	$html .= '<li>Diagnóstico médico presencial obligatorio antes de prescribir cualquier tratamiento.</li>';
+	$html .= '<li>Trazabilidad total: apertura de inyectables en tu presencia y entrega del código de lote.</li>';
+	$html .= '<li>Claridad absoluta sobre tiempos reales de recuperación y gestión clínica del dolor.</li>';
+	$html .= '<li>Presupuestos transparentes y cerrados desde el primer momento.</li>';
+	$html .= '<li>Seguimiento exhaustivo incluido en todos los planes terapéuticos.</li>';
+	$html .= '<li>No somos una franquicia: atención médica de autor liderada por el Dr. Rivera Tejeda.</li>';
+	$html .= '</ul></section>';
+	$html .= '<section class="nvx-brand-section"><h2>Lo que no hacemos</h2><ul class="nvx-cross-list">';
+	$html .= '<li>No emitimos presupuestos médicos por teléfono o WhatsApp sin haber evaluado tu anatomía presencialmente.</li>';
+	$html .= '<li>No delegamos la indicación ni la recomendación en asesores comerciales. Siempre hablarás con tu médico.</li>';
+	$html .= '<li>No participamos en "ofertas flash" o campañas orientadas al consumo compulsivo de medicina.</li>';
+	$html .= '<li>No cedemos a modas estéticas si comprometen la naturalidad o salud de tu rostro.</li>';
+	$html .= '</ul></section>';
 	$html .= '<section class="nvx-brand-section"><h2>Atención en centros sanitarios autorizados</h2><p>NUVANX atiende en Chamberí (CS20144) y Salamanca–Goya (CS20073), con equipo médico colegiado.</p><p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a> <a class="nvx-brand-inline-link" href="' . $team_url . '">Conocer al equipo médico</a>';
 	if ( '' !== $investment ) {
 		$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( $investment ) . '">Consultar inversión orientativa</a>';
@@ -152,13 +164,43 @@ function nvx_strategy_verified_investment_rows(): array {
 	}
 
 	return array(
-		array(
-			'label' => 'Endolift® · ojeras',
-			'price' => nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €',
+		'Láser Endolift®' => array(
+			array(
+				'label' => 'Endolift® · tercio inferior (papada y línea mandibular)',
+				'price' => nvx_format_price_eur( nvx_endolift_price_papada_eur() ) . ' €',
+			),
+			array(
+				'label' => 'Endolift® · ojeras o código de barras',
+				'price' => nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €',
+			),
+			array(
+				'label' => 'Endolift® · corporal (abdomen, rodillas, brazos)',
+				'price' => 'desde 1.100 €',
+			),
 		),
-		array(
-			'label' => 'Endolift® · papada / mandíbula',
-			'price' => nvx_format_price_eur( nvx_endolift_price_papada_eur() ) . ' €',
+		'Láser CO₂ Fraccionado' => array(
+			array(
+				'label' => 'CO₂ Fraccionado · sesión completa facial',
+				'price' => '350 €',
+			),
+			array(
+				'label' => 'CO₂ Fraccionado · zona localizada (ojeras, código barras)',
+				'price' => '150 €',
+			),
+		),
+		'Medicina Estética Avanzada' => array(
+			array(
+				'label' => 'Toxina botulínica · tercio superior completo',
+				'price' => '320 €',
+			),
+			array(
+				'label' => 'Armonización facial con Ácido Hialurónico',
+				'price' => 'desde 300 € / vial',
+			),
+			array(
+				'label' => 'EXION® BTL · Radiofrecuencia Fraccionada con IA',
+				'price' => 'desde 250 € / sesión',
+			),
 		),
 	);
 }
@@ -167,23 +209,26 @@ function nvx_strategy_verified_investment_rows(): array {
  * Investment page: transparent, limited to approved tariffs and no bait pricing.
  */
 function nvx_strategy_investment_markup(): string {
-	$rows          = nvx_strategy_verified_investment_rows();
+	$catalog       = nvx_strategy_verified_investment_rows();
 	$valuation_url = esc_url( home_url( '/madrid/valoracion/' ) );
 	$html          = '<article class="nvx-brand-readable nvx-strategy-page">';
-	$html         .= '<header class="nvx-brand-hero"><p class="nvx-brand-kicker">Información de inversión</p><h1 class="nvx-brand-title">El presupuesto forma parte de una decisión informada.</h1><p class="nvx-brand-lead">Mostramos tarifas verificadas cuando el alcance está definido. El importe final y la indicación se confirman después de la valoración médica presencial.</p></header>';
-	$html         .= '<section class="nvx-brand-section"><h2>Tarifas orientativas verificadas</h2>';
+	$html         .= '<header class="nvx-brand-hero"><p class="nvx-brand-kicker">Información de inversión</p><h1 class="nvx-brand-title">El presupuesto forma parte de una decisión informada.</h1><p class="nvx-brand-lead">Mostramos tarifas médicas verificadas sin letra pequeña. El importe final se documenta por escrito tras la valoración anatómica presencial.</p></header>';
+	$html         .= '<section class="nvx-brand-section"><h2>Catálogo orientativo de tratamientos</h2>';
 
-	if ( $rows ) {
-		$html .= '<div class="nvx-table-wrap"><table class="nvx-price-table"><thead><tr><th scope="col">Procedimiento</th><th scope="col">PVP con IVA</th></tr></thead><tbody>';
-		foreach ( $rows as $row ) {
-			$html .= '<tr><td>' . esc_html( $row['label'] ) . '</td><td>' . esc_html( $row['price'] ) . '</td></tr>';
+	if ( $catalog ) {
+		foreach ( $catalog as $group_name => $rows ) {
+			$html .= '<h3 class="nvx-price-group-title">' . esc_html( $group_name ) . '</h3>';
+			$html .= '<div class="nvx-table-wrap"><table class="nvx-price-table"><thead><tr><th scope="col">Procedimiento</th><th scope="col">PVP con IVA</th></tr></thead><tbody>';
+			foreach ( $rows as $row ) {
+				$html .= '<tr><td>' . esc_html( $row['label'] ) . '</td><td>' . esc_html( $row['price'] ) . '</td></tr>';
+			}
+			$html .= '</tbody></table></div>';
 		}
-		$html .= '</tbody></table></div>';
 	} else {
 		$html .= '<p>Las tarifas verificadas se mostrarán cuando estén disponibles en el catálogo clínico vigente.</p>';
 	}
 
-	$html .= '<p>Otras zonas y procedimientos requieren exploración, indicación y presupuesto individualizado. No usamos descuentos o precios de captación que sustituyan esa valoración.</p>';
+	$html .= '<p>Otras zonas y procedimientos requieren exploración y presupuesto individualizado. En NUVANX los presupuestos incluyen las revisiones necesarias y la garantía de trazabilidad del producto.</p>';
 	$html .= '<p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a></p></section></article>';
 
 	return $html;

@@ -84,7 +84,7 @@ for (const code of [
 }
 
 requireMatch(script, /Expected 1 H1/, 'exactly one H1 must be enforced');
-requireMatch(script, /protectedReview && !rendered\.description/, 'protected review pages must be exempt from public meta-description expectations');
+requireMatch(script, /!protectedReview && !rendered\.description/, 'protected review pages must be exempt from public meta-description expectations');
 requireMatch(script, /if \(protectedReview\)/, 'protected review canonical branch is required');
 requireMatch(script, /protected-review-canonical/, 'unexpected canonical on a protected review route must be visible');
 requireMatch(script, /\[canonicalHost, `www\.\$\{canonicalHost\}`\]/, 'approved canonicals must target the public host');

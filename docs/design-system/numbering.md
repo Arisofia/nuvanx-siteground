@@ -24,7 +24,7 @@ Clases legacy de procesos (`__n` y counters) comparten el mismo rol mediante el 
 
 ### 2. Métrica o cantidad
 
-Cifras como estadísticas, precios o indicadores pueden utilizar Bodoni Moda y una escala visual mayor. No deben reutilizar `.nvx-index-number`, porque no representan orden.
+Cifras como estadísticas, precios o indicadores pueden utilizar **Playfair Display** y una escala visual mayor. No deben reutilizar `.nvx-index-number`, porque no representan orden.
 
 ## Listas editoriales
 
@@ -34,5 +34,6 @@ Los `<ol>` sin clase dentro de superficies de lectura conservan numeración deci
 
 - Escribir `1. Título` dentro del H3 para simular un índice.
 - Utilizar una clase kicker para un número.
-- Mezclar serif grande y sans pequeña para el mismo tipo de secuencia.
+- Mezclar Playfair Display grande y Manrope pequeña para el mismo tipo de secuencia.
 - Crear una numeración específica por tratamiento.
+- Reintroducir Bodoni Moda o Cormorant Garamond para métricas.

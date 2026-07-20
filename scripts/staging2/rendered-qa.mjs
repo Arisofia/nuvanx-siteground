@@ -13,7 +13,21 @@ const viewports = [['desktop', 1440, 1100], ['mobile', 390, 844]];
 const criticalJs = /(ReferenceError|TypeError|SyntaxError|Uncaught|FacebookSignal|is not defined)/i;
 fs.mkdirSync(out, { recursive: true });
 
+/**
+ * Adds a structured finding to a list.
+ * @param {Array<Object>} list - The list receiving the finding.
+ * @param {string} severity - The finding severity.
+ * @param {string} code - The finding code.
+ * @param {string} message - The finding message.
+ * @param {Object} [details={}] - Additional finding properties.
+ */
 function add(list, severity, code, message, details = {}) { list.push({ severity, code, message, ...details }); }
+/**
+ * Collects all JSON-LD schema type values from a nested structure.
+ * @param {*} value - The value to traverse.
+ * @param {Set<string>} [set=new Set()] - The set to populate with schema types.
+ * @returns {Set<string>} The set containing the collected schema types.
+ */
 function collectTypes(value, set = new Set()) {
   if (!value || typeof value !== 'object') return set;
   if (Array.isArray(value)) { value.forEach((item) => collectTypes(item, set)); return set; }
@@ -23,6 +37,16 @@ function collectTypes(value, set = new Set()) {
   return set;
 }
 
+/**
+ * Audits a route at a specified viewport and captures its rendered state.
+ * @param {import('playwright').Browser} browser - Browser instance used to create the page context.
+ * @param {string} slug - Identifier used to classify the route and name its screenshot.
+ * @param {string} route - Route path to audit.
+ * @param {string} viewport - Viewport label used in the audit result and screenshot name.
+ * @param {number} width - Viewport width in pixels.
+ * @param {number} height - Viewport height in pixels.
+ * @return {Promise<object>} Audit result containing the route metadata, HTTP status, response headers, rendered page data, console errors, failed requests, and findings.
+ */
 async function inspect(browser, slug, route, viewport, width, height) {
   const context = await browser.newContext({ viewport: { width, height }, locale: 'es-ES', reducedMotion: 'reduce', colorScheme: 'light' });
   const page = await context.newPage();

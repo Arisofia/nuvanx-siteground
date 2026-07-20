@@ -107,6 +107,13 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html  = '<div class="nvx-brand-hero__copy nvx-endolift-hero-copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html__( 'Endolift® en Madrid: papada, mandíbula y cuello sin quirófano', 'nuvanx-medical' ) . '</h1>';
+	
+	// E-E-A-T Medical Authority Byline
+	$html .= '<div class="nvx-medical-byline" style="display:flex; align-items:center; gap:0.75rem; margin-top:1rem; margin-bottom:1.5rem; font-size:0.875rem; color:var(--nvx-color-text-muted, #555);">';
+	$html .= '<div class="nvx-medical-byline__text" style="line-height:1.4;">';
+	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
+	$html .= '<span style="font-size:0.85em; opacity:0.85;">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
+	$html .= '</div></div>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Microfibra láser bajo la piel para tensar tejido y, cuando hay indicación, reducir grasa local en papada y contorno mandibular. No sustituye un lifting quirúrgico en todos los casos.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
@@ -323,6 +330,22 @@ function nvx_endolift_editorial_body_markup(): string {
 	}
 
 	$html .= '</div></div></section>';
+
+	// E-Bis. Postoperatorio Real (SEO Capture for recovery pain/fears)
+	$html .= '<section class="nvx-endolift-section nvx-endolift-postop" aria-labelledby="nvx-endolift-postop-title" id="postoperatorio-endolift">';
+	$html .= '<div class="nvx-endolift-section__inner">';
+	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Recuperación Transparente', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-endolift-postop-title" class="nvx-endolift-heading">' . esc_html__( 'Cómo es el postoperatorio real del Endolift® en Madrid (sin clichés)', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'A diferencia de una cirugía invasiva (como una liposucción tradicional o un lifting), el Endolift® no requiere quirófano ni anestesia general, pero esto no significa que no haya un proceso de recuperación. Esta es la verdad clínica sobre qué esperar día a día:', 'nuvanx-medical' ) . '</p>';
+	
+	$html .= '<ul class="nvx-endolift-price-includes nvx-endolift-postop-list" style="margin-top:2rem; margin-bottom:2rem;">';
+	$html .= '<li><strong>' . esc_html__( 'Días 1 a 3 (Inflamación):', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Es normal sentir la zona tratada inflamada, ligeramente acartonada y sensible al tacto. Pueden aparecer pequeños hematomas en los puntos de entrada de la fibra láser. No minimizamos el proceso: el disconfort existe, pero se controla con nuestra pauta analgésica oral estandarizada.', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>' . esc_html__( 'Semana 1 (Recuperación Social):', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'La inflamación inicial cede considerablemente. A nivel social, puedes salir a cenar o retomar reuniones sin que sea evidente que te has sometido a un procedimiento médico, aunque tú seguirás notando la zona en proceso de curación.', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>' . esc_html__( 'Semanas 2 a 4 (Retracción Tisular):', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'El tejido comienza su remodelación interna profunda. Las molestias físicas desaparecen casi por completo y empiezas a notar la piel visiblemente más firme y adherida al plano profundo.', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>' . esc_html__( 'Meses 2 a 3 (Resultado Real):', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'El pico máximo de neo-colagénesis se alcanza en este punto. El contorno mandibular, la papada o la zona tratada muestran su resultado clínico real.', 'nuvanx-medical' ) . '</li>';
+	$html .= '</ul>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure"><em>' . esc_html__( 'Antes del procedimiento, se te entrega un protocolo escrito con tu teléfono directo de seguimiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu anatomía.', 'nuvanx-medical' ) . '</em></p>';
+	$html .= '</div></section>';
 
 	// F. Inversión — official PVP table (clinic tariff catalog; not a single outdated price).
 	$html .= '<section class="nvx-endolift-section nvx-endolift-investment" aria-labelledby="nvx-endolift-price-title" id="inversion-endolift">';

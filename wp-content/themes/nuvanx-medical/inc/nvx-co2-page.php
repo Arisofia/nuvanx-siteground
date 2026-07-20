@@ -64,6 +64,13 @@ function nvx_co2_hero_copy_markup(): string {
 	$html  = '<div class="nvx-brand-hero__copy nvx-co2-hero-copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-co2-h1">' . esc_html__( 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', 'nuvanx-medical' ) . '</h1>';
+	
+	// E-E-A-T Medical Authority Byline
+	$html .= '<div class="nvx-medical-byline" style="display:flex; align-items:center; gap:0.75rem; margin-top:1rem; margin-bottom:1.5rem; font-size:0.875rem; color:var(--nvx-color-text-muted, #555);">';
+	$html .= '<div class="nvx-medical-byline__text" style="line-height:1.4;">';
+	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
+	$html .= '<span style="font-size:0.85em; opacity:0.85;">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
+	$html .= '</div></div>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Protocolos de resurfacing fraccionado para mejorar irregularidades de textura y cicatrices, con un plan de recuperación realista (eritema y descamación según profundidad).', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(

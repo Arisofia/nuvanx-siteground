@@ -95,16 +95,16 @@ function nvx_home_content_v2_catalog(): array {
 			'lead'   => 'La evaluación, la indicación y el seguimiento forman un único proceso clínico.',
 			'items'  => array(
 				array(
-					'title' => 'Evaluación individual',
-					'body'  => 'Revisamos piel, anatomía, historial, objetivos y contraindicaciones antes de proponer un procedimiento.',
+					'title' => 'Diagnóstico preciso',
+					'body'  => '"Si no hay indicación clínica, no hay tratamiento." El Dr. Rivera evalúa cada caso antes de recomendar cualquier procedimiento. No existe protocolo estándar: existe tu protocolo.',
 				),
 				array(
-					'title' => 'Indicación y parámetros',
-					'body'  => 'Definimos tecnología, energía, profundidad y número de sesiones según el caso, no mediante configuraciones estándar.',
+					'title' => 'Trazabilidad total',
+					'body'  => '"Sabes exactamente qué se te aplica, en qué cantidad y quién lo hace." Inyectables Allergan® y Merz® con código de lote en tu historial. Técnica firmada en el presupuesto antes del procedimiento.',
 				),
 				array(
-					'title' => 'Control de evolución',
-					'body'  => 'Programamos seguimiento según el tratamiento para valorar respuesta, recuperación y necesidad de ajustes.',
+					'title' => 'Continuidad clínica',
+					'body'  => '"El Dr. Rivera que hace tu diagnóstico es el mismo que ejecuta el procedimiento y el mismo que hace tu seguimiento." No hay rotación de médicos. No hay delegación silenciosa.',
 				),
 			),
 		),

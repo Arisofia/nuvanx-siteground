@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-20T13:50:51.082Z",
+  "generatedAt": "2026-07-20T13:58:49.254Z",
   "activeStylesheets": 12,
   "totalStylesheets": 12,
   "inactiveStylesheets": 0,
@@ -12,7 +12,7 @@
   "importantInactive": 0,
   "runtimeImportant": 0,
   "undefinedTokens": 0,
-  "hardcodedPixelsActive": 0,
+  "hardcodedPixelsActive": 1,
   "activeDuplicateSelectors": 258,
   "allDuplicateSelectors": 258,
   "nonCanonicalFonts": 0,

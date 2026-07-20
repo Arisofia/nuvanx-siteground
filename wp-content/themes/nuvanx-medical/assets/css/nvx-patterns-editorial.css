@@ -2126,8 +2126,6 @@ figure.nvx-equipo-portrait,
   
 }
 
-
-
 /* E-E-A-T Medical Byline */
 .nvx-medical-byline { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; margin-bottom: 1.5rem; font-size: 0.875rem; color: var(--nvx-text-muted); }
 .nvx-medical-byline--border { padding-bottom: 1rem; border-bottom: 1px solid var(--nvx-color-line); margin-bottom: 2rem; }
@@ -2155,8 +2153,6 @@ figure.nvx-equipo-portrait,
 .nvx-que-exigir-cta-box { background-color: var(--nvx-surface-soft); padding: 2.5rem; border-radius: 8px; text-align: center; }
 .nvx-que-exigir-cta-title { font-size: 1.5rem; margin-bottom: 1rem; }
 .nvx-que-exigir-cta-text { margin-bottom: 2rem; }
-
-
 
 /* Endolift Page */
 .nvx-endolift-postop-list { margin-top: 2rem; margin-bottom: 2rem; }

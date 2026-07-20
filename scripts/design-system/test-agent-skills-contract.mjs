@@ -19,12 +19,24 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const exists = (relative) => fs.existsSync(path.join(root, relative));
 const failures = [];
 
+/**
+ * Records a validation failure when the source does not match a pattern.
+ * @param {string} source - The content to validate.
+ * @param {RegExp} pattern - The pattern that the content must match.
+ * @param {string} message - The failure message to record.
+ */
 function requireMatch(source, pattern, message) {
   if (!pattern.test(source)) failures.push(message);
 }
 
 const SKILLS = ['design-critique', 'design-system', 'nuvanx-theme-factory'];
 
+/**
+ * Parses a skill file's YAML frontmatter into a field-value object.
+ * @param {string} source - The skill file contents.
+ * @param {string} label - The label used to identify frontmatter parsing failures.
+ * @return {Object<string, string>} The parsed frontmatter fields, or an empty object when the frontmatter block is missing.
+ */
 function parseFrontmatter(source, label) {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) {

@@ -39,19 +39,23 @@ jobs:
       - name: Generate showcase PDF
         run: node scripts/design-system/generate-showcase-pdf.mjs --output /tmp/theme-showcase.pdf
 
-      - name: Validate PDF structure and content
+      - name: Install PDF inspection tools
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq poppler-utils
-          test "$(pdfinfo /tmp/theme-showcase.pdf | awk '/^Pages:/ {print $2}')" = "6"
-          pdftotext /tmp/theme-showcase.pdf /tmp/theme-showcase.txt
-          grep -q "Theme Factory" /tmp/theme-showcase.txt
-          grep -q "Acento Zafiro" /tmp/theme-showcase.txt
-          grep -q "Oro Editorial" /tmp/theme-showcase.txt
-          grep -q "No modifica el sistema visual web de producción" /tmp/theme-showcase.txt
 
-      - name: Verify committed PDF exists
-        run: test -s docs/design-system/theme-showcase.pdf
+      - name: Validate generated and committed PDFs
+        run: |
+          for pdf in /tmp/theme-showcase.pdf docs/design-system/theme-showcase.pdf; do
+            test -s "$pdf"
+            test "$(pdfinfo "$pdf" | awk '/^Pages:/ {print $2}')" = "6"
+            txt="/tmp/$(basename "$pdf").txt"
+            pdftotext "$pdf" "$txt"
+            grep -q "Theme Factory" "$txt"
+            grep -q "Acento Zafiro" "$txt"
+            grep -q "Oro Editorial" "$txt"
+            grep -q "No modifica el sistema visual web de producción" "$txt"
+          done
 
       - name: Run canonical visual audits
         run: |

@@ -24,60 +24,10 @@ on:
       - '.github/workflows/visual-system-gate.yml'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  normalize-source:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.normalize.outputs.changed }}
-    steps:
-      - name: Check out PR branch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.head_ref }}
-          show-progress: false
-
-      - name: Remove the final retired color source
-        id: normalize
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css')
-          source = path.read_text(encoding='utf-8')
-          updated = source.replace(
-              '   Hero antracita #1C1C1C · alabastro #F5E8D8 · process #C5A880',
-              '   Treatment surfaces use the canonical palette tokens.'
-          ).replace(
-              'border: 1px solid rgba(197, 168, 128, 0.28);',
-              'border: var(--nvx-border-hairline) solid var(--nvx-color-line);'
-          )
-          if updated != source:
-              path.write_text(updated, encoding='utf-8')
-              print('changed=true')
-          else:
-              print('changed=false')
-          PY
-          if git diff --quiet; then
-            echo 'changed=false' >> "$GITHUB_OUTPUT"
-          else
-            echo 'changed=true' >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Commit normalized source
-        if: steps.normalize.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css
-          git commit -m "refactor(colors): remove final retired treatment gold"
-          git push origin HEAD:${{ github.head_ref }}
-
   visual-contract:
-    needs: normalize-source
-    if: needs.normalize-source.outputs.changed != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository

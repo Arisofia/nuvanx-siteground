@@ -29,18 +29,31 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+          show-progress: false
 
       - name: Apply requested plan
         run: python3 scripts/one-time/apply-qa-visual-blockers.py
 
-      - name: Validate implementation
+      - name: Validate rendered QA syntax
+        run: node --check scripts/staging2/rendered-qa.mjs
+
+      - name: Validate rendered QA contract
+        run: node scripts/staging2/test-rendered-qa-contract.mjs
+
+      - name: Validate runtime closure contract
+        run: node scripts/staging2/test-runtime-qa-closure-contract.mjs
+
+      - name: Validate external visual closure
+        run: node scripts/design-system/test-external-visual-closure.mjs
+
+      - name: Validate strategy and Contact visual contract
+        run: node scripts/design-system/test-strategy-contact-visual-closure.mjs
+
+      - name: Run CSS audit
+        run: node scripts/design-system/audit-css.mjs
+
+      - name: Validate PHP syntax
         run: |
-          node --check scripts/staging2/rendered-qa.mjs
-          node scripts/staging2/test-rendered-qa-contract.mjs
-          node scripts/staging2/test-runtime-qa-closure-contract.mjs
-          node scripts/design-system/test-external-visual-closure.mjs
-          node scripts/design-system/test-strategy-contact-visual-closure.mjs
-          node scripts/design-system/audit-css.mjs
           php -l wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php
           php -l wp-content/themes/nuvanx-medical/templates/template-contact.php

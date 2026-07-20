@@ -59,7 +59,7 @@ if (statusMatches.length < pourSections.length) {
   );
 }
 for (const status of statusMatches) {
-  requireMatch(status, /`(PASS|FAIL|PASS \/ PARTIAL)`/, `unexpected status marker format: ${status}`);
+  requireMatch(status, /`(PASS|FAIL|PASS \/ PARTIAL|PASS \/ PENDING)`/, `unexpected status marker format: ${status}`);
 }
 
 requireMatch(doc, /## Priority Fixes & Next Steps/, 'audit must end with an actionable priority-fixes section');
@@ -123,24 +123,10 @@ if (!externalClosure.includes('.joinchat__button')) {
   failures.push('audit cites .joinchat__button, but that selector could not be found in nvx-external-visual-closure.php');
 }
 
-// --- Regression: the audit names a helper function that does not exist ------
-//
-// The report states that the WhatsApp/Joinchat SVG is injected via a
-// canonical helper called `nvx_visual_whatsapp_icon_svg()`. The theme's
-// actual icon registry only defines `nvx_visual_icon_svg()`
-// (wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php); no function
-// named `nvx_visual_whatsapp_icon_svg` exists anywhere in the repository.
-// This pins that factual error down so the audit cannot cite a
-// non-existent helper without this test failing.
-requireMatch(doc, /nvx_visual_whatsapp_icon_svg\(\)/, 'expected the audit to still cite nvx_visual_whatsapp_icon_svg() (update this test if the report is corrected)');
-if (visualSystem.includes('function nvx_visual_whatsapp_icon_svg(')) {
-  failures.push('nvx_visual_whatsapp_icon_svg() now exists — the audit citation is correct, update this regression test to assert success instead of documenting the gap');
-} else {
-  failures.push(
-    'known factual error: docs/audits/accessibility-wcag-aa-20260720.md credits '
-    + '`nvx_visual_whatsapp_icon_svg()` as the canonical icon helper, but no such function exists in the '
-    + 'theme; the real helper is `nvx_visual_icon_svg()` in nvx-visual-system.php.',
-  );
+// --- Ensure the audit cites the correct SVG helper --------------------------
+requireMatch(doc, /nvx_visual_icon_svg\(\)/, 'expected the audit to cite nvx_visual_icon_svg()');
+if (!visualSystem.includes('function nvx_visual_icon_svg(')) {
+  failures.push('nvx_visual_icon_svg() was not found in nvx-visual-system.php');
 }
 
 if (failures.length) {

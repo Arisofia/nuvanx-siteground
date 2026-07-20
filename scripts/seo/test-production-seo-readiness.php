@@ -89,10 +89,10 @@ function nvx_schema_add_type( $types, $type ) {
  */
 function nvx_schema_has_type( $types, $type ) { return in_array( $type, is_array( $types ) ? $types : array( $types ), true ); }
 /**
- * Finds the organization node in a schema graph.
+ * Returns a fixed staging organization fixture for testing purposes.
  *
- * @param array $graph The schema graph to inspect.
- * @return array The organization's graph index and identifier.
+ * @param array $graph The schema graph (ignored by this stub).
+ * @return array The fixed organization graph index (0) and identifier.
  */
 function nvx_schema_find_organization( $graph ) { return array( 'index' => 0, 'id' => 'https://staging2.nuvanx.com/#organization' ); }
 /**

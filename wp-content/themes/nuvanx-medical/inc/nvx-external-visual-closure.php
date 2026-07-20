@@ -15,7 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** Non-public canonical output used by rendered QA and pre-production review. */
 require_once __DIR__ . '/nvx-staging2-canonical-closure.php';
 
-/** Return the late CSS contract for external widgets and unresolved aliases. */
+/**
+ * Provides the late-loaded CSS for external widgets and site-specific visual layouts.
+ *
+ * @return string The inline stylesheet content.
+ */
 function nvx_external_visual_closure_css(): string {
 	return <<<'CSS'
 /* NUVANX — terminal external visual closure */

@@ -1007,3 +1007,43 @@ body.nvx-hero-blackout :where(
 ) {
   color: var(--nvx-text-on-dark-72);
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CHECKLISTS — strategy positive / negative lists
+   ═══════════════════════════════════════════════════════════ */
+
+.nvx-strategy-checklist {
+  margin-top: var(--nvx-space-6, 48px);
+}
+
+.nvx-check-list {
+  list-style: none;
+  margin: var(--nvx-space-4, 32px) 0;
+  padding: 0;
+  display: grid;
+  gap: var(--nvx-space-3, 24px);
+  max-width: 65ch;
+}
+
+.nvx-check-list li {
+  position: relative;
+  padding-left: 2rem;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
+.nvx-check-list li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--nvx-accent-muted, #C5A880);
+  font-weight: bold;
+}
+
+.nvx-check-list.nvx-check-list--no li::before {
+  content: "✕";
+  color: #a84242;
+}

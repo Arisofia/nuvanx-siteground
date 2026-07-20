@@ -2129,8 +2129,8 @@ figure.nvx-equipo-portrait,
 
 
 /* E-E-A-T Medical Byline */
-.nvx-medical-byline { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; margin-bottom: 1.5rem; font-size: 0.875rem; color: var(--nvx-color-text-muted, #555); }
-.nvx-medical-byline--border { padding-bottom: 1rem; border-bottom: 1px solid #eaeaea; margin-bottom: 2rem; }
+.nvx-medical-byline { display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem; margin-bottom: 1.5rem; font-size: 0.875rem; color: var(--nvx-text-muted); }
+.nvx-medical-byline--border { padding-bottom: 1rem; border-bottom: 1px solid var(--nvx-color-line); margin-bottom: 2rem; }
 .nvx-medical-byline__text { line-height: 1.4; }
 .nvx-medical-byline__title { font-size: 0.85em; opacity: 0.85; }
 
@@ -2139,9 +2139,9 @@ figure.nvx-equipo-portrait,
 .nvx-dr-rivera-header { text-align: center; margin-bottom: 2rem; }
 .nvx-dr-rivera-avatar { width: 160px; height: 160px; border-radius: 50%; object-fit: cover; margin: 0 auto 1.5rem auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 4px solid white; }
 .nvx-dr-rivera-h1 { font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; margin-bottom: 1rem; }
-.nvx-dr-rivera-lead { font-size: 1.125rem; color: var(--nvx-color-text-muted, #555); }
-.nvx-blockquote { font-size: 1.5rem; line-height: 1.4; border-left: 4px solid var(--nvx-color-brand, #000); padding-left: 1.5rem; margin: 3rem 0; font-style: italic; }
-.nvx-dr-rivera-body { font-size: 1.125rem; line-height: 1.6; color: var(--nvx-color-text, #333); margin-bottom: 3rem; }
+.nvx-dr-rivera-lead { font-size: 1.125rem; color: var(--nvx-text-muted); }
+.nvx-blockquote { font-size: 1.5rem; line-height: 1.4; border-left: 4px solid var(--nvx-ink); padding-left: 1.5rem; margin: 3rem 0; font-style: italic; }
+.nvx-dr-rivera-body { font-size: 1.125rem; line-height: 1.6; color: var(--nvx-ink); margin-bottom: 3rem; }
 .nvx-dr-rivera-list-title { font-size: 1.75rem; margin-bottom: 1.5rem; }
 .nvx-dr-rivera-list { margin-bottom: 3rem; font-size: 1.125rem; line-height: 1.6; padding-left: 1.5rem; }
 .nvx-dr-rivera-cta { text-align: center; margin-top: 4rem; }
@@ -2149,10 +2149,10 @@ figure.nvx-equipo-portrait,
 /* Que Exigir Page */
 .nvx-que-exigir-editorial { max-width: 800px; margin: 0 auto; padding: 4rem 1rem; }
 .nvx-que-exigir-h1 { font-size: clamp(2rem, 4vw, 2.5rem); line-height: 1.2; margin-bottom: 1.5rem; }
-.nvx-que-exigir-body { font-size: 1.125rem; line-height: 1.7; color: var(--nvx-color-text, #333); }
+.nvx-que-exigir-body { font-size: 1.125rem; line-height: 1.7; color: var(--nvx-ink); }
 .nvx-que-exigir-h2 { font-size: 1.5rem; margin-top: 3rem; margin-bottom: 1rem; }
 .nvx-que-exigir-hr { margin: 3rem 0; border: 0; border-top: 1px solid #eaeaea; }
-.nvx-que-exigir-cta-box { background-color: var(--nvx-color-surface-dim, #f8f8f8); padding: 2.5rem; border-radius: 8px; text-align: center; }
+.nvx-que-exigir-cta-box { background-color: var(--nvx-surface-soft); padding: 2.5rem; border-radius: 8px; text-align: center; }
 .nvx-que-exigir-cta-title { font-size: 1.5rem; margin-bottom: 1rem; }
 .nvx-que-exigir-cta-text { margin-bottom: 2rem; }
 

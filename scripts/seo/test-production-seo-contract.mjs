@@ -8,9 +8,21 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const failures = [];
 
+/**
+ * Records a failure message when a pattern does not match the source.
+ * @param {string} source - The content to test.
+ * @param {RegExp} pattern - The pattern that must match the source.
+ * @param {string} message - The failure message to record.
+ */
 function requireMatch(source, pattern, message) {
   if (!pattern.test(source)) failures.push(message);
 }
+/**
+ * Records a failure when a pattern is found in the source.
+ * @param {string} source - The content to inspect.
+ * @param {RegExp} pattern - The pattern that must be absent.
+ * @param {string} message - The failure message to record.
+ */
 function requireAbsent(source, pattern, message) {
   if (pattern.test(source)) failures.push(message);
 }

@@ -63,7 +63,12 @@ jobs:
 
       - name: Publish QA report in job summary
         if: always()
-        run: cat qa-artifacts/staging2-rendered/report.md >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          if [ -f qa-artifacts/staging2-rendered/report.md ]; then
+            cat qa-artifacts/staging2-rendered/report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'report.md no disponible — la auditoría pudo haber crasheado.' >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Upload screenshots and reports
         if: always()

@@ -1,0 +1,72 @@
+name: Visual System Gate
+
+on:
+  pull_request:
+    paths:
+      - 'wp-content/themes/nuvanx-medical/assets/css/**'
+      - 'wp-content/themes/nuvanx-medical/assets/images/**'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
+      - 'scripts/design-system/**'
+      - 'docs/design-system/**'
+      - 'docs/NUVANX-DESIGN-SYSTEM.md'
+      - 'qa/design-system/**'
+      - '.github/workflows/visual-system-gate.yml'
+  push:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/assets/css/**'
+      - 'wp-content/themes/nuvanx-medical/assets/images/**'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
+      - 'scripts/design-system/**'
+      - '.github/workflows/visual-system-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  visual-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Validate canonical visual contract
+        run: node scripts/design-system/test-visual-system-contract.mjs
+
+      - name: Audit runtime typography, colors, icons and numbering
+        run: node scripts/design-system/audit-visual-system.mjs
+
+      - name: Run existing CSS audit
+        run: node scripts/design-system/audit-css.mjs
+
+      - name: Validate PHP syntax
+        run: |
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
+
+      - name: Verify generated audit is clean
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const summary = JSON.parse(fs.readFileSync('qa/design-system/visual-system-summary.json', 'utf8'));
+          const collections = [
+            'activeRetiredColorFindings',
+            'bannedFontFindings',
+            'literalFontFindings',
+            'forbiddenFontRequests',
+            'typographyTokenMismatches',
+            'parallelFontVariables',
+            'survivingRetiredAssets',
+            'missingIconClasses',
+            'missingTokens',
+          ];
+          const dirty = collections.filter((key) => Array.isArray(summary[key]) && summary[key].length > 0);
+          if (dirty.length) {
+            console.error(`Dirty visual audit collections: ${dirty.join(', ')}`);
+            process.exit(1);
+          }
+          console.log('PASS: generated visual-system-summary.json is clean');
+          NODE

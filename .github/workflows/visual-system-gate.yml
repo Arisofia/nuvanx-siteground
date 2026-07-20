@@ -6,6 +6,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/assets/images/**'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
       - 'scripts/design-system/**'
       - 'docs/design-system/**'
@@ -19,6 +20,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/assets/css/**'
       - 'wp-content/themes/nuvanx-medical/assets/images/**'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
       - 'scripts/design-system/**'
       - '.github/workflows/visual-system-gate.yml'
@@ -37,6 +39,9 @@ jobs:
 
       - name: Validate canonical visual contract
         run: node scripts/design-system/test-visual-system-contract.mjs
+
+      - name: Validate external widget and typography closure
+        run: node scripts/design-system/test-external-visual-closure.mjs
 
       - name: Audit runtime typography, colors, icons and numbering
         run: node scripts/design-system/audit-visual-system.mjs
@@ -71,6 +76,7 @@ jobs:
       - name: Validate PHP syntax
         run: |
           php -l wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
 
       - name: Upload visual audit

@@ -190,10 +190,10 @@ function nvx_seo_schema_btl_faq_node( int $page_id ): ?array {
 }
 
 /**
- * Enriches the organization node with its medical organization type and clinic references.
+ * Adds clinic references and the MedicalOrganization type to the organization node.
  *
- * @param array  $graph          The Schema.org graph.
- * @param string $organization_id The organization identifier used by related nodes.
+ * @param array  $graph           The Schema.org graph.
+ * @param string $organization_id Fallback identifier used when the organization cannot be resolved.
  * @return array The enriched Schema.org graph.
  */
 function _nvx_seo_schema_enrich_organization( $graph, $organization_id ) {
@@ -222,7 +222,7 @@ function _nvx_seo_schema_enrich_organization( $graph, $organization_id ) {
 /**
  * Adds organization relationships and default metadata to MedicalClinic nodes.
  *
- * @param array $graph The Schema.org graph.
+ * @param array  $graph           The Schema.org graph.
  * @param string $organization_id The parent organization identifier.
  * @return array The enriched Schema.org graph.
  */
@@ -247,12 +247,12 @@ function _nvx_seo_schema_enrich_clinics( $graph, $organization_id ) {
 }
 
 /**
- * Promotes the matching noninvasive service for the current page.
+ * Promotes the matching noninvasive service to a MedicalProcedure.
  *
- * @param array $graph The Schema.org graph.
+ * @param array  $graph       The Schema.org graph.
  * @param string $current_url The canonical URL of the current page.
- * @param int $page_id The current page identifier.
- * @return array{0: array, 1: string} The updated graph and the promoted procedure identifier, or an empty identifier when no match is found.
+ * @param int    $page_id     The current page identifier.
+ * @return array{0: array, 1: string} The updated graph and the promoted procedure identifier (can be an empty string when there is no matching service or missing @id).
  */
 function _nvx_seo_schema_promote_services( $graph, $current_url, $page_id ) {
 	$current_key = function_exists( 'nvx_schema_resolve_treatment_key' ) ? nvx_schema_resolve_treatment_key( $page_id ) : null;
@@ -284,8 +284,8 @@ function _nvx_seo_schema_promote_services( $graph, $current_url, $page_id ) {
 /**
  * Links the matching WebPage node to the promoted main entity.
  *
- * @param array $graph The Schema.org graph.
- * @param string $current_url The canonical URL of the current page.
+ * @param array  $graph          The Schema.org graph.
+ * @param string $current_url    The canonical URL of the current page.
  * @param string $main_entity_id The identifier of the main entity.
  * @return array The updated Schema.org graph.
  */

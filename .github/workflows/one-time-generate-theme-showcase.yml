@@ -1,0 +1,51 @@
+name: One-time Generate Theme Showcase PDF
+
+on:
+  push:
+    branches:
+      - feature/theme-factory-showcase
+    paths:
+      - '.github/workflows/one-time-generate-theme-showcase.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/theme-factory-showcase
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Puppeteer temporarily
+        run: npm install puppeteer --no-save
+
+      - name: Generate and inspect PDF
+        run: |
+          node scripts/design-system/generate-showcase-pdf.mjs
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq poppler-utils
+          test "$(pdfinfo docs/design-system/theme-showcase.pdf | awk '/^Pages:/ {print $2}')" = "6"
+          pdftotext docs/design-system/theme-showcase.pdf /tmp/theme-showcase.txt
+          grep -q "No modifica el sistema visual web de producción" /tmp/theme-showcase.txt
+
+      - name: Run visual regressions
+        run: |
+          node scripts/design-system/audit-css.mjs
+          node scripts/design-system/test-external-visual-closure.mjs
+
+      - name: Commit generated PDF and remove one-time workflow
+        run: |
+          rm .github/workflows/one-time-generate-theme-showcase.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/design-system/theme-showcase.pdf .github/workflows/one-time-generate-theme-showcase.yml
+          git commit -m "docs(design-system): regenerate theme factory showcase PDF"
+          git push origin HEAD:feature/theme-factory-showcase

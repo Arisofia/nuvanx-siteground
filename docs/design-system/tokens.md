@@ -1,93 +1,66 @@
-# Tokens — Metal Pulido
+# Tokens visuales NUVANX
 
-**Archivo:** `assets/css/nvx-tokens.css`  
-**Regla:** única fuente de paleta, shell y espaciado. Prohibido redefinir fuera.
+**Fuente ejecutable:** `wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css`  
+**Regla:** este documento describe el archivo; nunca define una paleta alternativa.
 
-## Color
+## Paleta canónica
 
-| Token | Hex | Uso |
-|-------|-----|-----|
-| `--nvx-ink` | `#14161A` | Texto máximo contraste |
-| `--nvx-charcoal` | `#2A2D33` | Fondos oscuros, hero |
-| `--nvx-pearl` | `#F6F7F8` | Fondo claro |
-| `--nvx-mist` | `#E8EAED` | Alternancia |
-| `--nvx-silver` | `#C4C8CE` | Bordes |
-| `--nvx-platinum` | `#9BA3AD` | Acento metal |
-| `--nvx-white` | `#FFFFFF` | Superficie |
-| `--nvx-metal-light` | `#E4E7EB` | Metal high |
-| `--nvx-metal-mid` | `#B0B6BE` | Metal mid |
-| `--nvx-metal-deep` | `#7A828C` | Metal deep |
-| `--nvx-text-body` | `#3C4048` | Cuerpo |
-| `--nvx-text-muted` | `#6E747C` | Secundario |
-| `--nvx-color-paper` | `#F2F3F5` | Paper UI |
-| `--nvx-color-ink` | `#12141A` | Ink semántico |
-| `--nvx-color-line` | `rgba(20,22,26,.12)` | Líneas |
+| Token | Valor | Uso |
+|---|---:|---|
+| `--nvx-light` | `#FCFBF8` | Blanco cálido, superficies claras y texto sobre fondos oscuros |
+| `--nvx-surface-base` | `#F8F7F4` | Fondo principal |
+| `--nvx-surface-soft` | `#ECEAE6` | Alternancia y superficies secundarias |
+| `--nvx-border-soft` | `#D4D1CC` | Bordes visibles suaves |
+| `--nvx-ink` | `#171717` | Títulos y contraste máximo |
+| `--nvx-charcoal` | `#2B2926` | Fondos oscuros y hover |
+| `--nvx-text-body` | `#3D3A36` | Texto de lectura |
+| `--nvx-text-muted` | `#66615C` | Texto secundario |
+| `--nvx-accent-muted` | `#756F69` | Kicker, índice e iconografía en fondo claro |
+| `--nvx-color-line` | `rgba(23,23,23,.16)` | Líneas y bordes semánticos |
 
-### Aliases (compat)
+En fondos oscuros deben utilizarse exclusivamente los tokens `--nvx-text-on-dark-*` y `--nvx-border-on-dark-*`; `--nvx-accent-muted` no es un color de texto pequeño sobre negro.
 
-| Alias | Resuelve a |
-|-------|------------|
-| `--nvx-ivory` | pearl |
-| `--nvx-sand` | mist |
-| `--nvx-taupe` | silver |
-| `--nvx-champagne` | platinum |
-| `--nvx-accent` | platinum |
+### Colores retirados
 
-**Prohibido:** `#B89A5B` (oro), `#82958F` (cool-green) como acento activo.
+No deben reaparecer en runtime:
 
-## Spacing
+- `#9A8A78`, `#B89A5B` o `#C5A880` como dorado/champagne.
+- La antigua familia fría `#14161A`, `#2A2D33`, `#F6F7F8`, `#9BA3AD`.
+- Aliases de paletas históricas como `--nvx-champagne`, `--nvx-platinum` o `--nvx-color-primary`.
 
-| Token | Valor |
-|-------|--------|
-| `--space-1` … `--space-8` | 4 → 64px |
-| `--nvx-gap-tight` | `clamp(12px, 1.5vw, 18px)` |
-| `--nvx-gap-base` | `clamp(20px, 2.4vw, 32px)` |
-| `--nvx-gap-wide` | `clamp(32px, 4vw, 56px)` |
-| `--nvx-gap-section` | `clamp(48px, 6vw, 96px)` |
-| `--nvx-pad-card` | `clamp(32px, 3vw, 48px)` |
-| `--nvx-pad-section` / `--nvx-section-y` | `clamp(80px, 9vw, 140px)` |
-| `--nvx-gutter` | `clamp(48px, 6vw, 120px)` |
-| `--nvx-gutter-inner` | `clamp(24px, 4vw, 48px)` |
+## Tipografía
 
-## Shell
+| Rol | Familia / token |
+|---|---|
+| Display, H1, H2, H3 y métricas | `--nvx-serif` · Bodoni Moda |
+| Body, lead, caption, kicker, navegación, botones e índices | `--nvx-sans` · Manrope |
+| Secuencia `01`, `02`, `03` | `--nvx-index-number-*` |
+
+Los pesos Manrope cargados son 300, 400, 500, 600 y 700. No se permite solicitar un peso no cargado.
+
+## Iconos
 
 | Token | Valor |
-|-------|--------|
-| `--nvx-shell` | `min(1480px, calc(100vw - var(--nvx-gutter)))` |
-| `--nvx-readable` | `min(720px, 100%)` |
-| `--nvx-measure` | `62ch` |
-| `--nvx-measure-lead` | `48ch` |
+|---|---:|
+| `--nvx-icon-xs` | `16px` |
+| `--nvx-icon-sm` | `24px` |
+| `--nvx-icon-md` | `32px` |
+| `--nvx-icon-lg` | `40px` |
+| `--nvx-icon-frame` | `48px` |
+| `--nvx-icon-stroke` | `1.5` |
 
-## Typography tokens
+Los iconos lineales deben usar `currentColor`; su color pertenece al contenedor, no al archivo SVG. Véase `icons.md`.
 
-| Token | Valor |
-|-------|--------|
-| `--nvx-serif` | Bodoni Moda |
-| `--nvx-sans` | Manrope |
-| `--nvx-type-display` | `clamp(2.75rem, 5.2vw, 5.5rem)` |
-| `--nvx-type-h1` … `--nvx-type-h3` | scale cerrada |
-| `--nvx-type-body` | `1rem` |
-| `--nvx-type-kicker` | `0.6875rem` |
-| `--nvx-lh-body` | `1.7` |
-| `--nvx-track-kicker` | `0.2em` |
+## Espaciado y shell
 
-## Radii & media
+- Escala base: `--nvx-space-1` a `--nvx-space-12`, múltiplos de 8 px.
+- Secciones: `--nvx-pad-section` y `--nvx-pad-section-tight`.
+- Contenido: `--nvx-shell`, `--nvx-gutter`, `--nvx-gutter-inner`.
+- Lectura: `--nvx-measure` y `--nvx-measure-lead`.
 
-| Token | Valor |
-|-------|--------|
-| `--nvx-radius-button` | `999px` (pill) |
-| `--nvx-radius-card` / image | `0` (editorial recto) |
-| `--nvx-media-ratio-*` | hero 16/9, doctor 5/6, clinic 19/12, … |
+## Reglas de mantenimiento
 
-## Motion
-
-| Token | Valor |
-|-------|--------|
-| `--nvx-ease` | `0.28s cubic-bezier(0.2, 0.7, 0.2, 1)` |
-
-## Gradientes
-
-- `--nvx-gradient-page` / `--nvx-gradient-hero` — white → pearl  
-- `--nvx-gradient-section-warm` — pearl → mist  
-- `--nvx-gradient-section-dark` — charcoal → ink  
-- `--nvx-gradient-metal` — metal-light → metal-deep  
+1. Cambiar un valor en `nvx-tokens.css`, no en una página.
+2. No incluir hex, RGB o tamaños privados en markup PHP.
+3. No crear un segundo bloque `:root`.
+4. Cualquier nuevo token debe tener un consumidor real y una prueba de contrato.

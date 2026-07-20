@@ -1,34 +1,5 @@
 /* Header + primary nav. Tokens only — no merge markers, no page-exclusive layout. */
 
-#nvx-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  width: 100%;
-  min-height: var(--nvx-header-height);
-  overflow: visible;
-  background: rgba(246, 247, 248, 0.98);
-  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
-}
-
-body.admin-bar #nvx-header {
-  top: var(--nvx-space-4);
-}
-
-.nvx-header__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--nvx-space-3);
-  width: var(--nvx-shell);
-  max-width: 100%;
-  min-height: var(--nvx-header-height);
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
-  overflow: visible;
-}
-
 .nvx-logo {
   display: inline-flex;
   flex: 0 0 auto;
@@ -37,15 +8,6 @@ body.admin-bar #nvx-header {
   gap: var(--nvx-space-1);
   color: var(--nvx-ink);
   text-decoration: none;
-}
-
-.nvx-logo__img,
-.custom-logo {
-  display: block;
-  width: auto;
-  height: var(--nvx-logo-height);
-  max-width: var(--nvx-logo-width);
-  object-fit: contain;
 }
 
 .nvx-logo__wordmark {
@@ -63,15 +25,6 @@ body.admin-bar #nvx-header {
   line-height: 1.2;
   letter-spacing: 0.2em;
   color: var(--nvx-text-muted);
-}
-
-.nvx-nav {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--nvx-space-2);
-  overflow: visible;
 }
 
 .nvx-nav__list {
@@ -232,34 +185,12 @@ body.admin-bar #nvx-header {
   white-space: nowrap;
 }
 
-.nvx-hamburger {
-  display: none;
-  width: var(--nvx-control-size);
-  height: var(--nvx-control-size);
-  padding: var(--nvx-space-2);
-  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  border-radius: var(--nvx-radius-pill);
-  background: transparent;
-}
-
 .nvx-hamburger span {
   display: block;
   width: 100%;
   height: var(--nvx-border-hairline);
   margin-block: calc(var(--nvx-space-1) * 0.625);
   background: var(--nvx-ink);
-}
-
-.nvx-mobile-nav {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  display: none;
-  flex-direction: column;
-  gap: var(--nvx-space-4);
-  padding: var(--nvx-space-6);
-  overflow-y: auto;
-  background: var(--nvx-surface-base);
 }
 
 .nvx-mobile-nav[aria-hidden="false"],
@@ -278,17 +209,12 @@ body.admin-bar #nvx-header {
   color: var(--nvx-ink);
 }
 
-.nvx-mobile-nav__list,
-.nvx-mobile-nav__list .sub-menu {
+.nvx-mobile-nav__list {
   display: grid;
   gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.nvx-mobile-nav__list .sub-menu {
-  padding-left: var(--nvx-space-3);
 }
 
 .nvx-mobile-nav__list a {
@@ -309,33 +235,7 @@ body.admin-bar #nvx-header {
 }
 
 @media (max-width: 1280px) {
-  .nvx-nav {
-    display: none;
-  }
-
-  .nvx-hamburger {
-    display: block;
-    flex: 0 0 auto;
-  }
 }
 
 @media (max-width: 782px) {
-  body.admin-bar #nvx-header {
-    top: calc(var(--nvx-space-1) * 5.75);
-  }
-
-  .nvx-header__inner,
-  #nvx-header {
-    min-height: var(--nvx-header-height-mobile);
-  }
-
-  .nvx-logo__img,
-  .custom-logo {
-    height: var(--nvx-logo-height-mobile);
-    max-width: var(--nvx-logo-width-mobile);
-  }
-
-  .nvx-mobile-nav {
-    padding: var(--nvx-space-4);
-  }
 }

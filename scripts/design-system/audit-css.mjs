@@ -88,7 +88,21 @@ function parseSelectors(css, file) {
 	for (const match of clean.matchAll(/([^{}]+)\{/g)) {
 		const raw = match[1].trim();
 		if (!raw || raw.startsWith('@') || raw.startsWith('from') || raw.startsWith('to') || /^\d+%$/.test(raw)) continue;
-		for (const selector of raw.split(',').map((value) => value.trim()).filter(Boolean)) {
+		
+		const safeSplit = (str) => {
+			const res = [];
+			let current = '', depth = 0;
+			for (let i = 0; i < str.length; i++) {
+				if (str[i] === '(') depth++;
+				if (str[i] === ')') depth--;
+				if (str[i] === ',' && depth === 0) { res.push(current); current = ''; }
+				else { current += str[i]; }
+			}
+			res.push(current);
+			return res;
+		};
+
+		for (const selector of safeSplit(raw).map((value) => value.trim()).filter(Boolean)) {
 			selectors.push({ file, selector: selector.replace(/\s+/g, ' '), line: lineNumber(clean, match.index) });
 		}
 	}

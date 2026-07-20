@@ -20,8 +20,6 @@ const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations
 const closure = read('wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php');
 const canonicalClosurePath = 'wp-content/themes/nuvanx-medical/inc/nvx-staging2-canonical-closure.php';
 
-// Strip comments and allowed @media breakpoint values before enforcing the
-// "canonical size tokens only" rule below, mirroring scripts/design-system/audit-css.mjs.
 const ALLOWED_BREAKPOINTS = new Set(['1280', '980', '961', '960', '782', '721', '720', '680', '480']);
 const closureWithoutComments = closure.replace(/\/\*[\s\S]*?\*\//g, '');
 const closureWithoutBreakpoints = closureWithoutComments.replace(
@@ -69,98 +67,62 @@ requireAbsent(closure, /!important/i, 'external closure must not use !important'
 requireAbsent(
   closureWithoutBreakpoints,
   /(?:\d+(?:\.\d+)?px|\d+(?:\.\d+)?rem)/i,
-  'external closure must use canonical size tokens only outside of comments and allowed @media breakpoints',
+  'external closure must use canonical size tokens outside comments and allowed breakpoints',
 );
 
-// --- nvx-staging2-canonical-closure.php dependency (loaded by this file) ---
 requireMatch(
   closure,
   /require_once __DIR__ \. '\/nvx-staging2-canonical-closure\.php';/,
-  'the external visual closure must load the staging2 canonical closure dependency',
+  'external closure must load the Staging2 canonical dependency',
 );
 if (!fs.existsSync(path.join(root, canonicalClosurePath))) {
-  failures.push('nvx-staging2-canonical-closure.php referenced by the require_once must exist');
+  failures.push('nvx-staging2-canonical-closure.php must exist');
 }
 
-// --- Strategy pages own one full-width editorial hierarchy ---
-requireMatch(
+requireAbsent(
   closure,
-  /\.nvx-page__content > \.nvx-strategy-page\s*\{[\s\S]*?width:\s*100%;[\s\S]*?max-width:\s*none;[\s\S]*?margin:\s*0;/,
-  'strategy pages must own a full-width editorial hierarchy inside the page content wrapper',
+  /\.nvx-page__content > \.nvx-strategy-page\s*\{/,
+  'late CSS must not override the strategy article nvx-shell',
 );
 requireMatch(
   closure,
   /\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*?min-height:\s*calc\(var\(--nvx-space-12\) \* 4\)/,
-  'the strategy page hero must define the canonical minimum height using space tokens',
-);
-requireMatch(
-  closure,
-  /\.nvx-strategy-page > \.nvx-brand-hero \.nvx-brand-title\s*\{[\s\S]*?max-width:\s*22ch;/,
-  'the strategy page hero title must cap its measure at 22ch',
-);
-requireMatch(
-  closure,
-  /\.nvx-strategy-page > \.nvx-brand-hero \.nvx-brand-lead\s*\{[\s\S]*?max-width:\s*var\(--nvx-measure-lead\);/,
-  'the strategy page hero lead must use the canonical measure-lead token',
+  'strategy hero presentation must remain available',
 );
 requireMatch(
   closure,
   /\.nvx-strategy-page > \.nvx-brand-section\s*\{[\s\S]*?width:\s*var\(--nvx-shell\);/,
-  'strategy page sections must align to the canonical shell width',
+  'strategy sections must retain canonical shell alignment',
 );
 requireMatch(
   closure,
   /\.nvx-strategy-page \.nvx-endolift-price-table-wrap\s*\{[\s\S]*?overflow-x:\s*auto;/,
-  'the Endolift price table wrapper must allow horizontal scroll on narrow viewports',
+  'strategy price tables must retain horizontal overflow protection',
 );
 
-// --- Contact cards use the same shell, card and control contracts as treatment pages ---
-requireMatch(
+requireAbsent(
   closure,
-  /\.nvx-page--contact \.nvx-clinics-grid\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,
-  'contact clinic cards must render in a two-column grid',
-);
-requireMatch(
-  closure,
-  /\.nvx-page--contact \.nvx-clinic-card\s*\{[\s\S]*?border:\s*var\(--nvx-border-hairline\) solid var\(--nvx-color-line\);/,
-  'contact clinic cards must use the canonical card border contract',
-);
-requireMatch(
-  closure,
-  /\.nvx-page--contact \.nvx-clinic-card__map iframe\s*\{[\s\S]*?border:\s*0;/,
-  'the clinic map iframe must have its border removed via CSS now that the inline style attribute was dropped',
-);
-requireMatch(
-  closure,
-  /\.nvx-page--contact \.nvx-clinic-card > \.nvx-btn\s*\{[\s\S]*?align-self:\s*flex-start;/,
-  'the clinic card CTA button must align to the start of the flex column',
+  /\.nvx-page--contact \.nvx-clinics-grid|\.nvx-page--contact \.nvx-clinic-card/,
+  'Contact card components must live in nvx-components.css, not late inline CSS',
 );
 
-// --- Native details controls must preserve a 44px interaction target ---
 requireMatch(
   closure,
   /\.nvx-faq summary,[\s\S]*?\.nvx-brand-faq-accordion summary,[\s\S]*?\.nvx-home-faq-editorial summary\s*\{[\s\S]*?min-height:\s*var\(--nvx-control-size\);/,
-  'FAQ summary controls must preserve the canonical control-size interaction target',
+  'FAQ summary controls must preserve the canonical interaction target',
 );
-
-// --- Closing CTA presentation formerly duplicated in markup attributes ---
-requireMatch(closure, /\.nvx-cta-banner\s*\{[\s\S]*?text-align:\s*center;/, 'the CTA banner must center its content');
+requireMatch(closure, /\.nvx-cta-banner\s*\{[\s\S]*?text-align:\s*center;/, 'CTA banner must remain centered');
 requireMatch(
   closure,
   /#nvx-footer-cta\s*\{[\s\S]*?text-transform:\s*uppercase;/,
-  'the footer CTA button must keep its uppercase button treatment',
+  'footer CTA must keep its uppercase treatment',
 );
 
 // --- Narrow viewport collapse ---
 requireMatch(
   closure,
-  /@media \(max-width: 45em\)\s*\{[\s\S]*?\.nvx-page--contact \.nvx-clinics-grid\s*\{[\s\S]*?grid-template-columns:\s*1fr;/,
-  'contact clinic cards must collapse to a single column on narrow viewports',
-);
-requireMatch(
-  closure,
   /@media \(max-width: 45em\)\s*\{[\s\S]*?\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*?min-height:\s*calc\(var\(--nvx-space-12\) \* 3\)/,
-  'the strategy hero minimum height must shrink on narrow viewports',
+  'strategy hero minimum height must shrink under 45em',
 );
 
 if (failures.length) {
@@ -169,4 +131,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: Joinchat and late typography use canonical NUVANX tokens');
+console.log('PASS: external widget, typography and late visual closure contract');

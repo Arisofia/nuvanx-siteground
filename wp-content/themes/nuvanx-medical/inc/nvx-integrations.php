@@ -172,3 +172,175 @@ require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
 
 /** Navigation filters for dynamic menu injection. */
 require_once __DIR__ . '/nvx-navigation-filters.php';
+
+/* -----------------------------------------------------------------------
+ * 1. GEO · Hreflang for es-ES (only one locale currently, but declared
+ *    explicitly so Google understands the canonical locale).
+ * --------------------------------------------------------------------- */
+add_action(
+	'wp_head',
+	function (): void {
+		echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( home_url( '/' ) ) . '" />' . "\n";
+		echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( home_url( '/' ) ) . '" />' . "\n";
+	},
+	1
+);
+
+/* -----------------------------------------------------------------------
+ * 2. SEO · LocalBusiness + MedicalClinic JSON-LD (two locations).
+ *    Yoast handles FAQPage (see nvx-faq-catalog.php).
+ *    This covers the clinic graph, not duplicated by Yoast.
+ * --------------------------------------------------------------------- */
+add_action(
+	'wp_head',
+	function (): void {
+		$schema = [
+			'@context' => 'https://schema.org',
+			'@graph'   => [
+				[
+					'@type'       => [ 'MedicalClinic', 'LocalBusiness' ],
+					'@id'         => 'https://nuvanx.com/#chamberi',
+					'name'        => 'NUVANX Medicina Estética Láser · Chamberí',
+					'url'         => 'https://nuvanx.com/medicina-estetica-chamberi/',
+					'telephone'   => '+34669319836',
+					'address'     => [
+						'@type'           => 'PostalAddress',
+						'streetAddress'   => 'C/ Fernández de la Hoz, 4',
+						'addressLocality' => 'Madrid',
+						'postalCode'      => '28010',
+						'addressCountry'  => 'ES',
+					],
+					'geo'         => [
+						'@type'     => 'GeoCoordinates',
+						'latitude'  => 40.4342,
+						'longitude' => -3.6954,
+					],
+					'openingHoursSpecification' => [
+						[
+							'@type'     => 'OpeningHoursSpecification',
+							'dayOfWeek' => [ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ],
+							'opens'     => '10:00',
+							'closes'    => '20:00',
+						],
+					],
+					'identifier'       => 'CS20144',
+					'medicalSpecialty' => 'DermatologyandSkinCare',
+					'priceRange'       => '€€€',
+					'image'            => 'https://nuvanx.com/wp-content/uploads/2026/06/nvx-fachada-chamberi-final-760.webp',
+					'sameAs'           => [
+						'https://www.facebook.com/nuvanx',
+					],
+				],
+				[
+					'@type'       => [ 'MedicalClinic', 'LocalBusiness' ],
+					'@id'         => 'https://nuvanx.com/#goya',
+					'name'        => 'NUVANX Medicina Estética Láser · Salamanca–Goya',
+					'url'         => 'https://nuvanx.com/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
+					'telephone'   => '+34647505107',
+					'address'     => [
+						'@type'           => 'PostalAddress',
+						'streetAddress'   => 'C/ Fernán González, 26',
+						'addressLocality' => 'Madrid',
+						'postalCode'      => '28009',
+						'addressCountry'  => 'ES',
+					],
+					'geo'         => [
+						'@type'     => 'GeoCoordinates',
+						'latitude'  => 40.4245,
+						'longitude' => -3.6747,
+					],
+					'openingHoursSpecification' => [
+						[
+							'@type'     => 'OpeningHoursSpecification',
+							'dayOfWeek' => [ 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ],
+							'opens'     => '10:00',
+							'closes'    => '20:00',
+						],
+					],
+					'identifier'       => 'CS20073',
+					'medicalSpecialty' => 'DermatologyandSkinCare',
+					'priceRange'       => '€€€',
+					'image'            => 'https://nuvanx.com/wp-content/uploads/2026/06/nvx-fachada-goya-900.webp',
+					'sameAs'           => [
+						'https://www.facebook.com/nuvanx',
+					],
+				],
+			],
+		];
+		echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . '</script>' . "\n";
+	},
+	5
+);
+
+/* -----------------------------------------------------------------------
+ * 3. Clinical Governance · Disable treatments not offered.
+ *    Guard against legacy pages returning 200 for non-offered services.
+ *    Redirect to treatments index if a slug is not in the active catalog.
+ * --------------------------------------------------------------------- */
+add_action(
+	'template_redirect',
+	function (): void {
+		// Slugs of pages that have been retired / not offered.
+		$retired_slugs = [
+			// Add any retired treatment slugs here, e.g.:
+			// 'tratamiento-retirado',
+		];
+
+		if ( is_singular() && in_array( get_post_field( 'post_name', get_the_ID() ), $retired_slugs, true ) ) {
+			wp_safe_redirect( home_url( '/tratamientos/' ), 301 );
+			exit;
+		}
+	}
+);
+
+/* -----------------------------------------------------------------------
+ * 4. Security Headers (complement to SiteGround / .htaccess).
+ *    These fire from PHP for any response not covered by server config.
+ * --------------------------------------------------------------------- */
+add_action(
+	'send_headers',
+	function (): void {
+		// Prevent theme / plugin output from setting conflicting headers.
+		if ( headers_sent() ) {
+			return;
+		}
+		header( 'X-Content-Type-Options: nosniff' );
+		header( 'X-Frame-Options: SAMEORIGIN' );
+		header( 'Referrer-Policy: strict-origin-when-cross-origin' );
+		header( 'Permissions-Policy: camera=(), microphone=(), geolocation=()' );
+	}
+);
+
+/* -----------------------------------------------------------------------
+ * 5. Meta Pixel governance — single-owner enforcement.
+ *    Dequeue the SiteGround Optimizer facebook-signal asset if Meta
+ *    for WordPress plugin is active (prevents ReferenceError #166).
+ *    Long-term: GTM is the single owner; both WP plugin and this guard
+ *    should be removed once GTM-only flow is confirmed in production.
+ * --------------------------------------------------------------------- */
+add_action(
+	'wp_enqueue_scripts',
+	function (): void {
+		// Dequeue SiteGround's optimized facebook-signal to prevent
+		// ReferenceError: FacebookSignal is not defined (issue #166).
+		wp_dequeue_script( 'siteground-facebook-signal' );
+		wp_deregister_script( 'siteground-facebook-signal' );
+	},
+	100 // Late priority to run after SiteGround Optimizer enqueues.
+);
+
+/**
+ * Remove SiteGround Optimizer's facebook-signal from its inline script
+ * handles and from the HTML output by filtering script_loader_tag.
+ */
+add_filter(
+	'script_loader_tag',
+	function ( string $tag, string $handle ): string {
+		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal.min.js' ) ) {
+			return ''; // Suppress entirely.
+		}
+		return $tag;
+	},
+	10,
+	2
+);

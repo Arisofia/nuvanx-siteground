@@ -67,11 +67,11 @@ function wp_kses_post( $value ) { return (string) $value; }
  */
 function nvx_seo_is_nonproduction_environment() { return (bool) $GLOBALS['nvx_test_nonproduction']; }
 /**
- * Adds a type to a schema type list when it is not already present.
+ * Adds a schema type to a type list if it is not already present.
  *
  * @param mixed  $types Existing schema type or list of schema types.
- * @param string $type  Type to add.
- * @return array The filtered, reindexed schema type list.
+ * @param string $type  Schema type to add.
+ * @return array The type list with empty values removed and numeric keys reindexed.
  */
 function nvx_schema_add_type( $types, $type ) {
 	$types = is_array( $types ) ? $types : array( $types );
@@ -137,6 +137,40 @@ function nvx_test_assert( $condition, $message ) {
 		exit( 1 );
 	}
 }
+
+// --- nvx_schema_add_type() ---
+nvx_test_assert(
+	array( 'MedicalOrganization' ) === nvx_schema_add_type( array(), 'MedicalOrganization' ),
+	'nvx_schema_add_type must add a type to an empty list'
+);
+nvx_test_assert(
+	array( 'Organization', 'MedicalOrganization' ) === nvx_schema_add_type( array( 'Organization' ), 'MedicalOrganization' ),
+	'nvx_schema_add_type must append a new type while preserving existing types'
+);
+nvx_test_assert(
+	array( 'Organization' ) === nvx_schema_add_type( array( 'Organization' ), 'Organization' ),
+	'nvx_schema_add_type must not duplicate a type that is already present'
+);
+nvx_test_assert(
+	array( 'Organization' ) === nvx_schema_add_type( 'Organization', 'Organization' ),
+	'nvx_schema_add_type must accept a scalar type value and normalize it to a list'
+);
+nvx_test_assert(
+	array( 'MedicalOrganization' ) === nvx_schema_add_type( '', 'MedicalOrganization' ),
+	'nvx_schema_add_type must treat an empty scalar existing value as an empty list'
+);
+nvx_test_assert(
+	array( 'Organization' ) === nvx_schema_add_type( array( 'Organization' ), '' ),
+	'nvx_schema_add_type must filter out an empty type value even after appending it'
+);
+nvx_test_assert(
+	array( 'Organization', 'MedicalOrganization' ) === nvx_schema_add_type( array( '', 'Organization', null ), 'MedicalOrganization' ),
+	'nvx_schema_add_type must strip empty values from the existing list and reindex the result'
+);
+nvx_test_assert(
+	array( 'Organization', 'MedicalOrganization' ) === nvx_schema_add_type( array( 5 => 'Organization', 10 => '' ), 'MedicalOrganization' ),
+	'nvx_schema_add_type must reindex non-sequential numeric keys after filtering'
+);
 
 $headers = nvx_seo_nonproduction_x_robots_headers( array() );
 nvx_test_assert( isset( $headers['X-Robots-Tag'] ), 'nonproduction must emit X-Robots-Tag' );

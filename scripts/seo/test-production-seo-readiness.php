@@ -180,6 +180,44 @@ $GLOBALS['nvx_test_nonproduction'] = false;
 $headers = nvx_seo_nonproduction_x_robots_headers( array() );
 nvx_test_assert( ! isset( $headers['X-Robots-Tag'] ), 'production must not receive a global X-Robots-Tag override' );
 
+// nvx_schema_add_type() contract coverage.
+nvx_test_assert(
+	array( 'Organization', 'MedicalOrganization' ) === nvx_schema_add_type( array( 'Organization' ), 'MedicalOrganization' ),
+	'nvx_schema_add_type must append a new type while preserving existing ones'
+);
+nvx_test_assert(
+	array( 'Organization' ) === nvx_schema_add_type( array( 'Organization' ), 'Organization' ),
+	'nvx_schema_add_type must not duplicate a type that is already present'
+);
+nvx_test_assert(
+	array( 'Service' ) === nvx_schema_add_type( 'Service', 'Service' ),
+	'nvx_schema_add_type must coerce a scalar type into an array and avoid duplicating it'
+);
+nvx_test_assert(
+	array( 'WebPage', 'MedicalProcedure' ) === nvx_schema_add_type( 'WebPage', 'MedicalProcedure' ),
+	'nvx_schema_add_type must coerce a scalar type into an array before appending a new type'
+);
+nvx_test_assert(
+	array( 'Organization', 'MedicalOrganization' ) === nvx_schema_add_type( array( '', 'Organization', null, false, 0 ), 'MedicalOrganization' ),
+	'nvx_schema_add_type must remove empty values from the existing type list'
+);
+nvx_test_assert(
+	array( 'Organization', 'MedicalOrganization' ) === nvx_schema_add_type( array( 0 => '', 1 => 'Organization', 2 => '' ), 'MedicalOrganization' ),
+	'nvx_schema_add_type must reindex numeric keys after removing empty values'
+);
+nvx_test_assert(
+	array() === nvx_schema_add_type( array(), '' ),
+	'nvx_schema_add_type must filter out an empty type being added to an empty list'
+);
+nvx_test_assert(
+	array( 'organization', 'Organization' ) === nvx_schema_add_type( array( 'organization' ), 'Organization' ),
+	'nvx_schema_add_type must treat type comparisons as case-sensitive'
+);
+nvx_test_assert(
+	array( 'Organization' ) === nvx_schema_add_type( array( 'Organization', '' ), '' ),
+	'nvx_schema_add_type must not add a duplicate empty type and must still strip existing empty values'
+);
+
 $graph = array(
 	array(
 		'@type'           => array( 'Organization' ),

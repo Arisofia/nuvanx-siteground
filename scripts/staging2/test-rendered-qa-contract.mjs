@@ -85,7 +85,7 @@ if (routes) {
       }
     }
 
-    const homeRoute = routes.routes.find(([slug]) => slug === 'home');
+    const homeRoute = routes.routes.find((entry) => Array.isArray(entry) && entry[0] === 'home');
     if (!homeRoute || homeRoute[1] !== '/') failures.push('home route must map to the root path "/"');
 
     // rendered-qa.mjs branches its schema assertions on these exact slugs, so the

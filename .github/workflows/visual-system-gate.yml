@@ -36,40 +36,12 @@ jobs:
           show-progress: false
 
       - name: Validate canonical visual contract
-        id: contract
-        continue-on-error: true
         run: node scripts/design-system/test-visual-system-contract.mjs
 
       - name: Audit runtime typography, colors, icons and numbering
-        id: visual_audit
-        continue-on-error: true
         run: node scripts/design-system/audit-visual-system.mjs
 
-      - name: Run existing CSS audit
-        id: css_audit
-        continue-on-error: true
-        run: node scripts/design-system/audit-css.mjs
-
-      - name: Validate PHP syntax
-        id: php_lint
-        continue-on-error: true
-        run: |
-          php -l wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php
-          php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
-
-      - name: Upload visual audit
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: visual-system-audit
-          path: qa/design-system/visual-system-summary.json
-          if-no-files-found: error
-          retention-days: 7
-
-      - name: Verify generated audit is clean
-        id: generated_audit
-        if: always()
-        continue-on-error: true
+      - name: Verify generated visual audit is clean
         run: |
           node - <<'NODE'
           const fs = require('fs');
@@ -93,23 +65,19 @@ jobs:
           console.log('PASS: generated visual-system-summary.json is clean');
           NODE
 
-      - name: Enforce gate result
-        if: always()
-        env:
-          CONTRACT: ${{ steps.contract.outcome }}
-          VISUAL_AUDIT: ${{ steps.visual_audit.outcome }}
-          CSS_AUDIT: ${{ steps.css_audit.outcome }}
-          PHP_LINT: ${{ steps.php_lint.outcome }}
-          GENERATED_AUDIT: ${{ steps.generated_audit.outcome }}
+      - name: Run existing CSS audit
+        run: node scripts/design-system/audit-css.mjs
+
+      - name: Validate PHP syntax
         run: |
-          printf '%s\n' \
-            "contract=$CONTRACT" \
-            "visual_audit=$VISUAL_AUDIT" \
-            "css_audit=$CSS_AUDIT" \
-            "php_lint=$PHP_LINT" \
-            "generated_audit=$GENERATED_AUDIT"
-          test "$CONTRACT" = success
-          test "$VISUAL_AUDIT" = success
-          test "$CSS_AUDIT" = success
-          test "$PHP_LINT" = success
-          test "$GENERATED_AUDIT" = success
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-visual-system.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
+
+      - name: Upload visual audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-system-audit
+          path: qa/design-system/visual-system-summary.json
+          if-no-files-found: error
+          retention-days: 7

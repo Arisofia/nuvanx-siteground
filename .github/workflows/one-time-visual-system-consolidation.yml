@@ -1,5 +1,6 @@
 name: One-time visual system consolidation
 
+# The workflow removes itself after the migration commit is validated.
 on:
   push:
     branches:

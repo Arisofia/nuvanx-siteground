@@ -1,5 +1,9 @@
 name: Theme Showcase Gate
 
+concurrency:
+  group: theme-showcase-gate-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     paths:
@@ -26,15 +30,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
 
       - name: Install temporary PDF dependency
-        run: npm install puppeteer --no-save
+        run: npm install puppeteer@22.12.1 --no-save
 
       - name: Generate showcase PDF
         run: node scripts/design-system/generate-showcase-pdf.mjs --output /tmp/theme-showcase.pdf

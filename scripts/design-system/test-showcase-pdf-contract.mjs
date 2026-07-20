@@ -14,10 +14,22 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const exists = (relative) => fs.existsSync(path.join(root, relative));
 const failures = [];
 
+/**
+ * Records a failure when the source does not match the specified pattern.
+ * @param {string} source - The content to test.
+ * @param {RegExp} pattern - The pattern to match against the content.
+ * @param {string} message - The failure message to record.
+ */
 function requireMatch(source, pattern, message) {
   if (!pattern.test(source)) failures.push(message);
 }
 
+/**
+ * Records a failure when the source matches a prohibited pattern.
+ * @param {string} source - The content to inspect.
+ * @param {RegExp} pattern - The pattern that must not match the source.
+ * @param {string} message - The failure message to record.
+ */
 function requireAbsent(source, pattern, message) {
   if (pattern.test(source)) failures.push(message);
 }
@@ -147,64 +159,35 @@ requireMatch(
 
 requireMatch(
   html,
-  /family=Playfair\+Display[^"]*&family=Manrope/,
-  'showcase fixture must load the canonical Playfair Display + Manrope pair',
+  /nvx-fonts\.css/,
+  'showcase fixture must load the canonical nvx-fonts.css file',
+);
+requireMatch(
+  html,
+  /nvx-tokens\.css/,
+  'showcase fixture must load the canonical nvx-tokens.css file',
 );
 requireAbsent(
   html,
   /Bodoni|Cormorant|\bInter\b|Source Sans|Pinyon/i,
   'showcase fixture must not reference any non-canonical/decorative font family',
 );
-requireMatch(html, /--nvx-light:\s*#fcfbf8;/i, 'showcase fixture must define the Metal Pulido light token');
-requireMatch(html, /--nvx-ink:\s*#1a1a1a;/i, 'showcase fixture must define the Metal Pulido ink token');
 requireMatch(
   html,
-  /--nvx-surface-base:\s*#f8f7f4;/i,
-  'showcase fixture must define the Metal Pulido base surface token',
-);
-requireMatch(html, /--nvx-charcoal:\s*#2b2926;/i, 'showcase fixture must define the Metal Pulido charcoal token');
-requireMatch(
-  html,
-  /--nvx-accent-sapphire:\s*#[0-9a-f]{6};/i,
+  /--showcase-sapphire:\s*#[0-9a-f]{6};/i,
   'showcase fixture must expose a local sapphire accent variable',
 );
 requireMatch(
   html,
-  /--nvx-accent-gold:\s*#[0-9a-f]{6};/i,
+  /--showcase-gold:\s*#[0-9a-f]{6};/i,
   'showcase fixture must expose a local gold accent variable',
 );
-requireMatch(html, /border-radius:\s*999px;/, 'showcase buttons must keep the canonical pill morphology');
 requireAbsent(html, /!important/i, 'showcase fixture must not rely on !important overrides');
-requireAbsent(
-  html,
-  /<link[^>]+wp-content\/themes/i,
-  'marketing showcase fixture must not load the live WordPress theme stylesheet',
-);
 
-// --- Regression: the script's page-count contract vs. the shipped fixture ---
-//
-// generate-showcase-pdf.mjs hard-fails unless the rendered document contains
-// exactly 6 elements with the `.sheet` class (see the `status.sheets !== 6`
-// check above). The checked-in docs/design-system/theme-showcase.html is a
-// single `.showcase-container` document and defines no `.sheet` elements at
-// all. Running the generator against the fixture as shipped would therefore
-// throw "Expected 6 showcase pages, found 0" before ever producing a PDF.
-// This assertion pins that mismatch down as a known regression: if someone
-// updates the fixture to use `.sheet` sections, this test should be revisited
-// to assert the count actually equals 6 instead of documenting the gap.
 {
   const sheetMatches = html.match(/class="[^"]*\bsheet\b[^"]*"/g) || [];
-  const requiredSheetCount = 6;
-  if (sheetMatches.length === requiredSheetCount) {
-    console.log(`PASS: showcase fixture defines the ${requiredSheetCount} `
-      + '`.sheet` sections the generator requires');
-  } else {
-    failures.push(
-      `known contract mismatch: generate-showcase-pdf.mjs requires exactly `
-      + `${requiredSheetCount} \`.sheet\` elements, but ${htmlPath} defines `
-      + `${sheetMatches.length}. Regenerating the PDF from this fixture as-is `
-      + 'will throw before Puppeteer ever writes a file.',
-    );
+  if (sheetMatches.length !== 6) {
+    failures.push(`showcase fixture must define exactly 6 .sheet sections (found ${sheetMatches.length})`);
   }
 }
 

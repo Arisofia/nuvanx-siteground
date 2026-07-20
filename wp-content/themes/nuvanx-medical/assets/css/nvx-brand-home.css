@@ -138,7 +138,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   .nvx-home-action-banner__title{max-width:none}
 }
 
-@media(max-width:768px){
+@media(max-width:calc(var(--nvx-space-12) * 8)){
   .nvx-cta-cluster,
   .nvx-home-hero-ctas{
     flex-direction:column;
@@ -186,7 +186,7 @@ body.nvx-hero-blackout :where(
 }
 
 /* Benefit layout only. Icon and typography presentation live in nvx-visual-system.php. */
-.nvx-benefits__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.nvx-benefits__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(calc(var(--nvx-space-1) * 37.5),1fr))}
 .nvx-benefit-item{display:flex;align-items:center}
 
 /* Authority-page token closure. */

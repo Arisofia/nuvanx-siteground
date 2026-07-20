@@ -32,7 +32,7 @@ function home_url( $path = '/' ) { return 'https://staging2.nuvanx.com' . ( '/' 
  *
  * @return int The configured page identifier, or 42 when none is set.
  */
-function get_queried_object_id() { return $GLOBALS['nvx_test_page_id'] ?? 42; }
+function get_queried_object_id() { return (int) ( $GLOBALS['nvx_test_page_id'] ?? 42 ); }
 /**
  * Returns the staging URL for a supported treatment page.
  *
@@ -59,12 +59,6 @@ function trailingslashit( $value ) { return rtrim( (string) $value, '/' ) . '/';
  * @return string The value without HTML and PHP tags.
  */
 function wp_strip_all_tags( $value ) { return strip_tags( (string) $value ); }
-/**
- * Returns the provided value as a string for post-content sanitization.
- *
- * @param mixed $value The value to convert.
- * @return string The value converted to a string.
- */
 function wp_kses_post( $value ) { return (string) $value; }
 /**
  * Determines whether the test environment is configured as nonproduction.

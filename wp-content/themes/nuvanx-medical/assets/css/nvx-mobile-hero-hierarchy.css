@@ -81,7 +81,7 @@
   .nvx-hero__copy h1 {
     max-width: 16ch;
     margin-bottom: var(--nvx-space-3);
-    font-size: clamp(2rem, 9vw, 2.75rem);
+    font-size: clamp(var(--nvx-space-4), 9vw, 2.75rem);
     line-height: 1.04;
     text-wrap: balance;
   }

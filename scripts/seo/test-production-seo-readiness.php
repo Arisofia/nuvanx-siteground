@@ -67,11 +67,11 @@ function wp_kses_post( $value ) { return (string) $value; }
  */
 function nvx_seo_is_nonproduction_environment() { return (bool) $GLOBALS['nvx_test_nonproduction']; }
 /**
- * Adds a type to a schema type list when it is not already present.
+ * Adds a schema type to a type list if it is not already present.
  *
  * @param mixed  $types Existing schema type or list of schema types.
- * @param string $type  Type to add.
- * @return array The filtered, reindexed schema type list.
+ * @param string $type  Schema type to add.
+ * @return array The type list with empty values removed and numeric keys reindexed.
  */
 function nvx_schema_add_type( $types, $type ) {
 	$types = is_array( $types ) ? $types : array( $types );

@@ -32,7 +32,7 @@ function home_url( $path = '/' ) { return 'https://staging2.nuvanx.com' . ( '/' 
  *
  * @return int The configured page identifier, or 42 when none is set.
  */
-function get_queried_object_id() { return $GLOBALS['nvx_test_page_id'] ?? 42; }
+function get_queried_object_id() { return (int) ( $GLOBALS['nvx_test_page_id'] ?? 42 ); }
 /**
  * Returns the staging URL for a supported treatment page.
  *

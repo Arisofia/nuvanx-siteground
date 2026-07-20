@@ -196,6 +196,28 @@ function nvx_seo_schema_btl_faq_node( int $page_id ): ?array {
  * @param string $organization_id The organization identifier used by related nodes.
  * @return array The enriched Schema.org graph.
  */
+function _nvx_seo_schema_enrich_organization( $graph, $organization_id ) {
+	$clinic_refs = array();
+	foreach ( $graph as $piece ) {
+		if ( ! empty( $piece['@id'] ) && nvx_seo_schema_has_type( $piece['@type'] ?? array(), 'MedicalClinic' ) ) {
+			$clinic_refs[] = array( '@id' => (string) $piece['@id'] );
+		}
+	}
+
+	$organization = function_exists( 'nvx_schema_find_organization' )
+		? nvx_schema_find_organization( $graph )
+		: array( 'index' => null, 'id' => $organization_id );
+
+	if ( null !== $organization['index'] && isset( $graph[ $organization['index'] ] ) ) {
+		$index = $organization['index'];
+		$graph[ $index ]['@type'] = nvx_seo_schema_add_type( $graph[ $index ]['@type'] ?? array(), 'MedicalOrganization' );
+		if ( ! empty( $clinic_refs ) ) {
+			$graph[ $index ]['department'] = $clinic_refs;
+			unset( $graph[ $index ]['subOrganization'] );
+		}
+	}
+	return $graph;
+}
 
 /**
  * Adds organization relationships and default metadata to MedicalClinic nodes.
@@ -204,6 +226,25 @@ function nvx_seo_schema_btl_faq_node( int $page_id ): ?array {
  * @param string $organization_id The parent organization identifier.
  * @return array The enriched Schema.org graph.
  */
+function _nvx_seo_schema_enrich_clinics( $graph, $organization_id ) {
+	foreach ( $graph as $index => $piece ) {
+		$types = $piece['@type'] ?? array();
+		if ( nvx_seo_schema_has_type( $types, 'MedicalClinic' ) ) {
+			$graph[ $index ]['parentOrganization'] = array( '@id' => $organization_id );
+			$graph[ $index ]['priceRange']         = $graph[ $index ]['priceRange'] ?? '€€€';
+			$graph[ $index ]['medicalSpecialty']   = $graph[ $index ]['medicalSpecialty'] ?? array( 'Aesthetic Medicine', 'Laser Medicine' );
+
+			if ( ! empty( $graph[ $index ]['openingHoursSpecification'] ) && is_array( $graph[ $index ]['openingHoursSpecification'] ) ) {
+				foreach ( $graph[ $index ]['openingHoursSpecification'] as $hours_index => $hours ) {
+					if ( isset( $hours['dayOfWeek'] ) ) {
+						$graph[ $index ]['openingHoursSpecification'][ $hours_index ]['dayOfWeek'] = nvx_seo_schema_normalize_days( $hours['dayOfWeek'] );
+					}
+				}
+			}
+		}
+	}
+	return $graph;
+}
 
 /**
  * Promotes the matching noninvasive service to a MedicalProcedure.
@@ -213,6 +254,32 @@ function nvx_seo_schema_btl_faq_node( int $page_id ): ?array {
  * @param int $page_id The current page identifier.
  * @return array{0: array, 1: string} The updated graph and the promoted procedure identifier.
  */
+function _nvx_seo_schema_promote_services( $graph, $current_url, $page_id ) {
+	$current_key = function_exists( 'nvx_schema_resolve_treatment_key' ) ? nvx_schema_resolve_treatment_key( $page_id ) : null;
+	$noninvasive_keys = array( 'exion_btl', 'exion_face', 'exion_body', 'exion_fractional', 'emfusion', 'exilite_btl' );
+	$main_entity_id   = '';
+
+	foreach ( $graph as $index => $piece ) {
+		$types = $piece['@type'] ?? array();
+		$piece_url = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
+		
+		if (
+			null !== $current_key
+			&& in_array( $current_key, $noninvasive_keys, true )
+			&& '' !== $piece_url
+			&& $piece_url === trailingslashit( $current_url )
+			&& nvx_seo_schema_has_type( $types, 'Service' )
+		) {
+			$graph[ $index ]['@type']         = nvx_seo_schema_add_type( $types, 'MedicalProcedure' );
+			$graph[ $index ]['procedureType'] = $graph[ $index ]['procedureType'] ?? 'https://schema.org/NoninvasiveProcedure';
+			$graph[ $index ]['areaServed']    = $graph[ $index ]['areaServed'] ?? array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' );
+			if ( ! empty( $graph[ $index ]['@id'] ) ) {
+				$main_entity_id = (string) $graph[ $index ]['@id'];
+			}
+		}
+	}
+	return array( $graph, $main_entity_id );
+}
 
 /**
  * Links the matching WebPage node to the promoted main entity.
@@ -221,6 +288,29 @@ function nvx_seo_schema_btl_faq_node( int $page_id ): ?array {
  * @param string $current_url The canonical URL of the current page.
  * @param string $main_entity_id The identifier of the main entity.
  * @return array The updated Schema.org graph.
+ */
+function _nvx_seo_schema_link_main_entity( $graph, $current_url, $main_entity_id ) {
+	if ( '' === $main_entity_id ) {
+		return $graph;
+	}
+	foreach ( $graph as $index => $piece ) {
+		$types = $piece['@type'] ?? array();
+		$url   = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
+		if ( nvx_seo_schema_has_type( $types, 'WebPage' ) && $url === trailingslashit( $current_url ) ) {
+			$graph[ $index ]['mainEntity'] = array( '@id' => $main_entity_id );
+			break;
+		}
+	}
+	return $graph;
+}
+
+/**
+ * Ensures production readiness by consolidating MedicalOrganization, MedicalProcedure,
+ * and FAQPage logic into the main Schema.org graph for the site.
+ *
+ * @param array $graph The raw Schema.org graph from Yoast SEO.
+ * @param mixed $context Yoast context.
+ * @return array The processed graph.
  */
 function nvx_seo_production_readiness_schema_graph( $graph, $context = null ) {
 	if ( ! is_array( $graph ) || is_admin() || is_feed() ) {

@@ -1,42 +1,55 @@
 # Tokens visuales NUVANX
 
 **Fuente ejecutable:** `wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css`  
-**Regla:** este documento describe el archivo; nunca define una paleta alternativa.
+**Regla:** este documento describe el archivo; nunca define una alternativa.
 
 ## Paleta canónica
 
 | Token | Valor | Uso |
 |---|---:|---|
-| `--nvx-light` | `#FCFBF8` | Blanco cálido, superficies claras y texto sobre fondos oscuros |
+| `--nvx-light` | `#FCFBF8` | Blanco cálido y texto sobre fondos oscuros |
 | `--nvx-surface-base` | `#F8F7F4` | Fondo principal |
 | `--nvx-surface-soft` | `#ECEAE6` | Alternancia y superficies secundarias |
-| `--nvx-border-soft` | `#D4D1CC` | Bordes visibles suaves |
-| `--nvx-ink` | `#171717` | Títulos y contraste máximo |
+| `--nvx-border-soft` | `#D4D1CC` | Bordes suaves |
+| `--nvx-ink` | `#1A1A1A` | Títulos y texto principal |
 | `--nvx-charcoal` | `#2B2926` | Fondos oscuros y hover |
-| `--nvx-text-body` | `#3D3A36` | Texto de lectura |
+| `--nvx-text-body` | `#1A1A1A` | Texto de lectura |
 | `--nvx-text-muted` | `#66615C` | Texto secundario |
 | `--nvx-accent-muted` | `#756F69` | Kicker, índice e iconografía en fondo claro |
-| `--nvx-color-line` | `rgba(23,23,23,.16)` | Líneas y bordes semánticos |
+| `--nvx-color-line` | `rgba(26,26,26,.16)` | Líneas y bordes semánticos |
 
-En fondos oscuros deben utilizarse exclusivamente los tokens `--nvx-text-on-dark-*` y `--nvx-border-on-dark-*`; `--nvx-accent-muted` no es un color de texto pequeño sobre negro.
+En fondos oscuros se utilizan los tokens `--nvx-text-on-dark-*` y `--nvx-border-on-dark-*`.
 
-### Colores retirados
+## Tipografía oficial única
 
-No deben reaparecer en runtime:
+No hay opciones intercambiables en runtime.
 
-- `#9A8A78`, `#B89A5B` o `#C5A880` como dorado/champagne.
-- La antigua familia fría `#14161A`, `#2A2D33`, `#F6F7F8`, `#9BA3AD`.
-- Aliases de paletas históricas como `--nvx-champagne`, `--nvx-platinum` o `--nvx-color-primary`.
+```css
+--nvx-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+--nvx-sans: "Manrope", "Helvetica Neue", Arial, sans-serif;
+```
 
-## Tipografía
-
-| Rol | Familia / token |
+| Rol | Token / valor |
 |---|---|
-| Display, H1, H2, H3 y métricas | `--nvx-serif` · Bodoni Moda |
-| Body, lead, caption, kicker, navegación, botones e índices | `--nvx-sans` · Manrope |
-| Secuencia `01`, `02`, `03` | `--nvx-index-number-*` |
+| Display / Hero | `clamp(2.8rem, 5vw, 4.2rem)` |
+| H1 | `clamp(2.2rem, 4vw, 3.2rem)` |
+| H2 | `clamp(1.7rem, 3vw, 2.4rem)` |
+| H3 | `1.4rem` |
+| Body | `1.0625rem` · 17px |
+| Small | `0.875rem` |
+| Caption | `0.75rem` · tracking `0.04em` · uppercase |
 
-Los pesos Manrope cargados son 300, 400, 500, 600 y 700. No se permite solicitar un peso no cargado.
+- Display, H1, H2 y H3: Playfair Display, peso 500, tracking `-0.02em`, interlineado `1.15`.
+- Body y UI: Manrope, peso 400, interlineado `1.6`.
+- Manrope cargada en 300, 400, 500, 600 y 700.
+- Playfair Display cargada en 400, 500, 600 y 700, más italic 400.
+
+### Fuentes prohibidas en runtime
+
+- Bodoni Moda.
+- Cormorant Garamond.
+- Playfair, Manrope u otras familias escritas directamente fuera de `--nvx-serif` y `--nvx-sans`.
+- Variables paralelas `--nvx-serif-2`, `--nvx-serif-3`, `--nvx-sans-2` o `--nvx-sans-3`.
 
 ## Iconos
 
@@ -49,7 +62,7 @@ Los pesos Manrope cargados son 300, 400, 500, 600 y 700. No se permite solicitar
 | `--nvx-icon-frame` | `48px` |
 | `--nvx-icon-stroke` | `1.5` |
 
-Los iconos lineales deben usar `currentColor`; su color pertenece al contenedor, no al archivo SVG. Véase `icons.md`.
+Los iconos lineales utilizan `currentColor`; su color pertenece al contenedor, no al SVG.
 
 ## Espaciado y shell
 
@@ -58,9 +71,9 @@ Los iconos lineales deben usar `currentColor`; su color pertenece al contenedor,
 - Contenido: `--nvx-shell`, `--nvx-gutter`, `--nvx-gutter-inner`.
 - Lectura: `--nvx-measure` y `--nvx-measure-lead`.
 
-## Reglas de mantenimiento
+## Mantenimiento
 
 1. Cambiar un valor en `nvx-tokens.css`, no en una página.
-2. No incluir hex, RGB o tamaños privados en markup PHP.
+2. No incluir familias, hex, RGB o tamaños tipográficos privados en markup PHP.
 3. No crear un segundo bloque `:root`.
-4. Cualquier nuevo token debe tener un consumidor real y una prueba de contrato.
+4. Todo nuevo token debe tener un consumidor real y una prueba de contrato.

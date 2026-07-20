@@ -962,8 +962,6 @@ body.nvx-valoracion-modal-open{
   .nvx-ba-teaser__cta{width:100%}
 }
 
-
-
 /* Accessibility contrast contexts: dark bands and consent placeholders. */
 :where(
   .nvx-home-action-banner,

@@ -40,6 +40,10 @@
   --nvx-form-stage-cool: #d8d5d0;
   --nvx-form-stage-fallback: #eceae6;
   --nvx-form-stage-image: none;
+  --nvx-form-overlay-top: rgba(252, 251, 248, 0.18);
+  --nvx-form-overlay-mid: rgba(252, 251, 248, 0.08);
+  --nvx-form-overlay-bottom: rgba(23, 23, 23, 0.06);
+  --nvx-highlight-soft: rgba(252, 251, 248, 0.70);
 
   --nvx-shadow-min: 0 1px 2px rgba(23, 23, 23, 0.04);
   --nvx-shadow-soft: 0 16px 48px rgba(23, 23, 23, 0.06);
@@ -102,6 +106,14 @@
   --nvx-submenu-min-width: 256px;
   --nvx-submenu-max-width: 320px;
 
+  /* Icon dimensions and stroke — one scale for every page module. */
+  --nvx-icon-xs: 16px;
+  --nvx-icon-sm: 24px;
+  --nvx-icon-md: 32px;
+  --nvx-icon-lg: 40px;
+  --nvx-icon-frame: 48px;
+  --nvx-icon-stroke: 1.5;
+
   --nvx-border-hairline: 1px;
   --nvx-radius-pill: 999px;
   --nvx-radius-button: var(--nvx-radius-pill);
@@ -157,4 +169,9 @@
   --nvx-track-nav: .08em;
   --nvx-track-nav-cta: .06em;
   --nvx-track-nav-submenu: .02em;
+
+  /* Sequential indices are UI labels, not display metrics. */
+  --nvx-index-number-size: var(--nvx-type-kicker);
+  --nvx-index-number-weight: 600;
+  --nvx-index-number-track: .16em;
 }

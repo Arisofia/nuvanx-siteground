@@ -215,7 +215,7 @@ summary,
   margin-top: auto;
 }
 
-/* Native details controls must preserve a 44px interaction target. */
+/* Native details controls preserve the canonical control-size interaction target. */
 .nvx-faq summary,
 .nvx-brand-faq-accordion summary,
 .nvx-home-faq-editorial summary {
@@ -261,7 +261,7 @@ summary,
   margin-bottom: var(--nvx-space-2);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 45em) {
   .nvx-page--contact .nvx-clinics-grid {
     grid-template-columns: 1fr;
   }

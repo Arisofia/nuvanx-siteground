@@ -16,6 +16,7 @@ const review = read('wp-content/themes/nuvanx-medical/inc/nvx-medical-review.php
 const safeguards = read('wp-content/themes/nuvanx-medical/inc/nvx-publication-safeguards.php');
 const modal = read('wp-content/themes/nuvanx-medical/inc/nvx-valoracion-modal.php');
 const homeCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-brand-home.css');
+const componentsCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-components.css');
 
 requireText(integrations, "require_once __DIR__ . '/nvx-medical-review.php';", 'Medical review governance is not loaded.');
 requireText(integrations, "require_once __DIR__ . '/nvx-publication-safeguards.php';", 'Publication safeguards are not loaded.');
@@ -44,8 +45,9 @@ requireText(modal, "home_url( '/politica-privacidad/' )", 'Modal privacy link is
 requireText(modal, 'siguiente día laborable', 'Modal still lacks moderated response-time wording.');
 forbidText(modal, 'plazo máximo de 24 horas', 'Modal retains an absolute response-time SLA.');
 
-requireText(homeCss, 'box-shadow: var(--nvx-shadow-medium)', 'Portrait shadow is not tokenized in the final cascade.');
-requireText(homeCss, 'border-color: var(--nvx-light)', 'Portrait border is not tokenized in the final cascade.');
-requireText(homeCss, 'border-top-color: var(--nvx-color-line)', 'Authority-page rule is not tokenized in the final cascade.');
+// Authority-page visual tokens must live in nvx-components.css (canonical home after purge).
+requireText(componentsCss, 'box-shadow:var(--nvx-shadow-medium)', 'Portrait shadow is not tokenized in the final cascade.');
+requireText(componentsCss, 'border-color:var(--nvx-light)', 'Portrait border is not tokenized in the final cascade.');
+requireText(componentsCss, 'border-top-color:var(--nvx-color-line)', 'Authority-page rule is not tokenized in the final cascade.');
 
 console.log('PASS: publication safeguard contract');

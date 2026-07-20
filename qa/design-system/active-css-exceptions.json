@@ -141,6 +141,17 @@
       }
     },
     {
+      "file": "nvx-footer.css",
+      "selector": "#nvx-footer-cta",
+      "line": 44,
+      "specificity": {
+        "ids": 1,
+        "classes": 0,
+        "elements": 0,
+        "score": 100
+      }
+    },
+    {
       "file": "nvx-header.css",
       "selector": "#nvx-header-cta",
       "line": 177,
@@ -651,40 +662,48 @@
       "file": "nvx-footer.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 17,
-      "index": 334,
+      "line": 18,
+      "index": 354,
       "selector": ".nvx-cta-banner__title"
     },
     {
       "file": "nvx-footer.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 28,
-      "index": 614,
+      "line": 29,
+      "index": 655,
       "selector": ".nvx-cta-banner__sub"
     },
     {
       "file": "nvx-footer.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 45,
-      "index": 1072,
+      "line": 37,
+      "index": 860,
+      "selector": ".nvx-cta-banner__kicker"
+    },
+    {
+      "file": "nvx-footer.css",
+      "property": "font-family",
+      "value": "var(--nvx-sans)",
+      "line": 63,
+      "index": 1524,
       "selector": ".nvx-footer__col-title"
     },
     {
       "file": "nvx-footer.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 60,
-      "index": 1392,
+      "line": 78,
+      "index": 1844,
       "selector": ".nvx-footer__links a"
     },
     {
       "file": "nvx-footer.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 73,
-      "index": 1699,
+      "line": 91,
+      "index": 2151,
       "selector": ".nvx-footer__legal-links a"
     },
     {
@@ -980,7 +999,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 846,
-      "index": 20998,
+      "index": 21019,
       "selector": ".nvx-equipo-blockquote p"
     },
     {
@@ -988,7 +1007,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 854,
-      "index": 21177,
+      "index": 21198,
       "selector": ".nvx-equipo-blockquote footer"
     },
     {
@@ -996,7 +1015,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 891,
-      "index": 22000,
+      "index": 22021,
       "selector": ".nvx-co2-timeline__title"
     },
     {
@@ -1004,7 +1023,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 916,
-      "index": 22619,
+      "index": 22640,
       "selector": ".nvx-endolaser-zone__title"
     },
     {
@@ -1012,7 +1031,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 934,
-      "index": 23002,
+      "index": 23023,
       "selector": ".nvx-endolift-compare-table"
     },
     {
@@ -1020,7 +1039,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 973,
-      "index": 23962,
+      "index": 23983,
       "selector": ".nvx-endolift-price-table"
     },
     {
@@ -1028,7 +1047,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1053,
-      "index": 25709,
+      "index": 25730,
       "selector": ".nvx-laser-kicker"
     },
     {
@@ -1036,7 +1055,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 1064,
-      "index": 25984,
+      "index": 26005,
       "selector": ".nvx-laser-heading"
     },
     {
@@ -1044,7 +1063,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1073,
-      "index": 26203,
+      "index": 26224,
       "selector": ".nvx-laser-body"
     },
     {
@@ -1052,7 +1071,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 1094,
-      "index": 26622,
+      "index": 26643,
       "selector": ".nvx-laser-pillar__title"
     },
     {
@@ -1060,7 +1079,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 1119,
-      "index": 27136,
+      "index": 27157,
       "selector": ".nvx-laser-platform__title"
     },
     {
@@ -1068,7 +1087,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1130,
-      "index": 27368,
+      "index": 27389,
       "selector": ".nvx-laser-platform__link"
     },
     {
@@ -1076,7 +1095,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1153,
-      "index": 28013,
+      "index": 28034,
       "selector": ".nvx-laser-meta-label"
     },
     {
@@ -1084,7 +1103,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 1184,
-      "index": 28838,
+      "index": 28859,
       "selector": ".nvx-laser-formula__eq"
     },
     {
@@ -1092,7 +1111,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1210,
-      "index": 29394,
+      "index": 29415,
       "selector": ".nvx-laser-formula__cap"
     },
     {
@@ -1100,7 +1119,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1262,
-      "index": 30119,
+      "index": 30140,
       "selector": ".nvx-aes-kicker"
     },
     {
@@ -1108,7 +1127,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 1273,
-      "index": 30392,
+      "index": 30413,
       "selector": ".nvx-aes-heading"
     },
     {
@@ -1116,7 +1135,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1282,
-      "index": 30609,
+      "index": 30630,
       "selector": ".nvx-aes-body"
     },
     {
@@ -1124,7 +1143,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 1306,
-      "index": 31120,
+      "index": 31141,
       "selector": ".nvx-aes-pillar__title"
     },
     {
@@ -1132,7 +1151,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 1331,
-      "index": 31684,
+      "index": 31705,
       "selector": ".nvx-aes-card__title"
     },
     {
@@ -1140,7 +1159,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1345,
-      "index": 32108,
+      "index": 32129,
       "selector": ".nvx-aes-card__meta dt"
     },
     {
@@ -1148,7 +1167,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1359,
-      "index": 32394,
+      "index": 32415,
       "selector": ".nvx-aes-card__meta dd"
     },
     {
@@ -1156,7 +1175,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1370,
-      "index": 32633,
+      "index": 32654,
       "selector": ".nvx-aes-card__link"
     },
     {
@@ -1164,7 +1183,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1393,
-      "index": 33258,
+      "index": 33279,
       "selector": ".nvx-aes-meta-label"
     },
     {
@@ -1172,7 +1191,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1410,
-      "index": 33587,
+      "index": 33608,
       "selector": ".nvx-aes-panel-list li"
     },
     {
@@ -1180,7 +1199,7 @@
       "property": "font-family",
       "value": "var(--nvx-serif)",
       "line": 1435,
-      "index": 34188,
+      "index": 34209,
       "selector": ".nvx-aes-formula__eq"
     },
     {
@@ -1188,7 +1207,7 @@
       "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 1462,
-      "index": 34731,
+      "index": 34752,
       "selector": ".nvx-aes-formula__cap"
     },
     {
@@ -1375,7 +1394,7 @@
       "property": "padding",
       "value": "0 0.35em 0.15em",
       "line": 1199,
-      "index": 29189,
+      "index": 29210,
       "selector": ".nvx-laser-formula__num"
     },
     {
@@ -1383,7 +1402,7 @@
       "property": "padding",
       "value": "0.15em 0.35em 0",
       "line": 1204,
-      "index": 29300,
+      "index": 29321,
       "selector": ".nvx-laser-formula__den"
     },
     {
@@ -1391,7 +1410,7 @@
       "property": "margin",
       "value": "0 0.15em",
       "line": 1447,
-      "index": 34483,
+      "index": 34504,
       "selector": ".nvx-aes-formula__frac"
     },
     {
@@ -1399,7 +1418,7 @@
       "property": "padding",
       "value": "0 0.35em 0.15em",
       "line": 1451,
-      "index": 34530,
+      "index": 34551,
       "selector": ".nvx-aes-formula__num"
     },
     {
@@ -1407,7 +1426,7 @@
       "property": "padding",
       "value": "0.15em 0.35em 0",
       "line": 1456,
-      "index": 34639,
+      "index": 34660,
       "selector": ".nvx-aes-formula__den"
     }
   ],
@@ -1491,34 +1510,6 @@
     {
       "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-clinics-hub.php",
       "line": 764
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
-      "line": 89
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
-      "line": 92
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
-      "line": 93
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
-      "line": 94
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
-      "line": 96
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
-      "line": 98
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
-      "line": 1169
     }
   ],
   "embeddedStyleTags": []

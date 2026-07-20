@@ -58,7 +58,7 @@ requireMatch(script, /protectedReviewSlugs = new Set\(\['liposculpt-review', 'v-
 
 requireMatch(script, /captureAndDismissConsent/, 'consent evidence helper is required');
 requireMatch(script, /name: \/denegar\/i/, 'clean QA must reject optional cookies');
-requireMatch(script, /`\$\{slug\}-\$\{viewport\}-consent\.png`/, 'consent screenshot must be separate');
+requireMatch(script, /`\$\{slug\}-consent-\$\{viewport\}\.png`/, 'consent screenshot must be separate');
 requireMatch(script, /fullPage: false/, 'consent evidence must capture the viewport, not duplicate a full-page baseline');
 requireMatch(script, /`\$\{slug\}-\$\{viewport\}\.png`/, 'clean full-page screenshot naming changed');
 requireMatch(script, /fullPage: true/, 'clean visual baseline must remain full-page');

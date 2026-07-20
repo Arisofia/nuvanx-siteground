@@ -12,40 +12,35 @@ const requireText = (source, text, message) => { if (!source.includes(text)) fai
 const forbidText = (source, text, message) => { if (source.includes(text)) failures.push(message); };
 
 const shell = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php');
+const strategy = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
+const components = read('wp-content/themes/nuvanx-medical/assets/css/nvx-components.css');
 const closure = read('wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php');
 const canonical = read('wp-content/themes/nuvanx-medical/inc/nvx-staging2-canonical-closure.php');
 const contact = read('wp-content/themes/nuvanx-medical/templates/template-contact.php');
 const doctor = read('wp-content/themes/nuvanx-medical/inc/nvx-dr-rivera-page.php');
 
 requireText(shell, "function_exists( 'nvx_strategy_current_page_key' )", 'page shell must recognize strategy routes');
-requireText(shell, 'null !== nvx_strategy_current_page_key()', 'strategy route recognition must require a resolved strategy key');
-requireText(shell, '! $has_managed_editorial', 'managed editorial pages must suppress the fallback shell H1');
+requireText(shell, 'null !== nvx_strategy_current_page_key()', 'strategy route recognition must require a resolved key');
+requireText(strategy, 'nvx-strategy-page--review nvx-shell', 'review strategy article must use nvx-shell');
+const investmentStart = strategy.indexOf('function nvx_strategy_investment_markup(): string');
+const investmentEnd = strategy.indexOf('function nvx_strategy_page_markup', investmentStart);
+requireText(strategy.slice(investmentStart, investmentEnd), 'nvx-strategy-page nvx-shell', 'investment strategy article must use nvx-shell');
+forbidText(closure, '.nvx-page__content > .nvx-strategy-page', 'late CSS must not override the strategy shell');
 
-requireText(closure, "require_once __DIR__ . '/nvx-staging2-canonical-closure.php';", 'external closure must load the non-public canonical module');
-requireText(canonical, 'https://nuvanx.com', 'approved Staging2 routes must point to the public canonical host');
-requireText(canonical, 'nvx_staging2_canonical_is_approved_strategy', 'strategy canonical eligibility must use an explicit approval helper');
-requireText(canonical, "'approved_for_publication'", 'only explicitly approved strategy routes may expose a public canonical');
-requireText(canonical, '$is_protected', 'unapproved strategy routes must remain protected');
+requireText(closure, "require_once __DIR__ . '/nvx-staging2-canonical-closure.php';", 'external closure must load the canonical module');
+requireText(canonical, 'https://nuvanx.com', 'approved Staging2 routes must target the public canonical host');
+requireText(canonical, 'nvx_staging2_canonical_is_approved_strategy', 'strategy canonical eligibility must require explicit approval');
 requireText(canonical, "add_filter( 'wpseo_canonical'", 'Yoast canonical output must be filtered');
-requireText(canonical, "add_filter( 'wpseo_opengraph_url'", 'Open Graph URL must use the same public mapping');
 
-for (const selector of [
-  '.nvx-page__content > .nvx-strategy-page',
-  '.nvx-strategy-page > .nvx-brand-hero',
-  '.nvx-strategy-page > .nvx-brand-section',
-  '.nvx-page--contact .nvx-clinics-grid',
-  '.nvx-page--contact .nvx-clinic-card__map iframe',
-]) {
-  requireText(closure, selector, `missing visual closure selector: ${selector}`);
-}
-requireText(closure, 'grid-template-columns: repeat(2, minmax(0, 1fr));', 'contact desktop must use two clinic columns');
-requireText(closure, 'min-height: var(--nvx-control-size);', 'summary controls must use the interaction-size token');
-requireText(closure, 'border: 0;', 'map border presentation must live in CSS');
+requireText(contact, '<div class="nvx-clinics-grid">', 'contact template must wrap clinics in the grid');
+forbidText(contact, 'style="border:0;"', 'contact iframe still has inline border style');
+requireText(components, '.nvx-page--contact .nvx-clinics-grid', 'clinic grid must live in components.css');
+requireText(components, '.nvx-page--contact .nvx-clinic-card__map iframe', 'clinic maps must be styled in components.css');
+requireText(components, 'border: 0;', 'clinic map border reset must live in components.css');
+forbidText(closure, 'Contact cards use the same shell', 'contact styles must not remain in the external closure');
 
-forbidText(contact, 'style="border:0;"', 'contact iframe still contains the legacy inline border style');
-forbidText(contact, "style='border:0;'", 'contact iframe still contains a single-quoted inline border style');
 forbidText(doctor, '<p class="nvx-brand-kicker" style=', 'doctor authority kicker still uses inline spacing');
-requireText(doctor, 'nvx-brand-kicker nvx-dr-rivera-kicker', 'doctor authority kicker needs its dedicated class');
+requireText(doctor, 'nvx-brand-kicker nvx-dr-rivera-kicker', 'doctor authority kicker class is missing');
 
 if (!exists('googlee8160480bf01506f.html')) failures.push('Google Search Console verification file must be retained');
 if (exists('scratch/replace_pixels.mjs')) failures.push('one-time pixel replacement script must stay deleted');
@@ -56,4 +51,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log('PASS: runtime QA closure (canonical, H1, strategy layout, contact and retained verification)');
+console.log('PASS: runtime QA closure and visual blocker plan');

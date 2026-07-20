@@ -32,7 +32,9 @@ jobs:
           show-progress: false
 
       - name: Apply requested plan
-        run: python3 scripts/one-time/apply-qa-visual-blockers.py
+        run: |
+          python3 scripts/one-time/apply-qa-visual-blockers.py
+          python3 scripts/one-time/adjust-external-visual-test.py
 
       - name: Validate rendered QA syntax
         run: node --check scripts/staging2/rendered-qa.mjs
@@ -63,6 +65,7 @@ jobs:
           HEAD_BRANCH: ${{ github.head_ref }}
         run: |
           rm scripts/one-time/apply-qa-visual-blockers.py
+          rm scripts/one-time/adjust-external-visual-test.py
           rmdir scripts/one-time 2>/dev/null || true
           rm .github/workflows/one-time-qa-visual-blockers-pr.yml
           git config user.name 'github-actions[bot]'

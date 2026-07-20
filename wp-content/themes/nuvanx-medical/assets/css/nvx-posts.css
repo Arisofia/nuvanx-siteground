@@ -91,7 +91,7 @@ body.nvx-blog-context {
 
 .nvx-blog-card:hover,
 .nvx-blog-card:focus-within {
-  transform: translateY(-4px);
+  transform: translateY(calc(var(--nvx-space-1) * -0.5));
   border-color: var(--nvx-border-soft);
   box-shadow: var(--nvx-shadow-soft);
 }
@@ -155,7 +155,7 @@ body.nvx-blog-context {
 .nvx-blog-card__category a:focus-visible {
   color: var(--nvx-ink);
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: calc(var(--nvx-space-1) / 2);
 }
 
 .nvx-blog-card__date::before,
@@ -347,7 +347,7 @@ body.nvx-blog-context {
 .nvx-blog-hero__category:focus-visible {
   color: var(--nvx-text-on-dark);
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: calc(var(--nvx-space-1) / 2);
 }
 
 .nvx-blog-hero__title {
@@ -392,7 +392,7 @@ body.nvx-blog-context {
 .nvx-blog-hero__author-link {
   color: inherit;
   text-decoration: underline;
-  text-underline-offset: 3px;
+  text-underline-offset: calc(var(--nvx-space-1) * 0.375);
 }
 
 .nvx-blog-hero__author-link:hover,
@@ -497,7 +497,7 @@ body.single-post .nvx-blog-prose > p.nvx-blog-byline {
   text-decoration: underline;
   text-decoration-color: var(--nvx-accent-muted);
   text-decoration-thickness: var(--nvx-border-hairline);
-  text-underline-offset: 4px;
+  text-underline-offset: calc(var(--nvx-space-1) / 2);
 }
 
 .nvx-blog-prose a:hover,

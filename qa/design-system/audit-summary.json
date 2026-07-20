@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-20T13:42:48.416Z",
+  "generatedAt": "2026-07-20T13:58:49.254Z",
   "activeStylesheets": 12,
   "totalStylesheets": 12,
   "inactiveStylesheets": 0,
@@ -12,28 +12,15 @@
   "importantInactive": 0,
   "runtimeImportant": 0,
   "undefinedTokens": 0,
-  "hardcodedPixelsActive": 52,
-  "activeDuplicateSelectors": 138,
+  "hardcodedPixelsActive": 1,
+  "activeDuplicateSelectors": 258,
   "allDuplicateSelectors": 258,
   "nonCanonicalFonts": 0,
-  "hardcodedSpacing": 59,
+  "hardcodedSpacing": 7,
   "hardcodedColors": 0,
   "inconsistentIconColors": 0,
   "highSpecificity": 6,
   "unsafeSelectors": 0,
   "inlineStyles": 11,
-  "embeddedStyleTags": 0,
-  "conditionalRuntimeStylesheets": 1,
-  "importantConditionalRuntime": 0,
-  "conditionalUndefinedTokens": 0,
-  "conditionalUnsafeSelectors": 0,
-  "classification": {
-    "activeSourceStylesheets": 12,
-    "conditionalRuntimeWithinActive": 1,
-    "inactive": 0,
-    "total": 12
-  },
-  "activeDuplicateSelectorsRaw": 258,
-  "responsiveOverrideSelectors": 126,
-  "activeDuplicateSelectorThreshold": 220
+  "embeddedStyleTags": 0
 }

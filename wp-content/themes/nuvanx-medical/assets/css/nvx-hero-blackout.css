@@ -52,8 +52,7 @@ body.nvx-hero-blackout .nvx-blog-hero__media {
  * only resets text-only heroes; this selector would otherwise win).
  */
 
-@media (max-width: 960px) {
-}
+
 
 /*
  * Keep video visible without forcing display:block (flex/grid-safe).

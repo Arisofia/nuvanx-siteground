@@ -122,6 +122,11 @@
   "undefinedTokens": [],
   "hardcodedPixelsActive": [
     {
+      "file": "nvx-components.css",
+      "value": "340px",
+      "line": 1050
+    },
+    {
       "file": "nvx-tokens.css",
       "value": "820px",
       "line": 83
@@ -132,7 +137,7 @@
     {
       "file": "nvx-components.css",
       "selector": "#nvx-header",
-      "line": 1817,
+      "line": 1330,
       "specificity": {
         "ids": 1,
         "classes": 0,
@@ -302,360 +307,312 @@
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 249,
-      "index": 9555,
+      "line": 245,
+      "index": 9496,
       "selector": ".nvx-hubspot-form-section .nvx-title, .nvx-hubspot-form-section h2.nvx-title, .nvx-form-stage .nvx-title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 279,
-      "index": 10364,
+      "line": 275,
+      "index": 10305,
       "selector": ".nvx-hubspot-form-section label, .nvx-hs-lead-form label"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 298,
-      "index": 11231,
+      "line": 294,
+      "index": 11189,
       "selector": ".nvx-hubspot-form-section .hs-input, .nvx-hs-lead-form .hs-input, .nvx-hubspot-form-section input.hs-input, .nvx-hubspot-form-section input[type=\"text\"], .nvx-hubspot-form-section input[type=\"email\"], .nvx-hubspot-form-section input[type=\"tel\"], .nvx-hubspot-form-section input[type=\"number\"], .nvx-hubspot-form-section select.hs-input"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 385,
-      "index": 13386,
+      "line": 381,
+      "index": 13360,
       "selector": ".nvx-valoracion-modal__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 394,
-      "index": 13659,
+      "line": 390,
+      "index": 13633,
       "selector": ".nvx-valoracion-modal__lead"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 408,
-      "index": 14016,
+      "line": 404,
+      "index": 13990,
       "selector": ".nvx-valoracion-modal__legal"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 444,
-      "index": 15107,
+      "line": 435,
+      "index": 14980,
       "selector": ".nvx-treatment-process__kicker"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 445,
-      "index": 15338,
+      "line": 436,
+      "index": 15211,
       "selector": ".nvx-treatment-process__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 447,
-      "index": 15818,
+      "line": 438,
+      "index": 15691,
       "selector": ".nvx-treatment-process__step::before"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 448,
-      "index": 15956,
+      "line": 439,
+      "index": 15829,
       "selector": ".nvx-treatment-process__step-title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 449,
-      "index": 16096,
+      "line": 440,
+      "index": 15969,
       "selector": ".nvx-treatment-process__step-body"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 455,
-      "index": 16419,
+      "line": 446,
+      "index": 16267,
       "selector": ".nvx-ba-teaser__kicker"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 456,
-      "index": 16642,
+      "line": 447,
+      "index": 16490,
       "selector": ".nvx-ba-teaser__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 457,
-      "index": 16835,
+      "line": 448,
+      "index": 16683,
       "selector": ".nvx-ba-teaser__body"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 481,
-      "index": 17354,
+      "line": 471,
+      "index": 17176,
       "selector": ".nvx-check-list li"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 774,
-      "index": 23820,
-      "selector": ".nvx-button"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 807,
-      "index": 24821,
-      "selector": ".nvx-btn"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 840,
-      "index": 25828,
-      "selector": ".nvx-brand-btn"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 873,
-      "index": 26866,
+      "line": 693,
+      "index": 22078,
       "selector": ".nvx-hs-lead-form input[type=\"submit\"]"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 977,
-      "index": 29972,
+      "line": 782,
+      "index": 24766,
       "selector": ".nvx-endolift-step__n"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 987,
-      "index": 30261,
+      "line": 792,
+      "index": 25085,
       "selector": ".nvx-laser-platform__n"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 996,
-      "index": 30482,
+      "line": 801,
+      "index": 25336,
       "selector": ".nvx-aes-card__n"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1004,
-      "index": 30694,
+      "line": 809,
+      "index": 25578,
       "selector": ".nvx-co2-timeline__n"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1065,
-      "index": 32320,
+      "line": 846,
+      "index": 26615,
       "selector": ".nvx-faq summary"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1082,
-      "index": 32857,
+      "line": 863,
+      "index": 27152,
       "selector": ".nvx-brand-faq-accordion summary"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1099,
-      "index": 33393,
+      "line": 880,
+      "index": 27688,
       "selector": ".nvx-home-faq-editorial summary"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1186,
-      "index": 36552,
+      "line": 967,
+      "index": 30851,
       "selector": ".nvx-hubspot-form-section textarea.hs-input"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1219,
-      "index": 37642,
+      "line": 1000,
+      "index": 31941,
       "selector": ".nvx-valoracion-modal__fallback"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1264,
-      "index": 38883,
+      "line": 1012,
+      "index": 32223,
       "selector": ".nvx-value__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1275,
-      "index": 39115,
+      "line": 1023,
+      "index": 32455,
       "selector": ".nvx-value__body"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1282,
-      "index": 39463,
+      "line": 1030,
+      "index": 32803,
       "selector": ".nvx-clinics-nav__link"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1594,
-      "index": 47840,
+      "line": 1188,
+      "index": 37841,
       "selector": ".nvx-brand-hero__copy .nvx-brand-meta"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1677,
-      "index": 49797,
-      "selector": ".nvx-catalog-card__cta"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1937,
-      "index": 56546,
+      "line": 1398,
+      "index": 43223,
       "selector": ".nvx-footer__tagline"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1946,
-      "index": 56793,
+      "line": 1407,
+      "index": 43487,
       "selector": ".nvx-footer__registrations"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 1952,
-      "index": 56965,
-      "selector": ".nvx-footer__legal"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1980,
-      "index": 57660,
+      "line": 1425,
+      "index": 43912,
       "selector": ".nvx-home-hero-stage .nvx-brand-hero__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 2006,
-      "index": 58294,
+      "line": 1433,
+      "index": 44179,
       "selector": ".nvx-home-action-banner__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 2024,
-      "index": 58814,
+      "line": 1446,
+      "index": 44554,
       "selector": ".nvx-hero-context__lead"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 2032,
-      "index": 59014,
+      "line": 1454,
+      "index": 44754,
       "selector": ".nvx-hero-context__description"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 2065,
-      "index": 59863,
-      "selector": ".nvx-blog-hero__meta"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 2097,
-      "index": 60621,
+      "line": 1483,
+      "index": 45449,
       "selector": ".nvx-blog-hero__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 2131,
-      "index": 61582,
+      "line": 1509,
+      "index": 46229,
       "selector": ".nvx-blog-prose h2"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 2142,
-      "index": 61935,
+      "line": 1520,
+      "index": 46582,
       "selector": ".nvx-blog-prose h3"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 2153,
-      "index": 62286,
+      "line": 1531,
+      "index": 46933,
       "selector": ".nvx-blog-prose h4"
     },
     {
@@ -758,456 +715,456 @@
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 156,
-      "index": 4148,
+      "line": 152,
+      "index": 3968,
       "selector": ".nvx-home-protocol__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 165,
-      "index": 4376,
+      "line": 161,
+      "index": 4176,
       "selector": ".nvx-home-protocol__lead"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 177,
-      "index": 4629,
+      "line": 173,
+      "index": 4429,
       "selector": ".nvx-home-protocol__fact dt"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 187,
-      "index": 4881,
+      "line": 183,
+      "index": 4698,
       "selector": ".nvx-home-protocol__fact dd"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 217,
-      "index": 5552,
+      "line": 213,
+      "index": 5369,
       "selector": ".nvx-method-col__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 225,
-      "index": 5703,
+      "line": 221,
+      "index": 5520,
       "selector": ".nvx-method-col__body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 247,
-      "index": 6159,
+      "line": 242,
+      "index": 5887,
       "selector": ".nvx-catalog__kicker"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 257,
-      "index": 6416,
+      "line": 252,
+      "index": 6156,
       "selector": ".nvx-catalog__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 268,
-      "index": 6643,
+      "line": 263,
+      "index": 6383,
       "selector": ".nvx-catalog__lead"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 280,
-      "index": 6961,
+      "line": 275,
+      "index": 6661,
       "selector": ".nvx-catalog-category__label"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 296,
-      "index": 7344,
+      "line": 291,
+      "index": 7041,
       "selector": ".nvx-catalog-card__meta"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 306,
-      "index": 7593,
+      "line": 301,
+      "index": 7299,
       "selector": ".nvx-catalog-card__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 317,
-      "index": 7847,
+      "line": 312,
+      "index": 7553,
       "selector": ".nvx-catalog-card__body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 354,
-      "index": 8795,
+      "line": 349,
+      "index": 8439,
       "selector": ".nvx-logo-cloud__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 365,
-      "index": 9064,
+      "line": 360,
+      "index": 8708,
       "selector": ".nvx-logo-cloud__item"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 416,
-      "index": 10163,
+      "line": 408,
+      "index": 9661,
       "selector": ".nvx-endolift-kicker"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 427,
-      "index": 10441,
+      "line": 419,
+      "index": 9951,
       "selector": ".nvx-endolift-heading"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 436,
-      "index": 10663,
+      "line": 428,
+      "index": 10153,
       "selector": ".nvx-endolift-body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 455,
-      "index": 11167,
+      "line": 447,
+      "index": 10617,
       "selector": ".nvx-endolift-panel-label"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 472,
-      "index": 11519,
+      "line": 464,
+      "index": 10966,
       "selector": ".nvx-endolift-panel-list li"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 495,
-      "index": 12155,
+      "line": 487,
+      "index": 11539,
       "selector": ".nvx-endolift-formula__eq"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 504,
-      "index": 12371,
+      "line": 496,
+      "index": 11755,
       "selector": ".nvx-endolift-formula__cap"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 517,
-      "index": 12700,
+      "line": 509,
+      "index": 12059,
       "selector": ".nvx-endolift-effect__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 535,
-      "index": 12983,
+      "line": 527,
+      "index": 12322,
       "selector": ".nvx-endolift-step__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 551,
-      "index": 13352,
+      "line": 543,
+      "index": 12651,
       "selector": ".nvx-endolift-reviewed"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 564,
-      "index": 13677,
+      "line": 556,
+      "index": 12956,
       "selector": ".nvx-endolift-price"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 576,
-      "index": 14009,
+      "line": 568,
+      "index": 13268,
       "selector": ".nvx-endolift-price-includes"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 647,
-      "index": 16039,
+      "line": 639,
+      "index": 15114,
       "selector": ".nvx-contact-clinic__name"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 659,
-      "index": 16339,
+      "line": 651,
+      "index": 15414,
       "selector": ".nvx-contact-clinic__reg, .nvx-contact-clinic__addr, .nvx-contact-clinic__phone, .nvx-contact-clinic__days"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 668,
-      "index": 16574,
+      "line": 660,
+      "index": 15629,
       "selector": ".nvx-contact-disclaimer"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 846,
-      "index": 21019,
+      "line": 836,
+      "index": 19950,
       "selector": ".nvx-equipo-blockquote p"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 854,
-      "index": 21198,
+      "line": 844,
+      "index": 20129,
       "selector": ".nvx-equipo-blockquote footer"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 891,
-      "index": 22021,
+      "line": 881,
+      "index": 20869,
       "selector": ".nvx-co2-timeline__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 916,
-      "index": 22640,
+      "line": 906,
+      "index": 21405,
       "selector": ".nvx-endolaser-zone__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 934,
-      "index": 23023,
+      "line": 924,
+      "index": 21768,
       "selector": ".nvx-endolift-compare-table"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 973,
-      "index": 23983,
+      "line": 963,
+      "index": 22719,
       "selector": ".nvx-endolift-price-table"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1053,
-      "index": 25730,
+      "line": 1038,
+      "index": 24363,
       "selector": ".nvx-laser-kicker"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1064,
-      "index": 26005,
+      "line": 1049,
+      "index": 24650,
       "selector": ".nvx-laser-heading"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1073,
-      "index": 26224,
+      "line": 1058,
+      "index": 24849,
       "selector": ".nvx-laser-body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1094,
-      "index": 26643,
+      "line": 1079,
+      "index": 25228,
       "selector": ".nvx-laser-pillar__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1119,
-      "index": 27157,
+      "line": 1104,
+      "index": 25682,
       "selector": ".nvx-laser-platform__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1130,
-      "index": 27389,
+      "line": 1115,
+      "index": 25894,
       "selector": ".nvx-laser-platform__link"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1153,
-      "index": 28034,
+      "line": 1138,
+      "index": 26516,
       "selector": ".nvx-laser-meta-label"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1184,
-      "index": 28859,
+      "line": 1169,
+      "index": 27263,
       "selector": ".nvx-laser-formula__eq"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1210,
-      "index": 29415,
+      "line": 1195,
+      "index": 27819,
       "selector": ".nvx-laser-formula__cap"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1262,
-      "index": 30140,
+      "line": 1235,
+      "index": 28461,
       "selector": ".nvx-aes-kicker"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1273,
-      "index": 30413,
+      "line": 1246,
+      "index": 28744,
       "selector": ".nvx-aes-heading"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1282,
-      "index": 30630,
+      "line": 1255,
+      "index": 28941,
       "selector": ".nvx-aes-body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1306,
-      "index": 31141,
+      "line": 1279,
+      "index": 29392,
       "selector": ".nvx-aes-pillar__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1331,
-      "index": 31705,
+      "line": 1304,
+      "index": 29876,
       "selector": ".nvx-aes-card__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1345,
-      "index": 32129,
+      "line": 1318,
+      "index": 30217,
       "selector": ".nvx-aes-card__meta dt"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1359,
-      "index": 32415,
+      "line": 1332,
+      "index": 30530,
       "selector": ".nvx-aes-card__meta dd"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1370,
-      "index": 32654,
+      "line": 1343,
+      "index": 30749,
       "selector": ".nvx-aes-card__link"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1393,
-      "index": 33279,
+      "line": 1366,
+      "index": 31351,
       "selector": ".nvx-aes-meta-label"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1410,
-      "index": 33608,
+      "line": 1383,
+      "index": 31702,
       "selector": ".nvx-aes-panel-list li"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1435,
-      "index": 34209,
+      "line": 1408,
+      "index": 32220,
       "selector": ".nvx-aes-formula__eq"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1462,
-      "index": 34752,
+      "line": 1435,
+      "index": 32763,
       "selector": ".nvx-aes-formula__cap"
     },
     {
@@ -1345,40 +1302,40 @@
       "file": "nvx-components.css",
       "property": "margin",
       "value": "0 auto 0.75em",
-      "line": 247,
-      "index": 9508,
+      "line": 243,
+      "index": 9449,
       "selector": ".nvx-hubspot-form-section .nvx-title, .nvx-hubspot-form-section h2.nvx-title, .nvx-form-stage .nvx-title"
     },
     {
       "file": "nvx-components.css",
       "property": "margin",
       "value": "0 0 0.65em",
-      "line": 1555,
-      "index": 46820,
+      "line": 1149,
+      "index": 36821,
       "selector": ".nvx-brand-hero__copy .nvx-brand-hero__title"
     },
     {
       "file": "nvx-components.css",
       "property": "margin",
       "value": "0 0 0.65em",
-      "line": 1564,
-      "index": 47050,
+      "line": 1158,
+      "index": 37051,
       "selector": ".nvx-brand-hero__copy h1"
     },
     {
       "file": "nvx-components.css",
       "property": "margin",
       "value": "0 0 0.65em",
-      "line": 1573,
-      "index": 47279,
+      "line": 1167,
+      "index": 37280,
       "selector": ".nvx-page-hero__copy h1"
     },
     {
       "file": "nvx-components.css",
       "property": "margin",
       "value": "0 0 0.65em",
-      "line": 1582,
-      "index": 47503,
+      "line": 1176,
+      "index": 37504,
       "selector": ".nvx-hero__copy h1"
     },
     {
@@ -1386,47 +1343,47 @@
       "property": "margin",
       "value": "0 0 0.65em",
       "line": 80,
-      "index": 2289,
+      "index": 2268,
       "selector": ".nvx-brand-hero__copy .nvx-title, .nvx-brand-hero__copy .nvx-heading, .nvx-editorial-hero__copy h1, .nvx-page-hero__copy .nvx-title, .nvx-hero__copy .nvx-title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0 0.35em 0.15em",
-      "line": 1199,
-      "index": 29210,
+      "line": 1184,
+      "index": 27614,
       "selector": ".nvx-laser-formula__num"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0.15em 0.35em 0",
-      "line": 1204,
-      "index": 29321,
+      "line": 1189,
+      "index": 27725,
       "selector": ".nvx-laser-formula__den"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "margin",
       "value": "0 0.15em",
-      "line": 1447,
-      "index": 34504,
+      "line": 1420,
+      "index": 32515,
       "selector": ".nvx-aes-formula__frac"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0 0.35em 0.15em",
-      "line": 1451,
-      "index": 34551,
+      "line": 1424,
+      "index": 32562,
       "selector": ".nvx-aes-formula__num"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0.15em 0.35em 0",
-      "line": 1456,
-      "index": 34660,
+      "line": 1429,
+      "index": 32671,
       "selector": ".nvx-aes-formula__den"
     }
   ],
@@ -1436,49 +1393,17 @@
       "file": "nvx-components.css",
       "property": "color",
       "value": "var(--nvx-ink)",
-      "line": 367,
-      "index": 12877,
+      "line": 363,
+      "index": 12851,
       "selector": ".nvx-valoracion-modal__close"
     },
     {
       "file": "nvx-components.css",
       "property": "color",
       "value": "var(--nvx-accent-muted)",
-      "line": 539,
-      "index": 18646,
+      "line": 529,
+      "index": 18468,
       "selector": ".nvx-page--contact .nvx-clinic-card__data .nvx-icon"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "color",
-      "value": "var(--nvx-accent-muted)",
-      "line": 1016,
-      "index": 31044,
-      "selector": ".nvx-endolift-step__icon"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "color",
-      "value": "var(--nvx-accent-muted)",
-      "line": 1024,
-      "index": 31248,
-      "selector": ".nvx-laser-icon"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "color",
-      "value": "var(--nvx-accent-muted)",
-      "line": 1032,
-      "index": 31450,
-      "selector": ".nvx-aes-icon"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "color",
-      "value": "var(--nvx-ink)",
-      "line": 1254,
-      "index": 38661,
-      "selector": ".nvx-value__icon"
     },
     {
       "file": "nvx-header.css",
@@ -1492,8 +1417,8 @@
       "file": "nvx-patterns-editorial.css",
       "property": "color",
       "value": "var(--nvx-accent-muted)",
-      "line": 207,
-      "index": 5387,
+      "line": 203,
+      "index": 5204,
       "selector": ".nvx-method-col__icon"
     },
     {

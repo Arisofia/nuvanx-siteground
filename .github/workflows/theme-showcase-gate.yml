@@ -58,7 +58,8 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           pages="$(pdfinfo docs/design-system/theme-showcase.pdf 2>/dev/null | awk '/^Pages:/ {print $2}')"
-          if [ "$pages" != "6" ]; then
+          pdftotext docs/design-system/theme-showcase.pdf /tmp/committed-showcase.txt 2>/dev/null || true
+          if [ "$pages" != "6" ] || ! grep -q "No modifica el sistema visual web de producción" /tmp/committed-showcase.txt; then
             cp /tmp/theme-showcase.pdf docs/design-system/theme-showcase.pdf
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

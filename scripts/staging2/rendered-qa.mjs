@@ -38,14 +38,14 @@ function collectTypes(value, set = new Set()) {
 }
 
 /**
- * Audits a route at a specified viewport and captures its rendered state.
+ * Audits a route at a specified viewport and captures a full-page screenshot.
  * @param {import('playwright').Browser} browser - Browser instance used to create the page context.
- * @param {string} slug - Identifier used to classify the route and name its screenshot.
+ * @param {string} slug - Route identifier used to classify results and name the screenshot.
  * @param {string} route - Route path to audit.
- * @param {string} viewport - Viewport label used in the audit result and screenshot name.
+ * @param {string} viewport - Viewport label included in the result and screenshot name.
  * @param {number} width - Viewport width in pixels.
  * @param {number} height - Viewport height in pixels.
- * @return {Promise<object>} Audit result containing the route metadata, HTTP status, response headers, rendered page data, console errors, failed requests, and findings.
+ * @return {object} Audit result containing route metadata, HTTP status, headers, rendered data, console errors, failed requests, and findings.
  */
 async function inspect(browser, slug, route, viewport, width, height) {
   const context = await browser.newContext({ viewport: { width, height }, locale: 'es-ES', reducedMotion: 'reduce', colorScheme: 'light' });
@@ -122,8 +122,30 @@ async function inspect(browser, slug, route, viewport, width, height) {
 
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
 const results = [];
-try { for (const [slug, route] of config.routes) for (const [viewport, width, height] of viewports) { console.log(`AUDIT ${slug} ${viewport}`); results.push(await inspect(browser, slug, route, viewport, width, height)); } }
-finally { await browser.close(); }
+try {
+  for (const [slug, route] of config.routes)
+    for (const [viewport, width, height] of viewports) {
+      console.log(`AUDIT ${slug} ${viewport}`);
+      try {
+        results.push(await inspect(browser, slug, route, viewport, width, height));
+      } catch (error) {
+        results.push({
+          slug,
+          route,
+          viewport,
+          url: `${baseUrl}${route}`,
+          status: null,
+          headers: {},
+          rendered: null,
+          consoleErrors: [],
+          failedRequests: [],
+          findings: [{ severity: 'critical', code: 'audit-exception', message: error.message }],
+        });
+      }
+    }
+} finally {
+  await browser.close();
+}
 
 const findings = results.flatMap((result) => result.findings.map((finding) => ({ slug: result.slug, route: result.route, viewport: result.viewport, ...finding })));
 const critical = findings.filter((item) => item.severity === 'critical');

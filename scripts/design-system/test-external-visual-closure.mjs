@@ -54,6 +54,36 @@ requireMatch(
   /nvx-external-visual-closure[\s\S]*wp_add_inline_style[\s\S]*1000/,
   'external closure must load after theme and plugin styles',
 );
+requireMatch(
+  closure,
+  /require_once __DIR__ \. '\/nvx-staging2-canonical-closure\.php';/,
+  'external closure must load the staging2 canonical closure',
+);
+requireMatch(
+  closure,
+  /\.nvx-page__content > \.nvx-strategy-page\s*\{[\s\S]*width:\s*100%;[\s\S]*max-width:\s*none;/,
+  'strategy pages must own a full-width editorial hierarchy',
+);
+requireMatch(
+  closure,
+  /\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*display:\s*flex;/,
+  'strategy page hero must be defined as a flex layout',
+);
+requireMatch(
+  closure,
+  /\.nvx-page--contact \.nvx-clinics-grid\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,
+  'contact clinics grid must use a two-column layout on wide viewports',
+);
+requireMatch(
+  closure,
+  /\.nvx-page--contact \.nvx-clinic-card__map iframe\s*\{[\s\S]*border:\s*0;/,
+  'contact clinic map iframe border must be centralised in the stylesheet, not inline markup',
+);
+requireMatch(
+  closure,
+  /@media \(max-width: 720px\)\s*\{[\s\S]*\.nvx-page--contact \.nvx-clinics-grid\s*\{[\s\S]*grid-template-columns:\s*1fr;/,
+  'the contact clinics grid must collapse to a single column on small viewports',
+);
 requireAbsent(closure, /(?:Bodoni|Cormorant|Source Sans|\bInter\b|Pinyon)/i, 'alternate font found');
 requireAbsent(closure, /!important/i, 'external closure must not use !important');
 requireAbsent(closure, /(?:\d+(?:\.\d+)?px|\d+(?:\.\d+)?rem)/i, 'external closure must use canonical size tokens only');

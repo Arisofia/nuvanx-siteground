@@ -193,7 +193,7 @@ function nvx_seo_schema_btl_faq_node( int $page_id ): ?array {
  * Adds clinic references and the MedicalOrganization type to the organization node.
  *
  * @param array  $graph           The Schema.org graph.
- * @param string $organization_id Fallback identifier used when the organization cannot be resolved.
+ * @param string $organization_id Retained for backward compatibility. Not used to create missing nodes.
  * @return array The enriched Schema.org graph.
  */
 function _nvx_seo_schema_enrich_organization( $graph, $organization_id ) {

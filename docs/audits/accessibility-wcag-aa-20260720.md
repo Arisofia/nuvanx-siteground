@@ -13,7 +13,7 @@
 - **Status**: `PASS / PARTIAL`
 - **Findings**:
   - ARIA labels (`aria-label`) están aplicados en el CTA Global (`#nvx-site-closing-cta`) y en los modales de valoración.
-  - El SVG de Joinchat / WhatsApp se inyecta correctamente utilizando el ayudante canónico (`nvx_visual_whatsapp_icon_svg()`), asegurando que la semántica gráfica sea controlada centralmente.
+  - El SVG de Joinchat / WhatsApp se inyecta correctamente utilizando el ayudante canónico (`nvx_visual_icon_svg()`), asegurando que la semántica gráfica sea controlada centralmente.
 - **Action Items**: Asegurar que las imágenes insertadas por editores en HubSpot o en los posts médicos tengan el atributo `alt` correcto en la capa de contenido.
 
 ### 1.2 Contrast (Minimum)

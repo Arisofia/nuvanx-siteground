@@ -37,6 +37,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           show-progress: false
+          persist-credentials: false
 
       - name: Validate PHP syntax
         run: |
@@ -45,6 +46,8 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-schema.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php
 
       - name: Validate environment, clinic and Schema source contract
         run: node scripts/seo/test-production-seo-contract.mjs

@@ -1,133 +1,79 @@
-# Component Inventory — estado actual vs sistema objetivo
+# Inventario canónico de componentes
 
-## Leyenda
+## Fuentes de verdad
 
-| Estado | Significado |
-|--------|-------------|
-| **GLOBAL** | Debe vivir en capa de componentes reutilizable |
-| **PATTERN** | Composición de sección (solo layout/orden) |
-| **PAGE** | Permitido solo como composición en `nvx-page-*.css` |
-| **LEGACY** | Duplicado / a eliminar en migración |
-| **TARGET** | Clase canónica del nuevo sistema (aún no implementada) |
+| Área | Archivo |
+|---|---|
+| Paleta, escalas y dimensiones | `assets/css/nvx-tokens.css` |
+| Tipografía base y controles | `assets/css/nvx-components.css` |
+| Layout y medida editorial | `assets/css/nvx-site-layout.css` |
+| Cierre de color, iconos y numeración | `inc/nvx-visual-system.php` |
+| Patrones editoriales | `assets/css/nvx-patterns-editorial.css` |
 
----
+Las clases históricas permanecen como aliases cuando todavía aparecen en contenido persistido. No son una segunda fuente de valores.
 
-## Tipografía
+## Tipografía por rol
 
-| Clase actual | Archivo(s) | Estado | Target |
-|--------------|------------|--------|--------|
-| `.nvx-brand-kicker` | brand-home, brand-system, treatment-core | LEGACY | `.nvx-eyebrow` |
-| `.nvx-brand-title` | brand-* | LEGACY | `.nvx-display` / `.nvx-heading` |
-| `.nvx-brand-subtitle` | brand-* | LEGACY | `.nvx-heading` (nivel h3) |
-| `.nvx-brand-body` | brand-* | LEGACY | `.nvx-copy` |
-| `.nvx-brand-hero__lead` | brand-* | LEGACY | `.nvx-lead` |
-| `.nvx-home-editorial__lead` | brand-home | PAGE | `.nvx-lead` + modifier pattern |
-| `--nvx-type-*` | nvx-tokens | GLOBAL | Mantener en `nvx-tokens.css` |
-| `--nvx-font-serif` (Playfair) | brand-home, brand-system | LEGACY | `--nvx-serif` (Bodoni Moda) |
+| Rol | Familia | Tokens |
+|---|---|---|
+| Display / H1 / H2 / H3 | Bodoni Moda | `--nvx-type-display`, `--nvx-type-h1`, `--nvx-type-h2`, `--nvx-type-h3` |
+| Lead / body / caption | Manrope | `--nvx-type-lead`, `--nvx-type-body`, `--nvx-type-caption` |
+| Kicker / navegación / botón | Manrope | `--nvx-type-kicker`, `--nvx-type-nav`, `--nvx-type-button` |
+| Índice secuencial | Manrope | `--nvx-index-number-*` |
+| Métricas | Bodoni Moda | escala del componente de métrica |
 
----
+Aliases como `.nvx-brand-title`, `.nvx-brand-body` o `.nvx-brand-btn` se aceptan únicamente porque el CSS global los vincula al mismo contrato.
+
+## Iconos
+
+| Presentación | Clase / token |
+|---|---|
+| Base | `.nvx-icon` |
+| 16 / 24 / 32 / 40 px | `.nvx-icon--xs|sm|md|lg` |
+| Frame | `--nvx-icon-frame` |
+| Trazo | `--nvx-icon-stroke` |
+| Color | `currentColor` |
+
+Las clases `.nvx-laser-icon`, `.nvx-aes-icon` y `.nvx-endolift-step__icon` son aliases de forma heredados y reciben la misma presentación. Los SVG externos de beneficios fijados a dorado fueron retirados.
+
+## Numeración
+
+| Rol | Componente |
+|---|---|
+| Secuencia de proceso | `.nvx-index-number` y aliases `__n` |
+| Lista semántica | `<ol>` dentro de superficies editoriales |
+| Métrica o cantidad | componente de métrica, separado del índice |
+
+Anti-patrones bloqueados:
+
+- número dentro del H3;
+- número dentro de kicker;
+- serif grande para pasos y sans pequeña para otros pasos equivalentes;
+- pérdida de marcadores en listas ordenadas.
 
 ## Botones y enlaces
 
-| Clase actual | Archivo(s) | Estado | Target |
-|--------------|------------|--------|--------|
-| `.nvx-brand-btn` | brand-home, brand-system, treatment | LEGACY | `.nvx-button` |
-| `.nvx-brand-btn--primary` | brand-* | LEGACY | `.nvx-button--primary` |
-| `.nvx-brand-btn--secondary` | brand-* | LEGACY | `.nvx-button--secondary` |
-| `.nvx-brand-inline-link` | brand-* | LEGACY | `.nvx-text-link` |
-| `.nvx-brand-card__link` | brand-* (×4 archivos) | LEGACY | `.nvx-text-link` |
-| `.nvx-brand-card__cta` | brand-* (×4 archivos) | LEGACY | `.nvx-text-link--cta` |
+- Base canónica: `.nvx-button`.
+- Aliases compatibles: `.nvx-btn`, `.nvx-brand-btn`.
+- Variantes: `--primary`, `--secondary`, `--light`, `--secondary-on-dark`.
+- Todos heredan fuente, tamaño, radio, color e interacción desde componentes/tokens.
 
----
+## Cards, FAQ y media
 
-## Cards e índice numerado
+| Área | Base canónica |
+|---|---|
+| Cards | `.nvx-card`, con `.nvx-brand-card` como alias persistido |
+| FAQ | `.nvx-faq` / `.nvx-brand-faq-accordion` |
+| Hero media | `.nvx-media--hero` y wrappers hero existentes |
+| Body media | `.nvx-media--body` |
+| Retrato médico | `.nvx-media--doctor` |
 
-| Clase actual | Uso HTML | Problema | Target |
-|--------------|----------|----------|--------|
-| `.nvx-brand-card` | Tratamientos, método, sedes | Mezcla número + eyebrow + CTA | `.nvx-index-item` |
-| `.nvx-brand-card__kicker` | `01` `02` `03`… y labels | **Anti-patrón**: número en kicker | `.nvx-index-item__number` |
-| `.nvx-brand-card__title` | Títulos ítem | OK semántico | `.nvx-index-item__title` |
-| `.nvx-brand-card__body` | Cuerpo | OK | `.nvx-index-item__body` |
-| `.nvx-home-pilar-item` | Método home | Duplica index | `.nvx-index-item` dentro `.nvx-pattern-method` |
-| `.nvx-home-tratamiento-item` | Catálogo home | Duplica index | `.nvx-index-item` |
+## Estado de limpieza
 
-**Instancias kicker con dígitos** (post_content home): `01`–`06` (tratamientos), `01`–`03` (método).
+- Un solo bloque `:root` canónico.
+- Sin activos SVG de beneficios con color fijo.
+- Referencias antiguas de Contacto y beneficios se migran en el límite de render.
+- La documentación de Metal Pulido fue sustituida por la paleta cálida vigente.
+- Los scripts `test-visual-system-contract.mjs` y `audit-visual-system.mjs` protegen el contrato.
 
----
-
-## Media e imágenes
-
-| Clase actual | Archivo | Rol implícito | Target |
-|--------------|---------|---------------|--------|
-| `.nvx-home-hero-video` | brand-home | hero video | `.nvx-media--hero` |
-| `.nvx-home-video-feature` | brand-home | hero video container | `.nvx-pattern-hero` child |
-| `.nvx-home-image-feature__img` | brand-home | editorial feature | `.nvx-media--editorial` |
-| `.nvx-home-direccion-media img` | brand-home | doctor portrait | `.nvx-media--doctor` + `.nvx-shape--organic-b` |
-| `.nvx-home-clinica-panorama__media` | brand-home | clinic exterior | `.nvx-media--clinic` + `.nvx-shape--organic-a` |
-| `.nvx-brand-hero__media` | brand-system, treatment | treatment hero | `.nvx-media--treatment` |
-| `nth-child(2n)` en tratamientos | brand-home | **Anti-patrón**: máscara por posición | clase shape explícita |
-
-Reglas `clip-path` / `mask-image` detectadas en `nvx-brand-home.css` (líneas ~809, ~1044, ~1255) y `nvx-fluid-organic-2026.css`.
-
----
-
-## FAQ
-
-| Clase actual | Archivo | Target |
-|--------------|---------|--------|
-| `.nvx-brand-faq-accordion` | brand-* | componente global FAQ |
-| `.nvx-brand-faq-item` | brand-* | item FAQ |
-| `.nvx-brand-faq-content` | brand-* | panel respuesta |
-| `.nvx-home-faq-editorial` | brand-home | **PAGE** → solo `.nvx-pattern-faq` wrapper |
-
----
-
-## CTA
-
-| Clase actual | Archivo | Target |
-|--------------|---------|--------|
-| `.nvx-brand-section--cta` | brand-* | `.nvx-pattern-cta` |
-| `.nvx-home-cta-final-band` | brand-home | `.nvx-pattern-cta` modifier |
-| `.nvx-brand-cta` | brand-system | `.nvx-pattern-cta` |
-
----
-
-## Header / Footer / Shell
-
-| Clase | Archivo | Estado |
-|-------|---------|--------|
-| `#nvx-header`, `.nvx-nav__*` | nvx-header.css | GLOBAL — mantener |
-| `.nvx-footer__*` | nvx-footer.css | GLOBAL — mantener |
-| `--nvx-shell` | tokens, base, site-layout, **brand-home** | Colisión — unificar en tokens |
-| `.nvx-v3-shell` | brand-home | LEGACY → `.nvx-shell` token |
-
----
-
-## Patrones de página (home actual → objetivo)
-
-| Sección home | Clases wrapper actuales | Pattern target |
-|--------------|----------------------|----------------|
-| Hero vídeo | `.nvx-home-hero-stage`, `.nvx-brand-hero` | `.nvx-pattern-hero` |
-| Intro editorial | `.nvx-v3-intro`, `.nvx-home-editorial` | `.nvx-pattern-intro` |
-| Método | `.nvx-home-metodo-pilares` | `.nvx-pattern-method` |
-| Tratamientos | `.nvx-home-tratamientos-editorial` | `.nvx-index` |
-| Imagen feature | `.nvx-home-image-feature` | `.nvx-pattern-authority` |
-| Clínicas | `.nvx-home-clinicas-panorama` | `.nvx-pattern-clinics` |
-| Dirección | `.nvx-v3-direccion` | `.nvx-pattern-authority` |
-| FAQ | `.nvx-home-faq-editorial` | `.nvx-pattern-faq` |
-| CTA final | `.nvx-home-cta-final-band` | `.nvx-pattern-cta` |
-
----
-
-## Conteo por prefijo (clases en CSS fuente)
-
-| Prefijo | Clases únicas |
-|---------|--------------:|
-| `nvx-brand-*` | 52 |
-| `nvx-home-*` | 42 |
-| `nvx-fluid-*` | 18 |
-| `nvx-editorial-*` | 6 |
-| `nvx-header-*` / `#nvx-header` | ~30 |
-| `nvx-footer-*` | ~15 |
-
-Ver detalle machine-readable: `qa/design-system/component-classes.json`.
+El detalle de clases sigue disponible en `qa/design-system/component-classes.json`, pero los valores visuales válidos se resuelven exclusivamente desde las fuentes de verdad indicadas arriba.

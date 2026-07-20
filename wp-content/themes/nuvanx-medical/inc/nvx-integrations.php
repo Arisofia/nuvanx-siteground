@@ -180,8 +180,9 @@ require_once __DIR__ . '/nvx-navigation-filters.php';
 add_action(
 	'wp_head',
 	function (): void {
-		echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( home_url( '/' ) ) . '" />' . "\n";
-		echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( home_url( '/' ) ) . '" />' . "\n";
+		$current_url = is_front_page() ? home_url( '/' ) : home_url( wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ) );
+		echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( $current_url ) . '" />' . "\n";
+		echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";
 	},
 	1
 );
@@ -224,7 +225,7 @@ add_action(
 						],
 					],
 					'identifier'       => 'CS20144',
-					'medicalSpecialty' => 'DermatologyandSkinCare',
+					'medicalSpecialty' => 'Dermatology',
 					'priceRange'       => '€€€',
 					'image'            => 'https://nuvanx.com/wp-content/uploads/2026/06/nvx-fachada-chamberi-final-760.webp',
 					'sameAs'           => [
@@ -258,7 +259,7 @@ add_action(
 						],
 					],
 					'identifier'       => 'CS20073',
-					'medicalSpecialty' => 'DermatologyandSkinCare',
+					'medicalSpecialty' => 'Dermatology',
 					'priceRange'       => '€€€',
 					'image'            => 'https://nuvanx.com/wp-content/uploads/2026/06/nvx-fachada-goya-900.webp',
 					'sameAs'           => [
@@ -282,8 +283,7 @@ add_action(
 	function (): void {
 		// Slugs of pages that have been retired / not offered.
 		$retired_slugs = [
-			// Add any retired treatment slugs here, e.g.:
-			// 'tratamiento-retirado',
+			'tratamiento-retirado',
 		];
 
 		if ( is_singular() && in_array( get_post_field( 'post_name', get_the_ID() ), $retired_slugs, true ) ) {
@@ -336,7 +336,7 @@ add_action(
 add_filter(
 	'script_loader_tag',
 	function ( string $tag, string $handle ): string {
-		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal.min.js' ) ) {
+		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
 			return ''; // Suppress entirely.
 		}
 		return $tag;

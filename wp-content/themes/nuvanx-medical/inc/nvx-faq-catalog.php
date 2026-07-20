@@ -123,12 +123,10 @@ function nvx_get_faqpage_schema(): array {
 /**
  * Inject FAQPage node into Yoast SEO graph on the front page.
  */
-add_filter(
-	'wpseo_schema_graph',
-	function ( array $data ): array {
-		if ( is_front_page() ) {
-			$data[] = nvx_get_faqpage_schema();
-		}
-		return $data;
+function nvx_inject_faqpage_schema_graph( array $data ): array {
+	if ( is_front_page() ) {
+		$data[] = nvx_get_faqpage_schema();
 	}
-);
+	return $data;
+}
+add_filter( 'wpseo_schema_graph', 'nvx_inject_faqpage_schema_graph' );

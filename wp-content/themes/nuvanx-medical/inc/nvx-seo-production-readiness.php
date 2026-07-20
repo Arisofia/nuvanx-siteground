@@ -190,9 +190,9 @@ function nvx_seo_schema_btl_faq_node( int $page_id ): ?array {
 }
 
 /**
- * Adds clinic references and the MedicalOrganization type to the organization node.
+ * Enriches the organization node with its medical organization type and clinic references.
  *
- * @param array $graph The Schema.org graph.
+ * @param array  $graph          The Schema.org graph.
  * @param string $organization_id The organization identifier used by related nodes.
  * @return array The enriched Schema.org graph.
  */
@@ -247,12 +247,12 @@ function _nvx_seo_schema_enrich_clinics( $graph, $organization_id ) {
 }
 
 /**
- * Promotes the matching noninvasive service to a MedicalProcedure.
+ * Promotes the matching noninvasive service for the current page.
  *
  * @param array $graph The Schema.org graph.
  * @param string $current_url The canonical URL of the current page.
  * @param int $page_id The current page identifier.
- * @return array{0: array, 1: string} The updated graph and the promoted procedure identifier.
+ * @return array{0: array, 1: string} The updated graph and the promoted procedure identifier, or an empty identifier when no match is found.
  */
 function _nvx_seo_schema_promote_services( $graph, $current_url, $page_id ) {
 	$current_key = function_exists( 'nvx_schema_resolve_treatment_key' ) ? nvx_schema_resolve_treatment_key( $page_id ) : null;

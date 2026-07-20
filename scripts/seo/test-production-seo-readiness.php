@@ -59,6 +59,12 @@ function trailingslashit( $value ) { return rtrim( (string) $value, '/' ) . '/';
  * @return string The value without HTML and PHP tags.
  */
 function wp_strip_all_tags( $value ) { return strip_tags( (string) $value ); }
+/**
+ * Returns the provided value as a string for post-content sanitization.
+ *
+ * @param mixed $value The value to convert.
+ * @return string The value converted to a string.
+ */
 function wp_kses_post( $value ) { return (string) $value; }
 /**
  * Determines whether the test environment is configured as nonproduction.

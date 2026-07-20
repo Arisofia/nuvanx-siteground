@@ -1,0 +1,18 @@
+{
+  "baseUrl": "https://staging2.nuvanx.com",
+  "routes": [
+    ["home", "/"],
+    ["contacto", "/contacto/"],
+    ["clinicas", "/clinicas-de-medicina-estetica-nuvanx/"],
+    ["tratamientos", "/tratamientos/"],
+    ["endolift", "/endolift-facial-papada-mandibula/"],
+    ["laser", "/medicina-estetica-laser/"],
+    ["medicina-estetica", "/medicina-estetica/"],
+    ["equipo", "/equipo-medico/"],
+    ["blog", "/blog/"],
+    ["por-que-nuvanx", "/por-que-nuvanx/"],
+    ["inversion", "/inversion-medicina-estetica/"],
+    ["liposculpt-review", "/liposculpt-air/"],
+    ["v-lift-review", "/v-lift-awake/"]
+  ]
+}

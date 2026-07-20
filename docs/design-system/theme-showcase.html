@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NUVANX Theme Factory Showcase</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Base Metal Pulido */
+            --nvx-light: #fcfbf8;
+            --nvx-surface-base: #f8f7f4;
+            --nvx-ink: #1a1a1a;
+            --nvx-charcoal: #2b2926;
+            --nvx-text-muted: #66615c;
+            
+            /* Variantes de Acento (Marketing) */
+            --nvx-accent-sapphire: #1a365d;
+            --nvx-accent-gold: #9a8a78;
+
+            /* Tipografía */
+            --nvx-serif: 'Playfair Display', serif;
+            --nvx-sans: 'Manrope', sans-serif;
+            
+            /* Espaciado */
+            --nvx-space-2: 16px;
+            --nvx-space-4: 32px;
+            --nvx-space-6: 48px;
+        }
+
+        body {
+            background-color: var(--nvx-surface-base);
+            color: var(--nvx-ink);
+            font-family: var(--nvx-sans);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .showcase-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--nvx-light);
+            padding: 64px;
+            border-radius: 8px;
+            box-shadow: 0 16px 48px rgba(26, 26, 26, 0.06);
+        }
+
+        h1, h2, h3 {
+            font-family: var(--nvx-serif);
+            font-weight: 500;
+            color: var(--nvx-charcoal);
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+        }
+
+        h1 { font-size: 3.2rem; border-bottom: 1px solid rgba(26,26,26,0.1); padding-bottom: 24px; margin-bottom: 48px; }
+        h2 { font-size: 2.2rem; margin-top: 48px; margin-bottom: 24px; }
+        p { margin-bottom: 24px; font-size: 1.0625rem; }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .color-swatch {
+            height: 100px;
+            border-radius: 4px;
+            border: 1px solid rgba(26,26,26,0.1);
+            display: flex;
+            align-items: flex-end;
+            padding: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .swatch-light { background: var(--nvx-light); color: var(--nvx-ink); }
+        .swatch-ink { background: var(--nvx-ink); color: var(--nvx-light); }
+        .swatch-sapphire { background: var(--nvx-accent-sapphire); color: var(--nvx-light); }
+        .swatch-gold { background: var(--nvx-accent-gold); color: var(--nvx-light); }
+
+        .button-group {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+
+        .nvx-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 32px;
+            border-radius: 999px;
+            font-family: var(--nvx-sans);
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            text-decoration: none;
+            border: 1px solid transparent;
+        }
+
+        .nvx-btn--primary {
+            background-color: var(--nvx-ink);
+            color: var(--nvx-light);
+        }
+
+        .nvx-btn--sapphire {
+            background-color: var(--nvx-accent-sapphire);
+            color: var(--nvx-light);
+        }
+
+        .nvx-btn--gold {
+            background-color: transparent;
+            border-color: var(--nvx-accent-gold);
+            color: var(--nvx-accent-gold);
+        }
+    </style>
+</head>
+<body>
+    <div class="showcase-container">
+        <h1>NUVANX Theme Factory</h1>
+        <p>Este documento expone las directrices estéticas (Quiet Luxury) y las paletas extendidas autorizadas para su uso exclusivo en presentaciones de marketing, decks comerciales y diseño de stands.</p>
+        
+        <h2>1. Paleta Monotemática (Producción)</h2>
+        <div class="palette-grid">
+            <div class="color-swatch swatch-light">Light (#fcfbf8)</div>
+            <div class="color-swatch swatch-ink">Ink (#1a1a1a)</div>
+        </div>
+
+        <h2>2. Variantes de Acento (Exclusivo Marketing)</h2>
+        <p>Las variantes de acento se utilizan para jerarquizar datos clínicos o invitaciones a la acción en contextos fuera del entorno web puro.</p>
+        <div class="palette-grid">
+            <div class="color-swatch swatch-sapphire">Zafiro (#1a365d)</div>
+            <div class="color-swatch swatch-gold">Oro Suave (#9a8a78)</div>
+        </div>
+
+        <h2>3. Componentes y Tipografía</h2>
+        <p>Los botones mantienen su morfología de píldora (border-radius: 999px) y la tipografía funcional en Manrope. Los títulos permanecen en Playfair Display.</p>
+        <div class="button-group">
+            <a href="#" class="nvx-btn nvx-btn--primary">Botón Base</a>
+            <a href="#" class="nvx-btn nvx-btn--sapphire">Datos Clínicos</a>
+            <a href="#" class="nvx-btn nvx-btn--gold">Membresía</a>
+        </div>
+    </div>
+</body>
+</html>

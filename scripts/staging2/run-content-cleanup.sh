@@ -54,9 +54,12 @@ if [[ "$MODE" == "audit" ]]; then
   exit 0
 fi
 
-wp eval-file "$SCRIPT_SOURCE" --apply
+NVX_CONTENT_CLEANUP_APPLY=1 wp eval-file "$SCRIPT_SOURCE"
 wp cache flush || true
 wp sg purge || true
+
+echo "Running post-apply verification audit..."
+wp eval-file "$SCRIPT_SOURCE"
 
 HEALTH_URL="${STAGING_URL}/?content_cleanup=$(date +%s)"
 # Follow redirects so a final 2xx success is accepted; capture last status.

@@ -141,7 +141,7 @@ require_once __DIR__ . '/nvx-home-content-v2.php';
 require_once __DIR__ . '/nvx-faq-content-v2.php';
 
 /** Visible and schema review provenance, only after explicit approval metadata. */
-require_once __DIR__ . '/nvx-medical-review.php';
+	// Removed: require_once __DIR__ . '/nvx-medical-review.php';
 
 /** Temporary clinical safeguard for BTL detail pages pending source-copy sign-off. */
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';

@@ -1,64 +1,57 @@
 # Page Pattern Matrix
 
-Mapeo URL → CSS cargado → patrones de sección → deuda técnica.
+Mapeo URL → CSS terminal → patrones → deuda técnica.
 
-## URLs de captura QA (antes/después)
+## URLs de captura QA
 
-| URL | Tipo | CSS terminal | Patrones actuales | Patrones target |
-|-----|------|--------------|-------------------|-----------------|
-| `/` | Home | `nvx-brand-home` | hero-stage, v3-intro, metodo-pilares, tratamientos-editorial, image-feature, clinicas-panorama, direccion, faq-editorial, cta-final-band | hero, intro, method, index, authority, clinics, authority, faq, cta |
-| `/endolift-facial-papada-mandibula/` | Tratamiento + addon | `nvx-brand-treatment-endolift` | brand-hero--laser, brand-grid, brand-faq, brand-section--cta | hero, index, method, faq, cta |
-| `/endolaser-corporal-grasa-localizada/` | Tratamiento + addon | `nvx-brand-treatment-endolaser` | (mismo core) | idem |
-| `/laser-co2-fraccionado-madrid-textura-cicatrices-poro/` | Tratamiento + addon | `nvx-brand-treatment-co2` | (mismo core) + Source Sans 3 residual | idem |
-| `/equipo-medico/` | Brand system | `nvx-brand-system` | brand-hero, brand-grid, brand-card--team | hero, index, authority |
-| `/medicina-estetica-chamberi/` | Brand system | `nvx-brand-system` | brand-hero, brand-grid, clinic cards | hero, clinics, cta |
-| `/madrid/valoracion/` | Form P0 | `nvx-forms` | secondary-pages shell + HubSpot | pattern-form (nuevo) |
-| `/contacto/` | Form | `nvx-forms` | idem | pattern-form |
+| URL | Tipo | CSS terminal | Patrones |
+|-----|------|--------------|----------|
+| `/` | Home | `nvx-brand-home` | hero, intro, method, index, authority, clinics, FAQ, CTA |
+| `/endolift-facial-papada-mandibula/` | Tratamiento | `nvx-brand-home` + componentes | hero, index, method, FAQ, CTA |
+| `/endolaser-corporal-grasa-localizada/` | Tratamiento | `nvx-brand-home` + componentes | hero, index, method, FAQ, CTA |
+| `/laser-co2-fraccionado-madrid-textura-cicatrices-poro/` | Tratamiento | componentes | hero, index, method, FAQ, CTA |
+| `/equipo-medico/` | Autoridad | componentes | hero, cards, authority |
+| `/medicina-estetica-chamberi/` | Clínica | componentes | hero, clinics, CTA |
+| `/madrid/valoracion/` | Formulario P0 | forms + cierre canónico | form |
+| `/contacto/` | Contacto | forms + cierre canónico | clinics, maps, CTA |
 
 Viewports obligatorios: **1440×900**, **1024×768**, **390×844**.
 
----
+## Global vs página
 
-## Matriz Global vs Página
+| Capacidad | Global | Página |
+|-----------|--------|--------|
+| Paleta / `:root` | `nvx-tokens.css` | prohibido redefinir |
+| `font-family` | Playfair Display + Manrope | prohibido redefinir |
+| Escala tipográfica | tokens + `nvx-visual-system.php` | solo elegir rol |
+| Botones | `.nvx-button` y aliases | solo placement |
+| Iconos | `.nvx-icon` + escala tokenizada | solo elegir forma/rol |
+| Numeración | `.nvx-index-number` + aliases | solo contenido |
+| Media | `.nvx-media--*` | elegir rol |
+| FAQ / CTA | componentes globales | composición |
+| Header / footer | global | prohibido redefinir |
+| Orden de secciones | no | sí |
 
-| Capacidad | Global (`nvx-components` + tokens) | Solo composición página |
-|-----------|--------------------------------------|-------------------------|
-| Paleta / `:root` | ✅ `nvx-tokens.css` | ❌ prohibido |
-| `font-family` | ✅ Bodoni + Manrope | ❌ prohibido |
-| `.nvx-button` | ✅ | ❌ solo placement |
-| `.nvx-index-item__number` | ✅ | ❌ |
-| `.nvx-media--*` + `.nvx-shape--*` | ✅ | ❌ solo elección de rol |
-| `.nvx-pattern-*` layout | ✅ definición | ✅ instanciación orden secciones |
-| FAQ estructura | ✅ | ❌ |
-| CTA estructura | ✅ | ❌ |
-| Header / footer | ✅ `nvx-header/footer` | ❌ |
-| Grid hero 38/62 | ❌ | ✅ `nvx-page-home` modifier |
-| Orden secciones home | ❌ | ✅ |
-| Addon tratamiento CO2 | ❌ | ✅ mínimo (`nvx-page-treatment--co2`) |
+## Deuda permitida de compatibilidad
 
----
+Las clases históricas se mantienen solo cuando todavía aparecen en contenido persistido. Deben resolver al mismo sistema global y no contener:
 
-## Overrides detectados por página (deuda)
+- fuentes literales;
+- escalas particulares;
+- color de icono fijo;
+- números dentro de kickers o títulos;
+- botones o CTA completos redefinidos por página.
 
-| Página | Archivo | Override prohibido en target |
-|--------|---------|------------------------------|
-| Home | `nvx-brand-home.css` | `:root` completo, Playfair/Inter, botones, FAQ, CTA, media masks, kicker números |
-| Tratamientos | `nvx-brand-treatment-core.css` | Duplica brand-system: hero, cards, FAQ, CTA, grid |
-| Equipo/sedes | `nvx-brand-system.css` | Segunda copia de componentes + Playfair |
-| Formularios | `nvx-forms.css` | OK — aislado |
-| Sedes template | `nvx-sede-page.css` | Parcial duplicación layout |
-
----
-
-## Gates CI propuestos (por URL de captura)
+## Gates
 
 | Gate | Alcance |
 |------|---------|
-| `:root` tokens canónicos = 1 archivo | global |
-| `font-family` ∉ {Bodoni Moda, Manrope, Pinyon Script} | global |
-| `.nvx-brand-card__kicker` sin dígitos `01`–`99` | HTML + CSS |
-| `!important` count = 0 en CSS activo | global |
-| Marcadores legacy ausentes | global |
-| Page CSS no redefine `.nvx-button`, `.nvx-heading`, etc. | por archivo page |
-| Toda `<img>` en `#nvx-home-main` tiene clase `nvx-media--*` | HTML |
-| `scrollWidth - innerWidth = 0` | por viewport captura |
+| Un solo `:root` canónico | global |
+| Familias runtime = Playfair Display + Manrope | global |
+| Sin Bodoni Moda, Cormorant Garamond, Inter o Source Sans activos | global |
+| Sin activos SVG con color fijo | global |
+| Escala de iconos 16/24/32/40 + trazo 1.5 | global |
+| Secuencias `01`, `02`, `03` separadas del título | HTML + CSS |
+| `<ol>` editorial visible | global |
+| Sin estilos inline en componentes reutilizables | HTML |
+| `scrollWidth - innerWidth = 0` | cada viewport |

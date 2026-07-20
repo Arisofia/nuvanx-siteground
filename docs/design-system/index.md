@@ -1,43 +1,38 @@
-# Component: Index (pilares / tratamientos)
+# Componente: índice secuencial
 
-### Description
+## Uso
 
-Grid de ítems numerados `01`, `02`… para método o catálogo.
+Procesos, métodos y pasos que necesitan un orden visible `01`, `02`, `03`.
 
-### Structure
+## Estructura canónica
 
 ```html
-<section class="nvx-index nvx-pattern-method">
-  <div class="nvx-index__intro">
-    <p class="nvx-eyebrow">Método</p>
-    <h2 class="nvx-heading">…</h2>
-  </div>
-  <div class="nvx-index__items" style="--nvx-index-columns: 3">
-    <div class="nvx-index-item">
-      <a class="nvx-index-item__link" href="…">
-        <span class="nvx-index-item__number" aria-hidden="true">01</span>
-        <p class="nvx-index-item__eyebrow">…</p>
-        <h3 class="nvx-index-item__title">…</h3>
-        <p class="nvx-index-item__body">…</p>
-      </a>
-    </div>
-  </div>
-</section>
+<article class="nvx-index-item">
+  <span class="nvx-index-number" aria-hidden="true">01</span>
+  <h3 class="nvx-index-item__title">Diagnóstico antes de tecnología</h3>
+  <p class="nvx-index-item__body">…</p>
+</article>
 ```
 
-### Tokens
+El runtime también alinea las clases de proceso existentes (`__n` y counters CSS) con este mismo rol, para evitar una migración destructiva del contenido persistido.
 
-- columns: `--nvx-index-columns` (default 3)
-- gap: grid via components
-- number: serif display-like
+## Tokens
 
-### Accessibility
+- fuente: `--nvx-sans`;
+- tamaño: `--nvx-index-number-size`;
+- peso: `--nvx-index-number-weight`;
+- tracking: `--nvx-index-number-track`;
+- color: `--nvx-accent-muted`.
 
-- Número con `aria-hidden="true"` si es decorativo  
-- Enlace con nombre accesible (título dentro del link)
+## Accesibilidad
 
-### Do's and Don'ts
+- Usar `aria-hidden="true"` cuando el número sea decorativo o la estructura ya exprese el orden.
+- No insertar `1.`, `2.`, `3.` dentro del H3.
+- Para instrucciones cuyo orden sea semánticamente obligatorio, utilizar `<ol>`.
 
-| ✅ Do | ❌ Don't |
-|------|---------|
-| `nvx-index-item__number` | `.nvx-brand-card__kicker` con `01` |
+## No utilizar
+
+- `.nvx-brand-card__kicker` para numerar.
+- Bodoni grande para una secuencia de pasos.
+- Estilos inline o escalas privadas por página.
+- Ceros iniciales mezclados con números sin formato dentro del mismo patrón.

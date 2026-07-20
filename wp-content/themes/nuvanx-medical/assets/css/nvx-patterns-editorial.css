@@ -773,7 +773,7 @@ article.nvx-page > .nvx-page-hero {
 
 /* ═══════════════════════════════════════════════════════════
    ENDOLIFT EDITORIAL PAGE — authority flow
-   Hero antracita #1C1C1C · alabastro #F5E8D8 · process #C5A880
+   Treatment surfaces use the canonical palette tokens.
    ═══════════════════════════════════════════════════════════ */
 
 .nvx-endolift-hero.nvx-brand-hero,
@@ -899,7 +899,7 @@ article.nvx-page > .nvx-page-hero {
 .nvx-endolift-formula {
   margin: var(--nvx-space-6, 48px) 0;
   padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
-  border: 1px solid rgba(197, 168, 128, 0.28);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card);
   background: var(--nvx-ink);
   color: var(--nvx-text-on-dark);
@@ -1522,7 +1522,7 @@ figure.nvx-equipo-portrait,
 
 /* ═══════════════════════════════════════════════════════════
    MEDICINA ESTÉTICA LÁSER — quiet luxury authority hub
-   Antracita #1C1C1C · Alabastro #F5E8D8 · Bronce #C5A880
+   Surfaces use the canonical NUVANX palette tokens.
    Section pad: 96px mobile / 120px desktop · 8px system
    ═══════════════════════════════════════════════════════════ */
 
@@ -1733,7 +1733,7 @@ figure.nvx-equipo-portrait,
   margin: var(--nvx-space-4, 32px) 0 0;
   padding: var(--nvx-space-5, 40px) var(--nvx-space-4, 32px);
   background: var(--nvx-ink);
-  border: 1px solid rgba(197, 168, 128, 0.28);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card, 2px);
   text-align: center;
 }
@@ -1803,7 +1803,7 @@ figure.nvx-equipo-portrait,
 
 /* ═══════════════════════════════════════════════════════════
    MEDICINA ESTÉTICA — injectables & regenerative authority hub
-   Antracita #1C1C1C · Alabastro #F5E8D8 · Bronce #C5A880
+   Surfaces use the canonical NUVANX palette tokens.
    Section pad: 96px mobile / 120px desktop · 8px system
    ═══════════════════════════════════════════════════════════ */
 

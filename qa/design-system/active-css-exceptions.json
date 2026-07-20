@@ -120,7 +120,13 @@
   "importantInactive": [],
   "runtimeImportant": [],
   "undefinedTokens": [],
-  "hardcodedPixelsActive": [],
+  "hardcodedPixelsActive": [
+    {
+      "file": "nvx-tokens.css",
+      "value": "820px",
+      "line": 83
+    }
+  ],
   "hardcodedPixelsInactive": [],
   "highSpecificity": [
     {

@@ -1,10 +1,23 @@
 #!/usr/bin/env python3
-"""Rewrite the external visual closure contract for the approved architecture."""
+"""Finalize the external closure migration and rewrite its architecture contract."""
 
 from pathlib import Path
+import re
 
 ROOT = Path(__file__).resolve().parents[2]
+CLOSURE = ROOT / "wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php"
 TARGET = ROOT / "scripts/design-system/test-external-visual-closure.mjs"
+
+closure = CLOSURE.read_text(encoding="utf-8")
+contact_mobile = re.compile(
+    r"\n  \.nvx-page--contact \.nvx-clinics-grid \{\n"
+    r"    grid-template-columns: 1fr;\n"
+    r"  \}\n"
+)
+closure, mobile_count = contact_mobile.subn("\n", closure, count=1)
+if mobile_count != 1:
+    raise SystemExit(f"Expected one residual Contact mobile rule, removed {mobile_count}")
+CLOSURE.write_text(closure, encoding="utf-8")
 
 TARGET.write_text(
     r'''#!/usr/bin/env node
@@ -128,7 +141,7 @@ requireMatch(
 );
 requireMatch(
   closure,
-  /@media \(max-width: 720px\)\s*\{[\s\S]*?\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*?min-height:\s*calc\(var\(--nvx-space-12\) \* 3\)/,
+  /@media \(max-width: (?:720px|45em)\)\s*\{[\s\S]*?\.nvx-strategy-page > \.nvx-brand-hero\s*\{[\s\S]*?min-height:\s*calc\(var\(--nvx-space-12\) \* 3\)/,
   'strategy hero minimum height must shrink on narrow viewports',
 );
 

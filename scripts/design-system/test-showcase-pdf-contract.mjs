@@ -14,10 +14,22 @@ const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const exists = (relative) => fs.existsSync(path.join(root, relative));
 const failures = [];
 
+/**
+ * Records a failure when the source does not match the specified pattern.
+ * @param {string} source - The content to test.
+ * @param {RegExp} pattern - The pattern to match against the content.
+ * @param {string} message - The failure message to record.
+ */
 function requireMatch(source, pattern, message) {
   if (!pattern.test(source)) failures.push(message);
 }
 
+/**
+ * Records a failure when the source matches a prohibited pattern.
+ * @param {string} source - The content to inspect.
+ * @param {RegExp} pattern - The pattern that must not match the source.
+ * @param {string} message - The failure message to record.
+ */
 function requireAbsent(source, pattern, message) {
   if (pattern.test(source)) failures.push(message);
 }

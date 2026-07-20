@@ -119,7 +119,7 @@ add_action(
 	'template_redirect',
 	function () {
 		if ( ! is_admin() ) {
-			obs_start( 'nvx_theme_normalize_public_document' );
+			ob_start( 'nvx_theme_normalize_public_document' );
 		}
 	},
 	0

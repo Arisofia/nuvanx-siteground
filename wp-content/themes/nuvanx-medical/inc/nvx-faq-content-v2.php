@@ -71,18 +71,18 @@ function nvx_home_faq_v2_catalog(): array {
 		),
 		array(
 			'id' => 'inyectables-trazabilidad',
-			'q'  => '¿Cómo puedo saber que los productos que me aplican son originales y de calidad verificada?',
-			'a'  => 'En NUVANX el médico abre cada vial en presencia del paciente. El código de lote queda registrado en el historial clínico. Trabajamos exclusivamente con distribuidores oficiales de las marcas que empleamos. Si quieres consultar el certificado de proveedor de cualquier producto antes de firmar el presupuesto, te lo facilitamos.',
+			'q'  => '¿Cómo sé que los inyectables que me aplican son productos originales?',
+			'a'  => 'En NUVANX, el Dr. Rivera abre el vial en su presencia en todo momento. El código de lote de cada producto queda registrado en su historial clínico. Trabajamos exclusivamente con Allergan (Juvederm®, Vistabel®) y Merz Aesthetics (Belotero®, Bocouture®) con distribución oficial en España. Si desea el certificado de proveedor, se lo facilitamos antes de firmar cualquier presupuesto.',
 		),
 		array(
 			'id' => 'dolor-anestesia-laser',
-			'q'  => '¿Qué pasa con el dolor en procedimientos como Endolift® o láser CO₂ fraccionado?',
-			'a'  => 'No lo minimizamos. Los procedimientos láser y de aparatología de alta energía producen sensaciones intensas si no se aplica un protocolo anestésico adecuado. En NUVANX todos los tratamientos incluyen formulación anestésica tópica de alta concentración aplicada con tiempo suficiente antes de comenzar. Para pacientes con baja tolerancia al dolor, el equipo médico adapta el protocolo en la valoración previa.',
+			'q'  => '¿Qué pasa con el dolor en tratamientos como EXION® Fractional RF o Endolift®?',
+			'a'  => 'No minimizamos el proceso. Los tratamientos de radiofrecuencia fraccionada o láser intersticial producen sensaciones intensas si no se aplica un protocolo anestésico adecuado. En NUVANX, todos los tratamientos de aparatología incluyen formulación magistral anestésica tópica de alta concentración aplicada con tiempo suficiente de acción. Para pacientes con baja tolerancia al dolor, el Dr. Rivera evalúa un protocolo de sedación consciente. La comodidad durante el procedimiento es parte del resultado, no un extra.',
 		),
 		array(
 			'id' => 'recuperacion-real-laser',
-			'q'  => '¿Cómo es la recuperación real tras un tratamiento láser en NUVANX?',
-			'a'  => 'Depende del tratamiento y de los parámetros utilizados. Con láser CO₂ fraccionado, los primeros 3 a 5 días puede haber enrojecimiento, sensación de calor y descamación en la zona tratada. Con Endolift®, la recuperación suele ser más breve. En consulta se explican los cuidados diarios y las señales de alerta antes de decidir. El equipo está disponible durante el período de recuperación para cualquier duda.',
+			'q'  => '¿Cómo es la recuperación real después de EXION® Fractional RF o láser CO₂ fraccionado?',
+			'a'  => 'Honestamente: en las primeras 24-48 horas hay eritema (enrojecimiento), sensación de calor y pequeñas costras microscópicas en zonas de mayor densidad de energía. No es una sesión de spa. Lo que sí garantizamos es que nuestro Luxury Post-Care Protocol (factores de crecimiento EGF, mascarilla biológica post-sesión y crioterapia) reduce el eritema visible hasta un 70% en las primeras 24 horas, y el seguimiento médico continuo asegura que cualquier incidencia se resuelva de inmediato.',
 		),
 	);
 }

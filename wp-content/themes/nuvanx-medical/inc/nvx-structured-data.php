@@ -1328,7 +1328,7 @@ function nvx_schema_should_emit_physician( $page_id ) {
 
 	$path = nvx_schema_current_path( $page_id );
 
-	return nvx_schema_path_matches( $path, '/equipo-medico/' );
+	return nvx_schema_path_matches( $path, '/equipo-medico/' ) || nvx_schema_path_matches( $path, '/dr-javier-rivera-tejeda/' );
 }
 
 /**

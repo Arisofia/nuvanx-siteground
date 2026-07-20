@@ -1,33 +1,79 @@
-import puppeteer from 'puppeteer';
-import path from 'path';
-import { fileURLToPath } from 'url';
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, '../..');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
-const htmlPath = `file://${path.join(rootDir, 'docs/design-system/theme-showcase.html').replace(/\\/g, '/')}`;
-const pdfPath = path.join(rootDir, 'docs/design-system/theme-showcase.pdf');
+function readArg(name, fallback) {
+  const index = process.argv.indexOf(name);
+  return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
+}
 
-(async () => {
-    console.log('Launching browser...');
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    
-    console.log(`Loading HTML from ${htmlPath}...`);
-    await page.goto(htmlPath, { waitUntil: 'networkidle0' });
-    
-    console.log(`Generating PDF at ${pdfPath}...`);
-    await page.pdf({
-        path: pdfPath,
-        format: 'A4',
-        printBackground: true,
-        margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' }
-    });
-    
-    await browser.close();
-    console.log('PDF generated successfully!');
-})().catch(err => {
-    console.error('Error generating PDF:', err);
-    process.exit(1);
-});
+const htmlPath = path.resolve(root, readArg('--html', 'docs/design-system/theme-showcase.html'));
+const outputPath = path.resolve(root, readArg('--output', 'docs/design-system/theme-showcase.pdf'));
+
+if (!fs.existsSync(htmlPath)) {
+  throw new Error(`Showcase HTML not found: ${htmlPath}`);
+}
+
+let puppeteer;
+try {
+  ({ default: puppeteer } = await import('puppeteer'));
+} catch (error) {
+  console.error('Puppeteer is required only while generating the PDF.');
+  console.error('Run: npm install puppeteer --no-save');
+  throw error;
+}
+
+const launchOptions = {
+  headless: true,
+  args: ['--no-sandbox', '--disable-setuid-sandbox'],
+};
+if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+  launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+}
+
+const browser = await puppeteer.launch(launchOptions);
+try {
+  const page = await browser.newPage();
+  await page.goto(pathToFileURL(htmlPath).href, {
+    waitUntil: 'networkidle0',
+    timeout: 120000,
+  });
+
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+
+  const status = await page.evaluate(() => ({
+    playfair: document.fonts.check('16px "Playfair Display"'),
+    manrope: document.fonts.check('16px "Manrope"'),
+    sheets: document.querySelectorAll('.sheet').length,
+  }));
+
+  if (!status.playfair || !status.manrope) {
+    throw new Error(`Official fonts did not load: ${JSON.stringify(status)}`);
+  }
+  if (status.sheets !== 6) {
+    throw new Error(`Expected 6 showcase pages, found ${status.sheets}`);
+  }
+
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  await page.pdf({
+    path: outputPath,
+    printBackground: true,
+    preferCSSPageSize: true,
+    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+  });
+
+  const stats = fs.statSync(outputPath);
+  if (stats.size < 50_000) {
+    throw new Error(`Generated PDF is unexpectedly small (${stats.size} bytes)`);
+  }
+
+  console.log(`PASS: generated ${path.relative(root, outputPath)} (${stats.size} bytes, ${status.sheets} pages)`);
+} finally {
+  await browser.close();
+}

@@ -1,10 +1,6 @@
 <?php
 /**
- * Canonical runtime contract for colors, icon presentation and numbering.
- *
- * This module closes legacy markup at the final render boundary while the
- * reusable visual rules remain token-driven. It does not introduce page IDs,
- * private palettes or page-specific type scales.
+ * Canonical runtime contract for typography, colors, icons and numbering.
  *
  * @package nuvanx-medical
  */
@@ -17,8 +13,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Return a controlled inline SVG for assets that previously depended on
  * color-locked files or unresolved symbol sprites.
  *
- * All stroke icons share viewBox 32, currentColor and the CSS stroke token.
- *
  * @param string $name  Icon key.
  * @param string $class Space-separated classes.
  */
@@ -26,7 +20,7 @@ function nvx_visual_icon_svg( string $name, string $class = 'nvx-icon nvx-icon--
 	$icons = array(
 		'target'    => '<circle cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="6"/><path d="m12.5 16 2.2 2.2 4.8-5"/>',
 		'recovery'  => '<path d="M6 20c3-7 6-10 10-10s7 3 10 10"/><path d="M9 12c2-1.5 4-2 7-2s5 .5 7 2"/><circle cx="16" cy="22" r="2.5"/>',
-		'patient'   => '<circle cx="16" cy="10" r="5"/><path d="M7 28c1-7 4-10 9-10s8 3 9 10"/>',
+		'patient'   => '<circle cx="16" cy="10" r="5"/><path d="M7 28c1-7 4-10 9-10s8 3 9 10v5"/>',
 		'technique' => '<path d="M6 24 21 7l4 4-15 17H6v-4Z"/><path d="m18 10 4 4"/>',
 		'plan'      => '<rect x="7" y="5" width="18" height="22" rx="2"/><path d="M11 11h10M11 16h10M11 21h6"/>',
 		'harmony'   => '<path d="M5 18c3-6 7-9 11-9s8 3 11 9"/><path d="M7 22c4 3 7 4 9 4s5-1 9-4"/><circle cx="16" cy="16" r="2"/>',
@@ -43,12 +37,82 @@ function nvx_visual_icon_svg( string $name, string $class = 'nvx-icon nvx-icon--
 }
 
 /**
- * Late visual rules. Attached to the last canonical stylesheet so they replace
- * legacy private sizing without another physical CSS file or load-order branch.
+ * Late canonical rules attached to the terminal theme stylesheet.
  */
 function nvx_visual_system_css(): string {
 	return <<<'CSS'
-/* NUVANX canonical icon, color, type-role and numbering closure. */
+/* ============================================
+   NUVANX — Visual system closure
+   Typography: Playfair Display + Manrope only
+   ============================================ */
+
+/* Typography roles */
+body,
+.nvx-copy,
+.nvx-brand-body,
+.nvx-lead,
+.nvx-brand-hero__lead,
+.nvx-button,
+.nvx-btn,
+.nvx-brand-btn,
+.nvx-eyebrow,
+.nvx-brand-kicker,
+.nvx-brand-card__kicker {
+  font-family: var(--nvx-sans);
+}
+body,
+.nvx-copy,
+.nvx-brand-body {
+  font-size: var(--nvx-type-body);
+  font-weight: 400;
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+.nvx-display,
+.nvx-brand-hero__title {
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-display);
+  font-weight: var(--nvx-fw-heading);
+  line-height: var(--nvx-lh-display);
+  letter-spacing: var(--nvx-track-display);
+}
+.nvx-h1,
+.nvx-heading,
+h1 {
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h1);
+  font-weight: var(--nvx-fw-heading);
+  line-height: var(--nvx-lh-h1);
+  letter-spacing: var(--nvx-track-h1);
+}
+.nvx-h2,
+.nvx-brand-title,
+h2 {
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h2);
+  font-weight: var(--nvx-fw-heading);
+  line-height: var(--nvx-lh-h2);
+  letter-spacing: var(--nvx-track-h2);
+}
+.nvx-h3,
+.nvx-brand-subtitle,
+h3 {
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: var(--nvx-fw-heading);
+  line-height: var(--nvx-lh-h3);
+  letter-spacing: var(--nvx-track-h3);
+}
+.nvx-body { font-size: var(--nvx-type-body); }
+.nvx-small { font-size: var(--nvx-type-small); }
+.nvx-caption {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  letter-spacing: var(--nvx-track-caption);
+  text-transform: uppercase;
+}
+
+/* Icons */
 :where(
   .nvx-icon,
   .nvx-laser-icon,
@@ -87,7 +151,6 @@ function nvx_visual_system_css(): string {
   fill: currentColor;
   stroke: none;
 }
-
 .nvx-value__icon,
 .nvx-method-col__icon {
   width: var(--nvx-icon-frame);
@@ -99,6 +162,7 @@ function nvx_visual_system_css(): string {
 .nvx-benefit-icon { width: var(--nvx-icon-lg); height: var(--nvx-icon-lg); }
 .nvx-clinic-card__data .nvx-icon { margin-inline-end: var(--nvx-space-1); color: var(--nvx-accent-muted); }
 
+/* Sequential numbering */
 .nvx-index-number,
 .nvx-endolift-step__n,
 .nvx-laser-platform__n,
@@ -119,7 +183,6 @@ function nvx_visual_system_css(): string {
   inset-block-start: var(--nvx-space-3);
   inset-inline-end: var(--nvx-space-3);
 }
-
 .nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-copy) ol:not([class]) {
   list-style: decimal;
   padding-inline-start: var(--nvx-space-3);
@@ -130,6 +193,7 @@ function nvx_visual_system_css(): string {
   color: var(--nvx-accent-muted);
 }
 
+/* Benefits */
 .nvx-benefits__grid { gap: var(--nvx-space-4); }
 .nvx-benefit-item {
   gap: var(--nvx-space-2);
@@ -148,6 +212,7 @@ function nvx_visual_system_css(): string {
   color: var(--nvx-ink);
 }
 
+/* Forms */
 .nvx-hs-native-box {
   border-color: var(--nvx-color-line);
   background: var(--nvx-light);
@@ -171,10 +236,12 @@ function nvx_visual_system_css(): string {
 .nvx-form-stage .nvx-title {
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h2);
+  font-weight: var(--nvx-fw-heading);
   line-height: var(--nvx-lh-h2);
   letter-spacing: var(--nvx-track-h2);
 }
 
+/* Dark hero contrast */
 .nvx-brand-hero__copy :is(.nvx-brand-kicker, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta),
 .nvx-editorial-hero__copy :is(.nvx-brand-kicker, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta),
 .nvx-page-hero__copy :is(.nvx-brand-kicker, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta),
@@ -182,6 +249,7 @@ function nvx_visual_system_css(): string {
   color: var(--nvx-text-on-dark-72);
 }
 
+/* Site closing CTA */
 .nvx-cta-banner {
   padding-block: var(--nvx-pad-section-tight);
   background: var(--nvx-ink);
@@ -209,7 +277,7 @@ function nvx_visual_system_css(): string {
   margin: 0 auto var(--nvx-margin-h2);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h2);
-  font-weight: 400;
+  font-weight: var(--nvx-fw-heading);
   line-height: var(--nvx-lh-h2);
   letter-spacing: var(--nvx-track-h2);
   color: var(--nvx-light);
@@ -226,7 +294,7 @@ function nvx_visual_system_css(): string {
 CSS;
 }
 
-/** Add the closure after the last canonical theme stylesheet. */
+/** Add the canonical closure after the last theme stylesheet. */
 function nvx_visual_system_enqueue_css(): void {
 	$handle = wp_style_is( 'nvx-home', 'enqueued' ) ? 'nvx-home' : 'nvx-components';
 	wp_add_inline_style( $handle, nvx_visual_system_css() );

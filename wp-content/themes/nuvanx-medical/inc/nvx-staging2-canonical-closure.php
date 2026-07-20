@@ -20,15 +20,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function nvx_staging2_canonical_is_protected_review(): bool {
 	if ( ! function_exists( 'nvx_strategy_current_page_key' ) || ! function_exists( 'nvx_strategy_page_catalog' ) ) {
-		return false;
+		return true;
 	}
 
 	$key     = nvx_strategy_current_page_key();
 	$catalog = nvx_strategy_page_catalog();
 
 	return null !== $key
-		&& isset( $catalog[ $key ]['review_status'] )
-		&& 'approved_for_publication' !== $catalog[ $key ]['review_status'];
+		&& 'approved_for_publication' !== ( $catalog[ $key ]['review_status'] ?? null );
 }
 
 /**

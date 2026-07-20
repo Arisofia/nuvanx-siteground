@@ -257,8 +257,6 @@
   width: min(100%, var(--nvx-measure));
 }
 
-@media (max-width: 980px) {
-}
 
-@media (max-width: 680px) {
-}
+
+

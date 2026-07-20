@@ -100,5 +100,4 @@ body.nvx-hide-closing-cta .nvx-cta-banner { display: none; }
   .nvx-footer__logo { grid-column: 1 / -1; }
 }
 
-@media (max-width: 720px) {
-}
+

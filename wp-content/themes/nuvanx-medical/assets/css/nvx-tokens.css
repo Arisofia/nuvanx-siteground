@@ -147,9 +147,14 @@
   --nvx-type-nav-compact: 0.68rem;
   --nvx-type-nav-submenu: 0.84rem;
   --nvx-type-nav-mobile: clamp(1.5rem, 6vw, 2.25rem);
+  --nvx-type-micro:    0.6875rem;
+  --nvx-type-caption2: 0.8125rem;
+  --nvx-type-lead-lg:  1.125rem;
 
   --nvx-fw-regular: 400;
   --nvx-fw-heading: 500;
+  --nvx-fw-medium: 600;
+  --nvx-fw-bold:   700;
   --nvx-lh-display: 1.15;
   --nvx-lh-h1: 1.15;
   --nvx-lh-h2: 1.15;
@@ -172,6 +177,8 @@
   --nvx-track-nav: 0.08em;
   --nvx-track-nav-cta: 0.06em;
   --nvx-track-nav-submenu: 0.02em;
+  --nvx-track-wide: 0.22em;
+  --nvx-track-data: 0.16em;
 
   /* Sequential indices are UI labels, not display metrics */
   --nvx-index-number-size: var(--nvx-type-caption);

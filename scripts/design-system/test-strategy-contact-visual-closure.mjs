@@ -26,10 +26,10 @@ requireText(closure, '.nvx-strategy-page > .nvx-brand-section', 'strategy sectio
 
 requireText(components, '/* CONTACT CLINIC CARDS — canonical editorial grid */', 'clinic cards must live in components.css');
 requireText(components, '.nvx-page--contact .nvx-clinics-grid', 'clinic grid selector is missing');
-requireText(components, 'grid-template-columns: repeat(2, minmax(0, 1fr));', 'desktop clinic grid must use two columns');
+requireText(components, '.nvx-page--contact .nvx-clinics-grid', 'clinic grid selector must be unique — no @media duplicate');
+requireText(components, 'auto-fill, minmax(min(100%', 'clinic grid must use a single responsive auto-fill declaration');
 requireText(components, '.nvx-page--contact .nvx-clinic-card', 'clinic card component is missing');
 requireText(components, '.nvx-page--contact .nvx-clinic-card__map iframe', 'clinic map component is missing');
-requireText(components, 'grid-template-columns: 1fr;', 'mobile clinic grid must collapse to one column');
 forbidText(closure, 'Contact cards use the same shell', 'contact cards must not remain in late inline CSS');
 forbidText(components, '!important', 'clinic cards must not use !important');
 

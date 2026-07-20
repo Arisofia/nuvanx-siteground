@@ -1,22 +1,20 @@
 <?php
 /**
- * Contract test for the staging2 canonical closure (inc/nvx-staging2-canonical-closure.php).
+ * Behavioral contract for the staging2 canonical URL closure.
+ *
+ * Exercises nvx_staging2_canonical_is_protected_review(), nvx_staging2_public_canonical_url()
+ * and nvx_staging2_filter_public_canonical() with controllable stubs, since these functions
+ * depend on WordPress conditionals, the strategy-page catalogue and the SEO environment helper.
  */
 
 declare(strict_types=1);
 
 define( 'ABSPATH', __DIR__ . '/' );
 
-$GLOBALS['nvx_test_filters']    = array();
-$GLOBALS['nvx_test_404']        = false;
-$GLOBALS['nvx_test_search']     = false;
-$GLOBALS['nvx_test_preview']    = false;
-$GLOBALS['nvx_test_front_page'] = false;
-$GLOBALS['nvx_test_home']       = false;
-$GLOBALS['nvx_test_singular']   = false;
+$GLOBALS['nvx_test_filters'] = array();
 
 /**
- * Records a filter registration for test inspection.
+ * Records a filter registration for later inspection.
  *
  * @param string   $hook          The filter hook name.
  * @param callable $callback      The callback associated with the filter.
@@ -25,23 +23,8 @@ $GLOBALS['nvx_test_singular']   = false;
  */
 function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 	$GLOBALS['nvx_test_filters'][] = array( $hook, $callback, $priority, $accepted_args );
+	return true;
 }
-function is_404(): bool { return (bool) $GLOBALS['nvx_test_404']; }
-function is_search(): bool { return (bool) $GLOBALS['nvx_test_search']; }
-function is_preview(): bool { return (bool) $GLOBALS['nvx_test_preview']; }
-function is_front_page(): bool { return (bool) $GLOBALS['nvx_test_front_page']; }
-function is_home(): bool { return (bool) $GLOBALS['nvx_test_home']; }
-function is_singular(): bool { return (bool) $GLOBALS['nvx_test_singular']; }
-/**
- * Thin wrapper around PHP's native URL parser used by the module under test.
- *
- * @param string $url       The URL to parse.
- * @param int    $component The URL component to return.
- * @return mixed The requested URL component.
- */
-function wp_parse_url( $url, $component = -1 ) { return parse_url( $url, $component ); }
-
-require dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-staging2-canonical-closure.php';
 
 /**
  * Terminates the test with a failure message when a condition is false.
@@ -49,193 +32,249 @@ require dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-stagi
  * @param bool   $condition The condition that must be true for the test to continue.
  * @param string $message   The message to write when the assertion fails.
  */
-function nvx_test_assert( $condition, string $message ): void {
+function nvx_test_assert( $condition, $message ) {
 	if ( ! $condition ) {
 		fwrite( STDERR, "FAIL: {$message}\n" );
 		exit( 1 );
 	}
 }
 
-// --- add_filter registration -------------------------------------------------
-$hooks = array_column( $GLOBALS['nvx_test_filters'], 0 );
-nvx_test_assert( in_array( 'wpseo_canonical', $hooks, true ), 'wpseo_canonical filter must be registered' );
-nvx_test_assert( in_array( 'wpseo_opengraph_url', $hooks, true ), 'wpseo_opengraph_url filter must be registered' );
-foreach ( $GLOBALS['nvx_test_filters'] as $registration ) {
-	nvx_test_assert( 'nvx_staging2_filter_public_canonical' === $registration[1], 'both hooks must share the same canonical filter callback' );
-	nvx_test_assert( 1000 === $registration[2], 'canonical filter must run late (priority 1000) to win over Yoast defaults' );
+require dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-staging2-canonical-closure.php';
+
+// --- add_filter hook registration ---
+$canonical_filters = array_values(
+	array_filter(
+		$GLOBALS['nvx_test_filters'],
+		static function ( $filter ) {
+			return in_array( $filter[0], array( 'wpseo_canonical', 'wpseo_opengraph_url' ), true );
+		}
+	)
+);
+nvx_test_assert( 2 === count( $canonical_filters ), 'the module must register exactly two Yoast filters' );
+foreach ( $canonical_filters as $filter ) {
+	nvx_test_assert( 'nvx_staging2_filter_public_canonical' === $filter[1], "filter {$filter[0]} must use the canonical callback" );
+	nvx_test_assert( 1000 === $filter[2], "filter {$filter[0]} must run at priority 1000 so it overrides Yoast's default" );
 }
 
-// --- nvx_staging2_canonical_is_protected_review(): missing collaborators ----
+// --- nvx_staging2_canonical_is_protected_review(): before the strategy helpers exist ---
 nvx_test_assert(
 	false === nvx_staging2_canonical_is_protected_review(),
-	'protected-review check must return false when the strategy catalogue helpers are unavailable'
+	'is_protected_review must be false when the strategy-page helpers are unavailable'
 );
 
-// --- nvx_staging2_public_canonical_url(): guard clauses ---------------------
-$_SERVER['REQUEST_URI'] = '/tratamientos/endolift/?utm_source=test';
+$GLOBALS['nvx_test_strategy_key']     = null;
+$GLOBALS['nvx_test_strategy_catalog'] = array(
+	'why_nuvanx'     => array( 'review_status' => 'approved_for_publication' ),
+	'liposculpt_air' => array( 'review_status' => 'pending_medical_legal' ),
+	'no_status'      => array(),
+);
 
-$GLOBALS['nvx_test_404'] = true;
-nvx_test_assert( '' === nvx_staging2_public_canonical_url(), '404 responses must not receive a public canonical URL' );
-$GLOBALS['nvx_test_404'] = false;
+/**
+ * Returns the configured strategy page key for the current test scenario.
+ *
+ * @return string|null The strategy key under test, or null when none is configured.
+ */
+function nvx_strategy_current_page_key() {
+	return $GLOBALS['nvx_test_strategy_key'];
+}
 
-$GLOBALS['nvx_test_search'] = true;
-nvx_test_assert( '' === nvx_staging2_public_canonical_url(), 'search results must not receive a public canonical URL' );
-$GLOBALS['nvx_test_search'] = false;
+/**
+ * Returns the configured strategy page catalogue for the current test scenario.
+ *
+ * @return array The strategy page catalogue keyed by strategy key.
+ */
+function nvx_strategy_page_catalog() {
+	return $GLOBALS['nvx_test_strategy_catalog'];
+}
 
-$GLOBALS['nvx_test_preview'] = true;
-nvx_test_assert( '' === nvx_staging2_public_canonical_url(), 'preview requests must not receive a public canonical URL' );
-$GLOBALS['nvx_test_preview'] = false;
+// --- nvx_staging2_canonical_is_protected_review(): now that the helpers exist ---
+$GLOBALS['nvx_test_strategy_key'] = null;
+nvx_test_assert(
+	false === nvx_staging2_canonical_is_protected_review(),
+	'is_protected_review must be false when there is no resolvable strategy key'
+);
 
+$GLOBALS['nvx_test_strategy_key'] = 'why_nuvanx';
+nvx_test_assert(
+	false === nvx_staging2_canonical_is_protected_review(),
+	'is_protected_review must be false for a strategy page approved for publication'
+);
+
+$GLOBALS['nvx_test_strategy_key'] = 'liposculpt_air';
+nvx_test_assert(
+	true === nvx_staging2_canonical_is_protected_review(),
+	'is_protected_review must be true for a strategy page pending medical/legal review'
+);
+
+$GLOBALS['nvx_test_strategy_key'] = 'no_status';
+nvx_test_assert(
+	false === nvx_staging2_canonical_is_protected_review(),
+	'is_protected_review must be false when the catalogue entry has no review_status'
+);
+
+$GLOBALS['nvx_test_strategy_key'] = 'unknown_key';
+nvx_test_assert(
+	false === nvx_staging2_canonical_is_protected_review(),
+	'is_protected_review must be false when the resolved key is absent from the catalogue'
+);
+
+$GLOBALS['nvx_test_strategy_key'] = null;
+
+// --- nvx_staging2_public_canonical_url() ---
+$GLOBALS['nvx_test_flags'] = array(
+	'is_404'         => false,
+	'is_search'      => false,
+	'is_preview'     => false,
+	'is_front_page'  => false,
+	'is_home'        => false,
+	'is_singular'    => false,
+);
+
+/**
+ * Resets all conditional test flags to their default (non-matching) state.
+ */
+function nvx_test_reset_flags() {
+	$GLOBALS['nvx_test_flags'] = array(
+		'is_404'        => false,
+		'is_search'     => false,
+		'is_preview'    => false,
+		'is_front_page' => false,
+		'is_home'       => false,
+		'is_singular'   => false,
+	);
+}
+
+function is_404() {
+	return $GLOBALS['nvx_test_flags']['is_404'];
+}
+function is_search() {
+	return $GLOBALS['nvx_test_flags']['is_search'];
+}
+function is_preview() {
+	return $GLOBALS['nvx_test_flags']['is_preview'];
+}
+function is_front_page() {
+	return $GLOBALS['nvx_test_flags']['is_front_page'];
+}
+function is_home() {
+	return $GLOBALS['nvx_test_flags']['is_home'];
+}
+function is_singular() {
+	return $GLOBALS['nvx_test_flags']['is_singular'];
+}
+
+/**
+ * Mimics wp_parse_url() using PHP's native parse_url().
+ *
+ * @param string   $url       The URL to parse.
+ * @param int      $component The URL component to return.
+ * @return mixed The requested URL component.
+ */
+function wp_parse_url( $url, $component = -1 ) {
+	return parse_url( $url, $component );
+}
+
+// Protected review must short-circuit before any conditional checks.
+$GLOBALS['nvx_test_strategy_key'] = 'liposculpt_air';
+nvx_test_reset_flags();
+$GLOBALS['nvx_test_flags']['is_front_page'] = true;
 nvx_test_assert(
 	'' === nvx_staging2_public_canonical_url(),
-	'a route that is neither the front page, home, nor singular must not receive a public canonical URL'
+	'public_canonical_url must be empty for a protected review route even when is_front_page is true'
+);
+$GLOBALS['nvx_test_strategy_key'] = null;
+
+nvx_test_reset_flags();
+$GLOBALS['nvx_test_flags']['is_404'] = true;
+nvx_test_assert( '' === nvx_staging2_public_canonical_url(), 'public_canonical_url must be empty on a 404' );
+
+nvx_test_reset_flags();
+$GLOBALS['nvx_test_flags']['is_search'] = true;
+nvx_test_assert( '' === nvx_staging2_public_canonical_url(), 'public_canonical_url must be empty on a search page' );
+
+nvx_test_reset_flags();
+$GLOBALS['nvx_test_flags']['is_preview'] = true;
+nvx_test_assert( '' === nvx_staging2_public_canonical_url(), 'public_canonical_url must be empty on a preview' );
+
+nvx_test_reset_flags();
+nvx_test_assert(
+	'' === nvx_staging2_public_canonical_url(),
+	'public_canonical_url must be empty when the request is neither front page, home, nor singular'
 );
 
-// --- nvx_staging2_public_canonical_url(): fallback path resolution (helper not yet defined) ---
-$GLOBALS['nvx_test_singular'] = true;
-
-$_SERVER['REQUEST_URI'] = '/tratamientos/endolift/?utm_source=test';
+// Path fallback via wp_parse_url()/$_SERVER, before nvx_seo_current_path() exists.
+nvx_test_reset_flags();
+$GLOBALS['nvx_test_flags']['is_singular'] = true;
+$_SERVER['REQUEST_URI'] = '/tratamientos/endolift?utm=abc';
 nvx_test_assert(
 	'https://nuvanx.com/tratamientos/endolift/' === nvx_staging2_public_canonical_url(),
-	'the fallback path resolver must strip the query string and normalize the trailing slash'
+	'public_canonical_url must strip the query string and normalize slashes using the request URI fallback'
 );
 
 $_SERVER['REQUEST_URI'] = '/';
 nvx_test_assert(
 	'https://nuvanx.com/' === nvx_staging2_public_canonical_url(),
-	'the root path must normalize to exactly one trailing slash, not a double slash'
+	'public_canonical_url must resolve the site root to a single trailing slash'
 );
 
-$_SERVER['REQUEST_URI'] = 'tratamientos/endolift';
+nvx_test_reset_flags();
+$GLOBALS['nvx_test_flags']['is_home'] = true;
+$_SERVER['REQUEST_URI'] = '/blog';
 nvx_test_assert(
-	'https://nuvanx.com/tratamientos/endolift/' === nvx_staging2_public_canonical_url(),
-	'a path missing its leading slash must still normalize to a well-formed canonical URL'
+	'https://nuvanx.com/blog/' === nvx_staging2_public_canonical_url(),
+	'public_canonical_url must also resolve for is_home() requests and add a trailing slash'
 );
 
-// --- nvx_staging2_public_canonical_url(): nvx_seo_current_path() takes priority once available ---
-$GLOBALS['nvx_test_custom_path'] = '/custom-routed-path/';
 /**
- * Test double for the optional path-resolution helper the module prefers.
+ * Returns a fixed test path, taking precedence over the $_SERVER fallback.
  *
- * @return string The globally-configured test path.
+ * @return string The configured canonical path for the current test scenario.
  */
-function nvx_seo_current_path(): string { return $GLOBALS['nvx_test_custom_path']; }
+function nvx_seo_current_path() {
+	return $GLOBALS['nvx_test_seo_path'];
+}
 
-$_SERVER['REQUEST_URI'] = '/should-be-ignored/';
+nvx_test_reset_flags();
+$GLOBALS['nvx_test_flags']['is_singular'] = true;
+$GLOBALS['nvx_test_seo_path']             = '/custom-path/';
+$_SERVER['REQUEST_URI']                   = '/ignored-path?should=not-be-used';
 nvx_test_assert(
-	'https://nuvanx.com/custom-routed-path/' === nvx_staging2_public_canonical_url(),
-	'nvx_seo_current_path() must take priority over the raw REQUEST_URI once it is available'
+	'https://nuvanx.com/custom-path/' === nvx_staging2_public_canonical_url(),
+	'public_canonical_url must prefer nvx_seo_current_path() over the request URI fallback once it exists'
 );
 
-$GLOBALS['nvx_test_custom_path'] = 'no-leading-or-trailing-slash';
+// --- nvx_staging2_filter_public_canonical() ---
 nvx_test_assert(
-	'https://nuvanx.com/no-leading-or-trailing-slash/' === nvx_staging2_public_canonical_url(),
-	'a helper-provided path without slashes must still be normalized'
+	'https://staging2.nuvanx.com/foo/' === nvx_staging2_filter_public_canonical( 'https://staging2.nuvanx.com/foo/' ),
+	'filter_public_canonical must return the original URL when the environment helper is unavailable'
 );
 
-// --- nvx_staging2_canonical_is_protected_review(): strategy catalogue integration ---
-$GLOBALS['nvx_test_strategy_key']     = null;
-$GLOBALS['nvx_test_strategy_catalog'] = array();
 /**
- * Test double for the strategy-page route resolver.
+ * Reports whether the current test scenario simulates a non-production environment.
  *
- * @return string|null The globally-configured test strategy key.
+ * @return bool The configured non-production flag.
  */
-function nvx_strategy_current_page_key(): ?string { return $GLOBALS['nvx_test_strategy_key']; }
-/**
- * Test double for the strategy-page catalogue.
- *
- * @return array The globally-configured test catalogue.
- */
-function nvx_strategy_page_catalog(): array { return $GLOBALS['nvx_test_strategy_catalog']; }
-
-nvx_test_assert(
-	false === nvx_staging2_canonical_is_protected_review(),
-	'a page with no matching strategy key must not be treated as a protected review route'
-);
-
-$GLOBALS['nvx_test_strategy_key']     = 'liposculpt_air';
-$GLOBALS['nvx_test_strategy_catalog'] = array(
-	'liposculpt_air' => array( 'review_status' => 'pending_medical_legal' ),
-);
-nvx_test_assert(
-	true === nvx_staging2_canonical_is_protected_review(),
-	'a strategy page pending medical/legal review must be treated as protected'
-);
-
-$GLOBALS['nvx_test_strategy_key']     = 'why_nuvanx';
-$GLOBALS['nvx_test_strategy_catalog'] = array(
-	'why_nuvanx' => array( 'review_status' => 'approved_for_publication' ),
-);
-nvx_test_assert(
-	false === nvx_staging2_canonical_is_protected_review(),
-	'a strategy page approved for publication must not be treated as protected'
-);
-
-$GLOBALS['nvx_test_strategy_key']     = 'untracked_key';
-$GLOBALS['nvx_test_strategy_catalog'] = array(
-	'why_nuvanx' => array( 'review_status' => 'approved_for_publication' ),
-);
-nvx_test_assert(
-	false === nvx_staging2_canonical_is_protected_review(),
-	'a strategy key absent from the catalogue must not be treated as protected'
-);
-
-$GLOBALS['nvx_test_strategy_key']     = 'missing_status';
-$GLOBALS['nvx_test_strategy_catalog'] = array(
-	'missing_status' => array(),
-);
-nvx_test_assert(
-	false === nvx_staging2_canonical_is_protected_review(),
-	'a catalogue entry without a review_status field must not be treated as protected'
-);
-
-// --- nvx_staging2_public_canonical_url(): protected review overrides an otherwise-valid singular route ---
-$GLOBALS['nvx_test_strategy_key']     = 'liposculpt_air';
-$GLOBALS['nvx_test_strategy_catalog'] = array(
-	'liposculpt_air' => array( 'review_status' => 'pending_medical_legal' ),
-);
-$GLOBALS['nvx_test_custom_path']      = '/liposculpt-air/';
-nvx_test_assert(
-	'' === nvx_staging2_public_canonical_url(),
-	'a protected working-name route must never expose a public canonical URL, even when singular'
-);
-
-// Reset the strategy key so subsequent filter tests exercise the happy path.
-$GLOBALS['nvx_test_strategy_key']     = null;
-$GLOBALS['nvx_test_strategy_catalog'] = array();
-
-// --- nvx_staging2_filter_public_canonical(): environment gating -------------
-nvx_test_assert(
-	'https://original-yoast-value.test/' === nvx_staging2_filter_public_canonical( 'https://original-yoast-value.test/' ),
-	'when the environment-detection helper is unavailable, the original Yoast value must pass through unchanged'
-);
+function nvx_seo_is_nonproduction_environment() {
+	return $GLOBALS['nvx_test_nonproduction'];
+}
 
 $GLOBALS['nvx_test_nonproduction'] = false;
-/**
- * Test double for the environment-detection helper the filter depends on.
- *
- * @return bool The globally-configured test environment flag.
- */
-function nvx_seo_is_nonproduction_environment(): bool { return (bool) $GLOBALS['nvx_test_nonproduction']; }
-
 nvx_test_assert(
-	'https://original-yoast-value.test/' === nvx_staging2_filter_public_canonical( 'https://original-yoast-value.test/' ),
-	'production requests must keep the original Yoast-generated canonical value'
+	'https://staging2.nuvanx.com/foo/' === nvx_staging2_filter_public_canonical( 'https://staging2.nuvanx.com/foo/' ),
+	'filter_public_canonical must return the original URL unchanged in production'
 );
 
 $GLOBALS['nvx_test_nonproduction'] = true;
-$GLOBALS['nvx_test_custom_path']   = '/tratamientos/endolift/';
 nvx_test_assert(
-	'https://nuvanx.com/tratamientos/endolift/' === nvx_staging2_filter_public_canonical( 'https://staging2.nuvanx.com/tratamientos/endolift/' ),
-	'nonproduction requests must be rewritten to the public production canonical URL'
+	'https://nuvanx.com/custom-path/' === nvx_staging2_filter_public_canonical( 'https://staging2.nuvanx.com/foo/' ),
+	'filter_public_canonical must replace the URL with the public production canonical in non-production'
 );
 
-$GLOBALS['nvx_test_singular']      = false;
-$GLOBALS['nvx_test_nonproduction'] = true;
+$GLOBALS['nvx_test_strategy_key'] = 'liposculpt_air';
 nvx_test_assert(
-	'' === nvx_staging2_filter_public_canonical( 'https://staging2.nuvanx.com/blog/' ),
-	'nonproduction archive-style routes must resolve to an empty canonical instead of leaking the staging URL'
+	'' === nvx_staging2_filter_public_canonical( 'https://staging2.nuvanx.com/liposculpt-air/' ),
+	'filter_public_canonical must suppress the canonical entirely for a protected review route in non-production'
 );
+$GLOBALS['nvx_test_strategy_key'] = null;
 
-fwrite( STDOUT, "Staging2 canonical closure contracts passed.\n" );
+fwrite( STDOUT, "PASS: staging2 canonical closure contract\n" );

@@ -9,14 +9,14 @@ description: Diseña artefactos comerciales NUVANX (decks, PDFs, stands y piezas
 
 Esta skill gobierna la creación de materiales comerciales y de presentación para NUVANX fuera del runtime de WordPress: decks, PDFs, propuestas, stands, fichas, dossiers y prototipos de campaña.
 
-El sistema web sigue siendo monotemático. **Metal Pulido es la única identidad visual de producción.** Las variantes de acento existen únicamente como capas locales de marketing y no pueden convertirse en tokens globales, hojas de estilo del tema, opciones de WordPress o dependencias del frontend.
+El sistema web sigue siendo monotemático. **Metal Pulido es la única identidad visual de producción.** Los tokens del runtime web tienen precedencia absoluta sobre cualquier variante local. Las variantes de acento existen únicamente como capas locales de marketing y no pueden convertirse en tokens globales, hojas de estilo del tema, opciones de WordPress o dependencias del frontend.
 
 ## Regla de separación obligatoria
 
 Antes de diseñar, clasifica el artefacto:
 
-- **Runtime web**: usar exclusivamente los tokens activos del tema. No aplicar variantes.
-- **Marketing estático**: se permite una variante de acento controlada, declarada dentro del propio artefacto.
+- **Runtime web**: precedencia absoluta. Usar exclusivamente los tokens activos del tema. No aplicar variantes.
+- **Marketing estático**: se permite una variante de acento controlada, declarada estrictamente a nivel local dentro del propio artefacto, sin afectar el scope global.
 - **Prototipo o exploración**: debe mostrar una etiqueta visible `CONCEPTO - NO PRODUCCIÓN` y no puede reutilizarse como CSS del tema.
 
 Nunca edites para una pieza comercial:
@@ -64,7 +64,7 @@ La sensación debe ser clínica, editorial, precisa y discreta. Evitar brillos m
 
 ## Variantes de acento controladas
 
-Las variantes sustituyen solo el rol local de acento. No cambian tipografía, espaciado, fondos principales, jerarquía ni componentes.
+Las variantes sustituyen solo el rol local de acento. Son variables estrictamente locales y no exportables al sistema global. No cambian tipografía, espaciado, fondos principales, jerarquía ni componentes.
 
 ### Acento Zafiro
 
@@ -90,7 +90,7 @@ Uso: invitaciones, eventos premium, stands y dossiers de experiencia de marca. N
 2. Limitar el acento al 8-12% de la superficie visual.
 3. Mantener fondos, texto y estructura en Metal Pulido.
 4. Usar el acento en botones, reglas, números, etiquetas o un único bloque destacado.
-5. Verificar contraste mínimo WCAG AA para texto funcional.
+5. Verificar contraste mínimo WCAG AA (4.5:1 para texto normal, 3:1 para títulos y textos grandes) aplicable a todo tipo de texto (funcional, editorial, etiquetas, etc.).
 6. No colorear fotografías clínicas ni alterar tonos de piel para adaptarlos a la variante.
 7. No inventar versiones del logotipo. Usar el archivo oficial, sin estirar, biselar, recolorear selectivamente ni aplicar efectos.
 

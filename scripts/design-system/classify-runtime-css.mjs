@@ -18,7 +18,9 @@ const MAX_ACTIONABLE_DUPLICATE_SELECTORS = 220;
 const CANONICAL_FONT_TOKENS = new Set(['var(--nvx-serif)', 'var(--nvx-sans)']);
 
 function readJson(file) {
-	return JSON.parse(fs.readFileSync(file, 'utf8'));
+	const absolute = path.resolve(ROOT, file);
+	if (!absolute.startsWith(ROOT)) throw new Error('Path traversal detected');
+	return JSON.parse(fs.readFileSync(absolute, 'utf8'));
 }
 
 function requireMatch(source, pattern, message) {

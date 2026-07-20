@@ -97,7 +97,7 @@ $template_forbidden = array(
 	'✔'                                      => 'non-system Unicode check mark',
 	'about:blank'                            => 'invalid directions or map URL',
 	'nvx-container'                          => 'undefined legacy container instead of the canonical shell',
-	'style="border:0;"'                      => 'inline iframe border style superseded by the centralised stylesheet rule',
+	'style="border:0;"'                      => 'inline iframe border override now duplicating the external visual closure CSS contract',
 );
 foreach ( $template_forbidden as $fragment => $reason ) {
 	if ( false !== strpos( $template, $fragment ) ) {
@@ -106,8 +106,19 @@ foreach ( $template_forbidden as $fragment => $reason ) {
 	}
 }
 
-if ( 2 !== substr_count( $template, '<iframe' ) ) {
-	fwrite( STDERR, "Contact template must render exactly the Chamberí and Goya map iframes.\n" );
+if ( 3 !== substr_count( $template, 'class="nvx-shell"' ) ) {
+	fwrite( STDERR, "Contact template must use the canonical shell for all three full-width section inners.\n" );
+	exit( 1 );
+}
+
+// Both clinic map iframes must retain their canonical embed attributes now that the
+// inline border override was removed in favor of the external visual closure CSS.
+if ( 2 !== substr_count( $template, 'allowfullscreen=""' ) ) {
+	fwrite( STDERR, "Contact template must keep the allowfullscreen attribute on both clinic map iframes.\n" );
+	exit( 1 );
+}
+if ( 2 !== substr_count( $template, 'width="100%"' ) || 2 !== substr_count( $template, 'height="260"' ) ) {
+	fwrite( STDERR, "Contact template must keep the canonical iframe dimensions on both clinic maps.\n" );
 	exit( 1 );
 }
 
@@ -117,15 +128,8 @@ if ( ! is_readable( $closure_path ) ) {
 	exit( 1 );
 }
 $closure = (string) file_get_contents( $closure_path );
-if ( false === strpos( $closure, '.nvx-page--contact .nvx-clinic-card__map iframe' )
-	|| false === strpos( $closure, 'border: 0;' )
-) {
-	fwrite( STDERR, "The centralised stylesheet must own the borderless map-iframe presentation removed from the template.\n" );
-	exit( 1 );
-}
-
-if ( 3 !== substr_count( $template, 'class="nvx-shell"' ) ) {
-	fwrite( STDERR, "Contact template must use the canonical shell for all three full-width section inners.\n" );
+if ( false === strpos( $closure, '.nvx-page--contact .nvx-clinic-card__map iframe' ) ) {
+	fwrite( STDERR, "The external visual closure must supply the border-removal rule for clinic map iframes.\n" );
 	exit( 1 );
 }
 

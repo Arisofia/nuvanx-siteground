@@ -189,6 +189,13 @@ function nvx_seo_schema_btl_faq_node( int $page_id ): ?array {
 	);
 }
 
+/**
+ * Enriches the organization node with medical organization and clinic department data.
+ *
+ * @param array  $graph          The schema graph to update.
+ * @param string $organization_id The fallback organization identifier.
+ * @return array The enriched schema graph.
+ */
 function _nvx_seo_schema_enrich_organization( $graph, $organization_id ) {
 	$clinic_refs = array();
 	foreach ( $graph as $piece ) {
@@ -212,6 +219,13 @@ function _nvx_seo_schema_enrich_organization( $graph, $organization_id ) {
 	return $graph;
 }
 
+/**
+ * Enriches medical clinic nodes with organization relationships and schema defaults.
+ *
+ * @param array  $graph           The schema graph to update.
+ * @param string $organization_id The organization's schema identifier.
+ * @return array The enriched schema graph.
+ */
 function _nvx_seo_schema_enrich_clinics( $graph, $organization_id ) {
 	foreach ( $graph as $index => $piece ) {
 		$types = $piece['@type'] ?? array();
@@ -232,6 +246,14 @@ function _nvx_seo_schema_enrich_clinics( $graph, $organization_id ) {
 	return $graph;
 }
 
+/**
+ * Promotes the current page's matching service node to a noninvasive medical procedure.
+ *
+ * @param array  $graph       The schema graph to update.
+ * @param string $current_url The URL of the current page.
+ * @param int    $page_id     The current page ID used to identify the treatment.
+ * @return array{0: array, 1: string} The updated graph and the promoted node's identifier.
+ */
 function _nvx_seo_schema_promote_services( $graph, $current_url, $page_id ) {
 	$current_key = function_exists( 'nvx_schema_resolve_treatment_key' ) ? nvx_schema_resolve_treatment_key( $page_id ) : null;
 	$noninvasive_keys = array( 'exion_btl', 'exion_face', 'exion_body', 'exion_fractional', 'emfusion', 'exilite_btl' );
@@ -259,6 +281,14 @@ function _nvx_seo_schema_promote_services( $graph, $current_url, $page_id ) {
 	return array( $graph, $main_entity_id );
 }
 
+/**
+ * Links a detected entity to the matching WebPage node in a schema graph.
+ *
+ * @param array  $graph          The schema graph.
+ * @param string $current_url    The current page URL.
+ * @param string $main_entity_id The identifier of the entity to link.
+ * @return array The updated schema graph.
+ */
 function _nvx_seo_schema_link_main_entity( $graph, $current_url, $main_entity_id ) {
 	if ( '' === $main_entity_id ) {
 		return $graph;
@@ -275,12 +305,11 @@ function _nvx_seo_schema_link_main_entity( $graph, $current_url, $main_entity_id
 }
 
 /**
- * Ensures production readiness by consolidating MedicalOrganization, MedicalProcedure,
- * and FAQPage logic into the main Schema.org graph for the site.
+ * Enriches the Yoast Schema.org graph with organization, clinic, procedure, and FAQ data.
  *
- * @param array $graph The raw Schema.org graph from Yoast SEO.
- * @param mixed $context Yoast context.
- * @return array The processed graph.
+ * @param array $graph The Schema.org graph to enrich.
+ * @param mixed $context The Yoast SEO schema context.
+ * @return array The enriched Schema.org graph.
  */
 function nvx_seo_production_readiness_schema_graph( $graph, $context = null ) {
 	if ( ! is_array( $graph ) || is_admin() || is_feed() ) {

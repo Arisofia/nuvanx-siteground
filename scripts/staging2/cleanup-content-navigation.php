@@ -7,7 +7,7 @@
  *   wp eval-file /path/to/cleanup-content-navigation.php --apply
  */
 
-declare(strict_types=1);
+
 
 if (!defined('ABSPATH')) {
     fwrite(STDERR, "ERROR: run through wp eval-file.\n");

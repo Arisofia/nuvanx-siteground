@@ -804,7 +804,7 @@ add_filter( 'the_content', 'nvx_content_ensure_exion_investment', 126 );
  * Unify conversion CTAs globally in post content.
  */
 function nvx_content_unify_ctas( string $content ): string {
-	$primary_label  = 'Solicitar valoración médica';
+	$primary_label  = 'Iniciar mi valoración médica';
 	$whatsapp_label = 'Contactar por WhatsApp';
 	$valoracion_url = nvx_cta_valoracion_url();
 	$whatsapp_url   = nvx_cta_whatsapp_url();
@@ -827,15 +827,18 @@ function nvx_content_unify_ctas( string $content ): string {
 	// Label normalization for remaining anchors.
 	$label_map = array(
 		'Solicitar valoración médica personalizada' => $primary_label,
+		'Solicitar valoración médica'               => $primary_label,
 		'Solicitar valoración médica gratuita'      => $primary_label,
 		'Solicitar consulta médica personalizada'   => $primary_label,
 		'Solicitar consulta médica'                 => $primary_label,
 		'Solicitar consulta'                        => $primary_label,
+		'Solicitar información'                     => $primary_label,
 		'Agenda tu Valoración médica personalizada' => $primary_label,
 		'Pedir cita'                                => $primary_label,
 		'Reservar cita'                             => $primary_label,
 		'Valoración gratuita'                       => $primary_label,
 		'Cita online'                               => $primary_label,
+		'Enviar'                                    => $primary_label,
 		'RESERVAR CITA'                             => $primary_label,
 		'Explorar tratamientos exclusivos'          => $whatsapp_label,
 	);
@@ -846,7 +849,7 @@ function nvx_content_unify_ctas( string $content ): string {
 
 	// Primary conversion anchors → valoración URL (preserve classes).
 	$content = preg_replace_callback(
-		'/<a\b([^>]*)>(\s*Solicitar valoración médica\s*)<\/a>/iu',
+		'/<a\b([^>]*)>(\s*Iniciar mi valoración médica\s*)<\/a>/iu',
 		static function ( array $m ) use ( $valoracion_url ): string {
 			$attrs = $m[1];
 			$attrs = preg_replace( '/\s*href=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;

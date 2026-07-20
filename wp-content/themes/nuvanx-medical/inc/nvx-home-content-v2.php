@@ -20,36 +20,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_home_benefits_markup(): string {
 	return '
 <section class="nvx-brand-section nvx-benefits-section" aria-labelledby="nvx-benefits-title">
-	<div class="nvx-container" style="max-width: 1200px; margin: 0 auto; padding: 4rem 1.5rem;">
-		<header class="nvx-benefits__header" style="text-align: center; margin-bottom: 3rem;">
-			<p class="nvx-brand-kicker" style="font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--nvx-color-primary, #9a8a78); margin-bottom: 1rem; font-weight: 600;">Los beneficios</p>
-			<h2 class="nvx-brand-title" id="nvx-benefits-title" style="font-size: 2.5rem; font-weight: 300; margin-bottom: 1.5rem; color: var(--nvx-color-text, #111);">De un plan NUVANX personalizado</h2>
-			<p class="nvx-brand-lead" style="font-size: 1.125rem; line-height: 1.6; color: var(--nvx-color-text-muted, #444); max-width: 800px; margin: 0 auto;">Cuando está indicado, un procedimiento mínimamente invasivo puede ayudar a tratar depósitos de grasa localizada y mejorar el contorno. El equipo médico valora anatomía, objetivos, antecedentes y recuperación esperada antes de recomendar una técnica.</p>
+	<div class="nvx-container">
+		<header class="nvx-benefits__header">
+			<p class="nvx-brand-kicker">Los beneficios</p>
+			<h2 class="nvx-brand-title" id="nvx-benefits-title">De un plan NUVANX personalizado</h2>
+			<p class="nvx-brand-lead">Cuando está indicado, un procedimiento mínimamente invasivo puede ayudar a tratar depósitos de grasa localizada y mejorar el contorno. El equipo médico valora anatomía, objetivos, antecedentes y recuperación esperada antes de recomendar una técnica.</p>
 		</header>
-		<div class="nvx-benefits__grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/resultados-definitivos.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">OBJETIVOS REALISTAS</span>
+		<div class="nvx-benefits__grid">
+			<div class="nvx-benefit-item">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/resultados-definitivos.svg" alt="" class="nvx-benefit-icon">
+				<span class="nvx-benefit-text">OBJETIVOS REALISTAS</span>
 			</div>
-			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/recuperacion-rapida.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RECUPERACIÓN PLANIFICADA</span>
+			<div class="nvx-benefit-item">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/recuperacion-rapida.svg" alt="" class="nvx-benefit-icon">
+				<span class="nvx-benefit-text">RECUPERACIÓN PLANIFICADA</span>
 			</div>
-			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/paciente-despierto.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">ACOMPAÑAMIENTO MÉDICO</span>
+			<div class="nvx-benefit-item">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/paciente-despierto.svg" alt="" class="nvx-benefit-icon">
+				<span class="nvx-benefit-text">ACOMPAÑAMIENTO MÉDICO</span>
 			</div>
-			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/sin-bisturi.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">TÉCNICA SEGÚN INDICACIÓN</span>
+			<div class="nvx-benefit-item">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/sin-bisturi.svg" alt="" class="nvx-benefit-icon">
+				<span class="nvx-benefit-text">TÉCNICA SEGÚN INDICACIÓN</span>
 			</div>
-			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/solo-una-vez.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">PLAN PERSONALIZADO</span>
+			<div class="nvx-benefit-item">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/solo-una-vez.svg" alt="" class="nvx-benefit-icon">
+				<span class="nvx-benefit-text">PLAN PERSONALIZADO</span>
 			</div>
-			<div class="nvx-benefit-item" style="display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--nvx-color-surface, #f9f9f9); border-radius: 8px;">
-				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/efecto-natural.svg" alt="" style="width:40px; height:40px; flex-shrink:0;">
-				<span class="nvx-benefit-text" style="font-weight: 500; font-size: 1rem; letter-spacing: 0.05em; color: var(--nvx-color-text, #111);">RESULTADO ARMÓNICO</span>
+			<div class="nvx-benefit-item">
+				<img src="' . esc_url( get_stylesheet_directory_uri() ) . '/assets/images/benefits/efecto-natural.svg" alt="" class="nvx-benefit-icon">
+				<span class="nvx-benefit-text">RESULTADO ARMÓNICO</span>
 			</div>
 		</div>
 	</div>
@@ -426,3 +426,4 @@ function nvx_home_content_v2_transform( string $content ): string {
 	return is_string( $output ) && '' !== trim( $output ) ? $output : $content;
 }
 add_filter( 'the_content', 'nvx_home_content_v2_transform', 130 );
+

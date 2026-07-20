@@ -66,10 +66,10 @@ function nvx_endolaser_hero_copy_markup(): string {
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolaser-h1">' . esc_html__( 'Endoláser corporal en Madrid: grasa localizada y mejor contorno', 'nuvanx-medical' ) . '</h1>';
 	
 	// E-E-A-T Medical Authority Byline
-	$html .= '<div class="nvx-medical-byline" style="display:flex; align-items:center; gap:0.75rem; margin-top:1rem; margin-bottom:1.5rem; font-size:0.875rem; color:var(--nvx-color-text-muted, #555);">';
-	$html .= '<div class="nvx-medical-byline__text" style="line-height:1.4;">';
+	$html .= '<div class="nvx-medical-byline">';
+	$html .= '<div class="nvx-medical-byline__text">';
 	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
-	$html .= '<span style="font-size:0.85em; opacity:0.85;">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
+	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
 	$html .= '</div></div>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Láser médico para focos de grasa localizada con componente de flacidez leve–moderada (abdomen, flancos, muslos, brazos…), tras valoración y plan por zonas.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html__( 'No es un tratamiento de obesidad ni de pérdida masiva de peso. No es liposucción. Es un protocolo ambulatorio con criterios de inclusión y exclusión.', 'nuvanx-medical' ) . '</p>';

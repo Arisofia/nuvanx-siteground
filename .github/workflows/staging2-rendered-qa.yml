@@ -45,6 +45,7 @@ jobs:
           node --check scripts/staging2/rendered-qa.mjs
           node -e "JSON.parse(require('fs').readFileSync('scripts/staging2/rendered-qa-routes.json','utf8'))"
           node scripts/staging2/test-rendered-qa-contract.mjs
+          node scripts/staging2/test-runtime-qa-closure-contract.mjs
 
       - name: Install temporary browser dependency
         run: |

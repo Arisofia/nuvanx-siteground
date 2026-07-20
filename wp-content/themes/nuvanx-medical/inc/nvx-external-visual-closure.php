@@ -12,7 +12,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Return the late CSS contract for external widgets and unresolved aliases. */
+/** Non-public canonical output used by rendered QA and pre-production review. */
+require_once __DIR__ . '/nvx-staging2-canonical-closure.php';
+
+/**
+ * Provides the late-loaded CSS for external widgets and site-specific visual layouts.
+ *
+ * @return string The inline stylesheet content.
+ */
 function nvx_external_visual_closure_css(): string {
 	return <<<'CSS'
 /* NUVANX — terminal external visual closure */
@@ -87,6 +94,182 @@ summary,
   width: var(--nvx-icon-sm);
   height: var(--nvx-icon-sm);
   flex: 0 0 var(--nvx-icon-sm);
+}
+
+/* Strategy pages own one full-width editorial hierarchy. */
+.nvx-page__content > .nvx-strategy-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.nvx-strategy-page > .nvx-brand-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  max-width: none;
+  min-height: calc(var(--nvx-space-12) * 4);
+  height: auto;
+  margin: 0;
+  padding-block: var(--nvx-pad-section);
+  padding-inline: max(
+    var(--nvx-gutter-inner),
+    calc((100vw - var(--nvx-shell)) / 2 + var(--nvx-gutter-inner))
+  );
+  box-sizing: border-box;
+}
+
+.nvx-strategy-page > .nvx-brand-hero .nvx-brand-title {
+  max-width: 22ch;
+  color: var(--nvx-light);
+}
+
+.nvx-strategy-page > .nvx-brand-hero .nvx-brand-lead {
+  max-width: var(--nvx-measure-lead);
+  color: var(--nvx-surface-soft);
+}
+
+.nvx-strategy-page > .nvx-brand-section {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-strategy-page .nvx-endolift-price-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.nvx-strategy-page .nvx-endolift-price-table {
+  width: 100%;
+}
+
+/* Contact cards use the same shell, card and control contracts as treatment pages. */
+.nvx-page--contact .nvx-section--contact-hero {
+  background: var(--nvx-surface-base);
+}
+
+.nvx-page--contact .nvx-clinics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--nvx-gap-base);
+  margin-top: var(--nvx-space-6);
+}
+
+.nvx-page--contact .nvx-clinic-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-3);
+  min-width: 0;
+  padding: var(--nvx-pad-card);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-light);
+  box-shadow: var(--nvx-shadow-min);
+}
+
+.nvx-page--contact .nvx-clinic-card__header {
+  display: grid;
+  gap: var(--nvx-space-1);
+}
+
+.nvx-page--contact .nvx-clinic-card__data {
+  display: grid;
+  gap: var(--nvx-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nvx-page--contact .nvx-clinic-card__data li {
+  display: block;
+  margin: 0;
+}
+
+.nvx-page--contact .nvx-clinic-card__data .nvx-icon {
+  width: var(--nvx-icon-xs);
+  height: var(--nvx-icon-xs);
+  margin-right: var(--nvx-space-1);
+  color: var(--nvx-accent-muted);
+  vertical-align: text-bottom;
+}
+
+.nvx-page--contact .nvx-clinic-card__map {
+  overflow: hidden;
+  border-radius: var(--nvx-radius-image);
+  background: var(--nvx-surface-base);
+}
+
+.nvx-page--contact .nvx-clinic-card__map iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+}
+
+.nvx-page--contact .nvx-clinic-card > .nvx-btn {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+/* Native details controls preserve the canonical control-size interaction target. */
+.nvx-faq summary,
+.nvx-brand-faq-accordion summary,
+.nvx-home-faq-editorial summary {
+  min-height: var(--nvx-control-size);
+  box-sizing: border-box;
+}
+
+/* Closing CTA presentation formerly duplicated in markup attributes. */
+.nvx-cta-banner {
+  text-align: center;
+}
+
+.nvx-cta-banner__kicker {
+  margin-bottom: var(--nvx-space-2);
+  color: var(--nvx-accent-muted);
+  font-size: var(--nvx-type-kicker);
+  font-weight: 600;
+  letter-spacing: var(--nvx-track-kicker);
+  text-transform: uppercase;
+}
+
+.nvx-cta-banner__title {
+  margin-bottom: var(--nvx-space-3);
+  color: var(--nvx-light);
+}
+
+.nvx-cta-banner__sub {
+  margin-bottom: var(--nvx-space-4);
+  color: var(--nvx-surface-soft);
+}
+
+.nvx-cta-banner__actions {
+  justify-content: center;
+}
+
+#nvx-footer-cta {
+  font-weight: 600;
+  letter-spacing: var(--nvx-track-button);
+  text-transform: uppercase;
+}
+
+.nvx-dr-rivera-kicker {
+  margin-bottom: var(--nvx-space-2);
+}
+
+@media (max-width: 45em) {
+  .nvx-page--contact .nvx-clinics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nvx-strategy-page > .nvx-brand-hero {
+    min-height: calc(var(--nvx-space-12) * 3);
+    padding-inline: var(--nvx-gutter-inner);
+  }
 }
 CSS;
 }

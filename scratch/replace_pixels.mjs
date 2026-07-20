@@ -37,8 +37,9 @@ for (const file of files) {
   let originalContent = content;
 
   for (const { val, token } of replacements) {
-    const regex = new RegExp(`(?<=[\\s:])(${val.replace('.', '\\.')})(?=[\\s;\\n,}])`, 'g');
-    content = content.replace(regex, token);
+    const escaped = val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(^|[^\\w.-])${escaped}(?=$|[^\\w.-])`, 'g');
+    content = content.replace(regex, (_, prefix) => `${prefix}${token}`);
   }
 
   if (content !== originalContent) {

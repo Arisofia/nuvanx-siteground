@@ -20,8 +20,25 @@ function add_filter( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
 function is_admin() { return false; }
 function is_feed() { return false; }
 function is_front_page() { return false; }
+/**
+ * Builds a URL using the staging site base URL.
+ *
+ * @param string $path The path to append to the site URL.
+ * @return string The resulting staging site URL.
+ */
 function home_url( $path = '/' ) { return 'https://staging2.nuvanx.com' . ( '/' === $path ? '/' : $path ); }
+/**
+ * Retrieves the current test page identifier.
+ *
+ * @return int The configured page identifier, or 42 when none is set.
+ */
 function get_queried_object_id() { return $GLOBALS['nvx_test_page_id'] ?? 42; }
+/**
+ * Returns the staging URL for a supported treatment page.
+ *
+ * @param int $page_id The treatment page identifier.
+ * @return string The treatment URL, or an empty string for an unsupported page.
+ */
 function get_permalink( $page_id ) {
 	if ( 42 === (int) $page_id ) return 'https://staging2.nuvanx.com/exion-face/';
 	if ( 43 === (int) $page_id ) return 'https://staging2.nuvanx.com/emfusion/';
@@ -35,6 +52,12 @@ function get_permalink( $page_id ) {
  * @return string The value with trailing slashes removed and one slash appended.
  */
 function trailingslashit( $value ) { return rtrim( (string) $value, '/' ) . '/'; }
+/**
+ * Removes HTML and PHP tags from a value.
+ *
+ * @param mixed $value The value to process.
+ * @return string The value without HTML and PHP tags.
+ */
 function wp_strip_all_tags( $value ) { return strip_tags( (string) $value ); }
 function wp_kses_post( $value ) { return (string) $value; }
 /**
@@ -44,11 +67,11 @@ function wp_kses_post( $value ) { return (string) $value; }
  */
 function nvx_seo_is_nonproduction_environment() { return (bool) $GLOBALS['nvx_test_nonproduction']; }
 /**
- * Adds a schema type to a list of types when it is not already present.
+ * Adds a type to a schema type list when it is not already present.
  *
- * @param mixed  $types Existing schema type or types.
- * @param mixed  $type  Schema type to add.
- * @return array The unique, non-null schema types.
+ * @param mixed  $types Existing schema type or list of schema types.
+ * @param string $type  Type to add.
+ * @return array The filtered, reindexed schema type list.
  */
 function nvx_schema_add_type( $types, $type ) {
 	$types = is_array( $types ) ? $types : array( $types );
@@ -58,25 +81,25 @@ function nvx_schema_add_type( $types, $type ) {
 	return array_values( array_filter( $types ) );
 }
 /**
- * Determines whether a schema type is present in a type collection.
+ * Determines whether a type is present in a type collection.
  *
- * @param array|string $types The schema types to inspect.
- * @param string        $type  The schema type to find.
+ * @param array|string $types The type or types to search.
+ * @param string       $type  The type to find.
  * @return bool `true` if the type is present, `false` otherwise.
  */
 function nvx_schema_has_type( $types, $type ) { return in_array( $type, is_array( $types ) ? $types : array( $types ), true ); }
 /**
- * Locates the organization node in a schema graph.
+ * Finds the organization node in a schema graph.
  *
  * @param array $graph The schema graph to inspect.
- * @return array The organization node index and identifier.
+ * @return array The organization's graph index and identifier.
  */
 function nvx_schema_find_organization( $graph ) { return array( 'index' => 0, 'id' => 'https://staging2.nuvanx.com/#organization' ); }
 /**
- * Resolves the treatment registry key for a page.
+ * Resolves a page ID to its treatment registry key.
  *
- * @param mixed $page_id Page identifier to resolve.
- * @return string|null The treatment key, or null when the page is not recognized.
+ * @param mixed $page_id The page ID to resolve.
+ * @return string|null The treatment key, or null when the page ID is not recognized.
  */
 function nvx_schema_resolve_treatment_key( $page_id ) {
 	if ( 42 === (int) $page_id ) return 'exion_face';
@@ -85,9 +108,9 @@ function nvx_schema_resolve_treatment_key( $page_id ) {
 	return null;
 }
 /**
- * Provides treatment detail data used by the BTL schema tests.
+ * Provides registered BTL treatment details, including FAQ content.
  *
- * @return array Treatment details keyed by treatment slug, including FAQ entries.
+ * @return array Treatment details keyed by treatment slug.
  */
 function nvx_btl_detail_registry() {
 	return array(

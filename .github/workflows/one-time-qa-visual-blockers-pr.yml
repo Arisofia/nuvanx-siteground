@@ -1,0 +1,60 @@
+name: One-time QA Visual Blockers PR
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+permissions:
+  contents: write
+
+concurrency:
+  group: one-time-qa-visual-blockers-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'fix/qa-visual-blockers-plan-20260720'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - name: Apply requested plan
+        run: python3 scripts/one-time/apply-qa-visual-blockers.py
+
+      - name: Validate implementation
+        run: |
+          node --check scripts/staging2/rendered-qa.mjs
+          node scripts/staging2/test-rendered-qa-contract.mjs
+          node scripts/staging2/test-runtime-qa-closure-contract.mjs
+          node scripts/design-system/test-external-visual-closure.mjs
+          node scripts/design-system/test-strategy-contact-visual-closure.mjs
+          node scripts/design-system/audit-css.mjs
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php
+          php -l wp-content/themes/nuvanx-medical/templates/template-contact.php
+
+      - name: Commit validated changes and remove onetimers
+        env:
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          rm scripts/one-time/apply-qa-visual-blockers.py
+          rmdir scripts/one-time 2>/dev/null || true
+          rm .github/workflows/one-time-qa-visual-blockers-pr.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'fix(qa): resolve visual blocker plan'
+          git push origin "HEAD:${HEAD_BRANCH}"

@@ -1,0 +1,45 @@
+name: One-time Audit Icon Context Fix
+
+on:
+  push:
+    branches:
+      - fix/audit-icon-selector-context-20260720
+    paths:
+      - 'scripts/design-system/.patch_audit_icon_context.py'
+      - '.github/workflows/one-time-audit-icon-context-fix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/audit-icon-selector-context-20260720
+          fetch-depth: 0
+
+      - name: Apply deterministic parser patch
+        run: python3 scripts/design-system/.patch_audit_icon_context.py
+
+      - name: Validate CSS audit
+        run: node scripts/design-system/audit-css.mjs
+
+      - name: Validate visual-system contract
+        run: node scripts/design-system/test-visual-system-contract.mjs
+
+      - name: Remove one-time migration files
+        run: |
+          rm scripts/design-system/.patch_audit_icon_context.py
+          rm .github/workflows/one-time-audit-icon-context-fix.yml
+
+      - name: Commit corrected audit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/design-system/audit-css.mjs qa/design-system/active-css-exceptions.json qa/design-system/audit-summary.json
+          git add -u scripts/design-system/.patch_audit_icon_context.py .github/workflows/one-time-audit-icon-context-fix.yml
+          git commit -m "fix(audit): bind icon colors to exact normalized selectors"
+          git push origin HEAD:fix/audit-icon-selector-context-20260720

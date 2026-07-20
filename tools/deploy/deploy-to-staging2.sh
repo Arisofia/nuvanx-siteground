@@ -55,8 +55,14 @@ done
 [[ -d "$SOURCE_THEME" ]] || fail "source theme does not exist: $SOURCE_THEME"
 [[ -f "$SOURCE_THEME/style.css" ]] || fail 'source theme is missing style.css'
 [[ -f "$SOURCE_THEME/functions.php" ]] || fail 'source theme is missing functions.php'
+[[ -f "$SOURCE_THEME/assets/css/nvx-fonts.css" ]] || fail 'source theme is missing nvx-fonts.css'
 [[ -f "$SOURCE_THEME/assets/css/nvx-tokens.css" ]] || fail 'source theme is missing nvx-tokens.css'
+[[ -f "$SOURCE_THEME/assets/css/nvx-base.css" ]] || fail 'source theme is missing nvx-base.css'
+[[ -f "$SOURCE_THEME/assets/css/nvx-site-layout.css" ]] || fail 'source theme is missing nvx-site-layout.css'
+[[ -f "$SOURCE_THEME/assets/css/nvx-components.css" ]] || fail 'source theme is missing nvx-components.css'
 [[ -f "$SOURCE_THEME/assets/css/nvx-patterns-editorial.css" ]] || fail 'source theme is missing nvx-patterns-editorial.css'
+[[ -f "$SOURCE_THEME/assets/css/nvx-header.css" ]] || fail 'source theme is missing nvx-header.css'
+[[ -f "$SOURCE_THEME/assets/css/nvx-footer.css" ]] || fail 'source theme is missing nvx-footer.css'
 [[ -f "$SOURCE_THEME/inc/nvx-blog-system.php" ]] || fail 'source theme is missing nvx-blog-system.php'
 
 LIVE_THEME="$WP_ROOT/$THEME_REL"

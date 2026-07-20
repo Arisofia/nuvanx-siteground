@@ -59,47 +59,47 @@
   "stylesheetReferenceEvidence": [
     {
       "file": "nvx-fonts.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-tokens.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-base.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-site-layout.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-components.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-patterns-editorial.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-header.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-footer.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-brand-home.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-hero-blackout.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\functions.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/functions.php"
     },
     {
       "file": "nvx-posts.css",
-      "referencedBy": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-blog-system.php"
+      "referencedBy": "wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php"
     }
   ],
   "orphanStylesheets": [],
@@ -393,7 +393,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         }
       ]
@@ -408,7 +408,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         }
       ]
@@ -505,16 +505,6 @@
           "file": "nvx-brand-home.css",
           "line": 141,
           "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 306,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 509,
-          "active": true
         }
       ]
     },
@@ -528,12 +518,12 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 389,
+          "line": 370,
           "active": true
         }
       ]
@@ -548,12 +538,12 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 208,
+          "line": 189,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 395,
+          "line": 376,
           "active": true
         }
       ]
@@ -578,7 +568,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 320,
+          "line": 301,
           "active": true
         }
       ]
@@ -613,7 +603,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 325,
+          "line": 306,
           "active": true
         }
       ]
@@ -669,36 +659,6 @@
       ]
     },
     {
-      "selector": ".nvx-home-hero-ctas .nvx-brand-btn",
-      "locations": [
-        {
-          "file": "nvx-brand-home.css",
-          "line": 148,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 517,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-home-hero-ctas .nvx-button",
-      "locations": [
-        {
-          "file": "nvx-brand-home.css",
-          "line": 148,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 517,
-          "active": true
-        }
-      ]
-    },
-    {
       "selector": "body.nvx-hero-blackout :where( .nvx-brand-hero",
       "locations": [
         {
@@ -708,7 +668,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -723,7 +683,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
@@ -753,12 +713,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -773,7 +733,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
@@ -798,12 +758,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -818,7 +778,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -843,17 +803,17 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -873,12 +833,12 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -898,12 +858,12 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -918,7 +878,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -933,7 +893,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2117,
+          "line": 2094,
           "active": true
         }
       ]
@@ -948,7 +908,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2131,
+          "line": 2108,
           "active": true
         }
       ]
@@ -963,7 +923,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -1208,7 +1168,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 257,
+          "line": 256,
           "active": true
         }
       ]
@@ -1243,7 +1203,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 257,
+          "line": 256,
           "active": true
         }
       ]
@@ -1278,7 +1238,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         },
         {
@@ -1303,7 +1263,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         }
       ]
@@ -1323,7 +1283,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         }
       ]
@@ -1343,7 +1303,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         }
       ]
@@ -1363,7 +1323,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         }
       ]
@@ -1793,17 +1753,17 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 287,
+          "line": 285,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 296,
+          "line": 294,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 302,
+          "line": 300,
           "active": true
         }
       ]
@@ -1818,7 +1778,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 954,
+          "line": 931,
           "active": true
         }
       ]
@@ -1833,7 +1793,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1648,
+          "line": 1625,
           "active": true
         }
       ]
@@ -1848,7 +1808,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1924,
+          "line": 1901,
           "active": true
         }
       ]
@@ -1863,7 +1823,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1358,
+          "line": 1335,
           "active": true
         }
       ]
@@ -1878,7 +1838,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 938,
+          "line": 915,
           "active": true
         }
       ]
@@ -1893,7 +1853,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1585,
+          "line": 1562,
           "active": true
         }
       ]
@@ -1908,7 +1868,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1867,
+          "line": 1844,
           "active": true
         }
       ]
@@ -2183,12 +2143,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 329,
+          "line": 322,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 502,
+          "line": 495,
           "active": true
         }
       ]
@@ -2203,7 +2163,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 336,
+          "line": 329,
           "active": true
         }
       ]
@@ -2218,7 +2178,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 347,
+          "line": 340,
           "active": true
         }
       ]
@@ -2233,7 +2193,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 365,
+          "line": 358,
           "active": true
         }
       ]
@@ -2248,7 +2208,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 375,
+          "line": 368,
           "active": true
         }
       ]
@@ -2329,7 +2289,7 @@
       ]
     },
     {
-      "selector": ".nvx-trust-badges__inner",
+      "selector": ".nvx-ba-teaser__inner",
       "locations": [
         {
           "file": "nvx-components.css",
@@ -2338,27 +2298,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 929,
-          "active": true
-        },
-        {
-          "file": "nvx-components.css",
-          "line": 930,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-ba-teaser__inner",
-      "locations": [
-        {
-          "file": "nvx-components.css",
-          "line": 933,
-          "active": true
-        },
-        {
-          "file": "nvx-components.css",
-          "line": 940,
+          "line": 932,
           "active": true
         }
       ]
@@ -2368,12 +2308,12 @@
       "locations": [
         {
           "file": "nvx-components.css",
-          "line": 938,
+          "line": 930,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 941,
+          "line": 933,
           "active": true
         }
       ]
@@ -2383,12 +2323,12 @@
       "locations": [
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 809,
+          "line": 786,
           "active": true
         }
       ]
@@ -2398,12 +2338,27 @@
       "locations": [
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1557,
+          "line": 1534,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page--contact .nvx-clinics-grid",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 1021,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 1085,
           "active": true
         }
       ]
@@ -2733,12 +2688,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -2758,7 +2713,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 756,
+          "line": 753,
           "active": true
         }
       ]
@@ -2798,7 +2753,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -2823,7 +2778,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -2968,12 +2923,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -2993,12 +2948,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -3023,7 +2978,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 257,
+          "line": 256,
           "active": true
         }
       ]
@@ -3048,7 +3003,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 257,
+          "line": 256,
           "active": true
         }
       ]
@@ -3193,7 +3148,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 264,
+          "line": 263,
           "active": true
         }
       ]
@@ -3218,7 +3173,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 264,
+          "line": 263,
           "active": true
         }
       ]
@@ -3243,7 +3198,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 264,
+          "line": 263,
           "active": true
         }
       ]
@@ -3268,7 +3223,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 264,
+          "line": 263,
           "active": true
         }
       ]
@@ -3288,27 +3243,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 272,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-brand-hero__copy .nvx-home-hero-ctas",
-      "locations": [
-        {
-          "file": "nvx-mobile-hero-hierarchy.css",
-          "line": 84,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 219,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 272,
+          "line": 271,
           "active": true
         }
       ]
@@ -3373,7 +3308,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 272,
+          "line": 271,
           "active": true
         }
       ]
@@ -3388,7 +3323,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 280,
+          "line": 278,
           "active": true
         }
       ]
@@ -3403,7 +3338,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 280,
+          "line": 278,
           "active": true
         }
       ]
@@ -3418,7 +3353,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 280,
+          "line": 278,
           "active": true
         }
       ]
@@ -3468,52 +3403,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-cta-pair",
-      "locations": [
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 306,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 509,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-values__cta",
-      "locations": [
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 306,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 509,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-method__cta",
-      "locations": [
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 306,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 509,
+          "line": 227,
           "active": true
         }
       ]
@@ -3523,12 +3413,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 384,
+          "line": 377,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         }
       ]
@@ -3538,12 +3428,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 456,
+          "line": 449,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 502,
+          "line": 495,
           "active": true
         }
       ]
@@ -3553,12 +3443,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 525,
+          "line": 500,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         }
       ]
@@ -3568,7 +3458,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 533,
+          "line": 510,
           "active": true
         },
         {
@@ -3583,12 +3473,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 577,
+          "line": 554,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 736,
+          "line": 713,
           "active": true
         }
       ]
@@ -3598,12 +3488,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 595,
+          "line": 572,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 732,
+          "line": 709,
           "active": true
         }
       ]
@@ -3613,17 +3503,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 601,
+          "line": 578,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 743,
+          "line": 720,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 753,
+          "line": 730,
           "active": true
         }
       ]
@@ -3633,12 +3523,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 652,
+          "line": 629,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 753,
+          "line": 730,
           "active": true
         }
       ]
@@ -3648,12 +3538,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 667,
+          "line": 644,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 753,
+          "line": 730,
           "active": true
         }
       ]
@@ -3663,12 +3553,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 677,
+          "line": 654,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 758,
+          "line": 735,
           "active": true
         }
       ]
@@ -3678,12 +3568,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 709,
+          "line": 686,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 746,
+          "line": 723,
           "active": true
         }
       ]
@@ -3693,12 +3583,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 791,
+          "line": 768,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         }
       ]
@@ -3708,7 +3598,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 801,
+          "line": 778,
           "active": true
         },
         {
@@ -3723,12 +3613,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 841,
+          "line": 818,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1499,
+          "line": 1476,
           "active": true
         }
       ]
@@ -3738,12 +3628,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 885,
+          "line": 862,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -3753,12 +3643,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 912,
+          "line": 889,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1499,
+          "line": 1476,
           "active": true
         }
       ]
@@ -3768,12 +3658,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 932,
+          "line": 909,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1499,
+          "line": 1476,
           "active": true
         }
       ]
@@ -3783,12 +3673,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1145,
+          "line": 1122,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1281,
+          "line": 1258,
           "active": true
         }
       ]
@@ -3798,12 +3688,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1174,
+          "line": 1151,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1285,
+          "line": 1262,
           "active": true
         }
       ]
@@ -3813,12 +3703,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1174,
+          "line": 1151,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1285,
+          "line": 1262,
           "active": true
         }
       ]
@@ -3828,17 +3718,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1211,
+          "line": 1188,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1293,
+          "line": 1270,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1300,
+          "line": 1277,
           "active": true
         }
       ]
@@ -3848,12 +3738,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1509,
+          "line": 1486,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1762,
+          "line": 1739,
           "active": true
         }
       ]
@@ -3863,12 +3753,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1509,
+          "line": 1486,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1762,
+          "line": 1739,
           "active": true
         }
       ]
@@ -3878,17 +3768,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1539,
+          "line": 1516,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1762,
+          "line": 1739,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         }
       ]
@@ -3898,7 +3788,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1549,
+          "line": 1526,
           "active": true
         },
         {
@@ -3913,12 +3803,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1600,
+          "line": 1577,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1776,
+          "line": 1753,
           "active": true
         }
       ]
@@ -3928,12 +3818,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1626,
+          "line": 1603,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1776,
+          "line": 1753,
           "active": true
         }
       ]
@@ -3943,12 +3833,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1714,
+          "line": 1691,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -3958,12 +3848,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1786,
+          "line": 1763,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2082,
+          "line": 2059,
           "active": true
         }
       ]
@@ -3973,12 +3863,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1786,
+          "line": 1763,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2082,
+          "line": 2059,
           "active": true
         }
       ]
@@ -3988,17 +3878,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1811,
+          "line": 1788,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2082,
+          "line": 2059,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         }
       ]
@@ -4008,7 +3898,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1826,
+          "line": 1803,
           "active": true
         },
         {
@@ -4023,12 +3913,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1862,
+          "line": 1839,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         }
       ]
@@ -4038,12 +3928,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1882,
+          "line": 1859,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2096,
+          "line": 2073,
           "active": true
         }
       ]
@@ -4053,12 +3943,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1901,
+          "line": 1878,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2096,
+          "line": 2073,
           "active": true
         }
       ]
@@ -4068,12 +3958,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1989,
+          "line": 1966,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2096,
+          "line": 2073,
           "active": true
         }
       ]
@@ -4088,7 +3978,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 756,
+          "line": 753,
           "active": true
         }
       ]
@@ -4103,7 +3993,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 760,
+          "line": 757,
           "active": true
         }
       ]
@@ -4118,17 +4008,17 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 737,
+          "line": 734,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 765,
+          "line": 762,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 799,
+          "line": 796,
           "active": true
         }
       ]
@@ -4143,7 +4033,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 799,
+          "line": 796,
           "active": true
         }
       ]
@@ -4173,7 +4063,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 769,
+          "line": 766,
           "active": true
         }
       ]
@@ -4188,7 +4078,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 769,
+          "line": 766,
           "active": true
         }
       ]
@@ -4203,7 +4093,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 740,
+          "line": 737,
           "active": true
         }
       ]
@@ -4218,7 +4108,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 749,
+          "line": 746,
           "active": true
         }
       ]
@@ -4233,7 +4123,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 745,
+          "line": 742,
           "active": true
         }
       ]
@@ -4243,12 +4133,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 404,
+          "line": 399,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 740,
+          "line": 737,
           "active": true
         }
       ]
@@ -4258,12 +4148,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 422,
+          "line": 419,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 760,
+          "line": 757,
           "active": true
         }
       ]
@@ -4273,12 +4163,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 428,
+          "line": 425,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 776,
+          "line": 773,
           "active": true
         }
       ]
@@ -4288,12 +4178,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 455,
+          "line": 452,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 463,
+          "line": 460,
           "active": true
         }
       ]
@@ -4303,12 +4193,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 455,
+          "line": 452,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 474,
+          "line": 471,
           "active": true
         }
       ]
@@ -4318,12 +4208,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 455,
+          "line": 452,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 483,
+          "line": 480,
           "active": true
         }
       ]
@@ -4333,12 +4223,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 575,
+          "line": 572,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 791,
+          "line": 788,
           "active": true
         }
       ]
@@ -4348,12 +4238,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 575,
+          "line": 572,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 791,
+          "line": 788,
           "active": true
         }
       ]
@@ -4363,12 +4253,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 586,
+          "line": 583,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 595,
+          "line": 592,
           "active": true
         }
       ]
@@ -4378,12 +4268,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 684,
+          "line": 681,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 783,
+          "line": 780,
           "active": true
         }
       ]
@@ -4393,12 +4283,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 701,
+          "line": 698,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 787,
+          "line": 784,
           "active": true
         }
       ]
@@ -4413,7 +4303,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -4438,17 +4328,17 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 229,
+          "line": 210,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 310,
+          "line": 291,
           "active": true
         }
       ]
@@ -4458,12 +4348,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 389,
+          "line": 370,
           "active": true
         }
       ]
@@ -4473,12 +4363,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 389,
+          "line": 370,
           "active": true
         }
       ]
@@ -4488,12 +4378,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 389,
+          "line": 370,
           "active": true
         }
       ]
@@ -4503,12 +4393,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 208,
+          "line": 189,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 395,
+          "line": 376,
           "active": true
         }
       ]
@@ -4518,17 +4408,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 229,
+          "line": 210,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 310,
+          "line": 291,
           "active": true
         }
       ]
@@ -4538,27 +4428,27 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 229,
+          "line": 210,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 274,
+          "line": 255,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 310,
+          "line": 291,
           "active": true
         }
       ]
@@ -4568,12 +4458,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 274,
+          "line": 255,
           "active": true
         }
       ]
@@ -4583,17 +4473,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 274,
+          "line": 255,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 340,
+          "line": 321,
           "active": true
         }
       ]
@@ -4603,12 +4493,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 344,
+          "line": 325,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 400,
+          "line": 381,
           "active": true
         }
       ]
@@ -4618,17 +4508,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 350,
+          "line": 331,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -4638,17 +4528,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 352,
+          "line": 333,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -4658,17 +4548,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 353,
+          "line": 334,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -4678,17 +4568,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 354,
+          "line": 335,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -4698,17 +4588,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 355,
+          "line": 336,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -4718,12 +4608,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 356,
+          "line": 337,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -4925,7 +4815,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         }
       ]
@@ -4940,7 +4830,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         }
       ]
@@ -5037,16 +4927,6 @@
           "file": "nvx-brand-home.css",
           "line": 141,
           "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 306,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 509,
-          "active": true
         }
       ]
     },
@@ -5060,12 +4940,12 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 389,
+          "line": 370,
           "active": true
         }
       ]
@@ -5080,12 +4960,12 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 208,
+          "line": 189,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 395,
+          "line": 376,
           "active": true
         }
       ]
@@ -5110,7 +4990,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 320,
+          "line": 301,
           "active": true
         }
       ]
@@ -5145,7 +5025,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 325,
+          "line": 306,
           "active": true
         }
       ]
@@ -5201,36 +5081,6 @@
       ]
     },
     {
-      "selector": ".nvx-home-hero-ctas .nvx-brand-btn",
-      "locations": [
-        {
-          "file": "nvx-brand-home.css",
-          "line": 148,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 517,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-home-hero-ctas .nvx-button",
-      "locations": [
-        {
-          "file": "nvx-brand-home.css",
-          "line": 148,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 517,
-          "active": true
-        }
-      ]
-    },
-    {
       "selector": "body.nvx-hero-blackout :where( .nvx-brand-hero",
       "locations": [
         {
@@ -5240,7 +5090,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -5255,7 +5105,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
@@ -5285,12 +5135,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -5305,7 +5155,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
@@ -5330,12 +5180,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -5350,7 +5200,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -5375,17 +5225,17 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -5405,12 +5255,12 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -5430,12 +5280,12 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -5450,7 +5300,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 967,
+          "line": 959,
           "active": true
         }
       ]
@@ -5465,7 +5315,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2117,
+          "line": 2094,
           "active": true
         }
       ]
@@ -5480,7 +5330,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2131,
+          "line": 2108,
           "active": true
         }
       ]
@@ -5495,7 +5345,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -5740,7 +5590,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 257,
+          "line": 256,
           "active": true
         }
       ]
@@ -5775,7 +5625,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 257,
+          "line": 256,
           "active": true
         }
       ]
@@ -5810,7 +5660,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         },
         {
@@ -5835,7 +5685,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         }
       ]
@@ -5855,7 +5705,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         }
       ]
@@ -5875,7 +5725,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         }
       ]
@@ -5895,7 +5745,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         }
       ]
@@ -6325,17 +6175,17 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 287,
+          "line": 285,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 296,
+          "line": 294,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 302,
+          "line": 300,
           "active": true
         }
       ]
@@ -6350,7 +6200,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 954,
+          "line": 931,
           "active": true
         }
       ]
@@ -6365,7 +6215,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1648,
+          "line": 1625,
           "active": true
         }
       ]
@@ -6380,7 +6230,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1924,
+          "line": 1901,
           "active": true
         }
       ]
@@ -6395,7 +6245,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1358,
+          "line": 1335,
           "active": true
         }
       ]
@@ -6410,7 +6260,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 938,
+          "line": 915,
           "active": true
         }
       ]
@@ -6425,7 +6275,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1585,
+          "line": 1562,
           "active": true
         }
       ]
@@ -6440,7 +6290,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1867,
+          "line": 1844,
           "active": true
         }
       ]
@@ -6715,12 +6565,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 329,
+          "line": 322,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 502,
+          "line": 495,
           "active": true
         }
       ]
@@ -6735,7 +6585,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 336,
+          "line": 329,
           "active": true
         }
       ]
@@ -6750,7 +6600,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 347,
+          "line": 340,
           "active": true
         }
       ]
@@ -6765,7 +6615,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 365,
+          "line": 358,
           "active": true
         }
       ]
@@ -6780,7 +6630,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 375,
+          "line": 368,
           "active": true
         }
       ]
@@ -6861,7 +6711,7 @@
       ]
     },
     {
-      "selector": ".nvx-trust-badges__inner",
+      "selector": ".nvx-ba-teaser__inner",
       "locations": [
         {
           "file": "nvx-components.css",
@@ -6870,27 +6720,7 @@
         },
         {
           "file": "nvx-components.css",
-          "line": 929,
-          "active": true
-        },
-        {
-          "file": "nvx-components.css",
-          "line": 930,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-ba-teaser__inner",
-      "locations": [
-        {
-          "file": "nvx-components.css",
-          "line": 933,
-          "active": true
-        },
-        {
-          "file": "nvx-components.css",
-          "line": 940,
+          "line": 932,
           "active": true
         }
       ]
@@ -6900,12 +6730,12 @@
       "locations": [
         {
           "file": "nvx-components.css",
-          "line": 938,
+          "line": 930,
           "active": true
         },
         {
           "file": "nvx-components.css",
-          "line": 941,
+          "line": 933,
           "active": true
         }
       ]
@@ -6915,12 +6745,12 @@
       "locations": [
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 809,
+          "line": 786,
           "active": true
         }
       ]
@@ -6930,12 +6760,27 @@
       "locations": [
         {
           "file": "nvx-components.css",
-          "line": 943,
+          "line": 935,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1557,
+          "line": 1534,
+          "active": true
+        }
+      ]
+    },
+    {
+      "selector": ".nvx-page--contact .nvx-clinics-grid",
+      "locations": [
+        {
+          "file": "nvx-components.css",
+          "line": 1021,
+          "active": true
+        },
+        {
+          "file": "nvx-components.css",
+          "line": 1085,
           "active": true
         }
       ]
@@ -7265,12 +7110,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -7290,7 +7135,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 756,
+          "line": 753,
           "active": true
         }
       ]
@@ -7330,7 +7175,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -7355,7 +7200,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -7500,12 +7345,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -7525,12 +7370,12 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 235,
+          "line": 234,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 247,
+          "line": 246,
           "active": true
         }
       ]
@@ -7555,7 +7400,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 257,
+          "line": 256,
           "active": true
         }
       ]
@@ -7580,7 +7425,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 257,
+          "line": 256,
           "active": true
         }
       ]
@@ -7725,7 +7570,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 264,
+          "line": 263,
           "active": true
         }
       ]
@@ -7750,7 +7595,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 264,
+          "line": 263,
           "active": true
         }
       ]
@@ -7775,7 +7620,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 264,
+          "line": 263,
           "active": true
         }
       ]
@@ -7800,7 +7645,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 264,
+          "line": 263,
           "active": true
         }
       ]
@@ -7820,27 +7665,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 272,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-brand-hero__copy .nvx-home-hero-ctas",
-      "locations": [
-        {
-          "file": "nvx-mobile-hero-hierarchy.css",
-          "line": 84,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 219,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 272,
+          "line": 271,
           "active": true
         }
       ]
@@ -7905,7 +7730,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 272,
+          "line": 271,
           "active": true
         }
       ]
@@ -7920,7 +7745,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 280,
+          "line": 278,
           "active": true
         }
       ]
@@ -7935,7 +7760,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 280,
+          "line": 278,
           "active": true
         }
       ]
@@ -7950,7 +7775,7 @@
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 280,
+          "line": 278,
           "active": true
         }
       ]
@@ -8000,52 +7825,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-cta-pair",
-      "locations": [
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 306,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 509,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-values__cta",
-      "locations": [
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 306,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 509,
-          "active": true
-        }
-      ]
-    },
-    {
-      "selector": ".nvx-method__cta",
-      "locations": [
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 306,
-          "active": true
-        },
-        {
-          "file": "nvx-patterns-editorial.css",
-          "line": 509,
+          "line": 227,
           "active": true
         }
       ]
@@ -8055,12 +7835,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 384,
+          "line": 377,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         }
       ]
@@ -8070,12 +7850,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 456,
+          "line": 449,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 502,
+          "line": 495,
           "active": true
         }
       ]
@@ -8085,12 +7865,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 525,
+          "line": 500,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         }
       ]
@@ -8100,7 +7880,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 533,
+          "line": 510,
           "active": true
         },
         {
@@ -8115,12 +7895,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 577,
+          "line": 554,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 736,
+          "line": 713,
           "active": true
         }
       ]
@@ -8130,12 +7910,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 595,
+          "line": 572,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 732,
+          "line": 709,
           "active": true
         }
       ]
@@ -8145,17 +7925,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 601,
+          "line": 578,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 743,
+          "line": 720,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 753,
+          "line": 730,
           "active": true
         }
       ]
@@ -8165,12 +7945,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 652,
+          "line": 629,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 753,
+          "line": 730,
           "active": true
         }
       ]
@@ -8180,12 +7960,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 667,
+          "line": 644,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 753,
+          "line": 730,
           "active": true
         }
       ]
@@ -8195,12 +7975,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 677,
+          "line": 654,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 758,
+          "line": 735,
           "active": true
         }
       ]
@@ -8210,12 +7990,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 709,
+          "line": 686,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 746,
+          "line": 723,
           "active": true
         }
       ]
@@ -8225,12 +8005,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 791,
+          "line": 768,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         }
       ]
@@ -8240,7 +8020,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 801,
+          "line": 778,
           "active": true
         },
         {
@@ -8255,12 +8035,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 841,
+          "line": 818,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1499,
+          "line": 1476,
           "active": true
         }
       ]
@@ -8270,12 +8050,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 885,
+          "line": 862,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -8285,12 +8065,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 912,
+          "line": 889,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1499,
+          "line": 1476,
           "active": true
         }
       ]
@@ -8300,12 +8080,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 932,
+          "line": 909,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1499,
+          "line": 1476,
           "active": true
         }
       ]
@@ -8315,12 +8095,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1145,
+          "line": 1122,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1281,
+          "line": 1258,
           "active": true
         }
       ]
@@ -8330,12 +8110,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1174,
+          "line": 1151,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1285,
+          "line": 1262,
           "active": true
         }
       ]
@@ -8345,12 +8125,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1174,
+          "line": 1151,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1285,
+          "line": 1262,
           "active": true
         }
       ]
@@ -8360,17 +8140,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1211,
+          "line": 1188,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1293,
+          "line": 1270,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1300,
+          "line": 1277,
           "active": true
         }
       ]
@@ -8380,12 +8160,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1509,
+          "line": 1486,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1762,
+          "line": 1739,
           "active": true
         }
       ]
@@ -8395,12 +8175,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1509,
+          "line": 1486,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1762,
+          "line": 1739,
           "active": true
         }
       ]
@@ -8410,17 +8190,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1539,
+          "line": 1516,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1762,
+          "line": 1739,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         }
       ]
@@ -8430,7 +8210,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1549,
+          "line": 1526,
           "active": true
         },
         {
@@ -8445,12 +8225,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1600,
+          "line": 1577,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1776,
+          "line": 1753,
           "active": true
         }
       ]
@@ -8460,12 +8240,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1626,
+          "line": 1603,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1776,
+          "line": 1753,
           "active": true
         }
       ]
@@ -8475,12 +8255,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1714,
+          "line": 1691,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -8490,12 +8270,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1786,
+          "line": 1763,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2082,
+          "line": 2059,
           "active": true
         }
       ]
@@ -8505,12 +8285,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1786,
+          "line": 1763,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2082,
+          "line": 2059,
           "active": true
         }
       ]
@@ -8520,17 +8300,17 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1811,
+          "line": 1788,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2082,
+          "line": 2059,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         }
       ]
@@ -8540,7 +8320,7 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1826,
+          "line": 1803,
           "active": true
         },
         {
@@ -8555,12 +8335,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1862,
+          "line": 1839,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         }
       ]
@@ -8570,12 +8350,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1882,
+          "line": 1859,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2096,
+          "line": 2073,
           "active": true
         }
       ]
@@ -8585,12 +8365,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1901,
+          "line": 1878,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2096,
+          "line": 2073,
           "active": true
         }
       ]
@@ -8600,12 +8380,12 @@
       "locations": [
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 1989,
+          "line": 1966,
           "active": true
         },
         {
           "file": "nvx-patterns-editorial.css",
-          "line": 2096,
+          "line": 2073,
           "active": true
         }
       ]
@@ -8620,7 +8400,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 756,
+          "line": 753,
           "active": true
         }
       ]
@@ -8635,7 +8415,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 760,
+          "line": 757,
           "active": true
         }
       ]
@@ -8650,17 +8430,17 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 737,
+          "line": 734,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 765,
+          "line": 762,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 799,
+          "line": 796,
           "active": true
         }
       ]
@@ -8675,7 +8455,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 799,
+          "line": 796,
           "active": true
         }
       ]
@@ -8705,7 +8485,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 769,
+          "line": 766,
           "active": true
         }
       ]
@@ -8720,7 +8500,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 769,
+          "line": 766,
           "active": true
         }
       ]
@@ -8735,7 +8515,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 740,
+          "line": 737,
           "active": true
         }
       ]
@@ -8750,7 +8530,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 749,
+          "line": 746,
           "active": true
         }
       ]
@@ -8765,7 +8545,7 @@
         },
         {
           "file": "nvx-posts.css",
-          "line": 745,
+          "line": 742,
           "active": true
         }
       ]
@@ -8775,12 +8555,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 404,
+          "line": 399,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 740,
+          "line": 737,
           "active": true
         }
       ]
@@ -8790,12 +8570,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 422,
+          "line": 419,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 760,
+          "line": 757,
           "active": true
         }
       ]
@@ -8805,12 +8585,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 428,
+          "line": 425,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 776,
+          "line": 773,
           "active": true
         }
       ]
@@ -8820,12 +8600,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 455,
+          "line": 452,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 463,
+          "line": 460,
           "active": true
         }
       ]
@@ -8835,12 +8615,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 455,
+          "line": 452,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 474,
+          "line": 471,
           "active": true
         }
       ]
@@ -8850,12 +8630,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 455,
+          "line": 452,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 483,
+          "line": 480,
           "active": true
         }
       ]
@@ -8865,12 +8645,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 575,
+          "line": 572,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 791,
+          "line": 788,
           "active": true
         }
       ]
@@ -8880,12 +8660,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 575,
+          "line": 572,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 791,
+          "line": 788,
           "active": true
         }
       ]
@@ -8895,12 +8675,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 586,
+          "line": 583,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 595,
+          "line": 592,
           "active": true
         }
       ]
@@ -8910,12 +8690,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 684,
+          "line": 681,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 783,
+          "line": 780,
           "active": true
         }
       ]
@@ -8925,12 +8705,12 @@
       "locations": [
         {
           "file": "nvx-posts.css",
-          "line": 701,
+          "line": 698,
           "active": true
         },
         {
           "file": "nvx-posts.css",
-          "line": 787,
+          "line": 784,
           "active": true
         }
       ]
@@ -8945,7 +8725,7 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         }
       ]
@@ -8970,17 +8750,17 @@
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 229,
+          "line": 210,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 310,
+          "line": 291,
           "active": true
         }
       ]
@@ -8990,12 +8770,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 389,
+          "line": 370,
           "active": true
         }
       ]
@@ -9005,12 +8785,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 389,
+          "line": 370,
           "active": true
         }
       ]
@@ -9020,12 +8800,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 196,
+          "line": 177,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 389,
+          "line": 370,
           "active": true
         }
       ]
@@ -9035,12 +8815,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 208,
+          "line": 189,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 395,
+          "line": 376,
           "active": true
         }
       ]
@@ -9050,17 +8830,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 229,
+          "line": 210,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 310,
+          "line": 291,
           "active": true
         }
       ]
@@ -9070,27 +8850,27 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 214,
+          "line": 195,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 229,
+          "line": 210,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 274,
+          "line": 255,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 310,
+          "line": 291,
           "active": true
         }
       ]
@@ -9100,12 +8880,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 274,
+          "line": 255,
           "active": true
         }
       ]
@@ -9115,17 +8895,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 246,
+          "line": 227,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 274,
+          "line": 255,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 340,
+          "line": 321,
           "active": true
         }
       ]
@@ -9135,12 +8915,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 344,
+          "line": 325,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 400,
+          "line": 381,
           "active": true
         }
       ]
@@ -9150,17 +8930,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 350,
+          "line": 331,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -9170,17 +8950,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 352,
+          "line": 333,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -9190,17 +8970,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 353,
+          "line": 334,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -9210,17 +8990,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 354,
+          "line": 335,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -9230,17 +9010,17 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 355,
+          "line": 336,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 379,
+          "line": 360,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -9250,12 +9030,12 @@
       "locations": [
         {
           "file": "nvx-site-layout.css",
-          "line": 356,
+          "line": 337,
           "active": true
         },
         {
           "file": "nvx-site-layout.css",
-          "line": 404,
+          "line": 385,
           "active": true
         }
       ]
@@ -9529,49 +9309,33 @@
     {
       "file": "nvx-components.css",
       "property": "font-family",
-      "value": "var(--nvx-serif)",
-      "line": 927,
-      "index": 30082,
-      "selector": ".nvx-trust-badge__number"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
       "value": "var(--nvx-sans)",
       "line": 928,
-      "index": 30249,
-      "selector": ".nvx-trust-badge__label"
-    },
-    {
-      "file": "nvx-components.css",
-      "property": "font-family",
-      "value": "var(--nvx-sans)",
-      "line": 936,
-      "index": 30931,
+      "index": 30059,
       "selector": ".nvx-ba-teaser__kicker"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 937,
-      "index": 31154,
+      "line": 929,
+      "index": 30282,
       "selector": ".nvx-ba-teaser__title"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 938,
-      "index": 31347,
+      "line": 930,
+      "index": 30475,
       "selector": ".nvx-ba-teaser__body"
     },
     {
       "file": "nvx-components.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1007,
-      "index": 32751,
+      "line": 999,
+      "index": 31879,
       "selector": ".nvx-check-list li"
     },
     {
@@ -9690,512 +9454,512 @@
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 370,
-      "index": 8676,
+      "line": 363,
+      "index": 8515,
       "selector": ".nvx-value__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 380,
-      "index": 8874,
+      "line": 373,
+      "index": 8713,
       "selector": ".nvx-value__body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 411,
-      "index": 9672,
+      "line": 404,
+      "index": 9511,
       "selector": ".nvx-home-protocol__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 420,
-      "index": 9900,
+      "line": 413,
+      "index": 9739,
       "selector": ".nvx-home-protocol__lead"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 438,
-      "index": 10302,
+      "line": 431,
+      "index": 10141,
       "selector": ".nvx-home-protocol__fact dt"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 448,
-      "index": 10541,
+      "line": 441,
+      "index": 10380,
       "selector": ".nvx-home-protocol__fact dd"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 488,
-      "index": 11410,
+      "line": 481,
+      "index": 11249,
       "selector": ".nvx-method-col__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 496,
-      "index": 11561,
+      "line": 489,
+      "index": 11400,
       "selector": ".nvx-method-col__body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 552,
-      "index": 12739,
+      "line": 529,
+      "index": 12250,
       "selector": ".nvx-catalog__kicker"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 562,
-      "index": 12996,
+      "line": 539,
+      "index": 12507,
       "selector": ".nvx-catalog__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 573,
-      "index": 13223,
+      "line": 550,
+      "index": 12734,
       "selector": ".nvx-catalog__lead"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 589,
-      "index": 13627,
+      "line": 566,
+      "index": 13138,
       "selector": ".nvx-catalog-category__label"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 623,
-      "index": 14523,
+      "line": 600,
+      "index": 14034,
       "selector": ".nvx-catalog-card__meta"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 633,
-      "index": 14772,
+      "line": 610,
+      "index": 14283,
       "selector": ".nvx-catalog-card__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 644,
-      "index": 15026,
+      "line": 621,
+      "index": 14537,
       "selector": ".nvx-catalog-card__body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 659,
-      "index": 15357,
+      "line": 636,
+      "index": 14868,
       "selector": ".nvx-catalog-card__cta"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 702,
-      "index": 16478,
+      "line": 679,
+      "index": 15989,
       "selector": ".nvx-logo-cloud__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 724,
-      "index": 16993,
+      "line": 701,
+      "index": 16504,
       "selector": ".nvx-logo-cloud__item"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 813,
-      "index": 18945,
+      "line": 790,
+      "index": 18456,
       "selector": ".nvx-endolift-kicker"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 824,
-      "index": 19223,
+      "line": 801,
+      "index": 18734,
       "selector": ".nvx-endolift-heading"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 833,
-      "index": 19445,
+      "line": 810,
+      "index": 18956,
       "selector": ".nvx-endolift-body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 859,
-      "index": 20092,
+      "line": 836,
+      "index": 19603,
       "selector": ".nvx-endolift-panel-label"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 876,
-      "index": 20444,
+      "line": 853,
+      "index": 19955,
       "selector": ".nvx-endolift-panel-list li"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 899,
-      "index": 21080,
+      "line": 876,
+      "index": 20591,
       "selector": ".nvx-endolift-formula__eq"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 908,
-      "index": 21296,
+      "line": 885,
+      "index": 20807,
       "selector": ".nvx-endolift-formula__cap"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 928,
-      "index": 21802,
+      "line": 905,
+      "index": 21313,
       "selector": ".nvx-endolift-effect__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 960,
-      "index": 22444,
+      "line": 937,
+      "index": 21955,
       "selector": ".nvx-endolift-step__n"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 970,
-      "index": 22718,
+      "line": 947,
+      "index": 22229,
       "selector": ".nvx-endolift-step__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 986,
-      "index": 23087,
+      "line": 963,
+      "index": 22598,
       "selector": ".nvx-endolift-reviewed"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 999,
-      "index": 23399,
+      "line": 976,
+      "index": 22910,
       "selector": ".nvx-endolift-price"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1011,
-      "index": 23731,
+      "line": 988,
+      "index": 23242,
       "selector": ".nvx-endolift-price-includes"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1082,
-      "index": 25745,
+      "line": 1059,
+      "index": 25256,
       "selector": ".nvx-contact-clinic__name"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1094,
-      "index": 26045,
+      "line": 1071,
+      "index": 25556,
       "selector": ".nvx-contact-clinic__reg, .nvx-contact-clinic__addr, .nvx-contact-clinic__phone, .nvx-contact-clinic__days"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1103,
-      "index": 26280,
+      "line": 1080,
+      "index": 25791,
       "selector": ".nvx-contact-disclaimer"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1317,
-      "index": 31624,
+      "line": 1294,
+      "index": 31135,
       "selector": ".nvx-equipo-blockquote p"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1325,
-      "index": 31803,
+      "line": 1302,
+      "index": 31314,
       "selector": ".nvx-equipo-blockquote footer"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1363,
-      "index": 32630,
+      "line": 1340,
+      "index": 32141,
       "selector": ".nvx-co2-timeline__n"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1373,
-      "index": 32903,
+      "line": 1350,
+      "index": 32414,
       "selector": ".nvx-co2-timeline__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1398,
-      "index": 33522,
+      "line": 1375,
+      "index": 33033,
       "selector": ".nvx-endolaser-zone__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1416,
-      "index": 33905,
+      "line": 1393,
+      "index": 33416,
       "selector": ".nvx-endolift-compare-table"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1455,
-      "index": 34852,
+      "line": 1432,
+      "index": 34363,
       "selector": ".nvx-endolift-price-table"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1561,
-      "index": 37132,
+      "line": 1538,
+      "index": 36643,
       "selector": ".nvx-laser-kicker"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1572,
-      "index": 37407,
+      "line": 1549,
+      "index": 36918,
       "selector": ".nvx-laser-heading"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1581,
-      "index": 37626,
+      "line": 1558,
+      "index": 37137,
       "selector": ".nvx-laser-body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1616,
-      "index": 38373,
+      "line": 1593,
+      "index": 37884,
       "selector": ".nvx-laser-pillar__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1652,
-      "index": 39167,
+      "line": 1629,
+      "index": 38678,
       "selector": ".nvx-laser-platform__n"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1662,
-      "index": 39442,
+      "line": 1639,
+      "index": 38953,
       "selector": ".nvx-laser-platform__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1673,
-      "index": 39674,
+      "line": 1650,
+      "index": 39185,
       "selector": ".nvx-laser-platform__link"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1696,
-      "index": 40303,
+      "line": 1673,
+      "index": 39814,
       "selector": ".nvx-laser-meta-label"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1727,
-      "index": 41128,
+      "line": 1704,
+      "index": 40639,
       "selector": ".nvx-laser-formula__eq"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1753,
-      "index": 41684,
+      "line": 1730,
+      "index": 41195,
       "selector": ".nvx-laser-formula__cap"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1838,
-      "index": 43158,
+      "line": 1815,
+      "index": 42669,
       "selector": ".nvx-aes-kicker"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1849,
-      "index": 43431,
+      "line": 1826,
+      "index": 42942,
       "selector": ".nvx-aes-heading"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1858,
-      "index": 43648,
+      "line": 1835,
+      "index": 43159,
       "selector": ".nvx-aes-body"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1897,
-      "index": 44485,
+      "line": 1874,
+      "index": 43996,
       "selector": ".nvx-aes-pillar__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1927,
-      "index": 45111,
+      "line": 1904,
+      "index": 44622,
       "selector": ".nvx-aes-card__n"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 1937,
-      "index": 45380,
+      "line": 1914,
+      "index": 44891,
       "selector": ".nvx-aes-card__title"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1951,
-      "index": 45804,
+      "line": 1928,
+      "index": 45315,
       "selector": ".nvx-aes-card__meta dt"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1965,
-      "index": 46090,
+      "line": 1942,
+      "index": 45601,
       "selector": ".nvx-aes-card__meta dd"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 1976,
-      "index": 46329,
+      "line": 1953,
+      "index": 45840,
       "selector": ".nvx-aes-card__link"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 2006,
-      "index": 47092,
+      "line": 1983,
+      "index": 46603,
       "selector": ".nvx-aes-meta-label"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 2023,
-      "index": 47421,
+      "line": 2000,
+      "index": 46932,
       "selector": ".nvx-aes-panel-list li"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 2048,
-      "index": 48009,
+      "line": 2025,
+      "index": 47520,
       "selector": ".nvx-aes-formula__eq"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 2075,
-      "index": 48552,
+      "line": 2052,
+      "index": 48063,
       "selector": ".nvx-aes-formula__cap"
     },
     {
@@ -10306,72 +10070,72 @@
       "file": "nvx-posts.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 437,
-      "index": 9865,
+      "line": 434,
+      "index": 9791,
       "selector": ".nvx-blog-prose"
     },
     {
       "file": "nvx-posts.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 469,
-      "index": 10608,
+      "line": 466,
+      "index": 10534,
       "selector": ".nvx-blog-prose h2"
     },
     {
       "file": "nvx-posts.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 478,
-      "index": 10843,
+      "line": 475,
+      "index": 10769,
       "selector": ".nvx-blog-prose h3"
     },
     {
       "file": "nvx-posts.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 487,
-      "index": 11076,
+      "line": 484,
+      "index": 11002,
       "selector": ".nvx-blog-prose h4"
     },
     {
       "file": "nvx-posts.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 653,
-      "index": 14856,
+      "line": 650,
+      "index": 14782,
       "selector": ".nvx-blog-article__notice"
     },
     {
       "file": "nvx-posts.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 673,
-      "index": 15388,
+      "line": 670,
+      "index": 15314,
       "selector": ".nvx-blog-article__terms a"
     },
     {
       "file": "nvx-posts.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 709,
-      "index": 16195,
+      "line": 706,
+      "index": 16121,
       "selector": ".nvx-blog-nav__label"
     },
     {
       "file": "nvx-posts.css",
       "property": "font-family",
       "value": "var(--nvx-serif)",
-      "line": 718,
-      "index": 16416,
+      "line": 715,
+      "index": 16342,
       "selector": ".nvx-blog-nav__title"
     },
     {
       "file": "nvx-site-layout.css",
       "property": "font-family",
       "value": "var(--nvx-sans)",
-      "line": 316,
-      "index": 6573,
+      "line": 297,
+      "index": 6043,
       "selector": ".nvx-content-figure figcaption, .nvx-main :is(.nvx-prose, .nvx-page__content, .entry-content, .nvx-brand-section__inner) figcaption"
     }
   ],
@@ -10397,40 +10161,40 @@
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0 0.35em 0.15em",
-      "line": 1742,
-      "index": 41479,
+      "line": 1719,
+      "index": 40990,
       "selector": ".nvx-laser-formula__num"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0.15em 0.35em 0",
-      "line": 1747,
-      "index": 41590,
+      "line": 1724,
+      "index": 41101,
       "selector": ".nvx-laser-formula__den"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "margin",
       "value": "0 0.15em",
-      "line": 2060,
-      "index": 48304,
+      "line": 2037,
+      "index": 47815,
       "selector": ".nvx-aes-formula__frac"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0 0.35em 0.15em",
-      "line": 2064,
-      "index": 48351,
+      "line": 2041,
+      "index": 47862,
       "selector": ".nvx-aes-formula__num"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "padding",
       "value": "0.15em 0.35em 0",
-      "line": 2069,
-      "index": 48460,
+      "line": 2046,
+      "index": 47971,
       "selector": ".nvx-aes-formula__den"
     }
   ],
@@ -10456,9 +10220,17 @@
       "file": "nvx-components.css",
       "property": "color",
       "value": "var(--nvx-text-on-dark-72)",
-      "line": 961,
-      "index": 31914,
+      "line": 953,
+      "index": 31042,
       "selector": ":where( .nvx-home-action-banner, .nvx-home-cta-final-band, .nvx-cta-banner, .nvx-catalog-close, .nvx-endolift-action, .nvx-laser-action, .nvx-aes-action ) :is( .nvx-eyebrow, .nvx-brand-kicker, .nvx-endolift-kicker, .nvx-laser-kicker, .nvx-aes-kicker )"
+    },
+    {
+      "file": "nvx-components.css",
+      "property": "color",
+      "value": "var(--nvx-accent-muted)",
+      "line": 1064,
+      "index": 33328,
+      "selector": ".nvx-page--contact .nvx-clinic-card__data .nvx-icon"
     },
     {
       "file": "nvx-header.css",
@@ -10472,96 +10244,84 @@
       "file": "nvx-patterns-editorial.css",
       "property": "color",
       "value": "var(--nvx-ink)",
-      "line": 356,
-      "index": 8410,
+      "line": 349,
+      "index": 8249,
       "selector": ".nvx-value__icon"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "color",
       "value": "var(--nvx-accent-muted)",
-      "line": 478,
-      "index": 11245,
+      "line": 471,
+      "index": 11084,
       "selector": ".nvx-method-col__icon"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "color",
       "value": "var(--nvx-accent-muted)",
-      "line": 946,
-      "index": 22206,
+      "line": 923,
+      "index": 21717,
       "selector": ".nvx-endolift-step__icon"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "color",
       "value": "var(--nvx-accent-muted)",
-      "line": 1592,
-      "index": 37914,
+      "line": 1569,
+      "index": 37425,
       "selector": ".nvx-laser-icon"
     },
     {
       "file": "nvx-patterns-editorial.css",
       "property": "color",
       "value": "var(--nvx-accent-muted)",
-      "line": 1874,
-      "index": 44035,
+      "line": 1851,
+      "index": 43546,
       "selector": ".nvx-aes-icon"
     },
     {
       "file": "nvx-posts.css",
       "property": "color",
       "value": "var(--nvx-accent-muted)",
-      "line": 526,
-      "index": 11874,
+      "line": 523,
+      "index": 11800,
       "selector": ".nvx-blog-prose li::marker"
     }
   ],
   "inconsistentIconColors": [],
   "inlineStyles": [
     {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-clinics-hub.php",
+      "file": "wp-content/themes/nuvanx-medical/inc/nvx-clinics-hub.php",
       "line": 764
     },
     {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
+      "file": "wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php",
       "line": 89
     },
     {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
+      "file": "wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php",
       "line": 92
     },
     {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
+      "file": "wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php",
       "line": 93
     },
     {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
+      "file": "wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php",
       "line": 94
     },
     {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
+      "file": "wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php",
       "line": 96
     },
     {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
+      "file": "wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php",
       "line": 98
     },
     {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-content-presentation.php",
+      "file": "wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php",
       "line": 1169
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\inc\\nvx-dr-rivera-page.php",
-      "line": 59
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\templates\\template-contact.php",
-      "line": 98
-    },
-    {
-      "file": "wp-content\\themes\\nuvanx-medical\\templates\\template-contact.php",
-      "line": 135
     }
   ],
   "embeddedStyleTags": []

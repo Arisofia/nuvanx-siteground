@@ -107,7 +107,7 @@ function nvx_strategy_protocol_review_markup( string $key ): string {
 		return '';
 	}
 
-	return '<article class="nvx-brand-readable nvx-strategy-page nvx-strategy-page--review">'
+	return '<article class="nvx-brand-readable nvx-strategy-page nvx-strategy-page--review nvx-shell">'
 		. '<header class="nvx-brand-hero"><p class="nvx-brand-kicker">NUVANX · revisión clínica y jurídica</p>'
 		. '<h1 class="nvx-brand-title">' . esc_html( $page['title'] ) . '</h1>'
 		. '<p class="nvx-brand-lead">Protocolo en evaluación. Esta denominación de trabajo no constituye una técnica ofrecida, una indicación médica ni una promesa de resultado.</p></header>'
@@ -298,7 +298,7 @@ function nvx_strategy_investment_markup(): string {
 	$groups        = nvx_strategy_verified_investment_groups();
 	$valuation_url = esc_url( home_url( '/madrid/valoracion/' ) );
 
-	$html  = '<article class="nvx-brand-readable nvx-strategy-page">';
+	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<header class="nvx-brand-hero">'
 		. '<p class="nvx-brand-kicker">Inversión en medicina estética · NUVANX Madrid</p>'
 		. '<h1 class="nvx-brand-title">El presupuesto forma parte de una decisión informada.</h1>'

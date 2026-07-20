@@ -193,6 +193,22 @@ function nvx_exclude_sensitive_pages_from_sitemap_ids( $excluded_ids ) {
 add_filter( 'wpseo_exclude_from_sitemap_by_post_ids', 'nvx_exclude_sensitive_pages_from_sitemap_ids' );
 
 /**
+ * Exclude sensitive pages from the WordPress Core XML sitemap.
+ *
+ * @param array  $args      Query arguments for the sitemap posts query.
+ * @param string $post_type Post type name.
+ * @return array
+ */
+function nvx_exclude_sensitive_pages_from_core_sitemap( $args, $post_type ) {
+	$excluded = nvx_noindex_page_ids();
+	if ( ! empty( $excluded ) ) {
+		$args['post__not_in'] = isset( $args['post__not_in'] ) ? array_merge( (array) $args['post__not_in'], $excluded ) : $excluded;
+	}
+	return $args;
+}
+add_filter( 'wp_sitemaps_posts_query_args', 'nvx_exclude_sensitive_pages_from_core_sitemap', 10, 2 );
+
+/**
  * Belt-and-suspenders: drop sitemap entries for sensitive pages.
  *
  * @param array|false $url  Sitemap URL array or false to exclude.

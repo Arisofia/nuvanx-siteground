@@ -27,7 +27,7 @@ $required = array(
 	'exilite',
 	'equipo',
 	'por_que_nuvanx',
-	'investment',
+	'inversion',
 	'valoracion',
 	'blog',
 );

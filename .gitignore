@@ -7,6 +7,8 @@ wp-config.php
 *.pem
 *.key
 *.crt
+*.yaml
+*.yml
 # Offline Issue 45 recovery public key is intentionally tracked (private key stays offline).
 !docs/security/issue45-backup-public-key.pem
 

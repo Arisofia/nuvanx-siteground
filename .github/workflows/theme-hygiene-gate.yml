@@ -1,0 +1,57 @@
+name: Theme Hygiene Gate
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/**'
+      - 'scripts/theme-hygiene/**'
+      - '.github/workflows/theme-hygiene-gate.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/**'
+      - 'scripts/theme-hygiene/**'
+      - '.github/workflows/theme-hygiene-gate.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: theme-hygiene-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+
+      - name: Lint workflow and contract
+        run: |
+          set -euo pipefail
+          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
+          node --check scripts/theme-hygiene/test-theme-hygiene.mjs
+
+      - name: Lint all theme PHP
+        run: |
+          set -euo pipefail
+          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 \
+            | xargs -0 -n 1 php -l
+
+      - name: Enforce canonical theme hygiene
+        run: node scripts/theme-hygiene/test-theme-hygiene.mjs
+
+      - name: Upload hygiene findings
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: theme-hygiene-findings
+          path: theme-hygiene-report.txt
+          retention-days: 14
+          if-no-files-found: error

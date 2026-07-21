@@ -8,8 +8,8 @@
 .nvx-cta-banner__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--nvx-space-2);
   justify-content: center;
+  gap: var(--nvx-space-2);
 }
 
 .nvx-cta-banner__title {
@@ -40,13 +40,13 @@
   line-height: var(--nvx-lh-kicker);
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
-  color: var(--nvx-accent-muted);
+  color: var(--nvx-text-on-dark-72);
 }
 
-#nvx-footer-cta {
-  text-transform: uppercase;
-  letter-spacing: var(--nvx-track-kicker);
+.nvx-cta-banner__actions > .nvx-btn--light {
   font-weight: 600;
+  letter-spacing: var(--nvx-track-kicker);
+  text-transform: uppercase;
 }
 
 .nvx-footer {
@@ -56,7 +56,29 @@
   border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
-.nvx-footer__logo .nvx-logo { display: inline-flex; }
+.nvx-footer__inner {
+  display: grid;
+  width: var(--nvx-shell);
+  max-width: 100%;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--nvx-space-6) var(--nvx-space-4);
+  margin-inline: auto;
+  margin-bottom: var(--nvx-space-4);
+  padding-inline: var(--nvx-gutter-inner);
+  padding-bottom: var(--nvx-space-6);
+  box-sizing: border-box;
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+
+.nvx-footer__logo,
+.nvx-footer__col {
+  grid-column: span 3;
+  min-width: 0;
+}
+
+.nvx-footer__logo .nvx-logo {
+  display: inline-flex;
+}
 
 .nvx-footer__col-title {
   margin: 0 0 var(--nvx-space-2);
@@ -67,6 +89,15 @@
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
   color: var(--nvx-accent-muted);
+}
+
+.nvx-footer__links,
+.nvx-footer__legal-links {
+  display: grid;
+  gap: var(--nvx-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .nvx-footer a {
@@ -94,10 +125,23 @@
   color: var(--nvx-text-muted);
 }
 
-body.nvx-hide-closing-cta .nvx-cta-banner { display: none; }
-
 @media (max-width: 980px) {
-  .nvx-footer__logo { grid-column: 1 / -1; }
+  .nvx-footer__logo {
+    grid-column: 1 / -1;
+  }
+
+  .nvx-footer__col {
+    grid-column: span 4;
+  }
 }
 
+@media (max-width: 640px) {
+  .nvx-footer__inner {
+    gap: var(--nvx-space-4);
+  }
 
+  .nvx-footer__logo,
+  .nvx-footer__col {
+    grid-column: 1 / -1;
+  }
+}

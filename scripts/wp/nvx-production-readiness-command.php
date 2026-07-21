@@ -71,7 +71,10 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Returns a page by slug regardless of publication status.
+	 * Finds a page by its path slug regardless of publication status.
+	 *
+	 * @param string $slug The page path slug.
+	 * @return WP_Post|null The matching page, or null if no page is found.
 	 */
 	private function page_by_slug( string $slug ): ?WP_Post {
 		$page = get_page_by_path( $slug, OBJECT, 'page' );
@@ -135,9 +138,10 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Determines whether audit rows satisfy the migration contract.
+	 * Checks whether audit rows meet the migration requirements.
 	 *
-	 * @param array<int,array<string,string|int>> $rows Audit rows.
+	 * @param array<int,array<string,string|int>> $rows Audit rows to evaluate.
+	 * @return bool `true` if all rows satisfy the migration contract, `false` otherwise.
 	 */
 	private function is_clean( array $rows ): bool {
 		foreach ( $rows as $row ) {
@@ -155,7 +159,7 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Acquires an atomic migration lock.
+	 * Acquires the migration lock and registers its cleanup on shutdown.
 	 */
 	private function acquire_lock(): void {
 		$now      = time();
@@ -183,16 +187,16 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Audits approved, retired and unpublished pages.
+	 * Audits approved and governed pages against the production-readiness requirements.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--format=<format>]
-	 * : table or json. Default: table.
+	 * : Output format, either table or json. Default: table.
 	 *
 	 * [--allow-pending]
-	 * : Report pending changes without returning a failing exit code. Intended
-	 *   only for the pre-apply audit in the protected staging2 workflow.
+	 * : Report pending changes without returning a failing exit code.
+	 *   Intended for pre-apply audits in the protected staging2 workflow.
 	 */
 	public function audit( array $args, array $assoc_args ): void {
 		$rows   = $this->audit_rows();
@@ -210,7 +214,7 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Applies the migration and runs the audit again.
+	 * Applies the approved-page migration, retires governed pages, and verifies the resulting site state.
 	 *
 	 * ## OPTIONS
 	 *
@@ -218,7 +222,7 @@ final class NVX_Production_Readiness_Command {
 	 * : Must be exactly "retire-prototypes".
 	 *
 	 * [--allow-production]
-	 * : Required when the WordPress host is nuvanx.com.
+	 * : Required when the WordPress host is nuvanx.com or www.nuvanx.com.
 	 */
 	public function apply( array $args, array $assoc_args ): void {
 		$confirmation = isset( $assoc_args['confirm'] ) ? (string) $assoc_args['confirm'] : '';

@@ -268,9 +268,14 @@ for (const page of pages) {
       `https://nuvanx.com${page.path}`,
       `https://www.nuvanx.com${page.path}`,
     ]);
-    const canonicalTarget = result.canonical || result.og_url;
-    if (!allowedCanonicalTargets.has(canonicalTarget)) {
-      fail(scope, `canonical/og:url is ${canonicalTarget || 'absent'} and does not match the expected page path on an allowed NUVANX host`);
+    for (const [label, target] of [
+      ['canonical', result.canonical],
+      ['og:url', result.og_url],
+    ]) {
+      if (!allowedCanonicalTargets.has(target)) {
+        fail(scope, `${label} is ${target || 'absent'} and does not match the expected page path on an allowed NUVANX host`);
+      }
+    }
     }
 
     for (const schemaType of page.schemaTypes) {

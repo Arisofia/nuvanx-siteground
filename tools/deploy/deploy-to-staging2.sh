@@ -6,6 +6,7 @@ set -Eeuo pipefail
 
 EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
 EXPECTED_URL='https://staging2.nuvanx.com'
+BACKUP_ROOT='/home/customer/backups-nuvanx/staging2'
 THEME_REL='wp-content/themes/nuvanx-medical'
 WP_ROOT=''
 SOURCE_THEME=''
@@ -143,16 +144,19 @@ bash -n "$SMOKE_SCRIPT" || fail 'smoke script syntax validation failed'
 
 DATE="$(date +%Y%m%d-%H%M%S)"
 SHORT_SHA="${DEPLOY_SHA:0:12}"
-BACKUP_DIR="$WP_ROOT/wp-content/backups-nuvanx/pre-staging2-${DATE}-${SHORT_SHA}"
+BACKUP_DIR="$BACKUP_ROOT/pre-staging2-${DATE}-${SHORT_SHA}"
 
-echo "== Backup staging2 theme and database to $BACKUP_DIR =="
+echo "== Backup staging2 theme and database outside public_html to $BACKUP_DIR =="
 mkdir -p "$BACKUP_DIR"
+chmod 700 "$BACKUP_ROOT" "$BACKUP_DIR"
 tar -czf "$BACKUP_DIR/theme.tgz" -C "$WP_ROOT" "$THEME_REL"
 (
   cd "$WP_ROOT"
   wp db export "$BACKUP_DIR/database.sql" --add-drop-table
 )
+chmod 600 "$BACKUP_DIR/theme.tgz" "$BACKUP_DIR/database.sql"
 printf '%s\n' "$DEPLOY_SHA" > "$BACKUP_DIR/intended-sha.txt"
+chmod 600 "$BACKUP_DIR/intended-sha.txt"
 
 MUTATION_STARTED=1
 

@@ -118,11 +118,13 @@ Debe obtener exactamente HTTP 301 y `Location` absoluto de staging2:
 → /remodelacion-corporal-laser-madrid/
 
 /v-lift-awake/
-→ /papada-definicion-mandibular-madrid/
+→ /protocolos-signature/
 
 /tratamiento-postparto-abdomen-contorno-corporal-madrid/
 → /protocolos-signature/
 ```
+
+V-Lift Awake™ apunta temporalmente al hub publicado de Protocolos Signature hasta que exista y se apruebe una página canónica específica para Profile Definition™. No debe redirigirse a una ruta 404 o no publicada.
 
 El gate comprueba también que el destino final responda HTTP 200. Un 404, 302, 307, redirect en cadena o destino diferente bloquea la aceptación.
 

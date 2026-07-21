@@ -93,6 +93,7 @@ for (const marker of [
   'validate_invocation',
   'apply_approved_pages',
   'apply_governed_pages',
+  'EMPTY_TRASH_DAYS',
   'wp_trash_post',
   "WP_CLI::add_command( 'nvx production-readiness'",
 ]) {

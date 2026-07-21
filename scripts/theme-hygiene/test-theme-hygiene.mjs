@@ -9,10 +9,19 @@ const reportPath = path.join(root, 'theme-hygiene-report.txt');
 const errors = [];
 const rel = (file) => path.relative(root, file).replaceAll('\\', '/');
 
+/**
+ * Records a theme hygiene finding.
+ * @param {string} message - The finding to add to the report.
+ */
 function fail(message) {
   errors.push(message);
 }
 
+/**
+ * Reads a theme file as UTF-8 text.
+ * @param {string} relativePath - The file path relative to the theme directory.
+ * @return {string} The file contents, or an empty string when the file cannot be read.
+ */
 function read(relativePath) {
   const target = path.join(theme, relativePath);
   try {
@@ -24,6 +33,11 @@ function read(relativePath) {
   }
 }
 
+/**
+ * Recursively collects files from a directory while skipping excluded directories.
+ * @param {string} dir - The directory to scan.
+ * @returns {string[]} The paths of files found under the directory.
+ */
 function walk(dir) {
   try {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {

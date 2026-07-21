@@ -12,6 +12,10 @@ const smokePath = path.join(root, 'scripts/staging2/smoke-verify-staging2.sh');
 const renderedAcceptancePath = path.join(root, 'scripts/staging2/verify-rendered-acceptance.mjs');
 const failures = [];
 
+/**
+ * Records a contract validation failure.
+ * @param {string} message - The failure message to record.
+ */
 function fail(message) {
   failures.push(message);
 }

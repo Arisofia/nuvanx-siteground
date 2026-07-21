@@ -74,10 +74,20 @@ const report = {
   redirects: [],
 };
 
+/**
+ * Records a validation finding with its associated scope.
+ * @param {string} scope - The validation scope associated with the finding.
+ * @param {string} message - The validation failure message.
+ */
 function fail(scope, message) {
   findings.push(`${scope}: ${message}`);
 }
 
+/**
+ * Converts HTML text and common entities into normalized plain text.
+ * @param {string} value - The HTML text to normalize.
+ * @return {string} The text with tags removed, entities decoded, whitespace collapsed, and surrounding whitespace trimmed.
+ */
 function normalizeText(value) {
   return value
     .replace(/<[^>]*>/g, ' ')
@@ -91,20 +101,44 @@ function normalizeText(value) {
     .trim();
 }
 
+/**
+ * Extracts and normalizes the inner text of the first matching HTML element.
+ * @param {string} html - The HTML source to search.
+ * @param {string} tagName - The element tag name to find.
+ * @returns {string} The normalized inner text, or an empty string when no matching element is found.
+ */
 function extractTag(html, tagName) {
   const match = html.match(new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i'));
   return match ? normalizeText(match[1]) : '';
 }
 
+/**
+ * Extracts opening tags with the specified name from HTML.
+ * @param {string} html - The HTML source to search.
+ * @param {string} tagName - The tag name to match.
+ * @returns {string[]} The matching opening tag strings.
+ */
 function extractTags(html, tagName) {
   return [...html.matchAll(new RegExp(`<${tagName}\\b[^>]*>`, 'gi'))].map((match) => match[0]);
 }
 
+/**
+ * Extracts an attribute value from an HTML opening tag.
+ * @param {string} tag - The tag string containing the attribute.
+ * @param {string} name - The attribute name to find.
+ * @returns {string} The attribute value, or an empty string if the attribute is missing.
+ */
 function attribute(tag, name) {
   const match = tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, 'i'));
   return match ? match[2] : '';
 }
 
+/**
+ * Find the content value of a meta tag by its name or property.
+ * @param {string} html - The HTML containing the meta tags.
+ * @param {string} name - The case-insensitive name or property to find.
+ * @return {string} The matching meta tag content, or an empty string if none is found.
+ */
 function metaContent(html, name) {
   for (const tag of extractTags(html, 'meta')) {
     if (attribute(tag, 'name').toLowerCase() === name.toLowerCase()) return attribute(tag, 'content');
@@ -113,6 +147,12 @@ function metaContent(html, name) {
   return '';
 }
 
+/**
+ * Finds the first link element with the specified relationship.
+ * @param {string} html - The HTML source to search.
+ * @param {string} rel - The link relationship to match.
+ * @return {string} The matching link's href value, or an empty string if no match is found.
+ */
 function linkHref(html, rel) {
   for (const tag of extractTags(html, 'link')) {
     const relValue = attribute(tag, 'rel').toLowerCase().split(/\s+/);
@@ -121,6 +161,12 @@ function linkHref(html, rel) {
   return '';
 }
 
+/**
+ * Collects schema type names from a JSON-LD value and its nested structures.
+ * @param {*} value - The JSON-LD value to inspect.
+ * @param {Set<string>} target - The set to populate with discovered schema types.
+ * @returns {Set<string>} The set of collected schema type names.
+ */
 function schemaTypesFrom(value, target = new Set()) {
   if (Array.isArray(value)) {
     for (const item of value) schemaTypesFrom(item, target);
@@ -137,6 +183,12 @@ function schemaTypesFrom(value, target = new Set()) {
   return target;
 }
 
+/**
+ * Collects schema types from JSON-LD script elements in HTML.
+ * @param {string} html - The HTML content to inspect.
+ * @param {string} scope - The validation scope used for reporting schema errors.
+ * @return {string[]} The sorted schema type names found in valid JSON-LD data.
+ */
 function collectSchemaTypes(html, scope) {
   const types = new Set();
   const scripts = [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
@@ -151,10 +203,21 @@ function collectSchemaTypes(html, scope) {
   return [...types].sort();
 }
 
+/**
+ * Converts a URL path into a filesystem-safe filename component.
+ * @param {string} urlPath - The URL path to sanitize.
+ * @returns {string} The sanitized filename component, or `home` for an empty path.
+ */
 function safeFileName(urlPath) {
   return urlPath.replace(/^\/+|\/+$/g, '').replace(/[^a-z0-9._-]+/gi, '-') || 'home';
 }
 
+/**
+ * Fetches a URL with a 45-second timeout and the acceptance test user agent.
+ * @param {string|URL} url - The URL to request.
+ * @param {RequestInit} [options={}] - Additional fetch options.
+ * @returns {Promise<Response>} The fetch response.
+ */
 async function fetchWithTimeout(url, options = {}) {
   return fetch(url, {
     ...options,

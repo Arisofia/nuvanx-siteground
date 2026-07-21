@@ -71,11 +71,16 @@ jobs:
           bash -n scripts/staging2/collect-staging2-diagnostics.sh
           bash -n scripts/staging2/smoke-verify-staging2.sh
 
-      - name: Validate Node syntax
+      - name: Validate rendered acceptance Node syntax
         shell: bash
         run: |
           set -euo pipefail
           node --check scripts/staging2/verify-rendered-acceptance.mjs
+
+      - name: Validate deployment contract Node syntax
+        shell: bash
+        run: |
+          set -euo pipefail
           node --check scripts/staging2/test-deploy-workflow-contract.mjs
 
       - name: Validate PHP syntax

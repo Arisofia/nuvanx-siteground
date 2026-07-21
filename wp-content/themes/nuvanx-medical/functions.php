@@ -199,7 +199,11 @@ function nvx_blog_pre_get_posts( WP_Query $query ): void {
 }
 add_action( 'pre_get_posts', 'nvx_blog_pre_get_posts' );
 
-/** Render the blog index shortcode. */
+/**
+ * Renders the blog index shortcode markup.
+ *
+ * @return string The rendered blog post listing or a localized message when no posts are available.
+ */
 function nvx_theme_blog_index_markup(): string {
 	$excluded_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' )
 		? nvx_quarantined_comparison_post_ids()

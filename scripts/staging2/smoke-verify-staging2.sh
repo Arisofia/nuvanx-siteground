@@ -88,6 +88,8 @@ check_redirect() {
 fetch_page '/tratamientos/' 'Portafolio clínico.'
 fetch_page '/protocolos-signature/' 'Protocolos Signature'
 fetch_page '/remodelacion-corporal-laser-madrid/' 'Couture Sculpt'
+fetch_page '/por-que-nuvanx/' 'El diagnóstico precede a la indicación.'
+fetch_page '/inversion-medicina-estetica/' 'El presupuesto forma parte de una decisión informada.'
 
 check_redirect '/liposculpt-air/' '/remodelacion-corporal-laser-madrid/'
 check_redirect '/v-lift-awake/' '/papada-definicion-mandibular-madrid/'

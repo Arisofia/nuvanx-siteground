@@ -200,7 +200,7 @@ jobs:
         run: bash scripts/staging2/smoke-verify-staging2.sh
 
       - name: Remove temporary remote payload
-        if: always()
+        if: always() && env.REMOTE_RELEASE != ''
         shell: bash
         run: ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'"
 

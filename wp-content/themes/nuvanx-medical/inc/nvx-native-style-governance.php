@@ -15,7 +15,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Whether the current request is the canonical treatments hub template. */
 function nvx_theme_is_treatments_hub(): bool {
-	return is_page_template( 'page-tratamientos.php' );
+	if ( is_page_template( 'page-tratamientos.php' ) ) {
+		return true;
+	}
+
+	if ( ! is_page() ) {
+		return false;
+	}
+
+	return 'tratamientos' === (string) get_post_field( 'post_name', get_queried_object_id() );
 }
 
 /** Whether the theme owns the complete body markup for the current page. */

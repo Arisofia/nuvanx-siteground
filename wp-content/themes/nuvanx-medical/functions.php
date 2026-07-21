@@ -23,7 +23,7 @@ add_action( 'after_setup_theme', 'nvx_theme_setup' );
 
 /**
  * Fallback menu when no WP menu is assigned.
- * Hierarchy mirrors live IA and design-system navigation contract.
+ * Hierarchy mirrors live information architecture.
  */
 function nvx_primary_menu_fallback() {
 	$items = array(
@@ -89,8 +89,7 @@ function nvx_theme_is_home_page(): bool {
 }
 
 /**
- * Post-conversion / thank-you page slugs (hide site closing CTA).
- * Single source of truth — CSS uses body.nvx-hide-closing-cta.
+ * Post-conversion page slugs (hide site closing CTA).
  *
  * @return string[]
  */
@@ -102,7 +101,7 @@ function nvx_theme_thank_you_page_slugs(): array {
 }
 
 /**
- * Valoración / consulta form page slugs (primary CTA may target #nvx-hubspot-form).
+ * Valoración form page slugs.
  *
  * @return string[]
  */
@@ -136,37 +135,26 @@ function nvx_theme_is_page_slug_in( array $slugs ): bool {
 	return in_array( $slug, $slugs, true );
 }
 
-/**
- * Whether the current request is a thank-you / post-submit page.
- */
 function nvx_theme_is_thank_you_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_thank_you_page_slugs() );
 }
 
-/**
- * Whether the current request is a valoración form landing.
- */
 function nvx_theme_is_valoracion_form_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_valoracion_form_page_slugs() );
 }
 
 /**
- * Site-wide pre-footer valoración band (canonical closing CTA).
- * Same markup on every public page so the close matches treatments/blog/sedes.
- * Only hide on thank-you / post-submit pages (form already completed).
+ * Site-wide pre-footer valoración band.
+ * Hidden only on thank-you pages.
  */
 function nvx_theme_show_cta_banner(): bool {
 	if ( is_admin() ) {
 		return false;
 	}
-
-	// Post-conversion only — keep contacto/valoración with the same global close.
 	return ! nvx_theme_is_thank_you_page();
 }
 
 /**
- * Body hook so footer CSS can hide the closing band from the centralized slug list.
- *
  * @param string[] $classes Body classes.
  * @return string[]
  */
@@ -194,9 +182,6 @@ function nvx_theme_scripts() {
 	wp_enqueue_style( 'nvx-patterns', $css . 'nvx-patterns-editorial.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-patterns-editorial.css' ) );
 	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-patterns' ), nvx_asset_version( 'assets/css/nvx-header.css' ) );
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-header' ), nvx_asset_version( 'assets/css/nvx-footer.css' ) );
-
-	// nvx-brand-home.css owns hero CTA styles (.hero-cta-group, .nvx-home-hero-ctas)
-	// used sitewide by nvx_cta_pair_markup(). Load on all pages, not just home.
 	wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-footer' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
 
 	$hero_blackout_dependency = 'nvx-home';
@@ -210,8 +195,6 @@ function nvx_theme_scripts() {
 		);
 	}
 
-	// Intentional production toggle until new photography is approved.
-	// Opt out with define( 'NVX_HERO_BLACKOUT', false ) or the filter.
 	if ( nvx_theme_hero_blackout_enabled() ) {
 		wp_enqueue_style(
 			'nvx-hero-blackout',
@@ -226,28 +209,19 @@ function nvx_theme_scripts() {
 add_action( 'wp_enqueue_scripts', 'nvx_theme_scripts' );
 
 /**
- * Hero blackout: solid ink opening stages, hide still photos.
- * Keeps home (and any) hero video visible.
- *
- * Default ON until new photography is approved. Opt out with
- * define( 'NVX_HERO_BLACKOUT', false ) or the filter.
+ * Hero blackout control.
+ * Solid ink opening stages; still photography hidden; video remains.
+ * Default ON. Opt out: define( 'NVX_HERO_BLACKOUT', false ) or filter.
  */
 function nvx_theme_hero_blackout_enabled(): bool {
 	$enabled = true;
 	if ( defined( 'NVX_HERO_BLACKOUT' ) ) {
 		$enabled = (bool) NVX_HERO_BLACKOUT;
 	}
-	/**
-	 * Filter whether hero blackout is active.
-	 *
-	 * @param bool $enabled Default true (black heads; video only on home stage).
-	 */
 	return (bool) apply_filters( 'nvx_theme_hero_blackout_enabled', $enabled );
 }
 
 /**
- * Scope blackout CSS under body.nvx-hero-blackout (see nvx-hero-blackout.css).
- *
  * @param string[] $classes Body classes.
  * @return string[]
  */
@@ -282,19 +256,10 @@ function nvx_reading_time( $post_id = null ) {
 	return sprintf( _n( '%s min', '%s min', $minutes, 'nuvanx-medical' ), number_format_i18n( $minutes ) );
 }
 
-/**
- * Blog archive shows more posts on page 1.
- * Reading settings often keep posts_per_page=6, which hid older articles.
- *
- * Use only $query conditionals here: global is_*() can disagree with this
- * query while pre_get_posts is still building the main loop.
- */
 function nvx_blog_pre_get_posts( WP_Query $query ): void {
 	if ( is_admin() || ! $query->is_main_query() ) {
 		return;
 	}
-
-	// Posts page (/blog/): is_home on the query, not the static front page.
 	if ( $query->is_home() && ! $query->is_front_page() ) {
 		$query->set( 'posts_per_page', 12 );
 		$query->set( 'ignore_sticky_posts', true );
@@ -325,7 +290,6 @@ function nvx_theme_blog_index_markup(): string {
 	$output = '<div class="nvx-brand-grid">';
 	while ( $query->have_posts() ) {
 		$query->the_post();
-		// Blog index cards are text-only (no featured photos).
 		$output .= '<article class="nvx-brand-card nvx-card nvx-card--blog nvx-card--blog-text">';
 		$output .= '<p class="nvx-brand-card__kicker">' . esc_html( get_the_date() ) . '</p>';
 		$output .= '<h2 class="nvx-brand-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h2>';

@@ -1,19 +1,12 @@
-/* Temporary hero blackout (scoped under body.nvx-hero-blackout).
+/* Hero blackout — production control (body.nvx-hero-blackout).
  *
- * Hides large photographic media only in opening header stages.
- * Video remains visible where its ancestors are not intentionally hidden.
- * Body/editorial/card media is out of scope.
- * Toggle: NVX_HERO_BLACKOUT / filter / body class — no selector edits needed to off.
+ * Solid ink opening stages. Photographic stills hidden in hero headers.
+ * Video remains visible. Body, editorial and card media are out of scope.
+ * Toggle: define('NVX_HERO_BLACKOUT', false) or filter nvx_theme_hero_blackout_enabled.
  *
- * :is() is used for consolidation (same as nvx-site-layout.css). The active stack
- * already depends on evergreen CSS (custom properties, clamp, svh); no IE/legacy
- * polyfill path is maintained for this temporary override.
- *
- * Divi (.et_pb_*) adaptations removed: theme no longer ships Divi presentation;
- * residual builder markup is out of scope for this override.
+ * Uses :is() for consolidation (same evergreen stack as the rest of the theme).
  */
 
-/* Opening hero stages: solid ink, no photographic background. */
 body.nvx-hero-blackout :is(
   .nvx-brand-hero,
   .nvx-editorial-hero,
@@ -26,39 +19,12 @@ body.nvx-hero-blackout :is(
   background-image: none;
 }
 
-/*
- * Hide still imagery inside opening heroes.
- * Specificity must beat nvx-patterns-editorial.css
- * (.nvx-page-hero .nvx-page-hero__media img, .nvx-*-hero__media .nvx-media).
- * Include .nvx-media / .wp-post-image classes used on hero thumbnails.
- * Video and its controls stay visible (see rules below).
- */
-
-/* Media rails retain a stable black stage when still imagery is hidden. */
-
-/*
- * Journal: hide the opening featured-media slot entirely (stills only in practice).
- * Intentionally does not keep a black empty column; copy span is adjusted below.
- * display:none on this ancestor also hides any nested video — that is accepted
- * for this temporary mode (journal heroes are image/text, not video stages).
- */
+/* Journal: hide opening featured-media slot (stills). */
 body.nvx-hero-blackout .nvx-blog-hero__media {
   display: none;
 }
 
-/*
- * With media gone, reuse the text-only desktop span so copy is not left
- * in a half-width column. On small screens restore full width (posts.css
- * only resets text-only heroes; this selector would otherwise win).
- */
-
-
-
-/*
- * Keep video visible without forcing display:block (flex/grid-safe).
- * display:revert only affects the video element itself — it cannot override
- * display:none on an ancestor (e.g. journal .nvx-blog-hero__media above).
- */
+/* Keep video visible (display:revert is ancestor-safe for non-hidden parents). */
 body.nvx-hero-blackout :is(
   .nvx-brand-hero,
   .nvx-editorial-hero,

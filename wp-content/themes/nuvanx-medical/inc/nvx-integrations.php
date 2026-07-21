@@ -1,36 +1,22 @@
 <?php
 /**
- * Integraciones de infraestructura del tema (sin parches de presentación).
+ * Integraciones de infraestructura del tema.
  *
- * Schema canónico de clínicas: únicamente vía nvx-structured-data.php → Yoast graph.
- * No emitir JSON-LD LocalBusiness duplicado aquí (evita horarios incorrectos y URLs hardcodeadas).
+n * Schema canónico de clínicas: únicamente vía nvx-structured-data.php (Yoast graph).
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Environment-specific flags must register before front-end enqueue hooks run. */
 require_once __DIR__ . '/nvx-environment-flags.php';
-
-/** Canonical color, icon, typography-role and numbering closure. */
 require_once __DIR__ . '/nvx-visual-system.php';
-
-/** Terminal bridge for third-party widgets and unresolved legacy role aliases. */
 require_once __DIR__ . '/nvx-external-visual-closure.php';
-
-/** Canonical facial treatment content, metadata and staging page seeding. */
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
-
-/** Strategy-led authority, investment and protected protocol-review routes. */
 require_once __DIR__ . '/nvx-strategy-pages.php';
-
-/** Privacy-safe intent and successful-form conversion events. */
 require_once __DIR__ . '/nvx-conversion-events.php';
-
-/** Final route and clinical wording guard for the aesthetic medicine hub. */
 require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 
-/** Goya (1537): evita bucle redirect_canonical. */
+/** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
 		return false;
@@ -61,7 +47,7 @@ add_action(
 	-999999
 );
 
-/** Redirect the legacy privacy slug to the canonical P0 route. */
+/** Canonical privacy route. */
 add_action(
 	'template_redirect',
 	function () {
@@ -79,10 +65,10 @@ add_action(
 );
 
 /**
- * Normalizes public document markup and removes duplicate front-page FAQ structured data.
+ * Normalize public document markup and remove duplicate front-page FAQ structured data.
  *
- * @param string $html The rendered document markup.
- * @return string The normalized document markup.
+ * @param string $html Rendered document markup.
+ * @return string
  */
 function nvx_theme_normalize_public_document( string $html ): string {
 	$html = (string) preg_replace(
@@ -125,61 +111,25 @@ add_action(
 	0
 );
 
-/** Structured data extensions: one canonical Yoast graph, no duplicate output. */
 require_once __DIR__ . '/nvx-structured-data.php';
-
-/** Facial treatment MedicalProcedure and FAQ nodes inside the same Yoast graph. */
 require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
-
-/** Legal redirects, noindex and shared page-hygiene helpers. */
 require_once __DIR__ . '/nvx-page-hygiene.php';
-
-/** Canonical P0 publication rules replace the legacy all-in-one runtime filter. */
 require_once __DIR__ . '/nvx-p0-publication-guard.php';
-
-/** Canonical titles, descriptions, social URLs and environment robots policy. */
 require_once __DIR__ . '/nvx-seo-metadata.php';
-
-/** Production index headers and final MedicalOrganization graph normalization. */
 require_once __DIR__ . '/nvx-seo-production-readiness.php';
-
-/** Validated /contacto/ social image, local schema, visible copy and hours. */
 require_once __DIR__ . '/nvx-contacto-audit-fixes.php';
-
-/** Canonical front-page patient-facing H1 and clinical introduction. */
 require_once __DIR__ . '/nvx-home-copy.php';
-
-/** Canonical value proposition, clinical method, valuation CTA and protocols. */
 require_once __DIR__ . '/nvx-home-content-v2.php';
-
-/** One canonical FAQ catalogue shared by visible HTML and Yoast schema. */
 require_once __DIR__ . '/nvx-faq-content-v2.php';
-
-/** Visible and schema review provenance, only after explicit approval metadata. */
 require_once __DIR__ . '/nvx-medical-review.php';
-
-/** Narrow safeguards for generic actions, SLA wording and governed public claims. */
 require_once __DIR__ . '/nvx-publication-safeguards.php';
-
-/** Temporary clinical safeguard for BTL detail pages pending source-copy sign-off. */
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
-
-/** Final visible/schema terminology normalization for legacy content sources. */
 require_once __DIR__ . '/nvx-clinical-language.php';
-
-/** Journal archive, taxonomy, search and single-post presentation. */
 require_once __DIR__ . '/nvx-blog-system.php';
-
-/** Global hero hierarchy. */
 require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
-
-/** Navigation filters for dynamic menu injection. */
 require_once __DIR__ . '/nvx-navigation-filters.php';
 
-/* -----------------------------------------------------------------------
- * 1. GEO · Hreflang for es-ES (only one locale currently, but declared
- *    explicitly so Google understands the canonical locale).
- * --------------------------------------------------------------------- */
+/* GEO · Hreflang es-ES */
 add_action(
 	'wp_head',
 	function (): void {
@@ -190,18 +140,11 @@ add_action(
 	1
 );
 
-/* -----------------------------------------------------------------------
- * 2. Clinical Governance · Disable treatments not offered.
- *    Guard against legacy pages returning 200 for non-offered services.
- *    Redirect to treatments index if a slug is not in the active catalog.
- * --------------------------------------------------------------------- */
+/* Clinical governance · retired treatment slugs */
 add_action(
 	'template_redirect',
 	function (): void {
-		// Slugs of pages that have been retired / not offered.
-		$retired_slugs = [
-			'tratamiento-retirado',
-		];
+		$retired_slugs = array( 'tratamiento-retirado' );
 
 		if ( is_singular() && in_array( get_post_field( 'post_name', get_the_ID() ), $retired_slugs, true ) ) {
 			wp_safe_redirect( home_url( '/tratamientos/' ), 301 );
@@ -210,14 +153,10 @@ add_action(
 	}
 );
 
-/* -----------------------------------------------------------------------
- * 3. Security Headers (complement to SiteGround / .htaccess).
- *    These fire from PHP for any response not covered by server config.
- * --------------------------------------------------------------------- */
+/* Security headers */
 add_action(
 	'send_headers',
 	function (): void {
-		// Prevent theme / plugin output from setting conflicting headers.
 		if ( headers_sent() ) {
 			return;
 		}
@@ -228,33 +167,21 @@ add_action(
 	}
 );
 
-/* -----------------------------------------------------------------------
- * 4. Meta Pixel governance — single-owner enforcement.
- *    Dequeue the SiteGround Optimizer facebook-signal asset if Meta
- *    for WordPress plugin is active (prevents ReferenceError #166).
- *    Long-term: GTM is the single owner; both WP plugin and this guard
- *    should be removed once GTM-only flow is confirmed in production.
- * --------------------------------------------------------------------- */
+/* Meta Pixel · single-owner (dequeue SiteGround facebook-signal) */
 add_action(
 	'wp_enqueue_scripts',
 	function (): void {
-		// Dequeue SiteGround's optimized facebook-signal to prevent
-		// ReferenceError: FacebookSignal is not defined (issue #166).
 		wp_dequeue_script( 'siteground-facebook-signal' );
 		wp_deregister_script( 'siteground-facebook-signal' );
 	},
-	100 // Late priority to run after SiteGround Optimizer enqueues.
+	100
 );
 
-/**
- * Remove SiteGround Optimizer's facebook-signal from its inline script
- * handles and from the HTML output by filtering script_loader_tag.
- */
 add_filter(
 	'script_loader_tag',
 	function ( string $tag, string $handle ): string {
 		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
-			return ''; // Suppress entirely.
+			return '';
 		}
 		return $tag;
 	},

@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Protocol Signature Pages — Couture Sculpt, Post-Maternity, etc.
  *
@@ -9,6 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Provides the catalog of NUVANX protocol pages and their publication metadata.
+ *
+ * @return array<string, array<string, string>> Protocol page data keyed by protocol identifier.
+ */
 function nvx_protocol_pages_catalog(): array {
 	return array(
 		'couture-sculpt' => array(
@@ -30,6 +35,11 @@ function nvx_protocol_pages_catalog(): array {
 	);
 }
 
+/**
+ * Identifies the configured protocol page for the current request.
+ *
+ * @return string|null The matching protocol catalog key, or null when the request is not a configured protocol page.
+ */
 function nvx_protocol_pages_current_key(): ?string {
 	if ( ! is_page() ) {
 		return null;
@@ -43,6 +53,12 @@ function nvx_protocol_pages_current_key(): ?string {
 	return null;
 }
 
+/**
+ * Builds the HTML markup for the Couture Sculpt protocol page.
+ *
+ * @param array $data Protocol page content, including the kicker, title, lead, and description.
+ * @return string The generated Couture Sculpt protocol page markup.
+ */
 function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
 	
@@ -111,6 +127,12 @@ function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	return $html;
 }
 
+/**
+ * Builds the Post-Maternity protocol page markup.
+ *
+ * @param array $data Protocol page content, including the kicker, title, lead, and description.
+ * @return string The generated HTML markup.
+ */
 function nvx_protocol_pages_post_maternity_markup( array $data ): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
 	
@@ -132,6 +154,12 @@ function nvx_protocol_pages_post_maternity_markup( array $data ): string {
 	return $html;
 }
 
+/**
+ * Replaces the content of a matching protocol page with its generated markup.
+ *
+ * @param string $content The original page content.
+ * @return string The generated protocol markup or the original content when the page is not applicable.
+ */
 function nvx_protocol_pages_content_filter( string $content ): string {
 	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
 		return $content;
@@ -154,6 +182,9 @@ function nvx_protocol_pages_content_filter( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_protocol_pages_content_filter', 21 );
 
+/**
+ * Creates missing protocol pages in the staging environment.
+ */
 function nvx_seed_protocol_pages(): void {
 	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
 		return;

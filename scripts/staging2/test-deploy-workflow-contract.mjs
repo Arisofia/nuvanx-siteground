@@ -89,10 +89,16 @@ for (const marker of [
   '--allow-production',
   'LOCK_OPTION',
   'staging2.nuvanx.com',
+  'nvx_production_readiness_governed_pages',
+  'validate_invocation',
+  'apply_approved_pages',
+  'apply_governed_pages',
+  'wp_trash_post',
   "WP_CLI::add_command( 'nvx production-readiness'",
 ]) {
   if (!migration.includes(marker)) fail(`migration missing contract marker: ${marker}`);
 }
+if (/['"]post_status['"]\s*=>\s*['"]trash['"]/.test(migration)) fail('migration uses direct trash status update');
 
 for (const marker of [
   "fetch_page '/tratamientos/'",

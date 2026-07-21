@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Treatments index restructure — quiet-luxury catalog (Portafolio Clínico).
  *
@@ -12,6 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Determines whether content matches the treatments index markers.
+ *
+ * @param string $content Content to inspect.
+ * @return bool `true` if the content matches a treatments index marker and does not contain the catalog marker, `false` otherwise.
+ */
 function nvx_content_is_treatments_index( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-catalog' ) ) {
 		return false;
@@ -22,6 +28,11 @@ function nvx_content_is_treatments_index( string $content ): bool {
 	);
 }
 
+/**
+ * Provides the structured catalog of treatment categories and protocols.
+ *
+ * @return array Treatment categories with labels, descriptions, and URLs.
+ */
 function nvx_treatments_catalog_data(): array {
 	return array(
 		array(
@@ -81,6 +92,11 @@ function nvx_treatments_catalog_data(): array {
 	);
 }
 
+/**
+ * Provides the partner and laboratory labels displayed in the treatments catalog.
+ *
+ * @return array<string> Partner and laboratory names.
+ */
 function nvx_treatments_partner_labels(): array {
 	return array(
 		'BTL Aesthetics',
@@ -93,6 +109,11 @@ function nvx_treatments_partner_labels(): array {
 	);
 }
 
+/**
+ * Builds the clinical treatments catalog section from structured catalog data.
+ *
+ * @return string The rendered catalog HTML.
+ */
 function nvx_treatments_catalog_markup(): string {
 	$html  = '<section class="nvx-catalog" aria-label="Portafolio Clínico NUVANX">';
 	$html .= '<div class="nvx-catalog__inner">';
@@ -124,6 +145,11 @@ function nvx_treatments_catalog_markup(): string {
 	return $html . '</div></section>';
 }
 
+/**
+ * Builds the technology and partner laboratory logo cloud markup.
+ *
+ * @return string The rendered HTML section containing partner laboratory labels.
+ */
 function nvx_treatments_logo_cloud_markup(): string {
 	$html  = '<section class="nvx-logo-cloud" aria-label="Tecnología y laboratorios">';
 	$html .= '<div class="nvx-logo-cloud__inner">';
@@ -135,6 +161,12 @@ function nvx_treatments_logo_cloud_markup(): string {
 	return $html . '</ul></div></section>';
 }
 
+/**
+ * Reorganizes the treatments index content with the current catalog, partner section, and clinical assessment call to action.
+ *
+ * @param string $content The rendered page content to evaluate and restructure.
+ * @return string The restructured content, or the original content when it is not the treatments index.
+ */
 function nvx_content_restructure_treatments_index( string $content ): string {
 	if ( ! nvx_content_is_treatments_index( $content ) ) {
 		return $content;

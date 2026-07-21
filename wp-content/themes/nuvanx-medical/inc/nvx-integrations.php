@@ -148,28 +148,35 @@ add_action(
 	1
 );
 
-/* Clinical governance · retired treatment, prototype and unpublished protocol slugs */
-add_action(
-	'template_redirect',
-	function (): void {
-		if ( ! is_singular() ) {
-			return;
-		}
-
-		$redirects = array(
-			'tratamiento-retirado'                                    => '/tratamientos/',
-			'liposculpt-air'                                          => '/remodelacion-corporal-laser-madrid/',
-			'v-lift-awake'                                            => '/papada-definicion-mandibular-madrid/',
-			'tratamiento-postparto-abdomen-contorno-corporal-madrid' => '/protocolos-signature/',
-		);
-		$slug      = (string) get_post_field( 'post_name', get_the_ID() );
-
-		if ( isset( $redirects[ $slug ] ) ) {
-			wp_safe_redirect( home_url( $redirects[ $slug ] ), 301 );
-			exit;
-		}
+/**
+ * Redirects retired and unpublished routes by request path.
+ *
+ * This intentionally does not depend on `is_singular()`: the migration moves
+ * retired pages to trash or draft, and their canonical redirects must continue
+ * working after WordPress stops resolving them as public singular objects.
+ */
+function nvx_redirect_governed_routes(): void {
+	if ( is_admin() ) {
+		return;
 	}
-);
+
+	$request_path = isset( $_SERVER['REQUEST_URI'] )
+		? (string) wp_parse_url( (string) $_SERVER['REQUEST_URI'], PHP_URL_PATH )
+		: '';
+	$normalized   = trim( $request_path, '/' );
+	$redirects    = array(
+		'tratamiento-retirado'                                    => '/tratamientos/',
+		'liposculpt-air'                                          => '/remodelacion-corporal-laser-madrid/',
+		'v-lift-awake'                                            => '/papada-definicion-mandibular-madrid/',
+		'tratamiento-postparto-abdomen-contorno-corporal-madrid' => '/protocolos-signature/',
+	);
+
+	if ( isset( $redirects[ $normalized ] ) ) {
+		wp_safe_redirect( home_url( $redirects[ $normalized ] ), 301, 'NUVANX' );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'nvx_redirect_governed_routes', 1 );
 
 /* Security headers */
 add_action(

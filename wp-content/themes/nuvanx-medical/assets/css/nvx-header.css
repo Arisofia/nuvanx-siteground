@@ -355,7 +355,7 @@
   display: block;
   width: var(--nvx-icon-xs);
   height: var(--nvx-border-hairline);
-  background: currentColor;
+  background: currentcolor;
   transition: transform 160ms ease;
 }
 

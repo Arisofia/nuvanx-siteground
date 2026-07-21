@@ -1,6 +1,6 @@
 ---
 name: nuvanx-theme-factory
-description: Diseña artefactos comerciales NUVANX (decks, PDFs, stands y piezas de handoff) a partir del sistema Metal Pulido y variantes de acento controladas, sin modificar el tema WordPress ni su CSS canónico.
+description: Diseña artefactos comerciales NUVANX (decks, PDFs, stands y piezas de handoff) a partir del sistema Quiet Luxury y variantes de acento controladas, sin modificar el tema WordPress ni su CSS canónico.
 ---
 
 # NUVANX Theme Factory
@@ -9,7 +9,7 @@ description: Diseña artefactos comerciales NUVANX (decks, PDFs, stands y piezas
 
 Esta skill gobierna la creación de materiales comerciales y de presentación para NUVANX fuera del runtime de WordPress: decks, PDFs, propuestas, stands, fichas, dossiers y prototipos de campaña.
 
-El sistema web sigue siendo monotemático. **Metal Pulido es la única identidad visual de producción.** Los tokens del runtime web tienen precedencia absoluta sobre cualquier variante local. Las variantes de acento existen únicamente como capas locales de marketing y no pueden convertirse en tokens globales, hojas de estilo del tema, opciones de WordPress o dependencias del frontend.
+El sistema web sigue siendo monotemático. **Quiet Luxury es la única identidad visual de producción.** Los tokens del runtime web tienen precedencia absoluta sobre cualquier variante local. Las variantes de acento existen únicamente como capas locales de marketing y no pueden convertirse en tokens globales, hojas de estilo del tema, opciones de WordPress o dependencias del frontend.
 
 ## Regla de separación obligatoria
 
@@ -46,19 +46,19 @@ No utilizar Bodoni Moda, Cormorant Garamond, Inter, Source Sans, Pinyon Script n
 - Lead y cuerpo: Manrope 400, interlineado 1.6.
 - Kicker, caption y botones: Manrope 500-600, mayúsculas moderadas y tracking controlado.
 
-## Paleta base: Metal Pulido
+## Paleta base: Quiet Luxury
 
-Usar como fuente de verdad los tokens activos del tema:
+Usar como fuente de verdad los tokens activos del tema (`nvx-tokens.css`):
 
 | Rol | Valor |
 |---|---|
-| Luz | `#FCFBF8` |
-| Superficie base | `#F8F7F4` |
-| Tinta | `#1A1A1A` |
-| Carbón | `#2B2926` |
-| Superficie suave | `#ECEAE6` |
-| Borde suave | `#D4D1CC` |
-| Acento neutro | `#756F69` |
+| Luz (`--nvx-light`) | `#f7f7f5` |
+| Superficie base (`--nvx-surface-base`) | `#f1f1ef` |
+| Tinta (`--nvx-ink`) | `#111111` |
+| Carbón (`--nvx-charcoal`) | `#1c1c1e` |
+| Superficie suave (`--nvx-surface-soft`) | `#e5e5e3` |
+| Borde suave (`--nvx-border-soft`) | `#cecece` |
+| Acento neutro (`--nvx-accent-muted`) | `#525252` |
 
 La sensación debe ser clínica, editorial, precisa y discreta. Evitar brillos metálicos falsos, degradados cromados, efectos 3D, sombras duras y ornamentación cosmética.
 
@@ -75,20 +75,17 @@ Las variantes sustituyen solo el rol local de acento. Son variables estrictament
 
 Uso: presentaciones institucionales, innovación, tecnología, datos clínicos y propuestas B2B.
 
-### Acento Oro Editorial
+### Acento Sand Gold (Oro Arena)
 
-- Primario: `#9A7A42`
-- Hover/profundo: `#755A2D`
-- Tinte: `#F1E8D8`
-- Texto sobre acento: `#FCFBF8`
+- Primario (`--nvx-accent-gold`): `#C1A68D`
 
-Uso: invitaciones, eventos premium, stands y dossiers de experiencia de marca. No convertirlo en dorado brillante ni aplicarlo al logotipo.
+Uso: Exclusivo para todos los numerales (romanos y arábigos), iconos de interfaz y detalles de acento. No convertirlo en dorado brillante, no usar efectos de metalizado, ni aplicarlo al logotipo.
 
 ## Reglas de aplicación
 
 1. Elegir **una sola variante** por artefacto.
 2. Limitar el acento al 8-12% de la superficie visual.
-3. Mantener fondos, texto y estructura en Metal Pulido.
+3. Mantener fondos, texto y estructura en Quiet Luxury.
 4. Usar el acento en botones, reglas, números, etiquetas o un único bloque destacado.
 5. Verificar contraste mínimo WCAG AA (4.5:1 para texto normal, 3:1 para títulos y textos grandes) aplicable a todo tipo de texto (funcional, editorial, etiquetas, etc.).
 6. No colorear fotografías clínicas ni alterar tonos de piel para adaptarlos a la variante.
@@ -133,7 +130,7 @@ Cada entrega debe incluir:
 
 Antes de entregar:
 
-- Comparar con el sistema Metal Pulido.
+- Comparar con el sistema Quiet Luxury.
 - Confirmar Playfair Display + Manrope.
 - Confirmar una única variante de acento.
 - Revisar contraste, márgenes, alineación y legibilidad.

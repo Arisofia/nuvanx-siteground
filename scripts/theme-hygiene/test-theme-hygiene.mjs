@@ -132,10 +132,14 @@ for (const marker of [
   "'tratamiento-postparto-abdomen-contorno-corporal-madrid'",
   "'/protocolos-signature/'",
   "remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 )",
+  'function nvx_production_readiness_governed_pages',
+  'foreach ( nvx_production_readiness_governed_pages()',
 ]) {
   if (!integrations.includes(marker)) fail(`integrations: missing production-readiness contract ${marker}`);
 }
 if (integrations.includes('nvx_strategy_seed_approved_staging2_pages')) fail('integrations: runtime approved-page seeder');
+if ((integrations.match(/'liposculpt-air'\s*=>/g) || []).length !== 1) fail('integrations: governed slug duplicated outside shared contract');
+if ((integrations.match(/'v-lift-awake'\s*=>/g) || []).length !== 1) fail('integrations: governed slug duplicated outside shared contract');
 
 const strategy = read('inc/nvx-strategy-pages.php');
 for (const marker of ['liposculpt_air', 'v_lift_awake', 'liposculpt-air', 'v-lift-awake', 'pending_medical_legal', 'nvx_strategy_protocol_review_markup']) {
@@ -157,6 +161,7 @@ for (const [name, content] of [
 }
 if (protocolHub.includes('/couture-sculpt/')) fail('protocol hub: non-canonical Couture Sculpt route');
 if (!protocolHub.includes('/remodelacion-corporal-laser-madrid/')) fail('protocol hub: missing canonical Couture Sculpt route');
+if (!protocolPages.includes("if ( 'couture-sculpt' !== $key )")) fail('protocol pages: unsupported renderer must fail safely');
 if (/add_action\(\s*'init'\s*,\s*'nvx_seed_protocol/u.test(protocolHub + protocolPages)) fail('protocol modules: runtime seeder');
 
 const migration = path.join(root, 'scripts/wp/nvx-production-readiness-command.php');
@@ -168,11 +173,17 @@ if (!fs.existsSync(migration)) {
     'retire-prototypes',
     'staging2.nuvanx.com',
     '--allow-production',
-    'tratamiento-postparto-abdomen-contorno-corporal-madrid',
+    'nvx_production_readiness_governed_pages',
+    'validate_invocation',
+    'apply_approved_pages',
+    'apply_governed_pages',
+    'wp_trash_post',
     "WP_CLI::add_command( 'nvx production-readiness'",
   ]) {
     if (!migrationContent.includes(marker)) fail(`migration command: missing ${marker}`);
   }
+  if (/['"]post_status['"]\s*=>\s*['"]trash['"]/.test(migrationContent)) fail('migration command: direct trash status update');
+  if ((migrationContent.match(/'liposculpt-air'\s*=>/g) || []).length !== 0) fail('migration command: duplicated governed-page definitions');
 }
 
 const native = read('inc/nvx-native-style-governance.php');

@@ -101,18 +101,22 @@ for (const marker of ['function nvx_primary_menu_fallback', 'nvx_custom_body_cla
 }
 if (/add_(action|filter)\s*\([^;]*function\s*\(/s.test(functions)) fail('functions.php: anonymous hook');
 if ((functions.match(/wp_enqueue_style\(\s*'nvx-home-v3'/g) || []).length !== 1) fail('functions.php: home-v3 must be enqueued once');
-for (const marker of [
-  'nvx-native-style-governance.php',
-  'nvx-treatment-hub-schema.php',
-  'nvx-portfolio-hub.php',
-  'nvx-protocol-hub.php',
-  'nvx-protocol-pages.php',
-]) {
-  if (!functions.includes(marker)) fail(`functions.php: missing ${marker}`);
+
+const requiredModules = [
+  'inc/nvx-native-style-governance.php',
+  'inc/nvx-treatment-hub-schema.php',
+  'inc/nvx-portfolio-hub.php',
+  'inc/nvx-protocol-hub.php',
+  'inc/nvx-protocol-pages.php',
+];
+for (const modulePath of requiredModules) {
+  const absolutePath = path.join(theme, modulePath);
+  const filename = path.basename(modulePath);
+  if (!fs.existsSync(absolutePath)) fail(`theme: missing ${modulePath}`);
+  if (!functions.includes(filename)) fail(`functions.php: missing ${filename}`);
 }
 if (functions.includes('nvx-treatments-catalog.php')) fail('functions.php: obsolete nvx-treatments-catalog.php');
 if (fs.existsSync(path.join(theme, 'inc/nvx-treatments-catalog.php'))) fail('theme: obsolete inc/nvx-treatments-catalog.php');
-if (!fs.existsSync(path.join(theme, 'inc/nvx-portfolio-hub.php'))) fail('theme: missing inc/nvx-portfolio-hub.php');
 
 const oldP5 = path.join(root, 'docs/content-strategy-2026/NUVANX-P5-TRATAMIENTOS.md');
 const newP5 = path.join(root, 'docs/content-strategy-2026/NUVANX-P5-PORTAFOLIO-CLINICO.md');
@@ -132,6 +136,12 @@ for (const marker of [
   if (!integrations.includes(marker)) fail(`integrations: missing production-readiness contract ${marker}`);
 }
 if (integrations.includes('nvx_strategy_seed_approved_staging2_pages')) fail('integrations: runtime approved-page seeder');
+
+const strategy = read('inc/nvx-strategy-pages.php');
+for (const marker of ['liposculpt_air', 'v_lift_awake', 'liposculpt-air', 'v-lift-awake', 'pending_medical_legal', 'nvx_strategy_protocol_review_markup']) {
+  if (strategy.includes(marker)) fail(`strategy pages: retired prototype marker ${marker}`);
+}
+if (/add_action\(\s*'init'\s*,\s*'nvx_strategy_seed/u.test(strategy)) fail('strategy pages: runtime seeder');
 
 const protocolHub = read('inc/nvx-protocol-hub.php');
 const protocolPages = read('inc/nvx-protocol-pages.php');

@@ -1,6 +1,0 @@
-/
-/medicina-estetica-laser/
-/madrid/valoracion/
-/equipo-medico/
-/contacto/
-/gracias/

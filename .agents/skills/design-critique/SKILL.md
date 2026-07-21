@@ -14,7 +14,7 @@ Toda crítica debe evaluar los siguientes 5 pilares, leyendo directamente la con
 
 - ¿Refleja el tono "Quiet Luxury"?
 - ¿Utiliza la combinación tipográfica estricta (Playfair Display para encabezados, Manrope para UI/cuerpo)?
-- ¿Se basa en la paleta oficial (Metal Pulido) de `nvx-tokens.css` sin introducir colores "hardcoded" (regla estricta en runtime, ver `nuvanx-theme-factory` para excepciones locales de marketing)?
+- ¿Se basa en la paleta oficial de `nvx-tokens.css` sin introducir colores "hardcoded" (regla estricta en runtime, ver `nuvanx-theme-factory` para excepciones locales de marketing)?
 
 ### 2. Usability & Operabilidad
 

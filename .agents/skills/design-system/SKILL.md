@@ -1,6 +1,6 @@
 ---
 name: design-system
-description: Instrucciones operativas para entender, extender y generar Handoff Specs basados en el Design System "Metal Pulido" de NUVANX.
+description: Instrucciones operativas para entender, extender y generar Handoff Specs basados en el Design System "Quiet Luxury" de NUVANX.
 ---
 
 # Design System Handoff (NUVANX)

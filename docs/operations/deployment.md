@@ -68,17 +68,22 @@ It then runs `tools/deploy/deploy-to-staging2.sh`, which:
 
 1. Confirms the exact Staging2 filesystem root, `siteurl`, `home` and active theme.
 2. Validates PHP and shell syntax for the theme, migration and smoke script.
-3. Creates a timestamped theme archive and database export under
-   `wp-content/backups-nuvanx/pre-staging2-*`.
-4. Disables SiteGround asset transformations that could hide the deployed state.
-5. Synchronizes the theme using `rsync --delete`.
-6. Writes the selected SHA to `.nvx-deploy-sha` and verifies required modules.
-7. Purges WordPress, SiteGround and opcode caches.
-8. Runs the production-readiness pre-audit with `--allow-pending`.
-9. Applies the migration with the explicit `retire-prototypes` token.
-10. Runs the blocking post-migration audit.
-11. Executes rendered page and redirect smoke tests.
-12. Automatically restores both the theme archive and database export if any
+3. Creates a timestamped theme archive and database export outside `public_html`:
+
+   ```text
+   /home/customer/backups-nuvanx/staging2/pre-staging2-*
+   ```
+
+4. Applies restrictive filesystem permissions to the backup directory and files.
+5. Disables SiteGround asset transformations that could hide the deployed state.
+6. Synchronizes the theme using `rsync --delete`.
+7. Writes the selected SHA to `.nvx-deploy-sha` and verifies required modules.
+8. Purges WordPress, SiteGround and opcode caches.
+9. Runs the production-readiness pre-audit with `--allow-pending`.
+10. Applies the migration with the explicit `retire-prototypes` token.
+11. Runs the blocking post-migration audit.
+12. Executes rendered page and redirect smoke tests.
+13. Automatically restores both the theme archive and database export if any
     post-mutation command fails.
 
 A successful run emits `DEPLOY_STAGING2_OK` and `SMOKE_VERIFY_OK`, verifies the
@@ -103,6 +108,21 @@ wp --require=<release>/nvx-production-readiness-command.php \
 The migration is scoped to approved strategy and Signature pages plus the
 retirement of the explicitly governed prototype/Post-Maternity routes. It uses an
 atomic WordPress option lock and is idempotent.
+
+### Required visual QA after automated PASS
+
+The workflow result is necessary but not sufficient. Validate at minimum on desktop
+and mobile:
+
+- `/tratamientos/`
+- `/protocolos-signature/`
+- `/remodelacion-corporal-laser-madrid/`
+- `/liposculpt-air/` → `/remodelacion-corporal-laser-madrid/`
+- `/v-lift-awake/` → `/papada-definicion-mandibular-madrid/`
+- Post-Maternity → `/protocolos-signature/`
+
+Confirm layout, navigation, one H1, CTA, canonical, robots and the absence of
+provisional or retired terminology.
 
 ### Host-authorized fallback
 
@@ -153,11 +173,10 @@ Notes:
 ### Post-promote verification (read-only)
 
 ```bash
-BASE_URL=https://nuvanx.com bash scripts/ops/post-promote-verify.sh
 BASE_URL=https://nuvanx.com bash scripts/staging2/smoke-verify-staging2.sh
 ```
 
-Expect `POST_PROMOTE_VERIFY_OK` and `SMOKE_VERIFY_OK`.
+Expect `SMOKE_VERIFY_OK`.
 
 ## Cache flush
 

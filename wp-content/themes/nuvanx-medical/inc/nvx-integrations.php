@@ -23,6 +23,29 @@ require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
 
 /**
+ * Returns the single governed-page contract shared by runtime redirects and the
+ * production-readiness WP-CLI migration.
+ *
+ * @return array<string,array{status:string,target:string}>
+ */
+function nvx_production_readiness_governed_pages(): array {
+	return array(
+		'liposculpt-air' => array(
+			'status' => 'trash',
+			'target' => '/remodelacion-corporal-laser-madrid/',
+		),
+		'v-lift-awake' => array(
+			'status' => 'trash',
+			'target' => '/papada-definicion-mandibular-madrid/',
+		),
+		'tratamiento-postparto-abdomen-contorno-corporal-madrid' => array(
+			'status' => 'draft',
+			'target' => '/protocolos-signature/',
+		),
+	);
+}
+
+/**
  * Determines whether the current request is for the Goya clinic page.
  *
  * @return bool `true` for the Goya page, `false` otherwise.
@@ -165,11 +188,12 @@ function nvx_redirect_governed_routes(): void {
 		: '';
 	$normalized   = trim( $request_path, '/' );
 	$redirects    = array(
-		'tratamiento-retirado'                                    => '/tratamientos/',
-		'liposculpt-air'                                          => '/remodelacion-corporal-laser-madrid/',
-		'v-lift-awake'                                            => '/papada-definicion-mandibular-madrid/',
-		'tratamiento-postparto-abdomen-contorno-corporal-madrid' => '/protocolos-signature/',
+		'tratamiento-retirado' => '/tratamientos/',
 	);
+
+	foreach ( nvx_production_readiness_governed_pages() as $slug => $definition ) {
+		$redirects[ $slug ] = $definition['target'];
+	}
 
 	if ( isset( $redirects[ $normalized ] ) ) {
 		wp_safe_redirect( home_url( $redirects[ $normalized ] ), 301, 'NUVANX' );

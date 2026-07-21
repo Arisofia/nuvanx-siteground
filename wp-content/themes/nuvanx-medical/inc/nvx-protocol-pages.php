@@ -68,7 +68,7 @@ function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['title'] ) . '</h1>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
 	$html .= '<p>' . esc_html( $data['description'] ) . '</p>';
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a> <a class="nvx-btn nvx-btn--secondary" href="#zonas-tratamiento">' . esc_html__( 'Explorar zonas de tratamiento', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '<p class="nvx-brand-microcopy">' . esc_html__( 'La técnica, las zonas, la evolución y el presupuesto se determinan tras la exploración médica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</header>';
 
@@ -95,20 +95,22 @@ function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	$html .= '</section>';
 
 	// Zonas
-	$html .= '<section class="nvx-brand-section">';
-	$html .= '<h2>' . esc_html__( 'Zonas de tratamiento', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p><strong>Abdomen y Cintura:</strong> ' . esc_html__( 'El contorno no termina donde termina el abdomen. Grasa y piel requieren diagnósticos distintos.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><strong>Torso Superior:</strong> ' . esc_html__( 'Brazos, axila anterior y zona del sujetador. Buscamos que la manga caiga limpia.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><strong>Piernas y Tren Inferior:</strong> ' . esc_html__( 'Estudiamos la continuidad, laxitud y proporción para un afinamiento elegante.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<section class="nvx-brand-section" id="zonas-tratamiento">';
+	$html .= '<h2>' . esc_html__( 'Cartografía Anatómica: Zonas de tratamiento', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'Aplicamos nuestro sistema por unidades de contorno, justificando cada combinación.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><strong>' . esc_html__( 'Abdomen y Cintura', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'El contorno no termina donde termina el abdomen. Grasa y piel requieren diagnósticos distintos.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><strong>' . esc_html__( 'Torso Superior', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'Brazos, axila anterior y zona del sujetador. Buscamos que la manga caiga limpia.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><strong>' . esc_html__( 'Piernas y Tren Inferior', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'Estudiamos la continuidad, laxitud y proporción para un afinamiento elegante.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</section>';
 
 	// Tecnología
 	$html .= '<section class="nvx-brand-section">';
 	$html .= '<h2>' . esc_html__( 'Couture Sculpt™: El protocolo y la tecnología', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'Toda la filosofía de NUVANX Contour Architecture™ se vehicula a través de nuestro protocolo médico Couture Sculpt™. El médico prescribirá la tecnología exacta que requiere tu anatomía:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'Toda la filosofía de NUVANX Contour Architecture™ se vehicula a través de nuestro protocolo médico Couture Sculpt™. En lugar de depender de una sola máquina, el médico prescribirá la tecnología exacta que requiere tu anatomía para lograr esa retracción y reducción silenciosa:', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-check-list">';
 	$html .= '<li><strong>Endoláser Corporal / Endolift®:</strong> ' . esc_html__( 'Para una licuefacción térmica de la grasa localizada y retracción profunda.', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>Radiofrecuencia Fraccionada (EXION® Body):</strong> ' . esc_html__( 'Para estimular la calidad del tejido y la firmeza dérmica.', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>' . esc_html__( 'Protocolos combinados:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Diseñados para potenciar la recuperación tisular.', 'nuvanx-medical' ) . '</li>';
 	$html .= '</ul>';
 	$html .= '</section>';
 
@@ -121,6 +123,13 @@ function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	$html .= '<li>' . esc_html__( 'Cuando existe un exceso importante de piel que requiere cirugía mayor (dermolipectomía).', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li>' . esc_html__( 'Si existe una diástasis o hernia abdominal severa no tratada.', 'nuvanx-medical' ) . '</li>';
 	$html .= '</ul>';
+	$html .= '</section>';
+
+	// CTA Final
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'El objetivo es mejorar la continuidad de tu contorno con una intervención proporcionada, elegante y médicamente defendible. Todo comienza con una valoración exhaustiva en Chamberí o Goya.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</section>';
 
 	$html .= '</article>';

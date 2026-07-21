@@ -40,7 +40,9 @@ done
 [[ -f "$WP_ROOT/wp-config.php" ]] || fail "wp-config.php is missing: $WP_ROOT/wp-config.php"
 
 BACKUP_ROOT='/home/customer/backups-nuvanx/staging2'
+BACKUP_PARENT='/home/customer/backups-nuvanx'
 DEPLOYMENT_ROOT="$WP_ROOT/wp-content/.nuvanx-deployments"
+DEPLOYMENT_PARENT="$WP_ROOT/wp-content"
 THEME_ROOT="$WP_ROOT/wp-content/themes/nuvanx-medical"
 
 echo "diagnostic.timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -62,11 +64,22 @@ for path_name in "$WP_ROOT" "$WP_ROOT/wp-content" "$THEME_ROOT"; do
   echo "path.readable.$path_name=yes"
 done
 
-mkdir -p "$BACKUP_ROOT" "$DEPLOYMENT_ROOT"
-[[ -w "$BACKUP_ROOT" ]] || fail "backup root is not writable: $BACKUP_ROOT"
-[[ -w "$DEPLOYMENT_ROOT" ]] || fail "deployment root is not writable: $DEPLOYMENT_ROOT"
-echo 'path.backup_root_writable=yes'
-echo 'path.deployment_root_writable=yes'
+if [[ -d "$BACKUP_ROOT" ]]; then
+  [[ -w "$BACKUP_ROOT" ]] || fail "backup root is not writable: $BACKUP_ROOT"
+  echo 'path.backup_root_status=existing_writable'
+else
+  [[ -d "$BACKUP_PARENT" ]] || fail "backup parent does not exist: $BACKUP_PARENT"
+  [[ -w "$BACKUP_PARENT" ]] || fail "backup parent cannot create the staging2 directory: $BACKUP_PARENT"
+  echo 'path.backup_root_status=absent_parent_writable'
+fi
+
+if [[ -d "$DEPLOYMENT_ROOT" ]]; then
+  [[ -w "$DEPLOYMENT_ROOT" ]] || fail "deployment root is not writable: $DEPLOYMENT_ROOT"
+  echo 'path.deployment_root_status=existing_writable'
+else
+  [[ -w "$DEPLOYMENT_PARENT" ]] || fail "deployment parent cannot create the release directory: $DEPLOYMENT_PARENT"
+  echo 'path.deployment_root_status=absent_parent_writable'
+fi
 
 (
   cd "$WP_ROOT"

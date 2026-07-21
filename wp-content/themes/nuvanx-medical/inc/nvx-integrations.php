@@ -2,7 +2,7 @@
 /**
  * Integraciones de infraestructura del tema.
  *
-n * Schema canónico de clínicas: únicamente vía nvx-structured-data.php (Yoast graph).
+ * Schema canónico de clínicas: únicamente vía nvx-structured-data.php (Yoast graph).
  */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -55,7 +55,7 @@ add_action(
 			return;
 		}
 		$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '';
-		$norm = '/' . trim( $path, '/' ) . '/';
+		$norm = '/' . trim(( $path, '/' ) . '/';
 		if ( '/politica-de-privacidad/' === $norm ) {
 			wp_safe_redirect( home_url( '/politica-privacidad/' ), 301 );
 			exit;
@@ -76,6 +76,7 @@ function nvx_theme_normalize_public_document( string $html ): string {
 		'<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
 		$html,
 		1
+
 	);
 
 	if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {

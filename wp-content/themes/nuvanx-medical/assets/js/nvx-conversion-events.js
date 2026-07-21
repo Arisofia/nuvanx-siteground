@@ -128,7 +128,7 @@
 	}
 
 	function isAllowedHubSpotOrigin(origin) {
-		if (!origin || origin === 'null') return false;
+		if (!origin) return false;
 		try {
 			var host = new URL(origin).hostname.toLowerCase();
 			return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(host);

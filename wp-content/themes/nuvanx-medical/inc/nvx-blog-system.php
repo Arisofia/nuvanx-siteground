@@ -193,7 +193,7 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 	$content = $head . $tail;
 
 	// Collapse excess leading whitespace after strips.
-	$content = (string) preg_replace( '/^(?:\s|<br\s*\/?>|&nbsp;)+/iu', '', $content );
+	$content = (string) preg_replace( '/^(?:\s|<br\s*\/?>|&nbsp;|<p[^>]*>\s*&nbsp;\s*<\/p>)+/iu', '', $content );
 
 	return $content;
 }

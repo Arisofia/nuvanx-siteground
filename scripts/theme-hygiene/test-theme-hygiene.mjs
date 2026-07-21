@@ -99,8 +99,32 @@ for (const marker of ['function nvx_primary_menu_fallback', 'nvx_custom_body_cla
 }
 if (/add_(action|filter)\s*\([^;]*function\s*\(/s.test(functions)) fail('functions.php: anonymous hook');
 if ((functions.match(/wp_enqueue_style\(\s*'nvx-home-v3'/g) || []).length !== 1) fail('functions.php: home-v3 must be enqueued once');
-for (const marker of ['nvx-native-style-governance.php', 'nvx-treatment-hub-schema.php']) {
+for (const marker of [
+  'nvx-native-style-governance.php',
+  'nvx-treatment-hub-schema.php',
+  'nvx-portfolio-hub.php',
+  'nvx-protocol-hub.php',
+  'nvx-protocol-pages.php',
+]) {
   if (!functions.includes(marker)) fail(`functions.php: missing ${marker}`);
+}
+if (functions.includes('nvx-treatments-catalog.php')) fail('functions.php: obsolete nvx-treatments-catalog.php');
+if (fs.existsSync(path.join(theme, 'inc/nvx-treatments-catalog.php'))) fail('theme: obsolete inc/nvx-treatments-catalog.php');
+if (!fs.existsSync(path.join(theme, 'inc/nvx-portfolio-hub.php'))) fail('theme: missing inc/nvx-portfolio-hub.php');
+
+const oldP5 = path.join(root, 'docs/content-strategy-2026/NUVANX-P5-TRATAMIENTOS.md');
+const newP5 = path.join(root, 'docs/content-strategy-2026/NUVANX-P5-PORTAFOLIO-CLINICO.md');
+if (fs.existsSync(oldP5)) fail(`${rel(oldP5)}: obsolete content contract filename`);
+if (!fs.existsSync(newP5)) fail(`${rel(newP5)}: missing canonical content contract`);
+
+const integrations = read('inc/nvx-integrations.php');
+for (const marker of [
+  "'liposculpt-air'       => '/remodelacion-corporal-laser-madrid/'",
+  "'v-lift-awake'         => '/papada-definicion-mandibular-madrid/'",
+  "remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 )",
+  'nvx_strategy_seed_approved_staging2_pages',
+]) {
+  if (!integrations.includes(marker)) fail(`integrations: missing retired-prototype contract ${marker}`);
 }
 
 const native = read('inc/nvx-native-style-governance.php');

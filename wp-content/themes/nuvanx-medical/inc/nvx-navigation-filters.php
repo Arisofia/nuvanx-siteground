@@ -14,13 +14,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Canonical fallback architecture.
+ * Defines the canonical fallback navigation structure for the primary menu.
  *
- * This is not used to overwrite a database-managed menu. It exists only so a
- * missing menu assignment cannot leave desktop or mobile navigation empty.
- * Candidate pages are resolved at runtime and unpublished routes are omitted.
+ * The blueprint is used when no database-managed menu is available. Page targets
+ * are resolved at runtime so unpublished routes can be omitted.
  *
- * @return array<int,array<string,mixed>>
+ * @return array<int,array<string,mixed>> The filtered fallback navigation blueprint.
  */
 function nvx_navigation_primary_blueprint(): array {
 	return apply_filters(
@@ -128,10 +127,10 @@ function nvx_navigation_resolve_published_page( array $slugs ): ?array {
 }
 
 /**
- * Resolve one fallback blueprint node and its published descendants.
+ * Resolves a fallback blueprint node into a renderable navigation item.
  *
- * @param array<string,mixed> $node Blueprint node.
- * @return array<string,mixed>|null
+ * @param array<string,mixed> $node Blueprint node with an optional label, URL, slugs, mega-menu flag, and child nodes.
+ * @return array<string,mixed>|null Resolved navigation item, or null when the node has no label or destination.
  */
 function nvx_navigation_resolve_blueprint_node( array $node ): ?array {
 	$children = array();
@@ -222,10 +221,10 @@ function nvx_navigation_render_fallback_items( array $items, int $depth = 0 ): s
 }
 
 /**
- * Published-route-aware fallback for both desktop and mobile navigation.
+ * Renders the published primary navigation fallback.
  *
- * @param array<string,mixed> $args wp_nav_menu arguments.
- * @return string|null
+ * @param array<string,mixed> $args wp_nav_menu arguments used for the menu class, menu ID, and output mode.
+ * @return string|null The rendered navigation HTML when output is disabled, or null after echoing it.
  */
 function nvx_navigation_primary_fallback( array $args = array() ) {
 	$menu_class = isset( $args['menu_class'] ) && '' !== trim( (string) $args['menu_class'] )
@@ -248,10 +247,10 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 }
 
 /**
- * Apply the same safe fallback and depth contract to every primary-menu render.
+ * Configures fallback, depth, and spacing settings for the primary navigation menu.
  *
- * @param array<string,mixed> $args wp_nav_menu arguments.
- * @return array<string,mixed>
+ * @param array<string,mixed> $args Navigation menu arguments.
+ * @return array<string,mixed> Updated arguments for the primary menu, or the original arguments for other locations.
  */
 function nvx_navigation_filter_menu_args( array $args ): array {
 	if ( 'primary' !== ( $args['theme_location'] ?? '' ) ) {
@@ -266,14 +265,13 @@ function nvx_navigation_filter_menu_args( array $args ): array {
 add_filter( 'wp_nav_menu_args', 'nvx_navigation_filter_menu_args', 20 );
 
 /**
- * Remove unpublished page items and all their descendants from public menus.
+ * Removes unpublished page items and their descendants from the primary navigation.
  *
- * WordPress remains the source of truth, but a stale menu entry cannot expose a
- * draft protocol or a pending medical/legal working-name page.
+ * Items for other theme locations are returned unchanged.
  *
  * @param array<int,WP_Post|stdClass> $items Menu items.
  * @param stdClass                    $args Menu arguments.
- * @return array<int,WP_Post|stdClass>
+ * @return array<int,WP_Post|stdClass> The filtered menu items.
  */
 function nvx_navigation_prune_unpublished_items( $items, $args ) {
 	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
@@ -322,16 +320,15 @@ function nvx_navigation_label_key( string $label ): string {
 }
 
 /**
- * Add stable BEM/depth classes without requiring a custom walker.
+ * Adds consistent navigation item classes for the primary menu.
  *
- * The optional `nvx-menu--mega` class can also be assigned manually in
- * Appearance → Menus. Known definitive pillars receive it automatically.
+ * Top-level items marked as mega-menu roots receive the `nvx-nav__item--mega` class.
  *
- * @param string[]                 $classes Existing item classes.
- * @param WP_Post|stdClass         $item Menu item.
- * @param stdClass                 $args Menu arguments.
- * @param int                      $depth Menu depth.
- * @return string[]
+ * @param string[] $classes Existing item classes.
+ * @param WP_Post|stdClass $item Menu item.
+ * @param stdClass $args Menu arguments.
+ * @param int $depth Menu depth.
+ * @return string[] The updated item classes.
  */
 function nvx_navigation_item_classes( array $classes, $item, $args, int $depth ): array {
 	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
@@ -352,13 +349,13 @@ function nvx_navigation_item_classes( array $classes, $item, $args, int $depth )
 add_filter( 'nav_menu_css_class', 'nvx_navigation_item_classes', 20, 4 );
 
 /**
- * Add stable link classes and parent semantics without changing header.php.
+ * Adds consistent link classes and parent-menu attributes for the primary navigation.
  *
- * @param array<string,string> $atts Link attributes.
- * @param WP_Post|stdClass     $item Menu item.
- * @param stdClass             $args Menu arguments.
- * @param int                  $depth Menu depth.
- * @return array<string,string>
+ * @param array<string, string> $atts Link attributes.
+ * @param WP_Post|stdClass $item Menu item.
+ * @param stdClass $args Menu arguments.
+ * @param int $depth Menu depth.
+ * @return array<string, string> Updated link attributes.
  */
 function nvx_navigation_link_attributes( array $atts, $item, $args, int $depth ): array {
 	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {

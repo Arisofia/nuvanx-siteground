@@ -9,6 +9,12 @@
   var desktopMedia = window.matchMedia('(min-width: 80em)');
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+  /**
+   * Finds the first direct child with the specified CSS class.
+   * @param {Element} element - The parent element to search.
+   * @param {string} className - The CSS class to match.
+   * @return {Element|null} The matching child element, or `null` if none is found.
+   */
   function directChildByClass(element, className) {
     if (!element || !element.children) return null;
     for (var i = 0; i < element.children.length; i += 1) {
@@ -17,6 +23,11 @@
     return null;
   }
 
+  /**
+   * Finds the first direct child anchor of an element.
+   * @param {Element|null} element - The element whose direct children to search.
+   * @return {HTMLAnchorElement|null} The first direct child anchor, or `null` if none exists.
+   */
   function directChildLink(element) {
     if (!element || !element.children) return null;
     for (var i = 0; i < element.children.length; i += 1) {
@@ -25,6 +36,11 @@
     return null;
   }
 
+  /**
+   * Updates a mobile submenu's visibility and transition state.
+   * @param {HTMLElement|null} submenu - The submenu element to update.
+   * @param {boolean} open - Whether the submenu should be open.
+   */
   function animateMobileSubmenu(submenu, open) {
     if (!submenu) return;
 
@@ -77,6 +93,12 @@
     );
   }
 
+  /**
+   * Updates the expanded state and accessibility attributes of a mobile navigation accordion.
+   * @param {Object} entry - The accordion entry to update.
+   * @param {boolean} open - Whether to expand the accordion.
+   * @param {boolean} closeSiblings - Whether to close expanded sibling accordions.
+   */
   function setMobileAccordionState(entry, open, closeSiblings) {
     if (!entry) return;
 
@@ -101,6 +123,9 @@
     animateMobileSubmenu(entry.submenu, open);
   }
 
+  /**
+   * Resets all mobile navigation accordions to their collapsed state.
+   */
   function resetMobileAccordions() {
     mobileAccordionItems.forEach(function (entry) {
       entry.item.classList.remove('is-expanded');
@@ -115,6 +140,11 @@
     });
   }
 
+  /**
+   * Opens or closes the mobile navigation and manages its focus and document scrolling state.
+   * @param {boolean} open - Whether to open the mobile navigation.
+   * @param {boolean} restoreFocus - Whether to return focus to the element that was focused before opening.
+   */
   function setMobileNavOpen(open, restoreFocus) {
     if (!mobileNav) return;
 
@@ -138,6 +168,9 @@
     mobileNavLastFocus = null;
   }
 
+  /**
+   * Initialize mobile navigation accordions for menu items with submenus.
+   */
   function initMobileAccordions() {
     if (!mobileNav) return;
     var menu = mobileNav.querySelector('.nvx-mobile-nav__list');
@@ -212,6 +245,10 @@
     }
   });
 
+  /**
+   * Closes the mobile navigation when the desktop breakpoint becomes active.
+   * @param {MediaQueryListEvent} event - The media query change event.
+   */
   function closeMobileOnDesktop(event) {
     if (event.matches && mobileNav && mobileNav.classList.contains('is-open')) {
       setMobileNavOpen(false, false);
@@ -251,6 +288,11 @@
     var DEFAULT_VALORACION_PATH = '/madrid/valoracion/';
     var pageUrl = (cfg.pageUrl || DEFAULT_VALORACION_PATH).replace(/\/?$/, '/');
 
+    /**
+     * Normalizes a pathname to include exactly one trailing slash.
+     * @param {string} pathname - The pathname to normalize.
+     * @return {string} The normalized pathname.
+     */
     function normalizePath(pathname) {
       return (pathname || '').replace(/\/+$/, '') + '/';
     }
@@ -279,11 +321,18 @@
       }
     }
 
+    /**
+     * Closes the mobile navigation when it is open.
+     */
     function closeMobileNav() {
       if (!mobileNav || !mobileNav.classList.contains('is-open')) return;
       setMobileNavOpen(false, false);
     }
 
+    /**
+     * Updates the valoración modal visibility and related document state.
+     * @param {boolean} open - Whether to show the modal.
+     */
     function setModalOpen(open) {
       if (!modal) return;
       if (open) {
@@ -342,6 +391,11 @@
       lastFocus = null;
     }
 
+    /**
+     * Determines whether an anchor should open the valoración modal.
+     * @param {Element} el - The element to evaluate.
+     * @returns {boolean} `true` if the anchor matches the modal interception criteria, `false` otherwise.
+     */
     function shouldIntercept(el) {
       if (!el || el.tagName !== 'A') return false;
       if (el.getAttribute('data-nvx-valoracion-modal') === '0') return false;

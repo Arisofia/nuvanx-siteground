@@ -8,14 +8,32 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const read = (relative) => fs.readFileSync(path.join(root, relative), 'utf8');
 const failures = [];
 
+/**
+ * Records a failure message when the source does not contain the required text.
+ * @param {string} source - The content to inspect.
+ * @param {string} text - The text that must be present.
+ * @param {string} message - The failure message to record.
+ */
 function requireText(source, text, message) {
   if (!source.includes(text)) failures.push(message);
 }
 
+/**
+ * Records a failure when the source contains forbidden text.
+ * @param {string} source - The content to inspect.
+ * @param {string} text - The text that must not appear in the source.
+ * @param {string} message - The failure message to record.
+ */
 function forbidText(source, text, message) {
   if (source.includes(text)) failures.push(message);
 }
 
+/**
+ * Records a failure when a regular expression does not match the source text.
+ * @param {string} source - The text to inspect.
+ * @param {RegExp} pattern - The pattern to match against the source text.
+ * @param {string} message - The failure message to record.
+ */
 function requirePattern(source, pattern, message) {
   if (!pattern.test(source)) failures.push(message);
 }

@@ -1608,3 +1608,115 @@ body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-h
 
 .nvx-blog-nav__item--next{
     text-align: left}
+
+/* =========================================================
+   SISTEMA CANONICO DE ICONOS — nvx-icon-*
+   Un solo tamaño y alineación por contexto.
+   ========================================================= */
+
+/* Icono inline: dentro de texto o junto a etiqueta */
+.nvx-icon-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+}
+.nvx-icon-inline svg {
+  width: var(--nvx-icon-sm);
+  height: var(--nvx-icon-sm);
+  flex-shrink: 0;
+  color: currentColor;
+  vertical-align: middle;
+}
+
+/* Icono de pilar (values, method-col) */
+.nvx-value__icon,
+.nvx-method-col__icon {
+  display: flex;
+  align-items: center;
+  margin-block-end: var(--nvx-space-2);
+}
+.nvx-value__icon svg,
+.nvx-method-col__icon svg {
+  width: var(--nvx-icon-md);
+  height: var(--nvx-icon-md);
+  color: var(--nvx-ink);
+  flex-shrink: 0;
+}
+
+/* Icono de card pequeña */
+.nvx-brand-card__icon {
+  display: flex;
+  align-items: center;
+  margin-block-end: var(--nvx-space-2);
+}
+.nvx-brand-card__icon svg {
+  width: var(--nvx-icon-sm);
+  height: var(--nvx-icon-sm);
+  color: var(--nvx-ink);
+}
+
+/* =========================================================
+   SECCIONES EDITORIALES (DARK MODE & MID TONE)
+   ========================================================= */
+
+/* Sección oscura editorial */
+.nvx-brand-section--dark {
+  background: var(--nvx-surface-dark);
+  color: var(--nvx-on-dark);
+}
+.nvx-brand-section--dark .nvx-brand-title,
+.nvx-brand-section--dark h2,
+.nvx-brand-section--dark .nvx-brand-subtitle,
+.nvx-brand-section--dark h3 {
+  color: var(--nvx-on-dark);
+}
+.nvx-brand-section--dark .nvx-brand-kicker,
+.nvx-brand-section--dark .nvx-eyebrow {
+  color: var(--nvx-on-dark-72);
+}
+.nvx-brand-section--dark .nvx-brand-body,
+.nvx-brand-section--dark .nvx-copy,
+.nvx-brand-section--dark p {
+  color: var(--nvx-on-dark-88);
+}
+.nvx-brand-section--dark .nvx-color-line {
+  background: var(--nvx-accent-line-dark);
+}
+
+/* Sección mid-tone */
+.nvx-brand-section--mid {
+  background: var(--nvx-surface-soft);
+}
+
+/* =========================================================
+   ESPACIADOS Y MARGENES AJUSTADOS (QUIET LUXURY)
+   ========================================================= */
+
+/* Reducción de espacio entre párrafos en bloques editoriales */
+.nvx-brand-section .nvx-brand-body + .nvx-brand-body,
+.nvx-brand-section p + p {
+  margin-block-start: var(--nvx-space-2);
+}
+
+/* Elimina líneas en blanco entre artículos de grid */
+.nvx-brand-grid > * + * {
+  margin-block-start: 0;
+}
+
+/* Alineación correcta de lista con iconos checkmark */
+.nvx-brand-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6em;
+  padding-inline-start: 0;
+  margin-block-end: var(--nvx-space-1);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+}
+.nvx-brand-list li::before {
+  content: '—';
+  flex-shrink: 0;
+  color: var(--nvx-accent-muted);
+  font-weight: 300;
+  margin-block-start: 0.15em;
+}

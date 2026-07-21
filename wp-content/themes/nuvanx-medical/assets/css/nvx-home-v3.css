@@ -3,10 +3,6 @@
  * Dedicated layout and typography rules for the hardcoded front-page.php.
  */
 
-:root {
-	--nvx-home-accent: #C1A68D; /* Warm Sand / Gold Accent */
-}
-
 /* =========================================================
    SECCIÓN 01: HERO
    ========================================================= */
@@ -57,11 +53,11 @@
 
 .nvx-home-hero__lead {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-lead);
+	font-size: var(--nvx-type-body);
 	font-weight: 300;
 	opacity: 0.9;
 	margin-bottom: var(--nvx-space-6);
-	max-width: 40ch;
+	max-width: var(--nvx-measure);
 }
 
 /* =========================================================
@@ -69,12 +65,12 @@
    ========================================================= */
 .nvx-home-philosophy {
 	background: var(--nvx-light);
-	padding-block: clamp(120px, 12vw, 200px);
+	padding-block: clamp(160px, 15vw, 240px);
 	text-align: center;
 }
 
 .nvx-home-philosophy__inner {
-	max-width: 800px;
+	max-width: var(--nvx-measure);
 	margin: 0 auto;
 	padding-inline: var(--nvx-gutter-inner);
 }
@@ -118,8 +114,9 @@
 
 .nvx-home-standard__subtitle {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-lead);
+	font-size: var(--nvx-type-body);
 	color: var(--nvx-text-muted);
+	max-width: var(--nvx-measure);
 }
 
 .nvx-home-standard__grid {
@@ -147,12 +144,13 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--nvx-space-2);
+	max-width: var(--nvx-measure);
 }
 
 .nvx-home-feature__number {
 	font-family: var(--nvx-serif);
 	font-size: var(--nvx-type-h2);
-	color: var(--nvx-home-accent);
+	color: var(--nvx-accent-gold);
 }
 
 .nvx-home-feature__title {
@@ -223,7 +221,7 @@
 .nvx-home-portfolio__number {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-small);
-	color: var(--nvx-home-accent);
+	color: var(--nvx-accent-gold);
 	font-weight: 600;
 }
 
@@ -236,9 +234,10 @@
 
 .nvx-home-portfolio__desc {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-small);
+	font-size: var(--nvx-type-body);
 	color: var(--nvx-text-muted);
 	margin: 0;
+	max-width: var(--nvx-measure);
 }
 
 .nvx-home-portfolio__action {
@@ -295,11 +294,11 @@
 
 .nvx-home-evidence__desc {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-lead);
+	font-size: var(--nvx-type-body);
 	line-height: 1.6;
 	color: var(--nvx-surface-soft);
 	margin-bottom: var(--nvx-space-8);
-	max-width: 32ch;
+	max-width: var(--nvx-measure);
 }
 
 /* =========================================================
@@ -333,9 +332,10 @@
 
 .nvx-home-team__desc {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-lead);
+	font-size: var(--nvx-type-body);
 	color: var(--nvx-text-muted);
 	margin-bottom: var(--nvx-space-6);
+	max-width: var(--nvx-measure);
 }
 
 .nvx-home-team__list {
@@ -419,6 +419,7 @@
 	font-size: var(--nvx-type-small);
 	line-height: 1.4;
 	color: var(--nvx-text-muted);
+	max-width: var(--nvx-measure);
 }
 
 .nvx-home-seo__list li strong {
@@ -482,7 +483,7 @@
    SECCIÓN 09: CIERRE / FOOTER-PRE
    ========================================================= */
 .nvx-home-closure {
-	padding-block: clamp(80px, 10vw, 140px);
+	padding-block: clamp(120px, 12vw, 200px);
 	background: var(--nvx-ink);
 	color: var(--nvx-light);
 	text-align: center;
@@ -497,9 +498,11 @@
 
 .nvx-home-closure__desc {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-lead);
+	font-size: var(--nvx-type-body);
 	color: var(--nvx-surface-soft);
 	margin-bottom: var(--nvx-space-8);
+	max-width: var(--nvx-measure);
+	margin-inline: auto;
 }
 
 .nvx-home-closure__actions {

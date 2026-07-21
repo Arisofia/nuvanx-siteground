@@ -1,6 +1,6 @@
 ﻿# NUVANX — PÁGINA 9: PROTOCOLO SIGNATURE (CONTOUR ARCHITECTURE™)
 ## Estructura de 13 campos · Copy verificado (Nuevo producto corporativo)
-**Fuentes verificadas:** Directiva de Naming NUVANX (Sustitución de LipoTight) · Estrategia maestra
+**Fuentes verificadas:** Directiva de Naming NUVANX · Estrategia maestra
 **Estado:** PÁGINA NUEVA — Fase 1 de implementación
 **Validación:** RD 1907/1996 · julio 2026
 
@@ -8,17 +8,16 @@
 
 ## 01. IDENTIFICACIÓN
 - **URL canónica:** https://nuvanx.com/remodelacion-corporal-laser-madrid/
-- **Plantilla WordPress:** `nvx-protocol-page.php` (Por desarrollar)
+- **Plantilla WordPress:** `nvx-protocol-page.php`
 - **Menú Principal:** Protocolos Signature > NUVANX Contour Architecture™
-- **Estado:** 🆕 PENDIENTE DE DESARROLLO
 
 ---
 
 ## 02. SEO META
-- **SEO Title (65 car.):** Remodelación corporal láser en Madrid | NUVANX Contour Architecture
-- **Meta description (150 car.):** Diagnóstico anatómico, tratamiento focal y seguimiento médico para mejorar el contorno corporal. Remodelación láser sin imponer una forma estándar.
+- **SEO Title (65 car.):** Remodelación corporal láser en Madrid | NUVANX Couture Sculpt
+- **Meta description (150 car.):** Diagnóstico anatómico, tratamiento focal y seguimiento médico para mejorar el contorno corporal. Remodelación láser premium sin imponer formas estándar.
 - **Canonical:** https://nuvanx.com/remodelacion-corporal-laser-madrid/
-- **OG Title:** NUVANX Contour Architecture™ | Remodelación Corporal Madrid
+- **OG Title:** NUVANX Couture Sculpt™ | Remodelación Corporal Madrid
 
 ---
 
@@ -26,9 +25,9 @@
 
 **H1:** Remodelación corporal láser diseñada según tu anatomía.
 **H2:** No tratamos zonas aisladas. Diseñamos continuidad.
-**H2:** Tres decisiones clínicas, no una máquina
+**H2:** Tres decisiones clínicas: Reducir, Redefinir, Retraer
 **H2:** Cartografía Anatómica: Zonas de tratamiento
-**H2:** Arsenal tecnológico: Qué puede formar parte del plan
+**H2:** Couture Sculpt™: El protocolo y la tecnología
 **H2:** Cuándo no es el tratamiento adecuado
 **H2:** Tu primera valoración clínica
 
@@ -42,18 +41,20 @@ H1: Remodelación corporal láser diseñada según tu anatomía.
 
 LEAD:
 NUVANX Contour Architecture™ es nuestro sistema médico de diagnóstico y tratamiento por
-unidades anatómicas. Estudia grasa localizada, laxitud, calidad cutánea y continuidad
-del contorno para diseñar un plan proporcionado, sin imponer la misma técnica a todos los pacientes.
+unidades anatómicas. Estudiamos la grasa localizada, la laxitud cutánea y la continuidad
+del contorno para diseñar un plan proporcionado y de absoluta discreción.
 
 DESCRIPTION / PÁRRAFO (DESCRIPTOR PÚBLICO):
-Remodelación corporal láser por unidades anatómicas. Diagnóstico anatómico, tratamiento focal
-y seguimiento médico para mejorar la continuidad del contorno corporal sin imponer una forma estándar.
+Entendemos la medicina estética como un ejercicio de *quiet luxury*.
+Un abordaje silencioso, mínimamente invasivo y sin huellas quirúrgicas evidentes,
+donde la elegancia de la transición es tan importante como el resultado final.
+Nuestro protocolo comercial estrella, **Couture Sculpt™**, materializa esta visión.
 
 CTA PRIMARIO: Solicitar valoración médica privada
 CTA SECUNDARIO: Explorar zonas de tratamiento
 
 MICROCOPY (bajo CTAs):
-La técnica, las zonas, la evolución y el presupuesto se determinan después de la exploración médica.
+La técnica, las zonas, la evolución y el presupuesto se determinan tras la exploración médica.
 
 ---
 
@@ -66,38 +67,32 @@ H2: No tratamos zonas aisladas. Diseñamos continuidad.
 TEXTO PRINCIPAL:
 El abdomen no termina en el abdomen. El brazo no puede valorarse sin su relación con la axila
 y el torso. La espalda, la cintura y los flancos forman una misma unidad visual.
-Por eso, en NUVANX estudiamos cada zona dentro de su arquitectura corporal.
+Por eso, en NUVANX estudiamos cada zona valorando su integración global (espacio negativo
+y proporción). El objetivo no es cambiar tu cuerpo por otro, sino perfeccionar su
+arquitectura con la mayor naturalidad.
 
 TARJETAS DE DIAGNÓSTICO (Nuestra Cartografía Anatómica):
 Antes de proponer tecnología, el médico analiza:
-- Distribución de grasa localizada.
-- Calidad y capacidad de retracción cutánea.
-- Proporción y transición entre zonas.
+- Distribución de la grasa localizada.
+- Calidad y capacidad de retracción de la piel.
+- Proporción y transición armónica entre zonas.
 - Asimetrías anatómicas.
-- Cicatrices o irregularidades de intervenciones previas.
-- Límites reales de una intervención médico-estética (vs. indicación quirúrgica).
+- Límites reales de una intervención médico-estética.
 
 ---
 
 ### SECCIÓN B — EL MÉTODO DE DECISIÓN
 
-H2: Tres decisiones clínicas, no una máquina
+H2: Tres decisiones clínicas: Reducir, Redefinir, Retraer
 
 TEXTO:
-No vendemos "lipólisis + tensado" como una receta mágica. Nuestro protocolo
-clasifica tu necesidad clínica en tres posibles vías de actuación.
-*(Nota: No prometemos que los tres objetivos se alcancen siempre de forma simultánea).*
+La elegancia de un buen resultado reside en la indicación precisa.
+Nuestro protocolo clasifica tu necesidad clínica en tres posibles vías de actuación
+*(Nota: No prometemos que los tres objetivos se alcancen siempre simultáneamente)*:
 
-1. REDUCIR
-Cuando predomina grasa localizada susceptible de tratamiento mediante energía térmica.
-
-2. REDEFINIR
-Cuando el objetivo principal es mejorar la transición, la continuidad o la proporción
-entre dos zonas adyacentes.
-
-3. RETRAER
-Cuando existe una indicación clara para actuar sobre la calidad o la laxitud cutánea,
-estimulando la densificación del tejido.
+1. REDUCIR: Cuando predomina grasa localizada susceptible de tratamiento mediante energía térmica.
+2. REDEFINIR: Cuando el objetivo es mejorar la transición y proporción entre zonas adyacentes.
+3. RETRAER: Cuando existe una indicación clara para actuar sobre la laxitud cutánea y densificar el tejido.
 
 ---
 
@@ -106,42 +101,36 @@ estimulando la densificación del tejido.
 H2: Cartografía Anatómica: Zonas de tratamiento
 
 TEXTO:
-Aplicamos el protocolo NUVANX Contour Architecture™ por unidades de contorno,
-justificando cada combinación por continuidad anatómica.
+Aplicamos nuestro sistema por unidades de contorno, justificando cada combinación.
 
 1. ABDOMEN Y CINTURA
-(Abdomen superior, abdomen inferior, flancos, cintura y espalda baja)
-*Microcopy:* El contorno no termina donde termina el abdomen. Grasa, piel y pared abdominal requieren diagnósticos distintos. No todo abdomen necesita la misma técnica.
+(Abdomen superior, inferior, flancos y espalda baja)
+*Microcopy:* El contorno no termina donde termina el abdomen. Grasa y piel requieren diagnósticos distintos.
 
 2. TORSO SUPERIOR
-(Brazos, axila anterior, zona del sujetador y espalda superior)
-*Microcopy:* La seda revela las transiciones que la ropa estructurada oculta. Buscamos que la manga caiga limpia, sin convertir el brazo en otra cosa. Espalda, sujetador y flancos forman una misma arquitectura.
+(Brazos, axila anterior y zona del sujetador)
+*Microcopy:* La seda revela las transiciones que la ropa oculta. Buscamos que la manga caiga limpia.
 
 3. PIERNAS Y TREN INFERIOR
-(Muslos internos, muslos externos, región subglútea y rodillas)
-*Microcopy:* No tratamos "piernas". Estudiamos continuidad, laxitud y proporción anatómica.
-
-*(Nota: Para rostro y cuello, consúltese el protocolo NUVANX Profile Definition™).*
+(Muslos internos, externos y rodillas)
+*Microcopy:* Estudiamos la continuidad, laxitud y proporción para un afinamiento elegante.
 
 ---
 
-### SECCIÓN D — SELECCIÓN TECNOLÓGICA
+### SECCIÓN D — PROTOCOLO Y TECNOLOGÍA
 
-H2: Arsenal tecnológico: Qué puede formar parte del plan
+H2: Couture Sculpt™: El protocolo y la tecnología
 
 TEXTO:
-La tecnología no define el protocolo. El diagnóstico determina qué plataforma puede
-aportar valor, qué zonas conviene priorizar y qué combinación resultaría desproporcionada.
-Según el caso, el médico prescribirá:
+Toda la filosofía de NUVANX Contour Architecture™ se vehicula a través de nuestro protocolo
+médico **Couture Sculpt™**. En lugar de depender de una sola máquina, el médico prescribirá
+la tecnología exacta que requiere tu anatomía para lograr esa retracción y reducción silenciosa:
 
-- Endoláser corporal
-- Endolift® corporal
-- EXION® Body
-- Láser CO₂ fraccionado
-- EXION® Fractional RF
-- Tratamientos de calidad cutánea
+- **Endoláser Corporal / Endolift®:** Para una licuefacción térmica de la grasa localizada y retracción profunda.
+- **Radiofrecuencia Fraccionada (EXION® Body):** Para estimular la calidad del tejido y la firmeza dérmica.
+- **Protocolos combinados:** Diseñados para potenciar la recuperación tisular.
 
-*Nota médica: No todas estas plataformas se utilizan en todos los pacientes. Su uso depende estrictamente de la indicación anatómica.*
+*Nota médica: El uso de una u otra plataforma depende estrictamente de la indicación anatómica presencial.*
 
 ---
 
@@ -150,15 +139,10 @@ Según el caso, el médico prescribirá:
 H2: Cuándo no es el tratamiento adecuado
 
 TEXTO:
-Para nosotros, la honestidad médica es innegociable. No aplicaremos el protocolo
-NUVANX Contour Architecture™ en los siguientes casos:
-
+El verdadero lujo es la honestidad. No aplicaremos el protocolo en los siguientes casos:
 - Cuando el objetivo del paciente es una pérdida general de peso.
-- Cuando existe un exceso importante de piel que requiere cirugía mayor.
-- Cuando detectamos una diástasis o hernia abdominal no evaluada previamente.
-- Si existe una enfermedad activa o contraindicación médica absoluta.
-- Cuando la expectativa del paciente es incompatible con una intervención focal.
-- Cuando la necesidad real es una cirugía que no debe sustituirse por tecnología.
+- Cuando existe un exceso importante de piel que requiere cirugía mayor (dermolipectomía).
+- Si existe una diástasis o hernia abdominal severa no tratada.
 
 ---
 
@@ -167,9 +151,8 @@ NUVANX Contour Architecture™ en los siguientes casos:
 H2: Tu primera valoración clínica
 
 TEXTO:
-El objetivo no es cambiar tu cuerpo por otro. Es mejorar la continuidad de esa zona
-con una intervención proporcionada y médicamente defendible. La técnica, las zonas,
-la evolución y el presupuesto se determinan después de la exploración en Chamberí o Goya.
+El objetivo es mejorar la continuidad de tu contorno con una intervención proporcionada,
+elegante y médicamente defendible. Todo comienza con una valoración exhaustiva en Chamberí o Goya.
 
 CTA PRIMARIO: Solicitar valoración médica privada
 
@@ -177,60 +160,17 @@ CTA PRIMARIO: Solicitar valoración médica privada
 
 ## 06. SCHEMA RECOMENDADO
 @type: MedicalWebPage + MedicalProcedure
-name: "Remodelación corporal láser | NUVANX Contour Architecture™"
+name: "Remodelación corporal láser | NUVANX Couture Sculpt™"
 medicalSpecialty: "PlasticSurgery"
-provider: MedicalOrganization "NUVANX Medicina Estética Láser"
-
----
-
-## 07. KEYWORDS PRIMARIAS
-- remodelacion corporal laser madrid
-- tratamiento grasa localizada madrid
-- clinica medicina estetica contorno corporal
-
----
-
-## 08. KEYWORDS LONG-TAIL
-- remodelacion corporal sin cirugia
-- diagnostico grasa localizada abdomen madrid
-- alternativa laser a liposuccion flancos madrid
-- tratamiento flacidez y grasa brazos madrid
-
----
-
-## 09. INTERLINKING INTERNO
-← / (Home)
-← /soluciones-medicas/ (Menú principal: Soluciones)
-→ /grasa-localizada-abdomen-flancos-madrid/
-→ /flacidez-grasa-localizada-brazos-madrid/
-→ /madrid/valoracion/
-
----
-
-## 10. CHECKLIST REGULATORIA (RD 1907/1996)
-[OK] Elimina completamente el uso de "LipoTight" y la mímesis de patentes (AirSculpt).
-[OK] Rechaza explícitamente a candidatos quirúrgicos (diástasis, exceso severo de piel).
-[OK] Expresa que no todos los objetivos (Reducir/Redefinir/Retraer) se consiguen siempre en todos los pacientes.
-[OK] Sin uso de términos de captación prohibidos ("mínima recuperación", "sin bisturí").
 
 ---
 
 ## 11. DIFERENCIACIÓN COMPETITIVA INTEGRADA
-El protocolo "Contour Architecture" demuestra que NUVANX vende un **método de diagnóstico,
-combinación y seguimiento**. Mientras AirSculpt o Clínicas Dorsia promueven "la máquina" o "el precio",
-NUVANX promueve un estudio arquitectónico del tejido (Cartografía Anatómica).
-Es un abordaje altamente editorial, clínico y premium que justifica el presupuesto cerrado posterior.
+La introducción del concepto *quiet luxury* y "espacio negativo" conecta directamente
+con un paciente premium que huye de resultados exagerados y busca "discreción quirúrgica".
+Se consolida a **Couture Sculpt™** como la alternativa médica elegante a las franquicias de liposucción agresiva.
 
 ---
 
 ## 12. ESTADO DE PRODUCCIÓN
-[PENDIENTE DE DESARROLLO] — Fase 1.
-Sustituye completamente a la antigua página de LipoTight. Debe mantenerse el nombre "Contour Architecture™"
-hasta finalizar registro en OEPM/EUIPO.
-
----
-
-## 13. NOTA MÉDICA Y DE GOBERNANZA
-El término "Contour Architecture™" es el nombre del producto/plan. En los consentimientos informados
-posteriores, el equipo clínico documentará la tecnología específica real utilizada (Láser intersticial 1470nm,
-Radiofrecuencia, etc.) para mantener rigor documental.
+[EN REPO VERIFICADO]

@@ -118,8 +118,6 @@ require_once __DIR__ . '/nvx-p0-publication-guard.php';
 require_once __DIR__ . '/nvx-seo-metadata.php';
 require_once __DIR__ . '/nvx-seo-production-readiness.php';
 require_once __DIR__ . '/nvx-contacto-audit-fixes.php';
-require_once __DIR__ . '/nvx-home-copy.php';
-require_once __DIR__ . '/nvx-home-content-v2.php';
 require_once __DIR__ . '/nvx-faq-content-v2.php';
 require_once __DIR__ . '/nvx-medical-review.php';
 require_once __DIR__ . '/nvx-publication-safeguards.php';

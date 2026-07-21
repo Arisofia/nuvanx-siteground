@@ -60,6 +60,7 @@ for (const forbidden of [
 for (const marker of [
   "EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'",
   "EXPECTED_URL='https://staging2.nuvanx.com'",
+  "BACKUP_ROOT='/home/customer/backups-nuvanx/staging2'",
   '--migration-script',
   '--smoke-script',
   'wp db export',
@@ -77,6 +78,7 @@ for (const marker of [
 for (const forbidden of [
   '/home/customer/www/nuvanx.com/public_html',
   'ssh-keyscan',
+  'BACKUP_DIR="$WP_ROOT/wp-content/',
 ]) {
   if (deploy.includes(forbidden)) fail(`deploy script contains forbidden marker: ${forbidden}`);
 }

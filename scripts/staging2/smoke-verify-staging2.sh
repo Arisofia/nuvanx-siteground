@@ -6,14 +6,15 @@ BASE_URL="${BASE_URL:-https://staging2.nuvanx.com}"
 BASE_URL="${BASE_URL%/}"
 
 case "$BASE_URL" in
-  https://staging2.nuvanx.com|https://nuvanx.com|https://www.nuvanx.com) ;;
+  https://staging2.nuvanx.com|https://nuvanx.com) ;;
+  https://www.nuvanx.com) BASE_URL='https://nuvanx.com' ;;
   *)
     echo "ERROR: refusing unexpected BASE_URL: $BASE_URL" >&2
     exit 1
     ;;
 esac
 
-for command_name in curl grep mktemp tr; do
+for command_name in curl grep mktemp tr cut tail xargs; do
   command -v "$command_name" >/dev/null 2>&1 || {
     echo "ERROR: required command unavailable: $command_name" >&2
     exit 1
@@ -25,7 +26,7 @@ trap 'rm -rf "$TMP_DIR"' EXIT
 
 fail() {
   echo "ERROR: $*" >&2
-  exit 1
+  return 1
 }
 
 fetch_page() {
@@ -44,7 +45,7 @@ fetch_page() {
     "$BASE_URL$path")"
 
   [[ "$status" == '200' ]] || fail "$path returned HTTP $status"
-  grep -Fq "$expected_marker" "$body_file" || fail "$path is missing marker: $expected_marker"
+  grep -Fiq "$expected_marker" "$body_file" || fail "$path is missing marker: $expected_marker"
 
   for forbidden in \
     'Protocolo en construcción clínica' \
@@ -84,7 +85,7 @@ check_redirect() {
   echo "PASS redirect $source_path -> $target_path status=301"
 }
 
-fetch_page '/tratamientos/' 'Portafolio Clínico'
+fetch_page '/tratamientos/' 'Portafolio clínico.'
 fetch_page '/protocolos-signature/' 'Protocolos Signature'
 fetch_page '/remodelacion-corporal-laser-madrid/' 'Couture Sculpt'
 

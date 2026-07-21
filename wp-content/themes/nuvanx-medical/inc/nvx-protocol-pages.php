@@ -1,0 +1,180 @@
+﻿<?php
+/**
+ * Protocol Signature Pages — Couture Sculpt, Post-Maternity, etc.
+ *
+ * @package nuvanx-medical
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+function nvx_protocol_pages_catalog(): array {
+	return array(
+		'couture-sculpt' => array(
+			'slug'          => 'remodelacion-corporal-laser-madrid',
+			'title'         => 'Remodelación corporal láser diseñada según tu anatomía.',
+			'kicker'        => 'PROTOCOLO SIGNATURE NUVANX',
+			'lead'          => 'NUVANX Contour Architecture™ es nuestro sistema médico de diagnóstico y tratamiento por unidades anatómicas. Estudiamos la grasa localizada, la laxitud cutánea y la continuidad del contorno para diseñar un plan proporcionado y de absoluta discreción.',
+			'description'   => 'Entendemos la medicina estética como un ejercicio de quiet luxury. Un abordaje silencioso, mínimamente invasivo y sin huellas quirúrgicas evidentes, donde la elegancia de la transición es tan importante como el resultado final. Nuestro protocolo comercial estrella, Couture Sculpt™, materializa esta visión.',
+			'review_status' => 'approved_for_publication',
+		),
+		'post-maternity' => array(
+			'slug'          => 'tratamiento-postparto-abdomen-contorno-corporal-madrid',
+			'title'         => 'El posparto no es un problema único.',
+			'kicker'        => 'PROTOCOLO SIGNATURE NUVANX',
+			'lead'          => 'NUVANX Post-Maternity Contour™ es un abordaje médico que clasifica y trata de forma independiente la grasa localizada rebelde, la flacidez cutánea profunda, las estrías y la cicatriz de cesárea.',
+			'description'   => 'No existe un "mommy makeover" láser universal. Desglosamos tu abdomen en componentes clínicos para aplicar la tecnología exacta que necesita tu tejido, siempre tras valoración médica y respetando los tiempos de recuperación biológica.',
+			'review_status' => 'approved_for_publication',
+		),
+	);
+}
+
+function nvx_protocol_pages_current_key(): ?string {
+	if ( ! is_page() ) {
+		return null;
+	}
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	foreach ( nvx_protocol_pages_catalog() as $key => $page ) {
+		if ( $page['slug'] === $slug ) {
+			return $key;
+		}
+	}
+	return null;
+}
+
+function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
+	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
+	
+	// Hero
+	$html .= '<header class="nvx-strategy-intro">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['title'] ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
+	$html .= '<p>' . esc_html( $data['description'] ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '<p class="nvx-brand-microcopy">' . esc_html__( 'La técnica, las zonas, la evolución y el presupuesto se determinan tras la exploración médica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</header>';
+
+	// Filosofía
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'No tratamos zonas aisladas. Diseñamos continuidad.', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'El abdomen no termina en el abdomen. El brazo no puede valorarse sin su relación con la axila y el torso. La espalda, la cintura y los flancos forman una misma unidad visual. Por eso, en NUVANX estudiamos cada zona valorando su integración global (espacio negativo y proporción). El objetivo no es cambiar tu cuerpo por otro, sino perfeccionar su arquitectura con la mayor naturalidad.', 'nuvanx-medical' ) . '</p>';
+	
+	$html .= '<div class="nvx-card-diagnostic-wrap">';
+	$html .= '<h3>' . esc_html__( 'Cartografía Anatómica NUVANX', 'nuvanx-medical' ) . '</h3>';
+	$html .= '<p>' . esc_html__( 'Antes de proponer tecnología, el médico analiza: Distribución de la grasa localizada, calidad y capacidad de retracción de la piel, proporción y transición armónica entre zonas, asimetrías anatómicas y límites reales de una intervención médico-estética.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</div>';
+	$html .= '</section>';
+
+	// 3 Decisiones
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Tres decisiones clínicas: Reducir, Redefinir, Retraer', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'La elegancia de un buen resultado reside en la indicación precisa. Nuestro protocolo clasifica tu necesidad clínica en tres posibles vías de actuación:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-check-list">';
+	$html .= '<li><strong>REDUCIR:</strong> ' . esc_html__( 'Cuando predomina grasa localizada susceptible de tratamiento mediante energía térmica.', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>REDEFINIR:</strong> ' . esc_html__( 'Cuando el objetivo es mejorar la transición y proporción entre zonas adyacentes.', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>RETRAER:</strong> ' . esc_html__( 'Cuando existe una indicación clara para actuar sobre la laxitud cutánea y densificar el tejido.', 'nuvanx-medical' ) . '</li>';
+	$html .= '</ul>';
+	$html .= '</section>';
+
+	// Zonas
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Zonas de tratamiento', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p><strong>Abdomen y Cintura:</strong> ' . esc_html__( 'El contorno no termina donde termina el abdomen. Grasa y piel requieren diagnósticos distintos.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><strong>Torso Superior:</strong> ' . esc_html__( 'Brazos, axila anterior y zona del sujetador. Buscamos que la manga caiga limpia.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><strong>Piernas y Tren Inferior:</strong> ' . esc_html__( 'Estudiamos la continuidad, laxitud y proporción para un afinamiento elegante.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</section>';
+
+	// Tecnología
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Couture Sculpt™: El protocolo y la tecnología', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'Toda la filosofía de NUVANX Contour Architecture™ se vehicula a través de nuestro protocolo médico Couture Sculpt™. El médico prescribirá la tecnología exacta que requiere tu anatomía:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-check-list">';
+	$html .= '<li><strong>Endoláser Corporal / Endolift®:</strong> ' . esc_html__( 'Para una licuefacción térmica de la grasa localizada y retracción profunda.', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>Radiofrecuencia Fraccionada (EXION® Body):</strong> ' . esc_html__( 'Para estimular la calidad del tejido y la firmeza dérmica.', 'nuvanx-medical' ) . '</li>';
+	$html .= '</ul>';
+	$html .= '</section>';
+
+	// Cuándo NO
+	$html .= '<section class="nvx-brand-section nvx-strategy-checklist nvx-strategy-checklist--no">';
+	$html .= '<h2>' . esc_html__( 'Cuándo no es el tratamiento adecuado', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'El verdadero lujo es la honestidad. No aplicaremos el protocolo en los siguientes casos:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-check-list nvx-check-list--no">';
+	$html .= '<li>' . esc_html__( 'Cuando el objetivo del paciente es una pérdida general de peso.', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Cuando existe un exceso importante de piel que requiere cirugía mayor (dermolipectomía).', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Si existe una diástasis o hernia abdominal severa no tratada.', 'nuvanx-medical' ) . '</li>';
+	$html .= '</ul>';
+	$html .= '</section>';
+
+	$html .= '</article>';
+	return $html;
+}
+
+function nvx_protocol_pages_post_maternity_markup( array $data ): string {
+	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
+	
+	// Hero
+	$html .= '<header class="nvx-strategy-intro">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['title'] ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
+	$html .= '<p>' . esc_html( $data['description'] ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</header>';
+
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Protocolo en construcción clínica', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'La documentación extendida de este protocolo está en fase de despliegue web. La atención médica en consulta ya está disponible.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</section>';
+
+	$html .= '</article>';
+	return $html;
+}
+
+function nvx_protocol_pages_content_filter( string $content ): string {
+	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
+		return $content;
+	}
+
+	$key = nvx_protocol_pages_current_key();
+	if ( ! $key ) {
+		return $content;
+	}
+
+	$data = nvx_protocol_pages_catalog()[ $key ];
+	if ( 'couture-sculpt' === $key ) {
+		return nvx_protocol_pages_couture_sculpt_markup( $data );
+	}
+	if ( 'post-maternity' === $key ) {
+		return nvx_protocol_pages_post_maternity_markup( $data );
+	}
+
+	return $content;
+}
+add_filter( 'the_content', 'nvx_protocol_pages_content_filter', 21 );
+
+function nvx_seed_protocol_pages(): void {
+	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
+		return;
+	}
+
+	foreach ( nvx_protocol_pages_catalog() as $key => $page ) {
+		$stored = get_page_by_path( $page['slug'] );
+		if ( $stored ) {
+			continue;
+		}
+
+		wp_insert_post(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => $page['title'],
+				'post_name'    => $page['slug'],
+				'post_content' => '<!-- NUVANX_PROTOCOL_PAGE:' . $key . ' -->',
+			),
+			true
+		);
+	}
+}
+add_action( 'init', 'nvx_seed_protocol_pages', 32 );

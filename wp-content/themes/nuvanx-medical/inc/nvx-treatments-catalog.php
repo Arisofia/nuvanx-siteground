@@ -1,13 +1,9 @@
-<?php
+﻿<?php
 /**
- * Treatments index restructure — quiet-luxury catalog.
+ * Treatments index restructure — quiet-luxury catalog (Portafolio Clínico).
  *
- * Pattern-based (collaborators / catalog markup), not page-ID gated:
- * - Group treatments into medical categories.
- * - Editorial cards with short copy and contextual CTA.
- * - Collapse brand laundry-list into a discreet logo cloud.
- * - Remove redundant SEO summary blocks.
- * - Close with the canonical dual CTA.
+ * Pattern-based (collaborators / catalog markup), not page-ID gated.
+ * Updated to use Couture Sculpt, Skin Architecture, etc.
  *
  * @package nuvanx-medical
  */
@@ -16,147 +12,94 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Detect the treatments index from stable structural markers. */
 function nvx_content_is_treatments_index( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-catalog' ) ) {
 		return false;
 	}
-
 	return (bool) preg_match(
 		'/nvx-brand-collaborators|Selección profesional|Catálogo de tratamientos NUVANX|aria-label="Catálogo de tratamientos/iu',
 		$content
 	);
 }
 
-/**
- * Canonical treatment catalogue.
- *
- * Cards explain role, limits and selection criteria. Detailed recovery,
- * sessions, tariffs and comparative claims belong on approved detail pages.
- *
- * @return array<int, array{key:string,label:string,items:array<int,array{meta:string,title:string,body:string,url:string}>}>
- */
 function nvx_treatments_catalog_data(): array {
 	return array(
 		array(
-			'key'   => 'remodelacion',
-			'label' => 'Remodelación láser y contorno',
+			'key'   => 'contorno-facial',
+			'label' => 'Contorno y Proporción Facial',
 			'items' => array(
 				array(
-					'meta'  => '01 / Láser facial',
-					'title' => 'Endolift® Facial',
-					'body'  => 'Tensado progresivo del óvalo facial, la línea mandibular y la papada mediante microfibras ópticas estériles de 200 a 300 micras.',
-					'url'   => home_url( '/endolift-facial-papada-mandibula/' ),
-				),
-				array(
-					'meta'  => '02 / Láser corporal',
-					'title' => 'Endoláser Corporal',
-					'body'  => 'Reducción de grasa localizada y mejora de firmeza con protocolo láser progresivo, adaptado a la silueta y al diagnóstico médico.',
-					'url'   => home_url( '/endolaser-corporal-grasa-localizada/' ),
+					'meta'  => 'Protocolo Profile Definition™',
+					'title' => 'Papada y Línea Mandibular',
+					'body'  => 'Redefinición del perfil inferior. Tratamos la laxitud y los depósitos grasos del tercio inferior mediante láser intersticial (Endolift®).',
+					'url'   => home_url( '/papada-definicion-mandibular-madrid/' ),
 				),
 			),
 		),
 		array(
-			'key'   => 'regeneracion',
-			'label' => 'Regeneración cutánea y calidad de piel',
+			'key'   => 'arquitectura-corporal',
+			'label' => 'Arquitectura Corporal (Couture Sculpt™)',
 			'items' => array(
 				array(
-					'meta'  => '03 / Renovación cutánea',
-					'title' => 'Láser CO₂ Fraccionado',
-					'body'  => 'Vaporización fraccionada de alta precisión para textura, poros, cicatrices y rejuvenecimiento controlado de la piel.',
-					'url'   => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ),
+					'meta'  => 'Protocolo Couture Sculpt™',
+					'title' => 'Remodelación Láser Corporal',
+					'body'  => 'Nuestro sistema de diagnóstico y tratamiento térmico para abdomen, flancos y extremidades. Esculpe el contorno sin imponer formas estándar.',
+					'url'   => home_url( '/remodelacion-corporal-laser-madrid/' ),
 				),
 				array(
-					'meta'  => '04 / Plataforma EXION®',
-					'title' => 'EXION® BTL (hub)',
-					'body'  => 'Plataforma médica con aplicadores Fractional RF, Face y Body. Cada modalidad tiene mecanismo, profundidad, recuperación y objetivos distintos; la indicación se define por diagnóstico.',
-					'url'   => home_url( '/exion-btl/' ),
-				),
-				array(
-					'meta'  => '05 / EXION® Face',
-					'title' => 'EXION® Face',
-					'body'  => 'Aplicador no invasivo de radiofrecuencia y ultrasonido para protocolos de calidad cutánea. Los parámetros y el número de sesiones se definen según diagnóstico y tolerancia.',
-					'url'   => home_url( '/exion-face/' ),
-				),
-				array(
-					'meta'  => '06 / EXION® Body',
-					'title' => 'EXION® Body',
-					'body'  => 'Aplicador corporal no invasivo para protocolos de firmeza, textura y contorno. No sustituye procedimientos de reducción de grasa ni trata obesidad.',
-					'url'   => home_url( '/exion-body/' ),
-				),
-				array(
-					'meta'  => '07 / EXION® Fractional',
-					'title' => 'EXION® Fractional RF',
-					'body'  => 'Radiofrecuencia fraccionada con microagujas para textura, poro y cicatrices seleccionadas. Profundidad, anestesia, cuidados y período de recuperación dependen del protocolo.',
-					'url'   => home_url( '/exion-fractional/' ),
-				),
-				array(
-					'meta'  => '08 / EMFUSION®',
-					'title' => 'EMFUSION®',
-					'body'  => 'Aplicador orientado al soporte de barrera y a la infusión cutánea según protocolo. No sustituye procedimientos médicos de energía ni tratamientos inyectables.',
-					'url'   => home_url( '/emfusion/' ),
-				),
-				array(
-					'meta'  => '09 / Luz pulsada médica',
-					'title' => 'BTL EXILITE™ IPL',
-					'body'  => 'Luz pulsada intensa para indicaciones pigmentarias, vasculares y calidad cutánea seleccionadas tras diagnóstico, fototipo y ajuste de parámetros.',
-					'url'   => home_url( '/btl-exilite-ipl-madrid/' ),
+					'meta'  => 'Protocolo Post-Maternity™',
+					'title' => 'Recuperación Posgestacional',
+					'body'  => 'Abordaje integral del abdomen posparto. Valoración médica de diástasis, grasa localizada, laxitud cutánea y cicatriz de cesárea.',
+					'url'   => home_url( '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' ),
 				),
 			),
 		),
 		array(
-			'key'   => 'medicina',
-			'label' => 'Medicina estética y prevención',
+			'key'   => 'calidad-piel',
+			'label' => 'Calidad de Piel, Tono y Superficie',
 			'items' => array(
 				array(
-					'meta'  => '11 / Biomedicina estética',
-					'title' => 'Bioestimulación',
-					'body'  => 'Inducción de colágeno y calidad dérmica con criterio conservador, orientada a un aspecto descansado y natural.',
-					'url'   => home_url( '/medicina-estetica/' ),
+					'meta'  => 'Protocolo Skin Architecture™',
+					'title' => 'Firmeza y Densidad (EXION)',
+					'body'  => 'Recuperación de la matriz dérmica sin alterar volúmenes. Incrementamos la producción de colágeno y ácido hialurónico.',
+					'url'   => home_url( '/calidad-piel-firmeza-luminosidad-madrid/' ),
 				),
 				array(
-					'meta'  => '12 / Armonización facial',
-					'title' => 'Ácido hialurónico',
-					'body'  => 'Volumen y soporte selectivos para armonizar facciones sin rigidizar la expresión, siempre tras valoración médica.',
-					'url'   => home_url( '/medicina-estetica/' ),
+					'meta'  => 'Protocolo Surface Renewal™',
+					'title' => 'Cicatrices y Poros (CO₂)',
+					'body'  => 'El estándar de oro para resurfacing ablativo. Renovación epidérmica severa para marcas de acné, poros dilatados y estrías.',
+					'url'   => home_url( '/cicatrices-acne-poros-textura-madrid/' ),
 				),
 				array(
-					'meta'  => '13 / Contorno nasal',
-					'title' => 'Rinomodelación',
-					'body'  => 'Refinamiento del perfil nasal sin quirófano, con planificación anatómica y expectativa realista de resultado.',
-					'url'   => home_url( '/estetica-avanzada/' ),
+					'meta'  => 'Protocolo Tone Correction™',
+					'title' => 'Manchas y Rojeces (IPL)',
+					'body'  => 'Fotorejuvenecimiento de precisión. Fragmentación de pigmento y coagulación de lesiones vasculares con control térmico absoluto.',
+					'url'   => home_url( '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' ),
 				),
 			),
 		),
 	);
 }
 
-/** @return string[] */
 function nvx_treatments_partner_labels(): array {
 	return array(
+		'BTL Aesthetics',
 		'DEKA',
-		'BTL',
 		'Teoxane',
 		'Merz Pharma',
-		'Vivacy',
-		'Radiesse',
-		'Sculptra',
-		'Azzalure',
-		'Croma',
-		'Allergan Aesthetics',
 		'Galderma',
+		'Allergan',
 		'IBSA',
 	);
 }
 
-/** Build the canonical treatment catalogue section. */
 function nvx_treatments_catalog_markup(): string {
-	$html  = '<section class="nvx-catalog" aria-label="Tratamientos de precisión médica NUVANX">';
+	$html  = '<section class="nvx-catalog" aria-label="Portafolio Clínico NUVANX">';
 	$html .= '<div class="nvx-catalog__inner">';
 	$html .= '<header class="nvx-catalog__intro">';
-	$html .= '<span class="nvx-catalog__kicker">' . esc_html__( 'NUVANX · Madrid', 'nuvanx-medical' ) . '</span>';
-	$html .= '<h2 class="nvx-catalog__title">' . esc_html__( 'Tratamientos de precisión médica', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-catalog__lead">' . esc_html__( 'Cada protocolo combina tecnología láser avanzada y aparatología certificada. La indicación definitiva se confirma exclusivamente tras una valoración médica personalizada en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<span class="nvx-catalog__kicker">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</span>';
+	$html .= '<h2 class="nvx-catalog__title">' . esc_html__( 'Portafolio Clínico', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-catalog__lead">' . esc_html__( 'En NUVANX las plataformas no mandan; manda el médico. Nuestro portafolio se organiza por necesidades anatómicas.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</header>';
 
 	foreach ( nvx_treatments_catalog_data() as $category ) {
@@ -176,29 +119,22 @@ function nvx_treatments_catalog_markup(): string {
 			$html .= ' <span aria-hidden="true">→</span></a>';
 			$html .= '</article>';
 		}
-
 		$html .= '</div></div>';
 	}
-
 	return $html . '</div></section>';
 }
 
-/** Replace long collaborator essays with a discreet name cloud. */
 function nvx_treatments_logo_cloud_markup(): string {
-	$html  = '<section class="nvx-logo-cloud" aria-label="Tecnología y laboratorios de referencia">';
+	$html  = '<section class="nvx-logo-cloud" aria-label="Tecnología y laboratorios">';
 	$html .= '<div class="nvx-logo-cloud__inner">';
-	$html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'Tecnología y laboratorios de referencia mundial con los que colaboramos', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'Tecnología médica y laboratorios aliados', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<ul class="nvx-logo-cloud__list">';
-
 	foreach ( nvx_treatments_partner_labels() as $label ) {
 		$html .= '<li class="nvx-logo-cloud__item">' . esc_html( $label ) . '</li>';
 	}
-
 	return $html . '</ul></div></section>';
 }
 
-
-/** Replace legacy catalogue, collaborator, summary and CTA blocks. */
 function nvx_content_restructure_treatments_index( string $content ): string {
 	if ( ! nvx_content_is_treatments_index( $content ) ) {
 		return $content;
@@ -206,9 +142,8 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 
 	$catalog = nvx_treatments_catalog_markup();
 	$cloud   = nvx_treatments_logo_cloud_markup();
-	// Strip legacy CMS close bands; do not inject a page-local CTA (footer owns it).
-	$close_cta = '';
 
+	// Limpiar contenido anterior e inyectar
 	$content = preg_replace(
 		'/<section\b[^>]*aria-label="Catálogo de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
 		$catalog,
@@ -216,6 +151,7 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 		1,
 		$count_catalog
 	) ?? $content;
+
 	if ( ! $count_catalog ) {
 		$content = preg_replace(
 			'/<section\b[^>]*class="[^"]*\bnvx-brand-section\b(?![^"]*collaborators)(?![^"]*cta)[^"]*"[^>]*>[\s\S]*?(?:Áreas de tratamiento|Facial, corporal, láser)[\s\S]*?<\/section>/iu',
@@ -232,6 +168,7 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 		1,
 		$count_collab
 	) ?? $content;
+
 	if ( ! $count_collab ) {
 		$content = preg_replace(
 			'/<section\b[^>]*aria-label="[^"]*Marcas colaboradoras[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
@@ -240,52 +177,20 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 			1
 		) ?? $content;
 	}
-
-	$content = preg_replace(
-		'/<section\b[^>]*aria-label="Resumen de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
-		'',
-		$content,
-		1
-	) ?? $content;
-	$content = preg_replace(
-		'/<section\b[^>]*class="[^"]*\bnvx-brand-section\b[^"]*"[^>]*>[\s\S]*?¿Qué tratamientos realizamos en NUVANX\?[\s\S]*?<\/section>/iu',
-		'',
-		$content,
-		1
-	) ?? $content;
-
-	$content = preg_replace(
-		'/<section\b[^>]*class="[^"]*nvx-brand-section--cta[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
-		$close_cta,
-		$content,
-		1,
-		$count_cta
-	) ?? $content;
-	if ( ! $count_cta ) {
-		$content = preg_replace(
-			'/<section\b[^>]*aria-label="Consulta médica personalizada NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
-			$close_cta,
-			$content,
-			1
-		) ?? $content;
-	}
-
-	$links  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="Enlaces de interés">';
+	
+	// Limpiar restos
+	$content = preg_replace('/<section\b[^>]*aria-label="Resumen de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu', '', $content, 1) ?? $content;
+	$content = preg_replace('/<section\b[^>]*class="[^"]*\bnvx-brand-section\b[^"]*"[^>]*>[\s\S]*?¿Qué tratamientos realizamos en NUVANX\?[\s\S]*?<\/section>/iu', '', $content, 1) ?? $content;
+	$content = preg_replace('/<section\b[^>]*class="[^"]*nvx-brand-section--cta[^"]*"[^>]*>[\s\S]*?<\/section>/iu', '', $content, 1) ?? $content;
+	
+	$links  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="Tu primera valoración clínica">';
 	$links .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$links .= '<p class="nvx-brand-body">' . esc_html__( 'Explora el ', 'nuvanx-medical' );
-	$links .= '<a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/equipo-medico/' ) ) . '">' . esc_html__( 'equipo médico', 'nuvanx-medical' ) . '</a>';
-	$links .= esc_html__( ', las ', 'nuvanx-medical' );
-	$links .= '<a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/' ) ) . '">' . esc_html__( 'clínicas', 'nuvanx-medical' ) . '</a>';
-	$links .= esc_html__( ' o el área de ', 'nuvanx-medical' );
-	$links .= '<a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/estetica-avanzada/' ) ) . '">' . esc_html__( 'estética avanzada', 'nuvanx-medical' ) . '</a>.';
-	$links .= '</p></div></section>';
+	$links .= '<h2 class="nvx-brand-heading-2">' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
+	$links .= '<p class="nvx-brand-body">' . esc_html__( 'No vendemos bonos de máquinas. Elaboramos planes médicos personalizados basados en evidencia anatómica.', 'nuvanx-medical' ) . '</p>';
+	$links .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Iniciar mi valoración', 'nuvanx-medical' ) . '</a></p>';
+	$links .= '</div></section>';
 
-	$content = preg_replace(
-		'/<section\b[^>]*aria-label="Enlaces de interés"[^>]*>[\s\S]*?<\/section>/iu',
-		$links,
-		$content,
-		1
-	) ?? $content;
+	$content = preg_replace('/<section\b[^>]*aria-label="Enlaces de interés"[^>]*>[\s\S]*?<\/section>/iu', $links, $content, 1) ?? $content;
 
 	return is_string( $content ) ? $content : '';
 }

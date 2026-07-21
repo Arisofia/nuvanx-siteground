@@ -105,11 +105,8 @@ do
   fi
 done
 # Drop known legacy renamed copies if present.
-rm -f \
-  "$PROD_ROOT/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-valoracion-native-hubspot-form.php" \
-  "$PROD_ROOT/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-contacto-hubspot-form.php" \
-  "$PROD_ROOT/wp-content/mu-plugins/z-nuvanx-valoracion-native-hubspot-form.php" \
-  "$PROD_ROOT/wp-content/mu-plugins/z-nuvanx-contacto-hubspot-form.php"
+rm -f "$PROD_ROOT/wp-content/mu-plugins/"z*-nuvanx-valoracion-native-hubspot-form.php
+rm -f "$PROD_ROOT/wp-content/mu-plugins/"z*-nuvanx-contacto-hubspot-form.php
 
 echo "== Remove stale theme min.css siblings =="
 find "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/css" \

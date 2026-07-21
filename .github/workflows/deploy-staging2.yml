@@ -63,16 +63,46 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Validate workflow and deployment payload
+      - name: Validate shell syntax
+        shell: bash
         run: |
           set -euo pipefail
           bash -n tools/deploy/deploy-to-staging2.sh
           bash -n scripts/staging2/collect-staging2-diagnostics.sh
           bash -n scripts/staging2/smoke-verify-staging2.sh
+
+      - name: Validate Node syntax
+        shell: bash
+        run: |
+          set -euo pipefail
           node --check scripts/staging2/verify-rendered-acceptance.mjs
+          node --check scripts/staging2/test-deploy-workflow-contract.mjs
+
+      - name: Validate PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
           php -l scripts/wp/nvx-production-readiness-command.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
-          node scripts/staging2/test-deploy-workflow-contract.mjs
+
+      - name: Validate workflow and deployment contract
+        id: contract_validation
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p contract-validation-evidence
+          node scripts/staging2/test-deploy-workflow-contract.mjs \
+            2>&1 | tee contract-validation-evidence/contract-validation.log
+          grep -Fq 'DEPLOY_WORKFLOW_CONTRACT_OK' contract-validation-evidence/contract-validation.log
+
+      - name: Upload contract validation evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: staging2-contract-validation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: contract-validation-evidence/
+          retention-days: 30
+          if-no-files-found: warn
 
   deploy:
     name: Diagnose or deploy immutable SHA to staging2

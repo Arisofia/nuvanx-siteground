@@ -74,14 +74,18 @@ jobs:
       - name: Validate rendered acceptance Node syntax
         shell: bash
         run: |
-          set -euo pipefail
-          node --check scripts/staging2/verify-rendered-acceptance.mjs
+          set -o pipefail
+          mkdir -p contract-validation-evidence
+          node --check scripts/staging2/verify-rendered-acceptance.mjs \
+            2>&1 | tee contract-validation-evidence/rendered-node-syntax.log
 
       - name: Validate deployment contract Node syntax
         shell: bash
         run: |
-          set -euo pipefail
-          node --check scripts/staging2/test-deploy-workflow-contract.mjs
+          set -o pipefail
+          mkdir -p contract-validation-evidence
+          node --check scripts/staging2/test-deploy-workflow-contract.mjs \
+            2>&1 | tee contract-validation-evidence/contract-node-syntax.log
 
       - name: Validate PHP syntax
         shell: bash

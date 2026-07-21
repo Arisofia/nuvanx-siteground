@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const workflowPath = path.join(root, '.github/workflows/deploy-staging2.yml');
 const deployPath = path.join(root, 'tools/deploy/deploy-to-staging2.sh');
+const diagnosticsPath = path.join(root, 'scripts/staging2/collect-staging2-diagnostics.sh');
 const migrationPath = path.join(root, 'scripts/wp/nvx-production-readiness-command.php');
 const smokePath = path.join(root, 'scripts/staging2/smoke-verify-staging2.sh');
 const failures = [];
@@ -24,12 +25,16 @@ function read(file) {
 
 const workflow = read(workflowPath);
 const deploy = read(deployPath);
+const diagnostics = read(diagnosticsPath);
 const migration = read(migrationPath);
 const smoke = read(smokePath);
 
 for (const marker of [
   'workflow_dispatch:',
   "inputs.confirmation == 'DEPLOY_STAGING2'",
+  'PREFLIGHT_ONLY',
+  'DEPLOY_AND_MIGRATE',
+  'SMOKE_ONLY',
   'environment:',
   'name: staging2',
   'persist-credentials: false',
@@ -37,8 +42,16 @@ for (const marker of [
   'STAGING2_SSH_KNOWN_HOSTS',
   'git_sha must equal the selected workflow ref HEAD',
   'ref: ${{ github.sha }}',
+  'scripts/staging2/collect-staging2-diagnostics.sh',
+  '< scripts/staging2/collect-staging2-diagnostics.sh',
   'scripts/wp/nvx-production-readiness-command.php',
   'scripts/staging2/smoke-verify-staging2.sh',
+  'staging2-deployment-evidence',
+  'actions/upload-artifact@',
+  'ssh-debug.log',
+  'preflight.log',
+  'remote-deploy.log',
+  'independent-smoke.log',
   '--migration-script',
   '--smoke-script',
 ]) {
@@ -53,6 +66,7 @@ for (const forbidden of [
   '/home/customer/www/nuvanx.com/public_html',
   "github.ref == 'refs/heads/master'",
   'git merge-base --is-ancestor "$DEPLOY_SHA" origin/master',
+  'bash scripts/staging2/collect-staging2-diagnostics.sh --wp-root "$WP_ROOT" \\\n            | ssh',
 ]) {
   if (workflow.includes(forbidden)) fail(`workflow contains forbidden marker: ${forbidden}`);
 }
@@ -81,6 +95,27 @@ for (const forbidden of [
   'BACKUP_DIR="$WP_ROOT/wp-content/',
 ]) {
   if (deploy.includes(forbidden)) fail(`deploy script contains forbidden marker: ${forbidden}`);
+}
+
+for (const marker of [
+  "EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'",
+  "EXPECTED_URL='https://staging2.nuvanx.com'",
+  "BACKUP_ROOT='/home/customer/backups-nuvanx/staging2'",
+  'command.$command_name=available',
+  'wordpress.siteurl=',
+  'wordpress.home=',
+  'wordpress.active_theme=',
+  'wordpress.empty_trash_days=',
+  'wordpress.db_check=',
+  'path.backup_root_status=',
+  'path.deployment_root_status=',
+  'http.home_status=',
+  'STAGING2_PREFLIGHT_OK',
+]) {
+  if (!diagnostics.includes(marker)) fail(`diagnostics missing contract marker: ${marker}`);
+}
+for (const forbidden of ['mkdir -p', 'rm -rf', 'wp db import', 'wp option update', 'wp rewrite flush']) {
+  if (diagnostics.includes(forbidden)) fail(`diagnostics contains mutating marker: ${forbidden}`);
 }
 
 for (const marker of [

@@ -99,16 +99,30 @@ The artifact must be downloaded before re-running a failed attempt. The first fa
 
 ## Automated acceptance
 
-The run is technically accepted only when all of the following are true:
+The run is technically accepted based on the execution mode. All modes require:
 
 - exact selected ref and SHA match;
-- `STAGING2_PREFLIGHT_OK`;
-- `DEPLOY_STAGING2_OK` for a deployment run;
+- `STAGING2_PREFLIGHT_OK`.
+
+Mode-specific acceptance criteria:
+
+**`PREFLIGHT_ONLY`**
+
+Accepted when preflight passes (`STAGING2_PREFLIGHT_OK`) and SSH connectivity succeeds. No deployment or smoke evidence is produced or required.
+
+**`DEPLOY_AND_MIGRATE`**
+
+Accepted only when:
+
+- `DEPLOY_STAGING2_OK` is present;
 - post-migration audit passes;
-- `SMOKE_VERIFY_OK` from the remote deployment;
-- `SMOKE_VERIFY_OK` from the independent runner verification;
 - deployed SHA marker equals the selected immutable SHA;
-- no rollback warning remains unresolved.
+- `SMOKE_VERIFY_OK` is present from the independent runner verification;
+- no rollback warning (`ROLLBACK_COMPLETE` indicates a rollback occurred and must be investigated) remains unresolved.
+
+**`SMOKE_ONLY`**
+
+Accepted when preflight passes and `SMOKE_VERIFY_OK` is present from the independent runner verification. No deployment evidence is produced or required.
 
 ## Manual rendered QA
 

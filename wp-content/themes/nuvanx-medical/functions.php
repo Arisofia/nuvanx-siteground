@@ -181,7 +181,7 @@ function nvx_asset_version( string $relative_path ): string {
 }
 
 /**
- * Enqueues the theme's styles and scripts, including home-specific and hero blackout assets when applicable.
+ * Enqueues the theme's styles and scripts, including home, treatments, and hero blackout assets when applicable.
  */
 function nvx_theme_scripts() {
 	$uri = get_template_directory_uri();

@@ -49,25 +49,16 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Retired or unpublished pages and their desired final status.
+	 * Returns the shared retired or unpublished page contract from the active theme.
 	 *
 	 * @return array<string,array{status:string,target:string}>
 	 */
 	private function governed_pages(): array {
-		return array(
-			'liposculpt-air' => array(
-				'status' => 'trash',
-				'target' => '/remodelacion-corporal-laser-madrid/',
-			),
-			'v-lift-awake' => array(
-				'status' => 'trash',
-				'target' => '/papada-definicion-mandibular-madrid/',
-			),
-			'tratamiento-postparto-abdomen-contorno-corporal-madrid' => array(
-				'status' => 'draft',
-				'target' => '/protocolos-signature/',
-			),
-		);
+		if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
+			WP_CLI::error( 'Production-readiness governed-page contract is unavailable.' );
+		}
+
+		return nvx_production_readiness_governed_pages();
 	}
 
 	/**
@@ -84,6 +75,7 @@ final class NVX_Production_Readiness_Command {
 	/**
 	 * Returns menu item IDs that reference a page.
 	 *
+	 * @param int $page_id Referenced WordPress page ID.
 	 * @return int[]
 	 */
 	private function menu_item_ids( int $page_id ): array {
@@ -187,6 +179,98 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
+	 * Validates confirmation and environment restrictions for a mutating run.
+	 *
+	 * @param array<string,mixed> $assoc_args WP-CLI associative arguments.
+	 */
+	private function validate_invocation( array $assoc_args ): void {
+		$confirmation = isset( $assoc_args['confirm'] ) ? (string) $assoc_args['confirm'] : '';
+		if ( self::CONFIRMATION_TOKEN !== $confirmation ) {
+			WP_CLI::error( 'Refusing to apply: use --confirm=' . self::CONFIRMATION_TOKEN );
+		}
+
+		$host = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+		if ( ! in_array( $host, array( 'staging2.nuvanx.com', 'nuvanx.com', 'www.nuvanx.com' ), true ) ) {
+			WP_CLI::error( 'Refusing to apply on unexpected host: ' . $host );
+		}
+		if ( in_array( $host, array( 'nuvanx.com', 'www.nuvanx.com' ), true ) && ! isset( $assoc_args['allow-production'] ) ) {
+			WP_CLI::error( 'Production requires the explicit --allow-production flag.' );
+		}
+	}
+
+	/**
+	 * Creates only approved pages that are currently absent.
+	 */
+	private function apply_approved_pages(): void {
+		foreach ( $this->approved_pages() as $slug => $definition ) {
+			$page = $this->page_by_slug( $slug );
+			if ( $page ) {
+				if ( 'publish' !== $page->post_status ) {
+					WP_CLI::warning( sprintf( 'Approved page %s exists with status %s; preserving it for manual review.', $slug, $page->post_status ) );
+				}
+				continue;
+			}
+
+			$page_id = wp_insert_post(
+				array(
+					'post_type'    => 'page',
+					'post_status'  => 'publish',
+					'post_title'   => $definition['title'],
+					'post_name'    => $slug,
+					'post_content' => $definition['content'],
+				),
+				true
+			);
+			if ( is_wp_error( $page_id ) ) {
+				WP_CLI::error( sprintf( 'Unable to create %s: %s', $slug, $page_id->get_error_message() ) );
+			}
+			WP_CLI::log( sprintf( 'Created approved page %s as ID %d.', $slug, (int) $page_id ) );
+		}
+	}
+
+	/**
+	 * Removes menu references and applies the governed status to retired pages.
+	 */
+	private function apply_governed_pages(): void {
+		foreach ( $this->governed_pages() as $slug => $definition ) {
+			$page = $this->page_by_slug( $slug );
+			if ( ! $page ) {
+				continue;
+			}
+
+			foreach ( $this->menu_item_ids( (int) $page->ID ) as $menu_item_id ) {
+				wp_delete_post( $menu_item_id, true );
+				WP_CLI::log( sprintf( 'Deleted menu item %d referencing %s.', $menu_item_id, $slug ) );
+			}
+
+			delete_post_meta( (int) $page->ID, '_nvx_strategy_review_status' );
+			if ( $definition['status'] === $page->post_status ) {
+				continue;
+			}
+
+			if ( 'trash' === $definition['status'] ) {
+				$result = wp_trash_post( (int) $page->ID );
+				if ( ! $result instanceof WP_Post ) {
+					WP_CLI::error( sprintf( 'Unable to update %s to trash.', $slug ) );
+				}
+			} else {
+				$result = wp_update_post(
+					array(
+						'ID'          => (int) $page->ID,
+						'post_status' => $definition['status'],
+					),
+					true
+				);
+				if ( is_wp_error( $result ) ) {
+					WP_CLI::error( sprintf( 'Unable to update %s: %s', $slug, $result->get_error_message() ) );
+				}
+			}
+
+			WP_CLI::log( sprintf( 'Updated %s to %s.', $slug, $definition['status'] ) );
+		}
+	}
+
+	/**
 	 * Audits approved and governed pages against the production-readiness requirements.
 	 *
 	 * ## OPTIONS
@@ -225,72 +309,10 @@ final class NVX_Production_Readiness_Command {
 	 * : Required when the WordPress host is nuvanx.com or www.nuvanx.com.
 	 */
 	public function apply( array $args, array $assoc_args ): void {
-		$confirmation = isset( $assoc_args['confirm'] ) ? (string) $assoc_args['confirm'] : '';
-		if ( self::CONFIRMATION_TOKEN !== $confirmation ) {
-			WP_CLI::error( 'Refusing to apply: use --confirm=' . self::CONFIRMATION_TOKEN );
-		}
-
-		$host = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
-		if ( ! in_array( $host, array( 'staging2.nuvanx.com', 'nuvanx.com', 'www.nuvanx.com' ), true ) ) {
-			WP_CLI::error( 'Refusing to apply on unexpected host: ' . $host );
-		}
-		if ( in_array( $host, array( 'nuvanx.com', 'www.nuvanx.com' ), true ) && ! isset( $assoc_args['allow-production'] ) ) {
-			WP_CLI::error( 'Production requires the explicit --allow-production flag.' );
-		}
-
+		$this->validate_invocation( $assoc_args );
 		$this->acquire_lock();
-
-		foreach ( $this->approved_pages() as $slug => $definition ) {
-			$page = $this->page_by_slug( $slug );
-			if ( $page ) {
-				if ( 'publish' !== $page->post_status ) {
-					WP_CLI::warning( sprintf( 'Approved page %s exists with status %s; preserving it for manual review.', $slug, $page->post_status ) );
-				}
-				continue;
-			}
-
-			$page_id = wp_insert_post(
-				array(
-					'post_type'    => 'page',
-					'post_status'  => 'publish',
-					'post_title'   => $definition['title'],
-					'post_name'    => $slug,
-					'post_content' => $definition['content'],
-				),
-				true
-			);
-			if ( is_wp_error( $page_id ) ) {
-				WP_CLI::error( sprintf( 'Unable to create %s: %s', $slug, $page_id->get_error_message() ) );
-			}
-			WP_CLI::log( sprintf( 'Created approved page %s as ID %d.', $slug, (int) $page_id ) );
-		}
-
-		foreach ( $this->governed_pages() as $slug => $definition ) {
-			$page = $this->page_by_slug( $slug );
-			if ( ! $page ) {
-				continue;
-			}
-
-			foreach ( $this->menu_item_ids( (int) $page->ID ) as $menu_item_id ) {
-				wp_delete_post( $menu_item_id, true );
-				WP_CLI::log( sprintf( 'Deleted menu item %d referencing %s.', $menu_item_id, $slug ) );
-			}
-
-			delete_post_meta( (int) $page->ID, '_nvx_strategy_review_status' );
-			if ( $definition['status'] !== $page->post_status ) {
-				$result = wp_update_post(
-					array(
-						'ID'          => (int) $page->ID,
-						'post_status' => $definition['status'],
-					),
-					true
-				);
-				if ( is_wp_error( $result ) ) {
-					WP_CLI::error( sprintf( 'Unable to update %s: %s', $slug, $result->get_error_message() ) );
-				}
-				WP_CLI::log( sprintf( 'Updated %s to %s.', $slug, $definition['status'] ) );
-			}
-		}
+		$this->apply_approved_pages();
+		$this->apply_governed_pages();
 
 		flush_rewrite_rules( false );
 		$rows = $this->audit_rows();

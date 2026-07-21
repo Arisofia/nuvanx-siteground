@@ -4,6 +4,7 @@
  *
  * Usage:
  * wp --require=scripts/wp/nvx-production-readiness-command.php nvx production-readiness audit
+ * wp --require=scripts/wp/nvx-production-readiness-command.php nvx production-readiness audit --allow-pending
  * wp --require=scripts/wp/nvx-production-readiness-command.php nvx production-readiness apply --confirm=retire-prototypes
  *
  * @package nuvanx-siteground
@@ -18,6 +19,8 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
  */
 final class NVX_Production_Readiness_Command {
 	private const CONFIRMATION_TOKEN = 'retire-prototypes';
+	private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
+	private const LOCK_TTL_SECONDS   = 900;
 
 	/**
 	 * Approved pages that must exist after the migration.
@@ -152,12 +155,44 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
+	 * Acquires an atomic migration lock.
+	 */
+	private function acquire_lock(): void {
+		$now      = time();
+		$existing = (int) get_option( self::LOCK_OPTION, 0 );
+		if ( $existing > 0 && ( $now - $existing ) > self::LOCK_TTL_SECONDS ) {
+			delete_option( self::LOCK_OPTION );
+		}
+
+		if ( ! add_option( self::LOCK_OPTION, (string) $now, '', false ) ) {
+			WP_CLI::error( 'Another production-readiness migration is already running.' );
+		}
+
+		register_shutdown_function(
+			static function (): void {
+				delete_option( self::LOCK_OPTION );
+			}
+		);
+	}
+
+	/**
+	 * Releases the migration lock.
+	 */
+	private function release_lock(): void {
+		delete_option( self::LOCK_OPTION );
+	}
+
+	/**
 	 * Audits approved, retired and unpublished pages.
 	 *
 	 * ## OPTIONS
 	 *
 	 * [--format=<format>]
 	 * : table or json. Default: table.
+	 *
+	 * [--allow-pending]
+	 * : Report pending changes without returning a failing exit code. Intended
+	 *   only for the pre-apply audit in the protected staging2 workflow.
 	 */
 	public function audit( array $args, array $assoc_args ): void {
 		$rows   = $this->audit_rows();
@@ -165,6 +200,10 @@ final class NVX_Production_Readiness_Command {
 		WP_CLI\Utils\format_items( $format, $rows, array( 'type', 'slug', 'id', 'status', 'menu_items', 'expected' ) );
 
 		if ( ! $this->is_clean( $rows ) ) {
+			if ( isset( $assoc_args['allow-pending'] ) ) {
+				WP_CLI::warning( 'Production-readiness audit found pending changes, as permitted for pre-apply inspection.' );
+				return;
+			}
 			WP_CLI::error( 'Production-readiness audit found pending changes.' );
 		}
 		WP_CLI::success( 'Production-readiness audit passed.' );
@@ -194,6 +233,8 @@ final class NVX_Production_Readiness_Command {
 		if ( in_array( $host, array( 'nuvanx.com', 'www.nuvanx.com' ), true ) && ! isset( $assoc_args['allow-production'] ) ) {
 			WP_CLI::error( 'Production requires the explicit --allow-production flag.' );
 		}
+
+		$this->acquire_lock();
 
 		foreach ( $this->approved_pages() as $slug => $definition ) {
 			$page = $this->page_by_slug( $slug );
@@ -253,6 +294,8 @@ final class NVX_Production_Readiness_Command {
 		if ( ! $this->is_clean( $rows ) ) {
 			WP_CLI::error( 'Migration completed but the post-apply audit still has pending changes.' );
 		}
+
+		$this->release_lock();
 		WP_CLI::success( 'Migration applied and post-apply audit passed.' );
 	}
 }

@@ -15,6 +15,9 @@ const portfolioPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-
 const protocolHubPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php');
 const protocolPagesPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php');
 const strategyPagesPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
+const nativeStylePath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-native-style-governance.php');
+const integrationsPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
+const pageShellPath = path.join(root, 'wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php');
 const failures = [];
 
 /**
@@ -44,6 +47,9 @@ const portfolio = read(portfolioPath);
 const protocolHub = read(protocolHubPath);
 const protocolPages = read(protocolPagesPath);
 const strategyPages = read(strategyPagesPath);
+const nativeStyle = read(nativeStylePath);
+const integrations = read(integrationsPath);
+const pageShell = read(pageShellPath);
 const controlledPublicContent = [portfolio, protocolHub, protocolPages, strategyPages].join('\n');
 
 for (const marker of [
@@ -169,7 +175,7 @@ for (const marker of [
   "fetch_page '/por-que-nuvanx/'",
   "fetch_page '/inversion-medicina-estetica/'",
   "check_redirect '/liposculpt-air/'",
-  "check_redirect '/v-lift-awake/'",
+  "check_redirect '/v-lift-awake/' '/protocolos-signature/'",
   "check_redirect '/tratamiento-postparto-abdomen-contorno-corporal-madrid/'",
   'SMOKE_VERIFY_OK',
 ]) {
@@ -212,7 +218,7 @@ for (const marker of [
   'canonical or og:url is absent',
   'https://www.nuvanx.com',
   '/liposculpt-air/',
-  '/v-lift-awake/',
+  "['/v-lift-awake/', '/protocolos-signature/']",
   '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
   "redirect: 'manual'",
   'response.status !== 301',
@@ -230,6 +236,27 @@ for (const forbidden of [
   'DELETE ',
 ]) {
   if (renderedAcceptance.includes(forbidden)) fail(`rendered acceptance contains mutating marker: ${forbidden}`);
+}
+
+for (const marker of [
+  "is_page_template( 'page-tratamientos.php' )",
+  "'tratamientos' === (string) get_post_field( 'post_name', get_queried_object_id() )",
+]) {
+  if (!nativeStyle.includes(marker)) fail(`treatments hub detection missing contract marker: ${marker}`);
+}
+
+for (const marker of [
+  "function_exists( 'nvx_content_is_protocol_hub' )",
+  "function_exists( 'nvx_protocol_pages_current_key' )",
+]) {
+  if (!pageShell.includes(marker)) fail(`managed protocol shell missing contract marker: ${marker}`);
+}
+
+for (const marker of [
+  "'v-lift-awake'",
+  "'target' => '/protocolos-signature/'",
+]) {
+  if (!integrations.includes(marker)) fail(`governed V-Lift redirect missing contract marker: ${marker}`);
 }
 
 for (const marker of [

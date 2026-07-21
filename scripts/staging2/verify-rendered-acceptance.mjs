@@ -1,0 +1,254 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+
+const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
+const expectedSha = process.env.EXPECTED_SHA || '';
+const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/rendered-acceptance';
+
+if (!/^https:\/\/staging2\.nuvanx\.com$/.test(baseUrl)) {
+  console.error(`ERROR: refusing unexpected BASE_URL: ${baseUrl}`);
+  process.exit(1);
+}
+if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
+  console.error('ERROR: EXPECTED_SHA must be a full lowercase 40-character SHA.');
+  process.exit(1);
+}
+
+fs.mkdirSync(evidenceDir, { recursive: true });
+
+const pages = [
+  {
+    path: '/tratamientos/',
+    h1: 'Portafolio Clínico.',
+    marker: 'Áreas de intervención clínica',
+    schemaTypes: ['WebPage', 'ItemList'],
+  },
+  {
+    path: '/protocolos-signature/',
+    h1: 'Protocolos Signature: Medicina estética de diagnóstico.',
+    marker: 'Nuestro estándar: La firma NUVANX',
+    schemaTypes: ['WebPage'],
+  },
+  {
+    path: '/remodelacion-corporal-laser-madrid/',
+    h1: 'Remodelación corporal láser diseñada según tu anatomía.',
+    marker: 'Couture Sculpt™: El protocolo y la tecnología',
+    schemaTypes: ['WebPage'],
+  },
+  {
+    path: '/por-que-nuvanx/',
+    h1: 'El diagnóstico precede a la indicación.',
+    marker: 'Diagnóstico antes de tecnología',
+    schemaTypes: ['WebPage'],
+  },
+  {
+    path: '/inversion-medicina-estetica/',
+    h1: 'El presupuesto forma parte de una decisión informada.',
+    marker: 'Qué incluye el precio',
+    schemaTypes: ['WebPage'],
+  },
+];
+
+const redirects = [
+  ['/liposculpt-air/', '/remodelacion-corporal-laser-madrid/'],
+  ['/v-lift-awake/', '/papada-definicion-mandibular-madrid/'],
+  ['/tratamiento-postparto-abdomen-contorno-corporal-madrid/', '/protocolos-signature/'],
+];
+
+const forbiddenText = [
+  'Protocolo en construcción clínica',
+  'fase de despliegue web',
+  'pending_medical_legal',
+  'LipoSculpt-Air™',
+  'V-Lift Awake™',
+  'Post-Maternity Contour',
+];
+
+const findings = [];
+const report = {
+  base_url: baseUrl,
+  expected_sha: expectedSha,
+  generated_at: new Date().toISOString(),
+  pages: [],
+  redirects: [],
+};
+
+function fail(scope, message) {
+  findings.push(`${scope}: ${message}`);
+}
+
+function normalizeText(value) {
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractTag(html, tagName) {
+  const match = html.match(new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i'));
+  return match ? normalizeText(match[1]) : '';
+}
+
+function extractTags(html, tagName) {
+  return [...html.matchAll(new RegExp(`<${tagName}\\b[^>]*>`, 'gi'))].map((match) => match[0]);
+}
+
+function attribute(tag, name) {
+  const match = tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, 'i'));
+  return match ? match[2] : '';
+}
+
+function metaContent(html, name) {
+  for (const tag of extractTags(html, 'meta')) {
+    if (attribute(tag, 'name').toLowerCase() === name.toLowerCase()) return attribute(tag, 'content');
+    if (attribute(tag, 'property').toLowerCase() === name.toLowerCase()) return attribute(tag, 'content');
+  }
+  return '';
+}
+
+function linkHref(html, rel) {
+  for (const tag of extractTags(html, 'link')) {
+    const relValue = attribute(tag, 'rel').toLowerCase().split(/\s+/);
+    if (relValue.includes(rel.toLowerCase())) return attribute(tag, 'href');
+  }
+  return '';
+}
+
+function schemaTypesFrom(value, target = new Set()) {
+  if (Array.isArray(value)) {
+    for (const item of value) schemaTypesFrom(item, target);
+    return target;
+  }
+  if (!value || typeof value !== 'object') return target;
+  const type = value['@type'];
+  if (Array.isArray(type)) {
+    for (const item of type) target.add(String(item));
+  } else if (type) {
+    target.add(String(type));
+  }
+  for (const nested of Object.values(value)) schemaTypesFrom(nested, target);
+  return target;
+}
+
+function collectSchemaTypes(html, scope) {
+  const types = new Set();
+  const scripts = [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  if (!scripts.length) fail(scope, 'missing JSON-LD schema');
+  for (const [, jsonText] of scripts) {
+    try {
+      schemaTypesFrom(JSON.parse(jsonText.trim()), types);
+    } catch (error) {
+      fail(scope, `invalid JSON-LD: ${error.message}`);
+    }
+  }
+  return [...types].sort();
+}
+
+function safeFileName(urlPath) {
+  return urlPath.replace(/^\/+|\/+$/g, '').replace(/[^a-z0-9._-]+/gi, '-') || 'home';
+}
+
+async function fetchWithTimeout(url, options = {}) {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'user-agent': 'NUVANX-Staging2-Rendered-Acceptance/1.0',
+      ...(options.headers || {}),
+    },
+    signal: AbortSignal.timeout(45_000),
+  });
+}
+
+for (const page of pages) {
+  const scope = `page ${page.path}`;
+  const url = `${baseUrl}${page.path}`;
+  const result = { path: page.path, url };
+  try {
+    const response = await fetchWithTimeout(url, { redirect: 'follow' });
+    const html = await response.text();
+    fs.writeFileSync(path.join(evidenceDir, `${safeFileName(page.path)}.html`), html);
+
+    result.status = response.status;
+    result.final_url = response.url;
+    result.title = extractTag(html, 'title');
+    result.description = metaContent(html, 'description');
+    result.robots = metaContent(html, 'robots');
+    result.deploy_sha = metaContent(html, 'nvx-deploy-sha');
+    result.canonical = linkHref(html, 'canonical');
+    result.og_url = metaContent(html, 'og:url');
+    result.h1_count = (html.match(/<h1\b/gi) || []).length;
+    result.h1 = extractTag(html, 'h1');
+    result.schema_types = collectSchemaTypes(html, scope);
+
+    if (response.status !== 200) fail(scope, `returned HTTP ${response.status}`);
+    if (response.url !== url) fail(scope, `resolved to ${response.url} instead of ${url}`);
+    if (result.deploy_sha !== expectedSha) fail(scope, `deploy SHA ${result.deploy_sha || 'absent'} does not equal ${expectedSha}`);
+    if (!result.title || /página no encontrada|404/i.test(result.title)) fail(scope, `invalid title: ${result.title || 'absent'}`);
+    if (!result.description) fail(scope, 'missing meta description');
+    if (!/\bnoindex\b/i.test(result.robots) || !/\bnofollow\b/i.test(result.robots)) {
+      fail(scope, `staging robots must contain noindex,nofollow; found ${result.robots || 'absent'}`);
+    }
+    if (result.h1_count !== 1) fail(scope, `expected exactly one H1, found ${result.h1_count}`);
+    if (result.h1 !== page.h1) fail(scope, `H1 is "${result.h1}" instead of "${page.h1}"`);
+    if (!html.includes(page.marker)) fail(scope, `missing content marker: ${page.marker}`);
+    if (!html.includes('/madrid/valoracion/')) fail(scope, 'missing valuation CTA');
+
+    const expectedProductionUrl = `https://nuvanx.com${page.path}`;
+    const canonicalTarget = result.canonical || result.og_url;
+    if (canonicalTarget !== expectedProductionUrl) {
+      fail(scope, `canonical/og:url is ${canonicalTarget || 'absent'} instead of ${expectedProductionUrl}`);
+    }
+
+    for (const schemaType of page.schemaTypes) {
+      if (!result.schema_types.includes(schemaType)) fail(scope, `missing schema type ${schemaType}`);
+    }
+    if (!result.schema_types.includes('Organization') && !result.schema_types.includes('MedicalOrganization')) {
+      fail(scope, 'missing Organization or MedicalOrganization schema');
+    }
+    for (const forbidden of forbiddenText) {
+      if (html.toLowerCase().includes(forbidden.toLowerCase())) fail(scope, `exposes forbidden text: ${forbidden}`);
+    }
+  } catch (error) {
+    result.error = error.message;
+    fail(scope, `request failed: ${error.message}`);
+  }
+  report.pages.push(result);
+}
+
+for (const [sourcePath, targetPath] of redirects) {
+  const scope = `redirect ${sourcePath}`;
+  const expectedLocation = `${baseUrl}${targetPath}`;
+  const result = { source: sourcePath, target: targetPath, expected_location: expectedLocation };
+  try {
+    const response = await fetchWithTimeout(`${baseUrl}${sourcePath}`, { redirect: 'manual' });
+    result.status = response.status;
+    result.location = response.headers.get('location') || '';
+    if (response.status !== 301) fail(scope, `returned HTTP ${response.status} instead of 301`);
+    if (result.location !== expectedLocation) {
+      fail(scope, `location is ${result.location || 'absent'} instead of ${expectedLocation}`);
+    }
+  } catch (error) {
+    result.error = error.message;
+    fail(scope, `request failed: ${error.message}`);
+  }
+  report.redirects.push(result);
+}
+
+report.ok = findings.length === 0;
+report.findings = findings;
+fs.writeFileSync(path.join(evidenceDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
+
+if (findings.length) {
+  console.error(`RENDERED_ACCEPTANCE_FAILED findings=${findings.length}`);
+  for (const finding of findings) console.error(`- ${finding}`);
+  process.exit(1);
+}
+
+console.log(`RENDERED_ACCEPTANCE_OK base_url=${baseUrl} sha=${expectedSha}`);

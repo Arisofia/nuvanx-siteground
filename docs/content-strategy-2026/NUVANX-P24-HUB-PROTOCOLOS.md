@@ -7,7 +7,7 @@
 
 ## 01. IDENTIFICACIÓN
 - **URL canónica:** https://nuvanx.com/protocolos-signature/
-- **Plantilla WordPress:** `nvx-portfolio-hub.php` (Por desarrollar)
+- **Plantilla WordPress:** `inc/nvx-protocol-hub.php` (integración mediante `the_content`)
 - **Menú Principal:** Protocolos Signature (Raíz)
 
 ---

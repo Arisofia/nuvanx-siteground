@@ -339,7 +339,7 @@
 
 /* Logo cloud — discreet partner strip */
 .nvx-logo-cloud {
-  padding-block: var(--nvx-space-10) var(--nvx-space-12);
+  padding-block: var(--nvx-space-6) var(--nvx-space-8);
   background: var(--nvx-surface-base);
   border-block: 1px solid var(--nvx-color-line);
 }

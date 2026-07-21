@@ -119,6 +119,9 @@ function nvx_protocol_hub_markup(): string {
  * @return string The hub markup for the Protocolos Signature page, or the original content for other pages.
  */
 function nvx_protocol_hub_content_filter( string $content ): string {
+	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
+		return $content;
+	}
 	if ( ! nvx_content_is_protocol_hub( $content ) ) {
 		return $content;
 	}

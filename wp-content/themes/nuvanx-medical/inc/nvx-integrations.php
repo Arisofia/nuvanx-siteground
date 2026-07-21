@@ -189,7 +189,7 @@ add_action(
 	1
 );
 
-/* Clinical governance · retired treatment and prototype slugs */
+/* Clinical governance · retired treatment, prototype and unpublished protocol slugs */
 add_action(
 	'template_redirect',
 	function (): void {
@@ -198,9 +198,10 @@ add_action(
 		}
 
 		$redirects = array(
-			'tratamiento-retirado' => '/tratamientos/',
-			'liposculpt-air'       => '/remodelacion-corporal-laser-madrid/',
-			'v-lift-awake'         => '/papada-definicion-mandibular-madrid/',
+			'tratamiento-retirado'                                => '/tratamientos/',
+			'liposculpt-air'                                      => '/remodelacion-corporal-laser-madrid/',
+			'v-lift-awake'                                        => '/papada-definicion-mandibular-madrid/',
+			'tratamiento-postparto-abdomen-contorno-corporal-madrid' => '/protocolos-signature/',
 		);
 		$slug      = (string) get_post_field( 'post_name', get_the_ID() );
 

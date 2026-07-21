@@ -215,10 +215,11 @@ function nvx_strategy_verified_investment_rows(): array {
 }
 
 /**
- * Renders one price-table section for a group of tariff rows.
+ * Renders a tariff table section when rows are available.
  *
- * @param string                                     $heading Section H2 text.
- * @param array<int,array{label:string,price:string}> $rows    Tariff rows.
+ * @param string $heading Section heading.
+ * @param array<int,array{label:string,price:string}> $rows Tariff rows to display.
+ * @return string The rendered HTML section, or an empty string when no rows are provided.
  */
 function nvx_strategy_investment_table_section( string $heading, array $rows ): string {
 	if ( empty( $rows ) ) {
@@ -240,6 +241,8 @@ function nvx_strategy_investment_table_section( string $heading, array $rows ): 
 
 /**
  * Builds the investment page with transparent tariffs and clinical context.
+ *
+ * @return string The generated investment page HTML.
  */
 function nvx_strategy_investment_markup(): string {
 	$groups        = nvx_strategy_verified_investment_groups();

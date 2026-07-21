@@ -13,7 +13,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Whether the current request is the canonical treatments hub template. */
+/**
+ * Determines whether the current request is the treatments hub page.
+ *
+ * @return bool True if the current request uses the treatments hub template or has the "tratamientos" slug, false otherwise.
+ */
 function nvx_theme_is_treatments_hub(): bool {
 	if ( is_page_template( 'page-tratamientos.php' ) ) {
 		return true;

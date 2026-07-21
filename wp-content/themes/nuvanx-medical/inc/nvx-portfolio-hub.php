@@ -158,7 +158,7 @@ function nvx_treatments_logo_cloud_markup(): string {
 }
 
 /**
- * Reorganizes the treatments index content with the current catalog, partner section and clinical assessment call to action.
+ * Reorganizes treatments index content with the current catalog, partner section, and clinical assessment call to action.
  *
  * @param string $content The rendered page content to evaluate and restructure.
  * @return string The restructured content, or the original content when it is not the treatments index.

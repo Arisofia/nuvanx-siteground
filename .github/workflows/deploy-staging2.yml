@@ -74,7 +74,7 @@ jobs:
       - name: Validate rendered acceptance Node syntax
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           mkdir -p contract-validation-evidence
           node --check scripts/staging2/verify-rendered-acceptance.mjs \
             2>&1 | tee contract-validation-evidence/rendered-node-syntax.log
@@ -82,7 +82,7 @@ jobs:
       - name: Validate deployment contract Node syntax
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           mkdir -p contract-validation-evidence
           node --check scripts/staging2/test-deploy-workflow-contract.mjs \
             2>&1 | tee contract-validation-evidence/contract-node-syntax.log
@@ -98,7 +98,7 @@ jobs:
         id: contract_validation
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           mkdir -p contract-validation-evidence
           node scripts/staging2/test-deploy-workflow-contract.mjs \
             2>&1 | tee contract-validation-evidence/contract-validation.log
@@ -227,7 +227,7 @@ jobs:
         id: ssh_connectivity
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           ssh -vv nvx-staging2 'printf "SSH_CONNECTION_OK\n"' \
             2> "$ARTIFACT_DIR/ssh-debug.log" \
             | tee "$ARTIFACT_DIR/ssh-connectivity.log"
@@ -236,7 +236,7 @@ jobs:
         id: preflight
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           ssh nvx-staging2 \
             'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' \
             < scripts/staging2/collect-staging2-diagnostics.sh \
@@ -273,7 +273,7 @@ jobs:
         id: remote_deploy
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           ssh nvx-staging2 \
             "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' \
               --wp-root '$WP_ROOT' \
@@ -302,7 +302,7 @@ jobs:
           BASE_URL: https://staging2.nuvanx.com
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           bash scripts/staging2/smoke-verify-staging2.sh \
             2>&1 | tee "$ARTIFACT_DIR/independent-smoke.log"
           grep -Fq 'SMOKE_VERIFY_OK' "$ARTIFACT_DIR/independent-smoke.log"
@@ -316,7 +316,7 @@ jobs:
           EVIDENCE_DIR: staging2-deployment-evidence/rendered-acceptance
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           node scripts/staging2/verify-rendered-acceptance.mjs \
             2>&1 | tee "$ARTIFACT_DIR/rendered-acceptance.log"
           grep -Fq 'RENDERED_ACCEPTANCE_OK' "$ARTIFACT_DIR/rendered-acceptance.log"
@@ -326,7 +326,7 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
-          set -o pipefail
+          set -euo pipefail
           ssh nvx-staging2 \
             'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' \
             < scripts/staging2/collect-staging2-diagnostics.sh \

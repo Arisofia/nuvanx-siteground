@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Legacy catalog markers remain supported during the CMS content migration.
  *
  * @param string $content Content to inspect.
- * @return bool `true` if the content matches a treatments index marker and does not contain the catalog marker, `false` otherwise.
+ * @return bool `true` if the content contains a treatments index marker and `nvx-catalog` is absent, `false` otherwise.
  */
 function nvx_content_is_treatments_index( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-catalog' ) ) {
@@ -31,9 +31,9 @@ function nvx_content_is_treatments_index( string $content ): bool {
 }
 
 /**
- * Provides the structured catalog of approved treatment categories and protocols.
+ * Provides the treatment categories and protocols used by the clinical catalog.
  *
- * @return array Treatment categories with labels, descriptions and URLs.
+ * @return array Treatment categories containing labels and protocol details with URLs.
  */
 function nvx_treatments_catalog_data(): array {
 	return array(

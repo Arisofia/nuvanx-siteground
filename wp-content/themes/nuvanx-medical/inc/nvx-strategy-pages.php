@@ -33,7 +33,9 @@ function nvx_strategy_page_catalog(): array {
 }
 
 /**
- * Returns the catalogue key for the current strategy page.
+ * Identifies the current page's strategy catalog entry.
+ *
+ * @return string|null The matching strategy key, or null when the current request is not a cataloged page.
  */
 function nvx_strategy_current_page_key(): ?string {
 	if ( ! is_page() ) {
@@ -68,7 +70,9 @@ function nvx_strategy_published_url( string $key ): string {
 }
 
 /**
- * Builds the authority page with an explicit diagnostic-first promise.
+ * Builds the NUVANX medical criteria and patient-care standards page markup.
+ *
+ * @return string The rendered HTML for the NUVANX strategy page.
  */
 function nvx_strategy_why_nuvanx_markup(): string {
 	$valuation_url = esc_url( home_url( '/madrid/valoracion/' ) );
@@ -123,9 +127,9 @@ function nvx_strategy_why_nuvanx_markup(): string {
 }
 
 /**
- * Returns only tariffs approved by the clinical-claims register, grouped by category.
+ * Groups available clinical tariffs by treatment category.
  *
- * @return array<string,array<int,array{label:string,price:string}>>
+ * @return array<string, array<int, array{label: string, price: string}>>
  */
 function nvx_strategy_verified_investment_groups(): array {
 	if ( ! function_exists( 'nvx_tariff_catalog' ) || ! function_exists( 'nvx_format_price_eur' ) ) {
@@ -284,7 +288,10 @@ function nvx_strategy_investment_markup(): string {
 }
 
 /**
- * Renders the correct body for an approved strategy route.
+ * Generates the page markup for a supported strategy route.
+ *
+ * @param string $key The strategy route key.
+ * @return string The strategy page markup, or an empty string for an unsupported key.
  */
 function nvx_strategy_page_markup( string $key ): string {
 	if ( 'why_nuvanx' === $key ) {
@@ -297,7 +304,10 @@ function nvx_strategy_page_markup( string $key ): string {
 }
 
 /**
- * Uses a stable, theme-owned rendering path rather than editable CMS fragments.
+ * Replaces the content of the current strategy page with its generated markup.
+ *
+ * @param string $content The original page content.
+ * @return string The generated strategy markup or the original content when the request is not eligible.
  */
 function nvx_strategy_page_content_filter( string $content ): string {
 	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {

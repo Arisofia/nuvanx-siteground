@@ -53,7 +53,7 @@ function nvx_protocol_pages_current_key(): ?string {
 /**
  * Builds the HTML markup for the Couture Sculpt protocol page.
  *
- * @param array $data Protocol page content, including the kicker, title, lead and description.
+ * @param array $data Protocol page content, including the kicker, title, lead, and description.
  * @return string The generated Couture Sculpt protocol page markup.
  */
 function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {

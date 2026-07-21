@@ -43,9 +43,9 @@ function nvx_theme_is_home_page(): bool {
 }
 
 /**
- * Post-conversion page slugs.
+ * Provides the slugs used to identify thank-you pages.
  *
- * @return string[]
+ * @return string[] Thank-you page slugs, including any values added by the filter.
  */
 function nvx_theme_thank_you_page_slugs(): array {
 	return apply_filters(
@@ -85,7 +85,11 @@ function nvx_theme_is_page_slug_in( array $slugs ): bool {
 	return in_array( $slug, $slugs, true );
 }
 
-/** Whether the current request is a post-conversion page. */
+/**
+ * Determines whether the current page is a post-conversion thank-you page.
+ *
+ * @return bool `true` if the current page uses a configured thank-you slug, `false` otherwise.
+ */
 function nvx_theme_is_thank_you_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_thank_you_page_slugs() );
 }
@@ -186,7 +190,11 @@ function nvx_reading_time( $post_id = null ): string {
 	return sprintf( _n( '%s min', '%s min', $minutes, 'nuvanx-medical' ), number_format_i18n( $minutes ) );
 }
 
-/** Configure the canonical blog index query. */
+/**
+ * Configures the main blog index query.
+ *
+ * @param WP_Query $query The query being prepared for execution.
+ */
 function nvx_blog_pre_get_posts( WP_Query $query ): void {
 	if ( is_admin() || ! $query->is_main_query() ) {
 		return;

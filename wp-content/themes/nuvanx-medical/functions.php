@@ -1,11 +1,18 @@
 <?php
+/**
+ * NUVANX Medical theme bootstrap.
+ *
+ * @package nuvanx-medical
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 define( 'NVX_THEME_VERSION', '2.0.0-plata-pulida-canonical' );
 
-function nvx_theme_setup() {
+/** Register theme supports and navigation locations. */
+function nvx_theme_setup(): void {
 	add_theme_support( 'title-tag' );
 	add_theme_support( 'post-thumbnails' );
 	add_theme_support( 'custom-logo' );
@@ -21,84 +28,22 @@ function nvx_theme_setup() {
 }
 add_action( 'after_setup_theme', 'nvx_theme_setup' );
 
-/**
- * Fallback menu when no WP menu is assigned.
- * Hierarchy mirrors live information architecture.
- */
-function nvx_primary_menu_fallback() {
-	$items = array(
-		array( 'url' => home_url( '/' ), 'label' => __( 'Inicio', 'nuvanx-medical' ) ),
-		array(
-			'url'      => home_url( '/tratamientos/' ),
-			'label'    => __( 'Tratamientos', 'nuvanx-medical' ),
-			'children' => array(
-				array( 'url' => home_url( '/endolift-facial-papada-mandibula/' ), 'label' => 'Endolift® Facial' ),
-				array( 'url' => home_url( '/endolaser-corporal-grasa-localizada/' ), 'label' => 'Endoláser Corporal' ),
-				array( 'url' => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ), 'label' => 'Láser CO₂ Fraccionado' ),
-				array( 'url' => home_url( '/exion-face/' ), 'label' => 'EXION® Face' ),
-				array( 'url' => home_url( '/exion-body/' ), 'label' => 'EXION® Body' ),
-				array( 'url' => home_url( '/exion-fractional/' ), 'label' => 'EXION® Fractional' ),
-				array( 'url' => home_url( '/emfusion/' ), 'label' => 'EMFUSION®' ),
-				array( 'url' => home_url( '/btl-exilite-ipl-madrid/' ), 'label' => 'BTL EXILITE™ IPL' ),
-			),
-		),
-		array( 'url' => home_url( '/equipo-medico/' ), 'label' => __( 'Equipo médico', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/clinicas-de-medicina-estetica-nuvanx/' ), 'label' => __( 'Clínicas', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Blog', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/contacto/' ), 'label' => __( 'Contacto', 'nuvanx-medical' ) ),
-	);
-
-	echo '<ul class="nvx-nav__list">';
-	foreach ( $items as $item ) {
-		$has_children = ! empty( $item['children'] );
-		$li_class     = 'nvx-nav__item' . ( $has_children ? ' menu-item-has-children' : '' );
-
-		printf(
-			'<li class="%1$s"><a class="nvx-nav__link" href="%2$s">%3$s</a>',
-			esc_attr( $li_class ),
-			esc_url( $item['url'] ),
-			esc_html( $item['label'] )
-		);
-
-		if ( $has_children ) {
-			echo '<ul class="sub-menu">';
-			foreach ( $item['children'] as $child ) {
-				printf(
-					'<li class="nvx-nav__item"><a class="nvx-nav__link" href="%1$s">%2$s</a></li>',
-					esc_url( $child['url'] ),
-					esc_html( $child['label'] )
-				);
-			}
-			echo '</ul>';
-		}
-
-		echo '</li>';
-	}
-	echo '</ul>';
-}
-
-/**
- * Enqueues the theme font stylesheet and the front-page stylesheet when applicable.
- *
- * The font stylesheet is versioned using its modification time when available.
- */
-function nvx_theme_fonts() {
+/** Enqueue the canonical font stylesheet once. */
+function nvx_theme_fonts(): void {
 	$path = get_template_directory() . '/assets/css/nvx-fonts.css';
 	$ver  = is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;
-	wp_enqueue_style( 'nvx-fonts', get_template_directory_uri() . '/assets/css/nvx-fonts.css', array(), $ver );
 
-	if ( is_front_page() ) {
-		wp_enqueue_style( 'nvx-home-v3', get_template_directory_uri() . '/assets/css/nvx-home-v3.css', array( 'nvx-components' ), NVX_THEME_VERSION );
-	}
+	wp_enqueue_style( 'nvx-fonts', get_template_directory_uri() . '/assets/css/nvx-fonts.css', array(), $ver );
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_fonts', 5 );
 
+/** Whether the current request is the configured front page. */
 function nvx_theme_is_home_page(): bool {
-	return is_front_page() || is_page( 9 );
+	return is_front_page();
 }
 
 /**
- * Post-conversion page slugs (hide site closing CTA).
+ * Post-conversion page slugs.
  *
  * @return string[]
  */
@@ -121,69 +66,56 @@ function nvx_theme_valoracion_form_page_slugs(): array {
 	);
 }
 
-/**
- * Current singular page slug, or empty when not a page request.
- */
+/** Current singular page slug, or an empty string outside page requests. */
 function nvx_theme_current_page_slug(): string {
 	if ( ! is_page() ) {
 		return '';
 	}
+
 	return (string) get_post_field( 'post_name', get_queried_object_id() );
 }
 
-/**
- * Whether the current page slug is one of the given values.
- *
- * @param string[] $slugs Allowed slugs.
- */
+/** Whether the current page slug is one of the allowed values. */
 function nvx_theme_is_page_slug_in( array $slugs ): bool {
 	$slug = nvx_theme_current_page_slug();
 	if ( '' === $slug || array() === $slugs ) {
 		return false;
 	}
+
 	return in_array( $slug, $slugs, true );
 }
 
+/** Whether the current request is a post-conversion page. */
 function nvx_theme_is_thank_you_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_thank_you_page_slugs() );
 }
 
+/** Whether the current request is a valoración form page. */
 function nvx_theme_is_valoracion_form_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_valoracion_form_page_slugs() );
 }
 
-/**
- * Site-wide pre-footer valoración band.
- * Hidden only on thank-you pages.
- */
+/** Show the shared closing CTA only when the page does not own its own close. */
 function nvx_theme_show_cta_banner(): bool {
-	if ( is_admin() ) {
+	if ( is_admin() || nvx_theme_is_thank_you_page() ) {
 		return false;
 	}
-	return ! nvx_theme_is_thank_you_page();
-}
 
-/**
- * @param string[] $classes Body classes.
- * @return string[]
- */
-function nvx_theme_cta_body_class( array $classes ): array {
-	if ( nvx_theme_is_thank_you_page() ) {
-		$classes[] = 'nvx-hide-closing-cta';
+	if ( function_exists( 'nvx_theme_owns_complete_page_markup' ) && nvx_theme_owns_complete_page_markup() ) {
+		return false;
 	}
-	return array_values( array_unique( $classes ) );
-}
-add_filter( 'body_class', 'nvx_theme_cta_body_class' );
 
+	return true;
+}
+
+/** Filemtime asset version with a theme-version fallback. */
 function nvx_asset_version( string $relative_path ): string {
 	$path = get_template_directory() . '/' . ltrim( $relative_path, '/' );
 	return is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;
 }
 
-/**
- * Enqueues the theme's styles and scripts, including home, treatments, and hero blackout assets when applicable.
- */
-function nvx_theme_scripts() {
+/** Enqueue the canonical design-system stack and page-owned assets. */
+function nvx_theme_scripts(): void {
 	$uri = get_template_directory_uri();
 	$css = $uri . '/assets/css/';
 
@@ -195,17 +127,9 @@ function nvx_theme_scripts() {
 	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-patterns' ), nvx_asset_version( 'assets/css/nvx-header.css' ) );
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-header' ), nvx_asset_version( 'assets/css/nvx-footer.css' ) );
 	wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-footer' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
-	
+
 	if ( nvx_theme_is_home_page() ) {
 		wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-home' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );
-	}
-	
-	if ( is_page( 'tratamientos' ) ) {
-		wp_enqueue_style( 'nvx-portfolio-hub', $css . 'nvx-portfolio-hub.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-portfolio-hub.css' ) );
-	}
-
-	$hero_blackout_dependency = 'nvx-home';
-	if ( nvx_theme_is_home_page() ) {
 		wp_enqueue_script(
 			'nvx-home-video',
 			$uri . '/assets/js/nvx-home-video.js',
@@ -215,11 +139,15 @@ function nvx_theme_scripts() {
 		);
 	}
 
+	if ( function_exists( 'nvx_theme_is_treatments_hub' ) && nvx_theme_is_treatments_hub() ) {
+		wp_enqueue_style( 'nvx-portfolio-hub', $css . 'nvx-portfolio-hub.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-portfolio-hub.css' ) );
+	}
+
 	if ( nvx_theme_hero_blackout_enabled() ) {
 		wp_enqueue_style(
 			'nvx-hero-blackout',
 			$css . 'nvx-hero-blackout.css',
-			array( $hero_blackout_dependency ),
+			array( 'nvx-home' ),
 			nvx_asset_version( 'assets/css/nvx-hero-blackout.css' )
 		);
 	}
@@ -228,58 +156,42 @@ function nvx_theme_scripts() {
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_scripts' );
 
-/**
- * Hero blackout control.
- * Solid ink opening stages; still photography hidden; video remains.
- * Default ON. Opt out: define( 'NVX_HERO_BLACKOUT', false ) or filter.
- */
+/** Whether the sitewide ink hero treatment is enabled. */
 function nvx_theme_hero_blackout_enabled(): bool {
 	$enabled = true;
 	if ( defined( 'NVX_HERO_BLACKOUT' ) ) {
 		$enabled = (bool) NVX_HERO_BLACKOUT;
 	}
+
 	return (bool) apply_filters( 'nvx_theme_hero_blackout_enabled', $enabled );
 }
 
-/**
- * @param string[] $classes Body classes.
- * @return string[]
- */
+/** Add the hero-blackout state class when enabled. */
 function nvx_theme_hero_blackout_body_class( array $classes ): array {
 	if ( nvx_theme_hero_blackout_enabled() ) {
 		$classes[] = 'nvx-hero-blackout';
 	}
-	return $classes;
+
+	return array_values( array_unique( $classes ) );
 }
 add_filter( 'body_class', 'nvx_theme_hero_blackout_body_class' );
 
-function nvx_theme_dequeue_wp_core_inline_css() {
-	if ( is_admin() ) {
-		return;
-	}
-	foreach ( array( 'global-styles', 'classic-theme-styles', 'wp-block-library', 'wp-block-library-theme', 'core-block-supports', 'wp-img-auto-sizes-contain' ) as $handle ) {
-		wp_dequeue_style( $handle );
-	}
-}
-add_action( 'wp_enqueue_scripts', 'nvx_theme_dequeue_wp_core_inline_css', 100 );
-
-remove_action( 'wp_enqueue_scripts', 'wp_enqueue_global_styles' );
-remove_action( 'wp_footer', 'wp_enqueue_global_styles', 1 );
-remove_action( 'wp_enqueue_scripts', 'wp_enqueue_stored_styles' );
-remove_action( 'wp_footer', 'wp_enqueue_stored_styles', 1 );
-
-function nvx_reading_time( $post_id = null ) {
+/** Estimate reading time for editorial posts. */
+function nvx_reading_time( $post_id = null ): string {
 	$post_id = $post_id ?: get_the_ID();
 	$content = wp_strip_all_tags( strip_shortcodes( (string) get_post_field( 'post_content', $post_id ) ) );
 	$words   = preg_split( '/\s+/u', trim( $content ), -1, PREG_SPLIT_NO_EMPTY );
 	$minutes = max( 1, (int) ceil( count( is_array( $words ) ? $words : array() ) / 220 ) );
+
 	return sprintf( _n( '%s min', '%s min', $minutes, 'nuvanx-medical' ), number_format_i18n( $minutes ) );
 }
 
+/** Configure the canonical blog index query. */
 function nvx_blog_pre_get_posts( WP_Query $query ): void {
 	if ( is_admin() || ! $query->is_main_query() ) {
 		return;
 	}
+
 	if ( $query->is_home() && ! $query->is_front_page() ) {
 		$query->set( 'posts_per_page', 12 );
 		$query->set( 'ignore_sticky_posts', true );
@@ -287,6 +199,7 @@ function nvx_blog_pre_get_posts( WP_Query $query ): void {
 }
 add_action( 'pre_get_posts', 'nvx_blog_pre_get_posts' );
 
+/** Render the blog index shortcode. */
 function nvx_theme_blog_index_markup(): string {
 	$excluded_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' )
 		? nvx_quarantined_comparison_post_ids()
@@ -319,13 +232,15 @@ function nvx_theme_blog_index_markup(): string {
 	}
 	$output .= '</div>';
 	wp_reset_postdata();
+
 	return $output;
 }
-
 add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
 
 require_once get_template_directory() . '/inc/nvx-hero-and-forms.php';
 require_once get_template_directory() . '/inc/nvx-integrations.php';
+require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
+require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';

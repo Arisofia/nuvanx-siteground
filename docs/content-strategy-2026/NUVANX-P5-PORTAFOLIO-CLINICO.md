@@ -2,7 +2,7 @@
 
 ## Estructura de 13 campos · Copy verificado
 
-**Fuentes verificadas:** `inc/nvx-portfolio-hub.php` · Estrategia maestra v2 (Sección 6.C)
+**Fuentes verificadas:** `inc/nvx-portfolio-hub.php` · `inc/nvx-treatment-hub-schema.php` · Estrategia maestra v2 (Sección 6.C)
 **Validación:** RD 1907/1996 · julio 2026
 
 ---
@@ -136,11 +136,18 @@ CTA: Iniciar mi valoración
 
 ---
 
-## 06. SCHEMA RECOMENDADO
+## 06. SCHEMA IMPLEMENTADO
 
-@type: MedicalWebPage
-name: Portafolio Clínico y Especialidades NUVANX
-mainEntity: MedicalSpecialty
+El grafo canónico se amplía exclusivamente mediante el filtro `wpseo_schema_graph`
+en `inc/nvx-treatment-hub-schema.php`; la plantilla no imprime JSON-LD adicional.
+
+- **Nodo principal de catálogo:** `ItemList`
+- **`ItemList.@id`:** `https://nuvanx.com/tratamientos/#treatments-list`
+- **`ItemList.name`:** `Protocolos e indicaciones médicas NUVANX`
+- **`ItemList.numberOfItems`:** calculado dinámicamente con el número de elementos visibles
+- **`ItemList.itemListElement`:** lista ordenada de `ListItem`, cada uno enlazado con su `MedicalProcedure` o `Service`
+- **`WebPage.mainEntity`:** `{ "@id": "https://nuvanx.com/tratamientos/#treatments-list" }`
+- **Proveedor de cada servicio/procedimiento:** referencia al `MedicalOrganization` canónico de NUVANX
 
 ---
 

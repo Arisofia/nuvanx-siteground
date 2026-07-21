@@ -81,6 +81,10 @@ function nvx_theme_fonts() {
 	$path = get_template_directory() . '/assets/css/nvx-fonts.css';
 	$ver  = is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;
 	wp_enqueue_style( 'nvx-fonts', get_template_directory_uri() . '/assets/css/nvx-fonts.css', array(), $ver );
+
+	if ( is_front_page() ) {
+		wp_enqueue_style( 'nvx-home-v3', get_template_directory_uri() . '/assets/css/nvx-home-v3.css', array( 'nvx-components' ), NVX_THEME_VERSION );
+	}
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_fonts', 5 );
 
@@ -183,6 +187,10 @@ function nvx_theme_scripts() {
 	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-patterns' ), nvx_asset_version( 'assets/css/nvx-header.css' ) );
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-header' ), nvx_asset_version( 'assets/css/nvx-footer.css' ) );
 	wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-footer' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
+	
+	if ( nvx_theme_is_home_page() ) {
+		wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-home' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );
+	}
 
 	$hero_blackout_dependency = 'nvx-home';
 	if ( nvx_theme_is_home_page() ) {

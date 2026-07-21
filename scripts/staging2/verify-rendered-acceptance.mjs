@@ -297,6 +297,13 @@ for (const [sourcePath, targetPath] of redirects) {
     if (result.location !== expectedLocation) {
       fail(scope, `location is ${result.location || 'absent'} instead of ${expectedLocation}`);
     }
+    if (response.status === 301 && result.location === expectedLocation) {
+      const targetResponse = await fetchWithTimeout(expectedLocation, { redirect: 'manual' });
+      result.target_status = targetResponse.status;
+      if (targetResponse.status !== 200) {
+        fail(scope, `target returned HTTP ${targetResponse.status} instead of 200`);
+      }
+    }
   } catch (error) {
     result.error = error.message;
     fail(scope, `request failed: ${error.message}`);

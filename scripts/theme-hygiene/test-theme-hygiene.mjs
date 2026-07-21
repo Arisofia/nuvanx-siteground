@@ -128,7 +128,6 @@ for (const marker of [
   "'liposculpt-air'",
   "'/remodelacion-corporal-laser-madrid/'",
   "'v-lift-awake'",
-  "'/papada-definicion-mandibular-madrid/'",
   "'tratamiento-postparto-abdomen-contorno-corporal-madrid'",
   "'/protocolos-signature/'",
   "remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 )",
@@ -136,6 +135,9 @@ for (const marker of [
   'foreach ( nvx_production_readiness_governed_pages()',
 ]) {
   if (!integrations.includes(marker)) fail(`integrations: missing production-readiness contract ${marker}`);
+}
+if (!/'v-lift-awake'\s*=>\s*array\s*\([\s\S]*?'target'\s*=>\s*'\/protocolos-signature\/'/.test(integrations)) {
+  fail("integrations: V-Lift must redirect to '/protocolos-signature/'");
 }
 if (integrations.includes('nvx_strategy_seed_approved_staging2_pages')) fail('integrations: runtime approved-page seeder');
 if ((integrations.match(/'liposculpt-air'\s*=>/g) || []).length !== 1) fail('integrations: governed slug duplicated outside shared contract');
@@ -187,10 +189,23 @@ if (!fs.existsSync(migration)) {
 }
 
 const native = read('inc/nvx-native-style-governance.php');
-for (const marker of ["is_page_template( 'page-tratamientos.php' )", 'nvx_theme_owns_complete_page_markup', 'nvx_theme_dequeue_native_block_styles']) {
+for (const marker of [
+  "is_page_template( 'page-tratamientos.php' )",
+  "'tratamientos' === (string) get_post_field( 'post_name', get_queried_object_id() )",
+  'nvx_theme_owns_complete_page_markup',
+  'nvx_theme_dequeue_native_block_styles',
+]) {
   if (!native.includes(marker)) fail(`native style module: missing ${marker}`);
 }
 if (native.includes('remove_action(')) fail('native style module: global action removal');
+
+const pageShell = read('template-parts/content/nvx-page-shell.php');
+for (const marker of [
+  "function_exists( 'nvx_content_is_protocol_hub' )",
+  "function_exists( 'nvx_protocol_pages_current_key' )",
+]) {
+  if (!pageShell.includes(marker)) fail(`page shell: missing managed protocol marker ${marker}`);
+}
 
 const schema = read('inc/nvx-treatment-hub-schema.php');
 for (const marker of ['wpseo_schema_graph', 'PercutaneousProcedure', 'NoninvasiveProcedure', "'ItemList'"]) {

@@ -18,6 +18,7 @@ const strategyPagesPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/
 const nativeStylePath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-native-style-governance.php');
 const integrationsPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 const pageShellPath = path.join(root, 'wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php');
+const externalVisualClosurePath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php');
 const failures = [];
 
 /**
@@ -50,6 +51,7 @@ const strategyPages = read(strategyPagesPath);
 const nativeStyle = read(nativeStylePath);
 const integrations = read(integrationsPath);
 const pageShell = read(pageShellPath);
+const externalVisualClosure = read(externalVisualClosurePath);
 const controlledPublicContent = [portfolio, protocolHub, protocolPages, strategyPages].join('\n');
 
 for (const marker of [
@@ -97,8 +99,7 @@ for (const forbidden of [
   '/home/customer/www/nuvanx.com/public_html',
   "github.ref == 'refs/heads/master'",
   'git merge-base --is-ancestor "$DEPLOY_SHA" origin/master',
-  'bash scripts/staging2/collect-staging2-diagnostics.sh --wp-root "$WP_ROOT" \
-            | ssh',
+  'bash scripts/staging2/collect-staging2-diagnostics.sh --wp-root "$WP_ROOT" \\\n            | ssh',
 ]) {
   if (workflow.includes(forbidden)) fail(`workflow contains forbidden marker: ${forbidden}`);
 }
@@ -250,6 +251,22 @@ for (const marker of [
   "function_exists( 'nvx_protocol_pages_current_key' )",
 ]) {
   if (!pageShell.includes(marker)) fail(`managed protocol shell missing contract marker: ${marker}`);
+}
+
+if (!/\.nvx-hub-hero__title\s*\{[^}]*color:\s*var\(--nvx-light\);/s.test(externalVisualClosure)) {
+  fail('visual closure missing visible treatments hero H1 contract');
+}
+
+for (const marker of [
+  '.nvx-strategy-page:not(.nvx-shell)',
+  '.nvx-strategy-page:not(.nvx-shell) > .nvx-strategy-intro',
+  'padding-inline: var(--nvx-gutter-inner);',
+  '.nvx-strategy-page .nvx-endolift-price-table tbody tr',
+  'grid-template-columns: minmax(0, 1fr) auto;',
+  'overflow-wrap: anywhere;',
+  'content: "PVP con IVA";',
+]) {
+  if (!externalVisualClosure.includes(marker)) fail(`visual closure missing staging2 QA marker: ${marker}`);
 }
 
 for (const marker of [

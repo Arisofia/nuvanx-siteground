@@ -21,7 +21,7 @@ function requireText(source, text, message) {
 /**
  * Records a failure when the source contains forbidden text.
  * @param {string} source - The content to inspect.
- * @param {string} text - The text that must not appear in the source.
+ * @param {string} text - The text that must not appear.
  * @param {string} message - The failure message to record.
  */
 function forbidText(source, text, message) {
@@ -36,6 +36,16 @@ function forbidText(source, text, message) {
  */
 function requirePattern(source, pattern, message) {
   if (!pattern.test(source)) failures.push(message);
+}
+
+/**
+ * Records a failure when a forbidden regular expression matches the source text.
+ * @param {string} source - The text to inspect.
+ * @param {RegExp} pattern - The forbidden pattern.
+ * @param {string} message - The failure message to record.
+ */
+function forbidPattern(source, pattern, message) {
+  if (pattern.test(source)) failures.push(message);
 }
 
 const navigation = read('wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php');
@@ -112,16 +122,50 @@ const usedTokens = new Set(
 for (const token of usedTokens) {
   if (!definedTokens.has(token)) failures.push(`navigation CSS uses undefined token ${token}`);
 }
+requirePattern(
+  tokens,
+  /--nvx-border-focus\s*:\s*[^;]+;/,
+  'canonical focus-border token must remain defined',
+);
+requirePattern(
+  css,
+  /outline\s*:\s*var\(\s*--nvx-border-focus\s*\)\s+solid\s+var\(\s*--nvx-accent-muted\s*\)\s*;/,
+  'navigation focus-visible controls must consume the canonical focus-border token',
+);
+
+const menuCalls = [...header.matchAll(/wp_nav_menu\(\s*array\(([^]*?)\)\s*\);/g)].map((match) => match[1]);
+const desktopMenuCall = menuCalls.find((call) => /['"]menu_class['"]\s*=>\s*['"]nvx-nav__list['"]/.test(call)) || '';
+const mobileMenuCall = menuCalls.find((call) => /['"]menu_class['"]\s*=>\s*['"]nvx-mobile-nav__list['"]/.test(call)) || '';
 
 requirePattern(
-  header,
-  /wp_nav_menu\([\s\S]*?'theme_location'\s*=>\s*'primary'[\s\S]*?nvx-nav__list/,
+  desktopMenuCall,
+  /['"]theme_location['"]\s*=>\s*['"]primary['"]/,
   'desktop header must continue to render the WordPress primary menu',
 );
 requirePattern(
-  header,
-  /wp_nav_menu\([\s\S]*?'theme_location'\s*=>\s*'primary'[\s\S]*?nvx-mobile-nav__list/,
+  mobileMenuCall,
+  /['"]theme_location['"]\s*=>\s*['"]primary['"]/,
   'mobile drawer must continue to render the same WordPress primary menu',
+);
+forbidPattern(
+  header,
+  /['"]fallback_cb['"]\s*=>/,
+  'header must not override the centralized primary-menu fallback',
+);
+forbidText(
+  header,
+  'nvx_primary_menu_fallback',
+  'header must not reference the removed legacy fallback',
+);
+requireText(
+  header,
+  'nvx_cta_whatsapp_url()',
+  'mobile WhatsApp CTA must use the centralized helper',
+);
+forbidText(
+  header,
+  'https://wa.me/34669319836',
+  'mobile WhatsApp CTA must not hardcode the phone URL',
 );
 
 for (const label of [

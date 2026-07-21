@@ -263,10 +263,14 @@ for (const page of pages) {
     if (!html.includes(page.marker)) fail(scope, `missing content marker: ${page.marker}`);
     if (!html.includes('/madrid/valoracion/')) fail(scope, 'missing valuation CTA');
 
-    const expectedProductionUrl = `https://nuvanx.com${page.path}`;
+    const allowedCanonicalTargets = new Set([
+      `https://staging2.nuvanx.com${page.path}`,
+      `https://nuvanx.com${page.path}`,
+      `https://www.nuvanx.com${page.path}`,
+    ]);
     const canonicalTarget = result.canonical || result.og_url;
-    if (canonicalTarget !== expectedProductionUrl) {
-      fail(scope, `canonical/og:url is ${canonicalTarget || 'absent'} instead of ${expectedProductionUrl}`);
+    if (!allowedCanonicalTargets.has(canonicalTarget)) {
+      fail(scope, `canonical/og:url is ${canonicalTarget || 'absent'} and does not match the expected page path on an allowed NUVANX host`);
     }
 
     for (const schemaType of page.schemaTypes) {

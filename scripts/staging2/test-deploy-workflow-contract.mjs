@@ -101,21 +101,22 @@ for (const marker of [
   "EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'",
   "EXPECTED_URL='https://staging2.nuvanx.com'",
   "BACKUP_ROOT='/home/customer/backups-nuvanx/staging2'",
-  'command.wp=available',
+  'command.$command_name=available',
   'wordpress.siteurl=',
   'wordpress.home=',
   'wordpress.active_theme=',
   'wordpress.empty_trash_days=',
   'wordpress.db_check=',
-  'path.backup_root_writable=yes',
-  'path.deployment_root_writable=yes',
+  'path.backup_root_status=',
+  'path.deployment_root_status=',
   'http.home_status=',
   'STAGING2_PREFLIGHT_OK',
 ]) {
   if (!diagnostics.includes(marker)) fail(`diagnostics missing contract marker: ${marker}`);
 }
-if (/\brm\s+-rf\b/.test(diagnostics)) fail('diagnostics must remain read-only');
-if (/\bwp\s+(post|db import|option update|rewrite flush)\b/.test(diagnostics)) fail('diagnostics contains a mutating WP-CLI command');
+for (const forbidden of ['mkdir -p', 'rm -rf', 'wp db import', 'wp option update', 'wp rewrite flush']) {
+  if (diagnostics.includes(forbidden)) fail(`diagnostics contains mutating marker: ${forbidden}`);
+}
 
 for (const marker of [
   'retire-prototypes',

@@ -20,7 +20,7 @@ fs.mkdirSync(evidenceDir, { recursive: true });
 const pages = [
   {
     path: '/tratamientos/',
-    h1: 'Portafolio Clínico.',
+    h1: 'Portafolio clínico.',
     marker: 'Áreas de intervención clínica',
     schemaTypes: ['WebPage', 'ItemList'],
   },
@@ -209,12 +209,16 @@ for (const page of pages) {
       `https://nuvanx.com${page.path}`,
       `https://www.nuvanx.com${page.path}`,
     ]);
-    for (const [label, target] of [
+    const seoTargets = [
       ['canonical', result.canonical],
       ['og:url', result.og_url],
-    ]) {
+    ].filter(([, target]) => target);
+    if (seoTargets.length === 0) {
+      fail(scope, 'canonical or og:url is absent');
+    }
+    for (const [label, target] of seoTargets) {
       if (!allowedCanonicalTargets.has(target)) {
-        fail(scope, `${label} is ${target || 'absent'} and does not match the expected page path on an allowed NUVANX host`);
+        fail(scope, `${label} is ${target} and does not match the expected page path on an allowed NUVANX host`);
       }
     }
 

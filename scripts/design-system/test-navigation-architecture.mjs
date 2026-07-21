@@ -23,6 +23,7 @@ function requirePattern(source, pattern, message) {
 const navigation = read('wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php');
 const javascript = read('wp-content/themes/nuvanx-medical/assets/js/nvx-main.js');
 const css = read('wp-content/themes/nuvanx-medical/assets/css/nvx-header.css');
+const tokens = read('wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css');
 const header = read('wp-content/themes/nuvanx-medical/header.php');
 const documentation = read('docs/navigation/PRIMARY-MENU-ARCHITECTURE.md');
 
@@ -33,7 +34,7 @@ forbidText(
 );
 requireText(
   navigation,
-  "function nvx_navigation_primary_blueprint(): array",
+  'function nvx_navigation_primary_blueprint(): array',
   'published-route-aware definitive fallback blueprint is missing',
 );
 requireText(
@@ -83,6 +84,16 @@ requireText(css, '.nvx-mobile-nav__list .sub-menu[hidden]', 'collapsed mobile su
 requireText(css, '@media (max-width: 80em)', 'protective navigation breakpoint is missing');
 requireText(css, '@media (prefers-reduced-motion: reduce)', 'CSS reduced-motion contract is missing');
 forbidText(css, '!important', 'navigation CSS must not use !important');
+
+const definedTokens = new Set(
+  [...tokens.matchAll(/(--nvx-[a-z0-9-]+)\s*:/gi)].map((match) => match[1]),
+);
+const usedTokens = new Set(
+  [...css.matchAll(/var\(\s*(--nvx-[a-z0-9-]+)/gi)].map((match) => match[1]),
+);
+for (const token of usedTokens) {
+  if (!definedTokens.has(token)) failures.push(`navigation CSS uses undefined token ${token}`);
+}
 
 requirePattern(
   header,

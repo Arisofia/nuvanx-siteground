@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Protocolos Signature Hub — NUVANX Contour Architecture & others.
  *
@@ -11,6 +11,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Determines whether the current request targets the Protocolos Signature page.
+ *
+ * @param string $content The current page content.
+ * @return bool `true` if the current request targets the Protocolos Signature page, `false` otherwise.
+ */
 function nvx_content_is_protocol_hub( string $content ): bool {
 	if ( ! is_page() ) {
 		return false;
@@ -19,6 +25,11 @@ function nvx_content_is_protocol_hub( string $content ): bool {
 	return 'protocolos-signature' === $slug;
 }
 
+/**
+ * Builds the Protocolos Signature hub page markup.
+ *
+ * @return string The complete HTML markup for the protocol hub.
+ */
 function nvx_protocol_hub_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-hub nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
@@ -44,7 +55,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<h3 class="nvx-catalog-card__title">Couture Sculpt™</h3>';
 	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Remodelación corporal láser por unidades anatómicas. Diagnóstico y tratamiento focal para mejorar la continuidad del contorno sin imponer formas estándar.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
-	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ) . '">Ver protocolo <span aria-hidden="true">→</span></a>';
+	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/couture-sculpt/' ) ) . '">Ver protocolo <span aria-hidden="true">→</span></a>';
 	$html .= '</article>';
 
 	$html .= '<article class="nvx-catalog-card">';
@@ -52,7 +63,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<h3 class="nvx-catalog-card__title">Post-Maternity Contour™</h3>';
 	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Abordaje integral de los cambios posgestacionales. Valoración médica de grasa localizada, laxitud cutánea y cicatriz de cesárea.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
-	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' ) ) . '">Ver protocolo <span aria-hidden="true">→</span></a>';
+	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/post-maternity/' ) ) . '">Ver protocolo <span aria-hidden="true">→</span></a>';
 	$html .= '</article>';
 	
 	$html .= '</div></section>';
@@ -101,7 +112,16 @@ function nvx_protocol_hub_markup(): string {
 	return $html;
 }
 
+/**
+ * Replaces the Protocolos Signature page content with its hub markup.
+ *
+ * @param string $content The original page content.
+ * @return string The hub markup for the Protocolos Signature page, or the original content for other pages.
+ */
 function nvx_protocol_hub_content_filter( string $content ): string {
+	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
+		return $content;
+	}
 	if ( ! nvx_content_is_protocol_hub( $content ) ) {
 		return $content;
 	}
@@ -109,6 +129,9 @@ function nvx_protocol_hub_content_filter( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_protocol_hub_content_filter', 20 );
 
+/**
+ * Seeds the Protocolos Signature page when running in the staging2 environment and the page does not exist.
+ */
 function nvx_seed_protocol_hub_page(): void {
 	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
 		return;

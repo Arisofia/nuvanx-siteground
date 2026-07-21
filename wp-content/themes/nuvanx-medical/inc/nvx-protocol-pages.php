@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Protocol Signature Pages — Couture Sculpt, Post-Maternity, etc.
  *
@@ -9,6 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Provides the catalog of NUVANX protocol pages and their publication metadata.
+ *
+ * @return array<string, array<string, string>> Protocol page data keyed by protocol identifier.
+ */
 function nvx_protocol_pages_catalog(): array {
 	return array(
 		'couture-sculpt' => array(
@@ -30,6 +35,11 @@ function nvx_protocol_pages_catalog(): array {
 	);
 }
 
+/**
+ * Identifies the configured protocol page for the current request.
+ *
+ * @return string|null The matching protocol catalog key, or null when the request is not a configured protocol page.
+ */
 function nvx_protocol_pages_current_key(): ?string {
 	if ( ! is_page() ) {
 		return null;
@@ -43,6 +53,12 @@ function nvx_protocol_pages_current_key(): ?string {
 	return null;
 }
 
+/**
+ * Builds the HTML markup for the Couture Sculpt protocol page.
+ *
+ * @param array $data Protocol page content, including the kicker, title, lead, and description.
+ * @return string The generated Couture Sculpt protocol page markup.
+ */
 function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
 	
@@ -52,7 +68,7 @@ function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['title'] ) . '</h1>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
 	$html .= '<p>' . esc_html( $data['description'] ) . '</p>';
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a> <a class="nvx-btn nvx-btn--secondary" href="#zonas-tratamiento">' . esc_html__( 'Explorar zonas de tratamiento', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '<p class="nvx-brand-microcopy">' . esc_html__( 'La técnica, las zonas, la evolución y el presupuesto se determinan tras la exploración médica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</header>';
 
@@ -79,20 +95,22 @@ function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	$html .= '</section>';
 
 	// Zonas
-	$html .= '<section class="nvx-brand-section">';
-	$html .= '<h2>' . esc_html__( 'Zonas de tratamiento', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p><strong>Abdomen y Cintura:</strong> ' . esc_html__( 'El contorno no termina donde termina el abdomen. Grasa y piel requieren diagnósticos distintos.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><strong>Torso Superior:</strong> ' . esc_html__( 'Brazos, axila anterior y zona del sujetador. Buscamos que la manga caiga limpia.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><strong>Piernas y Tren Inferior:</strong> ' . esc_html__( 'Estudiamos la continuidad, laxitud y proporción para un afinamiento elegante.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<section class="nvx-brand-section" id="zonas-tratamiento">';
+	$html .= '<h2>' . esc_html__( 'Cartografía Anatómica: Zonas de tratamiento', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'Aplicamos nuestro sistema por unidades de contorno, justificando cada combinación.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><strong>' . esc_html__( 'Abdomen y Cintura', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'El contorno no termina donde termina el abdomen. Grasa y piel requieren diagnósticos distintos.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><strong>' . esc_html__( 'Torso Superior', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'Brazos, axila anterior y zona del sujetador. Buscamos que la manga caiga limpia.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><strong>' . esc_html__( 'Piernas y Tren Inferior', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'Estudiamos la continuidad, laxitud y proporción para un afinamiento elegante.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</section>';
 
 	// Tecnología
 	$html .= '<section class="nvx-brand-section">';
 	$html .= '<h2>' . esc_html__( 'Couture Sculpt™: El protocolo y la tecnología', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'Toda la filosofía de NUVANX Contour Architecture™ se vehicula a través de nuestro protocolo médico Couture Sculpt™. El médico prescribirá la tecnología exacta que requiere tu anatomía:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'Toda la filosofía de NUVANX Contour Architecture™ se vehicula a través de nuestro protocolo médico Couture Sculpt™. En lugar de depender de una sola máquina, el médico prescribirá la tecnología exacta que requiere tu anatomía para lograr esa retracción y reducción silenciosa:', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-check-list">';
 	$html .= '<li><strong>Endoláser Corporal / Endolift®:</strong> ' . esc_html__( 'Para una licuefacción térmica de la grasa localizada y retracción profunda.', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>Radiofrecuencia Fraccionada (EXION® Body):</strong> ' . esc_html__( 'Para estimular la calidad del tejido y la firmeza dérmica.', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li><strong>' . esc_html__( 'Protocolos combinados:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Diseñados para potenciar la recuperación tisular.', 'nuvanx-medical' ) . '</li>';
 	$html .= '</ul>';
 	$html .= '</section>';
 
@@ -107,10 +125,23 @@ function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	$html .= '</ul>';
 	$html .= '</section>';
 
+	// CTA Final
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'El objetivo es mejorar la continuidad de tu contorno con una intervención proporcionada, elegante y médicamente defendible. Todo comienza con una valoración exhaustiva en Chamberí o Goya.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</section>';
+
 	$html .= '</article>';
 	return $html;
 }
 
+/**
+ * Builds the Post-Maternity protocol page markup.
+ *
+ * @param array $data Protocol page content, including the kicker, title, lead, and description.
+ * @return string The generated HTML markup.
+ */
 function nvx_protocol_pages_post_maternity_markup( array $data ): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
 	
@@ -132,6 +163,12 @@ function nvx_protocol_pages_post_maternity_markup( array $data ): string {
 	return $html;
 }
 
+/**
+ * Replaces the content of a matching protocol page with its generated markup.
+ *
+ * @param string $content The original page content.
+ * @return string The generated protocol markup or the original content when the page is not applicable.
+ */
 function nvx_protocol_pages_content_filter( string $content ): string {
 	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
 		return $content;
@@ -154,6 +191,9 @@ function nvx_protocol_pages_content_filter( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_protocol_pages_content_filter', 21 );
 
+/**
+ * Creates missing protocol pages in the staging environment.
+ */
 function nvx_seed_protocol_pages(): void {
 	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
 		return;

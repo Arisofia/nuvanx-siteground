@@ -72,7 +72,7 @@
 
   --nvx-gutter: clamp(32px, 6vw, 96px);
   --nvx-gutter-inner: clamp(24px, 4vw, 48px);
-  
+
   --nvx-accent-gold: #C1A68D;
 
   --nvx-margin-display: 32px;
@@ -116,6 +116,7 @@
   --nvx-icon-stroke: 1.5;
 
   --nvx-border-hairline: 1px;
+  --nvx-border-focus: 2px;
   --nvx-radius-pill: 999px;
   --nvx-radius-button: var(--nvx-radius-pill);
   --nvx-radius-card: 0;
@@ -149,14 +150,14 @@
   --nvx-type-nav-compact: 0.68rem;
   --nvx-type-nav-submenu: 0.84rem;
   --nvx-type-nav-mobile: clamp(1.5rem, 6vw, 2.25rem);
-  --nvx-type-micro:    0.6875rem;
+  --nvx-type-micro: 0.6875rem;
   --nvx-type-caption2: 0.8125rem;
-  --nvx-type-lead-lg:  1.125rem;
+  --nvx-type-lead-lg: 1.125rem;
 
   --nvx-fw-regular: 400;
   --nvx-fw-heading: 500;
   --nvx-fw-medium: 600;
-  --nvx-fw-bold:   700;
+  --nvx-fw-bold: 700;
   --nvx-lh-display: 1.15;
   --nvx-lh-h1: 1.15;
   --nvx-lh-h2: 1.15;
@@ -188,13 +189,13 @@
   --nvx-index-number-track: 0.16em;
 
   /* Superficies oscuras editoriales */
-  --nvx-surface-dark:  #111111;
+  --nvx-surface-dark: #111111;
   --nvx-surface-dark-2: #1a1a1a;
   --nvx-surface-dark-3: #222222;
-  --nvx-on-dark:       #f7f7f5;
-  --nvx-on-dark-88:    rgba(247, 247, 245, 0.88);
-  --nvx-on-dark-72:    rgba(247, 247, 245, 0.72);
-  --nvx-on-dark-50:    rgba(247, 247, 245, 0.50);
+  --nvx-on-dark: #f7f7f5;
+  --nvx-on-dark-88: rgba(247, 247, 245, 0.88);
+  --nvx-on-dark-72: rgba(247, 247, 245, 0.72);
+  --nvx-on-dark-50: rgba(247, 247, 245, 0.50);
   --nvx-accent-line-dark: rgba(247, 247, 245, 0.10);
   --nvx-accent-line-light: rgba(17, 17, 17, 0.08);
 }

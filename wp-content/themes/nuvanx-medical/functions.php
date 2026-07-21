@@ -171,6 +171,12 @@ function nvx_asset_version( string $relative_path ): string {
 	return is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;
 }
 
+/**
+ * Enqueues the theme's stylesheets and frontend scripts.
+ *
+ * Loads the portfolio hub stylesheet on the treatments page, the home video
+ * script on the home page, and the hero blackout stylesheet when enabled.
+ */
 function nvx_theme_scripts() {
 	$uri = get_template_directory_uri();
 	$css = $uri . '/assets/css/';

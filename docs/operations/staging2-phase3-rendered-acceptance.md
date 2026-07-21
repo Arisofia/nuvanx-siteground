@@ -59,12 +59,30 @@ Cada página debe cumplir además:
 - title válido y distinto de una página 404;
 - meta description presente;
 - `noindex,nofollow` en staging2;
-- canonical o `og:url` apuntando a la URL homóloga de producción;
+- canonical o `og:url` con el mismo path sobre `staging2.nuvanx.com`, `nuvanx.com` o `www.nuvanx.com`;
 - CTA hacia `/madrid/valoracion/`;
 - JSON-LD válido;
 - `WebPage` y organización médica en Schema;
 - `ItemList` adicional en `/tratamientos/`;
 - ausencia de prototipos, estados internos y placeholders.
+
+## Metadata Signature
+
+El catálogo canónico `inc/nvx-seo-metadata.php` debe reconocer explícitamente:
+
+```text
+/protocolos-signature/
+/remodelacion-corporal-laser-madrid/
+```
+
+Esto impide depender del estado de la base de datos de Yoast para los títulos y descripciones de páginas creadas por la migración.
+
+Valores controlados:
+
+| Ruta | Title |
+|---|---|
+| `/protocolos-signature/` | `Protocolos Signature | NUVANX Madrid` |
+| `/remodelacion-corporal-laser-madrid/` | `Remodelación corporal láser Madrid | NUVANX` |
 
 ## Contrato de redirects
 
@@ -81,7 +99,7 @@ Debe obtener exactamente HTTP 301 y `Location` absoluto de staging2:
 → /protocolos-signature/
 ```
 
-Un 404, 302, 307, redirect en cadena o destino diferente bloquea la aceptación.
+El gate comprueba también que el destino final responda HTTP 200. Un 404, 302, 307, redirect en cadena o destino diferente bloquea la aceptación.
 
 ## Evidencia
 
@@ -115,15 +133,17 @@ En modo `SMOKE_ONLY`, `DEPLOY_STAGING2_OK` no aplica, pero `STAGING2_PREFLIGHT_O
 
 ## Secuencia operativa
 
-1. Fusionar esta fase solo después de que su contrato estático esté verde.
-2. Ejecutar `PREFLIGHT_ONLY` sobre el SHA exacto seleccionado.
-3. Revisar y descargar el artifact.
-4. Ejecutar `DEPLOY_AND_MIGRATE` sobre el mismo SHA.
-5. Confirmar marker, auditoría, smoke y aceptación renderizada.
-6. Completar QA visual manual en desktop y móvil.
-7. Registrar el SHA aceptado y no añadir commits después de la validación.
-8. Promover a producción únicamente el código equivalente al SHA aceptado.
-9. Repetir smoke, aceptación SEO y revisión de logs en producción con un procedimiento separado y protegido.
+1. Mantener el PR abierto y estabilizar su HEAD final.
+2. Confirmar que los contratos estáticos están verdes sobre ese HEAD.
+3. Ejecutar `PREFLIGHT_ONLY` sobre el mismo HEAD de la rama.
+4. Revisar y descargar el artifact.
+5. Ejecutar `DEPLOY_AND_MIGRATE` sobre exactamente el mismo HEAD.
+6. Confirmar marker, auditoría, smoke y aceptación renderizada.
+7. Completar QA visual manual en desktop y móvil.
+8. Registrar el SHA aceptado y no añadir commits después de la validación.
+9. Fusionar únicamente ese SHA ya validado.
+10. Promover a producción solo el código equivalente al SHA aceptado.
+11. Repetir smoke, aceptación SEO y revisión de logs en producción con un procedimiento separado y protegido.
 
 ## Gate de producción
 

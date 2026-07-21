@@ -62,6 +62,8 @@ for (const file of runtime) {
     const name = path.basename(file);
     const content = fs.readFileSync(file, 'utf8');
     if (!stats.size) fail(`${relativePath}: empty file`);
+    if (content.charCodeAt(0) === 0xfeff) fail(`${relativePath}: UTF-8 BOM`);
+    if (/[ÃÂ]|â(?:€|€™|€œ|€)/u.test(content)) fail(`${relativePath}: probable mojibake`);
     if (/(^|[-_.])(legacy|old|backup|bak|temp|tmp|deprecated|unused|orphan)([-_.]|$)/i.test(name)) fail(`${relativePath}: obsolete filename`);
     if (/staging2\.nuvanx\.com/i.test(content) && !relativePath.endsWith('/inc/nvx-environment-flags.php')) fail(`${relativePath}: staging hostname`);
     if (/\.css$/i.test(file) && /!important\b/i.test(content)) fail(`${relativePath}: !important`);
@@ -119,12 +121,48 @@ if (!fs.existsSync(newP5)) fail(`${rel(newP5)}: missing canonical content contra
 
 const integrations = read('inc/nvx-integrations.php');
 for (const marker of [
-  "'liposculpt-air'       => '/remodelacion-corporal-laser-madrid/'",
-  "'v-lift-awake'         => '/papada-definicion-mandibular-madrid/'",
+  "'liposculpt-air'",
+  "'/remodelacion-corporal-laser-madrid/'",
+  "'v-lift-awake'",
+  "'/papada-definicion-mandibular-madrid/'",
+  "'tratamiento-postparto-abdomen-contorno-corporal-madrid'",
+  "'/protocolos-signature/'",
   "remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 )",
-  'nvx_strategy_seed_approved_staging2_pages',
 ]) {
-  if (!integrations.includes(marker)) fail(`integrations: missing retired-prototype contract ${marker}`);
+  if (!integrations.includes(marker)) fail(`integrations: missing production-readiness contract ${marker}`);
+}
+if (integrations.includes('nvx_strategy_seed_approved_staging2_pages')) fail('integrations: runtime approved-page seeder');
+
+const protocolHub = read('inc/nvx-protocol-hub.php');
+const protocolPages = read('inc/nvx-protocol-pages.php');
+const portfolioHub = read('inc/nvx-portfolio-hub.php');
+for (const [name, content] of [
+  ['protocol hub', protocolHub],
+  ['protocol pages', protocolPages],
+  ['portfolio hub', portfolioHub],
+]) {
+  for (const marker of ['Post-Maternity', 'Protocolo en construcción clínica', 'fase de despliegue web', '/post-maternity/']) {
+    if (content.includes(marker)) fail(`${name}: unpublished marker ${marker}`);
+  }
+}
+if (protocolHub.includes('/couture-sculpt/')) fail('protocol hub: non-canonical Couture Sculpt route');
+if (!protocolHub.includes('/remodelacion-corporal-laser-madrid/')) fail('protocol hub: missing canonical Couture Sculpt route');
+if (/add_action\(\s*'init'\s*,\s*'nvx_seed_protocol/u.test(protocolHub + protocolPages)) fail('protocol modules: runtime seeder');
+
+const migration = path.join(root, 'scripts/wp/nvx-production-readiness-command.php');
+if (!fs.existsSync(migration)) {
+  fail(`${rel(migration)}: missing migration command`);
+} else {
+  const migrationContent = fs.readFileSync(migration, 'utf8');
+  for (const marker of [
+    'retire-prototypes',
+    'staging2.nuvanx.com',
+    '--allow-production',
+    'tratamiento-postparto-abdomen-contorno-corporal-madrid',
+    "WP_CLI::add_command( 'nvx production-readiness'",
+  ]) {
+    if (!migrationContent.includes(marker)) fail(`migration command: missing ${marker}`);
+  }
 }
 
 const native = read('inc/nvx-native-style-governance.php');

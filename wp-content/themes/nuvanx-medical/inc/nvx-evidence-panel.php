@@ -13,19 +13,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Render an Evidence Panel.
+ * Renders an evidence panel with clinical media, protocol data, and optional action links.
  *
  * @param array $args {
- *     @type int|string $image_id_or_url Media attachment ID or image URL.
- *     @type string     $image_alt       Alt text for the image.
- *     @type string     $media_meta      Meta description (e.g., '14 Días Post-Protocolo').
- *     @type string     $category        Category tag (e.g., 'Evidencia Clínica').
- *     @type string     $title           Main title of the panel.
- *     @type array      $specs           Associative array of protocol specs [ 'Densidad de Energía' => '15 mJ/px' ].
- *     @type string     $case_url        URL for 'Ver Caso Clínico' button.
- *     @type string     $contact_url     URL for 'Agendar Valoración' button.
+ *     Arguments for configuring the panel.
+ *
+ *     @type int|string $image_id_or_url Media attachment ID or direct image URL.
+ *     @type string     $image_alt       Alternative text for a direct image URL.
+ *     @type string     $media_meta      Caption or label for the media.
+ *     @type string     $category        Category displayed above the title.
+ *     @type string     $title           Main panel heading.
+ *     @type array      $specs           Associative array of protocol labels and values.
+ *     @type string     $case_url        URL for the clinical case link.
+ *     @type string     $contact_url     URL for the consultation link.
  * }
- * @return string HTML output of the evidence panel.
+ * @return string The rendered evidence panel HTML.
  */
 function nvx_render_evidence_panel( array $args ): string {
 	$defaults = array(

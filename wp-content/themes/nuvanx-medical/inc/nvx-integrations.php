@@ -17,51 +17,10 @@ require_once __DIR__ . '/nvx-conversion-events.php';
 require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 
 /**
- * Prevent retired working protocol names from being seeded again in staging2.
- * Existing database records are handled by canonical redirects below and can be
- * removed later through an explicit, audited data migration.
+ * Prevent strategy pages from being written during normal web requests.
+ * Content creation and retirement are handled by the audited WP-CLI migration.
  */
 remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
-
-/**
- * Seeds approved strategy pages in the staging2 environment.
- *
- * Creates missing catalog pages and updates the review status metadata of
- * existing or newly created pages.
- */
-function nvx_strategy_seed_approved_staging2_pages(): void {
-	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
-		return;
-	}
-
-	foreach ( nvx_strategy_page_catalog() as $key => $page ) {
-		if ( 'approved_for_publication' !== $page['review_status'] ) {
-			continue;
-		}
-
-		$stored = get_page_by_path( $page['slug'] );
-		if ( $stored ) {
-			update_post_meta( (int) $stored->ID, '_nvx_strategy_review_status', $page['review_status'] );
-			continue;
-		}
-
-		$page_id = wp_insert_post(
-			array(
-				'post_type'    => 'page',
-				'post_status'  => 'publish',
-				'post_title'   => $page['title'],
-				'post_name'    => $page['slug'],
-				'post_content' => '<!-- NUVANX_STRATEGY_PAGE:' . $key . ' -->',
-			),
-			true
-		);
-
-		if ( ! is_wp_error( $page_id ) ) {
-			update_post_meta( (int) $page_id, '_nvx_strategy_review_status', $page['review_status'] );
-		}
-	}
-}
-add_action( 'init', 'nvx_strategy_seed_approved_staging2_pages', 31 );
 
 /**
  * Determines whether the current request is for the Goya clinic page.
@@ -198,9 +157,9 @@ add_action(
 		}
 
 		$redirects = array(
-			'tratamiento-retirado'                                => '/tratamientos/',
-			'liposculpt-air'                                      => '/remodelacion-corporal-laser-madrid/',
-			'v-lift-awake'                                        => '/papada-definicion-mandibular-madrid/',
+			'tratamiento-retirado'                                    => '/tratamientos/',
+			'liposculpt-air'                                          => '/remodelacion-corporal-laser-madrid/',
+			'v-lift-awake'                                            => '/papada-definicion-mandibular-madrid/',
 			'tratamiento-postparto-abdomen-contorno-corporal-madrid' => '/protocolos-signature/',
 		);
 		$slug      = (string) get_post_field( 'post_name', get_the_ID() );

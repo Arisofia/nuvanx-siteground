@@ -62,7 +62,7 @@ const pages = [
 
 const redirects = [
   ['/liposculpt-air/', '/remodelacion-corporal-laser-madrid/'],
-  ['/v-lift-awake/', '/papada-definicion-mandibular-madrid/'],
+  ['/v-lift-awake/', '/protocolos-signature/'],
   ['/tratamiento-postparto-abdomen-contorno-corporal-madrid/', '/protocolos-signature/'],
 ];
 

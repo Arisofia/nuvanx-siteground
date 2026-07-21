@@ -3,10 +3,6 @@
  * Dedicated layout and typography rules for the hardcoded page-tratamientos.php.
  */
 
-:root {
-	--nvx-hub-accent: #C1A68D; /* Arena/Oro */
-}
-
 /* =========================================================
    SECCIÓN 01: HERO VIEWPORT
    ========================================================= */
@@ -46,11 +42,11 @@
 
 .nvx-hub-hero__lead {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-lead);
+	font-size: var(--nvx-type-body);
 	font-weight: 300;
 	opacity: 0.9;
 	margin-bottom: var(--nvx-space-8);
-	max-width: 48ch;
+	max-width: var(--nvx-measure);
 	margin-inline: auto;
 }
 
@@ -58,7 +54,7 @@
    SECCIÓN 02: MAPA ANATÓMICO (SEO)
    ========================================================= */
 .nvx-hub-map {
-	padding-block: clamp(80px, 10vw, 140px);
+	padding-block: clamp(120px, 12vw, 200px);
 	background: var(--nvx-surface-base);
 }
 
@@ -69,7 +65,7 @@
 }
 
 .nvx-hub-map__header {
-	max-width: 64ch;
+	max-width: var(--nvx-measure);
 	margin-bottom: var(--nvx-space-8);
 }
 
@@ -81,7 +77,7 @@
 
 .nvx-hub-map__desc {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-lead);
+	font-size: var(--nvx-type-body);
 	color: var(--nvx-text-muted);
 }
 
@@ -101,12 +97,13 @@
 	display: flex;
 	flex-direction: column;
 	gap: var(--nvx-space-2);
+	max-width: var(--nvx-measure);
 }
 
 .nvx-hub-region__num {
 	font-family: var(--nvx-serif);
 	font-size: var(--nvx-type-h3);
-	color: var(--nvx-hub-accent);
+	color: var(--nvx-accent-gold);
 }
 
 .nvx-hub-region__name {
@@ -148,9 +145,9 @@
 
 .nvx-hub-catalog__desc {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-lead);
+	font-size: var(--nvx-type-body);
 	color: var(--nvx-text-muted);
-	max-width: 60ch;
+	max-width: var(--nvx-measure);
 	margin: 0 auto;
 }
 
@@ -160,29 +157,32 @@
 	padding-inline: var(--nvx-gutter-inner);
 	display: flex;
 	flex-direction: column;
-	gap: clamp(64px, 8vw, 120px); /* Espacio amplio entre items */
+	gap: clamp(96px, 12vw, 160px); /* Aún más espacio entre items */
 }
 
 .nvx-hub-catalog__item {
 	display: flex;
 	flex-direction: column;
 	position: relative;
+	max-width: var(--nvx-measure);
 }
 
 /* Asimetría visual alternando paddings a los lados */
 @media (min-width: 768px) {
 	.nvx-hub-catalog__item:nth-child(odd) {
 		padding-right: 15%;
+		align-self: flex-start;
 	}
 	.nvx-hub-catalog__item:nth-child(even) {
 		padding-left: 15%;
+		align-self: flex-end;
 	}
 }
 
 .nvx-hub-catalog__item-num {
 	font-family: var(--nvx-serif);
 	font-size: var(--nvx-type-display);
-	color: var(--nvx-hub-accent);
+	color: var(--nvx-accent-gold);
 	line-height: 0.8;
 	margin-bottom: var(--nvx-space-4);
 	opacity: 0.9;
@@ -241,7 +241,7 @@
 	font-family: var(--nvx-serif);
 	font-size: var(--nvx-type-h3);
 	color: var(--nvx-ink);
-	max-width: 64ch;
+	max-width: var(--nvx-measure);
 	margin: 0 auto var(--nvx-space-8);
 }
 
@@ -267,7 +267,7 @@
    SECCIÓN 05: LLAMADA A LA ACCIÓN (FINAL)
    ========================================================= */
 .nvx-hub-cta {
-	padding-block: clamp(80px, 10vw, 140px);
+	padding-block: clamp(120px, 12vw, 200px);
 	background: var(--nvx-ink);
 	color: var(--nvx-light);
 	text-align: center;
@@ -282,10 +282,10 @@
 
 .nvx-hub-cta__desc {
 	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-lead);
+	font-size: var(--nvx-type-body);
 	color: var(--nvx-surface-soft);
 	margin-bottom: var(--nvx-space-8);
-	max-width: 60ch;
+	max-width: var(--nvx-measure);
 	margin-inline: auto;
 }
 

@@ -77,6 +77,11 @@ function nvx_primary_menu_fallback() {
 	echo '</ul>';
 }
 
+/**
+ * Enqueues the theme font stylesheet and the front-page stylesheet when applicable.
+ *
+ * The font stylesheet is versioned using its modification time when available.
+ */
 function nvx_theme_fonts() {
 	$path = get_template_directory() . '/assets/css/nvx-fonts.css';
 	$ver  = is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;
@@ -175,6 +180,9 @@ function nvx_asset_version( string $relative_path ): string {
 	return is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;
 }
 
+/**
+ * Enqueues the theme's styles and scripts, including home-specific and hero blackout assets when applicable.
+ */
 function nvx_theme_scripts() {
 	$uri = get_template_directory_uri();
 	$css = $uri . '/assets/css/';

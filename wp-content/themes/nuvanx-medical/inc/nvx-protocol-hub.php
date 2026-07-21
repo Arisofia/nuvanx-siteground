@@ -55,7 +55,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<h3 class="nvx-catalog-card__title">Couture Sculpt™</h3>';
 	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Remodelación corporal láser por unidades anatómicas. Diagnóstico y tratamiento focal para mejorar la continuidad del contorno sin imponer formas estándar.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
-	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ) . '">Ver protocolo <span aria-hidden="true">→</span></a>';
+	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/couture-sculpt/' ) ) . '">Ver protocolo <span aria-hidden="true">→</span></a>';
 	$html .= '</article>';
 
 	$html .= '<article class="nvx-catalog-card">';
@@ -63,7 +63,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<h3 class="nvx-catalog-card__title">Post-Maternity Contour™</h3>';
 	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Abordaje integral de los cambios posgestacionales. Valoración médica de grasa localizada, laxitud cutánea y cicatriz de cesárea.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
-	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' ) ) . '">Ver protocolo <span aria-hidden="true">→</span></a>';
+	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/post-maternity/' ) ) . '">Ver protocolo <span aria-hidden="true">→</span></a>';
 	$html .= '</article>';
 	
 	$html .= '</div></section>';

@@ -136,7 +136,7 @@ function nvx_protocol_pages_content_filter( string $content ): string {
 	}
 
 	$key = nvx_protocol_pages_current_key();
-	if ( ! $key ) {
+	if ( 'couture-sculpt' !== $key ) {
 		return $content;
 	}
 

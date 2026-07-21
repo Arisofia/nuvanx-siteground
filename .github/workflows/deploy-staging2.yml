@@ -5,14 +5,14 @@ on:
     paths:
       - '.github/workflows/deploy-staging2.yml'
       - 'tools/deploy/deploy-to-staging2.sh'
-      - 'scripts/staging2/test-deploy-workflow-contract.mjs'
       - 'scripts/staging2/smoke-verify-staging2.sh'
+      - 'scripts/staging2/test-deploy-workflow-contract.mjs'
       - 'scripts/wp/nvx-production-readiness-command.php'
       - 'docs/operations/deployment.md'
   workflow_dispatch:
     inputs:
       git_sha:
-        description: 'Full 40-character SHA already merged into master'
+        description: 'Full 40-character SHA equal to the selected workflow ref HEAD'
         required: true
         type: string
       confirmation:
@@ -47,7 +47,7 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Validate workflow, deployment, migration and smoke contracts
+      - name: Validate workflow and deployment payload
         run: |
           set -euo pipefail
           bash -n tools/deploy/deploy-to-staging2.sh
@@ -60,7 +60,6 @@ jobs:
     needs: contract
     if: >-
       github.event_name == 'workflow_dispatch' &&
-      github.ref == 'refs/heads/master' &&
       inputs.confirmation == 'DEPLOY_STAGING2'
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -71,10 +70,10 @@ jobs:
       DEPLOY_SHA: ${{ inputs.git_sha }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
     steps:
-      - name: Check out master history
+      - name: Check out selected immutable ref
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: master
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -86,14 +85,14 @@ jobs:
             echo 'git_sha must be a full lowercase 40-character SHA.' >&2
             exit 1
           }
-          git fetch --no-tags origin master
-          git cat-file -e "${DEPLOY_SHA}^{commit}"
-          git merge-base --is-ancestor "$DEPLOY_SHA" origin/master || {
-            echo 'Refusing to deploy a SHA that is not contained in origin/master.' >&2
+          current_sha="$(git rev-parse HEAD)"
+          test "$current_sha" = "$GITHUB_SHA"
+          test "$DEPLOY_SHA" = "$current_sha" || {
+            echo 'git_sha must equal the selected workflow ref HEAD.' >&2
+            echo "selected_ref=${GITHUB_REF} selected_sha=${current_sha} requested_sha=${DEPLOY_SHA}" >&2
             exit 1
           }
-          git checkout --detach "$DEPLOY_SHA"
-          test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
+          git cat-file -e "${DEPLOY_SHA}^{commit}"
 
       - name: Configure strict SSH authentication
         shell: bash
@@ -149,7 +148,7 @@ jobs:
         run: |
           set -euo pipefail
           ssh nvx-staging2 \
-            "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"
+            "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null && command -v curl >/dev/null"
 
       - name: Upload immutable release payload
         shell: bash
@@ -167,60 +166,35 @@ jobs:
             --exclude='*.bak*' \
             wp-content/themes/nuvanx-medical/ \
             "nvx-staging2:$REMOTE_RELEASE/theme/"
-          rsync -az tools/deploy/deploy-to-staging2.sh \
-            "nvx-staging2:$REMOTE_RELEASE/deploy-to-staging2.sh"
-          rsync -az scripts/wp/nvx-production-readiness-command.php \
-            "nvx-staging2:$REMOTE_RELEASE/nvx-production-readiness-command.php"
+          rsync -az \
+            tools/deploy/deploy-to-staging2.sh \
+            scripts/wp/nvx-production-readiness-command.php \
+            scripts/staging2/smoke-verify-staging2.sh \
+            "nvx-staging2:$REMOTE_RELEASE/"
 
-      - name: Execute guarded remote theme deployment
+      - name: Execute guarded deployment, migration and smoke test
         id: remote_deploy
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-staging2 \
-            "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm"
+            "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' \
+              --wp-root '$WP_ROOT' \
+              --source-theme '$REMOTE_RELEASE/theme' \
+              --migration-script '$REMOTE_RELEASE/nvx-production-readiness-command.php' \
+              --smoke-script '$REMOTE_RELEASE/smoke-verify-staging2.sh' \
+              --sha '$DEPLOY_SHA' \
+              --confirm"
 
       - name: Verify deployed marker
         shell: bash
         run: |
           set -euo pipefail
-          deployed_sha="$(ssh nvx-staging2 "tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
+          deployed_sha="$(ssh nvx-staging2 "tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
           test "$deployed_sha" = "$DEPLOY_SHA"
           echo "Verified staging2 marker: $deployed_sha"
 
-      - name: Back up staging2 database before content migration
-        shell: bash
-        run: |
-          set -euo pipefail
-          DB_BACKUP="$WP_ROOT/wp-content/backups-nuvanx/pre-production-readiness-${DEPLOY_SHA:0:12}-${GITHUB_RUN_ID}.sql"
-          echo "DB_BACKUP=$DB_BACKUP" >> "$GITHUB_ENV"
-          ssh nvx-staging2 \
-            "mkdir -p '$WP_ROOT/wp-content/backups-nuvanx' && cd '$WP_ROOT' && wp db export '$DB_BACKUP' --add-drop-table"
-          ssh nvx-staging2 "test -s '$DB_BACKUP'"
-          echo "Verified staging2 database backup: $DB_BACKUP"
-
-      - name: Audit staging2 content before migration
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh nvx-staging2 \
-            "cd '$WP_ROOT' && wp --require='$REMOTE_RELEASE/nvx-production-readiness-command.php' nvx production-readiness audit --allow-pending"
-
-      - name: Apply staging2 production-readiness migration
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh nvx-staging2 \
-            "cd '$WP_ROOT' && wp --require='$REMOTE_RELEASE/nvx-production-readiness-command.php' nvx production-readiness apply --confirm=retire-prototypes"
-
-      - name: Audit staging2 content after migration
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh nvx-staging2 \
-            "cd '$WP_ROOT' && wp --require='$REMOTE_RELEASE/nvx-production-readiness-command.php' nvx production-readiness audit"
-
-      - name: Run staging2 smoke verification
+      - name: Run independent staging2 smoke verification
         env:
           BASE_URL: https://staging2.nuvanx.com
         run: bash scripts/staging2/smoke-verify-staging2.sh
@@ -237,11 +211,10 @@ jobs:
           {
             echo '## Staging2 deployment completed'
             echo
+            echo "- Ref: \`$GITHUB_REF\`"
             echo "- SHA: \`$DEPLOY_SHA\`"
             echo '- Target: `https://staging2.nuvanx.com`'
-            echo '- Scope: theme synchronization + audited content migration'
-            echo '- Theme backup: created on the SiteGround host before synchronization'
-            echo "- Database backup: \`$DB_BACKUP\`"
-            echo '- Migration: pre-audit + guarded apply + post-audit'
-            echo '- Verification: deploy marker + portfolio/protocol smoke test'
+            echo '- Scope: theme + audited production-readiness content migration'
+            echo '- Backup: theme archive + database export created on SiteGround before mutation'
+            echo '- Verification: PHP lint + deploy marker + pre/post migration audit + rendered smoke test'
           } >> "$GITHUB_STEP_SUMMARY"

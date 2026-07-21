@@ -31,9 +31,9 @@ function nvx_content_is_treatments_index( string $content ): bool {
 }
 
 /**
- * Provides the structured catalog of treatment categories and protocols.
+ * Provides the structured catalog of approved treatment categories and protocols.
  *
- * @return array Treatment categories with labels, descriptions, and URLs.
+ * @return array Treatment categories with labels, descriptions and URLs.
  */
 function nvx_treatments_catalog_data(): array {
 	return array(
@@ -58,12 +58,6 @@ function nvx_treatments_catalog_data(): array {
 					'title' => 'Remodelación Láser Corporal',
 					'body'  => 'Nuestro sistema de diagnóstico y tratamiento térmico para abdomen, flancos y extremidades. Esculpe el contorno sin imponer formas estándar.',
 					'url'   => home_url( '/remodelacion-corporal-laser-madrid/' ),
-				),
-				array(
-					'meta'  => 'Protocolo Post-Maternity™',
-					'title' => 'Recuperación Posgestacional',
-					'body'  => 'Abordaje integral del abdomen posparto. Valoración médica de diástasis, grasa localizada, laxitud cutánea y cicatriz de cesárea.',
-					'url'   => home_url( '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' ),
 				),
 			),
 		),
@@ -164,7 +158,7 @@ function nvx_treatments_logo_cloud_markup(): string {
 }
 
 /**
- * Reorganizes the treatments index content with the current catalog, partner section, and clinical assessment call to action.
+ * Reorganizes the treatments index content with the current catalog, partner section and clinical assessment call to action.
  *
  * @param string $content The rendered page content to evaluate and restructure.
  * @return string The restructured content, or the original content when it is not the treatments index.
@@ -177,7 +171,6 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 	$catalog = nvx_treatments_catalog_markup();
 	$cloud   = nvx_treatments_logo_cloud_markup();
 
-	// Limpiar contenido anterior e inyectar
 	$content = preg_replace(
 		'/<section\b[^>]*aria-label="Catálogo de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
 		$catalog,
@@ -212,7 +205,6 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 		) ?? $content;
 	}
 
-	// Limpiar restos
 	$content = preg_replace('/<section\b[^>]*aria-label="Resumen de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu', '', $content, 1) ?? $content;
 	$content = preg_replace('/<section\b[^>]*class="[^"]*\bnvx-brand-section\b[^"]*"[^>]*>[\s\S]*?¿Qué tratamientos realizamos en NUVANX\?[\s\S]*?<\/section>/iu', '', $content, 1) ?? $content;
 	$content = preg_replace('/<section\b[^>]*class="[^"]*nvx-brand-section--cta[^"]*"[^>]*>[\s\S]*?<\/section>/iu', '', $content, 1) ?? $content;

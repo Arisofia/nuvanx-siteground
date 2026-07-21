@@ -10,6 +10,7 @@ on:
       - 'scripts/staging2/verify-rendered-acceptance.mjs'
       - 'scripts/staging2/test-deploy-workflow-contract.mjs'
       - 'scripts/wp/nvx-production-readiness-command.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php'
       - 'docs/operations/deployment.md'
       - 'docs/operations/staging2-phase3-rendered-acceptance.md'
   workflow_dispatch:
@@ -70,6 +71,7 @@ jobs:
           bash -n scripts/staging2/smoke-verify-staging2.sh
           node --check scripts/staging2/verify-rendered-acceptance.mjs
           php -l scripts/wp/nvx-production-readiness-command.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
           node scripts/staging2/test-deploy-workflow-contract.mjs
 
   deploy:

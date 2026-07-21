@@ -20,30 +20,40 @@ fs.mkdirSync(evidenceDir, { recursive: true });
 const pages = [
   {
     path: '/tratamientos/',
+    title: 'Tratamientos Medicina Estética Láser Madrid | NUVANX',
+    description: 'Tratamientos de medicina estética láser en Madrid: Endolift®, Láser CO₂, EXION® BTL, IPL y medicina facial con valoración clínica.',
     h1: 'Portafolio clínico.',
     marker: 'Áreas de intervención clínica',
     schemaTypes: ['WebPage', 'ItemList'],
   },
   {
     path: '/protocolos-signature/',
+    title: 'Protocolos Signature | NUVANX Madrid',
+    description: 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.',
     h1: 'Protocolos Signature: Medicina estética de diagnóstico.',
     marker: 'Nuestro estándar: La firma NUVANX',
     schemaTypes: ['WebPage'],
   },
   {
     path: '/remodelacion-corporal-laser-madrid/',
+    title: 'Remodelación corporal láser Madrid | NUVANX',
+    description: 'Remodelación corporal láser en Madrid por unidades anatómicas para grasa localizada, laxitud y continuidad del contorno tras valoración médica.',
     h1: 'Remodelación corporal láser diseñada según tu anatomía.',
     marker: 'Couture Sculpt™: El protocolo y la tecnología',
     schemaTypes: ['WebPage'],
   },
   {
     path: '/por-que-nuvanx/',
+    title: 'Por qué NUVANX | Criterio médico en Madrid',
+    description: 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.',
     h1: 'El diagnóstico precede a la indicación.',
     marker: 'Diagnóstico antes de tecnología',
     schemaTypes: ['WebPage'],
   },
   {
     path: '/inversion-medicina-estetica/',
+    title: 'Inversión en medicina estética | NUVANX Madrid',
+    description: 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.',
     h1: 'El presupuesto forma parte de una decisión informada.',
     marker: 'Qué incluye el precio',
     schemaTypes: ['WebPage'],
@@ -63,6 +73,17 @@ const forbiddenText = [
   'LipoSculpt-Air™',
   'V-Lift Awake™',
   'Post-Maternity Contour',
+  'garantizar resultados',
+  'asegurar que cada intervención',
+  'control térmico absoluto',
+  'sin huellas quirúrgicas evidentes',
+  'presupuesto muy bajo',
+  'no usamos descuentos estacionales',
+  'este procedimiento no es habitual en el sector',
+  'el estándar de oro',
+  'renovación epidérmica severa',
+  'absoluta discreción',
+  'protocolo comercial estrella',
 ];
 
 const findings = [];
@@ -170,7 +191,12 @@ async function fetchWithTimeout(url, options = {}) {
 for (const page of pages) {
   const scope = `page ${page.path}`;
   const url = `${baseUrl}${page.path}`;
-  const result = { path: page.path, url };
+  const result = {
+    path: page.path,
+    url,
+    expected_title: page.title,
+    expected_description: page.description,
+  };
 
   try {
     const response = await fetchWithTimeout(url, { redirect: 'follow' });
@@ -182,6 +208,8 @@ for (const page of pages) {
       final_url: response.url,
       title: extractTag(html, 'title'),
       description: metaContent(html, 'description'),
+      og_title: metaContent(html, 'og:title'),
+      og_description: metaContent(html, 'og:description'),
       robots: metaContent(html, 'robots'),
       deploy_sha: metaContent(html, 'nvx-deploy-sha'),
       canonical: linkHref(html, 'canonical'),
@@ -194,8 +222,14 @@ for (const page of pages) {
     if (response.status !== 200) fail(scope, `returned HTTP ${response.status}`);
     if (response.url !== url) fail(scope, `resolved to ${response.url} instead of ${url}`);
     if (result.deploy_sha !== expectedSha) fail(scope, `deploy SHA ${result.deploy_sha || 'absent'} does not equal ${expectedSha}`);
-    if (!result.title || /página no encontrada|404/i.test(result.title)) fail(scope, `invalid title: ${result.title || 'absent'}`);
-    if (!result.description) fail(scope, 'missing meta description');
+    if (result.title !== page.title) fail(scope, `title is "${result.title || 'absent'}" instead of "${page.title}"`);
+    if (result.description !== page.description) {
+      fail(scope, `meta description is "${result.description || 'absent'}" instead of "${page.description}"`);
+    }
+    if (result.og_title !== page.title) fail(scope, `og:title is "${result.og_title || 'absent'}" instead of "${page.title}"`);
+    if (result.og_description !== page.description) {
+      fail(scope, `og:description is "${result.og_description || 'absent'}" instead of "${page.description}"`);
+    }
     if (!/\bnoindex\b/i.test(result.robots) || !/\bnofollow\b/i.test(result.robots)) {
       fail(scope, `staging robots must contain noindex,nofollow; found ${result.robots || 'absent'}`);
     }

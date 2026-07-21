@@ -81,7 +81,7 @@ function nvx_home_copy_transform( string $content ): string {
 		return $content;
 	}
 
-	nvx_home_copy_set_text( $heading, 'Medicina estética láser en Madrid' );
+	nvx_home_copy_set_text( $heading, 'Medicina estética donde el diagnóstico precede a la tecnología' );
 	$heading->setAttribute( 'data-nvx-home-copy', 'canonical' );
 
 	$copy = $heading->parentNode;
@@ -89,8 +89,8 @@ function nvx_home_copy_transform( string $content ): string {
 		$copy = $root;
 	}
 
-	$lead_text        = 'Diagnóstico médico. Indicación individual. Seguimiento clínico.';
-	$description_text = 'Valoración médica presencial en Chamberí (CS20144) y Salamanca–Goya (CS20073). La tecnología y el plan se deciden tras la exploración.';
+	$lead_text        = 'Madrid. Dos sedes. Un único criterio médico.';
+	$description_text = 'La valoración clínica define el plan, no el catálogo.';
 	$lead             = null;
 	$description      = null;
 

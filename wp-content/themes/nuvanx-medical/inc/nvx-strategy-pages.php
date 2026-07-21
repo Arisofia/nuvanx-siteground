@@ -127,8 +127,8 @@ function nvx_strategy_why_nuvanx_markup(): string {
 
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page">';
 	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">Criterio médico NUVANX</p>';
-	$html .= '<h1 class="nvx-strategy-title">Si no hay indicación clínica, no hay tratamiento.</h1>';
-	$html .= '<p class="nvx-brand-lead">Una decisión de medicina estética empieza por la exploración, no por una tecnología, una tendencia o una promesa de resultado.</p></header>';
+	$html .= '<h1 class="nvx-strategy-title">El diagnóstico precede a la indicación.</h1>';
+	$html .= '<p class="nvx-brand-lead">Madrid. Medicina estética láser y well-aging. Un único criterio médico desde la primera valoración hasta el alta.</p></header>';
 
 	$html .= '<section class="nvx-brand-section"><h2>Diagnóstico antes de tecnología</h2><p>Revisamos anatomía, antecedentes, objetivos, contraindicaciones y expectativas. Solo entonces se valora si procede tratar, esperar, derivar o no intervenir.</p></section>';
 	$html .= '<section class="nvx-brand-section"><h2>Claridad antes de decidir</h2><p>El plan explica la alternativa propuesta, sus límites, cuidados, posibles efectos y presupuesto. La decisión se toma con información comprensible y con tiempo para resolver dudas.</p></section>';

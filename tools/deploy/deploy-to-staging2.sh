@@ -31,7 +31,7 @@ EOF
 
 fail() {
   echo "ERROR: $*" >&2
-  exit 1
+  return 1
 }
 
 while [[ $# -gt 0 ]]; do
@@ -58,7 +58,7 @@ DEPLOYMENT_ROOT="$WP_ROOT/wp-content/.nuvanx-deployments/"
 [[ "$MIGRATION_SCRIPT" == "$DEPLOYMENT_ROOT"*/nvx-production-readiness-command.php ]] || fail 'migration script must be inside the staging2 deployment area'
 [[ "$SMOKE_SCRIPT" == "$DEPLOYMENT_ROOT"*/smoke-verify-staging2.sh ]] || fail 'smoke script must be inside the staging2 deployment area'
 
-for command_name in wp rsync tar php find bash curl; do
+for command_name in wp rsync tar php find bash curl xargs; do
   command -v "$command_name" >/dev/null 2>&1 || fail "required command is unavailable: $command_name"
 done
 
@@ -88,6 +88,7 @@ LIVE_THEME="$WP_ROOT/$THEME_REL"
 rollback() {
   local exit_code=$?
   trap - ERR
+  set +e
   if [[ "$MUTATION_STARTED" -eq 1 && -n "$BACKUP_DIR" ]]; then
     if [[ -f "$BACKUP_DIR/theme.tgz" ]]; then
       echo 'ROLLBACK: restoring the pre-deploy staging2 theme' >&2

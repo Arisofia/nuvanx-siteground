@@ -1,0 +1,65 @@
+name: Navigation Architecture Gate
+
+on:
+  pull_request:
+    paths:
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
+      - 'wp-content/themes/nuvanx-medical/assets/js/nvx-main.js'
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-header.css'
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css'
+      - 'wp-content/themes/nuvanx-medical/header.php'
+      - 'scripts/design-system/test-navigation-architecture.mjs'
+      - 'docs/navigation/**'
+      - '.github/workflows/navigation-architecture-gate.yml'
+  push:
+    branches:
+      - master
+    paths:
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
+      - 'wp-content/themes/nuvanx-medical/assets/js/nvx-main.js'
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-header.css'
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css'
+      - 'wp-content/themes/nuvanx-medical/header.php'
+      - 'scripts/design-system/test-navigation-architecture.mjs'
+      - 'docs/navigation/**'
+      - '.github/workflows/navigation-architecture-gate.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  navigation-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          show-progress: false
+
+      - name: Validate PHP syntax
+        run: php -l wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php
+
+      - name: Validate JavaScript syntax
+        run: node --check wp-content/themes/nuvanx-medical/assets/js/nvx-main.js
+
+      - name: Validate navigation architecture
+        run: node scripts/design-system/test-navigation-architecture.mjs
+
+      - name: Audit CSS contracts
+        run: node scripts/design-system/audit-css.mjs
+
+      - name: Require clean navigation CSS fundamentals
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const summary = JSON.parse(fs.readFileSync('qa/design-system/audit-summary.json', 'utf8'));
+          const requiredZero = ['undefinedTokens', 'importantActive', 'unsafeSelectors'];
+          const dirty = requiredZero.filter((key) => Number(summary[key] || 0) !== 0);
+          if (dirty.length) {
+            console.error('Navigation CSS fundamentals failed:', dirty.map((key) => `${key}=${summary[key]}`).join(', '));
+            process.exit(1);
+          }
+          console.log('PASS: navigation CSS has no undefined tokens, active !important or unsafe selectors');
+          NODE

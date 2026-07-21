@@ -6,6 +6,8 @@ on:
       - '.github/workflows/deploy-staging2.yml'
       - 'tools/deploy/deploy-to-staging2.sh'
       - 'scripts/staging2/test-deploy-workflow-contract.mjs'
+      - 'scripts/staging2/smoke-verify-staging2.sh'
+      - 'scripts/wp/nvx-production-readiness-command.php'
       - 'docs/operations/deployment.md'
   workflow_dispatch:
     inputs:
@@ -45,9 +47,12 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Validate workflow and remote deployment script
+      - name: Validate workflow, deployment, migration and smoke contracts
         run: |
+          set -euo pipefail
           bash -n tools/deploy/deploy-to-staging2.sh
+          bash -n scripts/staging2/smoke-verify-staging2.sh
+          php -l scripts/wp/nvx-production-readiness-command.php
           node scripts/staging2/test-deploy-workflow-contract.mjs
 
   deploy:
@@ -164,8 +169,10 @@ jobs:
             "nvx-staging2:$REMOTE_RELEASE/theme/"
           rsync -az tools/deploy/deploy-to-staging2.sh \
             "nvx-staging2:$REMOTE_RELEASE/deploy-to-staging2.sh"
+          rsync -az scripts/wp/nvx-production-readiness-command.php \
+            "nvx-staging2:$REMOTE_RELEASE/nvx-production-readiness-command.php"
 
-      - name: Execute guarded remote deployment
+      - name: Execute guarded remote theme deployment
         id: remote_deploy
         shell: bash
         run: |
@@ -177,9 +184,41 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          deployed_sha="$(ssh nvx-staging2 "tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
+          deployed_sha="$(ssh nvx-staging2 "tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
           test "$deployed_sha" = "$DEPLOY_SHA"
           echo "Verified staging2 marker: $deployed_sha"
+
+      - name: Back up staging2 database before content migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          DB_BACKUP="$WP_ROOT/wp-content/backups-nuvanx/pre-production-readiness-${DEPLOY_SHA:0:12}-${GITHUB_RUN_ID}.sql"
+          echo "DB_BACKUP=$DB_BACKUP" >> "$GITHUB_ENV"
+          ssh nvx-staging2 \
+            "mkdir -p '$WP_ROOT/wp-content/backups-nuvanx' && cd '$WP_ROOT' && wp db export '$DB_BACKUP' --add-drop-table"
+          ssh nvx-staging2 "test -s '$DB_BACKUP'"
+          echo "Verified staging2 database backup: $DB_BACKUP"
+
+      - name: Audit staging2 content before migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 \
+            "cd '$WP_ROOT' && wp --require='$REMOTE_RELEASE/nvx-production-readiness-command.php' nvx production-readiness audit --allow-pending"
+
+      - name: Apply staging2 production-readiness migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 \
+            "cd '$WP_ROOT' && wp --require='$REMOTE_RELEASE/nvx-production-readiness-command.php' nvx production-readiness apply --confirm=retire-prototypes"
+
+      - name: Audit staging2 content after migration
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 \
+            "cd '$WP_ROOT' && wp --require='$REMOTE_RELEASE/nvx-production-readiness-command.php' nvx production-readiness audit"
 
       - name: Run staging2 smoke verification
         env:
@@ -200,7 +239,9 @@ jobs:
             echo
             echo "- SHA: \`$DEPLOY_SHA\`"
             echo '- Target: `https://staging2.nuvanx.com`'
-            echo '- Scope: `wp-content/themes/nuvanx-medical` only'
-            echo '- Backup: created on the SiteGround host before synchronization'
-            echo '- Verification: deploy marker + staging2 smoke test'
+            echo '- Scope: theme synchronization + audited content migration'
+            echo '- Theme backup: created on the SiteGround host before synchronization'
+            echo "- Database backup: \`$DB_BACKUP\`"
+            echo '- Migration: pre-audit + guarded apply + post-audit'
+            echo '- Verification: deploy marker + portfolio/protocol smoke test'
           } >> "$GITHUB_STEP_SUMMARY"

@@ -124,15 +124,15 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$valuation_url = esc_url( home_url( '/madrid/valoracion/' ) );
 	$team_url      = esc_url( home_url( '/equipo-medico/' ) );
 	$investment    = nvx_strategy_published_url( 'investment' );
-	$html  = '<article class="nvx-brand-readable nvx-strategy-page">';
-	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">Criterio médico NUVANX · Chamberí · Salamanca–Goya</p>';
-	$html .= '<h1 class="nvx-strategy-title">NUVANX no es una clínica de máquinas. Es una clínica de criterio médico.</h1>';
-	$html .= '<p class="nvx-brand-lead">Una decisión de medicina estética comienza por la exploración, no por una tendencia, una máquina o una promesa de resultado.</p></header>';
 
-	$html .= '<section class="nvx-brand-section"><h2>El diagnóstico precede a la tecnología</h2><p>Revisamos anatomía, antecedentes, objetivos y contraindicaciones. Solo entonces se valora si procede tratar, esperar, derivar o no intervenir. La indicación la decide la exploración, no el catálogo de tratamientos disponibles.</p></section>';
-	$html .= '<section class="nvx-brand-section"><h2>Honorarios transparentes desde el primer día</h2><p>El presupuesto se documenta por escrito antes de cualquier decisión. La claridad de precio no es sinónimo de descuento: es condición de confianza. El importe final y la indicación se confirman siempre después de la valoración médica presencial.</p></section>';
-	$html .= '<section class="nvx-brand-section"><h2>Privacidad como diseño, no como promesa</h2><p>Cada consulta ocupa su propio box desde la llegada. No existe sala de espera compartida entre pacientes. La discreción es una condición de diseño en ambas sedes —Chamberí (Almagro) y Salamanca–Goya (Barrio de Salamanca)— no un rasgo opcional.</p></section>';
-	$html .= '<section class="nvx-brand-section"><h2>Seguimiento como parte del plan</h2><p>La indicación incluye cómo y cuándo contactar con el equipo, qué evolución vigilar y cuándo revisar el caso. La recuperación no es idéntica para todas las personas.</p></section>';
+	$html  = '<article class="nvx-brand-readable nvx-strategy-page">';
+	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">Criterio médico NUVANX</p>';
+	$html .= '<h1 class="nvx-strategy-title">Si no hay indicación clínica, no hay tratamiento.</h1>';
+	$html .= '<p class="nvx-brand-lead">Una decisión de medicina estética empieza por la exploración, no por una tecnología, una tendencia o una promesa de resultado.</p></header>';
+
+	$html .= '<section class="nvx-brand-section"><h2>Diagnóstico antes de tecnología</h2><p>Revisamos anatomía, antecedentes, objetivos, contraindicaciones y expectativas. Solo entonces se valora si procede tratar, esperar, derivar o no intervenir.</p></section>';
+	$html .= '<section class="nvx-brand-section"><h2>Claridad antes de decidir</h2><p>El plan explica la alternativa propuesta, sus límites, cuidados, posibles efectos y presupuesto. La decisión se toma con información comprensible y con tiempo para resolver dudas.</p></section>';
+	$html .= '<section class="nvx-brand-section"><h2>Seguimiento como parte del plan</h2><p>La indicación incluye cómo y cuándo contactar con el equipo, qué evolución vigilar y cuándo revisar el caso. La recuperación no se presenta como idéntica para todas las personas.</p></section>';
 
 	$html .= '<section class="nvx-brand-section nvx-strategy-checklist">'
 		. '<h2>Lo que hacemos siempre</h2>'
@@ -141,7 +141,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 		. '<li>Presupuesto cerrado y por escrito antes de iniciar el procedimiento</li>'
 		. '<li>El médico que hace la valoración es el mismo que ejecuta el tratamiento</li>'
 		. '<li>El código de lote de cada producto queda registrado en el historial clínico</li>'
-		. '<li>Box privado desde la llegada: sin sala de espera compartida</li>'
+		. '<li>Sala de espera individual: cada paciente ocupa su propio espacio</li>'
 		. '<li>Seguimiento posterior accesible sin necesidad de agenda nueva</li>'
 		. '</ul>'
 		. '</section>';
@@ -153,17 +153,17 @@ function nvx_strategy_why_nuvanx_markup(): string {
 		. '<li>Financiación como argumento de venta principal</li>'
 		. '<li>Tratamientos sin indicación clínica previa documentada</li>'
 		. '<li>Rotación de médicos sin informar al paciente</li>'
-		. '<li>Valoraciones «gratuitas» que son visitas comerciales</li>'
+		. '<li>Valoraciones "gratuitas" que son visitas comerciales</li>'
 		. '</ul>'
 		. '</section>';
 
 	$html .= '<section class="nvx-brand-section">'
 		. '<h2>Trazabilidad de productos</h2>'
-		. '<p>En NUVANX el médico abre cada producto en presencia del paciente. El código de lote queda adherido al historial clínico. Trabajamos exclusivamente con distribuidores oficiales de Allergan y Merz. El certificado de proveedor está disponible antes de firmar cualquier presupuesto.</p>'
-		. '<p>Cada historial clínico documenta material, lote y médico responsable.</p>'
+		. '<p>En NUVANX el médico abre cada producto en presencia del paciente. El código de lote queda adherido al historial clínico. Trabajamos exclusivamente con distribuidores oficiales de las marcas que empleamos. El certificado de proveedor está disponible antes de firmar cualquier presupuesto.</p>'
+		. '<p>Este procedimiento no es habitual en el sector. Lo describimos porque creemos que debería serlo.</p>'
 		. '</section>';
 
-	$html .= '<section class="nvx-brand-section"><h2>Atención en centros sanitarios autorizados</h2><p>NUVANX atiende en Chamberí (Almagro · CS20144) y Salamanca–Goya (Barrio de Salamanca · CS20073), con equipo médico colegiado en el ICOMEM.</p><p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a> <a class="nvx-brand-inline-link" href="' . $team_url . '">Conocer al equipo médico</a>';
+	$html .= '<section class="nvx-brand-section"><h2>Atención en centros sanitarios autorizados</h2><p>NUVANX atiende en Chamberí (CS20144) y Salamanca–Goya (CS20073), con equipo médico colegiado.</p><p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a> <a class="nvx-brand-inline-link" href="' . $team_url . '">Conocer al equipo médico</a>';
 	if ( '' !== $investment ) {
 		$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( $investment ) . '">Consultar inversión orientativa</a>';
 	}
@@ -300,11 +300,10 @@ function nvx_strategy_investment_markup(): string {
 
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">'
-		. '<p class="nvx-brand-kicker">Tarifas Médicas Transparentes · NUVANX Madrid</p>'
+		. '<p class="nvx-brand-kicker">Inversión en medicina estética · NUVANX Madrid</p>'
 		. '<h1 class="nvx-strategy-title">El presupuesto forma parte de una decisión informada.</h1>'
-		. '<p class="nvx-brand-lead">El presupuesto se documenta por escrito antes de cualquier decisión. Publicamos tarifas verificadas porque la opacidad de precio no es sinónimo de exclusividad: es una barrera para quien tiene que tomar una decisión clínica. El importe final y la indicación se confirman siempre después de la valoración médica presencial. Sin sorpresas finales.</p>'
+		. '<p class="nvx-brand-lead">Publicamos tarifas verificadas porque la opacidad de precio no es sinónimo de exclusividad: es una barrera para quien tiene que tomar una decisión clínica. El importe final y la indicación se confirman siempre después de la valoración médica presencial.</p>'
 		. '</header>';
-
 
 	if ( ! empty( $groups ) ) {
 		$group_labels = array(

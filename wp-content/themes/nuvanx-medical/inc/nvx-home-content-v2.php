@@ -22,9 +22,9 @@ function nvx_home_benefits_markup(): string {
 <section class="nvx-brand-section nvx-benefits-section" aria-labelledby="nvx-benefits-title">
 	<div class="nvx-container">
 		<header class="nvx-benefits__header">
-			<p class="nvx-brand-kicker">Criterio médico NUVANX</p>
-			<h2 class="nvx-brand-title" id="nvx-benefits-title">Medicina estética donde el diagnóstico precede a la tecnología.</h2>
-			<p class="nvx-brand-lead">Cada protocolo comienza con una valoración individual. El equipo médico evalúa anatomía, historial, objetivos y contraindicaciones antes de considerar cualquier técnica. Sin diagnóstico previo no se activa ningún protocolo.</p>
+			<p class="nvx-brand-kicker">Los beneficios</p>
+			<h2 class="nvx-brand-title" id="nvx-benefits-title">De un plan NUVANX personalizado</h2>
+			<p class="nvx-brand-lead">Cuando está indicado, un procedimiento mínimamente invasivo puede ayudar a tratar depósitos de grasa localizada y mejorar el contorno. El equipo médico valora anatomía, objetivos, antecedentes y recuperación esperada antes de recomendar una técnica.</p>
 		</header>
 		<div class="nvx-benefits__grid">
 			<div class="nvx-benefit-item">
@@ -66,26 +66,26 @@ function nvx_home_content_v2_catalog(): array {
 	return array(
 		'values'    => array(
 			'kicker' => 'Criterio médico NUVANX',
-			'title'  => 'Madrid. Dos sedes. Un único criterio médico.',
+			'title'  => 'Si no hay indicación clínica, no hay tratamiento.',
 			'items'  => array(
 				array(
 					'title' => 'Diagnóstico antes de tecnología:',
-					'body'  => 'Antes de proponer un tratamiento, revisamos anatomía, antecedentes, objetivos y contraindicaciones. Sin diagnóstico previo no se activa ningún protocolo.',
+					'body'  => 'Antes de proponer un tratamiento, revisamos anatomía, antecedentes, objetivos y contraindicaciones. Si no existe una indicación clínica adecuada, no lo recomendamos.',
 				),
 				array(
 					'title' => 'Tecnología según indicación:',
-					'body'  => 'La elección de plataforma —DEKA, EXION® BTL, CO₂ fraccionado— se decide tras la exploración. No se parte de un catálogo de servicios ni de una promesa de resultado.',
+					'body'  => 'La elección de tecnología y parámetros se decide tras la exploración. No se parte de un protocolo estándar ni de una promesa de resultado.',
 				),
 				array(
 					'title' => 'Información y seguimiento:',
-					'body'  => 'Antes de tratar, explicamos qué puede mejorar, qué no, y por qué. El presupuesto se documenta por escrito antes de cualquier decisión.',
+					'body'  => 'El plan explica alternativas, cuidados, posibles efectos y vía de contacto. La recuperación se individualiza según el caso y el procedimiento indicado.',
 				),
 			),
 		),
 		'action'    => array(
-			'kicker'          => 'Valoración médica individualizada',
-			'title'           => 'Una consulta para determinar si existe indicación en tu caso.',
-			'body'            => 'Evaluamos tu anatomía, resolvemos dudas y documentamos las alternativas y el presupuesto tras la exploración. Atención presencial en Chamberí (Almagro, CS20144) y Salamanca–Goya (Barrio de Salamanca, CS20073).',
+			'kicker'          => 'Tu primera valoración clínica',
+			'title'           => 'Una consulta médica para determinar la indicación de tu caso.',
+			'body'            => 'Evaluamos tu caso, resolvemos dudas y documentamos las alternativas y el presupuesto tras la exploración. Atención en nuestras clínicas autorizadas de Chamberí (CS20144) y Salamanca–Goya (CS20073).',
 			'primary_label'   => 'Iniciar mi valoración médica',
 			'secondary_label' => 'Contactar por WhatsApp',
 		),
@@ -110,8 +110,8 @@ function nvx_home_content_v2_catalog(): array {
 		),
 		'protocols' => array(
 			array(
-				'title' => 'Endolift® facial: tensado con microfibra láser',
-				'lead'  => 'Tratamiento láser intersticial para zonas seleccionadas cuando existe indicación. La indicación la decide el diagnóstico, no la zona que incomoda.',
+				'title' => 'Endolift® facial: papada, mandíbula y cuello',
+				'lead'  => 'Tratamiento láser subdérmico para zonas seleccionadas cuando existe indicación. No sustituye un lifting quirúrgico en todos los casos.',
 				'facts' => array(
 					'Presupuesto'   => 'Se documenta por escrito tras la valoración médica.',
 					'Recuperación' => 'Se explica según la zona, el protocolo y la respuesta individual.',
@@ -135,7 +135,7 @@ function nvx_home_content_v2_catalog(): array {
 			),
 		),
 		'tratamientos' => array(
-			'title'  => 'Procedimientos con indicación médica',
+			'title'  => 'Procedimientos médicos disponibles',
 			'items'  => array(
 				array(
 					'title' => 'Endolift® Facial',

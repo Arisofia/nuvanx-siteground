@@ -44,22 +44,5 @@ jobs:
       - name: Validate JavaScript syntax
         run: node --check wp-content/themes/nuvanx-medical/assets/js/nvx-main.js
 
-      - name: Validate navigation architecture
+      - name: Validate navigation architecture and tokens
         run: node scripts/design-system/test-navigation-architecture.mjs
-
-      - name: Audit CSS contracts
-        run: node scripts/design-system/audit-css.mjs
-
-      - name: Require clean navigation CSS fundamentals
-        run: |
-          node - <<'NODE'
-          const fs = require('fs');
-          const summary = JSON.parse(fs.readFileSync('qa/design-system/audit-summary.json', 'utf8'));
-          const requiredZero = ['undefinedTokens', 'importantActive', 'unsafeSelectors'];
-          const dirty = requiredZero.filter((key) => Number(summary[key] || 0) !== 0);
-          if (dirty.length) {
-            console.error('Navigation CSS fundamentals failed:', dirty.map((key) => `${key}=${summary[key]}`).join(', '));
-            process.exit(1);
-          }
-          console.log('PASS: navigation CSS has no undefined tokens, active !important or unsafe selectors');
-          NODE

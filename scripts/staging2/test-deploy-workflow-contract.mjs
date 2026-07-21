@@ -98,6 +98,8 @@ for (const marker of [
   "fetch_page '/tratamientos/'",
   "fetch_page '/protocolos-signature/'",
   "fetch_page '/remodelacion-corporal-laser-madrid/'",
+  "fetch_page '/por-que-nuvanx/'",
+  "fetch_page '/inversion-medicina-estetica/'",
   "check_redirect '/liposculpt-air/'",
   "check_redirect '/v-lift-awake/'",
   "check_redirect '/tratamiento-postparto-abdomen-contorno-corporal-madrid/'",

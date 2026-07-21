@@ -5,44 +5,44 @@
    ============================================ */
 
 :root {
-  /* Paleta neutra cálida */
-  --nvx-light: #fcfbf8;
-  --nvx-surface-base: #f8f7f4;
-  --nvx-ink: #1a1a1a;
-  --nvx-charcoal: #2b2926;
-  --nvx-surface-soft: #eceae6;
-  --nvx-border-soft: #d4d1cc;
-  --nvx-accent-muted: #756f69;
+  /* Paleta neutra fría (Quiet Luxury) */
+  --nvx-light: #f7f7f5;
+  --nvx-surface-base: #f1f1ef;
+  --nvx-ink: #111111;
+  --nvx-charcoal: #1c1c1e;
+  --nvx-surface-soft: #e5e5e3;
+  --nvx-border-soft: #cecece;
+  --nvx-accent-muted: #525252;
 
-  --nvx-text-body: #1a1a1a;
-  --nvx-text-muted: #66615c;
+  --nvx-text-body: #111111;
+  --nvx-text-muted: #5c5c5c;
   --nvx-color-paper: var(--nvx-surface-base);
-  --nvx-color-line: rgba(26, 26, 26, 0.16);
+  --nvx-color-line: rgba(17, 17, 17, 0.16);
 
   /* Texto y bordes sobre superficies oscuras */
   --nvx-text-on-dark: var(--nvx-light);
-  --nvx-text-on-dark-92: rgba(252, 251, 248, 0.92);
-  --nvx-text-on-dark-90: rgba(252, 251, 248, 0.90);
-  --nvx-text-on-dark-88: rgba(252, 251, 248, 0.88);
-  --nvx-text-on-dark-82: rgba(252, 251, 248, 0.82);
-  --nvx-text-on-dark-78: rgba(252, 251, 248, 0.78);
-  --nvx-text-on-dark-72: rgba(252, 251, 248, 0.72);
-  --nvx-border-on-dark-55: rgba(252, 251, 248, 0.55);
-  --nvx-border-on-dark-50: rgba(252, 251, 248, 0.50);
-  --nvx-border-on-dark-45: rgba(252, 251, 248, 0.45);
-  --nvx-border-on-dark-42: rgba(252, 251, 248, 0.42);
-  --nvx-ink-muted: rgba(26, 26, 26, 0.82);
+  --nvx-text-on-dark-92: rgba(247, 247, 245, 0.92);
+  --nvx-text-on-dark-90: rgba(247, 247, 245, 0.90);
+  --nvx-text-on-dark-88: rgba(247, 247, 245, 0.88);
+  --nvx-text-on-dark-82: rgba(247, 247, 245, 0.82);
+  --nvx-text-on-dark-78: rgba(247, 247, 245, 0.78);
+  --nvx-text-on-dark-72: rgba(247, 247, 245, 0.72);
+  --nvx-border-on-dark-55: rgba(247, 247, 245, 0.55);
+  --nvx-border-on-dark-50: rgba(247, 247, 245, 0.50);
+  --nvx-border-on-dark-45: rgba(247, 247, 245, 0.45);
+  --nvx-border-on-dark-42: rgba(247, 247, 245, 0.42);
+  --nvx-ink-muted: rgba(17, 17, 17, 0.82);
 
   /* Form-stage */
-  --nvx-form-stage-warm: #f2f1ee;
-  --nvx-form-stage-mid: #e7e5e1;
-  --nvx-form-stage-cool: #d8d5d0;
-  --nvx-form-stage-fallback: #eceae6;
+  --nvx-form-stage-warm: #ebebea;
+  --nvx-form-stage-mid: #e0e0de;
+  --nvx-form-stage-cool: #d4d4d2;
+  --nvx-form-stage-fallback: #e5e5e3;
   --nvx-form-stage-image: none;
-  --nvx-form-overlay-top: rgba(252, 251, 248, 0.18);
-  --nvx-form-overlay-mid: rgba(252, 251, 248, 0.08);
-  --nvx-form-overlay-bottom: rgba(26, 26, 26, 0.06);
-  --nvx-highlight-soft: rgba(252, 251, 248, 0.70);
+  --nvx-form-overlay-top: rgba(247, 247, 245, 0.18);
+  --nvx-form-overlay-mid: rgba(247, 247, 245, 0.08);
+  --nvx-form-overlay-bottom: rgba(17, 17, 17, 0.06);
+  --nvx-highlight-soft: rgba(247, 247, 245, 0.70);
 
   --nvx-shadow-min: 0 1px 2px rgba(26, 26, 26, 0.04);
   --nvx-shadow-soft: 0 16px 48px rgba(26, 26, 26, 0.06);
@@ -67,20 +67,20 @@
   --nvx-gap-section: clamp(48px, 6vw, 96px);
 
   --nvx-pad-card: clamp(24px, 3vw, 40px);
-  --nvx-pad-section: clamp(96px, 8vw, 120px);
-  --nvx-pad-section-tight: clamp(64px, 6vw, 80px);
+  --nvx-pad-section: clamp(52px, 5vw, 72px);
+  --nvx-pad-section-tight: clamp(36px, 4vw, 52px);
 
   --nvx-gutter: clamp(32px, 6vw, 96px);
   --nvx-gutter-inner: clamp(24px, 4vw, 48px);
 
-  --nvx-margin-display: 32px;
-  --nvx-margin-h1: 32px;
-  --nvx-margin-h2: 24px;
-  --nvx-margin-h3: 16px;
-  --nvx-margin-kicker: 16px;
-  --nvx-margin-body: 24px;
-  --nvx-margin-lead: 32px;
-  --nvx-margin-caption: 16px;
+  --nvx-margin-display: 20px;
+  --nvx-margin-h1: 20px;
+  --nvx-margin-h2: 16px;
+  --nvx-margin-h3: 12px;
+  --nvx-margin-kicker: 10px;
+  --nvx-margin-body: 14px;
+  --nvx-margin-lead: 18px;
+  --nvx-margin-caption: 10px;
 
   /* Shell y lectura */
   --nvx-shell: min(1240px, calc(100vw - var(--nvx-gutter)));
@@ -184,4 +184,15 @@
   --nvx-index-number-size: var(--nvx-type-caption);
   --nvx-index-number-weight: 600;
   --nvx-index-number-track: 0.16em;
+
+  /* Superficies oscuras editoriales */
+  --nvx-surface-dark:  #111111;
+  --nvx-surface-dark-2: #1a1a1a;
+  --nvx-surface-dark-3: #222222;
+  --nvx-on-dark:       #f7f7f5;
+  --nvx-on-dark-88:    rgba(247, 247, 245, 0.88);
+  --nvx-on-dark-72:    rgba(247, 247, 245, 0.72);
+  --nvx-on-dark-50:    rgba(247, 247, 245, 0.50);
+  --nvx-accent-line-dark: rgba(247, 247, 245, 0.10);
+  --nvx-accent-line-light: rgba(17, 17, 17, 0.08);
 }

@@ -7,9 +7,11 @@ on:
       - 'tools/deploy/deploy-to-staging2.sh'
       - 'scripts/staging2/collect-staging2-diagnostics.sh'
       - 'scripts/staging2/smoke-verify-staging2.sh'
+      - 'scripts/staging2/verify-rendered-acceptance.mjs'
       - 'scripts/staging2/test-deploy-workflow-contract.mjs'
       - 'scripts/wp/nvx-production-readiness-command.php'
       - 'docs/operations/deployment.md'
+      - 'docs/operations/staging2-phase3-rendered-acceptance.md'
   workflow_dispatch:
     inputs:
       git_sha:
@@ -66,6 +68,7 @@ jobs:
           bash -n tools/deploy/deploy-to-staging2.sh
           bash -n scripts/staging2/collect-staging2-diagnostics.sh
           bash -n scripts/staging2/smoke-verify-staging2.sh
+          node --check scripts/staging2/verify-rendered-acceptance.mjs
           php -l scripts/wp/nvx-production-readiness-command.php
           node scripts/staging2/test-deploy-workflow-contract.mjs
 
@@ -263,6 +266,20 @@ jobs:
             2>&1 | tee "$ARTIFACT_DIR/independent-smoke.log"
           grep -Fq 'SMOKE_VERIFY_OK' "$ARTIFACT_DIR/independent-smoke.log"
 
+      - name: Run rendered acceptance verification
+        if: inputs.mode == 'DEPLOY_AND_MIGRATE' || inputs.mode == 'SMOKE_ONLY'
+        id: rendered_acceptance
+        env:
+          BASE_URL: https://staging2.nuvanx.com
+          EXPECTED_SHA: ${{ inputs.git_sha }}
+          EVIDENCE_DIR: staging2-deployment-evidence/rendered-acceptance
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/staging2/verify-rendered-acceptance.mjs \
+            2>&1 | tee "$ARTIFACT_DIR/rendered-acceptance.log"
+          grep -Fq 'RENDERED_ACCEPTANCE_OK' "$ARTIFACT_DIR/rendered-acceptance.log"
+
       - name: Collect post-run diagnostics
         if: always() && steps.ssh_connectivity.outcome == 'success'
         continue-on-error: true
@@ -299,6 +316,7 @@ jobs:
             echo "- Remote deployment: \`${{ steps.remote_deploy.outcome }}\`"
             echo "- Marker verification: \`${{ steps.marker.outcome }}\`"
             echo "- Independent smoke: \`${{ steps.independent_smoke.outcome }}\`"
+            echo "- Rendered acceptance: \`${{ steps.rendered_acceptance.outcome }}\`"
             echo '- Evidence: download the `staging2-deployment-evidence` artifact from this run.'
           } >> "$GITHUB_STEP_SUMMARY"
 

@@ -1,10 +1,9 @@
 <?php
 /**
- * Strategy-led authority, investment and protocol-review pages.
+ * Strategy-led authority and investment pages.
  *
- * Public copy stays within the clinical claims register: the authority and
- * investment pages explain the decision process, while working protocol names
- * exist only on staging2 and remain noindex until medical and legal approval.
+ * Public copy stays within the clinical claims register and only approved
+ * strategy pages are represented in the runtime catalog.
  *
  * @package nuvanx-medical
  */
@@ -14,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Returns the approved strategy page catalog.
+ *
  * @return array<string,array{slug:string,title:string,review_status:string}>
  */
 function nvx_strategy_page_catalog(): array {
@@ -23,26 +24,16 @@ function nvx_strategy_page_catalog(): array {
 			'title'         => 'Por qué NUVANX',
 			'review_status' => 'approved_for_publication',
 		),
-		'investment'  => array(
+		'investment' => array(
 			'slug'          => 'inversion-medicina-estetica',
 			'title'         => 'Inversión en medicina estética',
 			'review_status' => 'approved_for_publication',
-		),
-		'liposculpt_air' => array(
-			'slug'          => 'liposculpt-air',
-			'title'         => 'LipoSculpt-Air™',
-			'review_status' => 'pending_medical_legal',
-		),
-		'v_lift_awake' => array(
-			'slug'          => 'v-lift-awake',
-			'title'         => 'V-Lift Awake™',
-			'review_status' => 'pending_medical_legal',
 		),
 	);
 }
 
 /**
- * Return the catalogue key for the current strategy page.
+ * Returns the catalogue key for the current strategy page.
  */
 function nvx_strategy_current_page_key(): ?string {
 	if ( ! is_page() ) {
@@ -60,7 +51,7 @@ function nvx_strategy_current_page_key(): ?string {
 }
 
 /**
- * Return a public URL only when a non-prototype strategy page is published.
+ * Returns a public URL only when an approved strategy page is published.
  */
 function nvx_strategy_published_url( string $key ): string {
 	$catalog = nvx_strategy_page_catalog();
@@ -77,48 +68,7 @@ function nvx_strategy_published_url( string $key ): string {
 }
 
 /**
- * Pending working-name pages are excluded from robots and sitemaps everywhere.
- *
- * @return int[]
- */
-function nvx_strategy_pending_page_ids(): array {
-	$ids = array();
-	foreach ( nvx_strategy_page_catalog() as $page ) {
-		if ( 'approved_for_publication' === $page['review_status'] ) {
-			continue;
-		}
-
-		$stored = get_page_by_path( $page['slug'] );
-		if ( $stored ) {
-			$ids[] = (int) $stored->ID;
-		}
-	}
-
-	return array_values( array_unique( $ids ) );
-}
-
-/**
- * Keep prototype names visibly in a review state; they are not a treatment offer.
- */
-function nvx_strategy_protocol_review_markup( string $key ): string {
-	$catalog = nvx_strategy_page_catalog();
-	$page    = $catalog[ $key ] ?? null;
-	if ( ! is_array( $page ) ) {
-		return '';
-	}
-
-	return '<article class="nvx-brand-readable nvx-strategy-page nvx-strategy-page--review nvx-shell">'
-		. '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">NUVANX · revisión clínica y jurídica</p>'
-		. '<h1 class="nvx-strategy-title">' . esc_html( $page['title'] ) . '</h1>'
-		. '<p class="nvx-brand-lead">Protocolo en evaluación. Esta denominación de trabajo no constituye una técnica ofrecida, una indicación médica ni una promesa de resultado.</p></header>'
-		. '<section class="nvx-brand-section"><h2>Antes de cualquier publicación</h2>'
-		. '<p>La Dirección Médica debe documentar técnica, indicación, contraindicaciones, seguridad, seguimiento y profesional responsable. La denominación también requiere validación jurídica y registral.</p>'
-		. '<p>Hasta entonces, esta página permanece fuera de navegación pública, buscadores y campañas.</p></section>'
-		. '</article>';
-}
-
-/**
- * Authority page with an explicit diagnostic-first promise.
+ * Builds the authority page with an explicit diagnostic-first promise.
  */
 function nvx_strategy_why_nuvanx_markup(): string {
 	$valuation_url = esc_url( home_url( '/madrid/valoracion/' ) );
@@ -173,8 +123,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 }
 
 /**
- * Return only tariffs that the clinical-claims register has approved for use,
- * grouped by category for display.
+ * Returns only tariffs approved by the clinical-claims register, grouped by category.
  *
  * @return array<string,array<int,array{label:string,price:string}>>
  */
@@ -186,7 +135,6 @@ function nvx_strategy_verified_investment_groups(): array {
 	$catalog = nvx_tariff_catalog();
 	$groups  = array();
 
-	// Endolift facial (individual zones)
 	$facial_keys = array( 'ojeras', 'papada', 'marcacion_mandibular', 'pomulos', 'cuello' );
 	foreach ( $facial_keys as $key ) {
 		if ( isset( $catalog['endolift'][ $key ] ) ) {
@@ -198,7 +146,6 @@ function nvx_strategy_verified_investment_groups(): array {
 		}
 	}
 
-	// Endolift facial combos
 	$facial_combo_keys = array( 'papada_cuello', 'marcacion_papada', 'full_face' );
 	foreach ( $facial_combo_keys as $key ) {
 		if ( isset( $catalog['endolift_combo'][ $key ] ) ) {
@@ -210,7 +157,6 @@ function nvx_strategy_verified_investment_groups(): array {
 		}
 	}
 
-	// Endolift corporal (individual zones)
 	$corporal_keys = array( 'abdomen', 'flancos', 'brazos', 'cartucheras', 'subgluteos', 'muslos_internos', 'subescapular', 'rodillas' );
 	foreach ( $corporal_keys as $key ) {
 		if ( isset( $catalog['endolift'][ $key ] ) ) {
@@ -222,7 +168,6 @@ function nvx_strategy_verified_investment_groups(): array {
 		}
 	}
 
-	// Endolift corporal combos
 	$corporal_combo_keys = array( 'abdomen_flancos', 'subgluteos_cartucheras', 'muslos_rodilla', 'sujetador_brazos', 'cartucheras_muslos', 'cartucheras_subgluteos_muslos' );
 	foreach ( $corporal_combo_keys as $key ) {
 		if ( isset( $catalog['endolift_combo'][ $key ] ) ) {
@@ -234,7 +179,6 @@ function nvx_strategy_verified_investment_groups(): array {
 		}
 	}
 
-	// Láser CO₂
 	if ( isset( $catalog['laser_co2']['facial'] ) ) {
 		$groups['laser_co2'][] = array(
 			'label' => $catalog['laser_co2']['facial']['label'],
@@ -252,7 +196,7 @@ function nvx_strategy_verified_investment_groups(): array {
 }
 
 /**
- * Flat list for legacy callers. Kept for backward compatibility.
+ * Returns a flat tariff list for backward-compatible callers.
  *
  * @return array<int,array{label:string,price:string}>
  */
@@ -267,11 +211,10 @@ function nvx_strategy_verified_investment_rows(): array {
 }
 
 /**
- * Render one price-table section for a group of tariff rows.
+ * Renders one price-table section for a group of tariff rows.
  *
- * @param string                          $heading  Section H2 text.
- * @param array<int,array{label:string,price:string}> $rows  Tariff rows.
- * @return string
+ * @param string                                         $heading Section H2 text.
+ * @param array<int,array{label:string,price:string}> $rows    Tariff rows.
  */
 function nvx_strategy_investment_table_section( string $heading, array $rows ): string {
 	if ( empty( $rows ) ) {
@@ -292,7 +235,7 @@ function nvx_strategy_investment_table_section( string $heading, array $rows ): 
 }
 
 /**
- * Investment page: transparent tariffs, grouped by category, with clinical context.
+ * Builds the investment page with transparent tariffs and clinical context.
  */
 function nvx_strategy_investment_markup(): string {
 	$groups        = nvx_strategy_verified_investment_groups();
@@ -307,9 +250,9 @@ function nvx_strategy_investment_markup(): string {
 
 	if ( ! empty( $groups ) ) {
 		$group_labels = array(
-			'endolift_facial'  => 'Endolift® facial — zonas y combinaciones',
+			'endolift_facial'   => 'Endolift® facial — zonas y combinaciones',
 			'endolift_corporal' => 'Endolift® corporal — zonas y combinaciones',
-			'laser_co2'        => 'Láser CO₂ fraccionado',
+			'laser_co2'         => 'Láser CO₂ fraccionado',
 		);
 		foreach ( $group_labels as $key => $label ) {
 			if ( ! empty( $groups[ $key ] ) ) {
@@ -335,29 +278,26 @@ function nvx_strategy_investment_markup(): string {
 	$html .= '<section class="nvx-brand-section">'
 		. '<p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a></p>'
 		. '</section>';
-
 	$html .= '</article>';
 
 	return $html;
 }
 
 /**
- * Render the correct body for a strategy route.
+ * Renders the correct body for an approved strategy route.
  */
 function nvx_strategy_page_markup( string $key ): string {
 	if ( 'why_nuvanx' === $key ) {
 		return nvx_strategy_why_nuvanx_markup();
 	}
-
 	if ( 'investment' === $key ) {
 		return nvx_strategy_investment_markup();
 	}
-
-	return nvx_strategy_protocol_review_markup( $key );
+	return '';
 }
 
 /**
- * Use a stable, theme-owned rendering path rather than editable CMS fragments.
+ * Uses a stable, theme-owned rendering path rather than editable CMS fragments.
  */
 function nvx_strategy_page_content_filter( string $content ): string {
 	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
@@ -368,37 +308,3 @@ function nvx_strategy_page_content_filter( string $content ): string {
 	return null === $key ? $content : nvx_strategy_page_markup( $key );
 }
 add_filter( 'the_content', 'nvx_strategy_page_content_filter', 82 );
-
-/**
- * Create reviewable pages only in staging2. Production requires a deliberate
- * editorial publication step, and the two working-name routes never seed there.
- */
-function nvx_strategy_seed_staging2_pages(): void {
-	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
-		return;
-	}
-
-	foreach ( nvx_strategy_page_catalog() as $key => $page ) {
-		$stored = get_page_by_path( $page['slug'] );
-		if ( $stored ) {
-			update_post_meta( (int) $stored->ID, '_nvx_strategy_review_status', $page['review_status'] );
-			continue;
-		}
-
-		$page_id = wp_insert_post(
-			array(
-				'post_type'    => 'page',
-				'post_status'  => 'publish',
-				'post_title'   => $page['title'],
-				'post_name'    => $page['slug'],
-				'post_content' => '<!-- NUVANX_STRATEGY_PAGE:' . $key . ' -->',
-			),
-			true
-		);
-
-		if ( ! is_wp_error( $page_id ) ) {
-			update_post_meta( (int) $page_id, '_nvx_strategy_review_status', $page['review_status'] );
-		}
-	}
-}
-add_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );

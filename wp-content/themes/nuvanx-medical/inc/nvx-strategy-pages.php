@@ -82,7 +82,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page">';
 	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">Criterio médico NUVANX</p>';
 	$html .= '<h1 class="nvx-strategy-title">El diagnóstico precede a la indicación.</h1>';
-	$html .= '<p class="nvx-brand-lead">Madrid. Medicina estética láser y well-aging. Un único criterio médico desde la primera valoración hasta el alta.</p></header>';
+	$html .= '<p class="nvx-brand-lead">Madrid. Medicina estética láser y well-aging. Un criterio médico definido desde la primera valoración hasta el seguimiento.</p></header>';
 
 	$html .= '<section class="nvx-brand-section"><h2>Diagnóstico antes de tecnología</h2><p>Revisamos anatomía, antecedentes, objetivos, contraindicaciones y expectativas. Solo entonces se valora si procede tratar, esperar, derivar o no intervenir.</p></section>';
 	$html .= '<section class="nvx-brand-section"><h2>Claridad antes de decidir</h2><p>El plan explica la alternativa propuesta, sus límites, cuidados, posibles efectos y presupuesto. La decisión se toma con información comprensible y con tiempo para resolver dudas.</p></section>';
@@ -92,29 +92,29 @@ function nvx_strategy_why_nuvanx_markup(): string {
 		. '<h2>Lo que hacemos siempre</h2>'
 		. '<ul class="nvx-check-list">'
 		. '<li>Exploración médica antes de proponer cualquier tratamiento</li>'
-		. '<li>Presupuesto cerrado y por escrito antes de iniciar el procedimiento</li>'
-		. '<li>El médico que hace la valoración es el mismo que ejecuta el tratamiento</li>'
+		. '<li>Presupuesto detallado y por escrito antes de iniciar el procedimiento</li>'
+		. '<li>Identificación del médico responsable de la valoración y del procedimiento</li>'
 		. '<li>El código de lote de cada producto queda registrado en el historial clínico</li>'
 		. '<li>Sala de espera individual: cada paciente ocupa su propio espacio</li>'
-		. '<li>Seguimiento posterior accesible sin necesidad de agenda nueva</li>'
+		. '<li>Canal de seguimiento posterior y criterios claros para solicitar revisión</li>'
 		. '</ul>'
 		. '</section>';
 
 	$html .= '<section class="nvx-brand-section nvx-strategy-checklist nvx-strategy-checklist--no">'
 		. '<h2>Lo que no hacemos</h2>'
 		. '<ul class="nvx-check-list nvx-check-list--no">'
-		. '<li>Descuentos de temporada ni urgencia de precio</li>'
-		. '<li>Financiación como argumento de venta principal</li>'
+		. '<li>Urgencia artificial de precio o presión para decidir en la consulta</li>'
+		. '<li>Financiación utilizada para sustituir la explicación clínica del plan</li>'
 		. '<li>Tratamientos sin indicación clínica previa documentada</li>'
-		. '<li>Rotación de médicos sin informar al paciente</li>'
-		. '<li>Valoraciones "gratuitas" que son visitas comerciales</li>'
+		. '<li>Cambios de médico responsable sin informar al paciente</li>'
+		. '<li>Indicaciones emitidas desde una conversación exclusivamente comercial</li>'
 		. '</ul>'
 		. '</section>';
 
 	$html .= '<section class="nvx-brand-section">'
 		. '<h2>Trazabilidad de productos</h2>'
-		. '<p>En NUVANX el médico abre cada producto en presencia del paciente. El código de lote queda adherido al historial clínico. Trabajamos exclusivamente con distribuidores oficiales de las marcas que empleamos. El certificado de proveedor está disponible antes de firmar cualquier presupuesto.</p>'
-		. '<p>Este procedimiento no es habitual en el sector. Lo describimos porque creemos que debería serlo.</p>'
+		. '<p>En NUVANX el médico abre cada producto en presencia del paciente. El código de lote queda adherido al historial clínico. Trabajamos con distribuidores oficiales de las marcas que empleamos. La documentación de proveedor puede consultarse antes de firmar el presupuesto.</p>'
+		. '<p>Lo describimos para que el paciente conozca cómo documentamos la trazabilidad de los productos utilizados.</p>'
 		. '</section>';
 
 	$html .= '<section class="nvx-brand-section"><h2>Atención en centros sanitarios autorizados</h2><p>NUVANX atiende en Chamberí (CS20144) y Salamanca–Goya (CS20073), con equipo médico colegiado.</p><p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a> <a class="nvx-brand-inline-link" href="' . $team_url . '">Conocer al equipo médico</a>';
@@ -217,7 +217,7 @@ function nvx_strategy_verified_investment_rows(): array {
 /**
  * Renders one price-table section for a group of tariff rows.
  *
- * @param string                                         $heading Section H2 text.
+ * @param string                                     $heading Section H2 text.
  * @param array<int,array{label:string,price:string}> $rows    Tariff rows.
  */
 function nvx_strategy_investment_table_section( string $heading, array $rows ): string {
@@ -249,7 +249,7 @@ function nvx_strategy_investment_markup(): string {
 	$html .= '<header class="nvx-strategy-intro">'
 		. '<p class="nvx-brand-kicker">Inversión en medicina estética · NUVANX Madrid</p>'
 		. '<h1 class="nvx-strategy-title">El presupuesto forma parte de una decisión informada.</h1>'
-		. '<p class="nvx-brand-lead">Publicamos tarifas verificadas porque la opacidad de precio no es sinónimo de exclusividad: es una barrera para quien tiene que tomar una decisión clínica. El importe final y la indicación se confirman siempre después de la valoración médica presencial.</p>'
+		. '<p class="nvx-brand-lead">Publicamos tarifas verificadas para facilitar una decisión informada. El importe final y la indicación se confirman siempre después de la valoración médica presencial.</p>'
 		. '</header>';
 
 	if ( ! empty( $groups ) ) {
@@ -269,14 +269,14 @@ function nvx_strategy_investment_markup(): string {
 
 	$html .= '<section class="nvx-brand-section">'
 		. '<h2>Qué incluye el precio</h2>'
-		. '<p>Las tarifas mostradas corresponden al procedimiento técnico. La valoración médica previa, el protocolo anestésico tópico, la información detallada del proceso y el seguimiento posterior están incluidos en el plan general. El presupuesto final se documenta por escrito tras la exploración.</p>'
+		. '<p>Las tarifas mostradas corresponden al procedimiento técnico. La valoración médica previa, la información detallada del proceso, el protocolo anestésico cuando corresponda y el seguimiento posterior se integran en el plan general. El presupuesto final se documenta por escrito tras la exploración.</p>'
 		. '<p>Otras zonas, procedimientos de medicina estética facial (neuromodulación, bioestimuladores, rellenos) y combinaciones no listadas aquí requieren exploración, indicación y presupuesto individualizado.</p>'
 		. '</section>';
 
 	$html .= '<section class="nvx-brand-section">'
 		. '<h2>Sobre los precios en medicina estética en Madrid</h2>'
-		. '<p>En Madrid, los precios de los mismos tratamientos varían de forma significativa entre clínicas. La razón habitual no es la tecnología: es el tiempo dedicado al diagnóstico, la experiencia del médico que ejecuta y el protocolo de seguimiento posterior. Un presupuesto muy bajo en un procedimiento invasivo no suele reflejar eficiencia; suele reflejar recortes en alguno de esos factores.</p>'
-		. '<p>En NUVANX no usamos descuentos estacionales, precios de captación ni financiaciones como argumento de venta. Si el importe no encaja con tu situación, preferimos decírtelo en la valoración antes que comprometer la indicación o el protocolo.</p>'
+		. '<p>Las diferencias de precio pueden responder al alcance del diagnóstico, la experiencia del profesional, la tecnología indicada y el seguimiento incluido. Por eso, la comparación debe hacerse sobre planes equivalentes y documentados por escrito.</p>'
+		. '<p>Una promoción puntual no modifica la indicación, el alcance clínico ni la información previa. El presupuesto se confirma por escrito y la decisión no se condiciona a urgencias comerciales.</p>'
 		. '</section>';
 
 	$html .= '<section class="nvx-brand-section">'

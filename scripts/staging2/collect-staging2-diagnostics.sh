@@ -15,7 +15,7 @@ Usage:
 EOF
 }
 
-# fail prints a diagnostic error message to stderr and returns a failure status.
+# fail writes a diagnostic error message to standard error and returns a failure status.
 fail() {
   echo "DIAGNOSTIC_ERROR: $*" >&2
   return 1

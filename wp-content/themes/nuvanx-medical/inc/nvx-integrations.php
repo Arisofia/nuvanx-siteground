@@ -16,6 +16,47 @@ require_once __DIR__ . '/nvx-strategy-pages.php';
 require_once __DIR__ . '/nvx-conversion-events.php';
 require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 
+/**
+ * Prevent retired working protocol names from being seeded again in staging2.
+ * Existing database records are handled by canonical redirects below and can be
+ * removed later through an explicit, audited data migration.
+ */
+remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
+
+function nvx_strategy_seed_approved_staging2_pages(): void {
+	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
+		return;
+	}
+
+	foreach ( nvx_strategy_page_catalog() as $key => $page ) {
+		if ( 'approved_for_publication' !== $page['review_status'] ) {
+			continue;
+		}
+
+		$stored = get_page_by_path( $page['slug'] );
+		if ( $stored ) {
+			update_post_meta( (int) $stored->ID, '_nvx_strategy_review_status', $page['review_status'] );
+			continue;
+		}
+
+		$page_id = wp_insert_post(
+			array(
+				'post_type'    => 'page',
+				'post_status'  => 'publish',
+				'post_title'   => $page['title'],
+				'post_name'    => $page['slug'],
+				'post_content' => '<!-- NUVANX_STRATEGY_PAGE:' . $key . ' -->',
+			),
+			true
+		);
+
+		if ( ! is_wp_error( $page_id ) ) {
+			update_post_meta( (int) $page_id, '_nvx_strategy_review_status', $page['review_status'] );
+		}
+	}
+}
+add_action( 'init', 'nvx_strategy_seed_approved_staging2_pages', 31 );
+
 /** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
@@ -138,14 +179,23 @@ add_action(
 	1
 );
 
-/* Clinical governance · retired treatment slugs */
+/* Clinical governance · retired treatment and prototype slugs */
 add_action(
 	'template_redirect',
 	function (): void {
-		$retired_slugs = array( 'tratamiento-retirado' );
+		if ( ! is_singular() ) {
+			return;
+		}
 
-		if ( is_singular() && in_array( get_post_field( 'post_name', get_the_ID() ), $retired_slugs, true ) ) {
-			wp_safe_redirect( home_url( '/tratamientos/' ), 301 );
+		$redirects = array(
+			'tratamiento-retirado' => '/tratamientos/',
+			'liposculpt-air'       => '/remodelacion-corporal-laser-madrid/',
+			'v-lift-awake'         => '/papada-definicion-mandibular-madrid/',
+		);
+		$slug      = (string) get_post_field( 'post_name', get_the_ID() );
+
+		if ( isset( $redirects[ $slug ] ) ) {
+			wp_safe_redirect( home_url( $redirects[ $slug ] ), 301 );
 			exit;
 		}
 	}

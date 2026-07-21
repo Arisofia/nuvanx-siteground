@@ -193,8 +193,9 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          bash scripts/staging2/collect-staging2-diagnostics.sh --wp-root "$WP_ROOT" \
-            | ssh nvx-staging2 'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' \
+          ssh nvx-staging2 \
+            'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' \
+            < scripts/staging2/collect-staging2-diagnostics.sh \
             2>&1 | tee "$ARTIFACT_DIR/preflight.log"
           grep -Fq 'STAGING2_PREFLIGHT_OK' "$ARTIFACT_DIR/preflight.log"
 
@@ -268,8 +269,9 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          bash scripts/staging2/collect-staging2-diagnostics.sh --wp-root "$WP_ROOT" \
-            | ssh nvx-staging2 'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' \
+          ssh nvx-staging2 \
+            'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' \
+            < scripts/staging2/collect-staging2-diagnostics.sh \
             2>&1 | tee "$ARTIFACT_DIR/postflight.log"
 
       - name: Remove temporary remote payload
@@ -281,6 +283,8 @@ jobs:
       - name: Write execution summary
         if: always()
         shell: bash
+        env:
+          JOB_STATUS: ${{ job.status }}
         run: |
           {
             echo '## Staging2 execution summary'
@@ -297,8 +301,6 @@ jobs:
             echo "- Independent smoke: \`${{ steps.independent_smoke.outcome }}\`"
             echo '- Evidence: download the `staging2-deployment-evidence` artifact from this run.'
           } >> "$GITHUB_STEP_SUMMARY"
-        env:
-          JOB_STATUS: ${{ job.status }}
 
       - name: Upload staging2 evidence
         if: always()

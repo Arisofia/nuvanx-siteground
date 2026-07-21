@@ -92,7 +92,7 @@ fetch_page '/por-que-nuvanx/' 'El diagnóstico precede a la indicación.'
 fetch_page '/inversion-medicina-estetica/' 'El presupuesto forma parte de una decisión informada.'
 
 check_redirect '/liposculpt-air/' '/remodelacion-corporal-laser-madrid/'
-check_redirect '/v-lift-awake/' '/papada-definicion-mandibular-madrid/'
+check_redirect '/v-lift-awake/' '/protocolos-signature/'
 check_redirect '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' '/protocolos-signature/'
 
 echo "SMOKE_VERIFY_OK base_url=$BASE_URL"

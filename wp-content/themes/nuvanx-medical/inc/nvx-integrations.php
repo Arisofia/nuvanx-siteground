@@ -23,6 +23,12 @@ require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
  */
 remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
 
+/**
+ * Seeds approved strategy pages in the staging2 environment.
+ *
+ * Creates missing catalog pages and updates the review status metadata of
+ * existing or newly created pages.
+ */
 function nvx_strategy_seed_approved_staging2_pages(): void {
 	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
 		return;
@@ -57,7 +63,11 @@ function nvx_strategy_seed_approved_staging2_pages(): void {
 }
 add_action( 'init', 'nvx_strategy_seed_approved_staging2_pages', 31 );
 
-/** Goya sede: evita bucle redirect_canonical. */
+/**
+ * Determines whether the current request is for the Goya clinic page.
+ *
+ * @return bool `true` for the Goya page, `false` otherwise.
+ */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
 		return false;

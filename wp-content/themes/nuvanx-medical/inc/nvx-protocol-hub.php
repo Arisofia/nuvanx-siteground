@@ -36,14 +36,14 @@ function nvx_protocol_hub_markup(): string {
 	$html         .= '<header class="nvx-strategy-intro">';
 	$html         .= '<p class="nvx-brand-kicker">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</p>';
 	$html         .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Protocolos Signature: Medicina estética de diagnóstico.', 'nuvanx-medical' ) . '</h1>';
-	$html         .= '<p class="nvx-brand-lead">' . esc_html__( 'Nuestros protocolos exclusivos no son un catálogo de máquinas. Son sistemas médicos diseñados para asegurar que cada intervención esté justificada por la anatomía del paciente.', 'nuvanx-medical' ) . '</p>';
-	$html         .= '<p>' . esc_html__( 'Descubre nuestras metodologías exclusivas. En NUVANX, el diagnóstico precede a la tecnología para garantizar resultados proporcionados y una experiencia de quiet luxury.', 'nuvanx-medical' ) . '</p>';
+	$html         .= '<p class="nvx-brand-lead">' . esc_html__( 'Nuestros protocolos no son un catálogo de máquinas. Son sistemas médicos que parten del diagnóstico anatómico para justificar cada indicación y definir sus límites.', 'nuvanx-medical' ) . '</p>';
+	$html         .= '<p>' . esc_html__( 'Descubre nuestras metodologías clínicas. En NUVANX, el diagnóstico precede a la tecnología para orientar intervenciones proporcionadas, con expectativas realistas y una experiencia discreta.', 'nuvanx-medical' ) . '</p>';
 	$html         .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
 	$html         .= '</header>';
 
 	$html .= '<section class="nvx-brand-section">';
 	$html .= '<h2>' . esc_html__( 'Nuestro estándar: La firma NUVANX', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'Los Protocolos Signature son la máxima expresión de nuestra filosofía clínica. Cada uno de estos programas integra la valoración anatómica exhaustiva, la selección de la tecnología láser o de inducción más avanzada, y un seguimiento médico estricto. No adaptamos máquinas a los pacientes; diseñamos planes alrededor de su anatomía.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'Los Protocolos Signature expresan nuestra filosofía clínica. Cada programa integra valoración anatómica, selección de la tecnología indicada y seguimiento médico definido para cada caso. No adaptamos máquinas a los pacientes; diseñamos planes alrededor de su anatomía.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</section>';
 
 	$html .= '<section class="nvx-brand-section">';
@@ -73,7 +73,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<article class="nvx-catalog-card">';
 	$html .= '<div class="nvx-catalog-card__main">';
 	$html .= '<h3 class="nvx-catalog-card__title">Skin Architecture™</h3>';
-	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Tratamiento médico para recuperar la firmeza, densidad y luminosidad de la matriz dérmica, sin alterar volúmenes.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Tratamiento médico para mejorar la firmeza, densidad y luminosidad de la piel sin alterar deliberadamente los volúmenes.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/calidad-piel-firmeza-luminosidad-madrid/' ) ) . '">' . $view_protocol . ' <span aria-hidden="true">→</span></a>';
 	$html .= '</article>';
@@ -81,7 +81,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<article class="nvx-catalog-card">';
 	$html .= '<div class="nvx-catalog-card__main">';
 	$html .= '<h3 class="nvx-catalog-card__title">Surface Renewal™</h3>';
-	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Renovación profunda de la superficie cutánea. Tratamiento médico de cicatrices de acné, estrías y poros dilatados mediante resurfacing.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Renovación de la superficie cutánea mediante resurfacing médico para cicatrices de acné, estrías, textura y poros dilatados, según indicación clínica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/cicatrices-acne-poros-textura-madrid/' ) ) . '">' . $view_protocol . ' <span aria-hidden="true">→</span></a>';
 	$html .= '</article>';
@@ -89,7 +89,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<article class="nvx-catalog-card">';
 	$html .= '<div class="nvx-catalog-card__main">';
 	$html .= '<h3 class="nvx-catalog-card__title">Tone Correction™</h3>';
-	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Fotorejuvenecimiento de precisión. Corrección clínica del daño solar, rojeces, rosácea y léntigos bajo diagnóstico diferencial.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-catalog-card__body">' . esc_html__( 'Fotorejuvenecimiento médico para alteraciones pigmentarias y vasculares, con parámetros seleccionados según diagnóstico y fototipo.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' ) ) . '">' . $view_protocol . ' <span aria-hidden="true">→</span></a>';
 	$html .= '</article>';

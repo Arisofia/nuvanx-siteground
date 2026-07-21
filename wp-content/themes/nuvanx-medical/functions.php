@@ -181,7 +181,7 @@ function nvx_asset_version( string $relative_path ): string {
 }
 
 /**
- * Enqueues the theme's styles and scripts, including home-specific and hero blackout assets when applicable.
+ * Enqueues the theme's styles and scripts, including home, treatments, and hero blackout assets when applicable.
  */
 function nvx_theme_scripts() {
 	$uri = get_template_directory_uri();
@@ -198,6 +198,10 @@ function nvx_theme_scripts() {
 	
 	if ( nvx_theme_is_home_page() ) {
 		wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-home' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );
+	}
+	
+	if ( is_page( 'tratamientos' ) ) {
+		wp_enqueue_style( 'nvx-portfolio-hub', $css . 'nvx-portfolio-hub.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-portfolio-hub.css' ) );
 	}
 
 	$hero_blackout_dependency = 'nvx-home';

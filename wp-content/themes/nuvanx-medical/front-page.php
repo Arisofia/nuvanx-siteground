@@ -13,9 +13,7 @@ ob_start();
 
 	<!-- SECCIÓN 01: HERO -->
 	<section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
-		<video id="nvx-home-hero-video" class="nvx-home-hero__video" autoplay muted loop playsinline preload="metadata" poster="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
-			<source src="<?php echo esc_url( get_stylesheet_directory_uri() . '/assets/video/home-loop.mp4' ); ?>" type="video/mp4">
-		</video>
+		<!-- [!] Placeholder: Replace with actual video URL when available -->
 		<div class="nvx-home-hero__content">
 			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina Estética. Madrid.</h1>
 			<p class="nvx-home-hero__lead">Protocolos de precisión para resultados que no necesitan filtro.</p>

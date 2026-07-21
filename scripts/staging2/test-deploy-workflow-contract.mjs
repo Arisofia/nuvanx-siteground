@@ -67,7 +67,7 @@ for (const forbidden of ['mkdir -p', 'rm -rf', 'wp db import', 'wp option update
 }
 
 for (const marker of [
-  'retire-prototypes', '--allow-pending', '--allow-production', 'LOCK_OPTION', 'staging2.nuvanx.com',
+  'retire-prototypes', "'allow-pending'", '--allow-production', 'LOCK_OPTION', 'staging2.nuvanx.com',
   'nvx_production_readiness_governed_pages', 'validate_invocation', 'apply_approved_pages', 'apply_governed_pages',
   'EMPTY_TRASH_DAYS', 'wp_trash_post', "WP_CLI::add_command( 'nvx production-readiness'",
   "'soluciones-medicas' =>", "'tratamiento-postparto-abdomen-contorno-corporal-madrid' =>", "'promote_draft' => true",
@@ -141,7 +141,7 @@ for (const marker of ['.nvx-strategy-page .nvx-endolift-price-table tbody tr', '
   if (!externalVisualClosure.includes(marker)) fail(`visual closure missing responsive tariff marker: ${marker}`);
 }
 
-for (const marker of ['expectativas realistas', 'según diagnóstico y fototipo', 'protocolo anestésico cuando corresponde', 'justificación clínica documentada']) {
+for (const marker of ['objetivos realistas', 'según diagnóstico y fototipo', 'Protocolo anestésico cuando corresponde', 'justificación clínica documentada']) {
   if (!controlledPublicContent.includes(marker)) fail(`controlled public content missing governance marker: ${marker}`);
 }
 for (const forbidden of [

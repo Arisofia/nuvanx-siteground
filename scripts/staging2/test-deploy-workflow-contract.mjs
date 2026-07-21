@@ -9,6 +9,7 @@ const deployPath = path.join(root, 'tools/deploy/deploy-to-staging2.sh');
 const diagnosticsPath = path.join(root, 'scripts/staging2/collect-staging2-diagnostics.sh');
 const migrationPath = path.join(root, 'scripts/wp/nvx-production-readiness-command.php');
 const smokePath = path.join(root, 'scripts/staging2/smoke-verify-staging2.sh');
+const renderedAcceptancePath = path.join(root, 'scripts/staging2/verify-rendered-acceptance.mjs');
 const failures = [];
 
 function fail(message) {
@@ -28,6 +29,7 @@ const deploy = read(deployPath);
 const diagnostics = read(diagnosticsPath);
 const migration = read(migrationPath);
 const smoke = read(smokePath);
+const renderedAcceptance = read(renderedAcceptancePath);
 
 for (const marker of [
   'workflow_dispatch:',
@@ -46,6 +48,12 @@ for (const marker of [
   '< scripts/staging2/collect-staging2-diagnostics.sh',
   'scripts/wp/nvx-production-readiness-command.php',
   'scripts/staging2/smoke-verify-staging2.sh',
+  'scripts/staging2/verify-rendered-acceptance.mjs',
+  'node --check scripts/staging2/verify-rendered-acceptance.mjs',
+  'Run rendered acceptance verification',
+  'EXPECTED_SHA: ${{ inputs.git_sha }}',
+  'RENDERED_ACCEPTANCE_OK',
+  'rendered-acceptance.log',
   'staging2-deployment-evidence',
   'actions/upload-artifact@',
   'ssh-debug.log',
@@ -66,7 +74,8 @@ for (const forbidden of [
   '/home/customer/www/nuvanx.com/public_html',
   "github.ref == 'refs/heads/master'",
   'git merge-base --is-ancestor "$DEPLOY_SHA" origin/master',
-  'bash scripts/staging2/collect-staging2-diagnostics.sh --wp-root "$WP_ROOT" \\\n            | ssh',
+  'bash scripts/staging2/collect-staging2-diagnostics.sh --wp-root "$WP_ROOT" \
+            | ssh',
 ]) {
   if (workflow.includes(forbidden)) fail(`workflow contains forbidden marker: ${forbidden}`);
 }
@@ -148,6 +157,44 @@ for (const marker of [
   'SMOKE_VERIFY_OK',
 ]) {
   if (!smoke.includes(marker)) fail(`smoke script missing contract marker: ${marker}`);
+}
+
+for (const marker of [
+  "'https://staging2.nuvanx.com'",
+  'EXPECTED_SHA must be a full lowercase 40-character SHA',
+  '/tratamientos/',
+  '/protocolos-signature/',
+  '/remodelacion-corporal-laser-madrid/',
+  '/por-que-nuvanx/',
+  '/inversion-medicina-estetica/',
+  'Portafolio Clínico.',
+  'Protocolos Signature: Medicina estética de diagnóstico.',
+  'Remodelación corporal láser diseñada según tu anatomía.',
+  'El diagnóstico precede a la indicación.',
+  'El presupuesto forma parte de una decisión informada.',
+  'nvx-deploy-sha',
+  'noindex',
+  'nofollow',
+  'ItemList',
+  'Organization',
+  '/liposculpt-air/',
+  '/v-lift-awake/',
+  '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
+  "redirect: 'manual'",
+  'response.status !== 301',
+  'report.json',
+  'RENDERED_ACCEPTANCE_OK',
+]) {
+  if (!renderedAcceptance.includes(marker)) fail(`rendered acceptance missing contract marker: ${marker}`);
+}
+for (const forbidden of [
+  'https://nuvanx.com/wp-admin',
+  'wp option update',
+  'wp post update',
+  'wp db import',
+  'DELETE ',
+]) {
+  if (renderedAcceptance.includes(forbidden)) fail(`rendered acceptance contains mutating marker: ${forbidden}`);
 }
 
 if (failures.length) {

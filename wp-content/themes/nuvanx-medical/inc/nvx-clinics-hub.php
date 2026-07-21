@@ -260,6 +260,29 @@ function nvx_clinics_map_url( string $clinic ): string {
 	return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( $query );
 }
 
+/**
+ * GEO taglines for each sede — injected once into the hub block after the heading.
+ *
+ * @param string $clinic 'chamberi' or 'goya'
+ * @return string
+ */
+function nvx_clinics_geo_tagline( string $clinic ): string {
+	if ( 'goya' === $clinic ) {
+		return '<p class="nvx-clinic-geo-tagline">'
+			. 'Sede Salamanca–Goya, en el corazón del Barrio de Salamanca. '
+			. 'Mismo criterio médico, misma privacidad. '
+			. '<span class="nvx-geo-kw">Medicina estética láser en Salamanca Goya Madrid</span> · CS20073.'
+			. '</p>';
+	}
+	return '<p class="nvx-clinic-geo-tagline">'
+		. 'Cada consulta en Chamberí comienza con un box privado. '
+		. 'La discreción es una condición de diseño, no una promesa. '
+		. 'Ubicada en Almagro · Rios Rosas. '
+		. '<span class="nvx-geo-kw">Medicina estética láser en Chamberí Madrid</span> · CS20144.'
+		. '</p>';
+}
+
+
 function nvx_clinics_nearest_block( DOMNode $node ): ?DOMElement {
 	$current = $node;
 	while ( $current instanceof DOMNode && $current->parentNode ) {
@@ -851,6 +874,20 @@ function nvx_clinics_hub_enhance( string $content ): string {
 			$actions->setAttribute( 'class', 'nvx-brand-actions nvx-clinic-location__actions' );
 			$actions->appendChild( $link );
 			$block->appendChild( $actions );
+		}
+	}
+
+	// Inject GEO taglines into each sede block (after the block heading if not already present).
+	foreach ( $blocks as $key => $block ) {
+		if ( false === strpos( $dom->saveHTML( $block ), 'nvx-clinic-geo-tagline' ) ) {
+			$tagline_html = nvx_clinics_geo_tagline( $key );
+			$frag = new DOMDocument();
+			$frag->loadHTML( '<?xml encoding="utf-8" ?>' . $tagline_html, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+			$p_node = $frag->getElementsByTagName( 'p' )->item( 0 );
+			if ( $p_node instanceof DOMElement ) {
+				$imported = $dom->importNode( $p_node, true );
+				$block->insertBefore( $imported, $block->firstChild );
+			}
 		}
 	}
 

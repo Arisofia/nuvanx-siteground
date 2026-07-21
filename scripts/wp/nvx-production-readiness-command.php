@@ -196,6 +196,9 @@ final class NVX_Production_Readiness_Command {
 		if ( in_array( $host, array( 'nuvanx.com', 'www.nuvanx.com' ), true ) && ! isset( $assoc_args['allow-production'] ) ) {
 			WP_CLI::error( 'Production requires the explicit --allow-production flag.' );
 		}
+		if ( ! defined( 'EMPTY_TRASH_DAYS' ) || (int) EMPTY_TRASH_DAYS < 1 ) {
+			WP_CLI::error( 'Refusing to apply: WordPress trash is disabled, which could permanently delete governed pages.' );
+		}
 	}
 
 	/**

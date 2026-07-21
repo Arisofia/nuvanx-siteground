@@ -10,6 +10,7 @@ const diagnosticsPath = path.join(root, 'scripts/staging2/collect-staging2-diagn
 const migrationPath = path.join(root, 'scripts/wp/nvx-production-readiness-command.php');
 const smokePath = path.join(root, 'scripts/staging2/smoke-verify-staging2.sh');
 const renderedAcceptancePath = path.join(root, 'scripts/staging2/verify-rendered-acceptance.mjs');
+const seoMetadataPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php');
 const failures = [];
 
 /**
@@ -34,6 +35,7 @@ const diagnostics = read(diagnosticsPath);
 const migration = read(migrationPath);
 const smoke = read(smokePath);
 const renderedAcceptance = read(renderedAcceptancePath);
+const seoMetadata = read(seoMetadataPath);
 
 for (const marker of [
   'workflow_dispatch:',
@@ -51,6 +53,8 @@ for (const marker of [
   'scripts/staging2/collect-staging2-diagnostics.sh',
   '< scripts/staging2/collect-staging2-diagnostics.sh',
   'scripts/wp/nvx-production-readiness-command.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php',
+  'php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php',
   'scripts/staging2/smoke-verify-staging2.sh',
   'scripts/staging2/verify-rendered-acceptance.mjs',
   'node --check scripts/staging2/verify-rendered-acceptance.mjs',
@@ -181,11 +185,14 @@ for (const marker of [
   'nofollow',
   'ItemList',
   'Organization',
+  'allowedCanonicalTargets',
+  'https://www.nuvanx.com',
   '/liposculpt-air/',
   '/v-lift-awake/',
   '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
   "redirect: 'manual'",
   'response.status !== 301',
+  'targetResponse.status !== 200',
   'report.json',
   'RENDERED_ACCEPTANCE_OK',
 ]) {
@@ -199,6 +206,19 @@ for (const forbidden of [
   'DELETE ',
 ]) {
   if (renderedAcceptance.includes(forbidden)) fail(`rendered acceptance contains mutating marker: ${forbidden}`);
+}
+
+for (const marker of [
+  "'protocolos_signature'",
+  "'couture_sculpt'",
+  "'/protocolos-signature/' => 'protocolos_signature'",
+  "'/remodelacion-corporal-laser-madrid/' => 'couture_sculpt'",
+  'Protocolos Signature | NUVANX Madrid',
+  'Remodelación corporal láser Madrid | NUVANX',
+  'Protocolos Signature de medicina estética en Madrid',
+  'Remodelación corporal láser en Madrid por unidades anatómicas',
+]) {
+  if (!seoMetadata.includes(marker)) fail(`SEO metadata missing Signature marker: ${marker}`);
 }
 
 if (failures.length) {

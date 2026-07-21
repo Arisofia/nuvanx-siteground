@@ -6,7 +6,7 @@ const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(
 const expectedSha = process.env.EXPECTED_SHA || '';
 const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/rendered-acceptance';
 
-if (!/^https:\/\/staging2\.nuvanx\.com$/.test(baseUrl)) {
+if (baseUrl !== 'https://staging2.nuvanx.com') {
   console.error(`ERROR: refusing unexpected BASE_URL: ${baseUrl}`);
   process.exit(1);
 }
@@ -74,20 +74,10 @@ const report = {
   redirects: [],
 };
 
-/**
- * Records a validation finding with its associated scope.
- * @param {string} scope - The validation scope associated with the finding.
- * @param {string} message - The validation failure message.
- */
 function fail(scope, message) {
   findings.push(`${scope}: ${message}`);
 }
 
-/**
- * Converts HTML text and common entities into normalized plain text.
- * @param {string} value - The HTML text to normalize.
- * @return {string} The text with tags removed, entities decoded, whitespace collapsed, and surrounding whitespace trimmed.
- */
 function normalizeText(value) {
   return value
     .replace(/<[^>]*>/g, ' ')
@@ -101,44 +91,20 @@ function normalizeText(value) {
     .trim();
 }
 
-/**
- * Extracts and normalizes the inner text of the first matching HTML element.
- * @param {string} html - The HTML source to search.
- * @param {string} tagName - The element tag name to find.
- * @returns {string} The normalized inner text, or an empty string when no matching element is found.
- */
 function extractTag(html, tagName) {
   const match = html.match(new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i'));
   return match ? normalizeText(match[1]) : '';
 }
 
-/**
- * Extracts opening tags with the specified name from HTML.
- * @param {string} html - The HTML source to search.
- * @param {string} tagName - The tag name to match.
- * @returns {string[]} The matching opening tag strings.
- */
 function extractTags(html, tagName) {
   return [...html.matchAll(new RegExp(`<${tagName}\\b[^>]*>`, 'gi'))].map((match) => match[0]);
 }
 
-/**
- * Extracts an attribute value from an HTML opening tag.
- * @param {string} tag - The tag string containing the attribute.
- * @param {string} name - The attribute name to find.
- * @returns {string} The attribute value, or an empty string if the attribute is missing.
- */
 function attribute(tag, name) {
   const match = tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, 'i'));
   return match ? match[2] : '';
 }
 
-/**
- * Find the content value of a meta tag by its name or property.
- * @param {string} html - The HTML containing the meta tags.
- * @param {string} name - The case-insensitive name or property to find.
- * @return {string} The matching meta tag content, or an empty string if none is found.
- */
 function metaContent(html, name) {
   for (const tag of extractTags(html, 'meta')) {
     if (attribute(tag, 'name').toLowerCase() === name.toLowerCase()) return attribute(tag, 'content');
@@ -147,52 +113,35 @@ function metaContent(html, name) {
   return '';
 }
 
-/**
- * Finds the first link element with the specified relationship.
- * @param {string} html - The HTML source to search.
- * @param {string} rel - The link relationship to match.
- * @return {string} The matching link's href value, or an empty string if no match is found.
- */
 function linkHref(html, rel) {
   for (const tag of extractTags(html, 'link')) {
-    const relValue = attribute(tag, 'rel').toLowerCase().split(/\s+/);
-    if (relValue.includes(rel.toLowerCase())) return attribute(tag, 'href');
+    if (attribute(tag, 'rel').toLowerCase().split(/\s+/).includes(rel.toLowerCase())) {
+      return attribute(tag, 'href');
+    }
   }
   return '';
 }
 
-/**
- * Collects schema type names from a JSON-LD value and its nested structures.
- * @param {*} value - The JSON-LD value to inspect.
- * @param {Set<string>} target - The set to populate with discovered schema types.
- * @returns {Set<string>} The set of collected schema type names.
- */
 function schemaTypesFrom(value, target = new Set()) {
   if (Array.isArray(value)) {
     for (const item of value) schemaTypesFrom(item, target);
     return target;
   }
   if (!value || typeof value !== 'object') return target;
+
   const type = value['@type'];
-  if (Array.isArray(type)) {
-    for (const item of type) target.add(String(item));
-  } else if (type) {
-    target.add(String(type));
+  for (const item of Array.isArray(type) ? type : type ? [type] : []) {
+    target.add(String(item));
   }
   for (const nested of Object.values(value)) schemaTypesFrom(nested, target);
   return target;
 }
 
-/**
- * Collects schema types from JSON-LD script elements in HTML.
- * @param {string} html - The HTML content to inspect.
- * @param {string} scope - The validation scope used for reporting schema errors.
- * @return {string[]} The sorted schema type names found in valid JSON-LD data.
- */
 function collectSchemaTypes(html, scope) {
   const types = new Set();
   const scripts = [...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
   if (!scripts.length) fail(scope, 'missing JSON-LD schema');
+
   for (const [, jsonText] of scripts) {
     try {
       schemaTypesFrom(JSON.parse(jsonText.trim()), types);
@@ -203,21 +152,10 @@ function collectSchemaTypes(html, scope) {
   return [...types].sort();
 }
 
-/**
- * Converts a URL path into a filesystem-safe filename component.
- * @param {string} urlPath - The URL path to sanitize.
- * @returns {string} The sanitized filename component, or `home` for an empty path.
- */
 function safeFileName(urlPath) {
   return urlPath.replace(/^\/+|\/+$/g, '').replace(/[^a-z0-9._-]+/gi, '-') || 'home';
 }
 
-/**
- * Fetches a URL with a 45-second timeout and the acceptance test user agent.
- * @param {string|URL} url - The URL to request.
- * @param {RequestInit} [options={}] - Additional fetch options.
- * @returns {Promise<Response>} The fetch response.
- */
 async function fetchWithTimeout(url, options = {}) {
   return fetch(url, {
     ...options,
@@ -233,22 +171,25 @@ for (const page of pages) {
   const scope = `page ${page.path}`;
   const url = `${baseUrl}${page.path}`;
   const result = { path: page.path, url };
+
   try {
     const response = await fetchWithTimeout(url, { redirect: 'follow' });
     const html = await response.text();
     fs.writeFileSync(path.join(evidenceDir, `${safeFileName(page.path)}.html`), html);
 
-    result.status = response.status;
-    result.final_url = response.url;
-    result.title = extractTag(html, 'title');
-    result.description = metaContent(html, 'description');
-    result.robots = metaContent(html, 'robots');
-    result.deploy_sha = metaContent(html, 'nvx-deploy-sha');
-    result.canonical = linkHref(html, 'canonical');
-    result.og_url = metaContent(html, 'og:url');
-    result.h1_count = (html.match(/<h1\b/gi) || []).length;
-    result.h1 = extractTag(html, 'h1');
-    result.schema_types = collectSchemaTypes(html, scope);
+    Object.assign(result, {
+      status: response.status,
+      final_url: response.url,
+      title: extractTag(html, 'title'),
+      description: metaContent(html, 'description'),
+      robots: metaContent(html, 'robots'),
+      deploy_sha: metaContent(html, 'nvx-deploy-sha'),
+      canonical: linkHref(html, 'canonical'),
+      og_url: metaContent(html, 'og:url'),
+      h1_count: (html.match(/<h1\b/gi) || []).length,
+      h1: extractTag(html, 'h1'),
+      schema_types: collectSchemaTypes(html, scope),
+    });
 
     if (response.status !== 200) fail(scope, `returned HTTP ${response.status}`);
     if (response.url !== url) fail(scope, `resolved to ${response.url} instead of ${url}`);
@@ -276,7 +217,6 @@ for (const page of pages) {
         fail(scope, `${label} is ${target || 'absent'} and does not match the expected page path on an allowed NUVANX host`);
       }
     }
-    }
 
     for (const schemaType of page.schemaTypes) {
       if (!result.schema_types.includes(schemaType)) fail(scope, `missing schema type ${schemaType}`);
@@ -291,6 +231,7 @@ for (const page of pages) {
     result.error = error.message;
     fail(scope, `request failed: ${error.message}`);
   }
+
   report.pages.push(result);
 }
 
@@ -298,10 +239,12 @@ for (const [sourcePath, targetPath] of redirects) {
   const scope = `redirect ${sourcePath}`;
   const expectedLocation = `${baseUrl}${targetPath}`;
   const result = { source: sourcePath, target: targetPath, expected_location: expectedLocation };
+
   try {
     const response = await fetchWithTimeout(`${baseUrl}${sourcePath}`, { redirect: 'manual' });
     result.status = response.status;
     result.location = response.headers.get('location') || '';
+
     if (response.status !== 301) fail(scope, `returned HTTP ${response.status} instead of 301`);
     if (result.location !== expectedLocation) {
       fail(scope, `location is ${result.location || 'absent'} instead of ${expectedLocation}`);
@@ -317,6 +260,7 @@ for (const [sourcePath, targetPath] of redirects) {
     result.error = error.message;
     fail(scope, `request failed: ${error.message}`);
   }
+
   report.redirects.push(result);
 }
 

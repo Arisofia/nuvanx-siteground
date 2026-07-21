@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * NUVANX Medical theme bootstrap.
  *
@@ -55,7 +55,7 @@ function nvx_theme_thank_you_page_slugs(): array {
 }
 
 /**
- * ValoraciÃ³n form page slugs.
+ * Valoración form page slugs.
  *
  * @return string[]
  */
@@ -90,7 +90,7 @@ function nvx_theme_is_thank_you_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_thank_you_page_slugs() );
 }
 
-/** Whether the current request is a valoraciÃ³n form page. */
+/** Whether the current request is a valoración form page. */
 function nvx_theme_is_valoracion_form_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_valoracion_form_page_slugs() );
 }
@@ -217,7 +217,7 @@ function nvx_theme_blog_index_markup(): string {
 	);
 
 	if ( ! $query->have_posts() ) {
-		return '<p class="nvx-copy">' . esc_html__( 'No se encontraron artÃ­culos.', 'nuvanx-medical' ) . '</p>';
+		return '<p class="nvx-copy">' . esc_html__( 'No se encontraron artículos.', 'nuvanx-medical' ) . '</p>';
 	}
 
 	$output = '<div class="nvx-brand-grid">';
@@ -227,7 +227,7 @@ function nvx_theme_blog_index_markup(): string {
 		$output .= '<p class="nvx-brand-card__kicker">' . esc_html( get_the_date() ) . '</p>';
 		$output .= '<h2 class="nvx-brand-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h2>';
 		$output .= '<div class="nvx-brand-card__body">' . wp_kses_post( get_the_excerpt() ) . '</div>';
-		$output .= '<a href="' . esc_url( get_permalink() ) . '" class="nvx-button nvx-button--secondary">' . esc_html__( 'Leer mÃ¡s', 'nuvanx-medical' ) . '</a>';
+		$output .= '<a href="' . esc_url( get_permalink() ) . '" class="nvx-button nvx-button--secondary">' . esc_html__( 'Leer más', 'nuvanx-medical' ) . '</a>';
 		$output .= '</article>';
 	}
 	$output .= '</div>';
@@ -243,7 +243,9 @@ require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
 require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
-require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';
+require_once get_template_directory() . '/inc/nvx-portfolio-hub.php';
+require_once get_template_directory() . '/inc/nvx-protocol-hub.php';
+require_once get_template_directory() . '/inc/nvx-protocol-pages.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
 require_once get_template_directory() . '/inc/nvx-endolaser-page.php';
 require_once get_template_directory() . '/inc/nvx-co2-page.php';
@@ -258,5 +260,3 @@ require_once get_template_directory() . '/inc/nvx-dr-rivera-page.php';
 require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
 require_once get_template_directory() . '/inc/nvx-faq-catalog.php';
 require_once get_template_directory() . '/inc/nvx-evidence-panel.php';
-
-

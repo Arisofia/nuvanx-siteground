@@ -46,7 +46,7 @@ Debe obtener HTTP 200 sin redirección inesperada en:
 
 | Ruta | H1 exacto | Marcador de contenido |
 |---|---|---|
-| `/tratamientos/` | `Portafolio Clínico.` | `Áreas de intervención clínica` |
+| `/tratamientos/` | `Portafolio clínico.` | `Áreas de intervención clínica` |
 | `/protocolos-signature/` | `Protocolos Signature: Medicina estética de diagnóstico.` | `Nuestro estándar: La firma NUVANX` |
 | `/remodelacion-corporal-laser-madrid/` | `Remodelación corporal láser diseñada según tu anatomía.` | `Couture Sculpt™: El protocolo y la tecnología` |
 | `/por-que-nuvanx/` | `El diagnóstico precede a la indicación.` | `Diagnóstico antes de tecnología` |
@@ -81,8 +81,8 @@ Valores controlados:
 
 | Ruta | Title |
 |---|---|
-| `/protocolos-signature/` | `Protocolos Signature | NUVANX Madrid` |
-| `/remodelacion-corporal-laser-madrid/` | `Remodelación corporal láser Madrid | NUVANX` |
+| `/protocolos-signature/` | Protocolos Signature \| NUVANX Madrid |
+| `/remodelacion-corporal-laser-madrid/` | Remodelación corporal láser Madrid \| NUVANX |
 
 ## Contrato de redirects
 

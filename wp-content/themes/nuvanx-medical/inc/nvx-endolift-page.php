@@ -114,7 +114,7 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
 	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
 	$html .= '</div></div>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Microfibra láser bajo la piel para tensar tejido y, cuando hay indicación, reducir grasa local en papada y contorno mandibular. No sustituye un lifting quirúrgico en todos los casos.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Tratamiento subdérmico de precisión para tensado tisular y reducción de grasa localizada. Indicación médica y presupuesto cerrado tras la primera valoración en Chamberí o Salamanca.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */

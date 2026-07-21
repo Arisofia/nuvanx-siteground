@@ -19,7 +19,7 @@ function requireText(source, text, message) {
 }
 
 /**
- * Records a failure when the source contains forbidden text.
+ * Records a failure when the source contains prohibited text.
  * @param {string} source - The content to inspect.
  * @param {string} text - The text that must not appear.
  * @param {string} message - The failure message to record.

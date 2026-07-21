@@ -6,6 +6,7 @@ EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
 EXPECTED_URL='https://staging2.nuvanx.com'
 WP_ROOT=''
 
+# usage prints the command-line usage instructions to standard error.
 usage() {
   cat >&2 <<'EOF'
 Usage:
@@ -14,6 +15,7 @@ Usage:
 EOF
 }
 
+# fail prints a diagnostic error message to stderr and returns a failure status.
 fail() {
   echo "DIAGNOSTIC_ERROR: $*" >&2
   return 1

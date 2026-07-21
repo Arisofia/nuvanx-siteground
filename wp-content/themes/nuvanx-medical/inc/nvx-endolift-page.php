@@ -105,20 +105,20 @@ function nvx_endolift_hero_copy_markup(): string {
 		: number_format_i18n( 798.60, 2 );
 
 	$html  = '<div class="nvx-brand-hero__copy nvx-endolift-hero-copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Madrid · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html__( 'Tensado facial con microfibra láser. Indicación médica, no estética de catálogo.', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html__( 'Endolift® en Madrid: papada, mandíbula y cuello sin quirófano', 'nuvanx-medical' ) . '</h1>';
 	
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
 	$html .= '<div class="nvx-medical-byline__text">';
-	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. José Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
-	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · ICOMEM · Chamberí · Salamanca–Goya · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
+	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
+	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
 	$html .= '</div></div>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Microfibra láser subdérmica que induce retracción del tejido y estímulo de colágeno nuevo. La indicación la decide el diagnóstico, no la zona que incomoda. No sustituye un lifting quirúrgico en todos los casos.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Microfibra láser bajo la piel para tensar tejido y, cuando hay indicación, reducir grasa local en papada y contorno mandibular. No sustituye un lifting quirúrgico en todos los casos.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
-			__( 'Valoración presencial en Chamberí (Almagro) y Salamanca–Goya por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, comparativa clínica, tarifas PVP por zona y recuperación realista — antes de decidir.', 'nuvanx-medical' ),
+			__( 'Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, comparación con cirugía, tarifas PVP por zona y recuperación realista — antes de decidir.', 'nuvanx-medical' ),
 			$colegiado
 		)
 	) . '</p>';

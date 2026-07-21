@@ -11,6 +11,10 @@ const migrationPath = path.join(root, 'scripts/wp/nvx-production-readiness-comma
 const smokePath = path.join(root, 'scripts/staging2/smoke-verify-staging2.sh');
 const renderedAcceptancePath = path.join(root, 'scripts/staging2/verify-rendered-acceptance.mjs');
 const seoMetadataPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php');
+const portfolioPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-portfolio-hub.php');
+const protocolHubPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php');
+const protocolPagesPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php');
+const strategyPagesPath = path.join(root, 'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
 const failures = [];
 
 /**
@@ -36,6 +40,11 @@ const migration = read(migrationPath);
 const smoke = read(smokePath);
 const renderedAcceptance = read(renderedAcceptancePath);
 const seoMetadata = read(seoMetadataPath);
+const portfolio = read(portfolioPath);
+const protocolHub = read(protocolHubPath);
+const protocolPages = read(protocolPagesPath);
+const strategyPages = read(strategyPagesPath);
+const controlledPublicContent = [portfolio, protocolHub, protocolPages, strategyPages].join('\n');
 
 for (const marker of [
   'workflow_dispatch:',
@@ -175,6 +184,19 @@ for (const marker of [
   '/remodelacion-corporal-laser-madrid/',
   '/por-que-nuvanx/',
   '/inversion-medicina-estetica/',
+  'Tratamientos Medicina Estética Láser Madrid | NUVANX',
+  'Protocolos Signature | NUVANX Madrid',
+  'Remodelación corporal láser Madrid | NUVANX',
+  'Por qué NUVANX | Criterio médico en Madrid',
+  'Inversión en medicina estética | NUVANX Madrid',
+  'expected_title',
+  'expected_description',
+  'og_title',
+  'og_description',
+  'result.title !== page.title',
+  'result.description !== page.description',
+  'result.og_title !== page.title',
+  'result.og_description !== page.description',
   'Portafolio clínico.',
   'Protocolos Signature: Medicina estética de diagnóstico.',
   'Remodelación corporal láser diseñada según tu anatomía.',
@@ -221,6 +243,34 @@ for (const marker of [
   'Remodelación corporal láser en Madrid por unidades anatómicas',
 ]) {
   if (!seoMetadata.includes(marker)) fail(`SEO metadata missing Signature marker: ${marker}`);
+}
+
+for (const marker of [
+  'expectativas realistas',
+  'según diagnóstico y fototipo',
+  'protocolo anestésico cuando corresponda',
+  'Una promoción puntual no modifica la indicación',
+  'justificación clínica documentada',
+]) {
+  if (!controlledPublicContent.includes(marker)) fail(`controlled public content missing governance marker: ${marker}`);
+}
+
+for (const forbidden of [
+  'garantizar resultados',
+  'asegurar que cada intervención',
+  'control térmico absoluto',
+  'sin huellas quirúrgicas evidentes',
+  'presupuesto muy bajo',
+  'no usamos descuentos estacionales',
+  'este procedimiento no es habitual en el sector',
+  'el estándar de oro',
+  'renovación epidérmica severa',
+  'absoluta discreción',
+  'protocolo comercial estrella',
+]) {
+  if (controlledPublicContent.toLowerCase().includes(forbidden.toLowerCase())) {
+    fail(`controlled public content contains forbidden claim: ${forbidden}`);
+  }
 }
 
 if (failures.length) {

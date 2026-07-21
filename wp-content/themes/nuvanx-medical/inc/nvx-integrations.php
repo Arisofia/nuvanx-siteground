@@ -36,7 +36,7 @@ function nvx_production_readiness_governed_pages(): array {
 		),
 		'v-lift-awake' => array(
 			'status' => 'trash',
-			'target' => '/papada-definicion-mandibular-madrid/',
+			'target' => '/protocolos-signature/',
 		),
 		'tratamiento-postparto-abdomen-contorno-corporal-madrid' => array(
 			'status' => 'draft',

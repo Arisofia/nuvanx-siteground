@@ -111,6 +111,24 @@ else
   echo 'deployment.current_marker=absent'
 fi
 
+# Capture the final lines of conventional SiteGround/WordPress PHP logs. This is
+# read-only and deliberately limited so a failed frontend request can be traced
+# without exposing configuration files or database content.
+for error_file in \
+  "$WP_ROOT/php_errorlog" \
+  "$WP_ROOT/error_log" \
+  "$WP_ROOT/wp-content/debug.log" \
+  "$WP_ROOT/wp-content/php_errorlog" \
+  "$THEME_ROOT/php_errorlog" \
+  "$THEME_ROOT/error_log"
+do
+  if [[ -f "$error_file" && -r "$error_file" ]]; then
+    echo "error_log.begin=$error_file"
+    tail -n 120 "$error_file" | sed -E 's#(/home/customer/)[^/]+/#\1USER/#g'
+    echo "error_log.end=$error_file"
+  fi
+done
+
 curl_status="$(curl --silent --show-error --connect-timeout 15 --max-time 30 --output /dev/null --write-out '%{http_code}' "$EXPECTED_URL/")"
 echo "http.home_status=$curl_status"
 [[ "$curl_status" == '200' ]] || fail "staging2 home returned HTTP $curl_status"

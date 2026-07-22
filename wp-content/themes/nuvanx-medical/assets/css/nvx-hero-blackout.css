@@ -36,3 +36,42 @@ body.nvx-hero-blackout :is(
   visibility: visible;
   opacity: 1;
 }
+
+/*
+ * The new homepage hero is a split editorial component, not a legacy full-page
+ * stage. Explicit mobile dimensions prevent legacy video rules or intrinsic
+ * media sizing from expanding the opening image into several screen heights.
+ */
+@media (max-width: 62rem) {
+  body.home .nvx-home-v4 .nvx-home-hero {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  body.home .nvx-home-v4 .nvx-home-hero__media {
+    position: relative;
+    flex: 0 0 auto;
+    width: 100%;
+    height: min(56svh, 34rem);
+    min-height: 0;
+    max-height: 34rem;
+    overflow: hidden;
+  }
+
+  body.home .nvx-home-v4 .nvx-home-hero__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+  }
+}
+
+@media (max-width: 48rem) {
+  body.home .nvx-home-v4 .nvx-home-hero__media {
+    height: min(52svh, 30rem);
+    max-height: 30rem;
+  }
+}

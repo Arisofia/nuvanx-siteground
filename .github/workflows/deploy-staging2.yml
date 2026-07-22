@@ -2,6 +2,7 @@ name: Deploy Staging2 (manual)
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - '.github/workflows/deploy-staging2.yml'
       - 'tools/deploy/deploy-to-staging2.sh'
@@ -138,22 +139,26 @@ jobs:
     name: Diagnose or deploy immutable SHA to staging2
     needs: contract
     if: >-
-      github.event_name == 'workflow_dispatch' &&
-      inputs.confirmation == 'DEPLOY_STAGING2'
+      (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DEPLOY_STAGING2') ||
+      (github.event_name == 'pull_request' &&
+       github.event.action == 'labeled' &&
+       github.event.label.name == 'deploy-staging2' &&
+       github.actor == 'Arisofia' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 35
     environment:
       name: staging2
       url: https://staging2.nuvanx.com
     env:
-      DEPLOY_SHA: ${{ inputs.git_sha }}
-      RUN_MODE: ${{ inputs.mode }}
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.pull_request.head.sha }}
+      RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'DEPLOY_AND_MIGRATE' }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
     steps:
       - name: Check out selected immutable ref
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ env.DEPLOY_SHA }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -171,6 +176,9 @@ jobs:
             echo "run_id=$GITHUB_RUN_ID"
             echo "run_attempt=$GITHUB_RUN_ATTEMPT"
             echo "event=$GITHUB_EVENT_NAME"
+            echo "action=${{ github.event.action }}"
+            echo "label=${{ github.event.label.name }}"
+            echo "actor=$GITHUB_ACTOR"
             echo "ref=$GITHUB_REF"
             echo "github_sha=$GITHUB_SHA"
             echo "requested_sha=$DEPLOY_SHA"
@@ -190,12 +198,18 @@ jobs:
             *) echo "Unsupported execution mode: $RUN_MODE" >&2; exit 1 ;;
           esac
           current_sha="$(git rev-parse HEAD)"
-          test "$current_sha" = "$GITHUB_SHA"
-          test "$DEPLOY_SHA" = "$current_sha" || {
-            echo 'git_sha must equal the selected workflow ref HEAD.' >&2
-            echo "selected_ref=${GITHUB_REF} selected_sha=${current_sha} requested_sha=${DEPLOY_SHA}" >&2
+          test "$current_sha" = "$DEPLOY_SHA" || {
+            echo 'Checked-out SHA does not equal the authorized deployment SHA.' >&2
+            echo "checked_out=${current_sha} authorized=${DEPLOY_SHA}" >&2
             exit 1
           }
+          if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]]; then
+            test "$DEPLOY_SHA" = "$GITHUB_SHA" || {
+              echo 'git_sha must equal the selected workflow ref HEAD.' >&2
+              echo "selected_ref=${GITHUB_REF} selected_sha=${GITHUB_SHA} requested_sha=${DEPLOY_SHA}" >&2
+              exit 1
+            }
+          fi
           git cat-file -e "${DEPLOY_SHA}^{commit}"
 
       - name: Configure strict SSH authentication
@@ -270,7 +284,7 @@ jobs:
           grep -Fq 'STAGING2_PREFLIGHT_OK' "$ARTIFACT_DIR/preflight.log"
 
       - name: Upload immutable release payload
-        if: inputs.mode == 'DEPLOY_AND_MIGRATE'
+        if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE'
         id: upload_payload
         shell: bash
         run: |
@@ -295,7 +309,7 @@ jobs:
             "nvx-staging2:$REMOTE_RELEASE/"
 
       - name: Execute guarded deployment, migration and smoke test
-        if: inputs.mode == 'DEPLOY_AND_MIGRATE'
+        if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE'
         id: remote_deploy
         shell: bash
         run: |
@@ -312,7 +326,7 @@ jobs:
           grep -Fq 'DEPLOY_STAGING2_OK' "$ARTIFACT_DIR/remote-deploy.log"
 
       - name: Verify deployed marker
-        if: inputs.mode == 'DEPLOY_AND_MIGRATE'
+        if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE'
         id: marker
         shell: bash
         run: |
@@ -322,7 +336,7 @@ jobs:
           echo "Verified staging2 marker: $deployed_sha" | tee "$ARTIFACT_DIR/deployed-marker.log"
 
       - name: Run independent staging2 smoke verification
-        if: inputs.mode == 'DEPLOY_AND_MIGRATE' || inputs.mode == 'SMOKE_ONLY'
+        if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE' || env.RUN_MODE == 'SMOKE_ONLY'
         id: independent_smoke
         env:
           BASE_URL: https://staging2.nuvanx.com
@@ -334,11 +348,11 @@ jobs:
           grep -Fq 'SMOKE_VERIFY_OK' "$ARTIFACT_DIR/independent-smoke.log"
 
       - name: Run rendered acceptance verification
-        if: inputs.mode == 'DEPLOY_AND_MIGRATE' || inputs.mode == 'SMOKE_ONLY'
+        if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE' || env.RUN_MODE == 'SMOKE_ONLY'
         id: rendered_acceptance
         env:
           BASE_URL: https://staging2.nuvanx.com
-          EXPECTED_SHA: ${{ inputs.git_sha }}
+          EXPECTED_SHA: ${{ env.DEPLOY_SHA }}
           EVIDENCE_DIR: staging2-deployment-evidence/rendered-acceptance
         shell: bash
         run: |
@@ -348,11 +362,11 @@ jobs:
           grep -Fq 'RENDERED_ACCEPTANCE_OK' "$ARTIFACT_DIR/rendered-acceptance.log"
 
       - name: Run real browser visual QA
-        if: inputs.mode == 'DEPLOY_AND_MIGRATE' || inputs.mode == 'SMOKE_ONLY'
+        if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE' || env.RUN_MODE == 'SMOKE_ONLY'
         id: visual_qa
         env:
           BASE_URL: https://staging2.nuvanx.com
-          EXPECTED_SHA: ${{ inputs.git_sha }}
+          EXPECTED_SHA: ${{ env.DEPLOY_SHA }}
           EVIDENCE_DIR: staging2-deployment-evidence/visual-qa
         shell: bash
         run: |

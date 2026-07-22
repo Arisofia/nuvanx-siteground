@@ -2,22 +2,21 @@
 
 ## Fuente de verdad
 
-El menú asignado a la ubicación **Primary** en WordPress es la fuente de verdad.
-El tema no inyecta tratamientos ni reordena elementos después de guardarlos.
+El menú `NUVANX Principal` asignado a la ubicación **Primary** en WordPress es la fuente de verdad. La migración de production readiness lo crea o reconstruye de forma idempotente y conserva el menú anterior sin asignarlo, como rollback operativo.
 
-- Panel: `Apariencia → Menús`.
-- Nombre recomendado: `NUVANX Principal`.
 - Ubicación: `Primary`.
-- Profundidad máxima soportada: tres niveles.
+- Profundidad máxima: tres niveles.
+- Solo se incorporan páginas publicadas.
 - El CTA `Solicitar valoración médica` permanece fuera del árbol porque ya lo renderiza el header.
-- Solo deben añadirse páginas publicadas. Los elementos de página que vuelvan a borrador se retiran automáticamente del render público junto con sus descendientes.
+- Los tres pilares comerciales reciben la clase `nvx-menu--mega`.
+- `Contacto` usa `nvx-menu-mobile-only` para estar disponible en el drawer móvil sin sobrecargar el header desktop.
 
 ## Árbol definitivo
 
 ```text
 INICIO
 
-SOLUCIONES                                      [clase opcional: nvx-menu--mega]
+SOLUCIONES
 ├── Rostro y cuello
 ├── Calidad de piel
 ├── Contorno corporal
@@ -26,7 +25,7 @@ SOLUCIONES                                      [clase opcional: nvx-menu--mega]
 ├── Manchas, rojeces y fotodaño
 └── Medicina estética masculina
 
-PROTOCOLOS SIGNATURE                            [clase opcional: nvx-menu--mega]
+PROTOCOLOS SIGNATURE
 ├── NUVANX Contour Architecture™
 ├── NUVANX Post-Maternity Contour™
 ├── NUVANX Profile Definition™
@@ -34,7 +33,7 @@ PROTOCOLOS SIGNATURE                            [clase opcional: nvx-menu--mega]
 ├── NUVANX Surface Renewal™
 └── NUVANX Tone Correction™
 
-TECNOLOGÍA                                      [clase opcional: nvx-menu--mega]
+TECNOLOGÍA
 ├── Endolift® facial
 ├── Endoláser corporal
 ├── EXION® Face
@@ -46,33 +45,30 @@ TECNOLOGÍA                                      [clase opcional: nvx-menu--mega
 └── Medicina inyectable
 
 CASOS CLÍNICOS
-
 EQUIPO MÉDICO
-
 CLÍNICAS
 ├── Chamberí
 └── Salamanca–Goya
-
 JOURNAL
+CONTACTO [solo móvil]
 ```
 
-Los pilares `Soluciones`, `Protocolos Signature` y `Tecnología` reciben automáticamente el tratamiento de mega-menú por su etiqueta. La clase `nvx-menu--mega` permite conservar el mismo tratamiento si una etiqueta cambia.
+## Rutas canónicas
 
-## Rutas objetivo
-
-| Elemento | Ruta objetivo |
+| Elemento | Ruta |
 |---|---|
 | Soluciones | `/soluciones-medicas/` |
 | Protocolos Signature | `/protocolos-signature/` |
 | Tecnología | `/medicina-estetica-laser/` |
-| Casos clínicos | `/casos-clinicos/` |
+| Casos clínicos | `/casos-de-pacientes/` |
 | Equipo médico | `/equipo-medico/` |
 | Clínicas | `/clinicas-de-medicina-estetica-nuvanx/` |
 | Journal | `/blog/` |
+| Contacto | `/contacto/` |
 
 ### Protocolos Signature
 
-| Elemento | Ruta objetivo |
+| Protocolo | Ruta |
 |---|---|
 | NUVANX Contour Architecture™ | `/remodelacion-corporal-laser-madrid/` |
 | NUVANX Post-Maternity Contour™ | `/tratamiento-postparto-abdomen-contorno-corporal-madrid/` |
@@ -81,15 +77,13 @@ Los pilares `Soluciones`, `Protocolos Signature` y `Tecnología` reciben automá
 | NUVANX Surface Renewal™ | `/cicatrices-acne-poros-textura-madrid/` |
 | NUVANX Tone Correction™ | `/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/` |
 
-No debe crearse un enlace personalizado hacia una ruta futura. Primero se crea la página, se mantiene en borrador durante la revisión médica, jurídica, SEO y visual, y se incorpora al menú únicamente después de publicarla.
-
-## Comportamiento de escritorio
+## Comportamiento desktop
 
 - Ocho pilares compactos y CTA independiente.
-- Los tres pilares comerciales abren paneles editoriales de tres columnas.
-- Se admite tercer nivel para agrupar subfamilias futuras.
+- Soluciones, Protocolos Signature y Tecnología abren paneles editoriales.
 - Apertura mediante `hover` y `focus-within`.
-- El breakpoint de navegación cambia al drawer antes de que el header pueda desbordarse.
+- Los hijos no publicados se omiten.
+- El breakpoint cambia al drawer antes de que el header pueda desbordarse.
 
 ## Comportamiento móvil
 
@@ -97,15 +91,14 @@ No debe crearse un enlace personalizado hacia una ruta futura. Primero se crea l
 - Cada padre recibe un botón independiente con `aria-expanded` y `aria-controls`.
 - Pulsar el nombre navega al hub publicado.
 - Pulsar `+ / −` abre o cierra el acordeón.
-- Si un padre se configura temporalmente con `#`, pulsar su etiqueta también abre el acordeón.
 - Al abrir una familia se cierra su hermana del mismo nivel.
-- `Escape`, el botón de cierre y el cambio a escritorio restablecen todos los acordeones.
+- `Escape`, cierre y cambio a escritorio restablecen los acordeones.
 - Se respeta `prefers-reduced-motion`.
 
 ## Reglas de publicación
 
-1. No incorporar LipoSculpt-Air™, V-Lift Awake™ ni ningún protocolo `pending_medical_legal`.
-2. No copiar categorías residuales de AirSculpt ni añadir servicios no confirmados.
-3. No añadir páginas que respondan 404, borradores o rutas en cuarentena.
-4. No duplicar el CTA de valoración dentro del menú.
-5. Validar desktop, móvil, teclado, lector de pantalla y ausencia de overflow en Staging2 antes de Producción.
+1. No incorporar LipoSculpt-Air™, V-Lift Awake™, Eye Frame™ ni ningún protocolo no aprobado.
+2. No añadir páginas 404, borradores o rutas en cuarentena.
+3. No duplicar el CTA de valoración dentro del menú.
+4. No exponer zonas de Fase 3 hasta confirmar servicio, profesional, autorización y claims.
+5. Validar desktop, móvil, teclado, lector de pantalla y ausencia de overflow en staging2 antes de producción.

@@ -28,6 +28,38 @@ function nvx_protocol_pages_catalog(): array {
 			'description'   => 'Después del embarazo no existe un único abdomen posparto. Cada componente requiere una valoración diferente y, en algunos casos, una derivación a fisioterapia especializada o cirugía.',
 			'review_status' => 'approved_for_publication',
 		),
+		'profile-definition' => array(
+			'slug'          => 'papada-definicion-mandibular-madrid',
+			'title'         => 'Profile Definition™: Papada y mandíbula.',
+			'kicker'        => 'ARQUITECTURA FACIAL NUVANX',
+			'lead'          => 'Para la papada o la mandíbula poco definida, sin pasar por quirófano. Te miramos primero, te decimos con claridad qué se puede conseguir, y solo si tiene sentido para ti, seguimos adelante.',
+			'description'   => 'A veces es grasa, a veces es que la piel ya no aguanta, y a veces las dos cosas. Se nota igual desde fuera, pero el tratamiento no es el mismo — por eso primero te miramos de cerca.',
+			'review_status' => 'approved_for_publication',
+		),
+		'skin-architecture' => array(
+			'slug'          => 'calidad-piel-firmeza-luminosidad-madrid',
+			'title'         => 'Skin Architecture™: Firmeza y luminosidad.',
+			'kicker'        => 'ARQUITECTURA FACIAL NUVANX',
+			'lead'          => 'Las cremas hidratan la superficie, pero la firmeza se sostiene desde capas a las que los cosméticos no llegan. Si notas que la piel "cede" o se ve apagada, trabajamos desde el interior para que tu propio cuerpo vuelva a tensarla.',
+			'description'   => 'Si la piel se siente fina o ha perdido tensión, ponerle ácido hialurónico para "hincharla" no soluciona el problema de fondo — solo te cambia la forma de la cara.',
+			'review_status' => 'approved_for_publication',
+		),
+		'surface-renewal' => array(
+			'slug'          => 'cicatrices-acne-poros-textura-madrid',
+			'title'         => 'Surface Renewal™: Cicatrices y textura.',
+			'kicker'        => 'ARQUITECTURA FACIAL NUVANX',
+			'lead'          => 'Ningún peeling suave va a borrar un agujero o un poro muy dilatado, porque el problema está en la estructura profunda de la piel, no en la superficie. Te explicamos exactamente qué nivel de mejoría es realista para tus marcas.',
+			'description'   => 'Las cicatrices tiran de la piel hacia adentro. Para alisarlas, necesitamos soltar esos "hilos" invisibles por debajo y renovar la superficie por arriba.',
+			'review_status' => 'approved_for_publication',
+		),
+		'tone-correction' => array(
+			'slug'          => 'manchas-rojeces-fotorejuvenecimiento-ipl-madrid',
+			'title'         => 'Tone Correction™: Manchas y rojeces.',
+			'kicker'        => 'ARQUITECTURA FACIAL NUVANX',
+			'lead'          => 'Hay manchas por el sol, manchas por hormonas y manchas rojas por venitas dilatadas. Si tratamos las de hormonas con el láser equivocado, se pondrán más oscuras. Por eso la máquina no importa tanto como el diagnóstico previo.',
+			'description'   => 'Si el problema es de sol (lentigos) o rojeces (cuperosis), la luz la limpia en un par de sesiones. Si es melasma (mancha hormonal), el calor fuerte es el enemigo.',
+			'review_status' => 'approved_for_publication',
+		),
 	);
 }
 
@@ -159,6 +191,78 @@ function nvx_protocol_pages_post_maternity_markup( array $data ): string {
 	return $html;
 }
 
+function nvx_protocol_pages_profile_definition_markup( array $data ): string {
+	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
+	$html .= '<header class="nvx-strategy-intro">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Papada y mandíbula: a veces es grasa, a veces es piel.', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
+	$html .= '<p>' . esc_html( $data['description'] ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</header>';
+
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Por qué un tratamiento genérico no funciona', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'A veces no hay papada real — lo que pasa es que el mentón es pequeño y eso hace que el cuello parezca más lleno de lo que es. Ahí ningún láser va a cambiar nada; lo que ayuda es dar un poco de volumen al mentón, no quitar nada del cuello.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'Cuando sí hay un problema de grasa localizada (adiposidad submentoniana) o de flacidez en el óvalo facial, la solución médica es el Endolift® láser. Permite destruir la grasa y tensar la piel desde dentro en un solo acto médico ambulatorio, sin cirugía.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</section></article>';
+	return $html;
+}
+
+function nvx_protocol_pages_skin_architecture_markup( array $data ): string {
+	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
+	$html .= '<header class="nvx-strategy-intro">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Tu piel no necesita más cremas, necesita reconstruirse por dentro.', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
+	$html .= '<p>' . esc_html( $data['description'] ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</header>';
+
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Por qué un tratamiento genérico no funciona', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'Lo que hacemos es usar calor para obligar a tus células a fabricar colágeno nuevo. Es un proceso natural de tu cuerpo; nosotros solo le damos el estímulo correcto.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'Para lograrlo, empleamos plataformas avanzadas como la Radiofrecuencia Fraccionada BTL EXION® o bioestimuladores, dependiendo del grosor de tu dermis, el nivel de elastosis solar y tu fototipo.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</section></article>';
+	return $html;
+}
+
+function nvx_protocol_pages_surface_renewal_markup( array $data ): string {
+	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
+	$html .= '<header class="nvx-strategy-intro">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Para mejorar las marcas de acné hay que romper la cicatriz, no solo pelar la piel.', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
+	$html .= '<p>' . esc_html( $data['description'] ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</header>';
+
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Por qué un tratamiento genérico no funciona', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'No te vamos a mentir: las marcas profundas rara vez desaparecen al 100%, pero sí podemos hacer que dejen de ser lo primero que ves en el espejo.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'Para conseguirlo, combinamos resurfacing ablativo con Láser CO₂ fraccionado o radiofrecuencia profunda con microagujas, dependiendo de si tus cicatrices atróficas son en furgón (boxcar), picahielo (icepick) o rodante (rolling).', 'nuvanx-medical' ) . '</p>';
+	$html .= '</section></article>';
+	return $html;
+}
+
+function nvx_protocol_pages_tone_correction_markup( array $data ): string {
+	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
+	$html .= '<header class="nvx-strategy-intro">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Quitar una mancha es fácil; que no vuelva a salir es la parte médica.', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
+	$html .= '<p>' . esc_html( $data['description'] ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</header>';
+
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Por qué un tratamiento genérico no funciona', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'Te decimos qué tipo tienes tú y cómo mantenerla a raya todo el año. Ahí toca ir poco a poco, combinando terapias en clínica con cremas médicas en casa.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'Diferenciamos entre pigmento dérmico o epidérmico y componente vascular para elegir entre Luz Pulsada Intensa (BTL EXILITE IPL), láser Q-Switched o pautas despigmentantes específicas.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</section></article>';
+	return $html;
+}
+
 /** Dispatches the markup for one approved protocol page. */
 function nvx_protocol_pages_markup( string $key, array $data ): string {
 	if ( 'couture-sculpt' === $key ) {
@@ -166,6 +270,18 @@ function nvx_protocol_pages_markup( string $key, array $data ): string {
 	}
 	if ( 'post-maternity' === $key ) {
 		return nvx_protocol_pages_post_maternity_markup( $data );
+	}
+	if ( 'profile-definition' === $key ) {
+		return nvx_protocol_pages_profile_definition_markup( $data );
+	}
+	if ( 'skin-architecture' === $key ) {
+		return nvx_protocol_pages_skin_architecture_markup( $data );
+	}
+	if ( 'surface-renewal' === $key ) {
+		return nvx_protocol_pages_surface_renewal_markup( $data );
+	}
+	if ( 'tone-correction' === $key ) {
+		return nvx_protocol_pages_tone_correction_markup( $data );
 	}
 	return '';
 }

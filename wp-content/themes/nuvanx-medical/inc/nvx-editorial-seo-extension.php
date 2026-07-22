@@ -21,8 +21,8 @@ function nvx_editorial_seo_catalog(): array {
 			'description' => 'Si estás harta de resultados artificiales y presupuestos engañosos, el Dr. Rivera Tejeda en NUVANX Madrid aplica criterio médico real sin vender infomerciales.',
 		),
 		'/remodelacion-corporal-laser-madrid/' => array(
-			'title'       => 'Remodelación Corporal Láser Madrid | Di Adiós a la Lipo y Flacidez',
-			'description' => 'La liposucción no es la única salida. NUVANX Contour Architecture™ en Madrid: remodelación láser precisa sin quirófano ni flacidez residual. Diagnóstico estricto.',
+			'title'       => 'Remodelación corporal láser en Madrid | NUVANX Contour Architecture',
+			'description' => 'NUVANX Contour Architecture™: remodelación corporal láser por unidades anatómicas. La liposucción no es la única salida. Remodelación láser precisa sin quirófano ni flacidez residual. Diagnóstico estricto.',
 		),
 		'/tratamiento-postparto-abdomen-contorno-corporal-madrid/' => array(
 			'title'       => 'Tratamiento Postparto Madrid | Criterio Médico Frente al Engaño',

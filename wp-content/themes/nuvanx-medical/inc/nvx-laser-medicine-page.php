@@ -185,7 +185,7 @@ function nvx_laser_editorial_body_markup(): string {
 	$html .= '<div class="nvx-laser-section__inner">';
 	$html .= '<p class="nvx-laser-kicker">' . esc_html__( 'Nuestras plataformas clínicas', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-laser-platforms-title" class="nvx-laser-heading">' . esc_html__( 'Tecnologías médicas de precisión', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<div class="nvx-laser-platform-list">';
+	$html .= '<div class="nvx-catalog-grid">';
 
 	$platforms = array(
 		array(
@@ -236,22 +236,15 @@ function nvx_laser_editorial_body_markup(): string {
 	);
 
 	foreach ( $platforms as $platform ) {
-		$html .= '<article class="nvx-laser-platform">';
-		$html .= '<div class="nvx-laser-platform__main">';
-		$html .= '<div class="nvx-laser-platform__head">';
-		$html .= nvx_laser_icon( $platform['icon'] );
-		$html .= '<p class="nvx-laser-platform__n">' . esc_html( $platform['n'] ) . '</p>';
+		$html .= '<article class="nvx-catalog-card">';
+		$html .= '<div class="nvx-catalog-card__main">';
+		$html .= '<h3 class="nvx-catalog-card__title">' . esc_html( $platform['title'] ) . '</h3>';
+		$html .= '<p class="nvx-catalog-card__body">' . esc_html( $platform['body'] ) . '</p>';
+		$html .= '<p class="nvx-catalog-card__meta"><strong>' . esc_html__( 'Objetivo clínico:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $platform['goal'] ) . '</p>';
+		$html .= '<p class="nvx-catalog-card__meta"><strong>' . esc_html__( 'Recuperación:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $platform['recover'] ) . '</p>';
 		$html .= '</div>';
-		$html .= '<h3 class="nvx-laser-platform__title">' . esc_html( $platform['title'] ) . '</h3>';
-		$html .= '<p class="nvx-laser-body">' . esc_html( $platform['body'] ) . '</p>';
-		$html .= '<p class="nvx-laser-platform__link-wrap"><a class="nvx-laser-platform__link" href="' . esc_url( $platform['url'] ) . '">' . esc_html__( 'Ver protocolo clínico', 'nuvanx-medical' ) . '</a></p>';
-		$html .= '</div>';
-		$html .= '<aside class="nvx-laser-platform__meta" aria-label="' . esc_attr__( 'Indicación y recuperación', 'nuvanx-medical' ) . '">';
-		$html .= '<p class="nvx-laser-meta-label">' . esc_html__( 'Objetivo clínico', 'nuvanx-medical' ) . '</p>';
-		$html .= '<p class="nvx-laser-body">' . esc_html( $platform['goal'] ) . '</p>';
-		$html .= '<p class="nvx-laser-meta-label nvx-laser-meta-label--spaced">' . esc_html__( 'Recuperación', 'nuvanx-medical' ) . '</p>';
-		$html .= '<p class="nvx-laser-body">' . esc_html( $platform['recover'] ) . '</p>';
-		$html .= '</aside></article>';
+		$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( $platform['url'] ) . '">' . esc_html__( 'Ver protocolo clínico', 'nuvanx-medical' ) . ' <span aria-hidden="true">&rarr;</span></a>';
+		$html .= '</article>';
 	}
 
 	$html .= '</div></div></section>';

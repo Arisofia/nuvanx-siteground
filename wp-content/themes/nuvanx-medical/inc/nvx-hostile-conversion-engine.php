@@ -35,10 +35,10 @@ function nvx_hostile_teardown_markup( $path ): string {
 
 	ob_start();
 	?>
-	<section class="nvx-editorial-section nvx-hostile-teardown" style="background-color: #0a0a0a; color: #ffffff; padding: 4rem 1.5rem; text-align: center; border-bottom: 2px solid #b79b6d;">
-		<div class="nvx-editorial-section__container" style="max-width: 800px; margin: 0 auto;">
-			<h2 class="nvx-editorial-title" style="color: #b79b6d; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 1px;"><?php echo esc_html( $pain_title ); ?></h2>
-			<p class="nvx-editorial-text" style="font-size: 1.1rem; line-height: 1.6;"><?php echo esc_html( $pain_text ); ?></p>
+	<section class="nvx-editorial-section nvx-hostile-teardown">
+		<div class="nvx-editorial-section__container">
+			<h2 class="nvx-editorial-title"><?php echo esc_html( $pain_title ); ?></h2>
+			<p class="nvx-editorial-text"><?php echo esc_html( $pain_text ); ?></p>
 		</div>
 	</section>
 	<?php
@@ -53,11 +53,11 @@ function nvx_hostile_teardown_markup( $path ): string {
 function nvx_hostile_authority_markup(): string {
 	ob_start();
 	?>
-	<section class="nvx-editorial-section nvx-hostile-authority" style="background-color: #f7f7f7; color: #1a1a1a; padding: 4rem 1.5rem; text-align: center;">
-		<div class="nvx-editorial-section__container" style="max-width: 800px; margin: 0 auto;">
-			<h2 class="nvx-editorial-title" style="margin-bottom: 1.5rem; font-weight: 700;">Autoridad Diagnóstica: Dr. Rivera Tejeda</h2>
-			<p class="nvx-editorial-text" style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 2rem;">"No aplicamos un láser sin entender la biometría del paciente. No inyectamos sin un objetivo anatómico. En NUVANX Madrid, el criterio clínico es innegociable."</p>
-			<a href="<?php echo esc_url( home_url( '/valoracion/' ) ); ?>" class="nvx-button nvx-button--primary" style="background: #1a1a1a; color: #fff; padding: 1rem 2rem; text-decoration: none; display: inline-block; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Solicitar Diagnóstico Médico Real</a>
+	<section class="nvx-editorial-section nvx-hostile-authority">
+		<div class="nvx-editorial-section__container">
+			<h2 class="nvx-editorial-title">Autoridad Diagnóstica: Dr. Rivera Tejeda</h2>
+			<p class="nvx-editorial-text">"No aplicamos un láser sin entender la biometría del paciente. No inyectamos sin un objetivo anatómico. En NUVANX Madrid, el criterio clínico es innegociable."</p>
+			<a href="<?php echo esc_url( home_url( '/valoracion/' ) ); ?>" class="nvx-button nvx-button--primary">Solicitar Diagnóstico Médico Real</a>
 		</div>
 	</section>
 	<?php

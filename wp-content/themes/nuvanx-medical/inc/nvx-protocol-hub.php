@@ -39,15 +39,16 @@ function nvx_protocol_hub_card( string $title, string $body, string $path ): str
 /** Build the complete Signature hub. */
 function nvx_protocol_hub_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-hub nvx-shell">';
-	$html .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">' . esc_html__( 'MEDICINA ESTÉTICA DE DIAGNÓSTICO', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Protocolos Signature: Medicina estética de diagnóstico.', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Sistemas médicos que conectan diagnóstico anatómico, selección tecnológica, planificación y seguimiento. La tecnología no define el protocolo: la indicación determina qué herramienta puede aportar valor.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p></header>';
+	$html .= '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero"><div class="nvx-brand-hero__inner"><div class="nvx-editorial-hero__copy">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'MEDICINA ESTÉTICA DE DIAGNÓSTICO', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-heading">' . esc_html__( 'Protocolos Signature: Medicina estética de diagnóstico.', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-lead">' . esc_html__( 'Sistemas médicos que conectan diagnóstico anatómico, selección tecnológica, planificación y seguimiento. La tecnología no define el protocolo: la indicación determina qué herramienta puede aportar valor.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-brand-actions"><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></div></div></div></section>';
 
-	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Nuestro estándar: La firma NUVANX', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'Cada protocolo parte de la valoración médica, define límites y alternativas, documenta la indicación y establece el seguimiento antes de ampliar o combinar zonas.', 'nuvanx-medical' ) . '</p></section>';
+	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">' . esc_html__( 'Nuestro estándar: La firma NUVANX', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'Cada protocolo parte de la valoración médica, define límites y alternativas, documenta la indicación y establece el seguimiento antes de ampliar o combinar zonas.', 'nuvanx-medical' ) . '</p></div></section>';
 
-	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Contorno Corporal y Posgestacional', 'nuvanx-medical' ) . '</h2><div class="nvx-catalog-grid">';
+	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">' . esc_html__( 'Contorno Corporal y Posgestacional', 'nuvanx-medical' ) . '</h2><div class="nvx-catalog-grid">';
 	$html .= nvx_protocol_hub_card(
 		'NUVANX Contour Architecture™',
 		'Remodelación corporal por unidades anatómicas para diferenciar grasa localizada, laxitud, calidad cutánea y continuidad del contorno.',
@@ -58,9 +59,9 @@ function nvx_protocol_hub_markup(): string {
 		'Valoración posgestacional por componentes, con explicación de lo tratable y derivación cuando la medicina estética no es la vía adecuada.',
 		'/tratamiento-postparto-abdomen-contorno-corporal-madrid/'
 	);
-	$html .= '</div></section>';
+	$html .= '</div></div></section>';
 
-	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Arquitectura Facial y Calidad de Piel', 'nuvanx-medical' ) . '</h2><div class="nvx-catalog-grid">';
+	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">' . esc_html__( 'Arquitectura Facial y Calidad de Piel', 'nuvanx-medical' ) . '</h2><div class="nvx-catalog-grid">';
 	$html .= nvx_protocol_hub_card(
 		'NUVANX Profile Definition™',
 		'Diagnóstico de papada, cuello, mandíbula y mentón para diferenciar grasa, laxitud y soporte estructural.',
@@ -81,11 +82,11 @@ function nvx_protocol_hub_markup(): string {
 		'Abordaje de manchas, rojeces y fotodaño con selección de parámetros, cuidados o derivación según lesión y fototipo.',
 		'/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/'
 	);
-	$html .= '</div></section>';
+	$html .= '</div></div></section>';
 
-	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p>' . esc_html__( 'La consulta determina qué protocolo puede tener sentido, qué alternativas existen y en qué situaciones es preferible esperar, derivar o no intervenir.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a> <a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/soluciones-medicas/' ) ) . '">' . esc_html__( 'Explorar soluciones por anatomía', 'nuvanx-medical' ) . '</a></p></section>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a> <a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/soluciones-medicas/' ) ) . '">' . esc_html__( 'Explorar soluciones por anatomía', 'nuvanx-medical' ) . '</a></p></div></section>';
 	$html .= '</article>';
 	return $html;
 }

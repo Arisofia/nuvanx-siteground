@@ -1,6 +1,10 @@
 <?php
 /**
- * Anatomical zone pages (Phase 2).
+ * Governed anatomical solution pages — Phase 2.
+ *
+ * These pages explain one anatomical concern without prescribing a technology
+ * before medical assessment. Routes outside the approved roadmap remain out of
+ * this public catalogue.
  *
  * @package nuvanx-medical
  */
@@ -9,400 +13,197 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/**
- * Catalogue for Anatomical Zone Pages.
- *
- * @return array<string, array<string, mixed>>
- */
+/** @return array<string,array<string,mixed>> */
 function nvx_anatomical_pages_catalog(): array {
 	return array(
-		'tercio-superior' => array(
-			'slug'          => 'soluciones-medicas/rostro/tercio-superior',
-			'seo_title'     => 'Tratamientos Tercio Superior: Frente y Entrecejo | NUVANX',
-			'description'   => 'Valoración médica para líneas de expresión en frente y entrecejo. Relajamos la musculatura sin congelar tu mirada.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
-			'h1'            => 'Las arrugas de la frente no son el problema, son el síntoma de cómo gesticulas.',
-			'lead'          => 'Si te molestan esas líneas que se quedan marcadas incluso cuando estás seria, la mejor crema no servirá de nada porque el problema está en el músculo que hay debajo. Estudiamos tu forma de gesticular para relajar la zona sin que pierdas tu expresión natural.',
-			'diagnosis'     => 'Congelar la frente por sistema hace que las cejas caigan o que la expresión se vea plástica. Médicamente, diferenciamos entre arrugas dinámicas (causadas por contracción muscular) y estáticas (cuando la piel ya se ha fracturado) para decidir el enfoque.',
-			'mechanism'     => 'Si el problema es dinámico, utilizamos neuromoduladores en dosis ultra precisas para "educar" al músculo. Si ya existe una fractura en la piel, combinamos terapias de redensificación para rellenar la huella sin aportar volumen artificial.',
-			'indications'   => array(
-				'Líneas horizontales en la frente por hiperactividad muscular.',
-				'Surcos en el entrecejo (líneas del ceño fruncido) que dan aspecto de enfado.',
-				'Arrugas finas y pérdida de soporte en la zona lateral de los ojos (patas de gallo).',
+		'abdomen-flancos' => array(
+			'slug'        => 'grasa-localizada-abdomen-flancos-madrid',
+			'seo_title'   => 'Grasa localizada abdomen y flancos Madrid | NUVANX',
+			'description' => 'Valoración médica de abdomen y flancos para diferenciar grasa subcutánea, laxitud, pared abdominal y límites del tratamiento focal.',
+			'kicker'      => 'SOLUCIONES · CONTORNO CORPORAL',
+			'h1'          => 'Abdomen y flancos: grasa, piel y pared abdominal son diagnósticos distintos.',
+			'lead'        => 'El contorno no termina donde termina el abdomen. Valoramos abdomen superior e inferior, cintura, flancos y espalda baja como una continuidad anatómica.',
+			'diagnosis'   => 'La exploración diferencia grasa subcutánea, grasa visceral, laxitud, cicatrices y posibles alteraciones de la pared abdominal. Cada componente tiene un alcance terapéutico diferente.',
+			'objectives'  => array(
+				'Valorar grasa localizada susceptible de tratamiento focal.',
+				'Estudiar laxitud y calidad cutánea antes de plantear una modalidad térmica o de superficie.',
+				'Definir si conviene una unidad focal o una planificación de continuidad abdomen–flancos–espalda baja.',
 			),
-			'precautions'   => array(
-				'Infección o inflamación activa en la zona de inyección.',
-				'Antecedentes de patologías neuromusculares exigen valoración exhaustiva.',
-				'Expectativa de "congelación total" de la mirada (no realizamos tratamientos que borren la expresividad).',
+			'limits'      => array(
+				'No trata grasa visceral ni sustituye una estrategia de pérdida general de peso.',
+				'La diástasis, hernia o exceso importante de piel requieren valoración específica y pueden precisar derivación.',
+				'No se promete una reducción concreta antes de explorar el tejido.',
 			),
-			'process'       => array(
-				'Estudio de la dinámica muscular (te pediremos que gesticules, te enfades y te sorprendas).',
-				'Diseño del mapa de inyección adaptado a tu asimetría natural.',
-				'Intervención ambulatoria y revisión médica a los 15 días para evaluar la relajación y hacer reajustes si es necesario.',
+			'process'     => array(
+				'Historia clínica y exploración de abdomen, flancos, piel y pared abdominal.',
+				'Cartografía de unidades anatómicas y selección de prioridades.',
+				'Plan escrito con alternativas, cuidados, revisiones e inversión.',
 			),
-			'faqs'          => array(
-				array(
-					'q' => '¿Perderé la expresividad en la mirada?',
-					'a' => 'No. Nuestra filosofía es la "intervención mínima". Tratamos el músculo justo para que dejes de fracturar la piel, pero manteniendo la capacidad de expresar emociones.',
-				),
-				array(
-					'q' => '¿Cuánto tiempo duran los resultados?',
-					'a' => 'La relajación muscular suele durar entre 3 y 5 meses, dependiendo de la fuerza de tu músculo y tu metabolismo.',
-				),
-			),
-			'review_status' => 'approved_for_publication',
 		),
-		'mirada' => array(
-			'slug'          => 'soluciones-medicas/rostro/mirada',
-			'seo_title'     => 'Tratamientos para la Mirada: Ojeras y Párpados | NUVANX',
-			'description'   => 'Diagnóstico de la región periocular. Diferenciamos hundimiento, bolsas y pigmentación para proponer el tratamiento médico adecuado.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
-			'h1'            => 'Tu mirada no siempre refleja lo cansada que estás; a veces es solo la anatomía.',
-			'lead'          => 'Tener "cara de cansada" durmiendo ocho horas no se arregla con más sueño ni con correctores mágicos. El problema suele ser cómo la luz incide sobre tus ojos debido a un déficit de soporte óseo o calidad de piel.',
-			'diagnosis'     => 'Rechazamos los rellenos indiscriminados. Diferenciamos estrictamente entre un surco lagrimal hundido (falta de hueso/grasa), componente vascular, pigmentación y bolsas grasas reales. Tratar una bolsa inyectando ácido hialurónico es un error médico que empeora el aspecto.',
-			'mechanism'     => 'Si falta soporte, usamos inyectables estructurales profundos. Si el problema es de calidad cutánea, empleamos tecnología de redensificación. Si hay bolsas severas, te derivaremos a cirugía.',
-			'indications'   => array(
-				'Hundimiento del surco lagrimal que genera sombras (falsas ojeras).',
-				'Piel fina y apergaminada en el párpado inferior.',
-				'Pigmentación o exceso vascular (ojeras marrones o moradas).',
+		'brazos' => array(
+			'slug'        => 'flacidez-grasa-localizada-brazos-madrid',
+			'seo_title'   => 'Flacidez y grasa localizada brazos Madrid | NUVANX',
+			'description' => 'Valoración médica de brazos y axila para diferenciar grasa localizada, laxitud y calidad cutánea antes de indicar tratamiento.',
+			'kicker'      => 'SOLUCIONES · CONTORNO CORPORAL',
+			'h1'          => 'El brazo se valora junto con la axila y el torso.',
+			'lead'        => 'La apariencia del brazo puede depender de grasa localizada, laxitud, calidad de piel o de la transición con la axila anterior y el torso.',
+			'diagnosis'   => 'Se examinan distribución del tejido, reserva cutánea, asimetrías y continuidad con las zonas adyacentes. Una intervención focal solo se plantea cuando puede mantener una transición coherente.',
+			'objectives'  => array(
+				'Valorar grasa localizada y laxitud en cara interna y posterior del brazo.',
+				'Estudiar continuidad con axila anterior y torso superior.',
+				'Determinar si el alcance médico-estético es suficiente o existe indicación quirúrgica.',
 			),
-			'precautions'   => array(
-				'Presencia de bolsas grasas reales severas (requieren valoración para blefaroplastia).',
-				'Retención de líquidos o edema malar (el ácido hialurónico agravará el problema).',
-				'Expectativas poco realistas sobre la pigmentación congénita oscura.',
+			'limits'      => array(
+				'El exceso importante de piel puede no responder de forma adecuada a tecnologías focales.',
+				'No se indica una combinación de zonas sin una justificación anatómica.',
+				'La evolución depende del tejido y no puede garantizarse antes de la valoración.',
 			),
-			'process'       => array(
-				'Análisis óseo y estructural de la transición párpado-mejilla.',
-				'Evaluación de la laxitud cutánea y la presencia de edema.',
-				'Diseño del plan (soporte inyectable, tecnología o derivación quirúrgica).',
+			'process'     => array(
+				'Exploración bilateral de brazos, axilas y torso.',
+				'Clasificación del componente predominante y del grado de laxitud.',
+				'Plan focal o de continuidad con seguimiento médico definido.',
 			),
-			'faqs'          => array(
-				array(
-					'q' => '¿Se puede quitar una ojera oscura con ácido hialurónico?',
-					'a' => 'No. El ácido hialurónico da volumen y corrige hundimientos. Si el problema es puro color (pigmentación), se requieren despigmentantes o tecnología.',
-				),
-			),
-			'review_status' => 'approved_for_publication',
 		),
-		'tercio-medio' => array(
-			'slug'          => 'soluciones-medicas/rostro/tercio-medio',
-			'seo_title'     => 'Tratamientos Tercio Medio: Pómulos y Surcos | NUVANX',
-			'description'   => 'Soporte facial sin exceso de volumen. Tratamos la flacidez del tercio medio devolviendo la estructura natural al rostro.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
-			'h1'            => 'Rellenar los surcos nasogenianos sin dar soporte a los pómulos es como tapar una grieta sin arreglar los cimientos.',
-			'lead'          => 'Si te ves la cara caída o los surcos muy marcados, la tentación es rellenar la arruga directamente. Pero esa arruga suele formarse porque el pómulo y la mejilla han perdido soporte y la piel "cae".',
-			'diagnosis'     => 'Diferenciamos la pérdida de volumen profundo (grasa o hueso que desaparece con la edad) de la laxitud cutánea superficial. Añadir volumen cuando el problema es laxitud solo consigue una "cara de globo" antinatural.',
-			'mechanism'     => 'En lugar de rellenar la arruga, aplicamos inyectables estructurales en vectores ascendentes para dar soporte a los ligamentos del pómulo, o utilizamos bioestimuladores si lo que necesitas es generar colágeno nuevo.',
-			'indications'   => array(
-				'Pérdida de proyección y soporte en la zona de los pómulos.',
-				'Aplanamiento de las mejillas y descolgamiento del tercio medio.',
-				'Surcos nasogenianos marcados por gravedad (caída del tejido).',
+		'espalda-sujetador' => array(
+			'slug'        => 'grasa-espalda-zona-sujetador-madrid',
+			'seo_title'   => 'Grasa espalda y zona del sujetador Madrid | NUVANX',
+			'description' => 'Valoración médica de espalda, zona del sujetador y flancos para diferenciar grasa, laxitud y efecto de la prenda.',
+			'kicker'      => 'SOLUCIONES · CONTORNO CORPORAL',
+			'h1'          => 'Espalda, sujetador y flancos forman una misma arquitectura.',
+			'lead'        => 'Los pliegues pueden depender de grasa localizada, laxitud, continuidad con los flancos o del ajuste de la prenda. La exploración separa estos componentes.',
+			'diagnosis'   => 'Se valora espalda superior e inferior, zona del sujetador, flancos y brazos para evitar tratar una prominencia sin comprender la transición completa.',
+			'objectives'  => array(
+				'Identificar grasa localizada susceptible de abordaje focal.',
+				'Valorar laxitud y calidad cutánea en una zona de pliegues y fricción.',
+				'Diseñar una transición proporcionada con flancos y brazos cuando corresponde.',
 			),
-			'precautions'   => array(
-				'Acúmulo de grasa malar (exceso de peso en la mejilla).',
-				'Laxitud extrema que requiere lifting quirúrgico.',
-				'Solicitudes de volumen excesivo que desvirtúen la anatomía original.',
+			'limits'      => array(
+				'Una prenda inadecuada puede modificar el aspecto y debe diferenciarse del tejido tratable.',
+				'No se promete eliminar todos los pliegues ni modificar una anatomía completa mediante una sola zona.',
+				'La indicación depende del espesor, la piel y los antecedentes.',
 			),
-			'process'       => array(
-				'Palpación de los ligamentos de retención facial.',
-				'Planificación de los vectores de tracción o reposicionamiento.',
-				'Infiltración profunda supra-perióstica para máximo soporte sin dar aspecto de cara ancha.',
+			'process'     => array(
+				'Exploración de pie y revisión de la continuidad posterior y lateral.',
+				'Cartografía de zonas tratables y exclusión de prominencias no susceptibles de tratamiento.',
+				'Plan documentado con límites y seguimiento.',
 			),
-			'faqs'          => array(
-				array(
-					'q' => '¿Me cambiará la forma de la cara?',
-					'a' => 'Al revés. Buscamos devolverte la estructura que tenías hace años, no crearte unos pómulos que no son tuyos.',
-				),
-			),
-			'review_status' => 'approved_for_publication',
 		),
-		'labios' => array(
-			'slug'          => 'soluciones-medicas/rostro/labios',
-			'seo_title'     => 'Tratamientos de Labios y Zona Perioral | NUVANX',
-			'description'   => 'Hidratación, perfilado y recuperación del labio. Armonizamos la zona perioral sin volúmenes artificiales.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
-			'h1'            => 'Un labio bonito no es el que más resalta, es el que mejor encaja en tus proporciones.',
-			'lead'          => 'Huimos de los volúmenes exagerados y los perfiles plásticos. Nuestro objetivo es hidratar, corregir asimetrías o recuperar la estructura que los labios pierden con el tiempo.',
-			'diagnosis'     => 'Evaluamos si necesitas volumen, si solo buscas hidratación profunda sin cambiar la forma, o si el problema principal está en la zona de alrededor (código de barras, sonrisa gingival o comisuras caídas).',
-			'mechanism'     => 'Empleamos ácidos hialurónicos dinámicos, diseñados específicamente para integrarse en el tejido muscular del labio y moverse contigo cuando hablas o sonríes, evitando bultos y rigidez.',
-			'indications'   => array(
-				'Pérdida de hidratación y afinamiento del tejido labial.',
-				'Asimetrías o falta de definición en el arco de Cupido y contornos.',
-				'Arrugas periorales (código de barras) y comisuras caídas.',
+		'muslos-subgluteo' => array(
+			'slug'        => 'flacidez-muslos-internos-subgluteo-madrid',
+			'seo_title'   => 'Flacidez muslos internos y región subglútea Madrid | NUVANX',
+			'description' => 'Valoración de muslos internos, externos y región subglútea para diferenciar grasa localizada, laxitud y celulitis estructural.',
+			'kicker'      => 'SOLUCIONES · CONTORNO CORPORAL',
+			'h1'          => 'No tratamos “piernas”: estudiamos continuidad, laxitud y proporción.',
+			'lead'        => 'Muslo interno, cara externa, región subglútea y rodilla pueden compartir una transición visual, pero no necesariamente el mismo diagnóstico.',
+			'diagnosis'   => 'La exploración diferencia grasa localizada, laxitud, celulitis estructural, asimetrías y calidad cutánea. Estas condiciones requieren mecanismos distintos.',
+			'objectives'  => array(
+				'Valorar unidades concretas del muslo y su relación con cadera, glúteo y rodilla.',
+				'Diferenciar grasa, laxitud y alteraciones de superficie antes de seleccionar tecnología.',
+				'Priorizar una intervención proporcionada sin perseguir una forma corporal estándar.',
 			),
-			'precautions'   => array(
-				'Infecciones activas o herpes labial agudo (debe tratarse previamente).',
-				'Anatomía que no admite más producto (si hay migración de rellenos anteriores, primero disolvemos).',
-				'Peticiones de volúmenes desproporcionados respecto a la base ósea y dental.',
+			'limits'      => array(
+				'La celulitis no equivale a grasa localizada ni responde al mismo abordaje.',
+				'El exceso importante de piel puede requerir otra vía terapéutica.',
+				'No todas las unidades deben tratarse en el mismo plan.',
 			),
-			'process'       => array(
-				'Análisis dinámico: te observamos hablando y sonriendo.',
-				'Diseño del tratamiento: elección de la densidad del ácido hialurónico.',
-				'Inyección conservadora y masaje de integración.',
+			'process'     => array(
+				'Exploración de pie y comparación bilateral.',
+				'Mapa de grasa, laxitud, superficie y transiciones anatómicas.',
+				'Plan por prioridades con seguimiento fotográfico consistente.',
 			),
-			'faqs'          => array(
-				array(
-					'q' => '¿Qué pasa si ya llevo relleno de otro sitio y no me gusta?',
-					'a' => 'Si el producto anterior está mal posicionado o migrado, lo honesto es disolverlo con hialuronidasa, dejar que el tejido se recupere, y empezar de cero.',
-				),
-			),
-			'review_status' => 'approved_for_publication',
 		),
-		'tercio-inferior' => array(
-			'slug'          => 'soluciones-medicas/rostro/tercio-inferior',
-			'seo_title'     => 'Tratamientos Tercio Inferior: Mandíbula y Cuello | NUVANX',
-			'description'   => 'Definición del óvalo facial y tratamiento de papada y cuello sin cirugía. Diagnóstico estructural avanzado.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
-			'h1'            => 'A veces no hay papada real: lo que pasa es que el mentón es pequeño y la piel cuelga por falta de soporte.',
-			'lead'          => 'El tercio inferior delata el paso del tiempo por la pérdida de definición en la mandíbula y la flacidez del cuello. Antes de intentar quemar grasa o estirar la piel, medimos tus proporciones óseas.',
-			'diagnosis'     => 'Separamos claramente la grasa submentoniana (papada), la flacidez cutánea, la hipertrofia del músculo masetero y el déficit óseo (micrognatia). Un mal diagnóstico aquí deriva en caras cuadradas o tratamientos inútiles.',
-			'mechanism'     => 'Proporcionamos soporte con inyectables de alta densidad en mentón y ángulo mandibular, relajamos músculos depresores con neuromoduladores, o eliminamos grasa y tensamos piel mediante tecnología láser (Endoláser o radiofrecuencia).',
-			'indications'   => array(
-				'Pérdida de definición en la línea mandibular ("jowls" o "caritas de bulldog").',
-				'Papada por acúmulo graso o laxitud cutánea.',
-				'Mentón retraído que desequilibra el perfil.',
+		'rodillas' => array(
+			'slug'        => 'tratamiento-rodillas-grasa-flacidez-madrid',
+			'seo_title'   => 'Grasa y flacidez en rodillas Madrid | NUVANX',
+			'description' => 'Valoración médica de la región de las rodillas para diferenciar grasa localizada, laxitud, edema y continuidad con el muslo.',
+			'kicker'      => 'SOLUCIONES · CONTORNO CORPORAL',
+			'h1'          => 'La región de la rodilla exige precisión y expectativas proporcionadas.',
+			'lead'        => 'Una prominencia alrededor de la rodilla puede depender de grasa localizada, laxitud, edema o de la transición con el muslo interno.',
+			'diagnosis'   => 'La zona tiene poco margen anatómico y requiere diferenciar tejido tratable de estructuras normales, edema u otras alteraciones que no corresponden a medicina estética.',
+			'objectives'  => array(
+				'Valorar grasa localizada y calidad cutánea en la cara interna o superior de la rodilla.',
+				'Estudiar continuidad con muslo interno y asimetrías.',
+				'Descartar edema, alteraciones vasculares o problemas articulares que requieren otra valoración.',
 			),
-			'precautions'   => array(
-				'Flacidez severa ("cuello de pavo") con clara indicación de lifting quirúrgico.',
-				'Micrognatia severa (falta de hueso extrema) tributaria de cirugía ortognática.',
-				'Infiltrar ácido hialurónico en pacientes con rostros muy pesados (añade más anchura).',
+			'limits'      => array(
+				'No se trata dolor articular, edema de causa médica ni alteraciones vasculares.',
+				'La mejora posible suele ser focal y debe explicarse con prudencia.',
+				'La indicación depende del espesor y de la seguridad de la zona.',
 			),
-			'process'       => array(
-				'Análisis del perfil, proyección del mentón y calidad de la piel cervical.',
-				'Valoración de los paquetes grasos y la mordida.',
-				'Propuesta terapéutica (tecnología, inyectables o combinación).',
+			'process'     => array(
+				'Exploración local y revisión de antecedentes vasculares o articulares.',
+				'Comparación bilateral y valoración de continuidad con el muslo.',
+				'Decisión de tratar, observar o derivar según el diagnóstico.',
 			),
-			'faqs'          => array(
-				array(
-					'q' => '¿Se puede marcar la mandíbula solo con ácido hialurónico?',
-					'a' => 'Si hay grasa superpuesta, inyectar relleno solo ensanchará el rostro. Primero hay que tratar la grasa, y luego definir la estructura.',
-				),
-			),
-			'review_status' => 'approved_for_publication',
 		),
-		'abdomen-y-flancos' => array(
-			'slug'          => 'soluciones-medicas/cuerpo/abdomen-y-flancos',
-			'seo_title'     => 'Tratamientos de Abdomen y Flancos | NUVANX',
-			'description'   => 'Remodelación de abdomen y cintura. Diferenciamos grasa, laxitud y diástasis para ofrecer un resultado clínico real.',
-			'kicker'        => 'Soluciones Médicas: Cuerpo',
-			'h1'            => 'El abdomen no se arregla haciendo abdominales a ciegas. Medimos qué falla antes de actuar.',
-			'lead'          => 'La "tripita" rebelde que no se va con dieta puede ser grasa localizada, puede ser piel estirada tras fluctuaciones de peso, o puede ser una pared muscular débil. Tratar todo como si fuera grasa es perder el tiempo.',
-			'diagnosis'     => 'Realizamos una exploración médica para separar la grasa subcutánea (tratable con láser o radiofrecuencia) de la grasa visceral (interna), la diástasis de rectos y la laxitud de la piel.',
-			'mechanism'     => 'Destruimos los adipocitos y tensamos la piel en la misma sesión con Endoláser, o mejoramos la tonicidad muscular y redensificamos el tejido con plataformas electromagnéticas y radiofrecuencia fraccionada.',
-			'indications'   => array(
-				'Grasa localizada rebelde en abdomen y flancos ("michelines").',
-				'Flacidez cutánea tras pérdidas de peso o embarazos.',
-				'Pérdida de definición de la cintura.',
+		'contorno-masculino' => array(
+			'slug'        => 'contorno-corporal-masculino-madrid',
+			'seo_title'   => 'Contorno corporal masculino Madrid | NUVANX',
+			'description' => 'Valoración del contorno masculino en abdomen, cintura, pecho, espalda o mandíbula según anatomía y objetivos individuales.',
+			'kicker'      => 'SOLUCIONES · MEDICINA ESTÉTICA MASCULINA',
+			'h1'          => 'El contorno masculino se planifica según anatomía, no según una plantilla.',
+			'lead'        => 'Abdomen, cintura, pecho, espalda y mandíbula pueden requerir criterios de proporción y prioridades diferentes. El plan conserva rasgos individuales y evita imponer una forma estándar.',
+			'diagnosis'   => 'Se diferencia grasa localizada, laxitud, calidad cutánea, distribución glandular o muscular y situaciones que requieren valoración médica específica.',
+			'objectives'  => array(
+				'Valorar unidades anatómicas concretas y su continuidad.',
+				'Definir si el objetivo corresponde a grasa localizada, piel, soporte o superficie.',
+				'Seleccionar un plan discreto y compatible con la anatomía masculina del paciente.',
 			),
-			'precautions'   => array(
-				'Grasa visceral predominante (requiere dieta y ejercicio).',
-				'Diástasis severa o hernias no tratadas.',
-				'Faldón abdominal masivo (indicación de abdominoplastia).',
+			'limits'      => array(
+				'No sustituye una estrategia de pérdida de peso ni el tratamiento de una enfermedad.',
+				'Una alteración mamaria, masa o síntoma requiere evaluación diagnóstica antes de cualquier procedimiento estético.',
+				'No se promete definición muscular ni un patrón corporal concreto.',
 			),
-			'process'       => array(
-				'Palpación y ecografía de la pared abdominal.',
-				'Evaluación del grado de laxitud cutánea (pinch test).',
-				'Diseño de la topografía del tratamiento y selección de aparatología.',
+			'process'     => array(
+				'Historia clínica y exploración de las unidades solicitadas y contiguas.',
+				'Diagnóstico del componente predominante y explicación de alternativas.',
+				'Plan escrito con seguimiento y límites individualizados.',
 			),
-			'faqs'          => array(
-				array(
-					'q' => '¿El Endoláser duele?',
-					'a' => 'Se realiza bajo anestesia local, por lo que el procedimiento en sí no es doloroso. Notarás inflamación las semanas posteriores.',
-				),
-			),
-			'review_status' => 'approved_for_publication',
-		),
-		'brazos-y-espalda' => array(
-			'slug'          => 'soluciones-medicas/cuerpo/brazos-y-espalda',
-			'seo_title'     => 'Tratamientos para Flacidez en Brazos y Espalda | NUVANX',
-			'description'   => 'Tratamiento del descolgamiento en brazos y rollitos de la espalda. Tensamos el tejido desde dentro.',
-			'kicker'        => 'Soluciones Médicas: Cuerpo',
-			'h1'            => 'La piel de los brazos delata la pérdida de colágeno, pero podemos forzar su creación.',
-			'lead'          => 'El descolgamiento de la cara interna del brazo ("alas de murciélago") y los pliegues de la espalda bajo el sujetador son problemas mecánicos del tejido. Necesitan tensión estructural.',
-			'diagnosis'     => 'Determinamos si el volumen se debe a grasa localizada pesada, a pura laxitud de la piel, o a falta de masa muscular en el tríceps. Esto dicta si debemos "vaciar", "tensar", o ambas.',
-			'mechanism'     => 'Combinamos láser subdérmico para retraer el tejido de forma interna y radiofrecuencia potente para generar colágeno nuevo. A veces integramos inductores de colágeno inyectables para engrosar la dermis fina del brazo.',
-			'indications'   => array(
-				'Flacidez leve a moderada en la cara interna de los brazos.',
-				'Acúmulos grasos en la axila y la línea del sujetador en la espalda.',
-				'Pérdida de firmeza y piel apergaminada.',
-			),
-			'precautions'   => array(
-				'Descolgamientos masivos tras cirugías bariátricas (tributarios de braquioplastia quirúrgica).',
-				'Piel con estrías extremas sin capacidad elástica residual.',
-			),
-			'process'       => array(
-				'Marcaje en bipedestación (de pie) y con el brazo a 90 grados.',
-				'Aplicación del tratamiento tensado (láser o aparatología no invasiva).',
-				'Seguimiento y prescripción de presoterapia o prendas de compresión suaves si procede.',
-			),
-			'faqs'          => array(
-				array(
-					'q' => '¿Me quedará cicatriz?',
-					'a' => 'Nuestras opciones son mínimamente invasivas o no invasivas. En el caso del láser subdérmico, la incisión es del tamaño de una aguja, por lo que no deja cicatriz quirúrgica visible.',
-				),
-			),
-			'review_status' => 'approved_for_publication',
-		),
-		'tren-inferior' => array(
-			'slug'          => 'soluciones-medicas/cuerpo/tren-inferior',
-			'seo_title'     => 'Tratamientos Tren Inferior: Muslos, Glúteos y Rodillas | NUVANX',
-			'description'   => 'Remodelación de celulitis, grasa y flacidez en el tren inferior. Diagnóstico clínico de la piel.',
-			'kicker'        => 'Soluciones Médicas: Cuerpo',
-			'h1'            => 'No existe una sola "celulitis". Tratamos la fibrosis, la retención y la grasa de forma independiente.',
-			'lead'          => 'El tren inferior concentra celulitis, grasa localizada (cartucheras) y flacidez (cara interna del muslo, rodillas). Usar la misma máquina de masajes para todo es la razón por la que no ves resultados duraderos.',
-			'diagnosis'     => 'Diferenciamos el tipo de celulitis (edematosa, fibrosa o adiposa) y evaluamos la laxitud de la rodilla y el muslo. Si hay hoyuelos profundos (fibrosis), romperlos es el único camino.',
-			'mechanism'     => 'Liberamos los tractos fibrosos (hoyuelos) de forma manual o con tecnología avanzada (subcisión), mejoramos la calidad de la piel con radiofrecuencia y tratamos la grasa focalizada con láser subdérmico.',
-			'indications'   => array(
-				'Celulitis en cualquiera de sus fases (con especial éxito en celulitis fibrótica).',
-				'Grasa localizada en trocánteres (cartucheras) y cara interna de rodillas.',
-				'Flacidez en la región subglútea (banana roll) y cara interna de muslos.',
-			),
-			'precautions'   => array(
-				'Problemas vasculares o linfáticos severos (requieren abordaje médico específico).',
-				'Lipodistrofias o linfedemas que escapan al tratamiento puramente estético.',
-				'Falta de compromiso con los hábitos de vida (la celulitis requiere un enfoque 360).',
-			),
-			'process'       => array(
-				'Exploración del tejido, test de pellizco y marcaje de hoyuelos fibróticos.',
-				'Selección de tecnología: liberación de septos, tensado o lipólisis.',
-				'Pautas de actividad física, hidratación y drenaje linfático complementario.',
-			),
-			'faqs'          => array(
-				array(
-					'q' => '¿La celulitis se quita para siempre?',
-					'a' => 'La celulitis es una condición crónica del tejido conectivo femenino. Podemos mejorar drásticamente su aspecto, alisar los hoyuelos y tensar la piel, pero requerirá mantenimiento y buenos hábitos a largo plazo.',
-				),
-			),
-			'review_status' => 'approved_for_publication',
 		),
 	);
 }
 
-/** Identifies the current page's anatomical catalog entry. */
+/** Identify the approved anatomical page for the current request. */
 function nvx_anatomical_pages_current_key(): ?string {
 	if ( ! is_page() ) {
 		return null;
 	}
-
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	
-	// Support hierarchical matching (rostro/tercio-superior -> matches 'soluciones-medicas/rostro/tercio-superior')
-	// In WP, get_post_field 'post_name' only returns the final slug, not the full path.
-	// We need to check if the full path ends with this slug.
-	
+	$path = trim( (string) get_page_uri( get_queried_object_id() ), '/' );
 	foreach ( nvx_anatomical_pages_catalog() as $key => $page ) {
-		$catalog_slug_parts = explode('/', $page['slug']);
-		$catalog_final_slug = end($catalog_slug_parts);
-		
-		if ( $catalog_final_slug === $slug && 'approved_for_publication' === $page['review_status'] ) {
+		if ( $page['slug'] === $path ) {
 			return $key;
 		}
 	}
 	return null;
 }
 
-/** Universal 13-point markup renderer for anatomical zone pages. */
-function nvx_anatomical_pages_render_13_points( array $data ): string {
-	// Re-using the same solid structure we used for protocols and aesthetic treatments.
+/** Render one Phase 2 solution page. */
+function nvx_anatomical_pages_render( array $data ): string {
 	$html  = '<article class="nvx-brand-readable nvx-anatomical-page nvx-shell">';
-	
-	// 1. Hero / Intro
-	$html .= '<header class="nvx-strategy-intro">';
-	if ( ! empty( $data['kicker'] ) ) {
-		$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p><h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ) . '</h1><p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p><p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p></header>';
+	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Qué se valora', 'nuvanx-medical' ) . '</h2><p>' . esc_html( $data['diagnosis'] ) . '</p></section>';
+	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Objetivos clínicos posibles', 'nuvanx-medical' ) . '</h2><ul class="nvx-brand-list">';
+	foreach ( $data['objectives'] as $item ) {
+		$html .= '<li>' . esc_html( $item ) . '</li>';
 	}
-	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ?? $data['seo_title'] ) . '</h1>';
-	if ( ! empty( $data['lead'] ) ) {
-		$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
+	$html .= '</ul></section><section class="nvx-brand-section"><h2>' . esc_html__( 'Límites y derivación', 'nuvanx-medical' ) . '</h2><ul class="nvx-brand-list">';
+	foreach ( $data['limits'] as $item ) {
+		$html .= '<li>' . esc_html( $item ) . '</li>';
 	}
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
-	$html .= '</header>';
-
-	// 2. Diagnosis
-	if ( ! empty( $data['diagnosis'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'El valor del diagnóstico médico', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['diagnosis'] ) . '</p>';
-		$html .= '</section>';
+	$html .= '</ul></section><section class="nvx-brand-section"><h2>' . esc_html__( 'Proceso de valoración', 'nuvanx-medical' ) . '</h2><ol class="nvx-brand-list">';
+	foreach ( $data['process'] as $item ) {
+		$html .= '<li>' . esc_html( $item ) . '</li>';
 	}
-
-	// 3. Mechanism
-	if ( ! empty( $data['mechanism'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Mecanismo de acción', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['mechanism'] ) . '</p>';
-		$html .= '</section>';
-	}
-
-	// 4. Indications
-	if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Indicaciones: Qué tratamos', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['indications'] as $ind ) {
-			$html .= '<li>' . esc_html( $ind ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 5. Precautions
-	if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['precautions'] as $prec ) {
-			$html .= '<li>' . esc_html( $prec ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 6. Process
-	if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Proceso en clínica', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ol class="nvx-brand-list">';
-		foreach ( $data['process'] as $step ) {
-			$html .= '<li>' . esc_html( $step ) . '</li>';
-		}
-		$html .= '</ol></section>';
-	}
-
-	// 7. FAQs
-	if ( ! empty( $data['faqs'] ) && is_array( $data['faqs'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<div class="nvx-faq-accordion">';
-		foreach ( $data['faqs'] as $faq ) {
-			$html .= '<details class="nvx-faq-item">';
-			$html .= '<summary class="nvx-faq-question">' . esc_html( $faq['q'] ) . '</summary>';
-			$html .= '<div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-			$html .= '</details>';
-		}
-		$html .= '</div></section>';
-	}
-
-	$html .= '</article>';
+	$html .= '</ol></section><section class="nvx-brand-section"><h2>' . esc_html__( 'La tecnología se decide después', 'nuvanx-medical' ) . '</h2><p>' . esc_html__( 'La exploración determina si puede aportar valor una modalidad láser, radiofrecuencia, tratamiento de superficie, combinación secuencial o ninguna intervención. No todas las tecnologías se utilizan en todos los pacientes.', 'nuvanx-medical' ) . '</p><p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a></p></section></article>';
 	return $html;
 }
 
-/** Dispatches the markup for one approved anatomical page. */
-function nvx_anatomical_pages_markup( string $key, array $data ): string {
-	return nvx_anatomical_pages_render_13_points( $data );
-}
-
-/** Replaces the content of a matching approved anatomical page. */
+/** Replace content on an approved Phase 2 anatomical page. */
 function nvx_anatomical_pages_content_filter( string $content ): string {
 	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
 		return $content;
 	}
-
 	$key = nvx_anatomical_pages_current_key();
-	if ( null === $key ) {
-		return $content;
-	}
-
-	$data   = nvx_anatomical_pages_catalog()[ $key ];
-	$markup = nvx_anatomical_pages_markup( $key, $data );
-	return '' === $markup ? $content : $markup;
+	return null === $key ? $content : nvx_anatomical_pages_render( nvx_anatomical_pages_catalog()[ $key ] );
 }
 add_filter( 'the_content', 'nvx_anatomical_pages_content_filter', 22 );

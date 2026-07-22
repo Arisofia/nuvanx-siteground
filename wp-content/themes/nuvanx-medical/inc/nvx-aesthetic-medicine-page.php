@@ -131,10 +131,10 @@ function nvx_aesthetic_hero_ctas_markup(): string {
  * Hero copy.
  */
 function nvx_aesthetic_hero_copy_markup(): string {
-	$html  = '<div class="nvx-brand-hero__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Madrid', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-med-h1">' . esc_html__( 'Medicina Estética Avanzada con Criterio Clínico', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Restauramos el soporte estructural, la turgencia y la armonía del rostro mediante procedimientos médicos inyectables y regenerativos de alta precisión. Sin alterar tu identidad y guiados exclusivamente por el diagnóstico personalizado de nuestro equipo médico.', 'nuvanx-medical' ) . '</p>';
+	$html  = '<div class="nvx-editorial-hero__copy">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Madrid', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-heading" id="nvx-med-h1">' . esc_html__( 'Medicina Estética Avanzada con Criterio Clínico', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-lead">' . esc_html__( 'Restauramos el soporte estructural, la turgencia y la armonía del rostro mediante procedimientos médicos inyectables y regenerativos de alta precisión. Sin alterar tu identidad y guiados exclusivamente por el diagnóstico personalizado de nuestro equipo médico.', 'nuvanx-medical' ) . '</p>';
 	$html .= nvx_aesthetic_hero_ctas_markup();
 	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí (CS20144) · Salamanca–Goya (CS20073) · Preservación anatómica', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
@@ -165,7 +165,7 @@ function nvx_aesthetic_diagnosis_section_markup(): string {
 	);
 
 	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-brand-diagnosis-title">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'El diagnóstico', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'El diagnóstico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-brand-diagnosis-title">' . esc_html__( 'El diagnóstico antes del tratamiento', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En NUVANX, la indicación de un inyectable no parte de un menú estandarizado, sino de una lectura clínica profunda de los vectores de envejecimiento del rostro. Evaluamos tres parámetros críticos:', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-catalog-grid">';
@@ -256,7 +256,7 @@ function nvx_aesthetic_catalog_section_markup(): string {
 	);
 
 	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-brand-catalog-title">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Catálogo facial', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'Catálogo facial', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-brand-catalog-title">' . esc_html__( 'Procedimientos médico-estéticos faciales', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-catalog-grid">';
 
@@ -280,7 +280,7 @@ function nvx_aesthetic_catalog_section_markup(): string {
  */
 function nvx_aesthetic_regen_section_markup(): string {
 	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-brand-regen-title">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Regeneración', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'Regeneración', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-brand-regen-title">' . esc_html__( 'El estímulo biológico: firmeza sin volumen', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p>' . esc_html__( 'Los bioestimuladores (Sculptra®, Radiesse® y protocolos con PDRN) no rellenan: inducen una respuesta celular controlada en la dermis profunda. Los fibroblastos aumentan la síntesis de colágeno y matriz extracelular, densificando la piel y mejorando la turgencia con un resultado progresivo y natural.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h3>' . esc_html__( 'Criterio clínico', 'nuvanx-medical' ) . '</h3>';
@@ -297,7 +297,7 @@ function nvx_aesthetic_regen_section_markup(): string {
  */
 function nvx_aesthetic_faq_section_markup(): string {
 	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-brand-faq-title">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Preguntas clínicas', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'Preguntas clínicas', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-brand-faq-title">' . esc_html__( 'Rigor científico sobre inyectables y regeneración', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq-accordion">';
 

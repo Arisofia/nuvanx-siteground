@@ -17,7 +17,7 @@
   box-sizing: border-box;
 }
 
-.nvx-brand-hero__media, .nvx-page-hero__media, .nvx-brand-hero .nvx-brand-hero__media, .nvx-page-hero .nvx-brand-hero__media, .nvx-hero .nvx-brand-hero__media, .nvx-brand-hero__copy > .nvx-brand-hero__media, .nvx-hero__copy > .nvx-brand-hero__media, .nvx-page-hero__copy > .nvx-brand-hero__media, .nvx-hero__copy > .nvx-page-hero__media {
+.nvx-brand-hero__media, .nvx-page-hero__media, .nvx-brand-hero .nvx-brand-hero__media, .nvx-page-hero .nvx-brand-hero__media, .nvx-hero .nvx-brand-hero__media, .nvx-editorial-hero__copy > .nvx-brand-hero__media, .nvx-hero__copy > .nvx-brand-hero__media, .nvx-page-hero__copy > .nvx-brand-hero__media, .nvx-hero__copy > .nvx-page-hero__media {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -54,7 +54,7 @@
   display: none;
 }
 
-.nvx-brand-hero__copy::before,
+.nvx-editorial-hero__copy::before,
 .nvx-editorial-hero__copy::before,
 .nvx-page-hero__copy::before,
 .nvx-hero__copy::before {
@@ -71,7 +71,7 @@
   z-index: 2;
 }
 
-.nvx-brand-hero__copy > *:first-child,
+.nvx-editorial-hero__copy > *:first-child,
 .nvx-editorial-hero__copy > *:first-child,
 .nvx-page-hero__copy > *:first-child,
 .nvx-hero__copy > *:first-child {
@@ -80,19 +80,19 @@
 
 /* Overlay type — beat base ink colors via later cascade + higher specificity */
 
-.nvx-brand-hero__copy .nvx-title, .nvx-brand-hero__copy .nvx-heading, .nvx-editorial-hero__copy h1, .nvx-page-hero__copy .nvx-title, .nvx-hero__copy .nvx-title {
+.nvx-editorial-hero__copy .nvx-title, .nvx-editorial-hero__copy .nvx-heading, .nvx-editorial-hero__copy h1, .nvx-page-hero__copy .nvx-title, .nvx-hero__copy .nvx-title {
   margin: 0 0 0.65em;
   max-width: 22ch;
   color: var(--nvx-light);
   text-wrap: balance;
 }
 
-.nvx-brand-hero__copy .nvx-brand-hero__lead, .nvx-brand-hero__copy .nvx-brand-hero__description, .nvx-brand-hero__copy .nvx-lead, .nvx-brand-hero__copy .nvx-subtitle, .nvx-brand-hero__copy .nvx-hero-subtitle, .nvx-editorial-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-subtitle, .nvx-page-hero__copy .nvx-hero-subtitle, .nvx-hero__copy .nvx-subtitle, .nvx-hero__copy .nvx-hero-subtitle, .nvx-hero__copy p {
+.nvx-editorial-hero__copy .nvx-lead, .nvx-editorial-hero__copy .nvx-lead, .nvx-editorial-hero__copy .nvx-lead, .nvx-editorial-hero__copy .nvx-subtitle, .nvx-editorial-hero__copy .nvx-hero-subtitle, .nvx-editorial-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-subtitle, .nvx-page-hero__copy .nvx-hero-subtitle, .nvx-hero__copy .nvx-subtitle, .nvx-hero__copy .nvx-hero-subtitle, .nvx-hero__copy p {
   max-width: 42ch;
   color: var(--nvx-text-on-dark-90);
 }
 
-.nvx-brand-hero__copy .nvx-page__cta {
+.nvx-editorial-hero__copy .nvx-page__cta {
   margin-top: var(--nvx-space-3);
 }
 
@@ -122,7 +122,7 @@
   margin-top: var(--nvx-gap-wide, var(--nvx-space-4));
 }
 
-.nvx-values-section .nvx-brand-kicker {
+.nvx-values-section .nvx-eyebrow {
   color: var(--nvx-accent-muted, var(--nvx-text-muted));
 }
 
@@ -356,20 +356,20 @@
   padding-block: var(--nvx-pad-section);
 }
 
-.nvx-endolift-hero .nvx-brand-kicker,
+.nvx-endolift-hero .nvx-eyebrow,
 .nvx-endolift-hero .nvx-brand-meta {
   color: var(--nvx-text-on-dark-72);
 }
 
-.nvx-endolift-hero .nvx-brand-hero__title {
+.nvx-endolift-hero .nvx-heading {
   color: var(--nvx-text-on-dark);
 }
 
-.nvx-endolift-hero .nvx-brand-hero__lead {
+.nvx-endolift-hero .nvx-lead {
   color: var(--nvx-text-on-dark-90);
 }
 
-.nvx-endolift-hero-copy .nvx-brand-hero__description {
+.nvx-endolift-hero-copy .nvx-lead {
   max-width: 48ch;
   margin-top: var(--nvx-space-2);
   color: var(--nvx-text-on-dark-88);
@@ -767,22 +767,22 @@
    Section pad: var(--nvx-space-12) mobile / 120px desktop · var(--nvx-space-1) system
    ═══════════════════════════════════════════════════════════ */
 
-.nvx-laser-hero .nvx-brand-kicker,
+.nvx-laser-hero .nvx-eyebrow,
 .nvx-laser-hero .nvx-brand-meta {
   color: var(--nvx-text-on-dark-72);
 }
 
-.nvx-laser-hero .nvx-brand-hero__title {
+.nvx-laser-hero .nvx-heading {
   color: var(--nvx-text-on-dark);
   max-width: 16ch;
 }
 
-.nvx-laser-hero .nvx-brand-hero__lead {
+.nvx-laser-hero .nvx-lead {
   max-width: 60ch;
   color: var(--nvx-text-on-dark-92);
 }
 
-.nvx-laser-hero-copy .nvx-brand-hero__description {
+.nvx-laser-hero-copy .nvx-lead {
   max-width: 60ch;
   margin-top: var(--nvx-space-2);
   color: var(--nvx-text-on-dark-88);

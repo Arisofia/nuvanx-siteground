@@ -203,7 +203,7 @@ function nvx_signature_phase_list( string $title, array $items, string $class = 
  */
 function nvx_signature_phase_markup( array $page ): string {
     $html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-signature-phase-page nvx-shell">';
-    $html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">' . esc_html( (string) $page['kicker'] ) . '</p>';
+    $html .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">' . esc_html( (string) $page['kicker'] ) . '</p>';
     $html .= '<h1 class="nvx-strategy-title">' . esc_html( (string) $page['title'] ) . '</h1>';
     $html .= '<p class="nvx-brand-lead">' . esc_html( (string) $page['lead'] ) . '</p><p>' . esc_html( (string) $page['intro'] ) . '</p>';
     $html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';

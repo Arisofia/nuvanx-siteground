@@ -79,7 +79,7 @@ function nvx_strategy_solution_card( string $title, string $problem, string $lim
 function nvx_strategy_solutions_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
-	$html .= '<p class="nvx-brand-kicker">NUVANX · Soluciones médicas</p>';
+	$html .= '<p class="nvx-eyebrow">NUVANX · Soluciones médicas</p>';
 	$html .= '<h1 class="nvx-strategy-title">Soluciones médicas para rostro, piel y contorno corporal.</h1>';
 	$html .= '<p class="nvx-brand-lead">Dos personas pueden odiar lo mismo de su papada y necesitar tratamientos totalmente distintos — una tiene grasa, la otra solo piel floja. Por eso no te vamos a enseñar un catálogo de máquinas para que elijas: primero miramos qué tienes tú, y de ahí sale el plan.</p>';
 	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">Solicitar valoración médica</a></p>';
@@ -198,7 +198,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$investment    = nvx_strategy_published_url( 'investment' );
 
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
-	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">Criterio médico NUVANX</p>';
+	$html .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">Criterio médico NUVANX</p>';
 	$html .= '<h1 class="nvx-strategy-title">Por qué NUVANX. Sin retórica de marketing.</h1>';
 	$html .= '<p class="nvx-brand-lead">Diagnóstico, responsabilidad médica identificada, trazabilidad, privacidad y seguimiento. Estos son los criterios concretos con los que organizamos la atención.</p></header>';
 
@@ -346,7 +346,7 @@ function nvx_strategy_investment_markup(): string {
 
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
-	$html .= '<p class="nvx-brand-kicker">Inversión en medicina estética · NUVANX Madrid</p>';
+	$html .= '<p class="nvx-eyebrow">Inversión en medicina estética · NUVANX Madrid</p>';
 	$html .= '<h1 class="nvx-strategy-title">El presupuesto forma parte de una decisión informada.</h1>';
 	$html .= '<p class="nvx-brand-lead">Publicamos tarifas verificadas porque respetamos tu tiempo. La indicación, el alcance exacto y el importe final se confirman después de la valoración médica presencial.</p>';
 	$html .= '</header>';

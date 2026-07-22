@@ -21,7 +21,7 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
 /* Post-values action banner — warm-neutral dark surface + canonical pill CTAs. */
 .nvx-home-action-banner__copy{max-width:55ch}
 .nvx-home-action-banner__kicker,
-.nvx-home-action-banner .nvx-brand-kicker{
+.nvx-home-action-banner .nvx-eyebrow{
   margin:0 0 var(--nvx-space-2);
   color:var(--nvx-text-on-dark-72);
 }

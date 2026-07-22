@@ -90,7 +90,7 @@ function nvx_home_faq_v2_catalog(): array {
 function nvx_home_faq_v2_markup(): string {
 	$html  = '<section id="nvx-home-faq" class="nvx-brand-section nvx-home-faq-editorial" aria-labelledby="nvx-home-faq-title" data-nvx-faq-source="canonical" data-nvx-home-content="faq-v2">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-home-faq-title" class="nvx-brand-title">' . esc_html__( 'Información clara antes de decidir', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq nvx-brand-faq-accordion">';
 	foreach ( nvx_home_faq_v2_catalog() as $faq ) {

@@ -52,7 +52,7 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 	$html  = '<div class="nvx-que-exigir-editorial">';
 	
 	// Hero
-	$html .= '<h1 class="nvx-brand-hero__title nvx-que-exigir-h1" id="nvx-que-exigir-h1">' . esc_html__( 'Qué exigir por escrito antes de operarte en una clínica estética de Madrid', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<h1 class="nvx-heading nvx-que-exigir-h1" id="nvx-que-exigir-h1">' . esc_html__( 'Qué exigir por escrito antes de operarte en una clínica estética de Madrid', 'nuvanx-medical' ) . '</h1>';
 	
 	// E-E-A-T Byline
 	$html .= '<div class="nvx-medical-byline nvx-medical-byline--border">';

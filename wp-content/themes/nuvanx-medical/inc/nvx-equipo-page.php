@@ -61,11 +61,11 @@ function nvx_equipo_hero_copy_markup(): string {
 	$colegiado_ivon  = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 	$colegiado_fabio = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
 
-	$html  = '<div class="nvx-brand-hero__copy nvx-equipo-hero-copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Equipo médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-equipo-h1">' . esc_html__( 'Equipo médico NUVANX: quién te valora y quién trata', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'En muchas clínicas, quien te atiende al principio no es quien luego te trata — te ve un comercial, y el médico solo aparece para aplicar lo que ya se vendió. Aquí no. La persona que te explora es la misma que te trata y la que te sigue viendo después. Nadie cambia a mitad de tu plan.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
+	$html  = '<div class="nvx-editorial-hero__copy nvx-equipo-hero-copy">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Equipo médico', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-heading" id="nvx-equipo-h1">' . esc_html__( 'Equipo médico NUVANX: quién te valora y quién trata', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-lead">' . esc_html__( 'En muchas clínicas, quien te atiende al principio no es quien luego te trata — te ve un comercial, y el médico solo aparece para aplicar lo que ya se vendió. Aquí no. La persona que te explora es la misma que te trata y la que te sigue viendo después. Nadie cambia a mitad de tu plan.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-lead">' . esc_html(
 		sprintf(
 			/* translators: 1: director license, 2: Dra. Ivon license, 3: Dr. Fabio license */
 			__( 'Dr. José Javier Rivera Tejeda (ICOMEM %1$s), director médico; Dra. Ivon Yamileth Rivera Deras (ICOMEM %2$s), well-aging y geriatría preventiva; y Dr. Fabio Augusto Quiñónez Bareiro (ICOMEM %3$s), geriatría y paciente complejo — junto al resto del equipo clínico NUVANX.', 'nuvanx-medical' ),

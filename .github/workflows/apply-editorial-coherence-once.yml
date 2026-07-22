@@ -40,6 +40,18 @@ jobs:
           }
           run_check migration python scripts/design-system/apply-editorial-coherence.py || status=$?
           if [[ "${status:-0}" -eq 0 ]]; then
+            python <<'PY'
+          from pathlib import Path
+          path = Path('wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php')
+          text = path.read_text(encoding='utf-8')
+          had_final_newline = text.endswith('\n')
+          cleaned = '\n'.join(line.rstrip() for line in text.splitlines())
+          if had_final_newline:
+              cleaned += '\n'
+          path.write_text(cleaned, encoding='utf-8', newline='\n')
+          PY
+          fi
+          if [[ "${status:-0}" -eq 0 ]]; then
             run_check php-lint bash -c "find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n1 php -l" || status=$?
           fi
           if [[ "${status:-0}" -eq 0 ]]; then

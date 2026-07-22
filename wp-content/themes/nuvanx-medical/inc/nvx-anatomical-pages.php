@@ -301,93 +301,10 @@ function nvx_anatomical_pages_current_key(): ?string {
 	return null;
 }
 
-/** Universal 13-point markup renderer for anatomical zone pages. */
-function nvx_anatomical_pages_render_13_points( array $data ): string {
-	// Re-using the same solid structure we used for protocols and aesthetic treatments.
-	$html  = '<article class="nvx-brand-readable nvx-anatomical-page nvx-shell">';
-	
-	// 1. Hero / Intro
-	$html .= '<header class="nvx-strategy-intro">';
-	if ( ! empty( $data['kicker'] ) ) {
-		$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
-	}
-	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ?? $data['seo_title'] ) . '</h1>';
-	if ( ! empty( $data['lead'] ) ) {
-		$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
-	}
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
-	$html .= '</header>';
-
-	// 2. Diagnosis
-	if ( ! empty( $data['diagnosis'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'El valor del diagnóstico médico', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['diagnosis'] ) . '</p>';
-		$html .= '</section>';
-	}
-
-	// 3. Mechanism
-	if ( ! empty( $data['mechanism'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Mecanismo de acción', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['mechanism'] ) . '</p>';
-		$html .= '</section>';
-	}
-
-	// 4. Indications
-	if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Indicaciones: Qué tratamos', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['indications'] as $ind ) {
-			$html .= '<li>' . esc_html( $ind ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 5. Precautions
-	if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['precautions'] as $prec ) {
-			$html .= '<li>' . esc_html( $prec ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 6. Process
-	if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Proceso en clínica', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ol class="nvx-brand-list">';
-		foreach ( $data['process'] as $step ) {
-			$html .= '<li>' . esc_html( $step ) . '</li>';
-		}
-		$html .= '</ol></section>';
-	}
-
-	// 7. FAQs
-	if ( ! empty( $data['faqs'] ) && is_array( $data['faqs'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<div class="nvx-faq-accordion">';
-		foreach ( $data['faqs'] as $faq ) {
-			$html .= '<details class="nvx-faq-item">';
-			$html .= '<summary class="nvx-faq-question">' . esc_html( $faq['q'] ) . '</summary>';
-			$html .= '<div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-			$html .= '</details>';
-		}
-		$html .= '</div></section>';
-	}
-
-	$html .= '</article>';
-	return $html;
-}
 
 /** Dispatches the markup for one approved anatomical page. */
 function nvx_anatomical_pages_markup( string $key, array $data ): string {
-	return nvx_anatomical_pages_render_13_points( $data );
+	return nvx_render_13_point_matrix( $data );
 }
 
 /** Replaces the content of a matching approved anatomical page. */

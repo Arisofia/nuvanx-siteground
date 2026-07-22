@@ -45,19 +45,25 @@ function nvx_theme_is_home_page(): bool {
 /**
  * Provides the slugs used to identify thank-you pages.
  *
- * @return array The filterable thank-you page slugs.
+ * @return string[] Thank-you page slugs, including any values added by the filter.
  */
 function nvx_theme_thank_you_page_slugs(): array {
-	return apply_filters( 'nvx_theme_thank_you_page_slugs', array( 'gracias', 'solicitud-recibida', 'thank-you', 'thankyou' ) );
+	return apply_filters(
+		'nvx_theme_thank_you_page_slugs',
+		array( 'gracias', 'solicitud-recibida', 'thank-you', 'thankyou' )
+	);
 }
 
 /**
- * Provides the slugs used by valoración form pages.
+ * Valoración form page slugs.
  *
- * @return array The filterable valoración form page slugs.
+ * @return string[]
  */
 function nvx_theme_valoracion_form_page_slugs(): array {
-	return apply_filters( 'nvx_theme_valoracion_form_page_slugs', array( 'valoracion', 'consulta-medica', 'consultamedica' ) );
+	return apply_filters(
+		'nvx_theme_valoracion_form_page_slugs',
+		array( 'valoracion', 'consulta-medica', 'consultamedica' )
+	);
 }
 
 /** Current singular page slug, or an empty string outside page requests. */
@@ -65,27 +71,24 @@ function nvx_theme_current_page_slug(): string {
 	if ( ! is_page() ) {
 		return '';
 	}
+
 	return (string) get_post_field( 'post_name', get_queried_object_id() );
 }
 
-/**
- * Determines whether the current page matches one of the provided slugs.
- *
- * @param array $slugs Page slugs to compare with the current page.
- * @return bool `true` if the current page slug is included in the provided values, `false` otherwise.
- */
+/** Whether the current page slug is one of the allowed values. */
 function nvx_theme_is_page_slug_in( array $slugs ): bool {
 	$slug = nvx_theme_current_page_slug();
 	if ( '' === $slug || array() === $slugs ) {
 		return false;
 	}
+
 	return in_array( $slug, $slugs, true );
 }
 
 /**
  * Determines whether the current page is a post-conversion thank-you page.
  *
- * @return bool `true` if the current page matches a configured thank-you page slug, `false` otherwise.
+ * @return bool `true` if the current page uses a configured thank-you slug, `false` otherwise.
  */
 function nvx_theme_is_thank_you_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_thank_you_page_slugs() );
@@ -96,18 +99,16 @@ function nvx_theme_is_valoracion_form_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_valoracion_form_page_slugs() );
 }
 
-/**
- * Determines whether the shared closing CTA banner should be displayed.
- *
- * @return bool `true` when the banner should be displayed, `false` in the admin area, on a thank-you page, or when the page provides its own complete markup.
- */
+/** Show the shared closing CTA only when the page does not own its own close. */
 function nvx_theme_show_cta_banner(): bool {
 	if ( is_admin() || nvx_theme_is_thank_you_page() ) {
 		return false;
 	}
+
 	if ( function_exists( 'nvx_theme_owns_complete_page_markup' ) && nvx_theme_owns_complete_page_markup() ) {
 		return false;
 	}
+
 	return true;
 }
 
@@ -133,7 +134,13 @@ function nvx_theme_scripts(): void {
 
 	if ( nvx_theme_is_home_page() ) {
 		wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-home' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );
-		wp_enqueue_script( 'nvx-home-video', $uri . '/assets/js/nvx-home-video.js', array(), nvx_asset_version( 'assets/js/nvx-home-video.js' ), true );
+		wp_enqueue_script(
+			'nvx-home-video',
+			$uri . '/assets/js/nvx-home-video.js',
+			array(),
+			nvx_asset_version( 'assets/js/nvx-home-video.js' ),
+			true
+		);
 	}
 
 	if ( function_exists( 'nvx_theme_is_treatments_hub' ) && nvx_theme_is_treatments_hub() ) {
@@ -141,7 +148,12 @@ function nvx_theme_scripts(): void {
 	}
 
 	if ( nvx_theme_hero_blackout_enabled() ) {
-		wp_enqueue_style( 'nvx-hero-blackout', $css . 'nvx-hero-blackout.css', array( 'nvx-home' ), nvx_asset_version( 'assets/css/nvx-hero-blackout.css' ) );
+		wp_enqueue_style(
+			'nvx-hero-blackout',
+			$css . 'nvx-hero-blackout.css',
+			array( 'nvx-home' ),
+			nvx_asset_version( 'assets/css/nvx-hero-blackout.css' )
+		);
 	}
 
 	wp_enqueue_script( 'nvx-main', $uri . '/assets/js/nvx-main.js', array(), nvx_asset_version( 'assets/js/nvx-main.js' ), true );
@@ -154,46 +166,40 @@ function nvx_theme_hero_blackout_enabled(): bool {
 	if ( defined( 'NVX_HERO_BLACKOUT' ) ) {
 		$enabled = (bool) NVX_HERO_BLACKOUT;
 	}
+
 	return (bool) apply_filters( 'nvx_theme_hero_blackout_enabled', $enabled );
 }
 
-/**
- * Adds the hero blackout state class when the feature is enabled.
- *
- * @param array $classes Existing body classes.
- * @return array Body classes with duplicates removed.
- */
+/** Add the hero-blackout state class when enabled. */
 function nvx_theme_hero_blackout_body_class( array $classes ): array {
 	if ( nvx_theme_hero_blackout_enabled() ) {
 		$classes[] = 'nvx-hero-blackout';
 	}
+
 	return array_values( array_unique( $classes ) );
 }
 add_filter( 'body_class', 'nvx_theme_hero_blackout_body_class' );
 
-/**
- * Estimates the reading time for an editorial post.
- *
- * @param int|null $post_id The post ID, or the current post when omitted.
- * @return string The estimated reading time in localized minutes.
- */
+/** Estimate reading time for editorial posts. */
 function nvx_reading_time( $post_id = null ): string {
 	$post_id = $post_id ?: get_the_ID();
 	$content = wp_strip_all_tags( strip_shortcodes( (string) get_post_field( 'post_content', $post_id ) ) );
 	$words   = preg_split( '/\s+/u', trim( $content ), -1, PREG_SPLIT_NO_EMPTY );
 	$minutes = max( 1, (int) ceil( count( is_array( $words ) ? $words : array() ) / 220 ) );
+
 	return sprintf( _n( '%s min', '%s min', $minutes, 'nuvanx-medical' ), number_format_i18n( $minutes ) );
 }
 
 /**
  * Configures the main blog index query.
  *
- * @param WP_Query $query The query being prepared.
+ * @param WP_Query $query The query being prepared for execution.
  */
 function nvx_blog_pre_get_posts( WP_Query $query ): void {
 	if ( is_admin() || ! $query->is_main_query() ) {
 		return;
 	}
+
 	if ( $query->is_home() && ! $query->is_front_page() ) {
 		$query->set( 'posts_per_page', 12 );
 		$query->set( 'ignore_sticky_posts', true );
@@ -204,23 +210,28 @@ add_action( 'pre_get_posts', 'nvx_blog_pre_get_posts' );
 /**
  * Renders the blog index shortcode markup.
  *
- * @return string The rendered blog listing, or a localized message when no posts are available.
+ * @return string The rendered blog post listing or a localized message when no posts are available.
  */
 function nvx_theme_blog_index_markup(): string {
-	$excluded_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' ) ? nvx_quarantined_comparison_post_ids() : array();
+	$excluded_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' )
+		? nvx_quarantined_comparison_post_ids()
+		: array();
+
 	$query = new WP_Query(
 		array(
-			'post_type' => 'post',
-			'post_status' => 'publish',
-			'posts_per_page' => 12,
+			'post_type'           => 'post',
+			'post_status'         => 'publish',
+			'posts_per_page'      => 12,
 			'ignore_sticky_posts' => true,
-			'post__not_in' => $excluded_post_ids,
-			'paged' => max( 1, (int) get_query_var( 'paged' ) ),
+			'post__not_in'        => $excluded_post_ids,
+			'paged'               => max( 1, (int) get_query_var( 'paged' ) ),
 		)
 	);
+
 	if ( ! $query->have_posts() ) {
 		return '<p class="nvx-copy">' . esc_html__( 'No se encontraron artículos.', 'nuvanx-medical' ) . '</p>';
 	}
+
 	$output = '<div class="nvx-brand-grid">';
 	while ( $query->have_posts() ) {
 		$query->the_post();
@@ -228,10 +239,12 @@ function nvx_theme_blog_index_markup(): string {
 		$output .= '<p class="nvx-brand-card__kicker">' . esc_html( get_the_date() ) . '</p>';
 		$output .= '<h2 class="nvx-brand-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h2>';
 		$output .= '<div class="nvx-brand-card__body">' . wp_kses_post( get_the_excerpt() ) . '</div>';
-		$output .= '<a href="' . esc_url( get_permalink() ) . '" class="nvx-button nvx-button--secondary">' . esc_html__( 'Leer más', 'nuvanx-medical' ) . '</a></article>';
+		$output .= '<a href="' . esc_url( get_permalink() ) . '" class="nvx-button nvx-button--secondary">' . esc_html__( 'Leer más', 'nuvanx-medical' ) . '</a>';
+		$output .= '</article>';
 	}
 	$output .= '</div>';
 	wp_reset_postdata();
+
 	return $output;
 }
 add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
@@ -244,8 +257,8 @@ require_once get_template_directory() . '/inc/nvx-content-presentation.php';
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-portfolio-hub.php';
 require_once get_template_directory() . '/inc/nvx-protocol-hub.php';
+require_once get_template_directory() . '/inc/nvx-13-point-renderer.php';
 require_once get_template_directory() . '/inc/nvx-protocol-pages.php';
-require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
 require_once get_template_directory() . '/inc/nvx-anatomical-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';

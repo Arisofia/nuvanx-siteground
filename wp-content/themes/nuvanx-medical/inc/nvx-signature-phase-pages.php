@@ -9,7 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Approved Phase 1 and Phase 2 landing-page catalogue. */
+/**
+ * Provides the approved landing-page content and metadata for Signature phases 1 and 2.
+ *
+ * @return array The catalogue keyed by internal page identifier.
+ */
 function nvx_signature_phase_catalog(): array {
 	return array(
 		'profile-definition' => array(
@@ -155,7 +159,12 @@ function nvx_signature_phase_catalog(): array {
 	);
 }
 
-/** Resolve the current governed landing page. */
+/**
+ * Identifies the governed landing page for the current request.
+ *
+ * @return string|null The matching catalog key, or null when the request does not
+ *     target a governed landing page.
+ */
 function nvx_signature_phase_current_key(): ?string {
 	if ( ! is_page() ) {
 		return null;
@@ -169,7 +178,14 @@ function nvx_signature_phase_current_key(): ?string {
 	return null;
 }
 
-/** Render a semantic list section. */
+/**
+ * Builds an HTML section containing a titled list of items.
+ *
+ * @param string $title The section heading.
+ * @param array  $items The list items to display.
+ * @param string $class Optional additional CSS class.
+ * @return string The rendered HTML section.
+ */
 function nvx_signature_phase_list( string $title, array $items, string $class = '' ): string {
 	$html  = '<section class="nvx-brand-section ' . esc_attr( $class ) . '">';
 	$html .= '<h2>' . esc_html( $title ) . '</h2><ul class="nvx-check-list">';
@@ -179,7 +195,12 @@ function nvx_signature_phase_list( string $title, array $items, string $class = 
 	return $html . '</ul></section>';
 }
 
-/** Build one governed landing page. */
+/**
+ * Generates the governed landing page markup for a catalog entry.
+ *
+ * @param array $page Catalog entry containing the page content and related protocol.
+ * @return string The generated landing page HTML.
+ */
 function nvx_signature_phase_markup( array $page ): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-signature-phase-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">' . esc_html( (string) $page['kicker'] ) . '</p>';
@@ -199,7 +220,12 @@ function nvx_signature_phase_markup( array $page ): string {
 	return $html;
 }
 
-/** Replace CMS placeholder content with governed markup. */
+/**
+ * Replaces content on governed Signature pages with generated landing page markup.
+ *
+ * @param string $content The original page content.
+ * @return string The governed markup or the original content when the request is not eligible.
+ */
 function nvx_signature_phase_content_filter( string $content ): string {
 	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
 		return $content;
@@ -221,7 +247,12 @@ function nvx_signature_phase_prepare_shell(): void {
 }
 add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
 
-/** Remove unsupported future protocols and expose only published Phase 1/2 routes. */
+/**
+ * Restricts the primary navigation to supported Signature routes and published clinical case routes.
+ *
+ * @param array $blueprint The primary navigation blueprint.
+ * @return array The updated navigation blueprint.
+ */
 function nvx_signature_phase_navigation_blueprint( array $blueprint ): array {
 	foreach ( $blueprint as $top_index => $top ) {
 		$label = isset( $top['label'] ) ? (string) $top['label'] : '';
@@ -259,7 +290,12 @@ function nvx_signature_phase_navigation_blueprint( array $blueprint ): array {
 }
 add_filter( 'nvx_navigation_primary_blueprint', 'nvx_signature_phase_navigation_blueprint', 30 );
 
-/** Normalize former public names to one approved product name. */
+/**
+ * Normalizes legacy product names to the approved public product name.
+ *
+ * @param string $content Content in which product names are normalized.
+ * @return string Content with legacy product names replaced by `NUVANX Contour Architecture™`.
+ */
 function nvx_signature_phase_normalize_public_names( string $content ): string {
 	return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), 'NUVANX Contour Architecture™', $content );
 }
@@ -275,6 +311,12 @@ function nvx_signature_phase_current_metadata(): ?array {
 	return $catalog[ $key ] ?? null;
 }
 
+/**
+ * Provides the governed page's SEO title when available.
+ *
+ * @param string $title The current SEO title.
+ * @return string The governed page's SEO title or the original title.
+ */
 function nvx_signature_phase_seo_title( $title ) {
 	$page = nvx_signature_phase_current_metadata();
 	return is_array( $page ) ? $page['seo_title'] : $title;
@@ -284,6 +326,12 @@ add_filter( 'pre_get_document_title', 'nvx_signature_phase_seo_title', 130 );
 add_filter( 'wpseo_opengraph_title', 'nvx_signature_phase_seo_title', 130 );
 add_filter( 'wpseo_twitter_title', 'nvx_signature_phase_seo_title', 130 );
 
+/**
+ * Supplies the governed page's SEO description when available.
+ *
+ * @param mixed $description The existing SEO description.
+ * @return mixed The governed SEO description or the existing description.
+ */
 function nvx_signature_phase_seo_description( $description ) {
 	$page = nvx_signature_phase_current_metadata();
 	return is_array( $page ) ? $page['seo_desc'] : $description;
@@ -292,6 +340,12 @@ add_filter( 'wpseo_metadesc', 'nvx_signature_phase_seo_description', 130 );
 add_filter( 'wpseo_opengraph_desc', 'nvx_signature_phase_seo_description', 130 );
 add_filter( 'wpseo_twitter_description', 'nvx_signature_phase_seo_description', 130 );
 
+/**
+ * Provides the canonical URL for the current governed Signature page.
+ *
+ * @param mixed $url The existing URL.
+ * @return mixed The governed page URL, or the existing URL when no governed page is active.
+ */
 function nvx_signature_phase_seo_url( $url ) {
 	$page = nvx_signature_phase_current_metadata();
 	return is_array( $page ) ? home_url( '/' . trim( (string) $page['slug'], '/' ) . '/' ) : $url;
@@ -299,6 +353,12 @@ function nvx_signature_phase_seo_url( $url ) {
 add_filter( 'wpseo_canonical', 'nvx_signature_phase_seo_url', 130 );
 add_filter( 'wpseo_opengraph_url', 'nvx_signature_phase_seo_url', 130 );
 
+/**
+ * Sets the robots directive for governed Signature pages.
+ *
+ * @param mixed $robots The existing robots directive.
+ * @return string The governed page's robots directive, or the existing directive when no governed page is active.
+ */
 function nvx_signature_phase_seo_robots( $robots ) {
 	if ( null === nvx_signature_phase_current_metadata() ) {
 		return $robots;

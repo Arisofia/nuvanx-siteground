@@ -29,7 +29,11 @@ function nvx_protocol_hub_card( string $title, string $body, string $path ): str
 	return $html;
 }
 
-/** Builds the complete Protocolos Signature hub page markup. */
+/**
+ * Builds the complete Protocolos Signature hub page markup.
+ *
+ * @return string The HTML markup for the Protocolos Signature hub page.
+ */
 function nvx_protocol_hub_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-hub nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';

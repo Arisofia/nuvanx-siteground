@@ -42,12 +42,20 @@ function nvx_theme_is_home_page(): bool {
 	return is_front_page();
 }
 
-/** Provides the slugs used to identify thank-you pages. */
+/**
+ * Provides the slugs used to identify thank-you pages.
+ *
+ * @return array The filterable thank-you page slugs.
+ */
 function nvx_theme_thank_you_page_slugs(): array {
 	return apply_filters( 'nvx_theme_thank_you_page_slugs', array( 'gracias', 'solicitud-recibida', 'thank-you', 'thankyou' ) );
 }
 
-/** Valoración form page slugs. */
+/**
+ * Provides the slugs used by valoración form pages.
+ *
+ * @return array The filterable valoración form page slugs.
+ */
 function nvx_theme_valoracion_form_page_slugs(): array {
 	return apply_filters( 'nvx_theme_valoracion_form_page_slugs', array( 'valoracion', 'consulta-medica', 'consultamedica' ) );
 }
@@ -60,7 +68,12 @@ function nvx_theme_current_page_slug(): string {
 	return (string) get_post_field( 'post_name', get_queried_object_id() );
 }
 
-/** Whether the current page slug is one of the allowed values. */
+/**
+ * Determines whether the current page matches one of the provided slugs.
+ *
+ * @param array $slugs Page slugs to compare with the current page.
+ * @return bool `true` if the current page slug is included in the provided values, `false` otherwise.
+ */
 function nvx_theme_is_page_slug_in( array $slugs ): bool {
 	$slug = nvx_theme_current_page_slug();
 	if ( '' === $slug || array() === $slugs ) {
@@ -69,7 +82,11 @@ function nvx_theme_is_page_slug_in( array $slugs ): bool {
 	return in_array( $slug, $slugs, true );
 }
 
-/** Whether the current page is a post-conversion thank-you page. */
+/**
+ * Determines whether the current page is a post-conversion thank-you page.
+ *
+ * @return bool `true` if the current page matches a configured thank-you page slug, `false` otherwise.
+ */
 function nvx_theme_is_thank_you_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_thank_you_page_slugs() );
 }
@@ -79,7 +96,11 @@ function nvx_theme_is_valoracion_form_page(): bool {
 	return nvx_theme_is_page_slug_in( nvx_theme_valoracion_form_page_slugs() );
 }
 
-/** Show the shared closing CTA only when the page does not own its own close. */
+/**
+ * Determines whether the shared closing CTA banner should be displayed.
+ *
+ * @return bool `true` when the banner should be displayed, `false` in the admin area, on a thank-you page, or when the page provides its own complete markup.
+ */
 function nvx_theme_show_cta_banner(): bool {
 	if ( is_admin() || nvx_theme_is_thank_you_page() ) {
 		return false;
@@ -136,7 +157,12 @@ function nvx_theme_hero_blackout_enabled(): bool {
 	return (bool) apply_filters( 'nvx_theme_hero_blackout_enabled', $enabled );
 }
 
-/** Add the hero-blackout state class when enabled. */
+/**
+ * Adds the hero blackout state class when the feature is enabled.
+ *
+ * @param array $classes Existing body classes.
+ * @return array Body classes with duplicates removed.
+ */
 function nvx_theme_hero_blackout_body_class( array $classes ): array {
 	if ( nvx_theme_hero_blackout_enabled() ) {
 		$classes[] = 'nvx-hero-blackout';
@@ -145,7 +171,12 @@ function nvx_theme_hero_blackout_body_class( array $classes ): array {
 }
 add_filter( 'body_class', 'nvx_theme_hero_blackout_body_class' );
 
-/** Estimate reading time for editorial posts. */
+/**
+ * Estimates the reading time for an editorial post.
+ *
+ * @param int|null $post_id The post ID, or the current post when omitted.
+ * @return string The estimated reading time in localized minutes.
+ */
 function nvx_reading_time( $post_id = null ): string {
 	$post_id = $post_id ?: get_the_ID();
 	$content = wp_strip_all_tags( strip_shortcodes( (string) get_post_field( 'post_content', $post_id ) ) );
@@ -154,7 +185,11 @@ function nvx_reading_time( $post_id = null ): string {
 	return sprintf( _n( '%s min', '%s min', $minutes, 'nuvanx-medical' ), number_format_i18n( $minutes ) );
 }
 
-/** Configures the main blog index query. */
+/**
+ * Configures the main blog index query.
+ *
+ * @param WP_Query $query The query being prepared.
+ */
 function nvx_blog_pre_get_posts( WP_Query $query ): void {
 	if ( is_admin() || ! $query->is_main_query() ) {
 		return;
@@ -166,7 +201,11 @@ function nvx_blog_pre_get_posts( WP_Query $query ): void {
 }
 add_action( 'pre_get_posts', 'nvx_blog_pre_get_posts' );
 
-/** Renders the blog index shortcode markup. */
+/**
+ * Renders the blog index shortcode markup.
+ *
+ * @return string The rendered blog listing, or a localized message when no posts are available.
+ */
 function nvx_theme_blog_index_markup(): string {
 	$excluded_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' ) ? nvx_quarantined_comparison_post_ids() : array();
 	$query = new WP_Query(

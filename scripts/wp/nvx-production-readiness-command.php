@@ -15,7 +15,11 @@ final class NVX_Production_Readiness_Command {
 	private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
 	private const LOCK_TTL_SECONDS   = 900;
 
-	/** Approved pages that must exist after the migration. */
+	/**
+	 * Defines the pages that the migration must create or publish.
+	 *
+	 * @return array Approved page definitions keyed by slug.
+	 */
 	private function approved_pages(): array {
 		return array(
 			'por-que-nuvanx' => array( 'title' => 'Por qué NUVANX', 'content' => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->', 'promote_draft' => false ),
@@ -52,7 +56,12 @@ final class NVX_Production_Readiness_Command {
 		return $page instanceof WP_Post ? $page : null;
 	}
 
-	/** Return menu-item IDs that reference a page. */
+	/**
+	 * Finds navigation menu items that reference a page.
+	 *
+	 * @param int $page_id The page ID to find in navigation menus.
+	 * @return int[] Unique navigation menu item IDs referencing the page.
+	 */
 	private function menu_item_ids( int $page_id ): array {
 		$ids = array();
 		foreach ( wp_get_nav_menus() as $menu ) {
@@ -75,7 +84,13 @@ final class NVX_Production_Readiness_Command {
 		return isset( $locations['primary'] ) ? (int) $locations['primary'] : 0;
 	}
 
-	/** Flatten the canonical resolved blueprint for deterministic comparison. */
+	/**
+	 * Flattens a nested menu blueprint into deterministic comparison rows.
+	 *
+	 * @param array $items Menu blueprint nodes to flatten.
+	 * @param int   $depth Current nesting depth.
+	 * @return array Flattened rows containing each node's depth, label, and normalized URL.
+	 */
 	private function flatten_blueprint( array $items, int $depth = 0 ): array {
 		$rows = array();
 		foreach ( $items as $item ) {
@@ -86,7 +101,14 @@ final class NVX_Production_Readiness_Command {
 		return $rows;
 	}
 
-	/** Flatten the current WordPress menu tree for deterministic comparison. */
+	/**
+	 * Flattens the current WordPress menu tree into a deterministic comparison signature.
+	 *
+	 * @param array $items Menu items to flatten.
+	 * @param int   $parent Parent menu item ID.
+	 * @param int   $depth Current nesting depth.
+	 * @return array Flattened menu item signature rows.
+	 */
 	private function flatten_menu_items( array $items, int $parent = 0, int $depth = 0 ): array {
 		$rows = array();
 		foreach ( $items as $item ) {
@@ -99,7 +121,11 @@ final class NVX_Production_Readiness_Command {
 		return $rows;
 	}
 
-	/** Canonical menu signature after publication-aware filtering. */
+	/**
+	 * Builds the canonical signature for the primary navigation blueprint.
+	 *
+	 * @return array The flattened canonical menu signature, or an empty array when the navigation blueprint is unavailable.
+	 */
 	private function canonical_menu_signature(): array {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			return array();
@@ -107,7 +133,11 @@ final class NVX_Production_Readiness_Command {
 		return $this->flatten_blueprint( nvx_navigation_resolved_fallback() );
 	}
 
-	/** Current assigned primary-menu signature. */
+	/**
+	 * Gets the current primary menu signature.
+	 *
+	 * @return array The flattened signature of published primary menu items.
+	 */
 	private function current_menu_signature(): array {
 		$menu_id = $this->primary_menu_id();
 		if ( $menu_id < 1 ) {
@@ -117,7 +147,11 @@ final class NVX_Production_Readiness_Command {
 		return is_array( $items ) ? $this->flatten_menu_items( $items ) : array();
 	}
 
-	/** Build current audit rows. */
+	/**
+	 * Builds audit rows for approved pages, governed pages, and primary navigation.
+	 *
+	 * @return array Audit rows describing current states and expected migration states.
+	 */
 	private function audit_rows(): array {
 		$rows = array();
 		foreach ( $this->approved_pages() as $slug => $definition ) {
@@ -134,7 +168,12 @@ final class NVX_Production_Readiness_Command {
 		return $rows;
 	}
 
-	/** Check audit rows against the migration contract. */
+	/**
+	 * Determines whether audit rows satisfy the production-readiness migration contract.
+	 *
+	 * @param array $rows Audit rows to validate.
+	 * @return bool True if all audit rows satisfy the contract, false otherwise.
+	 */
 	private function is_clean( array $rows ): bool {
 		foreach ( $rows as $row ) {
 			if ( 'approved' === $row['type'] && 'publish' !== $row['status'] ) {
@@ -153,7 +192,9 @@ final class NVX_Production_Readiness_Command {
 		return true;
 	}
 
-	/** Acquire a short-lived migration lock. */
+	/**
+	 * Acquires a short-lived lock to prevent concurrent production-readiness migrations.
+	 */
 	private function acquire_lock(): void {
 		$now = time();
 		$existing = (int) get_option( self::LOCK_OPTION, 0 );
@@ -171,7 +212,11 @@ final class NVX_Production_Readiness_Command {
 		delete_option( self::LOCK_OPTION );
 	}
 
-	/** Validate mutation confirmation and host restrictions. */
+	/**
+	 * Validates confirmation, host, production authorization, and trash settings before applying the migration.
+	 *
+	 * @param array $assoc_args Command associative arguments.
+	 */
 	private function validate_invocation( array $assoc_args ): void {
 		$confirmation = isset( $assoc_args['confirm'] ) ? (string) $assoc_args['confirm'] : '';
 		if ( self::CONFIRMATION_TOKEN !== $confirmation ) {
@@ -189,7 +234,13 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
-	/** Create absent approved pages and explicitly promote approved drafts. */
+	/**
+	 * Ensures approved pages have the required published content and status.
+	 *
+	 * Existing published pages are refreshed, eligible draft-like pages are promoted
+	 * when configured, and missing pages are created as published. Other statuses
+	 * are preserved for manual review.
+	 */
 	private function apply_approved_pages(): void {
 		foreach ( $this->approved_pages() as $slug => $definition ) {
 			$page = $this->page_by_slug( $slug );
@@ -220,7 +271,9 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
-	/** Remove menu references and apply governed states to retired pages. */
+	/**
+	 * Removes governed pages from navigation and applies their contractually defined post statuses.
+	 */
 	private function apply_governed_pages(): void {
 		foreach ( $this->governed_pages() as $slug => $definition ) {
 			$page = $this->page_by_slug( $slug );
@@ -250,7 +303,13 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
-	/** Insert canonical menu nodes recursively. */
+	/**
+	 * Inserts canonical navigation nodes and their children into a menu.
+	 *
+	 * @param int   $menu_id   The menu ID receiving the nodes.
+	 * @param array $nodes     The canonical menu nodes to insert.
+	 * @param int   $parent_id The parent menu item ID.
+	 */
 	private function insert_menu_nodes( int $menu_id, array $nodes, int $parent_id = 0 ): void {
 		foreach ( $nodes as $node ) {
 			$classes = ! empty( $node['mega'] ) ? 'nvx-menu--mega' : '';
@@ -273,7 +332,7 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
-	/** Replace the assigned legacy menu with the canonical published blueprint. */
+	/** Replaces the assigned primary menu with the canonical published navigation blueprint. */
 	private function apply_primary_menu(): void {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			WP_CLI::error( 'Canonical navigation blueprint is unavailable.' );
@@ -303,7 +362,11 @@ final class NVX_Production_Readiness_Command {
 		WP_CLI::log( sprintf( 'Rebuilt canonical primary menu %d with %d items.', $menu_id, count( $this->canonical_menu_signature() ) ) );
 	}
 
-	/** Audit production-readiness state. */
+	/**
+	 * Audits production-readiness state and reports whether the migration contract is satisfied.
+	 *
+	 * @param array $assoc_args Associative command arguments, including the output format and whether pending changes are allowed.
+	 */
 	public function audit( array $args, array $assoc_args ): void {
 		$rows = $this->audit_rows();
 		$format = isset( $assoc_args['format'] ) ? (string) $assoc_args['format'] : 'table';
@@ -318,7 +381,12 @@ final class NVX_Production_Readiness_Command {
 		WP_CLI::success( 'Production-readiness audit passed.' );
 	}
 
-	/** Apply approved publication, retirement governance and canonical navigation. */
+	/**
+	 * Applies the production-readiness migration and verifies its final state.
+	 *
+	 * @param array $args       Positional command arguments.
+	 * @param array $assoc_args Associative command arguments, including confirmation and production-safety options.
+	 */
 	public function apply( array $args, array $assoc_args ): void {
 		$this->validate_invocation( $assoc_args );
 		$this->acquire_lock();

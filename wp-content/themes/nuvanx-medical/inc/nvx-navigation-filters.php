@@ -30,17 +30,30 @@ function nvx_navigation_primary_blueprint(): array {
 				'url'   => home_url( '/' ),
 			),
 			array(
-				'label'    => __( 'Soluciones', 'nuvanx-medical' ),
-				'slugs'    => array( 'soluciones-medicas' ),
+				'label'    => __( 'Soluciones médicas', 'nuvanx-medical' ),
+				'slugs'    => array( 'soluciones', 'soluciones-medicas' ),
 				'mega'     => true,
 				'children' => array(
-					array( 'label' => 'Rostro y cuello', 'slugs' => array( 'papada-definicion-mandibular-madrid', 'endolift-facial-papada-mandibula' ) ),
-					array( 'label' => 'Calidad de piel', 'slugs' => array( 'calidad-piel-firmeza-luminosidad-madrid', 'exion-face' ) ),
-					array( 'label' => 'Contorno corporal', 'slugs' => array( 'remodelacion-corporal-laser-madrid', 'endolaser-corporal-grasa-localizada' ) ),
-					array( 'label' => 'Cambios posgestacionales', 'slugs' => array( 'tratamiento-postparto-abdomen-contorno-corporal-madrid' ) ),
-					array( 'label' => 'Cicatrices, poros y textura', 'slugs' => array( 'cicatrices-acne-poros-textura-madrid', 'laser-co2-fraccionado-madrid-textura-cicatrices-poro' ) ),
-					array( 'label' => 'Manchas, rojeces y fotodaño', 'slugs' => array( 'manchas-rojeces-fotorejuvenecimiento-ipl-madrid', 'btl-exilite-ipl-madrid' ) ),
-					array( 'label' => 'Medicina estética masculina', 'slugs' => array( 'contorno-corporal-masculino-madrid' ) ),
+					array(
+						'label'    => 'Rostro',
+						'slugs'    => array( 'soluciones-medicas/rostro' ),
+						'children' => array(
+							array( 'label' => 'Tercio Superior', 'slugs' => array( 'soluciones-medicas/rostro/tercio-superior' ) ),
+							array( 'label' => 'Mirada', 'slugs' => array( 'soluciones-medicas/rostro/mirada' ) ),
+							array( 'label' => 'Tercio Medio', 'slugs' => array( 'soluciones-medicas/rostro/tercio-medio' ) ),
+							array( 'label' => 'Labios', 'slugs' => array( 'soluciones-medicas/rostro/labios' ) ),
+							array( 'label' => 'Tercio Inferior', 'slugs' => array( 'soluciones-medicas/rostro/tercio-inferior' ) ),
+						),
+					),
+					array(
+						'label'    => 'Cuerpo',
+						'slugs'    => array( 'soluciones-medicas/cuerpo' ),
+						'children' => array(
+							array( 'label' => 'Abdomen y Flancos', 'slugs' => array( 'soluciones-medicas/cuerpo/abdomen-y-flancos' ) ),
+							array( 'label' => 'Brazos y Espalda', 'slugs' => array( 'soluciones-medicas/cuerpo/brazos-y-espalda' ) ),
+							array( 'label' => 'Tren Inferior', 'slugs' => array( 'soluciones-medicas/cuerpo/tren-inferior' ) ),
+						),
+					),
 				),
 			),
 			array(
@@ -114,7 +127,16 @@ function nvx_navigation_primary_blueprint(): array {
 					array( 'label' => 'Láser CO₂ fraccionado', 'slugs' => array( 'laser-co2-fraccionado-madrid-textura-cicatrices-poro' ) ),
 					array( 'label' => 'BTL EXILITE™ IPL', 'slugs' => array( 'btl-exilite-ipl-madrid' ) ),
 					array( 'label' => 'EMFUSION®', 'slugs' => array( 'emfusion' ) ),
-					array( 'label' => 'Medicina inyectable', 'slugs' => array( 'medicina-estetica' ) ),
+					array(
+						'label'    => 'Medicina inyectable',
+						'slugs'    => array( 'medicina-estetica' ),
+						'children' => array(
+							array( 'label' => 'Ácido hialurónico en labios', 'slugs' => array( 'labios-acido-hialuronico-madrid' ) ),
+							array( 'label' => 'Rinomodelación sin cirugía', 'slugs' => array( 'rinomodelacion-sin-cirugia-madrid' ) ),
+							array( 'label' => 'Tratamiento de ojeras', 'slugs' => array( 'ojeras-surco-lagrimal-madrid' ) ),
+							array( 'label' => 'Bioestimuladores de colágeno', 'slugs' => array( 'bioestimuladores-colageno-madrid' ) ),
+						),
+					),
 				),
 			),
 			array( 'label' => __( 'Casos clínicos', 'nuvanx-medical' ), 'slugs' => array( 'casos-clinicos' ) ),

@@ -330,7 +330,6 @@ function nvx_aesthetic_treatment_schema_catalog(): array {
 	return $result;
 }
 
-/** Universal 13-point markup renderer adapted for aesthetic pages. */
 function nvx_aesthetic_treatment_render( string $key ): string {
 	$catalog = nvx_aesthetic_treatment_catalog();
 	if ( empty( $catalog[ $key ] ) ) {
@@ -338,109 +337,7 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 	}
 	$data = $catalog[ $key ];
 
-	$html  = '<article class="nvx-brand-readable nvx-aesthetic-treatment nvx-shell">';
-	
-	// 1. Hero / Intro
-	$html .= '<header class="nvx-strategy-intro">';
-	if ( ! empty( $data['kicker'] ) ) {
-		$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
-	}
-	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ?? $data['seo_title'] ) . '</h1>';
-	if ( ! empty( $data['lead'] ) ) {
-		$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
-	}
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
-	$html .= '</header>';
-
-	// 2. Diagnosis
-	if ( ! empty( $data['diagnosis'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Diagnóstico clínico', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['diagnosis'] ) . '</p>';
-		$html .= '</section>';
-	}
-
-	// 3. Mechanism
-	if ( ! empty( $data['mechanism'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Mecanismo de acción', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['mechanism'] ) . '</p>';
-		$html .= '</section>';
-	}
-
-	// 4. Indications
-	if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Indicaciones: Qué tratamos', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['indications'] as $ind ) {
-			$html .= '<li>' . esc_html( $ind ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 5. Precautions
-	if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['precautions'] as $prec ) {
-			$html .= '<li>' . esc_html( $prec ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 6. Process
-	if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Proceso en clínica', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ol class="nvx-brand-list">';
-		foreach ( $data['process'] as $step ) {
-			$html .= '<li>' . esc_html( $step ) . '</li>';
-		}
-		$html .= '</ol></section>';
-	}
-
-    // Evolution and Risks
-	if ( ! empty( $data['evolution'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Evolución y seguridad', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['evolution'] ) . '</p>';
-        if ( ! empty( $data['risks'] ) && is_array( $data['risks'] ) ) {
-            $html .= '<h3>' . esc_html__( 'Riesgos que deben explicarse', 'nuvanx-medical' ) . '</h3>';
-            $html .= '<ul class="nvx-brand-list">';
-            foreach ( $data['risks'] as $risk ) {
-                $html .= '<li>' . esc_html( $risk ) . '</li>';
-            }
-            $html .= '</ul>';
-        }
-        if ( ! empty( $data['combinations'] ) && is_array( $data['combinations'] ) ) {
-            $html .= '<h3>' . esc_html__( 'Combinaciones posibles', 'nuvanx-medical' ) . '</h3>';
-            $html .= '<ul class="nvx-brand-list">';
-            foreach ( $data['combinations'] as $comb ) {
-                $html .= '<li>' . esc_html( $comb ) . '</li>';
-            }
-            $html .= '</ul>';
-        }
-		$html .= '</section>';
-	}
-
-	// 7. FAQs
-	if ( ! empty( $data['faqs'] ) && is_array( $data['faqs'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<div class="nvx-faq-accordion">';
-		foreach ( $data['faqs'] as $faq ) {
-			$html .= '<details class="nvx-faq-item">';
-			$html .= '<summary class="nvx-faq-question">' . esc_html( $faq['q'] ) . '</summary>';
-			$html .= '<div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-			$html .= '</details>';
-		}
-		$html .= '</div></section>';
-	}
-
-	$html .= '</article>';
-	return $html;
+	return nvx_render_13_point_matrix( $data );
 }
 
 /** Replace marker content with the canonical versioned page. */

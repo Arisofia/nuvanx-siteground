@@ -20,7 +20,7 @@ final class NVX_Production_Readiness_Command {
 	 *
 	 * @return array Approved page definitions keyed by slug.
 	 */
-	private function approved_pages(): array {
+	private function approvedPages(): array {
 		return array(
 			'por-que-nuvanx' => array( 'title' => 'Por qué NUVANX', 'content' => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->', 'promote_draft' => false ),
 			'inversion-medicina-estetica' => array( 'title' => 'Inversión en medicina estética', 'content' => '<!-- NUVANX_STRATEGY_PAGE:investment -->', 'promote_draft' => false ),
@@ -43,7 +43,7 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/** Shared retired-page contract from the active theme. */
-	private function governed_pages(): array {
+	private function governedPages(): array {
 		if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
 			WP_CLI::error( 'Production-readiness governed-page contract is unavailable.' );
 		}
@@ -51,7 +51,7 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/** Find one page by slug regardless of publication status. */
-	private function page_by_slug( string $slug ): ?WP_Post {
+	private function pageBySlug( string $slug ): ?WP_Post {
 		$page = get_page_by_path( $slug, OBJECT, 'page' );
 		return $page instanceof WP_Post ? $page : null;
 	}
@@ -62,7 +62,7 @@ final class NVX_Production_Readiness_Command {
 	 * @param int $page_id The page ID to find in navigation menus.
 	 * @return int[] Unique navigation menu item IDs referencing the page.
 	 */
-	private function menu_item_ids( int $page_id ): array {
+	private function menuItemIds( int $page_id ): array {
 		$ids = array();
 		foreach ( wp_get_nav_menus() as $menu ) {
 			$items = wp_get_nav_menu_items( $menu->term_id );
@@ -79,7 +79,7 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/** Return the assigned primary menu term ID. */
-	private function primary_menu_id(): int {
+	private function primaryMenuId(): int {
 		$locations = get_nav_menu_locations();
 		return isset( $locations['primary'] ) ? (int) $locations['primary'] : 0;
 	}
@@ -91,12 +91,12 @@ final class NVX_Production_Readiness_Command {
 	 * @param int   $depth Current nesting depth.
 	 * @return array Flattened rows containing each node's depth, label, and normalized URL.
 	 */
-	private function flatten_blueprint( array $items, int $depth = 0 ): array {
+	private function flattenBlueprint( array $items, int $depth = 0 ): array {
 		$rows = array();
 		foreach ( $items as $item ) {
 			$rows[] = $depth . '|' . trim( (string) $item['label'] ) . '|' . untrailingslashit( (string) $item['url'] );
 			$children = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
-			$rows = array_merge( $rows, $this->flatten_blueprint( $children, $depth + 1 ) );
+			$rows = array_merge( $rows, $this->flattenBlueprint( $children, $depth + 1 ) );
 		}
 		return $rows;
 	}
@@ -109,14 +109,14 @@ final class NVX_Production_Readiness_Command {
 	 * @param int   $depth Current nesting depth.
 	 * @return array Flattened menu item signature rows.
 	 */
-	private function flatten_menu_items( array $items, int $parent = 0, int $depth = 0 ): array {
+	private function flattenMenuItems( array $items, int $parent = 0, int $depth = 0 ): array {
 		$rows = array();
 		foreach ( $items as $item ) {
 			if ( (int) $item->menu_item_parent !== $parent ) {
 				continue;
 			}
 			$rows[] = $depth . '|' . trim( (string) $item->title ) . '|' . untrailingslashit( (string) $item->url );
-			$rows = array_merge( $rows, $this->flatten_menu_items( $items, (int) $item->ID, $depth + 1 ) );
+			$rows = array_merge( $rows, $this->flattenMenuItems( $items, (int) $item->ID, $depth + 1 ) );
 		}
 		return $rows;
 	}
@@ -126,11 +126,11 @@ final class NVX_Production_Readiness_Command {
 	 *
 	 * @return array The flattened canonical menu signature, or an empty array when the navigation blueprint is unavailable.
 	 */
-	private function canonical_menu_signature(): array {
+	private function canonicalMenuSignature(): array {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			return array();
 		}
-		return $this->flatten_blueprint( nvx_navigation_resolved_fallback() );
+		return $this->flattenBlueprint( nvx_navigation_resolved_fallback() );
 	}
 
 	/**
@@ -138,13 +138,13 @@ final class NVX_Production_Readiness_Command {
 	 *
 	 * @return array The flattened signature of published primary menu items.
 	 */
-	private function current_menu_signature(): array {
-		$menu_id = $this->primary_menu_id();
+	private function currentMenuSignature(): array {
+		$menu_id = $this->primaryMenuId();
 		if ( $menu_id < 1 ) {
 			return array();
 		}
 		$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish' ) );
-		return is_array( $items ) ? $this->flatten_menu_items( $items ) : array();
+		return is_array( $items ) ? $this->flattenMenuItems( $items ) : array();
 	}
 
 	/**
@@ -152,19 +152,19 @@ final class NVX_Production_Readiness_Command {
 	 *
 	 * @return array Audit rows describing current states and expected migration states.
 	 */
-	private function audit_rows(): array {
+	private function auditRows(): array {
 		$rows = array();
-		foreach ( $this->approved_pages() as $slug => $definition ) {
-			$page   = $this->page_by_slug( $slug );
-			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
+		foreach ( $this->approvedPages() as $slug => $definition ) {
+			$page   = $this->pageBySlug( $slug );
+			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( $this->menuItemIds( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
 		}
-		foreach ( $this->governed_pages() as $slug => $definition ) {
-			$page   = $this->page_by_slug( $slug );
-			$rows[] = array( 'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'absent', 'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0, 'expected' => $definition['status'] );
+		foreach ( $this->governedPages() as $slug => $definition ) {
+			$page   = $this->pageBySlug( $slug );
+			$rows[] = array( 'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'absent', 'menu_items' => $page ? count( $this->menuItemIds( (int) $page->ID ) ) : 0, 'expected' => $definition['status'] );
 		}
-		$current_menu = $this->current_menu_signature();
-		$canonical_menu = $this->canonical_menu_signature();
-		$rows[] = array( 'type' => 'navigation', 'slug' => 'primary', 'id' => $this->primary_menu_id(), 'status' => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift', 'menu_items' => count( $current_menu ), 'expected' => 'canonical' );
+		$current_menu = $this->currentMenuSignature();
+		$canonical_menu = $this->canonicalMenuSignature();
+		$rows[] = array( 'type' => 'navigation', 'slug' => 'primary', 'id' => $this->primaryMenuId(), 'status' => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift', 'menu_items' => count( $current_menu ), 'expected' => 'canonical' );
 		return $rows;
 	}
 
@@ -174,7 +174,7 @@ final class NVX_Production_Readiness_Command {
 	 * @param array $rows Audit rows to validate.
 	 * @return bool True if all audit rows satisfy the contract, false otherwise.
 	 */
-	private function is_clean( array $rows ): bool {
+	private function isClean( array $rows ): bool {
 		foreach ( $rows as $row ) {
 			if ( 'approved' === $row['type'] && 'publish' !== $row['status'] ) {
 				return false;
@@ -195,7 +195,7 @@ final class NVX_Production_Readiness_Command {
 	/**
 	 * Acquires a short-lived lock to prevent concurrent production-readiness migrations.
 	 */
-	private function acquire_lock(): void {
+	private function acquireLock(): void {
 		$now = time();
 		$existing = (int) get_option( self::LOCK_OPTION, 0 );
 		if ( $existing > 0 && ( $now - $existing ) > self::LOCK_TTL_SECONDS ) {
@@ -208,7 +208,7 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/** Release the migration lock. */
-	private function release_lock(): void {
+	private function releaseLock(): void {
 		delete_option( self::LOCK_OPTION );
 	}
 
@@ -217,7 +217,7 @@ final class NVX_Production_Readiness_Command {
 	 *
 	 * @param array $assoc_args Command associative arguments.
 	 */
-	private function validate_invocation( array $assoc_args ): void {
+	private function validateInvocation( array $assoc_args ): void {
 		$confirmation = isset( $assoc_args['confirm'] ) ? (string) $assoc_args['confirm'] : '';
 		if ( self::CONFIRMATION_TOKEN !== $confirmation ) {
 			WP_CLI::error( 'Refusing to apply: use --confirm=' . self::CONFIRMATION_TOKEN );
@@ -234,14 +234,14 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
-	private function update_approved_page( int $page_id, array $definition, string $slug ): void {
+	private function updateApprovedPage( int $page_id, array $definition, string $slug ): void {
 		$result = wp_update_post( array( 'ID' => $page_id, 'post_title' => $definition['title'], 'post_content' => $definition['content'] ), true );
 		if ( is_wp_error( $result ) ) {
 			WP_CLI::error( sprintf( 'Unable to refresh approved page %s: %s', $slug, $result->get_error_message() ) );
 		}
 	}
 
-	private function promote_approved_page( int $page_id, array $definition, string $slug ): void {
+	private function promoteApprovedPage( int $page_id, array $definition, string $slug ): void {
 		if ( empty( $definition['promote_draft'] ) ) {
 			WP_CLI::warning( sprintf( 'Approved page %s exists; preserving it for manual review.', $slug ) );
 			return;
@@ -256,21 +256,21 @@ final class NVX_Production_Readiness_Command {
 	/**
 	 * Ensures approved pages have the required published content and status.
 	 */
-	private function apply_approved_pages(): void {
-		foreach ( $this->approved_pages() as $slug => $definition ) {
-			$page = $this->page_by_slug( $slug );
+	private function applyApprovedPages(): void {
+		foreach ( $this->approvedPages() as $slug => $definition ) {
+			$page = $this->pageBySlug( $slug );
 			if ( ! $page ) {
-				$this->create_approved_page( $slug, $definition );
+				$this->createApprovedPage( $slug, $definition );
 				continue;
 			}
 			if ( 'publish' === $page->post_status ) {
-				$this->update_approved_page( (int) $page->ID, $definition, $slug );
+				$this->updateApprovedPage( (int) $page->ID, $definition, $slug );
 			} else {
-				$this->promote_approved_page( (int) $page->ID, $definition, $slug );
+				$this->promoteApprovedPage( (int) $page->ID, $definition, $slug );
 			}
 		}
 	}
-	private function create_approved_page( string $slug, array $definition ): void {
+	private function createApprovedPage( string $slug, array $definition ): void {
 		$page_id = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_name' => $slug, 'post_content' => $definition['content'] ), true );
 		if ( is_wp_error( $page_id ) ) {
 			WP_CLI::error( sprintf( 'Unable to create %s: %s', $slug, $page_id->get_error_message() ) );
@@ -281,13 +281,13 @@ final class NVX_Production_Readiness_Command {
 	/**
 	 * Removes governed pages from navigation and applies their contractually defined post statuses.
 	 */
-	private function apply_governed_pages(): void {
-		foreach ( $this->governed_pages() as $slug => $definition ) {
-			$page = $this->page_by_slug( $slug );
+	private function applyGovernedPages(): void {
+		foreach ( $this->governedPages() as $slug => $definition ) {
+			$page = $this->pageBySlug( $slug );
 			if ( ! $page ) {
 				continue;
 			}
-			foreach ( $this->menu_item_ids( (int) $page->ID ) as $menu_item_id ) {
+			foreach ( $this->menuItemIds( (int) $page->ID ) as $menu_item_id ) {
 				wp_delete_post( $menu_item_id, true );
 				WP_CLI::log( sprintf( 'Deleted menu item %d referencing %s.', $menu_item_id, $slug ) );
 			}
@@ -317,7 +317,7 @@ final class NVX_Production_Readiness_Command {
 	 * @param array $nodes     The canonical menu nodes to insert.
 	 * @param int   $parent_id The parent menu item ID.
 	 */
-	private function insert_menu_nodes( int $menu_id, array $nodes, int $parent_id = 0 ): void {
+	private function insertMenuNodes( int $menu_id, array $nodes, int $parent_id = 0 ): void {
 		foreach ( $nodes as $node ) {
 			$classes = ! empty( $node['mega'] ) ? 'nvx-menu--mega' : '';
 			$item_id = wp_update_nav_menu_item(
@@ -335,12 +335,12 @@ final class NVX_Production_Readiness_Command {
 				WP_CLI::error( sprintf( 'Unable to create primary menu item %s: %s', (string) $node['label'], $item_id->get_error_message() ) );
 			}
 			$children = isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : array();
-			$this->insert_menu_nodes( $menu_id, $children, (int) $item_id );
+			$this->insertMenuNodes( $menu_id, $children, (int) $item_id );
 		}
 	}
 
 	/** Replaces the assigned primary menu with the canonical published navigation blueprint. */
-	private function apply_primary_menu(): void {
+	private function applyPrimaryMenu(): void {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			WP_CLI::error( 'Canonical navigation blueprint is unavailable.' );
 		}
@@ -348,7 +348,7 @@ final class NVX_Production_Readiness_Command {
 		if ( array() === $nodes ) {
 			WP_CLI::error( 'Canonical navigation resolved to an empty tree.' );
 		}
-		$menu_id = $this->primary_menu_id();
+		$menu_id = $this->primaryMenuId();
 		if ( $menu_id < 1 ) {
 			$created = wp_create_nav_menu( 'NUVANX Principal' );
 			if ( is_wp_error( $created ) ) {
@@ -362,11 +362,11 @@ final class NVX_Production_Readiness_Command {
 				wp_delete_post( (int) $item->ID, true );
 			}
 		}
-		$this->insert_menu_nodes( $menu_id, $nodes );
+		$this->insertMenuNodes( $menu_id, $nodes );
 		$locations = get_nav_menu_locations();
 		$locations['primary'] = $menu_id;
 		set_theme_mod( 'nav_menu_locations', $locations );
-		WP_CLI::log( sprintf( 'Rebuilt canonical primary menu %d with %d items.', $menu_id, count( $this->canonical_menu_signature() ) ) );
+		WP_CLI::log( sprintf( 'Rebuilt canonical primary menu %d with %d items.', $menu_id, count( $this->canonicalMenuSignature() ) ) );
 	}
 
 	/**
@@ -375,10 +375,10 @@ final class NVX_Production_Readiness_Command {
 	 * @param array $assoc_args Associative command arguments, including the output format and whether pending changes are allowed.
 	 */
 	public function audit( array $args, array $assoc_args ): void {
-		$rows = $this->audit_rows();
+		$rows = $this->auditRows();
 		$format = isset( $assoc_args['format'] ) ? (string) $assoc_args['format'] : 'table';
 		WP_CLI\Utils\format_items( $format, $rows, array( 'type', 'slug', 'id', 'status', 'menu_items', 'expected' ) );
-		if ( ! $this->is_clean( $rows ) ) {
+		if ( ! $this->isClean( $rows ) ) {
 			if ( isset( $assoc_args['allow-pending'] ) ) {
 				WP_CLI::warning( 'Production-readiness audit found pending changes, as permitted for pre-apply inspection.' );
 				return;
@@ -395,18 +395,18 @@ final class NVX_Production_Readiness_Command {
 	 * @param array $assoc_args Associative command arguments, including confirmation and production-safety options.
 	 */
 	public function apply( array $args, array $assoc_args ): void {
-		$this->validate_invocation( $assoc_args );
-		$this->acquire_lock();
-		$this->apply_approved_pages();
-		$this->apply_governed_pages();
-		$this->apply_primary_menu();
+		$this->validateInvocation( $assoc_args );
+		$this->acquireLock();
+		$this->applyApprovedPages();
+		$this->applyGovernedPages();
+		$this->applyPrimaryMenu();
 		flush_rewrite_rules( false );
-		$rows = $this->audit_rows();
+		$rows = $this->auditRows();
 		WP_CLI\Utils\format_items( 'table', $rows, array( 'type', 'slug', 'id', 'status', 'menu_items', 'expected' ) );
-		if ( ! $this->is_clean( $rows ) ) {
+		if ( ! $this->isClean( $rows ) ) {
 			WP_CLI::error( 'Migration completed but the post-apply audit still has pending changes.' );
 		}
-		$this->release_lock();
+		$this->releaseLock();
 		WP_CLI::success( 'Migration applied and post-apply audit passed.' );
 	}
 }

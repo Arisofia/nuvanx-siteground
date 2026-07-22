@@ -55,17 +55,15 @@ const report = {
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- * Locates an installed Google Chrome or Chromium executable.
- * @returns {string} The executable path.
- * @throws {Error} If no supported browser executable is found.
- */
 function locateChrome() {
   const candidates = [process.env.CHROME_BIN, 'google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'].filter(Boolean);
+  const paths = (process.env.PATH || '').split(path.delimiter);
   for (const candidate of candidates) {
     if (candidate.includes(path.sep) && fs.existsSync(candidate)) return candidate;
-    const found = spawnSync('which', [candidate], { encoding: 'utf8' });
-    if (found.status === 0 && found.stdout.trim()) return found.stdout.trim();
+    for (const p of paths) {
+      const exe = path.join(p, candidate);
+      if (fs.existsSync(exe)) return exe;
+    }
   }
   throw new Error('Google Chrome or Chromium is not installed on the runner.');
 }
@@ -83,7 +81,7 @@ async function fetchWithRetry(url) {
     const response = await fetch(url, { redirect: 'follow', headers: { 'user-agent': userAgent, accept: 'text/html' } });
     lastStatus = response.status;
     lastBody = await response.text();
-    if (response.status === 200 && !/403\s*-\s*Forbidden|Access to this page is forbidden/i.test(lastBody)) {
+    if (response.status === 200 && !/(?:403\s*-\s*Forbidden)|(?:Access to this page is forbidden)/i.test(lastBody)) {
       return { status: response.status, body: lastBody };
     }
     await sleep(attempt * 1500);
@@ -235,8 +233,8 @@ async function loadPage(port, url, viewport) {
  * @return {Promise<Object>} The page URL, title, H1 texts, forbidden-page status, layout measurements, visibility states, and body class.
  */
 async function pageState(session) {
-  return session.evaluate(`(() => {
-    const text = (document.body?.innerText || '').replace(/\\s+/g, ' ').trim();
+  return session.evaluate(String.raw`(() => {
+    const text = (document.body?.innerText || '').replace(/\s+/g, ' ').trim();
     const h1 = Array.from(document.querySelectorAll('h1')).map((node) => node.textContent.trim());
     const header = document.querySelector('#nvx-header');
     const footer = document.querySelector('footer');
@@ -247,7 +245,7 @@ async function pageState(session) {
       url: location.href,
       title: document.title,
       h1,
-      forbidden: /403\\s*-\\s*Forbidden|Access to this page is forbidden/i.test(text),
+      forbidden: /(?:403\s*-\s*Forbidden)|(?:Access to this page is forbidden)/i.test(text),
       documentWidth,
       viewportWidth,
       overflow: Math.max(0, documentWidth - viewportWidth),
@@ -364,7 +362,7 @@ async function auditDesktopNavigation(port) {
     })()`);
     result.top_level_links = initial.links;
     const required = ['INICIO', 'SOLUCIONES', 'PROTOCOLOS SIGNATURE', 'TECNOLOGÍA', 'CASOS CLÍNICOS', 'EQUIPO MÉDICO', 'CLÍNICAS', 'JOURNAL', 'CONTACTO'];
-    for (const label of required) if (!initial.links.includes(label)) fail(scope, `missing top-level item: ${label}`);
+    for (const label of required) { if (!initial.links.includes(label)) fail(scope, `missing top-level item: ${label}`); }
     if (!initial.x || !initial.y) throw new Error('Protocolos Signature desktop link was not found.');
     await session.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: initial.x, y: initial.y });
     await sleep(500);
@@ -388,7 +386,9 @@ async function auditDesktopNavigation(port) {
     for (const label of ['NUVANX Contour Architecture™', 'NUVANX Post-Maternity Contour™', 'NUVANX Profile Definition™', 'NUVANX Skin Architecture™', 'NUVANX Surface Renewal™', 'NUVANX Tone Correction™']) {
       if (!opened.text.includes(label)) fail(scope, `submenu missing: ${label}`);
     }
-    for (const forbidden of ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame']) if (opened.text.includes(forbidden)) fail(scope, `submenu exposes retired label: ${forbidden}`);
+    for (const forbidden of ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame']) {
+      if (opened.text.includes(forbidden)) fail(scope, `submenu exposes retired label: ${forbidden}`);
+    }
     if (opened.overflow > 2) fail(scope, `horizontal overflow is ${opened.overflow}px`);
     const destination = path.join(evidenceDir, 'navigation-desktop-mega.png');
     await captureViewport(session, destination);
@@ -435,75 +435,90 @@ async function auditMobileNavigation(port) {
   let session;
   try {
     session = await loadPage(port, `${baseUrl}/`, { width: 390, height: 844, mobile: true });
-    await session.evaluate(`document.getElementById('nvx-hamburger-btn')?.click()`);
-    await sleep(250);
-    const drawer = await session.evaluate(`(() => {
-      const nav = document.getElementById('nvx-mobile-nav');
-      const button = document.getElementById('nvx-hamburger-btn');
-      return {
-        open: !!nav && nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'false',
-        expanded: button?.getAttribute('aria-expanded'),
-        activeId: document.activeElement?.id || '',
-      };
-    })()`);
-    Object.assign(result, drawer);
-    if (!drawer.open || drawer.expanded !== 'true') fail(scope, 'hamburger did not open the drawer with correct ARIA state');
-    if (drawer.activeId !== 'nvx-mobile-close') fail(scope, `focus did not move to close button; active=${drawer.activeId || 'none'}`);
-
-    const signatureOpened = await openMobileAccordion(session, 'protocolos signature');
-    if (!signatureOpened) throw new Error('Protocolos Signature mobile accordion toggle was not found.');
-    await sleep(300);
-
-    const contourOpened = await openMobileAccordion(session, 'contour architecture', 'sub-menu');
-    if (!contourOpened) throw new Error('Contour Architecture nested mobile toggle was not found.');
-    await sleep(350);
-
-    const state = await session.evaluate(String.raw`(() => {
-      const nav = document.getElementById('nvx-mobile-nav');
-      const text = nav?.innerText.replace(/\s+/g, ' ').trim() || '';
-      const expanded = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__toggle[aria-expanded="true"]') || []).length;
-      return {
-        text,
-        expanded,
-        overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
-        drawerWidth: nav?.getBoundingClientRect().width || 0,
-        viewportWidth: document.documentElement.clientWidth,
-      };
-    })()`);
-    Object.assign(result, state);
-    if (state.expanded < 2) fail(scope, `expected two expanded accordion levels, found ${state.expanded}`);
-    for (const label of ['Abdomen y flancos', 'Brazos y axila', 'Espalda y zona del sujetador', 'Muslos y región subglútea', 'Rodillas', 'Contorno masculino']) {
-      if (!state.text.includes(label)) fail(scope, `nested menu missing: ${label}`);
-    }
-    for (const forbidden of ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame']) if (state.text.includes(forbidden)) fail(scope, `drawer exposes retired label: ${forbidden}`);
-    if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
-    if (state.drawerWidth > state.viewportWidth + 2) fail(scope, `drawer width ${state.drawerWidth}px exceeds viewport ${state.viewportWidth}px`);
-
-    const destination = path.join(evidenceDir, 'navigation-mobile-drawer.png');
-    await captureViewport(session, destination);
-    result.screenshot = path.basename(destination);
-
-    await session.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
-    await session.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
-    await sleep(200);
-    const closed = await session.evaluate(`(() => {
-      const nav = document.getElementById('nvx-mobile-nav');
-      const button = document.getElementById('nvx-hamburger-btn');
-      return {
-        closed: !!nav && !nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'true',
-        expanded: button?.getAttribute('aria-expanded'),
-        activeId: document.activeElement?.id || '',
-      };
-    })()`);
-    result.escape_close = closed;
-    if (!closed.closed || closed.expanded !== 'false') fail(scope, 'Escape did not close drawer and reset ARIA state');
-    if (closed.activeId !== 'nvx-hamburger-btn') fail(scope, `focus was not restored to hamburger; active=${closed.activeId || 'none'}`);
+    await openAndVerifyDrawer(session, scope, result);
+    await verifySignatureAccordions(session, scope, result);
+    await captureMobileDrawer(session, scope, result);
+    await verifyDrawerClose(session, scope, result);
   } catch (error) {
     fail(scope, error instanceof Error ? error.message : String(error));
   } finally {
     session?.close();
   }
   report.navigation.mobile = result;
+}
+
+async function openAndVerifyDrawer(session, scope, result) {
+  await session.evaluate(`document.getElementById('nvx-hamburger-btn')?.click()`);
+  await sleep(250);
+  const drawer = await session.evaluate(`(() => {
+    const nav = document.getElementById('nvx-mobile-nav');
+    const button = document.getElementById('nvx-hamburger-btn');
+    return {
+      open: !!nav && nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'false',
+      expanded: button?.getAttribute('aria-expanded'),
+      activeId: document.activeElement?.id || '',
+    };
+  })()`);
+  Object.assign(result, drawer);
+  if (!drawer.open || drawer.expanded !== 'true') fail(scope, 'hamburger did not open the drawer with correct ARIA state');
+  if (drawer.activeId !== 'nvx-mobile-close') fail(scope, `focus did not move to close button; active=${drawer.activeId || 'none'}`);
+}
+
+async function verifySignatureAccordions(session, scope, result) {
+  const signatureOpened = await openMobileAccordion(session, 'protocolos signature');
+  if (!signatureOpened) throw new Error('Protocolos Signature mobile accordion toggle was not found.');
+  await sleep(300);
+
+  const contourOpened = await openMobileAccordion(session, 'contour architecture', 'sub-menu');
+  if (!contourOpened) throw new Error('Contour Architecture nested mobile toggle was not found.');
+  await sleep(350);
+
+  const state = await session.evaluate(String.raw`(() => {
+    const nav = document.getElementById('nvx-mobile-nav');
+    const text = nav?.innerText.replace(/\s+/g, ' ').trim() || '';
+    const expanded = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__toggle[aria-expanded="true"]') || []).length;
+    return {
+      text,
+      expanded,
+      overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      drawerWidth: nav?.getBoundingClientRect().width || 0,
+      viewportWidth: document.documentElement.clientWidth,
+    };
+  })()`);
+  Object.assign(result, state);
+  if (state.expanded < 2) fail(scope, `expected two expanded accordion levels, found ${state.expanded}`);
+  for (const label of ['Abdomen y flancos', 'Brazos y axila', 'Espalda y zona del sujetador', 'Muslos y región subglútea', 'Rodillas', 'Contorno masculino']) {
+    if (!state.text.includes(label)) fail(scope, `nested menu missing: ${label}`);
+  }
+  for (const forbidden of ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame']) {
+    if (state.text.includes(forbidden)) fail(scope, `drawer exposes retired label: ${forbidden}`);
+  }
+  if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
+  if (state.drawerWidth > state.viewportWidth + 2) fail(scope, `drawer width ${state.drawerWidth}px exceeds viewport ${state.viewportWidth}px`);
+}
+
+async function captureMobileDrawer(session, scope, result) {
+  const destination = path.join(evidenceDir, 'navigation-mobile-drawer.png');
+  await captureViewport(session, destination);
+  result.screenshot = path.basename(destination);
+}
+
+async function verifyDrawerClose(session, scope, result) {
+  await session.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+  await session.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+  await sleep(200);
+  const closed = await session.evaluate(`(() => {
+    const nav = document.getElementById('nvx-mobile-nav');
+    const button = document.getElementById('nvx-hamburger-btn');
+    return {
+      closed: !!nav && !nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'true',
+      expanded: button?.getAttribute('aria-expanded'),
+      activeId: document.activeElement?.id || '',
+    };
+  })()`);
+  result.escape_close = closed;
+  if (!closed.closed || closed.expanded !== 'false') fail(scope, 'Escape did not close drawer and reset ARIA state');
+  if (closed.activeId !== 'nvx-hamburger-btn') fail(scope, `focus was not restored to hamburger; active=${closed.activeId || 'none'}`);
 }
 
 const chromePath = locateChrome();

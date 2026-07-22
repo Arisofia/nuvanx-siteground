@@ -109,12 +109,12 @@ const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 const cleanHtmlText = (val) => val.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
 
 function parseSingleTag(html, name) {
-  const match = html.match(new RegExp(String.raw`<${name}\b[^>]*>([\s\S]*?)<\/${name}>`, 'i'));
+  const match = html.match(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'is'));
   return match ? cleanHtmlText(match[1]) : '';
 }
 
 function parseMultipleTagTexts(html, name) {
-  return [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>([\s\S]*?)<\/${name}>`, 'gi'))].map((m) => cleanHtmlText(m[1]));
+  return [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'gis'))].map((m) => cleanHtmlText(m[1]));
 }
 
 function queryHtmlTags(html, name) {
@@ -142,7 +142,7 @@ function findLinkHrefs(html, relType) {
 
 function parseSchemaTypes(html) {
   const types = new Set();
-  for (const match of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
+  for (const match of html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>(.*?)<\/script>/gis)) {
     try {
       const visitNode = (val) => {
         if (Array.isArray(val)) return val.forEach(visitNode);
@@ -153,7 +153,7 @@ function parseSchemaTypes(html) {
         Object.values(val).forEach(visitNode);
       };
       visitNode(JSON.parse(match[1]));
-    } catch {}
+    } catch (e) { /* ignore parse error */ }
   }
   return [...types];
 }

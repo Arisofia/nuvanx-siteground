@@ -74,3 +74,49 @@ function nvx_staging2_filter_public_canonical( $url ) {
 }
 add_filter( 'wpseo_canonical', 'nvx_staging2_filter_public_canonical', 1000 );
 add_filter( 'wpseo_opengraph_url', 'nvx_staging2_filter_public_canonical', 1000 );
+
+/**
+ * Removes Yoast's canonical presenter in non-production so the controlled
+ * fallback below is the only canonical source, including on noindex pages.
+ *
+ * @param array $presenters Yoast frontend presenter objects.
+ * @return array Filtered presenter list.
+ */
+function nvx_staging2_filter_canonical_presenters( array $presenters ): array {
+	if ( ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
+		return $presenters;
+	}
+
+	$filtered = array();
+	foreach ( $presenters as $presenter ) {
+		if ( is_object( $presenter ) && is_a( $presenter, 'Yoast\\WP\\SEO\\Presenters\\Canonical_Presenter' ) ) {
+			continue;
+		}
+		$filtered[] = $presenter;
+	}
+	return $filtered;
+}
+add_filter( 'wpseo_frontend_presenters', 'nvx_staging2_filter_canonical_presenters', 1000 );
+
+/** Prevent WordPress core from emitting a competing staging canonical. */
+function nvx_staging2_prepare_public_canonical(): void {
+	if ( function_exists( 'nvx_seo_is_nonproduction_environment' ) && nvx_seo_is_nonproduction_environment() ) {
+		remove_action( 'wp_head', 'rel_canonical' );
+	}
+}
+add_action( 'wp', 'nvx_staging2_prepare_public_canonical', 1 );
+
+/** Emits one production canonical for eligible noindex staging routes. */
+function nvx_staging2_render_public_canonical(): void {
+	if ( ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
+		return;
+	}
+
+	$url = nvx_staging2_public_canonical_url();
+	if ( '' === $url ) {
+		return;
+	}
+
+	printf( "<link rel=\"canonical\" href=\"%s\" />\n", esc_url( $url ) );
+}
+add_action( 'wp_head', 'nvx_staging2_render_public_canonical', 1 );

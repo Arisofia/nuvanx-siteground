@@ -49,7 +49,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<h2>' . esc_html__( 'Contorno Corporal y Posgestacional', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-catalog-grid">';
 	$html .= nvx_protocol_hub_card(
-		'Couture Sculpt™',
+		'NUVANX Contour Sculpt™',
 		'Remodelación corporal láser por unidades anatómicas. Diferencia grasa localizada, laxitud y continuidad del contorno antes de seleccionar la tecnología.',
 		'/remodelacion-corporal-laser-madrid/'
 	);

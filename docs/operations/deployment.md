@@ -118,7 +118,7 @@ and mobile:
 - `/protocolos-signature/`
 - `/remodelacion-corporal-laser-madrid/`
 - `/liposculpt-air/` → `/remodelacion-corporal-laser-madrid/`
-- `/v-lift-awake/` → `/papada-definicion-mandibular-madrid/`
+- `/v-lift-awake/` → `/protocolos-signature/`
 - Post-Maternity → `/protocolos-signature/`
 
 Confirm layout, navigation, one H1, CTA, canonical, robots and the absence of

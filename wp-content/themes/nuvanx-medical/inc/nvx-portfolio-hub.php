@@ -3,7 +3,7 @@
  * Portafolio Clínico hub — quiet-luxury clinical architecture.
  *
  * Pattern-based (collaborators / catalog markup), not page-ID gated.
- * Updated to use Couture Sculpt, Skin Architecture, etc.
+ * Updated to use NUVANX Contour Sculpt™, Skin Architecture, etc.
  *
  * @package nuvanx-medical
  */
@@ -51,10 +51,10 @@ function nvx_treatments_catalog_data(): array {
 		),
 		array(
 			'key'   => 'arquitectura-corporal',
-			'label' => 'Arquitectura Corporal (Couture Sculpt™)',
+			'label' => 'Arquitectura Corporal (NUVANX Contour Sculpt™)',
 			'items' => array(
 				array(
-					'meta'  => 'Protocolo Couture Sculpt™',
+					'meta'  => 'Protocolo NUVANX Contour Sculpt™',
 					'title' => 'Remodelación Láser Corporal',
 					'body'  => 'Sistema de diagnóstico y tratamiento por unidades anatómicas, orientado a mejorar la continuidad del contorno sin imponer formas estándar.',
 					'url'   => home_url( '/remodelacion-corporal-laser-madrid/' ),

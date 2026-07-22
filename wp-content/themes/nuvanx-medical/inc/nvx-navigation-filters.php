@@ -48,7 +48,7 @@ function nvx_navigation_primary_blueprint(): array {
 				'slugs'    => array( 'protocolos-signature' ),
 				'mega'     => true,
 				'children' => array(
-					array( 'label' => 'NUVANX Contour Architecture™', 'slugs' => array( 'remodelacion-corporal-laser-madrid' ) ),
+					array( 'label' => 'NUVANX Contour Sculpt™', 'slugs' => array( 'remodelacion-corporal-laser-madrid' ) ),
 					array( 'label' => 'NUVANX Post-Maternity Contour™', 'slugs' => array( 'tratamiento-postparto-abdomen-contorno-corporal-madrid' ) ),
 					array( 'label' => 'NUVANX Profile Definition™', 'slugs' => array( 'papada-definicion-mandibular-madrid' ) ),
 					array( 'label' => 'NUVANX Skin Architecture™', 'slugs' => array( 'calidad-piel-firmeza-luminosidad-madrid' ) ),
@@ -83,6 +83,7 @@ function nvx_navigation_primary_blueprint(): array {
 				),
 			),
 			array( 'label' => __( 'Journal', 'nuvanx-medical' ), 'slugs' => array( 'blog' ) ),
+			array( 'label' => __( 'Contacto', 'nuvanx-medical' ), 'slugs' => array( 'contacto' ) ),
 		)
 	);
 }

@@ -53,31 +53,31 @@ add_filter( 'body_class', 'nvx_cases_page_body_class' );
 function nvx_cases_page_markup(): string {
 	$evolutions = array(
 		array(
-			'image' => content_url( '/uploads/2026/07/evolucion_papada_perfil.png' ),
+			'image' => content_url( '/uploads/2026/07/Endolift-Papada.webp' ),
 			'alt'   => 'Evolución clínica documentada de perfil, papada y cuello',
 			'area'  => 'ROSTRO Y CUELLO',
 			'title' => 'Perfil, papada y definición mandibular',
 		),
 		array(
-			'image' => content_url( '/uploads/2026/07/evolucion_facial_integral.png' ),
+			'image' => content_url( '/uploads/2026/07/Endolift-Full-Face.webp' ),
 			'alt'   => 'Evolución clínica documentada de arquitectura facial integral',
 			'area'  => 'ARQUITECTURA FACIAL',
 			'title' => 'Calidad cutánea y armonía facial',
 		),
 		array(
-			'image' => content_url( '/uploads/2026/07/evolucion_brazos.png' ),
+			'image' => content_url( '/uploads/2026/07/Endolift-Brazos.webp' ),
 			'alt'   => 'Evolución clínica documentada de brazos',
 			'area'  => 'CONTORNO CORPORAL',
 			'title' => 'Brazos y continuidad con la axila',
 		),
 		array(
-			'image' => content_url( '/uploads/2026/07/evolucion_abdomen.png' ),
+			'image' => content_url( '/uploads/2026/07/Endolift-Abdomen.webp' ),
 			'alt'   => 'Evolución clínica documentada de abdomen y flancos',
 			'area'  => 'CONTORNO CORPORAL',
 			'title' => 'Abdomen y flancos',
 		),
 		array(
-			'image' => content_url( '/uploads/2026/07/evolucion_espalda_sujetador.png' ),
+			'image' => content_url( '/uploads/2026/07/Endolift-Espalda-Flancos-y-Sujetador.webp' ),
 			'alt'   => 'Evolución clínica documentada de espalda y zona del sujetador',
 			'area'  => 'CONTORNO CORPORAL',
 			'title' => 'Espalda y zona del sujetador',
@@ -118,7 +118,7 @@ function nvx_cases_page_markup(): string {
 				<a class="nvx-btn nvx-btn--primary" href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>">Solicitar valoración médica</a>
 			</div>
 			<div class="nvx-cases-hero__media">
-				<img src="<?php echo esc_url( content_url( '/uploads/2026/07/nuvanx_journey_section_title.png' ) ); ?>" alt="Documentación editorial de la experiencia clínica NUVANX" fetchpriority="high" decoding="async">
+				<img src="<?php echo esc_url( content_url( '/uploads/2026/07/proceso-medico-laser-nuvanx-madrid.webp' ) ); ?>" alt="Documentación editorial de la experiencia clínica NUVANX" fetchpriority="high" decoding="async">
 			</div>
 		</section>
 

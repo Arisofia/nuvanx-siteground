@@ -11,11 +11,11 @@
 defined( 'ABSPATH' ) || exit;
 
 $hero_video_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
-$hero_poster_url = content_url( '/uploads/2026/07/nuvanx_portada_1_final.png' );
+$hero_poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
 
 $editorial_stories = array(
 	array(
-		'image'       => content_url( '/uploads/2026/07/nuvanx_body_inspirational.png' ),
+		'image'       => content_url( '/uploads/2026/07/Endolift-Corporal-Portada.webp' ),
 		'alt'         => 'Detalle editorial de preparación corporal en NUVANX',
 		'kicker'      => 'PREPARACIÓN CORPORAL',
 		'title'       => 'La disciplina también puede ser delicada.',
@@ -23,7 +23,7 @@ $editorial_stories = array(
 		'url'         => home_url( '/remodelacion-corporal-laser-madrid/' ),
 	),
 	array(
-		'image'       => content_url( '/uploads/2026/07/tone_correction_final.png' ),
+		'image'       => content_url( '/uploads/2026/07/Exion-IPL.webp' ),
 		'alt'         => 'Retrato editorial para el protocolo Tone Correction',
 		'kicker'      => 'TONE CORRECTION™',
 		'title'       => 'Un tono más uniforme, sin borrar tu piel real.',
@@ -31,7 +31,7 @@ $editorial_stories = array(
 		'url'         => home_url( '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' ),
 	),
 	array(
-		'image'       => content_url( '/uploads/2026/07/surface_renewal_final.png' ),
+		'image'       => content_url( '/uploads/2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro.webp' ),
 		'alt'         => 'Retrato editorial para el protocolo Surface Renewal',
 		'kicker'      => 'SURFACE RENEWAL™',
 		'title'       => 'Renovar la superficie sin uniformar tu identidad.',
@@ -39,7 +39,7 @@ $editorial_stories = array(
 		'url'         => home_url( '/cicatrices-acne-poros-textura-madrid/' ),
 	),
 	array(
-		'image'       => content_url( '/uploads/2026/07/profile_definition_final.png' ),
+		'image'       => content_url( '/uploads/2026/07/Endolift-Papada.webp' ),
 		'alt'         => 'Perfil facial editorial para el protocolo Profile Definition',
 		'kicker'      => 'PROFILE DEFINITION™',
 		'title'       => 'Definición que se percibe. Intervención que no se anuncia.',
@@ -50,7 +50,7 @@ $editorial_stories = array(
 
 $solution_cards = array(
 	array(
-		'image' => content_url( '/uploads/2026/07/papada_mandibula.png' ),
+		'image' => content_url( '/uploads/2026/07/Endolift-Papada.webp' ),
 		'alt'   => 'Valoración de papada, mandíbula y cuello',
 		'label' => 'Rostro y cuello',
 		'title' => 'Papada y definición mandibular',
@@ -58,7 +58,7 @@ $solution_cards = array(
 		'url'   => home_url( '/papada-definicion-mandibular-madrid/' ),
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/calidad_firmeza.png' ),
+		'image' => content_url( '/uploads/2026/07/Exion-IPL.webp' ),
 		'alt'   => 'Valoración de calidad y firmeza de la piel',
 		'label' => 'Calidad cutánea',
 		'title' => 'Firmeza, densidad y luminosidad',
@@ -66,7 +66,7 @@ $solution_cards = array(
 		'url'   => home_url( '/calidad-piel-firmeza-luminosidad-madrid/' ),
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/grasa_abdomen.png' ),
+		'image' => content_url( '/uploads/2026/07/Endolift-Abdomen.webp' ),
 		'alt'   => 'Valoración corporal de abdomen y flancos',
 		'label' => 'Contorno corporal',
 		'title' => 'Abdomen y flancos',
@@ -74,7 +74,7 @@ $solution_cards = array(
 		'url'   => home_url( '/grasa-localizada-abdomen-flancos-madrid/' ),
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/flacidez_brazos.png' ),
+		'image' => content_url( '/uploads/2026/07/Endolift-Brazos.webp' ),
 		'alt'   => 'Valoración corporal de brazos',
 		'label' => 'Contorno corporal',
 		'title' => 'Brazos y axila',
@@ -82,7 +82,7 @@ $solution_cards = array(
 		'url'   => home_url( '/flacidez-grasa-localizada-brazos-madrid/' ),
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/recuperacion_postparto.png' ),
+		'image' => content_url( '/uploads/2026/07/Endolift-Abdomen-y-Flancos-Frente.webp' ),
 		'alt'   => 'Valoración del abdomen después del embarazo',
 		'label' => 'Post-Maternity Contour™',
 		'title' => 'Recuperación posgestacional',
@@ -90,7 +90,7 @@ $solution_cards = array(
 		'url'   => home_url( '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' ),
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/cicatrices_poros.png' ),
+		'image' => content_url( '/uploads/2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro.webp' ),
 		'alt'   => 'Valoración de cicatrices, poros y textura',
 		'label' => 'Superficie cutánea',
 		'title' => 'Cicatrices, poros y textura',
@@ -101,27 +101,27 @@ $solution_cards = array(
 
 $evolution_cards = array(
 	array(
-		'image' => content_url( '/uploads/2026/07/evolucion_papada_perfil.png' ),
+		'image' => content_url( '/uploads/2026/07/Endolift-Papada.webp' ),
 		'alt'   => 'Documentación clínica de evolución de papada y perfil',
 		'label' => 'Perfil y cuello',
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/evolucion_facial_integral.png' ),
+		'image' => content_url( '/uploads/2026/07/Endolift-Full-Face.webp' ),
 		'alt'   => 'Documentación clínica de evolución facial integral',
 		'label' => 'Arquitectura facial',
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/evolucion_brazos.png' ),
+		'image' => content_url( '/uploads/2026/07/Endolift-Brazos.webp' ),
 		'alt'   => 'Documentación clínica de evolución de brazos',
 		'label' => 'Brazos',
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/evolucion_abdomen.png' ),
+		'image' => content_url( '/uploads/2026/07/Endolift-Abdomen.webp' ),
 		'alt'   => 'Documentación clínica de evolución de abdomen',
 		'label' => 'Abdomen',
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/evolucion_espalda_sujetador.png' ),
+		'image' => content_url( '/uploads/2026/07/Endolift-Espalda-Flancos-y-Sujetador.webp' ),
 		'alt'   => 'Documentación clínica de evolución de espalda y zona del sujetador',
 		'label' => 'Espalda',
 	),
@@ -222,7 +222,7 @@ ob_start();
 
 	<section class="nvx-home-authority" aria-labelledby="nvx-home-authority-title">
 		<div class="nvx-home-authority__media">
-			<img src="<?php echo esc_url( content_url( '/uploads/2026/07/nuvanx_journey_section_title.png' ) ); ?>" alt="Experiencia editorial NUVANX" loading="lazy" decoding="async">
+			<img src="<?php echo esc_url( content_url( '/uploads/2026/07/proceso-medico-laser-nuvanx-madrid.webp' ) ); ?>" alt="Experiencia editorial NUVANX" loading="lazy" decoding="async">
 		</div>
 		<div class="nvx-home-authority__copy">
 			<p class="nvx-home-eyebrow">DIRECCIÓN MÉDICA</p>

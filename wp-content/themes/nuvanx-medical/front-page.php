@@ -54,29 +54,30 @@ ob_start();
 			<div class="nvx-home-feature">
 				<span class="nvx-home-feature__number" aria-hidden="true">III</span>
 				<h3 class="nvx-home-feature__title">Anestesia local cuando toca, nunca de más.</h3>
+				<p class="nvx-home-feature__desc">Cuando procede, los tratamientos se realizan con anestesia local para maximizar tu confort y seguridad, sin sobretratar.</p>
 			</div>
 			<div class="nvx-home-feature">
 				<span class="nvx-home-feature__number" aria-hidden="true">IV</span>
-				<h3 class="nvx-home-feature__title">Grasa y flacidez, en la misma cita</h3>
-				<p class="nvx-home-feature__desc">Cuando el diagnóstico lo permite.</p>
+				<h3 class="nvx-home-feature__title">Grasa y flacidez, en la misma cita.</h3>
+				<p class="nvx-home-feature__desc">Cuando el diagnóstico lo permite, integramos la reducción adiposa y la mejora de la firmeza en un único procedimiento.</p>
 			</div>
 			<div class="nvx-home-feature">
 				<span class="nvx-home-feature__number" aria-hidden="true">V</span>
 				<h3 class="nvx-home-feature__title">Seguimiento con nombre y apellido.</h3>
-				<p class="nvx-home-feature__desc">Revisamos cómo evolucionas tú, no un ticket de atención al cliente.</p>
+				<p class="nvx-home-feature__desc">Revisamos cómo evolucionas tú, no un ticket de atención al cliente. Tu progreso se evalúa personalmente en consulta.</p>
 			</div>
 		</div>
 	</section>
 
 	<section class="nvx-home-portfolio" aria-labelledby="nvx-home-portfolio-title">
 		<header class="nvx-home-portfolio__header">
-			<p id="nvx-home-portfolio-title" class="nvx-home-portfolio__title">Un protocolo para cada cosa — no un catálogo para todos</p>
+			<p id="nvx-home-portfolio-title" class="nvx-home-portfolio__title">Arquitectura anatómica</p>
 		</header>
 		<div class="nvx-home-portfolio__list">
 			<article class="nvx-home-portfolio__item">
 				<span class="nvx-home-portfolio__number" aria-hidden="true">01</span>
 				<h3 class="nvx-home-portfolio__name">Endolift® Facial</h3>
-				<p class="nvx-home-portfolio__desc">Para la papada y la línea de la mandíbula, con una fibra láser finísima bajo la piel — nada de cirugía.</p>
+				<p class="nvx-home-portfolio__desc">Retracción tisular y definición del contorno mandibular mediante láser subdérmico.</p>
 			</article>
 			<article class="nvx-home-portfolio__item">
 				<span class="nvx-home-portfolio__number" aria-hidden="true">02</span>
@@ -111,7 +112,7 @@ ob_start();
 			</div>
 			<div class="nvx-home-evidence__text-col">
 				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">Evidencia clínica</h2>
-				<p class="nvx-home-evidence__desc">Cada caso que ves aquí es real, con el permiso de la paciente, y sin enseñar nada que ella no quisiera compartir. No usamos fotos de catálogo del fabricante del láser — usamos las tuyas, si algún día quieres formar parte de esto.</p>
+				<p class="nvx-home-evidence__desc">Documentamos la evolución clínica con consentimiento y seguimiento médico, preservando la privacidad de cada paciente.</p>
 				<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-btn nvx-btn--secondary-on-dark">Explorar casos clínicos</a>
 			</div>
 		</div>
@@ -124,7 +125,7 @@ ob_start();
 				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-btn nvx-btn--secondary">Conocer al equipo médico</a>
 			</div>
 			<div class="nvx-home-team__content">
-				<p class="nvx-home-team__desc">El médico que te explora es el mismo que te trata y el mismo que te hace el seguimiento después. No hay traspasos ni rotación de personal a mitad de tu plan.</p>
+				<p class="nvx-home-team__desc">El equipo integra experiencia clínica, valoración individual y seguimiento para seleccionar la tecnología adecuada en cada caso.</p>
 				<ul class="nvx-home-team__list">
 					<li><strong>Dr. José Javier Rivera Tejeda</strong> <span>Dirección médica. Endolift® y láser CO₂.</span></li>
 					<li><strong>Dra. Ivon Yamileth Rivera Deras</strong> <span>Medicina y well-aging.</span></li>
@@ -141,7 +142,7 @@ ob_start();
 				<div class="nvx-home-seo__col">
 					<h3 class="nvx-home-seo__col-title">Contorno Corporal</h3>
 					<ul class="nvx-home-seo__list">
-						<li><strong>Remodelación global:</strong> <a href="<?php echo esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ); ?>">NUVANX Contour Sculpt™</a> para el tratamiento de grasa localizada y firmeza.</li>
+						<li><strong>Remodelación global:</strong> <a href="<?php echo esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ); ?>">NUVANX Contour Architecture™</a> para el tratamiento de grasa localizada y firmeza.</li>
 						<li><strong>Recuperación posgestacional:</strong> <a href="<?php echo esc_url( home_url( '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' ) ); ?>">Post-Maternity Contour™</a> para valorar abdomen, diástasis y flacidez.</li>
 						<li><strong>Láser subdérmico:</strong> <a href="<?php echo esc_url( home_url( '/endolaser-lipolisis-corporal-madrid/' ) ); ?>">Endoláser corporal</a> (lipólisis y retracción térmica ambulatoria).</li>
 					</ul>
@@ -151,7 +152,6 @@ ob_start();
 					<ul class="nvx-home-seo__list">
 						<li><strong>Tercio inferior:</strong> <a href="<?php echo esc_url( home_url( '/papada-definicion-mandibular-madrid/' ) ); ?>">Profile Definition™</a> para diagnóstico de papada, mandíbula y cuello.</li>
 						<li><strong>Tensión y calidad cutánea:</strong> <a href="<?php echo esc_url( home_url( '/calidad-piel-firmeza-luminosidad-madrid/' ) ); ?>">Skin Architecture™</a> y <a href="<?php echo esc_url( home_url( '/endolift-facial-papada-mandibula/' ) ); ?>">Endolift® Facial</a>.</li>
-						<li><strong>Región periocular:</strong> <a href="<?php echo esc_url( home_url( '/eye-frame-rejuvenecimiento-mirada-madrid/' ) ); ?>">Eye Frame™</a> para el tratamiento integral de la mirada y las ojeras.</li>
 						<li><strong>Renovación de superficie:</strong> <a href="<?php echo esc_url( home_url( '/cicatrices-acne-poros-textura-madrid/' ) ); ?>">Surface Renewal™</a> (<a href="<?php echo esc_url( home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ) ); ?>">Láser CO₂ fraccionado</a> para marcas de acné) y <a href="<?php echo esc_url( home_url( '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' ) ); ?>">Tone Correction™</a>.</li>
 					</ul>
 				</div>
@@ -176,8 +176,8 @@ ob_start();
 	</section>
 
 	<section class="nvx-home-closure" aria-labelledby="nvx-home-closure-title">
-		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">Aquí no vas a salir con más de lo que necesitas.</h2>
-		<p class="nvx-home-closure__desc">Un plan pensado para ti, hecho por quien te va a seguir viendo después — no una promesa de folleto.</p>
+		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">Medicina estética con criterio clínico.</h2>
+		<p class="nvx-home-closure__desc">Plan individualizado. Precisión médica. Seguimiento según tu caso.</p>
 		<div class="nvx-home-closure__actions">
 			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">Definir mi plan clínico</a>
 			<a href="<?php echo esc_url( nvx_cta_whatsapp_url() ); ?>" class="nvx-btn nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>

@@ -67,12 +67,7 @@ check_redirect() {
   echo "PASS redirect $source_path -> $target_path status=301"
 }
 
-fetch_page '/tratamientos/' \
-  'Portafolio clínico.' \
-  'La anatomía dicta el plan; la tecnología lo ejecuta' \
-  'Áreas Anatómicas y Protocolos' \
-  'Nuestro Arsenal Tecnológico' \
-  'Tu primera valoración clínica'
+check_redirect '/tratamientos/' '/soluciones-medicas/'
 fetch_page '/soluciones-medicas/' \
   'Soluciones médicas para rostro, piel y contorno corporal.' \
   'Rostro y cuello' \

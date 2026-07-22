@@ -27,11 +27,11 @@ const protocolPages = read('wp-content/themes/nuvanx-medical/inc/nvx-protocol-pa
 const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
 const seoMetadata = read('wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php');
 const editorialSeo = read('wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php');
-const treatmentsTemplate = read('wp-content/themes/nuvanx-medical/page-tratamientos.php');
+
 const nativeStyle = read('wp-content/themes/nuvanx-medical/inc/nvx-native-style-governance.php');
 const pageShell = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php');
 const externalVisualClosure = read('wp-content/themes/nuvanx-medical/inc/nvx-external-visual-closure.php');
-const controlledPublicContent = [portfolio, protocolHub, protocolPages, strategyPages, treatmentsTemplate].join('\n');
+const controlledPublicContent = [portfolio, protocolHub, protocolPages, strategyPages].join('\n');
 
 for (const marker of [
   'workflow_dispatch:', "inputs.confirmation == 'DEPLOY_STAGING2'", 'PREFLIGHT_ONLY', 'DEPLOY_AND_MIGRATE', 'SMOKE_ONLY',
@@ -75,7 +75,7 @@ for (const marker of [
 if (/['"]post_status['"]\s*=>\s*['"]trash['"]/.test(migration)) fail('migration uses direct trash status update');
 
 for (const marker of [
-  "fetch_page '/tratamientos/'", "fetch_page '/soluciones-medicas/'", "fetch_page '/protocolos-signature/'",
+  "check_redirect '/tratamientos/' '/soluciones-medicas/'", "fetch_page '/soluciones-medicas/'", "fetch_page '/protocolos-signature/'",
   "fetch_page '/remodelacion-corporal-laser-madrid/'", "fetch_page '/tratamiento-postparto-abdomen-contorno-corporal-madrid/'",
   "fetch_page '/por-que-nuvanx/'", "fetch_page '/inversion-medicina-estetica/'",
   "check_redirect '/liposculpt-air/'", "check_redirect '/v-lift-awake/' '/protocolos-signature/'", 'SMOKE_VERIFY_OK',
@@ -84,10 +84,10 @@ if (smoke.includes("check_redirect '/tratamiento-postparto-abdomen-contorno-corp
 
 for (const marker of [
   "'https://staging2.nuvanx.com'", 'EXPECTED_SHA must be a full lowercase 40-character SHA',
-  '/tratamientos/', '/soluciones-medicas/', '/protocolos-signature/', '/remodelacion-corporal-laser-madrid/',
+  '/soluciones-medicas/', '/protocolos-signature/', '/remodelacion-corporal-laser-madrid/',
   '/tratamiento-postparto-abdomen-contorno-corporal-madrid/', '/por-que-nuvanx/', '/inversion-medicina-estetica/',
   'Soluciones médicas para rostro y cuerpo | NUVANX Madrid', 'Tratamiento postparto abdomen Madrid | NUVANX',
-  'Portafolio clínico.', 'Soluciones médicas para rostro, piel y contorno corporal.',
+  'Soluciones médicas para rostro, piel y contorno corporal.',
   'Protocolos Signature: Medicina estética de diagnóstico.', 'Remodelación corporal láser diseñada según tu anatomía.',
   'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid', 'Por qué NUVANX. Sin retórica de marketing.',
   'El presupuesto forma parte de una decisión informada.', 'expected_markers', 'h2_count',
@@ -116,9 +116,7 @@ for (const marker of [
   'Qué incluye siempre el plan en NUVANX', 'Qué no encontrarás aquí', 'Una promoción puntual no modifica la indicación',
 ]) if (!strategyPages.includes(marker)) fail(`strategy content missing parity marker: ${marker}`);
 
-for (const marker of ['La anatomía dicta el plan; la tecnología lo ejecuta', 'Áreas Anatómicas y Protocolos', 'Nuestro Arsenal Tecnológico', 'Post-Maternity Contour™']) {
-  if (!treatmentsTemplate.includes(marker)) fail(`treatments template missing parity marker: ${marker}`);
-}
+
 
 for (const marker of [
   '/soluciones-medicas/', 'Soluciones médicas para rostro y cuerpo | NUVANX Madrid',
@@ -129,9 +127,7 @@ for (const marker of ["'protocolos_signature'", "'couture_sculpt'", 'Protocolos 
   if (!seoMetadata.includes(marker)) fail(`canonical SEO metadata missing marker: ${marker}`);
 }
 
-for (const marker of ["is_page_template( 'page-tratamientos.php' )", "'tratamientos' === (string) get_post_field( 'post_name', get_queried_object_id() )"]) {
-  if (!nativeStyle.includes(marker)) fail(`treatments hub detection missing marker: ${marker}`);
-}
+
 for (const marker of ["function_exists( 'nvx_strategy_current_page_key' )", "function_exists( 'nvx_content_is_protocol_hub' )", "function_exists( 'nvx_protocol_pages_current_key' )"]) {
   if (!pageShell.includes(marker)) fail(`managed shell missing marker: ${marker}`);
 }
@@ -152,7 +148,7 @@ for (const forbidden of [
 
 const phpFiles = [
   'scripts/wp/nvx-production-readiness-command.php',
-  'wp-content/themes/nuvanx-medical/page-tratamientos.php',
+
   'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php',

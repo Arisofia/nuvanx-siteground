@@ -316,16 +316,24 @@ function nvx_content_replace_values_sections( string $content ): string {
 }
 
 /**
- * Safe preg_replace: never wipe content when the regex engine fails (returns null).
+ * Safe regex replacement: never wipe content when PCRE fails.
  *
- * @param string   $pattern  Pattern.
- * @param string   $replace  Replacement.
- * @param string   $subject  Subject HTML.
- * @param int      $limit    Limit (-1 = all).
- * @param int|null $count    Optional match count out-param.
+ * Supports both literal replacements and callbacks because the presentation
+ * pipeline uses this helper for attribute normalization and protected media.
+ *
+ * @param string          $pattern Pattern.
+ * @param string|callable $replace Replacement string or callback.
+ * @param string          $subject Subject HTML.
+ * @param int             $limit   Limit (-1 = all).
+ * @param int|null        $count   Optional match count out-param.
  */
-function nvx_content_preg_replace_keep( string $pattern, string $replace, string $subject, int $limit = -1, ?int &$count = null ): string {
-	$result = preg_replace( $pattern, $replace, $subject, $limit, $count );
+function nvx_content_preg_replace_keep( string $pattern, $replace, string $subject, int $limit = -1, ?int &$count = null ): string {
+	if ( is_callable( $replace ) ) {
+		$result = preg_replace_callback( $pattern, $replace, $subject, $limit, $count );
+	} else {
+		$result = preg_replace( $pattern, (string) $replace, $subject, $limit, $count );
+	}
+
 	return is_string( $result ) ? $result : $subject;
 }
 

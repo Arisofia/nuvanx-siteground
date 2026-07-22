@@ -111,7 +111,7 @@ function nvx_treatments_partner_labels(): array {
  * @return string The rendered catalog HTML.
  */
 function nvx_treatments_catalog_markup(): string {
-	$html  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero nvx-portfolio-hero nvx-equipo-hero--copy-only" aria-labelledby="nvx-portfolio-h1">';
+	$html  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero" aria-labelledby="nvx-portfolio-h1">';
 	$html .= '<div class="nvx-brand-hero__inner">';
 	$html .= '<div class="nvx-editorial-hero__copy">';
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</p>';
@@ -123,23 +123,24 @@ function nvx_treatments_catalog_markup(): string {
 	$html .= '<div class="nvx-catalog__inner">';
 
 	foreach ( nvx_treatments_catalog_data() as $category ) {
-		$html .= '<div class="nvx-catalog-category" data-category="' . esc_attr( $category['key'] ) . '">';
-		$html .= '<h3 class="nvx-catalog-category__label">' . esc_html( $category['label'] ) . '</h3>';
+		$html .= '<section class="nvx-editorial-section" data-category="' . esc_attr( $category['key'] ) . '">';
+		$html .= '<div class="nvx-editorial-section__inner">';
+		$html .= '<h2 class="nvx-brand-title">' . esc_html( $category['label'] ) . '</h2>';
 		$html .= '<div class="nvx-catalog-grid">';
 
 		foreach ( $category['items'] as $item ) {
 			$html .= '<article class="nvx-catalog-card">';
 			$html .= '<div class="nvx-catalog-card__main">';
-			$html .= '<span class="nvx-catalog-card__meta">' . esc_html( $item['meta'] ) . '</span>';
-			$html .= '<h4 class="nvx-catalog-card__title">' . esc_html( $item['title'] ) . '</h4>';
+			$html .= '<h3 class="nvx-catalog-card__title">' . esc_html( $item['title'] ) . '</h3>';
 			$html .= '<p class="nvx-catalog-card__body">' . esc_html( $item['body'] ) . '</p>';
+			$html .= '<p class="nvx-catalog-card__meta">' . esc_html( $item['meta'] ) . '</p>';
 			$html .= '</div>';
 			$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( $item['url'] ) . '">';
 			$html .= esc_html__( 'Explorar protocolo', 'nuvanx-medical' );
 			$html .= ' <span aria-hidden="true">→</span></a>';
 			$html .= '</article>';
 		}
-		$html .= '</div></div>';
+		$html .= '</div></div></section>';
 	}
 	return $html . '</div></section>';
 }
@@ -212,9 +213,9 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 	$content = nvx_content_preg_replace_keep('/<section\b[^>]*class="[^"]*\bnvx-brand-section\b[^"]*"[^>]*>[\s\S]*?¿Qué tratamientos realizamos en NUVANX\?[\s\S]*?<\/section>/iu', '', $content, 1);
 	$content = nvx_content_preg_replace_keep('/<section\b[^>]*class="[^"]*nvx-brand-section--cta[^"]*"[^>]*>[\s\S]*?<\/section>/iu', '', $content, 1);
 
-	$links  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="Tu primera valoración clínica">';
-	$links .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$links .= '<h2 class="nvx-brand-heading-2">' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
+	$links  = '<section class="nvx-editorial-section nvx-editorial-section--cta" aria-label="Tu primera valoración clínica">';
+	$links .= '<div class="nvx-editorial-section__inner">';
+	$links .= '<h2 class="nvx-brand-title">' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
 	$links .= '<p class="nvx-brand-body">' . esc_html__( 'La valoración no parte de una máquina concreta. Elaboramos planes médicos individualizados según anatomía, diagnóstico y objetivos realistas.', 'nuvanx-medical' ) . '</p>';
 	$links .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Iniciar mi valoración', 'nuvanx-medical' ) . '</a></p>';
 	$links .= '</div></section>';

@@ -239,42 +239,6 @@
    TREATMENTS CATALOG — quiet luxury index (var(--nvx-space-1) system)
    ═══════════════════════════════════════════════════════════ */
 
-.nvx-catalog__intro {
-  padding-bottom: var(--nvx-space-6);
-  margin-bottom: var(--nvx-space-8);
-  border-bottom: 1px solid var(--nvx-color-line);
-}
-
-.nvx-catalog__kicker {
-  display: block;
-  margin: 0 0 var(--nvx-space-2);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-kicker);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: var(--nvx-track-wide);
-  text-transform: uppercase;
-  color: var(--nvx-accent-muted);
-}
-
-.nvx-catalog__title {
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h2);
-  font-weight: 400;
-  line-height: var(--nvx-lh-h2);
-  letter-spacing: -0.02em;
-  color: var(--nvx-ink);
-}
-
-.nvx-catalog__lead {
-  max-width: 65ch;
-  margin: 0;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-text-body);
-}
-
 .nvx-catalog-category:last-of-type {
   margin-bottom: var(--nvx-space-6);
 }

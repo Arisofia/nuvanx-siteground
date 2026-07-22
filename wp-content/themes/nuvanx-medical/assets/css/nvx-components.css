@@ -531,9 +531,6 @@ body.nvx-valoracion-modal-open{
   color: var(--nvx-text-muted);
 }
 /* CONTACT CLINIC CARDS — canonical editorial grid */
-.nvx-page--contact .nvx-section--contact-hero {
-  background: var(--nvx-surface-base);
-}
 
 .nvx-page--contact .nvx-clinic-card {
   display: flex;

@@ -255,6 +255,7 @@ require_once get_template_directory() . '/inc/nvx-integrations.php';
 require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
 require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';
+require_once get_template_directory() . '/inc/nvx-hostile-conversion-engine.php';
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-portfolio-hub.php';
 require_once get_template_directory() . '/inc/nvx-protocol-hub.php';

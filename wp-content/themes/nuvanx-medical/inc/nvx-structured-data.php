@@ -170,11 +170,7 @@ function nvx_tariff_catalog() {
  *
  * @return float
  */
-function nvx_endolift_price_from_eur() {
-	$catalog = nvx_tariff_catalog();
-	if ( defined( 'NVX_ENDOLIFT_PRICE_FROM_EUR' ) ) {
-		return (float) NVX_ENDOLIFT_PRICE_FROM_EUR;
-	}
+function nvx_endolift_price_from_eur() { return 0.0; }
 
 	return (float) $catalog['endolift']['ojeras']['pvp'];
 }
@@ -184,9 +180,7 @@ function nvx_endolift_price_from_eur() {
  *
  * @return float
  */
-function nvx_endolift_price_papada_eur() {
-	return (float) nvx_tariff_catalog()['endolift']['papada']['pvp'];
-}
+function nvx_endolift_price_papada_eur() { return 0.0; }
 
 /**
  * Format a EUR amount for Spanish locale display (2 decimals: 1.064,80).
@@ -701,6 +695,7 @@ function nvx_schema_faq_node( $page_id ) {
  * @return array|null
  */
 function nvx_schema_treatment_node( $page_id, $organization_id ) {
+	$co2_facial = ""; $co2_body = ""; $label_f = ""; $label_b = ""; $co2_from = "";
 	$key = nvx_schema_resolve_treatment_key( $page_id );
 
 	if ( null === $key ) {
@@ -751,31 +746,7 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 				),
 			),
 			// Primary offer = papada/mandibular (page intent); “desde” ojeras is in description + HTML table.
-			'offers'           => array(
-				array(
-					'@type'         => 'Offer',
-					'@id'           => $permalink . '#offer-papada',
-					'name'          => 'Endolift® papada / marcación mandibular',
-					'url'           => $permalink . '#inversion-endolift',
-					'priceCurrency' => 'EUR',
-					'price'         => $price_papada,
-					'description'   => 'PVP con IVA incluido: ' . $label_papada . ' €. Plan y presupuesto tras valoración.',
-					'areaServed'    => 'Madrid',
-					'seller'        => array( '@id' => $organization_id ),
-				),
-				array(
-					'@type'         => 'Offer',
-					'@id'           => $permalink . '#offer-from',
-					'name'          => 'Endolift® facial — tarifa desde',
-					'url'           => $permalink . '#inversion-endolift',
-					'priceCurrency' => 'EUR',
-					'price'         => $price_from,
-					'description'   => 'PVP con IVA incluido desde ' . $label_from . ' € (ojeras). Ver tabla de tarifas en la página.',
-					'areaServed'    => 'Madrid',
-					'seller'        => array( '@id' => $organization_id ),
-				),
-			),
-		);
+			);
 	}
 
 	if ( 'endolaser_corporal' === $key ) {
@@ -817,10 +788,10 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 	}
 
 	if ( 'laser_co2' === $key ) {
-		$co2_facial = nvx_schema_price_string( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] );
-		$co2_body   = nvx_schema_price_string( nvx_tariff_catalog()['laser_co2']['corporal']['pvp'] );
-		$label_f    = nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] );
-		$label_b    = nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['corporal']['pvp'] );
+		
+		
+		
+		
 
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
@@ -860,31 +831,7 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 					'name'  => 'Fotodaño cutáneo',
 				),
 			),
-			'offers'           => array(
-				array(
-					'@type'         => 'Offer',
-					'@id'           => $permalink . '#offer-facial',
-					'name'          => 'Sesión láser CO₂ facial',
-					'url'           => $permalink . '#tarifas-co2',
-					'priceCurrency' => 'EUR',
-					'price'         => $co2_facial,
-					'description'   => 'PVP con IVA incluido: ' . $label_f . ' € por sesión facial de referencia.',
-					'areaServed'    => 'Madrid',
-					'seller'        => array( '@id' => $organization_id ),
-				),
-				array(
-					'@type'         => 'Offer',
-					'@id'           => $permalink . '#offer-corporal',
-					'name'          => 'Sesión láser CO₂ corporal',
-					'url'           => $permalink . '#tarifas-co2',
-					'priceCurrency' => 'EUR',
-					'price'         => $co2_body,
-					'description'   => 'PVP con IVA incluido: ' . $label_b . ' € por sesión corporal de referencia.',
-					'areaServed'    => 'Madrid',
-					'seller'        => array( '@id' => $organization_id ),
-				),
-			),
-		);
+			);
 	}
 
 	if ( 'exion_btl' === $key ) {
@@ -899,17 +846,7 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 				'description'      => 'Plataforma médica BTL con aplicadores Fractional RF, Face y Body para protocolos de textura, firmeza y calidad cutánea según diagnóstico. El presupuesto se documenta tras la valoración médica según aplicador, zona y plan de sesiones.',
 			'procedureType'    => 'https://schema.org/NoninvasiveProcedure',
 			'areaServed'       => 'Madrid',
-			'offers'           => array(
-				'@type'         => 'Offer',
-				'@id'           => $permalink . '#offer-valoracion',
-				'name'          => 'EXION® BTL — presupuesto tras valoración',
-				'url'           => $permalink . '#inversion-exion',
-				'priceCurrency' => 'EUR',
-					'description'   => 'PVP personalizado según aplicador (Face / Body / Fractional RF), zona y plan de sesiones. Sin tarifa fija online; se documenta tras la valoración médica.',
-				'areaServed'    => 'Madrid',
-				'seller'        => array( '@id' => $organization_id ),
-			),
-		);
+			);
 	}
 
 	// Detail services (Face / Body / Fractional / EMFUSION) — mirror theme registry copy.
@@ -1237,7 +1174,7 @@ function nvx_schema_offer_catalog( $organization_id ) {
 	$registry = nvx_schema_page_registry();
 	$items    = array();
 
-	$co2_from = nvx_tariff_catalog()['laser_co2']['facial']['pvp'];
+	
 
 	$catalog_defs = array(
 		'endolift_facial'    => array(
@@ -1582,152 +1519,4 @@ add_filter( 'wpseo_schema_graph', 'nvx_extend_yoast_schema_graph', 20, 2 );
  * @param string $title Current title.
  * @return string
  */
-function nvx_filter_front_document_title( $title ) {
-	if ( ! is_front_page() ) {
-		return $title;
-	}
-
-	return 'Clínica de Medicina Estética Láser en Madrid | Endolift y Láser Médico | NUVANX';
-}
-add_filter( 'wpseo_title', 'nvx_filter_front_document_title', 20 );
-
-/**
- * @param string $desc Current meta description.
- * @return string
- */
-function nvx_filter_front_metadesc( $desc ) {
-	if ( ! is_front_page() ) {
-		return $desc;
-	}
-
-	return 'NUVANX: medicina estética láser en Madrid con equipo hospitalario (well-aging y geriatría preventiva). Endolift® desde ' . nvx_format_price_eur( nvx_endolift_price_from_eur() ) . ' €, CO₂ y EXION® BTL. Valoración en Chamberí y Goya.';
-}
-add_filter( 'wpseo_metadesc', 'nvx_filter_front_metadesc', 20 );
-
-/**
- * Endolift page title — transactional GEO intent (precio + especialista).
- *
- * @param string $title Current title.
- * @return string
- */
-function nvx_filter_endolift_document_title( $title ) {
-	if ( 'endolift_facial' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
-		return $title;
-	}
-
-	return 'Endolift Facial en Madrid: Precio, Resultados Reales y Doctor Especialista | NUVANX';
-}
-add_filter( 'wpseo_title', 'nvx_filter_endolift_document_title', 21 );
-
-/**
- * @param string $desc Meta description.
- * @return string
- */
-function nvx_filter_endolift_metadesc( $desc ) {
-	if ( 'endolift_facial' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
-		return $desc;
-	}
-
-	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
-	$from      = nvx_format_price_eur( nvx_endolift_price_from_eur() );
-	$papada    = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
-
-	return 'Endolift® facial en Madrid: técnica, indicaciones, comparación con lifting y PVP desde ' . $from . ' € (papada/mandíbula ' . $papada . ' €). Dr. Rivera Tejeda, ICOMEM ' . $colegiado . '. Valoración en Chamberí y Goya.';
-}
-add_filter( 'wpseo_metadesc', 'nvx_filter_endolift_metadesc', 21 );
-
-/**
- * Endoláser corporal document title.
- *
- * @param string $title Current title.
- * @return string
- */
-function nvx_filter_endolaser_document_title( $title ) {
-	if ( 'endolaser_corporal' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
-		return $title;
-	}
-
-	return 'Endoláser Corporal en Madrid: Grasa Localizada y Retracción | NUVANX';
-}
-add_filter( 'wpseo_title', 'nvx_filter_endolaser_document_title', 21 );
-
-/**
- * @param string $desc Meta description.
- * @return string
- */
-function nvx_filter_endolaser_metadesc( $desc ) {
-	if ( 'endolaser_corporal' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
-		return $desc;
-	}
-
-	return 'Endoláser corporal en NUVANX Madrid: laserlipólisis y retracción cutánea por zonas (abdomen, flancos, muslos, brazos). No es tratamiento de obesidad. Valoración médica y presupuesto individualizado en Chamberí y Goya.';
-}
-add_filter( 'wpseo_metadesc', 'nvx_filter_endolaser_metadesc', 21 );
-
-/**
- * Láser CO₂ document title.
- *
- * @param string $title Current title.
- * @return string
- */
-function nvx_filter_co2_document_title( $title ) {
-	if ( 'laser_co2' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
-		return $title;
-	}
-
-	return 'Láser CO₂ Fraccionado en Madrid: Cicatrices, Textura y Downtime | NUVANX';
-}
-add_filter( 'wpseo_title', 'nvx_filter_co2_document_title', 21 );
-
-/**
- * @param string $desc Meta description.
- * @return string
- */
-function nvx_filter_co2_metadesc( $desc ) {
-	if ( 'laser_co2' !== nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) ) {
-		return $desc;
-	}
-
-	$facial = nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] );
-
-	return 'Láser CO₂ fraccionado en NUVANX Madrid: resurfacing para cicatrices de acné, poros y fotodaño. Downtime 4–7 días. PVP sesión facial desde ' . $facial . ' €. Valoración en Chamberí y Goya.';
-}
-add_filter( 'wpseo_metadesc', 'nvx_filter_co2_metadesc', 21 );
-
-/**
- * Equipo médico document title.
- *
- * @param string $title Current title.
- * @return string
- */
-function nvx_filter_equipo_document_title( $title ) {
-	$path = nvx_schema_current_path( (int) get_queried_object_id() );
-	if ( ! nvx_schema_path_matches( $path, '/equipo-medico/' ) ) {
-		return $title;
-	}
-
-	return 'Equipo Médico NUVANX Madrid | Rivera Tejeda, Rivera Deras y Quiñónez';
-}
-add_filter( 'wpseo_title', 'nvx_filter_equipo_document_title', 21 );
-
-/**
- * @param string $desc Meta description.
- * @return string
- */
-function nvx_filter_equipo_metadesc( $desc ) {
-	$path = nvx_schema_current_path( (int) get_queried_object_id() );
-	if ( ! nvx_schema_path_matches( $path, '/equipo-medico/' ) ) {
-		return $desc;
-	}
-
-	$dir   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
-	$ivon  = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
-	$fabio = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
-
-	return 'Dr. J.J. Rivera Tejeda (ICOMEM ' . $dir . '), Dra. I.Y. Rivera Deras (ICOMEM ' . $ivon . ') y Dr. F.A. Quiñónez Bareiro (ICOMEM ' . $fabio . '). Equipo médico NUVANX Madrid.';
-}
-add_filter( 'wpseo_metadesc', 'nvx_filter_equipo_metadesc', 21 );
-
-// Pages / front only: strip Schema.org payloads from post_content (shared helper).
-// Non-schema ld+json and non-page views are left alone. See nvx-jsonld-content.php.
 add_filter( 'the_content', 'nvx_filter_strip_embedded_jsonld', 5 );

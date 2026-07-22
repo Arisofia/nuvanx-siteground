@@ -10,12 +10,35 @@ case "$BASE_URL" in
   *) echo "ERROR: refusing unexpected BASE_URL: $BASE_URL" >&2; exit 1 ;;
 esac
 
-for command_name in curl grep mktemp tr cut tail xargs; do
+for command_name in curl grep mktemp tr cut tail xargs sleep; do
   command -v "$command_name" >/dev/null 2>&1 || { echo "ERROR: required command unavailable: $command_name" >&2; exit 1; }
 done
 
+# SiteGround can challenge command-line curl traffic from shared CI ranges with
+# HTTP 202. GitHub Actions therefore uses the equivalent governed Node verifier;
+# the remote server-side smoke remains curl-based and independent of Node.
+if [[ "${GITHUB_ACTIONS:-}" == 'true' ]]; then
+  command -v node >/dev/null 2>&1 || { echo 'ERROR: Node.js is required for external smoke verification' >&2; exit 1; }
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  exec node "$SCRIPT_DIR/smoke-verify-external.mjs"
+fi
+
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
+USER_AGENT='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'
+CURL_COMMON_ARGS=(
+  --silent
+  --show-error
+  --connect-timeout 15
+  --max-time 45
+  --http1.1
+  --compressed
+  --user-agent "$USER_AGENT"
+  --header 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+  --header 'Accept-Language: es-ES,es;q=0.9,en;q=0.7'
+  --header 'Cache-Control: no-cache'
+  --header 'Pragma: no-cache'
+)
 # fail prints an error message to stderr and returns a failure status.
 fail() { echo "ERROR: $*" >&2; return 1; }
 
@@ -24,9 +47,23 @@ fetch_page() {
   local page_path="$1"
   shift
   local body_file="$TMP_DIR/body-$(echo "$page_path" | tr '/-' '__').html"
-  local status
-  status="$(curl --silent --show-error --connect-timeout 15 --max-time 45 --retry 2 --retry-all-errors --output "$body_file" --write-out '%{http_code}' "$BASE_URL$page_path")"
-  [[ "$status" == '200' ]] || fail "$page_path returned HTTP $status"
+  local status attempt
+
+  status='000'
+  for attempt in 1 2 3 4; do
+    status="$(curl "${CURL_COMMON_ARGS[@]}" --output "$body_file" --write-out '%{http_code}' "$BASE_URL$page_path")"
+    if [[ "$status" == '200' ]]; then
+      break
+    fi
+    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then
+      break
+    fi
+    if [[ "$attempt" -lt 4 ]]; then
+      sleep $(( attempt * 2 ))
+    fi
+  done
+
+  [[ "$status" == '200' ]] || fail "$page_path returned HTTP $status after $attempt attempt(s)"
   for expected_marker in "$@"; do
     grep -Fiq "$expected_marker" "$body_file" || fail "$page_path is missing marker: $expected_marker"
   done
@@ -42,7 +79,7 @@ fetch_page() {
       fail "$page_path exposes retired, internal or prohibited marker: $forbidden"
     fi
   done
-  echo "PASS page $page_path status=200 markers=$#"
+  echo "PASS page $page_path status=200 markers=$# attempts=$attempt"
 }
 
 # check_redirect verifies that a source path redirects directly to the expected target path with HTTP 301.
@@ -50,14 +87,32 @@ check_redirect() {
   local source_path="$1"
   local target_path="$2"
   local headers_file="$TMP_DIR/headers-$(echo "$source_path" | tr '/-' '__').txt"
-  local status location expected_location
-  status="$(curl --silent --show-error --connect-timeout 15 --max-time 30 --max-redirs 0 --output /dev/null --dump-header "$headers_file" --write-out '%{http_code}' "$BASE_URL$source_path")"
-  [[ "$status" == '301' ]] || fail "$source_path returned HTTP $status instead of 301"
+  local status location expected_location attempt
+
+  status='000'
+  for attempt in 1 2 3 4; do
+    : > "$headers_file"
+    status="$(curl "${CURL_COMMON_ARGS[@]}" --max-redirs 0 --output /dev/null --dump-header "$headers_file" --write-out '%{http_code}' "$BASE_URL$source_path")"
+    if [[ "$status" == '301' ]]; then
+      break
+    fi
+    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then
+      break
+    fi
+    if [[ "$attempt" -lt 4 ]]; then
+      sleep $(( attempt * 2 ))
+    fi
+  done
+
+  [[ "$status" == '301' ]] || fail "$source_path returned HTTP $status instead of 301 after $attempt attempt(s)"
   location="$(grep -i '^location:' "$headers_file" | tail -n 1 | cut -d: -f2- | tr -d '\r' | xargs)"
   expected_location="$BASE_URL$target_path"
   [[ "$location" == "$expected_location" ]] || fail "$source_path redirects to $location instead of $expected_location"
-  echo "PASS redirect $source_path -> $target_path status=301"
+  echo "PASS redirect $source_path -> $target_path status=301 attempts=$attempt"
 }
+
+# Allow the edge cache and anti-bot layer to observe the completed immutable release.
+sleep 5
 
 check_redirect '/tratamientos/' '/soluciones-medicas/'
 fetch_page '/soluciones-medicas/' 'Soluciones médicas para rostro, piel y contorno corporal.' 'Rostro y cuello' 'Contorno corporal' 'Cambios posgestacionales' 'Valoración de procedimientos previos'

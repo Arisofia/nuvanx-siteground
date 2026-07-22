@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = process.env.EXPECTED_SHA || '';
@@ -21,6 +21,7 @@ if (typeof WebSocket !== 'function') {
   console.error('ERROR: Node.js WebSocket support is required.');
   process.exit(1);
 }
+
 fs.mkdirSync(evidenceDir, { recursive: true });
 
 const pages = [
@@ -32,12 +33,12 @@ const pages = [
   ['/calidad-piel-firmeza-luminosidad-madrid/', 'Calidad, firmeza y luminosidad de la piel en Madrid'],
   ['/cicatrices-acne-poros-textura-madrid/', 'Cicatrices de acné, poros y textura en Madrid'],
   ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', 'Manchas, rojeces y fotodaño en Madrid'],
-  ['/grasa-localizada-abdomen-flancos-madrid/', 'Grasa localizada en abdomen y flancos en Madrid'],
-  ['/flacidez-grasa-localizada-brazos-madrid/', 'Flacidez y grasa localizada en brazos en Madrid'],
-  ['/grasa-espalda-zona-sujetador-madrid/', 'Grasa de espalda y zona del sujetador en Madrid'],
-  ['/flacidez-muslos-internos-subgluteo-madrid/', 'Flacidez en muslos internos y región subglútea en Madrid'],
-  ['/tratamiento-rodillas-grasa-flacidez-madrid/', 'Grasa localizada y flacidez en rodillas en Madrid'],
-  ['/contorno-corporal-masculino-madrid/', 'Contorno corporal masculino en Madrid'],
+  ['/grasa-localizada-abdomen-flancos-madrid/', 'Esa grasa del abdomen que no se va ni a dieta ni a gimnasio.'],
+  ['/flacidez-grasa-localizada-brazos-madrid/', 'Para que la manga caiga bien — sin que la piel quede colgando después.'],
+  ['/grasa-espalda-zona-sujetador-madrid/', 'El pliegue que marca la ropa, aunque tu peso esté bien.'],
+  ['/flacidez-muslos-internos-subgluteo-madrid/', 'La piel más delicada del cuerpo merece el abordaje más cuidadoso.'],
+  ['/tratamiento-rodillas-grasa-flacidez-madrid/', 'Una zona pequeña que cambia toda la línea de la pierna.'],
+  ['/contorno-corporal-masculino-madrid/', 'Pensado para el cuerpo de un hombre, no adaptado del de una mujer.'],
   ['/por-que-nuvanx/', 'Por qué NUVANX. Sin retórica de marketing.'],
   ['/inversion-medicina-estetica/', 'El presupuesto forma parte de una decisión informada.'],
 ];
@@ -53,36 +54,41 @@ const report = {
   findings,
 };
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+const safeName = (value) => value.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home';
 
 function locateChrome() {
-  const candidates = [process.env.CHROME_BIN, 'google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'].filter(Boolean);
-  const paths = (process.env.PATH || '').split(path.delimiter);
+  const candidates = [
+    process.env.CHROME_BIN,
+    'google-chrome-stable',
+    'google-chrome',
+    'chromium',
+    'chromium-browser',
+  ].filter(Boolean);
+  const searchPaths = (process.env.PATH || '').split(path.delimiter);
+
   for (const candidate of candidates) {
     if (candidate.includes(path.sep) && fs.existsSync(candidate)) return candidate;
-    for (const p of paths) {
-      const exe = path.join(p, candidate);
-      if (fs.existsSync(exe)) return exe;
+    for (const searchPath of searchPaths) {
+      const executable = path.join(searchPath, candidate);
+      if (fs.existsSync(executable)) return executable;
     }
   }
   throw new Error('Google Chrome or Chromium is not installed on the runner.');
 }
 
-/**
- * Fetch a page and retry when the response is unsuccessful or forbidden.
- * @param {string} url - The URL to fetch.
- * @returns {Promise<{status: number, body: string}>} The successful response status and body.
- * @throws {Error} If all fetch attempts fail.
- */
 async function fetchWithRetry(url) {
   let lastStatus = 0;
   let lastBody = '';
   for (let attempt = 1; attempt <= 4; attempt += 1) {
-    const response = await fetch(url, { redirect: 'follow', headers: { 'user-agent': userAgent, accept: 'text/html' } });
+    const response = await fetch(url, {
+      redirect: 'follow',
+      headers: { 'user-agent': userAgent, accept: 'text/html' },
+    });
     lastStatus = response.status;
     lastBody = await response.text();
     if (response.status === 200 && !/(?:403\s*-\s*Forbidden)|(?:Access to this page is forbidden)/i.test(lastBody)) {
-      return { status: response.status, body: lastBody };
+      return;
     }
     await sleep(attempt * 1500);
   }
@@ -90,34 +96,44 @@ async function fetchWithRetry(url) {
 }
 
 class CDPSession {
-  constructor(url) {
-    this.url = url;
-    this.ws = null;
+  constructor(webSocketUrl) {
+    this.webSocketUrl = webSocketUrl;
+    this.webSocket = null;
     this.nextId = 0;
     this.pending = new Map();
     this.waiters = new Map();
   }
 
   async connect() {
-    this.ws = new WebSocket(this.url);
+    this.webSocket = new WebSocket(this.webSocketUrl);
     await new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('Timed out opening Chrome DevTools WebSocket.')), 10000);
-      this.ws.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
-      this.ws.addEventListener('error', () => { clearTimeout(timer); reject(new Error('Unable to open Chrome DevTools WebSocket.')); }, { once: true });
+      this.webSocket.addEventListener('open', () => {
+        clearTimeout(timer);
+        resolve();
+      }, { once: true });
+      this.webSocket.addEventListener('error', () => {
+        clearTimeout(timer);
+        reject(new Error('Unable to open Chrome DevTools WebSocket.'));
+      }, { once: true });
     });
-    this.ws.addEventListener('message', (event) => this.onMessage(event));
+    this.webSocket.addEventListener('message', (event) => this.handleMessage(event));
   }
 
-  onMessage(event) {
+  handleMessage(event) {
     const message = JSON.parse(String(event.data));
     if (message.id && this.pending.has(message.id)) {
-      const { resolve, reject, timer } = this.pending.get(message.id);
-      clearTimeout(timer);
+      const pending = this.pending.get(message.id);
+      clearTimeout(pending.timer);
       this.pending.delete(message.id);
-      if (message.error) reject(new Error(`${message.error.message || 'CDP error'} (${message.error.code || 'unknown'})`));
-      else resolve(message.result || {});
+      if (message.error) {
+        pending.reject(new Error(`${message.error.message || 'CDP error'} (${message.error.code || 'unknown'})`));
+      } else {
+        pending.resolve(message.result || {});
+      }
       return;
     }
+
     if (message.method && this.waiters.has(message.method)) {
       const queue = this.waiters.get(message.method);
       const waiter = queue.shift();
@@ -127,25 +143,25 @@ class CDPSession {
     }
   }
 
-  send(method, params = {}, timeoutMs = 15000) {
+  send(method, params = {}, timeoutMilliseconds = 30000) {
     const id = ++this.nextId;
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(id);
         reject(new Error(`CDP command timed out: ${method}`));
-      }, timeoutMs);
+      }, timeoutMilliseconds);
       this.pending.set(id, { resolve, reject, timer });
-      this.ws.send(JSON.stringify({ id, method, params }));
+      this.webSocket.send(JSON.stringify({ id, method, params }));
     });
   }
 
-  waitFor(method, timeoutMs = 20000) {
+  waitFor(method, timeoutMilliseconds = 30000) {
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
         const queue = this.waiters.get(method) || [];
         this.waiters.set(method, queue.filter((entry) => entry.timer !== timer));
         reject(new Error(`CDP event timed out: ${method}`));
-      }, timeoutMs);
+      }, timeoutMilliseconds);
       const queue = this.waiters.get(method) || [];
       queue.push({ resolve, reject, timer });
       this.waiters.set(method, queue);
@@ -153,61 +169,67 @@ class CDPSession {
   }
 
   async evaluate(expression, awaitPromise = true) {
-    const result = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise });
-    if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || 'Browser evaluation failed.');
+    const result = await this.send('Runtime.evaluate', {
+      expression,
+      returnByValue: true,
+      awaitPromise,
+    });
+    if (result.exceptionDetails) {
+      throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text || 'Browser evaluation failed.');
+    }
     return result.result?.value;
   }
 
-  close() {
-    if (this.ws && this.ws.readyState <= 1) this.ws.close();
+  call(functionSource, ...args) {
+    const serializedArgs = args.map((value) => JSON.stringify(value)).join(',');
+    return this.evaluate(`(${functionSource})(${serializedArgs})`);
+  }
+
+  closeSocket() {
+    if (this.webSocket && this.webSocket.readyState <= 1) this.webSocket.close();
   }
 }
 
-/**
- * Wait for the Chrome DevTools endpoint to become available.
- * @param {number} port - The local port hosting the DevTools endpoint.
- * @return {Promise<Object>} The endpoint metadata.
- * @throws {Error} If the endpoint does not become ready.
- */
 async function waitForChrome(port) {
   for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
       const response = await fetch(`http://127.0.0.1:${port}/json/version`);
-      if (response.ok) return await response.json();
-    } catch {}
+      if (response.ok) return;
+    } catch {
+      // Chrome may still be starting.
+    }
     await sleep(250);
   }
   throw new Error('Chrome DevTools endpoint did not become ready.');
 }
 
-/**
- * Creates a Chrome DevTools target for the specified URL.
- * @param {number} port - The local Chrome DevTools debugging port.
- * @param {string} url - The URL to open in the target.
- * @return {Promise<Object>} The target details returned by Chrome.
- * @throws {Error} If Chrome rejects the target creation request.
- */
-async function createTarget(port, url) {
-  const response = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(url)}`, { method: 'PUT' });
+async function createTarget(port) {
+  const response = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' });
   if (!response.ok) throw new Error(`Unable to create Chrome target: HTTP ${response.status}`);
   return response.json();
 }
 
-/**
- * Loads a page in a configured Chrome DevTools Protocol session.
- * @param {number} port - The local Chrome DevTools port.
- * @param {string} url - The page URL to navigate to.
- * @param {{width: number, height: number, mobile: boolean}} viewport - Viewport dimensions and device mode.
- * @returns {CDPSession} The connected session for the loaded page.
- */
+async function closeSession(session) {
+  if (!session) return;
+  try {
+    await session.send('Page.close', {}, 3000);
+  } catch {
+    // The target may already be closed.
+  }
+  session.closeSocket();
+}
+
 async function loadPage(port, url, viewport) {
-  const target = await createTarget(port, 'about:blank');
+  const target = await createTarget(port);
   const session = new CDPSession(target.webSocketDebuggerUrl);
   await session.connect();
   await session.send('Page.enable');
   await session.send('Runtime.enable');
   await session.send('Network.enable');
-  await session.send('Network.setUserAgentOverride', { userAgent, platform: viewport.mobile ? 'Android' : 'Windows' });
+  await session.send('Network.setUserAgentOverride', {
+    userAgent,
+    platform: viewport.mobile ? 'Android' : 'Windows',
+  });
   await session.send('Emulation.setDeviceMetricsOverride', {
     width: viewport.width,
     height: viewport.height,
@@ -216,22 +238,18 @@ async function loadPage(port, url, viewport) {
     screenWidth: viewport.width,
     screenHeight: viewport.height,
   });
-  const loaded = session.waitFor('Page.loadEventFired', 30000);
-  const navigation = await session.send('Page.navigate', { url }, 30000);
+
+  const loaded = session.waitFor('Page.loadEventFired');
+  const navigation = await session.send('Page.navigate', { url });
   if (navigation.errorText) throw new Error(`Navigation failed: ${navigation.errorText}`);
   await loaded;
   await session.evaluate(`new Promise((resolve) => {
-    const finish = () => setTimeout(resolve, 600);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(finish, finish); else finish();
+    const finish = () => setTimeout(resolve, 700);
+    if (document.fonts?.ready) document.fonts.ready.then(finish, finish); else finish();
   })`);
   return session;
 }
 
-/**
- * Extract the current page metadata, content markers, and layout state.
- * @param {CDPSession} session - The active Chrome DevTools Protocol session.
- * @return {Promise<Object>} The page URL, title, H1 texts, forbidden-page status, layout measurements, visibility states, and body class.
- */
 async function pageState(session) {
   return session.evaluate(String.raw`(() => {
     const text = (document.body?.innerText || '').replace(/\s+/g, ' ').trim();
@@ -244,6 +262,7 @@ async function pageState(session) {
     return {
       url: location.href,
       title: document.title,
+      deploySha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',
       h1,
       forbidden: /(?:403\s*-\s*Forbidden)|(?:Access to this page is forbidden)/i.test(text),
       documentWidth,
@@ -258,17 +277,24 @@ async function pageState(session) {
   })()`);
 }
 
-/**
- * Captures the page's full rendered content as a PNG file.
- * @param {CDPSession} session - The active Chrome DevTools Protocol session.
- * @param {string} destination - The file path for the PNG screenshot.
- * @param {{width: number, height: number, mobile: boolean}} viewport - The viewport dimensions and device mode.
- */
+async function prepareFullPage(session) {
+  await session.evaluate(`new Promise(async (resolve) => {
+    const max = Math.max(document.documentElement.scrollHeight, document.body?.scrollHeight || 0);
+    for (let y = 0; y < max; y += 700) {
+      window.scrollTo(0, y);
+      await new Promise((next) => setTimeout(next, 35));
+    }
+    window.scrollTo(0, 0);
+    setTimeout(resolve, 250);
+  })`);
+}
+
 async function captureFullPage(session, destination, viewport) {
+  await prepareFullPage(session);
   const metrics = await session.send('Page.getLayoutMetrics');
   const size = metrics.cssContentSize || metrics.contentSize;
   const fullHeight = Math.max(viewport.height, Math.min(Math.ceil(size.height), 20000));
-  const fullWidth = Math.max(viewport.width, Math.min(Math.ceil(size.width), viewport.width));
+  const fullWidth = viewport.width;
   await session.send('Emulation.setDeviceMetricsOverride', {
     width: viewport.width,
     height: fullHeight,
@@ -283,21 +309,18 @@ async function captureFullPage(session, destination, viewport) {
     fromSurface: true,
     captureBeyondViewport: true,
     clip: { x: 0, y: 0, width: fullWidth, height: fullHeight, scale: 1 },
-  }, 30000);
+  });
   fs.writeFileSync(destination, Buffer.from(screenshot.data, 'base64'));
 }
 
-/**
- * Captures the current viewport as a PNG image and saves it to a file.
- * @param {CDPSession} session - The active Chrome DevTools Protocol session.
- * @param {string} destination - The file path for the captured image.
- */
 async function captureViewport(session, destination) {
-  const screenshot = await session.send('Page.captureScreenshot', { format: 'png', fromSurface: true });
+  const screenshot = await session.send('Page.captureScreenshot', {
+    format: 'png',
+    fromSurface: true,
+  });
   fs.writeFileSync(destination, Buffer.from(screenshot.data, 'base64'));
 }
 
-/**
 async function auditSingleViewport(port, pagePath, expectedH1, viewport) {
   const scope = `${pagePath} ${viewport.name}`;
   const result = { path: pagePath, viewport: viewport.name };
@@ -306,10 +329,12 @@ async function auditSingleViewport(port, pagePath, expectedH1, viewport) {
     session = await loadPage(port, `${baseUrl}${pagePath}`, viewport);
     Object.assign(result, await pageState(session));
     if (result.forbidden) fail(scope, 'rendered a 403 Forbidden page');
+    if (result.deploySha !== expectedSha) fail(scope, `served SHA ${result.deploySha || 'absent'} instead of ${expectedSha}`);
     if (result.h1.length !== 1 || result.h1[0] !== expectedH1) fail(scope, `H1 mismatch: ${JSON.stringify(result.h1)}`);
     if (result.overflow > 2) fail(scope, `horizontal overflow is ${result.overflow}px`);
     if (!result.headerVisible) fail(scope, 'header is not visible');
     if (!result.footerVisible) fail(scope, 'footer is not visible');
+
     const destination = path.join(evidenceDir, `${safeName(pagePath)}-${viewport.name}.png`);
     await captureFullPage(session, destination, viewport);
     result.screenshot = path.basename(destination);
@@ -318,15 +343,11 @@ async function auditSingleViewport(port, pagePath, expectedH1, viewport) {
   } catch (error) {
     fail(scope, error instanceof Error ? error.message : String(error));
   } finally {
-    session?.close();
+    await closeSession(session);
   }
   report.pages.push(result);
 }
 
-/**
- * Audit configured pages across desktop and mobile viewports and record visual evidence.
- * @param {number} port - The local Chrome DevTools Protocol port.
- */
 async function auditPages(port) {
   const viewports = [
     { name: 'desktop', width: 1440, height: 1000, mobile: false },
@@ -340,15 +361,12 @@ async function auditPages(port) {
   }
 }
 
-/**
- * Audits the desktop mega-menu navigation and captures its visual state.
- * @param {number} port - The Chrome DevTools Protocol port.
- */
 async function auditDesktopNavigation(port) {
   const scope = 'desktop mega-menu';
   const result = {};
   let session;
   try {
+    await fetchWithRetry(`${baseUrl}/`);
     session = await loadPage(port, `${baseUrl}/`, { width: 1440, height: 1000, mobile: false });
     const initial = await session.evaluate(`(() => {
       const links = Array.from(document.querySelectorAll('.nvx-nav > .nvx-nav__list > li > a')).map((node) => node.textContent.trim().toUpperCase());
@@ -361,9 +379,10 @@ async function auditDesktopNavigation(port) {
       return { links, x: rect ? rect.left + rect.width / 2 : 0, y: rect ? rect.top + rect.height / 2 : 0 };
     })()`);
     result.top_level_links = initial.links;
-    const required = ['INICIO', 'SOLUCIONES', 'PROTOCOLOS SIGNATURE', 'TECNOLOGÍA', 'CASOS CLÍNICOS', 'EQUIPO MÉDICO', 'CLÍNICAS', 'JOURNAL', 'CONTACTO'];
-    for (const label of required) { if (!initial.links.includes(label)) fail(scope, `missing top-level item: ${label}`); }
+    const required = ['INICIO', 'SOLUCIONES MÉDICAS', 'PROTOCOLOS SIGNATURE', 'TECNOLOGÍA', 'CASOS CLÍNICOS', 'EQUIPO MÉDICO', 'CLÍNICAS', 'JOURNAL', 'CONTACTO'];
+    for (const label of required) if (!initial.links.includes(label)) fail(scope, `missing top-level item: ${label}`);
     if (!initial.x || !initial.y) throw new Error('Protocolos Signature desktop link was not found.');
+
     await session.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: initial.x, y: initial.y });
     await sleep(500);
     const opened = await session.evaluate(String.raw`(() => {
@@ -390,135 +409,120 @@ async function auditDesktopNavigation(port) {
       if (opened.text.includes(forbidden)) fail(scope, `submenu exposes retired label: ${forbidden}`);
     }
     if (opened.overflow > 2) fail(scope, `horizontal overflow is ${opened.overflow}px`);
+
     const destination = path.join(evidenceDir, 'navigation-desktop-mega.png');
     await captureViewport(session, destination);
     result.screenshot = path.basename(destination);
   } catch (error) {
     fail(scope, error instanceof Error ? error.message : String(error));
   } finally {
-    session?.close();
+    await closeSession(session);
   }
   report.navigation.desktop = result;
 }
 
-async function openMobileAccordion(session, linkRegexPattern, parentSubmenuClass = null) {
-  return session.evaluate(String.raw`((pattern, parentClass) => {
+async function openMobileAccordion(session, linkPattern, parentSubmenuClass = null) {
+  return session.call((pattern, parentClass) => {
     const nav = document.getElementById('nvx-mobile-nav');
     const regex = new RegExp(pattern, 'i');
-    let scopeElement = nav;
+    let scopeElement = nav?.querySelector('.nvx-mobile-nav__list');
     if (parentClass) {
-      const parentList = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__list > li') || []);
-      const parentItem = parentList.find((n) => {
-        const link = Array.from(n.children).find((c) => c.tagName === 'A');
+      const parentItems = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__list > li') || []);
+      const parentItem = parentItems.find((node) => {
+        const link = Array.from(node.children).find((child) => child.tagName === 'A');
         return link && /protocolos signature/i.test(link.textContent);
       });
-      scopeElement = parentItem ? Array.from(parentItem.children).find((c) => c.classList?.contains(parentClass)) : null;
+      scopeElement = parentItem ? Array.from(parentItem.children).find((child) => child.classList?.contains(parentClass)) : null;
     }
-    const items = Array.from(scopeElement?.children || scopeElement?.querySelectorAll('li') || []);
+    const items = Array.from(scopeElement?.querySelectorAll(':scope > li') || []);
     const item = items.find((node) => {
       const link = Array.from(node.children).find((child) => child.tagName === 'A');
       return link && regex.test(link.textContent);
     });
     const toggle = item ? Array.from(item.children).find((child) => child.classList?.contains('nvx-mobile-nav__toggle')) : null;
     toggle?.click();
-    return !!toggle;
-  })`, linkRegexPattern, parentSubmenuClass);
+    return Boolean(toggle);
+  }, linkPattern, parentSubmenuClass);
 }
 
-/**
- * Audits mobile navigation behavior, accessibility state, nested menu content, layout, and drawer closing.
- * @param {number} port - The local Chrome DevTools Protocol port.
- */
 async function auditMobileNavigation(port) {
   const scope = 'mobile drawer';
   const result = {};
   let session;
   try {
     session = await loadPage(port, `${baseUrl}/`, { width: 390, height: 844, mobile: true });
-    await openAndVerifyDrawer(session, scope, result);
-    await verifySignatureAccordions(session, scope, result);
-    await captureMobileDrawer(session, scope, result);
-    await verifyDrawerClose(session, scope, result);
+    await session.evaluate(`(() => {
+      document.getElementById('nvx-hamburger-btn')?.focus();
+      document.getElementById('nvx-hamburger-btn')?.click();
+    })()`);
+    await sleep(250);
+    const drawer = await session.evaluate(`(() => {
+      const nav = document.getElementById('nvx-mobile-nav');
+      const button = document.getElementById('nvx-hamburger-btn');
+      return {
+        open: !!nav && nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'false',
+        expanded: button?.getAttribute('aria-expanded'),
+        activeId: document.activeElement?.id || '',
+      };
+    })()`);
+    Object.assign(result, drawer);
+    if (!drawer.open || drawer.expanded !== 'true') fail(scope, 'hamburger did not open the drawer with correct ARIA state');
+    if (drawer.activeId !== 'nvx-mobile-close') fail(scope, `focus did not move to close button; active=${drawer.activeId || 'none'}`);
+
+    const signatureOpened = await openMobileAccordion(session, 'protocolos signature');
+    if (!signatureOpened) throw new Error('Protocolos Signature mobile accordion toggle was not found.');
+    await sleep(300);
+    const contourOpened = await openMobileAccordion(session, 'contour architecture', 'sub-menu');
+    if (!contourOpened) throw new Error('Contour Architecture nested mobile toggle was not found.');
+    await sleep(350);
+
+    const state = await session.evaluate(String.raw`(() => {
+      const nav = document.getElementById('nvx-mobile-nav');
+      const text = nav?.textContent.replace(/\s+/g, ' ').trim() || '';
+      return {
+        text,
+        expanded: Array.from(nav?.querySelectorAll('.nvx-mobile-nav__toggle[aria-expanded="true"]') || []).length,
+        overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+        drawerWidth: nav?.getBoundingClientRect().width || 0,
+        viewportWidth: document.documentElement.clientWidth,
+      };
+    })()`);
+    Object.assign(result, state);
+    if (state.expanded < 2) fail(scope, `expected two expanded accordion levels, found ${state.expanded}`);
+    for (const label of ['Abdomen y flancos', 'Brazos y axila', 'Espalda y zona del sujetador', 'Muslos y región subglútea', 'Rodillas', 'Contorno masculino']) {
+      if (!state.text.includes(label)) fail(scope, `nested menu missing: ${label}`);
+    }
+    for (const forbidden of ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame']) {
+      if (state.text.includes(forbidden)) fail(scope, `drawer exposes retired label: ${forbidden}`);
+    }
+    if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
+    if (state.drawerWidth > state.viewportWidth + 2) fail(scope, `drawer width ${state.drawerWidth}px exceeds viewport ${state.viewportWidth}px`);
+
+    const destination = path.join(evidenceDir, 'navigation-mobile-drawer.png');
+    await captureViewport(session, destination);
+    result.screenshot = path.basename(destination);
+
+    await session.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+    await session.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+    await sleep(200);
+    const closed = await session.evaluate(`(() => {
+      const nav = document.getElementById('nvx-mobile-nav');
+      const button = document.getElementById('nvx-hamburger-btn');
+      return {
+        closed: !!nav && !nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'true',
+        expanded: button?.getAttribute('aria-expanded'),
+        activeId: document.activeElement?.id || '',
+      };
+    })()`);
+    result.escape_close = closed;
+    if (!closed.closed || closed.expanded !== 'false') fail(scope, 'Escape did not close drawer and reset ARIA state');
+    if (closed.activeId !== 'nvx-hamburger-btn') fail(scope, `focus was not restored to hamburger; active=${closed.activeId || 'none'}`);
   } catch (error) {
     fail(scope, error instanceof Error ? error.message : String(error));
   } finally {
-    session?.close();
+    await closeSession(session);
   }
   report.navigation.mobile = result;
-}
-
-async function openAndVerifyDrawer(session, scope, result) {
-  await session.evaluate(`document.getElementById('nvx-hamburger-btn')?.click()`);
-  await sleep(250);
-  const drawer = await session.evaluate(`(() => {
-    const nav = document.getElementById('nvx-mobile-nav');
-    const button = document.getElementById('nvx-hamburger-btn');
-    return {
-      open: !!nav && nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'false',
-      expanded: button?.getAttribute('aria-expanded'),
-      activeId: document.activeElement?.id || '',
-    };
-  })()`);
-  Object.assign(result, drawer);
-  if (!drawer.open || drawer.expanded !== 'true') fail(scope, 'hamburger did not open the drawer with correct ARIA state');
-  if (drawer.activeId !== 'nvx-mobile-close') fail(scope, `focus did not move to close button; active=${drawer.activeId || 'none'}`);
-}
-
-async function verifySignatureAccordions(session, scope, result) {
-  const signatureOpened = await openMobileAccordion(session, 'protocolos signature');
-  if (!signatureOpened) throw new Error('Protocolos Signature mobile accordion toggle was not found.');
-  await sleep(300);
-
-  const contourOpened = await openMobileAccordion(session, 'contour architecture', 'sub-menu');
-  if (!contourOpened) throw new Error('Contour Architecture nested mobile toggle was not found.');
-  await sleep(350);
-
-  const state = await session.evaluate(String.raw`(() => {
-    const nav = document.getElementById('nvx-mobile-nav');
-    const text = nav?.innerText.replace(/\s+/g, ' ').trim() || '';
-    const expanded = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__toggle[aria-expanded="true"]') || []).length;
-    return {
-      text,
-      expanded,
-      overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
-      drawerWidth: nav?.getBoundingClientRect().width || 0,
-      viewportWidth: document.documentElement.clientWidth,
-    };
-  })()`);
-  Object.assign(result, state);
-  if (state.expanded < 2) fail(scope, `expected two expanded accordion levels, found ${state.expanded}`);
-  for (const label of ['Abdomen y flancos', 'Brazos y axila', 'Espalda y zona del sujetador', 'Muslos y región subglútea', 'Rodillas', 'Contorno masculino']) {
-    if (!state.text.includes(label)) fail(scope, `nested menu missing: ${label}`);
-  }
-  for (const forbidden of ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame']) {
-    if (state.text.includes(forbidden)) fail(scope, `drawer exposes retired label: ${forbidden}`);
-  }
-  if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
-  if (state.drawerWidth > state.viewportWidth + 2) fail(scope, `drawer width ${state.drawerWidth}px exceeds viewport ${state.viewportWidth}px`);
-}
-
-async function captureMobileDrawer(session, scope, result) {
-  const destination = path.join(evidenceDir, 'navigation-mobile-drawer.png');
-  await captureViewport(session, destination);
-  result.screenshot = path.basename(destination);
-}
-
-async function verifyDrawerClose(session, scope, result) {
-  await session.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
-  await session.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
-  await sleep(200);
-  const closed = await session.evaluate(`(() => {
-    const nav = document.getElementById('nvx-mobile-nav');
-    const button = document.getElementById('nvx-hamburger-btn');
-    return {
-      closed: !!nav && !nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'true',
-      expanded: button?.getAttribute('aria-expanded'),
-      activeId: document.activeElement?.id || '',
-    };
-  })()`);
-  result.escape_close = closed;
-  if (!closed.closed || closed.expanded !== 'false') fail(scope, 'Escape did not close drawer and reset ARIA state');
-  if (closed.activeId !== 'nvx-hamburger-btn') fail(scope, `focus was not restored to hamburger; active=${closed.activeId || 'none'}`);
 }
 
 const chromePath = locateChrome();
@@ -533,34 +537,33 @@ const chrome = spawn(chromePath, [
   '--no-first-run',
   '--no-default-browser-check',
   '--hide-scrollbars',
-  '--remote-allow-origins=*',
   `--remote-debugging-port=${port}`,
   `--user-data-dir=${profileDir}`,
-  `--user-agent=${userAgent}`,
   'about:blank',
-], { stdio: ['ignore', 'pipe', 'pipe'] });
-let chromeStderr = '';
-chrome.stderr.on('data', (chunk) => { chromeStderr += String(chunk); });
+], { stdio: ['ignore', 'ignore', 'pipe'] });
 
+let runtimeError = null;
 try {
   await waitForChrome(port);
   await auditPages(port);
   await auditDesktopNavigation(port);
   await auditMobileNavigation(port);
 } catch (error) {
-  fail('visual QA runtime', error instanceof Error ? error.message : String(error));
+  runtimeError = error instanceof Error ? error.message : String(error);
+  fail('visual QA runtime', runtimeError);
 } finally {
   chrome.kill('SIGTERM');
-  await sleep(300);
-  if (!chrome.killed) chrome.kill('SIGKILL');
+  await sleep(250);
   fs.rmSync(profileDir, { recursive: true, force: true });
 }
 
-report.chrome_stderr_tail = chromeStderr.slice(-4000);
+report.runtime_error = runtimeError;
 fs.writeFileSync(path.join(evidenceDir, 'report.json'), JSON.stringify(report, null, 2));
+
 if (findings.length) {
   console.error(`VISUAL_QA_FAILED findings=${findings.length}`);
   for (const finding of findings) console.error(`- ${finding}`);
   process.exit(1);
 }
-console.log(`VISUAL_QA_OK pages=${pages.length} screenshots=${report.pages.length + 2} sha=${expectedSha}`);
+
+console.log(`VISUAL_QA_OK pages=${report.pages.length} screenshots=${report.pages.length + 2} sha=${expectedSha}`);

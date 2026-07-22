@@ -18,36 +18,23 @@ final class NVX_Production_Readiness_Command {
 	/** Approved pages that must exist after the migration. */
 	private function approved_pages(): array {
 		return array(
-			'por-que-nuvanx' => array(
-				'title'         => 'Por qué NUVANX',
-				'content'       => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->',
-				'promote_draft' => false,
-			),
-			'inversion-medicina-estetica' => array(
-				'title'         => 'Inversión en medicina estética',
-				'content'       => '<!-- NUVANX_STRATEGY_PAGE:investment -->',
-				'promote_draft' => false,
-			),
-			'soluciones-medicas' => array(
-				'title'         => 'Soluciones médicas',
-				'content'       => '<!-- NUVANX_STRATEGY_PAGE:solutions -->',
-				'promote_draft' => true,
-			),
-			'protocolos-signature' => array(
-				'title'         => 'Protocolos Signature',
-				'content'       => '<!-- NUVANX_PROTOCOL_HUB -->',
-				'promote_draft' => false,
-			),
-			'remodelacion-corporal-laser-madrid' => array(
-				'title'         => 'Remodelación corporal láser diseñada según tu anatomía.',
-				'content'       => '<!-- NUVANX_PROTOCOL_PAGE:couture-sculpt -->',
-				'promote_draft' => false,
-			),
-			'tratamiento-postparto-abdomen-contorno-corporal-madrid' => array(
-				'title'         => 'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid',
-				'content'       => '<!-- NUVANX_PROTOCOL_PAGE:post-maternity -->',
-				'promote_draft' => true,
-			),
+			'por-que-nuvanx' => array( 'title' => 'Por qué NUVANX', 'content' => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->', 'promote_draft' => false ),
+			'inversion-medicina-estetica' => array( 'title' => 'Inversión en medicina estética', 'content' => '<!-- NUVANX_STRATEGY_PAGE:investment -->', 'promote_draft' => false ),
+			'soluciones-medicas' => array( 'title' => 'Soluciones médicas', 'content' => '<!-- NUVANX_STRATEGY_PAGE:solutions -->', 'promote_draft' => true ),
+			'protocolos-signature' => array( 'title' => 'Protocolos Signature', 'content' => '<!-- NUVANX_PROTOCOL_HUB -->', 'promote_draft' => true ),
+			'remodelacion-corporal-laser-madrid' => array( 'title' => 'Remodelación corporal láser diseñada según tu anatomía.', 'content' => '<!-- NUVANX_PROTOCOL_PAGE:contour-architecture -->', 'promote_draft' => true ),
+			'tratamiento-postparto-abdomen-contorno-corporal-madrid' => array( 'title' => 'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid', 'content' => '<!-- NUVANX_PROTOCOL_PAGE:post-maternity -->', 'promote_draft' => true ),
+			'papada-definicion-mandibular-madrid' => array( 'title' => 'Profile Definition: Papada y mandíbula', 'content' => '<!-- NUVANX_PROTOCOL_PAGE:profile-definition -->', 'promote_draft' => true ),
+			'calidad-piel-firmeza-luminosidad-madrid' => array( 'title' => 'Skin Architecture: Firmeza y luminosidad', 'content' => '<!-- NUVANX_PROTOCOL_PAGE:skin-architecture -->', 'promote_draft' => true ),
+			'cicatrices-acne-poros-textura-madrid' => array( 'title' => 'Surface Renewal: Cicatrices y textura', 'content' => '<!-- NUVANX_PROTOCOL_PAGE:surface-renewal -->', 'promote_draft' => true ),
+			'manchas-rojeces-fotorejuvenecimiento-ipl-madrid' => array( 'title' => 'Tone Correction: Manchas y rojeces', 'content' => '<!-- NUVANX_PROTOCOL_PAGE:tone-correction -->', 'promote_draft' => true ),
+			'grasa-localizada-abdomen-flancos-madrid' => array( 'title' => 'Grasa localizada en abdomen y flancos en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:abdomen-flancos -->', 'promote_draft' => true ),
+			'flacidez-grasa-localizada-brazos-madrid' => array( 'title' => 'Flacidez y grasa localizada en brazos en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:brazos -->', 'promote_draft' => true ),
+			'grasa-espalda-zona-sujetador-madrid' => array( 'title' => 'Grasa de espalda y zona del sujetador en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:espalda -->', 'promote_draft' => true ),
+			'flacidez-muslos-internos-subgluteo-madrid' => array( 'title' => 'Flacidez en muslos internos y región subglútea en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:muslos -->', 'promote_draft' => true ),
+		
+'tratamiento-rodillas-grasa-flacidez-madrid' => array( 'title' => 'Grasa localizada y flacidez en rodillas en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:rodillas -->', 'promote_draft' => true ),
+			'contorno-corporal-masculino-madrid' => array( 'title' => 'Contorno corporal masculino en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:male-contour -->', 'promote_draft' => true ),
 		);
 	}
 
@@ -82,32 +69,68 @@ final class NVX_Production_Readiness_Command {
 		return array_values( array_unique( $ids ) );
 	}
 
+	/** Return the assigned primary menu term ID. */
+	private function primary_menu_id(): int {
+		$locations = get_nav_menu_locations();
+		return isset( $locations['primary'] ) ? (int) $locations['primary'] : 0;
+	}
+
+	/** Flatten the canonical resolved blueprint for deterministic comparison. */
+	private function flatten_blueprint( array $items, int $depth = 0 ): array {
+		$rows = array();
+		foreach ( $items as $item ) {
+			$rows[] = $depth . '|' . trim( (string) $item['label'] ) . '|' . untrailingslashit( (string) $item['url'] );
+			$children = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
+			$rows = array_merge( $rows, $this->flatten_blueprint( $children, $depth + 1 ) );
+		}
+		return $rows;
+	}
+
+	/** Flatten the current WordPress menu tree for deterministic comparison. */
+	private function flatten_menu_items( array $items, int $parent = 0, int $depth = 0 ): array {
+		$rows = array();
+		foreach ( $items as $item ) {
+			if ( (int) $item->menu_item_parent !== $parent ) {
+				continue;
+			}
+			$rows[] = $depth . '|' . trim( (string) $item->title ) . '|' . untrailingslashit( (string) $item->url );
+			$rows = array_merge( $rows, $this->flatten_menu_items( $items, (int) $item->ID, $depth + 1 ) );
+		}
+		return $rows;
+	}
+
+	/** Canonical menu signature after publication-aware filtering. */
+	private function canonical_menu_signature(): array {
+		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
+			return array();
+		}
+		return $this->flatten_blueprint( nvx_navigation_resolved_fallback() );
+	}
+
+	/** Current assigned primary-menu signature. */
+	private function current_menu_signature(): array {
+		$menu_id = $this->primary_menu_id();
+		if ( $menu_id < 1 ) {
+			return array();
+		}
+		$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish' ) );
+		return is_array( $items ) ? $this->flatten_menu_items( $items ) : array();
+	}
+
 	/** Build current audit rows. */
 	private function audit_rows(): array {
 		$rows = array();
 		foreach ( $this->approved_pages() as $slug => $definition ) {
 			$page   = $this->page_by_slug( $slug );
-			$rows[] = array(
-				'type'       => 'approved',
-				'slug'       => $slug,
-				'id'         => $page ? (int) $page->ID : 0,
-				'status'     => $page ? (string) $page->post_status : 'missing',
-				'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0,
-				'expected'   => 'publish',
-			);
+			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
 		}
-
 		foreach ( $this->governed_pages() as $slug => $definition ) {
 			$page   = $this->page_by_slug( $slug );
-			$rows[] = array(
-				'type'       => 'governed',
-				'slug'       => $slug,
-				'id'         => $page ? (int) $page->ID : 0,
-				'status'     => $page ? (string) $page->post_status : 'absent',
-				'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0,
-				'expected'   => $definition['status'],
-			);
+			$rows[] = array( 'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'absent', 'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0, 'expected' => $definition['status'] );
 		}
+		$current_menu   = $this->current_menu_signature();
+		$canonical_menu = $this->canonical_menu_signature();
+		$rows[] = array( 'type' => 'navigation', 'slug' => 'primary', 'id' => $this->primary_menu_id(), 'status' => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift', 'menu_items' => count( $current_menu ), 'expected' => 'canonical' );
 		return $rows;
 	}
 
@@ -121,6 +144,9 @@ final class NVX_Production_Readiness_Command {
 				return false;
 			}
 			if ( 'governed' === $row['type'] && 0 !== (int) $row['menu_items'] ) {
+				return false;
+			}
+			if ( 'navigation' === $row['type'] && 'clean' !== $row['status'] ) {
 				return false;
 			}
 		}
@@ -137,11 +163,7 @@ final class NVX_Production_Readiness_Command {
 		if ( ! add_option( self::LOCK_OPTION, (string) $now, '', false ) ) {
 			WP_CLI::error( 'Another production-readiness migration is already running.' );
 		}
-		register_shutdown_function(
-			static function (): void {
-				delete_option( self::LOCK_OPTION );
-			}
-		);
+		register_shutdown_function( static function (): void { delete_option( self::LOCK_OPTION ); } );
 	}
 
 	/** Release the migration lock. */
@@ -155,7 +177,6 @@ final class NVX_Production_Readiness_Command {
 		if ( self::CONFIRMATION_TOKEN !== $confirmation ) {
 			WP_CLI::error( 'Refusing to apply: use --confirm=' . self::CONFIRMATION_TOKEN );
 		}
-
 		$host = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
 		if ( ! in_array( $host, array( 'staging2.nuvanx.com', 'nuvanx.com', 'www.nuvanx.com' ), true ) ) {
 			WP_CLI::error( 'Refusing to apply on unexpected host: ' . $host );
@@ -174,39 +195,24 @@ final class NVX_Production_Readiness_Command {
 			$page = $this->page_by_slug( $slug );
 			if ( $page ) {
 				if ( 'publish' === $page->post_status ) {
+					$result = wp_update_post( array( 'ID' => (int) $page->ID, 'post_title' => $definition['title'], 'post_content' => $definition['content'] ), true );
+					if ( is_wp_error( $result ) ) {
+						WP_CLI::error( sprintf( 'Unable to refresh approved page %s: %s', $slug, $result->get_error_message() ) );
+					}
 					continue;
 				}
 				if ( empty( $definition['promote_draft'] ) || ! in_array( $page->post_status, array( 'draft', 'pending', 'private' ), true ) ) {
 					WP_CLI::warning( sprintf( 'Approved page %s exists with status %s; preserving it for manual review.', $slug, $page->post_status ) );
 					continue;
 				}
-
-				$result = wp_update_post(
-					array(
-						'ID'           => (int) $page->ID,
-						'post_status'  => 'publish',
-						'post_title'   => $definition['title'],
-						'post_content' => $definition['content'],
-					),
-					true
-				);
+				$result = wp_update_post( array( 'ID' => (int) $page->ID, 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_content' => $definition['content'] ), true );
 				if ( is_wp_error( $result ) ) {
 					WP_CLI::error( sprintf( 'Unable to publish approved page %s: %s', $slug, $result->get_error_message() ) );
 				}
 				WP_CLI::log( sprintf( 'Published approved page %s as ID %d.', $slug, (int) $page->ID ) );
 				continue;
 			}
-
-			$page_id = wp_insert_post(
-				array(
-					'post_type'    => 'page',
-					'post_status'  => 'publish',
-					'post_title'   => $definition['title'],
-					'post_name'    => $slug,
-					'post_content' => $definition['content'],
-				),
-				true
-			);
+			$page_id = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_name' => $slug, 'post_content' => $definition['content'] ), true );
 			if ( is_wp_error( $page_id ) ) {
 				WP_CLI::error( sprintf( 'Unable to create %s: %s', $slug, $page_id->get_error_message() ) );
 			}
@@ -221,36 +227,80 @@ final class NVX_Production_Readiness_Command {
 			if ( ! $page ) {
 				continue;
 			}
-
 			foreach ( $this->menu_item_ids( (int) $page->ID ) as $menu_item_id ) {
 				wp_delete_post( $menu_item_id, true );
 				WP_CLI::log( sprintf( 'Deleted menu item %d referencing %s.', $menu_item_id, $slug ) );
 			}
-
 			delete_post_meta( (int) $page->ID, '_nvx_strategy_review_status' );
 			if ( $definition['status'] === $page->post_status ) {
 				continue;
 			}
-
 			if ( 'trash' === $definition['status'] ) {
 				$result = wp_trash_post( (int) $page->ID );
 				if ( ! $result instanceof WP_Post ) {
 					WP_CLI::error( sprintf( 'Unable to update %s to trash.', $slug ) );
 				}
 			} else {
-				$result = wp_update_post(
-					array(
-						'ID'          => (int) $page->ID,
-						'post_status' => $definition['status'],
-					),
-					true
-				);
+				$result = wp_update_post( array( 'ID' => (int) $page->ID, 'post_status' => $definition['status'] ), true );
 				if ( is_wp_error( $result ) ) {
 					WP_CLI::error( sprintf( 'Unable to update %s: %s', $slug, $result->get_error_message() ) );
 				}
 			}
 			WP_CLI::log( sprintf( 'Updated %s to %s.', $slug, $definition['status'] ) );
 		}
+	}
+
+	/** Insert canonical menu nodes recursively. */
+	private function insert_menu_nodes( int $menu_id, array $nodes, int $parent_id = 0 ): void {
+		foreach ( $nodes as $node ) {
+			$classes = ! empty( $node['mega'] ) ? 'nvx-menu--mega' : '';
+			$item_id = wp_update_nav_menu_item(
+				$menu_id,
+				0,
+				array(
+					'menu-item-title'     => (string) $node['label'],
+					'menu-item-url'       => (string) $node['url'],
+					'menu-item-status'    => 'publish',
+					'menu-item-parent-id' => $parent_id,
+					'menu-item-classes'   => $classes,
+				)
+			);
+			if ( is_wp_error( $item_id ) ) {
+				WP_CLI::error( sprintf( 'Unable to create primary menu item %s: %s', (string) $node['label'], $item_id->get_error_message() ) );
+			}
+			$children = isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : array();
+			$this->insert_menu_nodes( $menu_id, $children, (int) $item_id );
+		}
+	}
+
+	/** Replace the assigned legacy menu with the canonical published blueprint. */
+	private function apply_primary_menu(): void {
+		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
+			WP_CLI::error( 'Canonical navigation blueprint is unavailable.' );
+		}
+		$nodes = nvx_navigation_resolved_fallback();
+		if ( array() === $nodes ) {
+			WP_CLI::error( 'Canonical navigation resolved to an empty tree.' );
+		}
+		$menu_id = $this->primary_menu_id();
+		if ( $menu_id < 1 ) {
+			$created = wp_create_nav_menu( 'NUVANX Principal' );
+			if ( is_wp_error( $created ) ) {
+				WP_CLI::error( 'Unable to create NUVANX Principal menu: ' . $created->get_error_message() );
+			}
+			$menu_id = (int) $created;
+		}
+		$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'any' ) );
+		if ( is_array( $items ) ) {
+			foreach ( $items as $item ) {
+				wp_delete_post( (int) $item->ID, true );
+			}
+		}
+		$this->insert_menu_nodes( $menu_id, $nodes );
+		$locations            = get_nav_menu_locations();
+		$locations['primary'] = $menu_id;
+		set_theme_mod( 'nav_menu_locations', $locations );
+		WP_CLI::log( sprintf( 'Rebuilt canonical primary menu %d with %d items.', $menu_id, count( $this->canonical_menu_signature() ) ) );
 	}
 
 	/** Audit production-readiness state. */
@@ -268,20 +318,19 @@ final class NVX_Production_Readiness_Command {
 		WP_CLI::success( 'Production-readiness audit passed.' );
 	}
 
-	/** Apply approved publication and retired-page governance. */
+	/** Apply approved publication, retirement governance and canonical navigation. */
 	public function apply( array $args, array $assoc_args ): void {
 		$this->validate_invocation( $assoc_args );
 		$this->acquire_lock();
 		$this->apply_approved_pages();
 		$this->apply_governed_pages();
-
+		$this->apply_primary_menu();
 		flush_rewrite_rules( false );
 		$rows = $this->audit_rows();
 		WP_CLI\Utils\format_items( 'table', $rows, array( 'type', 'slug', 'id', 'status', 'menu_items', 'expected' ) );
 		if ( ! $this->is_clean( $rows ) ) {
 			WP_CLI::error( 'Migration completed but the post-apply audit still has pending changes.' );
 		}
-
 		$this->release_lock();
 		WP_CLI::success( 'Migration applied and post-apply audit passed.' );
 	}

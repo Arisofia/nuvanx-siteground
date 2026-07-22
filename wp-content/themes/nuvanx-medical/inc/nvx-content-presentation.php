@@ -126,7 +126,6 @@ function nvx_content_strip_page_closing_ctas( string $content ): string {
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-endolift-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-catalog-close\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-laser-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-aes-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>/iu',
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
@@ -941,7 +940,7 @@ function nvx_content_normalize_body_media( string $content ): string {
 	$content = is_string( $protected ) ? $protected : $content;
 
 	// Portraits + formula stages must not get body-figure margins / height:auto.
-	$skip_figure = 'nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula|nvx-equipo-portrait|nvx-brand-card__media|nvx-brand-card__media--portrait';
+	$skip_figure = 'nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-equipo-portrait|nvx-brand-card__media|nvx-brand-card__media--portrait';
 
 	$updated = preg_replace_callback(
 		'/<figure\b([^>]*)>/iu',

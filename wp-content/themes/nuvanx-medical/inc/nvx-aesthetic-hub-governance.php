@@ -53,8 +53,8 @@ function nvx_aesthetic_hub_guard_route( string $html, string $primary, array $al
 	}
 
 	$speculative = home_url( '/' . trim( $primary, '/' ) . '/' );
-	$old_link    = '<a class="nvx-aes-card__link" href="' . esc_url( $speculative ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . '</a>';
-	$new_link    = '<a class="nvx-aes-card__link nvx-open-valoracion-modal" href="' . esc_url( nvx_aesthetic_hub_valuation_url() ) . '" data-gtag="click-reserve">' . esc_html__( 'Solicitar valoración', 'nuvanx-medical' ) . '</a>';
+	$old_link    = '<a class="nvx-brand-card__link" href="' . esc_url( $speculative ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . '</a>';
+	$new_link    = '<a class="nvx-brand-card__link nvx-open-valoracion-modal" href="' . esc_url( nvx_aesthetic_hub_valuation_url() ) . '" data-gtag="click-reserve">' . esc_html__( 'Solicitar valoración', 'nuvanx-medical' ) . '</a>';
 
 	return str_replace( $old_link, $new_link, $html );
 }

@@ -93,9 +93,8 @@ for (const slug of phaseSlugs) if (!acceptance.includes(`/${slug}/`)) fail(`rend
 for (const forbidden of ['https://nuvanx.com/wp-admin', 'wp option update', 'wp post update', 'wp db import', 'DELETE ']) {
   if (acceptance.includes(forbidden)) fail(`rendered acceptance contains mutating marker: ${forbidden}`);
 }
-
 for (const marker of [
-  'Google Chrome or Chromium is not installed', 'HTTP preflight failed', '403\\s*-\\s*Forbidden',
+  'Google Chrome or Chromium is not installed', 'HTTP preflight failed', String.raw`403\s*-\s*Forbidden`,
   'Page.captureScreenshot', 'captureBeyondViewport: true', 'screenshot is unexpectedly small',
   'navigation-desktop-mega.png', 'navigation-mobile-drawer.png',
   'Input.dispatchMouseEvent', "document.getElementById('nvx-hamburger-btn')?.click()",
@@ -120,7 +119,7 @@ for (const marker of [
   'grasa-localizada-abdomen-flancos-madrid', 'contorno-corporal-masculino-madrid',
   'nvx_signature_phase_seo_title', 'nvx_signature_phase_seo_description',
 ]) if (!phasePages.includes(marker)) fail(`phase-page module missing marker: ${marker}`);
-if (!phasePages.includes("continue;\n\t\t\t}")) fail('phase-page navigation does not explicitly skip unsupported nodes');
+if (!/continue;\s*\}/.test(phasePages)) fail('phase-page navigation does not explicitly skip unsupported nodes');
 
 for (const marker of [
   'nvx_clinical_language_prohibited_phrases', 'Sin bisturí ni puntos', 'Recuperación inmediata',
@@ -158,7 +157,7 @@ const phpFiles = [
 for (const relative of phpFiles) {
   const result = spawnSync('php', ['-l', file(relative)], { encoding: 'utf8' });
   if (result.error || result.status !== 0) {
-    if (result.error && result.error.code === 'ENOENT') continue; // php binary not available locally
+    if (result.error?.code === 'ENOENT') continue; // php binary not available locally
     fail(`PHP lint failed for ${relative}: ${((result.stderr || result.stdout || '') + '').trim()}`);
   }
 }

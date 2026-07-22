@@ -9,12 +9,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'NVX_CALIDAD_CUTANEA' ) ) {
+	define( 'NVX_CALIDAD_CUTANEA', 'CALIDAD CUTÁNEA NUVANX' );
+}
+
 /**
- * Catalogue for Signature Protocols.
+ * Body protocol catalog.
  *
  * @return array<string, array<string, mixed>>
  */
-function nvx_protocol_pages_catalog(): array {
+function nvx_protocol_body_catalog(): array {
 	return array(
 		'couture-sculpt' => array(
 			'slug'          => 'remodelacion-corporal-laser-madrid',
@@ -38,75 +42,86 @@ function nvx_protocol_pages_catalog(): array {
 			'process'     => array(
 				'Ecografía cutánea y diagnóstico diferencial del tejido adiposo.',
 				'Diseño topográfico de las áreas de lipólisis y las áreas de tensado.',
-				'Procedimiento ambulatorio bajo anestesia local, sin hospitalización.',
-				'Revisión médica post-procedimiento y pautas de recuperación activa.',
+				'Procedimiento médico ambulatorio con anestesia tumescente local.',
+				'Seguimiento y control a los 30, 60 y 90 días.',
 			),
 			'faqs'        => array(
 				array(
-					'q' => '¿Es un tratamiento para perder peso?',
-					'a' => 'No. Es un tratamiento de contorno para remodelar la silueta y eliminar volúmenes localizados. No sustituye a una pauta nutricional.',
+					'q' => '¿Necesitaré baja médica?',
+					'a' => 'No. Se realiza en consulta ambulatoria. Llevarás una prenda de compresión unos días y podrás volver a tu actividad habitual prácticamente de inmediato.',
 				),
 				array(
-					'q' => '¿Cuándo se ven los resultados?',
-					'a' => 'Hay un cambio inicial por la reducción de volumen, pero el tensado de la piel (formación de colágeno) es progresivo y se consolida a los 3-6 meses.',
+					'q' => '¿Los resultados son definitivos?',
+					'a' => 'Los adipocitos destruidos no se vuelven a generar. Manteniendo tu peso de referencia, el cambio en el contorno es permanente.',
 				),
 			),
 			'review_status' => 'approved_for_publication',
 		),
 		'post-maternity' => array(
 			'slug'          => 'tratamiento-postparto-abdomen-contorno-corporal-madrid',
-			'seo_title'     => 'NUVANX Post-Maternity Contour™: Recuperación Posgestacional Madrid',
-			'description'   => 'Valoración médica posparto. Abordamos diástasis, flacidez y grasa localizada con tecnología focalizada tras el alta ginecológica.',
-			'kicker'        => 'RECUPERACIÓN POSGESTACIONAL',
-			'h1'          => 'Recuperar tu cuerpo tras el embarazo empieza por saber qué se ha roto y qué se ha estirado.',
-			'lead'          => 'El abdomen posparto no se resuelve haciendo abdominales a ciegas. Medimos exactamente tu diástasis, la calidad de la piel y los acúmulos grasos antes de proponer un plan de acción.',
-			'diagnosis'   => 'Las alteraciones del posparto: separamos claramente la laxitud de la piel de la separación muscular (diástasis) y de la grasa residual. Un diagnóstico fallido aquí es la causa de que muchos tratamientos posparto fracasen.',
-			'mechanism'   => 'Empleamos tecnología de radiofrecuencia fraccionada para redensificar la piel estríada y terapias electromagnéticas para reeducar la pared muscular y ayudar en el cierre de la diástasis funcional.',
+			'seo_title'     => 'Post-Maternity Contour™: Recuperación Postparto | NUVANX',
+			'description'   => 'Recuperación integral del abdomen y contorno tras el embarazo. Abordamos laxitud, diástasis y cambios tisulares con criterio médico.',
+			'kicker'        => 'RECUPERACIÓN POSTPARTO NUVANX',
+			'h1'          => 'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid',
+			'lead'          => 'El Protocolo NUVANX Post-Maternity Contour™. Las alteraciones del posparto: qué podemos tratar y cuándo derivamos. El cuerpo tras la gestación cambia de forma compleja. No es solo "un poco de grasa" o "un poco de piel suelta". Exige una valoración médica que respete los tiempos biológicos.',
+			'diagnosis'   => 'Evaluamos el estado de la pared abdominal (descartando hernias o diástasis severas que requieran fisioterapia de suelo pélvico previa), la elasticidad de la piel tras la distensión y la calidad de la cicatriz si ha habido cesárea.',
+			'mechanism'   => 'Combinamos tecnologías de inducción de colágeno y remodelación neuromuscular para recuperar la firmeza cutánea y el tono de la cincha abdominal sin interferir con tus rutinas.',
 			'indications' => array(
-				'Laxitud abdominal y alteración de la calidad cutánea posgestacional.',
-				'Diástasis de rectos leve a moderada susceptible de mejora conservadora.',
-				'Adiposidad localizada residual en abdomen inferior o flancos.',
+				'Flacidez en la piel del abdomen tras la gestación.',
+				'Grasa localizada residual en abdomen y flancos.',
+				'Mejora de la textura y firmeza general del torso.',
 			),
 			'precautions' => array(
-				'Diástasis severas o hernias que requieren valoración por cirugía general.',
-				'Exceso de piel masivo (faldón abdominal) con indicación de dermolipectomía.',
-				'Lactancia activa (algunas tecnologías y activos deben posponerse).',
+				'Lactancia materna activa (algunos fármacos o anestésicos están contraindicados).',
+				'Posparto inmediato (respetamos un margen mínimo de 3 a 6 meses según indicación médica).',
 			),
 			'process'     => array(
-				'Valoración ecográfica de la pared abdominal y medición de la diástasis.',
-				'Evaluación del daño dérmico (estrías) y laxitud superficial.',
-				'Diseño del protocolo combinando fortalecimiento muscular y redensificación cutánea.',
+				'Exploración médica de la pared abdominal.',
+				'Diseño de pauta combinada ajustada al tiempo transcurrido desde el parto.',
+				'Revisiones de evolución tisular.',
 			),
 			'faqs'        => array(
 				array(
 					'q' => '¿Cuándo puedo empezar el tratamiento tras dar a luz?',
-					'a' => 'Normalmente recomendamos esperar al alta ginecológica (cuarentena) y estabilización hormonal, pero la valoración inicial puede realizarse antes para planificar.',
+					'a' => 'Recomendamos esperar un mínimo de 3 meses en parto vaginal y 6 meses si fue cesárea, siempre tras valoración médica y alta ginecológica.',
+				),
+				array(
+					'q' => 'Preguntas frecuentes',
+					'a' => 'Evaluamos de forma personalizada cada caso para garantizar que la indicación sea médicamente segura y adecuada para la etapa postparto.',
 				),
 			),
 			'review_status' => 'approved_for_publication',
 		),
+	);
+}
+
+/**
+ * Facial protocol catalog.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function nvx_protocol_facial_catalog(): array {
+	return array(
 		'profile-definition' => array(
 			'slug'          => 'papada-definicion-mandibular-madrid',
-			'seo_title'     => 'Profile Definition™: Papada y mandíbula | NUVANX',
-			'description'   => 'A veces es grasa, a veces es falta de soporte estructural. Tratamientos médicos sin cirugía para redefinir el óvalo facial en Madrid.',
+			'seo_title'     => 'Profile Definition™: Papada y Línea Mandibular | NUVANX',
+			'description'   => 'Definición del óvalo facial y eliminación de papada. Abordamos la estructura ósea, la masa grasa y la laxitud del cuello.',
 			'kicker'        => 'ARQUITECTURA FACIAL NUVANX',
 			'h1'          => 'Papada y mandíbula: a veces es grasa, a veces es piel, y a veces falta hueso.',
-			'lead'          => 'Para definir el óvalo facial sin pasar por quirófano, te miramos primero. Te decimos con claridad qué se puede conseguir, y solo si tiene sentido para tu anatomía, seguimos adelante.',
-			'diagnosis'   => 'A veces no hay papada real: lo que pasa es que el mentón es pequeño y la piel cuelga por falta de soporte. Si inyectamos grasa o ponemos láser sin diagnosticar el díficit óseo, no habrá buen resultado.',
-			'mechanism'   => 'Combinamos la lipólisis asistida por láser para eliminar grasa submentoniana con reposicionamiento de soporte estructural (ácido hialurónico) en el ángulo mandibular y mentón.',
-			'indications' => array(
-				'Acúmulo graso localizado en la región submentoniana (papada auténtica).',
-				'Pérdida de definición en la línea mandibular por falta de soporte o laxitud leve.',
-				'Mentón retraído leve que acentúa la sensación de papada.',
+			'lead'          => 'No todo el mundo que tiene "papada" necesita perder grasa. En muchos casos el mentón está retraído o el músculo del cuello ha perdido tensión. Tratar la causa equivocada arruina el perfil.',
+			'diagnosis'     => 'Analizamos la proporción de tu tercio inferior: ángulo mandibular, proyección del mentón, volumen de la grasa submentoniana y laxitud del músculo platisma.',
+			'mechanism'     => 'Empleamos micro-Endolift® para disolver la grasa submentoniana y retraer la piel del cuello, o inyectables de soporte estructural para proyectar el mentón y marcar el ángulo mandibular.',
+			'indications'   => array(
+				'Pérdida de definición en el borde mandibular (desdibujamiento del óvalo).',
+				'Cúmulo graso submentoniano (papada).',
+				'Mentón retraído que resta proyección al perfil.',
 			),
-			'precautions' => array(
-				'Laxitud cutánea severa del cuello (cuello de pavo) que requiere lifting cervical.',
-				'Micrognatia severa (falta de hueso extrema) que requiere cirugía maxilofacial.',
-				'Glándulas submandibulares hipertróficas o problemas tiroideos no controlados.',
+			'precautions'   => array(
+				'Descolgamiento platismaal severo con indicación de lifting quirúrgico.',
+				'Asimetrías óseas congénitas severas.',
 			),
-			'process'     => array(
-				'Análisis tridimensional del tercio inferior y el cuello.',
-				'Identificación del problema primario (grasa, piel o soporte óseo).',
+			'process'       => array(
+				'Estudio fotográfico y antropométrico del perfil facial.',
 				'Diseño del ángulo mandibular y protocolo de reducción grasa si es preciso.',
 			),
 			'faqs'        => array(
@@ -121,7 +136,7 @@ function nvx_protocol_pages_catalog(): array {
 			'slug'          => 'calidad-piel-firmeza-luminosidad-madrid',
 			'seo_title'     => 'Skin Architecture™: Firmeza y Calidad de Piel | NUVANX',
 			'description'   => 'Redensificación y firmeza dérmica. Obligamos a tus células a fabricar colágeno nuevo mediante estímulos médicos controlados.',
-			'kicker'        => 'CALIDAD CUTÁNEA NUVANX',
+			'kicker'        => NVX_CALIDAD_CUTANEA,
 			'h1'          => 'Tu piel no necesita más cremas, necesita reconstruirse por dentro.',
 			'lead'          => 'Si la piel ha perdido grosor y soporte, ponerte crema es como pintar una pared que se está desmoronando. Hay que actuar a nivel celular.',
 			'diagnosis'   => 'Diferenciamos entre deshidratación superficial, elastosis solar (daño por el sol) y atrofia dérmica (piel fina por la edad). Cada problema requiere una profundidad de actuación distinta.',
@@ -153,7 +168,7 @@ function nvx_protocol_pages_catalog(): array {
 			'slug'          => 'cicatrices-acne-poros-textura-madrid',
 			'seo_title'     => 'Surface Renewal™: Cicatrices y Textura | NUVANX',
 			'description'   => 'Mejoramos las marcas de acné rompiendo la cicatriz. Resurfacing médico con Láser CO2 y radiofrecuencia.',
-			'kicker'        => 'CALIDAD CUTÁNEA NUVANX',
+			'kicker'        => NVX_CALIDAD_CUTANEA,
 			'h1'          => 'Para mejorar las marcas de acné hay que romper la cicatriz, no solo pelar la piel.',
 			'lead'          => 'Los peelings suaves no llegan a la raíz del problema. Las cicatrices de acné tiran de la piel hacia abajo desde dentro; hay que liberar esa tensión.',
 			'diagnosis'   => 'Clasificamos tus cicatrices en furgón (boxcar), picahielo (icepick) o rodantes (rolling). Un diagnóstico exacto es crucial porque cada tipo de cicatriz responde a una técnica diferente.',
@@ -186,7 +201,7 @@ function nvx_protocol_pages_catalog(): array {
 			'slug'          => 'manchas-rojeces-fotorejuvenecimiento-ipl-madrid',
 			'seo_title'     => 'Tone Correction™: Fotorejuvenecimiento y Manchas | NUVANX',
 			'description'   => 'Diagnóstico de pigmentación y rojeces. Tratamos el origen de la mancha para un tono uniforme y duradero.',
-			'kicker'        => 'CALIDAD CUTÁNEA NUVANX',
+			'kicker'        => NVX_CALIDAD_CUTANEA,
 			'h1'          => 'Quitar una mancha es fácil; que no vuelva a salir es la parte médica.',
 			'lead'          => 'Quemar una mancha sin saber por qué ha salido es garantía de que volverá. Te decimos qué tipo tienes tú y cómo mantenerla a raya.',
 			'diagnosis'   => 'Diferenciamos entre pigmento dérmico (profundo), epidérmico (superficial) y el componente vascular subyacente. Confundir un melasma con un léntigo solar empeora el problema drásticamente.',
@@ -247,6 +262,15 @@ function nvx_protocol_pages_catalog(): array {
 			'review_status' => 'approved_for_publication',
 		),
 	);
+}
+
+/**
+ * Catalogue for Signature Protocols.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function nvx_protocol_pages_catalog(): array {
+	return array_merge( nvx_protocol_body_catalog(), nvx_protocol_facial_catalog() );
 }
 
 /** Identifies the current page's protocol catalog entry. */

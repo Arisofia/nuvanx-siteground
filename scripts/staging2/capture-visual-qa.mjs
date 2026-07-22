@@ -300,12 +300,29 @@ async function captureViewport(session, destination) {
 }
 
 /**
- * Converts a URL path into a filesystem-friendly name.
- * @param {string} pagePath - The URL path to convert.
- * @return {string} The path with slashes replaced by double underscores, or `home` for the root path.
- */
-function safeName(pagePath) {
-  return pagePath.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home';
+async function auditSingleViewport(port, pagePath, expectedH1, viewport) {
+  const scope = `${pagePath} ${viewport.name}`;
+  const result = { path: pagePath, viewport: viewport.name };
+  let session;
+  try {
+    session = await loadPage(port, `${baseUrl}${pagePath}`, viewport);
+    Object.assign(result, await pageState(session));
+    if (result.forbidden) fail(scope, 'rendered a 403 Forbidden page');
+    if (result.h1.length !== 1 || result.h1[0] !== expectedH1) fail(scope, `H1 mismatch: ${JSON.stringify(result.h1)}`);
+    if (result.overflow > 2) fail(scope, `horizontal overflow is ${result.overflow}px`);
+    if (!result.headerVisible) fail(scope, 'header is not visible');
+    if (!result.footerVisible) fail(scope, 'footer is not visible');
+    const destination = path.join(evidenceDir, `${safeName(pagePath)}-${viewport.name}.png`);
+    await captureFullPage(session, destination, viewport);
+    result.screenshot = path.basename(destination);
+    result.screenshot_bytes = fs.statSync(destination).size;
+    if (result.screenshot_bytes < 15000) fail(scope, `screenshot is unexpectedly small (${result.screenshot_bytes} bytes)`);
+  } catch (error) {
+    fail(scope, error instanceof Error ? error.message : String(error));
+  } finally {
+    session?.close();
+  }
+  report.pages.push(result);
 }
 
 /**
@@ -320,28 +337,7 @@ async function auditPages(port) {
   for (const [pagePath, expectedH1] of pages) {
     await fetchWithRetry(`${baseUrl}${pagePath}`);
     for (const viewport of viewports) {
-      const scope = `${pagePath} ${viewport.name}`;
-      const result = { path: pagePath, viewport: viewport.name };
-      let session;
-      try {
-        session = await loadPage(port, `${baseUrl}${pagePath}`, viewport);
-        Object.assign(result, await pageState(session));
-        if (result.forbidden) fail(scope, 'rendered a 403 Forbidden page');
-        if (result.h1.length !== 1 || result.h1[0] !== expectedH1) fail(scope, `H1 mismatch: ${JSON.stringify(result.h1)}`);
-        if (result.overflow > 2) fail(scope, `horizontal overflow is ${result.overflow}px`);
-        if (!result.headerVisible) fail(scope, 'header is not visible');
-        if (!result.footerVisible) fail(scope, 'footer is not visible');
-        const destination = path.join(evidenceDir, `${safeName(pagePath)}-${viewport.name}.png`);
-        await captureFullPage(session, destination, viewport);
-        result.screenshot = path.basename(destination);
-        result.screenshot_bytes = fs.statSync(destination).size;
-        if (result.screenshot_bytes < 15000) fail(scope, `screenshot is unexpectedly small (${result.screenshot_bytes} bytes)`);
-      } catch (error) {
-        fail(scope, error instanceof Error ? error.message : String(error));
-      } finally {
-        session?.close();
-      }
-      report.pages.push(result);
+      await auditSingleViewport(port, pagePath, expectedH1, viewport);
     }
   }
 }
@@ -372,7 +368,7 @@ async function auditDesktopNavigation(port) {
     if (!initial.x || !initial.y) throw new Error('Protocolos Signature desktop link was not found.');
     await session.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: initial.x, y: initial.y });
     await sleep(500);
-    const opened = await session.evaluate(`(() => {
+    const opened = await session.evaluate(String.raw`(() => {
       const item = Array.from(document.querySelectorAll('.nvx-nav > .nvx-nav__list > li')).find((node) => {
         const link = Array.from(node.children).find((child) => child.tagName === 'A');
         return link && /protocolos signature/i.test(link.textContent);
@@ -383,7 +379,7 @@ async function auditDesktopNavigation(port) {
       const rect = submenu.getBoundingClientRect();
       return {
         visible: style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity || 1) > 0 && rect.width > 0 && rect.height > 0,
-        text: submenu.innerText.replace(/\\s+/g, ' ').trim(),
+        text: submenu.innerText.replace(/\s+/g, ' ').trim(),
         overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
       };
     })()`);
@@ -403,6 +399,30 @@ async function auditDesktopNavigation(port) {
     session?.close();
   }
   report.navigation.desktop = result;
+}
+
+async function openMobileAccordion(session, linkRegexPattern, parentSubmenuClass = null) {
+  return session.evaluate(String.raw`((pattern, parentClass) => {
+    const nav = document.getElementById('nvx-mobile-nav');
+    const regex = new RegExp(pattern, 'i');
+    let scopeElement = nav;
+    if (parentClass) {
+      const parentList = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__list > li') || []);
+      const parentItem = parentList.find((n) => {
+        const link = Array.from(n.children).find((c) => c.tagName === 'A');
+        return link && /protocolos signature/i.test(link.textContent);
+      });
+      scopeElement = parentItem ? Array.from(parentItem.children).find((c) => c.classList?.contains(parentClass)) : null;
+    }
+    const items = Array.from(scopeElement?.children || scopeElement?.querySelectorAll('li') || []);
+    const item = items.find((node) => {
+      const link = Array.from(node.children).find((child) => child.tagName === 'A');
+      return link && regex.test(link.textContent);
+    });
+    const toggle = item ? Array.from(item.children).find((child) => child.classList?.contains('nvx-mobile-nav__toggle')) : null;
+    toggle?.click();
+    return !!toggle;
+  })`, linkRegexPattern, parentSubmenuClass);
 }
 
 /**
@@ -430,40 +450,17 @@ async function auditMobileNavigation(port) {
     if (!drawer.open || drawer.expanded !== 'true') fail(scope, 'hamburger did not open the drawer with correct ARIA state');
     if (drawer.activeId !== 'nvx-mobile-close') fail(scope, `focus did not move to close button; active=${drawer.activeId || 'none'}`);
 
-    const signatureOpened = await session.evaluate(`(() => {
-      const nav = document.getElementById('nvx-mobile-nav');
-      const item = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__list > li') || []).find((node) => {
-        const link = Array.from(node.children).find((child) => child.tagName === 'A');
-        return link && /protocolos signature/i.test(link.textContent);
-      });
-      const toggle = item ? Array.from(item.children).find((child) => child.classList?.contains('nvx-mobile-nav__toggle')) : null;
-      toggle?.click();
-      return !!toggle;
-    })()`);
+    const signatureOpened = await openMobileAccordion(session, 'protocolos signature');
     if (!signatureOpened) throw new Error('Protocolos Signature mobile accordion toggle was not found.');
     await sleep(300);
 
-    const contourOpened = await session.evaluate(`(() => {
-      const nav = document.getElementById('nvx-mobile-nav');
-      const signature = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__list > li') || []).find((node) => {
-        const link = Array.from(node.children).find((child) => child.tagName === 'A');
-        return link && /protocolos signature/i.test(link.textContent);
-      });
-      const firstSubmenu = signature ? Array.from(signature.children).find((child) => child.classList?.contains('sub-menu')) : null;
-      const contour = Array.from(firstSubmenu?.children || []).find((node) => {
-        const link = Array.from(node.children).find((child) => child.tagName === 'A');
-        return link && /contour architecture/i.test(link.textContent);
-      });
-      const toggle = contour ? Array.from(contour.children).find((child) => child.classList?.contains('nvx-mobile-nav__toggle')) : null;
-      toggle?.click();
-      return !!toggle;
-    })()`);
+    const contourOpened = await openMobileAccordion(session, 'contour architecture', 'sub-menu');
     if (!contourOpened) throw new Error('Contour Architecture nested mobile toggle was not found.');
     await sleep(350);
 
-    const state = await session.evaluate(`(() => {
+    const state = await session.evaluate(String.raw`(() => {
       const nav = document.getElementById('nvx-mobile-nav');
-      const text = nav?.innerText.replace(/\\s+/g, ' ').trim() || '';
+      const text = nav?.innerText.replace(/\s+/g, ' ').trim() || '';
       const expanded = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__toggle[aria-expanded="true"]') || []).length;
       return {
         text,

@@ -67,16 +67,20 @@ fetch_page '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' 'Tratamien
 fetch_page '/por-que-nuvanx/' 'Por qué NUVANX. Sin retórica de marketing.' 'Responsabilidad médica y continuidad asistencial' 'Trazabilidad de productos' 'Por qué importa'
 fetch_page '/inversion-medicina-estetica/' 'El presupuesto forma parte de una decisión informada.' 'Cómo leer estas tarifas' 'Qué incluye siempre el plan en NUVANX' 'Qué no encontrarás aquí'
 
-fetch_page '/papada-definicion-mandibular-madrid/' 'Papada y definición mandibular en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' 'Calidad, firmeza y luminosidad de la piel en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/cicatrices-acne-poros-textura-madrid/' 'Cicatrices de acné, poros y textura en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' 'Manchas, rojeces y fotodaño en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/grasa-localizada-abdomen-flancos-madrid/' 'Grasa localizada en abdomen y flancos en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/flacidez-grasa-localizada-brazos-madrid/' 'Flacidez y grasa localizada en brazos en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/grasa-espalda-zona-sujetador-madrid/' 'Grasa de espalda y zona del sujetador en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/flacidez-muslos-internos-subgluteo-madrid/' 'Flacidez en muslos internos y región subglútea en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/tratamiento-rodillas-grasa-flacidez-madrid/' 'Grasa localizada y flacidez en rodillas en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/contorno-corporal-masculino-madrid/' 'Contorno corporal masculino en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
+MARKER_VALORA='Qué se valora'
+MARKER_DECIDE='Cómo se decide el plan'
+MARKER_LIMITES='Límites y cuándo derivamos'
+
+fetch_page '/papada-definicion-mandibular-madrid/' 'Papada y definición mandibular en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' 'Calidad, firmeza y luminosidad de la piel en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/cicatrices-acne-poros-textura-madrid/' 'Cicatrices de acné, poros y textura en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' 'Manchas, rojeces y fotodaño en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/grasa-localizada-abdomen-flancos-madrid/' 'Grasa localizada en abdomen y flancos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/flacidez-grasa-localizada-brazos-madrid/' 'Flacidez y grasa localizada en brazos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/grasa-espalda-zona-sujetador-madrid/' 'Grasa de espalda y zona del sujetador en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/flacidez-muslos-internos-subgluteo-madrid/' 'Flacidez en muslos internos y región subglútea en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/tratamiento-rodillas-grasa-flacidez-madrid/' 'Grasa localizada y flacidez en rodillas en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/contorno-corporal-masculino-madrid/' 'Contorno corporal masculino en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 
 check_redirect '/liposculpt-air/' '/remodelacion-corporal-laser-madrid/'
 check_redirect '/v-lift-awake/' '/protocolos-signature/'

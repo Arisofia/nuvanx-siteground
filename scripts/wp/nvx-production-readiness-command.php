@@ -234,41 +234,48 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
+	private function update_approved_page( int $page_id, array $definition, string $slug ): void {
+		$result = wp_update_post( array( 'ID' => $page_id, 'post_title' => $definition['title'], 'post_content' => $definition['content'] ), true );
+		if ( is_wp_error( $result ) ) {
+			WP_CLI::error( sprintf( 'Unable to refresh approved page %s: %s', $slug, $result->get_error_message() ) );
+		}
+	}
+
+	private function promote_approved_page( int $page_id, array $definition, string $slug ): void {
+		if ( empty( $definition['promote_draft'] ) ) {
+			WP_CLI::warning( sprintf( 'Approved page %s exists; preserving it for manual review.', $slug ) );
+			return;
+		}
+		$result = wp_update_post( array( 'ID' => $page_id, 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_content' => $definition['content'] ), true );
+		if ( is_wp_error( $result ) ) {
+			WP_CLI::error( sprintf( 'Unable to publish approved page %s: %s', $slug, $result->get_error_message() ) );
+		}
+		WP_CLI::log( sprintf( 'Published approved page %s as ID %d.', $slug, $page_id ) );
+	}
+
 	/**
 	 * Ensures approved pages have the required published content and status.
-	 *
-	 * Existing published pages are refreshed, eligible draft-like pages are promoted
-	 * when configured, and missing pages are created as published. Other statuses
-	 * are preserved for manual review.
 	 */
 	private function apply_approved_pages(): void {
 		foreach ( $this->approved_pages() as $slug => $definition ) {
 			$page = $this->page_by_slug( $slug );
-			if ( $page ) {
-				if ( 'publish' === $page->post_status ) {
-					$result = wp_update_post( array( 'ID' => (int) $page->ID, 'post_title' => $definition['title'], 'post_content' => $definition['content'] ), true );
-					if ( is_wp_error( $result ) ) {
-						WP_CLI::error( sprintf( 'Unable to refresh approved page %s: %s', $slug, $result->get_error_message() ) );
-					}
-					continue;
-				}
-				if ( empty( $definition['promote_draft'] ) || ! in_array( $page->post_status, array( 'draft', 'pending', 'private' ), true ) ) {
-					WP_CLI::warning( sprintf( 'Approved page %s exists with status %s; preserving it for manual review.', $slug, $page->post_status ) );
-					continue;
-				}
-				$result = wp_update_post( array( 'ID' => (int) $page->ID, 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_content' => $definition['content'] ), true );
-				if ( is_wp_error( $result ) ) {
-					WP_CLI::error( sprintf( 'Unable to publish approved page %s: %s', $slug, $result->get_error_message() ) );
-				}
-				WP_CLI::log( sprintf( 'Published approved page %s as ID %d.', $slug, (int) $page->ID ) );
+			if ( ! $page ) {
+				$this->create_approved_page( $slug, $definition );
 				continue;
 			}
-			$page_id = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_name' => $slug, 'post_content' => $definition['content'] ), true );
-			if ( is_wp_error( $page_id ) ) {
-				WP_CLI::error( sprintf( 'Unable to create %s: %s', $slug, $page_id->get_error_message() ) );
+			if ( 'publish' === $page->post_status ) {
+				$this->update_approved_page( (int) $page->ID, $definition, $slug );
+			} else {
+				$this->promote_approved_page( (int) $page->ID, $definition, $slug );
 			}
-			WP_CLI::log( sprintf( 'Created approved page %s as ID %d.', $slug, (int) $page_id ) );
 		}
+	}
+	private function create_approved_page( string $slug, array $definition ): void {
+		$page_id = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_name' => $slug, 'post_content' => $definition['content'] ), true );
+		if ( is_wp_error( $page_id ) ) {
+			WP_CLI::error( sprintf( 'Unable to create %s: %s', $slug, $page_id->get_error_message() ) );
+		}
+		WP_CLI::log( sprintf( 'Created approved page %s as ID %d.', $slug, (int) $page_id ) );
 	}
 
 	/**

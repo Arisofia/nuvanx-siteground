@@ -109,20 +109,20 @@ const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 const cleanHtmlText = (val) => val.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
 
 function parseSingleTag(html, name) {
-  const match = html.match(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}>`, 'i'));
+  const match = html.match(new RegExp(String.raw`<${name}\b[^>]*>([\s\S]*?)<\/${name}>`, 'i'));
   return match ? cleanHtmlText(match[1]) : '';
 }
 
 function parseMultipleTagTexts(html, name) {
-  return [...html.matchAll(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}>`, 'gi'))].map((m) => cleanHtmlText(m[1]));
+  return [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>([\s\S]*?)<\/${name}>`, 'gi'))].map((m) => cleanHtmlText(m[1]));
 }
 
 function queryHtmlTags(html, name) {
-  return [...html.matchAll(new RegExp(`<${name}\\b[^>]*>`, 'gi'))].map((m) => m[0]);
+  return [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>`, 'gi'))].map((m) => m[0]);
 }
 
 function getAttrVal(tagString, attrName) {
-  const m = tagString.match(new RegExp(`\\b${attrName}\\s*=\\s*(["'])(.*?)\\1`, 'i'));
+  const m = tagString.match(new RegExp(String.raw`\b${attrName}\s*=\s*(["'])(.*?)\1`, 'i'));
   return m ? m[2] : '';
 }
 
@@ -161,8 +161,9 @@ function parseSchemaTypes(html) {
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45000);
+  const userHeaders = options.headers || {};
   try {
-    return await fetch(url, { ...options, signal: controller.signal, headers: { 'user-agent': 'NUVANX-Staging2-Acceptance/3.0', ...(options.headers || {}) } });
+    return await fetch(url, { ...options, signal: controller.signal, headers: { 'user-agent': 'NUVANX-Staging2-Acceptance/3.0', ...userHeaders } });
   } finally {
     clearTimeout(timeout);
   }
@@ -185,8 +186,8 @@ function parseHtmlPage(html) {
   };
 }
 
-function validatePageModel(page, parsed, scope) {
-  const { title, description, ogTitle, ogDescription, robots, deploySha, h1List, h2Count, canonicals, ogUrl, schemas, bodyText } = parsed;
+function validatePageMetadata(page, parsed, scope) {
+  const { title, description, ogTitle, ogDescription, robots, deploySha, h1List, h2Count } = parsed;
 
   if (deploySha !== expectedSha) fail(scope, `served SHA ${deploySha || 'absent'} instead of ${expectedSha}`);
   if (title !== page.title) fail(scope, `title mismatch: ${JSON.stringify(title)}`);
@@ -196,6 +197,10 @@ function validatePageModel(page, parsed, scope) {
   if (!robots.toLowerCase().includes('noindex') || !robots.toLowerCase().includes('nofollow')) fail(scope, `robots mismatch: ${robots || 'absent'}`);
   if (h1List.length !== 1 || h1List[0] !== page.h1) fail(scope, `H1 mismatch: ${JSON.stringify(h1List)}`);
   if (h2Count < 3) fail(scope, `expected at least 3 H2s, found ${h2Count}`);
+}
+
+function validatePageContent(page, parsed, scope) {
+  const { canonicals, ogUrl, schemas, bodyText } = parsed;
 
   for (const marker of page.markers) if (!bodyText.includes(marker)) fail(scope, `missing marker: ${marker}`);
   if (!/valoraci[oó]n/i.test(bodyText)) fail(scope, 'missing medical valuation CTA or copy');
@@ -208,6 +213,11 @@ function validatePageModel(page, parsed, scope) {
 
   const lowerText = bodyText.toLowerCase();
   for (const forbidden of forbiddenText) if (lowerText.includes(forbidden.toLowerCase())) fail(scope, `exposes forbidden text: ${forbidden}`);
+}
+
+function validatePageModel(page, parsed, scope) {
+  validatePageMetadata(page, parsed, scope);
+  validatePageContent(page, parsed, scope);
 }
 
 async function verifySinglePage(page) {

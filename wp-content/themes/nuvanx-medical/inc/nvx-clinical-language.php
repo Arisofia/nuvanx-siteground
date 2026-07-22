@@ -24,6 +24,24 @@ function nvx_clinical_language_text( string $text ): string {
 	$exact[ 'Sin down' . 'time.' ] = 'El período de recuperación depende del protocolo.';
 	$exact[ 'Plan de sesiones y down' . 'time realistas.' ] = 'El plan de sesiones y el período de recuperación se explican según el protocolo y la respuesta individual.';
 
+	$prohibited = array(
+		'Elevación de párpados',
+		'Tiny Tuck',
+		'AirTite',
+		'Mommy Makeover completo',
+		'De rostro a tobillos',
+		'Sin bisturí ni puntos',
+		'Todo en vigilia',
+		'Mínima recuperación',
+		'Sin cicatrices',
+		'Elimina grasa en cualquier zona',
+		'Resultado definitivo',
+		'Una sola sesión'
+	);
+	foreach ( $prohibited as $phrase ) {
+		$text = str_ireplace( $phrase, '[Contenido no autorizado por política clínica]', $text );
+	}
+
 	$text = str_ireplace( array_keys( $exact ), array_values( $exact ), $text );
 	$text = preg_replace( '/\bdowntime\b/iu', 'período de recuperación', $text ) ?? $text;
 

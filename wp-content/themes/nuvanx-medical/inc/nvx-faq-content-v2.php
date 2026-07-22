@@ -82,7 +82,7 @@ function nvx_home_faq_v2_catalog(): array {
 		array(
 			'id' => 'recuperacion-real-laser',
 			'q'  => '¿Cómo es la recuperación real después de EXION® Fractional RF o láser CO₂ fraccionado?',
-			'a'  => 'Honestamente: en las primeras 24-48 horas hay eritema (enrojecimiento), sensación de calor y pequeñas costras microscópicas en zonas de mayor densidad de energía. No es una sesión de spa. Lo que sí garantizamos es que nuestro Luxury Post-Care Protocol (factores de crecimiento EGF, mascarilla biológica post-sesión y crioterapia) reduce el eritema visible hasta un 70% en las primeras 24 horas, y el seguimiento médico continuo asegura que cualquier incidencia se resuelva de inmediato.',
+			'a'  => 'Sí, hay unos días en los que no vas a estar en tu mejor momento — enrojecimiento tipo quemadura de sol, calor, y en las zonas más tratadas, alguna costra pequeña. No te lo vamos a maquillar como si fuera un día de spa, porque no lo es. Lo que sí hacemos es acompañarte esos días: un protocolo de cuidados post-sesión (con factores de crecimiento, mascarilla biológica y frío) pensado para que la piel se recupere lo más cómoda posible, y seguimiento médico por si algo no evoluciona como se espera.',
 		),
 	);
 }

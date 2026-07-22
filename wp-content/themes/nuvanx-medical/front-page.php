@@ -137,23 +137,23 @@ ob_start();
 
 	<section class="nvx-home-seo" aria-labelledby="nvx-home-seo-title">
 		<div class="nvx-home-seo__inner">
-			<p id="nvx-home-seo-title" class="nvx-home-seo__title">Áreas de valoración y tratamiento</p>
+			<p id="nvx-home-seo-title" class="nvx-home-seo__title">Áreas de valoración y protocolos médicos</p>
 			<div class="nvx-home-seo__grid">
 				<div class="nvx-home-seo__col">
-					<h3 class="nvx-home-seo__col-title">Corporal</h3>
+					<h3 class="nvx-home-seo__col-title">Contorno Corporal</h3>
 					<ul class="nvx-home-seo__list">
-						<li><strong>Abdomen y flancos:</strong> valoración de grasa localizada y firmeza.</li>
-						<li><strong>Caderas y muslos:</strong> planificación del contorno según anatomía.</li>
-						<li><strong>Brazos, rodillas y espalda:</strong> protocolos ajustados al tejido.</li>
-						<li><strong>Calidad cutánea corporal:</strong> selección de tecnología según diagnóstico.</li>
+						<li><strong>Remodelación global:</strong> <a href="<?php echo esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ); ?>">NUVANX Contour Sculpt™</a> para el tratamiento de grasa localizada y firmeza.</li>
+						<li><strong>Recuperación posgestacional:</strong> <a href="<?php echo esc_url( home_url( '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' ) ); ?>">Post-Maternity Contour™</a> para valorar abdomen, diástasis y flacidez.</li>
+						<li><strong>Láser subdérmico:</strong> <a href="<?php echo esc_url( home_url( '/endolaser-lipolisis-corporal-madrid/' ) ); ?>">Endoláser corporal</a> (lipólisis y retracción térmica ambulatoria).</li>
 					</ul>
 				</div>
 				<div class="nvx-home-seo__col">
-					<h3 class="nvx-home-seo__col-title">Facial</h3>
+					<h3 class="nvx-home-seo__col-title">Arquitectura Facial</h3>
 					<ul class="nvx-home-seo__list">
-						<li><strong>Tercio inferior:</strong> mandíbula, cuello y papada.</li>
-						<li><strong>Armonización:</strong> planificación conservadora de proporciones y soporte.</li>
-						<li><strong>Calidad de piel:</strong> textura, poros, cicatrices y fotodaño.</li>
+						<li><strong>Tercio inferior:</strong> <a href="<?php echo esc_url( home_url( '/papada-definicion-mandibular-madrid/' ) ); ?>">Profile Definition™</a> para diagnóstico de papada, mandíbula y cuello.</li>
+						<li><strong>Tensión y calidad cutánea:</strong> <a href="<?php echo esc_url( home_url( '/calidad-piel-firmeza-luminosidad-madrid/' ) ); ?>">Skin Architecture™</a> y <a href="<?php echo esc_url( home_url( '/endolift-facial-papada-mandibula/' ) ); ?>">Endolift® Facial</a>.</li>
+						<li><strong>Región periocular:</strong> <a href="<?php echo esc_url( home_url( '/eye-frame-rejuvenecimiento-mirada-madrid/' ) ); ?>">Eye Frame™</a> para el tratamiento integral de la mirada y las ojeras.</li>
+						<li><strong>Renovación de superficie:</strong> <a href="<?php echo esc_url( home_url( '/cicatrices-acne-poros-textura-madrid/' ) ); ?>">Surface Renewal™</a> (<a href="<?php echo esc_url( home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ) ); ?>">Láser CO₂ fraccionado</a> para marcas de acné) y <a href="<?php echo esc_url( home_url( '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' ) ); ?>">Tone Correction™</a>.</li>
 					</ul>
 				</div>
 			</div>

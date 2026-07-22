@@ -109,7 +109,7 @@ function nvx_co2_editorial_body_markup(): string {
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-co2-science-title" class="nvx-endolift-heading">' . esc_html__( 'La ciencia de la ablación fraccionada', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'El láser de dióxido de carbono (CO₂) fraccionado es un resurfacing ablativo de referencia en dermatología estética para renovar la arquitectura de la piel. No vaporiza toda la superficie de forma continua: emite microhaces que crean columnas térmicas de vaporización rodeadas de tejido sano.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'El láser hace micro-heridas controladas y minúsculas en la piel, dejando el tejido de alrededor intacto. Eso obliga a la piel a regenerarse desde dentro — como cuando te haces una herida pequeña y la piel nueva sale más lisa.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Ese tejido peri-lesional acelera la curación y estimula una respuesta de neocolagénesis (colágeno tipo I y III). No es un peeling cosmético superficial: es una intervención de alto impacto que exige planificación médica y compromiso con el downtime.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></section>';
 
@@ -153,17 +153,17 @@ function nvx_co2_editorial_body_markup(): string {
 		array(
 			'n'     => '01',
 			'title' => __( 'Días 1 a 3', 'nuvanx-medical' ),
-			'body'  => __( 'Eritema intenso (similar a quemadura solar fuerte), calor profundo y patrón punteado oscuro (columnas tratadas / debris microscópico).', 'nuvanx-medical' ),
+			'body'  => __( 'La piel se ve roja e intensa, como una quemadura de sol fuerte, y notarás calor. Es normal, es parte del proceso.', 'nuvanx-medical' ),
 		),
 		array(
 			'n'     => '02',
 			'title' => __( 'Días 4 a 7', 'nuvanx-medical' ),
-			'body'  => __( 'Descamación activa: la epidermis tratada se desprende y aparece piel nueva, rosada e inmadura. No arrancar escamas.', 'nuvanx-medical' ),
+			'body'  => __( 'La piel empieza a pelarse — sale la piel nueva por debajo, más rosada. No te la arranques, deja que caiga sola.', 'nuvanx-medical' ),
 		),
 		array(
 			'n'     => '03',
 			'title' => __( 'Día 7 en adelante', 'nuvanx-medical' ),
-			'body'  => __( 'Recuperación visual habitual. La remodelación de colágeno continúa en silencio 4–6 semanas (y meses) mejorando firmeza y textura.', 'nuvanx-medical' ),
+			'body'  => __( 'Ya se ve una piel normal por fuera, aunque por dentro la piel sigue mejorando durante semanas y meses.', 'nuvanx-medical' ),
 		),
 	);
 	foreach ( $phases as $phase ) {

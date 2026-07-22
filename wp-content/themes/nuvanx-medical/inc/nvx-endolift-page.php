@@ -114,7 +114,7 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
 	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
 	$html .= '</div></div>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Tratamiento subdérmico de precisión para tensado tisular y reducción de grasa localizada. Indicación médica y presupuesto cerrado tras la primera valoración en Chamberí o Salamanca.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Para la papada o la mandíbula poco definida, sin pasar por quirófano. Te miramos primero, te decimos con qué claridad qué se puede conseguir, y solo si tiene sentido para ti, seguimos adelante.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
@@ -217,8 +217,8 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '<div class="nvx-endolift-section__inner">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'La técnica', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-endolift-what-title" class="nvx-endolift-heading">' . esc_html__( '¿Qué es el Endolift® facial y cómo altera la estructura anatómica?', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'No es un cosmético tópico ni un calentamiento superficial. Es medicina intervencionista mínimamente invasiva: una microfibra óptica del orden de 200–300 micras se introduce bajo la piel y libera energía láser en el tejido subcutáneo.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Esa energía puede combinar, cuando hay indicación, reducción de grasa local en papada y línea mandibular, y retracción del tejido de soporte con estímulo de colágeno nuevo. El efecto es un tensado progresivo — no una resección quirúrgica de piel.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Se introduce una fibra láser finísima bajo la piel — no vas a notar más que un pinchazo pequeño — y ese calor hace dos cosas: deshace un poco de grasa y tensa la piel desde dentro. Todo con anestesia local, en la consulta.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( '(Detalle técnico si te interesa: es láser de 1470nm sobre plataforma Eufoton®, aplicado con microfibras de 200-300 micras.)', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></section>';
 
 	// B. Indicaciones + diagnóstico diferencial (panel) — no price here.

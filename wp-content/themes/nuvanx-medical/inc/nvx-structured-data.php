@@ -620,8 +620,8 @@ function nvx_schema_faq_catalog() {
 				'a' => 'No. Planos complementarios: Endolift® tensa piel y tejido conectivo y puede reducir grasa; rellenos o inductores aportan soporte volumétrico. Criterio NUVANX: tensar primero y rellenar después solo si está indicado.',
 			),
 			array(
-				'q' => '¿Cómo es la recuperación y el dolor post-tratamiento?',
-				'a' => 'Anestesia local; ambulatorio. Reincorporación habitual en menos de 24 h. Edema, tirantez o hematomas leves 3–5 días (a veces hasta 7). Baja social moderada la primera semana si hay compromisos de imagen.',
+				'q' => '¿Es doloroso?',
+				'a' => 'Un poco de calor y algo de presión, nada más — usamos anestesia local precisamente para que no duela. Si te preocupa el dolor, dínoslo en la consulta: se puede ajustar.',
 			),
 		),
 	);

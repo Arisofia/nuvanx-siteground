@@ -1,513 +1,653 @@
 /**
- * Home V3 - Quiet Luxury Aesthetic
- * Dedicated layout and typography rules for the hardcoded front-page.php.
+ * NUVANX editorial homepage.
+ * Copy and moving media are deliberately separated in the opening hero.
  */
 
-/* =========================================================
-   SECCIÓN 01: HERO
-   ========================================================= */
-.nvx-home-hero {
-	position: relative;
-	width: 100vw;
-	max-width: 100vw;
-	height: 100vh;
-	height: 100svh;
-	min-height: 600px;
-	display: flex;
-	align-items: center;
-	overflow: hidden;
-	background: var(--nvx-ink);
-	margin-top: calc(-1 * var(--nvx-header-height, 80px)); /* Flow under transparent header */
-	margin-left: calc(50% - 50vw);
+.nvx-home-v4,
+.nvx-home-v4 * {
+	box-sizing: border-box;
 }
 
-.nvx-home-hero__video {
-	position: absolute;
-	top: 0;
-	left: 0;
+.nvx-home-v4 {
 	width: 100%;
-	height: 100%;
-	object-fit: cover;
-	opacity: 0.8; /* Dim for text contrast */
-	z-index: 1;
+	max-width: none;
+	margin: 0;
+	background: var(--nvx-light);
+	color: var(--nvx-ink);
+	overflow: clip;
 }
 
-.nvx-home-hero__content {
-	position: relative;
-	z-index: 2;
-	width: var(--nvx-shell);
+.nvx-home-v4 h1,
+.nvx-home-v4 h2,
+.nvx-home-v4 h3,
+.nvx-home-v4 p,
+.nvx-home-v4 figure {
+	margin: 0;
+}
+
+.nvx-home-v4 img,
+.nvx-home-v4 video {
+	display: block;
 	max-width: 100%;
-	margin-inline: auto;
-	padding-inline: var(--nvx-gutter-inner);
-	color: var(--nvx-light);
-	padding-top: var(--nvx-header-height, 80px);
 }
 
-.nvx-home-hero__title {
-	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-display);
-	line-height: 1.1;
-	font-weight: 300;
-	margin-bottom: var(--nvx-space-2);
+.nvx-home-v4 a {
+	text-underline-offset: 0.22em;
 }
 
-.nvx-home-hero__lead {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-body);
-	font-weight: 300;
-	opacity: 0.9;
-	margin-bottom: var(--nvx-space-6);
-	max-width: var(--nvx-measure);
-}
-
-/* =========================================================
-   SECCIÓN 02: LA FILOSOFÍA
-   ========================================================= */
-.nvx-home-philosophy {
-	background: var(--nvx-light);
-	padding-block: clamp(160px, 15vw, 240px);
-	text-align: center;
-}
-
-.nvx-home-philosophy__inner {
-	max-width: var(--nvx-measure);
-	margin: 0 auto;
-	padding-inline: var(--nvx-gutter-inner);
-}
-
-.nvx-home-philosophy__title {
+.nvx-home-eyebrow {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-caption);
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: 0.16em;
 	text-transform: uppercase;
-	letter-spacing: 0.1em;
-	color: var(--nvx-text-muted);
-	margin-bottom: var(--nvx-space-6);
+	color: var(--nvx-accent-gold);
 }
 
-.nvx-home-philosophy__lead {
-	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-h2);
-	font-weight: 300;
-	line-height: 1.4;
+.nvx-home-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--nvx-space-4);
+}
+
+.nvx-home-text-link {
+	display: inline-flex;
+	align-items: center;
+	min-height: 2.75rem;
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-small);
+	font-weight: 600;
 	color: var(--nvx-ink);
+	text-decoration: none;
+	border-bottom: 1px solid currentColor;
 }
 
-/* =========================================================
-   SECCIÓN 03: EL ESTÁNDAR CLÍNICO
-   ========================================================= */
-.nvx-home-standard {
-	padding-block: var(--nvx-pad-section);
+/* Hero: media and copy are sibling columns, never layered. */
+.nvx-home-v4 .nvx-home-hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1.2fr) minmax(22rem, 0.8fr);
+	width: 100%;
+	max-width: none;
+	min-height: min(54rem, calc(100svh - var(--nvx-header-height, 5rem)));
+	margin: 0;
 	background: var(--nvx-surface-base);
-}
-
-.nvx-home-standard__header {
-	max-width: var(--nvx-shell);
-	margin: 0 auto var(--nvx-space-8);
-	padding-inline: var(--nvx-gutter-inner);
-}
-
-.nvx-home-standard__title {
-	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-h1);
-	margin-bottom: var(--nvx-space-2);
-}
-
-.nvx-home-standard__subtitle {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-body);
-	color: var(--nvx-text-muted);
-	max-width: var(--nvx-measure);
-}
-
-.nvx-home-standard__grid {
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: var(--nvx-space-8);
-	max-width: var(--nvx-shell);
-	margin: 0 auto;
-	padding-inline: var(--nvx-gutter-inner);
-}
-
-@media (min-width: 768px) {
-	.nvx-home-standard__grid {
-		grid-template-columns: repeat(2, 1fr);
-	}
-}
-
-@media (min-width: 1024px) {
-	.nvx-home-standard__grid {
-		grid-template-columns: repeat(3, 1fr);
-	}
-}
-
-.nvx-home-feature {
-	display: flex;
-	flex-direction: column;
-	gap: var(--nvx-space-2);
-	max-width: var(--nvx-measure);
-}
-
-.nvx-home-feature__number {
-	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-h2);
-	color: var(--nvx-accent-gold);
-}
-
-.nvx-home-feature__title {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-body);
-	font-weight: 600;
-	color: var(--nvx-ink);
-}
-
-.nvx-home-feature__desc {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-small);
-	line-height: 1.6;
-	color: var(--nvx-text-muted);
-}
-
-/* =========================================================
-   SECCIÓN 04: PORTAFOLIO DE PROCEDIMIENTOS
-   ========================================================= */
-.nvx-home-portfolio {
-	padding-block: var(--nvx-pad-section);
-	background: var(--nvx-light);
-}
-
-.nvx-home-portfolio__header {
-	max-width: var(--nvx-shell);
-	margin: 0 auto var(--nvx-space-8);
-	padding-inline: var(--nvx-gutter-inner);
-}
-
-.nvx-home-portfolio__title {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-caption);
-	text-transform: uppercase;
-	letter-spacing: 0.1em;
-	color: var(--nvx-text-muted);
-}
-
-.nvx-home-portfolio__list {
-	max-width: var(--nvx-shell);
-	margin: 0 auto;
-	padding-inline: var(--nvx-gutter-inner);
-	display: flex;
-	flex-direction: column;
-	gap: 0;
-}
-
-.nvx-home-portfolio__item {
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: var(--nvx-space-1);
-	padding-block: var(--nvx-space-6);
-	border-bottom: 1px solid var(--nvx-color-line);
-}
-
-@media (min-width: 768px) {
-	.nvx-home-portfolio__item {
-		grid-template-columns: 60px 1fr 1fr;
-		gap: var(--nvx-space-4);
-		align-items: baseline;
-	}
-}
-
-.nvx-home-portfolio__item:first-child {
-	border-top: 1px solid var(--nvx-color-line);
-}
-
-.nvx-home-portfolio__number {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-small);
-	color: var(--nvx-accent-gold);
-	font-weight: 600;
-}
-
-.nvx-home-portfolio__name {
-	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-h3);
-	color: var(--nvx-ink);
-	margin: 0;
-}
-
-.nvx-home-portfolio__desc {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-body);
-	color: var(--nvx-text-muted);
-	margin: 0;
-	max-width: var(--nvx-measure);
-}
-
-.nvx-home-portfolio__action {
-	margin-top: var(--nvx-space-8);
-	text-align: center;
-}
-
-/* =========================================================
-   SECCIÓN 05: DERIVACIÓN A CASOS (EVIDENCIA CLÍNICA)
-   ========================================================= */
-.nvx-home-evidence {
-	position: relative;
-	background: var(--nvx-ink);
-	color: var(--nvx-light);
 	overflow: hidden;
 }
 
-.nvx-home-evidence__grid {
-	display: grid;
-	grid-template-columns: 1fr;
-}
-
-@media (min-width: 768px) {
-	.nvx-home-evidence__grid {
-		grid-template-columns: 1fr 1fr;
-	}
-}
-
-.nvx-home-evidence__image-col {
-	min-height: 50vh;
+.nvx-home-v4 .nvx-home-hero__media {
+	position: relative;
+	min-width: 0;
+	min-height: 38rem;
 	background: var(--nvx-charcoal);
+	overflow: hidden;
 }
 
-.nvx-home-evidence__image {
+.nvx-home-v4 .nvx-home-hero__video {
+	position: absolute;
+	inset: 0;
 	width: 100%;
 	height: 100%;
+	max-width: none;
 	object-fit: cover;
-	filter: grayscale(100%) contrast(1.1); /* Blanco y negro profundo */
+	opacity: 1;
+	z-index: auto;
 }
 
-.nvx-home-evidence__text-col {
-	padding: clamp(64px, 10vw, 120px) var(--nvx-gutter-inner);
+.nvx-home-v4 .nvx-home-hero__copy {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
+	align-items: flex-start;
+	gap: var(--nvx-space-5);
+	min-width: 0;
+	padding: clamp(4rem, 8vw, 8.5rem) clamp(2rem, 5vw, 6rem);
+	background: var(--nvx-surface-base);
+	color: var(--nvx-ink);
 }
 
-.nvx-home-evidence__title {
+.nvx-home-v4 .nvx-home-hero__title {
+	max-width: 11ch;
 	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-h1);
-	margin-bottom: var(--nvx-space-4);
+	font-size: clamp(3.25rem, 5.4vw, 6.7rem);
+	font-weight: 300;
+	line-height: 0.98;
+	letter-spacing: -0.035em;
+	color: var(--nvx-ink);
+	text-wrap: balance;
+}
+
+.nvx-home-v4 .nvx-home-hero__lead {
+	max-width: 34rem;
+	font-family: var(--nvx-sans);
+	font-size: clamp(1.05rem, 1.35vw, 1.35rem);
+	font-weight: 400;
+	line-height: 1.6;
+	color: var(--nvx-text-muted);
+}
+
+.nvx-home-v4 .nvx-home-hero__note {
+	padding-top: var(--nvx-space-4);
+	border-top: 1px solid var(--nvx-color-line);
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-caption);
+	line-height: 1.5;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--nvx-text-muted);
+}
+
+/* Shared editorial rhythm. */
+.nvx-home-manifesto,
+.nvx-home-editorial,
+.nvx-home-solutions,
+.nvx-home-locations {
+	padding: clamp(4.5rem, 8vw, 8rem) var(--nvx-gutter-inner);
+}
+
+.nvx-home-manifesto {
+	display: grid;
+	gap: var(--nvx-space-5);
+	max-width: 74rem;
+	margin-inline: auto;
+	text-align: left;
+}
+
+.nvx-home-manifesto h2 {
+	max-width: 22ch;
+	font-family: var(--nvx-serif);
+	font-size: clamp(2.6rem, 5vw, 5.5rem);
+	font-weight: 300;
+	line-height: 1.04;
+	letter-spacing: -0.03em;
+	color: var(--nvx-ink);
+	text-wrap: balance;
+}
+
+.nvx-home-manifesto > p:last-child {
+	max-width: 42rem;
+	font-family: var(--nvx-sans);
+	font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+	line-height: 1.65;
+	color: var(--nvx-text-muted);
+}
+
+.nvx-home-section-header {
+	display: grid;
+	grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
+	gap: clamp(2rem, 5vw, 6rem);
+	align-items: end;
+	max-width: var(--nvx-shell);
+	margin: 0 auto clamp(2.75rem, 6vw, 5rem);
+}
+
+.nvx-home-section-header > div {
+	display: grid;
+	gap: var(--nvx-space-3);
+	min-width: 0;
+}
+
+.nvx-home-section-header h2 {
+	max-width: 20ch;
+	font-family: var(--nvx-serif);
+	font-size: clamp(2.5rem, 4.8vw, 5.2rem);
+	font-weight: 300;
+	line-height: 1.02;
+	letter-spacing: -0.03em;
+	color: var(--nvx-ink);
+	text-wrap: balance;
+}
+
+.nvx-home-section-header > p {
+	max-width: 36rem;
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-body);
+	line-height: 1.65;
+	color: var(--nvx-text-muted);
+}
+
+/* Editorial stories inspired by the supplied Canva art direction. */
+.nvx-home-editorial {
+	background: var(--nvx-surface-base);
+}
+
+.nvx-home-editorial__grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: clamp(1.25rem, 2.5vw, 2.5rem);
+	max-width: var(--nvx-shell);
+	margin-inline: auto;
+}
+
+.nvx-home-editorial-card {
+	position: relative;
+	min-width: 0;
+	aspect-ratio: 4 / 5;
+	background: var(--nvx-charcoal);
+	overflow: hidden;
+}
+
+.nvx-home-editorial-card > img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 700ms ease;
+}
+
+.nvx-home-editorial-card:hover > img {
+	transform: scale(1.015);
+}
+
+.nvx-home-editorial-card__panel {
+	position: absolute;
+	left: clamp(1rem, 3vw, 2.5rem);
+	bottom: clamp(1rem, 3vw, 2.5rem);
+	display: grid;
+	gap: var(--nvx-space-3);
+	width: min(72%, 34rem);
+	padding: clamp(1.5rem, 3.5vw, 3.5rem);
+	background: color-mix(in srgb, var(--nvx-ink) 94%, transparent);
 	color: var(--nvx-light);
 }
 
-.nvx-home-evidence__desc {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-body);
-	line-height: 1.6;
-	color: var(--nvx-surface-soft);
-	margin-bottom: var(--nvx-space-8);
-	max-width: var(--nvx-measure);
-}
-
-/* =========================================================
-   SECCIÓN 06: EQUIPO
-   ========================================================= */
-.nvx-home-team {
-	padding-block: var(--nvx-pad-section);
-	background: var(--nvx-light);
-}
-
-.nvx-home-team__inner {
-	max-width: var(--nvx-shell);
-	margin: 0 auto;
-	padding-inline: var(--nvx-gutter-inner);
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: var(--nvx-space-8);
-}
-
-@media (min-width: 768px) {
-	.nvx-home-team__inner {
-		grid-template-columns: 1fr 2fr;
-	}
-}
-
-.nvx-home-team__title {
-	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-h1);
-	margin-bottom: var(--nvx-space-4);
-}
-
-.nvx-home-team__desc {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-body);
-	color: var(--nvx-text-muted);
-	margin-bottom: var(--nvx-space-6);
-	max-width: var(--nvx-measure);
-}
-
-.nvx-home-team__list {
-	list-style: none;
-	padding: 0;
-	margin: 0 0 var(--nvx-space-8) 0;
-}
-
-.nvx-home-team__list li {
-	padding-block: var(--nvx-space-2);
-	border-bottom: 1px solid var(--nvx-color-line);
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-small);
-}
-
-.nvx-home-team__list li strong {
-	color: var(--nvx-ink);
-	font-weight: 600;
-	margin-right: var(--nvx-space-1);
-}
-
-.nvx-home-team__list li span {
-	color: var(--nvx-text-muted);
-}
-
-/* =========================================================
-   SECCIÓN 07: ÍNDICE GEO/SEO
-   ========================================================= */
-.nvx-home-seo {
-	padding-block: var(--nvx-pad-section);
-	background: var(--nvx-surface-base);
-	border-top: 1px solid var(--nvx-color-line);
-}
-
-.nvx-home-seo__inner {
-	max-width: var(--nvx-shell);
-	margin: 0 auto;
-	padding-inline: var(--nvx-gutter-inner);
-}
-
-.nvx-home-seo__title {
+.nvx-home-editorial-card__kicker {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-caption);
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: 0.16em;
 	text-transform: uppercase;
-	letter-spacing: 0.1em;
-	color: var(--nvx-text-muted);
-	margin-bottom: var(--nvx-space-6);
+	color: var(--nvx-accent-gold);
 }
 
-.nvx-home-seo__grid {
-	display: grid;
-	grid-template-columns: 1fr;
-	gap: var(--nvx-space-8);
+.nvx-home-editorial-card__panel h3 {
+	max-width: 13ch;
+	font-family: var(--nvx-serif);
+	font-size: clamp(2rem, 3.7vw, 4.35rem);
+	font-weight: 300;
+	line-height: 1.02;
+	letter-spacing: -0.025em;
+	color: var(--nvx-light);
+	text-wrap: balance;
 }
 
-@media (min-width: 768px) {
-	.nvx-home-seo__grid {
-		grid-template-columns: 1fr 1fr;
-	}
+.nvx-home-editorial-card__panel > p:not(.nvx-home-editorial-card__kicker) {
+	max-width: 34rem;
+	font-family: var(--nvx-sans);
+	font-size: clamp(0.95rem, 1.2vw, 1.15rem);
+	line-height: 1.55;
+	color: var(--nvx-surface-soft);
 }
 
-.nvx-home-seo__col-title {
+.nvx-home-editorial-card__panel a {
+	width: fit-content;
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-small);
 	font-weight: 600;
-	color: var(--nvx-ink);
-	margin-bottom: var(--nvx-space-2);
+	color: var(--nvx-light);
+	text-decoration: none;
+	border-bottom: 1px solid currentColor;
 }
 
-.nvx-home-seo__list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-	display: flex;
-	flex-direction: column;
-	gap: var(--nvx-space-2);
-}
-
-.nvx-home-seo__list li {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-small);
-	line-height: 1.4;
-	color: var(--nvx-text-muted);
-	max-width: var(--nvx-measure);
-}
-
-.nvx-home-seo__list li strong {
-	color: var(--nvx-ink);
-}
-
-/* =========================================================
-   SECCIÓN 08: SEDES
-   ========================================================= */
-.nvx-home-locations {
-	padding-block: var(--nvx-pad-section);
+/* Solution cards: image-led and readable, never narrow newspaper columns. */
+.nvx-home-solutions {
 	background: var(--nvx-light);
 }
 
-.nvx-home-locations__title {
-	text-align: center;
+.nvx-home-solutions__grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: clamp(1.5rem, 3vw, 3rem);
+	max-width: var(--nvx-shell);
+	margin-inline: auto;
+}
+
+.nvx-home-solution-card {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	background: var(--nvx-surface-base);
+}
+
+.nvx-home-solution-card__media {
+	display: block;
+	aspect-ratio: 4 / 3;
+	overflow: hidden;
+}
+
+.nvx-home-solution-card__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 600ms ease;
+}
+
+.nvx-home-solution-card:hover .nvx-home-solution-card__media img {
+	transform: scale(1.02);
+}
+
+.nvx-home-solution-card__copy {
+	display: grid;
+	gap: var(--nvx-space-3);
+	padding: clamp(1.5rem, 2.8vw, 2.5rem);
+}
+
+.nvx-home-solution-card__label {
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-caption);
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: 0.13em;
+	text-transform: uppercase;
+	color: var(--nvx-accent-gold);
+}
+
+.nvx-home-solution-card h3 {
 	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-h2);
-	margin-bottom: var(--nvx-space-8);
+	font-size: clamp(1.75rem, 2.6vw, 2.7rem);
+	font-weight: 300;
+	line-height: 1.08;
+	color: var(--nvx-ink);
+}
+
+.nvx-home-solution-card h3 a {
+	color: inherit;
+	text-decoration: none;
+}
+
+.nvx-home-solution-card__copy > p:last-child {
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-small);
+	line-height: 1.6;
+	color: var(--nvx-text-muted);
+}
+
+/* Clinical evolution. */
+.nvx-home-evolution {
+	padding: clamp(4.5rem, 8vw, 8rem) 0;
+	background: var(--nvx-ink);
+	color: var(--nvx-light);
+}
+
+.nvx-home-evolution .nvx-home-section-header {
+	padding-inline: var(--nvx-gutter-inner);
+}
+
+.nvx-home-section-header--light h2,
+.nvx-home-section-header--light > p {
+	color: var(--nvx-light);
+}
+
+.nvx-home-section-header--light > p {
+	opacity: 0.76;
+}
+
+.nvx-home-evolution__track {
+	display: grid;
+	grid-template-columns: repeat(5, minmax(15rem, 1fr));
+	gap: 1px;
+	width: 100%;
+	overflow-x: auto;
+	scroll-snap-type: x proximity;
+	background: var(--nvx-color-line);
+}
+
+.nvx-home-evolution-card {
+	position: relative;
+	min-width: 0;
+	aspect-ratio: 4 / 5;
+	background: var(--nvx-charcoal);
+	scroll-snap-align: start;
+	overflow: hidden;
+}
+
+.nvx-home-evolution-card img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.nvx-home-evolution-card figcaption {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	padding: var(--nvx-space-4);
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-caption);
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: 0.13em;
+	text-transform: uppercase;
+	color: var(--nvx-light);
+	background: linear-gradient(to top, color-mix(in srgb, var(--nvx-ink) 88%, transparent), transparent);
+}
+
+.nvx-home-evolution__action {
+	margin-top: var(--nvx-space-8);
+	padding-inline: var(--nvx-gutter-inner);
+	text-align: center;
+}
+
+/* Medical authority split. */
+.nvx-home-authority {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.72fr);
+	background: var(--nvx-surface-base);
+}
+
+.nvx-home-authority__media {
+	min-height: 38rem;
+	overflow: hidden;
+}
+
+.nvx-home-authority__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.nvx-home-authority__copy {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-start;
+	gap: var(--nvx-space-4);
+	padding: clamp(4rem, 8vw, 8rem) clamp(2rem, 6vw, 6rem);
+}
+
+.nvx-home-authority__copy h2 {
+	max-width: 14ch;
+	font-family: var(--nvx-serif);
+	font-size: clamp(2.5rem, 4.8vw, 5.2rem);
+	font-weight: 300;
+	line-height: 1.03;
+	letter-spacing: -0.03em;
+	color: var(--nvx-ink);
+	text-wrap: balance;
+}
+
+.nvx-home-authority__copy > p:not(.nvx-home-eyebrow) {
+	max-width: 36rem;
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-body);
+	line-height: 1.65;
+	color: var(--nvx-text-muted);
+}
+
+/* Locations. */
+.nvx-home-locations {
+	background: var(--nvx-light);
 }
 
 .nvx-home-locations__grid {
 	display: grid;
-	grid-template-columns: 1fr;
-	gap: var(--nvx-space-8);
-	max-width: 800px;
-	margin: 0 auto;
-	padding-inline: var(--nvx-gutter-inner);
-	text-align: center;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1px;
+	max-width: var(--nvx-shell);
+	margin-inline: auto;
+	padding: 0;
+	background: var(--nvx-color-line);
+	text-align: left;
 }
 
-@media (min-width: 768px) {
-	.nvx-home-locations__grid {
-		grid-template-columns: 1fr 1fr;
-	}
+.nvx-home-location {
+	display: grid;
+	gap: var(--nvx-space-3);
+	padding: clamp(2rem, 5vw, 5rem);
+	background: var(--nvx-surface-base);
 }
 
-.nvx-home-location__name {
+.nvx-home-location h3 {
+	font-family: var(--nvx-serif);
+	font-size: clamp(2.25rem, 4vw, 4.5rem);
+	font-weight: 300;
+	line-height: 1;
+	color: var(--nvx-ink);
+}
+
+.nvx-home-location > p:last-child {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-body);
-	font-weight: 600;
-	color: var(--nvx-ink);
-	margin-bottom: var(--nvx-space-1);
-}
-
-.nvx-home-location__desc {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-small);
+	line-height: 1.6;
 	color: var(--nvx-text-muted);
 }
 
 .nvx-home-location__code {
-	display: block;
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-caption);
-	color: var(--nvx-text-muted);
-	margin-top: var(--nvx-space-1);
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: 0.13em;
+	color: var(--nvx-accent-gold);
 }
 
-/* =========================================================
-   SECCIÓN 09: CIERRE / FOOTER-PRE
-   ========================================================= */
-.nvx-home-closure {
-	padding-block: clamp(120px, 12vw, 200px);
+/* Closure. */
+.nvx-home-v4 .nvx-home-closure {
+	display: grid;
+	justify-items: center;
+	gap: var(--nvx-space-5);
+	padding: clamp(5rem, 10vw, 10rem) var(--nvx-gutter-inner);
 	background: var(--nvx-ink);
 	color: var(--nvx-light);
 	text-align: center;
 }
 
-.nvx-home-closure__title {
+.nvx-home-v4 .nvx-home-closure__title {
+	max-width: 18ch;
 	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-h2);
-	margin-bottom: var(--nvx-space-2);
+	font-size: clamp(2.75rem, 5.5vw, 6rem);
+	font-weight: 300;
+	line-height: 1;
+	letter-spacing: -0.03em;
 	color: var(--nvx-light);
+	text-wrap: balance;
 }
 
-.nvx-home-closure__desc {
+.nvx-home-v4 .nvx-home-closure__desc {
+	max-width: 42rem;
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-body);
+	line-height: 1.65;
 	color: var(--nvx-surface-soft);
-	margin-bottom: var(--nvx-space-8);
-	max-width: var(--nvx-measure);
-	margin-inline: auto;
 }
 
-.nvx-home-closure__actions {
+.nvx-home-v4 .nvx-home-closure__actions {
 	display: flex;
 	flex-wrap: wrap;
 	justify-content: center;
 	gap: var(--nvx-space-4);
+}
+
+@media (max-width: 75rem) {
+	.nvx-home-solutions__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.nvx-home-evolution__track {
+		grid-template-columns: repeat(5, minmax(18rem, 42vw));
+	}
+}
+
+@media (max-width: 62rem) {
+	.nvx-home-v4 .nvx-home-hero,
+	.nvx-home-authority {
+		grid-template-columns: 1fr;
+	}
+
+	.nvx-home-v4 .nvx-home-hero__media {
+		min-height: 56svh;
+	}
+
+	.nvx-home-v4 .nvx-home-hero__copy {
+		padding-block: clamp(3.5rem, 8vw, 6rem);
+	}
+
+	.nvx-home-v4 .nvx-home-hero__title {
+		max-width: 14ch;
+	}
+
+	.nvx-home-section-header {
+		grid-template-columns: 1fr;
+		align-items: start;
+	}
+
+	.nvx-home-authority__media {
+		min-height: 56svh;
+	}
+}
+
+@media (max-width: 48rem) {
+	.nvx-home-manifesto,
+	.nvx-home-editorial,
+	.nvx-home-solutions,
+	.nvx-home-locations {
+		padding-block: clamp(3.5rem, 14vw, 5rem);
+	}
+
+	.nvx-home-v4 .nvx-home-hero__media {
+		min-height: 50svh;
+	}
+
+	.nvx-home-v4 .nvx-home-hero__copy {
+		padding-inline: var(--nvx-gutter-inner);
+	}
+
+	.nvx-home-v4 .nvx-home-hero__title {
+		font-size: clamp(2.9rem, 13vw, 4.8rem);
+	}
+
+	.nvx-home-editorial__grid,
+	.nvx-home-solutions__grid,
+	.nvx-home-locations__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.nvx-home-editorial-card__panel {
+		left: var(--nvx-space-3);
+		right: var(--nvx-space-3);
+		bottom: var(--nvx-space-3);
+		width: auto;
+		padding: clamp(1.35rem, 6vw, 2rem);
+	}
+
+	.nvx-home-editorial-card__panel h3 {
+		font-size: clamp(2.15rem, 10vw, 3.5rem);
+	}
+
+	.nvx-home-evolution__track {
+		grid-template-columns: repeat(5, minmax(17rem, 82vw));
+	}
+
+	.nvx-home-authority__copy {
+		padding-inline: var(--nvx-gutter-inner);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nvx-home-editorial-card > img,
+	.nvx-home-solution-card__media img {
+		transition: none;
+	}
 }

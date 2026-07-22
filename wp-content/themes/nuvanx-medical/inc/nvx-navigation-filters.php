@@ -31,7 +31,7 @@ function nvx_navigation_primary_blueprint(): array {
 			),
 			array(
 				'label'    => __( 'Soluciones', 'nuvanx-medical' ),
-				'slugs'    => array( 'soluciones-medicas', 'tratamientos' ),
+				'slugs'    => array( 'soluciones-medicas' ),
 				'mega'     => true,
 				'children' => array(
 					array( 'label' => 'Rostro y cuello', 'slugs' => array( 'papada-definicion-mandibular-madrid', 'endolift-facial-papada-mandibula' ) ),

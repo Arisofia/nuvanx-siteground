@@ -143,9 +143,7 @@ function nvx_theme_scripts(): void {
 		);
 	}
 
-	if ( function_exists( 'nvx_theme_is_treatments_hub' ) && nvx_theme_is_treatments_hub() ) {
-		wp_enqueue_style( 'nvx-portfolio-hub', $css . 'nvx-portfolio-hub.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-portfolio-hub.css' ) );
-	}
+
 
 	if ( nvx_theme_hero_blackout_enabled() ) {
 		wp_enqueue_style(

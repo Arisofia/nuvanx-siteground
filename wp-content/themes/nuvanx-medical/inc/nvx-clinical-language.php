@@ -12,7 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Canonical prohibited phrases shared by rendered content and schema. */
+/**
+ * Provides the canonical clinical-marketing phrases prohibited from public content and schema.
+ *
+ * @return array<string> The prohibited phrases.
+ */
 function nvx_clinical_language_prohibited_phrases(): array {
 	return array(
 		'Elevación de párpados',
@@ -46,7 +50,12 @@ function nvx_clinical_language_prohibited_phrases(): array {
 	);
 }
 
-/** Normalize one public clinical text string without changing HTML structure. */
+/**
+ * Normalizes clinical language in a public-facing text string.
+ *
+ * @param string $text The text to normalize.
+ * @return string The normalized text.
+ */
 function nvx_clinical_language_text( string $text ): string {
 	$exact = array(
 		'Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.' => 'La reincorporación, el edema y la inflamación se explican según zona, protocolo y respuesta individual; no existe un plazo idéntico para todas las personas.',
@@ -65,7 +74,12 @@ function nvx_clinical_language_text( string $text ): string {
 	return $text;
 }
 
-/** Recursively normalize string values in a structured-data graph. */
+/**
+ * Recursively normalizes string values within structured data.
+ *
+ * @param mixed $value The value to normalize.
+ * @return mixed The normalized value.
+ */
 function nvx_clinical_language_recursive( $value ) {
 	if ( is_string( $value ) ) {
 		return nvx_clinical_language_text( $value );
@@ -78,7 +92,12 @@ function nvx_clinical_language_recursive( $value ) {
 	return $value;
 }
 
-/** Normalize rendered page content after all editorial modules. */
+/**
+ * Normalizes rendered page content for public-facing requests.
+ *
+ * @param string $content The rendered page content.
+ * @return string The normalized content, or the original content for admin, AJAX, and REST requests.
+ */
 function nvx_clinical_language_content( string $content ): string {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return $content;

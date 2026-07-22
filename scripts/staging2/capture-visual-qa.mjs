@@ -55,6 +55,11 @@ const report = {
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Locates an installed Google Chrome or Chromium executable.
+ * @returns {string} The executable path.
+ * @throws {Error} If no supported browser executable is found.
+ */
 function locateChrome() {
   const candidates = [process.env.CHROME_BIN, 'google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'].filter(Boolean);
   for (const candidate of candidates) {
@@ -65,6 +70,12 @@ function locateChrome() {
   throw new Error('Google Chrome or Chromium is not installed on the runner.');
 }
 
+/**
+ * Fetch a page and retry when the response is unsuccessful or forbidden.
+ * @param {string} url - The URL to fetch.
+ * @returns {Promise<{status: number, body: string}>} The successful response status and body.
+ * @throws {Error} If all fetch attempts fail.
+ */
 async function fetchWithRetry(url) {
   let lastStatus = 0;
   let lastBody = '';
@@ -154,6 +165,12 @@ class CDPSession {
   }
 }
 
+/**
+ * Wait for the Chrome DevTools endpoint to become available.
+ * @param {number} port - The local port hosting the DevTools endpoint.
+ * @return {Promise<Object>} The endpoint metadata.
+ * @throws {Error} If the endpoint does not become ready.
+ */
 async function waitForChrome(port) {
   for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
@@ -165,12 +182,26 @@ async function waitForChrome(port) {
   throw new Error('Chrome DevTools endpoint did not become ready.');
 }
 
+/**
+ * Creates a Chrome DevTools target for the specified URL.
+ * @param {number} port - The local Chrome DevTools debugging port.
+ * @param {string} url - The URL to open in the target.
+ * @return {Promise<Object>} The target details returned by Chrome.
+ * @throws {Error} If Chrome rejects the target creation request.
+ */
 async function createTarget(port, url) {
   const response = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(url)}`, { method: 'PUT' });
   if (!response.ok) throw new Error(`Unable to create Chrome target: HTTP ${response.status}`);
   return response.json();
 }
 
+/**
+ * Loads a page in a configured Chrome DevTools Protocol session.
+ * @param {number} port - The local Chrome DevTools port.
+ * @param {string} url - The page URL to navigate to.
+ * @param {{width: number, height: number, mobile: boolean}} viewport - Viewport dimensions and device mode.
+ * @returns {CDPSession} The connected session for the loaded page.
+ */
 async function loadPage(port, url, viewport) {
   const target = await createTarget(port, 'about:blank');
   const session = new CDPSession(target.webSocketDebuggerUrl);
@@ -198,6 +229,11 @@ async function loadPage(port, url, viewport) {
   return session;
 }
 
+/**
+ * Extract the current page metadata, content markers, and layout state.
+ * @param {CDPSession} session - The active Chrome DevTools Protocol session.
+ * @return {Promise<Object>} The page URL, title, H1 texts, forbidden-page status, layout measurements, visibility states, and body class.
+ */
 async function pageState(session) {
   return session.evaluate(`(() => {
     const text = (document.body?.innerText || '').replace(/\\s+/g, ' ').trim();
@@ -224,6 +260,12 @@ async function pageState(session) {
   })()`);
 }
 
+/**
+ * Captures the page's full rendered content as a PNG file.
+ * @param {CDPSession} session - The active Chrome DevTools Protocol session.
+ * @param {string} destination - The file path for the PNG screenshot.
+ * @param {{width: number, height: number, mobile: boolean}} viewport - The viewport dimensions and device mode.
+ */
 async function captureFullPage(session, destination, viewport) {
   const metrics = await session.send('Page.getLayoutMetrics');
   const size = metrics.cssContentSize || metrics.contentSize;
@@ -247,15 +289,29 @@ async function captureFullPage(session, destination, viewport) {
   fs.writeFileSync(destination, Buffer.from(screenshot.data, 'base64'));
 }
 
+/**
+ * Captures the current viewport as a PNG image and saves it to a file.
+ * @param {CDPSession} session - The active Chrome DevTools Protocol session.
+ * @param {string} destination - The file path for the captured image.
+ */
 async function captureViewport(session, destination) {
   const screenshot = await session.send('Page.captureScreenshot', { format: 'png', fromSurface: true });
   fs.writeFileSync(destination, Buffer.from(screenshot.data, 'base64'));
 }
 
+/**
+ * Converts a URL path into a filesystem-friendly name.
+ * @param {string} pagePath - The URL path to convert.
+ * @return {string} The path with slashes replaced by double underscores, or `home` for the root path.
+ */
 function safeName(pagePath) {
   return pagePath.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home';
 }
 
+/**
+ * Audit configured pages across desktop and mobile viewports and record visual evidence.
+ * @param {number} port - The local Chrome DevTools Protocol port.
+ */
 async function auditPages(port) {
   const viewports = [
     { name: 'desktop', width: 1440, height: 1000, mobile: false },
@@ -290,6 +346,10 @@ async function auditPages(port) {
   }
 }
 
+/**
+ * Audits the desktop mega-menu navigation and captures its visual state.
+ * @param {number} port - The Chrome DevTools Protocol port.
+ */
 async function auditDesktopNavigation(port) {
   const scope = 'desktop mega-menu';
   const result = {};
@@ -345,6 +405,10 @@ async function auditDesktopNavigation(port) {
   report.navigation.desktop = result;
 }
 
+/**
+ * Audits mobile navigation behavior, accessibility state, nested menu content, layout, and drawer closing.
+ * @param {number} port - The local Chrome DevTools Protocol port.
+ */
 async function auditMobileNavigation(port) {
   const scope = 'mobile drawer';
   const result = {};

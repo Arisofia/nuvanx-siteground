@@ -60,6 +60,14 @@ function nvx_protocol_pages_catalog(): array {
 			'description'   => 'Si el problema es de sol (lentigos) o rojeces (cuperosis), la luz la limpia en un par de sesiones. Si es melasma (mancha hormonal), el calor fuerte es el enemigo.',
 			'review_status' => 'approved_for_publication',
 		),
+		'eye-frame' => array(
+			'slug'          => 'eye-frame-rejuvenecimiento-mirada-madrid',
+			'title'         => 'NUVANX Eye Frame™: Rejuvenecimiento de la mirada.',
+			'kicker'        => 'ARQUITECTURA FACIAL NUVANX',
+			'lead'          => 'Si te dicen que tienes "cara de cansada" aunque hayas dormido ocho horas, el problema no es el sueño, es cómo la luz cae sobre tus ojos. Miramos de cerca si es sombra por hundimiento, color o piel fina, antes de decidir qué hacer.',
+			'description'   => 'Tu mirada no siempre refleja lo cansada que estás; a veces es solo la anatomía.',
+			'review_status' => 'approved_for_publication',
+		),
 	);
 }
 
@@ -263,6 +271,23 @@ function nvx_protocol_pages_tone_correction_markup( array $data ): string {
 	return $html;
 }
 
+function nvx_protocol_pages_eye_frame_markup( array $data ): string {
+	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
+	$html .= '<header class="nvx-strategy-intro">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Tu mirada no siempre refleja lo cansada que estás; a veces es solo la anatomía.', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</header>';
+
+	$html .= '<section class="nvx-brand-section">';
+	$html .= '<h2>' . esc_html__( 'Por qué un tratamiento genérico no funciona', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'A veces la ojera se marca porque falta apoyo debajo y se crea una sombra oscura — eso lo arreglamos dando soporte suave. Pero si el problema es que tienes bolsas que empujan hacia afuera, o la piel se ha quedado demasiado fina y transparente, poner relleno solo empeora las cosas hinchando la zona.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'Por eso no existe un tratamiento único para "las ojeras". Diferenciamos entre hundimiento estructural, componente vascular (venitas), pigmentación y edema (retención de líquido). Según lo que encontremos, te propondremos usar ácido hialurónico muy específico, mejorar la calidad de la piel con láser o radiofrecuencia, o, siendo francos, te derivaremos a un cirujano si lo que necesitas es quitar unas bolsas marcadas.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</section></article>';
+	return $html;
+}
+
 /** Dispatches the markup for one approved protocol page. */
 function nvx_protocol_pages_markup( string $key, array $data ): string {
 	if ( 'couture-sculpt' === $key ) {
@@ -282,6 +307,9 @@ function nvx_protocol_pages_markup( string $key, array $data ): string {
 	}
 	if ( 'tone-correction' === $key ) {
 		return nvx_protocol_pages_tone_correction_markup( $data );
+	}
+	if ( 'eye-frame' === $key ) {
+		return nvx_protocol_pages_eye_frame_markup( $data );
 	}
 	return '';
 }

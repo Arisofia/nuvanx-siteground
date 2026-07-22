@@ -69,6 +69,11 @@ function nvx_protocol_hub_markup(): string {
 		'/papada-definicion-mandibular-madrid/'
 	);
 	$html .= nvx_protocol_hub_card(
+		'NUVANX Eye Frame™',
+		'Para la mirada de cansancio constante, diferenciando si es sombra, venitas, bolsas o piel fina.',
+		'/eye-frame-rejuvenecimiento-mirada-madrid/'
+	);
+	$html .= nvx_protocol_hub_card(
 		'Skin Architecture™',
 		'Para cuando la piel ya no brilla como antes, aunque no tengas ni una arruga.',
 		'/calidad-piel-firmeza-luminosidad-madrid/'

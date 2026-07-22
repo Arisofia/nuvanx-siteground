@@ -118,7 +118,7 @@ const migrationPath = path.join(root, 'scripts/wp/nvx-production-readiness-comma
 const migration = fs.existsSync(migrationPath) ? fs.readFileSync(migrationPath, 'utf8') : '';
 for (const marker of [
   'retire-prototypes', 'staging2.nuvanx.com', '--allow-production', 'nvx_production_readiness_governed_pages',
-  'apply_approved_pages', 'apply_governed_pages', 'wp_trash_post', "'soluciones-medicas' =>",
+  'applyApprovedPages', 'applyGovernedPages', 'wp_trash_post', "'soluciones-medicas' =>",
   "'tratamiento-postparto-abdomen-contorno-corporal-madrid' =>", "'promote_draft' => true",
 ]) if (!migration.includes(marker)) fail(`migration command: missing ${marker}`);
 if (/['"]post_status['"]\s*=>\s*['"]trash['"]/.test(migration)) fail('migration command: direct trash status update');

@@ -1,0 +1,394 @@
+/**
+ * Canonical patient cases page.
+ * Scoped to the route body class to neutralize inherited database layouts.
+ */
+
+.nvx-cases-editorial-page .nvx-main,
+.nvx-cases-editorial-page .nvx-page,
+.nvx-cases-editorial-page .nvx-page__content,
+.nvx-cases-editorial-page .entry-content,
+.nvx-cases-editorial-page .nvx-cases-page {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	padding: 0;
+}
+
+.nvx-cases-editorial-page .entry-header,
+.nvx-cases-editorial-page .nvx-page__header {
+	display: none;
+}
+
+.nvx-cases-page,
+.nvx-cases-page * {
+	box-sizing: border-box;
+}
+
+.nvx-cases-page {
+	background: var(--nvx-light);
+	color: var(--nvx-ink);
+	overflow: clip;
+}
+
+.nvx-cases-page h1,
+.nvx-cases-page h2,
+.nvx-cases-page h3,
+.nvx-cases-page p,
+.nvx-cases-page figure {
+	margin: 0;
+	max-width: none;
+	text-align: left;
+	writing-mode: horizontal-tb;
+	word-break: normal;
+	overflow-wrap: normal;
+}
+
+.nvx-cases-page img {
+	display: block;
+	max-width: 100%;
+}
+
+.nvx-cases-eyebrow {
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-caption);
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--nvx-accent-gold);
+}
+
+.nvx-cases-hero {
+	display: grid;
+	grid-template-columns: minmax(24rem, 0.78fr) minmax(0, 1.22fr);
+	min-height: min(50rem, calc(100svh - var(--nvx-header-height, 5rem)));
+	background: var(--nvx-surface-base);
+}
+
+.nvx-cases-hero__copy {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: flex-start;
+	gap: var(--nvx-space-5);
+	min-width: 0;
+	padding: clamp(4rem, 8vw, 8rem) clamp(2rem, 6vw, 6rem);
+}
+
+.nvx-cases-hero h1 {
+	max-width: 12ch;
+	font-family: var(--nvx-serif);
+	font-size: clamp(3.2rem, 5.6vw, 6.7rem);
+	font-weight: 300;
+	line-height: 0.98;
+	letter-spacing: -0.035em;
+	color: var(--nvx-ink);
+	text-wrap: balance;
+}
+
+.nvx-cases-hero__lead {
+	max-width: 38rem;
+	font-family: var(--nvx-sans);
+	font-size: clamp(1.05rem, 1.35vw, 1.3rem);
+	font-weight: 400;
+	line-height: 1.65;
+	color: var(--nvx-text-muted);
+}
+
+.nvx-cases-hero__media {
+	min-width: 0;
+	min-height: 38rem;
+	background: var(--nvx-charcoal);
+	overflow: hidden;
+}
+
+.nvx-cases-hero__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.nvx-cases-method,
+.nvx-cases-evolution {
+	padding: clamp(4.5rem, 8vw, 8rem) var(--nvx-gutter-inner);
+}
+
+.nvx-cases-method {
+	background: var(--nvx-light);
+}
+
+.nvx-cases-evolution {
+	background: var(--nvx-surface-base);
+}
+
+.nvx-cases-section-header {
+	display: grid;
+	grid-template-columns: minmax(0, 1.25fr) minmax(18rem, 0.75fr);
+	gap: clamp(2rem, 5vw, 6rem);
+	align-items: end;
+	max-width: var(--nvx-shell);
+	margin: 0 auto clamp(2.75rem, 6vw, 5rem);
+}
+
+.nvx-cases-section-header > div {
+	display: grid;
+	gap: var(--nvx-space-3);
+	min-width: 0;
+}
+
+.nvx-cases-section-header h2 {
+	max-width: 18ch;
+	font-family: var(--nvx-serif);
+	font-size: clamp(2.6rem, 5vw, 5.5rem);
+	font-weight: 300;
+	line-height: 1.02;
+	letter-spacing: -0.03em;
+	color: var(--nvx-ink);
+	text-wrap: balance;
+}
+
+.nvx-cases-section-header > p {
+	max-width: 38rem;
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-body);
+	line-height: 1.65;
+	color: var(--nvx-text-muted);
+}
+
+.nvx-cases-method__grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 1px;
+	max-width: var(--nvx-shell);
+	margin-inline: auto;
+	background: var(--nvx-color-line);
+}
+
+.nvx-cases-method-card {
+	display: grid;
+	align-content: start;
+	gap: var(--nvx-space-3);
+	min-width: 0;
+	padding: clamp(1.75rem, 3.5vw, 3.5rem);
+	background: var(--nvx-surface-base);
+}
+
+.nvx-cases-method-card__number {
+	font-family: var(--nvx-serif);
+	font-size: clamp(2.5rem, 4vw, 4rem);
+	font-weight: 300;
+	line-height: 1;
+	color: var(--nvx-accent-gold);
+}
+
+.nvx-cases-method-card h3 {
+	font-family: var(--nvx-serif);
+	font-size: clamp(1.65rem, 2.3vw, 2.45rem);
+	font-weight: 300;
+	line-height: 1.08;
+	color: var(--nvx-ink);
+}
+
+.nvx-cases-method-card > p:last-child {
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-small);
+	line-height: 1.6;
+	color: var(--nvx-text-muted);
+}
+
+.nvx-cases-evolution__grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: clamp(1.5rem, 3vw, 3rem);
+	max-width: var(--nvx-shell);
+	margin-inline: auto;
+}
+
+.nvx-cases-evolution-card {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	background: var(--nvx-light);
+}
+
+.nvx-cases-evolution-card__media {
+	aspect-ratio: 4 / 3;
+	background: var(--nvx-charcoal);
+	overflow: hidden;
+}
+
+.nvx-cases-evolution-card__media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.nvx-cases-evolution-card figcaption {
+	display: grid;
+	gap: var(--nvx-space-2);
+	padding: clamp(1.5rem, 3vw, 2.5rem);
+	background: var(--nvx-light);
+}
+
+.nvx-cases-evolution-card figcaption span {
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-caption);
+	font-weight: 600;
+	line-height: 1.35;
+	letter-spacing: 0.13em;
+	text-transform: uppercase;
+	color: var(--nvx-accent-gold);
+}
+
+.nvx-cases-evolution-card figcaption strong {
+	font-family: var(--nvx-serif);
+	font-size: clamp(1.75rem, 2.5vw, 2.8rem);
+	font-weight: 300;
+	line-height: 1.08;
+	color: var(--nvx-ink);
+}
+
+.nvx-cases-disclosure {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.75fr);
+	gap: clamp(2.5rem, 7vw, 8rem);
+	align-items: start;
+	padding: clamp(5rem, 10vw, 10rem) max(var(--nvx-gutter-inner), calc((100vw - var(--nvx-shell)) / 2));
+	background: var(--nvx-light);
+}
+
+.nvx-cases-disclosure > div:first-child {
+	display: grid;
+	gap: var(--nvx-space-3);
+}
+
+.nvx-cases-disclosure h2 {
+	max-width: 16ch;
+	font-family: var(--nvx-serif);
+	font-size: clamp(2.75rem, 5.4vw, 5.8rem);
+	font-weight: 300;
+	line-height: 1.02;
+	letter-spacing: -0.03em;
+	color: var(--nvx-ink);
+	text-wrap: balance;
+}
+
+.nvx-cases-disclosure__copy {
+	display: grid;
+	gap: var(--nvx-space-4);
+}
+
+.nvx-cases-disclosure__copy p {
+	max-width: 40rem;
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-body);
+	line-height: 1.7;
+	color: var(--nvx-text-muted);
+}
+
+.nvx-cases-text-link {
+	width: fit-content;
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-small);
+	font-weight: 600;
+	color: var(--nvx-ink);
+	text-decoration: none;
+	border-bottom: 1px solid currentColor;
+}
+
+.nvx-cases-closure {
+	display: grid;
+	justify-items: center;
+	gap: var(--nvx-space-5);
+	padding: clamp(5rem, 10vw, 10rem) var(--nvx-gutter-inner);
+	background: var(--nvx-ink);
+	color: var(--nvx-light);
+	text-align: center;
+}
+
+.nvx-cases-closure h2,
+.nvx-cases-closure p {
+	text-align: center;
+}
+
+.nvx-cases-closure h2 {
+	max-width: 17ch;
+	font-family: var(--nvx-serif);
+	font-size: clamp(2.75rem, 5.5vw, 6rem);
+	font-weight: 300;
+	line-height: 1;
+	letter-spacing: -0.03em;
+	color: var(--nvx-light);
+	text-wrap: balance;
+}
+
+.nvx-cases-closure > p:not(.nvx-cases-eyebrow) {
+	max-width: 42rem;
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-body);
+	line-height: 1.65;
+	color: var(--nvx-surface-soft);
+}
+
+.nvx-cases-closure__actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: var(--nvx-space-4);
+}
+
+@media (max-width: 75rem) {
+	.nvx-cases-method__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.nvx-cases-evolution__grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 62rem) {
+	.nvx-cases-hero,
+	.nvx-cases-disclosure {
+		grid-template-columns: 1fr;
+	}
+
+	.nvx-cases-hero__media {
+		grid-row: 1;
+		min-height: 56svh;
+	}
+
+	.nvx-cases-hero__copy {
+		grid-row: 2;
+		padding-block: clamp(3.5rem, 8vw, 6rem);
+	}
+
+	.nvx-cases-section-header {
+		grid-template-columns: 1fr;
+		align-items: start;
+	}
+}
+
+@media (max-width: 48rem) {
+	.nvx-cases-method,
+	.nvx-cases-evolution {
+		padding-block: clamp(3.5rem, 14vw, 5rem);
+	}
+
+	.nvx-cases-hero__copy {
+		padding-inline: var(--nvx-gutter-inner);
+	}
+
+	.nvx-cases-hero h1 {
+		font-size: clamp(2.9rem, 13vw, 4.8rem);
+	}
+
+	.nvx-cases-method__grid,
+	.nvx-cases-evolution__grid {
+		grid-template-columns: 1fr;
+	}
+
+	.nvx-cases-disclosure {
+		padding-inline: var(--nvx-gutter-inner);
+	}
+}

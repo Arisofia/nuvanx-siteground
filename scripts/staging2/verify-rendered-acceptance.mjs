@@ -60,67 +60,22 @@ const pages = [
     h1: 'El presupuesto forma parte de una decisión informada.',
     markers: ['Cómo leer estas tarifas', 'Qué incluye siempre el plan en NUVANX', 'Qué no encontrarás aquí', 'Sobre los precios en medicina estética en Madrid'],
   },
-  {
-    path: '/papada-definicion-mandibular-madrid/',
-    title: 'Papada y definición mandibular Madrid | NUVANX',
-    description: 'Valoración médica de papada, cuello y mandíbula en Madrid para diferenciar grasa, laxitud y soporte antes de indicar Endolift® u otra opción.',
-    h1: 'Papada y definición mandibular en Madrid', markers: commonMarkers,
-  },
-  {
-    path: '/calidad-piel-firmeza-luminosidad-madrid/',
-    title: 'Calidad y firmeza de la piel Madrid | NUVANX',
-    description: 'Tratamiento médico para calidad, firmeza y luminosidad de la piel en Madrid con tecnología seleccionada tras diagnóstico, fototipo y valoración.',
-    h1: 'Calidad, firmeza y luminosidad de la piel en Madrid', markers: commonMarkers,
-  },
-  {
-    path: '/cicatrices-acne-poros-textura-madrid/',
-    title: 'Cicatrices de acné, poros y textura Madrid | NUVANX',
-    description: 'Tratamiento de cicatrices de acné, poros y textura en Madrid con CO₂ o Fractional RF según morfología, fototipo y valoración médica.',
-    h1: 'Cicatrices de acné, poros y textura en Madrid', markers: commonMarkers,
-  },
-  {
-    path: '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/',
-    title: 'Manchas, rojeces y fotodaño Madrid | NUVANX',
-    description: 'Tratamiento de manchas, rojeces y fotodaño en Madrid con IPL seleccionada según diagnóstico, fototipo y valoración médica.',
-    h1: 'Manchas, rojeces y fotodaño en Madrid', markers: commonMarkers,
-  },
-  {
-    path: '/grasa-localizada-abdomen-flancos-madrid/',
-    title: 'Grasa localizada abdomen y flancos Madrid | NUVANX',
-    description: 'Valoración de grasa localizada, laxitud y pared abdominal en abdomen y flancos en Madrid dentro de NUVANX Contour Architecture™.',
-    h1: 'Grasa localizada en abdomen y flancos en Madrid', markers: commonMarkers,
-  },
-  {
-    path: '/flacidez-grasa-localizada-brazos-madrid/',
-    title: 'Flacidez y grasa localizada brazos Madrid | NUVANX',
-    description: 'Tratamiento de flacidez y grasa localizada en brazos en Madrid con valoración de brazo, axila y torso antes de seleccionar tecnología.',
-    h1: 'Flacidez y grasa localizada en brazos en Madrid', markers: commonMarkers,
-  },
-  {
-    path: '/grasa-espalda-zona-sujetador-madrid/',
-    title: 'Grasa espalda y zona del sujetador Madrid | NUVANX',
-    description: 'Valoración de grasa y laxitud en espalda y zona del sujetador en Madrid, considerando continuidad con brazos y flancos.',
-    h1: 'Grasa de espalda y zona del sujetador en Madrid', markers: commonMarkers,
-  },
-  {
-    path: '/flacidez-muslos-internos-subgluteo-madrid/',
-    title: 'Flacidez muslos internos y subglúteo Madrid | NUVANX',
-    description: 'Valoración de flacidez, grasa y continuidad en muslos internos y región subglútea en Madrid dentro de Contour Architecture™.',
-    h1: 'Flacidez en muslos internos y región subglútea en Madrid', markers: commonMarkers,
-  },
-  {
-    path: '/tratamiento-rodillas-grasa-flacidez-madrid/',
-    title: 'Grasa localizada y flacidez rodillas Madrid | NUVANX',
-    description: 'Valoración de grasa localizada y flacidez en rodillas en Madrid, diferenciando tejido estético de causas articulares, vasculares o edema.',
-    h1: 'Grasa localizada y flacidez en rodillas en Madrid', markers: commonMarkers,
-  },
-  {
-    path: '/contorno-corporal-masculino-madrid/',
-    title: 'Contorno corporal masculino Madrid | NUVANX',
-    description: 'Contorno corporal masculino en Madrid para abdomen, cintura, espalda o perfil, con diagnóstico y tecnología seleccionada tras valoración.',
-    h1: 'Contorno corporal masculino en Madrid', markers: commonMarkers,
-  },
 ];
+
+const anatomicalPages = [
+  ['/papada-definicion-mandibular-madrid/', 'Papada y definición mandibular Madrid | NUVANX', 'Valoración médica de papada, cuello y mandíbula en Madrid para diferenciar grasa, laxitud y soporte antes de indicar Endolift® u otra opción.', 'Papada y definición mandibular en Madrid'],
+  ['/calidad-piel-firmeza-luminosidad-madrid/', 'Calidad y firmeza de la piel Madrid | NUVANX', 'Tratamiento médico para calidad, firmeza y luminosidad de la piel en Madrid con tecnología seleccionada tras diagnóstico, fototipo y valoración.', 'Calidad, firmeza y luminosidad de la piel en Madrid'],
+  ['/cicatrices-acne-poros-textura-madrid/', 'Cicatrices de acné, poros y textura Madrid | NUVANX', 'Tratamiento de cicatrices de acné, poros y textura en Madrid con CO₂ o Fractional RF según morfología, fototipo y valoración médica.', 'Cicatrices de acné, poros y textura en Madrid'],
+  ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', 'Manchas, rojeces y fotodaño Madrid | NUVANX', 'Tratamiento de manchas, rojeces y fotodaño en Madrid con IPL seleccionada según diagnóstico, fototipo y valoración médica.', 'Manchas, rojeces y fotodaño en Madrid'],
+  ['/grasa-localizada-abdomen-flancos-madrid/', 'Grasa localizada abdomen y flancos Madrid | NUVANX', 'Valoración de grasa localizada, laxitud y pared abdominal en abdomen y flancos en Madrid dentro de NUVANX Contour Architecture™.', 'Grasa localizada en abdomen y flancos en Madrid'],
+  ['/flacidez-grasa-localizada-brazos-madrid/', 'Flacidez y grasa localizada brazos Madrid | NUVANX', 'Tratamiento de flacidez y grasa localizada en brazos en Madrid con valoración de brazo, axila y torso antes de seleccionar tecnología.', 'Flacidez y grasa localizada en brazos en Madrid'],
+  ['/grasa-espalda-zona-sujetador-madrid/', 'Grasa espalda y zona del sujetador Madrid | NUVANX', 'Valoración de grasa y laxitud en espalda y zona del sujetador en Madrid, considerando continuidad con brazos y flancos.', 'Grasa de espalda y zona del sujetador en Madrid'],
+  ['/flacidez-muslos-internos-subgluteo-madrid/', 'Flacidez muslos internos y subglúteo Madrid | NUVANX', 'Valoración de flacidez, grasa y continuidad en muslos internos y región subglútea en Madrid dentro de Contour Architecture™.', 'Flacidez en muslos internos y región subglútea en Madrid'],
+  ['/tratamiento-rodillas-grasa-flacidez-madrid/', 'Grasa localizada y flacidez rodillas Madrid | NUVANX', 'Valoración de grasa localizada y flacidez en rodillas en Madrid, diferenciando tejido estético de causas articulares, vasculares o edema.', 'Grasa localizada y flacidez en rodillas en Madrid'],
+  ['/contorno-corporal-masculino-madrid/', 'Contorno corporal masculino Madrid | NUVANX', 'Contorno corporal masculino en Madrid para abdomen, cintura, espalda o perfil, con diagnóstico y tecnología seleccionada tras valoración.', 'Contorno corporal masculino en Madrid'],
+].map(([path, title, description, h1]) => ({ path, title, description, h1, markers: commonMarkers }));
+
+pages.push(...anatomicalPages);
 
 const redirects = [
   ['/tratamientos/', '/soluciones-medicas/'],

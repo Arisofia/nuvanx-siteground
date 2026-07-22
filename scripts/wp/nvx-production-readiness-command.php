@@ -123,7 +123,7 @@ final class NVX_Production_Readiness_Command {
 			$rows[] = array(
 				'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0,
 				'status' => $page ? (string) $page->post_status : 'absent',
-				'menu_items' => $page ? count( $this->menu_item_ids_for_page( (int) $page->ID ) : 0,
+				'menu_items' => $page ? count( $this->menu_item_ids_for_page( (int) $page->ID ) ) : 0,
 				'expected' => $definition['status'],
 			);
 		}

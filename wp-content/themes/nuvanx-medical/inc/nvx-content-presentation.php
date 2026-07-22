@@ -325,7 +325,7 @@ function nvx_content_replace_values_sections( string $content ): string {
  * @param int|null $count    Optional match count out-param.
  */
 function nvx_content_preg_replace_keep( string $pattern, string $replace, string $subject, int $limit = -1, ?int &$count = null ): string {
-	$result = nvx_content_preg_replace_keep( $pattern, $replace, $subject, $limit, $count );
+	$result = preg_replace( $pattern, $replace, $subject, $limit, $count );
 	return is_string( $result ) ? $result : $subject;
 }
 

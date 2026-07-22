@@ -85,7 +85,9 @@ function nvx_endolaser_hero_copy_markup(): string {
 }
 
 /**
- * Editorial body (no facial Endolift encyclopedia, no fixed € inventado).
+ * Builds the editorial content for the Endoláser body page, including treatment mechanisms, eligible anatomical zones, exclusion criteria, and personalized planning information.
+ *
+ * @return string The complete escaped HTML markup for the editorial content.
  */
 function nvx_endolaser_editorial_body_markup(): string {
 	$html  = '<div class="nvx-endolaser-editorial nvx-editorial-page">';
@@ -177,7 +179,12 @@ function nvx_endolaser_editorial_body_markup(): string {
 }
 
 /**
- * Rebuild Endoláser page content.
+ * Rebuilds eligible Endoláser page content with a standardized hero and editorial body.
+ *
+ * Preserves the existing hero media and page wrapper when available.
+ *
+ * @param string $content The original page content.
+ * @return string The rebuilt page content, or the original content when the page is not eligible.
  */
 function nvx_content_restructure_endolaser_page( string $content ): string {
 	if ( ! nvx_content_is_endolaser_page( $content ) ) {

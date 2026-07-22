@@ -314,6 +314,11 @@ async function captureFullPage(session, destination, viewport) {
   fs.writeFileSync(destination, Buffer.from(screenshot.data, 'base64'));
 }
 
+/**
+ * Captures the current viewport as a PNG file.
+ * @param {object} session - The CDP session used to capture the screenshot.
+ * @param {string} destination - The path where the PNG file is written.
+ */
 async function captureViewport(session, destination) {
   const screenshot = await session.send('Page.captureScreenshot', {
     format: 'png',
@@ -322,6 +327,13 @@ async function captureViewport(session, destination) {
   fs.writeFileSync(destination, Buffer.from(screenshot.data, 'base64'));
 }
 
+/**
+ * Audits the Equipo Médico page's editorial structure and responsive layout.
+ * @param {CDPSession} session - The browser session used to inspect the page.
+ * @param {{mobile: boolean}} viewport - The viewport configuration being audited.
+ * @param {string} scope - The finding scope used for audit failures.
+ * @param {Object} result - The report object to receive the editorial audit state.
+ */
 async function auditEquipoEditorial(session, viewport, scope, result) {
   const state = await session.evaluate(String.raw`(() => {
     const columnCount = (selector) => {
@@ -364,6 +376,13 @@ async function auditEquipoEditorial(session, viewport, scope, result) {
   }
 }
 
+/**
+ * Audits a page at a single viewport and records its state and evidence.
+ * @param {number} port - The Chrome remote debugging port.
+ * @param {string} pagePath - The page path to audit.
+ * @param {string} expectedH1 - The expected page heading.
+ * @param {Object} viewport - The viewport configuration used for loading and capturing the page.
+ */
 async function auditSingleViewport(port, pagePath, expectedH1, viewport) {
   const scope = `${pagePath} ${viewport.name}`;
   const result = { path: pagePath, viewport: viewport.name };

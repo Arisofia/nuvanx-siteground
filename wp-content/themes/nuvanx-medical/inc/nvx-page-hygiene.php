@@ -342,7 +342,9 @@ function nvx_legal_framework_note_markup(): string {
 }
 
 /**
- * Public, source-linked authority profile for Dra. Cristina Márquez González.
+ * Builds the canonical public authority profile for Dra. Cristina Márquez González.
+ *
+ * @return string Sanitized HTML markup for the authority profile.
  */
 function nvx_cristina_marquez_authority_markup(): string {
 	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
@@ -408,7 +410,10 @@ function nvx_remove_duplicate_cristina_staff_card( string $content ): string {
 }
 
 /**
- * Insert the canonical Cristina profile before the remaining-team section.
+ * Add the canonical Cristina Márquez profile to the team content and correct its runtime credential.
+ *
+ * @param string $content The team content to update.
+ * @return string The updated content.
  */
 function nvx_enrich_cristina_marquez_profile( string $content ): string {
 	// Remove the obsolete, incorrect runtime credential from commit 5747b00b.

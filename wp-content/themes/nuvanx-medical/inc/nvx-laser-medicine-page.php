@@ -43,8 +43,10 @@ function nvx_laser_page_url( string $path ): string {
 }
 
 /**
- * Detect Medicina Estética Láser hub content before rewrite.
- * Prefers stable structural markers over free-text phrases.
+ * Determines whether content represents the Medicina Estética Láser hub page.
+ *
+ * @param string $content The page content to inspect.
+ * @return bool `true` if the content matches the laser hub markers in a suitable singular page context, `false` otherwise.
  */
 function nvx_content_is_laser_medicine_page( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-laser-editorial' ) ) {

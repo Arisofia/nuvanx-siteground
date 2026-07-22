@@ -91,7 +91,9 @@ function nvx_co2_hero_copy_markup(): string {
 }
 
 /**
- * Editorial body.
+ * Builds the CO₂ laser editorial body markup, including treatment information, indications, recovery phases, and reference pricing.
+ *
+ * @return string The generated editorial body HTML.
  */
 function nvx_co2_editorial_body_markup(): string {
 	$catalog      = function_exists( 'nvx_tariff_catalog' ) ? nvx_tariff_catalog() : array();
@@ -198,7 +200,12 @@ function nvx_co2_editorial_body_markup(): string {
 }
 
 /**
- * Rebuild CO₂ page.
+ * Rebuilds the CO₂ treatment page with a dedicated hero section and editorial body.
+ *
+ * Preserves the existing hero media and outer page wrapper when available.
+ *
+ * @param string $content The original page content.
+ * @return string The rebuilt CO₂ page content, or the original content when the page is not a CO₂ page.
  */
 function nvx_content_restructure_co2_page( string $content ): string {
 	if ( ! nvx_content_is_co2_page( $content ) ) {

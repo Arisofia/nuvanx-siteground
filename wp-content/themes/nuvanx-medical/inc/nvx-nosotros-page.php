@@ -88,7 +88,9 @@ function nvx_nosotros_hero_copy_markup(): string {
 }
 
 /**
- * Positioning intro.
+ * Generates the positioning section for the About Us page.
+ *
+ * @return string The positioning section HTML markup.
  */
 function nvx_nosotros_positioning_markup(): string {
 	$html  = '<section class="nvx-editorial-section nvx-nosotros-positioning" aria-labelledby="nvx-nosotros-pos-title">';
@@ -133,7 +135,9 @@ function nvx_nosotros_platforms_data(): array {
 }
 
 /**
- * Platforms section markup.
+ * Builds the clinical platforms section markup, including protocol links for available platforms.
+ *
+ * @return string The rendered platforms section HTML.
  */
 function nvx_nosotros_platforms_markup(): string {
 	$html  = '<section class="nvx-editorial-section nvx-nosotros-platforms" aria-labelledby="nvx-nosotros-tech-title">';
@@ -167,7 +171,9 @@ function nvx_nosotros_platforms_markup(): string {
 }
 
 /**
- * Clinics NAP (reuse contact data when available).
+ * Renders the authorized NUVANX clinic locations and their contact details.
+ *
+ * @return string The clinics section HTML.
  */
 function nvx_nosotros_clinics_markup(): string {
 	$clinics = function_exists( 'nvx_contact_clinics_nap' )
@@ -322,8 +328,9 @@ function nvx_nosotros_principles_markup(): string {
 }
 
 /**
- * Full editorial body.
- * Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
+ * Builds the complete editorial body for the About Us page.
+ *
+ * @return string The HTML markup for the editorial body.
  */
 function nvx_nosotros_editorial_body_markup(): string {
 	$html  = '<div class="nvx-nosotros-editorial nvx-editorial-page">';
@@ -338,7 +345,10 @@ function nvx_nosotros_editorial_body_markup(): string {
 }
 
 /**
- * Rebuild nosotros page content once.
+ * Rebuilds the Sobre Nosotros page content with the editorial hero and body sections.
+ *
+ * @param string $content The original page content.
+ * @return string The rebuilt page content, or the original content when the page is not a Sobre Nosotros page.
  */
 function nvx_content_restructure_nosotros_page( string $content ): string {
 	if ( ! nvx_content_is_nosotros_page( $content ) ) {

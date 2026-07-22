@@ -144,7 +144,9 @@ function nvx_contact_clinics_markup(): string {
 }
 
 /**
- * Valoración clinical intro (form stays separate / primary via form-first filter).
+ * Builds the clinical introduction and authorized clinic locations for the valoración page.
+ *
+ * @return string The generated HTML markup.
  */
 function nvx_valoracion_intro_markup(): string {
 	$html  = '<section class="nvx-editorial-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';

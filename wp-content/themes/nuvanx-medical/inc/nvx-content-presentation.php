@@ -1211,10 +1211,10 @@ function nvx_generic_faq_markup(): string {
 }
 
 /**
- * Whether the current request is a real treatment detail/hub page.
+ * Determines whether the content belongs to a treatment detail or hub page eligible for shared section injection.
  *
- * Must not match equipo/nosotros: those reuse endolift editorial layout classes
- * (nvx-editorial-page, nvx-editorial-hero) but are not treatments.
+ * @param string $content The page content to inspect for treatment and non-treatment markers.
+ * @return bool `true` if the content identifies a treatment page, `false` otherwise.
  */
 function nvx_content_is_treatment_injection_target( string $content ): bool {
 	// Explicit non-treatment shells that share layout classes with treatments.

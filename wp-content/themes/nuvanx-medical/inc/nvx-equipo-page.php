@@ -350,9 +350,10 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 }
 
 /**
- * Director authority block only (not a full-page wipe of the team).
+ * Builds the medical director's profile, clinical scope, training, and clinical vision sections.
  *
  * @param string $rivera_media Optional portrait HTML for the director.
+ * @return string The rendered director authority markup.
  */
 function nvx_equipo_director_authority_markup( string $rivera_media = '' ): string {
 	$colegiado  = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
@@ -459,9 +460,10 @@ function nvx_equipo_director_authority_markup( string $rivera_media = '' ): stri
 }
 
 /**
- * Dra. Ivon Yamileth Rivera Deras — well-aging / geriatrics authority (equipo page only).
+ * Builds the authority profile markup for Dra. Ivon Yamileth Rivera Deras.
  *
- * @param string $ivon_media Optional portrait from CMS card.
+ * @param string $ivon_media Optional portrait media from the CMS card.
+ * @return string The rendered authority profile HTML.
  */
 function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 	$colegiado = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
@@ -538,9 +540,10 @@ function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 }
 
 /**
- * Dr. Fabio Augusto Quiñónez Bareiro — geriatrics / complex patient authority (equipo page only).
+ * Builds the editorial authority profile for Dr. Fabio Augusto Quiñónez Bareiro.
  *
- * @param string $fabio_media Optional portrait from CMS card.
+ * @param string $fabio_media Optional portrait media extracted from a CMS staff card.
+ * @return string The rendered HTML markup for the profile.
  */
 function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
 	$colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
@@ -621,7 +624,10 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
 }
 
 /**
- * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
+ * Rebuilds the Equipo médico page with editorial hero content, clinician authority profiles, and preserved CMS staff cards.
+ *
+ * @param string $content The original page content.
+ * @return string The rebuilt Equipo médico page content, or the original content when the page is not eligible for restructuring.
  */
 function nvx_content_restructure_equipo_page( string $content ): string {
 	if ( ! nvx_content_is_equipo_page( $content ) ) {

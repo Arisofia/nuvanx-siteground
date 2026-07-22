@@ -118,7 +118,9 @@ function nvx_asset_version( string $relative_path ): string {
 	return is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;
 }
 
-/** Enqueue the canonical design-system stack and page-owned assets. */
+/**
+ * Enqueues the theme's design-system styles and page-specific scripts.
+ */
 function nvx_theme_scripts(): void {
 	$uri = get_template_directory_uri();
 	$css = $uri . '/assets/css/';

@@ -398,7 +398,10 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 }
 
 /**
- * Build full editorial markup for a detail key.
+ * Generates the complete editorial HTML markup for a supported BTL detail page.
+ *
+ * @param string $key The registry key identifying the detail page.
+ * @return string The generated page markup, or an empty string when the key is unsupported.
  */
 function nvx_btl_detail_page_markup( string $key ): string {
 	$reg = nvx_btl_detail_registry();

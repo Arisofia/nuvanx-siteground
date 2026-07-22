@@ -1,6 +1,9 @@
 <?php
 /**
- * Protocol pages mapped to the universal 13-point structure.
+ * Published NUVANX Signature Protocol pages.
+ *
+ * Public protocol names describe a clinical decision system. Technologies are
+ * possible tools selected only after medical assessment.
  *
  * @package nuvanx-medical
  */
@@ -10,238 +13,246 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Catalogue for Signature Protocols.
+ * Approved Signature Protocol catalogue.
  *
- * @return array<string, array<string, mixed>>
+ * Eye Frame™ is deliberately excluded from publication until a separate
+ * medical, legal, SEO and visual review is completed.
+ *
+ * @return array<string,array<string,mixed>>
  */
 function nvx_protocol_pages_catalog(): array {
 	return array(
-		'couture-sculpt' => array(
+		'contour-architecture' => array(
 			'slug'          => 'remodelacion-corporal-laser-madrid',
-			'seo_title'     => 'NUVANX Contour Sculpt™: Remodelación Corporal en Madrid',
-			'description'   => 'Diagnóstico médico y remodelación corporal sin cirugía. Tratamos grasa localizada y firmeza con tecnología láser ajustada a tu anatomía.',
-			'kicker'        => 'CONTORNO CORPORAL NUVANX',
-			'h1'          => 'El diagnóstico determina el plan corporal. No la máquina de moda.',
-			'lead'          => 'Si intentas tratar la grasa localizada como si fuera retención de líquidos, perderás tiempo y dinero. En NUVANX empezamos por un diagnóstico médico sincero para entender tu tejido antes de proponer un protocolo.',
-			'diagnosis'   => 'Diferenciamos de forma precisa entre grasa subcutánea (que podemos tratar), grasa visceral (que requiere abordaje nutricional), laxitud cutánea y celulitis. No todas las zonas responden igual, y nuestro diagnóstico separa el tejido fibrótico del tejido laxo para elegir la tecnología adecuada.',
-			'mechanism'   => 'Combinamos láser subdérmico (Endoláser) para lipólisis y retracción térmica con radiofrecuencia focalizada, destruyendo los adipocitos y forzando a la piel a tensarse en el mismo acto médico.',
-			'indications' => array(
-				'Grasa localizada rebelde a dieta y ejercicio en abdomen, flancos o muslos.',
-				'Laxitud cutánea moderada que requiere soporte y tensión.',
-				'Pérdida de definición en el contorno corporal por acumulación focalizada.',
+			'seo_title'     => 'Remodelación corporal láser en Madrid | NUVANX Contour Architecture',
+			'description'   => 'Valoración médica del contorno corporal por unidades anatómicas para diferenciar grasa localizada, laxitud, calidad cutánea y límites del tratamiento.',
+			'kicker'        => 'PROTOCOLO SIGNATURE NUVANX',
+			'h1'            => 'Remodelación corporal láser diseñada según tu anatomía.',
+			'lead'          => 'NUVANX Contour Architecture™ es nuestro sistema médico de diagnóstico y planificación por unidades anatómicas. Estudia grasa localizada, laxitud, calidad cutánea y continuidad del contorno antes de definir una técnica.',
+			'diagnosis'     => 'El abdomen, los flancos, la espalda, los brazos y las piernas no se valoran como piezas aisladas. La exploración diferencia el tejido predominante, las transiciones entre zonas, las asimetrías, los tratamientos previos y las situaciones que requieren otra vía asistencial.',
+			'objectives'    => array(
+				'Reducir volumen focal cuando predomina grasa subcutánea susceptible de tratamiento.',
+				'Redefinir transiciones y proporciones entre zonas contiguas cuando existe una indicación razonable.',
+				'Actuar sobre laxitud o calidad cutánea cuando la exploración permite esperar una mejora proporcionada.',
 			),
-			'precautions' => array(
-				'Exceso de peso generalizado u obesidad (requiere programa integral).',
-				'Grasa visceral predominante (el láser solo actúa sobre grasa subcutánea).',
-				'Laxitud cutánea extrema que ya tiene indicación quirúrgica (abdominoplastia).',
+			'modalities'    => array(
+				'Endoláser corporal o Endolift® corporal cuando la valoración indica un abordaje intersticial.',
+				'EXION® Body para planes orientados a firmeza y calidad tisular, según indicación.',
+				'Láser CO₂ fraccionado o EXION® Fractional RF cuando existe un componente de superficie compatible con estas modalidades.',
+				'Otras tecnologías autorizadas disponibles en NUVANX cuando aportan valor clínico documentado.',
 			),
-			'process'     => array(
-				'Ecografía cutánea y diagnóstico diferencial del tejido adiposo.',
-				'Diseño topográfico de las áreas de lipólisis y las áreas de tensado.',
-				'Procedimiento ambulatorio bajo anestesia local, sin hospitalización.',
-				'Revisión médica post-procedimiento y pautas de recuperación activa.',
+			'limits'        => array(
+				'No es un tratamiento para pérdida general de peso ni para grasa visceral.',
+				'El exceso importante de piel puede requerir valoración quirúrgica.',
+				'La sospecha de diástasis, hernia o enfermedad activa exige valoración específica o derivación.',
+				'No se indica cuando la expectativa es incompatible con una intervención focal y progresiva.',
 			),
-			'faqs'        => array(
+			'process'       => array(
+				'Historia clínica, exploración y cartografía anatómica de las zonas relacionadas.',
+				'Clasificación del componente predominante y explicación de alternativas, límites y prioridades.',
+				'Plan escrito con unidad anatómica, modalidad seleccionada, cuidados, revisiones e inversión.',
+				'Registro fotográfico estandarizado y seguimiento bajo condiciones comparables.',
+			),
+			'planning_levels' => array(
+				'Contour Focus'       => 'Planificación focal de una unidad anatómica claramente delimitada.',
+				'Contour Continuity'  => 'Valoración coordinada de dos zonas contiguas, sin convertirlas en un paquete cerrado.',
+				'Contour Architecture' => 'Plan integral de una región corporal cuando varias unidades forman una misma continuidad.',
+				'Post-Maternity Contour' => 'Plan posgestacional por componentes, con derivación cuando el problema no corresponde a medicina estética.',
+				'Male Definition'     => 'Planificación del contorno masculino respetando anatomía, proporciones y objetivos individuales.',
+				'Corrective Assessment' => 'Valoración de irregularidades previas únicamente tras exploración y revisión documental.',
+			),
+			'faqs'          => array(
 				array(
-					'q' => '¿Es un tratamiento para perder peso?',
-					'a' => 'No. Es un tratamiento de contorno para remodelar la silueta y eliminar volúmenes localizados. No sustituye a una pauta nutricional.',
+					'q' => '¿Se utiliza la misma tecnología en todos los casos?',
+					'a' => 'No. La modalidad y las zonas se determinan después de la exploración médica. Un caso puede requerir una sola herramienta, una secuencia combinada o ninguna intervención.',
 				),
 				array(
-					'q' => '¿Cuándo se ven los resultados?',
-					'a' => 'Hay un cambio inicial por la reducción de volumen, pero el tensado de la piel (formación de colágeno) es progresivo y se consolida a los 3-6 meses.',
+					'q' => '¿Cuántas zonas deben tratarse?',
+					'a' => 'Solo las que tengan una indicación documentada. La continuidad anatómica se estudia para evitar transiciones incoherentes, no para imponer venta cruzada.',
 				),
 			),
 			'review_status' => 'approved_for_publication',
 		),
 		'post-maternity' => array(
 			'slug'          => 'tratamiento-postparto-abdomen-contorno-corporal-madrid',
-			'seo_title'     => 'NUVANX Post-Maternity Contour™: Recuperación Posgestacional Madrid',
-			'description'   => 'Valoración médica posparto. Abordamos diástasis, flacidez y grasa localizada con tecnología focalizada tras el alta ginecológica.',
-			'kicker'        => 'RECUPERACIÓN POSGESTACIONAL',
-			'h1'          => 'Recuperar tu cuerpo tras el embarazo empieza por saber qué se ha roto y qué se ha estirado.',
-			'lead'          => 'El abdomen posparto no se resuelve haciendo abdominales a ciegas. Medimos exactamente tu diástasis, la calidad de la piel y los acúmulos grasos antes de proponer un plan de acción.',
-			'diagnosis'   => 'Separamos claramente la laxitud de la piel de la separación muscular (diástasis) y de la grasa residual. Un diagnóstico fallido aquí es la causa de que muchos tratamientos posparto fracasen.',
-			'mechanism'   => 'Empleamos tecnología de radiofrecuencia fraccionada para redensificar la piel estríada y terapias electromagnéticas para reeducar la pared muscular y ayudar en el cierre de la diástasis funcional.',
-			'indications' => array(
-				'Laxitud abdominal y alteración de la calidad cutánea posgestacional.',
-				'Diástasis de rectos leve a moderada susceptible de mejora conservadora.',
-				'Adiposidad localizada residual en abdomen inferior o flancos.',
+			'seo_title'     => 'Tratamiento postparto abdomen Madrid | NUVANX',
+			'description'   => 'Valoración médica del abdomen posgestacional para diferenciar grasa localizada, laxitud, estrías, cicatriz y alteraciones de la pared abdominal.',
+			'kicker'        => 'NUVANX POST-MATERNITY CONTOUR™',
+			'h1'            => 'Después del embarazo, “abdomen” puede significar problemas diferentes.',
+			'lead'          => 'La valoración separa grasa subcutánea, laxitud cutánea, estrías, cicatriz de cesárea, diástasis, hernia y exceso de piel antes de plantear cualquier tratamiento.',
+			'diagnosis'     => 'La medicina estética puede actuar sobre determinados componentes de grasa, piel, cicatriz o textura. No corrige una alteración muscular significativa ni sustituye una valoración quirúrgica cuando existe exceso importante de piel o hernia.',
+			'objectives'    => array(
+				'Valorar grasa localizada y continuidad entre abdomen, flancos y espalda.',
+				'Estudiar laxitud, estrías, calidad cutánea y estado de una cicatriz de cesárea.',
+				'Detectar signos que aconsejan fisioterapia especializada, cirugía u otra derivación.',
 			),
-			'precautions' => array(
-				'Diástasis severas o hernias que requieren valoración por cirugía general.',
-				'Exceso de piel masivo (faldón abdominal) con indicación de dermolipectomía.',
-				'Lactancia activa (algunas tecnologías y activos deben posponerse).',
+			'modalities'    => array(
+				'Endoláser corporal o EXION® Body cuando existe una indicación sobre grasa localizada o calidad tisular.',
+				'Láser CO₂ fraccionado u otras modalidades de superficie cuando el estado de la piel o la cicatriz lo permite.',
+				'Plan conservador, espera clínica o derivación cuando tratar no sea la opción adecuada.',
 			),
-			'process'     => array(
-				'Valoración ecográfica de la pared abdominal y medición de la diástasis.',
-				'Evaluación del daño dérmico (estrías) y laxitud superficial.',
-				'Diseño del protocolo combinando fortalecimiento muscular y redensificación cutánea.',
+			'limits'        => array(
+				'La diástasis o hernia no se corrigen mediante un tratamiento estético sobre grasa o piel.',
+				'El momento de valoración depende de recuperación, lactancia, estabilidad de peso y antecedentes.',
+				'El exceso importante de piel puede tener indicación quirúrgica.',
 			),
-			'faqs'        => array(
+			'process'       => array(
+				'Revisión de antecedentes obstétricos, recuperación, lactancia y estabilidad de peso.',
+				'Exploración de pared abdominal, piel, grasa subcutánea, cicatrices y zonas contiguas.',
+				'Explicación por escrito de lo tratable, lo que debe esperar y lo que requiere derivación.',
+			),
+			'faqs'          => array(
 				array(
-					'q' => '¿Cuándo puedo empezar el tratamiento tras dar a luz?',
-					'a' => 'Normalmente recomendamos esperar al alta ginecológica (cuarentena) y estabilización hormonal, pero la valoración inicial puede realizarse antes para planificar.',
+					'q' => '¿Cuándo puede realizarse una valoración?',
+					'a' => 'El momento se individualiza según recuperación, lactancia, estabilidad de peso, antecedentes y modalidad considerada.',
+				),
+				array(
+					'q' => '¿Se puede valorar una cicatriz de cesárea?',
+					'a' => 'Sí. Se revisan madurez, relieve, color, síntomas y fototipo antes de decidir si existe una opción médico-estética o conviene otra valoración.',
 				),
 			),
 			'review_status' => 'approved_for_publication',
 		),
 		'profile-definition' => array(
 			'slug'          => 'papada-definicion-mandibular-madrid',
-			'seo_title'     => 'Profile Definition™: Papada y mandíbula | NUVANX',
-			'description'   => 'A veces es grasa, a veces es falta de soporte estructural. Tratamientos médicos sin cirugía para redefinir el óvalo facial en Madrid.',
-			'kicker'        => 'ARQUITECTURA FACIAL NUVANX',
-			'h1'          => 'Papada y mandíbula: a veces es grasa, a veces es piel, y a veces falta hueso.',
-			'lead'          => 'Para definir el óvalo facial sin pasar por quirófano, te miramos primero. Te decimos con claridad qué se puede conseguir, y solo si tiene sentido para tu anatomía, seguimos adelante.',
-			'diagnosis'   => 'A veces no hay papada real: lo que pasa es que el mentón es pequeño y la piel cuelga por falta de soporte. Si inyectamos grasa o ponemos láser sin diagnosticar el díficit óseo, no habrá buen resultado.',
-			'mechanism'   => 'Combinamos la lipólisis asistida por láser para eliminar grasa submentoniana con reposicionamiento de soporte estructural (ácido hialurónico) en el ángulo mandibular y mentón.',
-			'indications' => array(
-				'Acúmulo graso localizado en la región submentoniana (papada auténtica).',
-				'Pérdida de definición en la línea mandibular por falta de soporte o laxitud leve.',
-				'Mentón retraído leve que acentúa la sensación de papada.',
+			'seo_title'     => 'Papada y definición mandibular Madrid | NUVANX',
+			'description'   => 'Valoración médica de papada, cuello, mandíbula y mentón para diferenciar grasa, laxitud y soporte estructural antes de indicar tratamiento.',
+			'kicker'        => 'NUVANX PROFILE DEFINITION™',
+			'h1'            => 'Papada, cuello y mandíbula forman un mismo perfil.',
+			'lead'          => 'El diagnóstico diferencia grasa submentoniana, laxitud cervical, posición del mentón, soporte mandibular y otros componentes que pueden producir una pérdida de definición parecida.',
+			'diagnosis'     => 'No toda falta de definición es grasa y no toda papada puede resolverse con una única técnica. La exploración determina cuál es el componente predominante y qué expectativas son razonables.',
+			'objectives'    => array(
+				'Valorar grasa localizada submentoniana y continuidad con el cuello.',
+				'Estudiar laxitud, calidad cutánea y soporte del tercio inferior.',
+				'Mantener proporciones faciales y evitar cambios que ensanchen o alteren innecesariamente el rostro.',
 			),
-			'precautions' => array(
-				'Laxitud cutánea severa del cuello (cuello de pavo) que requiere lifting cervical.',
-				'Micrognatia severa (falta de hueso extrema) que requiere cirugía maxilofacial.',
-				'Glándulas submandibulares hipertróficas o problemas tiroideos no controlados.',
+			'modalities'    => array(
+				'Endolift® facial cuando existe una indicación sobre grasa localizada o laxitud.',
+				'Medicina inyectable cuando el soporte estructural lo requiere y el balance beneficio-riesgo es favorable.',
+				'Derivación cuando el componente óseo, glandular o el exceso de piel no corresponde al alcance médico-estético.',
 			),
-			'process'     => array(
-				'Análisis tridimensional del tercio inferior y el cuello.',
-				'Identificación del problema primario (grasa, piel o soporte óseo).',
-				'Diseño del ángulo mandibular y protocolo de reducción grasa si es preciso.',
+			'limits'        => array(
+				'La laxitud severa o determinadas alteraciones óseas pueden requerir valoración quirúrgica.',
+				'Las glándulas prominentes, masas o síntomas cervicales requieren evaluación clínica específica.',
+				'No se promete una línea mandibular estándar ni un resultado idéntico entre pacientes.',
 			),
-			'faqs'        => array(
+			'process'       => array(
+				'Exploración estática y dinámica del tercio inferior y el cuello.',
+				'Diagnóstico del componente predominante y documentación fotográfica.',
+				'Plan por prioridades con alternativas y límites explicados antes de decidir.',
+			),
+			'faqs'          => array(
 				array(
-					'q' => '¿Se puede marcar la mandíbula solo con ácido hialurónico?',
-					'a' => 'Si hay grasa superpuesta, inyectar relleno solo ensanchará el rostro. Primero hay que tratar la grasa, y luego definir la estructura.',
+					'q' => '¿Se puede tratar solo con relleno?',
+					'a' => 'Depende de la anatomía. Añadir soporte sin valorar grasa, laxitud y proporciones puede no mejorar el perfil y puede resultar desproporcionado.',
 				),
 			),
 			'review_status' => 'approved_for_publication',
 		),
 		'skin-architecture' => array(
 			'slug'          => 'calidad-piel-firmeza-luminosidad-madrid',
-			'seo_title'     => 'Skin Architecture™: Firmeza y Calidad de Piel | NUVANX',
-			'description'   => 'Redensificación y firmeza dérmica. Obligamos a tus células a fabricar colágeno nuevo mediante estímulos médicos controlados.',
-			'kicker'        => 'CALIDAD CUTÁNEA NUVANX',
-			'h1'          => 'Tu piel no necesita más cremas, necesita reconstruirse por dentro.',
-			'lead'          => 'Si la piel ha perdido grosor y soporte, ponerte crema es como pintar una pared que se está desmoronando. Hay que actuar a nivel celular.',
-			'diagnosis'   => 'Diferenciamos entre deshidratación superficial, elastosis solar (daño por el sol) y atrofia dérmica (piel fina por la edad). Cada problema requiere una profundidad de actuación distinta.',
-			'mechanism'   => 'Utilizamos calor (Radiofrecuencia Fraccionada BTL EXION) o inductores químicos (bioestimuladores) para obligar a los fibroblastos a fabricar colágeno nuevo, engrosando y tensando la piel de forma natural.',
-			'indications' => array(
-				'Piel fina y apergaminada (atrofia dérmica).',
-				'Falta de firmeza y elasticidad por descenso en la producción de colágeno.',
-				'Arrugas finas estáticas que no responden a neuromoduladores.',
+			'seo_title'     => 'Calidad, firmeza y luminosidad de la piel Madrid | NUVANX',
+			'description'   => 'Plan médico para calidad, firmeza, densidad e hidratación de la piel según fototipo, diagnóstico y profundidad del problema.',
+			'kicker'        => 'NUVANX SKIN ARCHITECTURE™',
+			'h1'            => 'Calidad de piel: firmeza, densidad e hidratación no son lo mismo.',
+			'lead'          => 'La valoración diferencia deshidratación superficial, pérdida de densidad, laxitud, daño solar y alteraciones de textura para seleccionar un plan proporcionado.',
+			'diagnosis'     => 'La misma apariencia apagada puede tener causas distintas. El fototipo, el espesor cutáneo, los antecedentes y el tiempo de recuperación disponible condicionan la indicación.',
+			'objectives'    => array(
+				'Mejorar calidad y densidad cutánea cuando existe una indicación clínica.',
+				'Abordar firmeza e hidratación sin modificar deliberadamente los volúmenes faciales.',
+				'Integrar fotoprotección y cuidados domiciliarios cuando forman parte del plan.',
 			),
-			'precautions' => array(
-				'Infecciones activas o brotes de enfermedades autoinmunes cutáneas.',
-				'Acné activo severo (que debe tratarse antes de la redensificación).',
-				'Expectativas de efecto "lifting quirúrgico" (este protocolo mejora la calidad, no tracciona músculos).',
+			'modalities'    => array(
+				'EXION® Face, EMFUSION® u otras modalidades no invasivas según diagnóstico.',
+				'Bioestimuladores cuando la indicación, la anatomía y los antecedentes lo permiten.',
+				'IPL o tecnología fraccionada cuando existe un componente pigmentario, vascular o de superficie compatible.',
 			),
-			'process'     => array(
-				'Evaluación del fototipo, grosor dérmico y nivel de daño solar.',
-				'Selección de la plataforma de estímulo (físico o químico).',
-				'Planificación de sesiones espaciadas para respetar el ciclo de neo-colagénesis.',
+			'limits'        => array(
+				'No sustituye un lifting quirúrgico ni corrige por sí solo una pérdida estructural relevante.',
+				'Las enfermedades cutáneas activas deben estabilizarse o derivarse antes de tratar.',
+				'La respuesta, el número de sesiones y el mantenimiento son individuales.',
 			),
-			'faqs'        => array(
+			'process'       => array(
+				'Valoración de fototipo, calidad cutánea, antecedentes y prioridades.',
+				'Selección de modalidad y parámetros conforme a la indicación.',
+				'Plan de cuidados, seguimiento y reevaluación antes de ampliar o combinar técnicas.',
+			),
+			'faqs'          => array(
 				array(
-					'q' => '¿Duele el tratamiento con radiofrecuencia fraccionada?',
-					'a' => 'Aplicamos anestesia tópica previa. Sentirás calor y un ligero picor, pero es un procedimiento muy tolerable.',
+					'q' => '¿El protocolo añade volumen?',
+					'a' => 'No necesariamente. El objetivo principal es calidad cutánea; cualquier técnica que modifique volumen debe justificarse por separado.',
 				),
 			),
 			'review_status' => 'approved_for_publication',
 		),
 		'surface-renewal' => array(
 			'slug'          => 'cicatrices-acne-poros-textura-madrid',
-			'seo_title'     => 'Surface Renewal™: Cicatrices y Textura | NUVANX',
-			'description'   => 'Mejoramos las marcas de acné rompiendo la cicatriz. Resurfacing médico con Láser CO2 y radiofrecuencia.',
-			'kicker'        => 'CALIDAD CUTÁNEA NUVANX',
-			'h1'          => 'Para mejorar las marcas de acné hay que romper la cicatriz, no solo pelar la piel.',
-			'lead'          => 'Los peelings suaves no llegan a la raíz del problema. Las cicatrices de acné tiran de la piel hacia abajo desde dentro; hay que liberar esa tensión.',
-			'diagnosis'   => 'Clasificamos tus cicatrices en furgón (boxcar), picahielo (icepick) o rodantes (rolling). Un diagnóstico exacto es crucial porque cada tipo de cicatriz responde a una técnica diferente.',
-			'mechanism'   => 'Combinamos resurfacing ablativo con Láser CO2 fraccionado para alisar los bordes de la cicatriz, y subcisión o radiofrecuencia con agujas para liberar el tejido fibroso que ancla la cicatriz a la dermis profunda.',
-			'indications' => array(
-				'Cicatrices atróficas de acné residual.',
-				'Poros muy dilatados y textura irregular generalizada.',
-				'Marcas post-inflamatorias crónicas.',
+			'seo_title'     => 'Cicatrices de acné, poros y textura Madrid | NUVANX',
+			'description'   => 'Valoración médica de cicatrices, poros y textura para seleccionar láser CO₂, radiofrecuencia fraccionada u otras modalidades según fototipo.',
+			'kicker'        => 'NUVANX SURFACE RENEWAL™',
+			'h1'            => 'Cicatrices, poros y textura requieren diagnóstico por profundidad.',
+			'lead'          => 'Las cicatrices atróficas, los poros visibles y la textura irregular no responden necesariamente a la misma técnica. La exploración clasifica tipo, profundidad y riesgo pigmentario.',
+			'diagnosis'     => 'Se valora el patrón de cicatriz, el estado del acné, el fototipo, los tratamientos previos y el tiempo de recuperación disponible antes de proponer resurfacing u otras modalidades.',
+			'objectives'    => array(
+				'Mejorar gradualmente relieve, bordes y uniformidad de determinadas cicatrices.',
+				'Abordar textura y poros cuando existe una indicación compatible.',
+				'Reducir el riesgo de pigmentación postinflamatoria mediante selección y preparación adecuadas.',
 			),
-			'precautions' => array(
-				'Acné activo inflamatorio (debe estabilizarse antes del resurfacing).',
-				'Fototipos altos (requieren preparación especial para evitar hiperpigmentación).',
-				'Uso reciente de isotretinoína (según valoración médica actualizada).',
+			'modalities'    => array(
+				'Láser CO₂ fraccionado para indicaciones seleccionadas de resurfacing.',
+				'EXION® Fractional RF u otras modalidades cuando la profundidad o el fototipo aconsejan una alternativa.',
+				'Técnicas complementarias únicamente cuando están disponibles, autorizadas y justificadas.',
 			),
-			'process'     => array(
-				'Mapeo de cicatrices bajo luz tangencial.',
-				'Preparación de la piel y aplicación de anestesia local o tópica.',
-				'Tratamiento combinado (ej. liberación profunda + láser superficial).',
-				'Seguimiento estricto de la recuperación epidérmica.',
+			'limits'        => array(
+				'Las cicatrices profundas rara vez desaparecen por completo.',
+				'El acné inflamatorio activo debe estabilizarse antes de determinados procedimientos.',
+				'El fototipo, la medicación y los antecedentes pueden modificar o contraindicar el plan.',
 			),
-			'faqs'        => array(
+			'process'       => array(
+				'Clasificación clínica y registro fotográfico bajo iluminación consistente.',
+				'Preparación, selección de modalidad y explicación del periodo de recuperación esperado.',
+				'Seguimiento de la respuesta, cuidados y riesgo de pigmentación.',
+			),
+			'faqs'          => array(
 				array(
 					'q' => '¿Las cicatrices desaparecerán por completo?',
-					'a' => 'No te vamos a mentir: las marcas profundas rara vez desaparecen al 100%, pero sí podemos hacer que dejen de ser lo primero que ves en el espejo.',
+					'a' => 'No se puede prometer su desaparición. El objetivo es una mejora gradual y clínicamente apreciable dentro de los límites del tejido y la modalidad seleccionada.',
 				),
 			),
 			'review_status' => 'approved_for_publication',
 		),
 		'tone-correction' => array(
 			'slug'          => 'manchas-rojeces-fotorejuvenecimiento-ipl-madrid',
-			'seo_title'     => 'Tone Correction™: Fotorejuvenecimiento y Manchas | NUVANX',
-			'description'   => 'Diagnóstico de pigmentación y rojeces. Tratamos el origen de la mancha para un tono uniforme y duradero.',
-			'kicker'        => 'CALIDAD CUTÁNEA NUVANX',
-			'h1'          => 'Quitar una mancha es fácil; que no vuelva a salir es la parte médica.',
-			'lead'          => 'Quemar una mancha sin saber por qué ha salido es garantía de que volverá. Te decimos qué tipo tienes tú y cómo mantenerla a raya.',
-			'diagnosis'   => 'Diferenciamos entre pigmento dérmico (profundo), epidérmico (superficial) y el componente vascular subyacente. Confundir un melasma con un léntigo solar empeora el problema drásticamente.',
-			'mechanism'   => 'Usamos Luz Pulsada Intensa (BTL EXILITE IPL) y pautas médicas despigmentantes para fragmentar el pigmento existente y, lo más importante, frenar a la célula que lo produce.',
-			'indications' => array(
-				'Léntigos solares (manchas por daño solar acumulado).',
-				'Rosácea y rojeces difusas (componente vascular).',
-				'Melasma y pigmentación hormonal (requiere manejo crónico).',
+			'seo_title'     => 'Manchas, rojeces y fotodaño Madrid | NUVANX',
+			'description'   => 'Diagnóstico de manchas, rojeces y fotodaño con selección de IPL, cuidados o derivación según lesión, fototipo y antecedentes.',
+			'kicker'        => 'NUVANX TONE CORRECTION™',
+			'h1'            => 'Manchas y rojeces no se tratan sin identificar primero la lesión.',
+			'lead'          => 'Léntigos, melasma, pigmentación postinflamatoria, eritema y lesiones vasculares requieren enfoques diferentes. Algunas lesiones deben evaluarse antes por dermatología.',
+			'diagnosis'     => 'La valoración revisa tipo de lesión, profundidad, componente vascular, fototipo, exposición solar, medicación y antecedentes para evitar tratamientos inadecuados.',
+			'objectives'    => array(
+				'Abordar alteraciones pigmentarias o vasculares seleccionadas con parámetros individualizados.',
+				'Integrar fotoprotección, cuidados domiciliarios y mantenimiento cuando corresponde.',
+				'Derivar lesiones sospechosas o problemas que no deben tratarse con luz o láser.',
 			),
-			'precautions' => array(
-				'Exposición solar reciente o piel bronceada (contraindicación absoluta para IPL).',
-				'Uso de medicamentos fotosensibilizantes.',
-				'Melasma inestable (el exceso de calor puede producir efecto rebote).',
+			'modalities'    => array(
+				'BTL EXILITE™ IPL para indicaciones pigmentarias o vasculares seleccionadas.',
+				'EMFUSION®, cuidado domiciliario u otras medidas de soporte cuando forman parte del plan.',
+				'Derivación dermatológica cuando el diagnóstico no está claro o existe una lesión sospechosa.',
 			),
-			'process'     => array(
-				'Diagnóstico con luz de Wood o dermatoscopio.',
-				'Planificación de la terapia clínica y la pauta cosmética domiciliaria obligatoria.',
-				'Sesiones de luz o láser con control de respuesta inflamatoria.',
+			'limits'        => array(
+				'La piel bronceada, la exposición solar reciente o determinados fármacos pueden obligar a posponer el tratamiento.',
+				'El melasma requiere manejo prudente y puede presentar recurrencias.',
+				'No se fija un número estándar de sesiones antes del diagnóstico y la respuesta inicial.',
 			),
-			'faqs'        => array(
+			'process'       => array(
+				'Historia clínica, evaluación de la lesión y clasificación del fototipo.',
+				'Prueba o selección de parámetros cuando el protocolo lo requiere.',
+				'Fotoprotección, seguimiento de respuesta y ajuste del plan.',
+			),
+			'faqs'          => array(
 				array(
-					'q' => '¿Me puedo hacer este tratamiento en verano?',
-					'a' => 'Los tratamientos con luz y láser para manchas se reservan para los meses de menor incidencia solar para evitar complicaciones.',
-				),
-			),
-			'review_status' => 'approved_for_publication',
-		),
-		'eye-frame' => array(
-			'slug'        => 'eye-frame-rejuvenecimiento-mirada-madrid',
-			'seo_title'   => 'NUVANX Eye Frame™: Rejuvenecimiento de la mirada en Madrid',
-			'description' => 'Tu mirada no siempre refleja lo cansada que estás; a veces es solo la anatomía. Tratamientos perioculares sin cirugía.',
-			'kicker'      => 'ARQUITECTURA FACIAL NUVANX',
-			'h1'          => 'Tu mirada no siempre refleja lo cansada que estás; a veces es solo la anatomía.',
-			'lead'        => 'Si te dicen que tienes "cara de cansada" aunque hayas dormido ocho horas, el problema no es el sueño, es cómo la luz cae sobre tus ojos. Miramos de cerca si es sombra por hundimiento, color o piel fina.',
-			'diagnosis'   => 'Diferenciamos de forma estricta entre hundimiento estructural (falta de hueso/grasa), componente vascular (venitas), pigmentación y edema (retención de líquido).',
-			'mechanism'   => 'A veces la ojera se marca porque falta apoyo debajo y se crea una sombra oscura — eso lo arreglamos dando soporte suave. Pero si tienes bolsas que empujan hacia afuera, poner relleno solo empeora las cosas.',
-			'indications' => array(
-				'Aspecto de cansancio constante por sombra estructural en el surco lagrimal.',
-				'Pérdida de soporte en la transición párpado-mejilla.',
-				'Alteraciones de calidad cutánea en la zona periocular.',
-			),
-			'precautions' => array(
-				'Si el problema es retención de líquidos (edema malar), el ácido hialurónico está contraindicado.',
-				'Si hay bolsas grasas reales severas, la derivación quirúrgica es el camino honesto.',
-				'El color oscuro (vascular o pigmentario puro) no se corrige inyectando volumen.',
-			),
-			'process'     => array(
-				'Análisis anatómico de la dinámica del tercio medio y la calidad de piel.',
-				'Selección de tecnología (radiofrecuencia, láser o inyectable de soporte).',
-				'Diseño del plan de tratamiento y tiempos de recuperación.',
-			),
-			'faqs'        => array(
-				array(
-					'q' => '¿Se me quitarán las bolsas con este protocolo?',
-					'a' => 'No. Si el diagnóstico revela bolsas de grasa reales, lo indicado es una blefaroplastia. Solo tratamos el hundimiento (falta de volumen).',
+					'q' => '¿Puede tratarse cualquier mancha con IPL?',
+					'a' => 'No. La indicación depende del tipo de lesión, la profundidad y el fototipo; algunas manchas requieren otra modalidad o derivación.',
 				),
 			),
 			'review_status' => 'approved_for_publication',
@@ -249,12 +260,11 @@ function nvx_protocol_pages_catalog(): array {
 	);
 }
 
-/** Identifies the current page's protocol catalog entry. */
+/** Identify the approved protocol page for the current request. */
 function nvx_protocol_pages_current_key(): ?string {
 	if ( ! is_page() ) {
 		return null;
 	}
-
 	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
 	foreach ( nvx_protocol_pages_catalog() as $key => $page ) {
 		if ( $page['slug'] === $slug && 'approved_for_publication' === $page['review_status'] ) {
@@ -264,107 +274,70 @@ function nvx_protocol_pages_current_key(): ?string {
 	return null;
 }
 
-/** Universal 13-point markup renderer for aesthetic and protocol pages. */
-function nvx_protocol_pages_render_13_points( array $data ): string {
+/** Render one approved protocol page. */
+function nvx_protocol_pages_render( array $data ): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
-	
-	// 1. Hero / Intro
 	$html .= '<header class="nvx-strategy-intro">';
-	if ( ! empty( $data['kicker'] ) ) {
-		$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
-	}
-	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ?? $data['title'] ?? '' ) . '</h1>';
-	if ( ! empty( $data['lead'] ) ) {
-		$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
-	}
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
 	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '<p class="nvx-brand-microcopy">' . esc_html__( 'La indicación, las modalidades, la evolución y el presupuesto se determinan después de la exploración médica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</header>';
 
-	// 2. Diagnosis (Por qué un enfoque genérico no funciona / Diagnóstico)
-	if ( ! empty( $data['diagnosis'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'El valor del diagnóstico médico', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['diagnosis'] ) . '</p>';
-		$html .= '</section>';
-	}
+	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'El valor del diagnóstico médico', 'nuvanx-medical' ) . '</h2><p>' . esc_html( $data['diagnosis'] ) . '</p></section>';
 
-	// 3. Mechanism (Cómo actuamos)
-	if ( ! empty( $data['mechanism'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Mecanismo de acción', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['mechanism'] ) . '</p>';
-		$html .= '</section>';
+	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Objetivos clínicos que se valoran', 'nuvanx-medical' ) . '</h2><ul class="nvx-brand-list">';
+	foreach ( $data['objectives'] as $item ) {
+		$html .= '<li>' . esc_html( $item ) . '</li>';
 	}
+	$html .= '</ul></section>';
 
-	// 4. Indications
-	if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Indicaciones: Qué tratamos', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['indications'] as $ind ) {
-			$html .= '<li>' . esc_html( $ind ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 5. Precautions
-	if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['precautions'] as $prec ) {
-			$html .= '<li>' . esc_html( $prec ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 6. Process
-	if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Proceso en clínica', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ol class="nvx-brand-list">';
-		foreach ( $data['process'] as $step ) {
-			$html .= '<li>' . esc_html( $step ) . '</li>';
-		}
-		$html .= '</ol></section>';
-	}
-
-	// 7. FAQs
-	if ( ! empty( $data['faqs'] ) && is_array( $data['faqs'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<div class="nvx-faq-accordion">';
-		foreach ( $data['faqs'] as $faq ) {
-			$html .= '<details class="nvx-faq-item">';
-			$html .= '<summary class="nvx-faq-question">' . esc_html( $faq['q'] ) . '</summary>';
-			$html .= '<div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-			$html .= '</details>';
+	if ( ! empty( $data['planning_levels'] ) ) {
+		$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Niveles de planificación, no paquetes cerrados', 'nuvanx-medical' ) . '</h2><div class="nvx-catalog-grid">';
+		foreach ( $data['planning_levels'] as $name => $body ) {
+			$html .= '<article class="nvx-catalog-card"><div class="nvx-catalog-card__main"><h3 class="nvx-catalog-card__title">' . esc_html( $name ) . '</h3><p class="nvx-catalog-card__body">' . esc_html( $body ) . '</p></div></article>';
 		}
 		$html .= '</div></section>';
 	}
 
+	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Qué puede formar parte del plan', 'nuvanx-medical' ) . '</h2><ul class="nvx-brand-list">';
+	foreach ( $data['modalities'] as $item ) {
+		$html .= '<li>' . esc_html( $item ) . '</li>';
+	}
+	$html .= '</ul><p>' . esc_html__( 'No todas las modalidades se utilizan en todos los pacientes.', 'nuvanx-medical' ) . '</p></section>';
+
+	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Cuándo no es el tratamiento adecuado', 'nuvanx-medical' ) . '</h2><ul class="nvx-brand-list">';
+	foreach ( $data['limits'] as $item ) {
+		$html .= '<li>' . esc_html( $item ) . '</li>';
+	}
+	$html .= '</ul></section>';
+
+	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Proceso clínico', 'nuvanx-medical' ) . '</h2><ol class="nvx-brand-list">';
+	foreach ( $data['process'] as $item ) {
+		$html .= '<li>' . esc_html( $item ) . '</li>';
+	}
+	$html .= '</ol></section>';
+
+	if ( ! empty( $data['faqs'] ) ) {
+		$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2><div class="nvx-faq-accordion">';
+		foreach ( $data['faqs'] as $faq ) {
+			$html .= '<details class="nvx-faq-item"><summary class="nvx-faq-question">' . esc_html( $faq['q'] ) . '</summary><div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div></details>';
+		}
+		$html .= '</div></section>';
+	}
+
+	$html .= '<section class="nvx-brand-section"><h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2><p>' . esc_html__( 'La consulta determina qué puede tener sentido, qué alternativas existen y en qué situaciones es preferible esperar, derivar o no intervenir.', 'nuvanx-medical' ) . '</p><p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a></p></section>';
 	$html .= '</article>';
 	return $html;
 }
 
-/** Dispatches the markup for one approved protocol page. */
-function nvx_protocol_pages_markup( string $key, array $data ): string {
-	return nvx_protocol_pages_render_13_points( $data );
-}
-
-/** Replaces the content of a matching approved protocol page. */
+/** Render the matching approved protocol page. */
 function nvx_protocol_pages_content_filter( string $content ): string {
 	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
 		return $content;
 	}
-
 	$key = nvx_protocol_pages_current_key();
-	if ( null === $key ) {
-		return $content;
-	}
-
-	$data   = nvx_protocol_pages_catalog()[ $key ];
-	$markup = nvx_protocol_pages_markup( $key, $data );
-	return '' === $markup ? $content : $markup;
+	return null === $key ? $content : nvx_protocol_pages_render( nvx_protocol_pages_catalog()[ $key ] );
 }
 add_filter( 'the_content', 'nvx_protocol_pages_content_filter', 21 );

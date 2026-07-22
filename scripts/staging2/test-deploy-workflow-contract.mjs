@@ -123,7 +123,7 @@ for (const marker of [
   '/tratamiento-postparto-abdomen-contorno-corporal-madrid/', 'Tratamiento postparto abdomen Madrid | NUVANX',
   'nvx_editorial_seo_title', 'nvx_editorial_seo_description', 'nvx_editorial_seo_url',
 ]) if (!editorialSeo.includes(marker)) fail(`editorial SEO missing marker: ${marker}`);
-for (const marker of ["'protocolos_signature'", "'couture_sculpt'", 'Protocolos Signature | NUVANX Madrid', 'Remodelación corporal láser Madrid | NUVANX']) {
+for (const marker of ["'protocolos_signature'", "'contour_sculpt'", 'Protocolos Signature | NUVANX Madrid', 'Remodelación corporal láser Madrid | NUVANX']) {
   if (!seoMetadata.includes(marker)) fail(`canonical SEO metadata missing marker: ${marker}`);
 }
 

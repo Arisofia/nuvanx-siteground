@@ -61,7 +61,7 @@ function nvx_content_is_endolaser_page( string $content ): bool {
  * Hero copy.
  */
 function nvx_endolaser_hero_copy_markup(): string {
-	$html  = '<div class="nvx-editorial-hero__copy nvx-endolaser-hero-copy">';
+	$html  = '<div class="nvx-editorial-hero__copy-copy">';
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-heading" id="nvx-endolaser-h1">' . esc_html__( 'Endoláser corporal en Madrid: grasa localizada y mejor contorno', 'nuvanx-medical' ) . '</h1>';
 	
@@ -198,7 +198,7 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 		$media = $m[0];
 	}
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero nvx-endolaser-hero" aria-labelledby="nvx-endolaser-h1" aria-label="' . esc_attr__( 'Endoláser corporal NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero" aria-labelledby="nvx-endolaser-h1" aria-label="' . esc_attr__( 'Endoláser corporal NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_endolaser_hero_copy_markup();
 	$hero .= $media;

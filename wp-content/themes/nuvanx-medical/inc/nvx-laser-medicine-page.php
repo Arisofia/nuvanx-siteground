@@ -99,7 +99,7 @@ function nvx_laser_hero_ctas_markup(): string {
 		: home_url( '/madrid/valoracion/' );
 	$clinicas   = home_url( '/clinicas-de-medicina-estetica-nuvanx/' );
 
-	$html  = '<div class="nvx-cta-pair nvx-laser-hero-ctas">';
+	$html  = '<div class="nvx-cta-pair-ctas">';
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
@@ -121,7 +121,7 @@ function nvx_laser_hero_ctas_markup(): string {
 function nvx_laser_hero_copy_markup(): string {
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	$html  = '<div class="nvx-editorial-hero__copy nvx-laser-hero-copy">';
+	$html  = '<div class="nvx-editorial-hero__copy">';
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Tecnología médica de precisión', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-heading" id="nvx-laser-h1">' . esc_html__( 'Medicina Estética Láser Avanzada en Madrid', 'nuvanx-medical' ) . '</h1>';
 	$html .= '<p class="nvx-lead">' . esc_html__( 'Plataformas de energía selectiva calibradas con rigor clínico para redefinir el contorno, restaurar la firmeza dermoepidérmica y renovar la textura de la piel sin cirugía.', 'nuvanx-medical' ) . '</p>';
@@ -308,7 +308,7 @@ function nvx_content_restructure_laser_medicine_page( string $content ): string 
 		$media = $m[0];
 	}
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-laser-hero" aria-labelledby="nvx-laser-h1" aria-label="' . esc_attr__( 'Medicina estética láser NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser" aria-labelledby="nvx-laser-h1" aria-label="' . esc_attr__( 'Medicina estética láser NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_laser_hero_copy_markup();
 	$hero .= $media;

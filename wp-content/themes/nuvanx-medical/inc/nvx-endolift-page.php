@@ -104,7 +104,7 @@ function nvx_endolift_hero_copy_markup(): string {
 		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
 		: number_format_i18n( 798.60, 2 );
 
-	$html  = '<div class="nvx-editorial-hero__copy nvx-endolift-hero-copy">';
+	$html  = '<div class="nvx-editorial-hero__copy-copy">';
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-heading" id="nvx-endolift-h1">' . esc_html__( 'Endolift® en Madrid: papada, mandíbula y cuello sin quirófano', 'nuvanx-medical' ) . '</h1>';
 	
@@ -434,7 +434,7 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 		$media = $m[0];
 	}
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero" aria-labelledby="nvx-endolift-h1" aria-label="' . esc_attr__( 'Endolift facial NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser" aria-labelledby="nvx-endolift-h1" aria-label="' . esc_attr__( 'Endolift facial NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_endolift_hero_copy_markup();
 	$hero .= $media;

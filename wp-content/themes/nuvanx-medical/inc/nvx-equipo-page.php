@@ -61,7 +61,7 @@ function nvx_equipo_hero_copy_markup(): string {
 	$colegiado_ivon  = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 	$colegiado_fabio = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
 
-	$html  = '<div class="nvx-editorial-hero__copy nvx-equipo-hero-copy">';
+	$html  = '<div class="nvx-editorial-hero__copy-copy">';
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Equipo médico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-heading" id="nvx-equipo-h1">' . esc_html__( 'Equipo médico NUVANX: quién te valora y quién trata', 'nuvanx-medical' ) . '</h1>';
 	$html .= '<p class="nvx-lead">' . esc_html__( 'En muchas clínicas, quien te atiende al principio no es quien luego te trata — te ve un comercial, y el médico solo aparece para aplicar lo que ya se vendió. Aquí no. La persona que te explora es la misma que te trata y la que te sigue viendo después. Nadie cambia a mitad de tu plan.', 'nuvanx-medical' ) . '</p>';
@@ -647,9 +647,9 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 		$media = '';
 	}
 
-	$hero_classes = 'nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero nvx-equipo-hero';
+	$hero_classes = 'nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero';
 	if ( '' === $media ) {
-		$hero_classes .= ' nvx-equipo-hero--copy-only';
+		$hero_classes .= '';
 	}
 
 	$hero  = '<section class="' . esc_attr( $hero_classes ) . '" aria-labelledby="nvx-equipo-h1" aria-label="' . esc_attr__( 'Equipo médico NUVANX', 'nuvanx-medical' ) . '">';

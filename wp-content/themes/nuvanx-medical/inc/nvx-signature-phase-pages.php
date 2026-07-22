@@ -248,6 +248,31 @@ function nvx_signature_phase_prepare_shell(): void {
 add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
 
 /**
+ * Applies Contour Architecture child routes to a navigation child when legacy tags are detected.
+ *
+ * @param array $child The navigation child to process.
+ * @return array The updated child with Contour Architecture structure if applicable, or the original child.
+ */
+function nvx_signature_apply_contour_children( array $child ): array {
+    $child_label = isset( $child['label'] ) ? (string) $child['label'] : '';
+    if ( false !== stripos( $child_label, 'Contour Sculpt' ) || false !== stripos( $child_label, 'Contour Architecture' ) || false !== stripos( $child_label, 'Couture Sculpt' ) ) {
+        $child['label'] = 'NUVANX Contour Architecture™';
+        $child['slugs'] = array( 'remodelacion-corporal-laser-madrid' );
+        $child['children'] = array(
+            array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
+            array( 'label' => 'Brazos y axila', 'slugs' => array( 'flacidez-grasa-localizada-brazos-madrid' ) ),
+            array( 'label' => 'Espalda y zona del sujetador', 'slugs' => array( 'grasa-espalda-zona-sujetador-madrid' ) ),
+            array( 'label' => 'Muslos y región subglútea', 'slugs' => array( 'flacidez-muslos-internos-subgluteo-madrid' ) ),
+            array( 'label' => 'Rodillas', 'slugs' => array( 'tratamiento-rodillas-grasa-flacidez-madrid' ) ),
+            array( 'label' => 'Contorno masculino', 'slugs' => array( 'contorno-corporal-masculino-madrid' ) ),
+        );
+    } elseif ( false !== stripos( $child_label, 'Post-Maternity' ) || false !== stripos( $child_label, 'Profile Definition' ) ) {
+        $child['children'] = array();
+    }
+    return $child;
+}
+
+/**
  * Restricts the primary navigation to supported Signature routes and published clinical case routes.
  *
  * @param array $blueprint The primary navigation blueprint.
@@ -268,20 +293,7 @@ function nvx_signature_phase_navigation_blueprint( array $blueprint ): array {
             if ( false !== stripos( $child_label, 'Eye Frame' ) ) {
                 continue;
             }
-            if ( false !== stripos( $child_label, 'Contour Sculpt' ) || false !== stripos( $child_label, 'Contour Architecture' ) || false !== stripos( $child_label, 'Couture Sculpt' ) ) {
-                $child['label'] = 'NUVANX Contour Architecture™';
-                $child['slugs'] = array( 'remodelacion-corporal-laser-madrid' );
-                $child['children'] = array(
-                    array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
-                    array( 'label' => 'Brazos y axila', 'slugs' => array( 'flacidez-grasa-localizada-brazos-madrid' ) ),
-                    array( 'label' => 'Espalda y zona del sujetador', 'slugs' => array( 'grasa-espalda-zona-sujetador-madrid' ) ),
-                    array( 'label' => 'Muslos y región subglútea', 'slugs' => array( 'flacidez-muslos-internos-subgluteo-madrid' ) ),
-                    array( 'label' => 'Rodillas', 'slugs' => array( 'tratamiento-rodillas-grasa-flacidez-madrid' ) ),
-                    array( 'label' => 'Contorno masculino', 'slugs' => array( 'contorno-corporal-masculino-madrid' ) ),
-                );
-            } elseif ( false !== stripos( $child_label, 'Post-Maternity' ) || false !== stripos( $child_label, 'Profile Definition' ) ) {
-                $child['children'] = array();
-            }
+            $child = nvx_signature_apply_contour_children( $child );
             $children[] = $child;
         }
         $blueprint[ $top_index ]['children'] = $children;

@@ -800,30 +800,12 @@ function nvx_content_ensure_exion_investment( string $content ): string {
 add_filter( 'the_content', 'nvx_content_ensure_exion_investment', 126 );
 
 /**
- * Unify conversion CTAs globally in post content.
+ * Helper to update CTA labels in HTML.
  */
-function nvx_content_unify_ctas( string $content ): string {
+function nvx_content_normalize_cta_labels( string $content ): string {
 	$primary_label  = 'Iniciar mi valoración médica';
 	$whatsapp_label = 'Contactar por WhatsApp';
-	$valoracion_url = nvx_cta_valoracion_url();
-	$whatsapp_url   = nvx_cta_whatsapp_url();
-
-	// Paired hero / brand action clusters: primary + secondary.
-	// Since we are upgrading to a new HTML structure (hero-cta-group with a <button>),
-	// we completely replace the inner contents of these wrappers.
-	$content = preg_replace_callback(
-		'/<div\s+class="([^"]*(?:nvx-home-hero-ctas|nvx-brand-actions|nvx-page__cta|nvx-cta-pair)[^"]*)">[\s\S]*?<\/div>/u',
-		static function ( array $m ): string {
-			// Do not recursively nest if it already has nvx-cta-cluster.
-			if ( strpos( $m[1], 'nvx-cta-cluster' ) !== false ) {
-				return $m[0];
-			}
-			return nvx_cta_pair_markup( $m[1] );
-		},
-		$content
-	);
-
-	// Label normalization for remaining anchors.
+	
 	$label_map = array(
 		'Solicitar valoración médica personalizada' => $primary_label,
 		'Solicitar valoración médica'               => $primary_label,
@@ -841,13 +823,21 @@ function nvx_content_unify_ctas( string $content ): string {
 		'RESERVAR CITA'                             => $primary_label,
 		'Explorar tratamientos exclusivos'          => $whatsapp_label,
 	);
-
+	
 	foreach ( $label_map as $from => $to ) {
 		$content = str_ireplace( '>' . $from . '<', '>' . $to . '<', $content );
 	}
+	
+	return $content;
+}
 
-	// Primary conversion anchors → valoración URL (preserve classes).
-	$content = preg_replace_callback(
+/**
+ * Helper to rewrite primary conversion anchors.
+ */
+function nvx_content_unify_primary_anchors( string $content ): string {
+	$valoracion_url = nvx_cta_valoracion_url();
+	
+	return preg_replace_callback(
 		'/<a\b([^>]*)>(\s*Iniciar mi valoración médica\s*)<\/a>/iu',
 		static function ( array $m ) use ( $valoracion_url ): string {
 			$attrs = $m[1];
@@ -855,10 +845,16 @@ function nvx_content_unify_ctas( string $content ): string {
 			return '<a' . $attrs . ' href="' . esc_url( $valoracion_url ) . '">' . $m[2] . '</a>';
 		},
 		$content
-	);
+	) ?? $content;
+}
 
-	// WhatsApp anchors → wa.me (preserve classes).
-	$content = preg_replace_callback(
+/**
+ * Helper to rewrite WhatsApp anchors.
+ */
+function nvx_content_unify_whatsapp_anchors( string $content ): string {
+	$whatsapp_url = nvx_cta_whatsapp_url();
+	
+	return preg_replace_callback(
 		'/<a\b([^>]*)>(\s*Contactar por WhatsApp\s*)<\/a>/iu',
 		static function ( array $m ) use ( $whatsapp_url ): string {
 			$attrs = $m[1];
@@ -868,23 +864,51 @@ function nvx_content_unify_ctas( string $content ): string {
 			return '<a' . $attrs . ' href="' . esc_url( $whatsapp_url ) . '" target="_blank" rel="noopener noreferrer">' . $m[2] . '</a>';
 		},
 		$content
-	);
+	) ?? $content;
+}
 
-	// Invitation free-text blocks → dual CTA pair.
+/**
+ * Unify conversion CTAs globally in post content.
+ */
+function nvx_content_unify_ctas( string $content ): string {
+	// 1. Paired hero / brand action clusters.
+	$content = preg_replace_callback(
+		'/<div\s+class="([^"]*(?:nvx-home-hero-ctas|nvx-brand-actions|nvx-page__cta|nvx-cta-pair)[^"]*)">[\s\S]*?<\/div>/u',
+		static function ( array $m ): string {
+			if ( strpos( $m[1], 'nvx-cta-cluster' ) !== false ) {
+				return $m[0];
+			}
+			return nvx_cta_pair_markup( $m[1] );
+		},
+		$content
+	) ?? $content;
+
+	// 2. Normalize labels
+	$content = nvx_content_normalize_cta_labels( $content );
+
+	// 3. Primary anchors
+	$content = nvx_content_unify_primary_anchors( $content );
+
+	// 4. WhatsApp anchors
+	$content = nvx_content_unify_whatsapp_anchors( $content );
+
+	// 5. Invitation free-text blocks
 	$content = preg_replace(
 		'/<div class="nvx-home-invitation">[\s\S]*?<\/div>/u',
 		nvx_cta_pair_markup( 'nvx-home-invitation' ),
 		$content
-	);
+	) ?? $content;
 
-	// Final band CTAs.
+	// 6. Final band CTAs
+	$valoracion_url = nvx_cta_valoracion_url();
+	$primary_label  = 'Iniciar mi valoración médica';
 	$content = preg_replace(
 		'/(class="[^"]*nvx-home-cta-final-band[^"]*"[\s\S]*?<a[^>]*href=")[^"]*("[^>]*>)([^<]*)(<\/a>)/u',
 		'$1' . esc_url( $valoracion_url ) . '$2' . esc_html( $primary_label ) . '$4',
 		$content
-	);
+	) ?? $content;
 
-	return is_string( $content ) ? $content : '';
+	return $content;
 }
 
 /**
@@ -922,13 +946,10 @@ function nvx_html_attrs_add_class( string $attrs, string $class_token ): string 
 }
 
 /**
- * Normalize body figures/images so every page shares the same media rules.
- * Heroes are left untouched (full-bleed stage) — extracted before body tagging.
+ * Helper to process hero media blocks.
  */
-function nvx_content_normalize_body_media( string $content ): string {
-	// Protect hero media blocks so imgs inside never get nvx-media--body (was cutting heroes with a gray band).
-	$hero_slots = array();
-	$protected  = preg_replace_callback(
+function nvx_content_process_hero_media( string $content, array &$hero_slots ): string {
+	return preg_replace_callback(
 		'/<((?:figure|div))\b([^>]*\bclass=["\'][^"\']*\bnvx-(?:brand|editorial|page)?-?hero__media\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/\1>/iu',
 		static function ( array $m ) use ( &$hero_slots ): string {
 			$key                = '<!--NVX_HERO_MEDIA_' . count( $hero_slots ) . '-->';
@@ -936,13 +957,15 @@ function nvx_content_normalize_body_media( string $content ): string {
 			return $key;
 		},
 		$content
-	);
-	$content = is_string( $protected ) ? $protected : $content;
+	) ?? $content;
+}
 
-	// Portraits + formula stages must not get body-figure margins / height:auto.
+/**
+ * Helper to normalize figure blocks.
+ */
+function nvx_content_normalize_figures( string $content ): string {
 	$skip_figure = 'nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-equipo-portrait|nvx-brand-card__media|nvx-brand-card__media--portrait';
-
-	$updated = preg_replace_callback(
+	return preg_replace_callback(
 		'/<figure\b([^>]*)>/iu',
 		static function ( array $m ) use ( $skip_figure ): string {
 			$attrs = $m[1];
@@ -952,73 +975,98 @@ function nvx_content_normalize_body_media( string $content ): string {
 			return '<figure' . nvx_html_attrs_add_class( $attrs, 'nvx-content-figure' ) . '>';
 		},
 		$content
-	);
-	$content = is_string( $updated ) ? $updated : $content;
+	) ?? $content;
+}
 
-	// Protect team / card portrait frames (doctor role, not body landscape crop).
-	$team_slots = array();
-	$protected  = preg_replace_callback(
+/**
+ * Helper to process inner images in team slots.
+ */
+function nvx_content_process_team_images( string $inner ): string {
+	return preg_replace_callback(
+		'/<img\b([^>]*)>/iu',
+		static function ( array $im ): string {
+			$a = $im[1];
+			if ( preg_match( '/nvx-logo|nvx-media--hero/i', $a ) ) {
+				return '<img' . $a . '>';
+			}
+			$a = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $a ) ?? $a;
+			$a = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $a ) ?? $a;
+			$a = nvx_html_attrs_add_class( $a, 'nvx-media' );
+			$a = nvx_html_attrs_add_class( $a, 'nvx-media--doctor' );
+			return '<img' . $a . '>';
+		},
+		$inner
+	) ?? $inner;
+}
+
+/**
+ * Helper to process team / portrait slots.
+ */
+function nvx_content_process_team_slots( string $content, array &$team_slots ): string {
+	return preg_replace_callback(
 		'/<figure\b([^>]*\bclass=["\'][^"\']*\b(?:nvx-brand-card__media|nvx-equipo-portrait)\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/figure>/iu',
 		static function ( array $m ) use ( &$team_slots ): string {
 			$attrs = $m[1];
-			// Only card media gets the portrait media class; authority figures keep nvx-equipo-portrait.
 			if ( false !== stripos( $attrs, 'nvx-brand-card__media' ) ) {
 				$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-brand-card__media--portrait' );
 			}
+			
 			$inner = $m[2];
 			$inner = preg_replace( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner ) ?? $inner;
-			$inner = preg_replace_callback(
-				'/<img\b([^>]*)>/iu',
-				static function ( array $im ): string {
-					$a = $im[1];
-					if ( preg_match( '/nvx-logo|nvx-media--hero/i', $a ) ) {
-						return '<img' . $a . '>';
-					}
-					$a = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $a ) ?? $a;
-					$a = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $a ) ?? $a;
-					$a = nvx_html_attrs_add_class( $a, 'nvx-media' );
-					$a = nvx_html_attrs_add_class( $a, 'nvx-media--doctor' );
-					return '<img' . $a . '>';
-				},
-				$inner
-			);
+			$inner = nvx_content_process_team_images( $inner );
+			
 			$key                = '<!--NVX_TEAM_MEDIA_' . count( $team_slots ) . '-->';
-			$team_slots[ $key ] = '<figure' . $attrs . '>' . ( is_string( $inner ) ? $inner : $m[2] ) . '</figure>';
+			$team_slots[ $key ] = '<figure' . $attrs . '>' . $inner . '</figure>';
 			return $key;
 		},
 		$content
-	);
-	$content = is_string( $protected ) ? $protected : $content;
+	) ?? $content;
+}
 
-	$updated = preg_replace_callback(
+/**
+ * Helper to process raw standalone images.
+ */
+function nvx_content_process_standalone_images( string $content ): string {
+	return preg_replace_callback(
 		'/<img\b([^>]*)>/iu',
 		static function ( array $m ): string {
 			$attrs = $m[1];
 			if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero|nvx-media--doctor/i', $attrs ) ) {
 				return '<img' . $attrs . '>';
 			}
-
 			$attrs = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
-			// Strip accidental body role if ever re-processed on a hero path.
 			$attrs = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $attrs ) ?? $attrs;
 			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
 			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--body' );
-
 			return '<img' . $attrs . '>';
 		},
 		$content
-	);
-	$content = is_string( $updated ) ? $updated : $content;
+	) ?? $content;
+}
+
+/**
+ * Normalize body figures/images so every page shares the same media rules.
+ * Heroes are left untouched (full-bleed stage) — extracted before body tagging.
+ */
+function nvx_content_normalize_body_media( string $content ): string {
+	$hero_slots = array();
+	$content = nvx_content_process_hero_media( $content, $hero_slots );
+
+	$content = nvx_content_normalize_figures( $content );
+
+	$team_slots = array();
+	$content = nvx_content_process_team_slots( $content, $team_slots );
+
+	$content = nvx_content_process_standalone_images( $content );
 
 	// Restore protected media untouched.
 	if ( ! empty( $team_slots ) ) {
 		$content = str_replace( array_keys( $team_slots ), array_values( $team_slots ), $content );
 	}
-	// Restore hero media untouched (no body classes, full-bleed cover intact).
 	if ( ! empty( $hero_slots ) ) {
 		$content = str_replace( array_keys( $hero_slots ), array_values( $hero_slots ), $content );
 	}
-
+	
 	return $content;
 }
 

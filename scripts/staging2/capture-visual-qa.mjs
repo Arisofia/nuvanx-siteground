@@ -452,9 +452,8 @@ async function auditMobileNavigation(port) {
   try {
     session = await loadPage(port, `${baseUrl}/`, { width: 390, height: 844, mobile: true });
     await session.evaluate(`(() => {
-      const button = document.getElementById('nvx-hamburger-btn');
-      button?.focus();
-      button?.click();
+      document.getElementById('nvx-hamburger-btn')?.focus();
+      document.getElementById('nvx-hamburger-btn')?.click();
     })()`);
     await sleep(250);
     const drawer = await session.evaluate(`(() => {

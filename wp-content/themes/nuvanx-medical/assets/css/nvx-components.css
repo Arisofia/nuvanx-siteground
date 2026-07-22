@@ -1118,21 +1118,7 @@ section.nvx-hero, .nvx-brand-hero {
     font-size: var(--nvx-type-kicker);
     line-height: var(--nvx-lh-kicker)}
 
-.nvx-editorial-hero__copy .nvx-eyebrow{
-  color: var(--nvx-accent-muted);
-    margin-bottom: var(--nvx-space-2);
-    max-width: 34ch;
-    font-size: var(--nvx-type-kicker);
-    line-height: var(--nvx-lh-kicker)}
-
 .nvx-editorial-hero__copy .nvx-kicker{
-  color: var(--nvx-accent-muted);
-    margin-bottom: var(--nvx-space-2);
-    max-width: 34ch;
-    font-size: var(--nvx-type-kicker);
-    line-height: var(--nvx-lh-kicker)}
-
-.nvx-editorial-hero__copy .nvx-eyebrow{
   color: var(--nvx-accent-muted);
     margin-bottom: var(--nvx-space-2);
     max-width: 34ch;

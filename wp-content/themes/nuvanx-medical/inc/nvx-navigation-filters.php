@@ -62,7 +62,7 @@ function nvx_navigation_primary_blueprint(): array {
 				'mega'     => true,
 				'children' => array(
 					array(
-						'label'    => 'NUVANX Contour Sculpt™',
+						'label'    => 'NUVANX Couture Sculpt™',
 						'slugs'    => array( 'remodelacion-corporal-laser-madrid' ),
 						'children' => array(
 							array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),

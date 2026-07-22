@@ -18,11 +18,11 @@ function nvx_protocol_pages_catalog(): array {
 	return array(
 		'couture-sculpt' => array(
 			'slug'          => 'remodelacion-corporal-laser-madrid',
-			'seo_title'     => 'NUVANX Contour Sculpt™: Remodelación Corporal en Madrid',
+			'seo_title'     => 'Couture Sculpt™: Remodelación Corporal en Madrid',
 			'description'   => 'Diagnóstico médico y remodelación corporal sin cirugía. Tratamos grasa localizada y firmeza con tecnología láser ajustada a tu anatomía.',
 			'kicker'        => 'CONTORNO CORPORAL NUVANX',
 			'h1'          => 'El diagnóstico determina el plan corporal. No la máquina de moda.',
-			'lead'          => 'Si intentas tratar la grasa localizada como si fuera retención de líquidos, perderás tiempo y dinero. En NUVANX empezamos por un diagnóstico médico sincero para entender tu tejido antes de proponer un protocolo.',
+			'lead'          => 'Couture Sculpt™: El protocolo y la tecnología. Tres decisiones clínicas: Reducir, Redefinir, Retraer. Si intentas tratar la grasa localizada como si fuera retención de líquidos, perderás tiempo y dinero. En NUVANX empezamos por un diagnóstico médico sincero para entender tu tejido antes de proponer un protocolo.',
 			'diagnosis'   => 'Diferenciamos de forma precisa entre grasa subcutánea (que podemos tratar), grasa visceral (que requiere abordaje nutricional), laxitud cutánea y celulitis. No todas las zonas responden igual, y nuestro diagnóstico separa el tejido fibrótico del tejido laxo para elegir la tecnología adecuada.',
 			'mechanism'   => 'Combinamos láser subdérmico (Endoláser) para lipólisis y retracción térmica con radiofrecuencia focalizada, destruyendo los adipocitos y forzando a la piel a tensarse en el mismo acto médico.',
 			'indications' => array(

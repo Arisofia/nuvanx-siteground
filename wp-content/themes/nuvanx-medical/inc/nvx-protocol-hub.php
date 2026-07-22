@@ -29,11 +29,7 @@ function nvx_protocol_hub_card( string $title, string $body, string $path ): str
 	return $html;
 }
 
-/**
- * Builds the complete Protocolos Signature hub page markup.
- *
- * @return string The HTML markup for the Protocolos Signature hub page.
- */
+/** Builds the complete Protocolos Signature hub page markup. */
 function nvx_protocol_hub_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-hub nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
@@ -53,7 +49,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<h2>' . esc_html__( 'Contorno Corporal y Posgestacional', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-catalog-grid">';
 	$html .= nvx_protocol_hub_card(
-		'NUVANX Contour Architecture™',
+		'NUVANX Couture Sculpt™',
 		'Para cuando quieres que tu cuerpo se vea como una sola pieza, no como zonas tratadas por separado.',
 		'/remodelacion-corporal-laser-madrid/'
 	);

@@ -2,11 +2,6 @@
 /**
  * WP-CLI command for the NUVANX production-readiness content migration.
  *
- * Usage:
- * wp --require=scripts/wp/nvx-production-readiness-command.php nvx production-readiness audit
- * wp --require=scripts/wp/nvx-production-readiness-command.php nvx production-readiness audit --allow-pending
- * wp --require=scripts/wp/nvx-production-readiness-command.php nvx production-readiness apply --confirm=retire-prototypes
- *
  * @package nuvanx-siteground
  */
 
@@ -14,74 +9,66 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	return;
 }
 
-/**
- * Audits and applies the idempotent production-readiness content migration.
- */
+/** Audits and applies the idempotent production-readiness migration. */
 final class NVX_Production_Readiness_Command {
 	private const CONFIRMATION_TOKEN = 'retire-prototypes';
 	private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
 	private const LOCK_TTL_SECONDS   = 900;
 
-	/**
-	 * Approved pages that must exist after the migration.
-	 *
-	 * @return array<string,array{title:string,content:string}>
-	 */
+	/** Approved pages that must exist after the migration. */
 	private function approved_pages(): array {
 		return array(
 			'por-que-nuvanx' => array(
-				'title'   => 'Por qué NUVANX',
-				'content' => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->',
+				'title'         => 'Por qué NUVANX',
+				'content'       => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->',
+				'promote_draft' => false,
 			),
 			'inversion-medicina-estetica' => array(
-				'title'   => 'Inversión en medicina estética',
-				'content' => '<!-- NUVANX_STRATEGY_PAGE:investment -->',
+				'title'         => 'Inversión en medicina estética',
+				'content'       => '<!-- NUVANX_STRATEGY_PAGE:investment -->',
+				'promote_draft' => false,
+			),
+			'soluciones-medicas' => array(
+				'title'         => 'Soluciones médicas',
+				'content'       => '<!-- NUVANX_STRATEGY_PAGE:solutions -->',
+				'promote_draft' => true,
 			),
 			'protocolos-signature' => array(
-				'title'   => 'Protocolos Signature',
-				'content' => '<!-- NUVANX_PROTOCOL_HUB -->',
+				'title'         => 'Protocolos Signature',
+				'content'       => '<!-- NUVANX_PROTOCOL_HUB -->',
+				'promote_draft' => false,
 			),
 			'remodelacion-corporal-laser-madrid' => array(
-				'title'   => 'Remodelación corporal láser diseñada según tu anatomía.',
-				'content' => '<!-- NUVANX_PROTOCOL_PAGE:couture-sculpt -->',
+				'title'         => 'Remodelación corporal láser diseñada según tu anatomía.',
+				'content'       => '<!-- NUVANX_PROTOCOL_PAGE:couture-sculpt -->',
+				'promote_draft' => false,
+			),
+			'tratamiento-postparto-abdomen-contorno-corporal-madrid' => array(
+				'title'         => 'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid',
+				'content'       => '<!-- NUVANX_PROTOCOL_PAGE:post-maternity -->',
+				'promote_draft' => true,
 			),
 		);
 	}
 
-	/**
-	 * Returns the shared retired or unpublished page contract from the active theme.
-	 *
-	 * @return array<string,array{status:string,target:string}>
-	 */
+	/** Shared retired-page contract from the active theme. */
 	private function governed_pages(): array {
 		if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
 			WP_CLI::error( 'Production-readiness governed-page contract is unavailable.' );
 		}
-
 		return nvx_production_readiness_governed_pages();
 	}
 
-	/**
-	 * Finds a page by its path slug regardless of publication status.
-	 *
-	 * @param string $slug The page path slug.
-	 * @return WP_Post|null The matching page, or null if no page is found.
-	 */
+	/** Find one page by slug regardless of publication status. */
 	private function page_by_slug( string $slug ): ?WP_Post {
 		$page = get_page_by_path( $slug, OBJECT, 'page' );
 		return $page instanceof WP_Post ? $page : null;
 	}
 
-	/**
-	 * Returns menu item IDs that reference a page.
-	 *
-	 * @param int $page_id Referenced WordPress page ID.
-	 * @return int[]
-	 */
+	/** Return menu-item IDs that reference a page. */
 	private function menu_item_ids( int $page_id ): array {
-		$ids   = array();
-		$menus = wp_get_nav_menus();
-		foreach ( $menus as $menu ) {
+		$ids = array();
+		foreach ( wp_get_nav_menus() as $menu ) {
 			$items = wp_get_nav_menu_items( $menu->term_id );
 			if ( ! is_array( $items ) ) {
 				continue;
@@ -95,11 +82,7 @@ final class NVX_Production_Readiness_Command {
 		return array_values( array_unique( $ids ) );
 	}
 
-	/**
-	 * Builds the current audit rows.
-	 *
-	 * @return array<int,array<string,string|int>>
-	 */
+	/** Build current audit rows. */
 	private function audit_rows(): array {
 		$rows = array();
 		foreach ( $this->approved_pages() as $slug => $definition ) {
@@ -125,16 +108,10 @@ final class NVX_Production_Readiness_Command {
 				'expected'   => $definition['status'],
 			);
 		}
-
 		return $rows;
 	}
 
-	/**
-	 * Checks whether audit rows meet the migration requirements.
-	 *
-	 * @param array<int,array<string,string|int>> $rows Audit rows to evaluate.
-	 * @return bool `true` if all rows satisfy the migration contract, `false` otherwise.
-	 */
+	/** Check audit rows against the migration contract. */
 	private function is_clean( array $rows ): bool {
 		foreach ( $rows as $row ) {
 			if ( 'approved' === $row['type'] && 'publish' !== $row['status'] ) {
@@ -150,20 +127,16 @@ final class NVX_Production_Readiness_Command {
 		return true;
 	}
 
-	/**
-	 * Acquires the migration lock and registers its cleanup on shutdown.
-	 */
+	/** Acquire a short-lived migration lock. */
 	private function acquire_lock(): void {
 		$now      = time();
 		$existing = (int) get_option( self::LOCK_OPTION, 0 );
 		if ( $existing > 0 && ( $now - $existing ) > self::LOCK_TTL_SECONDS ) {
 			delete_option( self::LOCK_OPTION );
 		}
-
 		if ( ! add_option( self::LOCK_OPTION, (string) $now, '', false ) ) {
 			WP_CLI::error( 'Another production-readiness migration is already running.' );
 		}
-
 		register_shutdown_function(
 			static function (): void {
 				delete_option( self::LOCK_OPTION );
@@ -171,18 +144,12 @@ final class NVX_Production_Readiness_Command {
 		);
 	}
 
-	/**
-	 * Releases the migration lock.
-	 */
+	/** Release the migration lock. */
 	private function release_lock(): void {
 		delete_option( self::LOCK_OPTION );
 	}
 
-	/**
-	 * Validates confirmation and environment restrictions for a mutating run.
-	 *
-	 * @param array<string,mixed> $assoc_args WP-CLI associative arguments.
-	 */
+	/** Validate mutation confirmation and host restrictions. */
 	private function validate_invocation( array $assoc_args ): void {
 		$confirmation = isset( $assoc_args['confirm'] ) ? (string) $assoc_args['confirm'] : '';
 		if ( self::CONFIRMATION_TOKEN !== $confirmation ) {
@@ -201,16 +168,32 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
-	/**
-	 * Creates only approved pages that are currently absent.
-	 */
+	/** Create absent approved pages and explicitly promote approved drafts. */
 	private function apply_approved_pages(): void {
 		foreach ( $this->approved_pages() as $slug => $definition ) {
 			$page = $this->page_by_slug( $slug );
 			if ( $page ) {
-				if ( 'publish' !== $page->post_status ) {
-					WP_CLI::warning( sprintf( 'Approved page %s exists with status %s; preserving it for manual review.', $slug, $page->post_status ) );
+				if ( 'publish' === $page->post_status ) {
+					continue;
 				}
+				if ( empty( $definition['promote_draft'] ) || ! in_array( $page->post_status, array( 'draft', 'pending', 'private' ), true ) ) {
+					WP_CLI::warning( sprintf( 'Approved page %s exists with status %s; preserving it for manual review.', $slug, $page->post_status ) );
+					continue;
+				}
+
+				$result = wp_update_post(
+					array(
+						'ID'           => (int) $page->ID,
+						'post_status'  => 'publish',
+						'post_title'   => $definition['title'],
+						'post_content' => $definition['content'],
+					),
+					true
+				);
+				if ( is_wp_error( $result ) ) {
+					WP_CLI::error( sprintf( 'Unable to publish approved page %s: %s', $slug, $result->get_error_message() ) );
+				}
+				WP_CLI::log( sprintf( 'Published approved page %s as ID %d.', $slug, (int) $page->ID ) );
 				continue;
 			}
 
@@ -231,9 +214,7 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
-	/**
-	 * Removes menu references and applies the governed status to retired pages.
-	 */
+	/** Remove menu references and apply governed states to retired pages. */
 	private function apply_governed_pages(): void {
 		foreach ( $this->governed_pages() as $slug => $definition ) {
 			$page = $this->page_by_slug( $slug );
@@ -268,28 +249,15 @@ final class NVX_Production_Readiness_Command {
 					WP_CLI::error( sprintf( 'Unable to update %s: %s', $slug, $result->get_error_message() ) );
 				}
 			}
-
 			WP_CLI::log( sprintf( 'Updated %s to %s.', $slug, $definition['status'] ) );
 		}
 	}
 
-	/**
-	 * Audits approved and governed pages against the production-readiness requirements.
-	 *
-	 * ## OPTIONS
-	 *
-	 * [--format=<format>]
-	 * : Output format, either table or json. Default: table.
-	 *
-	 * [--allow-pending]
-	 * : Report pending changes without returning a failing exit code.
-	 *   Intended for pre-apply audits in the protected staging2 workflow.
-	 */
+	/** Audit production-readiness state. */
 	public function audit( array $args, array $assoc_args ): void {
 		$rows   = $this->audit_rows();
 		$format = isset( $assoc_args['format'] ) ? (string) $assoc_args['format'] : 'table';
 		WP_CLI\Utils\format_items( $format, $rows, array( 'type', 'slug', 'id', 'status', 'menu_items', 'expected' ) );
-
 		if ( ! $this->is_clean( $rows ) ) {
 			if ( isset( $assoc_args['allow-pending'] ) ) {
 				WP_CLI::warning( 'Production-readiness audit found pending changes, as permitted for pre-apply inspection.' );
@@ -300,17 +268,7 @@ final class NVX_Production_Readiness_Command {
 		WP_CLI::success( 'Production-readiness audit passed.' );
 	}
 
-	/**
-	 * Applies the approved-page migration, retires governed pages, and verifies the resulting site state.
-	 *
-	 * ## OPTIONS
-	 *
-	 * --confirm=<token>
-	 * : Must be exactly "retire-prototypes".
-	 *
-	 * [--allow-production]
-	 * : Required when the WordPress host is nuvanx.com or www.nuvanx.com.
-	 */
+	/** Apply approved publication and retired-page governance. */
 	public function apply( array $args, array $assoc_args ): void {
 		$this->validate_invocation( $assoc_args );
 		$this->acquire_lock();

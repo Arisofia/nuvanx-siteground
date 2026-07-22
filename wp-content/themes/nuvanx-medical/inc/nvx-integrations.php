@@ -16,15 +16,12 @@ require_once __DIR__ . '/nvx-strategy-pages.php';
 require_once __DIR__ . '/nvx-conversion-events.php';
 require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 
-/**
- * Prevent strategy pages from being written during normal web requests.
- * Content creation and retirement are handled by the audited WP-CLI migration.
- */
+/** Prevent strategy pages from being written during normal web requests. */
 remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
 
 /**
- * Returns the single governed-page contract shared by runtime redirects and the
- * production-readiness WP-CLI migration.
+ * Returns the governed retired-page contract shared by runtime redirects and
+ * the production-readiness migration.
  *
  * @return array<string,array{status:string,target:string}>
  */
@@ -36,20 +33,12 @@ function nvx_production_readiness_governed_pages(): array {
 		),
 		'v-lift-awake' => array(
 			'status' => 'trash',
-			'target' => '/papada-definicion-mandibular-madrid/',
-		),
-		'tratamiento-postparto-abdomen-contorno-corporal-madrid' => array(
-			'status' => 'draft',
 			'target' => '/protocolos-signature/',
 		),
 	);
 }
 
-/**
- * Determines whether the current request is for the Goya clinic page.
- *
- * @return bool `true` for the Goya page, `false` otherwise.
- */
+/** Determines whether the current request is for the Goya clinic page. */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
 		return false;
@@ -97,12 +86,7 @@ add_action(
 	1
 );
 
-/**
- * Normalize public document markup and remove duplicate front-page FAQ structured data.
- *
- * @param string $html Rendered document markup.
- * @return string
- */
+/** Normalize public document markup and remove duplicate front-page FAQ schema. */
 function nvx_theme_normalize_public_document( string $html ): string {
 	$html = (string) preg_replace(
 		'/<meta\s+name=["\']viewport["\'][^>]*>/i',
@@ -130,7 +114,6 @@ function nvx_theme_normalize_public_document( string $html ): string {
 	if ( is_string( $normalized ) ) {
 		$html = $normalized;
 	}
-
 	return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
 }
 
@@ -149,6 +132,7 @@ require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
 require_once __DIR__ . '/nvx-page-hygiene.php';
 require_once __DIR__ . '/nvx-p0-publication-guard.php';
 require_once __DIR__ . '/nvx-seo-metadata.php';
+require_once __DIR__ . '/nvx-editorial-seo-extension.php';
 require_once __DIR__ . '/nvx-seo-production-readiness.php';
 require_once __DIR__ . '/nvx-contacto-audit-fixes.php';
 require_once __DIR__ . '/nvx-faq-content-v2.php';
@@ -171,13 +155,7 @@ add_action(
 	1
 );
 
-/**
- * Redirects retired and unpublished routes by request path.
- *
- * This intentionally does not depend on `is_singular()`: the migration moves
- * retired pages to trash or draft, and their canonical redirects must continue
- * working after WordPress stops resolving them as public singular objects.
- */
+/** Redirects retired routes by request path. */
 function nvx_redirect_governed_routes(): void {
 	if ( is_admin() ) {
 		return;
@@ -186,8 +164,8 @@ function nvx_redirect_governed_routes(): void {
 	$request_path = isset( $_SERVER['REQUEST_URI'] )
 		? (string) wp_parse_url( (string) $_SERVER['REQUEST_URI'], PHP_URL_PATH )
 		: '';
-	$normalized   = trim( $request_path, '/' );
-	$redirects    = array(
+	$normalized = trim( $request_path, '/' );
+	$redirects  = array(
 		'tratamiento-retirado' => '/tratamientos/',
 	);
 

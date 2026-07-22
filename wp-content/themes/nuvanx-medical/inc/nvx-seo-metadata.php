@@ -27,6 +27,14 @@ function nvx_seo_metadata_catalog(): array {
 			'title'       => 'Tratamientos Medicina Estética Láser Madrid | NUVANX',
 			'description' => 'Tratamientos de medicina estética láser en Madrid: Endolift®, Láser CO₂, EXION® BTL, IPL y medicina facial con valoración clínica.',
 		),
+		'protocolos_signature' => array(
+			'title'       => 'Protocolos Signature | NUVANX Madrid',
+			'description' => 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.',
+		),
+		'couture_sculpt' => array(
+			'title'       => 'Remodelación corporal láser Madrid | NUVANX',
+			'description' => 'Remodelación corporal láser en Madrid por unidades anatómicas para grasa localizada, laxitud y continuidad del contorno tras valoración médica.',
+		),
 		'clinicas'     => array(
 			'title'       => 'Clínicas NUVANX Madrid | Chamberí y Salamanca–Goya',
 			'description' => 'Clínicas de medicina estética láser NUVANX en Chamberí y Salamanca–Goya. Direcciones, horarios, registros sanitarios y mapas.',
@@ -170,6 +178,8 @@ function nvx_seo_current_metadata_key(): ?string {
 	$path = nvx_seo_current_path();
 	$map  = array(
 		'/tratamientos/' => 'tratamientos',
+		'/protocolos-signature/' => 'protocolos_signature',
+		'/remodelacion-corporal-laser-madrid/' => 'couture_sculpt',
 		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
 		'/medicina-estetica-chamberi/' => 'chamberi',
 		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',

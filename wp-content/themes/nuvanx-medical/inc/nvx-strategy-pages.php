@@ -80,8 +80,8 @@ function nvx_strategy_solutions_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
 	$html .= '<p class="nvx-brand-kicker">NUVANX · Soluciones médicas</p>';
-	$html .= '<h1 class="nvx-strategy-title">Soluciones médicas para rostro, piel y contorno corporal.</h1>';
-	$html .= '<p class="nvx-brand-lead">Una misma preocupación puede tener causas distintas. Organizamos las opciones por anatomía y diagnóstico para explicar qué puede tratarse, con qué límites y cuándo es preferible no intervenir.</p>';
+	$html .= '<h1 class="nvx-strategy-title">Cada persona tiene un problema distinto, aunque lo llame igual que la de al lado.</h1>';
+	$html .= '<p class="nvx-brand-lead">Dos personas pueden odiar lo mismo de su papada y necesitar tratamientos totalmente distintos — una tiene grasa, la otra solo piel floja. Por eso no te vamos a enseñar un catálogo de máquinas para que elijas: primero miramos qué tienes tú, y de ahí sale el plan.</p>';
 	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">Solicitar valoración médica</a></p>';
 	$html .= '<p class="nvx-brand-microcopy">El diagnóstico determina el plan. No la tendencia ni el catálogo.</p>';
 	$html .= '</header>';
@@ -95,8 +95,8 @@ function nvx_strategy_solutions_markup(): string {
 	$html .= '<p>Las preocupaciones del tercio inferior, la mirada y la calidad facial suelen ser mixtas. El diagnóstico separa grasa, laxitud, pérdida de soporte y alteraciones de superficie.</p><div class="nvx-catalog-grid">';
 	$html .= nvx_strategy_solution_card(
 		'Papada y definición mandibular',
-		'Grasa submentoniana, laxitud cervical, soporte mandibular y proporción del perfil.',
-		'Cuando la alteración es principalmente ósea o existe exceso importante de piel puede ser necesaria otra vía.',
+		'A veces es grasa, a veces es que la piel ya no aguanta, y a veces las dos cosas. Se nota igual desde fuera, pero el tratamiento no es el mismo — por eso primero te miramos de cerca.',
+		'No solemos recomendarlo si el problema es de hueso (mentón retraído) o si sobra demasiada piel — ahí lo honesto es hablar de cirugía, no de láser.',
 		'/papada-definicion-mandibular-madrid/',
 		'Protocolo relacionado: Profile Definition™'
 	);
@@ -185,8 +185,7 @@ function nvx_strategy_solutions_markup(): string {
 
 	$html .= '<section class="nvx-brand-section">';
 	$html .= '<h2>Valoración de procedimientos previos</h2>';
-	$html .= '<p>Si has realizado un tratamiento en NUVANX o en otro centro y tienes dudas sobre la evolución, el resultado o el seguimiento, puedes solicitar una segunda valoración clínica. Se revisan el estado actual de los tejidos, la información disponible del procedimiento previo y las opciones razonables.</p>';
-	$html .= '<p>Si el tejido necesita tiempo, no existe indicación de nuevo tratamiento o la vía adecuada es una derivación, se explica con la misma claridad.</p>';
+	$html .= '<p>¿Te trataste en otro sitio y no estás segura de si quedó bien, o de qué hacer ahora? Te lo miramos sin compromiso. A veces la respuesta es "espera un poco más", y te lo decimos igual, aunque no salga una venta de ahí.</p>';
 	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">Solicitar segunda valoración médica</a></p>';
 	$html .= '</section></article>';
 	return $html;

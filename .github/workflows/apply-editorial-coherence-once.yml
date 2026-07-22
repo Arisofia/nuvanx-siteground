@@ -28,10 +28,11 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Restore base line-ending convention
+      - name: Restore and validate
         run: |
-          set -euo pipefail
-          python <<'PY'
+          set -uo pipefail
+          : > editorial-line-endings.log
+          python <<'PY' >>editorial-line-endings.log 2>&1 || status=$?
           from pathlib import Path
           import subprocess
 
@@ -54,11 +55,33 @@ jobs:
                   normalized = normalized.replace(b'\n', b'\r\n')
               if normalized != current:
                   path.write_bytes(normalized)
+                  print(f'normalized={relative}')
           PY
-          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
-          node --check scripts/theme-hygiene/test-theme-hygiene.mjs
-          node scripts/theme-hygiene/test-theme-hygiene.mjs
-          git diff --check
+          if [[ "${status:-0}" -eq 0 ]]; then
+            find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null 2>>editorial-line-endings.log || status=$?
+          fi
+          if [[ "${status:-0}" -eq 0 ]]; then
+            node --check scripts/theme-hygiene/test-theme-hygiene.mjs >>editorial-line-endings.log 2>&1 || status=$?
+          fi
+          if [[ "${status:-0}" -eq 0 ]]; then
+            node scripts/theme-hygiene/test-theme-hygiene.mjs >>editorial-line-endings.log 2>&1 || status=$?
+          fi
+          if [[ "${status:-0}" -eq 0 ]]; then
+            git diff --check >>editorial-line-endings.log 2>&1 || status=$?
+          fi
+          cat editorial-line-endings.log
+          exit "${status:-0}"
+
+      - name: Upload normalization diagnostics
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: editorial-line-endings-${{ github.run_id }}
+          path: |
+            editorial-line-endings.log
+            theme-hygiene-report.txt
+          retention-days: 7
+          if-no-files-found: warn
 
       - name: Commit normalized result
         env:
@@ -66,7 +89,10 @@ jobs:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
-          rm -f .github/workflows/apply-editorial-coherence-once.yml theme-hygiene-report.txt
+          rm -f \
+            .github/workflows/apply-editorial-coherence-once.yml \
+            editorial-line-endings.log \
+            theme-hygiene-report.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A

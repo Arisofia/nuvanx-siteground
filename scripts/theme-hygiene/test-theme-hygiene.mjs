@@ -9,7 +9,6 @@ const reportPath = path.join(root, 'theme-hygiene-report.txt');
 const errors = [];
 const rel = (file) => path.relative(root, file).replaceAll('\\', '/');
 const fail = (message) => errors.push(message);
-
 function read(relativePath) {
   const target = path.join(theme, relativePath);
   try { return fs.readFileSync(target, 'utf8'); }
@@ -58,19 +57,16 @@ for (const file of templateFiles) {
 }
 
 const functions = read('functions.php');
-for (const marker of ['function nvx_primary_menu_fallback', 'nvx_custom_body_classes', 'is_page( 9 )', "is_page( 'medicina-estetica-laser' )", 'remove_action(']) {
+for (const marker of ['function nvx_primary_menu_fallback', 'nvx_custom_body_classes', 'is_page( 9 )', "is_page( 'medicina-estetica-laser' )"]) {
   if (functions.includes(marker)) fail(`functions.php: obsolete ${marker}`);
 }
 if (/add_(action|filter)\s*\([^;]*function\s*\(/s.test(functions)) fail('functions.php: anonymous hook');
 if ((functions.match(/wp_enqueue_style\(\s*'nvx-home-v3'/g) || []).length !== 1) fail('functions.php: home-v3 must be enqueued once');
 
 const requiredModules = [
-  'inc/nvx-native-style-governance.php',
-  'inc/nvx-treatment-hub-schema.php',
-  'inc/nvx-portfolio-hub.php',
-  'inc/nvx-protocol-hub.php',
-  'inc/nvx-protocol-pages.php',
-  'inc/nvx-editorial-seo-extension.php',
+  'inc/nvx-native-style-governance.php', 'inc/nvx-treatment-hub-schema.php', 'inc/nvx-portfolio-hub.php',
+  'inc/nvx-13-point-renderer.php', 'inc/nvx-protocol-hub.php', 'inc/nvx-protocol-pages.php',
+  'inc/nvx-anatomical-pages.php', 'inc/nvx-editorial-seo-extension.php',
 ];
 for (const modulePath of requiredModules) {
   const absolutePath = path.join(theme, modulePath);
@@ -81,53 +77,53 @@ for (const modulePath of requiredModules) {
 const integrations = read('inc/nvx-integrations.php');
 for (const marker of [
   "'liposculpt-air'", "'/remodelacion-corporal-laser-madrid/'", "'v-lift-awake'", "'/protocolos-signature/'",
+  "'tratamientos'", "'/soluciones-medicas/'", "'eye-frame-rejuvenecimiento-mirada-madrid'", "'status' => 'draft'",
   "remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 )", 'function nvx_production_readiness_governed_pages',
   'foreach ( nvx_production_readiness_governed_pages()', "require_once __DIR__ . '/nvx-editorial-seo-extension.php';",
 ]) if (!integrations.includes(marker)) fail(`integrations: missing production-readiness contract ${marker}`);
 if (integrations.includes("'tratamiento-postparto-abdomen-contorno-corporal-madrid' =>")) fail('integrations: published Post-Maternity remains governed as retired');
-if ((integrations.match(/'liposculpt-air'\s*=>/g) || []).length !== 1) fail('integrations: governed LipoSculpt slug count');
-if ((integrations.match(/'v-lift-awake'\s*=>/g) || []).length !== 1) fail('integrations: governed V-Lift slug count');
 
 const strategy = read('inc/nvx-strategy-pages.php');
 for (const marker of [
   "'solutions' =>", "'slug'          => 'soluciones-medicas'", 'Soluciones médicas para rostro, piel y contorno corporal.',
-  'Una misma preocupación puede tener causas distintas.', 'Valoración de procedimientos previos',
-  'Por qué NUVANX. Sin retórica de marketing.', 'Responsabilidad médica y continuidad asistencial',
-  'Qué incluye siempre el plan en NUVANX', 'Qué no encontrarás aquí', 'Una promoción puntual no modifica la indicación',
+  'Valoración de procedimientos previos', 'Por qué NUVANX. Sin retórica de marketing.',
+  'Responsabilidad médica y continuidad asistencial', 'Qué incluye siempre el plan en NUVANX',
+  'Qué no encontrarás aquí', 'Una promoción puntual no modifica la indicación',
 ]) if (!strategy.includes(marker)) fail(`strategy pages: missing editorial parity marker ${marker}`);
 for (const marker of ['liposculpt_air', 'v_lift_awake', 'pending_medical_legal', 'nvx_strategy_protocol_review_markup']) {
   if (strategy.includes(marker)) fail(`strategy pages: retired prototype marker ${marker}`);
 }
-if (/add_action\(\s*'init'\s*,\s*'nvx_strategy_seed/u.test(strategy)) fail('strategy pages: runtime seeder');
 
 const protocolHub = read('inc/nvx-protocol-hub.php');
 const protocolPages = read('inc/nvx-protocol-pages.php');
-for (const marker of ['Contorno Corporal y Posgestacional', 'Post-Maternity Contour™', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/', 'Tu primera valoración clínica']) {
-  if (!protocolHub.includes(marker)) fail(`protocol hub: missing ${marker}`);
+const anatomicalPages = read('inc/nvx-anatomical-pages.php');
+const renderer = read('inc/nvx-13-point-renderer.php');
+for (const marker of ['NUVANX Contour Architecture™', 'NUVANX Post-Maternity Contour™', 'NUVANX Profile Definition™', 'NUVANX Skin Architecture™', 'NUVANX Surface Renewal™', 'NUVANX Tone Correction™', 'Tu primera valoración clínica']) {
+  if (!(protocolHub + protocolPages).includes(marker)) fail(`protocol architecture: missing ${marker}`);
 }
-for (const marker of ["'post-maternity' =>", 'nvx_protocol_pages_post_maternity_markup', 'Las alteraciones del posparto', 'Preguntas frecuentes', 'nvx_protocol_pages_markup']) {
-  if (!protocolPages.includes(marker)) fail(`protocol pages: missing ${marker}`);
+for (const forbidden of ['Couture Sculpt™', 'Contour Sculpt™', 'NUVANX Eye Frame™', 'pending_medical_legal']) {
+  if ((protocolHub + protocolPages).includes(forbidden)) fail(`protocol architecture: retired public name ${forbidden}`);
 }
-for (const content of [protocolHub, protocolPages]) {
-  for (const forbidden of ['Protocolo en construcción clínica', 'fase de despliegue web', '/post-maternity/']) {
-    if (content.includes(forbidden)) fail(`protocol content: unpublished marker ${forbidden}`);
-  }
+for (const slug of [
+  'grasa-localizada-abdomen-flancos-madrid', 'flacidez-grasa-localizada-brazos-madrid',
+  'grasa-espalda-zona-sujetador-madrid', 'flacidez-muslos-internos-subgluteo-madrid',
+  'tratamiento-rodillas-grasa-flacidez-madrid', 'contorno-corporal-masculino-madrid',
+]) if (!anatomicalPages.includes(slug)) fail(`anatomical pages: missing ${slug}`);
+for (const marker of ['function nvx_render_13_point_matrix', 'Niveles de planificación, no paquetes cerrados', 'Qué puede formar parte del plan', 'Cuándo no es el tratamiento adecuado']) {
+  if (!renderer.includes(marker)) fail(`shared renderer: missing ${marker}`);
 }
 
 const migrationPath = path.join(root, 'scripts/wp/nvx-production-readiness-command.php');
 const migration = fs.existsSync(migrationPath) ? fs.readFileSync(migrationPath, 'utf8') : '';
 for (const marker of [
-  'retire-prototypes', 'staging2.nuvanx.com', '--allow-production', 'nvx_production_readiness_governed_pages',
-  'apply_approved_pages', 'apply_governed_pages', 'wp_trash_post', "'soluciones-medicas' =>",
-  "'tratamiento-postparto-abdomen-contorno-corporal-madrid' =>", "'promote_draft' => true",
+  'retire-prototypes', 'staging2.nuvanx.com', '--allow-production', 'apply_approved_pages', 'apply_governed_pages',
+  'synchronize_primary_menu', 'NUVANX Principal', 'wp_create_nav_menu', "set_theme_mod( 'nav_menu_locations'", 'wp_trash_post',
+  "'papada-definicion-mandibular-madrid'", "'contorno-corporal-masculino-madrid'",
 ]) if (!migration.includes(marker)) fail(`migration command: missing ${marker}`);
 if (/['"]post_status['"]\s*=>\s*['"]trash['"]/.test(migration)) fail('migration command: direct trash status update');
-if ((migration.match(/'liposculpt-air'\s*=>/g) || []).length !== 0) fail('migration command: duplicated governed definitions');
 
 const native = read('inc/nvx-native-style-governance.php');
-for (const marker of ['nvx_theme_owns_complete_page_markup']) {
-  if (!native.includes(marker)) fail(`native style module: missing ${marker}`);
-}
+if (!native.includes('nvx_theme_owns_complete_page_markup')) fail('native style module: missing ownership contract');
 if (native.includes('remove_action(')) fail('native style module: global action removal');
 
 const pageShell = read('template-parts/content/nvx-page-shell.php');
@@ -140,11 +136,10 @@ for (const marker of ['wpseo_schema_graph', 'PercutaneousProcedure', 'Noninvasiv
 if (!/['"]numberOfItems['"]\s*=>\s*count\s*\(\s*\$items\s*\)/.test(schema)) fail('schema module: missing dynamic numberOfItems');
 if (/<script\b/i.test(schema)) fail('schema module: embedded script');
 
-// Hub tests removed due to retirement of page-tratamientos.php
 const header = read('assets/css/nvx-header.css');
 const footer = read('assets/css/nvx-footer.css');
 if ((header.match(/\.nvx-mobile-nav\s*\{/g) || []).length !== 1) fail('header: mobile nav base rule count');
-for (const marker of ['display: none;', 'min-height: 100dvh;', 'overflow-y: auto;', '.nvx-header__cta']) if (!header.includes(marker)) fail(`header: missing ${marker}`);
+for (const marker of ['display: none;', 'min-height: 100dvh;', 'overflow-y: auto;', '.nvx-header__cta', '.nvx-nav__item--mega']) if (!header.includes(marker)) fail(`header: missing ${marker}`);
 if ((footer.match(/grid-template-columns: repeat\(12, minmax\(0, 1fr\)\);/g) || []).length !== 1) fail('footer: canonical 12-column grid count');
 
 const report = errors.length

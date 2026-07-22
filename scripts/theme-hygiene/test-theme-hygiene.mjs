@@ -93,7 +93,7 @@ for (const marker of [
   "'solutions' =>", "'slug'          => 'soluciones-medicas'", 'Soluciones médicas para rostro, piel y contorno corporal.',
   'Una misma preocupación puede tener causas distintas.', 'Valoración de procedimientos previos',
   'Por qué NUVANX. Sin retórica de marketing.', 'Responsabilidad médica y continuidad asistencial',
-  'Qué incluye siempre el plan en NUVANX', 'Qué no encontrarás aquí', 'Una promoción puntual no modifica la indicación',
+  'Qué incluye siempre el plan en NUVANX', 'Qué no encontrarás aquí', 'Una promoción utilizada para cambiar la indicación clínica',
 ]) if (!strategy.includes(marker)) fail(`strategy pages: missing editorial parity marker ${marker}`);
 for (const marker of ['liposculpt_air', 'v_lift_awake', 'pending_medical_legal', 'nvx_strategy_protocol_review_markup']) {
   if (strategy.includes(marker)) fail(`strategy pages: retired prototype marker ${marker}`);

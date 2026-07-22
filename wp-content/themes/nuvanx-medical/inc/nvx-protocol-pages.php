@@ -106,28 +106,50 @@ function nvx_protocol_pages_catalog(): array {
 	return nvx_protocol_body_catalog();
 }
 
-/** 
- * Replaces content for the current governed body protocol using an inlined 
- * filter to avoid AST duplication with nvx-signature-phase-pages.php. 
- */
-add_filter( 'the_content', function ( string $content ): string {
-	if ( is_admin() || ! is_main_query() || ! in_the_loop() || ! is_page() || ! function_exists( 'nvx_render_13_point_matrix' ) ) {
-		return $content;
+/** Identifies the current approved protocol page. */
+function nvx_protocol_pages_current_key(): ?string {
+	if ( ! is_page() ) {
+		return null;
 	}
 
 	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	
-	foreach ( nvx_protocol_body_catalog() as $page ) {
+	foreach ( nvx_protocol_pages_catalog() as $key => $page ) {
 		if ( $page['slug'] === $slug && 'approved_for_publication' === ( $page['review_status'] ?? '' ) ) {
-			return nvx_render_13_point_matrix( $page );
+			return $key;
 		}
 	}
 
-	return $content;
-}, 21 );
+	return null;
+}
+
+/** Dispatches the universal 13-point markup for one approved protocol page. */
+function nvx_protocol_pages_markup( array $data ): string {
+	if ( empty( $data ) || ! function_exists( 'nvx_render_13_point_matrix' ) ) {
+		return '';
+	}
+
+	return nvx_render_13_point_matrix( $data );
+}
+
+/** Replaces the content of a matching approved protocol page. */
+function nvx_protocol_pages_content_filter( string $content ): string {
+	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
+		return $content;
+	}
+
+	$key = nvx_protocol_pages_current_key();
+	if ( null === $key ) {
+		return $content;
+	}
+
+	$data   = nvx_protocol_pages_catalog()[ $key ] ?? array();
+	$markup = nvx_protocol_pages_markup( $data );
+	return '' === $markup ? $content : $markup;
+}
+add_filter( 'the_content', 'nvx_protocol_pages_content_filter', 21 );
 
 /** Renders the Post-Maternity protocol page markup, including its frequently asked questions. */
 function nvx_protocol_pages_post_maternity_markup(): string {
-	$data = nvx_protocol_body_catalog()['post-maternity'] ?? array();
-	return function_exists( 'nvx_render_13_point_matrix' ) ? nvx_render_13_point_matrix( $data ) : '';
+	$data = nvx_protocol_pages_catalog()['post-maternity'] ?? array();
+	return nvx_protocol_pages_markup( $data );
 }

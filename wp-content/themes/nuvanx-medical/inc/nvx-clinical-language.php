@@ -48,7 +48,7 @@ function nvx_clinical_language_prohibited_phrases(): array {
 }
 
 /**
- * Normalizes public clinical text while preserving its HTML structure.
+ * Normalizes clinical text by replacing prohibited phrases and standardizing recovery-related language.
  *
  * @param string $text The clinical text to normalize.
  * @return string The normalized clinical text.
@@ -93,10 +93,10 @@ function nvx_clinical_language_recursive( $value ) {
 }
 
 /**
- * Normalizes public page content for clinical language compliance.
+ * Normalizes frontend rendered content for clinical language compliance.
  *
- * @param string $content The rendered page content.
- * @return string The normalized content.
+ * @param string $content The rendered content to normalize.
+ * @return string The normalized content, or the original content for admin, AJAX, and REST requests.
  */
 function nvx_clinical_language_content( string $content ): string {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {

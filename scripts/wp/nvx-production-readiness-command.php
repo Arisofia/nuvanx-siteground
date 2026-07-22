@@ -232,9 +232,9 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Validates confirmation, host, production authorization, and trash settings before applying the migration.
+	 * Validates safety requirements before applying the migration.
 	 *
-	 * @param array $assoc_args Associative command arguments, including safety flags.
+	 * @param array $assoc_args Associative command arguments, including confirmation and production authorization flags.
 	 */
 	private function validate_invocation( array $assoc_args ): void {
 		if ( self::CONFIRMATION_TOKEN !== (string) ( $assoc_args['confirm'] ?? '' ) ) {
@@ -255,7 +255,7 @@ final class NVX_Production_Readiness_Command {
 	/**
 	 * Publishes approved pages, creates missing pages, and updates their canonical content.
 	 *
-	 * Existing pages in other statuses are preserved unless their definition permits promotion.
+	 * Existing pages are promoted only when their definition allows it; other statuses are preserved for manual review.
 	 */
 	private function apply_approved_pages(): void {
 		foreach ( $this->approved_pages() as $slug => $definition ) {
@@ -277,7 +277,7 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Applies the governed-page contract by removing menu links and review metadata, then updating each existing page to its required status.
+	 * Applies the governed-page contract to existing pages by removing menu links and review metadata, then setting each page's required status.
 	 *
 	 * @return void
 	 */
@@ -309,7 +309,7 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Adds menu items and their child items to a navigation menu.
+	 * Inserts a hierarchy of navigation menu items into a menu.
 	 *
 	 * @param int   $menu_id   The navigation menu ID.
 	 * @param array $nodes     The menu node definitions to insert.
@@ -366,7 +366,7 @@ final class NVX_Production_Readiness_Command {
 	 * Audits production-readiness requirements and reports their status.
 	 *
 	 * @param array $args Positional command arguments.
-	 * @param array $assoc_args Associative command arguments, including output format and pending-change handling.
+	 * @param array $assoc_args Associative command arguments controlling output format and whether pending changes are allowed.
 	 */
 	public function audit( array $args, array $assoc_args ): void {
 		$rows = $this->audit_rows();
@@ -384,7 +384,7 @@ final class NVX_Production_Readiness_Command {
 	/**
 	 * Applies the production-readiness migration and verifies the resulting site state.
 	 *
-	 * @param array $args       Positional command arguments.
+	 * @param array $args Positional command arguments.
 	 * @param array $assoc_args Associative command arguments, including invocation safety options.
 	 */
 	public function apply( array $args, array $assoc_args ): void {

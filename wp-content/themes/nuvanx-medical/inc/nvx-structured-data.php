@@ -172,9 +172,6 @@ function nvx_tariff_catalog() {
  */
 function nvx_endolift_price_from_eur() { return 0.0; }
 
-	return (float) $catalog['endolift']['ojeras']['pvp'];
-}
-
 /**
  * Reference PVP for papada / marcación mandibular (page core indication).
  *

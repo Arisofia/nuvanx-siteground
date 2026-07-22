@@ -303,7 +303,7 @@ function nvx_anatomical_pages_current_key(): ?string {
 
 
 /** Dispatches the markup for one approved anatomical page. */
-function nvx_anatomical_pages_markup( string $key, array $data ): string {
+function nvx_anatomical_pages_markup( array $data ): string {
 	return nvx_render_13_point_matrix( $data );
 }
 
@@ -319,7 +319,7 @@ function nvx_anatomical_pages_content_filter( string $content ): string {
 	}
 
 	$data   = nvx_anatomical_pages_catalog()[ $key ];
-	$markup = nvx_anatomical_pages_markup( $key, $data );
+	$markup = nvx_anatomical_pages_markup( $data );
 	return '' === $markup ? $content : $markup;
 }
 add_filter( 'the_content', 'nvx_anatomical_pages_content_filter', 22 );

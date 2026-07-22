@@ -1,4 +1,1 @@
-FAIL: 3 theme hygiene finding(s)
-- strategy pages: missing editorial parity marker Soluciones médicas para rostro, piel y contorno corporal.
-- protocol pages: missing nvx_protocol_pages_post_maternity_markup
-- protocol pages: missing Las alteraciones del posparto
+PASS: theme hygiene across 88 runtime files

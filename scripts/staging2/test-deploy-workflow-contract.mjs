@@ -66,8 +66,8 @@ const phaseSlugs = [
 ];
 for (const marker of [
   'retire-prototypes', "'allow-pending'", '--allow-production', 'LOCK_OPTION', 'staging2.nuvanx.com',
-  'nvx_production_readiness_governed_pages', 'apply_approved_pages', 'apply_governed_pages', 'apply_primary_menu',
-  'canonical_menu_signature', 'current_menu_signature', 'wp_update_nav_menu_item', 'set_theme_mod',
+  'nvx_production_readiness_governed_pages', 'applyApprovedPages', 'applyGovernedPages', 'applyPrimaryMenu',
+  'canonicalMenuSignature', 'currentMenuSignature', 'wp_update_nav_menu_item', 'set_theme_mod',
   'EMPTY_TRASH_DAYS', 'wp_trash_post', "WP_CLI::add_command( 'nvx production-readiness'",
   "'soluciones-medicas' =>", "'tratamiento-postparto-abdomen-contorno-corporal-madrid' =>", "'promote_draft' => true",
 ]) if (!migration.includes(marker)) fail(`migration missing contract marker: ${marker}`);
@@ -155,7 +155,7 @@ const phpFiles = [
   'wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php',
 ];
 for (const relative of phpFiles) {
-  const result = spawnSync('php', ['-l', file(relative)], { encoding: 'utf8' });
+  const result = spawnSync('php', ['-l', file(relative)], { encoding: 'utf8', env: { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' } });
   if (result.error || result.status !== 0) {
     if (result.error?.code === 'ENOENT') continue; // php binary not available locally
     fail(`PHP lint failed for ${relative}: ${((result.stderr || result.stdout || '') + '').trim()}`);

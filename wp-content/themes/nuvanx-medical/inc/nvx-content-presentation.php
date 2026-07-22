@@ -138,7 +138,7 @@ function nvx_content_strip_page_closing_ctas( string $content ): string {
 	);
 
 	foreach ( $patterns as $pattern ) {
-		$content = nvx_content_preg_replace_keep( $pattern, '', $content );
+		$content = nvxContentPregReplaceKeep( $pattern, '', $content );
 	}
 
 	return $content;
@@ -306,7 +306,7 @@ function nvx_content_replace_values_sections( string $content ): string {
 	);
 
 	foreach ( $patterns as $pattern ) {
-		$updated = nvx_content_preg_replace_keep( $pattern, $replacement, $content, 1, $count );
+		$updated = nvxContentPregReplaceKeep( $pattern, $replacement, $content, 1, $count );
 		if ( is_string( $updated ) && $count > 0 ) {
 			$content = $updated;
 		}
@@ -327,7 +327,7 @@ function nvx_content_replace_values_sections( string $content ): string {
  * @param int             $limit   Limit (-1 = all).
  * @param int|null        $count   Optional match count out-param.
  */
-function nvx_content_preg_replace_keep( string $pattern, $replace, string $subject, int $limit = -1, ?int &$count = null ): string {
+function nvxContentPregReplaceKeep( string $pattern, $replace, string $subject, int $limit = -1, ?int &$count = null ): string {
 	if ( is_callable( $replace ) ) {
 		$result = preg_replace_callback( $pattern, $replace, $subject, $limit, $count );
 	} else {
@@ -369,8 +369,8 @@ function nvx_content_values_section_pattern(): string {
  * Remove the canonical post-values action banner only (stable id + data attribute).
  */
 function nvx_content_strip_post_values_action_banner( string $content ): string {
-	$content = nvx_content_preg_replace_keep( nvx_content_post_values_banner_pattern_with_id(), '', $content );
-	return nvx_content_preg_replace_keep( nvx_content_post_values_banner_pattern_legacy(), '', $content );
+	$content = nvxContentPregReplaceKeep( nvx_content_post_values_banner_pattern_with_id(), '', $content );
+	return nvxContentPregReplaceKeep( nvx_content_post_values_banner_pattern_legacy(), '', $content );
 }
 
 /**
@@ -389,7 +389,7 @@ function nvx_content_has_post_values_action_banner( string $content ): bool {
  */
 function nvx_content_ensure_post_values_action_banner( string $content ): string {
 	// Legacy dual CTA under values pillars only.
-	$content = nvx_content_preg_replace_keep( nvx_content_values_legacy_cta_pattern(), '', $content, 1 );
+	$content = nvxContentPregReplaceKeep( nvx_content_values_legacy_cta_pattern(), '', $content, 1 );
 
 	// Refresh: drop previous canonical banner then re-insert current markup.
 	$content = nvx_content_strip_post_values_action_banner( $content );
@@ -401,7 +401,7 @@ function nvx_content_ensure_post_values_action_banner( string $content ): string
 
 	$banner = nvx_home_action_banner_markup();
 	$count  = 0;
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		nvx_content_values_section_pattern(),
 		'$1' . $banner,
 		$content,
@@ -414,7 +414,7 @@ function nvx_content_ensure_post_values_action_banner( string $content ): string
 
 	// Fallback: values grid close inside its parent section (still structural).
 	$count   = 0;
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		'/(<div class="nvx-values">[\s\S]*?<\/div>\s*<\/div>\s*<\/section>)/iu',
 		'$1' . $banner,
 		$content,
@@ -445,12 +445,12 @@ function nvx_content_method_legacy_patterns(): array {
 function nvx_content_strip_extra_method_sections( string $content ): string {
 	// Drop any remaining legacy CMS method blocks.
 	foreach ( nvx_content_method_legacy_patterns() as $pattern ) {
-		$content = nvx_content_preg_replace_keep( $pattern, '', $content );
+		$content = nvxContentPregReplaceKeep( $pattern, '', $content );
 	}
 
 	// Keep only the first canonical method section; remove further copies.
 	$seen = 0;
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-method-section\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		static function ( array $m ) use ( &$seen ): string {
 			$seen++;
@@ -477,7 +477,7 @@ function nvx_content_replace_method_sections( string $content ): string {
 	// One replacement only (first match wins), then strip siblings.
 	foreach ( nvx_content_method_legacy_patterns() as $pattern ) {
 		$count   = 0;
-		$updated = nvx_content_preg_replace_keep( $pattern, $replacement, $content, 1, $count );
+		$updated = nvxContentPregReplaceKeep( $pattern, $replacement, $content, 1, $count );
 		if ( is_string( $updated ) && $count > 0 ) {
 			$content  = $updated;
 			$replaced = true;
@@ -502,14 +502,14 @@ function nvx_content_enrich_treatment_cards( string $content ): string {
 	$exion_new = 'Plataforma con aplicadores Fractional RF, Face y Body. La elección y el número de sesiones dependen del diagnóstico; no sustituye rellenos ni valoración médica.';
 
 	// Any brand-card titled Endolift® Facial…
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/(<h3 class="nvx-brand-card__title">\s*Endolift® Facial[\s\S]*?<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
 		'$1' . esc_html( $endolift_new ) . '$3',
 		$content
 	);
 
 	// Any brand-card titled EXION®…
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/(<h3 class="nvx-brand-card__title">\s*EXION®[\s\S]*?<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
 		'$1' . esc_html( $exion_new ) . '$3',
 		$content
@@ -517,17 +517,17 @@ function nvx_content_enrich_treatment_cards( string $content ): string {
 
 	// Strip residual “desde X € / PVP” price fragments that may remain in CMS card bodies on front.
 	if ( is_front_page() ) {
-		$content = nvx_content_preg_replace_keep(
+		$content = nvxContentPregReplaceKeep(
 			'/\s*(?:Tarifa[s]?\s+de\s+referencia\s+)?desde\s+[\d.,]+\s*€[^.<]*(?:\.|$)/iu',
 			'',
 			$content
 		) ?? $content;
-		$content = nvx_content_preg_replace_keep(
+		$content = nvxContentPregReplaceKeep(
 			'/\s*Papada\s*\/\s*marcación mandibular:\s*[\d.,]+\s*€[^.<]*(?:\.|$)/iu',
 			'',
 			$content
 		) ?? $content;
-		$content = nvx_content_preg_replace_keep(
+		$content = nvxContentPregReplaceKeep(
 			'/\s*\(PVP[^)]*\)\.?/iu',
 			'',
 			$content
@@ -549,8 +549,8 @@ function nvx_content_ensure_home_protocols( string $content ): string {
 
 	// The protocols section has been removed from the homepage.
 	// Strip any existing canonical or legacy protocols blocks.
-	$content = nvx_content_preg_replace_keep( '/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu', '', $content );
-	$content = nvx_content_preg_replace_keep( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Protocolos Médicos Especializados(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
+	$content = nvxContentPregReplaceKeep( '/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu', '', $content );
+	$content = nvxContentPregReplaceKeep( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Protocolos Médicos Especializados(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
 
 	return $content;
 }
@@ -608,15 +608,15 @@ function nvx_content_ensure_home_team_wellaging( string $content ): string {
 	}
 
 	// Remove legacy duplicated CMS blocks that are replaced by the canonical team strip.
-	$content = nvx_content_preg_replace_keep( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Liderazgo y Experiencia(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
-	$content = nvx_content_preg_replace_keep( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Registro sanitario(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
+	$content = nvxContentPregReplaceKeep( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Liderazgo y Experiencia(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
+	$content = nvxContentPregReplaceKeep( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Registro sanitario(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
 
 	$team = nvx_home_team_strip_markup();
 	$well = nvx_home_wellaging_strip_markup();
 
 	// Refresh existing blocks.
 	if ( false !== strpos( $content, 'id="nvx-home-team"' ) || false !== strpos( $content, "id='nvx-home-team'" ) ) {
-		$content = nvx_content_preg_replace_keep(
+		$content = nvxContentPregReplaceKeep(
 			'/<section\b[^>]*\bid=["\']nvx-home-team["\'][^>]*>[\s\S]*?<\/section>/iu',
 			$team,
 			$content,
@@ -624,7 +624,7 @@ function nvx_content_ensure_home_team_wellaging( string $content ): string {
 		);
 	}
 	if ( false !== strpos( $content, 'id="nvx-home-wellaging"' ) || false !== strpos( $content, "id='nvx-home-wellaging'" ) ) {
-		$content = nvx_content_preg_replace_keep(
+		$content = nvxContentPregReplaceKeep(
 			'/<section\b[^>]*\bid=["\']nvx-home-wellaging["\'][^>]*>[\s\S]*?<\/section>/iu',
 			$well,
 			$content,
@@ -642,7 +642,7 @@ function nvx_content_ensure_home_team_wellaging( string $content ): string {
 
 	// After protocols.
 	$count   = 0;
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		'/(<section\b[^>]*\bid=["\']nvx-home-protocols["\'][^>]*>[\s\S]*?<\/section>)/iu',
 		'$1' . $insert,
 		$content,
@@ -655,7 +655,7 @@ function nvx_content_ensure_home_team_wellaging( string $content ): string {
 
 	// After method section.
 	$count   = 0;
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		'/(<section\b[^>]*\bnvx-method-section\b[^>]*>[\s\S]*?<\/section>)/iu',
 		'$1' . $insert,
 		$content,
@@ -682,14 +682,14 @@ function nvx_content_enhance_director_blocks( string $content ): string {
 	);
 	$body = __( 'Especialista en Endolift®, láser CO₂ y medicina estética facial. La valoración, la indicación y el seguimiento se realizan con criterio médico. Martes y jueves: Chamberí. Miércoles: Salamanca–Goya.', 'nuvanx-medical' );
 
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/(class="nvx-brand-card__kicker">\s*Dr\.\s*José Javier Rivera Tejeda\s*<\/p>\s*<h3 class="nvx-brand-card__title">)([\s\S]*?)(<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
 		'$1' . esc_html( $role ) . '$3' . esc_html( $body ) . '$5',
 		$content
 	);
 
 	// Alternate: title holds the name.
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/(class="nvx-brand-card__title">\s*Dr\.\s*José Javier Rivera Tejeda\s*)(Director Médico[^<]*)?(<\/h3>\s*<p class="nvx-brand-card__body">)([\s\S]*?)(<\/p>)/u',
 		'$1' . esc_html( $role ) . '$3' . esc_html( $body ) . '$5',
 		$content
@@ -701,7 +701,7 @@ function nvx_content_enhance_director_blocks( string $content ): string {
 		$colegiado
 	);
 
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/(Nuestro equipo médico, liderado por el Dr\.\s*José Javier Rivera Tejeda)([^<]*)(<\/p>)/u',
 		esc_html( $lead ) . '$3',
 		$content
@@ -716,7 +716,7 @@ function nvx_content_enhance_director_blocks( string $content ): string {
  * alternatives by name.
  */
 function nvx_content_rewrite_morpheus_faq( string $content ): string {
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		'/<details\b[^>]*>[\s\S]*?<\/details>/iu',
 		static function ( array $matches ): string {
 			return preg_match( '/\bMorpheus8\b/iu', $matches[0] ) ? '' : $matches[0];
@@ -781,7 +781,7 @@ function nvx_content_ensure_exion_investment( string $content ): string {
 	$block = nvx_exion_investment_markup();
 
 	if ( false !== strpos( $content, 'id="inversion-exion"' ) || false !== strpos( $content, "id='inversion-exion'" ) ) {
-		$updated = nvx_content_preg_replace_keep(
+		$updated = nvxContentPregReplaceKeep(
 			'/<section\b[^>]*\bid=["\']inversion-exion["\'][^>]*>[\s\S]*?<\/section>/iu',
 			$block,
 			$content,
@@ -792,7 +792,7 @@ function nvx_content_ensure_exion_investment( string $content ): string {
 
 	// After first FAQ accordion or before last CTA cluster; fallback append.
 	$count   = 0;
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		'/(<section\b[^>]*\b(?:nvx-brand-faq|nvx-faq|nvx-home-faq)[^>]*>)/iu',
 		$block . '$1',
 		$content,
@@ -819,7 +819,7 @@ function nvx_content_unify_ctas( string $content ): string {
 	// Paired hero / brand action clusters: primary + secondary.
 	// Since we are upgrading to a new HTML structure (hero-cta-group with a <button>),
 	// we completely replace the inner contents of these wrappers.
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/<div\s+class="([^"]*(?:nvx-home-hero-ctas|nvx-brand-actions|nvx-page__cta|nvx-cta-pair)[^"]*)">[\s\S]*?<\/div>/u',
 		static function ( array $m ): string {
 			// Do not recursively nest if it already has nvx-cta-cluster.
@@ -855,38 +855,38 @@ function nvx_content_unify_ctas( string $content ): string {
 	}
 
 	// Primary conversion anchors → valoración URL (preserve classes).
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/<a\b([^>]*)>(\s*Iniciar mi valoración médica\s*)<\/a>/iu',
 		static function ( array $m ) use ( $valoracion_url ): string {
 			$attrs = $m[1];
-			$attrs = nvx_content_preg_replace_keep( '/\s*href=["\'][^"\']*["\']/i', '', $attrs );
+			$attrs = nvxContentPregReplaceKeep( '/\s*href=["\'][^"\']*["\']/i', '', $attrs );
 			return '<a' . $attrs . ' href="' . esc_url( $valoracion_url ) . '">' . $m[2] . '</a>';
 		},
 		$content
 	);
 
 	// WhatsApp anchors → wa.me (preserve classes).
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/<a\b([^>]*)>(\s*Contactar por WhatsApp\s*)<\/a>/iu',
 		static function ( array $m ) use ( $whatsapp_url ): string {
 			$attrs = $m[1];
-			$attrs = nvx_content_preg_replace_keep( '/\s*href=["\'][^"\']*["\']/i', '', $attrs );
-			$attrs = nvx_content_preg_replace_keep( '/\s*target=["\'][^"\']*["\']/i', '', $attrs );
-			$attrs = nvx_content_preg_replace_keep( '/\s*rel=["\'][^"\']*["\']/i', '', $attrs );
+			$attrs = nvxContentPregReplaceKeep( '/\s*href=["\'][^"\']*["\']/i', '', $attrs );
+			$attrs = nvxContentPregReplaceKeep( '/\s*target=["\'][^"\']*["\']/i', '', $attrs );
+			$attrs = nvxContentPregReplaceKeep( '/\s*rel=["\'][^"\']*["\']/i', '', $attrs );
 			return '<a' . $attrs . ' href="' . esc_url( $whatsapp_url ) . '" target="_blank" rel="noopener noreferrer">' . $m[2] . '</a>';
 		},
 		$content
 	);
 
 	// Invitation free-text blocks → dual CTA pair.
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/<div class="nvx-home-invitation">[\s\S]*?<\/div>/u',
 		nvx_cta_pair_markup( 'nvx-home-invitation' ),
 		$content
 	);
 
 	// Final band CTAs.
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/(class="[^"]*nvx-home-cta-final-band[^"]*"[\s\S]*?<a[^>]*href=")[^"]*("[^>]*>)([^<]*)(<\/a>)/u',
 		'$1' . esc_url( $valoracion_url ) . '$2' . esc_html( $primary_label ) . '$4',
 		$content
@@ -905,7 +905,7 @@ function nvx_content_strip_hero_inline_styles( string $content ): string {
 	$copy_bits = 'nvx-editorial-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy';
 	$inner_bits = 'nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner';
 	$pattern    = '/(<(?:section|div)\b[^>]*\bclass="[^"]*\b(?:' . $hero_bits . '|' . $copy_bits . '|' . $inner_bits . ')\b[^"]*"[^>]*)\s+style="[^"]*"/iu';
-	$updated    = nvx_content_preg_replace_keep( $pattern, '$1', $content );
+	$updated    = nvxContentPregReplaceKeep( $pattern, '$1', $content );
 	return $updated;
 }
 
@@ -917,7 +917,7 @@ function nvx_html_attrs_add_class( string $attrs, string $class_token ): string 
 		if ( false !== strpos( $cm[2], $class_token ) ) {
 			return $attrs;
 		}
-		$updated = nvx_content_preg_replace_keep(
+		$updated = nvxContentPregReplaceKeep(
 			'/\bclass=(["\'])/',
 			'class=$1' . $class_token . ' ',
 			$attrs,
@@ -936,7 +936,7 @@ function nvx_html_attrs_add_class( string $attrs, string $class_token ): string 
 function nvx_content_normalize_body_media( string $content ): string {
 	// Protect hero media blocks so imgs inside never get nvx-media--body (was cutting heroes with a gray band).
 	$hero_slots = array();
-	$protected  = nvx_content_preg_replace_keep(
+	$protected  = nvxContentPregReplaceKeep(
 		'/<((?:figure|div))\b([^>]*\bclass=["\'][^"\']*\bnvx-(?:brand|editorial|page)?-?hero__media\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/\1>/iu',
 		static function ( array $m ) use ( &$hero_slots ): string {
 			$key                = '<!--NVX_HERO_MEDIA_' . count( $hero_slots ) . '-->';
@@ -950,7 +950,7 @@ function nvx_content_normalize_body_media( string $content ): string {
 	// Portraits + formula stages must not get body-figure margins / height:auto.
 	$skip_figure = 'nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-equipo-portrait|nvx-brand-card__media|nvx-brand-card__media--portrait';
 
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		'/<figure\b([^>]*)>/iu',
 		static function ( array $m ) use ( $skip_figure ): string {
 			$attrs = $m[1];
@@ -965,7 +965,7 @@ function nvx_content_normalize_body_media( string $content ): string {
 
 	// Protect team / card portrait frames (doctor role, not body landscape crop).
 	$team_slots = array();
-	$protected  = nvx_content_preg_replace_keep(
+	$protected  = nvxContentPregReplaceKeep(
 		'/<figure\b([^>]*\bclass=["\'][^"\']*\b(?:nvx-brand-card__media|nvx-equipo-portrait)\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/figure>/iu',
 		static function ( array $m ) use ( &$team_slots ): string {
 			$attrs = $m[1];
@@ -974,16 +974,16 @@ function nvx_content_normalize_body_media( string $content ): string {
 				$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-brand-card__media--portrait' );
 			}
 			$inner = $m[2];
-			$inner = nvx_content_preg_replace_keep( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner );
-			$inner = nvx_content_preg_replace_keep(
+			$inner = nvxContentPregReplaceKeep( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner );
+			$inner = nvxContentPregReplaceKeep(
 				'/<img\b([^>]*)>/iu',
 				static function ( array $im ): string {
 					$a = $im[1];
 					if ( preg_match( '/nvx-logo|nvx-media--hero/i', $a ) ) {
 						return '<img' . $a . '>';
 					}
-					$a = nvx_content_preg_replace_keep( '/\s+style=["\'][^"\']*["\']/i', '', $a );
-					$a = nvx_content_preg_replace_keep( '/\s*nvx-media--body\s*/i', ' ', $a );
+					$a = nvxContentPregReplaceKeep( '/\s+style=["\'][^"\']*["\']/i', '', $a );
+					$a = nvxContentPregReplaceKeep( '/\s*nvx-media--body\s*/i', ' ', $a );
 					$a = nvx_html_attrs_add_class( $a, 'nvx-media' );
 					$a = nvx_html_attrs_add_class( $a, 'nvx-media--doctor' );
 					return '<img' . $a . '>';
@@ -998,7 +998,7 @@ function nvx_content_normalize_body_media( string $content ): string {
 	);
 	$content = is_string( $protected ) ? $protected : $content;
 
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		'/<img\b([^>]*)>/iu',
 		static function ( array $m ): string {
 			$attrs = $m[1];
@@ -1006,9 +1006,9 @@ function nvx_content_normalize_body_media( string $content ): string {
 				return '<img' . $attrs . '>';
 			}
 
-			$attrs = nvx_content_preg_replace_keep( '/\s+style=["\'][^"\']*["\']/i', '', $attrs );
+			$attrs = nvxContentPregReplaceKeep( '/\s+style=["\'][^"\']*["\']/i', '', $attrs );
 			// Strip accidental body role if ever re-processed on a hero path.
-			$attrs = nvx_content_preg_replace_keep( '/\s*nvx-media--body\s*/i', ' ', $attrs );
+			$attrs = nvxContentPregReplaceKeep( '/\s*nvx-media--body\s*/i', ' ', $attrs );
 			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
 			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--body' );
 
@@ -1041,7 +1041,7 @@ function nvx_content_strip_duplicate_fachada( string $content ): string {
 		return $content;
 	}
 
-	$updated = nvx_content_preg_replace_keep(
+	$updated = nvxContentPregReplaceKeep(
 		'/\s*<section\b[^>]*\bnvx-brand-section--fachada\b[^>]*>[\s\S]*?<\/section>/iu',
 		'',
 		$content,
@@ -1072,15 +1072,15 @@ function nvx_content_strip_versioned_class_tokens( string $content ): string {
 	foreach ( $map as $from => $to ) {
 		// Whole class token only (not substrings of longer BEM names).
 		$pattern = '/(?<=[\s"\'])' . preg_quote( $from, '/' ) . '(?=[\s"\'])/u';
-		$content = nvx_content_preg_replace_keep( $pattern, $to, $content );
+		$content = nvxContentPregReplaceKeep( $pattern, $to, $content );
 	}
 
 	// Collapse leftover double spaces inside class attributes.
-	$content = nvx_content_preg_replace_keep(
+	$content = nvxContentPregReplaceKeep(
 		'/\bclass=(["\'])([^"\']*)\1/u',
 		static function ( array $m ): string {
 			$q     = $m[1];
-			$clean = nvx_content_preg_replace_keep( '/\s+/u', ' ', trim( $m[2] ) ) ?? $m[2];
+			$clean = nvxContentPregReplaceKeep( '/\s+/u', ' ', trim( $m[2] ) ) ?? $m[2];
 			return 'class=' . $q . $clean . $q;
 		},
 		$content
@@ -1334,7 +1334,7 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 	}
 
 	if ( preg_match( '/<\/div>\s*$/i', $content ) ) {
-		$replaced = nvx_content_preg_replace_keep( '/(<\/div>\s*)$/i', $injections . '$1', $content );
+		$replaced = nvxContentPregReplaceKeep( '/(<\/div>\s*)$/i', $injections . '$1', $content );
 		return is_string( $replaced ) ? $replaced : $content . $injections;
 	}
 

@@ -12,6 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 $hero_video_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
 $hero_poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
+$img_papada = '/uploads/2026/07/Endolift-Papada.webp';
 
 $editorial_stories = array(
 	array(
@@ -39,7 +40,7 @@ $editorial_stories = array(
 		'url'         => home_url( '/cicatrices-acne-poros-textura-madrid/' ),
 	),
 	array(
-		'image'       => content_url( '/uploads/2026/07/Endolift-Papada.webp' ),
+		'image'       => content_url( $img_papada ),
 		'alt'         => 'Perfil facial editorial para el protocolo Profile Definition',
 		'kicker'      => 'PROFILE DEFINITION™',
 		'title'       => 'Definición que se percibe. Intervención que no se anuncia.',
@@ -50,7 +51,7 @@ $editorial_stories = array(
 
 $solution_cards = array(
 	array(
-		'image' => content_url( '/uploads/2026/07/Endolift-Papada.webp' ),
+		'image' => content_url( $img_papada ),
 		'alt'   => 'Valoración de papada, mandíbula y cuello',
 		'label' => 'Rostro y cuello',
 		'title' => 'Papada y definición mandibular',
@@ -101,7 +102,7 @@ $solution_cards = array(
 
 $evolution_cards = array(
 	array(
-		'image' => content_url( '/uploads/2026/07/Endolift-Papada.webp' ),
+		'image' => content_url( $img_papada ),
 		'alt'   => 'Documentación clínica de evolución de papada y perfil',
 		'label' => 'Perfil y cuello',
 	),
@@ -132,9 +133,10 @@ ob_start();
 <div id="nvx-home-v3" class="nvx-home-v3 nvx-home-v4">
 	<section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
 		<div class="nvx-home-hero__media" aria-hidden="true">
-			<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>">
+			<video aria-hidden="true" id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>">
 				<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
-			</video>
+			  <track kind="captions" src="/uploads/captions.vtt" srclang="es" label="Espa�ol">
+</video>
 		</div>
 		<div class="nvx-home-hero__copy">
 			<p class="nvx-home-eyebrow">NUVANX · MEDICINA ESTÉTICA LÁSER</p>

@@ -102,24 +102,24 @@ function nvx_co2_editorial_body_markup(): string {
 		? nvx_format_price_eur( $catalog['laser_co2']['corporal']['pvp'] )
 		: number_format_i18n( 450, 2 );
 
-	$html  = '<div class="nvx-co2-editorial nvx-endolift-editorial">';
+	$html  = '<div class="nvx-co2-editorial nvx-editorial-page">';
 
 	// A. Science of fractional ablation.
-	$html .= '<section class="nvx-endolift-section nvx-co2-science" aria-labelledby="nvx-co2-science-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-co2-science-title" class="nvx-endolift-heading">' . esc_html__( 'La ciencia de la ablación fraccionada', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'El láser hace micro-heridas controladas y minúsculas en la piel, dejando el tejido de alrededor intacto. Eso obliga a la piel a regenerarse desde dentro — como cuando te haces una herida pequeña y la piel nueva sale más lisa.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Ese tejido peri-lesional acelera la curación y estimula una respuesta de neocolagénesis (colágeno tipo I y III). No es un peeling cosmético superficial: es una intervención de alto impacto que exige planificación médica y compromiso con el downtime.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<section class="nvx-editorial-section nvx-co2-science" aria-labelledby="nvx-co2-science-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-co2-science-title" class="nvx-editorial-heading">' . esc_html__( 'La ciencia de la ablación fraccionada', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El láser hace micro-heridas controladas y minúsculas en la piel, dejando el tejido de alrededor intacto. Eso obliga a la piel a regenerarse desde dentro — como cuando te haces una herida pequeña y la piel nueva sale más lisa.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Ese tejido peri-lesional acelera la curación y estimula una respuesta de neocolagénesis (colágeno tipo I y III). No es un peeling cosmético superficial: es una intervención de alto impacto que exige planificación médica y compromiso con el downtime.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></section>';
 
 	// B. Indications.
-	$html .= '<section class="nvx-endolift-section nvx-co2-indications" aria-labelledby="nvx-co2-ind-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Indicaciones', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-co2-ind-title" class="nvx-endolift-heading">' . esc_html__( 'Indicaciones terapéuticas principales', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'El equipo médico (dirección Dr. Rivera Tejeda) ajusta potencia, profundidad fraccional y densidad de haces según fototipo, objetivo y tolerancia al downtime.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-endolaser-zone-list">';
+	$html .= '<section class="nvx-editorial-section nvx-co2-indications" aria-labelledby="nvx-co2-ind-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Indicaciones', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-co2-ind-title" class="nvx-editorial-heading">' . esc_html__( 'Indicaciones terapéuticas principales', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El equipo médico (dirección Dr. Rivera Tejeda) ajusta potencia, profundidad fraccional y densidad de haces según fototipo, objetivo y tolerancia al downtime.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-editorial-grid-list">';
 	$inds = array(
 		array(
 			'title' => __( 'Cicatrices atróficas de acné', 'nuvanx-medical' ),
@@ -135,19 +135,19 @@ function nvx_co2_editorial_body_markup(): string {
 		),
 	);
 	foreach ( $inds as $ind ) {
-		$html .= '<li class="nvx-endolaser-zone">';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $ind['title'] ) . '</h3>';
-		$html .= '<p class="nvx-endolift-body">' . esc_html( $ind['body'] ) . '</p>';
+		$html .= '<li class="nvx-editorial-grid-item">';
+		$html .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $ind['title'] ) . '</h3>';
+		$html .= '<p class="nvx-editorial-body">' . esc_html( $ind['body'] ) . '</p>';
 		$html .= '</li>';
 	}
 	$html .= '</ul></div></section>';
 
 	// C. Recovery timeline (unique — not on Endolift FAQ).
-	$html .= '<section class="nvx-endolift-section nvx-co2-downtime" aria-labelledby="nvx-co2-down-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Downtime médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-co2-down-title" class="nvx-endolift-heading">' . esc_html__( 'Cronología real de la recuperación', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'El CO₂ fraccionado exige compromiso con la curación. Los plazos siguientes son orientativos y dependen de la profundidad del protocolo.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<section class="nvx-editorial-section nvx-co2-downtime" aria-labelledby="nvx-co2-down-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Downtime médico', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-co2-down-title" class="nvx-editorial-heading">' . esc_html__( 'Cronología real de la recuperación', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El CO₂ fraccionado exige compromiso con la curación. Los plazos siguientes son orientativos y dependen de la profundidad del protocolo.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ol class="nvx-co2-timeline">';
 	$phases = array(
 		array(
@@ -170,16 +170,16 @@ function nvx_co2_editorial_body_markup(): string {
 		$html .= '<li class="nvx-co2-timeline__item">';
 		$html .= '<span class="nvx-co2-timeline__n">' . esc_html( $phase['n'] ) . '</span>';
 		$html .= '<h3 class="nvx-co2-timeline__title">' . esc_html( $phase['title'] ) . '</h3>';
-		$html .= '<p class="nvx-endolift-body">' . esc_html( $phase['body'] ) . '</p>';
+		$html .= '<p class="nvx-editorial-body">' . esc_html( $phase['body'] ) . '</p>';
 		$html .= '</li>';
 	}
 	$html .= '</ol></div></section>';
 
 	// D. PVP reference (clinic tariff — facial 330 / body 450).
-	$html .= '<section class="nvx-endolift-section nvx-co2-pricing" aria-labelledby="nvx-co2-price-title" id="tarifas-co2">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Tarifas públicas', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-co2-price-title" class="nvx-endolift-heading">' . esc_html__( 'PVP sesión Láser CO₂ (IVA incluido)', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<section class="nvx-editorial-section nvx-co2-pricing" aria-labelledby="nvx-co2-price-title" id="tarifas-co2">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Tarifas públicas', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-co2-price-title" class="nvx-editorial-heading">' . esc_html__( 'PVP sesión Láser CO₂ (IVA incluido)', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-endolift-price-table-wrap">';
 	$html .= '<table class="nvx-endolift-price-table">';
 	$html .= '<caption class="nvx-endolift-price-table__cap">' . esc_html__( 'Tarifa clínica de referencia. Profundidad y zonas pueden modular el plan y el número de sesiones.', 'nuvanx-medical' ) . '</caption>';
@@ -187,7 +187,7 @@ function nvx_co2_editorial_body_markup(): string {
 	$html .= '<tr><th scope="row">' . esc_html__( 'Láser CO₂ facial', 'nuvanx-medical' ) . '</th><td>' . esc_html( $price_facial ) . '&nbsp;€</td></tr>';
 	$html .= '<tr><th scope="row">' . esc_html__( 'Láser CO₂ corporal', 'nuvanx-medical' ) . '</th><td>' . esc_html( $price_body ) . '&nbsp;€</td></tr>';
 	$html .= '</tbody></table></div>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure"><em>' . esc_html__( 'La indicación, el fototipo y el downtime esperable se confirman en valoración presencial antes de cualquier sesión.', 'nuvanx-medical' ) . '</em></p>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure"><em>' . esc_html__( 'La indicación, el fototipo y el downtime esperable se confirman en valoración presencial antes de cualquier sesión.', 'nuvanx-medical' ) . '</em></p>';
 	$html .= '</div></section>';
 
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
@@ -212,7 +212,7 @@ function nvx_content_restructure_co2_page( string $content ): string {
 		$media = $m[0];
 	}
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero nvx-co2-hero" aria-labelledby="nvx-co2-h1" aria-label="' . esc_attr__( 'Láser CO₂ NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero nvx-co2-hero" aria-labelledby="nvx-co2-h1" aria-label="' . esc_attr__( 'Láser CO₂ NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_co2_hero_copy_markup();
 	$hero .= $media;

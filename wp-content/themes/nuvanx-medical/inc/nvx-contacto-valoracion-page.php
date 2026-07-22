@@ -147,19 +147,19 @@ function nvx_contact_clinics_markup(): string {
  * Valoración clinical intro (form stays separate / primary via form-first filter).
  */
 function nvx_valoracion_intro_markup(): string {
-	$html  = '<section class="nvx-endolift-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Primer paso', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-endolift-heading">' . esc_html__( 'Una consulta médica para orientar tu caso', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Antes de proponer un láser o un protocolo, hay que confirmar si existe indicación. La consulta médica estética se realiza de forma presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Saldrás con un criterio claro. El equipo, bajo la dirección del Dr. Rivera Tejeda, sigue tres pasos:', 'nuvanx-medical' ) . '</p>';
+	$html  = '<section class="nvx-editorial-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Primer paso', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-editorial-heading">' . esc_html__( 'Una consulta médica para orientar tu caso', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Antes de proponer un láser o un protocolo, hay que confirmar si existe indicación. La consulta médica estética se realiza de forma presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Saldrás con un criterio claro. El equipo, bajo la dirección del Dr. Rivera Tejeda, sigue tres pasos:', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ol class="nvx-co2-timeline nvx-valoracion-steps">';
 	$n = 1;
 	foreach ( nvx_valoracion_process_steps() as $step ) {
 		$html .= '<li class="nvx-co2-timeline__item">';
 		$html .= '<span class="nvx-co2-timeline__n">' . esc_html( sprintf( '%02d', $n ) ) . '</span>';
 		$html .= '<h3 class="nvx-co2-timeline__title">' . esc_html( $step['title'] ) . '</h3>';
-		$html .= '<p class="nvx-endolift-body">' . esc_html( $step['body'] ) . '</p>';
+		$html .= '<p class="nvx-editorial-body">' . esc_html( $step['body'] ) . '</p>';
 		$html .= '</li>';
 		$n++;
 	}
@@ -168,10 +168,10 @@ function nvx_valoracion_intro_markup(): string {
 	$html .= '</div></section>';
 
 	// Compact NAP under process (phones secondary; form is primary CTA).
-	$html .= '<section class="nvx-endolift-section nvx-valoracion-locations" aria-labelledby="nvx-valoracion-loc-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-valoracion-loc-title" class="nvx-endolift-heading">' . esc_html__( 'Ubicaciones autorizadas por Sanidad', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<section class="nvx-editorial-section nvx-valoracion-locations" aria-labelledby="nvx-valoracion-loc-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-valoracion-loc-title" class="nvx-editorial-heading">' . esc_html__( 'Ubicaciones autorizadas por Sanidad', 'nuvanx-medical' ) . '</h2>';
 	$html .= nvx_contact_clinics_markup();
 	$html .= '</div></section>';
 

@@ -410,7 +410,7 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$id = $c['marker'];
 
 	// Hero.
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero ' . esc_attr( $c['marker'] ) . '-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero ' . esc_attr( $c['marker'] ) . '-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= '<div class="nvx-brand-hero__copy">';
 	$hero .= '<p class="nvx-brand-kicker">' . esc_html( $c['kicker'] ) . '</p>';
@@ -429,22 +429,22 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$hero .= '<p class="nvx-brand-meta">' . esc_html( $c['meta'] ) . '</p>';
 	$hero .= '</div></div></section>';
 
-	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-endolift-editorial nvx-btl-detail-editorial">';
+	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-editorial-page nvx-btl-detail-editorial">';
 
 	// Mechanism (same zone-list pattern as Endoláser / CO₂ — no page-exclusive layout).
-	$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-mech">';
-	$body .= '<div class="nvx-endolift-section__inner">';
-	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-mech" class="nvx-endolift-heading">' . esc_html( (string) ( $c['mechanism']['title'] ?? '' ) ) . '</h2>';
+	$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-mech">';
+	$body .= '<div class="nvx-editorial-section__inner">';
+	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
+	$body .= '<h2 id="' . esc_attr( $id ) . '-mech" class="nvx-editorial-heading">' . esc_html( (string) ( $c['mechanism']['title'] ?? '' ) ) . '</h2>';
 	foreach ( (array) ( $c['mechanism']['body'] ?? array() ) as $p ) {
 		$p = is_string( $p ) ? trim( $p ) : '';
 		if ( '' === $p ) {
 			continue;
 		}
-		$body .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html( $p ) . '</p>';
+		$body .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html( $p ) . '</p>';
 	}
 	if ( ! empty( $c['mechanism']['items'] ) && is_array( $c['mechanism']['items'] ) ) {
-		$body .= '<ul class="nvx-endolaser-zone-list">';
+		$body .= '<ul class="nvx-editorial-grid-list">';
 		foreach ( $c['mechanism']['items'] as $item ) {
 			if ( ! is_array( $item ) ) {
 				continue;
@@ -454,26 +454,26 @@ function nvx_btl_detail_page_markup( string $key ): string {
 			if ( '' === $title && '' === $text ) {
 				continue;
 			}
-			$body .= '<li class="nvx-endolaser-zone">';
+			$body .= '<li class="nvx-editorial-grid-item">';
 			if ( '' !== $title ) {
-				$body .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $title ) . '</h3>';
+				$body .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
 			}
 			if ( '' !== $text ) {
-				$body .= '<p class="nvx-endolift-body">' . esc_html( $text ) . '</p>';
+				$body .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
 			}
 			$body .= '</li>';
 		}
 		$body .= '</ul>';
 	}
-	$body .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( $c['hub'] ) . '">' . esc_html__( 'Ver plataforma EXION® BTL (hub)', 'nuvanx-medical' ) . '</a></p>';
+	$body .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $c['hub'] ) . '">' . esc_html__( 'Ver plataforma EXION® BTL (hub)', 'nuvanx-medical' ) . '</a></p>';
 	$body .= '</div></section>';
 
 	// Indications.
-	$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-ind">';
-	$body .= '<div class="nvx-endolift-section__inner">';
-	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Indicaciones', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-ind" class="nvx-endolift-heading">' . esc_html__( 'Cuándo tiene sentido este protocolo', 'nuvanx-medical' ) . '</h2>';
-	$body .= '<ul class="nvx-endolaser-zone-list">';
+	$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-ind">';
+	$body .= '<div class="nvx-editorial-section__inner">';
+	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Indicaciones', 'nuvanx-medical' ) . '</p>';
+	$body .= '<h2 id="' . esc_attr( $id ) . '-ind" class="nvx-editorial-heading">' . esc_html__( 'Cuándo tiene sentido este protocolo', 'nuvanx-medical' ) . '</h2>';
+	$body .= '<ul class="nvx-editorial-grid-list">';
 	foreach ( (array) ( $c['indications'] ?? array() ) as $item ) {
 		if ( ! is_array( $item ) ) {
 			continue;
@@ -483,12 +483,12 @@ function nvx_btl_detail_page_markup( string $key ): string {
 		if ( '' === $title && '' === $text ) {
 			continue;
 		}
-		$body .= '<li class="nvx-endolaser-zone">';
+		$body .= '<li class="nvx-editorial-grid-item">';
 		if ( '' !== $title ) {
-			$body .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $title ) . '</h3>';
+			$body .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
 		}
 		if ( '' !== $text ) {
-			$body .= '<p class="nvx-endolift-body">' . esc_html( $text ) . '</p>';
+			$body .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
 		}
 		$body .= '</li>';
 	}
@@ -505,20 +505,20 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	if ( '' !== $compare_title || '' !== $compare_body || $has_compare_link || $has_related || $has_combo ) {
 		// Prefer aria-labelledby only when the heading (and its id) is rendered.
 		if ( '' !== $compare_title ) {
-			$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
+			$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
 		} else {
-			$body .= '<section class="nvx-endolift-section" aria-label="' . esc_attr__( 'Criterio diferencial', 'nuvanx-medical' ) . '">';
+			$body .= '<section class="nvx-editorial-section" aria-label="' . esc_attr__( 'Criterio diferencial', 'nuvanx-medical' ) . '">';
 		}
-		$body .= '<div class="nvx-endolift-section__inner">';
-		$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
+		$body .= '<div class="nvx-editorial-section__inner">';
+		$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
 		if ( '' !== $compare_title ) {
-			$body .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="nvx-endolift-heading">' . esc_html( $compare_title ) . '</h2>';
+			$body .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="nvx-editorial-heading">' . esc_html( $compare_title ) . '</h2>';
 		}
 		if ( '' !== $compare_body ) {
-			$body .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html( $compare_body ) . '</p>';
+			$body .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html( $compare_body ) . '</p>';
 		}
 		if ( $has_compare_link || $has_combo ) {
-			$body .= '<p class="nvx-endolift-body">';
+			$body .= '<p class="nvx-editorial-body">';
 			$parts = array();
 			if ( $has_compare_link ) {
 				$parts[] = '<a class="nvx-brand-inline-link" href="' . esc_url( $compare_link ) . '">' . esc_html( $compare_label ) . '</a>';
@@ -539,18 +539,18 @@ function nvx_btl_detail_page_markup( string $key ): string {
 				if ( '' === $rel_url || '' === $rel_label ) {
 					continue;
 				}
-				$body .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( $rel_url ) . '">' . esc_html( $rel_label ) . '</a></p>';
+				$body .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $rel_url ) . '">' . esc_html( $rel_label ) . '</a></p>';
 			}
 		}
 		$body .= '</div></section>';
 	}
 
 	// Process (string steps or titled steps — same list chrome).
-	$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-proc">';
-	$body .= '<div class="nvx-endolift-section__inner">';
-	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Proceso médico', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-proc" class="nvx-endolift-heading">' . esc_html__( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ) . '</h2>';
-	$body .= '<ol class="nvx-endolaser-zone-list">';
+	$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-proc">';
+	$body .= '<div class="nvx-editorial-section__inner">';
+	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Proceso médico', 'nuvanx-medical' ) . '</p>';
+	$body .= '<h2 id="' . esc_attr( $id ) . '-proc" class="nvx-editorial-heading">' . esc_html__( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ) . '</h2>';
+	$body .= '<ol class="nvx-editorial-grid-list">';
 	foreach ( (array) ( $c['process'] ?? array() ) as $step ) {
 		if ( is_array( $step ) ) {
 			$title = trim( (string) ( $step['title'] ?? '' ) );
@@ -558,12 +558,12 @@ function nvx_btl_detail_page_markup( string $key ): string {
 			if ( '' === $title && '' === $text ) {
 				continue;
 			}
-			$body .= '<li class="nvx-endolaser-zone">';
+			$body .= '<li class="nvx-editorial-grid-item">';
 			if ( '' !== $title ) {
-				$body .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $title ) . '</h3>';
+				$body .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
 			}
 			if ( '' !== $text ) {
-				$body .= '<p class="nvx-endolift-body">' . esc_html( $text ) . '</p>';
+				$body .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
 			}
 			$body .= '</li>';
 		} else {
@@ -571,16 +571,16 @@ function nvx_btl_detail_page_markup( string $key ): string {
 			if ( '' === $text ) {
 				continue;
 			}
-			$body .= '<li class="nvx-endolaser-zone"><p class="nvx-endolift-body">' . esc_html( $text ) . '</p></li>';
+			$body .= '<li class="nvx-editorial-grid-item"><p class="nvx-editorial-body">' . esc_html( $text ) . '</p></li>';
 		}
 	}
 	$body .= '</ol></div></section>';
 
 	// FAQ.
-	$body .= '<section class="nvx-endolift-section" aria-labelledby="' . esc_attr( $id ) . '-faq">';
-	$body .= '<div class="nvx-endolift-section__inner">';
-	$body .= '<p class="nvx-endolift-kicker">' . esc_html__( 'FAQ', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-faq" class="nvx-endolift-heading">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
+	$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-faq">';
+	$body .= '<div class="nvx-editorial-section__inner">';
+	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'FAQ', 'nuvanx-medical' ) . '</p>';
+	$body .= '<h2 id="' . esc_attr( $id ) . '-faq" class="nvx-editorial-heading">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
 	$body .= '<div class="nvx-faq nvx-brand-faq-accordion">';
 	foreach ( (array) ( $c['faqs'] ?? array() ) as $faq ) {
 		if ( ! is_array( $faq ) ) {

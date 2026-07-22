@@ -23,7 +23,7 @@ ob_start();
 		</video>
 		<div class="nvx-home-hero__content">
 			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina Estética. Madrid.</h1>
-			<p class="nvx-home-hero__lead">Protocolos de precisión para resultados naturales, según valoración médica.</p>
+			<p class="nvx-home-hero__lead">Llevas tiempo mirándote esa zona en el espejo. Antes de proponerte nada, queremos entender qué es exactamente lo que te molesta.</p>
 			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">Iniciar valoración</a>
 		</div>
 	</section>

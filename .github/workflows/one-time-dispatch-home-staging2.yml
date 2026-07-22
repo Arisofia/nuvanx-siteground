@@ -1,0 +1,33 @@
+name: One-time dispatch corrected Home to staging2
+
+on:
+  push:
+    branches:
+      - fix/editorial-home-cases-final-20260722
+    paths:
+      - '.github/workflows/one-time-dispatch-home-staging2.yml'
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Dispatch immutable Home correction
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DEPLOY_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh workflow run deploy-staging2.yml \
+            --repo "$GH_REPO" \
+            --ref "$GITHUB_REF_NAME" \
+            -f git_sha="$DEPLOY_SHA" \
+            -f mode=DEPLOY_AND_MIGRATE \
+            -f confirmation=DEPLOY_STAGING2
+          echo "Dispatched staging2 deployment for $DEPLOY_SHA"

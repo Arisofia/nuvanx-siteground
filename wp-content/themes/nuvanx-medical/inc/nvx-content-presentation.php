@@ -1273,24 +1273,6 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 	return false;
 }
 
-/**
- * Safely executes a preg_replace/preg_replace_callback, returning the original content
- * if PCRE returns null (e.g. due to limits or errors) to prevent empty page rendering.
- *
- * @param string|array<string> $pattern
- * @param string|array<string>|callable $replacement
- * @param string $subject
- * @param int $limit
- * @return string
- */
-function nvx_content_preg_replace_keep( $pattern, $replacement, string $subject, int $limit = -1 ): string {
-	if ( is_callable( $replacement ) ) {
-		$result = nvx_content_preg_replace_keep( $pattern, $replacement, $subject, $limit );
-	} else {
-		$result = nvx_content_preg_replace_keep( $pattern, $replacement, $subject, $limit );
-	}
-	return is_string( $result ) ? $result : $subject;
-}
 
 /**
  * Auto-inject shared treatment sections into real treatment pages that lack them.

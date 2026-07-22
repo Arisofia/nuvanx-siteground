@@ -51,8 +51,8 @@ add_filter( 'body_class', 'nvxCasesPageBodyClass' );
 
 /** Build the canonical cases page markup. */
 function nvxCasesPageMarkup(): string {
-    $evolutions\ = 'CONTORNO CORPORAL';
-    \ = array(
+    $area_corporal = 'CONTORNO CORPORAL';
+    $evolutions = array(
         array(
             'image' => content_url( '/uploads/2026/07/Endolift-Papada.webp' ),
             'alt'   => 'Evolución clínica documentada de perfil, papada y cuello',
@@ -68,19 +68,19 @@ function nvxCasesPageMarkup(): string {
         array(
             'image' => content_url( '/uploads/2026/07/Endolift-Brazos.webp' ),
             'alt'   => 'Evolución clínica documentada de brazos',
-            \,
+            'area'  => $area_corporal,
             'title' => 'Brazos y continuidad con la axila',
         ),
         array(
             'image' => content_url( '/uploads/2026/07/Endolift-Abdomen.webp' ),
             'alt'   => 'Evolución clínica documentada de abdomen y flancos',
-            \,
+            'area'  => $area_corporal,
             'title' => 'Abdomen y flancos',
         ),
         array(
             'image' => content_url( '/uploads/2026/07/Endolift-Espalda-Flancos-y-Sujetador.webp' ),
             'alt'   => 'Evolución clínica documentada de espalda y zona del sujetador',
-            \,
+            'area'  => $area_corporal,
             'title' => 'Espalda y zona del sujetador',
         ),
     );

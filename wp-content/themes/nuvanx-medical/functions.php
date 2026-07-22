@@ -279,4 +279,19 @@ require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
 require_once get_template_directory() . '/inc/nvx-faq-catalog.php';
 require_once get_template_directory() . '/inc/nvx-evidence-panel.php';
 require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
-require_once get_template_directory() . '/inc/nvx-cases-page.php';
+
+/** Load the cases renderer only after WordPress resolves the current route. */
+function nvx_theme_load_cases_page_module(): void {
+	if ( ! is_page() ) {
+		return;
+	}
+
+	$page_id = (int) get_queried_object_id();
+	$slug    = (string) get_post_field( 'post_name', $page_id );
+	if ( 2645 !== $page_id && ! in_array( $slug, array( 'casos-de-pacientes', 'casos-clinicos' ), true ) ) {
+		return;
+	}
+
+	require_once get_template_directory() . '/inc/nvx-cases-page.php';
+}
+add_action( 'wp', 'nvx_theme_load_cases_page_module', 1 );

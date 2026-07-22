@@ -54,13 +54,13 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 	// Locate first hero __copy opening tag.
 	if ( ! preg_match( '/class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)__copy[^"]*"/i', $content, $match, PREG_OFFSET_CAPTURE ) ) {
 		// No copy block: place media at the start of the first hero section.
-		$updated = preg_replace(
+		$updated = nvx_content_preg_replace_keep(
 			'/(<section\b[^>]*class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)[^"]*"[^>]*>)/i',
 			'$1' . $figure,
 			$content,
 			1
 		);
-		return is_string( $updated ) ? $updated : $content;
+		return $updated;
 	}
 
 	$class_pos = (int) $match[0][1];
@@ -241,7 +241,7 @@ function nvx_valoracion_form_stage_class( string $content ): string {
 		return $content;
 	}
 
-	$updated = preg_replace(
+	$updated = nvx_content_preg_replace_keep(
 		'/(<section\b[^>]*\bid=["\']nvx-hubspot-form["\'][^>]*\bclass=["\'])([^"\']*)(["\'])/i',
 		'$1$2 nvx-form-stage$3',
 		$content,
@@ -253,7 +253,7 @@ function nvx_valoracion_form_stage_class( string $content ): string {
 		return $updated;
 	}
 
-	return preg_replace(
+	return nvx_content_preg_replace_keep(
 		'/(<section\b[^>]*\bclass=["\'])([^"\']*nvx-hubspot-form-section[^"\']*)(["\'])/i',
 		'$1$2 nvx-form-stage$3',
 		$content,

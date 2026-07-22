@@ -337,10 +337,14 @@ async function captureViewport(session, destination) {
 async function auditEquipoEditorial(session, viewport, scope, result) {
   const state = await session.evaluate(String.raw`(() => {
     const columnCount = (selector) => {
-      const node = document.querySelector(selector);
-      if (!node) return 0;
-      const value = getComputedStyle(node).gridTemplateColumns.trim();
-      return value && value !== 'none' ? value.split(/\s+/).length : 0;
+      const nodes = Array.from(document.querySelectorAll(selector));
+      if (!nodes.length) return 0;
+      const counts = nodes.map(node => {
+        const value = getComputedStyle(node).gridTemplateColumns.trim();
+        return value && value !== 'none' ? value.split(/\s+/).length : 0;
+      });
+      const uniqueCounts = [...new Set(counts)];
+      return uniqueCounts.length === 1 ? uniqueCounts[0] : -1;
     };
     const allClasses = Array.from(document.querySelectorAll('[class]'))
       .flatMap((node) => Array.from(node.classList));
@@ -398,6 +402,13 @@ async function auditSingleViewport(port, pagePath, expectedH1, viewport) {
     if (!result.footerVisible) fail(scope, 'footer is not visible');
 
     if (pagePath === '/equipo-medico/') await auditEquipoEditorial(session, viewport, scope, result);
+
+    if (['/nosotros/', '/equipo-medico/', '/contacto/', '/por-que-nuvanx/', '/inversion-medicina-estetica/'].includes(pagePath)) {
+      const hasTreatmentInjection = await session.evaluate(`(() => {
+         return !!document.querySelector('.nvx-endolift-process, .nvx-endolift-effects, .nvx-endolaser-zone, .nvx-editorial-effects, .nvx-editorial-price-table-wrap');
+      })()`);
+      if (hasTreatmentInjection) fail(scope, `institutional page incorrectly received treatment block injections`);
+    }
 
     const destination = path.join(evidenceDir, `${safeName(pagePath)}-${viewport.name}.png`);
     await captureFullPage(session, destination, viewport);

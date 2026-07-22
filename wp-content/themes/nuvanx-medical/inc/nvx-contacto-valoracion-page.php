@@ -155,12 +155,12 @@ function nvx_valoracion_intro_markup(): string {
 	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-editorial-heading">' . esc_html__( 'Una consulta médica para orientar tu caso', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Antes de proponer un láser o un protocolo, hay que confirmar si existe indicación. La consulta médica estética se realiza de forma presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Saldrás con un criterio claro. El equipo, bajo la dirección del Dr. Rivera Tejeda, sigue tres pasos:', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ol class="nvx-co2-timeline nvx-valoracion-steps">';
+	$html .= '<ol class="nvx-editorial-timeline nvx-valoracion-steps">';
 	$n = 1;
 	foreach ( nvx_valoracion_process_steps() as $step ) {
-		$html .= '<li class="nvx-co2-timeline__item">';
-		$html .= '<span class="nvx-co2-timeline__n">' . esc_html( sprintf( '%02d', $n ) ) . '</span>';
-		$html .= '<h3 class="nvx-co2-timeline__title">' . esc_html( $step['title'] ) . '</h3>';
+		$html .= '<li class="nvx-editorial-timeline__item">';
+		$html .= '<span class="nvx-editorial-timeline__n">' . esc_html( sprintf( '%02d', $n ) ) . '</span>';
+		$html .= '<h3 class="nvx-editorial-timeline__title">' . esc_html( $step['title'] ) . '</h3>';
 		$html .= '<p class="nvx-editorial-body">' . esc_html( $step['body'] ) . '</p>';
 		$html .= '</li>';
 		$n++;

@@ -171,16 +171,16 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 	$catalog = nvx_treatments_catalog_markup();
 	$cloud   = nvx_treatments_logo_cloud_markup();
 
-	$content = preg_replace(
+	$content = nvx_content_preg_replace_keep(
 		'/<section\b[^>]*aria-label="Catálogo de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
 		$catalog,
 		$content,
 		1,
 		$count_catalog
-	) ?? $content;
+	);
 
 	if ( ! $count_catalog ) {
-		$content = preg_replace(
+		$content = nvx_content_preg_replace_keep(
 			'/<section\b[^>]*class="[^"]*\bnvx-brand-section\b(?![^"]*collaborators)(?![^"]*cta)[^"]*"[^>]*>[\s\S]*?(?:Áreas de tratamiento|Facial, corporal, láser)[\s\S]*?<\/section>/iu',
 			$catalog,
 			$content,
@@ -188,26 +188,26 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 		) ?? $content;
 	}
 
-	$content = preg_replace(
+	$content = nvx_content_preg_replace_keep(
 		'/<section\b[^>]*class="[^"]*nvx-brand-collaborators[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
 		$cloud,
 		$content,
 		1,
 		$count_collab
-	) ?? $content;
+	);
 
 	if ( ! $count_collab ) {
-		$content = preg_replace(
+		$content = nvx_content_preg_replace_keep(
 			'/<section\b[^>]*aria-label="[^"]*Marcas colaboradoras[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
 			$cloud,
 			$content,
 			1
-		) ?? $content;
+		);
 	}
 
-	$content = preg_replace('/<section\b[^>]*aria-label="Resumen de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu', '', $content, 1) ?? $content;
-	$content = preg_replace('/<section\b[^>]*class="[^"]*\bnvx-brand-section\b[^"]*"[^>]*>[\s\S]*?¿Qué tratamientos realizamos en NUVANX\?[\s\S]*?<\/section>/iu', '', $content, 1) ?? $content;
-	$content = preg_replace('/<section\b[^>]*class="[^"]*nvx-brand-section--cta[^"]*"[^>]*>[\s\S]*?<\/section>/iu', '', $content, 1) ?? $content;
+	$content = nvx_content_preg_replace_keep('/<section\b[^>]*aria-label="Resumen de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu', '', $content, 1);
+	$content = nvx_content_preg_replace_keep('/<section\b[^>]*class="[^"]*\bnvx-brand-section\b[^"]*"[^>]*>[\s\S]*?¿Qué tratamientos realizamos en NUVANX\?[\s\S]*?<\/section>/iu', '', $content, 1);
+	$content = nvx_content_preg_replace_keep('/<section\b[^>]*class="[^"]*nvx-brand-section--cta[^"]*"[^>]*>[\s\S]*?<\/section>/iu', '', $content, 1);
 
 	$links  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="Tu primera valoración clínica">';
 	$links .= '<div class="nvx-shell nvx-brand-section__inner">';
@@ -216,8 +216,8 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 	$links .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Iniciar mi valoración', 'nuvanx-medical' ) . '</a></p>';
 	$links .= '</div></section>';
 
-	$content = preg_replace('/<section\b[^>]*aria-label="Enlaces de interés"[^>]*>[\s\S]*?<\/section>/iu', $links, $content, 1) ?? $content;
+	$content = nvx_content_preg_replace_keep('/<section\b[^>]*aria-label="Enlaces de interés"[^>]*>[\s\S]*?<\/section>/iu', $links, $content, 1);
 
-	return is_string( $content ) ? $content : '';
+	return is_string( $content ) ? $content : $content; /* fixed */
 }
 add_filter( 'the_content', 'nvx_content_restructure_treatments_index', 18 );

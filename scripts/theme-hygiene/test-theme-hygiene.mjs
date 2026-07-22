@@ -157,6 +157,10 @@ const crossedPrimitives = [
   'nvx-endolift-editorial',
   'nvx-endolift-hero',
   'nvx-endolaser-zone',
+  'nvx-endolift-effects',
+  'nvx-endolift-effect',
+  'nvx-endolift-price-table',
+  'nvx-endolift-price-includes',
 ];
 for (const file of runtime.filter((candidate) => /\/inc\/[^/]+\.php$/i.test(candidate) && !candidate.endsWith('/inc/nvx-endolift-page.php'))) {
   const content = fs.readFileSync(file, 'utf8');

@@ -119,7 +119,7 @@ function nvx_equipo_clean_portrait_img( string $media ): string {
 			$real = esc_url( $ds[1] );
 			if ( '' !== $real ) {
 				if ( preg_match( '/\ssrc=/i', $attrs ) ) {
-					$attrs = preg_replace( '/\ssrc=["\'][^"\']*["\']/i', ' src="' . $real . '"', $attrs, 1 ) ?? $attrs;
+					$attrs = nvx_content_preg_replace_keep( '/\ssrc=["\'][^"\']*["\']/i', ' src="' . $real . '"', $attrs, 1 );
 				} else {
 					$attrs .= ' src="' . $real . '"';
 				}
@@ -128,12 +128,12 @@ function nvx_equipo_clean_portrait_img( string $media ): string {
 	}
 
 	// Drop inline size/style that fights portrait crop; strip body role.
-	$attrs = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
-	$attrs = preg_replace( '/\s+(?:width|height)=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
-	$attrs = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $attrs ) ?? $attrs;
+	$attrs = nvx_content_preg_replace_keep( '/\s+style=["\'][^"\']*["\']/i', '', $attrs );
+	$attrs = nvx_content_preg_replace_keep( '/\s+(?:width|height)=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+	$attrs = nvx_content_preg_replace_keep( '/\s*nvx-media--body\s*/i', ' ', $attrs );
 	// Re-emit loading/decoding once (CMS + cleaners often duplicate).
-	$attrs = preg_replace( '/\s+loading=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
-	$attrs = preg_replace( '/\s+decoding=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+	$attrs = nvx_content_preg_replace_keep( '/\s+loading=["\'][^"\']*["\']/i', '', $attrs );
+	$attrs = nvx_content_preg_replace_keep( '/\s+decoding=["\'][^"\']*["\']/i', '', $attrs );
 	// Drop leftover placeholder-only srcset noise when src is real file.
 	if ( preg_match( '/\ssrc=["\']https?:\/\//i', $attrs ) ) {
 		// Keep srcset/sizes when present for responsive; strip only data-src twins later.
@@ -282,18 +282,18 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
  */
 function nvx_equipo_normalize_staff_card( string $card ): string {
 	if ( preg_match( '/\bclass=(["\'])/u', $card ) && false === strpos( $card, 'nvx-brand-card--team' ) ) {
-		$card = preg_replace( '/\bclass=(["\'])/u', 'class=$1nvx-brand-card--team ', $card, 1 ) ?? $card;
+		$card = nvx_content_preg_replace_keep( '/\bclass=(["\'])/u', 'class=$1nvx-brand-card--team ', $card, 1 ) ?? $card;
 	}
 
 	// Portrait frame: single clean img, no noscript/br noise inside figure.
-	$card = preg_replace_callback(
+	$card = nvx_content_preg_replace_keep(
 		'/(<figure\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card__media\b)([^"\']*)(["\'][^>]*>)([\s\S]*?)(<\/figure>)/iu',
 		static function ( array $m ): string {
 			$open = $m[1] . $m[2];
 			if ( false === strpos( $open . $m[3], 'nvx-brand-card__media--portrait' ) ) {
 				$open .= ' nvx-brand-card__media--portrait';
 			}
-			$open = preg_replace( '/\s*nvx-content-figure\s*/i', ' ', $open ) ?? $open;
+			$open = nvx_content_preg_replace_keep( '/\s*nvx-content-figure\s*/i', ' ', $open );
 			$img  = nvx_equipo_clean_portrait_img( $m[4] );
 			if ( '' === $img ) {
 				return $open . $m[3] . $m[5];
@@ -307,19 +307,19 @@ function nvx_equipo_normalize_staff_card( string $card ): string {
 	if ( false === strpos( $card, 'nvx-brand-card__media' ) && preg_match( '/<img\b[^>]*>/iu', $card, $im ) ) {
 		$img = nvx_equipo_clean_portrait_img( $im[0] );
 		if ( '' !== $img ) {
-			$card = preg_replace( '/<noscript\b[\s\S]*?<\/noscript>/iu', '', $card ) ?? $card;
-			$card = preg_replace(
+			$card = nvx_content_preg_replace_keep( '/<noscript\b[\s\S]*?<\/noscript>/iu', '', $card );
+			$card = nvx_content_preg_replace_keep(
 				'/<img\b[^>]*>/iu',
 				'<figure class="nvx-brand-card__media nvx-brand-card__media--portrait">' . $img . '</figure>',
 				$card,
 				1
-			) ?? $card;
+			);
 		}
 	}
 
-	$card = preg_replace( '/<br\s*\/?>/iu', '', $card ) ?? $card;
+	$card = nvx_content_preg_replace_keep( '/<br\s*\/?>/iu', '', $card );
 
-	return is_string( $card ) ? $card : '';
+	return is_string( $card ) ? $card : $card; /* fixed */
 }
 
 /**

@@ -150,7 +150,7 @@ function nvx_co2_editorial_body_markup(): string {
 	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Downtime médico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-co2-down-title" class="nvx-editorial-heading">' . esc_html__( 'Cronología real de la recuperación', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El CO₂ fraccionado exige compromiso con la curación. Los plazos siguientes son orientativos y dependen de la profundidad del protocolo.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ol class="nvx-co2-timeline">';
+	$html .= '<ol class="nvx-editorial-timeline">';
 	$phases = array(
 		array(
 			'n'     => '01',
@@ -169,9 +169,9 @@ function nvx_co2_editorial_body_markup(): string {
 		),
 	);
 	foreach ( $phases as $phase ) {
-		$html .= '<li class="nvx-co2-timeline__item">';
-		$html .= '<span class="nvx-co2-timeline__n">' . esc_html( $phase['n'] ) . '</span>';
-		$html .= '<h3 class="nvx-co2-timeline__title">' . esc_html( $phase['title'] ) . '</h3>';
+		$html .= '<li class="nvx-editorial-timeline__item">';
+		$html .= '<span class="nvx-editorial-timeline__n">' . esc_html( $phase['n'] ) . '</span>';
+		$html .= '<h3 class="nvx-editorial-timeline__title">' . esc_html( $phase['title'] ) . '</h3>';
 		$html .= '<p class="nvx-editorial-body">' . esc_html( $phase['body'] ) . '</p>';
 		$html .= '</li>';
 	}
@@ -182,9 +182,9 @@ function nvx_co2_editorial_body_markup(): string {
 	$html .= '<div class="nvx-editorial-section__inner">';
 	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Tarifas públicas', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-co2-price-title" class="nvx-editorial-heading">' . esc_html__( 'PVP sesión Láser CO₂ (IVA incluido)', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<div class="nvx-endolift-price-table-wrap">';
-	$html .= '<table class="nvx-endolift-price-table">';
-	$html .= '<caption class="nvx-endolift-price-table__cap">' . esc_html__( 'Tarifa clínica de referencia. Profundidad y zonas pueden modular el plan y el número de sesiones.', 'nuvanx-medical' ) . '</caption>';
+	$html .= '<div class="nvx-editorial-price-table-wrap">';
+	$html .= '<table class="nvx-editorial-price-table">';
+	$html .= '<caption class="nvx-editorial-price-table__cap">' . esc_html__( 'Tarifa clínica de referencia. Profundidad y zonas pueden modular el plan y el número de sesiones.', 'nuvanx-medical' ) . '</caption>';
 	$html .= '<thead><tr><th scope="col">' . esc_html__( 'Sesión', 'nuvanx-medical' ) . '</th><th scope="col">' . esc_html__( 'PVP', 'nuvanx-medical' ) . '</th></tr></thead><tbody>';
 	$html .= '<tr><th scope="row">' . esc_html__( 'Láser CO₂ facial', 'nuvanx-medical' ) . '</th><td>' . esc_html( $price_facial ) . '&nbsp;€</td></tr>';
 	$html .= '<tr><th scope="row">' . esc_html__( 'Láser CO₂ corporal', 'nuvanx-medical' ) . '</th><td>' . esc_html( $price_body ) . '&nbsp;€</td></tr>';

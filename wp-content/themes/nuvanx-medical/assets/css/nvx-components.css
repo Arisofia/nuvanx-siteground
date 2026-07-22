@@ -833,7 +833,7 @@ article.nvx-page > .nvx-page-hero{
 
 
 
-.nvx-co2-timeline__n{
+.nvx-editorial-timeline__n{
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker, 0.6875rem);
   font-weight: var(--nvx-fw-bold);
@@ -1276,7 +1276,7 @@ section.nvx-hero{
   gap: var(--nvx-space-4);
   align-items: start}
 
-.nvx-endolift-effects{
+.nvx-editorial-effects{
   display: grid;
     grid-template-columns: 1fr;
   gap: var(--nvx-space-4);

@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { FORBIDDEN_TEXT } from './forbidden-claims.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const workflowPath = path.join(root, '.github/workflows/deploy-staging2.yml');
@@ -74,7 +75,7 @@ for (const marker of [
   'scripts/staging2/verify-rendered-acceptance.mjs',
   'node --check scripts/staging2/verify-rendered-acceptance.mjs',
   'Run rendered acceptance verification',
-  'EXPECTED_SHA: ${{ inputs.git_sha }}',
+  'EXPECTED_SHA: ${{ env.DEPLOY_SHA }}',
   'RENDERED_ACCEPTANCE_OK',
   'rendered-acceptance.log',
   'staging2-deployment-evidence',
@@ -282,19 +283,7 @@ for (const marker of [
   if (!controlledPublicContent.includes(marker)) fail(`controlled public content missing governance marker: ${marker}`);
 }
 
-for (const forbidden of [
-  'garantizar resultados',
-  'asegurar que cada intervención',
-  'control térmico absoluto',
-  'sin huellas quirúrgicas evidentes',
-  'presupuesto muy bajo',
-  'no usamos descuentos estacionales',
-  'este procedimiento no es habitual en el sector',
-  'el estándar de oro',
-  'renovación epidérmica severa',
-  'absoluta discreción',
-  'protocolo comercial estrella',
-]) {
+for (const forbidden of FORBIDDEN_TEXT) {
   if (controlledPublicContent.toLowerCase().includes(forbidden.toLowerCase())) {
     fail(`controlled public content contains forbidden claim: ${forbidden}`);
   }

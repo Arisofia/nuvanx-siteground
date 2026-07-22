@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import { FORBIDDEN_TEXT } from './forbidden-claims.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = process.env.EXPECTED_SHA || '';
@@ -64,26 +65,6 @@ const redirects = [
   ['/liposculpt-air/', '/remodelacion-corporal-laser-madrid/'],
   ['/v-lift-awake/', '/protocolos-signature/'],
   ['/tratamiento-postparto-abdomen-contorno-corporal-madrid/', '/protocolos-signature/'],
-];
-
-const forbiddenText = [
-  'Protocolo en construcción clínica',
-  'fase de despliegue web',
-  'pending_medical_legal',
-  'LipoSculpt-Air™',
-  'V-Lift Awake™',
-  'Post-Maternity Contour',
-  'garantizar resultados',
-  'asegurar que cada intervención',
-  'control térmico absoluto',
-  'sin huellas quirúrgicas evidentes',
-  'presupuesto muy bajo',
-  'no usamos descuentos estacionales',
-  'este procedimiento no es habitual en el sector',
-  'el estándar de oro',
-  'renovación epidérmica severa',
-  'absoluta discreción',
-  'protocolo comercial estrella',
 ];
 
 const findings = [];
@@ -325,7 +306,7 @@ for (const page of pages) {
     if (!result.schema_types.includes('Organization') && !result.schema_types.includes('MedicalOrganization')) {
       fail(scope, 'missing Organization or MedicalOrganization schema');
     }
-    for (const forbidden of forbiddenText) {
+    for (const forbidden of FORBIDDEN_TEXT) {
       if (html.toLowerCase().includes(forbidden.toLowerCase())) fail(scope, `exposes forbidden text: ${forbidden}`);
     }
   } catch (error) {

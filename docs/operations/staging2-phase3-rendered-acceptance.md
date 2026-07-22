@@ -118,7 +118,7 @@ Debe obtener exactamente HTTP 301 y `Location` absoluto de staging2:
 → /remodelacion-corporal-laser-madrid/
 
 /v-lift-awake/
-→ /papada-definicion-mandibular-madrid/
+→ /protocolos-signature/
 
 /tratamiento-postparto-abdomen-contorno-corporal-madrid/
 → /protocolos-signature/

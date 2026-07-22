@@ -17,16 +17,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_editorial_seo_catalog(): array {
 	return array(
 		'/soluciones-medicas/' => array(
-			'title'       => 'Tratamientos Estéticos Madrid | Basta de Clínicas Clonadas',
-			'description' => 'Si estás harta de resultados artificiales y presupuestos engañosos, el Dr. Rivera Tejeda en NUVANX Madrid aplica criterio médico real sin vender infomerciales.',
+			'title'       => 'Soluciones médicas para rostro y cuerpo | NUVANX Madrid',
+			'description' => 'Soluciones de medicina estética por anatomía y diagnóstico para rostro, piel, contorno corporal y cambios posgestacionales en NUVANX Madrid.',
 		),
 		'/remodelacion-corporal-laser-madrid/' => array(
 			'title'       => 'Remodelación corporal láser en Madrid | NUVANX Contour Architecture',
-			'description' => 'NUVANX Contour Architecture™: remodelación corporal láser por unidades anatómicas. La liposucción no es la única salida. Remodelación láser precisa sin quirófano ni flacidez residual. Diagnóstico estricto.',
+			'description' => 'NUVANX Contour Architecture™: remodelación corporal láser por unidades anatómicas para grasa localizada, laxitud y continuidad tras valoración médica.',
 		),
 		'/tratamiento-postparto-abdomen-contorno-corporal-madrid/' => array(
-			'title'       => 'Tratamiento Postparto Madrid | Criterio Médico Frente al Engaño',
-			'description' => 'Tu cuerpo no volverá mágicamente con cremas. El Dr. Rivera Tejeda evalúa tu diástasis y flacidez para un abordaje NUVANX Post-Maternity Contour™ infalible.',
+			'title'       => 'Tratamiento postparto abdomen Madrid | NUVANX',
+			'description' => 'Valoración médica del abdomen posgestacional para diferenciar grasa localizada, laxitud, cicatriz y diástasis antes de indicar tratamiento o derivación.',
 		),
 		'/papada-definicion-mandibular-madrid/' => array(
 			'title'       => 'Eliminar Papada Madrid | Tensión Real, Sin Rostros Inflados',

@@ -45,7 +45,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 				<?php esc_html_e( 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya', 'nuvanx-medical' ); ?>
 			</h1>
 			<p class="nvx-lead">
-					<?php esc_html_e( 'Consulta direcciones, teléfonos, WhatsApp, horarios y cómo llegar. Para estudiar tu caso, solicita una valoración médica.', 'nuvanx-medical' ); ?>
+					<?php esc_html_e( 'Si ya sabes que quieres venir, aquí tienes todo lo que necesitas para encontrarnos. Si todavía no sabes si esto es para ti, mejor empieza por la valoración.', 'nuvanx-medical' ); ?>
 			</p>
 			<div class="nvx-cta-group">
 				<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">
@@ -65,7 +65,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 	<section class="nvx-section nvx-section--nap" aria-label="<?php esc_attr_e( 'Sedes y datos de contacto', 'nuvanx-medical' ); ?>">
 		<div class="nvx-shell">
 			<h2 class="nvx-heading-2"><?php esc_html_e( 'Datos de contacto y sedes autorizadas', 'nuvanx-medical' ); ?></h2>
-			<p class="nvx-body"><?php esc_html_e( 'Centros de medicina estética autorizados por la Comunidad de Madrid.', 'nuvanx-medical' ); ?></p>
+			<p class="nvx-body"><?php esc_html_e( 'Dos consultas en el centro de Madrid, cada una con su propio registro sanitario — no es un local reformado, es una clínica de verdad, con lo que eso implica en cuanto a esterilización y seguridad.', 'nuvanx-medical' ); ?></p>
 
 			<div class="nvx-clinics-grid">
 				<article class="nvx-clinic-card" itemscope itemtype="https://schema.org/MedicalClinic">

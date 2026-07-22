@@ -62,7 +62,7 @@ function nvx_navigation_primary_blueprint(): array {
 				'mega'     => true,
 				'children' => array(
 					array(
-						'label'    => 'NUVANX Couture Sculpt™',
+						'label'    => 'NUVANX Contour Architecture™',
 						'slugs'    => array( 'remodelacion-corporal-laser-madrid' ),
 						'children' => array(
 							array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
@@ -101,7 +101,7 @@ function nvx_navigation_primary_blueprint(): array {
 					),
 					array(
 						'label'    => 'NUVANX Eye Frame™',
-						'slugs'    => array( 'eye-frame' ),
+						'slugs'    => array( 'eye-frame-rejuvenecimiento-mirada-madrid' ),
 						'children' => array(
 							array( 'label' => 'Surco lagrimal', 'slugs' => array( 'surco-lagrimal' ) ),
 							array( 'label' => 'Calidad cutánea periocular', 'slugs' => array( 'calidad-cutanea-periocular' ) ),

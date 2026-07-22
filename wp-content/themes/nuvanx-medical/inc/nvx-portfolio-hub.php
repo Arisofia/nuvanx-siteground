@@ -3,7 +3,7 @@
  * Portafolio Clínico hub — quiet-luxury clinical architecture.
  *
  * Pattern-based (collaborators / catalog markup), not page-ID gated.
- * Updated to use NUVANX Couture Sculpt™, Skin Architecture, etc.
+ * Updated to use NUVANX Contour Architecture™, Skin Architecture, etc.
  *
  * @package nuvanx-medical
  */
@@ -51,10 +51,10 @@ function nvx_treatments_catalog_data(): array {
 		),
 		array(
 			'key'   => 'arquitectura-corporal',
-			'label' => 'Arquitectura Corporal (NUVANX Couture Sculpt™)',
+			'label' => 'Arquitectura Corporal (NUVANX Contour Architecture™)',
 			'items' => array(
 				array(
-					'meta'  => 'Protocolo NUVANX Couture Sculpt™',
+					'meta'  => 'Protocolo NUVANX Contour Architecture™',
 					'title' => 'Remodelación Láser Corporal',
 					'body'  => 'Sistema de diagnóstico y tratamiento por unidades anatómicas, orientado a mejorar la continuidad del contorno sin imponer formas estándar.',
 					'url'   => home_url( '/remodelacion-corporal-laser-madrid/' ),
@@ -115,8 +115,8 @@ function nvx_treatments_catalog_markup(): string {
 	$html .= '<div class="nvx-catalog__inner">';
 	$html .= '<header class="nvx-catalog__intro">';
 	$html .= '<span class="nvx-catalog__kicker">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</span>';
-	$html .= '<h2 class="nvx-catalog__title">' . esc_html__( 'Portafolio Clínico', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-catalog__lead">' . esc_html__( 'En NUVANX la tecnología se selecciona después del diagnóstico. Nuestro portafolio se organiza por necesidades anatómicas y objetivos clínicos.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 class="nvx-catalog__title">' . esc_html__( 'Lo que hacemos, y por qué lo hacemos así.', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-catalog__lead">' . esc_html__( 'Tenemos la tecnología más avanzada que existe hoy. Pero la máquina no decide nada — decide el médico, después de mirarte. Aquí tienes las zonas en las que trabajamos; cuál de ellas tiene sentido para ti se decide en consulta, no en esta página.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</header>';
 
 	foreach ( nvx_treatments_catalog_data() as $category ) {
@@ -149,7 +149,7 @@ function nvx_treatments_catalog_markup(): string {
 function nvx_treatments_logo_cloud_markup(): string {
 	$html  = '<section class="nvx-logo-cloud" aria-label="Tecnología y laboratorios">';
 	$html .= '<div class="nvx-logo-cloud__inner">';
-	$html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'Tecnologías y laboratorios con los que trabajamos', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'Tener el mejor láser del mundo no sirve de nada si se lo aplicas a alguien que no lo necesita. Aquí manda el médico, no el aparato.', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<ul class="nvx-logo-cloud__list">';
 	foreach ( nvx_treatments_partner_labels() as $label ) {
 		$html .= '<li class="nvx-logo-cloud__item">' . esc_html( $label ) . '</li>';

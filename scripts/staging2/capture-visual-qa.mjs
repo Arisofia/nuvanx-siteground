@@ -2,6 +2,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
@@ -64,7 +65,10 @@ function locateChrome() {
   const candidates = [process.env.CHROME_BIN, 'google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'].filter(Boolean);
   for (const candidate of candidates) {
     if (candidate.includes(path.sep) && fs.existsSync(candidate)) return candidate;
-    const found = spawnSync('which', [candidate], { encoding: 'utf8' });
+    const spawnOpts = process.platform === 'win32' 
+      ? { encoding: 'utf8' } 
+      : { encoding: 'utf8', env: { ...process.env, PATH: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' } };
+    const found = spawnSync('which', [candidate], spawnOpts);
     if (found.status === 0 && found.stdout.trim()) return found.stdout.trim();
   }
   throw new Error('Google Chrome or Chromium is not installed on the runner.');
@@ -508,22 +512,24 @@ async function auditMobileNavigation(port) {
 
 const chromePath = locateChrome();
 report.chrome = chromePath;
-const port = 9300 + Math.floor(Math.random() * 500);
+const port = 9300 + crypto.randomInt(0, 500);
 const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nvx-chrome-'));
+const spawnOpts = process.platform === 'win32' 
+  ? { stdio: ['ignore', 'ignore', 'pipe'] } 
+  : { stdio: ['ignore', 'ignore', 'pipe'], env: { ...process.env, PATH: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' } };
 const chrome = spawn(chromePath, [
   '--headless=new',
   '--no-sandbox',
   '--disable-dev-shm-usage',
   '--disable-gpu',
   '--no-first-run',
-  '--no-default-browser-check',
   '--hide-scrollbars',
   '--remote-allow-origins=*',
   `--remote-debugging-port=${port}`,
   `--user-data-dir=${profileDir}`,
   `--user-agent=${userAgent}`,
   'about:blank',
-], { stdio: ['ignore', 'pipe', 'pipe'] });
+], spawnOpts);
 let chromeStderr = '';
 chrome.stderr.on('data', (chunk) => { chromeStderr += String(chunk); });
 

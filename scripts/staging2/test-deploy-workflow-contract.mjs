@@ -155,7 +155,10 @@ const phpFiles = [
   'wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php',
 ];
 for (const relative of phpFiles) {
-  const result = spawnSync('php', ['-l', file(relative)], { encoding: 'utf8' });
+  const spawnOpts = process.platform === 'win32' 
+    ? { encoding: 'utf8' } 
+    : { encoding: 'utf8', env: { ...process.env, PATH: '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin' } };
+  const result = spawnSync('php', ['-l', file(relative)], spawnOpts);
   if (result.error || result.status !== 0) {
     if (result.error?.code === 'ENOENT') continue; // php binary not available locally
     fail(`PHP lint failed for ${relative}: ${((result.stderr || result.stdout || '') + '').trim()}`);

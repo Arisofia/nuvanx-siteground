@@ -20,12 +20,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_seo_metadata_catalog(): array {
 	return array(
 		'home'         => array(
-			'title'       => 'Medicina Estética Láser Madrid | Autoridad Médica NUVANX',
-			'description' => 'Huye de las clínicas masificadas y los rostros clonados. El Dr. Rivera Tejeda lidera NUVANX Madrid con diagnóstico preciso y láser médico de alta gama.',
+			'title'       => 'Medicina estética láser en Madrid | NUVANX',
+			'description' => 'Medicina estética láser en Madrid con valoración médica, diagnóstico individual y tratamientos para rostro, piel y contorno corporal en NUVANX.',
 		),
 		'protocolos_signature' => array(
-			'title'       => 'Protocolos Signature | Olvida los Tratamientos Genéricos',
-			'description' => 'La medicina estética real no se vende en bonos. Nuestros Protocolos Signature en Madrid atacan el dolor físico y estético desde un diagnóstico implacable.',
+			'title'       => 'Protocolos Signature | NUVANX Madrid',
+			'description' => 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.',
 		),
 		'contour_sculpt' => array(
 			'title'       => 'Remodelación Corporal Láser Madrid | NUVANX Contour',
@@ -68,12 +68,12 @@ function nvx_seo_metadata_catalog(): array {
 			'description' => 'El Dr. Rivera Tejeda y su equipo médico asumen tu caso con rigor clínico. Cero comerciales, solo doctores diagnosticando y aplicando láser en Madrid.',
 		),
 		'por_que_nuvanx' => array(
-			'title'       => 'Por qué NUVANX | La Verdad sobre la Estética en Madrid',
-			'description' => 'Destapamos la verdad de las clínicas clonadas. En NUVANX solo aplicamos tecnología médica respaldada y diagnósticos honestos. Lee nuestro manifiesto.',
+			'title'       => 'Por qué NUVANX | Criterio médico en Madrid',
+			'description' => 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.',
 		),
 		'inversion'    => array(
-			'title'       => 'Inversión Estética Madrid | Sin Sorpresas ni Precios Gancho',
-			'description' => 'No competimos por precio, competimos por seguridad y resultados. Descubre cómo el Dr. Rivera Tejeda define la inversión necesaria para tu anatomía.',
+			'title'       => 'Inversión en medicina estética | NUVANX Madrid',
+			'description' => 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.',
 		),
 		'valoracion'   => array(
 			'title'       => 'Consulta Médica Estética Madrid | Exige Diagnóstico Real',

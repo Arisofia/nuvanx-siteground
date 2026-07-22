@@ -77,15 +77,15 @@ function nvx_aesthetic_hub_governance_filter( string $content ): string {
 		'Analizamos el espesor dermoepidérmico y el nivel de elastosis. Esto determina la reología y el módulo de elasticidad del producto médico a inyectar, garantizando que sea imperceptible tanto a la vista como al tacto.'
 			=> 'El espesor, la calidad cutánea, la zona y el plano ayudan a seleccionar las propiedades del material. Ningún producto permite garantizar que el resultado sea imperceptible en todos los pacientes.',
 		'Reestablecemos la definición del arco de Cupido, las columnas del filtrum y el volumen del bermellón respetando la anatomía original del paciente. Seleccionamos geles de ácido hialurónico con alta cohesividad y elasticidad adaptada para que el labio se mueva de forma natural con el habla y la sonrisa.'
-			=> 'La valoración diferencia hidratación, definición, pérdida de soporte y asimetrías. Cuando existe indicación, el ácido hialurónico, la técnica y la cantidad se seleccionan según anatomía y movimiento.',
+			=> 'Cada boca es distinta, así que no hay una forma "correcta" de rellenar unos labios. Miramos la tuya, hablamos de qué forma buscas, y elegimos el producto que se mueva de forma natural cuando hablas o sonríes — nada que se note rígido.',
 		'Labios delgados, pérdida de volumen por envejecimiento o asimetrías severas.'
 			=> 'Pérdida de definición o volumen, deshidratación y asimetrías seleccionadas.',
 		'Corrección de irregularidades en el dorso nasal (caballete) y elevación sutil de la punta mediante la infiltración precisa de ácido hialurónico de alta densidad en el plano supraperiosteal. Un procedimiento de alta precisión que armoniza el perfil sin los tiempos de baja de una cirugía.'
-			=> 'En casos seleccionados, el ácido hialurónico puede camuflar irregularidades del dorso o modificar visualmente determinados ángulos. No reduce el tamaño, no corrige la respiración y no sustituye una rinoplastia cuando la indicación es quirúrgica.',
+			=> 'Con ácido hialurónico se puede disimular un caballete o suavizar el perfil de la nariz, sin pasar por quirófano. Ojo: esto no la hace más pequeña ni cambia cómo respiras — si buscas eso, lo que necesitas es una rinoplastia, y te lo diremos claro en la consulta.',
 		'Desviaciones leves del dorso nasal o puntas caídas. No sustituye a la rinoplastia quirúrgica.'
 			=> 'Irregularidades estéticas seleccionadas del perfil. Las alteraciones funcionales o estructurales relevantes requieren valoración quirúrgica.',
 		'Tratamiento estructural del hundimiento de la ojera mediante la infiltración profunda de ácido hialurónico específico para la zona periocular. El objetivo es eliminar el aspecto de cansancio visual de forma segura, reduciendo la sombra de la ojera y proyectando la luz en el tercio medio.'
-			=> 'La ojera exige diferenciar hundimiento, bolsas, festones, edema, pigmentación y componente vascular. El ácido hialurónico solo se valora cuando predomina un déficit estructural y la anatomía es favorable.',
+			=> 'Hay ojeras que son hundimiento (falta de volumen) y ojeras que son bolsa, pigmento o simplemente cansancio acumulado — y solo el primer tipo se trata bien con ácido hialurónico. Te decimos cuál tienes antes de proponerte nada.',
 		'Ojeras hundidas o surco lagrimal marcado. Requiere dermis de calidad y ausencia de bolsas grasas.'
 			=> 'Hundimiento estructural seleccionado, sin predominio de bolsas, festones o edema.',
 		'Protocolos inductores de colágeno mediante la infiltración de ácido poliláctico (Sculptra®) o hidroxiapatita de calcio (Radiesse®). Estos principios activos desencadenan una respuesta celular en la dermis profunda que estimula a los fibroblastos a producir nuevas fibras elásticas, tensando el tejido sin añadir volumen artificial al rostro.'
@@ -93,7 +93,7 @@ function nvx_aesthetic_hub_governance_filter( string $content ): string {
 		'Flacidez moderada, pérdida de elasticidad y piel desvitalizada.'
 			=> 'Pérdida seleccionada de calidad, densidad o firmeza cutánea.',
 		'Los bioestimuladores (Sculptra®, Radiesse® y protocolos con PDRN) no rellenan: inducen una respuesta celular controlada en la dermis profunda. Los fibroblastos aumentan la síntesis de colágeno y matriz extracelular, densificando la piel y mejorando la turgencia con un resultado progresivo y natural.'
-			=> 'Los productos denominados bioestimuladores no son uniformes. PLLA, CaHA y otros materiales requieren indicaciones, planos y seguimientos diferentes; algunos pueden aportar soporte además de una respuesta tisular progresiva.',
+			=> 'Estos productos no rellenan como el ácido hialurónico — le piden a tu propia piel que fabrique más colágeno, así que el resultado tarda semanas en notarse, pero dura más y se ve más natural.',
 		'Tensado por neocolagénesis, no por relleno masivo.'
 			=> 'Remodelación progresiva según material, técnica y respuesta individual.',
 		'Mejora progresiva entre semanas y meses según el protocolo.'
@@ -105,7 +105,7 @@ function nvx_aesthetic_hub_governance_filter( string $content ): string {
 		'El Polidesoxirribonucleótido (PDRN), comúnmente conocido como ADN de salmón, actúa a nivel celular profundo. A diferencia de los rellenos de ácido hialurónico, cuya función es mecánica (aportar volumen y captar agua), el PDRN se une de forma selectiva a los receptores de adenosina A2A de los fibroblastos, acelerando la síntesis de colágeno, promoviendo la angiogénesis y reparando el ADN dañado por la radiación ultravioleta. Es un tratamiento regenerativo para densificar la piel desde dentro, sin aportar volumen volumétrico.'
 			=> 'PDRN y polinucleótidos no son rellenos de ácido hialurónico. Su composición, autorización, indicaciones y evidencia dependen del producto concreto; no deben atribuirse efectos universales ni mecanismos clínicos garantizados sin revisar su documentación vigente.',
 		'El efecto Tyndall es una complicación estética menor que ocurre cuando la luz incide sobre un depósito de ácido hialurónico colocado demasiado superficial en la piel ultrafina de la ojera, provocando una coloración azulada o grisácea. En Chamberí y Goya lo prevenimos depositando el producto en plano profundo, inmediatamente por encima del periostio, con microcánulas romas, y seleccionando geles con nula capacidad de retención de agua y bajísima dispersión de luz, para un resultado invisible y natural.'
-			=> 'El efecto Tyndall es una coloración azulada o grisácea asociada a material demasiado superficial. La prevención exige diagnóstico, selección del producto, plano y técnica adecuados, pero ninguna técnica elimina por completo el riesgo de edema, irregularidad o efecto Tyndall.',
+			=> 'Si el producto se coloca demasiado superficial en la piel finísima de la ojera, a veces se ve un tono azulado por debajo — se llama efecto Tyndall. Lo evitamos colocándolo en el plano correcto, pero ningún médico puede prometerte cero riesgo al 100%, y preferimos decírtelo así de claro.',
 		'Desde 290 €' => 'Según valoración médica',
 		'Desde 380 €' => 'Según valoración médica',
 		'Estimuladores de colágeno desde 490 €' => 'Según valoración médica',

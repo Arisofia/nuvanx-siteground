@@ -34,15 +34,15 @@ function nvx_protocol_hub_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-hub nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Protocolos Signature: Medicina estética de diagnóstico.', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Nuestros protocolos no son un catálogo de máquinas. Son sistemas médicos que parten del diagnóstico anatómico para justificar cada indicación y definir sus límites.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Le pusimos nombre a nuestra forma de hacer las cosas. Esto es lo que hay detrás.', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Podríamos haberte enseñado directamente el nombre de cada máquina. Preferimos ponerle nombre a lo que conseguimos contigo, no al aparato — porque lo que compras no es un láser, es un resultado pensado para tu cuerpo.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p>' . esc_html__( 'Cada protocolo conecta exploración, selección tecnológica, planificación y seguimiento. La propuesta final depende de la anatomía, el tejido predominante, los antecedentes y los objetivos realistas de cada paciente.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</header>';
 
 	$html .= '<section class="nvx-brand-section">';
 	$html .= '<h2>' . esc_html__( 'Nuestro estándar: La firma NUVANX', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'Los Protocolos Signature expresan una forma de decidir: valoración anatómica, diagnóstico diferencial, selección de la modalidad indicada, explicación de límites y seguimiento definido para cada caso. No adaptamos pacientes a una máquina; diseñamos planes alrededor de su anatomía.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'No adaptamos tu cuerpo a lo que hace la máquina. Elegimos la máquina que le conviene a tu cuerpo. Parece obvio, pero es al revés de como funciona la mayoría de clínicas.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</section>';
 
 	$html .= '<section class="nvx-brand-section">';
@@ -50,12 +50,12 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<div class="nvx-catalog-grid">';
 	$html .= nvx_protocol_hub_card(
 		'NUVANX Contour Sculpt™',
-		'Remodelación corporal láser por unidades anatómicas. Diferencia grasa localizada, laxitud y continuidad del contorno antes de seleccionar la tecnología.',
+		'Para cuando quieres que tu cuerpo se vea como una sola pieza, no como zonas tratadas por separado.',
 		'/remodelacion-corporal-laser-madrid/'
 	);
 	$html .= nvx_protocol_hub_card(
 		'Post-Maternity Contour™',
-		'Valoración posgestacional de grasa subcutánea, laxitud cutánea, estrías, cicatriz y posibles alteraciones de la pared abdominal, con derivación cuando la medicina estética no es la vía adecuada.',
+		'Para el cuerpo después de tener un hijo — sin fingir que fue como antes, sin conformarte tampoco.',
 		'/tratamiento-postparto-abdomen-contorno-corporal-madrid/'
 	);
 	$html .= '</div></section>';
@@ -65,22 +65,22 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<div class="nvx-catalog-grid">';
 	$html .= nvx_protocol_hub_card(
 		'Profile Definition™',
-		'Diagnóstico diferencial del tercio inferior para distinguir grasa submentoniana, laxitud cervical y pérdida de soporte mandibular.',
+		'Para la papada y la mandíbula que no te terminan de convencer en las fotos.',
 		'/papada-definicion-mandibular-madrid/'
 	);
 	$html .= nvx_protocol_hub_card(
 		'Skin Architecture™',
-		'Plan médico orientado a firmeza, densidad y luminosidad de la piel sin modificar deliberadamente los volúmenes.',
+		'Para cuando la piel ya no brilla como antes, aunque no tengas ni una arruga.',
 		'/calidad-piel-firmeza-luminosidad-madrid/'
 	);
 	$html .= nvx_protocol_hub_card(
 		'Surface Renewal™',
-		'Renovación de la superficie cutánea mediante resurfacing médico para cicatrices de acné, estrías, textura y poros, según indicación clínica.',
+		'Para las marcas del acné que ya no quieres seguir tapando con maquillaje.',
 		'/cicatrices-acne-poros-textura-madrid/'
 	);
 	$html .= nvx_protocol_hub_card(
 		'Tone Correction™',
-		'Abordaje médico de alteraciones pigmentarias y vasculares con parámetros seleccionados según diagnóstico y fototipo.',
+		'Para las manchas y rojeces que el sol dejó y que ninguna crema quita.',
 		'/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/'
 	);
 	$html .= '</div></section>';

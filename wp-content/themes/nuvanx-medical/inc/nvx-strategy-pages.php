@@ -374,7 +374,7 @@ function nvx_strategy_investment_markup(): string {
 	$html .= '<li>Valoración médica previa y revisión de antecedentes relevantes</li>';
 	$html .= '<li>Explicación de la indicación, alternativas, límites y recuperación orientativa</li>';
 	$html .= '<li>Protocolo anestésico cuando corresponde al procedimiento</li>';
-	$html .= '<li>Presupuesto detallado y documentado antes de iniciar</li>';
+	$html .= '<li>Presupuesto detallado con justificación clínica documentada antes de iniciar</li>';
 	$html .= '<li>Indicaciones de cuidados y canal de seguimiento según el plan</li>';
 	$html .= '</ul>';
 	$html .= '<p>Otras zonas, procedimientos de medicina estética facial y combinaciones no listadas requieren exploración, indicación y presupuesto individualizado.</p></section>';

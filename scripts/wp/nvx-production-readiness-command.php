@@ -14,7 +14,11 @@ final class NVX_Production_Readiness_Command {
 	private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
 	private const LOCK_TTL_SECONDS   = 900;
 
-	/** Pages approved for publication by the governed theme modules. */
+	/**
+	 * Defines the pages approved for publication by governed theme modules.
+	 *
+	 * @return array Approved page definitions keyed by slug, including title, content marker, and promotion policy.
+	 */
 	private function approved_pages(): array {
 		return array(
 			'por-que-nuvanx' => array( 'title' => 'Por qué NUVANX', 'marker' => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->', 'promote' => false ),
@@ -39,6 +43,11 @@ final class NVX_Production_Readiness_Command {
 		);
 	}
 
+	/**
+	 * Retrieves the externally defined governed-page contract.
+	 *
+	 * @return array The governed-page definitions.
+	 */
 	private function governed_pages(): array {
 		if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
 			WP_CLI::error( 'Production-readiness governed-page contract is unavailable.' );
@@ -46,11 +55,23 @@ final class NVX_Production_Readiness_Command {
 		return nvx_production_readiness_governed_pages();
 	}
 
+	/**
+	 * Finds a page by its slug.
+	 *
+	 * @param string $slug The page slug.
+	 * @return WP_Post|null The matching page, or null if no page is found.
+	 */
 	private function page_by_slug( string $slug ): ?WP_Post {
 		$page = get_page_by_path( $slug, OBJECT, 'page' );
 		return $page instanceof WP_Post ? $page : null;
 	}
 
+	/**
+	 * Finds navigation menu items that link to a page.
+	 *
+	 * @param int $page_id The page ID to locate in navigation menus.
+	 * @return int[] Unique navigation menu item IDs linked to the page.
+	 */
 	private function menu_item_ids_for_page( int $page_id ): array {
 		$ids = array();
 		foreach ( wp_get_nav_menus() as $menu ) {
@@ -64,11 +85,23 @@ final class NVX_Production_Readiness_Command {
 		return array_values( array_unique( $ids ) );
 	}
 
+	/**
+	 * Retrieves the menu ID assigned to the primary navigation location.
+	 *
+	 * @return int The assigned menu ID, or 0 when no primary menu is configured.
+	 */
 	private function primary_menu_id(): int {
 		$locations = get_nav_menu_locations();
 		return isset( $locations['primary'] ) ? (int) $locations['primary'] : 0;
 	}
 
+	/**
+	 * Flattens navigation blueprint nodes into depth-prefixed signature rows.
+	 *
+	 * @param array $nodes Navigation nodes containing labels, URLs, and optional children.
+	 * @param int   $depth Current nesting depth.
+	 * @return array The flattened navigation signature rows.
+	 */
 	private function flatten_blueprint( array $nodes, int $depth = 0 ): array {
 		$rows = array();
 		foreach ( $nodes as $node ) {
@@ -79,6 +112,14 @@ final class NVX_Production_Readiness_Command {
 		return $rows;
 	}
 
+	/**
+	 * Flattens hierarchical navigation menu items into signature rows.
+	 *
+	 * @param array $items Menu items to process.
+	 * @param int   $parent Parent menu item ID.
+	 * @param int   $depth Current nesting depth.
+	 * @return array Flattened menu signature rows.
+	 */
 	private function flatten_menu( array $items, int $parent = 0, int $depth = 0 ): array {
 		$rows = array();
 		foreach ( $items as $item ) {
@@ -91,6 +132,11 @@ final class NVX_Production_Readiness_Command {
 		return $rows;
 	}
 
+	/**
+	 * Builds the canonical signature for the primary navigation menu.
+	 *
+	 * @return array The flattened canonical navigation structure, or an empty array when unavailable.
+	 */
 	private function canonical_menu_signature(): array {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			return array();
@@ -98,6 +144,11 @@ final class NVX_Production_Readiness_Command {
 		return $this->flatten_blueprint( nvx_navigation_resolved_fallback() );
 	}
 
+	/**
+	 * Builds the signature of the published items in the primary navigation menu.
+	 *
+	 * @return array The flattened menu signature, or an empty array when the primary menu is unavailable.
+	 */
 	private function current_menu_signature(): array {
 		$menu_id = $this->primary_menu_id();
 		if ( $menu_id < 1 ) {
@@ -107,6 +158,11 @@ final class NVX_Production_Readiness_Command {
 		return is_array( $items ) ? $this->flatten_menu( $items ) : array();
 	}
 
+	/**
+	 * Builds audit rows for approved pages, governed pages, and the primary navigation menu.
+	 *
+	 * @return array Audit rows containing current status, menu item counts, and expected values.
+	 */
 	private function audit_rows(): array {
 		$rows = array();
 		foreach ( $this->approved_pages() as $slug => $definition ) {
@@ -137,6 +193,12 @@ final class NVX_Production_Readiness_Command {
 		return $rows;
 	}
 
+	/**
+	 * Determines whether all production-readiness audit rows meet their expected state.
+	 *
+	 * @param array $rows Audit rows describing approved pages, governed pages, and navigation.
+	 * @return bool `true` if every row meets its readiness requirements, `false` otherwise.
+	 */
 	private function is_clean( array $rows ): bool {
 		foreach ( $rows as $row ) {
 			if ( 'approved' === $row['type'] && 'publish' !== $row['status'] ) {
@@ -152,6 +214,11 @@ final class NVX_Production_Readiness_Command {
 		return true;
 	}
 
+	/**
+	 * Acquires the migration lock and schedules its removal when execution ends.
+	 *
+	 * @return void
+	 */
 	private function acquire_lock(): void {
 		$now = time();
 		$existing = (int) get_option( self::LOCK_OPTION, 0 );
@@ -164,6 +231,11 @@ final class NVX_Production_Readiness_Command {
 		register_shutdown_function( static function (): void { delete_option( self::LOCK_OPTION ); } );
 	}
 
+	/**
+	 * Validates confirmation, host, production authorization, and trash settings before applying the migration.
+	 *
+	 * @param array $assoc_args Associative command arguments, including safety flags.
+	 */
 	private function validate_invocation( array $assoc_args ): void {
 		if ( self::CONFIRMATION_TOKEN !== (string) ( $assoc_args['confirm'] ?? '' ) ) {
 			WP_CLI::error( 'Refusing to apply: use --confirm=' . self::CONFIRMATION_TOKEN );
@@ -180,6 +252,11 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
+	/**
+	 * Publishes approved pages, creates missing pages, and updates their canonical content.
+	 *
+	 * Existing pages in other statuses are preserved unless their definition permits promotion.
+	 */
 	private function apply_approved_pages(): void {
 		foreach ( $this->approved_pages() as $slug => $definition ) {
 			$page = $this->page_by_slug( $slug );
@@ -199,6 +276,11 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
+	/**
+	 * Applies the governed-page contract by removing menu links and review metadata, then updating each existing page to its required status.
+	 *
+	 * @return void
+	 */
 	private function apply_governed_pages(): void {
 		foreach ( $this->governed_pages() as $slug => $definition ) {
 			$page = $this->page_by_slug( $slug );
@@ -226,6 +308,13 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
+	/**
+	 * Adds menu items and their child items to a navigation menu.
+	 *
+	 * @param int   $menu_id   The navigation menu ID.
+	 * @param array $nodes     The menu node definitions to insert.
+	 * @param int   $parent_id The parent menu item ID.
+	 */
 	private function insert_menu_nodes( int $menu_id, array $nodes, int $parent_id = 0 ): void {
 		foreach ( $nodes as $node ) {
 			$item_id = wp_update_nav_menu_item( $menu_id, 0, array(
@@ -242,6 +331,11 @@ final class NVX_Production_Readiness_Command {
 		}
 	}
 
+	/**
+	 * Rebuilds the primary navigation menu from the canonical navigation blueprint.
+	 *
+	 * @return void
+	 */
 	private function apply_primary_menu(): void {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			WP_CLI::error( 'Canonical navigation blueprint is unavailable.' );
@@ -268,6 +362,12 @@ final class NVX_Production_Readiness_Command {
 		set_theme_mod( 'nav_menu_locations', $locations );
 	}
 
+	/**
+	 * Audits production-readiness requirements and reports their status.
+	 *
+	 * @param array $args Positional command arguments.
+	 * @param array $assoc_args Associative command arguments, including output format and pending-change handling.
+	 */
 	public function audit( array $args, array $assoc_args ): void {
 		$rows = $this->audit_rows();
 		WP_CLI\Utils\format_items( (string) ( $assoc_args['format'] ?? 'table' ), $rows, array( 'type', 'slug', 'id', 'status', 'menu_items', 'expected' ) );
@@ -281,6 +381,12 @@ final class NVX_Production_Readiness_Command {
 		WP_CLI::success( 'Production-readiness audit passed.' );
 	}
 
+	/**
+	 * Applies the production-readiness migration and verifies the resulting site state.
+	 *
+	 * @param array $args       Positional command arguments.
+	 * @param array $assoc_args Associative command arguments, including invocation safety options.
+	 */
 	public function apply( array $args, array $assoc_args ): void {
 		$this->validate_invocation( $assoc_args );
 		$this->acquire_lock();

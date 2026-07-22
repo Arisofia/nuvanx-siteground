@@ -9,7 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Metadata for governed editorial routes outside the principal SEO catalogue. */
+/**
+ * Defines SEO metadata for governed editorial routes.
+ *
+ * @return array<string, array{title: string, description: string}> Route paths mapped to their SEO titles and descriptions.
+ */
 function nvx_editorial_seo_catalog(): array {
 	return array(
 		'/soluciones-medicas/' => array(
@@ -27,6 +31,11 @@ function nvx_editorial_seo_catalog(): array {
 	);
 }
 
+/**
+ * Retrieves SEO metadata for the current editorial route.
+ *
+ * @return array|null The matching editorial SEO metadata, or null when the request is a 404 or has no catalog entry.
+ */
 function nvx_editorial_seo_current(): ?array {
 	if ( is_404() ) {
 		return null;
@@ -38,6 +47,12 @@ function nvx_editorial_seo_current(): ?array {
 	return $catalog[ $path ] ?? null;
 }
 
+/**
+ * Overrides the SEO title when editorial metadata applies to the current request.
+ *
+ * @param string $title The default SEO title.
+ * @return string The editorial title or the provided default title.
+ */
 function nvx_editorial_seo_title( $title ) {
 	$metadata = nvx_editorial_seo_current();
 	return is_array( $metadata ) ? $metadata['title'] : $title;
@@ -47,6 +62,12 @@ add_filter( 'pre_get_document_title', 'nvx_editorial_seo_title', 120 );
 add_filter( 'wpseo_opengraph_title', 'nvx_editorial_seo_title', 120 );
 add_filter( 'wpseo_twitter_title', 'nvx_editorial_seo_title', 120 );
 
+/**
+ * Provides the editorial SEO description for the current request.
+ *
+ * @param string $description The default SEO description.
+ * @return string The editorial description when metadata applies, otherwise the provided description.
+ */
 function nvx_editorial_seo_description( $description ) {
 	$metadata = nvx_editorial_seo_current();
 	return is_array( $metadata ) ? $metadata['description'] : $description;
@@ -55,12 +76,24 @@ add_filter( 'wpseo_metadesc', 'nvx_editorial_seo_description', 120 );
 add_filter( 'wpseo_opengraph_desc', 'nvx_editorial_seo_description', 120 );
 add_filter( 'wpseo_twitter_description', 'nvx_editorial_seo_description', 120 );
 
+/**
+ * Sets the URL for the current editorial SEO route.
+ *
+ * @param string $url The original URL.
+ * @return string The editorial route URL, or the original URL when no editorial metadata applies.
+ */
 function nvx_editorial_seo_url( $url ) {
 	return null === nvx_editorial_seo_current() ? $url : home_url( nvx_seo_current_path() );
 }
 add_filter( 'wpseo_canonical', 'nvx_editorial_seo_url', 120 );
 add_filter( 'wpseo_opengraph_url', 'nvx_editorial_seo_url', 120 );
 
+/**
+ * Determines the robots directive for governed editorial routes.
+ *
+ * @param string $robots The existing robots directive.
+ * @return string The editorial robots directive, or the existing directive when the current route is not governed.
+ */
 function nvx_editorial_seo_robots( $robots ) {
 	if ( null === nvx_editorial_seo_current() ) {
 		return $robots;

@@ -193,6 +193,12 @@ const schemaTypes = (html) => {
   }
   return [...types];
 };
+/**
+ * Fetches a URL with a 45-second timeout and the staging acceptance user agent.
+ * @param {string|URL} url - The URL to fetch.
+ * @param {RequestInit} [options] - Fetch options, including optional headers.
+ * @returns {Promise<Response>} The fetch response.
+ */
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45000);

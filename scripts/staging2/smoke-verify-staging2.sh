@@ -16,8 +16,10 @@ done
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
+# fail reports an error message to standard error and returns a failure status.
 fail() { echo "ERROR: $*" >&2; return 1; }
 
+# fetch_page verifies that a page returns HTTP 200, contains all required markers, and excludes retired or prohibited content markers.
 fetch_page() {
   local page_path="$1"
   shift
@@ -43,6 +45,7 @@ fetch_page() {
   echo "PASS page $page_path status=200 markers=$#"
 }
 
+# check_redirect verifies that a source path returns an exact 301 redirect to the expected target path.
 check_redirect() {
   local source_path="$1"
   local target_path="$2"

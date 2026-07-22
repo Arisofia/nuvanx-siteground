@@ -77,6 +77,11 @@ function nvx_signature_phase2_catalog(): array {
 	);
 }
 
+/**
+ * Identifies the Phase 2 catalog entry for the current WordPress page.
+ *
+ * @return string|null The matching catalog key, or null when the current page is not a Phase 2 page.
+ */
 function nvx_signature_phase2_current_key(): ?string {
 	if ( ! is_page() ) {
 		return null;
@@ -90,6 +95,14 @@ function nvx_signature_phase2_current_key(): ?string {
 	return null;
 }
 
+/**
+ * Builds an HTML section containing a heading and an escaped unordered list.
+ *
+ * @param string $title The section heading.
+ * @param array  $items The list items to display.
+ * @param string $class Optional CSS class for the section.
+ * @return string The generated HTML section.
+ */
 function nvx_signature_phase_list( string $title, array $items, string $class = '' ): string {
 	$html = '<section class="nvx-brand-section ' . esc_attr( $class ) . '"><h2>' . esc_html( $title ) . '</h2><ul class="nvx-check-list">';
 	foreach ( $items as $item ) {
@@ -98,6 +111,12 @@ function nvx_signature_phase_list( string $title, array $items, string $class = 
 	return $html . '</ul></section>';
 }
 
+/**
+ * Builds the canonical Phase 2 article markup for an anatomical landing page.
+ *
+ * @param array $page Page content and metadata, including the title, lead, assessment items, technologies, and limits.
+ * @return string The rendered article HTML.
+ */
 function nvx_signature_phase2_markup( array $page ): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">NUVANX CONTOUR ARCHITECTURE™</p>';
@@ -113,6 +132,12 @@ function nvx_signature_phase2_markup( array $page ): string {
 	return $html;
 }
 
+/**
+ * Replaces matching Phase 2 page content with its canonical landing-page markup.
+ *
+ * @param string $content The original page content.
+ * @return string The canonical Phase 2 markup or the original content when the request is not eligible or no page matches.
+ */
 function nvx_signature_phase2_content_filter( string $content ): string {
 	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
 		return $content;
@@ -122,6 +147,9 @@ function nvx_signature_phase2_content_filter( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_signature_phase2_content_filter', 22 );
 
+/**
+ * Marks the current Phase 2 page to skip the site header shell.
+ */
 function nvx_signature_phase2_prepare_shell(): void {
 	if ( null !== nvx_signature_phase2_current_key() ) {
 		set_query_var( 'nvx_shell_skip_header', true );
@@ -129,7 +157,12 @@ function nvx_signature_phase2_prepare_shell(): void {
 }
 add_action( 'wp', 'nvx_signature_phase2_prepare_shell', 5 );
 
-/** Publication-aware canonical Signature hierarchy. Eye Frame is retained. */
+/**
+ * Updates the primary navigation with canonical Signature page labels, slugs, and child entries.
+ *
+ * @param array $blueprint The navigation structure to update.
+ * @return array The updated navigation structure.
+ */
 function nvx_signature_navigation_blueprint( array $blueprint ): array {
 	foreach ( $blueprint as $index => $top ) {
 		$label = isset( $top['label'] ) ? (string) $top['label'] : '';
@@ -159,12 +192,25 @@ function nvx_signature_navigation_blueprint( array $blueprint ): array {
 }
 add_filter( 'nvx_navigation_primary_blueprint', 'nvx_signature_navigation_blueprint', 30 );
 
+/**
+ * Normalizes public technology names in content.
+ *
+ * @param string $content Content containing technology names to normalize.
+ * @return string Content with recognized technology names replaced by the canonical public name.
+ */
 function nvx_signature_normalize_public_names( string $content ): string {
 	return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), 'NUVANX Contour Architecture™', $content );
 }
 add_filter( 'the_content', 'nvx_signature_normalize_public_names', 219 );
 
-/** SEO for Phase 1, Eye Frame and Phase 2. */
+/**
+ * Resolves SEO metadata for the current Phase 1, Eye Frame, or Phase 2 page.
+ *
+ * Phase 1 and Eye Frame metadata take precedence when available; otherwise,
+ * the matching Phase 2 catalog entry is used.
+ *
+ * @return array|null The current page's slug, SEO title, and SEO description, or null when no matching page exists.
+ */
 function nvx_signature_current_metadata(): ?array {
 	if ( function_exists( 'nvx_protocol_pages_current_key' ) ) {
 		$key = nvx_protocol_pages_current_key();
@@ -179,6 +225,12 @@ function nvx_signature_current_metadata(): ?array {
 	return null === $key ? null : nvx_signature_phase2_catalog()[ $key ];
 }
 
+/**
+ * Provides the configured SEO title for the current Signature page.
+ *
+ * @param string $title The existing SEO title.
+ * @return string The configured page title, or the existing title when no configured title is available.
+ */
 function nvx_signature_seo_title( $title ) {
 	$page = nvx_signature_current_metadata();
 	return is_array( $page ) && ! empty( $page['seo_title'] ) ? $page['seo_title'] : $title;
@@ -188,6 +240,12 @@ add_filter( 'pre_get_document_title', 'nvx_signature_seo_title', 130 );
 add_filter( 'wpseo_opengraph_title', 'nvx_signature_seo_title', 130 );
 add_filter( 'wpseo_twitter_title', 'nvx_signature_seo_title', 130 );
 
+/**
+ * Provides the current page's configured SEO description when available.
+ *
+ * @param mixed $description The existing SEO description.
+ * @return mixed The configured SEO description or the original description.
+ */
 function nvx_signature_seo_description( $description ) {
 	$page = nvx_signature_current_metadata();
 	return is_array( $page ) && ! empty( $page['seo_desc'] ) ? $page['seo_desc'] : $description;
@@ -196,6 +254,12 @@ add_filter( 'wpseo_metadesc', 'nvx_signature_seo_description', 130 );
 add_filter( 'wpseo_opengraph_desc', 'nvx_signature_seo_description', 130 );
 add_filter( 'wpseo_twitter_description', 'nvx_signature_seo_description', 130 );
 
+/**
+ * Provides the canonical URL for the current Signature page.
+ *
+ * @param string $url The original URL.
+ * @return string The Signature page URL when metadata is available, or the original URL otherwise.
+ */
 function nvx_signature_seo_url( $url ) {
 	$page = nvx_signature_current_metadata();
 	return is_array( $page ) ? home_url( '/' . trim( $page['slug'], '/' ) . '/' ) : $url;
@@ -203,6 +267,12 @@ function nvx_signature_seo_url( $url ) {
 add_filter( 'wpseo_canonical', 'nvx_signature_seo_url', 130 );
 add_filter( 'wpseo_opengraph_url', 'nvx_signature_seo_url', 130 );
 
+/**
+ * Sets the robots directive for recognized Signature pages.
+ *
+ * @param string $robots The existing robots directive.
+ * @return string `noindex, nofollow` in non-production environments, `index, follow` otherwise, or the original directive when no Signature metadata exists.
+ */
 function nvx_signature_seo_robots( $robots ) {
 	if ( null === nvx_signature_current_metadata() ) {
 		return $robots;

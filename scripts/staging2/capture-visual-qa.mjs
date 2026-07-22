@@ -39,6 +39,11 @@ const report = { base_url: baseUrl, expected_sha: expectedSha, generated_at: new
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Finds an available Google Chrome or Chromium executable.
+ * @returns {string} The path to the first available browser executable.
+ * @throws {Error} If no supported browser executable is found.
+ */
 function locateChrome() {
   for (const candidate of [process.env.CHROME_BIN, 'google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'].filter(Boolean)) {
     if (candidate.includes(path.sep) && fs.existsSync(candidate)) return candidate;
@@ -48,6 +53,11 @@ function locateChrome() {
   throw new Error('Google Chrome or Chromium is not installed on the runner.');
 }
 
+/**
+ * Verifies that a URL serves an accessible HTML page.
+ * @param {string} url - The URL to check.
+ * @throws {Error} If the URL does not return an acceptable response after four attempts.
+ */
 async function preflight(url) {
   let status = 0;
   let body = '';
@@ -108,6 +118,11 @@ class CDP {
   close() { if (this.ws && this.ws.readyState <= 1) this.ws.close(); }
 }
 
+/**
+ * Waits for the Chrome DevTools endpoint to become available.
+ * @param {number} port - The local debugging port used by Chrome.
+ * @throws {Error} If the endpoint is not ready after the polling period.
+ */
 async function waitForChrome(port) {
   for (let i = 0; i < 80; i += 1) {
     try { if ((await fetch(`http://127.0.0.1:${port}/json/version`)).ok) return; } catch {}
@@ -116,6 +131,13 @@ async function waitForChrome(port) {
   throw new Error('Chrome DevTools endpoint did not become ready.');
 }
 
+/**
+ * Opens a page in a configured Chrome target and waits for it to finish loading.
+ * @param {number} port - The Chrome remote debugging port.
+ * @param {string} url - The page URL to navigate to.
+ * @param {{width: number, height: number, mobile: boolean}} viewport - The viewport dimensions and device mode.
+ * @returns {CDP} The connected CDP session for the page.
+ */
 async function openPage(port, url, viewport) {
   const targetResponse = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' });
   if (!targetResponse.ok) throw new Error(`Unable to create Chrome target: HTTP ${targetResponse.status}`);
@@ -133,6 +155,11 @@ async function openPage(port, url, viewport) {
   return session;
 }
 
+/**
+ * Extract key page state used for visual and structural checks.
+ * @param {object} session - The CDP session used to evaluate the page.
+ * @returns {Promise<object>} The page's H1 texts, access-block status, horizontal overflow, and header and footer visibility.
+ */
 async function state(session) {
   return session.evaluate(`(() => {
     const text=(document.body?.innerText||'').replace(/\\s+/g,' ').trim();
@@ -142,6 +169,13 @@ async function state(session) {
   })()`);
 }
 
+/**
+ * Captures a page screenshot and writes it as a PNG file.
+ * @param {object} session - The connected CDP session.
+ * @param {string} destination - The output file path.
+ * @param {object} viewport - The viewport dimensions and mobile setting.
+ * @param {boolean} [full=true] - Whether to capture the full page content.
+ */
 async function screenshot(session, destination, viewport, full = true) {
   if (full) {
     const metrics = await session.send('Page.getLayoutMetrics');
@@ -158,6 +192,10 @@ async function screenshot(session, destination, viewport, full = true) {
 
 const safe = (value) => value.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home';
 
+/**
+ * Audits each configured page across desktop and mobile viewports, recording page state and screenshot evidence.
+ * @param {number} port - The local Chrome remote debugging port.
+ */
 async function auditPages(port) {
   const viewports = [{ name: 'desktop', width: 1440, height: 1000, mobile: false }, { name: 'mobile', width: 390, height: 844, mobile: true }];
   for (const [pagePath, expectedH1] of pages) {
@@ -180,6 +218,10 @@ async function auditPages(port) {
   }
 }
 
+/**
+ * Audits the desktop mega-menu for expected navigation items, submenu content, visibility, and horizontal overflow.
+ * @param {number} port - The local Chrome DevTools Protocol debugging port.
+ */
 async function auditDesktopMenu(port) {
   const scope = 'desktop mega-menu'; const row = {}; let session;
   try {
@@ -200,6 +242,10 @@ async function auditDesktopMenu(port) {
   report.navigation.desktop = row;
 }
 
+/**
+ * Audits the mobile navigation drawer and its nested accordion behavior.
+ * @param {number} port - The local Chrome DevTools Protocol port.
+ */
 async function auditMobileMenu(port) {
   const scope = 'mobile drawer'; const row = {}; let session;
   try {

@@ -34,6 +34,15 @@ jobs:
           : > editorial-binary-rebuild.log
           python scripts/design-system/rebuild-editorial-diff.py >>editorial-binary-rebuild.log 2>&1 || status=$?
           if [[ "${status:-0}" -eq 0 ]]; then
+            python <<'PY'
+          from pathlib import Path
+          import re
+          path = Path('wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php')
+          data = path.read_bytes()
+          path.write_bytes(re.sub(rb'^[ \t]+(?=\r?$)', b'', data, flags=re.MULTILINE))
+          PY
+          fi
+          if [[ "${status:-0}" -eq 0 ]]; then
             find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null 2>>editorial-binary-rebuild.log || status=$?
           fi
           if [[ "${status:-0}" -eq 0 ]]; then

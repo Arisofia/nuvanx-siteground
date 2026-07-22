@@ -3,6 +3,7 @@ defined( 'ABSPATH' ) || exit;
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
+<title><?php wp_title('|', true, 'right'); ?></title>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,7 +43,7 @@ defined( 'ABSPATH' ) || exit;
     </button>
   </div>
 </header>
-<div id="nvx-mobile-nav" class="nvx-mobile-nav" role="dialog" aria-modal="true" aria-label="Menú móvil" aria-hidden="true">
+<dialog id="nvx-mobile-nav" class="nvx-mobile-nav" aria-modal="true" aria-label="Menú móvil" aria-hidden="true">
   <button class="nvx-mobile-nav__close" id="nvx-mobile-close" aria-label="Cerrar menú">&times;</button>
   <?php
   wp_nav_menu(
@@ -55,5 +56,5 @@ defined( 'ABSPATH' ) || exit;
   ?>
   <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary nvx-open-valoracion-modal" id="nvx-mobile-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
   <a href="<?php echo esc_url( nvx_cta_whatsapp_url() ); ?>" class="nvx-btn nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
-</div>
+</dialog>
 <main id="nvx-main" class="nvx-main" tabindex="-1">

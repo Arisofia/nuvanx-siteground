@@ -1,0 +1,81 @@
+name: Staging2 Visual QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      git_sha:
+        description: 'Full 40-character SHA equal to the selected workflow ref HEAD and deployed staging2 marker'
+        required: true
+        type: string
+      confirmation:
+        description: 'Explicit visual QA confirmation'
+        required: true
+        default: CANCEL
+        type: choice
+        options:
+          - CANCEL
+          - RUN_VISUAL_QA
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging2-visual-qa
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    if: inputs.confirmation == 'RUN_VISUAL_QA'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      EXPECTED_SHA: ${{ inputs.git_sha }}
+      BASE_URL: https://staging2.nuvanx.com
+      VISUAL_QA_DIR: staging2-visual-qa
+    steps:
+      - name: Check out selected immutable ref
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Validate immutable SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$EXPECTED_SHA" = "$GITHUB_SHA" || {
+            echo "Selected ref HEAD $GITHUB_SHA does not match requested SHA $EXPECTED_SHA" >&2
+            exit 1
+          }
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Capture and validate desktop and mobile evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/staging2/capture-visual-qa.mjs 2>&1 | tee visual-qa.log
+          grep -Fq 'VISUAL_QA_OK' visual-qa.log
+
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: staging2-visual-qa-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            staging2-visual-qa/
+            visual-qa.log
+          retention-days: 30
+          if-no-files-found: warn

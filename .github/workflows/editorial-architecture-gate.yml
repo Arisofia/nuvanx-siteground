@@ -1,0 +1,52 @@
+name: Editorial Architecture Gate
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/editorial-architecture-gate.yml'
+      - '.github/workflows/deploy-staging2.yml'
+      - 'scripts/staging2/smoke-verify-staging2.sh'
+      - 'scripts/staging2/verify-rendered-acceptance.mjs'
+      - 'scripts/staging2/test-deploy-workflow-contract.mjs'
+      - 'scripts/wp/nvx-production-readiness-command.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-anatomical-pages.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php'
+      - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
+      - 'docs/content-strategy-2026/NUVANX-CONTOUR-ARCHITECTURE-ROADMAP-STATUS.md'
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Validate syntax and contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n scripts/staging2/smoke-verify-staging2.sh
+          node --check scripts/staging2/verify-rendered-acceptance.mjs
+          node --check scripts/staging2/test-deploy-workflow-contract.mjs
+          php -l scripts/wp/nvx-production-readiness-command.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-anatomical-pages.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php
+          node scripts/staging2/test-deploy-workflow-contract.mjs

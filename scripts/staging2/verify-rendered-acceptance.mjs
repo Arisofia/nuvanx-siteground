@@ -2,19 +2,28 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
-const expectedSha = process.env.EXPECTED_SHA || '';
-const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/rendered-acceptance';
+function getAcceptanceConfig() {
+  const envUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').trim().replace(/\/+$/, '');
+  const shaToken = (process.env.EXPECTED_SHA || '').trim();
+  const dirPath = (process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/rendered-acceptance').trim();
 
-if (baseUrl !== 'https://staging2.nuvanx.com') {
-  console.error(`ERROR: refusing unexpected BASE_URL: ${baseUrl}`);
+  if (envUrl !== 'https://staging2.nuvanx.com') {
+    throw new Error(`refusing unexpected BASE_URL: ${envUrl}`);
+  }
+  if (!/^[0-9a-f]{40}$/.test(shaToken)) {
+    throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
+  }
+  fs.mkdirSync(dirPath, { recursive: true });
+  return { baseUrl: envUrl, expectedSha: shaToken, evidenceDir: dirPath };
+}
+
+let baseUrl, expectedSha, evidenceDir;
+try {
+  ({ baseUrl, expectedSha, evidenceDir } = getAcceptanceConfig());
+} catch (err) {
+  console.error(`ERROR: ${err.message}`);
   process.exit(1);
 }
-if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
-  console.error('ERROR: EXPECTED_SHA must be a full lowercase 40-character SHA.');
-  process.exit(1);
-}
-fs.mkdirSync(evidenceDir, { recursive: true });
 
 const commonMarkers = ['Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos', 'Tu primera valoración clínica'];
 const pages = [
@@ -133,6 +142,7 @@ const schemaTypes = (html) => {
   }
   return [...types];
 };
+
 /**
  * Fetch a URL with a 45-second timeout and the acceptance-test user agent.
  * @param {string} url - The URL to request.
@@ -165,7 +175,6 @@ for (const page of pages) {
     result.canonicals = linkHrefs(html, 'canonical');
     result.og_url = metaContent(html, 'og:url');
     result.schema_types = schemaTypes(html);
-
     if (response.status !== 200) fail(scope, `returned HTTP ${response.status} instead of 200`);
     if (result.deploy_sha !== expectedSha) fail(scope, `served SHA ${result.deploy_sha || 'absent'} instead of ${expectedSha}`);
     if (result.title !== page.title) fail(scope, `title is ${JSON.stringify(result.title)} instead of ${JSON.stringify(page.title)}`);
@@ -178,7 +187,6 @@ for (const page of pages) {
     if (result.h2_count < 3) fail(scope, `expected at least 3 H2s, found ${result.h2_count}`);
     for (const marker of page.markers) if (!normalizeText(html).includes(marker)) fail(scope, `missing marker: ${marker}`);
     if (!/valoraci[oó]n/i.test(normalizeText(html))) fail(scope, 'missing medical valuation CTA or copy');
-
     const allowed = new Set([`https://staging2.nuvanx.com${page.path}`, `https://nuvanx.com${page.path}`, `https://www.nuvanx.com${page.path}`]);
     if (result.canonicals.length !== 1) fail(scope, `expected one canonical, found ${result.canonicals.length}`);
     else if (!allowed.has(result.canonicals[0])) fail(scope, `canonical is ${result.canonicals[0]}`);
@@ -192,26 +200,30 @@ for (const page of pages) {
   report.pages.push(result);
 }
 
-for (const [sourcePath, targetPath] of redirects) {
+async function verifyRedirectRoute(sourcePath, targetPath) {
   const scope = sourcePath;
-  const result = { source: sourcePath, target: targetPath };
+  const targetUrl = `${baseUrl}${targetPath}`;
+  const record = { source: sourcePath, target: targetPath };
   try {
-    const response = await fetchWithTimeout(`${baseUrl}${sourcePath}`, { redirect: 'manual' });
-    result.status = response.status;
-    result.location = response.headers.get('location') || '';
-    const expectedLocation = `${baseUrl}${targetPath}`;
-    if (response.status !== 301) fail(scope, `returned HTTP ${response.status} instead of 301`);
-    if (result.location !== expectedLocation) fail(scope, `location is ${result.location || 'absent'} instead of ${expectedLocation}`);
-    if (response.status === 301 && result.location === expectedLocation) {
-      const targetResponse = await fetchWithTimeout(expectedLocation, { redirect: 'manual' });
-      result.target_status = targetResponse.status;
-      if (targetResponse.status !== 200) fail(scope, `target returned HTTP ${targetResponse.status} instead of 200`);
-      if (targetResponse.status >= 300 && targetResponse.status < 400) fail(scope, 'target performs an additional redirect');
+    const res = await fetchWithTimeout(`${baseUrl}${sourcePath}`, { redirect: 'manual' });
+    record.status = res.status;
+    record.location = res.headers.get('location') || '';
+    if (res.status !== 301) fail(scope, `returned HTTP ${res.status} instead of 301`);
+    if (record.location !== targetUrl) fail(scope, `location is ${record.location || 'absent'} instead of ${targetUrl}`);
+    if (res.status === 301 && record.location === targetUrl) {
+      const destRes = await fetchWithTimeout(targetUrl, { redirect: 'manual' });
+      record.target_status = destRes.status;
+      if (destRes.status !== 200) fail(scope, `target returned HTTP ${destRes.status} instead of 200`);
+      if (destRes.status >= 300 && destRes.status < 400) fail(scope, 'target performs an additional redirect');
     }
-  } catch (error) {
-    fail(scope, error instanceof Error ? error.message : String(error));
+  } catch (err) {
+    fail(scope, err instanceof Error ? err.message : String(err));
   }
-  report.redirects.push(result);
+  return record;
+}
+
+for (const [src, dst] of redirects) {
+  report.redirects.push(await verifyRedirectRoute(src, dst));
 }
 
 fs.writeFileSync(path.join(evidenceDir, 'report.json'), JSON.stringify(report, null, 2));

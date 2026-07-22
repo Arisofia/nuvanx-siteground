@@ -177,7 +177,7 @@
     if (!menu) return;
 
     menu.querySelectorAll('.menu-item-has-children').forEach(function (item, index) {
-      if (item.getAttribute('data-nvx-mobile-accordion') === 'ready') return;
+      if (item.dataset.nvxMobileAccordion === 'ready') return;
 
       var submenu = directChildByClass(item, 'sub-menu');
       var link = directChildLink(item);
@@ -197,8 +197,8 @@
       button.setAttribute('aria-label', 'Abrir submenú de ' + label);
       button.innerHTML = '<span class="nvx-mobile-nav__toggle-icon" aria-hidden="true"></span>';
 
-      item.insertBefore(button, submenu);
-      item.setAttribute('data-nvx-mobile-accordion', 'ready');
+      submenu.before(button);
+      item.dataset.nvxMobileAccordion = 'ready';
 
       var entry = {
         item: item,
@@ -398,9 +398,9 @@
      */
     function shouldIntercept(el) {
       if (!el || el.tagName !== 'A') return false;
-      if (el.getAttribute('data-nvx-valoracion-modal') === '0') return false;
+      if (el.dataset.nvxValoracionModal === '0') return false;
       if (el.classList.contains('nvx-open-valoracion-modal')) return true;
-      if (el.getAttribute('data-nvx-valoracion-modal') === '1') return true;
+      if (el.dataset.nvxValoracionModal === '1') return true;
       if (el.id === 'nvx-header-cta' || el.id === 'nvx-footer-cta' || el.id === 'nvx-mobile-cta') {
         return true;
       }

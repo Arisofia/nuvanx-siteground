@@ -117,20 +117,56 @@ final class NVX_Production_Readiness_Command {
 		return is_array( $items ) ? $this->flatten_menu_items( $items ) : array();
 	}
 
+	/** Build audit row for an approved page. */
+	private function build_approved_page_row( string $slug, array $definition ): array {
+		$page = $this->page_by_slug( $slug );
+		return array(
+			'type'       => 'approved',
+			'slug'       => $slug,
+			'id'         => $page ? (int) $page->ID : 0,
+			'status'     => $page ? (string) $page->post_status : 'missing',
+			'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0,
+			'expected'   => 'publish',
+		);
+	}
+
+	/** Build audit row for a governed page. */
+	private function build_governed_page_row( string $slug, array $definition ): array {
+		$page = $this->page_by_slug( $slug );
+		return array(
+			'type'       => 'governed',
+			'slug'       => $slug,
+			'id'         => $page ? (int) $page->ID : 0,
+			'status'     => $page ? (string) $page->post_status : 'absent',
+			'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0,
+			'expected'   => $definition['status'],
+		);
+	}
+
+	/** Build audit row for navigation menu. */
+	private function build_navigation_row(): array {
+		$current_menu   = $this->current_menu_signature();
+		$canonical_menu = $this->canonical_menu_signature();
+		return array(
+			'type'       => 'navigation',
+			'slug'       => 'primary',
+			'id'         => $this->primary_menu_id(),
+			'status'     => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift',
+			'menu_items' => count( $current_menu ),
+			'expected'   => 'canonical',
+		);
+	}
+
 	/** Build current audit rows. */
 	private function audit_rows(): array {
 		$rows = array();
 		foreach ( $this->approved_pages() as $slug => $definition ) {
-			$page   = $this->page_by_slug( $slug );
-			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
+			$rows[] = $this->build_approved_page_row( $slug, $definition );
 		}
 		foreach ( $this->governed_pages() as $slug => $definition ) {
-			$page   = $this->page_by_slug( $slug );
-			$rows[] = array( 'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'absent', 'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0, 'expected' => $definition['status'] );
+			$rows[] = $this->build_governed_page_row( $slug, $definition );
 		}
-		$current_menu   = $this->current_menu_signature();
-		$canonical_menu = $this->canonical_menu_signature();
-		$rows[] = array( 'type' => 'navigation', 'slug' => 'primary', 'id' => $this->primary_menu_id(), 'status' => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift', 'menu_items' => count( $current_menu ), 'expected' => 'canonical' );
+		$rows[] = $this->build_navigation_row();
 		return $rows;
 	}
 
@@ -282,25 +318,32 @@ final class NVX_Production_Readiness_Command {
 		if ( array() === $nodes ) {
 			WP_CLI::error( 'Canonical navigation resolved to an empty tree.' );
 		}
-		$menu_id = $this->primary_menu_id();
-		if ( $menu_id < 1 ) {
-			$created = wp_create_nav_menu( 'NUVANX Principal' );
-			if ( is_wp_error( $created ) ) {
-				WP_CLI::error( 'Unable to create NUVANX Principal menu: ' . $created->get_error_message() );
-			}
-			$menu_id = (int) $created;
+		$old_menu_id = $this->primary_menu_id();
+		$temp_menu_name = 'NUVANX Principal ' . time();
+		$temp_menu_id = wp_create_nav_menu( $temp_menu_name );
+		if ( is_wp_error( $temp_menu_id ) ) {
+			WP_CLI::error( 'Unable to create temporary menu: ' . $temp_menu_id->get_error_message() );
 		}
-		$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'any' ) );
-		if ( is_array( $items ) ) {
-			foreach ( $items as $item ) {
-				wp_delete_post( (int) $item->ID, true );
-			}
+		$temp_menu_id = (int) $temp_menu_id;
+		try {
+			$this->insert_menu_nodes( $temp_menu_id, $nodes );
+		} catch ( Exception $e ) {
+			wp_delete_nav_menu( $temp_menu_id );
+			WP_CLI::error( 'Failed to build temporary menu: ' . $e->getMessage() );
 		}
-		$this->insert_menu_nodes( $menu_id, $nodes );
 		$locations            = get_nav_menu_locations();
-		$locations['primary'] = $menu_id;
+		$locations['primary'] = $temp_menu_id;
 		set_theme_mod( 'nav_menu_locations', $locations );
-		WP_CLI::log( sprintf( 'Rebuilt canonical primary menu %d with %d items.', $menu_id, count( $this->canonical_menu_signature() ) ) );
+		if ( $old_menu_id > 0 ) {
+			$items = wp_get_nav_menu_items( $old_menu_id, array( 'post_status' => 'any' ) );
+			if ( is_array( $items ) ) {
+				foreach ( $items as $item ) {
+					wp_delete_post( (int) $item->ID, true );
+				}
+			}
+		}
+		wp_update_nav_menu_object( $temp_menu_id, array( 'menu-name' => 'NUVANX Principal' ) );
+		WP_CLI::log( sprintf( 'Rebuilt canonical primary menu %d with %d items.', $temp_menu_id, count( $this->canonical_menu_signature() ) ) );
 	}
 
 	/** Audit production-readiness state. */

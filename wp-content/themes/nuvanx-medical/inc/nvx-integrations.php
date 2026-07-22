@@ -20,8 +20,8 @@ require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
 
 /**
- * Returns the governed retired-page contract shared by runtime redirects and
- * the production-readiness migration.
+ * Returns the governed retired/deferred page contract shared by runtime and the
+ * production-readiness migration.
  *
  * @return array<string,array{status:string,target:string}>
  */
@@ -37,6 +37,10 @@ function nvx_production_readiness_governed_pages(): array {
 		),
 		'tratamientos' => array(
 			'status' => 'trash',
+			'target' => '/soluciones-medicas/',
+		),
+		'eye-frame-rejuvenecimiento-mirada-madrid' => array(
+			'status' => 'draft',
 			'target' => '/soluciones-medicas/',
 		),
 	);
@@ -73,7 +77,7 @@ add_action(
 	-999999
 );
 
-/** Canonical privacy route. */
+/** Canonical privacy and governed legacy routes. */
 add_action(
 	'template_redirect',
 	function () {
@@ -85,6 +89,12 @@ add_action(
 		if ( '/politica-de-privacidad/' === $norm ) {
 			wp_safe_redirect( home_url( '/politica-privacidad/' ), 301 );
 			exit;
+		}
+		foreach ( nvx_production_readiness_governed_pages() as $slug => $definition ) {
+			if ( '/' . trim( $slug, '/' ) . '/' === $norm && ! empty( $definition['target'] ) ) {
+				wp_safe_redirect( home_url( $definition['target'] ), 301 );
+				exit;
+			}
 		}
 	},
 	1
@@ -157,65 +167,4 @@ add_action(
 		echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";
 	},
 	1
-);
-
-/** Redirects retired routes by request path. */
-function nvx_redirect_governed_routes(): void {
-	if ( is_admin() ) {
-		return;
-	}
-
-	$request_path = isset( $_SERVER['REQUEST_URI'] )
-		? (string) wp_parse_url( (string) $_SERVER['REQUEST_URI'], PHP_URL_PATH )
-		: '';
-	$normalized = trim( $request_path, '/' );
-	$redirects  = array(
-		'tratamiento-retirado' => '/tratamientos/',
-	);
-
-	foreach ( nvx_production_readiness_governed_pages() as $slug => $definition ) {
-		$redirects[ $slug ] = $definition['target'];
-	}
-
-	if ( isset( $redirects[ $normalized ] ) ) {
-		wp_safe_redirect( home_url( $redirects[ $normalized ] ), 301, 'NUVANX' );
-		exit;
-	}
-}
-add_action( 'template_redirect', 'nvx_redirect_governed_routes', 1 );
-
-/* Security headers */
-add_action(
-	'send_headers',
-	function (): void {
-		if ( headers_sent() ) {
-			return;
-		}
-		header( 'X-Content-Type-Options: nosniff' );
-		header( 'X-Frame-Options: SAMEORIGIN' );
-		header( 'Referrer-Policy: strict-origin-when-cross-origin' );
-		header( 'Permissions-Policy: camera=(), microphone=(), geolocation=()' );
-	}
-);
-
-/* Meta Pixel · single-owner (dequeue SiteGround facebook-signal) */
-add_action(
-	'wp_enqueue_scripts',
-	function (): void {
-		wp_dequeue_script( 'siteground-facebook-signal' );
-		wp_deregister_script( 'siteground-facebook-signal' );
-	},
-	100
-);
-
-add_filter(
-	'script_loader_tag',
-	function ( string $tag, string $handle ): string {
-		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
-			return '';
-		}
-		return $tag;
-	},
-	10,
-	2
 );

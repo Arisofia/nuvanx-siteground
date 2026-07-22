@@ -28,152 +28,11 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Rebuild minimal editorial diff
+      - name: Rebuild and validate minimal diff
         run: |
           set -uo pipefail
           : > editorial-binary-rebuild.log
-          python <<'PY' >>editorial-binary-rebuild.log 2>&1 || status=$?
-          from pathlib import Path
-          import subprocess
-
-          ROOT = Path('.')
-          THEME = ROOT / 'wp-content/themes/nuvanx-medical'
-          WORKFLOW = '.github/workflows/apply-editorial-coherence-once.yml'
-          NEW_CSS = 'wp-content/themes/nuvanx-medical/assets/css/nvx-editorial-coherence.css'
-
-          changed = subprocess.check_output(
-              ['git', 'diff', '--name-only', '--diff-filter=ACM', 'origin/master...HEAD'],
-              text=True,
-          ).splitlines()
-
-          for relative in changed:
-              if relative in {WORKFLOW, NEW_CSS}:
-                  continue
-              path = Path(relative)
-              try:
-                  base = subprocess.check_output(['git', 'show', f'origin/master:{relative}'])
-              except subprocess.CalledProcessError:
-                  continue
-              path.parent.mkdir(parents=True, exist_ok=True)
-              path.write_bytes(base)
-              print(f'restored={relative}')
-
-          replacements = [
-              (b'nvx-endolift-diagnosis__panel', b'nvx-editorial-panel'),
-              (b'nvx-endolift-diagnosis__copy', b'nvx-editorial-split__copy'),
-              (b'nvx-endolift-diagnosis__grid', b'nvx-editorial-split'),
-              (b'nvx-endolift-section__inner', b'nvx-editorial-section__inner'),
-              (b'nvx-endolift-body--measure', b'nvx-editorial-body--measure'),
-              (b'nvx-endolift-panel-label', b'nvx-editorial-panel__label'),
-              (b'nvx-endolift-panel-list', b'nvx-editorial-fact-list'),
-              (b'nvx-endolaser-zone__title', b'nvx-editorial-grid-item__title'),
-              (b'nvx-endolaser-zone-list', b'nvx-editorial-grid-list'),
-              (b'nvx-endolaser-zone', b'nvx-editorial-grid-item'),
-              (b'nvx-endolift-editorial', b'nvx-editorial-page'),
-              (b'nvx-endolift-section', b'nvx-editorial-section'),
-              (b'nvx-endolift-kicker', b'nvx-editorial-kicker'),
-              (b'nvx-endolift-heading', b'nvx-editorial-heading'),
-              (b'nvx-endolift-body', b'nvx-editorial-body'),
-              (b'nvx-endolift-hero', b'nvx-editorial-hero'),
-          ]
-
-          for path in sorted((THEME / 'inc').glob('*.php')):
-              if path.name == 'nvx-endolift-page.php':
-                  continue
-              data = path.read_bytes()
-              updated = data
-              for old, new in replacements:
-                  updated = updated.replace(old, new)
-              if updated != data:
-                  path.write_bytes(updated)
-                  print(f'migrated={path.as_posix()}')
-
-          functions = THEME / 'functions.php'
-          data = functions.read_bytes()
-          pattern = b"\twp_enqueue_style( 'nvx-patterns', $css . 'nvx-patterns-editorial.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-patterns-editorial.css' ) );"
-          coherence = b"\twp_enqueue_style( 'nvx-editorial-coherence', $css . 'nvx-editorial-coherence.css', array( 'nvx-patterns' ), nvx_asset_version( 'assets/css/nvx-editorial-coherence.css' ) );"
-          newline = b'\r\n' if pattern + b'\r\n' in data else b'\n'
-          if coherence not in data:
-              if pattern not in data:
-                  raise RuntimeError('functions.php canonical patterns enqueue not found')
-              data = data.replace(pattern + newline, pattern + newline + coherence + newline, 1)
-          data = data.replace(
-              b"wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-patterns' )",
-              b"wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-editorial-coherence' )",
-              1,
-          )
-          functions.write_bytes(data)
-
-          patterns = THEME / 'assets/css/nvx-patterns-editorial.css'
-          data = patterns.read_bytes()
-          newline = b'\r\n' if data.count(b'\r\n') > data.count(b'\n') / 2 else b'\n'
-
-          def remove_block(source: bytes, start: bytes, end: bytes) -> bytes:
-              if start not in source or end not in source:
-                  raise RuntimeError(f'CSS cleanup marker missing: {start.decode()}')
-              before, remainder = source.split(start, 1)
-              _, after = remainder.split(end, 1)
-              return before.rstrip(b'\r\n') + newline + newline + end + after
-
-          data = remove_block(
-              data,
-              b'/* Equipo page structure \xe2\x80\x94 aligned profiles + staff */',
-              b'/* CO\xc2\xb2 recovery timeline */',
-          )
-          data = remove_block(
-              data,
-              b'/* Endol\xc3\xa1ser corporal \xe2\x80\x94 zone list (reuses endolift section rhythm) */',
-              b'/* Comparative table Endolift vs surgery */',
-          )
-          data = data.replace(
-              b'.nvx-nosotros-team-card .nvx-endolift-kicker',
-              b'.nvx-nosotros-team-card .nvx-editorial-kicker',
-          )
-          old_selector = b'.nvx-nosotros-team-card .nvx-endolaser-zone__title,' + newline + b'.nvx-nosotros-team-card .nvx-endolift-body'
-          new_selector = b'.nvx-nosotros-team-card .nvx-editorial-grid-item__title,' + newline + b'.nvx-nosotros-team-card .nvx-editorial-body'
-          data = data.replace(old_selector, new_selector)
-          patterns.write_bytes(data)
-
-          hygiene = ROOT / 'scripts/theme-hygiene/test-theme-hygiene.mjs'
-          data = hygiene.read_bytes()
-          newline = b'\r\n' if data.count(b'\r\n') > data.count(b'\n') / 2 else b'\n'
-          marker = b'const report = errors.length'
-          block = '''const crossedPrimitives = [
-            'nvx-endolift-section',
-            'nvx-endolift-kicker',
-            'nvx-endolift-heading',
-            'nvx-endolift-body',
-            'nvx-endolift-diagnosis__',
-            'nvx-endolift-panel-',
-            'nvx-endolift-editorial',
-            'nvx-endolift-hero',
-            'nvx-endolaser-zone',
-          ];
-          for (const file of runtime.filter((candidate) => /\\/inc\\/[^/]+\\.php$/i.test(candidate) && !candidate.endsWith('/inc/nvx-endolift-page.php'))) {
-            const content = fs.readFileSync(file, 'utf8');
-            for (const primitive of crossedPrimitives) {
-              if (content.includes(primitive)) fail(`${rel(file)}: crossed treatment design primitive ${primitive}`);
-            }
-          }
-          const editorialCoherence = read('assets/css/nvx-editorial-coherence.css');
-          for (const required of [
-            '.nvx-editorial-section',
-            '.nvx-editorial-grid-list',
-            '.nvx-editorial-fact-list',
-            '.nvx-equipo-profile-layout',
-            '@media (min-width: 48rem)',
-          ]) if (!editorialCoherence.includes(required)) fail(`editorial coherence: missing ${required}`);
-          if ((functions.match(/wp_enqueue_style\\(\\s*'nvx-editorial-coherence'/g) || []).length !== 1) fail('functions.php: editorial coherence must be enqueued once');
-          if (!functions.includes("array( 'nvx-editorial-coherence' )")) fail('functions.php: header must depend on editorial coherence');
-
-          '''.replace('\n', newline.decode()).encode()
-          if block not in data:
-              if marker not in data:
-                  raise RuntimeError('theme hygiene report marker not found')
-              data = data.replace(marker, block + marker, 1)
-          hygiene.write_bytes(data)
-          PY
-
+          python scripts/design-system/rebuild-editorial-diff.py >>editorial-binary-rebuild.log 2>&1 || status=$?
           if [[ "${status:-0}" -eq 0 ]]; then
             find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null 2>>editorial-binary-rebuild.log || status=$?
           fi
@@ -208,6 +67,7 @@ jobs:
           set -euo pipefail
           rm -f \
             .github/workflows/apply-editorial-coherence-once.yml \
+            scripts/design-system/rebuild-editorial-diff.py \
             editorial-binary-rebuild.log \
             theme-hygiene-report.txt
           git config user.name 'github-actions[bot]'

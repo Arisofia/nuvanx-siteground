@@ -136,11 +136,11 @@ async function waitForChrome(port) {
 }
 
 /**
- * Opens a page in a configured Chrome target and waits for it to finish loading.
+ * Opens a configured Chrome target, navigates to a URL, and waits for page resources to settle.
  * @param {number} port - The Chrome remote debugging port.
  * @param {string} url - The page URL to navigate to.
  * @param {{width: number, height: number, mobile: boolean}} viewport - The viewport dimensions and device mode.
- * @returns {CDP} The connected CDP session for the page.
+ * @returns {Promise<CDP>} The connected CDP session for the page.
  */
 async function openPage(port, url, viewport) {
   const targetResponse = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' });

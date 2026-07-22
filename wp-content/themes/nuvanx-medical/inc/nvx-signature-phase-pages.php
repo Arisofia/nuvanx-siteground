@@ -11,7 +11,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Canonical Phase 2 landing pages. */
+/**
+ * Provides the canonical catalog of Phase 2 anatomical landing pages.
+ *
+ * @return array<string, array<string, mixed>> Page definitions containing slugs, copy, assessment criteria, technology options, treatment limits, and SEO metadata.
+ */
 function nvx_signature_phase2_catalog(): array {
 	return array(
 		'abdomen-flancos' => array(

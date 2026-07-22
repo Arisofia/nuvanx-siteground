@@ -32,9 +32,9 @@ function nvx_editorial_seo_catalog(): array {
 }
 
 /**
- * Retrieves SEO metadata for the current editorial route.
+ * Finds SEO metadata for the current editorial route.
  *
- * @return array|null The matching editorial SEO metadata, or null when the request is a 404 or has no catalog entry.
+ * @return array|null The matching metadata, or null when the request is a 404 or the route is not cataloged.
  */
 function nvx_editorial_seo_current(): ?array {
 	if ( is_404() ) {

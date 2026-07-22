@@ -2,6 +2,7 @@
  * Final Canva composites already contain their editorial typography.
  * Keep the HTML copy available to assistive technology and make the complete
  * artwork clickable without printing a second panel over the uploaded design.
+ * This override must load after nvx-home-v3.css.
  */
 
 .nvx-home-v4 .nvx-home-editorial-card__panel {

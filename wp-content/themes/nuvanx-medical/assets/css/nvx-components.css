@@ -667,12 +667,7 @@ body.nvx-valoracion-modal-open{
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box}
 
-.nvx-aes-section__inner{
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box}
+
 
 .nvx-catalog__inner{
   width: var(--nvx-shell);
@@ -704,11 +699,7 @@ article.nvx-page > .nvx-page-hero{
   background: var(--nvx-light);
   color: var(--nvx-ink)}
 
-.nvx-aes-section{
-    padding-block: var(--nvx-pad-section);
-  background: var(--nvx-light);
-  color: var(--nvx-ink);
-  border-bottom: 1px solid var(--nvx-color-line)}
+
 
 .nvx-brand-section--tight{padding-block:var(--nvx-pad-section-tight)}
 
@@ -840,13 +831,7 @@ article.nvx-page > .nvx-page-hero{
   color: var(--nvx-accent-muted);
   margin: 0}
 
-.nvx-aes-card__n{
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-kicker, 0.6875rem);
-  font-weight: var(--nvx-fw-bold);
-  letter-spacing: var(--nvx-track-data);
-  text-transform: uppercase;
-  color: var(--nvx-accent-muted)}
+
 
 .nvx-co2-timeline__n{
   font-family: var(--nvx-sans);
@@ -1085,8 +1070,7 @@ article.nvx-page > .nvx-page-hero{
 body.nvx-hero-blackout :where( .nvx-brand-hero, .nvx-editorial-hero, .nvx-page-hero, section.nvx-hero ) :is( .nvx-eyebrow, .nvx-brand-kicker, .nvx-kicker, .nvx-brand-meta ){
   color:var(--nvx-text-on-dark-72)}
 
-.nvx-aes-hero :is( .nvx-eyebrow, .nvx-brand-kicker, .nvx-kicker, .nvx-brand-meta ){
-  color:var(--nvx-text-on-dark-72)}
+
 
 .nvx-page--contact .nvx-clinics-grid{
   display: grid;
@@ -1327,27 +1311,13 @@ figure.nvx-equipo-portrait{
     grid-template-columns: 1fr;
     gap: var(--nvx-space-4)}
 
-.nvx-aes-hero.nvx-brand-hero{
-  background: var(--nvx-ink);
-  color: var(--nvx-text-on-dark);
-    padding-block: var(--nvx-pad-section);
-  border-bottom: 1px solid var(--nvx-text-body)}
 
-.nvx-aes-focus-grid{
-  display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-4)}
 
-.nvx-aes-card-grid{
-  display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-4)}
 
-.nvx-aes-regen__grid{
-  display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-4);
-  align-items: start}
+
+
+
+
 
 .nvx-dr-rivera-avatar{ width: calc(var(--nvx-space-10) * 2); height: calc(var(--nvx-space-10) * 2); border-radius: 50%; object-fit: cover; margin: 0 auto var(--nvx-space-3) auto;box-shadow:var(--nvx-shadow-medium); border: calc(var(--nvx-space-1) / 2) solid var(--nvx-light);border-color:var(--nvx-light)}
 

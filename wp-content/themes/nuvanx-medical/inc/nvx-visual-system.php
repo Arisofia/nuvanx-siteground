@@ -116,7 +116,6 @@ h3 {
 :where(
   .nvx-icon,
   .nvx-laser-icon,
-  .nvx-aes-icon,
   .nvx-endolift-step__icon,
   .nvx-benefit-icon,
   .icon-whatsapp
@@ -135,7 +134,6 @@ h3 {
 :where(
   .nvx-icon,
   .nvx-laser-icon,
-  .nvx-aes-icon,
   .nvx-endolift-step__icon,
   .nvx-benefit-icon
 ) :is(path, circle, rect, line, polyline, polygon, ellipse) {
@@ -166,7 +164,6 @@ h3 {
 .nvx-index-number,
 .nvx-endolift-step__n,
 .nvx-laser-platform__n,
-.nvx-aes-card__n,
 .nvx-co2-timeline__n,
 .nvx-treatment-process__step::before {
   font-family: var(--nvx-sans);
@@ -333,7 +330,7 @@ function nvx_visual_system_normalize_html( string $html ): string {
 		$html
 	);
 
-	foreach ( array( 'nvx-laser-icon', 'nvx-aes-icon', 'nvx-endolift-step__icon' ) as $legacy_class ) {
+	foreach ( array( 'nvx-laser-icon', 'nvx-endolift-step__icon' ) as $legacy_class ) {
 		$html = str_replace(
 			'class="' . $legacy_class . '"',
 			'class="' . $legacy_class . ' nvx-icon nvx-icon--md"',

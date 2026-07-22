@@ -82,13 +82,13 @@ function nvx_content_is_aesthetic_medicine_page( string $content ): bool {
  */
 function nvx_aesthetic_icon( string $name ): string {
 	$icons = array(
-		'support'  => '<svg class="nvx-aes-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 24V12l8-6 8 6v12" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 24v-8h8v8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
-		'express'  => '<svg class="nvx-aes-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="16" cy="16" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M11 14h.01M21 14h.01M12 20c1.5 2 6.5 2 8 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'rheology' => '<svg class="nvx-aes-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 8h12v4c0 4-2.5 6-6 8-3.5-2-6-4-6-8V8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 24h8M14 28h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'lips'     => '<svg class="nvx-aes-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 16c2-4 5-6 10-6s8 2 10 6c-2 4-5 6-10 6s-8-2-10-6Z" stroke="currentColor" stroke-width="1.5"/><path d="M8 16h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'nose'     => '<svg class="nvx-aes-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 6h8l-1 14c0 3-2 6-3 6s-3-3-3-6L12 6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 24h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'eye'      => '<svg class="nvx-aes-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 16c3-6 7-9 12-9s9 3 12 9c-3 6-7 9-12 9s-9-3-12-9Z" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="16" r="3.5" stroke="currentColor" stroke-width="1.5"/></svg>',
-		'regen'    => '<svg class="nvx-aes-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M16 28V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 24c-6 0-10-3.5-10-8.5 6 0 10 3.5 10 8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M16 21c6 0 10-3.5 10-8.5-6 0-10 3.5-10 8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M11 10c3-3 6-4.5 9-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'support'  => '<svg class="nvx-brand-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 24V12l8-6 8 6v12" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 24v-8h8v8" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+		'express'  => '<svg class="nvx-brand-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="16" cy="16" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M11 14h.01M21 14h.01M12 20c1.5 2 6.5 2 8 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'rheology' => '<svg class="nvx-brand-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 8h12v4c0 4-2.5 6-6 8-3.5-2-6-4-6-8V8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 24h8M14 28h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'lips'     => '<svg class="nvx-brand-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 16c2-4 5-6 10-6s8 2 10 6c-2 4-5 6-10 6s-8-2-10-6Z" stroke="currentColor" stroke-width="1.5"/><path d="M8 16h16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'nose'     => '<svg class="nvx-brand-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 6h8l-1 14c0 3-2 6-3 6s-3-3-3-6L12 6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 24h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'eye'      => '<svg class="nvx-brand-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 16c3-6 7-9 12-9s9 3 12 9c-3 6-7 9-12 9s-9-3-12-9Z" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="16" r="3.5" stroke="currentColor" stroke-width="1.5"/></svg>',
+		'regen'    => '<svg class="nvx-brand-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M16 28V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 24c-6 0-10-3.5-10-8.5 6 0 10 3.5 10 8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M16 21c6 0 10-3.5 10-8.5-6 0-10 3.5-10 8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M11 10c3-3 6-4.5 9-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
 	);
 
 	return $icons[ $name ] ?? $icons['support'];
@@ -102,7 +102,7 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 		? nvx_cta_valoracion_url()
 		: home_url( '/madrid/valoracion/' );
 
-	$html  = '<div class="nvx-cta-pair nvx-aes-hero-ctas">';
+	$html  = '<div class="nvx-cta-pair">';
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
@@ -128,7 +128,7 @@ function nvx_aesthetic_hero_ctas_markup(): string {
  * Hero copy.
  */
 function nvx_aesthetic_hero_copy_markup(): string {
-	$html  = '<div class="nvx-brand-hero__copy nvx-aes-hero-copy">';
+	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Madrid', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-med-h1">' . esc_html__( 'Medicina Estética Avanzada con Criterio Clínico', 'nuvanx-medical' ) . '</h1>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Restauramos el soporte estructural, la turgencia y la armonía del rostro mediante procedimientos médicos inyectables y regenerativos de alta precisión. Sin alterar tu identidad y guiados exclusivamente por el diagnóstico personalizado de nuestro equipo médico.', 'nuvanx-medical' ) . '</p>';
@@ -161,22 +161,21 @@ function nvx_aesthetic_diagnosis_section_markup(): string {
 		),
 	);
 
-	$html  = '<section class="nvx-aes-section nvx-aes-diagnosis" aria-labelledby="nvx-aes-diagnosis-title">';
-	$html .= '<div class="nvx-aes-section__inner">';
-	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'El diagnóstico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-aes-diagnosis-title" class="nvx-aes-heading">' . esc_html__( 'El diagnóstico antes del tratamiento', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-aes-body nvx-aes-body--lead">' . esc_html__( 'En NUVANX, la indicación de un inyectable no parte de un menú estandarizado, sino de una lectura clínica profunda de los vectores de envejecimiento del rostro. Evaluamos tres parámetros críticos:', 'nuvanx-medical' ) . '</p>';
-	$html .= '<div class="nvx-aes-focus-grid">';
+	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-brand-diagnosis-title">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'El diagnóstico', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-brand-diagnosis-title">' . esc_html__( 'El diagnóstico antes del tratamiento', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En NUVANX, la indicación de un inyectable no parte de un menú estandarizado, sino de una lectura clínica profunda de los vectores de envejecimiento del rostro. Evaluamos tres parámetros críticos:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-catalog-grid">';
 
 	foreach ( $pillars as $pillar ) {
-		$html .= '<article class="nvx-aes-pillar">';
+		$html .= '<article class="nvx-brand-card">';
 		$html .= nvx_aesthetic_icon( $pillar['icon'] );
-		$html .= '<h3 class="nvx-aes-pillar__title">' . esc_html( $pillar['title'] ) . '</h3>';
-		$html .= '<p class="nvx-aes-body">' . esc_html( $pillar['body'] ) . '</p>';
+		$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $pillar['title'] ) . '</h3>';
+		$html .= '<p class="nvx-brand-body">' . esc_html( $pillar['body'] ) . '</p>';
 		$html .= '</article>';
 	}
 
-	$html .= '</div></div></section>';
+	$html .= '</div></section>';
 	return $html;
 }
 
@@ -253,32 +252,23 @@ function nvx_aesthetic_catalog_section_markup(): string {
 		),
 	);
 
-	$html  = '<section class="nvx-aes-section nvx-aes-catalog" aria-labelledby="nvx-aes-catalog-title">';
-	$html .= '<div class="nvx-aes-section__inner">';
-	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'Catálogo facial', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-aes-catalog-title" class="nvx-aes-heading">' . esc_html__( 'Procedimientos médico-estéticos faciales', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<div class="nvx-aes-card-grid">';
+	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-brand-catalog-title">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Catálogo facial', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-brand-catalog-title">' . esc_html__( 'Procedimientos médico-estéticos faciales', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<div class="nvx-catalog-grid">';
 
 	foreach ( $treatments as $treatment ) {
-		$html .= '<article class="nvx-aes-card">';
-		$html .= '<div class="nvx-aes-card__head">';
+		$html .= '<article class="nvx-brand-card">';
 		$html .= nvx_aesthetic_icon( $treatment['icon'] );
-		$html .= '<span class="nvx-aes-card__n">' . esc_html( $treatment['n'] ) . '</span>';
-		$html .= '</div>';
-		$html .= '<h3 class="nvx-aes-card__title">' . esc_html( $treatment['title'] ) . '</h3>';
-		$html .= '<p class="nvx-aes-body">' . esc_html( $treatment['body'] ) . '</p>';
-		// Valid description list: dt/dd are direct children of dl (no wrapping divs).
-		$html .= '<dl class="nvx-aes-card__meta">';
-		$html .= '<dt>' . esc_html__( 'Tarifa', 'nuvanx-medical' ) . '</dt>';
-		$html .= '<dd>' . esc_html( $treatment['price'] ) . '</dd>';
-		$html .= '<dt>' . esc_html__( 'Indicación core', 'nuvanx-medical' ) . '</dt>';
-		$html .= '<dd>' . esc_html( $treatment['core'] ) . '</dd>';
-		$html .= '</dl>';
-		$html .= '<p class="nvx-aes-card__link-wrap"><a class="nvx-aes-card__link" href="' . esc_url( $treatment['url'] ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . '</a></p>';
+		$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $treatment['title'] ) . '</h3>';
+		$html .= '<p class="nvx-brand-body">' . esc_html( $treatment['body'] ) . '</p>';
+		$html .= '<p class="nvx-brand-microcopy"><strong>' . esc_html__( 'Tarifa:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $treatment['price'] ) . '<br>';
+		$html .= '<strong>' . esc_html__( 'Indicación core:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $treatment['core'] ) . '</p>';
+		$html .= '<p class="nvx-brand-card__link-wrap"><a class="nvx-brand-card__link" href="' . esc_url( $treatment['url'] ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . '</a></p>';
 		$html .= '</article>';
 	}
 
-	$html .= '</div></div></section>';
+	$html .= '</div></section>';
 	return $html;
 }
 
@@ -286,20 +276,16 @@ function nvx_aesthetic_catalog_section_markup(): string {
  * Regeneration callout.
  */
 function nvx_aesthetic_regen_section_markup(): string {
-	$html  = '<section class="nvx-aes-section nvx-aes-regen" aria-labelledby="nvx-aes-regen-title">';
-	$html .= '<div class="nvx-aes-section__inner nvx-aes-regen__grid">';
-	$html .= '<div>';
-	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'Regeneración', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-aes-regen-title" class="nvx-aes-heading">' . esc_html__( 'El estímulo biológico: firmeza sin volumen', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-aes-body">' . esc_html__( 'Los bioestimuladores (Sculptra®, Radiesse® y protocolos con PDRN) no rellenan: inducen una respuesta celular controlada en la dermis profunda. Los fibroblastos aumentan la síntesis de colágeno y matriz extracelular, densificando la piel y mejorando la turgencia con un resultado progresivo y natural.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>';
-	$html .= '<aside class="nvx-aes-regen__panel" aria-label="' . esc_attr__( 'Criterio regenerativo', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-aes-meta-label">' . esc_html__( 'Criterio clínico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-aes-panel-list">';
+	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-brand-regen-title">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Regeneración', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-brand-regen-title">' . esc_html__( 'El estímulo biológico: firmeza sin volumen', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'Los bioestimuladores (Sculptra®, Radiesse® y protocolos con PDRN) no rellenan: inducen una respuesta celular controlada en la dermis profunda. Los fibroblastos aumentan la síntesis de colágeno y matriz extracelular, densificando la piel y mejorando la turgencia con un resultado progresivo y natural.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h3>' . esc_html__( 'Criterio clínico', 'nuvanx-medical' ) . '</h3>';
+	$html .= '<ul class="nvx-brand-list">';
 	$html .= '<li><strong>' . esc_html__( 'Sin volumen artificial', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Tensado por neocolagénesis, no por relleno masivo.', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>' . esc_html__( 'Resultado bifásico', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Mejora progresiva entre semanas y meses según el protocolo.', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>' . esc_html__( 'Indicación médica', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Fototipo, elastosis y calidad dérmica definen el plan.', 'nuvanx-medical' ) . '</li>';
-	$html .= '</ul></aside></div></section>';
+	$html .= '</ul></section>';
 	return $html;
 }
 
@@ -307,19 +293,18 @@ function nvx_aesthetic_regen_section_markup(): string {
  * Clinical FAQs (AEO).
  */
 function nvx_aesthetic_faq_section_markup(): string {
-	$html  = '<section class="nvx-aes-section nvx-aes-faq" aria-labelledby="nvx-aes-faq-title">';
-	$html .= '<div class="nvx-aes-section__inner">';
-	$html .= '<p class="nvx-aes-kicker">' . esc_html__( 'Preguntas clínicas', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-aes-faq-title" class="nvx-aes-heading">' . esc_html__( 'Rigor científico sobre inyectables y regeneración', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<div class="nvx-faq nvx-aes-faq-list">';
+	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-brand-faq-title">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Preguntas clínicas', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-brand-faq-title">' . esc_html__( 'Rigor científico sobre inyectables y regeneración', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<div class="nvx-faq-accordion">';
 
-	$html .= '<details class="nvx-brand-faq-item" open>';
-	$html .= '<summary><span>' . esc_html__( '¿Cómo influye la reología del ácido hialurónico en el éxito de una armonización facial y cómo se elige el producto adecuado?', 'nuvanx-medical' ) . '</span></summary>';
-	$html .= '<div class="nvx-brand-faq-content">';
+	$html .= '<details class="nvx-faq-item" open>';
+	$html .= '<summary class="nvx-faq-question">' . esc_html__( '¿Cómo influye la reología del ácido hialurónico en el éxito de una armonización facial y cómo se elige el producto adecuado?', 'nuvanx-medical' ) . '</summary>';
+	$html .= '<div class="nvx-faq-answer">';
 	$html .= '<p>' . esc_html__( 'La reología es el estudio de la deformación y el flujo de la materia. En medicina estética, las propiedades viscoelásticas de un gel de ácido hialurónico determinan su capacidad para proyectar tejidos o integrarse en zonas móviles. El comportamiento del gel bajo un esfuerzo mecánico se define mediante el módulo de elasticidad complejo (G*), compuesto por el módulo de almacenamiento elástico (G′) y el módulo de pérdida viscoso (G″):', 'nuvanx-medical' ) . '</p>';
-	$html .= '<figure class="nvx-aes-formula" aria-label="' . esc_attr__( 'Módulo de almacenamiento elástico G′', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-aes-formula__eq" role="math"><span class="nvx-aes-formula__g">G′</span> = <span class="nvx-aes-formula__frac"><span class="nvx-aes-formula__num">σ<sub>0</sub></span><span class="nvx-aes-formula__den">γ<sub>0</sub></span></span> cos(δ)</p>';
-	$html .= '<figcaption class="nvx-aes-formula__cap">' . esc_html__( 'Donde σ₀ representa la amplitud del esfuerzo mecánico aplicado, γ₀ es la amplitud de la deformación resultante, y δ corresponde al ángulo de fase del gel. Un gel con alto G′ ofrece gran resistencia a la deformación y capacidad de elevación: lo indicamos en planos profundos y supraperiosteales (mandíbula, pómulos). En labios u ojeras seleccionamos G′ bajo y alta cohesividad para integración imperceptible sin migración.', 'nuvanx-medical' ) . '</figcaption>';
+	$html .= '<figure class="nvx-brand-formula" aria-label="' . esc_attr__( 'Módulo de almacenamiento elástico G′', 'nuvanx-medical' ) . '">';
+	$html .= '<p class="nvx-brand-formula__eq" role="math"><span class="nvx-brand-formula__g">G′</span> = <span class="nvx-brand-formula__frac"><span class="nvx-brand-formula__num">σ<sub>0</sub></span><span class="nvx-brand-formula__den">γ<sub>0</sub></span></span> cos(δ)</p>';
+	$html .= '<figcaption class="nvx-brand-formula__cap">' . esc_html__( 'Donde σ₀ representa la amplitud del esfuerzo mecánico aplicado, γ₀ es la amplitud de la deformación resultante, y δ corresponde al ángulo de fase del gel. Un gel con alto G′ ofrece gran resistencia a la deformación y capacidad de elevación: lo indicamos en planos profundos y supraperiosteales (mandíbula, pómulos). En labios u ojeras seleccionamos G′ bajo y alta cohesividad para integración imperceptible sin migración.', 'nuvanx-medical' ) . '</figcaption>';
 	$html .= '</figure></div></details>';
 
 	$faqs = array(
@@ -334,13 +319,13 @@ function nvx_aesthetic_faq_section_markup(): string {
 	);
 
 	foreach ( $faqs as $faq ) {
-		$html .= '<details class="nvx-brand-faq-item">';
-		$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
-		$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
+		$html .= '<details class="nvx-faq-item">';
+		$html .= '<summary class="nvx-faq-question">' . esc_html( $faq['q'] ) . '</summary>';
+		$html .= '<div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div>';
 		$html .= '</details>';
 	}
 
-	$html .= '</div></div></section>';
+	$html .= '</div></section>';
 	return $html;
 }
 
@@ -349,7 +334,7 @@ function nvx_aesthetic_faq_section_markup(): string {
  * Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
  */
 function nvx_aesthetic_editorial_body_markup(): string {
-	return '<div class="nvx-aesthetic-editorial">'
+	return '<div class="nvx-brand-readable">'
 		. nvx_aesthetic_diagnosis_section_markup()
 		. nvx_aesthetic_catalog_section_markup()
 		. nvx_aesthetic_regen_section_markup()
@@ -377,7 +362,7 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 
 	$media = nvx_aesthetic_extract_hero_media( $content );
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--medical nvx-aes-hero" aria-labelledby="nvx-med-h1" aria-label="' . esc_attr__( 'Medicina estética NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--medical" aria-labelledby="nvx-med-h1" aria-label="' . esc_attr__( 'Medicina estética NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_aesthetic_hero_copy_markup();
 	$hero .= $media;

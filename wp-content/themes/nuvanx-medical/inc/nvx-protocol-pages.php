@@ -16,8 +16,8 @@ function nvx_protocol_pages_catalog(): array {
 			'slug'          => 'remodelacion-corporal-laser-madrid',
 			'title'         => 'Remodelación corporal láser diseñada según tu anatomía.',
 			'kicker'        => 'PROTOCOLO SIGNATURE NUVANX',
-			'lead'          => 'NUVANX Contour Architecture™ es nuestro sistema médico de diagnóstico y tratamiento por unidades anatómicas. Estudiamos la grasa localizada, la laxitud cutánea y la continuidad del contorno para diseñar un plan proporcionado y orientado a una evolución discreta.',
-			'description'   => 'Couture Sculpt™ articula esta visión: la tecnología se selecciona después de valorar anatomía, tejido predominante, transiciones entre zonas y límites clínicos.',
+			'lead'          => 'NUVANX Contour Sculpt™ es nuestro sistema médico de diagnóstico y tratamiento por unidades anatómicas. Estudiamos la grasa localizada, la laxitud cutánea y la continuidad del contorno para diseñar un plan proporcionado y orientado a una evolución discreta.',
+			'description'   => 'NUVANX Contour Sculpt™ articula esta visión: la tecnología se selecciona después de valorar anatomía, tejido predominante, transiciones entre zonas y límites clínicos.',
 			'review_status' => 'approved_for_publication',
 		),
 		'post-maternity' => array(
@@ -46,8 +46,8 @@ function nvx_protocol_pages_current_key(): ?string {
 	return null;
 }
 
-/** Builds the Couture Sculpt protocol page. */
-function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
+/** Builds the NUVANX Contour Sculpt protocol page. */
+function nvx_protocol_pages_contour_sculpt_markup( array $data ): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
@@ -83,8 +83,8 @@ function nvx_protocol_pages_couture_sculpt_markup( array $data ): string {
 	$html .= '</section>';
 
 	$html .= '<section class="nvx-brand-section">';
-	$html .= '<h2>' . esc_html__( 'Couture Sculpt™: El protocolo y la tecnología', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'NUVANX Contour Architecture™ se articula a través de Couture Sculpt™. El médico selecciona la modalidad que corresponde a la anatomía y al objetivo clínico, en lugar de depender de una única plataforma.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2>' . esc_html__( 'NUVANX Contour Sculpt™: El protocolo y la tecnología', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'NUVANX Contour Sculpt™ se articula a través del diagnóstico. El médico selecciona la modalidad que corresponde a la anatomía y al objetivo clínico, en lugar de depender de una única plataforma.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-check-list">';
 	$html .= '<li><strong>Endoláser Corporal / Endolift®:</strong> ' . esc_html__( 'para abordar grasa localizada y laxitud cuando la exploración médica lo indique.', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>EXION® Body:</strong> ' . esc_html__( 'para apoyar firmeza y calidad tisular según indicación y plan médico.', 'nuvanx-medical' ) . '</li>';
@@ -165,7 +165,7 @@ function nvx_protocol_pages_post_maternity_markup( array $data ): string {
 /** Dispatches the markup for one approved protocol page. */
 function nvx_protocol_pages_markup( string $key, array $data ): string {
 	if ( 'couture-sculpt' === $key ) {
-		return nvx_protocol_pages_couture_sculpt_markup( $data );
+		return nvx_protocol_pages_contour_sculpt_markup( $data );
 	}
 	if ( 'post-maternity' === $key ) {
 		return nvx_protocol_pages_post_maternity_markup( $data );

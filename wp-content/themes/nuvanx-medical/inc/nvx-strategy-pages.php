@@ -122,7 +122,7 @@ function nvx_strategy_solutions_markup(): string {
 		'Grasa subcutánea, laxitud, estrías, estabilidad de peso y posible diástasis o hernia.',
 		'La grasa visceral, una diástasis significativa o un exceso importante de piel no se resuelven con un tratamiento estético focal.',
 		'/grasa-localizada-abdomen-flancos-madrid/',
-		'Protocolo relacionado: Couture Sculpt™'
+		'Protocolo relacionado: NUVANX Contour Sculpt™'
 	);
 	$html .= nvx_strategy_solution_card(
 		'Brazos y axila',

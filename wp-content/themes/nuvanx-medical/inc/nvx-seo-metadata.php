@@ -28,7 +28,7 @@ function nvx_seo_metadata_catalog(): array {
 			'title'       => 'Protocolos Signature | NUVANX Madrid',
 			'description' => 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.',
 		),
-		'couture_sculpt' => array(
+		'contour_sculpt' => array(
 			'title'       => 'Remodelación corporal láser Madrid | NUVANX',
 			'description' => 'Remodelación corporal láser en Madrid por unidades anatómicas para grasa localizada, laxitud y continuidad del contorno tras valoración médica.',
 		),
@@ -176,7 +176,7 @@ function nvx_seo_current_metadata_key(): ?string {
 	$map  = array(
 
 		'/protocolos-signature/' => 'protocolos_signature',
-		'/remodelacion-corporal-laser-madrid/' => 'couture_sculpt',
+		'/remodelacion-corporal-laser-madrid/' => 'contour_sculpt',
 		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
 		'/medicina-estetica-chamberi/' => 'chamberi',
 		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',

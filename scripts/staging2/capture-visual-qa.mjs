@@ -33,12 +33,12 @@ const pages = [
   ['/calidad-piel-firmeza-luminosidad-madrid/', 'Calidad, firmeza y luminosidad de la piel en Madrid'],
   ['/cicatrices-acne-poros-textura-madrid/', 'Cicatrices de acné, poros y textura en Madrid'],
   ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', 'Manchas, rojeces y fotodaño en Madrid'],
-  ['/grasa-localizada-abdomen-flancos-madrid/', 'Grasa localizada en abdomen y flancos en Madrid'],
-  ['/flacidez-grasa-localizada-brazos-madrid/', 'Flacidez y grasa localizada en brazos en Madrid'],
-  ['/grasa-espalda-zona-sujetador-madrid/', 'Grasa de espalda y zona del sujetador en Madrid'],
-  ['/flacidez-muslos-internos-subgluteo-madrid/', 'Flacidez en muslos internos y región subglútea en Madrid'],
-  ['/tratamiento-rodillas-grasa-flacidez-madrid/', 'Grasa localizada y flacidez en rodillas en Madrid'],
-  ['/contorno-corporal-masculino-madrid/', 'Contorno corporal masculino en Madrid'],
+  ['/grasa-localizada-abdomen-flancos-madrid/', 'Esa grasa del abdomen que no se va ni a dieta ni a gimnasio.'],
+  ['/flacidez-grasa-localizada-brazos-madrid/', 'Para que la manga caiga bien — sin que la piel quede colgando después.'],
+  ['/grasa-espalda-zona-sujetador-madrid/', 'El pliegue que marca la ropa, aunque tu peso esté bien.'],
+  ['/flacidez-muslos-internos-subgluteo-madrid/', 'La piel más delicada del cuerpo merece el abordaje más cuidadoso.'],
+  ['/tratamiento-rodillas-grasa-flacidez-madrid/', 'Una zona pequeña que cambia toda la línea de la pierna.'],
+  ['/contorno-corporal-masculino-madrid/', 'Pensado para el cuerpo de un hombre, no adaptado del de una mujer.'],
   ['/por-que-nuvanx/', 'Por qué NUVANX. Sin retórica de marketing.'],
   ['/inversion-medicina-estetica/', 'El presupuesto forma parte de una decisión informada.'],
 ];
@@ -379,7 +379,7 @@ async function auditDesktopNavigation(port) {
       return { links, x: rect ? rect.left + rect.width / 2 : 0, y: rect ? rect.top + rect.height / 2 : 0 };
     })()`);
     result.top_level_links = initial.links;
-    const required = ['INICIO', 'SOLUCIONES', 'PROTOCOLOS SIGNATURE', 'TECNOLOGÍA', 'CASOS CLÍNICOS', 'EQUIPO MÉDICO', 'CLÍNICAS', 'JOURNAL', 'CONTACTO'];
+    const required = ['INICIO', 'SOLUCIONES MÉDICAS', 'PROTOCOLOS SIGNATURE', 'TECNOLOGÍA', 'CASOS CLÍNICOS', 'EQUIPO MÉDICO', 'CLÍNICAS', 'JOURNAL', 'CONTACTO'];
     for (const label of required) if (!initial.links.includes(label)) fail(scope, `missing top-level item: ${label}`);
     if (!initial.x || !initial.y) throw new Error('Protocolos Signature desktop link was not found.');
 
@@ -425,7 +425,7 @@ async function openMobileAccordion(session, linkPattern, parentSubmenuClass = nu
   return session.call((pattern, parentClass) => {
     const nav = document.getElementById('nvx-mobile-nav');
     const regex = new RegExp(pattern, 'i');
-    let scopeElement = nav;
+    let scopeElement = nav?.querySelector('.nvx-mobile-nav__list');
     if (parentClass) {
       const parentItems = Array.from(nav?.querySelectorAll('.nvx-mobile-nav__list > li') || []);
       const parentItem = parentItems.find((node) => {

@@ -108,11 +108,9 @@ function nvx_theme_normalize_public_document( string $html ): string {
 		$html,
 		1
 	);
-
 	if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {
 		return $html;
 	}
-
 	$normalized = preg_replace_callback(
 		'/<script\b[^>]*type=["\']application\/ld\+json["\'][^>]*>[\s\S]*?<\/script>/iu',
 		static function ( array $match ): string {
@@ -124,7 +122,6 @@ function nvx_theme_normalize_public_document( string $html ): string {
 		},
 		$html
 	);
-
 	if ( is_string( $normalized ) ) {
 		$html = $normalized;
 	}
@@ -157,6 +154,7 @@ require_once __DIR__ . '/nvx-clinical-language.php';
 require_once __DIR__ . '/nvx-blog-system.php';
 require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
 require_once __DIR__ . '/nvx-navigation-filters.php';
+require_once __DIR__ . '/nvx-roadmap-directory.php';
 
 /* GEO · Hreflang es-ES */
 add_action(

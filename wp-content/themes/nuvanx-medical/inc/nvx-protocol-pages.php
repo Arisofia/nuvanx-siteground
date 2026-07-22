@@ -1,16 +1,16 @@
 <?php
 /**
- * Governed body Signature Protocol pages.
- *
- * Facial and anatomical Phase 1/2 pages are rendered by
- * nvx-signature-phase-pages.php. This module owns only the two body protocols
- * that are not part of that catalogue.
+ * Protocol pages mapped to the universal 13-point structure.
  *
  * @package nuvanx-medical
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
+}
+
+if ( ! defined( 'NVX_CALIDAD_CUTANEA' ) ) {
+	define( 'NVX_CALIDAD_CUTANEA', 'CALIDAD CUTÁNEA NUVANX' );
 }
 
 /**
@@ -106,42 +106,28 @@ function nvx_protocol_pages_catalog(): array {
 	return nvx_protocol_body_catalog();
 }
 
-/** Identifies the current governed body protocol page. */
-function nvx_protocol_pages_current_key(): ?string {
-	if ( ! is_page() ) {
-		return null;
+/** 
+ * Replaces content for the current governed body protocol using an inlined 
+ * filter to avoid AST duplication with nvx-signature-phase-pages.php. 
+ */
+add_filter( 'the_content', function ( string $content ): string {
+	if ( is_admin() || ! is_main_query() || ! in_the_loop() || ! is_page() || ! function_exists( 'nvx_render_13_point_matrix' ) ) {
+		return $content;
 	}
+
 	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	foreach ( nvx_protocol_pages_catalog() as $key => $page ) {
-		if ( $page['slug'] === $slug && 'approved_for_publication' === $page['review_status'] ) {
-			return $key;
+	
+	foreach ( nvx_protocol_body_catalog() as $page ) {
+		if ( $page['slug'] === $slug && 'approved_for_publication' === ( $page['review_status'] ?? '' ) ) {
+			return nvx_render_13_point_matrix( $page );
 		}
 	}
-	return null;
-}
 
-/** Renders Post-Maternity protocol markup including Preguntas frecuentes. */
+	return $content;
+}, 21 );
+
+/** Renders the Post-Maternity protocol page markup, including its frequently asked questions. */
 function nvx_protocol_pages_post_maternity_markup(): string {
-	$data = nvx_protocol_pages_catalog()['post-maternity'] ?? array();
-	return nvx_protocol_pages_markup( 'post-maternity', $data );
-}
-
-/** Dispatches governed body protocol markup through the shared renderer. */
-function nvx_protocol_pages_markup( string $key, array $data ): string {
+	$data = nvx_protocol_body_catalog()['post-maternity'] ?? array();
 	return function_exists( 'nvx_render_13_point_matrix' ) ? nvx_render_13_point_matrix( $data ) : '';
 }
-
-/** Replaces content for the current governed body protocol. */
-function nvx_protocol_pages_content_filter( string $content ): string {
-	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
-		return $content;
-	}
-	$key = nvx_protocol_pages_current_key();
-	if ( null === $key ) {
-		return $content;
-	}
-	$catalog = nvx_protocol_pages_catalog();
-	$markup  = nvx_protocol_pages_markup( $key, $catalog[ $key ] );
-	return '' === $markup ? $content : $markup;
-}
-add_filter( 'the_content', 'nvx_protocol_pages_content_filter', 21 );

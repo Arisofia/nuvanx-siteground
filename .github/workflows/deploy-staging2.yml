@@ -155,9 +155,21 @@ jobs:
             echo "run_id=$GITHUB_RUN_ID"
             echo "run_attempt=$GITHUB_RUN_ATTEMPT"
             echo "event=$GITHUB_EVENT_NAME"
-            echo "action=${{ github.event.action }}"
-            echo "label=${{ github.event.label.name }}"
-            echo "actor=$GITHUB_ACTOR"
+       - name: Prepare evidence directory
+         shell: bash
+         env:
+           EVENT_ACTION: ${{ github.event.action }}
+           EVENT_LABEL: ${{ github.event.label.name }}
+         run: |
+           set -euo pipefail
+           mkdir -p "$ARTIFACT_DIR"
+           {
+             echo "run_id=$GITHUB_RUN_ID"
+             echo "run_attempt=$GITHUB_RUN_ATTEMPT"
+             echo "event=$GITHUB_EVENT_NAME"
+             echo "action=$EVENT_ACTION"
+             echo "label=$EVENT_LABEL"
+             echo "actor=$GITHUB_ACTOR"
             echo "ref=$GITHUB_REF"
             echo "github_sha=$GITHUB_SHA"
             echo "requested_sha=$DEPLOY_SHA"

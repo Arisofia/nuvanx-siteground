@@ -30,9 +30,10 @@ fetch_page() {
   for forbidden in \
     'pending_medical_legal' 'LipoSculpt-Air' 'V-Lift Awake' 'Couture Sculpt' 'Contour Sculpt' 'Eye Frame' \
     'garantizar resultados' 'control térmico absoluto' 'sin huellas quirúrgicas evidentes' 'sin bisturí ni puntos' \
-    'todo en vigilia' 'mínima recuperación' 'sin cicatrices' 'resultado definitivo' 'una sola sesión' \
-    'Tiny Tuck' 'AirTite' 'Mommy Makeover' 'destruyendo los adipocitos' 'forzando a la piel' \
-    'obligamos a tus células' 'obligar a los fibroblastos' 'ayudar en el cierre de la diástasis' 'sin hospitalización'
+    'todo en vigilia' 'mínima recuperación' 'sin cicatrices' 'elimina grasa en cualquier zona' 'resultado definitivo' \
+    'una sola sesión' 'de rostro a tobillos' 'Tiny Tuck' 'AirTite' 'Mommy Makeover' 'destruyendo los adipocitos' \
+    'forzando a la piel' 'obligamos a tus células' 'obligar a los fibroblastos' 'ayudar en el cierre de la diástasis' \
+    'garantía de que volverá' 'sin hospitalización'
   do
     if grep -Fiq "$forbidden" "$body_file"; then
       fail "$page_path exposes forbidden marker: $forbidden"

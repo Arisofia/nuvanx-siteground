@@ -51,12 +51,12 @@ body,
 .nvx-copy,
 .nvx-brand-body,
 .nvx-lead,
-.nvx-brand-hero__lead,
+.nvx-lead,
 .nvx-button,
 .nvx-btn,
 .nvx-brand-btn,
 .nvx-eyebrow,
-.nvx-brand-kicker,
+.nvx-eyebrow,
 .nvx-brand-card__kicker {
   font-family: var(--nvx-sans);
 }
@@ -69,7 +69,7 @@ body,
   color: var(--nvx-text-body);
 }
 .nvx-display,
-.nvx-brand-hero__title {
+.nvx-heading {
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-display);
   font-weight: var(--nvx-fw-heading);
@@ -239,10 +239,10 @@ h3 {
 }
 
 /* Dark hero contrast */
-.nvx-brand-hero__copy :is(.nvx-brand-kicker, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta),
-.nvx-editorial-hero__copy :is(.nvx-brand-kicker, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta),
-.nvx-page-hero__copy :is(.nvx-brand-kicker, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta),
-.nvx-hero__copy :is(.nvx-brand-kicker, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta) {
+.nvx-editorial-hero__copy :is(.nvx-eyebrow, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta),
+.nvx-editorial-hero__copy :is(.nvx-eyebrow, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta),
+.nvx-page-hero__copy :is(.nvx-eyebrow, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta),
+.nvx-hero__copy :is(.nvx-eyebrow, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta) {
   color: var(--nvx-text-on-dark-72);
 }
 

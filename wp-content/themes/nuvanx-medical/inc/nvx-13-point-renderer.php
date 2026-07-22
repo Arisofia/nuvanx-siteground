@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_render_matrix_hero( array $data ): string {
     $html = '<header class="nvx-strategy-intro">';
     if ( ! empty( $data['kicker'] ) ) {
-        $html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
+        $html .= '<p class="nvx-eyebrow">' . esc_html( $data['kicker'] ) . '</p>';
     }
     $html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ?? $data['title'] ?? '' ) . '</h1>';
     if ( ! empty( $data['lead'] ) ) {

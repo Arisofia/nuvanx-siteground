@@ -47,8 +47,8 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
 	}
 
 	$movable_classes = array(
-		'nvx-brand-hero__lead',
-		'nvx-brand-hero__description',
+		'nvx-lead',
+		'nvx-lead',
 		'nvx-hero__lead',
 		'nvx-page-hero__lead',
 		'nvx-lead',
@@ -115,7 +115,7 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 
 	foreach ( $hero_nodes as $hero ) {
 		$copy_nodes = $xpath->query(
-			'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ")]',
+			'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ")]',
 			$hero
 		);
 

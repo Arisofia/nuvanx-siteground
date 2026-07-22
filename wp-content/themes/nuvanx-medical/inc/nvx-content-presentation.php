@@ -174,7 +174,7 @@ function nvx_home_action_banner_markup(): string {
 	$html  = '<div id="nvx-post-values-action-banner" class="nvx-home-action-banner-shell" data-nvx-action-banner="post-values">';
 	$html .= '<section class="nvx-home-action-banner" aria-labelledby="nvx-home-action-banner-title">';
 	$html .= '<div class="nvx-home-action-banner__copy">';
-	$html .= '<p class="nvx-brand-kicker nvx-home-action-banner__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow nvx-home-action-banner__kicker">' . esc_html__( 'Valoración médica', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-home-action-banner-title" class="nvx-home-action-banner__title">' . esc_html__( '15–30 minutos para saber si existe indicación', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-home-action-banner__text">' . wp_kses(
 		__( 'Evaluamos tu caso, explicamos las opciones disponibles y documentamos el presupuesto antes de cualquier decisión. Presencial en <strong>Chamberí</strong> o <strong>Salamanca–Goya</strong>.', 'nuvanx-medical' ),
@@ -223,7 +223,7 @@ function nvx_values_section_markup(): string {
 
 	$html  = '<section class="nvx-brand-section nvx-brand-section--tight nvx-values-section" aria-label="Por qué NUVANX">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Por qué NUVANX', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'Por qué NUVANX', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Medicina estética donde el diagnóstico decide la tecnología', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-values">';
 
@@ -267,7 +267,7 @@ function nvx_method_section_markup(): string {
 
 	$html  = '<section class="nvx-brand-section nvx-method-section" aria-label="Cómo trabajamos NUVANX">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Cómo trabajamos', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'Cómo trabajamos', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Un protocolo médico en tres decisiones', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-body nvx-method-lead">' . esc_html__( 'La evaluación, la indicación y el seguimiento forman un único proceso clínico.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-method-columns">';
@@ -561,7 +561,7 @@ function nvx_home_team_strip_markup(): string {
 
 	$html  = '<section class="nvx-brand-section nvx-home-team-strip" id="nvx-home-team" aria-labelledby="nvx-home-team-title" data-nvx-home-block="team">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Equipo médico', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'Equipo médico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Experiencia clínica hospitalaria aplicada a la estética', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En NUVANX, la excelencia no es solo una promesa; es el resultado de un equipo médico con trayectoria directa en el entorno hospitalario.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html( $dr_jose ) . '<br><br>' . esc_html( $dra_ivon ) . '<br><br>' . esc_html( $dr_fabio ) . '</p>';
@@ -577,7 +577,7 @@ function nvx_home_team_strip_markup(): string {
 function nvx_home_wellaging_strip_markup(): string {
 	$html  = '<section class="nvx-brand-section nvx-home-wellaging" id="nvx-home-wellaging" aria-labelledby="nvx-home-wellaging-title" data-nvx-home-block="wellaging">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Well-aging', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'Well-aging', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-home-wellaging-title" class="nvx-brand-title">' . esc_html__( 'Medicina del envejecimiento: salud desde el interior', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
 		'No nos limitamos a la apariencia superficial. Unimos el cuidado de la piel con la geriatría preventiva y el estudio de la longevidad, un enfoque clínico global que va mucho más allá de la estética convencional. Entendemos que mejorar la piel implica tratar el tejido profundo que envejece. Por eso, nuestro equipo está formado en la fisiología médica del cuerpo humano, no solo en el manejo de máquinas.',
@@ -742,7 +742,7 @@ function nvx_content_is_exion_hub(): bool {
 function nvx_exion_investment_markup(): string {
 	$html  = '<section class="nvx-brand-section nvx-exion-investment" id="inversion-exion" aria-labelledby="nvx-exion-investment-title" data-nvx-block="exion-investment">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Inversión', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'Inversión', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-exion-investment-title" class="nvx-brand-title">' . esc_html__( 'Precio de EXION® BTL en NUVANX', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
 			'El PVP de EXION® no se publica como tarifa fija online porque depende del aplicador (Face, Body o Fractional RF), de la zona, del número de sesiones y de si se combina con otros protocolos. El presupuesto se documenta por escrito tras la valoración médica.',
@@ -894,7 +894,7 @@ function nvx_content_unify_ctas( string $content ): string {
 function nvx_content_strip_hero_inline_styles( string $content ): string {
 	// Opening tags for hero stages / copy that may carry legacy inline layout.
 	$hero_bits = 'nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage';
-	$copy_bits = 'nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy';
+	$copy_bits = 'nvx-editorial-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy';
 	$inner_bits = 'nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner';
 	$pattern    = '/(<(?:section|div)\b[^>]*\bclass="[^"]*\b(?:' . $hero_bits . '|' . $copy_bits . '|' . $inner_bits . ')\b[^"]*"[^>]*)\s+style="[^"]*"/iu';
 	$updated    = nvx_content_preg_replace_keep( $pattern, '$1', $content );

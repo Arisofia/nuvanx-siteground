@@ -61,9 +61,9 @@ function nvx_content_is_endolaser_page( string $content ): bool {
  * Hero copy.
  */
 function nvx_endolaser_hero_copy_markup(): string {
-	$html  = '<div class="nvx-brand-hero__copy nvx-endolaser-hero-copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolaser-h1">' . esc_html__( 'Endoláser corporal en Madrid: grasa localizada y mejor contorno', 'nuvanx-medical' ) . '</h1>';
+	$html  = '<div class="nvx-editorial-hero__copy nvx-endolaser-hero-copy">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-heading" id="nvx-endolaser-h1">' . esc_html__( 'Endoláser corporal en Madrid: grasa localizada y mejor contorno', 'nuvanx-medical' ) . '</h1>';
 	
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
@@ -71,8 +71,8 @@ function nvx_endolaser_hero_copy_markup(): string {
 	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
 	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
 	$html .= '</div></div>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Láser médico para focos de grasa localizada con componente de flacidez leve–moderada (abdomen, flancos, muslos, brazos…), tras valoración y plan por zonas.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-brand-hero__description">' . esc_html__( 'No es un tratamiento de obesidad ni de pérdida masiva de peso. No es liposucción. Es un protocolo ambulatorio con criterios de inclusión y exclusión.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-lead">' . esc_html__( 'Láser médico para focos de grasa localizada con componente de flacidez leve–moderada (abdomen, flancos, muslos, brazos…), tras valoración y plan por zonas.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-lead">' . esc_html__( 'No es un tratamiento de obesidad ni de pérdida masiva de peso. No es liposucción. Es un protocolo ambulatorio con criterios de inclusión y exclusión.', 'nuvanx-medical' ) . '</p>';
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$html .= nvx_cta_pair_markup( 'nvx-endolaser-hero-ctas nvx-home-hero-ctas' );

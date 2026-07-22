@@ -5,7 +5,7 @@
 
 @media (max-width: 680px) {
 
-  .nvx-brand-hero__copy .nvx-home-hero-ctas, .nvx-brand-hero__copy .nvx-cta-pair {
+  .nvx-editorial-hero__copy .nvx-home-hero-ctas, .nvx-editorial-hero__copy .nvx-cta-pair {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--nvx-space-1);

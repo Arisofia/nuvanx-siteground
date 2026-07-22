@@ -104,9 +104,9 @@ function nvx_endolift_hero_copy_markup(): string {
 		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
 		: number_format_i18n( 798.60, 2 );
 
-	$html  = '<div class="nvx-brand-hero__copy nvx-endolift-hero-copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html__( 'Endolift® en Madrid: papada, mandíbula y cuello sin quirófano', 'nuvanx-medical' ) . '</h1>';
+	$html  = '<div class="nvx-editorial-hero__copy nvx-endolift-hero-copy">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-heading" id="nvx-endolift-h1">' . esc_html__( 'Endolift® en Madrid: papada, mandíbula y cuello sin quirófano', 'nuvanx-medical' ) . '</h1>';
 	
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
@@ -114,8 +114,8 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
 	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
 	$html .= '</div></div>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Para la papada o la mandíbula poco definida, sin pasar por quirófano. Te miramos primero, te decimos con qué claridad qué se puede conseguir, y solo si tiene sentido para ti, seguimos adelante.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
+	$html .= '<p class="nvx-lead">' . esc_html__( 'Para la papada o la mandíbula poco definida, sin pasar por quirófano. Te miramos primero, te decimos con qué claridad qué se puede conseguir, y solo si tiene sentido para ti, seguimos adelante.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-lead">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
 			__( 'Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, comparación con cirugía, tarifas PVP por zona y recuperación realista — antes de decidir.', 'nuvanx-medical' ),

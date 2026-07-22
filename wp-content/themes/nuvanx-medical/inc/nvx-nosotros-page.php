@@ -72,10 +72,10 @@ function nvx_nosotros_url( string $path ): string {
  * Hero copy.
  */
 function nvx_nosotros_hero_copy_markup(): string {
-	$html  = '<div class="nvx-brand-hero__copy nvx-nosotros-hero-copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Madrid', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-nosotros-h1">' . esc_html__( 'Sobre Nosotros: Autoridad Médica, Criterio Clínico y Transparencia', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Medicina estética láser basada en evidencia, ingeniería tisular y well-aging — sin protocolos estandarizados ni inercia comercial.', 'nuvanx-medical' ) . '</p>';
+	$html  = '<div class="nvx-editorial-hero__copy nvx-nosotros-hero-copy">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Madrid', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-heading" id="nvx-nosotros-h1">' . esc_html__( 'Sobre Nosotros: Autoridad Médica, Criterio Clínico y Transparencia', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-lead">' . esc_html__( 'Medicina estética láser basada en evidencia, ingeniería tisular y well-aging — sin protocolos estandarizados ni inercia comercial.', 'nuvanx-medical' ) . '</p>';
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$html .= nvx_cta_pair_markup( 'nvx-nosotros-hero-ctas nvx-home-hero-ctas' );

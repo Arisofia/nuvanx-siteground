@@ -121,11 +121,11 @@ function nvx_laser_hero_ctas_markup(): string {
 function nvx_laser_hero_copy_markup(): string {
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	$html  = '<div class="nvx-brand-hero__copy nvx-laser-hero-copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Tecnología médica de precisión', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-laser-h1">' . esc_html__( 'Medicina Estética Láser Avanzada en Madrid', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Plataformas de energía selectiva calibradas con rigor clínico para redefinir el contorno, restaurar la firmeza dermoepidérmica y renovar la textura de la piel sin cirugía.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
+	$html  = '<div class="nvx-editorial-hero__copy nvx-laser-hero-copy">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Tecnología médica de precisión', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-heading" id="nvx-laser-h1">' . esc_html__( 'Medicina Estética Láser Avanzada en Madrid', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-lead">' . esc_html__( 'Plataformas de energía selectiva calibradas con rigor clínico para redefinir el contorno, restaurar la firmeza dermoepidérmica y renovar la textura de la piel sin cirugía.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-lead">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
 			__( 'Bajo la dirección médica del Dr. José Javier Rivera Tejeda (Nº Colegiado ICOMEM %s), diseñamos protocolos que combinan la biofísica de la luz y la estimulación celular profunda para lograr resultados estables y elegantes.', 'nuvanx-medical' ),

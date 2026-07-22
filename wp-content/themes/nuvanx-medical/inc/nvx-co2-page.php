@@ -61,9 +61,9 @@ function nvx_co2_hero_copy_markup(): string {
 		? nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] )
 		: number_format_i18n( 330, 2 );
 
-	$html  = '<div class="nvx-brand-hero__copy nvx-co2-hero-copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-co2-h1">' . esc_html__( 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', 'nuvanx-medical' ) . '</h1>';
+	$html  = '<div class="nvx-editorial-hero__copy nvx-co2-hero-copy">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-heading" id="nvx-co2-h1">' . esc_html__( 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', 'nuvanx-medical' ) . '</h1>';
 	
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
@@ -71,8 +71,8 @@ function nvx_co2_hero_copy_markup(): string {
 	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
 	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
 	$html .= '</div></div>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Protocolos de resurfacing fraccionado para mejorar irregularidades de textura y cicatrices, con un plan de recuperación realista (eritema y descamación según profundidad).', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-brand-hero__description">' . esc_html(
+	$html .= '<p class="nvx-lead">' . esc_html__( 'Protocolos de resurfacing fraccionado para mejorar irregularidades de textura y cicatrices, con un plan de recuperación realista (eritema y descamación según profundidad).', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-lead">' . esc_html(
 		sprintf(
 			/* translators: %s: facial session PVP */
 			__( 'Parámetros de potencia, profundidad y densidad ajustados por el equipo médico. PVP sesión facial desde %s € (IVA incl.).', 'nuvanx-medical' ),

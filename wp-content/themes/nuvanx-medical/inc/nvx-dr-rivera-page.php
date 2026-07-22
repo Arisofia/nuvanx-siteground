@@ -56,9 +56,9 @@ function nvx_content_dr_rivera_hijack( string $content ): string {
 
 	$html .= '<div class="nvx-dr-rivera-header">';
 	$html .= '<img src="' . $avatar . '" alt="Dr. Javier Rivera Tejeda" class="nvx-dr-rivera-avatar" onerror="this.style.display=\'none\'">';
-	$html .= '<p class="nvx-brand-kicker nvx-dr-rivera-kicker">' . esc_html__( 'Dirección Médica NUVANX', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title nvx-dr-rivera-h1" id="nvx-dr-rivera-h1">' . esc_html__( 'Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead nvx-dr-rivera-lead">' . esc_html__( 'Nº Colegiado ICOMEM: 282864786 · Especialista en Medicina Estética Láser e Ingeniería Tisular', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-eyebrow nvx-dr-rivera-kicker">' . esc_html__( 'Dirección Médica NUVANX', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 class="nvx-heading nvx-dr-rivera-h1" id="nvx-dr-rivera-h1">' . esc_html__( 'Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-lead nvx-dr-rivera-lead">' . esc_html__( 'Nº Colegiado ICOMEM: 282864786 · Especialista en Medicina Estética Láser e Ingeniería Tisular', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 
 	// Manifiesto Clínico

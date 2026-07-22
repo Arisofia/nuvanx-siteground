@@ -39,7 +39,7 @@ function nvx_protocol_hub_card( string $title, string $body, string $path ): str
 /** Build the complete Signature hub. */
 function nvx_protocol_hub_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-protocol-hub nvx-shell">';
-	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">' . esc_html__( 'MEDICINA ESTÉTICA DE DIAGNÓSTICO', 'nuvanx-medical' ) . '</p>';
+	$html .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">' . esc_html__( 'MEDICINA ESTÉTICA DE DIAGNÓSTICO', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-strategy-title">' . esc_html__( 'Protocolos Signature: Medicina estética de diagnóstico.', 'nuvanx-medical' ) . '</h1>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Sistemas médicos que conectan diagnóstico anatómico, selección tecnológica, planificación y seguimiento. La tecnología no define el protocolo: la indicación determina qué herramienta puede aportar valor.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p></header>';

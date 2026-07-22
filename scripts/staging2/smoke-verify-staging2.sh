@@ -16,6 +16,20 @@ done
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
+USER_AGENT='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'
+CURL_COMMON_ARGS=(
+  --silent
+  --show-error
+  --connect-timeout 15
+  --max-time 45
+  --http1.1
+  --compressed
+  --user-agent "$USER_AGENT"
+  --header 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
+  --header 'Accept-Language: es-ES,es;q=0.9,en;q=0.7'
+  --header 'Cache-Control: no-cache'
+  --header 'Pragma: no-cache'
+)
 # fail prints an error message to stderr and returns a failure status.
 fail() { echo "ERROR: $*" >&2; return 1; }
 
@@ -24,9 +38,23 @@ fetch_page() {
   local page_path="$1"
   shift
   local body_file="$TMP_DIR/body-$(echo "$page_path" | tr '/-' '__').html"
-  local status
-  status="$(curl --silent --show-error --connect-timeout 15 --max-time 45 --retry 2 --retry-all-errors --output "$body_file" --write-out '%{http_code}' "$BASE_URL$page_path")"
-  [[ "$status" == '200' ]] || fail "$page_path returned HTTP $status"
+  local status attempt
+
+  status='000'
+  for attempt in 1 2 3 4; do
+    status="$(curl "${CURL_COMMON_ARGS[@]}" --output "$body_file" --write-out '%{http_code}' "$BASE_URL$page_path")"
+    if [[ "$status" == '200' ]]; then
+      break
+    fi
+    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then
+      break
+    fi
+    if [[ "$attempt" -lt 4 ]]; then
+      sleep $(( attempt * 2 ))
+    fi
+  done
+
+  [[ "$status" == '200' ]] || fail "$page_path returned HTTP $status after $attempt attempt(s)"
   for expected_marker in "$@"; do
     grep -Fiq "$expected_marker" "$body_file" || fail "$page_path is missing marker: $expected_marker"
   done
@@ -42,7 +70,7 @@ fetch_page() {
       fail "$page_path exposes retired, internal or prohibited marker: $forbidden"
     fi
   done
-  echo "PASS page $page_path status=200 markers=$#"
+  echo "PASS page $page_path status=200 markers=$# attempts=$attempt"
 }
 
 # check_redirect verifies that a source path redirects directly to the expected target path with HTTP 301.
@@ -55,7 +83,7 @@ check_redirect() {
   status='000'
   for attempt in 1 2 3 4; do
     : > "$headers_file"
-    status="$(curl --silent --show-error --connect-timeout 15 --max-time 30 --max-redirs 0 --output /dev/null --dump-header "$headers_file" --write-out '%{http_code}' "$BASE_URL$source_path")"
+    status="$(curl "${CURL_COMMON_ARGS[@]}" --max-redirs 0 --output /dev/null --dump-header "$headers_file" --write-out '%{http_code}' "$BASE_URL$source_path")"
     if [[ "$status" == '301' ]]; then
       break
     fi
@@ -73,6 +101,9 @@ check_redirect() {
   [[ "$location" == "$expected_location" ]] || fail "$source_path redirects to $location instead of $expected_location"
   echo "PASS redirect $source_path -> $target_path status=301 attempts=$attempt"
 }
+
+# Allow the edge cache and anti-bot layer to observe the completed immutable release.
+sleep 5
 
 check_redirect '/tratamientos/' '/soluciones-medicas/'
 fetch_page '/soluciones-medicas/' 'Soluciones médicas para rostro, piel y contorno corporal.' 'Rostro y cuello' 'Contorno corporal' 'Cambios posgestacionales' 'Valoración de procedimientos previos'

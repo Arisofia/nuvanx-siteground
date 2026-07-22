@@ -43,28 +43,28 @@ ob_start();
 		<div class="nvx-home-standard__grid">
 			<div class="nvx-home-feature">
 				<span class="nvx-home-feature__number" aria-hidden="true">I</span>
-				<h3 class="nvx-home-feature__title">Abordajes sin incisiones quirúrgicas amplias</h3>
-				<p class="nvx-home-feature__desc">Determinadas indicaciones pueden abordarse mediante microcánulas o fibra óptica, siempre tras exploración médica.</p>
+				<h3 class="nvx-home-feature__title">Sin bisturí, sin ingresos.</h3>
+				<p class="nvx-home-feature__desc">Cuando tiene sentido para tu caso, trabajamos con microcánula o fibra óptica — nunca sin haberte explorado antes.</p>
 			</div>
 			<div class="nvx-home-feature">
 				<span class="nvx-home-feature__number" aria-hidden="true">II</span>
-				<h3 class="nvx-home-feature__title">Recuperación según el procedimiento</h3>
-				<p class="nvx-home-feature__desc">El tiempo de reincorporación depende del tratamiento, la zona, los parámetros utilizados y la respuesta individual.</p>
+				<h3 class="nvx-home-feature__title">Recuperación real, no de folleto.</h3>
+				<p class="nvx-home-feature__desc">Te decimos cuántos días vas a perder de tu rutina, por tratamiento y por persona — no una cifra genérica que luego no se cumple.</p>
 			</div>
 			<div class="nvx-home-feature">
 				<span class="nvx-home-feature__number" aria-hidden="true">III</span>
-				<h3 class="nvx-home-feature__title">Anestesia adaptada a la indicación</h3>
-				<p class="nvx-home-feature__desc">Cuando procede, los tratamientos se realizan con anestesia local y seguimiento médico personalizado.</p>
+				<h3 class="nvx-home-feature__title">Anestesia local cuando toca, nunca de más.</h3>
+				<p class="nvx-home-feature__desc">Cuando procede, los tratamientos se realizan con anestesia local para maximizar tu confort y seguridad, sin sobretratar.</p>
 			</div>
 			<div class="nvx-home-feature">
 				<span class="nvx-home-feature__number" aria-hidden="true">IV</span>
-				<h3 class="nvx-home-feature__title">Tratamiento combinado del contorno</h3>
-				<p class="nvx-home-feature__desc">La reducción adiposa y la mejora de la firmeza pueden integrarse en un mismo plan cuando existe indicación.</p>
+				<h3 class="nvx-home-feature__title">Grasa y flacidez, en la misma cita.</h3>
+				<p class="nvx-home-feature__desc">Cuando el diagnóstico lo permite, integramos la reducción adiposa y la mejora de la firmeza en un único procedimiento.</p>
 			</div>
 			<div class="nvx-home-feature">
 				<span class="nvx-home-feature__number" aria-hidden="true">V</span>
-				<h3 class="nvx-home-feature__title">Evolución progresiva y seguimiento</h3>
-				<p class="nvx-home-feature__desc">La evolución se revisa en consulta y varía según el tratamiento, el tejido y los hábitos de cada paciente.</p>
+				<h3 class="nvx-home-feature__title">Seguimiento con nombre y apellido.</h3>
+				<p class="nvx-home-feature__desc">Revisamos cómo evolucionas tú, no un ticket de atención al cliente. Tu progreso se evalúa personalmente en consulta.</p>
 			</div>
 		</div>
 	</section>
@@ -142,7 +142,7 @@ ob_start();
 				<div class="nvx-home-seo__col">
 					<h3 class="nvx-home-seo__col-title">Contorno Corporal</h3>
 					<ul class="nvx-home-seo__list">
-						<li><strong>Remodelación global:</strong> <a href="<?php echo esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ); ?>">NUVANX Contour Sculpt™</a> para el tratamiento de grasa localizada y firmeza.</li>
+						<li><strong>Remodelación global:</strong> <a href="<?php echo esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ); ?>">NUVANX Contour Architecture™</a> para el tratamiento de grasa localizada y firmeza.</li>
 						<li><strong>Recuperación posgestacional:</strong> <a href="<?php echo esc_url( home_url( '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' ) ); ?>">Post-Maternity Contour™</a> para valorar abdomen, diástasis y flacidez.</li>
 						<li><strong>Láser subdérmico:</strong> <a href="<?php echo esc_url( home_url( '/endolaser-lipolisis-corporal-madrid/' ) ); ?>">Endoláser corporal</a> (lipólisis y retracción térmica ambulatoria).</li>
 					</ul>
@@ -152,7 +152,6 @@ ob_start();
 					<ul class="nvx-home-seo__list">
 						<li><strong>Tercio inferior:</strong> <a href="<?php echo esc_url( home_url( '/papada-definicion-mandibular-madrid/' ) ); ?>">Profile Definition™</a> para diagnóstico de papada, mandíbula y cuello.</li>
 						<li><strong>Tensión y calidad cutánea:</strong> <a href="<?php echo esc_url( home_url( '/calidad-piel-firmeza-luminosidad-madrid/' ) ); ?>">Skin Architecture™</a> y <a href="<?php echo esc_url( home_url( '/endolift-facial-papada-mandibula/' ) ); ?>">Endolift® Facial</a>.</li>
-						<li><strong>Región periocular:</strong> <a href="<?php echo esc_url( home_url( '/eye-frame-rejuvenecimiento-mirada-madrid/' ) ); ?>">Eye Frame™</a> para el tratamiento integral de la mirada y las ojeras.</li>
 						<li><strong>Renovación de superficie:</strong> <a href="<?php echo esc_url( home_url( '/cicatrices-acne-poros-textura-madrid/' ) ); ?>">Surface Renewal™</a> (<a href="<?php echo esc_url( home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ) ); ?>">Láser CO₂ fraccionado</a> para marcas de acné) y <a href="<?php echo esc_url( home_url( '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' ) ); ?>">Tone Correction™</a>.</li>
 					</ul>
 				</div>

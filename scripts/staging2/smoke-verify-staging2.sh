@@ -14,6 +14,15 @@ for command_name in curl grep mktemp tr cut tail xargs sleep; do
   command -v "$command_name" >/dev/null 2>&1 || { echo "ERROR: required command unavailable: $command_name" >&2; exit 1; }
 done
 
+# SiteGround can challenge command-line curl traffic from shared CI ranges with
+# HTTP 202. GitHub Actions therefore uses the equivalent governed Node verifier;
+# the remote server-side smoke remains curl-based and independent of Node.
+if [[ "${GITHUB_ACTIONS:-}" == 'true' ]]; then
+  command -v node >/dev/null 2>&1 || { echo 'ERROR: Node.js is required for external smoke verification' >&2; exit 1; }
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  exec node "$SCRIPT_DIR/smoke-verify-external.mjs"
+fi
+
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 USER_AGENT='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36'

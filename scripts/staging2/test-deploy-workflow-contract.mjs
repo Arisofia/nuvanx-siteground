@@ -20,6 +20,7 @@ const diagnostics = read('scripts/staging2/collect-staging2-diagnostics.sh');
 const migration = read('scripts/wp/nvx-production-readiness-command.php');
 const smoke = read('scripts/staging2/smoke-verify-staging2.sh');
 const acceptance = read('scripts/staging2/verify-rendered-acceptance.mjs');
+const visualQa = read('scripts/staging2/capture-visual-qa.mjs');
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 const functions = read('wp-content/themes/nuvanx-medical/functions.php');
 const phasePages = read('wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php');
@@ -35,6 +36,8 @@ for (const marker of [
   'git_sha must equal the selected workflow ref HEAD', 'scripts/staging2/collect-staging2-diagnostics.sh',
   'scripts/wp/nvx-production-readiness-command.php', 'scripts/staging2/smoke-verify-staging2.sh',
   'scripts/staging2/verify-rendered-acceptance.mjs', 'Run rendered acceptance verification', 'RENDERED_ACCEPTANCE_OK',
+  'scripts/staging2/capture-visual-qa.mjs', 'Validate visual QA Node syntax', 'Run real browser visual QA', 'VISUAL_QA_OK',
+  'EVIDENCE_DIR: staging2-deployment-evidence/visual-qa', 'Visual QA:',
   'staging2-deployment-evidence', 'actions/upload-artifact@',
 ]) if (!workflow.includes(marker)) fail(`workflow missing contract marker: ${marker}`);
 for (const forbidden of ['ssh-keyscan', 'StrictHostKeyChecking no', 'persist-credentials: true', '/home/customer/www/nuvanx.com/public_html']) {
@@ -91,6 +94,20 @@ for (const forbidden of ['https://nuvanx.com/wp-admin', 'wp option update', 'wp 
   if (acceptance.includes(forbidden)) fail(`rendered acceptance contains mutating marker: ${forbidden}`);
 }
 
+for (const marker of [
+  'Google Chrome or Chromium is not installed', 'HTTP preflight failed', '403\\s*-\\s*Forbidden',
+  'Page.captureScreenshot', 'captureBeyondViewport: true', 'screenshot is unexpectedly small',
+  'navigation-desktop-mega.png', 'navigation-mobile-drawer.png',
+  'Input.dispatchMouseEvent', "document.getElementById('nvx-hamburger-btn')?.click()",
+  'Protocolos Signature mobile accordion toggle', 'Contour Architecture nested mobile toggle',
+  'horizontal overflow', 'focus did not move to close button', 'Escape did not close drawer',
+  'Couture Sculpt', 'Contour Sculpt', 'Eye Frame', 'VISUAL_QA_OK',
+]) if (!visualQa.includes(marker)) fail(`visual QA missing contract marker: ${marker}`);
+for (const slug of phaseSlugs) if (!visualQa.includes(`/${slug}/`)) fail(`visual QA missing phase route: ${slug}`);
+if (!visualQa.includes('const pages = [') || !visualQa.includes("{ name: 'desktop'") || !visualQa.includes("{ name: 'mobile'")) {
+  fail('visual QA must capture both desktop and mobile page states');
+}
+
 for (const marker of ["'liposculpt-air'", "'v-lift-awake'", "'tratamientos'", "'target' => '/protocolos-signature/'"]) {
   if (!integrations.includes(marker)) fail(`governed redirects missing marker: ${marker}`);
 }
@@ -115,10 +132,16 @@ for (const marker of [
   '/remodelacion-corporal-laser-madrid/', 'Remodelación corporal láser en Madrid | NUVANX Contour Architecture',
   'NUVANX Contour Architecture™: remodelación corporal láser por unidades anatómicas',
 ]) if (!editorialSeo.includes(marker)) fail(`editorial SEO missing Contour Architecture marker: ${marker}`);
+if (!protocolHub.includes('NUVANX Contour Architecture™')) fail('protocol hub does not use the canonical body protocol name');
 
 const controlledPublicContent = [protocolHub, protocolPages, strategyPages, phasePages].join('\n').toLowerCase();
 for (const forbidden of ['garantizar resultados', 'control térmico absoluto', 'sin huellas quirúrgicas evidentes', 'resultado definitivo']) {
   if (controlledPublicContent.includes(forbidden)) fail(`controlled public content contains forbidden claim: ${forbidden}`);
+}
+
+for (const relative of ['scripts/staging2/verify-rendered-acceptance.mjs', 'scripts/staging2/capture-visual-qa.mjs', 'scripts/staging2/test-deploy-workflow-contract.mjs']) {
+  const result = spawnSync(process.execPath, ['--check', file(relative)], { encoding: 'utf8' });
+  if (result.status !== 0) fail(`Node syntax failed for ${relative}: ${(result.stderr || result.stdout).trim()}`);
 }
 
 const phpFiles = [

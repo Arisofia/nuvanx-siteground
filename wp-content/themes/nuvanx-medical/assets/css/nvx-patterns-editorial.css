@@ -349,31 +349,6 @@
    Treatment surfaces use the canonical palette tokens.
    ═══════════════════════════════════════════════════════════ */
 
-.nvx-endolift-hero.nvx-brand-hero,
-.nvx-endolift-hero {
-  background: var(--nvx-ink);
-  color: var(--nvx-text-on-dark);
-  padding-block: var(--nvx-pad-section);
-}
-
-.nvx-endolift-hero .nvx-eyebrow,
-.nvx-endolift-hero .nvx-brand-meta {
-  color: var(--nvx-text-on-dark-72);
-}
-
-.nvx-endolift-hero .nvx-heading {
-  color: var(--nvx-text-on-dark);
-}
-
-.nvx-endolift-hero .nvx-lead {
-  color: var(--nvx-text-on-dark-90);
-}
-
-.nvx-endolift-hero-copy .nvx-lead {
-  max-width: 48ch;
-  margin-top: var(--nvx-space-2);
-  color: var(--nvx-text-on-dark-88);
-}
 
 .nvx-endolift-biophysics {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
@@ -553,11 +528,6 @@
 
 /* Blog long-form tables/prose: nvx-posts.css (Journal stack). */
 
-/* Sobre Nosotros — authority page (not a second equipo dump) */
-.nvx-nosotros-hero--copy-only .nvx-brand-hero__inner {
-  grid-template-columns: minmax(0, 1fr);
-  max-width: var(--nvx-measure-wide, 72rem);
-}
 
 .nvx-nosotros-team-grid {
   display: grid;
@@ -767,26 +737,6 @@
    Section pad: var(--nvx-space-12) mobile / 120px desktop · var(--nvx-space-1) system
    ═══════════════════════════════════════════════════════════ */
 
-.nvx-laser-hero .nvx-eyebrow,
-.nvx-laser-hero .nvx-brand-meta {
-  color: var(--nvx-text-on-dark-72);
-}
-
-.nvx-laser-hero .nvx-heading {
-  color: var(--nvx-text-on-dark);
-  max-width: 16ch;
-}
-
-.nvx-laser-hero .nvx-lead {
-  max-width: 60ch;
-  color: var(--nvx-text-on-dark-92);
-}
-
-.nvx-laser-hero-copy .nvx-lead {
-  max-width: 60ch;
-  margin-top: var(--nvx-space-2);
-  color: var(--nvx-text-on-dark-88);
-}
 
 .nvx-laser-platforms {
   background: var(--nvx-surface-base, var(--nvx-color-paper));

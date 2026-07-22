@@ -1228,7 +1228,7 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 	// Explicit non-treatment shells that share layout classes with treatments.
 	if (
 		preg_match(
-			'/nvx-equipo-editorial|nvx-equipo-hero|nvx-brand-page--nosotros|nvx-brand-page--equipo|id=["\']nvx-nosotros-h1["\']|id=["\']nvx-equipo-h1["\']|aria-label=["\']Equipo médico NUVANX["\']|aria-label=["\']Sobre Nosotros NUVANX["\']/iu',
+			'/nvx-equipo-editorial|nvx-equipo-hero|nvx-brand-page--nosotros|nvx-brand-page--equipo|id=["\']nvx-nosotros-h1["\']|id=["\']nvx-equipo-h1["\']|aria-label=["\']Equipo médico NUVANX["\']|aria-label=["\']Sobre Nosotros NUVANX["\']|nvx-strategy-page/iu',
 			$content
 		)
 	) {

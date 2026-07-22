@@ -80,7 +80,7 @@ function nvx_strategy_solutions_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
 	$html .= '<p class="nvx-brand-kicker">NUVANX · Soluciones médicas</p>';
-	$html .= '<h1 class="nvx-strategy-title">Cada persona tiene un problema distinto, aunque lo llame igual que la de al lado.</h1>';
+	$html .= '<h1 class="nvx-strategy-title">Soluciones médicas para rostro, piel y contorno corporal.</h1>';
 	$html .= '<p class="nvx-brand-lead">Dos personas pueden odiar lo mismo de su papada y necesitar tratamientos totalmente distintos — una tiene grasa, la otra solo piel floja. Por eso no te vamos a enseñar un catálogo de máquinas para que elijas: primero miramos qué tienes tú, y de ahí sale el plan.</p>';
 	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">Solicitar valoración médica</a></p>';
 	$html .= '<p class="nvx-brand-microcopy">El diagnóstico determina el plan. No la tendencia ni el catálogo.</p>';

@@ -137,6 +137,7 @@ function nvx_theme_scripts(): void {
 
 	if ( nvx_theme_is_home_page() ) {
 		wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-home' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );
+		wp_enqueue_style( 'nvx-home-final-media', $css . 'nvx-home-final-media.css', array( 'nvx-home-v3' ), nvx_asset_version( 'assets/css/nvx-home-final-media.css' ) );
 		wp_enqueue_script(
 			'nvx-home-video',
 			$uri . '/assets/js/nvx-home-video.js',

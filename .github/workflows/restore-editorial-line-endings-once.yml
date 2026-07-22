@@ -1,0 +1,74 @@
+name: Restore Editorial Line Endings Once
+
+on:
+  pull_request:
+    branches:
+      - master
+    types:
+      - synchronize
+      - reopened
+
+permissions:
+  contents: write
+
+concurrency:
+  group: editorial-line-endings-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  normalize:
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Restore base line-ending convention
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+          import subprocess
+
+          changed = subprocess.check_output(
+              ['git', 'diff', '--name-only', '--diff-filter=ACM', 'origin/master...HEAD'],
+              text=True,
+          ).splitlines()
+
+          for relative in changed:
+              path = Path(relative)
+              if not path.is_file():
+                  continue
+              try:
+                  base = subprocess.check_output(['git', 'show', f'origin/master:{relative}'])
+              except subprocess.CalledProcessError:
+                  continue
+              current = path.read_bytes()
+              normalized = current.replace(b'\r\n', b'\n').replace(b'\r', b'\n')
+              if b'\r\n' in base:
+                  normalized = normalized.replace(b'\n', b'\r\n')
+              if normalized != current:
+                  path.write_bytes(normalized)
+          PY
+          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/null
+          node --check scripts/theme-hygiene/test-theme-hygiene.mjs
+          node scripts/theme-hygiene/test-theme-hygiene.mjs
+          git diff --check
+
+      - name: Commit normalized result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/restore-editorial-line-endings-once.yml theme-hygiene-report.txt
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'chore(design): preserve canonical file line endings'
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${HEAD_REF}"

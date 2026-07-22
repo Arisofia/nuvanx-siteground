@@ -17,16 +17,56 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_editorial_seo_catalog(): array {
 	return array(
 		'/soluciones-medicas/' => array(
-			'title'       => 'Soluciones médicas para rostro y cuerpo | NUVANX Madrid',
-			'description' => 'Soluciones de medicina estética por anatomía y diagnóstico para rostro, piel, contorno corporal y cambios posgestacionales en NUVANX Madrid.',
+			'title'       => 'Tratamientos Estéticos Madrid | Basta de Clínicas Clonadas',
+			'description' => 'Si estás harta de resultados artificiales y presupuestos engañosos, el Dr. Rivera Tejeda en NUVANX Madrid aplica criterio médico real sin vender infomerciales.',
 		),
 		'/remodelacion-corporal-laser-madrid/' => array(
-			'title'       => 'Remodelación corporal láser en Madrid | NUVANX Contour Architecture',
-			'description' => 'NUVANX Contour Architecture™: remodelación corporal láser por unidades anatómicas para grasa localizada, laxitud y continuidad tras valoración médica.',
+			'title'       => 'Remodelación Corporal Láser Madrid | Di Adiós a la Lipo y Flacidez',
+			'description' => 'La liposucción no es la única salida. NUVANX Contour Architecture™ en Madrid: remodelación láser precisa sin quirófano ni flacidez residual. Diagnóstico estricto.',
 		),
 		'/tratamiento-postparto-abdomen-contorno-corporal-madrid/' => array(
-			'title'       => 'Tratamiento postparto abdomen Madrid | NUVANX',
-			'description' => 'Valoración médica del abdomen posgestacional para diferenciar grasa localizada, laxitud, cicatriz y diástasis antes de indicar tratamiento o derivación.',
+			'title'       => 'Tratamiento Postparto Madrid | Criterio Médico Frente al Engaño',
+			'description' => 'Tu cuerpo no volverá mágicamente con cremas. El Dr. Rivera Tejeda evalúa tu diástasis y flacidez para un abordaje NUVANX Post-Maternity Contour™ infalible.',
+		),
+		'/papada-definicion-mandibular-madrid/' => array(
+			'title'       => 'Eliminar Papada Madrid | Tensión Real, Sin Rostros Inflados',
+			'description' => 'No inyectes más volumen para ocultar la papada. Redefine tu óvalo facial con láser médico y diagnóstico estricto en NUVANX Madrid.',
+		),
+		'/calidad-piel-firmeza-luminosidad-madrid/' => array(
+			'title'       => 'Firmeza y Calidad de Piel Madrid | Resultados, No Cosmética',
+			'description' => 'Las cremas caras no devuelvan la firmeza. NUVANX Surface Renewal™ ataca la flacidez y falta de luminosidad con láser y radiofrecuencia médica.',
+		),
+		'/cicatrices-acne-poros-textura-madrid/' => array(
+			'title'       => 'Borrar Cicatrices de Acné Madrid | Láser Médico Avanzado',
+			'description' => 'La textura irregular y las marcas de acné requieren energía médica, no peelings superficiales. Descubre el abordaje clínico de NUVANX Madrid.',
+		),
+		'/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' => array(
+			'title'       => 'Eliminar Manchas y Rojeces Madrid | Diagnóstico Médico',
+			'description' => 'Deja de esconder tu piel bajo maquillaje. Tratamos manchas y daño solar con luz pulsada médica y criterio dermatológico en NUVANX.',
+		),
+		'/grasa-localizada-abdomen-flancos-madrid/' => array(
+			'title'       => 'Grasa Localizada Abdomen Madrid | Láser Médico',
+			'description' => 'Esa grasa rebelde en abdomen y flancos que no cede al gimnasio. Remodelación anatómica sin quirófano en NUVANX Madrid.',
+		),
+		'/flacidez-grasa-localizada-brazos-madrid/' => array(
+			'title'       => 'Eliminar Flacidez en Brazos Madrid | Tensión y Contorno',
+			'description' => 'Para que la manga caiga bien sin que la piel cuelgue. Tratamiento médico de retracción y remodelación de brazos en NUVANX.',
+		),
+		'/grasa-espalda-zona-sujetador-madrid/' => array(
+			'title'       => 'Grasa Espalda y Sujetador Madrid | Remodelación NUVANX',
+			'description' => 'Elimina el pliegue del sujetador sin pasar por quirófano. Evaluación médica precisa y tecnología láser avanzada en Madrid.',
+		),
+		'/flacidez-muslos-internos-subgluteo-madrid/' => array(
+			'title'       => 'Flacidez Muslos y Subglúteo Madrid | Retracción Médica',
+			'description' => 'La piel más delicada exige el láser más preciso. Retracción médica de flacidez en muslos internos y zona subglútea en NUVANX.',
+		),
+		'/tratamiento-rodillas-grasa-flacidez-madrid/' => array(
+			'title'       => 'Grasa y Flacidez en Rodillas Madrid | Tratamiento Médico',
+			'description' => 'Una zona pequeña que cambia toda la pierna. Tratamiento médico de flacidez y acúmulos grasos en rodillas. Agenda en NUVANX Madrid.',
+		),
+		'/contorno-corporal-masculino-madrid/' => array(
+			'title'       => 'Contorno Corporal Masculino Madrid | Estética Médica para Él',
+			'description' => 'Tratamientos diseñados para la anatomía masculina. Remodelación sin quirófano ni bajas prolongadas. Valoración médica en NUVANX.',
 		),
 	);
 }

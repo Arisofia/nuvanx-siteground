@@ -20,69 +20,68 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_seo_metadata_catalog(): array {
 	return array(
 		'home'         => array(
-			'title'       => 'Medicina Estética Láser Madrid | Endolift y CO₂ | NUVANX',
-			'description' => 'Medicina estética láser en Madrid con equipo médico hospitalario. Endolift®, CO₂, EXION® BTL y well-aging en Chamberí y Salamanca–Goya.',
+			'title'       => 'Medicina Estética Láser Madrid | Autoridad Médica NUVANX',
+			'description' => 'Huye de las clínicas masificadas y los rostros clonados. El Dr. Rivera Tejeda lidera NUVANX Madrid con diagnóstico preciso y láser médico de alta gama.',
 		),
-
 		'protocolos_signature' => array(
-			'title'       => 'Protocolos Signature | NUVANX Madrid',
-			'description' => 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.',
+			'title'       => 'Protocolos Signature | Olvida los Tratamientos Genéricos',
+			'description' => 'La medicina estética real no se vende en bonos. Nuestros Protocolos Signature en Madrid atacan el dolor físico y estético desde un diagnóstico implacable.',
 		),
 		'contour_sculpt' => array(
-			'title'       => 'Remodelación corporal láser Madrid | NUVANX',
-			'description' => 'Remodelación corporal láser en Madrid por unidades anatómicas para grasa localizada, laxitud y continuidad del contorno tras valoración médica.',
+			'title'       => 'Remodelación Corporal Láser Madrid | NUVANX Contour',
+			'description' => 'La liposucción y las máquinas baratas de belleza dejan flacidez. Descubre NUVANX Contour Architecture™: remodelación anatómica médica real sin quirófano.',
 		),
 		'clinicas'     => array(
-			'title'       => 'Clínicas NUVANX Madrid | Chamberí y Salamanca–Goya',
-			'description' => 'Clínicas de medicina estética láser NUVANX en Chamberí y Salamanca–Goya. Direcciones, horarios, registros sanitarios y mapas.',
+			'title'       => 'Clínicas NUVANX Madrid | Exclusividad y Criterio Clínico',
+			'description' => 'Tus tratamientos estéticos merecen respeto médico, no una cadena de montaje. Descubre las clínicas NUVANX en Chamberí y Salamanca-Goya.',
 		),
 		'chamberi'     => array(
-			'title'       => 'Medicina estética en Chamberí | NUVANX Madrid',
-			'description' => 'Clínica de medicina estética láser en Chamberí, Madrid. Equipo médico, registro sanitario CS20144 y valoración individualizada.',
+			'title'       => 'Medicina Estética en Chamberí | Tu Rostro No es un Experimento',
+			'description' => 'Clínica NUVANX Chamberí. Alta tecnología láser y diagnóstico estricto. Si buscas calidad médica y huir de los resultados artificiales, agenda tu cita.',
 		),
 		'goya'         => array(
-			'title'       => 'Medicina estética en Salamanca–Goya | NUVANX',
-			'description' => 'Clínica de medicina estética láser en Salamanca–Goya, Madrid. Equipo médico, registro sanitario CS20073 y valoración individualizada.',
+			'title'       => 'Medicina Estética Salamanca-Goya | NUVANX',
+			'description' => 'Clínica NUVANX Salamanca-Goya. Alta tecnología láser y diagnóstico estricto. La exclusividad médica en Madrid que exige tu anatomía.',
 		),
 		'endolift'     => array(
-			'title'       => 'Endolift® Facial Madrid | Precio y Resultados | NUVANX',
-			'description' => 'Endolift® facial en Madrid para papada, mandíbula y cuello. Tarifas por zona, indicaciones y recuperación. Valoración médica en NUVANX.',
+			'title'       => 'Endolift Facial Madrid | Elimina Papada sin Cirugía ni Rellenos',
+			'description' => '¿Cansada de que te inyecten volumen para esconder la flacidez? El Endolift tensa y retrae la piel desde dentro. Resultados médicos reales en NUVANX.',
 		),
 		'endolaser'    => array(
-			'title'       => 'Endoláser Corporal Madrid | Grasa y Firmeza | NUVANX',
-			'description' => 'Endoláser corporal en Madrid para grasa localizada y firmeza en abdomen, flancos, muslos y brazos. Valoración médica y presupuesto individualizado.',
+			'title'       => 'Endoláser Corporal Madrid | Firmeza que la Dieta No Logra',
+			'description' => 'La dieta no pega la piel al músculo. El Endoláser Corporal en NUVANX Madrid destruye la grasa localizada y retrae la flacidez severa. Criterio médico.',
 		),
 		'co2'          => array(
-			'title'       => 'Láser CO₂ Madrid | Cicatrices, Poros y Textura | NUVANX',
-			'description' => 'Láser CO₂ fraccionado en Madrid para cicatrices de acné, poros, textura y fotodaño. Recuperación estimada y tarifas en NUVANX.',
+			'title'       => 'Láser CO2 Fraccionado Madrid | Borra Cicatrices sin Cremas Inútiles',
+			'description' => 'Las cremas cosméticas no quitan las cicatrices. El Láser CO2 médico de NUVANX renueva la piel dañada de raíz. Pide valoración con el Dr. Rivera Tejeda.',
 		),
 		'exion'        => array(
-			'title'       => 'EXION® BTL Madrid | Face, Body y Fractional RF | NUVANX',
-			'description' => 'EXION® BTL en Madrid: Face, Body y Fractional RF. Modalidades seleccionadas según indicación clínica, zona y plan definido tras valoración médica.',
+			'title'       => 'Radiofrecuencia EXION Madrid | Firmeza Facial y Corporal',
+			'description' => 'La aparatología estética barata no funciona. EXION BTL con IA en NUVANX Madrid ofrece regeneración de ácido hialurónico y tensión cutánea demostrada.',
 		),
 		'exilite'      => array(
-			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y Rojeces | NUVANX',
-			'description' => 'IPL BTL EXILITE™ en Madrid para indicaciones pigmentarias, vasculares y calidad cutánea tras diagnóstico, fototipo y selección de parámetros.',
+			'title'       => 'IPL Médico Madrid | Elimina Manchas y Rojeces de Verdad',
+			'description' => 'No maquilles más tus rojeces ni gastes en peelings superficiales. IPL EXILITE en NUVANX Madrid ofrece fotorejuvenecimiento médico contundente.',
 		),
 		'equipo'       => array(
-			'title'       => 'Equipo Médico NUVANX Madrid | Criterio Clínico',
-			'description' => 'Equipo médico NUVANX en Madrid: colegiación, experiencia y áreas clínicas de los profesionales responsables de valoración y seguimiento.',
+			'title'       => 'Equipo Médico NUVANX | Doctores Reales, No Vendedores',
+			'description' => 'El Dr. Rivera Tejeda y su equipo médico asumen tu caso con rigor clínico. Cero comerciales, solo doctores diagnosticando y aplicando láser en Madrid.',
 		),
 		'por_que_nuvanx' => array(
-			'title'       => 'Por qué NUVANX | Criterio médico en Madrid',
-			'description' => 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.',
+			'title'       => 'Por qué NUVANX | La Verdad sobre la Estética en Madrid',
+			'description' => 'Destapamos la verdad de las clínicas clonadas. En NUVANX solo aplicamos tecnología médica respaldada y diagnósticos honestos. Lee nuestro manifiesto.',
 		),
 		'inversion'    => array(
-			'title'       => 'Inversión en medicina estética | NUVANX Madrid',
-			'description' => 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.',
+			'title'       => 'Inversión Estética Madrid | Sin Sorpresas ni Precios Gancho',
+			'description' => 'No competimos por precio, competimos por seguridad y resultados. Descubre cómo el Dr. Rivera Tejeda define la inversión necesaria para tu anatomía.',
 		),
 		'valoracion'   => array(
-			'title'       => 'Consulta médica estética en Madrid | NUVANX',
-			'description' => 'Solicita una consulta médica estética en Chamberí o Salamanca–Goya. Diagnóstico, indicación y presupuesto individualizado.',
+			'title'       => 'Consulta Médica Estética Madrid | Exige Diagnóstico Real',
+			'description' => 'Tu cuerpo no es un menú de restaurante. Solicita una valoración estricta en NUVANX Madrid y descubre el protocolo médico que realmente necesitas.',
 		),
 		'blog'         => array(
-			'title'       => 'Blog NUVANX | Medicina estética láser Madrid',
-			'description' => 'Artículos de NUVANX sobre Endolift®, EXION® BTL, IPL, well-aging y criterio médico en clínicas de Madrid.',
+			'title'       => 'Blog NUVANX | Autoridad en Medicina Estética Láser',
+			'description' => 'Educación médica directa y sin filtros. Desmontamos mitos sobre tratamientos estéticos, láseres y la industria masificada en nuestro blog NUVANX.',
 		),
 	);
 }

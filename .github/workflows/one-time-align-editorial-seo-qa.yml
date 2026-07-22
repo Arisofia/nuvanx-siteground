@@ -1,0 +1,99 @@
+name: One-time align editorial SEO and QA
+
+on:
+  push:
+    branches:
+      - fix/editorial-home-cases-final-20260722
+    paths:
+      - '.github/workflows/one-time-align-editorial-seo-qa.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-remove:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: fix/editorial-home-cases-final-20260722
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Align metadata and visual QA coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          python <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              Path('wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php'): [
+                  (
+                      "'title'       => 'Tratamientos Estéticos Madrid | Basta de Clínicas Clonadas',\n\t\t\t'description' => 'Si estás harta de resultados artificiales y presupuestos engañosos, el Dr. Rivera Tejeda en NUVANX Madrid aplica criterio médico real sin vender infomerciales.',",
+                      "'title'       => 'Soluciones médicas para rostro y cuerpo | NUVANX Madrid',\n\t\t\t'description' => 'Soluciones de medicina estética por anatomía y diagnóstico para rostro, piel, contorno corporal y cambios posgestacionales en NUVANX Madrid.',"
+                  ),
+                  (
+                      "'description' => 'NUVANX Contour Architecture™: remodelación corporal láser por unidades anatómicas. La liposucción no es la única salida. Remodelación láser precisa sin quirófano ni flacidez residual. Diagnóstico estricto.',",
+                      "'description' => 'NUVANX Contour Architecture™: remodelación corporal láser por unidades anatómicas para grasa localizada, laxitud y continuidad tras valoración médica.',"
+                  ),
+                  (
+                      "'title'       => 'Tratamiento Postparto Madrid | Criterio Médico Frente al Engaño',\n\t\t\t'description' => 'Tu cuerpo no volverá mágicamente con cremas. El Dr. Rivera Tejeda evalúa tu diástasis y flacidez para un abordaje NUVANX Post-Maternity Contour™ infalible.',",
+                      "'title'       => 'Tratamiento postparto abdomen Madrid | NUVANX',\n\t\t\t'description' => 'Valoración médica del abdomen posgestacional para diferenciar grasa localizada, laxitud, cicatriz y diástasis antes de indicar tratamiento o derivación.',"
+                  ),
+              ],
+              Path('wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php'): [
+                  (
+                      "'title'       => 'Medicina Estética Láser Madrid | Autoridad Médica NUVANX',\n\t\t\t'description' => 'Huye de las clínicas masificadas y los rostros clonados. El Dr. Rivera Tejeda lidera NUVANX Madrid con diagnóstico preciso y láser médico de alta gama.',",
+                      "'title'       => 'Medicina estética láser en Madrid | NUVANX',\n\t\t\t'description' => 'Medicina estética láser en Madrid con valoración médica, diagnóstico individual y tratamientos para rostro, piel y contorno corporal en NUVANX.',"
+                  ),
+                  (
+                      "'title'       => 'Protocolos Signature | Olvida los Tratamientos Genéricos',\n\t\t\t'description' => 'La medicina estética real no se vende en bonos. Nuestros Protocolos Signature en Madrid atacan el dolor físico y estético desde un diagnóstico implacable.',",
+                      "'title'       => 'Protocolos Signature | NUVANX Madrid',\n\t\t\t'description' => 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.',"
+                  ),
+                  (
+                      "'title'       => 'Por qué NUVANX | La Verdad sobre la Estética en Madrid',\n\t\t\t'description' => 'Destapamos la verdad de las clínicas clonadas. En NUVANX solo aplicamos tecnología médica respaldada y diagnósticos honestos. Lee nuestro manifiesto.',",
+                      "'title'       => 'Por qué NUVANX | Criterio médico en Madrid',\n\t\t\t'description' => 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.',"
+                  ),
+                  (
+                      "'title'       => 'Inversión Estética Madrid | Sin Sorpresas ni Precios Gancho',\n\t\t\t'description' => 'No competimos por precio, competimos por seguridad y resultados. Descubre cómo el Dr. Rivera Tejeda define la inversión necesaria para tu anatomía.',",
+                      "'title'       => 'Inversión en medicina estética | NUVANX Madrid',\n\t\t\t'description' => 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.',"
+                  ),
+              ],
+              Path('scripts/staging2/capture-visual-qa.mjs'): [
+                  (
+                      "const pages = [\n  ['/soluciones-medicas/', 'Soluciones médicas para rostro, piel y contorno corporal.'],",
+                      "const pages = [\n  ['/', 'Medicina estética con criterio. Madrid.'],\n  ['/casos-de-pacientes/', 'La evolución necesita contexto, no una promesa.'],\n  ['/soluciones-medicas/', 'Soluciones médicas para rostro, piel y contorno corporal.'],"
+                  ),
+              ],
+          }
+
+          for path, pairs in replacements.items():
+              text = path.read_text(encoding='utf-8')
+              for old, new in pairs:
+                  if text.count(old) != 1:
+                      raise SystemExit(f'Expected block not found exactly once in {path}: {old[:80]}')
+                  text = text.replace(old, new)
+              path.write_text(text, encoding='utf-8')
+          PY
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
+          node --check scripts/staging2/capture-visual-qa.mjs
+
+      - name: Commit patch and remove one-time workflow
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add \
+            wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php \
+            wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php \
+            scripts/staging2/capture-visual-qa.mjs
+          git rm .github/workflows/one-time-align-editorial-seo-qa.yml
+          git commit -m 'fix(seo): align editorial metadata and visual QA coverage'
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${GITHUB_REF_NAME}"

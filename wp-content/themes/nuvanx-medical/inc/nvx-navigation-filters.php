@@ -62,7 +62,7 @@ function nvx_navigation_primary_blueprint(): array {
 				'mega'     => true,
 				'children' => array(
 					array(
-						'label'    => 'NUVANX Contour Sculpt™',
+						'label'    => 'NUVANX Contour Architecture™',
 						'slugs'    => array( 'remodelacion-corporal-laser-madrid' ),
 						'children' => array(
 							array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
@@ -101,7 +101,7 @@ function nvx_navigation_primary_blueprint(): array {
 					),
 					array(
 						'label'    => 'NUVANX Eye Frame™',
-						'slugs'    => array( 'eye-frame' ),
+						'slugs'    => array( 'eye-frame-rejuvenecimiento-mirada-madrid' ),
 						'children' => array(
 							array( 'label' => 'Surco lagrimal', 'slugs' => array( 'surco-lagrimal' ) ),
 							array( 'label' => 'Calidad cutánea periocular', 'slugs' => array( 'calidad-cutanea-periocular' ) ),
@@ -127,7 +127,16 @@ function nvx_navigation_primary_blueprint(): array {
 					array( 'label' => 'Láser CO₂ fraccionado', 'slugs' => array( 'laser-co2-fraccionado-madrid-textura-cicatrices-poro' ) ),
 					array( 'label' => 'BTL EXILITE™ IPL', 'slugs' => array( 'btl-exilite-ipl-madrid' ) ),
 					array( 'label' => 'EMFUSION®', 'slugs' => array( 'emfusion' ) ),
-					array( 'label' => 'Medicina inyectable', 'slugs' => array( 'medicina-estetica' ) ),
+					array(
+						'label'    => 'Medicina inyectable',
+						'slugs'    => array( 'medicina-estetica' ),
+						'children' => array(
+							array( 'label' => 'Ácido hialurónico en labios', 'slugs' => array( 'labios-acido-hialuronico-madrid' ) ),
+							array( 'label' => 'Rinomodelación sin cirugía', 'slugs' => array( 'rinomodelacion-sin-cirugia-madrid' ) ),
+							array( 'label' => 'Tratamiento de ojeras', 'slugs' => array( 'ojeras-surco-lagrimal-madrid' ) ),
+							array( 'label' => 'Bioestimuladores de colágeno', 'slugs' => array( 'bioestimuladores-colageno-madrid' ) ),
+						),
+					),
 				),
 			),
 			array( 'label' => __( 'Casos clínicos', 'nuvanx-medical' ), 'slugs' => array( 'casos-clinicos' ) ),

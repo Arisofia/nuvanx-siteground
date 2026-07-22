@@ -9,18 +9,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'NVX_KICKER_ROSTRO' ) ) {
+	define( 'NVX_KICKER_ROSTRO', 'Soluciones Médicas: Rostro' );
+}
+if ( ! defined( 'NVX_KICKER_CUERPO' ) ) {
+	define( 'NVX_KICKER_CUERPO', 'Soluciones Médicas: Cuerpo' );
+}
+
 /**
- * Catalogue for Anatomical Zone Pages.
+ * Catalogue for Facial Anatomical Zone Pages.
  *
  * @return array<string, array<string, mixed>>
  */
-function nvx_anatomical_pages_catalog(): array {
+function nvx_anatomical_facial_catalog(): array {
 	return array(
 		'tercio-superior' => array(
 			'slug'          => 'soluciones-medicas/rostro/tercio-superior',
 			'seo_title'     => 'Tratamientos Tercio Superior: Frente y Entrecejo | NUVANX',
 			'description'   => 'Valoración médica para líneas de expresión en frente y entrecejo. Relajamos la musculatura sin congelar tu mirada.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
+			'kicker'        => NVX_KICKER_ROSTRO,
 			'h1'            => 'Las arrugas de la frente no son el problema, son el síntoma de cómo gesticulas.',
 			'lead'          => 'Si te molestan esas líneas que se quedan marcadas incluso cuando estás seria, la mejor crema no servirá de nada porque el problema está en el músculo que hay debajo. Estudiamos tu forma de gesticular para relajar la zona sin que pierdas tu expresión natural.',
 			'diagnosis'     => 'Congelar la frente por sistema hace que las cejas caigan o que la expresión se vea plástica. Médicamente, diferenciamos entre arrugas dinámicas (causadas por contracción muscular) y estáticas (cuando la piel ya se ha fracturado) para decidir el enfoque.',
@@ -56,7 +63,7 @@ function nvx_anatomical_pages_catalog(): array {
 			'slug'          => 'soluciones-medicas/rostro/mirada',
 			'seo_title'     => 'Tratamientos para la Mirada: Ojeras y Párpados | NUVANX',
 			'description'   => 'Diagnóstico de la región periocular. Diferenciamos hundimiento, bolsas y pigmentación para proponer el tratamiento médico adecuado.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
+			'kicker'        => NVX_KICKER_ROSTRO,
 			'h1'            => 'Tu mirada no siempre refleja lo cansada que estás; a veces es solo la anatomía.',
 			'lead'          => 'Tener "cara de cansada" durmiendo ocho horas no se arregla con más sueño ni con correctores mágicos. El problema suele ser cómo la luz incide sobre tus ojos debido a un déficit de soporte óseo o calidad de piel.',
 			'diagnosis'     => 'Rechazamos los rellenos indiscriminados. Diferenciamos estrictamente entre un surco lagrimal hundido (falta de hueso/grasa), componente vascular, pigmentación y bolsas grasas reales. Tratar una bolsa inyectando ácido hialurónico es un error médico que empeora el aspecto.',
@@ -88,7 +95,7 @@ function nvx_anatomical_pages_catalog(): array {
 			'slug'          => 'soluciones-medicas/rostro/tercio-medio',
 			'seo_title'     => 'Tratamientos Tercio Medio: Pómulos y Surcos | NUVANX',
 			'description'   => 'Soporte facial sin exceso de volumen. Tratamos la flacidez del tercio medio devolviendo la estructura natural al rostro.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
+			'kicker'        => NVX_KICKER_ROSTRO,
 			'h1'            => 'Rellenar los surcos nasogenianos sin dar soporte a los pómulos es como tapar una grieta sin arreglar los cimientos.',
 			'lead'          => 'Si te ves la cara caída o los surcos muy marcados, la tentación es rellenar la arruga directamente. Pero esa arruga suele formarse porque el pómulo y la mejilla han perdido soporte y la piel "cae".',
 			'diagnosis'     => 'Diferenciamos la pérdida de volumen profundo (grasa o hueso que desaparece con la edad) de la laxitud cutánea superficial. Añadir volumen cuando el problema es laxitud solo consigue una "cara de globo" antinatural.',
@@ -120,7 +127,7 @@ function nvx_anatomical_pages_catalog(): array {
 			'slug'          => 'soluciones-medicas/rostro/labios',
 			'seo_title'     => 'Tratamientos de Labios y Zona Perioral | NUVANX',
 			'description'   => 'Hidratación, perfilado y recuperación del labio. Armonizamos la zona perioral sin volúmenes artificiales.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
+			'kicker'        => NVX_KICKER_ROSTRO,
 			'h1'            => 'Un labio bonito no es el que más resalta, es el que mejor encaja en tus proporciones.',
 			'lead'          => 'Huimos de los volúmenes exagerados y los perfiles plásticos. Nuestro objetivo es hidratar, corregir asimetrías o recuperar la estructura que los labios pierden con el tiempo.',
 			'diagnosis'     => 'Evaluamos si necesitas volumen, si solo buscas hidratación profunda sin cambiar la forma, o si el problema principal está en la zona de alrededor (código de barras, sonrisa gingival o comisuras caídas).',
@@ -152,7 +159,7 @@ function nvx_anatomical_pages_catalog(): array {
 			'slug'          => 'soluciones-medicas/rostro/tercio-inferior',
 			'seo_title'     => 'Tratamientos Tercio Inferior: Mandíbula y Cuello | NUVANX',
 			'description'   => 'Definición del óvalo facial y tratamiento de papada y cuello sin cirugía. Diagnóstico estructural avanzado.',
-			'kicker'        => 'Soluciones Médicas: Rostro',
+			'kicker'        => NVX_KICKER_ROSTRO,
 			'h1'            => 'A veces no hay papada real: lo que pasa es que el mentón es pequeño y la piel cuelga por falta de soporte.',
 			'lead'          => 'El tercio inferior delata el paso del tiempo por la pérdida de definición en la mandíbula y la flacidez del cuello. Antes de intentar quemar grasa o estirar la piel, medimos tus proporciones óseas.',
 			'diagnosis'     => 'Separamos claramente la grasa submentoniana (papada), la flacidez cutánea, la hipertrofia del músculo masetero y el déficit óseo (micrognatia). Un mal diagnóstico aquí deriva en caras cuadradas o tratamientos inútiles.',
@@ -180,11 +187,21 @@ function nvx_anatomical_pages_catalog(): array {
 			),
 			'review_status' => 'approved_for_publication',
 		),
+	);
+}
+
+/**
+ * Catalogue for Body Anatomical Zone Pages.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function nvx_anatomical_body_catalog(): array {
+	return array(
 		'abdomen-y-flancos' => array(
 			'slug'          => 'soluciones-medicas/cuerpo/abdomen-y-flancos',
 			'seo_title'     => 'Tratamientos de Abdomen y Flancos | NUVANX',
 			'description'   => 'Remodelación de abdomen y cintura. Diferenciamos grasa, laxitud y diástasis para ofrecer un resultado clínico real.',
-			'kicker'        => 'Soluciones Médicas: Cuerpo',
+			'kicker'        => NVX_KICKER_CUERPO,
 			'h1'            => 'El abdomen no se arregla haciendo abdominales a ciegas. Medimos qué falla antes de actuar.',
 			'lead'          => 'La "tripita" rebelde que no se va con dieta puede ser grasa localizada, puede ser piel estirada tras fluctuaciones de peso, o puede ser una pared muscular débil. Tratar todo como si fuera grasa es perder el tiempo.',
 			'diagnosis'     => 'Realizamos una exploración médica para separar la grasa subcutánea (tratable con láser o radiofrecuencia) de la grasa visceral (interna), la diástasis de rectos y la laxitud de la piel.',
@@ -216,7 +233,7 @@ function nvx_anatomical_pages_catalog(): array {
 			'slug'          => 'soluciones-medicas/cuerpo/brazos-y-espalda',
 			'seo_title'     => 'Tratamientos para Flacidez en Brazos y Espalda | NUVANX',
 			'description'   => 'Tratamiento del descolgamiento en brazos y rollitos de la espalda. Tensamos el tejido desde dentro.',
-			'kicker'        => 'Soluciones Médicas: Cuerpo',
+			'kicker'        => NVX_KICKER_CUERPO,
 			'h1'            => 'La piel de los brazos delata la pérdida de colágeno, pero podemos forzar su creación.',
 			'lead'          => 'El descolgamiento de la cara interna del brazo ("alas de murciélago") y los pliegues de la espalda bajo el sujetador son problemas mecánicos del tejido. Necesitan tensión estructural.',
 			'diagnosis'     => 'Determinamos si el volumen se debe a grasa localizada pesada, a pura laxitud de la piel, o a falta de masa muscular en el tríceps. Esto dicta si debemos "vaciar", "tensar", o ambas.',
@@ -247,7 +264,7 @@ function nvx_anatomical_pages_catalog(): array {
 			'slug'          => 'soluciones-medicas/cuerpo/tren-inferior',
 			'seo_title'     => 'Tratamientos Tren Inferior: Muslos, Glúteos y Rodillas | NUVANX',
 			'description'   => 'Remodelación de celulitis, grasa y flacidez en el tren inferior. Diagnóstico clínico de la piel.',
-			'kicker'        => 'Soluciones Médicas: Cuerpo',
+			'kicker'        => NVX_KICKER_CUERPO,
 			'h1'            => 'No existe una sola "celulitis". Tratamos la fibrosis, la retención y la grasa de forma independiente.',
 			'lead'          => 'El tren inferior concentra celulitis, grasa localizada (cartucheras) y flacidez (cara interna del muslo, rodillas). Usar la misma máquina de masajes para todo es la razón por la que no ves resultados duraderos.',
 			'diagnosis'     => 'Diferenciamos el tipo de celulitis (edematosa, fibrosa o adiposa) y evaluamos la laxitud de la rodilla y el muslo. Si hay hoyuelos profundos (fibrosis), romperlos es el único camino.',
@@ -278,6 +295,15 @@ function nvx_anatomical_pages_catalog(): array {
 	);
 }
 
+/**
+ * Catalogue for Anatomical Zone Pages.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function nvx_anatomical_pages_catalog(): array {
+	return array_merge( nvx_anatomical_facial_catalog(), nvx_anatomical_body_catalog() );
+
+
 /** Identifies the current page's anatomical catalog entry. */
 function nvx_anatomical_pages_current_key(): ?string {
 	if ( ! is_page() ) {
@@ -301,93 +327,10 @@ function nvx_anatomical_pages_current_key(): ?string {
 	return null;
 }
 
-/** Universal 13-point markup renderer for anatomical zone pages. */
-function nvx_anatomical_pages_render_13_points( array $data ): string {
-	// Re-using the same solid structure we used for protocols and aesthetic treatments.
-	$html  = '<article class="nvx-brand-readable nvx-anatomical-page nvx-shell">';
-	
-	// 1. Hero / Intro
-	$html .= '<header class="nvx-strategy-intro">';
-	if ( ! empty( $data['kicker'] ) ) {
-		$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
-	}
-	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ?? $data['seo_title'] ) . '</h1>';
-	if ( ! empty( $data['lead'] ) ) {
-		$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
-	}
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
-	$html .= '</header>';
-
-	// 2. Diagnosis
-	if ( ! empty( $data['diagnosis'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'El valor del diagnóstico médico', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['diagnosis'] ) . '</p>';
-		$html .= '</section>';
-	}
-
-	// 3. Mechanism
-	if ( ! empty( $data['mechanism'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Mecanismo de acción', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<p>' . esc_html( $data['mechanism'] ) . '</p>';
-		$html .= '</section>';
-	}
-
-	// 4. Indications
-	if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Indicaciones: Qué tratamos', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['indications'] as $ind ) {
-			$html .= '<li>' . esc_html( $ind ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 5. Precautions
-	if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ul class="nvx-brand-list">';
-		foreach ( $data['precautions'] as $prec ) {
-			$html .= '<li>' . esc_html( $prec ) . '</li>';
-		}
-		$html .= '</ul></section>';
-	}
-
-	// 6. Process
-	if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Proceso en clínica', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<ol class="nvx-brand-list">';
-		foreach ( $data['process'] as $step ) {
-			$html .= '<li>' . esc_html( $step ) . '</li>';
-		}
-		$html .= '</ol></section>';
-	}
-
-	// 7. FAQs
-	if ( ! empty( $data['faqs'] ) && is_array( $data['faqs'] ) ) {
-		$html .= '<section class="nvx-brand-section">';
-		$html .= '<h2>' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<div class="nvx-faq-accordion">';
-		foreach ( $data['faqs'] as $faq ) {
-			$html .= '<details class="nvx-faq-item">';
-			$html .= '<summary class="nvx-faq-question">' . esc_html( $faq['q'] ) . '</summary>';
-			$html .= '<div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-			$html .= '</details>';
-		}
-		$html .= '</div></section>';
-	}
-
-	$html .= '</article>';
-	return $html;
-}
 
 /** Dispatches the markup for one approved anatomical page. */
-function nvx_anatomical_pages_markup( string $key, array $data ): string {
-	return nvx_anatomical_pages_render_13_points( $data );
+function nvx_anatomical_pages_markup( array $data ): string {
+	return nvx_render_13_point_matrix( $data );
 }
 
 /** Replaces the content of a matching approved anatomical page. */
@@ -402,7 +345,7 @@ function nvx_anatomical_pages_content_filter( string $content ): string {
 	}
 
 	$data   = nvx_anatomical_pages_catalog()[ $key ];
-	$markup = nvx_anatomical_pages_markup( $key, $data );
+	$markup = nvx_anatomical_pages_markup( $data );
 	return '' === $markup ? $content : $markup;
 }
 add_filter( 'the_content', 'nvx_anatomical_pages_content_filter', 22 );

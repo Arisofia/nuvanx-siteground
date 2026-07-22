@@ -65,10 +65,7 @@ summary,
   font-family: var(--nvx-serif);
 }
 
-/* Rendered QA: the treatments hero requires an explicit inverse heading color. */
-.nvx-hub-hero__title {
-  color: var(--nvx-light);
-}
+
 
 .icon-whatsapp {
   display: inline-block;

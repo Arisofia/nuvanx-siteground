@@ -143,9 +143,7 @@ function nvx_theme_scripts(): void {
 		);
 	}
 
-	if ( function_exists( 'nvx_theme_is_treatments_hub' ) && nvx_theme_is_treatments_hub() ) {
-		wp_enqueue_style( 'nvx-portfolio-hub', $css . 'nvx-portfolio-hub.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-portfolio-hub.css' ) );
-	}
+
 
 	if ( nvx_theme_hero_blackout_enabled() ) {
 		wp_enqueue_style(
@@ -257,8 +255,10 @@ require_once get_template_directory() . '/inc/nvx-content-presentation.php';
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-portfolio-hub.php';
 require_once get_template_directory() . '/inc/nvx-protocol-hub.php';
+require_once get_template_directory() . '/inc/nvx-13-point-renderer.php';
 require_once get_template_directory() . '/inc/nvx-protocol-pages.php';
 require_once get_template_directory() . '/inc/nvx-anatomical-pages.php';
+require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
 require_once get_template_directory() . '/inc/nvx-endolaser-page.php';
 require_once get_template_directory() . '/inc/nvx-co2-page.php';
@@ -273,3 +273,4 @@ require_once get_template_directory() . '/inc/nvx-dr-rivera-page.php';
 require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
 require_once get_template_directory() . '/inc/nvx-faq-catalog.php';
 require_once get_template_directory() . '/inc/nvx-evidence-panel.php';
+require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';

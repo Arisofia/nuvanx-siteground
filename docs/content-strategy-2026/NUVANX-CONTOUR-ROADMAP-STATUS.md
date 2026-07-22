@@ -1,71 +1,88 @@
-# NUVANX Contour Architecture™ — Roadmap y estado
+# NUVANX Contour Architecture™ — Roadmap y estado de ejecución
 
-## Clasificación
+## Estado del documento fuente
 
-El documento estratégico original se conserva como **roadmap válido**, no como prueba de ejecución completada. fileciteturn767file0
+El documento estratégico se conserva como **roadmap válido**, no como certificación de trabajo completado.
 
-- Repositorio: sujeto a gates y revisión.
-- Staging2: NO-GO hasta completar deployment inmutable y evidencia.
-- Producción: no evaluada y fuera de alcance.
+- Roadmap: válido.
+- Implementación en repositorio: sujeta a gates y revisión.
+- Staging2: no se considera cerrado hasta deployment inmutable, smoke, aceptación renderizada y QA visual real.
+- Producción: fuera de alcance hasta promoción explícita del mismo SHA validado.
 
 ## Decisiones canónicas
 
-### Producto corporal
+### Nombre corporal público
 
-El único nombre público aprobado es **NUVANX Contour Architecture™**.
+El único nombre público aprobado es:
 
-Se retiran del copy y la navegación públicos:
+**NUVANX Contour Architecture™**
+
+Se retiran de la arquitectura pública y del contenido visible:
 
 - Couture Sculpt™.
 - NUVANX Contour Sculpt™.
 - Contour Sculpt™.
 
-La diferenciación reside en el diagnóstico, cartografía anatómica, selección tecnológica, documentación y seguimiento; no en atribuir a NUVANX una máquina propia.
+La exclusividad se atribuye al sistema de diagnóstico, cartografía anatómica, selección tecnológica, documentación y seguimiento; no a una tecnología propia o patentada.
 
 ### Eye Frame™
 
-**NUVANX Eye Frame™ se conserva.** La página ya implementada organiza el diagnóstico periocular por pigmentación, vascularización, surco, bolsas, edema y laxitud, y declara cuándo la medicina estética no es suficiente.
+**No se publica como Protocolo Signature.**
+
+La región periocular continúa atendida mediante las páginas y servicios ya publicados de ojeras, surco lagrimal, calidad cutánea y medicina estética. Un protocolo Eye Frame™ solo podrá incorporarse después de revisión médica, jurídica, de capacidad asistencial, SEO y claims.
 
 ### Contour Focus y Contour Continuity
 
-**No se publican como productos, paquetes ni niveles de precio.** Una planificación puede ser focal o incluir zonas contiguas, pero cada unidad necesita indicación documentada y presupuesto individualizado.
+**Se retiran del roadmap público.**
 
-## Páginas gobernadas
+No se implementan como productos, paquetes ni niveles de precio. La planificación puede ser focal o incluir zonas contiguas, pero cada unidad debe tener indicación documentada y presupuesto individualizado. Esta terminología no debe utilizarse para inducir venta cruzada o presentar paquetes cerrados.
 
-### Fase 1 y Eye Frame
+## Fase 1 — páginas canónicas
 
-- `/protocolos-signature/`
-- `/remodelacion-corporal-laser-madrid/`
-- `/tratamiento-postparto-abdomen-contorno-corporal-madrid/`
-- `/papada-definicion-mandibular-madrid/`
-- `/calidad-piel-firmeza-luminosidad-madrid/`
-- `/cicatrices-acne-poros-textura-madrid/`
-- `/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/`
-- `/tratamiento-ojeras-bolsas-mirada-madrid/`
+1. `/protocolos-signature/`
+2. `/remodelacion-corporal-laser-madrid/`
+3. `/tratamiento-postparto-abdomen-contorno-corporal-madrid/`
+4. `/papada-definicion-mandibular-madrid/`
+5. `/calidad-piel-firmeza-luminosidad-madrid/`
+6. `/cicatrices-acne-poros-textura-madrid/`
+7. `/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/`
 
-### Fase 2 canónica
+## Fase 2 — páginas anatómicas
 
-- `/grasa-localizada-abdomen-flancos-madrid/`
-- `/flacidez-grasa-localizada-brazos-madrid/`
-- `/grasa-espalda-zona-sujetador-madrid/`
-- `/flacidez-muslos-internos-subgluteo-madrid/`
-- `/tratamiento-rodillas-grasa-flacidez-madrid/`
-- `/contorno-corporal-masculino-madrid/`
+1. `/grasa-localizada-abdomen-flancos-madrid/`
+2. `/flacidez-grasa-localizada-brazos-madrid/`
+3. `/grasa-espalda-zona-sujetador-madrid/`
+4. `/flacidez-muslos-internos-subgluteo-madrid/`
+5. `/tratamiento-rodillas-grasa-flacidez-madrid/`
+6. `/contorno-corporal-masculino-madrid/`
 
-Las rutas solo aparecen en navegación después de publicarse y resolver HTTP 200.
+Las rutas de Fase 2 solo pueden aparecer en Soluciones y navegación después de estar publicadas y responder HTTP 200 con su contrato renderizado.
 
 ## Navegación
 
-La migración reconstruye la ubicación WordPress `Primary` desde el blueprint publicado. El menú legacy `TRATAMIENTOS` se elimina y `/tratamientos/` redirige directamente a `/soluciones-medicas/`.
+La ubicación WordPress `Primary` debe reconstruirse desde el blueprint canónico publicado. El menú legado `TRATAMIENTOS` se elimina y `/tratamientos/` redirige de forma directa a `/soluciones-medicas/`.
 
-## Claims bloqueados
+La navegación pública debe separar:
 
-Los gates controlan, entre otras, estas formulaciones:
+- Soluciones.
+- Protocolos Signature.
+- Tecnología.
+- Casos clínicos.
+- Equipo médico.
+- Clínicas.
+- Journal.
+- Contacto.
+
+El CTA de valoración permanece fuera del árbol del menú.
+
+## Claims y límites
+
+Los gates de contenido deben bloquear, entre otras, estas formulaciones:
 
 - Sin bisturí ni puntos.
 - Todo en vigilia.
 - Mínima recuperación o recuperación inmediata.
-- Sin cicatrices, dolor, inflamación o riesgos.
+- Sin cicatrices, sin dolor, sin inflamación o sin riesgos.
 - Resultado definitivo o resultados garantizados.
 - Una sola sesión o número estándar de sesiones.
 - Reducción universal de dolor o eritema.
@@ -73,20 +90,19 @@ Los gates controlan, entre otras, estas formulaciones:
 
 ## Criterio de cierre
 
-El roadmap solo pasa a **completado** cuando el mismo SHA cumple:
+El roadmap solo puede pasar a **completado** cuando el mismo SHA cumpla:
 
 1. PHP, shell y Node syntax.
-2. Theme Hygiene, Navigation Architecture y Deployment Contract.
-3. Deployment y migración inmutables en staging2.
-4. Menú `Primary` canónico sin rutas 404.
-5. Smoke independiente de las 17 páginas y tres redirects.
-6. Aceptación renderizada con SEO, H1, canonical, robots, schema, claims y marker SHA.
-7. QA real en Chrome desktop/móvil, con mega-menú, drawer, acordeones, foco, Escape y ausencia de overflow.
-8. Artifact con `report.json` sin findings y capturas válidas, no pantallas 403.
+2. Theme Hygiene Gate.
+3. Deployment Contract Gate.
+4. Deployment y migración inmutables en staging2.
+5. Menú `Primary` canónico sin rutas 404.
+6. Smoke independiente de todas las páginas y redirects.
+7. Aceptación renderizada con SEO, H1, canonical, robots, schema y claims.
+8. QA visual real desktop y móvil del mega-menú, drawer, jerarquía, overflow, foco y CTAs.
+9. Evidencia archivada con `report.json` limpio.
 
 Hasta entonces:
-
-**DOCUMENTO: ROADMAP VÁLIDO / NO COMPLETADO**
 
 **STAGING2: NO-GO PARA CIERRE**
 

@@ -2,11 +2,11 @@
 
 ## Fuente de verdad
 
-El menú asignado a la ubicación **Primary** en WordPress es la fuente de verdad. La migración gobernada reconstruye ese menú desde el blueprint publicado y bloquea la deriva en la auditoría posterior.
+El menú asignado a la ubicación **Primary** en WordPress es la fuente de verdad. La migración gobernada reconstruye ese menú a partir del blueprint publicado y bloquea la deriva en la auditoría posterior.
 
 - Nombre recomendado: `NUVANX Principal`.
 - Ubicación: `Primary`.
-- Profundidad máxima: tres niveles.
+- Profundidad máxima soportada: tres niveles.
 - El CTA `Solicitar valoración médica` permanece fuera del árbol porque ya lo renderiza el header.
 - Solo se resuelven páginas publicadas. Una ruta ausente, en borrador o en cuarentena se omite junto con sus descendientes.
 - `/tratamientos/` no forma parte del menú y redirige a `/soluciones-medicas/`.
@@ -16,7 +16,7 @@ El menú asignado a la ubicación **Primary** en WordPress es la fuente de verda
 ```text
 INICIO
 
-SOLUCIONES
+SOLUCIONES                                      [mega-menú]
 ├── Rostro y cuello
 ├── Calidad de piel
 ├── Contorno corporal
@@ -25,7 +25,7 @@ SOLUCIONES
 ├── Manchas, rojeces y fotodaño
 └── Medicina estética masculina
 
-PROTOCOLOS SIGNATURE
+PROTOCOLOS SIGNATURE                            [mega-menú]
 ├── NUVANX Contour Architecture™
 │   ├── Abdomen y flancos
 │   ├── Brazos y axila
@@ -35,12 +35,11 @@ PROTOCOLOS SIGNATURE
 │   └── Contorno masculino
 ├── NUVANX Post-Maternity Contour™
 ├── NUVANX Profile Definition™
-├── NUVANX Eye Frame™
 ├── NUVANX Skin Architecture™
 ├── NUVANX Surface Renewal™
 └── NUVANX Tone Correction™
 
-TECNOLOGÍA
+TECNOLOGÍA                                      [mega-menú]
 ├── Endolift® facial
 ├── Endoláser corporal
 ├── EXION® Face
@@ -60,21 +59,33 @@ JOURNAL
 CONTACTO
 ```
 
-Los pilares `Soluciones`, `Protocolos Signature` y `Tecnología` reciben tratamiento de mega-menú. El tercer nivel solo se renderiza para rutas publicadas.
+Los pilares `Soluciones`, `Protocolos Signature` y `Tecnología` reciben automáticamente el tratamiento de mega-menú. La clase `nvx-menu--mega` conserva ese tratamiento si una etiqueta cambia.
 
-## Rutas Signature
+## Rutas objetivo
+
+| Elemento | Ruta objetivo |
+|---|---|
+| Soluciones | `/soluciones-medicas/` |
+| Protocolos Signature | `/protocolos-signature/` |
+| Tecnología | `/medicina-estetica-laser/` |
+| Casos clínicos | `/casos-de-pacientes/` |
+| Equipo médico | `/equipo-medico/` |
+| Clínicas | `/clinicas-de-medicina-estetica-nuvanx/` |
+| Journal | `/blog/` |
+| Contacto | `/contacto/` |
+
+### Protocolos Signature
 
 | Elemento | Ruta objetivo |
 |---|---|
 | NUVANX Contour Architecture™ | `/remodelacion-corporal-laser-madrid/` |
 | NUVANX Post-Maternity Contour™ | `/tratamiento-postparto-abdomen-contorno-corporal-madrid/` |
 | NUVANX Profile Definition™ | `/papada-definicion-mandibular-madrid/` |
-| NUVANX Eye Frame™ | `/tratamiento-ojeras-bolsas-mirada-madrid/` |
 | NUVANX Skin Architecture™ | `/calidad-piel-firmeza-luminosidad-madrid/` |
 | NUVANX Surface Renewal™ | `/cicatrices-acne-poros-textura-madrid/` |
 | NUVANX Tone Correction™ | `/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/` |
 
-## Rutas Fase 2 — Contour Architecture
+### Fase 2 — Contour Architecture
 
 | Elemento | Ruta objetivo |
 |---|---|
@@ -85,17 +96,36 @@ Los pilares `Soluciones`, `Protocolos Signature` y `Tecnología` reciben tratami
 | Rodillas | `/tratamiento-rodillas-grasa-flacidez-madrid/` |
 | Contorno masculino | `/contorno-corporal-masculino-madrid/` |
 
-No se crea un enlace hacia una ruta futura. Primero se publica mediante la migración gobernada, se valida el contrato renderizado y después aparece en el menú resuelto.
+No debe crearse un enlace personalizado hacia una ruta futura. Primero se publica mediante la migración gobernada, se valida el contrato renderizado y después aparece en el menú resuelto.
 
-## Decisiones de producto
+## Decisiones excluidas
 
-- `NUVANX Contour Architecture™` es el único nombre corporal público.
-- `Couture Sculpt™` y `Contour Sculpt™` quedan retirados de navegación y copy visible.
+- `NUVANX Eye Frame™` no se incorpora hasta completar una revisión médica, jurídica, asistencial, SEO y de claims independiente.
 - `Contour Focus` y `Contour Continuity` no se publican como productos, paquetes ni niveles de precio.
-- `NUVANX Eye Frame™` se conserva como protocolo diagnóstico periocular ya implementado; no promete una técnica única y explicita cuándo derivar.
+- `Couture Sculpt™` y `Contour Sculpt™` se consideran nombres retirados. El único nombre corporal público es `NUVANX Contour Architecture™`.
 
-## Comportamiento y QA
+## Comportamiento de escritorio
 
-- Escritorio: mega-menú por `hover` y `focus-within`, sin overflow.
-- Móvil: drawer con acordeones, `aria-expanded`, cierre por `Escape` y restauración de foco.
-- El QA de staging2 debe generar capturas reales desktop/móvil, bloquear pantallas 403 y comprobar las interacciones antes de producción.
+- Ocho pilares compactos y CTA independiente.
+- Los tres pilares comerciales abren paneles editoriales.
+- Se admite tercer nivel únicamente para rutas publicadas.
+- Apertura mediante `hover` y `focus-within`.
+- El breakpoint cambia al drawer antes de que el header pueda desbordarse.
+
+## Comportamiento móvil
+
+- Los hijos permanecen cerrados al abrir el drawer.
+- Cada padre recibe un botón independiente con `aria-expanded` y `aria-controls`.
+- Pulsar el nombre navega al hub publicado.
+- Pulsar `+ / −` abre o cierra el acordeón.
+- Al abrir una familia se cierra su hermana del mismo nivel.
+- `Escape`, el botón de cierre y el cambio a escritorio restablecen los acordeones.
+- Se respeta `prefers-reduced-motion`.
+
+## Reglas de publicación
+
+1. No incorporar LipoSculpt-Air™, V-Lift Awake™ ni protocolos `pending_medical_legal`.
+2. No copiar categorías residuales de AirSculpt ni añadir servicios no confirmados.
+3. No añadir páginas que respondan 404, borradores o rutas en cuarentena.
+4. No duplicar el CTA de valoración dentro del menú.
+5. Validar escritorio, móvil, teclado, lector de pantalla y ausencia de overflow en staging2 antes de producción.

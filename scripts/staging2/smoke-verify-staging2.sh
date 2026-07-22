@@ -16,10 +16,10 @@ done
 
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
-# fail reports an error message to standard error and returns a failure status.
+# fail prints an error message to stderr and returns a failure status.
 fail() { echo "ERROR: $*" >&2; return 1; }
 
-# fetch_page verifies that a page returns HTTP 200, contains all required markers, and excludes retired or prohibited content markers.
+# fetch_page verifies that a page returns HTTP 200, contains all expected markers, and excludes retired, internal, or prohibited markers.
 fetch_page() {
   local page_path="$1"
   shift
@@ -32,7 +32,7 @@ fetch_page() {
   done
   for forbidden in \
     'Protocolo en construcción clínica' 'fase de despliegue web' 'pending_medical_legal' \
-    'LipoSculpt-Air' 'V-Lift Awake' 'Couture Sculpt' 'Contour Sculpt' \
+    'LipoSculpt-Air' 'V-Lift Awake' 'Couture Sculpt' 'Contour Sculpt' 'Eye Frame' \
     'Sin bisturí ni puntos' 'Todo en vigilia' 'Mínima recuperación' 'Recuperación inmediata' \
     'Sin cicatrices' 'Sin inflamación' 'Sin dolor' 'Sin riesgos' 'Elimina grasa en cualquier zona' \
     'Resultado definitivo' 'Resultados garantizados' 'Una sola sesión' 'Generalmente 3–4 sesiones' \
@@ -45,7 +45,7 @@ fetch_page() {
   echo "PASS page $page_path status=200 markers=$#"
 }
 
-# check_redirect verifies that a source path returns an exact 301 redirect to the expected target path.
+# check_redirect verifies that a source path redirects directly to the expected target path with HTTP 301.
 check_redirect() {
   local source_path="$1"
   local target_path="$2"
@@ -61,24 +61,26 @@ check_redirect() {
 
 check_redirect '/tratamientos/' '/soluciones-medicas/'
 fetch_page '/soluciones-medicas/' 'Soluciones médicas para rostro, piel y contorno corporal.' 'Rostro y cuello' 'Contorno corporal' 'Cambios posgestacionales' 'Valoración de procedimientos previos'
-fetch_page '/protocolos-signature/' 'Protocolos Signature: Medicina estética de diagnóstico.' 'Nuestro estándar: La firma NUVANX' 'NUVANX Contour Architecture' 'Post-Maternity Contour' 'Eye Frame'
+fetch_page '/protocolos-signature/' 'Protocolos Signature: Medicina estética de diagnóstico.' 'Nuestro estándar: La firma NUVANX' 'NUVANX Contour Architecture' 'Post-Maternity Contour' 'Tu primera valoración clínica'
 fetch_page '/remodelacion-corporal-laser-madrid/' 'NUVANX Contour Architecture™: El protocolo y la tecnología' 'Tres decisiones clínicas: Reducir, Redefinir, Retraer' 'Cuándo no es el tratamiento adecuado'
 fetch_page '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' 'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid' 'El Protocolo NUVANX Post-Maternity Contour' 'Las alteraciones del posparto' 'Preguntas frecuentes'
 fetch_page '/por-que-nuvanx/' 'Por qué NUVANX. Sin retórica de marketing.' 'Responsabilidad médica y continuidad asistencial' 'Trazabilidad de productos' 'Por qué importa'
 fetch_page '/inversion-medicina-estetica/' 'El presupuesto forma parte de una decisión informada.' 'Cómo leer estas tarifas' 'Qué incluye siempre el plan en NUVANX' 'Qué no encontrarás aquí'
 
-fetch_page '/papada-definicion-mandibular-madrid/' 'Papada y mandíbula: a veces es grasa, a veces es piel, y a veces falta hueso.' 'Cómo evaluamos el tercio inferior' 'Cuándo no basta con tratar la grasa' 'Solicitar valoración médica'
-fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' 'Tu piel no necesita más cremas, necesita reconstruirse por dentro.' 'Qué evaluamos antes de indicar tecnología' 'El plan puede combinar varias herramientas' 'Solicitar valoración médica'
-fetch_page '/cicatrices-acne-poros-textura-madrid/' 'Para mejorar las marcas de acné hay que romper la cicatriz, no solo pelar la piel.' 'No todas las cicatrices responden igual' 'Cómo construimos el plan' 'Solicitar valoración médica'
-fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' 'Quitar una mancha es fácil; que no vuelva a salir es la parte médica.' 'Qué evaluamos antes de tratar' 'Cómo construimos el plan' 'Solicitar valoración médica'
-fetch_page '/tratamiento-ojeras-bolsas-mirada-madrid/' 'No todas las ojeras son iguales. Por eso no todas se tratan igual.' 'Qué evaluamos en la región periocular' 'Cuándo la medicina estética no es suficiente' 'Cómo construimos el plan' 'Solicitar valoración médica'
+MARKER_VALORA='Qué se valora'
+MARKER_DECIDE='Cómo se decide el plan'
+MARKER_LIMITES='Límites y cuándo derivamos'
 
-fetch_page '/grasa-localizada-abdomen-flancos-madrid/' 'Grasa localizada en abdomen y flancos en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/flacidez-grasa-localizada-brazos-madrid/' 'Flacidez y grasa localizada en brazos en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/grasa-espalda-zona-sujetador-madrid/' 'Grasa de espalda y zona del sujetador en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/flacidez-muslos-internos-subgluteo-madrid/' 'Flacidez en muslos internos y región subglútea en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/tratamiento-rodillas-grasa-flacidez-madrid/' 'Grasa localizada y flacidez en rodillas en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
-fetch_page '/contorno-corporal-masculino-madrid/' 'Contorno corporal masculino en Madrid' 'Qué se valora' 'Cómo se decide el plan' 'Límites y cuándo derivamos'
+fetch_page '/papada-definicion-mandibular-madrid/' 'Papada y definición mandibular en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' 'Calidad, firmeza y luminosidad de la piel en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/cicatrices-acne-poros-textura-madrid/' 'Cicatrices de acné, poros y textura en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' 'Manchas, rojeces y fotodaño en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/grasa-localizada-abdomen-flancos-madrid/' 'Grasa localizada en abdomen y flancos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/flacidez-grasa-localizada-brazos-madrid/' 'Flacidez y grasa localizada en brazos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/grasa-espalda-zona-sujetador-madrid/' 'Grasa de espalda y zona del sujetador en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/flacidez-muslos-internos-subgluteo-madrid/' 'Flacidez en muslos internos y región subglútea en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/tratamiento-rodillas-grasa-flacidez-madrid/' 'Grasa localizada y flacidez en rodillas en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/contorno-corporal-masculino-madrid/' 'Contorno corporal masculino en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 
 check_redirect '/liposculpt-air/' '/remodelacion-corporal-laser-madrid/'
 check_redirect '/v-lift-awake/' '/protocolos-signature/'

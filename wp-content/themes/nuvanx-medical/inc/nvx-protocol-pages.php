@@ -132,10 +132,7 @@ function nvx_protocol_pages_post_maternity_markup( array $data ): string {
 
 	$html .= '<section class="nvx-brand-section" id="alteraciones-posparto">';
 	$html .= '<h2>' . esc_html__( 'Las alteraciones del posparto: qué podemos tratar y cuándo derivamos', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p><strong>' . esc_html__( 'Grasa subcutánea localizada', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'Cuando predomina grasa bajo la piel y existe estabilidad de peso, se valora si una modalidad láser o térmica tiene indicación para esa zona.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><strong>' . esc_html__( 'Laxitud cutánea y calidad de piel', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'La capacidad de retracción, el espesor y la calidad del tejido determinan si puede plantearse un protocolo de estimulación o retracción.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><strong>' . esc_html__( 'Estrías y cicatriz de cesárea', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'Se valoran madurez, color, relieve, síntomas y fototipo antes de plantear Láser CO₂ u otras modalidades de superficie.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><strong>' . esc_html__( 'Diástasis, hernia o exceso importante de piel', 'nuvanx-medical' ) . '</strong><br>' . esc_html__( 'Cuando el componente principal es muscular, existe sospecha de hernia o el exceso de piel requiere cirugía, la medicina estética no sustituye la valoración especializada y se recomienda derivación.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p>' . esc_html__( 'Si lo que te sobra es grasa que no se va ni con dieta ni con gimnasio, ahí sí podemos ayudarte con láser. Si lo que ha pasado es que la piel se quedó floja pero no hay tanta grasa debajo, la solución es distinta — trabajamos la piel, no la grasa. Y si lo que hay es una separación de los músculos del abdomen (diástasis) o sobra bastante piel, te lo decimos claro: eso lo arregla un cirujano, no nosotros — e igualmente te ayudamos a encontrar quién.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</section>';
 
 	$html .= '<section class="nvx-brand-section">';

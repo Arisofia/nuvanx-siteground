@@ -161,7 +161,6 @@
 .nvx-main .nvx-brand-section__inner > :where(p, .nvx-brand-body),
 .nvx-main :where(
   .nvx-endolift-body--measure,
-  .nvx-aes-body--lead,
   .nvx-method-lead,
   .nvx-brand-faq-content p,
   .nvx-lead
@@ -205,7 +204,6 @@
   .nvx-prose,
   .nvx-brand-section__inner
 ) :where(
-  figure:not(.nvx-endolift-formula):not(.nvx-laser-formula):not(.nvx-aes-formula),
   .wp-block-image
 ) img,
 .nvx-main img.nvx-media--body {

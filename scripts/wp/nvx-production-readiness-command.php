@@ -1,6 +1,6 @@
 <?php
 /**
- * WP-CLI command for the NUVANX production-readiness migration.
+ * WP-CLI command for the NUVANX production-readiness content migration.
  *
  * @package nuvanx-siteground
  */
@@ -9,45 +9,40 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	return;
 }
 
+/** Audits and applies the idempotent production-readiness migration. */
 final class NVX_Production_Readiness_Command {
 	private const CONFIRMATION_TOKEN = 'retire-prototypes';
 	private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
 	private const LOCK_TTL_SECONDS   = 900;
 
 	/**
-	 * Defines the pages approved for publication by governed theme modules.
+	 * Defines the pages that the migration must create or publish.
 	 *
-	 * @return array Approved page definitions keyed by slug, including title, content marker, and promotion policy.
+	 * @return array Approved page definitions keyed by slug.
 	 */
 	private function approved_pages(): array {
 		return array(
-			'por-que-nuvanx' => array( 'title' => 'Por qué NUVANX', 'marker' => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->', 'promote' => false ),
-			'inversion-medicina-estetica' => array( 'title' => 'Inversión en medicina estética', 'marker' => '<!-- NUVANX_STRATEGY_PAGE:investment -->', 'promote' => false ),
-			'soluciones-medicas' => array( 'title' => 'Soluciones médicas', 'marker' => '<!-- NUVANX_STRATEGY_PAGE:solutions -->', 'promote' => true ),
-			'protocolos-signature' => array( 'title' => 'Protocolos Signature', 'marker' => '<!-- NUVANX_PROTOCOL_HUB -->', 'promote' => true ),
-			'remodelacion-corporal-laser-madrid' => array( 'title' => 'Remodelación corporal láser diseñada según tu anatomía.', 'marker' => '<!-- NUVANX_PROTOCOL_PAGE:contour-architecture -->', 'promote' => true ),
-			'tratamiento-postparto-abdomen-contorno-corporal-madrid' => array( 'title' => 'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid', 'marker' => '<!-- NUVANX_PROTOCOL_PAGE:post-maternity -->', 'promote' => true ),
-			'papada-definicion-mandibular-madrid' => array( 'title' => 'Profile Definition: Papada y mandíbula', 'marker' => '<!-- NUVANX_PROTOCOL_PAGE:profile-definition -->', 'promote' => true ),
-			'calidad-piel-firmeza-luminosidad-madrid' => array( 'title' => 'Skin Architecture: Firmeza y luminosidad', 'marker' => '<!-- NUVANX_PROTOCOL_PAGE:skin-architecture -->', 'promote' => true ),
-			'cicatrices-acne-poros-textura-madrid' => array( 'title' => 'Surface Renewal: Cicatrices y textura', 'marker' => '<!-- NUVANX_PROTOCOL_PAGE:surface-renewal -->', 'promote' => true ),
-			'manchas-rojeces-fotorejuvenecimiento-ipl-madrid' => array( 'title' => 'Tone Correction: Manchas y rojeces', 'marker' => '<!-- NUVANX_PROTOCOL_PAGE:tone-correction -->', 'promote' => true ),
+			'por-que-nuvanx' => array( 'title' => 'Por qué NUVANX', 'content' => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->', 'promote_draft' => false ),
+			'inversion-medicina-estetica' => array( 'title' => 'Inversión en medicina estética', 'content' => '<!-- NUVANX_STRATEGY_PAGE:investment -->', 'promote_draft' => false ),
+			'soluciones-medicas' => array( 'title' => 'Soluciones médicas', 'content' => '<!-- NUVANX_STRATEGY_PAGE:solutions -->', 'promote_draft' => true ),
+			'protocolos-signature' => array( 'title' => 'Protocolos Signature', 'content' => '<!-- NUVANX_PROTOCOL_HUB -->', 'promote_draft' => true ),
+			'remodelacion-corporal-laser-madrid' => array( 'title' => 'Remodelación corporal láser diseñada según tu anatomía.', 'content' => '<!-- NUVANX_PROTOCOL_PAGE:contour-architecture -->', 'promote_draft' => true ),
+			'tratamiento-postparto-abdomen-contorno-corporal-madrid' => array( 'title' => 'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid', 'content' => '<!-- NUVANX_PROTOCOL_PAGE:post-maternity -->', 'promote_draft' => true ),
+			'papada-definicion-mandibular-madrid' => array( 'title' => 'Papada y definición mandibular en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:profile-definition -->', 'promote_draft' => true ),
+			'calidad-piel-firmeza-luminosidad-madrid' => array( 'title' => 'Calidad, firmeza y luminosidad de la piel en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:skin-architecture -->', 'promote_draft' => true ),
+			'cicatrices-acne-poros-textura-madrid' => array( 'title' => 'Cicatrices de acné, poros y textura en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:surface-renewal -->', 'promote_draft' => true ),
+			'manchas-rojeces-fotorejuvenecimiento-ipl-madrid' => array( 'title' => 'Manchas, rojeces y fotodaño en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:tone-correction -->', 'promote_draft' => true ),
+			'grasa-localizada-abdomen-flancos-madrid' => array( 'title' => 'Grasa localizada en abdomen y flancos en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:abdomen-flancos -->', 'promote_draft' => true ),
+			'flacidez-grasa-localizada-brazos-madrid' => array( 'title' => 'Flacidez y grasa localizada en brazos en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:brazos -->', 'promote_draft' => true ),
+			'grasa-espalda-zona-sujetador-madrid' => array( 'title' => 'Grasa de espalda y zona del sujetador en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:espalda -->', 'promote_draft' => true ),
+			'flacidez-muslos-internos-subgluteo-madrid' => array( 'title' => 'Flacidez en muslos internos y región subglútea en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:muslos -->', 'promote_draft' => true ),
 		
-'tratamiento-ojeras-bolsas-mirada-madrid' => array( 'title' => 'Tratamiento ojeras, bolsas y mirada Madrid', 'marker' => '<!-- NUVANX_PROTOCOL_PAGE:eye-frame -->', 'promote' => true ),
-			'grasa-localizada-abdomen-flancos-madrid' => array( 'title' => 'Grasa localizada en abdomen y flancos en Madrid', 'marker' => '<!-- NUVANX_SIGNATURE_PHASE:abdomen-flancos -->', 'promote' => true ),
-			'flacidez-grasa-localizada-brazos-madrid' => array( 'title' => 'Flacidez y grasa localizada en brazos en Madrid', 'marker' => '<!-- NUVANX_SIGNATURE_PHASE:brazos -->', 'promote' => true ),
-			'grasa-espalda-zona-sujetador-madrid' => array( 'title' => 'Grasa de espalda y zona del sujetador en Madrid', 'marker' => '<!-- NUVANX_SIGNATURE_PHASE:espalda -->', 'promote' => true ),
-			'flacidez-muslos-internos-subgluteo-madrid' => array( 'title' => 'Flacidez en muslos internos y región subglútea en Madrid', 'marker' => '<!-- NUVANX_SIGNATURE_PHASE:muslos -->', 'promote' => true ),
-		
-'tratamiento-rodillas-grasa-flacidez-madrid' => array( 'title' => 'Grasa localizada y flacidez en rodillas en Madrid', 'marker' => '<!-- NUVANX_SIGNATURE_PHASE:rodillas -->', 'promote' => true ),
-			'contorno-corporal-masculino-madrid' => array( 'title' => 'Contorno corporal masculino en Madrid', 'marker' => '<!-- NUVANX_SIGNATURE_PHASE:male-contour -->', 'promote' => true ),
+'tratamiento-rodillas-grasa-flacidez-madrid' => array( 'title' => 'Grasa localizada y flacidez en rodillas en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:rodillas -->', 'promote_draft' => true ),
+			'contorno-corporal-masculino-madrid' => array( 'title' => 'Contorno corporal masculino en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:male-contour -->', 'promote_draft' => true ),
 		);
 	}
 
-	/**
-	 * Retrieves the externally defined governed-page contract.
-	 *
-	 * @return array The governed-page definitions.
-	 */
+	/** Shared retired-page contract from the active theme. */
 	private function governed_pages(): array {
 		if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
 			WP_CLI::error( 'Production-readiness governed-page contract is unavailable.' );
@@ -55,28 +50,26 @@ final class NVX_Production_Readiness_Command {
 		return nvx_production_readiness_governed_pages();
 	}
 
-	/**
-	 * Finds a page by its slug.
-	 *
-	 * @param string $slug The page slug.
-	 * @return WP_Post|null The matching page, or null if no page is found.
-	 */
+	/** Find one page by slug regardless of publication status. */
 	private function page_by_slug( string $slug ): ?WP_Post {
 		$page = get_page_by_path( $slug, OBJECT, 'page' );
 		return $page instanceof WP_Post ? $page : null;
 	}
 
 	/**
-	 * Finds navigation menu items that link to a page.
+	 * Finds navigation menu items that reference a page.
 	 *
-	 * @param int $page_id The page ID to locate in navigation menus.
-	 * @return int[] Unique navigation menu item IDs linked to the page.
+	 * @param int $page_id The page ID to find in navigation menus.
+	 * @return int[] Unique navigation menu item IDs referencing the page.
 	 */
-	private function menu_item_ids_for_page( int $page_id ): array {
+	private function menu_item_ids( int $page_id ): array {
 		$ids = array();
 		foreach ( wp_get_nav_menus() as $menu ) {
 			$items = wp_get_nav_menu_items( $menu->term_id );
-			foreach ( is_array( $items ) ? $items : array() as $item ) {
+			if ( ! is_array( $items ) ) {
+				continue;
+			}
+			foreach ( $items as $item ) {
 				if ( 'page' === $item->object && $page_id === (int) $item->object_id ) {
 					$ids[] = (int) $item->ID;
 				}
@@ -85,57 +78,53 @@ final class NVX_Production_Readiness_Command {
 		return array_values( array_unique( $ids ) );
 	}
 
-	/**
-	 * Retrieves the menu ID assigned to the primary navigation location.
-	 *
-	 * @return int The assigned menu ID, or 0 when no primary menu is configured.
-	 */
+	/** Return the assigned primary menu term ID. */
 	private function primary_menu_id(): int {
 		$locations = get_nav_menu_locations();
 		return isset( $locations['primary'] ) ? (int) $locations['primary'] : 0;
 	}
 
 	/**
-	 * Flattens navigation blueprint nodes into depth-prefixed signature rows.
+	 * Flattens a nested menu blueprint into deterministic comparison rows.
 	 *
-	 * @param array $nodes Navigation nodes containing labels, URLs, and optional children.
+	 * @param array $items Menu blueprint nodes to flatten.
 	 * @param int   $depth Current nesting depth.
-	 * @return array The flattened navigation signature rows.
+	 * @return array Flattened rows containing each node's depth, label, and normalized URL.
 	 */
-	private function flatten_blueprint( array $nodes, int $depth = 0 ): array {
+	private function flatten_blueprint( array $items, int $depth = 0 ): array {
 		$rows = array();
-		foreach ( $nodes as $node ) {
-			$rows[] = $depth . '|' . trim( (string) $node['label'] ) . '|' . untrailingslashit( (string) $node['url'] );
-			$children = isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : array();
+		foreach ( $items as $item ) {
+			$rows[] = $depth . '|' . trim( (string) $item['label'] ) . '|' . untrailingslashit( (string) $item['url'] );
+			$children = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
 			$rows = array_merge( $rows, $this->flatten_blueprint( $children, $depth + 1 ) );
 		}
 		return $rows;
 	}
 
 	/**
-	 * Flattens hierarchical navigation menu items into signature rows.
+	 * Flattens the current WordPress menu tree into a deterministic comparison signature.
 	 *
-	 * @param array $items Menu items to process.
+	 * @param array $items Menu items to flatten.
 	 * @param int   $parent Parent menu item ID.
 	 * @param int   $depth Current nesting depth.
-	 * @return array Flattened menu signature rows.
+	 * @return array Flattened menu item signature rows.
 	 */
-	private function flatten_menu( array $items, int $parent = 0, int $depth = 0 ): array {
+	private function flatten_menu_items( array $items, int $parent = 0, int $depth = 0 ): array {
 		$rows = array();
 		foreach ( $items as $item ) {
 			if ( (int) $item->menu_item_parent !== $parent ) {
 				continue;
 			}
 			$rows[] = $depth . '|' . trim( (string) $item->title ) . '|' . untrailingslashit( (string) $item->url );
-			$rows = array_merge( $rows, $this->flatten_menu( $items, (int) $item->ID, $depth + 1 ) );
+			$rows = array_merge( $rows, $this->flatten_menu_items( $items, (int) $item->ID, $depth + 1 ) );
 		}
 		return $rows;
 	}
 
 	/**
-	 * Builds the canonical signature for the primary navigation menu.
+	 * Builds the canonical signature for the primary navigation blueprint.
 	 *
-	 * @return array The flattened canonical navigation structure, or an empty array when unavailable.
+	 * @return array The flattened canonical menu signature, or an empty array when the navigation blueprint is unavailable.
 	 */
 	private function canonical_menu_signature(): array {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
@@ -145,9 +134,9 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Builds the signature of the published items in the primary navigation menu.
+	 * Gets the current primary menu signature.
 	 *
-	 * @return array The flattened menu signature, or an empty array when the primary menu is unavailable.
+	 * @return array The flattened signature of published primary menu items.
 	 */
 	private function current_menu_signature(): array {
 		$menu_id = $this->primary_menu_id();
@@ -155,56 +144,45 @@ final class NVX_Production_Readiness_Command {
 			return array();
 		}
 		$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish' ) );
-		return is_array( $items ) ? $this->flatten_menu( $items ) : array();
+		return is_array( $items ) ? $this->flatten_menu_items( $items ) : array();
 	}
 
 	/**
-	 * Builds audit rows for approved pages, governed pages, and the primary navigation menu.
+	 * Builds audit rows for approved pages, governed pages, and primary navigation.
 	 *
-	 * @return array Audit rows containing current status, menu item counts, and expected values.
+	 * @return array Audit rows describing current states and expected migration states.
 	 */
 	private function audit_rows(): array {
 		$rows = array();
 		foreach ( $this->approved_pages() as $slug => $definition ) {
-			$page = $this->page_by_slug( $slug );
-			$rows[] = array(
-				'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0,
-				'status' => $page ? (string) $page->post_status : 'missing',
-				'menu_items' => $page ? count( $this->menu_item_ids_for_page( (int) $page->ID ) ) : 0,
-				'expected' => 'publish',
-			);
+			$page   = $this->page_by_slug( $slug );
+			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
 		}
 		foreach ( $this->governed_pages() as $slug => $definition ) {
-			$page = $this->page_by_slug( $slug );
-			$rows[] = array(
-				'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0,
-				'status' => $page ? (string) $page->post_status : 'absent',
-				'menu_items' => $page ? count( $this->menu_item_ids_for_page( (int) $page->ID ) ) : 0,
-				'expected' => $definition['status'],
-			);
+			$page   = $this->page_by_slug( $slug );
+			$rows[] = array( 'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'absent', 'menu_items' => $page ? count( $this->menu_item_ids( (int) $page->ID ) ) : 0, 'expected' => $definition['status'] );
 		}
-		$current = $this->current_menu_signature();
-		$expected = $this->canonical_menu_signature();
-		$rows[] = array(
-			'type' => 'navigation', 'slug' => 'primary', 'id' => $this->primary_menu_id(),
-			'status' => array() !== $expected && $current === $expected ? 'clean' : 'drift',
-			'menu_items' => count( $current ), 'expected' => 'canonical',
-		);
+		$current_menu = $this->current_menu_signature();
+		$canonical_menu = $this->canonical_menu_signature();
+		$rows[] = array( 'type' => 'navigation', 'slug' => 'primary', 'id' => $this->primary_menu_id(), 'status' => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift', 'menu_items' => count( $current_menu ), 'expected' => 'canonical' );
 		return $rows;
 	}
 
 	/**
-	 * Determines whether all production-readiness audit rows meet their expected state.
+	 * Determines whether audit rows satisfy the production-readiness migration contract.
 	 *
-	 * @param array $rows Audit rows describing approved pages, governed pages, and navigation.
-	 * @return bool `true` if every row meets its readiness requirements, `false` otherwise.
+	 * @param array $rows Audit rows to validate.
+	 * @return bool True if all audit rows satisfy the contract, false otherwise.
 	 */
 	private function is_clean( array $rows ): bool {
 		foreach ( $rows as $row ) {
 			if ( 'approved' === $row['type'] && 'publish' !== $row['status'] ) {
 				return false;
 			}
-			if ( 'governed' === $row['type'] && ( ! in_array( $row['status'], array( 'absent', $row['expected'] ), true ) || 0 !== (int) $row['menu_items'] ) ) {
+			if ( 'governed' === $row['type'] && ! in_array( $row['status'], array( 'absent', $row['expected'] ), true ) ) {
+				return false;
+			}
+			if ( 'governed' === $row['type'] && 0 !== (int) $row['menu_items'] ) {
 				return false;
 			}
 			if ( 'navigation' === $row['type'] && 'clean' !== $row['status'] ) {
@@ -215,9 +193,7 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Acquires the migration lock and schedules its removal when execution ends.
-	 *
-	 * @return void
+	 * Acquires a short-lived lock to prevent concurrent production-readiness migrations.
 	 */
 	private function acquire_lock(): void {
 		$now = time();
@@ -231,13 +207,19 @@ final class NVX_Production_Readiness_Command {
 		register_shutdown_function( static function (): void { delete_option( self::LOCK_OPTION ); } );
 	}
 
+	/** Release the migration lock. */
+	private function release_lock(): void {
+		delete_option( self::LOCK_OPTION );
+	}
+
 	/**
-	 * Validates safety requirements before applying the migration.
+	 * Validates confirmation, host, production authorization, and trash settings before applying the migration.
 	 *
-	 * @param array $assoc_args Associative command arguments, including confirmation and production authorization flags.
+	 * @param array $assoc_args Command associative arguments.
 	 */
 	private function validate_invocation( array $assoc_args ): void {
-		if ( self::CONFIRMATION_TOKEN !== (string) ( $assoc_args['confirm'] ?? '' ) ) {
+		$confirmation = isset( $assoc_args['confirm'] ) ? (string) $assoc_args['confirm'] : '';
+		if ( self::CONFIRMATION_TOKEN !== $confirmation ) {
 			WP_CLI::error( 'Refusing to apply: use --confirm=' . self::CONFIRMATION_TOKEN );
 		}
 		$host = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
@@ -248,38 +230,56 @@ final class NVX_Production_Readiness_Command {
 			WP_CLI::error( 'Production requires the explicit --allow-production flag.' );
 		}
 		if ( ! defined( 'EMPTY_TRASH_DAYS' ) || (int) EMPTY_TRASH_DAYS < 1 ) {
-			WP_CLI::error( 'Refusing to apply: WordPress trash is disabled.' );
+			WP_CLI::error( 'Refusing to apply: WordPress trash is disabled, which could permanently delete governed pages.' );
 		}
 	}
 
+	private function update_approved_page( int $page_id, array $definition, string $slug ): void {
+		$result = wp_update_post( array( 'ID' => $page_id, 'post_title' => $definition['title'], 'post_content' => $definition['content'] ), true );
+		if ( is_wp_error( $result ) ) {
+			WP_CLI::error( sprintf( 'Unable to refresh approved page %s: %s', $slug, $result->get_error_message() ) );
+		}
+	}
+
+	private function promote_approved_page( int $page_id, array $definition, string $slug ): void {
+		if ( empty( $definition['promote_draft'] ) ) {
+			WP_CLI::warning( sprintf( 'Approved page %s exists; preserving it for manual review.', $slug ) );
+			return;
+		}
+		$result = wp_update_post( array( 'ID' => $page_id, 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_content' => $definition['content'] ), true );
+		if ( is_wp_error( $result ) ) {
+			WP_CLI::error( sprintf( 'Unable to publish approved page %s: %s', $slug, $result->get_error_message() ) );
+		}
+		WP_CLI::log( sprintf( 'Published approved page %s as ID %d.', $slug, $page_id ) );
+	}
+
 	/**
-	 * Publishes approved pages, creates missing pages, and updates their canonical content.
-	 *
-	 * Existing pages are promoted only when their definition allows it; other statuses are preserved for manual review.
+	 * Ensures approved pages have the required published content and status.
 	 */
 	private function apply_approved_pages(): void {
 		foreach ( $this->approved_pages() as $slug => $definition ) {
 			$page = $this->page_by_slug( $slug );
-			if ( $page && 'publish' === $page->post_status ) {
-				$result = wp_update_post( array( 'ID' => $page->ID, 'post_title' => $definition['title'], 'post_content' => $definition['marker'] ), true );
-			} elseif ( $page && ! empty( $definition['promote'] ) && in_array( $page->post_status, array( 'draft', 'pending', 'private' ), true ) ) {
-				$result = wp_update_post( array( 'ID' => $page->ID, 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_content' => $definition['marker'] ), true );
-			} elseif ( ! $page ) {
-				$result = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_name' => $slug, 'post_content' => $definition['marker'] ), true );
-			} else {
-				WP_CLI::warning( sprintf( 'Preserving %s with status %s for manual review.', $slug, $page->post_status ) );
+			if ( ! $page ) {
+				$this->create_approved_page( $slug, $definition );
 				continue;
 			}
-			if ( is_wp_error( $result ) ) {
-				WP_CLI::error( sprintf( 'Unable to publish %s: %s', $slug, $result->get_error_message() ) );
+			if ( 'publish' === $page->post_status ) {
+				$this->update_approved_page( (int) $page->ID, $definition, $slug );
+			} else {
+				$this->promote_approved_page( (int) $page->ID, $definition, $slug );
 			}
 		}
 	}
+	private function create_approved_page( string $slug, array $definition ): void {
+		$page_id = wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $definition['title'], 'post_name' => $slug, 'post_content' => $definition['content'] ), true );
+		if ( is_wp_error( $page_id ) ) {
+			WP_CLI::error( sprintf( 'Unable to create %s: %s', $slug, $page_id->get_error_message() ) );
+		}
+		WP_CLI::log( sprintf( 'Created approved page %s as ID %d.', $slug, (int) $page_id ) );
+	}
 
 	/**
-	 * Applies the governed-page contract to existing pages by removing menu links and review metadata, then setting each page's required status.
-	 *
-	 * @return void
+	 * Removes governed pages from navigation and applies their contractually defined post statuses.
 	 */
 	private function apply_governed_pages(): void {
 		foreach ( $this->governed_pages() as $slug => $definition ) {
@@ -287,8 +287,9 @@ final class NVX_Production_Readiness_Command {
 			if ( ! $page ) {
 				continue;
 			}
-			foreach ( $this->menu_item_ids_for_page( (int) $page->ID ) as $item_id ) {
-				wp_delete_post( $item_id, true );
+			foreach ( $this->menu_item_ids( (int) $page->ID ) as $menu_item_id ) {
+				wp_delete_post( $menu_item_id, true );
+				WP_CLI::log( sprintf( 'Deleted menu item %d referencing %s.', $menu_item_id, $slug ) );
 			}
 			delete_post_meta( (int) $page->ID, '_nvx_strategy_review_status' );
 			if ( $definition['status'] === $page->post_status ) {
@@ -297,45 +298,48 @@ final class NVX_Production_Readiness_Command {
 			if ( 'trash' === $definition['status'] ) {
 				$result = wp_trash_post( (int) $page->ID );
 				if ( ! $result instanceof WP_Post ) {
-					WP_CLI::error( 'Unable to trash ' . $slug );
+					WP_CLI::error( sprintf( 'Unable to update %s to trash.', $slug ) );
 				}
 			} else {
-				$result = wp_update_post( array( 'ID' => $page->ID, 'post_status' => $definition['status'] ), true );
+				$result = wp_update_post( array( 'ID' => (int) $page->ID, 'post_status' => $definition['status'] ), true );
 				if ( is_wp_error( $result ) ) {
-					WP_CLI::error( 'Unable to update ' . $slug . ': ' . $result->get_error_message() );
+					WP_CLI::error( sprintf( 'Unable to update %s: %s', $slug, $result->get_error_message() ) );
 				}
 			}
+			WP_CLI::log( sprintf( 'Updated %s to %s.', $slug, $definition['status'] ) );
 		}
 	}
 
 	/**
-	 * Inserts a hierarchy of navigation menu items into a menu.
+	 * Inserts canonical navigation nodes and their children into a menu.
 	 *
-	 * @param int   $menu_id   The navigation menu ID.
-	 * @param array $nodes     The menu node definitions to insert.
+	 * @param int   $menu_id   The menu ID receiving the nodes.
+	 * @param array $nodes     The canonical menu nodes to insert.
 	 * @param int   $parent_id The parent menu item ID.
 	 */
 	private function insert_menu_nodes( int $menu_id, array $nodes, int $parent_id = 0 ): void {
 		foreach ( $nodes as $node ) {
-			$item_id = wp_update_nav_menu_item( $menu_id, 0, array(
-				'menu-item-title' => (string) $node['label'],
-				'menu-item-url' => (string) $node['url'],
-				'menu-item-status' => 'publish',
-				'menu-item-parent-id' => $parent_id,
-				'menu-item-classes' => ! empty( $node['mega'] ) ? 'nvx-menu--mega' : '',
-			) );
+			$classes = ! empty( $node['mega'] ) ? 'nvx-menu--mega' : '';
+			$item_id = wp_update_nav_menu_item(
+				$menu_id,
+				0,
+				array(
+					'menu-item-title' => (string) $node['label'],
+					'menu-item-url' => (string) $node['url'],
+					'menu-item-status' => 'publish',
+					'menu-item-parent-id' => $parent_id,
+					'menu-item-classes' => $classes,
+				)
+			);
 			if ( is_wp_error( $item_id ) ) {
-				WP_CLI::error( 'Unable to create menu item: ' . $item_id->get_error_message() );
+				WP_CLI::error( sprintf( 'Unable to create primary menu item %s: %s', (string) $node['label'], $item_id->get_error_message() ) );
 			}
-			$this->insert_menu_nodes( $menu_id, is_array( $node['children'] ?? null ) ? $node['children'] : array(), (int) $item_id );
+			$children = isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : array();
+			$this->insert_menu_nodes( $menu_id, $children, (int) $item_id );
 		}
 	}
 
-	/**
-	 * Rebuilds the primary navigation menu from the canonical navigation blueprint.
-	 *
-	 * @return void
-	 */
+	/** Replaces the assigned primary menu with the canonical published navigation blueprint. */
 	private function apply_primary_menu(): void {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			WP_CLI::error( 'Canonical navigation blueprint is unavailable.' );
@@ -348,32 +352,35 @@ final class NVX_Production_Readiness_Command {
 		if ( $menu_id < 1 ) {
 			$created = wp_create_nav_menu( 'NUVANX Principal' );
 			if ( is_wp_error( $created ) ) {
-				WP_CLI::error( $created->get_error_message() );
+				WP_CLI::error( 'Unable to create NUVANX Principal menu: ' . $created->get_error_message() );
 			}
 			$menu_id = (int) $created;
 		}
 		$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'any' ) );
-		foreach ( is_array( $items ) ? $items : array() as $item ) {
-			wp_delete_post( (int) $item->ID, true );
+		if ( is_array( $items ) ) {
+			foreach ( $items as $item ) {
+				wp_delete_post( (int) $item->ID, true );
+			}
 		}
 		$this->insert_menu_nodes( $menu_id, $nodes );
 		$locations = get_nav_menu_locations();
 		$locations['primary'] = $menu_id;
 		set_theme_mod( 'nav_menu_locations', $locations );
+		WP_CLI::log( sprintf( 'Rebuilt canonical primary menu %d with %d items.', $menu_id, count( $this->canonical_menu_signature() ) ) );
 	}
 
 	/**
-	 * Audits production-readiness requirements and reports their status.
+	 * Audits production-readiness state and reports whether the migration contract is satisfied.
 	 *
-	 * @param array $args Positional command arguments.
-	 * @param array $assoc_args Associative command arguments controlling output format and whether pending changes are allowed.
+	 * @param array $assoc_args Associative command arguments, including the output format and whether pending changes are allowed.
 	 */
 	public function audit( array $args, array $assoc_args ): void {
 		$rows = $this->audit_rows();
-		WP_CLI\Utils\format_items( (string) ( $assoc_args['format'] ?? 'table' ), $rows, array( 'type', 'slug', 'id', 'status', 'menu_items', 'expected' ) );
+		$format = isset( $assoc_args['format'] ) ? (string) $assoc_args['format'] : 'table';
+		WP_CLI\Utils\format_items( $format, $rows, array( 'type', 'slug', 'id', 'status', 'menu_items', 'expected' ) );
 		if ( ! $this->is_clean( $rows ) ) {
 			if ( isset( $assoc_args['allow-pending'] ) ) {
-				WP_CLI::warning( 'Production-readiness audit found pending changes, as permitted.' );
+				WP_CLI::warning( 'Production-readiness audit found pending changes, as permitted for pre-apply inspection.' );
 				return;
 			}
 			WP_CLI::error( 'Production-readiness audit found pending changes.' );
@@ -382,10 +389,10 @@ final class NVX_Production_Readiness_Command {
 	}
 
 	/**
-	 * Applies the production-readiness migration and verifies the resulting site state.
+	 * Applies the production-readiness migration and verifies its final state.
 	 *
-	 * @param array $args Positional command arguments.
-	 * @param array $assoc_args Associative command arguments, including invocation safety options.
+	 * @param array $args       Positional command arguments.
+	 * @param array $assoc_args Associative command arguments, including confirmation and production-safety options.
 	 */
 	public function apply( array $args, array $assoc_args ): void {
 		$this->validate_invocation( $assoc_args );
@@ -399,7 +406,7 @@ final class NVX_Production_Readiness_Command {
 		if ( ! $this->is_clean( $rows ) ) {
 			WP_CLI::error( 'Migration completed but the post-apply audit still has pending changes.' );
 		}
-		delete_option( self::LOCK_OPTION );
+		$this->release_lock();
 		WP_CLI::success( 'Migration applied and post-apply audit passed.' );
 	}
 }

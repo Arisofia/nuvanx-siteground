@@ -330,68 +330,14 @@ function nvx_aesthetic_treatment_schema_catalog(): array {
 	return $result;
 }
 
-function nvx_aesthetic_treatment_list_markup( array $items ): string {
-	$html = '<ul class="nvx-aes-panel-list">';
-	foreach ( $items as $item ) {
-		$html .= '<li>' . esc_html( $item ) . '</li>';
-	}
-	return $html . '</ul>';
-}
-
-function nvx_aesthetic_treatment_faq_markup( array $faqs ): string {
-	$html = '<div class="nvx-faq nvx-aes-faq-list">';
-	foreach ( $faqs as $index => $faq ) {
-		$html .= '<details class="nvx-brand-faq-item"' . ( 0 === $index ? ' open' : '' ) . '>';
-		$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
-		$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-		$html .= '</details>';
-	}
-	return $html . '</div>';
-}
-
-function nvx_aesthetic_treatment_cta_markup(): string {
-	$buttons = function_exists( 'nvx_cta_pair_markup' )
-		? nvx_cta_pair_markup( 'nvx-aesthetic-treatment__ctas' )
-		: '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a>';
-
-	return '<section class="nvx-aes-section nvx-aesthetic-treatment__cta" aria-labelledby="nvx-aesthetic-treatment-cta-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Valoración médica</p><h2 id="nvx-aesthetic-treatment-cta-title" class="nvx-aes-heading">Diagnóstico antes que producto</h2><p class="nvx-aes-body nvx-aes-body--lead">La indicación, el material, el plano y el presupuesto se confirman después de explorar la anatomía, los antecedentes y los objetivos.</p>' . $buttons . '</div></section>';
-}
-
-/** Render complete page body from the canonical catalogue. */
 function nvx_aesthetic_treatment_render( string $key ): string {
 	$catalog = nvx_aesthetic_treatment_catalog();
 	if ( empty( $catalog[ $key ] ) ) {
 		return '';
 	}
-	$entry = $catalog[ $key ];
+	$data = $catalog[ $key ];
 
-	$html  = '<div class="nvx-aesthetic-treatment nvx-aesthetic-treatment--' . esc_attr( $key ) . '">';
-	$html .= '<section class="nvx-brand-hero nvx-page-hero nvx-aesthetic-treatment__hero" aria-labelledby="nvx-aesthetic-treatment-h1"><div class="nvx-brand-hero__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $entry['kicker'] ) . '</p>';
-	$html .= '<h1 id="nvx-aesthetic-treatment-h1" class="nvx-brand-hero__title">' . esc_html( $entry['h1'] ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $entry['lead'] ) . '</p>';
-	$html .= ( function_exists( 'nvx_cta_pair_markup' ) ? nvx_cta_pair_markup( 'nvx-aesthetic-treatment__hero-ctas' ) : '' );
-	$html .= '<p class="nvx-brand-meta">Chamberí (CS20144) · Salamanca–Goya (CS20073) · Según valoración médica</p>';
-	$html .= '</div></section>';
-
-	$html .= '<aside class="nvx-aes-section nvx-aesthetic-treatment__review" aria-label="Estado de revisión médica"><div class="nvx-aes-section__inner"><p class="nvx-aes-body"><strong>Revisión médica pendiente.</strong> Esta página permanece bloqueada para publicación en producción hasta registrar revisor, fecha y aprobación clínica.</p></div></aside>';
-
-	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-diagnosis-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Diagnóstico</p><h2 id="nvx-aesthetic-diagnosis-title" class="nvx-aes-heading">Qué problema aborda y cuándo no debe tratarse</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['diagnosis'] ) . '</p><div class="nvx-aes-card-grid"><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Indicaciones seleccionadas</h3>' . nvx_aesthetic_treatment_list_markup( $entry['indications'] ) . '</article><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Precauciones y no indicación</h3>' . nvx_aesthetic_treatment_list_markup( $entry['precautions'] ) . '</article></div></div></section>';
-
-	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-mechanism-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Mecanismo</p><h2 id="nvx-aesthetic-mechanism-title" class="nvx-aes-heading">Cómo se plantea el tratamiento</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['mechanism'] ) . '</p><ol class="nvx-aes-panel-list">';
-	foreach ( $entry['process'] as $step ) {
-		$html .= '<li>' . esc_html( $step ) . '</li>';
-	}
-	$html .= '</ol></div></section>';
-
-	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-evolution-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Evolución y seguridad</p><h2 id="nvx-aesthetic-evolution-title" class="nvx-aes-heading">Recuperación, límites y riesgos</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['evolution'] ) . '</p><div class="nvx-aes-card-grid"><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Riesgos que deben explicarse</h3>' . nvx_aesthetic_treatment_list_markup( $entry['risks'] ) . '</article><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Combinaciones posibles</h3>' . nvx_aesthetic_treatment_list_markup( $entry['combinations'] ) . '</article></div></div></section>';
-
-	$html .= '<section class="nvx-aes-section nvx-aes-faq" aria-labelledby="nvx-aesthetic-faq-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Preguntas frecuentes</p><h2 id="nvx-aesthetic-faq-title" class="nvx-aes-heading">Respuestas clínicas antes de decidir</h2>' . nvx_aesthetic_treatment_faq_markup( $entry['faqs'] ) . '</div></section>';
-
-	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-clinics-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">NUVANX Madrid</p><h2 id="nvx-aesthetic-clinics-title" class="nvx-aes-heading">Valoración en Chamberí o Salamanca–Goya</h2><p class="nvx-aes-body"><a href="' . esc_url( home_url( '/medicina-estetica-chamberi/' ) ) . '">Clínica NUVANX Chamberí</a> · <a href="' . esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ) ) . '">Clínica NUVANX Salamanca–Goya</a></p></div></section>';
-	$html .= nvx_aesthetic_treatment_cta_markup();
-
-	return $html . '</div>';
+	return nvx_render_13_point_matrix( $data );
 }
 
 /** Replace marker content with the canonical versioned page. */

@@ -6,18 +6,25 @@ on:
     paths:
       - '.github/workflows/deploy-staging2.yml'
       - 'tools/deploy/deploy-to-staging2.sh'
-      - 'scripts/staging2/**'
+      - 'scripts/staging2/collect-staging2-diagnostics.sh'
+      - 'scripts/staging2/smoke-verify-staging2.sh'
+      - 'scripts/staging2/verify-rendered-acceptance.mjs'
+      - 'scripts/staging2/capture-visual-qa.mjs'
+      - 'scripts/staging2/test-deploy-workflow-contract.mjs'
       - 'scripts/wp/nvx-production-readiness-command.php'
+      - 'wp-content/themes/nuvanx-medical/functions.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php'
       - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
       - 'docs/content-strategy-2026/NUVANX-CONTOUR-ROADMAP-STATUS.md'
+      - 'docs/operations/deployment.md'
+      - 'docs/operations/staging2-phase3-rendered-acceptance.md'
   workflow_dispatch:
     inputs:
       git_sha:
@@ -29,13 +36,18 @@ on:
         required: true
         default: PREFLIGHT_ONLY
         type: choice
-        options: [PREFLIGHT_ONLY, DEPLOY_AND_MIGRATE, SMOKE_ONLY]
+        options:
+          - PREFLIGHT_ONLY
+          - DEPLOY_AND_MIGRATE
+          - SMOKE_ONLY
       confirmation:
         description: 'Explicit staging2 execution confirmation'
         required: true
         default: CANCEL
         type: choice
-        options: [CANCEL, DEPLOY_STAGING2]
+        options:
+          - CANCEL
+          - DEPLOY_STAGING2
 
 permissions:
   contents: read
@@ -54,40 +66,69 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out repository
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
 
-      - name: Validate shell, Node and PHP syntax
+      - name: Validate shell syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n tools/deploy/deploy-to-staging2.sh
+          bash -n scripts/staging2/collect-staging2-diagnostics.sh
+          bash -n scripts/staging2/smoke-verify-staging2.sh
+
+      - name: Validate rendered acceptance Node syntax
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p contract-validation-evidence
-          bash -n tools/deploy/deploy-to-staging2.sh
-          bash -n scripts/staging2/collect-staging2-diagnostics.sh
-          bash -n scripts/staging2/smoke-verify-staging2.sh
-          node --check scripts/staging2/verify-rendered-acceptance.mjs 2>&1 | tee contract-validation-evidence/rendered-node-syntax.log
-          node --check scripts/staging2/capture-visual-qa.mjs 2>&1 | tee contract-validation-evidence/visual-node-syntax.log
-          node --check scripts/staging2/test-deploy-workflow-contract.mjs 2>&1 | tee contract-validation-evidence/contract-node-syntax.log
+          node --check scripts/staging2/verify-rendered-acceptance.mjs \
+            2>&1 | tee contract-validation-evidence/rendered-node-syntax.log
+
+      - name: Validate visual QA Node syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p contract-validation-evidence
+          node --check scripts/staging2/capture-visual-qa.mjs \
+            2>&1 | tee contract-validation-evidence/visual-node-syntax.log
+
+      - name: Validate deployment contract Node syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p contract-validation-evidence
+          node --check scripts/staging2/test-deploy-workflow-contract.mjs \
+            2>&1 | tee contract-validation-evidence/contract-node-syntax.log
+
+      - name: Validate PHP syntax
+        shell: bash
+        run: |
+          set -euo pipefail
           php -l scripts/wp/nvx-production-readiness-command.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php
 
       - name: Validate workflow and deployment contract
+        id: contract_validation
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/staging2/test-deploy-workflow-contract.mjs 2>&1 | tee contract-validation-evidence/contract-validation.log
+          mkdir -p contract-validation-evidence
+          node scripts/staging2/test-deploy-workflow-contract.mjs \
+            2>&1 | tee contract-validation-evidence/contract-validation.log
           grep -Fq 'DEPLOY_WORKFLOW_CONTRACT_OK' contract-validation-evidence/contract-validation.log
 
       - name: Upload contract validation evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: staging2-contract-validation-${{ github.run_id }}-${{ github.run_attempt }}
           path: contract-validation-evidence/
@@ -105,7 +146,7 @@ jobs:
        github.actor == 'Arisofia' &&
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 35
     environment:
       name: staging2
       url: https://staging2.nuvanx.com
@@ -115,18 +156,18 @@ jobs:
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
     steps:
       - name: Check out selected immutable ref
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ env.DEPLOY_SHA }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: '22'
 
-      - name: Prepare and validate immutable execution context
+      - name: Prepare evidence directory
         shell: bash
         run: |
           set -euo pipefail
@@ -143,11 +184,31 @@ jobs:
             echo "requested_sha=$DEPLOY_SHA"
             echo "mode=$RUN_MODE"
           } > "$ARTIFACT_DIR/run-context.txt"
-          [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo 'git_sha must be a full lowercase 40-character SHA.' >&2; exit 1; }
-          case "$RUN_MODE" in PREFLIGHT_ONLY|DEPLOY_AND_MIGRATE|SMOKE_ONLY) ;; *) exit 1 ;; esac
-          test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
+
+      - name: Validate immutable source SHA and mode
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo 'git_sha must be a full lowercase 40-character SHA.' >&2
+            exit 1
+          }
+          case "$RUN_MODE" in
+            PREFLIGHT_ONLY|DEPLOY_AND_MIGRATE|SMOKE_ONLY) ;;
+            *) echo "Unsupported execution mode: $RUN_MODE" >&2; exit 1 ;;
+          esac
+          current_sha="$(git rev-parse HEAD)"
+          test "$current_sha" = "$DEPLOY_SHA" || {
+            echo 'Checked-out SHA does not equal the authorized deployment SHA.' >&2
+            echo "checked_out=${current_sha} authorized=${DEPLOY_SHA}" >&2
+            exit 1
+          }
           if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]]; then
-            test "$DEPLOY_SHA" = "$GITHUB_SHA" || { echo 'git_sha must equal the selected workflow ref HEAD.' >&2; exit 1; }
+            test "$DEPLOY_SHA" = "$GITHUB_SHA" || {
+              echo 'git_sha must equal the selected workflow ref HEAD.' >&2
+              echo "selected_ref=${GITHUB_REF} selected_sha=${GITHUB_SHA} requested_sha=${DEPLOY_SHA}" >&2
+              exit 1
+            }
           fi
           git cat-file -e "${DEPLOY_SHA}^{commit}"
 
@@ -165,15 +226,27 @@ jobs:
           : "${STAGING2_SSH_USER:?Missing STAGING2_SSH_USER secret}"
           : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY secret}"
           : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS secret}"
+
           SSH_PORT="${STAGING2_SSH_PORT:-18765}"
-          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
-          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] || {
+            echo 'STAGING2_SSH_PORT must be numeric.' >&2
+            exit 1
+          }
+          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || {
+            echo 'STAGING2_SSH_HOST contains unsupported characters.' >&2
+            exit 1
+          }
+          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]] || {
+            echo 'STAGING2_SSH_USER contains unsupported characters.' >&2
+            exit 1
+          }
+
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
           printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
           printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts"
+
           cat > "$HOME/.ssh/config" <<EOF
           Host nvx-staging2
             HostName $STAGING2_SSH_HOST
@@ -195,14 +268,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh -vv nvx-staging2 'printf "SSH_CONNECTION_OK\n"' 2> "$ARTIFACT_DIR/ssh-debug.log" | tee "$ARTIFACT_DIR/ssh-connectivity.log"
+          ssh -vv nvx-staging2 'printf "SSH_CONNECTION_OK\n"' \
+            2> "$ARTIFACT_DIR/ssh-debug.log" \
+            | tee "$ARTIFACT_DIR/ssh-connectivity.log"
 
       - name: Run read-only staging2 preflight
         id: preflight
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging2 'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' < scripts/staging2/collect-staging2-diagnostics.sh 2>&1 | tee "$ARTIFACT_DIR/preflight.log"
+          ssh nvx-staging2 \
+            'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' \
+            < scripts/staging2/collect-staging2-diagnostics.sh \
+            2>&1 | tee "$ARTIFACT_DIR/preflight.log"
           grep -Fq 'STAGING2_PREFLIGHT_OK' "$ARTIFACT_DIR/preflight.log"
 
       - name: Upload immutable release payload
@@ -215,8 +293,20 @@ jobs:
           echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
           printf '%s\n' "$REMOTE_RELEASE" > "$ARTIFACT_DIR/remote-release.txt"
           ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme'"
-          rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' wp-content/themes/nuvanx-medical/ "nvx-staging2:$REMOTE_RELEASE/theme/"
-          rsync -az tools/deploy/deploy-to-staging2.sh scripts/wp/nvx-production-readiness-command.php scripts/staging2/smoke-verify-staging2.sh "nvx-staging2:$REMOTE_RELEASE/"
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='php_errorlog' \
+            --exclude='*.log' \
+            --exclude='_archive*' \
+            --exclude='_disabled*' \
+            --exclude='*.bak*' \
+            wp-content/themes/nuvanx-medical/ \
+            "nvx-staging2:$REMOTE_RELEASE/theme/"
+          rsync -az \
+            tools/deploy/deploy-to-staging2.sh \
+            scripts/wp/nvx-production-readiness-command.php \
+            scripts/staging2/smoke-verify-staging2.sh \
+            "nvx-staging2:$REMOTE_RELEASE/"
 
       - name: Execute guarded deployment, migration and smoke test
         if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE'
@@ -224,7 +314,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --migration-script '$REMOTE_RELEASE/nvx-production-readiness-command.php' --smoke-script '$REMOTE_RELEASE/smoke-verify-staging2.sh' --sha '$DEPLOY_SHA' --confirm" 2>&1 | tee "$ARTIFACT_DIR/remote-deploy.log"
+          ssh nvx-staging2 \
+            "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' \
+              --wp-root '$WP_ROOT' \
+              --source-theme '$REMOTE_RELEASE/theme' \
+              --migration-script '$REMOTE_RELEASE/nvx-production-readiness-command.php' \
+              --smoke-script '$REMOTE_RELEASE/smoke-verify-staging2.sh' \
+              --sha '$DEPLOY_SHA' \
+              --confirm" \
+            2>&1 | tee "$ARTIFACT_DIR/remote-deploy.log"
           grep -Fq 'DEPLOY_STAGING2_OK' "$ARTIFACT_DIR/remote-deploy.log"
 
       - name: Verify deployed marker
@@ -245,7 +343,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          bash scripts/staging2/smoke-verify-staging2.sh 2>&1 | tee "$ARTIFACT_DIR/independent-smoke.log"
+          bash scripts/staging2/smoke-verify-staging2.sh \
+            2>&1 | tee "$ARTIFACT_DIR/independent-smoke.log"
           grep -Fq 'SMOKE_VERIFY_OK' "$ARTIFACT_DIR/independent-smoke.log"
 
       - name: Run rendered acceptance verification
@@ -258,7 +357,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/staging2/verify-rendered-acceptance.mjs 2>&1 | tee "$ARTIFACT_DIR/rendered-acceptance.log"
+          node scripts/staging2/verify-rendered-acceptance.mjs \
+            2>&1 | tee "$ARTIFACT_DIR/rendered-acceptance.log"
           grep -Fq 'RENDERED_ACCEPTANCE_OK' "$ARTIFACT_DIR/rendered-acceptance.log"
 
       - name: Run real browser visual QA
@@ -271,7 +371,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/staging2/capture-visual-qa.mjs 2>&1 | tee "$ARTIFACT_DIR/visual-qa.log"
+          node scripts/staging2/capture-visual-qa.mjs \
+            2>&1 | tee "$ARTIFACT_DIR/visual-qa.log"
           grep -Fq 'VISUAL_QA_OK' "$ARTIFACT_DIR/visual-qa.log"
 
       - name: Collect post-run diagnostics
@@ -280,7 +381,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging2 'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' < scripts/staging2/collect-staging2-diagnostics.sh 2>&1 | tee "$ARTIFACT_DIR/postflight.log"
+          ssh nvx-staging2 \
+            'bash -s -- --wp-root /home/customer/www/staging2.nuvanx.com/public_html' \
+            < scripts/staging2/collect-staging2-diagnostics.sh \
+            2>&1 | tee "$ARTIFACT_DIR/postflight.log"
 
       - name: Remove temporary remote payload
         if: always() && env.REMOTE_RELEASE != ''
@@ -309,11 +413,12 @@ jobs:
             echo "- Independent smoke: \`${{ steps.independent_smoke.outcome }}\`"
             echo "- Rendered acceptance: \`${{ steps.rendered_acceptance.outcome }}\`"
             echo "- Visual QA: \`${{ steps.visual_qa.outcome }}\`"
+            echo '- Evidence: download the `staging2-deployment-evidence` artifact from this run.'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload staging2 evidence
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: staging2-deployment-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           path: staging2-deployment-evidence/

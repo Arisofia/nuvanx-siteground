@@ -80,7 +80,7 @@ function nvx_strategy_solutions_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
 	$html .= '<p class="nvx-brand-kicker">NUVANX · Soluciones médicas</p>';
-	$html .= '<h1 class="nvx-strategy-title">Cada persona tiene un problema distinto, aunque lo llame igual que la de al lado.</h1>';
+	$html .= '<h1 class="nvx-strategy-title">Soluciones médicas para rostro, piel y contorno corporal.</h1>';
 	$html .= '<p class="nvx-brand-lead">Dos personas pueden odiar lo mismo de su papada y necesitar tratamientos totalmente distintos — una tiene grasa, la otra solo piel floja. Por eso no te vamos a enseñar un catálogo de máquinas para que elijas: primero miramos qué tienes tú, y de ahí sale el plan.</p>';
 	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">Solicitar valoración médica</a></p>';
 	$html .= '<p class="nvx-brand-microcopy">El diagnóstico determina el plan. No la tendencia ni el catálogo.</p>';
@@ -122,7 +122,7 @@ function nvx_strategy_solutions_markup(): string {
 		'Grasa subcutánea, laxitud, estrías, estabilidad de peso y posible diástasis o hernia.',
 		'La grasa visceral, una diástasis significativa o un exceso importante de piel no se resuelven con un tratamiento estético focal.',
 		'/grasa-localizada-abdomen-flancos-madrid/',
-		'Protocolo relacionado: NUVANX Contour Sculpt™'
+		'Protocolo relacionado: NUVANX Contour Architecture™'
 	);
 	$html .= nvx_strategy_solution_card(
 		'Brazos y axila',
@@ -204,7 +204,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 
 	$html .= '<section class="nvx-brand-section"><h2>Diagnóstico antes de tecnología</h2><p>Revisamos anatomía, antecedentes, objetivos, contraindicaciones y expectativas. Solo entonces se valora si procede tratar, esperar, derivar o no intervenir.</p></section>';
 	$html .= '<section class="nvx-brand-section"><h2>Responsabilidad médica y continuidad asistencial</h2><p>El paciente conoce quién realiza la valoración y quién será responsable del procedimiento. Si interviene otro profesional o se produce un cambio en el plan, se comunica antes de continuar.</p></section>';
-	$html .= '<section class="nvx-brand-section"><h2>Claridad antes de decidir</h2><p>La propuesta explica la alternativa planteada, sus límites, cuidados, posibles efectos, recuperación orientativa y presupuesto. La decisión se toma con información comprensible y sin presión para cerrar en la consulta.</p></section>';
+	$html .= '<section class="nvx-brand-section"><h2>Claridad antes de decidir</h2><p>Si vienes con una preocupación real, mereces saber qué la está causando — no que te la resuelvan con la primera máquina que haya libre ese día.</p></section>';
 	$html .= '<section class="nvx-brand-section"><h2>Seguimiento como parte del plan</h2><p>La indicación incluye cómo contactar con el equipo, qué evolución vigilar, cuándo revisar el caso y qué situaciones requieren una consulta adicional. La recuperación no se presenta como idéntica para todas las personas.</p></section>';
 
 	$html .= '<section class="nvx-brand-section nvx-strategy-checklist"><h2>Lo que hacemos siempre</h2><ul class="nvx-check-list">';
@@ -374,7 +374,7 @@ function nvx_strategy_investment_markup(): string {
 	$html .= '<li>Valoración médica previa y revisión de antecedentes relevantes</li>';
 	$html .= '<li>Explicación de la indicación, alternativas, límites y recuperación orientativa</li>';
 	$html .= '<li>Protocolo anestésico cuando corresponde al procedimiento</li>';
-	$html .= '<li>Presupuesto detallado y documentado antes de iniciar</li>';
+	$html .= '<li>Presupuesto detallado con justificación clínica documentada antes de iniciar</li>';
 	$html .= '<li>Indicaciones de cuidados y canal de seguimiento según el plan</li>';
 	$html .= '</ul>';
 	$html .= '<p>Otras zonas, procedimientos de medicina estética facial y combinaciones no listadas requieren exploración, indicación y presupuesto individualizado.</p></section>';
@@ -388,7 +388,7 @@ function nvx_strategy_investment_markup(): string {
 
 	$html .= '<section class="nvx-brand-section"><h2>Sobre los precios en medicina estética en Madrid</h2>';
 	$html .= '<p>Las diferencias pueden responder al alcance del diagnóstico, la experiencia del profesional, la tecnología indicada, el material utilizado y el seguimiento incluido. La comparación debe hacerse sobre planes equivalentes y documentados por escrito.</p>';
-	$html .= '<p>Una promoción puntual no modifica la indicación, el alcance clínico ni la información previa. El presupuesto se confirma por escrito y la decisión no se condiciona a urgencias comerciales.</p>';
+	$html .= '<p>Lo que te preocupa hoy no va a estar mejor por esperar a una oferta. Por eso no jugamos con eso.</p>';
 	$html .= '</section>';
 
 	$html .= '<section class="nvx-brand-section"><h2>Inicia tu valoración médica</h2>';

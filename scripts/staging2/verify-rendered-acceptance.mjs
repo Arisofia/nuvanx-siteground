@@ -105,99 +105,150 @@ const forbiddenText = [
 const findings = [];
 const report = { base_url: baseUrl, expected_sha: expectedSha, generated_at: new Date().toISOString(), pages: [], redirects: [], findings };
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
-const normalizeText = (value) => value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
-const extractTag = (html, tagName) => {
-  const match = html.match(new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i'));
-  return match ? normalizeText(match[1]) : '';
-};
-const extractTagTexts = (html, tagName) => [...html.matchAll(new RegExp(`<${tagName}\\b[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'gi'))].map((match) => normalizeText(match[1]));
-const extractTags = (html, tagName) => [...html.matchAll(new RegExp(`<${tagName}\\b[^>]*>`, 'gi'))].map((match) => match[0]);
-const attribute = (tag, name) => {
-  const match = tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, 'i'));
-  return match ? match[2] : '';
-};
-const metaContent = (html, name) => {
-  for (const tag of extractTags(html, 'meta')) {
-    if (attribute(tag, 'name').toLowerCase() === name.toLowerCase()) return attribute(tag, 'content');
-    if (attribute(tag, 'property').toLowerCase() === name.toLowerCase()) return attribute(tag, 'content');
+
+const cleanHtmlText = (val) => val.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
+
+function parseSingleTag(html, name) {
+  const match = html.match(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}>`, 'i'));
+  return match ? cleanHtmlText(match[1]) : '';
+}
+
+function parseMultipleTagTexts(html, name) {
+  return [...html.matchAll(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)<\\/${name}>`, 'gi'))].map((m) => cleanHtmlText(m[1]));
+}
+
+function queryHtmlTags(html, name) {
+  return [...html.matchAll(new RegExp(`<${name}\\b[^>]*>`, 'gi'))].map((m) => m[0]);
+}
+
+function getAttrVal(tagString, attrName) {
+  const m = tagString.match(new RegExp(`\\b${attrName}\\s*=\\s*(["'])(.*?)\\1`, 'i'));
+  return m ? m[2] : '';
+}
+
+function findMetaAttr(html, attr) {
+  for (const tag of queryHtmlTags(html, 'meta')) {
+    if (getAttrVal(tag, 'name').toLowerCase() === attr.toLowerCase()) return getAttrVal(tag, 'content');
+    if (getAttrVal(tag, 'property').toLowerCase() === attr.toLowerCase()) return getAttrVal(tag, 'content');
   }
   return '';
-};
-const linkHrefs = (html, rel) => extractTags(html, 'link').filter((tag) => attribute(tag, 'rel').toLowerCase().split(/\s+/).includes(rel.toLowerCase())).map((tag) => attribute(tag, 'href'));
-const schemaTypes = (html) => {
+}
+
+function findLinkHrefs(html, relType) {
+  return queryHtmlTags(html, 'link')
+    .filter((tag) => getAttrVal(tag, 'rel').toLowerCase().split(/\s+/).includes(relType.toLowerCase()))
+    .map((tag) => getAttrVal(tag, 'href'));
+}
+
+function parseSchemaTypes(html) {
   const types = new Set();
   for (const match of html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)) {
     try {
-      const graph = JSON.parse(match[1]);
-      const visit = (value) => {
-        if (Array.isArray(value)) return value.forEach(visit);
-        if (!value || typeof value !== 'object') return;
-        const type = value['@type'];
-        if (Array.isArray(type)) type.forEach((item) => types.add(String(item)));
-        else if (type) types.add(String(type));
-        Object.values(value).forEach(visit);
+      const visitNode = (val) => {
+        if (Array.isArray(val)) return val.forEach(visitNode);
+        if (!val || typeof val !== 'object') return;
+        const t = val['@type'];
+        if (Array.isArray(t)) t.forEach((item) => types.add(String(item)));
+        else if (t) types.add(String(t));
+        Object.values(val).forEach(visitNode);
       };
-      visit(graph);
+      visitNode(JSON.parse(match[1]));
     } catch {}
   }
   return [...types];
-};
+}
 
-/**
- * Fetch a URL with a 45-second timeout and the acceptance-test user agent.
- * @param {string} url - The URL to request.
- * @param {RequestInit} [options] - Additional fetch options.
- * @returns {Promise<Response>} The fetch response.
- */
 async function fetchWithTimeout(url, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 45000);
-  try { return await fetch(url, { ...options, signal: controller.signal, headers: { 'user-agent': 'NUVANX-Staging2-Acceptance/2.0', ...(options.headers || {}) } }); }
-  finally { clearTimeout(timeout); }
+  try {
+    return await fetch(url, { ...options, signal: controller.signal, headers: { 'user-agent': 'NUVANX-Staging2-Acceptance/3.0', ...(options.headers || {}) } });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function parseHtmlPage(html) {
+  return {
+    title: parseSingleTag(html, 'title'),
+    description: findMetaAttr(html, 'description'),
+    ogTitle: findMetaAttr(html, 'og:title'),
+    ogDescription: findMetaAttr(html, 'og:description'),
+    robots: findMetaAttr(html, 'robots'),
+    deploySha: findMetaAttr(html, 'nvx-deploy-sha'),
+    h1List: parseMultipleTagTexts(html, 'h1'),
+    h2Count: parseMultipleTagTexts(html, 'h2').length,
+    canonicals: findLinkHrefs(html, 'canonical'),
+    ogUrl: findMetaAttr(html, 'og:url'),
+    schemas: parseSchemaTypes(html),
+    bodyText: cleanHtmlText(html),
+  };
+}
+
+function validatePageModel(page, parsed, scope) {
+  const { title, description, ogTitle, ogDescription, robots, deploySha, h1List, h2Count, canonicals, ogUrl, schemas, bodyText } = parsed;
+
+  if (deploySha !== expectedSha) fail(scope, `served SHA ${deploySha || 'absent'} instead of ${expectedSha}`);
+  if (title !== page.title) fail(scope, `title mismatch: ${JSON.stringify(title)}`);
+  if (description !== page.description) fail(scope, 'meta description mismatch');
+  if (ogTitle !== page.title) fail(scope, 'og:title mismatch');
+  if (ogDescription !== page.description) fail(scope, 'og:description mismatch');
+  if (!robots.toLowerCase().includes('noindex') || !robots.toLowerCase().includes('nofollow')) fail(scope, `robots mismatch: ${robots || 'absent'}`);
+  if (h1List.length !== 1 || h1List[0] !== page.h1) fail(scope, `H1 mismatch: ${JSON.stringify(h1List)}`);
+  if (h2Count < 3) fail(scope, `expected at least 3 H2s, found ${h2Count}`);
+
+  for (const marker of page.markers) if (!bodyText.includes(marker)) fail(scope, `missing marker: ${marker}`);
+  if (!/valoraci[oó]n/i.test(bodyText)) fail(scope, 'missing medical valuation CTA or copy');
+
+  const validUrls = new Set([`https://staging2.nuvanx.com${page.path}`, `https://nuvanx.com${page.path}`, `https://www.nuvanx.com${page.path}`]);
+  if (canonicals.length !== 1 || !validUrls.has(canonicals[0])) fail(scope, `canonical mismatch: ${canonicals[0]}`);
+  if (!validUrls.has(ogUrl)) fail(scope, `og:url mismatch: ${ogUrl || 'absent'}`);
+  if (!schemas.includes('WebPage')) fail(scope, 'missing WebPage schema');
+  if (!schemas.includes('Organization') && !schemas.includes('MedicalOrganization')) fail(scope, 'missing Organization or MedicalOrganization schema');
+
+  const lowerText = bodyText.toLowerCase();
+  for (const forbidden of forbiddenText) if (lowerText.includes(forbidden.toLowerCase())) fail(scope, `exposes forbidden text: ${forbidden}`);
+}
+
+async function verifySinglePage(page) {
+  const scope = page.path;
+  const pageResult = { path: page.path };
+  try {
+    const res = await fetchWithTimeout(`${baseUrl}${page.path}`);
+    const htmlText = await res.text();
+    const fileName = `${page.path.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home'}.html`;
+    fs.writeFileSync(path.join(evidenceDir, fileName), htmlText);
+
+    pageResult.status = res.status;
+    if (res.status !== 200) {
+      fail(scope, `returned HTTP ${res.status} instead of 200`);
+      return pageResult;
+    }
+
+    const parsed = parseHtmlPage(htmlText);
+    Object.assign(pageResult, {
+      title: parsed.title,
+      description: parsed.description,
+      og_title: parsed.ogTitle,
+      og_description: parsed.ogDescription,
+      robots: parsed.robots,
+      deploy_sha: parsed.deploySha,
+      h1: parsed.h1List,
+      h2_count: parsed.h2Count,
+      canonicals: parsed.canonicals,
+      og_url: parsed.ogUrl,
+      schema_types: parsed.schemas,
+    });
+
+    validatePageModel(page, parsed, scope);
+  } catch (err) {
+    fail(scope, err instanceof Error ? err.message : String(err));
+  }
+  return pageResult;
 }
 
 for (const page of pages) {
-  const scope = page.path;
-  const result = { path: page.path };
-  try {
-    const response = await fetchWithTimeout(`${baseUrl}${page.path}`);
-    const html = await response.text();
-    fs.writeFileSync(path.join(evidenceDir, page.path.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') + '.html'), html);
-    result.status = response.status;
-    result.title = extractTag(html, 'title');
-    result.description = metaContent(html, 'description');
-    result.og_title = metaContent(html, 'og:title');
-    result.og_description = metaContent(html, 'og:description');
-    result.robots = metaContent(html, 'robots');
-    result.deploy_sha = metaContent(html, 'nvx-deploy-sha');
-    result.h1 = extractTagTexts(html, 'h1');
-    result.h2_count = extractTagTexts(html, 'h2').length;
-    result.canonicals = linkHrefs(html, 'canonical');
-    result.og_url = metaContent(html, 'og:url');
-    result.schema_types = schemaTypes(html);
-    if (response.status !== 200) fail(scope, `returned HTTP ${response.status} instead of 200`);
-    if (result.deploy_sha !== expectedSha) fail(scope, `served SHA ${result.deploy_sha || 'absent'} instead of ${expectedSha}`);
-    if (result.title !== page.title) fail(scope, `title is ${JSON.stringify(result.title)} instead of ${JSON.stringify(page.title)}`);
-    if (result.description !== page.description) fail(scope, 'meta description mismatch');
-    if (result.og_title !== page.title) fail(scope, 'og:title mismatch');
-    if (result.og_description !== page.description) fail(scope, 'og:description mismatch');
-    if (!result.robots.toLowerCase().includes('noindex') || !result.robots.toLowerCase().includes('nofollow')) fail(scope, `robots is ${result.robots || 'absent'} instead of staging noindex,nofollow`);
-    if (result.h1.length !== 1) fail(scope, `expected exactly one H1, found ${result.h1.length}`);
-    else if (result.h1[0] !== page.h1) fail(scope, `H1 is ${JSON.stringify(result.h1[0])} instead of ${JSON.stringify(page.h1)}`);
-    if (result.h2_count < 3) fail(scope, `expected at least 3 H2s, found ${result.h2_count}`);
-    for (const marker of page.markers) if (!normalizeText(html).includes(marker)) fail(scope, `missing marker: ${marker}`);
-    if (!/valoraci[oó]n/i.test(normalizeText(html))) fail(scope, 'missing medical valuation CTA or copy');
-    const allowed = new Set([`https://staging2.nuvanx.com${page.path}`, `https://nuvanx.com${page.path}`, `https://www.nuvanx.com${page.path}`]);
-    if (result.canonicals.length !== 1) fail(scope, `expected one canonical, found ${result.canonicals.length}`);
-    else if (!allowed.has(result.canonicals[0])) fail(scope, `canonical is ${result.canonicals[0]}`);
-    if (!allowed.has(result.og_url)) fail(scope, `og:url is ${result.og_url || 'absent'}`);
-    if (!result.schema_types.includes('WebPage')) fail(scope, 'missing WebPage schema');
-    if (!result.schema_types.includes('Organization') && !result.schema_types.includes('MedicalOrganization')) fail(scope, 'missing Organization or MedicalOrganization schema');
-    for (const forbidden of forbiddenText) if (normalizeText(html).toLowerCase().includes(forbidden.toLowerCase())) fail(scope, `exposes forbidden text: ${forbidden}`);
-  } catch (error) {
-    fail(scope, error instanceof Error ? error.message : String(error));
-  }
-  report.pages.push(result);
+  report.pages.push(await verifySinglePage(page));
 }
 
 async function verifyRedirectRoute(sourcePath, targetPath) {

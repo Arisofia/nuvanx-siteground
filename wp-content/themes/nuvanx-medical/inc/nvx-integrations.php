@@ -20,8 +20,8 @@ require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
 
 /**
- * Returns the governed retired-page contract shared by runtime redirects and
- * the production-readiness migration.
+ * Returns the governed retired/deferred-page contract shared by runtime
+ * redirects and the production-readiness migration.
  *
  * @return array<string,array{status:string,target:string}>
  */
@@ -37,6 +37,10 @@ function nvx_production_readiness_governed_pages(): array {
 		),
 		'tratamientos' => array(
 			'status' => 'trash',
+			'target' => '/soluciones-medicas/',
+		),
+		'eye-frame-rejuvenecimiento-mirada-madrid' => array(
+			'status' => 'draft',
 			'target' => '/soluciones-medicas/',
 		),
 	);
@@ -99,6 +103,22 @@ function nvx_theme_normalize_public_document( string $html ): string {
 		1
 	);
 
+	$html = str_ireplace(
+		array( 'NUVANX Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Couture Sculpt™', 'Contour Sculpt™' ),
+		'NUVANX Contour Architecture™',
+		$html
+	);
+	$html = str_replace(
+		array( '/eye-frame-rejuvenecimiento-mirada-madrid/', '/eye-frame/' ),
+		array( '/ojeras-surco-lagrimal-madrid/', '/ojeras-surco-lagrimal-madrid/' ),
+		$html
+	);
+	$html = str_ireplace(
+		array( 'NUVANX Eye Frame™', 'Eye Frame™' ),
+		'Ojeras y surco lagrimal',
+		$html
+	);
+
 	if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {
 		return $html;
 	}
@@ -159,7 +179,7 @@ add_action(
 	1
 );
 
-/** Redirects retired routes by request path. */
+/** Redirects retired or deferred routes by request path. */
 function nvx_redirect_governed_routes(): void {
 	if ( is_admin() ) {
 		return;

@@ -19,70 +19,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function nvx_seo_metadata_catalog(): array {
 	return array(
-		'home'         => array(
-			'title'       => 'Medicina estética láser en Madrid | NUVANX',
-			'description' => 'Medicina estética láser en Madrid con valoración médica, diagnóstico individual y tratamientos para rostro, piel y contorno corporal en NUVANX.',
-		),
-		'protocolos_signature' => array(
-			'title'       => 'Protocolos Signature | NUVANX Madrid',
-			'description' => 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.',
-		),
-		'contour_sculpt' => array(
-			'title'       => 'Remodelación Corporal Láser Madrid | NUVANX Contour',
-			'description' => 'La liposucción y las máquinas baratas de belleza dejan flacidez. Descubre NUVANX Contour Architecture™: remodelación anatómica médica real sin quirófano.',
-		),
-		'clinicas'     => array(
-			'title'       => 'Clínicas NUVANX Madrid | Exclusividad y Criterio Clínico',
-			'description' => 'Tus tratamientos estéticos merecen respeto médico, no una cadena de montaje. Descubre las clínicas NUVANX en Chamberí y Salamanca-Goya.',
-		),
-		'chamberi'     => array(
-			'title'       => 'Medicina Estética en Chamberí | Tu Rostro No es un Experimento',
-			'description' => 'Clínica NUVANX Chamberí. Alta tecnología láser y diagnóstico estricto. Si buscas calidad médica y huir de los resultados artificiales, agenda tu cita.',
-		),
-		'goya'         => array(
-			'title'       => 'Medicina Estética Salamanca-Goya | NUVANX',
-			'description' => 'Clínica NUVANX Salamanca-Goya. Alta tecnología láser y diagnóstico estricto. La exclusividad médica en Madrid que exige tu anatomía.',
-		),
-		'endolift'     => array(
-			'title'       => 'Endolift Facial Madrid | Elimina Papada sin Cirugía ni Rellenos',
-			'description' => '¿Cansada de que te inyecten volumen para esconder la flacidez? El Endolift tensa y retrae la piel desde dentro. Resultados médicos reales en NUVANX.',
-		),
-		'endolaser'    => array(
-			'title'       => 'Endoláser Corporal Madrid | Firmeza que la Dieta No Logra',
-			'description' => 'La dieta no pega la piel al músculo. El Endoláser Corporal en NUVANX Madrid destruye la grasa localizada y retrae la flacidez severa. Criterio médico.',
-		),
-		'co2'          => array(
-			'title'       => 'Láser CO2 Fraccionado Madrid | Borra Cicatrices sin Cremas Inútiles',
-			'description' => 'Las cremas cosméticas no quitan las cicatrices. El Láser CO2 médico de NUVANX renueva la piel dañada de raíz. Pide valoración con el Dr. Rivera Tejeda.',
-		),
-		'exion'        => array(
-			'title'       => 'Radiofrecuencia EXION Madrid | Firmeza Facial y Corporal',
-			'description' => 'La aparatología estética barata no funciona. EXION BTL con IA en NUVANX Madrid ofrece regeneración de ácido hialurónico y tensión cutánea demostrada.',
-		),
-		'exilite'      => array(
-			'title'       => 'IPL Médico Madrid | Elimina Manchas y Rojeces de Verdad',
-			'description' => 'No maquilles más tus rojeces ni gastes en peelings superficiales. IPL EXILITE en NUVANX Madrid ofrece fotorejuvenecimiento médico contundente.',
-		),
-		'equipo'       => array(
-			'title'       => 'Equipo Médico NUVANX | Doctores Reales, No Vendedores',
-			'description' => 'El Dr. Rivera Tejeda y su equipo médico asumen tu caso con rigor clínico. Cero comerciales, solo doctores diagnosticando y aplicando láser en Madrid.',
-		),
-		'por_que_nuvanx' => array(
-			'title'       => 'Por qué NUVANX | Criterio médico en Madrid',
-			'description' => 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.',
-		),
-		'inversion'    => array(
-			'title'       => 'Inversión en medicina estética | NUVANX Madrid',
-			'description' => 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.',
-		),
-		'valoracion'   => array(
-			'title'       => 'Consulta Médica Estética Madrid | Exige Diagnóstico Real',
-			'description' => 'Tu cuerpo no es un menú de restaurante. Solicita una valoración estricta en NUVANX Madrid y descubre el protocolo médico que realmente necesitas.',
-		),
-		'blog'         => array(
-			'title'       => 'Blog NUVANX | Autoridad en Medicina Estética Láser',
-			'description' => 'Educación médica directa y sin filtros. Desmontamos mitos sobre tratamientos estéticos, láseres y la industria masificada en nuestro blog NUVANX.',
-		),
+		'home'         => nvx_meta_item( 'Medicina estética láser en Madrid | NUVANX', 'Medicina estética láser en Madrid con valoración médica, diagnóstico individual y tratamientos para rostro, piel y contorno corporal en NUVANX.' ),
+		'protocolos_signature' => nvx_meta_item( 'Protocolos Signature | NUVANX Madrid', 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.' ),
+		'contour_sculpt' => nvx_meta_item( 'Remodelación Corporal Láser Madrid | NUVANX Contour', 'La liposucción y las máquinas baratas de belleza dejan flacidez. Descubre NUVANX Contour Architecture™: remodelación anatómica médica real sin quirófano.' ),
+		'clinicas'     => nvx_meta_item( 'Clínicas NUVANX Madrid | Exclusividad y Criterio Clínico', 'Tus tratamientos estéticos merecen respeto médico, no una cadena de montaje. Descubre las clínicas NUVANX en Chamberí y Salamanca-Goya.' ),
+		'chamberi'     => nvx_meta_item( 'Medicina Estética en Chamberí | Tu Rostro No es un Experimento', 'Clínica NUVANX Chamberí. Alta tecnología láser y diagnóstico estricto. Si buscas calidad médica y huir de los resultados artificiales, agenda tu cita.' ),
+		'goya'         => nvx_meta_item( 'Medicina Estética Salamanca-Goya | NUVANX', 'Clínica NUVANX Salamanca-Goya. Alta tecnología láser y diagnóstico estricto. La exclusividad médica en Madrid que exige tu anatomía.' ),
+		'endolift'     => nvx_meta_item( 'Endolift Facial Madrid | Elimina Papada sin Cirugía ni Rellenos', '¿Cansada de que te inyecten volumen para esconder la flacidez? El Endolift tensa y retrae la piel desde dentro. Resultados médicos reales en NUVANX.' ),
+		'endolaser'    => nvx_meta_item( 'Endoláser Corporal Madrid | Firmeza que la Dieta No Logra', 'La dieta no pega la piel al músculo. El Endoláser Corporal en NUVANX Madrid destruye la grasa localizada y retrae la flacidez severa. Criterio médico.' ),
+		'co2'          => nvx_meta_item( 'Láser CO2 Fraccionado Madrid | Borra Cicatrices sin Cremas Inútiles', 'Las cremas cosméticas no quitan las cicatrices. El Láser CO2 médico de NUVANX renueva la piel dañada de raíz. Pide valoración con el Dr. Rivera Tejeda.' ),
+		'exion'        => nvx_meta_item( 'Radiofrecuencia EXION Madrid | Firmeza Facial y Corporal', 'La aparatología estética barata no funciona. EXION BTL con IA en NUVANX Madrid ofrece regeneración de ácido hialurónico y tensión cutánea demostrada.' ),
+		'exilite'      => nvx_meta_item( 'IPL Médico Madrid | Elimina Manchas y Rojeces de Verdad', 'No maquilles más tus rojeces ni gastes en peelings superficiales. IPL EXILITE en NUVANX Madrid ofrece fotorejuvenecimiento médico contundente.' ),
+		'equipo'       => nvx_meta_item( 'Equipo Médico NUVANX | Doctores Reales, No Vendedores', 'El Dr. Rivera Tejeda y su equipo médico asumen tu caso con rigor clínico. Cero comerciales, solo doctores diagnosticando y aplicando láser en Madrid.' ),
+		'por_que_nuvanx' => nvx_meta_item( 'Por qué NUVANX | Criterio médico en Madrid', 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.' ),
+		'inversion'    => nvx_meta_item( 'Inversión en medicina estética | NUVANX Madrid', 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.' ),
+		'valoracion'   => nvx_meta_item( 'Consulta Médica Estética Madrid | Exige Diagnóstico Real', 'Tu cuerpo no es un menú de restaurante. Solicita una valoración estricta en NUVANX Madrid y descubre el protocolo médico que realmente necesitas.' ),
+		'blog'         => nvx_meta_item( 'Blog NUVANX | Autoridad en Medicina Estética Láser', 'Educación médica directa y sin filtros. Desmontamos mitos sobre tratamientos estéticos, láseres y la industria masificada en nuestro blog NUVANX.' ),
 	);
 }
 
@@ -95,34 +47,13 @@ function nvx_seo_metadata_catalog(): array {
  */
 function nvx_seo_blog_post_metadata_catalog(): array {
 	return array(
-		'endolift-primeras-72-horas-que-esperar' => array(
-			'title'       => 'Endolift: primeras 72 horas | Qué esperar',
-			'description' => 'Qué es normal tras Endolift: inflamación, molestias y cuándo avisar. Guía de recuperación del protocolo clínico NUVANX en Madrid.',
-		),
-		'endolift-ciencia-laser-subdermico' => array(
-			'title'       => 'Cómo funciona Endolift | Láser subdérmico',
-			'description' => 'Física y biología del Endolift: cómo el láser bajo la piel estimula colágeno sin cirugía. Explicación médica clara de NUVANX.',
-		),
-		'endolift-vs-lifting-quirurgico-cuando-operarse' => array(
-			'title'       => 'Endolift vs lifting quirúrgico | Madrid',
-			'description' => 'Comparativa Endolift y lifting quirúrgico: invasividad, recuperación, resultados y cuándo valorar cirugía en NUVANX Madrid.',
-		),
-		'ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento' => array(
-			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y rojeces',
-			'description' => 'IPL médica BTL EXILITE™ en Madrid para manchas, rojeces, acné y fotorejuvenecimiento tras diagnóstico y fototipo.',
-		),
-		'exion-btl-fractional-rf-face-body' => array(
-			'title'       => 'EXION® BTL Face, Body y Fractional RF',
-			'description' => 'Diferencias entre EXION® Face, Body y Fractional RF: indicaciones, tolerancia y cuándo combinar tras valoración médica.',
-		),
-		'well-aging-48-cambios-hormonales-piel' => array(
-			'title'       => 'Well-aging a los 48 | Cambios hormonales',
-			'description' => 'Cómo cambian piel y colágeno cuando bajan los estrógenos. Guía de well-aging con criterio médico en NUVANX Madrid.',
-		),
-		'intrusismo-tratamientos-inyectables-riesgos' => array(
-			'title'       => 'Intrusismo estético y rellenos | Riesgos',
-			'description' => 'Riesgos del Botox y rellenos fuera de consulta médica: legalidad, complicaciones y por qué importa el criterio clínico.',
-		),
+		'endolift-primeras-72-horas-que-esperar' => nvx_meta_item( 'Endolift: primeras 72 horas | Qué esperar', 'Qué es normal tras Endolift: inflamación, molestias y cuándo avisar. Guía de recuperación del protocolo clínico NUVANX en Madrid.' ),
+		'endolift-ciencia-laser-subdermico' => nvx_meta_item( 'Cómo funciona Endolift | Láser subdérmico', 'Física y biología del Endolift: cómo el láser bajo la piel estimula colágeno sin cirugía. Explicación médica clara de NUVANX.' ),
+		'endolift-vs-lifting-quirurgico-cuando-operarse' => nvx_meta_item( 'Endolift vs lifting quirúrgico | Madrid', 'Comparativa Endolift y lifting quirúrgico: invasividad, recuperación, resultados y cuándo valorar cirugía en NUVANX Madrid.' ),
+		'ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento' => nvx_meta_item( 'IPL BTL EXILITE™ Madrid | Manchas y rojeces', 'IPL médica BTL EXILITE™ en Madrid para manchas, rojeces, acné y fotorejuvenecimiento tras diagnóstico y fototipo.' ),
+		'exion-btl-fractional-rf-face-body' => nvx_meta_item( 'EXION® BTL Face, Body y Fractional RF', 'Diferencias entre EXION® Face, Body y Fractional RF: indicaciones, tolerancia y cuándo combinar tras valoración médica.' ),
+		'well-aging-48-cambios-hormonales-piel' => nvx_meta_item( 'Well-aging a los 48 | Cambios hormonales', 'Cómo cambian piel y colágeno cuando bajan los estrógenos. Guía de well-aging con criterio médico en NUVANX Madrid.' ),
+		'intrusismo-tratamientos-inyectables-riesgos' => nvx_meta_item( 'Intrusismo estético y rellenos | Riesgos', 'Riesgos del Botox y rellenos fuera de consulta médica: legalidad, complicaciones y por qué importa el criterio clínico.' ),
 	);
 }
 

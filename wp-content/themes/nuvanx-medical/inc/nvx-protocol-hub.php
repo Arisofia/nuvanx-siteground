@@ -49,7 +49,7 @@ function nvx_protocol_hub_markup(): string {
 	$html .= '<h2>' . esc_html__( 'Contorno Corporal y Posgestacional', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-catalog-grid">';
 	$html .= nvx_protocol_hub_card(
-		'NUVANX Contour Sculpt™',
+		'NUVANX Couture Sculpt™',
 		'Para cuando quieres que tu cuerpo se vea como una sola pieza, no como zonas tratadas por separado.',
 		'/remodelacion-corporal-laser-madrid/'
 	);

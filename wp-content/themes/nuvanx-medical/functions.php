@@ -259,6 +259,7 @@ require_once get_template_directory() . '/inc/nvx-portfolio-hub.php';
 require_once get_template_directory() . '/inc/nvx-protocol-hub.php';
 require_once get_template_directory() . '/inc/nvx-protocol-pages.php';
 require_once get_template_directory() . '/inc/nvx-anatomical-pages.php';
+require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
 require_once get_template_directory() . '/inc/nvx-endolaser-page.php';
 require_once get_template_directory() . '/inc/nvx-co2-page.php';

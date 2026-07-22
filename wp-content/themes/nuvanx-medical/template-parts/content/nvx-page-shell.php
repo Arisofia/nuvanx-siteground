@@ -188,10 +188,9 @@ while ( have_posts() ) :
 				if ( $next && in_array( (int) $next->ID, $quarantined_post_ids, true ) ) {
 					$next = null;
 				}
-				if ( $prev ) :
-				?>
+				if ( $prev ) { ?>
 				<a class="nvx-text-link" href="<?php echo esc_url( get_permalink( $prev ) ); ?>" rel="prev">&larr; <?php echo esc_html( get_the_title( $prev ) ); ?></a>
-			<?php endif; ?>
+			<?php }
 			<?php if ( $next ) : ?>
 				<a class="nvx-text-link" href="<?php echo esc_url( get_permalink( $next ) ); ?>" rel="next"><?php echo esc_html( get_the_title( $next ) ); ?> &rarr;</a>
 			<?php endif; ?>

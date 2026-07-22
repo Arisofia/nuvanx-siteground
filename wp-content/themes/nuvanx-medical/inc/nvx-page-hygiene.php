@@ -342,19 +342,21 @@ function nvx_legal_framework_note_markup(): string {
 }
 
 /**
- * Public, source-linked authority profile for Dra. Cristina Márquez González.
+ * Builds the canonical public authority profile for Dra. Cristina Márquez González.
+ *
+ * @return string Sanitized HTML markup for the authority profile.
  */
 function nvx_cristina_marquez_authority_markup(): string {
 	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
 
-	$html  = '<section class="nvx-endolift-section nvx-equipo-profile nvx-equipo-cristina" id="physician-cristina-marquez" aria-labelledby="nvx-equipo-cristina-title">';
-	$html .= '<div class="nvx-endolift-section__inner nvx-endolift-diagnosis__grid">';
-	$html .= '<div class="nvx-endolift-diagnosis__copy">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Radiología mamaria y medicina estética', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-cristina-title" class="nvx-endolift-heading">' . esc_html__( 'Dra. Cristina Márquez González', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body"><strong>' . esc_html__( 'Colegiada ICOMEM 282858861.', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Radióloga y médica estética, especialista en radiología mamaria y diagnóstico mamario avanzado, con práctica como facultativa especialista en HM Hospitales.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body"><strong>' . esc_html__( 'Formación:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Licenciatura en Medicina · Especialización en Senología y Patología Mamaria · Máster en Medicina Estética.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body">' . wp_kses(
+	$html  = '<section class="nvx-editorial-section nvx-equipo-profile nvx-equipo-cristina" id="physician-cristina-marquez" aria-labelledby="nvx-equipo-cristina-title">';
+	$html .= '<div class="nvx-editorial-section__inner nvx-editorial-split">';
+	$html .= '<div class="nvx-editorial-split__copy">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Radiología mamaria y medicina estética', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-equipo-cristina-title" class="nvx-editorial-heading">' . esc_html__( 'Dra. Cristina Márquez González', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body"><strong>' . esc_html__( 'Colegiada ICOMEM 282858861.', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Radióloga y médica estética, especialista en radiología mamaria y diagnóstico mamario avanzado, con práctica como facultativa especialista en HM Hospitales.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-editorial-body"><strong>' . esc_html__( 'Formación:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Licenciatura en Medicina · Especialización en Senología y Patología Mamaria · Máster en Medicina Estética.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-editorial-body">' . wp_kses(
 		sprintf(
 			/* translators: %s: Doctoralia profile URL. */
 			__( 'Su <a class="nvx-brand-inline-link" href="%s" target="_blank" rel="noopener noreferrer">perfil profesional y opiniones en Doctoralia</a> permiten consultar públicamente su especialidad, colegiación, formación y actividad asistencial.', 'nuvanx-medical' ),
@@ -370,9 +372,9 @@ function nvx_cristina_marquez_authority_markup(): string {
 		)
 	) . '</p>';
 	$html .= '</div>';
-	$html .= '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Identidad profesional de la Dra. Cristina Márquez González', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-endolift-panel-label">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-endolift-panel-list">';
+	$html .= '<aside class="nvx-editorial-panel" aria-label="' . esc_attr__( 'Identidad profesional de la Dra. Cristina Márquez González', 'nuvanx-medical' ) . '">';
+	$html .= '<p class="nvx-editorial-panel__label">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-editorial-fact-list">';
 	$html .= '<li><strong>' . esc_html__( 'Colegiada', 'nuvanx-medical' ) . '</strong> — ICOMEM 282858861</li>';
 	$html .= '<li><strong>' . esc_html__( 'Especialidades', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Radiología · Medicina estética', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>' . esc_html__( 'Área clínica', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Radiología mamaria · Senología', 'nuvanx-medical' ) . '</li>';
@@ -408,7 +410,10 @@ function nvx_remove_duplicate_cristina_staff_card( string $content ): string {
 }
 
 /**
- * Insert the canonical Cristina profile before the remaining-team section.
+ * Add the canonical Cristina Márquez profile to the team content and correct its runtime credential.
+ *
+ * @param string $content The team content to update.
+ * @return string The updated content.
  */
 function nvx_enrich_cristina_marquez_profile( string $content ): string {
 	// Remove the obsolete, incorrect runtime credential from commit 5747b00b.
@@ -421,7 +426,7 @@ function nvx_enrich_cristina_marquez_profile( string $content ): string {
 
 	$content = nvx_remove_duplicate_cristina_staff_card( $content );
 	$profile = nvx_cristina_marquez_authority_markup();
-	$marker  = '<section class="nvx-endolift-section nvx-equipo-staff"';
+	$marker  = '<section class="nvx-editorial-section nvx-equipo-staff"';
 	$offset  = strpos( $content, $marker );
 
 	if ( false !== $offset ) {

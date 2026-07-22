@@ -1190,7 +1190,7 @@ function nvx_generic_faq_markup(): string {
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<h2 class="nvx-brand-title" id="nvx-generic-faq-title">' . esc_html__( 'Preguntas Frecuentes', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq nvx-generic-faq-list">';
-	
+
 	$faqs = array(
 		array( '¿Duele el procedimiento?', 'La percepción varía según el umbral personal y la zona. Según el protocolo pueden usarse anestesia local, frío o cremas tópicas para mejorar el confort; la experiencia se valora de forma individual en consulta.' ),
 		array( '¿Cuánta recuperación necesito?', 'Depende del tratamiento, la intensidad del protocolo y tu respuesta individual. Algunos procedimientos permiten retomar la actividad habitual con rapidez; otros (por ejemplo, láser ablativo) implican eritema, descamación o varios días de curación. La pauta exacta se define en la valoración y el consentimiento.' ),
@@ -1205,16 +1205,16 @@ function nvx_generic_faq_markup(): string {
 		$html .= '<div class="nvx-brand-faq-item__body"><p>' . esc_html( $faq[1] ) . '</p></div>';
 		$html .= '</details>';
 	}
-	
+
 	$html .= '</div></div></section>';
 	return $html;
 }
 
 /**
- * Whether the current request is a real treatment detail/hub page.
+ * Determines whether the content belongs to a treatment detail or hub page eligible for shared section injection.
  *
- * Must not match equipo/nosotros: those reuse endolift editorial layout classes
- * (nvx-endolift-editorial, nvx-endolift-hero) but are not treatments.
+ * @param string $content The page content to inspect for treatment and non-treatment markers.
+ * @return bool `true` if the content identifies a treatment page, `false` otherwise.
  */
 function nvx_content_is_treatment_injection_target( string $content ): bool {
 	// Explicit non-treatment shells that share layout classes with treatments.
@@ -1235,7 +1235,7 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 		}
 	}
 
-	// Explicit treatment identifiers only (no bare nvx-endolift-editorial / nvx-brand-page--*).
+	// Explicit treatment identifiers only (no bare nvx-editorial-page / nvx-brand-page--*).
 	$treatment_markers = array(
 		'nvx-endolaser-editorial',
 		'nvx-endolaser-hero',
@@ -1272,11 +1272,11 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 
 	// Endolift facial detail: hero + editorial without equipo prefix.
 	if (
-		false !== strpos( $content, 'nvx-endolift-hero' )
+		false !== strpos( $content, 'nvx-editorial-hero' )
 		&& false === strpos( $content, 'nvx-equipo-' )
 		&& (
 			false !== strpos( $content, 'nvx-endolift-process' )
-			|| false !== strpos( $content, 'nvx-endolift-section' )
+			|| false !== strpos( $content, 'nvx-editorial-section' )
 			|| false !== strpos( $content, 'Endolift' )
 		)
 	) {

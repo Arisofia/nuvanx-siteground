@@ -74,7 +74,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 						<h3 class="nvx-clinic-card__name" itemprop="name"><?php esc_html_e( 'Centro Clínico NUVANX Chamberí', 'nuvanx-medical' ); ?></h3>
 						<span class="nvx-clinic-card__reg"><?php esc_html_e( 'Registro sanitario:', 'nuvanx-medical' ); ?> <strong>CS20144</strong></span>
 					</header>
-					<ul class="nvx-clinic-card__data" role="list">
+					<ul class="nvx-clinic-card__data">
 						<li itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-location"/></svg>
 							<span itemprop="streetAddress"><?php esc_html_e( 'Calle de Fernández de la Hoz, 4, Bajo Derecha', 'nuvanx-medical' ); ?></span>,
@@ -110,7 +110,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 						<h3 class="nvx-clinic-card__name" itemprop="name"><?php esc_html_e( 'Centro Clínico NUVANX Salamanca–Goya', 'nuvanx-medical' ); ?></h3>
 						<span class="nvx-clinic-card__reg"><?php esc_html_e( 'Registro sanitario:', 'nuvanx-medical' ); ?> <strong>CS20073</strong></span>
 					</header>
-					<ul class="nvx-clinic-card__data" role="list">
+					<ul class="nvx-clinic-card__data">
 						<li itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
 							<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-location"/></svg>
 							<span itemprop="streetAddress"><?php esc_html_e( 'Calle de Fernán González, 26', 'nuvanx-medical' ); ?></span>,

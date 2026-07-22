@@ -6,24 +6,15 @@ Canonical SiteGround deployment source for the NUVANX WordPress site.
 
 - [wp-content/themes/nuvanx-medical](wp-content/themes/nuvanx-medical): production theme (single source of truth).
 - [wp-content/mu-plugins](wp-content/mu-plugins): site-specific must-use plugins.
-- [tools/audit](tools/audit): read-only audit helpers.
 - [tools/deploy](tools/deploy): deployment helpers; see [docs/operations/deployment.md](docs/operations/deployment.md).
-- [tools/migrations](tools/migrations): migration utilities.
 - [docs](docs): operational documentation and design system notes.
 
 ## Repository access
 
 Configure the canonical Git remote, GitHub CLI, and non-interactive authentication
-with the [GitHub access bootstrap](docs/github-access-bootstrap.md). Credentials are
+with the GitHub access bootstrap. Credentials are
 provided at runtime and are never committed to the repository.
 
-## Security incidents
-
-Dated incident reports live under [docs/security/](docs/security/). Name new reports `INCIDENT-YYYY-MM-DD.md`.
-
-Current:
-
-- [docs/security/INCIDENT-2026-07-15.md](docs/security/INCIDENT-2026-07-15.md) — repository secret-exposure incident; containment and remediation.
 
 ## Safety note
 

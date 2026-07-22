@@ -1095,26 +1095,7 @@ body.nvx-hero-blackout :where( .nvx-brand-hero, .nvx-editorial-hero, .nvx-page-h
   margin-top: var(--nvx-space-6)}
 
 section.nvx-hero{
-    --nvx-hero-h: clamp(560px, 82svh, 720px);
-  position: relative;
-  display: block;
-  align-items: stretch;
-  justify-content: flex-start;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  overflow: hidden;
-  background: var(--nvx-ink);
-    min-height: var(--nvx-hero-h);
-    height: var(--nvx-hero-h);
-  color: var(--nvx-light);
-  box-sizing: border-box}
 
-section.nvx-hero.nvx-hero-section{
-    --nvx-hero-h: clamp(560px, 82svh, 720px);
   position: relative;
   display: block;
   align-items: stretch;

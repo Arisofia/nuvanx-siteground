@@ -93,7 +93,7 @@
 
   /* Media */
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
-  --nvx-hero-h: min(92svh, 980px);
+  --nvx-hero-h: clamp(560px, 82svh, 720px);
 
   /* Component dimensions */
   --nvx-header-height: 80px;

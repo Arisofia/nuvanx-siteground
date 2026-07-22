@@ -123,9 +123,10 @@ for error_file in \
   "$THEME_ROOT/error_log"
 do
   if [[ -f "$error_file" && -r "$error_file" ]]; then
-    echo "error_log.begin=$error_file"
+    redacted_path="$(echo "$error_file" | sed -E 's#(/home/customer/)[^/]+/#\1USER/#g')"
+    echo "error_log.begin=$redacted_path"
     tail -n 120 "$error_file" | sed -E 's#(/home/customer/)[^/]+/#\1USER/#g'
-    echo "error_log.end=$error_file"
+    echo "error_log.end=$redacted_path"
   fi
 done
 

@@ -61,7 +61,7 @@ function nvx_co2_hero_copy_markup(): string {
 		? nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] )
 		: number_format_i18n( 330, 2 );
 
-	$html  = '<div class="nvx-editorial-hero__copy nvx-co2-hero-copy">';
+	$html  = '<div class="nvx-editorial-hero__copy-copy">';
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-heading" id="nvx-co2-h1">' . esc_html__( 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', 'nuvanx-medical' ) . '</h1>';
 	
@@ -219,7 +219,7 @@ function nvx_content_restructure_co2_page( string $content ): string {
 		$media = $m[0];
 	}
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero nvx-co2-hero" aria-labelledby="nvx-co2-h1" aria-label="' . esc_attr__( 'Láser CO₂ NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero" aria-labelledby="nvx-co2-h1" aria-label="' . esc_attr__( 'Láser CO₂ NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_co2_hero_copy_markup();
 	$hero .= $media;

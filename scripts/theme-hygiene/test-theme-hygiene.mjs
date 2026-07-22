@@ -125,7 +125,7 @@ if (/['"]post_status['"]\s*=>\s*['"]trash['"]/.test(migration)) fail('migration 
 if ((migration.match(/'liposculpt-air'\s*=>/g) || []).length !== 0) fail('migration command: duplicated governed definitions');
 
 const native = read('inc/nvx-native-style-governance.php');
-for (const marker of ["is_page_template( 'page-tratamientos.php' )", "'tratamientos' === (string) get_post_field( 'post_name', get_queried_object_id() )", 'nvx_theme_owns_complete_page_markup']) {
+for (const marker of ['nvx_theme_owns_complete_page_markup']) {
   if (!native.includes(marker)) fail(`native style module: missing ${marker}`);
 }
 if (native.includes('remove_action(')) fail('native style module: global action removal');
@@ -140,28 +140,7 @@ for (const marker of ['wpseo_schema_graph', 'PercutaneousProcedure', 'Noninvasiv
 if (!/['"]numberOfItems['"]\s*=>\s*count\s*\(\s*\$items\s*\)/.test(schema)) fail('schema module: missing dynamic numberOfItems');
 if (/<script\b/i.test(schema)) fail('schema module: embedded script');
 
-const hub = read('page-tratamientos.php');
-for (const marker of ['Portafolio clínico.', 'La anatomía dicta el plan; la tecnología lo ejecuta', 'Áreas Anatómicas y Protocolos', 'Nuestro Arsenal Tecnológico', 'Post-Maternity Contour™', 'Tu primera valoración clínica']) {
-  if (!hub.includes(marker)) fail(`page-tratamientos.php: missing ${marker}`);
-}
-if (/<main\b/i.test(hub)) fail('page-tratamientos.php: nested main');
-if (/\sstyle\s*=\s*["']/i.test(hub)) fail('page-tratamientos.php: inline style');
-
-const visibleNames = [...hub.matchAll(/class="nvx-hub-catalog__item-title">([^<]+)/g)].map((match) => match[1].trim());
-const definitionsMatch = /\$definitions\s*=\s*array\s*\(/.exec(schema);
-let definitionsSource = '';
-if (!definitionsMatch) fail('treatment schema: definitions block not found');
-else {
-  const schemaTail = schema.slice(definitionsMatch.index);
-  const itemsMatch = /\n\s*\$items\s*=\s*array\s*\(\s*\)\s*;/.exec(schemaTail);
-  if (!itemsMatch) fail('treatment schema: definitions block terminator not found');
-  else definitionsSource = schemaTail.slice(0, itemsMatch.index);
-}
-const schemaNames = [...definitionsSource.matchAll(/'name'\s*=>\s*'([^']+)'/g)].map((match) => match[1].trim());
-if (visibleNames.length !== 7) fail(`treatment hub: expected 7 visible technology items, found ${visibleNames.length}`);
-if (schemaNames.length !== 7) fail(`treatment schema: expected 7 definitions, found ${schemaNames.length}`);
-if (JSON.stringify(visibleNames) !== JSON.stringify(schemaNames)) fail(`treatment hub/schema name order mismatch: visible=${JSON.stringify(visibleNames)} schema=${JSON.stringify(schemaNames)}`);
-
+// Hub tests removed due to retirement of page-tratamientos.php
 const header = read('assets/css/nvx-header.css');
 const footer = read('assets/css/nvx-footer.css');
 if ((header.match(/\.nvx-mobile-nav\s*\{/g) || []).length !== 1) fail('header: mobile nav base rule count');

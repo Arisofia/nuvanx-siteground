@@ -80,6 +80,23 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
  * Editorial pairs stack full-width; team cards keep multi-column spans.
  */
 /* Cards — chrome + parts centralized here (not split with site-layout) */
+
+/* CMS grid modifiers restored for DB-persisted layouts */
+.nvx-brand-grid--2 > *:not(.nvx-brand-card):not(.nvx-card),
+.nvx-brand-grid--3 > *:not(.nvx-brand-card):not(.nvx-card) {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+.nvx-brand-grid--2 > .nvx-brand-card,
+.nvx-brand-grid--2 > .nvx-card {
+  grid-column: span 6;
+}
+.nvx-brand-grid--3 > .nvx-brand-card,
+.nvx-brand-grid--3 > .nvx-card,
+.nvx-brand-grid--3 > .nvx-brand-card--team {
+  grid-column: span 4;
+}
+
 .nvx-brand-card__media{margin:calc(-1 * var(--nvx-pad-card)) calc(-1 * var(--nvx-pad-card)) var(--nvx-space-3);overflow:hidden;border-radius:var(--nvx-radius-card) var(--nvx-radius-card) 0 0;background:var(--nvx-surface-base)}
 .nvx-brand-card__media img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:0}
 /* Team / staff portraits — vertical frame, not landscape body crop */
@@ -1075,7 +1092,7 @@ body.nvx-hero-blackout :where( .nvx-brand-hero, .nvx-editorial-hero, .nvx-page-h
   gap: var(--nvx-gap-base);
   margin-top: var(--nvx-space-6)}
 
-section.nvx-hero{
+section.nvx-hero, .nvx-brand-hero {
 
   position: relative;
   display: block;
@@ -1150,7 +1167,7 @@ section.nvx-hero{
     font-size: var(--nvx-type-kicker);
     line-height: var(--nvx-lh-kicker)}
 
-.nvx-editorial-hero__copy .nvx-heading{
+.nvx-brand-hero__title, .nvx-editorial-hero__copy .nvx-heading{
   margin: 0 0 0.65em;
     max-width: 16ch;
   color: var(--nvx-light);
@@ -1159,7 +1176,7 @@ section.nvx-hero{
     margin-bottom: var(--nvx-space-3);
     line-height: 1.04}
 
-.nvx-editorial-hero__copy h1{
+.nvx-brand-hero__copy h1, .nvx-editorial-hero__copy h1{
   margin: 0 0 0.65em;
     max-width: 16ch;
   color: var(--nvx-light);
@@ -1786,3 +1803,67 @@ body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-h
   margin-top: var(--nvx-space-1); /* --nvx-space-8 mapped */
 }
 
+
+
+@media (max-width: 980px) {
+  .nvx-brand-card,
+  .nvx-brand-grid--2 > .nvx-brand-card,
+  .nvx-brand-grid--2 > .nvx-card,
+  .nvx-brand-grid--3 > .nvx-brand-card,
+  .nvx-brand-grid--3 > .nvx-card,
+  .nvx-brand-grid--3 > .nvx-brand-card--team {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 680px) {
+  .nvx-brand-card,
+  .nvx-brand-grid--2 > .nvx-brand-card,
+  .nvx-brand-grid--2 > .nvx-card,
+  .nvx-brand-grid--3 > .nvx-brand-card,
+  .nvx-brand-grid--3 > .nvx-card,
+  .nvx-brand-grid--3 > .nvx-brand-card--team {
+    grid-column: 1 / -1;
+  }
+}
+
+
+/* 
+ * RESTORE DATABASE-COMPATIBLE BRAND HERO SELECTORS 
+ * (Needed because legacy pages in the WP block editor still use these classes) 
+ */
+.nvx-brand-hero__copy .nvx-brand-kicker,
+.nvx-brand-hero__copy .nvx-eyebrow,
+.nvx-brand-hero__copy .nvx-kicker {
+  color: var(--nvx-accent-muted);
+  margin-bottom: var(--nvx-space-2);
+  max-width: 34ch;
+  font-size: var(--nvx-type-kicker);
+  line-height: var(--nvx-lh-kicker);
+}
+
+.nvx-brand-hero__copy .nvx-brand-meta {
+  max-width: 42ch;
+  color: var(--nvx-text-on-dark-72);
+  margin-top: var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small, 0.875rem);
+  font-weight: 500;
+  text-transform: none;
+  line-height: 1.45;
+}
+
+.nvx-brand-hero__copy .nvx-brand-actions {
+  margin-top: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--nvx-space-2);
+  min-width: 0;
+  width: 100%;
+}
+
+.nvx-brand-hero__copy .nvx-brand-btn,
+.nvx-brand-hero__copy .nvx-button,
+.nvx-brand-hero__copy .nvx-btn {
+  width: 100%;
+}

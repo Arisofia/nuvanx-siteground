@@ -38,26 +38,28 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 ?>
 
 <div class="nvx-page nvx-page--contact">
-	<section class="nvx-section nvx-section--contact-hero" aria-labelledby="nvx-contact-h1">
-		<div class="nvx-shell">
-			<p class="nvx-eyebrow"><?php esc_html_e( 'Clínicas NUVANX · Madrid', 'nuvanx-medical' ); ?></p>
-			<h1 id="nvx-contact-h1" class="nvx-heading-1">
-				<?php esc_html_e( 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya', 'nuvanx-medical' ); ?>
-			</h1>
-			<p class="nvx-lead">
-					<?php esc_html_e( 'Si ya sabes que quieres venir, aquí tienes todo lo que necesitas para encontrarnos. Si todavía no sabes si esto es para ti, mejor empieza por la valoración.', 'nuvanx-medical' ); ?>
-			</p>
-			<div class="nvx-cta-group">
-				<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">
-					<?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?>
-				</a>
-				<a href="https://wa.me/34669319836"
-					class="nvx-btn nvx-btn--secondary"
-					rel="noopener noreferrer"
-					target="_blank"
-					aria-label="<?php esc_attr_e( 'Contactar por WhatsApp con NUVANX', 'nuvanx-medical' ); ?>">
-					<?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?>
-				</a>
+	<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero nvx-contacto-hero nvx-equipo-hero--copy-only" aria-labelledby="nvx-contact-h1">
+		<div class="nvx-brand-hero__inner">
+			<div class="nvx-editorial-hero__copy">
+				<p class="nvx-eyebrow"><?php esc_html_e( 'Clínicas NUVANX · Madrid', 'nuvanx-medical' ); ?></p>
+				<h1 id="nvx-contact-h1" class="nvx-heading">
+					<?php esc_html_e( 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya', 'nuvanx-medical' ); ?>
+				</h1>
+				<p class="nvx-lead">
+						<?php esc_html_e( 'Si ya sabes que quieres venir, aquí tienes todo lo que necesitas para encontrarnos. Si todavía no sabes si esto es para ti, mejor empieza por la valoración.', 'nuvanx-medical' ); ?>
+				</p>
+				<div class="nvx-cta-group nvx-cta-group--hero">
+					<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">
+						<?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?>
+					</a>
+					<a href="https://wa.me/34669319836"
+						class="nvx-btn nvx-btn--secondary"
+						rel="noopener noreferrer"
+						target="_blank"
+						aria-label="<?php esc_attr_e( 'Contactar por WhatsApp con NUVANX', 'nuvanx-medical' ); ?>">
+						<?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?>
+					</a>
+				</div>
 			</div>
 		</div>
 	</section>

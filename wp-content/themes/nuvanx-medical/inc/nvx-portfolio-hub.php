@@ -111,13 +111,16 @@ function nvx_treatments_partner_labels(): array {
  * @return string The rendered catalog HTML.
  */
 function nvx_treatments_catalog_markup(): string {
-	$html  = '<section class="nvx-catalog" aria-label="Portafolio Clínico NUVANX">';
+	$html  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero nvx-portfolio-hero nvx-equipo-hero--copy-only" aria-labelledby="nvx-portfolio-h1">';
+	$html .= '<div class="nvx-brand-hero__inner">';
+	$html .= '<div class="nvx-editorial-hero__copy">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 id="nvx-portfolio-h1" class="nvx-heading">' . esc_html__( 'Lo que hacemos, y por qué lo hacemos así.', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-lead">' . esc_html__( 'Tenemos la tecnología más avanzada que existe hoy. Pero la máquina no decide nada — decide el médico, después de mirarte. Aquí tienes las zonas en las que trabajamos; cuál de ellas tiene sentido para ti se decide en consulta, no en esta página.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</div></div></section>';
+
+	$html .= '<section class="nvx-catalog" aria-label="Portafolio Clínico NUVANX">';
 	$html .= '<div class="nvx-catalog__inner">';
-	$html .= '<header class="nvx-catalog__intro">';
-	$html .= '<span class="nvx-catalog__kicker">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</span>';
-	$html .= '<h2 class="nvx-catalog__title">' . esc_html__( 'Lo que hacemos, y por qué lo hacemos así.', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-catalog__lead">' . esc_html__( 'Tenemos la tecnología más avanzada que existe hoy. Pero la máquina no decide nada — decide el médico, después de mirarte. Aquí tienes las zonas en las que trabajamos; cuál de ellas tiene sentido para ti se decide en consulta, no en esta página.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</header>';
 
 	foreach ( nvx_treatments_catalog_data() as $category ) {
 		$html .= '<div class="nvx-catalog-category" data-category="' . esc_attr( $category['key'] ) . '">';

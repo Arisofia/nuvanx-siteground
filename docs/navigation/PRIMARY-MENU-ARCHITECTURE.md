@@ -77,6 +77,8 @@ CONTACTO [solo móvil]
 | NUVANX Surface Renewal™ | `/cicatrices-acne-poros-textura-madrid/` |
 | NUVANX Tone Correction™ | `/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/` |
 
+No debe crearse un enlace personalizado hacia una ruta futura. Primero se crea la página, se revisa y solo después de publicarla puede incorporarse al menú o a un hub.
+
 ## Comportamiento desktop
 
 - Ocho pilares compactos y CTA independiente.

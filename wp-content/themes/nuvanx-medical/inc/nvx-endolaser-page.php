@@ -99,10 +99,10 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '<h2 id="nvx-endolaser-mech-title" class="nvx-editorial-heading">' . esc_html__( 'Cómo actúa: grasa localizada y soporte de la piel', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'A diferencia de terapias solo de superficie o de frío que no abordan la flacidez, el Endoláser puede trabajar grasa y calidad de piel en un mismo acto médico ambulatorio, cuando hay indicación.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Bajo anestesia local se introduce una fibra láser en el tejido subcutáneo. La energía reduce de forma selectiva grasa en focos planificados (lipólisis). En paralelo, el calor en profundidad favorece la contracción de fibras de soporte, para limitar la sensación de “piel vacía” tras reducir volumen.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<div class="nvx-endolift-effects">';
-	$html .= '<article class="nvx-endolift-effect"><h3 class="nvx-endolift-effect__title">' . esc_html__( 'Lipólisis láser', 'nuvanx-medical' ) . '</h3>';
+	$html .= '<div class="nvx-editorial-effects">';
+	$html .= '<article class="nvx-editorial-effect"><h3 class="nvx-editorial-effect__title">' . esc_html__( 'Lipólisis láser', 'nuvanx-medical' ) . '</h3>';
 	$html .= '<p class="nvx-editorial-body">' . esc_html__( 'Reducción selectiva de grasa en focos localizados planificados por el médico (no es adelgazamiento general).', 'nuvanx-medical' ) . '</p></article>';
-	$html .= '<article class="nvx-endolift-effect"><h3 class="nvx-endolift-effect__title">' . esc_html__( 'Retracción y soporte dérmico', 'nuvanx-medical' ) . '</h3>';
+	$html .= '<article class="nvx-editorial-effect"><h3 class="nvx-editorial-effect__title">' . esc_html__( 'Retracción y soporte dérmico', 'nuvanx-medical' ) . '</h3>';
 	$html .= '<p class="nvx-editorial-body">' . esc_html__( 'Contracción térmica de fibras y estímulo de remodelación para acompañar la pérdida de volumen con mayor firmeza.', 'nuvanx-medical' ) . '</p></article>';
 	$html .= '</div></div></section>';
 
@@ -110,7 +110,7 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '<section class="nvx-editorial-section nvx-editorial-grid-items" aria-labelledby="nvx-editorial-grid-items-title">';
 	$html .= '<div class="nvx-editorial-section__inner">';
 	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Mapa clínico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-editorial-grid-items-title" class="nvx-editorial-heading">' . esc_html__( 'Zonas anatómicas de alta respuesta', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 id="nvx-endolaser-grid-items-title" class="nvx-editorial-heading">' . esc_html__( 'Zonas anatómicas de alta respuesta', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Se valora idoneidad en grasa resistente a dieta y ejercicio, con flacidez leve–moderada asociada. La indicación es por focos, no por “adelgazamiento general”.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-editorial-grid-list">';
 	$zones = array(
@@ -162,7 +162,7 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Planificación', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-endolaser-plan-title" class="nvx-editorial-heading">' . esc_html__( 'Inversión y planificación por zonas', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'La superficie anatómica, el número de zonas, el tiempo de procedimiento ambulatorio y el material (incl. anestesia) varían caso a caso. Por eso el presupuesto se personaliza en consulta: no publicamos un “precio único corporal” que no reflejaría el mapa real.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-endolift-price-includes">';
+	$html .= '<ul class="nvx-editorial-price-includes">';
 	$html .= '<li>' . esc_html__( 'Valoración de zonas, flacidez y estabilidad de peso', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li>' . esc_html__( 'Estimación de extensión de la cuadrícula láser y duración ambulatoria', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li>' . esc_html__( 'Presupuesto documentado antes del procedimiento', 'nuvanx-medical' ) . '</li>';

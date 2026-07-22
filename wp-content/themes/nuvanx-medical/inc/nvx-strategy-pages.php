@@ -330,7 +330,7 @@ function nvx_strategy_investment_table_section( string $heading, array $rows ): 
 	$html  = '<section class="nvx-brand-section">';
 	$html .= '<h2>' . esc_html( $heading ) . '</h2>';
 	$html .= '<p>Las filas muestran el procedimiento técnico y su PVP con IVA. La indicación, el alcance exacto, los cuidados y el seguimiento se documentan en el presupuesto individual.</p>';
-	$html .= '<div class="nvx-endolift-price-table-wrap"><table class="nvx-endolift-price-table">';
+	$html .= '<div class="nvx-editorial-price-table-wrap"><table class="nvx-editorial-price-table">';
 	$html .= '<thead><tr><th scope="col">Procedimiento</th><th scope="col">PVP con IVA</th></tr></thead><tbody>';
 	foreach ( $rows as $row ) {
 		$html .= '<tr><td>' . esc_html( $row['label'] ) . '</td><td>' . esc_html( $row['price'] ) . '</td></tr>';

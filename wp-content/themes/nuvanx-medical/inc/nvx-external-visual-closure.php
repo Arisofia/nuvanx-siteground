@@ -146,12 +146,12 @@ summary,
   box-sizing: border-box;
 }
 
-.nvx-strategy-page .nvx-endolift-price-table-wrap {
+.nvx-strategy-page .nvx-editorial-price-table-wrap {
   width: 100%;
   overflow-x: auto;
 }
 
-.nvx-strategy-page .nvx-endolift-price-table {
+.nvx-strategy-page .nvx-editorial-price-table {
   width: 100%;
 }
 
@@ -209,16 +209,16 @@ summary,
   }
 
   /* Mobile tariffs render as two-column editorial rows instead of overflowing. */
-  .nvx-strategy-page .nvx-endolift-price-table-wrap {
+  .nvx-strategy-page .nvx-editorial-price-table-wrap {
     overflow: visible;
   }
 
-  .nvx-strategy-page .nvx-endolift-price-table {
+  .nvx-strategy-page .nvx-editorial-price-table {
     display: block;
     max-width: none;
   }
 
-  .nvx-strategy-page .nvx-endolift-price-table thead {
+  .nvx-strategy-page .nvx-editorial-price-table thead {
     position: absolute;
     width: var(--nvx-border-hairline);
     height: var(--nvx-border-hairline);
@@ -231,11 +231,11 @@ summary,
     border: 0;
   }
 
-  .nvx-strategy-page .nvx-endolift-price-table tbody {
+  .nvx-strategy-page .nvx-editorial-price-table tbody {
     display: grid;
   }
 
-  .nvx-strategy-page .nvx-endolift-price-table tbody tr {
+  .nvx-strategy-page .nvx-editorial-price-table tbody tr {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: var(--nvx-space-3);
@@ -243,7 +243,7 @@ summary,
     border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   }
 
-  .nvx-strategy-page .nvx-endolift-price-table tbody td {
+  .nvx-strategy-page .nvx-editorial-price-table tbody td {
     min-width: 0;
     padding: 0;
     border: 0;
@@ -251,12 +251,12 @@ summary,
     overflow-wrap: anywhere;
   }
 
-  .nvx-strategy-page .nvx-endolift-price-table tbody td:last-child {
+  .nvx-strategy-page .nvx-editorial-price-table tbody td:last-child {
     text-align: right;
     white-space: nowrap;
   }
 
-  .nvx-strategy-page .nvx-endolift-price-table tbody td:last-child::before {
+  .nvx-strategy-page .nvx-editorial-price-table tbody td:last-child::before {
     content: "PVP con IVA";
     display: block;
     margin-bottom: calc(var(--nvx-space-1) / 2);

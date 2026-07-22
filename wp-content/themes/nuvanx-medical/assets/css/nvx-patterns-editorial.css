@@ -511,12 +511,12 @@
   color: var(--nvx-text-on-dark-78);
 }
 
-.nvx-endolift-effect {
+.nvx-editorial-effect {
   padding-top: var(--nvx-space-3);
   border-top: 1px solid var(--nvx-color-line);
 }
 
-.nvx-endolift-effect__title {
+.nvx-editorial-effect__title {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
@@ -573,7 +573,7 @@
   letter-spacing: -0.02em;
 }
 
-.nvx-endolift-price-includes {
+.nvx-editorial-price-includes {
   margin: var(--nvx-space-3) 0;
   padding-left: calc(var(--nvx-space-1) * 2.5);
   max-width: 48ch;
@@ -583,7 +583,7 @@
   color: var(--nvx-text-body);
 }
 
-.nvx-endolift-price-includes li {
+.nvx-editorial-price-includes li {
   margin-bottom: var(--nvx-space-2);
 }
 
@@ -676,7 +676,7 @@
 }
 
 /* CO₂ recovery timeline */
-.nvx-co2-timeline {
+.nvx-editorial-timeline {
   list-style: none;
   margin: var(--nvx-space-4) 0 0;
   padding: 0;
@@ -686,13 +686,13 @@
   counter-reset: none;
 }
 
-.nvx-co2-timeline__item {
+.nvx-editorial-timeline__item {
   margin: 0;
   padding-top: var(--nvx-space-3);
   border-top: 1px solid var(--nvx-color-line);
 }
 
-.nvx-co2-timeline__title {
+.nvx-editorial-timeline__title {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
@@ -741,13 +741,13 @@
 }
 
 /* Official PVP table — readable, no retail chrome */
-.nvx-endolift-price-table-wrap {
+.nvx-editorial-price-table-wrap {
   margin: var(--nvx-space-4) 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.nvx-endolift-price-table {
+.nvx-editorial-price-table {
   width: 100%;
   max-width: 40rem;
   border-collapse: collapse;
@@ -757,7 +757,7 @@
   color: var(--nvx-ink);
 }
 
-.nvx-endolift-price-table__cap {
+.nvx-editorial-price-table__cap {
   caption-side: bottom;
   padding-top: var(--nvx-space-2);
   text-align: left;
@@ -765,15 +765,15 @@
   color: var(--nvx-text-muted, var(--nvx-text-body));
 }
 
-.nvx-endolift-price-table th,
-.nvx-endolift-price-table td {
+.nvx-editorial-price-table th,
+.nvx-editorial-price-table td {
   padding: calc(var(--nvx-space-1) * 1.5) var(--nvx-space-2);
   border-bottom: 1px solid var(--nvx-color-line);
   text-align: left;
   vertical-align: top;
 }
 
-.nvx-endolift-price-table thead th {
+.nvx-editorial-price-table thead th {
   font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: var(--nvx-fw-medium);
   letter-spacing: 0.06em;
@@ -782,12 +782,12 @@
   border-bottom-color: var(--nvx-ink);
 }
 
-.nvx-endolift-price-table tbody th {
+.nvx-editorial-price-table tbody th {
   font-weight: 400;
   color: var(--nvx-ink);
 }
 
-.nvx-endolift-price-table tbody td {
+.nvx-editorial-price-table tbody td {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   font-weight: 500;

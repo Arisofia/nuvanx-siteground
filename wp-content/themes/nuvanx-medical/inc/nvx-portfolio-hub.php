@@ -44,7 +44,7 @@ function nvx_treatments_catalog_data(): array {
 				array(
 					'meta'  => 'Protocolo Profile Definition™',
 					'title' => 'Papada y Línea Mandibular',
-					'body'  => 'Redefinición del perfil inferior. Tratamos la laxitud y los depósitos grasos del tercio inferior mediante láser intersticial (Endolift®).',
+					'body'  => 'Abordaje del perfil inferior cuando la valoración identifica laxitud o grasa localizada susceptible de tratamiento con láser intersticial (Endolift®).',
 					'url'   => home_url( '/papada-definicion-mandibular-madrid/' ),
 				),
 			),
@@ -56,7 +56,7 @@ function nvx_treatments_catalog_data(): array {
 				array(
 					'meta'  => 'Protocolo Couture Sculpt™',
 					'title' => 'Remodelación Láser Corporal',
-					'body'  => 'Nuestro sistema de diagnóstico y tratamiento térmico para abdomen, flancos y extremidades. Esculpe el contorno sin imponer formas estándar.',
+					'body'  => 'Sistema de diagnóstico y tratamiento por unidades anatómicas, orientado a mejorar la continuidad del contorno sin imponer formas estándar.',
 					'url'   => home_url( '/remodelacion-corporal-laser-madrid/' ),
 				),
 			),
@@ -68,19 +68,19 @@ function nvx_treatments_catalog_data(): array {
 				array(
 					'meta'  => 'Protocolo Skin Architecture™',
 					'title' => 'Firmeza y Densidad (EXION)',
-					'body'  => 'Recuperación de la matriz dérmica sin alterar volúmenes. Incrementamos la producción de colágeno y ácido hialurónico.',
+					'body'  => 'Protocolos orientados a mejorar firmeza y calidad cutánea mediante estimulación tisular, sin modificar deliberadamente los volúmenes.',
 					'url'   => home_url( '/calidad-piel-firmeza-luminosidad-madrid/' ),
 				),
 				array(
 					'meta'  => 'Protocolo Surface Renewal™',
 					'title' => 'Cicatrices y Poros (CO₂)',
-					'body'  => 'El estándar de oro para resurfacing ablativo. Renovación epidérmica severa para marcas de acné, poros dilatados y estrías.',
+					'body'  => 'Resurfacing ablativo médico para cicatrices de acné, poros, textura y estrías cuando existe indicación clínica.',
 					'url'   => home_url( '/cicatrices-acne-poros-textura-madrid/' ),
 				),
 				array(
 					'meta'  => 'Protocolo Tone Correction™',
 					'title' => 'Manchas y Rojeces (IPL)',
-					'body'  => 'Fotorejuvenecimiento de precisión. Fragmentación de pigmento y coagulación de lesiones vasculares con control térmico absoluto.',
+					'body'  => 'Abordaje de alteraciones pigmentarias y vasculares con parámetros seleccionados según diagnóstico y fototipo.',
 					'url'   => home_url( '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' ),
 				),
 			),
@@ -116,7 +116,7 @@ function nvx_treatments_catalog_markup(): string {
 	$html .= '<header class="nvx-catalog__intro">';
 	$html .= '<span class="nvx-catalog__kicker">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</span>';
 	$html .= '<h2 class="nvx-catalog__title">' . esc_html__( 'Portafolio Clínico', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-catalog__lead">' . esc_html__( 'En NUVANX las plataformas no mandan; manda el médico. Nuestro portafolio se organiza por necesidades anatómicas.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-catalog__lead">' . esc_html__( 'En NUVANX la tecnología se selecciona después del diagnóstico. Nuestro portafolio se organiza por necesidades anatómicas y objetivos clínicos.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</header>';
 
 	foreach ( nvx_treatments_catalog_data() as $category ) {
@@ -149,7 +149,7 @@ function nvx_treatments_catalog_markup(): string {
 function nvx_treatments_logo_cloud_markup(): string {
 	$html  = '<section class="nvx-logo-cloud" aria-label="Tecnología y laboratorios">';
 	$html .= '<div class="nvx-logo-cloud__inner">';
-	$html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'Tecnología médica y laboratorios aliados', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'Tecnologías y laboratorios con los que trabajamos', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<ul class="nvx-logo-cloud__list">';
 	foreach ( nvx_treatments_partner_labels() as $label ) {
 		$html .= '<li class="nvx-logo-cloud__item">' . esc_html( $label ) . '</li>';
@@ -212,7 +212,7 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 	$links  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="Tu primera valoración clínica">';
 	$links .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$links .= '<h2 class="nvx-brand-heading-2">' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
-	$links .= '<p class="nvx-brand-body">' . esc_html__( 'No vendemos bonos de máquinas. Elaboramos planes médicos personalizados basados en evidencia anatómica.', 'nuvanx-medical' ) . '</p>';
+	$links .= '<p class="nvx-brand-body">' . esc_html__( 'La valoración no parte de una máquina concreta. Elaboramos planes médicos individualizados según anatomía, diagnóstico y objetivos realistas.', 'nuvanx-medical' ) . '</p>';
 	$links .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Iniciar mi valoración', 'nuvanx-medical' ) . '</a></p>';
 	$links .= '</div></section>';
 

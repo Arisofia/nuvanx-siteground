@@ -65,6 +65,11 @@ summary,
   font-family: var(--nvx-serif);
 }
 
+/* Rendered QA: the treatments hero requires an explicit inverse heading color. */
+.nvx-hub-hero__title {
+  color: var(--nvx-light);
+}
+
 .icon-whatsapp {
   display: inline-block;
   width: var(--nvx-icon-xs);
@@ -97,6 +102,16 @@ summary,
 }
 
 /* Strategy pages retain the canonical shell restored in PHP markup. */
+
+/* Legacy strategy markup without .nvx-shell still receives a centered, padded intro. */
+.nvx-strategy-page:not(.nvx-shell) {
+  margin-inline: auto;
+}
+
+.nvx-strategy-page:not(.nvx-shell) > .nvx-strategy-intro {
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
 
 .nvx-strategy-page > .nvx-brand-hero {
   display: flex;
@@ -194,6 +209,65 @@ summary,
   .nvx-strategy-page > .nvx-brand-hero {
     min-height: calc(var(--nvx-space-12) * 3);
     padding-inline: var(--nvx-gutter-inner);
+  }
+
+  /* Mobile tariffs render as two-column editorial rows instead of overflowing. */
+  .nvx-strategy-page .nvx-endolift-price-table-wrap {
+    overflow: visible;
+  }
+
+  .nvx-strategy-page .nvx-endolift-price-table {
+    display: block;
+    max-width: none;
+  }
+
+  .nvx-strategy-page .nvx-endolift-price-table thead {
+    position: absolute;
+    width: var(--nvx-border-hairline);
+    height: var(--nvx-border-hairline);
+    padding: 0;
+    margin: calc(var(--nvx-border-hairline) * -1);
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .nvx-strategy-page .nvx-endolift-price-table tbody {
+    display: grid;
+  }
+
+  .nvx-strategy-page .nvx-endolift-price-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--nvx-space-3);
+    padding-block: var(--nvx-space-3);
+    border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  }
+
+  .nvx-strategy-page .nvx-endolift-price-table tbody td {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .nvx-strategy-page .nvx-endolift-price-table tbody td:last-child {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .nvx-strategy-page .nvx-endolift-price-table tbody td:last-child::before {
+    content: "PVP con IVA";
+    display: block;
+    margin-bottom: calc(var(--nvx-space-1) / 2);
+    font-size: var(--nvx-type-micro);
+    font-weight: var(--nvx-fw-medium);
+    letter-spacing: var(--nvx-track-data);
+    text-transform: uppercase;
+    color: var(--nvx-text-muted);
   }
 }
 CSS;

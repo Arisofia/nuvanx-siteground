@@ -9,7 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Canonical prohibited phrases shared by rendered content and schema. */
+/**
+ * Provides the canonical list of clinical and marketing phrases prohibited in rendered content and schema.
+ *
+ * @return array The prohibited phrases.
+ */
 function nvx_clinical_language_prohibited_phrases(): array {
 	return array(
 		'Elevación de párpados',
@@ -43,7 +47,12 @@ function nvx_clinical_language_prohibited_phrases(): array {
 	);
 }
 
-/** Normalize one public clinical text string without changing HTML structure. */
+/**
+ * Normalizes public clinical text while preserving its HTML structure.
+ *
+ * @param string $text The clinical text to normalize.
+ * @return string The normalized clinical text.
+ */
 function nvx_clinical_language_text( string $text ): string {
 	$exact = array(
 		'Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.' => 'La reincorporación, el edema y la inflamación se explican según zona, protocolo y respuesta individual; no existe un plazo idéntico para todas las personas.',
@@ -65,7 +74,12 @@ function nvx_clinical_language_text( string $text ): string {
 	return $text;
 }
 
-/** Recursively normalize string values in a structured-data graph. */
+/**
+ * Recursively normalizes string values within a structured data value.
+ *
+ * @param mixed $value The value to normalize.
+ * @return mixed The normalized value, with non-string, non-array values unchanged.
+ */
 function nvx_clinical_language_recursive( $value ) {
 	if ( is_string( $value ) ) {
 		return nvx_clinical_language_text( $value );
@@ -78,7 +92,12 @@ function nvx_clinical_language_recursive( $value ) {
 	return $value;
 }
 
-/** Normalize rendered page content after all editorial modules. */
+/**
+ * Normalizes public page content for clinical language compliance.
+ *
+ * @param string $content The rendered page content.
+ * @return string The normalized content.
+ */
 function nvx_clinical_language_content( string $content ): string {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return $content;

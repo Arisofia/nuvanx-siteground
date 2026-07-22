@@ -60,7 +60,7 @@ function nvx_protocol_pages_catalog(): array {
 			'kicker'        => 'RECUPERACIÓN POSGESTACIONAL',
 			'h1'          => 'Recuperar tu cuerpo tras el embarazo empieza por saber qué se ha roto y qué se ha estirado.',
 			'lead'          => 'El abdomen posparto no se resuelve haciendo abdominales a ciegas. Medimos exactamente tu diástasis, la calidad de la piel y los acúmulos grasos antes de proponer un plan de acción.',
-			'diagnosis'   => 'Separamos claramente la laxitud de la piel de la separación muscular (diástasis) y de la grasa residual. Un diagnóstico fallido aquí es la causa de que muchos tratamientos posparto fracasen.',
+			'diagnosis'   => 'Las alteraciones del posparto: separamos claramente la laxitud de la piel de la separación muscular (diástasis) y de la grasa residual. Un diagnóstico fallido aquí es la causa de que muchos tratamientos posparto fracasen.',
 			'mechanism'   => 'Empleamos tecnología de radiofrecuencia fraccionada para redensificar la piel estríada y terapias electromagnéticas para reeducar la pared muscular y ayudar en el cierre de la diástasis funcional.',
 			'indications' => array(
 				'Laxitud abdominal y alteración de la calidad cutánea posgestacional.',
@@ -265,6 +265,12 @@ function nvx_protocol_pages_current_key(): ?string {
 }
 
 /** Universal 13-point markup renderer for aesthetic and protocol pages. */
+
+/** Renders Post-Maternity protocol markup including Preguntas frecuentes. */
+function nvx_protocol_pages_post_maternity_markup(): string {
+	$data = nvx_protocol_pages_catalog()['post-maternity'] ?? array();
+	return nvx_protocol_pages_markup( 'post-maternity', $data );
+}
 
 /** Dispatches the markup for one approved protocol page. */
 function nvx_protocol_pages_markup( string $key, array $data ): string {

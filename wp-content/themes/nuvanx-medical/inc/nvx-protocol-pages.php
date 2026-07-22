@@ -269,11 +269,11 @@ function nvx_protocol_pages_current_key(): ?string {
 /** Renders Post-Maternity protocol markup including Preguntas frecuentes. */
 function nvx_protocol_pages_post_maternity_markup(): string {
 	$data = nvx_protocol_pages_catalog()['post-maternity'] ?? array();
-	return nvx_protocol_pages_markup( 'post-maternity', $data );
+	return nvx_protocol_pages_markup( $data );
 }
 
 /** Dispatches the markup for one approved protocol page. */
-function nvx_protocol_pages_markup( string $key, array $data ): string {
+function nvx_protocol_pages_markup( array $data ): string {
 	return nvx_render_13_point_matrix( $data );
 }
 
@@ -289,7 +289,7 @@ function nvx_protocol_pages_content_filter( string $content ): string {
 	}
 
 	$data   = nvx_protocol_pages_catalog()[ $key ];
-	$markup = nvx_protocol_pages_markup( $key, $data );
+	$markup = nvx_protocol_pages_markup( $data );
 	return '' === $markup ? $content : $markup;
 }
 add_filter( 'the_content', 'nvx_protocol_pages_content_filter', 21 );

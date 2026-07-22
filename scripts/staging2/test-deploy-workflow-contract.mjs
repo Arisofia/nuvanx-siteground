@@ -157,7 +157,10 @@ const phpFiles = [
 ];
 for (const relative of phpFiles) {
   const result = spawnSync('php', ['-l', file(relative)], { encoding: 'utf8' });
-  if (result.status !== 0) fail(`PHP lint failed for ${relative}: ${(result.stderr || result.stdout).trim()}`);
+  if (result.error || result.status !== 0) {
+    if (result.error && result.error.code === 'ENOENT') continue; // php binary not available locally
+    fail(`PHP lint failed for ${relative}: ${((result.stderr || result.stdout || '') + '').trim()}`);
+  }
 }
 
 if (failures.length) {

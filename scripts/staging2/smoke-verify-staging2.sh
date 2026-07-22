@@ -10,7 +10,7 @@ case "$BASE_URL" in
   *) echo "ERROR: refusing unexpected BASE_URL: $BASE_URL" >&2; exit 1 ;;
 esac
 
-for command_name in curl grep mktemp tr cut tail xargs; do
+for command_name in curl grep mktemp tr cut tail xargs sleep; do
   command -v "$command_name" >/dev/null 2>&1 || { echo "ERROR: required command unavailable: $command_name" >&2; exit 1; }
 done
 
@@ -50,13 +50,28 @@ check_redirect() {
   local source_path="$1"
   local target_path="$2"
   local headers_file="$TMP_DIR/headers-$(echo "$source_path" | tr '/-' '__').txt"
-  local status location expected_location
-  status="$(curl --silent --show-error --connect-timeout 15 --max-time 30 --max-redirs 0 --output /dev/null --dump-header "$headers_file" --write-out '%{http_code}' "$BASE_URL$source_path")"
-  [[ "$status" == '301' ]] || fail "$source_path returned HTTP $status instead of 301"
+  local status location expected_location attempt
+
+  status='000'
+  for attempt in 1 2 3 4; do
+    : > "$headers_file"
+    status="$(curl --silent --show-error --connect-timeout 15 --max-time 30 --max-redirs 0 --output /dev/null --dump-header "$headers_file" --write-out '%{http_code}' "$BASE_URL$source_path")"
+    if [[ "$status" == '301' ]]; then
+      break
+    fi
+    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then
+      break
+    fi
+    if [[ "$attempt" -lt 4 ]]; then
+      sleep $(( attempt * 2 ))
+    fi
+  done
+
+  [[ "$status" == '301' ]] || fail "$source_path returned HTTP $status instead of 301 after $attempt attempt(s)"
   location="$(grep -i '^location:' "$headers_file" | tail -n 1 | cut -d: -f2- | tr -d '\r' | xargs)"
   expected_location="$BASE_URL$target_path"
   [[ "$location" == "$expected_location" ]] || fail "$source_path redirects to $location instead of $expected_location"
-  echo "PASS redirect $source_path -> $target_path status=301"
+  echo "PASS redirect $source_path -> $target_path status=301 attempts=$attempt"
 }
 
 check_redirect '/tratamientos/' '/soluciones-medicas/'

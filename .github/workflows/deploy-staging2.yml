@@ -8,9 +8,20 @@ on:
       - 'scripts/staging2/collect-staging2-diagnostics.sh'
       - 'scripts/staging2/smoke-verify-staging2.sh'
       - 'scripts/staging2/verify-rendered-acceptance.mjs'
+      - 'scripts/staging2/capture-visual-qa.mjs'
       - 'scripts/staging2/test-deploy-workflow-contract.mjs'
       - 'scripts/wp/nvx-production-readiness-command.php'
+      - 'wp-content/themes/nuvanx-medical/functions.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php'
+      - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
+      - 'docs/content-strategy-2026/NUVANX-CONTOUR-ROADMAP-STATUS.md'
       - 'docs/operations/deployment.md'
       - 'docs/operations/staging2-phase3-rendered-acceptance.md'
   workflow_dispatch:
@@ -79,6 +90,14 @@ jobs:
           node --check scripts/staging2/verify-rendered-acceptance.mjs \
             2>&1 | tee contract-validation-evidence/rendered-node-syntax.log
 
+      - name: Validate visual QA Node syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p contract-validation-evidence
+          node --check scripts/staging2/capture-visual-qa.mjs \
+            2>&1 | tee contract-validation-evidence/visual-node-syntax.log
+
       - name: Validate deployment contract Node syntax
         shell: bash
         run: |
@@ -93,6 +112,8 @@ jobs:
           set -euo pipefail
           php -l scripts/wp/nvx-production-readiness-command.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php
 
       - name: Validate workflow and deployment contract
         id: contract_validation
@@ -135,6 +156,11 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
 
       - name: Prepare evidence directory
         shell: bash
@@ -291,7 +317,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          deployed_sha="$(ssh nvx-staging2 "tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
+          deployed_sha="$(ssh nvx-staging2 "tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
           test "$deployed_sha" = "$DEPLOY_SHA"
           echo "Verified staging2 marker: $deployed_sha" | tee "$ARTIFACT_DIR/deployed-marker.log"
 
@@ -320,6 +346,20 @@ jobs:
           node scripts/staging2/verify-rendered-acceptance.mjs \
             2>&1 | tee "$ARTIFACT_DIR/rendered-acceptance.log"
           grep -Fq 'RENDERED_ACCEPTANCE_OK' "$ARTIFACT_DIR/rendered-acceptance.log"
+
+      - name: Run real browser visual QA
+        if: inputs.mode == 'DEPLOY_AND_MIGRATE' || inputs.mode == 'SMOKE_ONLY'
+        id: visual_qa
+        env:
+          BASE_URL: https://staging2.nuvanx.com
+          EXPECTED_SHA: ${{ inputs.git_sha }}
+          EVIDENCE_DIR: staging2-deployment-evidence/visual-qa
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/staging2/capture-visual-qa.mjs \
+            2>&1 | tee "$ARTIFACT_DIR/visual-qa.log"
+          grep -Fq 'VISUAL_QA_OK' "$ARTIFACT_DIR/visual-qa.log"
 
       - name: Collect post-run diagnostics
         if: always() && steps.ssh_connectivity.outcome == 'success'
@@ -358,6 +398,7 @@ jobs:
             echo "- Marker verification: \`${{ steps.marker.outcome }}\`"
             echo "- Independent smoke: \`${{ steps.independent_smoke.outcome }}\`"
             echo "- Rendered acceptance: \`${{ steps.rendered_acceptance.outcome }}\`"
+            echo "- Visual QA: \`${{ steps.visual_qa.outcome }}\`"
             echo '- Evidence: download the `staging2-deployment-evidence` artifact from this run.'
           } >> "$GITHUB_STEP_SUMMARY"
 

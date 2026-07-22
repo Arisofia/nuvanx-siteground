@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026.07.22
+- **Repo Cleanup Audit**
+  - Eliminados archivos PHP huérfanos (`nvx-home-content-v2.php`, `nvx-home-copy.php`).
+  - Eliminado bloque CSS redundante en `nvx-components.css`.
+  - Depurado el token `--nvx-hero-h` y unificado su valor.
+  - Corregida documentación y links obsoletos en el `README.md` y `docs/deployment.md`.
+
 ## 2026.07.21
 - **Deep clean — Quiet Luxury Médico**
   - Eliminado todo lenguaje temporal, legacy, patch, issue-ref y one-timer de comentarios de producción.

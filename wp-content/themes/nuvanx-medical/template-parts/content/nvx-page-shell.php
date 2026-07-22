@@ -190,7 +190,7 @@ while ( have_posts() ) :
 				}
 				if ( $prev ) { ?>
 				<a class="nvx-text-link" href="<?php echo esc_url( get_permalink( $prev ) ); ?>" rel="prev">&larr; <?php echo esc_html( get_the_title( $prev ) ); ?></a>
-			<?php }
+				<?php } ?>
 			<?php if ( $next ) : ?>
 				<a class="nvx-text-link" href="<?php echo esc_url( get_permalink( $next ) ); ?>" rel="next"><?php echo esc_html( get_the_title( $next ) ); ?> &rarr;</a>
 			<?php endif; ?>

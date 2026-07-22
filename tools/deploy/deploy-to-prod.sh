@@ -62,8 +62,8 @@ echo "== Guard: siteurl/home/theme =="
   echo "staging siteurl=$siteurl theme=$theme"
   [[ "$siteurl" == 'https://staging2.nuvanx.com' ]] || { echo "ERROR: unexpected staging siteurl=$siteurl" >&2; exit 1; }
   [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: staging active theme is $theme" >&2; exit 1; }
-  test -f wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css
-  test -f wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php
+  [[ -f wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css ]]
+  [[ -f wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php ]]
 )
 
 DATE="$(date +%Y%m%d-%H%M%S)"
@@ -125,10 +125,10 @@ for css_file in \
   nvx-footer.css \
   nvx-posts.css
 do
-  test -f "$CSS/$css_file" || { echo "ERROR: missing $css_file after rsync" >&2; exit 1; }
+  [[ -f "$CSS/$css_file" ]] || { echo "ERROR: missing $css_file after rsync" >&2; exit 1; }
 done
 grep -Fq 'nvx-patterns-editorial.css' "$PROD_ROOT/wp-content/themes/nuvanx-medical/functions.php"
-test -f "$PROD_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php"
+[[ -f "$PROD_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php" ]]
 
 echo "== Purge prod cache =="
 (

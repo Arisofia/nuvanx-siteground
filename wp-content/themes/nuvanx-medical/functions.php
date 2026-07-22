@@ -278,3 +278,4 @@ require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
 require_once get_template_directory() . '/inc/nvx-faq-catalog.php';
 require_once get_template_directory() . '/inc/nvx-evidence-panel.php';
 require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
+require_once get_template_directory() . '/inc/nvx-cases-page.php';

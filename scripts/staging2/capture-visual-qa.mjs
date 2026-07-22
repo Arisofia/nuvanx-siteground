@@ -451,7 +451,11 @@ async function auditMobileNavigation(port) {
   let session;
   try {
     session = await loadPage(port, `${baseUrl}/`, { width: 390, height: 844, mobile: true });
-    await session.evaluate(`document.getElementById('nvx-hamburger-btn')?.click()`);
+    await session.evaluate(`(() => {
+      const button = document.getElementById('nvx-hamburger-btn');
+      button?.focus();
+      button?.click();
+    })()`);
     await sleep(250);
     const drawer = await session.evaluate(`(() => {
       const nav = document.getElementById('nvx-mobile-nav');
@@ -475,7 +479,7 @@ async function auditMobileNavigation(port) {
 
     const state = await session.evaluate(String.raw`(() => {
       const nav = document.getElementById('nvx-mobile-nav');
-      const text = nav?.innerText.replace(/\s+/g, ' ').trim() || '';
+      const text = nav?.textContent.replace(/\s+/g, ' ').trim() || '';
       return {
         text,
         expanded: Array.from(nav?.querySelectorAll('.nvx-mobile-nav__toggle[aria-expanded="true"]') || []).length,

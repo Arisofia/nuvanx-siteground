@@ -613,12 +613,12 @@
   gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
 }
 
-.nvx-nosotros-team-card .nvx-endolift-kicker {
+.nvx-nosotros-team-card .nvx-editorial-kicker {
   margin: 0;
 }
 
-.nvx-nosotros-team-card .nvx-endolaser-zone__title,
-.nvx-nosotros-team-card .nvx-endolift-body {
+.nvx-nosotros-team-card .nvx-editorial-grid-item__title,
+.nvx-nosotros-team-card .nvx-editorial-body {
   margin: 0;
 }
 
@@ -675,202 +675,6 @@
   color: var(--nvx-text-muted, var(--nvx-text-body));
 }
 
-/* Equipo page structure — aligned profiles + staff */
-.nvx-equipo-editorial {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-/* Text-only hero when featured image is logo / missing */
-.nvx-equipo-hero--copy-only .nvx-brand-hero__inner {
-  grid-template-columns: minmax(0, 1fr);
-  max-width: var(--nvx-measure-wide, 72rem);
-}
-
-.nvx-equipo-editorial > .nvx-equipo-director,
-.nvx-equipo-editorial > .nvx-equipo-ivon,
-.nvx-equipo-editorial > .nvx-equipo-fabio {
-  border-bottom: 1px solid var(--nvx-color-line);
-}
-
-/* Stack authority sections with consistent vertical rhythm */
-.nvx-equipo-director,
-.nvx-equipo-ivon,
-.nvx-equipo-fabio {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.nvx-equipo-director > .nvx-endolift-section,
-.nvx-equipo-ivon > .nvx-endolift-section,
-.nvx-equipo-fabio > .nvx-endolift-section {
-  padding-block: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-6));
-}
-
-.nvx-equipo-profile-layout__copy {
-  min-width: 0;
-  max-width: 68ch;
-  display: flex;
-  flex-direction: column;
-  gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
-}
-
-.nvx-equipo-profile-layout__copy .nvx-endolift-kicker {
-  margin-bottom: 0;
-}
-
-.nvx-equipo-profile-layout__copy .nvx-endolift-heading {
-  max-width: 28ch;
-  margin-bottom: 0;
-}
-
-.nvx-equipo-profile-layout__copy .nvx-endolift-body {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-/* Portrait frame — win over .nvx-content-figure body media rules */
-.nvx-equipo-portrait.nvx-content-figure {
-  display: block;
-  margin: 0;
-  margin-block: 0;
-  margin-inline: 0;
-  width: 100%;
-  max-width: 16rem;
-  aspect-ratio: 5 / 6;
-  overflow: hidden;
-  border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5));
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-  box-shadow: var(--nvx-shadow-min, 0 1px 2px var(--nvx-surface-soft));
-  justify-self: start;
-}
-
-.nvx-equipo-portrait img,
-.nvx-equipo-portrait .nvx-media--doctor,
-.nvx-equipo-portrait.nvx-content-figure img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-height: none;
-  max-width: none;
-  aspect-ratio: auto;
-  object-fit: cover;
-  object-position: center top;
-  border-radius: 0;
-}
-
-/* Staff grid: equal cards, portrait frames, no span-4 leak from team class */
-.nvx-equipo-staff {
-  padding-block: clamp(var(--nvx-space-4), 5vw, 56px);
-}
-
-.nvx-equipo-staff-grid .nvx-brand-card,
-.nvx-equipo-staff-grid .nvx-brand-card--team {
-  grid-column: auto;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-width: 0;
-  margin: 0;
-  gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
-}
-
-.nvx-equipo-staff-grid .nvx-brand-card__media,
-.nvx-equipo-staff-grid .nvx-brand-card__media--portrait,
-.nvx-equipo-staff-grid figure.nvx-brand-card__media.nvx-content-figure {
-  display: block;
-  margin: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
-  margin-block: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
-  width: auto;
-  max-width: none;
-  aspect-ratio: 5 / 6;
-  max-height: none;
-  overflow: hidden;
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-  border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) 0 0;
-}
-
-.nvx-equipo-staff-grid .nvx-brand-card__media img,
-.nvx-equipo-staff-grid .nvx-brand-card__media--portrait img,
-.nvx-equipo-staff-grid img.nvx-media--doctor,
-.nvx-equipo-staff-grid .nvx-content-figure img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-height: none;
-  max-width: none;
-  aspect-ratio: auto;
-  object-fit: cover;
-  object-position: center top;
-  border-radius: 0;
-}
-
-.nvx-equipo-staff-grid .nvx-brand-card__kicker {
-  margin: 0;
-}
-
-.nvx-equipo-staff-grid .nvx-brand-card__title {
-  margin: 0;
-  text-align: left;
-}
-
-.nvx-equipo-staff-grid .nvx-brand-card__body {
-  flex: 1 1 auto;
-  margin: 0;
-  text-align: left;
-}
-
-.nvx-equipo-staff-grid .nvx-brand-card__body + .nvx-brand-card__body {
-  margin-top: 0;
-}
-
-
-
-@media (min-width: 960px) {
-  /* Remaining clinical team (typically 3 after authority profiles) */
-}
-
-
-
-/* Equipo — clinical quote */
-.nvx-equipo-blockquote {
-  margin: 0 0 var(--nvx-space-4);
-  max-width: 40rem;
-  padding: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-5));
-  border-left: calc(var(--nvx-space-1) * 0.375) solid var(--nvx-accent-muted);
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-}
-
-.nvx-equipo-blockquote p {
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
-  font-weight: 400;
-  line-height: 1.45;
-  color: var(--nvx-ink);
-}
-
-.nvx-equipo-blockquote footer {
-  font-family: var(--nvx-sans);
-  font-size: 0.875rem;
-  letter-spacing: 0.04em;
-  color: var(--nvx-text-muted, var(--nvx-text-body));
-}
-
-.screen-reader-text {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: calc(var(--nvx-border-hairline) * -1);
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 /* CO₂ recovery timeline */
 .nvx-co2-timeline {
   list-style: none;
@@ -889,31 +693,6 @@
 }
 
 .nvx-co2-timeline__title {
-  margin: 0 0 var(--nvx-space-2);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h3);
-  font-weight: 400;
-  line-height: var(--nvx-lh-h3);
-  color: var(--nvx-ink);
-}
-
-/* Endoláser corporal — zone list (reuses endolift section rhythm) */
-.nvx-endolaser-zone-list {
-  list-style: none;
-  margin: var(--nvx-space-4) 0 0;
-  padding: 0;
-  display: grid;
-  gap: clamp(calc(var(--nvx-space-1) * 2.5), 3vw, var(--nvx-space-4));
-  max-width: 68ch;
-}
-
-.nvx-endolaser-zone {
-  margin: 0;
-  padding-top: var(--nvx-space-3);
-  border-top: 1px solid var(--nvx-color-line);
-}
-
-.nvx-endolaser-zone__title {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);

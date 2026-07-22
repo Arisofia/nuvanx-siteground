@@ -53,7 +53,10 @@ function nvx_aesthetic_lookup_published_url( string $path ): ?string {
 
 
 /**
- * Detect Medicina Estética hub (injectables / regenerativa), not láser hub.
+ * Detects whether content belongs to the Medicina Estética hub rather than the laser hub.
+ *
+ * @param string $content The page content to inspect.
+ * @return bool `true` if the content matches the Medicina Estética hub markers, `false` otherwise.
  */
 function nvx_content_is_aesthetic_medicine_page( string $content ): bool {
 	$is_hub = false;
@@ -61,7 +64,7 @@ function nvx_content_is_aesthetic_medicine_page( string $content ): bool {
 	if ( false === strpos( $content, 'nvx-aesthetic-editorial' )
 		&& nvx_aesthetic_is_singular_context()
 		&& ! preg_match(
-			'/nvx-brand-page--laser|nvx-laser-editorial|nvx-laser-hero|id=["\']nvx-laser-h1["\']|nvx-endolift-editorial|nvx-endolift-hero|aria-label=["\']Medicina estética láser NUVANX["\']/iu',
+			'/nvx-brand-page--laser|nvx-laser-editorial|nvx-laser-hero|id=["\']nvx-laser-h1["\']|nvx-editorial-page|nvx-editorial-hero|aria-label=["\']Medicina estética láser NUVANX["\']/iu',
 			$content
 		)
 	) {

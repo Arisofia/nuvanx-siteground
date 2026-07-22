@@ -43,8 +43,10 @@ function nvx_laser_page_url( string $path ): string {
 }
 
 /**
- * Detect Medicina Estética Láser hub content before rewrite.
- * Prefers stable structural markers over free-text phrases.
+ * Determines whether content represents the Medicina Estética Láser hub page.
+ *
+ * @param string $content The page content to inspect.
+ * @return bool `true` if the content matches the laser hub markers in a suitable singular page context, `false` otherwise.
  */
 function nvx_content_is_laser_medicine_page( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-laser-editorial' ) ) {
@@ -57,7 +59,7 @@ function nvx_content_is_laser_medicine_page( string $content ): bool {
 
 	// Exclude treatment detail pages that share laser hero modifiers.
 	if ( preg_match(
-		'/nvx-endolift-editorial|nvx-endolift-hero|nvx-endolaser-editorial|nvx-endolaser-hero|nvx-co2-editorial|nvx-co2-hero|aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|id=["\']nvx-endolaser-h1["\']|id=["\']nvx-co2-h1["\']|nvx-brand-page--exion|aria-label=["\']EXION/iu',
+		'/nvx-editorial-page|nvx-editorial-hero|nvx-endolaser-editorial|nvx-endolaser-hero|nvx-co2-editorial|nvx-co2-hero|aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|id=["\']nvx-endolaser-h1["\']|id=["\']nvx-co2-h1["\']|nvx-brand-page--exion|aria-label=["\']EXION/iu',
 		$content
 	) ) {
 		return false;

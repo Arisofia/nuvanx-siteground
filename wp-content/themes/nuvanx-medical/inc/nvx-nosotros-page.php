@@ -88,15 +88,17 @@ function nvx_nosotros_hero_copy_markup(): string {
 }
 
 /**
- * Positioning intro.
+ * Generates the positioning section for the About Us page.
+ *
+ * @return string The positioning section HTML markup.
  */
 function nvx_nosotros_positioning_markup(): string {
-	$html  = '<section class="nvx-endolift-section nvx-nosotros-positioning" aria-labelledby="nvx-nosotros-pos-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Posicionamiento', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-pos-title" class="nvx-endolift-heading">' . esc_html__( 'Criterio clínico antes que catálogo', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'En NUVANX Medicina Estética Láser (Madrid) rechazamos la comercialización masiva y los protocolos estandarizados de la estética convencional. Operamos bajo el rigor de la medicina basada en la evidencia, la ingeniería tisular y el well-aging (envejecimiento saludable).', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'No aplicamos tratamientos por inercia: diagnosticamos cada anatomía de forma individual y precisa. Solo entonces prescribimos las soluciones tecnológicas más indicadas, sustentando cada decisión en mecanismos de acción celular comprobables.', 'nuvanx-medical' ) . '</p>';
+	$html  = '<section class="nvx-editorial-section nvx-nosotros-positioning" aria-labelledby="nvx-nosotros-pos-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Posicionamiento', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-pos-title" class="nvx-editorial-heading">' . esc_html__( 'Criterio clínico antes que catálogo', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'En NUVANX Medicina Estética Láser (Madrid) rechazamos la comercialización masiva y los protocolos estandarizados de la estética convencional. Operamos bajo el rigor de la medicina basada en la evidencia, la ingeniería tisular y el well-aging (envejecimiento saludable).', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'No aplicamos tratamientos por inercia: diagnosticamos cada anatomía de forma individual y precisa. Solo entonces prescribimos las soluciones tecnológicas más indicadas, sustentando cada decisión en mecanismos de acción celular comprobables.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></section>';
 
 	return $html;
@@ -133,20 +135,22 @@ function nvx_nosotros_platforms_data(): array {
 }
 
 /**
- * Platforms section markup.
+ * Builds the clinical platforms section markup, including protocol links for available platforms.
+ *
+ * @return string The rendered platforms section HTML.
  */
 function nvx_nosotros_platforms_markup(): string {
-	$html  = '<section class="nvx-endolift-section nvx-nosotros-platforms" aria-labelledby="nvx-nosotros-tech-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Plataformas clínicas', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-tech-title" class="nvx-endolift-heading">' . esc_html__( 'Tecnología con evidencia, nunca por tendencia', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Incorporamos dispositivos con marcado CE y documentación técnica disponible. Se indican solo cuando la valoración clínica identifica un objetivo, una alternativa y un seguimiento apropiados.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-endolaser-zone-list nvx-nosotros-platform-list">';
+	$html  = '<section class="nvx-editorial-section nvx-nosotros-platforms" aria-labelledby="nvx-nosotros-tech-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Plataformas clínicas', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-tech-title" class="nvx-editorial-heading">' . esc_html__( 'Tecnología con evidencia, nunca por tendencia', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Incorporamos dispositivos con marcado CE y documentación técnica disponible. Se indican solo cuando la valoración clínica identifica un objetivo, una alternativa y un seguimiento apropiados.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-editorial-grid-list nvx-nosotros-platform-list">';
 
 	foreach ( nvx_nosotros_platforms_data() as $item ) {
-		$html .= '<li class="nvx-endolaser-zone">';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ) . '</h3>';
-		$html .= '<p class="nvx-endolift-body">' . esc_html( $item['body'] ) . '</p>';
+		$html .= '<li class="nvx-editorial-grid-item">';
+		$html .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $item['title'] ) . '</h3>';
+		$html .= '<p class="nvx-editorial-body">' . esc_html( $item['body'] ) . '</p>';
 		if ( ! empty( $item['url'] ) ) {
 			$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $item['url'] ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . '</a></p>';
 		}
@@ -155,9 +159,9 @@ function nvx_nosotros_platforms_markup(): string {
 
 	// Secondary link to endoláser corporal (laserlipolysis body detail).
 	$endolaser = nvx_nosotros_url( 'endolaser-corporal-grasa-localizada' );
-	$html     .= '<li class="nvx-endolaser-zone nvx-nosotros-platform-related">';
-	$html     .= '<h3 class="nvx-endolaser-zone__title">' . esc_html__( 'Endoláser corporal', 'nuvanx-medical' ) . '</h3>';
-	$html     .= '<p class="nvx-endolift-body">' . esc_html__( 'Protocolo de laserlipólisis corporal para adiposidad localizada con retracción térmica asociada, documentado en página propia.', 'nuvanx-medical' ) . '</p>';
+	$html     .= '<li class="nvx-editorial-grid-item nvx-nosotros-platform-related">';
+	$html     .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html__( 'Endoláser corporal', 'nuvanx-medical' ) . '</h3>';
+	$html     .= '<p class="nvx-editorial-body">' . esc_html__( 'Protocolo de laserlipólisis corporal para adiposidad localizada con retracción térmica asociada, documentado en página propia.', 'nuvanx-medical' ) . '</p>';
 	$html     .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $endolaser ) . '">' . esc_html__( 'Ver Endoláser corporal', 'nuvanx-medical' ) . '</a></p>';
 	$html     .= '</li>';
 
@@ -167,7 +171,9 @@ function nvx_nosotros_platforms_markup(): string {
 }
 
 /**
- * Clinics NAP (reuse contact data when available).
+ * Renders the authorized NUVANX clinic locations and their contact details.
+ *
+ * @return string The clinics section HTML.
  */
 function nvx_nosotros_clinics_markup(): string {
 	$clinics = function_exists( 'nvx_contact_clinics_nap' )
@@ -187,11 +193,11 @@ function nvx_nosotros_clinics_markup(): string {
 			),
 		);
 
-	$html  = '<section class="nvx-endolift-section nvx-nosotros-clinics" aria-labelledby="nvx-nosotros-clinics-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-clinics-title" class="nvx-endolift-heading">' . esc_html__( 'Instalaciones autorizadas en Madrid', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Nuestras instalaciones cumplen la normativa sanitaria de la Comunidad de Madrid en dos sedes de excelencia:', 'nuvanx-medical' ) . '</p>';
+	$html  = '<section class="nvx-editorial-section nvx-nosotros-clinics" aria-labelledby="nvx-nosotros-clinics-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-clinics-title" class="nvx-editorial-heading">' . esc_html__( 'Instalaciones autorizadas en Madrid', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Nuestras instalaciones cumplen la normativa sanitaria de la Comunidad de Madrid en dos sedes de excelencia:', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-contact-clinics">';
 
 	foreach ( $clinics as $clinic ) {
@@ -212,7 +218,7 @@ function nvx_nosotros_clinics_markup(): string {
 
 	$html .= '</div>';
 	$clinicas = home_url( '/clinicas-de-medicina-estetica-nuvanx/' );
-	$html    .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( $clinicas ) . '">' . esc_html__( 'Ver clínicas NUVANX', 'nuvanx-medical' ) . '</a></p>';
+	$html    .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $clinicas ) . '">' . esc_html__( 'Ver clínicas NUVANX', 'nuvanx-medical' ) . '</a></p>';
 	$html    .= '</div></section>';
 
 	return $html;
@@ -255,19 +261,19 @@ function nvx_nosotros_team_markup(): string {
 		),
 	);
 
-	$html  = '<section class="nvx-endolift-section nvx-nosotros-team" aria-labelledby="nvx-nosotros-team-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Cuadro médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-team-title" class="nvx-endolift-heading">' . esc_html__( 'Excelencia hospitalaria e investigadora', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'El mayor aval de NUVANX no es solo la tecnología, sino la trayectoria académica, investigadora y clínica del equipo. Resumen de autoridad; biografías completas en Equipo médico.', 'nuvanx-medical' ) . '</p>';
+	$html  = '<section class="nvx-editorial-section nvx-nosotros-team" aria-labelledby="nvx-nosotros-team-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Cuadro médico', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-team-title" class="nvx-editorial-heading">' . esc_html__( 'Excelencia hospitalaria e investigadora', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El mayor aval de NUVANX no es solo la tecnología, sino la trayectoria académica, investigadora y clínica del equipo. Resumen de autoridad; biografías completas en Equipo médico.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-nosotros-team-grid">';
 
 	foreach ( $members as $m ) {
 		$html .= '<article class="nvx-nosotros-team-card">';
-		$html .= '<p class="nvx-endolift-kicker">' . esc_html( $m['role'] ) . '</p>';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $m['name'] ) . '</h3>';
-		$html .= '<p class="nvx-endolift-body"><strong>' . esc_html__( 'ICOMEM', 'nuvanx-medical' ) . '</strong> ' . esc_html( $m['col'] ) . '</p>';
-		$html .= '<p class="nvx-endolift-body">' . esc_html( $m['body'] ) . '</p>';
+		$html .= '<p class="nvx-editorial-kicker">' . esc_html( $m['role'] ) . '</p>';
+		$html .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $m['name'] ) . '</h3>';
+		$html .= '<p class="nvx-editorial-body"><strong>' . esc_html__( 'ICOMEM', 'nuvanx-medical' ) . '</strong> ' . esc_html( $m['col'] ) . '</p>';
+		$html .= '<p class="nvx-editorial-body">' . esc_html( $m['body'] ) . '</p>';
 		$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $m['anchor'] ) . '">' . esc_html__( 'Ver biografía completa', 'nuvanx-medical' ) . '</a></p>';
 		if ( '' !== $m['extra'] ) {
 			$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $m['extra'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Perfil en Doctoralia', 'nuvanx-medical' ) . '</a></p>';
@@ -276,7 +282,7 @@ function nvx_nosotros_team_markup(): string {
 	}
 
 	$html .= '</div>';
-	$html .= '<p class="nvx-endolift-body"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo ) . '">' . esc_html__( 'Conocer al equipo médico completo', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo ) . '">' . esc_html__( 'Conocer al equipo médico completo', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></section>';
 
 	return $html;
@@ -305,15 +311,15 @@ function nvx_nosotros_principles_markup(): string {
 		),
 	);
 
-	$html  = '<section class="nvx-endolift-section nvx-nosotros-principles" aria-labelledby="nvx-nosotros-principles-title">';
-	$html .= '<div class="nvx-endolift-section__inner">';
-	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Principios', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-endolift-heading">' . esc_html__( 'Principios médicos innegociables', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<ul class="nvx-endolaser-zone-list">';
+	$html  = '<section class="nvx-editorial-section nvx-nosotros-principles" aria-labelledby="nvx-nosotros-principles-title">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Principios', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-editorial-heading">' . esc_html__( 'Principios médicos innegociables', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<ul class="nvx-editorial-grid-list">';
 	foreach ( $items as $item ) {
-		$html .= '<li class="nvx-endolaser-zone">';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ) . '</h3>';
-		$html .= '<p class="nvx-endolift-body">' . esc_html( $item['body'] ) . '</p>';
+		$html .= '<li class="nvx-editorial-grid-item">';
+		$html .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $item['title'] ) . '</h3>';
+		$html .= '<p class="nvx-editorial-body">' . esc_html( $item['body'] ) . '</p>';
 		$html .= '</li>';
 	}
 	$html .= '</ul></div></section>';
@@ -322,11 +328,12 @@ function nvx_nosotros_principles_markup(): string {
 }
 
 /**
- * Full editorial body.
- * Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
+ * Builds the complete editorial body for the About Us page.
+ *
+ * @return string The HTML markup for the editorial body.
  */
 function nvx_nosotros_editorial_body_markup(): string {
-	$html  = '<div class="nvx-nosotros-editorial nvx-endolift-editorial">';
+	$html  = '<div class="nvx-nosotros-editorial nvx-editorial-page">';
 	$html .= nvx_nosotros_positioning_markup();
 	$html .= nvx_nosotros_platforms_markup();
 	$html .= nvx_nosotros_clinics_markup();
@@ -338,7 +345,10 @@ function nvx_nosotros_editorial_body_markup(): string {
 }
 
 /**
- * Rebuild nosotros page content once.
+ * Rebuilds the Sobre Nosotros page content with the editorial hero and body sections.
+ *
+ * @param string $content The original page content.
+ * @return string The rebuilt page content, or the original content when the page is not a Sobre Nosotros page.
  */
 function nvx_content_restructure_nosotros_page( string $content ): string {
 	if ( ! nvx_content_is_nosotros_page( $content ) ) {
@@ -356,7 +366,7 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 		$media = '';
 	}
 
-	$hero_classes = 'nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero nvx-nosotros-hero';
+	$hero_classes = 'nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero nvx-nosotros-hero';
 	if ( '' === $media ) {
 		$hero_classes .= ' nvx-nosotros-hero--copy-only';
 	}

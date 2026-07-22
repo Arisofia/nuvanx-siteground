@@ -41,6 +41,7 @@ const pages = [
   ['/contorno-corporal-masculino-madrid/', 'Pensado para el cuerpo de un hombre, no adaptado del de una mujer.'],
   ['/por-que-nuvanx/', 'Por qué NUVANX. Sin retórica de marketing.'],
   ['/inversion-medicina-estetica/', 'El presupuesto forma parte de una decisión informada.'],
+  ['/equipo-medico/', 'Equipo médico NUVANX: quién te valora y quién trata'],
 ];
 
 const findings = [];
@@ -313,6 +314,11 @@ async function captureFullPage(session, destination, viewport) {
   fs.writeFileSync(destination, Buffer.from(screenshot.data, 'base64'));
 }
 
+/**
+ * Captures the current viewport as a PNG file.
+ * @param {object} session - The CDP session used to capture the screenshot.
+ * @param {string} destination - The path where the PNG file is written.
+ */
 async function captureViewport(session, destination) {
   const screenshot = await session.send('Page.captureScreenshot', {
     format: 'png',
@@ -321,6 +327,62 @@ async function captureViewport(session, destination) {
   fs.writeFileSync(destination, Buffer.from(screenshot.data, 'base64'));
 }
 
+/**
+ * Audits the Equipo Médico page's editorial structure and responsive layout.
+ * @param {CDPSession} session - The browser session used to inspect the page.
+ * @param {{mobile: boolean}} viewport - The viewport configuration being audited.
+ * @param {string} scope - The finding scope used for audit failures.
+ * @param {Object} result - The report object to receive the editorial audit state.
+ */
+async function auditEquipoEditorial(session, viewport, scope, result) {
+  const state = await session.evaluate(String.raw`(() => {
+    const columnCount = (selector) => {
+      const node = document.querySelector(selector);
+      if (!node) return 0;
+      const value = getComputedStyle(node).gridTemplateColumns.trim();
+      return value && value !== 'none' ? value.split(/\s+/).length : 0;
+    };
+    const allClasses = Array.from(document.querySelectorAll('[class]'))
+      .flatMap((node) => Array.from(node.classList));
+    const crossed = allClasses.filter((name) =>
+      /^nvx-endolift-(?:section|kicker|heading|body|diagnosis|panel|editorial|hero)/.test(name) ||
+      /^nvx-endolaser-zone/.test(name)
+    );
+    return {
+      stylesheet: Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .some((node) => /nvx-editorial-coherence\.css/.test(node.href)),
+      editorialSections: document.querySelectorAll('.nvx-editorial-section').length,
+      gridLists: document.querySelectorAll('.nvx-editorial-grid-list').length,
+      factLists: document.querySelectorAll('.nvx-editorial-fact-list').length,
+      profiles: document.querySelectorAll('.nvx-equipo-profile-layout').length,
+      gridListColumns: columnCount('.nvx-editorial-grid-list'),
+      factListColumns: columnCount('.nvx-editorial-fact-list'),
+      profileColumns: columnCount('.nvx-equipo-profile-layout'),
+      crossed: [...new Set(crossed)],
+    };
+  })()`);
+  result.equipo_editorial = state;
+  if (!state.stylesheet) fail(scope, 'editorial coherence stylesheet is not loaded');
+  if (state.crossed.length) fail(scope, `crossed treatment classes remain in DOM: ${state.crossed.join(', ')}`);
+  if (state.editorialSections < 6) fail(scope, `expected at least 6 editorial sections, found ${state.editorialSections}`);
+  if (!state.gridLists || !state.factLists || !state.profiles) fail(scope, 'missing editorial grid, fact list or profile layout');
+  const expectedColumns = viewport.mobile ? 1 : 2;
+  for (const [name, count] of [
+    ['editorial grid list', state.gridListColumns],
+    ['editorial fact list', state.factListColumns],
+    ['medical profile', state.profileColumns],
+  ]) {
+    if (count !== expectedColumns) fail(scope, `${name} has ${count} columns; expected ${expectedColumns}`);
+  }
+}
+
+/**
+ * Audits a page at a single viewport and records its state and evidence.
+ * @param {number} port - The Chrome remote debugging port.
+ * @param {string} pagePath - The page path to audit.
+ * @param {string} expectedH1 - The expected page heading.
+ * @param {Object} viewport - The viewport configuration used for loading and capturing the page.
+ */
 async function auditSingleViewport(port, pagePath, expectedH1, viewport) {
   const scope = `${pagePath} ${viewport.name}`;
   const result = { path: pagePath, viewport: viewport.name };
@@ -334,6 +396,8 @@ async function auditSingleViewport(port, pagePath, expectedH1, viewport) {
     if (result.overflow > 2) fail(scope, `horizontal overflow is ${result.overflow}px`);
     if (!result.headerVisible) fail(scope, 'header is not visible');
     if (!result.footerVisible) fail(scope, 'footer is not visible');
+
+    if (pagePath === '/equipo-medico/') await auditEquipoEditorial(session, viewport, scope, result);
 
     const destination = path.join(evidenceDir, `${safeName(pagePath)}-${viewport.name}.png`);
     await captureFullPage(session, destination, viewport);

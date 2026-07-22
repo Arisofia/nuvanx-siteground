@@ -147,6 +147,34 @@ if ((header.match(/\.nvx-mobile-nav\s*\{/g) || []).length !== 1) fail('header: m
 for (const marker of ['display: none;', 'min-height: 100dvh;', 'overflow-y: auto;', '.nvx-header__cta']) if (!header.includes(marker)) fail(`header: missing ${marker}`);
 if ((footer.match(/grid-template-columns: repeat\(12, minmax\(0, 1fr\)\);/g) || []).length !== 1) fail('footer: canonical 12-column grid count');
 
+const crossedPrimitives = [
+  'nvx-endolift-section',
+  'nvx-endolift-kicker',
+  'nvx-endolift-heading',
+  'nvx-endolift-body',
+  'nvx-endolift-diagnosis__',
+  'nvx-endolift-panel-',
+  'nvx-endolift-editorial',
+  'nvx-endolift-hero',
+  'nvx-endolaser-zone',
+];
+for (const file of runtime.filter((candidate) => /\/inc\/[^/]+\.php$/i.test(candidate) && !candidate.endsWith('/inc/nvx-endolift-page.php'))) {
+  const content = fs.readFileSync(file, 'utf8');
+  for (const primitive of crossedPrimitives) {
+    if (content.includes(primitive)) fail(`${rel(file)}: crossed treatment design primitive ${primitive}`);
+  }
+}
+const editorialCoherence = read('assets/css/nvx-editorial-coherence.css');
+for (const required of [
+  '.nvx-editorial-section',
+  '.nvx-editorial-grid-list',
+  '.nvx-editorial-fact-list',
+  '.nvx-equipo-profile-layout',
+  '@media (min-width: 48rem)',
+]) if (!editorialCoherence.includes(required)) fail(`editorial coherence: missing ${required}`);
+if ((functions.match(/wp_enqueue_style\(\s*'nvx-editorial-coherence'/g) || []).length !== 1) fail('functions.php: editorial coherence must be enqueued once');
+if (!functions.includes("array( 'nvx-editorial-coherence' )")) fail('functions.php: header must depend on editorial coherence');
+
 const report = errors.length
   ? `FAIL: ${errors.length} theme hygiene finding(s)\n${errors.map((error) => `- ${error}`).join('\n')}\n`
   : `PASS: theme hygiene across ${runtime.length} runtime files\n`;

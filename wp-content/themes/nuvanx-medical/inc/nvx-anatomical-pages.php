@@ -302,8 +302,7 @@ function nvx_anatomical_body_catalog(): array {
  */
 function nvx_anatomical_pages_catalog(): array {
 	return array_merge( nvx_anatomical_facial_catalog(), nvx_anatomical_body_catalog() );
-
-
+}
 /** Identifies the current page's anatomical catalog entry. */
 function nvx_anatomical_pages_current_key(): ?string {
 	if ( ! is_page() ) {

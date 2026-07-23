@@ -16,6 +16,8 @@ $hero_poster_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-poster
 $editorial_image  = content_url( '/uploads/2026/07/Endolift-Corporal-Portada.webp' );
 $authority_image  = content_url( '/uploads/2026/07/proceso-medico-laser-nuvanx-madrid.webp' );
 
+define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
+
 $protocols = array(
 	array(
 		'number' => '01',
@@ -43,7 +45,7 @@ $protocols = array(
 		'label'  => 'Contour Architecture™',
 		'title'  => 'Contorno corporal por unidades anatómicas.',
 		'copy'   => 'Grasa localizada, laxitud y continuidad entre zonas se valoran por separado antes de construir el plan.',
-		'url'    => '/remodelacion-corporal-laser-madrid/',
+		'url'    => NVX_URL_REMODELACION,
 	),
 );
 
@@ -64,7 +66,7 @@ $solutions = array(
 		'kicker' => 'CONTORNO CORPORAL',
 		'title'  => 'Proporción, tejido y continuidad entre zonas.',
 		'copy'   => 'Abdomen, flancos, brazos, espalda y muslos se estudian dentro de la silueta completa.',
-		'url'    => '/remodelacion-corporal-laser-madrid/',
+		'url'    => NVX_URL_REMODELACION,
 	),
 );
 
@@ -75,6 +77,8 @@ ob_start();
 		<div class="nvx-home-hero__media" aria-hidden="true">
 			<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>">
 				<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
+				<track kind="subtitles" src="/uploads/captions.vtt" srclang="es" label="Español">
+				<track kind="descriptions" src="/uploads/descriptions.vtt" srclang="es" label="Audiodescripción">
 			</video>
 			<button id="nvx-home-hero-video-pause" class="nvx-home-hero__video-control" aria-label="Pause background video">Pause</button>
 		</div>
@@ -104,7 +108,7 @@ ob_start();
 			<p class="nvx-home-eyebrow">PREPARACIÓN CORPORAL</p>
 			<h2 id="nvx-home-feature-title">La disciplina también puede ser delicada.</h2>
 			<p>Un plan corporal no empieza por una máquina. Empieza por entender la anatomía, la calidad del tejido y qué cambio puede ser proporcionado sin perder naturalidad.</p>
-			<a href="<?php echo esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ); ?>" class="nvx-home-text-link">Explorar remodelación corporal</a>
+			<a href="<?php echo esc_url( home_url( NVX_URL_REMODELACION ) ); ?>" class="nvx-home-text-link">Explorar remodelación corporal</a>
 		</div>
 	</section>
 

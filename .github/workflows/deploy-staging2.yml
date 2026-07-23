@@ -1,6 +1,9 @@
 name: Deploy Staging2 (manual)
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types: [opened, synchronize, reopened, labeled]
     paths:
@@ -139,6 +142,7 @@ jobs:
     name: Diagnose or deploy immutable SHA to staging2
     needs: contract
     if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
       (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DEPLOY_STAGING2') ||
       (github.event_name == 'pull_request' &&
        github.event.action == 'labeled' &&
@@ -151,7 +155,7 @@ jobs:
       name: staging2
       url: https://staging2.nuvanx.com
     env:
-      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.pull_request.head.sha }}
+      DEPLOY_SHA: ${{ github.event_name == 'push' && github.sha || (github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.pull_request.head.sha) }}
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'DEPLOY_AND_MIGRATE' }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
     steps:

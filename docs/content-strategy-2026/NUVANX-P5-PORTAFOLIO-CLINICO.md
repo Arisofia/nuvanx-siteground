@@ -11,14 +11,14 @@
 
 - **URL canónica:** https://nuvanx.com/tratamientos/
 - **Módulo WordPress:** `inc/nvx-portfolio-hub.php`
-- **Estado:** En producción (actualizado con enfoque anatómico y Couture Sculpt™)
+- **Estado:** En producción (actualizado con enfoque anatómico y Contour Architecture™)
 
 ---
 
 ## 02. SEO META
 
 - **SEO Title (60 car.):** Portafolio Clínico y Medicina Estética Avanzada | NUVANX
-- **Meta description (150 car.):** Descubre nuestro portafolio clínico. En NUVANX el diagnóstico precede a la tecnología. Protocolos Couture Sculpt™, Endolift® y medicina láser de precisión.
+- **Meta description (150 car.):** Descubre nuestro portafolio clínico. En NUVANX el diagnóstico precede a la tecnología. Protocolos Contour Architecture™, Endolift® y medicina láser de precisión.
 - **Canonical:** https://nuvanx.com/tratamientos/
 - **OG Title:** Portafolio Clínico | Diagnóstico y Medicina Estética NUVANX
 
@@ -30,7 +30,7 @@
 **H2:** La anatomía dicta el plan; la tecnología lo ejecuta
 **H2:** Áreas Anatómicas y Protocolos
 **H3:** Contorno y Proporción Facial
-**H3:** Arquitectura Corporal y Couture Sculpt™
+**H3:** Arquitectura Corporal y Contour Architecture™
 **H3:** Calidad de Piel, Tono y Superficie
 **H2:** Nuestro Arsenal Tecnológico (Plataformas Médicas)
 **H2:** Tu primera valoración clínica
@@ -81,13 +81,13 @@ los depósitos grasos del tercio inferior mediante protocolos como **NUVANX Prof
 redefiniendo la línea mandibular y eliminando la papada con precisión láser.
 [Enlace a Papada y Mandíbula →]
 
-H3: Arquitectura Corporal y Couture Sculpt™
+H3: Arquitectura Corporal y Contour Architecture™
 TEXTO:
 La remodelación corporal exige comprender la continuidad entre zonas.
-Nuestro protocolo estrella **Couture Sculpt™** aborda la grasa localizada rebelde
+Nuestro protocolo estrella **Contour Architecture™** aborda la grasa localizada rebelde
 y la flacidez en abdomen, flancos, brazos y piernas. Un sistema de diagnóstico y
 tratamiento térmico intersticial que esculpe el contorno sin imponer formas estándar.
-[Enlace a Remodelación Corporal (Couture Sculpt) →]
+[Enlace a Remodelación Corporal (Contour Architecture) →]
 
 H3: Calidad de Piel, Tono y Superficie
 TEXTO:
@@ -108,7 +108,7 @@ operadas exclusivamente por facultativos colegiados tras establecer una indicaci
 
 TARJETA: Láser Intersticial 1470nm (Endolift® / Endoláser)
 Mecanismo: Tecnología subdérmica mediante microfibras ópticas para retracción tisular
-y reducción de grasa focalizada, pilar fundamental de nuestro protocolo Couture Sculpt™.
+y reducción de grasa focalizada, pilar fundamental de nuestro protocolo Contour Architecture™.
 
 TARJETA: Láser CO₂ Fraccionado
 Descripción: El estándar de oro en dermatología para el *resurfacing* ablativo.
@@ -161,7 +161,7 @@ en `inc/nvx-treatment-hub-schema.php`; la plantilla no imprime JSON-LD adicional
 
 ## 08. KEYWORDS LONG-TAIL
 
-- clinica con protocolo couture sculpt madrid
+- clinica con protocolo contour architecture madrid
 - diagnostico medico para flacidez y grasa
 - laser co2 fraccionado y btl exilite madrid
 
@@ -171,4 +171,4 @@ en `inc/nvx-treatment-hub-schema.php`; la plantilla no imprime JSON-LD adicional
 
 El H1 "Portafolio Clínico" y la organización por "Áreas Anatómicas" elevan a NUVANX
 por encima de las clínicas que funcionan como "supermercados de máquinas".
-La introducción de Couture Sculpt™ le da un nombre propio premium a la remodelación corporal.
+La introducción de Contour Architecture™ le da un nombre propio premium a la remodelación corporal.

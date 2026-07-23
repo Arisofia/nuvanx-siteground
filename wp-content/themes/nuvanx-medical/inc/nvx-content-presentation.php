@@ -1057,6 +1057,42 @@ function nvx_content_strip_duplicate_fachada( string $content ): string {
  * @param string $content HTML.
  * @return string
  */
+
+/**
+ * Enforce nvx-shell on all hero inners so copy doesn't touch the edge.
+ *
+ * @param string $content HTML.
+ * @return string
+ */
+function nvx_content_enforce_hero_shell( string $content ): string {
+	// Instead of modifying the wrapper, we will just add the padding directly to nvx-brand-hero__copy
+	// using inline style or a class, or let CSS handle it.
+	// Since we fixed nvx-patterns-editorial.css to apply the right styles to nvx-brand-hero__copy,
+	// we do not need to do anything here!
+	return $content;
+}
+
+
+/**
+ * Enforce nvx-shell on all hero inners so copy doesn't touch the edge.
+ *
+ * @param string $content HTML.
+ * @return string
+ */
+function nvx_content_enforce_hero_shell( string $content ): string {
+	return preg_replace_callback(
+		'/class=(["'])([^"']*nvx-(?:brand|page)-hero__inner[^"']*)(["'])/i',
+		static function ( array $m ) {
+			$classes = $m[2];
+			if ( false === strpos( $classes, 'nvx-shell' ) ) {
+				$classes .= ' nvx-shell';
+			}
+			return 'class=' . $m[1] . $classes . $m[3];
+		},
+		$content
+	) ?? $content;
+}
+
 function nvx_content_strip_versioned_class_tokens( string $content ): string {
 	$map = array(
 		'nvx-editorial-home-v4' => '',
@@ -1115,6 +1151,8 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_enhance_director_blocks( $content );
 	$content = nvx_content_rewrite_morpheus_faq( $content );
 	$content = nvx_content_unify_ctas( $content );
+	$content = nvx_content_enforce_hero_shell( $content );
+	$content = nvx_content_enforce_hero_shell( $content );
 	$content = nvx_content_strip_versioned_class_tokens( $content );
 	// Closing CTA strip runs once at priority 99 (after page modules at ~19 rebuild content).
 

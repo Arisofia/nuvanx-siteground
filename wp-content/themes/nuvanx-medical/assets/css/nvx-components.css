@@ -694,11 +694,10 @@ body.nvx-valoracion-modal-open{
   width:var(--nvx-shell);
   max-width:100%;
   padding-inline:var(--nvx-space-3);
-  box-sizing:border-box;margin-top:var(--nvx-space-8);
+  box-sizing:border-box;
   margin:var(--nvx-space-8) auto 0}
 
 article.nvx-page > .nvx-page-hero{
-  margin-bottom: 0;
   width: 100%;
   margin: 0}
 

@@ -304,7 +304,9 @@ final class NvxProductionReadinessCommand {
 			'post_content' => $definition['content'],
 		);
 
-		if ( 'publish' !== $page->post_status ) {
+		$was_published = ( 'publish' === $page->post_status );
+
+		if ( ! $was_published ) {
 			if ( empty( $definition['promote_draft'] ) ) {
 				WP_CLI::warning( sprintf( 'Approved page %s exists; preserving it for manual review.', $slug ) );
 				return;
@@ -315,6 +317,16 @@ final class NvxProductionReadinessCommand {
 		$result = wp_update_post( $update, true );
 		if ( is_wp_error( $result ) ) {
 			WP_CLI::error( sprintf( 'Unable to refresh approved page %s: %s', $slug, $result->get_error_message() ) );
+		}
+
+		$will_be_published = isset( $update['post_status'] )
+			? ( 'publish' === $update['post_status'] )
+			: $was_published;
+
+		if ( ! $was_published && $will_be_published ) {
+			WP_CLI::log( sprintf( 'Published approved page %s as ID %d.', $slug, (int) $page->ID ) );
+		} else {
+			WP_CLI::log( sprintf( 'Refreshed approved page %s (ID %d).', $slug, (int) $page->ID ) );
 		}
 	}
 

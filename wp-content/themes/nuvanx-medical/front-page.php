@@ -136,13 +136,13 @@ ob_start();
 	</section>
 
 	<section class="nvx-home-solutions" aria-labelledby="nvx-home-solutions-title">
-		<header class="nvx-home-section-header">
-			<div>
-				<p class="nvx-home-eyebrow">SOLUCIONES MÉDICAS</p>
-				<h2 id="nvx-home-solutions-title">La zona orienta la consulta. El diagnóstico define el plan.</h2>
-			</div>
-			<p>La Home presenta las áreas de decisión. El detalle visual y clínico permanece en las páginas específicas para no convertir la portada en un catálogo.</p>
-		</header>
+  		<header class="nvx-home-section-header">
+  			<div>
+  				<p class="nvx-home-eyebrow">SOLUCIONES MÉDICAS</p>
+  				<h2 id="nvx-home-solutions-title">La zona orienta la consulta. El diagnóstico define el plan.</h2>
+  			</div>
+  			<p>La tecnología no es un menú de opciones. Primero identificamos si el origen de lo que quieres mejorar es muscular, estructural, dérmico o de soporte, y a partir de ahí seleccionamos la herramienta clínica adecuada.</p>
+  		</header>
 		<div class="nvx-home-solutions__grid">
 			<?php foreach ( $solutions as $solution ) : ?>
 				<article class="nvx-home-solution-card">
@@ -161,7 +161,7 @@ ob_start();
 			<h2 id="nvx-home-cases-title">La evolución necesita contexto, no una promesa.</h2>
 		</div>
 		<div class="nvx-home-cases__copy">
-			<p>Los casos por zona, sus condiciones de captura y el seguimiento médico se presentan en una página independiente. La Home no repite esa galería ni utiliza resultados como decoración.</p>
+			<p>Un resultado estético solo es válido si se comprende el punto de partida. Documentamos nuestros casos con el mismo rigor que la propia intervención: sin filtros, en la misma postura y bajo idéntica iluminación.</p>
 			<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-btn nvx-btn--secondary-on-dark">Explorar casos clínicos</a>
 		</div>
 	</section>

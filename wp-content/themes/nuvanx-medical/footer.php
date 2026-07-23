@@ -48,46 +48,23 @@ $nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_stra
 
 			<ul class="nvx-footer__links">
 				<li>
-					<a href="<?php echo esc_url( home_url( '/endolift-facial-papada-mandibula/' ) ); ?>">
-						Endolift® facial
+					<a href="<?php echo esc_url( home_url( '/protocolos-signature/' ) ); ?>">
+						Protocolos Signature
 					</a>
 				</li>
-
 				<li>
-					<a href="<?php echo esc_url( home_url( '/endolaser-corporal-grasa-localizada/' ) ); ?>">
-						Endoláser corporal
+					<a href="<?php echo esc_url( home_url( '/soluciones-medicas/' ) ); ?>">
+						Soluciones médicas
 					</a>
 				</li>
-
 				<li>
-					<a href="<?php echo esc_url( home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ) ); ?>">
-						Láser CO₂ fraccionado
+					<a href="<?php echo esc_url( home_url( '/remodelacion-corporal-laser-madrid/' ) ); ?>">
+						Remodelación corporal láser
 					</a>
 				</li>
-
 				<li>
-					<a href="<?php echo esc_url( home_url( '/exion-btl/' ) ); ?>">
-						EXION® BTL
-					</a>
-				</li>
-
-				<?php foreach ( $nvx_footer_published_treatments as $treatment ) : ?>
-					<li>
-						<a href="<?php echo esc_url( (string) $treatment['url'] ); ?>">
-							<?php echo esc_html( (string) $treatment['label'] ); ?>
-						</a>
-					</li>
-				<?php endforeach; ?>
-
-				<li>
-					<a href="<?php echo esc_url( home_url( '/btl-exilite-ipl-madrid/' ) ); ?>">
-						BTL EXILITE™ IPL
-					</a>
-				</li>
-
-				<li>
-					<a href="<?php echo esc_url( home_url( '/tratamientos/' ) ); ?>">
-						Ver todos los tratamientos
+					<a href="<?php echo esc_url( home_url( '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' ) ); ?>">
+						Postparto y abdomen
 					</a>
 				</li>
 			</ul>

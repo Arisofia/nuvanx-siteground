@@ -295,3 +295,12 @@ function nvxThemeLoadCasesPageModule(): void {
 	require_once get_template_directory() . '/inc/nvx-cases-page.php';
 }
 add_action( 'wp', 'nvxThemeLoadCasesPageModule', 1 );
+
+
+/**
+ * Safely executes preg_replace, returning the original content if it fails.
+ */
+function nvx_content_preg_replace_keep( string $pattern, string $replace, string $subject, int $limit = -1, ?int &$count = null ): string {
+	$result = preg_replace( $pattern, $replace, $subject, $limit, $count );
+	return is_string( $result ) ? $result : $subject;
+}

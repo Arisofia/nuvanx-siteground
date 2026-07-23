@@ -30,7 +30,11 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
 
 	return '<script src="' . $portal_script . '" defer></script>'
 		. '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '"></div>'
-		. '<p class="nvx-copy nvx-hubspot-privacy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . $privacy_url . '">Política de privacidad</a>.</p>';
+		. '<p class="nvx-copy nvx-hubspot-privacy">'
+		. esc_html__( 'Al facilitar tus datos aceptas la ', 'nuvanx-medical' )
+		. '<a class="nvx-text-link" href="' . $privacy_url . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>. '
+		. esc_html__( 'La indicación definitiva se confirma siempre en valoración presencial.', 'nuvanx-medical' )
+		. '</p>';
 }
 
 /** @return array{start:int,length:int}|null */

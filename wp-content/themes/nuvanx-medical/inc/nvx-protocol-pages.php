@@ -114,4 +114,32 @@ function nvx_protocol_pages_catalog(): array {
 	return nvx_protocol_body_catalog();
 }
 
+/**
+ * Resolves the protocol catalog key for the current request.
+ *
+ * @return string|null Matching catalog key or null when not a governed protocol page.
+ */
+function nvx_protocol_pages_current_key(): ?string {
+	if ( ! is_page() ) {
+		return null;
+	}
+	$slug = rawurldecode( trim( (string) get_post_field( 'post_name', get_queried_object_id() ), '/' ) );
+	foreach ( nvx_protocol_pages_catalog() as $key => $page ) {
+		if ( isset( $page['slug'] ) && rawurldecode( trim( (string) $page['slug'], '/' ) ) === $slug ) {
+			return $key;
+		}
+	}
+	return null;
+}
+
+/** Suppress the generic shell title because this module renders the canonical H1. */
+function nvx_protocol_pages_prepare_shell(): void {
+	if ( null !== nvx_protocol_pages_current_key() ) {
+		set_query_var( 'nvx_shell_skip_header', true );
+	}
+}
+add_action( 'wp', 'nvx_protocol_pages_prepare_shell', 5 );
+
 nvx_register_catalog_content_filter( 'nvx_protocol_pages_catalog', 21 );
+
+

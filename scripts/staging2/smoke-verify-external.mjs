@@ -68,22 +68,50 @@ const forbiddenMarkers = [
   'Control térmico absoluto',
 ];
 
+const cookieJar = new Map();
+
+function rememberCookies(response) {
+  const getSetCookie = typeof response.headers.getSetCookie === 'function'
+    ? response.headers.getSetCookie()
+    : [response.headers.get('set-cookie')].filter(Boolean);
+
+  for (const header of getSetCookie) {
+    const pair = header.split(';')[0]?.trim();
+    if (!pair) continue;
+    const eqIdx = pair.indexOf('=');
+    if (eqIdx > 0) {
+      const name = pair.slice(0, eqIdx).trim();
+      const val = pair.slice(eqIdx + 1).trim();
+      cookieJar.set(name, val);
+    }
+  }
+}
+
+function getCookieHeader() {
+  return [...cookieJar.entries()].map(([k, v]) => `${k}=${v}`).join('; ');
+}
+
 async function requestWithRetry(path, redirect = 'manual') {
   let lastResponse = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 45000);
     try {
+      const headers = {
+        'user-agent': userAgent,
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'accept-language': 'es-ES,es;q=0.9,en;q=0.7',
+        'cache-control': 'no-cache',
+      };
+      const cookieStr = getCookieHeader();
+      if (cookieStr) headers.cookie = cookieStr;
+
       lastResponse = await fetch(`${baseUrl}${path}`, {
         redirect,
         signal: controller.signal,
-        headers: {
-          'user-agent': userAgent,
-          accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'accept-language': 'es-ES,es;q=0.9,en;q=0.7',
-          'cache-control': 'no-cache',
-        },
+        headers,
       });
+      rememberCookies(lastResponse);
     } finally {
       clearTimeout(timeout);
     }

@@ -104,7 +104,7 @@ function nvx_strategy_solutions_markup(): string {
 		'Región periocular y mirada',
 		'Ojera vascular, pigmentaria o estructural, surco, laxitud y bolsas reales o aparentes.',
 		'Las bolsas grasas verdaderas o determinadas alteraciones funcionales requieren valoración quirúrgica u oftalmológica.',
-		'/medicina-estetica/'
+		'/ojeras-surco-lagrimal-madrid/'
 	);
 	$html .= nvx_strategy_solution_card(
 		'Firmeza, densidad y luminosidad facial',

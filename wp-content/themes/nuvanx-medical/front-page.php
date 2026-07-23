@@ -54,7 +54,7 @@ $solutions = array(
 		'kicker' => 'ROSTRO Y CUELLO',
 		'title'  => 'Definición sin estandarizar el rostro.',
 		'copy'   => 'Papada, mandíbula, cuello y calidad facial requieren lectura anatómica, no una plantilla estética.',
-		'url'    => '/papada-definicion-mandibular-madrid/',
+		'url'    => '/soluciones-medicas/',
 	),
 	array(
 		'kicker' => 'PIEL',
@@ -66,7 +66,7 @@ $solutions = array(
 		'kicker' => 'CONTORNO CORPORAL',
 		'title'  => 'Proporción, tejido y continuidad entre zonas.',
 		'copy'   => 'Abdomen, flancos, brazos, espalda y muslos se estudian dentro de la silueta completa.',
-		'url'    => NVX_URL_REMODELACION,
+		'url'    => '/soluciones-medicas/',
 	),
 );
 

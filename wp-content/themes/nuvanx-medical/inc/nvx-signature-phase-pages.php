@@ -319,10 +319,6 @@ function nvx_signature_phase_seo_title( $title ) {
     $page = nvx_signature_phase_current_metadata();
     return is_array( $page ) ? $page['seo_title'] : $title;
 }
-add_filter( 'wpseo_title', 'nvx_signature_phase_seo_title', 130 );
-add_filter( 'pre_get_document_title', 'nvx_signature_phase_seo_title', 130 );
-add_filter( 'wpseo_opengraph_title', 'nvx_signature_phase_seo_title', 130 );
-add_filter( 'wpseo_twitter_title', 'nvx_signature_phase_seo_title', 130 );
 
 /**
  * Supplies the governed page's SEO description when available.
@@ -334,33 +330,3 @@ function nvx_signature_phase_seo_description( $description ) {
     $page = nvx_signature_phase_current_metadata();
     return is_array( $page ) ? $page['seo_desc'] : $description;
 }
-add_filter( 'wpseo_metadesc', 'nvx_signature_phase_seo_description', 130 );
-add_filter( 'wpseo_opengraph_desc', 'nvx_signature_phase_seo_description', 130 );
-add_filter( 'wpseo_twitter_description', 'nvx_signature_phase_seo_description', 130 );
-
-/**
- * Provides the canonical URL for the current governed Signature page.
- *
- * @param mixed $url The existing URL.
- * @return mixed The governed page URL, or the existing URL when no governed page is active.
- */
-function nvx_signature_phase_seo_url( $url ) {
-    $page = nvx_signature_phase_current_metadata();
-    return is_array( $page ) ? home_url( '/' . trim( (string) $page['slug'], '/' ) . '/' ) : $url;
-}
-add_filter( 'wpseo_canonical', 'nvx_signature_phase_seo_url', 130 );
-add_filter( 'wpseo_opengraph_url', 'nvx_signature_phase_seo_url', 130 );
-
-/**
- * Sets the robots directive for governed Signature pages.
- *
- * @param mixed $robots The existing robots directive.
- * @return string The governed page's robots directive, or the existing directive when no governed page is active.
- */
-function nvx_signature_phase_seo_robots( $robots ) {
-    if ( null === nvx_signature_phase_current_metadata() ) {
-        return $robots;
-    }
-    return function_exists( 'nvx_seo_is_nonproduction_environment' ) && nvx_seo_is_nonproduction_environment() ? 'noindex, nofollow' : 'index, follow';
-}
-add_filter( 'wpseo_robots', 'nvx_signature_phase_seo_robots', 130 );

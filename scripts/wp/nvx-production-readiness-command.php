@@ -9,18 +9,8 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
 	return;
 }
 
-/** Audits and applies the idempotent production-readiness migration. */
-final class NVX_Production_Readiness_Command {
-	private const CONFIRMATION_TOKEN = 'retire-prototypes';
-	private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
-	private const LOCK_TTL_SECONDS   = 900;
-
-	/**
-	 * Defines the pages that the migration must create or publish.
-	 *
-	 * @return array Approved page definitions keyed by slug.
-	 */
-	private function approvedPages(): array {
+final class NVX_Production_Readiness_Helper {
+	public static function approvedPages(): array {
 		return array(
 			'por-que-nuvanx' => array( 'title' => 'Por qué NUVANX', 'content' => '<!-- NUVANX_STRATEGY_PAGE:why_nuvanx -->', 'promote_draft' => false ),
 			'inversion-medicina-estetica' => array( 'title' => 'Inversión en medicina estética', 'content' => '<!-- NUVANX_STRATEGY_PAGE:investment -->', 'promote_draft' => false ),
@@ -36,33 +26,24 @@ final class NVX_Production_Readiness_Command {
 			'flacidez-grasa-localizada-brazos-madrid' => array( 'title' => 'Flacidez y grasa localizada en brazos en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:brazos -->', 'promote_draft' => true ),
 			'grasa-espalda-zona-sujetador-madrid' => array( 'title' => 'Grasa de espalda y zona del sujetador en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:espalda -->', 'promote_draft' => true ),
 			'flacidez-muslos-internos-subgluteo-madrid' => array( 'title' => 'Flacidez en muslos internos y región subglútea en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:muslos -->', 'promote_draft' => true ),
-		
-'tratamiento-rodillas-grasa-flacidez-madrid' => array( 'title' => 'Grasa localizada y flacidez en rodillas en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:rodillas -->', 'promote_draft' => true ),
+			'tratamiento-rodillas-grasa-flacidez-madrid' => array( 'title' => 'Grasa localizada y flacidez en rodillas en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:rodillas -->', 'promote_draft' => true ),
 			'contorno-corporal-masculino-madrid' => array( 'title' => 'Contorno corporal masculino en Madrid', 'content' => '<!-- NUVANX_SIGNATURE_PHASE:male-contour -->', 'promote_draft' => true ),
 		);
 	}
 
-	/** Shared retired-page contract from the active theme. */
-	private function governedPages(): array {
+	public static function governedPages(): array {
 		if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
 			WP_CLI::error( 'Production-readiness governed-page contract is unavailable.' );
 		}
 		return nvx_production_readiness_governed_pages();
 	}
 
-	/** Find one page by slug regardless of publication status. */
-	private function pageBySlug( string $slug ): ?WP_Post {
+	public static function pageBySlug( string $slug ): ?WP_Post {
 		$page = get_page_by_path( $slug, OBJECT, 'page' );
 		return $page instanceof WP_Post ? $page : null;
 	}
 
-	/**
-	 * Finds navigation menu items that reference a page.
-	 *
-	 * @param int $page_id The page ID to find in navigation menus.
-	 * @return int[] Unique navigation menu item IDs referencing the page.
-	 */
-	private function menuItemIds( int $page_id ): array {
+	public static function menuItemIds( int $page_id ): array {
 		$ids = array();
 		foreach ( wp_get_nav_menus() as $menu ) {
 			$items = wp_get_nav_menu_items( $menu->term_id );
@@ -78,73 +59,79 @@ final class NVX_Production_Readiness_Command {
 		return array_values( array_unique( $ids ) );
 	}
 
-	/** Return the assigned primary menu term ID. */
-	private function primaryMenuId(): int {
+	public static function primaryMenuId(): int {
 		$locations = get_nav_menu_locations();
 		return isset( $locations['primary'] ) ? (int) $locations['primary'] : 0;
 	}
 
-	/**
-	 * Flattens a nested menu blueprint into deterministic comparison rows.
-	 *
-	 * @param array $items Menu blueprint nodes to flatten.
-	 * @param int   $depth Current nesting depth.
-	 * @return array Flattened rows containing each node's depth, label, and normalized URL.
-	 */
-	private function flattenBlueprint( array $items, int $depth = 0 ): array {
+	public static function flattenBlueprint( array $items, int $depth = 0 ): array {
 		$rows = array();
 		foreach ( $items as $item ) {
 			$rows[] = $depth . '|' . trim( (string) $item['label'] ) . '|' . untrailingslashit( (string) $item['url'] );
 			$children = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
-			$rows = array_merge( $rows, $this->flattenBlueprint( $children, $depth + 1 ) );
+			$rows = array_merge( $rows, self::flattenBlueprint( $children, $depth + 1 ) );
 		}
 		return $rows;
 	}
 
-	/**
-	 * Flattens the current WordPress menu tree into a deterministic comparison signature.
-	 *
-	 * @param array $items Menu items to flatten.
-	 * @param int   $parent Parent menu item ID.
-	 * @param int   $depth Current nesting depth.
-	 * @return array Flattened menu item signature rows.
-	 */
-	private function flattenMenuItems( array $items, int $parent = 0, int $depth = 0 ): array {
+	public static function flattenMenuItems( array $items, int $parent = 0, int $depth = 0 ): array {
 		$rows = array();
 		foreach ( $items as $item ) {
 			if ( (int) $item->menu_item_parent !== $parent ) {
 				continue;
 			}
 			$rows[] = $depth . '|' . trim( (string) $item->title ) . '|' . untrailingslashit( (string) $item->url );
-			$rows = array_merge( $rows, $this->flattenMenuItems( $items, (int) $item->ID, $depth + 1 ) );
+			$rows = array_merge( $rows, self::flattenMenuItems( $items, (int) $item->ID, $depth + 1 ) );
 		}
 		return $rows;
 	}
 
-	/**
-	 * Builds the canonical signature for the primary navigation blueprint.
-	 *
-	 * @return array The flattened canonical menu signature, or an empty array when the navigation blueprint is unavailable.
-	 */
-	private function canonicalMenuSignature(): array {
+	public static function canonicalMenuSignature(): array {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			return array();
 		}
-		return $this->flattenBlueprint( nvx_navigation_resolved_fallback() );
+		return self::flattenBlueprint( nvx_navigation_resolved_fallback() );
 	}
 
-	/**
-	 * Gets the current primary menu signature.
-	 *
-	 * @return array The flattened signature of published primary menu items.
-	 */
-	private function currentMenuSignature(): array {
-		$menu_id = $this->primaryMenuId();
+	public static function currentMenuSignature(): array {
+		$menu_id = self::primaryMenuId();
 		if ( $menu_id < 1 ) {
 			return array();
 		}
 		$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'publish' ) );
-		return is_array( $items ) ? $this->flattenMenuItems( $items ) : array();
+		return is_array( $items ) ? self::flattenMenuItems( $items ) : array();
+	}
+}
+
+/** Audits and applies the idempotent production-readiness migration. */
+final class NVX_Production_Readiness_Command {
+	private const CONFIRMATION_TOKEN = 'retire-prototypes';
+	private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
+	private const LOCK_TTL_SECONDS   = 900; : array();
+	}
+
+	private function approvedAuditRows(): array {
+		$rows = array();
+		foreach ( NVX_Production_Readiness_Helper::approvedPages() as $slug => $definition ) {
+			$page   = NVX_Production_Readiness_Helper::pageBySlug( $slug );
+			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( NVX_Production_Readiness_Helper::menuItemIds( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
+		}
+		return $rows;
+	}
+
+	private function governedAuditRows(): array {
+		$rows = array();
+		foreach ( NVX_Production_Readiness_Helper::governedPages() as $slug => $definition ) {
+			$page   = NVX_Production_Readiness_Helper::pageBySlug( $slug );
+			$rows[] = array( 'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'absent', 'menu_items' => $page ? count( NVX_Production_Readiness_Helper::menuItemIds( (int) $page->ID ) ) : 0, 'expected' => $definition['status'] );
+		}
+		return $rows;
+	}
+
+	private function navigationAuditRow(): array {
+		$current_menu = NVX_Production_Readiness_Helper::currentMenuSignature();
+		$canonical_menu = NVX_Production_Readiness_Helper::canonicalMenuSignature();
+		return array( 'type' => 'navigation', 'slug' => 'primary', 'id' => NVX_Production_Readiness_Helper::primaryMenuId(), 'status' => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift', 'menu_items' => count( $current_menu ), 'expected' => 'canonical' );
 	}
 
 	/**
@@ -153,19 +140,7 @@ final class NVX_Production_Readiness_Command {
 	 * @return array Audit rows describing current states and expected migration states.
 	 */
 	private function auditRows(): array {
-		$rows = array();
-		foreach ( $this->approvedPages() as $slug => $definition ) {
-			$page   = $this->pageBySlug( $slug );
-			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( $this->menuItemIds( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
-		}
-		foreach ( $this->governedPages() as $slug => $definition ) {
-			$page   = $this->pageBySlug( $slug );
-			$rows[] = array( 'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'absent', 'menu_items' => $page ? count( $this->menuItemIds( (int) $page->ID ) ) : 0, 'expected' => $definition['status'] );
-		}
-		$current_menu = $this->currentMenuSignature();
-		$canonical_menu = $this->canonicalMenuSignature();
-		$rows[] = array( 'type' => 'navigation', 'slug' => 'primary', 'id' => $this->primaryMenuId(), 'status' => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift', 'menu_items' => count( $current_menu ), 'expected' => 'canonical' );
-		return $rows;
+		return array_merge( $this->approvedAuditRows(), $this->governedAuditRows(), array( $this->navigationAuditRow() ) );
 	}
 
 	/**

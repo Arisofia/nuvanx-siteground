@@ -34,7 +34,7 @@ for (const file of runtime) {
     const name = path.basename(file);
     const content = fs.readFileSync(file, 'utf8');
     if (!stats.size) fail(`${relativePath}: empty file`);
-    if (content.charCodeAt(0) === 0xfeff) fail(`${relativePath}: UTF-8 BOM`);
+    if (content.codePointAt(0) === 0xfeff) fail(`${relativePath}: UTF-8 BOM`);
     if (/[ÃÂ]|â(?:€|€™|€œ|€)/u.test(content)) fail(`${relativePath}: probable mojibake`);
     if (/(^|[-_.])(legacy|old|backup|bak|temp|tmp|deprecated|unused|orphan)([-_.]|$)/i.test(name)) fail(`${relativePath}: obsolete filename`);
     if (/staging2\.nuvanx\.com/i.test(content) && !relativePath.endsWith('/inc/nvx-environment-flags.php')) fail(`${relativePath}: staging hostname`);

@@ -45,8 +45,14 @@ function nvx_clinical_language_prohibited_phrases(): array {
 		'Para cualquier paciente',
 		'Control térmico absoluto',
 		'Sin huellas quirúrgicas evidentes',
+		'Presupuesto muy bajo',
+		'presupuesto muy bajo',
+		'No usamos descuentos estacionales',
+		'no usamos descuentos estacionales',
 		'El estándar de oro',
+		'el estándar de oro',
 		'Absoluta discreción',
+		'absoluta discreción',
 	);
 }
 

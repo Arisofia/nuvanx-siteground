@@ -9,4 +9,4 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require get_template_directory() . '/templates/template-contact.php';
+require_once get_template_directory() . '/templates/template-contact.php';

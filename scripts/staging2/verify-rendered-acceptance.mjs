@@ -7,12 +7,8 @@ function getAcceptanceConfig() {
   const shaToken = (process.env.EXPECTED_SHA || '').trim();
   const dirPath = (process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/rendered-acceptance').trim();
 
-  if (envUrl !== 'https://staging2.nuvanx.com') {
-    throw new Error(`refusing unexpected BASE_URL: ${envUrl}`);
-  }
-  if (!/^[0-9a-f]{40}$/.test(shaToken)) {
-    throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
-  }
+  if (envUrl !== 'https://staging2.nuvanx.com') throw new Error(`refusing unexpected BASE_URL: ${envUrl}`);
+  if (!/^[0-9a-f]{40}$/.test(shaToken)) throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
   fs.mkdirSync(dirPath, { recursive: true });
   return { baseUrl: envUrl, expectedSha: shaToken, evidenceDir: dirPath };
 }
@@ -75,8 +71,8 @@ const treatmentPages = [
   ['/papada-definicion-mandibular-madrid/', 'Papada y definición mandibular Madrid | NUVANX', 'Valoración médica de papada, cuello y mandíbula en Madrid para diferenciar grasa, laxitud y soporte antes de indicar Endolift® u otra opción.', 'Tratamiento médico de papada y definición mandibular en Madrid.', commonMarkers],
   ['/calidad-piel-firmeza-luminosidad-madrid/', 'Calidad y firmeza de la piel Madrid | NUVANX', 'Tratamiento médico para calidad, firmeza y luminosidad de la piel en Madrid con tecnología seleccionada tras diagnóstico, fototipo y valoración.', 'Tratamiento médico para firmeza, densidad y calidad cutánea.', commonMarkers],
   ['/cicatrices-acne-poros-textura-madrid/', 'Cicatrices de acné, poros y textura Madrid | NUVANX', 'Tratamiento de cicatrices de acné, poros y textura en Madrid con CO₂ o Fractional RF según morfología, fototipo y valoración médica.', 'Tratamiento médico de cicatrices, poros dilatados y textura cutánea.', commonMarkers],
-  ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', 'Manchas, rojeces y fotodaño Madrid | NUVANX', 'Tratamiento de manchas, rojeces y fotodaño en Madrid con IPL seleccionada según diagnóstico, fototipo y valoración médica.', 'Tratamiento médico de manchas, rojeces y daño solar.', commonMarkers]
-].map(([path, title, description, h1, markers]) => ({ path, title, description, h1, markers }));
+  ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', 'Manchas, rojeces y fotodaño Madrid | NUVANX', 'Tratamiento de manchas, rojeces y fotodaño en Madrid con IPL seleccionada según diagnóstico, fototipo y valoración médica.', 'Tratamiento médico de manchas, rojeces y daño solar.', commonMarkers],
+].map(([pagePath, title, description, h1, markers]) => ({ path: pagePath, title, description, h1, markers }));
 
 const anatomicalPages = [
   ['/grasa-localizada-abdomen-flancos-madrid/', 'Grasa localizada abdomen y flancos Madrid | NUVANX', 'Valoración de grasa localizada, laxitud y pared abdominal en abdomen y flancos en Madrid dentro de NUVANX Contour Architecture™.', 'Esa grasa del abdomen que no se va ni a dieta ni a gimnasio.'],
@@ -85,7 +81,7 @@ const anatomicalPages = [
   ['/flacidez-muslos-internos-subgluteo-madrid/', 'Flacidez muslos internos y subglúteo Madrid | NUVANX', 'Valoración de flacidez, grasa y continuidad en muslos internos y región subglútea en Madrid dentro de Contour Architecture™.', 'La piel más delicada del cuerpo merece el abordaje más cuidadoso.'],
   ['/tratamiento-rodillas-grasa-flacidez-madrid/', 'Grasa localizada y flacidez rodillas Madrid | NUVANX', 'Valoración de grasa localizada y flacidez en rodillas en Madrid, diferenciando tejido estético de causas articulares, vasculares o edema.', 'Una zona pequeña que cambia toda la línea de la pierna.'],
   ['/contorno-corporal-masculino-madrid/', 'Contorno corporal masculino Madrid | NUVANX', 'Contorno corporal masculino en Madrid para abdomen, cintura, espalda o perfil, con diagnóstico y tecnología seleccionada tras valoración.', 'Pensado para el cuerpo de un hombre, no adaptado del de una mujer.'],
-].map(([path, title, description, h1]) => ({ path, title, description, h1, markers: commonMarkers }));
+].map(([pagePath, title, description, h1]) => ({ path: pagePath, title, description, h1, markers: commonMarkers }));
 
 pages.push(...treatmentPages, ...anatomicalPages);
 
@@ -105,29 +101,31 @@ const forbiddenText = [
   'presupuesto muy bajo', 'no usamos descuentos estacionales', 'el estándar de oro', 'absoluta discreción',
 ];
 
+const browserHeaders = {
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'accept-language': 'es-ES,es;q=0.9,en;q=0.7',
+  'cache-control': 'no-cache',
+  pragma: 'no-cache',
+  'sec-ch-ua': '"Chromium";v="150", "Not_A Brand";v="99"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-fetch-dest': 'document',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-site': 'none',
+  'upgrade-insecure-requests': '1',
+};
 const findings = [];
 const report = { base_url: baseUrl, expected_sha: expectedSha, generated_at: new Date().toISOString(), pages: [], redirects: [], findings };
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
+const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+let sessionCookie = '';
 
-const cleanHtmlText = (val) => val.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
-
-function parseSingleTag(html, name) {
-  const match = html.match(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'is'));
-  return match ? cleanHtmlText(match[1]) : '';
-}
-
-function parseMultipleTagTexts(html, name) {
-  return [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'gis'))].map((m) => cleanHtmlText(m[1]));
-}
-
-function queryHtmlTags(html, name) {
-  return [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>`, 'gi'))].map((m) => m[0]);
-}
-
-function getAttrVal(tagString, attrName) {
-  const m = tagString.match(new RegExp(String.raw`\b${attrName}\s*=\s*(["'])(.*?)\1`, 'i'));
-  return m ? m[2] : '';
-}
+const cleanHtmlText = (value) => value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
+const parseSingleTag = (html, name) => cleanHtmlText(html.match(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'is'))?.[1] || '');
+const parseMultipleTagTexts = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'gis'))].map((match) => cleanHtmlText(match[1]));
+const queryHtmlTags = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>`, 'gi'))].map((match) => match[0]);
+const getAttrVal = (tag, attr) => tag.match(new RegExp(String.raw`\b${attr}\s*=\s*(["'])(.*?)\1`, 'i'))?.[2] || '';
 
 function findMetaAttr(html, attr) {
   for (const tag of queryHtmlTags(html, 'meta')) {
@@ -147,29 +145,51 @@ function parseSchemaTypes(html) {
   const types = new Set();
   for (const match of html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>(.*?)<\/script>/gis)) {
     try {
-      const visitNode = (val) => {
-        if (Array.isArray(val)) return val.forEach(visitNode);
-        if (!val || typeof val !== 'object') return;
-        const t = val['@type'];
-        if (Array.isArray(t)) t.forEach((item) => types.add(String(item)));
-        else if (t) types.add(String(t));
-        Object.values(val).forEach(visitNode);
+      const visit = (value) => {
+        if (Array.isArray(value)) return value.forEach(visit);
+        if (!value || typeof value !== 'object') return;
+        const type = value['@type'];
+        if (Array.isArray(type)) type.forEach((item) => types.add(String(item)));
+        else if (type) types.add(String(type));
+        Object.values(value).forEach(visit);
       };
-      visitNode(JSON.parse(match[1]));
-    } catch (e) { /* ignore parse error */ }
+      visit(JSON.parse(match[1]));
+    } catch { /* ignore malformed third-party schema */ }
   }
   return [...types];
 }
 
+function rememberCookies(response) {
+  const values = typeof response.headers.getSetCookie === 'function'
+    ? response.headers.getSetCookie()
+    : [response.headers.get('set-cookie')].filter(Boolean);
+  const cookies = values.map((value) => value.split(';', 1)[0]).filter(Boolean);
+  if (cookies.length) sessionCookie = cookies.join('; ');
+}
+
 async function fetchWithTimeout(url, options = {}) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45000);
-  const userHeaders = options.headers || {};
-  try {
-    return await fetch(url, { ...options, signal: controller.signal, headers: { 'user-agent': 'NUVANX-Staging2-Acceptance/3.0', ...userHeaders } });
-  } finally {
-    clearTimeout(timeout);
+  let lastResponse = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 45000);
+    try {
+      const extraHeaders = options.headers || {};
+      const headers = sessionCookie
+        ? { ...browserHeaders, cookie: sessionCookie, ...extraHeaders }
+        : { ...browserHeaders, ...extraHeaders };
+      lastResponse = await fetch(url, { ...options, signal: controller.signal, headers });
+      rememberCookies(lastResponse);
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (![202, 429].includes(lastResponse.status) && lastResponse.status < 500) return lastResponse;
+    if (attempt < 4) {
+      await lastResponse.arrayBuffer();
+      await sleep(attempt * 2000);
+    }
   }
+  return lastResponse;
 }
 
 function parseHtmlPage(html) {
@@ -189,109 +209,82 @@ function parseHtmlPage(html) {
   };
 }
 
-function validatePageMetadata(page, parsed, scope) {
-  const { title, description, ogTitle, ogDescription, robots, deploySha, h1List, h2Count } = parsed;
+function validatePage(page, parsed, scope) {
+  if (parsed.deploySha !== expectedSha) fail(scope, `served SHA ${parsed.deploySha || 'absent'} instead of ${expectedSha}`);
+  if (parsed.title !== page.title) fail(scope, `title mismatch: ${JSON.stringify(parsed.title)}`);
+  if (parsed.description !== page.description) fail(scope, 'meta description mismatch');
+  if (parsed.ogTitle !== page.title) fail(scope, 'og:title mismatch');
+  if (parsed.ogDescription !== page.description) fail(scope, 'og:description mismatch');
+  if (!parsed.robots.toLowerCase().includes('noindex') || !parsed.robots.toLowerCase().includes('nofollow')) fail(scope, `robots mismatch: ${parsed.robots || 'absent'}`);
+  if (parsed.h1List.length !== 1 || parsed.h1List[0] !== page.h1) fail(scope, `H1 mismatch: ${JSON.stringify(parsed.h1List)}`);
+  if (parsed.h2Count < 3) fail(scope, `expected at least 3 H2s, found ${parsed.h2Count}`);
 
-  if (deploySha !== expectedSha) fail(scope, `served SHA ${deploySha || 'absent'} instead of ${expectedSha}`);
-  if (title !== page.title) fail(scope, `title mismatch: ${JSON.stringify(title)}`);
-  if (description !== page.description) fail(scope, 'meta description mismatch');
-  if (ogTitle !== page.title) fail(scope, 'og:title mismatch');
-  if (ogDescription !== page.description) fail(scope, 'og:description mismatch');
-  if (!robots.toLowerCase().includes('noindex') || !robots.toLowerCase().includes('nofollow')) fail(scope, `robots mismatch: ${robots || 'absent'}`);
-  if (h1List.length !== 1 || h1List[0] !== page.h1) fail(scope, `H1 mismatch: ${JSON.stringify(h1List)}`);
-  if (h2Count < 3) fail(scope, `expected at least 3 H2s, found ${h2Count}`);
-}
-
-function validatePageContent(page, parsed, scope) {
-  const { canonicals, ogUrl, schemas, bodyText } = parsed;
-
-  for (const marker of page.markers) if (!bodyText.includes(marker)) fail(scope, `missing marker: ${marker}`);
-  if (!/valoraci[oó]n/i.test(bodyText)) fail(scope, 'missing medical valuation CTA or copy');
-
+  for (const marker of page.markers) if (!parsed.bodyText.includes(marker)) fail(scope, `missing marker: ${marker}`);
+  if (!/valoraci[oó]n/i.test(parsed.bodyText)) fail(scope, 'missing medical valuation CTA or copy');
   const validUrls = new Set([`https://staging2.nuvanx.com${page.path}`, `https://nuvanx.com${page.path}`, `https://www.nuvanx.com${page.path}`]);
-  if (canonicals.length !== 1 || !validUrls.has(canonicals[0])) fail(scope, `canonical mismatch: ${canonicals[0]}`);
-  if (!validUrls.has(ogUrl)) fail(scope, `og:url mismatch: ${ogUrl || 'absent'}`);
-  if (!schemas.includes('WebPage')) fail(scope, 'missing WebPage schema');
-  if (!schemas.includes('Organization') && !schemas.includes('MedicalOrganization')) fail(scope, 'missing Organization or MedicalOrganization schema');
-
-  const lowerText = bodyText.toLowerCase();
+  if (parsed.canonicals.length !== 1 || !validUrls.has(parsed.canonicals[0])) fail(scope, `canonical mismatch: ${parsed.canonicals[0]}`);
+  if (!validUrls.has(parsed.ogUrl)) fail(scope, `og:url mismatch: ${parsed.ogUrl || 'absent'}`);
+  if (!parsed.schemas.includes('WebPage')) fail(scope, 'missing WebPage schema');
+  if (!parsed.schemas.includes('Organization') && !parsed.schemas.includes('MedicalOrganization')) fail(scope, 'missing Organization or MedicalOrganization schema');
+  const lowerText = parsed.bodyText.toLowerCase();
   for (const forbidden of forbiddenText) if (lowerText.includes(forbidden.toLowerCase())) fail(scope, `exposes forbidden text: ${forbidden}`);
 }
 
-function validatePageModel(page, parsed, scope) {
-  validatePageMetadata(page, parsed, scope);
-  validatePageContent(page, parsed, scope);
-}
-
 async function verifySinglePage(page) {
-  const scope = page.path;
-  const pageResult = { path: page.path };
+  const record = { path: page.path };
   try {
-    const res = await fetchWithTimeout(`${baseUrl}${page.path}`);
-    const htmlText = await res.text();
+    const response = await fetchWithTimeout(`${baseUrl}${page.path}`);
+    const html = await response.text();
     const fileName = `${page.path.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home'}.html`;
-    fs.writeFileSync(path.join(evidenceDir, fileName), htmlText);
-
-    pageResult.status = res.status;
-    if (res.status !== 200) {
-      fail(scope, `returned HTTP ${res.status} instead of 200`);
-      return pageResult;
+    fs.writeFileSync(path.join(evidenceDir, fileName), html);
+    record.status = response.status;
+    if (response.status !== 200) {
+      fail(page.path, `returned HTTP ${response.status} instead of 200`);
+      return record;
     }
-
-    const parsed = parseHtmlPage(htmlText);
-    Object.assign(pageResult, {
-      title: parsed.title,
-      description: parsed.description,
-      og_title: parsed.ogTitle,
-      og_description: parsed.ogDescription,
-      robots: parsed.robots,
-      deploy_sha: parsed.deploySha,
-      h1: parsed.h1List,
-      h2_count: parsed.h2Count,
-      canonicals: parsed.canonicals,
-      og_url: parsed.ogUrl,
-      schema_types: parsed.schemas,
+    const parsed = parseHtmlPage(html);
+    Object.assign(record, {
+      title: parsed.title, description: parsed.description, og_title: parsed.ogTitle,
+      og_description: parsed.ogDescription, robots: parsed.robots, deploy_sha: parsed.deploySha,
+      h1: parsed.h1List, h2_count: parsed.h2Count, canonicals: parsed.canonicals,
+      og_url: parsed.ogUrl, schema_types: parsed.schemas,
     });
-
-    validatePageModel(page, parsed, scope);
+    validatePage(page, parsed, page.path);
   } catch (err) {
-    fail(scope, err instanceof Error ? err.message : String(err));
-  }
-  return pageResult;
-}
-
-const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
-
-for (const page of pages) {
-  await sleep(2000);
-  report.pages.push(await verifySinglePage(page));
-}
-
-async function verifyRedirectRoute(sourcePath, targetPath) {
-  const scope = sourcePath;
-  const targetUrl = `${baseUrl}${targetPath}`;
-  const record = { source: sourcePath, target: targetPath };
-  try {
-    const res = await fetchWithTimeout(`${baseUrl}${sourcePath}`, { redirect: 'manual' });
-    record.status = res.status;
-    record.location = res.headers.get('location') || '';
-    if (res.status !== 301) fail(scope, `returned HTTP ${res.status} instead of 301`);
-    if (record.location !== targetUrl) fail(scope, `location is ${record.location || 'absent'} instead of ${targetUrl}`);
-    if (res.status === 301 && record.location === targetUrl) {
-      const destRes = await fetchWithTimeout(targetUrl, { redirect: 'manual' });
-      record.target_status = destRes.status;
-      if (destRes.status !== 200) fail(scope, `target returned HTTP ${destRes.status} instead of 200`);
-      if (destRes.status >= 300 && destRes.status < 400) fail(scope, 'target performs an additional redirect');
-    }
-  } catch (err) {
-    fail(scope, err instanceof Error ? err.message : String(err));
+    fail(page.path, err instanceof Error ? err.message : String(err));
   }
   return record;
 }
 
-for (const [src, dst] of redirects) {
-  await sleep(2000);
-  report.redirects.push(await verifyRedirectRoute(src, dst));
+async function verifyRedirectRoute(sourcePath, targetPath) {
+  const record = { source: sourcePath, target: targetPath };
+  const targetUrl = `${baseUrl}${targetPath}`;
+  try {
+    const response = await fetchWithTimeout(`${baseUrl}${sourcePath}`, { redirect: 'manual' });
+    record.status = response.status;
+    record.location = response.headers.get('location') || '';
+    if (response.status !== 301) fail(sourcePath, `returned HTTP ${response.status} instead of 301`);
+    if (record.location !== targetUrl) fail(sourcePath, `location is ${record.location || 'absent'} instead of ${targetUrl}`);
+    if (response.status === 301 && record.location === targetUrl) {
+      const destinationResponse = await fetchWithTimeout(targetUrl, { redirect: 'manual' });
+      record.target_status = destinationResponse.status;
+      if (destinationResponse.status !== 200) fail(sourcePath, `target returned HTTP ${destinationResponse.status} instead of 200`);
+      if (destinationResponse.status >= 300 && destinationResponse.status < 400) fail(sourcePath, 'target performs an additional redirect');
+    }
+  } catch (err) {
+    fail(sourcePath, err instanceof Error ? err.message : String(err));
+  }
+  return record;
+}
+
+await fetchWithTimeout(`${baseUrl}/`);
+for (const page of pages) {
+  await sleep(750);
+  report.pages.push(await verifySinglePage(page));
+}
+for (const [source, destination] of redirects) {
+  await sleep(750);
+  report.redirects.push(await verifyRedirectRoute(source, destination));
 }
 
 fs.writeFileSync(path.join(evidenceDir, 'report.json'), JSON.stringify(report, null, 2));

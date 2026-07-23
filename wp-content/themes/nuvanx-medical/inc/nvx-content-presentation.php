@@ -1311,9 +1311,6 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 
 	return $content . $injections;
 }
-
-	return $content . $injections;
-}
 add_filter( 'the_content', 'nvx_content_inject_global_treatment_sections', 21 );
 
 // Backward-compatible aliases (older home helpers).

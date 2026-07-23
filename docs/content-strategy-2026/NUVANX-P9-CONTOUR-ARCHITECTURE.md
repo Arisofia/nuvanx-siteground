@@ -1,4 +1,4 @@
-﻿# NUVANX — PÁGINA 9: PROTOCOLO SIGNATURE (CONTOUR ARCHITECTURE™)
+# NUVANX — PÁGINA 9: PROTOCOLO SIGNATURE (CONTOUR ARCHITECTURE™)
 ## Estructura de 13 campos · Copy verificado (Nuevo producto corporativo)
 **Fuentes verificadas:** Directiva de Naming NUVANX · Estrategia maestra
 **Estado:** PÁGINA NUEVA — Fase 1 de implementación
@@ -14,10 +14,10 @@
 ---
 
 ## 02. SEO META
-- **SEO Title (65 car.):** Remodelación corporal láser en Madrid | NUVANX Couture Sculpt
+- **SEO Title (65 car.):** Remodelación corporal láser en Madrid | NUVANX Contour Architecture
 - **Meta description (150 car.):** Diagnóstico anatómico, tratamiento focal y seguimiento médico para mejorar el contorno corporal. Remodelación láser premium sin imponer formas estándar.
 - **Canonical:** https://nuvanx.com/remodelacion-corporal-laser-madrid/
-- **OG Title:** NUVANX Couture Sculpt™ | Remodelación Corporal Madrid
+- **OG Title:** NUVANX Contour Architecture™ | Remodelación Corporal Madrid
 
 ---
 
@@ -48,7 +48,7 @@ DESCRIPTION / PÁRRAFO (DESCRIPTOR PÚBLICO):
 Entendemos la medicina estética como un ejercicio de *quiet luxury*.
 Un abordaje silencioso, mínimamente invasivo y sin huellas quirúrgicas evidentes,
 donde la elegancia de la transición es tan importante como el resultado final.
-Nuestro protocolo comercial estrella, **Couture Sculpt™**, materializa esta visión.
+Nuestro sistema médico corporativo, **NUVANX Contour Architecture™**, materializa esta visión.
 
 CTA PRIMARIO: Solicitar valoración médica privada
 CTA SECUNDARIO: Explorar zonas de tratamiento
@@ -160,7 +160,7 @@ CTA PRIMARIO: Solicitar valoración médica privada
 
 ## 06. SCHEMA RECOMENDADO
 @type: MedicalWebPage + MedicalProcedure
-name: "Remodelación corporal láser | NUVANX Couture Sculpt™"
+name: "Remodelación corporal láser | NUVANX Contour Architecture™"
 medicalSpecialty: "PlasticSurgery"
 
 ---
@@ -168,7 +168,7 @@ medicalSpecialty: "PlasticSurgery"
 ## 11. DIFERENCIACIÓN COMPETITIVA INTEGRADA
 La introducción del concepto *quiet luxury* y "espacio negativo" conecta directamente
 con un paciente premium que huye de resultados exagerados y busca "discreción quirúrgica".
-Se consolida a **Couture Sculpt™** como la alternativa médica elegante a las franquicias de liposucción agresiva.
+Se consolida a **NUVANX Contour Architecture™** como la alternativa médica elegante a las franquicias de liposucción agresiva.
 
 ---
 

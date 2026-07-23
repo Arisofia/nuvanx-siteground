@@ -33,7 +33,7 @@ function nvxCasesPageEnqueueAssets(): void {
     wp_enqueue_style(
         'nvx-cases-editorial',
         get_template_directory_uri() . '/' . $relative,
-        array( 'nvx-home' ),
+        array( 'nvx-components' ),
         nvx_asset_version( $relative )
     );
 }

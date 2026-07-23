@@ -133,9 +133,9 @@ function nvx_theme_scripts(): void {
 	wp_enqueue_style( 'nvx-editorial-coherence', $css . 'nvx-editorial-coherence.css', array( 'nvx-patterns' ), nvx_asset_version( 'assets/css/nvx-editorial-coherence.css' ) );
 	wp_enqueue_style( 'nvx-header', $css . 'nvx-header.css', array( 'nvx-editorial-coherence' ), nvx_asset_version( 'assets/css/nvx-header.css' ) );
 	wp_enqueue_style( 'nvx-footer', $css . 'nvx-footer.css', array( 'nvx-header' ), nvx_asset_version( 'assets/css/nvx-footer.css' ) );
-	wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-footer' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
 
 	if ( nvx_theme_is_home_page() ) {
+		wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-footer' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
 		wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-home' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );
 		wp_enqueue_script(
 			'nvx-home-video',
@@ -148,7 +148,7 @@ function nvx_theme_scripts(): void {
 
 
 
-	if ( nvx_theme_hero_blackout_enabled() ) {
+	if ( nvx_theme_is_home_page() && nvx_theme_hero_blackout_enabled() ) {
 		wp_enqueue_style(
 			'nvx-hero-blackout',
 			$css . 'nvx-hero-blackout.css',

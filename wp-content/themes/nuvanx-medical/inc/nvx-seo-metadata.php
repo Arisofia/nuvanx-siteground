@@ -24,7 +24,10 @@ function nvx_seo_metadata_catalog(): array {
 		'clinicas'     => nvx_meta_item( 'Clínicas NUVANX Madrid | Exclusividad y Criterio Clínico', 'Tus tratamientos estéticos merecen respeto médico, no una cadena de montaje. Descubre las clínicas NUVANX en Chamberí y Salamanca-Goya.' ),
 		'chamberi'     => nvx_meta_item( 'Medicina Estética en Chamberí | Tu Rostro No es un Experimento', 'Clínica NUVANX Chamberí. Alta tecnología láser y diagnóstico estricto. Si buscas calidad médica y huir de los resultados artificiales, agenda tu cita.' ),
 		'goya'         => nvx_meta_item( 'Medicina Estética Salamanca-Goya | NUVANX', 'Clínica NUVANX Salamanca-Goya. Alta tecnología láser y diagnóstico estricto. La exclusividad médica en Madrid que exige tu anatomía.' ),
-		'endolift'     => nvx_meta_item( 'Endolift Facial Madrid | Elimina Papada sin Cirugía ni Rellenos', '¿Cansada de que te inyecten volumen para esconder la flacidez? El Endolift tensa y retrae la piel desde dentro. Resultados médicos reales en NUVANX.' ),
+		'endolift'     => nvx_meta_item(
+			'Endolift® Facial Madrid — Papada, Mandíbula y Cuello | NUVANX',
+			'Endolift® facial en Madrid con plataforma Eufoton original. Indicación médica previa. Desde 798,60 € (ojeras). NUVANX Chamberí y Goya · Barrio Salamanca.'
+		),
 		'endolaser'    => nvx_meta_item( 'Endoláser Corporal Madrid | Firmeza que la Dieta No Logra', 'La dieta no pega la piel al músculo. El Endoláser Corporal en NUVANX Madrid destruye la grasa localizada y retrae la flacidez severa. Criterio médico.' ),
 		'co2'          => nvx_meta_item( 'Láser CO2 Fraccionado Madrid | Borra Cicatrices sin Cremas Inútiles', 'Las cremas cosméticas no quitan las cicatrices. El Láser CO2 médico de NUVANX renueva la piel dañada de raíz. Pide valoración con el Dr. Rivera Tejeda.' ),
 		'exion'        => nvx_meta_item( 'Radiofrecuencia EXION Madrid | Firmeza Facial y Corporal', 'La aparatología estética barata no funciona. EXION BTL con IA en NUVANX Madrid ofrece regeneración de ácido hialurónico y tensión cutánea demostrada.' ),
@@ -33,6 +36,10 @@ function nvx_seo_metadata_catalog(): array {
 		'por_que_nuvanx' => nvx_meta_item( 'Por qué NUVANX | Criterio médico en Madrid', 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.' ),
 		'inversion'    => nvx_meta_item( 'Inversión en medicina estética | NUVANX Madrid', 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.' ),
 		'valoracion'   => nvx_meta_item( 'Consulta Médica Estética Madrid | Exige Diagnóstico Real', 'Tu cuerpo no es un menú de restaurante. Solicita una valoración estricta en NUVANX Madrid y descubre el protocolo médico que realmente necesitas.' ),
+		'anti_fear_remodelacion' => nvx_meta_item(
+			'Remodelación corporal sin anestesia general en Madrid | NUVANX',
+			'Alternativa médica mínimamente invasiva a la liposucción tradicional. Endoláser y Endolift® en NUVANX Madrid cuando la anatomía lo permite, con anestesia local y recuperación ambulatoria.'
+		),
 		'blog'         => nvx_meta_item( 'Blog NUVANX | Autoridad en Medicina Estética Láser', 'Educación médica directa y sin filtros. Desmontamos mitos sobre tratamientos estéticos, láseres y la industria masificada en nuestro blog NUVANX.' ),
 	);
 }
@@ -123,8 +130,9 @@ function nvx_seo_current_metadata_key(): ?string {
 		'/equipo-medico/' => 'equipo',
 		'/por-que-nuvanx/' => 'por_que_nuvanx',
 		'/inversion-medicina-estetica/' => 'inversion',
-		'/madrid/valoracion/' => 'valoracion',
-		'/blog/' => 'blog',
+		'/madrid/valoracion/'                         => 'valoracion',
+		'/remodelacion-corporal-sin-anestesia-madrid/' => 'anti_fear_remodelacion',
+		'/blog/'                                      => 'blog',
 	);
 
 	return $map[ $path ] ?? null;

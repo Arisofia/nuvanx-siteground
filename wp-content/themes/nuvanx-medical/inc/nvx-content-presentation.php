@@ -1118,7 +1118,6 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_enhance_director_blocks( $content );
 	$content = nvx_content_rewrite_morpheus_faq( $content );
 	$content = nvx_content_unify_ctas( $content );
-	$content = nvx_content_enforce_hero_shell( $content );
 	$content = nvx_content_strip_versioned_class_tokens( $content );
 	// Closing CTA strip runs once at priority 99 (after page modules at ~19 rebuild content).
 

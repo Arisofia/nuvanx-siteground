@@ -2,9 +2,23 @@
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = process.env.DEPLOY_SHA || process.env.EXPECTED_SHA || '';
-const userAgent = 'NUVANX-Staging2-Acceptance/3.0';
+const browserHeaders = {
+  'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  'accept-language': 'es-ES,es;q=0.9,en;q=0.7',
+  'cache-control': 'no-cache',
+  pragma: 'no-cache',
+  'sec-ch-ua': '"Chromium";v="150", "Not_A Brand";v="99"',
+  'sec-ch-ua-mobile': '?0',
+  'sec-ch-ua-platform': '"Windows"',
+  'sec-fetch-dest': 'document',
+  'sec-fetch-mode': 'navigate',
+  'sec-fetch-site': 'none',
+  'upgrade-insecure-requests': '1',
+};
 const findings = [];
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+let sessionCookie = '';
 
 if (!['https://staging2.nuvanx.com', 'https://nuvanx.com'].includes(baseUrl)) {
   console.error(`ERROR: refusing unexpected BASE_URL: ${baseUrl}`);
@@ -41,32 +55,22 @@ const redirects = [
 ];
 
 const forbiddenMarkers = [
-  'Protocolo en construcción clínica',
-  'fase de despliegue web',
-  'pending_medical_legal',
-  'LipoSculpt-Air',
-  'V-Lift Awake',
-  'Couture Sculpt',
-  'Contour Sculpt',
-  'Eye Frame',
-  'Sin bisturí ni puntos',
-  'Todo en vigilia',
-  'Mínima recuperación',
-  'Recuperación inmediata',
-  'Sin cicatrices',
-  'Sin inflamación',
-  'Sin dolor',
-  'Sin riesgos',
-  'Elimina grasa en cualquier zona',
-  'Resultado definitivo',
-  'Resultados garantizados',
-  'Una sola sesión',
-  'Generalmente 3–4 sesiones',
-  'Reducción del dolor',
-  'Eritema reducido',
-  'Eritema mínimo',
-  'Control térmico absoluto',
+  'Protocolo en construcción clínica', 'fase de despliegue web', 'pending_medical_legal',
+  'LipoSculpt-Air', 'V-Lift Awake', 'Couture Sculpt', 'Contour Sculpt', 'Eye Frame',
+  'Sin bisturí ni puntos', 'Todo en vigilia', 'Mínima recuperación', 'Recuperación inmediata',
+  'Sin cicatrices', 'Sin inflamación', 'Sin dolor', 'Sin riesgos', 'Elimina grasa en cualquier zona',
+  'Resultado definitivo', 'Resultados garantizados', 'Una sola sesión', 'Generalmente 3–4 sesiones',
+  'Reducción del dolor', 'Eritema reducido', 'Eritema mínimo', 'Control térmico absoluto',
 ];
+
+function rememberCookies(response) {
+  const values = typeof response.headers.getSetCookie === 'function'
+    ? response.headers.getSetCookie()
+    : [response.headers.get('set-cookie')].filter(Boolean);
+  if (!values.length) return;
+  const cookies = values.map((value) => value.split(';', 1)[0]).filter(Boolean);
+  if (cookies.length) sessionCookie = cookies.join('; ');
+}
 
 async function requestWithRetry(path, redirect = 'manual') {
   let lastResponse = null;
@@ -77,13 +81,9 @@ async function requestWithRetry(path, redirect = 'manual') {
       lastResponse = await fetch(`${baseUrl}${path}`, {
         redirect,
         signal: controller.signal,
-        headers: {
-          'user-agent': userAgent,
-          accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-          'accept-language': 'es-ES,es;q=0.9,en;q=0.7',
-          'cache-control': 'no-cache',
-        },
+        headers: sessionCookie ? { ...browserHeaders, cookie: sessionCookie } : browserHeaders,
       });
+      rememberCookies(lastResponse);
     } finally {
       clearTimeout(timeout);
     }
@@ -91,7 +91,10 @@ async function requestWithRetry(path, redirect = 'manual') {
     if (![202, 429].includes(lastResponse.status) && lastResponse.status < 500) {
       return { response: lastResponse, attempt };
     }
-    if (attempt < 4) await sleep(attempt * 2000);
+    if (attempt < 4) {
+      await lastResponse.arrayBuffer();
+      await sleep(attempt * 2000);
+    }
   }
   return { response: lastResponse, attempt: 4 };
 }
@@ -110,7 +113,11 @@ async function verifyRedirect(sourcePath, targetPath) {
   const { response, attempt } = await requestWithRetry(sourcePath);
   const location = response.headers.get('location') || '';
   const expectedLocation = `${baseUrl}${targetPath}`;
-  if (response.status !== 301) findings.push(`${sourcePath}: returned HTTP ${response.status} instead of 301`);
+  if (response.status !== 301) {
+    findings.push(`${sourcePath}: returned HTTP ${response.status} instead of 301`);
+    console.log(`CHECK redirect ${sourcePath} status=${response.status} attempts=${attempt}`);
+    return;
+  }
   if (location !== expectedLocation) findings.push(`${sourcePath}: location is ${location || 'absent'} instead of ${expectedLocation}`);
   console.log(`CHECK redirect ${sourcePath} status=${response.status} attempts=${attempt}`);
 }
@@ -118,7 +125,11 @@ async function verifyRedirect(sourcePath, targetPath) {
 async function verifyPage(pagePath, markers) {
   const { response, attempt } = await requestWithRetry(pagePath);
   const html = await response.text();
-  if (response.status !== 200) findings.push(`${pagePath}: returned HTTP ${response.status} instead of 200`);
+  if (response.status !== 200) {
+    findings.push(`${pagePath}: returned HTTP ${response.status} instead of 200`);
+    console.log(`CHECK page ${pagePath} status=${response.status} attempts=${attempt}`);
+    return;
+  }
   for (const marker of markers) {
     if (!html.includes(marker)) findings.push(`${pagePath}: missing marker: ${marker}`);
   }
@@ -132,12 +143,14 @@ async function verifyPage(pagePath, markers) {
   console.log(`CHECK page ${pagePath} status=${response.status} attempts=${attempt}`);
 }
 
+// Warm the edge once and retain any challenge/session cookie before governed checks.
+await requestWithRetry('/');
 for (const [sourcePath, targetPath] of redirects) {
-  await sleep(2000);
+  await sleep(750);
   await verifyRedirect(sourcePath, targetPath);
 }
 for (const [pagePath, markers] of pages) {
-  await sleep(2000);
+  await sleep(750);
   await verifyPage(pagePath, markers);
 }
 

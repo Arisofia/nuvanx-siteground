@@ -25,6 +25,18 @@ fs.mkdirSync(evidenceDir, { recursive: true });
 import { phasePageDefinitions } from './staging2-contract-common.mjs';
 
 const commonMarkers = ['Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos', 'Tu primera valoración clínica'];
+const phaseSlugs = [
+  'papada-definicion-mandibular-madrid',
+  'calidad-piel-firmeza-luminosidad-madrid',
+  'cicatrices-acne-poros-textura-madrid',
+  'manchas-rojeces-fotorejuvenecimiento-ipl-madrid',
+  'grasa-localizada-abdomen-flancos-madrid',
+  'flacidez-grasa-localizada-brazos-madrid',
+  'grasa-espalda-zona-sujetador-madrid',
+  'flacidez-muslos-internos-subgluteo-madrid',
+  'tratamiento-rodillas-grasa-flacidez-madrid',
+  'contorno-corporal-masculino-madrid',
+];
 const pages = [
   {
     path: '/soluciones-medicas/',

@@ -185,7 +185,7 @@ for (const relative of [
   if (result.status !== 0) fail(`Node syntax failed for ${relative}: ${(result.stderr || result.stdout).trim()}`);
 }
 
-for (const relative of [
+const phpFiles = [
   'scripts/wp/nvx-production-readiness-command.php',
   'wp-content/themes/nuvanx-medical/functions.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php',
@@ -194,10 +194,19 @@ for (const relative of [
   'wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php',
-]) {
+];
+const skippedPhpFiles = [];
+for (const relative of phpFiles) {
   const result = spawnSync('php', ['-l', file(relative)], { encoding: 'utf8', env: { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' } });
-  if (result.error?.code === 'ENOENT') continue;
+  if (result.error?.code === 'ENOENT') {
+    skippedPhpFiles.push(relative);
+    continue;
+  }
   if (result.error || result.status !== 0) fail(`PHP lint failed for ${relative}: ${String(result.stderr || result.stdout || '').trim()}`);
+}
+if (skippedPhpFiles.length > 0) {
+  console.warn(`WARNING: php executable not available; skipped validation for ${skippedPhpFiles.length} file(s):`);
+  for (const skipped of skippedPhpFiles) console.warn(`  - ${skipped}`);
 }
 
 if (failures.length) {

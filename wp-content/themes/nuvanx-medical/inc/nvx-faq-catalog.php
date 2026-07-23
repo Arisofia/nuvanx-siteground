@@ -129,4 +129,5 @@ function nvx_inject_faqpage_schema_graph( array $data ): array {
 	}
 	return $data;
 }
-add_filter( 'wpseo_schema_graph', 'nvx_inject_faqpage_schema_graph' );
+# La homepage FAQ y sus FAQs en Schema ya se gobiernan vía nvx_home_faq_v2_schema_graph.
+# add_filter( 'wpseo_schema_graph', 'nvx_inject_faqpage_schema_graph' );

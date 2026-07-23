@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /** Whether the theme owns the complete body markup for the current page. */
 function nvx_theme_owns_complete_page_markup(): bool {
 	return is_front_page()
-		|| ( function_exists( 'nvx_cases_page_is_current' ) && nvx_cases_page_is_current() );
+		|| ( function_exists( 'nvxCasesPageIsCurrent' ) && nvxCasesPageIsCurrent() );
 }
 
 /** Dequeue block styles only when the rendered page contains no block markup. */

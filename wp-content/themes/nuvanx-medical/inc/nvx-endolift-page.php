@@ -108,12 +108,7 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-heading" id="nvx-endolift-h1">' . esc_html__( 'Endolift® en Madrid: papada, mandíbula y cuello sin quirófano', 'nuvanx-medical' ) . '</h1>';
 	
-	// E-E-A-T Medical Authority Byline
-	$html .= '<div class="nvx-medical-byline">';
-	$html .= '<div class="nvx-medical-byline__text">';
-	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
-	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
-	$html .= '</div></div>';
+	// La byline de revisión clínica se gestiona vía nvx_medical_review (meta + Schema) y el cuerpo editorial.
 	// Lead alineado con P3: tratamiento subdérmico de precisión y presupuesto tras valoración.
 	$html .= '<p class="nvx-lead">' . esc_html__( 'Tratamiento subdérmico de precisión para tensado tisular y reducción de grasa localizada en papada y tercio inferior. La indicación médica y el presupuesto cerrado se establecen tras la primera valoración en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-lead">' . esc_html(

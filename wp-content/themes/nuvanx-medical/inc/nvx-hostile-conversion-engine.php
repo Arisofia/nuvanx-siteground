@@ -115,4 +115,5 @@ function nvx_hostile_conversion_inject( $content ) {
 	// Fallback to prepending
 	return $hostile_block . $content;
 }
-add_filter( 'the_content', 'nvx_hostile_conversion_inject', 15 ); // Runs before presentation layer
+# Hostile conversion engine desactivado; la arquitectura actual usa presentación neutral y protocolos Signature.
+# add_filter( 'the_content', 'nvx_hostile_conversion_inject', 15 ); // Runs before presentation layer

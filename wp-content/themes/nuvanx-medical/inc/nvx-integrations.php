@@ -36,6 +36,10 @@ function nvx_production_readiness_governed_pages(): array {
 			'status' => 'trash',
 			'target' => '/protocolos-signature/',
 		),
+		'dr-javier-rivera-tejeda' => array(
+			'status' => 'trash',
+			'target' => '/equipo-medico/',
+		),
 		'tratamientos' => array(
 			'status' => 'trash',
 			'target' => '/soluciones-medicas/',

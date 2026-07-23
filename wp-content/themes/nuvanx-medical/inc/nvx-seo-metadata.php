@@ -216,6 +216,13 @@ function nvx_seo_current_metadata( string $field, string $fallback = '' ): strin
 		return (string) $post_meta[ $field ];
 	}
 
+	if ( function_exists( 'nvx_editorial_seo_current' ) ) {
+		$editorial = nvx_editorial_seo_current();
+		if ( is_array( $editorial ) && ! empty( $editorial[ $field ] ) ) {
+			return (string) $editorial[ $field ];
+		}
+	}
+
 	$key = nvx_seo_current_metadata_key();
 	if ( null === $key ) {
 		return $fallback;

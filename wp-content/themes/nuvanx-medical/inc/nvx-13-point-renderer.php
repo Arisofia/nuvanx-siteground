@@ -223,3 +223,52 @@ function nvx_render_13_point_matrix( array $data ): string {
     $html .= '</article>';
     return $html;
 }
+
+/**
+ * Registra un catálogo de páginas en the_content de forma centralizada.
+ *
+ * @param callable $catalog_callback Callback que devuelve un catálogo tipo array<string, array<string,mixed>>.
+ * @param int      $priority         Prioridad del hook de contenido (por defecto 22).
+ * @param callable|null $render_callback Opcional. Función que renderiza la página (por defecto nvx_render_13_point_matrix).
+ */
+function nvx_register_catalog_content_filter( callable $catalog_callback, int $priority = 22, ?callable $render_callback = null ): void {
+	if ( null === $render_callback ) {
+		$render_callback = 'nvx_render_13_point_matrix';
+	}
+
+	add_filter(
+		'the_content',
+		static function( string $content ) use ( $catalog_callback, $render_callback ): string {
+			if ( is_admin() || ! is_main_query() || ! in_the_loop() || ! is_page() ) {
+				return $content;
+			}
+
+			$slug    = (string) get_post_field( 'post_name', get_queried_object_id() );
+			$catalog = (array) call_user_func( $catalog_callback );
+
+			foreach ( $catalog as $page ) {
+				$slug_value = (string) ( $page['slug'] ?? '' );
+				if ( '' === $slug_value ) {
+					continue;
+				}
+				$catalog_slug_parts = explode( '/', $slug_value );
+				$catalog_final_slug = end( $catalog_slug_parts );
+
+				if ( $catalog_final_slug !== $slug ) {
+					continue;
+				}
+				$review_status = (string) ( $page['review_status'] ?? 'approved_for_publication' );
+				if ( 'approved_for_publication' !== $review_status ) {
+					continue;
+				}
+
+				$markup = call_user_func( $render_callback, (array) $page );
+				return '' === $markup ? $content : $markup;
+			}
+
+			return $content;
+		},
+		$priority
+	);
+}
+

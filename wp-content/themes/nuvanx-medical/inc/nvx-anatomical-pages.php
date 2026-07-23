@@ -303,48 +303,5 @@ function nvx_anatomical_body_catalog(): array {
 function nvx_anatomical_pages_catalog(): array {
 	return array_merge( nvx_anatomical_facial_catalog(), nvx_anatomical_body_catalog() );
 }
-/** Identifies the current page's anatomical catalog entry. */
-function nvx_anatomical_pages_current_key(): ?string {
-	if ( ! is_page() ) {
-		return null;
-	}
 
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	
-	// Support hierarchical matching (rostro/tercio-superior -> matches 'soluciones-medicas/rostro/tercio-superior')
-	// In WP, get_post_field 'post_name' only returns the final slug, not the full path.
-	// We need to check if the full path ends with this slug.
-	
-	foreach ( nvx_anatomical_pages_catalog() as $key => $page ) {
-		$catalog_slug_parts = explode('/', $page['slug']);
-		$catalog_final_slug = end($catalog_slug_parts);
-		
-		if ( $catalog_final_slug === $slug && 'approved_for_publication' === $page['review_status'] ) {
-			return $key;
-		}
-	}
-	return null;
-}
-
-
-/** Dispatches the markup for one approved anatomical page. */
-function nvx_anatomical_pages_markup( array $data ): string {
-	return nvx_render_13_point_matrix( $data );
-}
-
-/** Replaces the content of a matching approved anatomical page. */
-function nvx_anatomical_pages_content_filter( string $content ): string {
-	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
-		return $content;
-	}
-
-	$key = nvx_anatomical_pages_current_key();
-	if ( null === $key ) {
-		return $content;
-	}
-
-	$data   = nvx_anatomical_pages_catalog()[ $key ];
-	$markup = nvx_anatomical_pages_markup( $data );
-	return '' === $markup ? $content : $markup;
-}
-add_filter( 'the_content', 'nvx_anatomical_pages_content_filter', 22 );
+nvx_register_catalog_content_filter( 'nvx_anatomical_pages_catalog', 22 );

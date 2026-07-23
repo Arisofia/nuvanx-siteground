@@ -2,92 +2,85 @@
 /**
  * Canonical editorial front page.
  *
- * The hero separates moving media from copy. All subsequent modules use the
- * WordPress media library and a restrained editorial system owned by the theme.
+ * Home is an editorial cover, not a media catalogue. The page intentionally
+ * uses one editorial image and one medical-authority image after the video.
+ * Protocol, solution and clinical-evolution media belong to their own routes.
  *
  * @package nuvanx-medical
  */
 
 defined( 'ABSPATH' ) || exit;
 
+$hero_video_url   = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
+$hero_poster_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
+$editorial_image  = content_url( '/uploads/2026/07/Endolift-Corporal-Portada.webp' );
+$authority_image  = content_url( '/uploads/2026/07/proceso-medico-laser-nuvanx-madrid.webp' );
+
 define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
-define( 'NVX_URL_MANCHAS', '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' );
-define( 'NVX_URL_CICATRICES', '/cicatrices-acne-poros-textura-madrid/' );
-define( 'NVX_URL_PAPADA', '/papada-definicion-mandibular-madrid/' );
-define( 'NVX_URL_FIRMEZA', '/calidad-piel-firmeza-luminosidad-madrid/' );
-define( 'NVX_URL_ABDOMEN', '/grasa-localizada-abdomen-flancos-madrid/' );
-define( 'NVX_URL_BRAZOS', '/flacidez-grasa-localizada-brazos-madrid/' );
-define( 'NVX_URL_POSTPARTO', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' );
 
-
-$hero_video_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
-$hero_poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
-$img_papada = '/uploads/2026/07/Endolift-Papada.webp';
-
-/** Helper for editorial stories. */
-function nvx_story( string $img, string $alt, string $kick, string $title, string $desc, string $url ): array {
-	return array( 'image' => content_url( $img ), 'alt' => $alt, 'kicker' => $kick, 'title' => $title, 'description' => $desc, 'url' => home_url( $url ) );
-}
-/** Helper for solution cards. */
-function nvx_sol( string $img, string $alt, string $lbl, string $title, string $copy, string $url ): array {
-	return array( 'image' => content_url( $img ), 'alt' => $alt, 'label' => $lbl, 'title' => $title, 'copy' => $copy, 'url' => home_url( $url ) );
-}
-
-
-$editorial_stories = array(
-	nvx_story( '/uploads/2026/07/Endolift-Corporal-Portada.webp' , 'Detalle editorial de preparación corporal en NUVANX', 'PREPARACIÓN CORPORAL', 'La disciplina también puede ser delicada.', 'Planificación por zonas, anatomía y calidad del tejido. Sin fórmulas estándar.', NVX_URL_REMODELACION  ),
-	nvx_story( '/uploads/2026/07/Exion-IPL.webp' , 'Retrato editorial para el protocolo Tone Correction', 'TONE CORRECTION™', 'Un tono más uniforme, sin borrar tu piel real.', 'Manchas, rojeces y fotodaño se valoran según diagnóstico y fototipo.', NVX_URL_MANCHAS  ),
-	nvx_story( '/uploads/2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro.webp' , 'Retrato editorial para el protocolo Surface Renewal', 'SURFACE RENEWAL™', 'Renovar la superficie sin uniformar tu identidad.', 'Textura, poros y cicatrices requieren parámetros definidos para cada piel.', NVX_URL_CICATRICES  ),
-	nvx_story( $img_papada , 'Perfil facial editorial para el protocolo Profile Definition', 'PROFILE DEFINITION™', 'Definición que se percibe. Intervención que no se anuncia.', 'Papada, mandíbula y cuello se estudian como una misma arquitectura anatómica.', NVX_URL_PAPADA  ),
+$protocols = array(
+	array(
+		'number' => '01',
+		'label'  => 'Profile Definition™',
+		'title'  => 'Perfil, papada y mandíbula.',
+		'copy'   => 'El contorno facial se estudia como una arquitectura: grasa, laxitud, soporte y proporción antes de indicar una técnica.',
+		'url'    => '/papada-definicion-mandibular-madrid/',
+	),
+	array(
+		'number' => '02',
+		'label'  => 'Skin Architecture™',
+		'title'  => 'Firmeza, densidad y calidad cutánea.',
+		'copy'   => 'El plan diferencia pérdida de soporte, calidad dérmica y superficie para evitar respuestas genéricas.',
+		'url'    => '/calidad-piel-firmeza-luminosidad-madrid/',
+	),
+	array(
+		'number' => '03',
+		'label'  => 'Surface Renewal™',
+		'title'  => 'Textura, poros y cicatrices.',
+		'copy'   => 'Fototipo, profundidad y riesgo de pigmentación determinan la secuencia y los parámetros clínicos.',
+		'url'    => '/cicatrices-acne-poros-textura-madrid/',
+	),
+	array(
+		'number' => '04',
+		'label'  => 'Contour Architecture™',
+		'title'  => 'Contorno corporal por unidades anatómicas.',
+		'copy'   => 'Grasa localizada, laxitud y continuidad entre zonas se valoran por separado antes de construir el plan.',
+		'url'    => NVX_URL_REMODELACION,
+	),
 );
 
-$solution_cards = array(
-	nvx_sol( $img_papada , 'Valoración de papada, mandíbula y cuello', 'Rostro y cuello', 'Papada y definición mandibular', 'Se diferencia grasa localizada, laxitud y soporte anatómico antes de indicar una técnica.', NVX_URL_PAPADA  ),
-	nvx_sol( '/uploads/2026/07/Exion-IPL.webp' , 'Valoración de calidad y firmeza de la piel', 'Calidad cutánea', 'Firmeza, densidad y luminosidad', 'La modalidad depende del fototipo, la profundidad y el tiempo de recuperación disponible.', NVX_URL_FIRMEZA  ),
-	nvx_sol( '/uploads/2026/07/Endolift-Abdomen.webp' , 'Valoración corporal de abdomen y flancos', 'Contorno corporal', 'Abdomen y flancos', 'Grasa subcutánea, laxitud y continuidad del contorno se valoran por separado.', NVX_URL_ABDOMEN  ),
-	nvx_sol( '/uploads/2026/07/Endolift-Brazos.webp' , 'Valoración corporal de brazos', 'Contorno corporal', 'Brazos y axila', 'La reserva de piel y la relación con axila y torso condicionan el alcance razonable.', NVX_URL_BRAZOS  ),
-	nvx_sol( '/uploads/2026/07/Endolift-Abdomen-y-Flancos-Frente.webp' , 'Valoración del abdomen después del embarazo', 'Post-Maternity Contour™', 'Recuperación posgestacional', 'Piel, grasa, cicatriz y pared abdominal requieren decisiones distintas y, a veces, derivación.', NVX_URL_POSTPARTO  ),
-	nvx_sol( '/uploads/2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro.webp' , 'Valoración de cicatrices, poros y textura', 'Superficie cutánea', 'Cicatrices, poros y textura', 'Tipo de cicatriz, fototipo y riesgo de pigmentación determinan la secuencia clínica.', NVX_URL_CICATRICES  ),
-);
-
-$evolution_cards = array(
+$solutions = array(
 	array(
-		'image' => content_url( $img_papada ),
-		'alt'   => 'Documentación clínica de evolución de papada y perfil',
-		'label' => 'Perfil y cuello',
+		'kicker' => 'ROSTRO Y CUELLO',
+		'title'  => 'Definición sin estandarizar el rostro.',
+		'copy'   => 'Papada, mandíbula, cuello y calidad facial requieren lectura anatómica, no una plantilla estética.',
+		'url'    => '/papada-definicion-mandibular-madrid/',
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/Endolift-Full-Face.webp' ),
-		'alt'   => 'Documentación clínica de evolución facial integral',
-		'label' => 'Arquitectura facial',
+		'kicker' => 'PIEL',
+		'title'  => 'Calidad, textura y tono bajo diagnóstico.',
+		'copy'   => 'Manchas, rojeces, cicatrices, poros y firmeza responden a mecanismos diferentes y no se tratan igual.',
+		'url'    => '/soluciones-medicas/',
 	),
 	array(
-		'image' => content_url( '/uploads/2026/07/Endolift-Brazos.webp' ),
-		'alt'   => 'Documentación clínica de evolución de brazos',
-		'label' => 'Brazos',
-	),
-	array(
-		'image' => content_url( '/uploads/2026/07/Endolift-Abdomen.webp' ),
-		'alt'   => 'Documentación clínica de evolución de abdomen',
-		'label' => 'Abdomen',
-	),
-	array(
-		'image' => content_url( '/uploads/2026/07/Endolift-Espalda-Flancos-y-Sujetador.webp' ),
-		'alt'   => 'Documentación clínica de evolución de espalda y zona del sujetador',
-		'label' => 'Espalda',
+		'kicker' => 'CONTORNO CORPORAL',
+		'title'  => 'Proporción, tejido y continuidad entre zonas.',
+		'copy'   => 'Abdomen, flancos, brazos, espalda y muslos se estudian dentro de la silueta completa.',
+		'url'    => NVX_URL_REMODELACION,
 	),
 );
 
 ob_start();
 ?>
-<div id="nvx-home-v3" class="nvx-home-v3 nvx-home-v4">
+<div id="nvx-home-v3" class="nvx-home-v4 nvx-home-v5">
 	<section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
 		<div class="nvx-home-hero__media" aria-hidden="true">
-			<video aria-hidden="true" id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>">
+			<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>">
 				<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
-			  <track kind="subtitles" src="/uploads/captions.vtt" srclang="es" label="Español">
+				<track kind="subtitles" src="/uploads/captions.vtt" srclang="es" label="Español">
 				<track kind="descriptions" src="/uploads/descriptions.vtt" srclang="es" label="Audiodescripción">
-</video>
+			</video>
+			<button id="nvx-home-hero-video-pause" class="nvx-home-hero__video-control" aria-label="Pause background video">Pause</button>
 		</div>
 		<div class="nvx-home-hero__copy">
 			<p class="nvx-home-eyebrow">NUVANX · MEDICINA ESTÉTICA LÁSER</p>
@@ -107,24 +100,36 @@ ob_start();
 		<p>Cada protocolo comienza con una valoración individual. Si no existe una indicación proporcionada, no se propone un procedimiento.</p>
 	</section>
 
-	<section class="nvx-home-editorial" aria-labelledby="nvx-home-editorial-title">
+	<section class="nvx-home-feature" aria-labelledby="nvx-home-feature-title">
+		<div class="nvx-home-feature__media">
+			<img src="<?php echo esc_url( $editorial_image ); ?>" alt="Preparación corporal editorial NUVANX" loading="eager" decoding="async">
+		</div>
+		<div class="nvx-home-feature__copy">
+			<p class="nvx-home-eyebrow">PREPARACIÓN CORPORAL</p>
+			<h2 id="nvx-home-feature-title">La disciplina también puede ser delicada.</h2>
+			<p>Un plan corporal no empieza por una máquina. Empieza por entender la anatomía, la calidad del tejido y qué cambio puede ser proporcionado sin perder naturalidad.</p>
+			<a href="<?php echo esc_url( home_url( NVX_URL_REMODELACION ) ); ?>" class="nvx-home-text-link">Explorar remodelación corporal</a>
+		</div>
+	</section>
+
+	<section class="nvx-home-protocols" aria-labelledby="nvx-home-protocols-title">
 		<header class="nvx-home-section-header">
 			<div>
 				<p class="nvx-home-eyebrow">PROTOCOLOS SIGNATURE</p>
-				<h2 id="nvx-home-editorial-title">Una línea editorial que también es una forma de trabajar.</h2>
+				<h2 id="nvx-home-protocols-title">Una arquitectura clínica. No una colección de máquinas.</h2>
 			</div>
-			<p>Imágenes serenas, lenguaje preciso y resultados naturales. La estética visual no sustituye la valoración médica: la hace comprensible.</p>
+			<p>Los protocolos organizan el diagnóstico y la secuencia de tratamiento. Las imágenes completas viven en cada protocolo, donde pueden explicarse con contexto.</p>
 		</header>
-		<div class="nvx-home-editorial__grid">
-			<?php foreach ( $editorial_stories as $story ) : ?>
-				<article class="nvx-home-editorial-card">
-					<img src="<?php echo esc_url( $story['image'] ); ?>" alt="<?php echo esc_attr( $story['alt'] ); ?>" loading="lazy" decoding="async">
-					<div class="nvx-home-editorial-card__panel">
-						<p class="nvx-home-editorial-card__kicker"><?php echo esc_html( $story['kicker'] ); ?></p>
-						<h3><?php echo esc_html( $story['title'] ); ?></h3>
-						<p><?php echo esc_html( $story['description'] ); ?></p>
-						<a href="<?php echo esc_url( $story['url'] ); ?>">Conocer el protocolo <span aria-hidden="true">→</span></a>
+		<div class="nvx-home-protocols__list">
+			<?php foreach ( $protocols as $protocol ) : ?>
+				<article class="nvx-home-protocol">
+					<p class="nvx-home-protocol__number"><?php echo esc_html( $protocol['number'] ); ?></p>
+					<div class="nvx-home-protocol__body">
+						<p class="nvx-home-protocol__label"><?php echo esc_html( $protocol['label'] ); ?></p>
+						<h3><?php echo esc_html( $protocol['title'] ); ?></h3>
+						<p><?php echo esc_html( $protocol['copy'] ); ?></p>
 					</div>
+					<a href="<?php echo esc_url( home_url( $protocol['url'] ) ); ?>" class="nvx-home-protocol__link" aria-label="Conocer <?php echo esc_attr( $protocol['label'] ); ?>">→</a>
 				</article>
 			<?php endforeach; ?>
 		</div>
@@ -136,46 +141,34 @@ ob_start();
 				<p class="nvx-home-eyebrow">SOLUCIONES MÉDICAS</p>
 				<h2 id="nvx-home-solutions-title">La zona orienta la consulta. El diagnóstico define el plan.</h2>
 			</div>
-			<p>Una misma preocupación puede tener causas diferentes. Por eso evitamos convertir una tecnología en una respuesta universal.</p>
+			<p>La Home presenta las áreas de decisión. El detalle visual y clínico permanece en las páginas específicas para no convertir la portada en un catálogo.</p>
 		</header>
 		<div class="nvx-home-solutions__grid">
-			<?php foreach ( $solution_cards as $solution ) : ?>
+			<?php foreach ( $solutions as $solution ) : ?>
 				<article class="nvx-home-solution-card">
-					<a href="<?php echo esc_url( $solution['url'] ); ?>" class="nvx-home-solution-card__media" tabindex="-1" aria-hidden="true">
-						<img src="<?php echo esc_url( $solution['image'] ); ?>" alt="<?php echo esc_attr( $solution['alt'] ); ?>" loading="lazy" decoding="async">
-					</a>
-					<div class="nvx-home-solution-card__copy">
-						<p class="nvx-home-solution-card__label"><?php echo esc_html( $solution['label'] ); ?></p>
-						<h3><a href="<?php echo esc_url( $solution['url'] ); ?>"><?php echo esc_html( $solution['title'] ); ?></a></h3>
-						<p><?php echo esc_html( $solution['copy'] ); ?></p>
-					</div>
+					<p class="nvx-home-solution-card__label"><?php echo esc_html( $solution['kicker'] ); ?></p>
+					<h3><?php echo esc_html( $solution['title'] ); ?></h3>
+					<p><?php echo esc_html( $solution['copy'] ); ?></p>
+					<a href="<?php echo esc_url( home_url( $solution['url'] ) ); ?>">Explorar solución <span aria-hidden="true">→</span></a>
 				</article>
 			<?php endforeach; ?>
 		</div>
 	</section>
 
-	<section class="nvx-home-evolution" aria-labelledby="nvx-home-evolution-title">
-		<header class="nvx-home-section-header nvx-home-section-header--light">
-			<div>
-				<p class="nvx-home-eyebrow">DOCUMENTACIÓN CLÍNICA</p>
-				<h2 id="nvx-home-evolution-title">Evolución registrada. Contexto visible.</h2>
-			</div>
-			<p>Casos documentados con consentimiento, condiciones de captura coherentes y seguimiento médico. Cada evolución es individual.</p>
-		</header>
-		<div class="nvx-home-evolution__track">
-			<?php foreach ( $evolution_cards as $case ) : ?>
-				<figure class="nvx-home-evolution-card">
-					<img src="<?php echo esc_url( $case['image'] ); ?>" alt="<?php echo esc_attr( $case['alt'] ); ?>" loading="lazy" decoding="async">
-					<figcaption><?php echo esc_html( $case['label'] ); ?></figcaption>
-				</figure>
-			<?php endforeach; ?>
+	<section class="nvx-home-cases" aria-labelledby="nvx-home-cases-title">
+		<div>
+			<p class="nvx-home-eyebrow">DOCUMENTACIÓN CLÍNICA</p>
+			<h2 id="nvx-home-cases-title">La evolución necesita contexto, no una promesa.</h2>
 		</div>
-		<p class="nvx-home-evolution__action"><a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-btn nvx-btn--secondary-on-dark">Explorar casos clínicos</a></p>
+		<div class="nvx-home-cases__copy">
+			<p>Los casos por zona, sus condiciones de captura y el seguimiento médico se presentan en una página independiente. La Home no repite esa galería ni utiliza resultados como decoración.</p>
+			<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-btn nvx-btn--secondary-on-dark">Explorar casos clínicos</a>
+		</div>
 	</section>
 
 	<section class="nvx-home-authority" aria-labelledby="nvx-home-authority-title">
 		<div class="nvx-home-authority__media">
-			<img src="<?php echo esc_url( content_url( '/uploads/2026/07/proceso-medico-laser-nuvanx-madrid.webp' ) ); ?>" alt="Experiencia editorial NUVANX" loading="lazy" decoding="async">
+			<img src="<?php echo esc_url( $authority_image ); ?>" alt="Proceso médico láser en NUVANX Madrid" loading="lazy" decoding="async">
 		</div>
 		<div class="nvx-home-authority__copy">
 			<p class="nvx-home-eyebrow">DIRECCIÓN MÉDICA</p>

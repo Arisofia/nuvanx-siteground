@@ -348,6 +348,89 @@ function nvx_btl_detail_registry(): array {
 				array( 'q' => __( '¿Duele?', 'nuvanx-medical' ), 'a' => __( 'Sensación de vibración/calor leve en la mayoría de pacientes; no comparable a multipasada con aguja larga.', 'nuvanx-medical' ) ),
 			),
 		),
+		'exilite'          => array(
+			'path'         => '/btl-exilite-ipl-madrid/',
+			'key'          => 'exilite',
+			'kicker'       => __( 'BTL EXILITE™ · LUZ PULSADA INTENSA', 'nuvanx-medical' ),
+			'h1'           => __( 'IPL médica para manchas, rojeces y calidad de piel.', 'nuvanx-medical' ),
+			'lead'         => __( 'Una plataforma de luz pulsada intensa para indicaciones pigmentarias y vasculares seleccionadas después de valorar fototipo, exposición solar, sensibilidad y objetivo clínico.', 'nuvanx-medical' ),
+			'meta'         => __( 'Chamberí · Salamanca–Goya · Indicación médica individual', 'nuvanx-medical' ),
+			'aria'         => __( 'BTL EXILITE IPL NUVANX', 'nuvanx-medical' ),
+			'marker'       => 'nvx-exilite',
+			'yoast_title'  => 'IPL Médico Madrid | Elimina Manchas y Rojeces | NUVANX',
+			'yoast_desc'   => 'IPL EXILITE™ en NUVANX Madrid: luz pulsada médica para manchas, rojeces, acné y fotorejuvenecimiento tras valoración clínica.',
+			'focuskw'      => 'IPL BTL EXILITE Madrid',
+			'hub'          => $hub,
+			'combo'        => '',
+			'schema_name'  => 'BTL EXILITE™ IPL en Madrid',
+			'schema_type'  => 'Protocolo médico con luz pulsada intensa (IPL)',
+			'schema_desc'  => 'Tratamiento médico con IPL BTL EXILITE™ para manchas solares, rojeces, telangiectasias y calidad cutánea en NUVANX Madrid.',
+			'mechanism'    => array(
+				'title' => __( 'Luz filtrada según el objetivo clínico', 'nuvanx-medical' ),
+				'body'  => array(
+					__( 'El sistema selecciona bandas de longitud de onda y distribuye la energía en pulsos. Los parámetros se ajustan a la indicación, al fototipo y a la respuesta de la piel.', 'nuvanx-medical' ),
+				),
+				'items' => array(
+					array(
+						'title' => __( 'Melanina', 'nuvanx-medical' ),
+						'body'  => __( 'Objetivo pigmentario superficial.', 'nuvanx-medical' ),
+					),
+					array(
+						'title' => __( 'Hemoglobina', 'nuvanx-medical' ),
+						'body'  => __( 'Objetivo vascular y rojeces seleccionadas.', 'nuvanx-medical' ),
+					),
+					array(
+						'title' => __( 'Control térmico', 'nuvanx-medical' ),
+						'body'  => __( 'Multipulse y refrigeración para administrar la energía de forma graduada.', 'nuvanx-medical' ),
+					),
+				),
+			),
+			'indications'  => array(
+				array( 'title' => __( 'Pigmentación: Manchas solares y pigmentación irregular', 'nuvanx-medical' ), 'body' => __( 'La IPL actúa sobre la melanina para tratar lentigos solares, manchas por fotoexposición y pigmentación difusa. Tras el tratamiento, las manchas pueden oscurecerse temporalmente y aclararse progresivamente.', 'nuvanx-medical' ) ),
+				array( 'title' => __( 'Vascular: Rojeces, cuperosis y telangiectasias', 'nuvanx-medical' ), 'body' => __( 'El sistema dispone de filtros con alta afinidad por la hemoglobina para reducir rojeces difusas y telangiectasias finas, siendo útil en pieles con eritema persistente o rubor.', 'nuvanx-medical' ) ),
+				array( 'title' => __( 'Acné: Acné leve y lesiones inflamatorias', 'nuvanx-medical' ), 'body' => __( 'Puede ayudar en casos de acné leve gracias a su acción sobre Propionibacterium acnes y la reducción de inflamación, como complemento en un plan integral.', 'nuvanx-medical' ) ),
+				array( 'title' => __( 'Anti-aging: Fotorejuvenecimiento y calidad de piel', 'nuvanx-medical' ), 'body' => __( 'Mejora los signos del fotoenvejecimiento: luminosidad, textura, poros dilatados, arrugas finas y pérdida de firmeza superficial. Suelen requerir 3-4 sesiones.', 'nuvanx-medical' ) ),
+				array( 'title' => __( 'Corporal: Rejuvenecimiento de cuello y escote', 'nuvanx-medical' ), 'body' => __( 'Permite armonizar el aspecto del cuello y escote con el del rostro, reduciendo manchas, rojeces, vasos superficiales y textura irregular.', 'nuvanx-medical' ) ),
+			),
+			'compare'      => array(
+				'title' => __( 'La misma mancha no siempre necesita el mismo tratamiento', 'nuvanx-medical' ),
+				'body'  => __( 'Antes de indicar IPL diferenciamos pigmentación epidérmica, componente vascular, fotodaño, inflamación activa y riesgo de hiperpigmentación. La plataforma se selecciona cuando el diagnóstico y el fototipo permiten un uso proporcionado. BTL EXILITE™ no es un láser. Emite un espectro de luz filtrado y ajustable que permite trabajar sobre cromóforos concretos de la piel.', 'nuvanx-medical' ),
+				'link'  => '',
+				'label' => '',
+			),
+			'process'      => array(
+				array(
+					'title' => __( 'Valoración', 'nuvanx-medical' ),
+					'body'  => __( 'Revisión de fototipo, bronceado reciente, medicación, lesiones, sensibilidad y exposición solar prevista.', 'nuvanx-medical' ),
+				),
+				array(
+					'title' => __( 'Sesión', 'nuvanx-medical' ),
+					'body'  => __( 'Aplicación sobre piel limpia con protección ocular. Puede percibirse calor y un impacto luminoso breve.', 'nuvanx-medical' ),
+				),
+				array(
+					'title' => __( 'Plan orientativo', 'nuvanx-medical' ),
+					'body'  => __( 'El número de sesiones depende de la indicación y de la respuesta. No existe una pauta universal.', 'nuvanx-medical' ),
+				),
+				array(
+					'title' => __( 'Cuidados', 'nuvanx-medical' ),
+					'body'  => __( 'Fotoprotección estricta y evitar calor intenso, exfoliación o exposición solar según la pauta médica entregada.', 'nuvanx-medical' ),
+				),
+			),
+			'faqs'         => array(
+				array(
+					'q' => __( '¿Puede realizarse si la piel está bronceada?', 'nuvanx-medical' ),
+					'a' => __( 'No suele indicarse sobre bronceado reciente. Se valora el tono basal, la exposición y el riesgo de alteración pigmentaria antes de programar la sesión.', 'nuvanx-medical' ),
+				),
+				array(
+					'q' => __( '¿Qué recuperación puede esperarse?', 'nuvanx-medical' ),
+					'a' => __( 'Puede aparecer enrojecimiento transitorio y oscurecimiento temporal de determinadas manchas. La respuesta y los cuidados se explican según el protocolo aplicado.', 'nuvanx-medical' ),
+				),
+				array(
+					'q' => __( '¿IPL y láser son lo mismo?', 'nuvanx-medical' ),
+					'a' => __( 'No. La IPL utiliza un espectro amplio de luz filtrada; un láser trabaja con una longitud de onda más específica. La elección depende del diagnóstico.', 'nuvanx-medical' ),
+				),
+			),
+		),
 	);
 }
 

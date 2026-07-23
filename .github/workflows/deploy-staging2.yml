@@ -154,7 +154,7 @@ jobs:
     #   name: staging2
     #   url: https://staging2.nuvanx.com
     env:
-      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.pull_request.head.sha }}
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || (github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha) }}
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'DEPLOY_AND_MIGRATE' }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
     steps:

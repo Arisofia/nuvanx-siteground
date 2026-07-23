@@ -117,19 +117,25 @@ function nvx_protocol_pages_catalog(): array {
 /**
  * Identifies the current governed protocol page so the page shell does not
  * render a second generic H1 above the catalogue-owned clinical hierarchy.
+ *
+ * @return string|null Matching catalog key or null when not a governed protocol page.
  */
 function nvx_protocol_pages_current_key(): ?string {
 	if ( ! is_page() ) {
 		return null;
 	}
 
-	$current_slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	$current_slug = rawurldecode( trim( (string) get_post_field( 'post_name', get_queried_object_id() ), '/' ) );
 	foreach ( nvx_protocol_pages_catalog() as $key => $page ) {
-		if ( 'approved_for_publication' !== (string) ( $page['review_status'] ?? '' ) ) {
+		if ( 'approved_for_publication' !== (string) ( $page['review_status'] ?? 'approved_for_publication' ) ) {
 			continue;
 		}
 
-		$slug_parts = explode( '/', (string) ( $page['slug'] ?? '' ) );
+		$slug_value = rawurldecode( trim( (string) ( $page['slug'] ?? '' ), '/' ) );
+		if ( '' === $slug_value ) {
+			continue;
+		}
+		$slug_parts = explode( '/', $slug_value );
 		if ( $current_slug === (string) end( $slug_parts ) ) {
 			return (string) $key;
 		}
@@ -138,4 +144,14 @@ function nvx_protocol_pages_current_key(): ?string {
 	return null;
 }
 
+/** Suppress the generic shell title because this module renders the canonical H1. */
+function nvx_protocol_pages_prepare_shell(): void {
+	if ( null !== nvx_protocol_pages_current_key() ) {
+		set_query_var( 'nvx_shell_skip_header', true );
+	}
+}
+add_action( 'wp', 'nvx_protocol_pages_prepare_shell', 5 );
+
 nvx_register_catalog_content_filter( 'nvx_protocol_pages_catalog', 21 );
+
+

@@ -135,7 +135,8 @@ for (const marker of [
   'nvx_clinical_language_prohibited_phrases', 'Sin bisturí ni puntos', 'Recuperación inmediata',
   'Sin dolor', 'Sin riesgos', 'Resultados garantizados', 'Generalmente 3–4 sesiones',
   'Reducción del dolor', 'Eritema reducido', 'Control térmico absoluto',
-]) if (!clinicalLanguage.includes(marker)) fail(`clinical language gate missing marker: ${marker}`);
+  'presupuesto muy bajo', 'no usamos descuentos estacionales', 'el estándar de oro', 'absoluta discreción',
+]) if (!clinicalLanguage.toLowerCase().includes(marker.toLowerCase())) fail(`clinical language gate missing marker: ${marker}`);
 
 for (const marker of [
   '/remodelacion-corporal-laser-madrid/', 'Remodelación corporal láser en Madrid | NUVANX Contour Architecture',

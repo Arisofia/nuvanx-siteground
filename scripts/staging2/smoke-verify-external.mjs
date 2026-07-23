@@ -132,8 +132,14 @@ async function verifyPage(pagePath, markers) {
   console.log(`CHECK page ${pagePath} status=${response.status} attempts=${attempt}`);
 }
 
-for (const [sourcePath, targetPath] of redirects) await verifyRedirect(sourcePath, targetPath);
-for (const [pagePath, markers] of pages) await verifyPage(pagePath, markers);
+for (const [sourcePath, targetPath] of redirects) {
+  await sleep(2000);
+  await verifyRedirect(sourcePath, targetPath);
+}
+for (const [pagePath, markers] of pages) {
+  await sleep(2000);
+  await verifyPage(pagePath, markers);
+}
 
 if (findings.length) {
   console.error(`SMOKE_VERIFY_FAILED findings=${findings.length}`);

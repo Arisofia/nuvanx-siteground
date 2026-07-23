@@ -33,6 +33,10 @@ const protocolHub = read('wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.
 const protocolPages = read('wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php');
 const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
 
+for (const forbidden of ['fetch(', 'node-fetch']) {
+  if (acceptance.includes(forbidden)) fail(`origin acceptance must not use direct Node HTTP transport: ${forbidden}`);
+}
+
 for (const marker of [
   'workflow_dispatch:', 'pull_request:', "inputs.confirmation == 'DEPLOY_STAGING2'",
   "github.event.action == 'labeled'", "github.event.label.name == 'deploy-staging2'",
@@ -104,7 +108,7 @@ for (const marker of [
   "spawnSync('ssh'", 'STAGING2_SSH_ALIAS', 'transport=ssh',
   'EXPECTED_SHA must be a full lowercase 40-character SHA',
   '/remodelacion-corporal-laser-madrid/', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
-  'H1 mismatch:', 'canonicals.length !== 1', 'WebPage', 'Organization',
+  'H1 mismatch:', 'parsed.canonicals.length !== 1', 'WebPage', 'Organization',
   'report.json', 'RENDERED_ACCEPTANCE_OK',
 ]) if (!acceptance.includes(marker)) fail(`origin acceptance missing marker: ${marker}`);
 for (const slug of phaseSlugs) if (!acceptance.includes(`/${slug}/`)) fail(`origin acceptance missing phase route: ${slug}`);

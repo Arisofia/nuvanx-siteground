@@ -1292,7 +1292,10 @@ function nvx_content_build_treatment_injections( string $content ): string {
 }
 
 /**
- * Auto-inject shared treatment sections into real treatment pages that lack them.
+ * Appends shared treatment sections to eligible treatment pages when required sections are missing.
+ *
+ * @param string $content The page content to enhance.
+ * @return string The content with shared treatment sections appended when applicable.
  */
 function nvx_content_inject_global_treatment_sections( string $content ): string {
 	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ( ! is_singular( 'page' ) && ! is_page() ) || ! nvx_content_is_treatment_injection_target( $content ) ) {
@@ -1308,9 +1311,6 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 		$replaced = nvxContentPregReplaceKeep( '/(<\/div>\s*)$/i', $injections . '$1', $content );
 		return is_string( $replaced ) ? $replaced : $content . $injections;
 	}
-
-	return $content . $injections;
-}
 
 	return $content . $injections;
 }

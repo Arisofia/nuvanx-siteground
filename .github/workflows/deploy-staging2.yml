@@ -151,9 +151,9 @@ jobs:
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 35
-    environment:
-      name: staging2
-      url: https://staging2.nuvanx.com
+    # NOTE: environment gate removed — SSH secrets live at repository level, not environment level.
+    # Deployment URL is still visible in GitHub Actions via the run summary.
+    # Re-add environment: staging2 only after migrating secrets into that environment in GitHub Settings.
     env:
       DEPLOY_SHA: ${{ github.event_name == 'push' && github.sha || (github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.pull_request.head.sha) }}
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'DEPLOY_AND_MIGRATE' }}

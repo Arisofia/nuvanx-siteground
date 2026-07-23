@@ -131,6 +131,7 @@ jobs:
 
       - name: Upload contract validation evidence
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: staging2-contract-validation-${{ github.run_id }}-${{ github.run_attempt }}
@@ -422,6 +423,7 @@ jobs:
 
       - name: Upload staging2 evidence
         if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
         with:
           name: staging2-deployment-evidence-${{ github.run_id }}-${{ github.run_attempt }}

@@ -260,7 +260,10 @@ async function verifySinglePage(page) {
   return pageResult;
 }
 
+const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
 for (const page of pages) {
+  await sleep(2000);
   report.pages.push(await verifySinglePage(page));
 }
 
@@ -287,6 +290,7 @@ async function verifyRedirectRoute(sourcePath, targetPath) {
 }
 
 for (const [src, dst] of redirects) {
+  await sleep(2000);
   report.redirects.push(await verifyRedirectRoute(src, dst));
 }
 

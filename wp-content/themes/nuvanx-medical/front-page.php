@@ -76,6 +76,7 @@ ob_start();
 			<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>">
 				<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
 			</video>
+			<button id="nvx-home-hero-video-pause" class="nvx-home-hero__video-control" aria-label="Pause background video">Pause</button>
 		</div>
 		<div class="nvx-home-hero__copy">
 			<p class="nvx-home-eyebrow">NUVANX · MEDICINA ESTÉTICA LÁSER</p>

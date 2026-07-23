@@ -23,7 +23,8 @@ const diagnostics = read('scripts/staging2/collect-staging2-diagnostics.sh');
 const migration = read('scripts/wp/nvx-production-readiness-command.php');
 const smoke = read('scripts/staging2/smoke-verify-staging2.sh');
 const acceptance = read('scripts/staging2/verify-rendered-acceptance-ssh.mjs');
-const visualQa = read('scripts/staging2/capture-visual-qa-browser.mjs');
+const visualQa = read('scripts/staging2/capture-visual-qa.mjs');
+const visualPreload = read('scripts/staging2/visual-qa-edge-preload.mjs');
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 const functions = read('wp-content/themes/nuvanx-medical/functions.php');
 const phasePages = read('wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php');
@@ -41,12 +42,14 @@ for (const marker of [
   'workflow_dispatch:', 'pull_request:', "inputs.confirmation == 'DEPLOY_STAGING2'",
   "github.event.action == 'labeled'", "github.event.label.name == 'deploy-staging2'",
   'PREFLIGHT_ONLY', 'DEPLOY_AND_MIGRATE', 'SMOKE_ONLY',
-  'cancel-in-progress: true', 'persist-credentials: false',
+  'cancel-in-progress: false', 'persist-credentials: false',
   'StrictHostKeyChecking yes', 'STAGING2_SSH_KNOWN_HOSTS',
   'git_sha must equal the selected workflow ref HEAD',
   "ssh nvx-staging2 'BASE_URL=https://staging2.nuvanx.com bash -s'",
   'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
-  'scripts/staging2/capture-visual-qa-browser.mjs',
+  'scripts/staging2/capture-visual-qa.mjs',
+  'scripts/staging2/visual-qa-edge-preload.mjs',
+  'NODE_OPTIONS: --import=',
   'Run rendered acceptance verification', 'RENDERED_ACCEPTANCE_OK',
   'Run real browser visual QA', 'VISUAL_QA_OK',
   'staging2-deployment-evidence', 'actions/upload-artifact@',
@@ -56,6 +59,7 @@ for (const forbidden of [
   'ssh-keyscan', 'StrictHostKeyChecking no', 'persist-credentials: true',
   '/home/customer/www/nuvanx.com/public_html', "github.event_name == 'push'",
   "github.ref == 'refs/heads/master'", 'scripts/staging2/smoke-verify-external.mjs',
+  'scripts/staging2/capture-visual-qa-browser.mjs', 'cancel-in-progress: true',
 ]) if (workflow.includes(forbidden)) fail(`workflow contains forbidden marker: ${forbidden}`);
 if (/^\s{2}push:\s*$/mu.test(workflow)) fail('workflow must not run on every push to master');
 
@@ -109,6 +113,7 @@ for (const marker of [
   'EXPECTED_SHA must be a full lowercase 40-character SHA',
   '/remodelacion-corporal-laser-madrid/', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
   'H1 mismatch:', 'parsed.canonicals.length !== 1', 'WebPage', 'Organization',
+  'presupuesto muy bajo', 'no usamos descuentos estacionales', 'el estándar de oro', 'absoluta discreción',
   'report.json', 'RENDERED_ACCEPTANCE_OK',
 ]) if (!acceptance.includes(marker)) fail(`origin acceptance missing marker: ${marker}`);
 for (const slug of phaseSlugs) if (!acceptance.includes(`/${slug}/`)) fail(`origin acceptance missing phase route: ${slug}`);
@@ -117,17 +122,23 @@ for (const forbidden of ['wp option update', 'wp post update', 'wp db import', '
 }
 
 for (const marker of [
-  'Google Chrome or Chromium is not installed', 'governed page did not become ready',
-  'Page.captureScreenshot', 'captureBeyondViewport: true', 'screenshot is unexpectedly small',
+  'Google Chrome or Chromium is not installed', 'Page.captureScreenshot',
+  'captureBeyondViewport: true', 'screenshot is unexpectedly small',
   'navigation-desktop-mega.png', 'navigation-mobile-drawer.png',
   'Input.dispatchMouseEvent', "document.getElementById('nvx-hamburger-btn')?.click()",
   'Protocolos Signature mobile accordion toggle', 'Contour Architecture nested mobile toggle',
   'horizontal overflow', 'focus did not move to close button', 'Escape did not close drawer',
   'Couture Sculpt', 'Contour Sculpt', 'Eye Frame', 'VISUAL_QA_OK',
+  'auditEquipoEditorial', 'editorial coherence stylesheet is not loaded',
+  'institutional page incorrectly received treatment block injections',
   'const pages = [', "{ name: 'desktop'", "{ name: 'mobile'",
-]) if (!visualQa.includes(marker)) fail(`browser visual QA missing marker: ${marker}`);
-for (const slug of phaseSlugs) if (!visualQa.includes(`/${slug}/`)) fail(`browser visual QA missing phase route: ${slug}`);
-if (/async function fetchWithRetry\s*\(/.test(visualQa)) fail('browser visual QA must not perform a Node edge preflight before Chrome navigation');
+]) if (!visualQa.includes(marker)) fail(`visual QA missing marker: ${marker}`);
+for (const slug of phaseSlugs) if (!visualQa.includes(`/${slug}/`)) fail(`visual QA missing phase route: ${slug}`);
+
+for (const marker of ['const nativeFetch = globalThis.fetch', "url.startsWith('https://staging2.nuvanx.com/')", 'return nativeFetch(input, init)']) {
+  if (!visualPreload.includes(marker)) fail(`visual QA preload missing marker: ${marker}`);
+}
+if (visualPreload.includes('http://127.0.0.1')) fail('visual QA preload must not intercept the local Chrome DevTools endpoint');
 
 for (const marker of ["'liposculpt-air'", "'v-lift-awake'", "'tratamientos'", "'target' => '/protocolos-signature/'"]) {
   if (!integrations.includes(marker)) fail(`governed redirects missing marker: ${marker}`);
@@ -162,7 +173,8 @@ for (const forbidden of ['garantizar resultados', 'control térmico absoluto', '
 
 for (const relative of [
   'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
-  'scripts/staging2/capture-visual-qa-browser.mjs',
+  'scripts/staging2/visual-qa-edge-preload.mjs',
+  'scripts/staging2/capture-visual-qa.mjs',
   'scripts/staging2/test-deploy-workflow-contract.mjs',
 ]) {
   const result = spawnSync(process.execPath, ['--check', file(relative)], { encoding: 'utf8' });

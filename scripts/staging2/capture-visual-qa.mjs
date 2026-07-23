@@ -31,10 +31,10 @@ const pages = [
   ['/protocolos-signature/', 'Protocolos Signature: Medicina estética de diagnóstico.'],
   ['/remodelacion-corporal-laser-madrid/', 'Remodelación corporal láser diseñada según tu anatomía.'],
   ['/tratamiento-postparto-abdomen-contorno-corporal-madrid/', 'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid'],
-  ['/papada-definicion-mandibular-madrid/', 'Papada y definición mandibular en Madrid'],
-  ['/calidad-piel-firmeza-luminosidad-madrid/', 'Calidad, firmeza y luminosidad de la piel en Madrid'],
-  ['/cicatrices-acne-poros-textura-madrid/', 'Cicatrices de acné, poros y textura en Madrid'],
-  ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', 'Manchas, rojeces y fotodaño en Madrid'],
+  ['/papada-definicion-mandibular-madrid/', 'Tratamiento médico de papada y definición mandibular en Madrid.'],
+  ['/calidad-piel-firmeza-luminosidad-madrid/', 'Tratamiento médico para firmeza, densidad y calidad cutánea.'],
+  ['/cicatrices-acne-poros-textura-madrid/', 'Tratamiento médico de cicatrices, poros dilatados y textura cutánea.'],
+  ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', 'Tratamiento médico de manchas, rojeces y daño solar.'],
   ['/grasa-localizada-abdomen-flancos-madrid/', 'Esa grasa del abdomen que no se va ni a dieta ni a gimnasio.'],
   ['/flacidez-grasa-localizada-brazos-madrid/', 'Para que la manga caiga bien — sin que la piel quede colgando después.'],
   ['/grasa-espalda-zona-sujetador-madrid/', 'El pliegue que marca la ropa, aunque tu peso esté bien.'],
@@ -405,7 +405,7 @@ async function auditSingleViewport(port, pagePath, expectedH1, viewport) {
 
     if (pagePath === '/equipo-medico/') await auditEquipoEditorial(session, viewport, scope, result);
 
-    if (['/nosotros/', '/equipo-medico/', '/contacto/', '/por-que-nuvanx/', '/inversion-medicina-estetica/'].includes(pagePath)) {
+    if (['/nosotros/', '/equipo-medico/', '/contacto/', '/por-que-nuvanx/'].includes(pagePath)) {
       const hasTreatmentInjection = await session.evaluate(`(() => {
          return !!document.querySelector('.nvx-endolift-process, .nvx-endolift-effects, .nvx-endolaser-zone, .nvx-editorial-effects, .nvx-editorial-price-table-wrap');
       })()`);

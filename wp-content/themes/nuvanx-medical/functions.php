@@ -307,7 +307,10 @@ add_action( 'wp', 'nvxThemeLoadCasesPageModule', 1 );
  * @param int $limit
  * @return string
  */
-function nvx_content_preg_replace_keep( $pattern, $replacement, string $subject, int $limit = -1 ): string {
+function nvx_content_preg_replace_keep( $pattern, $replacement, ?string $subject, int $limit = -1 ): string {
+	if ( $subject === null ) {
+		return '';
+	}
 	if ( is_callable( $replacement ) ) {
 		$result = preg_replace_callback( $pattern, $replacement, $subject, $limit );
 	} else {

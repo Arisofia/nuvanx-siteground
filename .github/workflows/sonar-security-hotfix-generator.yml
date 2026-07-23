@@ -2,7 +2,7 @@ name: Sonar Security Hotfix Generator
 
 on:
   pull_request_target:
-    types: [synchronize]
+    types: [labeled]
 
 permissions:
   contents: write
@@ -15,6 +15,7 @@ jobs:
   generate:
     if: >-
       github.event.pull_request.number == 250 &&
+      github.event.label.name == 'generate-sonar-hotfix' &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest

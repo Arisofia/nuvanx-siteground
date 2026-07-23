@@ -180,6 +180,7 @@ function nvx_solution_pages_catalog(): array {
 				'Prescripción de la preparación pre-tratamiento y pautas estrictas de fotoprotección.',
 			),
 		),
+	);
 }
 
 /** Identifica la solución actual por slug de la página. */

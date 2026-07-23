@@ -13,6 +13,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Helper to build metadata array.
+ */
+function nvx_meta_item( string $title, string $description ): array {
+	return array(
+		'title'       => $title,
+		'description' => $description,
+	);
+}
+
+/**
  * Metadata catalogue for the principal commercial, local and authority pages.
  *
  * @return array<string, array{title:string,description:string}>

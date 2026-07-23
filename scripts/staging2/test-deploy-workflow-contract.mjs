@@ -31,7 +31,8 @@ const protocolPages = read('wp-content/themes/nuvanx-medical/inc/nvx-protocol-pa
 const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
 
 for (const marker of [
-  'workflow_dispatch:', "inputs.confirmation == 'DEPLOY_STAGING2'", 'PREFLIGHT_ONLY', 'DEPLOY_AND_MIGRATE', 'SMOKE_ONLY',
+  'workflow_dispatch:', 'pull_request:', "inputs.confirmation == 'DEPLOY_STAGING2'", "github.event.action == 'labeled'",
+  "github.event.label.name == 'deploy-staging2'", 'PREFLIGHT_ONLY', 'DEPLOY_AND_MIGRATE', 'SMOKE_ONLY',
   'environment:', 'name: staging2', 'persist-credentials: false', 'StrictHostKeyChecking yes', 'STAGING2_SSH_KNOWN_HOSTS',
   'git_sha must equal the selected workflow ref HEAD', 'scripts/staging2/collect-staging2-diagnostics.sh',
   'scripts/wp/nvx-production-readiness-command.php', 'scripts/staging2/smoke-verify-staging2.sh',
@@ -40,9 +41,13 @@ for (const marker of [
   'EVIDENCE_DIR: staging2-deployment-evidence/visual-qa', 'Visual QA:',
   'staging2-deployment-evidence', 'actions/upload-artifact@',
 ]) if (!workflow.includes(marker)) fail(`workflow missing contract marker: ${marker}`);
-for (const forbidden of ['ssh-keyscan', 'StrictHostKeyChecking no', 'persist-credentials: true', '/home/customer/www/nuvanx.com/public_html']) {
+for (const forbidden of [
+  'ssh-keyscan', 'StrictHostKeyChecking no', 'persist-credentials: true', '/home/customer/www/nuvanx.com/public_html',
+  "github.event_name == 'push'", "github.ref == 'refs/heads/master'",
+]) {
   if (workflow.includes(forbidden)) fail(`workflow contains forbidden marker: ${forbidden}`);
 }
+if (/^\s{2}push:\s*$/mu.test(workflow)) fail('workflow must not deploy or run on every push to master');
 
 for (const marker of [
   "EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'", "EXPECTED_URL='https://staging2.nuvanx.com'",
@@ -122,6 +127,11 @@ for (const marker of [
 if (!/continue;\s*\}/.test(phasePages)) fail('phase-page navigation does not explicitly skip unsupported nodes');
 
 for (const marker of [
+  'function nvx_protocol_pages_current_key', 'nvx_protocol_pages_catalog',
+  'remodelacion-corporal-laser-madrid', 'tratamiento-postparto-abdomen-contorno-corporal-madrid',
+]) if (!protocolPages.includes(marker)) fail(`protocol-page ownership missing marker: ${marker}`);
+
+for (const marker of [
   'nvx_clinical_language_prohibited_phrases', 'Sin bisturí ni puntos', 'Recuperación inmediata',
   'Sin dolor', 'Sin riesgos', 'Resultados garantizados', 'Generalmente 3–4 sesiones',
   'Reducción del dolor', 'Eritema reducido', 'Control térmico absoluto',
@@ -157,7 +167,7 @@ const phpFiles = [
 for (const relative of phpFiles) {
   const result = spawnSync('php', ['-l', file(relative)], { encoding: 'utf8', env: { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' } });
   if (result.error || result.status !== 0) {
-    if (result.error?.code === 'ENOENT') continue; // php binary not available locally
+    if (result.error?.code === 'ENOENT') continue;
     fail(`PHP lint failed for ${relative}: ${((result.stderr || result.stdout || '') + '').trim()}`);
   }
 }

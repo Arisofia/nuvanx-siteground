@@ -156,24 +156,24 @@ final class NvxProductionReadinessHelper {
 }
 
 /** Audits and applies the idempotent production-readiness migration. */
-final class NvxProductionReadinessCommand {
-    private const CONFIRMATION_TOKEN = 'retire-prototypes';
-    private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
-    private const LOCK_TTL_SECONDS   = 900;
+final class NVX_Production_Readiness_Command {
+	private const CONFIRMATION_TOKEN = 'retire-prototypes';
+	private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
+	private const LOCK_TTL_SECONDS   = 900;
 
-    /**
-     * Builds audit rows for the approved pages defined by the production-readiness contract.
-     *
-     * @return array Audit rows containing each page's identifier, status, menu-item count, and expected status.
-     */
-    private function approvedAuditRows(): array {
-        $rows = array();
-        foreach ( NvxProductionReadinessHelper::approvedPages() as $slug => $definition ) {
-            $page   = NvxProductionReadinessHelper::pageBySlug( $slug );
-            $rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( NvxProductionReadinessHelper::menuItemIds( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
-        }
-        return $rows;
-    }
+	/**
+	 * Builds audit rows for approved pages, including their status and menu-item count.
+	 *
+	 * @return array Audit rows describing each approved page.
+	 */
+	private function approvedAuditRows(): array {
+		$rows = array();
+		foreach ( NVX_Production_Readiness_Helper::approvedPages() as $slug => $definition ) {
+			$page   = NVX_Production_Readiness_Helper::pageBySlug( $slug );
+			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( NVX_Production_Readiness_Helper::menuItemIds( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
+		}
+		return $rows;
+	}
 
     /**
      * Builds audit rows for governed pages, including their current status, menu references, and expected status.

@@ -115,7 +115,8 @@ function nvx_treatments_catalog_markup(): string {
 	$html .= '<div class="nvx-brand-hero__inner">';
 	$html .= '<div class="nvx-editorial-hero__copy">';
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 id="nvx-portfolio-h1" class="nvx-heading">' . esc_html__( 'Lo que hacemos, y por qué lo hacemos así.', 'nuvanx-medical' ) . '</h1>';
+	// P5 y el gate de rendered-acceptance exigen H1 "Portafolio clínico."
+	$html .= '<h1 id="nvx-portfolio-h1" class="nvx-heading">' . esc_html__( 'Portafolio clínico.', 'nuvanx-medical' ) . '</h1>';
 	$html .= '<p class="nvx-lead">' . esc_html__( 'Tenemos la tecnología más avanzada que existe hoy. Pero la máquina no decide nada — decide el médico, después de mirarte. Aquí tienes las zonas en las que trabajamos; cuál de ellas tiene sentido para ti se decide en consulta, no en esta página.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></div></section>';
 

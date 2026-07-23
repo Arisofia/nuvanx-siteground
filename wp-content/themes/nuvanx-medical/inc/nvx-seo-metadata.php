@@ -107,6 +107,16 @@ function nvx_seo_current_metadata_key(): ?string {
 		'/protocolos-signature/' => 'protocolos_signature',
 		'/remodelacion-corporal-laser-madrid/' => 'contour-architecture',
 		'/tratamiento-postparto-abdomen-contorno-corporal-madrid/' => 'post-maternity',
+		'/papada-definicion-mandibular-madrid/' => 'papada_mandibular',
+		'/calidad-piel-firmeza-luminosidad-madrid/' => 'calidad_piel',
+		'/cicatrices-acne-poros-textura-madrid/' => 'cicatrices_textura',
+		'/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' => 'manchas_rojeces',
+		'/grasa-localizada-abdomen-flancos-madrid/' => 'abdomen_flancos',
+		'/flacidez-grasa-localizada-brazos-madrid/' => 'brazos',
+		'/grasa-espalda-zona-sujetador-madrid/' => 'espalda',
+		'/flacidez-muslos-internos-subgluteo-madrid/' => 'muslos_subgluteo',
+		'/tratamiento-rodillas-grasa-flacidez-madrid/' => 'rodillas',
+		'/contorno-corporal-masculino-madrid/' => 'masculino',
 		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
 		'/medicina-estetica-chamberi/' => 'chamberi',
 		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
@@ -165,6 +175,20 @@ function nvx_seo_current_metadata( string $field, string $fallback = '' ): strin
 			}
 		}
 	}
+
+	// 1.5. Try reading from the solutions catalog.
+	if ( function_exists( 'nvx_solution_pages_catalog' ) ) {
+		$solutions = nvx_solution_pages_catalog();
+		if ( isset( $solutions[ $key ] ) ) {
+			if ( 'title' === $field && ! empty( $solutions[ $key ]['seo_title'] ) ) {
+				return (string) $solutions[ $key ]['seo_title'];
+			}
+			if ( 'description' === $field && ! empty( $solutions[ $key ]['description'] ) ) {
+				return (string) $solutions[ $key ]['description'];
+			}
+		}
+	}
+
 
 	// 2. Fall back to the static SEO catalog.
 	$catalog = nvx_seo_metadata_catalog();

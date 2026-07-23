@@ -136,31 +136,46 @@ function nvx_render_matrix_faqs_section( array $faqs ): string {
  * @return string Extracted and validated HTML block.
  */
 function nvx_render_13_point_matrix( array $data ): string {
-    $html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-shell">';
+    // Clase ajustada para representar tanto protocolos como páginas anatómicas de tratamiento.
+    // Se mantiene `nvx-protocol-page` para compatibilidad con CSS existente y se añade una
+    // clase más neutral para su uso futuro.
+    $html  = '<article class="nvx-brand-readable nvx-treatment-page nvx-protocol-page nvx-shell">';
 
     // 1. Hero / Intro
     $html .= nvx_render_matrix_hero( $data );
 
     // 2. Diagnosis (Por qué un enfoque genérico no funciona / Diagnóstico)
     if ( ! empty( $data['diagnosis'] ) ) {
+        $heading = ! empty( $data['diagnosis_heading'] )
+            ? $data['diagnosis_heading']
+            : __( 'El valor del diagnóstico médico', 'nuvanx-medical' );
+
         $html .= nvx_render_matrix_text_section(
-            __( 'El valor del diagnóstico médico', 'nuvanx-medical' ),
+            $heading,
             $data['diagnosis']
         );
     }
 
     // 3. Mechanism (Cómo actuamos)
     if ( ! empty( $data['mechanism'] ) ) {
+        $heading = ! empty( $data['mechanism_heading'] )
+            ? $data['mechanism_heading']
+            : __( 'Mecanismo de acción', 'nuvanx-medical' );
+
         $html .= nvx_render_matrix_text_section(
-            __( 'Mecanismo de acción', 'nuvanx-medical' ),
+            $heading,
             $data['mechanism']
         );
     }
 
     // 4. Indications
     if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
+        $heading = ! empty( $data['indications_heading'] )
+            ? $data['indications_heading']
+            : __( 'Indicaciones: Qué tratamos', 'nuvanx-medical' );
+
         $html .= nvx_render_matrix_list_section(
-            __( 'Indicaciones: Qué tratamos', 'nuvanx-medical' ),
+            $heading,
             $data['indications'],
             'ul'
         );
@@ -168,8 +183,12 @@ function nvx_render_13_point_matrix( array $data ): string {
 
     // 5. Precautions
     if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
+        $heading = ! empty( $data['precautions_heading'] )
+            ? $data['precautions_heading']
+            : __( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' );
+
         $html .= nvx_render_matrix_list_section(
-            __( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' ),
+            $heading,
             $data['precautions'],
             'ul'
         );
@@ -177,8 +196,12 @@ function nvx_render_13_point_matrix( array $data ): string {
 
     // 6. Process
     if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
+        $heading = ! empty( $data['process_heading'] )
+            ? $data['process_heading']
+            : __( 'Proceso en clínica', 'nuvanx-medical' );
+
         $html .= nvx_render_matrix_list_section(
-            __( 'Proceso en clínica', 'nuvanx-medical' ),
+            $heading,
             $data['process'],
             'ol'
         );

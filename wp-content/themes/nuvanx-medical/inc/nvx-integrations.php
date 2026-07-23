@@ -12,6 +12,7 @@ require_once __DIR__ . '/nvx-environment-flags.php';
 require_once __DIR__ . '/nvx-visual-system.php';
 require_once __DIR__ . '/nvx-external-visual-closure.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
+require_once __DIR__ . '/nvx-solution-detail.php';
 require_once __DIR__ . '/nvx-strategy-pages.php';
 require_once __DIR__ . '/nvx-conversion-events.php';
 require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';

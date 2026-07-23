@@ -14,7 +14,7 @@
 
 ## 02. SEO META
 - **SEO Title (60 car.):** Protocolos Signature | Medicina Estética de Autor en Madrid
-- **Meta description (150 car.):** Conoce los Protocolos Signature NUVANX: Couture Sculpt™, Skin Architecture™, Profile Definition™. Medicina estética láser enfocada en diagnóstico y proporción.
+- **Meta description (150 car.):** Conoce los Protocolos Signature NUVANX: Contour Architecture™, Skin Architecture™, Profile Definition™. Medicina estética láser enfocada en diagnóstico y proporción.
 - **Canonical:** https://nuvanx.com/protocolos-signature/
 
 ---
@@ -63,7 +63,7 @@ alrededor de su anatomía.
 
 H2: Contorno Corporal y Posgestacional
 
-TARJETA: Couture Sculpt™
+TARJETA: Contour Architecture™
 Descripción: Remodelación corporal láser por unidades anatómicas. Diagnóstico y
 tratamiento focal para mejorar la continuidad del contorno sin imponer formas estándar.
 URL → /remodelacion-corporal-laser-madrid/

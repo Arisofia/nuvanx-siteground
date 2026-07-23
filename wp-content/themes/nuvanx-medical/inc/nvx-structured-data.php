@@ -640,59 +640,42 @@ function nvx_schema_faq_catalog() {
 /**
  * Return an FAQPage node that exactly mirrors visible page content.
  *
- * Front page uses the GEO home FAQ catalogue (nvx_home_faq_v2_catalog).
- * Treatment pages use nvx_schema_faq_catalog when the same Q/A are printed in HTML.
- *
  * @param int $page_id Current page ID.
  * @return array|null
  */
 function nvx_schema_faq_node( $page_id ) {
-	$entities = array();
-	$faq_id   = get_permalink( $page_id ) . '#faq';
-	$faq_url  = get_permalink( $page_id );
+	$questions = array();
+	$faq_id    = get_permalink( $page_id ) . '#faq';
+	$faq_url   = get_permalink( $page_id );
 
-	// Homepage FAQ (visible accordion + schema must stay in lockstep).
 	if ( is_front_page() && function_exists( 'nvx_home_faq_v2_catalog' ) ) {
-		foreach ( nvx_home_faq_v2_catalog() as $question ) {
-			if ( empty( $question['q'] ) || empty( $question['a'] ) ) {
-				continue;
-			}
+		$questions = nvx_home_faq_v2_catalog();
+		$faq_id    = home_url( '/#faq' );
+		$faq_url   = home_url( '/' );
+	} else {
+		$key     = nvx_schema_resolve_treatment_key( $page_id );
+		$catalog = nvx_schema_faq_catalog();
+		if ( null !== $key && ! empty( $catalog[ $key ] ) ) {
+			$questions = $catalog[ $key ];
+		}
+	}
+
+	$entities = array();
+	foreach ( $questions as $q ) {
+		if ( ! empty( $q['q'] ) && ! empty( $q['a'] ) ) {
 			$entities[] = array(
 				'@type'          => 'Question',
-				'name'           => $question['q'],
+				'name'           => $q['q'],
 				'acceptedAnswer' => array(
 					'@type' => 'Answer',
-					'text'  => $question['a'],
+					'text'  => $q['a'],
 				),
 			);
 		}
-		if ( empty( $entities ) ) {
-			return null;
-		}
-		return array(
-			'@type'      => 'FAQPage',
-			'@id'        => home_url( '/#faq' ),
-			'url'        => home_url( '/' ),
-			'mainEntity' => $entities,
-		);
 	}
 
-	$treatment_key = nvx_schema_resolve_treatment_key( $page_id );
-	$catalog       = nvx_schema_faq_catalog();
-
-	if ( null === $treatment_key || empty( $catalog[ $treatment_key ] ) ) {
+	if ( empty( $entities ) ) {
 		return null;
-	}
-
-	foreach ( $catalog[ $treatment_key ] as $question ) {
-		$entities[] = array(
-			'@type'          => 'Question',
-			'name'           => $question['q'],
-			'acceptedAnswer' => array(
-				'@type' => 'Answer',
-				'text'  => $question['a'],
-			),
-		);
 	}
 
 	return array(
@@ -703,28 +686,12 @@ function nvx_schema_faq_node( $page_id ) {
 	);
 }
 
-/**
- * Treatment / service entity nodes keyed by registry treatment key.
- *
- * @param int    $page_id        Current page ID.
- * @param string $organization_id Organization @id.
- * @return array|null
- */
-function nvx_schema_treatment_node( $page_id, $organization_id ) {
-	$co2_facial = ""; $co2_body = ""; $label_f = ""; $label_b = ""; $co2_from = "";
-	$key = nvx_schema_resolve_treatment_key( $page_id );
-
-	if ( null === $key ) {
-		return null;
-	}
-
-	$permalink    = get_permalink( $page_id );
-	$price_from   = nvx_schema_price_string( nvx_endolift_price_from_eur() );
-	$price_papada = nvx_schema_price_string( nvx_endolift_price_papada_eur() );
+function nvx_schema_treatment_node_laser( string $key, string $permalink, string $organization_id ): ?array {
 	$label_from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
 	$label_papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
+	$label_f      = function_exists( 'nvx_co2_price_facial_eur' ) ? nvx_format_price_eur( nvx_co2_price_facial_eur() ) : '';
+	$label_b      = function_exists( 'nvx_co2_price_body_eur' ) ? nvx_format_price_eur( nvx_co2_price_body_eur() ) : '';
 
-	// Entity nodes cite-able by LLMs: procedure + indications + starting offer when known.
 	if ( 'endolift_facial' === $key ) {
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
@@ -741,28 +708,14 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 			'howPerformed'     => 'Tras anestesia local se inserta microfibra óptica de 200–300 micras y se aplica energía láser intersticial en patrón vectorial subdérmico adaptado a la zona.',
 			'followup'         => 'Seguimiento clínico protocolizado (típicamente semanas 4 y 8 y control posterior). Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.',
 			'indication'       => array(
-				array(
-					'@type' => 'MedicalIndication',
-					'name'  => 'Flacidez facial leve a moderada',
-				),
-				array(
-					'@type' => 'MedicalIndication',
-					'name'  => 'Adiposidad submentoniana (papada) seleccionada',
-				),
+				array( '@type' => 'MedicalIndication', 'name' => 'Flacidez facial leve a moderada' ),
+				array( '@type' => 'MedicalIndication', 'name' => 'Adiposidad submentoniana (papada) seleccionada' ),
 			),
-			// MedicalCondition links for GEO entity extraction (mirrors visible indications).
 			'relevantCondition' => array(
-				array(
-					'@type' => 'MedicalCondition',
-					'name'  => 'Flacidez facial',
-				),
-				array(
-					'@type' => 'MedicalCondition',
-					'name'  => 'Adiposidad submentoniana',
-				),
+				array( '@type' => 'MedicalCondition', 'name' => 'Flacidez facial' ),
+				array( '@type' => 'MedicalCondition', 'name' => 'Adiposidad submentoniana' ),
 			),
-			// Primary offer = papada/mandibular (page intent); “desde” ojeras is in description + HTML table.
-			);
+		);
 	}
 
 	if ( 'endolaser_corporal' === $key ) {
@@ -781,34 +734,17 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 			'howPerformed'     => 'Bajo anestesia local se introduce fibra láser en tejido subcutáneo para lipólisis selectiva y estímulo térmico de retracción en la cuadrícula de zonas planificada.',
 			'followup'         => 'Cuidados post-procedimiento y revisiones según zona y protocolo médico.',
 			'indication'       => array(
-				array(
-					'@type' => 'MedicalIndication',
-					'name'  => 'Adiposidad localizada resistente a dieta y ejercicio',
-				),
-				array(
-					'@type' => 'MedicalIndication',
-					'name'  => 'Flacidez cutánea leve a moderada asociada a pérdida de volumen local',
-				),
+				array( '@type' => 'MedicalIndication', 'name' => 'Adiposidad localizada resistente a dieta y ejercicio' ),
+				array( '@type' => 'MedicalIndication', 'name' => 'Flacidez cutánea leve a moderada asociada a pérdida de volumen local' ),
 			),
 			'relevantCondition' => array(
-				array(
-					'@type' => 'MedicalCondition',
-					'name'  => 'Adiposidad localizada',
-				),
-				array(
-					'@type' => 'MedicalCondition',
-					'name'  => 'Flacidez cutánea corporal leve-moderada',
-				),
+				array( '@type' => 'MedicalCondition', 'name' => 'Adiposidad localizada' ),
+				array( '@type' => 'MedicalCondition', 'name' => 'Flacidez cutánea corporal leve-moderada' ),
 			),
 		);
 	}
 
 	if ( 'laser_co2' === $key ) {
-		
-		
-		
-		
-
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
 			'@id'              => $permalink . '#medical-procedure',
@@ -824,32 +760,21 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 			'howPerformed'     => 'Microhaces de CO₂ crean columnas de vaporización térmica fraccionada; el tejido circundante acelera la curación y estimula colágeno I y III.',
 			'followup'         => 'Días 1–3 eritema y patrón punteado; días 4–7 descamación; desde día 7 recuperación visual habitual y remodelación progresiva 4–6 semanas.',
 			'indication'       => array(
-				array(
-					'@type' => 'MedicalIndication',
-					'name'  => 'Cicatrices atróficas de acné',
-				),
-				array(
-					'@type' => 'MedicalIndication',
-					'name'  => 'Poros dilatados y textura irregular',
-				),
-				array(
-					'@type' => 'MedicalIndication',
-					'name'  => 'Fotodaño y elastosis solar',
-				),
+				array( '@type' => 'MedicalIndication', 'name' => 'Cicatrices atróficas de acné' ),
+				array( '@type' => 'MedicalIndication', 'name' => 'Poros dilatados y textura irregular' ),
+				array( '@type' => 'MedicalIndication', 'name' => 'Fotodaño y elastosis solar' ),
 			),
 			'relevantCondition' => array(
-				array(
-					'@type' => 'MedicalCondition',
-					'name'  => 'Cicatrices atróficas de acné',
-				),
-				array(
-					'@type' => 'MedicalCondition',
-					'name'  => 'Fotodaño cutáneo',
-				),
+				array( '@type' => 'MedicalCondition', 'name' => 'Cicatrices atróficas de acné' ),
+				array( '@type' => 'MedicalCondition', 'name' => 'Fotodaño cutáneo' ),
 			),
-			);
+		);
 	}
 
+	return null;
+}
+
+function nvx_schema_treatment_node_btl( string $key, string $permalink, string $organization_id ): ?array {
 	if ( 'exion_btl' === $key ) {
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
@@ -859,13 +784,12 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
 			'provider'         => array( '@id' => $organization_id ),
-				'description'      => 'Plataforma médica BTL con aplicadores Fractional RF, Face y Body para protocolos de textura, firmeza y calidad cutánea según diagnóstico. El presupuesto se documenta tras la valoración médica según aplicador, zona y plan de sesiones.',
+			'description'      => 'Plataforma médica BTL con aplicadores Fractional RF, Face y Body para protocolos de textura, firmeza y calidad cutánea según diagnóstico. El presupuesto se documenta tras la valoración médica según aplicador, zona y plan de sesiones.',
 			'procedureType'    => 'https://schema.org/NoninvasiveProcedure',
 			'areaServed'       => 'Madrid',
-			);
+		);
 	}
 
-	// Detail services (Face / Body / Fractional / EMFUSION) — mirror theme registry copy.
 	$btl_detail_keys = array( 'exion_face', 'exion_body', 'exion_fractional', 'emfusion' );
 	if ( in_array( $key, $btl_detail_keys, true ) && function_exists( 'nvx_btl_detail_registry' ) ) {
 		$slug_map = array(
@@ -907,6 +831,22 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
 	}
 
 	return null;
+}
+
+function nvx_schema_treatment_node( $page_id, $organization_id ) {
+	$key = nvx_schema_resolve_treatment_key( $page_id );
+	if ( null === $key ) {
+		return null;
+	}
+
+	$permalink = get_permalink( $page_id );
+
+	$laser_node = nvx_schema_treatment_node_laser( $key, $permalink, $organization_id );
+	if ( null !== $laser_node ) {
+		return $laser_node;
+	}
+
+	return nvx_schema_treatment_node_btl( $key, $permalink, $organization_id );
 }
 
 /**
@@ -1043,81 +983,32 @@ function nvx_schema_physician_ivon( $organization_id ) {
 }
 
 /**
- * Dr. Fabio Augusto Quiñónez Bareiro — Physician (geriatrics / complex patient E-E-A-T).
+ * Dr. Fabio Quinonez Bareiro — Physician + Aesthetic Surgeon (E-E-A-T / GEO).
  *
  * @param string $organization_id Organization @id.
  * @return array
  */
 function nvx_schema_physician_fabio( $organization_id ) {
-	$equipo    = home_url( '/equipo-medico/' );
-	$fabio_id  = home_url( '/equipo-medico/#physician-quinonez-bareiro' );
-	$colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
+	$equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
+	$fabio_id  = home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-quinonez-bareiro' );
+	$colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282894103';
 
 	return array(
-		'@type'            => array( 'Person', 'Physician' ),
-		'@id'              => $fabio_id,
-		'name'             => 'Fabio Augusto Quiñónez Bareiro',
-		'honorificPrefix'  => 'Dr.',
-		'jobTitle'         => 'Especialista en geriatría, gerontología y paciente complejo · NUVANX',
-		'description'      => 'Colegiado ICOMEM ' . $colegiado . '. FEA de Geriatría (Hospital Virgen del Valle, Toledo). Investigador CIBERFES y colaborador SEMEG. Ph.D. UAM (disfunción vascular subclínica, declinar cognitivo y fragilidad). Máster en Psicogeriatría (UAB). Refuerza medicina regenerativa y longevidad en NUVANX.',
-		'url'              => $equipo . '#physician-quinonez-bareiro',
-		'medicalSpecialty' => 'https://schema.org/Geriatric',
-		'worksFor'         => array(
-			array( '@id' => $organization_id ),
-			array(
-				'@type' => 'Hospital',
-				'name'  => 'Hospital Virgen del Valle',
-			),
-		),
-		'hasCredential'    => array(
+		'@type'           => array( 'Person', 'Physician' ),
+		'@id'             => $fabio_id,
+		'name'            => 'Fabio Quiñónez Bareiro',
+		'honorificPrefix' => 'Dr.',
+		'jobTitle'        => 'Médico cirujano estético · NUVANX Madrid',
+		'description'     => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Médico especialista en cirugía estética y procedimientos láser.',
+		'url'             => $equipo . '#physician-quinonez-bareiro',
+		'worksFor'        => array( '@id' => $organization_id ),
+		'hasCredential'   => array(
 			array(
 				'@type'              => 'EducationalOccupationalCredential',
-				'credentialCategory' => 'Número de colegiado ICOMEM',
+				'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
 				'identifier'         => $colegiado,
 				'name'               => 'Colegiado ICOMEM ' . $colegiado,
 			),
-			array(
-				'@type' => 'EducationalOccupationalCredential',
-				'name'  => 'Doctorado (Ph.D.) — Universidad Autónoma de Madrid',
-			),
-			array(
-				'@type' => 'EducationalOccupationalCredential',
-				'name'  => 'Máster en Psicogeriatría — Universidad Autónoma de Barcelona',
-			),
-		),
-		'memberOf'         => array(
-			array(
-				'@type' => 'Organization',
-				'name'  => 'CIBER de Fragilidad y Envejecimiento Saludable (CIBERFES)',
-			),
-			array(
-				'@type' => 'MedicalOrganization',
-				'name'  => 'Sociedad Española de Medicina Geriátrica (SEMEG)',
-			),
-		),
-		'alumniOf'         => array(
-			array(
-				'@type' => 'CollegeOrUniversity',
-				'name'  => 'Universidad Autónoma de Madrid',
-			),
-			array(
-				'@type' => 'CollegeOrUniversity',
-				'name'  => 'Universidad Autónoma de Barcelona',
-			),
-			array(
-				'@type' => 'CollegeOrUniversity',
-				'name'  => 'Escuela Latinoamericana de Medicina (ELAM)',
-			),
-		),
-		'knowsAbout'       => array(
-			'Geriatría',
-			'Gerontología',
-			'Paciente anciano crónico complejo',
-			'Fragilidad',
-			'Deterioro cognitivo',
-			'Envejecimiento saludable',
-			'Medicina regenerativa',
-			'Longevidad',
 		),
 	);
 }
@@ -1188,8 +1079,7 @@ function nvx_schema_fabio_publications( $author_id ) {
 function nvx_schema_offer_catalog( $organization_id ) {
 	$registry = nvx_schema_page_registry();
 	$items    = array();
-
-	
+	$co2_from = function_exists( 'nvx_co2_price_facial_eur' ) ? nvx_co2_price_facial_eur() : null;
 
 	$catalog_defs = array(
 		'endolift_facial'    => array(
@@ -1270,17 +1160,13 @@ function nvx_schema_offer_catalog( $organization_id ) {
  * @return bool
  */
 function nvx_schema_should_emit_physician( $page_id ) {
-	if ( is_front_page() ) {
-		return true;
-	}
-
-	if ( null !== nvx_schema_resolve_treatment_key( $page_id ) ) {
+	if ( is_front_page() || null !== nvx_schema_resolve_treatment_key( $page_id ) ) {
 		return true;
 	}
 
 	$path = nvx_schema_current_path( $page_id );
 
-	return nvx_schema_path_matches( $path, '/equipo-medico/' ) || nvx_schema_path_matches( $path, '/dr-javier-rivera-tejeda/' );
+	return nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO ) || nvx_schema_path_matches( $path, '/dr-javier-rivera-tejeda/' );
 }
 
 /**
@@ -1296,7 +1182,7 @@ function nvx_schema_should_emit_physician_ivon( $page_id ) {
 
 	$path = nvx_schema_current_path( $page_id );
 
-	return nvx_schema_path_matches( $path, '/equipo-medico/' );
+	return nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO );
 }
 
 /**
@@ -1312,7 +1198,7 @@ function nvx_schema_should_emit_physician_fabio( $page_id ) {
 
 	$path = nvx_schema_current_path( $page_id );
 
-	return nvx_schema_path_matches( $path, '/equipo-medico/' );
+	return nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO ) || nvx_schema_path_matches( $path, '/dr-fabio-quinonez-bareiro/' );
 }
 
 /**
@@ -1461,11 +1347,10 @@ function nvx_schema_attach_clinics_graph( array &$graph, int $page_id, array $or
 /**
  * Add NUVANX medical locations and page entities to Yoast's canonical graph.
  *
- * @param array $graph   Yoast Schema graph.
- * @param mixed $context Yoast Meta_Tags_Context.
+ * @param array $graph Yoast Schema graph.
  * @return array
  */
-function nvx_extend_yoast_schema_graph( $graph, $context ) {
+function nvx_extend_yoast_schema_graph( $graph ) {
 	if ( is_admin() || is_feed() || ( ! is_singular( 'page' ) && ! is_front_page() ) ) {
 		return $graph;
 	}
@@ -1535,7 +1420,7 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 
 	return $graph;
 }
-add_filter( 'wpseo_schema_graph', 'nvx_extend_yoast_schema_graph', 20, 2 );
+add_filter( 'wpseo_schema_graph', 'nvx_extend_yoast_schema_graph', 20, 1 );
 
 /**
  * Home document title — laser clinic intent (Yoast).

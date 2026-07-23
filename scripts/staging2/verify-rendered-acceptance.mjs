@@ -121,7 +121,20 @@ const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 let sessionCookie = '';
 
-const cleanHtmlText = (value) => value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
+function cleanHtmlText(value) {
+  if (!value) return '';
+  return value
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const parseSingleTag = (html, name) => cleanHtmlText(html.match(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'is'))?.[1] || '');
 const parseMultipleTagTexts = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'gis'))].map((match) => cleanHtmlText(match[1]));
 const queryHtmlTags = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>`, 'gi'))].map((match) => match[0]);
@@ -209,25 +222,42 @@ function parseHtmlPage(html) {
   };
 }
 
-function validatePage(page, parsed, scope) {
+function validatePageHeaderMetadata(page, parsed, scope) {
   if (parsed.deploySha !== expectedSha) fail(scope, `served SHA ${parsed.deploySha || 'absent'} instead of ${expectedSha}`);
   if (parsed.title !== page.title) fail(scope, `title mismatch: ${JSON.stringify(parsed.title)}`);
   if (parsed.description !== page.description) fail(scope, 'meta description mismatch');
   if (parsed.ogTitle !== page.title) fail(scope, 'og:title mismatch');
   if (parsed.ogDescription !== page.description) fail(scope, 'og:description mismatch');
-  if (!parsed.robots.toLowerCase().includes('noindex') || !parsed.robots.toLowerCase().includes('nofollow')) fail(scope, `robots mismatch: ${parsed.robots || 'absent'}`);
+  if (!parsed.robots.toLowerCase().includes('noindex') || !parsed.robots.toLowerCase().includes('nofollow')) {
+    fail(scope, `robots mismatch: ${parsed.robots || 'absent'}`);
+  }
   if (parsed.h1List.length !== 1 || parsed.h1List[0] !== page.h1) fail(scope, `H1 mismatch: ${JSON.stringify(parsed.h1List)}`);
   if (parsed.h2Count < 3) fail(scope, `expected at least 3 H2s, found ${parsed.h2Count}`);
+}
 
+function validatePageBodyContent(page, parsed, scope) {
   for (const marker of page.markers) if (!parsed.bodyText.includes(marker)) fail(scope, `missing marker: ${marker}`);
   if (!/valoraci[oó]n/i.test(parsed.bodyText)) fail(scope, 'missing medical valuation CTA or copy');
-  const validUrls = new Set([`https://staging2.nuvanx.com${page.path}`, `https://nuvanx.com${page.path}`, `https://www.nuvanx.com${page.path}`]);
+
+  const validUrls = new Set([
+    `https://staging2.nuvanx.com${page.path}`,
+    `https://nuvanx.com${page.path}`,
+    `https://www.nuvanx.com${page.path}`,
+  ]);
   if (parsed.canonicals.length !== 1 || !validUrls.has(parsed.canonicals[0])) fail(scope, `canonical mismatch: ${parsed.canonicals[0]}`);
   if (!validUrls.has(parsed.ogUrl)) fail(scope, `og:url mismatch: ${parsed.ogUrl || 'absent'}`);
   if (!parsed.schemas.includes('WebPage')) fail(scope, 'missing WebPage schema');
-  if (!parsed.schemas.includes('Organization') && !parsed.schemas.includes('MedicalOrganization')) fail(scope, 'missing Organization or MedicalOrganization schema');
+  if (!parsed.schemas.includes('Organization') && !parsed.schemas.includes('MedicalOrganization')) {
+    fail(scope, 'missing Organization or MedicalOrganization schema');
+  }
+
   const lowerText = parsed.bodyText.toLowerCase();
   for (const forbidden of forbiddenText) if (lowerText.includes(forbidden.toLowerCase())) fail(scope, `exposes forbidden text: ${forbidden}`);
+}
+
+function validatePage(page, parsed, scope) {
+  validatePageHeaderMetadata(page, parsed, scope);
+  validatePageBodyContent(page, parsed, scope);
 }
 
 async function verifySinglePage(page) {

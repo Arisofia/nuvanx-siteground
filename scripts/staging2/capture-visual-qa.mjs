@@ -4,6 +4,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 
+import { phasePageDefinitions } from './staging2-contract-common.mjs';
+
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = process.env.EXPECTED_SHA || '';
 const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-visual-qa';
@@ -31,16 +33,7 @@ const pages = [
   ['/protocolos-signature/', 'Protocolos Signature: Medicina estética de diagnóstico.'],
   ['/remodelacion-corporal-laser-madrid/', 'Remodelación corporal láser diseñada según tu anatomía.'],
   ['/tratamiento-postparto-abdomen-contorno-corporal-madrid/', 'Tratamiento Postparto: Abdomen y Contorno Corporal en Madrid'],
-  ['/papada-definicion-mandibular-madrid/', 'Tratamiento médico de papada y definición mandibular en Madrid.'],
-  ['/calidad-piel-firmeza-luminosidad-madrid/', 'Tratamiento médico para firmeza, densidad y calidad cutánea.'],
-  ['/cicatrices-acne-poros-textura-madrid/', 'Tratamiento médico de cicatrices, poros dilatados y textura cutánea.'],
-  ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', 'Tratamiento médico de manchas, rojeces y daño solar.'],
-  ['/grasa-localizada-abdomen-flancos-madrid/', 'Esa grasa del abdomen que no se va ni a dieta ni a gimnasio.'],
-  ['/flacidez-grasa-localizada-brazos-madrid/', 'Para que la manga caiga bien — sin que la piel quede colgando después.'],
-  ['/grasa-espalda-zona-sujetador-madrid/', 'El pliegue que marca la ropa, aunque tu peso esté bien.'],
-  ['/flacidez-muslos-internos-subgluteo-madrid/', 'La piel más delicada del cuerpo merece el abordaje más cuidadoso.'],
-  ['/tratamiento-rodillas-grasa-flacidez-madrid/', 'Una zona pequeña que cambia toda la línea de la pierna.'],
-  ['/contorno-corporal-masculino-madrid/', 'Pensado para el cuerpo de un hombre, no adaptado del de una mujer.'],
+  ...phasePageDefinitions.map(([pagePath, _t, _d, h1]) => [pagePath, h1]),
   ['/por-que-nuvanx/', 'Por qué NUVANX. Sin retórica de marketing.'],
   ['/inversion-medicina-estetica/', 'El presupuesto forma parte de una decisión informada.'],
   ['/equipo-medico/', 'Equipo médico NUVANX: quién te valora y quién trata'],

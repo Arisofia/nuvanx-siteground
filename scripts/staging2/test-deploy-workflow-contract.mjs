@@ -19,8 +19,9 @@ const deploy = read('tools/deploy/deploy-to-staging2.sh');
 const diagnostics = read('scripts/staging2/collect-staging2-diagnostics.sh');
 const migration = read('scripts/wp/nvx-production-readiness-command.php');
 const smoke = read('scripts/staging2/smoke-verify-staging2.sh');
-const acceptance = read('scripts/staging2/verify-rendered-acceptance.mjs');
-const visualQa = read('scripts/staging2/capture-visual-qa.mjs');
+const common = read('scripts/staging2/staging2-contract-common.mjs');
+const acceptance = read('scripts/staging2/verify-rendered-acceptance.mjs') + common;
+const visualQa = read('scripts/staging2/capture-visual-qa.mjs') + common;
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 const functions = read('wp-content/themes/nuvanx-medical/functions.php');
 const phasePages = read('wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php');
@@ -149,7 +150,7 @@ for (const forbidden of ['garantizar resultados', 'control térmico absoluto', '
   if (controlledPublicContent.includes(forbidden)) fail(`controlled public content contains forbidden claim: ${forbidden}`);
 }
 
-for (const relative of ['scripts/staging2/verify-rendered-acceptance.mjs', 'scripts/staging2/capture-visual-qa.mjs', 'scripts/staging2/test-deploy-workflow-contract.mjs']) {
+for (const relative of ['scripts/staging2/staging2-contract-common.mjs', 'scripts/staging2/verify-rendered-acceptance.mjs', 'scripts/staging2/capture-visual-qa.mjs', 'scripts/staging2/test-deploy-workflow-contract.mjs']) {
   const result = spawnSync(process.execPath, ['--check', file(relative)], { encoding: 'utf8' });
   if (result.status !== 0) fail(`Node syntax failed for ${relative}: ${(result.stderr || result.stdout).trim()}`);
 }

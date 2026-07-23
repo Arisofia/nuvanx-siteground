@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+require_once __DIR__ . '/nvx-13-point-renderer.php';
+
 /**
  * Provides the approved landing-page content and metadata for Signature phases 1 and 2.
  *

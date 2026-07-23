@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/nvx-13-point-renderer.php';
+
 if ( ! defined( 'NVX_KICKER_ROSTRO' ) ) {
 	define( 'NVX_KICKER_ROSTRO', 'Soluciones Médicas: Rostro' );
 }

@@ -126,10 +126,10 @@ MARKER_VALORA='Qué se valora'
 MARKER_DECIDE='Cómo se decide el plan'
 MARKER_LIMITES='Límites y cuándo derivamos'
 
-fetch_page '/papada-definicion-mandibular-madrid/' 'nvx-treatment-page' 'Tratamiento' 'El valor del diagnóstico médico'
-fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' 'nvx-treatment-page' 'Tratamiento' 'envejecimiento no es solo'
-fetch_page '/cicatrices-acne-poros-textura-madrid/' 'nvx-treatment-page' 'Tratamiento' 'topograf'
-fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' 'nvx-treatment-page' 'Tratamiento' 'todas las manchas se tratan igual'
+fetch_page '/papada-definicion-mandibular-madrid/' 'nvx-treatment-page' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' 'nvx-treatment-page' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/cicatrices-acne-poros-textura-madrid/' 'nvx-treatment-page' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' 'nvx-treatment-page' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/grasa-localizada-abdomen-flancos-madrid/' 'Grasa localizada en abdomen y flancos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/flacidez-grasa-localizada-brazos-madrid/' 'Flacidez y grasa localizada en brazos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/grasa-espalda-zona-sujetador-madrid/' 'Grasa de espalda y zona del sujetador en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"

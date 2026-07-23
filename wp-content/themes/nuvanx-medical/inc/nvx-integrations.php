@@ -172,6 +172,8 @@ require_once __DIR__ . '/nvx-clinical-language.php';
 require_once __DIR__ . '/nvx-blog-system.php';
 require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
 require_once __DIR__ . '/nvx-navigation-filters.php';
+require_once __DIR__ . '/nvx-protocol-hub.php';
+require_once __DIR__ . '/nvx-protocol-pages.php';
 require_once __DIR__ . '/nvx-signature-phase-pages.php';
 
 /* GEO · Hreflang es-ES */

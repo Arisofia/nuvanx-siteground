@@ -1,10 +1,12 @@
 name: Sonar Security Hotfix Generator
 
 on:
-  pull_request_target:
-    types: [labeled]
+  workflow_run:
+    workflows: ['Deploy Staging2 (manual)']
+    types: [completed]
 
 permissions:
+  actions: read
   contents: write
 
 concurrency:
@@ -12,66 +14,70 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  generate:
+  publish:
     if: >-
-      github.event.pull_request.number == 250 &&
-      github.event.label.name == 'generate-sonar-hotfix' &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.actor != 'github-actions[bot]'
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'fix/sonar-security-hotspots-20260723'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check out repository
+      - name: Check out master
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: master
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Rebuild clean PR branch and apply narrow fixes
+      - name: Download contract evidence from completed run
         env:
-          TARGET_BRANCH: ${{ github.event.pull_request.head.ref }}
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sonar-hotfix
+          artifacts_json="$(curl --fail --silent --show-error \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}/artifacts")"
+          artifact_url="$(jq -r '.artifacts[] | select(.name | startswith("staging2-contract-validation-")) | .archive_download_url' <<<"$artifacts_json" | head -n1)"
+          test -n "$artifact_url" && test "$artifact_url" != null
+          curl --fail --silent --show-error --location \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$artifact_url" -o /tmp/sonar-hotfix/evidence.zip
+          unzip -q /tmp/sonar-hotfix/evidence.zip -d /tmp/sonar-hotfix/evidence
+          test -f /tmp/sonar-hotfix/evidence/sonar-hotfix-files.json
+
+      - name: Rebuild clean branch from master and restore validated files
+        env:
+          TARGET_BRANCH: fix/sonar-security-hotspots-20260723
         shell: bash
         run: |
           set -euo pipefail
           git switch -C "$TARGET_BRANCH" origin/master
           rm .github/workflows/sonar-security-hotfix-generator.yml
           python3 <<'PY'
+          import base64
+          import json
           from pathlib import Path
 
-          def replace_once(path: str, old: str, new: str) -> None:
-              target = Path(path)
-              content = target.read_text(encoding='utf-8')
-              count = content.count(old)
-              if count != 1:
-                  raise SystemExit(f'{path}: expected exactly one match, found {count}')
-              target.write_text(content.replace(old, new, 1), encoding='utf-8')
-
-          replace_once(
+          artifact = json.loads(Path('/tmp/sonar-hotfix/evidence/sonar-hotfix-files.json').read_text(encoding='utf-8'))
+          expected = {
               'scripts/staging2/capture-visual-qa-browser.mjs',
-              "import os from 'node:os';\n",
-              "import os from 'node:os';\nimport { randomInt } from 'node:crypto';\n",
-          )
-          replace_once(
-              'scripts/staging2/capture-visual-qa-browser.mjs',
-              'const port = 9300 + Math.floor(Math.random() * 500);',
-              'const port = randomInt(9300, 9800);',
-          )
-          replace_once(
               'scripts/staging2/test-deploy-workflow-contract.mjs',
-              "const result = spawnSync('php', ['-l', file(relative)], { encoding: 'utf8', env: { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' } });",
-              "const result = spawnSync('/usr/bin/php', ['-l', file(relative)], { encoding: 'utf8' });",
-          )
-          replace_once(
               'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
-              "const result = spawnSync('ssh', [sshHost, 'bash', '-s', '--', url, redirectMode], {",
-              "const result = spawnSync('/usr/bin/ssh', [sshHost, 'bash', '-s', '--', url, redirectMode], {",
-          )
-          replace_once(
               'wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php',
-              "array( 'https://www.nuvanx.com', 'https://nuvanx.com', 'http://www.nuvanx.com', 'http://nuvanx.com' ),",
-              "array( 'https://www.nuvanx.com', 'https://nuvanx.com' ),",
-          )
+          }
+          files = artifact.get('files', {})
+          if set(files) != expected:
+              raise SystemExit(f'unexpected artifact paths: {sorted(files)}')
+          for relative, spec in files.items():
+              target = Path(relative)
+              target.parent.mkdir(parents=True, exist_ok=True)
+              target.write_bytes(base64.b64decode(spec['content_base64'], validate=True))
           PY
 
       - name: Validate corrected branch
@@ -93,7 +99,7 @@ jobs:
       - name: Force-push clean validated branch
         env:
           GH_TOKEN: ${{ github.token }}
-          TARGET_BRANCH: ${{ github.event.pull_request.head.ref }}
+          TARGET_BRANCH: fix/sonar-security-hotspots-20260723
         shell: bash
         run: |
           set -euo pipefail

@@ -164,7 +164,7 @@ jobs:
         run: |
           set -euo pipefail
           [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo 'git_sha must be a full lowercase 40-character SHA.' >&2; exit 1; }
-          case "$RUN_MODE" in PREFLIGHT_ONLY|DEPLOY_AND_MIGRATE|SMOKE_ONLY) ;; *) exit 1 ;; esac
+          case "$RUN_MODE" in PREFLIGHT_ONLY|DEPLOY_AND_MIGRATE|SMOKE_ONLY) ;; *) echo "Unsupported execution mode: $RUN_MODE" >&2; exit 1 ;; esac
           test "$(git rev-parse HEAD)" = "$DEPLOY_SHA" || { echo 'Checked-out SHA does not equal the authorized deployment SHA.' >&2; exit 1; }
           if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' ]]; then
             test "$DEPLOY_SHA" = "$GITHUB_SHA" || { echo 'git_sha must equal the selected workflow ref HEAD.' >&2; exit 1; }
@@ -185,9 +185,18 @@ jobs:
           : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY secret}"
           : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS secret}"
           SSH_PORT="${STAGING2_SSH_PORT:-18765}"
-          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
-          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
-          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] || {
+            echo 'STAGING2_SSH_PORT must be numeric.' >&2
+            exit 1
+          }
+          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || {
+            echo 'STAGING2_SSH_HOST contains unsupported characters.' >&2
+            exit 1
+          }
+          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]] || {
+            echo 'STAGING2_SSH_USER contains unsupported characters.' >&2
+            exit 1
+          }
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
           printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"

@@ -392,7 +392,7 @@ const chrome = spawn(chromePath, [
   '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
   '--no-first-run', '--no-default-browser-check', '--hide-scrollbars',
   `--remote-debugging-port=${port}`, `--user-data-dir=${profileDir}`, 'about:blank',
-], { stdio: ['ignore', 'ignore', 'pipe'] });
+], { stdio: ['ignore', 'ignore', 'ignore'] });
 
 let runtimeError = null;
 try {

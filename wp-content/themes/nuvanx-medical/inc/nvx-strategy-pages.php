@@ -202,8 +202,8 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$html .= '<h1 class="nvx-strategy-title">Por qué NUVANX. Sin retórica de marketing.</h1>';
 	$html .= '<p class="nvx-brand-lead">Diagnóstico, responsabilidad médica identificada, trazabilidad, privacidad y seguimiento. Estos son los criterios concretos con los que organizamos la atención.</p></header>';
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Diagnóstico antes de tecnología</h2><p>Revisamos anatomía, antecedentes, objetivos, contraindicaciones y expectativas. Solo entonces se valora si procede tratar, esperar, derivar o no intervenir.</p></div></section>';
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Responsabilidad médica y continuidad asistencial</h2><p>El paciente conoce quién realiza la valoración y quién será responsable del procedimiento. Si interviene otro profesional o se produce un cambio en el plan, se comunica antes de continuar.</p></div></section>';
+	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Diagnóstico antes de tecnología</h2><p>La tecnología es una herramienta, no el punto de partida. Estudiamos tu anatomía, antecedentes clínicos, viabilidad técnica y límites anatómicos. A partir de esa evidencia, emitimos una indicación médica: intervenir, derivar a cirugía plástica o no hacer nada.</p></div></section>';
+	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Responsabilidad médica y continuidad asistencial</h2><p>El médico que establece tu diagnóstico asume la responsabilidad clínica de tu evolución. No hay cambios de facultativo opacos ni planes de tratamiento dictados desde un despacho con objetivos comerciales.</p></div></section>';
 	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Claridad antes de decidir</h2><p>Si vienes con una preocupación real, mereces saber qué la está causando — no que te la resuelvan con la primera máquina que haya libre ese día.</p></div></section>';
 	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Seguimiento como parte del plan</h2><p>La indicación incluye cómo contactar con el equipo, qué evolución vigilar, cuándo revisar el caso y qué situaciones requieren una consulta adicional. La recuperación no se presenta como idéntica para todas las personas.</p></div></section>';
 
@@ -225,15 +225,15 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$html .= '</ul></div></section>';
 
 	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Trazabilidad de productos</h2>';
-	$html .= '<p>Cuando se utilizan productos sanitarios o inyectables, el producto y su lote se documentan en la historia clínica. La información disponible del fabricante o distribuidor puede consultarse antes de firmar el consentimiento y el presupuesto.</p>';
+	$html .= '<p>Garantizamos trazabilidad absoluta en cada producto sanitario empleado. El lote exacto se registra en tu historia clínica y la acreditación del material está siempre a tu disposición antes de formalizar el consentimiento.</p>';
 	$html .= '</div></section>';
 
 	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Privacidad durante la atención</h2>';
-	$html .= '<p>La organización de la consulta busca reducir exposiciones innecesarias y preservar la confidencialidad. La sala de espera y los espacios clínicos se gestionan para mantener una experiencia discreta, dentro de la operativa de cada sede.</p>';
+	$html .= '<p>Entendemos la privacidad como un estándar asistencial innegociable. Nuestros centros (CS20144 y CS20073) operan con circuitos diseñados para evitar salas de espera masificadas y proteger la confidencialidad de tu diagnóstico.</p>';
 	$html .= '</div></section>';
 
 	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Por qué importa</h2>';
-	$html .= '<p>En medicina estética, el resultado no depende solo de la plataforma. Depende de la indicación, de quién asume la responsabilidad clínica, de la trazabilidad, de la información previa y de cómo se gestiona la evolución posterior.</p>';
+	$html .= '<p>Porque la medicina estética no es un servicio cosmético. El éxito clínico no depende únicamente de disponer de la mejor tecnología, sino del rigor de la indicación anatómica, la trazabilidad de los materiales y la responsabilidad del equipo facultativo que responde por ti.</p>';
 	$html .= '</div></section>';
 
 	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Atención en centros sanitarios autorizados</h2>';

@@ -126,7 +126,7 @@ MARKER_VALORA='Qué se valora'
 MARKER_DECIDE='Cómo se decide el plan'
 MARKER_LIMITES='Límites y cuándo derivamos'
 
-fetch_page '/papada-definicion-mandibular-madrid/' 'nvx-treatment-page' 'Tratamiento' 'Grasa, laxitud o estructura'
+fetch_page '/papada-definicion-mandibular-madrid/' 'nvx-treatment-page' 'Tratamiento' 'El valor del diagnóstico médico'
 fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' 'nvx-treatment-page' 'Tratamiento' 'envejecimiento no es solo'
 fetch_page '/cicatrices-acne-poros-textura-madrid/' 'nvx-treatment-page' 'Tratamiento' 'topograf'
 fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' 'nvx-treatment-page' 'Tratamiento' 'todas las manchas se tratan igual'

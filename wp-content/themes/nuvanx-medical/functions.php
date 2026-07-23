@@ -251,6 +251,7 @@ function nvx_theme_blog_index_markup(): string {
 add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
 
 require_once get_template_directory() . '/inc/nvx-hero-and-forms.php';
+require_once get_template_directory() . '/inc/nvx-13-point-renderer.php';
 require_once get_template_directory() . '/inc/nvx-integrations.php';
 require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
 require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';
@@ -259,7 +260,6 @@ require_once get_template_directory() . '/inc/nvx-hostile-conversion-engine.php'
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-portfolio-hub.php';
 require_once get_template_directory() . '/inc/nvx-protocol-hub.php';
-require_once get_template_directory() . '/inc/nvx-13-point-renderer.php';
 require_once get_template_directory() . '/inc/nvx-protocol-pages.php';
 require_once get_template_directory() . '/inc/nvx-anatomical-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';

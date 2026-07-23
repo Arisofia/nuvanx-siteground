@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/nvx-13-point-renderer.php';
+
 if ( ! defined( 'NVX_CALIDAD_CUTANEA' ) ) {
 	define( 'NVX_CALIDAD_CUTANEA', 'CALIDAD CUTÁNEA NUVANX' );
 }

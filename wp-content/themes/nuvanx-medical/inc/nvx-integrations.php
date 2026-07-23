@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/nvx-environment-flags.php';
 require_once __DIR__ . '/nvx-visual-system.php';
 require_once __DIR__ . '/nvx-external-visual-closure.php';
+require_once __DIR__ . '/nvx-13-point-renderer.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
 require_once __DIR__ . '/nvx-strategy-pages.php';
 require_once __DIR__ . '/nvx-conversion-events.php';

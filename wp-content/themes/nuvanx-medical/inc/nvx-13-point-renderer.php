@@ -162,10 +162,17 @@ function nvx_render_13_point_matrix( array $data ): string {
             ? $data['mechanism_heading']
             : __( 'Mecanismo de acción', 'nuvanx-medical' );
 
-        $html .= nvx_render_matrix_text_section(
-            $heading,
-            $data['mechanism']
-        );
+        if ( is_array( $data['mechanism'] ) ) {
+            $html .= nvx_render_matrix_list_section(
+                $heading,
+                $data['mechanism']
+            );
+        } else {
+            $html .= nvx_render_matrix_text_section(
+                $heading,
+                $data['mechanism']
+            );
+        }
     }
 
     // 4. Indications

@@ -204,7 +204,7 @@ function nvx_signature_phase_list( string $title, array $items, string $class = 
  * @return string The generated landing page HTML.
  */
 function nvx_signature_phase_markup( array $page ): string {
-    $html  = '<article class="nvx-brand-readable nvx-protocol-page nvx-signature-phase-page nvx-shell">';
+    $html  = '<article class="nvx-brand-readable nvx-treatment-page nvx-protocol-page nvx-signature-phase-page nvx-shell">';
     $html .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">' . esc_html( (string) $page['kicker'] ) . '</p>';
     $html .= '<h1 class="nvx-strategy-title">' . esc_html( (string) $page['title'] ) . '</h1>';
     $html .= '<p class="nvx-brand-lead">' . esc_html( (string) $page['lead'] ) . '</p><p>' . esc_html( (string) $page['intro'] ) . '</p>';

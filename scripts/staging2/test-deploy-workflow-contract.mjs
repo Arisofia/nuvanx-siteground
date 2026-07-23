@@ -22,8 +22,9 @@ const deploy = read('tools/deploy/deploy-to-staging2.sh');
 const diagnostics = read('scripts/staging2/collect-staging2-diagnostics.sh');
 const migration = read('scripts/wp/nvx-production-readiness-command.php');
 const smoke = read('scripts/staging2/smoke-verify-staging2.sh');
-const acceptance = read('scripts/staging2/verify-rendered-acceptance-ssh.mjs');
-const visualQa = read('scripts/staging2/capture-visual-qa.mjs');
+const common = read('scripts/staging2/staging2-contract-common.mjs');
+const acceptance = read('scripts/staging2/verify-rendered-acceptance-ssh.mjs') + common;
+const visualQa = read('scripts/staging2/capture-visual-qa.mjs') + common;
 const visualPreload = read('scripts/staging2/visual-qa-edge-preload.mjs');
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 const functions = read('wp-content/themes/nuvanx-medical/functions.php');
@@ -157,8 +158,10 @@ for (const marker of [
 
 for (const marker of [
   'nvx_clinical_language_prohibited_phrases', 'Sin bisturí ni puntos', 'Recuperación inmediata',
-  'Sin dolor', 'Sin riesgos', 'Resultados garantizados', 'Control térmico absoluto',
-]) if (!clinicalLanguage.includes(marker)) fail(`clinical language gate missing marker: ${marker}`);
+  'Sin dolor', 'Sin riesgos', 'Resultados garantizados', 'Generalmente 3–4 sesiones',
+  'Reducción del dolor', 'Eritema reducido', 'Control térmico absoluto',
+  'presupuesto muy bajo', 'no usamos descuentos estacionales', 'el estándar de oro', 'absoluta discreción',
+]) if (!clinicalLanguage.toLowerCase().includes(marker.toLowerCase())) fail(`clinical language gate missing marker: ${marker}`);
 
 for (const marker of [
   '/remodelacion-corporal-laser-madrid/',
@@ -172,6 +175,7 @@ for (const forbidden of ['garantizar resultados', 'control térmico absoluto', '
 }
 
 for (const relative of [
+  'scripts/staging2/staging2-contract-common.mjs',
   'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
   'scripts/staging2/visual-qa-edge-preload.mjs',
   'scripts/staging2/capture-visual-qa.mjs',

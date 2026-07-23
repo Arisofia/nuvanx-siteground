@@ -1,21 +1,8 @@
-#!/usr/bin/env node
-import fs from 'node:fs';
-import path from 'node:path';
-
-function getAcceptanceConfig() {
-  const envUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').trim().replace(/\/+$/, '');
-  const shaToken = (process.env.EXPECTED_SHA || '').trim();
-  const dirPath = (process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/rendered-acceptance').trim();
-
-  if (envUrl !== 'https://staging2.nuvanx.com') throw new Error(`refusing unexpected BASE_URL: ${envUrl}`);
-  if (!/^[0-9a-f]{40}$/.test(shaToken)) throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
-  fs.mkdirSync(dirPath, { recursive: true });
-  return { baseUrl: envUrl, expectedSha: shaToken, evidenceDir: dirPath };
-}
+import { getStaging2Config, phasePageDefinitions } from './staging2-contract-common.mjs';
 
 let baseUrl, expectedSha, evidenceDir;
 try {
-  ({ baseUrl, expectedSha, evidenceDir } = getAcceptanceConfig());
+  ({ baseUrl, expectedSha, evidenceDir } = getStaging2Config('rendered-acceptance'));
 } catch (err) {
   console.error(`ERROR: ${err.message}`);
   process.exit(1);
@@ -67,23 +54,11 @@ const pages = [
   },
 ];
 
-const treatmentPages = [
-  ['/papada-definicion-mandibular-madrid/', 'Papada y definición mandibular Madrid | NUVANX', 'Valoración médica de papada, cuello y mandíbula en Madrid para diferenciar grasa, laxitud y soporte antes de indicar Endolift® u otra opción.', 'Tratamiento médico de papada y definición mandibular en Madrid.', commonMarkers],
-  ['/calidad-piel-firmeza-luminosidad-madrid/', 'Calidad y firmeza de la piel Madrid | NUVANX', 'Tratamiento médico para calidad, firmeza y luminosidad de la piel en Madrid con tecnología seleccionada tras diagnóstico, fototipo y valoración.', 'Tratamiento médico para firmeza, densidad y calidad cutánea.', commonMarkers],
-  ['/cicatrices-acne-poros-textura-madrid/', 'Cicatrices de acné, poros y textura Madrid | NUVANX', 'Tratamiento de cicatrices de acné, poros y textura en Madrid con CO₂ o Fractional RF según morfología, fototipo y valoración médica.', 'Tratamiento médico de cicatrices, poros dilatados y textura cutánea.', commonMarkers],
-  ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', 'Manchas, rojeces y fotodaño Madrid | NUVANX', 'Tratamiento de manchas, rojeces y fotodaño en Madrid con IPL seleccionada según diagnóstico, fototipo y valoración médica.', 'Tratamiento médico de manchas, rojeces y daño solar.', commonMarkers],
-].map(([pagePath, title, description, h1, markers]) => ({ path: pagePath, title, description, h1, markers }));
+const mappedPhasePages = phasePageDefinitions.map(([pagePath, title, description, h1]) => ({
+  path: pagePath, title, description, h1, markers: commonMarkers,
+}));
 
-const anatomicalPages = [
-  ['/grasa-localizada-abdomen-flancos-madrid/', 'Grasa localizada abdomen y flancos Madrid | NUVANX', 'Valoración de grasa localizada, laxitud y pared abdominal en abdomen y flancos en Madrid dentro de NUVANX Contour Architecture™.', 'Esa grasa del abdomen que no se va ni a dieta ni a gimnasio.'],
-  ['/flacidez-grasa-localizada-brazos-madrid/', 'Flacidez y grasa localizada brazos Madrid | NUVANX', 'Tratamiento de flacidez y grasa localizada en brazos en Madrid con valoración de brazo, axila y torso antes de seleccionar tecnología.', 'Para que la manga caiga bien — sin que la piel quede colgando después.'],
-  ['/grasa-espalda-zona-sujetador-madrid/', 'Grasa espalda y zona del sujetador Madrid | NUVANX', 'Valoración de grasa y laxitud en espalda y zona del sujetador en Madrid, considerando continuidad con brazos y flancos.', 'El pliegue que marca la ropa, aunque tu peso esté bien.'],
-  ['/flacidez-muslos-internos-subgluteo-madrid/', 'Flacidez muslos internos y subglúteo Madrid | NUVANX', 'Valoración de flacidez, grasa y continuidad en muslos internos y región subglútea en Madrid dentro de Contour Architecture™.', 'La piel más delicada del cuerpo merece el abordaje más cuidadoso.'],
-  ['/tratamiento-rodillas-grasa-flacidez-madrid/', 'Grasa localizada y flacidez rodillas Madrid | NUVANX', 'Valoración de grasa localizada y flacidez en rodillas en Madrid, diferenciando tejido estético de causas articulares, vasculares o edema.', 'Una zona pequeña que cambia toda la línea de la pierna.'],
-  ['/contorno-corporal-masculino-madrid/', 'Contorno corporal masculino Madrid | NUVANX', 'Contorno corporal masculino en Madrid para abdomen, cintura, espalda o perfil, con diagnóstico y tecnología seleccionada tras valoración.', 'Pensado para el cuerpo de un hombre, no adaptado del de una mujer.'],
-].map(([pagePath, title, description, h1]) => ({ path: pagePath, title, description, h1, markers: commonMarkers }));
-
-pages.push(...treatmentPages, ...anatomicalPages);
+pages.push(...mappedPhasePages);
 
 const redirects = [
   ['/tratamientos/', '/soluciones-medicas/'],
@@ -121,7 +96,20 @@ const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 let sessionCookie = '';
 
-const cleanHtmlText = (value) => value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
+function cleanHtmlText(value) {
+  if (!value) return '';
+  return value
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 const parseSingleTag = (html, name) => cleanHtmlText(html.match(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'is'))?.[1] || '');
 const parseMultipleTagTexts = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'gis'))].map((match) => cleanHtmlText(match[1]));
 const queryHtmlTags = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>`, 'gi'))].map((match) => match[0]);
@@ -209,25 +197,42 @@ function parseHtmlPage(html) {
   };
 }
 
-function validatePage(page, parsed, scope) {
+function validatePageHeaderMetadata(page, parsed, scope) {
   if (parsed.deploySha !== expectedSha) fail(scope, `served SHA ${parsed.deploySha || 'absent'} instead of ${expectedSha}`);
   if (parsed.title !== page.title) fail(scope, `title mismatch: ${JSON.stringify(parsed.title)}`);
   if (parsed.description !== page.description) fail(scope, 'meta description mismatch');
   if (parsed.ogTitle !== page.title) fail(scope, 'og:title mismatch');
   if (parsed.ogDescription !== page.description) fail(scope, 'og:description mismatch');
-  if (!parsed.robots.toLowerCase().includes('noindex') || !parsed.robots.toLowerCase().includes('nofollow')) fail(scope, `robots mismatch: ${parsed.robots || 'absent'}`);
+  if (!parsed.robots.toLowerCase().includes('noindex') || !parsed.robots.toLowerCase().includes('nofollow')) {
+    fail(scope, `robots mismatch: ${parsed.robots || 'absent'}`);
+  }
   if (parsed.h1List.length !== 1 || parsed.h1List[0] !== page.h1) fail(scope, `H1 mismatch: ${JSON.stringify(parsed.h1List)}`);
   if (parsed.h2Count < 3) fail(scope, `expected at least 3 H2s, found ${parsed.h2Count}`);
+}
 
+function validatePageBodyContent(page, parsed, scope) {
   for (const marker of page.markers) if (!parsed.bodyText.includes(marker)) fail(scope, `missing marker: ${marker}`);
   if (!/valoraci[oó]n/i.test(parsed.bodyText)) fail(scope, 'missing medical valuation CTA or copy');
-  const validUrls = new Set([`https://staging2.nuvanx.com${page.path}`, `https://nuvanx.com${page.path}`, `https://www.nuvanx.com${page.path}`]);
+
+  const validUrls = new Set([
+    `https://staging2.nuvanx.com${page.path}`,
+    `https://nuvanx.com${page.path}`,
+    `https://www.nuvanx.com${page.path}`,
+  ]);
   if (parsed.canonicals.length !== 1 || !validUrls.has(parsed.canonicals[0])) fail(scope, `canonical mismatch: ${parsed.canonicals[0]}`);
   if (!validUrls.has(parsed.ogUrl)) fail(scope, `og:url mismatch: ${parsed.ogUrl || 'absent'}`);
   if (!parsed.schemas.includes('WebPage')) fail(scope, 'missing WebPage schema');
-  if (!parsed.schemas.includes('Organization') && !parsed.schemas.includes('MedicalOrganization')) fail(scope, 'missing Organization or MedicalOrganization schema');
+  if (!parsed.schemas.includes('Organization') && !parsed.schemas.includes('MedicalOrganization')) {
+    fail(scope, 'missing Organization or MedicalOrganization schema');
+  }
+
   const lowerText = parsed.bodyText.toLowerCase();
   for (const forbidden of forbiddenText) if (lowerText.includes(forbidden.toLowerCase())) fail(scope, `exposes forbidden text: ${forbidden}`);
+}
+
+function validatePage(page, parsed, scope) {
+  validatePageHeaderMetadata(page, parsed, scope);
+  validatePageBodyContent(page, parsed, scope);
 }
 
 async function verifySinglePage(page) {
@@ -235,7 +240,7 @@ async function verifySinglePage(page) {
   try {
     const response = await fetchWithTimeout(`${baseUrl}${page.path}`);
     const html = await response.text();
-    const fileName = `${page.path.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home'}.html`;
+    const fileName = `${page.path.split('/').filter(Boolean).join('__') || 'home'}.html`;
     fs.writeFileSync(path.join(evidenceDir, fileName), html);
     record.status = response.status;
     if (response.status !== 200) {

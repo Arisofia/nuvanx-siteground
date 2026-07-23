@@ -71,18 +71,16 @@ function nvx_hostile_authority_markup(): string {
  * @return string Modified content.
  */
 function nvx_hostile_conversion_inject( $content ) {
-	if ( ! is_main_query() || ! is_singular( 'page' ) ) {
+	if ( ! is_main_query() || ! is_singular( 'page' ) || false !== strpos( $content, 'nvx-hostile-teardown' ) ) {
 		return $content;
 	}
 
-	$path = function_exists( 'nvx_seo_current_path' ) ? nvx_seo_current_path() : $_SERVER['REQUEST_URI'] ?? '';
-	
-	// Only apply to specific treatment / editorial routes, avoiding legal pages or contact pages.
+	$path = function_exists( 'nvx_seo_current_path' ) ? nvx_seo_current_path() : ( $_SERVER['REQUEST_URI'] ?? '' );
 	$target_routes = array( 'endolift', 'endolaser', 'co2', 'remodelacion', 'postparto', 'papada', 'piel', 'cicatrices', 'manchas', 'grasa', 'flacidez', 'rodillas', 'contorno' );
-	
+
 	$is_target = false;
 	foreach ( $target_routes as $route ) {
-		if ( strpos( $path, $route ) !== false ) {
+		if ( false !== strpos( $path, $route ) ) {
 			$is_target = true;
 			break;
 		}
@@ -92,27 +90,18 @@ function nvx_hostile_conversion_inject( $content ) {
 		return $content;
 	}
 
-	// Prevent double injection
-	if ( strpos( $content, 'nvx-hostile-teardown' ) !== false ) {
-		return $content;
-	}
-
-	// Insert after the first H1 or Hero section (very rudimentarily looking for first closing section or header)
 	$injection_point = strpos( $content, '</header>' );
 	if ( false === $injection_point ) {
 		$injection_point = strpos( $content, '</section>' );
 	}
-	
-	$teardown  = nvx_hostile_teardown_markup( $path );
-	$authority = nvx_hostile_authority_markup();
-	$hostile_block = $teardown . $authority;
+
+	$hostile_block = nvx_hostile_teardown_markup( $path ) . nvx_hostile_authority_markup();
 
 	if ( false !== $injection_point ) {
-		$injection_point += 10; // length of </section> or </header>
-		return substr_replace( $content, $hostile_block, $injection_point, 0 );
+		$pos = $injection_point + ( false !== strpos( $content, '</header>' ) ? 9 : 10 );
+		return substr_replace( $content, $hostile_block, $pos, 0 );
 	}
 
-	// Fallback to prepending
 	return $hostile_block . $content;
 }
 // Hostile conversion engine desactivado; la arquitectura actual usa presentación neutral y protocolos Signature.

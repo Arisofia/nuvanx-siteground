@@ -168,6 +168,46 @@ function nvx_seo_current_blog_post_metadata(): ?array {
 }
 
 /**
+ * Resolves metadata value from the protocol catalog.
+ */
+function nvx_seo_metadata_from_protocols( string $key, string $field ): ?string {
+	if ( ! function_exists( 'nvx_protocol_pages_catalog' ) ) {
+		return null;
+	}
+	$protocols = nvx_protocol_pages_catalog();
+	if ( ! isset( $protocols[ $key ] ) ) {
+		return null;
+	}
+	if ( 'title' === $field && ! empty( $protocols[ $key ]['seo_title'] ) ) {
+		return (string) $protocols[ $key ]['seo_title'];
+	}
+	if ( 'description' === $field && ! empty( $protocols[ $key ]['description'] ) ) {
+		return (string) $protocols[ $key ]['description'];
+	}
+	return null;
+}
+
+/**
+ * Resolves metadata value from the solutions catalog.
+ */
+function nvx_seo_metadata_from_solutions( string $key, string $field ): ?string {
+	if ( ! function_exists( 'nvx_solution_pages_catalog' ) ) {
+		return null;
+	}
+	$solutions = nvx_solution_pages_catalog();
+	if ( ! isset( $solutions[ $key ] ) ) {
+		return null;
+	}
+	if ( 'title' === $field && ! empty( $solutions[ $key ]['seo_title'] ) ) {
+		return (string) $solutions[ $key ]['seo_title'];
+	}
+	if ( 'description' === $field && ! empty( $solutions[ $key ]['description'] ) ) {
+		return (string) $solutions[ $key ]['description'];
+	}
+	return null;
+}
+
+/**
  * Return one canonical metadata value for the current page.
  */
 function nvx_seo_current_metadata( string $field, string $fallback = '' ): string {
@@ -176,45 +216,30 @@ function nvx_seo_current_metadata( string $field, string $fallback = '' ): strin
 		return (string) $post_meta[ $field ];
 	}
 
+	if ( function_exists( 'nvx_editorial_seo_current' ) ) {
+		$editorial = nvx_editorial_seo_current();
+		if ( is_array( $editorial ) && ! empty( $editorial[ $field ] ) ) {
+			return (string) $editorial[ $field ];
+		}
+	}
+
 	$key = nvx_seo_current_metadata_key();
 	if ( null === $key ) {
 		return $fallback;
 	}
 
-	// 1. Try reading from the protocol catalog first (single source of truth for protocols).
-	if ( function_exists( 'nvx_protocol_pages_catalog' ) ) {
-		$protocols = nvx_protocol_pages_catalog();
-		if ( isset( $protocols[ $key ] ) ) {
-			if ( 'title' === $field && ! empty( $protocols[ $key ]['seo_title'] ) ) {
-				return (string) $protocols[ $key ]['seo_title'];
-			}
-			if ( 'description' === $field && ! empty( $protocols[ $key ]['description'] ) ) {
-				return (string) $protocols[ $key ]['description'];
-			}
-		}
+	$protocol_val = nvx_seo_metadata_from_protocols( $key, $field );
+	if ( null !== $protocol_val ) {
+		return $protocol_val;
 	}
 
-	// 1.5. Try reading from the solutions catalog.
-	if ( function_exists( 'nvx_solution_pages_catalog' ) ) {
-		$solutions = nvx_solution_pages_catalog();
-		if ( isset( $solutions[ $key ] ) ) {
-			if ( 'title' === $field && ! empty( $solutions[ $key ]['seo_title'] ) ) {
-				return (string) $solutions[ $key ]['seo_title'];
-			}
-			if ( 'description' === $field && ! empty( $solutions[ $key ]['description'] ) ) {
-				return (string) $solutions[ $key ]['description'];
-			}
-		}
+	$solution_val = nvx_seo_metadata_from_solutions( $key, $field );
+	if ( null !== $solution_val ) {
+		return $solution_val;
 	}
 
-
-	// 2. Fall back to the static SEO catalog.
 	$catalog = nvx_seo_metadata_catalog();
-	if ( empty( $catalog[ $key ][ $field ] ) ) {
-		return $fallback;
-	}
-
-	return (string) $catalog[ $key ][ $field ];
+	return ! empty( $catalog[ $key ][ $field ] ) ? (string) $catalog[ $key ][ $field ] : $fallback;
 }
 
 /**

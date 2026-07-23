@@ -114,4 +114,28 @@ function nvx_protocol_pages_catalog(): array {
 	return nvx_protocol_body_catalog();
 }
 
+/**
+ * Identifies the current governed protocol page so the page shell does not
+ * render a second generic H1 above the catalogue-owned clinical hierarchy.
+ */
+function nvx_protocol_pages_current_key(): ?string {
+	if ( ! is_page() ) {
+		return null;
+	}
+
+	$current_slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	foreach ( nvx_protocol_pages_catalog() as $key => $page ) {
+		if ( 'approved_for_publication' !== (string) ( $page['review_status'] ?? '' ) ) {
+			continue;
+		}
+
+		$slug_parts = explode( '/', (string) ( $page['slug'] ?? '' ) );
+		if ( $current_slug === (string) end( $slug_parts ) ) {
+			return (string) $key;
+		}
+	}
+
+	return null;
+}
+
 nvx_register_catalog_content_filter( 'nvx_protocol_pages_catalog', 21 );

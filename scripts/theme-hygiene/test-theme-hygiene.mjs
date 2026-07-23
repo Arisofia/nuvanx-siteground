@@ -105,7 +105,7 @@ const protocolPages = read('inc/nvx-protocol-pages.php');
 for (const marker of ['Contorno Corporal y Posgestacional', 'Post-Maternity Contour™', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/', 'Tu primera valoración clínica']) {
   if (!protocolHub.includes(marker)) fail(`protocol hub: missing ${marker}`);
 }
-for (const marker of ["'post-maternity' =>", 'nvx_protocol_pages_post_maternity_markup', 'Las alteraciones del posparto', 'Preguntas frecuentes', 'nvx_protocol_pages_markup']) {
+for (const marker of ["'post-maternity' =>", 'nvx_register_catalog_content_filter', 'Las alteraciones del posparto', 'Preguntas frecuentes', 'nvx_protocol_pages_catalog']) {
   if (!protocolPages.includes(marker)) fail(`protocol pages: missing ${marker}`);
 }
 for (const content of [protocolHub, protocolPages]) {

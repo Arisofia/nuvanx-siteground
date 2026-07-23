@@ -99,16 +99,16 @@ function nvx_contact_clinics_nap(): array {
 function nvx_valoracion_process_steps(): array {
 	return array(
 		array(
-			'title' => __( 'Motivo y expectativas', 'nuvanx-medical' ),
-			'body'  => __( 'Historial, cirugías previas y lo que quieres mejorar — con realismo, sin presión comercial.', 'nuvanx-medical' ),
+			'title' => __( 'Motivo y contexto', 'nuvanx-medical' ),
+			'body'  => __( 'Historial, tratamientos previos y lo que quieres mejorar — con expectativas realistas y sin presión comercial.', 'nuvanx-medical' ),
 		),
 		array(
-			'title' => __( 'Exploración y seguridad', 'nuvanx-medical' ),
-			'body'  => __( 'Calidad de piel, flacidez, grasa localizada y criterios de seguridad para indicar o descartar un protocolo.', 'nuvanx-medical' ),
+			'title' => __( 'Exploración anatómica y seguridad', 'nuvanx-medical' ),
+			'body'  => __( 'Calidad de piel, flacidez, grasa localizada, cicatrices y criterios de seguridad. La prioridad es confirmar si tiene sentido tratar, no vender un protocolo.', 'nuvanx-medical' ),
 		),
 		array(
-			'title' => __( 'Plan A/B y presupuesto', 'nuvanx-medical' ),
-			'body'  => __( 'Si hay indicación: plan, tiempos de recuperación y presupuesto orientativo. Puedes decidir con calma.', 'nuvanx-medical' ),
+			'title' => __( 'Decisión clínica y presupuesto', 'nuvanx-medical' ),
+			'body'  => __( 'Si hay indicación: plan, tiempos de recuperación y presupuesto documentado. Si no la hay, se explica por qué. Puedes decidir con calma, con toda la información sobre la mesa.', 'nuvanx-medical' ),
 		),
 	);
 }
@@ -118,7 +118,7 @@ function nvx_valoracion_process_steps(): array {
  */
 function nvx_contact_privacy_disclaimer_markup(): string {
 	return '<p class="nvx-contact-disclaimer"><em>' . esc_html__(
-		'Privacidad: si adjunta material fotográfico para una orientación preliminar, se trata bajo protocolos de confidencialidad clínica (GDPR). Ningún diagnóstico definitivo se emite solo a partir de una evaluación fotográfica; la indicación se confirma en valoración presencial.',
+		'Privacidad: si adjunta material fotográfico para una orientación preliminar, se trata bajo protocolos de confidencialidad clínica (GDPR). Ningún diagnóstico definitivo se emite solo a partir de una evaluación fotográfica o de este formulario; la indicación se confirma siempre en valoración presencial.',
 		'nuvanx-medical'
 	) . '</em></p>';
 }
@@ -152,9 +152,9 @@ function nvx_valoracion_intro_markup(): string {
 	$html  = '<section class="nvx-editorial-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';
 	$html .= '<div class="nvx-editorial-section__inner">';
 	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Primer paso', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-editorial-heading">' . esc_html__( 'Una consulta médica para orientar tu caso', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Antes de proponer un láser o un protocolo, hay que confirmar si existe indicación. La consulta médica estética se realiza de forma presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Saldrás con un criterio claro. El equipo, bajo la dirección del Dr. Rivera Tejeda, sigue tres pasos:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-editorial-heading">' . esc_html__( 'Una consulta médica para entender antes de decidir', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Antes de hablar de máquinas o de técnicas, confirmamos si existe indicación. La consulta médica estética se realiza de forma presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El objetivo es que salgas con un criterio claro: si tiene sentido tratar, qué alternativas existen y qué implicaría cada opción en tu caso.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ol class="nvx-editorial-timeline nvx-valoracion-steps">';
 	$n = 1;
 	foreach ( nvx_valoracion_process_steps() as $step ) {

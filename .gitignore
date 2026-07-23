@@ -1,27 +1,6 @@
-# Core WordPress y Entorno Sensible
-wp-config.php
-.env
-.htaccess
-
-# Directorios Dinámicos (NO rastrear)
-wp-content/uploads/
-wp-content/cache/
-wp-content/upgrade/
-wp-content/wflogs/
-
-# Plugins y Caché Específicos de NUVANX
-wp-content/uploads/siteground-optimizer-assets/
-wp-content/uploads/backwpup-*/
-wp-content/uploads/sb-instagram-feed-images/
-
-# Logs y Archivos de Sistema Operativo
-*.log
-.DS_Store
-Thumbs.db
-error_log
-
-# Entornos de Desarrollo Local, QA y Node
+# Node/JS dependencies
 node_modules/
-mcps/
-Nuvanx-System/
-qa/
+
+# Temporary scripts and dumps
+*.js
+dom_dump.html

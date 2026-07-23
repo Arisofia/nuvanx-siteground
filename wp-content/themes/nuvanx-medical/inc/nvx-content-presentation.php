@@ -1057,6 +1057,9 @@ function nvx_content_strip_duplicate_fachada( string $content ): string {
  * @param string $content HTML.
  * @return string
  */
+
+
+
 function nvx_content_strip_versioned_class_tokens( string $content ): string {
 	$map = array(
 		'nvx-editorial-home-v4' => '',

@@ -330,25 +330,8 @@ function nvx_aesthetic_treatment_schema_catalog(): array {
 	return $result;
 }
 
-function nvx_aesthetic_treatment_render( string $key ): string {
-	$catalog = nvx_aesthetic_treatment_catalog();
-	if ( empty( $catalog[ $key ] ) ) {
-		return '';
-	}
-	$data = $catalog[ $key ];
+nvx_register_catalog_content_filter( 'nvx_aesthetic_treatment_catalog', 80 );
 
-	return nvx_render_13_point_matrix( $data );
-}
-
-/** Replace marker content with the canonical versioned page. */
-function nvx_aesthetic_treatment_filter_content( string $content ): string {
-	if ( ! in_the_loop() || ! is_main_query() ) {
-		return $content;
-	}
-	$key = nvx_aesthetic_treatment_current_key();
-	return null === $key ? $content : nvx_aesthetic_treatment_render( $key );
-}
-add_filter( 'the_content', 'nvx_aesthetic_treatment_filter_content', 80 );
 
 /** Canonical SEO metadata for the four pages. */
 function nvx_aesthetic_treatment_current_entry(): ?array {

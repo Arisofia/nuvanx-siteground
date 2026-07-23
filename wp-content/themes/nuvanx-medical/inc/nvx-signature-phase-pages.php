@@ -220,24 +220,8 @@ function nvx_signature_phase_markup( array $page ): string {
     return $html;
 }
 
-/**
- * Replaces content on governed Signature pages with generated landing page markup.
- *
- * @param string $content The original page content.
- * @return string The governed markup or the original content when the request is not eligible.
- */
-function nvx_signature_phase_content_filter( string $content ): string {
-    if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
-        return $content;
-    }
-    $key = nvx_signature_phase_current_key();
-    if ( null === $key ) {
-        return $content;
-    }
-    $catalog = nvx_signature_phase_catalog();
-    return nvx_signature_phase_markup( $catalog[ $key ] );
-}
-add_filter( 'the_content', 'nvx_signature_phase_content_filter', 22 );
+nvx_register_catalog_content_filter( 'nvx_signature_phase_catalog', 22, 'nvx_signature_phase_markup' );
+
 
 /** Suppress the generic shell title because this module renders the canonical H1. */
 function nvx_signature_phase_prepare_shell(): void {

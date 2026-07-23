@@ -21,7 +21,6 @@ function nvx_seo_metadata_catalog(): array {
 	return array(
 		'home'         => nvx_meta_item( 'Medicina estética láser en Madrid | NUVANX', 'Medicina estética láser en Madrid con valoración médica, diagnóstico individual y tratamientos para rostro, piel y contorno corporal en NUVANX.' ),
 		'protocolos_signature' => nvx_meta_item( 'Protocolos Signature | NUVANX Madrid', 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.' ),
-		'contour_sculpt' => nvx_meta_item( 'Remodelación Corporal Láser Madrid | NUVANX Contour', 'La liposucción y las máquinas baratas de belleza dejan flacidez. Descubre NUVANX Contour Architecture™: remodelación anatómica médica real sin quirófano.' ),
 		'clinicas'     => nvx_meta_item( 'Clínicas NUVANX Madrid | Exclusividad y Criterio Clínico', 'Tus tratamientos estéticos merecen respeto médico, no una cadena de montaje. Descubre las clínicas NUVANX en Chamberí y Salamanca-Goya.' ),
 		'chamberi'     => nvx_meta_item( 'Medicina Estética en Chamberí | Tu Rostro No es un Experimento', 'Clínica NUVANX Chamberí. Alta tecnología láser y diagnóstico estricto. Si buscas calidad médica y huir de los resultados artificiales, agenda tu cita.' ),
 		'goya'         => nvx_meta_item( 'Medicina Estética Salamanca-Goya | NUVANX', 'Clínica NUVANX Salamanca-Goya. Alta tecnología láser y diagnóstico estricto. La exclusividad médica en Madrid que exige tu anatomía.' ),
@@ -106,7 +105,8 @@ function nvx_seo_current_metadata_key(): ?string {
 	$map  = array(
 
 		'/protocolos-signature/' => 'protocolos_signature',
-		'/remodelacion-corporal-laser-madrid/' => 'contour_sculpt',
+		'/remodelacion-corporal-laser-madrid/' => 'contour-architecture',
+		'/tratamiento-postparto-abdomen-contorno-corporal-madrid/' => 'post-maternity',
 		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
 		'/medicina-estetica-chamberi/' => 'chamberi',
 		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
@@ -148,10 +148,27 @@ function nvx_seo_current_metadata( string $field, string $fallback = '' ): strin
 		return (string) $post_meta[ $field ];
 	}
 
-	$key     = nvx_seo_current_metadata_key();
-	$catalog = nvx_seo_metadata_catalog();
+	$key = nvx_seo_current_metadata_key();
+	if ( null === $key ) {
+		return $fallback;
+	}
 
-	if ( null === $key || empty( $catalog[ $key ][ $field ] ) ) {
+	// 1. Try reading from the protocol catalog first (single source of truth for protocols).
+	if ( function_exists( 'nvx_protocol_pages_catalog' ) ) {
+		$protocols = nvx_protocol_pages_catalog();
+		if ( isset( $protocols[ $key ] ) ) {
+			if ( 'title' === $field && ! empty( $protocols[ $key ]['seo_title'] ) ) {
+				return (string) $protocols[ $key ]['seo_title'];
+			}
+			if ( 'description' === $field && ! empty( $protocols[ $key ]['description'] ) ) {
+				return (string) $protocols[ $key ]['description'];
+			}
+		}
+	}
+
+	// 2. Fall back to the static SEO catalog.
+	$catalog = nvx_seo_metadata_catalog();
+	if ( empty( $catalog[ $key ][ $field ] ) ) {
 		return $fallback;
 	}
 

@@ -1,9 +1,6 @@
 name: Deploy Staging2 (manual)
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
     types: [opened, synchronize, reopened, labeled]
     paths:
@@ -118,6 +115,7 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php
 
       - name: Validate workflow and deployment contract
         id: contract_validation
@@ -143,7 +141,6 @@ jobs:
     name: Diagnose or deploy immutable SHA to staging2
     needs: contract
     if: >-
-      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
       (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DEPLOY_STAGING2') ||
       (github.event_name == 'pull_request' &&
        github.event.action == 'labeled' &&
@@ -152,11 +149,13 @@ jobs:
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 35
-    # NOTE: environment gate removed — SSH secrets live at repository level, not environment level.
-    # Deployment URL is still visible in GitHub Actions via the run summary.
-    # Re-add environment: staging2 only after migrating secrets into that environment in GitHub Settings.
+    # Repository-level SSH secrets are used. Re-add an actual environment gate
+    # only after its approval policy and secrets are configured.
+    # environment:
+    #   name: staging2
+    #   url: https://staging2.nuvanx.com
     env:
-      DEPLOY_SHA: ${{ github.event_name == 'push' && github.sha || (github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.pull_request.head.sha) }}
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.pull_request.head.sha }}
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'DEPLOY_AND_MIGRATE' }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
     steps:

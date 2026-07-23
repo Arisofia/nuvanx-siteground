@@ -47,7 +47,7 @@ function nvx_anti_fear_remodelacion_hero_markup(): string {
     $html .= '<div class="nvx-editorial-hero__copy">';
     $html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Contour Architecture™', 'nuvanx-medical' ) . '</p>';
     $html .= '<h1 class="nvx-heading" id="nvx-anti-fear-h1">' . esc_html__( 'Remodelación corporal sin anestesia general en Madrid.', 'nuvanx-medical' ) . '</h1>';
-    $html .= '<p class="nvx-lead">' . esc_html__( 'Si lo que te frena no es el resultado, sino el quirófano y la anestesia general, esta página es para ti. Antes de hablar de máquinas o de técnicas, miramos qué tipo de grasa tienes, cómo está tu piel y qué pasa con tu pared abdominal. Solo entonces decidimos si tiene sentido un láser, una cirugía o esperar.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-lead">' . esc_html__( 'Si tu principal freno es el paso por quirófano y la anestesia general, debes saber que no todos los escenarios requieren cirugía. Nuestra primera responsabilidad es diagnosticar la estructura de tu grasa, el grado de laxitud cutánea y el estado de la pared abdominal. Solo con ese mapa anatómico confirmamos si existe indicación clínica para un láser mínimamente invasivo, o si, por el contrario, la cirugía es la única vía honesta.', 'nuvanx-medical' ) . '</p>';
     $html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí · Salamanca–Goya · Protocolo NUVANX Contour Architecture™', 'nuvanx-medical' ) . '</p>';
     $html .= '<div class="nvx-brand-actions"><a class="nvx-btn nvx-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></div>';
     $html .= '</div></div></section>';
@@ -65,7 +65,7 @@ function nvx_anti_fear_remodelacion_body_markup(): string {
     // Sección 1: Por qué da miedo operarse
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
     $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Por qué da miedo la liposucción clásica', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<p class="nvx-brand-body nvx-editorial-body--measure">' . esc_html__( 'No es solo el resultado lo que preocupa. Es el quirófano, la anestesia general, la baja, las cicatrices y la sensación de “no saber qué va a pasar” más allá de unas fotos de catálogo. En NUVANX no vendemos cirugía — y cuando es la vía correcta, lo decimos con la misma claridad.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-brand-body nvx-editorial-body--measure">' . esc_html__( 'Entendemos la barrera de entrada: el quirófano, la recuperación prolongada, la anestesia general y la incertidumbre frente a las cicatrices. En NUVANX no somos una clínica de cirugía estética intentando llenar un quirófano, sino un equipo médico buscando la intervención mínima viable. Y cuando la cirugía es estrictamente necesaria para tu anatomía, te lo comunicamos con absoluta claridad.', 'nuvanx-medical' ) . '</p>';
     $html .= '</div></section>';
 
     // Sección 2: Diagnóstico anatómico — antes de hablar de técnicas
@@ -112,7 +112,7 @@ function nvx_anti_fear_remodelacion_body_markup(): string {
 
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
     $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Tu miedo es legítimo. Tu decisión merece información real.', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<p class="nvx-brand-body nvx-editorial-body--measure">' . esc_html__( 'Si lo que te frena es la anestesia general o el quirófano, no te prometemos que no vayas a necesitar nunca cirugía. Lo que sí te prometemos es una valoración honesta: qué se puede tratar con láser, qué no, y qué implicaría cada opción en tu caso concreto.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-brand-body nvx-editorial-body--measure">' . esc_html__( 'No utilizamos la tecnología para esquivar la cirugía cuando esta es necesaria, ni te prometemos resultados irreales para calmar tu miedo. Te aseguramos un diagnóstico anatómico preciso: qué podemos resolver mediante láser ambulatorio, qué está fuera de nuestros límites, y cuál es tu plan médico real.', 'nuvanx-medical' ) . '</p>';
     $html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
     $html .= '</div></section>';
 

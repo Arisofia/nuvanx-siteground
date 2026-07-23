@@ -170,14 +170,14 @@ function nvx_tariff_catalog() {
  *
  * @return float
  */
-function nvx_endolift_price_from_eur() { return 0.0; }
+function nvx_endolift_price_from_eur() { return 798.60; }
 
 /**
  * Reference PVP for papada / marcación mandibular (page core indication).
  *
  * @return float
  */
-function nvx_endolift_price_papada_eur() { return 0.0; }
+function nvx_endolift_price_papada_eur() { return 1064.80; }
 
 /**
  * Format a EUR amount for Spanish locale display (2 decimals: 1.064,80).

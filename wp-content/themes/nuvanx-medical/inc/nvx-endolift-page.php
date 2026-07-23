@@ -114,7 +114,8 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
 	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de última revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
 	$html .= '</div></div>';
-	$html .= '<p class="nvx-lead">' . esc_html__( 'Para la papada o la mandíbula poco definida, sin pasar por quirófano. Te miramos primero, te decimos con qué claridad qué se puede conseguir, y solo si tiene sentido para ti, seguimos adelante.', 'nuvanx-medical' ) . '</p>';
+	// Lead alineado con P3: tratamiento subdérmico de precisión y presupuesto tras valoración.
+	$html .= '<p class="nvx-lead">' . esc_html__( 'Tratamiento subdérmico de precisión para tensado tisular y reducción de grasa localizada en papada y tercio inferior. La indicación médica y el presupuesto cerrado se establecen tras la primera valoración en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-lead">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
@@ -226,10 +227,9 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '<div class="nvx-endolift-section__inner nvx-endolift-diagnosis__grid">';
 	$html .= '<div class="nvx-endolift-diagnosis__copy">';
 	$html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'Indicaciones clínicas', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-diagnosis-title" class="nvx-endolift-heading">' . esc_html__( 'Selección rigurosa del paciente ideal', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 id="nvx-endolift-diagnosis-title" class="nvx-endolift-heading">' . esc_html__( 'Cuándo el Endolift® es una opción razonable', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-endolift-body">' . esc_html__( 'El resultado depende sobre todo de una indicación correcta. Está orientado a flacidez leve–moderada del tercio inferior y cuello, y a grasa submentoniana moderada, cuando se busca remodelación estructural sin los riesgos y la baja de un lifting cérvicofacial.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body">' . esc_html__( 'Se descarta en ptosis severa con pliegues marcados y exceso cutáneo evidente: la retracción térmica no sustituye a la resección quirúrgica. En ese caso se deriva a cirugía plástica.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-endolift-body">' . esc_html__( 'Antes de programar, el diagnóstico diferencial separa laxitud del SMAS, adiposidad localizada o la combinación de ambas —eso calibra energía y vectores de la microfibra.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-body">' . esc_html__( 'Evaluamos papada, línea mandibular, cuello y tercio medio como una unidad anatómica. Cuando la anatomía y la elasticidad lo permiten, el Endolift® puede ayudar a reducir pequeños depósitos grasos y tensar el tejido de soporte.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 	$html .= '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Criterio de diagnóstico', 'nuvanx-medical' ) . '">';
 	$html .= '<p class="nvx-endolift-panel-label">' . esc_html__( 'Diagnóstico diferencial', 'nuvanx-medical' ) . '</p>';

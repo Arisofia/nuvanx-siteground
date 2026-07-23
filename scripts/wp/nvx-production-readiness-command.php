@@ -107,8 +107,7 @@ final class NVX_Production_Readiness_Helper {
 final class NVX_Production_Readiness_Command {
 	private const CONFIRMATION_TOKEN = 'retire-prototypes';
 	private const LOCK_OPTION        = '_nvx_production_readiness_migration_lock';
-	private const LOCK_TTL_SECONDS   = 900; : array();
-	}
+	private const LOCK_TTL_SECONDS   = 900;
 
 	private function approvedAuditRows(): array {
 		$rows = array();

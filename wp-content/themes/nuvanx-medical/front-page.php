@@ -21,52 +21,82 @@ define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
 $protocols = array(
 	array(
 		'number' => '01',
-		'label'  => 'Profile Definition™',
-		'title'  => 'Perfil, papada y mandíbula.',
-		'copy'   => 'El contorno facial se estudia como una arquitectura: grasa, laxitud, soporte y proporción antes de indicar una técnica.',
+		'label'  => 'NUVANX Profile Definition',
+		'title'  => 'Tratamiento de papada y definición mandibular en Madrid.',
+		'copy'   => 'Puede involucrar: Endolift® facial · EXION® Face · soporte inyectable si está indicado.',
 		'url'    => '/papada-definicion-mandibular-madrid/',
 	),
 	array(
 		'number' => '02',
-		'label'  => 'Skin Architecture™',
-		'title'  => 'Firmeza, densidad y calidad cutánea.',
-		'copy'   => 'El plan diferencia pérdida de soporte, calidad dérmica y superficie para evitar respuestas genéricas.',
-		'url'    => '/calidad-piel-firmeza-luminosidad-madrid/',
+		'label'  => 'NUVANX Post-Maternity Contour',
+		'title'  => 'Contorno corporal posgestacional: diagnóstico y tratamiento por zonas.',
+		'copy'   => 'Puede involucrar: Endoláser corporal · EXION® Body · CO₂ fraccionado · EXION® Fractional RF.',
+		'url'    => '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
 	),
 	array(
 		'number' => '03',
-		'label'  => 'Surface Renewal™',
-		'title'  => 'Textura, poros y cicatrices.',
-		'copy'   => 'Fototipo, profundidad y riesgo de pigmentación determinan la secuencia y los parámetros clínicos.',
-		'url'    => '/cicatrices-acne-poros-textura-madrid/',
+		'label'  => 'NUVANX Abdomen Architecture',
+		'title'  => 'Tratamiento de grasa localizada en abdomen y flancos en Madrid.',
+		'copy'   => 'Puede involucrar: Endoláser corporal · EXION® Body · tratamiento de superficie según indicación.',
+		'url'    => '/grasa-localizada-abdomen-flancos-madrid/',
 	),
 	array(
 		'number' => '04',
-		'label'  => 'Contour Architecture™',
-		'title'  => 'Contorno corporal por unidades anatómicas.',
-		'copy'   => 'Grasa localizada, laxitud y continuidad entre zonas se valoran por separado antes de construir el plan.',
-		'url'    => NVX_URL_REMODELACION,
+		'label'  => 'NUVANX Skin Architecture',
+		'title'  => 'Tratamiento médico para calidad, firmeza y luminosidad de la piel.',
+		'copy'   => 'Puede involucrar: EXION® Face · EMFUSION® · bioestimulación si existe indicación documentada.',
+		'url'    => '/calidad-piel-firmeza-luminosidad-madrid/',
 	),
 );
 
 $solutions = array(
 	array(
-		'kicker' => 'ROSTRO Y CUELLO',
-		'title'  => 'Definición sin estandarizar el rostro.',
-		'copy'   => 'Papada, mandíbula, cuello y calidad facial requieren lectura anatómica, no una plantilla estética.',
-		'url'    => '/soluciones-medicas/',
+		'kicker' => 'ROSTRO Y PAPADA',
+		'title'  => 'Papada y definición mandibular',
+		'copy'   => 'Grasa submentoniana, laxitud de tejido o pérdida de definición mandibular. El diagnóstico diferencia causa y proporción.',
+		'url'    => '/papada-definicion-mandibular-madrid/',
 	),
 	array(
-		'kicker' => 'PIEL',
-		'title'  => 'Calidad, textura y tono bajo diagnóstico.',
-		'copy'   => 'Manchas, rojeces, cicatrices, poros y firmeza responden a mecanismos diferentes y no se tratan igual.',
-		'url'    => '/soluciones-medicas/',
+		'kicker' => 'CONTORNO ABDOMINAL',
+		'title'  => 'Abdomen, flancos y contorno corporal',
+		'copy'   => 'Grasa subcutánea localizada, laxitud o ambas. Distinción crítica: la grasa visceral y la diástasis no tienen indicación en medicina estética.',
+		'url'    => '/grasa-localizada-abdomen-flancos-madrid/',
 	),
 	array(
-		'kicker' => 'CONTORNO CORPORAL',
-		'title'  => 'Proporción, tejido y continuidad entre zonas.',
-		'copy'   => 'Abdomen, flancos, brazos, espalda y muslos se estudian dentro de la silueta completa.',
-		'url'    => '/soluciones-medicas/',
+		'kicker' => 'BRAZOS Y ESPALDA',
+		'title'  => 'Brazos y zona del sujetador',
+		'copy'   => 'Flacidez posterior del brazo, grasa localizada o pliegues en la zona del sujetador. El objetivo es la continuidad del contorno, no el brazo ideal.',
+		'url'    => '/flacidez-grasa-localizada-brazos-madrid/',
+	),
+	array(
+		'kicker' => 'PIERNAS Y GLÚTEOS',
+		'title'  => 'Muslos internos y región subglútea',
+		'copy'   => 'Laxitud, grasa localizada o pliegue subglúteo. Los límites de la corrección y la distinción con celulitis se explican en consulta.',
+		'url'    => '/flacidez-muslos-internos-subgluteo-madrid/',
+	),
+	array(
+		'kicker' => 'POSPARTO',
+		'title'  => 'Cambios posgestacionales',
+		'copy'   => 'Después del embarazo puede haber varios componentes distintos. Cada uno exige una valoración diferente antes de cualquier plan.',
+		'url'    => '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
+	),
+	array(
+		'kicker' => 'SALUD Y CALIDAD CUTÁNEA',
+		'title'  => 'Calidad, firmeza y luminosidad de la piel',
+		'copy'   => 'Pérdida de tono, textura irregular, poros dilatados o luminosidad disminuida. Pueden coexistir varios componentes con tecnologías distintas.',
+		'url'    => '/calidad-piel-firmeza-luminosidad-madrid/',
+	),
+	array(
+		'kicker' => 'TEXTURA Y MARCAS',
+		'title'  => 'Cicatrices, poros y textura',
+		'copy'   => 'Cicatrices atróficas o hipertróficas, poros dilatados, textura irregular. El fototipo y la profundidad determinan la tecnología indicada.',
+		'url'    => '/cicatrices-acne-poros-textura-madrid/',
+	),
+	array(
+		'kicker' => 'TONO Y PIGMENTACIÓN',
+		'title'  => 'Manchas, rojeces y fotodaño',
+		'copy'   => 'Léntigos, eritema, telangiectasias o pigmentación postinflamatoria. Algunas lesiones requieren valoración dermatológica previa.',
+		'url'    => '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/',
 	),
 );
 
@@ -115,10 +145,10 @@ ob_start();
 	<section class="nvx-home-protocols" aria-labelledby="nvx-home-protocols-title">
 		<header class="nvx-home-section-header">
 			<div>
-				<p class="nvx-home-eyebrow">PROTOCOLOS SIGNATURE</p>
-				<h2 id="nvx-home-protocols-title">Una arquitectura clínica. No una colección de máquinas.</h2>
+				<p class="nvx-home-eyebrow">PROTOCOLOS MÉDICOS NUVANX</p>
+				<h2 id="nvx-home-protocols-title">Planes con nombre, criterio y trazabilidad.</h2>
 			</div>
-			<p>Los protocolos organizan el diagnóstico y la secuencia de tratamiento. Las imágenes completas viven en cada protocolo, donde pueden explicarse con contexto.</p>
+			<p>Cada protocolo tiene un nombre que describe el objetivo, las zonas posibles y la lógica de selección. La tecnología exacta se decide en la valoración, no antes.</p>
 		</header>
 		<div class="nvx-home-protocols__list">
 			<?php foreach ( $protocols as $protocol ) : ?>
@@ -138,10 +168,10 @@ ob_start();
 	<section class="nvx-home-solutions" aria-labelledby="nvx-home-solutions-title">
   		<header class="nvx-home-section-header">
   			<div>
-  				<p class="nvx-home-eyebrow">SOLUCIONES MÉDICAS</p>
-  				<h2 id="nvx-home-solutions-title">La zona orienta la consulta. El diagnóstico define el plan.</h2>
+  				<p class="nvx-home-eyebrow">SOLUCIONES MÉDICAS POR ZONA</p>
+  				<h2 id="nvx-home-solutions-title">Tu preocupación, no el catálogo de máquinas.</h2>
   			</div>
-  			<p>La tecnología no es un menú de opciones. Primero identificamos si el origen de lo que quieres mejorar es muscular, estructural, dérmico o de soporte, y a partir de ahí seleccionamos la herramienta clínica adecuada.</p>
+  			<p>Una misma preocupación puede tener causas distintas. Antes de proponer una tecnología, evaluamos qué está ocurriendo realmente en tu caso.</p>
   		</header>
 		<div class="nvx-home-solutions__grid">
 			<?php foreach ( $solutions as $solution ) : ?>

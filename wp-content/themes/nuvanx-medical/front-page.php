@@ -10,6 +10,16 @@
 
 defined( 'ABSPATH' ) || exit;
 
+define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
+define( 'NVX_URL_MANCHAS', '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' );
+define( 'NVX_URL_CICATRICES', '/cicatrices-acne-poros-textura-madrid/' );
+define( 'NVX_URL_PAPADA', '/papada-definicion-mandibular-madrid/' );
+define( 'NVX_URL_FIRMEZA', '/calidad-piel-firmeza-luminosidad-madrid/' );
+define( 'NVX_URL_ABDOMEN', '/grasa-localizada-abdomen-flancos-madrid/' );
+define( 'NVX_URL_BRAZOS', '/flacidez-grasa-localizada-brazos-madrid/' );
+define( 'NVX_URL_POSTPARTO', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' );
+
+
 $hero_video_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
 $hero_poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
 $img_papada = '/uploads/2026/07/Endolift-Papada.webp';
@@ -25,19 +35,19 @@ function nvx_sol( string $img, string $alt, string $lbl, string $title, string $
 
 
 $editorial_stories = array(
-	nvx_story( '/uploads/2026/07/Endolift-Corporal-Portada.webp' , 'Detalle editorial de preparación corporal en NUVANX', 'PREPARACIÓN CORPORAL', 'La disciplina también puede ser delicada.', 'Planificación por zonas, anatomía y calidad del tejido. Sin fórmulas estándar.', '/remodelacion-corporal-laser-madrid/'  ),
-	nvx_story( '/uploads/2026/07/Exion-IPL.webp' , 'Retrato editorial para el protocolo Tone Correction', 'TONE CORRECTION™', 'Un tono más uniforme, sin borrar tu piel real.', 'Manchas, rojeces y fotodaño se valoran según diagnóstico y fototipo.', '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/'  ),
-	nvx_story( '/uploads/2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro.webp' , 'Retrato editorial para el protocolo Surface Renewal', 'SURFACE RENEWAL™', 'Renovar la superficie sin uniformar tu identidad.', 'Textura, poros y cicatrices requieren parámetros definidos para cada piel.', '/cicatrices-acne-poros-textura-madrid/'  ),
-	nvx_story( $img_papada , 'Perfil facial editorial para el protocolo Profile Definition', 'PROFILE DEFINITION™', 'Definición que se percibe. Intervención que no se anuncia.', 'Papada, mandíbula y cuello se estudian como una misma arquitectura anatómica.', '/papada-definicion-mandibular-madrid/'  ),
+	nvx_story( '/uploads/2026/07/Endolift-Corporal-Portada.webp' , 'Detalle editorial de preparación corporal en NUVANX', 'PREPARACIÓN CORPORAL', 'La disciplina también puede ser delicada.', 'Planificación por zonas, anatomía y calidad del tejido. Sin fórmulas estándar.', NVX_URL_REMODELACION  ),
+	nvx_story( '/uploads/2026/07/Exion-IPL.webp' , 'Retrato editorial para el protocolo Tone Correction', 'TONE CORRECTION™', 'Un tono más uniforme, sin borrar tu piel real.', 'Manchas, rojeces y fotodaño se valoran según diagnóstico y fototipo.', NVX_URL_MANCHAS  ),
+	nvx_story( '/uploads/2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro.webp' , 'Retrato editorial para el protocolo Surface Renewal', 'SURFACE RENEWAL™', 'Renovar la superficie sin uniformar tu identidad.', 'Textura, poros y cicatrices requieren parámetros definidos para cada piel.', NVX_URL_CICATRICES  ),
+	nvx_story( $img_papada , 'Perfil facial editorial para el protocolo Profile Definition', 'PROFILE DEFINITION™', 'Definición que se percibe. Intervención que no se anuncia.', 'Papada, mandíbula y cuello se estudian como una misma arquitectura anatómica.', NVX_URL_PAPADA  ),
 );
 
 $solution_cards = array(
-	nvx_sol( $img_papada , 'Valoración de papada, mandíbula y cuello', 'Rostro y cuello', 'Papada y definición mandibular', 'Se diferencia grasa localizada, laxitud y soporte anatómico antes de indicar una técnica.', '/papada-definicion-mandibular-madrid/'  ),
-	nvx_sol( '/uploads/2026/07/Exion-IPL.webp' , 'Valoración de calidad y firmeza de la piel', 'Calidad cutánea', 'Firmeza, densidad y luminosidad', 'La modalidad depende del fototipo, la profundidad y el tiempo de recuperación disponible.', '/calidad-piel-firmeza-luminosidad-madrid/'  ),
-	nvx_sol( '/uploads/2026/07/Endolift-Abdomen.webp' , 'Valoración corporal de abdomen y flancos', 'Contorno corporal', 'Abdomen y flancos', 'Grasa subcutánea, laxitud y continuidad del contorno se valoran por separado.', '/grasa-localizada-abdomen-flancos-madrid/'  ),
-	nvx_sol( '/uploads/2026/07/Endolift-Brazos.webp' , 'Valoración corporal de brazos', 'Contorno corporal', 'Brazos y axila', 'La reserva de piel y la relación con axila y torso condicionan el alcance razonable.', '/flacidez-grasa-localizada-brazos-madrid/'  ),
-	nvx_sol( '/uploads/2026/07/Endolift-Abdomen-y-Flancos-Frente.webp' , 'Valoración del abdomen después del embarazo', 'Post-Maternity Contour™', 'Recuperación posgestacional', 'Piel, grasa, cicatriz y pared abdominal requieren decisiones distintas y, a veces, derivación.', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/'  ),
-	nvx_sol( '/uploads/2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro.webp' , 'Valoración de cicatrices, poros y textura', 'Superficie cutánea', 'Cicatrices, poros y textura', 'Tipo de cicatriz, fototipo y riesgo de pigmentación determinan la secuencia clínica.', '/cicatrices-acne-poros-textura-madrid/'  ),
+	nvx_sol( $img_papada , 'Valoración de papada, mandíbula y cuello', 'Rostro y cuello', 'Papada y definición mandibular', 'Se diferencia grasa localizada, laxitud y soporte anatómico antes de indicar una técnica.', NVX_URL_PAPADA  ),
+	nvx_sol( '/uploads/2026/07/Exion-IPL.webp' , 'Valoración de calidad y firmeza de la piel', 'Calidad cutánea', 'Firmeza, densidad y luminosidad', 'La modalidad depende del fototipo, la profundidad y el tiempo de recuperación disponible.', NVX_URL_FIRMEZA  ),
+	nvx_sol( '/uploads/2026/07/Endolift-Abdomen.webp' , 'Valoración corporal de abdomen y flancos', 'Contorno corporal', 'Abdomen y flancos', 'Grasa subcutánea, laxitud y continuidad del contorno se valoran por separado.', NVX_URL_ABDOMEN  ),
+	nvx_sol( '/uploads/2026/07/Endolift-Brazos.webp' , 'Valoración corporal de brazos', 'Contorno corporal', 'Brazos y axila', 'La reserva de piel y la relación con axila y torso condicionan el alcance razonable.', NVX_URL_BRAZOS  ),
+	nvx_sol( '/uploads/2026/07/Endolift-Abdomen-y-Flancos-Frente.webp' , 'Valoración del abdomen después del embarazo', 'Post-Maternity Contour™', 'Recuperación posgestacional', 'Piel, grasa, cicatriz y pared abdominal requieren decisiones distintas y, a veces, derivación.', NVX_URL_POSTPARTO  ),
+	nvx_sol( '/uploads/2026/07/laser-co2-fraccionado-madrid-textura-cicatrices-poro.webp' , 'Valoración de cicatrices, poros y textura', 'Superficie cutánea', 'Cicatrices, poros y textura', 'Tipo de cicatriz, fototipo y riesgo de pigmentación determinan la secuencia clínica.', NVX_URL_CICATRICES  ),
 );
 
 $evolution_cards = array(
@@ -75,7 +85,8 @@ ob_start();
 		<div class="nvx-home-hero__media" aria-hidden="true">
 			<video aria-hidden="true" id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>">
 				<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
-			  <track kind="captions" src="/uploads/captions.vtt" srclang="es" label="Espa�ol">
+			  <track kind="subtitles" src="/uploads/captions.vtt" srclang="es" label="Español">
+				<track kind="descriptions" src="/uploads/descriptions.vtt" srclang="es" label="Audiodescripción">
 </video>
 		</div>
 		<div class="nvx-home-hero__copy">

@@ -1,6 +1,6 @@
 (function () {
   function startHomeVideo() {
-    var video = document.getElementById('nvx-home-hero-video');
+    let video = document.getElementById('nvx-home-hero-video');
     if (!video) return;
 
     video.muted = true;
@@ -9,11 +9,11 @@
     video.setAttribute('playsinline', '');
     video.setAttribute('autoplay', '');
 
-    var frame = video.closest('.nvx-home-video-frame');
+    let frame = video.closest('.nvx-home-video-frame');
     if (frame) frame.classList.add('is-video-mounted');
 
     function tryPlay() {
-      var p = video.play();
+      let p = video.play();
       if (p && typeof p.catch === 'function') {
         p.catch(function () {
           if (frame) frame.classList.add('is-video-poster');

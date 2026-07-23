@@ -1,11 +1,8 @@
 name: Sonar Security Hotfix Generator
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - '.github/workflows/sonar-security-hotfix-generator.yml'
+  pull_request_target:
+    types: [synchronize]
 
 permissions:
   contents: write
@@ -16,21 +13,28 @@ concurrency:
 
 jobs:
   generate:
-    if: github.actor != 'github-actions[bot]'
+    if: >-
+      github.event.pull_request.number == 250 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check out master
+      - name: Check out repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
           ref: master
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Apply narrow security corrections
+      - name: Rebuild clean PR branch and apply narrow fixes
+        env:
+          TARGET_BRANCH: ${{ github.event.pull_request.head.ref }}
         shell: bash
         run: |
           set -euo pipefail
+          git switch -C "$TARGET_BRANCH" origin/master
+          rm .github/workflows/sonar-security-hotfix-generator.yml
           python3 <<'PY'
           from pathlib import Path
 
@@ -69,7 +73,7 @@ jobs:
           )
           PY
 
-      - name: Validate corrected files
+      - name: Validate corrected branch
         shell: bash
         run: |
           set -euo pipefail
@@ -85,21 +89,15 @@ jobs:
           ! grep -Fq "'http://www.nuvanx.com'" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
           ! grep -Fq "'http://nuvanx.com'" wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
 
-      - name: Publish clean hotfix branch
+      - name: Force-push clean validated branch
         env:
           GH_TOKEN: ${{ github.token }}
-          TARGET_BRANCH: fix/sonar-security-hotspots-20260723
+          TARGET_BRANCH: ${{ github.event.pull_request.head.ref }}
         shell: bash
         run: |
           set -euo pipefail
-          rm .github/workflows/sonar-security-hotfix-generator.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git switch -C "$TARGET_BRANCH"
-          git add scripts/staging2/capture-visual-qa-browser.mjs \
-            scripts/staging2/test-deploy-workflow-contract.mjs \
-            scripts/staging2/verify-rendered-acceptance-ssh.mjs \
-            wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php \
-            .github/workflows/sonar-security-hotfix-generator.yml
+          git add -A
           git commit -m 'fix(security): resolve Sonar hotspots in staging2 tooling'
           git push --force "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${TARGET_BRANCH}"

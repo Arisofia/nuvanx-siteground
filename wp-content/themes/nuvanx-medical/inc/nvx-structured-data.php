@@ -24,6 +24,21 @@ if ( ! defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ) {
 	define( 'NVX_ENDOLIFT_REVIEW_LABEL', 'julio 2026' );
 }
 
+if ( ! defined( 'NVX_SD_TEL_CHAMBERI' ) ) {
+	define( 'NVX_SD_TEL_CHAMBERI', '+34669319836' );
+	define( 'NVX_SD_EMAIL_MAIN', 'info@nuvanx.com' );
+	define( 'NVX_SD_ID_MEDICAL_PROCEDURE', '#medical-procedure' );
+	define( 'NVX_SD_ENDOLIFT_FACIAL', 'Endolift® facial' );
+	define( 'NVX_SD_ID_SERVICE', '#service' );
+	define( 'NVX_SD_PATH_EQUIPO_MEDICO', '/equipo-medico/' );
+	define( 'NVX_SD_LABEL_NUM_COLEGIADO', 'Número de colegiado ICOMEM' );
+	define( 'NVX_SD_LABEL_COLEGIADO_PREFIX', 'Colegiado ICOMEM ' );
+	define( 'NVX_SD_ENDOLASER_CORPORAL', 'Endoláser corporal' );
+	define( 'NVX_SD_LASER_CO2_FRACCIONADO', 'Láser CO₂ fraccionado' );
+	define( 'NVX_SD_MEDICINA_REGENERATIVA', 'Medicina regenerativa' );
+	define( 'NVX_SD_SOCIEDAD_SEMEG', 'Sociedad Española de Medicina Geriátrica (SEMEG)' );
+}
+
 /**
  * Official public PVP catalogue (EUR, IVA 21% included).
  * Source: clinic tariff sheet. Never publish commission / internal cost notes.
@@ -294,6 +309,25 @@ function nvx_schema_normalize_path( $path ) {
 	return ( '/' === $path || '//' === $path ) ? '/' : $path;
 }
 
+function nvx_schema_path_from_page_id( int $page_id ): string {
+	$permalink = get_permalink( $page_id );
+	if ( is_string( $permalink ) && '' !== $permalink ) {
+		$home_path = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+		$home_path = is_string( $home_path ) ? untrailingslashit( $home_path ) : '';
+		$page_path = wp_parse_url( $permalink, PHP_URL_PATH );
+		$page_path = is_string( $page_path ) ? $page_path : '';
+
+		if ( '' !== $home_path && 0 === strpos( $page_path, $home_path ) ) {
+			$page_path = substr( $page_path, strlen( $home_path ) );
+		}
+
+		return nvx_schema_normalize_path( $page_path );
+	}
+
+	$uri = get_page_uri( $page_id );
+	return ( is_string( $uri ) && '' !== $uri ) ? nvx_schema_normalize_path( $uri ) : '';
+}
+
 /**
  * Current request path relative to the site home.
  *
@@ -302,28 +336,13 @@ function nvx_schema_normalize_path( $path ) {
  */
 function nvx_schema_current_path( $page_id = 0 ) {
 	if ( $page_id > 0 ) {
-		$permalink = get_permalink( $page_id );
-		if ( is_string( $permalink ) && '' !== $permalink ) {
-			$home_path = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
-			$home_path = is_string( $home_path ) ? untrailingslashit( $home_path ) : '';
-			$page_path = wp_parse_url( $permalink, PHP_URL_PATH );
-			$page_path = is_string( $page_path ) ? $page_path : '';
-
-			if ( '' !== $home_path && 0 === strpos( $page_path, $home_path ) ) {
-				$page_path = substr( $page_path, strlen( $home_path ) );
-			}
-
-			return nvx_schema_normalize_path( $page_path );
-		}
-
-		$uri = get_page_uri( $page_id );
-		if ( is_string( $uri ) && '' !== $uri ) {
-			return nvx_schema_normalize_path( $uri );
+		$path = nvx_schema_path_from_page_id( (int) $page_id );
+		if ( '' !== $path ) {
+			return $path;
 		}
 	}
 
 	$request = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
-
 	return nvx_schema_normalize_path( $request );
 }
 
@@ -343,7 +362,7 @@ function nvx_schema_path_matches( $current, $target ) {
 	}
 
 	// Nested clinic under hub, e.g. goya under clinicas-...
-	return ( '/' !== $target && 0 === strpos( $current, $target ) );
+	return '/' !== $target && 0 === strpos( $current, $target );
 }
 
 /**
@@ -483,8 +502,8 @@ function nvx_schema_clinics() {
 			'name'       => 'NUVANX Medicina Estética Láser — Chamberí',
 			'branchCode' => 'chamberi',
 			'url'        => home_url( $registry['clinics']['chamberi']['path'] ),
-			'telephone'  => '+34669319836',
-			'email'      => 'info@nuvanx.com',
+			'telephone'  => NVX_SD_TEL_CHAMBERI,
+			'email'      => NVX_SD_EMAIL_MAIN,
 			'address'    => array(
 				'@type'           => 'PostalAddress',
 				'streetAddress'   => 'Calle de Fernández de la Hoz, 4, Bajo Derecha',
@@ -897,24 +916,24 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
  * @return array
  */
 function nvx_schema_physician_director( $organization_id ) {
-	$equipo    = home_url( '/equipo-medico/' );
+	$equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
 	return array(
 		'@type'           => array( 'Person', 'Physician' ),
-		'@id'             => home_url( '/equipo-medico/#physician-rivera-tejeda' ),
+		'@id'             => home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-rivera-tejeda' ),
 		'name'            => 'José Javier Rivera Tejeda',
 		'honorificPrefix' => 'Dr.',
 		'jobTitle'        => 'Director médico e investigador clínico aplicado · NUVANX Madrid',
-		'description'     => 'Dirección médica de NUVANX. Láser intersticial (Endolift®, laserlipólisis), CO₂ fraccionado, geometría facial con inductores y tricología. Colegiado ICOMEM ' . $colegiado . '. Perfil público en Doctoralia.',
+		'description'     => 'Dirección médica de NUVANX. Láser intersticial (Endolift®, laserlipólisis), CO₂ fraccionado, geometría facial con inductores y tricología. ' . NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Perfil público en Doctoralia.',
 		'url'             => $equipo,
 		'worksFor'        => array( '@id' => $organization_id ),
 		'hasCredential'   => array(
 			array(
 				'@type'              => 'EducationalOccupationalCredential',
-				'credentialCategory' => 'Número de colegiado ICOMEM',
+				'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
 				'identifier'         => $colegiado,
-				'name'               => 'Colegiado ICOMEM ' . $colegiado,
+				'name'               => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado,
 			),
 			array(
 				'@type' => 'EducationalOccupationalCredential',
@@ -936,20 +955,19 @@ function nvx_schema_physician_director( $organization_id ) {
 			),
 		),
 		'knowsAbout'      => array(
-			'Endolift® facial',
+			NVX_SD_ENDOLIFT_FACIAL,
 			'Laserlipólisis',
-			'Endoláser corporal',
-			'Láser CO₂ fraccionado',
+			NVX_SD_ENDOLASER_CORPORAL,
+			NVX_SD_LASER_CO2_FRACCIONADO,
 			'Medicina estética láser',
 			'Marcación mandibular con láser',
 			'Inductores de colágeno',
 			'Tricología médica',
-			'Medicina regenerativa',
+			NVX_SD_MEDICINA_REGENERATIVA,
 		),
 		'sameAs'          => array(
 			'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid',
 		),
-		// No AggregateRating hardcode — ratings must mirror live Doctoralia.
 	);
 }
 
@@ -960,8 +978,8 @@ function nvx_schema_physician_director( $organization_id ) {
  * @return array
  */
 function nvx_schema_physician_ivon( $organization_id ) {
-	$equipo    = home_url( '/equipo-medico/' );
-	$ivon_id   = home_url( '/equipo-medico/#physician-rivera-deras' );
+	$equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
+	$ivon_id   = home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-rivera-deras' );
 	$colegiado = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 
 	return array(
@@ -970,7 +988,7 @@ function nvx_schema_physician_ivon( $organization_id ) {
 		'name'             => 'Ivon Yamileth Rivera Deras',
 		'honorificPrefix'  => 'Dra.',
 		'jobTitle'         => 'Especialista en geriatría, longevidad y well-aging · NUVANX',
-		'description'      => 'Colegiada ICOMEM ' . $colegiado . '. Médico especialista (FEA) en Hospital Universitario La Paz (Recuperación Funcional / Hospital de Día Geriátrico) y Hospital Central de la Cruz Roja. Investigadora y consultora para OXON Epidemiology; coordinación científica SEMEG; colaboración EuGMS; profesora UEM. Coautora de obras de bioética y geriatría clínica. Integra well-aging basado en evidencia en NUVANX.',
+		'description'      => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Médico especialista (FEA) en Hospital Universitario La Paz (Recuperación Funcional / Hospital de Día Geriátrico) y Hospital Central de la Cruz Roja. Investigadora y consultora para OXON Epidemiology; coordinación científica SEMEG; colaboración EuGMS; profesora UEM. Coautora de obras de bioética y geriatría clínica. Integra well-aging basado en evidencia en NUVANX.',
 		'url'              => $equipo . '#physician-rivera-deras',
 		'medicalSpecialty' => 'https://schema.org/Geriatric',
 		'worksFor'         => array(
@@ -987,7 +1005,7 @@ function nvx_schema_physician_ivon( $organization_id ) {
 		'hasCredential'    => array(
 			array(
 				'@type'              => 'EducationalOccupationalCredential',
-				'credentialCategory' => 'Número de colegiado ICOMEM',
+				'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
 				'identifier'         => $colegiado,
 				'name'               => 'Colegiada ICOMEM ' . $colegiado,
 			),
@@ -995,7 +1013,7 @@ function nvx_schema_physician_ivon( $organization_id ) {
 		'memberOf'         => array(
 			array(
 				'@type' => 'MedicalOrganization',
-				'name'  => 'Sociedad Española de Medicina Geriátrica (SEMEG)',
+				'name'  => NVX_SD_SOCIEDAD_SEMEG,
 			),
 			array(
 				'@type' => 'Organization',
@@ -1298,131 +1316,102 @@ function nvx_schema_should_emit_physician_fabio( $page_id ) {
 }
 
 /**
- * Add NUVANX medical locations and page entities to Yoast's canonical graph.
- *
- * @param array $graph   Yoast Schema graph.
- * @param mixed $context Yoast Meta_Tags_Context.
- * @return array
+ * Builds array of physician nodes to emit for the current page.
  */
-function nvx_extend_yoast_schema_graph( $graph, $context ) {
-	if ( is_admin() || is_feed() || ( ! is_singular( 'page' ) && ! is_front_page() ) ) {
-		return $graph;
-	}
-
-	$organization = nvx_schema_find_organization( $graph );
-	$all_clinics  = nvx_schema_clinics();
-	$page_id      = (int) get_queried_object_id();
-
-	if ( null === $organization['index'] ) {
-		$graph[] = array(
-			'@type' => array( 'Organization', 'MedicalOrganization' ),
-			'@id'   => $organization['id'],
-			'url'   => home_url( '/' ),
-		);
-		$organization['index'] = array_key_last( $graph );
-	}
-
-	$clinic_ids = array(
-		array( '@id' => $all_clinics['chamberi']['@id'] ),
-		array( '@id' => $all_clinics['goya']['@id'] ),
-	);
-
-	$index      = $organization['index'];
+function nvx_schema_build_physicians( int $page_id, string $org_id ): array {
 	$physicians = array();
-
 	if ( nvx_schema_should_emit_physician( $page_id ) ) {
-		$physicians[] = nvx_schema_physician_director( $organization['id'] );
+		$physicians[] = nvx_schema_physician_director( $org_id );
 	}
 	if ( nvx_schema_should_emit_physician_ivon( $page_id ) ) {
-		$physicians[] = nvx_schema_physician_ivon( $organization['id'] );
+		$physicians[] = nvx_schema_physician_ivon( $org_id );
 	}
 	if ( nvx_schema_should_emit_physician_fabio( $page_id ) ) {
-		$physicians[] = nvx_schema_physician_fabio( $organization['id'] );
+		$physicians[] = nvx_schema_physician_fabio( $org_id );
 	}
+	return $physicians;
+}
 
-	$physician = ! empty( $physicians ) ? $physicians[0] : null;
+/**
+ * Enriches the main Organization node in Yoast schema graph.
+ */
+function nvx_schema_enrich_organization( array &$graph, int $index, string $org_id, array $all_clinics, array $physicians ): void {
+	$graph[ $index ]['@type']                  = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
+	$graph[ $index ]['name']                   = 'NUVANX Medicina Estética Láser';
+	$graph[ $index ]['alternateName']          = array( 'NUVANX', 'NUVANX Madrid', 'NUVANX Medicina Estética Láser Madrid' );
+	$graph[ $index ]['url']                    = home_url( '/' );
+	$graph[ $index ]['description']            = 'Centro médico de medicina estética láser y well-aging en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con dirección médica y criterio científico (geriatría preventiva / longevidad).';
+	$graph[ $index ]['email']                  = NVX_SD_EMAIL_MAIN;
+	$graph[ $index ]['telephone']              = NVX_SD_TEL_CHAMBERI;
+	$graph[ $index ]['priceRange']             = '€€€';
+	$graph[ $index ]['isAcceptingNewPatients'] = true;
+	$graph[ $index ]['address']                = array( $all_clinics['chamberi']['address'], $all_clinics['goya']['address'] );
+	$graph[ $index ]['contactPoint']           = array(
+		array(
+			'@type'             => 'ContactPoint',
+			'contactType'       => 'Citas — Chamberí',
+			'telephone'         => NVX_SD_TEL_CHAMBERI,
+			'areaServed'        => 'ES',
+			'availableLanguage' => array( 'es', 'en' ),
+		),
+		array(
+			'@type'             => 'ContactPoint',
+			'contactType'       => 'Citas — Goya · Barrio Salamanca',
+			'telephone'         => '+34647505107',
+			'areaServed'        => 'ES',
+			'availableLanguage' => array( 'es', 'en' ),
+		),
+	);
+	$graph[ $index ]['medicalSpecialty']      = array( 'Aesthetic Medicine', 'Laser Medicine', 'Geriatric Medicine' );
+	$graph[ $index ]['knowsAbout']            = array(
+		'Medicina estética',
+		'Medicina estética láser',
+		NVX_SD_ENDOLIFT_FACIAL,
+		'Marcación mandibular con láser',
+		NVX_SD_ENDOLASER_CORPORAL,
+		NVX_SD_LASER_CO2_FRACCIONADO,
+		'EXION® BTL',
+		'BTL EXILITE™ IPL',
+		NVX_SD_MEDICINA_REGENERATIVA,
+		'Well-aging',
+		'Geriatría preventiva',
+		'Longevidad',
+	);
+	$graph[ $index ]['potentialAction']       = array(
+		'@type'  => 'ReserveAction',
+		'name'   => 'Reserva de valoración diagnóstica',
+		'target' => array(
+			'@type'          => 'EntryPoint',
+			'urlTemplate'    => home_url( '/madrid/valoracion/' ),
+			'inLanguage'     => 'es',
+			'actionPlatform' => array(
+				'https://schema.org/DesktopWebPlatform',
+				'https://schema.org/MobileWebPlatform',
+			),
+		),
+		'result' => array(
+			'@type' => 'Reservation',
+			'name'  => 'Cita médica presencial',
+		),
+	);
 
-	if ( null !== $index ) {
-		// MedicalOrganization is the parent; branch MedicalClinic nodes stay separate.
-		$graph[ $index ]['@type']         = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
-		$graph[ $index ]['name']          = 'NUVANX Medicina Estética Láser';
-		$graph[ $index ]['alternateName'] = array( 'NUVANX', 'NUVANX Madrid', 'NUVANX Medicina Estética Láser Madrid' );
-		$graph[ $index ]['url']           = home_url( '/' );
-		$graph[ $index ]['description']   = 'Centro médico de medicina estética láser y well-aging en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con dirección médica y criterio científico (geriatría preventiva / longevidad).';
-		$graph[ $index ]['email']         = 'info@nuvanx.com';
-		$graph[ $index ]['telephone']     = '+34669319836';
-		// Transparent positioning vs quote-only competitors (generative engines need a band).
-		$graph[ $index ]['priceRange']    = '€€€';
-		$graph[ $index ]['isAcceptingNewPatients'] = true;
-		$graph[ $index ]['address']       = array( $all_clinics['chamberi']['address'], $all_clinics['goya']['address'] );
-		$graph[ $index ]['contactPoint']  = array(
-			array(
-				'@type'             => 'ContactPoint',
-				'contactType'       => 'Citas — Chamberí',
-				'telephone'         => '+34669319836',
-				'areaServed'        => 'ES',
-				'availableLanguage' => array( 'es', 'en' ),
-			),
-			array(
-				'@type'             => 'ContactPoint',
-				'contactType'       => 'Citas — Goya · Barrio Salamanca',
-				'telephone'         => '+34647505107',
-				'areaServed'        => 'ES',
-				'availableLanguage' => array( 'es', 'en' ),
-			),
-		);
-		$graph[ $index ]['medicalSpecialty'] = array(
-			'Aesthetic Medicine',
-			'Laser Medicine',
-			'Geriatric Medicine',
-		);
-		$graph[ $index ]['knowsAbout']    = array(
-			'Medicina estética',
-			'Medicina estética láser',
-			'Endolift® facial',
-			'Marcación mandibular con láser',
-			'Endoláser corporal',
-			'Láser CO₂ fraccionado',
-			'EXION® BTL',
-			'BTL EXILITE™ IPL',
-			'Medicina regenerativa',
-			'Well-aging',
-			'Geriatría preventiva',
-			'Longevidad',
-		);
-		// Presencial only — no videoconsulta in schema (service not marketed as operational CTA).
-		$graph[ $index ]['potentialAction'] = array(
-			'@type'  => 'ReserveAction',
-			'name'   => 'Reserva de valoración diagnóstica',
-			'target' => array(
-				'@type'          => 'EntryPoint',
-				'urlTemplate'    => home_url( '/madrid/valoracion/' ),
-				'inLanguage'     => 'es',
-				'actionPlatform' => array(
-					'https://schema.org/DesktopWebPlatform',
-					'https://schema.org/MobileWebPlatform',
-				),
-			),
-			'result' => array(
-				'@type' => 'Reservation',
-				'name'  => 'Cita médica presencial',
-			),
-		);
-
-		if ( ! empty( $physicians ) ) {
-			$employee_refs = array();
-			foreach ( $physicians as $person ) {
-				$employee_refs[] = array( '@id' => $person['@id'] );
-			}
-			$graph[ $index ]['employee'] = $employee_refs;
+	if ( ! empty( $physicians ) ) {
+		$employee_refs = array();
+		foreach ( $physicians as $person ) {
+			$employee_refs[] = array( '@id' => $person['@id'] );
 		}
-
-		$existing_same_as          = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
-		$existing_same_as[]        = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
-		$graph[ $index ]['sameAs'] = array_values( array_unique( array_filter( $existing_same_as ) ) );
+		$graph[ $index ]['employee'] = $employee_refs;
 	}
 
-	// Home: both clinics + offer catalog (competitive entity density for local + service discovery).
+	$existing_same_as          = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
+	$existing_same_as[]        = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
+	$graph[ $index ]['sameAs'] = array_values( array_unique( array_filter( $existing_same_as ) ) );
+}
+
+/**
+ * Attaches clinic sub-organizations and offer catalog to the Yoast schema graph.
+ */
+function nvx_schema_attach_clinics_graph( array &$graph, int $page_id, array $organization, array $all_clinics, array $physicians, array $clinic_ids ): void {
 	if ( is_front_page() && null !== $organization['index'] ) {
 		$catalog = nvx_schema_offer_catalog( $organization['id'] );
 		$graph[ $organization['index'] ]['hasOfferCatalog'] = array( '@id' => $catalog['@id'] );
@@ -1467,13 +1456,52 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 			}
 		}
 	}
+}
+
+/**
+ * Add NUVANX medical locations and page entities to Yoast's canonical graph.
+ *
+ * @param array $graph   Yoast Schema graph.
+ * @param mixed $context Yoast Meta_Tags_Context.
+ * @return array
+ */
+function nvx_extend_yoast_schema_graph( $graph, $context ) {
+	if ( is_admin() || is_feed() || ( ! is_singular( 'page' ) && ! is_front_page() ) ) {
+		return $graph;
+	}
+
+	$organization = nvx_schema_find_organization( $graph );
+	$all_clinics  = nvx_schema_clinics();
+	$page_id      = (int) get_queried_object_id();
+
+	if ( null === $organization['index'] ) {
+		$graph[] = array(
+			'@type' => array( 'Organization', 'MedicalOrganization' ),
+			'@id'   => $organization['id'],
+			'url'   => home_url( '/' ),
+		);
+		$organization['index'] = array_key_last( $graph );
+	}
+
+	$clinic_ids = array(
+		array( '@id' => $all_clinics['chamberi']['@id'] ),
+		array( '@id' => $all_clinics['goya']['@id'] ),
+	);
+
+	$physicians = nvx_schema_build_physicians( $page_id, $organization['id'] );
+	$physician  = ! empty( $physicians ) ? $physicians[0] : null;
+
+	if ( null !== $organization['index'] ) {
+		nvx_schema_enrich_organization( $graph, $organization['index'], $organization['id'], $all_clinics, $physicians );
+	}
+
+	nvx_schema_attach_clinics_graph( $graph, $page_id, $organization, $all_clinics, $physicians, $clinic_ids );
 
 	foreach ( $physicians as $person ) {
 		$graph[] = $person;
 	}
 
-	// Publication nodes on equipo page only (visible authorship).
-	if ( nvx_schema_path_matches( nvx_schema_current_path( $page_id ), '/equipo-medico/' ) ) {
+	if ( nvx_schema_path_matches( nvx_schema_current_path( $page_id ), NVX_SD_PATH_EQUIPO_MEDICO ) ) {
 		foreach ( $physicians as $person ) {
 			if ( empty( $person['@id'] ) ) {
 				continue;
@@ -1491,7 +1519,6 @@ function nvx_extend_yoast_schema_graph( $graph, $context ) {
 		}
 	}
 
-	// $physician = director (first) for procedure performer/reviewedBy.
 	$treatment = nvx_schema_treatment_node( $page_id, $organization['id'] );
 	if ( null !== $treatment ) {
 		if ( null !== $physician ) {

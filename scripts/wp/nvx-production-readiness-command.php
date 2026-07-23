@@ -147,25 +147,37 @@ final class NVX_Production_Readiness_Command {
 		return is_array( $items ) ? $this->flattenMenuItems( $items ) : array();
 	}
 
+	private function approvedAuditRows(): array {
+		$rows = array();
+		foreach ( $this->approvedPages() as $slug => $definition ) {
+			$page   = $this->pageBySlug( $slug );
+			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( $this->menuItemIds( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
+		}
+		return $rows;
+	}
+
+	private function governedAuditRows(): array {
+		$rows = array();
+		foreach ( $this->governedPages() as $slug => $definition ) {
+			$page   = $this->pageBySlug( $slug );
+			$rows[] = array( 'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'absent', 'menu_items' => $page ? count( $this->menuItemIds( (int) $page->ID ) ) : 0, 'expected' => $definition['status'] );
+		}
+		return $rows;
+	}
+
+	private function navigationAuditRow(): array {
+		$current_menu = $this->currentMenuSignature();
+		$canonical_menu = $this->canonicalMenuSignature();
+		return array( 'type' => 'navigation', 'slug' => 'primary', 'id' => $this->primaryMenuId(), 'status' => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift', 'menu_items' => count( $current_menu ), 'expected' => 'canonical' );
+	}
+
 	/**
 	 * Builds audit rows for approved pages, governed pages, and primary navigation.
 	 *
 	 * @return array Audit rows describing current states and expected migration states.
 	 */
 	private function auditRows(): array {
-		$rows = array();
-		foreach ( $this->approvedPages() as $slug => $definition ) {
-			$page   = $this->pageBySlug( $slug );
-			$rows[] = array( 'type' => 'approved', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'missing', 'menu_items' => $page ? count( $this->menuItemIds( (int) $page->ID ) ) : 0, 'expected' => 'publish' );
-		}
-		foreach ( $this->governedPages() as $slug => $definition ) {
-			$page   = $this->pageBySlug( $slug );
-			$rows[] = array( 'type' => 'governed', 'slug' => $slug, 'id' => $page ? (int) $page->ID : 0, 'status' => $page ? (string) $page->post_status : 'absent', 'menu_items' => $page ? count( $this->menuItemIds( (int) $page->ID ) ) : 0, 'expected' => $definition['status'] );
-		}
-		$current_menu = $this->currentMenuSignature();
-		$canonical_menu = $this->canonicalMenuSignature();
-		$rows[] = array( 'type' => 'navigation', 'slug' => 'primary', 'id' => $this->primaryMenuId(), 'status' => $current_menu === $canonical_menu && array() !== $canonical_menu ? 'clean' : 'drift', 'menu_items' => count( $current_menu ), 'expected' => 'canonical' );
-		return $rows;
+		return array_merge( $this->approvedAuditRows(), $this->governedAuditRows(), array( $this->navigationAuditRow() ) );
 	}
 
 	/**

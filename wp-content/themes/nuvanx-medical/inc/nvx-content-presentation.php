@@ -1286,30 +1286,15 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 
 
 /**
- * Auto-inject shared treatment sections into real treatment pages that lack them.
+ * Builds HTML string of shared treatment sections to inject.
  */
-function nvx_content_inject_global_treatment_sections( string $content ): string {
-	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-		return $content;
-	}
-	if ( ! is_singular( 'page' ) && ! is_page() ) {
-		return $content;
-	}
-
-	if ( ! nvx_content_is_treatment_injection_target( $content ) ) {
-		return $content;
-	}
-
+function nvx_content_build_treatment_injections( string $content ): string {
 	$injections = '';
 
-	// 1. Before/After teaser (promotional gallery link — no numeric claims).
 	if ( false === strpos( $content, 'nvx-ba-teaser' ) ) {
 		$injections .= nvx_before_after_teaser_markup();
 	}
 
-	// 2. Trust badges intentionally omitted until claims-register approved figures exist.
-
-	// 3. How It Works / Process — skip when the page already documents process/downtime.
 	$has_process = preg_match(
 		'/nvx-method-section|nvx-endolift-process|nvx-co2-downtime|nvx-co2-timeline|nvx-treatment-process|Procedimiento, sesiones y cuidados/iu',
 		$content
@@ -1318,8 +1303,6 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 		$injections .= nvx_treatment_process_markup();
 	}
 
-	// 4. FAQ — only if the page has none. Skip CO₂: recovery is protocol-specific and
-	// already described on-page (do not inject generic “immediate return” answers).
 	$has_faq = preg_match( '/nvx-brand-faq-item|nvx-faq|nvx-generic-faq-list/iu', $content );
 	$is_co2  = (
 		false !== strpos( $content, 'nvx-co2-editorial' )
@@ -1332,6 +1315,22 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 		$injections .= nvx_generic_faq_markup();
 	}
 
+	return $injections;
+}
+
+/**
+ * Auto-inject shared treatment sections into real treatment pages that lack them.
+ */
+function nvx_content_inject_global_treatment_sections( string $content ): string {
+	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ( ! is_singular( 'page' ) && ! is_page() ) ) {
+		return $content;
+	}
+
+	if ( ! nvx_content_is_treatment_injection_target( $content ) ) {
+		return $content;
+	}
+
+	$injections = nvx_content_build_treatment_injections( $content );
 	if ( '' === $injections ) {
 		return $content;
 	}

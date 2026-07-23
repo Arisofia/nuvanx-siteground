@@ -522,78 +522,85 @@ async function openMobileAccordion(session, linkPattern, parentSubmenuClass = nu
   }, linkPattern, parentSubmenuClass);
 }
 
+async function auditMobileDrawerOpenAndExpand(session, scope, result) {
+  await session.evaluate(`(() => {
+    document.getElementById('nvx-hamburger-btn')?.focus();
+    document.getElementById('nvx-hamburger-btn')?.click();
+  })()`);
+  await sleep(250);
+  const drawer = await session.evaluate(`(() => {
+    const nav = document.getElementById('nvx-mobile-nav');
+    const button = document.getElementById('nvx-hamburger-btn');
+    return {
+      open: !!nav && nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'false',
+      expanded: button?.getAttribute('aria-expanded'),
+      activeId: document.activeElement?.id || '',
+    };
+  })()`);
+  Object.assign(result, drawer);
+  if (!drawer.open || drawer.expanded !== 'true') fail(scope, 'hamburger did not open the drawer with correct ARIA state');
+  if (drawer.activeId !== 'nvx-mobile-close') fail(scope, `focus did not move to close button; active=${drawer.activeId || 'none'}`);
+
+  const signatureOpened = await openMobileAccordion(session, 'protocolos signature');
+  if (!signatureOpened) throw new Error('Protocolos Signature mobile accordion toggle was not found.');
+  await sleep(300);
+  const contourOpened = await openMobileAccordion(session, 'contour architecture', 'sub-menu');
+  if (!contourOpened) throw new Error('Contour Architecture nested mobile toggle was not found.');
+  await sleep(350);
+
+  const state = await session.evaluate(String.raw`(() => {
+    const nav = document.getElementById('nvx-mobile-nav');
+    const text = nav?.textContent.replace(/\s+/g, ' ').trim() || '';
+    return {
+      text,
+      expanded: Array.from(nav?.querySelectorAll('.nvx-mobile-nav__toggle[aria-expanded="true"]') || []).length,
+      overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
+      drawerWidth: nav?.getBoundingClientRect().width || 0,
+      viewportWidth: document.documentElement.clientWidth,
+    };
+  })()`);
+  Object.assign(result, state);
+  if (state.expanded < 2) fail(scope, `expected two expanded accordion levels, found ${state.expanded}`);
+  for (const label of ['Abdomen y flancos', 'Brazos y axila', 'Espalda y zona del sujetador', 'Muslos y región subglútea', 'Rodillas', 'Contorno masculino']) {
+    if (!state.text.includes(label)) fail(scope, `nested menu missing: ${label}`);
+  }
+  for (const forbidden of ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame']) {
+    if (state.text.includes(forbidden)) fail(scope, `drawer exposes retired label: ${forbidden}`);
+  }
+  if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
+  if (state.drawerWidth > state.viewportWidth + 2) fail(scope, `drawer width ${state.drawerWidth}px exceeds viewport ${state.viewportWidth}px`);
+
+  const destination = path.join(evidenceDir, 'navigation-mobile-drawer.png');
+  await captureViewport(session, destination);
+  result.screenshot = path.basename(destination);
+}
+
+async function auditMobileDrawerCloseAndFocus(session, scope, result) {
+  await session.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+  await session.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
+  await sleep(200);
+  const closed = await session.evaluate(`(() => {
+    const nav = document.getElementById('nvx-mobile-nav');
+    const button = document.getElementById('nvx-hamburger-btn');
+    return {
+      closed: !!nav && !nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'true',
+      expanded: button?.getAttribute('aria-expanded'),
+      activeId: document.activeElement?.id || '',
+    };
+  })()`);
+  Object.assign(result, closed);
+  if (!closed.closed || closed.expanded !== 'false') fail(scope, 'Escape did not close drawer and reset ARIA state');
+  if (closed.activeId !== 'nvx-hamburger-btn') fail(scope, `focus was not restored to hamburger; active=${closed.activeId || 'none'}`);
+}
+
 async function auditMobileNavigation(port) {
   const scope = 'mobile drawer';
   const result = {};
   let session;
   try {
     session = await loadPage(port, `${baseUrl}/`, { width: 390, height: 844, mobile: true });
-    await session.evaluate(`(() => {
-      document.getElementById('nvx-hamburger-btn')?.focus();
-      document.getElementById('nvx-hamburger-btn')?.click();
-    })()`);
-    await sleep(250);
-    const drawer = await session.evaluate(`(() => {
-      const nav = document.getElementById('nvx-mobile-nav');
-      const button = document.getElementById('nvx-hamburger-btn');
-      return {
-        open: !!nav && nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'false',
-        expanded: button?.getAttribute('aria-expanded'),
-        activeId: document.activeElement?.id || '',
-      };
-    })()`);
-    Object.assign(result, drawer);
-    if (!drawer.open || drawer.expanded !== 'true') fail(scope, 'hamburger did not open the drawer with correct ARIA state');
-    if (drawer.activeId !== 'nvx-mobile-close') fail(scope, `focus did not move to close button; active=${drawer.activeId || 'none'}`);
-
-    const signatureOpened = await openMobileAccordion(session, 'protocolos signature');
-    if (!signatureOpened) throw new Error('Protocolos Signature mobile accordion toggle was not found.');
-    await sleep(300);
-    const contourOpened = await openMobileAccordion(session, 'contour architecture', 'sub-menu');
-    if (!contourOpened) throw new Error('Contour Architecture nested mobile toggle was not found.');
-    await sleep(350);
-
-    const state = await session.evaluate(String.raw`(() => {
-      const nav = document.getElementById('nvx-mobile-nav');
-      const text = nav?.textContent.replace(/\s+/g, ' ').trim() || '';
-      return {
-        text,
-        expanded: Array.from(nav?.querySelectorAll('.nvx-mobile-nav__toggle[aria-expanded="true"]') || []).length,
-        overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
-        drawerWidth: nav?.getBoundingClientRect().width || 0,
-        viewportWidth: document.documentElement.clientWidth,
-      };
-    })()`);
-    Object.assign(result, state);
-    if (state.expanded < 2) fail(scope, `expected two expanded accordion levels, found ${state.expanded}`);
-    for (const label of ['Abdomen y flancos', 'Brazos y axila', 'Espalda y zona del sujetador', 'Muslos y región subglútea', 'Rodillas', 'Contorno masculino']) {
-      if (!state.text.includes(label)) fail(scope, `nested menu missing: ${label}`);
-    }
-    for (const forbidden of ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame']) {
-      if (state.text.includes(forbidden)) fail(scope, `drawer exposes retired label: ${forbidden}`);
-    }
-    if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
-    if (state.drawerWidth > state.viewportWidth + 2) fail(scope, `drawer width ${state.drawerWidth}px exceeds viewport ${state.viewportWidth}px`);
-
-    const destination = path.join(evidenceDir, 'navigation-mobile-drawer.png');
-    await captureViewport(session, destination);
-    result.screenshot = path.basename(destination);
-
-    await session.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
-    await session.send('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27, nativeVirtualKeyCode: 27 });
-    await sleep(200);
-    const closed = await session.evaluate(`(() => {
-      const nav = document.getElementById('nvx-mobile-nav');
-      const button = document.getElementById('nvx-hamburger-btn');
-      return {
-        closed: !!nav && !nav.classList.contains('is-open') && nav.getAttribute('aria-hidden') === 'true',
-        expanded: button?.getAttribute('aria-expanded'),
-        activeId: document.activeElement?.id || '',
-      };
-    })()`);
-    result.escape_close = closed;
-    if (!closed.closed || closed.expanded !== 'false') fail(scope, 'Escape did not close drawer and reset ARIA state');
-    if (closed.activeId !== 'nvx-hamburger-btn') fail(scope, `focus was not restored to hamburger; active=${closed.activeId || 'none'}`);
+    await auditMobileDrawerOpenAndExpand(session, scope, result);
+    await auditMobileDrawerCloseAndFocus(session, scope, result);
   } catch (error) {
     fail(scope, error instanceof Error ? error.message : String(error));
   } finally {

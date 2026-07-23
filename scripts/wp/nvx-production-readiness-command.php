@@ -399,8 +399,12 @@ final class NVX_Production_Readiness_Command {
      * Inserts canonical navigation nodes and their children into a menu.
      *
      * @param int   $menu_id   The menu ID receiving the nodes.
-     * @param array $nodes     The canonical menu nodes to insert.
-     * @param int   $parent_id The parent menu item ID.
+    /**
+     * Inserts canonical navigation nodes and their children into a menu.
+     *
+     * `@param` int   $menu_id   The menu ID receiving the nodes.
+     * `@param` array $nodes     The canonical menu nodes to insert.
+     * `@param` int   $parent_id The parent menu item ID.
      */
     private function insertMenuNodes( int $menu_id, array $nodes, int $parent_id = 0 ): void {
         foreach ( $nodes as $node ) {
@@ -424,11 +428,7 @@ final class NVX_Production_Readiness_Command {
         }
     }
 
-    /**
-     * Replaces the assigned primary menu with the canonical navigation blueprint.
-     *
-     * Creates the primary menu when none is assigned and updates the primary theme location.
-     */
+    /** Replaces the assigned primary menu with the canonical published navigation blueprint. */
     private function applyPrimaryMenu(): void {
         if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
             WP_CLI::error( 'Canonical navigation blueprint is unavailable.' );
@@ -445,13 +445,17 @@ final class NVX_Production_Readiness_Command {
             }
             $menu_id = (int) $created;
         }
+        $existing_item_ids = array();
         $items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'any' ) );
         if ( is_array( $items ) ) {
             foreach ( $items as $item ) {
-                wp_delete_post( (int) $item->ID, true );
+                $existing_item_ids[] = (int) $item->ID;
             }
         }
         $this->insertMenuNodes( $menu_id, $nodes );
+        foreach ( $existing_item_ids as $old_item_id ) {
+            wp_delete_post( $old_item_id, true );
+        }
         $locations = get_nav_menu_locations();
         $locations['primary'] = $menu_id;
         set_theme_mod( 'nav_menu_locations', $locations );

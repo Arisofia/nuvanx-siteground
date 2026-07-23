@@ -245,11 +245,10 @@ function nvx_valoracion_form_stage_class( string $content ): string {
 		'/(<section\b[^>]*\bid=["\']nvx-hubspot-form["\'][^>]*\bclass=["\'])([^"\']*)(["\'])/i',
 		'$1$2 nvx-form-stage$3',
 		$content,
-		1,
-		$count
+		1
 	);
 
-	if ( is_string( $updated ) && $count > 0 ) {
+	if ( is_string( $updated ) && $updated !== $content ) {
 		return $updated;
 	}
 

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 function getAcceptanceConfig() {
-  const envUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').trim().replace(/\/+$/, '');
+  const envUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').trim().replace(/\/$/, '');
   const shaToken = (process.env.EXPECTED_SHA || '').trim();
   const dirPath = (process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/rendered-acceptance').trim();
 
@@ -265,7 +265,7 @@ async function verifySinglePage(page) {
   try {
     const response = await fetchWithTimeout(`${baseUrl}${page.path}`);
     const html = await response.text();
-    const fileName = `${page.path.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home'}.html`;
+    const fileName = `${page.path.split('/').filter(Boolean).join('__') || 'home'}.html`;
     fs.writeFileSync(path.join(evidenceDir, fileName), html);
     record.status = response.status;
     if (response.status !== 200) {

@@ -1,7 +1,7 @@
-#!/usr/bin/env node
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
@@ -58,7 +58,7 @@ const report = {
 };
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
-const safeName = (value) => value.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home';
+const safeName = (value) => value.split('/').filter(Boolean).join('__') || 'home';
 
 function locateChrome() {
   const candidates = [
@@ -611,7 +611,7 @@ async function auditMobileNavigation(port) {
 
 const chromePath = locateChrome();
 report.chrome = chromePath;
-const port = 9300 + Math.floor(Math.random() * 500);
+const port = 9300 + crypto.randomInt(0, 500);
 const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nvx-chrome-'));
 const chrome = spawn(chromePath, [
   '--headless=new',

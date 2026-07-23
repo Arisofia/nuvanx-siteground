@@ -74,7 +74,6 @@
 }
 .nvx-editorial-hero__copy::before,
 .nvx-brand-hero__copy::before,
-.nvx-editorial-hero__copy::before,
 .nvx-page-hero__copy::before,
 .nvx-hero__copy::before {
   content: "";
@@ -90,9 +89,7 @@
   z-index: 2;
 }
 
-.nvx-brand-hero__copy >,
-.nvx-editorial-hero__copy > *:first-child,
-.nvx-brand-hero__copy >,
+.nvx-brand-hero__copy > *:first-child,
 .nvx-editorial-hero__copy > *:first-child,
 .nvx-page-hero__copy > *:first-child,
 .nvx-hero__copy > *:first-child {
@@ -102,7 +99,11 @@
 /* Overlay type — beat base ink colors via later cascade + higher specificity */
 
 .nvx-brand-hero__copy .nvx-title,
-.nvx-editorial-hero__copy .nvx-title, .nvx-editorial-hero__copy .nvx-heading, .nvx-editorial-hero__copy h1, .nvx-page-hero__copy .nvx-title, .nvx-hero__copy .nvx-title {
+.nvx-editorial-hero__copy .nvx-title,
+.nvx-editorial-hero__copy .nvx-heading,
+.nvx-editorial-hero__copy h1,
+.nvx-page-hero__copy .nvx-title,
+.nvx-hero__copy .nvx-title {
   margin: 0 0 0.65em;
   max-width: 22ch;
   color: var(--nvx-light);
@@ -110,10 +111,15 @@
 }
 
 .nvx-brand-hero__copy .nvx-lead,
-.nvx-editorial-hero__copy .nvx-lead, .nvx-brand-hero__copy .nvx-lead,
-.nvx-editorial-hero__copy .nvx-lead, .nvx-brand-hero__copy .nvx-lead,
-.nvx-editorial-hero__copy .nvx-lead, .nvx-editorial-hero__copy .nvx-subtitle, .nvx-editorial-hero__copy .nvx-hero-subtitle, .nvx-brand-hero__copy .nvx-lead,
-.nvx-editorial-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-subtitle, .nvx-page-hero__copy .nvx-hero-subtitle, .nvx-hero__copy .nvx-subtitle, .nvx-hero__copy .nvx-hero-subtitle, .nvx-hero__copy p {
+.nvx-editorial-hero__copy .nvx-lead,
+.nvx-editorial-hero__copy .nvx-subtitle,
+.nvx-editorial-hero__copy .nvx-hero-subtitle,
+.nvx-page-hero__copy .nvx-lead,
+.nvx-page-hero__copy .nvx-subtitle,
+.nvx-page-hero__copy .nvx-hero-subtitle,
+.nvx-hero__copy .nvx-subtitle,
+.nvx-hero__copy .nvx-hero-subtitle,
+.nvx-hero__copy p {
   max-width: 42ch;
   color: var(--nvx-text-on-dark-90);
 }

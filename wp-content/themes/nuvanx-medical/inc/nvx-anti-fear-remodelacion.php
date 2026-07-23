@@ -15,23 +15,18 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /** Detecta la landing anti-fear por slug/ruta. */
-function nvx_content_is_anti_fear_remodelacion_page( string $content ): bool {
-    if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-        return false;
-    }
-    if ( ! is_singular( 'page' ) && ! is_page() ) {
+function nvx_content_is_anti_fear_remodelacion_page(): bool {
+    if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ( ! is_singular( 'page' ) && ! is_page() ) ) {
         return false;
     }
 
-    // Ruta canónica.
-    if ( function_exists( 'nvx_schema_current_path' ) ) {
+    if ( function_exists( 'nvx_schema_current_path' ) && function_exists( 'nvx_schema_path_matches' ) ) {
         $path = nvx_schema_current_path( (int) get_queried_object_id() );
-        if ( function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, '/remodelacion-corporal-sin-anestesia-madrid/' ) ) {
+        if ( nvx_schema_path_matches( $path, '/remodelacion-corporal-sin-anestesia-madrid/' ) ) {
             return true;
         }
     }
 
-    // Fallback por slug.
     $slug = (string) get_post_field( 'post_name', get_queried_object_id() );
     return 'remodelacion-corporal-sin-anestesia-madrid' === $slug;
 }
@@ -122,10 +117,7 @@ function nvx_anti_fear_remodelacion_body_markup(): string {
 
 /** Filtro de contenido: sustituye la landing Anti-Fear por el markup gobernado. */
 function nvx_anti_fear_remodelacion_filter_content( string $content ): string {
-    if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
-        return $content;
-    }
-    if ( ! nvx_content_is_anti_fear_remodelacion_page( $content ) ) {
+    if ( is_admin() || ! is_main_query() || ! in_the_loop() || ! nvx_content_is_anti_fear_remodelacion_page() ) {
         return $content;
     }
 

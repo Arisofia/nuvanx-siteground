@@ -534,7 +534,7 @@ function nvx_content_enrich_treatment_cards( string $content ): string {
 		) ?? $content;
 	}
 
-	return is_string( $content ) ? $content : $content; /* fixed */
+	return (string) $content;
 }
 
 
@@ -707,7 +707,7 @@ function nvx_content_enhance_director_blocks( string $content ): string {
 		$content
 	);
 
-	return is_string( $content ) ? $content : $content; /* fixed */
+	return (string) $content;
 }
 
 /**
@@ -892,7 +892,7 @@ function nvx_content_unify_ctas( string $content ): string {
 		$content
 	);
 
-	return is_string( $content ) ? $content : $content; /* fixed */
+	return (string) $content;
 }
 
 /**
@@ -1228,7 +1228,6 @@ function nvx_generic_faq_markup(): string {
  * @return bool `true` if the content identifies a treatment page, `false` otherwise.
  */
 function nvx_content_is_treatment_injection_target( string $content ): bool {
-	// Explicit non-treatment shells that share layout classes with treatments.
 	if (
 		preg_match(
 			'/nvx-equipo-editorial|nvx-equipo-hero|nvx-brand-page--nosotros|nvx-brand-page--equipo|id=["\']nvx-nosotros-h1["\']|id=["\']nvx-equipo-h1["\']|aria-label=["\']Equipo médico NUVANX["\']|aria-label=["\']Sobre Nosotros NUVANX["\']|nvx-strategy-page/iu',
@@ -1238,7 +1237,6 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 		return false;
 	}
 
-	// Canonical treatment routes from the schema page registry.
 	if ( function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
 		$key = nvx_schema_resolve_treatment_key( (int) get_queried_object_id() );
 		if ( null !== $key && '' !== (string) $key ) {
@@ -1246,44 +1244,19 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 		}
 	}
 
-	// Explicit treatment identifiers only (no bare nvx-editorial-page / nvx-brand-page--*).
 	$treatment_markers = array(
-		'nvx-endolaser-editorial',
-		'nvx-endolaser-hero',
-		'nvx-co2-editorial',
-		'nvx-co2-hero',
-		'nvx-btl-editorial',
-		'nvx-aesthetic-editorial',
-		'nvx-laser-editorial',
-		'nvx-laser-hero',
-		'nvx-brand-page--laser',
-		'nvx-brand-page--medicina-estetica',
-		'nvx-brand-page--exion',
-		'id="nvx-endolift-h1"',
-		"id='nvx-endolift-h1'",
-		'id="nvx-endolaser-h1"',
-		"id='nvx-endolaser-h1'",
-		'id="nvx-co2-h1"',
-		"id='nvx-co2-h1'",
-		'id="nvx-laser-h1"',
-		"id='nvx-laser-h1'",
-		'id="nvx-med-h1"',
-		"id='nvx-med-h1'",
-		'aria-label="Endolift facial NUVANX"',
-		"aria-label='Endolift facial NUVANX'",
-		'aria-label="Medicina estética láser NUVANX"',
+		'nvx-endolaser-editorial', 'nvx-endolaser-hero', 'nvx-co2-editorial', 'nvx-co2-hero',
+		'nvx-btl-editorial', 'nvx-aesthetic-editorial', 'nvx-laser-editorial', 'nvx-laser-hero',
+		'nvx-brand-page--laser', 'nvx-brand-page--medicina-estetica', 'nvx-brand-page--exion',
+		'id="nvx-endolift-h1"', "id='nvx-endolift-h1'", 'id="nvx-endolaser-h1"', "id='nvx-endolaser-h1'",
+		'id="nvx-co2-h1"', "id='nvx-co2-h1'", 'id="nvx-laser-h1"', "id='nvx-laser-h1'",
+		'id="nvx-med-h1"', "id='nvx-med-h1'", 'aria-label="Endolift facial NUVANX"',
+		"aria-label='Endolift facial NUVANX'", 'aria-label="Medicina estética láser NUVANX"',
 		"aria-label='Medicina estética láser NUVANX'",
 	);
 
-	foreach ( $treatment_markers as $marker ) {
-		if ( false !== stripos( $content, $marker ) ) {
-			return true;
-		}
-	}
-
-	return false;
+	return (bool) preg_match( '/' . implode( '|', array_map( 'preg_quote', $treatment_markers ) ) . '/i', $content );
 }
-
 
 /**
  * Builds HTML string of shared treatment sections to inject.
@@ -1322,11 +1295,7 @@ function nvx_content_build_treatment_injections( string $content ): string {
  * Auto-inject shared treatment sections into real treatment pages that lack them.
  */
 function nvx_content_inject_global_treatment_sections( string $content ): string {
-	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ( ! is_singular( 'page' ) && ! is_page() ) ) {
-		return $content;
-	}
-
-	if ( ! nvx_content_is_treatment_injection_target( $content ) ) {
+	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ( ! is_singular( 'page' ) && ! is_page() ) || ! nvx_content_is_treatment_injection_target( $content ) ) {
 		return $content;
 	}
 
@@ -1339,6 +1308,9 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 		$replaced = nvxContentPregReplaceKeep( '/(<\/div>\s*)$/i', $injections . '$1', $content );
 		return is_string( $replaced ) ? $replaced : $content . $injections;
 	}
+
+	return $content . $injections;
+}
 
 	return $content . $injections;
 }

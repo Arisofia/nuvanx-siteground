@@ -23,7 +23,7 @@ if ( ! defined( 'NVX_KICKER_CUERPO' ) ) {
  *
  * @return array<string, array<string, mixed>>
  */
-function nvx_anatomical_facial_catalog(): array {
+function nvx_anatomical_facial_catalog_upper_mid(): array {
 	return array(
 		'tercio-superior' => array(
 			'slug'          => 'soluciones-medicas/rostro/tercio-superior',
@@ -125,6 +125,11 @@ function nvx_anatomical_facial_catalog(): array {
 			),
 			'review_status' => 'approved_for_publication',
 		),
+	);
+}
+
+function nvx_anatomical_facial_catalog_lower(): array {
+	return array(
 		'labios' => array(
 			'slug'          => 'soluciones-medicas/rostro/labios',
 			'seo_title'     => 'Tratamientos de Labios y Zona Perioral | NUVANX',
@@ -190,6 +195,15 @@ function nvx_anatomical_facial_catalog(): array {
 			'review_status' => 'approved_for_publication',
 		),
 	);
+}
+
+/**
+ * Catalogue for Facial Anatomical Zone Pages.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function nvx_anatomical_facial_catalog(): array {
+	return array_merge( nvx_anatomical_facial_catalog_upper_mid(), nvx_anatomical_facial_catalog_lower() );
 }
 
 /**

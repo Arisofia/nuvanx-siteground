@@ -323,7 +323,7 @@ function nvx_equipo_normalize_staff_card( string $card ): string {
 
 	$card = nvx_content_preg_replace_keep( '/<br\s*\/?>/iu', '', $card );
 
-	return is_string( $card ) ? $card : $card; /* fixed */
+	return (string) $card;
 }
 
 /**

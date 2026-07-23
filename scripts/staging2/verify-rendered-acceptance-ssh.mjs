@@ -95,41 +95,36 @@ const forbiddenText = [
   'una sola sesión', 'generalmente 3–4 sesiones', 'reducción del dolor', 'eritema reducido', 'eritema mínimo',
 ];
 
-const remoteCurlScript = String.raw`set -Eeuo pipefail
-url="$1"
-redirect_mode="$2"
-headers_file="$(mktemp)"
-body_file="$(mktemp)"
-trap 'rm -f "$headers_file" "$body_file"' EXIT
-args=(
-  --silent --show-error --http1.1 --compressed
-  --connect-timeout 15 --max-time 45
-  --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150.0.0.0 Safari/537.36'
-  --header 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8'
-  --header 'Accept-Language: es-ES,es;q=0.9,en;q=0.7'
-  --header 'Cache-Control: no-cache'
-  --header 'Pragma: no-cache'
-  --dump-header "$headers_file"
-  --output "$body_file"
-  --write-out '%{http_code}'
-)
-if [[ "$redirect_mode" == 'follow' ]]; then
-  args+=(--location --max-redirs 5)
-else
-  args+=(--max-redirs 0)
-fi
-set +e
-status="$(curl "${args[@]}" "$url")"
-curl_status=$?
-set -e
-printf '__NVX_CURL_EXIT__:%s\n' "$curl_status"
-printf '__NVX_STATUS__:%s\n' "${status:-000}"
-printf '__NVX_HEADERS_BEGIN__\n'
-cat "$headers_file"
-printf '\n__NVX_HEADERS_END__\n__NVX_BODY_BEGIN__\n'
-cat "$body_file"
-printf '\n__NVX_BODY_END__\n'
-`;
+const remoteCurlScript = [
+  'set -Eeuo pipefail',
+  'url="$1"',
+  'redirect_mode="$2"',
+  'headers_file="$(mktemp)"',
+  'body_file="$(mktemp)"',
+  'trap \'rm -f "$headers_file" "$body_file"\' EXIT',
+  'common_args=(--silent --show-error --http1.1 --compressed --connect-timeout 15 --max-time 45)',
+  'common_args+=(--user-agent \'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/150.0.0.0 Safari/537.36\')',
+  'common_args+=(--header \'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\')',
+  'common_args+=(--header \'Accept-Language: es-ES,es;q=0.9,en;q=0.7\')',
+  'common_args+=(--header \'Cache-Control: no-cache\' --header \'Pragma: no-cache\')',
+  'common_args+=(--dump-header "$headers_file" --output "$body_file" --write-out \'%{http_code}\')',
+  'set +e',
+  'if [[ "$redirect_mode" == "follow" ]]; then',
+  '  status="$(curl "${common_args[@]}" --location --max-redirs 5 "$url")"',
+  'else',
+  '  status="$(curl "${common_args[@]}" --max-redirs 0 "$url")"',
+  'fi',
+  'curl_status=$?',
+  'set -e',
+  'if [[ -z "$status" ]]; then status=000; fi',
+  'printf \'__NVX_CURL_EXIT__:%s\\n\' "$curl_status"',
+  'printf \'__NVX_STATUS__:%s\\n\' "$status"',
+  'printf \'__NVX_HEADERS_BEGIN__\\n\'',
+  'cat "$headers_file"',
+  'printf \'\\n__NVX_HEADERS_END__\\n__NVX_BODY_BEGIN__\\n\'',
+  'cat "$body_file"',
+  'printf \'\\n__NVX_BODY_END__\\n\'',
+].join('\n');
 
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 const findings = [];
@@ -211,7 +206,7 @@ function parseSchemaTypes(html) {
         Object.values(value).forEach(visit);
       };
       visit(JSON.parse(match[1]));
-    } catch { /* Ignore malformed third-party schema while preserving first-party checks. */ }
+    } catch { /* Ignore malformed third-party schema. */ }
   }
   return [...types];
 }
@@ -242,7 +237,6 @@ function validatePage(page, parsed, scope) {
   if (!parsed.robots.toLowerCase().includes('noindex') || !parsed.robots.toLowerCase().includes('nofollow')) fail(scope, `robots mismatch: ${parsed.robots || 'absent'}`);
   if (parsed.h1List.length !== 1 || parsed.h1List[0] !== page.h1) fail(scope, `H1 mismatch: ${JSON.stringify(parsed.h1List)}`);
   if (parsed.h2Count < 3) fail(scope, `expected at least 3 H2s, found ${parsed.h2Count}`);
-
   for (const marker of page.markers) if (!parsed.bodyText.includes(marker)) fail(scope, `missing marker: ${marker}`);
   if (!/valoraci[oó]n/i.test(parsed.bodyText)) fail(scope, 'missing medical valuation CTA or copy');
   const validUrls = new Set([`https://staging2.nuvanx.com${page.path}`, `https://nuvanx.com${page.path}`, `https://www.nuvanx.com${page.path}`]);

@@ -128,6 +128,42 @@ function nvx_render_matrix_faqs_section( array $faqs ): string {
 }
 
 /**
+ * Render matrix core sections (diagnosis, mechanism, indications, precautions, process).
+ */
+function nvx_render_matrix_sections( array $data ): string {
+    $html = '';
+
+    if ( ! empty( $data['diagnosis'] ) ) {
+        $heading = ! empty( $data['diagnosis_heading'] ) ? $data['diagnosis_heading'] : __( 'El valor del diagnóstico médico', 'nuvanx-medical' );
+        $html   .= nvx_render_matrix_text_section( $heading, $data['diagnosis'] );
+    }
+
+    if ( ! empty( $data['mechanism'] ) ) {
+        $heading = ! empty( $data['mechanism_heading'] ) ? $data['mechanism_heading'] : __( 'Mecanismo de acción', 'nuvanx-medical' );
+        $html   .= is_array( $data['mechanism'] )
+            ? nvx_render_matrix_list_section( $heading, $data['mechanism'] )
+            : nvx_render_matrix_text_section( $heading, $data['mechanism'] );
+    }
+
+    if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
+        $heading = ! empty( $data['indications_heading'] ) ? $data['indications_heading'] : __( 'Indicaciones: Qué tratamos', 'nuvanx-medical' );
+        $html   .= nvx_render_matrix_list_section( $heading, $data['indications'], 'ul' );
+    }
+
+    if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
+        $heading = ! empty( $data['precautions_heading'] ) ? $data['precautions_heading'] : __( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' );
+        $html   .= nvx_render_matrix_list_section( $heading, $data['precautions'], 'ul' );
+    }
+
+    if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
+        $heading = ! empty( $data['process_heading'] ) ? $data['process_heading'] : __( 'Proceso en clínica', 'nuvanx-medical' );
+        $html   .= nvx_render_matrix_list_section( $heading, $data['process'], 'ol' );
+    }
+
+    return $html;
+}
+
+/**
  * Universal renderer for the 13-point data matrix pattern.
  *
  * Replaces duplicate rendering logic across Phase 1, Phase 2, and Phase 3 files.
@@ -136,92 +172,35 @@ function nvx_render_matrix_faqs_section( array $faqs ): string {
  * @return string Extracted and validated HTML block.
  */
 function nvx_render_13_point_matrix( array $data ): string {
-    // Clase ajustada para representar tanto protocolos como páginas anatómicas de tratamiento.
-    // Se mantiene `nvx-protocol-page` para compatibilidad con CSS existente y se añade una
-    // clase más neutral para su uso futuro.
     $html  = '<article class="nvx-brand-readable nvx-treatment-page nvx-protocol-page nvx-shell">';
-
-    // 1. Hero / Intro
     $html .= nvx_render_matrix_hero( $data );
-
-    // 2. Diagnosis (Por qué un enfoque genérico no funciona / Diagnóstico)
-    if ( ! empty( $data['diagnosis'] ) ) {
-        $heading = ! empty( $data['diagnosis_heading'] )
-            ? $data['diagnosis_heading']
-            : __( 'El valor del diagnóstico médico', 'nuvanx-medical' );
-
-        $html .= nvx_render_matrix_text_section(
-            $heading,
-            $data['diagnosis']
-        );
-    }
-
-    // 3. Mechanism (Cómo actuamos)
-    if ( ! empty( $data['mechanism'] ) ) {
-        $heading = ! empty( $data['mechanism_heading'] )
-            ? $data['mechanism_heading']
-            : __( 'Mecanismo de acción', 'nuvanx-medical' );
-
-        if ( is_array( $data['mechanism'] ) ) {
-            $html .= nvx_render_matrix_list_section(
-                $heading,
-                $data['mechanism']
-            );
-        } else {
-            $html .= nvx_render_matrix_text_section(
-                $heading,
-                $data['mechanism']
-            );
-        }
-    }
-
-    // 4. Indications
-    if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
-        $heading = ! empty( $data['indications_heading'] )
-            ? $data['indications_heading']
-            : __( 'Indicaciones: Qué tratamos', 'nuvanx-medical' );
-
-        $html .= nvx_render_matrix_list_section(
-            $heading,
-            $data['indications'],
-            'ul'
-        );
-    }
-
-    // 5. Precautions
-    if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
-        $heading = ! empty( $data['precautions_heading'] )
-            ? $data['precautions_heading']
-            : __( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' );
-
-        $html .= nvx_render_matrix_list_section(
-            $heading,
-            $data['precautions'],
-            'ul'
-        );
-    }
-
-    // 6. Process
-    if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
-        $heading = ! empty( $data['process_heading'] )
-            ? $data['process_heading']
-            : __( 'Proceso en clínica', 'nuvanx-medical' );
-
-        $html .= nvx_render_matrix_list_section(
-            $heading,
-            $data['process'],
-            'ol'
-        );
-    }
-
-    // 6.5 Evolution and Risks (Specific for injectable treatments)
+    $html .= nvx_render_matrix_sections( $data );
     $html .= nvx_render_matrix_evolution_section( $data );
-
-    // 7. FAQs
     $html .= nvx_render_matrix_faqs_section( $data['faqs'] ?? array() );
-
     $html .= '</article>';
     return $html;
+}
+
+/**
+ * Matches a request slug against a catalog array.
+ */
+function nvx_match_catalog_page( string $slug, array $catalog ): ?array {
+	foreach ( $catalog as $page ) {
+		$slug_value = (string) ( $page['slug'] ?? '' );
+		if ( '' === $slug_value ) {
+			continue;
+		}
+		$catalog_slug_parts = explode( '/', $slug_value );
+		$catalog_final_slug = end( $catalog_slug_parts );
+		if ( $catalog_final_slug !== $slug ) {
+			continue;
+		}
+		$review_status = (string) ( $page['review_status'] ?? 'approved_for_publication' );
+		if ( 'approved_for_publication' === $review_status ) {
+			return (array) $page;
+		}
+	}
+	return null;
 }
 
 /**
@@ -245,24 +224,10 @@ function nvx_register_catalog_content_filter( callable $catalog_callback, int $p
 
 			$slug    = (string) get_post_field( 'post_name', get_queried_object_id() );
 			$catalog = (array) call_user_func( $catalog_callback );
+			$matched = nvx_match_catalog_page( $slug, $catalog );
 
-			foreach ( $catalog as $page ) {
-				$slug_value = (string) ( $page['slug'] ?? '' );
-				if ( '' === $slug_value ) {
-					continue;
-				}
-				$catalog_slug_parts = explode( '/', $slug_value );
-				$catalog_final_slug = end( $catalog_slug_parts );
-
-				if ( $catalog_final_slug !== $slug ) {
-					continue;
-				}
-				$review_status = (string) ( $page['review_status'] ?? 'approved_for_publication' );
-				if ( 'approved_for_publication' !== $review_status ) {
-					continue;
-				}
-
-				$markup = call_user_func( $render_callback, (array) $page );
+			if ( null !== $matched ) {
+				$markup = call_user_func( $render_callback, $matched );
 				return '' === $markup ? $content : $markup;
 			}
 

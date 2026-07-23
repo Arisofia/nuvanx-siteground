@@ -63,13 +63,27 @@ const forbiddenMarkers = [
   'Reducción del dolor', 'Eritema reducido', 'Eritema mínimo', 'Control térmico absoluto',
 ];
 
+const cookieJar = new Map();
+
 function rememberCookies(response) {
-  const values = typeof response.headers.getSetCookie === 'function'
+  const getSetCookie = typeof response.headers.getSetCookie === 'function'
     ? response.headers.getSetCookie()
     : [response.headers.get('set-cookie')].filter(Boolean);
-  if (!values.length) return;
-  const cookies = values.map((value) => value.split(';', 1)[0]).filter(Boolean);
-  if (cookies.length) sessionCookie = cookies.join('; ');
+
+  for (const header of getSetCookie) {
+    const pair = header.split(';')[0]?.trim();
+    if (!pair) continue;
+    const eqIdx = pair.indexOf('=');
+    if (eqIdx > 0) {
+      const name = pair.slice(0, eqIdx).trim();
+      const val = pair.slice(eqIdx + 1).trim();
+      cookieJar.set(name, val);
+    }
+  }
+}
+
+function getCookieHeader() {
+  return [...cookieJar.entries()].map(([k, v]) => `${k}=${v}`).join('; ');
 }
 
 async function requestWithRetry(path, redirect = 'manual') {
@@ -78,10 +92,14 @@ async function requestWithRetry(path, redirect = 'manual') {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 45000);
     try {
+      const headers = { ...browserHeaders };
+      const cookieStr = getCookieHeader();
+      if (cookieStr) headers.cookie = cookieStr;
+
       lastResponse = await fetch(`${baseUrl}${path}`, {
         redirect,
         signal: controller.signal,
-        headers: sessionCookie ? { ...browserHeaders, cookie: sessionCookie } : browserHeaders,
+        headers,
       });
       rememberCookies(lastResponse);
     } finally {

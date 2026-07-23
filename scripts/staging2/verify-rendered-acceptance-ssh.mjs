@@ -155,7 +155,7 @@ async function originFetch(url, redirectMode = 'manual') {
   let lastError = null;
   let lastResponse = null;
   for (let attempt = 1; attempt <= 4; attempt += 1) {
-    const result = spawnSync('ssh', [sshHost, 'bash', '-s', '--', url, redirectMode], {
+    const result = spawnSync('/usr/bin/ssh', [sshHost, 'bash', '-s', '--', url, redirectMode], {
       input: remoteCurlScript,
       encoding: 'utf8',
       maxBuffer: 25 * 1024 * 1024,

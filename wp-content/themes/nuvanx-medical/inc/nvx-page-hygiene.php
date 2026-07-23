@@ -303,7 +303,7 @@ function nvx_normalize_staging2_internal_links( $content ) {
 
 	$staging_home = untrailingslashit( home_url( '/' ) );
 	return str_ireplace(
-		array( 'https://www.nuvanx.com', 'https://nuvanx.com', 'http://www.nuvanx.com', 'http://nuvanx.com' ),
+		array( 'https://www.nuvanx.com', 'https://nuvanx.com' ),
 		$staging_home,
 		$content
 	);

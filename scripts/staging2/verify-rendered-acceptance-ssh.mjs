@@ -151,6 +151,13 @@ function headerValue(headers, name) {
   return values.at(-1) || '';
 }
 
+/**
+ * Fetches a URL through the configured SSH origin transport.
+ * @param {string} url - The URL to fetch.
+ * @param {string} [redirectMode='manual'] - Whether redirects are followed by the remote request.
+ * @returns {Object} The parsed transport response.
+ * @throws {Error} If all transport attempts fail without producing a response.
+ */
 async function originFetch(url, redirectMode = 'manual') {
   let lastError = null;
   let lastResponse = null;

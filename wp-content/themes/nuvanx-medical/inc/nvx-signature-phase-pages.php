@@ -19,7 +19,7 @@ function nvx_signature_phase_catalog(): array {
         'profile-definition' => array(
             'phase' => 1,
             'slug' => 'papada-definicion-mandibular-madrid',
-            'title' => 'Papada y definición mandibular en Madrid',
+            'title' => 'Tratamiento médico de papada y definición mandibular en Madrid.',
             'kicker' => 'NUVANX PROFILE DEFINITION™',
             'lead' => 'Valoración médica de papada, cuello, mandíbula y mentón para distinguir grasa submentoniana, laxitud cutánea, soporte estructural y proporción facial antes de indicar una técnica.',
             'intro' => 'Papada, cuello y mandíbula forman una misma unidad visual, pero no siempre comparten la misma causa. El plan se diseña después de separar tejido adiposo, calidad de piel y estructura.',
@@ -33,7 +33,7 @@ function nvx_signature_phase_catalog(): array {
         'skin-architecture' => array(
             'phase' => 1,
             'slug' => 'calidad-piel-firmeza-luminosidad-madrid',
-            'title' => 'Calidad, firmeza y luminosidad de la piel en Madrid',
+            'title' => 'Tratamiento médico para firmeza, densidad y calidad cutánea.',
             'kicker' => 'NUVANX SKIN ARCHITECTURE™',
             'lead' => 'Plan médico para valorar densidad, hidratación, firmeza, textura y luminosidad sin asumir que todos los signos de envejecimiento cutáneo requieren la misma tecnología.',
             'intro' => 'La calidad de piel depende de capas y mecanismos diferentes. Se revisan fototipo, sensibilidad, antecedentes, pérdida de firmeza, textura y tolerancia al período de recuperación.',
@@ -47,7 +47,7 @@ function nvx_signature_phase_catalog(): array {
         'surface-renewal' => array(
             'phase' => 1,
             'slug' => 'cicatrices-acne-poros-textura-madrid',
-            'title' => 'Cicatrices de acné, poros y textura en Madrid',
+            'title' => 'Tratamiento médico de cicatrices, poros dilatados y textura cutánea.',
             'kicker' => 'NUVANX SURFACE RENEWAL™',
             'lead' => 'Diagnóstico de cicatrices, poros, arrugas finas, estrías y alteraciones de textura para seleccionar profundidad, energía y secuencia con criterios de seguridad.',
             'intro' => 'No todas las cicatrices son iguales. La morfología, profundidad, fototipo, actividad inflamatoria y riesgo de pigmentación condicionan el plan.',
@@ -61,7 +61,7 @@ function nvx_signature_phase_catalog(): array {
         'tone-correction' => array(
             'phase' => 1,
             'slug' => 'manchas-rojeces-fotorejuvenecimiento-ipl-madrid',
-            'title' => 'Manchas, rojeces y fotodaño en Madrid',
+            'title' => 'Tratamiento médico de manchas, rojeces y daño solar.',
             'kicker' => 'NUVANX TONE CORRECTION™',
             'lead' => 'Valoración de alteraciones pigmentarias y vasculares para diferenciar léntigos, rojeces, telangiectasias, melasma y pigmentación postinflamatoria antes de aplicar luz o láser.',
             'intro' => 'Una mancha no debe tratarse solo por su color. El diagnóstico, el fototipo y la estabilidad de la lesión determinan si existe indicación para IPL, cuidado domiciliario o derivación.',

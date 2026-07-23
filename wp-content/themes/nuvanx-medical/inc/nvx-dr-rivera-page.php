@@ -92,5 +92,5 @@ function nvx_content_dr_rivera_hijack( string $content ): string {
 
 	return $html;
 }
-# Hijack antiguo desactivado; la autoridad de Rivera se gestiona en /equipo-medico/.
-# add_filter( 'the_content', 'nvx_content_dr_rivera_hijack', 121 );
+// Hijack antiguo desactivado; la autoridad de Rivera se gestiona en /equipo-medico/.
+// add_filter( 'the_content', 'nvx_content_dr_rivera_hijack', 121 );

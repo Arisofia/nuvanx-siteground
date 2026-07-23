@@ -695,9 +695,9 @@ function nvx_schema_treatment_node_laser( string $key, string $permalink, string
 	if ( 'endolift_facial' === $key ) {
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
-			'@id'              => $permalink . '#medical-procedure',
+			'@id'              => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
 			'name'             => 'Endolift® facial para papada y línea mandibular',
-			'alternateName'    => array( 'Endolift® facial', 'Láser intersticial facial' ),
+			'alternateName'    => array( NVX_SD_ENDOLIFT_FACIAL, 'Láser intersticial facial' ),
 			'url'              => $permalink,
 			'mainEntityOfPage' => array( '@id' => $permalink ),
 			'provider'         => array( '@id' => $organization_id ),
@@ -721,7 +721,7 @@ function nvx_schema_treatment_node_laser( string $key, string $permalink, string
 	if ( 'endolaser_corporal' === $key ) {
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
-			'@id'              => $permalink . '#medical-procedure',
+			'@id'              => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
 			'name'             => 'Endoláser corporal — destrucción de grasa localizada y retracción cutánea',
 			'alternateName'    => array( 'Laserlipólisis corporal', 'Endoláser Madrid' ),
 			'url'              => $permalink,
@@ -747,7 +747,7 @@ function nvx_schema_treatment_node_laser( string $key, string $permalink, string
 	if ( 'laser_co2' === $key ) {
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
-			'@id'              => $permalink . '#medical-procedure',
+			'@id'              => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
 			'name'             => 'Láser CO₂ fraccionado — resurfacing epidérmico y cicatrices',
 			'alternateName'    => array( 'CO₂ fraccionado Madrid', 'Resurfacing láser CO₂' ),
 			'url'              => $permalink,
@@ -778,7 +778,7 @@ function nvx_schema_treatment_node_btl( string $key, string $permalink, string $
 	if ( 'exion_btl' === $key ) {
 		return array(
 			'@type'            => array( 'MedicalProcedure', 'Service' ),
-			'@id'              => $permalink . '#service',
+			'@id'              => $permalink . NVX_SD_ID_SERVICE,
 			'name'             => 'EXION® BTL en Madrid',
 			'serviceType'      => 'Protocolos médicos con plataforma EXION® BTL',
 			'url'              => $permalink,
@@ -804,7 +804,7 @@ function nvx_schema_treatment_node_btl( string $key, string $permalink, string $
 			$cfg = $reg[ $slug ];
 			return array(
 				'@type'            => 'Service',
-				'@id'              => $permalink . '#service',
+				'@id'              => $permalink . NVX_SD_ID_SERVICE,
 				'name'             => $cfg['schema_name'],
 				'serviceType'      => $cfg['schema_type'],
 				'url'              => $permalink,
@@ -819,7 +819,7 @@ function nvx_schema_treatment_node_btl( string $key, string $permalink, string $
 	if ( 'exilite_btl' === $key ) {
 		return array(
 			'@type'            => 'Service',
-			'@id'              => $permalink . '#service',
+			'@id'              => $permalink . NVX_SD_ID_SERVICE,
 			'name'             => 'BTL EXILITE™ IPL en Madrid',
 			'serviceType'      => 'Protocolos médicos con plataforma BTL EXILITE™ IPL',
 			'url'              => $permalink,
@@ -1083,15 +1083,15 @@ function nvx_schema_offer_catalog( $organization_id ) {
 
 	$catalog_defs = array(
 		'endolift_facial'    => array(
-			'label' => 'Endolift® facial',
+			'label' => NVX_SD_ENDOLIFT_FACIAL,
 			'price' => nvx_endolift_price_from_eur(),
 		),
 		'endolaser_corporal' => array(
-			'label' => 'Endoláser corporal',
+			'label' => NVX_SD_ENDOLASER_CORPORAL,
 			'price' => null,
 		),
 		'laser_co2'          => array(
-			'label' => 'Láser CO₂ fraccionado',
+			'label' => NVX_SD_LASER_CO2_FRACCIONADO,
 			'price' => $co2_from,
 		),
 		'exion_btl'          => array(
@@ -1298,49 +1298,81 @@ function nvx_schema_enrich_organization( array &$graph, int $index, string $org_
  * Attaches clinic sub-organizations and offer catalog to the Yoast schema graph.
  */
 function nvx_schema_attach_clinics_graph( array &$graph, int $page_id, array $organization, array $all_clinics, array $physicians, array $clinic_ids ): void {
-	if ( is_front_page() && null !== $organization['index'] ) {
+	if ( null === $organization['index'] ) {
+		return;
+	}
+
+	$clinic_keys = is_front_page() ? array( 'chamberi', 'goya' ) : nvx_schema_resolve_clinic_keys( $page_id );
+	if ( empty( $clinic_keys ) ) {
+		return;
+	}
+
+	if ( is_front_page() ) {
 		$catalog = nvx_schema_offer_catalog( $organization['id'] );
 		$graph[ $organization['index'] ]['hasOfferCatalog'] = array( '@id' => $catalog['@id'] );
-		$graph[ $organization['index'] ]['subOrganization'] = $clinic_ids;
 		$graph[] = $catalog;
+	}
 
-		foreach ( array( 'chamberi', 'goya' ) as $key ) {
-			if ( empty( $all_clinics[ $key ] ) ) {
-				continue;
-			}
-			$clinic                       = $all_clinics[ $key ];
-			$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
-			if ( ! empty( $physicians ) ) {
-				$clinic_employees = array();
-				foreach ( $physicians as $person ) {
-					$clinic_employees[] = array( '@id' => $person['@id'] );
-				}
-				$clinic['employee'] = $clinic_employees;
-			}
-			$graph[] = $clinic;
+	$graph[ $organization['index'] ]['subOrganization'] = $clinic_ids;
+
+	$clinic_employees = array();
+	foreach ( $physicians as $person ) {
+		$clinic_employees[] = array( '@id' => $person['@id'] );
+	}
+
+	foreach ( $clinic_keys as $key ) {
+		if ( empty( $all_clinics[ $key ] ) ) {
+			continue;
 		}
-	} else {
-		$clinic_keys = nvx_schema_resolve_clinic_keys( $page_id );
+		$clinic                       = $all_clinics[ $key ];
+		$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
+		if ( ! empty( $clinic_employees ) ) {
+			$clinic['employee'] = $clinic_employees;
+		}
+		$graph[] = $clinic;
+	}
+}
 
-		if ( ! empty( $clinic_keys ) && null !== $organization['index'] ) {
-			$graph[ $organization['index'] ]['subOrganization'] = $clinic_ids;
-
-			foreach ( $clinic_keys as $key ) {
-				if ( empty( $all_clinics[ $key ] ) ) {
-					continue;
-				}
-				$clinic                       = $all_clinics[ $key ];
-				$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
-				if ( ! empty( $physicians ) ) {
-					$clinic_employees = array();
-					foreach ( $physicians as $person ) {
-						$clinic_employees[] = array( '@id' => $person['@id'] );
-					}
-					$clinic['employee'] = $clinic_employees;
-				}
-				$graph[] = $clinic;
+/**
+ * Attaches publication nodes for team members if on equipo page.
+ */
+function nvx_schema_attach_publications( array &$graph, int $page_id, array $physicians ): void {
+	if ( ! nvx_schema_path_matches( nvx_schema_current_path( $page_id ), NVX_SD_PATH_EQUIPO_MEDICO ) ) {
+		return;
+	}
+	foreach ( $physicians as $person ) {
+		if ( empty( $person['@id'] ) ) {
+			continue;
+		}
+		if ( false !== strpos( $person['@id'], 'rivera-deras' ) ) {
+			foreach ( nvx_schema_ivon_publications( $person['@id'] ) as $work ) {
+				$graph[] = $work;
 			}
 		}
+		if ( false !== strpos( $person['@id'], 'quinonez-bareiro' ) ) {
+			foreach ( nvx_schema_fabio_publications( $person['@id'] ) as $work ) {
+				$graph[] = $work;
+			}
+		}
+	}
+}
+
+/**
+ * Attaches treatment and FAQ nodes to schema graph when applicable.
+ */
+function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, string $org_id, ?array $physician ): void {
+	$treatment = nvx_schema_treatment_node( $page_id, $org_id );
+	if ( null !== $treatment ) {
+		if ( null !== $physician ) {
+			$treatment['performer']  = array( '@id' => $physician['@id'] );
+			$treatment['reviewedBy'] = array( '@id' => $physician['@id'] );
+		}
+		$graph[] = $treatment;
+	}
+
+	$faq = nvx_schema_faq_node( $page_id );
+	if ( null !== $faq ) {
+		$graph[] = $faq;
 	}
 }
 
@@ -1386,37 +1418,8 @@ function nvx_extend_yoast_schema_graph( $graph ) {
 		$graph[] = $person;
 	}
 
-	if ( nvx_schema_path_matches( nvx_schema_current_path( $page_id ), NVX_SD_PATH_EQUIPO_MEDICO ) ) {
-		foreach ( $physicians as $person ) {
-			if ( empty( $person['@id'] ) ) {
-				continue;
-			}
-			if ( false !== strpos( $person['@id'], 'rivera-deras' ) ) {
-				foreach ( nvx_schema_ivon_publications( $person['@id'] ) as $work ) {
-					$graph[] = $work;
-				}
-			}
-			if ( false !== strpos( $person['@id'], 'quinonez-bareiro' ) ) {
-				foreach ( nvx_schema_fabio_publications( $person['@id'] ) as $work ) {
-					$graph[] = $work;
-				}
-			}
-		}
-	}
-
-	$treatment = nvx_schema_treatment_node( $page_id, $organization['id'] );
-	if ( null !== $treatment ) {
-		if ( null !== $physician ) {
-			$treatment['performer']  = array( '@id' => $physician['@id'] );
-			$treatment['reviewedBy'] = array( '@id' => $physician['@id'] );
-		}
-		$graph[] = $treatment;
-	}
-
-	$faq = nvx_schema_faq_node( $page_id );
-	if ( null !== $faq ) {
-		$graph[] = $faq;
-	}
+	nvx_schema_attach_publications( $graph, $page_id, $physicians );
+	nvx_schema_attach_treatment_and_faq( $graph, $page_id, $organization['id'], $physician );
 
 	return $graph;
 }

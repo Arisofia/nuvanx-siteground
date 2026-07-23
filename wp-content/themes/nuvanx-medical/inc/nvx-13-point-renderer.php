@@ -128,9 +128,9 @@ function nvx_render_matrix_faqs_section( array $faqs ): string {
 }
 
 /**
- * Render matrix core sections (diagnosis, mechanism, indications, precautions, process).
+ * Render diagnosis and mechanism sections.
  */
-function nvx_render_matrix_sections( array $data ): string {
+function nvx_render_matrix_sections_primary( array $data ): string {
     $html = '';
 
     if ( ! empty( $data['diagnosis'] ) ) {
@@ -144,6 +144,15 @@ function nvx_render_matrix_sections( array $data ): string {
             ? nvx_render_matrix_list_section( $heading, $data['mechanism'] )
             : nvx_render_matrix_text_section( $heading, $data['mechanism'] );
     }
+
+    return $html;
+}
+
+/**
+ * Render indications, precautions, and process sections.
+ */
+function nvx_render_matrix_sections_secondary( array $data ): string {
+    $html = '';
 
     if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
         $heading = ! empty( $data['indications_heading'] ) ? $data['indications_heading'] : __( 'Indicaciones: Qué tratamos', 'nuvanx-medical' );
@@ -161,6 +170,13 @@ function nvx_render_matrix_sections( array $data ): string {
     }
 
     return $html;
+}
+
+/**
+ * Render matrix core sections (diagnosis, mechanism, indications, precautions, process).
+ */
+function nvx_render_matrix_sections( array $data ): string {
+    return nvx_render_matrix_sections_primary( $data ) . nvx_render_matrix_sections_secondary( $data );
 }
 
 /**

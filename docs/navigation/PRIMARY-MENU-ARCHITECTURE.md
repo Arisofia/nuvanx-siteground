@@ -129,3 +129,9 @@ No debe crearse un enlace personalizado hacia una ruta futura. Primero se public
 3. No añadir páginas que respondan 404, borradores o rutas en cuarentena.
 4. No duplicar el CTA de valoración dentro del menú.
 5. Validar escritorio, móvil, teclado, lector de pantalla y ausencia de overflow en staging2 antes de producción.
+
+## Contrato de enrutamiento de renderers
+
+- El renderer de Equipo Médico solo puede ejecutarse en la ruta canónica `/equipo-medico/`.
+- Frases editoriales como `equipo especialista`, nombres de médicos o enlaces al equipo no constituyen evidencia suficiente para sustituir el contenido de otra página.
+- Cualquier renderer que reemplace `the_content` debe quedar limitado por ruta o identificador gobernado antes de evaluar marcadores textuales.

@@ -44,3 +44,49 @@
 	outline: 2px solid var(--nvx-light);
 	outline-offset: -0.5rem;
 }
+
+/**
+ * Home hero layout: the video occupies the full viewport width and the
+ * editorial copy is rendered as a separate block directly below it.
+ */
+.nvx-home-v5 .nvx-home-hero {
+	display: grid;
+	grid-template-columns: 1fr;
+	width: 100%;
+	max-width: none;
+	min-height: 0;
+}
+
+.nvx-home-v5 .nvx-home-hero__media {
+	position: relative;
+	width: 100%;
+	min-width: 0;
+	min-height: 0;
+	height: auto;
+	max-height: none;
+	aspect-ratio: 16 / 9;
+}
+
+.nvx-home-v5 .nvx-home-hero__copy {
+	width: min(100%, var(--nvx-shell));
+	min-width: 0;
+	margin-inline: auto;
+	padding: clamp(3.5rem, 6vw, 6rem) var(--nvx-gutter-inner);
+}
+
+.nvx-home-v5 .nvx-home-hero__title {
+	max-width: 17ch;
+	font-size: clamp(3rem, 5vw, 5.8rem);
+}
+
+.nvx-home-v5 .nvx-home-hero__lead {
+	max-width: 58rem;
+}
+
+@media (max-width: 62rem) {
+	.nvx-home-v5 .nvx-home-hero__media {
+		height: auto;
+		max-height: none;
+		aspect-ratio: 16 / 9;
+	}
+}

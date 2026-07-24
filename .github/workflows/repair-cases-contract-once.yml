@@ -2,9 +2,9 @@
 name: Repair Patient Cases Contract Once
 
 on:
-  push:
-    branches:
-      - fix/staging2-endolaser-cases-heroes-20260725
+  pull_request:
+    branches: [master]
+    types: [synchronize]
     paths:
       - '.github/workflows/repair-cases-contract-once.yml'
 
@@ -12,18 +12,21 @@ permissions:
   contents: write
 
 concurrency:
-  group: repair-patient-cases-contract-once
+  group: repair-patient-cases-contract-once-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
 jobs:
   repair:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'fix/staging2-endolaser-cases-heroes-20260725'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Check out branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: fix/staging2-endolaser-cases-heroes-20260725
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -73,6 +76,7 @@ jobs:
       - name: Commit durable repair and remove one-off workflow
         env:
           GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: ${{ github.event.pull_request.head.ref }}
         shell: bash
         run: |
           set -euo pipefail
@@ -81,4 +85,4 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
           git commit -m 'fix(ci): align patient cases QA and Node 24 checkout'
-          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:fix/staging2-endolaser-cases-heroes-20260725
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${TARGET_BRANCH}"

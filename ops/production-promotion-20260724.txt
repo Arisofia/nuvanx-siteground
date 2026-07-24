@@ -1,0 +1,4 @@
+Authorized production promotion
+Source SHA: 7581fb390c3dcaa6609e616722adf982f5d5d860
+Validated staging SHA: f6f5333f3431f9cedd0fa697eaf8e095ed10639f
+Authorized by user in ChatGPT on 2026-07-24.

@@ -98,6 +98,7 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
 
 	$movable_classes = array(
 		'nvx-lead',
+		'nvx-brand-hero__lead',
 		'nvx-hero__lead',
 		'nvx-page-hero__lead',
 		'nvx-subtitle',

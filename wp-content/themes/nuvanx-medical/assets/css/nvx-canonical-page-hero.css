@@ -1,0 +1,155 @@
+/* NUVANX canonical institutional page header.
+ * Applied by the governed DOM transformer to the selected hub and authority pages.
+ * One structure, one height, one type scale and one responsive behavior.
+ */
+
+.nvx-canonical-page-hero {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-height: clamp(34rem, 62vw, 46rem);
+  margin: 0;
+  background: var(--nvx-ink);
+  background-image: none;
+  color: var(--nvx-light);
+  overflow: hidden;
+}
+
+.nvx-canonical-page-hero .nvx-brand-hero__inner,
+.nvx-canonical-page-hero .nvx-page-hero__inner,
+.nvx-canonical-page-hero .nvx-hero__inner {
+  position: relative;
+  inset: auto;
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-height: inherit;
+  height: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.nvx-canonical-page-hero .nvx-brand-hero__media,
+.nvx-canonical-page-hero .nvx-page-hero__media {
+  display: none;
+}
+
+.nvx-canonical-page-hero .nvx-editorial-hero__copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 0;
+  width: min(100%, var(--nvx-shell));
+  max-width: var(--nvx-shell);
+  min-height: inherit;
+  height: auto;
+  margin-inline: auto;
+  padding: clamp(8rem, 13vw, 11rem) var(--nvx-gutter-inner) clamp(3.5rem, 6vw, 5rem);
+  box-sizing: border-box;
+}
+
+.nvx-canonical-page-hero .nvx-editorial-hero__copy::before {
+  background: none;
+}
+
+.nvx-canonical-page-hero .nvx-editorial-hero__copy > * {
+  position: relative;
+  z-index: 2;
+}
+
+.nvx-canonical-page-hero .nvx-eyebrow,
+.nvx-canonical-page-hero .nvx-brand-kicker {
+  margin: 0 0 var(--nvx-space-3);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: var(--nvx-fw-semibold, 600);
+  line-height: var(--nvx-lh-kicker);
+  letter-spacing: var(--nvx-track-kicker);
+  text-transform: uppercase;
+  color: var(--nvx-accent-gold);
+}
+
+.nvx-canonical-page-hero .nvx-heading,
+.nvx-canonical-page-hero .nvx-brand-hero__title,
+.nvx-canonical-page-hero h1 {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--nvx-serif);
+  font-size: clamp(3rem, 5.2vw, 5rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: var(--nvx-track-h1);
+  color: var(--nvx-light);
+  text-wrap: balance;
+}
+
+.nvx-canonical-page-hero .nvx-cta-cluster,
+.nvx-canonical-page-hero .nvx-brand-actions,
+.nvx-canonical-page-hero .nvx-cta-pair-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nvx-space-2);
+  margin-top: clamp(var(--nvx-space-4), 4vw, var(--nvx-space-5));
+}
+
+.nvx-canonical-page-hero .nvx-brand-meta {
+  width: min(100%, 58rem);
+  margin: var(--nvx-space-4) 0 0;
+  padding-top: var(--nvx-space-3);
+  border-top: 1px solid var(--nvx-border-on-dark-55);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small, 0.875rem);
+  line-height: 1.55;
+  color: var(--nvx-text-on-dark-90);
+}
+
+.nvx-canonical-page-hero + .nvx-hero-intro--generated {
+  margin: 0;
+  border-top: 0;
+}
+
+.nvx-canonical-page-hero + .nvx-hero-intro--generated .nvx-brand-section__inner {
+  width: min(calc(100% - (var(--nvx-gutter-inner) * 2)), var(--nvx-shell));
+}
+
+.nvx-canonical-page-hero + .nvx-hero-intro--generated .nvx-brand-readable {
+  max-width: 58rem;
+}
+
+@media (max-width: 680px) {
+  .nvx-canonical-page-hero {
+    min-height: 31rem;
+  }
+
+  .nvx-canonical-page-hero .nvx-editorial-hero__copy {
+    min-height: 31rem;
+    padding: clamp(6.5rem, 24vw, 8rem) var(--nvx-gutter-inner) var(--nvx-space-5);
+  }
+
+  .nvx-canonical-page-hero .nvx-heading,
+  .nvx-canonical-page-hero .nvx-brand-hero__title,
+  .nvx-canonical-page-hero h1 {
+    max-width: 19ch;
+    font-size: clamp(2.45rem, 10.5vw, 2.75rem);
+    line-height: 1.02;
+  }
+
+  .nvx-canonical-page-hero .nvx-cta-cluster,
+  .nvx-canonical-page-hero .nvx-brand-actions,
+  .nvx-canonical-page-hero .nvx-cta-pair-ctas {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .nvx-canonical-page-hero .nvx-button,
+  .nvx-canonical-page-hero .nvx-btn,
+  .nvx-canonical-page-hero .nvx-brand-btn {
+    width: 100%;
+  }
+}

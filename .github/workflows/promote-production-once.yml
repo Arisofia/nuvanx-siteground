@@ -1,0 +1,299 @@
+name: Promote Production Once
+
+on:
+  push:
+    branches:
+      - ops/promote-production-20260724
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuvanx-production-promotion
+  cancel-in-progress: false
+
+env:
+  SOURCE_SHA: 7581fb390c3dcaa6609e616722adf982f5d5d860
+  VALIDATED_STAGING_SHA: f6f5333f3431f9cedd0fa697eaf8e095ed10639f
+  PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+  ARTIFACT_DIR: production-promotion-evidence
+
+jobs:
+  promote:
+    if: github.ref_name == 'ops/promote-production-20260724'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out exact merged production candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate immutable candidate against staging2
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$ARTIFACT_DIR"
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          git cat-file -e "${VALIDATED_STAGING_SHA}^{commit}"
+          git diff --quiet "$VALIDATED_STAGING_SHA" "$SOURCE_SHA" -- \
+            wp-content/themes/nuvanx-medical \
+            scripts/wp/nvx-production-readiness-command.php \
+            tools/deploy/deploy-to-prod.sh \
+            scripts/staging2/smoke-verify-staging2.sh
+          {
+            echo "source_sha=$SOURCE_SHA"
+            echo "validated_staging_sha=$VALIDATED_STAGING_SHA"
+            echo "trigger_sha=$GITHUB_SHA"
+            echo "actor=$GITHUB_ACTOR"
+            echo "ref=$GITHUB_REF"
+          } > "$ARTIFACT_DIR/run-context.txt"
+
+      - name: Validate deployment sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n tools/deploy/deploy-to-prod.sh
+          bash -n scripts/staging2/smoke-verify-staging2.sh
+          php -l scripts/wp/nvx-production-readiness-command.php
+          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 \
+            | xargs -0 -n1 php -l > "$ARTIFACT_DIR/php-lint.log"
+
+      - name: Configure strict SiteGround SSH authentication
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST secret}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER secret}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY secret}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS secret}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/nuvanx_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/nuvanx_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-host
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/nuvanx_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-host 'printf "SSH_CONNECTION_OK\n"' | tee "$ARTIFACT_DIR/ssh-connectivity.log"
+
+      - name: Run production and staging preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-host "bash -s -- '$PROD_ROOT' '$STAGING_ROOT' '$VALIDATED_STAGING_SHA'" <<'REMOTE' \
+            | tee "$ARTIFACT_DIR/preflight.log"
+          set -euo pipefail
+          PROD_ROOT="$1"
+          STAGING_ROOT="$2"
+          VALIDATED_STAGING_SHA="$3"
+          command -v wp >/dev/null
+          command -v rsync >/dev/null
+          command -v curl >/dev/null
+          test -f "$PROD_ROOT/wp-config.php"
+          test -f "$STAGING_ROOT/wp-config.php"
+          prod_siteurl="$(cd "$PROD_ROOT" && wp option get siteurl)"
+          prod_home="$(cd "$PROD_ROOT" && wp option get home)"
+          prod_theme="$(cd "$PROD_ROOT" && wp theme list --status=active --field=name)"
+          staging_siteurl="$(cd "$STAGING_ROOT" && wp option get siteurl)"
+          staging_theme="$(cd "$STAGING_ROOT" && wp theme list --status=active --field=name)"
+          staging_marker="$(tr -d '\r\n' < "$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha")"
+          test "$prod_siteurl" = 'https://nuvanx.com'
+          test "$prod_home" = 'https://nuvanx.com'
+          test "$prod_theme" = 'nuvanx-medical'
+          test "$staging_siteurl" = 'https://staging2.nuvanx.com'
+          test "$staging_theme" = 'nuvanx-medical'
+          test "$staging_marker" = "$VALIDATED_STAGING_SHA"
+          printf 'PRODUCTION_PREFLIGHT_OK prod=%s staging=%s staging_sha=%s\n' "$prod_siteurl" "$staging_siteurl" "$staging_marker"
+          REMOTE
+          grep -Fq 'PRODUCTION_PREFLIGHT_OK' "$ARTIFACT_DIR/preflight.log"
+
+      - name: Upload immutable promotion payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_RELEASE="$STAGING_ROOT/wp-content/.nuvanx-deployments/production-${SOURCE_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          printf '%s\n' "$REMOTE_RELEASE" > "$ARTIFACT_DIR/remote-release.txt"
+          ssh nvx-host "mkdir -p '$REMOTE_RELEASE'"
+          rsync -az tools/deploy/deploy-to-prod.sh \
+            scripts/wp/nvx-production-readiness-command.php \
+            scripts/staging2/smoke-verify-staging2.sh \
+            "nvx-host:$REMOTE_RELEASE/"
+
+      - name: Promote validated staging2 state to production
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-host "bash -s -- '$PROD_ROOT' '$STAGING_ROOT' '$REMOTE_RELEASE' '$SOURCE_SHA' '$VALIDATED_STAGING_SHA'" <<'REMOTE' \
+            2>&1 | tee "$ARTIFACT_DIR/promotion.log"
+          set -Eeuo pipefail
+          PROD_ROOT="$1"
+          STAGING_ROOT="$2"
+          RELEASE_ROOT="$3"
+          SOURCE_SHA="$4"
+          VALIDATED_STAGING_SHA="$5"
+          PROMOTION_LOG="$(mktemp)"
+          BACKUP_DIR=''
+          MUTATION_STARTED=0
+
+          rollback() {
+            local exit_code=$?
+            trap - ERR
+            set +e
+            if [[ "$MUTATION_STARTED" -eq 1 && -n "$BACKUP_DIR" && -d "$BACKUP_DIR" ]]; then
+              echo "ROLLBACK: restoring production from $BACKUP_DIR" >&2
+              if [[ -f "$BACKUP_DIR/theme.tgz" ]]; then
+                rm -rf "$PROD_ROOT/wp-content/themes/nuvanx-medical"
+                tar -xzf "$BACKUP_DIR/theme.tgz" -C "$PROD_ROOT"
+              fi
+              if [[ -f "$BACKUP_DIR/mu-plugins.tgz" ]]; then
+                tar -xzf "$BACKUP_DIR/mu-plugins.tgz" -C "$PROD_ROOT"
+              fi
+              if [[ -f "$BACKUP_DIR/db.sql" ]]; then
+                (cd "$PROD_ROOT" && wp db import "$BACKUP_DIR/db.sql") || true
+              fi
+              (cd "$PROD_ROOT" && wp cache flush || true; wp sg purge || true; wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true)
+              echo "ROLLBACK_COMPLETE backup=$BACKUP_DIR" >&2
+            fi
+            exit "$exit_code"
+          }
+          trap rollback ERR
+
+          test "$(tr -d '\r\n' < "$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha")" = "$VALIDATED_STAGING_SHA"
+          NUVANX_CONFIRM=yes bash "$RELEASE_ROOT/deploy-to-prod.sh" \
+            --prod-root "$PROD_ROOT" \
+            --staging-root "$STAGING_ROOT" \
+            --confirm | tee "$PROMOTION_LOG"
+          grep -Fq 'PROMOTE_PROD_OK' "$PROMOTION_LOG"
+          BACKUP_DIR="$(sed -n 's/^== DONE backup=\(.*\) ==$/\1/p' "$PROMOTION_LOG" | tail -n1)"
+          test -n "$BACKUP_DIR"
+          test -f "$BACKUP_DIR/theme.tgz"
+          MUTATION_STARTED=1
+
+          cd "$PROD_ROOT"
+          wp --require="$RELEASE_ROOT/nvx-production-readiness-command.php" \
+            nvx production-readiness audit --allow-pending
+          wp --require="$RELEASE_ROOT/nvx-production-readiness-command.php" \
+            nvx production-readiness apply --confirm=retire-prototypes --allow-production
+          wp --require="$RELEASE_ROOT/nvx-production-readiness-command.php" \
+            nvx production-readiness audit
+
+          exion_id="$(wp post list --post_type=page --post_status=any --name=exion-fractional --field=ID | head -n1)"
+          if [[ -z "$exion_id" ]]; then
+            exion_id="$(wp post create \
+              --post_type=page \
+              --post_status=publish \
+              --post_title='EXION® Fractional RF en Madrid' \
+              --post_name='exion-fractional' \
+              --post_content='<div class="nvx-brand-page nvx-brand-page--exion-fractional"><p class="nvx-brand-body">EXION Fractional — contenido editorial gestionado por el tema NUVANX.</p></div>' \
+              --porcelain)"
+          else
+            wp post update "$exion_id" \
+              --post_status=publish \
+              --post_title='EXION® Fractional RF en Madrid' \
+              --post_content='<div class="nvx-brand-page nvx-brand-page--exion-fractional"><p class="nvx-brand-body">EXION Fractional — contenido editorial gestionado por el tema NUVANX.</p></div>'
+          fi
+          wp post meta update "$exion_id" _yoast_wpseo_title 'EXION Fractional RF Madrid | Textura y cicatrices | NUVANX'
+          wp post meta update "$exion_id" _yoast_wpseo_metadesc 'EXION® Fractional RF en NUVANX Madrid: textura, poro y cicatrices con RF fraccionada controlada.'
+
+          printf '%s\n' "$SOURCE_SHA" > "$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha"
+          wp rewrite flush
+          wp cache flush || true
+          wp sg purge || true
+          rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
+          rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
+          rm -rf wp-content/cache/* 2>/dev/null || true
+          wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+
+          BASE_URL=https://nuvanx.com bash "$RELEASE_ROOT/smoke-verify-staging2.sh"
+
+          TMP_CHECK="$(mktemp -d)"
+          trap 'rm -rf "$TMP_CHECK"' EXIT
+          for route in protocolos-signature medicina-estetica-laser exion-fractional equipo-medico; do
+            status="$(curl --silent --show-error --location --max-redirs 5 --output "$TMP_CHECK/$route.html" --write-out '%{http_code}' "https://nuvanx.com/$route/")"
+            test "$status" = '200'
+            grep -Fq 'nvx-canonical-page-hero' "$TMP_CHECK/$route.html"
+            grep -Fq 'nvx-editorial-hero__copy' "$TMP_CHECK/$route.html"
+            if grep -Fq 'nvx-editorial-hero__copy-copy' "$TMP_CHECK/$route.html"; then
+              echo "ERROR: legacy copy-copy class remains on $route" >&2
+              exit 1
+            fi
+            echo "PASS canonical header $route status=$status"
+          done
+          deployed_marker="$(tr -d '\r\n' < "$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha")"
+          test "$deployed_marker" = "$SOURCE_SHA"
+          trap - ERR
+          MUTATION_STARTED=0
+          echo "PROMOTE_PRODUCTION_OK sha=$SOURCE_SHA backup=$BACKUP_DIR exion_id=$exion_id"
+          REMOTE
+          grep -Fq 'PROMOTE_PRODUCTION_OK' "$ARTIFACT_DIR/promotion.log"
+
+      - name: Verify production externally
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in protocolos-signature medicina-estetica-laser exion-fractional equipo-medico; do
+            body="$ARTIFACT_DIR/${route}.html"
+            status="$(curl --silent --show-error --location --max-redirs 5 --retry 3 --retry-all-errors \
+              --user-agent 'Mozilla/5.0 Chrome/149.0' \
+              --output "$body" --write-out '%{http_code}' "https://nuvanx.com/$route/")"
+            test "$status" = '200'
+            grep -Fq 'nvx-canonical-page-hero' "$body"
+            grep -Fq 'nvx-editorial-hero__copy' "$body"
+            ! grep -Fq 'nvx-editorial-hero__copy-copy' "$body"
+          done
+          echo "PRODUCTION_EXTERNAL_VERIFY_OK sha=$SOURCE_SHA" | tee "$ARTIFACT_DIR/external-verification.log"
+
+      - name: Remove temporary remote payload
+        if: always() && env.REMOTE_RELEASE != ''
+        continue-on-error: true
+        shell: bash
+        run: ssh nvx-host "rm -rf '$REMOTE_RELEASE'"
+
+      - name: Write execution summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Production promotion summary'
+            echo "- Source SHA: \`$SOURCE_SHA\`"
+            echo "- Validated staging SHA: \`$VALIDATED_STAGING_SHA\`"
+            echo "- Job status: \`${{ job.status }}\`"
+            echo '- Target: `https://nuvanx.com`'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload production promotion evidence
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: production-promotion-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: production-promotion-evidence/
+          retention-days: 30
+          if-no-files-found: warn

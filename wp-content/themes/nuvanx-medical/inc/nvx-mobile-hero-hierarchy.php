@@ -75,7 +75,9 @@ function nvx_dom_node_remove_class( DOMElement $node, string $class_name ): void
 }
 
 /**
- * Pages governed by the same canonical header design.
+ * Determines whether the current request targets a page using the canonical header design.
+ *
+ * @return bool `true` if the current request is for a designated canonical page, `false` otherwise.
  */
 function nvx_is_canonical_page_header_request(): bool {
 	return is_page(
@@ -118,9 +120,9 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
 }
 
 /**
- * Normalizes a canonical page hero before its explanatory copy is moved.
+ * Prepares a canonical page hero for explanatory copy extraction.
  *
- * @param DOMXPath   $xpath The XPath evaluator used to locate hero media.
+ * @param DOMXPath   $xpath The XPath evaluator used to find media elements.
  * @param DOMElement $hero  The hero element to normalize.
  */
 function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ): void {
@@ -147,11 +149,11 @@ function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ):
 }
 
 /**
- * Locates the hero copy element within a hero container.
+ * Locates the first hero copy element within a hero container.
  *
  * @param DOMXPath    $xpath     XPath evaluator used to search the hero.
  * @param DOMElement  $hero      Hero container to search.
- * @param bool        $canonical Whether to include canonical hero copy classes and normalize the matched element's classes.
+ * @param bool        $canonical Whether to include canonical hero copy variants and normalize the matched element's classes.
  * @return DOMElement|null The matching hero copy element, or null if none is found.
  */
 function nvx_find_hero_copy_node( DOMXPath $xpath, DOMElement $hero, bool $canonical ): ?DOMElement {

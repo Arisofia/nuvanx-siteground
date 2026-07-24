@@ -83,6 +83,32 @@
 	max-width: 58rem;
 }
 
+/* Home static-media removal: text-only editorial sections. */
+.nvx-home-v5 .nvx-home-feature,
+.nvx-home-v5 .nvx-home-authority {
+	display: grid;
+	grid-template-columns: 1fr;
+	min-height: 0;
+}
+
+.nvx-home-v5 .nvx-home-feature__copy,
+.nvx-home-v5 .nvx-home-authority__copy {
+	width: min(100%, var(--nvx-shell));
+	min-width: 0;
+	margin-inline: auto;
+	padding: clamp(4rem, 7vw, 7rem) var(--nvx-gutter-inner);
+}
+
+.nvx-home-v5 .nvx-home-feature__copy h2,
+.nvx-home-v5 .nvx-home-authority__copy h2 {
+	max-width: 18ch;
+}
+
+.nvx-home-v5 .nvx-home-feature__copy > p:not(.nvx-home-eyebrow),
+.nvx-home-v5 .nvx-home-authority__copy > p:not(.nvx-home-eyebrow) {
+	max-width: 58rem;
+}
+
 @media (max-width: 62rem) {
 	.nvx-home-v5 .nvx-home-hero__media {
 		height: auto;

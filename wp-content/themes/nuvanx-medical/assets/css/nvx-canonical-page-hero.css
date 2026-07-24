@@ -5,6 +5,7 @@
 
 .nvx-canonical-page-hero {
   position: relative;
+  isolation: isolate;
   display: block;
   width: 100%;
   max-width: none;

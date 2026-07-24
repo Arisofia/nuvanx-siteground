@@ -22,6 +22,8 @@ on:
       - 'wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php'
+      - 'wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php'
+      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-canonical-page-hero.css'
       - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
       - 'docs/content-strategy-2026/NUVANX-CONTOUR-ROADMAP-STATUS.md'
       - 'docs/operations/deployment.md'

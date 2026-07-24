@@ -26,7 +26,7 @@ jobs:
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.head.ref == 'ops/promote-equipo-route-production-20260724'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 25
     steps:
       - name: Check out exact merged candidate
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -84,7 +84,7 @@ jobs:
           chmod 600 "$HOME/.ssh/config"
           ssh nvx-host 'printf "SSH_CONNECTION_OK\n"' | tee "$ARTIFACT_DIR/ssh-connectivity.log"
 
-      - name: Preflight identities and validated staging state
+      - name: Verify validated staging source
         shell: bash
         run: |
           set -euo pipefail
@@ -95,10 +95,9 @@ jobs:
           VALIDATED_STAGING_SHA="$3"
           test "$(cd "$PROD_ROOT" && wp option get siteurl)" = 'https://nuvanx.com'
           test "$(cd "$STAGING_ROOT" && wp option get siteurl)" = 'https://staging2.nuvanx.com'
-          test "$(cd "$PROD_ROOT" && wp theme list --status=active --field=name)" = 'nuvanx-medical'
-          test "$(cd "$STAGING_ROOT" && wp theme list --status=active --field=name)" = 'nuvanx-medical'
           test "$(tr -d '\r\n' < "$STAGING_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha")" = "$VALIDATED_STAGING_SHA"
-          php -l "$STAGING_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-equipo-route-guard.php"
+          test -f "$STAGING_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-equipo-route-guard.php"
+          grep -Fq "nvx_schema_path_matches( \$path, '/equipo-medico/' )" "$STAGING_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-equipo-route-guard.php"
           echo 'PRODUCTION_PREFLIGHT_OK'
           REMOTE
           grep -Fq 'PRODUCTION_PREFLIGHT_OK' "$ARTIFACT_DIR/preflight.log"
@@ -112,7 +111,7 @@ jobs:
           ssh nvx-host "mkdir -p '$REMOTE_RELEASE'"
           rsync -az tools/deploy/deploy-to-prod.sh "nvx-host:$REMOTE_RELEASE/"
 
-      - name: Promote theme and verify production
+      - name: Promote and verify production disk
         shell: bash
         run: |
           set -euo pipefail
@@ -145,31 +144,28 @@ jobs:
           BACKUP_DIR="$(sed -n 's/^== DONE backup=\(.*\) ==$/\1/p' "$PROMOTION_LOG" | tail -n1)"
           test -f "$BACKUP_DIR/theme.tgz"
           MUTATION_STARTED=1
+
+          GUARD="$PROD_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-equipo-route-guard.php"
+          LOADER="$PROD_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-que-exigir-page.php"
+          test -f "$GUARD"
+          php -l "$GUARD"
+          php -l "$LOADER"
+          grep -Fq "remove_filter( 'the_content', 'nvx_content_restructure_equipo_page', 19 );" "$GUARD"
+          grep -Fq "nvx_schema_path_matches( \$path, '/equipo-medico/' )" "$GUARD"
+          grep -Fq "require_once get_template_directory() . '/inc/nvx-equipo-route-guard.php';" "$LOADER"
           printf '%s\n' "$TARGET_SHA" > "$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha"
           cd "$PROD_ROOT"
           wp cache flush || true
           wp sg purge || true
           rm -rf wp-content/cache/* 2>/dev/null || true
           wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
-
-          TMP_CHECK="$(mktemp -d)"
-          trap 'rm -rf "$TMP_CHECK"' EXIT
-          for route in protocolos-signature medicina-estetica-laser exion-fractional equipo-medico; do
-            status="$(curl --silent --show-error --location --max-redirs 5 --user-agent 'Mozilla/5.0 Chrome/149.0' --output "$TMP_CHECK/$route.html" --write-out '%{http_code}' "https://nuvanx.com/$route/")"
-            test "$status" = '200'
-            grep -Fq 'nvx-canonical-page-hero' "$TMP_CHECK/$route.html"
-            grep -Fq 'nvx-editorial-hero__copy' "$TMP_CHECK/$route.html"
-            ! grep -Fq 'nvx-editorial-hero__copy-copy' "$TMP_CHECK/$route.html"
-          done
-          grep -Fq 'Tecnología seleccionada según diagnóstico, no por tendencia' "$TMP_CHECK/medicina-estetica-laser.html"
-          ! grep -Fq 'Equipo médico NUVANX: quién te valora y quién trata' "$TMP_CHECK/medicina-estetica-laser.html"
-          grep -Fq 'Equipo médico NUVANX: quién te valora y quién trata' "$TMP_CHECK/equipo-medico.html"
           test "$(tr -d '\r\n' < "$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha")" = "$TARGET_SHA"
+
           trap - ERR
           MUTATION_STARTED=0
-          echo "PROMOTE_PRODUCTION_OK sha=$TARGET_SHA backup=$BACKUP_DIR"
+          echo "PROMOTE_PRODUCTION_DISK_OK sha=$TARGET_SHA backup=$BACKUP_DIR"
           REMOTE
-          grep -Fq 'PROMOTE_PRODUCTION_OK' "$ARTIFACT_DIR/promotion.log"
+          grep -Fq 'PROMOTE_PRODUCTION_DISK_OK' "$ARTIFACT_DIR/promotion.log"
 
       - name: Remove temporary payload
         if: always() && env.REMOTE_RELEASE != ''

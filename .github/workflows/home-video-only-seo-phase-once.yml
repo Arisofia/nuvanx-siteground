@@ -1,0 +1,163 @@
+name: Home Video Only and Phase SEO Once
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/home-video-only-seo-phase-once.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: home-video-only-seo-phase-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.head.ref == 'fix/home-video-only-seo-phase-20260724'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out PR branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Remove home images and align phase SEO
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(content: str, old: str, new: str, label: str) -> str:
+              count = content.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one match, found {count}')
+              return content.replace(old, new, 1)
+
+          front_path = Path('wp-content/themes/nuvanx-medical/front-page.php')
+          front = front_path.read_text(encoding='utf-8')
+          front = replace_once(
+              front,
+              """ * Home is an editorial cover, not a media catalogue. The page intentionally
+ * uses one editorial image and one medical-authority image after the video.
+ * Protocol, solution and clinical-evolution media belong to their own routes.""",
+              """ * Home is a text-led editorial cover with one moving visual: the hero video.
+ * Static imagery belongs to the corresponding clinical and editorial routes.""",
+              'front-page header',
+          )
+          for line, label in (
+              ("$hero_poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );\n", 'hero poster variable'),
+              ("$editorial_image = content_url( '/uploads/2026/07/Endolift-Corporal-Portada.webp' );\n", 'editorial image variable'),
+              ("$authority_image = content_url( '/uploads/2026/07/proceso-medico-laser-nuvanx-madrid.webp' );\n", 'authority image variable'),
+          ):
+              front = replace_once(front, line, '', label)
+          front = replace_once(
+              front,
+              ' preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>"',
+              ' preload="metadata"',
+              'video poster attribute',
+          )
+          front = replace_once(
+              front,
+              """\t\t<div class=\"nvx-home-feature__media\">\n\t\t\t<img src=\"<?php echo esc_url( $editorial_image ); ?>\" alt=\"Preparación corporal editorial NUVANX\" loading=\"eager\" decoding=\"async\">\n\t\t</div>\n""",
+              '',
+              'editorial image markup',
+          )
+          front = replace_once(
+              front,
+              """\t\t<div class=\"nvx-home-authority__media\">\n\t\t\t<img src=\"<?php echo esc_url( $authority_image ); ?>\" alt=\"Proceso médico láser en NUVANX Madrid\" loading=\"lazy\" decoding=\"async\">\n\t\t</div>\n""",
+              '',
+              'authority image markup',
+          )
+          front_path.write_text(front, encoding='utf-8')
+
+          css_path = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-home-final-media.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = '/* Home static-media removal: text-only editorial sections. */'
+          if marker in css:
+              raise SystemExit('text-only home override already exists')
+          css += """
+
+/* Home static-media removal: text-only editorial sections. */
+.nvx-home-v5 .nvx-home-feature,
+.nvx-home-v5 .nvx-home-authority {
+\tdisplay: grid;
+\tgrid-template-columns: 1fr;
+\tmin-height: 0;
+}
+
+.nvx-home-v5 .nvx-home-feature__copy,
+.nvx-home-v5 .nvx-home-authority__copy {
+\twidth: min(100%, var(--nvx-shell));
+\tmin-width: 0;
+\tmargin-inline: auto;
+\tpadding: clamp(4rem, 7vw, 7rem) var(--nvx-gutter-inner);
+}
+
+.nvx-home-v5 .nvx-home-feature__copy h2,
+.nvx-home-v5 .nvx-home-authority__copy h2 {
+\tmax-width: 18ch;
+}
+
+.nvx-home-v5 .nvx-home-feature__copy > p:not(.nvx-home-eyebrow),
+.nvx-home-v5 .nvx-home-authority__copy > p:not(.nvx-home-eyebrow) {
+\tmax-width: 58rem;
+}
+"""
+          css_path.write_text(css, encoding='utf-8')
+
+          seo_path = Path('wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php')
+          seo = seo_path.read_text(encoding='utf-8')
+          replacements = {
+              "\t\t'/papada-definicion-mandibular-madrid/' => nvx_meta_item( 'Eliminar Papada Madrid | Tensión Real, Sin Rostros Inflados', 'No inyectes más volumen para ocultar la papada. Redefine tu óvalo facial con láser médico y diagnóstico estricto en NUVANX Madrid.' ),": "\t\t'/papada-definicion-mandibular-madrid/' => nvx_meta_item( 'Papada y definición mandibular Madrid | NUVANX', 'Valoración médica de papada, cuello y mandíbula en Madrid para diferenciar grasa, laxitud y soporte antes de indicar Endolift® u otra opción.' ),",
+              "\t\t'/calidad-piel-firmeza-luminosidad-madrid/' => nvx_meta_item( 'Firmeza y Calidad de Piel Madrid | Resultados, No Cosmética', 'Las cremas caras no devuelvan la firmeza. NUVANX Surface Renewal™ ataca la flacidez y falta de luminosidad con láser y radiofrecuencia médica.' ),": "\t\t'/calidad-piel-firmeza-luminosidad-madrid/' => nvx_meta_item( 'Calidad y firmeza de la piel Madrid | NUVANX', 'Tratamiento médico para calidad, firmeza y luminosidad de la piel en Madrid con tecnología seleccionada tras diagnóstico, fototipo y valoración.' ),",
+              "\t\t'/cicatrices-acne-poros-textura-madrid/' => nvx_meta_item( 'Borrar Cicatrices de Acné Madrid | Láser Médico Avanzado', 'La textura irregular y las marcas de acné requieren energía médica, no peelings superficiales. Descubre el abordaje clínico de NUVANX Madrid.' ),": "\t\t'/cicatrices-acne-poros-textura-madrid/' => nvx_meta_item( 'Cicatrices de acné, poros y textura Madrid | NUVANX', 'Tratamiento de cicatrices de acné, poros y textura en Madrid con CO₂ o Fractional RF según morfología, fototipo y valoración médica.' ),",
+              "\t\t'/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' => nvx_meta_item( 'Eliminar Manchas y Rojeces Madrid | Diagnóstico Médico', 'Deja de esconder tu piel bajo maquillaje. Tratamos manchas y daño solar con luz pulsada médica y criterio dermatológico en NUVANX.' ),": "\t\t'/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' => nvx_meta_item( 'Manchas, rojeces y fotodaño Madrid | NUVANX', 'Tratamiento de manchas, rojeces y fotodaño en Madrid con IPL seleccionada según diagnóstico, fototipo y valoración médica.' ),",
+              "\t\t'/grasa-localizada-abdomen-flancos-madrid/' => nvx_meta_item( 'Grasa Localizada Abdomen Madrid | Láser Médico', 'Esa grasa rebelde en abdomen y flancos que no cede al gimnasio. Remodelación anatómica sin quirófano en NUVANX Madrid.' ),": "\t\t'/grasa-localizada-abdomen-flancos-madrid/' => nvx_meta_item( 'Grasa localizada abdomen y flancos Madrid | NUVANX', 'Valoración de grasa localizada, laxitud y pared abdominal en abdomen y flancos en Madrid dentro de NUVANX Contour Architecture™.' ),",
+              "\t\t'/flacidez-grasa-localizada-brazos-madrid/' => nvx_meta_item( 'Eliminar Flacidez en Brazos Madrid | Tensión y Contorno', 'Para que la manga caiga bien sin que la piel cuelgue. Tratamiento médico de retracción y remodelación de brazos en NUVANX.' ),": "\t\t'/flacidez-grasa-localizada-brazos-madrid/' => nvx_meta_item( 'Flacidez y grasa localizada brazos Madrid | NUVANX', 'Tratamiento de flacidez y grasa localizada en brazos en Madrid con valoración de brazo, axila y torso antes de seleccionar tecnología.' ),",
+              "\t\t'/grasa-espalda-zona-sujetador-madrid/' => nvx_meta_item( 'Grasa Espalda y Sujetador Madrid | Remodelación NUVANX', 'Elimina el pliegue del sujetador sin pasar por quirófano. Evaluación médica precisa y tecnología láser avanzada en Madrid.' ),": "\t\t'/grasa-espalda-zona-sujetador-madrid/' => nvx_meta_item( 'Grasa espalda y zona del sujetador Madrid | NUVANX', 'Valoración de grasa y laxitud en espalda y zona del sujetador en Madrid, considerando continuidad con brazos y flancos.' ),",
+              "\t\t'/flacidez-muslos-internos-subgluteo-madrid/' => nvx_meta_item( 'Flacidez Muslos y Subglúteo Madrid | Retracción Médica', 'La piel más delicada exige el láser más preciso. Retracción médica de flacidez en muslos internos y zona subglútea en NUVANX.' ),": "\t\t'/flacidez-muslos-internos-subgluteo-madrid/' => nvx_meta_item( 'Flacidez muslos internos y subglúteo Madrid | NUVANX', 'Valoración de flacidez, grasa y continuidad en muslos internos y región subglútea en Madrid dentro de Contour Architecture™.' ),",
+              "\t\t'/tratamiento-rodillas-grasa-flacidez-madrid/' => nvx_meta_item( 'Grasa y Flacidez en Rodillas Madrid | Tratamiento Médico', 'Una zona pequeña que cambia toda la pierna. Tratamiento médico de flacidez y acúmulos grasos en rodillas. Agenda en NUVANX Madrid.' ),": "\t\t'/tratamiento-rodillas-grasa-flacidez-madrid/' => nvx_meta_item( 'Grasa localizada y flacidez rodillas Madrid | NUVANX', 'Valoración de grasa localizada y flacidez en rodillas en Madrid, diferenciando tejido estético de causas articulares, vasculares o edema.' ),",
+              "\t\t'/contorno-corporal-masculino-madrid/' => nvx_meta_item( 'Contorno Corporal Masculino Madrid | Estética Médica para Él', 'Tratamientos diseñados para la anatomía masculina. Remodelación sin quirófano ni bajas prolongadas. Valoración médica en NUVANX.' ),": "\t\t'/contorno-corporal-masculino-madrid/' => nvx_meta_item( 'Contorno corporal masculino Madrid | NUVANX', 'Contorno corporal masculino en Madrid para abdomen, cintura, espalda o perfil, con diagnóstico y tecnología seleccionada tras valoración.' ),",
+          }
+          for old, new in replacements.items():
+              seo = replace_once(seo, old, new, old.split("=>", 1)[0].strip())
+          seo_path.write_text(seo, encoding='utf-8')
+          PY
+
+      - name: Validate source contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/front-page.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php
+          test "$(grep -o '<video\b' wp-content/themes/nuvanx-medical/front-page.php | wc -l)" -eq 1
+          test "$(grep -o '<img\b' wp-content/themes/nuvanx-medical/front-page.php | wc -l)" -eq 0
+          ! grep -Fq 'poster=' wp-content/themes/nuvanx-medical/front-page.php
+          ! grep -Fq '$editorial_image' wp-content/themes/nuvanx-medical/front-page.php
+          ! grep -Fq '$authority_image' wp-content/themes/nuvanx-medical/front-page.php
+          grep -Fq "Papada y definición mandibular Madrid | NUVANX" wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php
+          grep -Fq "Contorno corporal masculino Madrid | NUVANX" wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php
+          git diff --check
+
+      - name: Commit changes and remove one-off workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: ${{ github.event.pull_request.head.ref }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/home-video-only-seo-phase-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(home,seo): keep only hero video and align phase metadata'
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${TARGET_BRANCH}"

@@ -110,7 +110,7 @@ for (const marker of [
 for (const slug of phaseSlugs) if (!smoke.includes(`fetch_page '/${slug}/'`)) fail(`smoke missing phase page: ${slug}`);
 
 for (const marker of [
-  "spawnSync('ssh'", 'STAGING2_SSH_ALIAS', 'transport=ssh',
+  "spawnSync('/usr/bin/ssh'", 'STAGING2_SSH_ALIAS', 'transport=ssh',
   'EXPECTED_SHA must be a full lowercase 40-character SHA',
   '/remodelacion-corporal-laser-madrid/', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
   'H1 mismatch:', 'parsed.canonicals.length !== 1', 'WebPage', 'Organization',
@@ -197,7 +197,7 @@ const phpFiles = [
 ];
 const skippedPhpFiles = [];
 for (const relative of phpFiles) {
-  const result = spawnSync('php', ['-l', file(relative)], { encoding: 'utf8', env: { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin' } });
+  const result = spawnSync('/usr/bin/php', ['-l', file(relative)], { encoding: 'utf8' });
   if (result.error?.code === 'ENOENT') {
     skippedPhpFiles.push(relative);
     continue;

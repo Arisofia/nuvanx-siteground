@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import os from 'node:os';
+import { randomInt } from 'node:crypto';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 
@@ -386,7 +387,7 @@ async function auditMobileNavigation(port) {
 
 const chromePath = locateChrome();
 report.chrome = chromePath;
-const port = 9300 + Math.floor(Math.random() * 500);
+const port = randomInt(9300, 9800);
 const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nvx-chrome-'));
 const chrome = spawn(chromePath, [
   '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',

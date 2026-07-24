@@ -2,8 +2,8 @@
 /**
  * Global hero hierarchy.
  *
- * Keeps identity, H1, actions and local proof over hero media while moving
- * explanatory clinical copy into a readable block immediately after the hero.
+ * Keeps identity, H1, actions and local proof inside the hero while moving
+ * explanatory clinical copy into a readable block immediately after it.
  * Applies by structural classes, not page IDs.
  *
  * @package nuvanx-medical
@@ -14,28 +14,78 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Enqueue the responsive hero hierarchy after the canonical editorial patterns.
+ * Enqueue the responsive hierarchy and the canonical institutional hero layer.
  *
- * Dependency handle must match functions.php (`nvx-patterns`), not the file name.
+ * Dependency handles must match functions.php (`nvx-patterns`).
  */
 function nvx_enqueue_mobile_hero_hierarchy(): void {
-	$relative = 'assets/css/nvx-mobile-hero-hierarchy.css';
+	$hierarchy_relative = 'assets/css/nvx-mobile-hero-hierarchy.css';
+	$canonical_relative = 'assets/css/nvx-canonical-page-hero.css';
 
 	wp_enqueue_style(
 		'nvx-mobile-hero-hierarchy',
-		get_template_directory_uri() . '/' . $relative,
+		get_template_directory_uri() . '/' . $hierarchy_relative,
 		array( 'nvx-patterns' ),
-		nvx_asset_version( $relative )
+		nvx_asset_version( $hierarchy_relative )
+	);
+
+	wp_enqueue_style(
+		'nvx-canonical-page-hero',
+		get_template_directory_uri() . '/' . $canonical_relative,
+		array( 'nvx-mobile-hero-hierarchy' ),
+		nvx_asset_version( $canonical_relative )
 	);
 }
 add_action( 'wp_enqueue_scripts', 'nvx_enqueue_mobile_hero_hierarchy', 40 );
 
 /**
- * Test whether a DOM node has a class.
+ * Determines whether a DOM element contains a class token.
+ *
+ * @param DOMElement $node       The element to inspect.
+ * @param string     $class_name The class token to find.
+ * @return bool True if the element contains the class token, false otherwise.
  */
 function nvx_dom_node_has_class( DOMElement $node, string $class_name ): bool {
 	$classes = preg_split( '/\s+/', trim( $node->getAttribute( 'class' ) ) ) ?: array();
 	return in_array( $class_name, $classes, true );
+}
+
+/**
+ * Add one class token without duplicating existing classes.
+ */
+function nvx_dom_node_add_class( DOMElement $node, string $class_name ): void {
+	$classes = preg_split( '/\s+/', trim( $node->getAttribute( 'class' ) ) ) ?: array();
+	$classes[] = $class_name;
+	$classes = array_values( array_unique( array_filter( $classes ) ) );
+	$node->setAttribute( 'class', implode( ' ', $classes ) );
+}
+
+/**
+ * Remove one class token while preserving the remaining class list.
+ */
+function nvx_dom_node_remove_class( DOMElement $node, string $class_name ): void {
+	$classes = preg_split( '/\s+/', trim( $node->getAttribute( 'class' ) ) ) ?: array();
+	$classes = array_values(
+		array_filter(
+			$classes,
+			static fn( string $class ): bool => $class !== $class_name
+		)
+	);
+	$node->setAttribute( 'class', implode( ' ', $classes ) );
+}
+
+/**
+ * Pages governed by the same institutional header design.
+ */
+function nvx_is_canonical_page_header_request(): bool {
+	return is_page(
+		array(
+			'protocolos-signature',
+			'medicina-estetica-laser',
+			'exion-fractional',
+			'equipo-medico',
+		)
+	);
 }
 
 /**
@@ -48,10 +98,9 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
 
 	$movable_classes = array(
 		'nvx-lead',
-		'nvx-lead',
+		'nvx-brand-hero__lead',
 		'nvx-hero__lead',
 		'nvx-page-hero__lead',
-		'nvx-lead',
 		'nvx-subtitle',
 		'nvx-hero-subtitle',
 	);
@@ -66,7 +115,70 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
 }
 
 /**
- * Split explanatory hero paragraphs into a post-media reading block.
+ * Normalizes a canonical page hero before its explanatory copy is moved.
+ *
+ * @param DOMXPath   $xpath The XPath evaluator used to locate hero media.
+ * @param DOMElement $hero  The hero element to normalize.
+ */
+function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ): void {
+	nvx_dom_node_add_class( $hero, 'nvx-canonical-page-hero' );
+
+	$media_nodes = $xpath->query(
+		'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__media ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__media ")]',
+		$hero
+	);
+
+	if ( false !== $media_nodes ) {
+		$removable = array();
+		foreach ( $media_nodes as $media ) {
+			if ( $media instanceof DOMElement ) {
+				$removable[] = $media;
+			}
+		}
+		foreach ( $removable as $media ) {
+			if ( $media->parentNode ) {
+				$media->parentNode->removeChild( $media );
+			}
+		}
+	}
+}
+
+/**
+ * Locates the hero copy element within a hero container.
+ *
+ * @param DOMXPath    $xpath     XPath evaluator used to search the hero.
+ * @param DOMElement  $hero      Hero container to search.
+ * @param bool        $canonical Whether to include canonical hero copy classes and normalize the matched element's classes.
+ * @return DOMElement|null The matching hero copy element, or null if none is found.
+ */
+function nvx_find_hero_copy_node( DOMXPath $xpath, DOMElement $hero, bool $canonical ): ?DOMElement {
+	$query = $canonical
+		? './/*[contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy-copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ")]'
+		: './/*[contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ")]';
+
+	$copy_nodes = $xpath->query( $query, $hero );
+	if ( false === $copy_nodes || 0 === $copy_nodes->length ) {
+		return null;
+	}
+
+	$copy = $copy_nodes->item( 0 );
+	if ( ! $copy instanceof DOMElement ) {
+		return null;
+	}
+
+	if ( $canonical ) {
+		nvx_dom_node_remove_class( $copy, 'nvx-editorial-hero__copy-copy' );
+		nvx_dom_node_add_class( $copy, 'nvx-editorial-hero__copy' );
+	}
+
+	return $copy;
+}
+
+/**
+ * Moves explanatory paragraphs from hero sections into generated post-hero reading blocks.
+ *
+ * @param string $content The content to transform.
+ * @return string The transformed content, or the original content when no transformation applies.
  */
 function nvx_split_hero_explanatory_copy( string $content ): string {
 	if (
@@ -95,7 +207,7 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 		return $content;
 	}
 
-	$xpath = new DOMXPath( $document );
+	$xpath  = new DOMXPath( $document );
 	$heroes = $xpath->query(
 		'//*[@id="nvx-content-transform-root"]//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero-section ")]'
 	);
@@ -113,17 +225,14 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 		}
 	}
 
-	foreach ( $hero_nodes as $hero ) {
-		$copy_nodes = $xpath->query(
-			'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ")]',
-			$hero
-		);
+	$canonical = nvx_is_canonical_page_header_request();
 
-		if ( false === $copy_nodes || 0 === $copy_nodes->length ) {
-			continue;
+	foreach ( $hero_nodes as $hero ) {
+		if ( $canonical ) {
+			nvx_normalize_canonical_page_hero( $xpath, $hero );
 		}
 
-		$copy = $copy_nodes->item( 0 );
+		$copy = nvx_find_hero_copy_node( $xpath, $hero, $canonical );
 		if ( ! $copy instanceof DOMElement ) {
 			continue;
 		}
@@ -139,8 +248,6 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 			continue;
 		}
 
-		// Same shell as sede/hub sections (brand-section + readable) so Goya/EXION/etc.
-		// share gutters with Chamberí — no special-case hero-context band.
 		$section = $document->createElement( 'section' );
 		$section->setAttribute( 'class', 'nvx-brand-section nvx-hero-intro nvx-hero-intro--generated' );
 		$section->setAttribute( 'data-nvx-hero-context', 'clinical-introduction' );
@@ -155,7 +262,6 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 		foreach ( $movable as $index => $paragraph ) {
 			if ( $paragraph instanceof DOMElement ) {
 				$existing = trim( $paragraph->getAttribute( 'class' ) );
-				// Keep legacy class hooks for any remaining hierarchy CSS; body class unifies type.
 				$extra = 0 === $index
 					? 'nvx-brand-body nvx-hero-context__lead'
 					: 'nvx-brand-body nvx-hero-context__description';

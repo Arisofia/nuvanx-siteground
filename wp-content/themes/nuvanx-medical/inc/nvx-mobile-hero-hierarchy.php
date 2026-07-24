@@ -39,7 +39,11 @@ function nvx_enqueue_mobile_hero_hierarchy(): void {
 add_action( 'wp_enqueue_scripts', 'nvx_enqueue_mobile_hero_hierarchy', 40 );
 
 /**
- * Test whether a DOM node has a class.
+ * Determines whether a DOM element contains a class token.
+ *
+ * @param DOMElement $node       The element to inspect.
+ * @param string     $class_name The class token to find.
+ * @return bool True if the element contains the class token, false otherwise.
  */
 function nvx_dom_node_has_class( DOMElement $node, string $class_name ): bool {
 	$classes = preg_split( '/\s+/', trim( $node->getAttribute( 'class' ) ) ) ?: array();
@@ -110,7 +114,10 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
 }
 
 /**
- * Normalize the structure of a governed hero before its explanatory copy moves.
+ * Normalizes a canonical page hero before its explanatory copy is moved.
+ *
+ * @param DOMXPath   $xpath The XPath evaluator used to locate hero media.
+ * @param DOMElement $hero  The hero element to normalize.
  */
 function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ): void {
 	nvx_dom_node_add_class( $hero, 'nvx-canonical-page-hero' );
@@ -136,7 +143,12 @@ function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ):
 }
 
 /**
- * Find the copy node that owns the institutional hero hierarchy.
+ * Locates the hero copy element within a hero container.
+ *
+ * @param DOMXPath    $xpath     XPath evaluator used to search the hero.
+ * @param DOMElement  $hero      Hero container to search.
+ * @param bool        $canonical Whether to include canonical hero copy classes and normalize the matched element's classes.
+ * @return DOMElement|null The matching hero copy element, or null if none is found.
  */
 function nvx_find_hero_copy_node( DOMXPath $xpath, DOMElement $hero, bool $canonical ): ?DOMElement {
 	$query = $canonical
@@ -162,7 +174,10 @@ function nvx_find_hero_copy_node( DOMXPath $xpath, DOMElement $hero, bool $canon
 }
 
 /**
- * Split explanatory hero paragraphs into a post-hero reading block.
+ * Moves explanatory paragraphs from hero sections into generated post-hero reading blocks.
+ *
+ * @param string $content The content to transform.
+ * @return string The transformed content, or the original content when no transformation applies.
  */
 function nvx_split_hero_explanatory_copy( string $content ): string {
 	if (

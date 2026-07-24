@@ -1,3 +1,4 @@
+# One-time guarded repair; the job removes this file after committing the durable changes.
 name: Repair Patient Cases Contract Once
 
 on:

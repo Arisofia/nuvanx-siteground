@@ -2,19 +2,15 @@
 /**
  * Canonical editorial front page.
  *
- * Home is an editorial cover, not a media catalogue. The page intentionally
- * uses one editorial image and one medical-authority image after the video.
- * Protocol, solution and clinical-evolution media belong to their own routes.
+ * Home is a text-led editorial cover with one moving visual: the hero video.
+ * Static imagery belongs to the corresponding clinical and editorial routes.
  *
  * @package nuvanx-medical
  */
 
 defined( 'ABSPATH' ) || exit;
 
-$hero_video_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
-$hero_poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
-$editorial_image = content_url( '/uploads/2026/07/Endolift-Corporal-Portada.webp' );
-$authority_image = content_url( '/uploads/2026/07/proceso-medico-laser-nuvanx-madrid.webp' );
+$hero_video_url = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
 
 define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
 
@@ -75,7 +71,7 @@ ob_start();
 <div id="nvx-home-v3" class="nvx-home-v4 nvx-home-v5">
 	<section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
 		<div class="nvx-home-hero__media" aria-hidden="true">
-			<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>">
+			<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata">
 				<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
 				<track kind="subtitles" src="/uploads/captions.vtt" srclang="es" label="Español">
 				<track kind="descriptions" src="/uploads/descriptions.vtt" srclang="es" label="Audiodescripción">
@@ -101,9 +97,6 @@ ob_start();
 	</section>
 
 	<section class="nvx-home-feature" aria-labelledby="nvx-home-feature-title">
-		<div class="nvx-home-feature__media">
-			<img src="<?php echo esc_url( $editorial_image ); ?>" alt="Preparación corporal editorial NUVANX" loading="eager" decoding="async">
-		</div>
 		<div class="nvx-home-feature__copy">
 			<p class="nvx-home-eyebrow">REMODELACIÓN CORPORAL CON CRITERIO MÉDICO</p>
 			<h2 id="nvx-home-feature-title">Cada cuerpo responde de una forma diferente.</h2>
@@ -167,9 +160,6 @@ ob_start();
 	</section>
 
 	<section class="nvx-home-authority" aria-labelledby="nvx-home-authority-title">
-		<div class="nvx-home-authority__media">
-			<img src="<?php echo esc_url( $authority_image ); ?>" alt="Proceso médico láser en NUVANX Madrid" loading="lazy" decoding="async">
-		</div>
 		<div class="nvx-home-authority__copy">
 			<p class="nvx-home-eyebrow">CONTINUIDAD ASISTENCIAL</p>
 			<h2 id="nvx-home-authority-title">Tu tratamiento sigue una misma línea médica.</h2>

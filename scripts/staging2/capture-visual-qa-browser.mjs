@@ -25,7 +25,7 @@ if (typeof WebSocket !== 'function') {
 fs.mkdirSync(evidenceDir, { recursive: true });
 
 const pages = [
-  ['/', 'Medicina estética con criterio. Madrid.'],
+  ['/', 'Medicina estética con criterio médico y resultados naturales.'],
   ['/casos-de-pacientes/', 'La evolución necesita contexto, no una promesa.'],
   ['/soluciones-medicas/', 'Soluciones médicas para rostro, piel y contorno corporal.'],
   ['/protocolos-signature/', 'Protocolos Signature: Medicina estética de diagnóstico.'],

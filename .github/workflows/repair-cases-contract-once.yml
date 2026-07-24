@@ -1,0 +1,83 @@
+name: Repair Patient Cases Contract Once
+
+on:
+  push:
+    branches:
+      - fix/staging2-endolaser-cases-heroes-20260725
+    paths:
+      - '.github/workflows/repair-cases-contract-once.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repair-patient-cases-contract-once
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/staging2-endolaser-cases-heroes-20260725
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Align QA copy and Node 24 checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          old_h1 = "['/casos-de-pacientes/', 'La evolución necesita contexto, no una promesa.']"
+          new_h1 = "['/casos-de-pacientes/', 'Casos de pacientes y tratamientos realizados en NUVANX']"
+          qa_files = [
+              Path('scripts/staging2/capture-visual-qa.mjs'),
+              Path('scripts/staging2/capture-visual-qa-browser.mjs'),
+          ]
+          for path in qa_files:
+              content = path.read_text(encoding='utf-8')
+              if content.count(old_h1) != 1:
+                  raise SystemExit(f'{path}: expected one legacy patient-cases H1 contract')
+              path.write_text(content.replace(old_h1, new_h1, 1), encoding='utf-8')
+
+          old_checkout = 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4'
+          new_checkout = 'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1'
+          workflow_counts = {
+              Path('.github/workflows/deploy-staging2.yml'): 2,
+              Path('.github/workflows/navigation-architecture-gate.yml'): 1,
+          }
+          for path, expected in workflow_counts.items():
+              content = path.read_text(encoding='utf-8')
+              if content.count(old_checkout) != expected:
+                  raise SystemExit(f'{path}: expected {expected} legacy checkout references')
+              path.write_text(content.replace(old_checkout, new_checkout), encoding='utf-8')
+          PY
+
+      - name: Validate corrected contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/staging2/capture-visual-qa.mjs
+          node --check scripts/staging2/capture-visual-qa-browser.mjs
+          grep -Fq "Casos de pacientes y tratamientos realizados en NUVANX" scripts/staging2/capture-visual-qa.mjs
+          grep -Fq "Casos de pacientes y tratamientos realizados en NUVANX" scripts/staging2/capture-visual-qa-browser.mjs
+          ! grep -R -Fq 'actions/checkout@11d5960a326750d5838078e36cf38b85af677262' .github/workflows/deploy-staging2.yml .github/workflows/navigation-architecture-gate.yml
+          git diff --check
+
+      - name: Commit durable repair and remove one-off workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm .github/workflows/repair-cases-contract-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(ci): align patient cases QA and Node 24 checkout'
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:fix/staging2-endolaser-cases-heroes-20260725

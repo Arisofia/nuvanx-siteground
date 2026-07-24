@@ -75,7 +75,7 @@ function nvx_dom_node_remove_class( DOMElement $node, string $class_name ): void
 }
 
 /**
- * Pages governed by the same institutional header design.
+ * Pages governed by the same canonical header design.
  */
 function nvx_is_canonical_page_header_request(): bool {
 	return is_page(
@@ -83,6 +83,8 @@ function nvx_is_canonical_page_header_request(): bool {
 			'protocolos-signature',
 			'medicina-estetica-laser',
 			'exion-fractional',
+			'endolaser-corporal-grasa-localizada',
+			'casos-de-pacientes',
 			'equipo-medico',
 		)
 	);
@@ -103,6 +105,7 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
 		'nvx-page-hero__lead',
 		'nvx-subtitle',
 		'nvx-hero-subtitle',
+		'nvx-cases-hero__lead',
 	);
 
 	foreach ( $movable_classes as $class_name ) {
@@ -124,7 +127,7 @@ function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ):
 	nvx_dom_node_add_class( $hero, 'nvx-canonical-page-hero' );
 
 	$media_nodes = $xpath->query(
-		'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__media ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__media ")]',
+		'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__media ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__media ") or contains(concat(" ", normalize-space(@class), " "), " nvx-cases-hero__media ")]',
 		$hero
 	);
 
@@ -153,7 +156,7 @@ function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ):
  */
 function nvx_find_hero_copy_node( DOMXPath $xpath, DOMElement $hero, bool $canonical ): ?DOMElement {
 	$query = $canonical
-		? './/*[contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy-copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ")]'
+		? './/*[contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy-copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-cases-hero__copy ")]'
 		: './/*[contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ")]';
 
 	$copy_nodes = $xpath->query( $query, $hero );
@@ -209,7 +212,7 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 
 	$xpath  = new DOMXPath( $document );
 	$heroes = $xpath->query(
-		'//*[@id="nvx-content-transform-root"]//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero-section ")]'
+		'//*[@id="nvx-content-transform-root"]//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero-section ") or contains(concat(" ", normalize-space(@class), " "), " nvx-cases-hero ")]'
 	);
 
 	if ( false === $heroes ) {

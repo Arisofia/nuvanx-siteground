@@ -94,8 +94,8 @@ function nvxCasesPageMarkup(): string {
 		<section class="nvx-cases-hero">
 			<div class="nvx-cases-hero__copy">
 				<p class="nvx-cases-eyebrow">PACIENTES NUVANX · MADRID</p>
-				<h1 id="nvx-cases-title">Casos de pacientes y tratamientos realizados en NUVANX.</h1>
-				<p class="nvx-cases-hero__lead">Una selección de evoluciones clínicas de personas tratadas en rostro y contorno corporal. Cada caso muestra la zona abordada y el tratamiento indicado después de una valoración médica individual.</p>
+				<h1 id="nvx-cases-title">Casos de pacientes y tratamientos realizados en NUVANX</h1>
+				<p class="nvx-cases-hero__lead">Conoce evoluciones de personas tratadas en rostro y contorno corporal. En cada caso indicamos la zona abordada y el tratamiento seleccionado después de una valoración médica individual.</p>
 				<a class="nvx-btn nvx-btn--primary" href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>">Solicitar valoración médica</a>
 			</div>
 			<div class="nvx-cases-hero__media">

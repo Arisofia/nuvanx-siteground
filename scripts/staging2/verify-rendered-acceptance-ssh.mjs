@@ -174,10 +174,13 @@ async function originFetch(url, redirectMode = 'manual') {
 
 const safePathName = (val) => String(val || '').split('/').filter(Boolean).join('__') || 'home';
 const cleanHtmlText = (value) => String(value || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
-const parseSingleTag = (html, name) => cleanHtmlText(html.match(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'is'))?.[1] || '');
-const parseMultipleTagTexts = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>(.*?)<\/${name}>`, 'gis'))].map((match) => cleanHtmlText(match[1]));
+const parseSingleTag = (html, name) => cleanHtmlText(html.match(new RegExp(String.raw`<${name}\b[^>]*>([\s\S]*?)<\/${name}>`, 'i'))?.[1] || '');
+const parseMultipleTagTexts = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>([\s\S]*?)<\/${name}>`, 'gi'))].map((match) => cleanHtmlText(match[1]));
 const queryHtmlTags = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>`, 'gi'))].map((match) => match[0]);
-const getAttrVal = (tag, attr) => tag.match(new RegExp(String.raw`\b${attr}\s*=\s*(["'])(.*?)\1`, 'i'))?.[2] || '';
+const getAttrVal = (tag, attr) => {
+  const match = tag.match(new RegExp(String.raw`\b${attr}\s*=\s*(?:["']([^"']*)["']|([^\s>]+))`, 'i'));
+  return match ? (match[1] !== undefined ? match[1] : match[2]) : '';
+};
 
 function findMetaAttr(html, attr) {
   for (const tag of queryHtmlTags(html, 'meta')) {

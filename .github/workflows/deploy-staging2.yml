@@ -1,9 +1,6 @@
 name: Deploy Staging2 (manual)
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
     types: [opened, synchronize, reopened, labeled]
     paths:
@@ -27,6 +24,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php'
       - 'wp-content/themes/nuvanx-medical/assets/css/nvx-canonical-page-hero.css'
+      - 'wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-*.php'
       - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
       - 'docs/content-strategy-2026/NUVANX-CONTOUR-ROADMAP-STATUS.md'
       - 'docs/operations/deployment.md'
@@ -100,6 +98,8 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php
+          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-single.php
+          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-archive.php
 
       - name: Validate workflow and deployment contract
         id: contract_validation
@@ -124,7 +124,6 @@ jobs:
     needs: contract
     if: >-
       (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DEPLOY_STAGING2') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
       (github.event_name == 'pull_request' &&
        github.event.action == 'labeled' &&
        github.event.label.name == 'deploy-staging2' &&
@@ -135,7 +134,7 @@ jobs:
     #   name: staging2
     #   url: https://staging2.nuvanx.com
     env:
-      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event_name == 'push' && github.sha || github.event.pull_request.head.sha }}
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.pull_request.head.sha }}
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'DEPLOY_AND_MIGRATE' }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
     steps:

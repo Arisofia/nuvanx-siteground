@@ -415,7 +415,12 @@ function nvx_endolift_editorial_body_markup(): string {
 }
 
 /**
- * Rebuild Endolift page: authority hero + diagnosis + biophysics + process + FAQ + CTA.
+ * Rebuilds an Endolift facial page with its editorial hero and structured body content.
+ *
+ * Preserves the existing page wrapper and hero media when available.
+ *
+ * @param string $content The original page content.
+ * @return string The rebuilt page content, or the original content when the page is not an Endolift page.
  */
 function nvx_content_restructure_endolift_page( string $content ): string {
 	if ( ! nvx_content_is_endolift_page( $content ) ) {

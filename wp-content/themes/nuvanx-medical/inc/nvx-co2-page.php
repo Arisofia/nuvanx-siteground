@@ -202,10 +202,10 @@ function nvx_co2_editorial_body_markup(): string {
 /**
  * Rebuilds the CO₂ treatment page with a dedicated hero section and editorial body.
  *
- * Preserves the existing hero media and outer page wrapper when available.
+ * Preserves matching hero media and the outer page wrapper when available.
  *
  * @param string $content The original page content.
- * @return string The rebuilt CO₂ page content, or the original content when the page is not a CO₂ page.
+ * @return string The rebuilt CO₂ page content, or the original content when the page is not targeted.
  */
 function nvx_content_restructure_co2_page( string $content ): string {
 	if ( ! nvx_content_is_co2_page( $content ) ) {

@@ -76,6 +76,12 @@ while ( have_posts() ) :
 	if ( ! $has_managed_editorial && function_exists( 'nvx_protocol_pages_current_key' ) && null !== nvx_protocol_pages_current_key() ) {
 		$has_managed_editorial = true;
 	}
+	if ( ! $has_managed_editorial && function_exists( 'nvxIsSedeTemplate' ) && nvxIsSedeTemplate() ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvxIsClinicsHub' ) && nvxIsClinicsHub() ) {
+		$has_managed_editorial = true;
+	}
 
 	$has_media = has_post_thumbnail();
 	// Theme-owned hero only when content does not already own the page hierarchy.

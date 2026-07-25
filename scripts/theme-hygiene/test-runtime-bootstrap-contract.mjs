@@ -36,8 +36,8 @@ const registeredJsonldCallback = structuredData.match(
 if (!registeredJsonldCallback) {
   failures.push('structured data module does not register the JSON-LD the_content callback at priority 5');
 } else {
-  const escapedName = registeredJsonldCallback.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const declaration = new RegExp(`function\\s+${escapedName}\\s*\\(`);
+  const escapedName = registeredJsonldCallback.replace(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+  const declaration = new RegExp(String.raw`function\s+${escapedName}\s*\(`);
   if (!declaration.test(jsonldHelpers)) {
     failures.push(`registered callback ${registeredJsonldCallback} is not declared by nvx-jsonld-content.php`);
   }
@@ -55,11 +55,11 @@ const constantNames = ['NVX_REGEX_WHITESPACE', 'NVX_REGEX_WHITESPACE_U'];
 const phpFiles = walkPhp(theme);
 for (const constantName of constantNames) {
   const definitions = [];
-  const pattern = new RegExp(`define\\s*\\(\\s*['"]${constantName}['"]`, 'g');
+  const pattern = new RegExp(String.raw`define\s*\(\s*['"]${constantName}['"]`, 'g');
   for (const file of phpFiles) {
     const source = fs.readFileSync(file, 'utf8');
     const count = (source.match(pattern) || []).length;
-    if (count) definitions.push({ file: path.relative(theme, file).replaceAll('\\\\', '/'), count });
+    if (count) definitions.push({ file: path.relative(theme, file).replaceAll(String.raw`\\`, '/'), count });
   }
 
   const total = definitions.reduce((sum, item) => sum + item.count, 0);

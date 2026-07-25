@@ -248,6 +248,13 @@
 	color: var(--nvx-ink);
 }
 
+.nvx-cases-evolution-card figcaption p {
+	font-family: var(--nvx-sans);
+	font-size: var(--nvx-type-small);
+	line-height: 1.65;
+	color: var(--nvx-text-muted);
+}
+
 .nvx-cases-disclosure {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(22rem, 0.75fr);
@@ -372,15 +379,7 @@
 @media (max-width: 48rem) {
 	.nvx-cases-method,
 	.nvx-cases-evolution {
-		padding-block: clamp(3.5rem, 14vw, 5rem);
-	}
-
-	.nvx-cases-hero__copy {
-		padding-inline: var(--nvx-gutter-inner);
-	}
-
-	.nvx-cases-hero h1 {
-		font-size: clamp(2.9rem, 13vw, 4.8rem);
+		padding-block: clamp(3.5rem, 12vw, 5rem);
 	}
 
 	.nvx-cases-method__grid,
@@ -388,7 +387,12 @@
 		grid-template-columns: 1fr;
 	}
 
-	.nvx-cases-disclosure {
-		padding-inline: var(--nvx-gutter-inner);
+	.nvx-cases-hero h1 {
+		font-size: clamp(2.75rem, 12vw, 4rem);
+	}
+
+	.nvx-cases-closure__actions,
+	.nvx-cases-closure__actions .nvx-btn {
+		width: 100%;
 	}
 }

@@ -1,7 +1,7 @@
 const nativeFetch = globalThis.fetch;
 
 if (typeof nativeFetch !== 'function') {
-  throw new Error('Node.js native fetch is required for the visual QA preload.');
+  throw new TypeError('Node.js native fetch is required for the visual QA preload.');
 }
 
 globalThis.fetch = async (input, init) => {

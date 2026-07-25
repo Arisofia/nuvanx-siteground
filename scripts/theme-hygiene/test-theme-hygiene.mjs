@@ -39,7 +39,7 @@ for (const file of runtime) {
     if (/(^|[-_.])(legacy|old|backup|bak|temp|tmp|deprecated|unused|orphan)([-_.]|$)/i.test(name)) fail(`${relativePath}: obsolete filename`);
     if (/staging2\.nuvanx\.com/i.test(content) && !relativePath.endsWith('/inc/nvx-environment-flags.php') && !relativePath.endsWith('/inc/nvx-staging2-canonical-closure.php')) fail(`${relativePath}: staging hostname`);
     if (/\.css$/i.test(file) && /!important\b/i.test(content)) fail(`${relativePath}: !important`);
-    if (/\.css$/i.test(file) && /[^{}]+\{\s*\}/m.test(content)) fail(`${relativePath}: empty CSS rule`);
+    if (/\.css$/i.test(file) && /[^\n{}]+\{\s*\}/m.test(content)) fail(`${relativePath}: empty CSS rule`);
   } catch (error) { fail(`${relativePath}: unable to inspect (${error.code || error})`); }
 }
 
@@ -180,7 +180,7 @@ if ((functions.match(/wp_enqueue_style\(\s*'nvx-editorial-coherence'/g) || []).l
 if (!functions.includes("array( 'nvx-editorial-coherence' )")) fail('functions.php: header must depend on editorial coherence');
 
 const report = errors.length
-  ? `FAIL: ${errors.length} theme hygiene finding(s)\n${errors.map((error) => `- ${error}`).join('\n')}\n`
+  ? `FAIL: ${errors.length} theme hygiene finding(s)\n` + errors.map((error) => '- ' + error).join('\n') + '\n'
   : `PASS: theme hygiene across ${runtime.length} runtime files\n`;
 fs.writeFileSync(reportPath, report);
 console.log(report.trimEnd());

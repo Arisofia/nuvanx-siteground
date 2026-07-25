@@ -39,10 +39,10 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
 
 /** @return array{start:int,length:int}|null */
 function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?array {
-	if ( $open_offset < 0 || ! preg_match( '/\G<div\b[^>]*>/i', $html, $opening, 0, $open_offset ) ) {
-		return null;
-	}
-	if ( ! preg_match_all( '/<div\b[^>]*>|<\/div\s*>/i', $html, $tokens, PREG_OFFSET_CAPTURE, $open_offset ) ) {
+	if ( $open_offset < 0
+		|| ! preg_match( '/\G<div\b[^>]*>/i', $html, $opening, 0, $open_offset )
+		|| ! preg_match_all( '/<div\b[^>]*>|<\/div\s*>/i', $html, $tokens, PREG_OFFSET_CAPTURE, $open_offset )
+	) {
 		return null;
 	}
 

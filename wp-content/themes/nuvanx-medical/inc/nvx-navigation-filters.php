@@ -21,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return array<int,array<string,mixed>> The filtered fallback navigation blueprint.
  */
-function nvx_navigation_primary_blueprint(): array {
+function nvxNavigationPrimaryBlueprint(): array {
 	return apply_filters(
 		'nvx_navigation_primary_blueprint',
 		array(
@@ -161,7 +161,7 @@ function nvx_navigation_primary_blueprint(): array {
  * @param string[] $slugs Candidate page paths.
  * @return array{url:string,page_id:int}|null
  */
-function nvx_navigation_resolve_published_page( array $slugs ): ?array {
+function nvxNavigationResolvePublishedPage( array $slugs ): ?array {
 	static $cache = array();
 
 	$key = implode( '|', array_map( 'strval', $slugs ) );
@@ -200,13 +200,13 @@ function nvx_navigation_resolve_published_page( array $slugs ): ?array {
  * @param array<string,mixed> $node Blueprint node with an optional label, URL, slugs, mega-menu flag, and child nodes.
  * @return array<string,mixed>|null Resolved navigation item, or null when the node has no label or destination.
  */
-function nvx_navigation_resolve_blueprint_node( array $node ): ?array {
+function nvxNavigationResolveBlueprintNode( array $node ): ?array {
 	$children = array();
 	foreach ( isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : array() as $child ) {
 		if ( ! is_array( $child ) ) {
 			continue;
 		}
-		$resolved_child = nvx_navigation_resolve_blueprint_node( $child );
+		$resolved_child = nvxNavigationResolveBlueprintNode( $child );
 		if ( is_array( $resolved_child ) ) {
 			$children[] = $resolved_child;
 		}
@@ -214,7 +214,7 @@ function nvx_navigation_resolve_blueprint_node( array $node ): ?array {
 
 	$url = isset( $node['url'] ) ? trim( (string) $node['url'] ) : '';
 	if ( '' === $url ) {
-		$destination = nvx_navigation_resolve_published_page(
+		$destination = nvxNavigationResolvePublishedPage(
 			isset( $node['slugs'] ) && is_array( $node['slugs'] ) ? $node['slugs'] : array()
 		);
 		$url = is_array( $destination ) ? $destination['url'] : '';
@@ -242,13 +242,13 @@ function nvx_navigation_resolve_blueprint_node( array $node ): ?array {
  *
  * @return array<int,array<string,mixed>>
  */
-function nvx_navigation_resolved_fallback(): array {
+function nvxNavigationResolvedFallback(): array {
 	$items = array();
-	foreach ( nvx_navigation_primary_blueprint() as $node ) {
+	foreach ( nvxNavigationPrimaryBlueprint() as $node ) {
 		if ( ! is_array( $node ) ) {
 			continue;
 		}
-		$resolved = nvx_navigation_resolve_blueprint_node( $node );
+		$resolved = nvxNavigationResolveBlueprintNode( $node );
 		if ( is_array( $resolved ) ) {
 			$items[] = $resolved;
 		}
@@ -262,7 +262,7 @@ function nvx_navigation_resolved_fallback(): array {
  * @param array<int,array<string,mixed>> $items Menu items.
  * @param int                            $depth Current depth.
  */
-function nvx_navigation_render_fallback_items( array $items, int $depth = 0 ): string {
+function nvxNavigationRenderFallbackItems( array $items, int $depth = 0 ): string {
 	$html = '';
 	foreach ( $items as $item ) {
 		$children     = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
@@ -281,7 +281,7 @@ function nvx_navigation_render_fallback_items( array $items, int $depth = 0 ): s
 		$html           .= '<a class="nvx-nav__link" data-nvx-menu-depth="' . esc_attr( (string) $depth ) . '" href="' . esc_url( (string) $item['url'] ) . '"' . $link_attributes . '>' . esc_html( (string) $item['label'] ) . '</a>';
 
 		if ( $has_children ) {
-			$html .= '<ul class="sub-menu">' . nvx_navigation_render_fallback_items( $children, $depth + 1 ) . '</ul>';
+			$html .= '<ul class="sub-menu">' . nvxNavigationRenderFallbackItems( $children, $depth + 1 ) . '</ul>';
 		}
 		$html .= '</li>';
 	}
@@ -294,7 +294,7 @@ function nvx_navigation_render_fallback_items( array $items, int $depth = 0 ): s
  * @param array<string,mixed> $args wp_nav_menu arguments used for the menu class, menu ID, and output mode.
  * @return string|null The rendered navigation HTML when output is disabled, or null after echoing it.
  */
-function nvx_navigation_primary_fallback( array $args = array() ) {
+function nvxNavigationPrimaryFallback( array $args = array() ) {
 	$menu_class = isset( $args['menu_class'] ) && '' !== trim( (string) $args['menu_class'] )
 		? trim( (string) $args['menu_class'] )
 		: 'nvx-nav__list';
@@ -303,7 +303,7 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 		: '';
 
 	$html = '<ul' . $menu_id . ' class="' . esc_attr( $menu_class ) . '">';
-	$html .= nvx_navigation_render_fallback_items( nvx_navigation_resolved_fallback() );
+	$html .= nvxNavigationRenderFallbackItems( nvxNavigationResolvedFallback() );
 	$html .= '</ul>';
 
 	if ( ! array_key_exists( 'echo', $args ) || $args['echo'] ) {
@@ -320,17 +320,17 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
  * @param array<string,mixed> $args Navigation menu arguments.
  * @return array<string,mixed> Updated arguments for the primary menu, or the original arguments for other locations.
  */
-function nvx_navigation_filter_menu_args( array $args ): array {
+function nvxNavigationFilterMenuArgs( array $args ): array {
 	if ( 'primary' !== ( $args['theme_location'] ?? '' ) ) {
 		return $args;
 	}
 
-	$args['fallback_cb'] = 'nvx_navigation_primary_fallback';
+	$args['fallback_cb'] = 'nvxNavigationPrimaryFallback';
 	$args['depth']       = 3;
 	$args['item_spacing'] = 'discard';
 	return $args;
 }
-add_filter( 'wp_nav_menu_args', 'nvx_navigation_filter_menu_args', 20 );
+add_filter( 'wp_nav_menu_args', 'nvxNavigationFilterMenuArgs', 20 );
 
 /**
  * Removes unpublished page items and their descendants from the primary navigation.
@@ -341,7 +341,7 @@ add_filter( 'wp_nav_menu_args', 'nvx_navigation_filter_menu_args', 20 );
  * @param stdClass                    $args Menu arguments.
  * @return array<int,WP_Post|stdClass> The filtered menu items.
  */
-function nvx_navigation_prune_unpublished_items( $items, $args ) {
+function nvxNavigationPruneUnpublishedItems( $items, $args ) {
 	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
 		return $items;
 	}
@@ -380,10 +380,10 @@ function nvx_navigation_prune_unpublished_items( $items, $args ) {
 		)
 	);
 }
-add_filter( 'wp_nav_menu_objects', 'nvx_navigation_prune_unpublished_items', 20, 2 );
+add_filter( 'wp_nav_menu_objects', 'nvxNavigationPruneUnpublishedItems', 20, 2 );
 
 /** Normalize a menu label for presentation-role detection. */
-function nvx_navigation_label_key( string $label ): string {
+function nvxNavigationLabelKey( string $label ): string {
 	return sanitize_title( remove_accents( wp_strip_all_tags( $label ) ) );
 }
 
@@ -398,7 +398,7 @@ function nvx_navigation_label_key( string $label ): string {
  * @param int $depth Menu depth.
  * @return string[] The updated item classes.
  */
-function nvx_navigation_item_classes( array $classes, $item, $args, int $depth ): array {
+function nvxNavigationItemClasses( array $classes, $item, $args, int $depth ): array {
 	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
 		return $classes;
 	}
@@ -406,7 +406,7 @@ function nvx_navigation_item_classes( array $classes, $item, $args, int $depth )
 	$classes[] = 'nvx-nav__item';
 	$classes[] = 'nvx-nav__item--depth-' . $depth;
 
-	$label_key  = isset( $item->title ) ? nvx_navigation_label_key( (string) $item->title ) : '';
+	$label_key  = isset( $item->title ) ? nvxNavigationLabelKey( (string) $item->title ) : '';
 	$mega_roots = array( 'soluciones', 'protocolos-signature', 'tecnologia' );
 	if ( 0 === $depth && ( in_array( 'nvx-menu--mega', $classes, true ) || in_array( $label_key, $mega_roots, true ) ) ) {
 		$classes[] = 'nvx-nav__item--mega';
@@ -414,7 +414,7 @@ function nvx_navigation_item_classes( array $classes, $item, $args, int $depth )
 
 	return array_values( array_unique( array_filter( $classes ) ) );
 }
-add_filter( 'nav_menu_css_class', 'nvx_navigation_item_classes', 20, 4 );
+add_filter( 'nav_menu_css_class', 'nvxNavigationItemClasses', 20, 4 );
 
 /**
  * Adds consistent link classes and parent-menu attributes for the primary navigation.
@@ -425,7 +425,7 @@ add_filter( 'nav_menu_css_class', 'nvx_navigation_item_classes', 20, 4 );
  * @param int $depth Menu depth.
  * @return array<string, string> Updated link attributes.
  */
-function nvx_navigation_link_attributes( array $atts, $item, $args, int $depth ): array {
+function nvxNavigationLinkAttributes( array $atts, $item, $args, int $depth ): array {
 	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
 		return $atts;
 	}
@@ -444,4 +444,4 @@ function nvx_navigation_link_attributes( array $atts, $item, $args, int $depth )
 
 	return $atts;
 }
-add_filter( 'nav_menu_link_attributes', 'nvx_navigation_link_attributes', 20, 4 );
+add_filter( 'nav_menu_link_attributes', 'nvxNavigationLinkAttributes', 20, 4 );

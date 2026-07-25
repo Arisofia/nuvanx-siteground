@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Singular context for CO₂ rewrite.
  */
-function nvx_co2_is_singular_context(): bool {
+function nvxCo2IsSingularContext(): bool {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return false;
 	}
@@ -26,12 +26,12 @@ function nvx_co2_is_singular_context(): bool {
 /**
  * Detect Láser CO₂ fraccionado detail page only (not home/hub cards).
  */
-function nvx_content_is_co2_page( string $content ): bool {
+function nvxContentIsCo2Page( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-co2-editorial' ) ) {
 		return false;
 	}
 
-	if ( ! nvx_co2_is_singular_context() ) {
+	if ( ! nvxCo2IsSingularContext() ) {
 		return false;
 	}
 
@@ -56,7 +56,7 @@ function nvx_content_is_co2_page( string $content ): bool {
 /**
  * Hero copy.
  */
-function nvx_co2_hero_copy_markup(): string {
+function nvxCo2HeroCopyMarkup(): string {
 	$price_facial = function_exists( 'nvx_tariff_catalog' )
 		? nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] )
 		: number_format_i18n( 330, 2 );
@@ -64,7 +64,7 @@ function nvx_co2_hero_copy_markup(): string {
 	$html  = '<div class="nvx-editorial-hero__copy-copy">';
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-heading" id="nvx-co2-h1">' . esc_html__( 'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné', 'nuvanx-medical' ) . '</h1>';
-	
+
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
 	$html .= '<div class="nvx-medical-byline__text">';
@@ -95,7 +95,7 @@ function nvx_co2_hero_copy_markup(): string {
  *
  * @return string The generated editorial body HTML.
  */
-function nvx_co2_editorial_body_markup(): string {
+function nvxCo2EditorialBodyMarkup(): string {
 	$catalog      = function_exists( 'nvx_tariff_catalog' ) ? nvx_tariff_catalog() : array();
 	$price_facial = ! empty( $catalog['laser_co2']['facial']['pvp'] )
 		? nvx_format_price_eur( $catalog['laser_co2']['facial']['pvp'] )
@@ -207,8 +207,8 @@ function nvx_co2_editorial_body_markup(): string {
  * @param string $content The original page content.
  * @return string The rebuilt CO₂ page content, or the original content when the page is not targeted.
  */
-function nvx_content_restructure_co2_page( string $content ): string {
-	if ( ! nvx_content_is_co2_page( $content ) ) {
+function nvxContentRestructureCo2Page( string $content ): string {
+	if ( ! nvxContentIsCo2Page( $content ) ) {
 		return $content;
 	}
 
@@ -219,11 +219,11 @@ function nvx_content_restructure_co2_page( string $content ): string {
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero" aria-labelledby="nvx-co2-h1" aria-label="' . esc_attr__( 'Láser CO₂ NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
-	$hero .= nvx_co2_hero_copy_markup();
+	$hero .= nvxCo2HeroCopyMarkup();
 	$hero .= $media;
 	$hero .= '</div></section>';
 
-	$body = nvx_co2_editorial_body_markup();
+	$body = nvxCo2EditorialBodyMarkup();
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		return $wrap[1] . $hero . $body . '</div>';
@@ -231,4 +231,4 @@ function nvx_content_restructure_co2_page( string $content ): string {
 
 	return $hero . $body;
 }
-add_filter( 'the_content', 'nvx_content_restructure_co2_page', 19 );
+add_filter( 'the_content', 'nvxContentRestructureCo2Page', 19 );

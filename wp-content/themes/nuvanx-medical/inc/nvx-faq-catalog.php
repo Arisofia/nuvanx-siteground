@@ -24,7 +24,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @return array<int, array{q: string, a: string}>
  */
-function nvx_get_faq_catalog(): array {
+function nvxGetFaqCatalog(): array {
 	return [
 		[
 			'q' => '¿Cómo se solicita una valoración médica en NUVANX?',
@@ -76,8 +76,8 @@ function nvx_get_faq_catalog(): array {
 /**
  * Renders the FAQ section using the canonical FAQ catalog.
  */
-function nvx_render_faq_block(): void {
-	$faqs = nvx_get_faq_catalog();
+function nvxRenderFaqBlock(): void {
+	$faqs = nvxGetFaqCatalog();
 	if ( empty( $faqs ) ) {
 		return;
 	}
@@ -100,8 +100,8 @@ function nvx_render_faq_block(): void {
  *
  * @return array<string, mixed> The FAQPage schema with its canonical identifier and questions.
  */
-function nvx_get_faqpage_schema(): array {
-	$faqs        = nvx_get_faq_catalog();
+function nvxGetFaqpageSchema(): array {
+	$faqs        = nvxGetFaqCatalog();
 	$main_entity = [];
 	foreach ( $faqs as $item ) {
 		$main_entity[] = [
@@ -123,9 +123,9 @@ function nvx_get_faqpage_schema(): array {
 /**
  * Inject FAQPage node into Yoast SEO graph on the front page.
  */
-function nvx_inject_faqpage_schema_graph( array $data ): array {
+function nvxInjectFaqpageSchemaGraph( array $data ): array {
 	if ( is_front_page() ) {
-		$data[] = nvx_get_faqpage_schema();
+		$data[] = nvxGetFaqpageSchema();
 	}
 	return $data;
 }

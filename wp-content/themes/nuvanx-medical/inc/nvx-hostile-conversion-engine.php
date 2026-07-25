@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param string $path URL path.
  * @return string HTML markup.
  */
-function nvx_hostile_teardown_markup( $path ): string {
+function nvxHostileTeardownMarkup( $path ): string {
 	$pain_title = 'El Diagnóstico Erróneo del Mercado';
 	$pain_text  = 'La mayoría de clínicas en Madrid ofrecen soluciones genéricas. Bonos de sesiones sin diagnóstico que resultan en pérdida de tiempo, dinero y una profunda frustración corporal.';
 
@@ -50,7 +50,7 @@ function nvx_hostile_teardown_markup( $path ): string {
  *
  * @return string HTML markup.
  */
-function nvx_hostile_authority_markup(): string {
+function nvxHostileAuthorityMarkup(): string {
 	ob_start();
 	?>
 	<section class="nvx-editorial-section nvx-hostile-authority">
@@ -70,7 +70,7 @@ function nvx_hostile_authority_markup(): string {
  * @param string $content Existing content.
  * @return string Modified content.
  */
-function nvx_hostile_conversion_inject( $content ) {
+function nvxHostileConversionInject( $content ) {
 	if ( ! is_main_query() || ! is_singular( 'page' ) || false !== strpos( $content, 'nvx-hostile-teardown' ) ) {
 		return $content;
 	}
@@ -95,7 +95,7 @@ function nvx_hostile_conversion_inject( $content ) {
 		$injection_point = strpos( $content, '</section>' );
 	}
 
-	$hostile_block = nvx_hostile_teardown_markup( $path ) . nvx_hostile_authority_markup();
+	$hostile_block = nvxHostileTeardownMarkup( $path ) . nvxHostileAuthorityMarkup();
 
 	if ( false !== $injection_point ) {
 		$pos = $injection_point + ( false !== strpos( $content, '</header>' ) ? 9 : 10 );

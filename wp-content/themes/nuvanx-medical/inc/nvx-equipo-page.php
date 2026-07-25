@@ -12,10 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! defined( 'NVX_REGEX_MEDIA' ) ) {
-	define( 'NVX_REGEX_MEDIA', '/<(?:figure|div|img)\b[^>]*>[\s\S]*?(?:<\/(?:figure|div)>|$)/iu' );
-}
-
 /**
  * Singular context.
  */
@@ -84,7 +80,7 @@ function nvx_equipo_hero_copy_markup(): string {
 	) . '</p>';
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$html .= nvx_cta_pair_markup( 'nvx-equipo-hero-ctas nvx-home-hero-ctas' );
+		$html .= nvxCtaPairMarkup( 'nvx-equipo-hero-ctas nvx-home-hero-ctas' );
 	}
 
 	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí · Goya · Medicina basada en evidencia', 'nuvanx-medical' ) . '</p>';
@@ -127,7 +123,7 @@ function nvx_equipo_clean_portrait_img( string $media ): string {
 			$real = esc_url( $ds[1] );
 			if ( '' !== $real ) {
 				if ( preg_match( '/\ssrc=/i', $attrs ) ) {
-					$attrs = nvx_content_preg_replace_keep( '/\ssrc=["\'][^"\']*["\']/i', ' src="' . $real . '"', $attrs, 1 );
+					$attrs = nvxContentPregReplaceKeep( '/\ssrc=["\'][^"\']*["\']/i', ' src="' . $real . '"', $attrs, 1 );
 				} else {
 					$attrs .= ' src="' . $real . '"';
 				}
@@ -136,20 +132,20 @@ function nvx_equipo_clean_portrait_img( string $media ): string {
 	}
 
 	// Drop inline size/style that fights portrait crop; strip body role.
-	$attrs = nvx_content_preg_replace_keep( '/\s+style=["\'][^"\']*["\']/i', '', $attrs );
-	$attrs = nvx_content_preg_replace_keep( '/\s+(?:width|height)=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
-	$attrs = nvx_content_preg_replace_keep( '/\s*nvx-media--body\s*/i', ' ', $attrs );
+	$attrs = nvxContentPregReplaceKeep( '/\s+style=["\'][^"\']*["\']/i', '', $attrs );
+	$attrs = nvxContentPregReplaceKeep( '/\s+(?:width|height)=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+	$attrs = nvxContentPregReplaceKeep( '/\s*nvx-media--body\s*/i', ' ', $attrs );
 	// Re-emit loading/decoding once (CMS + cleaners often duplicate).
-	$attrs = nvx_content_preg_replace_keep( '/\s+loading=["\'][^"\']*["\']/i', '', $attrs );
-	$attrs = nvx_content_preg_replace_keep( '/\s+decoding=["\'][^"\']*["\']/i', '', $attrs );
+	$attrs = nvxContentPregReplaceKeep( '/\s+loading=["\'][^"\']*["\']/i', '', $attrs );
+	$attrs = nvxContentPregReplaceKeep( '/\s+decoding=["\'][^"\']*["\']/i', '', $attrs );
 	// Drop leftover placeholder-only srcset noise when src is real file.
 	if ( preg_match( '/\ssrc=["\']https?:\/\//i', $attrs ) ) {
 		// Keep srcset/sizes when present for responsive; strip only data-src twins later.
 	}
 
 	if ( function_exists( 'nvx_html_attrs_add_class' ) ) {
-		$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
-		$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--doctor' );
+		$attrs = nvxHtmlAttrsAddClass( $attrs, 'nvx-media' );
+		$attrs = nvxHtmlAttrsAddClass( $attrs, 'nvx-media--doctor' );
 	} elseif ( ! preg_match( '/\bclass=/i', $attrs ) ) {
 		$attrs .= ' class="nvx-media nvx-media--doctor"';
 	}
@@ -293,18 +289,18 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
  */
 function nvx_equipo_normalize_staff_card( string $card ): string {
 	if ( preg_match( '/\bclass=(["\'])/u', $card ) && false === strpos( $card, 'nvx-brand-card--team' ) ) {
-		$card = nvx_content_preg_replace_keep( '/\bclass=(["\'])/u', 'class=$1nvx-brand-card--team ', $card, 1 ) ?? $card;
+		$card = nvxContentPregReplaceKeep( '/\bclass=(["\'])/u', 'class=$1nvx-brand-card--team ', $card, 1 ) ?? $card;
 	}
 
 	// Portrait frame: single clean img, no noscript/br noise inside figure.
-	$card = nvx_content_preg_replace_keep(
+	$card = nvxContentPregReplaceKeep(
 		'/(<figure\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card__media\b)([^"\']*)(["\'][^>]*>)([\s\S]*?)(<\/figure>)/iu',
 		static function ( array $m ): string {
 			$open = $m[1] . $m[2];
 			if ( false === strpos( $open . $m[3], 'nvx-brand-card__media--portrait' ) ) {
 				$open .= ' nvx-brand-card__media--portrait';
 			}
-			$open = nvx_content_preg_replace_keep( '/\s*nvx-content-figure\s*/i', ' ', $open );
+			$open = nvxContentPregReplaceKeep( '/\s*nvx-content-figure\s*/i', ' ', $open );
 			$img  = nvx_equipo_clean_portrait_img( $m[4] );
 			if ( '' === $img ) {
 				return $open . $m[3] . $m[5];
@@ -318,8 +314,8 @@ function nvx_equipo_normalize_staff_card( string $card ): string {
 	if ( false === strpos( $card, 'nvx-brand-card__media' ) && preg_match( '/<img\b[^>]*>/iu', $card, $im ) ) {
 		$img = nvx_equipo_clean_portrait_img( $im[0] );
 		if ( '' !== $img ) {
-			$card = nvx_content_preg_replace_keep( '/<noscript\b[\s\S]*?<\/noscript>/iu', '', $card );
-			$card = nvx_content_preg_replace_keep(
+			$card = nvxContentPregReplaceKeep( '/<noscript\b[\s\S]*?<\/noscript>/iu', '', $card );
+			$card = nvxContentPregReplaceKeep(
 				'/<img\b[^>]*>/iu',
 				'<figure class="nvx-brand-card__media nvx-brand-card__media--portrait">' . $img . '</figure>',
 				$card,
@@ -328,7 +324,7 @@ function nvx_equipo_normalize_staff_card( string $card ): string {
 		}
 	}
 
-	$card = nvx_content_preg_replace_keep( '/<br\s*\/?>/iu', '', $card );
+	$card = nvxContentPregReplaceKeep( '/<br\s*\/?>/iu', '', $card );
 
 	return (string) $card;
 }
@@ -476,7 +472,7 @@ function nvx_equipo_physician_authority_markup( array $config ): string {
  * @param string $content The original page content.
  * @return string The rebuilt page content, or the original content when restructuring is not applicable.
  */
-function nvx_content_restructure_equipo_page( string $content ): string {
+function nvxContentRestructureEquipoPage( string $content ): string {
 	if ( ! nvx_content_is_equipo_page( $content ) ) {
 		return $content;
 	}
@@ -531,4 +527,4 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	return $hero . $body;
 }
-add_filter( 'the_content', 'nvx_content_restructure_equipo_page', 19 );
+add_filter( 'the_content', 'nvxContentRestructureEquipoPage', 19 );

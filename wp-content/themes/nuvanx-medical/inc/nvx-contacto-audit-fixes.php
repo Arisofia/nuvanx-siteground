@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Whether the current request is the public contact page.
  */
-function nvx_contacto_audit_is_contact_page(): bool {
+function nvxContactoAuditIsContactPage(): bool {
 	if ( function_exists( 'nvx_is_contacto_page_request' ) ) {
 		return nvx_is_contacto_page_request();
 	}
@@ -26,8 +26,7 @@ function nvx_contacto_audit_is_contact_page(): bool {
 	}
 
 	$path = function_exists( 'nvx_schema_current_path' )
-		? nvx_schema_current_path( (int) get_queried_object_id() )
-		: ( isset( $_SERVER['REQUEST_URI'] ) ? (string) strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '' );
+		? nvx_schema_current_path( (int) get_queried_object_id() ) : ( isset( $_SERVER['REQUEST_URI'] ) ? (string) strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '' );
 
 	return '/contacto/' === '/' . trim( (string) $path, '/' ) . '/';
 }
@@ -35,43 +34,43 @@ function nvx_contacto_audit_is_contact_page(): bool {
 /**
  * Canonical social preview image for /contacto/.
  */
-function nvx_contacto_audit_social_image( $image ): string {
-	if ( ! nvx_contacto_audit_is_contact_page() ) {
+function nvxContactoAuditSocialImage( $image ): string {
+	if ( ! nvxContactoAuditIsContactPage() ) {
 		return (string) $image;
 	}
 
 	return home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' );
 }
-add_filter( 'wpseo_opengraph_image', 'nvx_contacto_audit_social_image', 100 );
-add_filter( 'wpseo_twitter_image', 'nvx_contacto_audit_social_image', 100 );
+add_filter( 'wpseo_opengraph_image', 'nvxContactoAuditSocialImage', 100 );
+add_filter( 'wpseo_twitter_image', 'nvxContactoAuditSocialImage', 100 );
 
 /**
  * Keep the contact SERP and social title aligned with the two real branches.
  */
-function nvx_contacto_audit_title( $title ): string {
-	if ( ! nvx_contacto_audit_is_contact_page() ) {
+function nvxContactoAuditTitle( $title ): string {
+	if ( ! nvxContactoAuditIsContactPage() ) {
 		return (string) $title;
 	}
 
 	return 'Contacto NUVANX Madrid | Chamberí y Salamanca–Goya';
 }
-add_filter( 'wpseo_title', 'nvx_contacto_audit_title', 110 );
-add_filter( 'wpseo_opengraph_title', 'nvx_contacto_audit_title', 110 );
-add_filter( 'wpseo_twitter_title', 'nvx_contacto_audit_title', 110 );
+add_filter( 'wpseo_title', 'nvxContactoAuditTitle', 110 );
+add_filter( 'wpseo_opengraph_title', 'nvxContactoAuditTitle', 110 );
+add_filter( 'wpseo_twitter_title', 'nvxContactoAuditTitle', 110 );
 
 /**
  * Patient-facing contact description shared by SERP and social cards.
  */
-function nvx_contacto_audit_description( $description ): string {
-	if ( ! nvx_contacto_audit_is_contact_page() ) {
+function nvxContactoAuditDescription( $description ): string {
+	if ( ! nvxContactoAuditIsContactPage() ) {
 		return (string) $description;
 	}
 
 	return 'Clínicas NUVANX en Chamberí y Salamanca–Goya: teléfonos, horarios, registros sanitarios, mapas y valoración médica en Madrid.';
 }
-add_filter( 'wpseo_metadesc', 'nvx_contacto_audit_description', 110 );
-add_filter( 'wpseo_opengraph_desc', 'nvx_contacto_audit_description', 110 );
-add_filter( 'wpseo_twitter_description', 'nvx_contacto_audit_description', 110 );
+add_filter( 'wpseo_metadesc', 'nvxContactoAuditDescription', 110 );
+add_filter( 'wpseo_opengraph_desc', 'nvxContactoAuditDescription', 110 );
+add_filter( 'wpseo_twitter_description', 'nvxContactoAuditDescription', 110 );
 
 /**
  * Add both canonical MedicalClinic branches to the /contacto/ Yoast graph.
@@ -79,11 +78,11 @@ add_filter( 'wpseo_twitter_description', 'nvx_contacto_audit_description', 110 )
  * @param array $graph Yoast schema graph.
  * @return array
  */
-function nvx_contacto_audit_schema_graph( $graph, $context ) {
+function nvxContactoAuditSchemaGraph( $graph, $context ) {
 	unset( $context );
 
 	if (
-		! nvx_contacto_audit_is_contact_page()
+		! nvxContactoAuditIsContactPage()
 		|| ! is_array( $graph )
 		|| ! function_exists( 'nvx_schema_clinics' )
 		|| ! function_exists( 'nvx_schema_find_organization' )
@@ -161,7 +160,7 @@ function nvx_contacto_audit_schema_graph( $graph, $context ) {
 
 	return $graph;
 }
-add_filter( 'wpseo_schema_graph', 'nvx_contacto_audit_schema_graph', 30, 2 );
+add_filter( 'wpseo_schema_graph', 'nvxContactoAuditSchemaGraph', 30, 2 );
 
 /**
  * Remove internal SEO jargon and expose verified clinic hours in visible copy.
@@ -169,8 +168,8 @@ add_filter( 'wpseo_schema_graph', 'nvx_contacto_audit_schema_graph', 30, 2 );
  * Prefer short stable anchors (or clinic-block markup) over full-sentence
  * str_replace so minor punctuation/dash edits in CMS copy do not break the fix.
  */
-function nvx_contacto_audit_visible_copy( string $content ): string {
-	if ( is_admin() || ! nvx_contacto_audit_is_contact_page() ) {
+function nvxContactoAuditVisibleCopy( string $content ): string {
+	if ( is_admin() || ! nvxContactoAuditIsContactPage() ) {
 		return $content;
 	}
 
@@ -206,4 +205,4 @@ function nvx_contacto_audit_visible_copy( string $content ): string {
 
 	return $content;
 }
-add_filter( 'the_content', 'nvx_contacto_audit_visible_copy', 18 );
+add_filter( 'the_content', 'nvxContactoAuditVisibleCopy', 18 );

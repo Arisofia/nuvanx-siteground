@@ -454,7 +454,7 @@ function nvxClinicsHoistSectionStack( DOMXPath $xpath ): ?DOMElement {
 		$current       = $flow->parentNode;
 		while ( $current instanceof DOMElement ) {
 			$class = $current->getAttribute( 'class' );
-			if ( nvxClinicsClassHasAny( $class, array( 'nvx-brand-page' ) ) {
+			if ( nvxClinicsClassHasAny( $class, array( 'nvx-brand-page' ) ) ) {
 				break;
 			}
 			if (

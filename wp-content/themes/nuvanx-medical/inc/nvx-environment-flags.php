@@ -1,16 +1,52 @@
 <?php
 /**
- * Environment-specific deployment metadata.
+ * Environment-specific runtime services and deployment metadata.
  *
- * Deploy workflows stamp the exact checked-out commit into `.nvx-deploy-sha`.
- * The public marker is intentionally non-secret and allows staging/production
- * verification to prove which immutable revision is actually rendered.
+ * The environment classifier is shared by staging-only content safeguards and
+ * must remain independent from temporary presentation features. Deploy workflows
+ * stamp the exact checked-out commit into `.nvx-deploy-sha` so the rendered site
+ * can prove which immutable revision is active.
  *
  * @package nuvanx-medical
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
+}
+
+/**
+ * Resolve the current WordPress host in web and WP-CLI contexts.
+ */
+function nvx_environment_host(): string {
+    $host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+    if ( ! is_string( $host ) || '' === $host ) {
+        $host = isset( $_SERVER['HTTP_HOST'] ) ? (string) $_SERVER['HTTP_HOST'] : '';
+    }
+
+    $host = strtolower( trim( $host ) );
+    $host = (string) preg_replace( '/:\d+$/', '', $host );
+
+    return $host;
+}
+
+/**
+ * Whether WordPress is running on the protected staging2 environment.
+ */
+function nvx_environment_is_staging2(): bool {
+    $host = nvx_environment_host();
+
+    /**
+     * Filter staging2 detection without coupling it to presentation behavior.
+     *
+     * @param bool   $is_staging2 Whether the canonical staging2 host is active.
+     * @param string $host        Normalized WordPress host.
+     */
+    return (bool) apply_filters( 'nvx_environment_is_staging2', 'staging2.nuvanx.com' === $host, $host );
+}
+
+/** Backward-compatible camelCase adapter used by older theme snapshots. */
+function nvxEnvironmentIsStaging2(): bool {
+    return nvx_environment_is_staging2();
 }
 
 /**

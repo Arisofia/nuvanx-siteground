@@ -416,23 +416,40 @@ final class NvxProductionReadinessCommand {
 		}
 	}
 
-	private function applyPrimaryMenu(): void {
-		if ( ! function_exists( 'nvxNavigationPrimaryBlueprint' ) && ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
-			$candidate_paths = array(
-				__DIR__ . '/theme/inc/nvx-navigation-filters.php',
-				dirname( __DIR__ ) . '/theme/inc/nvx-navigation-filters.php',
-				dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php',
-				get_template_directory() . '/inc/nvx-navigation-filters.php',
-			);
-			foreach ( $candidate_paths as $inc_nav ) {
-				if ( is_readable( $inc_nav ) ) {
-					require_once $inc_nav;
-					if ( function_exists( 'nvxNavigationPrimaryBlueprint' ) || function_exists( 'nvx_navigation_resolved_fallback' ) ) {
-						break;
-					}
+	private function ensureNavigationDependenciesLoaded(): void {
+		if ( function_exists( 'nvxNavigationPrimaryBlueprint' ) || function_exists( 'nvx_navigation_resolved_fallback' ) ) {
+			return;
+		}
+		$candidate_paths = array(
+			__DIR__ . '/theme/inc/nvx-navigation-filters.php',
+			dirname( __DIR__ ) . '/theme/inc/nvx-navigation-filters.php',
+			dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php',
+			get_template_directory() . '/inc/nvx-navigation-filters.php',
+		);
+		foreach ( $candidate_paths as $inc_nav ) {
+			if ( is_readable( $inc_nav ) ) {
+				require_once $inc_nav;
+				if ( function_exists( 'nvxNavigationPrimaryBlueprint' ) || function_exists( 'nvx_navigation_resolved_fallback' ) ) {
+					break;
 				}
 			}
 		}
+	}
+
+	private function ensurePrimaryMenuId(): int {
+		$menu_id = NvxProductionReadinessHelper::primaryMenuId();
+		if ( $menu_id > 0 ) {
+			return $menu_id;
+		}
+		$created = wp_create_nav_menu( 'NUVANX Principal' );
+		if ( is_wp_error( $created ) ) {
+			WP_CLI::error( 'Unable to create NUVANX Principal menu: ' . $created->get_error_message() );
+		}
+		return (int) $created;
+	}
+
+	private function applyPrimaryMenu(): void {
+		$this->ensureNavigationDependenciesLoaded();
 		if ( ! function_exists( 'nvxNavigationPrimaryBlueprint' ) && ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			WP_CLI::error( 'Canonical navigation blueprint is unavailable.' );
 		}
@@ -442,14 +459,7 @@ final class NvxProductionReadinessCommand {
 			WP_CLI::error( 'Canonical navigation resolved to an empty tree.' );
 		}
 
-		$menu_id = NvxProductionReadinessHelper::primaryMenuId();
-		if ( $menu_id < 1 ) {
-			$created = wp_create_nav_menu( 'NUVANX Principal' );
-			if ( is_wp_error( $created ) ) {
-				WP_CLI::error( 'Unable to create NUVANX Principal menu: ' . $created->get_error_message() );
-			}
-			$menu_id = (int) $created;
-		}
+		$menu_id = $this->ensurePrimaryMenuId();
 
 		$existing_item_ids = array();
 		$items = wp_get_nav_menu_items( $menu_id, array( 'post_status' => 'any' ) );

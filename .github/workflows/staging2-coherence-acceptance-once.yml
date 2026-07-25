@@ -1,0 +1,119 @@
+name: Staging2 Coherence Acceptance Once
+
+on:
+  push:
+    branches:
+      - fix/staging2-endolaser-cases-heroes-20260725
+    paths:
+      - '.github/workflows/staging2-coherence-acceptance-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configure strict SSH authentication
+        env:
+          STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          STAGING2_SSH_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          STAGING2_SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          STAGING2_SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          STAGING2_SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${STAGING2_SSH_HOST:?Missing STAGING2_SSH_HOST secret}"
+          : "${STAGING2_SSH_USER:?Missing STAGING2_SSH_USER secret}"
+          : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY secret}"
+          : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS secret}"
+          SSH_PORT="${STAGING2_SSH_PORT:-18765}"
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
+          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName $STAGING2_SSH_HOST
+            User $STAGING2_SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Verify technology blog and valoración contracts
+        run: |
+          set -euo pipefail
+          mkdir -p staging2-coherence-evidence/html
+          pages=(
+            endolift-facial-papada-mandibula
+            endolaser-corporal-grasa-localizada
+            exion-face
+            exion-body
+            exion-fractional
+            laser-co2-fraccionado-madrid-textura-cicatrices-poro
+            btl-exilite-ipl-madrid
+            emfusion
+            medicina-estetica
+            labios-acido-hialuronico-madrid
+            rinomodelacion-sin-cirugia-madrid
+            ojeras-surco-lagrimal-madrid
+            bioestimuladores-colageno-madrid
+          )
+          : > staging2-coherence-evidence/report.txt
+          for slug in "${pages[@]}"; do
+            destination="staging2-coherence-evidence/html/${slug}.html"
+            ssh nvx-staging2 "curl -fsSL --max-time 45 'https://staging2.nuvanx.com/${slug}/'" > "$destination"
+            grep -Fq 'nvx-site-coherent-page' "$destination"
+            grep -Fq 'nvx-canonical-page-hero' "$destination"
+            grep -Fq 'nvx-editorial-hero__copy' "$destination"
+            grep -Fq 'nvx-site-coherence-css' "$destination"
+            grep -Fq 'nvx-header__cta' "$destination"
+            grep -Fq 'window.nvxValoracionModal' "$destination"
+            grep -Fq 'nvx-valoracion-modal' "$destination"
+            printf '%s\tOK\n' "$slug" >> staging2-coherence-evidence/report.txt
+          done
+
+          ssh nvx-staging2 "curl -fsSL --max-time 45 'https://staging2.nuvanx.com/blog/'" > staging2-coherence-evidence/html/blog.html
+          grep -Fq 'nvx-blog-archive__hero' staging2-coherence-evidence/html/blog.html
+          grep -Fq 'nvx-blog-archive__body' staging2-coherence-evidence/html/blog.html
+          grep -Fq 'nvx-blog-card' staging2-coherence-evidence/html/blog.html
+          grep -Fq 'nvx-site-coherence-css' staging2-coherence-evidence/html/blog.html
+          printf 'blog\tOK\n' >> staging2-coherence-evidence/report.txt
+
+          ssh nvx-staging2 "curl -fsSL --max-time 45 'https://staging2.nuvanx.com/madrid/valoracion/'" > staging2-coherence-evidence/html/valoracion.html
+          grep -Fq 'nvx-valoracion-page' staging2-coherence-evidence/html/valoracion.html
+          grep -Fq 'nvx-canonical-page-hero' staging2-coherence-evidence/html/valoracion.html
+          grep -Fq 'nvx-valoracion-intro' staging2-coherence-evidence/html/valoracion.html
+          grep -Fq 'window.nvxValoracionModal' staging2-coherence-evidence/html/valoracion.html
+          printf 'valoracion\tOK\n' >> staging2-coherence-evidence/report.txt
+
+          css_url="$(grep -oE 'https://staging2\.nuvanx\.com/wp-content/themes/nuvanx-medical/assets/css/nvx-site-coherence\.css[^"'"' ]*' staging2-coherence-evidence/html/blog.html | head -n 1)"
+          test -n "$css_url"
+          ssh nvx-staging2 "curl -fsSL --max-time 45 '$css_url'" > staging2-coherence-evidence/site-coherence.css
+          grep -Fq '.nvx-header__cta.nvx-btn' staging2-coherence-evidence/site-coherence.css
+          grep -Fq '.nvx-blog-card' staging2-coherence-evidence/site-coherence.css
+          grep -Fq '.nvx-valoracion-page' staging2-coherence-evidence/site-coherence.css
+          printf 'stylesheet\tOK\n' >> staging2-coherence-evidence/report.txt
+          cat staging2-coherence-evidence/report.txt
+
+      - name: Upload acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: staging2-coherence-acceptance
+          path: staging2-coherence-evidence/
+          retention-days: 30
+          if-no-files-found: error

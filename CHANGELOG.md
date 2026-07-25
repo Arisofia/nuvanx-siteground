@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.07.25
+- **General cleanup**
+  - Eliminado stub deprecado `docs/deployment.md` (redirigía a `docs/operations/deployment.md`).
+  - Actualizado VERSION a 2026.07.25.
+  - Repositorio deja solo lo activo y necesario para el flujo canónico de producción/staging2.
+
 ## 2026.07.22
 - **Repo Cleanup Audit**
   - Eliminados archivos PHP huérfanos (`nvx-home-content-v2.php`, `nvx-home-copy.php`).

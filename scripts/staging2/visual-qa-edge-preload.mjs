@@ -1,7 +1,8 @@
 import fs from 'node:fs';
+import http from 'node:http';
+import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
-import crypto from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
 
 const nativeFetch = globalThis.fetch;
@@ -42,43 +43,179 @@ function shellQuote(value) {
   return `'${String(value).replaceAll("'", `'"'"'`)}'`;
 }
 
+function parseConnectAuthority(authority) {
+  const separator = authority.lastIndexOf(':');
+  if (separator < 1) return null;
+  const host = authority.slice(0, separator).trim().toLowerCase();
+  const port = Number.parseInt(authority.slice(separator + 1), 10);
+  if (!/^[a-z0-9.-]+$/.test(host) || !Number.isInteger(port) || port < 1 || port > 65535) return null;
+  return { host, port };
+}
+
+const remoteBridgePhp = String.raw`
+$host = (string) ($argv[1] ?? '');
+$port = (int) ($argv[2] ?? 0);
+if (1 !== preg_match('/^[A-Za-z0-9.-]+$/', $host) || $port < 1 || $port > 65535) {
+    fwrite(STDERR, "invalid bridge target\n");
+    exit(64);
+}
+$socket = @stream_socket_client('tcp://' . $host . ':' . $port, $errno, $errstr, 20);
+if (!is_resource($socket)) {
+    fwrite(STDERR, "bridge connect failed: {$errno} {$errstr}\n");
+    exit(69);
+}
+stream_set_blocking($socket, false);
+stream_set_blocking(STDIN, false);
+while (true) {
+    $read = array();
+    if (!feof(STDIN)) { $read[] = STDIN; }
+    if (!feof($socket)) { $read[] = $socket; }
+    if (array() === $read) { break; }
+    $write = null;
+    $except = null;
+    $selected = @stream_select($read, $write, $except, 30);
+    if (false === $selected) { break; }
+    if (0 === $selected) { continue; }
+    foreach ($read as $source) {
+        $chunk = fread($source, 65536);
+        if (false === $chunk) { exit(74); }
+        if ('' === $chunk) { continue; }
+        $target = ($source === STDIN) ? $socket : STDOUT;
+        while ('' !== $chunk) {
+            $written = fwrite($target, $chunk);
+            if (false === $written || 0 === $written) { exit(74); }
+            $chunk = (string) substr($chunk, $written);
+        }
+        fflush($target);
+    }
+}
+fclose($socket);
+`;
+
 const realChrome = resolveRealChrome();
 process.env.NVX_REAL_CHROME_BIN = realChrome;
-
-const socksPort = 12000 + crypto.randomInt(0, 20000);
-const proxyLogPath = path.join(evidenceDir, `visual-qa-ssh-proxy-attempt-${visualQaAttempt}.log`);
-const proxyLogFd = fs.openSync(proxyLogPath, 'a');
-const sshProxy = spawn(
-  '/usr/bin/ssh',
-  [
-    '-N',
-    '-D',
-    `127.0.0.1:${socksPort}`,
-    '-o',
-    'ExitOnForwardFailure=yes',
-    '-o',
-    'ServerAliveInterval=15',
-    '-o',
-    'ServerAliveCountMax=2',
-    sshAlias,
-  ],
-  { stdio: ['ignore', proxyLogFd, proxyLogFd] },
-);
-
+const bridgeCode = Buffer.from(remoteBridgePhp, 'utf8').toString('base64');
+const controlPath = path.join(os.tmpdir(), `nvx-ssh-control-${process.pid}-${visualQaAttempt}`);
+const bridgeLogPath = path.join(evidenceDir, `visual-qa-ssh-bridge-attempt-${visualQaAttempt}.log`);
+const bridgeLogFd = fs.openSync(bridgeLogPath, 'a');
+const bridgeProcesses = new Set();
+const clientSockets = new Set();
+let chromeWrapper = '';
 let proxyCleaned = false;
+
+function logBridge(message) {
+  fs.writeSync(bridgeLogFd, `${new Date().toISOString()} ${message}\n`);
+}
+
+function spawnRemoteBridge(host, port) {
+  const phpEval = `eval(base64_decode("${bridgeCode}"));`;
+  const remoteCommand = `php -r ${shellQuote(phpEval)} -- ${shellQuote(host)} ${port}`;
+  const child = spawn(
+    '/usr/bin/ssh',
+    [
+      '-o',
+      'ControlMaster=auto',
+      '-o',
+      'ControlPersist=60',
+      '-o',
+      `ControlPath=${controlPath}`,
+      sshAlias,
+      remoteCommand,
+    ],
+    { stdio: ['pipe', 'pipe', 'pipe'] },
+  );
+  bridgeProcesses.add(child);
+  child.stderr.on('data', (chunk) => logBridge(`remote ${host}:${port} ${String(chunk).trim()}`));
+  child.once('exit', (code, signal) => {
+    bridgeProcesses.delete(child);
+    if (code && code !== 0) logBridge(`remote ${host}:${port} exit=${code} signal=${signal || ''}`);
+  });
+  return child;
+}
+
+const proxyServer = http.createServer((_request, response) => {
+  response.writeHead(501, { 'content-type': 'text/plain; charset=utf-8' });
+  response.end('CONNECT is required');
+});
+
+proxyServer.on('connect', (request, clientSocket, head) => {
+  const target = parseConnectAuthority(request.url || '');
+  if (!target) {
+    clientSocket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n');
+    return;
+  }
+
+  clientSockets.add(clientSocket);
+  clientSocket.once('close', () => clientSockets.delete(clientSocket));
+  clientSocket.on('error', (error) => logBridge(`client ${target.host}:${target.port} ${error.message}`));
+
+  if (target.host === 'staging2.nuvanx.com' && target.port === 443) {
+    const bridge = spawnRemoteBridge(target.host, target.port);
+    const closeBridge = () => {
+      if (!bridge.stdin.destroyed) bridge.stdin.end();
+      if (bridge.exitCode === null && !bridge.killed) bridge.kill('SIGTERM');
+    };
+    clientSocket.once('close', closeBridge);
+    bridge.once('error', (error) => {
+      logBridge(`spawn ${target.host}:${target.port} ${error.message}`);
+      clientSocket.destroy(error);
+    });
+    bridge.once('spawn', () => {
+      clientSocket.write('HTTP/1.1 200 Connection Established\r\nProxy-Agent: NUVANX-SSH-Bridge\r\n\r\n');
+      if (head.length) bridge.stdin.write(head);
+      clientSocket.pipe(bridge.stdin);
+      bridge.stdout.pipe(clientSocket);
+    });
+    bridge.once('exit', () => {
+      if (!clientSocket.destroyed) clientSocket.end();
+    });
+    return;
+  }
+
+  const upstream = net.connect(target.port, target.host);
+  upstream.once('connect', () => {
+    clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+    if (head.length) upstream.write(head);
+    clientSocket.pipe(upstream);
+    upstream.pipe(clientSocket);
+  });
+  upstream.once('error', (error) => {
+    logBridge(`direct ${target.host}:${target.port} ${error.message}`);
+    clientSocket.destroy(error);
+  });
+  clientSocket.once('close', () => upstream.destroy());
+});
+
+await new Promise((resolve, reject) => {
+  proxyServer.once('error', reject);
+  proxyServer.listen(0, '127.0.0.1', resolve);
+});
+proxyServer.unref();
+const proxyAddress = proxyServer.address();
+if (!proxyAddress || typeof proxyAddress === 'string') {
+  throw new Error('VISUAL_QA_SSH_BRIDGE_UNAVAILABLE local proxy did not expose a TCP port');
+}
+const proxyPort = proxyAddress.port;
+
 function cleanupProxy() {
   if (proxyCleaned) return;
   proxyCleaned = true;
-  if (sshProxy.exitCode === null && !sshProxy.killed) sshProxy.kill('SIGTERM');
-  try { fs.closeSync(proxyLogFd); } catch { /* already closed */ }
-  try { fs.unlinkSync(process.env.CHROME_BIN || ''); } catch { /* wrapper may not exist */ }
+  for (const socket of clientSockets) socket.destroy();
+  for (const child of bridgeProcesses) {
+    if (!child.stdin.destroyed) child.stdin.end();
+    if (child.exitCode === null && !child.killed) child.kill('SIGTERM');
+  }
+  proxyServer.close();
+  spawnSync('/usr/bin/ssh', ['-S', controlPath, '-O', 'exit', sshAlias], { stdio: 'ignore' });
+  try { fs.closeSync(bridgeLogFd); } catch { /* already closed */ }
+  try { fs.unlinkSync(chromeWrapper); } catch { /* wrapper may not exist */ }
+  try { fs.unlinkSync(controlPath); } catch { /* control socket may not exist */ }
 }
 process.once('exit', cleanupProxy);
 
 let proxyReady = false;
 let lastProbe = '';
-for (let attempt = 1; attempt <= 6; attempt += 1) {
-  if (sshProxy.exitCode !== null) break;
+for (let attempt = 1; attempt <= 4; attempt += 1) {
   const probe = spawnSync(
     '/usr/bin/curl',
     [
@@ -86,9 +223,11 @@ for (let attempt = 1; attempt <= 6; attempt += 1) {
       '--show-error',
       '--fail',
       '--max-time',
-      '30',
-      '--socks5-hostname',
-      `127.0.0.1:${socksPort}`,
+      '45',
+      '--noproxy',
+      '',
+      '--proxy',
+      `http://127.0.0.1:${proxyPort}`,
       '--user-agent',
       userAgent,
       'https://staging2.nuvanx.com/',
@@ -100,21 +239,20 @@ for (let attempt = 1; attempt <= 6; attempt += 1) {
     proxyReady = true;
     break;
   }
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, attempt * 750);
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, attempt * 1000);
 }
 
 if (!proxyReady) {
   cleanupProxy();
-  let proxyLog = '';
-  try { proxyLog = fs.readFileSync(proxyLogPath, 'utf8').slice(-1200); } catch { /* no log */ }
-  throw new Error(`VISUAL_QA_SSH_PROXY_UNAVAILABLE alias=${sshAlias} port=${socksPort} probe=${lastProbe} ssh=${proxyLog}`);
+  let bridgeLog = '';
+  try { bridgeLog = fs.readFileSync(bridgeLogPath, 'utf8').slice(-1600); } catch { /* no log */ }
+  throw new Error(`VISUAL_QA_SSH_BRIDGE_UNAVAILABLE alias=${sshAlias} port=${proxyPort} probe=${lastProbe} bridge=${bridgeLog}`);
 }
 
-const chromeWrapper = path.join(os.tmpdir(), `nvx-chrome-via-staging2-${process.pid}-${visualQaAttempt}`);
+chromeWrapper = path.join(os.tmpdir(), `nvx-chrome-via-staging2-${process.pid}-${visualQaAttempt}`);
 const chromeCommand = [
   `exec ${shellQuote(realChrome)}`,
-  `--proxy-server=${shellQuote(`socks5://127.0.0.1:${socksPort}`)}`,
-  `--host-resolver-rules=${shellQuote('MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1')}`,
+  `--proxy-server=${shellQuote(`http://127.0.0.1:${proxyPort}`)}`,
   `--proxy-bypass-list=${shellQuote('localhost;127.0.0.1')}`,
   '"$@"',
 ].join(' ');
@@ -124,7 +262,7 @@ fs.writeFileSync(
   { mode: 0o700 },
 );
 process.env.CHROME_BIN = chromeWrapper;
-nativeConsoleError(`VISUAL_QA_SSH_PROXY_READY alias=${sshAlias} port=${socksPort} attempt=${visualQaAttempt}`);
+nativeConsoleError(`VISUAL_QA_SSH_BRIDGE_READY alias=${sshAlias} port=${proxyPort} attempt=${visualQaAttempt}`);
 
 globalThis.fetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input?.url;

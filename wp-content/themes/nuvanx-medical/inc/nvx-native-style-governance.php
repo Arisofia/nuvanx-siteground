@@ -15,7 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Whether the theme owns the complete body markup for the current page. */
 function nvx_theme_owns_complete_page_markup(): bool {
+	$github_managed_slugs = array(
+		'soluciones-medicas',
+		'clinicas-de-medicina-estetica-nuvanx',
+		'valoracion',
+	);
+
 	return is_front_page()
+		|| is_page( $github_managed_slugs )
 		|| ( function_exists( 'nvxCasesPageIsCurrent' ) && nvxCasesPageIsCurrent() );
 }
 

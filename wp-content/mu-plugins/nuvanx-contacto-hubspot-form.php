@@ -18,7 +18,7 @@ if ( ! defined( 'NVX_CONTACTO_HS_REGION' ) ) {
  * Render the dedicated contact form. The form ID must be supplied in wp-config.php
  * so deployments cannot silently reuse the medical-assessment form.
  */
-function nvx_contacto_hubspot_form_markup(): string {
+function nvxContactoHubspotFormMarkup(): string {
 	$form_id = defined( 'NVX_CONTACTO_HS_FORM_ID' ) ? strtolower( trim( (string) NVX_CONTACTO_HS_FORM_ID ) ) : '';
 
 	if ( '5042522a-0bc5-4381-ac3e-5aee8649b69c' === $form_id ) {
@@ -47,7 +47,7 @@ function nvx_contacto_hubspot_form_markup(): string {
  * owner, source, calculation period and refresh process. This prevents the
  * unverified 3,500+, 4.8/5, 15+ and 89% claims from reaching rendered HTML.
  */
-function nvx_remove_unverified_quantitative_trust_badges( string $content ): string {
+function nvxRemoveUnverifiedQuantitativeTrustBadges( string $content ): string {
 	if ( false === strpos( $content, 'nvx-trust-badges' ) ) {
 		return $content;
 	}
@@ -60,14 +60,14 @@ function nvx_remove_unverified_quantitative_trust_badges( string $content ): str
 
 	return is_string( $filtered ) ? $filtered : $content;
 }
-add_filter( 'the_content', 'nvx_remove_unverified_quantitative_trust_badges', 22 );
+add_filter( 'the_content', 'nvxRemoveUnverifiedQuantitativeTrustBadges', 22 );
 
 /**
  * Canonical contact social image (path relative to uploads when possible).
  *
  * @return array{url:string,width:int,height:int,type:string,alt:string}
  */
-function nvx_contacto_opengraph_image_meta(): array {
+function nvxContactoOpengraphImageMeta(): array {
 	return array(
 		'url'    => home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' ),
 		'width'  => 1672,
@@ -88,12 +88,12 @@ function nvx_contacto_opengraph_image_meta(): array {
  *
  * @param mixed $image_container Yoast Open Graph image container.
  */
-function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
+function nvxContactoAddYoastOpengraphImage( $image_container ): void {
 	if ( ! function_exists( 'nvx_contacto_audit_is_contact_page' ) || ! nvx_contacto_audit_is_contact_page() || ! is_object( $image_container ) ) {
 		return;
 	}
 
-	$meta      = nvx_contacto_opengraph_image_meta();
+	$meta      = nvxContactoOpengraphImageMeta();
 	$image_url = $meta['url'];
 	$image_id  = function_exists( 'attachment_url_to_postid' ) ? (int) attachment_url_to_postid( $image_url ) : 0;
 
@@ -114,14 +114,14 @@ function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
 		);
 	}
 }
-add_filter( 'wpseo_add_opengraph_images', 'nvx_contacto_add_yoast_opengraph_image', 100 );
+add_filter( 'wpseo_add_opengraph_images', 'nvxContactoAddYoastOpengraphImage', 100 );
 
 /**
  * Start a narrow output buffer for wp_head on front and page requests. This is
  * used to remove legacy Schema.org JSON-LD blocks emitted directly by old head
  * callbacks and to enforce the final contact Open Graph image contract.
  */
-function nvx_canonical_schema_head_buffer_start(): void {
+function nvxCanonicalSchemaHeadBufferStart(): void {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return;
 	}
@@ -132,7 +132,7 @@ function nvx_canonical_schema_head_buffer_start(): void {
 	$GLOBALS['nvx_schema_head_buffer_level'] = ob_get_level();
 	ob_start();
 }
-add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_start', PHP_INT_MIN );
+add_action( 'wp_head', 'nvxCanonicalSchemaHeadBufferStart', PHP_INT_MIN );
 
 /**
  * Helper to filter non-canonical Schema.org JSON-LD scripts.
@@ -140,7 +140,7 @@ add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_start', PHP_INT_MIN );
  * @param array $matches Regular expression matches.
  * @return string Filtered script tag or empty string.
  */
-function nvx_contacto_clean_ldjson_tag( array $matches ): string {
+function nvxContactoCleanLdjsonTag( array $matches ): string {
 	$tag     = (string) ( $matches[0] ?? '' );
 	$payload = (string) ( $matches[2] ?? '' );
 
@@ -155,7 +155,7 @@ function nvx_contacto_clean_ldjson_tag( array $matches ): string {
  * Add the canonical contact Open Graph image tags to the final head output only
  * when no existing `og:image` tag was emitted by Yoast or another integration.
  */
-function nvx_contacto_enforce_final_og_image( string $html ): string {
+function nvxContactoEnforceFinalOgImage( string $html ): string {
 	if (
 		! function_exists( 'nvx_contacto_audit_is_contact_page' )
 		|| ! nvx_contacto_audit_is_contact_page()
@@ -164,7 +164,7 @@ function nvx_contacto_enforce_final_og_image( string $html ): string {
 		return $html;
 	}
 
-	$meta      = nvx_contacto_opengraph_image_meta();
+	$meta      = nvxContactoOpengraphImageMeta();
 	$image_url = esc_url( $meta['url'] );
 	$tags      = '<meta property="og:image" content="' . $image_url . '" />'
 		. '<meta property="og:image:secure_url" content="' . $image_url . '" />'
@@ -182,7 +182,7 @@ function nvx_contacto_enforce_final_og_image( string $html ): string {
  * Remove Schema.org JSON-LD scripts from wp_head unless they are Yoast's
  * canonical `yoast-schema-graph` block. Non-schema ld+json payloads are kept.
  */
-function nvx_canonical_schema_head_buffer_end(): void {
+function nvxCanonicalSchemaHeadBufferEnd(): void {
 	if ( ! isset( $GLOBALS['nvx_schema_head_buffer_level'] ) ) {
 		return;
 	}
@@ -202,7 +202,7 @@ function nvx_canonical_schema_head_buffer_end(): void {
 	if ( false !== stripos( $html, 'ld+json' ) ) {
 		$schema_filtered = preg_replace_callback(
 			'#<script\b(?=[^>]*\btype\s*=\s*(["\'])application/ld\+json\1)[^>]*>([\s\S]*?)</script>#iu',
-			'nvx_contacto_clean_ldjson_tag',
+			'nvxContactoCleanLdjsonTag',
 			$html
 		);
 		if ( is_string( $schema_filtered ) ) {
@@ -210,6 +210,6 @@ function nvx_canonical_schema_head_buffer_end(): void {
 		}
 	}
 
-	echo nvx_contacto_enforce_final_og_image( $html );
+	echo nvxContactoEnforceFinalOgImage( $html ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }
-add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_end', PHP_INT_MAX );
+add_action( 'wp_head', 'nvxCanonicalSchemaHeadBufferEnd', PHP_INT_MAX );

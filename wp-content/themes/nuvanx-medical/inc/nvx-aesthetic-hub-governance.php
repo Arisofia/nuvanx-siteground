@@ -14,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /** Resolve the valuation URL without inventing an unavailable treatment route. */
-function nvx_aesthetic_hub_valuation_url(): string {
-	return function_exists( 'nvx_cta_valoracion_url' )
-		? nvx_cta_valoracion_url()
+function nvxAestheticHubValuationUrl(): string {
+	return function_exists( 'nvx_cta_valoracion_url' ) // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
+		? nvx_cta_valoracion_url() // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
 		: home_url( '/madrid/valoracion/' );
 }
 
@@ -26,12 +26,12 @@ function nvx_aesthetic_hub_valuation_url(): string {
  * @param string             $primary Canonical slug.
  * @param array<int, string> $alternates Historical slugs.
  */
-function nvx_aesthetic_hub_has_published_route( string $primary, array $alternates = array() ): bool {
-	if ( ! function_exists( 'nvx_aesthetic_lookup_published_url' ) ) {
+function nvxAestheticHubHasPublishedRoute( string $primary, array $alternates = array() ): bool {
+	if ( ! function_exists( 'nvx_aesthetic_lookup_published_url' ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
 		return false;
 	}
 
-	foreach ( array_merge( array( $primary ), $alternates ) as $slug ) {
+	foreach ( array_merge( array( $primary ), $alternates ) as $slug ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound
 		if ( null !== nvx_aesthetic_lookup_published_url( $slug ) ) {
 			return true;
 		}
@@ -47,14 +47,14 @@ function nvx_aesthetic_hub_has_published_route( string $primary, array $alternat
  * @param string             $primary    Canonical slug.
  * @param array<int, string> $alternates Historical slugs.
  */
-function nvx_aesthetic_hub_guard_route( string $html, string $primary, array $alternates = array() ): string {
-	if ( nvx_aesthetic_hub_has_published_route( $primary, $alternates ) ) {
+function nvxAestheticHubGuardRoute( string $html, string $primary, array $alternates = array() ): string {
+	if ( nvxAestheticHubHasPublishedRoute( $primary, $alternates ) ) {
 		return $html;
 	}
 
 	$speculative = home_url( '/' . trim( $primary, '/' ) . '/' );
 	$old_link    = '<a class="nvx-brand-card__link" href="' . esc_url( $speculative ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . '</a>';
-	$new_link    = '<a class="nvx-brand-card__link nvx-open-valoracion-modal" href="' . esc_url( nvx_aesthetic_hub_valuation_url() ) . '" data-gtag="click-reserve">' . esc_html__( 'Solicitar valoración', 'nuvanx-medical' ) . '</a>';
+	$new_link    = '<a class="nvx-brand-card__link nvx-open-valoracion-modal" href="' . esc_url( nvxAestheticHubValuationUrl() ) . '" data-gtag="' . esc_attr( 'click-reserve' ) . '">' . esc_html__( 'Solicitar valoración', 'nuvanx-medical' ) . '</a>';
 
 	return str_replace( $old_link, $new_link, $html );
 }
@@ -65,7 +65,7 @@ function nvx_aesthetic_hub_guard_route( string $html, string $primary, array $al
  * @param string $content Rendered hub content.
  * @return string Governed hub content.
  */
-function nvx_aesthetic_hub_governance_filter( string $content ): string {
+function nvxAestheticHubGovernanceFilter( string $content ): string {
 	if ( false === strpos( $content, 'nvx-aesthetic-editorial' ) ) {
 		return $content;
 	}
@@ -125,9 +125,9 @@ function nvx_aesthetic_hub_governance_filter( string $content ): string {
 	);
 
 	foreach ( $routes as $route ) {
-		$content = nvx_aesthetic_hub_guard_route( $content, $route[0], $route[1] );
+		$content = nvxAestheticHubGuardRoute( $content, $route[0], $route[1] );
 	}
 
 	return $content;
 }
-add_filter( 'the_content', 'nvx_aesthetic_hub_governance_filter', 20 );
+add_filter( 'the_content', 'nvxAestheticHubGovernanceFilter', 20 );

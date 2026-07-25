@@ -54,8 +54,13 @@ function nvx_render_evidence_panel( array $args ): string {
 				if ( is_numeric( $parsed_args['image_id_or_url'] ) ) {
 					echo wp_get_attachment_image( (int) $parsed_args['image_id_or_url'], 'large', false, array( 'class' => 'nvx-evidence-panel__image' ) );
 				} else {
+					$alt_text = preg_replace( '/\b(imagen\s+de|foto\s+de|fotografía\s+de|image\s+of|picture\s+of|imagen|foto|fotografía|image|picture)\b/ui', '', (string) $parsed_args['image_alt'] );
+					$alt_text = trim( (string) preg_replace( '/\s+/', ' ', (string) $alt_text ) );
+					if ( '' === $alt_text ) {
+						$alt_text = __( 'Evolución clínica de paciente', 'nuvanx-medical' );
+					}
 					?>
-					<img src="<?php echo esc_url( $parsed_args['image_id_or_url'] ); ?>" alt="<?php echo esc_attr( trim( (string) preg_replace( '/\b(imagen|image|foto|fotografía)\b/ui', '', (string) $parsed_args['image_alt'] ) ) ); ?>" class="nvx-evidence-panel__image" loading="lazy">
+					<img src="<?php echo esc_url( $parsed_args['image_id_or_url'] ); ?>" alt="<?php echo esc_attr( $alt_text ); ?>" class="nvx-evidence-panel__image" loading="lazy">
 					<?php
 				}
 				?>

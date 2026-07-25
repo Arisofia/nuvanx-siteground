@@ -37,7 +37,7 @@ for (const file of runtime) {
     if (content.codePointAt(0) === 0xfeff) fail(`${relativePath}: UTF-8 BOM`);
     if (/[ÃÂ]|â(?:€|€™|€œ|€)/u.test(content)) fail(`${relativePath}: probable mojibake`);
     if (/(^|[-_.])(legacy|old|backup|bak|temp|tmp|deprecated|unused|orphan)([-_.]|$)/i.test(name)) fail(`${relativePath}: obsolete filename`);
-    if (/staging2\.nuvanx\.com/i.test(content) && !relativePath.endsWith('/inc/nvx-environment-flags.php')) fail(`${relativePath}: staging hostname`);
+    if (/staging2\.nuvanx\.com/i.test(content) && !relativePath.endsWith('/inc/nvx-environment-flags.php') && !relativePath.endsWith('/inc/nvx-staging2-canonical-closure.php')) fail(`${relativePath}: staging hostname`);
     if (/\.css$/i.test(file) && /!important\b/i.test(content)) fail(`${relativePath}: !important`);
     if (/\.css$/i.test(file) && /[^{}]+\{\s*\}/m.test(content)) fail(`${relativePath}: empty CSS rule`);
   } catch (error) { fail(`${relativePath}: unable to inspect (${error.code || error})`); }

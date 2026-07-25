@@ -171,6 +171,7 @@ require_once __DIR__ . '/nvx-btl-clinical-governance.php';
 require_once __DIR__ . '/nvx-clinical-language.php';
 require_once __DIR__ . '/nvx-blog-system.php';
 require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
+require_once __DIR__ . '/nvx-site-coherence.php';
 require_once __DIR__ . '/nvx-navigation-filters.php';
 require_once __DIR__ . '/nvx-protocol-hub.php';
 require_once __DIR__ . '/nvx-protocol-pages.php';

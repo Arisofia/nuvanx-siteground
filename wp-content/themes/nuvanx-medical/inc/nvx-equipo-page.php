@@ -12,6 +12,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'NVX_REGEX_MEDIA' ) ) {
+	define( 'NVX_REGEX_MEDIA', '/<(?:figure|div|img)\b[^>]*>[\s\S]*?(?:<\/(?:figure|div)>|$)/iu' );
+}
+
 /**
  * Singular context.
  */

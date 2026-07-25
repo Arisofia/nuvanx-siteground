@@ -16,6 +16,14 @@ if ( ! defined( 'NVX_URL_REMODELACION' ) ) {
 	define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
 }
 
+$structure_css = 'assets/css/nvx-home-structure.css';
+wp_enqueue_style(
+	'nvx-home-structure',
+	get_template_directory_uri() . '/' . $structure_css,
+	array( 'nvx-home-v3' ),
+	nvx_asset_version( $structure_css )
+);
+
 $protocols = array(
 	array(
 		'number' => '01',
@@ -78,7 +86,7 @@ ob_start();
 				<track kind="subtitles" src="/uploads/captions.vtt" srclang="es" label="Español">
 				<track kind="descriptions" src="/uploads/descriptions.vtt" srclang="es" label="Audiodescripción">
 			</video>
-			<button id="nvx-home-hero-video-pause" class="nvx-home-hero__video-control" aria-label="Pause background video">Pause</button>
+			<button id="nvx-home-hero-video-pause" class="nvx-home-hero__video-control" aria-label="Pausar vídeo de fondo">Pausar</button>
 		</div>
 		<div class="nvx-home-hero__copy">
 			<p class="nvx-home-eyebrow">NUVANX · MEDICINA ESTÉTICA LÁSER · MADRID</p>

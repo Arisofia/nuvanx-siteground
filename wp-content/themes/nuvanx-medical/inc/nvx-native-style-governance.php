@@ -10,38 +10,38 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /** Whether the theme owns the complete body markup for the current page. */
 function nvx_theme_owns_complete_page_markup(): bool {
-	$github_managed_slugs = array(
-		'soluciones-medicas',
-		'clinicas-de-medicina-estetica-nuvanx',
-		'valoracion',
-	);
+    $github_managed_slugs = array(
+        'soluciones-medicas',
+        'clinicas-de-medicina-estetica-nuvanx',
+        'valoracion',
+    );
 
-	return is_front_page()
-		|| is_page( $github_managed_slugs )
-		|| ( function_exists( 'nvxCasesPageIsCurrent' ) && nvxCasesPageIsCurrent() );
+    return is_front_page()
+        || is_page( $github_managed_slugs )
+        || ( function_exists( 'nvxCasesPageIsCurrent' ) && nvxCasesPageIsCurrent() );
 }
 
 /** Dequeue block styles only when the rendered page contains no block markup. */
 function nvx_theme_dequeue_native_block_styles(): void {
-	if ( is_admin() || ! nvx_theme_owns_complete_page_markup() ) {
-		return;
-	}
+    if ( is_admin() || ! nvx_theme_owns_complete_page_markup() ) {
+        return;
+    }
 
-	$handles = array(
-		'global-styles',
-		'classic-theme-styles',
-		'wp-block-library',
-		'wp-block-library-theme',
-		'core-block-supports',
-	);
+    $handles = array(
+        'global-styles',
+        'classic-theme-styles',
+        'wp-block-library',
+        'wp-block-library-theme',
+        'core-block-supports',
+    );
 
-	foreach ( $handles as $handle ) {
-		wp_dequeue_style( $handle );
-	}
+    foreach ( $handles as $handle ) {
+        wp_dequeue_style( $handle );
+    }
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_dequeue_native_block_styles', 100 );

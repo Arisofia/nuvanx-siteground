@@ -10,7 +10,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -19,15 +19,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return bool `true` only when the catalog exists, the key is valid, and review_status is exactly 'approved_for_publication'.
  */
 function nvx_staging2_canonical_is_approved_strategy(): bool {
-	if ( ! function_exists( 'nvx_strategy_current_page_key' ) || ! function_exists( 'nvx_strategy_page_catalog' ) ) {
-		return false;
-	}
+    if ( ! function_exists( 'nvx_strategy_current_page_key' ) || ! function_exists( 'nvx_strategy_page_catalog' ) ) {
+        return false;
+    }
 
-	$key     = nvx_strategy_current_page_key();
-	$catalog = nvx_strategy_page_catalog();
+    $key     = nvx_strategy_current_page_key();
+    $catalog = nvx_strategy_page_catalog();
 
-	return null !== $key
-		&& 'approved_for_publication' === ( $catalog[ $key ]['review_status'] ?? null );
+    return null !== $key
+        && 'approved_for_publication' === ( $catalog[ $key ]['review_status'] ?? null );
 }
 
 /**
@@ -36,27 +36,27 @@ function nvx_staging2_canonical_is_approved_strategy(): bool {
  * @return string The production URL for the current path, or an empty string when the request is excluded.
  */
 function nvx_staging2_public_canonical_url(): string {
-	$is_strategy_page = function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key();
-	$is_protected     = $is_strategy_page && ! nvx_staging2_canonical_is_approved_strategy();
+    $is_strategy_page = function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key();
+    $is_protected     = $is_strategy_page && ! nvx_staging2_canonical_is_approved_strategy();
 
-	if ( $is_protected || is_404() || is_search() || is_preview() ) {
-		return '';
-	}
+    if ( $is_protected || is_404() || is_search() || is_preview() ) {
+        return '';
+    }
 
-	if ( ! is_front_page() && ! is_home() && ! is_singular() ) {
-		return '';
-	}
+    if ( ! is_front_page() && ! is_home() && ! is_singular() ) {
+        return '';
+    }
 
-	$path = function_exists( 'nvx_seo_current_path' )
-		? nvx_seo_current_path()
-		: (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH );
+    $path = function_exists( 'nvx_seo_current_path' )
+        ? nvx_seo_current_path()
+        : (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/', PHP_URL_PATH );
 
-	$path = '/' . trim( (string) $path, '/' );
-	if ( '/' !== $path ) {
-		$path .= '/';
-	}
+    $path = '/' . trim( (string) $path, '/' );
+    if ( '/' !== $path ) {
+        $path .= '/';
+    }
 
-	return 'https://nuvanx.com' . $path;
+    return 'https://nuvanx.com' . $path;
 }
 
 /**
@@ -66,11 +66,11 @@ function nvx_staging2_public_canonical_url(): string {
  * @return mixed The original value when the site is production or environment detection is unavailable; otherwise, the public canonical URL.
  */
 function nvx_staging2_filter_public_canonical( $url ) {
-	if ( ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
-		return $url;
-	}
+    if ( ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
+        return $url;
+    }
 
-	return nvx_staging2_public_canonical_url();
+    return nvx_staging2_public_canonical_url();
 }
 add_filter( 'wpseo_canonical', 'nvx_staging2_filter_public_canonical', 1000 );
 add_filter( 'wpseo_opengraph_url', 'nvx_staging2_filter_public_canonical', 1000 );
@@ -82,11 +82,11 @@ add_filter( 'wpseo_opengraph_url', 'nvx_staging2_filter_public_canonical', 1000 
  * @return mixed The original or rewritten URL.
  */
 function nvx_staging2_filter_public_image( $url ) {
-	if ( ! is_string( $url ) || ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
-		return $url;
-	}
+    if ( ! is_string( $url ) || ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
+        return $url;
+    }
 
-	return str_replace( 'staging2.nuvanx.com', 'nuvanx.com', $url );
+    return str_replace( 'staging2.nuvanx.com', 'nuvanx.com', $url );
 }
 add_filter( 'wpseo_opengraph_image', 'nvx_staging2_filter_public_image', 1000 );
 add_filter( 'wpseo_twitter_image', 'nvx_staging2_filter_public_image', 1000 );
@@ -99,40 +99,40 @@ add_filter( 'wpseo_twitter_image', 'nvx_staging2_filter_public_image', 1000 );
  * @return array Filtered presenter list.
  */
 function nvx_staging2_filter_canonical_presenters( array $presenters ): array {
-	if ( ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
-		return $presenters;
-	}
+    if ( ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
+        return $presenters;
+    }
 
-	$filtered = array();
-	foreach ( $presenters as $presenter ) {
-		if ( is_object( $presenter ) && is_a( $presenter, 'Yoast\\WP\\SEO\\Presenters\\Canonical_Presenter' ) ) {
-			continue;
-		}
-		$filtered[] = $presenter;
-	}
-	return $filtered;
+    $filtered = array();
+    foreach ( $presenters as $presenter ) {
+        if ( is_object( $presenter ) && is_a( $presenter, 'Yoast\\WP\\SEO\\Presenters\\Canonical_Presenter' ) ) {
+            continue;
+        }
+        $filtered[] = $presenter;
+    }
+    return $filtered;
 }
 add_filter( 'wpseo_frontend_presenters', 'nvx_staging2_filter_canonical_presenters', 1000 );
 
 /** Prevent WordPress core from emitting a competing staging canonical. */
 function nvx_staging2_prepare_public_canonical(): void {
-	if ( function_exists( 'nvx_seo_is_nonproduction_environment' ) && nvx_seo_is_nonproduction_environment() ) {
-		remove_action( 'wp_head', 'rel_canonical' );
-	}
+    if ( function_exists( 'nvx_seo_is_nonproduction_environment' ) && nvx_seo_is_nonproduction_environment() ) {
+        remove_action( 'wp_head', 'rel_canonical' );
+    }
 }
 add_action( 'wp', 'nvx_staging2_prepare_public_canonical', 1 );
 
 /** Emits one production canonical for eligible noindex staging routes. */
 function nvx_staging2_render_public_canonical(): void {
-	if ( ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
-		return;
-	}
+    if ( ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
+        return;
+    }
 
-	$url = nvx_staging2_public_canonical_url();
-	if ( '' === $url ) {
-		return;
-	}
+    $url = nvx_staging2_public_canonical_url();
+    if ( '' === $url ) {
+        return;
+    }
 
-	printf( "<link rel=\"canonical\" href=\"%s\" />\n", esc_url( $url ) );
+    printf( "<link rel=\"canonical\" href=\"%s\" />\n", esc_url( $url ) );
 }
 add_action( 'wp_head', 'nvx_staging2_render_public_canonical', 1 );

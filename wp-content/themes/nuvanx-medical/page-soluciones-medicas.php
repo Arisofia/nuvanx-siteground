@@ -14,17 +14,17 @@ require_once get_template_directory() . '/inc/nvx-github-managed-page-state.php'
 
 $page_id = (int) get_queried_object_id();
 if ( $page_id < 1 ) {
-	$page = get_page_by_path( 'soluciones-medicas', OBJECT, 'page' );
-	$page_id = $page instanceof WP_Post ? (int) $page->ID : 0;
+    $page = get_page_by_path( 'soluciones-medicas', OBJECT, 'page' );
+    $page_id = $page instanceof WP_Post ? (int) $page->ID : 0;
 }
 nvxSyncGithubManagedPageState( $page_id, 'solutions' );
 
 $solutions_css = 'assets/css/nvx-soluciones-medicas.css';
 wp_enqueue_style(
-	'nvx-soluciones-medicas',
-	get_template_directory_uri() . '/' . $solutions_css,
-	array(),
-	nvx_asset_version( $solutions_css )
+    'nvx-soluciones-medicas',
+    get_template_directory_uri() . '/' . $solutions_css,
+    array(),
+    nvx_asset_version( $solutions_css )
 );
 
 ob_start();

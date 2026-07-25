@@ -16,6 +16,7 @@ const read = (relative) => {
 
 const frontPage = read('wp-content/themes/nuvanx-medical/front-page.php');
 const homeCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-home-structure.css');
+const homeArt = read('wp-content/themes/nuvanx-medical/assets/images/nvx-home-hero-contours.svg');
 const sedeTemplate = read('wp-content/themes/nuvanx-medical/templates/page-sede.php');
 const valoracionTemplate = read('wp-content/themes/nuvanx-medical/templates/page-landing-valoracion.php');
 const clinicsHub = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-clinics-hub-github.php');
@@ -23,9 +24,12 @@ const valoracionPage = read('wp-content/themes/nuvanx-medical/template-parts/con
 
 const required = [
   [frontPage, "'nvx-home-structure'", 'Home does not enqueue its GitHub-managed structure layer'],
+  [frontPage, 'assets/images/nvx-home-hero-contours.svg', 'Home does not use repository-owned hero artwork'],
   [frontPage, 'nvx-home-v5', 'Home canonical root is missing'],
   [homeCss, '.nvx-home-v5 .nvx-home-manifesto', 'Home structural divisions are missing'],
   [homeCss, '.nvx-home-v5 .nvx-home-feature', 'Home text-only feature correction is missing'],
+  [homeCss, '.nvx-home-v5 .nvx-home-hero__art', 'Home repository artwork presentation is missing'],
+  [homeArt, '<svg', 'Home repository artwork is invalid or empty'],
   [sedeTemplate, "'template-parts/content/nvx-clinics-hub-github'", 'Clinics hub is not rendered from GitHub'],
   [valoracionTemplate, "'template-parts/content/nvx-valoracion-github'", 'Valoración is not rendered from GitHub'],
   [clinicsHub, 'CLÍNICAS NUVANX · MADRID', 'Clinics GitHub template is incomplete'],
@@ -43,6 +47,16 @@ for (const [source, label] of [
 ]) {
   if (/\bthe_content\s*\(/.test(source)) failures.push(`${label} must not read visible content from WordPress`);
   if (/get_post_field\s*\(\s*['"]post_content['"]/.test(source)) failures.push(`${label} must not read CMS post_content`);
+}
+
+for (const [source, label] of [
+  [frontPage, 'Home'],
+  [clinicsHub, 'Clinics'],
+  [valoracionPage, 'Valoración'],
+]) {
+  if (/content_url\s*\(|wp-content\/uploads|\/uploads\//i.test(source)) {
+    failures.push(`${label} must not depend on WordPress uploads for managed visible assets`);
+  }
 }
 
 if (!/clinicas-de-medicina-estetica-nuvanx[\s\S]*nvx-clinics-hub-github/.test(sedeTemplate)) {

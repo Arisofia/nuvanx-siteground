@@ -1,6 +1,10 @@
 <?php
 /**
- * Strategy-led authority, solutions and investment pages.
+ * Strategy-led authority and investment pages.
+ *
+ * The medical-solutions hub is owned by page-soluciones-medicas.php and its
+ * dedicated GitHub-managed template. This module retains only the remaining
+ * strategy pages that still use the content filter.
  *
  * @package nuvanx-medical
  */
@@ -16,11 +20,6 @@ if ( ! defined( 'NVX_PATH_VALORACION' ) ) {
 /** Returns the approved strategy page catalog. */
 function nvx_strategy_page_catalog(): array {
 	return array(
-		'solutions' => array(
-			'slug'          => 'soluciones-medicas',
-			'title'         => 'Soluciones médicas',
-			'review_status' => 'approved_for_publication',
-		),
 		'why_nuvanx' => array(
 			'slug'          => 'por-que-nuvanx',
 			'title'         => 'Por qué NUVANX',
@@ -61,143 +60,6 @@ function nvx_strategy_published_url( string $key ): string {
 		return '';
 	}
 	return (string) get_permalink( $page );
-}
-
-/** Renders one solutions card. */
-function nvx_strategy_solution_card( string $title, string $problem, string $limits, string $path, string $protocol = '' ): string {
-	$html  = '<article class="nvx-catalog-card">';
-	$html .= '<div class="nvx-catalog-card__main">';
-	$html .= '<h3 class="nvx-catalog-card__title">' . esc_html( $title ) . '</h3>';
-	$html .= '<p class="nvx-catalog-card__body"><strong>' . esc_html__( 'Qué se valora:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $problem ) . '</p>';
-	$html .= '<p class="nvx-catalog-card__body"><strong>' . esc_html__( 'Límites:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $limits ) . '</p>';
-	if ( '' !== $protocol ) {
-		$html .= '<p class="nvx-catalog-card__meta">' . esc_html( $protocol ) . '</p>';
-	}
-	$html .= '</div>';
-	$html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( home_url( $path ) ) . '">' . esc_html__( 'Explorar solución', 'nuvanx-medical' ) . ' <span aria-hidden="true">→</span></a>';
-	$html .= '</article>';
-	return $html;
-}
-
-/**
- * Builds the medical-solutions hub organized by anatomy and diagnosis.
- *
- * @return string The generated HTML markup for the medical-solutions page.
- */
-function nvx_strategy_solutions_markup(): string {
-	$val_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : NVX_PATH_VALORACION;
-	$html  = '<article class="nvx-brand-page nvx-strategy-page">';
-	$html .= '<header class="nvx-strategy-intro">';
-	$html .= '<p class="nvx-eyebrow">NUVANX · Soluciones médicas</p>';
-	$html .= '<h1 class="nvx-strategy-title">Soluciones médicas para rostro, piel y contorno corporal.</h1>';
-	$html .= '<p class="nvx-brand-lead">Dos personas pueden odiar lo mismo de su papada y necesitar tratamientos totalmente distintos — una tiene grasa, la otra solo piel floja. Por eso no te vamos a enseñar un catálogo de máquinas para que elijas: primero miramos qué tienes tú, y de ahí sale el plan.</p>';
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( $val_url ) ) . '">Solicitar valoración médica</a></p>';
-	$html .= '<p class="nvx-brand-microcopy">El diagnóstico determina el plan. No la tendencia ni el catálogo.</p>';
-	$html .= '</header>';
-
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
-	$html .= '<h2>Una misma preocupación puede tener causas distintas.</h2>';
-	$html .= '<p>Grasa localizada, laxitud, textura, pigmentación, cicatriz, soporte estructural y alteraciones musculares pueden producir signos parecidos. La valoración diferencia el componente predominante antes de proponer una tecnología o una combinación.</p>';
-	$html .= '</div></section>';
-
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Rostro y cuello</h2>';
-	$html .= '<p>Las preocupaciones del tercio inferior, la mirada y la calidad facial suelen ser mixtas. El diagnóstico separa grasa, laxitud, pérdida de soporte y alteraciones de superficie.</p><div class="nvx-catalog-grid">';
-	$html .= nvx_strategy_solution_card(
-		'Papada y definición mandibular',
-		'A veces es grasa, a veces es que la piel ya no aguanta, y a veces las dos cosas. Se nota igual desde fuera, pero el tratamiento no es el mismo — por eso primero te miramos de cerca.',
-		'No solemos recomendarlo si el problema es de hueso (mentón retraído) o si sobra demasiada piel — ahí lo honesto es hablar de cirugía, no de láser.',
-		'/papada-definicion-mandibular-madrid/',
-		'Protocolo relacionado: Profile Definition™'
-	);
-	$html .= nvx_strategy_solution_card(
-		'Región periocular y mirada',
-		'Ojera vascular, pigmentaria o estructural, surco, laxitud y bolsas reales o aparentes.',
-		'Las bolsas grasas verdaderas o determinadas alteraciones funcionales requieren valoración quirúrgica u oftalmológica.',
-		'/ojeras-surco-lagrimal-madrid/'
-	);
-	$html .= nvx_strategy_solution_card(
-		'Firmeza, densidad y luminosidad facial',
-		'Calidad dérmica, textura, poros, tono y pérdida de firmeza sin asumir que todos los signos tienen la misma causa.',
-		'La modalidad depende del fototipo, la profundidad del problema, los antecedentes y el tiempo de recuperación disponible.',
-		'/calidad-piel-firmeza-luminosidad-madrid/',
-		'Protocolo relacionado: Skin Architecture™'
-	);
-	$html .= '</div></div></section>';
-
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Contorno corporal</h2>';
-	$html .= '<p>La grasa localizada, la laxitud, la celulitis, las estrías y la pérdida de definición son condiciones distintas que pueden aparecer en una misma zona.</p><div class="nvx-catalog-grid">';
-	$html .= nvx_strategy_solution_card(
-		'Abdomen y flancos',
-		'Grasa subcutánea, laxitud, estrías, estabilidad de peso y posible diástasis o hernia.',
-		'La grasa visceral, una diástasis significativa o un exceso importante de piel no se resuelven con un tratamiento estético focal.',
-		'/grasa-localizada-abdomen-flancos-madrid/',
-		'Protocolo relacionado: NUVANX Contour Architecture™'
-	);
-	$html .= nvx_strategy_solution_card(
-		'Brazos y axila',
-		'Grasa localizada, laxitud de la cara posterior y continuidad con axila y torso.',
-		'La reserva de piel y la proporción anatómica determinan cuánto puede mejorar el contorno sin cirugía.',
-		'/flacidez-grasa-localizada-brazos-madrid/'
-	);
-	$html .= nvx_strategy_solution_card(
-		'Espalda y zona del sujetador',
-		'Pliegues por grasa, laxitud, ajuste de la prenda y relación con flancos y brazos.',
-		'El plan puede ser focal o combinado, pero cada zona debe tener una indicación documentada.',
-		'/grasa-espalda-zona-sujetador-madrid/'
-	);
-	$html .= nvx_strategy_solution_card(
-		'Muslos, región subglútea y rodillas',
-		'Laxitud, grasa localizada, celulitis estructural y continuidad entre unidades del tren inferior.',
-		'La celulitis, la grasa y la laxitud requieren mecanismos distintos; no se presentan como un único problema.',
-		'/flacidez-muslos-internos-subgluteo-madrid/'
-	);
-	$html .= '</div></div></section>';
-
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Calidad y superficie cutánea</h2>';
-	$html .= '<p>Cicatrices, poros, estrías, manchas, rojeces y daño solar responden a mecanismos diferentes. El fototipo y la profundidad de la lesión condicionan la selección de energía.</p><div class="nvx-catalog-grid">';
-	$html .= nvx_strategy_solution_card(
-		'Cicatrices de acné, poros y textura',
-		'Tipo y profundidad de cicatriz, textura, poros, fototipo y riesgo de pigmentación postinflamatoria.',
-		'Las cicatrices profundas o complejas pueden requerir secuencias combinadas y varias fases de tratamiento.',
-		'/cicatrices-acne-poros-textura-madrid/',
-		'Protocolo relacionado: Surface Renewal™'
-	);
-	$html .= nvx_strategy_solution_card(
-		'Manchas, rojeces y fotodaño',
-		'Léntigos, eritema, telangiectasias, melasma y pigmentación postinflamatoria bajo diagnóstico diferencial.',
-		'Las lesiones pigmentadas sospechosas deben evaluarse antes de aplicar luz o láser; algunas requieren derivación dermatológica.',
-		'/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/',
-		'Protocolo relacionado: Tone Correction™'
-	);
-	$html .= '</div></div></section>';
-
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Cambios posgestacionales</h2>';
-	$html .= '<p>Después del embarazo pueden coexistir grasa localizada, laxitud, estrías, cicatriz de cesárea, diástasis y cambios de proporción. Cada componente se valora de forma independiente.</p><div class="nvx-catalog-grid">';
-	$html .= nvx_strategy_solution_card(
-		'Post-Maternity Contour™',
-		'Abdomen y contorno posgestacional con evaluación de grasa, piel, cicatriz, estrías y pared abdominal.',
-		'La diástasis, la hernia o el exceso importante de piel requieren valoración especializada y pueden tener indicación no estética.',
-		'/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
-		'Protocolo relacionado: Post-Maternity Contour™'
-	);
-	$html .= '</div></div></section>';
-
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Medicina estética masculina</h2>';
-	$html .= '<p>Las zonas pueden coincidir con las femeninas, pero los objetivos, ángulos, proporciones y prioridades de recuperación requieren una planificación específica.</p><div class="nvx-catalog-grid">';
-	$html .= nvx_strategy_solution_card(
-		'Contorno facial y corporal masculino',
-		'Perfil mandibular, grasa localizada corporal, calidad de piel, poros y cicatrices dentro del patrón anatómico masculino.',
-		'La indicación no busca feminizar ni imponer una forma estándar; se define según anatomía y objetivo individual.',
-		'/contorno-corporal-masculino-madrid/'
-	);
-	$html .= '</div></div></section>';
-
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
-	$html .= '<h2>Valoración de procedimientos previos</h2>';
-	$html .= '<p>¿Te trataste en otro sitio y no estás segura de si quedó bien, o de qué hacer ahora? Te lo miramos sin compromiso. A veces la respuesta es "espera un poco más", y te lo decimos igual, aunque no salga una venta de ahí.</p>';
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( $val_url ) ) . '">Solicitar segunda valoración médica</a></p>';
-	$html .= '</div></section></article>';
-	return $html;
 }
 
 /**
@@ -419,9 +281,6 @@ function nvx_strategy_investment_markup(): string {
 
 /** Generates the page markup for a supported strategy route. */
 function nvx_strategy_page_markup( string $key ): string {
-	if ( 'solutions' === $key ) {
-		return nvx_strategy_solutions_markup();
-	}
 	if ( 'why_nuvanx' === $key ) {
 		return nvx_strategy_why_nuvanx_markup();
 	}

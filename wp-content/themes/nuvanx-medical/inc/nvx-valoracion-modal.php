@@ -113,14 +113,42 @@ function nvx_valoracion_modal_render(): void {
 add_action( 'wp_footer', 'nvx_valoracion_modal_render', 25 );
 
 /**
- * Enqueue HubSpot embed + flag for main.js.
+ * Enqueue the modal runtime configuration, HubSpot embed and valuation-page fallback.
  */
 function nvx_valoracion_modal_assets(): void {
+	$uri = get_template_directory_uri();
+
+	if ( function_exists( 'nvx_theme_is_valoracion_form_page' ) && nvx_theme_is_valoracion_form_page() ) {
+		$relative = 'assets/js/nvx-valoracion-page.js';
+		wp_enqueue_script(
+			'nvx-valoracion-page',
+			$uri . '/' . $relative,
+			array( 'nvx-main' ),
+			function_exists( 'nvx_asset_version' ) ? nvx_asset_version( $relative ) : null,
+			true
+		);
+		return;
+	}
+
 	if ( ! nvx_valoracion_modal_enabled() ) {
 		return;
 	}
 
-	$cfg = nvx_valoracion_modal_hubspot_config();
+	$cfg  = nvx_valoracion_modal_hubspot_config();
+	$page = function_exists( 'nvx_cta_valoracion_url' )
+		? nvx_cta_valoracion_url()
+		: home_url( '/madrid/valoracion/' );
+
+	wp_add_inline_script(
+		'nvx-main',
+		'window.nvxValoracionModal = ' . wp_json_encode(
+			array(
+				'enabled' => true,
+				'pageUrl' => esc_url_raw( $page ),
+			)
+		) . ';',
+		'before'
+	);
 
 	wp_enqueue_script(
 		'nvx-hubspot-forms-embed',
@@ -131,3 +159,109 @@ function nvx_valoracion_modal_assets(): void {
 	);
 }
 add_action( 'wp_enqueue_scripts', 'nvx_valoracion_modal_assets', 30 );
+
+/**
+ * Load the terminal regression layer after the canonical theme styles.
+ */
+function nvx_ui_regression_assets(): void {
+	$relative = 'assets/css/nvx-ui-regressions.css';
+	wp_enqueue_style(
+		'nvx-ui-regressions',
+		get_template_directory_uri() . '/' . $relative,
+		array( 'nvx-footer' ),
+		function_exists( 'nvx_asset_version' ) ? nvx_asset_version( $relative ) : null
+	);
+}
+add_action( 'wp_enqueue_scripts', 'nvx_ui_regression_assets', 100 );
+
+/**
+ * Technology and injectable pages that share the canonical institutional hero.
+ *
+ * @return string[]
+ */
+function nvx_ui_canonical_technology_slugs(): array {
+	return array(
+		'medicina-estetica-laser',
+		'endolift-facial-papada-mandibula',
+		'endolaser-corporal-grasa-localizada',
+		'exion-btl',
+		'exion-face',
+		'exion-body',
+		'exion-fractional',
+		'laser-co2-fraccionado-madrid-textura-cicatrices-poro',
+		'btl-exilite-ipl-madrid',
+		'emfusion',
+		'medicina-estetica',
+		'labios-acido-hialuronico-madrid',
+		'rinomodelacion-sin-cirugia-madrid',
+		'ojeras-surco-lagrimal-madrid',
+		'bioestimuladores-colageno-madrid',
+	);
+}
+
+/**
+ * Apply the canonical hero class after the global hierarchy has moved long copy.
+ *
+ * @param string $content Page HTML.
+ * @return string
+ */
+function nvx_ui_normalize_technology_header( string $content ): string {
+	if (
+		is_admin()
+		|| wp_doing_ajax()
+		|| ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+		|| ! is_page( nvx_ui_canonical_technology_slugs() )
+		|| false === stripos( $content, 'hero' )
+		|| false !== stripos( $content, 'nvx-canonical-page-hero' )
+		|| ! class_exists( 'DOMDocument' )
+		|| ! function_exists( 'nvx_normalize_canonical_page_hero' )
+		|| ! function_exists( 'nvx_find_hero_copy_node' )
+	) {
+		return $content;
+	}
+
+	$previous_errors = libxml_use_internal_errors( true );
+	$document        = new DOMDocument( '1.0', 'UTF-8' );
+	$wrapped         = '<div id="nvx-ui-regression-root">' . $content . '</div>';
+	$loaded          = $document->loadHTML(
+		'<?xml encoding="utf-8" ?>' . $wrapped,
+		LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
+	);
+
+	if ( ! $loaded ) {
+		libxml_clear_errors();
+		libxml_use_internal_errors( $previous_errors );
+		return $content;
+	}
+
+	$xpath  = new DOMXPath( $document );
+	$heroes = $xpath->query(
+		'//*[@id="nvx-ui-regression-root"]//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero-section ")]'
+	);
+
+	if ( false === $heroes || 0 === $heroes->length ) {
+		libxml_clear_errors();
+		libxml_use_internal_errors( $previous_errors );
+		return $content;
+	}
+
+	$hero = $heroes->item( 0 );
+	if ( $hero instanceof DOMElement ) {
+		nvx_normalize_canonical_page_hero( $xpath, $hero );
+		nvx_find_hero_copy_node( $xpath, $hero, true );
+	}
+
+	$root   = $document->getElementById( 'nvx-ui-regression-root' );
+	$output = '';
+	if ( $root ) {
+		foreach ( $root->childNodes as $child ) {
+			$output .= $document->saveHTML( $child );
+		}
+	}
+
+	libxml_clear_errors();
+	libxml_use_internal_errors( $previous_errors );
+
+	return is_string( $output ) && '' !== trim( $output ) ? $output : $content;
+}
+add_filter( 'the_content', 'nvx_ui_normalize_technology_header', 145 );

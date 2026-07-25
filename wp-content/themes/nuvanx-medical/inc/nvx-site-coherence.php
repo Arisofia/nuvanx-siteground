@@ -244,25 +244,15 @@ function nvx_site_coherence_normalize_page_header( string $content ): string {
 		'<?xml encoding="utf-8" ?><div id="nvx-site-coherence-root">' . $content . '</div>',
 		LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
 	);
-	if ( ! $loaded ) {
-		libxml_clear_errors();
-		libxml_use_internal_errors( $previous_errors );
-		return $content;
-	}
 
-	$xpath = new DOMXPath( $document );
-	$root  = $document->getElementById( 'nvx-site-coherence-root' );
-	if ( ! $root instanceof DOMElement ) {
-		libxml_clear_errors();
-		libxml_use_internal_errors( $previous_errors );
-		return $content;
-	}
-
-	$hero = nvx_site_coherence_find_hero( $xpath, $root );
-	if ( ! $hero instanceof DOMElement && 'valoracion' === nvx_site_coherence_current_slug() ) {
+	$root  = $loaded ? $document->getElementById( 'nvx-site-coherence-root' ) : null;
+	$xpath = $root instanceof DOMElement ? new DOMXPath( $document ) : null;
+	$hero  = $xpath ? nvx_site_coherence_find_hero( $xpath, $root ) : null;
+	if ( ! $hero instanceof DOMElement && $xpath && 'valoracion' === nvx_site_coherence_current_slug() ) {
 		$hero = nvx_site_coherence_create_valoracion_hero( $document, $root );
 	}
-	if ( ! $hero instanceof DOMElement ) {
+
+	if ( ! $loaded || ! $root instanceof DOMElement || ! $hero instanceof DOMElement ) {
 		libxml_clear_errors();
 		libxml_use_internal_errors( $previous_errors );
 		return $content;

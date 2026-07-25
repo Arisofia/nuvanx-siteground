@@ -98,7 +98,7 @@ let sessionCookie = '';
 
 function cleanHtmlText(value) {
   if (!value) return '';
-  return value
+  return String(value)
     .replace(/<[^>]+>/g, ' ')
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')

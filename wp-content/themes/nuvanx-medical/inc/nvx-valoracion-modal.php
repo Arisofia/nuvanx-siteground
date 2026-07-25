@@ -228,18 +228,12 @@ function nvx_ui_normalize_technology_header( string $content ): string {
 		LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD
 	);
 
-	if ( ! $loaded ) {
-		libxml_clear_errors();
-		libxml_use_internal_errors( $previous_errors );
-		return $content;
-	}
-
-	$xpath  = new DOMXPath( $document );
-	$heroes = $xpath->query(
+	$xpath  = $loaded ? new DOMXPath( $document ) : null;
+	$heroes = $xpath ? $xpath->query(
 		'//*[@id="nvx-ui-regression-root"]//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero-section ")]'
-	);
+	) : false;
 
-	if ( false === $heroes || 0 === $heroes->length ) {
+	if ( ! $loaded || false === $heroes || 0 === $heroes->length ) {
 		libxml_clear_errors();
 		libxml_use_internal_errors( $previous_errors );
 		return $content;

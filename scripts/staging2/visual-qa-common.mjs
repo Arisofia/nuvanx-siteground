@@ -29,7 +29,7 @@ export const viewports = [
 ];
 
 export const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
-export const safeName = (value) => value.replace(/^\/+/, '').replace(/\/+$/, '').replaceAll('/', '__') || 'home';
+export const safeName = (value) => String(value || '').split('/').filter(Boolean).join('__') || 'home';
 
 export async function pageState(session) {
   return session.evaluate(String.raw`(() => {

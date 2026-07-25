@@ -50,10 +50,8 @@ function nvx_content_is_nosotros_page( string $content ): bool {
 		? nvx_schema_current_path( (int) get_queried_object_id() )
 		: '';
 
-	if ( is_string( $path ) && function_exists( 'nvx_schema_path_matches' ) ) {
-		if ( nvx_schema_path_matches( $path, NVX_NOSOTROS_PATH ) || nvx_schema_path_matches( $path, NVX_SOBRE_NOSOTROS_PATH ) ) {
-			return true;
-		}
+	if ( is_string( $path ) && function_exists( 'nvx_schema_path_matches' ) && ( nvx_schema_path_matches( $path, NVX_NOSOTROS_PATH ) || nvx_schema_path_matches( $path, NVX_SOBRE_NOSOTROS_PATH ) ) ) {
+		return true;
 	}
 
 	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );

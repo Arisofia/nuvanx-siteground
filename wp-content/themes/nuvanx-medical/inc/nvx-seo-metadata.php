@@ -175,14 +175,9 @@ function nvx_seo_metadata_from_protocols( string $key, string $field ): ?string 
 		return null;
 	}
 	$protocols = nvx_protocol_pages_catalog();
-	if ( ! isset( $protocols[ $key ] ) ) {
-		return null;
-	}
-	if ( 'title' === $field && ! empty( $protocols[ $key ]['seo_title'] ) ) {
-		return (string) $protocols[ $key ]['seo_title'];
-	}
-	if ( 'description' === $field && ! empty( $protocols[ $key ]['description'] ) ) {
-		return (string) $protocols[ $key ]['description'];
+	$prop = ( 'title' === $field ) ? 'seo_title' : ( ( 'description' === $field ) ? 'description' : '' );
+	if ( '' !== $prop && ! empty( $protocols[ $key ][ $prop ] ) ) {
+		return (string) $protocols[ $key ][ $prop ];
 	}
 	return null;
 }
@@ -195,14 +190,9 @@ function nvx_seo_metadata_from_solutions( string $key, string $field ): ?string 
 		return null;
 	}
 	$solutions = nvx_solution_pages_catalog();
-	if ( ! isset( $solutions[ $key ] ) ) {
-		return null;
-	}
-	if ( 'title' === $field && ! empty( $solutions[ $key ]['seo_title'] ) ) {
-		return (string) $solutions[ $key ]['seo_title'];
-	}
-	if ( 'description' === $field && ! empty( $solutions[ $key ]['description'] ) ) {
-		return (string) $solutions[ $key ]['description'];
+	$prop = ( 'title' === $field ) ? 'seo_title' : ( ( 'description' === $field ) ? 'description' : '' );
+	if ( '' !== $prop && ! empty( $solutions[ $key ][ $prop ] ) ) {
+		return (string) $solutions[ $key ][ $prop ];
 	}
 	return null;
 }
@@ -211,35 +201,22 @@ function nvx_seo_metadata_from_solutions( string $key, string $field ): ?string 
  * Return one canonical metadata value for the current page.
  */
 function nvx_seo_current_metadata( string $field, string $fallback = '' ): string {
+	$result = null;
 	$post_meta = nvx_seo_current_blog_post_metadata();
 	if ( is_array( $post_meta ) && ! empty( $post_meta[ $field ] ) ) {
-		return (string) $post_meta[ $field ];
-	}
-
-	if ( function_exists( 'nvx_editorial_seo_current' ) ) {
-		$editorial = nvx_editorial_seo_current();
-		if ( is_array( $editorial ) && ! empty( $editorial[ $field ] ) ) {
-			return (string) $editorial[ $field ];
+		$result = (string) $post_meta[ $field ];
+	} elseif ( function_exists( 'nvx_editorial_seo_current' ) && ( $editorial = nvx_editorial_seo_current() ) && is_array( $editorial ) && ! empty( $editorial[ $field ] ) ) {
+		$result = (string) $editorial[ $field ];
+	} else {
+		$key = nvx_seo_current_metadata_key();
+		if ( null !== $key ) {
+			$result = nvx_seo_metadata_from_protocols( $key, $field )
+				?? nvx_seo_metadata_from_solutions( $key, $field )
+				?? ( ( $catalog = nvx_seo_metadata_catalog() ) && ! empty( $catalog[ $key ][ $field ] ) ? (string) $catalog[ $key ][ $field ] : null );
 		}
 	}
 
-	$key = nvx_seo_current_metadata_key();
-	if ( null === $key ) {
-		return $fallback;
-	}
-
-	$protocol_val = nvx_seo_metadata_from_protocols( $key, $field );
-	if ( null !== $protocol_val ) {
-		return $protocol_val;
-	}
-
-	$solution_val = nvx_seo_metadata_from_solutions( $key, $field );
-	if ( null !== $solution_val ) {
-		return $solution_val;
-	}
-
-	$catalog = nvx_seo_metadata_catalog();
-	return ! empty( $catalog[ $key ][ $field ] ) ? (string) $catalog[ $key ][ $field ] : $fallback;
+	return $result ?? $fallback;
 }
 
 /**

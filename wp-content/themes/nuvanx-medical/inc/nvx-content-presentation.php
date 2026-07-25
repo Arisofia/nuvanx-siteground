@@ -1304,16 +1304,16 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 	}
 
 	$injections = nvx_content_build_treatment_injections( $content );
-	if ( '' === $injections ) {
-		return $content;
+	if ( '' !== $injections ) {
+		if ( preg_match( '/<\/div>\s*$/i', $content ) ) {
+			$replaced = nvxContentPregReplaceKeep( '/(<\/div>\s*)$/i', $injections . '$1', $content );
+			$content  = is_string( $replaced ) ? $replaced : $content . $injections;
+		} else {
+			$content .= $injections;
+		}
 	}
 
-	if ( preg_match( '/<\/div>\s*$/i', $content ) ) {
-		$replaced = nvxContentPregReplaceKeep( '/(<\/div>\s*)$/i', $injections . '$1', $content );
-		return is_string( $replaced ) ? $replaced : $content . $injections;
-	}
-
-	return $content . $injections;
+	return $content;
 }
 add_filter( 'the_content', 'nvx_content_inject_global_treatment_sections', 21 );
 

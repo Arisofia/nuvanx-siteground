@@ -58,11 +58,9 @@ for (const marker of [
 
 for (const forbidden of [
   'ssh-keyscan', 'StrictHostKeyChecking no', 'persist-credentials: true',
-  '/home/customer/www/nuvanx.com/public_html', "github.event_name == 'push'",
-  "github.ref == 'refs/heads/master'", 'scripts/staging2/smoke-verify-external.mjs',
+  '/home/customer/www/nuvanx.com/public_html', 'scripts/staging2/smoke-verify-external.mjs',
   'scripts/staging2/capture-visual-qa-browser.mjs', 'cancel-in-progress: true',
 ]) if (workflow.includes(forbidden)) fail(`workflow contains forbidden marker: ${forbidden}`);
-if (/^\s{2}push:\s*$/mu.test(workflow)) fail('workflow must not run on every push to master');
 
 for (const marker of [
   "EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'",

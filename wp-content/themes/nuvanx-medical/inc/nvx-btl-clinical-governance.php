@@ -195,10 +195,13 @@ function nvx_btl_claim( string $id ): string {
 function nvx_btl_claim_replacement_map(): array {
 	static $maps = array();
 
-	$locale = function_exists( 'determine_locale' )
-		? determine_locale()
-		: ( function_exists( 'get_locale' ) ? get_locale() : 'default' );
-	if ( ! is_string( $locale ) || '' === $locale ) {
+	$locale = 'default';
+	if ( function_exists( 'determine_locale' ) ) {
+		$locale = (string) determine_locale();
+	} elseif ( function_exists( 'get_locale' ) ) {
+		$locale = (string) get_locale();
+	}
+	if ( '' === $locale ) {
 		$locale = 'default';
 	}
 

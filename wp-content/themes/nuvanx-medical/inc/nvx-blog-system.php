@@ -170,7 +170,7 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 
 	// Legacy short preamble: Autor: … (optionally Fecha/Lectura on same paragraph).
 	$head = (string) preg_replace(
-		'/<p\b[^>]*>\s*(?:<strong>)?\s*Autor\s*:?\s*(?:<\/strong>)?\s*[^<]{0,160}(?:Fecha\s*:[^<]{0,80})?(?:Lectura\s*:[^<]{0,40})?\s*<\/p>/iu',
+		'/<p\b[^>]*>\s*(?:<strong>)?\s*Autor\s*:?\s*(?:<\/strong>)?\s*[^<]{0,160}\s*<\/p>/iu',
 		'',
 		$head,
 		2
@@ -195,7 +195,7 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 	$content = $head . $tail;
 
 	// Collapse excess leading whitespace after strips.
-	$content = (string) preg_replace( '/^(?:\s|<br\s*\/?>|&nbsp;|<p[^>]*>\s*&nbsp;\s*<\/p>)+/iu', '', $content );
+	$content = (string) preg_replace( '/^(?:\s|<br\s*\/?>|&nbsp;)+/iu', '', $content );
 
 	return $content;
 }

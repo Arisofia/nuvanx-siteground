@@ -1,0 +1,191 @@
+/* NUVANX regression closure: navigation conversion and Journal geometry. */
+
+/* Header conversion control: explicit chrome independent of page-level button CSS. */
+.nvx-header__cta.nvx-btn {
+  display: inline-flex;
+  min-height: var(--nvx-control-size);
+  align-items: center;
+  justify-content: center;
+  padding: var(--nvx-space-2) var(--nvx-space-3);
+  border: var(--nvx-border-hairline) solid var(--nvx-ink);
+  border-radius: var(--nvx-radius-button);
+  background: var(--nvx-ink);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-nav-compact);
+  font-weight: 600;
+  line-height: var(--nvx-lh-nav);
+  letter-spacing: var(--nvx-track-nav-cta);
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--nvx-light);
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.nvx-header__cta.nvx-btn:hover,
+.nvx-header__cta.nvx-btn:focus-visible {
+  border-color: var(--nvx-charcoal);
+  background: var(--nvx-charcoal);
+  color: var(--nvx-light);
+}
+
+.nvx-header__cta.nvx-btn:focus-visible {
+  outline: var(--nvx-border-focus) solid var(--nvx-accent-muted);
+  outline-offset: var(--nvx-space-1);
+}
+
+/* Journal archive: restore the missing full-width stage and readable shell. */
+.nvx-blog-archive {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  overflow-x: clip;
+  background: var(--nvx-color-paper);
+  color: var(--nvx-text-body);
+}
+
+.nvx-blog-archive__hero {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding-block: clamp(var(--nvx-space-8), 11vw, var(--nvx-space-10));
+  overflow: hidden;
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+}
+
+.nvx-blog-archive__hero-inner,
+.nvx-blog-archive__body > .nvx-shell,
+.nvx-blog-hero__inner,
+.nvx-blog-article__shell {
+  width: min(100%, var(--nvx-shell));
+  max-width: var(--nvx-shell);
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-blog-archive__body {
+  width: 100%;
+  padding-block: clamp(var(--nvx-space-6), 8vw, var(--nvx-space-10));
+}
+
+.nvx-blog-card {
+  grid-column: span 6;
+  display: flex;
+  min-width: 0;
+  min-height: 100%;
+  flex-direction: column;
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  background: var(--nvx-light);
+  box-sizing: border-box;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+/* Journal article: restore hero contrast, columns and readable article measure. */
+.nvx-blog-article {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  overflow-x: clip;
+  background: var(--nvx-color-paper);
+}
+
+.nvx-blog-hero {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding-block: clamp(var(--nvx-space-8), 10vw, var(--nvx-space-10));
+  overflow: hidden;
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+}
+
+.nvx-blog-hero__copy {
+  grid-column: span 7;
+  min-width: 0;
+}
+
+.nvx-blog-hero__media {
+  grid-column: span 5;
+  min-width: 0;
+  min-height: clamp(20rem, 36vw, 34rem);
+  margin: 0;
+  overflow: hidden;
+}
+
+.nvx-blog-hero--text-only .nvx-blog-hero__copy {
+  grid-column: 1 / -1;
+  max-width: var(--nvx-measure-wide);
+}
+
+.nvx-blog-hero__title {
+  max-width: 18ch;
+  margin: 0 0 var(--nvx-margin-h1);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h1);
+  font-weight: 400;
+  line-height: var(--nvx-lh-h1);
+  letter-spacing: var(--nvx-track-h1);
+  color: var(--nvx-light);
+  text-wrap: balance;
+}
+
+.nvx-blog-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nvx-space-2);
+  margin-top: var(--nvx-space-4);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  line-height: var(--nvx-lh-caption);
+  color: var(--nvx-text-on-dark-82);
+}
+
+.nvx-blog-article__stage {
+  width: 100%;
+  padding-block: clamp(var(--nvx-space-6), 8vw, var(--nvx-space-10));
+}
+
+.nvx-blog-prose {
+  width: min(100%, var(--nvx-measure));
+  margin-inline: auto;
+}
+
+.nvx-blog-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--nvx-gap-base);
+  margin-top: var(--nvx-space-8);
+}
+
+@media (max-width: 64em) {
+  .nvx-blog-card {
+    grid-column: 1 / -1;
+  }
+
+  .nvx-blog-hero__copy,
+  .nvx-blog-hero__media {
+    grid-column: 1 / -1;
+  }
+
+  .nvx-blog-hero__media {
+    min-height: clamp(18rem, 58vw, 30rem);
+  }
+}
+
+@media (max-width: 42.5em) {
+  .nvx-blog-archive__hero,
+  .nvx-blog-hero {
+    padding-block: var(--nvx-space-8) var(--nvx-space-6);
+  }
+
+  .nvx-blog-archive__title,
+  .nvx-blog-hero__title {
+    max-width: none;
+  }
+
+  .nvx-blog-nav {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -247,6 +247,15 @@ function nvx_is_sede_template(): bool {
 		return false;
 	}
 
+	if ( nvx_is_clinics_hub() ) {
+		return true;
+	}
+
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	if ( in_array( $slug, array( 'medicina-estetica-chamberi', 'medicina-estetica-goya-barrio-salamanca', 'clinica-chamberi', 'clinica-goya' ), true ) ) {
+		return true;
+	}
+
 	$template = (string) get_page_template_slug();
 
 	return in_array(

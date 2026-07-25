@@ -10,6 +10,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once get_template_directory() . '/inc/nvx-github-managed-page-state.php';
+nvxSyncGithubManagedPageState( (int) get_queried_object_id(), 'home' );
+
 $hero_video_url = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
 
 if ( ! defined( 'NVX_URL_REMODELACION' ) ) {

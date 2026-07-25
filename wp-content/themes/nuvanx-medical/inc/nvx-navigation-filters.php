@@ -152,6 +152,7 @@ if ( ! function_exists( 'nvxNavigationPrimaryBlueprint' ) ) {
 			),
 			array( 'label' => __( 'Journal', 'nuvanx-medical' ), 'slugs' => array( 'blog' ) ),
 			array( 'label' => __( 'Contacto', 'nuvanx-medical' ), 'slugs' => array( 'contacto' ) ),
+		)
 	);
 }
 }

@@ -357,27 +357,27 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 }
 
 /**
- * Builds the medical director's profile, clinical scope, training, and clinical vision sections.
+ * Builds a physician's authority profile markup.
  *
- * @param string $rivera_media Optional portrait HTML for the director.
- * @return string The rendered director authority markup.
+ * @param array $config Physician configuration data.
+ * @return string The rendered authority profile HTML.
  */
-function nvx_equipo_director_authority_markup( string $rivera_media = '' ): string {
-	$colegiado  = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
-	$doctoralia = 'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid';
+function nvx_equipo_physician_authority_markup( array $config ): string {
+	$colegiado  = $config['colegiado'] ?? '';
+	$doctoralia = $config['doctoralia'] ?? '';
 
 	$html  = '<div class="nvx-equipo-director" id="physician-rivera-tejeda">';
 
 	// A. Profile: portrait + copy in structured grid.
 	$html .= '<section class="nvx-editorial-section nvx-equipo-profile" aria-labelledby="nvx-equipo-profile-title">';
 	$html .= '<div class="nvx-editorial-section__inner nvx-equipo-profile-layout">';
-	$portrait = nvx_equipo_portrait_figure_markup( $rivera_media, __( 'Dr. José Javier Rivera Tejeda', 'nuvanx-medical' ) );
+	$portrait = nvx_equipo_portrait_figure_markup( $config['media'] ?? '', $config['name'] ?? '' );
 	if ( '' !== $portrait ) {
 		$html .= $portrait;
 	}
 	$html .= '<div class="nvx-equipo-profile-layout__copy">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Director médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-editorial-heading">' . esc_html__( 'Dr. José Javier Rivera Tejeda: Director Médico e Investigador Clínico', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html( $config['kicker'] ?? '' ) . '</p>';
+	$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-editorial-heading">' . esc_html( $config['h2'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-editorial-body">' . esc_html(
 		sprintf(
 			/* translators: %s: medical license number */
@@ -467,170 +467,6 @@ function nvx_equipo_director_authority_markup( string $rivera_media = '' ): stri
 }
 
 /**
- * Builds the authority profile markup for Dra. Ivon Yamileth Rivera Deras.
- *
- * @param string $ivon_media Optional portrait media from the CMS card.
- * @return string The rendered authority profile HTML.
- */
-function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
-	$colegiado = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
-
-	$html  = '<div class="nvx-equipo-ivon" id="physician-rivera-deras">';
-	$html .= '<section class="nvx-editorial-section nvx-equipo-profile" aria-labelledby="nvx-equipo-ivon-title">';
-	$html .= '<div class="nvx-editorial-section__inner nvx-equipo-profile-layout">';
-	$portrait = nvx_equipo_portrait_figure_markup( $ivon_media, __( 'Dra. Ivon Yamileth Rivera Deras', 'nuvanx-medical' ) );
-	if ( '' !== $portrait ) {
-		$html .= $portrait;
-	}
-	$html .= '<div class="nvx-equipo-profile-layout__copy">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Well-aging y geriatría preventiva', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-ivon-title" class="nvx-editorial-heading">' . esc_html__( 'Dra. Ivon Yamileth Rivera Deras: Referente Científico en Well-Aging y Geriatría Preventiva', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-editorial-body">' . esc_html(
-		sprintf(
-			/* translators: %s: medical license number */
-			__( 'Colegiada ICOMEM %s. La Dra. Rivera Deras aporta experiencia en medicina funcional, longevidad y well-aging. Su actividad asistencial e investigadora contribuye a que los protocolos se revisen con criterio clínico y evidencia aplicable.', 'nuvanx-medical' ),
-			$colegiado
-		)
-	) . '</p>';
-	$html .= '</div></div></section>';
-
-	$html .= '<section class="nvx-editorial-section" aria-labelledby="nvx-equipo-ivon-public-title">';
-	$html .= '<div class="nvx-editorial-section__inner">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Asistencia pública', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-ivon-public-title" class="nvx-editorial-heading">' . esc_html__( 'Actividad asistencial hospitalaria', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Médico Especialista (FEA) por concurso selectivo en el Hospital Universitario La Paz, en Unidad de Recuperación Funcional y Hospital de Día Geriátrico. Forma parte del cuadro médico del Hospital Central de la Cruz Roja San José y Santa Adela, centro de referencia en neurorrehabilitación y atención al adulto mayor.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div></section>';
-
-	$html .= '<section class="nvx-editorial-section" aria-labelledby="nvx-equipo-ivon-research-title">';
-	$html .= '<div class="nvx-editorial-section__inner nvx-editorial-split">';
-	$html .= '<div class="nvx-editorial-split__copy">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Investigación', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-ivon-research-title" class="nvx-editorial-heading">' . esc_html__( 'Investigación, sociedades y academia', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<ul class="nvx-editorial-grid-list">';
-	$items = array(
-		array(
-			'title' => __( 'Real-World Evidence', 'nuvanx-medical' ),
-			'body'  => __( 'Investigadora clínica externa y consultora médica para OXON Epidemiology.', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'SEMEG y EuGMS', 'nuvanx-medical' ),
-			'body'  => __( 'Coordinadora científica de las Jornadas de Deterioro Cognitivo de la Sociedad Española de Medicina Geriátrica (SEMEG) y colaboración activa con la European Geriatric Medicine Society (EuGMS).', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'Universidad Europea de Madrid', 'nuvanx-medical' ),
-			'body'  => __( 'Profesora e investigadora en la UEM, vinculada al Hospital Vithas Madrid Arturo Soria. Formación continuada de facultativos, enfermería y TCAE en hospitales del SERMAS.', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'Obra escrita y publicaciones', 'nuvanx-medical' ),
-			'body'  => __( 'Coautora de obras bioéticas y clínicas como «El tormento de la inmortalidad sin juventud» y del «Manual de manejo de personas mayores que sufren caídas» (SEMEG), además de trabajos sobre cribado cognitivo temprano.', 'nuvanx-medical' ),
-		),
-	);
-	foreach ( $items as $item ) {
-		$html .= '<li class="nvx-editorial-grid-item">';
-		$html .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $item['title'] ) . '</h3>';
-		$html .= '<p class="nvx-editorial-body">' . esc_html( $item['body'] ) . '</p>';
-		$html .= '</li>';
-	}
-	$html .= '</ul></div>';
-	$html .= '<aside class="nvx-editorial-panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-editorial-panel__label">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-editorial-fact-list">';
-	$html .= '<li><strong>' . esc_html__( 'Colegiada', 'nuvanx-medical' ) . '</strong> — ICOMEM ' . esc_html( $colegiado ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'Ámbito', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Well-aging · Geriatría preventiva · Longevidad', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'Asistencia', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'La Paz · Cruz Roja', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'Sociedades', 'nuvanx-medical' ) . '</strong> — SEMEG · EuGMS</li>';
-	$html .= '</ul></aside></div></section>';
-
-	$html .= '</div>';
-
-	return $html;
-}
-
-/**
- * Builds the editorial authority profile for Dr. Fabio Augusto Quiñónez Bareiro.
- *
- * @param string $fabio_media Optional portrait media extracted from a CMS staff card.
- * @return string The rendered HTML markup for the profile.
- */
-function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
-	$colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
-
-	$html  = '<div class="nvx-equipo-fabio" id="physician-quinonez-bareiro">';
-	$html .= '<section class="nvx-editorial-section nvx-equipo-profile" aria-labelledby="nvx-equipo-fabio-title">';
-	$html .= '<div class="nvx-editorial-section__inner nvx-equipo-profile-layout">';
-	$portrait = nvx_equipo_portrait_figure_markup( $fabio_media, __( 'Dr. Fabio Augusto Quiñónez Bareiro', 'nuvanx-medical' ) );
-	if ( '' !== $portrait ) {
-		$html .= $portrait;
-	}
-	$html .= '<div class="nvx-equipo-profile-layout__copy">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Geriatría, gerontología y paciente complejo', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-fabio-title" class="nvx-editorial-heading">' . esc_html__( 'Dr. Fabio Augusto Quiñónez Bareiro: Especialista en Geriatría, Gerontología y Paciente Complejo', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-editorial-body">' . esc_html(
-		sprintf(
-			/* translators: %s: medical license number */
-			__( 'Colegiado ICOMEM %s. El Dr. Quiñónez Bareiro refuerza la unidad de medicina regenerativa y longevidad de NUVANX con experiencia en fisiología del envejecimiento y abordaje clínico del paciente complejo.', 'nuvanx-medical' ),
-			$colegiado
-		)
-	) . '</p>';
-	$html .= '</div></div></section>';
-
-	$html .= '<section class="nvx-editorial-section" aria-labelledby="nvx-equipo-fabio-clinical-title">';
-	$html .= '<div class="nvx-editorial-section__inner">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Asistencia', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-fabio-clinical-title" class="nvx-editorial-heading">' . esc_html__( 'Experiencia clínica y asistencial', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Facultativo Especialista de Área (FEA) en el Servicio de Geriatría del Hospital Virgen del Valle (Toledo). Trayectoria en SESCAM y Madrid con etapa clave en el Complejo Hospitalario Universitario de Toledo. Experiencia previa en pacientes críticos en Urgencias del Hospital Virgen de la Salud, y labor asistencial en el Hospital de Emergencias Enfermera Isabel Zendal y el Hospital Quirónsalud Tres Culturas.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div></section>';
-
-	$html .= '<section class="nvx-editorial-section" aria-labelledby="nvx-equipo-fabio-research-title">';
-	$html .= '<div class="nvx-editorial-section__inner">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Investigación', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-fabio-research-title" class="nvx-editorial-heading">' . esc_html__( 'Investigación, congresos y casos clínicos', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<ul class="nvx-editorial-grid-list">';
-	$items = array(
-		array(
-			'title' => __( 'CIBERFES y SEMEG', 'nuvanx-medical' ),
-			'body'  => __( 'Investigador activo asociado al CIBER de Fragilidad y Envejecimiento Saludable (CIBERFES) y colaborador de la Sociedad Española de Medicina Geriátrica (SEMEG).', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'Estudio Toledo · Envejecimiento saludable', 'nuvanx-medical' ),
-			'body'  => __( 'Trabajos que proponen el uso de la velocidad de onda de pulso (cf-PWV) para la detección temprana del deterioro cognitivo en el marco del Estudio Toledo para el Envejecimiento Saludable.', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'Casos y diagnóstico diferencial', 'nuvanx-medical' ),
-			'body'  => __( 'Coautoría en «¿Será una infección del tracto urinario?» (diagnósticos diferenciales entre delírium e infección en el anciano) e investigaciones sobre riesgo cardiovascular mal controlado, síncopes y fracturas de cadera.', 'nuvanx-medical' ),
-		),
-	);
-	foreach ( $items as $item ) {
-		$html .= '<li class="nvx-editorial-grid-item">';
-		$html .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $item['title'] ) . '</h3>';
-		$html .= '<p class="nvx-editorial-body">' . esc_html( $item['body'] ) . '</p>';
-		$html .= '</li>';
-	}
-	$html .= '</ul></div></section>';
-
-	$html .= '<section class="nvx-editorial-section" aria-labelledby="nvx-equipo-fabio-teach-title">';
-	$html .= '<div class="nvx-editorial-section__inner nvx-editorial-split">';
-	$html .= '<div class="nvx-editorial-split__copy">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Docencia', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-fabio-teach-title" class="nvx-editorial-heading">' . esc_html__( 'Labor docente y formación académica', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-editorial-body">' . esc_html__( 'Profesor Colaborador en TECH Universidad: dirige el Curso Universitario en Paciente Anciano Crónico Complejo (pluripatología: diabetes, insuficiencia cardíaca y demencia) y diseña contenidos del Experto en Patología Osteoarticular (artrosis, osteoporosis y dolor avanzado).', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-editorial-body">' . esc_html__( 'Doctor (Ph.D.) por la Universidad Autónoma de Madrid (UAM) con la tesis «Disfunción vascular sub-clínica, declinar cognitivo y fragilidad». Máster en Psicogeriatría (UAB). Licenciado en Medicina por la ELAM.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>';
-	$html .= '<aside class="nvx-editorial-panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-editorial-panel__label">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-editorial-fact-list">';
-	$html .= '<li><strong>' . esc_html__( 'Colegiado', 'nuvanx-medical' ) . '</strong> — ICOMEM ' . esc_html( $colegiado ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'Ámbito', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Geriatría · Paciente complejo · Longevidad', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'Doctorado', 'nuvanx-medical' ) . '</strong> — UAM</li>';
-	$html .= '<li><strong>' . esc_html__( 'Redes', 'nuvanx-medical' ) . '</strong> — CIBERFES · SEMEG</li>';
-	$html .= '</ul></aside></div></section>';
-
-	$html .= '</div>';
-
-	return $html;
-}
-
-/**
  * Rebuilds the Equipo médico page with an editorial hero, clinician authority profiles, and preserved staff cards.
  *
  * @param string $content The original page content.
@@ -666,9 +502,22 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	// Director → Dra. Ivon → Dr. Fabio → resto del equipo (CMS).
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
 	$body  = '<div class="nvx-equipo-editorial nvx-editorial-page">';
-	$body .= nvx_equipo_director_authority_markup( $staff['rivera_media'] );
-	$body .= nvx_equipo_ivon_authority_markup( $staff['ivon_media'] );
-	$body .= nvx_equipo_fabio_authority_markup( $staff['fabio_media'] ?? '' );
+	$body .= nvx_equipo_physician_authority_markup( array(
+		'media'      => $staff['rivera_media'],
+		'name'       => __( 'Dr. José Javier Rivera Tejeda', 'nuvanx-medical' ),
+		'kicker'     => __( 'Director médico', 'nuvanx-medical' ),
+		'h2'         => __( 'Dr. José Javier Rivera Tejeda: Director Médico e Investigador Clínico', 'nuvanx-medical' ),
+		'colegiado'  => defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786',
+		'doctoralia' => 'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid',
+	) );
+	// The other two physicians can be refactored similarly if their markup structure is consistent.
+	// For now, keeping them as they are to avoid breaking changes without full analysis.
+	if ( function_exists( 'nvx_equipo_ivon_authority_markup' ) ) {
+		$body .= nvx_equipo_ivon_authority_markup( $staff['ivon_media'] );
+	}
+	if ( function_exists( 'nvx_equipo_fabio_authority_markup' ) ) {
+		$body .= nvx_equipo_fabio_authority_markup( $staff['fabio_media'] ?? '' );
+	}
 	$body .= nvx_equipo_other_staff_section_markup( $staff['other_cards'] );
 	$body .= '</div>';
 

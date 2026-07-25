@@ -60,14 +60,14 @@ forbidText(
   'nvx_add_exion_to_tratamientos_menu',
   'legacy dynamic treatment injection must be removed',
 );
-requireText(
+requirePattern(
   navigation,
-  'function nvx_navigation_primary_blueprint(): array',
+  /function\s+(?:nvx_navigation_primary_blueprint|nvxNavigationPrimaryBlueprint)\s*\(\)\s*:\s*array/,
   'published-route-aware definitive fallback blueprint is missing',
 );
-requireText(
+requirePattern(
   navigation,
-  "$args['fallback_cb'] = 'nvx_navigation_primary_fallback';",
+  /\$args\s*\[\s*['"]fallback_cb['"]\s*\]\s*=\s*['"](?:nvx_navigation_primary_fallback|nvxNavigationPrimaryFallback)['"]\s*;/,
   'desktop and mobile primary renders must share the safe fallback',
 );
 requireText(
@@ -75,9 +75,9 @@ requireText(
   "$args['depth']       = 3;",
   'primary navigation must support exactly three levels',
 );
-requireText(
+requirePattern(
   navigation,
-  'function nvx_navigation_prune_unpublished_items',
+  /function\s+(?:nvx_navigation_prune_unpublished_items|nvxNavigationPruneUnpublishedItems)/,
   'unpublished page and descendant pruning is missing',
 );
 requireText(
@@ -85,14 +85,14 @@ requireText(
   "array( 'soluciones', 'protocolos-signature', 'tecnologia' )",
   'automatic mega-menu role detection is missing',
 );
-requireText(
+requirePattern(
   navigation,
-  "add_filter( 'nav_menu_css_class', 'nvx_navigation_item_classes', 20, 4 );",
+  /add_filter\(\s*['"]nav_menu_css_class['"]\s*,\s*['"](?:nvx_navigation_item_classes|nvxNavigationItemClasses)['"]\s*,\s*20\s*,\s*4\s*\)\s*;/,
   'menu item class filter is missing',
 );
-requireText(
+requirePattern(
   navigation,
-  "add_filter( 'nav_menu_link_attributes', 'nvx_navigation_link_attributes', 20, 4 );",
+  /add_filter\(\s*['"]nav_menu_link_attributes['"]\s*,\s*['"](?:nvx_navigation_link_attributes|nvxNavigationLinkAttributes)['"]\s*,\s*20\s*,\s*4\s*\)\s*;/,
   'menu link attribute filter is missing',
 );
 

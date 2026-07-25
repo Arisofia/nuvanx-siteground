@@ -95,3 +95,17 @@ function nvxFilterStripEmbeddedJsonld( $content ) {
 
 	return nvxStripEmbeddedJsonldHtml( $content );
 }
+
+/**
+ * Backward-compatible callback for legacy snake_case hook registrations.
+ *
+ * The canonical implementation is nvxFilterStripEmbeddedJsonld(). Keeping this
+ * adapter prevents fatal errors while older cached or concurrent theme snapshots
+ * still reference the former callback name.
+ *
+ * @param string $content Post content HTML.
+ * @return string
+ */
+function nvx_filter_strip_embedded_jsonld( $content ) {
+	return nvxFilterStripEmbeddedJsonld( $content );
+}

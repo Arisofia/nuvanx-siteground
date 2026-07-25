@@ -18,7 +18,7 @@ $solution_groups = array(
 		'id'          => 'rostro-cuello',
 		'index'       => '01',
 		'eyebrow'     => 'ROSTRO Y CUELLO',
-		'title'       => 'Definición, soporte y calidad cutánea',
+		'title'       => 'Rostro y cuello: definición, soporte y calidad cutánea',
 		'intro'       => 'La misma preocupación visible puede proceder de grasa, laxitud, pérdida de soporte, pigmentación o una combinación. La exploración determina qué componente debe tratarse y cuál no.',
 		'surface'     => 'light',
 		'solutions'   => array(
@@ -34,7 +34,7 @@ $solution_groups = array(
 				'question' => 'Surco, pigmentación, vascularización, calidad de piel, laxitud y bolsas reales o aparentes.',
 				'limit'    => 'Las bolsas grasas verdaderas o las alteraciones funcionales requieren valoración específica.',
 				'path'     => '/ojeras-surco-lagrimal-madrid/',
-				'protocol' => 'Eye Frame',
+				'protocol' => 'Valoración periocular',
 			),
 			array(
 				'title'    => 'Firmeza y densidad facial',
@@ -80,7 +80,7 @@ $solution_groups = array(
 		'id'          => 'contorno-corporal',
 		'index'       => '03',
 		'eyebrow'     => 'CONTORNO CORPORAL',
-		'title'       => 'Grasa localizada, laxitud y continuidad anatómica',
+		'title'       => 'Contorno corporal: grasa localizada, laxitud y continuidad anatómica',
 		'intro'       => 'No tratamos zonas como compartimentos aislados. Analizamos la relación entre abdomen, flancos, espalda, brazos, muslos y rodillas para preservar proporción y continuidad.',
 		'surface'     => 'dark',
 		'solutions'   => array(
@@ -144,7 +144,7 @@ $solution_groups = array(
 				'protocol' => 'Male Contour',
 			),
 			array(
-				'title'    => 'Procedimientos previos',
+				'title'    => 'Valoración de procedimientos previos',
 				'question' => 'Evolución, materiales utilizados, tiempos biológicos y posibilidad real de corregir o esperar.',
 				'limit'    => 'Una segunda valoración puede concluir que lo indicado es observar, derivar o no intervenir.',
 				'path'     => '/madrid/valoracion/',
@@ -158,8 +158,8 @@ $solution_groups = array(
 	<header class="nvx-solutions-hero" aria-labelledby="nvx-solutions-title">
 		<div class="nvx-solutions-hero__copy">
 			<p class="nvx-solutions-eyebrow">SOLUCIONES MÉDICAS · NUVANX MADRID</p>
-			<h1 id="nvx-solutions-title">La preocupación orienta la consulta. El diagnóstico define el tratamiento.</h1>
-			<p class="nvx-solutions-hero__lead">Organizamos las soluciones por anatomía y por causa clínica, no por catálogo de máquinas. Antes de recomendar una tecnología diferenciamos grasa, laxitud, soporte, textura, pigmentación y otros componentes que pueden producir signos similares.</p>
+			<h1 id="nvx-solutions-title">Soluciones médicas para rostro, piel y contorno corporal.</h1>
+			<p class="nvx-solutions-hero__lead">La preocupación orienta la consulta. El diagnóstico define el tratamiento. Organizamos las soluciones por anatomía y por causa clínica, no por catálogo de máquinas. Antes de recomendar una tecnología diferenciamos grasa, laxitud, soporte, textura, pigmentación y otros componentes que pueden producir signos similares.</p>
 			<div class="nvx-solutions-actions">
 				<a class="nvx-solutions-button nvx-solutions-button--primary" href="<?php echo esc_url( $valuation_url ); ?>">Solicitar valoración médica</a>
 				<a class="nvx-solutions-link" href="#mapa-soluciones">Explorar soluciones</a>
@@ -183,7 +183,7 @@ $solution_groups = array(
 		<div class="nvx-solutions-shell nvx-solutions-principle__grid">
 			<div>
 				<p class="nvx-solutions-eyebrow">ANTES DE LA TECNOLOGÍA</p>
-				<h2 id="nvx-solutions-principle-title">Una misma apariencia puede tener causas diferentes.</h2>
+				<h2 id="nvx-solutions-principle-title">Una misma preocupación puede tener causas distintas.</h2>
 			</div>
 			<div class="nvx-solutions-principle__body">
 				<p>Dos personas pueden consultar por la misma zona y necesitar planes distintos. La anatomía, la calidad del tejido, los antecedentes y los límites clínicos cambian la indicación.</p>

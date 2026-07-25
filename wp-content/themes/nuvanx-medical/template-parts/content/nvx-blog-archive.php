@@ -46,11 +46,13 @@ $topics = get_categories(
 );
 ?>
 <section class="nvx-blog-archive" aria-labelledby="nvx-blog-archive-title">
-	<header class="nvx-blog-archive__hero">
-		<div class="nvx-shell nvx-blog-archive__hero-inner">
-			<p class="nvx-eyebrow"><?php echo esc_html( $eyebrow ); ?></p>
-			<h1 id="nvx-blog-archive-title" class="nvx-blog-archive__title"><?php echo esc_html( $title ); ?></h1>
-			<p class="nvx-blog-archive__lead"><?php echo esc_html( $lead ); ?></p>
+	<header class="nvx-brand-hero nvx-editorial-hero nvx-canonical-page-hero nvx-blog-archive__hero">
+		<div class="nvx-brand-hero__inner">
+			<div class="nvx-editorial-hero__copy">
+				<p class="nvx-eyebrow"><?php echo esc_html( $eyebrow ); ?></p>
+				<h1 id="nvx-blog-archive-title" class="nvx-heading nvx-blog-archive__title"><?php echo esc_html( $title ); ?></h1>
+				<p class="nvx-brand-meta nvx-blog-archive__lead"><?php echo esc_html( $lead ); ?></p>
+			</div>
 		</div>
 	</header>
 
@@ -63,8 +65,7 @@ $topics = get_categories(
 						the_post();
 						$categories = get_the_category();
 						$primary    = ! empty( $categories ) ? $categories[0] : null;
-						// Index is text-only: no featured photos (single posts keep media).
-						$classes = 'nvx-blog-card nvx-blog-card--no-media';
+						$classes    = 'nvx-blog-card nvx-blog-card--no-media';
 						?>
 						<article id="post-<?php the_ID(); ?>" <?php post_class( $classes ); ?>>
 							<div class="nvx-blog-card__content">

@@ -642,9 +642,7 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	// Hero media: only real page hero — never logo, never a stolen staff portrait.
 	$media = '';
-	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
-		$media = $m[0];
-	} elseif ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
+	if ( preg_match( '/<(?:figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/(?:figure|div)>/iu', $content, $m ) ) {
 		$media = $m[0];
 	}
 	if ( '' !== $media && nvx_equipo_media_is_logo( $media ) ) {

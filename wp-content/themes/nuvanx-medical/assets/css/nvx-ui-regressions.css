@@ -475,3 +475,37 @@
     min-height: 31rem;
   }
 }
+
+/* Tighten excessive vertical whitespace between text and sections across all routes. */
+.nvx-laser-section,
+.nvx-editorial-section,
+.nvx-brand-section,
+.nvx-ipl-section {
+  padding-block: clamp(2rem, 4.5vw, 3.5rem);
+}
+
+.nvx-editorial-hero__copy,
+.nvx-laser-hero .nvx-editorial-hero__copy {
+  padding-block: clamp(2.5rem, 5vw, 4rem);
+}
+
+.nvx-laser-body,
+.nvx-editorial-body,
+.nvx-catalog-card__body {
+  margin-bottom: 0.75rem;
+  line-height: 1.55;
+}
+
+/* Ensure horizontal multi-column layout for grids and lists on desktop. */
+@media (min-width: 48rem) {
+  .nvx-laser-focus-grid,
+  .nvx-catalog-grid,
+  .nvx-endolift-diagnosis__grid,
+  .nvx-editorial-effects,
+  .nvx-endolift-process-grid,
+  .nvx-editorial-grid-list {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)) !important;
+    gap: var(--nvx-space-4, 1.5rem) !important;
+  }
+}

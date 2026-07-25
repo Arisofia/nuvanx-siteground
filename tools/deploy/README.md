@@ -19,8 +19,6 @@ NUVANX_CONFIRM=yes bash tools/deploy/deploy-to-prod.sh \
   --prod-root "$WP_PROD" \
   --staging-root "$WP_STG2" \
   --confirm
-
-BASE_URL=https://nuvanx.com bash scripts/ops/post-promote-verify.sh
 ```
 
 ```bash

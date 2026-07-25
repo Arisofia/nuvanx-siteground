@@ -402,9 +402,16 @@ final class NvxProductionReadinessCommand {
 
 	private function applyPrimaryMenu(): void {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
-			$inc_nav = get_template_directory() . '/inc/nvx-navigation-filters.php';
-			if ( file_exists( $inc_nav ) ) {
-				require_once $inc_nav;
+			$candidate_paths = array(
+				dirname( __DIR__ ) . '/theme/inc/nvx-navigation-filters.php',
+				dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php',
+				get_template_directory() . '/inc/nvx-navigation-filters.php',
+			);
+			foreach ( $candidate_paths as $inc_nav ) {
+				if ( file_exists( $inc_nav ) ) {
+					require_once $inc_nav;
+					break;
+				}
 			}
 		}
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {

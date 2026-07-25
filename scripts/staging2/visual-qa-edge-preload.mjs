@@ -52,6 +52,33 @@ function parseConnectAuthority(authority) {
   return { host, port };
 }
 
+function runCurlProbe(args) {
+  return new Promise((resolve) => {
+    const child = spawn('/usr/bin/curl', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    const maxBuffer = 8 * 1024 * 1024;
+    const finish = (status, error = null) => {
+      if (settled) return;
+      settled = true;
+      resolve({ status, stdout, stderr: error ? `${stderr}\n${error.message}` : stderr });
+    };
+    const append = (current, chunk) => {
+      const next = current + String(chunk);
+      if (Buffer.byteLength(next, 'utf8') > maxBuffer) {
+        child.kill('SIGTERM');
+        return next.slice(-maxBuffer);
+      }
+      return next;
+    };
+    child.stdout.on('data', (chunk) => { stdout = append(stdout, chunk); });
+    child.stderr.on('data', (chunk) => { stderr = append(stderr, chunk); });
+    child.once('error', (error) => finish(null, error));
+    child.once('close', (status) => finish(status));
+  });
+}
+
 const remoteBridgePhp = String.raw`
 $host = (string) ($argv[1] ?? '');
 $port = (int) ($argv[2] ?? 0);
@@ -216,30 +243,26 @@ process.once('exit', cleanupProxy);
 let proxyReady = false;
 let lastProbe = '';
 for (let attempt = 1; attempt <= 4; attempt += 1) {
-  const probe = spawnSync(
-    '/usr/bin/curl',
-    [
-      '--silent',
-      '--show-error',
-      '--fail',
-      '--max-time',
-      '45',
-      '--noproxy',
-      '',
-      '--proxy',
-      `http://127.0.0.1:${proxyPort}`,
-      '--user-agent',
-      userAgent,
-      'https://staging2.nuvanx.com/',
-    ],
-    { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 },
-  );
+  const probe = await runCurlProbe([
+    '--silent',
+    '--show-error',
+    '--fail',
+    '--max-time',
+    '45',
+    '--noproxy',
+    '',
+    '--proxy',
+    `http://127.0.0.1:${proxyPort}`,
+    '--user-agent',
+    userAgent,
+    'https://staging2.nuvanx.com/',
+  ]);
   lastProbe = String(probe.stderr || probe.stdout || '').slice(-1200);
   if (probe.status === 0 && String(probe.stdout || '').includes(expectedSha)) {
     proxyReady = true;
     break;
   }
-  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, attempt * 1000);
+  await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
 }
 
 if (!proxyReady) {

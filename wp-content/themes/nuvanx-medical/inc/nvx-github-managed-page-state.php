@@ -18,6 +18,10 @@ function nvxSyncGithubManagedPageState( int $post_id, string $key ): void {
 		return;
 	}
 
+	if ( ! is_admin() && ! ( defined( 'WP_CLI' ) && WP_CLI ) && ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
 	$marker  = '<!-- NUVANX_GITHUB_MANAGED:' . sanitize_key( $key ) . ' -->';
 	$current = (string) get_post_field( 'post_content', $post_id, 'raw' );
 	if ( trim( $current ) === $marker ) {

@@ -20,8 +20,10 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 		return $content;
 	}
 
-	// Content already owns a media rail inside the hero.
-	if ( preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero|hero)__media/i', $content ) ) {
+	// Content already owns media inside the hero — cubre <img>, <figure> o la clase canónica.
+	if ( preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero|hero)__media/i', $content )
+		|| preg_match( '/<section\b[^>]*class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)[^"]*"[^>]*>.*?<(?:img|figure)\b/is', $content )
+	) {
 		return $content;
 	}
 

@@ -4,15 +4,18 @@ Deployment and migration scripts require explicit confirmation.
 
 ## Staging2 (manual, protected GitHub workflow)
 
-A push or pull request **does not deploy** to Staging2. Deployment is available
-only through the GitHub Actions workflow **Deploy Staging2 (manual)**
-(`.github/workflows/deploy-staging2.yml`) using `workflow_dispatch` and the
-protected `staging2` environment.
+A push does **not deploy** to Staging2. Deployment is available only through the
+GitHub Actions workflow **Deploy Staging2 (manual)**
+(`.github/workflows/deploy-staging2.yml`) using either:
 
-The operator selects the exact repository ref to validate. The supplied
-40-character `git_sha` must equal the HEAD of that selected ref. This permits
-pre-merge validation of a pull-request branch without allowing arbitrary commits
-or an unreviewed SHA to be deployed from another ref.
+- `workflow_dispatch`, with the exact selected ref and full 40-character SHA; or
+- the `deploy-staging2` label on an internal pull request, which deploys that PR's
+  immutable head SHA.
+
+The operator selects the exact repository ref to validate. For a manual run, the
+supplied `git_sha` must equal the HEAD of that selected ref. This permits pre-merge
+validation of a pull-request branch without allowing arbitrary commits or an
+unreviewed SHA to be deployed from another ref.
 
 The workflow mutates only Staging2. It:
 
@@ -20,9 +23,12 @@ The workflow mutates only Staging2. It:
 - executes the scoped production-readiness WP-CLI migration;
 - does not replace the complete WordPress tree;
 - does not deploy or promote to production;
-- cannot run from a normal push or pull-request event.
+- requires either explicit `workflow_dispatch` confirmation or the governed
+  `deploy-staging2` pull-request label.
 
-Pull requests execute only the non-mutating workflow contract job.
+Pull requests execute the non-mutating workflow contract job on open and update.
+The mutating deployment job runs only when the internal PR receives the exact
+`deploy-staging2` label.
 
 ### Required GitHub environment and secrets
 
@@ -44,13 +50,23 @@ account whenever SiteGround permits it.
 
 ### Run a pre-merge deployment
 
-1. Confirm the PR head has passed its required non-mutating checks.
+Manual dispatch:
+
+1. Confirm the branch HEAD has passed its required non-mutating checks.
 2. Open **Actions → Deploy Staging2 (manual) → Run workflow**.
-3. Select the PR branch to validate.
+3. Select the branch to validate.
 4. Copy the branch HEAD as a complete 40-character SHA.
 5. Enter that exact SHA in `git_sha`.
-6. Select `DEPLOY_STAGING2` in the confirmation field.
+6. Select `DEPLOY_AND_MIGRATE` and `DEPLOY_STAGING2`.
 7. Approve the protected `staging2` environment when prompted.
+
+Governed PR-label route:
+
+1. Open an internal pull request containing the exact candidate state.
+2. Confirm the workflow contract job is green.
+3. Add the exact `deploy-staging2` label.
+4. Verify that the deployment run checks out the PR head SHA and records the same
+   value in the deployed marker and evidence artifact.
 
 The workflow rejects a SHA that differs from the selected workflow ref HEAD.
 After any new commit is pushed, the deployment must be repeated with the new
@@ -111,18 +127,29 @@ atomic WordPress option lock and is idempotent.
 
 ### Required visual QA after automated PASS
 
-The workflow result is necessary but not sufficient. Validate at minimum on desktop
-and mobile:
+The workflow result is necessary but not sufficient. Validate at minimum on
+desktop and mobile:
 
-- `/tratamientos/`
-- `/protocolos-signature/`
-- `/remodelacion-corporal-laser-madrid/`
-- `/liposculpt-air/` → `/remodelacion-corporal-laser-madrid/`
-- `/v-lift-awake/` → `/protocolos-signature/`
-- Post-Maternity → `/protocolos-signature/`
+- `/blog/`: hero visible, shell centered, article cards aligned and no horizontal
+  overflow;
+- one Journal article: dark hero, readable title width, media alignment and prose
+  measure;
+- `/madrid/valoracion/`: canonical hero, process cards, clinic cards, HubSpot form
+  presentation and all valuation CTAs functional;
+- `/endolaser-corporal-grasa-localizada/`;
+- `/exion-face/`;
+- `/exion-body/`;
+- `/exion-fractional/`;
+- `/laser-co2-fraccionado-madrid-textura-cicatrices-poro/`;
+- `/btl-exilite-ipl-madrid/`;
+- `/emfusion/`;
+- `/medicina-estetica/` and its lips, rhinomodeling, under-eye and collagen
+  biostimulator detail pages.
 
-Confirm layout, navigation, one H1, CTA, canonical, robots and the absence of
-provisional or retired terminology.
+For every Technology and injectable page, confirm the same canonical header
+height, background, typography, H1 alignment, CTA treatment and responsive
+behavior. Also confirm menu navigation, one H1, canonical, robots and the absence
+of provisional or retired terminology.
 
 ### Host-authorized fallback
 

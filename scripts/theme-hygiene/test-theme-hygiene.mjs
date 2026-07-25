@@ -39,7 +39,7 @@ for (const file of runtime) {
     if (/(^|[-_.])(legacy|old|backup|bak|temp|tmp|deprecated|unused|orphan)([-_.]|$)/i.test(name)) fail(`${relativePath}: obsolete filename`);
     if (/staging2\.nuvanx\.com/i.test(content) && !relativePath.endsWith('/inc/nvx-environment-flags.php') && !relativePath.endsWith('/inc/nvx-staging2-canonical-closure.php')) fail(`${relativePath}: staging hostname`);
     if (/\.css$/i.test(file) && /!important\b/i.test(content)) fail(`${relativePath}: !important`);
-    if (/\.css$/i.test(file) && /[^;\s{}]+\s*\{\s*\}/m.test(content)) fail(`${relativePath}: empty CSS rule`);
+    if (/\.css$/i.test(file) && /\{\s*\}/.test(content)) fail(`${relativePath}: empty CSS rule`);
   } catch (error) { fail(`${relativePath}: unable to inspect (${error.code || error})`); }
 }
 

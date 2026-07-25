@@ -1,9 +1,6 @@
 name: Deploy to Staging2
 
 on:
-  push:
-    branches:
-      - master
   pull_request:
     types: [opened, synchronize, reopened, labeled]
     paths:
@@ -96,6 +93,8 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php
+          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-single.php
+          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-archive.php
 
       - name: Validate workflow and deployment contract
         id: contract_validation

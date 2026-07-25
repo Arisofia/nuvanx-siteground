@@ -29,6 +29,14 @@ function nvx_site_coherence_page_slugs(): array {
 		'ojeras-surco-lagrimal-madrid',
 		'bioestimuladores-colageno-madrid',
 		'valoracion',
+		'soluciones-medicas',
+		'medicina-estetica-goya-barrio-salamanca',
+		'medicina-estetica-chamberi',
+		'clinicas-de-medicina-estetica-nuvanx',
+		'por-que-nuvanx',
+		'inversion-medicina-estetica',
+		'equipo-medico',
+		'nosotros',
 	);
 }
 
@@ -39,7 +47,19 @@ function nvx_site_coherence_current_slug(): string {
 
 /** Whether the current page uses the shared coherence contract. */
 function nvx_site_coherence_is_target_page(): bool {
-	return in_array( nvx_site_coherence_current_slug(), nvx_site_coherence_page_slugs(), true );
+	if ( ! is_page() ) {
+		return false;
+	}
+	if ( in_array( nvx_site_coherence_current_slug(), nvx_site_coherence_page_slugs(), true ) ) {
+		return true;
+	}
+	if ( function_exists( 'nvxIsSedeTemplate' ) && nvxIsSedeTemplate() ) {
+		return true;
+	}
+	if ( function_exists( 'nvxIsClinicsHub' ) && nvxIsClinicsHub() ) {
+		return true;
+	}
+	return false;
 }
 
 /** Load the single cross-route stylesheet after the canonical component layers. */

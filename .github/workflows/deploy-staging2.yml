@@ -1,6 +1,9 @@
 name: Deploy to Staging2
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types: [opened, synchronize, reopened, labeled]
     paths:
@@ -13,17 +16,7 @@ on:
       - 'scripts/staging2/visual-qa-edge-preload.mjs'
       - 'scripts/staging2/test-deploy-workflow-contract.mjs'
       - 'scripts/wp/nvx-production-readiness-command.php'
-      - 'wp-content/themes/nuvanx-medical/functions.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php'
-      - 'wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php'
-      - 'wp-content/themes/nuvanx-medical/assets/css/nvx-canonical-page-hero.css'
+      - 'wp-content/themes/nuvanx-medical/**'
       - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
       - 'docs/content-strategy-2026/NUVANX-CONTOUR-ROADMAP-STATUS.md'
       - 'docs/operations/deployment.md'
@@ -54,7 +47,7 @@ env:
   ARTIFACT_DIR: staging2-deployment-evidence
 
 concurrency:
-  group: staging2-manual-deployment
+  group: staging2-deployment
   cancel-in-progress: false
 
 jobs:
@@ -93,6 +86,12 @@ jobs:
         run: |
           set -euo pipefail
           php -l scripts/wp/nvx-production-readiness-command.php
+          php -l wp-content/themes/nuvanx-medical/functions.php
+          php -l wp-content/themes/nuvanx-medical/front-page.php
+          php -l wp-content/themes/nuvanx-medical/templates/page-sede.php
+          php -l wp-content/themes/nuvanx-medical/templates/page-landing-valoracion.php
+          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-clinics-hub-github.php
+          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-valoracion-github.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php
@@ -120,6 +119,7 @@ jobs:
     name: Diagnose or deploy immutable SHA to staging2
     needs: contract
     if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
       (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DEPLOY_STAGING2') ||
       (github.event_name == 'pull_request' &&
        github.event.action == 'labeled' &&
@@ -127,11 +127,8 @@ jobs:
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 35
-    # environment:
-    #   name: staging2
-    #   url: https://staging2.nuvanx.com
     env:
-      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.pull_request.head.sha }}
+      DEPLOY_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'DEPLOY_AND_MIGRATE' }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
       REMOTE_RELEASE: ''
@@ -190,18 +187,9 @@ jobs:
           : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY secret}"
           : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS secret}"
           SSH_PORT="${STAGING2_SSH_PORT:-18765}"
-          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] || {
-            echo 'STAGING2_SSH_PORT must be numeric.' >&2
-            exit 1
-          }
-          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || {
-            echo 'STAGING2_SSH_HOST contains unsupported characters.' >&2
-            exit 1
-          }
-          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]] || {
-            echo 'STAGING2_SSH_USER contains unsupported characters.' >&2
-            exit 1
-          }
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] || { echo 'STAGING2_SSH_PORT must be numeric.' >&2; exit 1; }
+          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || { echo 'STAGING2_SSH_HOST contains unsupported characters.' >&2; exit 1; }
+          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]] || { echo 'STAGING2_SSH_USER contains unsupported characters.' >&2; exit 1; }
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
           printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"

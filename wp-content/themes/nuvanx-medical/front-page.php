@@ -2,8 +2,8 @@
 /**
  * Canonical editorial front page.
  *
- * Home is a text-led editorial cover with one moving visual: the hero video.
- * Static imagery belongs to the corresponding clinical and editorial routes.
+ * Home is a GitHub-managed editorial cover. Its visible copy, structure and
+ * hero artwork are versioned with the theme and deployed as one release.
  *
  * @package nuvanx-medical
  */
@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
 require_once get_template_directory() . '/inc/nvx-github-managed-page-state.php';
 nvxSyncGithubManagedPageState( (int) get_queried_object_id(), 'home' );
 
-$hero_video_url = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
+$hero_art_url = get_template_directory_uri() . '/assets/images/nvx-home-hero-contours.svg';
 
 if ( ! defined( 'NVX_URL_REMODELACION' ) ) {
 	define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
@@ -83,14 +83,9 @@ ob_start();
 ?>
 <div id="nvx-home-v3" class="nvx-home-v4 nvx-home-v5">
 	<section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
-		<div class="nvx-home-hero__media" aria-hidden="true">
-			<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata">
-				<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
-				<track kind="subtitles" src="/uploads/captions.vtt" srclang="es" label="Español">
-				<track kind="descriptions" src="/uploads/descriptions.vtt" srclang="es" label="Audiodescripción">
-			</video>
-			<button id="nvx-home-hero-video-pause" class="nvx-home-hero__video-control" aria-label="Pausar vídeo de fondo">Pausar</button>
-		</div>
+		<figure class="nvx-home-hero__media" aria-hidden="true">
+			<img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async">
+		</figure>
 		<div class="nvx-home-hero__copy">
 			<p class="nvx-home-eyebrow">NUVANX · MEDICINA ESTÉTICA LÁSER · MADRID</p>
 			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con criterio médico y resultados naturales.</h1>

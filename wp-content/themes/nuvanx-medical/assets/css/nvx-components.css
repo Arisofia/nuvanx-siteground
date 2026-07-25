@@ -1240,8 +1240,8 @@ section.nvx-hero, .nvx-brand-hero {
 
 .nvx-catalog-grid{
   display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-4, var(--nvx-space-4))}
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--nvx-space-4, var(--nvx-space-4))}
 
 .nvx-catalog-card:hover .nvx-catalog-card__cta span{
     transform: none}
@@ -1258,19 +1258,19 @@ section.nvx-hero, .nvx-brand-hero {
 
 .nvx-endolift-diagnosis__grid{
   display: grid;
-    grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   gap: var(--nvx-space-4);
   align-items: start}
 
 .nvx-editorial-effects{
   display: grid;
-    grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   gap: var(--nvx-space-4);
   margin-top: var(--nvx-space-4, var(--nvx-space-4))}
 
 .nvx-endolift-process-grid{
   display: grid;
-    grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
   gap: var(--nvx-space-4)}
 
 figure.nvx-equipo-portrait{
@@ -1290,8 +1290,8 @@ figure.nvx-equipo-portrait{
 
 .nvx-laser-focus-grid{
   display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-4)}
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: var(--nvx-space-4)}
 
 
 

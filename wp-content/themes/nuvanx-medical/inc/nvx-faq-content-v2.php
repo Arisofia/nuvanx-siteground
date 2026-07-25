@@ -101,7 +101,7 @@ function nvx_home_faq_v2_markup(): string {
 	return $html . '</div></div></section>';
 }
 
-function nvx_home_faq_v2_nearest_section( DOMElement $node ): DOMElement {
+function nvxHomeFaqV2NearestSection( DOMElement $node ): DOMElement {
 	$current = $node;
 	do {
 		if ( 'section' === strtolower( $current->tagName ) ) {
@@ -113,7 +113,7 @@ function nvx_home_faq_v2_nearest_section( DOMElement $node ): DOMElement {
 }
 
 /** @return array<int,DOMElement> */
-function nvx_home_faq_v2_candidates( DOMXPath $xpath, DOMElement $root ): array {
+function nvxHomeFaqV2Candidates( DOMXPath $xpath, DOMElement $root ): array {
 	$found = array();
 	$nodes = $xpath->query(
 		'.//*[contains(concat(" ",normalize-space(@class)," ")," nvx-home-faq-editorial ") '
@@ -124,7 +124,7 @@ function nvx_home_faq_v2_candidates( DOMXPath $xpath, DOMElement $root ): array 
 	if ( false !== $nodes ) {
 		foreach ( $nodes as $node ) {
 			if ( $node instanceof DOMElement ) {
-				$section = nvx_home_faq_v2_nearest_section( $node );
+				$section = nvxHomeFaqV2NearestSection( $node );
 				$found[ spl_object_id( $section ) ] = $section;
 			}
 		}
@@ -132,14 +132,14 @@ function nvx_home_faq_v2_candidates( DOMXPath $xpath, DOMElement $root ): array 
 	return array_values( $found );
 }
 
-function nvx_home_faq_v2_import( DOMDocument $target ): ?DOMElement {
+function nvxHomeFaqV2Import( DOMDocument $target ): ?DOMElement {
 	$source = new DOMDocument( '1.0', 'UTF-8' );
 	$source->loadHTML( '<?xml encoding="utf-8" ?>' . nvx_home_faq_v2_markup(), LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
 	$imported = $target->importNode( $source->documentElement, true );
 	return $imported instanceof DOMElement ? $imported : null;
 }
 
-function nvx_home_faq_v2_transform( string $content ): string {
+function nvxHomeFaqV2Transform( string $content ): string {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ! is_front_page() || false !== strpos( $content, 'data-nvx-faq-source="canonical"' ) || ! class_exists( 'DOMDocument' ) ) {
 		// Allow refresh when already marked: rebuild markup.
 		if ( is_front_page() && false !== strpos( $content, 'data-nvx-faq-source="canonical"' ) ) {
@@ -171,8 +171,8 @@ function nvx_home_faq_v2_transform( string $content ): string {
 	}
 
 	$xpath      = new DOMXPath( $document );
-	$candidates = nvx_home_faq_v2_candidates( $xpath, $root );
-	$import     = nvx_home_faq_v2_import( $document );
+	$candidates = nvxHomeFaqV2Candidates( $xpath, $root );
+	$import     = nvxHomeFaqV2Import( $document );
 	if ( ! $import ) {
 		libxml_clear_errors();
 		libxml_use_internal_errors( $previous );
@@ -201,15 +201,15 @@ function nvx_home_faq_v2_transform( string $content ): string {
 	libxml_use_internal_errors( $previous );
 	return is_string( $output ) && '' !== trim( $output ) ? $output : $content;
 }
-add_filter( 'the_content', 'nvx_home_faq_v2_transform', 140 );
+add_filter( 'the_content', 'nvxHomeFaqV2Transform', 140 );
 
 /** Return whether a Schema.org @type value contains the requested type. */
-function nvx_home_faq_v2_has_type( $types, string $type ): bool {
+function nvxHomeFaqV2HasType( $types, string $type ): bool {
 	return in_array( $type, is_array( $types ) ? $types : array( $types ), true );
 }
 
 /** Build Question nodes from the same catalogue used for visible HTML. */
-function nvx_home_faq_v2_schema_entities(): array {
+function nvxHomeFaqV2SchemaEntities(): array {
 	$entities = array();
 	foreach ( nvx_home_faq_v2_catalog() as $faq ) {
 		if ( empty( $faq['q'] ) || empty( $faq['a'] ) ) {
@@ -233,7 +233,7 @@ function nvx_home_faq_v2_schema_entities(): array {
  * Preference order: an existing WebPage+FAQPage, an existing FAQPage, an
  * existing WebPage, or a new FAQPage. Every other FAQPage node is removed.
  */
-function nvx_home_faq_v2_schema_graph( array $graph, $context = null ): array {
+function nvxHomeFaqV2SchemaGraph( array $graph, $context = null ): array {
 	if ( ! is_front_page() ) {
 		return $graph;
 	}
@@ -245,8 +245,8 @@ function nvx_home_faq_v2_schema_graph( array $graph, $context = null ): array {
 		if ( ! is_array( $piece ) || ! isset( $piece['@type'] ) ) {
 			continue;
 		}
-		$is_faq = nvx_home_faq_v2_has_type( $piece['@type'], 'FAQPage' );
-		$is_web = nvx_home_faq_v2_has_type( $piece['@type'], 'WebPage' );
+		$is_faq = nvxHomeFaqV2HasType( $piece['@type'], 'FAQPage' );
+		$is_web = nvxHomeFaqV2HasType( $piece['@type'], 'WebPage' );
 		if ( $is_faq && $is_web ) {
 			$preferred = $index;
 			break;
@@ -276,7 +276,7 @@ function nvx_home_faq_v2_schema_graph( array $graph, $context = null ): array {
 		$types[] = 'FAQPage';
 	}
 	$graph[ $preferred ]['@type']      = array_values( array_unique( array_filter( $types ) ) );
-	$graph[ $preferred ]['mainEntity'] = nvx_home_faq_v2_schema_entities();
+	$graph[ $preferred ]['mainEntity'] = nvxHomeFaqV2SchemaEntities();
 	$graph[ $preferred ]['url']        = $graph[ $preferred ]['url'] ?? home_url( '/' );
 	$graph[ $preferred ]['@id']        = $graph[ $preferred ]['@id'] ?? home_url( '/#webpage' );
 
@@ -284,11 +284,11 @@ function nvx_home_faq_v2_schema_graph( array $graph, $context = null ): array {
 		if ( $index === $preferred || ! isset( $graph[ $index ]['@type'] ) ) {
 			continue;
 		}
-		if ( nvx_home_faq_v2_has_type( $graph[ $index ]['@type'], 'FAQPage' ) ) {
+		if ( nvxHomeFaqV2HasType( $graph[ $index ]['@type'], 'FAQPage' ) ) {
 			unset( $graph[ $index ] );
 		}
 	}
 
 	return array_values( $graph );
 }
-add_filter( 'wpseo_schema_graph', 'nvx_home_faq_v2_schema_graph', 99, 2 );
+add_filter( 'wpseo_schema_graph', 'nvxHomeFaqV2SchemaGraph', 99, 2 );

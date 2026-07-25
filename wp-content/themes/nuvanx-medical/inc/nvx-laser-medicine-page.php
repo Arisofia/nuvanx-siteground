@@ -93,7 +93,7 @@ function nvx_laser_icon( string $name ): string {
 /**
  * Hero dual CTA: valoración (primary) + sedes (secondary). No videoconsulta.
  */
-function nvx_laser_hero_ctas_markup(): string {
+function nvxLaserHeroCtasMarkup(): string {
 	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
 		? nvx_cta_valoracion_url()
 		: home_url( '/madrid/valoracion/' );
@@ -118,7 +118,7 @@ function nvx_laser_hero_ctas_markup(): string {
 /**
  * Hero copy block.
  */
-function nvx_laser_hero_copy_markup(): string {
+function nvxLaserHeroCopyMarkup(): string {
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
 	$html  = '<div class="nvx-editorial-hero__copy">';
@@ -132,7 +132,7 @@ function nvx_laser_hero_copy_markup(): string {
 			$colegiado
 		)
 	) . '</p>';
-	$html .= nvx_laser_hero_ctas_markup();
+	$html .= nvxLaserHeroCtasMarkup();
 	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí (CS20144) · Salamanca–Goya (CS20073) · Indicación médica personalizada', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
 
@@ -142,7 +142,7 @@ function nvx_laser_hero_copy_markup(): string {
 /**
  * Full editorial body.
  */
-function nvx_laser_editorial_body_markup(): string {
+function nvxLaserEditorialBodyMarkup(): string {
 	$html  = '<div class="nvx-laser-editorial">';
 
 	// B. Enfoque — 3 columnas.
@@ -299,7 +299,7 @@ function nvx_laser_editorial_body_markup(): string {
  * @param string $content The existing page content used to determine eligibility and preserve the hero media and page wrapper.
  * @return string The rebuilt page content, or the original content when the page is not a laser medicine hub page.
  */
-function nvx_content_restructure_laser_medicine_page( string $content ): string {
+function nvxContentRestructureLaserMedicinePage( string $content ): string {
 	if ( ! nvx_content_is_laser_medicine_page( $content ) ) {
 		return $content;
 	}
@@ -311,11 +311,11 @@ function nvx_content_restructure_laser_medicine_page( string $content ): string 
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser" aria-labelledby="nvx-laser-h1" aria-label="' . esc_attr__( 'Medicina estética láser NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
-	$hero .= nvx_laser_hero_copy_markup();
+	$hero .= nvxLaserHeroCopyMarkup();
 	$hero .= $media;
 	$hero .= '</div></section>';
 
-	$body = nvx_laser_editorial_body_markup();
+	$body = nvxLaserEditorialBodyMarkup();
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		return $wrap[1] . $hero . $body . '</div>';
@@ -323,4 +323,4 @@ function nvx_content_restructure_laser_medicine_page( string $content ): string 
 
 	return '<div class="nvx-brand-page nvx-brand-page--laser">' . $hero . $body . '</div>';
 }
-add_filter( 'the_content', 'nvx_content_restructure_laser_medicine_page', 19 );
+add_filter( 'the_content', 'nvxContentRestructureLaserMedicinePage', 19 );

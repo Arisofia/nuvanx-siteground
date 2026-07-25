@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @return string PCRE pattern with delimiters.
  */
-function nvx_jsonld_script_pattern() {
+function nvxJsonldScriptPattern() {
 	return '#<script\b[^>]*type\s*=\s*(["\'])application/ld\+json\1[^>]*>([\s\S]*?)</script>#iu';
 }
 
@@ -31,7 +31,7 @@ function nvx_jsonld_script_pattern() {
  * @param string $payload Script body.
  * @return bool
  */
-function nvx_jsonld_is_schema_org_payload( $payload ) {
+function nvxJsonldIsSchemaOrgPayload( $payload ) {
 	if ( ! is_string( $payload ) || '' === $payload ) {
 		return false;
 	}
@@ -45,16 +45,16 @@ function nvx_jsonld_is_schema_org_payload( $payload ) {
  * @param string $html Raw HTML.
  * @return string
  */
-function nvx_strip_embedded_jsonld_html( $html ) {
+function nvxStripEmbeddedJsonldHtml( $html ) {
 	if ( ! is_string( $html ) || '' === $html || false === stripos( $html, 'ld+json' ) ) {
 		return $html;
 	}
 
 	$cleaned = preg_replace_callback(
-		nvx_jsonld_script_pattern(),
+		nvxJsonldScriptPattern(),
 		static function ( $matches ) {
 			$body = isset( $matches[2] ) ? $matches[2] : '';
-			if ( nvx_jsonld_is_schema_org_payload( $body ) ) {
+			if ( nvxJsonldIsSchemaOrgPayload( $body ) ) {
 				return '';
 			}
 			// Keep non-schema ld+json untouched.
@@ -74,7 +74,7 @@ function nvx_strip_embedded_jsonld_html( $html ) {
  *
  * @return bool
  */
-function nvx_should_strip_embedded_jsonld() {
+function nvxShouldStripEmbeddedJsonld() {
 	if ( is_admin() || wp_doing_ajax() || ( function_exists( 'wp_is_json_request' ) && wp_is_json_request() ) ) {
 		return false;
 	}
@@ -88,10 +88,10 @@ function nvx_should_strip_embedded_jsonld() {
  * @param string $content Post content HTML.
  * @return string
  */
-function nvx_filter_strip_embedded_jsonld( $content ) {
-	if ( ! nvx_should_strip_embedded_jsonld() ) {
+function nvxFilterStripEmbeddedJsonld( $content ) {
+	if ( ! nvxShouldStripEmbeddedJsonld() ) {
 		return $content;
 	}
 
-	return nvx_strip_embedded_jsonld_html( $content );
+	return nvxStripEmbeddedJsonldHtml( $content );
 }

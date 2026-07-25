@@ -152,6 +152,4 @@ function nvx_protocol_pages_prepare_shell(): void {
 }
 add_action( 'wp', 'nvx_protocol_pages_prepare_shell', 5 );
 
-nvx_register_catalog_content_filter( 'nvx_protocol_pages_catalog', 21 );
-
-
+nvxRegisterCatalogContentFilter( 'nvx_protocol_pages_catalog', 21 );

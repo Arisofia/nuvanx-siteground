@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Dependency handles must match functions.php (`nvx-patterns`).
  */
-function nvx_enqueue_mobile_hero_hierarchy(): void {
+function nvxEnqueueMobileHeroHierarchy(): void {
 	$hierarchy_relative = 'assets/css/nvx-mobile-hero-hierarchy.css';
 	$canonical_relative = 'assets/css/nvx-canonical-page-hero.css';
 
@@ -36,7 +36,7 @@ function nvx_enqueue_mobile_hero_hierarchy(): void {
 		nvx_asset_version( $canonical_relative )
 	);
 }
-add_action( 'wp_enqueue_scripts', 'nvx_enqueue_mobile_hero_hierarchy', 40 );
+add_action( 'wp_enqueue_scripts', 'nvxEnqueueMobileHeroHierarchy', 40 );
 
 if ( ! defined( 'NVX_REGEX_WHITESPACE' ) ) {
 	define( 'NVX_REGEX_WHITESPACE', '/\s+/' );
@@ -49,7 +49,7 @@ if ( ! defined( 'NVX_REGEX_WHITESPACE' ) ) {
  * @param string     $class_name The class token to find.
  * @return bool True if the element contains the class token, false otherwise.
  */
-function nvx_dom_node_has_class( DOMElement $node, string $class_name ): bool {
+function nvxDomNodeHasClass( DOMElement $node, string $class_name ): bool {
 	$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $node->getAttribute( 'class' ) ) ) ?: array();
 	return in_array( $class_name, $classes, true );
 }
@@ -57,7 +57,7 @@ function nvx_dom_node_has_class( DOMElement $node, string $class_name ): bool {
 /**
  * Add one class token without duplicating existing classes.
  */
-function nvx_dom_node_add_class( DOMElement $node, string $class_name ): void {
+function nvxDomNodeAddClass( DOMElement $node, string $class_name ): void {
 	$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $node->getAttribute( 'class' ) ) ) ?: array();
 	$classes[] = $class_name;
 	$classes = array_values( array_unique( array_filter( $classes ) ) );
@@ -67,7 +67,7 @@ function nvx_dom_node_add_class( DOMElement $node, string $class_name ): void {
 /**
  * Remove one class token while preserving the remaining class list.
  */
-function nvx_dom_node_remove_class( DOMElement $node, string $class_name ): void {
+function nvxDomNodeRemoveClass( DOMElement $node, string $class_name ): void {
 	$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $node->getAttribute( 'class' ) ) ) ?: array();
 	$classes = array_values(
 		array_filter(
@@ -83,7 +83,7 @@ function nvx_dom_node_remove_class( DOMElement $node, string $class_name ): void
  *
  * @return bool `true` if the current request is for a designated canonical page, `false` otherwise.
  */
-function nvx_is_canonical_page_header_request(): bool {
+function nvxIsCanonicalPageHeaderRequest(): bool {
 	return is_page(
 		array(
 			'protocolos-signature',
@@ -99,7 +99,7 @@ function nvx_is_canonical_page_header_request(): bool {
 /**
  * Identify explanatory paragraphs that must live below hero media.
  */
-function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
+function nvxIsExplanatoryHeroNode( DOMNode $node ): bool {
 	if ( ! $node instanceof DOMElement || 'p' !== strtolower( $node->tagName ) ) {
 		return false;
 	}
@@ -115,7 +115,7 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
 	);
 
 	foreach ( $movable_classes as $class_name ) {
-		if ( nvx_dom_node_has_class( $node, $class_name ) ) {
+		if ( nvxDomNodeHasClass( $node, $class_name ) ) {
 			return true;
 		}
 	}
@@ -129,8 +129,8 @@ function nvx_is_explanatory_hero_node( DOMNode $node ): bool {
  * @param DOMXPath   $xpath The XPath evaluator used to find media elements.
  * @param DOMElement $hero  The hero element to normalize.
  */
-function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ): void {
-	nvx_dom_node_add_class( $hero, 'nvx-canonical-page-hero' );
+function nvxNormalizeCanonicalPageHero( DOMXPath $xpath, DOMElement $hero ): void {
+	nvxDomNodeAddClass( $hero, 'nvx-canonical-page-hero' );
 
 	$media_nodes = $xpath->query(
 		'.//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__media ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__media ") or contains(concat(" ", normalize-space(@class), " "), " nvx-cases-hero__media ")]',
@@ -160,7 +160,7 @@ function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ):
  * @param bool        $canonical Whether to include canonical hero copy variants and normalize the matched element's classes.
  * @return DOMElement|null The matching hero copy element, or null if none is found.
  */
-function nvx_find_hero_copy_node( DOMXPath $xpath, DOMElement $hero, bool $canonical ): ?DOMElement {
+function nvxFindHeroCopyNode( DOMXPath $xpath, DOMElement $hero, bool $canonical ): ?DOMElement {
 	$query = $canonical
 		? './/*[contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy-copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-brand-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-cases-hero__copy ")]'
 		: './/*[contains(concat(" ", normalize-space(@class), " "), " nvx-editorial-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-page-hero__copy ") or contains(concat(" ", normalize-space(@class), " "), " nvx-hero__copy ")]';
@@ -176,8 +176,8 @@ function nvx_find_hero_copy_node( DOMXPath $xpath, DOMElement $hero, bool $canon
 	}
 
 	if ( $canonical ) {
-		nvx_dom_node_remove_class( $copy, 'nvx-editorial-hero__copy-copy' );
-		nvx_dom_node_add_class( $copy, 'nvx-editorial-hero__copy' );
+		nvxDomNodeRemoveClass( $copy, 'nvx-editorial-hero__copy-copy' );
+		nvxDomNodeAddClass( $copy, 'nvx-editorial-hero__copy' );
 	}
 
 	return $copy;
@@ -189,7 +189,7 @@ function nvx_find_hero_copy_node( DOMXPath $xpath, DOMElement $hero, bool $canon
  * @param string $content The content to transform.
  * @return string The transformed content, or the original content when no transformation applies.
  */
-function nvx_split_hero_explanatory_copy( string $content ): string {
+function nvxSplitHeroExplanatoryCopy( string $content ): string {
 	if (
 		is_admin()
 		|| wp_doing_ajax()
@@ -234,21 +234,21 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 		}
 	}
 
-	$canonical = nvx_is_canonical_page_header_request();
+	$canonical = nvxIsCanonicalPageHeaderRequest();
 
 	foreach ( $hero_nodes as $hero ) {
 		if ( $canonical ) {
-			nvx_normalize_canonical_page_hero( $xpath, $hero );
+			nvxNormalizeCanonicalPageHero( $xpath, $hero );
 		}
 
-		$copy = nvx_find_hero_copy_node( $xpath, $hero, $canonical );
+		$copy = nvxFindHeroCopyNode( $xpath, $hero, $canonical );
 		if ( ! $copy instanceof DOMElement ) {
 			continue;
 		}
 
 		$movable = array();
 		foreach ( iterator_to_array( $copy->childNodes ) as $child ) {
-			if ( nvx_is_explanatory_hero_node( $child ) ) {
+			if ( nvxIsExplanatoryHeroNode( $child ) ) {
 				$movable[] = $child;
 			}
 		}
@@ -306,4 +306,4 @@ function nvx_split_hero_explanatory_copy( string $content ): string {
 
 	return is_string( $output ) && '' !== trim( $output ) ? $output : $content;
 }
-add_filter( 'the_content', 'nvx_split_hero_explanatory_copy', 140 );
+add_filter( 'the_content', 'nvxSplitHeroExplanatoryCopy', 140 );

@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-function nvx_enqueue_conversion_events(): void {
+function nvxEnqueueConversionEvents(): void {
 	$relative = '/assets/js/nvx-conversion-events.js';
 	$path     = get_template_directory() . $relative;
 	$url      = get_template_directory_uri() . $relative;
@@ -40,4 +40,4 @@ function nvx_enqueue_conversion_events(): void {
 		'before'
 	);
 }
-add_action( 'wp_enqueue_scripts', 'nvx_enqueue_conversion_events', 2 );
+add_action( 'wp_enqueue_scripts', 'nvxEnqueueConversionEvents', 2 );

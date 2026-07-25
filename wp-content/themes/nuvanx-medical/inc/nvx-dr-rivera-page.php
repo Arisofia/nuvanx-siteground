@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Detect Dr. Rivera page.
  */
-function nvx_content_is_dr_rivera_page( string $content ): bool {
+function nvxContentIsDrRiveraPage( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-dr-rivera-editorial' ) ) {
 		return false; // Already processed.
 	}
@@ -42,8 +42,8 @@ function nvx_content_is_dr_rivera_page( string $content ): bool {
 /**
  * Replace content with Dr. Rivera authority page.
  */
-function nvx_content_dr_rivera_hijack( string $content ): string {
-	if ( ! nvx_content_is_dr_rivera_page( $content ) ) {
+function nvxContentDrRiveraHijack( string $content ): string {
+	if ( ! nvxContentIsDrRiveraPage( $content ) ) {
 		return $content;
 	}
 
@@ -82,7 +82,7 @@ function nvx_content_dr_rivera_hijack( string $content ): string {
 	// CTA
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$html .= '<div class="nvx-dr-rivera-cta">';
-		$html .= nvx_cta_pair_markup( 'nvx-dr-rivera-hero-ctas nvx-home-hero-ctas' );
+		$html .= nvxCtaPairMarkup( 'nvx-dr-rivera-hero-ctas nvx-home-hero-ctas' );
 		$html .= '</div>';
 	} else {
 		$html .= '<p class="nvx-dr-rivera-cta"><a href="' . esc_url( $valuation_url ) . '" class="nvx-button">' . esc_html__( 'Iniciar mi valoración médica', 'nuvanx-medical' ) . '</a></p>';

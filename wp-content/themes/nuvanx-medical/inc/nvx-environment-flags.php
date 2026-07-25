@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Host-only: generic WP_ENVIRONMENT_TYPE=staging must NOT reveal media, so
  * unrelated staging/preview hosts keep production-safe blackout behaviour.
  */
-function nvx_environment_is_staging2(): bool {
+function nvxEnvironmentIsStaging2(): bool {
 	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
 	$host = preg_replace( '/:\d+$/', '', $host );
 	if ( ! is_string( $host ) ) {
@@ -44,10 +44,10 @@ function nvx_environment_is_staging2(): bool {
  *
  * @param bool $enabled Current blackout flag.
  */
-function nvx_environment_filter_hero_blackout( bool $enabled ): bool {
-	return nvx_environment_is_staging2() ? false : $enabled;
+function nvxEnvironmentFilterHeroBlackout( bool $enabled ): bool {
+	return nvxEnvironmentIsStaging2() ? false : $enabled;
 }
-add_filter( 'nvx_theme_hero_blackout_enabled', 'nvx_environment_filter_hero_blackout', 5 );
+add_filter( 'nvx_theme_hero_blackout_enabled', 'nvxEnvironmentFilterHeroBlackout', 5 );
 
 /**
  * Resolve the exact deployed Git commit SHA.
@@ -55,7 +55,7 @@ add_filter( 'nvx_theme_hero_blackout_enabled', 'nvx_environment_filter_hero_blac
  * Resolution order supports controlled host configuration while keeping the
  * workflow-generated marker as the normal source of truth.
  */
-function nvx_environment_deploy_sha(): string {
+function nvxEnvironmentDeploySha(): string {
 	static $resolved = null;
 
 	if ( is_string( $resolved ) ) {
@@ -95,16 +95,16 @@ function nvx_environment_deploy_sha(): string {
 /**
  * Emit the immutable deployment marker in the rendered document head.
  */
-function nvx_environment_render_deploy_sha(): void {
+function nvxEnvironmentRenderDeploySha(): void {
 	if ( is_admin() ) {
 		return;
 	}
 
-	$sha = nvx_environment_deploy_sha();
+	$sha = nvxEnvironmentDeploySha();
 	if ( '' === $sha ) {
 		return;
 	}
 
 	printf( "<meta name=\"nvx-deploy-sha\" content=\"%s\" />\n", esc_attr( $sha ) );
 }
-add_action( 'wp_head', 'nvx_environment_render_deploy_sha', 1 );
+add_action( 'wp_head', 'nvxEnvironmentRenderDeploySha', 1 );

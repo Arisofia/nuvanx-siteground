@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /** @return array<string,array{name:string,license:string,url:string,id:string,title:string}> */
-function nvx_medical_reviewers(): array {
+function nvxMedicalReviewers(): array {
 	$license = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? (string) NVX_DIRECTOR_COLEGIADO : '282864786';
 	$url     = home_url( '/equipo-medico/#physician-rivera-tejeda' );
 
@@ -33,7 +33,7 @@ function nvx_medical_reviewers(): array {
 }
 
 /** Validate an ISO calendar date without silently correcting it. */
-function nvx_medical_review_valid_date( string $date ): bool {
+function nvxMedicalReviewValidDate( string $date ): bool {
 	if ( ! preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $date, $match ) ) {
 		return false;
 	}
@@ -42,7 +42,7 @@ function nvx_medical_review_valid_date( string $date ): bool {
 }
 
 /** Restrict review provenance to registered treatment pages. */
-function nvx_medical_review_supported_page( int $post_id ): bool {
+function nvxMedicalReviewSupportedPage( int $post_id ): bool {
 	if ( $post_id <= 0 || ! function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
 		return false;
 	}
@@ -55,18 +55,18 @@ function nvx_medical_review_supported_page( int $post_id ): bool {
  *
  * @return array{reviewer_key:string,name:string,license:string,url:string,id:string,title:string,date:string,date_label:string}|null
  */
-function nvx_medical_review_record( int $post_id = 0 ): ?array {
+function nvxMedicalReviewRecord( int $post_id = 0 ): ?array {
 	$post_id = $post_id > 0 ? $post_id : (int) get_queried_object_id();
-	if ( ! nvx_medical_review_supported_page( $post_id ) ) {
+	if ( ! nvxMedicalReviewSupportedPage( $post_id ) ) {
 		return null;
 	}
 
 	$status       = strtolower( trim( (string) get_post_meta( $post_id, '_nvx_medical_review_status', true ) ) );
 	$reviewer_key = strtolower( trim( (string) get_post_meta( $post_id, '_nvx_medical_reviewer', true ) ) );
 	$date         = trim( (string) get_post_meta( $post_id, '_nvx_medical_review_date', true ) );
-	$reviewers    = nvx_medical_reviewers();
+	$reviewers    = nvxMedicalReviewers();
 
-	if ( 'approved' !== $status || ! isset( $reviewers[ $reviewer_key ] ) || ! nvx_medical_review_valid_date( $date ) ) {
+	if ( 'approved' !== $status || ! isset( $reviewers[ $reviewer_key ] ) || ! nvxMedicalReviewValidDate( $date ) ) {
 		return null;
 	}
 
@@ -89,7 +89,7 @@ function nvx_medical_review_record( int $post_id = 0 ): ?array {
 }
 
 /** Build the compact hero byline from an approved record. */
-function nvx_medical_review_byline_markup( array $record ): string {
+function nvxMedicalReviewBylineMarkup( array $record ): string {
 	$html  = '<div class="nvx-medical-byline" data-nvx-medical-review="approved">';
 	$html .= '<div class="nvx-medical-byline__text">';
 	$html .= '<strong>' . esc_html__( 'Contenido revisado médicamente por ', 'nuvanx-medical' );
@@ -104,7 +104,7 @@ function nvx_medical_review_byline_markup( array $record ): string {
 }
 
 /** Remove legacy unconditional bylines from generated content. */
-function nvx_medical_review_strip_legacy_bylines( string $content ): string {
+function nvxMedicalReviewStripLegacyBylines( string $content ): string {
 	$pattern = '#<div\b(?=[^>]*\bclass=["\'][^"\']*\bnvx-medical-byline\b[^"\']*["\'])[^>]*>\s*<div\b[^>]*\bclass=["\'][^"\']*\bnvx-medical-byline__text\b[^"\']*["\'][^>]*>[\s\S]*?</div>\s*</div>#iu';
 	$clean   = preg_replace( $pattern, '', $content );
 
@@ -114,7 +114,7 @@ function nvx_medical_review_strip_legacy_bylines( string $content ): string {
 /**
  * Enforce fail-closed visible provenance after all page builders have run.
  */
-function nvx_medical_review_enforce_visible_provenance( string $content ): string {
+function nvxMedicalReviewEnforceVisibleProvenance( string $content ): string {
 	if (
 		is_admin()
 		|| wp_doing_ajax()
@@ -125,27 +125,27 @@ function nvx_medical_review_enforce_visible_provenance( string $content ): strin
 		return $content;
 	}
 
-	$content = nvx_medical_review_strip_legacy_bylines( $content );
-	$record  = nvx_medical_review_record();
+	$content = nvxMedicalReviewStripLegacyBylines( $content );
+	$record  = nvxMedicalReviewRecord();
 	if ( null === $record ) {
 		return $content;
 	}
 
-	$byline  = nvx_medical_review_byline_markup( $record );
+	$byline  = nvxMedicalReviewBylineMarkup( $record );
 	$updated = preg_replace( '/(<h1\b[^>]*>[\s\S]*?<\/h1>)/iu', '$1' . $byline, $content, 1 );
 
 	return is_string( $updated ) ? $updated : $content;
 }
-add_filter( 'the_content', 'nvx_medical_review_enforce_visible_provenance', 144 );
+add_filter( 'the_content', 'nvxMedicalReviewEnforceVisibleProvenance', 144 );
 
 /** Test whether a schema type contains WebPage. */
-function nvx_medical_review_schema_has_type( $types, string $type ): bool {
+function nvxMedicalReviewSchemaHasType( $types, string $type ): bool {
 	return in_array( $type, is_array( $types ) ? $types : array( $types ), true );
 }
 
 /** Add reviewedBy only when the same approved reviewer disclosure is visible. */
-function nvx_medical_review_schema_graph( $graph ) {
-	$record = nvx_medical_review_record();
+function nvxMedicalReviewSchemaGraph( $graph ) {
+	$record = nvxMedicalReviewRecord();
 	if ( null === $record || ! is_array( $graph ) ) {
 		return $graph;
 	}
@@ -154,7 +154,7 @@ function nvx_medical_review_schema_graph( $graph ) {
 		if (
 			is_array( $piece )
 			&& isset( $piece['@type'] )
-			&& nvx_medical_review_schema_has_type( $piece['@type'], 'WebPage' )
+			&& nvxMedicalReviewSchemaHasType( $piece['@type'], 'WebPage' )
 		) {
 			$graph[ $index ]['reviewedBy'] = array( '@id' => $record['id'] );
 		}
@@ -162,4 +162,4 @@ function nvx_medical_review_schema_graph( $graph ) {
 
 	return $graph;
 }
-add_filter( 'wpseo_schema_graph', 'nvx_medical_review_schema_graph', 120, 1 );
+add_filter( 'wpseo_schema_graph', 'nvxMedicalReviewSchemaGraph', 120, 1 );

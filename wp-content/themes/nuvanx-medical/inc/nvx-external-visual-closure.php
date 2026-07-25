@@ -20,7 +20,7 @@ require_once __DIR__ . '/nvx-staging2-canonical-closure.php';
  *
  * @return string The inline stylesheet content.
  */
-function nvx_external_visual_closure_css(): string {
+function nvxExternalVisualClosureCss(): string {
 	return <<<'CSS'
 /* NUVANX — terminal external visual closure */
 body,
@@ -271,11 +271,11 @@ CSS;
 }
 
 /** Enqueue the closure after theme and plugin styles. */
-function nvx_external_visual_closure_enqueue(): void {
+function nvxExternalVisualClosureEnqueue(): void {
 	$version = defined( 'NVX_THEME_VERSION' ) ? NVX_THEME_VERSION : null;
 
 	wp_register_style( 'nvx-external-visual-closure', false, array(), $version );
 	wp_enqueue_style( 'nvx-external-visual-closure' );
-	wp_add_inline_style( 'nvx-external-visual-closure', nvx_external_visual_closure_css() );
+	wp_add_inline_style( 'nvx-external-visual-closure', nvxExternalVisualClosureCss() );
 }
-add_action( 'wp_enqueue_scripts', 'nvx_external_visual_closure_enqueue', 1000 );
+add_action( 'wp_enqueue_scripts', 'nvxExternalVisualClosureEnqueue', 1000 );

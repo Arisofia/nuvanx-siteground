@@ -27,7 +27,7 @@ define( 'NVX_REGEX_WHITESPACE_U', '/\s+/u' );
  *
  * @return string[]
  */
-function nvx_clinics_section_skip_classes(): array {
+function nvxClinicsSectionSkipClasses(): array {
 	static $classes = null;
 	if ( null === $classes ) {
 		$classes = array(
@@ -45,7 +45,7 @@ function nvx_clinics_section_skip_classes(): array {
  *
  * @return string[]
  */
-function nvx_clinics_section_inner_ready_classes(): array {
+function nvxClinicsSectionInnerReadyClasses(): array {
 	static $classes = null;
 	if ( null === $classes ) {
 		$classes = array(
@@ -69,7 +69,7 @@ function nvx_clinics_section_inner_ready_classes(): array {
  *
  * @return string[]
  */
-function nvx_clinics_unwrap_protected_classes(): array {
+function nvxClinicsUnwrapProtectedClasses(): array {
 	static $classes = null;
 	if ( null === $classes ) {
 		$classes = array(
@@ -93,7 +93,7 @@ function nvx_clinics_unwrap_protected_classes(): array {
  *
  * @return string[]
  */
-function nvx_clinics_flow_classes(): array {
+function nvxClinicsFlowClasses(): array {
 	static $classes = null;
 	if ( null === $classes ) {
 		$classes = array(
@@ -109,7 +109,7 @@ function nvx_clinics_flow_classes(): array {
  *
  * @return string[]
  */
-function nvx_clinics_readable_measure_classes(): array {
+function nvxClinicsReadableMeasureClasses(): array {
 	static $classes = null;
 	if ( null === $classes ) {
 		$classes = array(
@@ -126,7 +126,7 @@ function nvx_clinics_readable_measure_classes(): array {
  *
  * @return string[]
  */
-function nvx_sede_inline_style_target_classes(): array {
+function nvxSedeInlineStyleTargetClasses(): array {
 	static $classes = null;
 	if ( null === $classes ) {
 		$classes = array(
@@ -146,7 +146,7 @@ function nvx_sede_inline_style_target_classes(): array {
  *
  * @return string[]
  */
-function nvx_sede_blocked_inline_style_properties(): array {
+function nvxSedeBlockedInlineStyleProperties(): array {
 	static $props = null;
 	if ( null === $props ) {
 		$props = array(
@@ -174,7 +174,7 @@ function nvx_sede_blocked_inline_style_properties(): array {
  *
  * @return string[]
  */
-function nvx_sede_inline_style_allowed_tags(): array {
+function nvxSedeInlineStyleAllowedTags(): array {
 	static $tags = null;
 	if ( null === $tags ) {
 		$tags = array( 'div', 'section', 'article', 'p', 'span', 'a', 'li', 'h2', 'h3', 'h4' );
@@ -185,7 +185,7 @@ function nvx_sede_inline_style_allowed_tags(): array {
 /**
  * PHP 7-compatible string prefix check (avoid str_starts_with for WP hosts on 7.x).
  */
-function nvx_str_starts_with( string $haystack, string $needle ): bool {
+function nvxStrStartsWith( string $haystack, string $needle ): bool {
 	if ( '' === $needle ) {
 		return true;
 	}
@@ -198,7 +198,7 @@ function nvx_str_starts_with( string $haystack, string $needle ): bool {
  * @param string   $class_attr Element class attribute.
  * @param string[] $tokens     Class tokens.
  */
-function nvx_clinics_class_has_any( string $class_attr, array $tokens ): bool {
+function nvxClinicsClassHasAny( string $class_attr, array $tokens ): bool {
 	if ( '' === trim( $class_attr ) || array() === $tokens ) {
 		return false;
 	}
@@ -217,7 +217,7 @@ function nvx_clinics_class_has_any( string $class_attr, array $tokens ): bool {
  *
  * @param string[] $tokens Class tokens.
  */
-function nvx_clinics_class_token_regex( array $tokens ): string {
+function nvxClinicsClassTokenRegex( array $tokens ): string {
 	$escaped = array_map(
 		static function ( string $token ): string {
 			return preg_quote( $token, '/' );
@@ -231,7 +231,7 @@ function nvx_clinics_class_token_regex( array $tokens ): string {
  * Page / map helpers
  * ---------------------------------------------------------------------- */
 
-function nvx_is_clinics_hub(): bool {
+function nvxIsClinicsHub(): bool {
 	if ( ! is_page() ) {
 		return false;
 	}
@@ -242,18 +242,9 @@ function nvx_is_clinics_hub(): bool {
 /**
  * Whether the current page uses the Sede Local template (hub + branch pages).
  */
-function nvx_is_sede_template(): bool {
+function nvxIsSedeTemplate(): bool {
 	if ( ! is_page() ) {
 		return false;
-	}
-
-	if ( nvx_is_clinics_hub() ) {
-		return true;
-	}
-
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	if ( in_array( $slug, array( 'medicina-estetica-chamberi', 'medicina-estetica-goya-barrio-salamanca', 'clinica-chamberi', 'clinica-goya' ), true ) ) {
-		return true;
 	}
 
 	$template = (string) get_page_template_slug();
@@ -268,7 +259,7 @@ function nvx_is_sede_template(): bool {
 	);
 }
 
-function nvx_clinics_map_url( string $clinic ): string {
+function nvxClinicsMapUrl( string $clinic ): string {
 	$query = 'goya' === $clinic
 		? 'NUVANX Medicina Estética Láser Salamanca Goya Madrid'
 		: 'NUVANX Medicina Estética Láser Chamberí Madrid';
@@ -276,7 +267,7 @@ function nvx_clinics_map_url( string $clinic ): string {
 	return 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode( $query );
 }
 
-function nvx_clinics_nearest_block( DOMNode $node ): ?DOMElement {
+function nvxClinicsNearestBlock( DOMNode $node ): ?DOMElement {
 	$current = $node;
 	while ( $current instanceof DOMNode && $current->parentNode ) {
 		if ( $current instanceof DOMElement && in_array( strtolower( $current->tagName ), array( 'section', 'article' ), true ) ) {
@@ -294,14 +285,14 @@ function nvx_clinics_nearest_block( DOMNode $node ): ?DOMElement {
 /**
  * Promote bare CMS <section>/<div> wrappers to global brand shells.
  */
-function nvx_clinics_promote_bare_sections( DOMXPath $xpath ): void {
+function nvxClinicsPromoteBareSections( DOMXPath $xpath ): void {
 	$sections = $xpath->query( '//section' );
 	if ( false === $sections ) {
 		return;
 	}
 
-	$skip_classes  = nvx_clinics_section_skip_classes();
-	$inner_ready   = nvx_clinics_section_inner_ready_classes();
+	$skip_classes  = nvxClinicsSectionSkipClasses();
+	$inner_ready   = nvxClinicsSectionInnerReadyClasses();
 
 	foreach ( $sections as $section ) {
 		if ( ! $section instanceof DOMElement ) {
@@ -309,11 +300,11 @@ function nvx_clinics_promote_bare_sections( DOMXPath $xpath ): void {
 		}
 
 		$class = trim( $section->getAttribute( 'class' ) );
-		if ( nvx_clinics_class_has_any( $class, $skip_classes ) ) {
+		if ( nvxClinicsClassHasAny( $class, $skip_classes ) ) {
 			continue;
 		}
 
-		if ( '' === $class || ! nvx_clinics_class_has_any( $class, array( 'nvx-brand-section' ) ) ) {
+		if ( '' === $class || ! nvxClinicsClassHasAny( $class, array( 'nvx-brand-section' ) ) ) {
 			$section->setAttribute( 'class', trim( $class . ' nvx-brand-section' ) );
 		}
 
@@ -322,7 +313,7 @@ function nvx_clinics_promote_bare_sections( DOMXPath $xpath ): void {
 				continue;
 			}
 			$child_class = trim( $child->getAttribute( 'class' ) );
-			if ( nvx_clinics_class_has_any( $child_class, $inner_ready ) ) {
+			if ( nvxClinicsClassHasAny( $child_class, $inner_ready ) ) {
 				break;
 			}
 			// Bare first div (no nvx-* class) → canonical section inner (global gutters).
@@ -340,9 +331,9 @@ function nvx_clinics_promote_bare_sections( DOMXPath $xpath ): void {
  * @param DOMXPath $xpath The XPath instance used to locate layout wrappers.
  * @return DOMElement|null The first normalized wrapper, or null if none qualifies.
  */
-function nvx_clinics_normalize_layout( DOMXPath $xpath ): ?DOMElement {
-	$readable = nvx_clinics_readable_measure_classes();
-	$flow     = nvx_clinics_flow_classes();
+function nvxClinicsNormalizeLayout( DOMXPath $xpath ): ?DOMElement {
+	$readable = nvxClinicsReadableMeasureClasses();
+	$flow     = nvxClinicsFlowClasses();
 	// Match either readable measure or legacy/current flow class.
 	$parts = array();
 	foreach ( array_merge( $readable, $flow ) as $token ) {
@@ -386,13 +377,13 @@ function nvx_clinics_normalize_layout( DOMXPath $xpath ): ?DOMElement {
 /**
  * Unwrap anonymous divs that only group sections (legacy CMS).
  */
-function nvx_clinics_unwrap_section_groups( DOMXPath $xpath ): void {
+function nvxClinicsUnwrapSectionGroups( DOMXPath $xpath ): void {
 	$divs = $xpath->query( '//div' );
 	if ( false === $divs ) {
 		return;
 	}
 
-	$protected = nvx_clinics_unwrap_protected_classes();
+	$protected = nvxClinicsUnwrapProtectedClasses();
 
 	foreach ( iterator_to_array( $divs ) as $div ) {
 		if ( ! $div instanceof DOMElement || ! $div->parentNode ) {
@@ -400,7 +391,7 @@ function nvx_clinics_unwrap_section_groups( DOMXPath $xpath ): void {
 		}
 
 		$class = trim( $div->getAttribute( 'class' ) );
-		if ( nvx_clinics_class_has_any( $class, $protected ) ) {
+		if ( nvxClinicsClassHasAny( $class, $protected ) ) {
 			continue;
 		}
 
@@ -442,8 +433,8 @@ function nvx_clinics_unwrap_section_groups( DOMXPath $xpath ): void {
  *
  * @return DOMElement|null First hoisted element (for nav insertion).
  */
-function nvx_clinics_hoist_section_stack( DOMXPath $xpath ): ?DOMElement {
-	$flow_tokens = nvx_clinics_flow_classes();
+function nvxClinicsHoistSectionStack( DOMXPath $xpath ): ?DOMElement {
+	$flow_tokens = nvxClinicsFlowClasses();
 	$parts       = array();
 	foreach ( $flow_tokens as $token ) {
 		$parts[] = 'contains(concat(" ", normalize-space(@class), " "), " ' . $token . ' ")';
@@ -466,12 +457,12 @@ function nvx_clinics_hoist_section_stack( DOMXPath $xpath ): ?DOMElement {
 		$current       = $flow->parentNode;
 		while ( $current instanceof DOMElement ) {
 			$class = $current->getAttribute( 'class' );
-			if ( nvx_clinics_class_has_any( $class, array( 'nvx-brand-page' ) ) ) {
+			if ( nvxClinicsClassHasAny( $class, array( 'nvx-brand-page' ) ) ) {
 				break;
 			}
 			if (
-				nvx_clinics_class_has_any( $class, array( 'nvx-brand-section' ) )
-				&& ! nvx_clinics_class_has_any( $class, array( 'nvx-brand-hero' ) )
+				nvxClinicsClassHasAny( $class, array( 'nvx-brand-section' ) )
+				&& ! nvxClinicsClassHasAny( $class, array( 'nvx-brand-hero' ) )
 			) {
 				$brand_section = $current;
 			}
@@ -517,13 +508,13 @@ function nvx_clinics_hoist_section_stack( DOMXPath $xpath ): ?DOMElement {
  *
  * @return array{layout_root: ?DOMElement, hoisted: ?DOMElement}
  */
-function nvx_clinics_run_layout_pipeline( DOMXPath $xpath ): array {
-	nvx_clinics_promote_bare_sections( $xpath );
-	$layout_root = nvx_clinics_normalize_layout( $xpath );
-	nvx_clinics_unwrap_section_groups( $xpath );
-	$hoisted = nvx_clinics_hoist_section_stack( $xpath );
-	nvx_clinics_unwrap_section_groups( $xpath );
-	nvx_clinics_promote_bare_sections( $xpath );
+function nvxClinicsRunLayoutPipeline( DOMXPath $xpath ): array {
+	nvxClinicsPromoteBareSections( $xpath );
+	$layout_root = nvxClinicsNormalizeLayout( $xpath );
+	nvxClinicsUnwrapSectionGroups( $xpath );
+	$hoisted = nvxClinicsHoistSectionStack( $xpath );
+	nvxClinicsUnwrapSectionGroups( $xpath );
+	nvxClinicsPromoteBareSections( $xpath );
 
 	return array(
 		'layout_root' => $layout_root instanceof DOMElement ? $layout_root : null,
@@ -531,16 +522,16 @@ function nvx_clinics_run_layout_pipeline( DOMXPath $xpath ): array {
 	);
 }
 
-function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): void {
+function nvxClinicsSetLinkAttributes( DOMElement $link, string $clinic ): void {
 	$name = 'goya' === $clinic ? 'NUVANX Salamanca–Goya' : 'NUVANX Chamberí';
-	$link->setAttribute( 'href', nvx_clinics_map_url( $clinic ) );
+	$link->setAttribute( 'href', nvxClinicsMapUrl( $clinic ) );
 	$link->setAttribute( 'target', '_blank' );
 	$link->setAttribute( 'rel', 'noopener noreferrer' );
 	$link->setAttribute( 'aria-label', 'Abrir ' . $name . ' en Google Maps' );
 	$link->nodeValue = 'Abrir en Google Maps';
 
 	// Map = secondary action (not competing primary); keep non-button utilities.
-	nvx_clinics_set_brand_button( $link, 'secondary', array( 'nvx-clinic-map-cta' ) );
+	nvxClinicsSetBrandButton( $link, 'secondary', array( 'nvx-clinic-map-cta' ) );
 }
 
 /**
@@ -549,7 +540,7 @@ function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): vo
  * @param string $class The space-separated class string to process.
  * @return string The class string without button-related tokens.
  */
-function nvx_clinics_class_without_button_chrome( string $class ): string {
+function nvxClinicsClassWithoutButtonChrome( string $class ): string {
 	$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $class ) ) ?: array();
 	$classes = array_values(
 		array_filter(
@@ -571,8 +562,8 @@ function nvx_clinics_class_without_button_chrome( string $class ): string {
  *
  * @param string[] $extra Additional class tokens to include.
  */
-function nvx_clinics_set_brand_button( DOMElement $link, string $variant, array $extra = array() ): void {
-	$kept   = nvx_clinics_class_without_button_chrome( $link->getAttribute( 'class' ) );
+function nvxClinicsSetBrandButton( DOMElement $link, string $variant, array $extra = array() ): void {
+	$kept   = nvxClinicsClassWithoutButtonChrome( $link->getAttribute( 'class' ) );
 	$tokens = preg_split( NVX_REGEX_WHITESPACE, trim( $kept ) ) ?: array();
 	$tokens = array_merge(
 		$tokens,
@@ -589,8 +580,8 @@ function nvx_clinics_set_brand_button( DOMElement $link, string $variant, array 
  * @param DOMElement $link The link whose classes should be updated.
  * @param string     $replace_with Optional class to add after removing button styling classes.
  */
-function nvx_clinics_strip_button_classes( DOMElement $link, string $replace_with = 'nvx-brand-inline-link' ): void {
-	$kept   = nvx_clinics_class_without_button_chrome( $link->getAttribute( 'class' ) );
+function nvxClinicsStripButtonClasses( DOMElement $link, string $replace_with = 'nvx-brand-inline-link' ): void {
+	$kept   = nvxClinicsClassWithoutButtonChrome( $link->getAttribute( 'class' ) );
 	$tokens = preg_split( NVX_REGEX_WHITESPACE, trim( $kept ) ) ?: array();
 	if ( '' !== $replace_with && ! in_array( $replace_with, $tokens, true ) ) {
 		$tokens[] = $replace_with;
@@ -601,7 +592,7 @@ function nvx_clinics_strip_button_classes( DOMElement $link, string $replace_wit
 /**
  * Phone / WhatsApp links (hosts + common labels). Demoted to inline text.
  */
-function nvx_clinics_is_phone_or_whatsapp_link( string $href, string $text ): bool {
+function nvxClinicsIsPhoneOrWhatsappLink( string $href, string $text ): bool {
 	if ( preg_match( '/^tel:/i', $href ) ) {
 		return true;
 	}
@@ -622,7 +613,7 @@ function nvx_clinics_is_phone_or_whatsapp_link( string $href, string $text ): bo
  * @param DOMDocument $dom The document containing the clinic hub markup.
  * @param DOMXPath $xpath XPath evaluator for locating links within the document.
  */
-function nvx_clinics_normalize_cta_hierarchy( DOMDocument $dom, DOMXPath $xpath ): void {
+function nvxClinicsNormalizeCtaHierarchy( DOMDocument $dom, DOMXPath $xpath ): void {
 	$root = $dom->getElementById( 'nvx-clinics-document' );
 	if ( ! $root ) {
 		return;
@@ -641,7 +632,7 @@ function nvx_clinics_normalize_cta_hierarchy( DOMDocument $dom, DOMXPath $xpath 
 		// Truncated intro CTA.
 		if ( preg_match( '/^Solicitar\s*$/iu', $text ) ) {
 			$link->nodeValue = 'Reservar valoración';
-			nvx_clinics_set_brand_button( $link, 'primary' );
+			nvxClinicsSetBrandButton( $link, 'primary' );
 			if ( '' === $href || '#' === $href ) {
 				$valoracion = function_exists( 'nvx_cta_valoracion_url' )
 					? nvx_cta_valoracion_url()
@@ -654,39 +645,39 @@ function nvx_clinics_normalize_cta_hierarchy( DOMDocument $dom, DOMXPath $xpath 
 		// Title links inside headings are not buttons.
 		$parent = $link->parentNode;
 		if ( $parent instanceof DOMElement && in_array( strtolower( $parent->tagName ), array( 'h1', 'h2', 'h3', 'h4' ), true ) ) {
-			nvx_clinics_strip_button_classes( $link, 'nvx-brand-inline-link' );
+			nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
 			continue;
 		}
 
 		// Phone / WhatsApp = text links (not competing buttons).
-		if ( nvx_clinics_is_phone_or_whatsapp_link( $href, $text ) ) {
-			nvx_clinics_strip_button_classes( $link, 'nvx-brand-inline-link' );
+		if ( nvxClinicsIsPhoneOrWhatsappLink( $href, $text ) ) {
+			nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
 			continue;
 		}
 
 		// Maps: secondary chrome (set_link_attributes already ran; re-assert safely).
 		if ( preg_match( '/(?:google\.com\/maps|maps\.app|google maps|abrir .+ maps)/iu', $href . ' ' . $text ) ) {
-			nvx_clinics_set_brand_button( $link, 'secondary', array( 'nvx-clinic-map-cta' ) );
+			nvxClinicsSetBrandButton( $link, 'secondary', array( 'nvx-clinic-map-cta' ) );
 			continue;
 		}
 
 		// Secondary actions: equipo, “ver todos”, generic explore.
 		if ( preg_match( '/equipo|ver todos|explorar|catálogo|catalogo/iu', $text . ' ' . $href ) ) {
-			nvx_clinics_set_brand_button( $link, 'secondary' );
+			nvxClinicsSetBrandButton( $link, 'secondary' );
 			continue;
 		}
 
 		// Primary CTAs: valoración / ver sede only when already a button.
 		if ( $is_btn && preg_match( '/valoraci[oó]n|ver sede|reservar/iu', $text ) ) {
-			nvx_clinics_set_brand_button( $link, 'primary' );
+			nvxClinicsSetBrandButton( $link, 'primary' );
 			continue;
 		}
 
 		// Treatment name cards: demote title-as-button to card title link.
-		if ( $is_btn && preg_match( '/\bnvx-brand-card\b/i', nvx_clinics_ancestor_class_blob( $link ) ) ) {
+		if ( $is_btn && preg_match( '/\bnvx-brand-card\b/i', nvxClinicsAncestorClassBlob( $link ) ) ) {
 			// Keep one primary "Ver …" style only if label is action-like; else inline.
 			if ( ! preg_match( '/^(ver|reservar|solicitar|abrir)\b/iu', $text ) ) {
-				nvx_clinics_strip_button_classes( $link, 'nvx-brand-inline-link' );
+				nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
 			}
 		}
 	}
@@ -695,7 +686,7 @@ function nvx_clinics_normalize_cta_hierarchy( DOMDocument $dom, DOMXPath $xpath 
 /**
  * Concatenated class attributes of ancestors (for context checks).
  */
-function nvx_clinics_ancestor_class_blob( DOMNode $node ): string {
+function nvxClinicsAncestorClassBlob( DOMNode $node ): string {
 	$blob = '';
 	$cur  = $node->parentNode;
 	while ( $cur instanceof DOMElement ) {
@@ -716,15 +707,15 @@ function nvx_clinics_ancestor_class_blob( DOMNode $node ): string {
  * Only rewrites a fixed allow-list of non-void tags so self-closing markup
  * and unrelated elements are never rebuilt.
  */
-function nvx_sede_strip_layout_inline_styles( string $content ): string {
-	if ( is_admin() || ! nvx_is_sede_template() || '' === trim( $content ) ) {
+function nvxSedeStripLayoutInlineStyles( string $content ): string {
+	if ( is_admin() || ! nvxIsSedeTemplate() || '' === trim( $content ) ) {
 		return $content;
 	}
 
-	$targets   = nvx_sede_inline_style_target_classes();
-	$blocked   = nvx_sede_blocked_inline_style_properties();
-	$allowed   = nvx_sede_inline_style_allowed_tags();
-	$class_re  = nvx_clinics_class_token_regex( $targets );
+	$targets   = nvxSedeInlineStyleTargetClasses();
+	$blocked   = nvxSedeBlockedInlineStyleProperties();
+	$allowed   = nvxSedeInlineStyleAllowedTags();
+	$class_re  = nvxClinicsClassTokenRegex( $targets );
 	$tag_alt   = implode(
 		'|',
 		array_map(
@@ -764,7 +755,7 @@ function nvx_sede_strip_layout_inline_styles( string $content ): string {
 					continue;
 				}
 				// Catch margin-* / padding-* without listing every longhand.
-				if ( nvx_str_starts_with( $prop, 'margin' ) || nvx_str_starts_with( $prop, 'padding' ) ) {
+				if ( nvxStrStartsWith( $prop, 'margin' ) || nvxStrStartsWith( $prop, 'padding' ) ) {
 					continue;
 				}
 				$keep[] = $decl;
@@ -794,7 +785,7 @@ function nvx_sede_strip_layout_inline_styles( string $content ): string {
 		$content
 	) ?? $content;
 }
-add_filter( 'the_content', 'nvx_sede_strip_layout_inline_styles', 28 );
+add_filter( 'the_content', 'nvxSedeStripLayoutInlineStyles', 28 );
 
 /**
  * Enhances the clinics hub content with normalized layout, clinic map CTAs, and clinic navigation.
@@ -803,8 +794,8 @@ add_filter( 'the_content', 'nvx_sede_strip_layout_inline_styles', 28 );
  * @return string The enhanced HTML content, or the original content when enhancement is unavailable.
  */
 
-function nvx_clinics_hub_enhance( string $content ): string {
-	if ( is_admin() || ! nvx_is_clinics_hub() || '' === trim( $content ) ) {
+function nvxClinicsHubEnhance( string $content ): string {
+	if ( is_admin() || ! nvxIsClinicsHub() || '' === trim( $content ) ) {
 		return $content;
 	}
 
@@ -820,7 +811,7 @@ function nvx_clinics_hub_enhance( string $content ): string {
 	}
 
 	$xpath       = new DOMXPath( $dom );
-	$pipeline    = nvx_clinics_run_layout_pipeline( $xpath );
+	$pipeline    = nvxClinicsRunLayoutPipeline( $xpath );
 	$layout_root = $pipeline['layout_root'];
 	$hoisted     = $pipeline['hoisted'];
 
@@ -838,7 +829,7 @@ function nvx_clinics_hub_enhance( string $content ): string {
 			if ( isset( $blocks[ $key ] ) || ! preg_match( $config['match'], $text ) ) {
 				continue;
 			}
-			$block = nvx_clinics_nearest_block( $heading );
+			$block = nvxClinicsNearestBlock( $heading );
 			if ( $block ) {
 				// Prefer article cards as location anchors when heading is inside a card.
 				$article = $xpath->query( 'ancestor::article[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-card ")][1]', $heading );
@@ -863,7 +854,7 @@ function nvx_clinics_hub_enhance( string $content ): string {
 			$href          = $link->getAttribute( 'href' );
 			$is_map_action = preg_match( '/(?:cómo llegar|como llegar|google maps|maps\.app|google\.[^\/]+\/maps)/iu', $text . ' ' . $href );
 			if ( $is_map_action && ! $map_action_seen ) {
-				nvx_clinics_set_link_attributes( $link, $key );
+				nvxClinicsSetLinkAttributes( $link, $key );
 				$map_action_seen = true;
 			} elseif ( $is_map_action ) {
 				$link->parentNode?->removeChild( $link );
@@ -872,7 +863,7 @@ function nvx_clinics_hub_enhance( string $content ): string {
 
 		if ( ! $map_action_seen ) {
 			$link = $dom->createElement( 'a', 'Abrir en Google Maps' );
-			nvx_clinics_set_link_attributes( $link, $key );
+			nvxClinicsSetLinkAttributes( $link, $key );
 			$actions = $dom->createElement( 'div' );
 			$actions->setAttribute( 'class', 'nvx-brand-actions nvx-clinic-location__actions' );
 			$actions->appendChild( $link );
@@ -881,7 +872,7 @@ function nvx_clinics_hub_enhance( string $content ): string {
 	}
 
 	// Single hierarchy pass after map classification (replaces former pre/post-map dual call).
-	nvx_clinics_normalize_cta_hierarchy( $dom, $xpath );
+	nvxClinicsNormalizeCtaHierarchy( $dom, $xpath );
 
 	if ( isset( $blocks['chamberi'], $blocks['goya'] ) && ! $dom->getElementById( 'nvx-clinics-nav' ) ) {
 		$nav = $dom->createElement( 'nav' );
@@ -911,11 +902,11 @@ function nvx_clinics_hub_enhance( string $content ): string {
 					continue;
 				}
 				$c = $child->getAttribute( 'class' );
-				if ( nvx_clinics_class_has_any( $c, array( 'nvx-brand-hero' ) ) ) {
+				if ( nvxClinicsClassHasAny( $c, array( 'nvx-brand-hero' ) ) ) {
 					continue;
 				}
 				if (
-					nvx_clinics_class_has_any( $c, array( 'nvx-brand-section', 'nvx-content-flow' ) )
+					nvxClinicsClassHasAny( $c, array( 'nvx-brand-section', 'nvx-content-flow' ) )
 					|| in_array( strtolower( $child->tagName ), array( 'section', 'nav' ), true )
 				) {
 					$insert_before = $child;
@@ -950,4 +941,4 @@ function nvx_clinics_hub_enhance( string $content ): string {
 	}
 	return $output ?: $content;
 }
-add_filter( 'the_content', 'nvx_clinics_hub_enhance', 30 );
+add_filter( 'the_content', 'nvxClinicsHubEnhance', 30 );

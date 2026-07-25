@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 $hero_video_url = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
 
-define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
+define( 'NVX_URL_REMODELACION', NVX_URL_REMODELACION );
 
 $protocols = array(
 	array(
@@ -41,7 +41,7 @@ $protocols = array(
 		'label'  => 'Contour Architecture™',
 		'title'  => 'Silueta por unidades anatómicas',
 		'copy'   => 'No tratamos zonas de manera aislada. Estudiamos cómo se relacionan abdomen, flancos, espalda, brazos o muslos para mejorar la continuidad y la proporción del contorno corporal.',
-		'url'    => '/remodelacion-corporal-laser-madrid/',
+		'url'    => NVX_URL_REMODELACION,
 	),
 );
 
@@ -62,7 +62,7 @@ $solutions = array(
 		'kicker' => 'CONTORNO CORPORAL',
 		'title'  => 'Proporción, firmeza y continuidad',
 		'copy'   => 'Estudiamos grasa localizada, laxitud y proporción dentro del conjunto de la silueta, no como áreas independientes.',
-		'url'    => '/remodelacion-corporal-laser-madrid/',
+		'url'    => NVX_URL_REMODELACION,
 	),
 );
 

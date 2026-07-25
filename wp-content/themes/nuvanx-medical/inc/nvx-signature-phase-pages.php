@@ -78,7 +78,7 @@ function nvx_signature_phase_catalog(): array {
             'phase' => 2,
             'slug' => 'grasa-localizada-abdomen-flancos-madrid',
             'title' => 'Esa grasa del abdomen que no se va ni a dieta ni a gimnasio.',
-            'kicker' => 'NUVANX CONTOUR ARCHITECTURE™',
+            'kicker' => $upper,
             'lead' => 'El cuerpo guarda reservas en sitios muy concretos, y para muchas personas el abdomen bajo y los "michelines" son los últimos en irse, hagas lo que hagas. No es falta de disciplina — es cómo funciona tu cuerpo.',
             'intro' => 'Aquí hay algo que casi nadie te va a explicar en otra clínica: no toda la grasa del abdomen es tratable. La que se pellizca, sí. La que está detrás del músculo (la que da tripa dura, no blanda), no — ni con láser, ni con nada estético. Si es esa, te lo decimos, en vez de cobrarte por algo que no va a funcionar.',
             'assessment' => array( 'Abdomen superior e inferior.', 'Flancos, cintura y espalda baja.', 'Grasa subcutánea frente a volumen visceral.', 'Laxitud, cicatrices y sospecha de diástasis o hernia.' ),
@@ -86,13 +86,13 @@ function nvx_signature_phase_catalog(): array {
             'limits' => array( 'No es un tratamiento para pérdida general de peso.', 'La grasa visceral no se trata con una intervención estética focal.', 'Diástasis, hernia o exceso importante de piel pueden requerir derivación.' ),
             'seo_title' => 'Grasa localizada abdomen y flancos Madrid | NUVANX',
             'seo_desc' => 'Valoración de grasa localizada, laxitud y pared abdominal en abdomen y flancos en Madrid dentro de NUVANX Contour Architecture™.',
-            'protocol' => 'NUVANX Contour Architecture™',
+            'protocol' => $mixed,
         ),
         'brazos' => array(
             'phase' => 2,
             'slug' => 'flacidez-grasa-localizada-brazos-madrid',
             'title' => 'Para que la manga caiga bien — sin que la piel quede colgando después.',
-            'kicker' => 'NUVANX CONTOUR ARCHITECTURE™',
+            'kicker' => $upper,
             'lead' => 'Estudio del brazo completo y su relación con axila anterior y torso para separar grasa localizada, laxitud y calidad del tejido.',
             'intro' => 'Lo que se conoce como "alas de murciélago" puede ser piel floja, puede ser grasa, o (lo más normal) las dos cosas juntas. Y aquí está la trampa: si solo quitas la grasa y no trabajas la piel, puede quedar peor que antes. Por eso miramos las dos cosas.',
             'assessment' => array( 'Distribución de grasa y espesor del tejido.', 'Laxitud de la cara posterior e interna.', 'Continuidad con axila anterior y torso.', 'Asimetrías, cicatrices y reserva cutánea.' ),
@@ -100,13 +100,13 @@ function nvx_signature_phase_catalog(): array {
             'limits' => array( 'La laxitud intensa puede no responder adecuadamente sin cirugía.', 'No se promete un brazo estándar ni una reducción determinada.', 'La indicación depende de anatomía, salud y expectativas compatibles.' ),
             'seo_title' => 'Flacidez y grasa localizada brazos Madrid | NUVANX',
             'seo_desc' => 'Tratamiento de flacidez y grasa localizada en brazos en Madrid con valoración de brazo, axila y torso antes de seleccionar tecnología.',
-            'protocol' => 'NUVANX Contour Architecture™',
+            'protocol' => $mixed,
         ),
         'espalda' => array(
             'phase' => 2,
             'slug' => 'grasa-espalda-zona-sujetador-madrid',
             'title' => 'El pliegue que marca la ropa, aunque tu peso esté bien.',
-            'kicker' => 'NUVANX CONTOUR ARCHITECTURE™',
+            'kicker' => $upper,
             'lead' => 'Valoración de espalda superior, zona del sujetador, flancos y brazos como una continuidad anatómica, diferenciando pliegues por grasa, laxitud y ajuste de la prenda.',
             'intro' => 'Ese pliegue bajo el sujetador no siempre es solo grasa — a veces es que la piel de ahí ya no sujeta como antes. Miramos cuál de las dos cosas es la tuya antes de proponerte nada.',
             'assessment' => array( 'Espalda superior y zona del sujetador.', 'Relación con brazos, axila y flancos.', 'Grasa localizada frente a laxitud cutánea.', 'Postura, asimetrías y procedimientos previos.' ),
@@ -114,13 +114,13 @@ function nvx_signature_phase_catalog(): array {
             'limits' => array( 'La prenda y la postura pueden producir pliegues sin indicación médica.', 'No se añaden zonas por venta cruzada.', 'El exceso cutáneo importante puede requerir otra vía.' ),
             'seo_title' => 'Grasa espalda y zona del sujetador Madrid | NUVANX',
             'seo_desc' => 'Valoración de grasa y laxitud en espalda y zona del sujetador en Madrid, considerando continuidad con brazos y flancos.',
-            'protocol' => 'NUVANX Contour Architecture™',
+            'protocol' => $mixed,
         ),
         'muslos' => array(
             'phase' => 2,
             'slug' => 'flacidez-muslos-internos-subgluteo-madrid',
             'title' => 'La piel más delicada del cuerpo merece el abordaje más cuidadoso.',
-            'kicker' => 'NUVANX CONTOUR ARCHITECTURE™',
+            'kicker' => $upper,
             'lead' => 'Diagnóstico de muslo interno, cara externa, región subglútea y transición con rodilla para diferenciar grasa localizada, laxitud y celulitis estructural.',
             'intro' => 'Ese pliegue bajo el glúteo no está ahí por accidente — sostiene el propio glúteo. Si se reduce sin cuidado, el glúteo cae. Por eso aquí se trata con mucha delicadeza, nunca a lo bruto.',
             'assessment' => array( 'Muslo interno y externo.', 'Región subglútea y transición glúteo-muslo.', 'Laxitud, grasa localizada y celulitis estructural.', 'Continuidad con rodillas y cadera.' ),
@@ -128,13 +128,13 @@ function nvx_signature_phase_catalog(): array {
             'limits' => array( 'La celulitis requiere un diagnóstico distinto de la grasa localizada.', 'La laxitud intensa o el exceso cutáneo pueden requerir cirugía.', 'No se promete una separación o forma estándar de los muslos.' ),
             'seo_title' => 'Flacidez muslos internos y subglúteo Madrid | NUVANX',
             'seo_desc' => 'Valoración de flacidez, grasa y continuidad en muslos internos y región subglútea en Madrid dentro de Contour Architecture™.',
-            'protocol' => 'NUVANX Contour Architecture™',
+            'protocol' => $mixed,
         ),
         'rodillas' => array(
             'phase' => 2,
             'slug' => 'tratamiento-rodillas-grasa-flacidez-madrid',
             'title' => 'Una zona pequeña que cambia toda la línea de la pierna.',
-            'kicker' => 'NUVANX CONTOUR ARCHITECTURE™',
+            'kicker' => $upper,
             'lead' => 'Valoración de la cara interna y superior de la rodilla dentro de la continuidad del muslo y la pierna, con atención a grasa localizada, laxitud y anatomía funcional.',
             'intro' => 'El volumen encima de la rodilla casi nunca depende de tu peso — es más una cuestión de genética. Y como la piel de ahí se mueve constantemente al doblar la pierna, con los años tiende a aflojarse. Por eso no basta con quitar grasa: hay que tensar también.',
             'assessment' => array( 'Distribución focal de grasa alrededor de la rodilla.', 'Laxitud y grosor cutáneo.', 'Continuidad con muslo interno y pierna.', 'Asimetrías, edema y antecedentes vasculares.' ),
@@ -142,13 +142,13 @@ function nvx_signature_phase_catalog(): array {
             'limits' => array( 'No se trata dolor articular ni patología vascular.', 'La zona exige una indicación focal y parámetros conservadores.', 'No se promete eliminar todo el volumen visible.' ),
             'seo_title' => 'Grasa localizada y flacidez rodillas Madrid | NUVANX',
             'seo_desc' => 'Valoración de grasa localizada y flacidez en rodillas en Madrid, diferenciando tejido estético de causas articulares, vasculares o edema.',
-            'protocol' => 'NUVANX Contour Architecture™',
+            'protocol' => $mixed,
         ),
         'male-contour' => array(
             'phase' => 2,
             'slug' => 'contorno-corporal-masculino-madrid',
             'title' => 'Pensado para el cuerpo de un hombre, no adaptado del de una mujer.',
-            'kicker' => 'NUVANX CONTOUR ARCHITECTURE™',
+            'kicker' => $upper,
             'lead' => 'Plan médico para abdomen, cintura, pecho, espalda o perfil masculino según distribución de grasa, calidad cutánea, proporción y objetivos individuales.',
             'intro' => 'La grasa se acumula distinto en un hombre — más densa, más resistente, en zonas distintas. Y en la cara, perder el ángulo de la mandíbula cambia toda la expresión. No cogemos un tratamiento pensado para mujer y lo "adaptamos" — el punto de partida es otro desde el principio.',
             'assessment' => array( 'Abdomen, cintura y espalda.', 'Pecho y relación con el torso.', 'Mandíbula y perfil cuando la consulta es facial.', 'Grasa localizada, laxitud y objetivos anatómicos.' ),
@@ -156,7 +156,7 @@ function nvx_signature_phase_catalog(): array {
             'limits' => array( 'No se ofrece una definición abdominal artificial o garantizada.', 'El tratamiento focal no sustituye pérdida de peso, entrenamiento ni cirugía cuando esta es la vía adecuada.', 'Cada zona se presupuesta solo si tiene indicación documentada.' ),
             'seo_title' => 'Contorno corporal masculino Madrid | NUVANX',
             'seo_desc' => 'Contorno corporal masculino en Madrid para abdomen, cintura, espalda o perfil, con diagnóstico y tecnología seleccionada tras valoración.',
-            'protocol' => 'NUVANX Contour Architecture™',
+            'protocol' => $mixed,
         ),
     );
 }
@@ -242,7 +242,7 @@ add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
 function nvx_signature_apply_contour_children( array $child ): array {
     $child_label = isset( $child['label'] ) ? (string) $child['label'] : '';
     if ( false !== stripos( $child_label, 'Contour Sculpt' ) || false !== stripos( $child_label, 'Contour Architecture' ) || false !== stripos( $child_label, 'Couture Sculpt' ) ) {
-        $child['label'] = 'NUVANX Contour Architecture™';
+        $child['label'] = $mixed;
         $child['slugs'] = array( 'remodelacion-corporal-laser-madrid' );
         $child['children'] = array(
             array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
@@ -295,7 +295,7 @@ add_filter( 'nvx_navigation_primary_blueprint', 'nvx_signature_phase_navigation_
  * @return string Content with legacy product names replaced by `NUVANX Contour Architecture™`.
  */
 function nvx_signature_phase_normalize_public_names( string $content ): string {
-    return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), 'NUVANX Contour Architecture™', $content );
+    return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), $mixed, $content );
 }
 add_filter( 'the_content', 'nvx_signature_phase_normalize_public_names', 219 );
 

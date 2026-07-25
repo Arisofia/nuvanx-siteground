@@ -84,8 +84,8 @@ function nvx_btl_claim_library(): array {
 		),
 		// Neutral surface-cooling description (no unverified “lower burn risk” claim).
 		'exion_body_cooling'     => array(
-			'source'   => 'Protege la epidermis mientras la RF trabaja en planos más profundos. El control de superficie forma parte del diseño del aplicador; el perfil de seguridad depende de parámetros, zona y técnica, y no elimina por sí solo el riesgo de efectos térmicos.',
-			'governed' => 'Protege la epidermis mientras la RF trabaja en planos más profundos. El control de superficie forma parte del diseño del aplicador; el perfil de seguridad depende de parámetros, zona y técnica, y no elimina por sí solo el riesgo de efectos térmicos.',
+			'source'   => $btl_disclaimer,
+			'governed' => $btl_disclaimer,
 		),
 		// Legacy / residual strings (rewrite-only if older HTML remains).
 		'legacy_face_mech'       => array(
@@ -115,7 +115,7 @@ function nvx_btl_claim_library(): array {
 		// Soften residual risk phrasing if older cached HTML still emits it.
 		'legacy_body_burn_risk'  => array(
 			'source'   => 'Protege la epidermis mientras la RF trabaja en planos más profundos. Reduce el riesgo de quemadura superficial respecto a RF sin control de superficie adecuado.',
-			'governed' => 'Protege la epidermis mientras la RF trabaja en planos más profundos. El control de superficie forma parte del diseño del aplicador; el perfil de seguridad depende de parámetros, zona y técnica, y no elimina por sí solo el riesgo de efectos térmicos.',
+			'governed' => $btl_disclaimer,
 		),
 		'frac_lead_legacy'       => array(
 			'source'   => 'Microagujas más cortas y gradiente térmico extendido con feedback de tejido — textura, poros y cicatrices con menos pasadas y downtime más predecible que la RF fraccionada “a ciegas”.',

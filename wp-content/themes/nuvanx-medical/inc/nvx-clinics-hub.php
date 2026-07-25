@@ -15,6 +15,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+define( 'NVX_REGEX_WHITESPACE', '/\s+/' );
+define( 'NVX_REGEX_WHITESPACE_U', '/\s+/u' );
+}
+
 /* -------------------------------------------------------------------------
  * Shared class / style lists (defined once; helpers return static caches)
  * ---------------------------------------------------------------------- */
@@ -195,7 +199,7 @@ function nvx_clinics_class_has_any( string $class_attr, array $tokens ): bool {
 	if ( '' === trim( $class_attr ) || array() === $tokens ) {
 		return false;
 	}
-	$classes = preg_split( '/\s+/', strtolower( trim( $class_attr ) ) ) ?: array();
+	$classes = preg_split( NVX_REGEX_WHITESPACE, strtolower( trim( $class_attr ) ) ) ?: array();
 	$lookup  = array_fill_keys( $classes, true );
 	foreach ( $tokens as $token ) {
 		if ( isset( $lookup[ strtolower( $token ) ] ) ) {
@@ -347,7 +351,7 @@ function nvx_clinics_normalize_layout( DOMXPath $xpath ): ?DOMElement {
 			continue;
 		}
 
-		$classes = preg_split( '/\s+/', trim( $node->getAttribute( 'class' ) ) ) ?: array();
+		$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $node->getAttribute( 'class' ) ) ) ?: array();
 		$classes = array_values(
 			array_filter(
 				$classes,
@@ -529,7 +533,7 @@ function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): vo
  * Drop button chrome tokens from a class string; preserve layout/tracking utilities.
  */
 function nvx_clinics_class_without_button_chrome( string $class ): string {
-	$classes = preg_split( '/\s+/', trim( $class ) ) ?: array();
+	$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $class ) ) ?: array();
 	$classes = array_values(
 		array_filter(
 			$classes,
@@ -553,7 +557,7 @@ function nvx_clinics_class_without_button_chrome( string $class ): string {
  */
 function nvx_clinics_set_brand_button( DOMElement $link, string $variant, array $extra = array() ): void {
 	$kept   = nvx_clinics_class_without_button_chrome( $link->getAttribute( 'class' ) );
-	$tokens = preg_split( '/\s+/', trim( $kept ) ) ?: array();
+	$tokens = preg_split( NVX_REGEX_WHITESPACE, trim( $kept ) ) ?: array();
 	$tokens = array_merge(
 		$tokens,
 		array( 'nvx-brand-btn', 'nvx-brand-btn--' . $variant ),
@@ -568,7 +572,7 @@ function nvx_clinics_set_brand_button( DOMElement $link, string $variant, array 
  */
 function nvx_clinics_strip_button_classes( DOMElement $link, string $replace_with = 'nvx-brand-inline-link' ): void {
 	$kept   = nvx_clinics_class_without_button_chrome( $link->getAttribute( 'class' ) );
-	$tokens = preg_split( '/\s+/', trim( $kept ) ) ?: array();
+	$tokens = preg_split( NVX_REGEX_WHITESPACE, trim( $kept ) ) ?: array();
 	if ( '' !== $replace_with && ! in_array( $replace_with, $tokens, true ) ) {
 		$tokens[] = $replace_with;
 	}
@@ -611,7 +615,7 @@ function nvx_clinics_normalize_cta_hierarchy( DOMDocument $dom, DOMXPath $xpath 
 		}
 
 		$href   = $link->getAttribute( 'href' );
-		$text   = trim( preg_replace( '/\s+/u', ' ', $link->textContent ) ?? '' );
+		$text   = trim( preg_replace( NVX_REGEX_WHITESPACE_U, ' ', $link->textContent ) ?? '' );
 		$class  = $link->getAttribute( 'class' );
 		$is_btn = (bool) preg_match( '/\b(nvx-brand-btn|nvx-button|nvx-btn)\b/i', $class );
 
@@ -807,7 +811,7 @@ function nvx_clinics_hub_enhance( string $content ): string {
 	$blocks  = array();
 
 	foreach ( $xpath->query( '//h2|//h3|//h4' ) ?: array() as $heading ) {
-		$text = trim( preg_replace( '/\s+/u', ' ', $heading->textContent ) ?? $heading->textContent );
+		$text = trim( preg_replace( NVX_REGEX_WHITESPACE_U, ' ', $heading->textContent ) ?? $heading->textContent );
 		foreach ( $clinics as $key => $config ) {
 			if ( isset( $blocks[ $key ] ) || ! preg_match( $config['match'], $text ) ) {
 				continue;
@@ -833,7 +837,7 @@ function nvx_clinics_hub_enhance( string $content ): string {
 			if ( ! $link instanceof DOMElement ) {
 				continue;
 			}
-			$text          = trim( preg_replace( '/\s+/u', ' ', $link->textContent ) ?? $link->textContent );
+			$text          = trim( preg_replace( NVX_REGEX_WHITESPACE_U, ' ', $link->textContent ) ?? $link->textContent );
 			$href          = $link->getAttribute( 'href' );
 			$is_map_action = preg_match( '/(?:cómo llegar|como llegar|google maps|maps\.app|google\.[^\/]+\/maps)/iu', $text . ' ' . $href );
 			if ( $is_map_action && ! $map_action_seen ) {

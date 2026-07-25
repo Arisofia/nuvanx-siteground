@@ -182,8 +182,11 @@ function nvxCasesPageMarkup(): string {
             <h2 id="nvx-cases-closure-title">Tu punto de partida se evalúa en consulta.</h2>
             <p>Confirmamos indicación, alternativas, tiempos y presupuesto después de estudiar tu caso.</p>
             <div class="nvx-cases-closure__actions">
-                <a class="nvx-btn nvx-btn--primary" href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>">Solicitar valoración médica</a>
-                <a class="nvx-btn nvx-btn--secondary-on-dark" href="<?php echo esc_url( nvx_cta_whatsapp_url() ); ?>" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
+                <?php
+                if ( function_exists( 'nvx_cta_pair_markup' ) ) {
+                    echo nvx_cta_pair_markup( '' );
+                }
+                ?>
             </div>
         </section>
     </article>

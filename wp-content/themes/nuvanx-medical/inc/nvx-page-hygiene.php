@@ -260,9 +260,9 @@ function nvx_public_content_text_hygiene( $content ) {
 	$content = str_replace( array_keys( $replacements ), array_values( $replacements ), $content );
 
 	// Do not advertise a price condition that is not confirmed in this source.
-	$content = preg_replace( '/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu', 'valoración médica', $content ) ?? $content;
-	$content = preg_replace( '/\bvaloraci[oó]n\s+gratuita\b/iu', 'valoración médica', $content ) ?? $content;
-	$content = preg_replace( '/\bvaloraci[oó]n\s+gratis\b/iu', 'valoración médica', $content ) ?? $content;
+	$content = preg_replace( '/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu', $val, $content ) ?? $content;
+	$content = preg_replace( '/\bvaloraci[oó]n\s+gratuita\b/iu', $val, $content ) ?? $content;
+	$content = preg_replace( '/\bvaloraci[oó]n\s+gratis\b/iu', $val, $content ) ?? $content;
 	$content = preg_replace( '/\bconsulta\s+(?:m[eé]dica\s+)?gratuita\b/iu', 'consulta médica', $content ) ?? $content;
 	$content = preg_replace( '/\bconsulta\s+gratis\b/iu', 'consulta médica', $content ) ?? $content;
 	$content = preg_replace( '/\bpresupuestos?\s+personalizados?\b/iu', 'presupuesto individualizado tras la valoración médica', $content ) ?? $content;

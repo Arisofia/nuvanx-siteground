@@ -82,7 +82,7 @@ function nvx_strategy_solutions_markup(): string {
 	$html .= '<p class="nvx-eyebrow">NUVANX · Soluciones médicas</p>';
 	$html .= '<h1 class="nvx-strategy-title">Soluciones médicas para rostro, piel y contorno corporal.</h1>';
 	$html .= '<p class="nvx-brand-lead">Dos personas pueden odiar lo mismo de su papada y necesitar tratamientos totalmente distintos — una tiene grasa, la otra solo piel floja. Por eso no te vamos a enseñar un catálogo de máquinas para que elijas: primero miramos qué tienes tú, y de ahí sale el plan.</p>';
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">Solicitar valoración médica</a></p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( $val_url ) ) . '">Solicitar valoración médica</a></p>';
 	$html .= '<p class="nvx-brand-microcopy">El diagnóstico determina el plan. No la tendencia ni el catálogo.</p>';
 	$html .= '</header>';
 
@@ -186,14 +186,14 @@ function nvx_strategy_solutions_markup(): string {
 	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
 	$html .= '<h2>Valoración de procedimientos previos</h2>';
 	$html .= '<p>¿Te trataste en otro sitio y no estás segura de si quedó bien, o de qué hacer ahora? Te lo miramos sin compromiso. A veces la respuesta es "espera un poco más", y te lo decimos igual, aunque no salga una venta de ahí.</p>';
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">Solicitar segunda valoración médica</a></p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( $val_url ) ) . '">Solicitar segunda valoración médica</a></p>';
 	$html .= '</div></section></article>';
 	return $html;
 }
 
 /** Builds the NUVANX medical criteria and patient-care standards page. */
 function nvx_strategy_why_nuvanx_markup(): string {
-	$valuation_url = esc_url( home_url( '/madrid/valoracion/' ) );
+	$valuation_url = esc_url( home_url( $val_url ) );
 	$team_url      = esc_url( home_url( '/equipo-medico/' ) );
 	$investment    = nvx_strategy_published_url( 'investment' );
 
@@ -342,7 +342,7 @@ function nvx_strategy_investment_table_section( string $heading, array $rows ): 
 /** Builds the investment page with transparent tariffs and clinical context. */
 function nvx_strategy_investment_markup(): string {
 	$groups        = nvx_strategy_verified_investment_groups();
-	$valuation_url = esc_url( home_url( '/madrid/valoracion/' ) );
+	$valuation_url = esc_url( home_url( $val_url ) );
 
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero"><div class="nvx-brand-hero__inner"><div class="nvx-editorial-hero__copy">';

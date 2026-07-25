@@ -102,6 +102,8 @@ const managedPhpFiles = [
   'wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-github-managed-page-state.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-jsonld-content.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php',
 ];
 for (const relative of managedPhpFiles) {
   const result = spawnSync('/usr/bin/php', ['-l', file(relative)], { encoding: 'utf8' });
@@ -112,6 +114,14 @@ for (const relative of managedPhpFiles) {
   if (result.error || result.status !== 0) {
     failures.push(`PHP syntax failed for ${relative}: ${String(result.stderr || result.stdout || '').trim()}`);
   }
+}
+
+const runtimeContractPath = file('scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs');
+const runtimeContract = spawnSync(process.execPath, [runtimeContractPath], { encoding: 'utf8' });
+if (runtimeContract.error || runtimeContract.status !== 0) {
+  failures.push(`Runtime bootstrap contract failed: ${String(runtimeContract.stderr || runtimeContract.stdout || runtimeContract.error || '').trim()}`);
+} else if (runtimeContract.stdout.trim()) {
+  console.log(runtimeContract.stdout.trim());
 }
 
 if (failures.length) {

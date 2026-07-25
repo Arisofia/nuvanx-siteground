@@ -150,102 +150,21 @@ final class NvxProductionReadinessHelper {
 }
 
 /**
- * Audits and applies the idempotent production-readiness migration.
+ * Applies the idempotent production-readiness migration (lock, pages, menu, flush).
  */
-final class NvxProductionReadinessCommand {
+final class NvxProductionReadinessMigrator {
     private const CONFIRMATION_TOKEN = 'retire-prototypes';
     private const LOCK_OPTION = '_nvx_production_readiness_migration_lock';
     private const LOCK_TTL_SECONDS = 900;
 
-    /**
-     * @return array<int,array<string,mixed>>
-     */
-    private function approvedAuditRows(): array {
-        $rows = array();
-        foreach ( NvxProductionReadinessHelper::approvedPages() as $slug => $definition ) {
-            $page = NvxProductionReadinessHelper::pageBySlug( $slug );
-            $rows[] = array(
-                'type' => 'approved',
-                'slug' => $slug,
-                'id' => $page ? (int) $page->ID : 0,
-                'status' => $page ? (string) $page->post_status : 'missing',
-                'menu_items' => $page ? count( NvxProductionReadinessHelper::menuItemIds( (int) $page->ID ) ) : 0,
-                'expected' => 'publish',
-            );
-        }
-        return $rows;
-    }
-
-    /**
-     * @return array<int,array<string,mixed>>
-     */
-    private function governedAuditRows(): array {
-        $rows = array();
-        foreach ( NvxProductionReadinessHelper::governedPages() as $slug => $definition ) {
-            $page = NvxProductionReadinessHelper::pageBySlug( $slug );
-            $rows[] = array(
-                'type' => 'governed',
-                'slug' => $slug,
-                'id' => $page ? (int) $page->ID : 0,
-                'status' => $page ? (string) $page->post_status : 'absent',
-                'menu_items' => $page ? count( NvxProductionReadinessHelper::menuItemIds( (int) $page->ID ) ) : 0,
-                'expected' => (string) $definition['status'],
-            );
-        }
-        return $rows;
-    }
-
-    /**
-     * @return array<string,mixed>
-     */
-    private function navigationAuditRow(): array {
-        $current = NvxProductionReadinessHelper::currentMenuSignature();
-        $canonical = NvxProductionReadinessHelper::canonicalMenuSignature();
-        return array(
-            'type' => 'navigation',
-            'slug' => 'primary',
-            'id' => NvxProductionReadinessHelper::primaryMenuId(),
-            'status' => $current === $canonical && array() !== $canonical ? 'clean' : 'drift',
-            'menu_items' => count( $current ),
-            'expected' => 'canonical',
-        );
-    }
-
-    /**
-     * @return array<int,array<string,mixed>>
-     */
-    private function auditRows(): array {
-        return array_merge(
-            $this->approvedAuditRows(),
-            $this->governedAuditRows(),
-            array( $this->navigationAuditRow() )
-        );
-    }
-
-    /**
-     * @param array<string,mixed> $row Audit row.
-     */
-    private function isAuditRowClean( array $row ): bool {
-        $type = (string) $row['type'];
-        if ( 'approved' === $type ) {
-            return 'publish' === $row['status'];
-        }
-        if ( 'governed' === $type ) {
-            return in_array( $row['status'], array( 'absent', $row['expected'] ), true ) && 0 === (int) $row['menu_items'];
-        }
-        return 'navigation' === $type && 'clean' === $row['status'];
-    }
-
-    /**
-     * @param array<int,array<string,mixed>> $rows Audit rows.
-     */
-    private function isClean( array $rows ): bool {
-        foreach ( $rows as $row ) {
-            if ( ! $this->isAuditRowClean( $row ) ) {
-                return false;
-            }
-        }
-        return true;
+    public function run( array $assoc_args ): void {
+        $this->validateInvocation( $assoc_args );
+        $this->acquireLock();
+        $this->applyApprovedPages();
+        $this->applyGovernedPages();
+        $this->applyPrimaryMenu();
+        flush_rewrite_rules( false );
+        $this->releaseLock();
     }
 
     private function acquireLock(): void {
@@ -293,10 +212,10 @@ final class NvxProductionReadinessCommand {
     private function createApprovedPage( string $slug, array $definition ): void {
         $page_id = wp_insert_post(
             array(
-                'post_type' => 'page',
-                'post_status' => 'publish',
-                'post_title' => $definition['title'],
-                'post_name' => $slug,
+                'post_type'    => 'page',
+                'post_status'  => 'publish',
+                'post_title'   => $definition['title'],
+                'post_name'    => $slug,
                 'post_content' => $definition['content'],
             ),
             true
@@ -312,8 +231,8 @@ final class NvxProductionReadinessCommand {
      */
     private function refreshApprovedPage( WP_Post $page, string $slug, array $definition ): void {
         $update = array(
-            'ID' => (int) $page->ID,
-            'post_title' => $definition['title'],
+            'ID'           => (int) $page->ID,
+            'post_title'   => $definition['title'],
             'post_content' => $definition['content'],
         );
 
@@ -401,11 +320,11 @@ final class NvxProductionReadinessCommand {
                 $menu_id,
                 0,
                 array(
-                    'menu-item-title' => (string) $node['label'],
-                    'menu-item-url' => (string) $node['url'],
-                    'menu-item-status' => 'publish',
+                    'menu-item-title'     => (string) $node['label'],
+                    'menu-item-url'       => (string) $node['url'],
+                    'menu-item-status'    => 'publish',
                     'menu-item-parent-id' => $parent_id,
-                    'menu-item-classes' => ! empty( $node['mega'] ) ? 'nvx-menu--mega' : '',
+                    'menu-item-classes'   => ! empty( $node['mega'] ) ? 'nvx-menu--mega' : '',
                 )
             );
             if ( is_wp_error( $item_id ) ) {
@@ -485,6 +404,103 @@ final class NvxProductionReadinessCommand {
             )
         );
     }
+}
+
+/**
+ * Audits and applies the idempotent production-readiness migration.
+ */
+final class NvxProductionReadinessCommand {
+
+    /**
+     * @return array<int,array<string,mixed>>
+     */
+    private function approvedAuditRows(): array {
+        $rows = array();
+        foreach ( NvxProductionReadinessHelper::approvedPages() as $slug => $definition ) {
+            $page = NvxProductionReadinessHelper::pageBySlug( $slug );
+            $rows[] = array(
+                'type'       => 'approved',
+                'slug'       => $slug,
+                'id'         => $page ? (int) $page->ID : 0,
+                'status'     => $page ? (string) $page->post_status : 'missing',
+                'menu_items' => $page ? count( NvxProductionReadinessHelper::menuItemIds( (int) $page->ID ) ) : 0,
+                'expected'   => 'publish',
+            );
+        }
+        return $rows;
+    }
+
+    /**
+     * @return array<int,array<string,mixed>>
+     */
+    private function governedAuditRows(): array {
+        $rows = array();
+        foreach ( NvxProductionReadinessHelper::governedPages() as $slug => $definition ) {
+            $page = NvxProductionReadinessHelper::pageBySlug( $slug );
+            $rows[] = array(
+                'type'       => 'governed',
+                'slug'       => $slug,
+                'id'         => $page ? (int) $page->ID : 0,
+                'status'     => $page ? (string) $page->post_status : 'absent',
+                'menu_items' => $page ? count( NvxProductionReadinessHelper::menuItemIds( (int) $page->ID ) ) : 0,
+                'expected'   => (string) $definition['status'],
+            );
+        }
+        return $rows;
+    }
+
+    /**
+     * @return array<string,mixed>
+     */
+    private function navigationAuditRow(): array {
+        $current = NvxProductionReadinessHelper::currentMenuSignature();
+        $canonical = NvxProductionReadinessHelper::canonicalMenuSignature();
+        return array(
+            'type'       => 'navigation',
+            'slug'       => 'primary',
+            'id'         => NvxProductionReadinessHelper::primaryMenuId(),
+            'status'     => $current === $canonical && array() !== $canonical ? 'clean' : 'drift',
+            'menu_items' => count( $current ),
+            'expected'   => 'canonical',
+        );
+    }
+
+    /**
+     * @return array<int,array<string,mixed>>
+     */
+    private function auditRows(): array {
+        return array_merge(
+            $this->approvedAuditRows(),
+            $this->governedAuditRows(),
+            array( $this->navigationAuditRow() )
+        );
+    }
+
+    /**
+     * @param array<string,mixed> $row Audit row.
+     */
+    private function isAuditRowClean( array $row ): bool {
+        $type = (string) $row['type'];
+        if ( 'approved' === $type ) {
+            return 'publish' === $row['status'];
+        }
+        if ( 'governed' === $type ) {
+            return in_array( $row['status'], array( 'absent', $row['expected'] ), true ) && 0 === (int) $row['menu_items'];
+        }
+        return 'navigation' === $type && 'clean' === $row['status'];
+    }
+
+    /**
+     * @param array<int,array<string,mixed>> $rows Audit rows.
+     */
+    private function isClean( array $rows ): bool {
+        foreach ( $rows as $row ) {
+            if ( ! $this->isAuditRowClean( $row ) ) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * @param string[] $args Positional arguments.
@@ -513,21 +529,13 @@ final class NvxProductionReadinessCommand {
      */
     public function apply( array $args, array $assoc_args ): void {
         unset( $args );
-        $this->validateInvocation( $assoc_args );
-        $this->acquireLock();
-
-        $this->applyApprovedPages();
-        $this->applyGovernedPages();
-        $this->applyPrimaryMenu();
-        flush_rewrite_rules( false );
-
+        $migrator = new NvxProductionReadinessMigrator();
+        $migrator->run( $assoc_args );
         $rows = $this->auditRows();
         WP_CLI\Utils\format_items( 'table', $rows, array( 'type', 'slug', 'id', 'status', 'menu_items', 'expected' ) );
         if ( ! $this->isClean( $rows ) ) {
             WP_CLI::error( 'Migration completed but the post-apply audit still has pending changes.' );
         }
-
-        $this->releaseLock();
         WP_CLI::success( 'Migration applied and post-apply audit passed.' );
     }
 }

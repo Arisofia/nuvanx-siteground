@@ -173,9 +173,54 @@ async function originFetch(url, redirectMode = 'manual') {
 }
 
 const safePathName = (val) => String(val || '').split('/').filter(Boolean).join('__') || 'home';
-const cleanHtmlText = (value) => String(value || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/gi, ' ').replace(/&amp;/gi, '&').replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/\s+/g, ' ').trim();
-const parseSingleTag = (html, name) => cleanHtmlText(html.match(new RegExp(String.raw`<${name}\b[^>]*>([\s\S]*?)<\/${name}>`, 'i'))?.[1] || '');
-const parseMultipleTagTexts = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>([\s\S]*?)<\/${name}>`, 'gi'))].map((match) => cleanHtmlText(match[1]));
+function cleanHtmlText(value) {
+  if (!value) return '';
+  return String(value)
+    .split('<').map((part, index) => {
+      if (index === 0) return part;
+      const closeIndex = part.indexOf('>');
+      return closeIndex !== -1 ? part.slice(closeIndex + 1) : part;
+    }).join(' ')
+    .replace(/&(?:nbsp|amp|quot|lt|gt);|&#39;|&apos;/gi, (entity) => {
+      const lower = entity.toLowerCase();
+      if (lower === '&nbsp;') return ' ';
+      if (lower === '&amp;') return '&';
+      if (lower === '&quot;') return '"';
+      if (lower === '&#39;' || lower === '&apos;') return "'";
+      if (lower === '&lt;') return '<';
+      if (lower === '&gt;') return '>';
+      return ' ';
+    })
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function extractTagContent(html, name) {
+  const openTagMatch = html.match(new RegExp(String.raw`<${name}\b[^>]*>`, 'i'));
+  if (!openTagMatch) return '';
+  const startIndex = openTagMatch.index + openTagMatch[0].length;
+  const closeTagIndex = html.toLowerCase().indexOf(`</${name.toLowerCase()}>`, startIndex);
+  if (closeTagIndex === -1) return '';
+  return html.slice(startIndex, closeTagIndex);
+}
+
+function extractAllTagContents(html, name) {
+  const results = [];
+  const openTagRegex = new RegExp(String.raw`<${name}\b[^>]*>`, 'gi');
+  let match;
+  while ((match = openTagRegex.exec(html)) !== null) {
+    const startIndex = match.index + match[0].length;
+    const closeTagIndex = html.toLowerCase().indexOf(`</${name.toLowerCase()}>`, startIndex);
+    if (closeTagIndex !== -1) {
+      results.push(html.slice(startIndex, closeTagIndex));
+      openTagRegex.lastIndex = closeTagIndex + name.length + 3;
+    }
+  }
+  return results;
+}
+
+const parseSingleTag = (html, name) => cleanHtmlText(extractTagContent(html, name));
+const parseMultipleTagTexts = (html, name) => extractAllTagContents(html, name).map(cleanHtmlText);
 const queryHtmlTags = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>`, 'gi'))].map((match) => match[0]);
 const getAttrVal = (tag, attr) => {
   const match = tag.match(new RegExp(String.raw`\b${attr}\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))`, 'i'));

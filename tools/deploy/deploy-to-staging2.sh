@@ -82,6 +82,8 @@ done
 [[ -f "$SOURCE_THEME/inc/nvx-portfolio-hub.php" ]] || fail 'source theme is missing nvx-portfolio-hub.php'
 [[ -f "$SOURCE_THEME/inc/nvx-protocol-hub.php" ]] || fail 'source theme is missing nvx-protocol-hub.php'
 [[ -f "$SOURCE_THEME/inc/nvx-protocol-pages.php" ]] || fail 'source theme is missing nvx-protocol-pages.php'
+[[ -f "$SOURCE_THEME/inc/nvx-jsonld-content.php" ]] || fail 'source theme is missing nvx-jsonld-content.php'
+[[ -f "$SOURCE_THEME/inc/nvx-structured-data.php" ]] || fail 'source theme is missing nvx-structured-data.php'
 
 LIVE_THEME="$WP_ROOT/$THEME_REL"
 [[ -d "$LIVE_THEME" ]] || fail "live staging2 theme does not exist: $LIVE_THEME"
@@ -118,9 +120,9 @@ trap rollback ERR
 echo '== Guard staging2 identity =='
 (
   cd "$WP_ROOT"
-  siteurl="$(wp option get siteurl)"
-  home="$(wp option get home)"
-  theme="$(wp theme list --status=active --field=name)"
+  siteurl="$(wp option get siteurl --skip-themes --skip-plugins)"
+  home="$(wp option get home --skip-themes --skip-plugins)"
+  theme="$(wp theme list --status=active --field=name --skip-themes --skip-plugins)"
   echo "siteurl=$siteurl home=$home active_theme=$theme"
   [[ "$siteurl" == "$EXPECTED_URL" ]] || fail "unexpected siteurl: $siteurl"
   [[ "$home" == "$EXPECTED_URL" ]] || fail "unexpected home URL: $home"
@@ -160,14 +162,6 @@ chmod 600 "$BACKUP_DIR/intended-sha.txt"
 
 MUTATION_STARTED=1
 
-echo '== Disable SiteGround asset transformations =='
-(
-  cd "$WP_ROOT"
-  wp sg optimize css disable || true
-  wp sg optimize combine-css disable || true
-  wp sg optimize combine-js disable || true
-)
-
 echo '== Synchronize theme to staging2 =='
 rsync -a --delete \
   --exclude='.git' \
@@ -199,12 +193,22 @@ for required_file in \
   inc/nvx-blog-system.php \
   inc/nvx-portfolio-hub.php \
   inc/nvx-protocol-hub.php \
-  inc/nvx-protocol-pages.php
+  inc/nvx-protocol-pages.php \
+  inc/nvx-jsonld-content.php \
+  inc/nvx-structured-data.php
 do
   [[ -f "$LIVE_THEME/$required_file" ]] || fail "deployed theme is missing $required_file"
 done
 [[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$DEPLOY_SHA" ]] || fail 'deployed SHA marker does not match'
 grep -Fq 'nvx-patterns-editorial.css' "$LIVE_THEME/functions.php" || fail 'functions.php does not enqueue the canonical editorial stylesheet'
+
+echo '== Disable SiteGround asset transformations =='
+(
+  cd "$WP_ROOT"
+  wp sg optimize css disable || true
+  wp sg optimize combine-css disable || true
+  wp sg optimize combine-js disable || true
+)
 
 echo '== Purge staging2 caches =='
 (
@@ -215,6 +219,30 @@ echo '== Purge staging2 caches =='
   rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
   rm -rf wp-content/cache/* 2>/dev/null || true
   wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+)
+
+echo '== Verify WordPress runtime callbacks before database migration =='
+(
+  cd "$WP_ROOT"
+  wp eval '
+    $registered = has_filter( "the_content", "nvx_filter_strip_embedded_jsonld" ) || has_filter( "the_content", "nvxFilterStripEmbeddedJsonld" );
+    if ( ! $registered ) {
+      throw new RuntimeException( "NUVANX JSON-LD content callback is not registered." );
+    }
+    if ( ! is_callable( "nvx_filter_strip_embedded_jsonld" ) && ! is_callable( "nvxFilterStripEmbeddedJsonld" ) ) {
+      throw new RuntimeException( "NUVANX JSON-LD content callback is not callable." );
+    }
+    $filtered = apply_filters( "the_content", "<p>NUVANX_RUNTIME_HOOK_PROBE</p>" );
+    if ( ! is_string( $filtered ) || false === strpos( $filtered, "NUVANX_RUNTIME_HOOK_PROBE" ) ) {
+      throw new RuntimeException( "the_content runtime probe returned an invalid value." );
+    }
+    $solutions = get_page_by_path( "soluciones-medicas", OBJECT, "page" );
+    if ( ! $solutions instanceof WP_Post ) {
+      throw new RuntimeException( "Soluciones Médicas routing page is missing." );
+    }
+    get_the_excerpt( $solutions );
+    echo "runtime_hooks=ok\n";
+  '
 )
 
 echo '== Audit production-readiness content before migration =='

@@ -9,7 +9,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -19,30 +19,30 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return string HTML markup.
  */
 function nvxHostileTeardownMarkup( $path ): string {
-	$pain_title = 'El Diagnóstico Erróneo del Mercado';
-	$pain_text  = 'La mayoría de clínicas en Madrid ofrecen soluciones genéricas. Bonos de sesiones sin diagnóstico que resultan en pérdida de tiempo, dinero y una profunda frustración corporal.';
+    $pain_title = 'El Diagnóstico Erróneo del Mercado';
+    $pain_text  = 'La mayoría de clínicas en Madrid ofrecen soluciones genéricas. Bonos de sesiones sin diagnóstico que resultan en pérdida de tiempo, dinero y una profunda frustración corporal.';
 
-	if ( strpos( $path, 'remodelacion-corporal' ) !== false || strpos( $path, 'grasa' ) !== false || strpos( $path, 'abdomen' ) !== false || strpos( $path, 'flacidez' ) !== false || strpos( $path, 'endolaser' ) !== false ) {
-		$pain_title = 'La Ilusión de la Criolipólisis Barata y el Riesgo de la Lipo';
-		$pain_text  = 'La liposucción implica quirófano, riesgos y tiempos de baja. Las máquinas de frío genéricas de clínicas masificadas dejan flacidez severa. En NUVANX destruimos la grasa y retraemos la piel en la misma sesión, redibujando la anatomía sin cirugía.';
-	} elseif ( strpos( $path, 'papada' ) !== false || strpos( $path, 'endolift' ) !== false ) {
-		$pain_title = 'El Peligro de los Rostros Clonados e Inflados';
-		$pain_text  = 'Inyectar más ácido hialurónico para "tensar" o esconder la papada solo ensancha el rostro y crea resultados artificiales. La verdadera tensión facial requiere tratar la arquitectura profunda de la piel, no rellenarla.';
-	} elseif ( strpos( $path, 'cicatrices' ) !== false || strpos( $path, 'manchas' ) !== false || strpos( $path, 'co2' ) !== false || strpos( $path, 'exilite' ) !== false ) {
-		$pain_title = 'Cremas Caras y Peelings de Belleza Inútiles';
-		$pain_text  = 'Ningún cosmético ni tratamiento de cabina estética va a borrar cicatrices ni daño solar severo. La renovación real de la piel exige energía láser médica calibrada con precisión clínica.';
-	}
+    if ( strpos( $path, 'remodelacion-corporal' ) !== false || strpos( $path, 'grasa' ) !== false || strpos( $path, 'abdomen' ) !== false || strpos( $path, 'flacidez' ) !== false || strpos( $path, 'endolaser' ) !== false ) {
+        $pain_title = 'La Ilusión de la Criolipólisis Barata y el Riesgo de la Lipo';
+        $pain_text  = 'La liposucción implica quirófano, riesgos y tiempos de baja. Las máquinas de frío genéricas de clínicas masificadas dejan flacidez severa. En NUVANX destruimos la grasa y retraemos la piel en la misma sesión, redibujando la anatomía sin cirugía.';
+    } elseif ( strpos( $path, 'papada' ) !== false || strpos( $path, 'endolift' ) !== false ) {
+        $pain_title = 'El Peligro de los Rostros Clonados e Inflados';
+        $pain_text  = 'Inyectar más ácido hialurónico para "tensar" o esconder la papada solo ensancha el rostro y crea resultados artificiales. La verdadera tensión facial requiere tratar la arquitectura profunda de la piel, no rellenarla.';
+    } elseif ( strpos( $path, 'cicatrices' ) !== false || strpos( $path, 'manchas' ) !== false || strpos( $path, 'co2' ) !== false || strpos( $path, 'exilite' ) !== false ) {
+        $pain_title = 'Cremas Caras y Peelings de Belleza Inútiles';
+        $pain_text  = 'Ningún cosmético ni tratamiento de cabina estética va a borrar cicatrices ni daño solar severo. La renovación real de la piel exige energía láser médica calibrada con precisión clínica.';
+    }
 
-	ob_start();
-	?>
-	<section class="nvx-editorial-section nvx-hostile-teardown">
-		<div class="nvx-editorial-section__container">
-			<h2 class="nvx-editorial-title"><?php echo esc_html( $pain_title ); ?></h2>
-			<p class="nvx-editorial-text"><?php echo esc_html( $pain_text ); ?></p>
-		</div>
-	</section>
-	<?php
-	return ob_get_clean();
+    ob_start();
+    ?>
+    <section class="nvx-editorial-section nvx-hostile-teardown">
+        <div class="nvx-editorial-section__container">
+            <h2 class="nvx-editorial-title"><?php echo esc_html( $pain_title ); ?></h2>
+            <p class="nvx-editorial-text"><?php echo esc_html( $pain_text ); ?></p>
+        </div>
+    </section>
+    <?php
+    return ob_get_clean();
 }
 
 /**
@@ -51,17 +51,17 @@ function nvxHostileTeardownMarkup( $path ): string {
  * @return string HTML markup.
  */
 function nvxHostileAuthorityMarkup(): string {
-	ob_start();
-	?>
-	<section class="nvx-editorial-section nvx-hostile-authority">
-		<div class="nvx-editorial-section__container">
-			<h2 class="nvx-editorial-title">Autoridad Diagnóstica: Dr. Rivera Tejeda</h2>
-			<p class="nvx-editorial-text">"No aplicamos un láser sin entender la biometría del paciente. No inyectamos sin un objetivo anatómico. En NUVANX Madrid, el criterio clínico es innegociable."</p>
-			<a href="<?php echo esc_url( home_url( '/valoracion/' ) ); ?>" class="nvx-button nvx-button--primary">Solicitar Diagnóstico Médico Real</a>
-		</div>
-	</section>
-	<?php
-	return ob_get_clean();
+    ob_start();
+    ?>
+    <section class="nvx-editorial-section nvx-hostile-authority">
+        <div class="nvx-editorial-section__container">
+            <h2 class="nvx-editorial-title">Autoridad Diagnóstica: Dr. Rivera Tejeda</h2>
+            <p class="nvx-editorial-text">"No aplicamos un láser sin entender la biometría del paciente. No inyectamos sin un objetivo anatómico. En NUVANX Madrid, el criterio clínico es innegociable."</p>
+            <a href="<?php echo esc_url( home_url( '/valoracion/' ) ); ?>" class="nvx-button nvx-button--primary">Solicitar Diagnóstico Médico Real</a>
+        </div>
+    </section>
+    <?php
+    return ob_get_clean();
 }
 
 /**
@@ -71,40 +71,40 @@ function nvxHostileAuthorityMarkup(): string {
  * @return string Modified content.
  */
 function nvxHostileConversionInject( $content ) {
-	if ( ! is_main_query() || ! is_singular( 'page' ) || false !== strpos( $content, 'nvx-hostile-teardown' ) ) {
-		return $content;
-	}
+    if ( ! is_main_query() || ! is_singular( 'page' ) || false !== strpos( $content, 'nvx-hostile-teardown' ) ) {
+        return $content;
+    }
 
-	$path = function_exists( 'nvx_seo_current_path' ) ? nvx_seo_current_path() : ( $_SERVER['REQUEST_URI'] ?? '' );
-	$target_routes = array( 'endolift', 'endolaser', 'co2', 'remodelacion', 'postparto', 'papada', 'piel', 'cicatrices', 'manchas', 'grasa', 'flacidez', 'rodillas', 'contorno' );
+    $path = function_exists( 'nvx_seo_current_path' ) ? nvx_seo_current_path() : ( $_SERVER['REQUEST_URI'] ?? '' );
+    $target_routes = array( 'endolift', 'endolaser', 'co2', 'remodelacion', 'postparto', 'papada', 'piel', 'cicatrices', 'manchas', 'grasa', 'flacidez', 'rodillas', 'contorno' );
 
-	$is_target = false;
-	foreach ( $target_routes as $route ) {
-		if ( false !== strpos( $path, $route ) ) {
-			$is_target = true;
-			break;
-		}
-	}
+    $is_target = false;
+    foreach ( $target_routes as $route ) {
+        if ( false !== strpos( $path, $route ) ) {
+            $is_target = true;
+            break;
+        }
+    }
 
-	if ( ! $is_target ) {
-		return $content;
-	}
+    if ( ! $is_target ) {
+        return $content;
+    }
 
-	$injection_point = strpos( $content, '</header>' );
-	if ( false === $injection_point ) {
-		$injection_point = strpos( $content, '</section>' );
-	}
+    $injection_point = strpos( $content, '</header>' );
+    if ( false === $injection_point ) {
+        $injection_point = strpos( $content, '</section>' );
+    }
 
-	$hostile_block = nvxHostileTeardownMarkup( $path ) . nvxHostileAuthorityMarkup();
+    $hostile_block = nvxHostileTeardownMarkup( $path ) . nvxHostileAuthorityMarkup();
 
-	if ( false !== $injection_point ) {
-		$pos = $injection_point + ( false !== strpos( $content, '</header>' ) ? 9 : 10 );
-		$content = substr_replace( $content, $hostile_block, $pos, 0 );
-	} else {
-		$content = $hostile_block . $content;
-	}
+    if ( false !== $injection_point ) {
+        $pos = $injection_point + ( false !== strpos( $content, '</header>' ) ? 9 : 10 );
+        $content = substr_replace( $content, $hostile_block, $pos, 0 );
+    } else {
+        $content = $hostile_block . $content;
+    }
 
-	return $content;
+    return $content;
 }
 // Hostile conversion engine desactivado; la arquitectura actual usa presentación neutral y protocolos Signature.
 // add_filter( 'the_content', 'nvx_hostile_conversion_inject', 15 ); // Runs before presentation layer

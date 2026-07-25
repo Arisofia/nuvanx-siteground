@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  * @return string PCRE pattern with delimiters.
  */
 function nvxJsonldScriptPattern() {
-	return '#<script\b[^>]*type\s*=\s*(["\'])application/ld\+json\1[^>]*>([\s\S]*?)</script>#iu';
+    return '#<script\b[^>]*type\s*=\s*(["\'])application/ld\+json\1[^>]*>([\s\S]*?)</script>#iu';
 }
 
 /**
@@ -32,11 +32,11 @@ function nvxJsonldScriptPattern() {
  * @return bool
  */
 function nvxJsonldIsSchemaOrgPayload( $payload ) {
-	if ( ! is_string( $payload ) || '' === $payload ) {
-		return false;
-	}
+    if ( ! is_string( $payload ) || '' === $payload ) {
+        return false;
+    }
 
-	return (bool) preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload );
+    return (bool) preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload );
 }
 
 /**
@@ -46,24 +46,24 @@ function nvxJsonldIsSchemaOrgPayload( $payload ) {
  * @return string
  */
 function nvxStripEmbeddedJsonldHtml( $html ) {
-	if ( ! is_string( $html ) || '' === $html || false === stripos( $html, 'ld+json' ) ) {
-		return $html;
-	}
+    if ( ! is_string( $html ) || '' === $html || false === stripos( $html, 'ld+json' ) ) {
+        return $html;
+    }
 
-	$cleaned = preg_replace_callback(
-		nvxJsonldScriptPattern(),
-		static function ( $matches ) {
-			$body = isset( $matches[2] ) ? $matches[2] : '';
-			if ( nvxJsonldIsSchemaOrgPayload( $body ) ) {
-				return '';
-			}
-			// Keep non-schema ld+json untouched.
-			return $matches[0];
-		},
-		$html
-	);
+    $cleaned = preg_replace_callback(
+        nvxJsonldScriptPattern(),
+        static function ( $matches ) {
+            $body = isset( $matches[2] ) ? $matches[2] : '';
+            if ( nvxJsonldIsSchemaOrgPayload( $body ) ) {
+                return '';
+            }
+            // Keep non-schema ld+json untouched.
+            return $matches[0];
+        },
+        $html
+    );
 
-	return is_string( $cleaned ) ? $cleaned : $html;
+    return is_string( $cleaned ) ? $cleaned : $html;
 }
 
 /**
@@ -75,11 +75,11 @@ function nvxStripEmbeddedJsonldHtml( $html ) {
  * @return bool
  */
 function nvxShouldStripEmbeddedJsonld() {
-	if ( is_admin() || wp_doing_ajax() || ( function_exists( 'wp_is_json_request' ) && wp_is_json_request() ) ) {
-		return false;
-	}
+    if ( is_admin() || wp_doing_ajax() || ( function_exists( 'wp_is_json_request' ) && wp_is_json_request() ) ) {
+        return false;
+    }
 
-	return is_front_page() || is_singular( 'page' );
+    return is_front_page() || is_singular( 'page' );
 }
 
 /**
@@ -89,11 +89,11 @@ function nvxShouldStripEmbeddedJsonld() {
  * @return string
  */
 function nvxFilterStripEmbeddedJsonld( $content ) {
-	if ( ! nvxShouldStripEmbeddedJsonld() ) {
-		return $content;
-	}
+    if ( ! nvxShouldStripEmbeddedJsonld() ) {
+        return $content;
+    }
 
-	return nvxStripEmbeddedJsonldHtml( $content );
+    return nvxStripEmbeddedJsonldHtml( $content );
 }
 
 /**
@@ -107,5 +107,5 @@ function nvxFilterStripEmbeddedJsonld( $content ) {
  * @return string
  */
 function nvx_filter_strip_embedded_jsonld( $content ) {
-	return nvxFilterStripEmbeddedJsonld( $content );
+    return nvxFilterStripEmbeddedJsonld( $content );
 }

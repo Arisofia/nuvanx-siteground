@@ -9,7 +9,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /** Non-public canonical output used by rendered QA and pre-production review. */
@@ -21,7 +21,7 @@ require_once __DIR__ . '/nvx-staging2-canonical-closure.php';
  * @return string The inline stylesheet content.
  */
 function nvxExternalVisualClosureCss(): string {
-	return <<<'CSS'
+    return <<<'CSS'
 /* NUVANX — terminal external visual closure */
 body,
 button,
@@ -272,10 +272,10 @@ CSS;
 
 /** Enqueue the closure after theme and plugin styles. */
 function nvxExternalVisualClosureEnqueue(): void {
-	$version = defined( 'NVX_THEME_VERSION' ) ? NVX_THEME_VERSION : null;
+    $version = defined( 'NVX_THEME_VERSION' ) ? NVX_THEME_VERSION : null;
 
-	wp_register_style( 'nvx-external-visual-closure', false, array(), $version );
-	wp_enqueue_style( 'nvx-external-visual-closure' );
-	wp_add_inline_style( 'nvx-external-visual-closure', nvxExternalVisualClosureCss() );
+    wp_register_style( 'nvx-external-visual-closure', false, array(), $version );
+    wp_enqueue_style( 'nvx-external-visual-closure' );
+    wp_add_inline_style( 'nvx-external-visual-closure', nvxExternalVisualClosureCss() );
 }
 add_action( 'wp_enqueue_scripts', 'nvxExternalVisualClosureEnqueue', 1000 );

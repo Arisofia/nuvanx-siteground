@@ -13,56 +13,56 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
  * Whether this is the valoración landing (form funnel).
  */
 function nvx_is_valoracion_page_request(): bool {
-	if ( function_exists( 'nvx_theme_is_valoracion_landing' ) && nvx_theme_is_valoracion_landing() ) {
-		return true;
-	}
+    if ( function_exists( 'nvx_theme_is_valoracion_landing' ) && nvx_theme_is_valoracion_landing() ) {
+        return true;
+    }
 
-	if ( ! is_singular( 'page' ) ) {
-		return false;
-	}
+    if ( ! is_singular( 'page' ) ) {
+        return false;
+    }
 
-	$path = function_exists( 'nvx_schema_current_path' )
-		? nvx_schema_current_path( (int) get_queried_object_id() )
-		: '';
+    $path = function_exists( 'nvx_schema_current_path' )
+        ? nvx_schema_current_path( (int) get_queried_object_id() )
+        : '';
 
-	return is_string( $path ) && (
-		false !== strpos( $path, '/valoracion/' )
-		|| false !== strpos( $path, 'madrid/valoracion' )
-	);
+    return is_string( $path ) && (
+        false !== strpos( $path, '/valoracion/' )
+        || false !== strpos( $path, 'madrid/valoracion' )
+    );
 }
 
 /**
  * Whether this is the contacto / NAP page.
  */
 function nvx_is_contacto_page_request(): bool {
-	if ( ! is_singular( 'page' ) || is_front_page() ) {
-		return false;
-	}
+    if ( ! is_singular( 'page' ) || is_front_page() ) {
+        return false;
+    }
 
-	if ( 'templates/page-contacto.php' === (string) get_page_template_slug() ) {
-		return true;
-	}
+    if ( 'templates/page-contacto.php' === (string) get_page_template_slug() ) {
+        return true;
+    }
 
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	if ( 'contacto' === $slug || 'contact' === $slug ) {
-		return true;
-	}
+    $slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+    if ( 'contacto' === $slug || 'contact' === $slug ) {
+        return true;
+    }
 
-	$path = function_exists( 'nvx_schema_current_path' )
-		? nvx_schema_current_path( (int) get_queried_object_id() )
-		: '';
+    $path = function_exists( 'nvx_schema_current_path' )
+        ? nvx_schema_current_path( (int) get_queried_object_id() )
+        : '';
 
-	return is_string( $path ) && (
-		nvx_schema_path_matches( $path, '/contacto/' )
-		|| false !== strpos( $path, '/contacto/' )
-	);
+    return is_string( $path ) && (
+        nvx_schema_path_matches( $path, '/contacto/' )
+        || false !== strpos( $path, '/contacto/' )
+    );
 }
 
 /**
@@ -71,24 +71,24 @@ function nvx_is_contacto_page_request(): bool {
  * @return array<int, array{name:string,reg:string,address:string,phone:string,phone_href:string,days:string}>
  */
 function nvx_contact_clinics_nap(): array {
-	return array(
-		array(
-			'name'       => 'Centro Clínico NUVANX Chamberí',
-			'reg'        => 'CS20144',
-			'address'    => 'Calle de Fernández de la Hoz, 4, Bajo Derecha, 28010, Madrid',
-			'phone'      => '669 319 836',
-			'phone_href' => '+34669319836',
-			'days'       => 'Martes y jueves',
-		),
-		array(
-			'name'       => 'Centro Clínico NUVANX Salamanca / Goya',
-			'reg'        => 'CS20073',
-			'address'    => 'Calle de Fernán González, 26, 28009, Madrid',
-			'phone'      => '647 505 107',
-			'phone_href' => '+34647505107',
-			'days'       => 'Miércoles',
-		),
-	);
+    return array(
+        array(
+            'name'       => 'Centro Clínico NUVANX Chamberí',
+            'reg'        => 'CS20144',
+            'address'    => 'Calle de Fernández de la Hoz, 4, Bajo Derecha, 28010, Madrid',
+            'phone'      => '669 319 836',
+            'phone_href' => '+34669319836',
+            'days'       => 'Martes y jueves',
+        ),
+        array(
+            'name'       => 'Centro Clínico NUVANX Salamanca / Goya',
+            'reg'        => 'CS20073',
+            'address'    => 'Calle de Fernán González, 26, 28009, Madrid',
+            'phone'      => '647 505 107',
+            'phone_href' => '+34647505107',
+            'days'       => 'Miércoles',
+        ),
+    );
 }
 
 /**
@@ -97,50 +97,50 @@ function nvx_contact_clinics_nap(): array {
  * @return array<int, array{title:string,body:string}>
  */
 function nvx_valoracion_process_steps(): array {
-	return array(
-		array(
-			'title' => __( 'Motivo y contexto', 'nuvanx-medical' ),
-			'body'  => __( 'Historial, tratamientos previos y lo que quieres mejorar — con expectativas realistas y sin presión comercial.', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'Exploración anatómica y seguridad', 'nuvanx-medical' ),
-			'body'  => __( 'Calidad de piel, flacidez, grasa localizada, cicatrices y criterios de seguridad. La prioridad es confirmar si tiene sentido tratar, no vender un protocolo.', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'Decisión clínica y presupuesto', 'nuvanx-medical' ),
-			'body'  => __( 'Si hay indicación: plan, tiempos de recuperación y presupuesto documentado. Si no la hay, se explica por qué. Puedes decidir con calma, con toda la información sobre la mesa.', 'nuvanx-medical' ),
-		),
-	);
+    return array(
+        array(
+            'title' => __( 'Motivo y contexto', 'nuvanx-medical' ),
+            'body'  => __( 'Historial, tratamientos previos y lo que quieres mejorar — con expectativas realistas y sin presión comercial.', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'Exploración anatómica y seguridad', 'nuvanx-medical' ),
+            'body'  => __( 'Calidad de piel, flacidez, grasa localizada, cicatrices y criterios de seguridad. La prioridad es confirmar si tiene sentido tratar, no vender un protocolo.', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'Decisión clínica y presupuesto', 'nuvanx-medical' ),
+            'body'  => __( 'Si hay indicación: plan, tiempos de recuperación y presupuesto documentado. Si no la hay, se explica por qué. Puedes decidir con calma, con toda la información sobre la mesa.', 'nuvanx-medical' ),
+        ),
+    );
 }
 
 /**
  * GDPR / photo disclaimer (no definitive remote diagnosis).
  */
 function nvx_contact_privacy_disclaimer_markup(): string {
-	return '<p class="nvx-contact-disclaimer"><em>' . esc_html__(
-		'Privacidad: si adjunta material fotográfico para una orientación preliminar, se trata bajo protocolos de confidencialidad clínica (GDPR). Ningún diagnóstico definitivo se emite solo a partir de una evaluación fotográfica o de este formulario; la indicación se confirma siempre en valoración presencial.',
-		'nuvanx-medical'
-	) . '</em></p>';
+    return '<p class="nvx-contact-disclaimer"><em>' . esc_html__(
+        'Privacidad: si adjunta material fotográfico para una orientación preliminar, se trata bajo protocolos de confidencialidad clínica (GDPR). Ningún diagnóstico definitivo se emite solo a partir de una evaluación fotográfica o de este formulario; la indicación se confirma siempre en valoración presencial.',
+        'nuvanx-medical'
+    ) . '</em></p>';
 }
 
 /**
  * Clinics NAP cards markup.
  */
 function nvx_contact_clinics_markup(): string {
-	$html  = '<div class="nvx-contact-clinics">';
-	foreach ( nvx_contact_clinics_nap() as $clinic ) {
-		$html .= '<article class="nvx-contact-clinic">';
-		$html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ) . '</h3>';
-		$html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html__( 'Registro sanitario', 'nuvanx-medical' ) . ':</strong> ' . esc_html( $clinic['reg'] ) . '</p>';
-		$html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $clinic['address'] ) . '</p>';
-		$html .= '<p class="nvx-contact-clinic__phone"><strong>' . esc_html__( 'Teléfono / WhatsApp', 'nuvanx-medical' ) . ':</strong> ';
-		$html .= '<a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $clinic['phone_href'] ) . '">' . esc_html( $clinic['phone'] ) . '</a></p>';
-		$html .= '<p class="nvx-contact-clinic__days"><strong>' . esc_html__( 'Consulta médica directa', 'nuvanx-medical' ) . ':</strong> ' . esc_html( $clinic['days'] ) . '</p>';
-		$html .= '</article>';
-	}
-	$html .= '</div>';
+    $html  = '<div class="nvx-contact-clinics">';
+    foreach ( nvx_contact_clinics_nap() as $clinic ) {
+        $html .= '<article class="nvx-contact-clinic">';
+        $html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ) . '</h3>';
+        $html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html__( 'Registro sanitario', 'nuvanx-medical' ) . ':</strong> ' . esc_html( $clinic['reg'] ) . '</p>';
+        $html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $clinic['address'] ) . '</p>';
+        $html .= '<p class="nvx-contact-clinic__phone"><strong>' . esc_html__( 'Teléfono / WhatsApp', 'nuvanx-medical' ) . ':</strong> ';
+        $html .= '<a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $clinic['phone_href'] ) . '">' . esc_html( $clinic['phone'] ) . '</a></p>';
+        $html .= '<p class="nvx-contact-clinic__days"><strong>' . esc_html__( 'Consulta médica directa', 'nuvanx-medical' ) . ':</strong> ' . esc_html( $clinic['days'] ) . '</p>';
+        $html .= '</article>';
+    }
+    $html .= '</div>';
 
-	return $html;
+    return $html;
 }
 
 /**
@@ -149,35 +149,35 @@ function nvx_contact_clinics_markup(): string {
  * @return string The generated HTML markup.
  */
 function nvx_valoracion_intro_markup(): string {
-	$html  = '<section class="nvx-editorial-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';
-	$html .= '<div class="nvx-editorial-section__inner">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Primer paso', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-editorial-heading">' . esc_html__( 'Una consulta médica para entender antes de decidir', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Antes de hablar de máquinas o de técnicas, confirmamos si existe indicación. La consulta médica estética se realiza de forma presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El objetivo es que salgas con un criterio claro: si tiene sentido tratar, qué alternativas existen y qué implicaría cada opción en tu caso.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ol class="nvx-editorial-timeline nvx-valoracion-steps">';
-	$n = 1;
-	foreach ( nvx_valoracion_process_steps() as $step ) {
-		$html .= '<li class="nvx-editorial-timeline__item">';
-		$html .= '<span class="nvx-editorial-timeline__n">' . esc_html( sprintf( '%02d', $n ) ) . '</span>';
-		$html .= '<h3 class="nvx-editorial-timeline__title">' . esc_html( $step['title'] ) . '</h3>';
-		$html .= '<p class="nvx-editorial-body">' . esc_html( $step['body'] ) . '</p>';
-		$html .= '</li>';
-		$n++;
-	}
-	$html .= '</ol>';
-	$html .= nvx_contact_privacy_disclaimer_markup();
-	$html .= '</div></section>';
+    $html  = '<section class="nvx-editorial-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';
+    $html .= '<div class="nvx-editorial-section__inner">';
+    $html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Primer paso', 'nuvanx-medical' ) . '</p>';
+    $html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-editorial-heading">' . esc_html__( 'Una consulta médica para entender antes de decidir', 'nuvanx-medical' ) . '</h2>';
+    $html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Antes de hablar de máquinas o de técnicas, confirmamos si existe indicación. La consulta médica estética se realiza de forma presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El objetivo es que salgas con un criterio claro: si tiene sentido tratar, qué alternativas existen y qué implicaría cada opción en tu caso.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<ol class="nvx-editorial-timeline nvx-valoracion-steps">';
+    $n = 1;
+    foreach ( nvx_valoracion_process_steps() as $step ) {
+        $html .= '<li class="nvx-editorial-timeline__item">';
+        $html .= '<span class="nvx-editorial-timeline__n">' . esc_html( sprintf( '%02d', $n ) ) . '</span>';
+        $html .= '<h3 class="nvx-editorial-timeline__title">' . esc_html( $step['title'] ) . '</h3>';
+        $html .= '<p class="nvx-editorial-body">' . esc_html( $step['body'] ) . '</p>';
+        $html .= '</li>';
+        $n++;
+    }
+    $html .= '</ol>';
+    $html .= nvx_contact_privacy_disclaimer_markup();
+    $html .= '</div></section>';
 
-	// Compact NAP under process (phones secondary; form is primary CTA).
-	$html .= '<section class="nvx-editorial-section nvx-valoracion-locations" aria-labelledby="nvx-valoracion-loc-title">';
-	$html .= '<div class="nvx-editorial-section__inner">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-valoracion-loc-title" class="nvx-editorial-heading">' . esc_html__( 'Ubicaciones autorizadas por Sanidad', 'nuvanx-medical' ) . '</h2>';
-	$html .= nvx_contact_clinics_markup();
-	$html .= '</div></section>';
+    // Compact NAP under process (phones secondary; form is primary CTA).
+    $html .= '<section class="nvx-editorial-section nvx-valoracion-locations" aria-labelledby="nvx-valoracion-loc-title">';
+    $html .= '<div class="nvx-editorial-section__inner">';
+    $html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
+    $html .= '<h2 id="nvx-valoracion-loc-title" class="nvx-editorial-heading">' . esc_html__( 'Ubicaciones autorizadas por Sanidad', 'nuvanx-medical' ) . '</h2>';
+    $html .= nvx_contact_clinics_markup();
+    $html .= '</div></section>';
 
-	return $html;
+    return $html;
 }
 
 
@@ -185,29 +185,29 @@ function nvx_valoracion_intro_markup(): string {
  * Inject valoración intro without removing the HubSpot form.
  */
 function nvx_content_enhance_valoracion_page( string $content ): string {
-	if ( is_admin() || ! nvx_is_valoracion_page_request() ) {
-		return $content;
-	}
+    if ( is_admin() || ! nvx_is_valoracion_page_request() ) {
+        return $content;
+    }
 
-	if ( false !== strpos( $content, 'nvx-valoracion-intro' ) || false !== strpos( $content, 'id="nvx-valoracion-intro"' ) ) {
-		return $content;
-	}
+    if ( false !== strpos( $content, 'nvx-valoracion-intro' ) || false !== strpos( $content, 'id="nvx-valoracion-intro"' ) ) {
+        return $content;
+    }
 
-	$intro = nvx_valoracion_intro_markup();
+    $intro = nvx_valoracion_intro_markup();
 
-	// After hero section if present.
-	if ( preg_match( '/(<section\b[^>]*class=["\'][^"\']*nvx-(?:hero|page-hero|brand-hero)[^"\']*["\'][^>]*>[\s\S]*?<\/section>)/iu', $content, $m, PREG_OFFSET_CAPTURE ) ) {
-		$end = (int) $m[0][1] + strlen( $m[0][0] );
-		return substr( $content, 0, $end ) . $intro . substr( $content, $end );
-	}
+    // After hero section if present.
+    if ( preg_match( '/(<section\b[^>]*class=["\'][^"\']*nvx-(?:hero|page-hero|brand-hero)[^"\']*["\'][^>]*>[\s\S]*?<\/section>)/iu', $content, $m, PREG_OFFSET_CAPTURE ) ) {
+        $end = (int) $m[0][1] + strlen( $m[0][0] );
+        return substr( $content, 0, $end ) . $intro . substr( $content, $end );
+    }
 
-	// Before form section.
-	if ( preg_match( '/<section\b[^>]*(?:\bid=["\']nvx-hubspot-form["\']|nvx-hubspot-form-section|nvx-form-stage)[^>]*>/iu', $content, $m, PREG_OFFSET_CAPTURE ) ) {
-		$pos = (int) $m[0][1];
-		return substr( $content, 0, $pos ) . $intro . substr( $content, $pos );
-	}
+    // Before form section.
+    if ( preg_match( '/<section\b[^>]*(?:\bid=["\']nvx-hubspot-form["\']|nvx-hubspot-form-section|nvx-form-stage)[^>]*>/iu', $content, $m, PREG_OFFSET_CAPTURE ) ) {
+        $pos = (int) $m[0][1];
+        return substr( $content, 0, $pos ) . $intro . substr( $content, $pos );
+    }
 
-	return $intro . $content;
+    return $intro . $content;
 }
 add_filter( 'the_content', 'nvx_content_enhance_valoracion_page', 16 );
 
@@ -218,11 +218,11 @@ add_filter( 'the_content', 'nvx_content_enhance_valoracion_page', 16 );
  * @return string
  */
 function nvx_filter_valoracion_document_title( $title ) {
-	if ( ! nvx_is_valoracion_page_request() ) {
-		return $title;
-	}
+    if ( ! nvx_is_valoracion_page_request() ) {
+        return $title;
+    }
 
-	return 'Consulta médica estética en Madrid | NUVANX';
+    return 'Consulta médica estética en Madrid | NUVANX';
 }
 add_filter( 'wpseo_title', 'nvx_filter_valoracion_document_title', 21 );
 
@@ -231,11 +231,11 @@ add_filter( 'wpseo_title', 'nvx_filter_valoracion_document_title', 21 );
  * @return string
  */
 function nvx_filter_valoracion_metadesc( $desc ) {
-	if ( ! nvx_is_valoracion_page_request() ) {
-		return $desc;
-	}
+    if ( ! nvx_is_valoracion_page_request() ) {
+        return $desc;
+    }
 
-	return 'Solicita una consulta médica estética en Chamberí o Salamanca–Goya. Diagnóstico, indicación y presupuesto individualizado.';
+    return 'Solicita una consulta médica estética en Chamberí o Salamanca–Goya. Diagnóstico, indicación y presupuesto individualizado.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_valoracion_metadesc', 21 );
 
@@ -246,11 +246,11 @@ add_filter( 'wpseo_metadesc', 'nvx_filter_valoracion_metadesc', 21 );
  * @return string
  */
 function nvx_filter_contacto_document_title( $title ) {
-	if ( ! nvx_is_contacto_page_request() ) {
-		return $title;
-	}
+    if ( ! nvx_is_contacto_page_request() ) {
+        return $title;
+    }
 
-	return 'Contacto NUVANX Madrid | Chamberí y Goya · Teléfonos y Direcciones';
+    return 'Contacto NUVANX Madrid | Chamberí y Goya · Teléfonos y Direcciones';
 }
 add_filter( 'wpseo_title', 'nvx_filter_contacto_document_title', 21 );
 
@@ -259,10 +259,10 @@ add_filter( 'wpseo_title', 'nvx_filter_contacto_document_title', 21 );
  * @return string
  */
 function nvx_filter_contacto_metadesc( $desc ) {
-	if ( ! nvx_is_contacto_page_request() ) {
-		return $desc;
-	}
+    if ( ! nvx_is_contacto_page_request() ) {
+        return $desc;
+    }
 
-	return 'Contacto NUVANX: Chamberí CS20144 (669 319 836) y Goya CS20073 (647 505 107). Valoración médica en /madrid/valoracion/.';
+    return 'Contacto NUVANX: Chamberí CS20144 (669 319 836) y Goya CS20073 (647 505 107). Valoración médica en /madrid/valoracion/.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_contacto_metadesc', 21 );

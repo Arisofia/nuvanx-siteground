@@ -122,6 +122,22 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	return $html;
 }
 
+/** Collect tariff items from catalog category. */
+function nvx_strategy_collect_tariff_items( array $catalog, string $category, array $keys, string $suffix = '' ): array {
+	$items = array();
+	foreach ( $keys as $key ) {
+		if ( isset( $catalog[ $category ][ $key ] ) ) {
+			$item    = $catalog[ $category ][ $key ];
+			$label   = $item['label'] . ( '' !== $suffix ? ' ' . $suffix : '' );
+			$items[] = array(
+				'label' => $label,
+				'price' => nvx_format_price_eur( $item['pvp'] ) . ' €',
+			);
+		}
+	}
+	return $items;
+}
+
 /** Groups available clinical tariffs by treatment category. */
 function nvx_strategy_verified_investment_groups(): array {
 	if ( ! function_exists( 'nvx_tariff_catalog' ) || ! function_exists( 'nvx_format_price_eur' ) ) {
@@ -131,58 +147,24 @@ function nvx_strategy_verified_investment_groups(): array {
 	$catalog = nvx_tariff_catalog();
 	$groups  = array();
 
-	$facial_keys = array( 'ojeras', 'papada', 'marcacion_mandibular', 'pomulos', 'cuello' );
-	foreach ( $facial_keys as $key ) {
-		if ( isset( $catalog['endolift'][ $key ] ) ) {
-			$item = $catalog['endolift'][ $key ];
-			$groups['endolift_facial'][] = array(
-				'label' => $item['label'],
-				'price' => nvx_format_price_eur( $item['pvp'] ) . ' €',
-			);
-		}
-	}
-
+	$facial_keys       = array( 'ojeras', 'papada', 'marcacion_mandibular', 'pomulos', 'cuello' );
 	$facial_combo_keys = array( 'papada_cuello', 'marcacion_papada', 'full_face' );
-	foreach ( $facial_combo_keys as $key ) {
-		if ( isset( $catalog['endolift_combo'][ $key ] ) ) {
-			$item = $catalog['endolift_combo'][ $key ];
-			$groups['endolift_facial'][] = array(
-				'label' => $item['label'] . ' (zona combinada)',
-				'price' => nvx_format_price_eur( $item['pvp'] ) . ' €',
-			);
-		}
-	}
 
-	$corporal_keys = array( 'abdomen', 'flancos', 'brazos', 'cartucheras', 'subgluteos', 'muslos_internos', 'subescapular', 'rodillas' );
-	foreach ( $corporal_keys as $key ) {
-		if ( isset( $catalog['endolift'][ $key ] ) ) {
-			$item = $catalog['endolift'][ $key ];
-			$groups['endolift_corporal'][] = array(
-				'label' => $item['label'],
-				'price' => nvx_format_price_eur( $item['pvp'] ) . ' €',
-			);
-		}
-	}
+	$groups['endolift_facial'] = array_merge(
+		nvx_strategy_collect_tariff_items( $catalog, 'endolift', $facial_keys ),
+		nvx_strategy_collect_tariff_items( $catalog, 'endolift_combo', $facial_combo_keys, '(zona combinada)' )
+	);
 
+	$corporal_keys       = array( 'abdomen', 'flancos', 'brazos', 'cartucheras', 'subgluteos', 'muslos_internos', 'subescapular', 'rodillas' );
 	$corporal_combo_keys = array( 'abdomen_flancos', 'subgluteos_cartucheras', 'muslos_rodilla', 'sujetador_brazos', 'cartucheras_muslos', 'cartucheras_subgluteos_muslos' );
-	foreach ( $corporal_combo_keys as $key ) {
-		if ( isset( $catalog['endolift_combo'][ $key ] ) ) {
-			$item = $catalog['endolift_combo'][ $key ];
-			$groups['endolift_corporal'][] = array(
-				'label' => $item['label'] . ' (zona combinada)',
-				'price' => nvx_format_price_eur( $item['pvp'] ) . ' €',
-			);
-		}
-	}
 
-	foreach ( array( 'facial', 'corporal' ) as $key ) {
-		if ( isset( $catalog['laser_co2'][ $key ] ) ) {
-			$groups['laser_co2'][] = array(
-				'label' => $catalog['laser_co2'][ $key ]['label'],
-				'price' => nvx_format_price_eur( $catalog['laser_co2'][ $key ]['pvp'] ) . ' €',
-			);
-		}
-	}
+	$groups['endolift_corporal'] = array_merge(
+		nvx_strategy_collect_tariff_items( $catalog, 'endolift', $corporal_keys ),
+		nvx_strategy_collect_tariff_items( $catalog, 'endolift_combo', $corporal_combo_keys, '(zona combinada)' )
+	);
+
+	$groups['laser_co2'] = nvx_strategy_collect_tariff_items( $catalog, 'laser_co2', array( 'facial', 'corporal' ) );
+
 	return $groups;
 }
 

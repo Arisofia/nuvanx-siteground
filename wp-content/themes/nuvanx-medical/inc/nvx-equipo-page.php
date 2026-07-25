@@ -99,6 +99,21 @@ function nvx_equipo_media_is_logo( string $html ): bool {
 	);
 }
 
+/** Promote data-src to src for lazyloaded images. */
+function nvx_equipo_promote_lazy_src( string $attrs ): string {
+	if ( ( preg_match( '/\ssrc=["\']data:image\//i', $attrs ) || preg_match( '/\ssrc=["\']["\']/i', $attrs ) )
+		&& preg_match( '/\sdata-(?:src|lazy-src|original)=["\']([^"\']+)["\']/i', $attrs, $ds )
+	) {
+		$real = esc_url( $ds[1] );
+		if ( '' !== $real ) {
+			return preg_match( '/\ssrc=/i', $attrs )
+				? ( nvxContentPregReplaceKeep( '/\ssrc=["\'][^"\']*["\']/i', ' src="' . $real . '"', $attrs, 1 ) ?? $attrs )
+				: $attrs . ' src="' . $real . '"';
+		}
+	}
+	return $attrs;
+}
+
 /**
  * Normalize a portrait snippet to a single clean <img> (doctor crop).
  *
@@ -115,21 +130,7 @@ function nvx_equipo_clean_portrait_img( string $media ): string {
 		return '';
 	}
 
-	$attrs = $m[1];
-
-	// Lazyload placeholder: promote data-src / data-lazy-src to real src.
-	if ( preg_match( '/\ssrc=["\']data:image\//i', $attrs ) || preg_match( '/\ssrc=["\']["\']/i', $attrs ) ) {
-		if ( preg_match( '/\sdata-(?:src|lazy-src|original)=["\']([^"\']+)["\']/i', $attrs, $ds ) ) {
-			$real = esc_url( $ds[1] );
-			if ( '' !== $real ) {
-				if ( preg_match( '/\ssrc=/i', $attrs ) ) {
-					$attrs = nvxContentPregReplaceKeep( '/\ssrc=["\'][^"\']*["\']/i', ' src="' . $real . '"', $attrs, 1 );
-				} else {
-					$attrs .= ' src="' . $real . '"';
-				}
-			}
-		}
-	}
+	$attrs = nvx_equipo_promote_lazy_src( $m[1] );
 
 	// Drop inline size/style that fights portrait crop; strip body role.
 	$attrs = nvxContentPregReplaceKeep( '/\s+style=["\'][^"\']*["\']/i', '', $attrs );
@@ -138,11 +139,7 @@ function nvx_equipo_clean_portrait_img( string $media ): string {
 	// Re-emit loading/decoding once (CMS + cleaners often duplicate).
 	$attrs = nvxContentPregReplaceKeep( '/\s+loading=["\'][^"\']*["\']/i', '', $attrs );
 	$attrs = nvxContentPregReplaceKeep( '/\s+decoding=["\'][^"\']*["\']/i', '', $attrs );
-	// Drop leftover placeholder-only srcset noise when src is real file.
-	if ( preg_match( '/\ssrc=["\']https?:\/\//i', $attrs ) ) {
-		// Keep srcset/sizes when present for responsive; strip only data-src twins later.
-	}
-
+	
 	if ( function_exists( 'nvx_html_attrs_add_class' ) ) {
 		$attrs = nvxHtmlAttrsAddClass( $attrs, 'nvx-media' );
 		$attrs = nvxHtmlAttrsAddClass( $attrs, 'nvx-media--doctor' );
@@ -221,6 +218,31 @@ function nvx_equipo_block_is_fabio( string $html ): bool {
 	return (bool) preg_match( '/Fabio|Qui[nñ][oó]nez|Bareiro/iu', $html );
 }
 
+/** Categorize one staff card. */
+function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, string &$ivon_media, string &$fabio_media, array &$other_cards ): void {
+	if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
+		if ( '' === $rivera_media && preg_match( NVX_REGEX_MEDIA, $card, $image_match ) ) {
+			$rivera_media = $image_match[0];
+		}
+		return;
+	}
+	if ( nvx_equipo_block_is_ivon( $card ) ) {
+		if ( '' === $ivon_media && preg_match( NVX_REGEX_MEDIA, $card, $image_match ) ) {
+			$ivon_media = $image_match[0];
+		}
+		return;
+	}
+	if ( nvx_equipo_block_is_fabio( $card ) ) {
+		if ( '' === $fabio_media && preg_match( NVX_REGEX_MEDIA, $card, $image_match ) ) {
+			$fabio_media = $image_match[0];
+		}
+		return;
+	}
+	if ( nvx_equipo_is_person_staff_card( $card ) ) {
+		$other_cards[] = $card;
+	}
+}
+
 /**
  * Extracts authority portraits and remaining clinician cards from CMS content.
  *
@@ -249,31 +271,7 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 	}
 
 	foreach ( $found as $card ) {
-		if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
-			if ( '' === $rivera_media && preg_match( NVX_REGEX_MEDIA, $card, $image_match ) ) {
-				$rivera_media = $image_match[0];
-			}
-			// Long-form authority replaces short card for director.
-			continue;
-		}
-		if ( nvx_equipo_block_is_ivon( $card ) ) {
-			if ( '' === $ivon_media && preg_match( NVX_REGEX_MEDIA, $card, $image_match ) ) {
-				$ivon_media = $image_match[0];
-			}
-			// Long-form authority replaces short card for Dra. Ivon.
-			continue;
-		}
-		if ( nvx_equipo_block_is_fabio( $card ) ) {
-			if ( '' === $fabio_media && preg_match( NVX_REGEX_MEDIA, $card, $image_match ) ) {
-				$fabio_media = $image_match[0];
-			}
-			// Long-form authority replaces short card for Dr. Fabio.
-			continue;
-		}
-		// Only real clinician cards — drop sedes, reseñas, listas, chrome vacío.
-		if ( nvx_equipo_is_person_staff_card( $card ) ) {
-			$other_cards[] = $card;
-		}
+		nvx_equipo_categorize_staff_card( $card, $rivera_media, $ivon_media, $fabio_media, $other_cards );
 	}
 
 	return array(

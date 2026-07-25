@@ -179,6 +179,60 @@ function nvxFindHeroCopyNode( DOMXPath $xpath, DOMElement $hero, bool $canonical
 	return $copy;
 }
 
+/** Process single hero element to extract explanatory copy into post-hero reading block. */
+function nvxProcessSingleHeroNode( DOMDocument $document, DOMXPath $xpath, DOMElement $hero, bool $canonical ): void {
+	if ( $canonical ) {
+		nvxNormalizeCanonicalPageHero( $xpath, $hero );
+	}
+
+	$copy = nvxFindHeroCopyNode( $xpath, $hero, $canonical );
+	if ( ! $copy instanceof DOMElement ) {
+		return;
+	}
+
+	$movable = array();
+	foreach ( iterator_to_array( $copy->childNodes ) as $child ) {
+		if ( nvxIsExplanatoryHeroNode( $child ) ) {
+			$movable[] = $child;
+		}
+	}
+
+	if ( array() === $movable || ! $hero->parentNode ) {
+		return;
+	}
+
+	$section = $document->createElement( 'section' );
+	$section->setAttribute( 'class', 'nvx-brand-section nvx-hero-intro nvx-hero-intro--generated' );
+	$section->setAttribute( 'data-nvx-hero-context', 'clinical-introduction' );
+	$section->setAttribute( 'aria-label', 'Introducción clínica' );
+
+	$inner = $document->createElement( 'div' );
+	$inner->setAttribute( 'class', 'nvx-brand-section__inner' );
+
+	$readable = $document->createElement( 'div' );
+	$readable->setAttribute( 'class', 'nvx-brand-readable nvx-brand-readable--wide' );
+
+	foreach ( $movable as $index => $paragraph ) {
+		if ( $paragraph instanceof DOMElement ) {
+			$existing = trim( $paragraph->getAttribute( 'class' ) );
+			$extra    = 0 === $index
+				? 'nvx-brand-body nvx-hero-context__lead'
+				: 'nvx-brand-body nvx-hero-context__description';
+			$paragraph->setAttribute( 'class', trim( $existing . ' ' . $extra ) );
+		}
+		$readable->appendChild( $paragraph );
+	}
+
+	$inner->appendChild( $readable );
+	$section->appendChild( $inner );
+
+	if ( $hero->nextSibling ) {
+		$hero->parentNode->insertBefore( $section, $hero->nextSibling );
+	} else {
+		$hero->parentNode->appendChild( $section );
+	}
+}
+
 /**
  * Moves explanatory paragraphs from hero sections into generated post-hero reading blocks.
  *
@@ -233,56 +287,7 @@ function nvxSplitHeroExplanatoryCopy( string $content ): string {
 	$canonical = nvxIsCanonicalPageHeaderRequest();
 
 	foreach ( $hero_nodes as $hero ) {
-		if ( $canonical ) {
-			nvxNormalizeCanonicalPageHero( $xpath, $hero );
-		}
-
-		$copy = nvxFindHeroCopyNode( $xpath, $hero, $canonical );
-		if ( ! $copy instanceof DOMElement ) {
-			continue;
-		}
-
-		$movable = array();
-		foreach ( iterator_to_array( $copy->childNodes ) as $child ) {
-			if ( nvxIsExplanatoryHeroNode( $child ) ) {
-				$movable[] = $child;
-			}
-		}
-
-		if ( array() === $movable || ! $hero->parentNode ) {
-			continue;
-		}
-
-		$section = $document->createElement( 'section' );
-		$section->setAttribute( 'class', 'nvx-brand-section nvx-hero-intro nvx-hero-intro--generated' );
-		$section->setAttribute( 'data-nvx-hero-context', 'clinical-introduction' );
-		$section->setAttribute( 'aria-label', 'Introducción clínica' );
-
-		$inner = $document->createElement( 'div' );
-		$inner->setAttribute( 'class', 'nvx-brand-section__inner' );
-
-		$readable = $document->createElement( 'div' );
-		$readable->setAttribute( 'class', 'nvx-brand-readable nvx-brand-readable--wide' );
-
-		foreach ( $movable as $index => $paragraph ) {
-			if ( $paragraph instanceof DOMElement ) {
-				$existing = trim( $paragraph->getAttribute( 'class' ) );
-				$extra = 0 === $index
-					? 'nvx-brand-body nvx-hero-context__lead'
-					: 'nvx-brand-body nvx-hero-context__description';
-				$paragraph->setAttribute( 'class', trim( $existing . ' ' . $extra ) );
-			}
-			$readable->appendChild( $paragraph );
-		}
-
-		$inner->appendChild( $readable );
-		$section->appendChild( $inner );
-
-		if ( $hero->nextSibling ) {
-			$hero->parentNode->insertBefore( $section, $hero->nextSibling );
-		} else {
-			$hero->parentNode->appendChild( $section );
-		}
+		nvxProcessSingleHeroNode( $document, $xpath, $hero, $canonical );
 	}
 
 	$root = $document->getElementById( 'nvx-content-transform-root' );

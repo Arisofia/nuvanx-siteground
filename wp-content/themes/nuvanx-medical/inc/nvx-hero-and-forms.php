@@ -10,6 +10,36 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/** Balance nested <div>…</div> to find the closing position of the copy block. */
+function nvx_hero_find_copy_closing_position( string $content, int $open_pos ): ?int {
+	$len   = strlen( $content );
+	$i     = $open_pos;
+	$depth = 0;
+
+	while ( $i < $len ) {
+		if ( ! preg_match( '/<\/?div\b[^>]*>/i', $content, $tag_match, PREG_OFFSET_CAPTURE, $i ) ) {
+			break;
+		}
+		$tag_pos = (int) $tag_match[0][1];
+		$tag     = $tag_match[0][0];
+		if ( $tag_pos > $i && $depth === 0 && $i !== $open_pos ) {
+			break;
+		}
+		$i = $tag_pos;
+		if ( 0 === strncasecmp( $tag, '</div', 5 ) ) {
+			--$depth;
+			$i += strlen( $tag );
+			if ( 0 === $depth ) {
+				return $i;
+			}
+			continue;
+		}
+		++$depth;
+		$i += strlen( $tag );
+	}
+	return null;
+}
+
 /**
  * Ensure content heroes that lack media use the featured image when available.
  * Inserts media as a SIBLING after the hero copy (never nested inside copy),
@@ -42,12 +72,7 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 		)
 	);
 
-	if ( ! $thumb ) {
-		return $content;
-	}
-
-	// Never inject site logo / brand mark as hero photography.
-	if ( preg_match( '/logo-nuvanx|nuvanx-web\.webp|\/logo[-_]|nvx-logo|site-logo|custom-logo/iu', $thumb ) ) {
+	if ( ! $thumb || preg_match( '/logo-nuvanx|nuvanx-web\.webp|\/logo[-_]|nvx-logo|site-logo|custom-logo/iu', $thumb ) ) {
 		return $content;
 	}
 
@@ -56,13 +81,12 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 	// Locate first hero __copy opening tag.
 	if ( ! preg_match( '/class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)__copy[^"]*"/i', $content, $match, PREG_OFFSET_CAPTURE ) ) {
 		// No copy block: place media at the start of the first hero section.
-		$updated = nvxContentPregReplaceKeep(
+		return nvxContentPregReplaceKeep(
 			'/(<section\b[^>]*class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)[^"]*"[^>]*>)/i',
 			'$1' . $figure,
 			$content,
 			1
 		);
-		return $updated;
 	}
 
 	$class_pos = (int) $match[0][1];
@@ -71,36 +95,7 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 		return $content;
 	}
 
-	// Balance nested <div>…</div> so the figure is inserted AFTER the whole copy.
-	$len   = strlen( $content );
-	$i     = $open_pos;
-	$depth = 0;
-	$end   = null;
-
-	while ( $i < $len ) {
-		if ( ! preg_match( '/<\/?div\b[^>]*>/i', $content, $tag_match, PREG_OFFSET_CAPTURE, $i ) ) {
-			break;
-		}
-		$tag_pos = (int) $tag_match[0][1];
-		$tag     = $tag_match[0][0];
-		if ( $tag_pos > $i && $depth === 0 && $i !== $open_pos ) {
-			break;
-		}
-		$i = $tag_pos;
-		if ( 0 === strncasecmp( $tag, '</div', 5 ) ) {
-			--$depth;
-			$i += strlen( $tag );
-			if ( 0 === $depth ) {
-				$end = $i;
-				break;
-			}
-			continue;
-		}
-		// Opening div (ignore malformed self-closing).
-		++$depth;
-		$i += strlen( $tag );
-	}
-
+	$end = nvx_hero_find_copy_closing_position( $content, $open_pos );
 	if ( null === $end ) {
 		return $content;
 	}

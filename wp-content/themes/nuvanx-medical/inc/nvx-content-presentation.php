@@ -930,6 +930,41 @@ function nvx_html_attrs_add_class( string $attrs, string $class_token ): string 
 	return $attrs . ' class="' . esc_attr( $class_token ) . '"';
 }
 
+/** Protect team/card portrait frames from generic body media rules. */
+function nvx_content_protect_team_media_slots( string $content, array &$team_slots ): string {
+	$protected = nvxContentPregReplaceKeep(
+		'/<figure\b([^>]*\bclass=["\'][^"\']*\b(?:nvx-brand-card__media|nvx-equipo-portrait)\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/figure>/iu',
+		static function ( array $m ) use ( &$team_slots ): string {
+			$attrs = $m[1];
+			if ( false !== stripos( $attrs, 'nvx-brand-card__media' ) ) {
+				$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-brand-card__media--portrait' );
+			}
+			$inner = $m[2];
+			$inner = nvxContentPregReplaceKeep( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner );
+			$inner = nvxContentPregReplaceKeep(
+				'/<img\b([^>]*)>/iu',
+				static function ( array $im ): string {
+					$a = $im[1];
+					if ( preg_match( '/nvx-logo|nvx-media--hero/i', $a ) ) {
+						return '<img' . $a . '>';
+					}
+					$a = nvxContentPregReplaceKeep( '/\s+style=["\'][^"\']*["\']/i', '', $a );
+					$a = nvxContentPregReplaceKeep( '/\s*nvx-media--body\s*/i', ' ', $a );
+					$a = nvx_html_attrs_add_class( $a, 'nvx-media' );
+					$a = nvx_html_attrs_add_class( $a, 'nvx-media--doctor' );
+					return '<img' . $a . '>';
+				},
+				$inner
+			);
+			$key                = '<!--NVX_TEAM_MEDIA_' . count( $team_slots ) . '-->';
+			$team_slots[ $key ] = '<figure' . $attrs . '>' . ( is_string( $inner ) ? $inner : $m[2] ) . '</figure>';
+			return $key;
+		},
+		$content
+	);
+	return is_string( $protected ) ? $protected : $content;
+}
+
 /**
  * Normalize body figures/images so every page shares the same media rules.
  * Heroes are left untouched (full-bleed stage) — extracted before body tagging.
@@ -964,40 +999,8 @@ function nvx_content_normalize_body_media( string $content ): string {
 	);
 	$content = is_string( $updated ) ? $updated : $content;
 
-	// Protect team / card portrait frames (doctor role, not body landscape crop).
 	$team_slots = array();
-	$protected  = nvxContentPregReplaceKeep(
-		'/<figure\b([^>]*\bclass=["\'][^"\']*\b(?:nvx-brand-card__media|nvx-equipo-portrait)\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/figure>/iu',
-		static function ( array $m ) use ( &$team_slots ): string {
-			$attrs = $m[1];
-			// Only card media gets the portrait media class; authority figures keep nvx-equipo-portrait.
-			if ( false !== stripos( $attrs, 'nvx-brand-card__media' ) ) {
-				$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-brand-card__media--portrait' );
-			}
-			$inner = $m[2];
-			$inner = nvxContentPregReplaceKeep( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner );
-			$inner = nvxContentPregReplaceKeep(
-				'/<img\b([^>]*)>/iu',
-				static function ( array $im ): string {
-					$a = $im[1];
-					if ( preg_match( '/nvx-logo|nvx-media--hero/i', $a ) ) {
-						return '<img' . $a . '>';
-					}
-					$a = nvxContentPregReplaceKeep( '/\s+style=["\'][^"\']*["\']/i', '', $a );
-					$a = nvxContentPregReplaceKeep( '/\s*nvx-media--body\s*/i', ' ', $a );
-					$a = nvx_html_attrs_add_class( $a, 'nvx-media' );
-					$a = nvx_html_attrs_add_class( $a, 'nvx-media--doctor' );
-					return '<img' . $a . '>';
-				},
-				$inner
-			);
-			$key                = '<!--NVX_TEAM_MEDIA_' . count( $team_slots ) . '-->';
-			$team_slots[ $key ] = '<figure' . $attrs . '>' . ( is_string( $inner ) ? $inner : $m[2] ) . '</figure>';
-			return $key;
-		},
-		$content
-	);
-	$content = is_string( $protected ) ? $protected : $content;
+	$content    = nvx_content_protect_team_media_slots( $content, $team_slots );
 
 	$updated = nvxContentPregReplaceKeep(
 		'/<img\b([^>]*)>/iu',

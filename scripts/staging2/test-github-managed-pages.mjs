@@ -130,6 +130,8 @@ const managedPhpFiles = [
   'wp-content/themes/nuvanx-medical/template-parts/content/nvx-valoracion-github.php',
   'wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-runtime-compatibility.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-equipo-layout-contract.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-github-managed-page-state.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-jsonld-content.php',

@@ -1,6 +1,9 @@
 name: Deploy to Staging2
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
     types: [opened, synchronize, reopened, labeled]
     paths:
@@ -12,6 +15,7 @@ on:
       - 'scripts/staging2/capture-visual-qa.mjs'
       - 'scripts/staging2/visual-qa-edge-preload.mjs'
       - 'scripts/staging2/test-deploy-workflow-contract.mjs'
+      - 'scripts/staging2/test-github-managed-pages.mjs'
       - 'scripts/wp/nvx-production-readiness-command.php'
       - 'wp-content/themes/nuvanx-medical/**'
       - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
@@ -78,6 +82,14 @@ jobs:
           node --check scripts/staging2/visual-qa-edge-preload.mjs
           node --check scripts/staging2/capture-visual-qa.mjs
           node --check scripts/staging2/test-deploy-workflow-contract.mjs
+          node --check scripts/staging2/test-github-managed-pages.mjs
+
+      - name: Validate GitHub-managed pages
+        run: |
+          set -euo pipefail
+          node scripts/staging2/test-github-managed-pages.mjs \
+            2>&1 | tee contract-validation-evidence/github-managed-pages.log
+          grep -Fq 'GITHUB_MANAGED_PAGES_OK' contract-validation-evidence/github-managed-pages.log
 
       - name: Validate PHP syntax
         run: |
@@ -89,6 +101,7 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/templates/page-landing-valoracion.php
           php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-clinics-hub-github.php
           php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-valoracion-github.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-github-managed-page-state.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php

@@ -21,7 +21,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @return array<int,array<string,mixed>> The filtered fallback navigation blueprint.
  */
-function nvxNavigationPrimaryBlueprint(): array {
+if ( ! function_exists( 'nvxNavigationPrimaryBlueprint' ) ) {
+	function nvxNavigationPrimaryBlueprint(): array {
 	return apply_filters(
 		'nvx_navigation_primary_blueprint',
 		array(
@@ -151,8 +152,14 @@ function nvxNavigationPrimaryBlueprint(): array {
 			),
 			array( 'label' => __( 'Journal', 'nuvanx-medical' ), 'slugs' => array( 'blog' ) ),
 			array( 'label' => __( 'Contacto', 'nuvanx-medical' ), 'slugs' => array( 'contacto' ) ),
-		)
 	);
+}
+}
+
+if ( ! function_exists( 'nvx_navigation_primary_blueprint' ) ) {
+	function nvx_navigation_primary_blueprint(): array {
+		return nvxNavigationPrimaryBlueprint();
+	}
 }
 
 /**
@@ -242,18 +249,26 @@ function nvxNavigationResolveBlueprintNode( array $node ): ?array {
  *
  * @return array<int,array<string,mixed>>
  */
-function nvxNavigationResolvedFallback(): array {
-	$items = array();
-	foreach ( nvxNavigationPrimaryBlueprint() as $node ) {
-		if ( ! is_array( $node ) ) {
-			continue;
+if ( ! function_exists( 'nvxNavigationResolvedFallback' ) ) {
+	function nvxNavigationResolvedFallback(): array {
+		$items = array();
+		foreach ( nvxNavigationPrimaryBlueprint() as $node ) {
+			if ( ! is_array( $node ) ) {
+				continue;
+			}
+			$resolved = nvxNavigationResolveBlueprintNode( $node );
+			if ( is_array( $resolved ) ) {
+				$items[] = $resolved;
+			}
 		}
-		$resolved = nvxNavigationResolveBlueprintNode( $node );
-		if ( is_array( $resolved ) ) {
-			$items[] = $resolved;
-		}
+		return $items;
 	}
-	return $items;
+}
+
+if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
+	function nvx_navigation_resolved_fallback(): array {
+		return nvxNavigationResolvedFallback();
+	}
 }
 
 /**

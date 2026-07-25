@@ -53,9 +53,11 @@ final class NvxProductionReadinessHelper {
 				get_template_directory() . '/inc/nvx-integrations.php',
 			);
 			foreach ( $candidate_paths as $inc_file ) {
-				if ( file_exists( $inc_file ) ) {
+				if ( is_readable( $inc_file ) ) {
 					require_once $inc_file;
-					break;
+					if ( function_exists( 'nvx_production_readiness_governed_pages' ) ) {
+						break;
+					}
 				}
 			}
 		}
@@ -415,7 +417,7 @@ final class NvxProductionReadinessCommand {
 	}
 
 	private function applyPrimaryMenu(): void {
-		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
+		if ( ! function_exists( 'nvxNavigationPrimaryBlueprint' ) && ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			$candidate_paths = array(
 				__DIR__ . '/theme/inc/nvx-navigation-filters.php',
 				dirname( __DIR__ ) . '/theme/inc/nvx-navigation-filters.php',
@@ -423,13 +425,15 @@ final class NvxProductionReadinessCommand {
 				get_template_directory() . '/inc/nvx-navigation-filters.php',
 			);
 			foreach ( $candidate_paths as $inc_nav ) {
-				if ( file_exists( $inc_nav ) ) {
+				if ( is_readable( $inc_nav ) ) {
 					require_once $inc_nav;
-					break;
+					if ( function_exists( 'nvxNavigationPrimaryBlueprint' ) || function_exists( 'nvx_navigation_resolved_fallback' ) ) {
+						break;
+					}
 				}
 			}
 		}
-		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
+		if ( ! function_exists( 'nvxNavigationPrimaryBlueprint' ) && ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			WP_CLI::error( 'Canonical navigation blueprint is unavailable.' );
 		}
 

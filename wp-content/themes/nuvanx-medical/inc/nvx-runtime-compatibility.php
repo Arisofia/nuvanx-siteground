@@ -3,8 +3,8 @@
  * Narrow runtime compatibility adapters for incomplete naming migrations.
  *
  * Remove an adapter only after every caller and its static contract use the
- * canonical implementation name. This module must not contain presentation
- * markup or business logic.
+ * canonical implementation name. Adapters contain no presentation markup;
+ * route-specific presentation contracts are isolated in dedicated modules.
  *
  * @package nuvanx-medical
  */
@@ -54,3 +54,5 @@ if ( ! function_exists( 'nvxSchemaCurrentPath' ) ) {
         return (string) nvx_schema_current_path( $page_id );
     }
 }
+
+require_once __DIR__ . '/nvx-equipo-layout-contract.php';

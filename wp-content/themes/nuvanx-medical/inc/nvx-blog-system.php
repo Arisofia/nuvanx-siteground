@@ -76,8 +76,10 @@ function nvx_theme_blog_body_class( array $classes ): array {
 add_filter( 'body_class', 'nvx_theme_blog_body_class' );
 
 /**
- * The article template owns the only H1. Demote legacy H1 tags saved inside old
- * post content so historical entries inherit the same accessible hierarchy.
+ * Normalizes legacy heading markup in single-post content.
+ *
+ * @param string $content The post content to normalize.
+ * @return string The content with legacy H1 elements changed to H2 elements for singular posts; otherwise, the original content.
  */
 function nvx_theme_normalize_blog_headings( string $content ): string {
 	if ( ! is_singular( 'post' ) || false === stripos( $content, '<h1' ) ) {

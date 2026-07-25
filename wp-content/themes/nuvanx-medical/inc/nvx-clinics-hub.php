@@ -323,8 +323,10 @@ function nvx_clinics_promote_bare_sections( DOMXPath $xpath ): void {
 }
 
 /**
- * When a readable / flow wrapper holds multiple page sections, drop the
- * measure constraint so children can use full brand-section shells.
+ * Normalizes a wrapper containing multiple page sections into a full-width content flow.
+ *
+ * @param DOMXPath $xpath The XPath instance used to locate layout wrappers.
+ * @return DOMElement|null The first normalized wrapper, or null if none qualifies.
  */
 function nvx_clinics_normalize_layout( DOMXPath $xpath ): ?DOMElement {
 	$readable = nvx_clinics_readable_measure_classes();
@@ -530,7 +532,10 @@ function nvx_clinics_set_link_attributes( DOMElement $link, string $clinic ): vo
 }
 
 /**
- * Drop button chrome tokens from a class string; preserve layout/tracking utilities.
+ * Removes button-related class tokens from a class string.
+ *
+ * @param string $class The space-separated class string to process.
+ * @return string The class string without button-related tokens.
  */
 function nvx_clinics_class_without_button_chrome( string $class ): string {
 	$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $class ) ) ?: array();
@@ -550,10 +555,9 @@ function nvx_clinics_class_without_button_chrome( string $class ): string {
 }
 
 /**
- * Apply brand button variant without clobbering non-button utility classes.
+ * Applies brand button classes while preserving unrelated class tokens.
  *
- * @param string   $variant primary|secondary
- * @param string[] $extra   Extra class tokens to ensure (e.g. nvx-clinic-map-cta).
+ * @param string[] $extra Additional class tokens to include.
  */
 function nvx_clinics_set_brand_button( DOMElement $link, string $variant, array $extra = array() ): void {
 	$kept   = nvx_clinics_class_without_button_chrome( $link->getAttribute( 'class' ) );
@@ -568,7 +572,10 @@ function nvx_clinics_set_brand_button( DOMElement $link, string $variant, array 
 }
 
 /**
- * Strip button chrome classes from a link (keep other utilities; optional replace class).
+ * Removes button styling classes from a link while preserving other classes.
+ *
+ * @param DOMElement $link The link whose classes should be updated.
+ * @param string     $replace_with Optional class to add after removing button styling classes.
  */
 function nvx_clinics_strip_button_classes( DOMElement $link, string $replace_with = 'nvx-brand-inline-link' ): void {
 	$kept   = nvx_clinics_class_without_button_chrome( $link->getAttribute( 'class' ) );
@@ -598,10 +605,10 @@ function nvx_clinics_is_phone_or_whatsapp_link( string $href, string $text ): bo
 }
 
 /**
- * Normalize CTA hierarchy on the clinics hub: one primary per action row,
- * titles/phones as text links, maps secondary. Fixes CMS overuse of --primary.
+ * Normalizes clinic hub call-to-action links into appropriate primary, secondary, or inline-link styles.
  *
- * Idempotent — safe to call once after map anchors are classified.
+ * @param DOMDocument $dom The document containing the clinic hub markup.
+ * @param DOMXPath $xpath XPath evaluator for locating links within the document.
  */
 function nvx_clinics_normalize_cta_hierarchy( DOMDocument $dom, DOMXPath $xpath ): void {
 	$root = $dom->getElementById( 'nvx-clinics-document' );
@@ -777,9 +784,12 @@ function nvx_sede_strip_layout_inline_styles( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_sede_strip_layout_inline_styles', 28 );
 
-/* -------------------------------------------------------------------------
- * Hub enhance (map CTAs + nav + layout pipeline)
- * ---------------------------------------------------------------------- */
+/**
+ * Enhances the clinics hub content with normalized layout, clinic map CTAs, and clinic navigation.
+ *
+ * @param string $content The HTML content to enhance.
+ * @return string The enhanced HTML content, or the original content when enhancement is unavailable.
+ */
 
 function nvx_clinics_hub_enhance( string $content ): string {
 	if ( is_admin() || ! nvx_is_clinics_hub() || '' === trim( $content ) ) {

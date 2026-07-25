@@ -222,9 +222,12 @@ function nvx_equipo_block_is_fabio( string $html ): bool {
 }
 
 /**
- * Extract staff cards from CMS: director, Dra. Ivon, Dr. Fabio, rest of team.
+ * Extracts authority portraits and remaining clinician cards from CMS content.
  *
- * @return array{rivera_media:string,ivon_media:string,fabio_media:string,other_cards:string[]}
+ * Authority cards are returned as media snippets for use in expanded profiles; other valid clinician cards are returned unchanged.
+ *
+ * @param string $content The CMS content containing staff cards.
+ * @return array{rivera_media:string,ivon_media:string,fabio_media:string,other_cards:string[]} Extracted authority media and remaining clinician cards.
  */
 function nvx_equipo_extract_staff_cards( string $content ): array {
 	$other_cards  = array();
@@ -628,10 +631,10 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
 }
 
 /**
- * Rebuilds the Equipo médico page with editorial hero content, clinician authority profiles, and preserved CMS staff cards.
+ * Rebuilds the Equipo médico page with an editorial hero, clinician authority profiles, and preserved staff cards.
  *
  * @param string $content The original page content.
- * @return string The rebuilt Equipo médico page content, or the original content when the page is not eligible for restructuring.
+ * @return string The rebuilt page content, or the original content when restructuring is not applicable.
  */
 function nvx_content_restructure_equipo_page( string $content ): string {
 	if ( ! nvx_content_is_equipo_page( $content ) ) {

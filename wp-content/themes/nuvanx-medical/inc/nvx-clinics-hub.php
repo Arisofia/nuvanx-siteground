@@ -15,13 +15,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-if ( ! defined( 'NVX_REGEX_WHITESPACE' ) ) {
-	define( 'NVX_REGEX_WHITESPACE', '/\s+/' );
-}
-if ( ! defined( 'NVX_REGEX_WHITESPACE_U' ) ) {
-	define( 'NVX_REGEX_WHITESPACE_U', '/\s+/u' );
-}
-
 /* -------------------------------------------------------------------------
  * Shared class / style lists (defined once; helpers return static caches)
  * ---------------------------------------------------------------------- */
@@ -461,7 +454,7 @@ function nvxClinicsHoistSectionStack( DOMXPath $xpath ): ?DOMElement {
 		$current       = $flow->parentNode;
 		while ( $current instanceof DOMElement ) {
 			$class = $current->getAttribute( 'class' );
-			if ( nvxClinicsClassHasAny( $class, array( 'nvx-brand-page' ) ) ) {
+			if ( nvxClinicsClassHasAny( $class, array( 'nvx-brand-page' ) ) {
 				break;
 			}
 			if (

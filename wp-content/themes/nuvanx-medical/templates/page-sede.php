@@ -9,9 +9,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+require_once get_template_directory() . '/inc/nvx-github-managed-page-state.php';
+
+$page_id = (int) get_queried_object_id();
+$slug    = (string) get_post_field( 'post_name', $page_id );
 
 if ( 'clinicas-de-medicina-estetica-nuvanx' === $slug ) {
+	nvxSyncGithubManagedPageState( $page_id, 'clinics-hub' );
+
 	ob_start();
 	get_template_part( 'template-parts/content/nvx-clinics-hub-github' );
 	$nvx_tactical_content = ob_get_clean();

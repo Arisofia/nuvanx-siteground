@@ -242,6 +242,7 @@ add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
  * @return array The updated navigation child.
  */
 function nvx_signature_apply_contour_children( array $child ): array {
+    $mixed = 'NUVANX Contour Architecture™';
     $child_label = isset( $child['label'] ) ? (string) $child['label'] : '';
     if ( false !== stripos( $child_label, 'Contour Sculpt' ) || false !== stripos( $child_label, 'Contour Architecture' ) || false !== stripos( $child_label, 'Couture Sculpt' ) ) {
         $child['label'] = $mixed;
@@ -297,6 +298,7 @@ add_filter( 'nvx_navigation_primary_blueprint', 'nvx_signature_phase_navigation_
  * @return string Content with legacy product names replaced by the approved public product name.
  */
 function nvx_signature_phase_normalize_public_names( string $content ): string {
+    $mixed = 'NUVANX Contour Architecture™';
     return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), $mixed, $content );
 }
 add_filter( 'the_content', 'nvx_signature_phase_normalize_public_names', 219 );

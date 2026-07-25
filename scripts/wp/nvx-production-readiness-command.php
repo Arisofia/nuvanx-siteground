@@ -210,17 +210,14 @@ final class NvxProductionReadinessCommand {
 	 * @param array<string,mixed> $row Audit row.
 	 */
 	private function isAuditRowClean( array $row ): bool {
-		switch ( (string) $row['type'] ) {
-			case 'approved':
-				return 'publish' === $row['status'];
-			case 'governed':
-				$status_is_valid = in_array( $row['status'], array( 'absent', $row['expected'] ), true );
-				return $status_is_valid && 0 === (int) $row['menu_items'];
-			case 'navigation':
-				return 'clean' === $row['status'];
-			default:
-				return false;
+		$type = (string) $row['type'];
+		if ( 'approved' === $type ) {
+			return 'publish' === $row['status'];
 		}
+		if ( 'governed' === $type ) {
+			return in_array( $row['status'], array( 'absent', $row['expected'] ), true ) && 0 === (int) $row['menu_items'];
+		}
+		return 'navigation' === $type && 'clean' === $row['status'];
 	}
 
 	/**

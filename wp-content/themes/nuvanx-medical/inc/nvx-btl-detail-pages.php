@@ -30,14 +30,12 @@ function nvxBtlDetailIsSingular(): bool {
 }
 
 /**
- * Registry of BTL detail pages (SEO + clinical copy).
+ * Sub-registry for EXION BTL detail pages.
  *
+ * @param string $hub Base hub URL.
  * @return array<string, array<string, mixed>>
  */
-function nvxBtlDetailRegistry(): array {
-	$hub       = home_url( '/exion-btl/' );
-	$endolaser = home_url( '/endolaser-corporal-grasa-localizada/' );
- 
+function nvxBtlDetailRegistryExion( string $hub ): array {
 	return array(
 		'exion-face'       => array(
 			'path'         => '/exion-face/',
@@ -59,7 +57,6 @@ function nvxBtlDetailRegistry(): array {
 			'mechanism'    => array(
 				'title' => __( 'Cómo funciona EXION® Face: doble acción biomecánica', 'nuvanx-medical' ),
 				'body'  => array(
-					// Shared with clinical governance (nvx_btl_claim_library) — localized.
 					nvx_btl_claim( 'exion_face_mech_intro' ),
 					nvx_btl_claim( 'exion_face_ha_224' ),
 				),
@@ -150,104 +147,50 @@ function nvxBtlDetailRegistry(): array {
 			'meta'         => __( 'Chamberí · Goya · Contorno corporal con criterio médico', 'nuvanx-medical' ),
 			'aria'         => __( 'EXION Body NUVANX', 'nuvanx-medical' ),
 			'marker'       => 'nvx-exion-body',
-			'yoast_title'  => 'EXION Body Madrid | Grasa localizada y tensado | NUVANX',
-			'yoast_desc'   => 'EXION® Body en NUVANX Madrid: radiofrecuencia con refrigeración activa para grasa localizada y calidad cutánea, según valoración médica. Chamberí y Goya.',
+			'yoast_title'  => 'EXION® Body Madrid | Contorno corporal y firmeza | NUVANX',
+			'yoast_desc'   => 'EXION® Body en Madrid: RF monopolar con refrigeración activa para laxitud y contorno corporal según valoración médica.',
 			'focuskw'      => 'EXION Body Madrid',
 			'hub'          => $hub,
-			'combo'        => '',
+			'combo'        => home_url( '/endolaser-corporal-grasa-localizada/' ),
 			'schema_name'  => 'EXION® Body en Madrid',
-			'schema_type'  => 'Protocolo médico corporal con EXION® Body',
-			'schema_desc'  => 'Tratamiento de contorno corporal con EXION® Body: estímulo térmico con refrigeración epidérmica para grasa localizada y calidad cutánea en NUVANX Madrid.',
+			'schema_type'  => 'Protocolo médico de contorno corporal con EXION® Body',
+			'schema_desc'  => 'Tratamiento de laxitud y remodelado de contorno corporal con EXION® Body en NUVANX Madrid tras valoración clínica.',
 			'mechanism'    => array(
 				'title' => __( 'Cómo funciona EXION® Body', 'nuvanx-medical' ),
 				'body'  => array(
-					__( 'El cabezal integra refrigeración activa de la superficie y radiofrecuencia monopolar profunda: la epidermis se protege mientras se deposita calor en hipodermis y dermis.', 'nuvanx-medical' ),
-					nvx_btl_claim( 'exion_body_btl_22' ),
-				),
-				'items' => array(
-					array(
-						'title' => __( 'Refrigeración activa en superficie', 'nuvanx-medical' ),
-						// Neutral wording — no unreviewed “lower burn risk” comparative claim.
-						'body'  => nvx_btl_claim( 'exion_body_cooling' ),
-					),
-					array(
-						'title' => __( 'RF monopolar profunda (~40–45 °C en tejido objetivo)', 'nuvanx-medical' ),
-						'body'  => __( 'En rangos documentados se busca apoptosis programada de adipocitos y, en paralelo, contracción/remodelado de colágeno. El rango es de protocolo evaluado, no una temperatura fija en cada cuerpo.', 'nuvanx-medical' ),
-					),
-					array(
-						'title' => __( 'Ecuación grasa + piel', 'nuvanx-medical' ),
-					'body'  => __( 'El objetivo y los límites se definen tras valorar grasa localizada, calidad cutánea, exceso de piel, antecedentes y período de recuperación aceptable.', 'nuvanx-medical' ),
-					),
+					__( 'Combina radiofrecuencia monopolar con refrigeración de superficie para entregar energía en tejido subcutáneo y dermis profunda sin generar trauma epidérmico innecesario.', 'nuvanx-medical' ),
+					__( 'En áreas de grasa localizada leve con laxitud asociada, permite modular temperatura para inducir respuesta térmica en adipocitos y estimular colágeno simultáneamente.', 'nuvanx-medical' ),
+					__( 'No sustituye a Endoláser ni a una liposucción en depósitos adiposos voluminosos; su indicación principal es flacidez corporal y depósitos moderados.', 'nuvanx-medical' ),
 				),
 			),
 			'indications'  => array(
-				array( 'title' => __( 'Adiposidad localizada leve–moderada', 'nuvanx-medical' ), 'body' => __( 'Flancos, abdomen inferior y pliegues rebeldes cuando no hay indicación prioritaria de abdominoplastia o liposucción mayor.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Flacidez leve–moderada con o sin grasa', 'nuvanx-medical' ), 'body' => __( 'Brazos, muslos internos y zonas donde reducir volumen sin tensar dejaría piel laxa; se valora RF vs láser intersticial según espesor.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Grasa y flacidez combinadas', 'nuvanx-medical' ), 'body' => __( 'La indicación se valora cuando coexisten adiposidad localizada y cambios de calidad cutánea.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Celulitis grado I–II con adiposidad', 'nuvanx-medical' ), 'body' => __( 'Mejora de contorno y calidad de superficie cuando el componente adiposo y la laxitud predominan; no es tratamiento de celulitis severa estructural sola.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Post-criolipólisis', 'nuvanx-medical' ), 'body' => __( 'Pacientes con grasa reducida pero laxitud residual: se reorienta a retracción y calidad, no a más frío sin reevaluación.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Combinación con endoláser (espesor alto)', 'nuvanx-medical' ), 'body' => __( 'En adiposidad >~4–5 cm puede proponerse laserlipólisis y, en fase posterior (~semana 5+), EXION Body para consolidar tensado. Umbral e intervalo son clínicos.', 'nuvanx-medical' ) ),
+				array( 'title' => __( 'Laxitud corporal post-embarazo o bajada de peso', 'nuvanx-medical' ), 'body' => __( 'Abdomen, flancos y cara interna de muslos donde la piel ha perdido turgencia.', 'nuvanx-medical' ) ),
+				array( 'title' => __( 'Grasa localizada leve a moderada', 'nuvanx-medical' ), 'body' => __( 'Zona del sujetador, pliegue axilar o banana subglútea con componente mixto (grasa + piel).', 'nuvanx-medical' ) ),
+				array( 'title' => __( 'Mantenimiento de contorno corporal', 'nuvanx-medical' ), 'body' => __( 'Consolidación de resultados tras protocolos combinados o mantenimiento anual.', 'nuvanx-medical' ) ),
 			),
 			'compare'      => array(
-				'title' => __( 'Cómo se valora el contorno corporal', 'nuvanx-medical' ),
-				'body'  => nvx_btl_claim( 'exion_body_compare' ),
-				'link'  => '',
-				'label' => '',
+				'title' => __( 'Cómo elegir entre RF corporal y Endoláser', 'nuvanx-medical' ),
+				'body'  => __( 'Endoláser actúa por fibra óptica subcutánea (mínimamente invasivo) para depósitos grasos específicos. EXION Body es un tratamiento de superficie/contacto continuo no invasivo. La valoración determina cuál procede o si se combinan.', 'nuvanx-medical' ),
+				'link'  => home_url( '/endolaser-corporal-grasa-localizada/' ),
+				'label' => __( 'Ver protocolo Endoláser corporal', 'nuvanx-medical' ),
 			),
 			'process'      => array(
 				array(
-					'title' => __( 'Valoración y procedimiento', 'nuvanx-medical' ),
-					'body'  => __( 'Diagnóstico de zona, pliegue, flacidez y expectativas realistas de contorno (no de “kilos”). Sesión 45–60 min según áreas. Sin microagujas largas. Downtime habitual nulo o mínimo; eritema posible en horas.', 'nuvanx-medical' ),
+					'title' => __( 'Evaluación anatómica', 'nuvanx-medical' ),
+					'body'  => __( 'Medición de pliegue cutáneo, grado de flacidez y descarte de hernia o contraindicaciones vasculares.', 'nuvanx-medical' ),
 				),
 				array(
-					'title' => __( 'Sesiones orientativas', 'nuvanx-medical' ),
-					'body'  => __( 'Leve: 2–3. Moderada: 3–4. Severa: valorar endoláser + EXION en secuencia. Mantenimiento cada 18–24 meses según evolución y estilo de vida. No es un protocolo de “una sesión y listo” para todos.', 'nuvanx-medical' ),
+					'title' => __( 'Plan de sesiones', 'nuvanx-medical' ),
+					'body'  => __( 'Típicamente 4–6 sesiones espaciadas de 1 a 2 semanas según zona y respuesta tisular.', 'nuvanx-medical' ),
 				),
 				array(
 					'title' => __( 'Cuidados posteriores', 'nuvanx-medical' ),
-					'body'  => __( 'Actividad habitual en la mayoría de casos; se individualizan 24–48 h según zona e intensidad. Hidratación y hábitos de peso estables ayudan a mantener el contorno.', 'nuvanx-medical' ),
+					'body'  => __( 'Hidratación intensa, ingesta de agua adecuada y actividad física habitual sin reposo especial.', 'nuvanx-medical' ),
 				),
-				array(
-					'title' => __( 'Contraindicaciones y límites', 'nuvanx-medical' ),
-					'body'  => __( 'Embarazo/lactancia, marcapasos u otros implantes relevantes, infecciones activas, hernias no controladas en zona, expectativas de pérdida de peso global. No sustituye cirugía cuando el exceso cutáneo o graso lo exige.', 'nuvanx-medical' ),
-				),
-			),
-			'related'      => array(
-				array( 'url' => $endolaser, 'label' => __( 'Endoláser corporal (adiposidad de mayor espesor)', 'nuvanx-medical' ) ),
 			),
 			'faqs'         => array(
-				array(
-					'q' => __( '¿EXION Body elimina grasa o solo tensa la piel?', 'nuvanx-medical' ),
-					'a' => __( 'Busca ambos efectos en un mismo protocolo: acción sobre adiposidad localizada y remodelado de colágeno. No es liposucción quirúrgica ni un método de pérdida de peso corporal.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Por qué la criolipólisis a veces deja flacidez residual?', 'nuvanx-medical' ),
-					'a' => __( 'Si se reduce volumen graso y la piel no se adapta, puede quedar laxitud. No es inevitable en todos los casos, pero explica por qué valoramos grasa y calidad cutánea juntos.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Cuántas sesiones necesito?', 'nuvanx-medical' ),
-					'a' => __( 'Rangos orientativos 2–4 según severidad y zona; casos de mayor espesor pueden requerir endoláser previo. El plan se cierra tras exploración.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Hay hematomas como con microagujas?', 'nuvanx-medical' ),
-					'a' => __( 'No es un sistema de perforación con agujas largas. El eritema, si aparece, suele resolverse en horas, con variabilidad individual.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Puedo combinarlo con ejercicio o dieta?', 'nuvanx-medical' ),
-					'a' => __( 'Sí. EXION Body no sustituye hábitos: estabilizar peso y actividad mejora la duración del contorno. Tampoco “quema” kilos de grasa sistémica.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Cuándo combinar con laserlipólisis?', 'nuvanx-medical' ),
-					'a' => __( 'En espesores altos (orientativo >~4–5 cm) puede proponerse fase 1 con endoláser y fase 2 con EXION Body para tensado. Intervalos y candidatura son médicos.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Los resultados son permanentes?', 'nuvanx-medical' ),
-					'a' => __( 'La apoptosis de adipocitos tratados no regenera esas células, pero un aumento de peso puede crear depósito en otras zonas. El mantenimiento y el estilo de vida marcan la duración práctica del contorno.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Es seguro en fototipos altos?', 'nuvanx-medical' ),
-					'a' => __( 'El perfil térmico controlado y la refrigeración de superficie ayudan a un plan seguro, pero la indicación y los parámetros son siempre individuales.', 'nuvanx-medical' ),
-				),
+				array( 'q' => __( '¿Requiere anestesia?', 'nuvanx-medical' ), 'a' => __( 'No. La refrigeración de contacto mantiene el confort térmico en superficie durante la entrega de energía.', 'nuvanx-medical' ) ),
+				array( 'q' => __( '¿Cuándo puedo volver al trabajo?', 'nuvanx-medical' ), 'a' => __( 'De inmediato. Puede existir eritema leve que remite en pocas horas.', 'nuvanx-medical' ) ),
 			),
 		),
 		'exion-fractional' => array(
@@ -348,7 +291,18 @@ function nvxBtlDetailRegistry(): array {
 				array( 'q' => __( '¿Duele?', 'nuvanx-medical' ), 'a' => __( 'Sensación de vibración/calor leve en la mayoría de pacientes; no comparable a multipasada con aguja larga.', 'nuvanx-medical' ) ),
 			),
 		),
-		'exilite'          => array(
+	);
+}
+
+/**
+ * Sub-registry for EXILITE BTL detail pages.
+ *
+ * @param string $hub Base hub URL.
+ * @return array<string, array<string, mixed>>
+ */
+function nvxBtlDetailRegistryExilite( string $hub ): array {
+	return array(
+		'exilite' => array(
 			'path'         => '/btl-exilite-ipl-madrid/',
 			'key'          => 'exilite',
 			'kicker'       => __( 'BTL EXILITE™ · LUZ PULSADA INTENSA', 'nuvanx-medical' ),
@@ -431,6 +385,19 @@ function nvxBtlDetailRegistry(): array {
 				),
 			),
 		),
+	);
+}
+
+/**
+ * Returns BTL detail page registry.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function nvxBtlDetailRegistry(): array {
+	$hub = home_url( '/exion-btl/' );
+	return array_merge(
+		nvxBtlDetailRegistryExion( $hub ),
+		nvxBtlDetailRegistryExilite( $hub )
 	);
 }
 

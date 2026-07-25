@@ -397,38 +397,36 @@ function nvx_schema_resolve_clinic_keys( $page_id ) {
 		return array_keys( $registry['clinics'] );
 	}
 
-	// Optional editorial override: post meta `_nvx_clinic_branch` = chamberi|goya|all.
+	$keys = array();
 	if ( $page_id > 0 ) {
 		$meta = strtolower( trim( (string) get_post_meta( $page_id, '_nvx_clinic_branch', true ) ) );
 		if ( 'all' === $meta || 'both' === $meta ) {
-			return array_keys( $registry['clinics'] );
-		}
-		if ( isset( $registry['clinics'][ $meta ] ) ) {
-			return array( $meta );
+			$keys = array_keys( $registry['clinics'] );
+		} elseif ( isset( $registry['clinics'][ $meta ] ) ) {
+			$keys = array( $meta );
 		}
 	}
 
-	$matched = array();
-	foreach ( $registry['clinics'] as $key => $entry ) {
-		if ( (int) $entry['id'] === $page_id || nvx_schema_path_matches( $path, $entry['path'] ) ) {
-			$matched[] = $key;
+	if ( empty( $keys ) ) {
+		$matched = array();
+		foreach ( $registry['clinics'] as $key => $entry ) {
+			if ( (int) $entry['id'] === $page_id || nvx_schema_path_matches( $path, $entry['path'] ) ) {
+				$matched[] = $key;
+			}
+		}
+		if ( ! empty( $matched ) ) {
+			$keys = array_values( array_unique( $matched ) );
 		}
 	}
-	if ( ! empty( $matched ) ) {
-		return array_values( array_unique( $matched ) );
+
+	if ( empty( $keys ) ) {
+		$hub = $registry['clinic_hub'];
+		if ( (int) $hub['id'] === $page_id || nvx_schema_path_matches( $path, $hub['path'] ) || nvx_schema_is_sede_template( $page_id ) ) {
+			$keys = array_keys( $registry['clinics'] );
+		}
 	}
 
-	$hub = $registry['clinic_hub'];
-	if (
-		(int) $hub['id'] === $page_id
-		|| nvx_schema_path_matches( $path, $hub['path'] )
-		|| nvx_schema_is_sede_template( $page_id )
-	) {
-		// Hub or generic sede template without a specific branch: expose both clinics.
-		return array_keys( $registry['clinics'] );
-	}
-
-	return array();
+	return $keys;
 }
 
 /**
@@ -1221,7 +1219,7 @@ function nvx_schema_build_physicians( int $page_id, string $org_id ): array {
 /**
  * Enriches the main Organization node in Yoast schema graph.
  */
-function nvx_schema_enrich_organization( array &$graph, int $index, string $org_id, array $all_clinics, array $physicians ): void {
+function nvx_schema_enrich_organization( array &$graph, int $index, array $all_clinics, array $physicians ): void {
 	$graph[ $index ]['@type']                  = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
 	$graph[ $index ]['name']                   = 'NUVANX Medicina Estética Láser';
 	$graph[ $index ]['alternateName']          = array( 'NUVANX', 'NUVANX Madrid', 'NUVANX Medicina Estética Láser Madrid' );
@@ -1409,7 +1407,7 @@ function nvx_extend_yoast_schema_graph( $graph ) {
 	$physician  = ! empty( $physicians ) ? $physicians[0] : null;
 
 	if ( null !== $organization['index'] ) {
-		nvx_schema_enrich_organization( $graph, $organization['index'], $organization['id'], $all_clinics, $physicians );
+		nvx_schema_enrich_organization( $graph, $organization['index'], $all_clinics, $physicians );
 	}
 
 	nvx_schema_attach_clinics_graph( $graph, $page_id, $organization, $all_clinics, $physicians, $clinic_ids );

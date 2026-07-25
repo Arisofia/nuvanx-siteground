@@ -13,11 +13,7 @@ defined( 'ABSPATH' ) || exit;
 
 /** Whether the current request is the canonical Equipo Médico page. */
 function nvx_equipo_route_guard_matches(): bool {
-	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-		return false;
-	}
-
-	if ( ! is_singular( 'page' ) && ! is_page() ) {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ( ! is_singular( 'page' ) && ! is_page() ) ) {
 		return false;
 	}
 

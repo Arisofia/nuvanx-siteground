@@ -99,10 +99,12 @@ function nvx_hostile_conversion_inject( $content ) {
 
 	if ( false !== $injection_point ) {
 		$pos = $injection_point + ( false !== strpos( $content, '</header>' ) ? 9 : 10 );
-		return substr_replace( $content, $hostile_block, $pos, 0 );
+		$content = substr_replace( $content, $hostile_block, $pos, 0 );
+	} else {
+		$content = $hostile_block . $content;
 	}
 
-	return $hostile_block . $content;
+	return $content;
 }
 // Hostile conversion engine desactivado; la arquitectura actual usa presentación neutral y protocolos Signature.
 // add_filter( 'the_content', 'nvx_hostile_conversion_inject', 15 ); // Runs before presentation layer

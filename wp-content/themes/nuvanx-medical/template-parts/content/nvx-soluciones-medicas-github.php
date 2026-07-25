@@ -12,6 +12,7 @@ defined( 'ABSPATH' ) || exit;
 
 $valuation_url = home_url( '/madrid/valoracion/' );
 $hero_art_url  = get_template_directory_uri() . '/assets/images/nvx-solutions-hero-architecture.svg';
+$contour_arch  = 'Contour Architecture™';
 
 $solution_groups = array(
 	array(
@@ -89,35 +90,35 @@ $solution_groups = array(
 				'question' => 'Grasa subcutánea, laxitud, estrías, estabilidad de peso y pared abdominal.',
 				'limit'    => 'La grasa visceral, una diástasis relevante o un exceso importante de piel no se resuelven con un tratamiento focal.',
 				'path'     => '/grasa-localizada-abdomen-flancos-madrid/',
-				'protocol' => 'Contour Architecture™',
+				'protocol' => $contour_arch,
 			),
 			array(
 				'title'    => 'Brazos y continuidad axilar',
 				'question' => 'Grasa localizada, laxitud posterior y relación con axila, espalda y torso.',
 				'limit'    => 'La reserva de piel condiciona cuánto puede mejorar el contorno sin cirugía.',
 				'path'     => '/flacidez-grasa-localizada-brazos-madrid/',
-				'protocol' => 'Contour Architecture™',
+				'protocol' => $contour_arch,
 			),
 			array(
 				'title'    => 'Espalda y zona del sujetador',
 				'question' => 'Pliegues por grasa, laxitud, presión de la prenda y continuidad con brazos y flancos.',
 				'limit'    => 'Cada zona debe tener una indicación documentada; una combinación no se prescribe por defecto.',
 				'path'     => '/grasa-espalda-zona-sujetador-madrid/',
-				'protocol' => 'Contour Architecture™',
+				'protocol' => $contour_arch,
 			),
 			array(
 				'title'    => 'Muslos y región subglútea',
 				'question' => 'Laxitud, grasa localizada, celulitis estructural y continuidad del tren inferior.',
 				'limit'    => 'La grasa, la laxitud y la celulitis responden a mecanismos distintos.',
 				'path'     => '/flacidez-muslos-internos-subgluteo-madrid/',
-				'protocol' => 'Contour Architecture™',
+				'protocol' => $contour_arch,
 			),
 			array(
 				'title'    => 'Rodillas',
 				'question' => 'Grasa localizada, laxitud y relación con muslo interno y pierna.',
 				'limit'    => 'La anatomía de la zona y la calidad de piel determinan la indicación.',
 				'path'     => '/tratamiento-rodillas-grasa-flacidez-madrid/',
-				'protocol' => 'Contour Architecture™',
+				'protocol' => $contour_arch,
 			),
 		),
 	),

@@ -265,6 +265,19 @@ function nvx_signature_apply_contour_children( array $child ): array {
 	return $child;
 }
 
+/** Filter protocol children for Signature menu items. */
+function nvx_signature_filter_protocol_children( array $children ): array {
+	$filtered = array();
+	foreach ( $children as $child ) {
+		$child_label = isset( $child['label'] ) ? (string) $child['label'] : '';
+		if ( false !== stripos( $child_label, 'Eye Frame' ) ) {
+			continue;
+		}
+		$filtered[] = nvx_signature_apply_contour_children( $child );
+	}
+	return $filtered;
+}
+
 /**
  * Restricts the primary navigation to supported Signature routes and published clinical case routes.
  *
@@ -277,19 +290,9 @@ function nvx_signature_phase_navigation_blueprint( array $blueprint ): array {
         if ( 'Casos clínicos' === $label ) {
             $blueprint[ $top_index ]['slugs'] = array( 'casos-de-pacientes', 'casos-clinicos' );
         }
-        if ( 'Protocolos Signature' !== $label || empty( $top['children'] ) || ! is_array( $top['children'] ) ) {
-            continue;
+        if ( 'Protocolos Signature' === $label && ! empty( $top['children'] ) && is_array( $top['children'] ) ) {
+            $blueprint[ $top_index ]['children'] = nvx_signature_filter_protocol_children( $top['children'] );
         }
-        $children = array();
-        foreach ( $top['children'] as $child ) {
-            $child_label = isset( $child['label'] ) ? (string) $child['label'] : '';
-            if ( false !== stripos( $child_label, 'Eye Frame' ) ) {
-                continue;
-            }
-            $child = nvx_signature_apply_contour_children( $child );
-            $children[] = $child;
-        }
-        $blueprint[ $top_index ]['children'] = $children;
     }
     return $blueprint;
 }

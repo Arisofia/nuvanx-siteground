@@ -139,6 +139,23 @@ function nvxHomeFaqV2Import( DOMDocument $target ): ?DOMElement {
 	return $imported instanceof DOMElement ? $imported : null;
 }
 
+/** Replace candidates with imported FAQ element in DOM. */
+function nvxHomeFaqV2ReplaceCandidates( DOMElement $import, array $candidates, DOMElement $root ): void {
+	if ( ! empty( $candidates ) ) {
+		$first = true;
+		foreach ( $candidates as $section ) {
+			if ( $first && $section->parentNode ) {
+				$section->parentNode->replaceChild( $import, $section );
+				$first = false;
+			} elseif ( $section->parentNode ) {
+				$section->parentNode->removeChild( $section );
+			}
+		}
+	} else {
+		$root->appendChild( $import );
+	}
+}
+
 function nvxHomeFaqV2Transform( string $content ): string {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ! is_front_page() || false !== strpos( $content, 'data-nvx-faq-source="canonical"' ) || ! class_exists( 'DOMDocument' ) ) {
 		// Allow refresh when already marked: rebuild markup.
@@ -179,19 +196,7 @@ function nvxHomeFaqV2Transform( string $content ): string {
 		return $content;
 	}
 
-	if ( ! empty( $candidates ) ) {
-		$first = true;
-		foreach ( $candidates as $section ) {
-			if ( $first && $section->parentNode ) {
-				$section->parentNode->replaceChild( $import, $section );
-				$first = false;
-			} elseif ( $section->parentNode ) {
-				$section->parentNode->removeChild( $section );
-			}
-		}
-	} else {
-		$root->appendChild( $import );
-	}
+	nvxHomeFaqV2ReplaceCandidates( $import, $candidates, $root );
 
 	$output = '';
 	foreach ( $root->childNodes as $child ) {
@@ -227,6 +232,29 @@ function nvxHomeFaqV2SchemaEntities(): array {
 	return $entities;
 }
 
+/** Find preferred Schema.org node index for homepage FAQ. */
+function nvxHomeFaqV2FindPreferredSchemaIndex( array $graph ): ?int {
+	$fallback_faq     = null;
+	$fallback_webpage = null;
+	foreach ( $graph as $index => $piece ) {
+		if ( ! is_array( $piece ) || ! isset( $piece['@type'] ) ) {
+			continue;
+		}
+		$is_faq = nvxHomeFaqV2HasType( $piece['@type'], 'FAQPage' );
+		$is_web = nvxHomeFaqV2HasType( $piece['@type'], 'WebPage' );
+		if ( $is_faq && $is_web ) {
+			return $index;
+		}
+		if ( $is_faq && null === $fallback_faq ) {
+			$fallback_faq = $index;
+		}
+		if ( $is_web && null === $fallback_webpage ) {
+			$fallback_webpage = $index;
+		}
+	}
+	return null !== $fallback_faq ? $fallback_faq : $fallback_webpage;
+}
+
 /**
  * Consolidate the homepage FAQ into one Yoast graph node.
  *
@@ -238,30 +266,9 @@ function nvxHomeFaqV2SchemaGraph( array $graph, $context = null ): array {
 		return $graph;
 	}
 
-	$preferred = null;
-	$fallback_faq = null;
-	$fallback_webpage = null;
-	foreach ( $graph as $index => $piece ) {
-		if ( ! is_array( $piece ) || ! isset( $piece['@type'] ) ) {
-			continue;
-		}
-		$is_faq = nvxHomeFaqV2HasType( $piece['@type'], 'FAQPage' );
-		$is_web = nvxHomeFaqV2HasType( $piece['@type'], 'WebPage' );
-		if ( $is_faq && $is_web ) {
-			$preferred = $index;
-			break;
-		}
-		if ( $is_faq && null === $fallback_faq ) {
-			$fallback_faq = $index;
-		}
-		if ( $is_web && null === $fallback_webpage ) {
-			$fallback_webpage = $index;
-		}
-	}
-
-	$preferred = null !== $preferred ? $preferred : ( null !== $fallback_faq ? $fallback_faq : $fallback_webpage );
+	$preferred = nvxHomeFaqV2FindPreferredSchemaIndex( $graph );
 	if ( null === $preferred ) {
-		$graph[] = array(
+		$graph[]   = array(
 			'@type' => array( 'WebPage', 'FAQPage' ),
 			'@id'   => home_url( '/#webpage' ),
 			'url'   => home_url( '/' ),

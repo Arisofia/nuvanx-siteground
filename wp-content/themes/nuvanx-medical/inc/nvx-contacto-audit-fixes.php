@@ -72,6 +72,58 @@ add_filter( 'wpseo_metadesc', 'nvxContactoAuditDescription', 110 );
 add_filter( 'wpseo_opengraph_desc', 'nvxContactoAuditDescription', 110 );
 add_filter( 'wpseo_twitter_description', 'nvxContactoAuditDescription', 110 );
 
+/** Resolve or create organization node in Yoast graph. */
+function nvxContactoAuditResolveOrganizationInfo( array &$graph ): array {
+	$organization = nvx_schema_find_organization( $graph );
+	if ( ! is_array( $organization ) ) {
+		$organization = array();
+	}
+	$org_id = ( isset( $organization['id'] ) && is_string( $organization['id'] ) && '' !== $organization['id'] )
+		? $organization['id']
+		: home_url( '/#/schema/organization/nuvanx' );
+
+	$org_index = array_key_exists( 'index', $organization ) ? $organization['index'] : null;
+	if ( is_string( $org_index ) && ctype_digit( $org_index ) ) {
+		$org_index = (int) $org_index;
+	} elseif ( ! is_int( $org_index ) ) {
+		$org_index = null;
+	}
+
+	if ( null === $org_index ) {
+		$graph[] = array(
+			'@type' => array( 'Organization', 'MedicalOrganization' ),
+			'@id'   => $org_id,
+			'name'  => 'NUVANX Medicina Estética Láser',
+			'url'   => home_url( '/' ),
+		);
+		$org_index = array_key_last( $graph );
+	}
+
+	return array( 'id' => $org_id, 'index' => $org_index );
+}
+
+/** Link clinic subOrganizations to parent organization node. */
+function nvxContactoAuditLinkSubOrganizations( array &$graph, int $org_index, array $clinic_refs ): void {
+	if ( ! isset( $graph[ $org_index ] ) || ! is_array( $graph[ $org_index ] ) ) {
+		return;
+	}
+
+	if ( function_exists( 'nvx_schema_add_type' ) ) {
+		$graph[ $org_index ]['@type'] = nvx_schema_add_type( $graph[ $org_index ]['@type'] ?? 'Organization', 'MedicalOrganization' );
+	}
+
+	$existing_refs = isset( $graph[ $org_index ]['subOrganization'] )
+		? (array) $graph[ $org_index ]['subOrganization']
+		: array();
+	$merged_refs   = array();
+	foreach ( array_merge( $existing_refs, $clinic_refs ) as $reference ) {
+		if ( is_array( $reference ) && ! empty( $reference['@id'] ) ) {
+			$merged_refs[ (string) $reference['@id'] ] = array( '@id' => (string) $reference['@id'] );
+		}
+	}
+	$graph[ $org_index ]['subOrganization'] = array_values( $merged_refs );
+}
+
 /**
  * Add both canonical MedicalClinic branches to the /contacto/ Yoast graph.
  *
@@ -90,33 +142,10 @@ function nvxContactoAuditSchemaGraph( $graph, $context ) {
 		return $graph;
 	}
 
-	$clinics      = nvx_schema_clinics();
-	$organization = nvx_schema_find_organization( $graph );
-
-	// Defensive: finder is expected to return {index,id}, but tolerate null/odd shapes.
-	if ( ! is_array( $organization ) ) {
-		$organization = array();
-	}
-	$org_id = ( isset( $organization['id'] ) && is_string( $organization['id'] ) && '' !== $organization['id'] )
-		? $organization['id']
-		: home_url( '/#/schema/organization/nuvanx' );
-	$org_index = array_key_exists( 'index', $organization ) ? $organization['index'] : null;
-	if ( null !== $org_index && ! is_int( $org_index ) && ! ( is_string( $org_index ) && ctype_digit( (string) $org_index ) ) ) {
-		$org_index = null;
-	}
-	if ( is_string( $org_index ) ) {
-		$org_index = (int) $org_index;
-	}
-
-	if ( null === $org_index ) {
-		$graph[] = array(
-			'@type' => array( 'Organization', 'MedicalOrganization' ),
-			'@id'   => $org_id,
-			'name'  => 'NUVANX Medicina Estética Láser',
-			'url'   => home_url( '/' ),
-		);
-		$org_index = array_key_last( $graph );
-	}
+	$clinics   = nvx_schema_clinics();
+	$org_info  = nvxContactoAuditResolveOrganizationInfo( $graph );
+	$org_id    = $org_info['id'];
+	$org_index = $org_info['index'];
 
 	$existing_ids = array();
 	foreach ( $graph as $piece ) {
@@ -141,21 +170,8 @@ function nvxContactoAuditSchemaGraph( $graph, $context ) {
 		$graph[]                      = $clinic;
 	}
 
-	if ( null !== $org_index && isset( $graph[ $org_index ] ) && is_array( $graph[ $org_index ] ) ) {
-		if ( function_exists( 'nvx_schema_add_type' ) ) {
-			$graph[ $org_index ]['@type'] = nvx_schema_add_type( $graph[ $org_index ]['@type'] ?? 'Organization', 'MedicalOrganization' );
-		}
-
-		$existing_refs = isset( $graph[ $org_index ]['subOrganization'] )
-			? (array) $graph[ $org_index ]['subOrganization']
-			: array();
-		$merged_refs   = array();
-		foreach ( array_merge( $existing_refs, $clinic_refs ) as $reference ) {
-			if ( is_array( $reference ) && ! empty( $reference['@id'] ) ) {
-				$merged_refs[ (string) $reference['@id'] ] = array( '@id' => (string) $reference['@id'] );
-			}
-		}
-		$graph[ $org_index ]['subOrganization'] = array_values( $merged_refs );
+	if ( null !== $org_index ) {
+		nvxContactoAuditLinkSubOrganizations( $graph, (int) $org_index, $clinic_refs );
 	}
 
 	return $graph;

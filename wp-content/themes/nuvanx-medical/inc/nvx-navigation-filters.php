@@ -202,6 +202,20 @@ function nvxNavigationResolvePublishedPage( array $slugs ): ?array {
 	return null;
 }
 
+/** Resolve child nodes for a blueprint item. */
+function nvxNavigationResolveNodeChildren( array $raw_children ): array {
+	$children = array();
+	foreach ( $raw_children as $child ) {
+		if ( is_array( $child ) ) {
+			$resolved = nvxNavigationResolveBlueprintNode( $child );
+			if ( is_array( $resolved ) ) {
+				$children[] = $resolved;
+			}
+		}
+	}
+	return $children;
+}
+
 /**
  * Resolves a fallback blueprint node into a renderable navigation item.
  *
@@ -209,16 +223,8 @@ function nvxNavigationResolvePublishedPage( array $slugs ): ?array {
  * @return array<string,mixed>|null Resolved navigation item, or null when the node has no label or destination.
  */
 function nvxNavigationResolveBlueprintNode( array $node ): ?array {
-	$children = array();
-	foreach ( isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : array() as $child ) {
-		if ( ! is_array( $child ) ) {
-			continue;
-		}
-		$resolved_child = nvxNavigationResolveBlueprintNode( $child );
-		if ( is_array( $resolved_child ) ) {
-			$children[] = $resolved_child;
-		}
-	}
+	$raw_children = isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : array();
+	$children     = nvxNavigationResolveNodeChildren( $raw_children );
 
 	$url = isset( $node['url'] ) ? trim( (string) $node['url'] ) : '';
 	if ( '' === $url ) {
@@ -242,6 +248,61 @@ function nvxNavigationResolveBlueprintNode( array $node ): ?array {
 		'url'      => $url,
 		'mega'     => ! empty( $node['mega'] ),
 		'children' => $children,
+	);
+}
+
+/** Build set of blocked menu items including descendants of unpublished pages. */
+function nvxNavigationFindBlockedMenuItems( array $items ): array {
+	$blocked = array();
+	foreach ( $items as $item ) {
+		$item_id   = isset( $item->ID ) ? (int) $item->ID : 0;
+		$object_id = isset( $item->object_id ) ? (int) $item->object_id : 0;
+		$object    = isset( $item->object ) ? (string) $item->object : '';
+
+		if ( $item_id > 0 && 'page' === $object && $object_id > 0 && 'publish' !== get_post_status( $object_id ) ) {
+			$blocked[ $item_id ] = true;
+		}
+	}
+
+	$changed = true;
+	while ( $changed ) {
+		$changed = false;
+		foreach ( $items as $item ) {
+			$item_id = isset( $item->ID ) ? (int) $item->ID : 0;
+			$parent  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+			if ( $item_id > 0 && $parent > 0 && isset( $blocked[ $parent ] ) && ! isset( $blocked[ $item_id ] ) ) {
+				$blocked[ $item_id ] = true;
+				$changed             = true;
+			}
+		}
+	}
+	return $blocked;
+}
+
+/**
+ * Removes unpublished page items and their descendants from the primary navigation.
+ *
+ * Items for other theme locations are returned unchanged.
+ *
+ * @param array<int,WP_Post|stdClass> $items Menu items.
+ * @param stdClass                    $args Menu arguments.
+ * @return array<int,WP_Post|stdClass> The filtered menu items.
+ */
+function nvxNavigationPruneUnpublishedItems( $items, $args ) {
+	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+		return $items;
+	}
+
+	$blocked = nvxNavigationFindBlockedMenuItems( $items );
+
+	return array_values(
+		array_filter(
+			$items,
+			static function ( $item ) use ( $blocked ): bool {
+				$item_id = isset( $item->ID ) ? (int) $item->ID : 0;
+				return ! isset( $blocked[ $item_id ] );
+			}
+		)
 	);
 }
 

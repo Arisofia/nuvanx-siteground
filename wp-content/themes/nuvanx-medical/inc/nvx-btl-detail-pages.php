@@ -482,6 +482,31 @@ function nvxRenderEditorialListSection( string $id_base, string $kicker, string 
 	return $html . '</' . tag_escape( $list_type ) . '></div></section>';
 }
 
+/** Render mechanism items grid list. */
+function nvxBtlDetailRenderMechanismItems( array $items ): string {
+	$markup = '<ul class="nvx-editorial-grid-list">';
+	foreach ( $items as $item ) {
+		if ( ! is_array( $item ) ) {
+			continue;
+		}
+		$title = trim( (string) ( $item['title'] ?? '' ) );
+		$text  = trim( (string) ( $item['body'] ?? '' ) );
+		if ( '' === $title && '' === $text ) {
+			continue;
+		}
+		$markup .= '<li class="nvx-editorial-grid-item">';
+		if ( '' !== $title ) {
+			$markup .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
+		}
+		if ( '' !== $text ) {
+			$markup .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
+		}
+		$markup .= '</li>';
+	}
+	$markup .= '</ul>';
+	return $markup;
+}
+
 /**
  * Renders the mechanism section for a BTL detail page.
  *
@@ -496,32 +521,12 @@ function nvxBtlDetailRenderMechanismSection( array $c, string $id ): string {
 	$body .= '<h2 id="' . esc_attr( $id ) . '-mech" class="nvx-editorial-heading">' . esc_html( (string) ( $c['mechanism']['title'] ?? '' ) ) . '</h2>';
 	foreach ( (array) ( $c['mechanism']['body'] ?? array() ) as $p ) {
 		$p = is_string( $p ) ? trim( $p ) : '';
-		if ( '' === $p ) {
-			continue;
+		if ( '' !== $p ) {
+			$body .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html( $p ) . '</p>';
 		}
-		$body .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html( $p ) . '</p>';
 	}
 	if ( ! empty( $c['mechanism']['items'] ) && is_array( $c['mechanism']['items'] ) ) {
-		$body .= '<ul class="nvx-editorial-grid-list">';
-		foreach ( $c['mechanism']['items'] as $item ) {
-			if ( ! is_array( $item ) ) {
-				continue;
-			}
-			$title = trim( (string) ( $item['title'] ?? '' ) );
-			$text  = trim( (string) ( $item['body'] ?? '' ) );
-			if ( '' === $title && '' === $text ) {
-				continue;
-			}
-			$body .= '<li class="nvx-editorial-grid-item">';
-			if ( '' !== $title ) {
-				$body .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
-			}
-			if ( '' !== $text ) {
-				$body .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
-			}
-			$body .= '</li>';
-		}
-		$body .= '</ul>';
+		$body .= nvxBtlDetailRenderMechanismItems( $c['mechanism']['items'] );
 	}
 	$body .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $c['hub'] ) . '">' . esc_html__( 'Ver plataforma EXION® BTL (hub)', 'nuvanx-medical' ) . '</a></p>';
 	$body .= '</div></section>';

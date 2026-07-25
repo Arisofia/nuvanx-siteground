@@ -89,11 +89,7 @@ function nvx_contacto_opengraph_image_meta(): array {
  * @param mixed $image_container Yoast Open Graph image container.
  */
 function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
-	if ( ! function_exists( 'nvx_contacto_audit_is_contact_page' ) || ! nvx_contacto_audit_is_contact_page() ) {
-		return;
-	}
-
-	if ( ! is_object( $image_container ) ) {
+	if ( ! function_exists( 'nvx_contacto_audit_is_contact_page' ) || ! nvx_contacto_audit_is_contact_page() || ! is_object( $image_container ) ) {
 		return;
 	}
 
@@ -103,17 +99,9 @@ function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
 
 	if ( $image_id > 0 && method_exists( $image_container, 'add_image_by_id' ) ) {
 		$image_container->add_image_by_id( $image_id );
-		return;
-	}
-
-	// Preferred URL API when present (Yoast variants expose this helper).
-	if ( method_exists( $image_container, 'add_image_by_url' ) ) {
+	} elseif ( method_exists( $image_container, 'add_image_by_url' ) ) {
 		$image_container->add_image_by_url( $image_url );
-		return;
-	}
-
-	// Raw path expects the structured image array, not a string.
-	if ( method_exists( $image_container, 'add_image' ) ) {
+	} elseif ( method_exists( $image_container, 'add_image' ) ) {
 		$image_container->add_image(
 			array(
 				'url'    => $image_url,
@@ -121,7 +109,6 @@ function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
 				'height' => (int) $meta['height'],
 				'type'   => $meta['type'],
 				'alt'    => $meta['alt'],
-				// Some Yoast versions also read path as absolute filesystem or url key only.
 				'path'   => $image_url,
 			)
 		);
@@ -135,14 +122,34 @@ add_filter( 'wpseo_add_opengraph_images', 'nvx_contacto_add_yoast_opengraph_imag
  * callbacks and to enforce the final contact Open Graph image contract.
  */
 function nvx_canonical_schema_head_buffer_start(): void {
-	if ( is_admin() || ( ! is_front_page() && ! is_singular( 'page' ) ) ) {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	if ( ! is_front_page() && ! is_page() ) {
 		return;
 	}
 
 	$GLOBALS['nvx_schema_head_buffer_level'] = ob_get_level();
 	ob_start();
 }
-add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_start', -9999 );
+add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_start', PHP_INT_MIN );
+
+/**
+ * Helper to filter non-canonical Schema.org JSON-LD scripts.
+ *
+ * @param array $matches Regular expression matches.
+ * @return string Filtered script tag or empty string.
+ */
+function nvx_contacto_clean_ldjson_tag( array $matches ): string {
+	$tag     = (string) ( $matches[0] ?? '' );
+	$payload = (string) ( $matches[2] ?? '' );
+
+	if ( false !== stripos( $tag, 'yoast-schema-graph' ) ) {
+		return $tag;
+	}
+
+	return preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload ) ? '' : $tag;
+}
 
 /**
  * Add the canonical contact Open Graph image tags to the final head output only
@@ -192,33 +199,17 @@ function nvx_canonical_schema_head_buffer_end(): void {
 		return;
 	}
 
-	$filtered = $html;
 	if ( false !== stripos( $html, 'ld+json' ) ) {
 		$schema_filtered = preg_replace_callback(
 			'#<script\b(?=[^>]*\btype\s*=\s*(["\'])application/ld\+json\1)[^>]*>([\s\S]*?)</script>#iu',
-			static function ( array $matches ): string {
-				$tag     = isset( $matches[0] ) ? (string) $matches[0] : '';
-				$payload = isset( $matches[2] ) ? (string) $matches[2] : '';
-
-				if ( false !== stripos( $tag, 'yoast-schema-graph' ) ) {
-					return $tag;
-				}
-
-				if ( preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload ) ) {
-					return '';
-				}
-
-				return $tag;
-			},
+			'nvx_contacto_clean_ldjson_tag',
 			$html
 		);
-
 		if ( is_string( $schema_filtered ) ) {
-			$filtered = $schema_filtered;
+			$html = $schema_filtered;
 		}
 	}
 
-	$filtered = nvx_contacto_enforce_final_og_image( $filtered );
-	echo $filtered; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	echo nvx_contacto_enforce_final_og_image( $html );
 }
 add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_end', PHP_INT_MAX );

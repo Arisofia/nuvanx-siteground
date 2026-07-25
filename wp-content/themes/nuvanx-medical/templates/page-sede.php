@@ -9,6 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once get_template_directory() . '/inc/nvx-clinics-valoracion-coherence.php';
+
 /**
  * La estructura DOM global y los componentes maestros (Header/Footer)
  * son gobernados exclusivamente por nvx-page-shell.php.

@@ -88,16 +88,40 @@ if (integrations.includes("'tratamiento-postparto-abdomen-contorno-corporal-madr
 if ((integrations.match(/'liposculpt-air'\s*=>/g) || []).length !== 1) fail('integrations: governed LipoSculpt slug count');
 if ((integrations.match(/'v-lift-awake'\s*=>/g) || []).length !== 1) fail('integrations: governed V-Lift slug count');
 
-const strategy = read('inc/nvx-strategy-pages.php') + read('template-parts/content/nvx-soluciones-medicas-github.php') + read('page-soluciones-medicas.php');
+const strategy = read('inc/nvx-strategy-pages.php');
+const solutionsTemplate = read('page-soluciones-medicas.php');
+const solutionsContent = read('template-parts/content/nvx-soluciones-medicas-github.php');
+const solutionsCss = read('assets/css/nvx-soluciones-medicas.css');
+const solutionsArt = read('assets/images/nvx-solutions-hero-architecture.svg');
 for (const marker of [
-  'soluciones-medicas', 'ROSTRO Y CUELLO', 'PIEL Y SUPERFICIE',
   'Por qué NUVANX. Sin retórica de marketing.', 'Responsabilidad médica y continuidad asistencial',
   'Qué incluye siempre el plan en NUVANX', 'Qué no encontrarás aquí', 'Una promoción utilizada para cambiar la indicación clínica',
 ]) if (!strategy.includes(marker)) fail(`strategy pages: missing editorial parity marker ${marker}`);
-for (const marker of ['liposculpt_air', 'v_lift_awake', 'pending_medical_legal', 'nvx_strategy_protocol_review_markup']) {
-  if (strategy.includes(marker)) fail(`strategy pages: retired prototype marker ${marker}`);
-}
+for (const marker of [
+  'function nvx_strategy_solution_card', 'function nvx_strategy_solutions_markup',
+  'nvx-catalog-grid', "'solutions' === $key", 'liposculpt_air', 'v_lift_awake',
+  'pending_medical_legal', 'nvx_strategy_protocol_review_markup',
+]) if (strategy.includes(marker)) fail(`strategy pages: retired solutions/prototype marker ${marker}`);
 if (/add_action\(\s*'init'\s*,\s*'nvx_strategy_seed/u.test(strategy)) fail('strategy pages: runtime seeder');
+for (const marker of [
+  "get_template_part( 'template-parts/content/nvx-soluciones-medicas-github' )",
+  "nvxSyncGithubManagedPageState( $page_id, 'solutions' )", "'nvx-soluciones-medicas'",
+]) if (!solutionsTemplate.includes(marker)) fail(`solutions template: missing ${marker}`);
+for (const marker of [
+  'SOLUCIONES MÉDICAS · NUVANX MADRID', 'id="mapa-soluciones"',
+  'La preocupación orienta la consulta. El diagnóstico define el tratamiento.',
+  'ROSTRO Y CUELLO', 'PIEL Y SUPERFICIE', 'CONTORNO CORPORAL', 'PLANIFICACIÓN ESPECÍFICA',
+  'De la preocupación visible a una indicación documentada.',
+]) if (!solutionsContent.includes(marker)) fail(`solutions content: missing ${marker}`);
+for (const marker of [
+  '.nvx-solutions-hero', '.nvx-solutions-nav', '.nvx-solutions-group--dark',
+  '.nvx-solutions-grid', '.nvx-solutions-method__steps', '.nvx-solutions-closure',
+]) if (!solutionsCss.includes(marker)) fail(`solutions CSS: missing ${marker}`);
+if (!solutionsArt.includes('<svg')) fail('solutions artwork: missing SVG root');
+for (const source of [solutionsTemplate, solutionsContent]) {
+  if (/\bthe_content\s*\(/.test(source)) fail('solutions: visible content must not come from WordPress');
+  if (/content_url\s*\(|wp-content\/uploads|\/uploads\//i.test(source)) fail('solutions: visible assets must not come from WordPress uploads');
+}
 
 const protocolHub = read('inc/nvx-protocol-hub.php');
 const protocolPages = read('inc/nvx-protocol-pages.php');
@@ -147,18 +171,9 @@ for (const marker of ['display: none;', 'min-height: 100dvh;', 'overflow-y: auto
 if ((footer.match(/grid-template-columns: repeat\(12, minmax\(0, 1fr\)\);/g) || []).length !== 1) fail('footer: canonical 12-column grid count');
 
 const crossedPrimitives = [
-  'nvx-endolift-section',
-  'nvx-endolift-kicker',
-  'nvx-endolift-heading',
-  'nvx-endolift-body',
-  'nvx-endolift-diagnosis__',
-  'nvx-endolift-panel-',
-  'nvx-endolift-editorial',
-  'nvx-endolift-hero',
-  'nvx-endolaser-zone',
-  'nvx-endolift-effects',
-  'nvx-endolift-effect',
-  'nvx-endolift-price-table',
+  'nvx-endolift-section', 'nvx-endolift-kicker', 'nvx-endolift-heading', 'nvx-endolift-body',
+  'nvx-endolift-diagnosis__', 'nvx-endolift-panel-', 'nvx-endolift-editorial', 'nvx-endolift-hero',
+  'nvx-endolaser-zone', 'nvx-endolift-effects', 'nvx-endolift-effect', 'nvx-endolift-price-table',
   'nvx-endolift-price-includes',
 ];
 for (const file of runtime.filter((candidate) => /\/inc\/[^/]+\.php$/i.test(candidate) && !candidate.endsWith('/inc/nvx-endolift-page.php'))) {
@@ -169,11 +184,8 @@ for (const file of runtime.filter((candidate) => /\/inc\/[^/]+\.php$/i.test(cand
 }
 const editorialCoherence = read('assets/css/nvx-editorial-coherence.css');
 for (const required of [
-  '.nvx-editorial-section',
-  '.nvx-editorial-grid-list',
-  '.nvx-editorial-fact-list',
-  '.nvx-equipo-profile-layout',
-  '@media (min-width: 48rem)',
+  '.nvx-editorial-section', '.nvx-editorial-grid-list', '.nvx-editorial-fact-list',
+  '.nvx-equipo-profile-layout', '@media (min-width: 48rem)',
 ]) if (!editorialCoherence.includes(required)) fail(`editorial coherence: missing ${required}`);
 if ((functions.match(/wp_enqueue_style\(\s*'nvx-editorial-coherence'/g) || []).length !== 1) fail('functions.php: editorial coherence must be enqueued once');
 if (!functions.includes("array( 'nvx-editorial-coherence' )")) fail('functions.php: header must depend on editorial coherence');

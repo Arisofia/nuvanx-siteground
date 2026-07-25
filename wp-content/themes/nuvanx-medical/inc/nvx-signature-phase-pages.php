@@ -17,6 +17,8 @@ require_once __DIR__ . '/nvx-13-point-renderer.php';
  * @return array The catalogue keyed by internal page identifier.
  */
 function nvx_signature_phase_catalog(): array {
+    $upper = 'CONTOUR ARCHITECTURE™';
+    $mixed = 'NUVANX Contour Architecture™';
     return array(
         'profile-definition' => array(
             'phase' => 1,

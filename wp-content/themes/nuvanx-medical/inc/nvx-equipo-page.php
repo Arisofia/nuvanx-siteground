@@ -250,22 +250,22 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 
 	foreach ( $found as $card ) {
 		if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
-			if ( '' === $rivera_media && preg_match( NVX_REGEX_MEDIA, $card, $im ) ) {
-				$rivera_media = $im[0];
+			if ( '' === $rivera_media && preg_match( NVX_REGEX_MEDIA, $card, $image_match ) ) {
+				$rivera_media = $image_match[0];
 			}
 			// Long-form authority replaces short card for director.
 			continue;
 		}
 		if ( nvx_equipo_block_is_ivon( $card ) ) {
-			if ( '' === $ivon_media && preg_match( NVX_REGEX_MEDIA, $card, $im ) ) {
-				$ivon_media = $im[0];
+			if ( '' === $ivon_media && preg_match( NVX_REGEX_MEDIA, $card, $image_match ) ) {
+				$ivon_media = $image_match[0];
 			}
 			// Long-form authority replaces short card for Dra. Ivon.
 			continue;
 		}
 		if ( nvx_equipo_block_is_fabio( $card ) ) {
-			if ( '' === $fabio_media && preg_match( NVX_REGEX_MEDIA, $card, $im ) ) {
-				$fabio_media = $im[0];
+			if ( '' === $fabio_media && preg_match( NVX_REGEX_MEDIA, $card, $image_match ) ) {
+				$fabio_media = $image_match[0];
 			}
 			// Long-form authority replaces short card for Dr. Fabio.
 			continue;
@@ -645,8 +645,8 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	// Hero media: only real page hero — never logo, never a stolen staff portrait.
 	$media = '';
-	if ( preg_match( '/<(?:figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/(?:figure|div)>/iu', $content, $m ) ) {
-		$media = $m[0];
+	if ( preg_match( '/<(?:figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/(?:figure|div)>/iu', $content, $media_match ) ) {
+		$media = $media_match[0];
 	}
 	if ( '' !== $media && nvx_equipo_media_is_logo( $media ) ) {
 		$media = '';

@@ -192,8 +192,8 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 	}
 
 	$media = '';
-	if ( preg_match( '/<(?:figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/(?:figure|div)>/iu', $content, $m ) ) {
-		$media = $m[0];
+	if ( preg_match( '/<(?:figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/(?:figure|div)>/iu', $content, $media_match ) ) {
+		$media = $media_match[0];
 	}
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero" aria-labelledby="nvx-endolaser-h1" aria-label="' . esc_attr__( 'Endoláser corporal NUVANX', 'nuvanx-medical' ) . '">';

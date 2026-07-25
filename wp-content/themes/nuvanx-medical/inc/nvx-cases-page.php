@@ -189,6 +189,9 @@ function nvxCasesPageMarkup(): string {
                 <?php
                 if ( function_exists( 'nvx_cta_pair_markup' ) ) {
                     echo nvx_cta_pair_markup( '' );
+                } else {
+                    $valuation_url = home_url( '/madrid/valoracion/' );
+                    echo '<a class="nvx-btn nvx-btn--primary" href="' . esc_url( $valuation_url ) . '">Solicitar valoración médica</a>';
                 }
                 ?>
             </div>

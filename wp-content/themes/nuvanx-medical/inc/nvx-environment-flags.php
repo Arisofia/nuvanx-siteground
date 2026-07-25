@@ -1,10 +1,6 @@
 <?php
 /**
- * Environment-specific presentation and deployment flags.
- *
- * Production keeps the temporary hero blackout enabled by default until approved
- * photography replaces every opening image. Staging2 disables it so the real
- * hero media, contrast, CTA hierarchy and mobile crop can be reviewed safely.
+ * Environment-specific deployment metadata.
  *
  * Deploy workflows stamp the exact checked-out commit into `.nvx-deploy-sha`.
  * The public marker is intentionally non-secret and allows staging/production
@@ -16,38 +12,6 @@
 if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
-
-/**
- * Whether the current request belongs to the staging2 review environment.
- *
- * Host-only: generic WP_ENVIRONMENT_TYPE=staging must NOT reveal media, so
- * unrelated staging/preview hosts keep production-safe blackout behaviour.
- */
-function nvxEnvironmentIsStaging2(): bool {
-    $host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
-    $host = preg_replace( '/:\d+$/', '', $host );
-    if ( ! is_string( $host ) ) {
-        $host = '';
-    }
-
-    /**
-     * Filter whether the request is treated as staging2.
-     *
-     * @param bool   $is_staging2 Detected host match.
-     * @param string $host        Normalized HTTP host without port.
-     */
-    return (bool) apply_filters( 'nvx_environment_is_staging2', 'staging2.nuvanx.com' === $host, $host );
-}
-
-/**
- * Reveal the underlying hero media on staging2 without changing production.
- *
- * @param bool $enabled Current blackout flag.
- */
-function nvxEnvironmentFilterHeroBlackout( bool $enabled ): bool {
-    return nvxEnvironmentIsStaging2() ? false : $enabled;
-}
-add_filter( 'nvx_theme_hero_blackout_enabled', 'nvxEnvironmentFilterHeroBlackout', 5 );
 
 /**
  * Resolve the exact deployed Git commit SHA.
@@ -92,9 +56,7 @@ function nvxEnvironmentDeploySha(): string {
     return $resolved;
 }
 
-/**
- * Emit the immutable deployment marker in the rendered document head.
- */
+/** Emit the immutable deployment marker in the rendered document head. */
 function nvxEnvironmentRenderDeploySha(): void {
     if ( is_admin() ) {
         return;

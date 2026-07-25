@@ -31,6 +31,97 @@ export const viewports = [
 export const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 export const safeName = (value) => String(value || '').split('/').filter(Boolean).join('__') || 'home';
 
+export function locateChrome() {
+  const candidates = [process.env.CHROME_BIN, 'google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'].filter(Boolean);
+  const searchPaths = (process.env.PATH || '').split(path.delimiter);
+  for (const candidate of candidates) {
+    if (candidate.includes(path.sep) && fs.existsSync(candidate)) return candidate;
+    for (const searchPath of searchPaths) {
+      const executable = path.join(searchPath, candidate);
+      if (fs.existsSync(executable)) return executable;
+    }
+  }
+  throw new Error('Google Chrome or Chromium is not installed on the runner.');
+}
+
+export class CDPSession {
+  constructor(webSocketUrl) {
+    this.webSocketUrl = webSocketUrl;
+    this.webSocket = null;
+    this.nextId = 0;
+    this.pending = new Map();
+  }
+
+  async connect() {
+    this.webSocket = new WebSocket(this.webSocketUrl);
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('Timed out opening Chrome DevTools WebSocket.')), 10000);
+      this.webSocket.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
+      this.webSocket.addEventListener('error', () => { clearTimeout(timer); reject(new Error('Unable to open Chrome DevTools WebSocket.')); }, { once: true });
+    });
+    this.webSocket.addEventListener('message', (event) => this.handleMessage(event));
+  }
+
+  handleMessage(event) {
+    const message = JSON.parse(String(event.data));
+    if (!message.id || !this.pending.has(message.id)) return;
+    const pending = this.pending.get(message.id);
+    clearTimeout(pending.timer);
+    this.pending.delete(message.id);
+    if (message.error) pending.reject(new Error(`${message.error.message || 'CDP error'} (${message.error.code || 'unknown'})`));
+    else pending.resolve(message.result || {});
+  }
+
+  send(method, params = {}, timeoutMilliseconds = 30000) {
+    const id = ++this.nextId;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`CDP command timed out: ${method}`));
+      }, timeoutMilliseconds);
+      this.pending.set(id, { resolve, reject, timer });
+      this.webSocket.send(JSON.stringify({ id, method, params }));
+    });
+  }
+
+  async evaluate(expression) {
+    const result = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+    if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text || 'Browser evaluation failed.');
+    return result.result?.value;
+  }
+
+  call(functionSource, ...args) {
+    return this.evaluate(`(${functionSource})(${args.map((value) => JSON.stringify(value)).join(',')})`);
+  }
+
+  closeSocket() {
+    if (this.webSocket && this.webSocket.readyState <= 1) this.webSocket.close();
+  }
+}
+
+export async function waitForChrome(port) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/json/version`);
+      if (response.ok) return;
+    } catch { /* Chrome may still be starting. */ }
+    await sleep(250);
+  }
+  throw new Error('Chrome DevTools endpoint did not become ready.');
+}
+
+export async function createTarget(port) {
+  const response = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' });
+  if (!response.ok) throw new Error(`Unable to create Chrome target: HTTP ${response.status}`);
+  return response.json();
+}
+
+export async function closeSession(session) {
+  if (!session) return;
+  try { await session.send('Page.close', {}, 3000); } catch { /* Target may already be closed. */ }
+  session.closeSocket();
+}
+
 export async function pageState(session) {
   return session.evaluate(String.raw`(() => {
     const text = (document.body?.innerText || '').replace(/\s+/g, ' ').trim();

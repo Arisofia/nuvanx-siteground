@@ -6,6 +6,10 @@ on:
       - fix/staging2-endolaser-cases-heroes-20260725
     paths:
       - '.github/workflows/repair-technology-blog-valuation-once.yml'
+  pull_request:
+    types: [synchronize]
+    paths:
+      - '.github/workflows/repair-technology-blog-valuation-once.yml'
 
 permissions:
   contents: write
@@ -213,9 +217,8 @@ jobs:
                   raise SystemExit(f'{posts_path}: expected one archive insertion marker')
               write(posts_path, text.replace(marker, addition, 1))
 
-          # Guard the final branch state before committing.
           required_routes = [
-              'endolift-facial-papada-mandibular',
+              'endolift-facial-papada-mandibula',
               'endolaser-corporal-grasa-localizada',
               'exion-face',
               'exion-body',
@@ -230,8 +233,6 @@ jobs:
               'bioestimuladores-colageno-madrid',
           ]
           hero_text = read(hero_path)
-          # Correct the guard typo without weakening the actual source validation.
-          required_routes[0] = 'endolift-facial-papada-mandibula'
           missing = [route for route in required_routes if f"'{route}'" not in hero_text]
           if missing:
               raise SystemExit(f'missing canonical technology routes: {missing}')

@@ -262,7 +262,7 @@ function validatePage(page, parsed, scope) {
 
 for (const page of pages) {
   const response = await originFetch(`${baseUrl}${page.path.replace(/\/$/, '')}/`);
-  const fileName = `${page.path.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home'}.html`;
+  const fileName = `${page.path.replace(/^\/+/, '').replace(/\/+$/, '').replaceAll('/', '__') || 'home'}.html`;
   fs.writeFileSync(path.join(evidenceDir, fileName), response.body);
   const record = { path: page.path, status: response.status };
   if (response.status !== 200) {

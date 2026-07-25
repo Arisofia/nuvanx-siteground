@@ -10,56 +10,56 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 if ( ! defined( 'NVX_PATH_VALORACION' ) ) {
-	define( 'NVX_PATH_VALORACION', '/madrid/valoracion/' );
+    define( 'NVX_PATH_VALORACION', '/madrid/valoracion/' );
 }
 
 /** Returns the approved strategy page catalog. */
 function nvx_strategy_page_catalog(): array {
-	return array(
-		'why_nuvanx' => array(
-			'slug'          => 'por-que-nuvanx',
-			'title'         => 'Por qué NUVANX',
-			'review_status' => 'approved_for_publication',
-		),
-		'investment' => array(
-			'slug'          => 'inversion-medicina-estetica',
-			'title'         => 'Inversión en medicina estética',
-			'review_status' => 'approved_for_publication',
-		),
-	);
+    return array(
+        'why_nuvanx' => array(
+            'slug'          => 'por-que-nuvanx',
+            'title'         => 'Por qué NUVANX',
+            'review_status' => 'approved_for_publication',
+        ),
+        'investment' => array(
+            'slug'          => 'inversion-medicina-estetica',
+            'title'         => 'Inversión en medicina estética',
+            'review_status' => 'approved_for_publication',
+        ),
+    );
 }
 
 /** Identifies the current page's strategy catalog entry. */
 function nvx_strategy_current_page_key(): ?string {
-	if ( ! is_page() ) {
-		return null;
-	}
+    if ( ! is_page() ) {
+        return null;
+    }
 
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	foreach ( nvx_strategy_page_catalog() as $key => $page ) {
-		if ( $page['slug'] === $slug && 'approved_for_publication' === $page['review_status'] ) {
-			return $key;
-		}
-	}
-	return null;
+    $slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+    foreach ( nvx_strategy_page_catalog() as $key => $page ) {
+        if ( $page['slug'] === $slug && 'approved_for_publication' === $page['review_status'] ) {
+            return $key;
+        }
+    }
+    return null;
 }
 
 /** Returns a public URL only when an approved strategy page is published. */
 function nvx_strategy_published_url( string $key ): string {
-	$catalog = nvx_strategy_page_catalog();
-	if ( empty( $catalog[ $key ] ) || 'approved_for_publication' !== $catalog[ $key ]['review_status'] ) {
-		return '';
-	}
+    $catalog = nvx_strategy_page_catalog();
+    if ( empty( $catalog[ $key ] ) || 'approved_for_publication' !== $catalog[ $key ]['review_status'] ) {
+        return '';
+    }
 
-	$page = get_page_by_path( $catalog[ $key ]['slug'] );
-	if ( ! $page || 'publish' !== get_post_status( $page ) ) {
-		return '';
-	}
-	return (string) get_permalink( $page );
+    $page = get_page_by_path( $catalog[ $key ]['slug'] );
+    if ( ! $page || 'publish' !== get_post_status( $page ) ) {
+        return '';
+    }
+    return (string) get_permalink( $page );
 }
 
 /**
@@ -68,133 +68,133 @@ function nvx_strategy_published_url( string $key ): string {
  * @return string The generated HTML markup.
  */
 function nvx_strategy_why_nuvanx_markup(): string {
-	$val_url       = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : NVX_PATH_VALORACION;
-	$valuation_url = esc_url( home_url( $val_url ) );
-	$team_url      = esc_url( home_url( '/equipo-medico/' ) );
-	$investment    = nvx_strategy_published_url( 'investment' );
+    $val_url       = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : NVX_PATH_VALORACION;
+    $valuation_url = esc_url( home_url( $val_url ) );
+    $team_url      = esc_url( home_url( '/equipo-medico/' ) );
+    $investment    = nvx_strategy_published_url( 'investment' );
 
-	$html  = '<article class="nvx-brand-page nvx-strategy-page">';
-	$html .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">Criterio médico NUVANX</p>';
-	$html .= '<h1 class="nvx-strategy-title">Por qué NUVANX. Sin retórica de marketing.</h1>';
-	$html .= '<p class="nvx-brand-lead">Diagnóstico, responsabilidad médica identificada, trazabilidad, privacidad y seguimiento. Estos son los criterios concretos con los que organizamos la atención.</p></header>';
+    $html  = '<article class="nvx-brand-page nvx-strategy-page">';
+    $html .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">Criterio médico NUVANX</p>';
+    $html .= '<h1 class="nvx-strategy-title">Por qué NUVANX. Sin retórica de marketing.</h1>';
+    $html .= '<p class="nvx-brand-lead">Diagnóstico, responsabilidad médica identificada, trazabilidad, privacidad y seguimiento. Estos son los criterios concretos con los que organizamos la atención.</p></header>';
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Diagnóstico antes de tecnología</h2><p>La tecnología es una herramienta, no el punto de partida. Estudiamos tu anatomía, antecedentes clínicos, viabilidad técnica y límites anatómicos. A partir de esa evidencia, emitimos una indicación médica: intervenir, derivar a cirugía plástica o no hacer nada.</p></div></section>';
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Responsabilidad médica y continuidad asistencial</h2><p>El médico que establece tu diagnóstico asume la responsabilidad clínica de tu evolución. No hay cambios de facultativo opacos ni planes de tratamiento dictados desde un despacho con objetivos comerciales.</p></div></section>';
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Claridad antes de decidir</h2><p>Si vienes con una preocupación real, mereces saber qué la está causando — no que te la resuelvan con la primera máquina que haya libre ese día.</p></div></section>';
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Seguimiento como parte del plan</h2><p>La indicación incluye cómo contactar con el equipo, qué evolución vigilar, cuándo revisar el caso y qué situaciones requieren una consulta adicional. La recuperación no se presenta como idéntica para todas las personas.</p></div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Diagnóstico antes de tecnología</h2><p>La tecnología es una herramienta, no el punto de partida. Estudiamos tu anatomía, antecedentes clínicos, viabilidad técnica y límites anatómicos. A partir de esa evidencia, emitimos una indicación médica: intervenir, derivar a cirugía plástica o no hacer nada.</p></div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Responsabilidad médica y continuidad asistencial</h2><p>El médico que establece tu diagnóstico asume la responsabilidad clínica de tu evolución. No hay cambios de facultativo opacos ni planes de tratamiento dictados desde un despacho con objetivos comerciales.</p></div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Claridad antes de decidir</h2><p>Si vienes con una preocupación real, mereces saber qué la está causando — no que te la resuelvan con la primera máquina que haya libre ese día.</p></div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Seguimiento como parte del plan</h2><p>La indicación incluye cómo contactar con el equipo, qué evolución vigilar, cuándo revisar el caso y qué situaciones requieren una consulta adicional. La recuperación no se presenta como idéntica para todas las personas.</p></div></section>';
 
-	$html .= '<section class="nvx-editorial-section nvx-strategy-checklist"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Lo que hacemos siempre</h2><ul class="nvx-check-list">';
-	$html .= '<li>Exploración médica antes de proponer cualquier tratamiento</li>';
-	$html .= '<li>Presupuesto detallado y por escrito antes de iniciar el procedimiento</li>';
-	$html .= '<li>Identificación del médico responsable de la valoración y del procedimiento</li>';
-	$html .= '<li>Registro de lotes y productos sanitarios cuando corresponde</li>';
-	$html .= '<li>Información previa sobre cuidados, recuperación y vías de contacto</li>';
-	$html .= '<li>Canal de seguimiento posterior y criterios claros para solicitar revisión</li>';
-	$html .= '</ul></div></section>';
+    $html .= '<section class="nvx-editorial-section nvx-strategy-checklist"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Lo que hacemos siempre</h2><ul class="nvx-check-list">';
+    $html .= '<li>Exploración médica antes de proponer cualquier tratamiento</li>';
+    $html .= '<li>Presupuesto detallado y por escrito antes de iniciar el procedimiento</li>';
+    $html .= '<li>Identificación del médico responsable de la valoración y del procedimiento</li>';
+    $html .= '<li>Registro de lotes y productos sanitarios cuando corresponde</li>';
+    $html .= '<li>Información previa sobre cuidados, recuperación y vías de contacto</li>';
+    $html .= '<li>Canal de seguimiento posterior y criterios claros para solicitar revisión</li>';
+    $html .= '</ul></div></section>';
 
-	$html .= '<section class="nvx-editorial-section nvx-strategy-checklist nvx-strategy-checklist--no"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Lo que no hacemos</h2><ul class="nvx-check-list nvx-check-list--no">';
-	$html .= '<li>Urgencia artificial de precio o presión para decidir en la consulta</li>';
-	$html .= '<li>Financiación utilizada para sustituir la explicación clínica del plan</li>';
-	$html .= '<li>Tratamientos sin indicación clínica previa documentada</li>';
-	$html .= '<li>Cambios de médico responsable sin informar al paciente</li>';
-	$html .= '<li>Indicaciones emitidas desde una conversación exclusivamente comercial</li>';
-	$html .= '</ul></div></section>';
+    $html .= '<section class="nvx-editorial-section nvx-strategy-checklist nvx-strategy-checklist--no"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Lo que no hacemos</h2><ul class="nvx-check-list nvx-check-list--no">';
+    $html .= '<li>Urgencia artificial de precio o presión para decidir en la consulta</li>';
+    $html .= '<li>Financiación utilizada para sustituir la explicación clínica del plan</li>';
+    $html .= '<li>Tratamientos sin indicación clínica previa documentada</li>';
+    $html .= '<li>Cambios de médico responsable sin informar al paciente</li>';
+    $html .= '<li>Indicaciones emitidas desde una conversación exclusivamente comercial</li>';
+    $html .= '</ul></div></section>';
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Trazabilidad de productos</h2>';
-	$html .= '<p>Garantizamos trazabilidad absoluta en cada producto sanitario empleado. El lote exacto se registra en tu historia clínica y la acreditación del material está siempre a tu disposición antes de formalizar el consentimiento.</p>';
-	$html .= '</div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Trazabilidad de productos</h2>';
+    $html .= '<p>Garantizamos trazabilidad absoluta en cada producto sanitario empleado. El lote exacto se registra en tu historia clínica y la acreditación del material está siempre a tu disposición antes de formalizar el consentimiento.</p>';
+    $html .= '</div></section>';
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Privacidad durante la atención</h2>';
-	$html .= '<p>Entendemos la privacidad como un estándar asistencial innegociable. Nuestros centros (CS20144 y CS20073) operan con circuitos diseñados para evitar salas de espera masificadas y proteger la confidencialidad de tu diagnóstico.</p>';
-	$html .= '</div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Privacidad durante la atención</h2>';
+    $html .= '<p>Entendemos la privacidad como un estándar asistencial innegociable. Nuestros centros (CS20144 y CS20073) operan con circuitos diseñados para evitar salas de espera masificadas y proteger la confidencialidad de tu diagnóstico.</p>';
+    $html .= '</div></section>';
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Por qué importa</h2>';
-	$html .= '<p>Porque la medicina estética no es un servicio cosmético. El éxito clínico no depende únicamente de disponer de la mejor tecnología, sino del rigor de la indicación anatómica, la trazabilidad de los materiales y la responsabilidad del equipo facultativo que responde por ti.</p>';
-	$html .= '</div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Por qué importa</h2>';
+    $html .= '<p>Porque la medicina estética no es un servicio cosmético. El éxito clínico no depende únicamente de disponer de la mejor tecnología, sino del rigor de la indicación anatómica, la trazabilidad de los materiales y la responsabilidad del equipo facultativo que responde por ti.</p>';
+    $html .= '</div></section>';
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Atención en centros sanitarios autorizados</h2>';
-	$html .= '<p>NUVANX atiende en Chamberí (CS20144) y Salamanca–Goya (CS20073), con equipo médico colegiado.</p>';
-	$html .= '<p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a> <a class="nvx-brand-inline-link" href="' . $team_url . '">Conocer al equipo médico</a>';
-	if ( '' !== $investment ) {
-		$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( $investment ) . '">Consultar inversión orientativa</a>';
-	}
-	$html .= '</p></div></section></article>';
-	return $html;
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Atención en centros sanitarios autorizados</h2>';
+    $html .= '<p>NUVANX atiende en Chamberí (CS20144) y Salamanca–Goya (CS20073), con equipo médico colegiado.</p>';
+    $html .= '<p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a> <a class="nvx-brand-inline-link" href="' . $team_url . '">Conocer al equipo médico</a>';
+    if ( '' !== $investment ) {
+        $html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( $investment ) . '">Consultar inversión orientativa</a>';
+    }
+    $html .= '</p></div></section></article>';
+    return $html;
 }
 
 /** Collect tariff items from catalog category. */
 function nvx_strategy_collect_tariff_items( array $catalog, string $category, array $keys, string $suffix = '' ): array {
-	$items = array();
-	foreach ( $keys as $key ) {
-		if ( isset( $catalog[ $category ][ $key ] ) ) {
-			$item    = $catalog[ $category ][ $key ];
-			$label   = $item['label'] . ( '' !== $suffix ? ' ' . $suffix : '' );
-			$items[] = array(
-				'label' => $label,
-				'price' => nvx_format_price_eur( $item['pvp'] ) . ' €',
-			);
-		}
-	}
-	return $items;
+    $items = array();
+    foreach ( $keys as $key ) {
+        if ( isset( $catalog[ $category ][ $key ] ) ) {
+            $item    = $catalog[ $category ][ $key ];
+            $label   = $item['label'] . ( '' !== $suffix ? ' ' . $suffix : '' );
+            $items[] = array(
+                'label' => $label,
+                'price' => nvx_format_price_eur( $item['pvp'] ) . ' €',
+            );
+        }
+    }
+    return $items;
 }
 
 /** Groups available clinical tariffs by treatment category. */
 function nvx_strategy_verified_investment_groups(): array {
-	if ( ! function_exists( 'nvx_tariff_catalog' ) || ! function_exists( 'nvx_format_price_eur' ) ) {
-		return array();
-	}
+    if ( ! function_exists( 'nvx_tariff_catalog' ) || ! function_exists( 'nvx_format_price_eur' ) ) {
+        return array();
+    }
 
-	$catalog = nvx_tariff_catalog();
-	$groups  = array();
+    $catalog = nvx_tariff_catalog();
+    $groups  = array();
 
-	$facial_keys       = array( 'ojeras', 'papada', 'marcacion_mandibular', 'pomulos', 'cuello' );
-	$facial_combo_keys = array( 'papada_cuello', 'marcacion_papada', 'full_face' );
+    $facial_keys       = array( 'ojeras', 'papada', 'marcacion_mandibular', 'pomulos', 'cuello' );
+    $facial_combo_keys = array( 'papada_cuello', 'marcacion_papada', 'full_face' );
 
-	$groups['endolift_facial'] = array_merge(
-		nvx_strategy_collect_tariff_items( $catalog, 'endolift', $facial_keys ),
-		nvx_strategy_collect_tariff_items( $catalog, 'endolift_combo', $facial_combo_keys, '(zona combinada)' )
-	);
+    $groups['endolift_facial'] = array_merge(
+        nvx_strategy_collect_tariff_items( $catalog, 'endolift', $facial_keys ),
+        nvx_strategy_collect_tariff_items( $catalog, 'endolift_combo', $facial_combo_keys, '(zona combinada)' )
+    );
 
-	$corporal_keys       = array( 'abdomen', 'flancos', 'brazos', 'cartucheras', 'subgluteos', 'muslos_internos', 'subescapular', 'rodillas' );
-	$corporal_combo_keys = array( 'abdomen_flancos', 'subgluteos_cartucheras', 'muslos_rodilla', 'sujetador_brazos', 'cartucheras_muslos', 'cartucheras_subgluteos_muslos' );
+    $corporal_keys       = array( 'abdomen', 'flancos', 'brazos', 'cartucheras', 'subgluteos', 'muslos_internos', 'subescapular', 'rodillas' );
+    $corporal_combo_keys = array( 'abdomen_flancos', 'subgluteos_cartucheras', 'muslos_rodilla', 'sujetador_brazos', 'cartucheras_muslos', 'cartucheras_subgluteos_muslos' );
 
-	$groups['endolift_corporal'] = array_merge(
-		nvx_strategy_collect_tariff_items( $catalog, 'endolift', $corporal_keys ),
-		nvx_strategy_collect_tariff_items( $catalog, 'endolift_combo', $corporal_combo_keys, '(zona combinada)' )
-	);
+    $groups['endolift_corporal'] = array_merge(
+        nvx_strategy_collect_tariff_items( $catalog, 'endolift', $corporal_keys ),
+        nvx_strategy_collect_tariff_items( $catalog, 'endolift_combo', $corporal_combo_keys, '(zona combinada)' )
+    );
 
-	$groups['laser_co2'] = nvx_strategy_collect_tariff_items( $catalog, 'laser_co2', array( 'facial', 'corporal' ) );
+    $groups['laser_co2'] = nvx_strategy_collect_tariff_items( $catalog, 'laser_co2', array( 'facial', 'corporal' ) );
 
-	return $groups;
+    return $groups;
 }
 
 /** Returns a flat tariff list for backward-compatible callers. */
 function nvx_strategy_verified_investment_rows(): array {
-	$rows = array();
-	foreach ( nvx_strategy_verified_investment_groups() as $group ) {
-		foreach ( $group as $row ) {
-			$rows[] = $row;
-		}
-	}
-	return $rows;
+    $rows = array();
+    foreach ( nvx_strategy_verified_investment_groups() as $group ) {
+        foreach ( $group as $row ) {
+            $rows[] = $row;
+        }
+    }
+    return $rows;
 }
 
 /** Renders one price-table section for a group of tariff rows. */
 function nvx_strategy_investment_table_section( string $heading, array $rows ): string {
-	if ( empty( $rows ) ) {
-		return '';
-	}
+    if ( empty( $rows ) ) {
+        return '';
+    }
 
-	$html  = '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
-	$html .= '<h2>' . esc_html( $heading ) . '</h2>';
-	$html .= '<p>Las filas muestran el procedimiento técnico y su PVP con IVA. La indicación, el alcance exacto, los cuidados y el seguimiento se documentan en el presupuesto individual.</p>';
-	$html .= '<div class="nvx-editorial-price-table-wrap"><table class="nvx-editorial-price-table">';
-	$html .= '<thead><tr><th scope="col">Procedimiento</th><th scope="col">PVP con IVA</th></tr></thead><tbody>';
-	foreach ( $rows as $row ) {
-		$html .= '<tr><td>' . esc_html( $row['label'] ) . '</td><td>' . esc_html( $row['price'] ) . '</td></tr>';
-	}
-	$html .= '</tbody></table></div></div></section>';
-	return $html;
+    $html  = '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
+    $html .= '<h2>' . esc_html( $heading ) . '</h2>';
+    $html .= '<p>Las filas muestran el procedimiento técnico y su PVP con IVA. La indicación, el alcance exacto, los cuidados y el seguimiento se documentan en el presupuesto individual.</p>';
+    $html .= '<div class="nvx-editorial-price-table-wrap"><table class="nvx-editorial-price-table">';
+    $html .= '<thead><tr><th scope="col">Procedimiento</th><th scope="col">PVP con IVA</th></tr></thead><tbody>';
+    foreach ( $rows as $row ) {
+        $html .= '<tr><td>' . esc_html( $row['label'] ) . '</td><td>' . esc_html( $row['price'] ) . '</td></tr>';
+    }
+    $html .= '</tbody></table></div></div></section>';
+    return $html;
 }
 
 /**
@@ -203,81 +203,81 @@ function nvx_strategy_investment_table_section( string $heading, array $rows ): 
  * @return string The generated investment page HTML.
  */
 function nvx_strategy_investment_markup(): string {
-	$val_url       = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : NVX_PATH_VALORACION;
-	$groups        = nvx_strategy_verified_investment_groups();
-	$valuation_url = esc_url( home_url( $val_url ) );
+    $val_url       = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : NVX_PATH_VALORACION;
+    $groups        = nvx_strategy_verified_investment_groups();
+    $valuation_url = esc_url( home_url( $val_url ) );
 
-	$html  = '<article class="nvx-brand-page nvx-strategy-page">';
-	$html .= '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero"><div class="nvx-brand-hero__inner"><div class="nvx-editorial-hero__copy">';
-	$html .= '<p class="nvx-eyebrow">Inversión en medicina estética · NUVANX Madrid</p>';
-	$html .= '<h1 class="nvx-heading">El presupuesto forma parte de una decisión informada.</h1>';
-	$html .= '<p class="nvx-lead">Publicamos tarifas verificadas porque respetamos tu tiempo. La indicación, el alcance exacto y el importe final se confirman después de la valoración médica presencial.</p>';
-	$html .= '</div></div></section>';
+    $html  = '<article class="nvx-brand-page nvx-strategy-page">';
+    $html .= '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero"><div class="nvx-brand-hero__inner"><div class="nvx-editorial-hero__copy">';
+    $html .= '<p class="nvx-eyebrow">Inversión en medicina estética · NUVANX Madrid</p>';
+    $html .= '<h1 class="nvx-heading">El presupuesto forma parte de una decisión informada.</h1>';
+    $html .= '<p class="nvx-lead">Publicamos tarifas verificadas porque respetamos tu tiempo. La indicación, el alcance exacto y el importe final se confirman después de la valoración médica presencial.</p>';
+    $html .= '</div></div></section>';
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Cómo leer estas tarifas</h2>';
-	$html .= '<p>Una tarifa orientativa permite anticipar el orden de inversión, pero no sustituye la exploración. Dos personas que consultan por la misma zona pueden necesitar tecnologías, combinaciones y seguimientos diferentes.</p>';
-	$html .= '</div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Cómo leer estas tarifas</h2>';
+    $html .= '<p>Una tarifa orientativa permite anticipar el orden de inversión, pero no sustituye la exploración. Dos personas que consultan por la misma zona pueden necesitar tecnologías, combinaciones y seguimientos diferentes.</p>';
+    $html .= '</div></section>';
 
-	if ( ! empty( $groups ) ) {
-		$group_labels = array(
-			'endolift_facial'   => 'Endolift® facial — zonas y combinaciones',
-			'endolift_corporal' => 'Endolift® corporal — zonas y combinaciones',
-			'laser_co2'         => 'Láser CO₂ fraccionado',
-		);
-		foreach ( $group_labels as $key => $label ) {
-			if ( ! empty( $groups[ $key ] ) ) {
-				$html .= nvx_strategy_investment_table_section( $label, $groups[ $key ] );
-			}
-		}
-	} else {
-		$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><p>Las tarifas verificadas se mostrarán cuando estén disponibles en el catálogo clínico vigente.</p></div></section>';
-	}
+    if ( ! empty( $groups ) ) {
+        $group_labels = array(
+            'endolift_facial'   => 'Endolift® facial — zonas y combinaciones',
+            'endolift_corporal' => 'Endolift® corporal — zonas y combinaciones',
+            'laser_co2'         => 'Láser CO₂ fraccionado',
+        );
+        foreach ( $group_labels as $key => $label ) {
+            if ( ! empty( $groups[ $key ] ) ) {
+                $html .= nvx_strategy_investment_table_section( $label, $groups[ $key ] );
+            }
+        }
+    } else {
+        $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><p>Las tarifas verificadas se mostrarán cuando estén disponibles en el catálogo clínico vigente.</p></div></section>';
+    }
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Qué incluye siempre el plan en NUVANX</h2><ul class="nvx-check-list">';
-	$html .= '<li>Valoración médica previa y revisión de antecedentes relevantes</li>';
-	$html .= '<li>Explicación de la indicación, alternativas, límites y recuperación orientativa</li>';
-	$html .= '<li>Protocolo anestésico cuando corresponde al procedimiento</li>';
-	$html .= '<li>Presupuesto detallado con justificación clínica documentada antes de iniciar</li>';
-	$html .= '<li>Indicaciones de cuidados y canal de seguimiento según el plan</li>';
-	$html .= '</ul>';
-	$html .= '<p>Otras zonas, procedimientos de medicina estética facial y combinaciones no listadas requieren exploración, indicación y presupuesto individualizado.</p></div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Qué incluye siempre el plan en NUVANX</h2><ul class="nvx-check-list">';
+    $html .= '<li>Valoración médica previa y revisión de antecedentes relevantes</li>';
+    $html .= '<li>Explicación de la indicación, alternativas, límites y recuperación orientativa</li>';
+    $html .= '<li>Protocolo anestésico cuando corresponde al procedimiento</li>';
+    $html .= '<li>Presupuesto detallado con justificación clínica documentada antes de iniciar</li>';
+    $html .= '<li>Indicaciones de cuidados y canal de seguimiento según el plan</li>';
+    $html .= '</ul>';
+    $html .= '<p>Otras zonas, procedimientos de medicina estética facial y combinaciones no listadas requieren exploración, indicación y presupuesto individualizado.</p></div></section>';
 
-	$html .= '<section class="nvx-editorial-section nvx-strategy-checklist nvx-strategy-checklist--no"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Qué no encontrarás aquí</h2><ul class="nvx-check-list nvx-check-list--no">';
-	$html .= '<li>Un precio final asignado sin conocer la anatomía ni los antecedentes</li>';
-	$html .= '<li>Bonos genéricos presentados como solución para diagnósticos distintos</li>';
-	$html .= '<li>Urgencia artificial para reservar durante la consulta</li>';
-	$html .= '<li>Una promoción utilizada para cambiar la indicación clínica</li>';
-	$html .= '</ul></div></section>';
+    $html .= '<section class="nvx-editorial-section nvx-strategy-checklist nvx-strategy-checklist--no"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Qué no encontrarás aquí</h2><ul class="nvx-check-list nvx-check-list--no">';
+    $html .= '<li>Un precio final asignado sin conocer la anatomía ni los antecedentes</li>';
+    $html .= '<li>Bonos genéricos presentados como solución para diagnósticos distintos</li>';
+    $html .= '<li>Urgencia artificial para reservar durante la consulta</li>';
+    $html .= '<li>Una promoción utilizada para cambiar la indicación clínica</li>';
+    $html .= '</ul></div></section>';
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Sobre los precios en medicina estética en Madrid</h2>';
-	$html .= '<p>Las diferencias pueden responder al alcance del diagnóstico, la experiencia del profesional, la tecnología indicada, el material utilizado y el seguimiento incluido. La comparación debe hacerse sobre planes equivalentes y documentados por escrito.</p>';
-	$html .= '<p>Lo que te preocupa hoy no va a estar mejor por esperar a una oferta. Por eso no jugamos con eso.</p>';
-	$html .= '</div></section>';
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Sobre los precios en medicina estética en Madrid</h2>';
+    $html .= '<p>Las diferencias pueden responder al alcance del diagnóstico, la experiencia del profesional, la tecnología indicada, el material utilizado y el seguimiento incluido. La comparación debe hacerse sobre planes equivalentes y documentados por escrito.</p>';
+    $html .= '<p>Lo que te preocupa hoy no va a estar mejor por esperar a una oferta. Por eso no jugamos con eso.</p>';
+    $html .= '</div></section>';
 
-	$html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Inicia tu valoración médica</h2>';
-	$html .= '<p>La consulta permite confirmar si existe indicación, definir el procedimiento y entregar un presupuesto individualizado.</p>';
-	$html .= '<p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a></p></div></section>';
-	$html .= '</article>';
-	return $html;
+    $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Inicia tu valoración médica</h2>';
+    $html .= '<p>La consulta permite confirmar si existe indicación, definir el procedimiento y entregar un presupuesto individualizado.</p>';
+    $html .= '<p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a></p></div></section>';
+    $html .= '</article>';
+    return $html;
 }
 
 /** Generates the page markup for a supported strategy route. */
 function nvx_strategy_page_markup( string $key ): string {
-	if ( 'why_nuvanx' === $key ) {
-		return nvx_strategy_why_nuvanx_markup();
-	}
-	if ( 'investment' === $key ) {
-		return nvx_strategy_investment_markup();
-	}
-	return '';
+    if ( 'why_nuvanx' === $key ) {
+        return nvx_strategy_why_nuvanx_markup();
+    }
+    if ( 'investment' === $key ) {
+        return nvx_strategy_investment_markup();
+    }
+    return '';
 }
 
 /** Replaces the current strategy page content with generated markup. */
 function nvx_strategy_page_content_filter( string $content ): string {
-	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
-		return $content;
-	}
-	$key = nvx_strategy_current_page_key();
-	return null === $key ? $content : nvx_strategy_page_markup( $key );
+    if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
+        return $content;
+    }
+    $key = nvx_strategy_current_page_key();
+    return null === $key ? $content : nvx_strategy_page_markup( $key );
 }
 add_filter( 'the_content', 'nvx_strategy_page_content_filter', 82 );

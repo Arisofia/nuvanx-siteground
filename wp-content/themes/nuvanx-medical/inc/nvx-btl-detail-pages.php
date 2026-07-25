@@ -16,17 +16,17 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
  * Singular page context.
  */
 function nvxBtlDetailIsSingular(): bool {
-	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-		return false;
-	}
-	return is_singular( 'page' ) || is_page();
+    if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+        return false;
+    }
+    return is_singular( 'page' ) || is_page();
 }
 
 /**
@@ -36,262 +36,262 @@ function nvxBtlDetailIsSingular(): bool {
  * @return array<string, array<string, mixed>>
  */
 function nvxBtlDetailRegistryExion( string $hub ): array {
-	return array(
-		'exion-face'       => array(
-			'path'         => '/exion-face/',
-			'key'          => 'exion_face',
-			'kicker'       => __( 'EXION® Face · NUVANX Madrid', 'nuvanx-medical' ),
-			'h1'           => __( 'EXION® Face en Madrid: radiofrecuencia y ultrasonido', 'nuvanx-medical' ),
-			'lead'         => __( 'Aplicador de radiofrecuencia y ultrasonido para protocolos de calidad cutánea cuando existe indicación médica. La elección valora zona, tipo de piel, antecedentes y expectativas.', 'nuvanx-medical' ),
-			'meta'         => __( 'Chamberí · Goya · Indicación médica personalizada', 'nuvanx-medical' ),
-			'aria'         => __( 'EXION Face NUVANX', 'nuvanx-medical' ),
-			'marker'       => 'nvx-exion-face',
-			'yoast_title'  => 'EXION® Face en Madrid | RF y ultrasonido | NUVANX',
-			'yoast_desc'   => 'EXION® Face en Madrid: radiofrecuencia y ultrasonido para protocolos de calidad cutánea según valoración médica. Chamberí y Salamanca–Goya.',
-			'focuskw'      => 'EXION Face Madrid',
-			'hub'          => $hub,
-			'combo'        => '',
-			'schema_name'  => 'EXION® Face en Madrid',
-			'schema_type'  => 'Protocolo médico facial con EXION® Face (RF monopolar + ultrasonido)',
-			'schema_desc'  => 'Tratamiento médico de calidad de piel facial con plataforma EXION® Face: hipertermia controlada y ultrasonido terapéutico. Indicación tras valoración en NUVANX Madrid.',
-			'mechanism'    => array(
-				'title' => __( 'Cómo funciona EXION® Face: doble acción biomecánica', 'nuvanx-medical' ),
-				'body'  => array(
-					nvx_btl_claim( 'exion_face_mech_intro' ),
-					nvx_btl_claim( 'exion_face_ha_224' ),
-				),
-				'items' => array(
-					array(
-						'title' => __( 'Radiofrecuencia monopolar (~40–42 °C en dermis)', 'nuvanx-medical' ),
-						'body'  => __( 'Busca hipertermia controlada y reversible: activación de vías de estrés adaptativo (p. ej. HSPs), señalización de síntesis de matriz y aporte energético celular. Objetivo: remodelado de colágeno de calidad, no cicatricial. El rango térmico es orientativo de protocolo, no una temperatura universal en cada paciente.', 'nuvanx-medical' ),
-					),
-					array(
-						'title' => __( 'Ultrasonido dirigido (TUS)', 'nuvanx-medical' ),
-						'body'  => __( 'Mecanoestimulación no invasiva que complementa la RF: favorece cascadas de señalización en fibroblastos y síntesis de matriz (ácido hialurónico, colágeno, elastina) sin el perfil de cavitación de ultrasonidos de alto poder. Se usa como estímulo, no como trauma controlado.', 'nuvanx-medical' ),
-					),
-				),
-			),
-			'indications'  => array(
-				array( 'title' => __( 'Envejecimiento cronológico leve–moderado', 'nuvanx-medical' ), 'body' => __( 'Pérdida progresiva de densidad y turgencia. EXION Face puede contribuir a redensificar la dermis cuando el diagnóstico apunta a déficit de matriz más que a exceso de grasa o ptosis severa.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Deshidratación y piel apagada', 'nuvanx-medical' ), 'body' => __( 'Cuando se busca mejorar hidratación y luminosidad vía estimulación de matriz endógena, con buena tolerancia en pieles sensibles según valoración.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Pérdida de volumen incipiente (sin ptosis severa)', 'nuvanx-medical' ), 'body' => __( 'No es un relleno inyectable ni un lifting. Puede ayudar a la redensificación cuando el “deshinchado” es principalmente de matriz, no de defecto estructural profundo.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Poros y textura irregular', 'nuvanx-medical' ), 'body' => __( 'El remodelado de colágeno y la mejora de compactación pueden refinar apariencia de poro y textura; en cicatrices profundas se valora Fractional RF o CO₂.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Antecedentes de tratamientos energéticos', 'nuvanx-medical' ), 'body' => __( 'Tras un tratamiento energético previo se reevalúan volumen, textura, sensibilidad y objetivo antes de indicar un nuevo protocolo.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Mantenimiento well-aging', 'nuvanx-medical' ), 'body' => __( 'Series de sesiones y mantenimiento según respuesta; combinable con EMFUSION® o inductores cuando el médico lo indique.', 'nuvanx-medical' ) ),
-			),
-			'compare'      => array(
-				'title' => __( 'Cómo se selecciona un protocolo de calidad cutánea', 'nuvanx-medical' ),
-				'body'  => nvx_btl_claim( 'exion_face_compare' ),
-				'link'  => '',
-				'label' => '',
-			),
-			'process'      => array(
-				array(
-					'title' => __( 'Valoración y procedimiento', 'nuvanx-medical' ),
-					'body'  => __( 'Se revisan fototipo, grasa facial, antecedentes de tratamientos, sensibilidad y expectativas. La técnica, el confort y los cuidados se explican según el protocolo indicado.', 'nuvanx-medical' ),
-				),
-				array(
-					'title' => __( 'Sesiones orientativas', 'nuvanx-medical' ),
-					'body'  => __( 'Piel media 35–50 años: a menudo 3 sesiones (~4 semanas). Envejecimiento moderado: 4–5. Daño solar avanzado: valorar 5–6 o combinación (p. ej. EMFUSION®). Mantenimiento: 1 sesión cada 12–18 meses según respuesta. El número final lo decide el médico.', 'nuvanx-medical' ),
-				),
-				array(
-					'title' => __( 'Cuidados posteriores', 'nuvanx-medical' ),
-					'body'  => __( 'Hidratación habitual. Primeras 48 h: evitar sauna y calor intenso. Fotoprotección SPF 30+. Evitar exfoliación mecánica agresiva ~7 días. Presupuesto cerrado tras indicación.', 'nuvanx-medical' ),
-				),
-				array(
-					'title' => __( 'Contraindicaciones relativas', 'nuvanx-medical' ),
-					'body'  => __( 'Implantes metálicos faciales relevantes, embarazo/lactancia (precisión clínica), fármacos fotosensibles de alto impacto, infecciones activas de piel. Fototipos altos: perfil habitualmente favorable; la indicación es siempre médica.', 'nuvanx-medical' ),
-				),
-			),
-			'faqs'         => array(
-				array(
-					'q' => __( '¿Qué datos se revisan antes de indicar EXION Face?', 'nuvanx-medical' ),
-					'a' => __( 'Se revisan calidad de piel, anatomía, antecedentes, objetivo, contraindicaciones y período de recuperación aceptable. Los datos técnicos no se presentan como una promesa de resultado individual.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Qué antecedentes deben revisarse?', 'nuvanx-medical' ),
-					'a' => __( 'Tratamientos previos, sensibilidad, cambios de volumen, cicatrices, medicación y objetivos ayudan a decidir si procede un protocolo energético o una alternativa.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Cuántas sesiones necesito?', 'nuvanx-medical' ),
-					'a' => __( 'Depende de edad, calidad basal y objetivo. Rangos orientativos: 3 sesiones en piel media; 4–5 en envejecimiento moderado; más o combinado en daño solar severo. Mantenimiento cada 12–18 meses según evolución. No hay un número fijo “para todos”.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Es seguro en fototipos altos?', 'nuvanx-medical' ),
-					'a' => __( 'Al trabajar con microtemperaturas controladas, el perfil inflamatorio puede diferir del de picos térmicos altos. El riesgo de PIH depende de fototipo, parámetros y cuidados: no se garantiza “cero PIH”; sí se planifica con criterio médico.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Duele?', 'nuvanx-medical' ),
-					'a' => __( 'La sensación depende de la zona, los parámetros y la sensibilidad individual. Antes de empezar se explica el protocolo de confort y cómo comunicar cualquier molestia.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Puedo combinarlo con toxina o rellenos?', 'nuvanx-medical' ),
-					'a' => __( 'Sí, con secuencia médica. EXION Face no sustituye automáticamente a rellenos: mejora matriz e hidratación; el déficit estructural puede seguir requiriendo inductores o HA inyectable. El orden e intervalos se definen en valoración.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Cuándo se ven resultados?', 'nuvanx-medical' ),
-					'a' => __( 'La respuesta es progresiva (semanas), no “antes/después del mismo día”. Los hitos de 2–12 semanas son orientativos y dependen del protocolo y de la biología individual.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Puedo hacerlo en verano?', 'nuvanx-medical' ),
-					'a' => __( 'En muchos casos sí, con fotoprotección rigurosa. Se individualiza según fototipo, exposición y otros tratamientos concurrentes.', 'nuvanx-medical' ),
-				),
-			),
-		),
-		'exion-body'       => array(
-			'path'         => '/exion-body/',
-			'key'          => 'exion_body',
-			'kicker'       => __( 'EXION® Body · NUVANX Madrid', 'nuvanx-medical' ),
-			'h1'           => __( 'EXION® Body en Madrid: contorno corporal y calidad cutánea', 'nuvanx-medical' ),
-			'lead'         => __( 'Radiofrecuencia monopolar con refrigeración activa para protocolos de contorno corporal y calidad cutánea cuando el diagnóstico lo permite.', 'nuvanx-medical' ),
-			'meta'         => __( 'Chamberí · Goya · Contorno corporal con criterio médico', 'nuvanx-medical' ),
-			'aria'         => __( 'EXION Body NUVANX', 'nuvanx-medical' ),
-			'marker'       => 'nvx-exion-body',
-			'yoast_title'  => 'EXION® Body Madrid | Contorno corporal y firmeza | NUVANX',
-			'yoast_desc'   => 'EXION® Body en Madrid: RF monopolar con refrigeración activa para laxitud y contorno corporal según valoración médica.',
-			'focuskw'      => 'EXION Body Madrid',
-			'hub'          => $hub,
-			'combo'        => home_url( '/endolaser-corporal-grasa-localizada/' ),
-			'schema_name'  => 'EXION® Body en Madrid',
-			'schema_type'  => 'Protocolo médico de contorno corporal con EXION® Body',
-			'schema_desc'  => 'Tratamiento de laxitud y remodelado de contorno corporal con EXION® Body en NUVANX Madrid tras valoración clínica.',
-			'mechanism'    => array(
-				'title' => __( 'Cómo funciona EXION® Body', 'nuvanx-medical' ),
-				'body'  => array(
-					__( 'Combina radiofrecuencia monopolar con refrigeración de superficie para entregar energía en tejido subcutáneo y dermis profunda sin generar trauma epidérmico innecesario.', 'nuvanx-medical' ),
-					__( 'En áreas de grasa localizada leve con laxitud asociada, permite modular temperatura para inducir respuesta térmica en adipocitos y estimular colágeno simultáneamente.', 'nuvanx-medical' ),
-					__( 'No sustituye a Endoláser ni a una liposucción en depósitos adiposos voluminosos; su indicación principal es flacidez corporal y depósitos moderados.', 'nuvanx-medical' ),
-				),
-			),
-			'indications'  => array(
-				array( 'title' => __( 'Laxitud corporal post-embarazo o bajada de peso', 'nuvanx-medical' ), 'body' => __( 'Abdomen, flancos y cara interna de muslos donde la piel ha perdido turgencia.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Grasa localizada leve a moderada', 'nuvanx-medical' ), 'body' => __( 'Zona del sujetador, pliegue axilar o banana subglútea con componente mixto (grasa + piel).', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Mantenimiento de contorno corporal', 'nuvanx-medical' ), 'body' => __( 'Consolidación de resultados tras protocolos combinados o mantenimiento anual.', 'nuvanx-medical' ) ),
-			),
-			'compare'      => array(
-				'title' => __( 'Cómo elegir entre RF corporal y Endoláser', 'nuvanx-medical' ),
-				'body'  => __( 'Endoláser actúa por fibra óptica subcutánea (mínimamente invasivo) para depósitos grasos específicos. EXION Body es un tratamiento de superficie/contacto continuo no invasivo. La valoración determina cuál procede o si se combinan.', 'nuvanx-medical' ),
-				'link'  => home_url( '/endolaser-corporal-grasa-localizada/' ),
-				'label' => __( 'Ver protocolo Endoláser corporal', 'nuvanx-medical' ),
-			),
-			'process'      => array(
-				array(
-					'title' => __( 'Evaluación anatómica', 'nuvanx-medical' ),
-					'body'  => __( 'Medición de pliegue cutáneo, grado de flacidez y descarte de hernia o contraindicaciones vasculares.', 'nuvanx-medical' ),
-				),
-				array(
-					'title' => __( 'Plan de sesiones', 'nuvanx-medical' ),
-					'body'  => __( 'Típicamente 4–6 sesiones espaciadas de 1 a 2 semanas según zona y respuesta tisular.', 'nuvanx-medical' ),
-				),
-				array(
-					'title' => __( 'Cuidados posteriores', 'nuvanx-medical' ),
-					'body'  => __( 'Hidratación intensa, ingesta de agua adecuada y actividad física habitual sin reposo especial.', 'nuvanx-medical' ),
-				),
-			),
-			'faqs'         => array(
-				array( 'q' => __( '¿Requiere anestesia?', 'nuvanx-medical' ), 'a' => __( 'No. La refrigeración de contacto mantiene el confort térmico en superficie durante la entrega de energía.', 'nuvanx-medical' ) ),
-				array( 'q' => __( '¿Cuándo puedo volver al trabajo?', 'nuvanx-medical' ), 'a' => __( 'De inmediato. Puede existir eritema leve que remite en pocas horas.', 'nuvanx-medical' ) ),
-			),
-		),
-		'exion-fractional' => array(
-			'path'         => '/exion-fractional/',
-			'key'          => 'exion_fractional',
-			'kicker'       => __( 'EXION® Fractional RF · NUVANX Madrid', 'nuvanx-medical' ),
-			'h1'           => __( 'EXION® Fractional RF en Madrid: arrugas profundas, cicatrices y textura', 'nuvanx-medical' ),
-			'lead'         => __( 'Radiofrecuencia fraccionada con microagujas y control de impedancia para protocolos de textura, poros y cicatrices según diagnóstico y fototipo.', 'nuvanx-medical' ),
-			'meta'         => __( 'Chamberí · Goya · Textura y remodelado dérmico', 'nuvanx-medical' ),
-			'aria'         => __( 'EXION Fractional NUVANX', 'nuvanx-medical' ),
-			'marker'       => 'nvx-exion-fractional',
-			'yoast_title'  => 'EXION Fractional RF Madrid | Textura y cicatrices | NUVANX',
-			'yoast_desc'   => 'EXION® Fractional RF en Madrid: microagujas con control de impedancia para textura, poros y cicatrices según diagnóstico y fototipo.',
-			'focuskw'      => 'EXION Fractional Madrid',
-			'hub'          => $hub,
-			'combo'        => '',
-			'schema_name'  => 'EXION® Fractional RF en Madrid',
-			'schema_type'  => 'Protocolo de radiofrecuencia fraccionada EXION®',
-			'schema_desc'  => 'Remodelado de textura y dermis con EXION® Fractional RF en NUVANX Madrid tras valoración médica.',
-			'mechanism'    => array(
-				'title' => __( 'Cómo funciona EXION® Fractional RF', 'nuvanx-medical' ),
-				'body'  => array(
-					__( 'Emite radiofrecuencia a través de microagujas con control de entrega energética. El sistema incorpora feedback de impedancia para ajustar la coagulación al tejido real, no solo a un número fijo de pasadas “por si acaso”.', 'nuvanx-medical' ),
-					__( 'Agujas más cortas con proyección térmica extendida permiten alcanzar profundidad de trabajo relevante reduciendo trauma mecánico superficial respecto a protocolos de aguja larga multipasada.', 'nuvanx-medical' ),
-					__( 'Objetivo clínico: coagulación controlada de colágeno y renovación de textura (poros, cicatrices superficiales, arrugas finas) con plan de sesiones realista.', 'nuvanx-medical' ),
-				),
-			),
-			'indications'  => array(
-				array( 'title' => __( 'Textura y poro', 'nuvanx-medical' ), 'body' => __( 'Piel irregular, poro dilatado y falta de refinamiento óptico cuando no basta un peeling superficial.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Cicatrices de acné leves–moderadas', 'nuvanx-medical' ), 'body' => __( 'En atróficas profundas puede combinarse o priorizarse CO₂ fraccionado según profundidad y fototipo.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Arrugas finas y flacidez local', 'nuvanx-medical' ), 'body' => __( 'Remodelado dérmico progresivo; no sustituye un lifting cuando la ptosis es estructural.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Pacientes que no toleran multipasada agresiva', 'nuvanx-medical' ), 'body' => __( 'Historial de RF fraccionada con hematomas prolongados o abandono por dolor: se reevalúa energía y número de pases.', 'nuvanx-medical' ) ),
-			),
-			'compare'      => array(
-				'title' => __( 'Cómo se selecciona la radiofrecuencia fraccionada', 'nuvanx-medical' ),
-				'body'  => __( 'La selección considera objetivo, calidad de piel, profundidad, fototipo, tolerancia y período de recuperación aceptable. La indicación se define por diagnóstico, no por una marca.', 'nuvanx-medical' ),
-				'link'  => '',
-				'label' => '',
-			),
-			'process'      => array(
-				__( 'Mapa de zonas, fototipo y objetivo (textura vs cicatriz vs firmeza).', 'nuvanx-medical' ),
-				__( 'Sesiones según severidad (a menudo 2–4). Intervalos definidos en consulta.', 'nuvanx-medical' ),
-				__( 'Downtime típico: eritema 12–48 h según energía; se explica antes de firmar el plan.', 'nuvanx-medical' ),
-				__( 'Puede integrarse en protocolos combinados con Face o EMFUSION®.', 'nuvanx-medical' ),
-			),
-			'faqs'         => array(
-				array( 'q' => __( '¿Es lo mismo que un láser CO₂?', 'nuvanx-medical' ), 'a' => __( 'No. El CO₂ vaporiza columnas de tejido (ablativo). Fractional RF coagula por calor con microagujas; downtime y profundidad se eligen distinto.', 'nuvanx-medical' ) ),
-				array( 'q' => __( '¿Cuántas pasadas?', 'nuvanx-medical' ), 'a' => __( 'El diseño single-pass reduce pasadas innecesarias cuando el feedback de tejido es adecuado; el médico puede modular según zona.', 'nuvanx-medical' ) ),
-				array( 'q' => __( '¿Anestesia?', 'nuvanx-medical' ), 'a' => __( 'Según energía y zona: tópica o protocolo de confort definido en valoración.', 'nuvanx-medical' ) ),
-			),
-		),
-		'emfusion'         => array(
-			'path'         => '/emfusion/',
-			'key'          => 'emfusion',
-			'kicker'       => __( 'EMFUSION® · NUVANX Madrid', 'nuvanx-medical' ),
-			'h1'           => __( 'EMFUSION® en Madrid: hidratación profunda y luminosidad cutánea', 'nuvanx-medical' ),
-			'lead'         => __( 'Tecnología DYNAMiQ™ de microcanales acústicos para apoyar la aplicación de activos, la hidratación y la barrera cutánea cuando existe indicación médica.', 'nuvanx-medical' ),
-			'meta'         => __( 'Chamberí · Goya · Well-aging y piel sensible', 'nuvanx-medical' ),
-			'aria'         => __( 'EMFUSION NUVANX', 'nuvanx-medical' ),
-			'marker'       => 'nvx-emfusion',
-			'yoast_title'  => 'EMFUSION Madrid | Barrera cutánea e infusión | NUVANX',
-			'yoast_desc'   => 'EMFUSION® en Madrid: microcanales acústicos DYNAMiQ™ para hidratación y apoyo a la barrera cutánea según valoración médica.',
-			'focuskw'      => 'EMFUSION Madrid',
-			'hub'          => $hub,
-			'combo'        => '',
-			'schema_name'  => 'EMFUSION® en Madrid',
-			'schema_type'  => 'Protocolo de infusión cutánea EMFUSION®',
-			'schema_desc'  => 'Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.',
-			'mechanism'    => array(
-				'title' => __( 'Cómo funciona EMFUSION® (DYNAMiQ™)', 'nuvanx-medical' ),
-				'body'  => array(
-					__( 'Convierte energía en ondas mecánicas que generan microcanales temporales en la superficie cutánea, facilitando la aplicación de activos como ceramidas o ectoína según el protocolo indicado.', 'nuvanx-medical' ),
-					__( 'El objetivo no es “limpiar a presión”, sino apoyar la barrera y la hidratación cuando el diagnóstico muestra deshidratación, irritabilidad o necesidad de potenciar activos post-procedimiento.', 'nuvanx-medical' ),
-					__( 'Datos de referencia del fabricante describen reducciones relevantes de pérdida de agua transepidérmica en modelos evaluados; se contextualizan en consulta sin cifras mágicas personalizadas.', 'nuvanx-medical' ),
-				),
-			),
-			'indications'  => array(
-				array( 'title' => __( 'Piel deshidratada / barrera frágil', 'nuvanx-medical' ), 'body' => __( 'Tirantez, descamación fina o sensibilidad donde la succión agresiva empeora la barrera.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Rosácea y piel reactiva (seleccionada)', 'nuvanx-medical' ), 'body' => __( 'Solo tras filtrar contraindicaciones; protocolos “sensitive” con activos calmantes.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Post-EXION / post-láser', 'nuvanx-medical' ), 'body' => __( 'Fase de consolidación de hidratación y barrera dentro de protocolos combinados NUVANX.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Fotodaño superficial', 'nuvanx-medical' ), 'body' => __( 'Como adyuvante de calidad cutánea, no como sustituto de CO₂ o Fractional cuando hay cicatriz profunda.', 'nuvanx-medical' ) ),
-			),
-			'compare'      => array(
-				'title' => __( 'Cómo se plantea el cuidado de la barrera cutánea', 'nuvanx-medical' ),
-				'body'  => __( 'La selección valora hidratación, sensibilidad, inflamación, activos compatibles y tratamientos previos. El objetivo y el protocolo se deciden después de la exploración.', 'nuvanx-medical' ),
-				'link'  => '',
-				'label' => '',
-			),
-			'process'      => array(
-				__( 'Valoración de barrera, inflamación y compatibilidad de activos.', 'nuvanx-medical' ),
-				__( 'Protocolos tipo Hydration / Regeneration / Sensitive según caso.', 'nuvanx-medical' ),
-				__( 'Sesiones cortas; downtime habitual mínimo.', 'nuvanx-medical' ),
-				__( 'Frecuente como complemento de EXION Face o Fractional, no como monoterapia milagrosa.', 'nuvanx-medical' ),
-			),
-			'faqs'         => array(
-				array( 'q' => __( '¿Sustituye a un facial cosmético?', 'nuvanx-medical' ), 'a' => __( 'Es un procedimiento médico de infusión/barrera dentro de un plan; no es un “glow” de cabina sin diagnóstico.', 'nuvanx-medical' ) ),
-				array( 'q' => __( '¿Puedo maquillarme después?', 'nuvanx-medical' ), 'a' => __( 'Habitualmente sí en pocas horas; se indican cuidados según activos usados.', 'nuvanx-medical' ) ),
-				array( 'q' => __( '¿Duele?', 'nuvanx-medical' ), 'a' => __( 'Sensación de vibración/calor leve en la mayoría de pacientes; no comparable a multipasada con aguja larga.', 'nuvanx-medical' ) ),
-			),
-		),
-	);
+    return array(
+        'exion-face'       => array(
+            'path'         => '/exion-face/',
+            'key'          => 'exion_face',
+            'kicker'       => __( 'EXION® Face · NUVANX Madrid', 'nuvanx-medical' ),
+            'h1'           => __( 'EXION® Face en Madrid: radiofrecuencia y ultrasonido', 'nuvanx-medical' ),
+            'lead'         => __( 'Aplicador de radiofrecuencia y ultrasonido para protocolos de calidad cutánea cuando existe indicación médica. La elección valora zona, tipo de piel, antecedentes y expectativas.', 'nuvanx-medical' ),
+            'meta'         => __( 'Chamberí · Goya · Indicación médica personalizada', 'nuvanx-medical' ),
+            'aria'         => __( 'EXION Face NUVANX', 'nuvanx-medical' ),
+            'marker'       => 'nvx-exion-face',
+            'yoast_title'  => 'EXION® Face en Madrid | RF y ultrasonido | NUVANX',
+            'yoast_desc'   => 'EXION® Face en Madrid: radiofrecuencia y ultrasonido para protocolos de calidad cutánea según valoración médica. Chamberí y Salamanca–Goya.',
+            'focuskw'      => 'EXION Face Madrid',
+            'hub'          => $hub,
+            'combo'        => '',
+            'schema_name'  => 'EXION® Face en Madrid',
+            'schema_type'  => 'Protocolo médico facial con EXION® Face (RF monopolar + ultrasonido)',
+            'schema_desc'  => 'Tratamiento médico de calidad de piel facial con plataforma EXION® Face: hipertermia controlada y ultrasonido terapéutico. Indicación tras valoración en NUVANX Madrid.',
+            'mechanism'    => array(
+                'title' => __( 'Cómo funciona EXION® Face: doble acción biomecánica', 'nuvanx-medical' ),
+                'body'  => array(
+                    nvx_btl_claim( 'exion_face_mech_intro' ),
+                    nvx_btl_claim( 'exion_face_ha_224' ),
+                ),
+                'items' => array(
+                    array(
+                        'title' => __( 'Radiofrecuencia monopolar (~40–42 °C en dermis)', 'nuvanx-medical' ),
+                        'body'  => __( 'Busca hipertermia controlada y reversible: activación de vías de estrés adaptativo (p. ej. HSPs), señalización de síntesis de matriz y aporte energético celular. Objetivo: remodelado de colágeno de calidad, no cicatricial. El rango térmico es orientativo de protocolo, no una temperatura universal en cada paciente.', 'nuvanx-medical' ),
+                    ),
+                    array(
+                        'title' => __( 'Ultrasonido dirigido (TUS)', 'nuvanx-medical' ),
+                        'body'  => __( 'Mecanoestimulación no invasiva que complementa la RF: favorece cascadas de señalización en fibroblastos y síntesis de matriz (ácido hialurónico, colágeno, elastina) sin el perfil de cavitación de ultrasonidos de alto poder. Se usa como estímulo, no como trauma controlado.', 'nuvanx-medical' ),
+                    ),
+                ),
+            ),
+            'indications'  => array(
+                array( 'title' => __( 'Envejecimiento cronológico leve–moderado', 'nuvanx-medical' ), 'body' => __( 'Pérdida progresiva de densidad y turgencia. EXION Face puede contribuir a redensificar la dermis cuando el diagnóstico apunta a déficit de matriz más que a exceso de grasa o ptosis severa.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Deshidratación y piel apagada', 'nuvanx-medical' ), 'body' => __( 'Cuando se busca mejorar hidratación y luminosidad vía estimulación de matriz endógena, con buena tolerancia en pieles sensibles según valoración.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Pérdida de volumen incipiente (sin ptosis severa)', 'nuvanx-medical' ), 'body' => __( 'No es un relleno inyectable ni un lifting. Puede ayudar a la redensificación cuando el “deshinchado” es principalmente de matriz, no de defecto estructural profundo.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Poros y textura irregular', 'nuvanx-medical' ), 'body' => __( 'El remodelado de colágeno y la mejora de compactación pueden refinar apariencia de poro y textura; en cicatrices profundas se valora Fractional RF o CO₂.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Antecedentes de tratamientos energéticos', 'nuvanx-medical' ), 'body' => __( 'Tras un tratamiento energético previo se reevalúan volumen, textura, sensibilidad y objetivo antes de indicar un nuevo protocolo.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Mantenimiento well-aging', 'nuvanx-medical' ), 'body' => __( 'Series de sesiones y mantenimiento según respuesta; combinable con EMFUSION® o inductores cuando el médico lo indique.', 'nuvanx-medical' ) ),
+            ),
+            'compare'      => array(
+                'title' => __( 'Cómo se selecciona un protocolo de calidad cutánea', 'nuvanx-medical' ),
+                'body'  => nvx_btl_claim( 'exion_face_compare' ),
+                'link'  => '',
+                'label' => '',
+            ),
+            'process'      => array(
+                array(
+                    'title' => __( 'Valoración y procedimiento', 'nuvanx-medical' ),
+                    'body'  => __( 'Se revisan fototipo, grasa facial, antecedentes de tratamientos, sensibilidad y expectativas. La técnica, el confort y los cuidados se explican según el protocolo indicado.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'title' => __( 'Sesiones orientativas', 'nuvanx-medical' ),
+                    'body'  => __( 'Piel media 35–50 años: a menudo 3 sesiones (~4 semanas). Envejecimiento moderado: 4–5. Daño solar avanzado: valorar 5–6 o combinación (p. ej. EMFUSION®). Mantenimiento: 1 sesión cada 12–18 meses según respuesta. El número final lo decide el médico.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'title' => __( 'Cuidados posteriores', 'nuvanx-medical' ),
+                    'body'  => __( 'Hidratación habitual. Primeras 48 h: evitar sauna y calor intenso. Fotoprotección SPF 30+. Evitar exfoliación mecánica agresiva ~7 días. Presupuesto cerrado tras indicación.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'title' => __( 'Contraindicaciones relativas', 'nuvanx-medical' ),
+                    'body'  => __( 'Implantes metálicos faciales relevantes, embarazo/lactancia (precisión clínica), fármacos fotosensibles de alto impacto, infecciones activas de piel. Fototipos altos: perfil habitualmente favorable; la indicación es siempre médica.', 'nuvanx-medical' ),
+                ),
+            ),
+            'faqs'         => array(
+                array(
+                    'q' => __( '¿Qué datos se revisan antes de indicar EXION Face?', 'nuvanx-medical' ),
+                    'a' => __( 'Se revisan calidad de piel, anatomía, antecedentes, objetivo, contraindicaciones y período de recuperación aceptable. Los datos técnicos no se presentan como una promesa de resultado individual.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'q' => __( '¿Qué antecedentes deben revisarse?', 'nuvanx-medical' ),
+                    'a' => __( 'Tratamientos previos, sensibilidad, cambios de volumen, cicatrices, medicación y objetivos ayudan a decidir si procede un protocolo energético o una alternativa.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'q' => __( '¿Cuántas sesiones necesito?', 'nuvanx-medical' ),
+                    'a' => __( 'Depende de edad, calidad basal y objetivo. Rangos orientativos: 3 sesiones en piel media; 4–5 en envejecimiento moderado; más o combinado en daño solar severo. Mantenimiento cada 12–18 meses según evolución. No hay un número fijo “para todos”.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'q' => __( '¿Es seguro en fototipos altos?', 'nuvanx-medical' ),
+                    'a' => __( 'Al trabajar con microtemperaturas controladas, el perfil inflamatorio puede diferir del de picos térmicos altos. El riesgo de PIH depende de fototipo, parámetros y cuidados: no se garantiza “cero PIH”; sí se planifica con criterio médico.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'q' => __( '¿Duele?', 'nuvanx-medical' ),
+                    'a' => __( 'La sensación depende de la zona, los parámetros y la sensibilidad individual. Antes de empezar se explica el protocolo de confort y cómo comunicar cualquier molestia.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'q' => __( '¿Puedo combinarlo con toxina o rellenos?', 'nuvanx-medical' ),
+                    'a' => __( 'Sí, con secuencia médica. EXION Face no sustituye automáticamente a rellenos: mejora matriz e hidratación; el déficit estructural puede seguir requiriendo inductores o HA inyectable. El orden e intervalos se definen en valoración.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'q' => __( '¿Cuándo se ven resultados?', 'nuvanx-medical' ),
+                    'a' => __( 'La respuesta es progresiva (semanas), no “antes/después del mismo día”. Los hitos de 2–12 semanas son orientativos y dependen del protocolo y de la biología individual.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'q' => __( '¿Puedo hacerlo en verano?', 'nuvanx-medical' ),
+                    'a' => __( 'En muchos casos sí, con fotoprotección rigurosa. Se individualiza según fototipo, exposición y otros tratamientos concurrentes.', 'nuvanx-medical' ),
+                ),
+            ),
+        ),
+        'exion-body'       => array(
+            'path'         => '/exion-body/',
+            'key'          => 'exion_body',
+            'kicker'       => __( 'EXION® Body · NUVANX Madrid', 'nuvanx-medical' ),
+            'h1'           => __( 'EXION® Body en Madrid: contorno corporal y calidad cutánea', 'nuvanx-medical' ),
+            'lead'         => __( 'Radiofrecuencia monopolar con refrigeración activa para protocolos de contorno corporal y calidad cutánea cuando el diagnóstico lo permite.', 'nuvanx-medical' ),
+            'meta'         => __( 'Chamberí · Goya · Contorno corporal con criterio médico', 'nuvanx-medical' ),
+            'aria'         => __( 'EXION Body NUVANX', 'nuvanx-medical' ),
+            'marker'       => 'nvx-exion-body',
+            'yoast_title'  => 'EXION® Body Madrid | Contorno corporal y firmeza | NUVANX',
+            'yoast_desc'   => 'EXION® Body en Madrid: RF monopolar con refrigeración activa para laxitud y contorno corporal según valoración médica.',
+            'focuskw'      => 'EXION Body Madrid',
+            'hub'          => $hub,
+            'combo'        => home_url( '/endolaser-corporal-grasa-localizada/' ),
+            'schema_name'  => 'EXION® Body en Madrid',
+            'schema_type'  => 'Protocolo médico de contorno corporal con EXION® Body',
+            'schema_desc'  => 'Tratamiento de laxitud y remodelado de contorno corporal con EXION® Body en NUVANX Madrid tras valoración clínica.',
+            'mechanism'    => array(
+                'title' => __( 'Cómo funciona EXION® Body', 'nuvanx-medical' ),
+                'body'  => array(
+                    __( 'Combina radiofrecuencia monopolar con refrigeración de superficie para entregar energía en tejido subcutáneo y dermis profunda sin generar trauma epidérmico innecesario.', 'nuvanx-medical' ),
+                    __( 'En áreas de grasa localizada leve con laxitud asociada, permite modular temperatura para inducir respuesta térmica en adipocitos y estimular colágeno simultáneamente.', 'nuvanx-medical' ),
+                    __( 'No sustituye a Endoláser ni a una liposucción en depósitos adiposos voluminosos; su indicación principal es flacidez corporal y depósitos moderados.', 'nuvanx-medical' ),
+                ),
+            ),
+            'indications'  => array(
+                array( 'title' => __( 'Laxitud corporal post-embarazo o bajada de peso', 'nuvanx-medical' ), 'body' => __( 'Abdomen, flancos y cara interna de muslos donde la piel ha perdido turgencia.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Grasa localizada leve a moderada', 'nuvanx-medical' ), 'body' => __( 'Zona del sujetador, pliegue axilar o banana subglútea con componente mixto (grasa + piel).', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Mantenimiento de contorno corporal', 'nuvanx-medical' ), 'body' => __( 'Consolidación de resultados tras protocolos combinados o mantenimiento anual.', 'nuvanx-medical' ) ),
+            ),
+            'compare'      => array(
+                'title' => __( 'Cómo elegir entre RF corporal y Endoláser', 'nuvanx-medical' ),
+                'body'  => __( 'Endoláser actúa por fibra óptica subcutánea (mínimamente invasivo) para depósitos grasos específicos. EXION Body es un tratamiento de superficie/contacto continuo no invasivo. La valoración determina cuál procede o si se combinan.', 'nuvanx-medical' ),
+                'link'  => home_url( '/endolaser-corporal-grasa-localizada/' ),
+                'label' => __( 'Ver protocolo Endoláser corporal', 'nuvanx-medical' ),
+            ),
+            'process'      => array(
+                array(
+                    'title' => __( 'Evaluación anatómica', 'nuvanx-medical' ),
+                    'body'  => __( 'Medición de pliegue cutáneo, grado de flacidez y descarte de hernia o contraindicaciones vasculares.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'title' => __( 'Plan de sesiones', 'nuvanx-medical' ),
+                    'body'  => __( 'Típicamente 4–6 sesiones espaciadas de 1 a 2 semanas según zona y respuesta tisular.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'title' => __( 'Cuidados posteriores', 'nuvanx-medical' ),
+                    'body'  => __( 'Hidratación intensa, ingesta de agua adecuada y actividad física habitual sin reposo especial.', 'nuvanx-medical' ),
+                ),
+            ),
+            'faqs'         => array(
+                array( 'q' => __( '¿Requiere anestesia?', 'nuvanx-medical' ), 'a' => __( 'No. La refrigeración de contacto mantiene el confort térmico en superficie durante la entrega de energía.', 'nuvanx-medical' ) ),
+                array( 'q' => __( '¿Cuándo puedo volver al trabajo?', 'nuvanx-medical' ), 'a' => __( 'De inmediato. Puede existir eritema leve que remite en pocas horas.', 'nuvanx-medical' ) ),
+            ),
+        ),
+        'exion-fractional' => array(
+            'path'         => '/exion-fractional/',
+            'key'          => 'exion_fractional',
+            'kicker'       => __( 'EXION® Fractional RF · NUVANX Madrid', 'nuvanx-medical' ),
+            'h1'           => __( 'EXION® Fractional RF en Madrid: arrugas profundas, cicatrices y textura', 'nuvanx-medical' ),
+            'lead'         => __( 'Radiofrecuencia fraccionada con microagujas y control de impedancia para protocolos de textura, poros y cicatrices según diagnóstico y fototipo.', 'nuvanx-medical' ),
+            'meta'         => __( 'Chamberí · Goya · Textura y remodelado dérmico', 'nuvanx-medical' ),
+            'aria'         => __( 'EXION Fractional NUVANX', 'nuvanx-medical' ),
+            'marker'       => 'nvx-exion-fractional',
+            'yoast_title'  => 'EXION Fractional RF Madrid | Textura y cicatrices | NUVANX',
+            'yoast_desc'   => 'EXION® Fractional RF en Madrid: microagujas con control de impedancia para textura, poros y cicatrices según diagnóstico y fototipo.',
+            'focuskw'      => 'EXION Fractional Madrid',
+            'hub'          => $hub,
+            'combo'        => '',
+            'schema_name'  => 'EXION® Fractional RF en Madrid',
+            'schema_type'  => 'Protocolo de radiofrecuencia fraccionada EXION®',
+            'schema_desc'  => 'Remodelado de textura y dermis con EXION® Fractional RF en NUVANX Madrid tras valoración médica.',
+            'mechanism'    => array(
+                'title' => __( 'Cómo funciona EXION® Fractional RF', 'nuvanx-medical' ),
+                'body'  => array(
+                    __( 'Emite radiofrecuencia a través de microagujas con control de entrega energética. El sistema incorpora feedback de impedancia para ajustar la coagulación al tejido real, no solo a un número fijo de pasadas “por si acaso”.', 'nuvanx-medical' ),
+                    __( 'Agujas más cortas con proyección térmica extendida permiten alcanzar profundidad de trabajo relevante reduciendo trauma mecánico superficial respecto a protocolos de aguja larga multipasada.', 'nuvanx-medical' ),
+                    __( 'Objetivo clínico: coagulación controlada de colágeno y renovación de textura (poros, cicatrices superficiales, arrugas finas) con plan de sesiones realista.', 'nuvanx-medical' ),
+                ),
+            ),
+            'indications'  => array(
+                array( 'title' => __( 'Textura y poro', 'nuvanx-medical' ), 'body' => __( 'Piel irregular, poro dilatado y falta de refinamiento óptico cuando no basta un peeling superficial.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Cicatrices de acné leves–moderadas', 'nuvanx-medical' ), 'body' => __( 'En atróficas profundas puede combinarse o priorizarse CO₂ fraccionado según profundidad y fototipo.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Arrugas finas y flacidez local', 'nuvanx-medical' ), 'body' => __( 'Remodelado dérmico progresivo; no sustituye un lifting cuando la ptosis es estructural.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Pacientes que no toleran multipasada agresiva', 'nuvanx-medical' ), 'body' => __( 'Historial de RF fraccionada con hematomas prolongados o abandono por dolor: se reevalúa energía y número de pases.', 'nuvanx-medical' ) ),
+            ),
+            'compare'      => array(
+                'title' => __( 'Cómo se selecciona la radiofrecuencia fraccionada', 'nuvanx-medical' ),
+                'body'  => __( 'La selección considera objetivo, calidad de piel, profundidad, fototipo, tolerancia y período de recuperación aceptable. La indicación se define por diagnóstico, no por una marca.', 'nuvanx-medical' ),
+                'link'  => '',
+                'label' => '',
+            ),
+            'process'      => array(
+                __( 'Mapa de zonas, fototipo y objetivo (textura vs cicatriz vs firmeza).', 'nuvanx-medical' ),
+                __( 'Sesiones según severidad (a menudo 2–4). Intervalos definidos en consulta.', 'nuvanx-medical' ),
+                __( 'Downtime típico: eritema 12–48 h según energía; se explica antes de firmar el plan.', 'nuvanx-medical' ),
+                __( 'Puede integrarse en protocolos combinados con Face o EMFUSION®.', 'nuvanx-medical' ),
+            ),
+            'faqs'         => array(
+                array( 'q' => __( '¿Es lo mismo que un láser CO₂?', 'nuvanx-medical' ), 'a' => __( 'No. El CO₂ vaporiza columnas de tejido (ablativo). Fractional RF coagula por calor con microagujas; downtime y profundidad se eligen distinto.', 'nuvanx-medical' ) ),
+                array( 'q' => __( '¿Cuántas pasadas?', 'nuvanx-medical' ), 'a' => __( 'El diseño single-pass reduce pasadas innecesarias cuando el feedback de tejido es adecuado; el médico puede modular según zona.', 'nuvanx-medical' ) ),
+                array( 'q' => __( '¿Anestesia?', 'nuvanx-medical' ), 'a' => __( 'Según energía y zona: tópica o protocolo de confort definido en valoración.', 'nuvanx-medical' ) ),
+            ),
+        ),
+        'emfusion'         => array(
+            'path'         => '/emfusion/',
+            'key'          => 'emfusion',
+            'kicker'       => __( 'EMFUSION® · NUVANX Madrid', 'nuvanx-medical' ),
+            'h1'           => __( 'EMFUSION® en Madrid: hidratación profunda y luminosidad cutánea', 'nuvanx-medical' ),
+            'lead'         => __( 'Tecnología DYNAMiQ™ de microcanales acústicos para apoyar la aplicación de activos, la hidratación y la barrera cutánea cuando existe indicación médica.', 'nuvanx-medical' ),
+            'meta'         => __( 'Chamberí · Goya · Well-aging y piel sensible', 'nuvanx-medical' ),
+            'aria'         => __( 'EMFUSION NUVANX', 'nuvanx-medical' ),
+            'marker'       => 'nvx-emfusion',
+            'yoast_title'  => 'EMFUSION Madrid | Barrera cutánea e infusión | NUVANX',
+            'yoast_desc'   => 'EMFUSION® en Madrid: microcanales acústicos DYNAMiQ™ para hidratación y apoyo a la barrera cutánea según valoración médica.',
+            'focuskw'      => 'EMFUSION Madrid',
+            'hub'          => $hub,
+            'combo'        => '',
+            'schema_name'  => 'EMFUSION® en Madrid',
+            'schema_type'  => 'Protocolo de infusión cutánea EMFUSION®',
+            'schema_desc'  => 'Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.',
+            'mechanism'    => array(
+                'title' => __( 'Cómo funciona EMFUSION® (DYNAMiQ™)', 'nuvanx-medical' ),
+                'body'  => array(
+                    __( 'Convierte energía en ondas mecánicas que generan microcanales temporales en la superficie cutánea, facilitando la aplicación de activos como ceramidas o ectoína según el protocolo indicado.', 'nuvanx-medical' ),
+                    __( 'El objetivo no es “limpiar a presión”, sino apoyar la barrera y la hidratación cuando el diagnóstico muestra deshidratación, irritabilidad o necesidad de potenciar activos post-procedimiento.', 'nuvanx-medical' ),
+                    __( 'Datos de referencia del fabricante describen reducciones relevantes de pérdida de agua transepidérmica en modelos evaluados; se contextualizan en consulta sin cifras mágicas personalizadas.', 'nuvanx-medical' ),
+                ),
+            ),
+            'indications'  => array(
+                array( 'title' => __( 'Piel deshidratada / barrera frágil', 'nuvanx-medical' ), 'body' => __( 'Tirantez, descamación fina o sensibilidad donde la succión agresiva empeora la barrera.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Rosácea y piel reactiva (seleccionada)', 'nuvanx-medical' ), 'body' => __( 'Solo tras filtrar contraindicaciones; protocolos “sensitive” con activos calmantes.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Post-EXION / post-láser', 'nuvanx-medical' ), 'body' => __( 'Fase de consolidación de hidratación y barrera dentro de protocolos combinados NUVANX.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Fotodaño superficial', 'nuvanx-medical' ), 'body' => __( 'Como adyuvante de calidad cutánea, no como sustituto de CO₂ o Fractional cuando hay cicatriz profunda.', 'nuvanx-medical' ) ),
+            ),
+            'compare'      => array(
+                'title' => __( 'Cómo se plantea el cuidado de la barrera cutánea', 'nuvanx-medical' ),
+                'body'  => __( 'La selección valora hidratación, sensibilidad, inflamación, activos compatibles y tratamientos previos. El objetivo y el protocolo se deciden después de la exploración.', 'nuvanx-medical' ),
+                'link'  => '',
+                'label' => '',
+            ),
+            'process'      => array(
+                __( 'Valoración de barrera, inflamación y compatibilidad de activos.', 'nuvanx-medical' ),
+                __( 'Protocolos tipo Hydration / Regeneration / Sensitive según caso.', 'nuvanx-medical' ),
+                __( 'Sesiones cortas; downtime habitual mínimo.', 'nuvanx-medical' ),
+                __( 'Frecuente como complemento de EXION Face o Fractional, no como monoterapia milagrosa.', 'nuvanx-medical' ),
+            ),
+            'faqs'         => array(
+                array( 'q' => __( '¿Sustituye a un facial cosmético?', 'nuvanx-medical' ), 'a' => __( 'Es un procedimiento médico de infusión/barrera dentro de un plan; no es un “glow” de cabina sin diagnóstico.', 'nuvanx-medical' ) ),
+                array( 'q' => __( '¿Puedo maquillarme después?', 'nuvanx-medical' ), 'a' => __( 'Habitualmente sí en pocas horas; se indican cuidados según activos usados.', 'nuvanx-medical' ) ),
+                array( 'q' => __( '¿Duele?', 'nuvanx-medical' ), 'a' => __( 'Sensación de vibración/calor leve en la mayoría de pacientes; no comparable a multipasada con aguja larga.', 'nuvanx-medical' ) ),
+            ),
+        ),
+    );
 }
 
 /**
@@ -301,91 +301,91 @@ function nvxBtlDetailRegistryExion( string $hub ): array {
  * @return array<string, array<string, mixed>>
  */
 function nvxBtlDetailRegistryExilite( string $hub ): array {
-	return array(
-		'exilite' => array(
-			'path'         => '/btl-exilite-ipl-madrid/',
-			'key'          => 'exilite',
-			'kicker'       => __( 'BTL EXILITE™ · LUZ PULSADA INTENSA', 'nuvanx-medical' ),
-			'h1'           => __( 'IPL médica para manchas, rojeces y calidad de piel.', 'nuvanx-medical' ),
-			'lead'         => __( 'Una plataforma de luz pulsada intensa para indicaciones pigmentarias y vasculares seleccionadas después de valorar fototipo, exposición solar, sensibilidad y objetivo clínico.', 'nuvanx-medical' ),
-			'meta'         => __( 'Chamberí · Salamanca–Goya · Indicación médica individual', 'nuvanx-medical' ),
-			'aria'         => __( 'BTL EXILITE IPL NUVANX', 'nuvanx-medical' ),
-			'marker'       => 'nvx-exilite',
-			'yoast_title'  => 'IPL Médico Madrid | Elimina Manchas y Rojeces | NUVANX',
-			'yoast_desc'   => 'IPL EXILITE™ en NUVANX Madrid: luz pulsada médica para manchas, rojeces, acné y fotorejuvenecimiento tras valoración clínica.',
-			'focuskw'      => 'IPL BTL EXILITE Madrid',
-			'hub'          => $hub,
-			'combo'        => '',
-			'schema_name'  => 'BTL EXILITE™ IPL en Madrid',
-			'schema_type'  => 'Protocolo médico con luz pulsada intensa (IPL)',
-			'schema_desc'  => 'Tratamiento médico con IPL BTL EXILITE™ para manchas solares, rojeces, telangiectasias y calidad cutánea en NUVANX Madrid.',
-			'mechanism'    => array(
-				'title' => __( 'Luz filtrada según el objetivo clínico', 'nuvanx-medical' ),
-				'body'  => array(
-					__( 'El sistema selecciona bandas de longitud de onda y distribuye la energía en pulsos. Los parámetros se ajustan a la indicación, al fototipo y a la respuesta de la piel.', 'nuvanx-medical' ),
-				),
-				'items' => array(
-					array(
-						'title' => __( 'Melanina', 'nuvanx-medical' ),
-						'body'  => __( 'Objetivo pigmentario superficial.', 'nuvanx-medical' ),
-					),
-					array(
-						'title' => __( 'Hemoglobina', 'nuvanx-medical' ),
-						'body'  => __( 'Objetivo vascular y rojeces seleccionadas.', 'nuvanx-medical' ),
-					),
-					array(
-						'title' => __( 'Control térmico', 'nuvanx-medical' ),
-						'body'  => __( 'Multipulse y refrigeración para administrar la energía de forma graduada.', 'nuvanx-medical' ),
-					),
-				),
-			),
-			'indications'  => array(
-				array( 'title' => __( 'Pigmentación: Manchas solares y pigmentación irregular', 'nuvanx-medical' ), 'body' => __( 'La IPL actúa sobre la melanina para tratar lentigos solares, manchas por fotoexposición y pigmentación difusa. Tras el tratamiento, las manchas pueden oscurecerse temporalmente y aclararse progresivamente.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Vascular: Rojeces, cuperosis y telangiectasias', 'nuvanx-medical' ), 'body' => __( 'El sistema dispone de filtros con alta afinidad por la hemoglobina para reducir rojeces difusas y telangiectasias finas, siendo útil en pieles con eritema persistente o rubor.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Acné: Acné leve y lesiones inflamatorias', 'nuvanx-medical' ), 'body' => __( 'Puede ayudar en casos de acné leve gracias a su acción sobre Propionibacterium acnes y la reducción de inflamación, como complemento en un plan integral.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Anti-aging: Fotorejuvenecimiento y calidad de piel', 'nuvanx-medical' ), 'body' => __( 'Mejora los signos del fotoenvejecimiento: luminosidad, textura, poros dilatados, arrugas finas y pérdida de firmeza superficial. Suelen requerir 3-4 sesiones.', 'nuvanx-medical' ) ),
-				array( 'title' => __( 'Corporal: Rejuvenecimiento de cuello y escote', 'nuvanx-medical' ), 'body' => __( 'Permite armonizar el aspecto del cuello y escote con el del rostro, reduciendo manchas, rojeces, vasos superficiales y textura irregular.', 'nuvanx-medical' ) ),
-			),
-			'compare'      => array(
-				'title' => __( 'La misma mancha no siempre necesita el mismo tratamiento', 'nuvanx-medical' ),
-				'body'  => __( 'Antes de indicar IPL diferenciamos pigmentación epidérmica, componente vascular, fotodaño, inflamación activa y riesgo de hiperpigmentación. La plataforma se selecciona cuando el diagnóstico y el fototipo permiten un uso proporcionado. BTL EXILITE™ no es un láser. Emite un espectro de luz filtrado y ajustable que permite trabajar sobre cromóforos concretos de la piel.', 'nuvanx-medical' ),
-				'link'  => '',
-				'label' => '',
-			),
-			'process'      => array(
-				array(
-					'title' => __( 'Valoración', 'nuvanx-medical' ),
-					'body'  => __( 'Revisión de fototipo, bronceado reciente, medicación, lesiones, sensibilidad y exposición solar prevista.', 'nuvanx-medical' ),
-				),
-				array(
-					'title' => __( 'Sesión', 'nuvanx-medical' ),
-					'body'  => __( 'Aplicación sobre piel limpia con protección ocular. Puede percibirse calor y un impacto luminoso breve.', 'nuvanx-medical' ),
-				),
-				array(
-					'title' => __( 'Plan orientativo', 'nuvanx-medical' ),
-					'body'  => __( 'El número de sesiones depende de la indicación y de la respuesta. No existe una pauta universal.', 'nuvanx-medical' ),
-				),
-				array(
-					'title' => __( 'Cuidados', 'nuvanx-medical' ),
-					'body'  => __( 'Fotoprotección estricta y evitar calor intenso, exfoliación o exposición solar según la pauta médica entregada.', 'nuvanx-medical' ),
-				),
-			),
-			'faqs'         => array(
-				array(
-					'q' => __( '¿Puede realizarse si la piel está bronceada?', 'nuvanx-medical' ),
-					'a' => __( 'No suele indicarse sobre bronceado reciente. Se valora el tono basal, la exposición y el riesgo de alteración pigmentaria antes de programar la sesión.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿Qué recuperación puede esperarse?', 'nuvanx-medical' ),
-					'a' => __( 'Puede aparecer enrojecimiento transitorio y oscurecimiento temporal de determinadas manchas. La respuesta y los cuidados se explican según el protocolo aplicado.', 'nuvanx-medical' ),
-				),
-				array(
-					'q' => __( '¿IPL y láser son lo mismo?', 'nuvanx-medical' ),
-					'a' => __( 'No. La IPL utiliza un espectro amplio de luz filtrada; un láser trabaja con una longitud de onda más específica. La elección depende del diagnóstico.', 'nuvanx-medical' ),
-				),
-			),
-		),
-	);
+    return array(
+        'exilite' => array(
+            'path'         => '/btl-exilite-ipl-madrid/',
+            'key'          => 'exilite',
+            'kicker'       => __( 'BTL EXILITE™ · LUZ PULSADA INTENSA', 'nuvanx-medical' ),
+            'h1'           => __( 'IPL médica para manchas, rojeces y calidad de piel.', 'nuvanx-medical' ),
+            'lead'         => __( 'Una plataforma de luz pulsada intensa para indicaciones pigmentarias y vasculares seleccionadas después de valorar fototipo, exposición solar, sensibilidad y objetivo clínico.', 'nuvanx-medical' ),
+            'meta'         => __( 'Chamberí · Salamanca–Goya · Indicación médica individual', 'nuvanx-medical' ),
+            'aria'         => __( 'BTL EXILITE IPL NUVANX', 'nuvanx-medical' ),
+            'marker'       => 'nvx-exilite',
+            'yoast_title'  => 'IPL Médico Madrid | Elimina Manchas y Rojeces | NUVANX',
+            'yoast_desc'   => 'IPL EXILITE™ en NUVANX Madrid: luz pulsada médica para manchas, rojeces, acné y fotorejuvenecimiento tras valoración clínica.',
+            'focuskw'      => 'IPL BTL EXILITE Madrid',
+            'hub'          => $hub,
+            'combo'        => '',
+            'schema_name'  => 'BTL EXILITE™ IPL en Madrid',
+            'schema_type'  => 'Protocolo médico con luz pulsada intensa (IPL)',
+            'schema_desc'  => 'Tratamiento médico con IPL BTL EXILITE™ para manchas solares, rojeces, telangiectasias y calidad cutánea en NUVANX Madrid.',
+            'mechanism'    => array(
+                'title' => __( 'Luz filtrada según el objetivo clínico', 'nuvanx-medical' ),
+                'body'  => array(
+                    __( 'El sistema selecciona bandas de longitud de onda y distribuye la energía en pulsos. Los parámetros se ajustan a la indicación, al fototipo y a la respuesta de la piel.', 'nuvanx-medical' ),
+                ),
+                'items' => array(
+                    array(
+                        'title' => __( 'Melanina', 'nuvanx-medical' ),
+                        'body'  => __( 'Objetivo pigmentario superficial.', 'nuvanx-medical' ),
+                    ),
+                    array(
+                        'title' => __( 'Hemoglobina', 'nuvanx-medical' ),
+                        'body'  => __( 'Objetivo vascular y rojeces seleccionadas.', 'nuvanx-medical' ),
+                    ),
+                    array(
+                        'title' => __( 'Control térmico', 'nuvanx-medical' ),
+                        'body'  => __( 'Multipulse y refrigeración para administrar la energía de forma graduada.', 'nuvanx-medical' ),
+                    ),
+                ),
+            ),
+            'indications'  => array(
+                array( 'title' => __( 'Pigmentación: Manchas solares y pigmentación irregular', 'nuvanx-medical' ), 'body' => __( 'La IPL actúa sobre la melanina para tratar lentigos solares, manchas por fotoexposición y pigmentación difusa. Tras el tratamiento, las manchas pueden oscurecerse temporalmente y aclararse progresivamente.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Vascular: Rojeces, cuperosis y telangiectasias', 'nuvanx-medical' ), 'body' => __( 'El sistema dispone de filtros con alta afinidad por la hemoglobina para reducir rojeces difusas y telangiectasias finas, siendo útil en pieles con eritema persistente o rubor.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Acné: Acné leve y lesiones inflamatorias', 'nuvanx-medical' ), 'body' => __( 'Puede ayudar en casos de acné leve gracias a su acción sobre Propionibacterium acnes y la reducción de inflamación, como complemento en un plan integral.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Anti-aging: Fotorejuvenecimiento y calidad de piel', 'nuvanx-medical' ), 'body' => __( 'Mejora los signos del fotoenvejecimiento: luminosidad, textura, poros dilatados, arrugas finas y pérdida de firmeza superficial. Suelen requerir 3-4 sesiones.', 'nuvanx-medical' ) ),
+                array( 'title' => __( 'Corporal: Rejuvenecimiento de cuello y escote', 'nuvanx-medical' ), 'body' => __( 'Permite armonizar el aspecto del cuello y escote con el del rostro, reduciendo manchas, rojeces, vasos superficiales y textura irregular.', 'nuvanx-medical' ) ),
+            ),
+            'compare'      => array(
+                'title' => __( 'La misma mancha no siempre necesita el mismo tratamiento', 'nuvanx-medical' ),
+                'body'  => __( 'Antes de indicar IPL diferenciamos pigmentación epidérmica, componente vascular, fotodaño, inflamación activa y riesgo de hiperpigmentación. La plataforma se selecciona cuando el diagnóstico y el fototipo permiten un uso proporcionado. BTL EXILITE™ no es un láser. Emite un espectro de luz filtrado y ajustable que permite trabajar sobre cromóforos concretos de la piel.', 'nuvanx-medical' ),
+                'link'  => '',
+                'label' => '',
+            ),
+            'process'      => array(
+                array(
+                    'title' => __( 'Valoración', 'nuvanx-medical' ),
+                    'body'  => __( 'Revisión de fototipo, bronceado reciente, medicación, lesiones, sensibilidad y exposición solar prevista.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'title' => __( 'Sesión', 'nuvanx-medical' ),
+                    'body'  => __( 'Aplicación sobre piel limpia con protección ocular. Puede percibirse calor y un impacto luminoso breve.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'title' => __( 'Plan orientativo', 'nuvanx-medical' ),
+                    'body'  => __( 'El número de sesiones depende de la indicación y de la respuesta. No existe una pauta universal.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'title' => __( 'Cuidados', 'nuvanx-medical' ),
+                    'body'  => __( 'Fotoprotección estricta y evitar calor intenso, exfoliación o exposición solar según la pauta médica entregada.', 'nuvanx-medical' ),
+                ),
+            ),
+            'faqs'         => array(
+                array(
+                    'q' => __( '¿Puede realizarse si la piel está bronceada?', 'nuvanx-medical' ),
+                    'a' => __( 'No suele indicarse sobre bronceado reciente. Se valora el tono basal, la exposición y el riesgo de alteración pigmentaria antes de programar la sesión.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'q' => __( '¿Qué recuperación puede esperarse?', 'nuvanx-medical' ),
+                    'a' => __( 'Puede aparecer enrojecimiento transitorio y oscurecimiento temporal de determinadas manchas. La respuesta y los cuidados se explican según el protocolo aplicado.', 'nuvanx-medical' ),
+                ),
+                array(
+                    'q' => __( '¿IPL y láser son lo mismo?', 'nuvanx-medical' ),
+                    'a' => __( 'No. La IPL utiliza un espectro amplio de luz filtrada; un láser trabaja con una longitud de onda más específica. La elección depende del diagnóstico.', 'nuvanx-medical' ),
+                ),
+            ),
+        ),
+    );
 }
 
 /**
@@ -394,11 +394,11 @@ function nvxBtlDetailRegistryExilite( string $hub ): array {
  * @return array<string, array<string, mixed>>
  */
 function nvxBtlDetailRegistry(): array {
-	$hub = home_url( '/exion-btl/' );
-	return array_merge(
-		nvxBtlDetailRegistryExion( $hub ),
-		nvxBtlDetailRegistryExilite( $hub )
-	);
+    $hub = home_url( '/exion-btl/' );
+    return array_merge(
+        nvxBtlDetailRegistryExion( $hub ),
+        nvxBtlDetailRegistryExilite( $hub )
+    );
 }
 
 /**
@@ -409,14 +409,14 @@ function nvxBtlDetailRegistry(): array {
  * @return bool True if content contains matching H1 IDs.
  */
 function nvxBtlDetailMatchesContent( string $content, array $cfg ): bool {
-	$marker = (string) ( $cfg['marker'] ?? '' );
-	if ( '' === $marker ) {
-		return false;
-	}
-	return false !== strpos( $content, 'id="' . $marker . '-h1"' )
-		|| false !== strpos( $content, "id='{$marker}-h1'" )
-		|| false !== strpos( $content, 'id="nvx-' . $marker . '-h1"' )
-		|| false !== strpos( $content, "id='nvx-{$marker}-h1'" );
+    $marker = (string) ( $cfg['marker'] ?? '' );
+    if ( '' === $marker ) {
+        return false;
+    }
+    return false !== strpos( $content, 'id="' . $marker . '-h1"' )
+        || false !== strpos( $content, "id='{$marker}-h1'" )
+        || false !== strpos( $content, 'id="nvx-' . $marker . '-h1"' )
+        || false !== strpos( $content, "id='nvx-{$marker}-h1'" );
 }
 
 /**
@@ -425,37 +425,37 @@ function nvxBtlDetailMatchesContent( string $content, array $cfg ): bool {
  * @return string|null Registry key.
  */
 function nvxBtlDetailCurrentKey( string $content = '' ): ?string {
-	if ( ! nvxBtlDetailIsSingular() || is_front_page() || is_home() ) {
-		return null;
-	}
-	// Never hijack posts (blogs share similar titles).
-	if ( is_singular( 'post' ) ) {
-		return null;
-	}
+    if ( ! nvxBtlDetailIsSingular() || is_front_page() || is_home() ) {
+        return null;
+    }
+    // Never hijack posts (blogs share similar titles).
+    if ( is_singular( 'post' ) ) {
+        return null;
+    }
 
-	$path = function_exists( 'nvx_schema_current_path' )
-		? nvx_schema_current_path( (int) get_queried_object_id() )
-		: '';
-	$path = is_string( $path ) ? $path : '';
+    $path = function_exists( 'nvx_schema_current_path' )
+        ? nvx_schema_current_path( (int) get_queried_object_id() )
+        : '';
+    $path = is_string( $path ) ? $path : '';
 
-	foreach ( nvxBtlDetailRegistry() as $slug => $cfg ) {
-		if ( function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, $cfg['path'] ) ) {
-			return $slug;
-		}
-		if ( false !== strpos( $content, $cfg['marker'] . '-editorial' ) ) {
-			return null; // already rebuilt
-		}
-		if ( nvxBtlDetailMatchesContent( $content, $cfg ) ) {
-			return $slug;
-		}
-	}
+    foreach ( nvxBtlDetailRegistry() as $slug => $cfg ) {
+        if ( function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, $cfg['path'] ) ) {
+            return $slug;
+        }
+        if ( false !== strpos( $content, $cfg['marker'] . '-editorial' ) ) {
+            return null; // already rebuilt
+        }
+        if ( nvxBtlDetailMatchesContent( $content, $cfg ) ) {
+            return $slug;
+        }
+    }
 
-	$slug = get_post_field( 'post_name', get_queried_object_id() );
-	if ( is_string( $slug ) && isset( nvxBtlDetailRegistry()[ $slug ] ) ) {
-		return $slug;
-	}
+    $slug = get_post_field( 'post_name', get_queried_object_id() );
+    if ( is_string( $slug ) && isset( nvxBtlDetailRegistry()[ $slug ] ) ) {
+        return $slug;
+    }
 
-	return null;
+    return null;
 }
 
 /**
@@ -469,42 +469,42 @@ function nvxBtlDetailCurrentKey( string $content = '' ): ?string {
  * @return string The rendered HTML for the section.
  */
 function nvxRenderEditorialListSection( string $id_base, string $kicker, string $heading, array $items, string $list_type = 'ul' ): string {
-	$html  = '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id_base ) . '">';
-	$html .= '<div class="nvx-editorial-section__inner">';
-	$html .= '<p class="nvx-editorial-kicker">' . esc_html( $kicker ) . '</p>';
-	$html .= '<h2 id="' . esc_attr( $id_base ) . '" class="nvx-editorial-heading">' . esc_html( $heading ) . '</h2>';
-	$html .= '<' . tag_escape( $list_type ) . ' class="nvx-editorial-grid-list">';
-	foreach ( $items as $item ) {
-		$title = is_array( $item ) ? (string) ( $item['title'] ?? '' ) : '';
-		$text  = is_array( $item ) ? (string) ( $item['body'] ?? '' ) : (string) $item;
-		$html .= '<li class="nvx-editorial-grid-item">' . ( $title ? '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>' : '' ) . '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p></li>';
-	}
-	return $html . '</' . tag_escape( $list_type ) . '></div></section>';
+    $html  = '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id_base ) . '">';
+    $html .= '<div class="nvx-editorial-section__inner">';
+    $html .= '<p class="nvx-editorial-kicker">' . esc_html( $kicker ) . '</p>';
+    $html .= '<h2 id="' . esc_attr( $id_base ) . '" class="nvx-editorial-heading">' . esc_html( $heading ) . '</h2>';
+    $html .= '<' . tag_escape( $list_type ) . ' class="nvx-editorial-grid-list">';
+    foreach ( $items as $item ) {
+        $title = is_array( $item ) ? (string) ( $item['title'] ?? '' ) : '';
+        $text  = is_array( $item ) ? (string) ( $item['body'] ?? '' ) : (string) $item;
+        $html .= '<li class="nvx-editorial-grid-item">' . ( $title ? '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>' : '' ) . '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p></li>';
+    }
+    return $html . '</' . tag_escape( $list_type ) . '></div></section>';
 }
 
 /** Render mechanism items grid list. */
 function nvxBtlDetailRenderMechanismItems( array $items ): string {
-	$markup = '<ul class="nvx-editorial-grid-list">';
-	foreach ( $items as $item ) {
-		if ( ! is_array( $item ) ) {
-			continue;
-		}
-		$title = trim( (string) ( $item['title'] ?? '' ) );
-		$text  = trim( (string) ( $item['body'] ?? '' ) );
-		if ( '' === $title && '' === $text ) {
-			continue;
-		}
-		$markup .= '<li class="nvx-editorial-grid-item">';
-		if ( '' !== $title ) {
-			$markup .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
-		}
-		if ( '' !== $text ) {
-			$markup .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
-		}
-		$markup .= '</li>';
-	}
-	$markup .= '</ul>';
-	return $markup;
+    $markup = '<ul class="nvx-editorial-grid-list">';
+    foreach ( $items as $item ) {
+        if ( ! is_array( $item ) ) {
+            continue;
+        }
+        $title = trim( (string) ( $item['title'] ?? '' ) );
+        $text  = trim( (string) ( $item['body'] ?? '' ) );
+        if ( '' === $title && '' === $text ) {
+            continue;
+        }
+        $markup .= '<li class="nvx-editorial-grid-item">';
+        if ( '' !== $title ) {
+            $markup .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
+        }
+        if ( '' !== $text ) {
+            $markup .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
+        }
+        $markup .= '</li>';
+    }
+    $markup .= '</ul>';
+    return $markup;
 }
 
 /**
@@ -515,22 +515,22 @@ function nvxBtlDetailRenderMechanismItems( array $items ): string {
  * @return string HTML markup.
  */
 function nvxBtlDetailRenderMechanismSection( array $c, string $id ): string {
-	$body  = '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-mech">';
-	$body .= '<div class="nvx-editorial-section__inner">';
-	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-mech" class="nvx-editorial-heading">' . esc_html( (string) ( $c['mechanism']['title'] ?? '' ) ) . '</h2>';
-	foreach ( (array) ( $c['mechanism']['body'] ?? array() ) as $p ) {
-		$p = is_string( $p ) ? trim( $p ) : '';
-		if ( '' !== $p ) {
-			$body .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html( $p ) . '</p>';
-		}
-	}
-	if ( ! empty( $c['mechanism']['items'] ) && is_array( $c['mechanism']['items'] ) ) {
-		$body .= nvxBtlDetailRenderMechanismItems( $c['mechanism']['items'] );
-	}
-	$body .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $c['hub'] ) . '">' . esc_html__( 'Ver plataforma EXION® BTL (hub)', 'nuvanx-medical' ) . '</a></p>';
-	$body .= '</div></section>';
-	return $body;
+    $body  = '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-mech">';
+    $body .= '<div class="nvx-editorial-section__inner">';
+    $body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
+    $body .= '<h2 id="' . esc_attr( $id ) . '-mech" class="nvx-editorial-heading">' . esc_html( (string) ( $c['mechanism']['title'] ?? '' ) ) . '</h2>';
+    foreach ( (array) ( $c['mechanism']['body'] ?? array() ) as $p ) {
+        $p = is_string( $p ) ? trim( $p ) : '';
+        if ( '' !== $p ) {
+            $body .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html( $p ) . '</p>';
+        }
+    }
+    if ( ! empty( $c['mechanism']['items'] ) && is_array( $c['mechanism']['items'] ) ) {
+        $body .= nvxBtlDetailRenderMechanismItems( $c['mechanism']['items'] );
+    }
+    $body .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $c['hub'] ) . '">' . esc_html__( 'Ver plataforma EXION® BTL (hub)', 'nuvanx-medical' ) . '</a></p>';
+    $body .= '</div></section>';
+    return $body;
 }
 
 /**
@@ -541,27 +541,27 @@ function nvxBtlDetailRenderMechanismSection( array $c, string $id ): string {
  * @return string HTML markup.
  */
 function nvxBtlDetailRenderFaqSection( array $faqs, string $id ): string {
-	$body  = '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-faq">';
-	$body .= '<div class="nvx-editorial-section__inner">';
-	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'FAQ', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-faq" class="nvx-editorial-heading">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
-	$body .= '<div class="nvx-faq nvx-brand-faq-accordion">';
-	foreach ( $faqs as $faq ) {
-		if ( ! is_array( $faq ) ) {
-			continue;
-		}
-		$q = trim( (string) ( $faq['q'] ?? '' ) );
-		$a = trim( (string) ( $faq['a'] ?? '' ) );
-		if ( '' === $q && '' === $a ) {
-			continue;
-		}
-		$body .= '<details class="nvx-brand-faq-item">';
-		$body .= '<summary>' . esc_html( $q ) . '</summary>';
-		$body .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $a ) . '</p></div>';
-		$body .= '</details>';
-	}
-	$body .= '</div></div></section>';
-	return $body;
+    $body  = '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-faq">';
+    $body .= '<div class="nvx-editorial-section__inner">';
+    $body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'FAQ', 'nuvanx-medical' ) . '</p>';
+    $body .= '<h2 id="' . esc_attr( $id ) . '-faq" class="nvx-editorial-heading">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
+    $body .= '<div class="nvx-faq nvx-brand-faq-accordion">';
+    foreach ( $faqs as $faq ) {
+        if ( ! is_array( $faq ) ) {
+            continue;
+        }
+        $q = trim( (string) ( $faq['q'] ?? '' ) );
+        $a = trim( (string) ( $faq['a'] ?? '' ) );
+        if ( '' === $q && '' === $a ) {
+            continue;
+        }
+        $body .= '<details class="nvx-brand-faq-item">';
+        $body .= '<summary>' . esc_html( $q ) . '</summary>';
+        $body .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $a ) . '</p></div>';
+        $body .= '</details>';
+    }
+    $body .= '</div></div></section>';
+    return $body;
 }
 
 /**
@@ -571,104 +571,86 @@ function nvxBtlDetailRenderFaqSection( array $faqs, string $id ): string {
  * @return string The generated page markup, or an empty string when the key is unsupported.
  */
 function nvxBtlDetailPageMarkup( string $key ): string {
-	$reg = nvxBtlDetailRegistry();
-	if ( empty( $reg[ $key ] ) ) {
-		return '';
-	}
-	$c = $reg[ $key ];
-	// Markers are already nvx-* (e.g. nvx-exion-body); do not prefix again.
-	$id = $c['marker'];
+    $reg = nvxBtlDetailRegistry();
+    if ( empty( $reg[ $key ] ) ) {
+        return '';
+    }
+    $c = $reg[ $key ];
+    // Markers are already nvx-* (e.g. nvx-exion-body); do not prefix again.
+    $id = $c['marker'];
 
-	// Hero.
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';
-	$hero .= '<div class="nvx-brand-hero__inner">';
-	$hero .= '<div class="nvx-editorial-hero__copy">';
-	$hero .= '<p class="nvx-eyebrow">' . esc_html( $c['kicker'] ) . '</p>';
-	$hero .= '<h1 class="nvx-heading" id="' . esc_attr( $id ) . '-h1">' . esc_html( $c['h1'] ) . '</h1>';
-	
-	// E-E-A-T Medical Authority Byline
-	$hero .= '<div class="nvx-medical-byline">';
-	$hero .= '<div class="nvx-medical-byline__text">';
-	$hero .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
-	$hero .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
-	$hero .= '</div></div>';
-	$hero .= '<p class="nvx-lead">' . esc_html( $c['lead'] ) . '</p>';
-	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$hero .= nvx_cta_pair_markup( $c['marker'] . '-hero-ctas nvx-home-hero-ctas' );
-	}
-	$hero .= '<p class="nvx-brand-meta">' . esc_html( $c['meta'] ) . '</p>';
-	$hero .= '</div></div></section>';
+    // Hero.
+    $hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';
+    $hero .= '<div class="nvx-brand-hero__inner">';
+    $hero .= '<div class="nvx-editorial-hero__copy">';
+    $hero .= '<p class="nvx-eyebrow">' . esc_html( $c['kicker'] ) . '</p>';
+    $hero .= '<h1 class="nvx-heading" id="' . esc_attr( $id ) . '-h1">' . esc_html( $c['h1'] ) . '</h1>';
+    
+    // E-E-A-T Medical Authority Byline
+    $hero .= '<div class="nvx-medical-byline">';
+    $hero .= '<div class="nvx-medical-byline__text">';
+    $hero .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
+    $hero .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
+    $hero .= '</div></div>';
+    $hero .= '<p class="nvx-lead">' . esc_html( $c['lead'] ) . '</p>';
+    if ( function_exists( 'nvx_cta_pair_markup' ) ) {
+        $hero .= nvx_cta_pair_markup( $c['marker'] . '-hero-ctas nvx-home-hero-ctas' );
+    }
+    $hero .= '<p class="nvx-brand-meta">' . esc_html( $c['meta'] ) . '</p>';
+    $hero .= '</div></div></section>';
 
-	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-editorial-page nvx-btl-detail-editorial">';
+    $body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-editorial-page nvx-btl-detail-editorial">';
 
-	// Mechanism.
-	$body .= nvxBtlDetailRenderMechanismSection( $c, $id );
+    // Mechanism.
+    $body .= nvxBtlDetailRenderMechanismSection( $c, $id );
 
-	// Indications.
-	$body .= nvxRenderEditorialListSection( $id . '-ind', __( 'Indicaciones', 'nuvanx-medical' ), __( 'Cuándo tiene sentido este protocolo', 'nuvanx-medical' ), (array) ( $c['indications'] ?? array() ) );
+    // Indications.
+    $body .= nvxRenderEditorialListSection( $id . '-ind', __( 'Indicaciones', 'nuvanx-medical' ), __( 'Cuándo tiene sentido este protocolo', 'nuvanx-medical' ), (array) ( $c['indications'] ?? array() ) );
 
-	// Compare + blog depth.
-	$compare_title = trim( (string) ( $c['compare']['title'] ?? '' ) );
-	$compare_body  = trim( (string) ( $c['compare']['body'] ?? '' ) );
-	$body .= nvxRenderEditorialListSection( $id . '-cmp', __( 'Criterio diferencial', 'nuvanx-medical' ), $compare_title, array( $compare_body ) );
+    // Compare + blog depth.
+    $compare_title = trim( (string) ( $c['compare']['title'] ?? '' ) );
+    $compare_body  = trim( (string) ( $c['compare']['body'] ?? '' ) );
+    $body .= nvxRenderEditorialListSection( $id . '-cmp', __( 'Criterio diferencial', 'nuvanx-medical' ), $compare_title, array( $compare_body ) );
 
-	// Process.
-	$body .= nvxRenderEditorialListSection( $id . '-proc', __( 'Proceso médico', 'nuvanx-medical' ), __( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ), (array) ( $c['process'] ?? array() ), 'ol' );
+    // Process.
+    $body .= nvxRenderEditorialListSection( $id . '-proc', __( 'Proceso médico', 'nuvanx-medical' ), __( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ), (array) ( $c['process'] ?? array() ), 'ol' );
 
-	// FAQ.
-	$body .= nvxBtlDetailRenderFaqSection( (array) ( $c['faqs'] ?? array() ), $id );
+    // FAQ.
+    $body .= nvxBtlDetailRenderFaqSection( (array) ( $c['faqs'] ?? array() ), $id );
 
-	$body .= '</div>';
+    $body .= '</div>';
 
-	return $hero . $body;
+    return $hero . $body;
 }
 
-/**
- * Restructure the_content for BTL detail pages.
- */
-function nvxContentRestructureBtlDetailPage( string $content ): string {
-	$key = nvxBtlDetailCurrentKey( $content );
-	if ( null === $key ) {
-		return $content;
-	}
-
-	$cfg = nvxBtlDetailRegistry()[ $key ];
-	if ( false !== strpos( $content, $cfg['marker'] . '-editorial' ) ) {
-		return $content;
-	}
-
-	// Same media sources as Endolift / Endoláser / CO₂: content figure, then featured image.
-	$media = '';
+/** Extract hero media markup from content or featured image. */
+function nvxBtlDetailExtractHeroMedia( string $content ): string {
 	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
-		$media = $m[0];
-	} elseif ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
-		$media = $m[0];
-	} elseif ( has_post_thumbnail() ) {
-		$thumb = get_the_post_thumbnail(
-			null,
-			'full',
-			array(
-				'class'   => 'nvx-media nvx-media--hero wp-post-image',
-				'alt'     => the_title_attribute( array( 'echo' => false ) ),
-				'loading' => 'eager',
-			)
-		);
-		if ( is_string( $thumb ) && '' !== $thumb ) {
-			$media = '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
-		}
+		return $m[0];
 	}
-
-	$built = nvxBtlDetailPageMarkup( $key );
-	// Inject media into hero if present (after copy, inside __inner).
-	if ( '' !== $media && false !== strpos( $built, 'nvx-brand-hero__inner' ) ) {
-		$built = preg_replace(
-			'/(class="nvx-brand-hero__inner">[\s\S]*?<\/div>)(\s*<\/div>\s*<\/section>)/u',
-			'$1' . $media . '$2',
-			$built,
-			1
-		) ?? $built;
+	if ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
+		return $m[0];
 	}
+	if ( ! has_post_thumbnail() ) {
+		return '';
+	}
+	$thumb = get_the_post_thumbnail(
+		null,
+		'full',
+		array(
+			'class'   => 'nvx-media nvx-media--hero wp-post-image',
+			'alt'     => the_title_attribute( array( 'echo' => false ) ),
+			'loading' => 'eager',
+		)
+	);
+	if ( is_string( $thumb ) && '' !== $thumb ) {
+		return '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
+	}
+	return '';
+}
 
+/** Wrap built markup in an nvx-brand-page div, reusing existing wrapper when present. */
+function nvxBtlDetailWrapInBrandPage( string $content, string $key, string $built ): string {
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		$open = $wrap[1];
 		$mod  = 'nvx-brand-page--' . sanitize_html_class( $key );
@@ -677,8 +659,38 @@ function nvxContentRestructureBtlDetailPage( string $content ): string {
 		}
 		return $open . $built . '</div>';
 	}
-
 	return '<div class="nvx-brand-page nvx-brand-page--' . esc_attr( $key ) . '">' . $built . '</div>';
+}
+
+/**
+ * Restructure the_content for BTL detail pages.
+ */
+function nvxContentRestructureBtlDetailPage( string $content ): string {
+    $key = nvxBtlDetailCurrentKey( $content );
+    if ( null === $key ) {
+        return $content;
+    }
+
+    $cfg = nvxBtlDetailRegistry()[ $key ];
+    if ( false !== strpos( $content, $cfg['marker'] . '-editorial' ) ) {
+        return $content;
+    }
+
+    // Same media sources as Endolift / Endoláser / CO₂: content figure, then featured image.
+    $media = nvxBtlDetailExtractHeroMedia( $content );
+
+    $built = nvxBtlDetailPageMarkup( $key );
+    // Inject media into hero if present (after copy, inside __inner).
+    if ( '' !== $media && false !== strpos( $built, 'nvx-brand-hero__inner' ) ) {
+        $built = preg_replace(
+            '/(class="nvx-brand-hero__inner">[\s\S]*?<\/div>)(\s*<\/div>\s*<\/section>)/u',
+            '$1' . $media . '$2',
+            $built,
+            1
+        ) ?? $built;
+    }
+
+    return nvxBtlDetailWrapInBrandPage( $content, $key, $built );
 }
 add_filter( 'the_content', 'nvxContentRestructureBtlDetailPage', 19 );
 
@@ -689,11 +701,11 @@ add_filter( 'the_content', 'nvxContentRestructureBtlDetailPage', 19 );
  * @return string
  */
 function nvxFilterBtlDetailTitle( $title ) {
-	$key = nvxBtlDetailCurrentKey( '' );
-	if ( null === $key ) {
-		return $title;
-	}
-	return nvxBtlDetailRegistry()[ $key ]['yoast_title'];
+    $key = nvxBtlDetailCurrentKey( '' );
+    if ( null === $key ) {
+        return $title;
+    }
+    return nvxBtlDetailRegistry()[ $key ]['yoast_title'];
 }
 add_filter( 'wpseo_title', 'nvxFilterBtlDetailTitle', 21 );
 
@@ -704,10 +716,10 @@ add_filter( 'wpseo_title', 'nvxFilterBtlDetailTitle', 21 );
  * @return string
  */
 function nvxFilterBtlDetailMetadesc( $desc ) {
-	$key = nvxBtlDetailCurrentKey( '' );
-	if ( null === $key ) {
-		return $desc;
-	}
-	return nvxBtlDetailRegistry()[ $key ]['yoast_desc'];
+    $key = nvxBtlDetailCurrentKey( '' );
+    if ( null === $key ) {
+        return $desc;
+    }
+    return nvxBtlDetailRegistry()[ $key ]['yoast_desc'];
 }
 add_filter( 'wpseo_metadesc', 'nvxFilterBtlDetailMetadesc', 21 );

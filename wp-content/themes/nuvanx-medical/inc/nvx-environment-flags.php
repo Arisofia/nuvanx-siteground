@@ -14,7 +14,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -24,19 +24,19 @@ if ( ! defined( 'ABSPATH' ) ) {
  * unrelated staging/preview hosts keep production-safe blackout behaviour.
  */
 function nvxEnvironmentIsStaging2(): bool {
-	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
-	$host = preg_replace( '/:\d+$/', '', $host );
-	if ( ! is_string( $host ) ) {
-		$host = '';
-	}
+    $host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
+    $host = preg_replace( '/:\d+$/', '', $host );
+    if ( ! is_string( $host ) ) {
+        $host = '';
+    }
 
-	/**
-	 * Filter whether the request is treated as staging2.
-	 *
-	 * @param bool   $is_staging2 Detected host match.
-	 * @param string $host        Normalized HTTP host without port.
-	 */
-	return (bool) apply_filters( 'nvx_environment_is_staging2', 'staging2.nuvanx.com' === $host, $host );
+    /**
+     * Filter whether the request is treated as staging2.
+     *
+     * @param bool   $is_staging2 Detected host match.
+     * @param string $host        Normalized HTTP host without port.
+     */
+    return (bool) apply_filters( 'nvx_environment_is_staging2', 'staging2.nuvanx.com' === $host, $host );
 }
 
 /**
@@ -45,7 +45,7 @@ function nvxEnvironmentIsStaging2(): bool {
  * @param bool $enabled Current blackout flag.
  */
 function nvxEnvironmentFilterHeroBlackout( bool $enabled ): bool {
-	return nvxEnvironmentIsStaging2() ? false : $enabled;
+    return nvxEnvironmentIsStaging2() ? false : $enabled;
 }
 add_filter( 'nvx_theme_hero_blackout_enabled', 'nvxEnvironmentFilterHeroBlackout', 5 );
 
@@ -56,55 +56,55 @@ add_filter( 'nvx_theme_hero_blackout_enabled', 'nvxEnvironmentFilterHeroBlackout
  * workflow-generated marker as the normal source of truth.
  */
 function nvxEnvironmentDeploySha(): string {
-	static $resolved = null;
+    static $resolved = null;
 
-	if ( is_string( $resolved ) ) {
-		return $resolved;
-	}
+    if ( is_string( $resolved ) ) {
+        return $resolved;
+    }
 
-	$candidates = array();
-	if ( defined( 'NVX_DEPLOY_SHA' ) ) {
-		$candidates[] = (string) NVX_DEPLOY_SHA;
-	}
+    $candidates = array();
+    if ( defined( 'NVX_DEPLOY_SHA' ) ) {
+        $candidates[] = (string) NVX_DEPLOY_SHA;
+    }
 
-	$environment_sha = getenv( 'NVX_DEPLOY_SHA' );
-	if ( is_string( $environment_sha ) ) {
-		$candidates[] = $environment_sha;
-	}
+    $environment_sha = getenv( 'NVX_DEPLOY_SHA' );
+    if ( is_string( $environment_sha ) ) {
+        $candidates[] = $environment_sha;
+    }
 
-	$marker = get_template_directory() . '/.nvx-deploy-sha';
-	if ( is_readable( $marker ) ) {
-		$marker_sha = file_get_contents( $marker );
-		if ( is_string( $marker_sha ) ) {
-			$candidates[] = $marker_sha;
-		}
-	}
+    $marker = get_template_directory() . '/.nvx-deploy-sha';
+    if ( is_readable( $marker ) ) {
+        $marker_sha = file_get_contents( $marker );
+        if ( is_string( $marker_sha ) ) {
+            $candidates[] = $marker_sha;
+        }
+    }
 
-	foreach ( $candidates as $candidate ) {
-		$candidate = strtolower( trim( $candidate ) );
-		if ( 1 === preg_match( '/^[a-f0-9]{40}$/', $candidate ) ) {
-			$resolved = $candidate;
-			return $resolved;
-		}
-	}
+    foreach ( $candidates as $candidate ) {
+        $candidate = strtolower( trim( $candidate ) );
+        if ( 1 === preg_match( '/^[a-f0-9]{40}$/', $candidate ) ) {
+            $resolved = $candidate;
+            return $resolved;
+        }
+    }
 
-	$resolved = '';
-	return $resolved;
+    $resolved = '';
+    return $resolved;
 }
 
 /**
  * Emit the immutable deployment marker in the rendered document head.
  */
 function nvxEnvironmentRenderDeploySha(): void {
-	if ( is_admin() ) {
-		return;
-	}
+    if ( is_admin() ) {
+        return;
+    }
 
-	$sha = nvxEnvironmentDeploySha();
-	if ( '' === $sha ) {
-		return;
-	}
+    $sha = nvxEnvironmentDeploySha();
+    if ( '' === $sha ) {
+        return;
+    }
 
-	printf( "<meta name=\"nvx-deploy-sha\" content=\"%s\" />\n", esc_attr( $sha ) );
+    printf( "<meta name=\"nvx-deploy-sha\" content=\"%s\" />\n", esc_attr( $sha ) );
 }
 add_action( 'wp_head', 'nvxEnvironmentRenderDeploySha', 1 );

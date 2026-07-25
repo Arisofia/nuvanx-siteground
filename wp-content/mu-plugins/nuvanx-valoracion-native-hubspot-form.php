@@ -8,137 +8,137 @@
 defined( 'ABSPATH' ) || exit;
 
 if ( ! defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ) {
-	define( 'NVX_VALORACION_HS_FRAME_PORTAL_ID', '147416356' );
+    define( 'NVX_VALORACION_HS_FRAME_PORTAL_ID', '147416356' );
 }
 if ( ! defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ) {
-	define( 'NVX_VALORACION_HS_FRAME_FORM_ID', '5042522a-0bc5-4381-ac3e-5aee8649b69c' );
+    define( 'NVX_VALORACION_HS_FRAME_FORM_ID', '5042522a-0bc5-4381-ac3e-5aee8649b69c' );
 }
 if ( ! defined( 'NVX_VALORACION_HS_FRAME_REGION' ) ) {
-	define( 'NVX_VALORACION_HS_FRAME_REGION', 'eu1' );
+    define( 'NVX_VALORACION_HS_FRAME_REGION', 'eu1' );
 }
 
 function nvx_valoracion_native_hubspot_is_target_page(): bool {
-	return is_page( 2636 ) || is_page( 'valoracion' );
+    return is_page( 2636 ) || is_page( 'valoracion' );
 }
 
 function nvx_valoracion_native_hubspot_mount_markup(): string {
-	$portal_id     = esc_attr( NVX_VALORACION_HS_FRAME_PORTAL_ID );
-	$form_id       = esc_attr( NVX_VALORACION_HS_FRAME_FORM_ID );
-	$region        = esc_attr( NVX_VALORACION_HS_FRAME_REGION );
-	$portal_script = esc_url( 'https://js-eu1.hsforms.net/forms/embed/' . NVX_VALORACION_HS_FRAME_PORTAL_ID . '.js' );
-	$privacy_url   = esc_url( home_url( '/politica-privacidad/' ) );
+    $portal_id     = esc_attr( NVX_VALORACION_HS_FRAME_PORTAL_ID );
+    $form_id       = esc_attr( NVX_VALORACION_HS_FRAME_FORM_ID );
+    $region        = esc_attr( NVX_VALORACION_HS_FRAME_REGION );
+    $portal_script = esc_url( 'https://js-eu1.hsforms.net/forms/embed/' . NVX_VALORACION_HS_FRAME_PORTAL_ID . '.js' );
+    $privacy_url   = esc_url( home_url( '/politica-privacidad/' ) );
 
-	return '<script src="' . $portal_script . '" defer></script>'
-		. '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '"></div>'
-		. '<p class="nvx-copy nvx-hubspot-privacy">'
-		. esc_html__( 'Al facilitar tus datos aceptas la ', 'nuvanx-medical' )
-		. '<a class="nvx-text-link" href="' . $privacy_url . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>. '
-		. esc_html__( 'La indicación definitiva se confirma siempre en valoración presencial.', 'nuvanx-medical' )
-		. '</p>';
+    return '<script src="' . $portal_script . '" defer></script>'
+        . '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '"></div>'
+        . '<p class="nvx-copy nvx-hubspot-privacy">'
+        . esc_html__( 'Al facilitar tus datos aceptas la ', 'nuvanx-medical' )
+        . '<a class="nvx-text-link" href="' . $privacy_url . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>. '
+        . esc_html__( 'La indicación definitiva se confirma siempre en valoración presencial.', 'nuvanx-medical' )
+        . '</p>';
 }
 
 /** @return array{start:int,length:int}|null */
 function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?array {
-	if ( $open_offset < 0
-		|| ! preg_match( '/\G<div\b[^>]*>/i', $html, $opening, 0, $open_offset )
-		|| ! preg_match_all( '/<div\b[^>]*>|<\/div\s*>/i', $html, $tokens, PREG_OFFSET_CAPTURE, $open_offset )
-	) {
-		return null;
-	}
+    if ( $open_offset < 0
+        || ! preg_match( '/\G<div\b[^>]*>/i', $html, $opening, 0, $open_offset )
+        || ! preg_match_all( '/<div\b[^>]*>|<\/div\s*>/i', $html, $tokens, PREG_OFFSET_CAPTURE, $open_offset )
+    ) {
+        return null;
+    }
 
-	$depth = 0;
-	foreach ( $tokens[0] as $token ) {
-		$markup = (string) $token[0];
-		$offset = (int) $token[1];
-		$depth += 0 === stripos( $markup, '</div' ) ? -1 : 1;
-		if ( 0 === $depth ) {
-			return array(
-				'start'  => $open_offset,
-				'length' => $offset + strlen( $markup ) - $open_offset,
-			);
-		}
-	}
-	return null;
+    $depth = 0;
+    foreach ( $tokens[0] as $token ) {
+        $markup = (string) $token[0];
+        $offset = (int) $token[1];
+        $depth += 0 === stripos( $markup, '</div' ) ? -1 : 1;
+        if ( 0 === $depth ) {
+            return array(
+                'start'  => $open_offset,
+                'length' => $offset + strlen( $markup ) - $open_offset,
+            );
+        }
+    }
+    return null;
 }
 
 function nvx_valoracion_remove_divs_by_class( string $html, string $class_token ): string {
-	$pattern = '/<div\b(?=[^>]*\bclass=["\'][^"\']*\b'
-		. preg_quote( $class_token, '/' )
-		. '\b[^"\']*["\'])[^>]*>/i';
+    $pattern = '/<div\b(?=[^>]*\bclass=["\'][^"\']*\b'
+        . preg_quote( $class_token, '/' )
+        . '\b[^"\']*["\'])[^>]*>/i';
 
-	if ( ! preg_match_all( $pattern, $html, $matches, PREG_OFFSET_CAPTURE ) ) {
-		return $html;
-	}
+    if ( ! preg_match_all( $pattern, $html, $matches, PREG_OFFSET_CAPTURE ) ) {
+        return $html;
+    }
 
-	$ranges = array();
-	foreach ( $matches[0] as $match ) {
-		$range = nvx_valoracion_balanced_div_range( $html, (int) $match[1] );
-		if ( is_array( $range ) ) {
-			$ranges[] = $range;
-		}
-	}
-	usort( $ranges, static fn( array $a, array $b ): int => $b['start'] <=> $a['start'] );
-	foreach ( $ranges as $range ) {
-		$html = substr_replace( $html, '', $range['start'], $range['length'] );
-	}
-	return $html;
+    $ranges = array();
+    foreach ( $matches[0] as $match ) {
+        $range = nvx_valoracion_balanced_div_range( $html, (int) $match[1] );
+        if ( is_array( $range ) ) {
+            $ranges[] = $range;
+        }
+    }
+    usort( $ranges, static fn( array $a, array $b ): int => $b['start'] <=> $a['start'] );
+    foreach ( $ranges as $range ) {
+        $html = substr_replace( $html, '', $range['start'], $range['length'] );
+    }
+    return $html;
 }
 
 function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): string {
-	$mount_pattern = '/<div\b[^>]*\bid=["\']nvx-hubspot-native-form["\'][^>]*>/i';
-	if ( ! preg_match_all( $mount_pattern, $html, $mounts, PREG_OFFSET_CAPTURE ) || empty( $mounts[0] ) ) {
-		return $html;
-	}
+    $mount_pattern = '/<div\b[^>]*\bid=["\']nvx-hubspot-native-form["\'][^>]*>/i';
+    if ( ! preg_match_all( $mount_pattern, $html, $mounts, PREG_OFFSET_CAPTURE ) || empty( $mounts[0] ) ) {
+        return $html;
+    }
 
-	$ranges = array();
-	foreach ( $mounts[0] as $mount ) {
-		$range = nvx_valoracion_balanced_div_range( $html, (int) $mount[1] );
-		if ( is_array( $range ) ) {
-			$range['opening'] = (string) $mount[0];
-			$ranges[]         = $range;
-		}
-	}
-	if ( empty( $ranges ) ) {
-		return $html;
-	}
+    $ranges = array();
+    foreach ( $mounts[0] as $mount ) {
+        $range = nvx_valoracion_balanced_div_range( $html, (int) $mount[1] );
+        if ( is_array( $range ) ) {
+            $range['opening'] = (string) $mount[0];
+            $ranges[]         = $range;
+        }
+    }
+    if ( empty( $ranges ) ) {
+        return $html;
+    }
 
-	usort( $ranges, static fn( array $a, array $b ): int => $a['start'] <=> $b['start'] );
-	$first_offset  = (int) $ranges[0]['start'];
-	$first_opening = (string) $ranges[0]['opening'];
-	$marker        = '<!-- NVX_VALORACION_CANONICAL_MOUNT -->';
+    usort( $ranges, static fn( array $a, array $b ): int => $a['start'] <=> $b['start'] );
+    $first_offset  = (int) $ranges[0]['start'];
+    $first_opening = (string) $ranges[0]['opening'];
+    $marker        = '<!-- NVX_VALORACION_CANONICAL_MOUNT -->';
 
-	$descending = $ranges;
-	usort( $descending, static fn( array $a, array $b ): int => $b['start'] <=> $a['start'] );
-	foreach ( $descending as $range ) {
-		$html = substr_replace( $html, '', (int) $range['start'], (int) $range['length'] );
-	}
-	$html = substr( $html, 0, $first_offset ) . $marker . substr( $html, $first_offset );
+    $descending = $ranges;
+    usort( $descending, static fn( array $a, array $b ): int => $b['start'] <=> $a['start'] );
+    foreach ( $descending as $range ) {
+        $html = substr_replace( $html, '', (int) $range['start'], (int) $range['length'] );
+    }
+    $html = substr( $html, 0, $first_offset ) . $marker . substr( $html, $first_offset );
 
-	$html = preg_replace( '#<script\b[^>]*\bsrc=["\'][^"\']*hsforms\.net/[^"\']*["\'][^>]*>\s*</script>#iu', '', $html ) ?? $html;
-	$html = preg_replace( '#<iframe\b[^>]*(?:hsforms|hubspot)[^>]*>[\s\S]*?</iframe>#iu', '', $html ) ?? $html;
-	$html = nvx_valoracion_remove_divs_by_class( $html, 'hs-form-frame' );
-	$html = nvx_valoracion_remove_divs_by_class( $html, 'hbspt-form' );
+    $html = preg_replace( '#<script\b[^>]*\bsrc=["\'][^"\']*hsforms\.net/[^"\']*["\'][^>]*>\s*</script>#iu', '', $html ) ?? $html;
+    $html = preg_replace( '#<iframe\b[^>]*(?:hsforms|hubspot)[^>]*>[\s\S]*?</iframe>#iu', '', $html ) ?? $html;
+    $html = nvx_valoracion_remove_divs_by_class( $html, 'hs-form-frame' );
+    $html = nvx_valoracion_remove_divs_by_class( $html, 'hbspt-form' );
 
-	$canonical = $first_opening . nvx_valoracion_native_hubspot_mount_markup() . '</div>';
-	return str_replace( $marker, $canonical, $html );
+    $canonical = $first_opening . nvx_valoracion_native_hubspot_mount_markup() . '</div>';
+    return str_replace( $marker, $canonical, $html );
 }
 
 add_action(
-	'template_redirect',
-	static function (): void {
-		if ( nvx_valoracion_native_hubspot_is_target_page() ) {
-			ob_start( 'nvx_valoracion_native_hubspot_enforce_single_mount' );
-		}
-	},
-	1
+    'template_redirect',
+    static function (): void {
+        if ( nvx_valoracion_native_hubspot_is_target_page() ) {
+            ob_start( 'nvx_valoracion_native_hubspot_enforce_single_mount' );
+        }
+    },
+    1
 );
 
 add_action(
-	'wp_footer',
-	static function (): void {
-		if ( nvx_valoracion_native_hubspot_is_target_page() ) {
-			echo '<script>window.nuvanxValoracionForm=true;</script>' . "\n";
-		}
-	},
-	20
+    'wp_footer',
+    static function (): void {
+        if ( nvx_valoracion_native_hubspot_is_target_page() ) {
+            echo '<script>window.nuvanxValoracionForm=true;</script>' . "\n";
+        }
+    },
+    20
 );

@@ -509,3 +509,59 @@
     gap: var(--nvx-space-4, 1.5rem) !important;
   }
 }
+
+/* Accordions & Expandable/Collapsible FAQ items contract */
+.nvx-faq summary,
+.nvx-brand-faq-accordion summary,
+.nvx-home-faq-editorial summary {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--nvx-space-3, 1rem);
+  padding: var(--nvx-space-3, 1rem) var(--nvx-space-4, 1.5rem) var(--nvx-space-3, 1rem) 0;
+  cursor: pointer;
+  user-select: none;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.nvx-faq summary::after,
+.nvx-brand-faq-accordion summary::after,
+.nvx-home-faq-editorial summary::after {
+  top: 1.25rem;
+  margin-top: 0;
+  flex-shrink: 0;
+  transition: transform 200ms ease;
+}
+
+.nvx-faq details[open] > summary::after,
+.nvx-faq .nvx-brand-faq-item[open] > summary::after,
+.nvx-brand-faq-accordion details[open] > summary::after,
+.nvx-brand-faq-accordion .nvx-brand-faq-item[open] > summary::after,
+.nvx-home-faq-editorial details[open] > summary::after {
+  transform: rotate(225deg);
+  margin-top: 0;
+}
+
+.nvx-brand-faq-content,
+.nvx-faq details > div {
+  padding-bottom: var(--nvx-space-4, 1.5rem);
+  overflow: visible;
+  line-height: var(--nvx-lh-body, 1.6);
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Prevent text overlap & clipping across headings and prose */
+h1, h2, h3, h4, h5, h6,
+.nvx-heading,
+.nvx-editorial-heading,
+.nvx-brand-title,
+.nvx-catalog-card__title {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  text-wrap: balance;
+  word-break: break-word;
+}

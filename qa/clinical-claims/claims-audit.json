@@ -1,0 +1,13 @@
+{
+  "generated_at": "2026-07-18T12:42:59.308Z",
+  "registry": "docs/clinical-claims/claims-register.json",
+  "deployable_root": "wp-content/themes/nuvanx-medical",
+  "files_scanned": 60,
+  "status_counts": {
+    "approved": 3,
+    "pending": 8,
+    "rejected": 6
+  },
+  "validation_errors": [],
+  "rejected_matches": []
+}

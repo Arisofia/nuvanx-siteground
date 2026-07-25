@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').trim().replace(/\/+$/, '');
+const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').trim().replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const evidenceDir = (process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/rendered-acceptance').trim();
 const sshHost = (process.env.STAGING2_SSH_ALIAS || 'nvx-staging2').trim();
@@ -25,18 +25,6 @@ fs.mkdirSync(evidenceDir, { recursive: true });
 import { phasePageDefinitions } from './staging2-contract-common.mjs';
 
 const commonMarkers = ['Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos', 'Tu primera valoración clínica'];
-const phaseSlugs = [
-  'papada-definicion-mandibular-madrid',
-  'calidad-piel-firmeza-luminosidad-madrid',
-  'cicatrices-acne-poros-textura-madrid',
-  'manchas-rojeces-fotorejuvenecimiento-ipl-madrid',
-  'grasa-localizada-abdomen-flancos-madrid',
-  'flacidez-grasa-localizada-brazos-madrid',
-  'grasa-espalda-zona-sujetador-madrid',
-  'flacidez-muslos-internos-subgluteo-madrid',
-  'tratamiento-rodillas-grasa-flacidez-madrid',
-  'contorno-corporal-masculino-madrid',
-];
 const pages = [
   {
     path: '/soluciones-medicas/',
@@ -145,7 +133,7 @@ function parseTransportOutput(stdout, stderr) {
 }
 
 function headerValue(headers, name) {
-  const values = headers.split(/\r?\n/)
+  const values = headers.split('\n').map((line) => line.trim())
     .filter((line) => line.toLowerCase().startsWith(`${name.toLowerCase()}:`))
     .map((line) => line.slice(line.indexOf(':') + 1).trim());
   return values.at(-1) || '';
@@ -239,28 +227,41 @@ function parseHtmlPage(html) {
   };
 }
 
-function validatePage(page, parsed, scope) {
+function validatePageMetadata(page, parsed, scope) {
   if (parsed.deploySha !== expectedSha) fail(scope, `served SHA ${parsed.deploySha || 'absent'} instead of ${expectedSha}`);
   if (parsed.title !== page.title) fail(scope, `title mismatch: ${JSON.stringify(parsed.title)}`);
   if (parsed.description !== page.description) fail(scope, 'meta description mismatch');
   if (parsed.ogTitle !== page.title) fail(scope, 'og:title mismatch');
   if (parsed.ogDescription !== page.description) fail(scope, 'og:description mismatch');
   if (!parsed.robots.toLowerCase().includes('noindex') || !parsed.robots.toLowerCase().includes('nofollow')) fail(scope, `robots mismatch: ${parsed.robots || 'absent'}`);
+}
+
+function validatePageContent(page, parsed, scope) {
   if (parsed.h1List.length !== 1 || parsed.h1List[0] !== page.h1) fail(scope, `H1 mismatch: ${JSON.stringify(parsed.h1List)}`);
   if (parsed.h2Count < 3) fail(scope, `expected at least 3 H2s, found ${parsed.h2Count}`);
   for (const marker of page.markers) if (!parsed.bodyText.includes(marker)) fail(scope, `missing marker: ${marker}`);
   if (!/valoraci[oó]n/i.test(parsed.bodyText)) fail(scope, 'missing medical valuation CTA or copy');
+}
+
+function validatePageLinksAndSchema(page, parsed, scope) {
   const validUrls = new Set([`https://staging2.nuvanx.com${page.path}`, `https://nuvanx.com${page.path}`, `https://www.nuvanx.com${page.path}`]);
   if (parsed.canonicals.length !== 1 || !validUrls.has(parsed.canonicals[0])) fail(scope, `canonical mismatch: ${parsed.canonicals[0] || 'absent'}`);
   if (!validUrls.has(parsed.ogUrl)) fail(scope, `og:url mismatch: ${parsed.ogUrl || 'absent'}`);
   if (!parsed.schemas.includes('WebPage')) fail(scope, 'missing WebPage schema');
   if (!parsed.schemas.includes('Organization') && !parsed.schemas.includes('MedicalOrganization')) fail(scope, 'missing Organization or MedicalOrganization schema');
+}
+
+function validatePage(page, parsed, scope) {
+  validatePageMetadata(page, parsed, scope);
+  validatePageContent(page, parsed, scope);
+  validatePageLinksAndSchema(page, parsed, scope);
+
   const lowerText = parsed.bodyText.toLowerCase();
   for (const forbidden of forbiddenText) if (lowerText.includes(forbidden.toLowerCase())) fail(scope, `exposes forbidden text: ${forbidden}`);
 }
 
 for (const page of pages) {
-  const response = await originFetch(`${baseUrl}${page.path}`);
+  const response = await originFetch(`${baseUrl}${page.path.replace(/\/$/, '')}/`);
   const fileName = `${page.path.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home'}.html`;
   fs.writeFileSync(path.join(evidenceDir, fileName), response.body);
   const record = { path: page.path, status: response.status };

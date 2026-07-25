@@ -125,7 +125,7 @@ function findMetaAttr(html, attr) {
 
 function findLinkHrefs(html, relType) {
   return queryHtmlTags(html, 'link')
-    .filter((tag) => getAttrVal(tag, 'rel').toLowerCase().split(/\s+/).includes(relType.toLowerCase()))
+    .filter((tag) => getAttrVal(tag, 'rel').toLowerCase().split(' ').includes(relType.toLowerCase()))
     .map((tag) => getAttrVal(tag, 'href'));
 }
 

@@ -1,10 +1,13 @@
 # Changelog
 
 ## 2026.07.25
-- **General cleanup**
-  - Eliminado stub deprecado `docs/deployment.md` (redirigía a `docs/operations/deployment.md`).
-  - Actualizado VERSION a 2026.07.25.
-  - Repositorio deja solo lo activo y necesario para el flujo canónico de producción/staging2.
+- **General cleanup — solo activo y necesario**
+  - Eliminado stub deprecado `docs/deployment.md`.
+  - Eliminado `scripts/deploy-production.sh` (superseded por `tools/deploy`).
+  - Eliminado `docs/ops/deployment-source-of-truth.md` (redundante).
+  - Limpiados dead links en `docs/operations/deployment.md` y `tools/deploy/README.md`.
+  - Actualizado `README.md` y VERSION a 2026.07.25.
+  - Repositorio reducido a componentes canónicos activos: theme, mu-plugins, deploy tools, gates CI, scripts de verificación y documentación operativa.
 
 ## 2026.07.22
 - **Repo Cleanup Audit**

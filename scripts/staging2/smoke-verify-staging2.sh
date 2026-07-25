@@ -46,7 +46,9 @@ fail() { echo "ERROR: $*" >&2; return 1; }
 fetch_page() {
   local page_path="$1"
   shift
-  local body_file="$TMP_DIR/body-$(echo "$page_path" | tr '/-' '__').html"
+  local safe_slug body_file
+  safe_slug="$(echo "$page_path" | tr '/-' '__')"
+  body_file="$TMP_DIR/body-${safe_slug}.html"
   local status attempt
 
   status='000'
@@ -86,7 +88,9 @@ fetch_page() {
 check_redirect() {
   local source_path="$1"
   local target_path="$2"
-  local headers_file="$TMP_DIR/headers-$(echo "$source_path" | tr '/-' '__').txt"
+  local safe_slug headers_file
+  safe_slug="$(echo "$source_path" | tr '/-' '__')"
+  headers_file="$TMP_DIR/headers-${safe_slug}.txt"
   local status location expected_location attempt
 
   status='000'

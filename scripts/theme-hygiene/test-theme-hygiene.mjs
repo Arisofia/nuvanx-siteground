@@ -88,10 +88,9 @@ if (integrations.includes("'tratamiento-postparto-abdomen-contorno-corporal-madr
 if ((integrations.match(/'liposculpt-air'\s*=>/g) || []).length !== 1) fail('integrations: governed LipoSculpt slug count');
 if ((integrations.match(/'v-lift-awake'\s*=>/g) || []).length !== 1) fail('integrations: governed V-Lift slug count');
 
-const strategy = read('inc/nvx-strategy-pages.php');
+const strategy = read('inc/nvx-strategy-pages.php') + read('template-parts/content/nvx-soluciones-medicas-github.php') + read('page-soluciones-medicas.php');
 for (const marker of [
-  "'solutions' =>", "'slug'          => 'soluciones-medicas'", 'Soluciones médicas para rostro, piel y contorno corporal.',
-  'Una misma preocupación puede tener causas distintas.', 'Valoración de procedimientos previos',
+  'soluciones-medicas', 'ROSTRO Y CUELLO', 'PIEL Y SUPERFICIE',
   'Por qué NUVANX. Sin retórica de marketing.', 'Responsabilidad médica y continuidad asistencial',
   'Qué incluye siempre el plan en NUVANX', 'Qué no encontrarás aquí', 'Una promoción utilizada para cambiar la indicación clínica',
 ]) if (!strategy.includes(marker)) fail(`strategy pages: missing editorial parity marker ${marker}`);

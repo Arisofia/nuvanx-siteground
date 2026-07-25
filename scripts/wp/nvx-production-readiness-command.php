@@ -47,6 +47,7 @@ final class NvxProductionReadinessHelper {
 	public static function governedPages(): array {
 		if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
 			$candidate_paths = array(
+				__DIR__ . '/theme/inc/nvx-integrations.php',
 				dirname( __DIR__ ) . '/theme/inc/nvx-integrations.php',
 				dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-integrations.php',
 				get_template_directory() . '/inc/nvx-integrations.php',
@@ -416,6 +417,7 @@ final class NvxProductionReadinessCommand {
 	private function applyPrimaryMenu(): void {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			$candidate_paths = array(
+				__DIR__ . '/theme/inc/nvx-navigation-filters.php',
 				dirname( __DIR__ ) . '/theme/inc/nvx-navigation-filters.php',
 				dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php',
 				get_template_directory() . '/inc/nvx-navigation-filters.php',

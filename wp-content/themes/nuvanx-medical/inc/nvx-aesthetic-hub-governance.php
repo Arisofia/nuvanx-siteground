@@ -67,6 +67,7 @@ function nvx_aesthetic_hub_governance_filter( string $content ): string {
 		return $content;
 	}
 
+	$val_medica = 'Según valoración médica';
 	$replacements = array(
 		'Restauramos el soporte estructural, la turgencia y la armonía del rostro mediante procedimientos médicos inyectables y regenerativos de alta precisión. Sin alterar tu identidad y guiados exclusivamente por el diagnóstico personalizado de nuestro equipo médico.'
 			=> 'Valoramos soporte, calidad cutánea, expresión y proporciones para decidir si un procedimiento inyectable o regenerativo está indicado. El objetivo es preservar la identidad y explicar con claridad los límites de cada opción.',
@@ -106,9 +107,9 @@ function nvx_aesthetic_hub_governance_filter( string $content ): string {
 			=> 'PDRN y polinucleótidos no son rellenos de ácido hialurónico. Su composición, autorización, indicaciones y evidencia dependen del producto concreto; no deben atribuirse efectos universales ni mecanismos clínicos garantizados sin revisar su documentación vigente.',
 		'El efecto Tyndall es una complicación estética menor que ocurre cuando la luz incide sobre un depósito de ácido hialurónico colocado demasiado superficial en la piel ultrafina de la ojera, provocando una coloración azulada o grisácea. En Chamberí y Goya lo prevenimos depositando el producto en plano profundo, inmediatamente por encima del periostio, con microcánulas romas, y seleccionando geles con nula capacidad de retención de agua y bajísima dispersión de luz, para un resultado invisible y natural.'
 			=> 'Si el producto se coloca demasiado superficial en la piel finísima de la ojera, a veces se ve un tono azulado por debajo — se llama efecto Tyndall. Lo evitamos colocándolo en el plano correcto, pero ningún médico puede prometerte cero riesgo al 100%, y preferimos decírtelo así de claro.',
-		'Desde 290 €' => 'Según valoración médica',
-		'Desde 380 €' => 'Según valoración médica',
-		'Estimuladores de colágeno desde 490 €' => 'Según valoración médica',
+		'Desde 290 €' => $val_medica,
+		'Desde 380 €' => $val_medica,
+		'Estimuladores de colágeno desde 490 €' => $val_medica,
 	);
 
 	$content = str_replace( array_keys( $replacements ), array_values( $replacements ), $content );

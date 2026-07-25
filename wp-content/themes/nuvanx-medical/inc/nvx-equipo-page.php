@@ -247,21 +247,21 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 
 	foreach ( $found as $card ) {
 		if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
-			if ( '' === $rivera_media && preg_match( '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu', $card, $im ) ) {
+			if ( '' === $rivera_media && preg_match( NVX_REGEX_MEDIA, $card, $im ) ) {
 				$rivera_media = $im[0];
 			}
 			// Long-form authority replaces short card for director.
 			continue;
 		}
 		if ( nvx_equipo_block_is_ivon( $card ) ) {
-			if ( '' === $ivon_media && preg_match( '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu', $card, $im ) ) {
+			if ( '' === $ivon_media && preg_match( NVX_REGEX_MEDIA, $card, $im ) ) {
 				$ivon_media = $im[0];
 			}
 			// Long-form authority replaces short card for Dra. Ivon.
 			continue;
 		}
 		if ( nvx_equipo_block_is_fabio( $card ) ) {
-			if ( '' === $fabio_media && preg_match( '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu', $card, $im ) ) {
+			if ( '' === $fabio_media && preg_match( NVX_REGEX_MEDIA, $card, $im ) ) {
 				$fabio_media = $im[0];
 			}
 			// Long-form authority replaces short card for Dr. Fabio.

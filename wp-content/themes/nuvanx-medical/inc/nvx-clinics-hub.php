@@ -792,7 +792,7 @@ add_filter( 'the_content', 'nvxSedeStripLayoutInlineStyles', 28 );
  */
 
 function nvxClinicsHubEnhance( string $content ): string {
-	if ( is_admin() || ! nvxIsClinicsHub() || '' === trim( $content ) ) {
+	if ( is_admin() || ( ! nvxIsClinicsHub() && ! nvxIsSedeTemplate() ) || '' === trim( $content ) ) {
 		return $content;
 	}
 

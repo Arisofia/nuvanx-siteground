@@ -1,0 +1,80 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const theme = path.join(root, 'wp-content/themes/nuvanx-medical');
+const failures = [];
+
+function read(relativePath) {
+  const target = path.join(theme, relativePath);
+  if (!fs.existsSync(target)) {
+    failures.push(`missing ${relativePath}`);
+    return '';
+  }
+  return fs.readFileSync(target, 'utf8');
+}
+
+function walkPhp(directory) {
+  return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    if (['vendor', 'node_modules', '.git'].includes(entry.name)) return [];
+    const target = path.join(directory, entry.name);
+    if (entry.isDirectory()) return walkPhp(target);
+    return entry.isFile() && entry.name.endsWith('.php') ? [target] : [];
+  });
+}
+
+const structuredData = read('inc/nvx-structured-data.php');
+const jsonldHelpers = read('inc/nvx-jsonld-content.php');
+const functions = read('functions.php');
+
+const registeredJsonldCallback = structuredData.match(
+  /add_filter\s*\(\s*['"]the_content['"]\s*,\s*['"]([^'"]+)['"]\s*,\s*5\s*\)/,
+)?.[1] || '';
+
+if (!registeredJsonldCallback) {
+  failures.push('structured data module does not register the JSON-LD the_content callback at priority 5');
+} else {
+  const escapedName = registeredJsonldCallback.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const declaration = new RegExp(`function\\s+${escapedName}\\s*\\(`);
+  if (!declaration.test(jsonldHelpers)) {
+    failures.push(`registered callback ${registeredJsonldCallback} is not declared by nvx-jsonld-content.php`);
+  }
+}
+
+for (const marker of [
+  'function nvxFilterStripEmbeddedJsonld(',
+  'function nvx_filter_strip_embedded_jsonld(',
+  'return nvxFilterStripEmbeddedJsonld( $content );',
+]) {
+  if (!jsonldHelpers.includes(marker)) failures.push(`JSON-LD callback compatibility marker missing: ${marker}`);
+}
+
+const constantNames = ['NVX_REGEX_WHITESPACE', 'NVX_REGEX_WHITESPACE_U'];
+const phpFiles = walkPhp(theme);
+for (const constantName of constantNames) {
+  const definitions = [];
+  const pattern = new RegExp(`define\\s*\\(\\s*['"]${constantName}['"]`, 'g');
+  for (const file of phpFiles) {
+    const source = fs.readFileSync(file, 'utf8');
+    const count = (source.match(pattern) || []).length;
+    if (count) definitions.push({ file: path.relative(theme, file).replaceAll('\\\\', '/'), count });
+  }
+
+  const total = definitions.reduce((sum, item) => sum + item.count, 0);
+  if (total !== 1 || definitions[0]?.file !== 'functions.php') {
+    failures.push(`${constantName} must be defined exactly once in functions.php; found ${JSON.stringify(definitions)}`);
+  }
+  if (!functions.includes(`if ( ! defined( '${constantName}' ) ) {`)) {
+    failures.push(`${constantName} definition is not guarded with defined()`);
+  }
+}
+
+if (failures.length) {
+  console.error(`RUNTIME_BOOTSTRAP_CONTRACT_FAILED findings=${failures.length}`);
+  for (const failure of failures) console.error(`- ${failure}`);
+  process.exit(1);
+}
+
+console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback}`);

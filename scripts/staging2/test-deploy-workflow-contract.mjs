@@ -142,7 +142,20 @@ if (visualPreload.includes('http://127.0.0.1')) fail('visual QA preload must not
 for (const marker of ["'liposculpt-air'", "'v-lift-awake'", "'tratamientos'", "'target' => '/protocolos-signature/'"]) {
   if (!integrations.includes(marker)) fail(`governed redirects missing marker: ${marker}`);
 }
-if (!functions.includes("require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';")) fail('functions.php does not load phase pages');
+
+const bootstrapSources = `${functions}\n${integrations}`;
+for (const moduleName of [
+  'nvx-navigation-filters.php',
+  'nvx-13-point-renderer.php',
+  'nvx-aesthetic-treatment-pages.php',
+  'nvx-protocol-hub.php',
+  'nvx-protocol-pages.php',
+  'nvx-signature-phase-pages.php',
+]) {
+  const occurrenceCount = bootstrapSources.split(moduleName).length - 1;
+  if (occurrenceCount !== 1) fail(`bootstrap must load ${moduleName} exactly once; found ${occurrenceCount}`);
+}
+
 for (const marker of [
   'function nvx_protocol_pages_current_key', 'nvx_protocol_pages_catalog',
   'remodelacion-corporal-laser-madrid', 'tratamiento-postparto-abdomen-contorno-corporal-madrid',

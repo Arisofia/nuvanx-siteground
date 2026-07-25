@@ -15,193 +15,156 @@ defined( 'ABSPATH' ) || exit;
  *
  * @return string[]
  */
-function nvx_p0_exion_paths(): array {
-	return array(
-		'/exion-btl/',
-		'/exion-face/',
-		'/exion-body/',
-		'/exion-fractional/',
-	);
+function nvxP0ExionPaths(): array {
+    return array(
+        '/exion-btl/',
+        '/exion-face/',
+        '/exion-body/',
+        '/exion-fractional/',
+    );
 }
 
 /**
  * Whether the current public request belongs to the EXION family.
  */
-function nvx_p0_is_exion_page(): bool {
-	if ( is_admin() ) {
-		return false;
-	}
+function nvxP0IsExionPage(): bool {
+    if ( is_admin() ) {
+        return false;
+    }
 
-	if ( is_page( 2906 ) ) {
-		return true;
-	}
+    if ( is_page( 2906 ) ) {
+        return true;
+    }
 
-	$page_id = (int) get_queried_object_id();
-	if ( function_exists( 'nvx_schema_current_path' ) ) {
-		$path = nvx_schema_current_path( $page_id );
-	} else {
-		$request = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
-		$path    = '/' . trim( (string) strtok( $request, '?' ), '/' ) . '/';
-	}
+    $page_id = (int) get_queried_object_id();
+    if ( function_exists( 'nvxSchemaCurrentPath' ) ) {
+        $path = nvxSchemaCurrentPath( $page_id );
+    } else {
+        $request = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $path    = '/' . trim( (string) strtok( $request, '?' ), '/' ) . '/';
+    }
 
-	return in_array( $path, nvx_p0_exion_paths(), true );
+    return in_array( $path, nvxP0ExionPaths(), true );
 }
 
 /**
  * Public price pattern for EXION visible text.
  */
-function nvx_p0_exion_price_pattern(): string {
-	return '/(?<![\p{L}\p{N}])(?:\d{1,3}(?:[.\x{00A0}\x{202F}\s]\d{3})+|\d{1,5})(?:[,.]\d{1,2})?\s*(?:€|EUR)(?![\p{L}\p{N}])/iu';
+function nvxP0ExionPricePattern(): string {
+    return '/(?<![\p{L}\p{N}])(?:\d{1,3}(?:[.\x{00A0}\x{202F}\s]\d{3})+|\d{1,5})(?:[,.]\d{1,2})?\s*(?:€|EUR)(?![\p{L}\p{N}])/iu';
 }
 
 /**
  * Replace explicit EXION prices in a text node.
  */
-function nvx_p0_replace_exion_prices_in_text( string $text ): string {
-	$replacement = __( 'Presupuesto tras valoración médica', 'nuvanx-medical' );
+function nvxP0ReplaceExionPricesInText( string $text ): string {
+    $replacement = __( 'Presupuesto tras valoración médica', 'nuvanx-medical' );
 
-	return preg_replace( nvx_p0_exion_price_pattern(), $replacement, $text ) ?? $text;
+    return preg_replace( nvxP0ExionPricePattern(), $replacement, $text ) ?? $text;
 }
 
-/** Fallback regex sanitization for EXION content when DOMDocument is unavailable. */
-function nvx_p0_fallback_sanitize_exion_content( string $content ): string {
-	$protected = array();
-	$content   = preg_replace_callback(
-		'#<(script|style|code|pre)\b[^>]*>[\s\S]*?</\1>#iu',
-		static function ( array $matches ) use ( &$protected ): string {
-			$key               = '___NVX_PROTECTED_' . count( $protected ) . '___';
-			$protected[ $key ] = $matches[0];
-			return $key;
-		},
-		$content
-	) ?? $content;
-	$content = preg_replace( '/<details\b[^>]*>[\s\S]*?Morpheus[\s\S]*?<\/details>/iu', '', $content ) ?? $content;
-	$content = preg_replace( nvx_p0_exion_price_pattern(), __( 'Presupuesto tras valoración médica', 'nuvanx-medical' ), $content ) ?? $content;
-	return strtr( $content, $protected );
-}
+/**
+ * Sanitizes EXION HTML content using DOM parsing.
+ */
+function _nvxP0SanitizeExionDom( string $content ): string {
+    $previous = libxml_use_internal_errors( true );
+    $document = new DOMDocument( '1.0', 'UTF-8' );
+    $wrapped  = '<!DOCTYPE html><html><body><div id="nvx-p0-exion-root">' . $content . '</div></body></html>';
+    if ( ! $document->loadHTML( '<?xml encoding="utf-8" ?>' . $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD ) ) {
+        libxml_clear_errors();
+        libxml_use_internal_errors( $previous );
+        return $content;
+    }
 
-/** Sanitize Morpheus details and price text nodes via DOM. */
-function nvx_p0_dom_sanitize_exion_nodes( DOMXPath $xpath, DOMElement $root ): void {
-	$uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-	$lowercase = 'abcdefghijklmnopqrstuvwxyz';
-	$details   = $xpath->query(
-		'.//details[contains(translate(string(.), "' . $uppercase . '", "' . $lowercase . '"), "morpheus")]',
-		$root
-	);
+    $xpath = new DOMXPath( $document );
+    $root  = $document->getElementById( 'nvx-p0-exion-root' );
+    if ( ! $root ) {
+        libxml_clear_errors();
+        libxml_use_internal_errors( $previous );
+        return $content;
+    }
 
-	if ( $details instanceof DOMNodeList ) {
-		$remove = array();
-		foreach ( $details as $detail ) {
-			$remove[] = $detail;
-		}
-		foreach ( $remove as $detail ) {
-			if ( $detail->parentNode ) {
-				$detail->parentNode->removeChild( $detail );
-			}
-		}
-	}
+    $details = $xpath->query( './/details[contains(translate(string(.), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"), "morpheus")]', $root );
+    if ( $details ) {
+        foreach ( $details as $detail ) {
+            $detail->parentNode?->removeChild( $detail );
+        }
+    }
 
-	$text_nodes = $xpath->query( './/text()', $root );
-	if ( ! $text_nodes instanceof DOMNodeList ) {
-		return;
-	}
+    $text_nodes = $xpath->query( './/text()[not(ancestor::script or ancestor::style or ancestor::code or ancestor::pre)]', $root );
+    if ( $text_nodes ) {
+        foreach ( $text_nodes as $text_node ) {
+            $text_node->nodeValue = nvxP0ReplaceExionPricesInText( (string) $text_node->nodeValue );
+        }
+    }
 
-	foreach ( $text_nodes as $text_node ) {
-		$skip   = false;
-		$parent = $text_node->parentNode;
-		while ( $parent instanceof DOMElement && $parent !== $root ) {
-			if ( in_array( strtolower( $parent->tagName ), array( 'script', 'style', 'code', 'pre' ), true ) ) {
-				$skip = true;
-				break;
-			}
-			$parent = $parent->parentNode;
-		}
-		if ( $skip ) {
-			continue;
-		}
-
-		$value = (string) $text_node->nodeValue;
-		if ( preg_match( nvx_p0_exion_price_pattern(), $value ) ) {
-			$text_node->nodeValue = nvx_p0_replace_exion_prices_in_text( $value );
-		}
-	}
+    $rebuilt = '';
+    foreach ( $root->childNodes as $child ) {
+        $rebuilt .= $document->saveHTML( $child );
+    }
+    libxml_clear_errors();
+    libxml_use_internal_errors( $previous );
+    return $rebuilt;
 }
 
 /**
  * Sanitize one EXION HTML fragment using DOM text nodes.
  */
-function nvx_p0_sanitize_exion_content( string $content ): string {
-	if ( '' === trim( $content ) ) {
-		return $content;
-	}
+function nvxP0SanitizeExionContent( string $content ): string {
+    if ( '' === trim( $content ) ) {
+        return $content;
+    }
 
-	if ( ! class_exists( 'DOMDocument' ) || ! class_exists( 'DOMXPath' ) ) {
-		return nvx_p0_fallback_sanitize_exion_content( $content );
-	}
+    if ( class_exists( 'DOMDocument' ) && class_exists( 'DOMXPath' ) ) {
+        return _nvxP0SanitizeExionDom( $content );
+    }
 
-	$previous = libxml_use_internal_errors( true );
-	$document = new DOMDocument( '1.0', 'UTF-8' );
-	$wrapped  = '<!DOCTYPE html><html><body><div id="nvx-p0-exion-root">' . $content . '</div></body></html>';
-	$loaded   = $document->loadHTML( '<?xml encoding="utf-8" ?>' . $wrapped, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
-
-	if ( ! $loaded ) {
-		libxml_clear_errors();
-		libxml_use_internal_errors( $previous );
-		return $content;
-	}
-
-	$xpath = new DOMXPath( $document );
-	$root  = $document->getElementById( 'nvx-p0-exion-root' );
-
-	if ( ! $root instanceof DOMElement ) {
-		libxml_clear_errors();
-		libxml_use_internal_errors( $previous );
-		return $content;
-	}
-
-	nvx_p0_dom_sanitize_exion_nodes( $xpath, $root );
-
-	$rebuilt = '';
-	foreach ( $root->childNodes as $child ) {
-		$rebuilt .= $document->saveHTML( $child );
-	}
-
-	libxml_clear_errors();
-	libxml_use_internal_errors( $previous );
-
-	return is_string( $rebuilt ) && '' !== trim( $rebuilt ) ? $rebuilt : $content;
+    // Fallback for environments without DOM extension
+    $protected = array();
+    $content   = preg_replace_callback(
+        '#<(script|style|code|pre)\b[^>]*>[\s\S]*?</\1>#iu',
+        static function ( array $matches ) use ( &$protected ): string {
+            $key               = '___NVX_PROTECTED_' . count( $protected ) . '___';
+            $protected[ $key ] = $matches[0];
+            return $key;
+        },
+        $content
+    ) ?? $content;
+    $content = preg_replace( '/<details\b[^>]*>[\s\S]*?Morpheus[\s\S]*?<\/details>/iu', '', $content ) ?? $content;
+    $content = preg_replace( nvxP0ExionPricePattern(), __( 'Presupuesto tras valoración médica', 'nuvanx-medical' ), $content ) ?? $content;
+    return strtr( $content, $protected );
 }
 
 /**
  * Canonical replacement for the legacy `nvx_apply_production_business_rules`.
  */
-function nvx_apply_p0_business_rules( $content ) {
-	if ( is_admin() || ! is_string( $content ) || '' === trim( $content ) ) {
-		return $content;
-	}
+function nvxApplyP0BusinessRules( $content ) {
+    if ( is_admin() || ! is_string( $content ) || '' === trim( $content ) ) {
+        return $content;
+    }
 
-	$page_id = (int) get_queried_object_id();
+    $page_id = (int) get_queried_object_id();
 
-	if ( in_array( $page_id, array( 3, 20 ), true ) ) {
-		$content = preg_replace( '/<div\b[^>]*\bnvx-legal-placeholder\b[^>]*>[\s\S]*?<\/div>/iu', '', $content ) ?? $content;
-		if (
-			false === strpos( $content, 'El artículo 13 del RGPD' )
-			&& function_exists( 'nvx_legal_framework_note_markup' )
-		) {
-			$content .= nvx_legal_framework_note_markup();
-		}
-	}
+    if ( in_array( $page_id, array( 3, 20 ), true ) ) {
+        $content = preg_replace( '/<div\b[^>]*\bnvx-legal-placeholder\b[^>]*>[\s\S]*?<\/div>/iu', '', $content ) ?? $content;
+        if (
+            false === strpos( $content, 'El artículo 13 del RGPD' )
+            && function_exists( 'nvx_legal_framework_note_markup' )
+        ) {
+            $content .= nvx_legal_framework_note_markup();
+        }
+    }
 
-	if ( 1575 === $page_id && function_exists( 'nvx_enrich_cristina_marquez_profile' ) ) {
-		$content = nvx_enrich_cristina_marquez_profile( $content );
-	}
+    if ( 1575 === $page_id && function_exists( 'nvx_enrich_cristina_marquez_profile' ) ) {
+        $content = nvx_enrich_cristina_marquez_profile( $content );
+    }
 
-	if ( nvx_p0_is_exion_page() ) {
-		$content = nvx_p0_sanitize_exion_content( $content );
-	}
+    if ( nvxP0IsExionPage() ) {
+        $content = nvxP0SanitizeExionContent( $content );
+    }
 
-	return $content;
+    return $content;
 }
 
 remove_filter( 'the_content', 'nvx_apply_production_business_rules', 99 );
-add_filter( 'the_content', 'nvx_apply_p0_business_rules', 99 );
+add_filter( 'the_content', 'nvxApplyP0BusinessRules', 99 );

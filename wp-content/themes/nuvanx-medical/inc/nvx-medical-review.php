@@ -13,41 +13,41 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /** @return array<string,array{name:string,license:string,url:string,id:string,title:string}> */
 function nvxMedicalReviewers(): array {
-	$license = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? (string) NVX_DIRECTOR_COLEGIADO : '282864786';
-	$url     = home_url( '/equipo-medico/#physician-rivera-tejeda' );
+    $license = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? (string) NVX_DIRECTOR_COLEGIADO : '282864786';
+    $url     = home_url( '/equipo-medico/#physician-rivera-tejeda' );
 
-	return array(
-		'rivera' => array(
-			'name'    => 'Dr. José Javier Rivera Tejeda',
-			'license' => $license,
-			'url'     => $url,
-			'id'      => $url,
-			'title'   => 'Director médico NUVANX',
-		),
-	);
+    return array(
+        'rivera' => array(
+            'name'    => 'Dr. José Javier Rivera Tejeda',
+            'license' => $license,
+            'url'     => $url,
+            'id'      => $url,
+            'title'   => 'Director médico NUVANX',
+        ),
+    );
 }
 
 /** Validate an ISO calendar date without silently correcting it. */
 function nvxMedicalReviewValidDate( string $date ): bool {
-	if ( ! preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $date, $match ) ) {
-		return false;
-	}
+    if ( ! preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $date, $match ) ) {
+        return false;
+    }
 
-	return checkdate( (int) $match[2], (int) $match[3], (int) $match[1] );
+    return checkdate( (int) $match[2], (int) $match[3], (int) $match[1] );
 }
 
 /** Restrict review provenance to registered treatment pages. */
 function nvxMedicalReviewSupportedPage( int $post_id ): bool {
-	if ( $post_id <= 0 || ! function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
-		return false;
-	}
+    if ( $post_id <= 0 || ! function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
+        return false;
+    }
 
-	return null !== nvx_schema_resolve_treatment_key( $post_id );
+    return null !== nvx_schema_resolve_treatment_key( $post_id );
 }
 
 /**
@@ -56,110 +56,110 @@ function nvxMedicalReviewSupportedPage( int $post_id ): bool {
  * @return array{reviewer_key:string,name:string,license:string,url:string,id:string,title:string,date:string,date_label:string}|null
  */
 function nvxMedicalReviewRecord( int $post_id = 0 ): ?array {
-	$post_id = $post_id > 0 ? $post_id : (int) get_queried_object_id();
-	if ( ! nvxMedicalReviewSupportedPage( $post_id ) ) {
-		return null;
-	}
+    $post_id = $post_id > 0 ? $post_id : (int) get_queried_object_id();
+    if ( ! nvxMedicalReviewSupportedPage( $post_id ) ) {
+        return null;
+    }
 
-	$status       = strtolower( trim( (string) get_post_meta( $post_id, '_nvx_medical_review_status', true ) ) );
-	$reviewer_key = strtolower( trim( (string) get_post_meta( $post_id, '_nvx_medical_reviewer', true ) ) );
-	$date         = trim( (string) get_post_meta( $post_id, '_nvx_medical_review_date', true ) );
-	$reviewers    = nvxMedicalReviewers();
+    $status       = strtolower( trim( (string) get_post_meta( $post_id, '_nvx_medical_review_status', true ) ) );
+    $reviewer_key = strtolower( trim( (string) get_post_meta( $post_id, '_nvx_medical_reviewer', true ) ) );
+    $date         = trim( (string) get_post_meta( $post_id, '_nvx_medical_review_date', true ) );
+    $reviewers    = nvxMedicalReviewers();
 
-	if ( 'approved' !== $status || ! isset( $reviewers[ $reviewer_key ] ) || ! nvxMedicalReviewValidDate( $date ) ) {
-		return null;
-	}
+    if ( 'approved' !== $status || ! isset( $reviewers[ $reviewer_key ] ) || ! nvxMedicalReviewValidDate( $date ) ) {
+        return null;
+    }
 
-	$reviewer = $reviewers[ $reviewer_key ];
-	$time     = strtotime( $date . ' 12:00:00' );
-	if ( false === $time ) {
-		return null;
-	}
+    $reviewer = $reviewers[ $reviewer_key ];
+    $time     = strtotime( $date . ' 12:00:00' );
+    if ( false === $time ) {
+        return null;
+    }
 
-	return array(
-		'reviewer_key' => $reviewer_key,
-		'name'         => $reviewer['name'],
-		'license'      => $reviewer['license'],
-		'url'          => $reviewer['url'],
-		'id'           => $reviewer['id'],
-		'title'        => $reviewer['title'],
-		'date'         => $date,
-		'date_label'   => wp_date( 'j \d\e F \d\e Y', $time ),
-	);
+    return array(
+        'reviewer_key' => $reviewer_key,
+        'name'         => $reviewer['name'],
+        'license'      => $reviewer['license'],
+        'url'          => $reviewer['url'],
+        'id'           => $reviewer['id'],
+        'title'        => $reviewer['title'],
+        'date'         => $date,
+        'date_label'   => wp_date( 'j \d\e F \d\e Y', $time ),
+    );
 }
 
 /** Build the compact hero byline from an approved record. */
 function nvxMedicalReviewBylineMarkup( array $record ): string {
-	$html  = '<div class="nvx-medical-byline" data-nvx-medical-review="approved">';
-	$html .= '<div class="nvx-medical-byline__text">';
-	$html .= '<strong>' . esc_html__( 'Contenido revisado médicamente por ', 'nuvanx-medical' );
-	$html .= '<a href="' . esc_url( $record['url'] ) . '">' . esc_html( $record['name'] ) . '</a></strong><br>';
-	$html .= '<span class="nvx-medical-byline__title">' . esc_html( $record['title'] );
-	$html .= ' · ' . esc_html__( 'Colegiado ICOMEM Nº', 'nuvanx-medical' ) . ' ' . esc_html( $record['license'] );
-	$html .= ' · ' . esc_html__( 'Última revisión clínica:', 'nuvanx-medical' ) . ' ';
-	$html .= '<time datetime="' . esc_attr( $record['date'] ) . '">' . esc_html( $record['date_label'] ) . '</time></span>';
-	$html .= '</div></div>';
+    $html  = '<div class="nvx-medical-byline" data-nvx-medical-review="approved">';
+    $html .= '<div class="nvx-medical-byline__text">';
+    $html .= '<strong>' . esc_html__( 'Contenido revisado médicamente por ', 'nuvanx-medical' );
+    $html .= '<a href="' . esc_url( $record['url'] ) . '">' . esc_html( $record['name'] ) . '</a></strong><br>';
+    $html .= '<span class="nvx-medical-byline__title">' . esc_html( $record['title'] );
+    $html .= ' · ' . esc_html__( 'Colegiado ICOMEM Nº', 'nuvanx-medical' ) . ' ' . esc_html( $record['license'] );
+    $html .= ' · ' . esc_html__( 'Última revisión clínica:', 'nuvanx-medical' ) . ' ';
+    $html .= '<time datetime="' . esc_attr( $record['date'] ) . '">' . esc_html( $record['date_label'] ) . '</time></span>';
+    $html .= '</div></div>';
 
-	return $html;
+    return $html;
 }
 
 /** Remove legacy unconditional bylines from generated content. */
 function nvxMedicalReviewStripLegacyBylines( string $content ): string {
-	$pattern = '#<div\b(?=[^>]*\bclass=["\'][^"\']*\bnvx-medical-byline\b[^"\']*["\'])[^>]*>\s*<div\b[^>]*\bclass=["\'][^"\']*\bnvx-medical-byline__text\b[^"\']*["\'][^>]*>[\s\S]*?</div>\s*</div>#iu';
-	$clean   = preg_replace( $pattern, '', $content );
+    $pattern = '#<div\b(?=[^>]*\bclass=["\'][^"\']*\bnvx-medical-byline\b[^"\']*["\'])[^>]*>\s*<div\b[^>]*\bclass=["\'][^"\']*\bnvx-medical-byline__text\b[^"\']*["\'][^>]*>[\s\S]*?</div>\s*</div>#iu';
+    $clean   = preg_replace( $pattern, '', $content );
 
-	return is_string( $clean ) ? $clean : $content;
+    return is_string( $clean ) ? $clean : $content;
 }
 
 /**
  * Enforce fail-closed visible provenance after all page builders have run.
  */
 function nvxMedicalReviewEnforceVisibleProvenance( string $content ): string {
-	if (
-		is_admin()
-		|| wp_doing_ajax()
-		|| is_feed()
-		|| ( defined( 'REST_REQUEST' ) && REST_REQUEST )
-		|| ( ! is_singular( 'page' ) && ! is_page() )
-	) {
-		return $content;
-	}
+    if (
+        is_admin()
+        || wp_doing_ajax()
+        || is_feed()
+        || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+        || ( ! is_singular( 'page' ) && ! is_page() )
+    ) {
+        return $content;
+    }
 
-	$content = nvxMedicalReviewStripLegacyBylines( $content );
-	$record  = nvxMedicalReviewRecord();
-	if ( null === $record ) {
-		return $content;
-	}
+    $content = nvxMedicalReviewStripLegacyBylines( $content );
+    $record  = nvxMedicalReviewRecord();
+    if ( null === $record ) {
+        return $content;
+    }
 
-	$byline  = nvxMedicalReviewBylineMarkup( $record );
-	$updated = preg_replace( '/(<h1\b[^>]*>[\s\S]*?<\/h1>)/iu', '$1' . $byline, $content, 1 );
+    $byline  = nvxMedicalReviewBylineMarkup( $record );
+    $updated = preg_replace( '/(<h1\b[^>]*>[\s\S]*?<\/h1>)/iu', '$1' . $byline, $content, 1 );
 
-	return is_string( $updated ) ? $updated : $content;
+    return is_string( $updated ) ? $updated : $content;
 }
 add_filter( 'the_content', 'nvxMedicalReviewEnforceVisibleProvenance', 144 );
 
 /** Test whether a schema type contains WebPage. */
 function nvxMedicalReviewSchemaHasType( $types, string $type ): bool {
-	return in_array( $type, is_array( $types ) ? $types : array( $types ), true );
+    return in_array( $type, is_array( $types ) ? $types : array( $types ), true );
 }
 
 /** Add reviewedBy only when the same approved reviewer disclosure is visible. */
 function nvxMedicalReviewSchemaGraph( $graph ) {
-	$record = nvxMedicalReviewRecord();
-	if ( null === $record || ! is_array( $graph ) ) {
-		return $graph;
-	}
+    $record = nvxMedicalReviewRecord();
+    if ( null === $record || ! is_array( $graph ) ) {
+        return $graph;
+    }
 
-	foreach ( $graph as $index => $piece ) {
-		if (
-			is_array( $piece )
-			&& isset( $piece['@type'] )
-			&& nvxMedicalReviewSchemaHasType( $piece['@type'], 'WebPage' )
-		) {
-			$graph[ $index ]['reviewedBy'] = array( '@id' => $record['id'] );
-		}
-	}
+    foreach ( $graph as $index => $piece ) {
+        if (
+            is_array( $piece )
+            && isset( $piece['@type'] )
+            && nvxMedicalReviewSchemaHasType( $piece['@type'], 'WebPage' )
+        ) {
+            $graph[ $index ]['reviewedBy'] = array( '@id' => $record['id'] );
+        }
+    }
 
-	return $graph;
+    return $graph;
 }
 add_filter( 'wpseo_schema_graph', 'nvxMedicalReviewSchemaGraph', 120, 1 );

@@ -6,7 +6,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -17,30 +17,30 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param string $class Space-separated classes.
  */
 function nvx_visual_icon_svg( string $name, string $class = 'nvx-icon nvx-icon--md' ): string {
-	$icons = array(
-		'target'    => '<circle cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="6"/><path d="m12.5 16 2.2 2.2 4.8-5"/>',
-		'recovery'  => '<path d="M6 20c3-7 6-10 10-10s7 3 10 10"/><path d="M9 12c2-1.5 4-2 7-2s5 .5 7 2"/><circle cx="16" cy="22" r="2.5"/>',
-		'patient'   => '<circle cx="16" cy="10" r="5"/><path d="M7 28c1-7 4-10 9-10s8 3 9 10v5"/>',
-		'technique' => '<path d="M6 24 21 7l4 4-15 17H6v-4Z"/><path d="m18 10 4 4"/>',
-		'plan'      => '<rect x="7" y="5" width="18" height="22" rx="2"/><path d="M11 11h10M11 16h10M11 21h6"/>',
-		'harmony'   => '<path d="M5 18c3-6 7-9 11-9s8 3 11 9"/><path d="M7 22c4 3 7 4 9 4s5-1 9-4"/><circle cx="16" cy="16" r="2"/>',
-		'location'  => '<path d="M16 29s9-8 9-16a9 9 0 1 0-18 0c0 8 9 16 9 16Z"/><circle cx="16" cy="13" r="3"/>',
-		'phone'     => '<path d="M8 5h5l2 6-3 2c2 4 4 6 8 8l2-3 6 2v5c0 2-2 3-4 3C14 27 5 18 4 8c0-2 2-3 4-3Z"/>',
-		'clock'     => '<circle cx="16" cy="16" r="12"/><path d="M16 9v8l5 3"/>',
-		'doctor'    => '<circle cx="16" cy="9" r="4"/><path d="M8 28v-5c0-5 3-8 8-8s8 3 8 8v5M12 20v4M20 20v4"/>',
-	);
+    $icons = array(
+        'target'    => '<circle cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="6"/><path d="m12.5 16 2.2 2.2 4.8-5"/>',
+        'recovery'  => '<path d="M6 20c3-7 6-10 10-10s7 3 10 10"/><path d="M9 12c2-1.5 4-2 7-2s5 .5 7 2"/><circle cx="16" cy="22" r="2.5"/>',
+        'patient'   => '<circle cx="16" cy="10" r="5"/><path d="M7 28c1-7 4-10 9-10s8 3 9 10v5"/>',
+        'technique' => '<path d="M6 24 21 7l4 4-15 17H6v-4Z"/><path d="m18 10 4 4"/>',
+        'plan'      => '<rect x="7" y="5" width="18" height="22" rx="2"/><path d="M11 11h10M11 16h10M11 21h6"/>',
+        'harmony'   => '<path d="M5 18c3-6 7-9 11-9s8 3 11 9"/><path d="M7 22c4 3 7 4 9 4s5-1 9-4"/><circle cx="16" cy="16" r="2"/>',
+        'location'  => '<path d="M16 29s9-8 9-16a9 9 0 1 0-18 0c0 8 9 16 9 16Z"/><circle cx="16" cy="13" r="3"/>',
+        'phone'     => '<path d="M8 5h5l2 6-3 2c2 4 4 6 8 8l2-3 6 2v5c0 2-2 3-4 3C14 27 5 18 4 8c0-2 2-3 4-3Z"/>',
+        'clock'     => '<circle cx="16" cy="16" r="12"/><path d="M16 9v8l5 3"/>',
+        'doctor'    => '<circle cx="16" cy="9" r="4"/><path d="M8 28v-5c0-5 3-8 8-8s8 3 8 8v5M12 20v4M20 20v4"/>',
+    );
 
-	$key  = array_key_exists( $name, $icons ) ? $name : 'target';
-	$body = $icons[ $key ];
+    $key  = array_key_exists( $name, $icons ) ? $name : 'target';
+    $body = $icons[ $key ];
 
-	return '<svg class="' . esc_attr( $class ) . '" viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">' . $body . '</svg>';
+    return '<svg class="' . esc_attr( $class ) . '" viewBox="0 0 32 32" fill="none" aria-hidden="true" focusable="false">' . $body . '</svg>';
 }
 
 /**
  * Late canonical rules attached to the terminal theme stylesheet.
  */
 function nvx_visual_system_css(): string {
-	return <<<'CSS'
+    return <<<'CSS'
 /* ============================================
    NUVANX — Visual system closure
    Typography: Playfair Display + Manrope only
@@ -293,8 +293,8 @@ CSS;
 
 /** Add the canonical closure after the last theme stylesheet. */
 function nvx_visual_system_enqueue_css(): void {
-	$handle = wp_style_is( 'nvx-home', 'enqueued' ) ? 'nvx-home' : 'nvx-components';
-	wp_add_inline_style( $handle, nvx_visual_system_css() );
+    $handle = wp_style_is( 'nvx-home', 'enqueued' ) ? 'nvx-home' : 'nvx-components';
+    wp_add_inline_style( $handle, nvx_visual_system_css() );
 }
 add_action( 'wp_enqueue_scripts', 'nvx_visual_system_enqueue_css', 20 );
 
@@ -304,66 +304,66 @@ add_action( 'wp_enqueue_scripts', 'nvx_visual_system_enqueue_css', 20 );
  * @param string $html Complete public document.
  */
 function nvx_visual_system_normalize_html( string $html ): string {
-	$benefit_icons = array(
-		'resultados-definitivos' => 'target',
-		'recuperacion-rapida'    => 'recovery',
-		'paciente-despierto'     => 'patient',
-		'sin-bisturi'             => 'technique',
-		'solo-una-vez'            => 'plan',
-		'efecto-natural'          => 'harmony',
-	);
+    $benefit_icons = array(
+        'resultados-definitivos' => 'target',
+        'recuperacion-rapida'    => 'recovery',
+        'paciente-despierto'     => 'patient',
+        'sin-bisturi'             => 'technique',
+        'solo-una-vez'            => 'plan',
+        'efecto-natural'          => 'harmony',
+    );
 
-	$html = (string) preg_replace_callback(
-		'/<img\b[^>]*src=["\'][^"\']*\/assets\/images\/benefits\/([a-z0-9-]+)\.svg["\'][^>]*>/iu',
-		static function ( array $match ) use ( $benefit_icons ): string {
-			$key = $benefit_icons[ $match[1] ] ?? 'target';
-			return nvx_visual_icon_svg( $key, 'nvx-benefit-icon nvx-icon nvx-icon--lg' );
-		},
-		$html
-	);
+    $html = (string) preg_replace_callback(
+        '/<img\b[^>]*src=["\'][^"\']*\/assets\/images\/benefits\/([a-z0-9-]+)\.svg["\'][^>]*>/iu',
+        static function ( array $match ) use ( $benefit_icons ): string {
+            $key = $benefit_icons[ $match[1] ] ?? 'target';
+            return nvx_visual_icon_svg( $key, 'nvx-benefit-icon nvx-icon nvx-icon--lg' );
+        },
+        $html
+    );
 
-	$html = (string) preg_replace_callback(
-		'/<svg\b[^>]*class=["\'][^"\']*\bnvx-icon\b[^"\']*["\'][^>]*>\s*<use\s+href=["\']#icon-(location|phone|clock|doctor)["\']\s*\/?>(?:<\/use>)?\s*<\/svg>/iu',
-		static function ( array $match ): string {
-			return nvx_visual_icon_svg( strtolower( $match[1] ), 'nvx-icon nvx-icon--xs' );
-		},
-		$html
-	);
+    $html = (string) preg_replace_callback(
+        '/<svg\b[^>]*class=["\'][^"\']*\bnvx-icon\b[^"\']*["\'][^>]*>\s*<use\s+href=["\']#icon-(location|phone|clock|doctor)["\']\s*\/?>(?:<\/use>)?\s*<\/svg>/iu',
+        static function ( array $match ): string {
+            return nvx_visual_icon_svg( strtolower( $match[1] ), 'nvx-icon nvx-icon--xs' );
+        },
+        $html
+    );
 
-	foreach ( array( 'nvx-laser-icon', 'nvx-endolift-step__icon' ) as $legacy_class ) {
-		$html = str_replace(
-			'class="' . $legacy_class . '"',
-			'class="' . $legacy_class . ' nvx-icon nvx-icon--md"',
-			$html
-		);
-	}
+    foreach ( array( 'nvx-laser-icon', 'nvx-endolift-step__icon' ) as $legacy_class ) {
+        $html = str_replace(
+            'class="' . $legacy_class . '"',
+            'class="' . $legacy_class . ' nvx-icon nvx-icon--md"',
+            $html
+        );
+    }
 
-	$html = (string) preg_replace_callback(
-		'/<h3([^>]*class=["\'][^"\']*\bnvx-value__title\b[^"\']*["\'][^>]*)>\s*([1-9])\.\s*([^<]+)<\/h3>/iu',
-		static function ( array $match ): string {
-			$number = str_pad( $match[2], 2, '0', STR_PAD_LEFT );
-			return '<span class="nvx-index-number nvx-value__number" aria-hidden="true">' . esc_html( $number ) . '</span><h3' . $match[1] . '>' . esc_html( trim( $match[3] ) ) . '</h3>';
-		},
-		$html
-	);
+    $html = (string) preg_replace_callback(
+        '/<h3([^>]*class=["\'][^"\']*\bnvx-value__title\b[^"\']*["\'][^>]*)>\s*([1-9])\.\s*([^<]+)<\/h3>/iu',
+        static function ( array $match ): string {
+            $number = str_pad( $match[2], 2, '0', STR_PAD_LEFT );
+            return '<span class="nvx-index-number nvx-value__number" aria-hidden="true">' . esc_html( $number ) . '</span><h3' . $match[1] . '>' . esc_html( trim( $match[3] ) ) . '</h3>';
+        },
+        $html
+    );
 
-	$html = (string) preg_replace_callback(
-		'/<section\b(?=[^>]*\bid=["\']nvx-site-closing-cta["\'])[^>]*>[\s\S]*?<\/section>/iu',
-		static function ( array $match ): string {
-			return (string) preg_replace( '/\sstyle=["\'][^"\']*["\']/iu', '', $match[0] );
-		},
-		$html,
-		1
-	);
+    $html = (string) preg_replace_callback(
+        '/<section\b(?=[^>]*\bid=["\']nvx-site-closing-cta["\'])[^>]*>[\s\S]*?<\/section>/iu',
+        static function ( array $match ): string {
+            return (string) preg_replace( '/\sstyle=["\'][^"\']*["\']/iu', '', $match[0] );
+        },
+        $html,
+        1
+    );
 
-	return $html;
+    return $html;
 }
 
 /** Start a late public-document buffer after page modules have registered. */
 function nvx_visual_system_start_buffer(): void {
-	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-		return;
-	}
-	ob_start( 'nvx_visual_system_normalize_html' );
+    if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+        return;
+    }
+    ob_start( 'nvx_visual_system_normalize_html' );
 }
 add_action( 'template_redirect', 'nvx_visual_system_start_buffer', 9999 );

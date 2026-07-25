@@ -181,15 +181,9 @@ function cleanHtmlText(value) {
       const closeIndex = part.indexOf('>');
       return closeIndex !== -1 ? part.slice(closeIndex + 1) : part;
     }).join(' ')
-    .replace(/&(?:nbsp|amp|quot|lt|gt);|&#39;|&apos;/gi, (entity) => {
-      const lower = entity.toLowerCase();
-      if (lower === '&nbsp;') return ' ';
-      if (lower === '&amp;') return '&';
-      if (lower === '&quot;') return '"';
-      if (lower === '&#39;' || lower === '&apos;') return "'";
-      if (lower === '&lt;') return '<';
-      if (lower === '&gt;') return '>';
-      return ' ';
+    .replace(/&[a-z#0-9]{2,6};/gi, (entity) => {
+      const HTML_ENTITIES = { '&nbsp;': ' ', '&amp;': '&', '&quot;': '"', '&#39;': "'", '&apos;': "'", '&lt;': '<', '&gt;': '>' };
+      return HTML_ENTITIES[entity.toLowerCase()] ?? ' ';
     })
     .replace(/\s+/g, ' ')
     .trim();

@@ -201,22 +201,22 @@ function nvx_render_13_point_matrix( array $data ): string {
  * Matches a request slug against a catalog array.
  */
 function nvx_match_catalog_page( string $slug, array $catalog ): ?array {
-	foreach ( $catalog as $page ) {
-		$slug_value = (string) ( $page['slug'] ?? '' );
-		if ( '' === $slug_value ) {
-			continue;
-		}
-		$catalog_slug_parts = explode( '/', $slug_value );
-		$catalog_final_slug = end( $catalog_slug_parts );
-		if ( $catalog_final_slug !== $slug ) {
-			continue;
-		}
-		$review_status = (string) ( $page['review_status'] ?? 'approved_for_publication' );
-		if ( 'approved_for_publication' === $review_status ) {
-			return (array) $page;
-		}
-	}
-	return null;
+    foreach ( $catalog as $page ) {
+        $slug_value = (string) ( $page['slug'] ?? '' );
+        if ( '' === $slug_value ) {
+            continue;
+        }
+        $catalog_slug_parts = explode( '/', $slug_value );
+        $catalog_final_slug = end( $catalog_slug_parts );
+        if ( $catalog_final_slug !== $slug ) {
+            continue;
+        }
+        $review_status = (string) ( $page['review_status'] ?? 'approved_for_publication' );
+        if ( 'approved_for_publication' === $review_status ) {
+            return (array) $page;
+        }
+    }
+    return null;
 }
 
 /**
@@ -227,29 +227,29 @@ function nvx_match_catalog_page( string $slug, array $catalog ): ?array {
  * @param callable|null $render_callback Opcional. Función que renderiza la página (por defecto nvx_render_13_point_matrix).
  */
 function nvx_register_catalog_content_filter( callable $catalog_callback, int $priority = 22, ?callable $render_callback = null ): void {
-	if ( null === $render_callback ) {
-		$render_callback = 'nvx_render_13_point_matrix';
-	}
+    if ( null === $render_callback ) {
+        $render_callback = 'nvx_render_13_point_matrix';
+    }
 
-	add_filter(
-		'the_content',
-		static function( string $content ) use ( $catalog_callback, $render_callback ): string {
-			if ( is_admin() || ! is_main_query() || ! in_the_loop() || ! is_page() ) {
-				return $content;
-			}
+    add_filter(
+        'the_content',
+        static function( string $content ) use ( $catalog_callback, $render_callback ): string {
+            if ( is_admin() || ! is_main_query() || ! in_the_loop() || ! is_page() ) {
+                return $content;
+            }
 
-			$slug    = (string) get_post_field( 'post_name', get_queried_object_id() );
-			$catalog = (array) call_user_func( $catalog_callback );
-			$matched = nvx_match_catalog_page( $slug, $catalog );
+            $slug    = (string) get_post_field( 'post_name', get_queried_object_id() );
+            $catalog = (array) call_user_func( $catalog_callback );
+            $matched = nvx_match_catalog_page( $slug, $catalog );
 
-			if ( null !== $matched ) {
-				$markup = call_user_func( $render_callback, $matched );
-				return '' === $markup ? $content : $markup;
-			}
+            if ( null !== $matched ) {
+                $markup = call_user_func( $render_callback, $matched );
+                return '' === $markup ? $content : $markup;
+            }
 
-			return $content;
-		},
-		$priority
-	);
+            return $content;
+        },
+        $priority
+    );
 }
 

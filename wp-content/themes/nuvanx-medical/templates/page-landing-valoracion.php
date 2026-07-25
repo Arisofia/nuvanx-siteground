@@ -6,21 +6,21 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 require_once get_template_directory() . '/inc/nvx-github-managed-page-state.php';
 
 $page_id = (int) get_queried_object_id();
 if ( $page_id < 1 ) {
-	$page_id = (int) get_the_ID();
+    $page_id = (int) get_the_ID();
 }
 if ( $page_id < 1 ) {
-	$page = get_page_by_path( 'madrid/valoracion', OBJECT, 'page' );
-	if ( ! $page instanceof WP_Post ) {
-		$page = get_page_by_path( 'valoracion', OBJECT, 'page' );
-	}
-	$page_id = $page instanceof WP_Post ? (int) $page->ID : 0;
+    $page = get_page_by_path( 'madrid/valoracion', OBJECT, 'page' );
+    if ( ! $page instanceof WP_Post ) {
+        $page = get_page_by_path( 'valoracion', OBJECT, 'page' );
+    }
+    $page_id = $page instanceof WP_Post ? (int) $page->ID : 0;
 }
 nvxSyncGithubManagedPageState( $page_id, 'valoracion' );
 

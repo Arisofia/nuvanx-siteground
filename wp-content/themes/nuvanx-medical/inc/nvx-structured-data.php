@@ -21,22 +21,22 @@ require_once __DIR__ . '/nvx-jsonld-content.php';
  * Editorial review month label for Endolift byline (update with clinical review).
  */
 if ( ! defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ) {
-	define( 'NVX_ENDOLIFT_REVIEW_LABEL', 'julio 2026' );
+    define( 'NVX_ENDOLIFT_REVIEW_LABEL', 'julio 2026' );
 }
 
 if ( ! defined( 'NVX_SD_TEL_CHAMBERI' ) ) {
-	define( 'NVX_SD_TEL_CHAMBERI', '+34669319836' );
-	define( 'NVX_SD_EMAIL_MAIN', 'info@nuvanx.com' );
-	define( 'NVX_SD_ID_MEDICAL_PROCEDURE', '#medical-procedure' );
-	define( 'NVX_SD_ENDOLIFT_FACIAL', 'Endolift® facial' );
-	define( 'NVX_SD_ID_SERVICE', '#service' );
-	define( 'NVX_SD_PATH_EQUIPO_MEDICO', '/equipo-medico/' );
-	define( 'NVX_SD_LABEL_NUM_COLEGIADO', 'Número de colegiado ICOMEM' );
-	define( 'NVX_SD_LABEL_COLEGIADO_PREFIX', 'Colegiado ICOMEM ' );
-	define( 'NVX_SD_ENDOLASER_CORPORAL', 'Endoláser corporal' );
-	define( 'NVX_SD_LASER_CO2_FRACCIONADO', 'Láser CO₂ fraccionado' );
-	define( 'NVX_SD_MEDICINA_REGENERATIVA', 'Medicina regenerativa' );
-	define( 'NVX_SD_SOCIEDAD_SEMEG', 'Sociedad Española de Medicina Geriátrica (SEMEG)' );
+    define( 'NVX_SD_TEL_CHAMBERI', '+34669319836' );
+    define( 'NVX_SD_EMAIL_MAIN', 'info@nuvanx.com' );
+    define( 'NVX_SD_ID_MEDICAL_PROCEDURE', '#medical-procedure' );
+    define( 'NVX_SD_ENDOLIFT_FACIAL', 'Endolift® facial' );
+    define( 'NVX_SD_ID_SERVICE', '#service' );
+    define( 'NVX_SD_PATH_EQUIPO_MEDICO', '/equipo-medico/' );
+    define( 'NVX_SD_LABEL_NUM_COLEGIADO', 'Número de colegiado ICOMEM' );
+    define( 'NVX_SD_LABEL_COLEGIADO_PREFIX', 'Colegiado ICOMEM ' );
+    define( 'NVX_SD_ENDOLASER_CORPORAL', 'Endoláser corporal' );
+    define( 'NVX_SD_LASER_CO2_FRACCIONADO', 'Láser CO₂ fraccionado' );
+    define( 'NVX_SD_MEDICINA_REGENERATIVA', 'Medicina regenerativa' );
+    define( 'NVX_SD_SOCIEDAD_SEMEG', 'Sociedad Española de Medicina Geriátrica (SEMEG)' );
 }
 
 /**
@@ -50,134 +50,134 @@ if ( ! defined( 'NVX_SD_TEL_CHAMBERI' ) ) {
  * }
  */
 function nvx_tariff_catalog() {
-	return array(
-		'endolift'       => array(
-			'ojeras'              => array(
-				'label' => 'Endolift® ojeras',
-				'pvp'   => 798.60,
-				'group' => 'facial',
-			),
-			'papada'              => array(
-				'label' => 'Endolift® papada',
-				'pvp'   => 1064.80,
-				'group' => 'facial',
-			),
-			'marcacion_mandibular' => array(
-				'label' => 'Endolift® marcación mandibular',
-				'pvp'   => 1064.80,
-				'group' => 'facial',
-			),
-			'pomulos'             => array(
-				'label' => 'Endolift® pómulos',
-				'pvp'   => 1064.80,
-				'group' => 'facial',
-			),
-			'cuello'              => array(
-				'label' => 'Cuello',
-				'pvp'   => 1197.90,
-				'group' => 'facial',
-			),
-			'abdomen'             => array(
-				'label' => 'Endolift® zona abdomen',
-				'pvp'   => 1694.00,
-				'group' => 'corporal',
-			),
-			'flancos'             => array(
-				'label' => 'Endolift® flancos',
-				'pvp'   => 1573.00,
-				'group' => 'corporal',
-			),
-			'subescapular'        => array(
-				'label' => 'Endolift® subescapular / sujetador',
-				'pvp'   => 1391.50,
-				'group' => 'corporal',
-			),
-			'brazos'              => array(
-				'label' => 'Endolift® brazos',
-				'pvp'   => 1331.00,
-				'group' => 'corporal',
-			),
-			'rodillas'            => array(
-				'label' => 'Endolift® rodillas',
-				'pvp'   => 1197.90,
-				'group' => 'corporal',
-			),
-			'muslos_internos'     => array(
-				'label' => 'Endolift® cara interna muslos',
-				'pvp'   => 1331.00,
-				'group' => 'corporal',
-			),
-			'subgluteos'          => array(
-				'label' => 'Subglúteos (bananitos)',
-				'pvp'   => 1331.00,
-				'group' => 'corporal',
-			),
-			'cartucheras'         => array(
-				'label' => 'Endolift® cartucheras',
-				'pvp'   => 1331.00,
-				'group' => 'corporal',
-			),
-		),
-		'endolift_combo' => array(
-			'papada_cuello'        => array(
-				'label' => 'Papada y cuello',
-				'pvp'   => 1331.00,
-				'group' => 'facial',
-			),
-			'marcacion_papada'     => array(
-				'label' => 'Marcación mandibular y papada',
-				'pvp'   => 1452.00,
-				'group' => 'facial',
-			),
-			'full_face'            => array(
-				'label' => 'Endolift® Full Face (tercio medio, inferior y cuello)',
-				'pvp'   => 1694.00,
-				'group' => 'facial',
-			),
-			'abdomen_flancos'      => array(
-				'label' => 'Abdomen y flancos',
-				'pvp'   => 2395.80,
-				'group' => 'corporal',
-			),
-			'subgluteos_cartucheras' => array(
-				'label' => 'Subglúteos y cartucheras',
-				'pvp'   => 1633.50,
-				'group' => 'corporal',
-			),
-			'muslos_rodilla'       => array(
-				'label' => 'Cara interna de muslos y rodilla',
-				'pvp'   => 1573.00,
-				'group' => 'corporal',
-			),
-			'sujetador_brazos'     => array(
-				'label' => 'Zona sujetador y brazos',
-				'pvp'   => 1694.00,
-				'group' => 'corporal',
-			),
-			'cartucheras_muslos'   => array(
-				'label' => 'Cartucheras y cara interna de muslos',
-				'pvp'   => 1815.00,
-				'group' => 'corporal',
-			),
-			'cartucheras_subgluteos_muslos' => array(
-				'label' => 'Cartucheras, subglúteos y cara interna de muslos',
-				'pvp'   => 2286.90,
-				'group' => 'corporal',
-			),
-		),
-		'laser_co2'      => array(
-			'facial'   => array(
-				'label' => 'Sesión láser CO₂ facial',
-				'pvp'   => 330.00,
-				'group' => 'facial',
-			),
-			'corporal' => array(
-				'label' => 'Sesión láser CO₂ corporal',
-				'pvp'   => 450.00,
-				'group' => 'corporal',
-			),
-		),
-	);
+    return array(
+        'endolift'       => array(
+            'ojeras'              => array(
+                'label' => 'Endolift® ojeras',
+                'pvp'   => 798.60,
+                'group' => 'facial',
+            ),
+            'papada'              => array(
+                'label' => 'Endolift® papada',
+                'pvp'   => 1064.80,
+                'group' => 'facial',
+            ),
+            'marcacion_mandibular' => array(
+                'label' => 'Endolift® marcación mandibular',
+                'pvp'   => 1064.80,
+                'group' => 'facial',
+            ),
+            'pomulos'             => array(
+                'label' => 'Endolift® pómulos',
+                'pvp'   => 1064.80,
+                'group' => 'facial',
+            ),
+            'cuello'              => array(
+                'label' => 'Cuello',
+                'pvp'   => 1197.90,
+                'group' => 'facial',
+            ),
+            'abdomen'             => array(
+                'label' => 'Endolift® zona abdomen',
+                'pvp'   => 1694.00,
+                'group' => 'corporal',
+            ),
+            'flancos'             => array(
+                'label' => 'Endolift® flancos',
+                'pvp'   => 1573.00,
+                'group' => 'corporal',
+            ),
+            'subescapular'        => array(
+                'label' => 'Endolift® subescapular / sujetador',
+                'pvp'   => 1391.50,
+                'group' => 'corporal',
+            ),
+            'brazos'              => array(
+                'label' => 'Endolift® brazos',
+                'pvp'   => 1331.00,
+                'group' => 'corporal',
+            ),
+            'rodillas'            => array(
+                'label' => 'Endolift® rodillas',
+                'pvp'   => 1197.90,
+                'group' => 'corporal',
+            ),
+            'muslos_internos'     => array(
+                'label' => 'Endolift® cara interna muslos',
+                'pvp'   => 1331.00,
+                'group' => 'corporal',
+            ),
+            'subgluteos'          => array(
+                'label' => 'Subglúteos (bananitos)',
+                'pvp'   => 1331.00,
+                'group' => 'corporal',
+            ),
+            'cartucheras'         => array(
+                'label' => 'Endolift® cartucheras',
+                'pvp'   => 1331.00,
+                'group' => 'corporal',
+            ),
+        ),
+        'endolift_combo' => array(
+            'papada_cuello'        => array(
+                'label' => 'Papada y cuello',
+                'pvp'   => 1331.00,
+                'group' => 'facial',
+            ),
+            'marcacion_papada'     => array(
+                'label' => 'Marcación mandibular y papada',
+                'pvp'   => 1452.00,
+                'group' => 'facial',
+            ),
+            'full_face'            => array(
+                'label' => 'Endolift® Full Face (tercio medio, inferior y cuello)',
+                'pvp'   => 1694.00,
+                'group' => 'facial',
+            ),
+            'abdomen_flancos'      => array(
+                'label' => 'Abdomen y flancos',
+                'pvp'   => 2395.80,
+                'group' => 'corporal',
+            ),
+            'subgluteos_cartucheras' => array(
+                'label' => 'Subglúteos y cartucheras',
+                'pvp'   => 1633.50,
+                'group' => 'corporal',
+            ),
+            'muslos_rodilla'       => array(
+                'label' => 'Cara interna de muslos y rodilla',
+                'pvp'   => 1573.00,
+                'group' => 'corporal',
+            ),
+            'sujetador_brazos'     => array(
+                'label' => 'Zona sujetador y brazos',
+                'pvp'   => 1694.00,
+                'group' => 'corporal',
+            ),
+            'cartucheras_muslos'   => array(
+                'label' => 'Cartucheras y cara interna de muslos',
+                'pvp'   => 1815.00,
+                'group' => 'corporal',
+            ),
+            'cartucheras_subgluteos_muslos' => array(
+                'label' => 'Cartucheras, subglúteos y cara interna de muslos',
+                'pvp'   => 2286.90,
+                'group' => 'corporal',
+            ),
+        ),
+        'laser_co2'      => array(
+            'facial'   => array(
+                'label' => 'Sesión láser CO₂ facial',
+                'pvp'   => 330.00,
+                'group' => 'facial',
+            ),
+            'corporal' => array(
+                'label' => 'Sesión láser CO₂ corporal',
+                'pvp'   => 450.00,
+                'group' => 'corporal',
+            ),
+        ),
+    );
 }
 
 /**
@@ -202,7 +202,7 @@ function nvx_endolift_price_papada_eur() { return 1064.80; }
  * @return string
  */
 function nvx_format_price_eur( $amount, $decimals = 2 ) {
-	return number_format_i18n( (float) $amount, (int) $decimals );
+    return number_format_i18n( (float) $amount, (int) $decimals );
 }
 
 /**
@@ -212,7 +212,7 @@ function nvx_format_price_eur( $amount, $decimals = 2 ) {
  * @return string
  */
 function nvx_schema_price_string( $amount ) {
-	return number_format( (float) $amount, 2, '.', '' );
+    return number_format( (float) $amount, 2, '.', '' );
 }
 
 /**
@@ -229,70 +229,70 @@ function nvx_schema_price_string( $amount ) {
  * }
  */
 function nvx_schema_page_registry() {
-	return array(
-		'clinics'    => array(
-			'chamberi' => array(
-				'id'   => 1543,
-				'path' => '/medicina-estetica-chamberi/',
-			),
-			'goya'     => array(
-				'id'   => 1537,
-				'path' => '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
-			),
-		),
-		'clinic_hub' => array(
-			'id'   => 1399,
-			'path' => '/clinicas-de-medicina-estetica-nuvanx/',
-		),
-		'treatments' => array(
-			'endolift_facial'    => array(
-				'id'     => 1241,
-				'path'   => '/endolift-facial-papada-mandibula/',
-				'schema' => 'MedicalProcedure',
-			),
-			// Path is authoritative when post ID moves between environments.
-			'endolaser_corporal' => array(
-				'id'     => 0,
-				'path'   => '/endolaser-corporal-grasa-localizada/',
-				'schema' => 'MedicalProcedure',
-			),
-			'laser_co2'          => array(
-				'id'     => 0,
-				'path'   => '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-				'schema' => 'MedicalProcedure',
-			),
-			'exion_btl'          => array(
-				'id'     => 2906,
-				'path'   => '/exion-btl/',
-				'schema' => 'Service',
-			),
-			'exion_face'         => array(
-				'id'     => 0,
-				'path'   => '/exion-face/',
-				'schema' => 'Service',
-			),
-			'exion_body'         => array(
-				'id'     => 0,
-				'path'   => '/exion-body/',
-				'schema' => 'Service',
-			),
-			'exion_fractional'   => array(
-				'id'     => 0,
-				'path'   => '/exion-fractional/',
-				'schema' => 'Service',
-			),
-			'emfusion'           => array(
-				'id'     => 0,
-				'path'   => '/emfusion/',
-				'schema' => 'Service',
-			),
-			'exilite_btl'        => array(
-				'id'     => 0,
-				'path'   => '/btl-exilite-ipl-madrid/',
-				'schema' => 'Service',
-			),
-		),
-	);
+    return array(
+        'clinics'    => array(
+            'chamberi' => array(
+                'id'   => 1543,
+                'path' => '/medicina-estetica-chamberi/',
+            ),
+            'goya'     => array(
+                'id'   => 1537,
+                'path' => '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
+            ),
+        ),
+        'clinic_hub' => array(
+            'id'   => 1399,
+            'path' => '/clinicas-de-medicina-estetica-nuvanx/',
+        ),
+        'treatments' => array(
+            'endolift_facial'    => array(
+                'id'     => 1241,
+                'path'   => '/endolift-facial-papada-mandibula/',
+                'schema' => 'MedicalProcedure',
+            ),
+            // Path is authoritative when post ID moves between environments.
+            'endolaser_corporal' => array(
+                'id'     => 0,
+                'path'   => '/endolaser-corporal-grasa-localizada/',
+                'schema' => 'MedicalProcedure',
+            ),
+            'laser_co2'          => array(
+                'id'     => 0,
+                'path'   => '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
+                'schema' => 'MedicalProcedure',
+            ),
+            'exion_btl'          => array(
+                'id'     => 2906,
+                'path'   => '/exion-btl/',
+                'schema' => 'Service',
+            ),
+            'exion_face'         => array(
+                'id'     => 0,
+                'path'   => '/exion-face/',
+                'schema' => 'Service',
+            ),
+            'exion_body'         => array(
+                'id'     => 0,
+                'path'   => '/exion-body/',
+                'schema' => 'Service',
+            ),
+            'exion_fractional'   => array(
+                'id'     => 0,
+                'path'   => '/exion-fractional/',
+                'schema' => 'Service',
+            ),
+            'emfusion'           => array(
+                'id'     => 0,
+                'path'   => '/emfusion/',
+                'schema' => 'Service',
+            ),
+            'exilite_btl'        => array(
+                'id'     => 0,
+                'path'   => '/btl-exilite-ipl-madrid/',
+                'schema' => 'Service',
+            ),
+        ),
+    );
 }
 
 /**
@@ -302,30 +302,30 @@ function nvx_schema_page_registry() {
  * @return string Leading/trailing-slash form, e.g. `/foo/bar/`.
  */
 function nvx_schema_normalize_path( $path ) {
-	$path = (string) $path;
-	$path = strtok( $path, '?' );
-	$path = '/' . trim( $path, '/' ) . '/';
+    $path = (string) $path;
+    $path = strtok( $path, '?' );
+    $path = '/' . trim( $path, '/' ) . '/';
 
-	return ( '/' === $path || '//' === $path ) ? '/' : $path;
+    return ( '/' === $path || '//' === $path ) ? '/' : $path;
 }
 
 function nvx_schema_path_from_page_id( int $page_id ): string {
-	$permalink = get_permalink( $page_id );
-	if ( is_string( $permalink ) && '' !== $permalink ) {
-		$home_path = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
-		$home_path = is_string( $home_path ) ? untrailingslashit( $home_path ) : '';
-		$page_path = wp_parse_url( $permalink, PHP_URL_PATH );
-		$page_path = is_string( $page_path ) ? $page_path : '';
+    $permalink = get_permalink( $page_id );
+    if ( is_string( $permalink ) && '' !== $permalink ) {
+        $home_path = wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+        $home_path = is_string( $home_path ) ? untrailingslashit( $home_path ) : '';
+        $page_path = wp_parse_url( $permalink, PHP_URL_PATH );
+        $page_path = is_string( $page_path ) ? $page_path : '';
 
-		if ( '' !== $home_path && 0 === strpos( $page_path, $home_path ) ) {
-			$page_path = substr( $page_path, strlen( $home_path ) );
-		}
+        if ( '' !== $home_path && 0 === strpos( $page_path, $home_path ) ) {
+            $page_path = substr( $page_path, strlen( $home_path ) );
+        }
 
-		return nvx_schema_normalize_path( $page_path );
-	}
+        return nvx_schema_normalize_path( $page_path );
+    }
 
-	$uri = get_page_uri( $page_id );
-	return ( is_string( $uri ) && '' !== $uri ) ? nvx_schema_normalize_path( $uri ) : '';
+    $uri = get_page_uri( $page_id );
+    return ( is_string( $uri ) && '' !== $uri ) ? nvx_schema_normalize_path( $uri ) : '';
 }
 
 /**
@@ -335,15 +335,15 @@ function nvx_schema_path_from_page_id( int $page_id ): string {
  * @return string
  */
 function nvx_schema_current_path( $page_id = 0 ) {
-	if ( $page_id > 0 ) {
-		$path = nvx_schema_path_from_page_id( (int) $page_id );
-		if ( '' !== $path ) {
-			return $path;
-		}
-	}
+    if ( $page_id > 0 ) {
+        $path = nvx_schema_path_from_page_id( (int) $page_id );
+        if ( '' !== $path ) {
+            return $path;
+        }
+    }
 
-	$request = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
-	return nvx_schema_normalize_path( $request );
+    $request = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+    return nvx_schema_normalize_path( $request );
 }
 
 /**
@@ -354,15 +354,15 @@ function nvx_schema_current_path( $page_id = 0 ) {
  * @return bool
  */
 function nvx_schema_path_matches( $current, $target ) {
-	$current = nvx_schema_normalize_path( $current );
-	$target  = nvx_schema_normalize_path( $target );
+    $current = nvx_schema_normalize_path( $current );
+    $target  = nvx_schema_normalize_path( $target );
 
-	if ( $current === $target ) {
-		return true;
-	}
+    if ( $current === $target ) {
+        return true;
+    }
 
-	// Nested clinic under hub, e.g. goya under clinicas-...
-	return '/' !== $target && 0 === strpos( $current, $target );
+    // Nested clinic under hub, e.g. goya under clinicas-...
+    return '/' !== $target && 0 === strpos( $current, $target );
 }
 
 /**
@@ -372,13 +372,13 @@ function nvx_schema_path_matches( $current, $target ) {
  * @return bool
  */
 function nvx_schema_is_sede_template( $page_id ) {
-	if ( $page_id <= 0 || ! function_exists( 'get_page_template_slug' ) ) {
-		return false;
-	}
+    if ( $page_id <= 0 || ! function_exists( 'get_page_template_slug' ) ) {
+        return false;
+    }
 
-	$slug = (string) get_page_template_slug( $page_id );
+    $slug = (string) get_page_template_slug( $page_id );
 
-	return (bool) preg_match( '#(^|/)page-sede\.php$#', $slug );
+    return (bool) preg_match( '#(^|/)page-sede\.php$#', $slug );
 }
 
 /**
@@ -390,43 +390,43 @@ function nvx_schema_is_sede_template( $page_id ) {
  * @return string[] Empty, one key, or both clinic keys (chamberi, goya).
  */
 function nvx_schema_resolve_clinic_keys( $page_id ) {
-	$registry = nvx_schema_page_registry();
-	$path     = nvx_schema_current_path( $page_id );
+    $registry = nvx_schema_page_registry();
+    $path     = nvx_schema_current_path( $page_id );
 
-	if ( is_front_page() ) {
-		return array_keys( $registry['clinics'] );
-	}
+    if ( is_front_page() ) {
+        return array_keys( $registry['clinics'] );
+    }
 
-	$keys = array();
-	if ( $page_id > 0 ) {
-		$meta = strtolower( trim( (string) get_post_meta( $page_id, '_nvx_clinic_branch', true ) ) );
-		if ( 'all' === $meta || 'both' === $meta ) {
-			$keys = array_keys( $registry['clinics'] );
-		} elseif ( isset( $registry['clinics'][ $meta ] ) ) {
-			$keys = array( $meta );
-		}
-	}
+    $keys = array();
+    if ( $page_id > 0 ) {
+        $meta = strtolower( trim( (string) get_post_meta( $page_id, '_nvx_clinic_branch', true ) ) );
+        if ( 'all' === $meta || 'both' === $meta ) {
+            $keys = array_keys( $registry['clinics'] );
+        } elseif ( isset( $registry['clinics'][ $meta ] ) ) {
+            $keys = array( $meta );
+        }
+    }
 
-	if ( empty( $keys ) ) {
-		$matched = array();
-		foreach ( $registry['clinics'] as $key => $entry ) {
-			if ( (int) $entry['id'] === $page_id || nvx_schema_path_matches( $path, $entry['path'] ) ) {
-				$matched[] = $key;
-			}
-		}
-		if ( ! empty( $matched ) ) {
-			$keys = array_values( array_unique( $matched ) );
-		}
-	}
+    if ( empty( $keys ) ) {
+        $matched = array();
+        foreach ( $registry['clinics'] as $key => $entry ) {
+            if ( (int) $entry['id'] === $page_id || nvx_schema_path_matches( $path, $entry['path'] ) ) {
+                $matched[] = $key;
+            }
+        }
+        if ( ! empty( $matched ) ) {
+            $keys = array_values( array_unique( $matched ) );
+        }
+    }
 
-	if ( empty( $keys ) ) {
-		$hub = $registry['clinic_hub'];
-		if ( (int) $hub['id'] === $page_id || nvx_schema_path_matches( $path, $hub['path'] ) || nvx_schema_is_sede_template( $page_id ) ) {
-			$keys = array_keys( $registry['clinics'] );
-		}
-	}
+    if ( empty( $keys ) ) {
+        $hub = $registry['clinic_hub'];
+        if ( (int) $hub['id'] === $page_id || nvx_schema_path_matches( $path, $hub['path'] ) || nvx_schema_is_sede_template( $page_id ) ) {
+            $keys = array_keys( $registry['clinics'] );
+        }
+    }
 
-	return $keys;
+    return $keys;
 }
 
 /**
@@ -436,18 +436,18 @@ function nvx_schema_resolve_clinic_keys( $page_id ) {
  * @return string|null Registry key or null.
  */
 function nvx_schema_resolve_treatment_key( $page_id ) {
-	$registry = nvx_schema_page_registry();
-	$path     = nvx_schema_current_path( $page_id );
+    $registry = nvx_schema_page_registry();
+    $path     = nvx_schema_current_path( $page_id );
 
-	foreach ( $registry['treatments'] as $key => $entry ) {
-		$id_match   = ! empty( $entry['id'] ) && (int) $entry['id'] === $page_id;
-		$path_match = nvx_schema_path_matches( $path, $entry['path'] );
-		if ( $id_match || $path_match ) {
-			return $key;
-		}
-	}
+    foreach ( $registry['treatments'] as $key => $entry ) {
+        $id_match   = ! empty( $entry['id'] ) && (int) $entry['id'] === $page_id;
+        $path_match = nvx_schema_path_matches( $path, $entry['path'] );
+        if ( $id_match || $path_match ) {
+            return $key;
+        }
+    }
 
-	return null;
+    return null;
 }
 
 /**
@@ -458,9 +458,9 @@ function nvx_schema_resolve_treatment_key( $page_id ) {
  * @return bool
  */
 function nvx_schema_has_type( $types, $type ) {
-	$types = is_array( $types ) ? $types : array( $types );
+    $types = is_array( $types ) ? $types : array( $types );
 
-	return in_array( $type, $types, true );
+    return in_array( $type, $types, true );
 }
 
 /**
@@ -471,14 +471,14 @@ function nvx_schema_has_type( $types, $type ) {
  * @return array
  */
 function nvx_schema_add_type( $types, $type ) {
-	$types = is_array( $types ) ? $types : array( $types );
-	$types = array_values( array_filter( $types ) );
+    $types = is_array( $types ) ? $types : array( $types );
+    $types = array_values( array_filter( $types ) );
 
-	if ( ! in_array( $type, $types, true ) ) {
-		$types[] = $type;
-	}
+    if ( ! in_array( $type, $types, true ) ) {
+        $types[] = $type;
+    }
 
-	return $types;
+    return $types;
 }
 
 /**
@@ -491,83 +491,83 @@ function nvx_schema_add_type( $types, $type ) {
  * @return array
  */
 function nvx_schema_clinics() {
-	$registry = nvx_schema_page_registry();
+    $registry = nvx_schema_page_registry();
 
-	return array(
-		'chamberi' => array(
-			'@type'      => 'MedicalClinic',
-			'@id'        => home_url( '/#/schema/medical-clinic/chamberi' ),
-			'name'       => 'NUVANX Medicina Estética Láser — Chamberí',
-			'branchCode' => 'chamberi',
-			'url'        => home_url( $registry['clinics']['chamberi']['path'] ),
-			'telephone'  => NVX_SD_TEL_CHAMBERI,
-			'email'      => NVX_SD_EMAIL_MAIN,
-			'address'    => array(
-				'@type'           => 'PostalAddress',
-				'streetAddress'   => 'Calle de Fernández de la Hoz, 4, Bajo Derecha',
-				'addressLocality' => 'Madrid',
-				'addressRegion'   => 'Comunidad de Madrid',
-				'postalCode'      => '28010',
-				'addressCountry'  => 'ES',
-			),
-			'identifier' => array(
-				'@type'      => 'PropertyValue',
-				'propertyID' => 'Registro sanitario de la Comunidad de Madrid',
-				'value'      => 'CS20144',
-			),
-			'hasMap'      => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20C%2F%20de%20Fern%C3%A1ndez%20de%20la%20Hoz%204%2028010%20Madrid',
-			'areaServed'  => array( 'Chamberí', 'Almagro', 'Trafalgar', 'Madrid' ),
-			'openingHoursSpecification' => array(
-				array(
-					'@type'     => 'OpeningHoursSpecification',
-					'dayOfWeek' => array( 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ),
-					'opens'     => '12:00',
-					'closes'    => '20:00',
-				),
-				array(
-					'@type'     => 'OpeningHoursSpecification',
-					'dayOfWeek' => 'Saturday',
-					'opens'     => '10:00',
-					'closes'    => '18:00',
-				),
-			),
-			'sameAs'      => array(
-				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
-			),
-		),
-		'goya'      => array(
-			'@type'      => 'MedicalClinic',
-			'@id'        => home_url( '/#/schema/medical-clinic/goya' ),
-			'name'       => 'NUVANX Medicina Estética Láser — Goya · Barrio Salamanca',
-			'branchCode' => 'goya',
-			'url'        => home_url( $registry['clinics']['goya']['path'] ),
-			'telephone'  => '+34647505107',
-			'email'      => 'info@nuvanx.com',
-			'address'    => array(
-				'@type'           => 'PostalAddress',
-				'streetAddress'   => 'Calle de Fernán González, 26',
-				'addressLocality' => 'Madrid',
-				'addressRegion'   => 'Comunidad de Madrid',
-				'postalCode'      => '28009',
-				'addressCountry'  => 'ES',
-			),
-			'identifier' => array(
-				'@type'      => 'PropertyValue',
-				'propertyID' => 'Registro sanitario de la Comunidad de Madrid',
-				'value'      => 'CS20073',
-			),
-			'hasMap'      => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Goya%20C%2F%20de%20Fern%C3%A1n%20Gonz%C3%A1lez%2026%2028009%20Madrid',
-			'areaServed'  => array( 'Goya', 'Barrio de Salamanca', 'Lista', 'Recoletos', 'Madrid' ),
-			'openingHoursSpecification' => array(
-				array(
-					'@type'     => 'OpeningHoursSpecification',
-					'dayOfWeek' => array( 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ),
-					'opens'     => '11:00',
-					'closes'    => '20:00',
-				),
-			),
-		),
-	);
+    return array(
+        'chamberi' => array(
+            '@type'      => 'MedicalClinic',
+            '@id'        => home_url( '/#/schema/medical-clinic/chamberi' ),
+            'name'       => 'NUVANX Medicina Estética Láser — Chamberí',
+            'branchCode' => 'chamberi',
+            'url'        => home_url( $registry['clinics']['chamberi']['path'] ),
+            'telephone'  => NVX_SD_TEL_CHAMBERI,
+            'email'      => NVX_SD_EMAIL_MAIN,
+            'address'    => array(
+                '@type'           => 'PostalAddress',
+                'streetAddress'   => 'Calle de Fernández de la Hoz, 4, Bajo Derecha',
+                'addressLocality' => 'Madrid',
+                'addressRegion'   => 'Comunidad de Madrid',
+                'postalCode'      => '28010',
+                'addressCountry'  => 'ES',
+            ),
+            'identifier' => array(
+                '@type'      => 'PropertyValue',
+                'propertyID' => 'Registro sanitario de la Comunidad de Madrid',
+                'value'      => 'CS20144',
+            ),
+            'hasMap'      => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20C%2F%20de%20Fern%C3%A1ndez%20de%20la%20Hoz%204%2028010%20Madrid',
+            'areaServed'  => array( 'Chamberí', 'Almagro', 'Trafalgar', 'Madrid' ),
+            'openingHoursSpecification' => array(
+                array(
+                    '@type'     => 'OpeningHoursSpecification',
+                    'dayOfWeek' => array( 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ),
+                    'opens'     => '12:00',
+                    'closes'    => '20:00',
+                ),
+                array(
+                    '@type'     => 'OpeningHoursSpecification',
+                    'dayOfWeek' => 'Saturday',
+                    'opens'     => '10:00',
+                    'closes'    => '18:00',
+                ),
+            ),
+            'sameAs'      => array(
+                'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
+            ),
+        ),
+        'goya'      => array(
+            '@type'      => 'MedicalClinic',
+            '@id'        => home_url( '/#/schema/medical-clinic/goya' ),
+            'name'       => 'NUVANX Medicina Estética Láser — Goya · Barrio Salamanca',
+            'branchCode' => 'goya',
+            'url'        => home_url( $registry['clinics']['goya']['path'] ),
+            'telephone'  => '+34647505107',
+            'email'      => 'info@nuvanx.com',
+            'address'    => array(
+                '@type'           => 'PostalAddress',
+                'streetAddress'   => 'Calle de Fernán González, 26',
+                'addressLocality' => 'Madrid',
+                'addressRegion'   => 'Comunidad de Madrid',
+                'postalCode'      => '28009',
+                'addressCountry'  => 'ES',
+            ),
+            'identifier' => array(
+                '@type'      => 'PropertyValue',
+                'propertyID' => 'Registro sanitario de la Comunidad de Madrid',
+                'value'      => 'CS20073',
+            ),
+            'hasMap'      => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Goya%20C%2F%20de%20Fern%C3%A1n%20Gonz%C3%A1lez%2026%2028009%20Madrid',
+            'areaServed'  => array( 'Goya', 'Barrio de Salamanca', 'Lista', 'Recoletos', 'Madrid' ),
+            'openingHoursSpecification' => array(
+                array(
+                    '@type'     => 'OpeningHoursSpecification',
+                    'dayOfWeek' => array( 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday' ),
+                    'opens'     => '11:00',
+                    'closes'    => '20:00',
+                ),
+            ),
+        ),
+    );
 }
 
 /**
@@ -577,23 +577,23 @@ function nvx_schema_clinics() {
  * @return array{index:int|null,id:string}
  */
 function nvx_schema_find_organization( $graph ) {
-	foreach ( $graph as $index => $piece ) {
-		if (
-			isset( $piece['@type'], $piece['@id'] )
-			&& nvx_schema_has_type( $piece['@type'], 'Organization' )
-			&& ! nvx_schema_has_type( $piece['@type'], 'WebSite' )
-		) {
-			return array(
-				'index' => $index,
-				'id'    => $piece['@id'],
-			);
-		}
-	}
+    foreach ( $graph as $index => $piece ) {
+        if (
+            isset( $piece['@type'], $piece['@id'] )
+            && nvx_schema_has_type( $piece['@type'], 'Organization' )
+            && ! nvx_schema_has_type( $piece['@type'], 'WebSite' )
+        ) {
+            return array(
+                'index' => $index,
+                'id'    => $piece['@id'],
+            );
+        }
+    }
 
-	return array(
-		'index' => null,
-		'id'    => home_url( '/#/schema/organization/nuvanx' ),
-	);
+    return array(
+        'index' => null,
+        'id'    => home_url( '/#/schema/organization/nuvanx' ),
+    );
 }
 
 /**
@@ -604,35 +604,35 @@ function nvx_schema_find_organization( $graph ) {
  * @return array<string, array<int, array{q:string,a:string}>>
  */
 function nvx_schema_faq_catalog() {
-	$from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
-	$papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
+    $from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
+    $papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
 
-	// Only keys that render the same Q/A in visible HTML (Endolift module).
-	// Do not add EXION here until the EXION page prints the same pairs.
-	return array(
-		'endolift_facial' => array(
-			array(
-				'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
-				'a' => 'PVP con IVA incluido desde ' . $from . ' € (ojeras). Papada y marcación mandibular: ' . $papada . ' € cada una. Full Face y combos en la tabla de tarifas de la página. El presupuesto se cierra tras valoración anatómica presencial.',
-			),
-			array(
-				'q' => '¿Endolift® es para cualquier papada o flacidez?',
-				'a' => 'No. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. La ptosis severa con exceso cutáneo se deriva a cirugía plástica; no se fuerza el láser.',
-			),
-			array(
-				'q' => '¿Cuál es la durabilidad real de los resultados del Endolift®?',
-				'a' => 'Al inducir colágeno profundo, no se comporta como un relleno temporal. La firmeza suele sostenerse entre 18 meses y 3 años según envejecimiento, sol, tabaquismo y genética. El seguimiento personaliza expectativas.',
-			),
-			array(
-				'q' => '¿El Endolift® sustituye al ácido hialurónico?',
-				'a' => 'No. Planos complementarios: Endolift® tensa piel y tejido conectivo y puede reducir grasa; rellenos o inductores aportan soporte volumétrico. Criterio NUVANX: tensar primero y rellenar después solo si está indicado.',
-			),
-			array(
-				'q' => '¿Es doloroso?',
-				'a' => 'Un poco de calor y algo de presión, nada más — usamos anestesia local precisamente para que no duela. Si te preocupa el dolor, dínoslo en la consulta: se puede ajustar.',
-			),
-		),
-	);
+    // Only keys that render the same Q/A in visible HTML (Endolift module).
+    // Do not add EXION here until the EXION page prints the same pairs.
+    return array(
+        'endolift_facial' => array(
+            array(
+                'q' => '¿Cuánto cuesta el Endolift® facial en NUVANX Madrid?',
+                'a' => 'PVP con IVA incluido desde ' . $from . ' € (ojeras). Papada y marcación mandibular: ' . $papada . ' € cada una. Full Face y combos en la tabla de tarifas de la página. El presupuesto se cierra tras valoración anatómica presencial.',
+            ),
+            array(
+                'q' => '¿Endolift® es para cualquier papada o flacidez?',
+                'a' => 'No. Indicado en flacidez leve–moderada y grasa submentoniana seleccionada. La ptosis severa con exceso cutáneo se deriva a cirugía plástica; no se fuerza el láser.',
+            ),
+            array(
+                'q' => '¿Cuál es la durabilidad real de los resultados del Endolift®?',
+                'a' => 'Al inducir colágeno profundo, no se comporta como un relleno temporal. La firmeza suele sostenerse entre 18 meses y 3 años según envejecimiento, sol, tabaquismo y genética. El seguimiento personaliza expectativas.',
+            ),
+            array(
+                'q' => '¿El Endolift® sustituye al ácido hialurónico?',
+                'a' => 'No. Planos complementarios: Endolift® tensa piel y tejido conectivo y puede reducir grasa; rellenos o inductores aportan soporte volumétrico. Criterio NUVANX: tensar primero y rellenar después solo si está indicado.',
+            ),
+            array(
+                'q' => '¿Es doloroso?',
+                'a' => 'Un poco de calor y algo de presión, nada más — usamos anestesia local precisamente para que no duela. Si te preocupa el dolor, dínoslo en la consulta: se puede ajustar.',
+            ),
+        ),
+    );
 }
 
 /**
@@ -642,209 +642,209 @@ function nvx_schema_faq_catalog() {
  * @return array|null
  */
 function nvx_schema_faq_node( $page_id ) {
-	$questions = array();
-	$faq_id    = get_permalink( $page_id ) . '#faq';
-	$faq_url   = get_permalink( $page_id );
+    $questions = array();
+    $faq_id    = get_permalink( $page_id ) . '#faq';
+    $faq_url   = get_permalink( $page_id );
 
-	if ( is_front_page() && function_exists( 'nvx_home_faq_v2_catalog' ) ) {
-		$questions = nvx_home_faq_v2_catalog();
-		$faq_id    = home_url( '/#faq' );
-		$faq_url   = home_url( '/' );
-	} else {
-		$key     = nvx_schema_resolve_treatment_key( $page_id );
-		$catalog = nvx_schema_faq_catalog();
-		if ( null !== $key && ! empty( $catalog[ $key ] ) ) {
-			$questions = $catalog[ $key ];
-		}
-	}
+    if ( is_front_page() && function_exists( 'nvx_home_faq_v2_catalog' ) ) {
+        $questions = nvx_home_faq_v2_catalog();
+        $faq_id    = home_url( '/#faq' );
+        $faq_url   = home_url( '/' );
+    } else {
+        $key     = nvx_schema_resolve_treatment_key( $page_id );
+        $catalog = nvx_schema_faq_catalog();
+        if ( null !== $key && ! empty( $catalog[ $key ] ) ) {
+            $questions = $catalog[ $key ];
+        }
+    }
 
-	$entities = array();
-	foreach ( $questions as $q ) {
-		if ( ! empty( $q['q'] ) && ! empty( $q['a'] ) ) {
-			$entities[] = array(
-				'@type'          => 'Question',
-				'name'           => $q['q'],
-				'acceptedAnswer' => array(
-					'@type' => 'Answer',
-					'text'  => $q['a'],
-				),
-			);
-		}
-	}
+    $entities = array();
+    foreach ( $questions as $q ) {
+        if ( ! empty( $q['q'] ) && ! empty( $q['a'] ) ) {
+            $entities[] = array(
+                '@type'          => 'Question',
+                'name'           => $q['q'],
+                'acceptedAnswer' => array(
+                    '@type' => 'Answer',
+                    'text'  => $q['a'],
+                ),
+            );
+        }
+    }
 
-	if ( empty( $entities ) ) {
-		return null;
-	}
+    if ( empty( $entities ) ) {
+        return null;
+    }
 
-	return array(
-		'@type'      => 'FAQPage',
-		'@id'        => $faq_id,
-		'url'        => $faq_url,
-		'mainEntity' => $entities,
-	);
+    return array(
+        '@type'      => 'FAQPage',
+        '@id'        => $faq_id,
+        'url'        => $faq_url,
+        'mainEntity' => $entities,
+    );
 }
 
 function nvx_schema_treatment_node_laser( string $key, string $permalink, string $organization_id ): ?array {
-	$label_from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
-	$label_papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
-	$label_f      = function_exists( 'nvx_co2_price_facial_eur' ) ? nvx_format_price_eur( nvx_co2_price_facial_eur() ) : '';
-	$label_b      = function_exists( 'nvx_co2_price_body_eur' ) ? nvx_format_price_eur( nvx_co2_price_body_eur() ) : '';
+    $label_from   = nvx_format_price_eur( nvx_endolift_price_from_eur() );
+    $label_papada = nvx_format_price_eur( nvx_endolift_price_papada_eur() );
+    $label_f      = function_exists( 'nvx_co2_price_facial_eur' ) ? nvx_format_price_eur( nvx_co2_price_facial_eur() ) : '';
+    $label_b      = function_exists( 'nvx_co2_price_body_eur' ) ? nvx_format_price_eur( nvx_co2_price_body_eur() ) : '';
 
-	if ( 'endolift_facial' === $key ) {
-		return array(
-			'@type'            => array( 'MedicalProcedure', 'Service' ),
-			'@id'              => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
-			'name'             => 'Endolift® facial para papada y línea mandibular',
-			'alternateName'    => array( NVX_SD_ENDOLIFT_FACIAL, 'Láser intersticial facial' ),
-			'url'              => $permalink,
-			'mainEntityOfPage' => array( '@id' => $permalink ),
-			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Procedimiento médico mínimamente invasivo con microfibra láser subdérmica para lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello, indicado solo tras valoración anatómica. PVP papada/marcación mandibular desde ' . $label_papada . ' €; tarifas faciales desde ' . $label_from . ' €.',
-			'bodyLocation'     => array( 'Papada', 'Línea mandibular', 'Cuello', 'Óvalo facial' ),
-			'procedureType'    => 'https://schema.org/MinimallyInvasiveProcedure',
-			'preparation'      => 'Valoración médica presencial de anatomía, calidad de piel, grasa submentoniana, ptosis y expectativas. Exclusión de ptosis severa con exceso cutáneo que requiera cirugía.',
-			'howPerformed'     => 'Tras anestesia local se inserta microfibra óptica de 200–300 micras y se aplica energía láser intersticial en patrón vectorial subdérmico adaptado a la zona.',
-			'followup'         => 'Seguimiento clínico protocolizado (típicamente semanas 4 y 8 y control posterior). Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.',
-			'indication'       => array(
-				array( '@type' => 'MedicalIndication', 'name' => 'Flacidez facial leve a moderada' ),
-				array( '@type' => 'MedicalIndication', 'name' => 'Adiposidad submentoniana (papada) seleccionada' ),
-			),
-			'relevantCondition' => array(
-				array( '@type' => 'MedicalCondition', 'name' => 'Flacidez facial' ),
-				array( '@type' => 'MedicalCondition', 'name' => 'Adiposidad submentoniana' ),
-			),
-		);
-	}
+    if ( 'endolift_facial' === $key ) {
+        return array(
+            '@type'            => array( 'MedicalProcedure', 'Service' ),
+            '@id'              => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
+            'name'             => 'Endolift® facial para papada y línea mandibular',
+            'alternateName'    => array( NVX_SD_ENDOLIFT_FACIAL, 'Láser intersticial facial' ),
+            'url'              => $permalink,
+            'mainEntityOfPage' => array( '@id' => $permalink ),
+            'provider'         => array( '@id' => $organization_id ),
+            'description'      => 'Procedimiento médico mínimamente invasivo con microfibra láser subdérmica para lipólisis selectiva y retracción térmica en papada, contorno mandibular y cuello, indicado solo tras valoración anatómica. PVP papada/marcación mandibular desde ' . $label_papada . ' €; tarifas faciales desde ' . $label_from . ' €.',
+            'bodyLocation'     => array( 'Papada', 'Línea mandibular', 'Cuello', 'Óvalo facial' ),
+            'procedureType'    => 'https://schema.org/MinimallyInvasiveProcedure',
+            'preparation'      => 'Valoración médica presencial de anatomía, calidad de piel, grasa submentoniana, ptosis y expectativas. Exclusión de ptosis severa con exceso cutáneo que requiera cirugía.',
+            'howPerformed'     => 'Tras anestesia local se inserta microfibra óptica de 200–300 micras y se aplica energía láser intersticial en patrón vectorial subdérmico adaptado a la zona.',
+            'followup'         => 'Seguimiento clínico protocolizado (típicamente semanas 4 y 8 y control posterior). Reincorporación habitual en menos de 24 h; edema o inflamación pueden durar 3–7 días.',
+            'indication'       => array(
+                array( '@type' => 'MedicalIndication', 'name' => 'Flacidez facial leve a moderada' ),
+                array( '@type' => 'MedicalIndication', 'name' => 'Adiposidad submentoniana (papada) seleccionada' ),
+            ),
+            'relevantCondition' => array(
+                array( '@type' => 'MedicalCondition', 'name' => 'Flacidez facial' ),
+                array( '@type' => 'MedicalCondition', 'name' => 'Adiposidad submentoniana' ),
+            ),
+        );
+    }
 
-	if ( 'endolaser_corporal' === $key ) {
-		return array(
-			'@type'            => array( 'MedicalProcedure', 'Service' ),
-			'@id'              => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
-			'name'             => 'Endoláser corporal — destrucción de grasa localizada y retracción cutánea',
-			'alternateName'    => array( 'Laserlipólisis corporal', 'Endoláser Madrid' ),
-			'url'              => $permalink,
-			'mainEntityOfPage' => array( '@id' => $permalink ),
-			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Laserlipólisis médica intervencionista: lipólisis de adipocitos y estímulo de retracción dérmica en un acto ambulatorio por zonas (abdomen, flancos, muslos, brazos, submandibular). No trata obesidad ni pérdida masiva de peso; el presupuesto se personaliza tras valoración.',
-			'bodyLocation'     => array( 'Abdomen', 'Flancos', 'Cara interna de muslos', 'Rodillas', 'Brazos', 'Región submandibular' ),
-			'procedureType'    => 'https://schema.org/MinimallyInvasiveProcedure',
-			'preparation'      => 'Peso estable, grasa focal y flacidez leve–moderada. Exclusión de exceso cutáneo severo (derivación a cirugía excisional, p. ej. abdominoplastia).',
-			'howPerformed'     => 'Bajo anestesia local se introduce fibra láser en tejido subcutáneo para lipólisis selectiva y estímulo térmico de retracción en la cuadrícula de zonas planificada.',
-			'followup'         => 'Cuidados post-procedimiento y revisiones según zona y protocolo médico.',
-			'indication'       => array(
-				array( '@type' => 'MedicalIndication', 'name' => 'Adiposidad localizada resistente a dieta y ejercicio' ),
-				array( '@type' => 'MedicalIndication', 'name' => 'Flacidez cutánea leve a moderada asociada a pérdida de volumen local' ),
-			),
-			'relevantCondition' => array(
-				array( '@type' => 'MedicalCondition', 'name' => 'Adiposidad localizada' ),
-				array( '@type' => 'MedicalCondition', 'name' => 'Flacidez cutánea corporal leve-moderada' ),
-			),
-		);
-	}
+    if ( 'endolaser_corporal' === $key ) {
+        return array(
+            '@type'            => array( 'MedicalProcedure', 'Service' ),
+            '@id'              => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
+            'name'             => 'Endoláser corporal — destrucción de grasa localizada y retracción cutánea',
+            'alternateName'    => array( 'Laserlipólisis corporal', 'Endoláser Madrid' ),
+            'url'              => $permalink,
+            'mainEntityOfPage' => array( '@id' => $permalink ),
+            'provider'         => array( '@id' => $organization_id ),
+            'description'      => 'Laserlipólisis médica intervencionista: lipólisis de adipocitos y estímulo de retracción dérmica en un acto ambulatorio por zonas (abdomen, flancos, muslos, brazos, submandibular). No trata obesidad ni pérdida masiva de peso; el presupuesto se personaliza tras valoración.',
+            'bodyLocation'     => array( 'Abdomen', 'Flancos', 'Cara interna de muslos', 'Rodillas', 'Brazos', 'Región submandibular' ),
+            'procedureType'    => 'https://schema.org/MinimallyInvasiveProcedure',
+            'preparation'      => 'Peso estable, grasa focal y flacidez leve–moderada. Exclusión de exceso cutáneo severo (derivación a cirugía excisional, p. ej. abdominoplastia).',
+            'howPerformed'     => 'Bajo anestesia local se introduce fibra láser en tejido subcutáneo para lipólisis selectiva y estímulo térmico de retracción en la cuadrícula de zonas planificada.',
+            'followup'         => 'Cuidados post-procedimiento y revisiones según zona y protocolo médico.',
+            'indication'       => array(
+                array( '@type' => 'MedicalIndication', 'name' => 'Adiposidad localizada resistente a dieta y ejercicio' ),
+                array( '@type' => 'MedicalIndication', 'name' => 'Flacidez cutánea leve a moderada asociada a pérdida de volumen local' ),
+            ),
+            'relevantCondition' => array(
+                array( '@type' => 'MedicalCondition', 'name' => 'Adiposidad localizada' ),
+                array( '@type' => 'MedicalCondition', 'name' => 'Flacidez cutánea corporal leve-moderada' ),
+            ),
+        );
+    }
 
-	if ( 'laser_co2' === $key ) {
-		return array(
-			'@type'            => array( 'MedicalProcedure', 'Service' ),
-			'@id'              => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
-			'name'             => 'Láser CO₂ fraccionado — resurfacing epidérmico y cicatrices',
-			'alternateName'    => array( 'CO₂ fraccionado Madrid', 'Resurfacing láser CO₂' ),
-			'url'              => $permalink,
-			'mainEntityOfPage' => array( '@id' => $permalink ),
-			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Ablación fraccionada con microcolumnas de vaporización y tejido sano peri-lesional. Indicado en cicatrices atróficas de acné, poros, textura irregular y fotodaño. Downtime típico 4–7 días; remodelación colagénica 4–6 semanas. PVP sesión facial desde ' . $label_f . ' €; corporal ' . $label_b . ' € (IVA incl.).',
-			'bodyLocation'     => 'Piel facial y zonas cutáneas seleccionadas',
-			'procedureType'    => 'https://schema.org/PercutaneousProcedure',
-			'preparation'      => 'Evaluación de fototipo, inflamación, bronceado, medicación y objetivo (cicatriz, textura, fotodaño). Compromiso con downtime y fotoprotección.',
-			'howPerformed'     => 'Microhaces de CO₂ crean columnas de vaporización térmica fraccionada; el tejido circundante acelera la curación y estimula colágeno I y III.',
-			'followup'         => 'Días 1–3 eritema y patrón punteado; días 4–7 descamación; desde día 7 recuperación visual habitual y remodelación progresiva 4–6 semanas.',
-			'indication'       => array(
-				array( '@type' => 'MedicalIndication', 'name' => 'Cicatrices atróficas de acné' ),
-				array( '@type' => 'MedicalIndication', 'name' => 'Poros dilatados y textura irregular' ),
-				array( '@type' => 'MedicalIndication', 'name' => 'Fotodaño y elastosis solar' ),
-			),
-			'relevantCondition' => array(
-				array( '@type' => 'MedicalCondition', 'name' => 'Cicatrices atróficas de acné' ),
-				array( '@type' => 'MedicalCondition', 'name' => 'Fotodaño cutáneo' ),
-			),
-		);
-	}
+    if ( 'laser_co2' === $key ) {
+        return array(
+            '@type'            => array( 'MedicalProcedure', 'Service' ),
+            '@id'              => $permalink . NVX_SD_ID_MEDICAL_PROCEDURE,
+            'name'             => 'Láser CO₂ fraccionado — resurfacing epidérmico y cicatrices',
+            'alternateName'    => array( 'CO₂ fraccionado Madrid', 'Resurfacing láser CO₂' ),
+            'url'              => $permalink,
+            'mainEntityOfPage' => array( '@id' => $permalink ),
+            'provider'         => array( '@id' => $organization_id ),
+            'description'      => 'Ablación fraccionada con microcolumnas de vaporización y tejido sano peri-lesional. Indicado en cicatrices atróficas de acné, poros, textura irregular y fotodaño. Downtime típico 4–7 días; remodelación colagénica 4–6 semanas. PVP sesión facial desde ' . $label_f . ' €; corporal ' . $label_b . ' € (IVA incl.).',
+            'bodyLocation'     => 'Piel facial y zonas cutáneas seleccionadas',
+            'procedureType'    => 'https://schema.org/PercutaneousProcedure',
+            'preparation'      => 'Evaluación de fototipo, inflamación, bronceado, medicación y objetivo (cicatriz, textura, fotodaño). Compromiso con downtime y fotoprotección.',
+            'howPerformed'     => 'Microhaces de CO₂ crean columnas de vaporización térmica fraccionada; el tejido circundante acelera la curación y estimula colágeno I y III.',
+            'followup'         => 'Días 1–3 eritema y patrón punteado; días 4–7 descamación; desde día 7 recuperación visual habitual y remodelación progresiva 4–6 semanas.',
+            'indication'       => array(
+                array( '@type' => 'MedicalIndication', 'name' => 'Cicatrices atróficas de acné' ),
+                array( '@type' => 'MedicalIndication', 'name' => 'Poros dilatados y textura irregular' ),
+                array( '@type' => 'MedicalIndication', 'name' => 'Fotodaño y elastosis solar' ),
+            ),
+            'relevantCondition' => array(
+                array( '@type' => 'MedicalCondition', 'name' => 'Cicatrices atróficas de acné' ),
+                array( '@type' => 'MedicalCondition', 'name' => 'Fotodaño cutáneo' ),
+            ),
+        );
+    }
 
-	return null;
+    return null;
 }
 
 function nvx_schema_treatment_node_btl( string $key, string $permalink, string $organization_id ): ?array {
-	if ( 'exion_btl' === $key ) {
-		return array(
-			'@type'            => array( 'MedicalProcedure', 'Service' ),
-			'@id'              => $permalink . NVX_SD_ID_SERVICE,
-			'name'             => 'EXION® BTL en Madrid',
-			'serviceType'      => 'Protocolos médicos con plataforma EXION® BTL',
-			'url'              => $permalink,
-			'mainEntityOfPage' => array( '@id' => $permalink ),
-			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Plataforma médica BTL con aplicadores Fractional RF, Face y Body para protocolos de textura, firmeza y calidad cutánea según diagnóstico. El presupuesto se documenta tras la valoración médica según aplicador, zona y plan de sesiones.',
-			'procedureType'    => 'https://schema.org/NoninvasiveProcedure',
-			'areaServed'       => 'Madrid',
-		);
-	}
+    if ( 'exion_btl' === $key ) {
+        return array(
+            '@type'            => array( 'MedicalProcedure', 'Service' ),
+            '@id'              => $permalink . NVX_SD_ID_SERVICE,
+            'name'             => 'EXION® BTL en Madrid',
+            'serviceType'      => 'Protocolos médicos con plataforma EXION® BTL',
+            'url'              => $permalink,
+            'mainEntityOfPage' => array( '@id' => $permalink ),
+            'provider'         => array( '@id' => $organization_id ),
+            'description'      => 'Plataforma médica BTL con aplicadores Fractional RF, Face y Body para protocolos de textura, firmeza y calidad cutánea según diagnóstico. El presupuesto se documenta tras la valoración médica según aplicador, zona y plan de sesiones.',
+            'procedureType'    => 'https://schema.org/NoninvasiveProcedure',
+            'areaServed'       => 'Madrid',
+        );
+    }
 
-	$btl_detail_keys = array( 'exion_face', 'exion_body', 'exion_fractional', 'emfusion' );
-	if ( in_array( $key, $btl_detail_keys, true ) && function_exists( 'nvx_btl_detail_registry' ) ) {
-		$slug_map = array(
-			'exion_face'       => 'exion-face',
-			'exion_body'       => 'exion-body',
-			'exion_fractional' => 'exion-fractional',
-			'emfusion'         => 'emfusion',
-		);
-		$slug = $slug_map[ $key ] ?? '';
-		$reg  = nvx_btl_detail_registry();
-		if ( $slug && ! empty( $reg[ $slug ] ) ) {
-			$cfg = $reg[ $slug ];
-			return array(
-				'@type'            => 'Service',
-				'@id'              => $permalink . NVX_SD_ID_SERVICE,
-				'name'             => $cfg['schema_name'],
-				'serviceType'      => $cfg['schema_type'],
-				'url'              => $permalink,
-				'mainEntityOfPage' => array( '@id' => $permalink ),
-				'provider'         => array( '@id' => $organization_id ),
-				'description'      => $cfg['schema_desc'],
-				'areaServed'       => 'Madrid',
-			);
-		}
-	}
+    $btl_detail_keys = array( 'exion_face', 'exion_body', 'exion_fractional', 'emfusion' );
+    if ( in_array( $key, $btl_detail_keys, true ) && function_exists( 'nvx_btl_detail_registry' ) ) {
+        $slug_map = array(
+            'exion_face'       => 'exion-face',
+            'exion_body'       => 'exion-body',
+            'exion_fractional' => 'exion-fractional',
+            'emfusion'         => 'emfusion',
+        );
+        $slug = $slug_map[ $key ] ?? '';
+        $reg  = nvx_btl_detail_registry();
+        if ( $slug && ! empty( $reg[ $slug ] ) ) {
+            $cfg = $reg[ $slug ];
+            return array(
+                '@type'            => 'Service',
+                '@id'              => $permalink . NVX_SD_ID_SERVICE,
+                'name'             => $cfg['schema_name'],
+                'serviceType'      => $cfg['schema_type'],
+                'url'              => $permalink,
+                'mainEntityOfPage' => array( '@id' => $permalink ),
+                'provider'         => array( '@id' => $organization_id ),
+                'description'      => $cfg['schema_desc'],
+                'areaServed'       => 'Madrid',
+            );
+        }
+    }
 
-	if ( 'exilite_btl' === $key ) {
-		return array(
-			'@type'            => 'Service',
-			'@id'              => $permalink . NVX_SD_ID_SERVICE,
-			'name'             => 'BTL EXILITE™ IPL en Madrid',
-			'serviceType'      => 'Protocolos médicos con plataforma BTL EXILITE™ IPL',
-			'url'              => $permalink,
-			'mainEntityOfPage' => array( '@id' => $permalink ),
-			'provider'         => array( '@id' => $organization_id ),
-			'description'      => 'Luz pulsada intensa (IPL) para manchas, rojeces y lesiones pigmentarias o vasculares superficiales seleccionadas tras diagnóstico. No es un láser.',
-			'areaServed'       => 'Madrid',
-		);
-	}
+    if ( 'exilite_btl' === $key ) {
+        return array(
+            '@type'            => 'Service',
+            '@id'              => $permalink . NVX_SD_ID_SERVICE,
+            'name'             => 'BTL EXILITE™ IPL en Madrid',
+            'serviceType'      => 'Protocolos médicos con plataforma BTL EXILITE™ IPL',
+            'url'              => $permalink,
+            'mainEntityOfPage' => array( '@id' => $permalink ),
+            'provider'         => array( '@id' => $organization_id ),
+            'description'      => 'Luz pulsada intensa (IPL) para manchas, rojeces y lesiones pigmentarias o vasculares superficiales seleccionadas tras diagnóstico. No es un láser.',
+            'areaServed'       => 'Madrid',
+        );
+    }
 
-	return null;
+    return null;
 }
 
 function nvx_schema_treatment_node( $page_id, $organization_id ) {
-	$key = nvx_schema_resolve_treatment_key( $page_id );
-	if ( null === $key ) {
-		return null;
-	}
+    $key = nvx_schema_resolve_treatment_key( $page_id );
+    if ( null === $key ) {
+        return null;
+    }
 
-	$permalink = get_permalink( $page_id );
+    $permalink = get_permalink( $page_id );
 
-	$laser_node = nvx_schema_treatment_node_laser( $key, $permalink, $organization_id );
-	if ( null !== $laser_node ) {
-		return $laser_node;
-	}
+    $laser_node = nvx_schema_treatment_node_laser( $key, $permalink, $organization_id );
+    if ( null !== $laser_node ) {
+        return $laser_node;
+    }
 
-	return nvx_schema_treatment_node_btl( $key, $permalink, $organization_id );
+    return nvx_schema_treatment_node_btl( $key, $permalink, $organization_id );
 }
 
 /**
@@ -854,59 +854,59 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
  * @return array
  */
 function nvx_schema_physician_director( $organization_id ) {
-	$equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
-	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
+    $equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
+    $colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	return array(
-		'@type'           => array( 'Person', 'Physician' ),
-		'@id'             => home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-rivera-tejeda' ),
-		'name'            => 'José Javier Rivera Tejeda',
-		'honorificPrefix' => 'Dr.',
-		'jobTitle'        => 'Director médico e investigador clínico aplicado · NUVANX Madrid',
-		'description'     => 'Dirección médica de NUVANX. Láser intersticial (Endolift®, laserlipólisis), CO₂ fraccionado, geometría facial con inductores y tricología. ' . NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Perfil público en Doctoralia.',
-		'url'             => $equipo,
-		'worksFor'        => array( '@id' => $organization_id ),
-		'hasCredential'   => array(
-			array(
-				'@type'              => 'EducationalOccupationalCredential',
-				'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
-				'identifier'         => $colegiado,
-				'name'               => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado,
-			),
-			array(
-				'@type' => 'EducationalOccupationalCredential',
-				'name'  => 'Máster Universitario en Medicina Estética — Universidad Complutense de Madrid',
-			),
-			array(
-				'@type' => 'EducationalOccupationalCredential',
-				'name'  => 'Máster en Tricología y Cirugía Capilar — AMIR',
-			),
-		),
-		'alumniOf'        => array(
-			array(
-				'@type' => 'CollegeOrUniversity',
-				'name'  => 'Universidad Complutense de Madrid',
-			),
-			array(
-				'@type' => 'EducationalOrganization',
-				'name'  => 'AMIR',
-			),
-		),
-		'knowsAbout'      => array(
-			NVX_SD_ENDOLIFT_FACIAL,
-			'Laserlipólisis',
-			NVX_SD_ENDOLASER_CORPORAL,
-			NVX_SD_LASER_CO2_FRACCIONADO,
-			'Medicina estética láser',
-			'Marcación mandibular con láser',
-			'Inductores de colágeno',
-			'Tricología médica',
-			NVX_SD_MEDICINA_REGENERATIVA,
-		),
-		'sameAs'          => array(
-			'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid',
-		),
-	);
+    return array(
+        '@type'           => array( 'Person', 'Physician' ),
+        '@id'             => home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-rivera-tejeda' ),
+        'name'            => 'José Javier Rivera Tejeda',
+        'honorificPrefix' => 'Dr.',
+        'jobTitle'        => 'Director médico e investigador clínico aplicado · NUVANX Madrid',
+        'description'     => 'Dirección médica de NUVANX. Láser intersticial (Endolift®, laserlipólisis), CO₂ fraccionado, geometría facial con inductores y tricología. ' . NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Perfil público en Doctoralia.',
+        'url'             => $equipo,
+        'worksFor'        => array( '@id' => $organization_id ),
+        'hasCredential'   => array(
+            array(
+                '@type'              => 'EducationalOccupationalCredential',
+                'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
+                'identifier'         => $colegiado,
+                'name'               => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado,
+            ),
+            array(
+                '@type' => 'EducationalOccupationalCredential',
+                'name'  => 'Máster Universitario en Medicina Estética — Universidad Complutense de Madrid',
+            ),
+            array(
+                '@type' => 'EducationalOccupationalCredential',
+                'name'  => 'Máster en Tricología y Cirugía Capilar — AMIR',
+            ),
+        ),
+        'alumniOf'        => array(
+            array(
+                '@type' => 'CollegeOrUniversity',
+                'name'  => 'Universidad Complutense de Madrid',
+            ),
+            array(
+                '@type' => 'EducationalOrganization',
+                'name'  => 'AMIR',
+            ),
+        ),
+        'knowsAbout'      => array(
+            NVX_SD_ENDOLIFT_FACIAL,
+            'Laserlipólisis',
+            NVX_SD_ENDOLASER_CORPORAL,
+            NVX_SD_LASER_CO2_FRACCIONADO,
+            'Medicina estética láser',
+            'Marcación mandibular con láser',
+            'Inductores de colágeno',
+            'Tricología médica',
+            NVX_SD_MEDICINA_REGENERATIVA,
+        ),
+        'sameAs'          => array(
+            'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid',
+        ),
+    );
 }
 
 /**
@@ -916,68 +916,68 @@ function nvx_schema_physician_director( $organization_id ) {
  * @return array
  */
 function nvx_schema_physician_ivon( $organization_id ) {
-	$equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
-	$ivon_id   = home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-rivera-deras' );
-	$colegiado = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
+    $equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
+    $ivon_id   = home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-rivera-deras' );
+    $colegiado = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 
-	return array(
-		'@type'            => array( 'Person', 'Physician' ),
-		'@id'              => $ivon_id,
-		'name'             => 'Ivon Yamileth Rivera Deras',
-		'honorificPrefix'  => 'Dra.',
-		'jobTitle'         => 'Especialista en geriatría, longevidad y well-aging · NUVANX',
-		'description'      => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Médico especialista (FEA) en Hospital Universitario La Paz (Recuperación Funcional / Hospital de Día Geriátrico) y Hospital Central de la Cruz Roja. Investigadora y consultora para OXON Epidemiology; coordinación científica SEMEG; colaboración EuGMS; profesora UEM. Coautora de obras de bioética y geriatría clínica. Integra well-aging basado en evidencia en NUVANX.',
-		'url'              => $equipo . '#physician-rivera-deras',
-		'medicalSpecialty' => 'https://schema.org/Geriatric',
-		'worksFor'         => array(
-			array( '@id' => $organization_id ),
-			array(
-				'@type' => 'Hospital',
-				'name'  => 'Hospital Universitario La Paz',
-			),
-			array(
-				'@type' => 'Hospital',
-				'name'  => 'Hospital Central de la Cruz Roja San José y Santa Adela',
-			),
-		),
-		'hasCredential'    => array(
-			array(
-				'@type'              => 'EducationalOccupationalCredential',
-				'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
-				'identifier'         => $colegiado,
-				'name'               => 'Colegiada ICOMEM ' . $colegiado,
-			),
-		),
-		'memberOf'         => array(
-			array(
-				'@type' => 'MedicalOrganization',
-				'name'  => NVX_SD_SOCIEDAD_SEMEG,
-			),
-			array(
-				'@type' => 'Organization',
-				'name'  => 'European Geriatric Medicine Society (EuGMS)',
-			),
-			array(
-				'@type' => 'Organization',
-				'name'  => 'OXON Epidemiology',
-			),
-		),
-		'alumniOf'         => array(
-			array(
-				'@type' => 'CollegeOrUniversity',
-				'name'  => 'Universidad Europea de Madrid',
-			),
-		),
-		'knowsAbout'       => array(
-			'Geriatría',
-			'Well-aging',
-			'Longevidad',
-			'Medicina preventiva del envejecimiento',
-			'Deterioro cognitivo',
-			'Recuperación funcional geriátrica',
-			'Real-World Evidence',
-		),
-	);
+    return array(
+        '@type'            => array( 'Person', 'Physician' ),
+        '@id'              => $ivon_id,
+        'name'             => 'Ivon Yamileth Rivera Deras',
+        'honorificPrefix'  => 'Dra.',
+        'jobTitle'         => 'Especialista en geriatría, longevidad y well-aging · NUVANX',
+        'description'      => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Médico especialista (FEA) en Hospital Universitario La Paz (Recuperación Funcional / Hospital de Día Geriátrico) y Hospital Central de la Cruz Roja. Investigadora y consultora para OXON Epidemiology; coordinación científica SEMEG; colaboración EuGMS; profesora UEM. Coautora de obras de bioética y geriatría clínica. Integra well-aging basado en evidencia en NUVANX.',
+        'url'              => $equipo . '#physician-rivera-deras',
+        'medicalSpecialty' => 'https://schema.org/Geriatric',
+        'worksFor'         => array(
+            array( '@id' => $organization_id ),
+            array(
+                '@type' => 'Hospital',
+                'name'  => 'Hospital Universitario La Paz',
+            ),
+            array(
+                '@type' => 'Hospital',
+                'name'  => 'Hospital Central de la Cruz Roja San José y Santa Adela',
+            ),
+        ),
+        'hasCredential'    => array(
+            array(
+                '@type'              => 'EducationalOccupationalCredential',
+                'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
+                'identifier'         => $colegiado,
+                'name'               => 'Colegiada ICOMEM ' . $colegiado,
+            ),
+        ),
+        'memberOf'         => array(
+            array(
+                '@type' => 'MedicalOrganization',
+                'name'  => NVX_SD_SOCIEDAD_SEMEG,
+            ),
+            array(
+                '@type' => 'Organization',
+                'name'  => 'European Geriatric Medicine Society (EuGMS)',
+            ),
+            array(
+                '@type' => 'Organization',
+                'name'  => 'OXON Epidemiology',
+            ),
+        ),
+        'alumniOf'         => array(
+            array(
+                '@type' => 'CollegeOrUniversity',
+                'name'  => 'Universidad Europea de Madrid',
+            ),
+        ),
+        'knowsAbout'       => array(
+            'Geriatría',
+            'Well-aging',
+            'Longevidad',
+            'Medicina preventiva del envejecimiento',
+            'Deterioro cognitivo',
+            'Recuperación funcional geriátrica',
+            'Real-World Evidence',
+        ),
+    );
 }
 
 /**
@@ -987,28 +987,28 @@ function nvx_schema_physician_ivon( $organization_id ) {
  * @return array
  */
 function nvx_schema_physician_fabio( $organization_id ) {
-	$equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
-	$fabio_id  = home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-quinonez-bareiro' );
-	$colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282894103';
+    $equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
+    $fabio_id  = home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-quinonez-bareiro' );
+    $colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282894103';
 
-	return array(
-		'@type'           => array( 'Person', 'Physician' ),
-		'@id'             => $fabio_id,
-		'name'            => 'Fabio Quiñónez Bareiro',
-		'honorificPrefix' => 'Dr.',
-		'jobTitle'        => 'Médico cirujano estético · NUVANX Madrid',
-		'description'     => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Médico especialista en cirugía estética y procedimientos láser.',
-		'url'             => $equipo . '#physician-quinonez-bareiro',
-		'worksFor'        => array( '@id' => $organization_id ),
-		'hasCredential'   => array(
-			array(
-				'@type'              => 'EducationalOccupationalCredential',
-				'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
-				'identifier'         => $colegiado,
-				'name'               => 'Colegiado ICOMEM ' . $colegiado,
-			),
-		),
-	);
+    return array(
+        '@type'           => array( 'Person', 'Physician' ),
+        '@id'             => $fabio_id,
+        'name'            => 'Fabio Quiñónez Bareiro',
+        'honorificPrefix' => 'Dr.',
+        'jobTitle'        => 'Médico cirujano estético · NUVANX Madrid',
+        'description'     => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Médico especialista en cirugía estética y procedimientos láser.',
+        'url'             => $equipo . '#physician-quinonez-bareiro',
+        'worksFor'        => array( '@id' => $organization_id ),
+        'hasCredential'   => array(
+            array(
+                '@type'              => 'EducationalOccupationalCredential',
+                'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
+                'identifier'         => $colegiado,
+                'name'               => 'Colegiado ICOMEM ' . $colegiado,
+            ),
+        ),
+    );
 }
 
 /**
@@ -1018,24 +1018,24 @@ function nvx_schema_physician_fabio( $organization_id ) {
  * @return array<int, array>
  */
 function nvx_schema_ivon_publications( $author_id ) {
-	return array(
-		array(
-			'@type'  => 'Book',
-			'@id'    => home_url( '/equipo-medico/#work-inmortalidad-sin-juventud' ),
-			'name'   => 'El tormento de la inmortalidad sin juventud',
-			'author' => array( '@id' => $author_id ),
-		),
-		array(
-			'@type'  => 'Book',
-			'@id'    => home_url( '/equipo-medico/#work-manual-caidas-semeg' ),
-			'name'   => 'Manual de manejo de personas mayores que sufren caídas',
-			'author' => array( '@id' => $author_id ),
-			'publisher' => array(
-				'@type' => 'Organization',
-				'name'  => 'Sociedad Española de Medicina Geriátrica (SEMEG)',
-			),
-		),
-	);
+    return array(
+        array(
+            '@type'  => 'Book',
+            '@id'    => home_url( '/equipo-medico/#work-inmortalidad-sin-juventud' ),
+            'name'   => 'El tormento de la inmortalidad sin juventud',
+            'author' => array( '@id' => $author_id ),
+        ),
+        array(
+            '@type'  => 'Book',
+            '@id'    => home_url( '/equipo-medico/#work-manual-caidas-semeg' ),
+            'name'   => 'Manual de manejo de personas mayores que sufren caídas',
+            'author' => array( '@id' => $author_id ),
+            'publisher' => array(
+                '@type' => 'Organization',
+                'name'  => 'Sociedad Española de Medicina Geriátrica (SEMEG)',
+            ),
+        ),
+    );
 }
 
 /**
@@ -1045,26 +1045,26 @@ function nvx_schema_ivon_publications( $author_id ) {
  * @return array<int, array>
  */
 function nvx_schema_fabio_publications( $author_id ) {
-	return array(
-		array(
-			'@type'  => 'Thesis',
-			'@id'    => home_url( '/equipo-medico/#work-fabio-tesis-uam' ),
-			'name'   => 'Disfunción vascular sub-clínica, declinar cognitivo y fragilidad',
-			'author' => array( '@id' => $author_id ),
-			'inSupportOf' => 'Ph.D.',
-			'sourceOrganization' => array(
-				'@type' => 'CollegeOrUniversity',
-				'name'  => 'Universidad Autónoma de Madrid',
-			),
-		),
-		array(
-			'@type'  => 'ScholarlyArticle',
-			'@id'    => home_url( '/equipo-medico/#work-fabio-itu-delirium' ),
-			'name'   => '¿Será una infección del tracto urinario?',
-			'author' => array( '@id' => $author_id ),
-			'description' => 'Diagnósticos diferenciales entre delírium e infección en el anciano.',
-		),
-	);
+    return array(
+        array(
+            '@type'  => 'Thesis',
+            '@id'    => home_url( '/equipo-medico/#work-fabio-tesis-uam' ),
+            'name'   => 'Disfunción vascular sub-clínica, declinar cognitivo y fragilidad',
+            'author' => array( '@id' => $author_id ),
+            'inSupportOf' => 'Ph.D.',
+            'sourceOrganization' => array(
+                '@type' => 'CollegeOrUniversity',
+                'name'  => 'Universidad Autónoma de Madrid',
+            ),
+        ),
+        array(
+            '@type'  => 'ScholarlyArticle',
+            '@id'    => home_url( '/equipo-medico/#work-fabio-itu-delirium' ),
+            'name'   => '¿Será una infección del tracto urinario?',
+            'author' => array( '@id' => $author_id ),
+            'description' => 'Diagnósticos diferenciales entre delírium e infección en el anciano.',
+        ),
+    );
 }
 
 /**
@@ -1075,80 +1075,80 @@ function nvx_schema_fabio_publications( $author_id ) {
  * @return array
  */
 function nvx_schema_offer_catalog( $organization_id ) {
-	$registry = nvx_schema_page_registry();
-	$items    = array();
-	$co2_from = function_exists( 'nvx_co2_price_facial_eur' ) ? nvx_co2_price_facial_eur() : null;
+    $registry = nvx_schema_page_registry();
+    $items    = array();
+    $co2_from = function_exists( 'nvx_co2_price_facial_eur' ) ? nvx_co2_price_facial_eur() : null;
 
-	$catalog_defs = array(
-		'endolift_facial'    => array(
-			'label' => NVX_SD_ENDOLIFT_FACIAL,
-			'price' => nvx_endolift_price_from_eur(),
-		),
-		'endolaser_corporal' => array(
-			'label' => NVX_SD_ENDOLASER_CORPORAL,
-			'price' => null,
-		),
-		'laser_co2'          => array(
-			'label' => NVX_SD_LASER_CO2_FRACCIONADO,
-			'price' => $co2_from,
-		),
-		'exion_btl'          => array(
-			'label' => 'EXION® BTL',
-			'price' => null,
-		),
-		'exion_face'         => array(
-			'label' => 'EXION® Face',
-			'price' => null,
-		),
-		'exion_body'         => array(
-			'label' => 'EXION® Body',
-			'price' => null,
-		),
-		'exion_fractional'   => array(
-			'label' => 'EXION® Fractional RF',
-			'price' => null,
-		),
-		'emfusion'           => array(
-			'label' => 'EMFUSION®',
-			'price' => null,
-		),
-		'exilite_btl'        => array(
-			'label' => 'BTL EXILITE™ IPL',
-			'price' => null,
-		),
-	);
+    $catalog_defs = array(
+        'endolift_facial'    => array(
+            'label' => NVX_SD_ENDOLIFT_FACIAL,
+            'price' => nvx_endolift_price_from_eur(),
+        ),
+        'endolaser_corporal' => array(
+            'label' => NVX_SD_ENDOLASER_CORPORAL,
+            'price' => null,
+        ),
+        'laser_co2'          => array(
+            'label' => NVX_SD_LASER_CO2_FRACCIONADO,
+            'price' => $co2_from,
+        ),
+        'exion_btl'          => array(
+            'label' => 'EXION® BTL',
+            'price' => null,
+        ),
+        'exion_face'         => array(
+            'label' => 'EXION® Face',
+            'price' => null,
+        ),
+        'exion_body'         => array(
+            'label' => 'EXION® Body',
+            'price' => null,
+        ),
+        'exion_fractional'   => array(
+            'label' => 'EXION® Fractional RF',
+            'price' => null,
+        ),
+        'emfusion'           => array(
+            'label' => 'EMFUSION®',
+            'price' => null,
+        ),
+        'exilite_btl'        => array(
+            'label' => 'BTL EXILITE™ IPL',
+            'price' => null,
+        ),
+    );
 
-	foreach ( $catalog_defs as $key => $def ) {
-		if ( empty( $registry['treatments'][ $key ]['path'] ) ) {
-			continue;
-		}
-		$url   = home_url( $registry['treatments'][ $key ]['path'] );
-		$offer = array(
-			'@type'       => 'Offer',
-			'itemOffered' => array(
-				'@type' => 'Service',
-				'name'  => $def['label'],
-				'url'   => $url,
-			),
-			'url'         => $url,
-			'areaServed'  => 'Madrid',
-			'seller'      => array( '@id' => $organization_id ),
-		);
-		if ( null !== $def['price'] && $def['price'] > 0 ) {
-			$offer['priceCurrency'] = 'EUR';
-			$offer['price']         = nvx_schema_price_string( $def['price'] );
-			$offer['description']   = 'Tarifa de referencia desde ' . nvx_format_price_eur( $def['price'] ) . ' € (presupuesto tras valoración).';
-		}
-		$items[] = $offer;
-	}
+    foreach ( $catalog_defs as $key => $def ) {
+        if ( empty( $registry['treatments'][ $key ]['path'] ) ) {
+            continue;
+        }
+        $url   = home_url( $registry['treatments'][ $key ]['path'] );
+        $offer = array(
+            '@type'       => 'Offer',
+            'itemOffered' => array(
+                '@type' => 'Service',
+                'name'  => $def['label'],
+                'url'   => $url,
+            ),
+            'url'         => $url,
+            'areaServed'  => 'Madrid',
+            'seller'      => array( '@id' => $organization_id ),
+        );
+        if ( null !== $def['price'] && $def['price'] > 0 ) {
+            $offer['priceCurrency'] = 'EUR';
+            $offer['price']         = nvx_schema_price_string( $def['price'] );
+            $offer['description']   = 'Tarifa de referencia desde ' . nvx_format_price_eur( $def['price'] ) . ' € (presupuesto tras valoración).';
+        }
+        $items[] = $offer;
+    }
 
-	return array(
-		'@type'           => 'OfferCatalog',
-		'@id'             => home_url( '/#/schema/offer-catalog' ),
-		'name'            => 'Protocolos médicos láser NUVANX',
-		'itemListElement' => $items,
-		'provider'        => array( '@id' => $organization_id ),
-	);
+    return array(
+        '@type'           => 'OfferCatalog',
+        '@id'             => home_url( '/#/schema/offer-catalog' ),
+        'name'            => 'Protocolos médicos láser NUVANX',
+        'itemListElement' => $items,
+        'provider'        => array( '@id' => $organization_id ),
+    );
 }
 
 /**
@@ -1158,13 +1158,13 @@ function nvx_schema_offer_catalog( $organization_id ) {
  * @return bool
  */
 function nvx_schema_should_emit_physician( $page_id ) {
-	if ( is_front_page() || null !== nvx_schema_resolve_treatment_key( $page_id ) ) {
-		return true;
-	}
+    if ( is_front_page() || null !== nvx_schema_resolve_treatment_key( $page_id ) ) {
+        return true;
+    }
 
-	$path = nvx_schema_current_path( $page_id );
+    $path = nvx_schema_current_path( $page_id );
 
-	return nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO ) || nvx_schema_path_matches( $path, '/dr-javier-rivera-tejeda/' );
+    return nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO ) || nvx_schema_path_matches( $path, '/dr-javier-rivera-tejeda/' );
 }
 
 /**
@@ -1174,13 +1174,13 @@ function nvx_schema_should_emit_physician( $page_id ) {
  * @return bool
  */
 function nvx_schema_should_emit_physician_ivon( $page_id ) {
-	if ( is_front_page() ) {
-		return true;
-	}
+    if ( is_front_page() ) {
+        return true;
+    }
 
-	$path = nvx_schema_current_path( $page_id );
+    $path = nvx_schema_current_path( $page_id );
 
-	return nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO );
+    return nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO );
 }
 
 /**
@@ -1190,188 +1190,188 @@ function nvx_schema_should_emit_physician_ivon( $page_id ) {
  * @return bool
  */
 function nvx_schema_should_emit_physician_fabio( $page_id ) {
-	if ( is_front_page() ) {
-		return true;
-	}
+    if ( is_front_page() ) {
+        return true;
+    }
 
-	$path = nvx_schema_current_path( $page_id );
+    $path = nvx_schema_current_path( $page_id );
 
-	return nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO ) || nvx_schema_path_matches( $path, '/dr-fabio-quinonez-bareiro/' );
+    return nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO ) || nvx_schema_path_matches( $path, '/dr-fabio-quinonez-bareiro/' );
 }
 
 /**
  * Builds array of physician nodes to emit for the current page.
  */
 function nvx_schema_build_physicians( int $page_id, string $org_id ): array {
-	$physicians = array();
-	if ( nvx_schema_should_emit_physician( $page_id ) ) {
-		$physicians[] = nvx_schema_physician_director( $org_id );
-	}
-	if ( nvx_schema_should_emit_physician_ivon( $page_id ) ) {
-		$physicians[] = nvx_schema_physician_ivon( $org_id );
-	}
-	if ( nvx_schema_should_emit_physician_fabio( $page_id ) ) {
-		$physicians[] = nvx_schema_physician_fabio( $org_id );
-	}
-	return $physicians;
+    $physicians = array();
+    if ( nvx_schema_should_emit_physician( $page_id ) ) {
+        $physicians[] = nvx_schema_physician_director( $org_id );
+    }
+    if ( nvx_schema_should_emit_physician_ivon( $page_id ) ) {
+        $physicians[] = nvx_schema_physician_ivon( $org_id );
+    }
+    if ( nvx_schema_should_emit_physician_fabio( $page_id ) ) {
+        $physicians[] = nvx_schema_physician_fabio( $org_id );
+    }
+    return $physicians;
 }
 
 /**
  * Enriches the main Organization node in Yoast schema graph.
  */
 function nvx_schema_enrich_organization( array &$graph, int $index, array $all_clinics, array $physicians ): void {
-	$graph[ $index ]['@type']                  = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
-	$graph[ $index ]['name']                   = 'NUVANX Medicina Estética Láser';
-	$graph[ $index ]['alternateName']          = array( 'NUVANX', 'NUVANX Madrid', 'NUVANX Medicina Estética Láser Madrid' );
-	$graph[ $index ]['url']                    = home_url( '/' );
-	$graph[ $index ]['description']            = 'Centro médico de medicina estética láser y well-aging en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con dirección médica y criterio científico (geriatría preventiva / longevidad).';
-	$graph[ $index ]['email']                  = NVX_SD_EMAIL_MAIN;
-	$graph[ $index ]['telephone']              = NVX_SD_TEL_CHAMBERI;
-	$graph[ $index ]['priceRange']             = '€€€';
-	$graph[ $index ]['isAcceptingNewPatients'] = true;
-	$graph[ $index ]['address']                = array( $all_clinics['chamberi']['address'], $all_clinics['goya']['address'] );
-	$graph[ $index ]['contactPoint']           = array(
-		array(
-			'@type'             => 'ContactPoint',
-			'contactType'       => 'Citas — Chamberí',
-			'telephone'         => NVX_SD_TEL_CHAMBERI,
-			'areaServed'        => 'ES',
-			'availableLanguage' => array( 'es', 'en' ),
-		),
-		array(
-			'@type'             => 'ContactPoint',
-			'contactType'       => 'Citas — Goya · Barrio Salamanca',
-			'telephone'         => '+34647505107',
-			'areaServed'        => 'ES',
-			'availableLanguage' => array( 'es', 'en' ),
-		),
-	);
-	$graph[ $index ]['medicalSpecialty']      = array( 'Aesthetic Medicine', 'Laser Medicine', 'Geriatric Medicine' );
-	$graph[ $index ]['knowsAbout']            = array(
-		'Medicina estética',
-		'Medicina estética láser',
-		NVX_SD_ENDOLIFT_FACIAL,
-		'Marcación mandibular con láser',
-		NVX_SD_ENDOLASER_CORPORAL,
-		NVX_SD_LASER_CO2_FRACCIONADO,
-		'EXION® BTL',
-		'BTL EXILITE™ IPL',
-		NVX_SD_MEDICINA_REGENERATIVA,
-		'Well-aging',
-		'Geriatría preventiva',
-		'Longevidad',
-	);
-	$graph[ $index ]['potentialAction']       = array(
-		'@type'  => 'ReserveAction',
-		'name'   => 'Reserva de valoración diagnóstica',
-		'target' => array(
-			'@type'          => 'EntryPoint',
-			'urlTemplate'    => home_url( '/madrid/valoracion/' ),
-			'inLanguage'     => 'es',
-			'actionPlatform' => array(
-				'https://schema.org/DesktopWebPlatform',
-				'https://schema.org/MobileWebPlatform',
-			),
-		),
-		'result' => array(
-			'@type' => 'Reservation',
-			'name'  => 'Cita médica presencial',
-		),
-	);
+    $graph[ $index ]['@type']                  = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
+    $graph[ $index ]['name']                   = 'NUVANX Medicina Estética Láser';
+    $graph[ $index ]['alternateName']          = array( 'NUVANX', 'NUVANX Madrid', 'NUVANX Medicina Estética Láser Madrid' );
+    $graph[ $index ]['url']                    = home_url( '/' );
+    $graph[ $index ]['description']            = 'Centro médico de medicina estética láser y well-aging en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con dirección médica y criterio científico (geriatría preventiva / longevidad).';
+    $graph[ $index ]['email']                  = NVX_SD_EMAIL_MAIN;
+    $graph[ $index ]['telephone']              = NVX_SD_TEL_CHAMBERI;
+    $graph[ $index ]['priceRange']             = '€€€';
+    $graph[ $index ]['isAcceptingNewPatients'] = true;
+    $graph[ $index ]['address']                = array( $all_clinics['chamberi']['address'], $all_clinics['goya']['address'] );
+    $graph[ $index ]['contactPoint']           = array(
+        array(
+            '@type'             => 'ContactPoint',
+            'contactType'       => 'Citas — Chamberí',
+            'telephone'         => NVX_SD_TEL_CHAMBERI,
+            'areaServed'        => 'ES',
+            'availableLanguage' => array( 'es', 'en' ),
+        ),
+        array(
+            '@type'             => 'ContactPoint',
+            'contactType'       => 'Citas — Goya · Barrio Salamanca',
+            'telephone'         => '+34647505107',
+            'areaServed'        => 'ES',
+            'availableLanguage' => array( 'es', 'en' ),
+        ),
+    );
+    $graph[ $index ]['medicalSpecialty']      = array( 'Aesthetic Medicine', 'Laser Medicine', 'Geriatric Medicine' );
+    $graph[ $index ]['knowsAbout']            = array(
+        'Medicina estética',
+        'Medicina estética láser',
+        NVX_SD_ENDOLIFT_FACIAL,
+        'Marcación mandibular con láser',
+        NVX_SD_ENDOLASER_CORPORAL,
+        NVX_SD_LASER_CO2_FRACCIONADO,
+        'EXION® BTL',
+        'BTL EXILITE™ IPL',
+        NVX_SD_MEDICINA_REGENERATIVA,
+        'Well-aging',
+        'Geriatría preventiva',
+        'Longevidad',
+    );
+    $graph[ $index ]['potentialAction']       = array(
+        '@type'  => 'ReserveAction',
+        'name'   => 'Reserva de valoración diagnóstica',
+        'target' => array(
+            '@type'          => 'EntryPoint',
+            'urlTemplate'    => home_url( '/madrid/valoracion/' ),
+            'inLanguage'     => 'es',
+            'actionPlatform' => array(
+                'https://schema.org/DesktopWebPlatform',
+                'https://schema.org/MobileWebPlatform',
+            ),
+        ),
+        'result' => array(
+            '@type' => 'Reservation',
+            'name'  => 'Cita médica presencial',
+        ),
+    );
 
-	if ( ! empty( $physicians ) ) {
-		$employee_refs = array();
-		foreach ( $physicians as $person ) {
-			$employee_refs[] = array( '@id' => $person['@id'] );
-		}
-		$graph[ $index ]['employee'] = $employee_refs;
-	}
+    if ( ! empty( $physicians ) ) {
+        $employee_refs = array();
+        foreach ( $physicians as $person ) {
+            $employee_refs[] = array( '@id' => $person['@id'] );
+        }
+        $graph[ $index ]['employee'] = $employee_refs;
+    }
 
-	$existing_same_as          = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
-	$existing_same_as[]        = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
-	$graph[ $index ]['sameAs'] = array_values( array_unique( array_filter( $existing_same_as ) ) );
+    $existing_same_as          = isset( $graph[ $index ]['sameAs'] ) ? (array) $graph[ $index ]['sameAs'] : array();
+    $existing_same_as[]        = 'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser';
+    $graph[ $index ]['sameAs'] = array_values( array_unique( array_filter( $existing_same_as ) ) );
 }
 
 /**
  * Attaches clinic sub-organizations and offer catalog to the Yoast schema graph.
  */
 function nvx_schema_attach_clinics_graph( array &$graph, int $page_id, array $organization, array $all_clinics, array $physicians, array $clinic_ids ): void {
-	if ( null === $organization['index'] ) {
-		return;
-	}
+    if ( null === $organization['index'] ) {
+        return;
+    }
 
-	$clinic_keys = is_front_page() ? array( 'chamberi', 'goya' ) : nvx_schema_resolve_clinic_keys( $page_id );
-	if ( empty( $clinic_keys ) ) {
-		return;
-	}
+    $clinic_keys = is_front_page() ? array( 'chamberi', 'goya' ) : nvx_schema_resolve_clinic_keys( $page_id );
+    if ( empty( $clinic_keys ) ) {
+        return;
+    }
 
-	if ( is_front_page() ) {
-		$catalog = nvx_schema_offer_catalog( $organization['id'] );
-		$graph[ $organization['index'] ]['hasOfferCatalog'] = array( '@id' => $catalog['@id'] );
-		$graph[] = $catalog;
-	}
+    if ( is_front_page() ) {
+        $catalog = nvx_schema_offer_catalog( $organization['id'] );
+        $graph[ $organization['index'] ]['hasOfferCatalog'] = array( '@id' => $catalog['@id'] );
+        $graph[] = $catalog;
+    }
 
-	$graph[ $organization['index'] ]['subOrganization'] = $clinic_ids;
+    $graph[ $organization['index'] ]['subOrganization'] = $clinic_ids;
 
-	$clinic_employees = array();
-	foreach ( $physicians as $person ) {
-		$clinic_employees[] = array( '@id' => $person['@id'] );
-	}
+    $clinic_employees = array();
+    foreach ( $physicians as $person ) {
+        $clinic_employees[] = array( '@id' => $person['@id'] );
+    }
 
-	foreach ( $clinic_keys as $key ) {
-		if ( empty( $all_clinics[ $key ] ) ) {
-			continue;
-		}
-		$clinic                       = $all_clinics[ $key ];
-		$clinic['parentOrganization'] = array( '@id' => $organization['id'] );
-		if ( ! empty( $clinic_employees ) ) {
-			$clinic['employee'] = $clinic_employees;
-		}
-		$graph[] = $clinic;
-	}
+    foreach ( $clinic_keys as $key ) {
+        if ( empty( $all_clinics[ $key ] ) ) {
+            continue;
+        }
+        $clinic                       = $all_clinics[ $key ];
+        $clinic['parentOrganization'] = array( '@id' => $organization['id'] );
+        if ( ! empty( $clinic_employees ) ) {
+            $clinic['employee'] = $clinic_employees;
+        }
+        $graph[] = $clinic;
+    }
 }
 
 /**
  * Attaches publication nodes for team members if on equipo page.
  */
 function nvx_schema_attach_publications( array &$graph, int $page_id, array $physicians ): void {
-	if ( ! nvx_schema_path_matches( nvx_schema_current_path( $page_id ), NVX_SD_PATH_EQUIPO_MEDICO ) ) {
-		return;
-	}
-	foreach ( $physicians as $person ) {
-		if ( empty( $person['@id'] ) ) {
-			continue;
-		}
-		if ( false !== strpos( $person['@id'], 'rivera-deras' ) ) {
-			foreach ( nvx_schema_ivon_publications( $person['@id'] ) as $work ) {
-				$graph[] = $work;
-			}
-		}
-		if ( false !== strpos( $person['@id'], 'quinonez-bareiro' ) ) {
-			foreach ( nvx_schema_fabio_publications( $person['@id'] ) as $work ) {
-				$graph[] = $work;
-			}
-		}
-	}
+    if ( ! nvx_schema_path_matches( nvx_schema_current_path( $page_id ), NVX_SD_PATH_EQUIPO_MEDICO ) ) {
+        return;
+    }
+    foreach ( $physicians as $person ) {
+        if ( empty( $person['@id'] ) ) {
+            continue;
+        }
+        if ( false !== strpos( $person['@id'], 'rivera-deras' ) ) {
+            foreach ( nvx_schema_ivon_publications( $person['@id'] ) as $work ) {
+                $graph[] = $work;
+            }
+        }
+        if ( false !== strpos( $person['@id'], 'quinonez-bareiro' ) ) {
+            foreach ( nvx_schema_fabio_publications( $person['@id'] ) as $work ) {
+                $graph[] = $work;
+            }
+        }
+    }
 }
 
 /**
  * Attaches treatment and FAQ nodes to schema graph when applicable.
  */
 function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, string $org_id, ?array $physician ): void {
-	$treatment = nvx_schema_treatment_node( $page_id, $org_id );
-	if ( null !== $treatment ) {
-		if ( null !== $physician ) {
-			$treatment['performer']  = array( '@id' => $physician['@id'] );
-			$treatment['reviewedBy'] = array( '@id' => $physician['@id'] );
-		}
-		$graph[] = $treatment;
-	}
+    $treatment = nvx_schema_treatment_node( $page_id, $org_id );
+    if ( null !== $treatment ) {
+        if ( null !== $physician ) {
+            $treatment['performer']  = array( '@id' => $physician['@id'] );
+            $treatment['reviewedBy'] = array( '@id' => $physician['@id'] );
+        }
+        $graph[] = $treatment;
+    }
 
-	$faq = nvx_schema_faq_node( $page_id );
-	if ( null !== $faq ) {
-		$graph[] = $faq;
-	}
+    $faq = nvx_schema_faq_node( $page_id );
+    if ( null !== $faq ) {
+        $graph[] = $faq;
+    }
 }
 
 /**
@@ -1381,45 +1381,45 @@ function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, strin
  * @return array
  */
 function nvx_extend_yoast_schema_graph( $graph ) {
-	if ( is_admin() || is_feed() || ( ! is_singular( 'page' ) && ! is_front_page() ) ) {
-		return $graph;
-	}
+    if ( is_admin() || is_feed() || ( ! is_singular( 'page' ) && ! is_front_page() ) ) {
+        return $graph;
+    }
 
-	$organization = nvx_schema_find_organization( $graph );
-	$all_clinics  = nvx_schema_clinics();
-	$page_id      = (int) get_queried_object_id();
+    $organization = nvx_schema_find_organization( $graph );
+    $all_clinics  = nvx_schema_clinics();
+    $page_id      = (int) get_queried_object_id();
 
-	if ( null === $organization['index'] ) {
-		$graph[] = array(
-			'@type' => array( 'Organization', 'MedicalOrganization' ),
-			'@id'   => $organization['id'],
-			'url'   => home_url( '/' ),
-		);
-		$organization['index'] = array_key_last( $graph );
-	}
+    if ( null === $organization['index'] ) {
+        $graph[] = array(
+            '@type' => array( 'Organization', 'MedicalOrganization' ),
+            '@id'   => $organization['id'],
+            'url'   => home_url( '/' ),
+        );
+        $organization['index'] = array_key_last( $graph );
+    }
 
-	$clinic_ids = array(
-		array( '@id' => $all_clinics['chamberi']['@id'] ),
-		array( '@id' => $all_clinics['goya']['@id'] ),
-	);
+    $clinic_ids = array(
+        array( '@id' => $all_clinics['chamberi']['@id'] ),
+        array( '@id' => $all_clinics['goya']['@id'] ),
+    );
 
-	$physicians = nvx_schema_build_physicians( $page_id, $organization['id'] );
-	$physician  = ! empty( $physicians ) ? $physicians[0] : null;
+    $physicians = nvx_schema_build_physicians( $page_id, $organization['id'] );
+    $physician  = ! empty( $physicians ) ? $physicians[0] : null;
 
-	if ( null !== $organization['index'] ) {
-		nvx_schema_enrich_organization( $graph, $organization['index'], $all_clinics, $physicians );
-	}
+    if ( null !== $organization['index'] ) {
+        nvx_schema_enrich_organization( $graph, $organization['index'], $all_clinics, $physicians );
+    }
 
-	nvx_schema_attach_clinics_graph( $graph, $page_id, $organization, $all_clinics, $physicians, $clinic_ids );
+    nvx_schema_attach_clinics_graph( $graph, $page_id, $organization, $all_clinics, $physicians, $clinic_ids );
 
-	foreach ( $physicians as $person ) {
-		$graph[] = $person;
-	}
+    foreach ( $physicians as $person ) {
+        $graph[] = $person;
+    }
 
-	nvx_schema_attach_publications( $graph, $page_id, $physicians );
-	nvx_schema_attach_treatment_and_faq( $graph, $page_id, $organization['id'], $physician );
+    nvx_schema_attach_publications( $graph, $page_id, $physicians );
+    nvx_schema_attach_treatment_and_faq( $graph, $page_id, $organization['id'], $physician );
 
-	return $graph;
+    return $graph;
 }
 add_filter( 'wpseo_schema_graph', 'nvx_extend_yoast_schema_graph', 20, 1 );
 

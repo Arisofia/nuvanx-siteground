@@ -10,7 +10,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+    exit;
 }
 
 /**
@@ -22,145 +22,145 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array<int,array<string,mixed>> The filtered fallback navigation blueprint.
  */
 if ( ! function_exists( 'nvxNavigationPrimaryBlueprint' ) ) {
-	function nvxNavigationPrimaryBlueprint(): array {
-	return apply_filters(
-		'nvx_navigation_primary_blueprint',
-		array(
-			array(
-				'label' => __( 'Inicio', 'nuvanx-medical' ),
-				'url'   => home_url( '/' ),
-			),
-			array(
-				'label'    => __( 'Soluciones médicas', 'nuvanx-medical' ),
-				'slugs'    => array( 'soluciones', 'soluciones-medicas' ),
-				'mega'     => true,
-				'children' => array(
-					array(
-						'label'    => 'Rostro',
-						'slugs'    => array( 'soluciones-medicas/rostro' ),
-						'children' => array(
-							array( 'label' => 'Tercio Superior', 'slugs' => array( 'soluciones-medicas/rostro/tercio-superior' ) ),
-							array( 'label' => 'Mirada', 'slugs' => array( 'soluciones-medicas/rostro/mirada' ) ),
-							array( 'label' => 'Tercio Medio', 'slugs' => array( 'soluciones-medicas/rostro/tercio-medio' ) ),
-							array( 'label' => 'Labios', 'slugs' => array( 'soluciones-medicas/rostro/labios' ) ),
-							array( 'label' => 'Tercio Inferior', 'slugs' => array( 'soluciones-medicas/rostro/tercio-inferior' ) ),
-						),
-					),
-					array(
-						'label'    => 'Cuerpo',
-						'slugs'    => array( 'soluciones-medicas/cuerpo' ),
-						'children' => array(
-							array( 'label' => 'Abdomen y Flancos', 'slugs' => array( 'soluciones-medicas/cuerpo/abdomen-y-flancos' ) ),
-							array( 'label' => 'Brazos y Espalda', 'slugs' => array( 'soluciones-medicas/cuerpo/brazos-y-espalda' ) ),
-							array( 'label' => 'Tren Inferior', 'slugs' => array( 'soluciones-medicas/cuerpo/tren-inferior' ) ),
-						),
-					),
-				),
-			),
-			array(
-				'label'    => __( 'Protocolos Signature', 'nuvanx-medical' ),
-				'slugs'    => array( 'protocolos-signature' ),
-				'mega'     => true,
-				'children' => array(
-					array(
-						'label'    => 'NUVANX Contour Architecture™',
-						'slugs'    => array( 'remodelacion-corporal-laser-madrid' ),
-						'children' => array(
-							array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
-							array( 'label' => 'Cintura', 'slugs' => array( 'cintura' ) ),
-							array( 'label' => 'Brazos', 'slugs' => array( 'flacidez-grasa-localizada-brazos-madrid' ) ),
-							array( 'label' => 'Espalda y zona del sujetador', 'slugs' => array( 'grasa-espalda-zona-sujetador-madrid' ) ),
-							array( 'label' => 'Muslos internos', 'slugs' => array( 'flacidez-muslos-internos-subgluteo-madrid' ) ),
-							array( 'label' => 'Cara externa de muslos', 'slugs' => array( 'cara-externa-muslos' ) ),
-							array( 'label' => 'Región subglútea', 'slugs' => array( 'region-subglutea' ) ),
-							array( 'label' => 'Rodillas', 'slugs' => array( 'tratamiento-rodillas-grasa-flacidez-madrid' ) ),
-							array( 'label' => 'Contorno masculino', 'slugs' => array( 'contorno-corporal-masculino-madrid' ) ),
-						),
-					),
-					array(
-						'label'    => 'NUVANX Post-Maternity Contour™',
-						'slugs'    => array( 'tratamiento-postparto-abdomen-contorno-corporal-madrid' ),
-						'children' => array(
-							array( 'label' => 'Abdomen posgestacional', 'slugs' => array( 'abdomen-posgestacional' ) ),
-							array( 'label' => 'Flancos y espalda', 'slugs' => array( 'flancos-espalda-posparto' ) ),
-							array( 'label' => 'Laxitud cutánea', 'slugs' => array( 'laxitud-cutanea-posparto' ) ),
-							array( 'label' => 'Estrías y textura', 'slugs' => array( 'estrias-textura-posparto' ) ),
-							array( 'label' => 'Cicatriz de cesárea', 'slugs' => array( 'cicatriz-cesarea' ) ),
-							array( 'label' => 'Límites frente a diástasis', 'slugs' => array( 'diastasis-hernia-limites' ) ),
-						),
-					),
-					array(
-						'label'    => 'NUVANX Profile Definition™',
-						'slugs'    => array( 'papada-definicion-mandibular-madrid' ),
-						'children' => array(
-							array( 'label' => 'Papada', 'slugs' => array( 'papada' ) ),
-							array( 'label' => 'Mandíbula', 'slugs' => array( 'mandibula' ) ),
-							array( 'label' => 'Cuello', 'slugs' => array( 'cuello' ) ),
-							array( 'label' => 'Mentón y proporción facial', 'slugs' => array( 'menton-proporcion' ) ),
-							array( 'label' => 'Contorno facial masculino', 'slugs' => array( 'contorno-facial-masculino' ) ),
-						),
-					),
-					array(
-						'label'    => 'NUVANX Eye Frame™',
-						'slugs'    => array( 'eye-frame-rejuvenecimiento-mirada-madrid' ),
-						'children' => array(
-							array( 'label' => 'Surco lagrimal', 'slugs' => array( 'surco-lagrimal' ) ),
-							array( 'label' => 'Calidad cutánea periocular', 'slugs' => array( 'calidad-cutanea-periocular' ) ),
-							array( 'label' => 'Pigmentación', 'slugs' => array( 'pigmentacion-periocular' ) ),
-							array( 'label' => 'Bolsas, edema y límites', 'slugs' => array( 'bolsas-edema-limites' ) ),
-						),
-					),
-					array( 'label' => 'NUVANX Skin Architecture™', 'slugs' => array( 'calidad-piel-firmeza-luminosidad-madrid' ) ),
-					array( 'label' => 'NUVANX Surface Renewal™', 'slugs' => array( 'cicatrices-acne-poros-textura-madrid' ) ),
-					array( 'label' => 'NUVANX Tone Correction™', 'slugs' => array( 'manchas-rojeces-fotorejuvenecimiento-ipl-madrid' ) ),
-				),
-			),
-			array(
-				'label'    => __( 'Tecnología', 'nuvanx-medical' ),
-				'slugs'    => array( 'medicina-estetica-laser' ),
-				'mega'     => true,
-				'children' => array(
-					array( 'label' => 'Endolift® facial', 'slugs' => array( 'endolift-facial-papada-mandibula' ) ),
-					array( 'label' => 'Endoláser corporal', 'slugs' => array( 'endolaser-corporal-grasa-localizada' ) ),
-					array( 'label' => 'EXION® Face', 'slugs' => array( 'exion-face' ) ),
-					array( 'label' => 'EXION® Body', 'slugs' => array( 'exion-body' ) ),
-					array( 'label' => 'EXION® Fractional RF', 'slugs' => array( 'exion-fractional' ) ),
-					array( 'label' => 'Láser CO₂ fraccionado', 'slugs' => array( 'laser-co2-fraccionado-madrid-textura-cicatrices-poro' ) ),
-					array( 'label' => 'BTL EXILITE™ IPL', 'slugs' => array( 'btl-exilite-ipl-madrid' ) ),
-					array( 'label' => 'EMFUSION®', 'slugs' => array( 'emfusion' ) ),
-					array(
-						'label'    => 'Medicina inyectable',
-						'slugs'    => array( 'medicina-estetica' ),
-						'children' => array(
-							array( 'label' => 'Ácido hialurónico en labios', 'slugs' => array( 'labios-acido-hialuronico-madrid' ) ),
-							array( 'label' => 'Rinomodelación sin cirugía', 'slugs' => array( 'rinomodelacion-sin-cirugia-madrid' ) ),
-							array( 'label' => 'Tratamiento de ojeras', 'slugs' => array( 'ojeras-surco-lagrimal-madrid' ) ),
-							array( 'label' => 'Bioestimuladores de colágeno', 'slugs' => array( 'bioestimuladores-colageno-madrid' ) ),
-						),
-					),
-				),
-			),
-			array( 'label' => __( 'Casos clínicos', 'nuvanx-medical' ), 'slugs' => array( 'casos-clinicos' ) ),
-			array( 'label' => __( 'Equipo médico', 'nuvanx-medical' ), 'slugs' => array( 'equipo-medico' ) ),
-			array(
-				'label'    => __( 'Clínicas', 'nuvanx-medical' ),
-				'slugs'    => array( 'clinicas-de-medicina-estetica-nuvanx' ),
-				'children' => array(
-					array( 'label' => 'Chamberí', 'slugs' => array( 'medicina-estetica-chamberi', 'clinica-medicina-estetica-chamberi' ) ),
-					array( 'label' => 'Salamanca–Goya', 'slugs' => array( 'clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca', 'medicina-estetica-goya-barrio-salamanca' ) ),
-				),
-			),
-			array( 'label' => __( 'Journal', 'nuvanx-medical' ), 'slugs' => array( 'blog' ) ),
-			array( 'label' => __( 'Contacto', 'nuvanx-medical' ), 'slugs' => array( 'contacto' ) ),
-		)
-	);
+    function nvxNavigationPrimaryBlueprint(): array {
+    return apply_filters(
+        'nvx_navigation_primary_blueprint',
+        array(
+            array(
+                'label' => __( 'Inicio', 'nuvanx-medical' ),
+                'url'   => home_url( '/' ),
+            ),
+            array(
+                'label'    => __( 'Soluciones médicas', 'nuvanx-medical' ),
+                'slugs'    => array( 'soluciones', 'soluciones-medicas' ),
+                'mega'     => true,
+                'children' => array(
+                    array(
+                        'label'    => 'Rostro',
+                        'slugs'    => array( 'soluciones-medicas/rostro' ),
+                        'children' => array(
+                            array( 'label' => 'Tercio Superior', 'slugs' => array( 'soluciones-medicas/rostro/tercio-superior' ) ),
+                            array( 'label' => 'Mirada', 'slugs' => array( 'soluciones-medicas/rostro/mirada' ) ),
+                            array( 'label' => 'Tercio Medio', 'slugs' => array( 'soluciones-medicas/rostro/tercio-medio' ) ),
+                            array( 'label' => 'Labios', 'slugs' => array( 'soluciones-medicas/rostro/labios' ) ),
+                            array( 'label' => 'Tercio Inferior', 'slugs' => array( 'soluciones-medicas/rostro/tercio-inferior' ) ),
+                        ),
+                    ),
+                    array(
+                        'label'    => 'Cuerpo',
+                        'slugs'    => array( 'soluciones-medicas/cuerpo' ),
+                        'children' => array(
+                            array( 'label' => 'Abdomen y Flancos', 'slugs' => array( 'soluciones-medicas/cuerpo/abdomen-y-flancos' ) ),
+                            array( 'label' => 'Brazos y Espalda', 'slugs' => array( 'soluciones-medicas/cuerpo/brazos-y-espalda' ) ),
+                            array( 'label' => 'Tren Inferior', 'slugs' => array( 'soluciones-medicas/cuerpo/tren-inferior' ) ),
+                        ),
+                    ),
+                ),
+            ),
+            array(
+                'label'    => __( 'Protocolos Signature', 'nuvanx-medical' ),
+                'slugs'    => array( 'protocolos-signature' ),
+                'mega'     => true,
+                'children' => array(
+                    array(
+                        'label'    => 'NUVANX Contour Architecture™',
+                        'slugs'    => array( 'remodelacion-corporal-laser-madrid' ),
+                        'children' => array(
+                            array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
+                            array( 'label' => 'Cintura', 'slugs' => array( 'cintura' ) ),
+                            array( 'label' => 'Brazos', 'slugs' => array( 'flacidez-grasa-localizada-brazos-madrid' ) ),
+                            array( 'label' => 'Espalda y zona del sujetador', 'slugs' => array( 'grasa-espalda-zona-sujetador-madrid' ) ),
+                            array( 'label' => 'Muslos internos', 'slugs' => array( 'flacidez-muslos-internos-subgluteo-madrid' ) ),
+                            array( 'label' => 'Cara externa de muslos', 'slugs' => array( 'cara-externa-muslos' ) ),
+                            array( 'label' => 'Región subglútea', 'slugs' => array( 'region-subglutea' ) ),
+                            array( 'label' => 'Rodillas', 'slugs' => array( 'tratamiento-rodillas-grasa-flacidez-madrid' ) ),
+                            array( 'label' => 'Contorno masculino', 'slugs' => array( 'contorno-corporal-masculino-madrid' ) ),
+                        ),
+                    ),
+                    array(
+                        'label'    => 'NUVANX Post-Maternity Contour™',
+                        'slugs'    => array( 'tratamiento-postparto-abdomen-contorno-corporal-madrid' ),
+                        'children' => array(
+                            array( 'label' => 'Abdomen posgestacional', 'slugs' => array( 'abdomen-posgestacional' ) ),
+                            array( 'label' => 'Flancos y espalda', 'slugs' => array( 'flancos-espalda-posparto' ) ),
+                            array( 'label' => 'Laxitud cutánea', 'slugs' => array( 'laxitud-cutanea-posparto' ) ),
+                            array( 'label' => 'Estrías y textura', 'slugs' => array( 'estrias-textura-posparto' ) ),
+                            array( 'label' => 'Cicatriz de cesárea', 'slugs' => array( 'cicatriz-cesarea' ) ),
+                            array( 'label' => 'Límites frente a diástasis', 'slugs' => array( 'diastasis-hernia-limites' ) ),
+                        ),
+                    ),
+                    array(
+                        'label'    => 'NUVANX Profile Definition™',
+                        'slugs'    => array( 'papada-definicion-mandibular-madrid' ),
+                        'children' => array(
+                            array( 'label' => 'Papada', 'slugs' => array( 'papada' ) ),
+                            array( 'label' => 'Mandíbula', 'slugs' => array( 'mandibula' ) ),
+                            array( 'label' => 'Cuello', 'slugs' => array( 'cuello' ) ),
+                            array( 'label' => 'Mentón y proporción facial', 'slugs' => array( 'menton-proporcion' ) ),
+                            array( 'label' => 'Contorno facial masculino', 'slugs' => array( 'contorno-facial-masculino' ) ),
+                        ),
+                    ),
+                    array(
+                        'label'    => 'NUVANX Eye Frame™',
+                        'slugs'    => array( 'eye-frame-rejuvenecimiento-mirada-madrid' ),
+                        'children' => array(
+                            array( 'label' => 'Surco lagrimal', 'slugs' => array( 'surco-lagrimal' ) ),
+                            array( 'label' => 'Calidad cutánea periocular', 'slugs' => array( 'calidad-cutanea-periocular' ) ),
+                            array( 'label' => 'Pigmentación', 'slugs' => array( 'pigmentacion-periocular' ) ),
+                            array( 'label' => 'Bolsas, edema y límites', 'slugs' => array( 'bolsas-edema-limites' ) ),
+                        ),
+                    ),
+                    array( 'label' => 'NUVANX Skin Architecture™', 'slugs' => array( 'calidad-piel-firmeza-luminosidad-madrid' ) ),
+                    array( 'label' => 'NUVANX Surface Renewal™', 'slugs' => array( 'cicatrices-acne-poros-textura-madrid' ) ),
+                    array( 'label' => 'NUVANX Tone Correction™', 'slugs' => array( 'manchas-rojeces-fotorejuvenecimiento-ipl-madrid' ) ),
+                ),
+            ),
+            array(
+                'label'    => __( 'Tecnología', 'nuvanx-medical' ),
+                'slugs'    => array( 'medicina-estetica-laser' ),
+                'mega'     => true,
+                'children' => array(
+                    array( 'label' => 'Endolift® facial', 'slugs' => array( 'endolift-facial-papada-mandibula' ) ),
+                    array( 'label' => 'Endoláser corporal', 'slugs' => array( 'endolaser-corporal-grasa-localizada' ) ),
+                    array( 'label' => 'EXION® Face', 'slugs' => array( 'exion-face' ) ),
+                    array( 'label' => 'EXION® Body', 'slugs' => array( 'exion-body' ) ),
+                    array( 'label' => 'EXION® Fractional RF', 'slugs' => array( 'exion-fractional' ) ),
+                    array( 'label' => 'Láser CO₂ fraccionado', 'slugs' => array( 'laser-co2-fraccionado-madrid-textura-cicatrices-poro' ) ),
+                    array( 'label' => 'BTL EXILITE™ IPL', 'slugs' => array( 'btl-exilite-ipl-madrid' ) ),
+                    array( 'label' => 'EMFUSION®', 'slugs' => array( 'emfusion' ) ),
+                    array(
+                        'label'    => 'Medicina inyectable',
+                        'slugs'    => array( 'medicina-estetica' ),
+                        'children' => array(
+                            array( 'label' => 'Ácido hialurónico en labios', 'slugs' => array( 'labios-acido-hialuronico-madrid' ) ),
+                            array( 'label' => 'Rinomodelación sin cirugía', 'slugs' => array( 'rinomodelacion-sin-cirugia-madrid' ) ),
+                            array( 'label' => 'Tratamiento de ojeras', 'slugs' => array( 'ojeras-surco-lagrimal-madrid' ) ),
+                            array( 'label' => 'Bioestimuladores de colágeno', 'slugs' => array( 'bioestimuladores-colageno-madrid' ) ),
+                        ),
+                    ),
+                ),
+            ),
+            array( 'label' => __( 'Casos clínicos', 'nuvanx-medical' ), 'slugs' => array( 'casos-clinicos' ) ),
+            array( 'label' => __( 'Equipo médico', 'nuvanx-medical' ), 'slugs' => array( 'equipo-medico' ) ),
+            array(
+                'label'    => __( 'Clínicas', 'nuvanx-medical' ),
+                'slugs'    => array( 'clinicas-de-medicina-estetica-nuvanx' ),
+                'children' => array(
+                    array( 'label' => 'Chamberí', 'slugs' => array( 'medicina-estetica-chamberi', 'clinica-medicina-estetica-chamberi' ) ),
+                    array( 'label' => 'Salamanca–Goya', 'slugs' => array( 'clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca', 'medicina-estetica-goya-barrio-salamanca' ) ),
+                ),
+            ),
+            array( 'label' => __( 'Journal', 'nuvanx-medical' ), 'slugs' => array( 'blog' ) ),
+            array( 'label' => __( 'Contacto', 'nuvanx-medical' ), 'slugs' => array( 'contacto' ) ),
+        )
+    );
 }
 }
 
 if ( ! function_exists( 'nvx_navigation_primary_blueprint' ) ) {
-	function nvx_navigation_primary_blueprint(): array {
-		return nvxNavigationPrimaryBlueprint();
-	}
+    function nvx_navigation_primary_blueprint(): array {
+        return nvxNavigationPrimaryBlueprint();
+    }
 }
 
 /**
@@ -170,50 +170,50 @@ if ( ! function_exists( 'nvx_navigation_primary_blueprint' ) ) {
  * @return array{url:string,page_id:int}|null
  */
 function nvxNavigationResolvePublishedPage( array $slugs ): ?array {
-	static $cache = array();
+    static $cache = array();
 
-	$key = implode( '|', array_map( 'strval', $slugs ) );
-	if ( array_key_exists( $key, $cache ) ) {
-		return $cache[ $key ];
-	}
+    $key = implode( '|', array_map( 'strval', $slugs ) );
+    if ( array_key_exists( $key, $cache ) ) {
+        return $cache[ $key ];
+    }
 
-	foreach ( $slugs as $candidate ) {
-		$slug = trim( (string) $candidate, '/' );
-		if ( '' === $slug ) {
-			continue;
-		}
+    foreach ( $slugs as $candidate ) {
+        $slug = trim( (string) $candidate, '/' );
+        if ( '' === $slug ) {
+            continue;
+        }
 
-		$page = get_page_by_path( $slug, OBJECT, 'page' );
-		if ( ! $page instanceof WP_Post || 'publish' !== get_post_status( $page ) ) {
-			continue;
-		}
+        $page = get_page_by_path( $slug, OBJECT, 'page' );
+        if ( ! $page instanceof WP_Post || 'publish' !== get_post_status( $page ) ) {
+            continue;
+        }
 
-		$url = get_permalink( $page );
-		if ( is_string( $url ) && '' !== trim( $url ) ) {
-			$cache[ $key ] = array(
-				'url'     => $url,
-				'page_id' => (int) $page->ID,
-			);
-			return $cache[ $key ];
-		}
-	}
+        $url = get_permalink( $page );
+        if ( is_string( $url ) && '' !== trim( $url ) ) {
+            $cache[ $key ] = array(
+                'url'     => $url,
+                'page_id' => (int) $page->ID,
+            );
+            return $cache[ $key ];
+        }
+    }
 
-	$cache[ $key ] = null;
-	return null;
+    $cache[ $key ] = null;
+    return null;
 }
 
 /** Resolve child nodes for a blueprint item. */
 function nvxNavigationResolveNodeChildren( array $raw_children ): array {
-	$children = array();
-	foreach ( $raw_children as $child ) {
-		if ( is_array( $child ) ) {
-			$resolved = nvxNavigationResolveBlueprintNode( $child );
-			if ( is_array( $resolved ) ) {
-				$children[] = $resolved;
-			}
-		}
-	}
-	return $children;
+    $children = array();
+    foreach ( $raw_children as $child ) {
+        if ( is_array( $child ) ) {
+            $resolved = nvxNavigationResolveBlueprintNode( $child );
+            if ( is_array( $resolved ) ) {
+                $children[] = $resolved;
+            }
+        }
+    }
+    return $children;
 }
 
 /**
@@ -223,32 +223,32 @@ function nvxNavigationResolveNodeChildren( array $raw_children ): array {
  * @return array<string,mixed>|null Resolved navigation item, or null when the node has no label or destination.
  */
 function nvxNavigationResolveBlueprintNode( array $node ): ?array {
-	$raw_children = isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : array();
-	$children     = nvxNavigationResolveNodeChildren( $raw_children );
+    $raw_children = isset( $node['children'] ) && is_array( $node['children'] ) ? $node['children'] : array();
+    $children     = nvxNavigationResolveNodeChildren( $raw_children );
 
-	$url = isset( $node['url'] ) ? trim( (string) $node['url'] ) : '';
-	if ( '' === $url ) {
-		$destination = nvxNavigationResolvePublishedPage(
-			isset( $node['slugs'] ) && is_array( $node['slugs'] ) ? $node['slugs'] : array()
-		);
-		$url = is_array( $destination ) ? $destination['url'] : '';
-	}
+    $url = isset( $node['url'] ) ? trim( (string) $node['url'] ) : '';
+    if ( '' === $url ) {
+        $destination = nvxNavigationResolvePublishedPage(
+            isset( $node['slugs'] ) && is_array( $node['slugs'] ) ? $node['slugs'] : array()
+        );
+        $url = is_array( $destination ) ? $destination['url'] : '';
+    }
 
-	if ( '' === $url && array() !== $children ) {
-		$url = (string) $children[0]['url'];
-	}
+    if ( '' === $url && array() !== $children ) {
+        $url = (string) $children[0]['url'];
+    }
 
-	$label = isset( $node['label'] ) ? trim( (string) $node['label'] ) : '';
-	if ( '' === $label || ( '' === $url && array() === $children ) ) {
-		return null;
-	}
+    $label = isset( $node['label'] ) ? trim( (string) $node['label'] ) : '';
+    if ( '' === $label || ( '' === $url && array() === $children ) ) {
+        return null;
+    }
 
-	return array(
-		'label'    => $label,
-		'url'      => $url,
-		'mega'     => ! empty( $node['mega'] ),
-		'children' => $children,
-	);
+    return array(
+        'label'    => $label,
+        'url'      => $url,
+        'mega'     => ! empty( $node['mega'] ),
+        'children' => $children,
+    );
 }
 
 /**
@@ -257,25 +257,25 @@ function nvxNavigationResolveBlueprintNode( array $node ): ?array {
  * @return array<int,array<string,mixed>>
  */
 if ( ! function_exists( 'nvxNavigationResolvedFallback' ) ) {
-	function nvxNavigationResolvedFallback(): array {
-		$items = array();
-		foreach ( nvxNavigationPrimaryBlueprint() as $node ) {
-			if ( ! is_array( $node ) ) {
-				continue;
-			}
-			$resolved = nvxNavigationResolveBlueprintNode( $node );
-			if ( is_array( $resolved ) ) {
-				$items[] = $resolved;
-			}
-		}
-		return $items;
-	}
+    function nvxNavigationResolvedFallback(): array {
+        $items = array();
+        foreach ( nvxNavigationPrimaryBlueprint() as $node ) {
+            if ( ! is_array( $node ) ) {
+                continue;
+            }
+            $resolved = nvxNavigationResolveBlueprintNode( $node );
+            if ( is_array( $resolved ) ) {
+                $items[] = $resolved;
+            }
+        }
+        return $items;
+    }
 }
 
 if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
-	function nvx_navigation_resolved_fallback(): array {
-		return nvxNavigationResolvedFallback();
-	}
+    function nvx_navigation_resolved_fallback(): array {
+        return nvxNavigationResolvedFallback();
+    }
 }
 
 /**
@@ -285,29 +285,29 @@ if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
  * @param int                            $depth Current depth.
  */
 function nvxNavigationRenderFallbackItems( array $items, int $depth = 0 ): string {
-	$html = '';
-	foreach ( $items as $item ) {
-		$children     = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
-		$has_children = array() !== $children;
-		$classes      = array( 'nvx-nav__item', 'nvx-nav__item--depth-' . $depth );
+    $html = '';
+    foreach ( $items as $item ) {
+        $children     = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
+        $has_children = array() !== $children;
+        $classes      = array( 'nvx-nav__item', 'nvx-nav__item--depth-' . $depth );
 
-		if ( $has_children ) {
-			$classes[] = 'menu-item-has-children';
-		}
-		if ( 0 === $depth && ! empty( $item['mega'] ) ) {
-			$classes[] = 'nvx-nav__item--mega';
-		}
+        if ( $has_children ) {
+            $classes[] = 'menu-item-has-children';
+        }
+        if ( 0 === $depth && ! empty( $item['mega'] ) ) {
+            $classes[] = 'nvx-nav__item--mega';
+        }
 
-		$link_attributes = $has_children ? ' aria-haspopup="true" data-nvx-menu-parent="true"' : '';
-		$html           .= '<li class="' . esc_attr( implode( ' ', $classes ) ) . '">';
-		$html           .= '<a class="nvx-nav__link" data-nvx-menu-depth="' . esc_attr( (string) $depth ) . '" href="' . esc_url( (string) $item['url'] ) . '"' . $link_attributes . '>' . esc_html( (string) $item['label'] ) . '</a>';
+        $link_attributes = $has_children ? ' aria-haspopup="true" data-nvx-menu-parent="true"' : '';
+        $html           .= '<li class="' . esc_attr( implode( ' ', $classes ) ) . '">';
+        $html           .= '<a class="nvx-nav__link" data-nvx-menu-depth="' . esc_attr( (string) $depth ) . '" href="' . esc_url( (string) $item['url'] ) . '"' . $link_attributes . '>' . esc_html( (string) $item['label'] ) . '</a>';
 
-		if ( $has_children ) {
-			$html .= '<ul class="sub-menu">' . nvxNavigationRenderFallbackItems( $children, $depth + 1 ) . '</ul>';
-		}
-		$html .= '</li>';
-	}
-	return $html;
+        if ( $has_children ) {
+            $html .= '<ul class="sub-menu">' . nvxNavigationRenderFallbackItems( $children, $depth + 1 ) . '</ul>';
+        }
+        $html .= '</li>';
+    }
+    return $html;
 }
 
 /**
@@ -317,23 +317,23 @@ function nvxNavigationRenderFallbackItems( array $items, int $depth = 0 ): strin
  * @return string|null The rendered navigation HTML when output is disabled, or null after echoing it.
  */
 function nvxNavigationPrimaryFallback( array $args = array() ) {
-	$menu_class = isset( $args['menu_class'] ) && '' !== trim( (string) $args['menu_class'] )
-		? trim( (string) $args['menu_class'] )
-		: 'nvx-nav__list';
-	$menu_id = isset( $args['menu_id'] ) && '' !== trim( (string) $args['menu_id'] )
-		? ' id="' . esc_attr( trim( (string) $args['menu_id'] ) ) . '"'
-		: '';
+    $menu_class = isset( $args['menu_class'] ) && '' !== trim( (string) $args['menu_class'] )
+        ? trim( (string) $args['menu_class'] )
+        : 'nvx-nav__list';
+    $menu_id = isset( $args['menu_id'] ) && '' !== trim( (string) $args['menu_id'] )
+        ? ' id="' . esc_attr( trim( (string) $args['menu_id'] ) ) . '"'
+        : '';
 
-	$html = '<ul' . $menu_id . ' class="' . esc_attr( $menu_class ) . '">';
-	$html .= nvxNavigationRenderFallbackItems( nvxNavigationResolvedFallback() );
-	$html .= '</ul>';
+    $html = '<ul' . $menu_id . ' class="' . esc_attr( $menu_class ) . '">';
+    $html .= nvxNavigationRenderFallbackItems( nvxNavigationResolvedFallback() );
+    $html .= '</ul>';
 
-	if ( ! array_key_exists( 'echo', $args ) || $args['echo'] ) {
-		echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped during assembly.
-		return null;
-	}
+    if ( ! array_key_exists( 'echo', $args ) || $args['echo'] ) {
+        echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped during assembly.
+        return null;
+    }
 
-	return $html;
+    return $html;
 }
 
 /**
@@ -343,43 +343,43 @@ function nvxNavigationPrimaryFallback( array $args = array() ) {
  * @return array<string,mixed> Updated arguments for the primary menu, or the original arguments for other locations.
  */
 function nvxNavigationFilterMenuArgs( array $args ): array {
-	if ( 'primary' !== ( $args['theme_location'] ?? '' ) ) {
-		return $args;
-	}
+    if ( 'primary' !== ( $args['theme_location'] ?? '' ) ) {
+        return $args;
+    }
 
-	$args['fallback_cb'] = 'nvxNavigationPrimaryFallback';
-	$args['depth']       = 3;
-	$args['item_spacing'] = 'discard';
-	return $args;
+    $args['fallback_cb'] = 'nvxNavigationPrimaryFallback';
+    $args['depth']       = 3;
+    $args['item_spacing'] = 'discard';
+    return $args;
 }
 add_filter( 'wp_nav_menu_args', 'nvxNavigationFilterMenuArgs', 20 );
 
 /** Build set of blocked menu items including descendants of unpublished pages. */
 function nvxNavigationFindBlockedMenuItems( array $items ): array {
-	$blocked = array();
-	foreach ( $items as $item ) {
-		$item_id   = isset( $item->ID ) ? (int) $item->ID : 0;
-		$object_id = isset( $item->object_id ) ? (int) $item->object_id : 0;
-		$object    = isset( $item->object ) ? (string) $item->object : '';
+    $blocked = array();
+    foreach ( $items as $item ) {
+        $item_id   = isset( $item->ID ) ? (int) $item->ID : 0;
+        $object_id = isset( $item->object_id ) ? (int) $item->object_id : 0;
+        $object    = isset( $item->object ) ? (string) $item->object : '';
 
-		if ( $item_id > 0 && 'page' === $object && $object_id > 0 && 'publish' !== get_post_status( $object_id ) ) {
-			$blocked[ $item_id ] = true;
-		}
-	}
+        if ( $item_id > 0 && 'page' === $object && $object_id > 0 && 'publish' !== get_post_status( $object_id ) ) {
+            $blocked[ $item_id ] = true;
+        }
+    }
 
-	$changed = true;
-	while ( $changed ) {
-		$changed = false;
-		foreach ( $items as $item ) {
-			$item_id = isset( $item->ID ) ? (int) $item->ID : 0;
-			$parent  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
-			if ( $item_id > 0 && $parent > 0 && isset( $blocked[ $parent ] ) && ! isset( $blocked[ $item_id ] ) ) {
-				$blocked[ $item_id ] = true;
-				$changed             = true;
-			}
-		}
-	}
-	return $blocked;
+    $changed = true;
+    while ( $changed ) {
+        $changed = false;
+        foreach ( $items as $item ) {
+            $item_id = isset( $item->ID ) ? (int) $item->ID : 0;
+            $parent  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+            if ( $item_id > 0 && $parent > 0 && isset( $blocked[ $parent ] ) && ! isset( $blocked[ $item_id ] ) ) {
+                $blocked[ $item_id ] = true;
+                $changed             = true;
+            }
+        }
+    }
+    return $blocked;
 }
 
 /**
@@ -392,27 +392,27 @@ function nvxNavigationFindBlockedMenuItems( array $items ): array {
  * @return array<int,WP_Post|stdClass> The filtered menu items.
  */
 function nvxNavigationPruneUnpublishedItems( $items, $args ) {
-	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
-		return $items;
-	}
+    if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+        return $items;
+    }
 
-	$blocked = nvxNavigationFindBlockedMenuItems( $items );
+    $blocked = nvxNavigationFindBlockedMenuItems( $items );
 
-	return array_values(
-		array_filter(
-			$items,
-			static function ( $item ) use ( $blocked ): bool {
-				$item_id = isset( $item->ID ) ? (int) $item->ID : 0;
-				return ! isset( $blocked[ $item_id ] );
-			}
-		)
-	);
+    return array_values(
+        array_filter(
+            $items,
+            static function ( $item ) use ( $blocked ): bool {
+                $item_id = isset( $item->ID ) ? (int) $item->ID : 0;
+                return ! isset( $blocked[ $item_id ] );
+            }
+        )
+    );
 }
 add_filter( 'wp_nav_menu_objects', 'nvxNavigationPruneUnpublishedItems', 20, 2 );
 
 /** Normalize a menu label for presentation-role detection. */
 function nvxNavigationLabelKey( string $label ): string {
-	return sanitize_title( remove_accents( wp_strip_all_tags( $label ) ) );
+    return sanitize_title( remove_accents( wp_strip_all_tags( $label ) ) );
 }
 
 /**
@@ -427,20 +427,20 @@ function nvxNavigationLabelKey( string $label ): string {
  * @return string[] The updated item classes.
  */
 function nvxNavigationItemClasses( array $classes, $item, $args, int $depth ): array {
-	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
-		return $classes;
-	}
+    if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+        return $classes;
+    }
 
-	$classes[] = 'nvx-nav__item';
-	$classes[] = 'nvx-nav__item--depth-' . $depth;
+    $classes[] = 'nvx-nav__item';
+    $classes[] = 'nvx-nav__item--depth-' . $depth;
 
-	$label_key  = isset( $item->title ) ? nvxNavigationLabelKey( (string) $item->title ) : '';
-	$mega_roots = array( 'soluciones', 'protocolos-signature', 'tecnologia' );
-	if ( 0 === $depth && ( in_array( 'nvx-menu--mega', $classes, true ) || in_array( $label_key, $mega_roots, true ) ) ) {
-		$classes[] = 'nvx-nav__item--mega';
-	}
+    $label_key  = isset( $item->title ) ? nvxNavigationLabelKey( (string) $item->title ) : '';
+    $mega_roots = array( 'soluciones', 'protocolos-signature', 'tecnologia' );
+    if ( 0 === $depth && ( in_array( 'nvx-menu--mega', $classes, true ) || in_array( $label_key, $mega_roots, true ) ) ) {
+        $classes[] = 'nvx-nav__item--mega';
+    }
 
-	return array_values( array_unique( array_filter( $classes ) ) );
+    return array_values( array_unique( array_filter( $classes ) ) );
 }
 add_filter( 'nav_menu_css_class', 'nvxNavigationItemClasses', 20, 4 );
 
@@ -454,22 +454,22 @@ add_filter( 'nav_menu_css_class', 'nvxNavigationItemClasses', 20, 4 );
  * @return array<string, string> Updated link attributes.
  */
 function nvxNavigationLinkAttributes( array $atts, $item, $args, int $depth ): array {
-	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
-		return $atts;
-	}
+    if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+        return $atts;
+    }
 
-	$classes       = preg_split( '/\s+/', trim( (string) ( $atts['class'] ?? '' ) ), -1, PREG_SPLIT_NO_EMPTY );
-	$classes       = is_array( $classes ) ? $classes : array();
-	$classes[]     = 'nvx-nav__link';
-	$atts['class'] = implode( ' ', array_values( array_unique( $classes ) ) );
-	$atts['data-nvx-menu-depth'] = (string) $depth;
+    $classes       = preg_split( '/\s+/', trim( (string) ( $atts['class'] ?? '' ) ), -1, PREG_SPLIT_NO_EMPTY );
+    $classes       = is_array( $classes ) ? $classes : array();
+    $classes[]     = 'nvx-nav__link';
+    $atts['class'] = implode( ' ', array_values( array_unique( $classes ) ) );
+    $atts['data-nvx-menu-depth'] = (string) $depth;
 
-	$item_classes = isset( $item->classes ) && is_array( $item->classes ) ? $item->classes : array();
-	if ( in_array( 'menu-item-has-children', $item_classes, true ) ) {
-		$atts['aria-haspopup']       = 'true';
-		$atts['data-nvx-menu-parent'] = 'true';
-	}
+    $item_classes = isset( $item->classes ) && is_array( $item->classes ) ? $item->classes : array();
+    if ( in_array( 'menu-item-has-children', $item_classes, true ) ) {
+        $atts['aria-haspopup']       = 'true';
+        $atts['data-nvx-menu-parent'] = 'true';
+    }
 
-	return $atts;
+    return $atts;
 }
 add_filter( 'nav_menu_link_attributes', 'nvxNavigationLinkAttributes', 20, 4 );

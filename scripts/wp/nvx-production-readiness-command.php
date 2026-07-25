@@ -402,6 +402,12 @@ final class NvxProductionReadinessCommand {
 
 	private function applyPrimaryMenu(): void {
 		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
+			$inc_nav = get_template_directory() . '/inc/nvx-navigation-filters.php';
+			if ( file_exists( $inc_nav ) ) {
+				require_once $inc_nav;
+			}
+		}
+		if ( ! function_exists( 'nvx_navigation_resolved_fallback' ) ) {
 			WP_CLI::error( 'Canonical navigation blueprint is unavailable.' );
 		}
 

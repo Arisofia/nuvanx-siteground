@@ -21,6 +21,11 @@ const sedeTemplate = read('wp-content/themes/nuvanx-medical/templates/page-sede.
 const valoracionTemplate = read('wp-content/themes/nuvanx-medical/templates/page-landing-valoracion.php');
 const clinicsHub = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-clinics-hub-github.php');
 const valoracionPage = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-valoracion-github.php');
+const solutionsTemplate = read('wp-content/themes/nuvanx-medical/page-soluciones-medicas.php');
+const solutionsPage = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php');
+const solutionsCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-soluciones-medicas.css');
+const solutionsArt = read('wp-content/themes/nuvanx-medical/assets/images/nvx-solutions-hero-architecture.svg');
+const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
 
 const required = [
   [frontPage, "'nvx-home-structure'", 'Home does not enqueue its GitHub-managed structure layer'],
@@ -36,6 +41,15 @@ const required = [
   [clinicsHub, 'nvx-canonical-page-hero', 'Clinics canonical header is missing'],
   [valoracionPage, 'VALORACIÓN MÉDICA · MADRID', 'Valoración GitHub template is incomplete'],
   [valoracionPage, 'id="nvx-hubspot-form"', 'Valoración form anchor is missing'],
+  [solutionsTemplate, "'template-parts/content/nvx-soluciones-medicas-github'", 'Solutions page is not rendered from GitHub'],
+  [solutionsTemplate, "'nvx-soluciones-medicas'", 'Solutions page does not enqueue its canonical stylesheet'],
+  [solutionsTemplate, "nvxSyncGithubManagedPageState( $page_id, 'solutions' )", 'Solutions CMS state is not normalized'],
+  [solutionsPage, 'SOLUCIONES MÉDICAS · NUVANX MADRID', 'Solutions GitHub template is incomplete'],
+  [solutionsPage, 'id="mapa-soluciones"', 'Solutions navigation map is missing'],
+  [solutionsPage, 'CONTORNO CORPORAL', 'Solutions clinical content groups are incomplete'],
+  [solutionsCss, '.nvx-solutions-hero', 'Solutions canonical hero styles are missing'],
+  [solutionsCss, '.nvx-solutions-group--dark', 'Solutions content surfaces are not differentiated'],
+  [solutionsArt, '<svg', 'Solutions repository artwork is invalid or empty'],
 ];
 for (const [source, marker, message] of required) {
   if (!source.includes(marker)) failures.push(message);
@@ -44,6 +58,7 @@ for (const [source, marker, message] of required) {
 for (const [source, label] of [
   [frontPage, 'Home'],
   [valoracionTemplate, 'Valoración template'],
+  [solutionsTemplate, 'Solutions template'],
 ]) {
   if (/\bthe_content\s*\(/.test(source)) failures.push(`${label} must not read visible content from WordPress`);
   if (/get_post_field\s*\(\s*['"]post_content['"]/.test(source)) failures.push(`${label} must not read CMS post_content`);
@@ -53,6 +68,8 @@ for (const [source, label] of [
   [frontPage, 'Home'],
   [clinicsHub, 'Clinics'],
   [valoracionPage, 'Valoración'],
+  [solutionsPage, 'Solutions'],
+  [solutionsTemplate, 'Solutions template'],
 ]) {
   if (/content_url\s*\(|wp-content\/uploads|\/uploads\//i.test(source)) {
     failures.push(`${label} must not depend on WordPress uploads for managed visible assets`);
@@ -61,6 +78,15 @@ for (const [source, label] of [
 
 if (!/clinicas-de-medicina-estetica-nuvanx[\s\S]*nvx-clinics-hub-github/.test(sedeTemplate)) {
   failures.push('Sede template does not route the clinics hub before dynamic branch content');
+}
+
+for (const forbidden of [
+  'function nvx_strategy_solution_card',
+  'function nvx_strategy_solutions_markup',
+  "'solutions' === $key",
+  'nvx-catalog-grid',
+]) {
+  if (strategyPages.includes(forbidden)) failures.push(`Legacy solutions renderer remains active: ${forbidden}`);
 }
 
 if (failures.length) {

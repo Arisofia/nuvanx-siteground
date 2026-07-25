@@ -11,6 +11,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'NVX_THEME_VERSION', '2.0.0-plata-pulida-canonical' );
 
+// Shared regex constants — defined once, early, for all theme modules.
+if ( ! defined( 'NVX_REGEX_WHITESPACE' ) ) {
+	define( 'NVX_REGEX_WHITESPACE', '/\s+/' );
+}
+if ( ! defined( 'NVX_REGEX_WHITESPACE_U' ) ) {
+	define( 'NVX_REGEX_WHITESPACE_U', '/\s+/u' );
+}
+
 /** Register theme supports and navigation locations. */
 function nvx_theme_setup(): void {
 	add_theme_support( 'title-tag' );

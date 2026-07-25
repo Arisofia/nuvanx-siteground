@@ -14,14 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /** Whether the theme owns the complete body markup for the current page. */
-function nvxThemeOwnsCompletePageMarkup(): bool {
+function nvx_theme_owns_complete_page_markup(): bool {
 	return is_front_page()
 		|| ( function_exists( 'nvxCasesPageIsCurrent' ) && nvxCasesPageIsCurrent() );
 }
 
 /** Dequeue block styles only when the rendered page contains no block markup. */
-function nvxThemeDequeueNativeBlockStyles(): void {
-	if ( is_admin() || ! nvxThemeOwnsCompletePageMarkup() ) {
+function nvx_theme_dequeue_native_block_styles(): void {
+	if ( is_admin() || ! nvx_theme_owns_complete_page_markup() ) {
 		return;
 	}
 
@@ -37,4 +37,4 @@ function nvxThemeDequeueNativeBlockStyles(): void {
 		wp_dequeue_style( $handle );
 	}
 }
-add_action( 'wp_enqueue_scripts', 'nvxThemeDequeueNativeBlockStyles', 100 );
+add_action( 'wp_enqueue_scripts', 'nvx_theme_dequeue_native_block_styles', 100 );

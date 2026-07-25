@@ -11,6 +11,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once __DIR__ . '/nvx-13-point-renderer.php';
 
+if ( ! defined( 'NVX_CONTOUR_ARCHITECTURE' ) ) {
+	define( 'NVX_CONTOUR_ARCHITECTURE', 'NUVANX Contour Architecture™' );
+}
+
 /**
  * Provides the approved landing-page content and metadata for Signature phases 1 and 2.
  *
@@ -18,7 +22,7 @@ require_once __DIR__ . '/nvx-13-point-renderer.php';
  */
 function nvx_signature_phase_catalog(): array {
     $upper = 'CONTOUR ARCHITECTURE™';
-    $mixed = 'NUVANX Contour Architecture™';
+    $mixed = NVX_CONTOUR_ARCHITECTURE;
     return array(
         'profile-definition' => array(
             'phase' => 1,
@@ -242,7 +246,7 @@ add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
  * @return array The updated navigation child.
  */
 function nvx_signature_apply_contour_children( array $child ): array {
-    $mixed = 'NUVANX Contour Architecture™';
+    $mixed = NVX_CONTOUR_ARCHITECTURE;
     $child_label = isset( $child['label'] ) ? (string) $child['label'] : '';
     if ( false !== stripos( $child_label, 'Contour Sculpt' ) || false !== stripos( $child_label, 'Contour Architecture' ) || false !== stripos( $child_label, 'Couture Sculpt' ) ) {
         $child['label'] = $mixed;
@@ -298,8 +302,7 @@ add_filter( 'nvx_navigation_primary_blueprint', 'nvx_signature_phase_navigation_
  * @return string Content with legacy product names replaced by the approved public product name.
  */
 function nvx_signature_phase_normalize_public_names( string $content ): string {
-    $mixed = 'NUVANX Contour Architecture™';
-    return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), $mixed, $content );
+    return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), NVX_CONTOUR_ARCHITECTURE, $content );
 }
 add_filter( 'the_content', 'nvx_signature_phase_normalize_public_names', 219 );
 

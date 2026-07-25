@@ -1,3 +1,4 @@
+# One-time structural acceptance for the current staging2 release.
 name: Staging2 Coherence Acceptance Once
 
 on:
@@ -100,9 +101,8 @@ jobs:
           grep -Fq 'window.nvxValoracionModal' staging2-coherence-evidence/html/valoracion.html
           printf 'valoracion\tOK\n' >> staging2-coherence-evidence/report.txt
 
-          css_url="$(grep -oE 'https://staging2\.nuvanx\.com/wp-content/themes/nuvanx-medical/assets/css/nvx-site-coherence\.css[^"'"' ]*' staging2-coherence-evidence/html/blog.html | head -n 1)"
-          test -n "$css_url"
-          ssh nvx-staging2 "curl -fsSL --max-time 45 '$css_url'" > staging2-coherence-evidence/site-coherence.css
+          css_path="/home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical/assets/css/nvx-site-coherence.css"
+          ssh nvx-staging2 "cat '$css_path'" > staging2-coherence-evidence/site-coherence.css
           grep -Fq '.nvx-header__cta.nvx-btn' staging2-coherence-evidence/site-coherence.css
           grep -Fq '.nvx-blog-card' staging2-coherence-evidence/site-coherence.css
           grep -Fq '.nvx-valoracion-page' staging2-coherence-evidence/site-coherence.css

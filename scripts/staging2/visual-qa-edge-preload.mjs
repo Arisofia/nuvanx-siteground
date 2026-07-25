@@ -111,18 +111,16 @@ if (!proxyReady) {
 }
 
 const chromeWrapper = path.join(os.tmpdir(), `nvx-chrome-via-staging2-${process.pid}-${visualQaAttempt}`);
+const chromeCommand = [
+  `exec ${shellQuote(realChrome)}`,
+  `--proxy-server=${shellQuote(`socks5://127.0.0.1:${socksPort}`)}`,
+  `--host-resolver-rules=${shellQuote('MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1')}`,
+  `--proxy-bypass-list=${shellQuote('localhost;127.0.0.1')}`,
+  '"$@"',
+].join(' ');
 fs.writeFileSync(
   chromeWrapper,
-  [
-    '#!/usr/bin/env bash',
-    'set -euo pipefail',
-    `exec ${shellQuote(realChrome)} \\\`,
-    `  --proxy-server=${shellQuote(`socks5://127.0.0.1:${socksPort}`)} \\\`,
-    `  --host-resolver-rules=${shellQuote('MAP * ~NOTFOUND, EXCLUDE localhost, EXCLUDE 127.0.0.1')} \\\`,
-    `  --proxy-bypass-list=${shellQuote('localhost;127.0.0.1')} \\\`,
-    '  "$@"',
-    '',
-  ].join('\n'),
+  `#!/usr/bin/env bash\nset -euo pipefail\n${chromeCommand}\n`,
   { mode: 0o700 },
 );
 process.env.CHROME_BIN = chromeWrapper;

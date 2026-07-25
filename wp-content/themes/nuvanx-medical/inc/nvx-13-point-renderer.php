@@ -40,10 +40,10 @@ function nvx_render_matrix_hero( array $data ): string {
  * @return string HTML markup for the text section.
  */
 function nvx_render_matrix_text_section( string $heading, string $content ): string {
-    $html  = '<section class="nvx-brand-section">';
+    $html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
     $html .= '<h2>' . esc_html( $heading ) . '</h2>';
     $html .= '<p>' . esc_html( $content ) . '</p>';
-    $html .= '</section>';
+    $html .= '</div></section>';
     return $html;
 }
 
@@ -56,13 +56,13 @@ function nvx_render_matrix_text_section( string $heading, string $content ): str
  * @return string HTML markup for the list section.
  */
 function nvx_render_matrix_list_section( string $heading, array $items, string $list_tag = 'ul' ): string {
-    $html  = '<section class="nvx-brand-section">';
+    $html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
     $html .= '<h2>' . esc_html( $heading ) . '</h2>';
     $html .= '<' . esc_attr( $list_tag ) . ' class="nvx-brand-list">';
     foreach ( $items as $item ) {
         $html .= '<li>' . esc_html( $item ) . '</li>';
     }
-    $html .= '</' . esc_attr( $list_tag ) . '></section>';
+    $html .= '</' . esc_attr( $list_tag ) . '></div></section>';
     return $html;
 }
 
@@ -77,7 +77,7 @@ function nvx_render_matrix_evolution_section( array $data ): string {
         return '';
     }
 
-    $html  = '<section class="nvx-brand-section">';
+    $html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
     $html .= '<h2>' . esc_html__( 'Evolución y seguridad', 'nuvanx-medical' ) . '</h2>';
     $html .= '<p>' . esc_html( $data['evolution'] ) . '</p>';
 
@@ -99,7 +99,7 @@ function nvx_render_matrix_evolution_section( array $data ): string {
         $html .= '</ul>';
     }
 
-    $html .= '</section>';
+    $html .= '</div></section>';
     return $html;
 }
 
@@ -114,7 +114,7 @@ function nvx_render_matrix_faqs_section( array $faqs ): string {
         return '';
     }
 
-    $html  = '<section class="nvx-brand-section">';
+    $html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
     $html .= '<h2>' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
     $html .= '<div class="nvx-faq-accordion">';
     foreach ( $faqs as $faq ) {
@@ -123,7 +123,7 @@ function nvx_render_matrix_faqs_section( array $faqs ): string {
         $html .= '<div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div>';
         $html .= '</details>';
     }
-    $html .= '</div></section>';
+    $html .= '</div></div></section>';
     return $html;
 }
 
@@ -188,7 +188,7 @@ function nvx_render_matrix_sections( array $data ): string {
  * @return string Extracted and validated HTML block.
  */
 function nvx_render_13_point_matrix( array $data ): string {
-    $html  = '<article class="nvx-brand-readable nvx-treatment-page nvx-protocol-page nvx-shell">';
+    $html  = '<article class="nvx-brand-page nvx-treatment-page nvx-protocol-page">';
     $html .= nvx_render_matrix_hero( $data );
     $html .= nvx_render_matrix_sections( $data );
     $html .= nvx_render_matrix_evolution_section( $data );

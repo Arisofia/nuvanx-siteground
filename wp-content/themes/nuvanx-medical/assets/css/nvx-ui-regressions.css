@@ -1,41 +1,82 @@
 /* NUVANX regression closure: canonical controls, headers, Journal and valoración. */
 
-/* Canonical conversion controls. */
-:where(.nvx-button, .nvx-btn, .nvx-brand-btn) {
+/* Canonical conversion controls & Gutenberg buttons. */
+.nvx-button,
+.nvx-btn,
+.nvx-brand-btn,
+.wp-block-button__link,
+.wp-element-button,
+:where(.nvx-button, .nvx-btn, .nvx-brand-btn, .wp-block-button__link, .wp-element-button) {
   appearance: none;
   display: inline-flex;
-  min-height: var(--nvx-control-size);
+  min-height: var(--nvx-control-size, 2.75rem);
   align-items: center;
   justify-content: center;
-  gap: var(--nvx-space-1);
-  padding: var(--nvx-space-2) var(--nvx-space-3);
-  border: var(--nvx-border-hairline) solid var(--button-border, var(--nvx-ink));
-  border-radius: var(--nvx-radius-button);
-  background: var(--button-bg, var(--nvx-ink));
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-button);
+  gap: var(--nvx-space-1, 0.5rem);
+  padding: var(--nvx-space-2, 0.75rem) var(--nvx-space-3, 1.25rem);
+  border: var(--nvx-border-hairline, 1px) solid var(--button-border, var(--nvx-ink, #111111));
+  border-radius: var(--nvx-radius-button, 4px);
+  background: var(--button-bg, var(--nvx-ink, #111111));
+  font-family: var(--nvx-sans, system-ui, sans-serif);
+  font-size: var(--nvx-type-button, 0.875rem);
   font-weight: 600;
   line-height: 1;
-  letter-spacing: var(--nvx-track-button);
+  letter-spacing: var(--nvx-track-button, 0.05em);
   text-align: center;
   text-decoration: none;
   text-transform: uppercase;
-  color: var(--button-color, var(--nvx-light));
+  color: var(--button-color, var(--nvx-light, #FFFFFF)) !important;
   cursor: pointer;
   box-sizing: border-box;
   transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-:where(.nvx-button, .nvx-btn, .nvx-brand-btn):hover {
-  border-color: var(--button-hover-border, var(--nvx-charcoal));
-  background: var(--button-hover-bg, var(--nvx-charcoal));
-  color: var(--button-hover-color, var(--nvx-light));
-  transform: translateY(calc(var(--nvx-border-hairline) * -1));
+.nvx-button:hover,
+.nvx-btn:hover,
+.nvx-brand-btn:hover,
+.wp-block-button__link:hover,
+.wp-element-button:hover {
+  border-color: var(--button-hover-border, var(--nvx-charcoal, #2A2A2A));
+  background: var(--button-hover-bg, var(--nvx-charcoal, #2A2A2A));
+  color: var(--button-hover-color, var(--nvx-light, #FFFFFF)) !important;
+  transform: translateY(calc(var(--nvx-border-hairline, 1px) * -1));
 }
 
-:where(.nvx-button, .nvx-btn, .nvx-brand-btn):focus-visible {
-  outline: var(--nvx-border-focus) solid var(--button-focus, var(--nvx-accent-muted));
-  outline-offset: var(--nvx-space-1);
+.nvx-button:focus-visible,
+.nvx-btn:focus-visible,
+.nvx-brand-btn:focus-visible,
+.wp-block-button__link:focus-visible,
+.wp-element-button:focus-visible {
+  outline: var(--nvx-border-focus, 2px) solid var(--button-focus, var(--nvx-accent-muted, #7E868C));
+  outline-offset: var(--nvx-space-1, 0.25rem);
+}
+
+/* Gutenberg columns & responsive options grid contract (prevent vertical letter wrapping). */
+.wp-block-columns,
+.is-layout-flex,
+.is-layout-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nvx-space-4, 1.5rem);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wp-block-column {
+  flex: 1 1 min(100%, 16rem);
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 48em) {
+  .wp-block-columns {
+    flex-direction: column;
+    gap: var(--nvx-space-4, 1.5rem);
+  }
+  .wp-block-column {
+    flex: 1 1 100%;
+    width: 100%;
+  }
 }
 
 /* Header CTA remains a visible conversion control on every template. */

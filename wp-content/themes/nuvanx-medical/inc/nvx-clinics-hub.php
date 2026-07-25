@@ -55,6 +55,10 @@ function nvx_clinics_section_inner_ready_classes(): array {
 			'nvx-clinics-content-flow',
 			'nvx-content-flow',
 			'nvx-brand-readable',
+			'wp-block-columns',
+			'wp-block-group',
+			'is-layout-flex',
+			'is-layout-grid',
 		);
 	}
 	return $classes;

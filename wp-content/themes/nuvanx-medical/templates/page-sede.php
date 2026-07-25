@@ -9,35 +9,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once get_template_directory() . '/inc/nvx-clinics-valoracion-coherence.php';
+$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+
+if ( 'clinicas-de-medicina-estetica-nuvanx' === $slug ) {
+	ob_start();
+	get_template_part( 'template-parts/content/nvx-clinics-hub-github' );
+	$nvx_tactical_content = ob_get_clean();
+
+	set_query_var( 'nvx_shell_content', $nvx_tactical_content );
+	set_query_var( 'nvx_shell_skip_header', true );
+	set_query_var( 'nvx_shell_no_wrapper', true );
+	get_template_part( 'template-parts/content/nvx-page-shell' );
+	return;
+}
 
 /**
- * La estructura DOM global y los componentes maestros (Header/Footer)
- * son gobernados exclusivamente por nvx-page-shell.php.
+ * Branch pages retain their dynamic WordPress content and structured-data hooks.
  */
-
-// 1. Iniciar la captura del contenido específico de la página/sede
 ob_start();
 ?>
-
 <!-- INICIO: Lógica táctica, Loops y extracción de datos -->
 <?php if ( have_posts() ) : while ( have_posts() ) : the_post(); ?>
-    
-    <article id="post-<?php the_ID(); ?>" <?php post_class('nvx-dynamic-content'); ?>>
-        <?php 
-        // Aquí permanece intacta tu lógica actual: llamadas a la base de datos, 
-        // inyección de coordenadas, esquemas de tratamientos, galerías, etc.
-        the_content(); 
-        ?>
-    </article>
-
+	<article id="post-<?php the_ID(); ?>" <?php post_class( 'nvx-dynamic-content' ); ?>>
+		<?php the_content(); ?>
+	</article>
 <?php endwhile; endif; ?>
 <!-- FIN: Lógica táctica -->
-
 <?php
-// 2. Almacenar el contenido renderizado
 $nvx_tactical_content = ob_get_clean();
-
-// 3. Transmitir el contenido al Shell maestro para su ensamblaje
 set_query_var( 'nvx_shell_content', $nvx_tactical_content );
 get_template_part( 'template-parts/content/nvx-page-shell' );

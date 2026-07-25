@@ -230,15 +230,10 @@ function nvx_filter_sitemap_entry_sensitive_pages( $url, $type, $post ) {
 add_filter( 'wpseo_sitemap_entry', 'nvx_filter_sitemap_entry_sensitive_pages', 20, 3 );
 
 /**
- * Lightweight public HTML hygiene: typos and clichés in inherited CMS content.
+ * Normalizes selected public-facing content text, including legacy brand terms, promotional phrases, and product descriptions.
  *
- * Theme-rendered pages already use clean strings; this catches residual
- * post_content / shortcode output without rewriting clinical claims. It runs
- * after route-specific renderers so a legacy phrase cannot be reintroduced by
- * a managed page module later in the_content.
- *
- * @param string $content HTML content.
- * @return string
+ * @param string $content Content to normalize.
+ * @return string The normalized content.
  */
 function nvx_public_content_text_hygiene( $content ) {
 	if ( is_admin() || ! is_string( $content ) || '' === $content ) {

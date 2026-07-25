@@ -181,10 +181,10 @@ function nvx_endolaser_editorial_body_markup(): string {
 /**
  * Rebuilds eligible Endoláser page content with a standardized hero and editorial body.
  *
- * Preserves the existing hero media and page wrapper when available.
+ * Preserves available hero media and the page wrapper from the original content.
  *
  * @param string $content The original page content.
- * @return string The rebuilt page content, or the original content when the page is not eligible.
+ * @return string The rebuilt content, or the original content when it is not eligible.
  */
 function nvx_content_restructure_endolaser_page( string $content ): string {
 	if ( ! nvx_content_is_endolaser_page( $content ) ) {

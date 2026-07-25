@@ -25,7 +25,10 @@ function nvx_nosotros_is_singular_context(): bool {
 }
 
 /**
- * Detect Sobre Nosotros page only.
+ * Identifies whether the content belongs to the About Us page.
+ *
+ * @param string $content The page content to inspect for About Us markers.
+ * @return bool `true` when the request or content identifies the About Us page, `false` otherwise.
  */
 function nvx_content_is_nosotros_page( string $content ): bool {
 	if ( false !== strpos( $content, 'nvx-nosotros-editorial' ) ) {
@@ -345,10 +348,10 @@ function nvx_nosotros_editorial_body_markup(): string {
 }
 
 /**
- * Rebuilds the Sobre Nosotros page content with the editorial hero and body sections.
+ * Rebuilds the About Us page with an editorial hero and body sections.
  *
  * @param string $content The original page content.
- * @return string The rebuilt page content, or the original content when the page is not a Sobre Nosotros page.
+ * @return string The rebuilt page content, or the original content when the page is not an About Us page.
  */
 function nvx_content_restructure_nosotros_page( string $content ): string {
 	$nosotros = '/nosotros/';
@@ -392,10 +395,10 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 add_filter( 'the_content', 'nvx_content_restructure_nosotros_page', 19 );
 
 /**
- * Document title for nosotros.
+ * Sets the document title for the About Us pages.
  *
- * @param string $title Title.
- * @return string
+ * @param string $title The existing document title.
+ * @return string The About Us title or the existing title for other pages.
  */
 function nvx_filter_nosotros_document_title( $title ) {
 	if ( ! function_exists( 'nvx_schema_path_matches' ) || ! function_exists( 'nvx_schema_current_path' ) ) {
@@ -410,10 +413,10 @@ function nvx_filter_nosotros_document_title( $title ) {
 add_filter( 'wpseo_title', 'nvx_filter_nosotros_document_title', 21 );
 
 /**
- * Meta description for nosotros.
+ * Filters the meta description for the About Us pages.
  *
- * @param string $desc Description.
- * @return string
+ * @param string $desc The current meta description.
+ * @return string The About Us meta description when the current path matches; otherwise, the original description.
  */
 function nvx_filter_nosotros_metadesc( $desc ) {
 	if ( ! function_exists( 'nvx_schema_path_matches' ) || ! function_exists( 'nvx_schema_current_path' ) ) {

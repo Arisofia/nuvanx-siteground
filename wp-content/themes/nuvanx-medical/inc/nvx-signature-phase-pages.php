@@ -234,10 +234,10 @@ function nvx_signature_phase_prepare_shell(): void {
 add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
 
 /**
- * Applies Contour Architecture child routes to a navigation child when legacy tags are detected.
+ * Updates navigation routes for legacy Contour or post-maternity labels.
  *
- * @param array $child The navigation child to process.
- * @return array The updated child with Contour Architecture structure if applicable, or the original child.
+ * @param array $child The navigation child to update.
+ * @return array The updated navigation child.
  */
 function nvx_signature_apply_contour_children( array $child ): array {
     $child_label = isset( $child['label'] ) ? (string) $child['label'] : '';
@@ -289,10 +289,10 @@ function nvx_signature_phase_navigation_blueprint( array $blueprint ): array {
 add_filter( 'nvx_navigation_primary_blueprint', 'nvx_signature_phase_navigation_blueprint', 30 );
 
 /**
- * Normalizes legacy product names to the approved public product name.
+ * Replaces legacy product names with the approved public product name.
  *
- * @param string $content Content in which product names are normalized.
- * @return string Content with legacy product names replaced by `NUVANX Contour Architecture™`.
+ * @param string $content Content containing product names to normalize.
+ * @return string Content with legacy product names replaced by the approved public product name.
  */
 function nvx_signature_phase_normalize_public_names( string $content ): string {
     return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), $mixed, $content );

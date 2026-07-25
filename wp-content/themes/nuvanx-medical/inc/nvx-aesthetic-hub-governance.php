@@ -60,7 +60,10 @@ function nvx_aesthetic_hub_guard_route( string $html, string $primary, array $al
 }
 
 /**
- * Normalize the rendered hub after its layout builder runs at priority 19.
+ * Governs rendered hub content by normalizing clinical messaging and routing unavailable treatment links to the valuation page.
+ *
+ * @param string $content Rendered hub content.
+ * @return string Governed hub content.
  */
 function nvx_aesthetic_hub_governance_filter( string $content ): string {
 	if ( false === strpos( $content, 'nvx-aesthetic-editorial' ) ) {

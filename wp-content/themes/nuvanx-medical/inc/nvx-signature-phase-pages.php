@@ -246,23 +246,23 @@ add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
  * @return array The updated navigation child.
  */
 function nvx_signature_apply_contour_children( array $child ): array {
-    $mixed = NVX_CONTOUR_ARCHITECTURE;
-    $child_label = isset( $child['label'] ) ? (string) $child['label'] : '';
-    if ( false !== stripos( $child_label, 'Contour Sculpt' ) || false !== stripos( $child_label, 'Contour Architecture' ) || false !== stripos( $child_label, 'Couture Sculpt' ) ) {
-        $child['label'] = $mixed;
-        $child['slugs'] = array( 'remodelacion-corporal-laser-madrid' );
-        $child['children'] = array(
-            array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
-            array( 'label' => 'Brazos y axila', 'slugs' => array( 'flacidez-grasa-localizada-brazos-madrid' ) ),
-            array( 'label' => 'Espalda y zona del sujetador', 'slugs' => array( 'grasa-espalda-zona-sujetador-madrid' ) ),
-            array( 'label' => 'Muslos y región subglútea', 'slugs' => array( 'flacidez-muslos-internos-subgluteo-madrid' ) ),
-            array( 'label' => 'Rodillas', 'slugs' => array( 'tratamiento-rodillas-grasa-flacidez-madrid' ) ),
-            array( 'label' => 'Contorno masculino', 'slugs' => array( 'contorno-corporal-masculino-madrid' ) ),
-        );
-    } elseif ( false !== stripos( $child_label, 'Post-Maternity' ) || false !== stripos( $child_label, 'Profile Definition' ) ) {
-        $child['children'] = array();
-    }
-    return $child;
+	$mixed = defined( 'NVX_CONTOUR_ARCHITECTURE' ) ? NVX_CONTOUR_ARCHITECTURE : 'NUVANX Contour Architecture™';
+	$child_label = isset( $child['label'] ) ? (string) $child['label'] : '';
+	if ( false !== stripos( $child_label, 'Contour Sculpt' ) || false !== stripos( $child_label, 'Contour Architecture' ) || false !== stripos( $child_label, 'Couture Sculpt' ) ) {
+		$child['label']    = $mixed;
+		$child['slugs']    = array( 'remodelacion-corporal-laser-madrid' );
+		$child['children'] = array(
+			array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
+			array( 'label' => 'Brazos y axila', 'slugs' => array( 'flacidez-grasa-localizada-brazos-madrid' ) ),
+			array( 'label' => 'Espalda y zona del sujetador', 'slugs' => array( 'grasa-espalda-zona-sujetador-madrid' ) ),
+			array( 'label' => 'Muslos y región subglútea', 'slugs' => array( 'flacidez-muslos-internos-subgluteo-madrid' ) ),
+			array( 'label' => 'Rodillas', 'slugs' => array( 'tratamiento-rodillas-grasa-flacidez-madrid' ) ),
+			array( 'label' => 'Contorno masculino', 'slugs' => array( 'contorno-corporal-masculino-madrid' ) ),
+		);
+	} elseif ( false !== stripos( $child_label, 'Post-Maternity' ) || false !== stripos( $child_label, 'Profile Definition' ) ) {
+		$child['children'] = array();
+	}
+	return $child;
 }
 
 /**

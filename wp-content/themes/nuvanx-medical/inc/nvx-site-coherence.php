@@ -258,6 +258,11 @@ function nvx_site_coherence_normalize_page_header( string $content ): string {
 		return $content;
 	}
 
+	$slug = nvx_site_coherence_current_slug();
+	if ( in_array( $slug, array( 'soluciones-medicas', 'clinicas-de-medicina-estetica-nuvanx', 'valoracion' ), true ) ) {
+		return $content;
+	}
+
 	$previous_errors = libxml_use_internal_errors( true );
 	$document        = new DOMDocument( '1.0', 'UTF-8' );
 	$loaded          = $document->loadHTML(

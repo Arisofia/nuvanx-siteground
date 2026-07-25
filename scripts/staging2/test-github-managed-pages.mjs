@@ -18,6 +18,8 @@ const read = (relative) => {
 
 const functions = read('wp-content/themes/nuvanx-medical/functions.php');
 const environmentFlags = read('wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php');
+const pageHygiene = read('wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php');
+const aestheticPages = read('wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-pages.php');
 const frontPage = read('wp-content/themes/nuvanx-medical/front-page.php');
 const homeCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-home-structure.css');
 const homeArt = read('wp-content/themes/nuvanx-medical/assets/images/nvx-home-hero-contours.svg');
@@ -32,6 +34,11 @@ const solutionsArt = read('wp-content/themes/nuvanx-medical/assets/images/nvx-so
 const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
 
 const required = [
+  [environmentFlags, 'function nvx_environment_host()', 'Environment module does not resolve the WordPress host'],
+  [environmentFlags, 'function nvx_environment_is_staging2()', 'Environment module does not expose the shared staging2 classifier'],
+  [environmentFlags, 'function nvxEnvironmentIsStaging2()', 'Environment module does not preserve the compatibility adapter'],
+  [pageHygiene, "function_exists( 'nvx_environment_is_staging2' )", 'Page hygiene does not consume the shared staging2 classifier'],
+  [aestheticPages, "function_exists( 'nvx_environment_is_staging2' )", 'Aesthetic page seeding does not consume the shared staging2 classifier'],
   [frontPage, "'nvx-home-structure'", 'Home does not enqueue its GitHub-managed structure layer'],
   [frontPage, 'assets/images/nvx-home-hero-contours.svg', 'Home does not use repository-owned hero artwork'],
   [frontPage, '$remodelacion_url', 'Home does not use a local remodelación route variable'],
@@ -99,7 +106,6 @@ for (const [source, marker, message] of [
   [functions, 'nvx-home-video', 'Theme still enqueues the retired home video controller'],
   [functions, 'nvx-hero-blackout', 'Theme still enqueues or registers the retired hero blackout'],
   [functions, 'nvx_theme_hero_blackout_enabled', 'Retired hero blackout feature flag remains in the bootstrap'],
-  [environmentFlags, 'nvxEnvironmentIsStaging2', 'Environment module still contains presentation-only staging detection'],
   [environmentFlags, 'nvxEnvironmentFilterHeroBlackout', 'Environment module still filters the retired hero blackout'],
   [frontPage, "define( 'NVX_URL_REMODELACION'", 'Home creates a global constant from inside a template'],
 ]) {

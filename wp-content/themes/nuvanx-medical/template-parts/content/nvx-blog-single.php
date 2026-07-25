@@ -2,6 +2,10 @@
 /**
  * Single Journal article.
  *
+ * Journal entries use the same institutional header contract as Technology,
+ * treatment and authority pages. Featured media remains editorial content and
+ * is rendered below the header instead of creating a second hero system.
+ *
  * @package nuvanx-medical
  */
 if ( ! defined( 'ABSPATH' ) ) {
@@ -18,25 +22,20 @@ while ( have_posts() ) :
 	$next       = get_next_post();
 	$tags       = get_the_tags();
 	$tags       = is_array( $tags ) ? $tags : array();
-	$hero_class = has_post_thumbnail() ? 'nvx-blog-hero' : 'nvx-blog-hero nvx-blog-hero--text-only';
 	?>
 	<article id="post-<?php the_ID(); ?>" <?php post_class( 'nvx-blog-article' ); ?>>
-		<header class="<?php echo esc_attr( $hero_class ); ?>" aria-labelledby="nvx-blog-title-<?php the_ID(); ?>">
-			<div class="nvx-shell nvx-blog-hero__inner">
-				<div class="nvx-blog-hero__copy">
+		<header class="nvx-brand-hero nvx-editorial-hero nvx-canonical-page-hero nvx-blog-hero" aria-labelledby="nvx-blog-title-<?php the_ID(); ?>">
+			<div class="nvx-brand-hero__inner">
+				<div class="nvx-editorial-hero__copy">
 					<?php if ( $primary instanceof WP_Term ) : ?>
-						<a class="nvx-blog-hero__category" href="<?php echo esc_url( get_category_link( $primary->term_id ) ); ?>"><?php echo esc_html( $primary->name ); ?></a>
+						<a class="nvx-eyebrow nvx-blog-hero__category" href="<?php echo esc_url( get_category_link( $primary->term_id ) ); ?>"><?php echo esc_html( $primary->name ); ?></a>
 					<?php else : ?>
-						<span class="nvx-blog-hero__category"><?php esc_html_e( 'NUVANX Journal', 'nuvanx-medical' ); ?></span>
+						<span class="nvx-eyebrow nvx-blog-hero__category"><?php esc_html_e( 'NUVANX Journal', 'nuvanx-medical' ); ?></span>
 					<?php endif; ?>
 
-					<?php the_title( '<h1 id="nvx-blog-title-' . get_the_ID() . '" class="nvx-blog-hero__title">', '</h1>' ); ?>
+					<?php the_title( '<h1 id="nvx-blog-title-' . get_the_ID() . '" class="nvx-heading nvx-blog-hero__title">', '</h1>' ); ?>
 
-					<?php if ( has_excerpt() ) : ?>
-						<p class="nvx-blog-hero__excerpt"><?php echo esc_html( get_the_excerpt() ); ?></p>
-					<?php endif; ?>
-
-					<div class="nvx-blog-hero__meta">
+					<div class="nvx-brand-meta nvx-blog-hero__meta">
 						<?php
 						$author = function_exists( 'nvx_blog_medical_author' )
 							? nvx_blog_medical_author()
@@ -61,7 +60,6 @@ while ( have_posts() ) :
 						<?php
 						$date_display = get_the_date();
 						$date_iso     = get_the_date( 'c' );
-						// Fallback if theme/date filters yield empty.
 						if ( '' === trim( (string) $date_display ) ) {
 							$raw = get_post_field( 'post_date', get_the_ID() );
 							if ( is_string( $raw ) && '' !== $raw && '0000-00-00 00:00:00' !== $raw ) {
@@ -81,9 +79,13 @@ while ( have_posts() ) :
 						<?php endif; ?>
 					</div>
 				</div>
+			</div>
+		</header>
 
+		<div class="nvx-blog-article__stage">
+			<div class="nvx-blog-article__shell">
 				<?php if ( has_post_thumbnail() ) : ?>
-					<figure class="nvx-blog-hero__media">
+					<figure class="nvx-content-figure nvx-blog-article__featured">
 						<?php
 						the_post_thumbnail(
 							'full',
@@ -95,11 +97,7 @@ while ( have_posts() ) :
 						?>
 					</figure>
 				<?php endif; ?>
-			</div>
-		</header>
 
-		<div class="nvx-blog-article__stage">
-			<div class="nvx-blog-article__shell">
 				<div class="entry-content nvx-blog-prose">
 					<?php
 					the_content();

@@ -24,3 +24,17 @@ if ( ! function_exists( 'nvxCtaPairMarkup' ) ) {
         return nvx_cta_pair_markup( $extra_class );
     }
 }
+
+if ( ! function_exists( 'nvxHtmlAttrsAddClass' ) ) {
+    /**
+     * Compatibility adapter for the portrait normalizer migrated to camelCase
+     * before the canonical attribute helper was renamed.
+     */
+    function nvxHtmlAttrsAddClass( string $attrs, string $class_token ): string {
+        if ( ! function_exists( 'nvx_html_attrs_add_class' ) ) {
+            return $attrs;
+        }
+
+        return nvx_html_attrs_add_class( $attrs, $class_token );
+    }
+}

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
@@ -80,16 +81,23 @@ for (const [source, label] of [
   }
 }
 
-if (!contentPresentation.includes('function nvx_cta_pair_markup(')) {
-  failures.push('canonical CTA pair implementation is missing');
+for (const marker of [
+  'function nvx_cta_pair_markup(',
+  'function nvx_html_attrs_add_class(',
+]) {
+  if (!contentPresentation.includes(marker)) failures.push(`canonical presentation helper missing: ${marker}`);
 }
 for (const marker of [
   "function_exists( 'nvxCtaPairMarkup' )",
   'function nvxCtaPairMarkup(',
   "function_exists( 'nvx_cta_pair_markup' )",
   'return nvx_cta_pair_markup( $extra_class );',
+  "function_exists( 'nvxHtmlAttrsAddClass' )",
+  'function nvxHtmlAttrsAddClass(',
+  "function_exists( 'nvx_html_attrs_add_class' )",
+  'return nvx_html_attrs_add_class( $attrs, $class_token );',
 ]) {
-  if (!runtimeCompatibility.includes(marker)) failures.push(`CTA compatibility marker missing: ${marker}`);
+  if (!runtimeCompatibility.includes(marker)) failures.push(`runtime compatibility marker missing: ${marker}`);
 }
 for (const [source, label] of [
   [equipoPage, 'equipo renderer'],
@@ -98,6 +106,17 @@ for (const [source, label] of [
   if (source.includes('nvxCtaPairMarkup(') && !runtimeCompatibility.includes('function nvxCtaPairMarkup(')) {
     failures.push(`${label} calls nvxCtaPairMarkup without a declared compatibility adapter`);
   }
+  if (source.includes('nvxHtmlAttrsAddClass(') && !runtimeCompatibility.includes('function nvxHtmlAttrsAddClass(')) {
+    failures.push(`${label} calls nvxHtmlAttrsAddClass without a declared compatibility adapter`);
+  }
+}
+
+const callableContractPath = path.join(root, 'scripts/theme-hygiene/test-nvx-callable-contract.php');
+const callableContract = spawnSync('/usr/bin/php', [callableContractPath], { encoding: 'utf8' });
+if (callableContract.error || callableContract.status !== 0) {
+  failures.push(`NUVANX callable contract failed: ${String(callableContract.stderr || callableContract.stdout || callableContract.error || '').trim()}`);
+} else if (callableContract.stdout.trim()) {
+  console.log(callableContract.stdout.trim());
 }
 
 const constantNames = ['NVX_REGEX_WHITESPACE', 'NVX_REGEX_WHITESPACE_U'];
@@ -126,4 +145,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback} environment=staging2 cta=compatible`);
+console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback} environment=staging2 compatibility=complete`);

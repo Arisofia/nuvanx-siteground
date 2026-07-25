@@ -38,3 +38,19 @@ if ( ! function_exists( 'nvxHtmlAttrsAddClass' ) ) {
         return nvx_html_attrs_add_class( $attrs, $class_token );
     }
 }
+
+if ( ! function_exists( 'nvxSchemaCurrentPath' ) ) {
+    /**
+     * Compatibility adapter for the publication guard migrated to camelCase
+     * before the canonical schema path helper was renamed.
+     *
+     * @param int $page_id Queried page ID when available.
+     */
+    function nvxSchemaCurrentPath( $page_id = 0 ): string {
+        if ( ! function_exists( 'nvx_schema_current_path' ) ) {
+            return '';
+        }
+
+        return (string) nvx_schema_current_path( $page_id );
+    }
+}

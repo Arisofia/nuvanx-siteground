@@ -38,10 +38,6 @@ function nvxEnqueueMobileHeroHierarchy(): void {
 }
 add_action( 'wp_enqueue_scripts', 'nvxEnqueueMobileHeroHierarchy', 40 );
 
-if ( ! defined( 'NVX_REGEX_WHITESPACE' ) ) {
-	define( 'NVX_REGEX_WHITESPACE', '/\s+/' );
-}
-
 /**
  * Determines whether a DOM element contains a class token.
  *

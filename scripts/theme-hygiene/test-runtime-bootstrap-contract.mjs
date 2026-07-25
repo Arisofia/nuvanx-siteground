@@ -27,6 +27,9 @@ function walkPhp(directory) {
 
 const structuredData = read('inc/nvx-structured-data.php');
 const jsonldHelpers = read('inc/nvx-jsonld-content.php');
+const environmentFlags = read('inc/nvx-environment-flags.php');
+const pageHygiene = read('inc/nvx-page-hygiene.php');
+const aestheticPages = read('inc/nvx-aesthetic-treatment-pages.php');
 const functions = read('functions.php');
 
 const registeredJsonldCallback = structuredData.match(
@@ -49,6 +52,27 @@ for (const marker of [
   'return nvxFilterStripEmbeddedJsonld( $content );',
 ]) {
   if (!jsonldHelpers.includes(marker)) failures.push(`JSON-LD callback compatibility marker missing: ${marker}`);
+}
+
+for (const marker of [
+  'function nvx_environment_host(): string',
+  'function nvx_environment_is_staging2(): bool',
+  'function nvxEnvironmentIsStaging2(): bool',
+  "'staging2.nuvanx.com' === $host",
+  "apply_filters( 'nvx_environment_is_staging2'",
+]) {
+  if (!environmentFlags.includes(marker)) failures.push(`environment runtime marker missing: ${marker}`);
+}
+if (environmentFlags.includes('nvxEnvironmentFilterHeroBlackout')) {
+  failures.push('environment runtime must not restore the retired hero blackout filter');
+}
+for (const [source, label] of [
+  [pageHygiene, 'page hygiene'],
+  [aestheticPages, 'aesthetic page seeder'],
+]) {
+  if (!source.includes("function_exists( 'nvx_environment_is_staging2' )")) {
+    failures.push(`${label} does not guard its shared staging2 environment dependency`);
+  }
 }
 
 const constantNames = ['NVX_REGEX_WHITESPACE', 'NVX_REGEX_WHITESPACE_U'];
@@ -77,4 +101,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback}`);
+console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback} environment=staging2`);

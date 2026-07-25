@@ -251,61 +251,6 @@ function nvxNavigationResolveBlueprintNode( array $node ): ?array {
 	);
 }
 
-/** Build set of blocked menu items including descendants of unpublished pages. */
-function nvxNavigationFindBlockedMenuItems( array $items ): array {
-	$blocked = array();
-	foreach ( $items as $item ) {
-		$item_id   = isset( $item->ID ) ? (int) $item->ID : 0;
-		$object_id = isset( $item->object_id ) ? (int) $item->object_id : 0;
-		$object    = isset( $item->object ) ? (string) $item->object : '';
-
-		if ( $item_id > 0 && 'page' === $object && $object_id > 0 && 'publish' !== get_post_status( $object_id ) ) {
-			$blocked[ $item_id ] = true;
-		}
-	}
-
-	$changed = true;
-	while ( $changed ) {
-		$changed = false;
-		foreach ( $items as $item ) {
-			$item_id = isset( $item->ID ) ? (int) $item->ID : 0;
-			$parent  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
-			if ( $item_id > 0 && $parent > 0 && isset( $blocked[ $parent ] ) && ! isset( $blocked[ $item_id ] ) ) {
-				$blocked[ $item_id ] = true;
-				$changed             = true;
-			}
-		}
-	}
-	return $blocked;
-}
-
-/**
- * Removes unpublished page items and their descendants from the primary navigation.
- *
- * Items for other theme locations are returned unchanged.
- *
- * @param array<int,WP_Post|stdClass> $items Menu items.
- * @param stdClass                    $args Menu arguments.
- * @return array<int,WP_Post|stdClass> The filtered menu items.
- */
-function nvxNavigationPruneUnpublishedItems( $items, $args ) {
-	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
-		return $items;
-	}
-
-	$blocked = nvxNavigationFindBlockedMenuItems( $items );
-
-	return array_values(
-		array_filter(
-			$items,
-			static function ( $item ) use ( $blocked ): bool {
-				$item_id = isset( $item->ID ) ? (int) $item->ID : 0;
-				return ! isset( $blocked[ $item_id ] );
-			}
-		)
-	);
-}
-
 /**
  * Resolve the fallback architecture without exposing drafts or missing pages.
  *
@@ -409,20 +354,8 @@ function nvxNavigationFilterMenuArgs( array $args ): array {
 }
 add_filter( 'wp_nav_menu_args', 'nvxNavigationFilterMenuArgs', 20 );
 
-/**
- * Removes unpublished page items and their descendants from the primary navigation.
- *
- * Items for other theme locations are returned unchanged.
- *
- * @param array<int,WP_Post|stdClass> $items Menu items.
- * @param stdClass                    $args Menu arguments.
- * @return array<int,WP_Post|stdClass> The filtered menu items.
- */
-function nvxNavigationPruneUnpublishedItems( $items, $args ) {
-	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
-		return $items;
-	}
-
+/** Build set of blocked menu items including descendants of unpublished pages. */
+function nvxNavigationFindBlockedMenuItems( array $items ): array {
 	$blocked = array();
 	foreach ( $items as $item ) {
 		$item_id   = isset( $item->ID ) ? (int) $item->ID : 0;
@@ -446,6 +379,24 @@ function nvxNavigationPruneUnpublishedItems( $items, $args ) {
 			}
 		}
 	}
+	return $blocked;
+}
+
+/**
+ * Removes unpublished page items and their descendants from the primary navigation.
+ *
+ * Items for other theme locations are returned unchanged.
+ *
+ * @param array<int,WP_Post|stdClass> $items Menu items.
+ * @param stdClass                    $args Menu arguments.
+ * @return array<int,WP_Post|stdClass> The filtered menu items.
+ */
+function nvxNavigationPruneUnpublishedItems( $items, $args ) {
+	if ( ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+		return $items;
+	}
+
+	$blocked = nvxNavigationFindBlockedMenuItems( $items );
 
 	return array_values(
 		array_filter(

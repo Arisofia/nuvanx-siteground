@@ -38,6 +38,10 @@ function nvx_enqueue_mobile_hero_hierarchy(): void {
 }
 add_action( 'wp_enqueue_scripts', 'nvx_enqueue_mobile_hero_hierarchy', 40 );
 
+if ( ! defined( 'NVX_REGEX_WHITESPACE' ) ) {
+	define( 'NVX_REGEX_WHITESPACE', '/\s+/' );
+}
+
 /**
  * Determines whether a DOM element contains a class token.
  *
@@ -46,8 +50,7 @@ add_action( 'wp_enqueue_scripts', 'nvx_enqueue_mobile_hero_hierarchy', 40 );
  * @return bool True if the element contains the class token, false otherwise.
  */
 function nvx_dom_node_has_class( DOMElement $node, string $class_name ): bool {
-	$regex_ws = '/\s+/';
-	$classes = preg_split( $regex_ws, trim( $node->getAttribute( 'class' ) ) ) ?: array();
+	$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $node->getAttribute( 'class' ) ) ) ?: array();
 	return in_array( $class_name, $classes, true );
 }
 
@@ -55,8 +58,7 @@ function nvx_dom_node_has_class( DOMElement $node, string $class_name ): bool {
  * Add one class token without duplicating existing classes.
  */
 function nvx_dom_node_add_class( DOMElement $node, string $class_name ): void {
-	$regex_ws = '/\s+/';
-	$classes = preg_split( $regex_ws, trim( $node->getAttribute( 'class' ) ) ) ?: array();
+	$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $node->getAttribute( 'class' ) ) ) ?: array();
 	$classes[] = $class_name;
 	$classes = array_values( array_unique( array_filter( $classes ) ) );
 	$node->setAttribute( 'class', implode( ' ', $classes ) );
@@ -66,8 +68,7 @@ function nvx_dom_node_add_class( DOMElement $node, string $class_name ): void {
  * Remove one class token while preserving the remaining class list.
  */
 function nvx_dom_node_remove_class( DOMElement $node, string $class_name ): void {
-	$regex_ws = '/\s+/';
-	$classes = preg_split( $regex_ws, trim( $node->getAttribute( 'class' ) ) ) ?: array();
+	$classes = preg_split( NVX_REGEX_WHITESPACE, trim( $node->getAttribute( 'class' ) ) ) ?: array();
 	$classes = array_values(
 		array_filter(
 			$classes,

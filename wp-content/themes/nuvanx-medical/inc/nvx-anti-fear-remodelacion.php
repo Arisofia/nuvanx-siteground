@@ -56,7 +56,7 @@ function nvx_anti_fear_remodelacion_body_markup(): string {
     $endolift_url = home_url( '/endolift-facial-papada-mandibula/' );
     $endolaser_url = home_url( '/endolaser-corporal-grasa-localizada/' );
 
-    $html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell nvx-anti-fear-remodelacion">';
+    $html  = '<article class="nvx-brand-page nvx-strategy-page nvx-anti-fear-remodelacion">';
     // Sección 1: Por qué da miedo operarse
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
     $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Por qué da miedo la liposucción clásica', 'nuvanx-medical' ) . '</h2>';

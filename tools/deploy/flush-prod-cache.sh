@@ -21,5 +21,10 @@ done
 cd "$WP_ROOT"
 wp option get siteurl
 wp theme list --status=active
-wp cache flush
+wp cache flush || true
+wp sg purge || true
+rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
+rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
+rm -rf wp-content/cache/* 2>/dev/null || true
+wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
 echo "Cache flushed for $WP_ROOT"

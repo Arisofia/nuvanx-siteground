@@ -1,0 +1,240 @@
+/*
+ * NUVANX site coherence layer.
+ *
+ * Owns only cross-route contracts that must remain identical:
+ * - canonical technology and valoración headers;
+ * - global conversion-button presentation;
+ * - journal archive width and alignment;
+ * - valoración landing layout.
+ */
+
+.nvx-button,
+.nvx-btn,
+.nvx-brand-btn {
+  --button-bg: var(--nvx-ink);
+  --button-color: var(--nvx-light);
+  --button-border: var(--nvx-ink);
+  --button-hover-bg: var(--nvx-charcoal);
+  --button-hover-color: var(--nvx-light);
+  --button-hover-border: var(--nvx-charcoal);
+  --button-focus: var(--nvx-accent-muted);
+  display: inline-flex;
+  min-height: var(--nvx-control-size);
+  align-items: center;
+  justify-content: center;
+  gap: var(--nvx-space-1);
+  padding-inline: var(--nvx-space-3);
+  border: var(--nvx-border-hairline) solid var(--button-border);
+  border-radius: var(--nvx-radius-button);
+  background: var(--button-bg);
+  color: var(--button-color);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-button);
+  font-weight: var(--nvx-fw-medium);
+  line-height: 1;
+  letter-spacing: var(--nvx-track-button);
+  text-align: center;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.nvx-header__cta.nvx-btn {
+  flex: 0 0 auto;
+  min-width: max-content;
+  padding-inline: var(--nvx-space-3);
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+  border-color: var(--nvx-ink);
+}
+
+.nvx-header__cta.nvx-btn:hover,
+.nvx-header__cta.nvx-btn:focus-visible {
+  background: var(--nvx-charcoal);
+  color: var(--nvx-light);
+  border-color: var(--nvx-charcoal);
+}
+
+.nvx-site-coherent-page .nvx-canonical-page-hero,
+.nvx-site-coherent-page .nvx-brand-hero.nvx-canonical-page-hero,
+.nvx-site-coherent-page .nvx-editorial-hero.nvx-canonical-page-hero {
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+  overflow: hidden;
+}
+
+.nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-brand-hero__inner,
+.nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-page-hero__inner,
+.nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-hero__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding: clamp(var(--nvx-space-8), 10vw, var(--nvx-space-12)) var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-brand-hero__copy,
+.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-page-hero__copy {
+  display: grid;
+  max-width: min(100%, var(--nvx-measure-wide));
+  gap: var(--nvx-space-3);
+  align-content: center;
+}
+
+.nvx-site-coherent-page .nvx-canonical-page-hero h1,
+.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-heading,
+.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-ipl-h1,
+.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-strategy-title {
+  max-width: 18ch;
+  margin: 0;
+  color: var(--nvx-light);
+  font-family: var(--nvx-serif);
+  font-size: clamp(2.75rem, 6vw, 5rem);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: var(--nvx-track-h1);
+  text-wrap: balance;
+}
+
+.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-eyebrow,
+.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-ipl-kicker {
+  margin: 0;
+  color: var(--nvx-accent-muted);
+}
+
+.nvx-site-coherent-page .nvx-hero-intro--coherent {
+  width: 100%;
+  padding-block: clamp(var(--nvx-space-5), 6vw, var(--nvx-space-8));
+  background: var(--nvx-surface-base);
+}
+
+.nvx-site-coherent-page .nvx-hero-intro--coherent .nvx-brand-section__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-blog-archive,
+.nvx-blog-single {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.nvx-blog-archive__hero,
+.nvx-blog-single__hero {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding-block: clamp(var(--nvx-space-8), 10vw, var(--nvx-space-12));
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+}
+
+.nvx-blog-archive__hero-title,
+.nvx-blog-single__title {
+  max-width: 18ch;
+  color: var(--nvx-light);
+}
+
+.nvx-blog-archive__body,
+.nvx-blog-single__body {
+  width: 100%;
+  padding-block: var(--nvx-pad-section);
+}
+
+.nvx-blog-archive__body > .nvx-shell,
+.nvx-blog-single__body > .nvx-shell {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-blog-card {
+  grid-column: span 6;
+  display: flex;
+  min-width: 0;
+  min-height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-light);
+  box-shadow: var(--nvx-shadow-min);
+}
+
+.nvx-blog-card__content {
+  display: flex;
+  min-width: 0;
+  min-height: 100%;
+  flex: 1;
+  flex-direction: column;
+}
+
+.nvx-valoracion-page .nvx-page,
+.nvx-valoracion-page .entry-content,
+.nvx-valoracion-page .nvx-page__content,
+.nvx-valoracion-page main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.nvx-valoracion-page .widget-area,
+.nvx-valoracion-page .nvx-sidebar,
+.nvx-valoracion-page aside[role="complementary"] {
+  display: none;
+}
+
+.nvx-valoracion-page .nvx-editorial-section,
+.nvx-valoracion-page .nvx-form-stage,
+.nvx-valoracion-page .nvx-hubspot-form-section,
+.nvx-valoracion-page #nvx-hubspot-form {
+  width: 100%;
+  padding-block: clamp(var(--nvx-space-6), 8vw, var(--nvx-space-10));
+}
+
+.nvx-valoracion-page .nvx-form-stage > *,
+.nvx-valoracion-page .nvx-hubspot-form-section > *,
+.nvx-valoracion-page #nvx-hubspot-form > * {
+  width: min(calc(100% - (var(--nvx-gutter-inner) * 2)), var(--nvx-measure-wide));
+  margin-inline: auto;
+}
+
+.nvx-valoracion-page .hbspt-form,
+.nvx-valoracion-page .nvx-hs-lead-form {
+  width: 100%;
+  padding: clamp(var(--nvx-space-3), 5vw, var(--nvx-space-6));
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-light);
+  box-shadow: var(--nvx-shadow-min);
+  box-sizing: border-box;
+}
+
+@media (max-width: 56rem) {
+  .nvx-blog-card {
+    grid-column: 1 / -1;
+  }
+
+  .nvx-header__cta.nvx-btn {
+    min-width: 0;
+    padding-inline: var(--nvx-space-2);
+  }
+
+  .nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-brand-hero__inner,
+  .nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-page-hero__inner,
+  .nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-hero__inner {
+    padding-block: var(--nvx-space-8);
+  }
+}

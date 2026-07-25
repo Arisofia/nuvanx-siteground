@@ -13,6 +13,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'NVX_NOSOTROS_PATH' ) ) {
+	define( 'NVX_NOSOTROS_PATH', '/nosotros/' );
+}
+if ( ! defined( 'NVX_SOBRE_NOSOTROS_PATH' ) ) {
+	define( 'NVX_SOBRE_NOSOTROS_PATH', '/sobre-nosotros/' );
+}
+
 /**
  * Singular page context.
  */
@@ -39,15 +46,12 @@ function nvx_content_is_nosotros_page( string $content ): bool {
 		return false;
 	}
 
-	$nosotros = '/nosotros/';
-	$sobre    = '/sobre-nosotros/';
-
 	$path = function_exists( 'nvx_schema_current_path' )
 		? nvx_schema_current_path( (int) get_queried_object_id() )
 		: '';
 
 	if ( is_string( $path ) && function_exists( 'nvx_schema_path_matches' ) ) {
-		if ( nvx_schema_path_matches( $path, $nosotros ) || nvx_schema_path_matches( $path, $sobre ) ) {
+		if ( nvx_schema_path_matches( $path, NVX_NOSOTROS_PATH ) || nvx_schema_path_matches( $path, NVX_SOBRE_NOSOTROS_PATH ) ) {
 			return true;
 		}
 	}
@@ -357,8 +361,6 @@ function nvx_nosotros_editorial_body_markup(): string {
  * @return string The rebuilt page content, or the original content when the page is not an About Us page.
  */
 function nvx_content_restructure_nosotros_page( string $content ): string {
-	$nosotros = '/nosotros/';
-	$sobre = '/sobre-nosotros/';
 	if ( ! nvx_content_is_nosotros_page( $content ) ) {
 		return $content;
 	}
@@ -407,10 +409,8 @@ function nvx_filter_nosotros_document_title( $title ) {
 	if ( ! function_exists( 'nvx_schema_path_matches' ) || ! function_exists( 'nvx_schema_current_path' ) ) {
 		return $title;
 	}
-	$nosotros = '/nosotros/';
-	$sobre    = '/sobre-nosotros/';
 	$path = nvx_schema_current_path( (int) get_queried_object_id() );
-	if ( ! nvx_schema_path_matches( $path, $nosotros ) && ! nvx_schema_path_matches( $path, $sobre ) ) {
+	if ( ! nvx_schema_path_matches( $path, NVX_NOSOTROS_PATH ) && ! nvx_schema_path_matches( $path, NVX_SOBRE_NOSOTROS_PATH ) ) {
 		return $title;
 	}
 	return 'Sobre Nosotros | Autoridad médica y transparencia · NUVANX Madrid';
@@ -427,10 +427,8 @@ function nvx_filter_nosotros_metadesc( $desc ) {
 	if ( ! function_exists( 'nvx_schema_path_matches' ) || ! function_exists( 'nvx_schema_current_path' ) ) {
 		return $desc;
 	}
-	$nosotros = '/nosotros/';
-	$sobre    = '/sobre-nosotros/';
 	$path = nvx_schema_current_path( (int) get_queried_object_id() );
-	if ( ! nvx_schema_path_matches( $path, $nosotros ) && ! nvx_schema_path_matches( $path, $sobre ) ) {
+	if ( ! nvx_schema_path_matches( $path, NVX_NOSOTROS_PATH ) && ! nvx_schema_path_matches( $path, NVX_SOBRE_NOSOTROS_PATH ) ) {
 		return $desc;
 	}
 	return 'NUVANX Madrid: medicina estética láser con evidencia, well-aging e ingeniería tisular. Sedes Chamberí (CS20144) y Goya (CS20073). Cuadro médico colegiado y principios de transparencia.';

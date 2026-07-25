@@ -175,10 +175,15 @@ function nvx_site_coherence_normalize_hero_copy( DOMDocument $document, DOMXPath
 	return $copy;
 }
 
-/** Move explanatory lead copy immediately below the governed header. */
-function nvx_site_coherence_move_lead( DOMDocument $document, DOMElement $hero, DOMElement $copy ): void {
-	$lead_classes = array( 'nvx-lead', 'nvx-brand-hero__lead', 'nvx-hero__lead', 'nvx-page-hero__lead', 'nvx-subtitle', 'nvx-hero-subtitle', 'nvx-ipl-lead' );
-	$movable      = array();
+/**
+ * Collect paragraph DOM elements matching lead class definitions.
+ *
+ * @param DOMElement $copy         Container element.
+ * @param array      $lead_classes Array of target lead class names.
+ * @return array List of matching DOMElement objects.
+ */
+function nvx_site_coherence_collect_movable_leads( DOMElement $copy, array $lead_classes ): array {
+	$movable = array();
 	foreach ( iterator_to_array( $copy->childNodes ) as $child ) {
 		if ( ! $child instanceof DOMElement || 'p' !== strtolower( $child->tagName ) ) {
 			continue;
@@ -190,6 +195,13 @@ function nvx_site_coherence_move_lead( DOMDocument $document, DOMElement $hero, 
 			}
 		}
 	}
+	return $movable;
+}
+
+/** Move explanatory lead copy immediately below the governed header. */
+function nvx_site_coherence_move_lead( DOMDocument $document, DOMElement $hero, DOMElement $copy ): void {
+	$lead_classes = array( 'nvx-lead', 'nvx-brand-hero__lead', 'nvx-hero__lead', 'nvx-page-hero__lead', 'nvx-subtitle', 'nvx-hero-subtitle', 'nvx-ipl-lead' );
+	$movable      = nvx_site_coherence_collect_movable_leads( $copy, $lead_classes );
 
 	$next = $hero->nextSibling;
 	while ( $next && XML_TEXT_NODE === $next->nodeType && '' === trim( (string) $next->textContent ) ) {

@@ -435,6 +435,24 @@ function nvxBtlDetailRegistry(): array {
 }
 
 /**
+ * Check if the content contains standard H1 markers for a BTL detail page configuration.
+ *
+ * @param string $content HTML content.
+ * @param array  $cfg     Detail configuration array.
+ * @return bool True if content contains matching H1 IDs.
+ */
+function nvxBtlDetailMatchesContent( string $content, array $cfg ): bool {
+	$marker = (string) ( $cfg['marker'] ?? '' );
+	if ( '' === $marker ) {
+		return false;
+	}
+	return false !== strpos( $content, 'id="' . $marker . '-h1"' )
+		|| false !== strpos( $content, "id='{$marker}-h1'" )
+		|| false !== strpos( $content, 'id="nvx-' . $marker . '-h1"' )
+		|| false !== strpos( $content, "id='nvx-{$marker}-h1'" );
+}
+
+/**
  * Resolve detail key from current request / content.
  *
  * @return string|null Registry key.
@@ -452,7 +470,7 @@ function nvxBtlDetailCurrentKey( string $content = '' ): ?string {
 		? nvx_schema_current_path( (int) get_queried_object_id() )
 		: '';
 	$path = is_string( $path ) ? $path : '';
- 
+
 	foreach ( nvxBtlDetailRegistry() as $slug => $cfg ) {
 		if ( function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, $cfg['path'] ) ) {
 			return $slug;
@@ -460,13 +478,7 @@ function nvxBtlDetailCurrentKey( string $content = '' ): ?string {
 		if ( false !== strpos( $content, $cfg['marker'] . '-editorial' ) ) {
 			return null; // already rebuilt
 		}
-		// Accept both canonical ids (nvx-exion-body-h1) and legacy double-prefixed ones.
-		if (
-			false !== strpos( $content, 'id="' . $cfg['marker'] . '-h1"' )
-			|| false !== strpos( $content, "id='{$cfg['marker']}-h1'" )
-			|| false !== strpos( $content, 'id="nvx-' . $cfg['marker'] . '-h1"' )
-			|| false !== strpos( $content, "id='nvx-{$cfg['marker']}-h1'" )
-		) {
+		if ( nvxBtlDetailMatchesContent( $content, $cfg ) ) {
 			return $slug;
 		}
 	}
@@ -475,7 +487,7 @@ function nvxBtlDetailCurrentKey( string $content = '' ): ?string {
 	if ( is_string( $slug ) && isset( nvxBtlDetailRegistry()[ $slug ] ) ) {
 		return $slug;
 	}
- 
+
 	return null;
 }
 
@@ -502,6 +514,84 @@ function nvxRenderEditorialListSection( string $id_base, string $kicker, string 
 	}
 	return $html . '</' . tag_escape( $list_type ) . '></div></section>';
 }
+
+/**
+ * Renders the mechanism section for a BTL detail page.
+ *
+ * @param array  $c  Detail configuration array.
+ * @param string $id Base section identifier.
+ * @return string HTML markup.
+ */
+function nvxBtlDetailRenderMechanismSection( array $c, string $id ): string {
+	$body  = '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-mech">';
+	$body .= '<div class="nvx-editorial-section__inner">';
+	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
+	$body .= '<h2 id="' . esc_attr( $id ) . '-mech" class="nvx-editorial-heading">' . esc_html( (string) ( $c['mechanism']['title'] ?? '' ) ) . '</h2>';
+	foreach ( (array) ( $c['mechanism']['body'] ?? array() ) as $p ) {
+		$p = is_string( $p ) ? trim( $p ) : '';
+		if ( '' === $p ) {
+			continue;
+		}
+		$body .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html( $p ) . '</p>';
+	}
+	if ( ! empty( $c['mechanism']['items'] ) && is_array( $c['mechanism']['items'] ) ) {
+		$body .= '<ul class="nvx-editorial-grid-list">';
+		foreach ( $c['mechanism']['items'] as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+			$title = trim( (string) ( $item['title'] ?? '' ) );
+			$text  = trim( (string) ( $item['body'] ?? '' ) );
+			if ( '' === $title && '' === $text ) {
+				continue;
+			}
+			$body .= '<li class="nvx-editorial-grid-item">';
+			if ( '' !== $title ) {
+				$body .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
+			}
+			if ( '' !== $text ) {
+				$body .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
+			}
+			$body .= '</li>';
+		}
+		$body .= '</ul>';
+	}
+	$body .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $c['hub'] ) . '">' . esc_html__( 'Ver plataforma EXION® BTL (hub)', 'nuvanx-medical' ) . '</a></p>';
+	$body .= '</div></section>';
+	return $body;
+}
+
+/**
+ * Renders the FAQ section for a BTL detail page.
+ *
+ * @param array  $faqs Array of FAQ items.
+ * @param string $id   Base section identifier.
+ * @return string HTML markup.
+ */
+function nvxBtlDetailRenderFaqSection( array $faqs, string $id ): string {
+	$body  = '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-faq">';
+	$body .= '<div class="nvx-editorial-section__inner">';
+	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'FAQ', 'nuvanx-medical' ) . '</p>';
+	$body .= '<h2 id="' . esc_attr( $id ) . '-faq" class="nvx-editorial-heading">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
+	$body .= '<div class="nvx-faq nvx-brand-faq-accordion">';
+	foreach ( $faqs as $faq ) {
+		if ( ! is_array( $faq ) ) {
+			continue;
+		}
+		$q = trim( (string) ( $faq['q'] ?? '' ) );
+		$a = trim( (string) ( $faq['a'] ?? '' ) );
+		if ( '' === $q && '' === $a ) {
+			continue;
+		}
+		$body .= '<details class="nvx-brand-faq-item">';
+		$body .= '<summary>' . esc_html( $q ) . '</summary>';
+		$body .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $a ) . '</p></div>';
+		$body .= '</details>';
+	}
+	$body .= '</div></div></section>';
+	return $body;
+}
+
 /**
  * Generates the complete editorial HTML markup for a supported BTL detail page.
  *
@@ -539,77 +629,22 @@ function nvxBtlDetailPageMarkup( string $key ): string {
 
 	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-editorial-page nvx-btl-detail-editorial">';
 
-	// Mechanism (same zone-list pattern as Endoláser / CO₂ — no page-exclusive layout).
-	$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-mech">';
-	$body .= '<div class="nvx-editorial-section__inner">';
-	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-mech" class="nvx-editorial-heading">' . esc_html( (string) ( $c['mechanism']['title'] ?? '' ) ) . '</h2>';
-	foreach ( (array) ( $c['mechanism']['body'] ?? array() ) as $p ) {
-		$p = is_string( $p ) ? trim( $p ) : '';
-		if ( '' === $p ) {
-			continue;
-		}
-		$body .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html( $p ) . '</p>';
-	}
-	if ( ! empty( $c['mechanism']['items'] ) && is_array( $c['mechanism']['items'] ) ) {
-		$body .= '<ul class="nvx-editorial-grid-list">';
-		foreach ( $c['mechanism']['items'] as $item ) {
-			if ( ! is_array( $item ) ) {
-				continue;
-			}
-			$title = trim( (string) ( $item['title'] ?? '' ) );
-			$text  = trim( (string) ( $item['body'] ?? '' ) );
-			if ( '' === $title && '' === $text ) {
-				continue;
-			}
-			$body .= '<li class="nvx-editorial-grid-item">';
-			if ( '' !== $title ) {
-				$body .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
-			}
-			if ( '' !== $text ) {
-				$body .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
-			}
-			$body .= '</li>';
-		}
-		$body .= '</ul>';
-	}
-	$body .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $c['hub'] ) . '">' . esc_html__( 'Ver plataforma EXION® BTL (hub)', 'nuvanx-medical' ) . '</a></p>';
-	$body .= '</div></section>';
+	// Mechanism.
+	$body .= nvxBtlDetailRenderMechanismSection( $c, $id );
 
 	// Indications.
 	$body .= nvxRenderEditorialListSection( $id . '-ind', __( 'Indicaciones', 'nuvanx-medical' ), __( 'Cuándo tiene sentido este protocolo', 'nuvanx-medical' ), (array) ( $c['indications'] ?? array() ) );
 
-	// Compare + blog depth (strategy: internal link to money content).
+	// Compare + blog depth.
 	$compare_title = trim( (string) ( $c['compare']['title'] ?? '' ) );
 	$compare_body  = trim( (string) ( $c['compare']['body'] ?? '' ) );
 	$body .= nvxRenderEditorialListSection( $id . '-cmp', __( 'Criterio diferencial', 'nuvanx-medical' ), $compare_title, array( $compare_body ) );
 
-	// Process (string steps or titled steps — same list chrome).
+	// Process.
 	$body .= nvxRenderEditorialListSection( $id . '-proc', __( 'Proceso médico', 'nuvanx-medical' ), __( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ), (array) ( $c['process'] ?? array() ), 'ol' );
 
 	// FAQ.
-	$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-faq">';
-	$body .= '<div class="nvx-editorial-section__inner">';
-	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'FAQ', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-faq" class="nvx-editorial-heading">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
-	$body .= '<div class="nvx-faq nvx-brand-faq-accordion">';
-	foreach ( (array) ( $c['faqs'] ?? array() ) as $faq ) {
-		if ( ! is_array( $faq ) ) {
-			continue;
-		}
-		$q = trim( (string) ( $faq['q'] ?? '' ) );
-		$a = trim( (string) ( $faq['a'] ?? '' ) );
-		if ( '' === $q && '' === $a ) {
-			continue;
-		}
-		$body .= '<details class="nvx-brand-faq-item">';
-		$body .= '<summary>' . esc_html( $q ) . '</summary>';
-		$body .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $a ) . '</p></div>';
-		$body .= '</details>';
-	}
-	$body .= '</div></div></section>';
-
-	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
+	$body .= nvxBtlDetailRenderFaqSection( (array) ( $c['faqs'] ?? array() ), $id );
 
 	$body .= '</div>';
 

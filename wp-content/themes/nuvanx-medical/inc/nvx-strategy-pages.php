@@ -9,6 +9,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! defined( 'NVX_PATH_VALORACION' ) ) {
+	define( 'NVX_PATH_VALORACION', '/madrid/valoracion/' );
+}
+
 /** Returns the approved strategy page catalog. */
 function nvx_strategy_page_catalog(): array {
 	return array(
@@ -81,7 +85,7 @@ function nvx_strategy_solution_card( string $title, string $problem, string $lim
  * @return string The generated HTML markup for the medical-solutions page.
  */
 function nvx_strategy_solutions_markup(): string {
-	$val_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : '/madrid/valoracion/';
+	$val_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : NVX_PATH_VALORACION;
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
 	$html .= '<p class="nvx-eyebrow">NUVANX · Soluciones médicas</p>';
@@ -202,7 +206,7 @@ function nvx_strategy_solutions_markup(): string {
  * @return string The generated HTML markup.
  */
 function nvx_strategy_why_nuvanx_markup(): string {
-	$val_url       = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : '/madrid/valoracion/';
+	$val_url       = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : NVX_PATH_VALORACION;
 	$valuation_url = esc_url( home_url( $val_url ) );
 	$team_url      = esc_url( home_url( '/equipo-medico/' ) );
 	$investment    = nvx_strategy_published_url( 'investment' );
@@ -355,7 +359,7 @@ function nvx_strategy_investment_table_section( string $heading, array $rows ): 
  * @return string The generated investment page HTML.
  */
 function nvx_strategy_investment_markup(): string {
-	$val_url       = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : '/madrid/valoracion/';
+	$val_url       = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : NVX_PATH_VALORACION;
 	$groups        = nvx_strategy_verified_investment_groups();
 	$valuation_url = esc_url( home_url( $val_url ) );
 

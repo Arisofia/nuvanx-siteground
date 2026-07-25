@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+require_once __DIR__ . '/nvx-runtime-compatibility.php';
+
 /**
  * Resolve the current WordPress host in web and WP-CLI contexts.
  */

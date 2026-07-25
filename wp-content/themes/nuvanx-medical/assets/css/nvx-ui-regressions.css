@@ -1,5 +1,43 @@
 /* NUVANX regression closure: navigation conversion and Journal geometry. */
 
+/* Canonical conversion controls: restore the base rule removed from components. */
+:where(.nvx-button, .nvx-btn, .nvx-brand-btn) {
+  appearance: none;
+  display: inline-flex;
+  min-height: var(--nvx-control-size);
+  align-items: center;
+  justify-content: center;
+  gap: var(--nvx-space-1);
+  padding: var(--nvx-space-2) var(--nvx-space-3);
+  border: var(--nvx-border-hairline) solid var(--button-border, var(--nvx-ink));
+  border-radius: var(--nvx-radius-button);
+  background: var(--button-bg, var(--nvx-ink));
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-button);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--nvx-track-button);
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  color: var(--button-color, var(--nvx-light));
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+:where(.nvx-button, .nvx-btn, .nvx-brand-btn):hover {
+  border-color: var(--button-hover-border, var(--nvx-charcoal));
+  background: var(--button-hover-bg, var(--nvx-charcoal));
+  color: var(--button-hover-color, var(--nvx-light));
+  transform: translateY(calc(var(--nvx-border-hairline) * -1));
+}
+
+:where(.nvx-button, .nvx-btn, .nvx-brand-btn):focus-visible {
+  outline: var(--nvx-border-focus) solid var(--button-focus, var(--nvx-accent-muted));
+  outline-offset: var(--nvx-space-1);
+}
+
 /* Header conversion control: explicit chrome independent of page-level button CSS. */
 .nvx-header__cta.nvx-btn {
   display: inline-flex;
@@ -159,9 +197,130 @@
   margin-top: var(--nvx-space-8);
 }
 
+/* Valoración landing: restore the full visual system on the conversion page. */
+.nvx-valoracion-page,
+.nvx-valoracion-content {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  background: var(--nvx-color-paper);
+}
+
+.nvx-valoracion-page .nvx-page-hero,
+.nvx-valoracion-page .nvx-hero-section {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: none;
+  min-height: clamp(34rem, 62vw, 46rem);
+  margin: 0;
+  overflow: hidden;
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+}
+
+.nvx-valoracion-page .nvx-hero__copy,
+.nvx-valoracion-page .nvx-page-hero__copy {
+  min-height: inherit;
+}
+
+.nvx-valoracion-page .nvx-hero__copy .nvx-heading,
+.nvx-valoracion-page .nvx-page-hero__copy .nvx-heading,
+.nvx-valoracion-page .nvx-hero__copy h1,
+.nvx-valoracion-page .nvx-page-hero__copy h1 {
+  max-width: 18ch;
+  color: var(--nvx-light);
+  text-wrap: balance;
+}
+
+.nvx-valoracion-page .nvx-hero__copy .nvx-lead,
+.nvx-valoracion-page .nvx-page-hero__copy .nvx-lead {
+  color: var(--nvx-text-on-dark-90);
+}
+
+.nvx-valoracion-page .nvx-editorial-section {
+  width: 100%;
+  padding-block: clamp(var(--nvx-space-6), 8vw, var(--nvx-space-10));
+}
+
+.nvx-valoracion-page .nvx-valoracion-locations {
+  background: var(--nvx-surface-base);
+}
+
+.nvx-valoracion-steps,
+.nvx-contact-clinics {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--nvx-gap-base);
+  margin: var(--nvx-space-5) 0 0;
+  padding: 0;
+}
+
+.nvx-valoracion-steps > *,
+.nvx-contact-clinic {
+  min-width: 0;
+  margin: 0;
+  padding: var(--nvx-space-4);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-light);
+  box-sizing: border-box;
+}
+
+.nvx-editorial-timeline__n {
+  display: block;
+  margin-bottom: var(--nvx-space-3);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: 600;
+  letter-spacing: var(--nvx-track-kicker);
+  color: var(--nvx-accent-muted);
+}
+
+.nvx-editorial-timeline__title,
+.nvx-contact-clinic__name {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  line-height: var(--nvx-lh-h3);
+  color: var(--nvx-ink);
+}
+
+.nvx-contact-clinic p,
+.nvx-contact-disclaimer {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
+.nvx-contact-clinic p:last-child,
+.nvx-contact-disclaimer:last-child {
+  margin-bottom: 0;
+}
+
+.nvx-valoracion-page .nvx-form-stage > .nvx-container,
+.nvx-valoracion-page .nvx-form-stage > .nvx-shell {
+  position: relative;
+  z-index: 1;
+  width: min(100%, var(--nvx-shell));
+  max-width: var(--nvx-shell);
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
 @media (max-width: 64em) {
   .nvx-blog-card {
     grid-column: 1 / -1;
+  }
+
+  .nvx-valoracion-steps,
+  .nvx-contact-clinics {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .nvx-blog-hero__copy,
@@ -187,5 +346,10 @@
 
   .nvx-blog-nav {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nvx-valoracion-page .nvx-page-hero,
+  .nvx-valoracion-page .nvx-hero-section {
+    min-height: 31rem;
   }
 }

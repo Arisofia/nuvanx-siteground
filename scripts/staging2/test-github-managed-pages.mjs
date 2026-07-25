@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const failures = [];
+const file = (relative) => path.join(root, relative);
 const read = (relative) => {
-  const target = path.join(root, relative);
+  const target = file(relative);
   if (!fs.existsSync(target)) {
     failures.push(`missing ${relative}`);
     return '';
@@ -47,6 +49,7 @@ const required = [
   [solutionsPage, 'SOLUCIONES MÉDICAS · NUVANX MADRID', 'Solutions GitHub template is incomplete'],
   [solutionsPage, 'id="mapa-soluciones"', 'Solutions navigation map is missing'],
   [solutionsPage, 'CONTORNO CORPORAL', 'Solutions clinical content groups are incomplete'],
+  [solutionsPage, 'Soluciones médicas para rostro, piel y contorno corporal.', 'Solutions canonical H1 is missing'],
   [solutionsCss, '.nvx-solutions-hero', 'Solutions canonical hero styles are missing'],
   [solutionsCss, '.nvx-solutions-group--dark', 'Solutions content surfaces are not differentiated'],
   [solutionsArt, '<svg', 'Solutions repository artwork is invalid or empty'],
@@ -87,6 +90,28 @@ for (const forbidden of [
   'nvx-catalog-grid',
 ]) {
   if (strategyPages.includes(forbidden)) failures.push(`Legacy solutions renderer remains active: ${forbidden}`);
+}
+
+const managedPhpFiles = [
+  'wp-content/themes/nuvanx-medical/front-page.php',
+  'wp-content/themes/nuvanx-medical/templates/page-sede.php',
+  'wp-content/themes/nuvanx-medical/templates/page-landing-valoracion.php',
+  'wp-content/themes/nuvanx-medical/page-soluciones-medicas.php',
+  'wp-content/themes/nuvanx-medical/template-parts/content/nvx-clinics-hub-github.php',
+  'wp-content/themes/nuvanx-medical/template-parts/content/nvx-valoracion-github.php',
+  'wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-github-managed-page-state.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php',
+];
+for (const relative of managedPhpFiles) {
+  const result = spawnSync('/usr/bin/php', ['-l', file(relative)], { encoding: 'utf8' });
+  if (result.error?.code === 'ENOENT') {
+    console.warn(`WARNING: php executable unavailable; skipped ${relative}`);
+    break;
+  }
+  if (result.error || result.status !== 0) {
+    failures.push(`PHP syntax failed for ${relative}: ${String(result.stderr || result.stdout || '').trim()}`);
+  }
 }
 
 if (failures.length) {

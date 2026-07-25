@@ -178,8 +178,17 @@ const parseSingleTag = (html, name) => cleanHtmlText(html.match(new RegExp(Strin
 const parseMultipleTagTexts = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>([\s\S]*?)<\/${name}>`, 'gi'))].map((match) => cleanHtmlText(match[1]));
 const queryHtmlTags = (html, name) => [...html.matchAll(new RegExp(String.raw`<${name}\b[^>]*>`, 'gi'))].map((match) => match[0]);
 const getAttrVal = (tag, attr) => {
-  const match = tag.match(new RegExp(String.raw`\b${attr}\s*=\s*(?:["']([^"']*)["']|([^\s>]+))`, 'i'));
-  return match ? (match[1] !== undefined ? match[1] : match[2]) : '';
+  const match = tag.match(new RegExp(String.raw`\b${attr}\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))`, 'i'));
+  if (!match) {
+    return '';
+  }
+  if (match[1] !== undefined) {
+    return match[1];
+  }
+  if (match[2] !== undefined) {
+    return match[2];
+  }
+  return match[3] || '';
 };
 
 function findMetaAttr(html, attr) {

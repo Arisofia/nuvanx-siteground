@@ -46,6 +46,19 @@ final class NvxProductionReadinessHelper {
 	 */
 	public static function governedPages(): array {
 		if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
+			$candidate_paths = array(
+				dirname( __DIR__ ) . '/theme/inc/nvx-integrations.php',
+				dirname( __DIR__, 2 ) . '/wp-content/themes/nuvanx-medical/inc/nvx-integrations.php',
+				get_template_directory() . '/inc/nvx-integrations.php',
+			);
+			foreach ( $candidate_paths as $inc_file ) {
+				if ( file_exists( $inc_file ) ) {
+					require_once $inc_file;
+					break;
+				}
+			}
+		}
+		if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
 			WP_CLI::error( 'Production-readiness governed-page contract is unavailable.' );
 		}
 		return nvx_production_readiness_governed_pages();

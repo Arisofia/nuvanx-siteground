@@ -13,11 +13,8 @@ defined( 'ABSPATH' ) || exit;
 require_once get_template_directory() . '/inc/nvx-github-managed-page-state.php';
 nvxSyncGithubManagedPageState( (int) get_queried_object_id(), 'home' );
 
-$hero_art_url = get_template_directory_uri() . '/assets/images/nvx-home-hero-contours.svg';
-
-if ( ! defined( 'NVX_URL_REMODELACION' ) ) {
-    define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
-}
+$hero_art_url     = get_template_directory_uri() . '/assets/images/nvx-home-hero-contours.svg';
+$remodelacion_url = '/remodelacion-corporal-laser-madrid/';
 
 $structure_css = 'assets/css/nvx-home-structure.css';
 wp_enqueue_style(
@@ -54,7 +51,7 @@ $protocols = array(
         'label'  => 'Contour Architecture™',
         'title'  => 'Silueta por unidades anatómicas',
         'copy'   => 'No tratamos zonas de manera aislada. Estudiamos cómo se relacionan abdomen, flancos, espalda, brazos o muslos para mejorar la continuidad y la proporción del contorno corporal.',
-        'url'    => NVX_URL_REMODELACION,
+        'url'    => $remodelacion_url,
     ),
 );
 
@@ -75,7 +72,7 @@ $solutions = array(
         'kicker' => 'CONTORNO CORPORAL',
         'title'  => 'Proporción, firmeza y continuidad',
         'copy'   => 'Estudiamos grasa localizada, laxitud y proporción dentro del conjunto de la silueta, no como áreas independientes.',
-        'url'    => NVX_URL_REMODELACION,
+        'url'    => $remodelacion_url,
     ),
 );
 
@@ -109,7 +106,7 @@ ob_start();
             <p class="nvx-home-eyebrow">REMODELACIÓN CORPORAL CON CRITERIO MÉDICO</p>
             <h2 id="nvx-home-feature-title">Cada cuerpo responde de una forma diferente.</h2>
             <p>Por eso, un tratamiento corporal no debería comenzar por una máquina, sino por una valoración anatómica completa. Estudiamos la grasa localizada, la firmeza de la piel y la continuidad entre las distintas zonas de la silueta para proponer cambios equilibrados y coherentes con tu cuerpo.</p>
-            <a href="<?php echo esc_url( home_url( NVX_URL_REMODELACION ) ); ?>" class="nvx-home-text-link">Descubrir soluciones corporales</a>
+            <a href="<?php echo esc_url( home_url( $remodelacion_url ) ); ?>" class="nvx-home-text-link">Descubrir soluciones corporales</a>
         </div>
     </section>
 

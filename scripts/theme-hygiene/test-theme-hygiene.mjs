@@ -58,6 +58,7 @@ for (const file of templateFiles) {
 }
 
 const functions = read('functions.php');
+const integrations = read('inc/nvx-integrations.php');
 for (const marker of ['function nvx_primary_menu_fallback', 'nvx_custom_body_classes', 'is_page( 9 )', "is_page( 'medicina-estetica-laser' )", 'remove_action(']) {
   if (functions.includes(marker)) fail(`functions.php: obsolete ${marker}`);
 }
@@ -72,13 +73,15 @@ const requiredModules = [
   'inc/nvx-protocol-pages.php',
   'inc/nvx-editorial-seo-extension.php',
 ];
+const bootstrapSources = `${functions}\n${integrations}`;
 for (const modulePath of requiredModules) {
   const absolutePath = path.join(theme, modulePath);
+  const moduleName = path.basename(modulePath);
   if (!fs.existsSync(absolutePath)) fail(`theme: missing ${modulePath}`);
-  if (modulePath !== 'inc/nvx-editorial-seo-extension.php' && !functions.includes(path.basename(modulePath))) fail(`functions.php: missing ${path.basename(modulePath)}`);
+  const occurrenceCount = bootstrapSources.split(moduleName).length - 1;
+  if (occurrenceCount !== 1) fail(`bootstrap: ${moduleName} must be loaded exactly once; found ${occurrenceCount}`);
 }
 
-const integrations = read('inc/nvx-integrations.php');
 for (const marker of [
   "'liposculpt-air'", "'/remodelacion-corporal-laser-madrid/'", "'v-lift-awake'", "'/protocolos-signature/'",
   "remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 )", 'function nvx_production_readiness_governed_pages',

@@ -9,6 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once get_template_directory() . '/inc/nvx-github-managed-page-state.php';
+nvxSyncGithubManagedPageState( (int) get_queried_object_id(), 'valoracion' );
+
 ob_start();
 get_template_part( 'template-parts/content/nvx-valoracion-github' );
 $nvx_valoracion_content = ob_get_clean();

@@ -522,7 +522,6 @@
   padding: var(--nvx-space-3, 1rem) var(--nvx-space-4, 1.5rem) var(--nvx-space-3, 1rem) 0;
   cursor: pointer;
   user-select: none;
-  word-break: break-word;
   overflow-wrap: anywhere;
 }
 
@@ -549,7 +548,6 @@
   padding-bottom: var(--nvx-space-4, 1.5rem);
   overflow: visible;
   line-height: var(--nvx-lh-body, 1.6);
-  word-break: break-word;
   overflow-wrap: anywhere;
 }
 
@@ -563,5 +561,5 @@ h1, h2, h3, h4, h5, h6,
   max-height: none;
   overflow: visible;
   text-wrap: balance;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }

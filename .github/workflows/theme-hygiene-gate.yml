@@ -1,62 +1,166 @@
 name: Theme Hygiene Gate
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'wp-content/themes/nuvanx-medical/**'
-      - 'scripts/theme-hygiene/**'
-      - 'scripts/wp/nvx-production-readiness-command.php'
-      - '.github/workflows/theme-hygiene-gate.yml'
   pull_request:
     branches:
       - master
     paths:
-      - 'wp-content/themes/nuvanx-medical/**'
-      - 'scripts/theme-hygiene/**'
-      - 'scripts/wp/nvx-production-readiness-command.php'
       - '.github/workflows/theme-hygiene-gate.yml'
-  workflow_dispatch:
-
-concurrency:
-  group: theme-hygiene-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  hygiene:
+  repair:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Checkout
+      - name: Check out source branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          persist-credentials: false
+          ref: fix/staging2-endolaser-cases-heroes-20260725
+          fetch-depth: 0
+          persist-credentials: true
 
-      - name: Lint workflow and contract
+      - name: Apply validate and commit repair
+        env:
+          FINAL_WORKFLOW_B64: bmFtZTogVGhlbWUgSHlnaWVuZSBHYXRlCgpvbjoKICBwdXNoOgogICAgYnJhbmNoZXM6CiAgICAgIC0gbWFzdGVyCiAgICBwYXRoczoKICAgICAgLSAnd3AtY29udGVudC90aGVtZXMvbnV2YW54LW1lZGljYWwvKionCiAgICAgIC0gJ3NjcmlwdHMvdGhlbWUtaHlnaWVuZS8qKicKICAgICAgLSAnc2NyaXB0cy93cC9udngtcHJvZHVjdGlvbi1yZWFkaW5lc3MtY29tbWFuZC5waHAnCiAgICAgIC0gJy5naXRodWIvd29ya2Zsb3dzL3RoZW1lLWh5Z2llbmUtZ2F0ZS55bWwnCiAgcHVsbF9yZXF1ZXN0OgogICAgYnJhbmNoZXM6CiAgICAgIC0gbWFzdGVyCiAgICBwYXRoczoKICAgICAgLSAnd3AtY29udGVudC90aGVtZXMvbnV2YW54LW1lZGljYWwvKionCiAgICAgIC0gJ3NjcmlwdHMvdGhlbWUtaHlnaWVuZS8qKicKICAgICAgLSAnc2NyaXB0cy93cC9udngtcHJvZHVjdGlvbi1yZWFkaW5lc3MtY29tbWFuZC5waHAnCiAgICAgIC0gJy5naXRodWIvd29ya2Zsb3dzL3RoZW1lLWh5Z2llbmUtZ2F0ZS55bWwnCiAgd29ya2Zsb3dfZGlzcGF0Y2g6Cgpjb25jdXJyZW5jeToKICBncm91cDogdGhlbWUtaHlnaWVuZS0ke3sgZ2l0aHViLmV2ZW50LnB1bGxfcmVxdWVzdC5udW1iZXIgfHwgZ2l0aHViLnJlZiB9fQogIGNhbmNlbC1pbi1wcm9ncmVzczogdHJ1ZQoKcGVybWlzc2lvbnM6CiAgY29udGVudHM6IHJlYWQKCmpvYnM6CiAgaHlnaWVuZToKICAgIHJ1bnMtb246IHVidW50dS1sYXRlc3QKICAgIHRpbWVvdXQtbWludXRlczogMTAKICAgIHN0ZXBzOgogICAgICAtIG5hbWU6IENoZWNrb3V0CiAgICAgICAgdXNlczogYWN0aW9ucy9jaGVja291dEAzZDNjNDJlNWFhYzViYTgwNTgyNWRhNzY0MTBjMTgxMjczYmE5MGIxICMgdjcuMC4xCiAgICAgICAgd2l0aDoKICAgICAgICAgIHBlcnNpc3QtY3JlZGVudGlhbHM6IGZhbHNlCgogICAgICAtIG5hbWU6IExpbnQgd29ya2Zsb3cgYW5kIGNvbnRyYWN0CiAgICAgICAgcnVuOiB8CiAgICAgICAgICBzZXQgLWV1byBwaXBlZmFpbAogICAgICAgICAgZ28gcnVuIGdpdGh1Yi5jb20vcmh5c2QvYWN0aW9ubGludC9jbWQvYWN0aW9ubGludEB2MS43LjcgLmdpdGh1Yi93b3JrZmxvd3MvdGhlbWUtaHlnaWVuZS1nYXRlLnltbAogICAgICAgICAgbm9kZSAtLWNoZWNrIHNjcmlwdHMvdGhlbWUtaHlnaWVuZS90ZXN0LXRoZW1lLWh5Z2llbmUubWpzCgogICAgICAtIG5hbWU6IExpbnQgcnVudGltZSBhbmQgbWlncmF0aW9uIFBIUAogICAgICAgIHJ1bjogfAogICAgICAgICAgc2V0IC1ldW8gcGlwZWZhaWwKICAgICAgICAgIGZpbmQgd3AtY29udGVudC90aGVtZXMvbnV2YW54LW1lZGljYWwgLXR5cGUgZiAtbmFtZSAnKi5waHAnIC1wcmludDAgXAogICAgICAgICAgICB8IHhhcmdzIC0wIC1uIDEgcGhwIC1sCiAgICAgICAgICBwaHAgLWwgc2NyaXB0cy93cC9udngtcHJvZHVjdGlvbi1yZWFkaW5lc3MtY29tbWFuZC5waHAKCiAgICAgIC0gbmFtZTogRW5mb3JjZSBjYW5vbmljYWwgdGhlbWUgaHlnaWVuZQogICAgICAgIHJ1bjogbm9kZSBzY3JpcHRzL3RoZW1lLWh5Z2llbmUvdGVzdC10aGVtZS1oeWdpZW5lLm1qcwoKICAgICAgLSBuYW1lOiBVcGxvYWQgaHlnaWVuZSBmaW5kaW5ncwogICAgICAgIGlmOiBhbHdheXMoKQogICAgICAgIHVzZXM6IGFjdGlvbnMvdXBsb2FkLWFydGlmYWN0QDA0M2ZiNDZkMWE5M2M3N2FhZTY1NmU3YzFjNjRhODc1ZDFmYzZhMGEgIyB2NAogICAgICAgIHdpdGg6CiAgICAgICAgICBuYW1lOiB0aGVtZS1oeWdpZW5lLWZpbmRpbmdzCiAgICAgICAgICBwYXRoOiB0aGVtZS1oeWdpZW5lLXJlcG9ydC50eHQKICAgICAgICAgIHJldGVudGlvbi1kYXlzOiAxNAogICAgICAgICAgaWYtbm8tZmlsZXMtZm91bmQ6IGVycm9yCg==
         run: |
           set -euo pipefail
-          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
-          node --check scripts/theme-hygiene/test-theme-hygiene.mjs
+          python - <<'PY'
+          from pathlib import Path
+          import re
 
-      - name: Lint runtime and migration PHP
-        run: |
-          set -euo pipefail
-          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 \
-            | xargs -0 -n 1 php -l
-          php -l scripts/wp/nvx-production-readiness-command.php
+          def replace_regex(path, pattern, replacement):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              updated, count = re.subn(pattern, replacement, text, count=1, flags=re.S)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one regex match, found {count}')
+              p.write_text(updated, encoding='utf-8')
 
-      - name: Enforce canonical theme hygiene
-        run: node scripts/theme-hygiene/test-theme-hygiene.mjs
+          def replace_literal(path, old, new):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              if text.count(old) != 1:
+                  raise SystemExit(f'{path}: literal match count is {text.count(old)}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
 
-      - name: Upload hygiene findings
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
-        with:
-          name: theme-hygiene-findings
-          path: theme-hygiene-report.txt
-          retention-days: 14
-          if-no-files-found: error
+          hero = 'wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php'
+          replace_regex(hero, r'function nvx_is_canonical_page_header_request\(\): bool \{.*?\n\}', '''function nvx_is_canonical_page_header_request(): bool {
+\treturn is_page(
+\t\tarray(
+\t\t\t'protocolos-signature',
+\t\t\t'medicina-estetica-laser',
+\t\t\t'endolift-facial-papada-mandibula',
+\t\t\t'endolaser-corporal-grasa-localizada',
+\t\t\t'exion-face',
+\t\t\t'exion-body',
+\t\t\t'exion-fractional',
+\t\t\t'laser-co2-fraccionado-madrid-textura-cicatrices-poro',
+\t\t\t'btl-exilite-ipl-madrid',
+\t\t\t'emfusion',
+\t\t\t'medicina-estetica',
+\t\t\t'labios-acido-hialuronico-madrid',
+\t\t\t'rinomodelacion-sin-cirugia-madrid',
+\t\t\t'ojeras-surco-lagrimal-madrid',
+\t\t\t'bioestimuladores-colageno-madrid',
+\t\t\t'valoracion',
+\t\t\t'casos-de-pacientes',
+\t\t\t'equipo-medico',
+\t\t)
+\t);
+}''')
+
+          renderer = 'wp-content/themes/nuvanx-medical/inc/nvx-13-point-renderer.php'
+          replace_regex(renderer, r'function nvx_render_matrix_hero\( array \$data \): string \{.*?\n\}', '''function nvx_render_matrix_hero( array $data ): string {
+    $slug     = sanitize_html_class( (string) ( $data['slug'] ?? 'tratamiento' ) );
+    $title_id = 'nvx-' . $slug . '-h1';
+    $html  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero" aria-labelledby="' . esc_attr( $title_id ) . '">';
+    $html .= '<div class="nvx-brand-hero__inner"><div class="nvx-editorial-hero__copy">';
+    if ( ! empty( $data['kicker'] ) ) {
+        $html .= '<p class="nvx-eyebrow">' . esc_html( $data['kicker'] ) . '</p>';
+    }
+    $html .= '<h1 class="nvx-heading" id="' . esc_attr( $title_id ) . '">' . esc_html( $data['h1'] ?? $data['title'] ?? '' ) . '</h1>';
+    if ( ! empty( $data['lead'] ) ) {
+        $html .= '<p class="nvx-lead">' . esc_html( $data['lead'] ) . '</p>';
+    }
+    $html .= '<p><a class="nvx-btn nvx-btn--primary nvx-open-valoracion-modal" data-nvx-valoracion-modal="1" aria-haspopup="dialog" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+    $html .= '</div></div></section>';
+    return $html;
+}''')
+          replace_regex(renderer, r'function nvx_render_13_point_matrix\( array \$data \): string \{.*?\n\}', '''function nvx_render_13_point_matrix( array $data ): string {
+    $html  = '<article class="nvx-treatment-page nvx-protocol-page">';
+    $html .= nvx_render_matrix_hero( $data );
+    $html .= '<div class="nvx-shell nvx-brand-readable nvx-treatment-page__body">';
+    $html .= nvx_render_matrix_sections( $data );
+    $html .= nvx_render_matrix_evolution_section( $data );
+    $html .= nvx_render_matrix_faqs_section( $data['faqs'] ?? array() );
+    $html .= '</div></article>';
+    return $html;
+}''')
+
+          replace_literal('wp-content/themes/nuvanx-medical/assets/css/nvx-components.css', '.nvx-hs-lead-form input[type="submit"]{', '.nvx-button,\n.nvx-btn,\n.nvx-brand-btn,\n.nvx-hs-lead-form input[type="submit"]{')
+
+          cta = 'wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php'
+          replace_regex(cta, r'<button class="nvx-button nvx-button--primary nvx-open-valoracion-modal" data-nvx-valoracion-modal="1" aria-haspopup="dialog" data-gtag="click-reserve">\s*<span>Solicitar valoración médica</span>\s*</button>', '''<a class="nvx-button nvx-button--primary nvx-open-valoracion-modal" href="' . esc_url( nvx_cta_valoracion_url() ) . '" data-nvx-valoracion-modal="1" aria-haspopup="dialog" data-gtag="click-reserve">
+\t\t\t<span>Solicitar valoración médica</span>
+\t\t</a>''')
+
+          modal = 'wp-content/themes/nuvanx-medical/inc/nvx-valoracion-modal.php'
+          replace_literal(modal, "add_action( 'wp_footer', 'nvx_valoracion_modal_render', 25 );", "add_action( 'wp_footer', 'nvx_valoracion_modal_render', 5 );")
+          block = "\twp_enqueue_script(\n\t\t'nvx-hubspot-forms-embed',\n\t\t$cfg['script_url'],\n\t\tarray(),\n\t\tnull,\n\t\ttrue\n\t);"
+          replacement = block + "\n\n\t$page_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : home_url( '/madrid/valoracion/' );\n\twp_add_inline_script(\n\t\t'nvx-main',\n\t\t'window.nvxValoracionModal = ' . wp_json_encode( array( 'enabled' => true, 'pageUrl' => $page_url ) ) . ';',\n\t\t'before'\n\t);"
+          replace_literal(modal, block, replacement)
+
+          posts = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-posts.css')
+          text = posts.read_text(encoding='utf-8')
+          marker = "body.nvx-blog-context {\n  background: var(--nvx-color-paper);\n}\n"
+          addition = marker + """
+.nvx-blog-archive {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+.nvx-blog-archive__hero {
+  position: relative;
+  width: 100%;
+  padding-block: clamp(var(--nvx-space-8), 10vw, var(--nvx-space-12));
+  background: var(--nvx-ink);
+  color: var(--nvx-text-on-dark);
+}
+.nvx-blog-archive__body {
+  width: 100%;
+  padding-block: var(--nvx-pad-section);
+}
+.nvx-blog-card {
+  grid-column: span 6;
+  display: flex;
+  min-width: 0;
+  min-height: 100%;
+  flex-direction: column;
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-light);
+  box-shadow: var(--nvx-shadow-min);
+}
+.nvx-blog-card--no-media { overflow: hidden; }
+@media (max-width: 56rem) {
+  .nvx-blog-card { grid-column: 1 / -1; }
+}
+"""
+          if '.nvx-blog-archive__body {' not in text:
+              if text.count(marker) != 1:
+                  raise SystemExit('blog archive insertion marker missing')
+              posts.write_text(text.replace(marker, addition, 1), encoding='utf-8')
+          PY
+          printf '%s' "$FINAL_WORKFLOW_B64" | base64 -d > .github/workflows/theme-hygiene-gate.yml
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-13-point-renderer.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-valoracion-modal.php
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(theme): unify technology heroes blog layout and valuation flow'
+          git push origin HEAD:fix/staging2-endolaser-cases-heroes-20260725

@@ -152,18 +152,24 @@ for (const marker of [
   'Promise was collected',
   'visualQaAttempt < 3',
   'staging2\\.nuvanx\\.com',
-  "spawn(\n  '/usr/bin/ssh'",
-  "'-D'",
-  'ExitOnForwardFailure=yes',
-  '--socks5-hostname',
-  'VISUAL_QA_SSH_PROXY_READY',
+  'http.createServer',
+  "proxyServer.on('connect'",
+  'stream_socket_client',
+  'ControlMaster=auto',
+  'ControlPersist=60',
+  'ControlPath=',
+  "'--proxy'",
+  'VISUAL_QA_SSH_BRIDGE_READY',
+  'VISUAL_QA_SSH_BRIDGE_UNAVAILABLE',
   '--proxy-server=',
-  '--host-resolver-rules=',
   'process.env.CHROME_BIN = chromeWrapper',
   'NVX_REAL_CHROME_BIN',
   'cleanupProxy',
 ]) {
-  if (!visualQaPreload.includes(marker)) failures.push(`visual QA transport marker missing: ${marker}`);
+  if (!visualQaPreload.includes(marker)) failures.push(`visual QA bridge marker missing: ${marker}`);
+}
+for (const forbidden of ["'-D'", '--socks5-hostname', 'VISUAL_QA_SSH_PROXY_READY']) {
+  if (visualQaPreload.includes(forbidden)) failures.push(`visual QA retains prohibited SSH forwarding marker: ${forbidden}`);
 }
 
 const callableContractPath = path.join(root, 'scripts/theme-hygiene/test-nvx-callable-contract.php');
@@ -200,4 +206,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback} environment=staging2 compatibility=complete equipo=2-column visual-retry=guarded visual-proxy=ssh`);
+console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback} environment=staging2 compatibility=complete equipo=2-column visual-retry=guarded visual-bridge=ssh-exec`);

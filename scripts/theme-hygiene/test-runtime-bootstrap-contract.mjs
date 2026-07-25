@@ -149,10 +149,21 @@ for (const marker of [
   'VISUAL_QA_RETRY_TRANSIENT_EDGE',
   'spawnSync(process.execPath',
   'Inspected target navigated or closed',
+  'Promise was collected',
   'visualQaAttempt < 3',
   'staging2\\.nuvanx\\.com',
+  "spawn(\n  '/usr/bin/ssh'",
+  "'-D'",
+  'ExitOnForwardFailure=yes',
+  '--socks5-hostname',
+  'VISUAL_QA_SSH_PROXY_READY',
+  '--proxy-server=',
+  '--host-resolver-rules=',
+  'process.env.CHROME_BIN = chromeWrapper',
+  'NVX_REAL_CHROME_BIN',
+  'cleanupProxy',
 ]) {
-  if (!visualQaPreload.includes(marker)) failures.push(`visual QA retry marker missing: ${marker}`);
+  if (!visualQaPreload.includes(marker)) failures.push(`visual QA transport marker missing: ${marker}`);
 }
 
 const callableContractPath = path.join(root, 'scripts/theme-hygiene/test-nvx-callable-contract.php');
@@ -189,4 +200,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback} environment=staging2 compatibility=complete equipo=2-column visual-retry=guarded`);
+console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback} environment=staging2 compatibility=complete equipo=2-column visual-retry=guarded visual-proxy=ssh`);

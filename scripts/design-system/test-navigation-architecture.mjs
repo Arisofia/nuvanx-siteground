@@ -124,7 +124,7 @@ for (const token of usedTokens) {
 }
 requirePattern(
   tokens,
-  /--nvx-border-focus\s*:\s*[^;]+;/,
+  /--nvx-border-focus\s*:\s*[^;\s]+;/,
   'canonical focus-border token must remain defined',
 );
 requirePattern(
@@ -133,7 +133,7 @@ requirePattern(
   'navigation focus-visible controls must consume the canonical focus-border token',
 );
 
-const menuCalls = [...header.matchAll(/wp_nav_menu\(\s*array\(([\s\S]*?)\)\s*\);/g)].map((match) => match[1]);
+const menuCalls = [...header.matchAll(/wp_nav_menu\(\s*array\(([^)]*)\)\s*\);/g)].map((match) => match[1]);
 const desktopMenuCall = menuCalls.find((call) => /['"]menu_class['"]\s*=>\s*['"]nvx-nav__list['"]/.test(call)) || '';
 const mobileMenuCall = menuCalls.find((call) => /['"]menu_class['"]\s*=>\s*['"]nvx-mobile-nav__list['"]/.test(call)) || '';
 

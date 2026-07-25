@@ -38,7 +38,7 @@ function nvx_protocol_hub_card( string $title, string $body, string $path ): str
 
 /** Build the complete Signature hub. */
 function nvx_protocol_hub_markup(): string {
-	$html  = '<article class="nvx-brand-readable nvx-protocol-hub nvx-shell">';
+	$html  = '<article class="nvx-brand-page nvx-protocol-hub">';
 	$html .= '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero"><div class="nvx-brand-hero__inner"><div class="nvx-editorial-hero__copy">';
 	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'MEDICINA ESTÉTICA DE DIAGNÓSTICO', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-heading">' . esc_html__( 'Protocolos Signature: Medicina estética de diagnóstico.', 'nuvanx-medical' ) . '</h1>';

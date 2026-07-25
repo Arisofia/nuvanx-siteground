@@ -86,7 +86,7 @@ function nvx_strategy_solution_card( string $title, string $problem, string $lim
  */
 function nvx_strategy_solutions_markup(): string {
 	$val_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : NVX_PATH_VALORACION;
-	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
+	$html  = '<article class="nvx-brand-page nvx-strategy-page">';
 	$html .= '<header class="nvx-strategy-intro">';
 	$html .= '<p class="nvx-eyebrow">NUVANX · Soluciones médicas</p>';
 	$html .= '<h1 class="nvx-strategy-title">Soluciones médicas para rostro, piel y contorno corporal.</h1>';
@@ -211,7 +211,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$team_url      = esc_url( home_url( '/equipo-medico/' ) );
 	$investment    = nvx_strategy_published_url( 'investment' );
 
-	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
+	$html  = '<article class="nvx-brand-page nvx-strategy-page">';
 	$html .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">Criterio médico NUVANX</p>';
 	$html .= '<h1 class="nvx-strategy-title">Por qué NUVANX. Sin retórica de marketing.</h1>';
 	$html .= '<p class="nvx-brand-lead">Diagnóstico, responsabilidad médica identificada, trazabilidad, privacidad y seguimiento. Estos son los criterios concretos con los que organizamos la atención.</p></header>';
@@ -363,7 +363,7 @@ function nvx_strategy_investment_markup(): string {
 	$groups        = nvx_strategy_verified_investment_groups();
 	$valuation_url = esc_url( home_url( $val_url ) );
 
-	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
+	$html  = '<article class="nvx-brand-page nvx-strategy-page">';
 	$html .= '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-editorial-hero"><div class="nvx-brand-hero__inner"><div class="nvx-editorial-hero__copy">';
 	$html .= '<p class="nvx-eyebrow">Inversión en medicina estética · NUVANX Madrid</p>';
 	$html .= '<h1 class="nvx-heading">El presupuesto forma parte de una decisión informada.</h1>';

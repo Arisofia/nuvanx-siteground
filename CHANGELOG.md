@@ -1,6 +1,11 @@
 # Changelog
 
 ## 2026.07.25
+- **Fix: Constant NVX_REGEX_WHITESPACE already defined**
+  - Centralized `NVX_REGEX_WHITESPACE` and `NVX_REGEX_WHITESPACE_U` in `functions.php` (single early definition).
+  - Removed duplicate define blocks from `nvx-clinics-hub.php` and `nvx-mobile-hero-hierarchy.php`.
+  - Eliminates PHP warnings during WP load / Staging2 deploy that were blocking the guarded deployment step.
+
 - **General cleanup — solo activo y necesario**
   - Eliminado stub deprecado `docs/deployment.md`.
   - Eliminado `scripts/deploy-production.sh` (superseded por `tools/deploy`).

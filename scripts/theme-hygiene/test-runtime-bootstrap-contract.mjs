@@ -28,6 +28,10 @@ function walkPhp(directory) {
 const structuredData = read('inc/nvx-structured-data.php');
 const jsonldHelpers = read('inc/nvx-jsonld-content.php');
 const environmentFlags = read('inc/nvx-environment-flags.php');
+const runtimeCompatibility = read('inc/nvx-runtime-compatibility.php');
+const contentPresentation = read('inc/nvx-content-presentation.php');
+const equipoPage = read('inc/nvx-equipo-page.php');
+const drRiveraPage = read('inc/nvx-dr-rivera-page.php');
 const pageHygiene = read('inc/nvx-page-hygiene.php');
 const aestheticPages = read('inc/nvx-aesthetic-treatment-pages.php');
 const functions = read('functions.php');
@@ -60,6 +64,7 @@ for (const marker of [
   'function nvxEnvironmentIsStaging2(): bool',
   "'staging2.nuvanx.com' === $host",
   "apply_filters( 'nvx_environment_is_staging2'",
+  "require_once __DIR__ . '/nvx-runtime-compatibility.php';",
 ]) {
   if (!environmentFlags.includes(marker)) failures.push(`environment runtime marker missing: ${marker}`);
 }
@@ -72,6 +77,26 @@ for (const [source, label] of [
 ]) {
   if (!source.includes("function_exists( 'nvx_environment_is_staging2' )")) {
     failures.push(`${label} does not guard its shared staging2 environment dependency`);
+  }
+}
+
+if (!contentPresentation.includes('function nvx_cta_pair_markup(')) {
+  failures.push('canonical CTA pair implementation is missing');
+}
+for (const marker of [
+  "function_exists( 'nvxCtaPairMarkup' )",
+  'function nvxCtaPairMarkup(',
+  "function_exists( 'nvx_cta_pair_markup' )",
+  'return nvx_cta_pair_markup( $extra_class );',
+]) {
+  if (!runtimeCompatibility.includes(marker)) failures.push(`CTA compatibility marker missing: ${marker}`);
+}
+for (const [source, label] of [
+  [equipoPage, 'equipo renderer'],
+  [drRiveraPage, 'Dr. Rivera renderer'],
+]) {
+  if (source.includes('nvxCtaPairMarkup(') && !runtimeCompatibility.includes('function nvxCtaPairMarkup(')) {
+    failures.push(`${label} calls nvxCtaPairMarkup without a declared compatibility adapter`);
   }
 }
 
@@ -101,4 +126,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback} environment=staging2`);
+console.log(`RUNTIME_BOOTSTRAP_CONTRACT_OK callback=${registeredJsonldCallback} environment=staging2 cta=compatible`);

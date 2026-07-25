@@ -109,13 +109,13 @@ const remoteCurlScript = [
   'curl_status=$?',
   'set -e',
   'if [[ -z "$status" ]]; then status=000; fi',
-  'printf \'__NVX_CURL_EXIT__:%s\\n\' "$curl_status"',
-  'printf \'__NVX_STATUS__:%s\\n\' "$status"',
-  'printf \'__NVX_HEADERS_BEGIN__\\n\'',
+  String.raw`printf '__NVX_CURL_EXIT__:%s\n' "$curl_status"`,
+  String.raw`printf '__NVX_STATUS__:%s\n' "$status"`,
+  String.raw`printf '__NVX_HEADERS_BEGIN__\n'`,
   'cat "$headers_file"',
-  'printf \'\\n__NVX_HEADERS_END__\\n__NVX_BODY_BEGIN__\\n\'',
+  String.raw`printf '\n__NVX_HEADERS_END__\n__NVX_BODY_BEGIN__\n'`,
   'cat "$body_file"',
-  'printf \'\\n__NVX_BODY_END__\\n\'',
+  String.raw`printf '\n__NVX_BODY_END__\n'`,
 ].join('\n');
 
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -133,7 +133,7 @@ function parseTransportOutput(stdout, stderr) {
 }
 
 function headerValue(headers, name) {
-  const values = headers.split('\n').map((line) => line.trim())
+  const values = headers.split(/\r?\n/)
     .filter((line) => line.toLowerCase().startsWith(`${name.toLowerCase()}:`))
     .map((line) => line.slice(line.indexOf(':') + 1).trim());
   return values.at(-1) || '';

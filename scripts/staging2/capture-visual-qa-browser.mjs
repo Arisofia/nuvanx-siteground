@@ -5,7 +5,7 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { randomInt } from 'node:crypto';
 import {
-  pages, viewports, sleep, safeName, pageState, captureFullPage, captureViewport,
+  pages, viewports, sleep, safeName, pageState, captureFullPage,
   auditDesktopNavigation, auditMobileNavigation,
 } from './visual-qa-common.mjs';
 

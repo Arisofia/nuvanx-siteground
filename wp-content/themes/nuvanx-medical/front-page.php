@@ -12,7 +12,9 @@ defined( 'ABSPATH' ) || exit;
 
 $hero_video_url = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
 
-define( 'NVX_URL_REMODELACION', NVX_URL_REMODELACION );
+if ( ! defined( 'NVX_URL_REMODELACION' ) ) {
+	define( 'NVX_URL_REMODELACION', '/remodelacion-corporal-laser-madrid/' );
+}
 
 $protocols = array(
 	array(

@@ -1,4 +1,4 @@
-name: Deploy Staging2 (manual)
+name: Deploy to Staging2
 
 on:
   pull_request:
@@ -24,7 +24,6 @@ on:
       - 'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php'
       - 'wp-content/themes/nuvanx-medical/inc/nvx-mobile-hero-hierarchy.php'
       - 'wp-content/themes/nuvanx-medical/assets/css/nvx-canonical-page-hero.css'
-      - 'wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-*.php'
       - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
       - 'docs/content-strategy-2026/NUVANX-CONTOUR-ROADMAP-STATUS.md'
       - 'docs/operations/deployment.md'
@@ -98,8 +97,6 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php
-          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-single.php
-          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-archive.php
 
       - name: Validate workflow and deployment contract
         id: contract_validation

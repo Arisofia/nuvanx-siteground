@@ -219,11 +219,3 @@ General migrations remain host-authorized and must never run automatically on
 push or pull request. A protected, manually approved `workflow_dispatch` may run
 a migration only when the exact migration, backup, rollback and verification
 contract is versioned in the repository, as implemented for production readiness.
-
-See [tools/migrations/README.md](../../tools/migrations/README.md) for other
-migration procedures.
-
-## Pre-deploy audit
-
-Run read-only checks from [tools/audit/README.md](../../tools/audit/README.md)
-against Staging2 first.

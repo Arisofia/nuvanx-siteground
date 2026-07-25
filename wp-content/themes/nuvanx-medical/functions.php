@@ -145,49 +145,11 @@ function nvx_theme_scripts(): void {
     if ( nvx_theme_is_home_page() ) {
         wp_enqueue_style( 'nvx-home', $css . 'nvx-brand-home.css', array( 'nvx-footer' ), nvx_asset_version( 'assets/css/nvx-brand-home.css' ) );
         wp_enqueue_style( 'nvx-home-v3', $css . 'nvx-home-v3.css', array( 'nvx-home' ), nvx_asset_version( 'assets/css/nvx-home-v3.css' ) );
-        wp_enqueue_script(
-            'nvx-home-video',
-            $uri . '/assets/js/nvx-home-video.js',
-            array(),
-            nvx_asset_version( 'assets/js/nvx-home-video.js' ),
-            true
-        );
-    }
-
-
-
-    if ( nvx_theme_is_home_page() && nvx_theme_hero_blackout_enabled() ) {
-        wp_enqueue_style(
-            'nvx-hero-blackout',
-            $css . 'nvx-hero-blackout.css',
-            array( 'nvx-home' ),
-            nvx_asset_version( 'assets/css/nvx-hero-blackout.css' )
-        );
     }
 
     wp_enqueue_script( 'nvx-main', $uri . '/assets/js/nvx-main.js', array(), nvx_asset_version( 'assets/js/nvx-main.js' ), true );
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_scripts' );
-
-/** Whether the sitewide ink hero treatment is enabled. */
-function nvx_theme_hero_blackout_enabled(): bool {
-    $enabled = true;
-    if ( defined( 'NVX_HERO_BLACKOUT' ) ) {
-        $enabled = (bool) NVX_HERO_BLACKOUT;
-    }
-
-    return (bool) apply_filters( 'nvx_theme_hero_blackout_enabled', $enabled );
-}
-
-/** Add the hero-blackout state class when enabled. */
-function nvx_theme_hero_blackout_body_class( array $classes ): array {
-    if ( nvx_theme_hero_blackout_enabled() ) {
-        $classes[] = 'nvx-hero-blackout';
-    }
-
-    return array_values( array_unique( $classes ) );
-}
-add_filter( 'body_class', 'nvx_theme_hero_blackout_body_class' );
 
 /** Estimate reading time for editorial posts. */
 function nvx_reading_time( $post_id = null ): string {
@@ -268,10 +230,7 @@ require_once get_template_directory() . '/inc/nvx-content-presentation.php';
 require_once get_template_directory() . '/inc/nvx-hostile-conversion-engine.php';
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-portfolio-hub.php';
-require_once get_template_directory() . '/inc/nvx-protocol-hub.php';
-require_once get_template_directory() . '/inc/nvx-protocol-pages.php';
 require_once get_template_directory() . '/inc/nvx-anatomical-pages.php';
-require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
 require_once get_template_directory() . '/inc/nvx-anti-fear-remodelacion.php';
 require_once get_template_directory() . '/inc/nvx-endolaser-page.php';
@@ -287,7 +246,6 @@ require_once get_template_directory() . '/inc/nvx-dr-rivera-page.php';
 require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
 require_once get_template_directory() . '/inc/nvx-faq-catalog.php';
 require_once get_template_directory() . '/inc/nvx-evidence-panel.php';
-require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
 
 /** Load the cases renderer only after WordPress resolves the current route. */
 function nvxThemeLoadCasesPageModule(): void {
@@ -304,7 +262,6 @@ function nvxThemeLoadCasesPageModule(): void {
     require_once get_template_directory() . '/inc/nvx-cases-page.php';
 }
 add_action( 'wp', 'nvxThemeLoadCasesPageModule', 1 );
-
 
 /**
  * Safely executes a preg_replace/preg_replace_callback, returning the original content

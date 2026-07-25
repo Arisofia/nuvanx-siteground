@@ -1,197 +1,140 @@
-# Staging2 rendered acceptance — Phase 3
-
-## Estado de partida
-
-La arquitectura de production readiness y el workflow protegido ya están fusionados en `master`, pero el estado renderizado de staging2 no constituye todavía una validación del código actual.
-
-La auditoría conectada previa a esta fase confirmó:
-
-- staging2 publicaba el marker `ddd583823b39f5698bae9eb630ed18dd86408873`, distinto del candidato auditado;
-- `/protocolos-signature/` devolvía una página 404;
-- `/remodelacion-corporal-laser-madrid/` devolvía una página 404;
-- los slugs retirados de LipoSculpt-Air™, V-Lift Awake™ y Post-Maternity mostraban 404 en vez de los redirects 301 gobernados;
-- `por-que-nuvanx` e `inversion-medicina-estetica` estaban publicados;
-- las páginas Signature aprobadas todavía no existían en la base de datos;
-- LipoSculpt-Air™ y V-Lift Awake™ permanecían como borradores con meta `pending_medical_legal`.
-
-Por tanto, el estado se mantiene en **NO-GO para producción** hasta desplegar y validar un SHA exacto.
+# Staging2 rendered acceptance
 
 ## Objetivo
 
-Convertir la aceptación renderizada en una condición automática y bloqueante del workflow manual de staging2.
+La aceptación renderizada demuestra que staging2 sirve exactamente el SHA autorizado y que las rutas canónicas cumplen el contrato de contenido, SEO, redirects y Schema después del despliegue.
 
-El gate no escribe en WordPress, no modifica archivos remotos y no toca producción. Solo consulta la web pública de staging2 después del preflight y, cuando corresponda, después del deployment y la migración.
+El control es de solo lectura. No modifica WordPress, la base de datos ni los archivos remotos.
 
-## Script
+## Implementación canónica
 
-Archivo:
+El único verificador de aceptación renderizada es:
 
 ```text
-scripts/staging2/verify-rendered-acceptance.mjs
+scripts/staging2/verify-rendered-acceptance-ssh.mjs
 ```
 
-Variables obligatorias:
+La consulta se ejecuta desde el origen mediante la conexión SSH configurada por el workflow. Esto evita depender de la respuesta del edge público de SiteGround y elimina la antigua variante de transporte HTTP directo.
+
+Módulos compartidos:
+
+```text
+scripts/staging2/staging2-contract-common.mjs
+scripts/staging2/visual-qa-edge-preload.mjs
+```
+
+## Variables obligatorias
 
 ```text
 BASE_URL=https://staging2.nuvanx.com
 EXPECTED_SHA=<SHA completo de 40 caracteres>
 EVIDENCE_DIR=staging2-deployment-evidence/rendered-acceptance
+STAGING2_SSH_ALIAS=nvx-staging2
 ```
 
-El script se niega a consultar cualquier base distinta de `https://staging2.nuvanx.com`.
+El verificador rechaza cualquier `BASE_URL` distinto de staging2, cualquier SHA incompleto y cualquier alias SSH con caracteres no permitidos.
 
-## Contrato de páginas
+## Rutas canónicas verificadas
 
-Debe obtener HTTP 200 sin redirección inesperada en:
+La aceptación exige HTTP 200, un H1 exacto, metadata versionada, marcadores editoriales y ausencia de contenido retirado en:
 
-| Ruta | H1 exacto | Marcador de contenido |
-|---|---|---|
-| `/tratamientos/` | `Portafolio clínico.` | `Áreas de intervención clínica` |
-| `/protocolos-signature/` | `Protocolos Signature: Medicina estética de diagnóstico.` | `Nuestro estándar: La firma NUVANX` |
-| `/remodelacion-corporal-laser-madrid/` | `Remodelación corporal láser diseñada según tu anatomía.` | `Couture Sculpt™: El protocolo y la tecnología` |
-| `/por-que-nuvanx/` | `El diagnóstico precede a la indicación.` | `Diagnóstico antes de tecnología` |
-| `/inversion-medicina-estetica/` | `El presupuesto forma parte de una decisión informada.` | `Qué incluye el precio` |
+- `/soluciones-medicas/`
+- `/protocolos-signature/`
+- `/remodelacion-corporal-laser-madrid/`
+- `/tratamiento-postparto-abdomen-contorno-corporal-madrid/`
+- `/por-que-nuvanx/`
+- `/inversion-medicina-estetica/`
+- las páginas anatómicas publicadas definidas en `staging2-contract-common.mjs`
 
-Cada página debe cumplir además:
+## Redirects gobernados
 
-- marker `nvx-deploy-sha` igual al SHA seleccionado;
+Debe existir un redirect 301 directo para:
+
+```text
+/tratamientos/     → /soluciones-medicas/
+/liposculpt-air/   → /remodelacion-corporal-laser-madrid/
+/v-lift-awake/     → /protocolos-signature/
+```
+
+No se aceptan 302, 307, cadenas de redirects, destinos diferentes o rutas 404.
+
+## Contrato por página
+
+Cada página debe cumplir:
+
+- marker `nvx-deploy-sha` igual a `EXPECTED_SHA`;
 - un único H1;
-- `title`, meta description, `og:title` y `og:description` iguales a los valores versionados;
+- title y meta description iguales al catálogo versionado;
+- equivalencia de Open Graph;
 - `noindex,nofollow` en staging2;
-- canonical o `og:url` con el mismo path sobre `staging2.nuvanx.com`, `nuvanx.com` o `www.nuvanx.com`;
+- canonical u `og:url` con el path correcto;
 - CTA hacia `/madrid/valoracion/`;
 - JSON-LD válido;
-- `WebPage` y organización médica en Schema;
-- `ItemList` adicional en `/tratamientos/`;
-- ausencia de prototipos, estados internos, placeholders y formulaciones clínicas o comerciales bloqueadas.
+- entidades `WebPage` y `Organization` o `MedicalOrganization`;
+- ausencia de prototipos, placeholders, estados internos y claims bloqueados.
 
-## Contrato SEO exacto
-
-El catálogo canónico `inc/nvx-seo-metadata.php` debe resolver los valores siguientes. El gate compara también las equivalencias Open Graph.
-
-| Ruta | Title exacto | Meta description exacta |
-|---|---|---|
-| `/tratamientos/` | Tratamientos Medicina Estética Láser Madrid \| NUVANX | Tratamientos de medicina estética láser en Madrid: Endolift®, Láser CO₂, EXION® BTL, IPL y medicina facial con valoración clínica. |
-| `/protocolos-signature/` | Protocolos Signature \| NUVANX Madrid | Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado. |
-| `/remodelacion-corporal-laser-madrid/` | Remodelación corporal láser Madrid \| NUVANX | Remodelación corporal láser en Madrid por unidades anatómicas para grasa localizada, laxitud y continuidad del contorno tras valoración médica. |
-| `/por-que-nuvanx/` | Por qué NUVANX \| Criterio médico en Madrid | Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid. |
-| `/inversion-medicina-estetica/` | Inversión en medicina estética \| NUVANX Madrid | Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid. |
-
-Esto impide que una página pase la aceptación con metadata genérica, antigua o heredada del estado previo de Yoast.
-
-## Gobierno de contenido público
-
-El contrato estático y el gate renderizado controlan conjuntamente:
+## Secuencia del workflow
 
 ```text
-wp-content/themes/nuvanx-medical/inc/nvx-portfolio-hub.php
-wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php
-wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php
-wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php
+Validar contratos estáticos
+→ validar sintaxis
+→ comprobar identidad de staging2
+→ crear backup
+→ sincronizar el tema del SHA autorizado
+→ purgar cachés
+→ probar callbacks reales de WordPress
+→ auditar y aplicar la migración gobernada
+→ ejecutar smoke remoto
+→ ejecutar aceptación renderizada por SSH
+→ ejecutar QA visual real
+→ publicar evidencia
 ```
 
-El contenido debe conservar:
-
-- diagnóstico antes de tecnología;
-- indicación y límites individualizados;
-- expectativas realistas;
-- selección según anatomía, diagnóstico y fototipo cuando corresponda;
-- presupuesto documentado después de la valoración;
-- seguimiento y derivación cuando estén indicados;
-- promociones sin alterar la indicación ni generar urgencia comercial.
-
-El gate bloquea, entre otras, estas categorías de formulación:
-
-- garantía o promesa de resultados;
-- absolutos de control, seguridad, discreción o recuperación;
-- superioridad no demostrada como “estándar de oro”;
-- comparaciones no verificables con otras clínicas o presupuestos;
-- nombres de prototipos retirados y estados internos;
-- afirmaciones incompatibles con la política comercial vigente.
-
-## Contrato de redirects
-
-Debe obtener exactamente HTTP 301 y `Location` absoluto de staging2:
-
-```text
-/liposculpt-air/
-→ /remodelacion-corporal-laser-madrid/
-
-/v-lift-awake/
-→ /protocolos-signature/
-
-/tratamiento-postparto-abdomen-contorno-corporal-madrid/
-→ /protocolos-signature/
-```
-
-V-Lift Awake™ apunta temporalmente al hub publicado de Protocolos Signature hasta que exista y se apruebe una página canónica específica para Profile Definition™. No debe redirigirse a una ruta 404 o no publicada.
-
-El gate comprueba también que el destino final responda HTTP 200. Un 404, 302, 307, redirect en cadena o destino diferente bloquea la aceptación.
+La migración no comienza si el bootstrap del tema, `the_content`, los callbacks o la página de Soluciones Médicas no superan la sonda de runtime.
 
 ## Evidencia
 
-El artifact existente incorpora:
+El artifact `staging2-deployment-evidence` debe incluir como mínimo:
 
 ```text
-staging2-deployment-evidence/run-context.txt
-staging2-deployment-evidence/ssh-connectivity.log
-staging2-deployment-evidence/preflight.log
-staging2-deployment-evidence/remote-deploy.log
-staging2-deployment-evidence/deployed-marker.log
-staging2-deployment-evidence/independent-smoke.log
-staging2-deployment-evidence/rendered-acceptance.log
-staging2-deployment-evidence/postflight.log
-staging2-deployment-evidence/rendered-acceptance/report.json
-staging2-deployment-evidence/rendered-acceptance/tratamientos.html
-staging2-deployment-evidence/rendered-acceptance/protocolos-signature.html
-staging2-deployment-evidence/rendered-acceptance/remodelacion-corporal-laser-madrid.html
-staging2-deployment-evidence/rendered-acceptance/por-que-nuvanx.html
-staging2-deployment-evidence/rendered-acceptance/inversion-medicina-estetica.html
+run-context.txt
+ssh-connectivity.log
+preflight.log
+remote-deploy.log
+deployed-marker.log
+independent-smoke.log
+rendered-acceptance.log
+rendered-acceptance/report.json
+postflight.log
 ```
 
-El HTML se conserva para demostrar qué respondió staging2 durante el run, no solo qué código estaba en GitHub.
+El directorio de aceptación conserva también el HTML recibido para cada ruta auditada.
 
 ## Resultado esperado
 
-Un run `DEPLOY_AND_MIGRATE` aceptado debe emitir:
+Un despliegue aceptado debe emitir:
 
 ```text
 STAGING2_PREFLIGHT_OK
-DEPLOY_STAGING2_OK
+runtime_hooks=ok
+Production-readiness audit passed.
 SMOKE_VERIFY_OK
 RENDERED_ACCEPTANCE_OK
-Production-readiness audit passed.
+VISUAL_QA_OK
+DEPLOY_STAGING2_OK
 ```
 
-En modo `PREFLIGHT_ONLY`, solo aplican la conectividad SSH, el diagnóstico remoto y `STAGING2_PREFLIGHT_OK`.
+## Criterios de bloqueo
 
-En modo `SMOKE_ONLY`, `DEPLOY_STAGING2_OK` no aplica, pero `STAGING2_PREFLIGHT_OK`, `SMOKE_VERIFY_OK` y `RENDERED_ACCEPTANCE_OK` siguen siendo obligatorios.
-
-## Secuencia operativa
-
-1. Mantener el PR abierto como draft y estabilizar su HEAD final.
-2. Confirmar que los contratos estáticos están verdes sobre ese HEAD.
-3. Ejecutar `PREFLIGHT_ONLY` sobre el mismo HEAD de la rama.
-4. Revisar y descargar el artifact.
-5. Ejecutar `DEPLOY_AND_MIGRATE` sobre exactamente el mismo HEAD.
-6. Confirmar marker, auditoría, smoke y aceptación renderizada.
-7. Completar QA visual manual en desktop y móvil.
-8. Registrar el SHA aceptado y no añadir commits después de la validación.
-9. Marcar el PR como ready y fusionar únicamente ese SHA ya validado.
-10. Promover a producción solo el código equivalente al SHA aceptado mediante un procedimiento separado y protegido.
-11. Repetir smoke, aceptación SEO y revisión de logs en producción.
-
-## Gate de producción
-
-La promoción permanece bloqueada cuando se cumple cualquiera de estas condiciones:
+La promoción queda bloqueada cuando:
 
 - staging2 sirve un SHA diferente;
-- falta una página aprobada;
-- un redirect retirado devuelve 404 o un destino distinto;
+- falta una ruta aprobada;
+- un redirect no es 301 directo;
 - existe más de un H1;
-- title, description, Open Graph, canonical/OG o Schema no coinciden con el contrato;
-- aparece contenido provisional, nomenclatura retirada o una formulación clínica/comercial bloqueada;
+- la metadata, canonical, Open Graph o Schema no coincide;
+- aparece contenido provisional o una formulación clínica bloqueada;
 - la auditoría de migración no queda limpia;
-- el artifact no está disponible o está incompleto;
-- el QA visual no se ha completado;
-- el candidato de producción no corresponde al estado validado.
+- falta evidencia;
+- el QA visual falla;
+- el candidato de producción no es el mismo SHA validado.

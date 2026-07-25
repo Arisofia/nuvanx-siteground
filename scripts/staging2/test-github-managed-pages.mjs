@@ -16,6 +16,8 @@ const read = (relative) => {
   return fs.readFileSync(target, 'utf8');
 };
 
+const functions = read('wp-content/themes/nuvanx-medical/functions.php');
+const environmentFlags = read('wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php');
 const frontPage = read('wp-content/themes/nuvanx-medical/front-page.php');
 const homeCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-home-structure.css');
 const homeArt = read('wp-content/themes/nuvanx-medical/assets/images/nvx-home-hero-contours.svg');
@@ -32,6 +34,7 @@ const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pa
 const required = [
   [frontPage, "'nvx-home-structure'", 'Home does not enqueue its GitHub-managed structure layer'],
   [frontPage, 'assets/images/nvx-home-hero-contours.svg', 'Home does not use repository-owned hero artwork'],
+  [frontPage, '$remodelacion_url', 'Home does not use a local remodelación route variable'],
   [frontPage, 'nvx-home-v5', 'Home canonical root is missing'],
   [homeCss, '.nvx-home-v5 .nvx-home-manifesto', 'Home structural divisions are missing'],
   [homeCss, '.nvx-home-v5 .nvx-home-feature', 'Home text-only feature correction is missing'],
@@ -92,7 +95,27 @@ for (const forbidden of [
   if (strategyPages.includes(forbidden)) failures.push(`Legacy solutions renderer remains active: ${forbidden}`);
 }
 
+for (const [source, marker, message] of [
+  [functions, 'nvx-home-video', 'Theme still enqueues the retired home video controller'],
+  [functions, 'nvx-hero-blackout', 'Theme still enqueues or registers the retired hero blackout'],
+  [functions, 'nvx_theme_hero_blackout_enabled', 'Retired hero blackout feature flag remains in the bootstrap'],
+  [environmentFlags, 'nvxEnvironmentIsStaging2', 'Environment module still contains presentation-only staging detection'],
+  [environmentFlags, 'nvxEnvironmentFilterHeroBlackout', 'Environment module still filters the retired hero blackout'],
+  [frontPage, "define( 'NVX_URL_REMODELACION'", 'Home creates a global constant from inside a template'],
+]) {
+  if (source.includes(marker)) failures.push(message);
+}
+
+for (const obsoletePath of [
+  'wp-content/themes/nuvanx-medical/assets/js/nvx-home-video.js',
+  'wp-content/themes/nuvanx-medical/assets/css/nvx-hero-blackout.css',
+  'scripts/staging2/verify-rendered-acceptance.mjs',
+]) {
+  if (fs.existsSync(file(obsoletePath))) failures.push(`obsolete file remains: ${obsoletePath}`);
+}
+
 const managedPhpFiles = [
+  'wp-content/themes/nuvanx-medical/functions.php',
   'wp-content/themes/nuvanx-medical/front-page.php',
   'wp-content/themes/nuvanx-medical/templates/page-sede.php',
   'wp-content/themes/nuvanx-medical/templates/page-landing-valoracion.php',
@@ -100,6 +123,7 @@ const managedPhpFiles = [
   'wp-content/themes/nuvanx-medical/template-parts/content/nvx-clinics-hub-github.php',
   'wp-content/themes/nuvanx-medical/template-parts/content/nvx-valoracion-github.php',
   'wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-environment-flags.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-github-managed-page-state.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-jsonld-content.php',

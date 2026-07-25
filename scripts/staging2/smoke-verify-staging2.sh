@@ -126,14 +126,15 @@ fetch_page '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' 'Tratamien
 fetch_page '/por-que-nuvanx/' 'Por qué NUVANX. Sin retórica de marketing.' 'Responsabilidad médica y continuidad asistencial' 'Trazabilidad de productos' 'Por qué importa'
 fetch_page '/inversion-medicina-estetica/' 'El presupuesto forma parte de una decisión informada.' 'Cómo leer estas tarifas' 'Qué incluye siempre el plan en NUVANX' 'Qué no encontrarás aquí'
 
+MARKER_TREATMENT_PAGE='nvx-treatment-page'
 MARKER_VALORA='Qué se valora'
 MARKER_DECIDE='Cómo se decide el plan'
 MARKER_LIMITES='Límites y cuándo derivamos'
 
-fetch_page '/papada-definicion-mandibular-madrid/' 'nvx-treatment-page' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
-fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' 'nvx-treatment-page' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
-fetch_page '/cicatrices-acne-poros-textura-madrid/' 'nvx-treatment-page' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
-fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' 'nvx-treatment-page' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/papada-definicion-mandibular-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/cicatrices-acne-poros-textura-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/grasa-localizada-abdomen-flancos-madrid/' 'Grasa localizada en abdomen y flancos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/flacidez-grasa-localizada-brazos-madrid/' 'Flacidez y grasa localizada en brazos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/grasa-espalda-zona-sujetador-madrid/' 'Grasa de espalda y zona del sujetador en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"

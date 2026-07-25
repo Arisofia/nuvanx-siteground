@@ -294,7 +294,10 @@ function nvx_laser_editorial_body_markup(): string {
 }
 
 /**
- * Rebuild Medicina Estética Láser hub page.
+ * Rebuilds the Medicina Estética Láser hub page content with its standardized hero and editorial sections.
+ *
+ * @param string $content The existing page content used to determine eligibility and preserve the hero media and page wrapper.
+ * @return string The rebuilt page content, or the original content when the page is not a laser medicine hub page.
  */
 function nvx_content_restructure_laser_medicine_page( string $content ): string {
 	if ( ! nvx_content_is_laser_medicine_page( $content ) ) {

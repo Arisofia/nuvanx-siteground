@@ -75,7 +75,11 @@ function nvx_strategy_solution_card( string $title, string $problem, string $lim
 	return $html;
 }
 
-/** Builds the medical-solutions hub organized by anatomy and diagnosis. */
+/**
+ * Builds the medical-solutions hub organized by anatomy and diagnosis.
+ *
+ * @return string The generated HTML markup for the medical-solutions page.
+ */
 function nvx_strategy_solutions_markup(): string {
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
 	$html .= '<header class="nvx-strategy-intro">';
@@ -191,7 +195,11 @@ function nvx_strategy_solutions_markup(): string {
 	return $html;
 }
 
-/** Builds the NUVANX medical criteria and patient-care standards page. */
+/**
+ * Builds the NUVANX medical criteria and patient-care standards page.
+ *
+ * @return string The generated HTML markup.
+ */
 function nvx_strategy_why_nuvanx_markup(): string {
 	$valuation_url = esc_url( home_url( $val_url ) );
 	$team_url      = esc_url( home_url( '/equipo-medico/' ) );
@@ -339,7 +347,11 @@ function nvx_strategy_investment_table_section( string $heading, array $rows ): 
 	return $html;
 }
 
-/** Builds the investment page with transparent tariffs and clinical context. */
+/**
+ * Builds the investment page with transparent tariffs and clinical context.
+ *
+ * @return string The generated investment page HTML.
+ */
 function nvx_strategy_investment_markup(): string {
 	$groups        = nvx_strategy_verified_investment_groups();
 	$valuation_url = esc_url( home_url( $val_url ) );

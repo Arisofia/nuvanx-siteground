@@ -29,7 +29,12 @@ function nvx_treatment_hub_schema_upsert_node( array $graph, array $node ): arra
 	return $graph;
 }
 
-/** Canonical services and procedures represented by the visible catalogue. */
+/**
+ * Builds the treatment and procedure catalogue for the schema graph.
+ *
+ * @param string $organization_id Schema identifier of the organization providing the services.
+ * @return array List items describing the available treatments and procedures.
+ */
 function nvx_treatment_hub_schema_items( string $organization_id ): array {
 	$definitions = array(
 		array(

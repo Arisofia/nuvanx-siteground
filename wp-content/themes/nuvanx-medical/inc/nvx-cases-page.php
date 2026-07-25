@@ -49,7 +49,11 @@ function nvxCasesPageBodyClass( array $classes ): array {
 }
 add_filter( 'body_class', 'nvxCasesPageBodyClass' );
 
-/** Build the canonical cases page markup. */
+/**
+ * Builds the canonical clinical cases page markup.
+ *
+ * @return string The rendered cases page HTML.
+ */
 function nvxCasesPageMarkup(): string {
     $area_corporal = 'CONTORNO CORPORAL';
     $evolutions = array(

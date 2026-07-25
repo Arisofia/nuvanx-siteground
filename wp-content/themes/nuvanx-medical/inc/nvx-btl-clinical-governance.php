@@ -59,6 +59,8 @@ function nvx_btl_claim_library(): array {
 		return $library;
 	}
 
+	$btl_disclaimer = 'El aplicador incorpora refrigeración de superficie. Los efectos y riesgos se explican antes de decidir, según el protocolo y la respuesta individual.';
+
 	$library = array(
 		// EXION Face — product depth (authoritative for registry + gate).
 		'exion_face_mech_intro'  => array(

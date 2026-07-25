@@ -17,7 +17,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 define( 'NVX_REGEX_WHITESPACE', '/\s+/' );
 define( 'NVX_REGEX_WHITESPACE_U', '/\s+/u' );
-}
 
 /* -------------------------------------------------------------------------
  * Shared class / style lists (defined once; helpers return static caches)

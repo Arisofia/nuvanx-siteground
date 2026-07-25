@@ -255,6 +255,7 @@ function nvx_public_content_text_hygiene( $content ) {
 	$content = str_replace( array_keys( $replacements ), array_values( $replacements ), $content );
 
 	// Do not advertise a price condition that is not confirmed in this source.
+	$val = 'valoración médica';
 	$content = preg_replace( '/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu', $val, $content ) ?? $content;
 	$content = preg_replace( '/\bvaloraci[oó]n\s+gratuita\b/iu', $val, $content ) ?? $content;
 	$content = preg_replace( '/\bvaloraci[oó]n\s+gratis\b/iu', $val, $content ) ?? $content;

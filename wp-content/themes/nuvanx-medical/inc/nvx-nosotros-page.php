@@ -39,6 +39,9 @@ function nvx_content_is_nosotros_page( string $content ): bool {
 		return false;
 	}
 
+	$nosotros = '/nosotros/';
+	$sobre    = '/sobre-nosotros/';
+
 	$path = function_exists( 'nvx_schema_current_path' )
 		? nvx_schema_current_path( (int) get_queried_object_id() )
 		: '';
@@ -361,8 +364,8 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 	}
 
 	$media = '';
-	if ( preg_match( '/<(?:figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/(?:figure|div)>/iu', $content, $m ) ) {
-		$media = $m[0];
+	if ( preg_match( '/<(figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/\1>/iu', $content, $media_match ) ) {
+		$media = $media_match[0];
 	}
 	// Drop logo-as-hero if helper exists.
 	if ( '' !== $media && function_exists( 'nvx_equipo_media_is_logo' ) && nvx_equipo_media_is_logo( $media ) ) {
@@ -404,6 +407,8 @@ function nvx_filter_nosotros_document_title( $title ) {
 	if ( ! function_exists( 'nvx_schema_path_matches' ) || ! function_exists( 'nvx_schema_current_path' ) ) {
 		return $title;
 	}
+	$nosotros = '/nosotros/';
+	$sobre    = '/sobre-nosotros/';
 	$path = nvx_schema_current_path( (int) get_queried_object_id() );
 	if ( ! nvx_schema_path_matches( $path, $nosotros ) && ! nvx_schema_path_matches( $path, $sobre ) ) {
 		return $title;
@@ -422,6 +427,8 @@ function nvx_filter_nosotros_metadesc( $desc ) {
 	if ( ! function_exists( 'nvx_schema_path_matches' ) || ! function_exists( 'nvx_schema_current_path' ) ) {
 		return $desc;
 	}
+	$nosotros = '/nosotros/';
+	$sobre    = '/sobre-nosotros/';
 	$path = nvx_schema_current_path( (int) get_queried_object_id() );
 	if ( ! nvx_schema_path_matches( $path, $nosotros ) && ! nvx_schema_path_matches( $path, $sobre ) ) {
 		return $desc;

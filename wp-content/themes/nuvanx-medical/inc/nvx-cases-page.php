@@ -96,7 +96,7 @@ function nvxCasesPageMarkup(): string {
 				<p class="nvx-cases-eyebrow">PACIENTES NUVANX · MADRID</p>
 				<h1 id="nvx-cases-title">Casos de pacientes y tratamientos realizados en NUVANX</h1>
 				<p class="nvx-cases-hero__lead">Conoce evoluciones de personas tratadas en rostro y contorno corporal. En cada caso indicamos la zona abordada y el tratamiento seleccionado después de una valoración médica individual.</p>
-				<a class="nvx-btn nvx-btn--primary" href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>">Solicitar valoración médica</a>
+				<?php echo function_exists( 'nvx_cta_pair_markup' ) ? nvx_cta_pair_markup( 'nvx-cases-hero-ctas' ) : ''; ?>
 			</div>
 			<div class="nvx-cases-hero__media">
 				<img src="<?php echo esc_url( content_url( '/uploads/2026/07/proceso-medico-laser-nuvanx-madrid.webp' ) ); ?>" alt="Paciente durante su experiencia clínica en NUVANX Madrid" fetchpriority="high" decoding="async">
@@ -139,14 +139,6 @@ function nvxCasesPageMarkup(): string {
 			</div>
 		</section>
 
-		<section class="nvx-cases-closure" aria-labelledby="nvx-cases-closure-title">
-			<p class="nvx-cases-eyebrow">VALORACIÓN INDIVIDUAL</p>
-			<h2 id="nvx-cases-closure-title">Conoce qué tratamiento encaja con tu caso.</h2>
-			<p>El médico revisará la zona que deseas tratar, las alternativas disponibles, el proceso esperado y el presupuesto correspondiente a tu plan.</p>
-			<div class="nvx-cases-closure__actions">
-				<a class="nvx-btn nvx-btn--primary" href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>">Solicitar valoración médica</a>
-				<a class="nvx-btn nvx-btn--secondary-on-dark" href="<?php echo esc_url( nvx_cta_whatsapp_url() ); ?>" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
-			</div>
 		</section>
 	</article>
 	<?php

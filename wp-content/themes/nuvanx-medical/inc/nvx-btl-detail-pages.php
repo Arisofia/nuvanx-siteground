@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Singular page context.
  */
-function nvx_btl_detail_is_singular(): bool {
+function nvxBtlDetailIsSingular(): bool {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return false;
 	}
@@ -34,10 +34,10 @@ function nvx_btl_detail_is_singular(): bool {
  *
  * @return array<string, array<string, mixed>>
  */
-function nvx_btl_detail_registry(): array {
+function nvxBtlDetailRegistry(): array {
 	$hub       = home_url( '/exion-btl/' );
 	$endolaser = home_url( '/endolaser-corporal-grasa-localizada/' );
-
+ 
 	return array(
 		'exion-face'       => array(
 			'path'         => '/exion-face/',
@@ -439,11 +439,10 @@ function nvx_btl_detail_registry(): array {
  *
  * @return string|null Registry key.
  */
-function nvx_btl_detail_current_key( string $content = '' ): ?string {
-	if ( ! nvx_btl_detail_is_singular() || is_front_page() || is_home() ) {
+function nvxBtlDetailCurrentKey( string $content = '' ): ?string {
+	if ( ! nvxBtlDetailIsSingular() || is_front_page() || is_home() ) {
 		return null;
 	}
-
 	// Never hijack posts (blogs share similar titles).
 	if ( is_singular( 'post' ) ) {
 		return null;
@@ -453,8 +452,8 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 		? nvx_schema_current_path( (int) get_queried_object_id() )
 		: '';
 	$path = is_string( $path ) ? $path : '';
-
-	foreach ( nvx_btl_detail_registry() as $slug => $cfg ) {
+ 
+	foreach ( nvxBtlDetailRegistry() as $slug => $cfg ) {
 		if ( function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, $cfg['path'] ) ) {
 			return $slug;
 		}
@@ -472,22 +471,45 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 		}
 	}
 
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	if ( isset( nvx_btl_detail_registry()[ $slug ] ) ) {
+	$slug = get_post_field( 'post_name', get_queried_object_id() );
+	if ( is_string( $slug ) && isset( nvxBtlDetailRegistry()[ $slug ] ) ) {
 		return $slug;
 	}
-
+ 
 	return null;
 }
 
+/**
+ * Renders a standard editorial list section.
+ *
+ * @param string $id_base   The base for the section ID.
+ * @param string $kicker    The section kicker text.
+ * @param string $heading   The main heading for the section.
+ * @param array  $items     An array of items to list.
+ * @param string $list_type The list tag ('ul' or 'ol').
+ * @return string The rendered HTML for the section.
+ */
+function nvxRenderEditorialListSection( string $id_base, string $kicker, string $heading, array $items, string $list_type = 'ul' ): string {
+	$html  = '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id_base ) . '">';
+	$html .= '<div class="nvx-editorial-section__inner">';
+	$html .= '<p class="nvx-editorial-kicker">' . esc_html( $kicker ) . '</p>';
+	$html .= '<h2 id="' . esc_attr( $id_base ) . '" class="nvx-editorial-heading">' . esc_html( $heading ) . '</h2>';
+	$html .= '<' . tag_escape( $list_type ) . ' class="nvx-editorial-grid-list">';
+	foreach ( $items as $item ) {
+		$title = is_array( $item ) ? (string) ( $item['title'] ?? '' ) : '';
+		$text  = is_array( $item ) ? (string) ( $item['body'] ?? '' ) : (string) $item;
+		$html .= '<li class="nvx-editorial-grid-item">' . ( $title ? '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>' : '' ) . '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p></li>';
+	}
+	return $html . '</' . tag_escape( $list_type ) . '></div></section>';
+}
 /**
  * Generates the complete editorial HTML markup for a supported BTL detail page.
  *
  * @param string $key The registry key identifying the detail page.
  * @return string The generated page markup, or an empty string when the key is unsupported.
  */
-function nvx_btl_detail_page_markup( string $key ): string {
-	$reg = nvx_btl_detail_registry();
+function nvxBtlDetailPageMarkup( string $key ): string {
+	$reg = nvxBtlDetailRegistry();
 	if ( empty( $reg[ $key ] ) ) {
 		return '';
 	}
@@ -555,112 +577,15 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$body .= '</div></section>';
 
 	// Indications.
-	$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-ind">';
-	$body .= '<div class="nvx-editorial-section__inner">';
-	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Indicaciones', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-ind" class="nvx-editorial-heading">' . esc_html__( 'Cuándo tiene sentido este protocolo', 'nuvanx-medical' ) . '</h2>';
-	$body .= '<ul class="nvx-editorial-grid-list">';
-	foreach ( (array) ( $c['indications'] ?? array() ) as $item ) {
-		if ( ! is_array( $item ) ) {
-			continue;
-		}
-		$title = trim( (string) ( $item['title'] ?? '' ) );
-		$text  = trim( (string) ( $item['body'] ?? '' ) );
-		if ( '' === $title && '' === $text ) {
-			continue;
-		}
-		$body .= '<li class="nvx-editorial-grid-item">';
-		if ( '' !== $title ) {
-			$body .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
-		}
-		if ( '' !== $text ) {
-			$body .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
-		}
-		$body .= '</li>';
-	}
-	$body .= '</ul></div></section>';
+	$body .= nvxRenderEditorialListSection( $id . '-ind', __( 'Indicaciones', 'nuvanx-medical' ), __( 'Cuándo tiene sentido este protocolo', 'nuvanx-medical' ), (array) ( $c['indications'] ?? array() ) );
 
 	// Compare + blog depth (strategy: internal link to money content).
 	$compare_title = trim( (string) ( $c['compare']['title'] ?? '' ) );
 	$compare_body  = trim( (string) ( $c['compare']['body'] ?? '' ) );
-	$compare_link  = trim( (string) ( $c['compare']['link'] ?? '' ) );
-	$compare_label = trim( (string) ( $c['compare']['label'] ?? '' ) );
-	$has_compare_link = ( '' !== $compare_link && '' !== $compare_label );
-	$has_related      = ! empty( $c['related'] ) && is_array( $c['related'] );
-	$has_combo        = ! empty( $c['combo'] );
-	if ( '' !== $compare_title || '' !== $compare_body || $has_compare_link || $has_related || $has_combo ) {
-		// Prefer aria-labelledby only when the heading (and its id) is rendered.
-		if ( '' !== $compare_title ) {
-			$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
-		} else {
-			$body .= '<section class="nvx-editorial-section" aria-label="' . esc_attr__( 'Criterio diferencial', 'nuvanx-medical' ) . '">';
-		}
-		$body .= '<div class="nvx-editorial-section__inner">';
-		$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
-		if ( '' !== $compare_title ) {
-			$body .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="nvx-editorial-heading">' . esc_html( $compare_title ) . '</h2>';
-		}
-		if ( '' !== $compare_body ) {
-			$body .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html( $compare_body ) . '</p>';
-		}
-		if ( $has_compare_link || $has_combo ) {
-			$body .= '<p class="nvx-editorial-body">';
-			$parts = array();
-			if ( $has_compare_link ) {
-				$parts[] = '<a class="nvx-brand-inline-link" href="' . esc_url( $compare_link ) . '">' . esc_html( $compare_label ) . '</a>';
-			}
-			if ( $has_combo ) {
-				$parts[] = '<a class="nvx-brand-inline-link" href="' . esc_url( (string) $c['combo'] ) . '">' . esc_html__( 'Protocolos combinados NUVANX', 'nuvanx-medical' ) . '</a>';
-			}
-			$body .= implode( ' · ', $parts );
-			$body .= '</p>';
-		}
-		if ( $has_related ) {
-			foreach ( $c['related'] as $rel ) {
-				if ( ! is_array( $rel ) ) {
-					continue;
-				}
-				$rel_url   = trim( (string) ( $rel['url'] ?? '' ) );
-				$rel_label = trim( (string) ( $rel['label'] ?? '' ) );
-				if ( '' === $rel_url || '' === $rel_label ) {
-					continue;
-				}
-				$body .= '<p class="nvx-editorial-body"><a class="nvx-brand-inline-link" href="' . esc_url( $rel_url ) . '">' . esc_html( $rel_label ) . '</a></p>';
-			}
-		}
-		$body .= '</div></section>';
-	}
+	$body .= nvxRenderEditorialListSection( $id . '-cmp', __( 'Criterio diferencial', 'nuvanx-medical' ), $compare_title, array( $compare_body ) );
 
 	// Process (string steps or titled steps — same list chrome).
-	$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-proc">';
-	$body .= '<div class="nvx-editorial-section__inner">';
-	$body .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Proceso médico', 'nuvanx-medical' ) . '</p>';
-	$body .= '<h2 id="' . esc_attr( $id ) . '-proc" class="nvx-editorial-heading">' . esc_html__( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ) . '</h2>';
-	$body .= '<ol class="nvx-editorial-grid-list">';
-	foreach ( (array) ( $c['process'] ?? array() ) as $step ) {
-		if ( is_array( $step ) ) {
-			$title = trim( (string) ( $step['title'] ?? '' ) );
-			$text  = trim( (string) ( $step['body'] ?? '' ) );
-			if ( '' === $title && '' === $text ) {
-				continue;
-			}
-			$body .= '<li class="nvx-editorial-grid-item">';
-			if ( '' !== $title ) {
-				$body .= '<h3 class="nvx-editorial-grid-item__title">' . esc_html( $title ) . '</h3>';
-			}
-			if ( '' !== $text ) {
-				$body .= '<p class="nvx-editorial-body">' . esc_html( $text ) . '</p>';
-			}
-			$body .= '</li>';
-		} else {
-			$text = trim( (string) $step );
-			if ( '' === $text ) {
-				continue;
-			}
-			$body .= '<li class="nvx-editorial-grid-item"><p class="nvx-editorial-body">' . esc_html( $text ) . '</p></li>';
-		}
-	}
-	$body .= '</ol></div></section>';
+	$body .= nvxRenderEditorialListSection( $id . '-proc', __( 'Proceso médico', 'nuvanx-medical' ), __( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ), (array) ( $c['process'] ?? array() ), 'ol' );
 
 	// FAQ.
 	$body .= '<section class="nvx-editorial-section" aria-labelledby="' . esc_attr( $id ) . '-faq">';
@@ -694,13 +619,13 @@ function nvx_btl_detail_page_markup( string $key ): string {
 /**
  * Restructure the_content for BTL detail pages.
  */
-function nvx_content_restructure_btl_detail_page( string $content ): string {
-	$key = nvx_btl_detail_current_key( $content );
+function nvxContentRestructureBtlDetailPage( string $content ): string {
+	$key = nvxBtlDetailCurrentKey( $content );
 	if ( null === $key ) {
 		return $content;
 	}
 
-	$cfg = nvx_btl_detail_registry()[ $key ];
+	$cfg = nvxBtlDetailRegistry()[ $key ];
 	if ( false !== strpos( $content, $cfg['marker'] . '-editorial' ) ) {
 		return $content;
 	}
@@ -726,7 +651,7 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		}
 	}
 
-	$built = nvx_btl_detail_page_markup( $key );
+	$built = nvxBtlDetailPageMarkup( $key );
 	// Inject media into hero if present (after copy, inside __inner).
 	if ( '' !== $media && false !== strpos( $built, 'nvx-brand-hero__inner' ) ) {
 		$built = preg_replace(
@@ -748,7 +673,7 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 
 	return '<div class="nvx-brand-page nvx-brand-page--' . esc_attr( $key ) . '">' . $built . '</div>';
 }
-add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', 19 );
+add_filter( 'the_content', 'nvxContentRestructureBtlDetailPage', 19 );
 
 /**
  * Yoast title for BTL detail pages.
@@ -756,14 +681,14 @@ add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', 19 );
  * @param string $title Title.
  * @return string
  */
-function nvx_filter_btl_detail_title( $title ) {
-	$key = nvx_btl_detail_current_key( '' );
+function nvxFilterBtlDetailTitle( $title ) {
+	$key = nvxBtlDetailCurrentKey( '' );
 	if ( null === $key ) {
 		return $title;
 	}
-	return nvx_btl_detail_registry()[ $key ]['yoast_title'];
+	return nvxBtlDetailRegistry()[ $key ]['yoast_title'];
 }
-add_filter( 'wpseo_title', 'nvx_filter_btl_detail_title', 21 );
+add_filter( 'wpseo_title', 'nvxFilterBtlDetailTitle', 21 );
 
 /**
  * Yoast metadesc for BTL detail pages.
@@ -771,11 +696,11 @@ add_filter( 'wpseo_title', 'nvx_filter_btl_detail_title', 21 );
  * @param string $desc Description.
  * @return string
  */
-function nvx_filter_btl_detail_metadesc( $desc ) {
-	$key = nvx_btl_detail_current_key( '' );
+function nvxFilterBtlDetailMetadesc( $desc ) {
+	$key = nvxBtlDetailCurrentKey( '' );
 	if ( null === $key ) {
 		return $desc;
 	}
-	return nvx_btl_detail_registry()[ $key ]['yoast_desc'];
+	return nvxBtlDetailRegistry()[ $key ]['yoast_desc'];
 }
-add_filter( 'wpseo_metadesc', 'nvx_filter_btl_detail_metadesc', 21 );
+add_filter( 'wpseo_metadesc', 'nvxFilterBtlDetailMetadesc', 21 );

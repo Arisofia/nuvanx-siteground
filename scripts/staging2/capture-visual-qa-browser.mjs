@@ -62,7 +62,7 @@ const report = {
 };
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
-const safeName = (value) => value.replace(/^\/+|\/+$/g, '').replaceAll('/', '__') || 'home';
+const safeName = (value) => value.replace(/^\/+/, '').replace(/\/+$/, '').replaceAll('/', '__') || 'home';
 
 function locateChrome() {
   const candidates = [process.env.CHROME_BIN, 'google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser'].filter(Boolean);
@@ -328,6 +328,11 @@ async function auditDesktopNavigation(port) {
   report.navigation.desktop = result;
 }
 
+function checkMenuLabels(scope, text, required, forbidden) {
+  for (const label of required) if (!text.includes(label)) fail(scope, `missing: ${label}`);
+  for (const label of forbidden) if (text.includes(label)) fail(scope, `exposes retired label: ${label}`);
+}
+
 async function openMobileAccordion(session, linkPattern, parentSubmenuClass = null) {
   return session.call((pattern, parentClass) => {
     const nav = document.getElementById('nvx-mobile-nav');
@@ -360,15 +365,8 @@ async function verifyMobileAccordions(session, scope, result) {
   const state = await session.evaluate(String.raw`(() => { const nav = document.getElementById('nvx-mobile-nav'); const text = nav?.textContent.replace(/\s+/g, ' ').trim() || ''; return { text, expanded: Array.from(nav?.querySelectorAll('.nvx-mobile-nav__toggle[aria-expanded="true"]') || []).length, overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth), drawerWidth: nav?.getBoundingClientRect().width || 0, viewportWidth: document.documentElement.clientWidth }; })()`);
   Object.assign(result, state);
 
+  checkMenuLabels(scope, state.text, ['Abdomen y flancos', 'Brazos y axila', 'Espalda y zona del sujetador', 'Muslos y región subglútea', 'Rodillas', 'Contorno masculino'], ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame']);
   if (state.expanded < 2) fail(scope, `expected two expanded accordion levels, found ${state.expanded}`);
-  const requiredLabels = ['Abdomen y flancos', 'Brazos y axila', 'Espalda y zona del sujetador', 'Muslos y región subglútea', 'Rodillas', 'Contorno masculino'];
-  for (const label of requiredLabels) {
-    if (!state.text.includes(label)) fail(scope, `nested menu missing: ${label}`);
-  }
-  const forbiddenLabels = ['Couture Sculpt', 'Contour Sculpt', 'Eye Frame'];
-  for (const forbidden of forbiddenLabels) {
-    if (state.text.includes(forbidden)) fail(scope, `drawer exposes retired label: ${forbidden}`);
-  }
   if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
   if (state.drawerWidth > state.viewportWidth + 2) fail(scope, `drawer width ${state.drawerWidth}px exceeds viewport ${state.viewportWidth}px`);
 }

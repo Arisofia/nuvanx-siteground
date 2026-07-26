@@ -103,7 +103,7 @@ for (const marker of [
   "function_exists( 'nvxCtaPairMarkup' )",
   'function nvxCtaPairMarkup(',
   "function_exists( 'nvx_cta_pair_markup' )",
-  'return nvx_cta_pair_markup( $extra_class );',
+  'return nvx_cta_pair_markup( $extraClass );',
   "function_exists( 'nvxHtmlAttrsAddClass' )",
   'function nvxHtmlAttrsAddClass(',
   "function_exists( 'nvx_html_attrs_add_class' )",

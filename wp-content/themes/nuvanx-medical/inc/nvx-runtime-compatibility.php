@@ -16,12 +16,12 @@ if ( ! function_exists( 'nvxCtaPairMarkup' ) ) {
      * Compatibility adapter for callers migrated to camelCase before the
      * canonical presentation helper was renamed.
      */
-    function nvxCtaPairMarkup( string $extra_class = '' ): string {
+    function nvxCtaPairMarkup( string $extraClass = '' ): string {
         if ( ! function_exists( 'nvx_cta_pair_markup' ) ) {
             return '';
         }
 
-        return nvx_cta_pair_markup( $extra_class );
+        return nvx_cta_pair_markup( $extraClass );
     }
 }
 

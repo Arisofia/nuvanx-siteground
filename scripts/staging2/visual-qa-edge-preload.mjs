@@ -224,19 +224,98 @@ if (!proxyAddress || typeof proxyAddress === 'string') {
 }
 const proxyPort = proxyAddress.port;
 
-function cleanupProxy() {
-  if (proxyCleaned) return;
-  proxyCleaned = true;
+function stopProxyResources() {
   for (const socket of clientSockets) socket.destroy();
   for (const child of bridgeProcesses) {
     if (!child.stdin.destroyed) child.stdin.end();
     if (child.exitCode === null && !child.killed) child.kill('SIGTERM');
   }
-  proxyServer.close();
-  spawnSync('/usr/bin/ssh', ['-S', controlPath, '-O', 'exit', sshAlias], { stdio: 'ignore' });
+}
+
+function removeProxyFiles() {
   try { fs.closeSync(bridgeLogFd); } catch { /* already closed */ }
   try { fs.unlinkSync(chromeWrapper); } catch { /* wrapper may not exist */ }
   try { fs.unlinkSync(controlPath); } catch { /* control socket may not exist */ }
+}
+
+function waitForChild(child, timeoutMilliseconds = 3000) {
+  return new Promise((resolve) => {
+    if (child.exitCode !== null || child.signalCode !== null) {
+      resolve();
+      return;
+    }
+
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      if (child.exitCode === null && !child.killed) child.kill('SIGKILL');
+      finish();
+    }, timeoutMilliseconds);
+    child.once('error', finish);
+    child.once('exit', finish);
+  });
+}
+
+function closeProxyServer() {
+  return new Promise((resolve) => {
+    if (!proxyServer.listening) {
+      resolve();
+      return;
+    }
+
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(finish, 3000);
+    proxyServer.close(finish);
+  });
+}
+
+function closeSshControl() {
+  return new Promise((resolve) => {
+    const child = spawn('/usr/bin/ssh', ['-S', controlPath, '-O', 'exit', sshAlias], { stdio: 'ignore' });
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      if (child.exitCode === null && !child.killed) child.kill('SIGTERM');
+      finish();
+    }, 3000);
+    child.once('error', finish);
+    child.once('close', finish);
+  });
+}
+
+function cleanupProxy() {
+  if (proxyCleaned) return;
+  proxyCleaned = true;
+  stopProxyResources();
+  proxyServer.close();
+  spawnSync('/usr/bin/ssh', ['-S', controlPath, '-O', 'exit', sshAlias], { stdio: 'ignore' });
+  removeProxyFiles();
+}
+
+async function cleanupProxyForRetry() {
+  if (proxyCleaned) return;
+  proxyCleaned = true;
+  const bridgeWaiters = Array.from(bridgeProcesses, (child) => waitForChild(child));
+  stopProxyResources();
+  await Promise.allSettled([closeProxyServer(), ...bridgeWaiters]);
+  await closeSshControl();
+  removeProxyFiles();
 }
 process.once('exit', cleanupProxy);
 
@@ -303,18 +382,9 @@ console.error = (...args) => {
   nativeConsoleError(...args);
 };
 
-process.exit = (code = 0) => {
-  const output = visualQaErrors.join('\n');
-  const transientEdgeFailure = /H1 mismatch: \["staging2\.nuvanx\.com"\]|Inspected target navigated or closed|Promise was collected|rendered a 403 Forbidden page/i.test(output);
-
-  if (Number(code) !== 0 && transientEdgeFailure && visualQaAttempt < 3) {
-    const nextAttempt = visualQaAttempt + 1;
-    const delayMilliseconds = visualQaAttempt * 5000;
-    nativeConsoleError(`VISUAL_QA_RETRY_TRANSIENT_EDGE attempt=${nextAttempt} delay_ms=${delayMilliseconds}`);
-    cleanupProxy();
-    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, delayMilliseconds);
-
-    const result = spawnSync(process.execPath, [...process.execArgv, ...process.argv.slice(1)], {
+function runRetryAttempt(nextAttempt) {
+  return new Promise((resolve) => {
+    const child = spawn(process.execPath, [...process.execArgv, ...process.argv.slice(1)], {
       env: {
         ...process.env,
         CHROME_BIN: '',
@@ -322,7 +392,41 @@ process.exit = (code = 0) => {
       },
       stdio: 'inherit',
     });
-    nativeExit(Number.isInteger(result.status) ? result.status : 1);
+    let settled = false;
+    const finish = (status) => {
+      if (settled) return;
+      settled = true;
+      resolve(Number.isInteger(status) ? status : 1);
+    };
+    child.once('error', () => finish(1));
+    child.once('close', finish);
+  });
+}
+
+let retryInProgress = false;
+
+async function relaunchRetry(nextAttempt, delayMilliseconds) {
+  await cleanupProxyForRetry();
+  await new Promise((resolve) => setTimeout(resolve, delayMilliseconds));
+  const status = await runRetryAttempt(nextAttempt);
+  nativeExit(status);
+}
+
+process.exit = (code = 0) => {
+  const output = visualQaErrors.join('\n');
+  const transientEdgeFailure = /H1 mismatch: \["staging2\.nuvanx\.com"\]|Inspected target navigated or closed|Promise was collected|rendered a 403 Forbidden page/i.test(output);
+
+  if (Number(code) !== 0 && transientEdgeFailure && visualQaAttempt < 3) {
+    if (retryInProgress) return;
+    retryInProgress = true;
+    const nextAttempt = visualQaAttempt + 1;
+    const delayMilliseconds = visualQaAttempt * 5000;
+    nativeConsoleError(`VISUAL_QA_RETRY_TRANSIENT_EDGE attempt=${nextAttempt} delay_ms=${delayMilliseconds}`);
+    void relaunchRetry(nextAttempt, delayMilliseconds).catch((error) => {
+      nativeConsoleError(`VISUAL_QA_RETRY_FAILED ${error instanceof Error ? error.message : String(error)}`);
+      nativeExit(1);
+    });
+    return;
   }
 
   nativeExit(Number(code));

@@ -98,7 +98,11 @@ foreach ($files as $file) {
             continue;
         }
 
-        if (is_array($previous) && in_array($previous[0], [T_OBJECT_OPERATOR, T_DOUBLE_COLON, T_NEW], true)) {
+        $methodOperators = [T_OBJECT_OPERATOR, T_DOUBLE_COLON, T_NEW];
+        if (defined('T_NULLSAFE_OBJECT_OPERATOR')) {
+            $methodOperators[] = T_NULLSAFE_OBJECT_OPERATOR;
+        }
+        if (is_array($previous) && in_array($previous[0], $methodOperators, true)) {
             continue;
         }
 

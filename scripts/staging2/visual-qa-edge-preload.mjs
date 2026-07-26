@@ -314,7 +314,7 @@ process.exit = (code = 0) => {
     cleanupProxy();
     Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, delayMilliseconds);
 
-    const result = spawnSync(process.execPath, process.argv.slice(1), {
+    const result = spawnSync(process.execPath, [...process.execArgv, ...process.argv.slice(1)], {
       env: {
         ...process.env,
         CHROME_BIN: '',

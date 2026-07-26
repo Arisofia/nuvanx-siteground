@@ -173,8 +173,11 @@ for (const forbidden of ["'-D'", '--socks5-hostname', 'VISUAL_QA_SSH_PROXY_READY
 }
 
 const callableContractPath = path.join(root, 'scripts/theme-hygiene/test-nvx-callable-contract.php');
-const callableContract = spawnSync('/usr/bin/php', [callableContractPath], { encoding: 'utf8' });
-if (callableContract.error || callableContract.status !== 0) {
+const phpBin = process.env.PHP_BIN || 'php';
+const callableContract = spawnSync(phpBin, [callableContractPath], { encoding: 'utf8' });
+if (callableContract.error) {
+  failures.push(`unable to run ${phpBin}: ${callableContract.error.message}`);
+} else if (callableContract.status !== 0) {
   failures.push(`NUVANX callable contract failed: ${String(callableContract.stderr || callableContract.stdout || callableContract.error || '').trim()}`);
 } else if (callableContract.stdout.trim()) {
   console.log(callableContract.stdout.trim());

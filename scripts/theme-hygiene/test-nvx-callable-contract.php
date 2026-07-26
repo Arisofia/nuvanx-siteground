@@ -18,9 +18,15 @@ if (!is_dir($theme)) {
 }
 
 $files = [];
-$iterator = new RecursiveIteratorIterator(
-    new RecursiveDirectoryIterator($theme, FilesystemIterator::SKIP_DOTS)
+$directoryIterator = new RecursiveDirectoryIterator($theme, FilesystemIterator::SKIP_DOTS);
+$filtered = new RecursiveCallbackFilterIterator(
+    $directoryIterator,
+    static function (SplFileInfo $current): bool {
+        return !$current->isDir()
+            || !in_array($current->getFilename(), ['vendor', 'node_modules', '.git'], true);
+    }
 );
+$iterator = new RecursiveIteratorIterator($filtered);
 foreach ($iterator as $entry) {
     if (!$entry instanceof SplFileInfo || !$entry->isFile()) {
         continue;

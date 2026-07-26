@@ -147,7 +147,10 @@ for (const marker of [
 for (const marker of [
   'NVX_VISUAL_QA_ATTEMPT',
   'VISUAL_QA_RETRY_TRANSIENT_EDGE',
-  'spawnSync(process.execPath',
+  'spawn(process.execPath',
+  '...process.execArgv',
+  'cleanupProxyForRetry',
+  'retryInProgress',
   'Inspected target navigated or closed',
   'Promise was collected',
   'visualQaAttempt < 3',
@@ -168,7 +171,13 @@ for (const marker of [
 ]) {
   if (!visualQaPreload.includes(marker)) failures.push(`visual QA bridge marker missing: ${marker}`);
 }
-for (const forbidden of ["'-D'", '--socks5-hostname', 'VISUAL_QA_SSH_PROXY_READY']) {
+for (const forbidden of [
+  "'-D'",
+  '--socks5-hostname',
+  'VISUAL_QA_SSH_PROXY_READY',
+  'Atomics.wait',
+  'spawnSync(process.execPath',
+]) {
   if (visualQaPreload.includes(forbidden)) failures.push(`visual QA retains prohibited SSH forwarding marker: ${forbidden}`);
 }
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # READ-ONLY: verify canonical NUVANX editorial routes and retired legacy URLs.
+# Immutable trigger for the final validation of master 52ed8e5.
 set -Eeuo pipefail
 
 BASE_URL="${BASE_URL:-https://staging2.nuvanx.com}"

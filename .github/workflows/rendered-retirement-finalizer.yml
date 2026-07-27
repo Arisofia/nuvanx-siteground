@@ -1,0 +1,161 @@
+name: Finalize rendered retirement acceptance
+
+on:
+  push:
+    branches:
+      - fix/rendered-retirement-acceptance-final
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out final branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/rendered-retirement-acceptance-final
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Replace obsolete rendered redirect contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/staging2/verify-rendered-acceptance-ssh.mjs')
+          text = path.read_text(encoding='utf-8')
+          old_routes = """const redirects = [
+            ['/tratamientos/', '/soluciones-medicas/'],
+            ['/liposculpt-air/', '/remodelacion-corporal-laser-madrid/'],
+            ['/v-lift-awake/', '/protocolos-signature/'],
+          ];
+          """
+          new_routes = """const retiredRoutes = [
+            '/mas-informacion-sobre-las-cookies/',
+            '/politica-de-cookies/',
+            '/politica-de-privacidad/',
+            '/tratamiento-retirado/',
+            '/tratamientos/',
+            '/liposculpt-air/',
+            '/v-lift-awake/',
+            '/dr-javier-rivera-tejeda/',
+            '/eye-frame-rejuvenecimiento-mirada-madrid/',
+            '/eye-frame/',
+          ];
+          """
+          if text.count(old_routes) != 1:
+              raise SystemExit('obsolete redirects definition not found exactly once')
+          text = text.replace(old_routes, new_routes, 1)
+
+          old_report = "const report = { base_url: baseUrl, transport: `ssh:${sshHost}`, expected_sha: expectedSha, generated_at: new Date().toISOString(), pages: [], redirects: [], findings };"
+          new_report = "const report = { base_url: baseUrl, transport: `ssh:${sshHost}`, expected_sha: expectedSha, generated_at: new Date().toISOString(), pages: [], retired_routes: [], findings };"
+          if text.count(old_report) != 1:
+              raise SystemExit('rendered report contract not found exactly once')
+          text = text.replace(old_report, new_report, 1)
+
+          old_loop = """for (const [sourcePath, targetPath] of redirects) {
+            const response = await originFetch(`${baseUrl}${sourcePath}`, 'manual');
+            const location = headerValue(response.headers, 'location');
+            const expectedLocation = `${baseUrl}${targetPath}`;
+            const record = { source: sourcePath, target: targetPath, status: response.status, location };
+            if (response.status !== 301) fail(sourcePath, `returned HTTP ${response.status} instead of 301`);
+            if (location !== expectedLocation) fail(sourcePath, `location is ${location || 'absent'} instead of ${expectedLocation}`);
+            if (response.status === 301 && location === expectedLocation) {
+              const destination = await originFetch(expectedLocation);
+              record.target_status = destination.status;
+              if (destination.status !== 200) fail(sourcePath, `target returned HTTP ${destination.status} instead of 200`);
+            }
+            report.redirects.push(record);
+            console.log(`CHECK origin redirect ${sourcePath} status=${response.status}`);
+          }
+          """
+          new_loop = """for (const sourcePath of retiredRoutes) {
+            const response = await originFetch(`${baseUrl}${sourcePath}`, 'manual');
+            const location = headerValue(response.headers, 'location');
+            const redirectBy = headerValue(response.headers, 'x-redirect-by');
+            const robots = headerValue(response.headers, 'x-robots-tag');
+            const retiredMarker = headerValue(response.headers, 'x-nuvanx-retired-route');
+            const record = {
+              path: sourcePath,
+              status: response.status,
+              location,
+              redirect_by: redirectBy,
+              robots,
+              retired_marker: retiredMarker,
+            };
+            if (response.status !== 410) fail(sourcePath, `returned HTTP ${response.status} instead of 410`);
+            if (location) fail(sourcePath, `emitted forbidden Location header: ${location}`);
+            if (redirectBy) fail(sourcePath, `emitted forbidden X-Redirect-By header: ${redirectBy}`);
+            if (!robots.toLowerCase().includes('noindex') || !robots.toLowerCase().includes('nofollow')) {
+              fail(sourcePath, `X-Robots-Tag mismatch: ${robots || 'absent'}`);
+            }
+            if (retiredMarker !== '1') fail(sourcePath, `retired route marker is ${retiredMarker || 'absent'} instead of 1`);
+            report.retired_routes.push(record);
+            console.log(`CHECK origin retired ${sourcePath} status=${response.status}`);
+          }
+          """
+          if text.count(old_loop) != 1:
+              raise SystemExit('obsolete rendered redirect loop not found exactly once')
+          text = text.replace(old_loop, new_loop, 1)
+
+          old_summary = "console.log(`RENDERED_ACCEPTANCE_OK transport=ssh pages=${pages.length} redirects=${redirects.length} sha=${expectedSha}`);"
+          new_summary = "console.log(`RENDERED_ACCEPTANCE_OK transport=ssh pages=${pages.length} retired_routes=${retiredRoutes.length} sha=${expectedSha}`);"
+          if text.count(old_summary) != 1:
+              raise SystemExit('rendered acceptance summary not found exactly once')
+          text = text.replace(old_summary, new_summary, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Extend permanent retirement contract
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/theme-hygiene/test-canonical-route-contract.mjs')
+          text = path.read_text(encoding='utf-8')
+          marker = "const migration = read('scripts/wp/nvx-canonical-route-migration.php').replace(/\\s+/g, ' ');"
+          insertion = """const renderedAcceptance = read('scripts/staging2/verify-rendered-acceptance-ssh.mjs');
+          for (const marker of [
+            'const retiredRoutes = [',
+            'retired_routes: []',
+            'response.status !== 410',
+            "headerValue(response.headers, 'location')",
+            "headerValue(response.headers, 'x-redirect-by')",
+            "headerValue(response.headers, 'x-robots-tag')",
+            "headerValue(response.headers, 'x-nuvanx-retired-route')",
+            'RENDERED_ACCEPTANCE_OK transport=ssh pages=',
+            'retired_routes=${retiredRoutes.length}',
+          ]) requireText('rendered retirement acceptance', renderedAcceptance, marker);
+          for (const forbidden of ['const redirects = [', 'report.redirects', 'CHECK origin redirect', 'instead of 301']) {
+            forbidText('rendered retirement acceptance', renderedAcceptance, forbidden);
+          }
+
+          """
+          if insertion.strip() not in text:
+              if text.count(marker) != 1:
+                  raise SystemExit('canonical route contract insertion marker not found exactly once')
+              text = text.replace(marker, insertion + marker, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate and commit permanent changes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node --check scripts/staging2/verify-rendered-acceptance-ssh.mjs
+          node --check scripts/theme-hygiene/test-canonical-route-contract.mjs
+          node scripts/theme-hygiene/test-canonical-route-contract.mjs
+          node scripts/theme-hygiene/test-rest-pagination-contract.mjs
+          node scripts/theme-hygiene/test-theme-hygiene.mjs
+          git add scripts/staging2/verify-rendered-acceptance-ssh.mjs scripts/theme-hygiene/test-canonical-route-contract.mjs
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test(routes): validate retired URLs in rendered acceptance'
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin HEAD:fix/rendered-retirement-acceptance-final

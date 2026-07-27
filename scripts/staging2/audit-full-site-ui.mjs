@@ -22,6 +22,14 @@ const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/fu
 const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36';
 const horizontalOverflowTolerance = 2;
 const maxRedirectHops = 8;
+const restPerPage = Math.max(1, Number(process.env.NVX_AUDIT_REST_PER_PAGE || 100) || 100);
+const restMaxPages = Math.max(1, Number(process.env.NVX_AUDIT_REST_MAX_PAGES || 50) || 50);
+const minDiscoveredRoutes = Math.max(1, Number(process.env.NVX_AUDIT_MIN_ROUTES || 20) || 20);
+const seedRoutes = String(process.env.NVX_AUDIT_SEED_ROUTES || '/,/blog/')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean)
+  .map((value) => (value.endsWith('/') || value === '/' ? value : `${value}/`));
 /**
  * Explicit allowlist for intentional internal redirects only.
  * Keys and values are normalized pathnames (trailing slash).
@@ -222,18 +230,18 @@ async function openPage(port, route, viewport) {
 }
 
 async function discoverRoutes(session) {
-  const discovery = await session.call(async () => {
-    const discovered = new Set(['/', '/blog/']);
+  const discovery = await session.call(async (seed, perPage, maxPages) => {
+    const discovered = new Set(seed);
     const counts = { pages: 0, posts: 0, categories: 0, skipped_links: 0 };
 
     async function fetchWpCollectionBrowser(endpoint) {
       const collected = [];
       let page = 1;
-      let totalPages = 1;
-      do {
+      let keepGoing = true;
+      while (keepGoing && page <= maxPages) {
         const separator = endpoint.includes('?') ? '&' : '?';
         const response = await fetch(
-          `${endpoint}${separator}per_page=100&page=${page}`,
+          `${endpoint}${separator}per_page=${perPage}&page=${page}`,
           { credentials: 'same-origin' },
         );
         if (!response.ok) {
@@ -245,11 +253,24 @@ async function discoverRoutes(session) {
         if (!Array.isArray(items)) {
           throw new TypeError(`REST collection returned non-array payload: ${endpoint}, page=${page}`);
         }
-        totalPages = Number(response.headers.get('X-WP-TotalPages') || 1);
-        if (!Number.isFinite(totalPages) || totalPages < 1) totalPages = 1;
+        if (items.length === 0) break;
+
         collected.push(...items);
+
+        const header = response.headers.get('X-WP-TotalPages');
+        if (header === null) {
+          // Header stripped by proxy/CORS: stop only when the page is short.
+          keepGoing = items.length >= perPage;
+        } else {
+          const totalPages = Number(header);
+          if (!Number.isFinite(totalPages) || totalPages < 1) {
+            keepGoing = items.length >= perPage;
+          } else {
+            keepGoing = page < Math.min(totalPages, maxPages);
+          }
+        }
         page += 1;
-      } while (page <= totalPages);
+      }
       return collected;
     }
 
@@ -277,7 +298,7 @@ async function discoverRoutes(session) {
 
     const routes = Array.from(discovered).sort((a, b) => a.localeCompare(b, 'es'));
     return { routes, counts };
-  });
+  }, seedRoutes, restPerPage, restMaxPages);
 
   if (!Array.isArray(discovery?.routes)) {
     throw new Error('WordPress route discovery returned an invalid payload.');
@@ -287,10 +308,12 @@ async function discoverRoutes(session) {
     posts: discovery.counts?.posts || 0,
     categories: discovery.counts?.categories || 0,
     total_routes: discovery.routes.length,
+    min_routes: minDiscoveredRoutes,
+    seed_routes: seedRoutes,
   };
-  if (discovery.routes.length < 20) {
+  if (discovery.routes.length < minDiscoveredRoutes) {
     throw new Error(
-      `WordPress route discovery returned only ${discovery.routes.length} routes (pages=${report.discovery.pages}, posts=${report.discovery.posts}, categories=${report.discovery.categories}).`,
+      `WordPress route discovery returned only ${discovery.routes.length} routes (min=${minDiscoveredRoutes}, pages=${report.discovery.pages}, posts=${report.discovery.posts}, categories=${report.discovery.categories}).`,
     );
   }
   if (report.discovery.pages < 1) {
@@ -567,8 +590,12 @@ try {
     error instanceof Error ? error.message : String(error),
   );
 } finally {
-  if (chrome?.exitCode === null && !chrome?.killed) {
+  if (chrome?.exitCode === null && !chrome.killed) {
     chrome.kill('SIGTERM');
+    const killTimer = setTimeout(() => {
+      if (chrome?.exitCode === null && !chrome.killed) chrome.kill('SIGKILL');
+    }, 5000);
+    killTimer.unref?.();
   }
   await sleep(250);
   fs.rmSync(profileDir, { recursive: true, force: true });

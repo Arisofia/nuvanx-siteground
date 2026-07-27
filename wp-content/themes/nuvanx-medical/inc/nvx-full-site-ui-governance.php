@@ -19,15 +19,20 @@ function nvxFullSiteManagedContentUsesRawHtml(): bool {
     }
 
     $post = get_post();
-    $content = $post instanceof WP_Post ? ltrim( (string) $post->post_content ) : '';
+    if ( ! $post instanceof WP_Post ) {
+        return false;
+    }
 
+    $content = ltrim( (string) $post->post_content );
     if ( '' === $content ) {
         return false;
     }
 
-    $is_managed = 1 === preg_match( '/^<!--\s*NUVANX_(?:GITHUB_MANAGED|SIGNATURE_PHASE|PROTOCOL_PAGE|STRATEGY_PAGE):/i', $content );
-    
-    return $is_managed || 1 === preg_match(
+    if ( 1 === preg_match( '/^<!--\s*NUVANX_(?:GITHUB_MANAGED|SIGNATURE_PHASE|PROTOCOL_PAGE|STRATEGY_PAGE):/i', $content ) ) {
+        return true;
+    }
+
+    return 1 === preg_match(
         '/^<(?:div|main|article|section)\b[^>]*\bclass=(["\'])[^"\']*\bnvx-[^"\']*\1/i',
         $content
     );
@@ -47,19 +52,44 @@ add_action( 'wp', 'nvxFullSiteDisableAutopForManagedContent', 1 );
 /**
  * Whether a paragraph HTML string is an empty wpautop artefact.
  *
- * Empty means no visible text after tag stripping and entity decoding, and no
- * meaningful non-br elements. Lone <br>, &nbsp; and whitespace are artefacts.
+ * Only whitespace, whitespace entities and br tags are removable. Any other
+ * markup is meaningful and must be preserved, including unknown/custom tags.
  */
 function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool {
-    if ( preg_match( '/<(img|svg|video|iframe|input|button|a|ul|ol|table|span|strong|em|h[1-6])\b/i', $paragraphHtml ) ) {
+    $inner = preg_replace( '/^<p(?:\s[^>]*)?>/iu', '', $paragraphHtml, 1 );
+    if ( ! is_string( $inner ) ) {
         return false;
     }
 
-    $text = wp_strip_all_tags( $paragraphHtml, true );
-    $text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-    $text = preg_replace( '/\s+/u', '', $text );
+    $inner = preg_replace( '/<\/p>\s*$/iu', '', $inner, 1 );
+    if ( ! is_string( $inner ) ) {
+        return false;
+    }
 
-    return is_string( $text ) && '' === str_replace( "\u{00A0}", '', $text );
+    $inner = preg_replace( '/<br\s*\/?\s*>/iu', '', $inner );
+    if ( ! is_string( $inner ) ) {
+        return false;
+    }
+
+    $inner = html_entity_decode( $inner, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+    $inner = str_replace( "\u{00A0}", '', $inner );
+    $inner = preg_replace( '/\s+/u', '', $inner );
+
+    return is_string( $inner ) && '' === $inner;
+}
+
+/** Whether filtered content must bypass automatic-paragraph artefact cleanup. */
+function nvxFullSiteShouldSkipAutopCleanup( $content ): bool {
+    return (
+        ! is_string( $content )
+        || '' === $content
+        || is_admin()
+        || wp_doing_ajax()
+        || is_feed()
+        || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+        || ! is_singular()
+        || nvxFullSiteManagedContentUsesRawHtml()
+    );
 }
 
 /**
@@ -72,17 +102,7 @@ function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool
  * @return mixed
  */
 function nvxFullSiteStripEmptyAutopParagraphs( $content ) {
-    $skip = (
-        ! is_string( $content )
-        || '' === $content
-        || is_admin()
-        || wp_doing_ajax()
-        || is_feed()
-        || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
-        || ! is_singular()
-        || nvxFullSiteManagedContentUsesRawHtml()
-    );
-    if ( $skip ) {
+    if ( nvxFullSiteShouldSkipAutopCleanup( $content ) ) {
         return $content;
     }
 
@@ -141,9 +161,7 @@ function nvxFullSiteResolveCanonicalParent( array $canonicalIds, int $parent ): 
     return $parent;
 }
 
-/**
- * Build a stable signature for primary-menu deduplication.
- */
+/** Build a stable signature for primary-menu deduplication. */
 function nvxFullSiteMenuItemSignature( object $item, int $parent ): string {
     $title_key = sanitize_title( remove_accents( wp_strip_all_tags( (string) ( $item->title ?? '' ) ) ) );
     $url_key   = strtolower( untrailingslashit( (string) ( $item->url ?? '' ) ) );
@@ -171,7 +189,7 @@ function nvxFullSiteRegisterCanonicalMenuItem( object $item, string $signature, 
     }
 
     if ( $itemId > 0 ) {
-        $seen[ $signature ]      = $itemId;
+        $seen[ $signature ]       = $itemId;
         $canonicalIds[ $itemId ] = $itemId;
     }
 
@@ -190,7 +208,7 @@ function nvxFullSiteRegisterCanonicalMenuItem( object $item, string $signature, 
  * @return mixed
  */
 function nvxFullSiteDeduplicatePrimaryMenuItems( $items, $args ) {
-    if ( ! is_array( $items ) || ! is_object( $args ) || ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+    if ( ! is_array( $items ) || ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
         return $items;
     }
 
@@ -203,10 +221,10 @@ function nvxFullSiteDeduplicatePrimaryMenuItems( $items, $args ) {
             continue;
         }
 
-        $parent                 = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
-        $parent                 = nvxFullSiteResolveCanonicalParent( $canonicalIds, $parent );
+        $parent                  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+        $parent                  = nvxFullSiteResolveCanonicalParent( $canonicalIds, $parent );
         $item->menu_item_parent = (string) $parent;
-        $signature              = nvxFullSiteMenuItemSignature( $item, $parent );
+        $signature               = nvxFullSiteMenuItemSignature( $item, $parent );
 
         if ( ! nvxFullSiteRegisterCanonicalMenuItem( $item, $signature, $seen, $canonicalIds ) ) {
             continue;

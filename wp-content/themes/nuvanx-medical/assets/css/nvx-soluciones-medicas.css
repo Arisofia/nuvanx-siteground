@@ -49,49 +49,6 @@
   background: var(--nvx-surface-base);
 }
 
-.nvx-solutions-hero__copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  min-width: 0;
-  padding: var(--nvx-space-12) var(--nvx-gutter);
-  border-right: var(--nvx-border-hairline) solid var(--nvx-color-line);
-}
-
-.nvx-solutions-hero__copy h1 {
-  max-width: 14ch;
-  margin-top: var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-display);
-  font-weight: var(--nvx-fw-heading);
-  line-height: var(--nvx-lh-display);
-  letter-spacing: var(--nvx-track-display);
-}
-
-.nvx-solutions-hero__lead {
-  max-width: var(--nvx-measure-lead);
-  margin-top: var(--nvx-space-4);
-  color: var(--nvx-text-muted);
-  font-size: var(--nvx-type-lead);
-  line-height: var(--nvx-lh-lead);
-}
-
-.nvx-solutions-hero__media {
-  min-width: 0;
-  min-height: var(--nvx-hero-h);
-  background: var(--nvx-surface-dark);
-  overflow: hidden;
-}
-
-.nvx-solutions-hero__media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: cover;
-}
-
 .nvx-solutions-actions {
   display: flex;
   flex-wrap: wrap;
@@ -127,20 +84,6 @@
 .nvx-solutions-button--secondary {
   border-color: var(--nvx-border-on-dark-55);
   color: var(--nvx-light);
-}
-
-.nvx-solutions-link {
-  color: var(--nvx-ink);
-}
-
-.nvx-solutions-hero__note {
-  margin-top: var(--nvx-space-5);
-  padding-top: var(--nvx-space-3);
-  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  color: var(--nvx-text-muted);
-  font-size: var(--nvx-type-caption);
-  line-height: var(--nvx-lh-caption);
-  letter-spacing: var(--nvx-track-caption);
 }
 
 .nvx-solutions-nav {

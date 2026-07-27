@@ -22,6 +22,7 @@ env:
 
 jobs:
   audit:
+    name: Audit exact deployed PR SHA
     # labeled: only when the new label is deploy-staging2.
     # synchronize/reopened: only while that label remains on the PR.
     if: >-
@@ -101,15 +102,30 @@ jobs:
           WP_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
           last_seen='absent'
           ssh_error_log="$EVIDENCE_DIR/siteground-ssh-errors.log"
+          consecutive_ssh_failures=0
+          max_consecutive_ssh_failures=12
           # 540 × 10 seconds = 90 minutes. This covers one queued 35-minute
           # deployment plus the current 35-minute deployment with margin.
           for attempt in $(seq 1 540); do
             if deployed_sha="$(ssh nvx-staging2 "test -r '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true" 2>>"$ssh_error_log")"; then
+              consecutive_ssh_failures=0
               last_seen="${deployed_sha:-absent}"
             else
               deployed_sha=''
               last_seen='ssh-error'
-              printf 'Transient SSH failure while reading deployment marker; attempt=%s\n' "$attempt" >&2
+              consecutive_ssh_failures=$((consecutive_ssh_failures + 1))
+              printf 'Transient SSH failure while reading deployment marker; attempt=%s consecutive=%s/%s\n' \
+                "$attempt" "$consecutive_ssh_failures" "$max_consecutive_ssh_failures" >&2
+              if (( consecutive_ssh_failures >= max_consecutive_ssh_failures )); then
+                {
+                  echo "expected_sha=$EXPECTED_SHA"
+                  echo "last_seen_sha=$last_seen"
+                  echo "error=ssh_transport_unavailable"
+                  echo "consecutive_ssh_failures=$consecutive_ssh_failures"
+                  echo "hint=Review siteground-ssh-errors.log and restore SSH connectivity before retrying the audit."
+                } | tee "$EVIDENCE_DIR/siteground-sha.log"
+                exit 1
+              fi
             fi
             if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
               printf 'SITEGROUND_SHA_READY %s\n' "$deployed_sha" | tee "$EVIDENCE_DIR/siteground-sha.log"

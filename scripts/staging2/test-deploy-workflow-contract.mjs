@@ -134,10 +134,26 @@ for (const marker of [
 ]) if (!visualQa.includes(marker)) fail(`visual QA missing marker: ${marker}`);
 for (const slug of phaseSlugs) if (!visualQa.includes(`/${slug}/`)) fail(`visual QA missing phase route: ${slug}`);
 
-for (const marker of ['const nativeFetch = globalThis.fetch', "url.startsWith('https://staging2.nuvanx.com/')", 'return nativeFetch(input, init)']) {
+for (const marker of [
+  'const nativeFetch = globalThis.fetch',
+  "url.startsWith('https://staging2.nuvanx.com/')",
+  'return nativeFetch(input, init)',
+  'http.createServer',
+  "proxyServer.on('connect'",
+  'stream_socket_client',
+  'VISUAL_QA_SSH_BRIDGE_READY',
+  'VISUAL_QA_SSH_BRIDGE_UNAVAILABLE',
+  '--proxy-server=',
+  "'localhost;127.0.0.1'",
+]) {
   if (!visualPreload.includes(marker)) fail(`visual QA preload missing marker: ${marker}`);
 }
-if (visualPreload.includes('http://127.0.0.1')) fail('visual QA preload must not intercept the local Chrome DevTools endpoint');
+if (/url\.startsWith\(\s*['"]http:\/\/127\.0\.0\.1/.test(visualPreload)) {
+  fail('visual QA preload must not intercept the local Chrome DevTools endpoint');
+}
+for (const forbidden of ["'-D'", '--socks5-hostname', 'VISUAL_QA_SSH_PROXY_READY']) {
+  if (visualPreload.includes(forbidden)) fail(`visual QA preload retains prohibited SSH forwarding marker: ${forbidden}`);
+}
 
 for (const marker of ["'liposculpt-air'", "'v-lift-awake'", "'tratamientos'", "'target' => '/protocolos-signature/'"]) {
   if (!integrations.includes(marker)) fail(`governed redirects missing marker: ${marker}`);

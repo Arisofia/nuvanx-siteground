@@ -69,8 +69,8 @@ function nvxFullSiteRemoveNestedPostId( $content ) {
         return $content;
     }
 
-    $pattern = '/\s+id=(["\'])post-' . preg_quote( (string) $post_id, '/' ) . '\1/i';
-    $cleaned = preg_replace( $pattern, '', $content );
+    $pattern = '/<(article|div|section)([^>]*)\s+id=(["\'])post-' . preg_quote( (string) $post_id, '/' ) . '\3/i';
+    $cleaned = preg_replace( $pattern, '<$1$2', $content );
 
     return is_string( $cleaned ) ? $cleaned : $content;
 }

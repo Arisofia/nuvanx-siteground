@@ -250,7 +250,7 @@ function nvx_public_content_text_hygiene( $content ) {
 
     // Critical clinical fix for Clínicas NUVANX (ID 1399) or any residual conflation.
     if ( 1399 === (int) get_queried_object_id() ) {
-        $content = preg_replace( '/(Endolift®?)[^\. ]*(?:es|como|mediante)?\s*(?:una\s+)?radiofrecuencia[^\.]*/iu', '$1 (tecnología láser subdérmica de 1470 nm)', $content ) ?? $content;
+        $content = preg_replace( '/(Endolift®?)[^\.]*(?:es|como|mediante)?\s*(?:una\s+)?radiofrecuencia[^\.]*/iu', '$1 (tecnología láser subdérmica de 1470 nm)', $content ) ?? $content;
         $content = preg_replace( '/\bradiofrecuencia\s+Endolift\b/iu', 'láser subdérmico Endolift', $content ) ?? $content;
     }
 

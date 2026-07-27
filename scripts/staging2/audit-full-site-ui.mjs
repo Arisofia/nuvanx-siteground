@@ -22,7 +22,14 @@ const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/fu
 const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36';
 const horizontalOverflowTolerance = 2;
 const maxRedirectHops = 8;
-const forbiddenRedirectPaths = new Set(['/', '/404/', '/404', '/not-found/', '/not-found']);
+/**
+ * Explicit allowlist for intentional internal redirects only.
+ * Keys and values are normalized pathnames (trailing slash).
+ * REST-discovered routes should normally resolve without redirects.
+ */
+const authorizedRedirects = new Map([
+  // ['/ruta-antigua/', '/ruta-canonica/'],
+]);
 const canonicalPalette = [
   [247, 247, 245], [241, 241, 239], [17, 17, 17], [28, 28, 30],
   [229, 229, 227], [206, 206, 206], [82, 82, 82], [92, 92, 92],
@@ -69,10 +76,9 @@ function assertDocumentNavigation(route, navigationMeta) {
     throw new Error('Main document HTTP response was not recorded.');
   }
   if (!isSuccessfulHttpStatus(navigationMeta.httpStatus)) {
-    throw new Error(`Main document HTTP ${navigationMeta.httpStatus} for ${navigationMeta.finalUrl || route}`);
-  }
-  if ([404, 410, 500].includes(navigationMeta.httpStatus)) {
-    throw new Error(`Main document returned fatal HTTP ${navigationMeta.httpStatus}`);
+    throw new Error(
+      `Main document HTTP ${navigationMeta.httpStatus} for ${navigationMeta.finalUrl || route}`,
+    );
   }
   if (navigationMeta.redirectChain.length > maxRedirectHops) {
     throw new Error(`Redirect chain too long (${navigationMeta.redirectChain.length} hops)`);
@@ -91,16 +97,11 @@ function assertDocumentNavigation(route, navigationMeta) {
   const requested = normalizePathname(route);
   const finalPath = normalizePathname(finalUrl.pathname);
   const redirected = requested !== finalPath;
-  if (redirected && forbiddenRedirectPaths.has(finalPath) && requested !== finalPath) {
-    // Landing on home/404 from a non-home request is never an authorized public route outcome.
-    if (requested !== '/') {
-      throw new Error(`Unauthorized redirect ${requested} -> ${finalPath}`);
+  if (redirected) {
+    const allowedTarget = authorizedRedirects.get(requested);
+    if (allowedTarget !== finalPath) {
+      throw new Error(`Unexpected internal redirect ${requested} -> ${finalPath}`);
     }
-  }
-  // Soft 404 patterns often land on a themed 404 with HTTP 200 — require path stay on requested public route
-  // unless the redirect stays within the same content family (trailing slash already normalized).
-  if (redirected && (finalPath === '/404/' || /not-found/i.test(finalPath))) {
-    throw new Error(`Navigation resolved to error path ${finalPath}`);
   }
 
   return {

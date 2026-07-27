@@ -1,4 +1,4 @@
-name: PR274 apply validated corrections
+name: PR274 compatibility correction
 
 on:
   pull_request:
@@ -13,7 +13,7 @@ jobs:
       github.head_ref == 'fix/remove-redirect-exceptions-and-retire-legacy-routes' &&
       github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 10
     steps:
       - name: Check out immutable PR head
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -22,47 +22,55 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Execute versioned transformation
+      - name: Add workflow compatibility markers
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          import textwrap
 
-          workflow = Path('.github/workflows/pr274-route-retirement-fix.yml').read_text(encoding='utf-8')
-          marker = "          python3 - <<'PY'\n"
-          start = workflow.index(marker) + len(marker)
-          end = workflow.index("\n          PY\n", start)
-          code = textwrap.dedent(workflow[start:end])
-          exec(compile(code, 'pr274-route-retirement-fix', 'exec'), {})
+          migration_path = Path('scripts/wp/nvx-canonical-route-migration.php')
+          migration = migration_path.read_text(encoding='utf-8')
+          audit_success = "            WP_CLI::success( 'Legacy route retirement audit passed.' );"
+          apply_success = "        WP_CLI::success( 'Legacy route retirement applied.' );"
+          if "WP_CLI::log( 'Canonical route audit passed.' );" not in migration:
+              if migration.count(audit_success) != 1:
+                  raise SystemExit('Expected one legacy audit success marker')
+              migration = migration.replace(
+                  audit_success,
+                  "            WP_CLI::log( 'Canonical route audit passed.' );\n" + audit_success,
+                  1,
+              )
+          if "WP_CLI::log( 'Canonical route migration applied.' );" not in migration:
+              if migration.count(apply_success) != 1:
+                  raise SystemExit('Expected one legacy apply success marker')
+              migration = migration.replace(
+                  apply_success,
+                  "        WP_CLI::log( 'Canonical route migration applied.' );\n" + apply_success,
+                  1,
+              )
+          migration_path.write_text(migration, encoding='utf-8')
+
+          contract_path = Path('scripts/staging2/test-deploy-workflow-contract.mjs')
+          contract = contract_path.read_text(encoding='utf-8')
+          old = "  'Legacy route retirement applied.', 'Legacy route retirement audit passed.',\n"
+          new = "  'Canonical route migration applied.', 'Canonical route audit passed.',\n"
+          if old in contract:
+              contract = contract.replace(old, new, 1)
+          elif new not in contract:
+              raise SystemExit('Workflow compatibility marker block not found')
+          contract_path.write_text(contract, encoding='utf-8')
           PY
 
-      - name: Validate transformed syntax
-        run: |
-          set -euo pipefail
-          node --check scripts/staging2/audit-full-site-ui.mjs
-          node --check scripts/staging2/test-deploy-workflow-contract.mjs
-          php -l scripts/wp/nvx-canonical-route-migration.php
-          php -l wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
-          php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
-          bash -n scripts/staging2/smoke-verify-staging2.sh
-          bash -n tools/deploy/deploy-to-staging2.sh
-
-      - name: Commit non-workflow corrections
+      - name: Validate and commit compatibility correction
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          git add \
-            scripts/staging2/audit-full-site-ui.mjs \
-            scripts/staging2/smoke-verify-staging2.sh \
-            scripts/staging2/test-deploy-workflow-contract.mjs \
-            scripts/wp/nvx-canonical-route-migration.php \
-            tools/deploy/deploy-to-staging2.sh \
-            wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php \
-            wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
+          php -l scripts/wp/nvx-canonical-route-migration.php
+          node --check scripts/staging2/test-deploy-workflow-contract.mjs
+          git add scripts/wp/nvx-canonical-route-migration.php scripts/staging2/test-deploy-workflow-contract.mjs
           git diff --cached --quiet && exit 0
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'fix(routes): remove runtime redirect exceptions'
+          git commit -m 'fix(ci): preserve deployment marker compatibility'
           git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin HEAD:fix/remove-redirect-exceptions-and-retire-legacy-routes

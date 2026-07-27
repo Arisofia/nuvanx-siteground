@@ -21,6 +21,8 @@ const expectedSha = process.env.EXPECTED_SHA || '';
 const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/full-site-ui-audit';
 const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36';
 const horizontalOverflowTolerance = 2;
+const maxRedirectHops = 8;
+const forbiddenRedirectPaths = new Set(['/', '/404/', '/404', '/not-found/', '/not-found']);
 const canonicalPalette = [
   [247, 247, 245], [241, 241, 239], [17, 17, 17], [28, 28, 30],
   [229, 229, 227], [206, 206, 206], [82, 82, 82], [92, 92, 92],
@@ -39,6 +41,12 @@ const report = {
   expected_sha: expectedSha,
   generated_at: new Date().toISOString(),
   horizontal_overflow_tolerance_px: horizontalOverflowTolerance,
+  discovery: {
+    pages: 0,
+    posts: 0,
+    categories: 0,
+    total_routes: 0,
+  },
   routes: [],
   results: [],
   critical,
@@ -46,6 +54,62 @@ const report = {
 };
 const fail = (scope, message) => critical.push(`${scope}: ${message}`);
 const warn = (scope, message) => warnings.push(`${scope}: ${message}`);
+
+function normalizePathname(pathname) {
+  if (!pathname || pathname === '/') return '/';
+  return pathname.endsWith('/') ? pathname : `${pathname}/`;
+}
+
+function isSuccessfulHttpStatus(status) {
+  return Number.isInteger(status) && status >= 200 && status < 400;
+}
+
+function assertDocumentNavigation(route, navigationMeta) {
+  if (!navigationMeta || navigationMeta.httpStatus === null || navigationMeta.httpStatus === undefined) {
+    throw new Error('Main document HTTP response was not recorded.');
+  }
+  if (!isSuccessfulHttpStatus(navigationMeta.httpStatus)) {
+    throw new Error(`Main document HTTP ${navigationMeta.httpStatus} for ${navigationMeta.finalUrl || route}`);
+  }
+  if ([404, 410, 500].includes(navigationMeta.httpStatus)) {
+    throw new Error(`Main document returned fatal HTTP ${navigationMeta.httpStatus}`);
+  }
+  if (navigationMeta.redirectChain.length > maxRedirectHops) {
+    throw new Error(`Redirect chain too long (${navigationMeta.redirectChain.length} hops)`);
+  }
+
+  let finalUrl;
+  try {
+    finalUrl = new URL(navigationMeta.finalUrl || `${baseUrl}${route}`);
+  } catch {
+    throw new Error(`Invalid final URL: ${navigationMeta.finalUrl || '(empty)'}`);
+  }
+  if (finalUrl.origin !== new URL(baseUrl).origin) {
+    throw new Error(`Cross-origin navigation to ${finalUrl.href}`);
+  }
+
+  const requested = normalizePathname(route);
+  const finalPath = normalizePathname(finalUrl.pathname);
+  const redirected = requested !== finalPath;
+  if (redirected && forbiddenRedirectPaths.has(finalPath) && requested !== finalPath) {
+    // Landing on home/404 from a non-home request is never an authorized public route outcome.
+    if (requested !== '/') {
+      throw new Error(`Unauthorized redirect ${requested} -> ${finalPath}`);
+    }
+  }
+  // Soft 404 patterns often land on a themed 404 with HTTP 200 — require path stay on requested public route
+  // unless the redirect stays within the same content family (trailing slash already normalized).
+  if (redirected && (finalPath === '/404/' || /not-found/i.test(finalPath))) {
+    throw new Error(`Navigation resolved to error path ${finalPath}`);
+  }
+
+  return {
+    httpStatus: navigationMeta.httpStatus,
+    finalUrl: finalUrl.href,
+    redirected,
+    redirectChain: navigationMeta.redirectChain,
+  };
+}
 
 async function openPage(port, route, viewport) {
   const target = await createTarget(port);
@@ -67,6 +131,34 @@ async function openPage(port, route, viewport) {
     screenWidth: viewport.width,
     screenHeight: viewport.height,
   });
+
+  const navigationMeta = {
+    httpStatus: null,
+    finalUrl: null,
+    redirectChain: [],
+    loaderId: null,
+  };
+
+  session.on('Network.requestWillBeSent', (params) => {
+    if (params.type !== 'Document') return;
+    if (params.redirectResponse) {
+      navigationMeta.redirectChain.push({
+        url: params.redirectResponse.url,
+        status: params.redirectResponse.status,
+      });
+    }
+    if (params.request?.url) {
+      navigationMeta.finalUrl = params.request.url;
+    }
+  });
+
+  session.on('Network.responseReceived', (params) => {
+    if (params.type !== 'Document') return;
+    navigationMeta.httpStatus = params.response?.status ?? null;
+    navigationMeta.finalUrl = params.response?.url || navigationMeta.finalUrl;
+    navigationMeta.loaderId = params.loaderId || navigationMeta.loaderId;
+  });
+
   const navigation = await session.send('Page.navigate', { url: `${baseUrl}${route}` });
   if (navigation.errorText) throw new Error(`Navigation failed: ${navigation.errorText}`);
 
@@ -91,6 +183,9 @@ async function openPage(port, route, viewport) {
     }
     throw new Error(issues.join(', '));
   }
+
+  session.navigation = assertDocumentNavigation(route, navigationMeta);
+
   await session.evaluate(`new Promise((resolve) => {
     const finish = () => setTimeout(resolve, 350);
     if (document.fonts?.ready) document.fonts.ready.then(finish, finish); else finish();
@@ -99,33 +194,79 @@ async function openPage(port, route, viewport) {
 }
 
 async function discoverRoutes(session) {
-  const routes = await session.call(async () => {
+  const discovery = await session.call(async () => {
     const discovered = new Set(['/', '/blog/']);
-    const endpoints = [
-      '/wp-json/wp/v2/pages?per_page=100&status=publish&_fields=link',
-      '/wp-json/wp/v2/posts?per_page=100&status=publish&_fields=link',
-      '/wp-json/wp/v2/categories?per_page=100&hide_empty=true&_fields=link',
+    const counts = { pages: 0, posts: 0, categories: 0 };
+
+    async function fetchWpCollectionBrowser(endpoint) {
+      const collected = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const separator = endpoint.includes('?') ? '&' : '?';
+        const response = await fetch(
+          `${endpoint}${separator}per_page=100&page=${page}`,
+          { credentials: 'same-origin' },
+        );
+        if (!response.ok) {
+          throw new Error(
+            `REST collection failed: ${endpoint}, page=${page}, status=${response.status}`,
+          );
+        }
+        const items = await response.json();
+        if (!Array.isArray(items)) {
+          throw new Error(`REST collection returned non-array payload: ${endpoint}, page=${page}`);
+        }
+        totalPages = Number(response.headers.get('X-WP-TotalPages') || 1);
+        if (!Number.isFinite(totalPages) || totalPages < 1) totalPages = 1;
+        collected.push(...items);
+        page += 1;
+      } while (page <= totalPages);
+      return collected;
+    }
+
+    const collections = [
+      ['pages', '/wp-json/wp/v2/pages?status=publish&_fields=link'],
+      ['posts', '/wp-json/wp/v2/posts?status=publish&_fields=link'],
+      ['categories', '/wp-json/wp/v2/categories?hide_empty=true&_fields=link'],
     ];
-    for (const endpoint of endpoints) {
-      const response = await fetch(endpoint, { credentials: 'same-origin' });
-      if (!response.ok) continue;
-      const items = await response.json();
+
+    for (const [key, endpoint] of collections) {
+      const items = await fetchWpCollectionBrowser(endpoint);
+      counts[key] = items.length;
       for (const item of items) {
         try {
           const url = new URL(item.link, location.origin);
           if (url.origin !== location.origin) continue;
-          discovered.add(url.pathname.endsWith('/') ? url.pathname : url.pathname + '/');
+          discovered.add(url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`);
         } catch {
           // Ignore malformed CMS links.
         }
       }
     }
-    return Array.from(discovered).sort();
+
+    const routes = Array.from(discovered).sort((a, b) => a.localeCompare(b, 'es'));
+    return { routes, counts };
   });
-  if (!Array.isArray(routes) || routes.length < 20) {
-    throw new Error(`WordPress route discovery returned only ${Array.isArray(routes) ? routes.length : 0} routes.`);
+
+  if (!discovery || !Array.isArray(discovery.routes)) {
+    throw new Error('WordPress route discovery returned an invalid payload.');
   }
-  return routes;
+  report.discovery = {
+    pages: discovery.counts?.pages || 0,
+    posts: discovery.counts?.posts || 0,
+    categories: discovery.counts?.categories || 0,
+    total_routes: discovery.routes.length,
+  };
+  if (discovery.routes.length < 20) {
+    throw new Error(
+      `WordPress route discovery returned only ${discovery.routes.length} routes (pages=${report.discovery.pages}, posts=${report.discovery.posts}, categories=${report.discovery.categories}).`,
+    );
+  }
+  if (report.discovery.pages < 1) {
+    throw new Error('WordPress pages collection returned zero published pages.');
+  }
+  return discovery.routes;
 }
 
 async function inspectPage(session) {
@@ -288,6 +429,9 @@ async function inspectPage(session) {
 }
 
 function evaluateResult(scope, result) {
+  if (result.httpStatus !== undefined && !isSuccessfulHttpStatus(result.httpStatus)) {
+    fail(scope, `HTTP ${result.httpStatus} at ${result.finalUrl || result.url || 'unknown'}`);
+  }
   if (result.deploySha !== expectedSha) fail(scope, `served SHA ${result.deploySha || 'absent'} instead of ${expectedSha}`);
   if (!result.governanceStylesheet) fail(scope, 'terminal UI governance stylesheet is not loaded');
   if (!result.mainVisible) fail(scope, 'main content is missing or hidden');
@@ -318,6 +462,7 @@ async function auditRoute(port, route, viewport) {
   const result = { route, viewport: viewport.name };
   try {
     session = await openPage(port, route, viewport);
+    if (session.navigation) Object.assign(result, session.navigation);
     Object.assign(result, await inspectPage(session));
     evaluateResult(scope, result);
     if (critical.some((finding) => finding.startsWith(`${scope}:`))) {
@@ -338,7 +483,10 @@ function writeSummary() {
     '# Staging2 full-site UI audit',
     '',
     `- SHA: \`${expectedSha}\``,
-    `- Public routes discovered: **${report.routes.length}**`,
+    `- REST pages: **${report.discovery.pages}**`,
+    `- REST posts: **${report.discovery.posts}**`,
+    `- REST categories: **${report.discovery.categories}**`,
+    `- Public routes discovered: **${report.discovery.total_routes || report.routes.length}**`,
     `- Viewport audits: **${report.results.length}**`,
     `- Horizontal overflow tolerance: **${horizontalOverflowTolerance}px**`,
     `- Critical findings: **${critical.length}**`,
@@ -359,13 +507,20 @@ const chromePath = locateChrome();
 report.chrome = chromePath;
 const port = randomInt(9801, 9999);
 const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nvx-full-ui-'));
-const chrome = spawn(chromePath, [
-  '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
-  '--no-first-run', '--no-default-browser-check', '--hide-scrollbars',
-  `--remote-debugging-port=${port}`, `--user-data-dir=${profileDir}`, 'about:blank',
-], { stdio: ['ignore', 'ignore', 'ignore'] });
+let chrome;
 
 try {
+  chrome = spawn(chromePath, [
+    '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
+    '--no-first-run', '--no-default-browser-check', '--hide-scrollbars',
+    `--remote-debugging-port=${port}`, `--user-data-dir=${profileDir}`, 'about:blank',
+  ], { stdio: ['ignore', 'ignore', 'ignore'] });
+
+  await new Promise((resolve, reject) => {
+    chrome.once('spawn', resolve);
+    chrome.once('error', reject);
+  });
+
   await waitForChrome(port);
   const discoverySession = await openPage(port, '/', viewports[0]);
   try {
@@ -377,9 +532,14 @@ try {
     for (const viewport of viewports) await auditRoute(port, route, viewport);
   }
 } catch (error) {
-  fail('audit runtime', error instanceof Error ? error.message : String(error));
+  fail(
+    'audit runtime',
+    error instanceof Error ? error.message : String(error),
+  );
 } finally {
-  chrome.kill('SIGTERM');
+  if (chrome && chrome.exitCode === null && !chrome.killed) {
+    chrome.kill('SIGTERM');
+  }
   await sleep(250);
   fs.rmSync(profileDir, { recursive: true, force: true });
   writeSummary();
@@ -390,4 +550,6 @@ if (critical.length) {
   for (const finding of critical) console.error(`- ${finding}`);
   process.exit(1);
 }
-console.log(`FULL_SITE_UI_AUDIT_OK routes=${report.routes.length} checks=${report.results.length} warnings=${warnings.length} sha=${expectedSha}`);
+console.log(
+  `FULL_SITE_UI_AUDIT_OK routes=${report.routes.length} pages=${report.discovery.pages} posts=${report.discovery.posts} categories=${report.discovery.categories} checks=${report.results.length} warnings=${warnings.length} sha=${expectedSha}`,
+);

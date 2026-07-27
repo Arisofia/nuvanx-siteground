@@ -50,6 +50,7 @@ export class CDPSession {
     this.webSocket = null;
     this.nextId = 0;
     this.pending = new Map();
+    this.eventHandlers = new Map();
   }
 
   async connect() {
@@ -62,8 +63,26 @@ export class CDPSession {
     this.webSocket.addEventListener('message', (event) => this.handleMessage(event));
   }
 
+  /**
+   * Subscribe to CDP events (messages without id). Returns an unsubscribe function.
+   */
+  on(method, handler) {
+    if (!this.eventHandlers.has(method)) this.eventHandlers.set(method, new Set());
+    this.eventHandlers.get(method).add(handler);
+    return () => this.eventHandlers.get(method)?.delete(handler);
+  }
+
   handleMessage(event) {
     const message = JSON.parse(String(event.data));
+    if (message.method) {
+      const handlers = this.eventHandlers.get(message.method);
+      if (handlers) {
+        for (const handler of handlers) {
+          try { handler(message.params || {}); }
+          catch { /* Listener errors must not break the CDP session. */ }
+        }
+      }
+    }
     if (!message.id || !this.pending.has(message.id)) return;
     const pending = this.pending.get(message.id);
     clearTimeout(pending.timer);

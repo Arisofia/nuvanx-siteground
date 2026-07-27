@@ -2,7 +2,7 @@ name: Full Site UI Audit
 
 on:
   pull_request:
-    types: [labeled]
+    types: [labeled, synchronize, reopened]
     paths:
       - '.github/workflows/full-site-ui-audit.yml'
       - 'scripts/staging2/audit-full-site-ui.mjs'
@@ -15,7 +15,7 @@ permissions:
 
 concurrency:
   group: full-site-ui-audit-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   EVIDENCE_DIR: staging2-full-site-ui-audit
@@ -23,7 +23,7 @@ env:
 jobs:
   audit:
     if: >-
-      github.event.label.name == 'deploy-staging2' &&
+      contains(github.event.pull_request.labels.*.name, 'deploy-staging2') &&
       github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 45

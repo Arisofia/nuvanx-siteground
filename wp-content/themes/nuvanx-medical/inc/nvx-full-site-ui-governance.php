@@ -52,20 +52,48 @@ add_action( 'wp', 'nvxFullSiteDisableAutopForManagedContent', 1 );
 /**
  * Strip wpautop artefacts that are not true empty nodes in the DOM.
  *
- * Targets paragraphs whose only content is whitespace, &nbsp;, or a lone <br>.
- * Does not hide arbitrary visible paragraphs via CSS alone.
+ * Scoped to public singular content that still runs through wpautop. Complete
+ * HTML compositions (GitHub-managed raw markup) skip this filter. Only removes
+ * paragraphs whose visible text is empty and whose children are solely
+ * whitespace, &nbsp;, or <br> — never paragraphs that carry copy.
  *
  * @param mixed $content Filtered post content.
  * @return mixed
  */
 function nvxFullSiteStripEmptyAutopParagraphs( $content ) {
-	if ( ! is_string( $content ) || '' === $content ) {
+	if (
+		! is_string( $content )
+		|| '' === $content
+		|| is_admin()
+		|| wp_doing_ajax()
+		|| is_feed()
+		|| ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+		|| ! is_singular()
+		|| nvxFullSiteManagedContentUsesRawHtml()
+	) {
 		return $content;
 	}
 
-	$cleaned = preg_replace(
-		'/<p(?:\s[^>]*)?>\s*(?:(?:&nbsp;|&#160;|\x{00A0}|\s|<br\s*\/?>)+)?\s*<\/p>/iu',
-		'',
+	$cleaned = preg_replace_callback(
+		'/<p(?:\s[^>]*)?>[\s\S]*?<\/p>/iu',
+		static function ( array $match ): string {
+			$inner = $match[0];
+			// Keep any paragraph that still carries visible text or non-br media/controls.
+			if ( preg_match( '/<(img|svg|video|iframe|input|button|a|ul|ol|table|span|strong|em|h[1-6])\b/i', $inner ) ) {
+				return $match[0];
+			}
+			$text = wp_strip_all_tags( $inner, true );
+			$text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+			$text = preg_replace( '/[\x{00A0}\s]+/u', '', $text ) ?? $text;
+			if ( '' !== $text ) {
+				return $match[0];
+			}
+			// Empty of text: only whitespace / nbsp / br remain → drop artefact.
+			if ( preg_match( '/^<p(?:\s[^>]*)?>\s*(?:(?:&nbsp;|&#160;|\x{00A0}|\s|<br\s*\/?>)*)\s*<\/p>$/iu', $inner ) ) {
+				return '';
+			}
+			return $match[0];
+		},
 		$content
 	);
 

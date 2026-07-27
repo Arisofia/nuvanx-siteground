@@ -132,65 +132,91 @@ async function openPage(port, route, viewport) {
     screenHeight: viewport.height,
   });
 
-  const navigationMeta = {
-    httpStatus: null,
-    finalUrl: null,
-    redirectChain: [],
-    loaderId: null,
-  };
-
-  session.on('Network.requestWillBeSent', (params) => {
-    if (params.type !== 'Document') return;
-    if (params.redirectResponse) {
-      navigationMeta.redirectChain.push({
-        url: params.redirectResponse.url,
-        status: params.redirectResponse.status,
-      });
-    }
-    if (params.request?.url) {
-      navigationMeta.finalUrl = params.request.url;
-    }
-  });
-
-  session.on('Network.responseReceived', (params) => {
-    if (params.type !== 'Document') return;
-    navigationMeta.httpStatus = params.response?.status ?? null;
-    navigationMeta.finalUrl = params.response?.url || navigationMeta.finalUrl;
-    navigationMeta.loaderId = params.loaderId || navigationMeta.loaderId;
-  });
+  // Collect Document traffic first; after Page.navigate we keep only the top-level frame.
+  const documentRequests = [];
+  const documentResponses = [];
+  const unsubscribe = [
+    session.on('Network.requestWillBeSent', (params) => {
+      if (params.type === 'Document') documentRequests.push(params);
+    }),
+    session.on('Network.responseReceived', (params) => {
+      if (params.type === 'Document') documentResponses.push(params);
+    }),
+  ];
 
   const navigation = await session.send('Page.navigate', { url: `${baseUrl}${route}` });
-  if (navigation.errorText) throw new Error(`Navigation failed: ${navigation.errorText}`);
+  if (navigation.errorText) {
+    for (const stop of unsubscribe) stop();
+    throw new Error(`Navigation failed: ${navigation.errorText}`);
+  }
+
+  const topFrameId = navigation.frameId || null;
+  const topLoaderId = navigation.loaderId || null;
+
+  const isTopLevelDocument = (params) => {
+    if (topFrameId && params.frameId) return params.frameId === topFrameId;
+    if (topLoaderId && params.loaderId) return params.loaderId === topLoaderId;
+    // Fall back to base-origin documents only (never accept bare iframe origins).
+    const candidateUrl = params.response?.url || params.request?.url || '';
+    try {
+      return new URL(candidateUrl).origin === new URL(baseUrl).origin;
+    } catch {
+      return false;
+    }
+  };
 
   let state = null;
-  for (let attempt = 1; attempt <= 60; attempt += 1) {
-    state = await session.call(() => ({
-      ready: document.readyState,
-      sha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',
-      body: Boolean(document.body),
-    }));
-    if (state.ready === 'complete' && state.sha === expectedSha && state.body) break;
-    if (attempt === 20 || attempt === 40) await session.send('Page.reload', { ignoreCache: true });
-    await sleep(500);
-  }
-  if (state?.ready !== 'complete' || !state?.body || state?.sha !== expectedSha) {
-    const issues = [];
-    if (!state) issues.push('state absent');
-    else {
-      if (state.ready !== 'complete') issues.push(`readyState=${state.ready}`);
-      if (!state.body) issues.push('body missing');
-      if (state.sha !== expectedSha) issues.push(`SHA ${state.sha || 'absent'} instead of ${expectedSha}`);
+  try {
+    for (let attempt = 1; attempt <= 60; attempt += 1) {
+      state = await session.call(() => ({
+        ready: document.readyState,
+        sha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',
+        body: Boolean(document.body),
+      }));
+      if (state.ready === 'complete' && state.sha === expectedSha && state.body) break;
+      if (attempt === 20 || attempt === 40) await session.send('Page.reload', { ignoreCache: true });
+      await sleep(500);
     }
-    throw new Error(issues.join(', '));
+    if (state?.ready !== 'complete' || !state?.body || state?.sha !== expectedSha) {
+      const issues = [];
+      if (!state) issues.push('state absent');
+      else {
+        if (state.ready !== 'complete') issues.push(`readyState=${state.ready}`);
+        if (!state.body) issues.push('body missing');
+        if (state.sha !== expectedSha) issues.push(`SHA ${state.sha || 'absent'} instead of ${expectedSha}`);
+      }
+      throw new Error(issues.join(', '));
+    }
+
+    const topRequests = documentRequests.filter(isTopLevelDocument);
+    const topResponses = documentResponses.filter(isTopLevelDocument);
+    const lastResponse = topResponses[topResponses.length - 1] || null;
+    const navigationMeta = {
+      httpStatus: lastResponse?.response?.status ?? null,
+      finalUrl: lastResponse?.response?.url || topRequests[topRequests.length - 1]?.request?.url || null,
+      redirectChain: [],
+      loaderId: lastResponse?.loaderId || topLoaderId,
+      frameId: topFrameId,
+    };
+    for (const request of topRequests) {
+      if (request.redirectResponse) {
+        navigationMeta.redirectChain.push({
+          url: request.redirectResponse.url,
+          status: request.redirectResponse.status,
+        });
+      }
+    }
+
+    session.navigation = assertDocumentNavigation(route, navigationMeta);
+
+    await session.evaluate(`new Promise((resolve) => {
+      const finish = () => setTimeout(resolve, 350);
+      if (document.fonts?.ready) document.fonts.ready.then(finish, finish); else finish();
+    })`);
+    return session;
+  } finally {
+    for (const stop of unsubscribe) stop();
   }
-
-  session.navigation = assertDocumentNavigation(route, navigationMeta);
-
-  await session.evaluate(`new Promise((resolve) => {
-    const finish = () => setTimeout(resolve, 350);
-    if (document.fonts?.ready) document.fonts.ready.then(finish, finish); else finish();
-  })`);
-  return session;
 }
 
 async function discoverRoutes(session) {
@@ -239,8 +265,9 @@ async function discoverRoutes(session) {
           const url = new URL(item.link, location.origin);
           if (url.origin !== location.origin) continue;
           discovered.add(url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`);
-        } catch {
-          // Ignore malformed CMS links.
+        } catch (error) {
+          // Count and skip malformed CMS links without aborting discovery.
+          if (error) counts.skipped_links = (counts.skipped_links || 0) + 1;
         }
       }
     }

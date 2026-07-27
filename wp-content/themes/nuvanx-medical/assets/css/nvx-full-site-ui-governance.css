@@ -98,13 +98,11 @@ body.nvx-full-site-ui-governed :where(main, .nvx-main) :where(
   font-family: var(--nvx-sans);
 }
 
-/* Defensive cleanup for legacy automatic-paragraph artefacts that survive in
- * content not eligible for the raw-HTML wpautop exemption.
- * True whitespace/nbsp paragraphs are stripped in PHP
- * (nvxFullSiteStripEmptyAutopParagraphs). CSS only hides empty nodes and
- * paragraphs whose sole child is a line break. */
+/* Defensive cleanup for residual empty paragraph nodes only.
+ * Whitespace/nbsp/<br>-only artefacts are stripped in PHP
+ * (nvxFullSiteStripEmptyAutopParagraphs). Do not use :has(> br:only-child):
+ * text nodes are ignored by :only-child, so <p>copy<br></p> would be hidden. */
 body.nvx-full-site-ui-governed :where(main, .nvx-main) p:empty,
-body.nvx-full-site-ui-governed :where(main, .nvx-main) p:has(> br:only-child),
 body.nvx-full-site-ui-governed .entry-content > br:first-child,
 body.nvx-full-site-ui-governed .entry-content > br:last-child {
   display: none;

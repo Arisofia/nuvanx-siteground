@@ -274,22 +274,22 @@ echo '== Audit production-readiness content after migration =='
   wp --require="$MIGRATION_SCRIPT" nvx production-readiness audit
 )
 
-echo '== Audit canonical legacy routes before migration =='
+echo '== Audit legacy route retirement before migration =='
 (
   cd "$WP_ROOT"
-  wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx canonical-routes audit --allow-pending
+  wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx legacy-routes audit --allow-pending
 )
 
-echo '== Apply canonical legacy route migration =='
+echo '== Apply legacy route retirement =='
 (
   cd "$WP_ROOT"
-  wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx canonical-routes apply --confirm=canonicalize-legacy-routes
+  wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx legacy-routes apply --confirm=retire-legacy-routes
 )
 
-echo '== Audit canonical legacy routes after migration =='
+echo '== Audit legacy route retirement after migration =='
 (
   cd "$WP_ROOT"
-  wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx canonical-routes audit
+  wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx legacy-routes audit
 )
 
 echo '== Run staging2 rendered smoke verification =='

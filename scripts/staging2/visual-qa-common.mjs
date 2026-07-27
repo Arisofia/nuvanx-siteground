@@ -102,7 +102,7 @@ export class CDPSession {
   }
 
   resolvePending(message) {
-    if (!message.id || !this.pending.has(message.id)) return;
+    if (!message?.id || !this.pending.has(message.id)) return;
     const pending = this.pending.get(message.id);
     clearTimeout(pending.timer);
     this.pending.delete(message.id);
@@ -121,7 +121,7 @@ export class CDPSession {
       // Non-JSON frames must not break the CDP session or leave sends pending.
       return;
     }
-    if (message.method) this.dispatchEvent(message.method, message.params);
+    if (message?.method) this.dispatchEvent(message.method, message.params);
     this.resolvePending(message);
   }
 

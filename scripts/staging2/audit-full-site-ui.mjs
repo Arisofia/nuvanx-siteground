@@ -246,11 +246,16 @@ async function discoverRoutes(session) {
     const discovered = new Set(seed);
     const counts = { pages: 0, posts: 0, categories: 0, skipped_links: 0 };
 
-    function hasMoreCollectionPages(header, itemCount, currentPage) {
+    function hasMoreCollectionPages(header, itemCount, currentPage, endpoint) {
       if (header === null) return itemCount >= perPage;
       const totalPages = Number(header);
       if (!Number.isFinite(totalPages) || totalPages < 1) return itemCount >= perPage;
-      return currentPage < Math.min(totalPages, maxPages);
+      if (totalPages > maxPages) {
+        throw new Error(
+          `REST collection exceeds pagination cap: endpoint=${endpoint}, totalPages=${totalPages}, maxPages=${maxPages}`,
+        );
+      }
+      return currentPage < totalPages;
     }
 
     async function responseIsInvalidPage(response) {
@@ -290,6 +295,7 @@ async function discoverRoutes(session) {
           response.headers.get('X-WP-TotalPages'),
           items.length,
           page,
+          endpoint,
         );
         page += 1;
       }

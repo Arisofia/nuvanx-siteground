@@ -22,6 +22,29 @@ forbidText('page hygiene', hygiene, 'wp_safe_redirect(');
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 forbidText('integrations', integrations, 'nvx_redirect_governed_routes');
 forbidText('integrations', integrations, 'wp_safe_redirect(');
+forbidText('integrations', integrations, 'wp_redirect(');
+for (const marker of [
+  'function nvx_retired_legacy_route_slugs(): array',
+  'function nvx_is_retired_legacy_route_request(): bool',
+  'function nvx_disable_retired_legacy_route_redirect',
+  'function nvx_serve_retired_legacy_route(): void',
+  "add_filter( 'redirect_canonical', 'nvx_disable_retired_legacy_route_redirect'",
+  "add_action( 'template_redirect', 'nvx_serve_retired_legacy_route', -1000000 )",
+  "remove_action( 'template_redirect', 'redirect_canonical' )",
+  'status_header( 410 )',
+  'X-Robots-Tag: noindex, nofollow',
+  'X-NUVANX-Retired-Route: 1',
+  "'mas-informacion-sobre-las-cookies'",
+  "'politica-de-cookies'",
+  "'politica-de-privacidad'",
+  "'tratamiento-retirado'",
+  "'tratamientos'",
+  "'liposculpt-air'",
+  "'v-lift-awake'",
+  "'dr-javier-rivera-tejeda'",
+  "'eye-frame-rejuvenecimiento-mirada-madrid'",
+  "'eye-frame'",
+]) requireText('retired route runtime guard', integrations, marker);
 
 const migration = read('scripts/wp/nvx-canonical-route-migration.php').replace(/\s+/g, ' ');
 for (const marker of [
@@ -60,6 +83,8 @@ for (const marker of [
   'LEGACY_ROUTES_RETIRED_OK',
   'check_retired_route',
   'check_target_page',
+  'x_redirect_by=',
+  'X-Redirect-By',
   '/mas-informacion-sobre-las-cookies/',
   '/politica-de-cookies/',
   '/politica-de-privacidad/',

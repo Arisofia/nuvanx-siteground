@@ -87,9 +87,13 @@ export class CDPSession {
     if (!handlers) return;
     for (const handler of handlers) {
       try {
-        handler(params || {});
+        Promise.resolve(handler(params || {})).catch((error) => {
+          if (process.env.NVX_CDP_DEBUG) {
+            console.error(`CDP async listener error for ${method}:`, error);
+          }
+        });
       } catch (error) {
-        // Listener failures must not tear down the CDP session.
+        // Synchronous listener failures must not tear down the CDP session.
         if (process.env.NVX_CDP_DEBUG) {
           console.error(`CDP listener error for ${method}:`, error);
         }
@@ -110,7 +114,13 @@ export class CDPSession {
   }
 
   handleMessage(event) {
-    const message = JSON.parse(String(event.data));
+    let message;
+    try {
+      message = JSON.parse(String(event.data));
+    } catch {
+      // Non-JSON frames must not break the CDP session or leave sends pending.
+      return;
+    }
     if (message.method) this.dispatchEvent(message.method, message.params);
     this.resolvePending(message);
   }

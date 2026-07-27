@@ -22,9 +22,12 @@ env:
 
 jobs:
   audit:
+    # labeled: only when the new label is deploy-staging2.
+    # synchronize/reopened: only while that label remains on the PR.
     if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
       contains(github.event.pull_request.labels.*.name, 'deploy-staging2') &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      (github.event.action != 'labeled' || github.event.label.name == 'deploy-staging2')
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:

@@ -139,13 +139,13 @@ add_filter( 'the_content', 'nvxFullSiteRemoveNestedPostId', 999 );
 /**
  * Resolve a menu item's parent through the canonical ID map.
  *
- * @param array<int, int> $canonical_ids Map of item ID => kept canonical ID.
- * @param int             $parent        Original parent menu item ID.
+ * @param array<int, int> $canonicalIds Map of item ID => kept canonical ID.
+ * @param int             $parent       Original parent menu item ID.
  */
-function nvxFullSiteResolveCanonicalParent( array $canonical_ids, int $parent ): int {
+function nvxFullSiteResolveCanonicalParent( array $canonicalIds, int $parent ): int {
     $guard = 0;
-    while ( $parent > 0 && isset( $canonical_ids[ $parent ] ) && $canonical_ids[ $parent ] !== $parent && $guard < 20 ) {
-        $parent = (int) $canonical_ids[ $parent ];
+    while ( $parent > 0 && isset( $canonicalIds[ $parent ] ) && $canonicalIds[ $parent ] !== $parent && $guard < 20 ) {
+        $parent = (int) $canonicalIds[ $parent ];
         ++$guard;
     }
 
@@ -165,25 +165,25 @@ function nvxFullSiteMenuItemSignature( object $item, int $parent ): string {
 /**
  * Register the first occurrence of a signature and map duplicate IDs to it.
  *
- * @param object            $item          Menu item.
- * @param string            $signature     Stable signature.
- * @param array<string,int> $seen          Signature => canonical item ID.
- * @param array<int,int>    $canonical_ids Item ID => canonical item ID.
+ * @param object            $item         Menu item.
+ * @param string            $signature    Stable signature.
+ * @param array<string,int> $seen         Signature => canonical item ID.
+ * @param array<int,int>    $canonicalIds Item ID => canonical item ID.
  * @return bool True when the item is new and should be kept.
  */
-function nvxFullSiteRegisterCanonicalMenuItem( object $item, string $signature, array &$seen, array &$canonical_ids ): bool {
-    $item_id = isset( $item->ID ) ? (int) $item->ID : 0;
+function nvxFullSiteRegisterCanonicalMenuItem( object $item, string $signature, array &$seen, array &$canonicalIds ): bool {
+    $itemId = isset( $item->ID ) ? (int) $item->ID : 0;
 
     if ( isset( $seen[ $signature ] ) ) {
-        if ( $item_id > 0 ) {
-            $canonical_ids[ $item_id ] = (int) $seen[ $signature ];
+        if ( $itemId > 0 ) {
+            $canonicalIds[ $itemId ] = (int) $seen[ $signature ];
         }
         return false;
     }
 
-    if ( $item_id > 0 ) {
-        $seen[ $signature ]        = $item_id;
-        $canonical_ids[ $item_id ] = $item_id;
+    if ( $itemId > 0 ) {
+        $seen[ $signature ]      = $itemId;
+        $canonicalIds[ $itemId ] = $itemId;
     }
 
     return true;
@@ -205,9 +205,9 @@ function nvxFullSiteDeduplicatePrimaryMenuItems( $items, $args ) {
         return $items;
     }
 
-    $canonical_ids = array();
-    $seen          = array();
-    $deduplicated  = array();
+    $canonicalIds = array();
+    $seen         = array();
+    $deduplicated = array();
 
     foreach ( $items as $item ) {
         if ( ! is_object( $item ) ) {
@@ -215,11 +215,11 @@ function nvxFullSiteDeduplicatePrimaryMenuItems( $items, $args ) {
         }
 
         $parent                 = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
-        $parent                 = nvxFullSiteResolveCanonicalParent( $canonical_ids, $parent );
+        $parent                 = nvxFullSiteResolveCanonicalParent( $canonicalIds, $parent );
         $item->menu_item_parent = (string) $parent;
         $signature              = nvxFullSiteMenuItemSignature( $item, $parent );
 
-        if ( ! nvxFullSiteRegisterCanonicalMenuItem( $item, $signature, $seen, $canonical_ids ) ) {
+        if ( ! nvxFullSiteRegisterCanonicalMenuItem( $item, $signature, $seen, $canonicalIds ) ) {
             continue;
         }
 

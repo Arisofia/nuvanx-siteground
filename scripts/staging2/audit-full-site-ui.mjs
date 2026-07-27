@@ -158,6 +158,7 @@ async function inspectPage(session) {
         .join(' ')
         .trim();
       const labels = node.labels ? Array.from(node.labels).map((label) => label.textContent || '').join(' ').trim() : '';
+      const iconAlt = node.querySelector('img[alt]')?.getAttribute('alt')?.trim() || '';
       return (
         node.getAttribute('aria-label')
         || labelledBy
@@ -165,6 +166,7 @@ async function inspectPage(session) {
         || node.getAttribute('title')
         || node.getAttribute('placeholder')
         || node.textContent
+        || iconAlt
         || node.value
         || ''
       ).trim();

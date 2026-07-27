@@ -21,7 +21,7 @@ const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations
 forbidText('integrations', integrations, 'nvx_redirect_governed_routes');
 forbidText('integrations', integrations, 'wp_safe_redirect(');
 
-const migration = read('scripts/wp/nvx-canonical-route-migration.php');
+const migration = read('scripts/wp/nvx-canonical-route-migration.php').replace(/\s+/g, ' ');
 for (const marker of [
   "'legacy' => 'mas-informacion-sobre-las-cookies', 'source_id' => 18, 'target' => 'politica-de-cookies-ue', 'target_id' => 577",
   "'legacy' => 'politica-de-cookies', 'source_id' => 31, 'target' => 'politica-de-cookies-ue', 'target_id' => 577",
@@ -36,7 +36,7 @@ for (const marker of [
   "'target' => 'ojeras-surco-lagrimal-madrid'",
   "'_wp_old_slug'",
   'Canonical route audit passed.',
-]) requireText('canonical migration', migration, marker);
+]) requireText('canonical migration', migration, marker.replace(/\s+/g, ' '));
 
 const deploy = read('tools/deploy/deploy-to-staging2.sh');
 for (const marker of [

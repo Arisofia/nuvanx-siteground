@@ -258,19 +258,6 @@
 	border-bottom: 1px solid currentColor;
 }
 
-.nvx-cases-closure h2,
-.nvx-cases-closure p {
-	text-align: center;
-}
-
-.nvx-cases-closure > p:not(.nvx-cases-eyebrow) {
-	max-width: 42rem;
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-body);
-	line-height: 1.65;
-	color: var(--nvx-surface-soft);
-}
-
 @media (max-width: 75rem) {
 	.nvx-cases-method__grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -316,10 +303,5 @@
 
 	.nvx-cases-hero h1 {
 		font-size: clamp(2.75rem, 12vw, 4rem);
-	}
-
-	.nvx-cases-closure__actions,
-	.nvx-cases-closure__actions .nvx-btn {
-		width: 100%;
 	}
 }

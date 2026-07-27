@@ -139,12 +139,6 @@
   color: var(--nvx-light);
 }
 
-.nvx-blog-archive__hero-title,
-.nvx-blog-single__title {
-  max-width: 18ch;
-  color: var(--nvx-light);
-}
-
 .nvx-blog-archive__body,
 .nvx-blog-single__body {
   width: 100%;

@@ -20,6 +20,7 @@ on:
       - '.github/workflows/full-site-ui-audit.yml'
       - 'scripts/staging2/audit-full-site-ui.mjs'
       - 'scripts/wp/nvx-production-readiness-command.php'
+      - 'scripts/wp/nvx-canonical-route-migration.php'
       - 'wp-content/themes/nuvanx-medical/**'
       - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
       - 'docs/content-strategy-2026/NUVANX-CONTOUR-ROADMAP-STATUS.md'
@@ -98,6 +99,7 @@ jobs:
         run: |
           set -euo pipefail
           php -l scripts/wp/nvx-production-readiness-command.php
+          php -l scripts/wp/nvx-canonical-route-migration.php
           php -l wp-content/themes/nuvanx-medical/functions.php
           php -l wp-content/themes/nuvanx-medical/front-page.php
           php -l wp-content/themes/nuvanx-medical/templates/page-sede.php
@@ -259,10 +261,11 @@ jobs:
             wp-content/themes/nuvanx-medical/ "nvx-staging2:$REMOTE_RELEASE/theme/"
           rsync -az tools/deploy/deploy-to-staging2.sh \
             scripts/wp/nvx-production-readiness-command.php \
+            scripts/wp/nvx-canonical-route-migration.php \
             scripts/staging2/smoke-verify-staging2.sh \
             "nvx-staging2:$REMOTE_RELEASE/"
 
-      - name: Execute guarded deployment, migration and smoke test
+      - name: Execute guarded deployment, migrations and smoke test
         if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE'
         id: remote_deploy
         run: |
@@ -271,10 +274,13 @@ jobs:
             "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' \
               --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' \
               --migration-script '$REMOTE_RELEASE/nvx-production-readiness-command.php' \
+              --canonical-migration-script '$REMOTE_RELEASE/nvx-canonical-route-migration.php' \
               --smoke-script '$REMOTE_RELEASE/smoke-verify-staging2.sh' \
               --sha '$DEPLOY_SHA' --confirm" \
             2>&1 | tee "$ARTIFACT_DIR/remote-deploy.log"
           grep -Fq 'DEPLOY_STAGING2_OK' "$ARTIFACT_DIR/remote-deploy.log"
+          grep -Fq 'Canonical route migration applied.' "$ARTIFACT_DIR/remote-deploy.log"
+          grep -Fq 'Canonical route audit passed.' "$ARTIFACT_DIR/remote-deploy.log"
 
       - name: Verify deployed marker
         if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE'
@@ -346,6 +352,7 @@ jobs:
             echo "- SHA: \`$DEPLOY_SHA\`"
             echo "- Mode: \`$RUN_MODE\`"
             echo "- Job status: \`$JOB_STATUS\`"
+            echo "- Canonical migration: \`${{ steps.remote_deploy.outcome }}\`"
             echo "- Independent smoke: \`${{ steps.independent_smoke.outcome }}\`"
             echo "- Rendered acceptance: \`${{ steps.rendered_acceptance.outcome }}\`"
             echo "- Visual QA: \`${{ steps.visual_qa.outcome }}\`"

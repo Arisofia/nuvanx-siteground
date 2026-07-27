@@ -119,6 +119,22 @@ export class CDPSession {
       message = JSON.parse(String(event.data));
     } catch {
       // Non-JSON frames must not break the CDP session or leave sends pending.
+      // Optionally log malformed frames when debugging CDP traffic.
+      try {
+        if (typeof process !== 'undefined' && process.env && process.env.NVX_CDP_DEBUG) {
+          const raw = String(event.data ?? '');
+          const maxLength = 512;
+          const truncated =
+            raw.length > maxLength ? `${raw.slice(0, maxLength)}…` : raw;
+          // eslint-disable-next-line no-console
+          console.warn('[CDP] Ignoring non-JSON frame', {
+            length: raw.length,
+            truncatedPayload: truncated,
+          });
+        }
+      } catch {
+        // Logging must never interfere with normal operation.
+      }
       return;
     }
     if (message.method) this.dispatchEvent(message.method, message.params);

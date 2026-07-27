@@ -43,8 +43,11 @@ for (const marker of [
   '--canonical-migration-script',
   'nvx canonical-routes audit --allow-pending',
   'nvx canonical-routes apply --confirm=canonicalize-legacy-routes',
-  'nvx canonical-routes audit',
 ]) requireText('guarded deployment', deploy, marker);
+
+if (!/nvx canonical-routes audit(?!\s+--allow-pending)/.test(deploy)) {
+  failures.push('guarded deployment: missing standalone nvx canonical-routes audit (post-apply verification)');
+}
 
 const smoke = read('scripts/staging2/smoke-verify-staging2.sh');
 requireText('staging2 smoke', smoke, 'CANONICAL_ROUTE_REDIRECTS_OK');

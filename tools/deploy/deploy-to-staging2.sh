@@ -37,6 +37,18 @@ fail() {
   return 1
 }
 
+purge_staging2_caches() {
+  (
+    cd "$WP_ROOT"
+    wp cache flush || true
+    wp sg purge || true
+    rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
+    rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
+    rm -rf wp-content/cache/* 2>/dev/null || true
+    wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+  )
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --wp-root) WP_ROOT="${2:-}"; shift 2 ;;
@@ -221,16 +233,8 @@ echo '== Disable SiteGround asset transformations =='
   wp sg optimize combine-js disable || true
 )
 
-echo '== Purge staging2 caches =='
-(
-  cd "$WP_ROOT"
-  wp cache flush || true
-  wp sg purge || true
-  rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
-  rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
-  rm -rf wp-content/cache/* 2>/dev/null || true
-  wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
-)
+echo '== Purge staging2 caches before migrations =='
+purge_staging2_caches
 
 echo '== Verify WordPress runtime callbacks before database migration =='
 (
@@ -291,6 +295,9 @@ echo '== Audit legacy route retirement after migration =='
   cd "$WP_ROOT"
   wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx legacy-routes audit
 )
+
+echo '== Purge staging2 caches after canonical route migration =='
+purge_staging2_caches
 
 echo '== Run staging2 rendered smoke verification =='
 SMOKE_OUTPUT="$(BASE_URL="$EXPECTED_URL" bash "$SMOKE_SCRIPT")"

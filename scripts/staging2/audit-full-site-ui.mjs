@@ -36,7 +36,8 @@ const seedRoutes = String(process.env.NVX_AUDIT_SEED_ROUTES || '/,/blog/')
  * REST-discovered routes should normally resolve without redirects.
  */
 const authorizedRedirects = new Map([
-  // ['/ruta-antigua/', '/ruta-canonica/'],
+  ['/mas-informacion-sobre-las-cookies/', '/politica-de-cookies-ue/'],
+  ['/politica-de-cookies/', '/politica-de-cookies-ue/'],
 ]);
 const canonicalPalette = [
   [247, 247, 245], [241, 241, 239], [17, 17, 17], [28, 28, 30],

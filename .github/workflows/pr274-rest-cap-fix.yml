@@ -1,0 +1,83 @@
+name: PR274 REST cap correction
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: >-
+      github.head_ref == 'fix/remove-redirect-exceptions-and-retire-legacy-routes' &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out immutable PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Make REST pagination cap fail closed
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/staging2/audit-full-site-ui.mjs')
+          text = path.read_text(encoding='utf-8')
+          old = """    function hasMoreCollectionPages(header, itemCount, currentPage) {
+                if (header === null) return itemCount >= perPage;
+                const totalPages = Number(header);
+                if (!Number.isFinite(totalPages) || totalPages < 1) return itemCount >= perPage;
+                return currentPage < Math.min(totalPages, maxPages);
+              }
+          """
+          new = """    function hasMoreCollectionPages(header, itemCount, currentPage, endpoint) {
+                if (header === null) return itemCount >= perPage;
+                const totalPages = Number(header);
+                if (!Number.isFinite(totalPages) || totalPages < 1) return itemCount >= perPage;
+                if (totalPages > maxPages) {
+                  throw new Error(
+                    `REST collection exceeds pagination cap: endpoint=${endpoint}, totalPages=${totalPages}, maxPages=${maxPages}`,
+                  );
+                }
+                return currentPage < totalPages;
+              }
+          """
+          if old not in text:
+              raise SystemExit('REST pagination helper pattern not found')
+          text = text.replace(old, new, 1)
+          old_call = """              response.headers.get('X-WP-TotalPages'),
+                    items.length,
+                    page,
+                  );
+          """
+          new_call = """              response.headers.get('X-WP-TotalPages'),
+                    items.length,
+                    page,
+                    endpoint,
+                  );
+          """
+          if old_call not in text:
+              raise SystemExit('REST pagination call pattern not found')
+          text = text.replace(old_call, new_call, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Validate and commit audit correction
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          node --check scripts/staging2/audit-full-site-ui.mjs
+          git add scripts/staging2/audit-full-site-ui.mjs
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix(audit): fail closed when REST pagination exceeds cap'
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin HEAD:fix/remove-redirect-exceptions-and-retire-legacy-routes

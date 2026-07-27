@@ -1,6 +1,12 @@
 # Node/JS dependencies
 node_modules/
 
+# Local environment files — never commit credentials or machine-specific values
+.env
+.env.*
+!.env.example
+!.env.*.example
+
 # IDE and OS
 .vscode/
 .DS_Store
@@ -9,6 +15,7 @@ node_modules/
 *.js
 dom_dump.html
 staging2-deployment-evidence/
+staging2-full-site-ui-audit/
 theme-hygiene-report.txt
 
 # Artifacts

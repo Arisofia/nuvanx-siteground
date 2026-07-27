@@ -190,7 +190,7 @@ function nvxFullSiteRegisterCanonicalMenuItem( object $item, string $signature, 
  * @return mixed
  */
 function nvxFullSiteDeduplicatePrimaryMenuItems( $items, $args ) {
-    if ( ! is_array( $items ) || ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+    if ( ! is_array( $items ) || ! is_object( $args ) || ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
         return $items;
     }
 

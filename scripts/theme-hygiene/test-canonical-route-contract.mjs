@@ -46,6 +46,22 @@ for (const marker of [
   "'eye-frame'",
 ]) requireText('retired route runtime guard', integrations, marker);
 
+const renderedAcceptance = read('scripts/staging2/verify-rendered-acceptance-ssh.mjs');
+for (const marker of [
+  'const retiredRoutes = [',
+  'retired_routes: []',
+  'response.status !== 410',
+  "headerValue(response.headers, 'location')",
+  "headerValue(response.headers, 'x-redirect-by')",
+  "headerValue(response.headers, 'x-robots-tag')",
+  "headerValue(response.headers, 'x-nuvanx-retired-route')",
+  'RENDERED_ACCEPTANCE_OK transport=ssh pages=',
+  'retired_routes=${retiredRoutes.length}',
+]) requireText('rendered retirement acceptance', renderedAcceptance, marker);
+for (const forbidden of ['const redirects = [', 'report.redirects', 'CHECK origin redirect', 'instead of 301']) {
+  forbidText('rendered retirement acceptance', renderedAcceptance, forbidden);
+}
+
 const migration = read('scripts/wp/nvx-canonical-route-migration.php').replace(/\s+/g, ' ');
 for (const marker of [
   "'legacy' => 'mas-informacion-sobre-las-cookies', 'source_id' => 18, 'target' => 'politica-de-cookies-ue', 'target_id' => 577",

@@ -51,6 +51,7 @@ for (const marker of [
   'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
   'scripts/staging2/capture-visual-qa.mjs',
   'scripts/staging2/visual-qa-edge-preload.mjs',
+  'scripts/staging2/visual-qa-common.mjs',
   'NODE_OPTIONS: --import=',
   'Run rendered acceptance verification', 'RENDERED_ACCEPTANCE_OK',
   'Run real browser visual QA', 'VISUAL_QA_OK',

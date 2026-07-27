@@ -166,10 +166,11 @@ async function openPage(port, route, viewport) {
   };
 
   const assertNoEarlyHttpFailure = () => {
-    const response = documentResponses.filter(isTopLevelDocument).at(-1)?.response;
+    const response = documentResponses.findLast(isTopLevelDocument)?.response;
     const status = response?.status;
     if (Number.isInteger(status) && !isSuccessfulHttpStatus(status)) {
-      throw new Error(`Main document HTTP ${status} for ${response.url || `${baseUrl}${route}`}`);
+      const failureUrl = response.url || `${baseUrl}${route}`;
+      throw new Error(`Main document HTTP ${status} for ${failureUrl}`);
     }
   };
 
@@ -198,10 +199,8 @@ async function openPage(port, route, viewport) {
       throw new Error(issues.join(', '));
     }
 
-    const topRequests = documentRequests.filter(isTopLevelDocument);
-    const topResponses = documentResponses.filter(isTopLevelDocument);
-    const lastResponse = topResponses.at(-1) || null;
-    const lastRequest = topRequests.at(-1) || null;
+    const lastResponse = documentResponses.findLast(isTopLevelDocument) || null;
+    const lastRequest = documentRequests.findLast(isTopLevelDocument) || null;
     const navigationMeta = {
       httpStatus: lastResponse?.response?.status ?? null,
       finalUrl: lastResponse?.response?.url || lastRequest?.request?.url || null,
@@ -210,8 +209,12 @@ async function openPage(port, route, viewport) {
       frameId: topFrameId,
     };
     const effectiveLoaderId = lastResponse?.loaderId || topLoaderId;
-    for (const request of topRequests) {
-      if (request.redirectResponse && request.loaderId === effectiveLoaderId) {
+    for (const request of documentRequests) {
+      if (
+        isTopLevelDocument(request)
+        && request.redirectResponse
+        && request.loaderId === effectiveLoaderId
+      ) {
         navigationMeta.redirectChain.push({
           url: request.redirectResponse.url,
           status: request.redirectResponse.status,
@@ -248,16 +251,6 @@ async function discoverRoutes(session) {
       return totalPages;
     }
 
-    async function responseIsInvalidPage(response) {
-      if (response.status !== 400) return false;
-      try {
-        const payload = await response.json();
-        return payload?.code === 'rest_post_invalid_page_number';
-      } catch {
-        return false;
-      }
-    }
-
     async function fetchWpCollectionBrowser(endpoint) {
       const collected = [];
       let page = 1;
@@ -268,7 +261,15 @@ async function discoverRoutes(session) {
           { credentials: 'same-origin' },
         );
         if (!response.ok) {
-          if (await responseIsInvalidPage(response)) break;
+          // WordPress returns 400 + rest_post_invalid_page_number past the last page.
+          if (response.status === 400) {
+            try {
+              const payload = await response.json();
+              if (payload?.code === 'rest_post_invalid_page_number') break;
+            } catch {
+              // Fall through to the hard failure below.
+            }
+          }
           throw new Error(
             `REST collection failed: ${endpoint}, page=${page}, status=${response.status}`,
           );

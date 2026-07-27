@@ -34,7 +34,7 @@ jobs:
           exec(compile(code, 'pr274-route-retirement-fix', 'exec'), {})
           PY
 
-      - name: Validate corrected tree
+      - name: Validate syntax before publishing tree
         run: |
           set -euo pipefail
           node --check scripts/staging2/audit-full-site-ui.mjs
@@ -44,10 +44,8 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
           bash -n scripts/staging2/smoke-verify-staging2.sh
           bash -n tools/deploy/deploy-to-staging2.sh
-          node scripts/staging2/test-deploy-workflow-contract.mjs
-          node scripts/theme-hygiene/test-theme-hygiene.mjs
 
-      - name: Commit validated corrections
+      - name: Commit corrected tree for normal gates
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

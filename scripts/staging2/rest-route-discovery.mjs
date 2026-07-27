@@ -11,8 +11,13 @@
  * @returns {Promise<{routes:string[],counts:{pages:number,posts:number,categories:number,skipped_links:number}}>} Discovery payload.
  */
 export async function discoverWordPressRoutes(seed, perPage, maxPages) {
-  const discovered = new Set(seed);
+  const discovered = new Set();
   const counts = { pages: 0, posts: 0, categories: 0, skipped_links: 0 };
+
+  // Normalize and register seed routes through the same logic as REST-discovered links.
+  for (const route of seed) {
+    addDiscoveredLink(route);
+  }
 
   function parseTotalPages(header) {
     if (header === null) return null;

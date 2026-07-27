@@ -855,16 +855,18 @@ function nvx_schema_treatment_node( $page_id, $organization_id ) {
  */
 function nvx_schema_physician_director( $organization_id ) {
     $equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
+    $director_id = home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-rivera-tejeda' );
     $colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
     return array(
         '@type'           => array( 'Person', 'Physician' ),
-        '@id'             => home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-rivera-tejeda' ),
+        '@id'             => $director_id,
         'name'            => 'José Javier Rivera Tejeda',
         'honorificPrefix' => 'Dr.',
         'jobTitle'        => 'Director médico e investigador clínico aplicado · NUVANX Madrid',
         'description'     => 'Dirección médica de NUVANX. Láser intersticial (Endolift®, laserlipólisis), CO₂ fraccionado, geometría facial con inductores y tricología. ' . NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Perfil público en Doctoralia.',
-        'url'             => $equipo,
+        'url'             => $equipo . '#physician-rivera-tejeda',
+        'medicalSpecialty' => array( 'Aesthetic Medicine', 'Laser Medicine' ),
         'worksFor'        => array( '@id' => $organization_id ),
         'hasCredential'   => array(
             array(
@@ -1325,14 +1327,38 @@ function nvx_schema_enrich_organization( array &$graph, int $index, array $all_c
 }
 
 /**
- * Attaches clinic sub-organizations and offer catalog to the Yoast schema graph.
+ * Clinic branch keys to attach for the current page.
+ *
+ * Home and equipo get both branches; other pages use path/meta resolution.
+ *
+ * @param int $page_id Current page ID.
+ * @return string[]
  */
-function nvx_schema_attach_clinics_graph( array &$graph, int $page_id, array $organization, array $all_clinics, array $physicians, array $clinic_ids ): void {
+function nvx_schema_clinic_keys_for_page( int $page_id ): array {
+    if ( is_front_page() ) {
+        return array( 'chamberi', 'goya' );
+    }
+
+    $path = nvx_schema_current_path( $page_id );
+    if ( nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MEDICO ) ) {
+        return array( 'chamberi', 'goya' );
+    }
+
+    return nvx_schema_resolve_clinic_keys( $page_id );
+}
+
+/**
+ * Attaches clinic sub-organizations and offer catalog to the Yoast schema graph.
+ *
+ * subOrganization / department refs only include clinics actually appended to
+ * the graph (no dangling @id when a single branch page is rendered).
+ */
+function nvx_schema_attach_clinics_graph( array &$graph, int $page_id, array $organization, array $all_clinics, array $physicians ): void {
     if ( null === $organization['index'] ) {
         return;
     }
 
-    $clinic_keys = is_front_page() ? array( 'chamberi', 'goya' ) : nvx_schema_resolve_clinic_keys( $page_id );
+    $clinic_keys = nvx_schema_clinic_keys_for_page( $page_id );
     if ( empty( $clinic_keys ) ) {
         return;
     }
@@ -1343,13 +1369,14 @@ function nvx_schema_attach_clinics_graph( array &$graph, int $page_id, array $or
         $graph[] = $catalog;
     }
 
-    $graph[ $organization['index'] ]['subOrganization'] = $clinic_ids;
-
     $clinic_employees = array();
     foreach ( $physicians as $person ) {
-        $clinic_employees[] = array( '@id' => $person['@id'] );
+        if ( ! empty( $person['@id'] ) ) {
+            $clinic_employees[] = array( '@id' => $person['@id'] );
+        }
     }
 
+    $clinic_refs = array();
     foreach ( $clinic_keys as $key ) {
         if ( empty( $all_clinics[ $key ] ) ) {
             continue;
@@ -1359,7 +1386,12 @@ function nvx_schema_attach_clinics_graph( array &$graph, int $page_id, array $or
         if ( ! empty( $clinic_employees ) ) {
             $clinic['employee'] = $clinic_employees;
         }
-        $graph[] = $clinic;
+        $clinic_refs[] = array( '@id' => $clinic['@id'] );
+        $graph[]       = $clinic;
+    }
+
+    if ( ! empty( $clinic_refs ) ) {
+        $graph[ $organization['index'] ]['subOrganization'] = $clinic_refs;
     }
 }
 
@@ -1430,11 +1462,6 @@ function nvx_extend_yoast_schema_graph( $graph ) {
         $organization['index'] = array_key_last( $graph );
     }
 
-    $clinic_ids = array(
-        array( '@id' => $all_clinics['chamberi']['@id'] ),
-        array( '@id' => $all_clinics['goya']['@id'] ),
-    );
-
     $physicians = nvx_schema_build_physicians( $page_id, $organization['id'] );
     $physician  = ! empty( $physicians ) ? $physicians[0] : null;
 
@@ -1442,7 +1469,7 @@ function nvx_extend_yoast_schema_graph( $graph ) {
         nvx_schema_enrich_organization( $graph, $organization['index'], $all_clinics, $physicians );
     }
 
-    nvx_schema_attach_clinics_graph( $graph, $page_id, $organization, $all_clinics, $physicians, $clinic_ids );
+    nvx_schema_attach_clinics_graph( $graph, $page_id, $organization, $all_clinics, $physicians );
 
     foreach ( $physicians as $person ) {
         $graph[] = $person;

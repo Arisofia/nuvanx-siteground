@@ -70,11 +70,11 @@ async function openPage(port, route, viewport) {
 
   let state = null;
   for (let attempt = 1; attempt <= 60; attempt += 1) {
-    state = await session.evaluate(String.raw`(() => ({
+    state = await session.call(() => ({
       ready: document.readyState,
       sha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',
       body: Boolean(document.body),
-    }))()`);
+    }));
     if (state.ready === 'complete' && state.sha === expectedSha && state.body) break;
     if (attempt === 20 || attempt === 40) await session.send('Page.reload', { ignoreCache: true });
     await sleep(500);
@@ -88,8 +88,8 @@ async function openPage(port, route, viewport) {
 }
 
 async function discoverRoutes(session) {
-  const links = await session.evaluate(String.raw`(async () => {
-    const routes = new Set(['/', '/blog/']);
+  const routes = await session.call(async () => {
+    const discovered = new Set(['/', '/blog/']);
     const endpoints = [
       '/wp-json/wp/v2/pages?per_page=100&status=publish&_fields=link',
       '/wp-json/wp/v2/posts?per_page=100&status=publish&_fields=link',
@@ -102,14 +102,19 @@ async function discoverRoutes(session) {
       for (const item of items) {
         try {
           const url = new URL(item.link, location.origin);
-          if (url.origin === location.origin) routes.add(url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`);
-        } catch { /* Ignore malformed CMS links. */ }
+          if (url.origin !== location.origin) continue;
+          discovered.add(url.pathname.endsWith('/') ? url.pathname : url.pathname + '/');
+        } catch {
+          // Ignore malformed CMS links.
+        }
       }
     }
-    return Array.from(routes).sort();
-  })()`);
-  if (!Array.isArray(links) || links.length < 20) throw new Error(`WordPress route discovery returned only ${Array.isArray(links) ? links.length : 0} routes.`);
-  return links;
+    return Array.from(discovered).sort();
+  });
+  if (!Array.isArray(routes) || routes.length < 20) {
+    throw new Error(`WordPress route discovery returned only ${Array.isArray(routes) ? routes.length : 0} routes.`);
+  }
+  return routes;
 }
 
 async function inspectPage(session) {
@@ -130,6 +135,10 @@ async function inspectPage(session) {
       return palette.some((candidate) => candidate.every((channel, index) => Math.abs(channel - parsed[index]) <= 3));
     };
     const unique = (values) => Array.from(new Set(values));
+    const selectorName = (node, classLimit = 2) => {
+      const classes = String(node.className || '').trim().split(/\s+/).filter(Boolean).slice(0, classLimit);
+      return node.tagName.toLowerCase() + (classes.length ? '.' + classes.join('.') : '');
+    };
     const main = document.querySelector('main, .nvx-main, .site-main');
     const header = document.querySelector('#nvx-header, header[role="banner"], body > header');
     const footer = document.querySelector('footer');
@@ -138,7 +147,7 @@ async function inspectPage(session) {
     const headingFontMismatches = headings
       .filter((node) => !familyHas(getComputedStyle(node).fontFamily, 'Playfair Display'))
       .slice(0, 12)
-      .map((node) => `${node.tagName.toLowerCase()}.${String(node.className || '').trim().split(/\s+/).slice(0, 2).join('.')}`);
+      .map((node) => selectorName(node));
     const ids = Array.from(document.querySelectorAll('[id]')).map((node) => node.id).filter(Boolean);
     const duplicateIds = unique(ids.filter((id, index) => ids.indexOf(id) !== index));
     const shells = Array.from(document.querySelectorAll('.nvx-shell, .nvx-brand-section__inner, .nvx-brand-hero__inner, .nvx-page-hero__inner, .nvx-hero__inner, .nvx-blog-archive__hero-inner, .nvx-blog-article__shell'))
@@ -146,7 +155,7 @@ async function inspectPage(session) {
       .map((node) => {
         const rect = node.getBoundingClientRect();
         return {
-          selector: `${node.tagName.toLowerCase()}.${String(node.className || '').trim().split(/\s+/).slice(0, 3).join('.')}`,
+          selector: selectorName(node, 3),
           left: Number(rect.left.toFixed(2)),
           right: Number((innerWidth - rect.right).toFixed(2)),
           width: Number(rect.width.toFixed(2)),
@@ -179,8 +188,10 @@ async function inspectPage(session) {
       }).length;
     const levels = headings.map((node) => Number(node.tagName.slice(1)));
     const headingJumps = levels.slice(1).filter((level, index) => level - levels[index] > 1).length;
-    const emptyParagraphs = Array.from(document.querySelectorAll('main p, .nvx-main p')).filter((node) => visible(node) && !(node.textContent || '').trim() && !node.querySelector('img,svg,video,iframe,input,button,a')).length;
-    const emptyAnchorParagraphs = Array.from(document.querySelectorAll('main a > p, .nvx-main a > p')).filter((node) => !(node.textContent || '').trim()).length;
+    const emptyParagraphs = Array.from(document.querySelectorAll('main p, .nvx-main p'))
+      .filter((node) => visible(node) && !(node.textContent || '').trim() && !node.querySelector('img,svg,video,iframe,input,button,a')).length;
+    const emptyAnchorParagraphs = Array.from(document.querySelectorAll('main a > p, .nvx-main a > p'))
+      .filter((node) => !(node.textContent || '').trim()).length;
     const unnamedControls = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], a.nvx-button, a.nvx-btn, a.nvx-brand-btn'))
       .filter(visible)
       .filter((node) => !((node.getAttribute('aria-label') || node.textContent || node.value || '').trim())).length;
@@ -191,7 +202,7 @@ async function inspectPage(session) {
     for (const node of colorNodes) {
       const style = getComputedStyle(node);
       for (const [property, value] of [['color', style.color], ['background', style.backgroundColor]]) {
-        if (!approvedColor(value)) offPalette.push(`${property}:${value}`);
+        if (!approvedColor(value)) offPalette.push(property + ':' + value);
       }
     }
     return {

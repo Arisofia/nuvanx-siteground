@@ -33,7 +33,9 @@ body.nvx-full-site-ui-governed .nvx-mobile-nav {
 /* Complianz may restore content-box sizing after the theme reset. Keep the
  * consent surface inside the viewport without clipping its controls. */
 body.nvx-full-site-ui-governed .cmplz-cookiebanner,
-body.nvx-full-site-ui-governed .cmplz-cookiebanner * {
+body.nvx-full-site-ui-governed .cmplz-cookiebanner *,
+body.nvx-full-site-ui-governed .cmplz-cookiebanner::before,
+body.nvx-full-site-ui-governed .cmplz-cookiebanner::after {
   box-sizing: border-box;
 }
 
@@ -103,6 +105,14 @@ body.nvx-full-site-ui-governed .entry-content > br:last-child {
 }
 
 @media (max-width: 48rem) {
+  /* Complianz positions the banner at 50% and gives it width:100% plus a border
+   * on each side. Reserve those two border widths even if its generated CSS is
+   * loaded after the theme and restores content-box sizing. */
+  body.nvx-full-site-ui-governed .cmplz-cookiebanner {
+    width: calc(100% - var(--cmplz_banner_border_width, 1px) - var(--cmplz_banner_border_width, 1px)) !important;
+    max-width: calc(100vw - var(--cmplz_banner_border_width, 1px) - var(--cmplz_banner_border_width, 1px)) !important;
+  }
+
   /* A table owns its own horizontal scroll instead of widening the document. */
   body.nvx-full-site-ui-governed :where(main, .nvx-main) table {
     display: block;

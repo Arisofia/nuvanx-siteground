@@ -100,7 +100,7 @@ for (const marker of [
   'check_retired_route',
   'check_target_page',
   'x_redirect_by=',
-  "grep -i '^x-redirect-by:'",
+  "read_header_value 'x-redirect-by'",
   '/mas-informacion-sobre-las-cookies/',
   '/politica-de-cookies/',
   '/politica-de-privacidad/',

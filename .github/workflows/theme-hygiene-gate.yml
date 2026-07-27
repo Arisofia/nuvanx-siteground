@@ -29,6 +29,7 @@ on:
       - '.env.example'
       - '.gitignore'
       - '.github/workflows/theme-hygiene-gate.yml'
+      - '.github/workflows/theme-hygiene-gate.yml'
   workflow_dispatch:
 
 concurrency:

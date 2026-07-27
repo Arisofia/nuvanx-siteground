@@ -13,9 +13,11 @@ const forbidText = (scope, text, marker) => {
 const audit = read('scripts/staging2/audit-full-site-ui.mjs');
 forbidText('full-site audit', audit, 'authorizedRedirects');
 requireText('full-site audit', audit, 'Unexpected internal redirect');
+requireText('full-site audit', audit, 'REST collection exceeds pagination cap');
 
 const hygiene = read('wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php');
 forbidText('page hygiene', hygiene, 'nvx_redirect_superseded_legal_pages');
+forbidText('page hygiene', hygiene, 'wp_safe_redirect(');
 
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 forbidText('integrations', integrations, 'nvx_redirect_governed_routes');
@@ -35,65 +37,67 @@ for (const marker of [
   "'legacy' => 'eye-frame'",
   "'target' => 'ojeras-surco-lagrimal-madrid'",
   "'_wp_old_slug'",
-  'Canonical route audit passed.',
-]) requireText('canonical migration', migration, marker.replace(/\s+/g, ' '));
+  "WP_CLI::add_command( 'nvx legacy-routes'",
+  'Legacy route retirement audit passed.',
+  'Legacy route retirement applied.',
+  'wp_trash_post',
+]) requireText('legacy retirement migration', migration, marker.replace(/\s+/g, ' '));
+forbidText('legacy retirement migration', migration, 'add_post_meta');
+forbidText('legacy retirement migration', migration, 'canonicalize-legacy-routes');
 
 const deploy = read('tools/deploy/deploy-to-staging2.sh');
 for (const marker of [
   '--canonical-migration-script',
-  'nvx canonical-routes audit --allow-pending',
-  'nvx canonical-routes apply --confirm=canonicalize-legacy-routes',
+  'nvx legacy-routes audit --allow-pending',
+  'nvx legacy-routes apply --confirm=retire-legacy-routes',
 ]) requireText('guarded deployment', deploy, marker);
-
-if (!/nvx canonical-routes audit(?!\s+--allow-pending)/.test(deploy)) {
-  failures.push('guarded deployment: missing standalone nvx canonical-routes audit (post-apply verification)');
+if (!/nvx legacy-routes audit(?!\s+--allow-pending)/.test(deploy)) {
+  failures.push('guarded deployment: missing standalone nvx legacy-routes audit');
 }
 
 const smoke = read('scripts/staging2/smoke-verify-staging2.sh');
-requireText('staging2 smoke', smoke, 'CANONICAL_ROUTE_REDIRECTS_OK');
-requireText('staging2 smoke', smoke, 'rest_route=/wp/v2/pages');
+for (const marker of [
+  'LEGACY_ROUTES_RETIRED_OK',
+  'check_retired_route',
+  'check_target_page',
+  '/mas-informacion-sobre-las-cookies/',
+  '/politica-de-cookies/',
+  '/politica-de-privacidad/',
+  '/tratamiento-retirado/',
+  '/tratamientos/',
+  '/liposculpt-air/',
+  '/v-lift-awake/',
+  '/dr-javier-rivera-tejeda/',
+  '/eye-frame-rejuvenecimiento-mirada-madrid/',
+  '/eye-frame/',
+]) requireText('staging2 smoke', smoke, marker);
+forbidText('staging2 smoke', smoke, 'check_redirect');
+forbidText('staging2 smoke', smoke, 'CANONICAL_ROUTE_REDIRECTS_OK');
 
 const gitignore = read('.gitignore');
 for (const marker of ['.env', '.env.*', '!.env.example']) requireText('.gitignore', gitignore, marker);
 
 const envExample = read('.env.example');
 requireText('.env.example', envExample, 'BASE_URL=https://staging2.nuvanx.com');
+requireText('.env.example', envExample, 'NVX_AUDIT_REST_MAX_PAGES=50');
 
-// Enforce that .env.example stays "sin secretos" by ensuring suspicious keys only use placeholder values
 const sensitivePrefixes = [
-  'API_KEY=',
-  'SECRET=',
-  'TOKEN=',
-  'PASSWORD=',
-  'CLIENT_SECRET=',
-  'ACCESS_KEY=',
+  'API_KEY=', 'SECRET=', 'TOKEN=', 'PASSWORD=',
+  'CLIENT_SECRET=', 'ACCESS_KEY=',
 ];
-
 for (const line of envExample.split('\n')) {
   const trimmed = line.trim();
   if (!trimmed || trimmed.startsWith('#')) continue;
-
-  const prefix = sensitivePrefixes.find(p => trimmed.startsWith(p));
+  const prefix = sensitivePrefixes.find((candidate) => trimmed.startsWith(candidate));
   if (!prefix) continue;
-
   const value = trimmed.slice(prefix.length).trim();
-
-  // Allow empty or obvious placeholder values only
-  const isPlaceholder =
-    !value ||
-    /^CHANGEME$/i.test(value) ||
-    /^PLACEHOLDER$/i.test(value) ||
-    /^REPLACE_ME$/i.test(value) ||
-    /^TODO$/i.test(value);
-
-  if (!isPlaceholder) {
-    failures.push(`.env.example must not contain non-placeholder secret value: "${trimmed}"`);
-  }
+  const placeholder = !value || /^(CHANGEME|PLACEHOLDER|REPLACE_ME|TODO)$/i.test(value);
+  if (!placeholder) failures.push(`.env.example contains a non-placeholder secret value: ${trimmed}`);
 }
 
 if (failures.length) {
-  console.error(`CANONICAL_ROUTE_CONTRACT_FAILED count=${failures.length}`);
+  console.error(`LEGACY_ROUTE_RETIREMENT_CONTRACT_FAILED count=${failures.length}`);
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
-console.log('CANONICAL_ROUTE_CONTRACT_OK');
+console.log('LEGACY_ROUTE_RETIREMENT_CONTRACT_OK');

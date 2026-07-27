@@ -251,6 +251,16 @@ async function discoverRoutes(session) {
       return totalPages;
     }
 
+    async function responseIsInvalidPage(response) {
+      if (response.status !== 400) return false;
+      try {
+        const payload = await response.json();
+        return payload?.code === 'rest_post_invalid_page_number';
+      } catch {
+        return false;
+      }
+    }
+
     async function fetchWpCollectionBrowser(endpoint) {
       const collected = [];
       let page = 1;
@@ -261,15 +271,7 @@ async function discoverRoutes(session) {
           { credentials: 'same-origin' },
         );
         if (!response.ok) {
-          // WordPress returns 400 + rest_post_invalid_page_number past the last page.
-          if (response.status === 400) {
-            try {
-              const payload = await response.json();
-              if (payload?.code === 'rest_post_invalid_page_number') break;
-            } catch {
-              // Fall through to the hard failure below.
-            }
-          }
+          if (await responseIsInvalidPage(response)) break;
           throw new Error(
             `REST collection failed: ${endpoint}, page=${page}, status=${response.status}`,
           );

@@ -82,7 +82,7 @@ function nvxContentDrRiveraHijack( string $content ): string {
     // CTA
     if ( function_exists( 'nvx_cta_pair_markup' ) ) {
         $html .= '<div class="nvx-dr-rivera-cta">';
-        $html .= nvxCtaPairMarkup( 'nvx-dr-rivera-hero-ctas nvx-home-hero-ctas' );
+        $html .= nvx_cta_pair_markup( 'nvx-dr-rivera-hero-ctas nvx-home-hero-ctas' );
         $html .= '</div>';
     } else {
         $html .= '<p class="nvx-dr-rivera-cta"><a href="' . esc_url( $valuation_url ) . '" class="nvx-button">' . esc_html__( 'Iniciar mi valoración médica', 'nuvanx-medical' ) . '</a></p>';

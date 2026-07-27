@@ -12,6 +12,7 @@ WP_ROOT=''
 SOURCE_THEME=''
 DEPLOY_SHA=''
 MIGRATION_SCRIPT=''
+CANONICAL_MIGRATION_SCRIPT=''
 SMOKE_SCRIPT=''
 CONFIRM=0
 BACKUP_DIR=''
@@ -24,6 +25,7 @@ Usage:
     --wp-root /home/customer/www/staging2.nuvanx.com/public_html \
     --source-theme /home/customer/www/staging2.nuvanx.com/public_html/wp-content/.nuvanx-deployments/<release>/theme \
     --migration-script /home/customer/www/staging2.nuvanx.com/public_html/wp-content/.nuvanx-deployments/<release>/nvx-production-readiness-command.php \
+    --canonical-migration-script /home/customer/www/staging2.nuvanx.com/public_html/wp-content/.nuvanx-deployments/<release>/nvx-canonical-route-migration.php \
     --smoke-script /home/customer/www/staging2.nuvanx.com/public_html/wp-content/.nuvanx-deployments/<release>/smoke-verify-staging2.sh \
     --sha <40-character-git-sha> \
     --confirm
@@ -40,6 +42,7 @@ while [[ $# -gt 0 ]]; do
     --wp-root) WP_ROOT="${2:-}"; shift 2 ;;
     --source-theme) SOURCE_THEME="${2:-}"; shift 2 ;;
     --migration-script) MIGRATION_SCRIPT="${2:-}"; shift 2 ;;
+    --canonical-migration-script) CANONICAL_MIGRATION_SCRIPT="${2:-}"; shift 2 ;;
     --smoke-script) SMOKE_SCRIPT="${2:-}"; shift 2 ;;
     --sha) DEPLOY_SHA="${2:-}"; shift 2 ;;
     --confirm) CONFIRM=1; shift ;;
@@ -52,11 +55,13 @@ done
 [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || fail 'SHA must contain 40 lowercase hexadecimal characters'
 [[ -n "$SOURCE_THEME" ]] || fail 'source theme path is required'
 [[ -n "$MIGRATION_SCRIPT" ]] || fail 'migration script path is required'
+[[ -n "$CANONICAL_MIGRATION_SCRIPT" ]] || fail 'canonical migration script path is required'
 [[ -n "$SMOKE_SCRIPT" ]] || fail 'smoke script path is required'
 
 DEPLOYMENT_ROOT="$WP_ROOT/wp-content/.nuvanx-deployments/"
 [[ "$SOURCE_THEME" == "$DEPLOYMENT_ROOT"*/theme ]] || fail 'source theme must be inside the staging2 deployment area'
 [[ "$MIGRATION_SCRIPT" == "$DEPLOYMENT_ROOT"*/nvx-production-readiness-command.php ]] || fail 'migration script must be inside the staging2 deployment area'
+[[ "$CANONICAL_MIGRATION_SCRIPT" == "$DEPLOYMENT_ROOT"*/nvx-canonical-route-migration.php ]] || fail 'canonical migration script must be inside the staging2 deployment area'
 [[ "$SMOKE_SCRIPT" == "$DEPLOYMENT_ROOT"*/smoke-verify-staging2.sh ]] || fail 'smoke script must be inside the staging2 deployment area'
 
 for command_name in wp rsync tar php find bash curl xargs; do
@@ -67,6 +72,7 @@ done
 [[ -f "$WP_ROOT/wp-config.php" ]] || fail 'wp-config.php not found in staging2 root'
 [[ -d "$SOURCE_THEME" ]] || fail "source theme does not exist: $SOURCE_THEME"
 [[ -f "$MIGRATION_SCRIPT" ]] || fail "migration script does not exist: $MIGRATION_SCRIPT"
+[[ -f "$CANONICAL_MIGRATION_SCRIPT" ]] || fail "canonical migration script does not exist: $CANONICAL_MIGRATION_SCRIPT"
 [[ -f "$SMOKE_SCRIPT" ]] || fail "smoke script does not exist: $SMOKE_SCRIPT"
 [[ -f "$SOURCE_THEME/style.css" ]] || fail 'source theme is missing style.css'
 [[ -f "$SOURCE_THEME/functions.php" ]] || fail 'source theme is missing functions.php'
@@ -140,6 +146,11 @@ php -l "$MIGRATION_SCRIPT" >>"$PHP_LINT_LOG" 2>&1 || {
   cat "$PHP_LINT_LOG" >&2
   rm -f "$PHP_LINT_LOG"
   fail 'migration PHP lint failed'
+}
+php -l "$CANONICAL_MIGRATION_SCRIPT" >>"$PHP_LINT_LOG" 2>&1 || {
+  cat "$PHP_LINT_LOG" >&2
+  rm -f "$PHP_LINT_LOG"
+  fail 'canonical migration PHP lint failed'
 }
 rm -f "$PHP_LINT_LOG"
 bash -n "$SMOKE_SCRIPT" || fail 'smoke script syntax validation failed'
@@ -261,6 +272,24 @@ echo '== Audit production-readiness content after migration =='
 (
   cd "$WP_ROOT"
   wp --require="$MIGRATION_SCRIPT" nvx production-readiness audit
+)
+
+echo '== Audit canonical legacy routes before migration =='
+(
+  cd "$WP_ROOT"
+  wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx canonical-routes audit --allow-pending
+)
+
+echo '== Apply canonical legacy route migration =='
+(
+  cd "$WP_ROOT"
+  wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx canonical-routes apply --confirm=canonicalize-legacy-routes
+)
+
+echo '== Audit canonical legacy routes after migration =='
+(
+  cd "$WP_ROOT"
+  wp --require="$CANONICAL_MIGRATION_SCRIPT" nvx canonical-routes audit
 )
 
 echo '== Run staging2 rendered smoke verification =='

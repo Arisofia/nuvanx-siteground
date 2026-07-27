@@ -102,7 +102,7 @@ export class CDPSession {
   }
 
   resolvePending(message) {
-    if (!message?.id || !this.pending.has(message.id)) return;
+    if (!message.id || !this.pending.has(message.id)) return;
     const pending = this.pending.get(message.id);
     clearTimeout(pending.timer);
     this.pending.delete(message.id);
@@ -117,28 +117,25 @@ export class CDPSession {
     let message;
     try {
       message = JSON.parse(String(event.data));
-    } catch (error) {
+    } catch {
       // Non-JSON frames must not break the CDP session or leave sends pending.
-      // When NVX_CDP_DEBUG is set, log a brief diagnostic for debugging protocol issues.
-      if (typeof process !== 'undefined' && process.env && process.env.NVX_CDP_DEBUG) {
-        // Avoid logging large or binary payloads; stringify defensively.
-        let payloadPreview;
-        try {
-          const raw = String(event?.data ?? '');
-          payloadPreview = raw.length > 200 ? `${raw.slice(0, 200)}…` : raw;
-        } catch {
-          payloadPreview = '<uninspectable payload>';
+      // Optionally log malformed frames when debugging CDP traffic.
+      try {
+        if (typeof process !== 'undefined' && process.env && process.env.NVX_CDP_DEBUG) {
+          const raw = String(event.data ?? '');
+          const maxLength = 512;
+          const truncated = raw.length > maxLength ? `${raw.slice(0, maxLength)}…` : raw;
+          console.warn('[CDP] Ignoring non-JSON frame', {
+            length: raw.length,
+            truncatedPayload: truncated,
+          });
         }
-        console.warn(
-          '[NVX_CDP_DEBUG] Failed to parse CDP message as JSON:',
-          error && error.message ? error.message : error,
-          '\nPayload preview:',
-          payloadPreview
-        );
+      } catch {
+        // Logging must never interfere with normal operation.
       }
       return;
     }
-    if (message?.method) this.dispatchEvent(message.method, message.params);
+    if (message.method) this.dispatchEvent(message.method, message.params);
     this.resolvePending(message);
   }
 
@@ -165,6 +162,12 @@ export class CDPSession {
   }
 
   closeSocket() {
+    const closeError = new Error('CDP session closed before command completed.');
+    for (const pending of this.pending.values()) {
+      clearTimeout(pending.timer);
+      pending.reject(closeError);
+    }
+    this.pending.clear();
     this.removeAllListeners();
     if (this.webSocket && this.webSocket.readyState <= 1) this.webSocket.close();
   }

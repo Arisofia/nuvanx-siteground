@@ -36,7 +36,8 @@ const seedRoutes = String(process.env.NVX_AUDIT_SEED_ROUTES || '/,/blog/')
  * REST-discovered routes should normally resolve without redirects.
  */
 const authorizedRedirects = new Map([
-  // ['/ruta-antigua/', '/ruta-canonica/'],
+  ['/mas-informacion-sobre-las-cookies/', '/politica-de-cookies-ue/'],
+  ['/politica-de-cookies/', '/politica-de-cookies-ue/'],
 ]);
 const canonicalPalette = [
   [247, 247, 245], [241, 241, 239], [17, 17, 17], [28, 28, 30],
@@ -174,14 +175,24 @@ async function openPage(port, route, viewport) {
     }
   };
 
+  const assertNoEarlyHttpFailure = () => {
+    const response = documentResponses.filter(isTopLevelDocument).at(-1)?.response;
+    const status = response?.status;
+    if (Number.isInteger(status) && !isSuccessfulHttpStatus(status)) {
+      throw new Error(`Main document HTTP ${status} for ${response.url || `${baseUrl}${route}`}`);
+    }
+  };
+
   let state = null;
   try {
     for (let attempt = 1; attempt <= 60; attempt += 1) {
+      assertNoEarlyHttpFailure();
       state = await session.call(() => ({
         ready: document.readyState,
         sha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',
         body: Boolean(document.body),
       }));
+      assertNoEarlyHttpFailure();
       if (state.ready === 'complete' && state.sha === expectedSha && state.body) break;
       if (attempt === 20 || attempt === 40) await session.send('Page.reload', { ignoreCache: true });
       await sleep(500);
@@ -197,8 +208,10 @@ async function openPage(port, route, viewport) {
       throw new Error(issues.join(', '));
     }
 
-    const lastResponse = documentResponses.findLast(isTopLevelDocument) || null;
-    const lastRequest = documentRequests.findLast(isTopLevelDocument) || null;
+    const topRequests = documentRequests.filter(isTopLevelDocument);
+    const topResponses = documentResponses.filter(isTopLevelDocument);
+    const lastResponse = topResponses.at(-1) || null;
+    const lastRequest = topRequests.at(-1) || null;
     const navigationMeta = {
       httpStatus: lastResponse?.response?.status ?? null,
       finalUrl: lastResponse?.response?.url || lastRequest?.request?.url || null,
@@ -207,7 +220,7 @@ async function openPage(port, route, viewport) {
       frameId: topFrameId,
     };
     const effectiveLoaderId = lastResponse?.loaderId || topLoaderId;
-    for (const request of documentRequests) {
+    for (const request of topRequests) {
       if (request.redirectResponse && request.loaderId === effectiveLoaderId) {
         navigationMeta.redirectChain.push({
           url: request.redirectResponse.url,
@@ -233,6 +246,23 @@ async function discoverRoutes(session) {
     const discovered = new Set(seed);
     const counts = { pages: 0, posts: 0, categories: 0, skipped_links: 0 };
 
+    function hasMoreCollectionPages(header, itemCount, currentPage) {
+      if (header === null) return itemCount >= perPage;
+      const totalPages = Number(header);
+      if (!Number.isFinite(totalPages) || totalPages < 1) return itemCount >= perPage;
+      return currentPage < Math.min(totalPages, maxPages);
+    }
+
+    async function responseIsInvalidPage(response) {
+      if (response.status !== 400) return false;
+      try {
+        const payload = await response.json();
+        return payload?.code === 'rest_post_invalid_page_number';
+      } catch {
+        return false;
+      }
+    }
+
     async function fetchWpCollectionBrowser(endpoint) {
       const collected = [];
       let page = 1;
@@ -244,6 +274,7 @@ async function discoverRoutes(session) {
           { credentials: 'same-origin' },
         );
         if (!response.ok) {
+          if (await responseIsInvalidPage(response)) break;
           throw new Error(
             `REST collection failed: ${endpoint}, page=${page}, status=${response.status}`,
           );
@@ -255,25 +286,21 @@ async function discoverRoutes(session) {
         if (items.length === 0) break;
 
         collected.push(...items);
-
-        const header = response.headers.get('X-WP-TotalPages');
-        if (header === null) {
-          // Header stripped by proxy/CORS: stop only when the page is short.
-          keepGoing = items.length >= perPage;
-        } else {
-          const totalPages = Number(header);
-          if (!Number.isFinite(totalPages) || totalPages < 1) {
-            keepGoing = items.length >= perPage;
-          } else {
-            keepGoing = page < Math.min(totalPages, maxPages);
-          }
-        }
+        keepGoing = hasMoreCollectionPages(
+          response.headers.get('X-WP-TotalPages'),
+          items.length,
+          page,
+        );
         page += 1;
       }
       return collected;
     }
 
     function addDiscoveredLink(link) {
+      if (typeof link !== 'string' || link.trim() === '') {
+        counts.skipped_links += 1;
+        return;
+      }
       try {
         const url = new URL(link, location.origin);
         if (url.origin !== location.origin) return;

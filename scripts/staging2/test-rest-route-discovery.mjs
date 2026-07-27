@@ -94,6 +94,28 @@ try {
     );
   });
 
+  await scenario('changing-total-pages-header-throws', async () => {
+    await expectFailure(
+      {
+        'pages:1': response(
+          200,
+          [
+            { link: `${origin}/uno/` },
+          ],
+          '2',
+        ),
+        'pages:2': response(
+          200,
+          [
+            { link: `${origin}/dos/` },
+          ],
+          '3',
+        ),
+      },
+      /REST pagination header changed/,
+    );
+  });
+
   await scenario('missing-header-invalid-page-probe', async () => {
     const { result, calls } = await runScenario({
       'pages:1': response(200, [

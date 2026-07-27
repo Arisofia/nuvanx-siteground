@@ -71,10 +71,17 @@ const pages = [
   ...phasePageDefinitions.map(([path, title, description, h1]) => ({ path, title, description, h1, markers: commonMarkers })),
 ];
 
-const redirects = [
-  ['/tratamientos/', '/soluciones-medicas/'],
-  ['/liposculpt-air/', '/remodelacion-corporal-laser-madrid/'],
-  ['/v-lift-awake/', '/protocolos-signature/'],
+const retiredRoutes = [
+  '/mas-informacion-sobre-las-cookies/',
+  '/politica-de-cookies/',
+  '/politica-de-privacidad/',
+  '/tratamiento-retirado/',
+  '/tratamientos/',
+  '/liposculpt-air/',
+  '/v-lift-awake/',
+  '/dr-javier-rivera-tejeda/',
+  '/eye-frame-rejuvenecimiento-mirada-madrid/',
+  '/eye-frame/',
 ];
 
 const forbiddenText = [
@@ -120,7 +127,7 @@ const remoteCurlScript = [
 
 const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 const findings = [];
-const report = { base_url: baseUrl, transport: `ssh:${sshHost}`, expected_sha: expectedSha, generated_at: new Date().toISOString(), pages: [], redirects: [], findings };
+const report = { base_url: baseUrl, transport: `ssh:${sshHost}`, expected_sha: expectedSha, generated_at: new Date().toISOString(), pages: [], retired_routes: [], findings };
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
 
 function parseTransportOutput(stdout, stderr) {
@@ -340,20 +347,29 @@ for (const page of pages) {
   console.log(`CHECK origin page ${page.path} status=${response.status}`);
 }
 
-for (const [sourcePath, targetPath] of redirects) {
+for (const sourcePath of retiredRoutes) {
   const response = await originFetch(`${baseUrl}${sourcePath}`, 'manual');
   const location = headerValue(response.headers, 'location');
-  const expectedLocation = `${baseUrl}${targetPath}`;
-  const record = { source: sourcePath, target: targetPath, status: response.status, location };
-  if (response.status !== 301) fail(sourcePath, `returned HTTP ${response.status} instead of 301`);
-  if (location !== expectedLocation) fail(sourcePath, `location is ${location || 'absent'} instead of ${expectedLocation}`);
-  if (response.status === 301 && location === expectedLocation) {
-    const destination = await originFetch(expectedLocation);
-    record.target_status = destination.status;
-    if (destination.status !== 200) fail(sourcePath, `target returned HTTP ${destination.status} instead of 200`);
+  const redirectBy = headerValue(response.headers, 'x-redirect-by');
+  const robots = headerValue(response.headers, 'x-robots-tag');
+  const retiredMarker = headerValue(response.headers, 'x-nuvanx-retired-route');
+  const record = {
+    path: sourcePath,
+    status: response.status,
+    location,
+    redirect_by: redirectBy,
+    robots,
+    retired_marker: retiredMarker,
+  };
+  if (response.status !== 410) fail(sourcePath, `returned HTTP ${response.status} instead of 410`);
+  if (location) fail(sourcePath, `emitted forbidden Location header: ${location}`);
+  if (redirectBy) fail(sourcePath, `emitted forbidden X-Redirect-By header: ${redirectBy}`);
+  if (!robots.toLowerCase().includes('noindex') || !robots.toLowerCase().includes('nofollow')) {
+    fail(sourcePath, `X-Robots-Tag mismatch: ${robots || 'absent'}`);
   }
-  report.redirects.push(record);
-  console.log(`CHECK origin redirect ${sourcePath} status=${response.status}`);
+  if (retiredMarker !== '1') fail(sourcePath, `retired route marker is ${retiredMarker || 'absent'} instead of 1`);
+  report.retired_routes.push(record);
+  console.log(`CHECK origin retired ${sourcePath} status=${response.status}`);
 }
 
 fs.writeFileSync(path.join(evidenceDir, 'report.json'), JSON.stringify(report, null, 2));
@@ -362,4 +378,4 @@ if (findings.length) {
   for (const finding of findings) console.error(`- ${finding}`);
   process.exit(1);
 }
-console.log(`RENDERED_ACCEPTANCE_OK transport=ssh pages=${pages.length} redirects=${redirects.length} sha=${expectedSha}`);
+console.log(`RENDERED_ACCEPTANCE_OK transport=ssh pages=${pages.length} retired_routes=${retiredRoutes.length} sha=${expectedSha}`);

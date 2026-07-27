@@ -87,7 +87,7 @@ fetch_page() {
 # check_retired_route verifies that a legacy path is unavailable and emits no redirect.
 check_retired_route() {
   local source_path="$1"
-  local safe_slug headers_file status location attempt
+  local safe_slug headers_file status location redirect_by server attempt
   safe_slug="$(echo "$source_path" | tr '/-' '__')"
   headers_file="$TMP_DIR/headers-${safe_slug}.txt"
   status='000'
@@ -102,9 +102,10 @@ check_retired_route() {
     fi
     if [[ "$attempt" -lt 4 ]]; then sleep $(( attempt * 2 )); fi
   done
-  [[ "$status" == '404' || "$status" == '410' ]] || fail "$source_path returned HTTP $status instead of 404/410 after $attempt attempt(s)"
   location="$(grep -i '^location:' "$headers_file" | tail -n 1 | cut -d: -f2- | tr -d '\r' | xargs || true)"
-  [[ -z "$location" ]] || fail "$source_path emitted forbidden Location header: $location"
+  redirect_by="$(grep -i '^x-redirect-by:' "$headers_file" | tail -n 1 | cut -d: -f2- | tr -d '\r' | xargs || true)"
+  server="$(grep -i '^server:' "$headers_file" | tail -n 1 | cut -d: -f2- | tr -d '\r' | xargs || true)"
+  [[ "$status" == '404' || "$status" == '410' ]] || fail "$source_path returned HTTP $status instead of 404/410 after $attempt attempt(s); location=${location:-none}; x_redirect_by=${redirect_by:-none}; server=${server:-none}"
   [[ -z "$location" ]] || fail "$source_path emitted forbidden Location header: $location"
   echo "PASS retired $source_path status=$status attempts=$attempt"
 }

@@ -24,12 +24,14 @@ const fetchBlock = fetchStart >= 0 && fetchEnd > fetchStart
 
 for (const marker of [
   'function readCollectionTotalPages(header, endpoint)',
-  'Number.isInteger(totalPages)',
+  '!Number.isInteger(totalPages) || totalPages < 1',
   'while (page <= maxPages + 1)',
   "response.headers.get('X-WP-TotalPages')",
   'REST collection exceeds pagination cap:',
   'REST collection exceeds inferred pagination cap:',
   "payload?.code === 'rest_post_invalid_page_number'",
+  'if (!response.ok)',
+  'REST collection failed: ${endpoint}, page=${page}, status=${response.status}',
 ]) {
   if (!paginationScope.includes(marker)) {
     fail(`missing pagination contract marker: ${marker}`);
@@ -45,12 +47,24 @@ for (const forbidden of [
   }
 }
 
+const nonOkGuard = fetchBlock.indexOf('if (!response.ok)');
+const invalidPageBreak = fetchBlock.indexOf('if (await responseIsInvalidPage(response)) break;');
+const httpFailure = fetchBlock.indexOf('REST collection failed: ${endpoint}, page=${page}, status=${response.status}');
 const totalPagesRead = fetchBlock.indexOf('const totalPages = readCollectionTotalPages(');
 const payloadRead = fetchBlock.indexOf('const items = await response.json()');
 const emptyBreak = fetchBlock.indexOf('if (items.length === 0) break');
 const probeGuard = fetchBlock.indexOf('if (page > maxPages)');
 const collectedPush = fetchBlock.indexOf('collected.push(...items)');
 
+if (
+  nonOkGuard < 0
+  || invalidPageBreak < 0
+  || httpFailure < 0
+  || nonOkGuard > invalidPageBreak
+  || invalidPageBreak > httpFailure
+) {
+  fail('non-OK responses must only tolerate invalid-page termination and throw every other HTTP failure');
+}
 if (totalPagesRead < 0 || payloadRead < 0 || totalPagesRead > payloadRead) {
   fail('X-WP-TotalPages must be validated before reading or accepting the payload');
 }

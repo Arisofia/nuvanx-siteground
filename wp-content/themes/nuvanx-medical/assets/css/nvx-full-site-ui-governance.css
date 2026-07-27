@@ -34,6 +34,8 @@ body.nvx-full-site-ui-governed .nvx-mobile-nav {
  * consent surface inside the viewport without clipping its controls. */
 body.nvx-full-site-ui-governed .cmplz-cookiebanner,
 body.nvx-full-site-ui-governed .cmplz-cookiebanner *,
+body.nvx-full-site-ui-governed .cmplz-cookiebanner *::before,
+body.nvx-full-site-ui-governed .cmplz-cookiebanner *::after,
 body.nvx-full-site-ui-governed .cmplz-cookiebanner::before,
 body.nvx-full-site-ui-governed .cmplz-cookiebanner::after {
   box-sizing: border-box;

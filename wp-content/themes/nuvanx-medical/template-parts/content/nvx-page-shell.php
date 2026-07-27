@@ -96,8 +96,13 @@ while ( have_posts() ) :
     if ( $show_theme_hero || $has_content_hero ) {
         $classes[] = 'nvx-page--has-hero';
     }
+    $shell_owns_article = empty( $shell_content );
     ?>
+<?php if ( $shell_owns_article ) : ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class( $classes ); ?>>
+<?php else : ?>
+<div id="nvx-shell-post-<?php the_ID(); ?>" <?php post_class( $classes ); ?>>
+<?php endif; ?>
 
     <?php if ( $show_theme_hero ) : ?>
         <header class="nvx-page-hero nvx-page-hero--theme" aria-labelledby="nvx-page-hero-title-<?php the_ID(); ?>">
@@ -178,7 +183,7 @@ while ( have_posts() ) :
         </div>
     <?php endif; ?>
 
-    <?php if ( is_singular( 'post' ) ) : ?>
+    <?php if ( is_singular( 'post' ) && $shell_owns_article ) : ?>
         <nav class="nvx-page__nav" aria-label="<?php esc_attr_e( 'Navegación entre artículos', 'nuvanx-medical' ); ?>">
             <?php
                 $prev = get_previous_post();
@@ -200,7 +205,11 @@ while ( have_posts() ) :
             <?php endif; ?>
         </nav>
     <?php endif; ?>
+<?php if ( $shell_owns_article ) : ?>
 </article>
+<?php else : ?>
+</div>
+<?php endif; ?>
     <?php
 endwhile;
 

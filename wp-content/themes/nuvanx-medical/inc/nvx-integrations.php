@@ -50,6 +50,81 @@ function nvx_production_readiness_governed_pages(): array {
     );
 }
 
+/**
+ * Slugs that are intentionally retired and must never be canonically guessed.
+ *
+ * @return string[]
+ */
+function nvx_retired_legacy_route_slugs(): array {
+    return array(
+        'mas-informacion-sobre-las-cookies',
+        'politica-de-cookies',
+        'politica-de-privacidad',
+        'tratamiento-retirado',
+        'tratamientos',
+        'liposculpt-air',
+        'v-lift-awake',
+        'dr-javier-rivera-tejeda',
+        'eye-frame-rejuvenecimiento-mirada-madrid',
+        'eye-frame',
+    );
+}
+
+/** Determines whether the current request targets an intentionally retired route. */
+function nvx_is_retired_legacy_route_request(): bool {
+    if ( is_admin() || ! isset( $_SERVER['REQUEST_URI'] ) ) {
+        return false;
+    }
+
+    $request_uri  = wp_unslash( (string) $_SERVER['REQUEST_URI'] );
+    $request_path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
+    $slug         = trim( $request_path, '/' );
+
+    return '' !== $slug && in_array( $slug, nvx_retired_legacy_route_slugs(), true );
+}
+
+/** Prevent WordPress from guessing a replacement permalink for retired routes. */
+function nvx_disable_retired_legacy_route_redirect( $redirect_url ) {
+    return nvx_is_retired_legacy_route_request() ? false : $redirect_url;
+}
+add_filter( 'redirect_canonical', 'nvx_disable_retired_legacy_route_redirect', -999999, 1 );
+
+/**
+ * Serve an explicit 410 response for retired routes before canonical redirects.
+ */
+function nvx_serve_retired_legacy_route(): void {
+    if ( ! nvx_is_retired_legacy_route_request() ) {
+        return;
+    }
+
+    remove_action( 'template_redirect', 'redirect_canonical' );
+
+    global $wp_query;
+    if ( $wp_query instanceof WP_Query ) {
+        $wp_query->set_404();
+    }
+
+    status_header( 410 );
+    nocache_headers();
+    if ( ! headers_sent() ) {
+        header( 'X-Robots-Tag: noindex, nofollow', true );
+        header( 'X-NUVANX-Retired-Route: 1', true );
+    }
+
+    $template = get_404_template();
+    if ( is_string( $template ) && '' !== $template ) {
+        include $template;
+        exit;
+    }
+
+    wp_die(
+        esc_html__( 'Esta página ya no está disponible.', 'nuvanx-medical' ),
+        esc_html__( 'Contenido retirado', 'nuvanx-medical' ),
+        array( 'response' => 410 )
+    );
+}
+add_action( 'template_redirect', 'nvx_serve_retired_legacy_route', -1000000 );
+
 /** Determines whether the current request is for the Goya clinic page. */
 function nvx_theme_is_goya_page(): bool {
     if ( is_admin() ) {

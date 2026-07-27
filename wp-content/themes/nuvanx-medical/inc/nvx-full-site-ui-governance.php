@@ -56,17 +56,11 @@ add_action( 'wp', 'nvxFullSiteDisableAutopForManagedContent', 1 );
  * markup is meaningful and must be preserved, including unknown/custom tags.
  */
 function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool {
-    $inner = preg_replace( '/^<p(?:\s[^>]*)?>/iu', '', $paragraphHtml, 1 );
-    if ( ! is_string( $inner ) ) {
-        return false;
-    }
-
-    $inner = preg_replace( '/<\/p>\s*$/iu', '', $inner, 1 );
-    if ( ! is_string( $inner ) ) {
-        return false;
-    }
-
-    $inner = preg_replace( '/<br\s*\/?\s*>/iu', '', $inner );
+    $inner = preg_replace(
+        array( '/^<p(?:\s[^>]*)?>/iu', '/<\/p>\s*$/iu', '/<br\s*\/?\s*>/iu' ),
+        '',
+        $paragraphHtml
+    );
     if ( ! is_string( $inner ) ) {
         return false;
     }
@@ -80,16 +74,14 @@ function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool
 
 /** Whether filtered content must bypass automatic-paragraph artefact cleanup. */
 function nvxFullSiteShouldSkipAutopCleanup( $content ): bool {
-    return (
-        ! is_string( $content )
+    return ! is_string( $content )
         || '' === $content
         || is_admin()
         || wp_doing_ajax()
         || is_feed()
         || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
         || ! is_singular()
-        || nvxFullSiteManagedContentUsesRawHtml()
-    );
+        || nvxFullSiteManagedContentUsesRawHtml();
 }
 
 /**

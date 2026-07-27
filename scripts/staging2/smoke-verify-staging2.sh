@@ -39,32 +39,21 @@ CURL_COMMON_ARGS=(
   --header 'Cache-Control: no-cache'
   --header 'Pragma: no-cache'
 )
-# fail prints an error message to stderr and returns a failure status.
 fail() { echo "ERROR: $*" >&2; return 1; }
 
-# fetch_page verifies that a page returns HTTP 200, contains all expected markers, and excludes retired, internal, or prohibited markers.
 fetch_page() {
   local page_path="$1"
   shift
-  local safe_slug body_file
+  local safe_slug body_file status attempt
   safe_slug="$(echo "$page_path" | tr '/-' '__')"
   body_file="$TMP_DIR/body-${safe_slug}.html"
-  local status attempt
-
   status='000'
   for attempt in 1 2 3 4; do
     status="$(curl "${CURL_COMMON_ARGS[@]}" --output "$body_file" --write-out '%{http_code}' "$BASE_URL$page_path")"
-    if [[ "$status" == '200' ]]; then
-      break
-    fi
-    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then
-      break
-    fi
-    if [[ "$attempt" -lt 4 ]]; then
-      sleep $(( attempt * 2 ))
-    fi
+    if [[ "$status" == '200' ]]; then break; fi
+    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then break; fi
+    if [[ "$attempt" -lt 4 ]]; then sleep $(( attempt * 2 )); fi
   done
-
   [[ "$status" == '200' ]] || fail "$page_path returned HTTP $status after $attempt attempt(s)"
   for expected_marker in "$@"; do
     grep -Fiq "$expected_marker" "$body_file" || fail "$page_path is missing marker: $expected_marker"
@@ -84,41 +73,56 @@ fetch_page() {
   echo "PASS page $page_path status=200 markers=$# attempts=$attempt"
 }
 
-# check_redirect verifies that a source path redirects directly to the expected target path with HTTP 301.
 check_redirect() {
   local source_path="$1"
   local target_path="$2"
-  local safe_slug headers_file
+  local safe_slug headers_file status location expected_location target_status attempt
   safe_slug="$(echo "$source_path" | tr '/-' '__')"
   headers_file="$TMP_DIR/headers-${safe_slug}.txt"
-  local status location expected_location attempt
-
   status='000'
   for attempt in 1 2 3 4; do
     : > "$headers_file"
     status="$(curl "${CURL_COMMON_ARGS[@]}" --max-redirs 0 --output /dev/null --dump-header "$headers_file" --write-out '%{http_code}' "$BASE_URL$source_path")"
-    if [[ "$status" == '301' ]]; then
-      break
-    fi
-    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then
-      break
-    fi
-    if [[ "$attempt" -lt 4 ]]; then
-      sleep $(( attempt * 2 ))
-    fi
+    if [[ "$status" == '301' ]]; then break; fi
+    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then break; fi
+    if [[ "$attempt" -lt 4 ]]; then sleep $(( attempt * 2 )); fi
   done
-
   [[ "$status" == '301' ]] || fail "$source_path returned HTTP $status instead of 301 after $attempt attempt(s)"
   location="$(grep -i '^location:' "$headers_file" | tail -n 1 | cut -d: -f2- | tr -d '\r' | xargs)"
   expected_location="$BASE_URL$target_path"
   [[ "$location" == "$expected_location" ]] || fail "$source_path redirects to $location instead of $expected_location"
-  echo "PASS redirect $source_path -> $target_path status=301 attempts=$attempt"
+  target_status="$(curl "${CURL_COMMON_ARGS[@]}" --max-redirs 0 --output /dev/null --write-out '%{http_code}' "$location")"
+  [[ "$target_status" == '200' ]] || fail "$source_path creates a redirect chain or invalid target: $location returned HTTP $target_status"
+  echo "PASS redirect $source_path -> $target_path status=301 target_status=200 attempts=$attempt"
 }
 
-# Allow the edge cache and anti-bot layer to observe the completed immutable release.
+# Uses the WordPress REST route explicitly so legacy sources cannot remain
+# published while being hidden only by a runtime redirect.
+check_rest_route() {
+  local legacy_slug="$1"
+  local target_slug="$2"
+  local legacy_file target_file legacy_status target_status legacy_payload
+  legacy_file="$TMP_DIR/rest-legacy-${legacy_slug}.json"
+  target_file="$TMP_DIR/rest-target-${target_slug}.json"
+  legacy_status="$(curl "${CURL_COMMON_ARGS[@]}" --header 'Accept: application/json' --output "$legacy_file" --write-out '%{http_code}' "$BASE_URL/?rest_route=/wp/v2/pages&slug=$legacy_slug&status=publish&_fields=id,slug")"
+  target_status="$(curl "${CURL_COMMON_ARGS[@]}" --header 'Accept: application/json' --output "$target_file" --write-out '%{http_code}' "$BASE_URL/?rest_route=/wp/v2/pages&slug=$target_slug&status=publish&_fields=id,slug")"
+  [[ "$legacy_status" == '200' ]] || fail "REST legacy lookup $legacy_slug returned HTTP $legacy_status"
+  [[ "$target_status" == '200' ]] || fail "REST target lookup $target_slug returned HTTP $target_status"
+  legacy_payload="$(tr -d '[:space:]' < "$legacy_file")"
+  [[ "$legacy_payload" == '[]' ]] || fail "legacy route $legacy_slug remains published in REST: $legacy_payload"
+  grep -Fq "\"slug\":\"$target_slug\"" "$target_file" || fail "canonical target $target_slug is not published in REST"
+  echo "PASS REST legacy=$legacy_slug absent target=$target_slug published"
+}
+
+check_canonical_route() {
+  local legacy_slug="$1"
+  local target_slug="$2"
+  check_redirect "/$legacy_slug/" "/$target_slug/"
+  check_rest_route "$legacy_slug" "$target_slug"
+}
+
 sleep 5
 
-check_redirect '/tratamientos/' '/soluciones-medicas/'
 fetch_page '/soluciones-medicas/' 'Soluciones médicas para rostro, piel y contorno corporal.' 'Rostro y cuello' 'Contorno corporal' 'Cambios posgestacionales' 'Valoración de procedimientos previos'
 fetch_page '/protocolos-signature/' 'Protocolos Signature: Medicina estética de diagnóstico.' 'Nuestro estándar: La firma NUVANX' 'NUVANX Contour Architecture' 'Post-Maternity Contour' 'Tu primera valoración clínica'
 fetch_page '/remodelacion-corporal-laser-madrid/' 'NUVANX Contour Architecture™: El protocolo y la tecnología' 'Tres decisiones clínicas: Reducir, Redefinir, Retraer' 'Cuándo no es el tratamiento adecuado'
@@ -142,7 +146,16 @@ fetch_page '/flacidez-muslos-internos-subgluteo-madrid/' 'Flacidez en muslos int
 fetch_page '/tratamiento-rodillas-grasa-flacidez-madrid/' 'Grasa localizada y flacidez en rodillas en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/contorno-corporal-masculino-madrid/' 'Contorno corporal masculino en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 
-check_redirect '/liposculpt-air/' '/remodelacion-corporal-laser-madrid/'
-check_redirect '/v-lift-awake/' '/protocolos-signature/'
+check_canonical_route 'mas-informacion-sobre-las-cookies' 'politica-de-cookies-ue'
+check_canonical_route 'politica-de-cookies' 'politica-de-cookies-ue'
+check_canonical_route 'politica-de-privacidad' 'politica-privacidad'
+check_canonical_route 'tratamiento-retirado' 'soluciones-medicas'
+check_canonical_route 'tratamientos' 'soluciones-medicas'
+check_canonical_route 'liposculpt-air' 'remodelacion-corporal-laser-madrid'
+check_canonical_route 'v-lift-awake' 'protocolos-signature'
+check_canonical_route 'dr-javier-rivera-tejeda' 'equipo-medico'
+check_canonical_route 'eye-frame-rejuvenecimiento-mirada-madrid' 'ojeras-surco-lagrimal-madrid'
+check_canonical_route 'eye-frame' 'ojeras-surco-lagrimal-madrid'
 
+echo 'CANONICAL_ROUTE_REDIRECTS_OK routes=10'
 echo "SMOKE_VERIFY_OK base_url=$BASE_URL"

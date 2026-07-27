@@ -17,6 +17,9 @@ import {
 } from './visual-qa-common.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
+if (baseUrl !== 'https://staging2.nuvanx.com') throw new Error(`Refusing unexpected BASE_URL: ${baseUrl}`);
+const baseUrlObject = new URL(baseUrl);
+const baseOrigin = baseUrlObject.origin;
 const expectedSha = process.env.EXPECTED_SHA || '';
 const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/full-site-ui-audit';
 const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36';
@@ -30,22 +33,12 @@ const seedRoutes = String(process.env.NVX_AUDIT_SEED_ROUTES || '/,/blog/')
   .map((value) => value.trim())
   .filter(Boolean)
   .map((value) => (value.endsWith('/') || value === '/' ? value : `${value}/`));
-/**
- * Explicit allowlist for intentional internal redirects only.
- * Keys and values are normalized pathnames (trailing slash).
- * REST-discovered routes should normally resolve without redirects.
- */
-const authorizedRedirects = new Map([
-  ['/mas-informacion-sobre-las-cookies/', '/politica-de-cookies-ue/'],
-  ['/politica-de-cookies/', '/politica-de-cookies-ue/'],
-]);
 const canonicalPalette = [
   [247, 247, 245], [241, 241, 239], [17, 17, 17], [28, 28, 30],
   [229, 229, 227], [206, 206, 206], [82, 82, 82], [92, 92, 92],
   [193, 166, 141], [255, 255, 255], [0, 0, 0],
 ];
 
-if (baseUrl !== 'https://staging2.nuvanx.com') throw new Error(`Refusing unexpected BASE_URL: ${baseUrl}`);
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
 if (typeof WebSocket !== 'function') throw new Error('Node.js WebSocket support is required.');
 fs.mkdirSync(evidenceDir, { recursive: true });
@@ -99,7 +92,7 @@ function assertDocumentNavigation(route, navigationMeta) {
   } catch {
     throw new Error(`Invalid final URL: ${navigationMeta.finalUrl || '(empty)'}`);
   }
-  if (finalUrl.origin !== new URL(baseUrl).origin) {
+  if (finalUrl.origin !== baseOrigin) {
     throw new Error(`Cross-origin navigation to ${finalUrl.href}`);
   }
 
@@ -107,10 +100,7 @@ function assertDocumentNavigation(route, navigationMeta) {
   const finalPath = normalizePathname(finalUrl.pathname);
   const redirected = requested !== finalPath;
   if (redirected) {
-    const allowedTarget = authorizedRedirects.get(requested);
-    if (allowedTarget !== finalPath) {
-      throw new Error(`Unexpected internal redirect ${requested} -> ${finalPath}`);
-    }
+    throw new Error(`Unexpected internal redirect ${requested} -> ${finalPath}`);
   }
 
   return {
@@ -169,7 +159,7 @@ async function openPage(port, route, viewport) {
     // Fall back to base-origin documents only (never accept bare iframe origins).
     const candidateUrl = params.response?.url || params.request?.url || '';
     try {
-      return new URL(candidateUrl).origin === new URL(baseUrl).origin;
+      return new URL(candidateUrl).origin === baseOrigin;
     } catch {
       return false;
     }
@@ -246,11 +236,16 @@ async function discoverRoutes(session) {
     const discovered = new Set(seed);
     const counts = { pages: 0, posts: 0, categories: 0, skipped_links: 0 };
 
-    function hasMoreCollectionPages(header, itemCount, currentPage) {
+    function hasMoreCollectionPages(header, itemCount, currentPage, endpoint) {
       if (header === null) return itemCount >= perPage;
       const totalPages = Number(header);
       if (!Number.isFinite(totalPages) || totalPages < 1) return itemCount >= perPage;
-      return currentPage < Math.min(totalPages, maxPages);
+      if (totalPages > maxPages) {
+        throw new Error(
+          `REST collection exceeds pagination cap: endpoint=${endpoint}, totalPages=${totalPages}, maxPages=${maxPages}`,
+        );
+      }
+      return currentPage < totalPages;
     }
 
     async function responseIsInvalidPage(response) {
@@ -290,6 +285,7 @@ async function discoverRoutes(session) {
           response.headers.get('X-WP-TotalPages'),
           items.length,
           page,
+          endpoint,
         );
         page += 1;
       }

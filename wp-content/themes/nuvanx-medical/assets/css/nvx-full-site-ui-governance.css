@@ -1,49 +1,13 @@
 /*
  * NUVANX full-site UI governance.
  *
- * Terminal defensive layer for margins, typography, media and full-bleed stages.
- * It does not introduce a second palette or spacing scale: every value resolves
- * through the canonical tokens defined in nvx-tokens.css.
+ * Terminal, deliberately narrow layer for repository-managed content. It does
+ * not resize html/body, the global shell, header, footer or navigation. Every
+ * value resolves through the canonical tokens defined in nvx-tokens.css.
  */
 
-html,
-body {
-  width: 100%;
-  max-width: 100%;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-body.nvx-full-site-ui-governed {
-  min-width: 0;
-  background: var(--nvx-surface-base);
-  color: var(--nvx-text-body);
-  font-family: var(--nvx-sans);
-}
-
-/* Horizontal crop belongs to content frames. Never place overflow containment
- * on html/body: doing so hides the sticky header dropdown and mega-menu. */
-body.nvx-full-site-ui-governed :where(
-  .nvx-main,
-  main,
-  .site-main,
-  .nvx-page,
-  .nvx-page__content,
-  .entry-content,
-  .nvx-brand-page,
-  .nvx-treatment-page
-) {
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: clip;
-}
-
-/* The page frame is already full width. Avoid viewport units and negative
- * margins that create sub-pixel overflow on narrow mobile viewports. */
+/* The page frame is already full width. Remove only the viewport-unit pattern
+ * that creates sub-pixel overflow on mobile; do not contain global overflow. */
 body.nvx-full-site-ui-governed :where(
   .nvx-page__content .nvx-brand-hero,
   .nvx-brand-page > .nvx-brand-hero,
@@ -58,24 +22,20 @@ body.nvx-full-site-ui-governed .nvx-treatment-page > .nvx-strategy-intro {
   margin-bottom: var(--nvx-space-7);
 }
 
-body.nvx-full-site-ui-governed :where(
-  .nvx-shell,
-  .nvx-brand-section__inner,
-  .nvx-brand-hero__inner,
-  .nvx-page-hero__inner,
-  .nvx-hero__inner,
-  .nvx-blog-archive__hero-inner,
-  .nvx-blog-article__shell
+/* Typography governance is scoped to public content. Header and footer retain
+ * their dedicated component contracts and responsive behaviour. */
+body.nvx-full-site-ui-governed :where(main, .nvx-main) :where(
+  h1,
+  h2,
+  h3,
+  .nvx-heading,
+  .nvx-brand-title,
+  .nvx-strategy-title
 ) {
-  max-width: 100%;
-  margin-inline: auto;
-}
-
-body.nvx-full-site-ui-governed :where(h1, h2, h3, .nvx-heading, .nvx-brand-title, .nvx-strategy-title) {
   font-family: var(--nvx-serif);
 }
 
-body.nvx-full-site-ui-governed :where(
+body.nvx-full-site-ui-governed :where(main, .nvx-main) :where(
   p,
   li,
   label,
@@ -90,30 +50,10 @@ body.nvx-full-site-ui-governed :where(
   font-family: var(--nvx-sans);
 }
 
-body.nvx-full-site-ui-governed :where(img, picture, video, canvas, iframe, svg) {
-  max-width: 100%;
-}
-
-body.nvx-full-site-ui-governed :where(img, video) {
-  height: auto;
-}
-
-body.nvx-full-site-ui-governed .nvx-main p:empty,
-body.nvx-full-site-ui-governed main p:empty,
+/* Defensive cleanup for legacy automatic-paragraph artefacts that survive in
+ * content not eligible for the raw-HTML wpautop exemption. */
+body.nvx-full-site-ui-governed :where(main, .nvx-main) p:empty,
 body.nvx-full-site-ui-governed .entry-content > br:first-child,
 body.nvx-full-site-ui-governed .entry-content > br:last-child {
   display: none;
-}
-
-@media (max-width: 48rem) {
-  body.nvx-full-site-ui-governed :where(
-    .nvx-shell,
-    .nvx-brand-section__inner,
-    .nvx-brand-hero__inner,
-    .nvx-page-hero__inner,
-    .nvx-hero__inner
-  ) {
-    width: calc(100% - var(--nvx-gutter));
-    padding-inline: var(--nvx-gutter-inner);
-  }
 }

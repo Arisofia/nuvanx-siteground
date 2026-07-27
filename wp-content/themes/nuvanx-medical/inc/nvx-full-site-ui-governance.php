@@ -49,6 +49,33 @@ function nvxFullSiteDisableAutopForManagedContent(): void {
 }
 add_action( 'wp', 'nvxFullSiteDisableAutopForManagedContent', 1 );
 
+/**
+ * Keep the shell's canonical `post-{ID}` anchor unique.
+ *
+ * Several legacy and generated compositions copied the outer WordPress article
+ * identifier into their inner markup. Removing only the nested occurrence keeps
+ * fragment compatibility on the shell while restoring valid document IDs.
+ *
+ * @param mixed $content Filtered post content.
+ * @return mixed
+ */
+function nvxFullSiteRemoveNestedPostId( $content ) {
+    if ( ! is_string( $content ) || ! is_singular() ) {
+        return $content;
+    }
+
+    $post_id = (int) get_queried_object_id();
+    if ( $post_id < 1 ) {
+        return $content;
+    }
+
+    $pattern = '/\s+id=(["\'])post-' . preg_quote( (string) $post_id, '/' ) . '\1/i';
+    $cleaned = preg_replace( $pattern, '', $content );
+
+    return is_string( $cleaned ) ? $cleaned : $content;
+}
+add_filter( 'the_content', 'nvxFullSiteRemoveNestedPostId', 999 );
+
 /** Load the terminal full-site layout and typography contract. */
 function nvxFullSiteUiGovernanceAssets(): void {
     if ( is_admin() ) {

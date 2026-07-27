@@ -177,6 +177,10 @@ async function openPage(port, route, viewport) {
   let state = null;
   try {
     for (let attempt = 1; attempt <= 60; attempt += 1) {
+      const observed = documentResponses.filter(isTopLevelDocument).at(-1)?.response?.status ?? null;
+      if (observed !== null && !isSuccessfulHttpStatus(observed)) {
+        throw new Error(`Main document HTTP ${observed} for ${baseUrl}${route}`);
+      }
       state = await session.call(() => ({
         ready: document.readyState,
         sha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',

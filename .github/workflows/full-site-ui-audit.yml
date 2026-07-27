@@ -29,7 +29,9 @@ jobs:
       contains(github.event.pull_request.labels.*.name, 'deploy-staging2') &&
       (github.event.action != 'labeled' || github.event.label.name == 'deploy-staging2')
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Deploys are globally serialized and each deploy job can run for 35 minutes.
+    # Allow one previous deploy + the current deploy, then retain time for the audit.
+    timeout-minutes: 120
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
       BASE_URL: https://staging2.nuvanx.com
@@ -99,7 +101,9 @@ jobs:
           WP_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
           last_seen='absent'
           ssh_error_log="$EVIDENCE_DIR/siteground-ssh-errors.log"
-          for attempt in $(seq 1 120); do
+          # 540 × 10 seconds = 90 minutes. This covers one queued 35-minute
+          # deployment plus the current 35-minute deployment with margin.
+          for attempt in $(seq 1 540); do
             if deployed_sha="$(ssh nvx-staging2 "test -r '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true" 2>>"$ssh_error_log")"; then
               last_seen="${deployed_sha:-absent}"
             else

@@ -52,25 +52,30 @@ add_action( 'wp', 'nvxFullSiteDisableAutopForManagedContent', 1 );
 /**
  * Whether a paragraph HTML string is an empty wpautop artefact.
  *
- * Empty means no visible text after tag stripping and entity decoding, and no
- * meaningful non-br elements. Lone <br>, &nbsp; and whitespace are artefacts.
+ * Only whitespace, whitespace entities and br tags are removable. Any other
+ * markup is meaningful and must be preserved, including unknown/custom tags.
  */
 function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool {
-    if ( preg_match( '/<(img|svg|video|iframe|input|button|a|ul|ol|table|span|strong|em|h[1-6])\b/i', $paragraphHtml ) ) {
+    $inner = preg_replace( '/^<p(?:\s[^>]*)?>/iu', '', $paragraphHtml, 1 );
+    if ( ! is_string( $inner ) ) {
         return false;
     }
 
-    $text = wp_strip_all_tags( $paragraphHtml, true );
-    $text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
-    $text = preg_replace( '/\s+/u', '', $text );
-    if ( ! is_string( $text ) ) {
+    $inner = preg_replace( '/<\/p>\s*$/iu', '', $inner, 1 );
+    if ( ! is_string( $inner ) ) {
         return false;
     }
 
-    // NBSP becomes a real character after entity decode; strip it explicitly.
-    $text = str_replace( "\u{00A0}", '', $text );
+    $inner = preg_replace( '/<br\s*\/?\s*>/iu', '', $inner );
+    if ( ! is_string( $inner ) ) {
+        return false;
+    }
 
-    return '' === $text;
+    $inner = html_entity_decode( $inner, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+    $inner = str_replace( "\u{00A0}", '', $inner );
+    $inner = preg_replace( '/\s+/u', '', $inner );
+
+    return is_string( $inner ) && '' === $inner;
 }
 
 /**
@@ -182,7 +187,7 @@ function nvxFullSiteRegisterCanonicalMenuItem( object $item, string $signature, 
     }
 
     if ( $itemId > 0 ) {
-        $seen[ $signature ]      = $itemId;
+        $seen[ $signature ]       = $itemId;
         $canonicalIds[ $itemId ] = $itemId;
     }
 
@@ -214,10 +219,10 @@ function nvxFullSiteDeduplicatePrimaryMenuItems( $items, $args ) {
             continue;
         }
 
-        $parent                 = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
-        $parent                 = nvxFullSiteResolveCanonicalParent( $canonicalIds, $parent );
+        $parent                  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+        $parent                  = nvxFullSiteResolveCanonicalParent( $canonicalIds, $parent );
         $item->menu_item_parent = (string) $parent;
-        $signature              = nvxFullSiteMenuItemSignature( $item, $parent );
+        $signature               = nvxFullSiteMenuItemSignature( $item, $parent );
 
         if ( ! nvxFullSiteRegisterCanonicalMenuItem( $item, $signature, $seen, $canonicalIds ) ) {
             continue;

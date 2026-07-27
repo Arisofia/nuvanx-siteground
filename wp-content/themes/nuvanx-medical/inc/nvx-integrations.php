@@ -8,6 +8,11 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/** Canonical public path for the ojeras / surco lagrimal treatment page. */
+if ( ! defined( 'NVX_PATH_OJERAS_SURCO_LAGRIMAL' ) ) {
+    define( 'NVX_PATH_OJERAS_SURCO_LAGRIMAL', '/ojeras-surco-lagrimal-madrid/' );
+}
+
 require_once __DIR__ . '/nvx-environment-flags.php';
 require_once __DIR__ . '/nvx-visual-system.php';
 require_once __DIR__ . '/nvx-external-visual-closure.php';
@@ -45,7 +50,7 @@ function nvx_production_readiness_governed_pages(): array {
         ),
         'eye-frame-rejuvenecimiento-mirada-madrid' => array(
             'status' => 'draft',
-            'target' => '/ojeras-surco-lagrimal-madrid/',
+            'target' => NVX_PATH_OJERAS_SURCO_LAGRIMAL,
         ),
     );
 }
@@ -172,7 +177,7 @@ function nvx_theme_normalize_public_document( string $html ): string {
     );
     $html = str_replace(
         array( '/eye-frame-rejuvenecimiento-mirada-madrid/', '/eye-frame/' ),
-        array( '/ojeras-surco-lagrimal-madrid/', '/ojeras-surco-lagrimal-madrid/' ),
+        array( NVX_PATH_OJERAS_SURCO_LAGRIMAL, NVX_PATH_OJERAS_SURCO_LAGRIMAL ),
         $html
     );
     $html = str_ireplace(

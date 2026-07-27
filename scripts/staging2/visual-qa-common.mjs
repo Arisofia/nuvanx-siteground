@@ -102,12 +102,12 @@ export class CDPSession {
   }
 
   resolvePending(message) {
-    if (!message.id || !this.pending.has(message.id)) return;
+    if (!message?.id || !this.pending.has(message.id)) return;
     const pending = this.pending.get(message.id);
     clearTimeout(pending.timer);
     this.pending.delete(message.id);
     if (message.error) {
-      pending.reject(new Error(`${message.error.message || 'CDP error'} (${message.error.code || 'unknown'})`));
+      pending.reject(new Error(`${message.error?.message || 'CDP error'} (${message.error?.code || 'unknown'})`));
       return;
     }
     pending.resolve(message.result || {});
@@ -121,7 +121,7 @@ export class CDPSession {
       // Non-JSON frames must not break the CDP session or leave sends pending.
       // Optionally log malformed frames when debugging CDP traffic.
       try {
-        if (typeof process !== 'undefined' && process.env && process.env.NVX_CDP_DEBUG) {
+        if (typeof process !== 'undefined' && process.env?.NVX_CDP_DEBUG) {
           const raw = String(event.data ?? '');
           const maxLength = 512;
           const truncated = raw.length > maxLength ? `${raw.slice(0, maxLength)}…` : raw;
@@ -135,7 +135,7 @@ export class CDPSession {
       }
       return;
     }
-    if (message.method) this.dispatchEvent(message.method, message.params);
+    if (message?.method) this.dispatchEvent(message.method, message.params);
     this.resolvePending(message);
   }
 

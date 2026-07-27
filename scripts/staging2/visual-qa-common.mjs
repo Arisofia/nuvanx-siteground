@@ -50,6 +50,7 @@ export class CDPSession {
     this.webSocket = null;
     this.nextId = 0;
     this.pending = new Map();
+    this.eventHandlers = new Map();
   }
 
   async connect() {
@@ -62,14 +63,80 @@ export class CDPSession {
     this.webSocket.addEventListener('message', (event) => this.handleMessage(event));
   }
 
-  handleMessage(event) {
-    const message = JSON.parse(String(event.data));
+  /**
+   * Subscribe to CDP events (messages without id). Returns an unsubscribe function.
+   */
+  on(method, handler) {
+    if (!this.eventHandlers.has(method)) this.eventHandlers.set(method, new Set());
+    this.eventHandlers.get(method).add(handler);
+    return () => this.off(method, handler);
+  }
+
+  /** Remove a previously registered CDP event handler. */
+  off(method, handler) {
+    this.eventHandlers.get(method)?.delete(handler);
+  }
+
+  /** Drop every event handler (used when closing a page session). */
+  removeAllListeners() {
+    this.eventHandlers.clear();
+  }
+
+  dispatchEvent(method, params) {
+    const handlers = this.eventHandlers.get(method);
+    if (!handlers) return;
+    for (const handler of handlers) {
+      try {
+        Promise.resolve(handler(params || {})).catch((error) => {
+          if (process.env.NVX_CDP_DEBUG) {
+            console.error(`CDP async listener error for ${method}:`, error);
+          }
+        });
+      } catch (error) {
+        // Synchronous listener failures must not tear down the CDP session.
+        if (process.env.NVX_CDP_DEBUG) {
+          console.error(`CDP listener error for ${method}:`, error);
+        }
+      }
+    }
+  }
+
+  resolvePending(message) {
     if (!message.id || !this.pending.has(message.id)) return;
     const pending = this.pending.get(message.id);
     clearTimeout(pending.timer);
     this.pending.delete(message.id);
-    if (message.error) pending.reject(new Error(`${message.error.message || 'CDP error'} (${message.error.code || 'unknown'})`));
-    else pending.resolve(message.result || {});
+    if (message.error) {
+      pending.reject(new Error(`${message.error.message || 'CDP error'} (${message.error.code || 'unknown'})`));
+      return;
+    }
+    pending.resolve(message.result || {});
+  }
+
+  handleMessage(event) {
+    let message;
+    try {
+      message = JSON.parse(String(event.data));
+    } catch {
+      // Non-JSON frames must not break the CDP session or leave sends pending.
+      // Optionally log malformed frames when debugging CDP traffic.
+      try {
+        if (typeof process !== 'undefined' && process.env && process.env.NVX_CDP_DEBUG) {
+          const raw = String(event.data ?? '');
+          const maxLength = 512;
+          const truncated = raw.length > maxLength ? `${raw.slice(0, maxLength)}…` : raw;
+          console.warn('[CDP] Ignoring non-JSON frame', {
+            length: raw.length,
+            truncatedPayload: truncated,
+          });
+        }
+      } catch {
+        // Logging must never interfere with normal operation.
+      }
+      return;
+    }
+    if (message.method) this.dispatchEvent(message.method, message.params);
+    this.resolvePending(message);
   }
 
   send(method, params = {}, timeoutMilliseconds = 30000) {
@@ -95,6 +162,13 @@ export class CDPSession {
   }
 
   closeSocket() {
+    const closeError = new Error('CDP session closed before command completed.');
+    for (const pending of this.pending.values()) {
+      clearTimeout(pending.timer);
+      pending.reject(closeError);
+    }
+    this.pending.clear();
+    this.removeAllListeners();
     if (this.webSocket && this.webSocket.readyState <= 1) this.webSocket.close();
   }
 }

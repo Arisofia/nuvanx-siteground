@@ -50,6 +50,75 @@ function nvxFullSiteDisableAutopForManagedContent(): void {
 add_action( 'wp', 'nvxFullSiteDisableAutopForManagedContent', 1 );
 
 /**
+ * Whether a paragraph HTML string is an empty wpautop artefact.
+ *
+ * Only whitespace, whitespace entities and br tags are removable. Any other
+ * markup is meaningful and must be preserved, including unknown/custom tags.
+ */
+function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool {
+    $inner = preg_replace( '/^<p(?:\s[^>]*)?>/iu', '', $paragraphHtml, 1 );
+    if ( ! is_string( $inner ) ) {
+        return false;
+    }
+
+    $inner = preg_replace( '/<\/p>\s*$/iu', '', $inner, 1 );
+    if ( ! is_string( $inner ) ) {
+        return false;
+    }
+
+    $inner = preg_replace( '/<br\s*\/?\s*>/iu', '', $inner );
+    if ( ! is_string( $inner ) ) {
+        return false;
+    }
+
+    $inner = html_entity_decode( $inner, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+    $inner = str_replace( "\u{00A0}", '', $inner );
+    $inner = preg_replace( '/\s+/u', '', $inner );
+
+    return is_string( $inner ) && '' === $inner;
+}
+
+/** Whether filtered content must bypass automatic-paragraph artefact cleanup. */
+function nvxFullSiteShouldSkipAutopCleanup( $content ): bool {
+    return (
+        ! is_string( $content )
+        || '' === $content
+        || is_admin()
+        || wp_doing_ajax()
+        || is_feed()
+        || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+        || ! is_singular()
+        || nvxFullSiteManagedContentUsesRawHtml()
+    );
+}
+
+/**
+ * Strip wpautop artefacts that are not true empty nodes in the DOM.
+ *
+ * Scoped to public singular content that still runs through wpautop. Complete
+ * HTML compositions (GitHub-managed raw markup) skip this filter.
+ *
+ * @param mixed $content Filtered post content.
+ * @return mixed
+ */
+function nvxFullSiteStripEmptyAutopParagraphs( $content ) {
+    if ( nvxFullSiteShouldSkipAutopCleanup( $content ) ) {
+        return $content;
+    }
+
+    $cleaned = preg_replace_callback(
+        '/<p(?:\s[^>]*)?>[\s\S]*?<\/p>/iu',
+        static function ( array $match ): string {
+            return nvxFullSiteParagraphIsEmptyAutopArtefact( $match[0] ) ? '' : $match[0];
+        },
+        $content
+    );
+
+    return is_string( $cleaned ) ? $cleaned : $content;
+}
+add_filter( 'the_content', 'nvxFullSiteStripEmptyAutopParagraphs', 12 );
+
+/**
  * Keep the shell's canonical `post-{ID}` anchor unique.
  *
  * Several legacy and generated compositions copied the outer WordPress article
@@ -77,12 +146,62 @@ function nvxFullSiteRemoveNestedPostId( $content ) {
 add_filter( 'the_content', 'nvxFullSiteRemoveNestedPostId', 999 );
 
 /**
+ * Resolve a menu item's parent through the canonical ID map.
+ *
+ * @param array<int, int> $canonicalIds Map of item ID => kept canonical ID.
+ * @param int             $parent       Original parent menu item ID.
+ */
+function nvxFullSiteResolveCanonicalParent( array $canonicalIds, int $parent ): int {
+    $guard = 0;
+    while ( $parent > 0 && isset( $canonicalIds[ $parent ] ) && $canonicalIds[ $parent ] !== $parent && $guard < 20 ) {
+        $parent = (int) $canonicalIds[ $parent ];
+        ++$guard;
+    }
+
+    return $parent;
+}
+
+/** Build a stable signature for primary-menu deduplication. */
+function nvxFullSiteMenuItemSignature( object $item, int $parent ): string {
+    $title_key = sanitize_title( remove_accents( wp_strip_all_tags( (string) ( $item->title ?? '' ) ) ) );
+    $url_key   = strtolower( untrailingslashit( (string) ( $item->url ?? '' ) ) );
+
+    return $parent . '|' . $title_key . '|' . $url_key;
+}
+
+/**
+ * Register the first occurrence of a signature and map duplicate IDs to it.
+ *
+ * @param object            $item         Menu item.
+ * @param string            $signature    Stable signature.
+ * @param array<string,int> $seen         Signature => canonical item ID.
+ * @param array<int,int>    $canonicalIds Item ID => canonical item ID.
+ * @return bool True when the item is new and should be kept.
+ */
+function nvxFullSiteRegisterCanonicalMenuItem( object $item, string $signature, array &$seen, array &$canonicalIds ): bool {
+    $itemId = isset( $item->ID ) ? (int) $item->ID : 0;
+
+    if ( isset( $seen[ $signature ] ) ) {
+        if ( $itemId > 0 ) {
+            $canonicalIds[ $itemId ] = (int) $seen[ $signature ];
+        }
+        return false;
+    }
+
+    if ( $itemId > 0 ) {
+        $seen[ $signature ]       = $itemId;
+        $canonicalIds[ $itemId ] = $itemId;
+    }
+
+    return true;
+}
+
+/**
  * Deduplicate menu objects after all navigation providers have run.
  *
- * The database menu is unique, but stale object caches or late navigation
- * providers can append the same root and subtree a second time. Canonicalising
- * parent IDs and signatures here keeps desktop and mobile output identical while
- * preserving the first configured item and its hierarchy.
+ * Orchestrates parent resolution, signature construction and registration.
+ * Stale object caches or late navigation providers can append the same root
+ * and subtree a second time; this keeps desktop and mobile output identical.
  *
  * @param mixed    $items Menu item objects.
  * @param stdClass $args  Menu render arguments.
@@ -93,40 +212,24 @@ function nvxFullSiteDeduplicatePrimaryMenuItems( $items, $args ) {
         return $items;
     }
 
-    $canonical_ids = array();
-    $seen          = array();
-    $deduplicated  = array();
+    $canonicalIds = array();
+    $seen         = array();
+    $deduplicated = array();
 
     foreach ( $items as $item ) {
         if ( ! is_object( $item ) ) {
             continue;
         }
 
-        $item_id = isset( $item->ID ) ? (int) $item->ID : 0;
-        $parent  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
-        $guard   = 0;
-
-        while ( $parent > 0 && isset( $canonical_ids[ $parent ] ) && $canonical_ids[ $parent ] !== $parent && $guard < 20 ) {
-            $parent = (int) $canonical_ids[ $parent ];
-            ++$guard;
-        }
-
+        $parent                  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+        $parent                  = nvxFullSiteResolveCanonicalParent( $canonicalIds, $parent );
         $item->menu_item_parent = (string) $parent;
-        $title_key              = sanitize_title( remove_accents( wp_strip_all_tags( (string) ( $item->title ?? '' ) ) ) );
-        $url_key                = strtolower( untrailingslashit( (string) ( $item->url ?? '' ) ) );
-        $signature              = $parent . '|' . $title_key . '|' . $url_key;
+        $signature               = nvxFullSiteMenuItemSignature( $item, $parent );
 
-        if ( isset( $seen[ $signature ] ) ) {
-            if ( $item_id > 0 ) {
-                $canonical_ids[ $item_id ] = (int) $seen[ $signature ];
-            }
+        if ( ! nvxFullSiteRegisterCanonicalMenuItem( $item, $signature, $seen, $canonicalIds ) ) {
             continue;
         }
 
-        if ( $item_id > 0 ) {
-            $seen[ $signature ]          = $item_id;
-            $canonical_ids[ $item_id ] = $item_id;
-        }
         $deduplicated[] = $item;
     }
 

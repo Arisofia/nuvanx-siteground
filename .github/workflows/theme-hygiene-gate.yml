@@ -7,7 +7,13 @@ on:
     paths:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
+      - 'scripts/staging2/audit-full-site-ui.mjs'
+      - 'scripts/staging2/smoke-verify-staging2.sh'
       - 'scripts/wp/nvx-production-readiness-command.php'
+      - 'scripts/wp/nvx-canonical-route-migration.php'
+      - 'tools/deploy/deploy-to-staging2.sh'
+      - '.env.example'
+      - '.gitignore'
       - '.github/workflows/theme-hygiene-gate.yml'
   pull_request:
     branches:
@@ -15,7 +21,13 @@ on:
     paths:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
+      - 'scripts/staging2/audit-full-site-ui.mjs'
+      - 'scripts/staging2/smoke-verify-staging2.sh'
       - 'scripts/wp/nvx-production-readiness-command.php'
+      - 'scripts/wp/nvx-canonical-route-migration.php'
+      - 'tools/deploy/deploy-to-staging2.sh'
+      - '.env.example'
+      - '.gitignore'
       - '.github/workflows/theme-hygiene-gate.yml'
   workflow_dispatch:
 
@@ -28,6 +40,7 @@ permissions:
 
 jobs:
   hygiene:
+    name: Enforce theme and canonical routing hygiene
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -36,11 +49,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Lint workflow and contract
+      - name: Lint workflow and contracts
         run: |
           set -euo pipefail
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
           node --check scripts/theme-hygiene/test-theme-hygiene.mjs
+          node --check scripts/theme-hygiene/test-canonical-route-contract.mjs
 
       - name: Lint runtime and migration PHP
         run: |
@@ -48,9 +62,13 @@ jobs:
           find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 \
             | xargs -0 -n 1 php -l
           php -l scripts/wp/nvx-production-readiness-command.php
+          php -l scripts/wp/nvx-canonical-route-migration.php
 
       - name: Enforce canonical theme hygiene
         run: node scripts/theme-hygiene/test-theme-hygiene.mjs
+
+      - name: Enforce canonical route contract
+        run: node scripts/theme-hygiene/test-canonical-route-contract.mjs
 
       - name: Upload hygiene findings
         if: always()

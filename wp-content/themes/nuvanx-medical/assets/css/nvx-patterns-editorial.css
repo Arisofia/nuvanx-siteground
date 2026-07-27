@@ -140,13 +140,6 @@
    Sitewide (not home-only).
    ═══════════════════════════════════════════════════════════ */
 
-.hero-cta-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: calc(var(--nvx-space-1) * 1.75);
-  margin-top: var(--nvx-gap-wide, var(--nvx-space-4));
-}
-
 .nvx-values-section .nvx-eyebrow {
   color: var(--nvx-accent-muted, var(--nvx-text-muted));
 }
@@ -751,11 +744,6 @@
 /* Plataformas — tarjeta asimétrica, gutter var(--nvx-space-6) */
 .nvx-laser-platform__head .nvx-laser-icon {
   margin-bottom: 0;
-}
-
-.nvx-laser-platform__link:hover,
-.nvx-laser-platform__link:focus-visible {
-  color: var(--nvx-accent-muted);
 }
 
 .nvx-laser-platform__meta .nvx-laser-body:last-child {

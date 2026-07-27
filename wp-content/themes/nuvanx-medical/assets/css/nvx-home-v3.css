@@ -87,25 +87,6 @@
 	overflow: hidden;
 }
 
-.nvx-home-v5 .nvx-home-hero__video {
-	position: absolute;
-	inset: 0;
-	width: 100%;
-	height: 100%;
-	max-width: none;
-	object-fit: cover;
-}
-
-.nvx-home-hero__video-control:hover {
-	background: rgba(0, 0, 0, 0.8);
-	border-color: rgba(255, 255, 255, 0.35);
-}
-
-.nvx-home-hero__video-control:focus {
-	outline: 2px solid var(--nvx-accent-gold);
-	outline-offset: 2px;
-}
-
 .nvx-home-v5 .nvx-home-hero__copy {
 	display: flex;
 	flex-direction: column;
@@ -665,13 +646,5 @@
 @media (prefers-reduced-motion: reduce) {
 	.nvx-home-protocol__link {
 		transition: none;
-	}
-
-	.nvx-home-hero__video-control {
-		transition: none;
-	}
-
-	.nvx-home-hero__video-control:hover {
-		background: rgba(0, 0, 0, 0.65);
 	}
 }

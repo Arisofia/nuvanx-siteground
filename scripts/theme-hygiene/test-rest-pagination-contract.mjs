@@ -48,27 +48,48 @@ for (const forbidden of [
 }
 
 const nonOkGuard = fetchBlock.indexOf('if (!response.ok)');
-const invalidPageBreak = fetchBlock.indexOf('if (await responseIsInvalidPage(response)) break;');
-const httpFailure = fetchBlock.indexOf('REST collection failed: ${endpoint}, page=${page}, status=${response.status}');
+const invalidStatusGuard = fetchBlock.indexOf('if (response.status === 400)', nonOkGuard);
+const invalidPayloadRead = fetchBlock.indexOf('const payload = await response.json()', invalidStatusGuard);
+const invalidPageBreak = fetchBlock.indexOf(
+  "if (payload?.code === 'rest_post_invalid_page_number') break;",
+  invalidPayloadRead,
+);
+const invalidPayloadCatch = fetchBlock.indexOf('} catch {', invalidPageBreak);
+const httpFailure = fetchBlock.indexOf(
+  'REST collection failed: ${endpoint}, page=${page}, status=${response.status}',
+);
 const totalPagesRead = fetchBlock.indexOf('const totalPages = readCollectionTotalPages(');
 const payloadRead = fetchBlock.indexOf('const items = await response.json()');
+const payloadShapeGuard = fetchBlock.indexOf('if (!Array.isArray(items))');
 const emptyBreak = fetchBlock.indexOf('if (items.length === 0) break');
 const probeGuard = fetchBlock.indexOf('if (page > maxPages)');
 const collectedPush = fetchBlock.indexOf('collected.push(...items)');
 
 if (
   nonOkGuard < 0
+  || invalidStatusGuard < 0
+  || invalidPayloadRead < 0
   || invalidPageBreak < 0
+  || invalidPayloadCatch < 0
   || httpFailure < 0
-  || nonOkGuard > invalidPageBreak
-  || invalidPageBreak > httpFailure
+  || nonOkGuard > invalidStatusGuard
+  || invalidStatusGuard > invalidPayloadRead
+  || invalidPayloadRead > invalidPageBreak
+  || invalidPageBreak > invalidPayloadCatch
+  || invalidPayloadCatch > httpFailure
 ) {
-  fail('non-OK responses must only tolerate invalid-page termination and throw every other HTTP failure');
+  fail('non-OK responses must only tolerate inline WordPress invalid-page termination and throw every other HTTP failure');
 }
 if (totalPagesRead < 0 || payloadRead < 0 || totalPagesRead > payloadRead) {
   fail('X-WP-TotalPages must be validated before reading or accepting the payload');
 }
-if (payloadRead < 0 || emptyBreak < 0 || payloadRead > emptyBreak) {
+if (
+  payloadRead < 0
+  || payloadShapeGuard < 0
+  || emptyBreak < 0
+  || payloadRead > payloadShapeGuard
+  || payloadShapeGuard > emptyBreak
+) {
   fail('payload shape must be validated before the empty-page termination');
 }
 if (probeGuard < 0 || collectedPush < 0 || probeGuard > collectedPush) {
@@ -76,8 +97,12 @@ if (probeGuard < 0 || collectedPush < 0 || probeGuard > collectedPush) {
 }
 
 if (failures.length > 0) {
-  console.error(`FAIL: ${failures.length} REST pagination contract finding(s)`);
-  for (const finding of failures) console.error(`- ${finding}`);
+  const lines = [
+    `FAIL: ${failures.length} REST pagination contract finding(s)`,
+    ...failures.map((finding) => `- ${finding}`),
+  ];
+  fs.appendFileSync(path.join(root, 'theme-hygiene-report.txt'), `\n${lines.join('\n')}\n`, 'utf8');
+  for (const line of lines) console.error(line);
   process.exit(1);
 }
 

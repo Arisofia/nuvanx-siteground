@@ -2,35 +2,13 @@
 /**
  * NUVANX canonical page hygiene for staging/production indexing.
  *
- * - Redirect superseded cookie documents to the Complianz EU statement.
  * - Keep transactional / incomplete-evidence pages out of search results.
- * - Does not print schema or CSS.
+ * - Does not print schema, CSS or legacy redirect maps.
  *
  * @package NUVANX_Medical
  */
 
 defined( 'ABSPATH' ) || exit;
-
-/**
- * Redirect superseded cookie documents to the Complianz EU statement (page 577).
- */
-function nvx_redirect_superseded_legal_pages() {
-    if ( ! is_page() ) {
-        return;
-    }
-
-    $page_id = (int) get_queried_object_id();
-
-    if ( in_array( $page_id, array( 18, 31 ), true ) ) {
-        $target = get_permalink( 577 );
-
-        if ( is_string( $target ) && '' !== $target ) {
-            wp_safe_redirect( $target, 301, 'NUVANX' );
-            exit;
-        }
-    }
-}
-add_action( 'template_redirect', 'nvx_redirect_superseded_legal_pages', 1 );
 
 /**
  * Transactional pages that must not pass PageRank via links (noindex + nofollow).
@@ -272,7 +250,7 @@ function nvx_public_content_text_hygiene( $content ) {
 
     // Critical clinical fix for Clínicas NUVANX (ID 1399) or any residual conflation.
     if ( 1399 === (int) get_queried_object_id() ) {
-        $content = preg_replace( '/(Endolift®?)[^\.]*(?:es|como|mediante)?\s*(?:una\s+)?radiofrecuencia[^\.]*/iu', '$1 (tecnología láser subdérmica de 1470 nm)', $content ) ?? $content;
+        $content = preg_replace( '/(Endolift®?)[^\. ]*(?:es|como|mediante)?\s*(?:una\s+)?radiofrecuencia[^\.]*/iu', '$1 (tecnología láser subdérmica de 1470 nm)', $content ) ?? $content;
         $content = preg_replace( '/\bradiofrecuencia\s+Endolift\b/iu', 'láser subdérmico Endolift', $content ) ?? $content;
     }
 

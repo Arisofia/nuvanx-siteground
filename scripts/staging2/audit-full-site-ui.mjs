@@ -208,8 +208,9 @@ async function openPage(port, route, viewport) {
       loaderId: lastResponse?.loaderId || topLoaderId,
       frameId: topFrameId,
     };
+    const effectiveLoaderId = lastResponse?.loaderId || topLoaderId;
     for (const request of topRequests) {
-      if (request.redirectResponse) {
+      if (request.redirectResponse && request.loaderId === effectiveLoaderId) {
         navigationMeta.redirectChain.push({
           url: request.redirectResponse.url,
           status: request.redirectResponse.status,
@@ -301,12 +302,13 @@ async function discoverRoutes(session) {
   }, seedRoutes, restPerPage, restMaxPages);
 
   if (!Array.isArray(discovery?.routes)) {
-    throw new Error('WordPress route discovery returned an invalid payload.');
+    throw new TypeError('WordPress route discovery returned an invalid payload.');
   }
   report.discovery = {
     pages: discovery.counts?.pages || 0,
     posts: discovery.counts?.posts || 0,
     categories: discovery.counts?.categories || 0,
+    skipped_links: discovery.counts?.skipped_links || 0,
     total_routes: discovery.routes.length,
     min_routes: minDiscoveredRoutes,
     seed_routes: seedRoutes,
@@ -590,10 +592,10 @@ try {
     error instanceof Error ? error.message : String(error),
   );
 } finally {
-  if (chrome?.exitCode === null && !chrome.killed) {
+  if (chrome?.exitCode === null && chrome?.signalCode === null) {
     chrome.kill('SIGTERM');
     const killTimer = setTimeout(() => {
-      if (chrome?.exitCode === null && !chrome.killed) chrome.kill('SIGKILL');
+      if (chrome?.exitCode === null && chrome?.signalCode === null) chrome.kill('SIGKILL');
     }, 5000);
     killTimer.unref?.();
   }

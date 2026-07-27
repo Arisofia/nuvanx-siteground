@@ -55,12 +55,12 @@ add_action( 'wp', 'nvxFullSiteDisableAutopForManagedContent', 1 );
  * Empty means no visible text after tag stripping and entity decoding, and no
  * meaningful non-br elements. Lone <br>, &nbsp; and whitespace are artefacts.
  */
-function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraph_html ): bool {
-    if ( preg_match( '/<(img|svg|video|iframe|input|button|a|ul|ol|table|span|strong|em|h[1-6])\b/i', $paragraph_html ) ) {
+function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool {
+    if ( preg_match( '/<(img|svg|video|iframe|input|button|a|ul|ol|table|span|strong|em|h[1-6])\b/i', $paragraphHtml ) ) {
         return false;
     }
 
-    $text = wp_strip_all_tags( $paragraph_html, true );
+    $text = wp_strip_all_tags( $paragraphHtml, true );
     $text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
     $text = preg_replace( '/\s+/u', '', $text );
     if ( ! is_string( $text ) ) {

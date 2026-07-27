@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import http from 'node:http';
-import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
@@ -11,15 +10,19 @@ const nativeConsoleError = console.error.bind(console);
 const visualQaAttempt = Number.parseInt(process.env.NVX_VISUAL_QA_ATTEMPT || '1', 10);
 const visualQaErrors = [];
 const expectedSha = process.env.EXPECTED_SHA || '';
-const sshAlias = process.env.STAGING2_SSH_ALIAS || 'nvx-staging2';
+const stagingHost = 'staging2.nuvanx.com';
+const stagingPort = 443;
+const configuredSshAlias = process.env.STAGING2_SSH_ALIAS || 'nvx-staging2';
+const sshAlias = 'nvx-staging2';
 const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-visual-qa';
 const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36';
+const shellSingleQuoteEscape = "'\"'\"'";
 
 if (typeof nativeFetch !== 'function') {
   throw new TypeError('Node.js native fetch is required for the visual QA preload.');
 }
-if (!/^[A-Za-z0-9._-]+$/.test(sshAlias)) {
-  throw new TypeError('STAGING2_SSH_ALIAS contains unsupported characters.');
+if (configuredSshAlias !== sshAlias) {
+  throw new TypeError(`STAGING2_SSH_ALIAS must equal ${sshAlias}.`);
 }
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   throw new TypeError('EXPECTED_SHA must be a full lowercase 40-character SHA.');
@@ -40,7 +43,8 @@ function resolveRealChrome() {
 }
 
 function shellQuote(value) {
-  return `'${String(value).replaceAll("'", `'"'"'`)}'`;
+  const escaped = String(value).replaceAll("'", shellSingleQuoteEscape);
+  return `'${escaped}'`;
 }
 
 function parseConnectAuthority(authority) {
@@ -80,12 +84,8 @@ function runCurlProbe(args) {
 }
 
 const remoteBridgePhp = String.raw`
-$host = (string) ($argv[1] ?? '');
-$port = (int) ($argv[2] ?? 0);
-if (1 !== preg_match('/^[A-Za-z0-9.-]+$/', $host) || $port < 1 || $port > 65535) {
-    fwrite(STDERR, "invalid bridge target\n");
-    exit(64);
-}
+$host = 'staging2.nuvanx.com';
+$port = 443;
 $socket = @stream_socket_client('tcp://' . $host . ':' . $port, $errno, $errstr, 20);
 if (!is_resource($socket)) {
     fwrite(STDERR, "bridge connect failed: {$errno} {$errstr}\n");
@@ -134,9 +134,9 @@ function logBridge(message) {
   fs.writeSync(bridgeLogFd, `${new Date().toISOString()} ${message}\n`);
 }
 
-function spawnRemoteBridge(host, port) {
+function spawnRemoteBridge() {
   const phpEval = `eval(base64_decode("${bridgeCode}"));`;
-  const remoteCommand = `php -r ${shellQuote(phpEval)} -- ${shellQuote(host)} ${port}`;
+  const remoteCommand = `php -r ${shellQuote(phpEval)}`;
   const child = spawn(
     '/usr/bin/ssh',
     [
@@ -152,10 +152,10 @@ function spawnRemoteBridge(host, port) {
     { stdio: ['pipe', 'pipe', 'pipe'] },
   );
   bridgeProcesses.add(child);
-  child.stderr.on('data', (chunk) => logBridge(`remote ${host}:${port} ${String(chunk).trim()}`));
+  child.stderr.on('data', (chunk) => logBridge(`remote ${stagingHost}:${stagingPort} ${String(chunk).trim()}`));
   child.once('exit', (code, signal) => {
     bridgeProcesses.delete(child);
-    if (code && code !== 0) logBridge(`remote ${host}:${port} exit=${code} signal=${signal || ''}`);
+    if (code && code !== 0) logBridge(`remote ${stagingHost}:${stagingPort} exit=${code} signal=${signal || ''}`);
   });
   return child;
 }
@@ -171,46 +171,34 @@ proxyServer.on('connect', (request, clientSocket, head) => {
     clientSocket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n');
     return;
   }
-
-  clientSockets.add(clientSocket);
-  clientSocket.once('close', () => clientSockets.delete(clientSocket));
-  clientSocket.on('error', (error) => logBridge(`client ${target.host}:${target.port} ${error.message}`));
-
-  if (target.host === 'staging2.nuvanx.com' && target.port === 443) {
-    const bridge = spawnRemoteBridge(target.host, target.port);
-    const closeBridge = () => {
-      if (!bridge.stdin.destroyed) bridge.stdin.end();
-      if (bridge.exitCode === null && !bridge.killed) bridge.kill('SIGTERM');
-    };
-    clientSocket.once('close', closeBridge);
-    bridge.once('error', (error) => {
-      logBridge(`spawn ${target.host}:${target.port} ${error.message}`);
-      clientSocket.destroy(error);
-    });
-    bridge.once('spawn', () => {
-      clientSocket.write('HTTP/1.1 200 Connection Established\r\nProxy-Agent: NUVANX-SSH-Bridge\r\n\r\n');
-      if (head.length) bridge.stdin.write(head);
-      clientSocket.pipe(bridge.stdin);
-      bridge.stdout.pipe(clientSocket);
-    });
-    bridge.once('exit', () => {
-      if (!clientSocket.destroyed) clientSocket.end();
-    });
+  if (target.host !== stagingHost || target.port !== stagingPort) {
+    clientSocket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
     return;
   }
 
-  const upstream = net.connect(target.port, target.host);
-  upstream.once('connect', () => {
-    clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n');
-    if (head.length) upstream.write(head);
-    clientSocket.pipe(upstream);
-    upstream.pipe(clientSocket);
-  });
-  upstream.once('error', (error) => {
-    logBridge(`direct ${target.host}:${target.port} ${error.message}`);
+  clientSockets.add(clientSocket);
+  clientSocket.once('close', () => clientSockets.delete(clientSocket));
+  clientSocket.on('error', (error) => logBridge(`client ${stagingHost}:${stagingPort} ${error.message}`));
+
+  const bridge = spawnRemoteBridge();
+  const closeBridge = () => {
+    if (!bridge.stdin.destroyed) bridge.stdin.end();
+    if (bridge.exitCode === null && !bridge.killed) bridge.kill('SIGTERM');
+  };
+  clientSocket.once('close', closeBridge);
+  bridge.once('error', (error) => {
+    logBridge(`spawn ${stagingHost}:${stagingPort} ${error.message}`);
     clientSocket.destroy(error);
   });
-  clientSocket.once('close', () => upstream.destroy());
+  bridge.once('spawn', () => {
+    clientSocket.write('HTTP/1.1 200 Connection Established\r\nProxy-Agent: NUVANX-SSH-Bridge\r\n\r\n');
+    if (head.length) bridge.stdin.write(head);
+    clientSocket.pipe(bridge.stdin);
+    bridge.stdout.pipe(clientSocket);
+  });
+  bridge.once('exit', () => {
+    if (!clientSocket.destroyed) clientSocket.end();
+  });
 });
 
 await new Promise((resolve, reject) => {
@@ -223,6 +211,7 @@ if (!proxyAddress || typeof proxyAddress === 'string') {
   throw new Error('VISUAL_QA_SSH_BRIDGE_UNAVAILABLE local proxy did not expose a TCP port');
 }
 const proxyPort = proxyAddress.port;
+const proxyUrl = `http://127.0.0.1:${proxyPort}`;
 
 function stopProxyResources() {
   for (const socket of clientSockets) socket.destroy();
@@ -238,13 +227,8 @@ function removeProxyFiles() {
   try { fs.unlinkSync(controlPath); } catch { /* control socket may not exist */ }
 }
 
-function waitForChild(child, timeoutMilliseconds = 3000) {
+function waitForCompletion(register, onTimeout = () => {}, timeoutMilliseconds = 3000) {
   return new Promise((resolve) => {
-    if (child.exitCode !== null || child.signalCode !== null) {
-      resolve();
-      return;
-    }
-
     let settled = false;
     const finish = () => {
       if (settled) return;
@@ -253,50 +237,51 @@ function waitForChild(child, timeoutMilliseconds = 3000) {
       resolve();
     };
     const timer = setTimeout(() => {
-      if (child.exitCode === null && !child.killed) child.kill('SIGKILL');
+      onTimeout();
       finish();
     }, timeoutMilliseconds);
-    child.once('error', finish);
-    child.once('exit', finish);
+
+    try {
+      register(finish);
+    } catch {
+      finish();
+    }
   });
+}
+
+function waitForChild(child, timeoutMilliseconds = 3000) {
+  if (child.exitCode !== null || child.signalCode !== null) {
+    return Promise.resolve();
+  }
+
+  return waitForCompletion(
+    (finish) => {
+      child.once('error', finish);
+      child.once('exit', finish);
+    },
+    () => {
+      if (child.exitCode === null && !child.killed) child.kill('SIGKILL');
+    },
+    timeoutMilliseconds,
+  );
 }
 
 function closeProxyServer() {
-  return new Promise((resolve) => {
-    if (!proxyServer.listening) {
-      resolve();
-      return;
-    }
-
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve();
-    };
-    const timer = setTimeout(finish, 3000);
-    proxyServer.close(finish);
-  });
+  if (!proxyServer.listening) return Promise.resolve();
+  return waitForCompletion((finish) => proxyServer.close(finish));
 }
 
 function closeSshControl() {
-  return new Promise((resolve) => {
-    const child = spawn('/usr/bin/ssh', ['-S', controlPath, '-O', 'exit', sshAlias], { stdio: 'ignore' });
-    let settled = false;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve();
-    };
-    const timer = setTimeout(() => {
+  const child = spawn('/usr/bin/ssh', ['-S', controlPath, '-O', 'exit', sshAlias], { stdio: 'ignore' });
+  return waitForCompletion(
+    (finish) => {
+      child.once('error', finish);
+      child.once('close', finish);
+    },
+    () => {
       if (child.exitCode === null && !child.killed) child.kill('SIGTERM');
-      finish();
-    }, 3000);
-    child.once('error', finish);
-    child.once('close', finish);
-  });
+    },
+  );
 }
 
 function cleanupProxy() {
@@ -331,7 +316,7 @@ for (let attempt = 1; attempt <= 4; attempt += 1) {
     '--noproxy',
     '',
     '--proxy',
-    `http://127.0.0.1:${proxyPort}`,
+    proxyUrl,
     '--user-agent',
     userAgent,
     'https://staging2.nuvanx.com/',
@@ -354,7 +339,7 @@ if (!proxyReady) {
 chromeWrapper = path.join(os.tmpdir(), `nvx-chrome-via-staging2-${process.pid}-${visualQaAttempt}`);
 const chromeCommand = [
   `exec ${shellQuote(realChrome)}`,
-  `--proxy-server=${shellQuote(`http://127.0.0.1:${proxyPort}`)}`,
+  `--proxy-server=${shellQuote(proxyUrl)}`,
   `--proxy-bypass-list=${shellQuote('localhost;127.0.0.1')}`,
   '"$@"',
 ].join(' ');
@@ -378,7 +363,7 @@ globalThis.fetch = async (input, init) => {
 };
 
 console.error = (...args) => {
-  visualQaErrors.push(args.map((value) => String(value)).join(' '));
+  visualQaErrors.push(args.map(String).join(' '));
   nativeConsoleError(...args);
 };
 

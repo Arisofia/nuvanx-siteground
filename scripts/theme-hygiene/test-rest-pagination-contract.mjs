@@ -9,10 +9,18 @@ const source = fs.readFileSync(auditPath, 'utf8');
 const failures = [];
 const fail = (message) => failures.push(message);
 
-const start = source.indexOf('async function fetchWpCollectionBrowser(endpoint)');
-const end = source.indexOf('\n    function addDiscoveredLink', start);
-if (start < 0 || end < 0) fail('REST collection fetch block is missing');
-const block = start >= 0 && end > start ? source.slice(start, end) : '';
+const helperStart = source.indexOf('function readCollectionTotalPages(header, endpoint)');
+const fetchStart = source.indexOf('async function fetchWpCollectionBrowser(endpoint)', helperStart);
+const fetchEnd = source.indexOf('\n    function addDiscoveredLink', fetchStart);
+if (helperStart < 0 || fetchStart < 0 || fetchEnd < 0) {
+  fail('REST pagination helper or collection fetch block is missing');
+}
+const paginationScope = helperStart >= 0 && fetchEnd > helperStart
+  ? source.slice(helperStart, fetchEnd)
+  : '';
+const fetchBlock = fetchStart >= 0 && fetchEnd > fetchStart
+  ? source.slice(fetchStart, fetchEnd)
+  : '';
 
 for (const marker of [
   'function readCollectionTotalPages(header, endpoint)',
@@ -23,21 +31,25 @@ for (const marker of [
   'REST collection exceeds inferred pagination cap:',
   "payload?.code === 'rest_post_invalid_page_number'",
 ]) {
-  if (!source.includes(marker)) fail(`missing pagination contract marker: ${marker}`);
+  if (!paginationScope.includes(marker)) {
+    fail(`missing pagination contract marker: ${marker}`);
+  }
 }
 
 for (const forbidden of [
   'Math.min(totalPages, maxPages)',
   'Number.isFinite(totalPages)',
 ]) {
-  if (source.includes(forbidden)) fail(`pagination contains unsafe marker: ${forbidden}`);
+  if (paginationScope.includes(forbidden)) {
+    fail(`pagination contains unsafe marker: ${forbidden}`);
+  }
 }
 
-const totalPagesRead = block.indexOf('const totalPages = readCollectionTotalPages(');
-const payloadRead = block.indexOf('const items = await response.json()');
-const emptyBreak = block.indexOf('if (items.length === 0) break');
-const probeGuard = block.indexOf('if (page > maxPages)');
-const collectedPush = block.indexOf('collected.push(...items)');
+const totalPagesRead = fetchBlock.indexOf('const totalPages = readCollectionTotalPages(');
+const payloadRead = fetchBlock.indexOf('const items = await response.json()');
+const emptyBreak = fetchBlock.indexOf('if (items.length === 0) break');
+const probeGuard = fetchBlock.indexOf('if (page > maxPages)');
+const collectedPush = fetchBlock.indexOf('collected.push(...items)');
 
 if (totalPagesRead < 0 || payloadRead < 0 || totalPagesRead > payloadRead) {
   fail('X-WP-TotalPages must be validated before reading or accepting the payload');

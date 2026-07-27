@@ -105,7 +105,6 @@ check_retired_route() {
   [[ "$status" == '404' || "$status" == '410' ]] || fail "$source_path returned HTTP $status instead of 404/410 after $attempt attempt(s)"
   location="$(grep -i '^location:' "$headers_file" | tail -n 1 | cut -d: -f2- | tr -d '\r' | xargs || true)"
   [[ -z "$location" ]] || fail "$source_path emitted forbidden Location header: $location"
-  [[ -z "$location" ]] || fail "$source_path emitted forbidden Location header: $location"
   echo "PASS retired $source_path status=$status attempts=$attempt"
 }
 

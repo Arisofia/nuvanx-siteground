@@ -76,6 +76,64 @@ function nvxFullSiteRemoveNestedPostId( $content ) {
 }
 add_filter( 'the_content', 'nvxFullSiteRemoveNestedPostId', 999 );
 
+/**
+ * Deduplicate menu objects after all navigation providers have run.
+ *
+ * The database menu is unique, but stale object caches or late navigation
+ * providers can append the same root and subtree a second time. Canonicalising
+ * parent IDs and signatures here keeps desktop and mobile output identical while
+ * preserving the first configured item and its hierarchy.
+ *
+ * @param mixed    $items Menu item objects.
+ * @param stdClass $args  Menu render arguments.
+ * @return mixed
+ */
+function nvxFullSiteDeduplicatePrimaryMenuItems( $items, $args ) {
+    if ( ! is_array( $items ) || ! isset( $args->theme_location ) || 'primary' !== $args->theme_location ) {
+        return $items;
+    }
+
+    $canonical_ids = array();
+    $seen          = array();
+    $deduplicated  = array();
+
+    foreach ( $items as $item ) {
+        if ( ! is_object( $item ) ) {
+            continue;
+        }
+
+        $item_id = isset( $item->ID ) ? (int) $item->ID : 0;
+        $parent  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+        $guard   = 0;
+
+        while ( $parent > 0 && isset( $canonical_ids[ $parent ] ) && $canonical_ids[ $parent ] !== $parent && $guard < 20 ) {
+            $parent = (int) $canonical_ids[ $parent ];
+            ++$guard;
+        }
+
+        $item->menu_item_parent = (string) $parent;
+        $title_key              = sanitize_title( remove_accents( wp_strip_all_tags( (string) ( $item->title ?? '' ) ) ) );
+        $url_key                = strtolower( untrailingslashit( (string) ( $item->url ?? '' ) ) );
+        $signature              = $parent . '|' . $title_key . '|' . $url_key;
+
+        if ( isset( $seen[ $signature ] ) ) {
+            if ( $item_id > 0 ) {
+                $canonical_ids[ $item_id ] = (int) $seen[ $signature ];
+            }
+            continue;
+        }
+
+        if ( $item_id > 0 ) {
+            $seen[ $signature ]          = $item_id;
+            $canonical_ids[ $item_id ] = $item_id;
+        }
+        $deduplicated[] = $item;
+    }
+
+    return $deduplicated;
+}
+add_filter( 'wp_nav_menu_objects', 'nvxFullSiteDeduplicatePrimaryMenuItems', 999, 2 );
+
 /** Load the terminal full-site layout and typography contract. */
 function nvxFullSiteUiGovernanceAssets(): void {
     if ( is_admin() ) {

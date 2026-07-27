@@ -90,8 +90,8 @@ export async function discoverWordPressRoutes(seed, perPage, maxPages) {
       const response = await fetchCollectionPage(endpoint, page);
       if (!response.ok) {
         const invalidPage = await responseIsInvalidPage(response);
-        if (invalidPage && declaredTotalPages === null) return collected;
-        if (invalidPage) {
+        if (invalidPage && declaredTotalPages === null && page > 1) return collected;
+        if (invalidPage && declaredTotalPages !== null) {
           throw new Error(
             `REST collection ended before declared total: endpoint=${endpoint}, page=${page}, totalPages=${declaredTotalPages}`,
           );

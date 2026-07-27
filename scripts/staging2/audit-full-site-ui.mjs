@@ -236,16 +236,16 @@ async function discoverRoutes(session) {
     const discovered = new Set(seed);
     const counts = { pages: 0, posts: 0, categories: 0, skipped_links: 0 };
 
-    function hasMoreCollectionPages(header, itemCount, currentPage, endpoint) {
-      if (header === null) return itemCount >= perPage;
+    function readCollectionTotalPages(header, endpoint) {
+      if (header === null) return null;
       const totalPages = Number(header);
-      if (!Number.isFinite(totalPages) || totalPages < 1) return itemCount >= perPage;
+      if (!Number.isFinite(totalPages) || totalPages < 1) return null;
       if (totalPages > maxPages) {
         throw new Error(
           `REST collection exceeds pagination cap: endpoint=${endpoint}, totalPages=${totalPages}, maxPages=${maxPages}`,
         );
       }
-      return currentPage < totalPages;
+      return totalPages;
     }
 
     async function responseIsInvalidPage(response) {
@@ -261,8 +261,7 @@ async function discoverRoutes(session) {
     async function fetchWpCollectionBrowser(endpoint) {
       const collected = [];
       let page = 1;
-      let keepGoing = true;
-      while (keepGoing && page <= maxPages) {
+      while (page <= maxPages + 1) {
         const separator = endpoint.includes('?') ? '&' : '?';
         const response = await fetch(
           `${endpoint}${separator}per_page=${perPage}&page=${page}`,
@@ -274,19 +273,28 @@ async function discoverRoutes(session) {
             `REST collection failed: ${endpoint}, page=${page}, status=${response.status}`,
           );
         }
+
+        const totalPages = readCollectionTotalPages(
+          response.headers.get('X-WP-TotalPages'),
+          endpoint,
+        );
         const items = await response.json();
         if (!Array.isArray(items)) {
           throw new TypeError(`REST collection returned non-array payload: ${endpoint}, page=${page}`);
         }
         if (items.length === 0) break;
+        if (page > maxPages) {
+          throw new Error(
+            `REST collection exceeds inferred pagination cap: endpoint=${endpoint}, probePage=${page}, maxPages=${maxPages}`,
+          );
+        }
 
         collected.push(...items);
-        keepGoing = hasMoreCollectionPages(
-          response.headers.get('X-WP-TotalPages'),
-          items.length,
-          page,
-          endpoint,
-        );
+        if (totalPages !== null) {
+          if (page >= totalPages) break;
+        } else if (items.length < perPage) {
+          break;
+        }
         page += 1;
       }
       return collected;

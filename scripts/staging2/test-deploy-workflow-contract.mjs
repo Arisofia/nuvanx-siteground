@@ -41,7 +41,8 @@ for (const forbidden of ['fetch(', 'node-fetch']) {
 
 for (const marker of [
   'workflow_dispatch:', 'pull_request:', "inputs.confirmation == 'DEPLOY_STAGING2'",
-  "github.event.action == 'labeled'", "github.event.label.name == 'deploy-staging2'",
+  "contains(github.event.pull_request.labels.*.name, 'deploy-staging2')",
+  "github.event.action != 'labeled' || github.event.label.name == 'deploy-staging2'",
   'PREFLIGHT_ONLY', 'DEPLOY_AND_MIGRATE', 'SMOKE_ONLY',
   'cancel-in-progress: false', 'persist-credentials: false',
   'StrictHostKeyChecking yes', 'STAGING2_SSH_KNOWN_HOSTS',
@@ -50,6 +51,7 @@ for (const marker of [
   'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
   'scripts/staging2/capture-visual-qa.mjs',
   'scripts/staging2/visual-qa-edge-preload.mjs',
+  'scripts/staging2/visual-qa-common.mjs',
   'NODE_OPTIONS: --import=',
   'Run rendered acceptance verification', 'RENDERED_ACCEPTANCE_OK',
   'Run real browser visual QA', 'VISUAL_QA_OK',

@@ -136,6 +136,7 @@ final class NvxLegacyRouteRetirementCommand {
             array( 'legacy', 'source_id', 'source_state', 'target_id', 'target', 'target_state', 'old_slug_ids', 'menu_items', 'status' )
         );
         if ( nvx_legacy_routes_are_clean( $rows ) ) {
+            WP_CLI::log( 'Canonical route audit passed.' );
             WP_CLI::success( 'Legacy route retirement audit passed.' );
             return;
         }
@@ -162,6 +163,7 @@ final class NvxLegacyRouteRetirementCommand {
         if ( ! nvx_legacy_routes_are_clean( $rows ) ) {
             WP_CLI::error( 'Legacy route retirement completed but drift remains.' );
         }
+        WP_CLI::log( 'Canonical route migration applied.' );
         WP_CLI::success( 'Legacy route retirement applied.' );
     }
 

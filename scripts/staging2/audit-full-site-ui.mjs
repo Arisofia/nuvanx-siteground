@@ -79,7 +79,16 @@ async function openPage(port, route, viewport) {
     if (attempt === 20 || attempt === 40) await session.send('Page.reload', { ignoreCache: true });
     await sleep(500);
   }
-  if (!state || state.sha !== expectedSha) throw new Error(`served SHA ${state?.sha || 'absent'} instead of ${expectedSha}`);
+  if (!state || state.ready !== 'complete' || !state.body || state.sha !== expectedSha) {
+    const issues = [];
+    if (!state) issues.push('state absent');
+    else {
+      if (state.ready !== 'complete') issues.push(`readyState=${state.ready}`);
+      if (!state.body) issues.push('body missing');
+      if (state.sha !== expectedSha) issues.push(`SHA ${state.sha || 'absent'} instead of ${expectedSha}`);
+    }
+    throw new Error(issues.join(', '));
+  }
   await session.evaluate(`new Promise((resolve) => {
     const finish = () => setTimeout(resolve, 350);
     if (document.fonts?.ready) document.fonts.ready.then(finish, finish); else finish();

@@ -29,7 +29,6 @@ on:
       - '.env.example'
       - '.gitignore'
       - '.github/workflows/theme-hygiene-gate.yml'
-      - '.github/workflows/theme-hygiene-gate.yml'
   workflow_dispatch:
 
 concurrency:
@@ -56,6 +55,7 @@ jobs:
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
           node --check scripts/theme-hygiene/test-theme-hygiene.mjs
           node --check scripts/theme-hygiene/test-canonical-route-contract.mjs
+          node --check scripts/theme-hygiene/test-rest-pagination-contract.mjs
 
       - name: Lint runtime and migration PHP
         run: |
@@ -70,6 +70,9 @@ jobs:
 
       - name: Enforce canonical route contract
         run: node scripts/theme-hygiene/test-canonical-route-contract.mjs
+
+      - name: Enforce REST pagination contract
+        run: node scripts/theme-hygiene/test-rest-pagination-contract.mjs
 
       - name: Upload hygiene findings
         if: always()

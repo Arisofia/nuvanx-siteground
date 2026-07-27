@@ -1,36 +1,52 @@
 # Editorial catalog–renderer migration plan (P2)
 
-**Status:** Draft plan only — no runtime refactor in this document.  
-**Sequence:** Close PR #267 (Quality Gate + full-site audit on exact SHA) before any P2 implementation PR.  
-**Scope:** Separate structural duplication from real clinical content differences without changing public medical copy or URLs.
+**Status:** Plan documental; no introduce cambios de runtime.  
+**Sequence:** PR #267 fue cerrado sin merge. Ningún PR P2 puede asumir que sus cambios de hardening existen en `master`.  
+**Scope:** Separar duplicación estructural de diferencias clínicas reales sin cambiar copy médico público, URLs ni contratos renderizados.
 
 ---
 
-## 1. Inventario actual
+## 1. Inventario actual y baseline reproducible
 
-Cifras de líneas y superficie funcional tomadas del árbol en commit `a8bde7d1a726848a20a74771bd4ab50e4cb99b82` (merge de PR #266). Para reproducir el inventario en cada PR de migración, ejecutar `git checkout a8bde7d1a726848a20a74771bd4ab50e4cb99b82` y contar líneas con `wc -l` sobre los archivos listados, o usar el script de análisis de superficie funcional si está disponible.
+El baseline provisional de planificación es el commit exacto `a8bde7d1a726848a20a74771bd4ab50e4cb99b82`, correspondiente a `master` después del merge de PR #266. El cierre sin merge de PR #267 no modifica este árbol.
+
+Este baseline provisional no sustituye al baseline autoritativo de ejecución. El PR **P2.0** debe:
+
+1. resolver el `HEAD` exacto de `master` al abrirse;
+2. registrar ese valor como `BASELINE_SHA` en el documento y en los artefactos de CI;
+3. recalcular líneas, funciones, hooks, slugs, dependencias y métricas Sonar sobre ese SHA;
+4. conservar un artefacto versionado de inventario para que todos los PR P2.1–P2.7 utilicen la misma referencia o documenten expresamente un rebaseline.
+
+Reproducción del baseline provisional:
+
+```bash
+git checkout a8bde7d1a726848a20a74771bd4ab50e4cb99b82
+wc -l \
+  wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php \
+  wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-pages.php \
+  wp-content/themes/nuvanx-medical/inc/nvx-anatomical-pages.php \
+  wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
+```
 
 | Familia | Archivo actual | Líneas | Datos | Renderizado | SEO | Schema | Seeder | Funciones públicas | Hooks |
 | --- | --- | ---: | --- | --- | --- | --- | --- | ---: | --- |
-| BTL | `inc/nvx-btl-detail-pages.php` | ~726 | Sí | Sí | Sí (`wpseo_title` / `wpseo_metadesc`) | Parcial (vía markup / no graph dedicado en el mismo archivo) | No | 16 | `the_content`, `wpseo_title`, `wpseo_metadesc` |
-| Medicina estética | `inc/nvx-aesthetic-treatment-pages.php` | ~419 | Sí | Sí (via catálogo + páginas) | Sí (title, description, OG, Twitter, document title) | Sí (`nvx_aesthetic_treatment_schema_catalog` + módulo schema) | Sí (`nvx_aesthetic_treatment_seed_staging_pages`) | 11 | `init`, `document_title_parts`, filtros Yoast múltiples |
-| Anatomía | `inc/nvx-anatomical-pages.php` | ~364 | Sí | Sí (catálogo consumido por otros módulos) | Sí (indirecto) | Sí (indirecto) | Variable | 6 | Ninguno directo en el archivo (catálogo puro + builders) |
+| BTL | `inc/nvx-btl-detail-pages.php` | ~726 | Sí | Sí | Sí (`wpseo_title` / `wpseo_metadesc`) | Parcial | No | 16 | `the_content`, `wpseo_title`, `wpseo_metadesc` |
+| Medicina estética | `inc/nvx-aesthetic-treatment-pages.php` | ~419 | Sí | Sí | Sí (title, description, OG, Twitter, document title) | Sí | Sí | 11 | `init`, `document_title_parts`, filtros Yoast múltiples |
+| Anatomía | `inc/nvx-anatomical-pages.php` | ~364 | Sí | Sí | Sí, indirecto | Sí, indirecto | Variable | 6 | Ninguno directo en el archivo |
 | Signature phases | `inc/nvx-signature-phase-pages.php` | ~343 | Sí | Sí | Variable | Variable | Variable | 12 | `the_content`, `wp`, `nvx_navigation_primary_blueprint` |
 
 ### Notas de inventario
 
 | Familia | Slugs / rutas gobernadas (muestra) | Dependencias cruzadas |
 | --- | --- | --- |
-| BTL | `/exion-face/`, `/exion-body/`, `/exion-fractional/`, `/emfusion/`, `/btl-exilite-ipl-madrid/`, enlaces a `/exion-btl/`, Endoláser | Registry + list section helper + content restructure; SEO Yoast local |
-| Medicina estética | Claves de catálogo por slug (facial/tratamientos) | FAQ catalog, schema catalog, seed staging, filtros Yoast y document title |
-| Anatomía | Catálogos facial (upper/mid/lower) y body vía `nvx_anatomical_*_catalog` | Consumido por páginas / protocolos; builders `nvx_anatomical_entry` |
-| Signature phases | `/protocolos-signature/` y fases Contour; CTA `/madrid/valoracion/` | Navegación primary blueprint, shell prepare, SEO title/description helpers |
+| BTL | `/exion-face/`, `/exion-body/`, `/exion-fractional/`, `/emfusion/`, `/btl-exilite-ipl-madrid/`, enlaces a `/exion-btl/` y Endoláser | Registry, helper de secciones, content restructure y SEO Yoast local |
+| Medicina estética | Claves de catálogo por slug | FAQ catalog, schema catalog, seed staging, Yoast y document title |
+| Anatomía | Catálogos facial upper/mid/lower y body mediante `nvx_anatomical_*_catalog` | Consumido por páginas y protocolos; builders `nvx_anatomical_entry` |
+| Signature phases | `/protocolos-signature/`, fases Contour y CTA `/madrid/valoracion/` | Navegación primaria, shell prepare y helpers SEO |
 
-### Duplicación (contexto Sonar histórico)
+### Duplicación histórica de planificación
 
-La concentración de líneas duplicadas reportada en el diagnóstico post-#266 (orden de magnitud):
-
-| Archivo | Líneas duplicadas (aprox.) | Duplicación % (aprox.) |
+| Archivo | Líneas duplicadas aprox. | Duplicación aprox. |
 | --- | ---: | ---: |
 | `nvx-aesthetic-treatment-pages.php` | 263 | 62,8 % |
 | `nvx-anatomical-pages.php` | 220 | 60,4 % |
@@ -39,9 +55,9 @@ La concentración de líneas duplicadas reportada en el diagnóstico post-#266 (
 | `nvx-soluciones-medicas-github.php` | 109 | 43,1 % |
 | `nvx-structured-data.php` | 219 | 15,3 % |
 
-Interpretación: la mayor parte es **estructura de catálogo + render repetido** (hero, secciones, FAQ, SEO), no copy clínico idéntico. No se debe “secar” unificando textos médicos distintos.
+Estas cifras son contexto histórico, no un gate ejecutable. P2.0 debe sustituirlas por métricas exportadas desde el análisis Sonar del `BASELINE_SHA` autoritativo.
 
-Re-medir con Sonar en cada PR de migración; estos números son baseline de planificación.
+La duplicación observada es principalmente estructura repetida de catálogo y render —hero, secciones, FAQ, SEO—, no copy clínico intercambiable. No se deben unificar textos médicos diferentes para mejorar una métrica.
 
 ---
 
@@ -71,19 +87,19 @@ inc/editorial/
 
 ### Contratos
 
-- **Definición canónica de página** (`nvxNormalizeEditorialPageDefinition` o clase final equivalente):
-  - `slug`, `marker`, `h1`, `seoTitle`, `description`
-  - `sections[]`, `faqs[]`, `schema`, CTA, estado de revisión médica
-- **Validación**: campos requeridos, un solo H1, secciones permitidas, FAQ estructurada, schema clínico, CTA, review status.
+- **Definición canónica de página** mediante `nvxNormalizeEditorialPageDefinition` o clase final equivalente:
+  - `slug`, `marker`, `h1`, `seoTitle`, `description`;
+  - `sections[]`, `faqs[]`, `schema`, CTA y estado de revisión médica.
+- **Validación:** campos obligatorios, un solo H1, secciones permitidas, FAQ estructurada, schema clínico, CTA y review status.
 
 ### Responsabilidades
 
 | Capa | Debe | No debe |
 | --- | --- | --- |
-| `catalogs/*` | Datos clínicos/editoriales | `add_action` / `add_filter`, HTML suelto, I/O WP |
-| `renderers/*` | HTML a partir de definición normalizada | Conocer slugs concretos de una familia |
-| `integrations/*` | Yoast, JSON-LD, routing, seed | Embutir copy de un solo tratamiento |
-| Contratos | Forma y validación | Presentación visual ad hoc |
+| `catalogs/*` | Contener datos clínicos y editoriales | Registrar hooks, construir HTML o ejecutar I/O WordPress |
+| `renderers/*` | Producir HTML desde una definición normalizada | Conocer slugs concretos de una familia |
+| `integrations/*` | Gestionar Yoast, JSON-LD, routing y seed | Incluir copy exclusivo de un tratamiento |
+| Contratos | Definir forma y validación | Introducir presentación visual ad hoc |
 
 ---
 
@@ -95,10 +111,11 @@ inc/editorial/
 4. **Cero** cambios de copy clínico durante la migración.
 5. **Cero** cambios de URLs, IDs, anchors o clases CSS sin migración explícita documentada.
 6. No crear abstracciones que borren **diferencias médicas reales**.
-7. Cada familia se migra en **PR independiente**.
+7. Cada familia se migra en un **PR independiente**.
 8. El legacy se elimina **solo** tras equivalencia demostrada.
-9. Full-site UI audit + theme hygiene + Sonar en cada etapa.
-10. Merge solo con `expected_head_sha` (o equivalente) del SHA auditado.
+9. Full-site UI audit, visual QA, theme hygiene y Sonar se ejecutan según el alcance de cada etapa.
+10. El merge utiliza `expected_head_sha` o mecanismo equivalente sobre el SHA validado.
+11. Ningún gate puede depender de código que solo exista en un PR cerrado o no fusionado.
 
 ---
 
@@ -106,8 +123,8 @@ inc/editorial/
 
 | Etapa | Entrega | PR |
 | --- | --- | --- |
-| **P2.0** | Inventario vivo + contratos + validación (sin cambiar runtime de páginas) | Independiente |
-| **P2.1** | Renderer compartido de secciones y FAQ (adoptado opcionalmente por BTL sin borrar legacy) | Independiente |
+| **P2.0** | Fijar `BASELINE_SHA`; generar inventario vivo, artefacto de métricas, contratos y validación sin cambiar páginas | Independiente |
+| **P2.1** | Renderer compartido de secciones y FAQ, con adopción opcional por BTL sin borrar legacy | Independiente |
 | **P2.2** | Migrar **BTL** como piloto | Independiente |
 | **P2.3** | Migrar medicina estética | Independiente |
 | **P2.4** | Migrar páginas anatómicas | Independiente |
@@ -115,90 +132,146 @@ inc/editorial/
 | **P2.6** | Consolidar SEO y schema | Independiente |
 | **P2.7** | Eliminar legacy y medir duplicación final | Independiente |
 
-Cada etapa debe ser **reversible** (feature flag o coexistencia temporal si hace falta).
+Cada etapa debe ser reversible mediante feature flag o coexistencia temporal cuando el riesgo lo justifique.
+
+Artefacto mínimo de P2.0:
+
+```text
+docs/architecture/baselines/editorial-p2-<short-baseline-sha>.md
+artifacts/editorial-p2-baseline/sonar-measures.json
+artifacts/editorial-p2-baseline/inventory.json
+```
 
 ---
 
-## 5. Gates de equivalencia (por slug)
+## 5. Gates de equivalencia por slug
 
-Comparar **antes / después** en el mismo SHA de staging. "Antes" = implementación legacy (código previo a la migración); "después" = implementación nueva (tras adoptar renderers compartidos). Si ambas implementaciones coexisten detrás de un feature flag en el mismo commit, comparar ambos modos del flag en el mismo SHA desplegado en staging, documentando el estado del flag y el mecanismo de activación para cada versión auditada:
+### Modelo A — SHA baseline y SHA candidato
+
+Es el modelo predeterminado:
+
+- `BASELINE_SHA`: commit exacto de `master` registrado por P2.0.
+- `CANDIDATE_SHA`: `HEAD` exacto del PR de migración.
+- Ambos se despliegan de forma inmutable, con la misma configuración, datos y viewports.
+- Se generan artefactos independientes identificados por SHA.
+- El comparador consume ambos artefactos y produce un diff reproducible.
+
+### Modelo B — mismo SHA con feature flag
+
+Solo se admite cuando legacy y nueva implementación coexisten en el mismo commit:
+
+- se despliega un único `CANDIDATE_SHA`;
+- se captura el modo `legacy` y el modo `new` por separado;
+- cada artefacto registra nombre, valor y mecanismo de activación del flag;
+- el comparador rechaza artefactos sin metadata del flag.
+
+No se permite describir “antes” y “después” sin identificar uno de estos dos modelos.
 
 | Dimensión | Criterio de paso |
 | --- | --- |
-| HTML | Normalizado equivalente (whitespace controlado) |
+| HTML | Normalizado equivalente, con whitespace controlado |
 | Headings | Mismo H1 y jerarquía |
-| Texto visible | Idéntico (0 diff clínico) |
+| Texto visible | Idéntico; cero diff clínico |
 | Links / CTA | Mismos `href` y labels |
 | IDs / anchors | Sin cambios no declarados |
 | Clases estructurales | Sin cambios no declarados |
-| SEO | title, description, canonical |
+| SEO | Mismos title, description y canonical |
 | Schema | JSON-LD normalizado equivalente |
-| Visual | Capturas desktop + móvil |
-| HTTP | Mismo status; sin redirects no allowlist |
+| Visual | Capturas desktop y móvil comparables |
+| HTTP | Mismo status y redirects solo mediante allowlist explícita |
 | Layout | Sin overflow crítico |
-| Deploy | SHA desplegado = SHA auditado |
-| Performance | Lighthouse sin regresión material |
+| Deploy | SHA desplegado igual al SHA declarado en el artefacto |
+| Performance | Lighthouse sin regresión material documentada |
 
 **Slugs migrados sin evidencia = 0.**
 
 ---
 
-## 6. Objetivos cuantitativos
+## 6. Objetivos cuantitativos reproducibles
 
-```text
-Duplicación global:           reducción mínima del 30 % (medida con SonarQube análisis de duplicación; comparar % de duplicación total del repositorio entre SHA baseline a8bde7d1a726848a20a74771bd4ab50e4cb99b82 y el SHA final de P2.7; usar el mismo quality profile y configuración de Sonar; baseline de duplicación global disponible en dashboard histórico de Sonar del proyecto)
-Duplicación en código nuevo:  < 3 % (medida con SonarQube New Code quality gate sobre archivos nuevos o modificados en cada PR de migración; criterio de paso: porcentaje de duplicación en new code <= 3 % según reporte de Sonar para el PR; configurar New Code period al inicio de cada PR de migración)
-Cambios de copy clínico:      0
-Cambios de URLs públicas:     0
-Regresiones visuales críticas: 0
-Regresiones de schema:        0
-Slugs migrados sin evidencia: 0
-```
+| Objetivo | Métrica y alcance | Herramienta / configuración | Baseline y artefacto | Gate |
+| --- | --- | --- | --- | --- |
+| Duplicación global | `duplicated_lines_density` del mismo scope de código analizado en P2.0 y P2.7 | SonarQube Cloud, mismo quality profile, exclusiones y parámetros | `sonar-measures.json` del `BASELINE_SHA` frente al export del SHA final P2.7 | Reducción relativa mínima del 30 % |
+| Duplicación en código nuevo | `new_duplicated_lines_density` sobre archivos añadidos o modificados por cada PR P2 | SonarQube Cloud PR analysis y mismo New Code definition durante toda la etapa | Comentario/check de Sonar y export JSON asociado al `CANDIDATE_SHA` | Menor o igual al 3 % |
+| Copy clínico | Diff de texto visible normalizado por slug | Comparador de artefactos baseline/candidato | Reporte versionado por SHA | 0 diferencias no aprobadas |
+| URLs públicas | Set de rutas, canonical y redirects | Crawl + auditoría HTTP | JSON por SHA | 0 cambios no declarados |
+| Regresiones visuales críticas | Findings críticos y diff visual | Full-site UI audit y visual QA | Artefactos por SHA | 0 |
+| Regresiones de schema | Diff JSON-LD normalizado | Validador schema | JSON por SHA | 0 no declaradas |
+| Slugs sin evidencia | Slugs migrados menos slugs con artefactos completos | Manifest de migración | `inventory.json` | 0 |
+
+La comparación de duplicación es válida únicamente si el scope, las exclusiones y el quality profile son idénticos. Cualquier cambio de configuración exige un rebaseline documentado.
 
 ---
 
-## 7. Primer piloto: BTL
+## 7. Contratos de evidencia y `report.json`
 
-**Elegido:** `nvx-btl-detail-pages.php`
+Existen productores distintos y sus esquemas no deben mezclarse.
 
-**Motivo:** estructura ya consistente y acotada:
+### Visual QA: `scripts/staging2/capture-visual-qa-browser.mjs`
+
+Su reporte utiliza `report.pages[]`. Cada elemento representa una combinación ruta × viewport e incluye, según el contrato vigente, campos como `path`, `viewport`, `deploySha`, `h1`, `screenshot`, `overflow`, `headerVisible` y `footerVisible`. El nivel raíz incluye `base_url`, `expected_sha`, `chrome`, `navigation` y `findings`.
+
+Gate:
+
+```text
+report.pages.length = número esperado de combinaciones ruta × viewport
+```
+
+### Full-site UI audit
+
+El auditor full-site puede utilizar un esquema diferente, por ejemplo `routes`, `results`, `critical`, `warnings` y métricas de discovery cuando estén disponibles en `master`. Su gate debe validar el esquema real del productor presente en el `CANDIDATE_SHA`; no debe exigir campos introducidos únicamente en un PR no fusionado.
+
+Cada implementación P2 debe declarar:
+
+- productor y versión/commit del contrato;
+- ruta del artefacto;
+- campos obligatorios;
+- fórmula de cardinalidad esperada;
+- SHA contenido en el reporte.
+
+---
+
+## 8. Primer piloto: BTL
+
+**Elegido:** `nvx-btl-detail-pages.php`.
+
+**Motivo:** estructura consistente y acotada:
 
 ```text
 Hero → Mecanismo → Indicaciones → Comparativa → Proceso → FAQ → CTA → SEO
 ```
 
-Ya existe un helper de lista editorial (`nvxRenderEditorialListSection`) que reduce el coste del primer renderer compartido.
+Ya existe `nvxRenderEditorialListSection`, lo que reduce el coste del primer renderer compartido.
 
-**No empezar por** `nvx-aesthetic-treatment-pages.php` pese a mayor % de duplicación: combina catálogo clínico, seeding, metadata, riesgos y schema con mayor superficie de regresión.
+No se comienza por `nvx-aesthetic-treatment-pages.php` pese a su mayor duplicación porque combina catálogo clínico, seeding, metadata, riesgos y schema, con mayor superficie de regresión.
 
 ### Criterio de éxito del piloto
 
-- Equivalencia de gates (§5) en todos los slugs BTL gobernados.
-- Duplicación del archivo BTL reducida de forma medible sin tocar copy.
-- Ningún cambio en menú / schema / SEO no previsto en el PR del piloto.
-- Full Site UI Audit OK sobre el SHA exacto del PR.
+- Equivalencia de los gates de §5 en todos los slugs BTL gobernados.
+- Duplicación BTL reducida de forma medible sin modificar copy.
+- Ningún cambio no previsto en menú, schema o SEO.
+- Evidencia identificada por SHA para todos los slugs y viewports.
 
 ---
 
-## 8. Fuera de alcance de este documento
+## 9. Fuera de alcance de este documento
 
 - Movimientos de archivos en runtime.
 - Refactors ejecutables.
-- Cambios de tema o de CI más allá de lo ya estabilizado en #267.
-- Unificación de `nvx-structured-data.php` (solo se planifica en P2.6).
+- Cambios de tema o CI.
+- Reintroducir automáticamente cambios procedentes de PR #267.
+- Unificación de `nvx-structured-data.php`, planificada para P2.6.
 
 ---
 
-## 9. Secuencia recomendada con #267
+## 10. Criterios de entrada para los PR de implementación
 
-1. **Merge #267** solo con:
-   - Full Site UI Audit **success** en el SHA final.
-   - `report.json` (generado por `scripts/staging2/capture-visual-qa-browser.mjs`) con `report.pages[]` conteniendo un objeto por cada combinación de ruta × viewport auditado, incluyendo campos `path`, `viewport`, `deploySha`, `h1`, `screenshot`, `overflow`, `headerVisible`, `footerVisible`, etc.; también `report.base_url`, `report.expected_sha`, `report.chrome`, `report.navigation`, y `report.findings[]`.
-   - `report.pages.length` debe igualar el número esperado de combinaciones ruta × viewport definidas en el archivo de configuración de páginas auditadas.
-   - Sonar Quality Gate **Passed**.
-   - CodeRabbit sin `CHANGES_REQUESTED`.
-   - Política de redirects estricta + allowlist.
-   - Merge con `expected_head_sha` del SHA auditado.
-2. Abrir este plan como **Draft PR documental** añadiendo el archivo `docs/architecture/editorial-catalog-renderer-p2.md` (este documento).
-3. Ejecutar P2.0 → P2.2 (piloto BTL) en PRs pequeños y reversibles.
-
+1. PR #267 permanece cerrado sin merge; sus cambios no forman parte del baseline.
+2. P2.0 registra el `BASELINE_SHA` exacto del `master` vigente y publica inventario y métricas reproducibles.
+3. Cada PR posterior declara su `CANDIDATE_SHA`, el modelo de comparación de §5 y los contratos de evidencia de §7.
+4. Theme hygiene y Sonar deben pasar en el SHA final del PR.
+5. Los audits aplicables deben finalizar sin hallazgos críticos sobre el mismo SHA.
+6. CodeRabbit no debe mantener una revisión vigente en estado `CHANGES_REQUESTED`.
+7. El merge se ejecuta con `expected_head_sha` del commit validado.
+8. Este plan se entrega en `docs/architecture/editorial-catalog-renderer-p2.md`, dentro de la rama `docs/editorial-architecture-p2` del PR #268.
+9. Después del merge documental, ejecutar P2.0 → P2.2 en PRs pequeños, independientes y reversibles.

@@ -98,9 +98,15 @@ jobs:
           mkdir -p "$EVIDENCE_DIR"
           WP_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
           last_seen='absent'
+          ssh_error_log="$EVIDENCE_DIR/siteground-ssh-errors.log"
           for attempt in $(seq 1 120); do
-            deployed_sha="$(ssh nvx-staging2 "test -r '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true")"
-            last_seen="${deployed_sha:-absent}"
+            if deployed_sha="$(ssh nvx-staging2 "test -r '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true" 2>>"$ssh_error_log")"; then
+              last_seen="${deployed_sha:-absent}"
+            else
+              deployed_sha=''
+              last_seen='ssh-error'
+              printf 'Transient SSH failure while reading deployment marker; attempt=%s\n' "$attempt" >&2
+            fi
             if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
               printf 'SITEGROUND_SHA_READY %s\n' "$deployed_sha" | tee "$EVIDENCE_DIR/siteground-sha.log"
               exit 0

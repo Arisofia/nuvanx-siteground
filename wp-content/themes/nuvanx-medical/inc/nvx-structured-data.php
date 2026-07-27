@@ -981,7 +981,7 @@ function nvx_schema_physician_ivon( $organization_id ) {
 }
 
 /**
- * Dr. Fabio Quinonez Bareiro — Physician + Aesthetic Surgeon (E-E-A-T / GEO).
+ * Dr. Fabio Quiñónez Bareiro — Physician + Researcher (E-E-A-T / GEO).
  *
  * @param string $organization_id Organization @id.
  * @return array
@@ -989,24 +989,56 @@ function nvx_schema_physician_ivon( $organization_id ) {
 function nvx_schema_physician_fabio( $organization_id ) {
     $equipo    = home_url( NVX_SD_PATH_EQUIPO_MEDICO );
     $fabio_id  = home_url( NVX_SD_PATH_EQUIPO_MEDICO . '#physician-quinonez-bareiro' );
-    $colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282894103';
+    $colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
 
     return array(
-        '@type'           => array( 'Person', 'Physician' ),
-        '@id'             => $fabio_id,
-        'name'            => 'Fabio Quiñónez Bareiro',
-        'honorificPrefix' => 'Dr.',
-        'jobTitle'        => 'Médico cirujano estético · NUVANX Madrid',
-        'description'     => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Médico especialista en cirugía estética y procedimientos láser.',
-        'url'             => $equipo . '#physician-quinonez-bareiro',
-        'worksFor'        => array( '@id' => $organization_id ),
-        'hasCredential'   => array(
+        '@type'            => array( 'Person', 'Physician' ),
+        '@id'              => $fabio_id,
+        'name'             => 'Fabio Augusto Quiñónez Bareiro',
+        'honorificPrefix'  => 'Dr.',
+        'jobTitle'         => 'Especialista en geriatría, gerontología y paciente complejo · NUVANX',
+        'description'      => NVX_SD_LABEL_COLEGIADO_PREFIX . $colegiado . '. Doctor por la UAM e investigador en el CIBERFES. FEA en Geriatría (Hospital Virgen del Valle, Toledo). Experto en fisiología del envejecimiento y paciente complejo. Integra longevidad y medicina regenerativa en NUVANX.',
+        'url'              => $equipo . '#physician-quinonez-bareiro',
+        'medicalSpecialty' => 'https://schema.org/Geriatric',
+        'worksFor'         => array(
+            array( '@id' => $organization_id ),
+            array(
+                '@type' => 'Hospital',
+                'name'  => 'Hospital Virgen del Valle (Toledo)',
+            ),
+        ),
+        'hasCredential'    => array(
             array(
                 '@type'              => 'EducationalOccupationalCredential',
                 'credentialCategory' => NVX_SD_LABEL_NUM_COLEGIADO,
                 'identifier'         => $colegiado,
                 'name'               => 'Colegiado ICOMEM ' . $colegiado,
             ),
+        ),
+        'memberOf'         => array(
+            array(
+                '@type' => 'MedicalOrganization',
+                'name'  => 'CIBER de Fragilidad y Envejecimiento Saludable (CIBERFES)',
+            ),
+            array(
+                '@type' => 'MedicalOrganization',
+                'name'  => NVX_SD_SOCIEDAD_SEMEG,
+            ),
+        ),
+        'alumniOf'         => array(
+            array(
+                '@type' => 'CollegeOrUniversity',
+                'name'  => 'Universidad Autónoma de Madrid',
+            ),
+        ),
+        'knowsAbout'       => array(
+            'Geriatría',
+            'Gerontología',
+            'Paciente complejo',
+            'Fragilidad',
+            'Deterioro cognitivo',
+            'Longevidad',
+            'Fisiología del envejecimiento',
         ),
     );
 }

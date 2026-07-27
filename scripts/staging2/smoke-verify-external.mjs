@@ -48,10 +48,17 @@ const pages = [
   ['/contorno-corporal-masculino-madrid/', ['Contorno corporal masculino en Madrid', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
 ];
 
-const redirects = [
-  ['/tratamientos/', '/soluciones-medicas/'],
-  ['/liposculpt-air/', '/remodelacion-corporal-laser-madrid/'],
-  ['/v-lift-awake/', '/protocolos-signature/'],
+const retiredRoutes = [
+  '/mas-informacion-sobre-las-cookies/',
+  '/politica-de-cookies/',
+  '/politica-de-privacidad/',
+  '/tratamiento-retirado/',
+  '/tratamientos/',
+  '/liposculpt-air/',
+  '/v-lift-awake/',
+  '/dr-javier-rivera-tejeda/',
+  '/eye-frame-rejuvenecimiento-mirada-madrid/',
+  '/eye-frame/',
 ];
 
 const forbiddenMarkers = [
@@ -127,17 +134,16 @@ function readMeta(html, name) {
   return '';
 }
 
-async function verifyRedirect(sourcePath, targetPath) {
+async function verifyRetiredRoute(sourcePath) {
   const { response, attempt } = await requestWithRetry(sourcePath);
   const location = response.headers.get('location') || '';
-  const expectedLocation = `${baseUrl}${targetPath}`;
-  if (response.status !== 301) {
-    findings.push(`${sourcePath}: returned HTTP ${response.status} instead of 301`);
-    console.log(`CHECK redirect ${sourcePath} status=${response.status} attempts=${attempt}`);
+  if (response.status !== 404 && response.status !== 410) {
+    findings.push(`${sourcePath}: returned HTTP ${response.status} instead of 404/410`);
+    console.log(`CHECK retired ${sourcePath} status=${response.status} attempts=${attempt}`);
     return;
   }
-  if (location !== expectedLocation) findings.push(`${sourcePath}: location is ${location || 'absent'} instead of ${expectedLocation}`);
-  console.log(`CHECK redirect ${sourcePath} status=${response.status} attempts=${attempt}`);
+  if (location) findings.push(`${sourcePath}: emitted forbidden Location header: ${location}`);
+  console.log(`CHECK retired ${sourcePath} status=${response.status} attempts=${attempt}`);
 }
 
 async function verifyPage(pagePath, markers) {
@@ -163,9 +169,9 @@ async function verifyPage(pagePath, markers) {
 
 // Warm the edge once and retain any challenge/session cookie before governed checks.
 await requestWithRetry('/');
-for (const [sourcePath, targetPath] of redirects) {
+for (const sourcePath of retiredRoutes) {
   await sleep(750);
-  await verifyRedirect(sourcePath, targetPath);
+  await verifyRetiredRoute(sourcePath);
 }
 for (const [pagePath, markers] of pages) {
   await sleep(750);
@@ -178,4 +184,4 @@ if (findings.length) {
   process.exit(1);
 }
 
-console.log(`SMOKE_VERIFY_OK base_url=${baseUrl} pages=${pages.length} redirects=${redirects.length}`);
+console.log(`SMOKE_VERIFY_OK base_url=${baseUrl} pages=${pages.length} retired=${retiredRoutes.length}`);

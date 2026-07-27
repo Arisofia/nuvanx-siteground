@@ -20,8 +20,8 @@ require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
 
 /**
- * Returns the governed retired/deferred-page contract shared by runtime
- * redirects and the production-readiness migration.
+ * Returns the governed retired/deferred-page contract shared by the
+ * production-readiness and canonical-route migrations.
  *
  * @return array<string,array{status:string,target:string}>
  */
@@ -45,7 +45,7 @@ function nvx_production_readiness_governed_pages(): array {
         ),
         'eye-frame-rejuvenecimiento-mirada-madrid' => array(
             'status' => 'draft',
-            'target' => '/soluciones-medicas/',
+            'target' => '/ojeras-surco-lagrimal-madrid/',
         ),
     );
 }
@@ -79,23 +79,6 @@ add_action(
         }
     },
     -999999
-);
-
-/** Canonical privacy route. */
-add_action(
-    'template_redirect',
-    function () {
-        if ( is_admin() ) {
-            return;
-        }
-        $path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '';
-        $norm = '/' . trim( $path, '/' ) . '/';
-        if ( '/politica-de-privacidad/' === $norm ) {
-            wp_safe_redirect( home_url( '/politica-privacidad/' ), 301 );
-            exit;
-        }
-    },
-    1
 );
 
 /** Normalize public document markup and remove duplicate front-page FAQ schema. */
@@ -186,31 +169,6 @@ add_action(
     },
     1
 );
-
-/** Redirects retired or deferred routes by request path. */
-function nvx_redirect_governed_routes(): void {
-    if ( is_admin() ) {
-        return;
-    }
-
-    $request_path = isset( $_SERVER['REQUEST_URI'] )
-        ? (string) wp_parse_url( (string) $_SERVER['REQUEST_URI'], PHP_URL_PATH )
-        : '';
-    $normalized = trim( $request_path, '/' );
-    $redirects  = array(
-        'tratamiento-retirado' => '/tratamientos/',
-    );
-
-    foreach ( nvx_production_readiness_governed_pages() as $slug => $definition ) {
-        $redirects[ $slug ] = $definition['target'];
-    }
-
-    if ( isset( $redirects[ $normalized ] ) ) {
-        wp_safe_redirect( home_url( $redirects[ $normalized ] ), 301, 'NUVANX' );
-        exit;
-    }
-}
-add_action( 'template_redirect', 'nvx_redirect_governed_routes', 1 );
 
 /* Security headers */
 add_action(

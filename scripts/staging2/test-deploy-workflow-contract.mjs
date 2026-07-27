@@ -208,6 +208,8 @@ for (const relative of [
   'scripts/staging2/visual-qa-edge-preload.mjs',
   'scripts/staging2/capture-visual-qa.mjs',
   'scripts/staging2/test-deploy-workflow-contract.mjs',
+  'scripts/staging2/audit-full-site-ui.mjs',
+  'scripts/staging2/visual-qa-common.mjs',
 ]) {
   const result = spawnSync(process.execPath, ['--check', file(relative)], { encoding: 'utf8' });
   if (result.status !== 0) fail(`Node syntax failed for ${relative}: ${(result.stderr || result.stdout).trim()}`);
@@ -217,6 +219,7 @@ const phpFiles = [
   'scripts/wp/nvx-production-readiness-command.php',
   'wp-content/themes/nuvanx-medical/functions.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-full-site-ui-governance.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php',
   'wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php',

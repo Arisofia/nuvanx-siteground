@@ -207,7 +207,7 @@ async function openPage(port, route, viewport) {
       frameId: topFrameId,
     };
     const effectiveLoaderId = lastResponse?.loaderId || topLoaderId;
-    for (const request of topRequests) {
+    for (const request of documentRequests) {
       if (request.redirectResponse && request.loaderId === effectiveLoaderId) {
         navigationMeta.redirectChain.push({
           url: request.redirectResponse.url,

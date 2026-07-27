@@ -84,9 +84,13 @@ for (const modulePath of requiredModules) {
 
 for (const marker of [
   "'liposculpt-air'", "'/remodelacion-corporal-laser-madrid/'", "'v-lift-awake'", "'/protocolos-signature/'",
+  "'eye-frame-rejuvenecimiento-mirada-madrid'", "'/ojeras-surco-lagrimal-madrid/'",
   "remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 )", 'function nvx_production_readiness_governed_pages',
-  'foreach ( nvx_production_readiness_governed_pages()', "require_once __DIR__ . '/nvx-editorial-seo-extension.php';",
+  "require_once __DIR__ . '/nvx-editorial-seo-extension.php';",
 ]) if (!integrations.includes(marker)) fail(`integrations: missing production-readiness contract ${marker}`);
+for (const forbidden of ['nvx_redirect_governed_routes', 'wp_safe_redirect(']) {
+  if (integrations.includes(forbidden)) fail(`integrations: manual legacy redirect marker ${forbidden}`);
+}
 if (integrations.includes("'tratamiento-postparto-abdomen-contorno-corporal-madrid' =>")) fail('integrations: published Post-Maternity remains governed as retired');
 if ((integrations.match(/'liposculpt-air'\s*=>/g) || []).length !== 1) fail('integrations: governed LipoSculpt slug count');
 if ((integrations.match(/'v-lift-awake'\s*=>/g) || []).length !== 1) fail('integrations: governed V-Lift slug count');

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# READ-ONLY: verify canonical NUVANX editorial routes and retired redirects.
+# READ-ONLY: verify canonical NUVANX editorial routes and retired legacy URLs.
 set -Eeuo pipefail
 
 BASE_URL="${BASE_URL:-https://staging2.nuvanx.com}"
@@ -84,41 +84,75 @@ fetch_page() {
   echo "PASS page $page_path status=200 markers=$# attempts=$attempt"
 }
 
-# check_redirect verifies that a source path redirects directly to the expected target path with HTTP 301.
-check_redirect() {
+# check_retired_route verifies that a legacy path is unavailable and emits no redirect.
+check_retired_route() {
   local source_path="$1"
-  local target_path="$2"
-  local safe_slug headers_file
+  local safe_slug headers_file status location attempt
   safe_slug="$(echo "$source_path" | tr '/-' '__')"
   headers_file="$TMP_DIR/headers-${safe_slug}.txt"
-  local status location expected_location attempt
-
   status='000'
   for attempt in 1 2 3 4; do
     : > "$headers_file"
     status="$(curl "${CURL_COMMON_ARGS[@]}" --max-redirs 0 --output /dev/null --dump-header "$headers_file" --write-out '%{http_code}' "$BASE_URL$source_path")"
-    if [[ "$status" == '301' ]]; then
+    if [[ "$status" == '404' || "$status" == '410' ]]; then
       break
     fi
     if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then
       break
     fi
-    if [[ "$attempt" -lt 4 ]]; then
-      sleep $(( attempt * 2 ))
-    fi
+    if [[ "$attempt" -lt 4 ]]; then sleep $(( attempt * 2 )); fi
   done
+  [[ "$status" == '404' || "$status" == '410' ]] || fail "$source_path returned HTTP $status instead of 404/410 after $attempt attempt(s)"
+  location="$(grep -i '^location:' "$headers_file" | tail -n 1 | cut -d: -f2- | tr -d '' | xargs || true)"
+  [[ -z "$location" ]] || fail "$source_path emitted forbidden Location header: $location"
+  echo "PASS retired $source_path status=$status attempts=$attempt"
+}
 
-  [[ "$status" == '301' ]] || fail "$source_path returned HTTP $status instead of 301 after $attempt attempt(s)"
-  location="$(grep -i '^location:' "$headers_file" | tail -n 1 | cut -d: -f2- | tr -d '\r' | xargs)"
-  expected_location="$BASE_URL$target_path"
-  [[ "$location" == "$expected_location" ]] || fail "$source_path redirects to $location instead of $expected_location"
-  echo "PASS redirect $source_path -> $target_path status=301 attempts=$attempt"
+# check_target_page verifies that a retained final target remains publicly available.
+check_target_page() {
+  local target_path="$1"
+  local status attempt
+  status='000'
+  for attempt in 1 2 3 4; do
+    status="$(curl "${CURL_COMMON_ARGS[@]}" --output /dev/null --write-out '%{http_code}' "$BASE_URL$target_path")"
+    if [[ "$status" == '200' ]]; then break; fi
+    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then break; fi
+    if [[ "$attempt" -lt 4 ]]; then sleep $(( attempt * 2 )); fi
+  done
+  [[ "$status" == '200' ]] || fail "$target_path returned HTTP $status instead of 200 after $attempt attempt(s)"
+  echo "PASS retained target $target_path status=200 attempts=$attempt"
 }
 
 # Allow the edge cache and anti-bot layer to observe the completed immutable release.
 sleep 5
 
-check_redirect '/tratamientos/' '/soluciones-medicas/'
+for legacy_path in \
+  '/mas-informacion-sobre-las-cookies/' \
+  '/politica-de-cookies/' \
+  '/politica-de-privacidad/' \
+  '/tratamiento-retirado/' \
+  '/tratamientos/' \
+  '/liposculpt-air/' \
+  '/v-lift-awake/' \
+  '/dr-javier-rivera-tejeda/' \
+  '/eye-frame-rejuvenecimiento-mirada-madrid/' \
+  '/eye-frame/'
+do
+  check_retired_route "$legacy_path"
+done
+
+for target_path in \
+  '/politica-de-cookies-ue/' \
+  '/politica-privacidad/' \
+  '/soluciones-medicas/' \
+  '/remodelacion-corporal-laser-madrid/' \
+  '/protocolos-signature/' \
+  '/equipo-medico/' \
+  '/ojeras-surco-lagrimal-madrid/'
+do
+  check_target_page "$target_path"
+done
+echo 'LEGACY_ROUTES_RETIRED_OK'
 fetch_page '/soluciones-medicas/' 'Soluciones médicas para rostro, piel y contorno corporal.' 'Rostro y cuello' 'Contorno corporal' 'Cambios posgestacionales' 'Valoración de procedimientos previos'
 fetch_page '/protocolos-signature/' 'Protocolos Signature: Medicina estética de diagnóstico.' 'Nuestro estándar: La firma NUVANX' 'NUVANX Contour Architecture' 'Post-Maternity Contour' 'Tu primera valoración clínica'
 fetch_page '/remodelacion-corporal-laser-madrid/' 'NUVANX Contour Architecture™: El protocolo y la tecnología' 'Tres decisiones clínicas: Reducir, Redefinir, Retraer' 'Cuándo no es el tratamiento adecuado'
@@ -142,7 +176,5 @@ fetch_page '/flacidez-muslos-internos-subgluteo-madrid/' 'Flacidez en muslos int
 fetch_page '/tratamiento-rodillas-grasa-flacidez-madrid/' 'Grasa localizada y flacidez en rodillas en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/contorno-corporal-masculino-madrid/' 'Contorno corporal masculino en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 
-check_redirect '/liposculpt-air/' '/remodelacion-corporal-laser-madrid/'
-check_redirect '/v-lift-awake/' '/protocolos-signature/'
 
 echo "SMOKE_VERIFY_OK base_url=$BASE_URL"

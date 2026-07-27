@@ -2,7 +2,7 @@
 /**
  * NUVANX canonical page hygiene for staging/production indexing.
  *
- * - Redirect superseded cookie documents to the Complianz EU statement.
+ * - Keep superseded legal documents out of public routing.
  * - Keep transactional / incomplete-evidence pages out of search results.
  * - Does not print schema or CSS.
  *
@@ -11,26 +11,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Redirect superseded cookie documents to the Complianz EU statement (page 577).
- */
-function nvx_redirect_superseded_legal_pages() {
-    if ( ! is_page() ) {
-        return;
-    }
-
-    $page_id = (int) get_queried_object_id();
-
-    if ( in_array( $page_id, array( 18, 31 ), true ) ) {
-        $target = get_permalink( 577 );
-
-        if ( is_string( $target ) && '' !== $target ) {
-            wp_safe_redirect( $target, 301, 'NUVANX' );
-            exit;
-        }
-    }
-}
-add_action( 'template_redirect', 'nvx_redirect_superseded_legal_pages', 1 );
 
 /**
  * Transactional pages that must not pass PageRank via links (noindex + nofollow).

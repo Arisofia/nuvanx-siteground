@@ -30,15 +30,6 @@ const seedRoutes = String(process.env.NVX_AUDIT_SEED_ROUTES || '/,/blog/')
   .map((value) => value.trim())
   .filter(Boolean)
   .map((value) => (value.endsWith('/') || value === '/' ? value : `${value}/`));
-/**
- * Explicit allowlist for intentional internal redirects only.
- * Keys and values are normalized pathnames (trailing slash).
- * REST-discovered routes should normally resolve without redirects.
- */
-const authorizedRedirects = new Map([
-  ['/mas-informacion-sobre-las-cookies/', '/politica-de-cookies-ue/'],
-  ['/politica-de-cookies/', '/politica-de-cookies-ue/'],
-]);
 const canonicalPalette = [
   [247, 247, 245], [241, 241, 239], [17, 17, 17], [28, 28, 30],
   [229, 229, 227], [206, 206, 206], [82, 82, 82], [92, 92, 92],
@@ -107,10 +98,7 @@ function assertDocumentNavigation(route, navigationMeta) {
   const finalPath = normalizePathname(finalUrl.pathname);
   const redirected = requested !== finalPath;
   if (redirected) {
-    const allowedTarget = authorizedRedirects.get(requested);
-    if (allowedTarget !== finalPath) {
-      throw new Error(`Unexpected internal redirect ${requested} -> ${finalPath}`);
-    }
+    throw new Error(`Unexpected internal redirect ${requested} -> ${finalPath}`);
   }
 
   return {

@@ -253,24 +253,6 @@
   color: var(--nvx-light);
 }
 
-.nvx-blog-hero__copy {
-  grid-column: span 7;
-  min-width: 0;
-}
-
-.nvx-blog-hero__media {
-  grid-column: span 5;
-  min-width: 0;
-  min-height: clamp(20rem, 36vw, 34rem);
-  margin: 0;
-  overflow: hidden;
-}
-
-.nvx-blog-hero--text-only .nvx-blog-hero__copy {
-  grid-column: 1 / -1;
-  max-width: var(--nvx-measure-wide);
-}
-
 .nvx-blog-hero__title {
   max-width: 18ch;
   margin: 0 0 var(--nvx-margin-h1);

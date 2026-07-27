@@ -133,15 +133,7 @@
   min-height: inherit;
 }
 
-
-
-
-
 /* ── Cards (blog shortcode / blog index) ───────────── */
-
-
-
-
 
 /* ═══════════════════════════════════════════════════════════
    GLOBAL CONTENT PRESENTATION — values, method, CTA pairs
@@ -187,45 +179,6 @@
   border-top: 1px solid var(--nvx-color-line);
 }
 
-.nvx-home-protocol__title {
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h3);
-  font-weight: 400;
-  line-height: var(--nvx-lh-h3);
-  color: var(--nvx-ink);
-}
-
-.nvx-home-protocol__lead {
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-text-body);
-}
-
-.nvx-home-protocol__fact {
-  margin: 0;
-}
-
-.nvx-home-protocol__fact dt {
-  margin: 0 0 calc(var(--nvx-space-1) / 2);
-  font-family: var(--nvx-sans);
-  font-size: calc(var(--nvx-space-1) * 1.5);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--nvx-text-muted, var(--nvx-text-body));
-}
-
-.nvx-home-protocol__fact dd {
-  margin: 0;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-ink);
-}
-
 .nvx-method-col {
   display: grid;
   gap: calc(var(--nvx-space-1) * 1.5);
@@ -264,27 +217,9 @@
   color: var(--nvx-text-body);
 }
 
-
-
-
-
 /* ═══════════════════════════════════════════════════════════
    TREATMENTS CATALOG — quiet luxury index (var(--nvx-space-1) system)
    ═══════════════════════════════════════════════════════════ */
-
-.nvx-catalog-category:last-of-type {
-  margin-bottom: var(--nvx-space-6);
-}
-
-.nvx-catalog-category__label {
-  margin: 0 0 var(--nvx-space-4);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-kicker);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--nvx-charcoal);
-}
 
 .nvx-catalog-card:hover,
 .nvx-catalog-card:focus-within {
@@ -371,17 +306,10 @@
   color: var(--nvx-text-body); /* solid body ink — avoid opacity washout on surface */
 }
 
-
-
-
-
-
-
 /* ═══════════════════════════════════════════════════════════
    ENDOLIFT EDITORIAL PAGE — authority flow
    Treatment surfaces use the canonical palette tokens.
    ═══════════════════════════════════════════════════════════ */
-
 
 .nvx-endolift-biophysics {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
@@ -560,7 +488,6 @@
 }
 
 /* Blog long-form tables/prose: nvx-posts.css (Journal stack). */
-
 
 .nvx-nosotros-team-grid {
   display: grid;
@@ -762,14 +689,11 @@
 
 /* Action banner: exactamente var(--nvx-space-12) bajo FAQs */
 
-
-
 /* ═══════════════════════════════════════════════════════════
    MEDICINA ESTÉTICA LÁSER — quiet luxury authority hub
    Surfaces use the canonical NUVANX palette tokens.
    Section pad: var(--nvx-space-12) mobile / 120px desktop · var(--nvx-space-1) system
    ═══════════════════════════════════════════════════════════ */
-
 
 .nvx-laser-platforms {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
@@ -825,43 +749,8 @@
 }
 
 /* Plataformas — tarjeta asimétrica, gutter var(--nvx-space-6) */
-.nvx-laser-platform-list {
-  display: grid;
-  gap: var(--nvx-space-6);
-}
-
-.nvx-laser-platform__head {
-  display: flex;
-  align-items: center;
-  gap: var(--nvx-space-2);
-  margin-bottom: var(--nvx-space-2);
-}
-
 .nvx-laser-platform__head .nvx-laser-icon {
   margin-bottom: 0;
-}
-
-.nvx-laser-platform__title {
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h3);
-  font-weight: 400;
-  color: var(--nvx-ink);
-}
-
-.nvx-laser-platform__link-wrap {
-  margin: var(--nvx-space-3) 0 0;
-}
-
-.nvx-laser-platform__link {
-  font-family: var(--nvx-sans);
-  font-size: calc(var(--nvx-space-1) * 1.5);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-decoration: underline;
-  text-underline-offset: calc(var(--nvx-space-1) / 2);
-  color: var(--nvx-ink);
 }
 
 .nvx-laser-platform__link:hover,
@@ -869,28 +758,8 @@
   color: var(--nvx-accent-muted);
 }
 
-.nvx-laser-platform__meta {
-  padding: var(--nvx-space-4);
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-  border: 1px solid var(--nvx-surface-soft);
-}
-
-.nvx-laser-meta-label {
-  margin: 0 0 var(--nvx-space-1);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-micro);
-  font-weight: var(--nvx-fw-bold);
-  letter-spacing: var(--nvx-track-data);
-  text-transform: uppercase;
-  color: var(--nvx-accent-muted);
-}
-
 .nvx-laser-platform__meta .nvx-laser-body:last-child {
   margin-bottom: 0;
-}
-
-.nvx-laser-meta-label--spaced {
-  margin-top: var(--nvx-space-3);
 }
 
 .nvx-laser-faq-list {
@@ -943,89 +812,11 @@
 
 /* Action banner — var(--nvx-space-12) gap after FAQs */
 
-
-
-
-
 /* ═══════════════════════════════════════════════════════════
    MEDICINA ESTÉTICA — injectables & regenerative authority hub
    Surfaces use the canonical NUVANX palette tokens.
    Section pad: var(--nvx-space-12) mobile / 120px desktop · var(--nvx-space-1) system
    ═══════════════════════════════════════════════════════════ */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* E-E-A-T Medical Byline */
 .nvx-medical-byline { display: flex; align-items: center; gap: calc(var(--nvx-space-1) * 1.5); margin-top: var(--nvx-space-2); margin-bottom: var(--nvx-space-3); font-size: 0.875rem; color: var(--nvx-text-muted); }

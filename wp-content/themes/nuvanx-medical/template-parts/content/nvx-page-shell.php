@@ -33,14 +33,15 @@ while ( have_posts() ) :
     $content = get_post_field( 'post_content', get_the_ID() );
     $content = is_string( $content ) ? $content : '';
 
-    // Raw CMS markers (authoring-time).
-    $has_content_h1   = (bool) preg_match( '/<h1\b|<!--\s*wp:heading\s+\{[^}]*"level"\s*:\s*1[^}]*\}/i', $content );
+    // Only actual HTML headings own the rendered hierarchy. Gutenberg metadata
+    // can claim level 1 while legacy markup still contains an h2.
+    $has_content_h1   = (bool) preg_match( '/<h1\b/i', $content );
     $has_content_hero = (bool) preg_match( '/nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-home-hero-stage/i', $content );
 
     // Modules that inject a canonical hero + H1 via the_content even when CMS body is empty/legacy.
     // Without this, the shell prints a second H1 (e.g. EXION Body / Face / EMFUSION).
     $has_managed_editorial = false;
-    if ( function_exists( 'nvx_btl_detail_current_key' ) && null !== nvx_btl_detail_current_key( $content ) ) {
+    if ( function_exists( 'nvxBtlDetailCurrentKey' ) && null !== nvxBtlDetailCurrentKey( $content ) ) {
         $has_managed_editorial = true;
     }
     if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_endolift_page' ) && nvx_content_is_endolift_page( $content ) ) {
@@ -85,9 +86,6 @@ while ( have_posts() ) :
 
     $has_media = has_post_thumbnail();
     // Theme-owned hero only when content does not already own the page hierarchy.
-    // A raw content H1 is author-owned hierarchy even if it is not wrapped in a
-    // dedicated hero block. Rendering another shell H1 above it creates a
-    // duplicate primary heading on legal and legacy CMS pages.
     $show_theme_hero = $has_media && ! $has_content_h1 && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
     // Title-only header only if no content H1 and no theme/content/managed hero.
     $show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
@@ -98,8 +96,13 @@ while ( have_posts() ) :
     if ( $show_theme_hero || $has_content_hero ) {
         $classes[] = 'nvx-page--has-hero';
     }
+    $shell_owns_article = empty( $shell_content );
     ?>
+<?php if ( $shell_owns_article ) : ?>
 <article id="post-<?php the_ID(); ?>" <?php post_class( $classes ); ?>>
+<?php else : ?>
+<div id="nvx-shell-post-<?php the_ID(); ?>" <?php post_class( $classes ); ?>>
+<?php endif; ?>
 
     <?php if ( $show_theme_hero ) : ?>
         <header class="nvx-page-hero nvx-page-hero--theme" aria-labelledby="nvx-page-hero-title-<?php the_ID(); ?>">
@@ -169,18 +172,18 @@ while ( have_posts() ) :
     <?php if ( empty( $shell_no_wrap ) ) : ?>
         <div class="entry-content nvx-page__content nvx-prose">
     <?php endif; ?>
-        <?php 
+        <?php
         if ( ! empty( $shell_content ) ) {
             echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         } else {
-            the_content(); 
+            the_content();
         }
         ?>
     <?php if ( empty( $shell_no_wrap ) ) : ?>
         </div>
     <?php endif; ?>
 
-    <?php if ( is_singular( 'post' ) ) : ?>
+    <?php if ( is_singular( 'post' ) && $shell_owns_article ) : ?>
         <nav class="nvx-page__nav" aria-label="<?php esc_attr_e( 'Navegación entre artículos', 'nuvanx-medical' ); ?>">
             <?php
                 $prev = get_previous_post();
@@ -202,7 +205,11 @@ while ( have_posts() ) :
             <?php endif; ?>
         </nav>
     <?php endif; ?>
+<?php if ( $shell_owns_article ) : ?>
 </article>
+<?php else : ?>
+</div>
+<?php endif; ?>
     <?php
 endwhile;
 

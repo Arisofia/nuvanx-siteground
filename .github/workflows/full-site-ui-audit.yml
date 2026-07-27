@@ -1,0 +1,125 @@
+name: Full Site UI Audit
+
+on:
+  pull_request:
+    types: [labeled]
+    paths:
+      - '.github/workflows/full-site-ui-audit.yml'
+      - 'scripts/staging2/audit-full-site-ui.mjs'
+      - 'scripts/staging2/visual-qa-common.mjs'
+      - 'scripts/staging2/visual-qa-edge-preload.mjs'
+      - 'wp-content/themes/nuvanx-medical/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: full-site-ui-audit-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  EVIDENCE_DIR: staging2-full-site-ui-audit
+
+jobs:
+  audit:
+    if: >-
+      github.event.label.name == 'deploy-staging2' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
+      BASE_URL: https://staging2.nuvanx.com
+    steps:
+      - name: Check out immutable PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Validate audit sources
+        run: |
+          set -euo pipefail
+          node --check scripts/staging2/audit-full-site-ui.mjs
+          node --check scripts/staging2/visual-qa-common.mjs
+          node --check scripts/staging2/visual-qa-edge-preload.mjs
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-full-site-ui-governance.php
+
+      - name: Configure strict SiteGround SSH
+        env:
+          STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          STAGING2_SSH_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          STAGING2_SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          STAGING2_SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          STAGING2_SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${STAGING2_SSH_HOST:?Missing STAGING2_SSH_HOST secret}"
+          : "${STAGING2_SSH_USER:?Missing STAGING2_SSH_USER secret}"
+          : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY secret}"
+          : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS secret}"
+          SSH_PORT="${STAGING2_SSH_PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]
+          mkdir -p "$HOME/.ssh" "$EVIDENCE_DIR"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
+          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName $STAGING2_SSH_HOST
+            User $STAGING2_SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Wait for exact SiteGround deployment
+        run: |
+          set -euo pipefail
+          WP_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
+          for attempt in $(seq 1 120); do
+            deployed_sha="$(ssh nvx-staging2 "test -r '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true")"
+            if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
+              printf 'SITEGROUND_SHA_READY %s\n' "$deployed_sha" | tee "$EVIDENCE_DIR/siteground-sha.log"
+              exit 0
+            fi
+            printf 'Waiting for SiteGround SHA %s; current=%s attempt=%s\n' "$EXPECTED_SHA" "${deployed_sha:-absent}" "$attempt"
+            sleep 10
+          done
+          echo 'Timed out waiting for the exact PR SHA on staging2.' >&2
+          exit 1
+
+      - name: Audit every public WordPress route
+        env:
+          STAGING2_SSH_ALIAS: nvx-staging2
+          NODE_OPTIONS: --import=${{ github.workspace }}/scripts/staging2/visual-qa-edge-preload.mjs
+        run: |
+          set -euo pipefail
+          node scripts/staging2/audit-full-site-ui.mjs 2>&1 | tee "$EVIDENCE_DIR/audit.log"
+          grep -Fq 'FULL_SITE_UI_AUDIT_OK' "$EVIDENCE_DIR/audit.log"
+
+      - name: Upload full-site UI evidence
+        if: always()
+        continue-on-error: true
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: staging2-full-site-ui-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: staging2-full-site-ui-audit/
+          retention-days: 30
+          if-no-files-found: warn

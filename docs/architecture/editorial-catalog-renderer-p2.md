@@ -8,7 +8,7 @@
 
 ## 1. Inventario actual
 
-Cifras de líneas y superficie funcional tomadas del árbol en `master` / HEAD de referencia post-#266 (aproximadas; re-medir al abrir cada PR de migración).
+Cifras de líneas y superficie funcional tomadas del árbol en commit `a8bde7d1a726848a20a74771bd4ab50e4cb99b82` (merge de PR #266). Para reproducir el inventario en cada PR de migración, ejecutar `git checkout a8bde7d1a726848a20a74771bd4ab50e4cb99b82` y contar líneas con `wc -l` sobre los archivos listados, o usar el script de análisis de superficie funcional si está disponible.
 
 | Familia | Archivo actual | Líneas | Datos | Renderizado | SEO | Schema | Seeder | Funciones públicas | Hooks |
 | --- | --- | ---: | --- | --- | --- | --- | --- | ---: | --- |
@@ -121,7 +121,7 @@ Cada etapa debe ser **reversible** (feature flag o coexistencia temporal si hace
 
 ## 5. Gates de equivalencia (por slug)
 
-Comparar **antes / después** en el mismo SHA de staging:
+Comparar **antes / después** en el mismo SHA de staging. "Antes" = implementación legacy (código previo a la migración); "después" = implementación nueva (tras adoptar renderers compartidos). Si ambas implementaciones coexisten detrás de un feature flag en el mismo commit, comparar ambos modos del flag en el mismo SHA desplegado en staging, documentando el estado del flag y el mecanismo de activación para cada versión auditada:
 
 | Dimensión | Criterio de paso |
 | --- | --- |
@@ -146,8 +146,8 @@ Comparar **antes / después** en el mismo SHA de staging:
 ## 6. Objetivos cuantitativos
 
 ```text
-Duplicación global:           reducción mínima del 30 %
-Duplicación en código nuevo:  < 3 %
+Duplicación global:           reducción mínima del 30 % (medida con SonarQube análisis de duplicación; comparar % de duplicación total del repositorio entre SHA baseline a8bde7d1a726848a20a74771bd4ab50e4cb99b82 y el SHA final de P2.7; usar el mismo quality profile y configuración de Sonar; baseline de duplicación global disponible en dashboard histórico de Sonar del proyecto)
+Duplicación en código nuevo:  < 3 % (medida con SonarQube New Code quality gate sobre archivos nuevos o modificados en cada PR de migración; criterio de paso: porcentaje de duplicación en new code <= 3 % según reporte de Sonar para el PR; configurar New Code period al inicio de cada PR de migración)
 Cambios de copy clínico:      0
 Cambios de URLs públicas:     0
 Regresiones visuales críticas: 0
@@ -193,12 +193,12 @@ Ya existe un helper de lista editorial (`nvxRenderEditorialListSection`) que red
 
 1. **Merge #267** solo con:
    - Full Site UI Audit **success** en el SHA final.
-   - `report.json` con discovery + `httpStatus` / `finalUrl` / `redirected` / `redirectChain`.
-   - `results.length === discovery.total_routes × viewports`.
+   - `report.json` (generado por `scripts/staging2/capture-visual-qa-browser.mjs`) con `report.pages[]` conteniendo un objeto por cada combinación de ruta × viewport auditado, incluyendo campos `path`, `viewport`, `deploySha`, `h1`, `screenshot`, `overflow`, `headerVisible`, `footerVisible`, etc.; también `report.base_url`, `report.expected_sha`, `report.chrome`, `report.navigation`, y `report.findings[]`.
+   - `report.pages.length` debe igualar el número esperado de combinaciones ruta × viewport definidas en el archivo de configuración de páginas auditadas.
    - Sonar Quality Gate **Passed**.
    - CodeRabbit sin `CHANGES_REQUESTED`.
    - Política de redirects estricta + allowlist.
    - Merge con `expected_head_sha` del SHA auditado.
-2. Abrir este plan como **Draft PR documental** (`docs/editorial-architecture-p2`).
+2. Abrir este plan como **Draft PR documental** añadiendo el archivo `docs/architecture/editorial-catalog-renderer-p2.md` (este documento).
 3. Ejecutar P2.0 → P2.2 (piloto BTL) en PRs pequeños y reversibles.
 

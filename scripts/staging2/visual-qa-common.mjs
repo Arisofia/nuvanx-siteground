@@ -124,9 +124,7 @@ export class CDPSession {
         if (typeof process !== 'undefined' && process.env && process.env.NVX_CDP_DEBUG) {
           const raw = String(event.data ?? '');
           const maxLength = 512;
-          const truncated =
-            raw.length > maxLength ? `${raw.slice(0, maxLength)}…` : raw;
-          // eslint-disable-next-line no-console
+          const truncated = raw.length > maxLength ? `${raw.slice(0, maxLength)}…` : raw;
           console.warn('[CDP] Ignoring non-JSON frame', {
             length: raw.length,
             truncatedPayload: truncated,
@@ -164,6 +162,12 @@ export class CDPSession {
   }
 
   closeSocket() {
+    const closeError = new Error('CDP session closed before command completed.');
+    for (const pending of this.pending.values()) {
+      clearTimeout(pending.timer);
+      pending.reject(closeError);
+    }
+    this.pending.clear();
     this.removeAllListeners();
     if (this.webSocket && this.webSocket.readyState <= 1) this.webSocket.close();
   }

@@ -10,7 +10,6 @@ html,
 body {
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
 }
 
 *,
@@ -26,6 +25,8 @@ body.nvx-full-site-ui-governed {
   font-family: var(--nvx-sans);
 }
 
+/* Horizontal crop belongs to content frames. Never place overflow containment
+ * on html/body: doing so hides the sticky header dropdown and mega-menu. */
 body.nvx-full-site-ui-governed :where(
   .nvx-main,
   main,
@@ -38,6 +39,7 @@ body.nvx-full-site-ui-governed :where(
 ) {
   min-width: 0;
   max-width: 100%;
+  overflow-x: clip;
 }
 
 /* The page frame is already full width. Avoid viewport units and negative

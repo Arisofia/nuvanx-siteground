@@ -137,7 +137,26 @@ async function inspectPage(session) {
     const unique = (values) => Array.from(new Set(values));
     const selectorName = (node, classLimit = 2) => {
       const classes = String(node.className || '').trim().split(/\s+/).filter(Boolean).slice(0, classLimit);
-      return node.tagName.toLowerCase() + (classes.length ? '.' + classes.join('.') : '');
+      return node.tagName.toLowerCase() + (node.id ? `#${node.id}` : '') + (classes.length ? '.' + classes.join('.') : '');
+    };
+    const accessibleName = (node) => {
+      const labelledBy = (node.getAttribute('aria-labelledby') || '')
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((id) => document.getElementById(id)?.textContent || '')
+        .join(' ')
+        .trim();
+      const labels = node.labels ? Array.from(node.labels).map((label) => label.textContent || '').join(' ').trim() : '';
+      return (
+        node.getAttribute('aria-label')
+        || labelledBy
+        || labels
+        || node.getAttribute('title')
+        || node.getAttribute('placeholder')
+        || node.textContent
+        || node.value
+        || ''
+      ).trim();
     };
     const main = document.querySelector('main, .nvx-main, .site-main');
     const header = document.querySelector('#nvx-header, header[role="banner"], body > header');
@@ -192,9 +211,25 @@ async function inspectPage(session) {
       .filter((node) => visible(node) && !(node.textContent || '').trim() && !node.querySelector('img,svg,video,iframe,input,button,a')).length;
     const emptyAnchorParagraphs = Array.from(document.querySelectorAll('main a > p, .nvx-main a > p'))
       .filter((node) => !(node.textContent || '').trim()).length;
-    const unnamedControls = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], a.nvx-button, a.nvx-btn, a.nvx-brand-btn'))
+    const unnamedControls = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], input[type="checkbox"], a.nvx-button, a.nvx-btn, a.nvx-brand-btn'))
       .filter(visible)
-      .filter((node) => !((node.getAttribute('aria-label') || node.textContent || node.value || '').trim())).length;
+      .filter((node) => !accessibleName(node))
+      .map((node) => selectorName(node))
+      .slice(0, 20);
+    const overflowingElements = Array.from(document.querySelectorAll('body *'))
+      .filter(visible)
+      .map((node) => {
+        const rect = node.getBoundingClientRect();
+        return {
+          selector: selectorName(node, 3),
+          left: Number(rect.left.toFixed(2)),
+          right: Number(rect.right.toFixed(2)),
+          width: Number(rect.width.toFixed(2)),
+        };
+      })
+      .filter((item) => item.left < -0.5 || item.right > innerWidth + 0.5)
+      .sort((a, b) => Math.max(b.right - innerWidth, -b.left) - Math.max(a.right - innerWidth, -a.left))
+      .slice(0, 20);
     const colorNodes = Array.from(document.querySelectorAll('main h1, main h2, main h3, main p, main li, main section, main article, main aside, .nvx-main h1, .nvx-main h2, .nvx-main h3, .nvx-main p, .nvx-main li, .nvx-main section, .nvx-main article, .nvx-main aside'))
       .filter(visible)
       .slice(0, 1200);
@@ -222,6 +257,7 @@ async function inspectPage(session) {
       overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
       documentWidth: document.documentElement.scrollWidth,
       viewportWidth: document.documentElement.clientWidth,
+      overflowingElements,
       headingFontMismatches,
       duplicateIds,
       shellIssues: shellIssues.slice(0, 12),
@@ -245,7 +281,7 @@ function evaluateResult(scope, result) {
   if (!result.headerVisible) fail(scope, 'global header is missing or hidden');
   if (!result.footerVisible) fail(scope, 'global footer is missing or hidden');
   if (result.h1.length !== 1 || !result.h1[0]) fail(scope, `expected one visible H1, found ${JSON.stringify(result.h1)}`);
-  if (result.overflow !== 0) fail(scope, `horizontal overflow is ${result.overflow}px`);
+  if (result.overflow !== 0) fail(scope, `horizontal overflow is ${result.overflow}px; sources=${JSON.stringify(result.overflowingElements)}`);
   if (!result.fontsReady || !result.playfairLoaded || !result.manropeLoaded) fail(scope, 'canonical web fonts did not finish loading');
   if (!String(result.bodyFont).toLowerCase().includes('manrope')) fail(scope, `body font is ${result.bodyFont}`);
   if (result.headingFontMismatches.length) fail(scope, `non-canonical heading fonts: ${result.headingFontMismatches.join(', ')}`);
@@ -254,7 +290,7 @@ function evaluateResult(scope, result) {
   if (result.controlIssues.length) fail(scope, `conversion controls violate size/type/radius contract: ${JSON.stringify(result.controlIssues)}`);
   if (result.oversizedMedia) fail(scope, `${result.oversizedMedia} media elements exceed the viewport`);
   if (result.emptyAnchorParagraphs) fail(scope, `${result.emptyAnchorParagraphs} empty paragraphs remain inside links`);
-  if (result.unnamedControls) fail(scope, `${result.unnamedControls} controls have no accessible name`);
+  if (result.unnamedControls.length) fail(scope, `controls have no accessible name: ${result.unnamedControls.join(', ')}`);
   if (result.missingAlt.length) warn(scope, `${result.missingAlt.length} visible images have no alt attribute`);
   if (result.headingJumps) warn(scope, `${result.headingJumps} heading-level jumps detected`);
   if (result.emptyParagraphs) warn(scope, `${result.emptyParagraphs} visible empty paragraphs remain`);

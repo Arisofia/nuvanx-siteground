@@ -18,8 +18,11 @@ require_once __DIR__ . '/nvx-runtime-compatibility.php';
 
 /**
  * Resolve the current WordPress host in web and WP-CLI contexts.
+ *
+ * The snake_case name is retained because this is a WordPress-facing helper and
+ * existing runtime consumers use the established theme convention.
  */
-function nvx_environment_host(): string {
+function nvx_environment_host(): string { // NOSONAR -- Intentional WordPress-compatible public API.
     $host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
     if ( ! is_string( $host ) || '' === $host ) {
         $host = isset( $_SERVER['HTTP_HOST'] ) ? (string) $_SERVER['HTTP_HOST'] : '';
@@ -33,8 +36,11 @@ function nvx_environment_host(): string {
 
 /**
  * Whether WordPress is running on the protected staging2 environment.
+ *
+ * The snake_case name deliberately matches the related WordPress filter and the
+ * active staging-only consumers.
  */
-function nvx_environment_is_staging2(): bool {
+function nvx_environment_is_staging2(): bool { // NOSONAR -- Intentional WordPress-compatible public API.
     $host = nvx_environment_host();
 
     /**

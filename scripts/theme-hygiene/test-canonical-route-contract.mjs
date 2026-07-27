@@ -52,7 +52,41 @@ requireText('staging2 smoke', smoke, 'rest_route=/wp/v2/pages');
 
 const gitignore = read('.gitignore');
 for (const marker of ['.env', '.env.*', '!.env.example']) requireText('.gitignore', gitignore, marker);
-requireText('.env.example', read('.env.example'), 'BASE_URL=https://staging2.nuvanx.com');
+
+const envExample = read('.env.example');
+requireText('.env.example', envExample, 'BASE_URL=https://staging2.nuvanx.com');
+
+// Enforce that .env.example stays "sin secretos" by ensuring suspicious keys only use placeholder values
+const sensitivePrefixes = [
+  'API_KEY=',
+  'SECRET=',
+  'TOKEN=',
+  'PASSWORD=',
+  'CLIENT_SECRET=',
+  'ACCESS_KEY=',
+];
+
+for (const line of envExample.split('\n')) {
+  const trimmed = line.trim();
+  if (!trimmed || trimmed.startsWith('#')) continue;
+
+  const prefix = sensitivePrefixes.find(p => trimmed.startsWith(p));
+  if (!prefix) continue;
+
+  const value = trimmed.slice(prefix.length).trim();
+
+  // Allow empty or obvious placeholder values only
+  const isPlaceholder =
+    !value ||
+    /^CHANGEME$/i.test(value) ||
+    /^PLACEHOLDER$/i.test(value) ||
+    /^REPLACE_ME$/i.test(value) ||
+    /^TODO$/i.test(value);
+
+  if (!isPlaceholder) {
+    failures.push(`.env.example must not contain non-placeholder secret value: "${trimmed}"`);
+  }
+}
 
 if (failures.length) {
   console.error(`CANONICAL_ROUTE_CONTRACT_FAILED count=${failures.length}`);

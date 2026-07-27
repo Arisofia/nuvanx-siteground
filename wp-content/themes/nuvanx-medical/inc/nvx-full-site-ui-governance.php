@@ -78,6 +78,20 @@ function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool
     return is_string( $inner ) && '' === $inner;
 }
 
+/** Whether filtered content must bypass automatic-paragraph artefact cleanup. */
+function nvxFullSiteShouldSkipAutopCleanup( $content ): bool {
+    return (
+        ! is_string( $content )
+        || '' === $content
+        || is_admin()
+        || wp_doing_ajax()
+        || is_feed()
+        || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
+        || ! is_singular()
+        || nvxFullSiteManagedContentUsesRawHtml()
+    );
+}
+
 /**
  * Strip wpautop artefacts that are not true empty nodes in the DOM.
  *
@@ -88,17 +102,7 @@ function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool
  * @return mixed
  */
 function nvxFullSiteStripEmptyAutopParagraphs( $content ) {
-    $skip = (
-        ! is_string( $content )
-        || '' === $content
-        || is_admin()
-        || wp_doing_ajax()
-        || is_feed()
-        || ( defined( 'REST_REQUEST' ) && REST_REQUEST )
-        || ! is_singular()
-        || nvxFullSiteManagedContentUsesRawHtml()
-    );
-    if ( $skip ) {
+    if ( nvxFullSiteShouldSkipAutopCleanup( $content ) ) {
         return $content;
     }
 
@@ -157,9 +161,7 @@ function nvxFullSiteResolveCanonicalParent( array $canonicalIds, int $parent ): 
     return $parent;
 }
 
-/**
- * Build a stable signature for primary-menu deduplication.
- */
+/** Build a stable signature for primary-menu deduplication. */
 function nvxFullSiteMenuItemSignature( object $item, int $parent ): string {
     $title_key = sanitize_title( remove_accents( wp_strip_all_tags( (string) ( $item->title ?? '' ) ) ) );
     $url_key   = strtolower( untrailingslashit( (string) ( $item->url ?? '' ) ) );

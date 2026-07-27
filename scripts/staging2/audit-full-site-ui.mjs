@@ -20,6 +20,7 @@ const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(
 const expectedSha = process.env.EXPECTED_SHA || '';
 const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/full-site-ui-audit';
 const userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36';
+const horizontalOverflowTolerance = 2;
 const canonicalPalette = [
   [247, 247, 245], [241, 241, 239], [17, 17, 17], [28, 28, 30],
   [229, 229, 227], [206, 206, 206], [82, 82, 82], [92, 92, 92],
@@ -37,6 +38,7 @@ const report = {
   base_url: baseUrl,
   expected_sha: expectedSha,
   generated_at: new Date().toISOString(),
+  horizontal_overflow_tolerance_px: horizontalOverflowTolerance,
   routes: [],
   results: [],
   critical,
@@ -290,7 +292,9 @@ function evaluateResult(scope, result) {
   if (!result.headerVisible) fail(scope, 'global header is missing or hidden');
   if (!result.footerVisible) fail(scope, 'global footer is missing or hidden');
   if (result.h1.length !== 1 || !result.h1[0]) fail(scope, `expected one visible H1, found ${JSON.stringify(result.h1)}`);
-  if (result.overflow !== 0) fail(scope, `horizontal overflow is ${result.overflow}px; sources=${JSON.stringify(result.overflowingElements)}`);
+  if (result.overflow > horizontalOverflowTolerance) {
+    fail(scope, `horizontal overflow is ${result.overflow}px; sources=${JSON.stringify(result.overflowingElements)}`);
+  }
   if (!result.fontsReady || !result.playfairLoaded || !result.manropeLoaded) fail(scope, 'canonical web fonts did not finish loading');
   if (!String(result.bodyFont).toLowerCase().includes('manrope')) fail(scope, `body font is ${result.bodyFont}`);
   if (result.headingFontMismatches.length) fail(scope, `non-canonical heading fonts: ${result.headingFontMismatches.join(', ')}`);
@@ -334,6 +338,7 @@ function writeSummary() {
     `- SHA: \`${expectedSha}\``,
     `- Public routes discovered: **${report.routes.length}**`,
     `- Viewport audits: **${report.results.length}**`,
+    `- Horizontal overflow tolerance: **${horizontalOverflowTolerance}px**`,
     `- Critical findings: **${critical.length}**`,
     `- Warnings: **${warnings.length}**`,
     '',

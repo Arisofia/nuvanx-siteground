@@ -154,7 +154,11 @@ for (const marker of [
   'Inspected target navigated or closed',
   'Promise was collected',
   'visualQaAttempt < 3',
-  'staging2\\.nuvanx\\.com',
+  String.raw`staging2\.nuvanx\.com`,
+  'const stagingHost =',
+  'configuredSshAlias !== sshAlias',
+  'target.host !== stagingHost || target.port !== stagingPort',
+  'HTTP/1.1 403 Forbidden',
   'http.createServer',
   "proxyServer.on('connect'",
   'stream_socket_client',
@@ -165,6 +169,9 @@ for (const marker of [
   'VISUAL_QA_SSH_BRIDGE_READY',
   'VISUAL_QA_SSH_BRIDGE_UNAVAILABLE',
   '--proxy-server=',
+  'const proxyUrl =',
+  'waitForCompletion',
+  'args.map(String)',
   'process.env.CHROME_BIN = chromeWrapper',
   'NVX_REAL_CHROME_BIN',
   'cleanupProxy',
@@ -177,6 +184,10 @@ for (const forbidden of [
   'VISUAL_QA_SSH_PROXY_READY',
   'Atomics.wait',
   'spawnSync(process.execPath',
+  "from 'node:net'",
+  'net.connect(',
+  'spawnRemoteBridge(host, port)',
+  'shellQuote(host)',
 ]) {
   if (visualQaPreload.includes(forbidden)) failures.push(`visual QA retains prohibited SSH forwarding marker: ${forbidden}`);
 }

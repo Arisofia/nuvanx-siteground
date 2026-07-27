@@ -72,7 +72,7 @@ function isSuccessfulHttpStatus(status) {
 }
 
 function assertDocumentNavigation(route, navigationMeta) {
-  if (!navigationMeta || navigationMeta.httpStatus === null || navigationMeta.httpStatus === undefined) {
+  if (navigationMeta?.httpStatus === null || navigationMeta?.httpStatus === undefined) {
     throw new Error('Main document HTTP response was not recorded.');
   }
   if (!isSuccessfulHttpStatus(navigationMeta.httpStatus)) {
@@ -191,10 +191,11 @@ async function openPage(port, route, viewport) {
 
     const topRequests = documentRequests.filter(isTopLevelDocument);
     const topResponses = documentResponses.filter(isTopLevelDocument);
-    const lastResponse = topResponses[topResponses.length - 1] || null;
+    const lastResponse = topResponses.at(-1) || null;
+    const lastRequest = topRequests.at(-1) || null;
     const navigationMeta = {
       httpStatus: lastResponse?.response?.status ?? null,
-      finalUrl: lastResponse?.response?.url || topRequests[topRequests.length - 1]?.request?.url || null,
+      finalUrl: lastResponse?.response?.url || lastRequest?.request?.url || null,
       redirectChain: [],
       loaderId: lastResponse?.loaderId || topLoaderId,
       frameId: topFrameId,
@@ -223,7 +224,7 @@ async function openPage(port, route, viewport) {
 async function discoverRoutes(session) {
   const discovery = await session.call(async () => {
     const discovered = new Set(['/', '/blog/']);
-    const counts = { pages: 0, posts: 0, categories: 0 };
+    const counts = { pages: 0, posts: 0, categories: 0, skipped_links: 0 };
 
     async function fetchWpCollectionBrowser(endpoint) {
       const collected = [];
@@ -242,7 +243,7 @@ async function discoverRoutes(session) {
         }
         const items = await response.json();
         if (!Array.isArray(items)) {
-          throw new Error(`REST collection returned non-array payload: ${endpoint}, page=${page}`);
+          throw new TypeError(`REST collection returned non-array payload: ${endpoint}, page=${page}`);
         }
         totalPages = Number(response.headers.get('X-WP-TotalPages') || 1);
         if (!Number.isFinite(totalPages) || totalPages < 1) totalPages = 1;
@@ -250,6 +251,16 @@ async function discoverRoutes(session) {
         page += 1;
       } while (page <= totalPages);
       return collected;
+    }
+
+    function addDiscoveredLink(link) {
+      try {
+        const url = new URL(link, location.origin);
+        if (url.origin !== location.origin) return;
+        discovered.add(url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`);
+      } catch {
+        counts.skipped_links += 1;
+      }
     }
 
     const collections = [
@@ -261,23 +272,14 @@ async function discoverRoutes(session) {
     for (const [key, endpoint] of collections) {
       const items = await fetchWpCollectionBrowser(endpoint);
       counts[key] = items.length;
-      for (const item of items) {
-        try {
-          const url = new URL(item.link, location.origin);
-          if (url.origin !== location.origin) continue;
-          discovered.add(url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`);
-        } catch (error) {
-          // Count and skip malformed CMS links without aborting discovery.
-          if (error) counts.skipped_links = (counts.skipped_links || 0) + 1;
-        }
-      }
+      for (const item of items) addDiscoveredLink(item.link);
     }
 
     const routes = Array.from(discovered).sort((a, b) => a.localeCompare(b, 'es'));
     return { routes, counts };
   });
 
-  if (!discovery || !Array.isArray(discovery.routes)) {
+  if (!Array.isArray(discovery?.routes)) {
     throw new Error('WordPress route discovery returned an invalid payload.');
   }
   report.discovery = {
@@ -565,7 +567,7 @@ try {
     error instanceof Error ? error.message : String(error),
   );
 } finally {
-  if (chrome && chrome.exitCode === null && !chrome.killed) {
+  if (chrome?.exitCode === null && !chrome?.killed) {
     chrome.kill('SIGTERM');
   }
   await sleep(250);

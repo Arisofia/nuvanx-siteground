@@ -82,29 +82,37 @@ export class CDPSession {
     this.eventHandlers.clear();
   }
 
-  handleMessage(event) {
-    const message = JSON.parse(String(event.data));
-    if (message.method) {
-      const handlers = this.eventHandlers.get(message.method);
-      if (handlers) {
-        for (const handler of handlers) {
-          try {
-            handler(message.params || {});
-          } catch (error) {
-            // Listener failures must not tear down the CDP session.
-            if (process.env.NVX_CDP_DEBUG) {
-              console.error(`CDP listener error for ${message.method}:`, error);
-            }
-          }
+  dispatchEvent(method, params) {
+    const handlers = this.eventHandlers.get(method);
+    if (!handlers) return;
+    for (const handler of handlers) {
+      try {
+        handler(params || {});
+      } catch (error) {
+        // Listener failures must not tear down the CDP session.
+        if (process.env.NVX_CDP_DEBUG) {
+          console.error(`CDP listener error for ${method}:`, error);
         }
       }
     }
+  }
+
+  resolvePending(message) {
     if (!message.id || !this.pending.has(message.id)) return;
     const pending = this.pending.get(message.id);
     clearTimeout(pending.timer);
     this.pending.delete(message.id);
-    if (message.error) pending.reject(new Error(`${message.error.message || 'CDP error'} (${message.error.code || 'unknown'})`));
-    else pending.resolve(message.result || {});
+    if (message.error) {
+      pending.reject(new Error(`${message.error.message || 'CDP error'} (${message.error.code || 'unknown'})`));
+      return;
+    }
+    pending.resolve(message.result || {});
+  }
+
+  handleMessage(event) {
+    const message = JSON.parse(String(event.data));
+    if (message.method) this.dispatchEvent(message.method, message.params);
+    this.resolvePending(message);
   }
 
   send(method, params = {}, timeoutMilliseconds = 30000) {

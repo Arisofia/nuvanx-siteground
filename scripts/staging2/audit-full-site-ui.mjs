@@ -81,7 +81,7 @@ async function openPage(port, route, viewport) {
     if (attempt === 20 || attempt === 40) await session.send('Page.reload', { ignoreCache: true });
     await sleep(500);
   }
-  if (!state || state.ready !== 'complete' || !state.body || state.sha !== expectedSha) {
+  if (state?.ready !== 'complete' || !state?.body || state?.sha !== expectedSha) {
     const issues = [];
     if (!state) issues.push('state absent');
     else {

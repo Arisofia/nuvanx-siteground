@@ -22,6 +22,24 @@ body.nvx-full-site-ui-governed .nvx-treatment-page > .nvx-strategy-intro {
   margin-bottom: var(--nvx-space-7);
 }
 
+/* The mega item is position:static, so its submenu can use the positioned
+ * header inner as its containing block. This avoids the 100vw/50% transform
+ * combination that exceeded the desktop viewport when the menu opened. */
+@media (min-width: 80.001em) {
+  body.nvx-full-site-ui-governed .nvx-header .nvx-nav__list > .nvx-nav__item--mega > .sub-menu {
+    left: 0;
+    right: 0;
+    width: auto;
+    max-width: 100%;
+    transform: translateY(var(--nvx-space-1));
+  }
+
+  body.nvx-full-site-ui-governed .nvx-header .nvx-nav__list > .nvx-nav__item--mega:hover > .sub-menu,
+  body.nvx-full-site-ui-governed .nvx-header .nvx-nav__list > .nvx-nav__item--mega:focus-within > .sub-menu {
+    transform: translateY(0);
+  }
+}
+
 /* Typography governance is scoped to public content. Header and footer retain
  * their dedicated component contracts and responsive behaviour. */
 body.nvx-full-site-ui-governed :where(main, .nvx-main) :where(

@@ -95,17 +95,27 @@ jobs:
       - name: Wait for exact SiteGround deployment
         run: |
           set -euo pipefail
+          mkdir -p "$EVIDENCE_DIR"
           WP_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
+          last_seen='absent'
           for attempt in $(seq 1 120); do
             deployed_sha="$(ssh nvx-staging2 "test -r '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true")"
+            last_seen="${deployed_sha:-absent}"
             if [[ "$deployed_sha" == "$EXPECTED_SHA" ]]; then
               printf 'SITEGROUND_SHA_READY %s\n' "$deployed_sha" | tee "$EVIDENCE_DIR/siteground-sha.log"
               exit 0
             fi
-            printf 'Waiting for SiteGround SHA %s; current=%s attempt=%s\n' "$EXPECTED_SHA" "${deployed_sha:-absent}" "$attempt"
+            printf 'Waiting for SiteGround SHA %s; current=%s attempt=%s\n' "$EXPECTED_SHA" "$last_seen" "$attempt"
             sleep 10
           done
-          echo 'Timed out waiting for the exact PR SHA on staging2.' >&2
+          {
+            echo "expected_sha=$EXPECTED_SHA"
+            echo "last_seen_sha=$last_seen"
+            echo "error=timeout_waiting_for_deploy"
+            echo "hint=Deploy to Staging2 must publish this PR HEAD. On labeled PRs the deploy job runs for labeled/synchronize/reopened while deploy-staging2 remains applied."
+          } | tee "$EVIDENCE_DIR/siteground-sha.log"
+          echo "Timed out waiting for PR SHA $EXPECTED_SHA on staging2 (still at $last_seen)." >&2
+          echo 'Ensure workflow Deploy to Staging2 ran DEPLOY_AND_MIGRATE for this HEAD with label deploy-staging2.' >&2
           exit 1
 
       - name: Audit every public WordPress route

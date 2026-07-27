@@ -16,6 +16,8 @@ on:
       - 'scripts/staging2/visual-qa-edge-preload.mjs'
       - 'scripts/staging2/test-deploy-workflow-contract.mjs'
       - 'scripts/staging2/test-github-managed-pages.mjs'
+      - '.github/workflows/full-site-ui-audit.yml'
+      - 'scripts/staging2/audit-full-site-ui.mjs'
       - 'scripts/wp/nvx-production-readiness-command.php'
       - 'wp-content/themes/nuvanx-medical/**'
       - 'docs/navigation/PRIMARY-MENU-ARCHITECTURE.md'
@@ -130,13 +132,15 @@ jobs:
   deploy:
     name: Diagnose or deploy immutable SHA to staging2
     needs: contract
+    # PR: deploy whenever deploy-staging2 is present (labeled, synchronize, reopened).
+    # Matches full-site-ui-audit so new commits re-deploy before the auditor waits.
     if: >-
       (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
       (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'DEPLOY_STAGING2') ||
       (github.event_name == 'pull_request' &&
-       github.event.action == 'labeled' &&
-       github.event.label.name == 'deploy-staging2' &&
-       github.event.pull_request.head.repo.full_name == github.repository)
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       contains(github.event.pull_request.labels.*.name, 'deploy-staging2') &&
+       (github.event.action != 'labeled' || github.event.label.name == 'deploy-staging2'))
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:

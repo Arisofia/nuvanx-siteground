@@ -224,7 +224,7 @@ async function inspectPage(session) {
       .filter((node) => visible(node) && !(node.textContent || '').trim() && !node.querySelector('img,svg,video,iframe,input,button,a')).length;
     const emptyAnchorParagraphs = Array.from(document.querySelectorAll('main a > p, .nvx-main a > p'))
       .filter((node) => !(node.textContent || '').trim()).length;
-    const unnamedControls = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], input[type="checkbox"], a.nvx-button, a.nvx-btn, a.nvx-brand-btn'))
+    const unnamedControls = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"], input[type="checkbox"], a.nvx-button, a.nvx-btn, a.nvx-brand-btn, a.wp-block-button__link'))
       .filter(visible)
       .filter((node) => !accessibleName(node))
       .map((node) => selectorName(node))

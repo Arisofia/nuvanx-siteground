@@ -14,6 +14,7 @@ on:
       - 'scripts/staging2/verify-rendered-acceptance-ssh.mjs'
       - 'scripts/staging2/capture-visual-qa.mjs'
       - 'scripts/staging2/visual-qa-edge-preload.mjs'
+      - 'scripts/staging2/visual-qa-common.mjs'
       - 'scripts/staging2/test-deploy-workflow-contract.mjs'
       - 'scripts/staging2/test-github-managed-pages.mjs'
       - '.github/workflows/full-site-ui-audit.yml'

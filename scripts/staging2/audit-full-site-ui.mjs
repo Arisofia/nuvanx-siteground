@@ -197,10 +197,8 @@ async function openPage(port, route, viewport) {
       throw new Error(issues.join(', '));
     }
 
-    const topRequests = documentRequests.filter(isTopLevelDocument);
-    const topResponses = documentResponses.filter(isTopLevelDocument);
-    const lastResponse = topResponses.at(-1) || null;
-    const lastRequest = topRequests.at(-1) || null;
+    const lastResponse = documentResponses.findLast(isTopLevelDocument) || null;
+    const lastRequest = documentRequests.findLast(isTopLevelDocument) || null;
     const navigationMeta = {
       httpStatus: lastResponse?.response?.status ?? null,
       finalUrl: lastResponse?.response?.url || lastRequest?.request?.url || null,

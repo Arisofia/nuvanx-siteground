@@ -19,20 +19,15 @@ function nvxFullSiteManagedContentUsesRawHtml(): bool {
     }
 
     $post = get_post();
-    if ( ! $post instanceof WP_Post ) {
-        return false;
-    }
+    $content = $post instanceof WP_Post ? ltrim( (string) $post->post_content ) : '';
 
-    $content = ltrim( (string) $post->post_content );
     if ( '' === $content ) {
         return false;
     }
 
-    if ( 1 === preg_match( '/^<!--\s*NUVANX_(?:GITHUB_MANAGED|SIGNATURE_PHASE|PROTOCOL_PAGE|STRATEGY_PAGE):/i', $content ) ) {
-        return true;
-    }
-
-    return 1 === preg_match(
+    $is_managed = 1 === preg_match( '/^<!--\s*NUVANX_(?:GITHUB_MANAGED|SIGNATURE_PHASE|PROTOCOL_PAGE|STRATEGY_PAGE):/i', $content );
+    
+    return $is_managed || 1 === preg_match(
         '/^<(?:div|main|article|section)\b[^>]*\bclass=(["\'])[^"\']*\bnvx-[^"\']*\1/i',
         $content
     );
@@ -63,14 +58,8 @@ function nvxFullSiteParagraphIsEmptyAutopArtefact( string $paragraphHtml ): bool
     $text = wp_strip_all_tags( $paragraphHtml, true );
     $text = html_entity_decode( $text, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
     $text = preg_replace( '/\s+/u', '', $text );
-    if ( ! is_string( $text ) ) {
-        return false;
-    }
 
-    // NBSP becomes a real character after entity decode; strip it explicitly.
-    $text = str_replace( "\u{00A0}", '', $text );
-
-    return '' === $text;
+    return is_string( $text ) && '' === str_replace( "\u{00A0}", '', $text );
 }
 
 /**

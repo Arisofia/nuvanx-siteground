@@ -69,7 +69,17 @@ export class CDPSession {
   on(method, handler) {
     if (!this.eventHandlers.has(method)) this.eventHandlers.set(method, new Set());
     this.eventHandlers.get(method).add(handler);
-    return () => this.eventHandlers.get(method)?.delete(handler);
+    return () => this.off(method, handler);
+  }
+
+  /** Remove a previously registered CDP event handler. */
+  off(method, handler) {
+    this.eventHandlers.get(method)?.delete(handler);
+  }
+
+  /** Drop every event handler (used when closing a page session). */
+  removeAllListeners() {
+    this.eventHandlers.clear();
   }
 
   handleMessage(event) {
@@ -78,8 +88,14 @@ export class CDPSession {
       const handlers = this.eventHandlers.get(message.method);
       if (handlers) {
         for (const handler of handlers) {
-          try { handler(message.params || {}); }
-          catch { /* Listener errors must not break the CDP session. */ }
+          try {
+            handler(message.params || {});
+          } catch (error) {
+            // Listener failures must not tear down the CDP session.
+            if (process.env.NVX_CDP_DEBUG) {
+              console.error(`CDP listener error for ${message.method}:`, error);
+            }
+          }
         }
       }
     }
@@ -114,6 +130,7 @@ export class CDPSession {
   }
 
   closeSocket() {
+    this.removeAllListeners();
     if (this.webSocket && this.webSocket.readyState <= 1) this.webSocket.close();
   }
 }

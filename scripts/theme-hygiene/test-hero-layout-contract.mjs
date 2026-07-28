@@ -46,10 +46,26 @@ for (const marker of [
 forbidText('hero layout CSS', layoutCss, '!important');
 forbidText('hero layout CSS', layoutCss, 'grid-template-columns: minmax(28rem');
 
+for (const marker of [
+  "content_url( '/uploads/2026/06/nvx-home-video-portada-hero-12s-720p.mp4' )",
+  'class="nvx-home-hero__video"',
+  'autoplay muted loop playsinline',
+  'preload="metadata"',
+  '<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">',
+  'poster="<?php echo esc_url( $hero_art_url ); ?>"',
+]) requireText('Home video markup', frontPage, marker);
+
 const mediaIndex = frontPage.indexOf('class="nvx-home-hero__media"');
+const videoIndex = frontPage.indexOf('class="nvx-home-hero__video"');
 const copyIndex = frontPage.indexOf('class="nvx-home-hero__copy"');
-if (mediaIndex < 0 || copyIndex < 0 || mediaIndex > copyIndex) {
-  failures.push('Home markup must render hero media before hero copy.');
+if (
+  mediaIndex < 0
+  || videoIndex < 0
+  || copyIndex < 0
+  || mediaIndex > videoIndex
+  || videoIndex > copyIndex
+) {
+  failures.push('Home markup must render verified hero video before hero copy.');
 }
 
 if (failures.length > 0) {

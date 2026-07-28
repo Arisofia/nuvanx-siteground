@@ -81,12 +81,23 @@ ob_start();
 ?>
 <div id="nvx-home-v3" class="nvx-home-v4 nvx-home-v5">
     <section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
-        <figure class="nvx-home-hero__media" aria-hidden="true">
-            <video class="nvx-home-hero__video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_art_url ); ?>">
-                <source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
-                <img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async">
-            </video>
-        </figure>
+        <div class="nvx-home-hero__media">
+            <figure class="nvx-home-hero__visual" aria-hidden="true">
+                <video id="nvx-home-hero-video" class="nvx-home-hero__video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_art_url ); ?>">
+                    <source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
+                    <img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async">
+                </video>
+            </figure>
+            <button
+                type="button"
+                class="nvx-home-hero__motion-toggle"
+                data-nvx-home-video-toggle
+                aria-controls="nvx-home-hero-video"
+                aria-pressed="true"
+                aria-label="Pausar vídeo de portada">
+                <span data-nvx-home-video-label>Pausar vídeo</span>
+            </button>
+        </div>
         <div class="nvx-home-hero__copy">
             <p class="nvx-home-eyebrow">NUVANX · MEDICINA ESTÉTICA LÁSER · MADRID</p>
             <h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con criterio médico y resultados naturales.</h1>

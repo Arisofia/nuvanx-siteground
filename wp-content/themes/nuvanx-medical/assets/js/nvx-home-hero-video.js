@@ -3,33 +3,21 @@
 
   const init = () => {
     const video = document.querySelector('.nvx-home-hero__video');
-    const media = video?.closest('.nvx-home-hero__media');
+    const toggle = document.querySelector('[data-nvx-home-video-toggle]');
+    const label = toggle?.querySelector('[data-nvx-home-video-label]');
 
-    if (!(video instanceof HTMLVideoElement) || !(media instanceof HTMLElement)) {
+    if (
+      !(video instanceof HTMLVideoElement)
+      || !(toggle instanceof HTMLButtonElement)
+      || !(label instanceof HTMLElement)
+    ) {
       return;
     }
 
-    media.removeAttribute('aria-hidden');
     if (!video.id) {
       video.id = 'nvx-home-hero-video';
     }
-    video.setAttribute('aria-label', 'Vídeo de portada NUVANX');
-
-    let toggle = media.querySelector('[data-nvx-home-video-toggle]');
-    if (!(toggle instanceof HTMLButtonElement)) {
-      toggle = document.createElement('button');
-      toggle.type = 'button';
-      toggle.className = 'nvx-home-hero__motion-toggle';
-      toggle.setAttribute('data-nvx-home-video-toggle', '');
-      toggle.setAttribute('aria-controls', video.id);
-      toggle.innerHTML = '<span data-nvx-home-video-label></span>';
-      media.append(toggle);
-    }
-
-    const label = toggle.querySelector('[data-nvx-home-video-label]');
-    if (!(label instanceof HTMLElement)) {
-      return;
-    }
+    toggle.setAttribute('aria-controls', video.id);
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 

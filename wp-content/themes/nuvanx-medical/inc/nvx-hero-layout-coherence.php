@@ -59,9 +59,3 @@ function nvxHeroLayoutCoherenceEnqueueAssets(): void {
     }
 }
 add_action( 'wp_head', 'nvxHeroLayoutCoherenceEnqueueAssets', 1 );
-
-if ( ! function_exists( 'nvx_hero_layout_coherence_enqueue_assets' ) ) {
-    function nvx_hero_layout_coherence_enqueue_assets(): void {
-        nvxHeroLayoutCoherenceEnqueueAssets();
-    }
-}

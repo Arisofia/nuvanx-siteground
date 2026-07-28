@@ -12,6 +12,19 @@ const requireText = (scope, source, marker) => {
 const forbidText = (scope, source, marker) => {
   if (source.includes(marker)) failures.push(`${scope}: forbidden ${marker}`);
 };
+const extractFunctionBody = (source, functionName) => {
+  const signatureIndex = source.indexOf(`function ${functionName}`);
+  const openingBrace = signatureIndex >= 0 ? source.indexOf('{', signatureIndex) : -1;
+  if (openingBrace < 0) return '';
+
+  let depth = 0;
+  for (let index = openingBrace; index < source.length; index += 1) {
+    if (source[index] === '{') depth += 1;
+    if (source[index] === '}') depth -= 1;
+    if (depth === 0) return source.slice(signatureIndex, index + 1);
+  }
+  return '';
+};
 
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 const moduleSource = read('wp-content/themes/nuvanx-medical/inc/nvx-hero-layout-coherence.php');
@@ -33,6 +46,7 @@ requireText('layout module', moduleSource, "add_action( 'wp_head', 'nvxHeroLayou
 requireText('layout module', moduleSource, "'nvx-site-coherence'");
 requireText('layout module', moduleSource, "wp_style_is( 'nvx-home-structure', 'enqueued' )");
 requireText('layout module', moduleSource, "'nvx-home-structure'");
+forbidText('layout module', moduleSource, 'nvx_hero_layout_coherence_enqueue_assets');
 requireText('Home video assets', moduleSource, "'assets/css/nvx-home-hero-video-control.css'");
 requireText('Home video assets', moduleSource, "'assets/js/nvx-home-hero-video.js'");
 requireText('Home video assets', moduleSource, "'nvx-home-hero-video-control'");
@@ -57,6 +71,7 @@ forbidText('hero layout CSS', layoutCss, '!important');
 forbidText('hero layout CSS', layoutCss, 'grid-template-columns: minmax(28rem');
 
 for (const marker of [
+  '.nvx-home-v5 .nvx-home-hero__visual',
   '.nvx-home-v5 .nvx-home-hero__motion-toggle',
   ':focus-visible',
   '@media (prefers-reduced-motion: reduce)',
@@ -69,14 +84,12 @@ for (const marker of [
   'video.pause()',
   "toggle.setAttribute('aria-label'",
   "toggle.setAttribute('aria-controls'",
-  "data-nvx-home-video-toggle",
+  'data-nvx-home-video-toggle',
 ]) requireText('Home video control JS', videoControlJs, marker);
+forbidText('Home video control JS', videoControlJs, "document.createElement('button')");
+forbidText('Home video control JS', videoControlJs, "media.removeAttribute('aria-hidden')");
 
-const equipoDetectorStart = equipoPage.indexOf('function nvx_content_is_equipo_page');
-const equipoDetectorEnd = equipoPage.indexOf('\n/**\n * Hero.', equipoDetectorStart);
-const equipoDetector = equipoDetectorStart >= 0 && equipoDetectorEnd > equipoDetectorStart
-  ? equipoPage.slice(equipoDetectorStart, equipoDetectorEnd)
-  : '';
+const equipoDetector = extractFunctionBody(equipoPage, 'nvx_content_is_equipo_page');
 requireText('Equipo route ownership', equipoDetector, "is_page( 'equipo-medico' )");
 requireText('Equipo route ownership', equipoDetector, "nvx_schema_path_matches( $path, '/equipo-medico/' )");
 forbidText('Equipo route ownership', equipoDetector, 'preg_match(');
@@ -98,24 +111,34 @@ for (const headingMarker of [
 
 for (const marker of [
   "content_url( '/uploads/2026/06/nvx-home-video-portada-hero-12s-720p.mp4' )",
-  'class="nvx-home-hero__video"',
+  'class="nvx-home-hero__visual" aria-hidden="true"',
+  'id="nvx-home-hero-video" class="nvx-home-hero__video"',
   'autoplay muted loop playsinline',
   'preload="metadata"',
   '<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">',
   'poster="<?php echo esc_url( $hero_art_url ); ?>"',
+  'data-nvx-home-video-toggle',
+  'data-nvx-home-video-label',
+  'aria-controls="nvx-home-hero-video"',
 ]) requireText('Home video markup', frontPage, marker);
 
 const mediaIndex = frontPage.indexOf('class="nvx-home-hero__media"');
+const visualIndex = frontPage.indexOf('class="nvx-home-hero__visual"');
 const videoIndex = frontPage.indexOf('class="nvx-home-hero__video"');
+const toggleIndex = frontPage.indexOf('data-nvx-home-video-toggle');
 const copyIndex = frontPage.indexOf('class="nvx-home-hero__copy"');
 if (
   mediaIndex < 0
+  || visualIndex < 0
   || videoIndex < 0
+  || toggleIndex < 0
   || copyIndex < 0
-  || mediaIndex > videoIndex
-  || videoIndex > copyIndex
+  || mediaIndex > visualIndex
+  || visualIndex > videoIndex
+  || videoIndex > toggleIndex
+  || toggleIndex > copyIndex
 ) {
-  failures.push('Home markup must render verified hero video before hero copy.');
+  failures.push('Home markup must render decorative video, accessible control, then hero copy.');
 }
 
 if (failures.length > 0) {

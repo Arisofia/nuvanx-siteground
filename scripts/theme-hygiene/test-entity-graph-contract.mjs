@@ -7,6 +7,7 @@
  * - Logo ImageObject materialization (no dangling #/schema/logo/image/)
  * - WebPage.mainEntity linkage for treatments
  * - Single Schema.org surface (Yoast graph only)
+ * - Live audit covers both clinics and rejects route-changing redirects
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -25,11 +26,21 @@ function read(rel) {
   return fs.readFileSync(target, 'utf8');
 }
 
+function readRoot(rel) {
+  const target = path.join(root, rel);
+  if (!fs.existsSync(target)) {
+    failures.push(`missing ${rel}`);
+    return '';
+  }
+  return fs.readFileSync(target, 'utf8');
+}
+
 const structured = read('inc/nvx-structured-data.php');
 const seo = read('inc/nvx-seo-production-readiness.php');
 const btl = read('inc/nvx-btl-detail-pages.php');
 const jsonld = read('inc/nvx-jsonld-content.php');
 const integrations = read('inc/nvx-integrations.php');
+const liveAudit = readRoot('scripts/staging2/audit-entity-graph.mjs');
 
 const required = [
   [btl, 'function nvx_btl_detail_registry(): array', 'BTL snake_case registry alias'],
@@ -42,6 +53,11 @@ const required = [
   [jsonld, 'return is_front_page() || is_singular();', 'JSON-LD strip covers posts+pages'],
   [integrations, 'yoast-schema-graph', 'document normalizer preserves Yoast graph'],
   [integrations, 'nvx_theme_normalize_public_document', 'document normalizer registered'],
+  [liveAudit, '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/', 'live audit covers Goya'],
+  [liveAudit, 'unexpected redirect:', 'live audit rejects route-changing redirects'],
+  [liveAudit, 'AbortSignal.timeout(30000)', 'live audit bounds request time'],
+  [liveAudit, 'minClinics', 'clinic expectations are minimum thresholds'],
+  [liveAudit, 'minPhysicians', 'physician expectations are minimum thresholds'],
 ];
 
 for (const [source, marker, label] of required) {
@@ -49,7 +65,14 @@ for (const [source, marker, label] of required) {
 }
 
 // Must not reintroduce a second top-level schema.org script printer in structured-data.
-if (/echo\s+.*application\/ld\+json/i.test(structured) || /<script[^>]+ld\+json/i.test(structured)) {
+const structuredLines = structured.split(/\r?\n/);
+const printsJsonLd = structuredLines.some(
+  (line) => line.includes('echo') && line.toLowerCase().includes('application/ld+json'),
+);
+const embedsJsonLdScript = structuredLines.some(
+  (line) => line.toLowerCase().includes('<script') && line.toLowerCase().includes('ld+json'),
+);
+if (printsJsonLd || embedsJsonLdScript) {
   failures.push('structured-data must not print application/ld+json directly');
 }
 
@@ -63,7 +86,7 @@ if (!structured.includes("nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MED
 
 if (failures.length) {
   console.error('Entity graph contract FAILED:');
-  for (const f of failures) console.error(` - ${f}`);
+  for (const failure of failures) console.error(` - ${failure}`);
   process.exit(1);
 }
 

@@ -97,7 +97,8 @@ if ((integrations.match(/'v-lift-awake'\s*=>/g) || []).length !== 1) fail('integ
 
 const strategy = read('inc/nvx-strategy-pages.php');
 const solutionsTemplate = read('page-soluciones-medicas.php');
-const solutionsContent = read('template-parts/content/nvx-soluciones-medicas-github.php');
+const solutionsContent = read('template-parts/content/nvx-soluciones-medicas-github.php')
+  + read('inc/data/nvx-soluciones-medicas-groups.json');
 const solutionsCss = read('assets/css/nvx-soluciones-medicas.css');
 const solutionsArt = read('assets/images/nvx-solutions-hero-architecture.svg');
 for (const marker of [

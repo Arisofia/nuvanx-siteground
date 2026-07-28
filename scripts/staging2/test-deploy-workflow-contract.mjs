@@ -32,7 +32,8 @@ const visualQa = read('scripts/staging2/capture-visual-qa.mjs') + common;
 const visualPreload = read('scripts/staging2/visual-qa-edge-preload.mjs');
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 const functions = read('wp-content/themes/nuvanx-medical/functions.php');
-const phasePages = read('wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php');
+const phasePages = read('wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php')
+  + read('wp-content/themes/nuvanx-medical/inc/data/nvx-signature-phase-catalog.json');
 const clinicalLanguage = read('wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php');
 const editorialSeo = read('wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php');
 const protocolHub = read('wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php');

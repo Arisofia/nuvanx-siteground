@@ -40,12 +40,23 @@ fail() {
 purge_staging2_caches() {
   (
     cd "$WP_ROOT"
+    # WordPress object cache + SiteGround Optimizer (dynamic + memcached variants).
     wp cache flush || true
     wp sg purge || true
+    wp sg purge dynamic || true
+    wp sg purge memcached || true
+    # Physical HTML / asset caches left behind when SG Dynamic Cache orphans files.
     rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
-    rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
+    rm -rf wp-content/cache/sgo-cache 2>/dev/null || true
+    rm -rf wp-content/cache/supercache 2>/dev/null || true
+    rm -rf wp-content/cache/sg-cachepress 2>/dev/null || true
     rm -rf wp-content/cache/* 2>/dev/null || true
+    # Combined/minified asset leftovers that can keep pre-deploy CSS/JS alive.
+    find wp-content/uploads/siteground-optimizer-assets -mindepth 1 -maxdepth 1 \
+      \( -name 'siteground-optimizer-combined-*' -o -name '*.css' -o -name '*.js' \) \
+      -delete 2>/dev/null || true
     wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+    echo 'staging2_cache_purge=ok'
   )
 }
 
@@ -312,9 +323,12 @@ echo '== Purge staging2 caches after canonical route migration =='
 purge_staging2_caches
 
 echo '== Run staging2 rendered smoke verification =='
-SMOKE_OUTPUT="$(BASE_URL="$EXPECTED_URL" bash "$SMOKE_SCRIPT")"
+# Pass the exact deploy SHA so smoke fails if any URL still serves pre-deploy HTML
+# (missing or mismatched meta nvx-deploy-sha under SiteGround Dynamic Cache).
+SMOKE_OUTPUT="$(BASE_URL="$EXPECTED_URL" EXPECTED_SHA="$DEPLOY_SHA" bash "$SMOKE_SCRIPT")"
 printf '%s\n' "$SMOKE_OUTPUT"
 grep -Fq 'SMOKE_VERIFY_OK' <<<"$SMOKE_OUTPUT" || fail 'staging2 smoke verification did not emit SMOKE_VERIFY_OK'
+grep -Fq "expected_sha=$DEPLOY_SHA" <<<"$SMOKE_OUTPUT" || fail 'staging2 smoke did not verify the deployed SHA'
 
 trap - ERR
 MUTATION_STARTED=0

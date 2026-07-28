@@ -300,10 +300,13 @@ jobs:
         id: independent_smoke
         run: |
           set -euo pipefail
-          ssh nvx-staging2 'BASE_URL=https://staging2.nuvanx.com bash -s' \
+          # EXPECTED_SHA is required so a SiteGround Dynamic Cache hit of pre-deploy
+          # HTML cannot pass content markers that existed before the deploy.
+          ssh nvx-staging2 "BASE_URL=https://staging2.nuvanx.com EXPECTED_SHA='$DEPLOY_SHA' bash -s" \
             < scripts/staging2/smoke-verify-staging2.sh \
             2>&1 | tee "$ARTIFACT_DIR/independent-smoke.log"
           grep -Fq 'SMOKE_VERIFY_OK' "$ARTIFACT_DIR/independent-smoke.log"
+          grep -Fq "expected_sha=$DEPLOY_SHA" "$ARTIFACT_DIR/independent-smoke.log"
 
       - name: Run rendered acceptance verification
         if: env.RUN_MODE == 'DEPLOY_AND_MIGRATE' || env.RUN_MODE == 'SMOKE_ONLY'

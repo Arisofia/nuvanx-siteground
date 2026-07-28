@@ -94,17 +94,55 @@ It then runs `tools/deploy/deploy-to-staging2.sh`, which:
 5. Disables SiteGround asset transformations that could hide the deployed state.
 6. Synchronizes the theme using `rsync --delete`.
 7. Writes the selected SHA to `.nvx-deploy-sha` and verifies required modules.
-8. Purges WordPress, SiteGround and opcode caches.
+8. Purges WordPress, SiteGround Dynamic/memcached caches, physical `wp-content/cache/*`
+   trees (including `sgo-cache` / `supercache` orphans) and opcode caches — twice
+   (before and after migrations).
 9. Runs the production-readiness pre-audit with `--allow-pending`.
 10. Applies the migration with the explicit `retire-prototypes` token.
 11. Runs the blocking post-migration audit.
-12. Executes rendered page and redirect smoke tests.
+12. Executes rendered page and redirect smoke tests **with `EXPECTED_SHA=<deployed SHA>`**.
 13. Automatically restores both the theme archive and database export if any
     post-mutation command fails.
 
 A successful run emits `DEPLOY_STAGING2_OK` and `SMOKE_VERIFY_OK`, verifies the
 deployed SHA marker and records the result in the Actions summary. The temporary
 payload is always removed.
+
+### Deploy SHA acceptance (cache fragmentation detector)
+
+Every public HTML response must include:
+
+```html
+<meta name="nvx-deploy-sha" content="<40-char-sha>" />
+```
+
+emitted from `nvxEnvironmentRenderDeploySha()` when `.nvx-deploy-sha` is present
+in the live theme.
+
+Smoke and acceptance layers treat this as a hard gate:
+
+| Layer | Behaviour |
+|-------|-----------|
+| `smoke-verify-staging2.sh` | Always requires the meta tag; when `EXPECTED_SHA`/`DEPLOY_SHA` is set, requires an exact match on every `fetch_page` |
+| Independent post-deploy smoke (Actions) | Exports `EXPECTED_SHA=$DEPLOY_SHA` over SSH |
+| `verify-rendered-acceptance-ssh.mjs` / visual QA | Require `EXPECTED_SHA` and fail on mismatch |
+
+If a treatment URL returns 200 with content markers but **without** the deploy
+meta (or with an older SHA), SiteGround Dynamic Cache is still serving a
+pre-deploy HTML snapshot. Content-only smoke checks would otherwise false-pass.
+
+There is **no Cloudflare** edge in front of `staging2.nuvanx.com` today
+(`Server: nginx`, `X-Proxy-Cache` / `SG-F-Cache` headers). Purge tooling targets
+SiteGround Optimizer + disk cache directories on origin.
+
+If a URL remains stale after deploy smoke fails the SHA gate:
+
+1. Re-run **Deploy Staging2 (manual)** for the intended SHA (purge runs twice).
+2. From SiteGround → Speed → Caching, force a full Dynamic Cache purge (panel +
+   physical cache dirs if the panel only clears the index).
+3. Re-fetch the URL in a private window with `?nvx_cb=1` and confirm
+   `meta[name=nvx-deploy-sha]` equals the deploy SHA before trusting any other
+   visual/content audit on that path.
 
 ### Production-readiness migration contract
 

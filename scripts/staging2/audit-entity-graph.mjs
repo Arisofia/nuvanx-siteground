@@ -106,6 +106,7 @@ function normalizePath(value) {
 function buildTypeAndIdIndex(nodes) {
   const idSet = new Set();
   const idCounts = new Map();
+  const idIndex = new Map();
   const typeCounts = {};
 
   for (const node of nodes) {
@@ -115,10 +116,14 @@ function buildTypeAndIdIndex(nodes) {
     if (node['@id']) {
       idSet.add(node['@id']);
       idCounts.set(node['@id'], (idCounts.get(node['@id']) || 0) + 1);
+      // Store the first occurrence; duplicates are caught separately
+      if (!idIndex.has(node['@id'])) {
+        idIndex.set(node['@id'], node);
+      }
     }
   }
 
-  return { idSet, idCounts, typeCounts };
+  return { idSet, idCounts, idIndex, typeCounts };
 }
 
 function findDuplicateIds(idCounts) {
@@ -140,12 +145,20 @@ function checkResponse(route, response, issues) {
 
   const expectedPath = normalizePath(route.path);
   const finalPath = normalizePath(response.url);
+
+  // Check origin mismatch even if paths normalize to the same value
+  const expectedOrigin = new URL(baseUrl).origin;
+  const finalOrigin = new URL(response.url).origin;
+  if (finalOrigin !== expectedOrigin) {
+    issues.push(`unexpected origin change: ${expectedOrigin} -> ${finalOrigin}`);
+  }
+
   if (finalPath !== expectedPath) {
     issues.push(`unexpected redirect: ${expectedPath} -> ${finalPath}`);
   }
 }
 
-function checkExpectations(route, typeCounts, issues) {
+function checkExpectations(route, typeCounts, nodes, idIndex, issues) {
   const hasOrg = (typeCounts.Organization || 0) > 0 || (typeCounts.MedicalOrganization || 0) > 0;
   if (!hasOrg) issues.push('missing Organization/MedicalOrganization');
 
@@ -162,7 +175,50 @@ function checkExpectations(route, typeCounts, issues) {
   if (expect.procedure) {
     const procedures = (typeCounts.MedicalProcedure || 0) + (typeCounts.Service || 0);
     if (procedures < 1) issues.push('expected MedicalProcedure or Service');
+
+    // Validate WebPage.mainEntity.@id resolves to MedicalProcedure or Service
+    for (const node of nodes) {
+      const types = typesOf(node);
+      if (types.includes('WebPage') && node.mainEntity) {
+        const mainEntityId = typeof node.mainEntity === 'object' && node.mainEntity['@id']
+          ? node.mainEntity['@id']
+          : null;
+        if (mainEntityId) {
+          const resolved = idIndex.get(mainEntityId);
+          if (!resolved) {
+            issues.push(`WebPage.mainEntity.@id ${mainEntityId} does not resolve`);
+          } else {
+            const resolvedTypes = typesOf(resolved);
+            if (!resolvedTypes.includes('MedicalProcedure') && !resolvedTypes.includes('Service')) {
+              issues.push(`WebPage.mainEntity.@id resolves to ${resolvedTypes.join(',')} not MedicalProcedure/Service`);
+            }
+          }
+        }
+      }
+    }
   }
+
+  // Validate Organization.logo.@id resolves to ImageObject
+  for (const node of nodes) {
+    const types = typesOf(node);
+    if ((types.includes('Organization') || types.includes('MedicalOrganization')) && node.logo) {
+      const logoId = typeof node.logo === 'object' && node.logo['@id']
+        ? node.logo['@id']
+        : null;
+      if (logoId) {
+        const resolved = idIndex.get(logoId);
+        if (!resolved) {
+          issues.push(`Organization.logo.@id ${logoId} does not resolve`);
+        } else {
+          const resolvedTypes = typesOf(resolved);
+          if (!resolvedTypes.includes('ImageObject')) {
+            issues.push(`Organization.logo.@id resolves to ${resolvedTypes.join(',')} not ImageObject`);
+          }
+        }
+      }
+    }
+  }
+
   if (expect.catalog && (typeCounts.OfferCatalog || 0) < 1) {
     issues.push('expected OfferCatalog on home');
   }
@@ -186,7 +242,7 @@ function analyze(route, response) {
   }
 
   const nodes = schemaGraphs.flatMap((graph) => graph.nodes || []);
-  const { idSet, idCounts, typeCounts } = buildTypeAndIdIndex(nodes);
+  const { idSet, idCounts, idIndex, typeCounts } = buildTypeAndIdIndex(nodes);
 
   const duplicateIds = findDuplicateIds(idCounts);
   if (duplicateIds.length) issues.push(`duplicate @id: ${duplicateIds.slice(0, 5).join(', ')}`);
@@ -194,7 +250,7 @@ function analyze(route, response) {
   const danglingRefs = findDanglingRefs(nodes, idSet);
   if (danglingRefs.length) issues.push(`dangling refs: ${danglingRefs.slice(0, 8).join(', ')}`);
 
-  checkExpectations(route, typeCounts, issues);
+  checkExpectations(route, typeCounts, nodes, idIndex, issues);
 
   return {
     path: route.path,

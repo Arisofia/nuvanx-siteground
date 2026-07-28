@@ -65,13 +65,15 @@ for (const [source, marker, label] of required) {
 }
 
 // Must not reintroduce a second top-level schema.org script printer in structured-data.
-const structuredLines = structured.split(/\r?\n/);
-const printsJsonLd = structuredLines.some(
-  (line) => line.includes('echo') && line.toLowerCase().includes('application/ld+json'),
-);
-const embedsJsonLdScript = structuredLines.some(
-  (line) => line.toLowerCase().includes('<script') && line.toLowerCase().includes('ld+json'),
-);
+// Detect single-line and multi-line constructs including concatenation, variables, ECHO/print variants.
+const structuredNormalized = structured.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+
+// Check for echo/print statements with ld+json (case-insensitive, multi-line aware)
+const printsJsonLd = /(?:echo|print)\b[^;{]*application\/ld\+json/i.test(structuredNormalized);
+
+// Check for <script constructs with ld+json (multi-line aware)
+const embedsJsonLdScript = /<script\b[^>]*ld\+json/i.test(structuredNormalized);
+
 if (printsJsonLd || embedsJsonLdScript) {
   failures.push('structured-data must not print application/ld+json directly');
 }

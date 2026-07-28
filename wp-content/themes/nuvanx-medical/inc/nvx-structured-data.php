@@ -1420,25 +1420,31 @@ function nvx_schema_attach_publications( array &$graph, int $page_id, array $phy
 }
 
 /**
- * Link WebPage.mainEntity to a treatment @id when the page URL matches.
+ * Link WebPage.mainEntity to an entity @id when the page URL matches.
  *
- * @param array  $graph        Schema graph (by ref).
- * @param string $permalink    Treatment page permalink.
- * @param string $treatment_id Treatment node @id.
+ * This is the single graph-linking implementation shared by both schema passes.
+ *
+ * @param array  $graph     Schema graph.
+ * @param string $pageUrl   Canonical page URL.
+ * @param string $entityId  Entity node @id.
+ * @return array Updated schema graph.
  */
-function nvx_schema_link_webpage_main_entity( array &$graph, string $permalink, string $treatment_id ): void {
-    if ( '' === $permalink || '' === $treatment_id ) {
-        return;
+function nvxSchemaLinkWebpageMainEntity( array $graph, string $pageUrl, string $entityId ): array {
+    if ( '' === $pageUrl || '' === $entityId ) {
+        return $graph;
     }
-    $target = trailingslashit( $permalink );
+
+    $target = trailingslashit( $pageUrl );
     foreach ( $graph as $index => $piece ) {
         $types = isset( $piece['@type'] ) ? (array) $piece['@type'] : array();
         $url   = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
         if ( in_array( 'WebPage', $types, true ) && $url === $target ) {
-            $graph[ $index ]['mainEntity'] = array( '@id' => $treatment_id );
-            return;
+            $graph[ $index ]['mainEntity'] = array( '@id' => $entityId );
+            break;
         }
     }
+
+    return $graph;
 }
 
 /**
@@ -1453,7 +1459,7 @@ function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, strin
         }
         $graph[] = $treatment;
         if ( ! empty( $treatment['@id'] ) && ! empty( $treatment['url'] ) ) {
-            nvx_schema_link_webpage_main_entity( $graph, (string) $treatment['url'], (string) $treatment['@id'] );
+            $graph = nvxSchemaLinkWebpageMainEntity( $graph, (string) $treatment['url'], (string) $treatment['@id'] );
         }
     }
 

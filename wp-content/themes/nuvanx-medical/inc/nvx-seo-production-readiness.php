@@ -289,64 +289,52 @@ function _nvx_seo_schema_promote_services( $graph, $current_url, $page_id ) {
 }
 
 /**
- * Links the matching WebPage node to the promoted main entity.
+ * Return a materializable Organization logo node, when present.
  *
- * @param array  $graph          The Schema.org graph.
- * @param string $current_url    The canonical URL of the current page.
- * @param string $main_entity_id The identifier of the main entity.
- * @return array The updated Schema.org graph.
+ * @param array $piece Schema graph node.
+ * @return array|null
  */
-function _nvx_seo_schema_link_main_entity( $graph, $current_url, $main_entity_id ) {
-    if ( '' === $main_entity_id ) {
-        return $graph;
+function nvxSeoSchemaLogoNodeFromOrganization( array $piece ): ?array {
+    $types = $piece['@type'] ?? array();
+    if ( ! nvx_seo_schema_has_type( $types, 'Organization' ) || nvx_seo_schema_has_type( $types, 'WebSite' ) ) {
+        return null;
     }
-    foreach ( $graph as $index => $piece ) {
-        $types = $piece['@type'] ?? array();
-        $url   = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
-        if ( nvx_seo_schema_has_type( $types, 'WebPage' ) && $url === trailingslashit( $current_url ) ) {
-            $graph[ $index ]['mainEntity'] = array( '@id' => $main_entity_id );
-            break;
-        }
+
+    $logo = $piece['logo'] ?? null;
+    if ( ! is_array( $logo ) ) {
+        return null;
     }
-    return $graph;
+
+    $logoId  = isset( $logo['@id'] ) ? (string) $logo['@id'] : '';
+    $hasBody = isset( $logo['url'] ) || isset( $logo['contentUrl'] ) || isset( $logo['width'] ) || isset( $logo['height'] );
+    if ( '' === $logoId || ! $hasBody ) {
+        return null;
+    }
+
+    if ( empty( $logo['@type'] ) ) {
+        $logo['@type'] = 'ImageObject';
+    }
+
+    return $logo;
 }
 
 /**
  * Promote Organization.logo ImageObject to a top-level graph node.
  *
- * Yoast often nests the logo object under Organization.logo with an @id while
- * Organization.image is a bare {@id} ref to the same identifier. Without a
- * top-level ImageObject node, validators report a dangling logo/image id.
- *
  * @param array $graph Schema graph.
  * @return array
  */
-function nvx_seo_schema_materialize_logo_node( array $graph ): array {
+function nvxSeoSchemaMaterializeLogoNode( array $graph ): array {
     foreach ( $graph as $index => $piece ) {
-        $types = $piece['@type'] ?? array();
-        if ( ! nvx_seo_schema_has_type( $types, 'Organization' ) || nvx_seo_schema_has_type( $types, 'WebSite' ) ) {
+        $logoNode = nvxSeoSchemaLogoNodeFromOrganization( $piece );
+        if ( null === $logoNode ) {
             continue;
         }
 
-        $logo = $piece['logo'] ?? null;
-        if ( ! is_array( $logo ) ) {
-            continue;
-        }
-
-        $logo_id = isset( $logo['@id'] ) ? (string) $logo['@id'] : '';
-        $has_body = isset( $logo['url'] ) || isset( $logo['contentUrl'] ) || isset( $logo['width'] ) || isset( $logo['height'] );
-        if ( '' === $logo_id || ! $has_body ) {
-            continue;
-        }
-
-        $logo_node = $logo;
-        if ( empty( $logo_node['@type'] ) ) {
-            $logo_node['@type'] = 'ImageObject';
-        }
-
-        $graph = nvx_seo_schema_upsert_node( $graph, $logo_node );
-        $graph[ $index ]['logo']  = array( '@id' => $logo_id );
-        $graph[ $index ]['image'] = array( '@id' => $logo_id );
+        $logoId = (string) $logoNode['@id'];
+        $graph = nvx_seo_schema_upsert_node( $graph, $logoNode );
+        $graph[ $index ]['logo']  = array( '@id' => $logoId );
+        $graph[ $index ]['image'] = array( '@id' => $logoId );
     }
 
     return $graph;
@@ -355,30 +343,24 @@ function nvx_seo_schema_materialize_logo_node( array $graph ): array {
 /**
  * Link WebPage.mainEntity to the first MedicalProcedure/Service for this URL.
  *
- * Complements the Service→MedicalProcedure promotion so laser and BTL pages
- * expose a coherent main entity even when main_entity_id was not set earlier.
- *
- * @param array  $graph       Schema graph.
- * @param string $current_url Canonical page URL.
+ * @param array  $graph      Schema graph.
+ * @param string $currentUrl Canonical page URL.
  * @return array
  */
-function nvx_seo_schema_ensure_webpage_main_entity( array $graph, string $current_url ): array {
-    $entity_id = '';
+function nvxSeoSchemaEnsureWebpageMainEntity( array $graph, string $currentUrl ): array {
     foreach ( $graph as $piece ) {
-        $types     = $piece['@type'] ?? array();
-        $piece_url = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
-        $is_entity = nvx_seo_schema_has_type( $types, 'MedicalProcedure' ) || nvx_seo_schema_has_type( $types, 'Service' );
-        if ( $is_entity && '' !== $piece_url && $piece_url === trailingslashit( $current_url ) && ! empty( $piece['@id'] ) ) {
-            $entity_id = (string) $piece['@id'];
-            break;
+        $types      = $piece['@type'] ?? array();
+        $pieceUrl   = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
+        $isEntity   = nvx_seo_schema_has_type( $types, 'MedicalProcedure' ) || nvx_seo_schema_has_type( $types, 'Service' );
+        $matchesUrl = '' !== $pieceUrl && $pieceUrl === trailingslashit( $currentUrl );
+        if ( $isEntity && $matchesUrl && ! empty( $piece['@id'] ) ) {
+            return function_exists( 'nvxSchemaLinkWebpageMainEntity' )
+                ? nvxSchemaLinkWebpageMainEntity( $graph, $currentUrl, (string) $piece['@id'] )
+                : $graph;
         }
     }
 
-    if ( '' === $entity_id ) {
-        return $graph;
-    }
-
-    return _nvx_seo_schema_link_main_entity( $graph, $current_url, $entity_id );
+    return $graph;
 }
 
 /**
@@ -401,7 +383,7 @@ function nvx_seo_production_readiness_schema_graph( $graph, $context = null ) {
 
     $graph = _nvx_seo_schema_enrich_organization( $graph, $organization_id );
     $graph = _nvx_seo_schema_enrich_clinics( $graph, $organization_id );
-    $graph = nvx_seo_schema_materialize_logo_node( $graph );
+    $graph = nvxSeoSchemaMaterializeLogoNode( $graph );
 
     $current_url = nvx_seo_schema_current_page_url();
     $page_id     = (int) get_queried_object_id();
@@ -413,8 +395,10 @@ function nvx_seo_production_readiness_schema_graph( $graph, $context = null ) {
         $graph = nvx_seo_schema_upsert_node( $graph, $faq );
     }
 
-    $graph = _nvx_seo_schema_link_main_entity( $graph, $current_url, $main_entity_id );
-    $graph = nvx_seo_schema_ensure_webpage_main_entity( $graph, $current_url );
+    if ( '' !== $main_entity_id && function_exists( 'nvxSchemaLinkWebpageMainEntity' ) ) {
+        $graph = nvxSchemaLinkWebpageMainEntity( $graph, $current_url, $main_entity_id );
+    }
+    $graph = nvxSeoSchemaEnsureWebpageMainEntity( $graph, $current_url );
 
     return array_values( $graph );
 }

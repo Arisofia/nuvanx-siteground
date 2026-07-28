@@ -812,16 +812,7 @@
 .nvx-medical-byline__text { line-height: 1.4; }
 .nvx-medical-byline__title { font-size: 0.85em; opacity: 0.85; }
 
-/* Dr. Rivera Page */
-.nvx-dr-rivera-editorial { max-width: calc(var(--nvx-space-12) * 8.333); margin: 0 auto; padding: var(--nvx-space-8) var(--nvx-space-2); }
-.nvx-dr-rivera-header { text-align: center; margin-bottom: var(--nvx-space-4); }
-.nvx-dr-rivera-h1 { font-size: clamp(var(--nvx-space-4), 5vw, var(--nvx-space-6)); line-height: 1.1; margin-bottom: var(--nvx-space-2); }
-.nvx-dr-rivera-lead { font-size: var(--nvx-type-lead-lg); color: var(--nvx-text-muted); }
 .nvx-blockquote { font-size: var(--nvx-type-body); line-height: 1.4; border-left: calc(var(--nvx-space-1) / 2) solid var(--nvx-ink); padding-left: var(--nvx-space-3); margin: var(--nvx-space-6) 0; font-style: italic; }
-.nvx-dr-rivera-body { font-size: var(--nvx-type-lead-lg); line-height: 1.6; color: var(--nvx-ink); margin-bottom: var(--nvx-space-6); }
-.nvx-dr-rivera-list-title { font-size: calc(var(--nvx-space-1) * 3.5); margin-bottom: var(--nvx-space-3); }
-.nvx-dr-rivera-list { margin-bottom: var(--nvx-space-6); font-size: var(--nvx-type-lead-lg); line-height: 1.6; padding-left: var(--nvx-space-3); }
-.nvx-dr-rivera-cta { text-align: center; margin-top: var(--nvx-space-8); }
 
 /* Que Exigir Page */
 .nvx-que-exigir-editorial { max-width: calc(var(--nvx-space-12) * 8.333); margin: 0 auto; padding: var(--nvx-space-8) var(--nvx-space-2); }

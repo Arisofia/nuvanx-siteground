@@ -47,32 +47,48 @@ for (const marker of [
 
 // Fail-closed: every catalogue entry must declare an explicit trailing review_status.
 // Do not rely on nvx_match_catalog_page's omit→approved default.
-const reviewStatusField = String.raw`'review_status'\s*=>\s*\$review_status`;
-if (!new RegExp(reviewStatusField).test(aestheticPages)) {
+// Linear string scans only (avoid super-linear regex backtracking on large PHP sources).
+if (!aestheticPages.includes("'review_status'") || !aestheticPages.includes('$review_status')) {
   failures.push("nvx_aesthetic_treatment_entry must store 'review_status' => $review_status");
 }
-const entryStartPattern = String.raw`'([a-z0-9_]+)'\s*=>\s*nvx_aesthetic_treatment_entry\s*\(`;
-const catalogEntryStarts = [...aestheticPages.matchAll(new RegExp(entryStartPattern, 'g'))];
-if (catalogEntryStarts.length === 0) {
+
+const entryNeedle = '=> nvx_aesthetic_treatment_entry(';
+const catalogEntries = [];
+let searchFrom = 0;
+while (searchFrom < aestheticPages.length) {
+  const callAt = aestheticPages.indexOf(entryNeedle, searchFrom);
+  if (callAt < 0) {
+    break;
+  }
+  const before = aestheticPages.slice(Math.max(0, callAt - 64), callAt);
+  const keyStart = before.lastIndexOf("'");
+  const keyEnd = keyStart > 0 ? before.lastIndexOf("'", keyStart - 1) : -1;
+  const key = keyEnd >= 0 ? before.slice(keyEnd + 1, keyStart) : '';
+  if (key && /^[a-z0-9_]+$/.test(key)) {
+    catalogEntries.push({ key, index: callAt });
+  }
+  searchFrom = callAt + entryNeedle.length;
+}
+if (catalogEntries.length === 0) {
   failures.push('no nvx_aesthetic_treatment_entry catalogue items found');
 }
-const trailingStatus = String.raw`'(?:pending_medical_review|approved_for_publication)'\s*\n\s*\)\s*,`;
-const trailingStatusRe = new RegExp(trailingStatus);
-for (let i = 0; i < catalogEntryStarts.length; i += 1) {
-  const key = catalogEntryStarts[i][1];
-  const start = catalogEntryStarts[i].index;
-  const end = i + 1 < catalogEntryStarts.length
-    ? catalogEntryStarts[i + 1].index
-    : aestheticPages.indexOf('function nvxAestheticTreatmentIsRenderable');
-  const slice = aestheticPages.slice(start, end > start ? end : aestheticPages.length);
-  if (!trailingStatusRe.test(slice)) {
+const gateEnd = aestheticPages.indexOf('function nvxAestheticTreatmentIsRenderable');
+for (let i = 0; i < catalogEntries.length; i += 1) {
+  const { key, index: start } = catalogEntries[i];
+  const end = i + 1 < catalogEntries.length
+    ? catalogEntries[i + 1].index
+    : (gateEnd > start ? gateEnd : aestheticPages.length);
+  // Status is always the last argument of the entry call — check a fixed tail window.
+  const tail = aestheticPages.slice(Math.max(start, end - 240), end);
+  const hasStatus = tail.includes("'pending_medical_review'") || tail.includes("'approved_for_publication'");
+  if (!hasStatus) {
     failures.push(`catalogue entry '${key}' missing explicit trailing review_status (pending_medical_review|approved_for_publication)`);
   }
 }
 
 // Dead staging page IDs must not reappear.
 for (const deadId of ['3318', '3319', '3320', '3321']) {
-  if (new RegExp(String.raw`\b${deadId}\b`).test(aestheticPages)) {
+  if (aestheticPages.includes(deadId)) {
     failures.push(`aesthetic catalogue still hardcodes dead page_id ${deadId}`);
   }
 }
@@ -123,4 +139,4 @@ if (failures.length) {
 }
 
 console.log('Aesthetic treatment contract OK');
-console.log(`  slugs=${EXPECTED_SLUGS.length} keys=${EXPECTED_KEYS.length} catalog_entries=${catalogEntryStarts.length}`);
+console.log(`  slugs=${EXPECTED_SLUGS.length} keys=${EXPECTED_KEYS.length} catalog_entries=${catalogEntries.length}`);

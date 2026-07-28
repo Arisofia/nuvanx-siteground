@@ -192,8 +192,8 @@ function nvxContactoAuditVisibleCopy( string $content ): string {
     // Short stable phrase anchors (not full-sentence, dash-sensitive blobs).
     $literal = array(
         'Contacto privado'                           => 'Clínicas NUVANX',
-        'Contacto, sedes y consulta médica'          => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',
-        'Agenda tu valoración médica'                => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',
+        'Contacto, sedes y consulta médica'          => 'Contacto NUVANX en Madrid',
+        'Agenda tu valoración médica'                => 'Contacto NUVANX en Madrid',
         'Contacto directo y ubicaciones autorizadas por Sanidad' => 'Datos de contacto y sedes autorizadas',
     );
     $content = str_replace( array_keys( $literal ), array_values( $literal ), $content );

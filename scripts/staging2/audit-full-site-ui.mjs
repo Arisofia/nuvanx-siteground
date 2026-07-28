@@ -33,6 +33,13 @@ const seedRoutes = String(process.env.NVX_AUDIT_SEED_ROUTES || '/,/blog/')
   .map((value) => value.trim())
   .filter(Boolean)
   .map((value) => (value.endsWith('/') || value === '/' ? value : `${value}/`));
+const routeHeadingContracts = new Map([
+  ['/contacto/', { exact: 'Contacto NUVANX en Madrid' }],
+  ['/medicina-estetica-chamberi/', { forbidden: ['Equipo médico NUVANX: quién te valora y quién trata'] }],
+  ['/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/', { forbidden: ['Equipo médico NUVANX: quién te valora y quién trata'] }],
+  ['/medicina-estetica/', { forbidden: ['Equipo médico NUVANX: quién te valora y quién trata'] }],
+]);
+
 const canonicalPalette = [
   [247, 247, 245], [241, 241, 239], [17, 17, 17], [28, 28, 30],
   [229, 229, 227], [206, 206, 206], [82, 82, 82], [92, 92, 92],
@@ -525,6 +532,13 @@ function evaluateResult(scope, result) {
   if (!result.headerVisible) fail(scope, 'global header is missing or hidden');
   if (!result.footerVisible) fail(scope, 'global footer is missing or hidden');
   if (result.h1.length !== 1 || !result.h1[0]) fail(scope, `expected one visible H1, found ${JSON.stringify(result.h1)}`);
+  const headingContract = routeHeadingContracts.get(result.route);
+  if (headingContract?.exact && result.h1[0] !== headingContract.exact) {
+    fail(scope, `route H1 is ${JSON.stringify(result.h1[0])} instead of ${JSON.stringify(headingContract.exact)}`);
+  }
+  if (headingContract?.forbidden?.includes(result.h1[0])) {
+    fail(scope, `route inherited forbidden H1 ${JSON.stringify(result.h1[0])}`);
+  }
   if (result.overflow > horizontalOverflowTolerance) {
     fail(scope, `horizontal overflow is ${result.overflow}px; sources=${JSON.stringify(result.overflowingElements)}`);
   }

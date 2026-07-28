@@ -17,6 +17,9 @@ const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations
 const moduleSource = read('wp-content/themes/nuvanx-medical/inc/nvx-hero-layout-coherence.php');
 const layoutCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-hero-layout-coherence.css');
 const frontPage = read('wp-content/themes/nuvanx-medical/front-page.php');
+const equipoPage = read('wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php');
+const contactoFixes = read('wp-content/themes/nuvanx-medical/inc/nvx-contacto-audit-fixes.php');
+const fullSiteAudit = read('scripts/staging2/audit-full-site-ui.mjs');
 
 requireText(
   'theme bootstrap',
@@ -45,6 +48,28 @@ for (const marker of [
 
 forbidText('hero layout CSS', layoutCss, '!important');
 forbidText('hero layout CSS', layoutCss, 'grid-template-columns: minmax(28rem');
+
+const equipoDetectorStart = equipoPage.indexOf('function nvx_content_is_equipo_page');
+const equipoDetectorEnd = equipoPage.indexOf('\n/**\n * Hero.', equipoDetectorStart);
+const equipoDetector = equipoDetectorStart >= 0 && equipoDetectorEnd > equipoDetectorStart
+  ? equipoPage.slice(equipoDetectorStart, equipoDetectorEnd)
+  : '';
+requireText('Equipo route ownership', equipoDetector, "is_page( 'equipo-medico' )");
+requireText('Equipo route ownership', equipoDetector, "nvx_schema_path_matches( $path, '/equipo-medico/' )");
+forbidText('Equipo route ownership', equipoDetector, 'preg_match(');
+forbidText('Equipo route ownership', equipoDetector, 'equipo especialista');
+
+requireText('Contacto route ownership', contactoFixes, "'Agenda tu valoración médica'                => 'Contacto NUVANX en Madrid'");
+forbidText('Contacto route ownership', contactoFixes, "'Agenda tu valoración médica'                => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya'");
+
+for (const headingMarker of [
+  'const routeHeadingContracts = new Map([',
+  "['/contacto/', { exact: 'Contacto NUVANX en Madrid' }]",
+  "['/medicina-estetica-chamberi/', { forbidden:",
+  "['/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/', { forbidden:",
+  "['/medicina-estetica/', { forbidden:",
+  'route inherited forbidden H1',
+]) requireText('rendered route heading contract', fullSiteAudit, headingMarker);
 
 for (const marker of [
   "content_url( '/uploads/2026/06/nvx-home-video-portada-hero-12s-720p.mp4' )",

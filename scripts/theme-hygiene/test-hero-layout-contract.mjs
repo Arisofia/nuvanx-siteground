@@ -16,9 +16,12 @@ const forbidText = (scope, source, marker) => {
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 const moduleSource = read('wp-content/themes/nuvanx-medical/inc/nvx-hero-layout-coherence.php');
 const layoutCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-hero-layout-coherence.css');
+const videoControlCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-home-hero-video-control.css');
+const videoControlJs = read('wp-content/themes/nuvanx-medical/assets/js/nvx-home-hero-video.js');
 const frontPage = read('wp-content/themes/nuvanx-medical/front-page.php');
 const equipoPage = read('wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php');
 const contactoFixes = read('wp-content/themes/nuvanx-medical/inc/nvx-contacto-audit-fixes.php');
+const contactoTemplate = read('wp-content/themes/nuvanx-medical/templates/template-contact.php');
 const fullSiteAudit = read('scripts/staging2/audit-full-site-ui.mjs');
 
 requireText(
@@ -30,6 +33,10 @@ requireText('layout module', moduleSource, "add_action( 'wp_head', 'nvxHeroLayou
 requireText('layout module', moduleSource, "'nvx-site-coherence'");
 requireText('layout module', moduleSource, "wp_style_is( 'nvx-home-structure', 'enqueued' )");
 requireText('layout module', moduleSource, "'nvx-home-structure'");
+requireText('Home video assets', moduleSource, "'assets/css/nvx-home-hero-video-control.css'");
+requireText('Home video assets', moduleSource, "'assets/js/nvx-home-hero-video.js'");
+requireText('Home video assets', moduleSource, "'nvx-home-hero-video-control'");
+requireText('Home video assets', moduleSource, "'nvx-home-hero-video'");
 
 for (const marker of [
   '.nvx-site-coherent-page .nvx-canonical-page-hero + .nvx-hero-intro--coherent',
@@ -49,6 +56,22 @@ for (const marker of [
 forbidText('hero layout CSS', layoutCss, '!important');
 forbidText('hero layout CSS', layoutCss, 'grid-template-columns: minmax(28rem');
 
+for (const marker of [
+  '.nvx-home-v5 .nvx-home-hero__motion-toggle',
+  ':focus-visible',
+  '@media (prefers-reduced-motion: reduce)',
+]) requireText('Home video control CSS', videoControlCss, marker);
+forbidText('Home video control CSS', videoControlCss, '!important');
+
+for (const marker of [
+  "window.matchMedia('(prefers-reduced-motion: reduce)')",
+  "video.removeAttribute('autoplay')",
+  'video.pause()',
+  "toggle.setAttribute('aria-label'",
+  "toggle.setAttribute('aria-controls'",
+  "data-nvx-home-video-toggle",
+]) requireText('Home video control JS', videoControlJs, marker);
+
 const equipoDetectorStart = equipoPage.indexOf('function nvx_content_is_equipo_page');
 const equipoDetectorEnd = equipoPage.indexOf('\n/**\n * Hero.', equipoDetectorStart);
 const equipoDetector = equipoDetectorStart >= 0 && equipoDetectorEnd > equipoDetectorStart
@@ -59,8 +82,10 @@ requireText('Equipo route ownership', equipoDetector, "nvx_schema_path_matches( 
 forbidText('Equipo route ownership', equipoDetector, 'preg_match(');
 forbidText('Equipo route ownership', equipoDetector, 'equipo especialista');
 
-requireText('Contacto route ownership', contactoFixes, "'Agenda tu valoración médica'                => 'Contacto NUVANX en Madrid'");
-forbidText('Contacto route ownership', contactoFixes, "'Agenda tu valoración médica'                => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya'");
+requireText('Contacto static H1', contactoTemplate, "esc_html_e( 'Contacto NUVANX en Madrid', 'nuvanx-medical' )");
+forbidText('Contacto static H1', contactoTemplate, "esc_html_e( 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya', 'nuvanx-medical' )");
+requireText('Contacto scoped fallback', contactoFixes, '/<h1\\b([^>]*)>\\s*Agenda tu valoración médica\\s*<\\/h1>/iu');
+forbidText('Contacto scoped fallback', contactoFixes, "'Agenda tu valoración médica'                => 'Contacto NUVANX en Madrid'");
 
 for (const headingMarker of [
   'const routeHeadingContracts = new Map([',

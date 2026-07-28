@@ -1,5 +1,6 @@
 name: Temporary Sonar autofix
 
+# One-shot branch repair; the job deletes this workflow in its own commit.
 on:
   push:
     branches:
@@ -157,9 +158,9 @@ jobs:
            */
           function nvxSeoSchemaEnsureWebpageMainEntity( array $graph, string $currentUrl ): array {
               foreach ( $graph as $piece ) {
-                  $types     = $piece['@type'] ?? array();
-                  $pieceUrl  = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
-                  $isEntity  = nvx_seo_schema_has_type( $types, 'MedicalProcedure' ) || nvx_seo_schema_has_type( $types, 'Service' );
+                  $types      = $piece['@type'] ?? array();
+                  $pieceUrl   = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
+                  $isEntity   = nvx_seo_schema_has_type( $types, 'MedicalProcedure' ) || nvx_seo_schema_has_type( $types, 'Service' );
                   $matchesUrl = '' !== $pieceUrl && $pieceUrl === trailingslashit( $currentUrl );
                   if ( $isEntity && $matchesUrl && ! empty( $piece['@id'] ) ) {
                       return function_exists( 'nvxSchemaLinkWebpageMainEntity' )

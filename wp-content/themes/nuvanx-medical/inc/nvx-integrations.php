@@ -128,18 +128,19 @@ function nvx_serve_retired_legacy_route(): void {
         header( 'X-NUVANX-Retired-Route: 1', true );
     }
 
-    $title   = esc_html__( 'Contenido retirado', 'nuvanx-medical' );
-    $message = esc_html__( 'Esta página ya no está disponible.', 'nuvanx-medical' );
-    $home    = esc_url( home_url( '/' ) );
+    $title      = esc_html__( 'Contenido retirado', 'nuvanx-medical' );
+    $message    = esc_html__( 'Esta página ya no está disponible.', 'nuvanx-medical' );
+    $home       = esc_url( home_url( '/' ) );
     $home_label = esc_html__( 'Volver al inicio', 'nuvanx-medical' );
 
-    echo '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">';
-    echo '<meta name="robots" content="noindex,nofollow">';
-    echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
-    echo '<title>' . $title . '</title></head><body>';
-    echo '<main><h1>' . $title . '</h1><p>' . $message . '</p>';
-    echo '<p><a href="' . $home . '">' . $home_label . '</a></p></main>';
-    echo '</body></html>';
+    // Single write avoids multi-echo noise for scanners and keeps the response atomic.
+    echo '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">'
+        . '<meta name="robots" content="noindex,nofollow">'
+        . '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        . '<title>' . $title . '</title></head><body><main>'
+        . '<h1>' . $title . '</h1><p>' . $message . '</p>'
+        . '<p><a href="' . $home . '">' . $home_label . '</a></p>'
+        . '</main></body></html>';
     exit;
 }
 add_action( 'template_redirect', 'nvx_serve_retired_legacy_route', -1000000 );

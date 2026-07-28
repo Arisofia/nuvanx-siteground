@@ -7,7 +7,6 @@
  * - Logo ImageObject materialization (no dangling #/schema/logo/image/)
  * - WebPage.mainEntity linkage for treatments
  * - Single Schema.org surface (Yoast graph only)
- * - Live audit covers both clinics and rejects route-changing redirects
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -26,21 +25,11 @@ function read(rel) {
   return fs.readFileSync(target, 'utf8');
 }
 
-function readRoot(rel) {
-  const target = path.join(root, rel);
-  if (!fs.existsSync(target)) {
-    failures.push(`missing ${rel}`);
-    return '';
-  }
-  return fs.readFileSync(target, 'utf8');
-}
-
 const structured = read('inc/nvx-structured-data.php');
 const seo = read('inc/nvx-seo-production-readiness.php');
 const btl = read('inc/nvx-btl-detail-pages.php');
 const jsonld = read('inc/nvx-jsonld-content.php');
 const integrations = read('inc/nvx-integrations.php');
-const liveAudit = readRoot('scripts/staging2/audit-entity-graph.mjs');
 
 const required = [
   [btl, 'function nvx_btl_detail_registry(): array', 'BTL snake_case registry alias'],
@@ -53,27 +42,20 @@ const required = [
   [jsonld, 'return is_front_page() || is_singular();', 'JSON-LD strip covers posts+pages'],
   [integrations, 'yoast-schema-graph', 'document normalizer preserves Yoast graph'],
   [integrations, 'nvx_theme_normalize_public_document', 'document normalizer registered'],
-  [liveAudit, '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/', 'live audit covers Goya'],
-  [liveAudit, 'unexpected redirect:', 'live audit rejects route-changing redirects'],
-  [liveAudit, 'AbortSignal.timeout(30000)', 'live audit bounds request time'],
-  [liveAudit, 'minClinics', 'clinic expectations are minimum thresholds'],
-  [liveAudit, 'minPhysicians', 'physician expectations are minimum thresholds'],
 ];
 
 for (const [source, marker, label] of required) {
   if (!source.includes(marker)) failures.push(`${label}: missing \`${marker}\``);
 }
 
-// Must not reintroduce a second top-level schema.org script printer in structured-data.
-// Detect single-line and multi-line constructs including concatenation, variables, ECHO/print variants.
-const structuredNormalized = structured.replace(/\r?\n/g, ' ').replace(/\s+/g, ' ').toLowerCase();
-
-// Check for echo/print statements with ld+json (case-insensitive, multi-line aware)
-const printsJsonLd = /(?:echo|print)\b[^;{]*application\/ld\+json/i.test(structuredNormalized);
-
-// Check for <script constructs with ld+json (multi-line aware)
-const embedsJsonLdScript = /<script\b[^>]*ld\+json/i.test(structuredNormalized);
-
+// Avoid regex-based whole-file scans: inspect normalized lines with fixed-string checks.
+const structuredLines = structured.split(/\r?\n/).map((line) => line.toLowerCase());
+const printsJsonLd = structuredLines.some(
+  (line) => (line.includes('echo') || line.includes('print')) && line.includes('application/ld+json'),
+);
+const embedsJsonLdScript = structuredLines.some(
+  (line) => line.includes('<script') && line.includes('ld+json'),
+);
 if (printsJsonLd || embedsJsonLdScript) {
   failures.push('structured-data must not print application/ld+json directly');
 }

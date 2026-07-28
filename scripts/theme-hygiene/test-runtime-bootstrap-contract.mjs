@@ -41,7 +41,6 @@ const environmentFlags = read('inc/nvx-environment-flags.php');
 const runtimeCompatibility = read('inc/nvx-runtime-compatibility.php');
 const contentPresentation = read('inc/nvx-content-presentation.php');
 const equipoPage = read('inc/nvx-equipo-page.php');
-const drRiveraPage = read('inc/nvx-dr-rivera-page.php');
 const equipoLayout = read('inc/nvx-equipo-layout-contract.php');
 const equipoLayoutCss = read('assets/css/nvx-equipo-layout-contract.css');
 const pageHygiene = read('inc/nvx-page-hygiene.php');
@@ -118,7 +117,6 @@ for (const marker of [
 }
 for (const [source, label] of [
   [equipoPage, 'equipo renderer'],
-  [drRiveraPage, 'Dr. Rivera renderer'],
 ]) {
   if (source.includes('nvxCtaPairMarkup(') && !runtimeCompatibility.includes('function nvxCtaPairMarkup(')) {
     failures.push(`${label} calls nvxCtaPairMarkup without a declared compatibility adapter`);

@@ -197,10 +197,6 @@ summary,
   text-transform: uppercase;
 }
 
-.nvx-dr-rivera-kicker {
-  margin-bottom: var(--nvx-space-2);
-}
-
 @media (max-width: 45em) {
 
   .nvx-strategy-page > .nvx-brand-hero {

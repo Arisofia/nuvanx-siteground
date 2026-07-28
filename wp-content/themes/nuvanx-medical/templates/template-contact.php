@@ -43,7 +43,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
             <div class="nvx-editorial-hero__copy">
                 <p class="nvx-eyebrow"><?php esc_html_e( 'Clínicas NUVANX · Madrid', 'nuvanx-medical' ); ?></p>
                 <h1 id="nvx-contact-h1" class="nvx-heading">
-                    <?php esc_html_e( 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya', 'nuvanx-medical' ); ?>
+                    <?php esc_html_e( 'Contacto NUVANX en Madrid', 'nuvanx-medical' ); ?>
                 </h1>
                 <p class="nvx-lead">
                         <?php esc_html_e( 'Si ya sabes que quieres venir, aquí tienes todo lo que necesitas para encontrarnos. Si todavía no sabes si esto es para ti, mejor empieza por la valoración.', 'nuvanx-medical' ); ?>

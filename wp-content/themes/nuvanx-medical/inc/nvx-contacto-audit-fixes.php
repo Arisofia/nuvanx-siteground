@@ -189,17 +189,18 @@ function nvxContactoAuditVisibleCopy( string $content ): string {
         return $content;
     }
 
-    // Short stable phrase anchors (not full-sentence, dash-sensitive blobs).
+    // Short stable phrase anchors that are safe outside actionable controls.
     $literal = array(
         'Contacto privado'                           => 'Clínicas NUVANX',
-        'Contacto, sedes y consulta médica'          => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',
-        'Agenda tu valoración médica'                => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',
+        'Contacto, sedes y consulta médica'          => 'Contacto NUVANX en Madrid',
         'Contacto directo y ubicaciones autorizadas por Sanidad' => 'Datos de contacto y sedes autorizadas',
     );
     $content = str_replace( array_keys( $literal ), array_values( $literal ), $content );
 
-    // Lead-in anchored paragraph rewrites: match from a stable stem to sentence end(s).
+    // Element-scoped and paragraph-scoped rewrites.
     $patterns = array(
+        '/<h1\b([^>]*)>\s*Agenda tu valoración médica\s*<\/h1>/iu'
+            => '<h1$1>Contacto NUVANX en Madrid</h1>',
         // Hero/body intro that previously named "directorio NAP" / internal SEO wording.
         '/Contacta con NUVANX para solicitar una valoración médica personalizada[^.<]{0,220}\.\s*El equipo revisará[^.<]{0,160}\./u'
             => 'Consulta médica presencial en Chamberí y Salamanca–Goya. El equipo te orientará hacia la sede y el médico disponible según tu caso.',

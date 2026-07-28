@@ -32,6 +32,7 @@ const solutionsPage = read('wp-content/themes/nuvanx-medical/template-parts/cont
 const solutionsCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-soluciones-medicas.css');
 const solutionsArt = read('wp-content/themes/nuvanx-medical/assets/images/nvx-solutions-hero-architecture.svg');
 const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
+const approvedHomeVideo = "content_url( '/uploads/2026/06/nvx-home-video-portada-hero-12s-720p.mp4' )";
 
 const required = [
   [environmentFlags, 'function nvx_environment_host()', 'Environment module does not resolve the WordPress host'],
@@ -41,6 +42,7 @@ const required = [
   [aestheticPages, "function_exists( 'nvx_environment_is_staging2' )", 'Aesthetic page seeding does not consume the shared staging2 classifier'],
   [frontPage, "'nvx-home-structure'", 'Home does not enqueue its GitHub-managed structure layer'],
   [frontPage, 'assets/images/nvx-home-hero-contours.svg', 'Home does not use repository-owned hero artwork'],
+  [frontPage, approvedHomeVideo, 'Home does not use the approved immutable hero video'],
   [frontPage, '$remodelacion_url', 'Home does not use a local remodelación route variable'],
   [frontPage, 'nvx-home-v5', 'Home canonical root is missing'],
   [homeCss, '.nvx-home-v5 .nvx-home-manifesto', 'Home structural divisions are missing'],
@@ -77,15 +79,16 @@ for (const [source, label] of [
   if (/get_post_field\s*\(\s*['"]post_content['"]/.test(source)) failures.push(`${label} must not read CMS post_content`);
 }
 
-for (const [source, label] of [
-  [frontPage, 'Home'],
+const managedVisibleAssetSources = [
+  [frontPage.replace(approvedHomeVideo, ''), 'Home'],
   [clinicsHub, 'Clinics'],
   [valoracionPage, 'Valoración'],
   [solutionsPage, 'Solutions'],
   [solutionsTemplate, 'Solutions template'],
-]) {
+];
+for (const [source, label] of managedVisibleAssetSources) {
   if (/content_url\s*\(|wp-content\/uploads|\/uploads\//i.test(source)) {
-    failures.push(`${label} must not depend on WordPress uploads for managed visible assets`);
+    failures.push(`${label} must not depend on unapproved WordPress uploads for managed visible assets`);
   }
 }
 

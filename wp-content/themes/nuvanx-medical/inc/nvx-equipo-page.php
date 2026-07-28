@@ -35,11 +35,7 @@ function nvx_content_is_equipo_page( string $content ): bool {
         return false;
     }
 
-    if ( ! nvx_equipo_is_singular_context() ) {
-        return false;
-    }
-
-    if ( is_front_page() || is_home() ) {
+    if ( ! nvx_equipo_is_singular_context() || is_front_page() || is_home() ) {
         return false;
     }
 
@@ -51,14 +47,9 @@ function nvx_content_is_equipo_page( string $content ): bool {
         ? nvx_schema_current_path( (int) get_queried_object_id() )
         : '';
 
-    if ( is_string( $path ) && function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, '/equipo-medico/' ) ) {
-        return true;
-    }
-
-    return (bool) preg_match(
-        '/aria-label=["\']Equipo médico NUVANX["\']|id=["\']nvx-equipo-h1["\']|class=["\'][^"\']*nvx-equipo-hero|equipo especialista/iu',
-        $content
-    );
+    return is_string( $path )
+        && function_exists( 'nvx_schema_path_matches' )
+        && nvx_schema_path_matches( $path, '/equipo-medico/' );
 }
 
 /**

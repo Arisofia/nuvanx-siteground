@@ -1,0 +1,48 @@
+name: Stage approved Home video asset
+
+on:
+  push:
+    branches:
+      - fix/hero-copy-coherence-home-video-stack-20260728
+    paths:
+      - '.github/workflows/fetch-home-video-asset.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  stage-video:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/hero-copy-coherence-home-video-stack-20260728
+          fetch-depth: 0
+
+      - name: Fetch and validate approved asset
+        run: |
+          set -euo pipefail
+          mkdir -p wp-content/themes/nuvanx-medical/assets/video
+          target='wp-content/themes/nuvanx-medical/assets/video/nvx-home-video-portada-hero-12s-720p.mp4'
+          curl --fail --location --retry 3 --connect-timeout 20 --max-time 180 \
+            'https://nuvanx.com/wp-content/uploads/2026/06/nvx-home-video-portada-hero-12s-720p.mp4' \
+            --output "$target"
+          test -s "$target"
+          size="$(stat -c '%s' "$target")"
+          test "$size" -ge 100000
+          file "$target" | grep -Eiq 'ISO Media|MP4|MPEG'
+          sha256sum "$target"
+
+      - name: Commit repository-owned video
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add wp-content/themes/nuvanx-medical/assets/video/nvx-home-video-portada-hero-12s-720p.mp4
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m 'assets(home): version approved hero video'
+          git push origin HEAD:fix/hero-copy-coherence-home-video-stack-20260728

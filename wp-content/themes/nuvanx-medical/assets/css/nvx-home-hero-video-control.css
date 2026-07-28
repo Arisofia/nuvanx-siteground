@@ -2,6 +2,13 @@
   position: relative;
 }
 
+.nvx-home-v5 .nvx-home-hero__visual {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
 .nvx-home-v5 .nvx-home-hero__motion-toggle {
   position: absolute;
   right: clamp(1rem, 3vw, 2rem);

@@ -67,8 +67,47 @@ for (const marker of [
   'function nvxFilterStripEmbeddedJsonld(',
   'function nvx_filter_strip_embedded_jsonld(',
   'return nvxFilterStripEmbeddedJsonld( $content );',
+  'return is_front_page() || is_singular();',
 ]) {
   if (!jsonldHelpers.includes(marker)) failures.push(`JSON-LD callback compatibility marker missing: ${marker}`);
+}
+
+const btlDetail = read('inc/nvx-btl-detail-pages.php');
+const seoReadiness = read('inc/nvx-seo-production-readiness.php');
+const integrations = read('inc/nvx-integrations.php');
+
+for (const marker of [
+  'function nvxBtlDetailRegistry(): array',
+  'function nvx_btl_detail_registry(): array',
+  'return nvxBtlDetailRegistry();',
+]) {
+  if (!btlDetail.includes(marker)) failures.push(`BTL detail registry alias marker missing: ${marker}`);
+}
+
+for (const marker of [
+  'function nvx_seo_schema_materialize_logo_node(',
+  'function nvx_seo_schema_ensure_webpage_main_entity(',
+  'nvx_seo_schema_materialize_logo_node( $graph )',
+  'nvx_seo_schema_ensure_webpage_main_entity( $graph, $current_url )',
+]) {
+  if (!seoReadiness.includes(marker)) failures.push(`SEO readiness graph marker missing: ${marker}`);
+}
+
+for (const marker of [
+  'function nvx_schema_link_webpage_main_entity(',
+  'nvx_schema_link_webpage_main_entity( $graph, (string) $treatment[\'url\'], (string) $treatment[\'@id\'] )',
+]) {
+  if (!structuredData.includes(marker)) failures.push(`structured-data mainEntity marker missing: ${marker}`);
+}
+
+if (!integrations.includes("yoast-schema-graph")) {
+  failures.push('integrations public document normalizer must preserve yoast-schema-graph');
+}
+if (!integrations.includes('schema\\.org|@graph\\b|"@type"\\s*:')) {
+  // Accept either escaped regex form used in PHP string
+  if (!/schema\.org\|@graph/.test(integrations)) {
+    failures.push('integrations public document normalizer must strip residual Schema.org ld+json');
+  }
 }
 
 for (const marker of [

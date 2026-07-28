@@ -79,7 +79,10 @@ function nvxShouldStripEmbeddedJsonld() {
         return false;
     }
 
-    return is_front_page() || is_singular( 'page' );
+    // Pages, posts and the front page: only Yoast's single @graph must remain.
+    // Blog articles (e.g. Endolift science) previously leaked BlogPosting /
+    // Physician blocks with dangling #medicalclinic refs.
+    return is_front_page() || is_singular();
 }
 
 /**

@@ -85,17 +85,17 @@ for (const marker of [
 }
 
 for (const marker of [
-  'function nvx_seo_schema_materialize_logo_node(',
-  'function nvx_seo_schema_ensure_webpage_main_entity(',
-  'nvx_seo_schema_materialize_logo_node( $graph )',
-  'nvx_seo_schema_ensure_webpage_main_entity( $graph, $current_url )',
+  'function nvxSeoSchemaMaterializeLogoNode(',
+  'function nvxSeoSchemaEnsureWebpageMainEntity(',
+  'nvxSeoSchemaMaterializeLogoNode( $graph )',
+  'nvxSeoSchemaEnsureWebpageMainEntity( $graph, $current_url )',
 ]) {
   if (!seoReadiness.includes(marker)) failures.push(`SEO readiness graph marker missing: ${marker}`);
 }
 
 for (const marker of [
-  'function nvx_schema_link_webpage_main_entity(',
-  'nvx_schema_link_webpage_main_entity( $graph, (string) $treatment[\'url\'], (string) $treatment[\'@id\'] )',
+  'function nvxSchemaLinkWebpageMainEntity(',
+  'nvxSchemaLinkWebpageMainEntity( $graph, (string) $treatment[\'url\'], (string) $treatment[\'@id\'] )',
 ]) {
   if (!structuredData.includes(marker)) failures.push(`structured-data mainEntity marker missing: ${marker}`);
 }

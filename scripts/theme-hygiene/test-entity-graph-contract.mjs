@@ -35,9 +35,9 @@ const required = [
   [btl, 'function nvx_btl_detail_registry(): array', 'BTL snake_case registry alias'],
   [btl, 'return nvxBtlDetailRegistry();', 'BTL alias delegates to camelCase registry'],
   [structured, "function_exists( 'nvx_btl_detail_registry' )", 'structured-data calls BTL registry'],
-  [structured, 'function nvx_schema_link_webpage_main_entity(', 'WebPage.mainEntity linker'],
-  [seo, 'function nvx_seo_schema_materialize_logo_node(', 'logo ImageObject materializer'],
-  [seo, 'function nvx_seo_schema_ensure_webpage_main_entity(', 'mainEntity ensurer'],
+  [structured, 'function nvxSchemaLinkWebpageMainEntity(', 'WebPage.mainEntity linker'],
+  [seo, 'function nvxSeoSchemaMaterializeLogoNode(', 'logo ImageObject materializer'],
+  [seo, 'function nvxSeoSchemaEnsureWebpageMainEntity(', 'mainEntity ensurer'],
   [seo, "function_exists( 'nvx_btl_detail_registry' )", 'SEO readiness BTL FAQ uses registry'],
   [jsonld, 'return is_front_page() || is_singular();', 'JSON-LD strip covers posts+pages'],
   [integrations, 'yoast-schema-graph', 'document normalizer preserves Yoast graph'],
@@ -46,6 +46,10 @@ const required = [
 
 for (const [source, marker, label] of required) {
   if (!source.includes(marker)) failures.push(`${label}: missing \`${marker}\``);
+}
+
+if (seo.includes('_nvx_seo_schema_link_main_entity')) {
+  failures.push('SEO readiness must use the shared mainEntity helper');
 }
 
 // Avoid regex-based whole-file scans: inspect normalized lines with fixed-string checks.

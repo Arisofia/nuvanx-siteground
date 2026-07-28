@@ -47,15 +47,19 @@ function nvxBtlDetailRegistrySpecs(): array {
 /**
  * Resolve claim IDs, home paths, and nested catalogue values.
  *
+ * Claim/path tokens are pure one-key objects: {"claim":"..."} or {"path":"..."}.
+ * Full page specs also have a string "path" field and must be walked recursively.
+ *
  * @param mixed $value
  * @return mixed
  */
 function nvxBtlDetailResolveValue( $value ) {
 	if ( is_array( $value ) ) {
-		if ( isset( $value['claim'] ) && is_string( $value['claim'] ) ) {
+		// Pure token objects only — never treat multi-field page specs as tokens.
+		if ( 1 === count( $value ) && isset( $value['claim'] ) && is_string( $value['claim'] ) ) {
 			return function_exists( 'nvx_btl_claim' ) ? nvx_btl_claim( $value['claim'] ) : '';
 		}
-		if ( isset( $value['path'] ) && is_string( $value['path'] ) ) {
+		if ( 1 === count( $value ) && isset( $value['path'] ) && is_string( $value['path'] ) ) {
 			return home_url( $value['path'] );
 		}
 

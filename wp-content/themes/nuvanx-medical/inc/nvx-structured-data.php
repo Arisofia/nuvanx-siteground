@@ -291,6 +291,28 @@ function nvx_schema_page_registry() {
                 'path'   => '/btl-exilite-ipl-madrid/',
                 'schema' => 'Service',
             ),
+            // Facial injectables: path authoritative. MedicalProcedure graph is
+            // owned by nvx-aesthetic-treatment-schema.php (not laser/BTL builders).
+            'lips_ha'            => array(
+                'id'     => 0,
+                'path'   => '/labios-acido-hialuronico-madrid/',
+                'schema' => 'MedicalProcedure',
+            ),
+            'rhinomodeling_ha'   => array(
+                'id'     => 0,
+                'path'   => '/rinomodelacion-sin-cirugia-madrid/',
+                'schema' => 'MedicalProcedure',
+            ),
+            'tear_trough_ha'     => array(
+                'id'     => 0,
+                'path'   => '/ojeras-surco-lagrimal-madrid/',
+                'schema' => 'MedicalProcedure',
+            ),
+            'biostimulators'     => array(
+                'id'     => 0,
+                'path'   => '/bioestimuladores-colageno-madrid/',
+                'schema' => 'MedicalProcedure',
+            ),
         ),
     );
 }

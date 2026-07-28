@@ -3,7 +3,9 @@
  * Canonical facial aesthetic treatment pages.
  *
  * One versioned catalogue drives visible content, metadata, FAQ schema and the
- * staging-only page seeder. Production pages remain drafts until medical review.
+ * staging-only page seeder. Content, SEO and schema inject only when
+ * review_status is approved_for_publication (production fail-closed). Staging2
+ * may preview pending_medical_review entries (globally noindex).
  *
  * @package nuvanx-medical
  */
@@ -69,6 +71,9 @@ function nvx_aesthetic_treatment_schema_payload(
 /**
  * Build one canonical treatment catalogue entry (13-point matrix + SEO + schema).
  *
+ * page_id is unused for routing (slug/path is authoritative). Prefer 0.
+ * review_status: approved_for_publication | pending_medical_review
+ *
  * @param string[]                         $indications
  * @param string[]                         $precautions
  * @param string[]                         $process
@@ -95,26 +100,28 @@ function nvx_aesthetic_treatment_entry(
 	array $risks,
 	array $combinations,
 	array $faqs,
-	array $schema
+	array $schema,
+	string $review_status = 'pending_medical_review'
 ): array {
 	return array(
-		'slug'         => $slug,
-		'page_id'      => $page_id,
-		'h1'           => $h1,
-		'seo_title'    => $seo_title,
-		'description'  => $description,
-		'kicker'       => $kicker,
-		'lead'         => $lead,
-		'diagnosis'    => $diagnosis,
-		'mechanism'    => $mechanism,
-		'indications'  => $indications,
-		'precautions'  => $precautions,
-		'process'      => $process,
-		'evolution'    => $evolution,
-		'risks'        => $risks,
-		'combinations' => $combinations,
-		'faqs'         => $faqs,
-		'schema'       => $schema,
+		'slug'          => $slug,
+		'page_id'       => $page_id,
+		'h1'            => $h1,
+		'seo_title'     => $seo_title,
+		'description'   => $description,
+		'kicker'        => $kicker,
+		'lead'          => $lead,
+		'diagnosis'     => $diagnosis,
+		'mechanism'     => $mechanism,
+		'indications'   => $indications,
+		'precautions'   => $precautions,
+		'process'       => $process,
+		'evolution'     => $evolution,
+		'risks'         => $risks,
+		'combinations'  => $combinations,
+		'faqs'          => $faqs,
+		'schema'        => $schema,
+		'review_status' => $review_status,
 	);
 }
 
@@ -122,7 +129,8 @@ function nvx_aesthetic_treatment_entry(
  * Canonical catalogue for facial injectable/regenerative treatment pages.
  *
  * No prices, fixed session counts or guaranteed durations are published here.
- * Every entry is explicitly pending medical sign-off before production release.
+ * Entries use pending_medical_review until clinical sign-off; production is
+ * fail-closed. Staging2 previews pending entries (see is_renderable).
  *
  * @return array<string, array<string, mixed>>
  */
@@ -130,7 +138,7 @@ function nvx_aesthetic_treatment_catalog(): array {
 	return array(
 		'lips_ha'          => nvx_aesthetic_treatment_entry(
 			'labios-acido-hialuronico-madrid',
-			3318,
+			0,
 			'Ácido hialurónico en labios en Madrid',
 			'Ácido hialurónico en labios Madrid | NUVANX',
 			'Valoración médica para hidratación, perfilado o corrección de asimetrías labiales con ácido hialurónico, según anatomía, movimiento y objetivos.',
@@ -193,11 +201,12 @@ function nvx_aesthetic_treatment_catalog(): array {
 				'Cuidados posteriores y revisión clínica tras la fase inicial de inflamación; atención inmediata ante síntomas inesperados.',
 				array( 'Pérdida de definición labial', 'Deshidratación labial', 'Asimetría labial seleccionada' ),
 				array( 'Pérdida de volumen labial relacionada con la edad', 'Asimetría labial' )
-			)
+			),
+			'pending_medical_review'
 		),
 		'rhinomodeling_ha' => nvx_aesthetic_treatment_entry(
 			'rinomodelacion-sin-cirugia-madrid',
-			3319,
+			0,
 			'Rinomodelación con ácido hialurónico en Madrid',
 			'Rinomodelación con ácido hialurónico Madrid | NUVANX',
 			'Corrección médica no quirúrgica de irregularidades seleccionadas del perfil nasal con ácido hialurónico, con evaluación anatómica y vascular previa.',
@@ -260,11 +269,12 @@ function nvx_aesthetic_treatment_catalog(): array {
 				'Observación inmediata, instrucciones de alarma y revisión tras la fase inflamatoria.',
 				array( 'Irregularidad leve del dorso nasal', 'Armonización seleccionada del perfil nasal' ),
 				array( 'Irregularidad estética del perfil nasal' )
-			)
+			),
+			'pending_medical_review'
 		),
 		'tear_trough_ha'   => nvx_aesthetic_treatment_entry(
 			'ojeras-surco-lagrimal-madrid',
-			3320,
+			0,
 			'Tratamiento de ojeras y surco lagrimal en Madrid',
 			'Ojeras y surco lagrimal Madrid | Diagnóstico NUVANX',
 			'Diagnóstico médico del surco lagrimal para diferenciar hundimiento, bolsas, edema y pigmentación antes de valorar ácido hialurónico u otras alternativas.',
@@ -327,11 +337,12 @@ function nvx_aesthetic_treatment_catalog(): array {
 				'Seguimiento de edema, integración, simetría y signos de complicación.',
 				array( 'Hundimiento estructural del surco lagrimal', 'Transición párpado-mejilla marcada' ),
 				array( 'Deformidad del surco lagrimal' )
-			)
+			),
+			'pending_medical_review'
 		),
 		'biostimulators'   => nvx_aesthetic_treatment_entry(
 			'bioestimuladores-colageno-madrid',
-			3321,
+			0,
 			'Bioestimuladores de colágeno en Madrid',
 			'Bioestimuladores de colágeno Madrid | NUVANX',
 			'Valoración médica de bioestimulación con ácido poli-L-láctico o hidroxiapatita cálcica según calidad cutánea, anatomía y objetivo terapéutico.',
@@ -394,9 +405,48 @@ function nvx_aesthetic_treatment_catalog(): array {
 				'Seguimiento progresivo de la respuesta tisular y vigilancia de inflamación, nódulos u otras complicaciones.',
 				array( 'Pérdida de calidad y densidad cutánea', 'Laxitud cutánea leve o moderada seleccionada' ),
 				array( 'Laxitud cutánea facial', 'Pérdida de densidad dérmica' )
-			)
+			),
+			'pending_medical_review'
 		),
 	);
+}
+
+/**
+ * Whether catalogue content, SEO and schema may inject for this entry.
+ *
+ * Production: only approved_for_publication.
+ * Staging2: also previews pending_medical_review (environment is noindex).
+ */
+function nvx_aesthetic_treatment_is_renderable( array $entry ): bool {
+	$status = (string) ( $entry['review_status'] ?? '' );
+	if ( 'approved_for_publication' === $status ) {
+		return true;
+	}
+	return function_exists( 'nvx_environment_is_staging2' )
+		&& nvx_environment_is_staging2()
+		&& 'pending_medical_review' === $status;
+}
+
+/**
+ * Catalogue slice for the_content matching.
+ *
+ * Pending entries are promoted to approved_for_publication only inside this
+ * slice so the shared matcher can inject on staging2 without changing its default.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function nvx_aesthetic_treatment_catalog_for_render(): array {
+	$out = array();
+	foreach ( nvx_aesthetic_treatment_catalog() as $key => $entry ) {
+		if ( ! nvx_aesthetic_treatment_is_renderable( $entry ) ) {
+			continue;
+		}
+		if ( 'pending_medical_review' === (string) ( $entry['review_status'] ?? '' ) ) {
+			$entry['review_status'] = 'approved_for_publication';
+		}
+		$out[ $key ] = $entry;
+	}
+	return $out;
 }
 
 /**
@@ -414,7 +464,7 @@ function nvx_aesthetic_treatment_pluck( string $field ): array {
 	return $result;
 }
 
-/** Resolve a treatment key from slug or current singular page. */
+/** Resolve a treatment key from slug (does not apply render gate). */
 function nvx_aesthetic_treatment_key_from_slug( string $slug ): ?string {
 	$slug = trim( $slug, '/' );
 	foreach ( nvx_aesthetic_treatment_catalog() as $key => $entry ) {
@@ -425,12 +475,24 @@ function nvx_aesthetic_treatment_key_from_slug( string $slug ): ?string {
 	return null;
 }
 
+/**
+ * Current treatment key only when the entry is renderable (content + SEO + schema gate).
+ */
 function nvx_aesthetic_treatment_current_key(): ?string {
 	if ( is_admin() || ! is_singular( 'page' ) ) {
 		return null;
 	}
 	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	return nvx_aesthetic_treatment_key_from_slug( $slug );
+	$key  = nvx_aesthetic_treatment_key_from_slug( $slug );
+	if ( null === $key ) {
+		return null;
+	}
+	$catalog = nvx_aesthetic_treatment_catalog();
+	$entry   = $catalog[ $key ] ?? null;
+	if ( ! is_array( $entry ) || ! nvx_aesthetic_treatment_is_renderable( $entry ) ) {
+		return null;
+	}
+	return $key;
 }
 
 /** @return array<string, array<int, array{q:string,a:string}>> */
@@ -443,7 +505,7 @@ function nvx_aesthetic_treatment_schema_catalog(): array {
 	return nvx_aesthetic_treatment_pluck( 'schema' );
 }
 
-nvx_register_catalog_content_filter( 'nvx_aesthetic_treatment_catalog', 80 );
+nvx_register_catalog_content_filter( 'nvx_aesthetic_treatment_catalog_for_render', 80 );
 
 /** Canonical SEO metadata for the four pages. */
 function nvx_aesthetic_treatment_current_entry(): ?array {
@@ -485,13 +547,30 @@ add_filter( 'wpseo_canonical', 'nvx_aesthetic_treatment_filter_canonical', 90 );
 add_filter( 'wpseo_opengraph_url', 'nvx_aesthetic_treatment_filter_canonical', 90 );
 
 function nvx_aesthetic_treatment_document_title( array $parts ): array {
-	$h1 = nvx_aesthetic_treatment_meta_field( 'h1', null );
-	if ( null !== $h1 ) {
-		$parts['title'] = $h1;
+	$seo_title = nvx_aesthetic_treatment_meta_field( 'seo_title', null );
+	if ( null !== $seo_title && '' !== (string) $seo_title ) {
+		$parts['title'] = $seo_title;
 	}
 	return $parts;
 }
 add_filter( 'document_title_parts', 'nvx_aesthetic_treatment_document_title', 90 );
+
+/**
+ * Soft-sync meta on an existing staging page without overwriting body or status.
+ */
+function nvx_aesthetic_treatment_seed_sync_meta( int $post_id, string $key ): void {
+	if ( $post_id <= 0 || '' === $key ) {
+		return;
+	}
+	$existing_key = (string) get_post_meta( $post_id, '_nvx_aesthetic_treatment_key', true );
+	if ( '' === $existing_key ) {
+		update_post_meta( $post_id, '_nvx_aesthetic_treatment_key', $key );
+	}
+	$review = (string) get_post_meta( $post_id, '_nvx_medical_review_status', true );
+	if ( '' === $review ) {
+		update_post_meta( $post_id, '_nvx_medical_review_status', 'pending' );
+	}
+}
 
 /** Seed the four pages only in staging2, which is globally noindex. */
 function nvx_aesthetic_treatment_seed_staging_pages(): void {
@@ -502,6 +581,7 @@ function nvx_aesthetic_treatment_seed_staging_pages(): void {
 	foreach ( nvx_aesthetic_treatment_catalog() as $key => $entry ) {
 		$page = get_page_by_path( $entry['slug'], OBJECT, 'page' );
 		if ( $page instanceof WP_Post ) {
+			nvx_aesthetic_treatment_seed_sync_meta( (int) $page->ID, $key );
 			continue;
 		}
 
@@ -518,8 +598,8 @@ function nvx_aesthetic_treatment_seed_staging_pages(): void {
 		);
 
 		if ( ! is_wp_error( $post_id ) ) {
-			update_post_meta( $post_id, '_nvx_aesthetic_treatment_key', $key );
-			update_post_meta( $post_id, '_nvx_medical_review_status', 'pending' );
+			update_post_meta( (int) $post_id, '_nvx_aesthetic_treatment_key', $key );
+			update_post_meta( (int) $post_id, '_nvx_medical_review_status', 'pending' );
 		}
 	}
 }

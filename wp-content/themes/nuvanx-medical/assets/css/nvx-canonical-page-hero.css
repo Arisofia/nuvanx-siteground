@@ -86,7 +86,6 @@
 }
 
 .nvx-canonical-page-hero .nvx-heading,
-.nvx-canonical-page-hero .nvx-brand-hero__title,
 .nvx-canonical-page-hero h1 {
   max-width: 18ch;
   margin: 0;
@@ -150,7 +149,6 @@
   }
 
   .nvx-canonical-page-hero .nvx-heading,
-  .nvx-canonical-page-hero .nvx-brand-hero__title,
   .nvx-canonical-page-hero h1 {
     max-width: 19ch;
     font-size: clamp(2.45rem, 10.5vw, 2.75rem);

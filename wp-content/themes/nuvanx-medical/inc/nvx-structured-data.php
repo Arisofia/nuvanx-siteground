@@ -229,7 +229,7 @@ function nvx_schema_price_string( $amount ) {
  * }
  */
 function nvx_schema_page_registry() {
-    return array(
+    $registry = array(
         'clinics'    => array(
             'chamberi' => array(
                 'id'   => 1543,
@@ -293,6 +293,25 @@ function nvx_schema_page_registry() {
             ),
         ),
     );
+
+    // Facial injectables: path authoritative. MedicalProcedure graph is owned by
+    // nvx-aesthetic-treatment-schema.php (not laser/BTL node builders).
+    foreach (
+        array(
+            'lips_ha'          => '/labios-acido-hialuronico-madrid/',
+            'rhinomodeling_ha' => '/rinomodelacion-sin-cirugia-madrid/',
+            'tear_trough_ha'   => '/ojeras-surco-lagrimal-madrid/',
+            'biostimulators'   => '/bioestimuladores-colageno-madrid/',
+        ) as $key => $path
+    ) {
+        $registry['treatments'][ $key ] = array(
+            'id'     => 0,
+            'path'   => $path,
+            'schema' => 'MedicalProcedure',
+        );
+    }
+
+    return $registry;
 }
 
 /**

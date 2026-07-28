@@ -136,16 +136,6 @@ async function requestWithRetry(path, redirect = 'manual') {
   return { response: lastResponse, attempt: 4 };
 }
 
-function readMeta(html, name) {
-  const tags = [...html.matchAll(/<meta\b[^>]*>/gi)].map((match) => match[0]);
-  for (const tag of tags) {
-    const nameMatch = tag.match(/\bname\s*=\s*(["'])(.*?)\1/i);
-    if (nameMatch?.[2].toLowerCase() !== name.toLowerCase()) continue;
-    return tag.match(/\bcontent\s*=\s*(["'])(.*?)\1/i)?.[2] || '';
-  }
-  return '';
-}
-
 async function verifyRetiredRoute(sourcePath) {
   const { response, attempt } = await requestWithRetry(sourcePath);
   const location = response.headers.get('location') || '';

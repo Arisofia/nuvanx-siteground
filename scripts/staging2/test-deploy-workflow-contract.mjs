@@ -54,6 +54,8 @@ for (const marker of [
   'git_sha must equal the selected workflow ref HEAD',
   'BASE_URL=https://staging2.nuvanx.com EXPECTED_SHA=',
   'expected_sha=$DEPLOY_SHA',
+  'scripts/staging2/nvx-deploy-sha.sh',
+  'tools/deploy/nvx-purge-wp-caches.sh',
   'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
   'scripts/staging2/capture-visual-qa.mjs',
   'scripts/staging2/visual-qa-edge-preload.mjs',
@@ -85,9 +87,39 @@ for (const marker of [
   'SMOKE_VERIFY_OK', 'ROLLBACK_COMPLETE', 'DEPLOY_STAGING2_OK',
   'EXPECTED_SHA="$DEPLOY_SHA"',
   'expected_sha=$DEPLOY_SHA',
-  'wp sg purge dynamic',
+  'nvx-purge-wp-caches.sh',
   'staging2_cache_purge=ok',
 ]) if (!deploy.includes(marker)) fail(`deploy script missing contract marker: ${marker}`);
+
+const purgeHelper = read('tools/deploy/nvx-purge-wp-caches.sh');
+const deployShaJs = read('scripts/staging2/nvx-deploy-sha.mjs');
+const deployShaSh = read('scripts/staging2/nvx-deploy-sha.sh');
+for (const marker of [
+  'wp sg purge dynamic',
+  'wp sg purge memcached',
+  'sgo-cache',
+  'supercache',
+  'sg-cachepress',
+  'opcache_reset',
+]) if (!purgeHelper.includes(marker)) fail(`shared purge helper missing marker: ${marker}`);
+for (const marker of [
+  'export function extractDeployShaFromHtml',
+  'export function assertHtmlDeploySha',
+  'missing meta nvx-deploy-sha',
+  'served SHA',
+]) if (!deployShaJs.includes(marker)) fail(`shared deploy-sha JS missing marker: ${marker}`);
+for (const marker of [
+  'assert_html_deploy_sha()',
+  'NVX_DEPLOY_SHA_SH_LOADED=1',
+  'missing meta nvx-deploy-sha',
+  'served SHA',
+]) if (!deployShaSh.includes(marker)) fail(`shared deploy-sha shell missing marker: ${marker}`);
+if (!smoke.includes('assert_html_deploy_sha') || !smoke.includes('nvx-deploy-sha.sh')) {
+  fail('smoke shell must load and use shared assert_html_deploy_sha');
+}
+if (!acceptance.includes("from './nvx-deploy-sha.mjs'") && !acceptance.includes('from "./nvx-deploy-sha.mjs"')) {
+  fail('rendered acceptance must import shared nvx-deploy-sha.mjs');
+}
 
 for (const marker of [
   "EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'",

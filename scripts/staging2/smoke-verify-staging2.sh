@@ -2,6 +2,21 @@
 # READ-ONLY: verify canonical NUVANX editorial routes and retired legacy URLs.
 set -Eeuo pipefail
 
+# Shared deploy-SHA helpers (must be loaded before fetch_page assertions).
+# Prefer sibling file when running as a real path; allow pre-sourcing when piped
+# via `bash -s` (independent smoke concatenates nvx-deploy-sha.sh first).
+if [[ -z "${NVX_DEPLOY_SHA_SH_LOADED:-}" ]]; then
+  _NVX_SMOKE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-.}")" 2>/dev/null && pwd || true)"
+  if [[ -n "$_NVX_SMOKE_DIR" && -f "$_NVX_SMOKE_DIR/nvx-deploy-sha.sh" ]]; then
+    # shellcheck source=nvx-deploy-sha.sh
+    source "$_NVX_SMOKE_DIR/nvx-deploy-sha.sh"
+  fi
+fi
+if [[ -z "${NVX_DEPLOY_SHA_SH_LOADED:-}" ]]; then
+  echo "ERROR: nvx-deploy-sha.sh must be sourced (sibling file or prepended for bash -s)" >&2
+  exit 1
+fi
+
 BASE_URL="${BASE_URL:-https://staging2.nuvanx.com}"
 BASE_URL="${BASE_URL%/}"
 case "$BASE_URL" in
@@ -83,17 +98,8 @@ fetch_page() {
 
   [[ "$status" == '200' ]] || fail "$page_path returned HTTP $status after $attempt attempt(s)"
 
-  # Always require the deploy marker so a stale full-page cache cannot pass
-  # marker-only content checks that were also true on the pre-deploy HTML.
-  if ! grep -Eiq '<meta[^>]+name=["'\'']nvx-deploy-sha["'\'']' "$body_file"; then
-    fail "$page_path is missing meta nvx-deploy-sha (stale full-page cache or theme head not executing)"
-  fi
-  if [[ -n "$EXPECTED_SHA" ]]; then
-    if ! grep -Eiq "<meta[^>]+name=[\"']nvx-deploy-sha[\"'][^>]+content=[\"']${EXPECTED_SHA}[\"']|<meta[^>]+content=[\"']${EXPECTED_SHA}[\"'][^>]+name=[\"']nvx-deploy-sha[\"']" "$body_file"; then
-      served_sha="$(grep -Eio 'name=["'\'']nvx-deploy-sha["'\''][^>]*content=["'\''][a-f0-9]{40}["'\'']|content=["'\''][a-f0-9]{40}["'\''][^>]*name=["'\'']nvx-deploy-sha["'\'']' "$body_file" | head -n 1 | grep -Eio '[a-f0-9]{40}' | head -n 1 || true)"
-      fail "$page_path served SHA ${served_sha:-absent} instead of ${EXPECTED_SHA}"
-    fi
-  fi
+  # Shared helper (nvx-deploy-sha.sh / .mjs): marker required; exact match when EXPECTED_SHA set.
+  assert_html_deploy_sha "$page_path" "$body_file" "$EXPECTED_SHA" || return 1
 
   for expected_marker in "$@"; do
     grep -Fiq "$expected_marker" "$body_file" || fail "$page_path is missing marker: $expected_marker"

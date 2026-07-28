@@ -162,6 +162,18 @@ function nvxBtlDetailRegistry(): array {
 }
 
 /**
+ * Snake_case alias used by structured-data / SEO readiness schema builders.
+ *
+ * Historical call sites (and some CI markers) reference nvx_btl_detail_registry();
+ * keep a thin alias so Service/FAQ nodes are not silently dropped.
+ *
+ * @return array<string, array<string, mixed>>
+ */
+function nvx_btl_detail_registry(): array {
+    return nvxBtlDetailRegistry();
+}
+
+/**
  * Check if the content contains standard H1 markers for a BTL detail page configuration.
  *
  * @param string               $content HTML content.

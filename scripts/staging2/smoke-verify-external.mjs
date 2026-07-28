@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 
+import { assertHtmlDeploySha, resolveExpectedDeploySha } from './nvx-deploy-sha.mjs';
+
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
-const expectedSha = process.env.DEPLOY_SHA || process.env.EXPECTED_SHA || '';
+let expectedSha = '';
+try {
+  expectedSha = resolveExpectedDeploySha(process.env);
+} catch (error) {
+  console.error(`ERROR: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+}
 const browserHeaders = {
   'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
   accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -22,10 +30,6 @@ let sessionCookie = '';
 
 if (!['https://staging2.nuvanx.com', 'https://nuvanx.com'].includes(baseUrl)) {
   console.error(`ERROR: refusing unexpected BASE_URL: ${baseUrl}`);
-  process.exit(1);
-}
-if (expectedSha && !/^[0-9a-f]{40}$/.test(expectedSha)) {
-  console.error('ERROR: DEPLOY_SHA or EXPECTED_SHA must be a full lowercase 40-character SHA.');
   process.exit(1);
 }
 
@@ -168,14 +172,8 @@ async function verifyPage(pagePath, markers) {
   for (const forbidden of forbiddenMarkers) {
     if (html.includes(forbidden)) findings.push(`${pagePath}: exposes forbidden marker: ${forbidden}`);
   }
-  // Always require the deploy marker so a full-page Dynamic Cache hit of pre-deploy
-  // HTML cannot pass content-only checks that were also true on the old snapshot.
-  const deployedSha = readMeta(html, 'nvx-deploy-sha');
-  if (!deployedSha) {
-    findings.push(`${pagePath}: missing meta nvx-deploy-sha (stale full-page cache or theme head not executing)`);
-  } else if (expectedSha && deployedSha !== expectedSha) {
-    findings.push(`${pagePath}: served SHA ${deployedSha} instead of ${expectedSha}`);
-  }
+  const shaError = assertHtmlDeploySha(html, { expectedSha, pagePath });
+  if (shaError) findings.push(shaError);
   console.log(`CHECK page ${pagePath} status=${response.status} attempts=${attempt}`);
 }
 

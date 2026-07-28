@@ -5,7 +5,8 @@
 | Script | Purpose |
 |--------|---------|
 | `deploy-to-prod.sh` | Guard siteurl, backup prod, rsync theme from staging, copy form MU plugins only, strip `nvx-*.min.css`, purge cache |
-| `flush-prod-cache.sh` | Flush WordPress object cache |
+| `flush-prod-cache.sh` | Flush WordPress object cache (delegates to shared purge) |
+| `nvx-purge-wp-caches.sh` | Shared WP + SiteGround Dynamic/memcached/disk/opcache purge used by staging2 and production |
 
 Deployment workflows are intentionally absent from GitHub. Use this guarded
 host-level production path only after staging2 has been validated (see

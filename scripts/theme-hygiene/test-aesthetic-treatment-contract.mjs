@@ -45,10 +45,25 @@ for (const marker of [
   }
 }
 
-// Fail-closed default: entries must declare review_status (not rely on matcher omit→approved).
-const reviewStatusCount = (aestheticPages.match(/'pending_medical_review'|'approved_for_publication'/g) || []).length;
-if (reviewStatusCount < 4) {
-  failures.push(`expected at least 4 explicit review_status values in catalogue, found ${reviewStatusCount}`);
+// Fail-closed: every catalogue entry must declare an explicit trailing review_status.
+// Do not rely on nvx_match_catalog_page's omit→approved default.
+if (!/'review_status'\s*=>\s*\$review_status/.test(aestheticPages)) {
+  failures.push("nvx_aesthetic_treatment_entry must store 'review_status' => $review_status");
+}
+const catalogEntryStarts = [...aestheticPages.matchAll(/'([a-z0-9_]+)'\s*=>\s*nvx_aesthetic_treatment_entry\s*\(/g)];
+if (catalogEntryStarts.length === 0) {
+  failures.push('no nvx_aesthetic_treatment_entry catalogue items found');
+}
+for (let i = 0; i < catalogEntryStarts.length; i += 1) {
+  const key = catalogEntryStarts[i][1];
+  const start = catalogEntryStarts[i].index;
+  const end = i + 1 < catalogEntryStarts.length
+    ? catalogEntryStarts[i + 1].index
+    : aestheticPages.indexOf('function nvx_aesthetic_treatment_is_renderable');
+  const slice = aestheticPages.slice(start, end > start ? end : aestheticPages.length);
+  if (!/'(?:pending_medical_review|approved_for_publication)'\s*\n\s*\)\s*,/.test(slice)) {
+    failures.push(`catalogue entry '${key}' missing explicit trailing review_status (pending_medical_review|approved_for_publication)`);
+  }
 }
 
 // Dead staging page IDs must not reappear.
@@ -104,4 +119,4 @@ if (failures.length) {
 }
 
 console.log('Aesthetic treatment contract OK');
-console.log(`  slugs=${EXPECTED_SLUGS.length} keys=${EXPECTED_KEYS.length} review_status_tokens>=4`);
+console.log(`  slugs=${EXPECTED_SLUGS.length} keys=${EXPECTED_KEYS.length} catalog_entries=${catalogEntryStarts.length}`);

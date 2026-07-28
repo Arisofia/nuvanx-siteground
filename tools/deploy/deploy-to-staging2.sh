@@ -37,27 +37,10 @@ fail() {
   return 1
 }
 
+NVX_TOOLS_DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 purge_staging2_caches() {
-  (
-    cd "$WP_ROOT"
-    # WordPress object cache + SiteGround Optimizer (dynamic + memcached variants).
-    wp cache flush || true
-    wp sg purge || true
-    wp sg purge dynamic || true
-    wp sg purge memcached || true
-    # Physical HTML / asset caches left behind when SG Dynamic Cache orphans files.
-    rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
-    rm -rf wp-content/cache/sgo-cache 2>/dev/null || true
-    rm -rf wp-content/cache/supercache 2>/dev/null || true
-    rm -rf wp-content/cache/sg-cachepress 2>/dev/null || true
-    rm -rf wp-content/cache/* 2>/dev/null || true
-    # Combined/minified asset leftovers that can keep pre-deploy CSS/JS alive.
-    find wp-content/uploads/siteground-optimizer-assets -mindepth 1 -maxdepth 1 \
-      \( -name 'siteground-optimizer-combined-*' -o -name '*.css' -o -name '*.js' \) \
-      -delete 2>/dev/null || true
-    wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
-    echo 'staging2_cache_purge=ok'
-  )
+  bash "$NVX_TOOLS_DEPLOY_DIR/nvx-purge-wp-caches.sh" --wp-root "$WP_ROOT" --label 'staging2_cache_purge=ok'
 }
 
 while [[ $# -gt 0 ]]; do
@@ -146,12 +129,7 @@ rollback() {
         wp db import "$BACKUP_DIR/database.sql"
       ) || echo 'ROLLBACK_WARNING: database restore failed and requires operator intervention' >&2
     fi
-    (
-      cd "$WP_ROOT"
-      wp cache flush || true
-      wp sg purge || true
-      wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
-    )
+    bash "$NVX_TOOLS_DEPLOY_DIR/nvx-purge-wp-caches.sh" --wp-root "$WP_ROOT" --label 'staging2_rollback_cache_purge=ok' || true
     echo "ROLLBACK_COMPLETE backup=$BACKUP_DIR" >&2
   fi
   exit "$exit_code"

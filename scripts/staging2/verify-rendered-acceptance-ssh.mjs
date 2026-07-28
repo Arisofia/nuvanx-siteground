@@ -23,6 +23,8 @@ if (!/^[A-Za-z0-9._-]+$/.test(sshHost)) {
 fs.mkdirSync(evidenceDir, { recursive: true });
 
 import { phasePageDefinitions, technologyPageDefinitions } from './staging2-contract-common.mjs';
+import { assertHtmlDeploySha, extractDeployShaFromHtml } from './nvx-deploy-sha.mjs';
+// extractDeployShaFromHtml keeps parseHtmlPage aligned with the shared marker rules.
 
 const commonMarkers = ['Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos', 'Tu primera valoración clínica'];
 const pages = [
@@ -284,7 +286,7 @@ function parseHtmlPage(html) {
     ogTitle: findMetaAttr(html, 'og:title'),
     ogDescription: findMetaAttr(html, 'og:description'),
     robots: findMetaAttr(html, 'robots'),
-    deploySha: findMetaAttr(html, 'nvx-deploy-sha'),
+    deploySha: extractDeployShaFromHtml(html),
     h1List: parseMultipleTagTexts(html, 'h1'),
     h2Count: parseMultipleTagTexts(html, 'h2').length,
     canonicals: findLinkHrefs(html, 'canonical'),
@@ -294,8 +296,9 @@ function parseHtmlPage(html) {
   };
 }
 
-function validatePageMetadata(page, parsed, scope) {
-  if (parsed.deploySha !== expectedSha) fail(scope, `served SHA ${parsed.deploySha || 'absent'} instead of ${expectedSha}`);
+function validatePageMetadata(page, parsed, scope, html) {
+  const shaError = assertHtmlDeploySha(html, { expectedSha, pagePath: scope });
+  if (shaError) fail(scope, shaError.replace(`${scope}: `, ''));
   if (parsed.title !== page.title) fail(scope, `title mismatch: ${JSON.stringify(parsed.title)}`);
   if (parsed.description !== page.description) fail(scope, 'meta description mismatch');
   if (parsed.ogTitle !== page.title) fail(scope, 'og:title mismatch');
@@ -318,8 +321,8 @@ function validatePageLinksAndSchema(page, parsed, scope) {
   if (!parsed.schemas.includes('Organization') && !parsed.schemas.includes('MedicalOrganization')) fail(scope, 'missing Organization or MedicalOrganization schema');
 }
 
-function validatePage(page, parsed, scope) {
-  validatePageMetadata(page, parsed, scope);
+function validatePage(page, parsed, scope, html) {
+  validatePageMetadata(page, parsed, scope, html);
   validatePageContent(page, parsed, scope);
   validatePageLinksAndSchema(page, parsed, scope);
 
@@ -349,7 +352,7 @@ for (const page of pages) {
       og_url: parsed.ogUrl,
       schema_types: parsed.schemas,
     });
-    validatePage(page, parsed, page.path);
+    validatePage(page, parsed, page.path, response.body);
   }
   report.pages.push(record);
   console.log(`CHECK origin page ${page.path} status=${response.status}`);

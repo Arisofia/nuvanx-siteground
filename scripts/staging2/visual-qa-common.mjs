@@ -1,5 +1,12 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
+import { randomInt } from 'node:crypto';
+
+export const STAGING2_BASE_URL = 'https://staging2.nuvanx.com';
+export const DEFAULT_VISUAL_QA_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36';
+export const MIN_SCREENSHOT_BYTES = 15000;
 
 export const pages = [
   ['/', 'Medicina estética con criterio médico y resultados naturales.'],
@@ -369,4 +376,253 @@ export async function auditMobileNavigation(port, loadPage, closeSession, report
     await closeSession(session);
   }
   report.navigation.mobile = result;
+}
+
+/**
+ * Resolve BASE_URL / EXPECTED_SHA / EVIDENCE_DIR for governed visual QA.
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+export function resolveVisualQaConfig(env = process.env) {
+  return {
+    baseUrl: (env.BASE_URL || STAGING2_BASE_URL).replace(/\/$/, ''),
+    expectedSha: env.EXPECTED_SHA || '',
+    evidenceDir: env.EVIDENCE_DIR || 'staging2-deployment-evidence/visual-qa',
+  };
+}
+
+/**
+ * Hard-fail when staging2 visual QA is invoked with unsafe runtime inputs.
+ * @param {{ baseUrl: string, expectedSha: string }} config
+ */
+export function assertVisualQaRuntime({ baseUrl, expectedSha }) {
+  if (baseUrl !== STAGING2_BASE_URL) {
+    console.error(`ERROR: refusing unexpected BASE_URL: ${baseUrl}`);
+    process.exit(1);
+  }
+  if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
+    console.error('ERROR: EXPECTED_SHA must be a full lowercase 40-character SHA.');
+    process.exit(1);
+  }
+  if (typeof WebSocket !== 'function') {
+    console.error('ERROR: Node.js WebSocket support is required.');
+    process.exit(1);
+  }
+}
+
+/**
+ * @param {{ baseUrl: string, expectedSha: string }} config
+ */
+export function createVisualQaReport({ baseUrl, expectedSha }) {
+  const findings = [];
+  const report = {
+    base_url: baseUrl,
+    expected_sha: expectedSha,
+    generated_at: new Date().toISOString(),
+    chrome: '',
+    pages: [],
+    navigation: {},
+    findings,
+  };
+  const fail = (scope, message) => findings.push(`${scope}: ${message}`);
+  return { report, findings, fail };
+}
+
+/**
+ * Wait until the deploy SHA meta tag and sole H1 match the governed contract.
+ * @param {CDPSession} session
+ * @param {string} expectedSha
+ * @param {string} expectedH1
+ */
+export async function waitForGovernedPage(session, expectedSha, expectedH1) {
+  let lastState = null;
+  for (let attempt = 1; attempt <= 36; attempt += 1) {
+    lastState = await session.evaluate(String.raw`(() => ({
+      readyState: document.readyState,
+      deploySha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',
+      h1: Array.from(document.querySelectorAll('h1')).map((node) => node.textContent.trim()),
+      text: (document.body?.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 240),
+    }))()`);
+    if (
+      lastState.deploySha === expectedSha
+      && lastState.h1.length === 1
+      && lastState.h1[0] === expectedH1
+    ) {
+      return lastState;
+    }
+    if (attempt === 12 || attempt === 24) {
+      await session.send('Page.reload', { ignoreCache: true });
+    }
+    await sleep(500);
+  }
+  throw new Error(
+    `governed page did not become ready; sha=${lastState?.deploySha || 'absent'} h1=${JSON.stringify(lastState?.h1 || [])} body=${lastState?.text || 'empty'}`,
+  );
+}
+
+/**
+ * Build a loadPage(port, url, viewport, expectedH1) that enforces deploy SHA + H1.
+ * @param {{ userAgent?: string, expectedSha: string }} options
+ */
+export function createGovernedLoadPage({
+  userAgent = DEFAULT_VISUAL_QA_USER_AGENT,
+  expectedSha,
+}) {
+  return async function loadPage(port, url, viewport, expectedH1) {
+    const target = await createTarget(port);
+    const session = new CDPSession(target.webSocketDebuggerUrl);
+    await session.connect();
+    await session.send('Page.enable');
+    await session.send('Runtime.enable');
+    await session.send('Network.enable');
+    await session.send('Network.setUserAgentOverride', {
+      userAgent,
+      acceptLanguage: 'es-ES,es;q=0.9,en;q=0.7',
+      platform: viewport.mobile ? 'Android' : 'Windows',
+    });
+    await session.send('Emulation.setDeviceMetricsOverride', {
+      width: viewport.width,
+      height: viewport.height,
+      deviceScaleFactor: 1,
+      mobile: viewport.mobile,
+      screenWidth: viewport.width,
+      screenHeight: viewport.height,
+    });
+    const navigation = await session.send('Page.navigate', { url });
+    if (navigation.errorText) {
+      throw new Error(`Navigation failed: ${navigation.errorText}`);
+    }
+    await waitForGovernedPage(session, expectedSha, expectedH1);
+    await session.evaluate(`new Promise((resolve) => {
+      const finish = () => setTimeout(resolve, 500);
+      if (document.fonts?.ready) document.fonts.ready.then(finish, finish); else finish();
+    })`);
+    return session;
+  };
+}
+
+/**
+ * Record layout/content findings for one governed page × viewport capture.
+ * @param {Record<string, any>} result
+ * @param {{ scope: string, expectedSha: string, expectedH1: string, fail: Function }} ctx
+ */
+export function recordGovernedViewportFindings(result, { scope, expectedSha, expectedH1, fail }) {
+  if (result.forbidden) fail(scope, 'rendered a 403 Forbidden page');
+  if (result.deploySha !== expectedSha) {
+    fail(scope, `served SHA ${result.deploySha || 'absent'} instead of ${expectedSha}`);
+  }
+  if (result.h1.length !== 1 || result.h1[0] !== expectedH1) {
+    fail(scope, `H1 mismatch: ${JSON.stringify(result.h1)}`);
+  }
+  if (result.overflow > 2) fail(scope, `horizontal overflow is ${result.overflow}px`);
+  if (!result.headerVisible) fail(scope, 'header is not visible');
+  if (!result.footerVisible) fail(scope, 'footer is not visible');
+}
+
+/**
+ * Audit one page/viewport pair: load, assert, screenshot, push to report.pages.
+ */
+export async function auditGovernedViewport({
+  port,
+  pagePath,
+  expectedH1,
+  viewport,
+  loadPage,
+  baseUrl,
+  expectedSha,
+  evidenceDir,
+  fail,
+  report,
+}) {
+  const scope = `${pagePath} ${viewport.name}`;
+  const result = { path: pagePath, viewport: viewport.name };
+  let session;
+  try {
+    session = await loadPage(port, `${baseUrl}${pagePath}`, viewport, expectedH1);
+    Object.assign(result, await pageState(session));
+    recordGovernedViewportFindings(result, { scope, expectedSha, expectedH1, fail });
+    const destination = path.join(evidenceDir, `${safeName(pagePath)}-${viewport.name}.png`);
+    await captureFullPage(session, destination, viewport);
+    result.screenshot = path.basename(destination);
+    result.screenshot_bytes = fs.statSync(destination).size;
+    if (result.screenshot_bytes < MIN_SCREENSHOT_BYTES) {
+      fail(scope, `screenshot is unexpectedly small (${result.screenshot_bytes} bytes)`);
+    }
+  } catch (error) {
+    fail(scope, error instanceof Error ? error.message : String(error));
+  } finally {
+    await closeSession(session);
+  }
+  report.pages.push(result);
+}
+
+/** Walk the full pages × viewports matrix. */
+export async function auditGovernedPages({
+  port,
+  loadPage,
+  baseUrl,
+  expectedSha,
+  evidenceDir,
+  fail,
+  report,
+}) {
+  for (const [pagePath, expectedH1] of pages) {
+    for (const viewport of viewports) {
+      await auditGovernedViewport({
+        port,
+        pagePath,
+        expectedH1,
+        viewport,
+        loadPage,
+        baseUrl,
+        expectedSha,
+        evidenceDir,
+        fail,
+        report,
+      });
+    }
+  }
+}
+
+/**
+ * Launch headless Chrome, run the audit callback, and always clean up.
+ * @param {(port: number) => Promise<void>} callback
+ * @returns {Promise<{ chromePath: string, runtimeError: string|null }>}
+ */
+export async function withHeadlessChrome(callback) {
+  const chromePath = locateChrome();
+  const port = randomInt(9300, 9800);
+  const profileDir = fs.mkdtempSync(path.join(os.tmpdir(), 'nvx-chrome-'));
+  const chrome = spawn(chromePath, [
+    '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
+    '--no-first-run', '--no-default-browser-check', '--hide-scrollbars',
+    `--remote-debugging-port=${port}`, `--user-data-dir=${profileDir}`, 'about:blank',
+  ], { stdio: ['ignore', 'ignore', 'ignore'] });
+
+  let runtimeError = null;
+  try {
+    await waitForChrome(port);
+    await callback(port);
+  } catch (error) {
+    runtimeError = error instanceof Error ? error.message : String(error);
+  } finally {
+    chrome.kill('SIGTERM');
+    await sleep(250);
+    fs.rmSync(profileDir, { recursive: true, force: true });
+  }
+  return { chromePath, runtimeError };
+}
+
+export function writeVisualQaReport(evidenceDir, report) {
+  fs.writeFileSync(path.join(evidenceDir, 'report.json'), JSON.stringify(report, null, 2));
+}
+
+export function exitVisualQa(report, findings, expectedSha) {
+  if (findings.length) {
+    console.error(`VISUAL_QA_FAILED findings=${findings.length}`);
+    for (const finding of findings) console.error(`- ${finding}`);
+    process.exit(1);
+  }
+  console.log(
+    `VISUAL_QA_OK pages=${report.pages.length} screenshots=${report.pages.length + 2} sha=${expectedSha}`,
+  );
 }

@@ -1,0 +1,214 @@
+name: Apply verified hero review fixes once
+
+on:
+  push:
+    branches:
+      - fix/address-hero-review-comments-20260728
+    paths:
+      - '.github/workflows/address-hero-review-comments-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout review branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/address-hero-review-comments-20260728
+          fetch-depth: 0
+
+      - name: Apply minimal verified fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              target = Path(path)
+              source = target.read_text(encoding='utf-8')
+              if old not in source:
+                  raise SystemExit(f'Expected block missing in {path}')
+              target.write_text(source.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'wp-content/themes/nuvanx-medical/front-page.php',
+              '''        <figure class="nvx-home-hero__media" aria-hidden="true">
+              <video class="nvx-home-hero__video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_art_url ); ?>">
+                  <source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
+                  <img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async">
+              </video>
+          </figure>''',
+              '''        <div class="nvx-home-hero__media">
+              <figure class="nvx-home-hero__visual" aria-hidden="true">
+                  <video id="nvx-home-hero-video" class="nvx-home-hero__video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_art_url ); ?>">
+                      <source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
+                      <img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async">
+                  </video>
+              </figure>
+              <button
+                  type="button"
+                  class="nvx-home-hero__motion-toggle"
+                  data-nvx-home-video-toggle
+                  aria-controls="nvx-home-hero-video"
+                  aria-pressed="true"
+                  aria-label="Pausar vídeo de portada">
+                  <span data-nvx-home-video-label>Pausar vídeo</span>
+              </button>
+          </div>'''
+          )
+
+          replace_once(
+              'wp-content/themes/nuvanx-medical/assets/js/nvx-home-hero-video.js',
+              '''    const video = document.querySelector('.nvx-home-hero__video');
+              const media = video?.closest('.nvx-home-hero__media');
+
+              if (!(video instanceof HTMLVideoElement) || !(media instanceof HTMLElement)) {
+                return;
+              }
+
+              media.removeAttribute('aria-hidden');
+              if (!video.id) {
+                video.id = 'nvx-home-hero-video';
+              }
+              video.setAttribute('aria-label', 'Vídeo de portada NUVANX');
+
+              let toggle = media.querySelector('[data-nvx-home-video-toggle]');
+              if (!(toggle instanceof HTMLButtonElement)) {
+                toggle = document.createElement('button');
+                toggle.type = 'button';
+                toggle.className = 'nvx-home-hero__motion-toggle';
+                toggle.setAttribute('data-nvx-home-video-toggle', '');
+                toggle.setAttribute('aria-controls', video.id);
+                toggle.innerHTML = '<span data-nvx-home-video-label></span>';
+                media.append(toggle);
+              }
+
+              const label = toggle.querySelector('[data-nvx-home-video-label]');
+              if (!(label instanceof HTMLElement)) {
+                return;
+              }''',
+              '''    const video = document.querySelector('.nvx-home-hero__video');
+              const toggle = document.querySelector('[data-nvx-home-video-toggle]');
+              const label = toggle?.querySelector('[data-nvx-home-video-label]');
+
+              if (
+                !(video instanceof HTMLVideoElement)
+                || !(toggle instanceof HTMLButtonElement)
+                || !(label instanceof HTMLElement)
+              ) {
+                return;
+              }
+
+              if (!video.id) {
+                video.id = 'nvx-home-hero-video';
+              }
+              toggle.setAttribute('aria-controls', video.id);'''
+          )
+
+          css_path = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-home-hero-video-control.css')
+          css = css_path.read_text(encoding='utf-8')
+          visual_rule = '''
+
+          .nvx-home-v5 .nvx-home-hero__visual {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+          }
+          '''
+          anchor = '''.nvx-home-v5 .nvx-home-hero__media {
+            position: relative;
+          }
+          '''
+          if visual_rule.strip() not in css:
+              if anchor not in css:
+                  raise SystemExit('Home video CSS anchor missing')
+              css = css.replace(anchor, anchor + visual_rule, 1)
+              css_path.write_text(css, encoding='utf-8')
+
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-hero-layout-coherence.php',
+              '''
+
+          if ( ! function_exists( 'nvx_hero_layout_coherence_enqueue_assets' ) ) {
+              function nvx_hero_layout_coherence_enqueue_assets(): void {
+                  nvxHeroLayoutCoherenceEnqueueAssets();
+              }
+          }
+          ''',
+              '\n'
+          )
+
+          test_path = Path('scripts/theme-hygiene/test-hero-layout-contract.mjs')
+          test = test_path.read_text(encoding='utf-8')
+          old_detector = '''const equipoDetectorStart = equipoPage.indexOf('function nvx_content_is_equipo_page');
+          const equipoDetectorEnd = equipoPage.indexOf('\\n/**\\n * Hero.', equipoDetectorStart);
+          const equipoDetector = equipoDetectorStart >= 0 && equipoDetectorEnd > equipoDetectorStart
+            ? equipoPage.slice(equipoDetectorStart, equipoDetectorEnd)
+            : '';'''
+          new_detector = '''const extractFunctionBody = (source, functionName) => {
+            const signatureIndex = source.indexOf(`function ${functionName}`);
+            const openingBrace = signatureIndex >= 0 ? source.indexOf('{', signatureIndex) : -1;
+            if (openingBrace < 0) return '';
+
+            let depth = 0;
+            for (let index = openingBrace; index < source.length; index += 1) {
+              if (source[index] === '{') depth += 1;
+              if (source[index] === '}') depth -= 1;
+              if (depth === 0) return source.slice(signatureIndex, index + 1);
+            }
+            return '';
+          };
+
+          const equipoDetector = extractFunctionBody(equipoPage, 'nvx_content_is_equipo_page');'''
+          if old_detector not in test:
+              raise SystemExit('Brittle Equipo detector block missing')
+          test = test.replace(old_detector, new_detector, 1)
+
+          module_marker = "requireText('layout module', moduleSource, \"'nvx-home-structure'\");"
+          module_assertion = "\nforbidText('layout module', moduleSource, 'nvx_hero_layout_coherence_enqueue_assets');"
+          if module_assertion.strip() not in test:
+              if module_marker not in test:
+                  raise SystemExit('Module assertion anchor missing')
+              test = test.replace(module_marker, module_marker + module_assertion, 1)
+
+          front_marker = "  'poster=\"<?php echo esc_url( $hero_art_url ); ?>\"',\n]) requireText('Home video markup', frontPage, marker);"
+          front_replacement = "  'poster=\"<?php echo esc_url( $hero_art_url ); ?>\"',\n  'class=\"nvx-home-hero__visual\" aria-hidden=\"true\"',\n  'data-nvx-home-video-toggle',\n  'data-nvx-home-video-label',\n  'aria-controls=\"nvx-home-hero-video\"',\n]) requireText('Home video markup', frontPage, marker);"
+          if front_marker not in test:
+              raise SystemExit('Front-page contract anchor missing')
+          test = test.replace(front_marker, front_replacement, 1)
+
+          js_anchor = "for (const marker of [\n  \"window.matchMedia('(prefers-reduced-motion: reduce)'\)\",".replace('\\)', ')')
+          # Add explicit prohibitions near the existing JS contract without changing its markers.
+          js_block_end = "]) requireText('Home video control JS', videoControlJs, marker);"
+          js_forbids = "\nforbidText('Home video control JS', videoControlJs, \"document.createElement('button')\");\nforbidText('Home video control JS', videoControlJs, \"media.removeAttribute('aria-hidden')\");"
+          if js_forbids.strip() not in test:
+              if js_block_end not in test:
+                  raise SystemExit('JS contract anchor missing')
+              test = test.replace(js_block_end, js_block_end + js_forbids, 1)
+
+          test_path.write_text(test, encoding='utf-8')
+          PY
+
+      - name: Validate patched contracts
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/front-page.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-hero-layout-coherence.php
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-home-hero-video.js
+          node --check scripts/theme-hygiene/test-hero-layout-contract.mjs
+          node scripts/theme-hygiene/test-hero-layout-contract.mjs
+          git diff --check
+
+      - name: Commit verified review fixes
+        run: |
+          set -euo pipefail
+          rm .github/workflows/address-hero-review-comments-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(review): address remaining hero review findings'
+          git push origin HEAD:fix/address-hero-review-comments-20260728

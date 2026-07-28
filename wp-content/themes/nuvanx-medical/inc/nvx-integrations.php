@@ -196,7 +196,7 @@ function nvx_theme_normalize_public_document( string $html ): string {
     // (e.g. BlogPosting + dangling #medicalclinic on science posts).
     if ( false !== stripos( $html, 'ld+json' ) ) {
         $normalized = preg_replace_callback(
-            '/<script\b[^>]*type=["\']application\/ld\+json["\'][^>]*>[\s\S]*?<\/script>/iu',
+            '/<script\b(?=[^>]*(?:\s|^)type=(?:["\']application\/ld\+json["\']|application\/ld\+json\b))[^>]*>[\s\S]*?<\/script>/iu',
             static function ( array $match ): string {
                 $script = $match[0];
                 if ( false !== stripos( $script, 'yoast-schema-graph' ) ) {

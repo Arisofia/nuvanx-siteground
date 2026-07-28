@@ -33,12 +33,12 @@ const smokeSh = fs.readFileSync(path.join(root, 'scripts/staging2/smoke-verify-s
 const smokeExternal = fs.readFileSync(path.join(root, 'scripts/staging2/smoke-verify-external.mjs'), 'utf8');
 
 for (const marker of [
-  'function nvx_aesthetic_treatment_is_renderable(',
-  'function nvx_aesthetic_treatment_catalog_for_render(',
-  "nvx_register_catalog_content_filter( 'nvx_aesthetic_treatment_catalog_for_render', 80 )",
+  'function nvxAestheticTreatmentIsRenderable(',
+  'function nvxAestheticTreatmentCatalogForRender(',
+  "nvx_register_catalog_content_filter( 'nvxAestheticTreatmentCatalogForRender', 80 )",
   "'pending_medical_review'",
-  'nvx_aesthetic_treatment_meta_field( \'seo_title\'',
-  'function nvx_aesthetic_treatment_seed_sync_meta(',
+  "nvx_aesthetic_treatment_meta_field( 'seo_title'",
+  'function nvxAestheticTreatmentSeedSyncMeta(',
 ]) {
   if (!aestheticPages.includes(marker)) {
     failures.push(`aesthetic treatment pages missing gate marker: ${marker}`);
@@ -47,28 +47,32 @@ for (const marker of [
 
 // Fail-closed: every catalogue entry must declare an explicit trailing review_status.
 // Do not rely on nvx_match_catalog_page's omit→approved default.
-if (!/'review_status'\s*=>\s*\$review_status/.test(aestheticPages)) {
+const reviewStatusField = String.raw`'review_status'\s*=>\s*\$review_status`;
+if (!new RegExp(reviewStatusField).test(aestheticPages)) {
   failures.push("nvx_aesthetic_treatment_entry must store 'review_status' => $review_status");
 }
-const catalogEntryStarts = [...aestheticPages.matchAll(/'([a-z0-9_]+)'\s*=>\s*nvx_aesthetic_treatment_entry\s*\(/g)];
+const entryStartPattern = String.raw`'([a-z0-9_]+)'\s*=>\s*nvx_aesthetic_treatment_entry\s*\(`;
+const catalogEntryStarts = [...aestheticPages.matchAll(new RegExp(entryStartPattern, 'g'))];
 if (catalogEntryStarts.length === 0) {
   failures.push('no nvx_aesthetic_treatment_entry catalogue items found');
 }
+const trailingStatus = String.raw`'(?:pending_medical_review|approved_for_publication)'\s*\n\s*\)\s*,`;
+const trailingStatusRe = new RegExp(trailingStatus);
 for (let i = 0; i < catalogEntryStarts.length; i += 1) {
   const key = catalogEntryStarts[i][1];
   const start = catalogEntryStarts[i].index;
   const end = i + 1 < catalogEntryStarts.length
     ? catalogEntryStarts[i + 1].index
-    : aestheticPages.indexOf('function nvx_aesthetic_treatment_is_renderable');
+    : aestheticPages.indexOf('function nvxAestheticTreatmentIsRenderable');
   const slice = aestheticPages.slice(start, end > start ? end : aestheticPages.length);
-  if (!/'(?:pending_medical_review|approved_for_publication)'\s*\n\s*\)\s*,/.test(slice)) {
+  if (!trailingStatusRe.test(slice)) {
     failures.push(`catalogue entry '${key}' missing explicit trailing review_status (pending_medical_review|approved_for_publication)`);
   }
 }
 
 // Dead staging page IDs must not reappear.
 for (const deadId of ['3318', '3319', '3320', '3321']) {
-  if (new RegExp(`\\b${deadId}\\b`).test(aestheticPages)) {
+  if (new RegExp(String.raw`\b${deadId}\b`).test(aestheticPages)) {
     failures.push(`aesthetic catalogue still hardcodes dead page_id ${deadId}`);
   }
 }

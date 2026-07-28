@@ -229,7 +229,7 @@ function nvx_schema_price_string( $amount ) {
  * }
  */
 function nvx_schema_page_registry() {
-    return array(
+    $registry = array(
         'clinics'    => array(
             'chamberi' => array(
                 'id'   => 1543,
@@ -291,30 +291,27 @@ function nvx_schema_page_registry() {
                 'path'   => '/btl-exilite-ipl-madrid/',
                 'schema' => 'Service',
             ),
-            // Facial injectables: path authoritative. MedicalProcedure graph is
-            // owned by nvx-aesthetic-treatment-schema.php (not laser/BTL builders).
-            'lips_ha'            => array(
-                'id'     => 0,
-                'path'   => '/labios-acido-hialuronico-madrid/',
-                'schema' => 'MedicalProcedure',
-            ),
-            'rhinomodeling_ha'   => array(
-                'id'     => 0,
-                'path'   => '/rinomodelacion-sin-cirugia-madrid/',
-                'schema' => 'MedicalProcedure',
-            ),
-            'tear_trough_ha'     => array(
-                'id'     => 0,
-                'path'   => '/ojeras-surco-lagrimal-madrid/',
-                'schema' => 'MedicalProcedure',
-            ),
-            'biostimulators'     => array(
-                'id'     => 0,
-                'path'   => '/bioestimuladores-colageno-madrid/',
-                'schema' => 'MedicalProcedure',
-            ),
         ),
     );
+
+    // Facial injectables: path authoritative. MedicalProcedure graph is owned by
+    // nvx-aesthetic-treatment-schema.php (not laser/BTL node builders).
+    foreach (
+        array(
+            'lips_ha'          => '/labios-acido-hialuronico-madrid/',
+            'rhinomodeling_ha' => '/rinomodelacion-sin-cirugia-madrid/',
+            'tear_trough_ha'   => '/ojeras-surco-lagrimal-madrid/',
+            'biostimulators'   => '/bioestimuladores-colageno-madrid/',
+        ) as $key => $path
+    ) {
+        $registry['treatments'][ $key ] = array(
+            'id'     => 0,
+            'path'   => $path,
+            'schema' => 'MedicalProcedure',
+        );
+    }
+
+    return $registry;
 }
 
 /**

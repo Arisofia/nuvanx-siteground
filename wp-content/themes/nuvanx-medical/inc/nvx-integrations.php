@@ -161,7 +161,80 @@ add_action(
     -999999
 );
 
-/** Normalize public document markup and remove duplicate front-page FAQ schema. */
+/** Whether an HTML fragment starts with an application/ld+json script. */
+function nvxThemeIsJsonLdScript( string $script ): bool {
+    if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
+        return false;
+    }
+
+    $processor = new WP_HTML_Tag_Processor( $script );
+    if ( ! $processor->next_tag( 'SCRIPT' ) ) {
+        return false;
+    }
+
+    $type = $processor->get_attribute( 'type' );
+    return is_string( $type ) && 'application/ld+json' === strtolower( trim( $type ) );
+}
+
+/** Whether a JSON-LD script contains Schema.org graph data. */
+function nvxThemeIsSchemaJsonLdScript( string $script ): bool {
+    return false !== stripos( $script, 'schema.org' )
+        || false !== stripos( $script, '@graph' )
+        || false !== stripos( $script, '"@type"' );
+}
+
+/**
+ * Remove non-Yoast Schema.org scripts with a bounded linear scan.
+ *
+ * @param string $html Public document HTML.
+ */
+function nvxThemeNormalizeSchemaScripts( string $html ): string {
+    $output = '';
+    $cursor = 0;
+    $length = strlen( $html );
+
+    while ( $cursor < $length ) {
+        $start = stripos( $html, '<script', $cursor );
+        if ( false === $start ) {
+            break;
+        }
+
+        $nameEnd = $start + 7;
+        $next    = $nameEnd < $length ? $html[ $nameEnd ] : '';
+        if ( '' !== $next && '>' !== $next && ! ctype_space( $next ) ) {
+            $output .= substr( $html, $cursor, $nameEnd - $cursor );
+            $cursor = $nameEnd;
+            continue;
+        }
+
+        $close = stripos( $html, '</script>', $nameEnd );
+        if ( false === $close ) {
+            break;
+        }
+
+        $end    = $close + 9;
+        $script = substr( $html, $start, $end - $start );
+        $output .= substr( $html, $cursor, $start - $cursor );
+
+        $isJsonLd = nvxThemeIsJsonLdScript( $script );
+        $isYoast  = false !== stripos( $script, 'yoast-schema-graph' );
+        $isSchema = nvxThemeIsSchemaJsonLdScript( $script );
+        if ( ! $isJsonLd || $isYoast || ! $isSchema ) {
+            $output .= $script;
+        }
+
+        $cursor = $end;
+    }
+
+    return $output . substr( $html, $cursor );
+}
+
+/**
+ * Normalize public document markup and keep a single Yoast schema.org graph.
+ *
+ * Removes non-Yoast Schema.org application/ld+json blocks (embedded BlogPosting,
+ * legacy MedicalClinic, FAQ dumps) while preserving the canonical yoast-schema-graph.
+ */
 function nvx_theme_normalize_public_document( string $html ): string {
     $html = (string) preg_replace(
         '/<meta\s+name=["\']viewport["\'][^>]*>/i',
@@ -186,25 +259,10 @@ function nvx_theme_normalize_public_document( string $html ): string {
         $html
     );
 
-    if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {
-        return $html;
+    if ( false !== stripos( $html, 'ld+json' ) ) {
+        $html = nvxThemeNormalizeSchemaScripts( $html );
     }
 
-    $normalized = preg_replace_callback(
-        '/<script\b[^>]*type=["\']application\/ld\+json["\'][^>]*>[\s\S]*?<\/script>/iu',
-        static function ( array $match ): string {
-            $script = $match[0];
-            if ( false !== stripos( $script, 'yoast-schema-graph' ) ) {
-                return $script;
-            }
-            return false !== stripos( $script, 'FAQPage' ) ? '' : $script;
-        },
-        $html
-    );
-
-    if ( is_string( $normalized ) ) {
-        $html = $normalized;
-    }
     return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
 }
 

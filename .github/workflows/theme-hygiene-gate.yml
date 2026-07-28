@@ -36,7 +36,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   hygiene:
@@ -47,12 +47,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: fix/schema-entity-graph-audit-20260728
-          fetch-depth: 0
-          persist-credentials: true
-
-      - name: Apply safe JSON-LD normalizer
-        run: python scripts/theme-hygiene/temporary-jsonld-security-refactor.py
+          persist-credentials: false
 
       - name: Lint workflow and contracts
         run: |
@@ -90,19 +85,6 @@ jobs:
 
       - name: Enforce runtime bootstrap contract
         run: node scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
-
-      - name: Publish verified normalizer
-        run: |
-          set -euo pipefail
-          rm scripts/theme-hygiene/temporary-jsonld-security-refactor.py
-          git diff --check
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add scripts/theme-hygiene/temporary-jsonld-security-refactor.py \
-                  scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs \
-                  wp-content/themes/nuvanx-medical/inc/nvx-integrations.php
-          git commit -m "fix(security): normalize JSON-LD without document regex"
-          git push origin HEAD:fix/schema-entity-graph-audit-20260728
 
       - name: Upload hygiene findings
         if: always()

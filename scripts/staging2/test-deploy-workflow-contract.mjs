@@ -52,7 +52,10 @@ for (const marker of [
   'cancel-in-progress: false', 'persist-credentials: false',
   'StrictHostKeyChecking yes', 'STAGING2_SSH_KNOWN_HOSTS',
   'git_sha must equal the selected workflow ref HEAD',
-  "ssh nvx-staging2 'BASE_URL=https://staging2.nuvanx.com bash -s'",
+  'BASE_URL=https://staging2.nuvanx.com EXPECTED_SHA=',
+  'expected_sha=$DEPLOY_SHA',
+  'scripts/staging2/nvx-deploy-sha.sh',
+  'tools/deploy/nvx-purge-wp-caches.sh',
   'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
   'scripts/staging2/capture-visual-qa.mjs',
   'scripts/staging2/visual-qa-edge-preload.mjs',
@@ -82,7 +85,41 @@ for (const marker of [
   'nvx legacy-routes apply --confirm=retire-legacy-routes',
   'nvx legacy-routes audit',
   'SMOKE_VERIFY_OK', 'ROLLBACK_COMPLETE', 'DEPLOY_STAGING2_OK',
+  'EXPECTED_SHA="$DEPLOY_SHA"',
+  'expected_sha=$DEPLOY_SHA',
+  'nvx-purge-wp-caches.sh',
+  'staging2_cache_purge=ok',
 ]) if (!deploy.includes(marker)) fail(`deploy script missing contract marker: ${marker}`);
+
+const purgeHelper = read('tools/deploy/nvx-purge-wp-caches.sh');
+const deployShaJs = read('scripts/staging2/nvx-deploy-sha.mjs');
+const deployShaSh = read('scripts/staging2/nvx-deploy-sha.sh');
+for (const marker of [
+  'wp sg purge dynamic',
+  'wp sg purge memcached',
+  'sgo-cache',
+  'supercache',
+  'sg-cachepress',
+  'opcache_reset',
+]) if (!purgeHelper.includes(marker)) fail(`shared purge helper missing marker: ${marker}`);
+for (const marker of [
+  'export function extractDeployShaFromHtml',
+  'export function assertHtmlDeploySha',
+  'missing meta nvx-deploy-sha',
+  'served SHA',
+]) if (!deployShaJs.includes(marker)) fail(`shared deploy-sha JS missing marker: ${marker}`);
+for (const marker of [
+  'assert_html_deploy_sha()',
+  'NVX_DEPLOY_SHA_SH_LOADED=1',
+  'missing meta nvx-deploy-sha',
+  'served SHA',
+]) if (!deployShaSh.includes(marker)) fail(`shared deploy-sha shell missing marker: ${marker}`);
+if (!smoke.includes('assert_html_deploy_sha') || !smoke.includes('nvx-deploy-sha.sh')) {
+  fail('smoke shell must load and use shared assert_html_deploy_sha');
+}
+if (!acceptance.includes("from './nvx-deploy-sha.mjs'") && !acceptance.includes('from "./nvx-deploy-sha.mjs"')) {
+  fail('rendered acceptance must import shared nvx-deploy-sha.mjs');
+}
 
 for (const marker of [
   "EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'",
@@ -117,6 +154,13 @@ for (const marker of [
   "fetch_page '/soluciones-medicas/'", "fetch_page '/protocolos-signature/'",
   "fetch_page '/remodelacion-corporal-laser-madrid/'",
   "fetch_page '/tratamiento-postparto-abdomen-contorno-corporal-madrid/'",
+  "fetch_page '/endolift-facial-papada-mandibula/'",
+  "fetch_page '/endolaser-corporal-grasa-localizada/'",
+  "fetch_page '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/'",
+  "fetch_page '/exion-btl/'",
+  "MARKER_BRAND_HERO='nvx-brand-hero'",
+  'nvx-deploy-sha',
+  'EXPECTED_SHA',
   'SMOKE_VERIFY_OK',
 ]) if (!smoke.includes(marker)) fail(`smoke script missing contract marker: ${marker}`);
 for (const slug of phaseSlugs) if (!smoke.includes(`fetch_page '/${slug}/'`)) fail(`smoke missing phase page: ${slug}`);
@@ -125,11 +169,19 @@ for (const marker of [
   "spawnSync('/usr/bin/ssh'", 'STAGING2_SSH_ALIAS', 'transport=ssh',
   'EXPECTED_SHA must be a full lowercase 40-character SHA',
   '/remodelacion-corporal-laser-madrid/', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
+  '/endolift-facial-papada-mandibula/',
+  '/endolaser-corporal-grasa-localizada/',
+  '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
+  '/exion-btl/',
+  'technologyPageDefinitions',
   'H1 mismatch:', 'parsed.canonicals.length !== 1', 'WebPage', 'Organization',
   'presupuesto muy bajo', 'no usamos descuentos estacionales', 'el estándar de oro', 'absoluta discreción',
   'report.json', 'RENDERED_ACCEPTANCE_OK',
 ]) if (!acceptance.includes(marker)) fail(`origin acceptance missing marker: ${marker}`);
 for (const slug of phaseSlugs) if (!acceptance.includes(`/${slug}/`)) fail(`origin acceptance missing phase route: ${slug}`);
+if (!common.includes('export const technologyPageDefinitions')) {
+  fail('staging2-contract-common missing technologyPageDefinitions export');
+}
 for (const forbidden of ['wp option update', 'wp post update', 'wp db import', 'DELETE ']) {
   if (acceptance.includes(forbidden)) fail(`origin acceptance contains mutating marker: ${forbidden}`);
 }

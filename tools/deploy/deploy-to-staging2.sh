@@ -37,16 +37,10 @@ fail() {
   return 1
 }
 
+NVX_TOOLS_DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 purge_staging2_caches() {
-  (
-    cd "$WP_ROOT"
-    wp cache flush || true
-    wp sg purge || true
-    rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
-    rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
-    rm -rf wp-content/cache/* 2>/dev/null || true
-    wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
-  )
+  bash "$NVX_TOOLS_DEPLOY_DIR/nvx-purge-wp-caches.sh" --wp-root "$WP_ROOT" --label 'staging2_cache_purge=ok'
 }
 
 while [[ $# -gt 0 ]]; do
@@ -135,12 +129,7 @@ rollback() {
         wp db import "$BACKUP_DIR/database.sql"
       ) || echo 'ROLLBACK_WARNING: database restore failed and requires operator intervention' >&2
     fi
-    (
-      cd "$WP_ROOT"
-      wp cache flush || true
-      wp sg purge || true
-      wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
-    )
+    bash "$NVX_TOOLS_DEPLOY_DIR/nvx-purge-wp-caches.sh" --wp-root "$WP_ROOT" --label 'staging2_rollback_cache_purge=ok' || true
     echo "ROLLBACK_COMPLETE backup=$BACKUP_DIR" >&2
   fi
   exit "$exit_code"
@@ -312,9 +301,12 @@ echo '== Purge staging2 caches after canonical route migration =='
 purge_staging2_caches
 
 echo '== Run staging2 rendered smoke verification =='
-SMOKE_OUTPUT="$(BASE_URL="$EXPECTED_URL" bash "$SMOKE_SCRIPT")"
+# Pass the exact deploy SHA so smoke fails if any URL still serves pre-deploy HTML
+# (missing or mismatched meta nvx-deploy-sha under SiteGround Dynamic Cache).
+SMOKE_OUTPUT="$(BASE_URL="$EXPECTED_URL" EXPECTED_SHA="$DEPLOY_SHA" bash "$SMOKE_SCRIPT")"
 printf '%s\n' "$SMOKE_OUTPUT"
 grep -Fq 'SMOKE_VERIFY_OK' <<<"$SMOKE_OUTPUT" || fail 'staging2 smoke verification did not emit SMOKE_VERIFY_OK'
+grep -Fq "expected_sha=$DEPLOY_SHA" <<<"$SMOKE_OUTPUT" || fail 'staging2 smoke did not verify the deployed SHA'
 
 trap - ERR
 MUTATION_STARTED=0

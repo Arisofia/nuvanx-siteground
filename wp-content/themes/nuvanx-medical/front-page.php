@@ -14,6 +14,7 @@ require_once get_template_directory() . '/inc/nvx-github-managed-page-state.php'
 nvxSyncGithubManagedPageState( (int) get_queried_object_id(), 'home' );
 
 $hero_art_url     = get_template_directory_uri() . '/assets/images/nvx-home-hero-contours.svg';
+$hero_video_url   = content_url( '/uploads/2026/06/nvx-home-video-portada-hero-12s-720p.mp4' );
 $remodelacion_url = '/remodelacion-corporal-laser-madrid/';
 
 $structure_css = 'assets/css/nvx-home-structure.css';
@@ -81,7 +82,10 @@ ob_start();
 <div id="nvx-home-v3" class="nvx-home-v4 nvx-home-v5">
     <section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
         <figure class="nvx-home-hero__media" aria-hidden="true">
-            <img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async">
+            <video class="nvx-home-hero__video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_art_url ); ?>">
+                <source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
+                <img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async">
+            </video>
         </figure>
         <div class="nvx-home-hero__copy">
             <p class="nvx-home-eyebrow">NUVANX · MEDICINA ESTÉTICA LÁSER · MADRID</p>

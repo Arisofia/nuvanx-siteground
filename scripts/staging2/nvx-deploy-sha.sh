@@ -14,6 +14,7 @@ extract_deploy_sha_from_html_file() {
     sha="$(grep -Eio '<meta[^>]+content=["'\''][a-f0-9]{40}["'\''][^>]+name=["'\'']nvx-deploy-sha["'\'']' "$body_file" 2>/dev/null | head -n 1 | grep -Eio '[a-f0-9]{40}' | head -n 1 || true)"
   fi
   printf '%s' "$sha"
+  return 0
 }
 
 # assert_html_deploy_sha <page_path> <html_file> [expected_sha]

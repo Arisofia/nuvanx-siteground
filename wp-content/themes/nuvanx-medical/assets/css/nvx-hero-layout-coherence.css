@@ -1,0 +1,161 @@
+/*
+ * NUVANX final hero-layout contract.
+ *
+ * Internal institutional, clinic, technology and contact pages keep their
+ * explanatory copy visually attached to the heading. The Home is the sole
+ * media-first exception: media/video above, editorial copy below.
+ */
+
+/* Internal pages whose lead was normalized into the adjacent intro section. */
+.nvx-site-coherent-page .nvx-canonical-page-hero + .nvx-hero-intro--coherent {
+  width: 100%;
+  margin: 0;
+  padding: 0 0 clamp(var(--nvx-space-6), 7vw, var(--nvx-space-9));
+  border: 0;
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+}
+
+.nvx-site-coherent-page .nvx-canonical-page-hero + .nvx-hero-intro--coherent .nvx-brand-section__inner {
+  width: min(100%, var(--nvx-shell));
+  max-width: var(--nvx-shell);
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-site-coherent-page .nvx-canonical-page-hero + .nvx-hero-intro--coherent .nvx-brand-readable {
+  max-width: min(100%, 52rem);
+}
+
+.nvx-site-coherent-page .nvx-canonical-page-hero + .nvx-hero-intro--coherent :where(.nvx-lead, .nvx-brand-body, p) {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  line-height: 1.65;
+  color: var(--nvx-text-on-dark-90);
+}
+
+/* Contact owns static template markup; give it the same complete hero stage. */
+.nvx-page--contact > .nvx-brand-hero {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+}
+
+.nvx-page--contact > .nvx-brand-hero > .nvx-brand-hero__inner {
+  width: min(100%, var(--nvx-shell));
+  max-width: var(--nvx-shell);
+  margin-inline: auto;
+  padding: clamp(var(--nvx-space-8), 10vw, var(--nvx-space-12)) var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-page--contact > .nvx-brand-hero .nvx-editorial-hero__copy {
+  display: grid;
+  max-width: min(100%, 58rem);
+  gap: var(--nvx-space-3);
+  align-content: center;
+}
+
+.nvx-page--contact > .nvx-brand-hero :where(.nvx-heading, h1) {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--nvx-serif);
+  font-size: clamp(2.75rem, 6vw, 5rem);
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: var(--nvx-track-h1);
+  color: var(--nvx-light);
+  text-wrap: balance;
+}
+
+.nvx-page--contact > .nvx-brand-hero .nvx-lead {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--nvx-text-on-dark-90);
+}
+
+.nvx-page--contact > .nvx-brand-hero .nvx-cta-group {
+  margin-top: var(--nvx-space-3);
+}
+
+/* Home: the sole route with media/video first and all hero copy below it. */
+.nvx-home-v5 .nvx-home-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  background: var(--nvx-surface-base);
+  overflow: hidden;
+}
+
+.nvx-home-v5 .nvx-home-hero__media {
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: clamp(28rem, 62vw, 48rem);
+  max-height: none;
+  overflow: hidden;
+  background: var(--nvx-charcoal);
+}
+
+.nvx-home-v5 .nvx-home-hero__media :where(img, video),
+.nvx-home-v5 .nvx-home-hero__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+}
+
+.nvx-home-v5 .nvx-home-hero__copy {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  width: min(calc(100% - (var(--nvx-gutter-inner) * 2)), var(--nvx-shell));
+  max-width: var(--nvx-shell);
+  min-width: 0;
+  margin-inline: auto;
+  padding: clamp(3.5rem, 7vw, 6rem) 0;
+  border-top: 1px solid var(--nvx-color-line);
+  border-right: 0;
+  background: var(--nvx-surface-base);
+  color: var(--nvx-ink);
+  box-sizing: border-box;
+}
+
+.nvx-home-v5 .nvx-home-hero__title {
+  max-width: 16ch;
+}
+
+.nvx-home-v5 .nvx-home-hero__lead {
+  max-width: 46rem;
+}
+
+@media (max-width: 48rem) {
+  .nvx-home-v5 .nvx-home-hero__media {
+    height: min(56svh, 32rem);
+  }
+
+  .nvx-home-v5 .nvx-home-hero__copy {
+    width: min(calc(100% - (var(--nvx-gutter-inner) * 2)), var(--nvx-shell));
+    padding-block: clamp(3rem, 12vw, 4.5rem);
+  }
+
+  .nvx-page--contact > .nvx-brand-hero > .nvx-brand-hero__inner {
+    padding-block: var(--nvx-space-8);
+  }
+}

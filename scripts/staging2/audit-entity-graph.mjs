@@ -86,25 +86,13 @@ async function fetchHtml(routePath) {
   const res = await fetch(url, {
     redirect: 'follow',
     headers: { 'User-Agent': 'NUVANX-Entity-Graph-Audit/1.0' },
+    signal: AbortSignal.timeout(30000),
   });
   const html = await res.text();
   return { url: res.url, status: res.status, html };
 }
 
-function analyze(route, response) {
-  const issues = [];
-  const graphs = parseGraphs(response.html);
-  const schemaGraphs = graphs.filter((g) => {
-    if (g.error) return true;
-    const blob = JSON.stringify(g.data);
-    return /schema\.org|@graph|"@type"/i.test(blob);
-  });
-
-  if (schemaGraphs.length !== 1) {
-    issues.push(`expected 1 Schema.org ld+json block, got ${schemaGraphs.length}`);
-  }
-
-  const nodes = schemaGraphs.flatMap((g) => g.nodes || []);
+function buildTypeAndIdIndex(nodes) {
   const idSet = new Set();
   const idCounts = new Map();
   const typeCounts = {};
@@ -119,16 +107,22 @@ function analyze(route, response) {
     }
   }
 
-  const dups = [...idCounts.entries()].filter(([, c]) => c > 1).map(([id]) => id);
-  if (dups.length) issues.push(`duplicate @id: ${dups.slice(0, 5).join(', ')}`);
+  return { idSet, idCounts, typeCounts };
+}
 
+function findDuplicateIds(idCounts) {
+  return [...idCounts.entries()].filter(([, c]) => c > 1).map(([id]) => id);
+}
+
+function findDanglingRefs(nodes, idSet) {
   const refs = [];
   for (const node of nodes) collectRefIds(node, refs);
-  const dangling = [...new Set(refs)].filter(
+  return [...new Set(refs)].filter(
     (id) => !idSet.has(id) && !String(id).startsWith('https://schema.org/'),
   );
-  if (dangling.length) issues.push(`dangling refs: ${dangling.slice(0, 8).join(', ')}`);
+}
 
+function checkExpectations(route, typeCounts, issues) {
   const hasOrg = (typeCounts.Organization || 0) > 0 || (typeCounts.MedicalOrganization || 0) > 0;
   if (!hasOrg) issues.push('missing Organization/MedicalOrganization');
 
@@ -152,6 +146,30 @@ function analyze(route, response) {
   if (expect.faq && (typeCounts.FAQPage || 0) < 1) {
     issues.push('expected FAQPage');
   }
+}
+
+function analyze(route, response) {
+  const issues = [];
+  const graphs = parseGraphs(response.html);
+  const schemaGraphs = graphs.filter((g) => {
+    const testContent = g.error ? g.raw : JSON.stringify(g.data);
+    return /schema\.org|@graph|"@type"/i.test(testContent);
+  });
+
+  if (schemaGraphs.length !== 1) {
+    issues.push(`expected 1 Schema.org ld+json block, got ${schemaGraphs.length}`);
+  }
+
+  const nodes = schemaGraphs.flatMap((g) => g.nodes || []);
+  const { idSet, idCounts, typeCounts } = buildTypeAndIdIndex(nodes);
+
+  const dups = findDuplicateIds(idCounts);
+  if (dups.length) issues.push(`duplicate @id: ${dups.slice(0, 5).join(', ')}`);
+
+  const dangling = findDanglingRefs(nodes, idSet);
+  if (dangling.length) issues.push(`dangling refs: ${dangling.slice(0, 8).join(', ')}`);
+
+  checkExpectations(route, typeCounts, issues);
 
   return {
     path: route.path,

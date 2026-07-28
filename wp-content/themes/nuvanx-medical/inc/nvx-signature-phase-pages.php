@@ -24,26 +24,7 @@ if ( ! defined( 'NVX_CONTOUR_ARCHITECTURE' ) ) {
  * @return array<string, array<string, mixed>>
  */
 function nvx_signature_phase_catalog_specs(): array {
-	static $specs = null;
-	if ( null !== $specs ) {
-		return $specs;
-	}
-
-	$path = __DIR__ . '/data/nvx-signature-phase-catalog.json';
-	if ( ! is_readable( $path ) ) {
-		$specs = array();
-		return $specs;
-	}
-
-	$raw = file_get_contents( $path );
-	if ( false === $raw || '' === $raw ) {
-		$specs = array();
-		return $specs;
-	}
-
-	$decoded = json_decode( $raw, true );
-	$specs   = is_array( $decoded ) ? $decoded : array();
-	return $specs;
+	return nvx_theme_load_json_catalog( 'nvx-signature-phase-catalog.json' );
 }
 
 /**
@@ -278,6 +259,9 @@ function nvx_signature_phase_seo_title( $title ) {
 	$page = nvx_signature_phase_current_metadata();
 	return is_array( $page ) ? $page['seo_title'] : $title;
 }
+add_filter( 'wpseo_title', 'nvx_signature_phase_seo_title', 90 );
+add_filter( 'wpseo_opengraph_title', 'nvx_signature_phase_seo_title', 90 );
+add_filter( 'wpseo_twitter_title', 'nvx_signature_phase_seo_title', 90 );
 
 /**
  * Supplies the governed page's SEO description when available.
@@ -289,3 +273,6 @@ function nvx_signature_phase_seo_description( $description ) {
 	$page = nvx_signature_phase_current_metadata();
 	return is_array( $page ) ? $page['seo_desc'] : $description;
 }
+add_filter( 'wpseo_metadesc', 'nvx_signature_phase_seo_description', 90 );
+add_filter( 'wpseo_opengraph_desc', 'nvx_signature_phase_seo_description', 90 );
+add_filter( 'wpseo_twitter_description', 'nvx_signature_phase_seo_description', 90 );

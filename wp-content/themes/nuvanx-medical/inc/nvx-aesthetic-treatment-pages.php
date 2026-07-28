@@ -31,10 +31,7 @@ require_once __DIR__ . '/nvx-13-point-renderer.php';
  * @return array{q:string,a:string}
  */
 function nvx_aesthetic_treatment_faq( string $question, string $answer ): array {
-	return array(
-		'q' => $question,
-		'a' => $answer,
-	);
+	return nvx_editorial_faq( $question, $answer );
 }
 
 /**

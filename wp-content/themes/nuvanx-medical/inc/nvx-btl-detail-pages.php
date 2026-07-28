@@ -39,26 +39,9 @@ function nvxBtlDetailIsSingular(): bool {
  * @return array<string, array<string, mixed>>
  */
 function nvxBtlDetailRegistrySpecs(): array {
-	static $specs = null;
-	if ( null !== $specs ) {
-		return $specs;
-	}
-
-	$path = __DIR__ . '/data/nvx-btl-detail-registry.json';
-	if ( ! is_readable( $path ) ) {
-		$specs = array();
-		return $specs;
-	}
-
-	$raw = file_get_contents( $path );
-	if ( false === $raw || '' === $raw ) {
-		$specs = array();
-		return $specs;
-	}
-
-	$decoded = json_decode( $raw, true );
-	$specs   = is_array( $decoded ) ? $decoded : array();
-	return $specs;
+	return function_exists( 'nvx_theme_load_json_catalog' )
+		? nvx_theme_load_json_catalog( 'nvx-btl-detail-registry.json' )
+		: array();
 }
 
 /**
@@ -170,7 +153,7 @@ function nvxBtlDetailRegistry(): array {
  * @return array<string, array<string, mixed>>
  */
 function nvx_btl_detail_registry(): array {
-    return nvxBtlDetailRegistry();
+	return nvxBtlDetailRegistry();
 }
 
 /**

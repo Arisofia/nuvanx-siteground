@@ -101,6 +101,33 @@ const solutionsContent = read('template-parts/content/nvx-soluciones-medicas-git
   + read('inc/data/nvx-soluciones-medicas-groups.json');
 const solutionsCss = read('assets/css/nvx-soluciones-medicas.css');
 const solutionsArt = read('assets/images/nvx-solutions-hero-architecture.svg');
+
+// Versioned clinical catalogues extracted for Sonar / maintainability.
+const clinicalJsonCatalogs = [
+  'inc/data/nvx-anatomical-zones.json',
+  'inc/data/nvx-btl-detail-registry.json',
+  'inc/data/nvx-signature-phase-catalog.json',
+  'inc/data/nvx-soluciones-medicas-groups.json',
+];
+for (const relative of clinicalJsonCatalogs) {
+  const raw = read(relative);
+  if (!raw) continue;
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed === null || typeof parsed !== 'object') {
+      fail(`clinical catalogue ${relative}: root must be object or array`);
+    }
+  } catch {
+    fail(`clinical catalogue ${relative}: invalid JSON`);
+  }
+}
+const renderer = read('inc/nvx-13-point-renderer.php');
+for (const marker of [
+  'function nvx_theme_load_json_catalog',
+  'function nvx_editorial_faq',
+]) {
+  if (!renderer.includes(marker)) fail(`13-point renderer missing shared helper: ${marker}`);
+}
 for (const marker of [
   'Por qué NUVANX. Sin retórica de marketing.', 'Responsabilidad médica y continuidad asistencial',
   'Qué incluye siempre el plan en NUVANX', 'Qué no encontrarás aquí', 'Una promoción utilizada para cambiar la indicación clínica',

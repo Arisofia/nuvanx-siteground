@@ -59,6 +59,7 @@ jobs:
           node --check scripts/theme-hygiene/test-hero-layout-contract.mjs
           node --check scripts/theme-hygiene/test-entity-graph-contract.mjs
           node --check scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
+          node --check scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs
 
       - name: Lint runtime and migration PHP
         run: |
@@ -85,6 +86,9 @@ jobs:
 
       - name: Enforce runtime bootstrap contract
         run: node scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
+
+      - name: Enforce aesthetic treatment contract
+        run: node scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs
 
       - name: Upload hygiene findings
         if: always()

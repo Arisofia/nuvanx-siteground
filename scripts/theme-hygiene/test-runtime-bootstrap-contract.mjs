@@ -157,6 +157,15 @@ for (const [source, label] of [
     failures.push(`${label} does not guard its shared staging2 environment dependency`);
   }
 }
+for (const marker of [
+  'function nvx_aesthetic_treatment_is_renderable(',
+  'function nvx_aesthetic_treatment_catalog_for_render(',
+  "nvx_register_catalog_content_filter( 'nvx_aesthetic_treatment_catalog_for_render', 80 )",
+]) {
+  if (!aestheticPages.includes(marker)) {
+    failures.push(`aesthetic publication gate marker missing: ${marker}`);
+  }
+}
 
 for (const marker of [
   'function nvx_cta_pair_markup(',

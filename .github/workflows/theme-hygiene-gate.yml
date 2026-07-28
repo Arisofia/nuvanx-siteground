@@ -91,16 +91,14 @@ jobs:
       - name: Enforce runtime bootstrap contract
         run: node scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
 
-      - name: Commit verified refactor
+      - name: Publish verified refactor
         run: |
           set -euo pipefail
-          git show HEAD^:.github/workflows/theme-hygiene-gate.yml > .github/workflows/theme-hygiene-gate.yml
           rm scripts/theme-hygiene/temporary-sonar-refactor.py
           git diff --check
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .github/workflows/theme-hygiene-gate.yml \
-                  scripts/theme-hygiene/temporary-sonar-refactor.py \
+          git add scripts/theme-hygiene/temporary-sonar-refactor.py \
                   scripts/theme-hygiene/test-entity-graph-contract.mjs \
                   scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs \
                   wp-content/themes/nuvanx-medical/inc/nvx-seo-production-readiness.php \

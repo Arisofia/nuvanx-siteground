@@ -161,7 +161,12 @@ add_action(
     -999999
 );
 
-/** Normalize public document markup and remove duplicate front-page FAQ schema. */
+/**
+ * Normalize public document markup and keep a single Yoast schema.org graph.
+ *
+ * Removes non-Yoast Schema.org application/ld+json blocks (embedded BlogPosting,
+ * legacy MedicalClinic, FAQ dumps) while preserving the canonical yoast-schema-graph.
+ */
 function nvx_theme_normalize_public_document( string $html ): string {
     $html = (string) preg_replace(
         '/<meta\s+name=["\']viewport["\'][^>]*>/i',
@@ -186,25 +191,30 @@ function nvx_theme_normalize_public_document( string $html ): string {
         $html
     );
 
-    if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {
-        return $html;
-    }
-
-    $normalized = preg_replace_callback(
-        '/<script\b[^>]*type=["\']application\/ld\+json["\'][^>]*>[\s\S]*?<\/script>/iu',
-        static function ( array $match ): string {
-            $script = $match[0];
-            if ( false !== stripos( $script, 'yoast-schema-graph' ) ) {
+    // Final head/body pass: only Yoast's yoast-schema-graph may emit Schema.org.
+    // Content filters strip embeds earlier; this catches residual head/widget/post leaks
+    // (e.g. BlogPosting + dangling #medicalclinic on science posts).
+    if ( false !== stripos( $html, 'ld+json' ) ) {
+        $normalized = preg_replace_callback(
+            '/<script\b[^>]*type=["\']application\/ld\+json["\'][^>]*>[\s\S]*?<\/script>/iu',
+            static function ( array $match ): string {
+                $script = $match[0];
+                if ( false !== stripos( $script, 'yoast-schema-graph' ) ) {
+                    return $script;
+                }
+                if ( preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $script ) ) {
+                    return '';
+                }
                 return $script;
-            }
-            return false !== stripos( $script, 'FAQPage' ) ? '' : $script;
-        },
-        $html
-    );
+            },
+            $html
+        );
 
-    if ( is_string( $normalized ) ) {
-        $html = $normalized;
+        if ( is_string( $normalized ) ) {
+            $html = $normalized;
+        }
     }
+
     return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
 }
 

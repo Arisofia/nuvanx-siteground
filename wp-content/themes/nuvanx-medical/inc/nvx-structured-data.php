@@ -1420,6 +1420,28 @@ function nvx_schema_attach_publications( array &$graph, int $page_id, array $phy
 }
 
 /**
+ * Link WebPage.mainEntity to a treatment @id when the page URL matches.
+ *
+ * @param array  $graph        Schema graph (by ref).
+ * @param string $permalink    Treatment page permalink.
+ * @param string $treatment_id Treatment node @id.
+ */
+function nvx_schema_link_webpage_main_entity( array &$graph, string $permalink, string $treatment_id ): void {
+    if ( '' === $permalink || '' === $treatment_id ) {
+        return;
+    }
+    $target = trailingslashit( $permalink );
+    foreach ( $graph as $index => $piece ) {
+        $types = isset( $piece['@type'] ) ? (array) $piece['@type'] : array();
+        $url   = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
+        if ( in_array( 'WebPage', $types, true ) && $url === $target ) {
+            $graph[ $index ]['mainEntity'] = array( '@id' => $treatment_id );
+            return;
+        }
+    }
+}
+
+/**
  * Attaches treatment and FAQ nodes to schema graph when applicable.
  */
 function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, string $org_id, ?array $physician ): void {
@@ -1430,6 +1452,9 @@ function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, strin
             $treatment['reviewedBy'] = array( '@id' => $physician['@id'] );
         }
         $graph[] = $treatment;
+        if ( ! empty( $treatment['@id'] ) && ! empty( $treatment['url'] ) ) {
+            nvx_schema_link_webpage_main_entity( $graph, (string) $treatment['url'], (string) $treatment['@id'] );
+        }
     }
 
     $faq = nvx_schema_faq_node( $page_id );

@@ -83,9 +83,17 @@ function nvx_is_retired_legacy_route_request(): bool {
 
     $request_uri  = wp_unslash( (string) $_SERVER['REQUEST_URI'] );
     $request_path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
-    $slug         = trim( $request_path, '/' );
+    $path         = trim( (string) $request_path, '/' );
+    if ( '' === $path ) {
+        return false;
+    }
 
-    return '' !== $slug && in_array( $slug, nvx_retired_legacy_route_slugs(), true );
+    // Match full path or final segment (covers edge rewrites / trailing junk).
+    $parts = explode( '/', $path );
+    $slug  = (string) end( $parts );
+
+    $retired = nvx_retired_legacy_route_slugs();
+    return in_array( $path, $retired, true ) || in_array( $slug, $retired, true );
 }
 
 /** Prevent WordPress from guessing a replacement permalink for retired routes. */
@@ -96,6 +104,9 @@ add_filter( 'redirect_canonical', 'nvx_disable_retired_legacy_route_redirect', -
 
 /**
  * Serve an explicit 410 response for retired routes before canonical redirects.
+ *
+ * Intentionally avoids loading the theme 404/page-shell stack so a regression
+ * in header/footer/schema never turns a governed 410 into an HTTP 500.
  */
 function nvx_serve_retired_legacy_route(): void {
     if ( ! nvx_is_retired_legacy_route_request() ) {
@@ -112,21 +123,24 @@ function nvx_serve_retired_legacy_route(): void {
     status_header( 410 );
     nocache_headers();
     if ( ! headers_sent() ) {
+        header( 'Content-Type: text/html; charset=UTF-8', true );
         header( 'X-Robots-Tag: noindex, nofollow', true );
         header( 'X-NUVANX-Retired-Route: 1', true );
     }
 
-    $template = get_404_template();
-    if ( is_string( $template ) && '' !== $template ) {
-        include $template;
-        exit;
-    }
+    $title   = esc_html__( 'Contenido retirado', 'nuvanx-medical' );
+    $message = esc_html__( 'Esta página ya no está disponible.', 'nuvanx-medical' );
+    $home    = esc_url( home_url( '/' ) );
+    $home_label = esc_html__( 'Volver al inicio', 'nuvanx-medical' );
 
-    wp_die(
-        esc_html__( 'Esta página ya no está disponible.', 'nuvanx-medical' ),
-        esc_html__( 'Contenido retirado', 'nuvanx-medical' ),
-        array( 'response' => 410 )
-    );
+    echo '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">';
+    echo '<meta name="robots" content="noindex,nofollow">';
+    echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    echo '<title>' . $title . '</title></head><body>';
+    echo '<main><h1>' . $title . '</h1><p>' . $message . '</p>';
+    echo '<p><a href="' . $home . '">' . $home_label . '</a></p></main>';
+    echo '</body></html>';
+    exit;
 }
 add_action( 'template_redirect', 'nvx_serve_retired_legacy_route', -1000000 );
 

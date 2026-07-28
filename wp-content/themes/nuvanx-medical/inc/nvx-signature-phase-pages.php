@@ -92,12 +92,15 @@ function nvx_signature_phase_catalog(): array {
  *     target a governed landing page.
  */
 function nvx_signature_phase_current_key(): ?string {
-	if ( ! is_page() ) {
+	if ( ! is_page() || is_404() ) {
 		return null;
 	}
 	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	if ( '' === $slug ) {
+		return null;
+	}
 	foreach ( nvx_signature_phase_catalog() as $key => $page ) {
-		if ( $page['slug'] === $slug ) {
+		if ( isset( $page['slug'] ) && $page['slug'] === $slug ) {
 			return $key;
 		}
 	}
@@ -257,7 +260,10 @@ function nvx_signature_phase_current_metadata(): ?array {
  */
 function nvx_signature_phase_seo_title( $title ) {
 	$page = nvx_signature_phase_current_metadata();
-	return is_array( $page ) ? $page['seo_title'] : $title;
+	if ( ! is_array( $page ) || empty( $page['seo_title'] ) ) {
+		return $title;
+	}
+	return (string) $page['seo_title'];
 }
 add_filter( 'wpseo_title', 'nvx_signature_phase_seo_title', 90 );
 add_filter( 'wpseo_opengraph_title', 'nvx_signature_phase_seo_title', 90 );
@@ -271,7 +277,10 @@ add_filter( 'wpseo_twitter_title', 'nvx_signature_phase_seo_title', 90 );
  */
 function nvx_signature_phase_seo_description( $description ) {
 	$page = nvx_signature_phase_current_metadata();
-	return is_array( $page ) ? $page['seo_desc'] : $description;
+	if ( ! is_array( $page ) || empty( $page['seo_desc'] ) ) {
+		return $description;
+	}
+	return (string) $page['seo_desc'];
 }
 add_filter( 'wpseo_metadesc', 'nvx_signature_phase_seo_description', 90 );
 add_filter( 'wpseo_opengraph_desc', 'nvx_signature_phase_seo_description', 90 );

@@ -102,6 +102,18 @@ done
 [[ -f "$SOURCE_THEME/inc/nvx-protocol-pages.php" ]] || fail 'source theme is missing nvx-protocol-pages.php'
 [[ -f "$SOURCE_THEME/inc/nvx-jsonld-content.php" ]] || fail 'source theme is missing nvx-jsonld-content.php'
 [[ -f "$SOURCE_THEME/inc/nvx-structured-data.php" ]] || fail 'source theme is missing nvx-structured-data.php'
+[[ -f "$SOURCE_THEME/inc/nvx-13-point-renderer.php" ]] || fail 'source theme is missing nvx-13-point-renderer.php'
+for clinical_json in \
+  nvx-anatomical-zones.json \
+  nvx-btl-detail-registry.json \
+  nvx-signature-phase-catalog.json \
+  nvx-soluciones-medicas-groups.json
+do
+  [[ -f "$SOURCE_THEME/inc/data/$clinical_json" ]] || fail "source theme is missing clinical catalogue inc/data/$clinical_json"
+  php -r '$j=json_decode(file_get_contents($argv[1]), true); if (!is_array($j)) { fwrite(STDERR, "invalid json\n"); exit(1);} ' \
+    "$SOURCE_THEME/inc/data/$clinical_json" \
+    || fail "clinical catalogue is not valid JSON: $clinical_json"
+done
 
 LIVE_THEME="$WP_ROOT/$THEME_REL"
 [[ -d "$LIVE_THEME" ]] || fail "live staging2 theme does not exist: $LIVE_THEME"

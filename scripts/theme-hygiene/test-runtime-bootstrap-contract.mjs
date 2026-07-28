@@ -158,9 +158,9 @@ for (const [source, label] of [
   }
 }
 for (const marker of [
-  'function nvx_aesthetic_treatment_is_renderable(',
-  'function nvx_aesthetic_treatment_catalog_for_render(',
-  "nvx_register_catalog_content_filter( 'nvx_aesthetic_treatment_catalog_for_render', 80 )",
+  'function nvxAestheticTreatmentIsRenderable(',
+  'function nvxAestheticTreatmentCatalogForRender(',
+  "nvx_register_catalog_content_filter( 'nvxAestheticTreatmentCatalogForRender', 80 )",
 ]) {
   if (!aestheticPages.includes(marker)) {
     failures.push(`aesthetic publication gate marker missing: ${marker}`);

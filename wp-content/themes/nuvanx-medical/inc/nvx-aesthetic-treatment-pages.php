@@ -417,34 +417,31 @@ function nvx_aesthetic_treatment_catalog(): array {
  * Production: only approved_for_publication.
  * Staging2: also previews pending_medical_review (environment is noindex).
  */
-function nvx_aesthetic_treatment_is_renderable( array $entry ): bool {
+function nvxAestheticTreatmentIsRenderable( array $entry ): bool {
 	$status = (string) ( $entry['review_status'] ?? '' );
-	if ( 'approved_for_publication' === $status ) {
-		return true;
-	}
-	return function_exists( 'nvx_environment_is_staging2' )
-		&& nvx_environment_is_staging2()
-		&& 'pending_medical_review' === $status;
+	$approved = 'approved_for_publication' === $status;
+	$staging_pending = 'pending_medical_review' === $status
+		&& function_exists( 'nvx_environment_is_staging2' )
+		&& nvx_environment_is_staging2();
+	return $approved || $staging_pending;
 }
 
 /**
  * Catalogue slice for the_content matching.
  *
- * Pending entries are promoted to approved_for_publication only inside this
- * slice so the shared matcher can inject on staging2 without changing its default.
+ * Renderable entries are forced to approved_for_publication so the shared
+ * matcher (which ignores non-approved statuses) can inject on staging2 previews.
  *
  * @return array<string, array<string, mixed>>
  */
-function nvx_aesthetic_treatment_catalog_for_render(): array {
+function nvxAestheticTreatmentCatalogForRender(): array {
 	$out = array();
 	foreach ( nvx_aesthetic_treatment_catalog() as $key => $entry ) {
-		if ( ! nvx_aesthetic_treatment_is_renderable( $entry ) ) {
+		if ( ! nvxAestheticTreatmentIsRenderable( $entry ) ) {
 			continue;
 		}
-		if ( 'pending_medical_review' === (string) ( $entry['review_status'] ?? '' ) ) {
-			$entry['review_status'] = 'approved_for_publication';
-		}
-		$out[ $key ] = $entry;
+		$entry['review_status'] = 'approved_for_publication';
+		$out[ $key ]            = $entry;
 	}
 	return $out;
 }
@@ -479,18 +476,16 @@ function nvx_aesthetic_treatment_key_from_slug( string $slug ): ?string {
  * Current treatment key only when the entry is renderable (content + SEO + schema gate).
  */
 function nvx_aesthetic_treatment_current_key(): ?string {
-	if ( is_admin() || ! is_singular( 'page' ) ) {
-		return null;
-	}
-	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	$key  = nvx_aesthetic_treatment_key_from_slug( $slug );
-	if ( null === $key ) {
-		return null;
-	}
-	$catalog = nvx_aesthetic_treatment_catalog();
-	$entry   = $catalog[ $key ] ?? null;
-	if ( ! is_array( $entry ) || ! nvx_aesthetic_treatment_is_renderable( $entry ) ) {
-		return null;
+	$key = null;
+	if ( ! is_admin() && is_singular( 'page' ) ) {
+		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+		$key  = nvx_aesthetic_treatment_key_from_slug( $slug );
+		if ( null !== $key ) {
+			$entry = nvx_aesthetic_treatment_catalog()[ $key ] ?? null;
+			if ( ! is_array( $entry ) || ! nvxAestheticTreatmentIsRenderable( $entry ) ) {
+				$key = null;
+			}
+		}
 	}
 	return $key;
 }
@@ -505,7 +500,7 @@ function nvx_aesthetic_treatment_schema_catalog(): array {
 	return nvx_aesthetic_treatment_pluck( 'schema' );
 }
 
-nvx_register_catalog_content_filter( 'nvx_aesthetic_treatment_catalog_for_render', 80 );
+nvx_register_catalog_content_filter( 'nvxAestheticTreatmentCatalogForRender', 80 );
 
 /** Canonical SEO metadata for the four pages. */
 function nvx_aesthetic_treatment_current_entry(): ?array {
@@ -558,17 +553,18 @@ add_filter( 'document_title_parts', 'nvx_aesthetic_treatment_document_title', 90
 /**
  * Soft-sync meta on an existing staging page without overwriting body or status.
  */
-function nvx_aesthetic_treatment_seed_sync_meta( int $post_id, string $key ): void {
+function nvxAestheticTreatmentSeedSyncMeta( int $post_id, string $key ): void {
 	if ( $post_id <= 0 || '' === $key ) {
 		return;
 	}
-	$existing_key = (string) get_post_meta( $post_id, '_nvx_aesthetic_treatment_key', true );
-	if ( '' === $existing_key ) {
-		update_post_meta( $post_id, '_nvx_aesthetic_treatment_key', $key );
-	}
-	$review = (string) get_post_meta( $post_id, '_nvx_medical_review_status', true );
-	if ( '' === $review ) {
-		update_post_meta( $post_id, '_nvx_medical_review_status', 'pending' );
+	$pairs = array(
+		'_nvx_aesthetic_treatment_key' => $key,
+		'_nvx_medical_review_status'   => 'pending',
+	);
+	foreach ( $pairs as $meta_key => $meta_value ) {
+		if ( '' === (string) get_post_meta( $post_id, $meta_key, true ) ) {
+			update_post_meta( $post_id, $meta_key, $meta_value );
+		}
 	}
 }
 
@@ -581,7 +577,7 @@ function nvx_aesthetic_treatment_seed_staging_pages(): void {
 	foreach ( nvx_aesthetic_treatment_catalog() as $key => $entry ) {
 		$page = get_page_by_path( $entry['slug'], OBJECT, 'page' );
 		if ( $page instanceof WP_Post ) {
-			nvx_aesthetic_treatment_seed_sync_meta( (int) $page->ID, $key );
+			nvxAestheticTreatmentSeedSyncMeta( (int) $page->ID, $key );
 			continue;
 		}
 

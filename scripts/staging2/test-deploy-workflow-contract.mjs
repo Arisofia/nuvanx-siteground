@@ -158,6 +158,7 @@ for (const marker of [
   "fetch_page '/endolaser-corporal-grasa-localizada/'",
   "fetch_page '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/'",
   "fetch_page '/exion-btl/'",
+  "MARKER_BRAND_HERO='nvx-brand-hero'",
   'nvx-deploy-sha',
   'EXPECTED_SHA',
   'SMOKE_VERIFY_OK',

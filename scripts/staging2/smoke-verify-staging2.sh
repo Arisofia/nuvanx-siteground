@@ -85,10 +85,8 @@ fetch_page() {
   status='000'
   for attempt in 1 2 3 4; do
     status="$(curl "${CURL_COMMON_ARGS[@]}" --output "$body_file" --write-out '%{http_code}' "$BASE_URL$page_path")"
-    if [[ "$status" == '200' ]]; then
-      break
-    fi
-    if [[ "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ]]; then
+    # Success, or a non-retryable status — stop. Otherwise back off and retry.
+    if [[ "$status" == '200' || ( "$status" != '202' && "$status" != '429' && ! "$status" =~ ^5[0-9][0-9]$ ) ]]; then
       break
     fi
     if [[ "$attempt" -lt 4 ]]; then
@@ -201,13 +199,14 @@ MARKER_TREATMENT_PAGE='nvx-treatment-page'
 MARKER_VALORA='Qué se valora'
 MARKER_DECIDE='Cómo se decide el plan'
 MARKER_LIMITES='Límites y cuándo derivamos'
+MARKER_BRAND_HERO='nvx-brand-hero'
 
 # Technology / laser pages historically hit by fragmented SiteGround Dynamic Cache.
 # Unique H1 fragments + brand hero class so a pre-deploy HTML snapshot cannot pass quietly.
-fetch_page '/endolift-facial-papada-mandibula/' 'nvx-endolift-h1' 'Endolift' 'papada, mandíbula y cuello' 'nvx-brand-hero'
-fetch_page '/endolaser-corporal-grasa-localizada/' 'Endoláser corporal en Madrid' 'grasa localizada y mejor contorno' 'nvx-brand-hero'
-fetch_page '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' 'Láser CO' 'textura, poros y cicatrices' 'nvx-brand-hero'
-fetch_page '/exion-btl/' 'EXION' 'BTL en Madrid' 'nvx-brand-hero'
+fetch_page '/endolift-facial-papada-mandibula/' 'nvx-endolift-h1' 'Endolift' 'papada, mandíbula y cuello' "$MARKER_BRAND_HERO"
+fetch_page '/endolaser-corporal-grasa-localizada/' 'Endoláser corporal en Madrid' 'grasa localizada y mejor contorno' "$MARKER_BRAND_HERO"
+fetch_page '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' 'Láser CO' 'textura, poros y cicatrices' "$MARKER_BRAND_HERO"
+fetch_page '/exion-btl/' 'EXION' 'BTL en Madrid' "$MARKER_BRAND_HERO"
 
 fetch_page '/papada-definicion-mandibular-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"

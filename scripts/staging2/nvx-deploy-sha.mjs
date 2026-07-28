@@ -39,7 +39,7 @@ export function extractDeployShaFromHtml(html) {
     /<meta\b[^>]*\bcontent\s*=\s*["']([a-f0-9]{40})["'][^>]*\bname\s*=\s*["']nvx-deploy-sha["'][^>]*>/i,
   ];
   for (const pattern of patterns) {
-    const match = source.match(pattern);
+    const match = pattern.exec(source);
     if (match?.[1]) {
       return match[1].toLowerCase();
     }

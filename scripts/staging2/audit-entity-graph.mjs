@@ -9,19 +9,24 @@
  * - no duplicate @id
  * - treatment routes expose Service or MedicalProcedure
  * - home / equipo expose MedicalClinic + Physician
+ * - redirects cannot silently substitute another audited route
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const evidenceDir = process.env.EVIDENCE_DIR || 'staging2-deployment-evidence/entity-graph-audit';
 
+// Clinic and physician counts are minimum thresholds, not exact inventory locks.
 const routes = [
-  { path: '/', expect: { clinics: 2, physicians: 3, catalog: true, faq: true } },
-  { path: '/equipo-medico/', expect: { clinics: 2, physicians: 3 } },
-  { path: '/clinicas-de-medicina-estetica-nuvanx/', expect: { clinics: 2 } },
-  { path: '/medicina-estetica-chamberi/', expect: { clinics: 1 } },
+  { path: '/', expect: { minClinics: 2, minPhysicians: 3, catalog: true, faq: true } },
+  { path: '/equipo-medico/', expect: { minClinics: 2, minPhysicians: 3 } },
+  { path: '/clinicas-de-medicina-estetica-nuvanx/', expect: { minClinics: 2 } },
+  { path: '/medicina-estetica-chamberi/', expect: { minClinics: 1 } },
+  {
+    path: '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
+    expect: { minClinics: 1 },
+  },
   { path: '/endolift-facial-papada-mandibula/', expect: { procedure: true, physician: true } },
   { path: '/endolaser-corporal-grasa-localizada/', expect: { procedure: true, physician: true } },
   { path: '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', expect: { procedure: true, physician: true } },
@@ -31,13 +36,13 @@ const routes = [
   { path: '/exion-fractional/', expect: { procedure: true, physician: true, faq: true } },
   { path: '/emfusion/', expect: { procedure: true, physician: true, faq: true } },
   { path: '/btl-exilite-ipl-madrid/', expect: { procedure: true, physician: true } },
-  { path: '/contacto/', expect: { clinics: 2 } },
+  { path: '/contacto/', expect: { minClinics: 2 } },
 ];
 
 function typesOf(node) {
-  const t = node?.['@type'];
-  if (Array.isArray(t)) return t;
-  return t ? [t] : [];
+  const type = node?.['@type'];
+  if (Array.isArray(type)) return type;
+  return type ? [type] : [];
 }
 
 function collectRefIds(obj, acc = []) {
@@ -51,9 +56,9 @@ function collectRefIds(obj, acc = []) {
       acc.push(obj['@id']);
       return acc;
     }
-    for (const [k, v] of Object.entries(obj)) {
-      if (k === '@id') continue;
-      collectRefIds(v, acc);
+    for (const [key, value] of Object.entries(obj)) {
+      if (key === '@id') continue;
+      collectRefIds(value, acc);
     }
   }
   return acc;
@@ -61,9 +66,9 @@ function collectRefIds(obj, acc = []) {
 
 function parseGraphs(html) {
   const graphs = [];
-  const re = /<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  const scriptPattern = /<script\b(?=[^>]*\stype\s*=\s*(?:"application\/ld\+json"|'application\/ld\+json'|application\/ld\+json(?=\s|>)))[^>]*>([\s\S]*?)<\/script>/gi;
   let match;
-  while ((match = re.exec(html)) !== null) {
+  while ((match = scriptPattern.exec(html)) !== null) {
     const raw = match[1].trim();
     try {
       const data = JSON.parse(raw);
@@ -83,13 +88,19 @@ function parseGraphs(html) {
 
 async function fetchHtml(routePath) {
   const url = `${baseUrl}${routePath}`;
-  const res = await fetch(url, {
+  const response = await fetch(url, {
     redirect: 'follow',
     headers: { 'User-Agent': 'NUVANX-Entity-Graph-Audit/1.0' },
     signal: AbortSignal.timeout(30000),
   });
-  const html = await res.text();
-  return { url: res.url, status: res.status, html };
+  const html = await response.text();
+  return { url: response.url, status: response.status, html };
+}
+
+function normalizePath(value) {
+  const pathname = /^https?:\/\//i.test(value) ? new URL(value).pathname : String(value).split('?')[0];
+  const normalized = `/${pathname.replace(/^\/+|\/+$/g, '')}/`;
+  return normalized === '//' ? '/' : normalized;
 }
 
 function buildTypeAndIdIndex(nodes) {
@@ -98,8 +109,8 @@ function buildTypeAndIdIndex(nodes) {
   const typeCounts = {};
 
   for (const node of nodes) {
-    for (const t of typesOf(node)) {
-      typeCounts[t] = (typeCounts[t] || 0) + 1;
+    for (const type of typesOf(node)) {
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
     }
     if (node['@id']) {
       idSet.add(node['@id']);
@@ -111,7 +122,7 @@ function buildTypeAndIdIndex(nodes) {
 }
 
 function findDuplicateIds(idCounts) {
-  return [...idCounts.entries()].filter(([, c]) => c > 1).map(([id]) => id);
+  return [...idCounts.entries()].filter(([, count]) => count > 1).map(([id]) => id);
 }
 
 function findDanglingRefs(nodes, idSet) {
@@ -122,23 +133,35 @@ function findDanglingRefs(nodes, idSet) {
   );
 }
 
+function checkResponse(route, response, issues) {
+  if (response.status < 200 || response.status >= 400) {
+    issues.push(`unexpected HTTP status ${response.status}`);
+  }
+
+  const expectedPath = normalizePath(route.path);
+  const finalPath = normalizePath(response.url);
+  if (finalPath !== expectedPath) {
+    issues.push(`unexpected redirect: ${expectedPath} -> ${finalPath}`);
+  }
+}
+
 function checkExpectations(route, typeCounts, issues) {
   const hasOrg = (typeCounts.Organization || 0) > 0 || (typeCounts.MedicalOrganization || 0) > 0;
   if (!hasOrg) issues.push('missing Organization/MedicalOrganization');
 
   const expect = route.expect || {};
-  if (expect.clinics != null && (typeCounts.MedicalClinic || 0) < expect.clinics) {
-    issues.push(`expected >=${expect.clinics} MedicalClinic, got ${typeCounts.MedicalClinic || 0}`);
+  if (expect.minClinics != null && (typeCounts.MedicalClinic || 0) < expect.minClinics) {
+    issues.push(`expected >=${expect.minClinics} MedicalClinic, got ${typeCounts.MedicalClinic || 0}`);
   }
-  if (expect.physicians != null && (typeCounts.Physician || 0) < expect.physicians) {
-    issues.push(`expected >=${expect.physicians} Physician, got ${typeCounts.Physician || 0}`);
+  if (expect.minPhysicians != null && (typeCounts.Physician || 0) < expect.minPhysicians) {
+    issues.push(`expected >=${expect.minPhysicians} Physician, got ${typeCounts.Physician || 0}`);
   }
   if (expect.physician && (typeCounts.Physician || 0) < 1) {
     issues.push('expected Physician');
   }
   if (expect.procedure) {
-    const proc = (typeCounts.MedicalProcedure || 0) + (typeCounts.Service || 0);
-    if (proc < 1) issues.push('expected MedicalProcedure or Service');
+    const procedures = (typeCounts.MedicalProcedure || 0) + (typeCounts.Service || 0);
+    if (procedures < 1) issues.push('expected MedicalProcedure or Service');
   }
   if (expect.catalog && (typeCounts.OfferCatalog || 0) < 1) {
     issues.push('expected OfferCatalog on home');
@@ -150,9 +173,11 @@ function checkExpectations(route, typeCounts, issues) {
 
 function analyze(route, response) {
   const issues = [];
+  checkResponse(route, response, issues);
+
   const graphs = parseGraphs(response.html);
-  const schemaGraphs = graphs.filter((g) => {
-    const testContent = g.error ? g.raw : JSON.stringify(g.data);
+  const schemaGraphs = graphs.filter((graph) => {
+    const testContent = graph.error ? graph.raw : JSON.stringify(graph.data);
     return /schema\.org|@graph|"@type"/i.test(testContent);
   });
 
@@ -160,14 +185,14 @@ function analyze(route, response) {
     issues.push(`expected 1 Schema.org ld+json block, got ${schemaGraphs.length}`);
   }
 
-  const nodes = schemaGraphs.flatMap((g) => g.nodes || []);
+  const nodes = schemaGraphs.flatMap((graph) => graph.nodes || []);
   const { idSet, idCounts, typeCounts } = buildTypeAndIdIndex(nodes);
 
-  const dups = findDuplicateIds(idCounts);
-  if (dups.length) issues.push(`duplicate @id: ${dups.slice(0, 5).join(', ')}`);
+  const duplicateIds = findDuplicateIds(idCounts);
+  if (duplicateIds.length) issues.push(`duplicate @id: ${duplicateIds.slice(0, 5).join(', ')}`);
 
-  const dangling = findDanglingRefs(nodes, idSet);
-  if (dangling.length) issues.push(`dangling refs: ${dangling.slice(0, 8).join(', ')}`);
+  const danglingRefs = findDanglingRefs(nodes, idSet);
+  if (danglingRefs.length) issues.push(`dangling refs: ${danglingRefs.slice(0, 8).join(', ')}`);
 
   checkExpectations(route, typeCounts, issues);
 
@@ -179,7 +204,7 @@ function analyze(route, response) {
     nodeCount: nodes.length,
     typeCounts,
     issues,
-    ok: issues.length === 0 && response.status >= 200 && response.status < 400,
+    ok: issues.length === 0,
   };
 }
 
@@ -190,11 +215,12 @@ async function main() {
     try {
       const response = await fetchHtml(route.path);
       results.push(analyze(route, response));
-    } catch (err) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       results.push({
         path: route.path,
         ok: false,
-        issues: [`fetch failed: ${err.message}`],
+        issues: [`fetch failed: ${message}`],
       });
     }
   }
@@ -204,8 +230,8 @@ async function main() {
     generatedAt: new Date().toISOString(),
     summary: {
       total: results.length,
-      passed: results.filter((r) => r.ok).length,
-      failed: results.filter((r) => !r.ok).length,
+      passed: results.filter((result) => result.ok).length,
+      failed: results.filter((result) => !result.ok).length,
     },
     results,
   };
@@ -215,15 +241,17 @@ async function main() {
 
   console.log(`Entity graph audit: ${report.summary.passed}/${report.summary.total} passed`);
   console.log(`Evidence: ${outPath}`);
-  for (const r of results) {
-    const mark = r.ok ? 'OK ' : 'FAIL';
-    console.log(`${mark} ${r.path}${r.issues?.length ? ' — ' + r.issues.join('; ') : ''}`);
+  for (const result of results) {
+    const mark = result.ok ? 'OK ' : 'FAIL';
+    console.log(`${mark} ${result.path}${result.issues?.length ? ` — ${result.issues.join('; ')}` : ''}`);
   }
 
   if (report.summary.failed > 0) process.exit(1);
 }
 
-main().catch((err) => {
-  console.error(err);
+try {
+  await main();
+} catch (error) {
+  console.error(error);
   process.exit(1);
-});
+}

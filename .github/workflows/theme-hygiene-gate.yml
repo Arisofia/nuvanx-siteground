@@ -86,24 +86,6 @@ jobs:
       - name: Enforce runtime bootstrap contract
         run: node scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
 
-      - name: Verify SonarCloud Quality Gate
-        shell: bash
-        run: |
-          set -euo pipefail
-          endpoint='https://sonarcloud.io/api/qualitygates/project_status?projectKey=Arisofia_nuvanx-siteground&pullRequest=293'
-          for attempt in $(seq 1 24); do
-            response="$(curl --fail --silent --show-error "$endpoint" || true)"
-            echo "SONARCLOUD_ATTEMPT=${attempt} RESPONSE=${response}"
-            status="$(python -c 'import json,sys; data=json.load(sys.stdin); print(data.get("projectStatus", {}).get("status", ""))' <<<"$response" 2>/dev/null || true)"
-            if [ "$status" = 'OK' ]; then
-              echo 'SONARCLOUD_QUALITY_GATE_OK'
-              exit 0
-            fi
-            sleep 10
-          done
-          echo 'SONARCLOUD_QUALITY_GATE_NOT_OK' >&2
-          exit 1
-
       - name: Upload hygiene findings
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4

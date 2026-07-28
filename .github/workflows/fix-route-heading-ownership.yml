@@ -21,52 +21,16 @@ jobs:
           ref: fix/hero-copy-coherence-home-video-stack-20260728
           fetch-depth: 0
 
-      - name: Apply strict route ownership patch
+      - name: Apply idempotent route ownership patch
         run: |
           set -euo pipefail
           python <<'PY'
           from pathlib import Path
+          import re
 
-          def replace_once(path, old, new):
-              p = Path(path)
-              text = p.read_text(encoding='utf-8')
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f'{path}: expected one match, found {count}')
-              p.write_text(text.replace(old, new, 1), encoding='utf-8')
-
-          equipo = 'wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php'
-          old_detector = '''function nvx_content_is_equipo_page( string $content ): bool {
-              if ( false !== strpos( $content, 'nvx-equipo-editorial' ) ) {
-                  return false;
-              }
-
-              if ( ! nvx_equipo_is_singular_context() ) {
-                  return false;
-              }
-
-              if ( is_front_page() || is_home() ) {
-                  return false;
-              }
-
-              if ( is_page( 'equipo-medico' ) ) {
-                  return true;
-              }
-
-              $path = function_exists( 'nvx_schema_current_path' )
-                  ? nvx_schema_current_path( (int) get_queried_object_id() )
-                  : '';
-
-              if ( is_string( $path ) && function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, '/equipo-medico/' ) ) {
-                  return true;
-              }
-
-              return (bool) preg_match(
-                  '/aria-label=["\\']Equipo médico NUVANX["\\']|id=["\\']nvx-equipo-h1["\\']|class=["\\'][^"\\']*nvx-equipo-hero|equipo especialista/iu',
-                  $content
-              );
-          }'''
-          new_detector = '''function nvx_content_is_equipo_page( string $content ): bool {
+          equipo_path = Path('wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php')
+          equipo = equipo_path.read_text(encoding='utf-8')
+          detector = '''function nvx_content_is_equipo_page( string $content ): bool {
               if ( false !== strpos( $content, 'nvx-equipo-editorial' ) ) {
                   return false;
               }
@@ -87,20 +51,32 @@ jobs:
                   && function_exists( 'nvx_schema_path_matches' )
                   && nvx_schema_path_matches( $path, '/equipo-medico/' );
           }'''
-          replace_once(equipo, old_detector, new_detector)
+          pattern = r"function nvx_content_is_equipo_page\( string \$content \): bool \{[\s\S]*?\n\}\n\n/\*\*\n \* Hero\."
+          replacement = detector + "\n\n/**\n * Hero."
+          equipo, count = re.subn(pattern, replacement, equipo, count=1)
+          if count != 1:
+              raise SystemExit(f'equipo detector boundary matches={count}')
+          equipo_path.write_text(equipo, encoding='utf-8')
 
-          contacto = 'wp-content/themes/nuvanx-medical/inc/nvx-contacto-audit-fixes.php'
-          replace_once(
-              contacto,
-              "        'Contacto, sedes y consulta médica'          => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',\n        'Agenda tu valoración médica'                => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya',",
-              "        'Contacto, sedes y consulta médica'          => 'Contacto NUVANX en Madrid',\n        'Agenda tu valoración médica'                => 'Contacto NUVANX en Madrid',",
+          contacto_path = Path('wp-content/themes/nuvanx-medical/inc/nvx-contacto-audit-fixes.php')
+          contacto = contacto_path.read_text(encoding='utf-8')
+          contacto = contacto.replace(
+              "'Contacto, sedes y consulta médica'          => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya'",
+              "'Contacto, sedes y consulta médica'          => 'Contacto NUVANX en Madrid'",
+          ).replace(
+              "'Agenda tu valoración médica'                => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya'",
+              "'Agenda tu valoración médica'                => 'Contacto NUVANX en Madrid'",
           )
+          if "'Agenda tu valoración médica'                => 'Contacto NUVANX en Madrid'" not in contacto:
+              raise SystemExit('contact H1 mapping was not established')
+          contacto_path.write_text(contacto, encoding='utf-8')
 
-          audit = 'scripts/staging2/audit-full-site-ui.mjs'
-          replace_once(
-              audit,
-              'const canonicalPalette = [',
-              '''const routeHeadingContracts = new Map([
+          audit_path = Path('scripts/staging2/audit-full-site-ui.mjs')
+          audit = audit_path.read_text(encoding='utf-8')
+          if 'const routeHeadingContracts = new Map([' not in audit:
+              audit = audit.replace(
+                  'const canonicalPalette = [',
+                  '''const routeHeadingContracts = new Map([
             ['/contacto/', { exact: 'Contacto NUVANX en Madrid' }],
             ['/medicina-estetica-chamberi/', { forbidden: ['Equipo médico NUVANX: quién te valora y quién trata'] }],
             ['/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/', { forbidden: ['Equipo médico NUVANX: quién te valora y quién trata'] }],
@@ -108,11 +84,15 @@ jobs:
           ]);
 
           const canonicalPalette = [''',
-          )
-          replace_once(
-              audit,
-              "  if (result.h1.length !== 1 || !result.h1[0]) fail(scope, `expected one visible H1, found ${JSON.stringify(result.h1)}`);",
-              '''  if (result.h1.length !== 1 || !result.h1[0]) fail(scope, `expected one visible H1, found ${JSON.stringify(result.h1)}`);
+                  1,
+              )
+          h1_guard = "  if (result.h1.length !== 1 || !result.h1[0]) fail(scope, `expected one visible H1, found ${JSON.stringify(result.h1)}`);"
+          if 'const headingContract = routeHeadingContracts.get(result.route);' not in audit:
+              if audit.count(h1_guard) != 1:
+                  raise SystemExit('audit H1 guard changed')
+              audit = audit.replace(
+                  h1_guard,
+                  h1_guard + '''
             const headingContract = routeHeadingContracts.get(result.route);
             if (headingContract?.exact && result.h1[0] !== headingContract.exact) {
               fail(scope, `route H1 is ${JSON.stringify(result.h1[0])} instead of ${JSON.stringify(headingContract.exact)}`);
@@ -120,26 +100,24 @@ jobs:
             if (headingContract?.forbidden?.includes(result.h1[0])) {
               fail(scope, `route inherited forbidden H1 ${JSON.stringify(result.h1[0])}`);
             }''',
-          )
-          PY
+                  1,
+              )
+          audit_path.write_text(audit, encoding='utf-8')
 
-      - name: Extend static hero contract
-        run: |
-          set -euo pipefail
-          python <<'PY'
-          from pathlib import Path
-          p = Path('scripts/theme-hygiene/test-hero-layout-contract.mjs')
-          text = p.read_text(encoding='utf-8')
-          old = "const frontPage = read('wp-content/themes/nuvanx-medical/front-page.php');"
-          new = """const frontPage = read('wp-content/themes/nuvanx-medical/front-page.php');
-          const equipoPage = read('wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php');
-          const contactoFixes = read('wp-content/themes/nuvanx-medical/inc/nvx-contacto-audit-fixes.php');
-          const fullSiteAudit = read('scripts/staging2/audit-full-site-ui.mjs');"""
-          if text.count(old) != 1:
-              raise SystemExit('hero contract source declarations changed')
-          text = text.replace(old, new, 1)
-          marker = "forbidText('hero layout CSS', layoutCss, 'grid-template-columns: minmax(28rem');"
-          addition = """
+          contract_path = Path('scripts/theme-hygiene/test-hero-layout-contract.mjs')
+          contract = contract_path.read_text(encoding='utf-8')
+          declaration = "const frontPage = read('wp-content/themes/nuvanx-medical/front-page.php');"
+          if "const equipoPage = read('wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php');" not in contract:
+              if contract.count(declaration) != 1:
+                  raise SystemExit('hero contract declaration changed')
+              contract = contract.replace(
+                  declaration,
+                  declaration + "\nconst equipoPage = read('wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php');\nconst contactoFixes = read('wp-content/themes/nuvanx-medical/inc/nvx-contacto-audit-fixes.php');\nconst fullSiteAudit = read('scripts/staging2/audit-full-site-ui.mjs');",
+                  1,
+              )
+          insertion_marker = "forbidText('hero layout CSS', layoutCss, 'grid-template-columns: minmax(28rem');"
+          if 'const equipoDetectorStart =' not in contract:
+              addition = r'''
 
           const equipoDetectorStart = equipoPage.indexOf('function nvx_content_is_equipo_page');
           const equipoDetectorEnd = equipoPage.indexOf('\n/**\n * Hero.', equipoDetectorStart);
@@ -151,29 +129,21 @@ jobs:
           forbidText('Equipo route ownership', equipoDetector, 'preg_match(');
           forbidText('Equipo route ownership', equipoDetector, 'equipo especialista');
 
-          requireText(
-            'Contacto route ownership',
-            contactoFixes,
-            "'Agenda tu valoración médica'                => 'Contacto NUVANX en Madrid'",
-          );
-          forbidText(
-            'Contacto route ownership',
-            contactoFixes,
-            "'Agenda tu valoración médica'                => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya'",
-          );
+          requireText('Contacto route ownership', contactoFixes, "'Agenda tu valoración médica'                => 'Contacto NUVANX en Madrid'");
+          forbidText('Contacto route ownership', contactoFixes, "'Agenda tu valoración médica'                => 'Clínicas NUVANX en Madrid — Chamberí y Salamanca–Goya'");
 
-          for (const marker of [
+          for (const headingMarker of [
             'const routeHeadingContracts = new Map([',
             "['/contacto/', { exact: 'Contacto NUVANX en Madrid' }]",
             "['/medicina-estetica-chamberi/', { forbidden:",
             "['/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/', { forbidden:",
             "['/medicina-estetica/', { forbidden:",
             'route inherited forbidden H1',
-          ]) requireText('rendered route heading contract', fullSiteAudit, marker);"""
-          if text.count(marker) != 1:
-              raise SystemExit('hero contract insertion marker changed')
-          text = text.replace(marker, marker + addition, 1)
-          p.write_text(text, encoding='utf-8')
+          ]) requireText('rendered route heading contract', fullSiteAudit, headingMarker);'''
+              if contract.count(insertion_marker) != 1:
+                  raise SystemExit('hero contract insertion marker changed')
+              contract = contract.replace(insertion_marker, insertion_marker + addition, 1)
+          contract_path.write_text(contract, encoding='utf-8')
           PY
 
       - name: Validate corrections
@@ -196,5 +166,8 @@ jobs:
             wp-content/themes/nuvanx-medical/inc/nvx-contacto-audit-fixes.php \
             scripts/staging2/audit-full-site-ui.mjs \
             scripts/theme-hygiene/test-hero-layout-contract.mjs
+          if git diff --cached --quiet; then
+            exit 0
+          fi
           git commit -m 'fix(headings): enforce route-specific hero ownership'
           git push origin HEAD:fix/hero-copy-coherence-home-video-stack-20260728

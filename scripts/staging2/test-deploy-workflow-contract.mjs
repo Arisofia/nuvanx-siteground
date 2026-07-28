@@ -136,11 +136,19 @@ for (const marker of [
   "spawnSync('/usr/bin/ssh'", 'STAGING2_SSH_ALIAS', 'transport=ssh',
   'EXPECTED_SHA must be a full lowercase 40-character SHA',
   '/remodelacion-corporal-laser-madrid/', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
+  '/endolift-facial-papada-mandibula/',
+  '/endolaser-corporal-grasa-localizada/',
+  '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
+  '/exion-btl/',
+  'technologyPageDefinitions',
   'H1 mismatch:', 'parsed.canonicals.length !== 1', 'WebPage', 'Organization',
   'presupuesto muy bajo', 'no usamos descuentos estacionales', 'el estándar de oro', 'absoluta discreción',
   'report.json', 'RENDERED_ACCEPTANCE_OK',
 ]) if (!acceptance.includes(marker)) fail(`origin acceptance missing marker: ${marker}`);
 for (const slug of phaseSlugs) if (!acceptance.includes(`/${slug}/`)) fail(`origin acceptance missing phase route: ${slug}`);
+if (!common.includes('export const technologyPageDefinitions')) {
+  fail('staging2-contract-common missing technologyPageDefinitions export');
+}
 for (const forbidden of ['wp option update', 'wp post update', 'wp db import', 'DELETE ']) {
   if (acceptance.includes(forbidden)) fail(`origin acceptance contains mutating marker: ${forbidden}`);
 }

@@ -23,8 +23,15 @@ wp option get siteurl
 wp theme list --status=active
 wp cache flush || true
 wp sg purge || true
+wp sg purge dynamic || true
+wp sg purge memcached || true
 rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
-rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
+rm -rf wp-content/cache/sgo-cache 2>/dev/null || true
+rm -rf wp-content/cache/supercache 2>/dev/null || true
+rm -rf wp-content/cache/sg-cachepress 2>/dev/null || true
 rm -rf wp-content/cache/* 2>/dev/null || true
+find wp-content/uploads/siteground-optimizer-assets -mindepth 1 -maxdepth 1 \
+  \( -name 'siteground-optimizer-combined-*' -o -name '*.css' -o -name '*.js' \) \
+  -delete 2>/dev/null || true
 wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
 echo "Cache flushed for $WP_ROOT"

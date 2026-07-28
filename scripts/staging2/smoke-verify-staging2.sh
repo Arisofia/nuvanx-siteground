@@ -10,6 +10,15 @@ case "$BASE_URL" in
   *) echo "ERROR: refusing unexpected BASE_URL: $BASE_URL" >&2; exit 1 ;;
 esac
 
+# Optional exact deploy marker. When set, every fetched HTML body must expose
+# meta name="nvx-deploy-sha" equal to this 40-char SHA — the cheapest detector
+# for SiteGround Dynamic Cache / orphan static HTML serving a pre-deploy theme.
+EXPECTED_SHA="${EXPECTED_SHA:-${DEPLOY_SHA:-}}"
+if [[ -n "$EXPECTED_SHA" && ! "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "ERROR: EXPECTED_SHA/DEPLOY_SHA must be a full lowercase 40-character SHA when set" >&2
+  exit 1
+fi
+
 for command_name in curl grep mktemp tr cut tail xargs sleep; do
   command -v "$command_name" >/dev/null 2>&1 || { echo "ERROR: required command unavailable: $command_name" >&2; exit 1; }
 done
@@ -73,6 +82,19 @@ fetch_page() {
   done
 
   [[ "$status" == '200' ]] || fail "$page_path returned HTTP $status after $attempt attempt(s)"
+
+  # Always require the deploy marker so a stale full-page cache cannot pass
+  # marker-only content checks that were also true on the pre-deploy HTML.
+  if ! grep -Eiq '<meta[^>]+name=["'\'']nvx-deploy-sha["'\'']' "$body_file"; then
+    fail "$page_path is missing meta nvx-deploy-sha (stale full-page cache or theme head not executing)"
+  fi
+  if [[ -n "$EXPECTED_SHA" ]]; then
+    if ! grep -Eiq "<meta[^>]+name=[\"']nvx-deploy-sha[\"'][^>]+content=[\"']${EXPECTED_SHA}[\"']|<meta[^>]+content=[\"']${EXPECTED_SHA}[\"'][^>]+name=[\"']nvx-deploy-sha[\"']" "$body_file"; then
+      served_sha="$(grep -Eio 'name=["'\'']nvx-deploy-sha["'\''][^>]*content=["'\''][a-f0-9]{40}["'\'']|content=["'\''][a-f0-9]{40}["'\''][^>]*name=["'\'']nvx-deploy-sha["'\'']' "$body_file" | head -n 1 | grep -Eio '[a-f0-9]{40}' | head -n 1 || true)"
+      fail "$page_path served SHA ${served_sha:-absent} instead of ${EXPECTED_SHA}"
+    fi
+  fi
+
   for expected_marker in "$@"; do
     grep -Fiq "$expected_marker" "$body_file" || fail "$page_path is missing marker: $expected_marker"
   done
@@ -174,10 +196,25 @@ MARKER_VALORA='Qué se valora'
 MARKER_DECIDE='Cómo se decide el plan'
 MARKER_LIMITES='Límites y cuándo derivamos'
 
+# Technology / laser pages historically hit by fragmented SiteGround Dynamic Cache.
+# Unique H1 fragments + brand hero class so a pre-deploy HTML snapshot cannot pass quietly.
+fetch_page '/endolift-facial-papada-mandibula/' 'nvx-endolift-h1' 'Endolift' 'papada, mandíbula y cuello' 'nvx-brand-hero'
+fetch_page '/endolaser-corporal-grasa-localizada/' 'Endoláser corporal en Madrid' 'grasa localizada y mejor contorno' 'nvx-brand-hero'
+fetch_page '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' 'Láser CO' 'textura, poros y cicatrices' 'nvx-brand-hero'
+fetch_page '/exion-btl/' 'EXION' 'BTL en Madrid' 'nvx-brand-hero'
+
 fetch_page '/papada-definicion-mandibular-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/calidad-piel-firmeza-luminosidad-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/cicatrices-acne-poros-textura-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' "$MARKER_TREATMENT_PAGE" "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
+
+# Facial injectables (catalog matrix; staging2 previews pending medical review).
+MARKER_INDICATIONS='Indicaciones: Qué tratamos'
+MARKER_PRECAUTIONS='Precauciones: Cuándo no tratar'
+fetch_page '/labios-acido-hialuronico-madrid/' "$MARKER_TREATMENT_PAGE" 'Ácido hialurónico en labios en Madrid' "$MARKER_INDICATIONS" "$MARKER_PRECAUTIONS"
+fetch_page '/rinomodelacion-sin-cirugia-madrid/' "$MARKER_TREATMENT_PAGE" 'Rinomodelación con ácido hialurónico en Madrid' "$MARKER_INDICATIONS" "$MARKER_PRECAUTIONS"
+fetch_page '/ojeras-surco-lagrimal-madrid/' "$MARKER_TREATMENT_PAGE" 'Tratamiento de ojeras y surco lagrimal en Madrid' "$MARKER_INDICATIONS" "$MARKER_PRECAUTIONS"
+fetch_page '/bioestimuladores-colageno-madrid/' "$MARKER_TREATMENT_PAGE" 'Bioestimuladores de colágeno en Madrid' "$MARKER_INDICATIONS" "$MARKER_PRECAUTIONS"
 fetch_page '/grasa-localizada-abdomen-flancos-madrid/' 'Grasa localizada en abdomen y flancos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/flacidez-grasa-localizada-brazos-madrid/' 'Flacidez y grasa localizada en brazos en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 fetch_page '/grasa-espalda-zona-sujetador-madrid/' 'Grasa de espalda y zona del sujetador en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
@@ -186,4 +223,8 @@ fetch_page '/tratamiento-rodillas-grasa-flacidez-madrid/' 'Grasa localizada y fl
 fetch_page '/contorno-corporal-masculino-madrid/' 'Contorno corporal masculino en Madrid' "$MARKER_VALORA" "$MARKER_DECIDE" "$MARKER_LIMITES"
 
 
-echo "SMOKE_VERIFY_OK base_url=$BASE_URL"
+if [[ -n "$EXPECTED_SHA" ]]; then
+  echo "SMOKE_VERIFY_OK base_url=$BASE_URL expected_sha=$EXPECTED_SHA"
+else
+  echo "SMOKE_VERIFY_OK base_url=$BASE_URL expected_sha=unset"
+fi

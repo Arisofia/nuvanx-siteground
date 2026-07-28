@@ -52,7 +52,8 @@ for (const marker of [
   'cancel-in-progress: false', 'persist-credentials: false',
   'StrictHostKeyChecking yes', 'STAGING2_SSH_KNOWN_HOSTS',
   'git_sha must equal the selected workflow ref HEAD',
-  "ssh nvx-staging2 'BASE_URL=https://staging2.nuvanx.com bash -s'",
+  'BASE_URL=https://staging2.nuvanx.com EXPECTED_SHA=',
+  'expected_sha=$DEPLOY_SHA',
   'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
   'scripts/staging2/capture-visual-qa.mjs',
   'scripts/staging2/visual-qa-edge-preload.mjs',
@@ -82,6 +83,10 @@ for (const marker of [
   'nvx legacy-routes apply --confirm=retire-legacy-routes',
   'nvx legacy-routes audit',
   'SMOKE_VERIFY_OK', 'ROLLBACK_COMPLETE', 'DEPLOY_STAGING2_OK',
+  'EXPECTED_SHA="$DEPLOY_SHA"',
+  'expected_sha=$DEPLOY_SHA',
+  'wp sg purge dynamic',
+  'staging2_cache_purge=ok',
 ]) if (!deploy.includes(marker)) fail(`deploy script missing contract marker: ${marker}`);
 
 for (const marker of [
@@ -117,6 +122,12 @@ for (const marker of [
   "fetch_page '/soluciones-medicas/'", "fetch_page '/protocolos-signature/'",
   "fetch_page '/remodelacion-corporal-laser-madrid/'",
   "fetch_page '/tratamiento-postparto-abdomen-contorno-corporal-madrid/'",
+  "fetch_page '/endolift-facial-papada-mandibula/'",
+  "fetch_page '/endolaser-corporal-grasa-localizada/'",
+  "fetch_page '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/'",
+  "fetch_page '/exion-btl/'",
+  'nvx-deploy-sha',
+  'EXPECTED_SHA',
   'SMOKE_VERIFY_OK',
 ]) if (!smoke.includes(marker)) fail(`smoke script missing contract marker: ${marker}`);
 for (const slug of phaseSlugs) if (!smoke.includes(`fetch_page '/${slug}/'`)) fail(`smoke missing phase page: ${slug}`);

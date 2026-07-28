@@ -40,6 +40,14 @@ const pages = [
   ['/calidad-piel-firmeza-luminosidad-madrid/', ['Tratamiento médico para firmeza, densidad y calidad cutánea', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
   ['/cicatrices-acne-poros-textura-madrid/', ['Tratamiento médico de cicatrices, poros dilatados y textura cutánea', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
   ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', ['Tratamiento médico de manchas, rojeces y daño solar', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
+  ['/labios-acido-hialuronico-madrid/', ['nvx-treatment-page', 'Ácido hialurónico en labios en Madrid', 'Indicaciones: Qué tratamos', 'Precauciones: Cuándo no tratar']],
+  ['/rinomodelacion-sin-cirugia-madrid/', ['nvx-treatment-page', 'Rinomodelación con ácido hialurónico en Madrid', 'Indicaciones: Qué tratamos', 'Precauciones: Cuándo no tratar']],
+  ['/ojeras-surco-lagrimal-madrid/', ['nvx-treatment-page', 'Tratamiento de ojeras y surco lagrimal en Madrid', 'Indicaciones: Qué tratamos', 'Precauciones: Cuándo no tratar']],
+  ['/bioestimuladores-colageno-madrid/', ['nvx-treatment-page', 'Bioestimuladores de colágeno en Madrid', 'Indicaciones: Qué tratamos', 'Precauciones: Cuándo no tratar']],
+  ['/endolift-facial-papada-mandibula/', ['nvx-endolift-h1', 'Endolift', 'papada, mandíbula y cuello', 'nvx-brand-hero']],
+  ['/endolaser-corporal-grasa-localizada/', ['Endoláser corporal en Madrid', 'grasa localizada y mejor contorno', 'nvx-brand-hero']],
+  ['/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', ['Láser CO', 'textura, poros y cicatrices', 'nvx-brand-hero']],
+  ['/exion-btl/', ['EXION', 'BTL en Madrid', 'nvx-brand-hero']],
   ['/grasa-localizada-abdomen-flancos-madrid/', ['Grasa localizada en abdomen y flancos en Madrid', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
   ['/flacidez-grasa-localizada-brazos-madrid/', ['Flacidez y grasa localizada en brazos en Madrid', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
   ['/grasa-espalda-zona-sujetador-madrid/', ['Grasa de espalda y zona del sujetador en Madrid', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
@@ -160,9 +168,13 @@ async function verifyPage(pagePath, markers) {
   for (const forbidden of forbiddenMarkers) {
     if (html.includes(forbidden)) findings.push(`${pagePath}: exposes forbidden marker: ${forbidden}`);
   }
-  if (expectedSha) {
-    const deployedSha = readMeta(html, 'nvx-deploy-sha');
-    if (deployedSha !== expectedSha) findings.push(`${pagePath}: served SHA ${deployedSha || 'absent'} instead of ${expectedSha}`);
+  // Always require the deploy marker so a full-page Dynamic Cache hit of pre-deploy
+  // HTML cannot pass content-only checks that were also true on the old snapshot.
+  const deployedSha = readMeta(html, 'nvx-deploy-sha');
+  if (!deployedSha) {
+    findings.push(`${pagePath}: missing meta nvx-deploy-sha (stale full-page cache or theme head not executing)`);
+  } else if (expectedSha && deployedSha !== expectedSha) {
+    findings.push(`${pagePath}: served SHA ${deployedSha} instead of ${expectedSha}`);
   }
   console.log(`CHECK page ${pagePath} status=${response.status} attempts=${attempt}`);
 }

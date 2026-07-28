@@ -22,7 +22,7 @@ if (!/^[A-Za-z0-9._-]+$/.test(sshHost)) {
 }
 fs.mkdirSync(evidenceDir, { recursive: true });
 
-import { phasePageDefinitions } from './staging2-contract-common.mjs';
+import { phasePageDefinitions, technologyPageDefinitions } from './staging2-contract-common.mjs';
 
 const commonMarkers = ['Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos', 'Tu primera valoración clínica'];
 const pages = [
@@ -68,6 +68,14 @@ const pages = [
     h1: 'El presupuesto forma parte de una decisión informada.',
     markers: ['Cómo leer estas tarifas', 'Qué incluye siempre el plan en NUVANX', 'Qué no encontrarás aquí', 'Sobre los precios en medicina estética en Madrid'],
   },
+  // Technology hubs: SHA + H1 + markers must match current theme (cache fragmentation detector).
+  ...technologyPageDefinitions.map(([path, title, description, h1, markers]) => ({
+    path,
+    title,
+    description,
+    h1,
+    markers,
+  })),
   ...phasePageDefinitions.map(([path, title, description, h1]) => ({ path, title, description, h1, markers: commonMarkers })),
 ];
 

@@ -103,11 +103,13 @@ for (const marker of [
 if (!integrations.includes("yoast-schema-graph")) {
   failures.push('integrations public document normalizer must preserve yoast-schema-graph');
 }
-if (!integrations.includes('schema\\.org|@graph\\b|"@type"\\s*:')) {
-  // Accept either escaped regex form used in PHP string
-  if (!/schema\.org\|@graph/.test(integrations)) {
-    failures.push('integrations public document normalizer must strip residual Schema.org ld+json');
-  }
+for (const marker of [
+  'function nvxThemeIsJsonLdScript(',
+  "class_exists( 'WP_HTML_Tag_Processor' )",
+  'function nvxThemeNormalizeSchemaScripts(',
+  "stripos( $script, 'schema.org' )",
+]) {
+  if (!integrations.includes(marker)) failures.push(`safe JSON-LD normalizer marker missing: ${marker}`);
 }
 
 for (const marker of [

@@ -1054,9 +1054,6 @@ article.nvx-page > .nvx-page-hero{
 
 .nvx-ba-teaser__cta{white-space:nowrap;width:100%}
 
-body.nvx-hero-blackout :where( .nvx-brand-hero, .nvx-editorial-hero, .nvx-page-hero, section.nvx-hero ) :is( .nvx-eyebrow, .nvx-eyebrow, .nvx-kicker, .nvx-brand-meta ){
-  color:var(--nvx-text-on-dark-72)}
-
 .nvx-page--contact .nvx-clinics-grid{
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
@@ -1111,7 +1108,7 @@ section.nvx-hero, .nvx-brand-hero {
     font-size: var(--nvx-type-kicker);
     line-height: var(--nvx-lh-kicker)}
 
-.nvx-brand-hero__title, .nvx-editorial-hero__copy .nvx-heading{
+.nvx-editorial-hero__copy .nvx-heading{
   margin: 0 0 0.65em;
     max-width: 16ch;
   color: var(--nvx-light);
@@ -1365,9 +1362,6 @@ figure.nvx-equipo-portrait{
   letter-spacing:var(--nvx-track-h2);
   color:var(--nvx-light)}
 
-body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-hero__copy{
-    grid-column: span 12}
-
 .nvx-hero-context__lead{
     max-width: 65ch;
   margin: 0;
@@ -1508,31 +1502,6 @@ body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-h
   flex-shrink: 0;
 }
 
-/* Icono de card pequeña */
-/* =========================================================
-   SECCIONES EDITORIALES (DARK MODE & MID TONE)
-   ========================================================= */
-
-/* Sección oscura editorial */
-.nvx-brand-section--dark .nvx-brand-title,
-.nvx-brand-section--dark h2,
-.nvx-brand-section--dark .nvx-brand-subtitle,
-.nvx-brand-section--dark h3 {
-  color: var(--nvx-on-dark);
-}
-.nvx-brand-section--dark .nvx-eyebrow {
-  color: var(--nvx-on-dark-72);
-}
-.nvx-brand-section--dark .nvx-brand-body,
-.nvx-brand-section--dark .nvx-copy,
-.nvx-brand-section--dark p {
-  color: var(--nvx-on-dark-88);
-}
-.nvx-brand-section--dark .nvx-color-line {
-  background: var(--nvx-accent-line-dark);
-}
-
-/* Sección mid-tone */
 /* =========================================================
    ESPACIADOS Y MARGENES AJUSTADOS (QUIET LUXURY)
    ========================================================= */

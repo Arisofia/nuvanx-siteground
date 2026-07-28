@@ -741,15 +741,6 @@
   color: var(--nvx-ink);
 }
 
-/* Plataformas — tarjeta asimétrica, gutter var(--nvx-space-6) */
-.nvx-laser-platform__head .nvx-laser-icon {
-  margin-bottom: 0;
-}
-
-.nvx-laser-platform__meta .nvx-laser-body:last-child {
-  margin-bottom: 0;
-}
-
 .nvx-laser-faq-list {
   margin-top: var(--nvx-space-4);
 }
@@ -811,8 +802,6 @@
 .nvx-medical-byline--border { padding-bottom: var(--nvx-space-2); border-bottom: 1px solid var(--nvx-color-line); margin-bottom: var(--nvx-space-4); }
 .nvx-medical-byline__text { line-height: 1.4; }
 .nvx-medical-byline__title { font-size: 0.85em; opacity: 0.85; }
-
-.nvx-blockquote { font-size: var(--nvx-type-body); line-height: 1.4; border-left: calc(var(--nvx-space-1) / 2) solid var(--nvx-ink); padding-left: var(--nvx-space-3); margin: var(--nvx-space-6) 0; font-style: italic; }
 
 /* Que Exigir Page */
 .nvx-que-exigir-editorial { max-width: calc(var(--nvx-space-12) * 8.333); margin: 0 auto; padding: var(--nvx-space-8) var(--nvx-space-2); }

@@ -108,7 +108,6 @@
 	object-fit: cover;
 }
 
-.nvx-cases-method,
 .nvx-cases-evolution {
 	padding: clamp(4.5rem, 8vw, 8rem) var(--nvx-gutter-inner);
 }
@@ -259,10 +258,6 @@
 }
 
 @media (max-width: 75rem) {
-	.nvx-cases-method__grid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
 	.nvx-cases-evolution__grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
@@ -291,12 +286,10 @@
 }
 
 @media (max-width: 48rem) {
-	.nvx-cases-method,
 	.nvx-cases-evolution {
 		padding-block: clamp(3.5rem, 12vw, 5rem);
 	}
 
-	.nvx-cases-method__grid,
 	.nvx-cases-evolution__grid {
 		grid-template-columns: 1fr;
 	}

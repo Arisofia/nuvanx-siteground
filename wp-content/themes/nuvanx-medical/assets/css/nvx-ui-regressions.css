@@ -208,7 +208,6 @@
 
 .nvx-blog-archive__hero-inner,
 .nvx-blog-archive__body > .nvx-shell,
-.nvx-blog-hero__inner,
 .nvx-blog-article__shell {
   width: min(100%, var(--nvx-shell));
   max-width: var(--nvx-shell);
@@ -294,8 +293,7 @@
 }
 
 /* Valoración landing. */
-.nvx-valoracion-page,
-.nvx-valoracion-content {
+.nvx-valoracion-page {
   width: 100%;
   max-width: none;
   margin: 0;
@@ -410,15 +408,6 @@
 @media (max-width: 64em) {
   .nvx-blog-card {
     grid-column: 1 / -1;
-  }
-
-  .nvx-blog-hero__copy,
-  .nvx-blog-hero__media {
-    grid-column: 1 / -1;
-  }
-
-  .nvx-blog-hero__media {
-    min-height: clamp(18rem, 58vw, 30rem);
   }
 
   .nvx-valoracion-steps,

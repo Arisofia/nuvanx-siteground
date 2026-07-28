@@ -83,6 +83,31 @@ for (const marker of [
   if (!btlDetail.includes(marker)) failures.push(`BTL detail registry alias marker missing: ${marker}`);
 }
 
+const clinicalCatalogFiles = [
+  'inc/data/nvx-anatomical-zones.json',
+  'inc/data/nvx-btl-detail-registry.json',
+  'inc/data/nvx-signature-phase-catalog.json',
+  'inc/data/nvx-soluciones-medicas-groups.json',
+];
+for (const relative of clinicalCatalogFiles) {
+  const target = path.join(theme, relative);
+  if (!fs.existsSync(target)) {
+    failures.push(`missing clinical catalogue ${relative}`);
+    continue;
+  }
+  try {
+    JSON.parse(fs.readFileSync(target, 'utf8'));
+  } catch {
+    failures.push(`invalid JSON in clinical catalogue ${relative}`);
+  }
+}
+const thirteenPoint = read('inc/nvx-13-point-renderer.php');
+for (const marker of ['function nvx_theme_load_json_catalog', 'function nvx_editorial_faq']) {
+  if (!thirteenPoint.includes(marker)) {
+    failures.push(`13-point renderer missing shared helper: ${marker}`);
+  }
+}
+
 for (const marker of [
   'function nvxSeoSchemaMaterializeLogoNode(',
   'function nvxSeoSchemaEnsureWebpageMainEntity(',

@@ -27,10 +27,7 @@ if ( ! defined( 'NVX_KICKER_CUERPO' ) ) {
  * @return array{q:string,a:string}
  */
 function nvx_anatomical_faq( string $question, string $answer ): array {
-	return array(
-		'q' => $question,
-		'a' => $answer,
-	);
+	return nvx_editorial_faq( $question, $answer );
 }
 
 /**
@@ -87,26 +84,7 @@ function nvx_anatomical_entry(
  * @return array<string, array<string, mixed>>
  */
 function nvx_anatomical_zone_specs(): array {
-	static $specs = null;
-	if ( null !== $specs ) {
-		return $specs;
-	}
-
-	$path = __DIR__ . '/data/nvx-anatomical-zones.json';
-	if ( ! is_readable( $path ) ) {
-		$specs = array();
-		return $specs;
-	}
-
-	$raw = file_get_contents( $path );
-	if ( false === $raw || '' === $raw ) {
-		$specs = array();
-		return $specs;
-	}
-
-	$decoded = json_decode( $raw, true );
-	$specs   = is_array( $decoded ) ? $decoded : array();
-	return $specs;
+	return nvx_theme_load_json_catalog( 'nvx-anatomical-zones.json' );
 }
 
 /**

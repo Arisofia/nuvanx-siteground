@@ -16,28 +16,25 @@ $hero_art_url  = get_template_directory_uri() . '/assets/images/nvx-solutions-he
 $contour_arch  = 'Contour Architecture™';
 
 $solution_groups = array();
-$groups_path     = get_template_directory() . '/inc/data/nvx-soluciones-medicas-groups.json';
-if ( is_readable( $groups_path ) ) {
-	$decoded = json_decode( (string) file_get_contents( $groups_path ), true );
-	if ( is_array( $decoded ) ) {
-		foreach ( $decoded as $group ) {
-			if ( ! is_array( $group ) ) {
-				continue;
-			}
-			$solutions = array();
-			foreach ( (array) ( $group['solutions'] ?? array() ) as $solution ) {
-				if ( ! is_array( $solution ) ) {
-					continue;
-				}
-				if ( ( $solution['protocol'] ?? '' ) === 'contour_architecture' ) {
-					$solution['protocol'] = $contour_arch;
-				}
-				$solutions[] = $solution;
-			}
-			$group['solutions'] = $solutions;
-			$solution_groups[]  = $group;
-		}
+$decoded         = function_exists( 'nvx_theme_load_json_catalog' )
+	? nvx_theme_load_json_catalog( 'nvx-soluciones-medicas-groups.json' )
+	: array();
+foreach ( $decoded as $group ) {
+	if ( ! is_array( $group ) ) {
+		continue;
 	}
+	$solutions = array();
+	foreach ( (array) ( $group['solutions'] ?? array() ) as $solution ) {
+		if ( ! is_array( $solution ) ) {
+			continue;
+		}
+		if ( ( $solution['protocol'] ?? '' ) === 'contour_architecture' ) {
+			$solution['protocol'] = $contour_arch;
+		}
+		$solutions[] = $solution;
+	}
+	$group['solutions'] = $solutions;
+	$solution_groups[]  = $group;
 }
 
 $method_steps = array(

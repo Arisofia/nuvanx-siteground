@@ -73,6 +73,9 @@ jobs:
           php -l scripts/wp/nvx-canonical-route-migration.php
           php -l scripts/theme-hygiene/test-nvx-callable-contract.php
 
+      - name: Enforce NUVANX callable contract
+        run: php scripts/theme-hygiene/test-nvx-callable-contract.php
+
       - name: Enforce canonical theme hygiene
         run: node scripts/theme-hygiene/test-theme-hygiene.mjs
 

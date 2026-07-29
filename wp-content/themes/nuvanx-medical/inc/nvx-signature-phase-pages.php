@@ -265,16 +265,7 @@ function nvx_signature_phase_seo_title( $title ) {
 	}
 	return (string) $page['seo_title'];
 }
-add_filter( 'wpseo_title', 'nvx_signature_phase_seo_title', 90 );
-add_filter( 'wpseo_opengraph_title', 'nvx_signature_phase_seo_title', 90 );
-add_filter( 'wpseo_twitter_title', 'nvx_signature_phase_seo_title', 90 );
 
-/**
- * Supplies the governed page's SEO description when available.
- *
- * @param mixed $description The existing SEO description.
- * @return mixed The governed SEO description or the existing description.
- */
 function nvx_signature_phase_seo_description( $description ) {
 	$page = nvx_signature_phase_current_metadata();
 	if ( ! is_array( $page ) || empty( $page['seo_desc'] ) ) {
@@ -282,6 +273,10 @@ function nvx_signature_phase_seo_description( $description ) {
 	}
 	return (string) $page['seo_desc'];
 }
-add_filter( 'wpseo_metadesc', 'nvx_signature_phase_seo_description', 90 );
-add_filter( 'wpseo_opengraph_desc', 'nvx_signature_phase_seo_description', 90 );
-add_filter( 'wpseo_twitter_description', 'nvx_signature_phase_seo_description', 90 );
+
+nvx_register_yoast_seo_filters(
+	'nvx_signature_phase_seo_title',
+	'nvx_signature_phase_seo_description',
+	null,
+	90
+);

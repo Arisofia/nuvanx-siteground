@@ -523,23 +523,22 @@ function nvx_aesthetic_treatment_meta_field( string $field, $fallback ) {
 function nvx_aesthetic_treatment_filter_title( $title ) {
 	return nvx_aesthetic_treatment_meta_field( 'seo_title', $title );
 }
-add_filter( 'wpseo_title', 'nvx_aesthetic_treatment_filter_title', 90 );
-add_filter( 'wpseo_opengraph_title', 'nvx_aesthetic_treatment_filter_title', 90 );
-add_filter( 'wpseo_twitter_title', 'nvx_aesthetic_treatment_filter_title', 90 );
 
 function nvx_aesthetic_treatment_filter_description( $description ) {
 	return nvx_aesthetic_treatment_meta_field( 'description', $description );
 }
-add_filter( 'wpseo_metadesc', 'nvx_aesthetic_treatment_filter_description', 90 );
-add_filter( 'wpseo_opengraph_desc', 'nvx_aesthetic_treatment_filter_description', 90 );
-add_filter( 'wpseo_twitter_description', 'nvx_aesthetic_treatment_filter_description', 90 );
 
 function nvx_aesthetic_treatment_filter_canonical( $canonical ) {
 	$entry = nvx_aesthetic_treatment_current_entry();
 	return null === $entry ? $canonical : home_url( '/' . $entry['slug'] . '/' );
 }
-add_filter( 'wpseo_canonical', 'nvx_aesthetic_treatment_filter_canonical', 90 );
-add_filter( 'wpseo_opengraph_url', 'nvx_aesthetic_treatment_filter_canonical', 90 );
+
+nvx_register_yoast_seo_filters(
+	'nvx_aesthetic_treatment_filter_title',
+	'nvx_aesthetic_treatment_filter_description',
+	'nvx_aesthetic_treatment_filter_canonical',
+	90
+);
 
 function nvx_aesthetic_treatment_document_title( array $parts ): array {
 	$seo_title = nvx_aesthetic_treatment_meta_field( 'seo_title', null );
@@ -550,53 +549,12 @@ function nvx_aesthetic_treatment_document_title( array $parts ): array {
 }
 add_filter( 'document_title_parts', 'nvx_aesthetic_treatment_document_title', 90 );
 
-/**
- * Soft-sync meta on an existing staging page without overwriting body or status.
- */
-function nvxAestheticTreatmentSeedSyncMeta( int $post_id, string $key ): void {
-	if ( $post_id <= 0 || '' === $key ) {
-		return;
-	}
-	$pairs = array(
-		'_nvx_aesthetic_treatment_key' => $key,
-		'_nvx_medical_review_status'   => 'pending',
-	);
-	foreach ( $pairs as $meta_key => $meta_value ) {
-		if ( '' === (string) get_post_meta( $post_id, $meta_key, true ) ) {
-			update_post_meta( $post_id, $meta_key, $meta_value );
-		}
-	}
-}
-
 /** Seed the four pages only in staging2, which is globally noindex. */
 function nvx_aesthetic_treatment_seed_staging_pages(): void {
-	if ( ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
-		return;
-	}
-
-	foreach ( nvx_aesthetic_treatment_catalog() as $key => $entry ) {
-		$page = get_page_by_path( $entry['slug'], OBJECT, 'page' );
-		if ( $page instanceof WP_Post ) {
-			nvxAestheticTreatmentSeedSyncMeta( (int) $page->ID, $key );
-			continue;
-		}
-
-		$post_id = wp_insert_post(
-			array(
-				'post_type'    => 'page',
-				'post_status'  => 'publish',
-				'post_title'   => $entry['h1'],
-				'post_name'    => $entry['slug'],
-				'post_excerpt' => $entry['description'],
-				'post_content' => '<div class="nvx-aesthetic-treatment-source" data-nvx-treatment="' . esc_attr( $key ) . '"></div>',
-			),
-			true
-		);
-
-		if ( ! is_wp_error( $post_id ) ) {
-			update_post_meta( (int) $post_id, '_nvx_aesthetic_treatment_key', $key );
-			update_post_meta( (int) $post_id, '_nvx_medical_review_status', 'pending' );
-		}
-	}
+	nvx_seed_staging_pages(
+		nvx_aesthetic_treatment_catalog(),
+		'_nvx_aesthetic_treatment_key',
+		'<div class="nvx-aesthetic-treatment-source" data-nvx-treatment="{key}"></div>'
+	);
 }
 add_action( 'init', 'nvx_aesthetic_treatment_seed_staging_pages', 30 );

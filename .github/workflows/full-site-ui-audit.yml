@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/deploy-staging2.yml'
       - 'tools/deploy/deploy-to-staging2.sh'
+      - 'tools/deploy/nvx-purge-wp-caches.sh'
       - 'scripts/staging2/collect-staging2-diagnostics.sh'
       - 'scripts/staging2/smoke-verify-staging2.sh'
       - 'scripts/staging2/verify-rendered-acceptance-ssh.mjs'
@@ -76,6 +77,7 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-full-site-ui-governance.php
           bash -n tools/deploy/deploy-to-staging2.sh
+          bash -n tools/deploy/nvx-purge-wp-caches.sh
           bash -n scripts/staging2/smoke-verify-staging2.sh
 
       - name: Configure strict SiteGround SSH

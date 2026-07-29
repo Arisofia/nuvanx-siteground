@@ -55,4 +55,32 @@ if ( ! function_exists( 'nvxSchemaCurrentPath' ) ) {
     }
 }
 
+if ( ! function_exists( 'nvx_content_is_co2_page' ) ) {
+    /** Compatibility adapter for the canonical CO₂ page detector. */
+    function nvx_content_is_co2_page( string $content ): bool {
+        return function_exists( 'nvxContentIsCo2Page' )
+            && nvxContentIsCo2Page( $content );
+    }
+}
+
+if ( ! function_exists( 'nvx_normalize_canonical_page_hero' ) ) {
+    /** Compatibility adapter for the canonical hero normalizer. */
+    function nvx_normalize_canonical_page_hero( DOMXPath $xpath, DOMElement $hero ): void {
+        if ( function_exists( 'nvxNormalizeCanonicalPageHero' ) ) {
+            nvxNormalizeCanonicalPageHero( $xpath, $hero );
+        }
+    }
+}
+
+if ( ! function_exists( 'nvx_find_hero_copy_node' ) ) {
+    /** Compatibility adapter for the canonical hero-copy resolver. */
+    function nvx_find_hero_copy_node( DOMXPath $xpath, DOMElement $hero, bool $canonical ): ?DOMElement {
+        if ( ! function_exists( 'nvxFindHeroCopyNode' ) ) {
+            return null;
+        }
+
+        return nvxFindHeroCopyNode( $xpath, $hero, $canonical );
+    }
+}
+
 require_once __DIR__ . '/nvx-equipo-layout-contract.php';

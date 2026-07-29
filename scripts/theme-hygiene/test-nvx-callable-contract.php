@@ -83,7 +83,7 @@ foreach ($files as $file) {
         }
 
         $name = $token[1];
-        if (1 !== preg_match('/^nvx(?:_[A-Za-z0-9_]+|[A-Z]\w*)$/', $name)) {
+        if (1 !== preg_match('/^nvx(?:_\w+|[A-Z]\w*)$/', $name)) {
             continue;
         }
 

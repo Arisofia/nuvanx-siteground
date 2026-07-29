@@ -20,33 +20,41 @@ done
 
 cd "$WP_ROOT"
 
-# WordPress object cache. Any failure aborts the deployment.
+# Mandatory WordPress and SiteGround cache layers. Any WP-CLI, permission,
+# or server-side failure aborts the deployment under strict shell mode.
 wp cache flush
+echo "wp_cache_flush=ok"
 
-# SiteGround Speed Optimizer's documented purge command clears Dynamic,
-# File-based and Object caches. Any failure must abort the deployment.
 wp sg purge
 echo "sg_purge=ok"
 
-# Legacy forms are intentionally forbidden as executable commands:
-# wp sg purge dynamic
-# wp sg purge memcached
+# Delete known disk-cache trees only when present. Missing paths are normal;
+# filesystem permission or deletion failures are blocking.
+shopt -s nullglob dotglob
+cache_targets=(
+  wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
+  wp-content/cache/sgo-cache
+  wp-content/cache/supercache
+  wp-content/cache/sg-cachepress
+  wp-content/cache/*
+)
+if (( ${#cache_targets[@]} > 0 )); then
+  rm -rf -- "${cache_targets[@]}"
+fi
+shopt -u nullglob dotglob
+echo "disk_cache_cleanup=ok"
 
-# Physical HTML / asset caches left behind when SG Dynamic Cache orphans files.
-# Missing cache paths are non-fatal; deletion errors remain visible through the final smoke checks.
-rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
-rm -rf wp-content/cache/sgo-cache       2>/dev/null || true
-rm -rf wp-content/cache/supercache      2>/dev/null || true
-rm -rf wp-content/cache/sg-cachepress   2>/dev/null || true
-rm -rf wp-content/cache/*               2>/dev/null || true
+# Remove combined/minified assets when the optimizer directory exists.
+optimizer_assets='wp-content/uploads/siteground-optimizer-assets'
+if [[ -d "$optimizer_assets" ]]; then
+  find "$optimizer_assets" -mindepth 1 -maxdepth 1 \
+    \( -name 'siteground-optimizer-combined-*' -o -name '*.css' -o -name '*.js' \) \
+    -delete
+fi
+echo "optimizer_assets_cleanup=ok"
 
-# Combined/minified asset leftovers that can keep pre-deploy CSS/JS alive.
-find wp-content/uploads/siteground-optimizer-assets -mindepth 1 -maxdepth 1 \
-  \( -name 'siteground-optimizer-combined-*' -o -name '*.css' -o -name '*.js' \) \
-  -delete 2>/dev/null || true
-
-# OpCache reset — non-fatal because PHP CLI may not have OpCache loaded.
-wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' \
-  && true || echo "WARN: opcache_reset skipped or errored" >&2
+# OpCache is optional. When available, a false reset result is a blocking
+# failure rather than a successful marker.
+wp eval 'if (!function_exists("opcache_reset")) { echo "opcache=unavailable\n"; } elseif (!opcache_reset()) { fwrite(STDERR, "opcache=failed\n"); exit(1); } else { echo "opcache=ok\n"; }'
 
 echo "$LABEL"

@@ -1,0 +1,260 @@
+name: Apply clean audit v3 contracts once
+
+on:
+  push:
+    branches:
+      - fix/audit-v3-runtime-contracts-clean-20260729
+    paths:
+      - '.github/workflows/apply-audit-v3-clean-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout clean audit branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/audit-v3-runtime-contracts-clean-20260729
+          fetch-depth: 0
+
+      - name: Apply bounded audit v3 changes
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def insert_once(path: str, anchor: str, addition: str) -> None:
+              target = Path(path)
+              text = target.read_text(encoding='utf-8')
+              if addition.strip() in text:
+                  return
+              if text.count(anchor) != 1:
+                  raise SystemExit(f'{path}: anchor is not unique: {anchor!r}')
+              target.write_text(text.replace(anchor, anchor + addition, 1), encoding='utf-8')
+
+          purge_path_line = "      - 'tools/deploy/nvx-purge-wp-caches.sh'\n"
+          purge_lint_line = '          bash -n tools/deploy/nvx-purge-wp-caches.sh\n'
+
+          for workflow in [
+              '.github/workflows/deploy-staging2.yml',
+              '.github/workflows/full-site-ui-audit.yml',
+          ]:
+              insert_once(
+                  workflow,
+                  "      - 'tools/deploy/deploy-to-staging2.sh'\n",
+                  purge_path_line,
+              )
+              insert_once(
+                  workflow,
+                  '          bash -n tools/deploy/deploy-to-staging2.sh\n',
+                  purge_lint_line,
+              )
+
+          insert_once(
+              '.github/workflows/theme-hygiene-gate.yml',
+              '          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml\n',
+              purge_lint_line,
+          )
+          insert_once(
+              '.github/workflows/theme-hygiene-gate.yml',
+              '          node --check scripts/theme-hygiene/test-cache-purge-contract.mjs\n',
+              '          node --check scripts/theme-hygiene/test-audit-v3-contract.mjs\n',
+          )
+          insert_once(
+              '.github/workflows/theme-hygiene-gate.yml',
+              "      - name: Enforce aesthetic treatment contract\n        run: node scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs\n",
+              "\n      - name: Enforce audit v3 contract\n        run: node scripts/theme-hygiene/test-audit-v3-contract.mjs\n",
+          )
+
+          Path('tools/deploy/nvx-purge-wp-caches.sh').write_text(r'''#!/usr/bin/env bash
+          # Shared WordPress + SiteGround cache purge for staging2 and production.
+          # Usage: bash tools/deploy/nvx-purge-wp-caches.sh --wp-root /path/to/wordpress [--label cache_purge=ok]
+          set -Eeuo pipefail
+
+          WP_ROOT=""
+          LABEL='cache_purge=ok'
+
+          while [[ $# -gt 0 ]]; do
+            case "$1" in
+              --wp-root) WP_ROOT="${2:-}"; shift 2 ;;
+              --label) LABEL="${2:-}"; shift 2 ;;
+              *) echo "ERROR: unknown argument: $1" >&2; exit 2 ;;
+            esac
+          done
+
+          [[ -n "$WP_ROOT" ]] || { echo "ERROR: --wp-root is required" >&2; exit 2; }
+          [[ -d "$WP_ROOT" ]] || { echo "ERROR: WordPress root does not exist: $WP_ROOT" >&2; exit 2; }
+          [[ -f "$WP_ROOT/wp-config.php" ]] || { echo "ERROR: wp-config.php not found in $WP_ROOT" >&2; exit 2; }
+
+          cd "$WP_ROOT"
+
+          # Mandatory WordPress and SiteGround cache layers. Any WP-CLI, permission,
+          # or server-side failure aborts the deployment under strict shell mode.
+          wp cache flush
+          echo "wp_cache_flush=ok"
+
+          wp sg purge
+          echo "sg_purge=ok"
+
+          # Delete known disk-cache trees only when present. Missing paths are normal;
+          # filesystem permission or deletion failures are blocking.
+          shopt -s nullglob dotglob
+          cache_targets=(
+            wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
+            wp-content/cache/sgo-cache
+            wp-content/cache/supercache
+            wp-content/cache/sg-cachepress
+            wp-content/cache/*
+          )
+          if (( ${#cache_targets[@]} > 0 )); then
+            rm -rf -- "${cache_targets[@]}"
+          fi
+          shopt -u nullglob dotglob
+          echo "disk_cache_cleanup=ok"
+
+          optimizer_assets='wp-content/uploads/siteground-optimizer-assets'
+          if [[ -d "$optimizer_assets" ]]; then
+            find "$optimizer_assets" -mindepth 1 -maxdepth 1 \
+              \( -name 'siteground-optimizer-combined-*' -o -name '*.css' -o -name '*.js' \) \
+              -delete
+          fi
+          echo "optimizer_assets_cleanup=ok"
+
+          # OpCache is optional. When available, a false reset result is blocking.
+          wp eval 'if (!function_exists("opcache_reset")) { echo "opcache=unavailable\n"; } elseif (!opcache_reset()) { fwrite(STDERR, "opcache=failed\n"); exit(1); } else { echo "opcache=ok\n"; }'
+
+          echo "$LABEL"
+          '''.replace('          ', ''), encoding='utf-8')
+
+          Path('scripts/theme-hygiene/test-audit-v3-contract.mjs').write_text(r'''#!/usr/bin/env node
+          import fs from 'node:fs';
+          import path from 'node:path';
+          import { fileURLToPath } from 'node:url';
+
+          const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+          const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), 'utf8');
+          const failures = [];
+
+          const requireText = (scope, source, marker) => {
+            if (!source.includes(marker)) failures.push(`${scope}: missing ${marker}`);
+          };
+          const forbidText = (scope, source, marker) => {
+            if (source.includes(marker)) failures.push(`${scope}: forbidden ${marker}`);
+          };
+
+          const seoMetadata = read('wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php');
+          const editorialSeo = read('wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php');
+          const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
+          const pageHygiene = read('wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php');
+          const treatmentHubSchema = read('wp-content/themes/nuvanx-medical/inc/nvx-treatment-hub-schema.php');
+          const structuredData = read('wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php');
+          const footer = read('wp-content/themes/nuvanx-medical/footer.php');
+          const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
+          const functions = read('wp-content/themes/nuvanx-medical/functions.php');
+          const cachePurge = read('tools/deploy/nvx-purge-wp-caches.sh');
+          const deployWorkflow = read('.github/workflows/deploy-staging2.yml');
+
+          const seoCode = seoMetadata
+            .replace(/\/\/.*$/gm, '')
+            .replace(/\/\*[\s\S]*?\*\//g, '');
+          forbidText('solution SEO ownership', seoCode, 'nvx_seo_metadata_from_solutions(');
+          forbidText('solution SEO ownership', seoCode, "function_exists( 'nvx_solution_pages_catalog' )");
+          requireText('solution SEO ownership', seoMetadata, "function_exists( 'nvx_editorial_seo_current' )");
+          requireText('solution SEO ownership', seoMetadata, '$editorial = nvx_editorial_seo_current()');
+          for (const route of [
+            '/soluciones-medicas/',
+            '/remodelacion-corporal-laser-madrid/',
+            '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
+            '/papada-definicion-mandibular-madrid/',
+            '/calidad-piel-firmeza-luminosidad-madrid/',
+            '/cicatrices-acne-poros-textura-madrid/',
+            '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/',
+          ]) requireText('solution SEO catalog', editorialSeo, `'${route}'`);
+
+          requireText('strategy noindex source', strategyPages, 'function nvx_strategy_pending_page_ids(): array');
+          requireText('strategy noindex source', strategyPages, "'approved_for_publication' === ( $page['review_status'] ?? '' )");
+          requireText('strategy noindex consumer', pageHygiene, "function_exists( 'nvx_strategy_pending_page_ids' )");
+          requireText('strategy noindex consumer', pageHygiene, 'nvx_strategy_pending_page_ids()');
+          const strategyLoad = "require_once __DIR__ . '/nvx-strategy-pages.php';";
+          const hygieneLoad = "require_once __DIR__ . '/nvx-page-hygiene.php';";
+          requireText('strategy bootstrap order', integrations, strategyLoad);
+          requireText('strategy bootstrap order', integrations, hygieneLoad);
+          if (integrations.indexOf(strategyLoad) > integrations.indexOf(hygieneLoad)) {
+            failures.push('strategy bootstrap order: strategy pages must load before page hygiene');
+          }
+
+          requireText('treatment hub predicate', treatmentHubSchema, 'function nvx_theme_is_treatments_hub(): bool');
+          requireText('treatment hub predicate', treatmentHubSchema, "return 'soluciones-medicas' === $slug;");
+          requireText('treatment hub schema', treatmentHubSchema, 'nvx_theme_is_treatments_hub()');
+          requireText('treatment hub schema', treatmentHubSchema, "add_filter( 'wpseo_schema_graph', 'nvx_treatment_hub_extend_yoast_graph', 99, 2 );");
+          requireText('treatment hub bootstrap', functions, "require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';");
+
+          for (const marker of [
+            'function nvx_co2_price_facial_eur(): float',
+            "$catalog['laser_co2']['facial']['pvp'] ?? 330.00",
+            'function nvx_co2_price_body_eur(): float',
+            "$catalog['laser_co2']['corporal']['pvp'] ?? 450.00",
+          ]) requireText('CO2 price contract', structuredData, marker);
+          if (structuredData.split('nvx_co2_price_facial_eur()').length - 1 < 2) {
+            failures.push('CO2 price contract: facial helper is not consumed');
+          }
+          if (structuredData.split('nvx_co2_price_body_eur()').length - 1 < 2) {
+            failures.push('CO2 price contract: body helper is not consumed');
+          }
+
+          forbidText('footer dead code', footer, '$nvx_footer_published_treatments');
+          forbidText('footer dead code', footer, 'nvx_navigation_published_treatments()');
+
+          requireText('cache purge', cachePurge, 'set -Eeuo pipefail');
+          requireText('cache purge', cachePurge, 'wp cache flush');
+          requireText('cache purge', cachePurge, 'echo "wp_cache_flush=ok"');
+          requireText('cache purge', cachePurge, 'wp sg purge');
+          requireText('cache purge', cachePurge, 'echo "sg_purge=ok"');
+          requireText('cache purge', cachePurge, 'rm -rf -- "${cache_targets[@]}"');
+          requireText('cache purge', cachePurge, 'elseif (!opcache_reset())');
+          requireText('cache purge', cachePurge, 'opcache=failed');
+          requireText('cache purge', cachePurge, 'exit(1)');
+          forbidText('cache purge', cachePurge, 'nvx_run_optional_wp_command');
+          forbidText('cache purge', cachePurge, 'wp cache flush ||');
+          forbidText('cache purge', cachePurge, 'wp sg purge ||');
+          forbidText('cache purge', cachePurge, '|| true');
+
+          const purgeWorkflowOccurrences = deployWorkflow.split('tools/deploy/nvx-purge-wp-caches.sh').length - 1;
+          if (purgeWorkflowOccurrences < 3) {
+            failures.push(`staging2 deploy contract: expected purge script in path filter, bash lint and payload; found ${purgeWorkflowOccurrences}`);
+          }
+          requireText('staging2 deploy contract', deployWorkflow, "- 'tools/deploy/nvx-purge-wp-caches.sh'");
+          requireText('staging2 deploy contract', deployWorkflow, 'bash -n tools/deploy/nvx-purge-wp-caches.sh');
+
+          if (failures.length > 0) {
+            console.error(`AUDIT_V3_CONTRACT_FAILED count=${failures.length}`);
+            for (const failure of failures) console.error(`- ${failure}`);
+            process.exit(1);
+          }
+
+          console.log('AUDIT_V3_CONTRACT_OK');
+          '''.replace('          ', ''), encoding='utf-8')
+
+          Path('.github/workflows/apply-audit-v3-clean-once.yml').unlink()
+          PY
+
+          git diff --check
+          bash -n tools/deploy/nvx-purge-wp-caches.sh
+          node --check scripts/theme-hygiene/test-audit-v3-contract.mjs
+          node scripts/theme-hygiene/test-cache-purge-contract.mjs
+          node scripts/theme-hygiene/test-audit-v3-contract.mjs
+          node scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs
+          node scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
+
+      - name: Commit clean audit changes
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix(audit): enforce v3 runtime contracts on current master'
+          git push origin HEAD:fix/audit-v3-runtime-contracts-clean-20260729

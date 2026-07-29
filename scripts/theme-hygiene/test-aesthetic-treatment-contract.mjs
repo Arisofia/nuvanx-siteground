@@ -75,9 +75,18 @@ if (catalogEntries.length === 0) {
 const gateEnd = aestheticPages.indexOf('function nvxAestheticTreatmentIsRenderable');
 for (let i = 0; i < catalogEntries.length; i += 1) {
   const { key, index: start } = catalogEntries[i];
-  const end = i + 1 < catalogEntries.length
-    ? catalogEntries[i + 1].index
-    : (gateEnd > start ? gateEnd : aestheticPages.length);
+  let end;
+  if (i + 1 < catalogEntries.length) {
+    // For every entry except the last: scan up to the next entry's opening.
+    end = catalogEntries[i + 1].index;
+  } else {
+    // For the last entry: the closing paren + review_status are immediately
+    // after the entry call, not near gateStart (which may be thousands of
+    // chars away). Find the actual closing of this entry call so the 240-char
+    // tail captures the review_status correctly.
+    const entryBodyEnd = aestheticPages.indexOf('\n\t);\n', start);
+    end = entryBodyEnd > start ? entryBodyEnd + 4 : (gateEnd > start ? gateEnd : aestheticPages.length);
+  }
   // Status is always the last argument of the entry call — check a fixed tail window.
   const tail = aestheticPages.slice(Math.max(start, end - 240), end);
   const hasStatus = tail.includes("'pending_medical_review'") || tail.includes("'approved_for_publication'");

@@ -77,19 +77,28 @@ if (structuredData.split('nvx_co2_price_body_eur()').length - 1 < 2) {
 forbidText('footer dead code', footer, '$nvx_footer_published_treatments');
 forbidText('footer dead code', footer, 'nvx_navigation_published_treatments()');
 
-requireText('cache purge', cachePurge, 'set -Eeuo pipefail');
-requireText('cache purge', cachePurge, 'wp cache flush');
-requireText('cache purge', cachePurge, 'echo "wp_cache_flush=ok"');
-requireText('cache purge', cachePurge, 'wp sg purge');
-requireText('cache purge', cachePurge, 'echo "sg_purge=ok"');
-requireText('cache purge', cachePurge, 'rm -rf -- "${cache_targets[@]}"');
-requireText('cache purge', cachePurge, 'elseif (!opcache_reset())');
-requireText('cache purge', cachePurge, 'opcache=failed');
-requireText('cache purge', cachePurge, 'exit(1)');
-forbidText('cache purge', cachePurge, 'nvx_run_optional_wp_command');
-forbidText('cache purge', cachePurge, 'wp cache flush ||');
-forbidText('cache purge', cachePurge, 'wp sg purge ||');
-forbidText('cache purge', cachePurge, '|| true');
+for (const marker of [
+  'set -Eeuo pipefail',
+  'wp cache flush',
+  'echo "wp_cache_flush=ok"',
+  'wp sg purge',
+  'echo "sg_purge=ok"',
+  'rm -rf -- "${cache_targets[@]}"',
+  'opcache.enable_cli',
+  'FILTER_VALIDATE_BOOLEAN',
+  'elseif (!opcache_reset())',
+  'opcache=unavailable',
+  'opcache=failed',
+  'exit(1)',
+]) requireText('cache purge', cachePurge, marker);
+for (const marker of [
+  'nvx_run_optional_wp_command',
+  'wp cache flush ||',
+  'wp sg purge ||',
+  '|| true',
+  'wp sg purge dynamic',
+  'wp sg purge memcached',
+]) forbidText('cache purge', cachePurge, marker);
 
 const purgeWorkflowOccurrences = deployWorkflow.split('tools/deploy/nvx-purge-wp-caches.sh').length - 1;
 if (purgeWorkflowOccurrences < 3) {

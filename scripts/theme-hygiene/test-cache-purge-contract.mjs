@@ -44,7 +44,8 @@ if (!fs.existsSync(helperPath)) {
     'sgo-cache',
     'supercache',
     'sg-cachepress',
-    'shopt -s nullglob dotglob',
+    'shopt -s nullglob',
+    'shopt -u nullglob',
     'rm -rf -- "${cache_targets[@]}"',
     'opcache_reset()',
     'opcache.enable_cli',
@@ -59,6 +60,9 @@ if (!fs.existsSync(helperPath)) {
     }
   }
 
+  if (/\bdotglob\b/.test(executable.join('\n'))) {
+    failures.push('purge helper must preserve plugin-managed hidden cache controls');
+  }
   if (source.includes('|| true')) {
     failures.push('purge helper must not swallow cleanup failures with || true');
   }
@@ -95,4 +99,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('CACHE_PURGE_CONTRACT_OK siteground=canonical filesystem=strict opcache=classified');
+console.log('CACHE_PURGE_CONTRACT_OK siteground=canonical filesystem=strict hidden_controls=preserved opcache=classified');

@@ -1,10 +1,11 @@
 <?php
 /**
- * Static callable contract for NUVANX camelCase functions.
+ * Static callable contract for NUVANX functions.
  *
  * Uses PHP's tokenizer instead of regular expressions so comments and string
  * literals cannot create false call sites. Every direct global call beginning
- * with nvx + uppercase must have a declaration somewhere in the active theme.
+ * with nvx_ or using the nvx camelCase prefix must have a declaration somewhere
+ * in the active theme.
  */
 
 declare(strict_types=1);
@@ -13,7 +14,7 @@ $root  = dirname(__DIR__, 2);
 $theme = $root . '/wp-content/themes/nuvanx-medical';
 
 if (!is_dir($theme)) {
-    fwrite(STDERR, "NVX_CAMEL_CALLABLE_CONTRACT_FAILED\n- theme directory is missing\n");
+    fwrite(STDERR, "NVX_CALLABLE_CONTRACT_FAILED\n- theme directory is missing\n");
     exit(1);
 }
 
@@ -69,7 +70,7 @@ function nvxNextSignificantToken(array $tokens, int $index) {
 foreach ($files as $file) {
     $source = file_get_contents($file);
     if (!is_string($source)) {
-        fwrite(STDERR, "NVX_CAMEL_CALLABLE_CONTRACT_FAILED\n- unable to read {$file}\n");
+        fwrite(STDERR, "NVX_CALLABLE_CONTRACT_FAILED\n- unable to read {$file}\n");
         exit(1);
     }
 
@@ -82,7 +83,7 @@ foreach ($files as $file) {
         }
 
         $name = $token[1];
-        if (1 !== preg_match('/^nvx[A-Z]\w*$/', $name)) {
+        if (1 !== preg_match('/^nvx(?:_\w+|[A-Z]\w*)$/', $name)) {
             continue;
         }
 
@@ -119,7 +120,7 @@ foreach ($calls as $name => $locations) {
 ksort($missing);
 
 if ([] !== $missing) {
-    fwrite(STDERR, 'NVX_CAMEL_CALLABLE_CONTRACT_FAILED findings=' . count($missing) . "\n");
+    fwrite(STDERR, 'NVX_CALLABLE_CONTRACT_FAILED findings=' . count($missing) . "\n");
     foreach ($missing as $name => $locations) {
         fwrite(STDERR, '- ' . $name . ' called at ' . implode(', ', $locations) . "\n");
     }
@@ -127,7 +128,7 @@ if ([] !== $missing) {
 }
 
 printf(
-    "NVX_CAMEL_CALLABLE_CONTRACT_OK declarations=%d calls=%d files=%d\n",
+    "NVX_CALLABLE_CONTRACT_OK declarations=%d calls=%d files=%d\n",
     count($declared),
     count($calls),
     count($files)

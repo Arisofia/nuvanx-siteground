@@ -53,8 +53,8 @@ if [[ -d "$optimizer_assets" ]]; then
 fi
 echo "optimizer_assets_cleanup=ok"
 
-# OpCache is optional. When available, a false reset result is a blocking
-# failure rather than a successful marker.
-wp eval 'if (!function_exists("opcache_reset")) { echo "opcache=unavailable\n"; } elseif (!opcache_reset()) { fwrite(STDERR, "opcache=failed\n"); exit(1); } else { echo "opcache=ok\n"; }'
+# PHP CLI cannot reset the web OpCache when CLI OpCache is disabled. Report that
+# state as unavailable; when CLI OpCache is active, a false reset is blocking.
+wp eval 'if (!function_exists("opcache_reset") || !filter_var(ini_get("opcache.enable_cli"), FILTER_VALIDATE_BOOLEAN)) { echo "opcache=unavailable\n"; } elseif (!opcache_reset()) { fwrite(STDERR, "opcache=failed\n"); exit(1); } else { echo "opcache=ok\n"; }'
 
 echo "$LABEL"

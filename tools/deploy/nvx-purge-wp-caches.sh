@@ -28,20 +28,27 @@ echo "wp_cache_flush=ok"
 wp sg purge
 echo "sg_purge=ok"
 
-# Delete known disk-cache trees only when present. Missing paths are normal;
-# filesystem permission or deletion failures are blocking.
-shopt -s nullglob dotglob
+# Delete known cache trees only when present. nullglob treats missing paths as
+# normal while permission or deletion errors remain blocking.
+shopt -s nullglob
 cache_targets=(
   wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
   wp-content/cache/sgo-cache
   wp-content/cache/supercache
   wp-content/cache/sg-cachepress
-  wp-content/cache/*
 )
 if (( ${#cache_targets[@]} > 0 )); then
   rm -rf -- "${cache_targets[@]}"
 fi
-shopt -u nullglob dotglob
+shopt -u nullglob
+
+# Remove all remaining cache-root entries, including hidden cache files, while
+# preserving the protective .htaccess file.
+cache_root='wp-content/cache'
+if [[ -d "$cache_root" ]]; then
+  find "$cache_root" -mindepth 1 -maxdepth 1 ! -name '.htaccess' \
+    -exec rm -rf -- {} +
+fi
 echo "disk_cache_cleanup=ok"
 
 # Remove combined/minified assets when the optimizer directory exists.
@@ -53,8 +60,8 @@ if [[ -d "$optimizer_assets" ]]; then
 fi
 echo "optimizer_assets_cleanup=ok"
 
-# PHP CLI cannot reset the web OpCache when CLI OpCache is disabled. Report that
-# state as unavailable; when CLI OpCache is active, a false reset is blocking.
-wp eval 'if (!function_exists("opcache_reset") || !filter_var(ini_get("opcache.enable_cli"), FILTER_VALIDATE_BOOLEAN)) { echo "opcache=unavailable\n"; } elseif (!opcache_reset()) { fwrite(STDERR, "opcache=failed\n"); exit(1); } else { echo "opcache=ok\n"; }'
+# WP-CLI runs under the CLI SAPI and cannot reliably reset the web-serving PHP
+# process pool. Do not claim or block on a web OpCache purge from this process.
+echo "opcache=not-applicable-cli"
 
 echo "$LABEL"

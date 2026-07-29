@@ -33,6 +33,29 @@ function nvx_strategy_page_catalog(): array {
     );
 }
 
+/**
+ * WordPress page IDs for strategy pages that are NOT yet approved for public indexation.
+ * Called by nvx_noindex_page_ids() to exclude them from sitemaps and robots.
+ *
+ * Restored Jul-2026: function was accidentally dropped during the SonarQube refactor,
+ * leaving the function_exists() guard in nvx-page-hygiene.php silently inactive.
+ *
+ * @return int[]
+ */
+function nvx_strategy_pending_page_ids(): array {
+    $ids = array();
+    foreach ( nvx_strategy_page_catalog() as $page ) {
+        if ( 'approved_for_publication' === ( $page['review_status'] ?? '' ) ) {
+            continue;
+        }
+        $stored = get_page_by_path( $page['slug'] );
+        if ( $stored ) {
+            $ids[] = (int) $stored->ID;
+        }
+    }
+    return array_values( array_unique( $ids ) );
+}
+
 /** Identifies the current page's strategy catalog entry. */
 function nvx_strategy_current_page_key(): ?string {
     if ( ! is_page() ) {

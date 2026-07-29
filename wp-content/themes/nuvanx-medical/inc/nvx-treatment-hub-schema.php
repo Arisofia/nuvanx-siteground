@@ -12,6 +12,26 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+/**
+ * Whether the current page is the canonical medical solutions / treatments hub.
+ *
+ * The legacy /tratamientos/ template was retired Jul-2026 and the function that
+ * lived in nvx-native-style-governance.php was deleted with it. The hub now lives
+ * at /soluciones-medicas/. This local definition keeps the schema wiring intact.
+ *
+ * @return bool
+ */
+if ( ! function_exists( 'nvx_theme_is_treatments_hub' ) ) {
+    function nvx_theme_is_treatments_hub(): bool {
+        if ( ! is_page() ) {
+            return false;
+        }
+        $slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+        return 'soluciones-medicas' === $slug;
+    }
+}
+
+
 // Schema.org procedureType constants for medical procedures.
 if ( ! defined( 'NVX_SCHEMA_MINIMALLY_INVASIVE' ) ) {
     define( 'NVX_SCHEMA_MINIMALLY_INVASIVE', 'https://schema.org/MinimallyInvasiveProcedure' );

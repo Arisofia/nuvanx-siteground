@@ -36,17 +36,14 @@ if (!fs.existsSync(helperPath)) {
   for (const marker of [
     'echo "wp_cache_flush=ok"',
     'echo "sg_purge=ok"',
-    'shopt -s nullglob dotglob',
+    'shopt -s nullglob',
     'rm -rf -- "${cache_targets[@]}"',
+    "cache_root='wp-content/cache'",
+    'find "$cache_root" -mindepth 1 -maxdepth 1',
+    "! -name '.htaccess'",
     'disk_cache_cleanup=ok',
     'optimizer_assets_cleanup=ok',
-    'opcache_reset()',
-    'opcache.enable_cli',
-    'FILTER_VALIDATE_BOOLEAN',
-    'opcache=unavailable',
-    'opcache=failed',
-    'exit(1)',
-    'opcache=ok',
+    'opcache=not-applicable-cli',
     'sgo-cache',
     'supercache',
     'sg-cachepress',
@@ -64,6 +61,10 @@ if (!fs.existsSync(helperPath)) {
     '&& true ||',
     'wp sg purge dynamic',
     'wp sg purge memcached',
+    'wp-content/cache/*',
+    'shopt -s nullglob dotglob',
+    'opcache_reset',
+    "wp eval '",
   ]) {
     if (source.includes(forbidden)) {
       failures.push(`purge helper contains forbidden marker: ${forbidden}`);
@@ -81,17 +82,6 @@ if (!fs.existsSync(helperPath)) {
   if (purgeIndex < 0 || purgeSuccessIndex !== purgeIndex + 1) {
     failures.push('sg_purge=ok must immediately follow a successful wp sg purge');
   }
-
-  const opcacheEval = executable.find((line) => line.startsWith("wp eval 'if (!function_exists(\"opcache_reset\")"));
-  if (
-    !opcacheEval
-    || !opcacheEval.includes('ini_get("opcache.enable_cli")')
-    || !opcacheEval.includes('FILTER_VALIDATE_BOOLEAN')
-    || !opcacheEval.includes('elseif (!opcache_reset())')
-    || !opcacheEval.includes('exit(1)')
-  ) {
-    failures.push('OpCache must distinguish unavailable CLI support from an active reset failure');
-  }
 }
 
 if (failures.length > 0) {
@@ -100,4 +90,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('CACHE_PURGE_CONTRACT_OK siteground=canonical filesystem=strict opcache=classified');
+console.log('CACHE_PURGE_CONTRACT_OK siteground=canonical filesystem=strict opcache=not-applicable-cli');

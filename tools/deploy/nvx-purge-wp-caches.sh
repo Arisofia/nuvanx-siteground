@@ -56,7 +56,9 @@ if [[ -d "$optimizer_assets" ]]; then
     -delete
 fi
 
-# OpCache is optional. When available, a failed reset is a real purge failure.
-wp eval 'if (!function_exists("opcache_reset")) { echo "opcache=unavailable\n"; } elseif (!opcache_reset()) { fwrite(STDERR, "opcache=failed\n"); exit(1); } else { echo "opcache=ok\n"; }'
+# OpCache is optional. PHP CLI cannot reset the web cache when opcache.enable_cli
+# is disabled, so that state is reported as unavailable. When CLI OpCache is
+# active, a false reset result is a real purge failure.
+wp eval 'if (!function_exists("opcache_reset") || !filter_var(ini_get("opcache.enable_cli"), FILTER_VALIDATE_BOOLEAN)) { echo "opcache=unavailable\n"; } elseif (!opcache_reset()) { fwrite(STDERR, "opcache=failed\n"); exit(1); } else { echo "opcache=ok\n"; }'
 
 echo "$LABEL"

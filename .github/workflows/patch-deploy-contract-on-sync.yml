@@ -1,0 +1,83 @@
+name: Patch deploy contract on sync
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [synchronize]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.pull_request.head.ref == 'fix/audit-v3-runtime-contracts-clean-20260729'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/audit-v3-runtime-contracts-clean-20260729
+          fetch-depth: 0
+
+      - name: Align deploy contract with canonical purge
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/staging2/test-deploy-workflow-contract.mjs')
+          text = path.read_text(encoding='utf-8')
+          old = """for (const marker of [
+            'wp sg purge dynamic',
+            'wp sg purge memcached',
+            'sgo-cache',
+            'supercache',
+            'sg-cachepress',
+            'opcache_reset',
+          ]) if (!purgeHelper.includes(marker)) fail(`shared purge helper missing marker: ${marker}`);
+          """
+          new = """for (const marker of [
+            'wp cache flush',
+            'echo \"wp_cache_flush=ok\"',
+            'wp sg purge',
+            'echo \"sg_purge=ok\"',
+            'rm -rf -- \"${cache_targets[@]}\"',
+            'elseif (!opcache_reset())',
+            'opcache=failed',
+            'sgo-cache',
+            'supercache',
+            'sg-cachepress',
+          ]) if (!purgeHelper.includes(marker)) fail(`shared purge helper missing marker: ${marker}`);
+          for (const forbidden of [
+            'wp sg purge dynamic',
+            'wp sg purge memcached',
+            'nvx_run_optional_wp_command',
+            '|| true',
+          ]) if (purgeHelper.includes(forbidden)) fail(`shared purge helper contains forbidden marker: ${forbidden}`);
+          """
+          if old not in text:
+              if new in text:
+                  Path('.github/deploy-contract-trigger.txt').unlink(missing_ok=True)
+                  raise SystemExit(0)
+              raise SystemExit('deploy purge marker block not found')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          Path('.github/deploy-contract-trigger.txt').unlink(missing_ok=True)
+          PY
+
+          git diff --check
+          node --check scripts/staging2/test-deploy-workflow-contract.mjs
+          node scripts/staging2/test-deploy-workflow-contract.mjs
+
+      - name: Commit contract correction
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/staging2/test-deploy-workflow-contract.mjs .github/deploy-contract-trigger.txt
+          git commit -m 'test(staging2): align deploy contract with canonical purge'
+          git push origin HEAD:fix/audit-v3-runtime-contracts-clean-20260729

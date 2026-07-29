@@ -47,6 +47,8 @@ if (!fs.existsSync(helperPath)) {
     'shopt -s nullglob dotglob',
     'rm -rf -- "${cache_targets[@]}"',
     'opcache_reset()',
+    'opcache.enable_cli',
+    'FILTER_VALIDATE_BOOLEAN',
     'opcache=unavailable',
     'opcache=failed',
     'exit(1)',
@@ -76,9 +78,14 @@ if (!fs.existsSync(helperPath)) {
     failures.push('sg_purge=ok must immediately follow a successful wp sg purge');
   }
 
-  const opcacheEval = executable.find((line) => line.startsWith("wp eval 'if (!function_exists(\"opcache_reset\"))"));
-  if (!opcacheEval || !opcacheEval.includes('elseif (!opcache_reset())') || !opcacheEval.includes('exit(1)')) {
-    failures.push('available OpCache reset failures must terminate the purge');
+  const opcacheEval = executable.find((line) => line.startsWith("wp eval 'if (!function_exists(\"opcache_reset\")"));
+  if (
+    !opcacheEval
+    || !opcacheEval.includes('ini_get("opcache.enable_cli")')
+    || !opcacheEval.includes('elseif (!opcache_reset())')
+    || !opcacheEval.includes('exit(1)')
+  ) {
+    failures.push('OpCache must distinguish unavailable CLI support from an active reset failure');
   }
 }
 
@@ -88,4 +95,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('CACHE_PURGE_CONTRACT_OK siteground=canonical filesystem=strict opcache=verified');
+console.log('CACHE_PURGE_CONTRACT_OK siteground=canonical filesystem=strict opcache=classified');

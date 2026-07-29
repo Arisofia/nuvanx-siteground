@@ -35,7 +35,8 @@ echo 'sg_purge=ok'
 
 # Delete known disk-cache trees only when present. Missing paths are normal;
 # filesystem permission or deletion failures remain blocking under strict mode.
-shopt -s nullglob dotglob
+# Do not enable dotglob: plugin-managed controls such as .htaccess must survive.
+shopt -s nullglob
 cache_targets=(
   wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
   wp-content/cache/sgo-cache
@@ -46,7 +47,7 @@ cache_targets=(
 if (( ${#cache_targets[@]} > 0 )); then
   rm -rf -- "${cache_targets[@]}"
 fi
-shopt -u nullglob dotglob
+shopt -u nullglob
 
 # Remove combined/minified asset leftovers when the optimizer directory exists.
 optimizer_assets='wp-content/uploads/siteground-optimizer-assets'

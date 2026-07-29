@@ -55,13 +55,14 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
 
-      - name: Inspect backup, migration lock and isolated payloads
+      - name: Inspect backup, audit payload and migration state
         run: |
           set -euo pipefail
           mkdir -p production-db-parity-diagnose
           ssh siteground-prod 'bash -se' > production-db-parity-diagnose/status.txt <<'REMOTE'
           set -euo pipefail
           PROD_ROOT='/home/customer/www/nuvanx.com/public_html'
+          BACKUP_ROOT='/home/customer/backups-nuvanx/production'
           echo "UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           cd "$PROD_ROOT"
           echo "SITEURL=$(wp option get siteurl)"
@@ -70,12 +71,30 @@ jobs:
           lock="$(wp option get _nvx_production_readiness_migration_lock 2>/dev/null || true)"
           echo "MIGRATION_LOCK=${lock:-none}"
           echo 'RECENT_BACKUPS_BEGIN'
-          find /home/customer/backups-nuvanx/production -maxdepth 1 -mindepth 1 -type d -name 'pre-parity-*' -mmin -120 -printf '%TY-%Tm-%TdT%TH:%TM:%TSZ %p\n' 2>/dev/null | sort || true
+          find "$BACKUP_ROOT" -maxdepth 1 -mindepth 1 -type d -name 'pre-parity-*' -mmin -120 -printf '%TY-%Tm-%TdT%TH:%TM:%TSZ %p\n' 2>/dev/null | sort || true
           echo 'RECENT_BACKUPS_END'
+          latest="$(find "$BACKUP_ROOT" -maxdepth 1 -mindepth 1 -type d -name 'pre-parity-*' -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)"
+          if [[ -n "$latest" && -d "$latest" ]]; then
+            echo "LATEST_BACKUP=$latest"
+            find "$latest" -maxdepth 1 -type f -printf '%f bytes=%s mode=%m\n' | sort
+            if [[ -f "$latest/database.sql.gz" ]]; then
+              gzip -t "$latest/database.sql.gz"
+              echo "SQL_GZIP_TEST=ok"
+              echo "SQL_SHA256=$(sha256sum "$latest/database.sql.gz" | awk '{print $1}')"
+            fi
+            if [[ -f "$latest/pre-audit.json" ]]; then
+              echo 'PRE_AUDIT_TEXT_BEGIN'
+              sed -n '1,120p' "$latest/pre-audit.json"
+              echo 'PRE_AUDIT_TEXT_END'
+              echo 'PRE_AUDIT_HEX_BEGIN'
+              xxd -g 1 -l 512 "$latest/pre-audit.json"
+              echo 'PRE_AUDIT_HEX_END'
+            fi
+          fi
           echo 'RECENT_PAYLOADS_BEGIN'
           find "$PROD_ROOT/wp-content/.nuvanx-deployments" -maxdepth 1 -mindepth 1 -type d -name 'db-parity-*' -mmin -120 -printf '%TY-%Tm-%TdT%TH:%TM:%TSZ %p\n' 2>/dev/null | sort || true
           echo 'RECENT_PAYLOADS_END'
-          for manifest in /home/customer/backups-nuvanx/production/pre-parity-*/manifest.txt; do
+          for manifest in "$BACKUP_ROOT"/pre-parity-*/manifest.txt; do
             [[ -f "$manifest" ]] || continue
             echo "MANIFEST=$manifest"
             grep -E '^(source_sha|run_id|created_utc|sql_gzip_bytes|sql_sha256|pre_audit|migration_result|post_audit|db_check)=' "$manifest" || true

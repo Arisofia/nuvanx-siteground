@@ -44,6 +44,7 @@ const cachePurge = read('tools/deploy/nvx-purge-wp-caches.sh');
 const deployWorkflow = read('.github/workflows/deploy-staging2.yml');
 
 const seoCode = stripBlockComments(seoMetadata.replace(/\/\/.*$/gm, ''));
+const editorialSeoCode = stripBlockComments(editorialSeo.replace(/\/\/.*$/gm, ''));
 forbidText('solution SEO ownership', seoCode, 'nvx_seo_metadata_from_solutions(');
 forbidText('solution SEO ownership', seoCode, "function_exists( 'nvx_solution_pages_catalog' )");
 requireText('solution SEO ownership', seoMetadata, "function_exists( 'nvx_editorial_seo_current' )");
@@ -56,7 +57,7 @@ for (const route of [
   '/calidad-piel-firmeza-luminosidad-madrid/',
   '/cicatrices-acne-poros-textura-madrid/',
   '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/',
-]) requireText('solution SEO catalog', editorialSeo, `'${route}'`);
+]) requireText('solution SEO catalog', editorialSeoCode, `'${route}'`);
 
 requireText('strategy noindex source', strategyPages, 'function nvx_strategy_pending_page_ids(): array');
 requireText('strategy noindex source', strategyPages, "'approved_for_publication' === ( $page['review_status'] ?? '' )");

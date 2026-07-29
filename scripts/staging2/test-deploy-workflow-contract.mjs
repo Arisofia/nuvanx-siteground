@@ -95,13 +95,27 @@ const purgeHelper = read('tools/deploy/nvx-purge-wp-caches.sh');
 const deployShaJs = read('scripts/staging2/nvx-deploy-sha.mjs');
 const deployShaSh = read('scripts/staging2/nvx-deploy-sha.sh');
 for (const marker of [
-  'wp sg purge dynamic',
-  'wp sg purge memcached',
+  'wp cache flush',
+  'echo "wp_cache_flush=ok"',
+  'wp sg purge',
+  'echo "sg_purge=ok"',
+  'rm -rf -- "${cache_targets[@]}"',
+  "cache_root='wp-content/cache'",
+  "! -name '.htaccess'",
+  'opcache=not-applicable-cli',
   'sgo-cache',
   'supercache',
   'sg-cachepress',
-  'opcache_reset',
 ]) if (!purgeHelper.includes(marker)) fail(`shared purge helper missing marker: ${marker}`);
+for (const forbidden of [
+  'wp sg purge dynamic',
+  'wp sg purge memcached',
+  'nvx_run_optional_wp_command',
+  '|| true',
+  'wp-content/cache/*',
+  'opcache_reset',
+  "wp eval '",
+]) if (purgeHelper.includes(forbidden)) fail(`shared purge helper contains forbidden marker: ${forbidden}`);
 for (const marker of [
   'export function extractDeployShaFromHtml',
   'export function assertHtmlDeploySha',

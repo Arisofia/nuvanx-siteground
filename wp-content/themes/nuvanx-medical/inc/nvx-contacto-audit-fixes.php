@@ -54,10 +54,6 @@ function nvxContactoAuditTitle( $title ): string {
 
     return 'Contacto NUVANX Madrid | Chamberí y Salamanca–Goya';
 }
-add_filter( 'wpseo_title', 'nvxContactoAuditTitle', 110 );
-add_filter( 'wpseo_opengraph_title', 'nvxContactoAuditTitle', 110 );
-add_filter( 'wpseo_twitter_title', 'nvxContactoAuditTitle', 110 );
-
 /**
  * Patient-facing contact description shared by SERP and social cards.
  */
@@ -68,9 +64,13 @@ function nvxContactoAuditDescription( $description ): string {
 
     return 'Clínicas NUVANX en Chamberí y Salamanca–Goya: teléfonos, horarios, registros sanitarios, mapas y valoración médica en Madrid.';
 }
-add_filter( 'wpseo_metadesc', 'nvxContactoAuditDescription', 110 );
-add_filter( 'wpseo_opengraph_desc', 'nvxContactoAuditDescription', 110 );
-add_filter( 'wpseo_twitter_description', 'nvxContactoAuditDescription', 110 );
+
+nvx_register_yoast_seo_filters(
+    'nvxContactoAuditTitle',
+    'nvxContactoAuditDescription',
+    null,
+    110
+);
 
 /** Resolve or create organization node in Yoast graph. */
 function nvxContactoAuditResolveOrganizationInfo( array &$graph ): array {

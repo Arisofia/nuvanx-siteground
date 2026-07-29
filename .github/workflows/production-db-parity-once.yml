@@ -1,0 +1,288 @@
+name: Production DB parity and mandatory SQL backup
+
+on:
+  push:
+    branches:
+      - ops/production-db-parity-20260729
+    paths:
+      - '.github/workflows/production-db-parity-once.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-db-parity
+  cancel-in-progress: false
+
+env:
+  EXPECTED_SOURCE_SHA: f366d14a6487e723b0d7512c4ed3300cad9d61ed
+  PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+  EVIDENCE_DIR: production-db-parity-evidence
+
+jobs:
+  reconcile:
+    name: Backup SQL, audit and reconcile production database
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact production candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.EXPECTED_SOURCE_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate immutable source and scripts
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_SHA"
+          [[ "$EXPECTED_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          php -l scripts/wp/nvx-production-readiness-command.php
+          bash -n tools/deploy/nvx-purge-wp-caches.sh
+          test -d wp-content/themes/nuvanx-medical
+          mkdir -p "$EVIDENCE_DIR"
+          printf 'source_sha=%s\nrun_id=%s\nactor=%s\n' \
+            "$EXPECTED_SOURCE_SHA" "$GITHUB_RUN_ID" "$GITHUB_ACTOR" \
+            > "$EVIDENCE_DIR/run-context.txt"
+
+      - name: Build immutable migration payload
+        run: |
+          set -euo pipefail
+          mkdir -p release/theme
+          cp scripts/wp/nvx-production-readiness-command.php release/
+          cp -a wp-content/themes/nuvanx-medical/. release/theme/
+          tar -czf production-db-parity-release.tgz -C release .
+          sha256sum production-db-parity-release.tgz | tee "$EVIDENCE_DIR/release-sha256.txt"
+
+      - name: Configure strict SiteGround SSH
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/siteground_key"
+          chmod 600 "$HOME/.ssh/siteground_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host siteground-prod
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/siteground_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh siteground-prod 'printf "SSH_OK\n"'
+
+      - name: Upload isolated release payload
+        run: |
+          set -euo pipefail
+          REMOTE_RELEASE="$PROD_ROOT/wp-content/.nuvanx-deployments/db-parity-$GITHUB_RUN_ID"
+          echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          ssh siteground-prod "mkdir -p '$REMOTE_RELEASE' && chmod 700 '$REMOTE_RELEASE'"
+          scp production-db-parity-release.tgz siteground-prod:"$REMOTE_RELEASE/release.tgz"
+          ssh siteground-prod "cd '$REMOTE_RELEASE' && tar -xzf release.tgz && rm release.tgz"
+
+      - name: Mandatory SQL backup and conditional parity migration
+        run: |
+          set -euo pipefail
+          ssh siteground-prod \
+            "PROD_ROOT='$PROD_ROOT' STAGING_ROOT='$STAGING_ROOT' REMOTE_RELEASE='$REMOTE_RELEASE' EXPECTED_SOURCE_SHA='$EXPECTED_SOURCE_SHA' RUN_ID='$GITHUB_RUN_ID' bash -se" \
+            > "$EVIDENCE_DIR/remote-execution.log" 2>&1 <<'REMOTE'
+          set -Eeuo pipefail
+          umask 077
+          cd "$PROD_ROOT"
+
+          siteurl="$(wp option get siteurl)"
+          home="$(wp option get home)"
+          theme="$(wp theme list --status=active --field=name)"
+          [[ "$siteurl" == 'https://nuvanx.com' ]]
+          [[ "$home" == 'https://nuvanx.com' ]]
+          [[ "$theme" == 'nuvanx-medical' ]]
+          [[ "$(cd "$STAGING_ROOT" && wp option get siteurl)" == 'https://staging2.nuvanx.com' ]]
+
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          backup_dir="/home/customer/backups-nuvanx/production/pre-parity-${stamp}-${RUN_ID}"
+          mkdir -p "$backup_dir"
+          chmod 700 "$backup_dir"
+
+          echo "BACKUP_DIR=$backup_dir"
+          echo "PROD_SITEURL=$siteurl"
+          echo "PROD_HOME=$home"
+          echo "PROD_THEME=$theme"
+          echo "SOURCE_SHA=$EXPECTED_SOURCE_SHA"
+
+          sql_plain="$backup_dir/database.sql"
+          sql_gzip="$backup_dir/database.sql.gz"
+          wp db export "$sql_plain" --add-drop-table --quiet
+          test -s "$sql_plain"
+          grep -qE '^(CREATE TABLE|INSERT INTO|-- WordPress)' "$sql_plain"
+          plain_bytes="$(wc -c < "$sql_plain" | tr -d ' ')"
+          [[ "$plain_bytes" =~ ^[0-9]+$ ]]
+          (( plain_bytes > 1024 ))
+          gzip -9 "$sql_plain"
+          test -s "$sql_gzip"
+          gzip -t "$sql_gzip"
+          gzip_bytes="$(wc -c < "$sql_gzip" | tr -d ' ')"
+          sql_sha256="$(sha256sum "$sql_gzip" | awk '{print $1}')"
+          [[ "$sql_sha256" =~ ^[0-9a-f]{64}$ ]]
+          chmod 600 "$sql_gzip"
+
+          wp db check --quiet
+          tar -czf "$backup_dir/theme-before.tgz" -C "$PROD_ROOT" wp-content/themes/nuvanx-medical
+          if [[ -d "$PROD_ROOT/wp-content/mu-plugins" ]]; then
+            tar -czf "$backup_dir/mu-plugins-before.tgz" -C "$PROD_ROOT" wp-content/mu-plugins
+          fi
+          chmod 600 "$backup_dir"/*.tgz
+
+          command_file="$REMOTE_RELEASE/nvx-production-readiness-command.php"
+          test -f "$command_file"
+          pre_json="$backup_dir/pre-audit.json"
+          post_json="$backup_dir/post-audit.json"
+
+          wp --require="$command_file" nvx production-readiness audit \
+            --allow-pending --format=json > "$pre_json"
+          test -s "$pre_json"
+
+          needs_apply="$(php -r '
+            $rows=json_decode(file_get_contents($argv[1]), true);
+            if (!is_array($rows)) { fwrite(STDERR, "invalid audit json\n"); exit(2); }
+            $clean=true;
+            foreach ($rows as $row) {
+              $type=(string)($row["type"] ?? "");
+              $status=(string)($row["status"] ?? "");
+              $expected=(string)($row["expected"] ?? "");
+              $menu=(int)($row["menu_items"] ?? 0);
+              if ($type === "approved") { $rowClean = $status === "publish"; }
+              elseif ($type === "governed") { $rowClean = ($status === "absent" || $status === $expected) && $menu === 0; }
+              else { $rowClean = $type === "navigation" && $status === "clean"; }
+              if (!$rowClean) { $clean=false; break; }
+            }
+            echo $clean ? "no" : "yes";
+          ' "$pre_json")"
+
+          mutation_started=0
+          rollback() {
+            rc=$?
+            if (( rc != 0 )) && (( mutation_started == 1 )); then
+              echo "ROLLBACK_START rc=$rc"
+              gzip -cd "$sql_gzip" | wp db import -
+              wp cache flush
+              wp sg purge
+              echo "ROLLBACK_DB_OK"
+            fi
+            exit "$rc"
+          }
+          trap rollback EXIT
+
+          if [[ "$needs_apply" == 'yes' ]]; then
+            mutation_started=1
+            wp --require="$command_file" nvx production-readiness apply \
+              --confirm=retire-prototypes --allow-production
+            migration_result='applied'
+          else
+            migration_result='already-clean'
+          fi
+
+          wp --require="$command_file" nvx production-readiness audit --format=json > "$post_json"
+          test -s "$post_json"
+          wp db check --quiet
+          wp cache flush
+          wp sg purge
+
+          post_status="$(php -r '
+            $rows=json_decode(file_get_contents($argv[1]), true);
+            if (!is_array($rows)) exit(2);
+            foreach ($rows as $row) {
+              $type=(string)($row["type"] ?? "");
+              $status=(string)($row["status"] ?? "");
+              $expected=(string)($row["expected"] ?? "");
+              $menu=(int)($row["menu_items"] ?? 0);
+              $ok=$type === "approved" ? $status === "publish" : ($type === "governed" ? (($status === "absent" || $status === $expected) && $menu === 0) : ($type === "navigation" && $status === "clean"));
+              if (!$ok) { echo "pending"; exit(0); }
+            }
+            echo "clean";
+          ' "$post_json")"
+          [[ "$post_status" == 'clean' ]]
+
+          cat > "$backup_dir/manifest.txt" <<EOF
+          source_sha=$EXPECTED_SOURCE_SHA
+          run_id=$RUN_ID
+          created_utc=$stamp
+          production_root=$PROD_ROOT
+          siteurl=$siteurl
+          home=$home
+          active_theme=$theme
+          sql_file=$sql_gzip
+          sql_plain_bytes=$plain_bytes
+          sql_gzip_bytes=$gzip_bytes
+          sql_sha256=$sql_sha256
+          migration_result=$migration_result
+          post_audit=$post_status
+          db_check=ok
+          EOF
+          chmod 600 "$backup_dir/manifest.txt" "$pre_json" "$post_json"
+
+          trap - EXIT
+          echo "SQL_BACKUP_REQUIRED_OK"
+          echo "SQL_BACKUP_GZIP_BYTES=$gzip_bytes"
+          echo "SQL_BACKUP_SHA256=$sql_sha256"
+          echo "MIGRATION_RESULT=$migration_result"
+          echo "POST_AUDIT=clean"
+          echo "PRODUCTION_DB_PARITY_OK"
+          REMOTE
+
+          grep -Fq 'SQL_BACKUP_REQUIRED_OK' "$EVIDENCE_DIR/remote-execution.log"
+          grep -Fq 'PRODUCTION_DB_PARITY_OK' "$EVIDENCE_DIR/remote-execution.log"
+          grep -E '^(BACKUP_DIR|SOURCE_SHA|SQL_BACKUP_GZIP_BYTES|SQL_BACKUP_SHA256|MIGRATION_RESULT|POST_AUDIT|SQL_BACKUP_REQUIRED_OK|PRODUCTION_DB_PARITY_OK)=' \
+            "$EVIDENCE_DIR/remote-execution.log" > "$EVIDENCE_DIR/result-summary.txt"
+
+      - name: Read-only production HTTP verification
+        env:
+          BASE_URL: https://nuvanx.com
+          SMOKE_RETRIES: '6'
+          SMOKE_RETRY_SLEEP: '5'
+        run: |
+          set -euo pipefail
+          chmod +x scripts/staging2/smoke-verify-staging2.sh
+          bash scripts/staging2/smoke-verify-staging2.sh \
+            2>&1 | tee "$EVIDENCE_DIR/production-smoke.log"
+          grep -Fq 'SMOKE_VERIFY_OK' "$EVIDENCE_DIR/production-smoke.log"
+
+      - name: Remove isolated remote payload
+        if: always()
+        run: |
+          set -euo pipefail
+          if [[ -n "${REMOTE_RELEASE:-}" ]]; then
+            ssh siteground-prod "rm -rf '$REMOTE_RELEASE'"
+          fi
+
+      - name: Upload non-sensitive evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: production-db-parity-${{ github.run_id }}-${{ github.run_attempt }}
+          path: production-db-parity-evidence/
+          retention-days: 30
+          if-no-files-found: error

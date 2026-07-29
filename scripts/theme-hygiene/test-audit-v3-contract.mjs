@@ -13,6 +13,23 @@ const requireText = (scope, source, marker) => {
 const forbidText = (scope, source, marker) => {
   if (source.includes(marker)) failures.push(`${scope}: forbidden ${marker}`);
 };
+const stripBlockComments = (source) => {
+  let output = '';
+  let cursor = 0;
+  while (cursor < source.length) {
+    const start = source.indexOf('/*', cursor);
+    if (start < 0) {
+      output += source.slice(cursor);
+      break;
+    }
+    output += source.slice(cursor, start);
+    const end = source.indexOf('*/', start + 2);
+    if (end < 0) break;
+    output += ' ';
+    cursor = end + 2;
+  }
+  return output;
+};
 
 const seoMetadata = read('wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php');
 const editorialSeo = read('wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php');
@@ -26,9 +43,7 @@ const functions = read('wp-content/themes/nuvanx-medical/functions.php');
 const cachePurge = read('tools/deploy/nvx-purge-wp-caches.sh');
 const deployWorkflow = read('.github/workflows/deploy-staging2.yml');
 
-const seoCode = seoMetadata
-  .replace(/\/\/.*$/gm, '')
-  .replace(/\/\*[\s\S]*?\*\//g, '');
+const seoCode = stripBlockComments(seoMetadata.replace(/\/\/.*$/gm, ''));
 forbidText('solution SEO ownership', seoCode, 'nvx_seo_metadata_from_solutions(');
 forbidText('solution SEO ownership', seoCode, "function_exists( 'nvx_solution_pages_catalog' )");
 requireText('solution SEO ownership', seoMetadata, "function_exists( 'nvx_editorial_seo_current' )");
@@ -84,12 +99,9 @@ for (const marker of [
   'wp sg purge',
   'echo "sg_purge=ok"',
   'rm -rf -- "${cache_targets[@]}"',
-  'opcache.enable_cli',
-  'FILTER_VALIDATE_BOOLEAN',
-  'elseif (!opcache_reset())',
-  'opcache=unavailable',
-  'opcache=failed',
-  'exit(1)',
+  "cache_root='wp-content/cache'",
+  "! -name '.htaccess'",
+  'opcache=not-applicable-cli',
 ]) requireText('cache purge', cachePurge, marker);
 for (const marker of [
   'nvx_run_optional_wp_command',
@@ -98,6 +110,9 @@ for (const marker of [
   '|| true',
   'wp sg purge dynamic',
   'wp sg purge memcached',
+  'wp-content/cache/*',
+  'opcache_reset',
+  "wp eval '",
 ]) forbidText('cache purge', cachePurge, marker);
 
 const purgeWorkflowOccurrences = deployWorkflow.split('tools/deploy/nvx-purge-wp-caches.sh').length - 1;

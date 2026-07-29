@@ -20,46 +20,48 @@ done
 
 cd "$WP_ROOT"
 
-# WordPress object cache. Any failure aborts the deployment.
+# Mandatory WordPress and SiteGround cache layers. Any WP-CLI, permission,
+# or server-side failure aborts the deployment under strict shell mode.
 wp cache flush
-echo 'wp_cache_flush=ok'
+echo "wp_cache_flush=ok"
 
-# SiteGround Speed Optimizer's documented command clears its assets, file cache
-# and Dynamic Cache. Any execution failure aborts the deployment.
 wp sg purge
-echo 'sg_purge=ok'
+echo "sg_purge=ok"
 
-# URL-scoped variants are intentionally not executed without their required URL:
-# wp sg purge dynamic
-# wp sg purge memcached
-
-# Delete known disk-cache trees only when present. Missing paths are normal;
-# filesystem permission or deletion failures remain blocking under strict mode.
-# Do not enable dotglob: plugin-managed controls such as .htaccess must survive.
+# Delete known cache trees only when present. nullglob treats missing paths as
+# normal while permission or deletion errors remain blocking.
 shopt -s nullglob
 cache_targets=(
   wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
   wp-content/cache/sgo-cache
   wp-content/cache/supercache
   wp-content/cache/sg-cachepress
-  wp-content/cache/*
 )
 if (( ${#cache_targets[@]} > 0 )); then
   rm -rf -- "${cache_targets[@]}"
 fi
 shopt -u nullglob
 
-# Remove combined/minified asset leftovers when the optimizer directory exists.
+# Remove all remaining cache-root entries, including hidden cache files, while
+# preserving the protective .htaccess file.
+cache_root='wp-content/cache'
+if [[ -d "$cache_root" ]]; then
+  find "$cache_root" -mindepth 1 -maxdepth 1 ! -name '.htaccess' \
+    -exec rm -rf -- {} +
+fi
+echo "disk_cache_cleanup=ok"
+
+# Remove combined/minified assets when the optimizer directory exists.
 optimizer_assets='wp-content/uploads/siteground-optimizer-assets'
 if [[ -d "$optimizer_assets" ]]; then
   find "$optimizer_assets" -mindepth 1 -maxdepth 1 \
     \( -name 'siteground-optimizer-combined-*' -o -name '*.css' -o -name '*.js' \) \
     -delete
 fi
+echo "optimizer_assets_cleanup=ok"
 
-# OpCache is optional. PHP CLI cannot reset the web cache when opcache.enable_cli
-# is disabled, so that state is reported as unavailable. When CLI OpCache is
-# active, a false reset result is a real purge failure.
-wp eval 'if (!function_exists("opcache_reset") || !filter_var(ini_get("opcache.enable_cli"), FILTER_VALIDATE_BOOLEAN)) { echo "opcache=unavailable\n"; } elseif (!opcache_reset()) { fwrite(STDERR, "opcache=failed\n"); exit(1); } else { echo "opcache=ok\n"; }'
+# WP-CLI runs under the CLI SAPI and cannot reliably reset the web-serving PHP
+# process pool. Do not claim or block on a web OpCache purge from this process.
+echo "opcache=not-applicable-cli"
 
 echo "$LABEL"

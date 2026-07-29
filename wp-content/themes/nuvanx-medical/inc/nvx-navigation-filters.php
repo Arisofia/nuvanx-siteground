@@ -118,7 +118,6 @@ if ( ! function_exists( 'nvxNavigationPrimaryBlueprint' ) ) {
             array(
                 'label'    => __( 'Tecnología', 'nuvanx-medical' ),
                 'slugs'    => array( 'medicina-estetica-laser' ),
-                'mega'     => true,
                 'children' => array(
                     array( 'label' => 'Endolift® facial', 'slugs' => array( 'endolift-facial-papada-mandibula' ) ),
                     array( 'label' => 'Endoláser corporal', 'slugs' => array( 'endolaser-corporal-grasa-localizada' ) ),
@@ -435,7 +434,7 @@ function nvxNavigationItemClasses( array $classes, $item, $args, int $depth ): a
     $classes[] = 'nvx-nav__item--depth-' . $depth;
 
     $label_key  = isset( $item->title ) ? nvxNavigationLabelKey( (string) $item->title ) : '';
-    $mega_roots = array( 'soluciones', 'protocolos-signature', 'tecnologia' );
+    $mega_roots = array( 'soluciones', 'protocolos-signature' );
     if ( 0 === $depth && ( in_array( 'nvx-menu--mega', $classes, true ) || in_array( $label_key, $mega_roots, true ) ) ) {
         $classes[] = 'nvx-nav__item--mega';
     }

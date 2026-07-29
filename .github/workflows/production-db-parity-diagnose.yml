@@ -1,0 +1,92 @@
+name: Diagnose production DB parity execution
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/production-db-parity-diagnose.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-db-parity-diagnose
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'ops/production-db-parity-20260729'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Configure strict SiteGround SSH
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/siteground_key"
+          chmod 600 "$HOME/.ssh/siteground_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host siteground-prod
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/siteground_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Inspect backup, migration lock and isolated payloads
+        run: |
+          set -euo pipefail
+          mkdir -p production-db-parity-diagnose
+          ssh siteground-prod 'bash -se' > production-db-parity-diagnose/status.txt <<'REMOTE'
+          set -euo pipefail
+          PROD_ROOT='/home/customer/www/nuvanx.com/public_html'
+          echo "UTC=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          cd "$PROD_ROOT"
+          echo "SITEURL=$(wp option get siteurl)"
+          echo "HOME=$(wp option get home)"
+          echo "THEME=$(wp theme list --status=active --field=name)"
+          lock="$(wp option get _nvx_production_readiness_migration_lock 2>/dev/null || true)"
+          echo "MIGRATION_LOCK=${lock:-none}"
+          echo 'RECENT_BACKUPS_BEGIN'
+          find /home/customer/backups-nuvanx/production -maxdepth 1 -mindepth 1 -type d -name 'pre-parity-*' -mmin -120 -printf '%TY-%Tm-%TdT%TH:%TM:%TSZ %p\n' 2>/dev/null | sort || true
+          echo 'RECENT_BACKUPS_END'
+          echo 'RECENT_PAYLOADS_BEGIN'
+          find "$PROD_ROOT/wp-content/.nuvanx-deployments" -maxdepth 1 -mindepth 1 -type d -name 'db-parity-*' -mmin -120 -printf '%TY-%Tm-%TdT%TH:%TM:%TSZ %p\n' 2>/dev/null | sort || true
+          echo 'RECENT_PAYLOADS_END'
+          for manifest in /home/customer/backups-nuvanx/production/pre-parity-*/manifest.txt; do
+            [[ -f "$manifest" ]] || continue
+            echo "MANIFEST=$manifest"
+            grep -E '^(source_sha|run_id|created_utc|sql_gzip_bytes|sql_sha256|pre_audit|migration_result|post_audit|db_check)=' "$manifest" || true
+          done
+          REMOTE
+          cat production-db-parity-diagnose/status.txt
+
+      - name: Upload diagnosis
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: production-db-parity-diagnose-${{ github.run_id }}
+          path: production-db-parity-diagnose/
+          retention-days: 7
+          if-no-files-found: error

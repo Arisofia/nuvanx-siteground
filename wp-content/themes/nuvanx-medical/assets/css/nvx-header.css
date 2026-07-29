@@ -115,7 +115,8 @@
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 120ms ease, visibility 120ms ease, transform 120ms ease;
+  transition: opacity 150ms ease, visibility 150ms ease, transform 150ms ease;
+  transition-delay: 150ms;
 }
 
 .nvx-nav__list .sub-menu::before {
@@ -137,6 +138,7 @@
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
+  transition-delay: 150ms;
 }
 
 .nvx-nav__list .sub-menu .sub-menu {
@@ -282,7 +284,12 @@
   inset: 0;
   z-index: 9999;
   display: none;
-  min-height: 100dvh;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  border: 0;
   flex-direction: column;
   gap: var(--nvx-space-4);
   overflow-y: auto;

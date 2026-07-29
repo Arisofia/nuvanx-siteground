@@ -1,9 +1,9 @@
 name: Production DB parity and mandatory SQL backup
 
 on:
-  push:
-    branches:
-      - ops/production-db-parity-20260729
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
     paths:
       - '.github/workflows/production-db-parity-once.yml'
 
@@ -23,6 +23,9 @@ env:
 jobs:
   reconcile:
     name: Backup SQL, audit and reconcile production database
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'ops/production-db-parity-20260729'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -33,27 +36,43 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Validate immutable source and scripts
+      - name: Validate immutable source and build payload
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_SHA"
           [[ "$EXPECTED_SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
           php -l scripts/wp/nvx-production-readiness-command.php
-          bash -n tools/deploy/nvx-purge-wp-caches.sh
-          test -d wp-content/themes/nuvanx-medical
-          mkdir -p "$EVIDENCE_DIR"
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php
+          mkdir -p "$EVIDENCE_DIR" release/theme/inc
+          cp scripts/wp/nvx-production-readiness-command.php release/
+          cp wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php release/theme/inc/
+          cat > release/bootstrap.php <<'PHP'
+          <?php
+          if ( ! defined( 'ABSPATH' ) ) {
+              return;
+          }
+          if ( ! defined( 'NVX_PATH_OJERAS_SURCO_LAGRIMAL' ) ) {
+              define( 'NVX_PATH_OJERAS_SURCO_LAGRIMAL', '/ojeras-surco-lagrimal-madrid/' );
+          }
+          if ( ! function_exists( 'nvx_production_readiness_governed_pages' ) ) {
+              function nvx_production_readiness_governed_pages(): array {
+                  return array(
+                      'liposculpt-air' => array( 'status' => 'trash', 'target' => '/remodelacion-corporal-laser-madrid/' ),
+                      'v-lift-awake' => array( 'status' => 'trash', 'target' => '/protocolos-signature/' ),
+                      'dr-javier-rivera-tejeda' => array( 'status' => 'trash', 'target' => '/equipo-medico/' ),
+                      'tratamientos' => array( 'status' => 'trash', 'target' => '/soluciones-medicas/' ),
+                      'eye-frame-rejuvenecimiento-mirada-madrid' => array( 'status' => 'draft', 'target' => NVX_PATH_OJERAS_SURCO_LAGRIMAL ),
+                  );
+              }
+          }
+          require_once __DIR__ . '/theme/inc/nvx-navigation-filters.php';
+          PHP
+          php -l release/bootstrap.php
+          tar -czf production-db-parity-release.tgz -C release .
+          sha256sum production-db-parity-release.tgz | tee "$EVIDENCE_DIR/release-sha256.txt"
           printf 'source_sha=%s\nrun_id=%s\nactor=%s\n' \
             "$EXPECTED_SOURCE_SHA" "$GITHUB_RUN_ID" "$GITHUB_ACTOR" \
             > "$EVIDENCE_DIR/run-context.txt"
-
-      - name: Build immutable migration payload
-        run: |
-          set -euo pipefail
-          mkdir -p release/theme
-          cp scripts/wp/nvx-production-readiness-command.php release/
-          cp -a wp-content/themes/nuvanx-medical/. release/theme/
-          tar -czf production-db-parity-release.tgz -C release .
-          sha256sum production-db-parity-release.tgz | tee "$EVIDENCE_DIR/release-sha256.txt"
 
       - name: Configure strict SiteGround SSH
         env:
@@ -95,7 +114,7 @@ jobs:
           chmod 600 "$HOME/.ssh/config"
           ssh siteground-prod 'printf "SSH_OK\n"'
 
-      - name: Upload isolated release payload
+      - name: Upload isolated immutable payload
         run: |
           set -euo pipefail
           REMOTE_RELEASE="$PROD_ROOT/wp-content/.nuvanx-deployments/db-parity-$GITHUB_RUN_ID"
@@ -128,16 +147,16 @@ jobs:
           chmod 700 "$backup_dir"
 
           echo "BACKUP_DIR=$backup_dir"
+          echo "SOURCE_SHA=$EXPECTED_SOURCE_SHA"
           echo "PROD_SITEURL=$siteurl"
           echo "PROD_HOME=$home"
           echo "PROD_THEME=$theme"
-          echo "SOURCE_SHA=$EXPECTED_SOURCE_SHA"
 
           sql_plain="$backup_dir/database.sql"
           sql_gzip="$backup_dir/database.sql.gz"
           wp db export "$sql_plain" --add-drop-table --quiet
           test -s "$sql_plain"
-          grep -qE '^(CREATE TABLE|INSERT INTO|-- WordPress)' "$sql_plain"
+          grep -qE '^(CREATE TABLE|INSERT INTO|-- MySQL dump)' "$sql_plain"
           plain_bytes="$(wc -c < "$sql_plain" | tr -d ' ')"
           [[ "$plain_bytes" =~ ^[0-9]+$ ]]
           (( plain_bytes > 1024 ))
@@ -148,46 +167,51 @@ jobs:
           sql_sha256="$(sha256sum "$sql_gzip" | awk '{print $1}')"
           [[ "$sql_sha256" =~ ^[0-9a-f]{64}$ ]]
           chmod 600 "$sql_gzip"
-
           wp db check --quiet
+
           tar -czf "$backup_dir/theme-before.tgz" -C "$PROD_ROOT" wp-content/themes/nuvanx-medical
           if [[ -d "$PROD_ROOT/wp-content/mu-plugins" ]]; then
             tar -czf "$backup_dir/mu-plugins-before.tgz" -C "$PROD_ROOT" wp-content/mu-plugins
           fi
           chmod 600 "$backup_dir"/*.tgz
 
+          bootstrap="$REMOTE_RELEASE/bootstrap.php"
           command_file="$REMOTE_RELEASE/nvx-production-readiness-command.php"
+          test -f "$bootstrap"
           test -f "$command_file"
           pre_json="$backup_dir/pre-audit.json"
           post_json="$backup_dir/post-audit.json"
 
-          wp --require="$command_file" nvx production-readiness audit \
-            --allow-pending --format=json > "$pre_json"
+          wp --skip-themes --require="$bootstrap" --require="$command_file" \
+            nvx production-readiness audit --allow-pending --format=json > "$pre_json"
           test -s "$pre_json"
 
-          needs_apply="$(php -r '
-            $rows=json_decode(file_get_contents($argv[1]), true);
-            if (!is_array($rows)) { fwrite(STDERR, "invalid audit json\n"); exit(2); }
-            $clean=true;
-            foreach ($rows as $row) {
-              $type=(string)($row["type"] ?? "");
-              $status=(string)($row["status"] ?? "");
-              $expected=(string)($row["expected"] ?? "");
-              $menu=(int)($row["menu_items"] ?? 0);
-              if ($type === "approved") { $rowClean = $status === "publish"; }
-              elseif ($type === "governed") { $rowClean = ($status === "absent" || $status === $expected) && $menu === 0; }
-              else { $rowClean = $type === "navigation" && $status === "clean"; }
-              if (!$rowClean) { $clean=false; break; }
-            }
-            echo $clean ? "no" : "yes";
-          ' "$pre_json")"
+          audit_state() {
+            php -r '
+              $rows=json_decode(file_get_contents($argv[1]), true);
+              if (!is_array($rows)) { fwrite(STDERR, "invalid audit json\n"); exit(2); }
+              foreach ($rows as $row) {
+                $type=(string)($row["type"] ?? "");
+                $status=(string)($row["status"] ?? "");
+                $expected=(string)($row["expected"] ?? "");
+                $menu=(int)($row["menu_items"] ?? 0);
+                $ok=$type === "approved" ? $status === "publish" : ($type === "governed" ? (($status === "absent" || $status === $expected) && $menu === 0) : ($type === "navigation" && $status === "clean"));
+                if (!$ok) { echo "pending"; exit(0); }
+              }
+              echo "clean";
+            ' "$1"
+          }
+          pre_status="$(audit_state "$pre_json")"
 
           mutation_started=0
           rollback() {
             rc=$?
             if (( rc != 0 )) && (( mutation_started == 1 )); then
               echo "ROLLBACK_START rc=$rc"
-              gzip -cd "$sql_gzip" | wp db import -
+              rollback_sql="$backup_dir/rollback.sql"
+              gzip -cd "$sql_gzip" > "$rollback_sql"
+              wp db import "$rollback_sql"
+              rm -f "$rollback_sql"
               wp cache flush
               wp sg purge
               echo "ROLLBACK_DB_OK"
@@ -196,35 +220,23 @@ jobs:
           }
           trap rollback EXIT
 
-          if [[ "$needs_apply" == 'yes' ]]; then
+          if [[ "$pre_status" == 'pending' ]]; then
             mutation_started=1
-            wp --require="$command_file" nvx production-readiness apply \
-              --confirm=retire-prototypes --allow-production
+            wp --skip-themes --require="$bootstrap" --require="$command_file" \
+              nvx production-readiness apply --confirm=retire-prototypes --allow-production
             migration_result='applied'
           else
             migration_result='already-clean'
           fi
 
-          wp --require="$command_file" nvx production-readiness audit --format=json > "$post_json"
+          wp --skip-themes --require="$bootstrap" --require="$command_file" \
+            nvx production-readiness audit --format=json > "$post_json"
           test -s "$post_json"
+          post_status="$(audit_state "$post_json")"
+          [[ "$post_status" == 'clean' ]]
           wp db check --quiet
           wp cache flush
           wp sg purge
-
-          post_status="$(php -r '
-            $rows=json_decode(file_get_contents($argv[1]), true);
-            if (!is_array($rows)) exit(2);
-            foreach ($rows as $row) {
-              $type=(string)($row["type"] ?? "");
-              $status=(string)($row["status"] ?? "");
-              $expected=(string)($row["expected"] ?? "");
-              $menu=(int)($row["menu_items"] ?? 0);
-              $ok=$type === "approved" ? $status === "publish" : ($type === "governed" ? (($status === "absent" || $status === $expected) && $menu === 0) : ($type === "navigation" && $status === "clean"));
-              if (!$ok) { echo "pending"; exit(0); }
-            }
-            echo "clean";
-          ' "$post_json")"
-          [[ "$post_status" == 'clean' ]]
 
           cat > "$backup_dir/manifest.txt" <<EOF
           source_sha=$EXPECTED_SOURCE_SHA
@@ -238,6 +250,7 @@ jobs:
           sql_plain_bytes=$plain_bytes
           sql_gzip_bytes=$gzip_bytes
           sql_sha256=$sql_sha256
+          pre_audit=$pre_status
           migration_result=$migration_result
           post_audit=$post_status
           db_check=ok
@@ -248,27 +261,42 @@ jobs:
           echo "SQL_BACKUP_REQUIRED_OK"
           echo "SQL_BACKUP_GZIP_BYTES=$gzip_bytes"
           echo "SQL_BACKUP_SHA256=$sql_sha256"
+          echo "PRE_AUDIT=$pre_status"
           echo "MIGRATION_RESULT=$migration_result"
-          echo "POST_AUDIT=clean"
+          echo "POST_AUDIT=$post_status"
           echo "PRODUCTION_DB_PARITY_OK"
           REMOTE
 
           grep -Fq 'SQL_BACKUP_REQUIRED_OK' "$EVIDENCE_DIR/remote-execution.log"
           grep -Fq 'PRODUCTION_DB_PARITY_OK' "$EVIDENCE_DIR/remote-execution.log"
-          grep -E '^(BACKUP_DIR|SOURCE_SHA|SQL_BACKUP_GZIP_BYTES|SQL_BACKUP_SHA256|MIGRATION_RESULT|POST_AUDIT|SQL_BACKUP_REQUIRED_OK|PRODUCTION_DB_PARITY_OK)=' \
+          grep -E '^(BACKUP_DIR|SOURCE_SHA|SQL_BACKUP_GZIP_BYTES|SQL_BACKUP_SHA256|PRE_AUDIT|MIGRATION_RESULT|POST_AUDIT|SQL_BACKUP_REQUIRED_OK|PRODUCTION_DB_PARITY_OK)=' \
             "$EVIDENCE_DIR/remote-execution.log" > "$EVIDENCE_DIR/result-summary.txt"
 
-      - name: Read-only production HTTP verification
-        env:
-          BASE_URL: https://nuvanx.com
-          SMOKE_RETRIES: '6'
-          SMOKE_RETRY_SLEEP: '5'
+      - name: Verify production routes after parity
         run: |
           set -euo pipefail
-          chmod +x scripts/staging2/smoke-verify-staging2.sh
-          bash scripts/staging2/smoke-verify-staging2.sh \
-            2>&1 | tee "$EVIDENCE_DIR/production-smoke.log"
-          grep -Fq 'SMOKE_VERIFY_OK' "$EVIDENCE_DIR/production-smoke.log"
+          : > "$EVIDENCE_DIR/production-http.log"
+          for path in \
+            / \
+            /soluciones-medicas/ \
+            /protocolos-signature/ \
+            /remodelacion-corporal-laser-madrid/ \
+            /madrid/valoracion/ \
+            /contacto/ \
+            /blog/
+          do
+            url="https://nuvanx.com${path}"
+            code=''
+            for attempt in 1 2 3 4 5; do
+              code="$(curl --silent --show-error --location --max-time 25 --output /tmp/nvx-page.html --write-out '%{http_code}' "$url" || true)"
+              [[ "$code" == '200' ]] && break
+              sleep 5
+            done
+            printf '%s %s\n' "$code" "$url" | tee -a "$EVIDENCE_DIR/production-http.log"
+            [[ "$code" == '200' ]]
+            grep -Eqi '<main|<h1' /tmp/nvx-page.html
+          done
+          echo 'PRODUCTION_HTTP_PARITY_OK' | tee -a "$EVIDENCE_DIR/production-http.log"
 
       - name: Remove isolated remote payload
         if: always()

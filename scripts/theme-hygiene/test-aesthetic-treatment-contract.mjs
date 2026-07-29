@@ -23,6 +23,7 @@ const EXPECTED_SLUGS = [
 const EXPECTED_KEYS = ['lips_ha', 'rhinomodeling_ha', 'tear_trough_ha', 'biostimulators'];
 
 const aestheticPages = read('inc/nvx-aesthetic-treatment-pages.php');
+const governanceBoilerplate = read('inc/nvx-governance-boilerplate.php');
 const structuredData = read('inc/nvx-structured-data.php');
 const hub = read('inc/nvx-aesthetic-medicine-page.php');
 const hubGov = read('inc/nvx-aesthetic-hub-governance.php');
@@ -38,10 +39,23 @@ for (const marker of [
   "nvx_register_catalog_content_filter( 'nvxAestheticTreatmentCatalogForRender', 80 )",
   "'pending_medical_review'",
   "nvx_aesthetic_treatment_meta_field( 'seo_title'",
-  'function nvxAestheticTreatmentSeedSyncMeta(',
+  'function nvx_aesthetic_treatment_seed_staging_pages(',
+  'nvx_seed_staging_pages(',
+  "'_nvx_aesthetic_treatment_key'",
 ]) {
   if (!aestheticPages.includes(marker)) {
     failures.push(`aesthetic treatment pages missing gate marker: ${marker}`);
+  }
+}
+
+for (const marker of [
+  'function nvx_seed_staging_pages(',
+  "function_exists( 'nvx_environment_is_staging2' )",
+  "'_nvx_medical_review_status'",
+  "update_post_meta( $page->ID, $meta_key_name, $key )",
+]) {
+  if (!governanceBoilerplate.includes(marker)) {
+    failures.push(`governance seeder missing contract marker: ${marker}`);
   }
 }
 
@@ -134,11 +148,6 @@ for (const key of EXPECTED_KEYS) {
   if (!structuredData.includes(`'${key}'`) || !structuredData.includes(pathSnippet)) {
     failures.push(`schema registry missing path-only treatment ${key} → ${pathSnippet}`);
   }
-}
-
-// Staging2 seeder must remain environment-gated.
-if (!aestheticPages.includes("function_exists( 'nvx_environment_is_staging2' )")) {
-  failures.push('aesthetic seeder does not guard nvx_environment_is_staging2');
 }
 
 if (failures.length) {

@@ -55,6 +55,7 @@ jobs:
         run: |
           set -euo pipefail
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
+          bash -n tools/deploy/nvx-purge-wp-caches.sh
           node --check scripts/theme-hygiene/test-theme-hygiene.mjs
           node --check scripts/theme-hygiene/test-canonical-route-contract.mjs
           node --check scripts/theme-hygiene/test-rest-pagination-contract.mjs
@@ -63,6 +64,7 @@ jobs:
           node --check scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
           node --check scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs
           node --check scripts/theme-hygiene/test-cache-purge-contract.mjs
+          node --check scripts/theme-hygiene/test-audit-v3-contract.mjs
 
       - name: Lint runtime and migration PHP
         run: |
@@ -99,6 +101,9 @@ jobs:
 
       - name: Enforce aesthetic treatment contract
         run: node scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs
+
+      - name: Enforce audit v3 contract
+        run: node scripts/theme-hygiene/test-audit-v3-contract.mjs
 
       - name: Upload hygiene findings
         if: always()

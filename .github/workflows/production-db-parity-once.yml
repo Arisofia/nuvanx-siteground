@@ -179,11 +179,15 @@ jobs:
           command_file="$REMOTE_RELEASE/nvx-production-readiness-command.php"
           test -f "$bootstrap"
           test -f "$command_file"
+          pre_raw="$backup_dir/pre-audit.raw"
           pre_json="$backup_dir/pre-audit.json"
+          post_raw="$backup_dir/post-audit.raw"
           post_json="$backup_dir/post-audit.json"
 
           wp --skip-themes --require="$bootstrap" --require="$command_file" \
-            nvx production-readiness audit --allow-pending --format=json > "$pre_json"
+            nvx production-readiness audit --allow-pending --format=json > "$pre_raw"
+          test -s "$pre_raw"
+          head -n 1 "$pre_raw" > "$pre_json"
           test -s "$pre_json"
 
           audit_state() {
@@ -230,7 +234,9 @@ jobs:
           fi
 
           wp --skip-themes --require="$bootstrap" --require="$command_file" \
-            nvx production-readiness audit --format=json > "$post_json"
+            nvx production-readiness audit --format=json > "$post_raw"
+          test -s "$post_raw"
+          head -n 1 "$post_raw" > "$post_json"
           test -s "$post_json"
           post_status="$(audit_state "$post_json")"
           [[ "$post_status" == 'clean' ]]
@@ -255,7 +261,7 @@ jobs:
           post_audit=$post_status
           db_check=ok
           EOF
-          chmod 600 "$backup_dir/manifest.txt" "$pre_json" "$post_json"
+          chmod 600 "$backup_dir/manifest.txt" "$pre_raw" "$pre_json" "$post_raw" "$post_json"
 
           trap - EXIT
           echo "SQL_BACKUP_REQUIRED_OK"

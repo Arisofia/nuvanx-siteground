@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared WordPress + SiteGround Dynamic Cache purge for staging2 and production.
+# Shared WordPress + SiteGround cache purge for staging2 and production.
 # Usage: bash tools/deploy/nvx-purge-wp-caches.sh --wp-root /path/to/wordpress [--label cache_purge=ok]
 set -Eeuo pipefail
 
@@ -20,19 +20,20 @@ done
 
 cd "$WP_ROOT"
 
-# WordPress object cache.
-# Fails loudly if WP-CLI is not available or the command errors — no || true.
+# WordPress object cache. Any failure aborts the deployment.
 wp cache flush
 
-# SiteGround Optimizer: purge variants. sg sub-commands may not exist on every
-# SG plan; we allow missing sub-commands (exit 1 from unknown command) but NOT
-# permission errors or server-side failures.
-wp sg purge         && echo "sg_purge=ok"         || echo "WARN: wp sg purge returned non-zero (sub-command may not be available)" >&2
-wp sg purge dynamic && echo "sg_purge_dynamic=ok" || echo "WARN: wp sg purge dynamic returned non-zero" >&2
-wp sg purge memcached && echo "sg_purge_memcached=ok" || echo "WARN: wp sg purge memcached returned non-zero" >&2
+# SiteGround Speed Optimizer's documented purge command clears Dynamic,
+# File-based and Object caches. Any failure must abort the deployment.
+wp sg purge
+echo "sg_purge=ok"
+
+# Legacy forms are intentionally forbidden as executable commands:
+# wp sg purge dynamic
+# wp sg purge memcached
 
 # Physical HTML / asset caches left behind when SG Dynamic Cache orphans files.
-# rm -rf is kept non-fatal (paths may not exist) but errors go to stderr visibly.
+# Missing cache paths are non-fatal; deletion errors remain visible through the final smoke checks.
 rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
 rm -rf wp-content/cache/sgo-cache       2>/dev/null || true
 rm -rf wp-content/cache/supercache      2>/dev/null || true
@@ -44,7 +45,7 @@ find wp-content/uploads/siteground-optimizer-assets -mindepth 1 -maxdepth 1 \
   \( -name 'siteground-optimizer-combined-*' -o -name '*.css' -o -name '*.js' \) \
   -delete 2>/dev/null || true
 
-# OpCache reset — non-fatal (PHP CLI may not have OpCache loaded).
+# OpCache reset — non-fatal because PHP CLI may not have OpCache loaded.
 wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' \
   && true || echo "WARN: opcache_reset skipped or errored" >&2
 

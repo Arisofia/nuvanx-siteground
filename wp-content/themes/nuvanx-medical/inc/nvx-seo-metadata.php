@@ -182,20 +182,8 @@ function nvx_seo_metadata_from_protocols( string $key, string $field ): ?string 
     return null;
 }
 
-/**
- * Resolves metadata value from the solutions catalog.
- */
-function nvx_seo_metadata_from_solutions( string $key, string $field ): ?string {
-    if ( ! function_exists( 'nvx_solution_pages_catalog' ) ) {
-        return null;
-    }
-    $solutions = nvx_solution_pages_catalog();
-    $prop = ( 'title' === $field ) ? 'seo_title' : ( ( 'description' === $field ) ? 'description' : '' );
-    if ( '' !== $prop && ! empty( $solutions[ $key ][ $prop ] ) ) {
-        return (string) $solutions[ $key ][ $prop ];
-    }
-    return null;
-}
+// nvx_seo_metadata_from_solutions() removed: nvx_solution_pages_catalog() was deleted in the
+// Jul-2026 SonarQube refactor. All solution-route metadata is now served by nvx_editorial_seo_current().
 
 /**
  * Return one canonical metadata value for the current page.
@@ -211,7 +199,6 @@ function nvx_seo_current_metadata( string $field, string $fallback = '' ): strin
         $key = nvx_seo_current_metadata_key();
         if ( null !== $key ) {
             $result = nvx_seo_metadata_from_protocols( $key, $field )
-                ?? nvx_seo_metadata_from_solutions( $key, $field )
                 ?? ( ( $catalog = nvx_seo_metadata_catalog() ) && ! empty( $catalog[ $key ][ $field ] ) ? (string) $catalog[ $key ][ $field ] : null );
         }
     }

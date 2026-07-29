@@ -195,6 +195,33 @@ function nvx_endolift_price_from_eur() { return 798.60; }
 function nvx_endolift_price_papada_eur() { return 1064.80; }
 
 /**
+ * Reference PVP for Láser CO₂ facial session — used for "desde" schema/copy.
+ * Source of truth: nvx_tariff_catalog()['laser_co2']['facial']['pvp'].
+ *
+ * Restored Jul-2026: function was never defined; two call sites were silently
+ * skipped via function_exists() guards in nvx_schema_treatment_node_laser()
+ * and nvx_schema_offer_catalog(), leaving CO2 schema prices permanently empty.
+ *
+ * @return float
+ */
+function nvx_co2_price_facial_eur(): float {
+    $catalog = nvx_tariff_catalog();
+    return (float) ( $catalog['laser_co2']['facial']['pvp'] ?? 330.00 );
+}
+
+/**
+ * Reference PVP for Láser CO₂ corporal session.
+ * Source of truth: nvx_tariff_catalog()['laser_co2']['corporal']['pvp'].
+ *
+ * @return float
+ */
+function nvx_co2_price_body_eur(): float {
+    $catalog = nvx_tariff_catalog();
+    return (float) ( $catalog['laser_co2']['corporal']['pvp'] ?? 450.00 );
+}
+
+
+/**
  * Format a EUR amount for Spanish locale display (2 decimals: 1.064,80).
  *
  * @param int|float|string $amount   Amount in euros.

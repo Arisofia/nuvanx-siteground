@@ -278,8 +278,8 @@
   font-size: var(--nvx-type-nav-submenu);
   font-weight: 600;
   line-height: var(--nvx-lh-nav-submenu);
-  letter-spacing: var(--nvx-track-button);
-  text-transform: uppercase;
+  letter-spacing: var(--nvx-track-nav-submenu);
+  text-transform: none;
   color: var(--nvx-ink);
   border: 0;
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);

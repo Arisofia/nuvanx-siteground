@@ -35,9 +35,9 @@ const required = [
   [btl, 'function nvx_btl_detail_registry(): array', 'BTL snake_case registry alias'],
   [btl, 'return nvxBtlDetailRegistry();', 'BTL alias delegates to camelCase registry'],
   [structured, "function_exists( 'nvx_btl_detail_registry' )", 'structured-data calls BTL registry'],
-  [structured, 'function nvx_schema_link_webpage_main_entity(', 'WebPage.mainEntity linker'],
-  [seo, 'function nvx_seo_schema_materialize_logo_node(', 'logo ImageObject materializer'],
-  [seo, 'function nvx_seo_schema_ensure_webpage_main_entity(', 'mainEntity ensurer'],
+  [structured, 'function nvxSchemaLinkWebpageMainEntity(', 'WebPage.mainEntity linker'],
+  [seo, 'function nvxSeoSchemaMaterializeLogoNode(', 'logo ImageObject materializer'],
+  [seo, 'function nvxSeoSchemaEnsureWebpageMainEntity(', 'mainEntity ensurer'],
   [seo, "function_exists( 'nvx_btl_detail_registry' )", 'SEO readiness BTL FAQ uses registry'],
   [jsonld, 'return is_front_page() || is_singular();', 'JSON-LD strip covers posts+pages'],
   [integrations, 'yoast-schema-graph', 'document normalizer preserves Yoast graph'],
@@ -48,8 +48,19 @@ for (const [source, marker, label] of required) {
   if (!source.includes(marker)) failures.push(`${label}: missing \`${marker}\``);
 }
 
-// Must not reintroduce a second top-level schema.org script printer in structured-data.
-if (/echo\s+.*application\/ld\+json/i.test(structured) || /<script[^>]+ld\+json/i.test(structured)) {
+if (seo.includes('_nvx_seo_schema_link_main_entity')) {
+  failures.push('SEO readiness must use the shared mainEntity helper');
+}
+
+// Avoid regex-based whole-file scans: inspect normalized lines with fixed-string checks.
+const structuredLines = structured.split(/\r?\n/).map((line) => line.toLowerCase());
+const printsJsonLd = structuredLines.some(
+  (line) => (line.includes('echo') || line.includes('print')) && line.includes('application/ld+json'),
+);
+const embedsJsonLdScript = structuredLines.some(
+  (line) => line.includes('<script') && line.includes('ld+json'),
+);
+if (printsJsonLd || embedsJsonLdScript) {
   failures.push('structured-data must not print application/ld+json directly');
 }
 
@@ -63,7 +74,7 @@ if (!structured.includes("nvx_schema_path_matches( $path, NVX_SD_PATH_EQUIPO_MED
 
 if (failures.length) {
   console.error('Entity graph contract FAILED:');
-  for (const f of failures) console.error(` - ${f}`);
+  for (const failure of failures) console.error(` - ${failure}`);
   process.exit(1);
 }
 

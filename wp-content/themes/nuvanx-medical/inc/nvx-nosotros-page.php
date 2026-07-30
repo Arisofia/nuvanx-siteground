@@ -413,7 +413,6 @@ function nvx_filter_nosotros_document_title( $title ) {
     }
     return 'Sobre Nosotros | Autoridad médica y transparencia · NUVANX Madrid';
 }
-add_filter( 'wpseo_title', 'nvx_filter_nosotros_document_title', 21 );
 
 /**
  * Filters the meta description for the About Us pages.
@@ -431,4 +430,10 @@ function nvx_filter_nosotros_metadesc( $desc ) {
     }
     return 'NUVANX Madrid: medicina estética láser con evidencia, well-aging e ingeniería tisular. Sedes Chamberí (CS20144) y Goya (CS20073). Cuadro médico colegiado y principios de transparencia.';
 }
-add_filter( 'wpseo_metadesc', 'nvx_filter_nosotros_metadesc', 21 );
+
+nvx_register_yoast_seo_filters(
+    'nvx_filter_nosotros_document_title',
+    'nvx_filter_nosotros_metadesc',
+    null,
+    21
+);

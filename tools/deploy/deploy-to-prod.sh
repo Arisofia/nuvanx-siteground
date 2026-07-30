@@ -131,15 +131,8 @@ grep -Fq 'nvx-patterns-editorial.css' "$PROD_ROOT/wp-content/themes/nuvanx-medic
 [[ -f "$PROD_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php" ]]
 
 echo "== Purge prod cache =="
-(
-  cd "$PROD_ROOT"
-  wp cache flush || true
-  wp sg purge || true
-  rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
-  rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
-  rm -rf wp-content/cache/* 2>/dev/null || true
-  wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
-)
+NVX_TOOLS_DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "$NVX_TOOLS_DEPLOY_DIR/nvx-purge-wp-caches.sh" --wp-root "$PROD_ROOT" --label "prod_cache_purge=ok"
 
 echo "== DONE backup=$BACKUP_DIR =="
 echo "PROMOTE_PROD_OK"

@@ -82,7 +82,7 @@ requirePattern(
 );
 requireText(
   navigation,
-  "array( 'soluciones', 'protocolos-signature', 'tecnologia' )",
+  "array( 'soluciones', 'protocolos-signature' )",
   'automatic mega-menu role detection is missing',
 );
 requirePattern(

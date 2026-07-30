@@ -198,6 +198,56 @@ function nvx_render_13_point_matrix( array $data ): string {
 }
 
 /**
+ * Build one FAQ pair for editorial catalogues (q/a).
+ *
+ * @return array{q:string,a:string}
+ */
+function nvx_editorial_faq( string $question, string $answer ): array {
+    return array(
+        'q' => $question,
+        'a' => $answer,
+    );
+}
+
+/**
+ * Load a versioned JSON catalogue under the theme (cached per basename).
+ *
+ * Accepts either a bare filename under inc/data/ (e.g. "nvx-anatomical-zones.json")
+ * or an absolute path. Returns an empty array when the file is missing or invalid.
+ *
+ * @param string $path_or_basename Absolute path or basename under inc/data/.
+ * @return array<string|int, mixed>
+ */
+function nvx_theme_load_json_catalog( string $path_or_basename ): array {
+    static $cache = array();
+
+    $key = $path_or_basename;
+    if ( isset( $cache[ $key ] ) ) {
+        return $cache[ $key ];
+    }
+
+    $path = $path_or_basename;
+    if ( ! preg_match( '#^([a-zA-Z]:[\\\\/]|/)#', $path_or_basename ) ) {
+        $path = __DIR__ . '/data/' . ltrim( str_replace( '\\', '/', $path_or_basename ), '/' );
+    }
+
+    if ( ! is_readable( $path ) ) {
+        $cache[ $key ] = array();
+        return $cache[ $key ];
+    }
+
+    $raw = file_get_contents( $path );
+    if ( false === $raw || '' === $raw ) {
+        $cache[ $key ] = array();
+        return $cache[ $key ];
+    }
+
+    $decoded         = json_decode( $raw, true );
+    $cache[ $key ] = is_array( $decoded ) ? $decoded : array();
+    return $cache[ $key ];
+}
+
+/**
  * Matches a request slug against a catalog array.
  */
 function nvx_match_catalog_page( string $slug, array $catalog ): ?array {

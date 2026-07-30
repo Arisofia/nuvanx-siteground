@@ -41,7 +41,6 @@ const environmentFlags = read('inc/nvx-environment-flags.php');
 const runtimeCompatibility = read('inc/nvx-runtime-compatibility.php');
 const contentPresentation = read('inc/nvx-content-presentation.php');
 const equipoPage = read('inc/nvx-equipo-page.php');
-const drRiveraPage = read('inc/nvx-dr-rivera-page.php');
 const equipoLayout = read('inc/nvx-equipo-layout-contract.php');
 const equipoLayoutCss = read('assets/css/nvx-equipo-layout-contract.css');
 const pageHygiene = read('inc/nvx-page-hygiene.php');
@@ -84,18 +83,43 @@ for (const marker of [
   if (!btlDetail.includes(marker)) failures.push(`BTL detail registry alias marker missing: ${marker}`);
 }
 
+const clinicalCatalogFiles = [
+  'inc/data/nvx-anatomical-zones.json',
+  'inc/data/nvx-btl-detail-registry.json',
+  'inc/data/nvx-signature-phase-catalog.json',
+  'inc/data/nvx-soluciones-medicas-groups.json',
+];
+for (const relative of clinicalCatalogFiles) {
+  const target = path.join(theme, relative);
+  if (!fs.existsSync(target)) {
+    failures.push(`missing clinical catalogue ${relative}`);
+    continue;
+  }
+  try {
+    JSON.parse(fs.readFileSync(target, 'utf8'));
+  } catch {
+    failures.push(`invalid JSON in clinical catalogue ${relative}`);
+  }
+}
+const thirteenPoint = read('inc/nvx-13-point-renderer.php');
+for (const marker of ['function nvx_theme_load_json_catalog', 'function nvx_editorial_faq']) {
+  if (!thirteenPoint.includes(marker)) {
+    failures.push(`13-point renderer missing shared helper: ${marker}`);
+  }
+}
+
 for (const marker of [
-  'function nvx_seo_schema_materialize_logo_node(',
-  'function nvx_seo_schema_ensure_webpage_main_entity(',
-  'nvx_seo_schema_materialize_logo_node( $graph )',
-  'nvx_seo_schema_ensure_webpage_main_entity( $graph, $current_url )',
+  'function nvxSeoSchemaMaterializeLogoNode(',
+  'function nvxSeoSchemaEnsureWebpageMainEntity(',
+  'nvxSeoSchemaMaterializeLogoNode( $graph )',
+  'nvxSeoSchemaEnsureWebpageMainEntity( $graph, $current_url )',
 ]) {
   if (!seoReadiness.includes(marker)) failures.push(`SEO readiness graph marker missing: ${marker}`);
 }
 
 for (const marker of [
-  'function nvx_schema_link_webpage_main_entity(',
-  'nvx_schema_link_webpage_main_entity( $graph, (string) $treatment[\'url\'], (string) $treatment[\'@id\'] )',
+  'function nvxSchemaLinkWebpageMainEntity(',
+  'nvxSchemaLinkWebpageMainEntity( $graph, (string) $treatment[\'url\'], (string) $treatment[\'@id\'] )',
 ]) {
   if (!structuredData.includes(marker)) failures.push(`structured-data mainEntity marker missing: ${marker}`);
 }
@@ -103,11 +127,13 @@ for (const marker of [
 if (!integrations.includes("yoast-schema-graph")) {
   failures.push('integrations public document normalizer must preserve yoast-schema-graph');
 }
-if (!integrations.includes('schema\\.org|@graph\\b|"@type"\\s*:')) {
-  // Accept either escaped regex form used in PHP string
-  if (!/schema\.org\|@graph/.test(integrations)) {
-    failures.push('integrations public document normalizer must strip residual Schema.org ld+json');
-  }
+for (const marker of [
+  'function nvxThemeIsJsonLdScript(',
+  "class_exists( 'WP_HTML_Tag_Processor' )",
+  'function nvxThemeNormalizeSchemaScripts(',
+  "stripos( $script, 'schema.org' )",
+]) {
+  if (!integrations.includes(marker)) failures.push(`safe JSON-LD normalizer marker missing: ${marker}`);
 }
 
 for (const marker of [
@@ -129,6 +155,15 @@ for (const [source, label] of [
 ]) {
   if (!source.includes("function_exists( 'nvx_environment_is_staging2' )")) {
     failures.push(`${label} does not guard its shared staging2 environment dependency`);
+  }
+}
+for (const marker of [
+  'function nvxAestheticTreatmentIsRenderable(',
+  'function nvxAestheticTreatmentCatalogForRender(',
+  "nvx_register_catalog_content_filter( 'nvxAestheticTreatmentCatalogForRender', 80 )",
+]) {
+  if (!aestheticPages.includes(marker)) {
+    failures.push(`aesthetic publication gate marker missing: ${marker}`);
   }
 }
 
@@ -157,7 +192,6 @@ for (const marker of [
 }
 for (const [source, label] of [
   [equipoPage, 'equipo renderer'],
-  [drRiveraPage, 'Dr. Rivera renderer'],
 ]) {
   if (source.includes('nvxCtaPairMarkup(') && !runtimeCompatibility.includes('function nvxCtaPairMarkup(')) {
     failures.push(`${label} calls nvxCtaPairMarkup without a declared compatibility adapter`);

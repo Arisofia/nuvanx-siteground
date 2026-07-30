@@ -18,10 +18,7 @@ if ( function_exists( 'nvx_theme_show_cta_banner' ) && nvx_theme_show_cta_banner
     }
 }
 
-// Detail treatments are listed only when a corresponding WordPress page is public.
-$nvx_footer_published_treatments = function_exists( 'nvx_navigation_published_treatments' )
-    ? nvx_navigation_published_treatments()
-    : array();
+
 $nvx_cases_public = ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( 2645, nvx_noindex_page_ids(), true );
 $nvx_why_nuvanx_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'why_nuvanx' ) : '';
 $nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';

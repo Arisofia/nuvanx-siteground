@@ -36,10 +36,10 @@ function nvx_equipo_route_guard_render( string $content ): string {
         return $content;
     }
 
-    return function_exists( 'nvx_content_restructure_equipo_page' )
-        ? nvx_content_restructure_equipo_page( $content )
+    return function_exists( 'nvxContentRestructureEquipoPage' )
+        ? nvxContentRestructureEquipoPage( $content )
         : $content;
 }
 
-remove_filter( 'the_content', 'nvx_content_restructure_equipo_page', 19 );
+remove_filter( 'the_content', 'nvxContentRestructureEquipoPage', 19 );
 add_filter( 'the_content', 'nvx_equipo_route_guard_render', 19 );

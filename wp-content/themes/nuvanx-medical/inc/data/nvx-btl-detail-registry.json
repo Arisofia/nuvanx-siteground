@@ -1,0 +1,434 @@
+{
+  "exion-face": {
+    "path": "/exion-face/",
+    "key": "exion_face",
+    "kicker": "EXION® Face · NUVANX Madrid",
+    "h1": "EXION® Face en Madrid: radiofrecuencia y ultrasonido",
+    "lead": "Aplicador de radiofrecuencia y ultrasonido para protocolos de calidad cutánea cuando existe indicación médica. La elección valora zona, tipo de piel, antecedentes y expectativas.",
+    "meta": "Chamberí · Goya · Indicación médica personalizada",
+    "aria": "EXION Face NUVANX",
+    "marker": "nvx-exion-face",
+    "yoast_title": "EXION® Face en Madrid | RF y ultrasonido | NUVANX",
+    "yoast_desc": "EXION® Face en Madrid: radiofrecuencia y ultrasonido para protocolos de calidad cutánea según valoración médica. Chamberí y Salamanca–Goya.",
+    "focuskw": "EXION Face Madrid",
+    "combo": "",
+    "schema_name": "EXION® Face en Madrid",
+    "schema_type": "Protocolo médico facial con EXION® Face (RF monopolar + ultrasonido)",
+    "schema_desc": "Tratamiento médico de calidad de piel facial con plataforma EXION® Face: hipertermia controlada y ultrasonido terapéutico. Indicación tras valoración en NUVANX Madrid.",
+    "mechanism": {
+      "title": "Cómo funciona EXION® Face: doble acción biomecánica",
+      "body": [
+        {
+          "claim": "exion_face_mech_intro"
+        },
+        {
+          "claim": "exion_face_ha_224"
+        }
+      ],
+      "items": [
+        {
+          "title": "Radiofrecuencia monopolar (~40–42 °C en dermis)",
+          "body": "Busca hipertermia controlada y reversible: activación de vías de estrés adaptativo (p. ej. HSPs), señalización de síntesis de matriz y aporte energético celular. Objetivo: remodelado de colágeno de calidad, no cicatricial. El rango térmico es orientativo de protocolo, no una temperatura universal en cada paciente."
+        },
+        {
+          "title": "Ultrasonido dirigido (TUS)",
+          "body": "Mecanoestimulación no invasiva que complementa la RF: favorece cascadas de señalización en fibroblastos y síntesis de matriz (ácido hialurónico, colágeno, elastina) sin el perfil de cavitación de ultrasonidos de alto poder. Se usa como estímulo, no como trauma controlado."
+        }
+      ]
+    },
+    "indications": [
+      {
+        "title": "Envejecimiento cronológico leve–moderado",
+        "body": "Pérdida progresiva de densidad y turgencia. EXION Face puede contribuir a redensificar la dermis cuando el diagnóstico apunta a déficit de matriz más que a exceso de grasa o ptosis severa."
+      },
+      {
+        "title": "Deshidratación y piel apagada",
+        "body": "Cuando se busca mejorar hidratación y luminosidad vía estimulación de matriz endógena, con buena tolerancia en pieles sensibles según valoración."
+      },
+      {
+        "title": "Pérdida de volumen incipiente (sin ptosis severa)",
+        "body": "No es un relleno inyectable ni un lifting. Puede ayudar a la redensificación cuando el “deshinchado” es principalmente de matriz, no de defecto estructural profundo."
+      },
+      {
+        "title": "Poros y textura irregular",
+        "body": "El remodelado de colágeno y la mejora de compactación pueden refinar apariencia de poro y textura; en cicatrices profundas se valora Fractional RF o CO₂."
+      },
+      {
+        "title": "Antecedentes de tratamientos energéticos",
+        "body": "Tras un tratamiento energético previo se reevalúan volumen, textura, sensibilidad y objetivo antes de indicar un nuevo protocolo."
+      },
+      {
+        "title": "Mantenimiento well-aging",
+        "body": "Series de sesiones y mantenimiento según respuesta; combinable con EMFUSION® o inductores cuando el médico lo indique."
+      }
+    ],
+    "compare": {
+      "title": "Cómo se selecciona un protocolo de calidad cutánea",
+      "body": {
+        "claim": "exion_face_compare"
+      },
+      "link": "",
+      "label": ""
+    },
+    "process": [
+      {
+        "title": "Valoración y procedimiento",
+        "body": "Se revisan fototipo, grasa facial, antecedentes de tratamientos, sensibilidad y expectativas. La técnica, el confort y los cuidados se explican según el protocolo indicado."
+      },
+      {
+        "title": "Sesiones orientativas",
+        "body": "Piel media 35–50 años: a menudo 3 sesiones (~4 semanas). Envejecimiento moderado: 4–5. Daño solar avanzado: valorar 5–6 o combinación (p. ej. EMFUSION®). Mantenimiento: 1 sesión cada 12–18 meses según respuesta. El número final lo decide el médico."
+      },
+      {
+        "title": "Cuidados posteriores",
+        "body": "Hidratación habitual. Primeras 48 h: evitar sauna y calor intenso. Fotoprotección SPF 30+. Evitar exfoliación mecánica agresiva ~7 días. Presupuesto cerrado tras indicación."
+      },
+      {
+        "title": "Contraindicaciones relativas",
+        "body": "Implantes metálicos faciales relevantes, embarazo/lactancia (precisión clínica), fármacos fotosensibles de alto impacto, infecciones activas de piel. Fototipos altos: perfil habitualmente favorable; la indicación es siempre médica."
+      }
+    ],
+    "faqs": [
+      {
+        "q": "¿Qué datos se revisan antes de indicar EXION Face?",
+        "a": "Se revisan calidad de piel, anatomía, antecedentes, objetivo, contraindicaciones y período de recuperación aceptable. Los datos técnicos no se presentan como una promesa de resultado individual."
+      },
+      {
+        "q": "¿Qué antecedentes deben revisarse?",
+        "a": "Tratamientos previos, sensibilidad, cambios de volumen, cicatrices, medicación y objetivos ayudan a decidir si procede un protocolo energético o una alternativa."
+      },
+      {
+        "q": "¿Cuántas sesiones necesito?",
+        "a": "Depende de edad, calidad basal y objetivo. Rangos orientativos: 3 sesiones en piel media; 4–5 en envejecimiento moderado; más o combinado en daño solar severo. Mantenimiento cada 12–18 meses según evolución. No hay un número fijo “para todos”."
+      },
+      {
+        "q": "¿Es seguro en fototipos altos?",
+        "a": "Al trabajar con microtemperaturas controladas, el perfil inflamatorio puede diferir del de picos térmicos altos. El riesgo de PIH depende de fototipo, parámetros y cuidados: no se garantiza “cero PIH”; sí se planifica con criterio médico."
+      },
+      {
+        "q": "¿Duele?",
+        "a": "La sensación depende de la zona, los parámetros y la sensibilidad individual. Antes de empezar se explica el protocolo de confort y cómo comunicar cualquier molestia."
+      },
+      {
+        "q": "¿Puedo combinarlo con toxina o rellenos?",
+        "a": "Sí, con secuencia médica. EXION Face no sustituye automáticamente a rellenos: mejora matriz e hidratación; el déficit estructural puede seguir requiriendo inductores o HA inyectable. El orden e intervalos se definen en valoración."
+      },
+      {
+        "q": "¿Cuándo se ven resultados?",
+        "a": "La respuesta es progresiva (semanas), no “antes/después del mismo día”. Los hitos de 2–12 semanas son orientativos y dependen del protocolo y de la biología individual."
+      },
+      {
+        "q": "¿Puedo hacerlo en verano?",
+        "a": "En muchos casos sí, con fotoprotección rigurosa. Se individualiza según fototipo, exposición y otros tratamientos concurrentes."
+      }
+    ]
+  },
+  "exion-body": {
+    "path": "/exion-body/",
+    "key": "exion_body",
+    "kicker": "EXION® Body · NUVANX Madrid",
+    "h1": "EXION® Body en Madrid: contorno corporal y calidad cutánea",
+    "lead": "Radiofrecuencia monopolar con refrigeración activa para protocolos de contorno corporal y calidad cutánea cuando el diagnóstico lo permite.",
+    "meta": "Chamberí · Goya · Contorno corporal con criterio médico",
+    "aria": "EXION Body NUVANX",
+    "marker": "nvx-exion-body",
+    "yoast_title": "EXION® Body Madrid | Contorno corporal y firmeza | NUVANX",
+    "yoast_desc": "EXION® Body en Madrid: RF monopolar con refrigeración activa para laxitud y contorno corporal según valoración médica.",
+    "focuskw": "EXION Body Madrid",
+    "combo": {
+      "path": "/endolaser-corporal-grasa-localizada/"
+    },
+    "schema_name": "EXION® Body en Madrid",
+    "schema_type": "Protocolo médico de contorno corporal con EXION® Body",
+    "schema_desc": "Tratamiento de laxitud y remodelado de contorno corporal con EXION® Body en NUVANX Madrid tras valoración clínica.",
+    "mechanism": {
+      "title": "Cómo funciona EXION® Body",
+      "body": [
+        "Combina radiofrecuencia monopolar con refrigeración de superficie para entregar energía en tejido subcutáneo y dermis profunda sin generar trauma epidérmico innecesario.",
+        "En áreas de grasa localizada leve con laxitud asociada, permite modular temperatura para inducir respuesta térmica en adipocitos y estimular colágeno simultáneamente.",
+        "No sustituye a Endoláser ni a una liposucción en depósitos adiposos voluminosos; su indicación principal es flacidez corporal y depósitos moderados."
+      ]
+    },
+    "indications": [
+      {
+        "title": "Laxitud corporal post-embarazo o bajada de peso",
+        "body": "Abdomen, flancos y cara interna de muslos donde la piel ha perdido turgencia."
+      },
+      {
+        "title": "Grasa localizada leve a moderada",
+        "body": "Zona del sujetador, pliegue axilar o banana subglútea con componente mixto (grasa + piel)."
+      },
+      {
+        "title": "Mantenimiento de contorno corporal",
+        "body": "Consolidación de resultados tras protocolos combinados o mantenimiento anual."
+      }
+    ],
+    "compare": {
+      "title": "Cómo elegir entre RF corporal y Endoláser",
+      "body": "Endoláser actúa por fibra óptica subcutánea (mínimamente invasivo) para depósitos grasos específicos. EXION Body es un tratamiento de superficie/contacto continuo no invasivo. La valoración determina cuál procede o si se combinan.",
+      "link": {
+        "path": "/endolaser-corporal-grasa-localizada/"
+      },
+      "label": "Ver protocolo Endoláser corporal"
+    },
+    "process": [
+      {
+        "title": "Evaluación anatómica",
+        "body": "Medición de pliegue cutáneo, grado de flacidez y descarte de hernia o contraindicaciones vasculares."
+      },
+      {
+        "title": "Plan de sesiones",
+        "body": "Típicamente 4–6 sesiones espaciadas de 1 a 2 semanas según zona y respuesta tisular."
+      },
+      {
+        "title": "Cuidados posteriores",
+        "body": "Hidratación intensa, ingesta de agua adecuada y actividad física habitual sin reposo especial."
+      }
+    ],
+    "faqs": [
+      {
+        "q": "¿Requiere anestesia?",
+        "a": "No. La refrigeración de contacto mantiene el confort térmico en superficie durante la entrega de energía."
+      },
+      {
+        "q": "¿Cuándo puedo volver al trabajo?",
+        "a": "De inmediato. Puede existir eritema leve que remite en pocas horas."
+      }
+    ]
+  },
+  "exion-fractional": {
+    "path": "/exion-fractional/",
+    "key": "exion_fractional",
+    "kicker": "EXION® Fractional RF · NUVANX Madrid",
+    "h1": "EXION® Fractional RF en Madrid: arrugas profundas, cicatrices y textura",
+    "lead": "Radiofrecuencia fraccionada con microagujas y control de impedancia para protocolos de textura, poros y cicatrices según diagnóstico y fototipo.",
+    "meta": "Chamberí · Goya · Textura y remodelado dérmico",
+    "aria": "EXION Fractional NUVANX",
+    "marker": "nvx-exion-fractional",
+    "yoast_title": "EXION Fractional RF Madrid | Textura y cicatrices | NUVANX",
+    "yoast_desc": "EXION® Fractional RF en Madrid: microagujas con control de impedancia para textura, poros y cicatrices según diagnóstico y fototipo.",
+    "focuskw": "EXION Fractional Madrid",
+    "combo": "",
+    "schema_name": "EXION® Fractional RF en Madrid",
+    "schema_type": "Protocolo de radiofrecuencia fraccionada EXION®",
+    "schema_desc": "Remodelado de textura y dermis con EXION® Fractional RF en NUVANX Madrid tras valoración médica.",
+    "mechanism": {
+      "title": "Cómo funciona EXION® Fractional RF",
+      "body": [
+        "Emite radiofrecuencia a través de microagujas con control de entrega energética. El sistema incorpora feedback de impedancia para ajustar la coagulación al tejido real, no solo a un número fijo de pasadas “por si acaso”.",
+        "Agujas más cortas con proyección térmica extendida permiten alcanzar profundidad de trabajo relevante reduciendo trauma mecánico superficial respecto a protocolos de aguja larga multipasada.",
+        "Objetivo clínico: coagulación controlada de colágeno y renovación de textura (poros, cicatrices superficiales, arrugas finas) con plan de sesiones realista."
+      ]
+    },
+    "indications": [
+      {
+        "title": "Textura y poro",
+        "body": "Piel irregular, poro dilatado y falta de refinamiento óptico cuando no basta un peeling superficial."
+      },
+      {
+        "title": "Cicatrices de acné leves–moderadas",
+        "body": "En atróficas profundas puede combinarse o priorizarse CO₂ fraccionado según profundidad y fototipo."
+      },
+      {
+        "title": "Arrugas finas y flacidez local",
+        "body": "Remodelado dérmico progresivo; no sustituye un lifting cuando la ptosis es estructural."
+      },
+      {
+        "title": "Pacientes que no toleran multipasada agresiva",
+        "body": "Historial de RF fraccionada con hematomas prolongados o abandono por dolor: se reevalúa energía y número de pases."
+      }
+    ],
+    "compare": {
+      "title": "Cómo se selecciona la radiofrecuencia fraccionada",
+      "body": "La selección considera objetivo, calidad de piel, profundidad, fototipo, tolerancia y período de recuperación aceptable. La indicación se define por diagnóstico, no por una marca.",
+      "link": "",
+      "label": ""
+    },
+    "process": [
+      "Mapa de zonas, fototipo y objetivo (textura vs cicatriz vs firmeza).",
+      "Sesiones según severidad (a menudo 2–4). Intervalos definidos en consulta.",
+      "Downtime típico: eritema 12–48 h según energía; se explica antes de firmar el plan.",
+      "Puede integrarse en protocolos combinados con Face o EMFUSION®."
+    ],
+    "faqs": [
+      {
+        "q": "¿Es lo mismo que un láser CO₂?",
+        "a": "No. El CO₂ vaporiza columnas de tejido (ablativo). Fractional RF coagula por calor con microagujas; downtime y profundidad se eligen distinto."
+      },
+      {
+        "q": "¿Cuántas pasadas?",
+        "a": "El diseño single-pass reduce pasadas innecesarias cuando el feedback de tejido es adecuado; el médico puede modular según zona."
+      },
+      {
+        "q": "¿Anestesia?",
+        "a": "Según energía y zona: tópica o protocolo de confort definido en valoración."
+      }
+    ]
+  },
+  "emfusion": {
+    "path": "/emfusion/",
+    "key": "emfusion",
+    "kicker": "EMFUSION® · NUVANX Madrid",
+    "h1": "EMFUSION® en Madrid: hidratación profunda y luminosidad cutánea",
+    "lead": "Tecnología DYNAMiQ™ de microcanales acústicos para apoyar la aplicación de activos, la hidratación y la barrera cutánea cuando existe indicación médica.",
+    "meta": "Chamberí · Goya · Well-aging y piel sensible",
+    "aria": "EMFUSION NUVANX",
+    "marker": "nvx-emfusion",
+    "yoast_title": "EMFUSION Madrid | Barrera cutánea e infusión | NUVANX",
+    "yoast_desc": "EMFUSION® en Madrid: microcanales acústicos DYNAMiQ™ para hidratación y apoyo a la barrera cutánea según valoración médica.",
+    "focuskw": "EMFUSION Madrid",
+    "combo": "",
+    "schema_name": "EMFUSION® en Madrid",
+    "schema_type": "Protocolo de infusión cutánea EMFUSION®",
+    "schema_desc": "Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.",
+    "mechanism": {
+      "title": "Cómo funciona EMFUSION® (DYNAMiQ™)",
+      "body": [
+        "Convierte energía en ondas mecánicas que generan microcanales temporales en la superficie cutánea, facilitando la aplicación de activos como ceramidas o ectoína según el protocolo indicado.",
+        "El objetivo no es “limpiar a presión”, sino apoyar la barrera y la hidratación cuando el diagnóstico muestra deshidratación, irritabilidad o necesidad de potenciar activos post-procedimiento.",
+        "Datos de referencia del fabricante describen reducciones relevantes de pérdida de agua transepidérmica en modelos evaluados; se contextualizan en consulta sin cifras mágicas personalizadas."
+      ]
+    },
+    "indications": [
+      {
+        "title": "Piel deshidratada / barrera frágil",
+        "body": "Tirantez, descamación fina o sensibilidad donde la succión agresiva empeora la barrera."
+      },
+      {
+        "title": "Rosácea y piel reactiva (seleccionada)",
+        "body": "Solo tras filtrar contraindicaciones; protocolos “sensitive” con activos calmantes."
+      },
+      {
+        "title": "Post-EXION / post-láser",
+        "body": "Fase de consolidación de hidratación y barrera dentro de protocolos combinados NUVANX."
+      },
+      {
+        "title": "Fotodaño superficial",
+        "body": "Como adyuvante de calidad cutánea, no como sustituto de CO₂ o Fractional cuando hay cicatriz profunda."
+      }
+    ],
+    "compare": {
+      "title": "Cómo se plantea el cuidado de la barrera cutánea",
+      "body": "La selección valora hidratación, sensibilidad, inflamación, activos compatibles y tratamientos previos. El objetivo y el protocolo se deciden después de la exploración.",
+      "link": "",
+      "label": ""
+    },
+    "process": [
+      "Valoración de barrera, inflamación y compatibilidad de activos.",
+      "Protocolos tipo Hydration / Regeneration / Sensitive según caso.",
+      "Sesiones cortas; downtime habitual mínimo.",
+      "Frecuente como complemento de EXION Face o Fractional, no como monoterapia milagrosa."
+    ],
+    "faqs": [
+      {
+        "q": "¿Sustituye a un facial cosmético?",
+        "a": "Es un procedimiento médico de infusión/barrera dentro de un plan; no es un “glow” de cabina sin diagnóstico."
+      },
+      {
+        "q": "¿Puedo maquillarme después?",
+        "a": "Habitualmente sí en pocas horas; se indican cuidados según activos usados."
+      },
+      {
+        "q": "¿Duele?",
+        "a": "Sensación de vibración/calor leve en la mayoría de pacientes; no comparable a multipasada con aguja larga."
+      }
+    ]
+  },
+  "exilite": {
+    "path": "/btl-exilite-ipl-madrid/",
+    "key": "exilite",
+    "kicker": "BTL EXILITE™ · LUZ PULSADA INTENSA",
+    "h1": "IPL médica para manchas, rojeces y calidad de piel.",
+    "lead": "Una plataforma de luz pulsada intensa para indicaciones pigmentarias y vasculares seleccionadas después de valorar fototipo, exposición solar, sensibilidad y objetivo clínico.",
+    "meta": "Chamberí · Salamanca–Goya · Indicación médica individual",
+    "aria": "BTL EXILITE IPL NUVANX",
+    "marker": "nvx-exilite",
+    "yoast_title": "IPL Médico Madrid | Elimina Manchas y Rojeces | NUVANX",
+    "yoast_desc": "IPL EXILITE™ en NUVANX Madrid: luz pulsada médica para manchas, rojeces, acné y fotorejuvenecimiento tras valoración clínica.",
+    "focuskw": "IPL BTL EXILITE Madrid",
+    "combo": "",
+    "schema_name": "BTL EXILITE™ IPL en Madrid",
+    "schema_type": "Protocolo médico con luz pulsada intensa (IPL)",
+    "schema_desc": "Tratamiento médico con IPL BTL EXILITE™ para manchas solares, rojeces, telangiectasias y calidad cutánea en NUVANX Madrid.",
+    "mechanism": {
+      "title": "Luz filtrada según el objetivo clínico",
+      "body": [
+        "El sistema selecciona bandas de longitud de onda y distribuye la energía en pulsos. Los parámetros se ajustan a la indicación, al fototipo y a la respuesta de la piel."
+      ],
+      "items": [
+        {
+          "title": "Melanina",
+          "body": "Objetivo pigmentario superficial."
+        },
+        {
+          "title": "Hemoglobina",
+          "body": "Objetivo vascular y rojeces seleccionadas."
+        },
+        {
+          "title": "Control térmico",
+          "body": "Multipulse y refrigeración para administrar la energía de forma graduada."
+        }
+      ]
+    },
+    "indications": [
+      {
+        "title": "Pigmentación: Manchas solares y pigmentación irregular",
+        "body": "La IPL actúa sobre la melanina para tratar lentigos solares, manchas por fotoexposición y pigmentación difusa. Tras el tratamiento, las manchas pueden oscurecerse temporalmente y aclararse progresivamente."
+      },
+      {
+        "title": "Vascular: Rojeces, cuperosis y telangiectasias",
+        "body": "El sistema dispone de filtros con alta afinidad por la hemoglobina para reducir rojeces difusas y telangiectasias finas, siendo útil en pieles con eritema persistente o rubor."
+      },
+      {
+        "title": "Acné: Acné leve y lesiones inflamatorias",
+        "body": "Puede ayudar en casos de acné leve gracias a su acción sobre Propionibacterium acnes y la reducción de inflamación, como complemento en un plan integral."
+      },
+      {
+        "title": "Anti-aging: Fotorejuvenecimiento y calidad de piel",
+        "body": "Mejora los signos del fotoenvejecimiento: luminosidad, textura, poros dilatados, arrugas finas y pérdida de firmeza superficial. Suelen requerir 3-4 sesiones."
+      },
+      {
+        "title": "Corporal: Rejuvenecimiento de cuello y escote",
+        "body": "Permite armonizar el aspecto del cuello y escote con el del rostro, reduciendo manchas, rojeces, vasos superficiales y textura irregular."
+      }
+    ],
+    "compare": {
+      "title": "La misma mancha no siempre necesita el mismo tratamiento",
+      "body": "Antes de indicar IPL diferenciamos pigmentación epidérmica, componente vascular, fotodaño, inflamación activa y riesgo de hiperpigmentación. La plataforma se selecciona cuando el diagnóstico y el fototipo permiten un uso proporcionado. BTL EXILITE™ no es un láser. Emite un espectro de luz filtrado y ajustable que permite trabajar sobre cromóforos concretos de la piel.",
+      "link": "",
+      "label": ""
+    },
+    "process": [
+      {
+        "title": "Valoración",
+        "body": "Revisión de fototipo, bronceado reciente, medicación, lesiones, sensibilidad y exposición solar prevista."
+      },
+      {
+        "title": "Sesión",
+        "body": "Aplicación sobre piel limpia con protección ocular. Puede percibirse calor y un impacto luminoso breve."
+      },
+      {
+        "title": "Plan orientativo",
+        "body": "El número de sesiones depende de la indicación y de la respuesta. No existe una pauta universal."
+      },
+      {
+        "title": "Cuidados",
+        "body": "Fotoprotección estricta y evitar calor intenso, exfoliación o exposición solar según la pauta médica entregada."
+      }
+    ],
+    "faqs": [
+      {
+        "q": "¿Puede realizarse si la piel está bronceada?",
+        "a": "No suele indicarse sobre bronceado reciente. Se valora el tono basal, la exposición y el riesgo de alteración pigmentaria antes de programar la sesión."
+      },
+      {
+        "q": "¿Qué recuperación puede esperarse?",
+        "a": "Puede aparecer enrojecimiento transitorio y oscurecimiento temporal de determinadas manchas. La respuesta y los cuidados se explican según el protocolo aplicado."
+      },
+      {
+        "q": "¿IPL y láser son lo mismo?",
+        "a": "No. La IPL utiliza un espectro amplio de luz filtrada; un láser trabaja con una longitud de onda más específica. La elección depende del diagnóstico."
+      }
+    ]
+  }
+}

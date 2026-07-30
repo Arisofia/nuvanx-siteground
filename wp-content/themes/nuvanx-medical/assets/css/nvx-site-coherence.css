@@ -129,8 +129,7 @@
   overflow-x: clip;
 }
 
-.nvx-blog-archive__hero,
-.nvx-blog-single__hero {
+.nvx-blog-archive__hero {
   position: relative;
   width: 100%;
   margin: 0;
@@ -139,14 +138,12 @@
   color: var(--nvx-light);
 }
 
-.nvx-blog-archive__body,
-.nvx-blog-single__body {
+.nvx-blog-archive__body {
   width: 100%;
   padding-block: var(--nvx-pad-section);
 }
 
-.nvx-blog-archive__body > .nvx-shell,
-.nvx-blog-single__body > .nvx-shell {
+.nvx-blog-archive__body > .nvx-shell {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;

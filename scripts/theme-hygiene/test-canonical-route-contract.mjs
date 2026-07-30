@@ -20,6 +20,25 @@ forbidText('page hygiene', hygiene, 'nvx_redirect_superseded_legal_pages');
 forbidText('page hygiene', hygiene, 'wp_safe_redirect(');
 
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
+// Retired routes must emit a self-contained 410 without loading the theme 404
+// shell (which can turn a governed gone response into HTTP 500 under regressions).
+for (const marker of [
+  'function nvx_serve_retired_legacy_route',
+  'X-NUVANX-Retired-Route',
+  'status_header( 410 )',
+  'Esta página ya no está disponible.',
+]) {
+  requireText('retired-route handler', integrations, marker);
+}
+{
+  const serveStart = integrations.indexOf('function nvx_serve_retired_legacy_route');
+  const serveFn = serveStart >= 0 ? integrations.slice(serveStart) : '';
+  const addActionAt = serveFn.indexOf("add_action(\n    'template_redirect', 'nvx_serve_retired_legacy_route'");
+  const serveBody = addActionAt >= 0 ? serveFn.slice(0, addActionAt) : serveFn.slice(0, 2500);
+  if (serveBody.includes('get_404_template') || /include\s+\$template/.test(serveBody)) {
+    failures.push('retired-route handler must not include the theme 404 template');
+  }
+}
 forbidText('integrations', integrations, 'nvx_redirect_governed_routes');
 forbidText('integrations', integrations, 'wp_safe_redirect(');
 forbidText('integrations', integrations, 'wp_redirect(');

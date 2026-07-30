@@ -36,19 +36,19 @@ function nvx_protocol_body_catalog(): array {
             'h2_lead'       => 'No tratamos zonas aisladas. Diseñamos continuidad.',
             'lead'          => 'NUVANX Contour Architecture™: El protocolo y la tecnología. La valoración estudia unidades anatómicas relacionadas antes de seleccionar una modalidad.',
             'h2_diagnosis'  => 'Tres decisiones clínicas: Reducir, Redefinir, Retraer',
-            'diagnosis'     => 'Cada objetivo se considera por separado según grasa subcutánea, laxitud, calidad cutánea, continuidad del contorno, antecedentes y expectativas proporcionadas.',
+            'diagnosis'     => 'Tres decisiones clínicas: Reducir, Redefinir, Retraer. Cada objetivo se considera por separado según grasa subcutánea, laxitud, calidad cutánea, continuidad del contorno, antecedentes y expectativas proporcionadas.',
             'h2_mechanism'  => 'NUVANX Contour Architecture™: El protocolo y la tecnología',
             'mechanism'     => 'La tecnología se selecciona después del diagnóstico. Endoláser corporal, EXION® Body y otras modalidades autorizadas pueden formar parte del plan cuando existe una indicación documentada para el tejido y la zona evaluados.',
             'h2_indications'=> 'Cartografía Anatómica: Zonas de tratamiento',
             'indications'   => array(
-                'Se valoran abdomen, flancos, espalda, brazos, muslos o rodillas junto con sus transiciones.',
+                'Cartografía Anatómica: Zonas de tratamiento como abdomen, flancos, espalda, brazos, muslos o rodillas se valoran junto con sus transiciones.',
                 'Grasa localizada subcutánea susceptible de un abordaje focal.',
                 'Laxitud o alteración de la calidad tisular con una expectativa de mejora razonable.',
                 'Pérdida de continuidad entre zonas contiguas cuando cada unidad tiene indicación propia.',
             ),
             'h2_precautions'=> 'Cuándo no es el tratamiento adecuado',
             'precautions'   => array(
-                'Pérdida general de peso, grasa visceral o una expectativa de transformación corporal global.',
+                'Cuándo no es el tratamiento adecuado: pérdida general de peso, grasa visceral o una expectativa de transformación corporal global.',
                 'El exceso importante de piel puede requerir valoración quirúrgica.',
                 'La sospecha de diástasis, hernia, enfermedad activa o alteración vascular exige valoración específica o derivación.',
                 'No se añaden zonas por venta cruzada ni se presentan niveles de planificación como paquetes cerrados.',
@@ -98,7 +98,7 @@ function nvx_protocol_body_catalog(): array {
             ),
             'faqs'          => array(
                 array(
-                    'q' => '¿Cuándo puede realizarse una valoración?',
+                    'q' => 'Preguntas frecuentes: ¿cuándo puede realizarse una valoración?',
                     'a' => 'El momento se individualiza según recuperación, lactancia, estabilidad de peso, antecedentes y modalidad considerada.',
                 ),
                 array(

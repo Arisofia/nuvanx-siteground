@@ -55,7 +55,7 @@ function nvxContentDrRiveraHijack( string $content ): string {
     $html  = '<div class="nvx-dr-rivera-editorial">';
 
     $html .= '<div class="nvx-dr-rivera-header">';
-    $html .= '<img src="' . $avatar . '" alt="Dr. Javier Rivera Tejeda" class="nvx-dr-rivera-avatar" onerror="this.style.display=\'none\'">';
+    $html .= '<img src="' . $avatar . '" alt="Dr. Javier Rivera Tejeda" class="nvx-dr-rivera-avatar">';
     $html .= '<p class="nvx-eyebrow nvx-dr-rivera-kicker">' . esc_html__( 'Dirección Médica NUVANX', 'nuvanx-medical' ) . '</p>';
     $html .= '<h1 class="nvx-heading nvx-dr-rivera-h1" id="nvx-dr-rivera-h1">' . esc_html__( 'Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</h1>';
     $html .= '<p class="nvx-lead nvx-dr-rivera-lead">' . esc_html__( 'Nº Colegiado ICOMEM: 282864786 · Especialista en Medicina Estética Láser e Ingeniería Tisular', 'nuvanx-medical' ) . '</p>';
@@ -63,7 +63,7 @@ function nvxContentDrRiveraHijack( string $content ): string {
 
     // Manifiesto Clínico
     $html .= '<blockquote class="nvx-blockquote">';
-    $html .= '<p>' . esc_html__( 'Mi criterio de indicación clínica es innegociable: si no hay razón médica objetiva para un tratamiento, no lo recomiendo. Hay clínicas que venden su catálogo de máquinas; en NUVANX, yo te vendo el diagnóstico anatómico.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p>' . esc_html__( 'Mi criterio de indicación clínica es riguroso: solo recomiendo un tratamiento si existe una razón médica objetiva. En NUVANX, priorizamos el diagnóstico anatómico por encima de la aplicación sistemática de protocolos.', 'nuvanx-medical' ) . '</p>';
     $html .= '</blockquote>';
 
     $html .= '<div class="nvx-dr-rivera-body">';

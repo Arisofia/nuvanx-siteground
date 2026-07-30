@@ -57,6 +57,8 @@ jobs:
           node --check scripts/theme-hygiene/test-canonical-route-contract.mjs
           node --check scripts/theme-hygiene/test-rest-pagination-contract.mjs
           node --check scripts/theme-hygiene/test-hero-layout-contract.mjs
+          node --check scripts/theme-hygiene/test-entity-graph-contract.mjs
+          node --check scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
 
       - name: Lint runtime and migration PHP
         run: |
@@ -77,6 +79,12 @@ jobs:
 
       - name: Enforce hero layout contract
         run: node scripts/theme-hygiene/test-hero-layout-contract.mjs
+
+      - name: Enforce entity graph contract
+        run: node scripts/theme-hygiene/test-entity-graph-contract.mjs
+
+      - name: Enforce runtime bootstrap contract
+        run: node scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
 
       - name: Upload hygiene findings
         if: always()

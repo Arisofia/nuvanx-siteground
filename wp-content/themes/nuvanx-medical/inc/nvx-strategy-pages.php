@@ -251,7 +251,7 @@ function nvx_strategy_investment_markup(): string {
 
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Sobre los precios en medicina estética en Madrid</h2>';
     $html .= '<p>Las diferencias pueden responder al alcance del diagnóstico, la experiencia del profesional, la tecnología indicada, el material utilizado y el seguimiento incluido. La comparación debe hacerse sobre planes equivalentes y documentados por escrito.</p>';
-    $html .= '<p>Lo que te preocupa hoy no va a estar mejor por esperar a una oferta. Por eso no jugamos con eso.</p>';
+    $html .= '<p>El rigor médico no es compatible con urgencias comerciales o descuentos estacionales.</p>';
     $html .= '</div></section>';
 
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner"><h2 class="nvx-brand-title">Inicia tu valoración médica</h2>';

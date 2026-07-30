@@ -100,8 +100,8 @@ ob_start();
         </div>
         <div class="nvx-home-hero__copy">
             <p class="nvx-home-eyebrow">NUVANX · MEDICINA ESTÉTICA LÁSER · MADRID</p>
-            <h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con criterio médico y resultados naturales.</h1>
-            <p class="nvx-home-hero__lead">En NUVANX unimos criterio médico, tecnología avanzada y una forma más serena de entender la medicina estética. Estudiamos tu anatomía, la calidad de tu piel y la respuesta de tus tejidos para diseñar un plan personalizado, proporcionado y orientado a resultados naturales.</p>
+            <h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con rigor clínico y resultados naturales.</h1>
+            <p class="nvx-home-hero__lead">En NUVANX unimos experiencia médica, tecnología avanzada y una forma más serena de abordar los tratamientos. Estudiamos tu anatomía, la calidad de tu piel y la respuesta de tus tejidos para diseñar un plan personalizado, proporcionado y respetuoso con tu fisionomía.</p>
             <div class="nvx-home-actions">
                 <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">Solicitar valoración médica</a>
                 <a href="<?php echo esc_url( home_url( '/soluciones-medicas/' ) ); ?>" class="nvx-home-text-link">Explorar soluciones</a>
@@ -111,14 +111,14 @@ ob_start();
     </section>
 
     <section class="nvx-home-manifesto" aria-labelledby="nvx-home-manifesto-title">
-        <p class="nvx-home-eyebrow">TODO EMPIEZA POR COMPRENDER TU PIEL</p>
+        <p class="nvx-home-eyebrow">EL DIAGNÓSTICO COMO PUNTO DE PARTIDA</p>
         <h2 id="nvx-home-manifesto-title">Antes de recomendar un tratamiento, necesitamos entender qué está ocurriendo y por qué.</h2>
         <p>Valoramos la calidad cutánea, la estructura facial o corporal, el grado de laxitud, la distribución del tejido y cualquier antecedente relevante. A partir de ese análisis decidimos qué puede aportar un beneficio real y qué no está indicado. Porque una buena medicina estética no consiste en hacer más, sino en elegir mejor.</p>
     </section>
 
     <section class="nvx-home-feature" aria-labelledby="nvx-home-feature-title">
         <div class="nvx-home-feature__copy">
-            <p class="nvx-home-eyebrow">REMODELACIÓN CORPORAL CON CRITERIO MÉDICO</p>
+            <p class="nvx-home-eyebrow">REMODELACIÓN CORPORAL BASADA EN LA ANATOMÍA</p>
             <h2 id="nvx-home-feature-title">Cada cuerpo responde de una forma diferente.</h2>
             <p>Por eso, un tratamiento corporal no debería comenzar por una máquina, sino por una valoración anatómica completa. Estudiamos la grasa localizada, la firmeza de la piel y la continuidad entre las distintas zonas de la silueta para proponer cambios equilibrados y coherentes con tu cuerpo.</p>
             <a href="<?php echo esc_url( home_url( $remodelacion_url ) ); ?>" class="nvx-home-text-link">Descubrir soluciones corporales</a>
@@ -128,7 +128,7 @@ ob_start();
     <section class="nvx-home-protocols" aria-labelledby="nvx-home-protocols-title">
         <header class="nvx-home-section-header">
             <div>
-                <p class="nvx-home-eyebrow">PROTOCOLOS SIGNATURE</p>
+                <p class="nvx-home-eyebrow">PROTOCOLOS CLÍNICOS</p>
                 <h2 id="nvx-home-protocols-title">Una forma de organizar el diagnóstico y el tratamiento con mayor precisión.</h2>
             </div>
             <p>Sin fórmulas generales ni combinaciones innecesarias. Cada protocolo ordena la valoración, la indicación y la secuencia de tratamiento según lo que necesita cada persona.</p>
@@ -151,7 +151,7 @@ ob_start();
     <section class="nvx-home-solutions" aria-labelledby="nvx-home-solutions-title">
         <header class="nvx-home-section-header">
             <div>
-                <p class="nvx-home-eyebrow">SOLUCIONES MÉDICAS AVANZADAS</p>
+                <p class="nvx-home-eyebrow">ÁREAS DE TRATAMIENTO</p>
                 <h2 id="nvx-home-solutions-title">La zona orienta la consulta. El diagnóstico define el tratamiento.</h2>
             </div>
             <p>No proponemos procedimientos innecesarios ni resultados que no podamos abordar de manera razonable y responsable.</p>
@@ -192,7 +192,7 @@ ob_start();
         <header class="nvx-home-section-header">
             <div>
                 <p class="nvx-home-eyebrow">CLÍNICAS NUVANX EN MADRID</p>
-                <h2 id="nvx-home-locations-title">Dos espacios privados. Un mismo criterio médico.</h2>
+                <h2 id="nvx-home-locations-title">Dos espacios privados. Un mismo estándar clínico.</h2>
             </div>
             <p>Entornos diseñados para ofrecer una atención médica tranquila, discreta y personalizada.</p>
         </header>

@@ -17,7 +17,13 @@ ob_start();
             the_post();
             ?>
             <article <?php post_class( 'nvx-page-body nvx-shell' ); ?>>
-                <?php the_title( '<h1 class="nvx-heading">', '</h1>' ); ?>
+                <?php
+                if ( is_singular() ) {
+                    the_title( '<h1 class="nvx-heading">', '</h1>' );
+                } else {
+                    the_title( '<h2 class="nvx-heading"><a href="' . esc_url( get_permalink() ) . '">', '</a></h2>' );
+                }
+                ?>
                 <div class="nvx-copy entry-content">
                     <?php the_content(); ?>
                 </div>

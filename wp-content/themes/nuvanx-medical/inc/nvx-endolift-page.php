@@ -213,7 +213,7 @@ function nvx_endolift_editorial_body_markup(): string {
     $html .= '<div class="nvx-endolift-section__inner">';
     $html .= '<p class="nvx-endolift-kicker">' . esc_html__( 'La técnica', 'nuvanx-medical' ) . '</p>';
     $html .= '<h2 id="nvx-endolift-what-title" class="nvx-endolift-heading">' . esc_html__( '¿Qué es el Endolift® facial y cómo altera la estructura anatómica?', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Se introduce una fibra láser finísima bajo la piel — no vas a notar más que un pinchazo pequeño — y ese calor hace dos cosas: deshace un poco de grasa y tensa la piel desde dentro. Todo con anestesia local, en la consulta.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( 'Se introduce una microfibra láser a nivel subdérmico mediante un punto de entrada anestesiado. La energía térmica produce un doble efecto: laserlipólisis del tejido adiposo y retracción de los tractos fibrosos para un tensado estructural. Se realiza de forma ambulatoria.', 'nuvanx-medical' ) . '</p>';
     $html .= '<p class="nvx-endolift-body nvx-endolift-body--measure">' . esc_html__( '(Detalle técnico si te interesa: es láser de 1470nm sobre plataforma Eufoton®, aplicado con microfibras de 200-300 micras.)', 'nuvanx-medical' ) . '</p>';
     $html .= '</div></section>';
 

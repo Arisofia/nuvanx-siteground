@@ -350,24 +350,25 @@
   color: var(--nvx-accent-muted);
 }
 
-.nvx-mobile-nav__toggle-icon,
-.nvx-mobile-nav__toggle-icon::after {
+.nvx-mobile-nav__toggle-icon {
   display: block;
+  position: relative;
   width: var(--nvx-icon-xs);
   height: var(--nvx-border-hairline);
   background: currentcolor;
   transition: transform 160ms ease;
 }
 
-.nvx-mobile-nav__toggle-icon {
-  position: relative;
-}
-
 .nvx-mobile-nav__toggle-icon::after {
   content: "";
+  display: block;
   position: absolute;
   inset: 0;
+  width: var(--nvx-icon-xs);
+  height: var(--nvx-border-hairline);
+  background: currentcolor;
   transform: rotate(90deg);
+  transition: transform 160ms ease;
 }
 
 .nvx-mobile-nav__toggle[aria-expanded="true"] .nvx-mobile-nav__toggle-icon::after {

@@ -18,7 +18,7 @@ $clinics = array(
         <div class="nvx-brand-hero__inner">
             <div class="nvx-editorial-hero__copy">
                 <p class="nvx-eyebrow">VALORACIÓN MÉDICA · MADRID</p>
-                <h1 id="nvx-valoracion-h1" class="nvx-heading">Valoración médica estética gratuita en Madrid</h1>
+                <h1 id="nvx-valoracion-h1" class="nvx-heading">Valoración médica estética en Madrid</h1>
                 <p class="nvx-brand-meta">Revisamos anatomía, calidad de piel, antecedentes y expectativas antes de indicar un tratamiento facial o corporal.</p>
                 <div class="nvx-brand-actions">
                     <a class="nvx-brand-btn nvx-brand-btn--primary" href="#nvx-hubspot-form">Completar solicitud</a>
@@ -90,7 +90,7 @@ $clinics = array(
             <p class="nvx-brand-kicker">INFORMACIÓN PRÁCTICA</p>
             <h2 id="nvx-valoracion-faq" class="nvx-brand-title">Preguntas frecuentes</h2>
             <div class="nvx-brand-faq-accordion">
-                <details class="nvx-brand-faq-item"><summary><span>¿La valoración médica es gratuita?</span></summary><div class="nvx-brand-faq-content"><p>Sí. Permite revisar el caso, confirmar si existe indicación y explicar las opciones antes de decidir.</p></div></details>
+                <details class="nvx-brand-faq-item"><summary><span>¿Qué coste tiene la valoración médica?</span></summary><div class="nvx-brand-faq-content"><p>Esta primera valoración clínica no tiene coste. Permite revisar el caso, confirmar si existe indicación y explicar las opciones antes de decidir.</p></div></details>
                 <details class="nvx-brand-faq-item"><summary><span>¿Puedo enviar fotografías?</span></summary><div class="nvx-brand-faq-content"><p>El equipo puede solicitarlas para una orientación preliminar. No sustituyen la exploración ni permiten emitir un diagnóstico definitivo por sí solas.</p></div></details>
                 <details class="nvx-brand-faq-item"><summary><span>¿Cuánto dura la consulta?</span></summary><div class="nvx-brand-faq-content"><p>La duración habitual es de 15 a 30 minutos, aunque puede variar según la complejidad del caso.</p></div></details>
                 <details class="nvx-brand-faq-item"><summary><span>¿Recibiré un presupuesto?</span></summary><div class="nvx-brand-faq-content"><p>Cuando existe indicación, se entrega un plan con tratamiento propuesto, número de sesiones o fases, cuidados y presupuesto.</p></div></details>

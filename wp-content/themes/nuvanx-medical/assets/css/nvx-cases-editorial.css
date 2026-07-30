@@ -108,12 +108,12 @@
 	object-fit: cover;
 }
 
-.nvx-cases-method,
-.nvx-cases-evolution {
+.nvx-cases-method {
 	padding: clamp(4.5rem, 8vw, 8rem) var(--nvx-gutter-inner);
 }
 
 .nvx-cases-evolution {
+	padding: clamp(4.5rem, 8vw, 8rem) var(--nvx-gutter-inner);
 	background: var(--nvx-surface-base);
 }
 

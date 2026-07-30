@@ -312,6 +312,76 @@ function _nvx_seo_schema_link_main_entity( $graph, $current_url, $main_entity_id
 }
 
 /**
+ * Promote Organization.logo ImageObject to a top-level graph node.
+ *
+ * Yoast often nests the logo object under Organization.logo with an @id while
+ * Organization.image is a bare {@id} ref to the same identifier. Without a
+ * top-level ImageObject node, validators report a dangling logo/image id.
+ *
+ * @param array $graph Schema graph.
+ * @return array
+ */
+function nvx_seo_schema_materialize_logo_node( array $graph ): array {
+    foreach ( $graph as $index => $piece ) {
+        $types = $piece['@type'] ?? array();
+        if ( ! nvx_seo_schema_has_type( $types, 'Organization' ) || nvx_seo_schema_has_type( $types, 'WebSite' ) ) {
+            continue;
+        }
+
+        $logo = $piece['logo'] ?? null;
+        if ( ! is_array( $logo ) ) {
+            continue;
+        }
+
+        $logo_id = isset( $logo['@id'] ) ? (string) $logo['@id'] : '';
+        $has_body = isset( $logo['url'] ) || isset( $logo['contentUrl'] ) || isset( $logo['width'] ) || isset( $logo['height'] );
+        if ( '' === $logo_id || ! $has_body ) {
+            continue;
+        }
+
+        $logo_node = $logo;
+        if ( empty( $logo_node['@type'] ) ) {
+            $logo_node['@type'] = 'ImageObject';
+        }
+
+        $graph = nvx_seo_schema_upsert_node( $graph, $logo_node );
+        $graph[ $index ]['logo']  = array( '@id' => $logo_id );
+        $graph[ $index ]['image'] = array( '@id' => $logo_id );
+    }
+
+    return $graph;
+}
+
+/**
+ * Link WebPage.mainEntity to the first MedicalProcedure/Service for this URL.
+ *
+ * Complements the Service→MedicalProcedure promotion so laser and BTL pages
+ * expose a coherent main entity even when main_entity_id was not set earlier.
+ *
+ * @param array  $graph       Schema graph.
+ * @param string $current_url Canonical page URL.
+ * @return array
+ */
+function nvx_seo_schema_ensure_webpage_main_entity( array $graph, string $current_url ): array {
+    $entity_id = '';
+    foreach ( $graph as $piece ) {
+        $types     = $piece['@type'] ?? array();
+        $piece_url = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
+        $is_entity = nvx_seo_schema_has_type( $types, 'MedicalProcedure' ) || nvx_seo_schema_has_type( $types, 'Service' );
+        if ( $is_entity && '' !== $piece_url && $piece_url === trailingslashit( $current_url ) && ! empty( $piece['@id'] ) ) {
+            $entity_id = (string) $piece['@id'];
+            break;
+        }
+    }
+
+    if ( '' === $entity_id ) {
+        return $graph;
+    }
+
+    return _nvx_seo_schema_link_main_entity( $graph, $current_url, $entity_id );
+}
+
+/**
  * Ensures production readiness by consolidating MedicalOrganization, MedicalProcedure,
  * and FAQPage logic into the main Schema.org graph for the site.
  *
@@ -331,6 +401,7 @@ function nvx_seo_production_readiness_schema_graph( $graph, $context = null ) {
 
     $graph = _nvx_seo_schema_enrich_organization( $graph, $organization_id );
     $graph = _nvx_seo_schema_enrich_clinics( $graph, $organization_id );
+    $graph = nvx_seo_schema_materialize_logo_node( $graph );
 
     $current_url = nvx_seo_schema_current_page_url();
     $page_id     = (int) get_queried_object_id();
@@ -343,6 +414,7 @@ function nvx_seo_production_readiness_schema_graph( $graph, $context = null ) {
     }
 
     $graph = _nvx_seo_schema_link_main_entity( $graph, $current_url, $main_entity_id );
+    $graph = nvx_seo_schema_ensure_webpage_main_entity( $graph, $current_url );
 
     return array_values( $graph );
 }

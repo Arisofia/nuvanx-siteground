@@ -592,7 +592,6 @@
 .nvx-endolift-compare-wrap {
   margin: var(--nvx-space-4) 0;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .nvx-endolift-compare-table {
@@ -631,7 +630,6 @@
 .nvx-editorial-price-table-wrap {
   margin: var(--nvx-space-4) 0;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .nvx-editorial-price-table {

@@ -21,8 +21,8 @@
 }
 
 .nvx-logo__img {
-  width: var(--nvx-space-6);
-  height: var(--nvx-space-6);
+  width: var(--nvx-space-7);
+  height: var(--nvx-space-7);
   object-fit: contain;
 }
 
@@ -399,11 +399,9 @@
   display: flex;
 }
 
-.nvx-mobile-nav.is-open ~ #cmplz-cookiebanner-container,
-.nvx-mobile-nav[aria-hidden="false"] ~ #cmplz-cookiebanner-container {
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
+body:has(.nvx-mobile-nav.is-open) #cmplz-cookiebanner-container,
+body:has(.nvx-mobile-nav[aria-hidden="false"]) #cmplz-cookiebanner-container {
+  display: none;
 }
 
 .nvx-mobile-nav__close {
@@ -530,7 +528,7 @@
 .nvx-mobile-nav__list .sub-menu .sub-menu {
   margin-left: var(--nvx-space-1);
   padding-left: var(--nvx-space-2);
-  background: var(--nvx-surface-base);
+  background: transparent;
   border-left-color: var(--nvx-color-line);
 }
 

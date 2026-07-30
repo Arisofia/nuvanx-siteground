@@ -1,0 +1,202 @@
+name: Verify valoración CTA final
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/verify-valoracion-cta-final.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-valoracion-cta-final
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/valoracion-cta-action-20260730'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_SHA: f2e879cb27672441b68ce28a54041328fb5b999b
+      BASE_URL: https://staging2.nuvanx.com
+    steps:
+      - name: Check out tested theme candidate
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+
+      - name: Wait for exact public HTML
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 120); do
+            html="$(curl --fail --silent --show-error --location --max-time 20 \
+              -H 'Cache-Control: no-cache' \
+              "$BASE_URL/madrid/valoracion/?nvx_cta_verify=$attempt" || true)"
+            if grep -Fq "<meta name=\"nvx-deploy-sha\" content=\"$EXPECTED_SHA\"" <<<"$html"; then
+              echo "PUBLIC_SHA_READY=$EXPECTED_SHA"
+              exit 0
+            fi
+            echo "waiting for public SHA attempt=$attempt"
+            sleep 5
+          done
+          echo "Public valoración HTML did not serve $EXPECTED_SHA" >&2
+          exit 1
+
+      - name: Click desktop and mobile CTA in Chrome
+        run: |
+          set -euo pipefail
+          cat > /tmp/verify-cta.mjs <<'NODE'
+          import fs from 'node:fs';
+          import os from 'node:os';
+          import path from 'node:path';
+          import crypto from 'node:crypto';
+          import { spawn } from 'node:child_process';
+
+          const baseUrl = process.env.BASE_URL;
+          const expectedSha = process.env.EXPECTED_SHA;
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+          function findChrome() {
+            for (const name of ['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser']) {
+              for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+                const candidate = path.join(dir, name);
+                if (fs.existsSync(candidate)) return candidate;
+              }
+            }
+            throw new Error('Chrome or Chromium is unavailable.');
+          }
+
+          class CDP {
+            constructor(url) { this.url = url; this.ws = null; this.next = 0; this.pending = new Map(); this.waiters = new Map(); }
+            async connect() {
+              this.ws = new WebSocket(this.url);
+              await new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error('CDP connect timeout')), 10000);
+                this.ws.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
+                this.ws.addEventListener('error', () => { clearTimeout(timer); reject(new Error('CDP connect error')); }, { once: true });
+              });
+              this.ws.addEventListener('message', (event) => this.onMessage(event));
+            }
+            onMessage(event) {
+              const message = JSON.parse(String(event.data));
+              if (message.id && this.pending.has(message.id)) {
+                const item = this.pending.get(message.id);
+                clearTimeout(item.timer); this.pending.delete(message.id);
+                message.error ? item.reject(new Error(message.error.message)) : item.resolve(message.result || {});
+                return;
+              }
+              if (message.method && this.waiters.has(message.method)) {
+                const queue = this.waiters.get(message.method);
+                const item = queue.shift();
+                if (!queue.length) this.waiters.delete(message.method);
+                clearTimeout(item.timer); item.resolve(message.params || {});
+              }
+            }
+            send(method, params = {}, timeout = 30000) {
+              const id = ++this.next;
+              return new Promise((resolve, reject) => {
+                const timer = setTimeout(() => { this.pending.delete(id); reject(new Error(`CDP timeout: ${method}`)); }, timeout);
+                this.pending.set(id, { resolve, reject, timer });
+                this.ws.send(JSON.stringify({ id, method, params }));
+              });
+            }
+            wait(method, timeout = 30000) {
+              return new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error(`CDP event timeout: ${method}`)), timeout);
+                const queue = this.waiters.get(method) || [];
+                queue.push({ resolve, reject, timer }); this.waiters.set(method, queue);
+              });
+            }
+            async evaluate(expression) {
+              const result = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+              if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || 'Browser evaluation failed');
+              return result.result?.value;
+            }
+          }
+
+          async function waitChrome(port) {
+            for (let attempt = 0; attempt < 80; attempt += 1) {
+              try { if ((await fetch(`http://127.0.0.1:${port}/json/version`)).ok) return; } catch {}
+              await sleep(250);
+            }
+            throw new Error('Chrome debugging endpoint unavailable.');
+          }
+
+          async function openSession(port, viewport) {
+            const target = await (await fetch(`http://127.0.0.1:${port}/json/new?about%3Ablank`, { method: 'PUT' })).json();
+            const cdp = new CDP(target.webSocketDebuggerUrl);
+            await cdp.connect();
+            await cdp.send('Page.enable'); await cdp.send('Runtime.enable'); await cdp.send('Network.enable');
+            await cdp.send('Emulation.setDeviceMetricsOverride', {
+              width: viewport.width, height: viewport.height, deviceScaleFactor: 1,
+              mobile: viewport.mobile, screenWidth: viewport.width, screenHeight: viewport.height,
+            });
+            const loaded = cdp.wait('Page.loadEventFired');
+            const navigation = await cdp.send('Page.navigate', {
+              url: `${baseUrl}/madrid/valoracion/?nvx_cta_browser=${Date.now()}`,
+            });
+            if (navigation.errorText) throw new Error(navigation.errorText);
+            await loaded; await sleep(1200);
+            const sha = await cdp.evaluate(`document.querySelector('meta[name="nvx-deploy-sha"]')?.content || ''`);
+            if (sha !== expectedSha) throw new Error(`browser served SHA ${sha || 'absent'} instead of ${expectedSha}`);
+            return cdp;
+          }
+
+          function assertBase(label, state) {
+            const errors = [];
+            if (state.href !== '#nvx-hubspot-form') errors.push(`href=${state.href}`);
+            if (state.modalFlag !== '0') errors.push(`data-modal=${state.modalFlag}`);
+            if (state.hasPopup !== null) errors.push(`aria-haspopup=${state.hasPopup}`);
+            if (state.modalPresent) errors.push('modal-present');
+            if (state.scrollY < 100) errors.push(`scrollY=${state.scrollY}`);
+            if (Math.abs(state.formTop) > 220) errors.push(`formTop=${state.formTop}`);
+            if (errors.length) throw new Error(`${label}: ${errors.join(', ')}`);
+          }
+
+          const port = 9600 + crypto.randomInt(0, 250);
+          const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'nvx-cta-final-'));
+          const chrome = spawn(findChrome(), [
+            '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
+            `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, 'about:blank',
+          ], { stdio: ['ignore', 'ignore', 'inherit'] });
+
+          try {
+            await waitChrome(port);
+            const desktop = await openSession(port, { width: 1440, height: 1000, mobile: false });
+            const desktopState = await desktop.evaluate(`new Promise((resolve) => {
+              const trigger = document.getElementById('nvx-header-cta');
+              const initial = { href: trigger?.getAttribute('href') || '', modalFlag: trigger?.dataset.nvxValoracionModal || '', hasPopup: trigger?.getAttribute('aria-haspopup'), modalPresent: !!document.getElementById('nvx-valoracion-modal') };
+              trigger?.click();
+              setTimeout(() => { const form = document.getElementById('nvx-hubspot-form'); resolve({ ...initial, scrollY: window.scrollY, formTop: Math.round(form?.getBoundingClientRect().top || 9999) }); }, 1000);
+            })`);
+            assertBase('desktop', desktopState);
+            await desktop.send('Page.close'); desktop.ws.close();
+
+            const mobile = await openSession(port, { width: 390, height: 844, mobile: true });
+            const mobileState = await mobile.evaluate(`new Promise((resolve) => {
+              document.getElementById('nvx-hamburger-btn')?.click();
+              setTimeout(() => {
+                const trigger = document.getElementById('nvx-mobile-cta');
+                const initial = { href: trigger?.getAttribute('href') || '', modalFlag: trigger?.dataset.nvxValoracionModal || '', hasPopup: trigger?.getAttribute('aria-haspopup'), modalPresent: !!document.getElementById('nvx-valoracion-modal') };
+                trigger?.click();
+                setTimeout(() => {
+                  const form = document.getElementById('nvx-hubspot-form'); const nav = document.getElementById('nvx-mobile-nav');
+                  resolve({ ...initial, scrollY: window.scrollY, formTop: Math.round(form?.getBoundingClientRect().top || 9999), navOpen: !!nav?.classList.contains('is-open'), navHidden: nav?.getAttribute('aria-hidden'), hamburgerExpanded: document.getElementById('nvx-hamburger-btn')?.getAttribute('aria-expanded'), bodyOverflow: document.body.style.overflow });
+                }, 1000);
+              }, 300);
+            })`);
+            assertBase('mobile', mobileState);
+            if (mobileState.navOpen || mobileState.navHidden !== 'true' || mobileState.hamburgerExpanded !== 'false' || mobileState.bodyOverflow === 'hidden') {
+              throw new Error(`mobile drawer state invalid: ${JSON.stringify(mobileState)}`);
+            }
+            await mobile.send('Page.close'); mobile.ws.close();
+            console.log(`VALORACION_CTA_FINAL_OK sha=${expectedSha}`);
+          } finally {
+            chrome.kill('SIGTERM'); await sleep(250); fs.rmSync(profile, { recursive: true, force: true });
+          }
+          NODE
+          node /tmp/verify-cta.mjs

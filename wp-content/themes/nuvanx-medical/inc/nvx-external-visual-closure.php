@@ -13,7 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /** Non-public canonical output used by rendered QA and pre-production review. */
-require_once __DIR__ . '/nvx-staging2-canonical-closure.php';
+if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) {
+    require_once __DIR__ . '/nvx-staging2-canonical-closure.php';
+}
 
 /**
  * Provides the late-loaded CSS for external widgets and site-specific visual layouts.

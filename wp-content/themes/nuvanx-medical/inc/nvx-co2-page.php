@@ -111,7 +111,7 @@ function nvxCo2EditorialBodyMarkup(): string {
     $html .= '<div class="nvx-editorial-section__inner">';
     $html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
     $html .= '<h2 id="nvx-co2-science-title" class="nvx-editorial-heading">' . esc_html__( 'La ciencia de la ablación fraccionada', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El láser hace micro-heridas controladas y minúsculas en la piel, dejando el tejido de alrededor intacto. Eso obliga a la piel a regenerarse desde dentro — como cuando te haces una herida pequeña y la piel nueva sale más lisa.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El láser genera micro-columnas ablativas controladas en el tejido, preservando la piel circundante. Este daño térmico fraccionado induce una respuesta fisiológica de regeneración dérmica.', 'nuvanx-medical' ) . '</p>';
     $html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'Ese tejido peri-lesional acelera la curación y estimula una respuesta de neocolagénesis (colágeno tipo I y III). No es un peeling cosmético superficial: es una intervención de alto impacto que exige planificación médica y compromiso con el downtime.', 'nuvanx-medical' ) . '</p>';
     $html .= '</div></section>';
 
@@ -155,17 +155,17 @@ function nvxCo2EditorialBodyMarkup(): string {
         array(
             'n'     => '01',
             'title' => __( 'Días 1 a 3', 'nuvanx-medical' ),
-            'body'  => __( 'La piel se ve roja e intensa, como una quemadura de sol fuerte, y notarás calor. Es normal, es parte del proceso.', 'nuvanx-medical' ),
+            'body'  => __( 'Eritema intenso y sensación de calor, similar a una quemadura solar. Esta respuesta inflamatoria aguda es esperable y necesaria.', 'nuvanx-medical' ),
         ),
         array(
             'n'     => '02',
             'title' => __( 'Días 4 a 7', 'nuvanx-medical' ),
-            'body'  => __( 'La piel empieza a pelarse — sale la piel nueva por debajo, más rosada. No te la arranques, deja que caiga sola.', 'nuvanx-medical' ),
+            'body'  => __( 'Fase de descamación epidérmica. El tejido necrótico superficial se desprende, revelando una piel en regeneración. Es imperativo no forzar el desprendimiento.', 'nuvanx-medical' ),
         ),
         array(
             'n'     => '03',
             'title' => __( 'Día 7 en adelante', 'nuvanx-medical' ),
-            'body'  => __( 'Ya se ve una piel normal por fuera, aunque por dentro la piel sigue mejorando durante semanas y meses.', 'nuvanx-medical' ),
+            'body'  => __( 'Resolución clínica del eritema superficial. La remodelación profunda del colágeno continuará de forma subclínica durante meses.', 'nuvanx-medical' ),
         ),
     );
     foreach ( $phases as $phase ) {

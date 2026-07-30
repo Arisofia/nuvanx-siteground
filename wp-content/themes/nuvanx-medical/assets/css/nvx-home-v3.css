@@ -11,14 +11,7 @@
 	box-sizing: border-box;
 }
 
-.nvx-home-v5 {
-	width: 100%;
-	max-width: none;
-	margin: 0;
-	background: var(--nvx-light);
-	color: var(--nvx-ink);
-	overflow: clip;
-}
+
 
 .nvx-home-v5 h1,
 .nvx-home-v5 h2,
@@ -166,9 +159,9 @@
 
 .nvx-home-section-header {
 	display: grid;
-	grid-template-columns: minmax(0, 1.3fr) minmax(18rem, 0.7fr);
+	grid-template-columns: 1fr;
 	gap: clamp(2rem, 5vw, 5rem);
-	align-items: end;
+	align-items: start;
 	max-width: var(--nvx-shell);
 	margin: 0 auto clamp(2.5rem, 5vw, 4.5rem);
 }
@@ -326,7 +319,7 @@
 
 .nvx-home-solutions__grid {
 	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
+	grid-template-columns: 1fr;
 	gap: 1px;
 	max-width: var(--nvx-shell);
 	margin-inline: auto;
@@ -340,7 +333,7 @@
 	align-items: flex-start;
 	gap: var(--nvx-space-4);
 	min-width: 0;
-	min-height: 25rem;
+	min-height: 0;
 	padding: clamp(2rem, 4vw, 4rem);
 	background: var(--nvx-surface-base);
 }
@@ -541,15 +534,7 @@
 	gap: var(--nvx-space-4);
 }
 
-@media (max-width: 70rem) {
-	.nvx-home-solutions__grid {
-		grid-template-columns: 1fr;
-	}
 
-	.nvx-home-solution-card {
-		min-height: 0;
-	}
-}
 
 @media (max-width: 62rem) {
 	.nvx-home-v5 .nvx-home-hero,
@@ -574,10 +559,7 @@
 		min-height: 34rem;
 	}
 
-	.nvx-home-section-header {
-		grid-template-columns: 1fr;
-		align-items: start;
-	}
+
 
 	.nvx-home-protocol__body {
 		grid-template-columns: 1fr;

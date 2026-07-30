@@ -45,8 +45,8 @@ export const technologyPageDefinitions = [
   ],
   [
     '/endolaser-corporal-grasa-localizada/',
-    'Endoláser Corporal Madrid | Firmeza que la Dieta No Logra',
-    'La dieta no pega la piel al músculo. El Endoláser Corporal en NUVANX Madrid destruye la grasa localizada y retrae la flacidez severa. Criterio médico.',
+    'Endoláser Corporal Madrid | Remodelación y Retracción Cutánea',
+    'Procedimiento médico mínimamente invasivo para adiposidad localizada y flacidez. Endoláser en NUVANX Madrid indicado tras valoración anatómica.',
     'Endoláser corporal en Madrid: grasa localizada y mejor contorno',
     [
       'Cómo actúa: grasa localizada y soporte de la piel',
@@ -56,8 +56,8 @@ export const technologyPageDefinitions = [
   ],
   [
     '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-    'Láser CO2 Fraccionado Madrid | Borra Cicatrices sin Cremas Inútiles',
-    'Las cremas cosméticas no quitan las cicatrices. El Láser CO2 médico de NUVANX renueva la piel dañada de raíz. Pide valoración con el Dr. Rivera Tejeda.',
+    'Láser CO2 Fraccionado Madrid | Tratamiento Médico de Cicatrices',
+    'Tratamiento médico con láser CO2 fraccionado para renovación epidérmica, cicatrices atróficas y textura irregular. Valoración en clínicas NUVANX Madrid.',
     'Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné',
     [
       'La ciencia de la ablación fraccionada',
@@ -67,8 +67,8 @@ export const technologyPageDefinitions = [
   ],
   [
     '/exion-btl/',
-    'Radiofrecuencia EXION Madrid | Firmeza Facial y Corporal',
-    'La aparatología estética barata no funciona. EXION BTL con IA en NUVANX Madrid ofrece regeneración de ácido hialurónico y tensión cutánea demostrada.',
+    'Radiofrecuencia EXION Madrid | Regeneración y Firmeza',
+    'Protocolos médicos con plataforma EXION BTL en NUVANX Madrid. Estímulo de colágeno, ácido hialurónico y mejora de la tensión cutánea.',
     'EXION® BTL en Madrid',
     [
       'Una plataforma, distintas indicaciones médicas',

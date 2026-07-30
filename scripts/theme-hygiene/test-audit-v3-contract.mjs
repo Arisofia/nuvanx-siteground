@@ -38,6 +38,8 @@ const pageHygiene = read('wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.
 const treatmentHubSchema = read('wp-content/themes/nuvanx-medical/inc/nvx-treatment-hub-schema.php');
 const structuredData = read('wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php');
 const footer = read('wp-content/themes/nuvanx-medical/footer.php');
+const header = read('wp-content/themes/nuvanx-medical/header.php');
+const valoracionPageRuntime = read('wp-content/themes/nuvanx-medical/assets/js/nvx-valoracion-page.js');
 const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
 const functions = read('wp-content/themes/nuvanx-medical/functions.php');
 const cachePurge = read('tools/deploy/nvx-purge-wp-caches.sh');
@@ -92,6 +94,23 @@ if (structuredData.split('nvx_co2_price_body_eur()').length - 1 < 2) {
 
 forbidText('footer dead code', footer, '$nvx_footer_published_treatments');
 forbidText('footer dead code', footer, 'nvx_navigation_published_treatments()');
+
+requireText('valoración CTA route', header, '$nvx_is_valoracion_landing');
+requireText('valoración CTA route', header, "? '#nvx-hubspot-form'");
+requireText('valoración CTA route', header, '$nvx_valoracion_cta_modal = ! $nvx_is_valoracion_landing;');
+requireText('valoración CTA route', header, 'data-nvx-valoracion-modal="<?php echo $nvx_valoracion_cta_modal ? \'1\' : \'0\'; ?>"');
+const valoracionHrefMarker = 'href="<?php echo esc_url( $nvx_valoracion_cta_href ); ?>"';
+const valoracionHrefOccurrences = header.split(valoracionHrefMarker).length - 1;
+if (valoracionHrefOccurrences !== 2) {
+  failures.push(`valoración CTA route: expected shared conditional href twice, found ${valoracionHrefOccurrences}`);
+}
+forbidText('valoración CTA route', header, 'id="nvx-header-cta" data-nvx-valoracion-modal="1"');
+forbidText('valoración CTA route', header, 'id="nvx-mobile-cta" data-nvx-valoracion-modal="1"');
+requireText('valoración CTA runtime', valoracionPageRuntime, 'a[href="#nvx-hubspot-form"]');
+requireText('valoración CTA runtime', valoracionPageRuntime, "document.getElementById('nvx-mobile-close')");
+requireText('valoración CTA runtime', valoracionPageRuntime, 'closeMobileNav();');
+requireText('valoración CTA runtime', valoracionPageRuntime, "trigger.id !== 'nvx-header-cta'");
+requireText('valoración CTA runtime', valoracionPageRuntime, "trigger.id !== 'nvx-mobile-cta'");
 
 for (const marker of [
   'set -Eeuo pipefail',

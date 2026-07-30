@@ -27,7 +27,7 @@ if (typeof WebSocket !== 'function') {
 fs.mkdirSync(evidenceDir, { recursive: true });
 
 const pages = [
-  ['/', 'Medicina estética con criterio médico y resultados naturales.'],
+  ['/', 'Medicina estética con rigor clínico y resultados naturales.'],
   ['/casos-de-pacientes/', 'Casos de pacientes y tratamientos realizados en NUVANX'],
   ['/soluciones-medicas/', 'Soluciones médicas para rostro, piel y contorno corporal.'],
   ['/protocolos-signature/', 'Protocolos Signature: Medicina estética de diagnóstico.'],

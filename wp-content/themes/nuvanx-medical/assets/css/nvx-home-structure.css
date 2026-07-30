@@ -8,6 +8,12 @@
   --nvx-home-rule: var(--nvx-color-line, #d8d2ca);
   --nvx-home-soft: var(--nvx-surface-soft, #f2eee8);
   --nvx-home-base: var(--nvx-surface-base, #f8f5f0);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  background: var(--nvx-light);
+  color: var(--nvx-ink);
+  overflow: clip;
 }
 
 .nvx-home-v5 > section {

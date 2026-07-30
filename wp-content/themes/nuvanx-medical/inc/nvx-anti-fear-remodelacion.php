@@ -42,7 +42,7 @@ function nvx_anti_fear_remodelacion_hero_markup(): string {
     $html .= '<div class="nvx-editorial-hero__copy">';
     $html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Contour Architecture™', 'nuvanx-medical' ) . '</p>';
     $html .= '<h1 class="nvx-heading" id="nvx-anti-fear-h1">' . esc_html__( 'Remodelación corporal sin anestesia general en Madrid.', 'nuvanx-medical' ) . '</h1>';
-    $html .= '<p class="nvx-lead">' . esc_html__( 'Si tu principal freno es el paso por quirófano y la anestesia general, debes saber que no todos los escenarios requieren cirugía. Nuestra primera responsabilidad es diagnosticar la estructura de tu grasa, el grado de laxitud cutánea y el estado de la pared abdominal. Solo con ese mapa anatómico confirmamos si existe indicación clínica para un láser mínimamente invasivo, o si, por el contrario, la cirugía es la única vía honesta.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-lead">' . esc_html__( 'Comprendemos que el entorno quirúrgico, la anestesia general, los tiempos de recuperación prolongados y las cicatrices pueden suponer una barrera para el paciente. Si tu principal freno es el paso por quirófano y la anestesia general, debes saber que no todos los escenarios requieren cirugía. Nuestra primera responsabilidad es diagnosticar la estructura de tu grasa, el grado de laxitud cutánea y el estado de la pared abdominal. Solo con ese mapa anatómico confirmamos si existe indicación clínica para un láser mínimamente invasivo, o si, por el contrario, la cirugía es la única vía honesta.', 'nuvanx-medical' ) . '</p>';
     $html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí · Salamanca–Goya · Protocolo NUVANX Contour Architecture™', 'nuvanx-medical' ) . '</p>';
     $html .= '<div class="nvx-brand-actions"><a class="nvx-btn nvx-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></div>';
     $html .= '</div></div></section>';
@@ -59,15 +59,15 @@ function nvx_anti_fear_remodelacion_body_markup(): string {
     $html  = '<article class="nvx-brand-page nvx-strategy-page nvx-anti-fear-remodelacion">';
     // Sección 1: Por qué da miedo operarse
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
-    $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Por qué da miedo la liposucción clásica', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<p class="nvx-brand-body nvx-editorial-body--measure">' . esc_html__( 'Entendemos la barrera de entrada: el quirófano, la recuperación prolongada, la anestesia general y la incertidumbre frente a las cicatrices. En NUVANX no somos una clínica de cirugía estética intentando llenar un quirófano, sino un equipo médico buscando la intervención mínima viable. Y cuando la cirugía es estrictamente necesaria para tu anatomía, te lo comunicamos con absoluta claridad.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Inquietudes frente a la liposucción quirúrgica', 'nuvanx-medical' ) . '</h2>';
+    $html .= '<p class="nvx-brand-body nvx-editorial-body--measure">' . esc_html__( 'Comprendemos que el entorno quirúrgico, la anestesia general, los tiempos de recuperación prolongados y las cicatrices pueden suponer una barrera para el paciente. En NUVANX priorizamos la intervención médica menos invasiva que resulte viable y eficaz para el paciente. Y cuando la cirugía es estrictamente necesaria para tu anatomía, te lo comunicamos con absoluta claridad.', 'nuvanx-medical' ) . '</p>';
     $html .= '</div></section>';
 
     // Sección 2: Diagnóstico anatómico — antes de hablar de técnicas
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
-    $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Lo primero no es elegir técnica. Es entender tu anatomía.', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<p class="nvx-brand-body nvx-editorial-body--measure">' . esc_html__( 'Antes de decidir si tiene sentido un láser, una liposucción o nada, diferenciamos grasa subcutánea (la que se pellizca) de grasa visceral (la que da tripa dura), miramos cuánto sobra o no sobra piel y revisamos la pared abdominal (diástasis, hernias). Con esos datos, tu caso deja de ser “barriguita” y pasa a ser un mapa clínico concreto.', 'nuvanx-medical' ) . '</p>';
-    $html .= '<p class="nvx-brand-body">' . esc_html__( 'Ese mapa es el núcleo de NUVANX Contour Architecture™: si el problema principal es visceral o de exceso cutáneo, te lo decimos y no te proponemos un láser. Si es grasa focal y la piel puede acompañar, entonces hablamos de procedimientos mínimamente invasivos.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'El diagnóstico anatómico precede a la selección de la técnica.', 'nuvanx-medical' ) . '</h2>';
+    $html .= '<p class="nvx-brand-body nvx-editorial-body--measure">' . esc_html__( 'Antes de plantear una intervención médica, diferenciamos clínicamente la adiposidad subcutánea de la grasa visceral, evaluamos la elasticidad y laxitud de la piel, y examinamos la integridad de la pared abdominal (diástasis, hernias). A partir de estos datos, elaboramos un diagnóstico estructural individualizado.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-brand-body">' . esc_html__( 'Este diagnóstico constituye el pilar de NUVANX Contour Architecture™: si el predominio es visceral o existe un gran exceso cutáneo, se descarta el tratamiento láser por su falta de indicación médica. Si es grasa focal y la piel puede acompañar, entonces hablamos de procedimientos mínimamente invasivos.', 'nuvanx-medical' ) . '</p>';
     $html .= '<p class="nvx-brand-body"><a class="nvx-brand-inline-link" href="' . esc_url( $contour_url ) . '">' . esc_html__( 'Ver NUVANX Contour Architecture™', 'nuvanx-medical' ) . '</a></p>';
     $html .= '</div></section>';
 
@@ -75,9 +75,9 @@ function nvx_anti_fear_remodelacion_body_markup(): string {
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
     $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Cuándo hablamos de cirugía y cuándo no', 'nuvanx-medical' ) . '</h2>';
     $html .= '<ul class="nvx-check-list">';
-    $html .= '<li>' . esc_html__( 'Grasa visceral, tripa dura o exceso cutáneo importante son territorio de cirugía. No prometemos que un láser haga lo que requiere una abdominoplastia.', 'nuvanx-medical' ) . '</li>';
+    $html .= '<li>' . esc_html__( 'La adiposidad visceral y la flacidez cutánea severa son indicaciones quirúrgicas. No utilizamos láser en pacientes cuyo cuadro clínico requiere una abdominoplastia.', 'nuvanx-medical' ) . '</li>';
     $html .= '<li>' . esc_html__( 'Grasa subcutánea focal, pliegues concretos y flacidez leve–moderada sí pueden ser candidatos a endoláser corporal o Endolift®, tras exploración.', 'nuvanx-medical' ) . '</li>';
-    $html .= '<li>' . esc_html__( 'Si la anatomía dice que lo honesto es derivar a cirugía, se dice. La tecnología no se fuerza para “evitar el miedo” a costa del resultado.', 'nuvanx-medical' ) . '</li>';
+    $html .= '<li>' . esc_html__( 'Si la anatomía del paciente indica la necesidad de una cirugía plástica, se le informa objetivamente, sin forzar indicaciones de tratamientos mínimamente invasivos que no le aportarían resultados reales.', 'nuvanx-medical' ) . '</li>';
     $html .= '</ul>';
     $html .= '</div></section>';
 
@@ -85,9 +85,9 @@ function nvx_anti_fear_remodelacion_body_markup(): string {
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
     $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Cómo funciona el protocolo en NUVANX', 'nuvanx-medical' ) . '</h2>';
     $html .= '<ol class="nvx-editorial-grid-list">';
-    $html .= '<li class="nvx-editorial-grid-item"><h3 class="nvx-editorial-grid-item__title">' . esc_html__( '1. Valoración anatómica', 'nuvanx-medical' ) . '</h3><p class="nvx-editorial-body">' . esc_html__( 'Se estudian grasa subcutánea, grasa visceral, laxitud, calidad cutánea y pared abdominal (diástasis/hernias) según la zona. El objetivo no es “quitar kilos”, sino mejorar unidades anatómicas cuando tiene sentido.', 'nuvanx-medical' ) . '</p></li>';
-    $html .= '<li class="nvx-editorial-grid-item"><h3 class="nvx-editorial-grid-item__title">' . esc_html__( '2. Decisión: láser, cirugía o esperar', 'nuvanx-medical' ) . '</h3><p class="nvx-editorial-body">' . esc_html__( 'Con los datos sobre la mesa, se decide si hay indicación para endoláser / Endolift®, si conviene derivar a cirugía plástica o si es mejor no intervenir. No se ofrece una técnica solo porque cause menos miedo.', 'nuvanx-medical' ) . '</p></li>';
-    $html .= '<li class="nvx-editorial-grid-item"><h3 class="nvx-editorial-grid-item__title">' . esc_html__( '3. Plan de procedimiento y recuperación', 'nuvanx-medical' ) . '</h3><p class="nvx-editorial-body">' . esc_html__( 'Si se indica un láser, se explican anestesia local, duración, edema, molestias esperables y reincorporación social. Recuperación honesta: ni drama, ni “cero inflamación”.', 'nuvanx-medical' ) . '</p></li>';
+    $html .= '<li class="nvx-editorial-grid-item"><h3 class="nvx-editorial-grid-item__title">' . esc_html__( '1. Valoración anatómica', 'nuvanx-medical' ) . '</h3><p class="nvx-editorial-body">' . esc_html__( 'Se estudian grasa subcutánea, grasa visceral, laxitud, calidad cutánea y pared abdominal (diástasis/hernias) según la zona. El objetivo terapéutico no es el tratamiento de la obesidad o la pérdida de peso sistémica, sino la remodelación de contornos anatómicos específicos.', 'nuvanx-medical' ) . '</p></li>';
+    $html .= '<li class="nvx-editorial-grid-item"><h3 class="nvx-editorial-grid-item__title">' . esc_html__( '2. Decisión: láser, cirugía o esperar', 'nuvanx-medical' ) . '</h3><p class="nvx-editorial-body">' . esc_html__( 'El equipo médico evalúa si existe una indicación real para Endoláser o Endolift®, si el caso requiere derivación quirúrgica, o si se desaconseja cualquier procedimiento.', 'nuvanx-medical' ) . '</p></li>';
+    $html .= '<li class="nvx-editorial-grid-item"><h3 class="nvx-editorial-grid-item__title">' . esc_html__( '3. Plan de procedimiento y recuperación', 'nuvanx-medical' ) . '</h3><p class="nvx-editorial-body">' . esc_html__( 'En caso de indicarse un abordaje láser, se detallan el uso de anestesia local, la duración del procedimiento, el grado de edema, las molestias postoperatorias y los plazos médicos de recuperación.', 'nuvanx-medical' ) . '</p></li>';
     $html .= '</ol>';
     $html .= '</div></section>';
 
@@ -106,7 +106,7 @@ function nvx_anti_fear_remodelacion_body_markup(): string {
         : home_url( '/madrid/valoracion/' );
 
     $html .= '<section class="nvx-editorial-section"><div class="nvx-editorial-section__inner">';
-    $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Tu miedo es legítimo. Tu decisión merece información real.', 'nuvanx-medical' ) . '</h2>';
+    $html .= '<h2 class="nvx-brand-title">' . esc_html__( 'El abordaje clínico transparente ante el paciente.', 'nuvanx-medical' ) . '</h2>';
     $html .= '<p class="nvx-brand-body nvx-editorial-body--measure">' . esc_html__( 'No utilizamos la tecnología para esquivar la cirugía cuando esta es necesaria, ni te prometemos resultados irreales para calmar tu miedo. Te aseguramos un diagnóstico anatómico preciso: qué podemos resolver mediante láser ambulatorio, qué está fuera de nuestros límites, y cuál es tu plan médico real.', 'nuvanx-medical' ) . '</p>';
     $html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( $valoracion ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
     $html .= '</div></section>';

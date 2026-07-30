@@ -272,7 +272,7 @@ function nvx_nosotros_team_markup(): string {
     $html  = '<section class="nvx-editorial-section nvx-nosotros-team" aria-labelledby="nvx-nosotros-team-title">';
     $html .= '<div class="nvx-editorial-section__inner">';
     $html .= '<p class="nvx-editorial-kicker">' . esc_html__( 'Cuadro médico', 'nuvanx-medical' ) . '</p>';
-    $html .= '<h2 id="nvx-nosotros-team-title" class="nvx-editorial-heading">' . esc_html__( 'Excelencia hospitalaria e investigadora', 'nuvanx-medical' ) . '</h2>';
+    $html .= '<h2 id="nvx-nosotros-team-title" class="nvx-editorial-heading">' . esc_html__( 'Trayectoria hospitalaria e investigadora', 'nuvanx-medical' ) . '</h2>';
     $html .= '<p class="nvx-editorial-body nvx-editorial-body--measure">' . esc_html__( 'El mayor aval de NUVANX no es solo la tecnología, sino la trayectoria académica, investigadora y clínica del equipo. Resumen de autoridad; biografías completas en Equipo médico.', 'nuvanx-medical' ) . '</p>';
     $html .= '<div class="nvx-nosotros-team-grid">';
 

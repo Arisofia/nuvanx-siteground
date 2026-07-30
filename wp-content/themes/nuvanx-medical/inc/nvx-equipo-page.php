@@ -63,7 +63,7 @@ function nvx_equipo_hero_copy_markup(): string {
     $html  = '<div class="nvx-editorial-hero__copy-copy">';
     $html .= '<p class="nvx-eyebrow">' . esc_html__( 'NUVANX · Equipo médico', 'nuvanx-medical' ) . '</p>';
     $html .= '<h1 class="nvx-heading" id="nvx-equipo-h1">' . esc_html__( 'Equipo médico NUVANX: quién te valora y quién trata', 'nuvanx-medical' ) . '</h1>';
-    $html .= '<p class="nvx-lead">' . esc_html__( 'En muchas clínicas, quien te atiende al principio no es quien luego te trata — te ve un comercial, y el médico solo aparece para aplicar lo que ya se vendió. Aquí no. La persona que te explora es la misma que te trata y la que te sigue viendo después. Nadie cambia a mitad de tu plan.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-lead">' . esc_html__( 'La continuidad asistencial es fundamental. En NUVANX, el médico que realiza tu valoración inicial es el mismo que ejecutará el tratamiento y dirigirá tu seguimiento. Garantizamos que el criterio clínico guíe cada etapa de tu plan.', 'nuvanx-medical' ) . '</p>';
     $html .= '<p class="nvx-lead">' . esc_html(
         sprintf(
             /* translators: 1: director license, 2: Dra. Ivon license, 3: Dr. Fabio license */

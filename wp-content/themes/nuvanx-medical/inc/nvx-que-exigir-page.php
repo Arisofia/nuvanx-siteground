@@ -64,12 +64,12 @@ function nvx_content_que_exigir_hijack( string $content ): string {
     $html .= '<div class="nvx-que-exigir-body">';
     
     // Intro
-    $html .= '<p><strong>' . esc_html__( 'Escribo esto porque lo que voy a contarte ha perjudicado a pacientes en clínicas de este mismo barrio.', 'nuvanx-medical' ) . '</strong></p>';
-    $html .= '<p>' . esc_html__( 'La medicina estética y la cirugía plástica en Madrid se han llenado de franquicias y clínicas "low-cost" que invierten más en marketing que en protocolos médicos. Si estás valorando una intervención, antes de dar una señal económica, exige que te documenten por escrito los siguientes 5 puntos. Tu salud y tu resultado dependen de ello.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p><strong>' . esc_html__( 'Esta guía está redactada con el propósito de ofrecer criterios clínicos objetivos a los pacientes.', 'nuvanx-medical' ) . '</strong></p>';
+    $html .= '<p>' . esc_html__( 'La elección de un centro médico debe basarse en la seguridad, la trazabilidad y la responsabilidad profesional. Antes de iniciar cualquier procedimiento, recomendamos verificar que el centro documenta por escrito los siguientes puntos para proteger la salud y la previsibilidad del resultado.', 'nuvanx-medical' ) . '</p>';
 
     // 1. El contrato clínico
     $html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '1. El contrato clínico: la técnica exacta', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<p>' . esc_html__( 'Huye de términos comerciales como "liposucción avanzada" o "lifting sin cirugía flash". El documento médico debe especificar la técnica real (p. ej., "Laserlipólisis subcutánea con fibra de 600 µm a 1470 nm"). Además, debe constar el nombre y número de colegiado del médico que ejecutará el procedimiento. ¿Qué ocurre si el médico principal "no puede" intervenir ese día? El contrato debe protegerte contra la rotación de plantilla.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p>' . esc_html__( 'Es fundamental que el documento médico especifique la técnica exacta (por ejemplo, "Laserlipólisis subcutánea con fibra de 600 µm a 1470 nm") en lugar de denominaciones exclusivamente comerciales. Asimismo, debe constar la identidad y número de colegiado del facultativo responsable, garantizando la continuidad asistencial.', 'nuvanx-medical' ) . '</p>';
 
     // 2. La anestesia
     $html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '2. La anestesia: quién y cómo', 'nuvanx-medical' ) . '</h2>';
@@ -80,8 +80,8 @@ function nvx_content_que_exigir_hijack( string $content ): string {
     $html .= '<p>' . esc_html__( 'Es habitual que algunas clínicas enseñen catálogos fotográficos proporcionados por el fabricante de la máquina (la marca del láser o de los inyectables). Exige ver casos de "Antes y Después" realizados específicamente por el médico que te va a tratar, no fotos de stock o de la franquicia central.', 'nuvanx-medical' ) . '</p>';
 
     // 4. Las Reseñas
-    $html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '4. Cómo distinguir reseñas infladas', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<p>' . esc_html__( 'Revisa la brecha entre las plataformas. Si una clínica tiene 4.9 en Google (donde a menudo se pide la reseña en recepción a cambio de un descuento) pero un 2.5 en Trustpilot o foros independientes, cuidado. Una clínica con autoridad no te pide una reseña antes de ver el resultado final de tu tratamiento.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '4. Criterios de evaluación del centro', 'nuvanx-medical' ) . '</h2>';
+    $html .= '<p>' . esc_html__( 'Recomendamos verificar la consistencia de las valoraciones clínicas en diferentes plataformas. Un centro médico de rigor prioriza la evolución y seguridad del paciente por encima de la inmediatez comercial.', 'nuvanx-medical' ) . '</p>';
 
     // 5. Presupuesto cerrado
     $html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '5. El presupuesto cerrado y desglosado', 'nuvanx-medical' ) . '</h2>';
@@ -91,7 +91,7 @@ function nvx_content_que_exigir_hijack( string $content ): string {
     
     // CTA Block
     $html .= '<div class="nvx-que-exigir-cta-box">';
-    $html .= '<h3 class="nvx-que-exigir-cta-title">' . esc_html__( 'La transparencia clínica no es un lujo, es tu derecho', 'nuvanx-medical' ) . '</h3>';
+    $html .= '<h3 class="nvx-que-exigir-cta-title">' . esc_html__( 'Compromiso con la transparencia clínica', 'nuvanx-medical' ) . '</h3>';
     $html .= '<p class="nvx-que-exigir-cta-text">' . esc_html__( 'En NUVANX, firmamos el protocolo exacto y el presupuesto cerrado antes de cualquier procedimiento. Si quieres revisar cómo lo hacemos o buscas una segunda opinión objetiva sobre tu caso, agenda una valoración médica.', 'nuvanx-medical' ) . '</p>';
     if ( function_exists( 'nvx_cta_pair_markup' ) ) {
         $html .= nvx_cta_pair_markup( 'nvx-que-exigir-hero-ctas nvx-home-hero-ctas' );

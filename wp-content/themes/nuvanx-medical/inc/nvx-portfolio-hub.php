@@ -117,7 +117,7 @@ function nvx_treatments_catalog_markup(): string {
     $html .= '<p class="nvx-eyebrow">' . esc_html__( 'MEDICINA ESTÉTICA LÁSER', 'nuvanx-medical' ) . '</p>';
     // P5 y el gate de rendered-acceptance exigen H1 "Portafolio clínico."
     $html .= '<h1 id="nvx-portfolio-h1" class="nvx-heading">' . esc_html__( 'Portafolio clínico.', 'nuvanx-medical' ) . '</h1>';
-    $html .= '<p class="nvx-lead">' . esc_html__( 'Tenemos la tecnología más avanzada que existe hoy. Pero la máquina no decide nada — decide el médico, después de mirarte. Aquí tienes las zonas en las que trabajamos; cuál de ellas tiene sentido para ti se decide en consulta, no en esta página.', 'nuvanx-medical' ) . '</p>';
+    $html .= '<p class="nvx-lead">' . esc_html__( 'Disponemos de tecnología médica avanzada, pero el criterio clínico prevalece sobre la aparatología. A continuación detallamos nuestras áreas de actuación; la selección de modalidad terapéutica se establece de forma individualizada tras la valoración médica presencial.', 'nuvanx-medical' ) . '</p>';
     $html .= '</div></div></section>';
 
     $html .= '<section class="nvx-catalog" aria-label="Portafolio Clínico NUVANX">';
@@ -154,7 +154,7 @@ function nvx_treatments_catalog_markup(): string {
 function nvx_treatments_logo_cloud_markup(): string {
     $html  = '<section class="nvx-logo-cloud" aria-label="Tecnología y laboratorios">';
     $html .= '<div class="nvx-logo-cloud__inner">';
-    $html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'Tener el mejor láser del mundo no sirve de nada si se lo aplicas a alguien que no lo necesita. Aquí manda el médico, no el aparato.', 'nuvanx-medical' ) . '</h2>';
+    $html .= '<h2 class="nvx-logo-cloud__title">' . esc_html__( 'La eficacia de la tecnología médica avanzada requiere una indicación clínica precisa.', 'nuvanx-medical' ) . '</h2>';
     $html .= '<ul class="nvx-logo-cloud__list">';
     foreach ( nvx_treatments_partner_labels() as $label ) {
         $html .= '<li class="nvx-logo-cloud__item">' . esc_html( $label ) . '</li>';

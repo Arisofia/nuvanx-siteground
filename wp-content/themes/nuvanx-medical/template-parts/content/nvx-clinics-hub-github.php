@@ -143,7 +143,7 @@ $treatments = array(
             <div class="nvx-brand-faq-accordion">
                 <details class="nvx-brand-faq-item"><summary><span>¿Cuántas clínicas NUVANX hay en Madrid?</span></summary><div class="nvx-brand-faq-content"><p>NUVANX cuenta con dos sedes: Chamberí y Goya · Barrio Salamanca.</p></div></details>
                 <details class="nvx-brand-faq-item"><summary><span>¿Qué sede debo elegir?</span></summary><div class="nvx-brand-faq-content"><p>Puedes indicar tu preferencia. El equipo confirmará la sede según agenda, profesional y tecnología necesaria.</p></div></details>
-                <details class="nvx-brand-faq-item"><summary><span>¿La valoración médica es gratuita?</span></summary><div class="nvx-brand-faq-content"><p>Sí. Permite revisar el caso, confirmar si existe indicación y explicar las opciones antes de decidir.</p></div></details>
+                <details class="nvx-brand-faq-item"><summary><span>¿Qué coste tiene la valoración médica?</span></summary><div class="nvx-brand-faq-content"><p>Esta primera valoración clínica no tiene coste. Permite revisar el caso, confirmar si existe indicación y explicar las opciones antes de decidir.</p></div></details>
                 <details class="nvx-brand-faq-item"><summary><span>¿Ambas sedes realizan los mismos tratamientos?</span></summary><div class="nvx-brand-faq-content"><p>Comparten el mismo modelo médico. La disponibilidad concreta puede variar según tecnología, agenda y planificación clínica.</p></div></details>
             </div>
         </div>

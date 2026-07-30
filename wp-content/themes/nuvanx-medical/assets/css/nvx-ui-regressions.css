@@ -412,12 +412,12 @@
     grid-column: 1 / -1;
   }
 
-  .nvx-blog-hero__copy,
-  .nvx-blog-hero__media {
+  .nvx-blog-hero__copy {
     grid-column: 1 / -1;
   }
 
   .nvx-blog-hero__media {
+    grid-column: 1 / -1;
     min-height: clamp(18rem, 58vw, 30rem);
   }
 
@@ -461,8 +461,7 @@
 /* Tighten excessive vertical whitespace between text and sections across all routes. */
 .nvx-laser-section,
 .nvx-editorial-section,
-.nvx-brand-section,
-.nvx-ipl-section {
+.nvx-brand-section {
   padding-block: clamp(2rem, 4.5vw, 3.5rem);
 }
 
@@ -472,8 +471,7 @@
 }
 
 .nvx-laser-body,
-.nvx-editorial-body,
-.nvx-catalog-card__body {
+.nvx-editorial-body {
   margin-bottom: 0.75rem;
   line-height: 1.55;
 }
@@ -537,8 +535,7 @@
 h1, h2, h3, h4, h5, h6,
 .nvx-heading,
 .nvx-editorial-heading,
-.nvx-brand-title,
-.nvx-catalog-card__title {
+.nvx-brand-title {
   height: auto;
   max-height: none;
   overflow: visible;

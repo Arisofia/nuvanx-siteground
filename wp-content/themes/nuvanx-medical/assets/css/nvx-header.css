@@ -575,21 +575,6 @@ body:has(.nvx-mobile-nav[aria-hidden="false"]) #cmplz-cookiebanner-container {
   }
 }
 
-@media (max-width: 30em) {
-  dialog.nvx-mobile-nav {
-    padding-inline: var(--nvx-space-2);
-  }
-
-  .nvx-mobile-nav::before,
-  .nvx-mobile-nav::after {
-    left: var(--nvx-space-2);
-  }
-
-  .nvx-mobile-nav__close {
-    right: var(--nvx-space-2);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .nvx-nav__list .sub-menu,
   .nvx-nav .nvx-nav__link::after,

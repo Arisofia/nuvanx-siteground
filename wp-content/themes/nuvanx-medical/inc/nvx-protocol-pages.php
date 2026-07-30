@@ -20,6 +20,8 @@ if ( ! defined( 'NVX_CALIDAD_CUTANEA' ) ) {
  *
  * Eye Frame™ is deliberately absent. Its former route is governed as a draft
  * and redirected until an independent medical, legal, SEO and capacity review.
+ * Preguntas frecuentes is the canonical heading emitted by the shared renderer
+ * for the versioned `faqs` entries below.
  *
  * @return array<string,array<string,mixed>>
  */

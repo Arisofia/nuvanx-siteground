@@ -1,0 +1,441 @@
+name: Promote valoración CTA fix to production once
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/promote-cta-fix-production-once.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote-cta-fix-production-once
+  cancel-in-progress: false
+
+env:
+  EXPECTED_SOURCE_SHA: 0c40287b0c874e86a836277bf7bafc6fe769f72e
+  PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+  EVIDENCE_DIR: production-cta-fix-evidence
+
+jobs:
+  promote:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'ops/promote-cta-fix-production-20260730'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Check out immutable merged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.EXPECTED_SOURCE_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Build immutable production payload
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SOURCE_SHA"
+          mkdir -p "$EVIDENCE_DIR" release/wp-content/themes release/tools/deploy
+          cp -a wp-content/themes/nuvanx-medical release/wp-content/themes/
+          cp tools/deploy/nvx-purge-wp-caches.sh release/tools/deploy/
+          php -l release/wp-content/themes/nuvanx-medical/header.php
+          node --check release/wp-content/themes/nuvanx-medical/assets/js/nvx-valoracion-page.js
+          bash -n release/tools/deploy/nvx-purge-wp-caches.sh
+          find release/wp-content/themes/nuvanx-medical -type f -print0 \
+            | sort -z \
+            | xargs -0 sha256sum > "$EVIDENCE_DIR/candidate-theme-sha256.txt"
+          tar -czf production-cta-fix-release.tgz -C release .
+          sha256sum production-cta-fix-release.tgz | tee "$EVIDENCE_DIR/release-sha256.txt"
+
+      - name: Configure strict SiteGround SSH
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/siteground_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/siteground_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host siteground-prod
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/siteground_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+            ServerAliveInterval 15
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh siteground-prod 'printf "SSH_PRODUCTION_PROMOTION_OK\n"'
+
+      - name: Upload isolated immutable payload
+        run: |
+          set -euo pipefail
+          REMOTE_RELEASE="$PROD_ROOT/wp-content/.nuvanx-deployments/cta-fix-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          ssh siteground-prod "mkdir -p '$REMOTE_RELEASE' && chmod 700 '$REMOTE_RELEASE'"
+          scp production-cta-fix-release.tgz siteground-prod:"$REMOTE_RELEASE/release.tgz"
+          ssh siteground-prod "cd '$REMOTE_RELEASE' && tar -xzf release.tgz && rm release.tgz"
+
+      - name: Mandatory backup and guarded production promotion
+        run: |
+          set -euo pipefail
+          ssh siteground-prod \
+            "PROD_ROOT='$PROD_ROOT' STAGING_ROOT='$STAGING_ROOT' REMOTE_RELEASE='$REMOTE_RELEASE' EXPECTED_SOURCE_SHA='$EXPECTED_SOURCE_SHA' RUN_ID='$GITHUB_RUN_ID' bash -se" \
+            > "$EVIDENCE_DIR/remote-promotion.log" 2>&1 <<'REMOTE'
+          set -Eeuo pipefail
+          umask 077
+          mutated=0
+          backup_dir=''
+
+          rollback() {
+            status=$?
+            if (( status != 0 )) && (( mutated == 1 )) && [[ -n "$backup_dir" && -f "$backup_dir/theme-before.tgz" ]]; then
+              echo "ROLLBACK_BEGIN status=$status"
+              rm -rf "$PROD_ROOT/wp-content/themes/nuvanx-medical"
+              tar -xzf "$backup_dir/theme-before.tgz" -C "$PROD_ROOT"
+              cd "$PROD_ROOT"
+              bash "$REMOTE_RELEASE/tools/deploy/nvx-purge-wp-caches.sh" --wp-root "$PROD_ROOT" --label "prod_rollback_cache_purge=ok" || true
+              echo "ROLLBACK_COMPLETE backup=$backup_dir"
+            fi
+            exit "$status"
+          }
+          trap rollback ERR
+
+          command -v wp >/dev/null 2>&1
+          command -v rsync >/dev/null 2>&1
+          command -v gzip >/dev/null 2>&1
+          command -v sha256sum >/dev/null 2>&1
+
+          candidate_theme="$REMOTE_RELEASE/wp-content/themes/nuvanx-medical"
+          test -d "$candidate_theme"
+          test -f "$candidate_theme/header.php"
+          test -f "$candidate_theme/assets/js/nvx-valoracion-page.js"
+          test -f "$candidate_theme/inc/nvx-protocol-pages.php"
+          test -f "$REMOTE_RELEASE/tools/deploy/nvx-purge-wp-caches.sh"
+          php -l "$candidate_theme/header.php" >/dev/null
+          php -l "$candidate_theme/inc/nvx-protocol-pages.php" >/dev/null
+
+          cd "$PROD_ROOT"
+          prod_siteurl="$(wp option get siteurl)"
+          prod_home="$(wp option get home)"
+          prod_theme="$(wp theme list --status=active --field=name)"
+          [[ "$prod_siteurl" == 'https://nuvanx.com' ]]
+          [[ "$prod_home" == 'https://nuvanx.com' ]]
+          [[ "$prod_theme" == 'nuvanx-medical' ]]
+
+          cd "$STAGING_ROOT"
+          staging_siteurl="$(wp option get siteurl)"
+          staging_theme="$(wp theme list --status=active --field=name)"
+          [[ "$staging_siteurl" == 'https://staging2.nuvanx.com' ]]
+          [[ "$staging_theme" == 'nuvanx-medical' ]]
+
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          backup_dir="/home/customer/backups-nuvanx/production/pre-cta-fix-${stamp}-${RUN_ID}"
+          mkdir -p "$backup_dir"
+          chmod 700 "$backup_dir"
+
+          cd "$PROD_ROOT"
+          sql_plain="$backup_dir/database.sql"
+          sql_gzip="$backup_dir/database.sql.gz"
+          wp db export "$sql_plain" --add-drop-table --quiet
+          test -s "$sql_plain"
+          grep -qE '^(CREATE TABLE|INSERT INTO|-- MySQL dump|-- MariaDB dump)' "$sql_plain"
+          plain_bytes="$(wc -c < "$sql_plain" | tr -d ' ')"
+          [[ "$plain_bytes" =~ ^[0-9]+$ ]]
+          (( plain_bytes > 1024 ))
+          gzip -9 "$sql_plain"
+          test -s "$sql_gzip"
+          gzip -t "$sql_gzip"
+          sql_bytes="$(wc -c < "$sql_gzip" | tr -d ' ')"
+          sql_sha256="$(sha256sum "$sql_gzip" | awk '{print $1}')"
+          [[ "$sql_sha256" =~ ^[0-9a-f]{64}$ ]]
+          chmod 600 "$sql_gzip"
+          wp db check --quiet
+
+          tar -czf "$backup_dir/theme-before.tgz" -C "$PROD_ROOT" wp-content/themes/nuvanx-medical
+          if [[ -d "$PROD_ROOT/wp-content/mu-plugins" ]]; then
+            tar -czf "$backup_dir/mu-plugins-before.tgz" -C "$PROD_ROOT" wp-content/mu-plugins
+          fi
+          chmod 600 "$backup_dir"/*.tgz
+
+          candidate_header_sha="$(sha256sum "$candidate_theme/header.php" | awk '{print $1}')"
+          candidate_js_sha="$(sha256sum "$candidate_theme/assets/js/nvx-valoracion-page.js" | awk '{print $1}')"
+          candidate_protocol_sha="$(sha256sum "$candidate_theme/inc/nvx-protocol-pages.php" | awk '{print $1}')"
+
+          mutated=1
+          cd "$PROD_ROOT"
+          wp sg optimize css disable || true
+          wp sg optimize combine-css disable || true
+          wp sg optimize combine-js disable || true
+
+          rsync -a --delete \
+            --exclude='.git' --exclude='php_errorlog' --exclude='*.log' \
+            --exclude='backups-nuvanx' --exclude='quarantine' \
+            --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' \
+            "$candidate_theme/" \
+            "$PROD_ROOT/wp-content/themes/nuvanx-medical/"
+
+          find "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/css" \
+            -maxdepth 1 -type f -name 'nvx-*.min.css' -delete 2>/dev/null || true
+
+          prod_header_sha="$(sha256sum "$PROD_ROOT/wp-content/themes/nuvanx-medical/header.php" | awk '{print $1}')"
+          prod_js_sha="$(sha256sum "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/js/nvx-valoracion-page.js" | awk '{print $1}')"
+          prod_protocol_sha="$(sha256sum "$PROD_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php" | awk '{print $1}')"
+          [[ "$prod_header_sha" == "$candidate_header_sha" ]]
+          [[ "$prod_js_sha" == "$candidate_js_sha" ]]
+          [[ "$prod_protocol_sha" == "$candidate_protocol_sha" ]]
+
+          drift="$(rsync -ain --delete \
+            --exclude='.git' --exclude='php_errorlog' --exclude='*.log' \
+            --exclude='backups-nuvanx' --exclude='quarantine' \
+            --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' \
+            "$candidate_theme/" \
+            "$PROD_ROOT/wp-content/themes/nuvanx-medical/")"
+          [[ -z "$drift" ]] || { printf 'THEME_DRIFT_BEGIN\n%s\nTHEME_DRIFT_END\n' "$drift"; false; }
+
+          bash "$REMOTE_RELEASE/tools/deploy/nvx-purge-wp-caches.sh" \
+            --wp-root "$PROD_ROOT" \
+            --label "prod_cache_purge=ok"
+
+          for path in / /madrid/valoracion/ /contacto/ /soluciones-medicas/ /protocolos-signature/; do
+            status="$(curl --silent --show-error --location --output /tmp/nvx-prod-page.html \
+              --write-out '%{http_code}' --max-time 25 \
+              -H 'Cache-Control: no-cache' \
+              "https://nuvanx.com${path}?nvx_prod_cta=${RUN_ID}")"
+            [[ "$status" == '200' ]]
+            grep -Eq '<main|<h1' /tmp/nvx-prod-page.html
+            echo "PRODUCTION_ROUTE_OK path=$path status=$status"
+          done
+
+          curl --fail --silent --show-error --location --max-time 25 \
+            -H 'Cache-Control: no-cache' \
+            "https://nuvanx.com/madrid/valoracion/?nvx_prod_cta_detail=${RUN_ID}" \
+            > /tmp/nvx-prod-valoracion.html
+          grep -Fq 'id="nvx-header-cta"' /tmp/nvx-prod-valoracion.html
+          grep -Fq 'href="#nvx-hubspot-form"' /tmp/nvx-prod-valoracion.html
+          grep -Fq 'data-nvx-valoracion-modal="0"' /tmp/nvx-prod-valoracion.html
+          grep -Fq 'id="nvx-hubspot-form"' /tmp/nvx-prod-valoracion.html
+          ! grep -Fq 'id="nvx-valoracion-modal"' /tmp/nvx-prod-valoracion.html
+
+          cat > "$backup_dir/manifest.txt" <<EOF
+          source_sha=$EXPECTED_SOURCE_SHA
+          run_id=$RUN_ID
+          created_utc=$stamp
+          sql_path=$sql_gzip
+          sql_gzip_bytes=$sql_bytes
+          sql_sha256=$sql_sha256
+          theme_header_sha256=$prod_header_sha
+          valoracion_js_sha256=$prod_js_sha
+          protocol_catalog_sha256=$prod_protocol_sha
+          theme_parity=clean
+          production_routes=ok
+          production_html_cta_contract=ok
+          db_check=ok
+          EOF
+          chmod 600 "$backup_dir/manifest.txt"
+
+          mutated=0
+          trap - ERR
+          echo "SOURCE_SHA=$EXPECTED_SOURCE_SHA"
+          echo "BACKUP_DIR=$backup_dir"
+          echo "SQL_BACKUP_GZIP_BYTES=$sql_bytes"
+          echo "SQL_BACKUP_SHA256=$sql_sha256"
+          echo "THEME_PARITY=clean"
+          echo "PRODUCTION_HTML_CTA_CONTRACT_OK"
+          echo "PRODUCTION_CTA_PROMOTION_OK"
+          REMOTE
+          cat "$EVIDENCE_DIR/remote-promotion.log"
+          grep -Fq 'PRODUCTION_CTA_PROMOTION_OK' "$EVIDENCE_DIR/remote-promotion.log"
+
+      - name: Verify production CTA in real Chrome
+        run: |
+          set -euo pipefail
+          cat > /tmp/verify-production-cta.mjs <<'NODE'
+          import fs from 'node:fs';
+          import os from 'node:os';
+          import path from 'node:path';
+          import crypto from 'node:crypto';
+          import { spawn } from 'node:child_process';
+
+          const url = `https://nuvanx.com/madrid/valoracion/?nvx_prod_browser=${Date.now()}`;
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+          function chromePath() {
+            for (const name of ['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser']) {
+              for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+                const candidate = path.join(dir, name);
+                if (fs.existsSync(candidate)) return candidate;
+              }
+            }
+            throw new Error('Chrome/Chromium is unavailable.');
+          }
+
+          class CDP {
+            constructor(wsUrl) { this.wsUrl = wsUrl; this.ws = null; this.id = 0; this.pending = new Map(); this.waiters = new Map(); }
+            async connect() {
+              this.ws = new WebSocket(this.wsUrl);
+              await new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error('CDP connection timeout')), 10000);
+                this.ws.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
+                this.ws.addEventListener('error', () => { clearTimeout(timer); reject(new Error('CDP connection failed')); }, { once: true });
+              });
+              this.ws.addEventListener('message', (event) => this.onMessage(event));
+            }
+            onMessage(event) {
+              const msg = JSON.parse(String(event.data));
+              if (msg.id && this.pending.has(msg.id)) {
+                const item = this.pending.get(msg.id); clearTimeout(item.timer); this.pending.delete(msg.id);
+                msg.error ? item.reject(new Error(msg.error.message)) : item.resolve(msg.result || {}); return;
+              }
+              if (msg.method && this.waiters.has(msg.method)) {
+                const queue = this.waiters.get(msg.method); const item = queue.shift();
+                if (!queue.length) this.waiters.delete(msg.method); clearTimeout(item.timer); item.resolve(msg.params || {});
+              }
+            }
+            send(method, params = {}, timeout = 30000) {
+              const id = ++this.id;
+              return new Promise((resolve, reject) => {
+                const timer = setTimeout(() => { this.pending.delete(id); reject(new Error(`CDP timeout: ${method}`)); }, timeout);
+                this.pending.set(id, { resolve, reject, timer });
+                this.ws.send(JSON.stringify({ id, method, params }));
+              });
+            }
+            wait(method, timeout = 30000) {
+              return new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error(`CDP event timeout: ${method}`)), timeout);
+                const queue = this.waiters.get(method) || []; queue.push({ resolve, reject, timer }); this.waiters.set(method, queue);
+              });
+            }
+            async evaluate(expression) {
+              const result = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+              if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || 'Browser evaluation failed');
+              return result.result?.value;
+            }
+          }
+
+          async function waitChrome(port) {
+            for (let i = 0; i < 80; i += 1) {
+              try { if ((await fetch(`http://127.0.0.1:${port}/json/version`)).ok) return; } catch {}
+              await sleep(250);
+            }
+            throw new Error('Chrome endpoint unavailable.');
+          }
+
+          async function openSession(port, viewport) {
+            const target = await (await fetch(`http://127.0.0.1:${port}/json/new?about%3Ablank`, { method: 'PUT' })).json();
+            const cdp = new CDP(target.webSocketDebuggerUrl); await cdp.connect();
+            await cdp.send('Page.enable'); await cdp.send('Runtime.enable');
+            await cdp.send('Emulation.setDeviceMetricsOverride', {
+              width: viewport.width, height: viewport.height, deviceScaleFactor: 1,
+              mobile: viewport.mobile, screenWidth: viewport.width, screenHeight: viewport.height,
+            });
+            const loaded = cdp.wait('Page.loadEventFired');
+            const navigation = await cdp.send('Page.navigate', { url });
+            if (navigation.errorText) throw new Error(navigation.errorText);
+            await loaded; await sleep(1500);
+            return cdp;
+          }
+
+          function assertBase(label, state) {
+            const failures = [];
+            if (state.href !== '#nvx-hubspot-form') failures.push(`href=${state.href}`);
+            if (state.modalFlag !== '0') failures.push(`data-modal=${state.modalFlag}`);
+            if (state.hasPopup !== null) failures.push(`aria-haspopup=${state.hasPopup}`);
+            if (state.modalPresent) failures.push('modal-present');
+            if (!state.formPresent) failures.push('form-section-absent');
+            if (state.scrollY < 100) failures.push(`scrollY=${state.scrollY}`);
+            if (Math.abs(state.formTop) > 240) failures.push(`formTop=${state.formTop}`);
+            if (failures.length) throw new Error(`${label}: ${failures.join(', ')}`);
+          }
+
+          const port = 9700 + crypto.randomInt(0, 200);
+          const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'nvx-prod-cta-'));
+          const chrome = spawn(chromePath(), [
+            '--headless=new', '--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu',
+            `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, 'about:blank',
+          ], { stdio: ['ignore', 'ignore', 'inherit'] });
+
+          try {
+            await waitChrome(port);
+            const desktop = await openSession(port, { width: 1440, height: 1000, mobile: false });
+            const desktopState = await desktop.evaluate(`new Promise((resolve) => {
+              const trigger = document.getElementById('nvx-header-cta');
+              const initial = { href: trigger?.getAttribute('href') || '', modalFlag: trigger?.dataset.nvxValoracionModal || '', hasPopup: trigger?.getAttribute('aria-haspopup'), modalPresent: !!document.getElementById('nvx-valoracion-modal'), formPresent: !!document.getElementById('nvx-hubspot-form') };
+              trigger?.click();
+              setTimeout(() => { const form = document.getElementById('nvx-hubspot-form'); resolve({ ...initial, scrollY: window.scrollY, formTop: Math.round(form?.getBoundingClientRect().top || 9999) }); }, 1100);
+            })`);
+            assertBase('production desktop', desktopState);
+            await desktop.send('Page.close'); desktop.ws.close();
+
+            const mobile = await openSession(port, { width: 390, height: 844, mobile: true });
+            const mobileState = await mobile.evaluate(`new Promise((resolve) => {
+              document.getElementById('nvx-hamburger-btn')?.click();
+              setTimeout(() => {
+                const trigger = document.getElementById('nvx-mobile-cta');
+                const initial = { href: trigger?.getAttribute('href') || '', modalFlag: trigger?.dataset.nvxValoracionModal || '', hasPopup: trigger?.getAttribute('aria-haspopup'), modalPresent: !!document.getElementById('nvx-valoracion-modal'), formPresent: !!document.getElementById('nvx-hubspot-form') };
+                trigger?.click();
+                setTimeout(() => {
+                  const form = document.getElementById('nvx-hubspot-form'); const nav = document.getElementById('nvx-mobile-nav');
+                  resolve({ ...initial, scrollY: window.scrollY, formTop: Math.round(form?.getBoundingClientRect().top || 9999), navOpen: !!nav?.classList.contains('is-open'), navHidden: nav?.getAttribute('aria-hidden'), hamburgerExpanded: document.getElementById('nvx-hamburger-btn')?.getAttribute('aria-expanded'), bodyOverflow: document.body.style.overflow });
+                }, 1100);
+              }, 300);
+            })`);
+            assertBase('production mobile', mobileState);
+            if (mobileState.navOpen || mobileState.navHidden !== 'true' || mobileState.hamburgerExpanded !== 'false' || mobileState.bodyOverflow === 'hidden') {
+              throw new Error(`production mobile drawer invalid: ${JSON.stringify(mobileState)}`);
+            }
+            await mobile.send('Page.close'); mobile.ws.close();
+            console.log('PRODUCTION_VALORACION_CTA_BROWSER_OK desktop=pass mobile=pass');
+          } finally {
+            chrome.kill('SIGTERM'); await sleep(250); fs.rmSync(profile, { recursive: true, force: true });
+          }
+          NODE
+          node /tmp/verify-production-cta.mjs 2>&1 | tee "$EVIDENCE_DIR/production-browser-cta.log"
+          grep -Fq 'PRODUCTION_VALORACION_CTA_BROWSER_OK' "$EVIDENCE_DIR/production-browser-cta.log"
+
+      - name: Write non-sensitive evidence summary
+        run: |
+          set -euo pipefail
+          grep -E '^(SOURCE_SHA|BACKUP_DIR|SQL_BACKUP_GZIP_BYTES|SQL_BACKUP_SHA256|THEME_PARITY|PRODUCTION_HTML_CTA_CONTRACT_OK|PRODUCTION_CTA_PROMOTION_OK)' \
+            "$EVIDENCE_DIR/remote-promotion.log" > "$EVIDENCE_DIR/result-summary.txt"
+          cat "$EVIDENCE_DIR/production-browser-cta.log" >> "$EVIDENCE_DIR/result-summary.txt"
+          cat "$EVIDENCE_DIR/result-summary.txt"
+
+      - name: Remove temporary remote payload
+        if: always()
+        run: |
+          set -euo pipefail
+          if [[ -n "${REMOTE_RELEASE:-}" ]]; then
+            ssh siteground-prod "rm -rf -- '$REMOTE_RELEASE'"
+          fi
+
+      - name: Upload production promotion evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: production-cta-fix-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: production-cta-fix-evidence/
+          retention-days: 30
+          if-no-files-found: error

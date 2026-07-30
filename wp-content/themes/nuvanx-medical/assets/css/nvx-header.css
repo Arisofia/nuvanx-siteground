@@ -492,6 +492,7 @@
   transition: transform 160ms ease;
 }
 
+.nvx-mobile-nav__toggle[aria-expanded="true"] .nvx-mobile-nav__toggle-icon::after,
 .nvx-mobile-nav__list .is-expanded > .nvx-mobile-nav__toggle .nvx-mobile-nav__toggle-icon::after {
   transform: rotate(0deg);
 }

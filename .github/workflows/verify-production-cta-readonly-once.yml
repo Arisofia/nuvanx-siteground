@@ -1,0 +1,286 @@
+name: Verify production valoración CTA read-only once
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/verify-production-cta-readonly-once.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-production-cta-readonly-once
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.head_ref == 'ops/promote-cta-fix-production-20260730'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Verify production HTML contract
+        run: |
+          set -euo pipefail
+          mkdir -p production-cta-readonly-evidence
+          curl --fail --silent --show-error --location --max-time 25 \
+            -H 'Cache-Control: no-cache' \
+            "https://nuvanx.com/madrid/valoracion/?nvx_readonly_html=$GITHUB_RUN_ID" \
+            > production-cta-readonly-evidence/valoracion.html
+          html=production-cta-readonly-evidence/valoracion.html
+          grep -Fq 'id="nvx-header-cta"' "$html"
+          grep -Fq 'href="#nvx-hubspot-form"' "$html"
+          grep -Fq 'data-nvx-valoracion-modal="0"' "$html"
+          grep -Fq 'id="nvx-hubspot-form"' "$html"
+          ! grep -Fq 'id="nvx-valoracion-modal"' "$html"
+          echo 'PRODUCTION_VALORACION_HTML_OK' | tee production-cta-readonly-evidence/html-result.txt
+
+      - name: Click CTA in desktop and mobile Chrome
+        run: |
+          set -euo pipefail
+          cat > /tmp/verify-production-cta-readonly.mjs <<'NODE'
+          import fs from 'node:fs';
+          import os from 'node:os';
+          import path from 'node:path';
+          import crypto from 'node:crypto';
+          import { spawn } from 'node:child_process';
+
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+          const baseUrl = 'https://nuvanx.com/madrid/valoracion/';
+
+          function locateChrome() {
+            for (const name of ['google-chrome-stable', 'google-chrome', 'chromium', 'chromium-browser']) {
+              for (const dir of (process.env.PATH || '').split(path.delimiter)) {
+                const candidate = path.join(dir, name);
+                if (fs.existsSync(candidate)) return candidate;
+              }
+            }
+            throw new Error('Chrome or Chromium is unavailable.');
+          }
+
+          class CDP {
+            constructor(url) {
+              this.url = url;
+              this.ws = null;
+              this.nextId = 0;
+              this.pending = new Map();
+              this.waiters = new Map();
+            }
+            async connect() {
+              this.ws = new WebSocket(this.url);
+              await new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error('CDP connection timeout')), 10000);
+                this.ws.addEventListener('open', () => { clearTimeout(timer); resolve(); }, { once: true });
+                this.ws.addEventListener('error', () => { clearTimeout(timer); reject(new Error('CDP connection failed')); }, { once: true });
+              });
+              this.ws.addEventListener('message', (event) => this.handle(event));
+            }
+            handle(event) {
+              const message = JSON.parse(String(event.data));
+              if (message.id && this.pending.has(message.id)) {
+                const item = this.pending.get(message.id);
+                clearTimeout(item.timer);
+                this.pending.delete(message.id);
+                if (message.error) item.reject(new Error(message.error.message || 'CDP command failed'));
+                else item.resolve(message.result || {});
+                return;
+              }
+              if (message.method && this.waiters.has(message.method)) {
+                const queue = this.waiters.get(message.method);
+                const item = queue.shift();
+                if (!queue.length) this.waiters.delete(message.method);
+                clearTimeout(item.timer);
+                item.resolve(message.params || {});
+              }
+            }
+            send(method, params = {}, timeout = 30000) {
+              const id = ++this.nextId;
+              return new Promise((resolve, reject) => {
+                const timer = setTimeout(() => {
+                  this.pending.delete(id);
+                  reject(new Error(`CDP timeout: ${method}`));
+                }, timeout);
+                this.pending.set(id, { resolve, reject, timer });
+                this.ws.send(JSON.stringify({ id, method, params }));
+              });
+            }
+            wait(method, timeout = 30000) {
+              return new Promise((resolve, reject) => {
+                const timer = setTimeout(() => reject(new Error(`CDP event timeout: ${method}`)), timeout);
+                const queue = this.waiters.get(method) || [];
+                queue.push({ resolve, reject, timer });
+                this.waiters.set(method, queue);
+              });
+            }
+            async evaluate(expression) {
+              const response = await this.send('Runtime.evaluate', {
+                expression,
+                returnByValue: true,
+                awaitPromise: true,
+              });
+              if (response.exceptionDetails) {
+                throw new Error(response.exceptionDetails.exception?.description || response.exceptionDetails.text || 'Browser evaluation failed');
+              }
+              return response.result?.value;
+            }
+          }
+
+          async function waitForChrome(port) {
+            for (let attempt = 0; attempt < 80; attempt += 1) {
+              try {
+                const response = await fetch(`http://127.0.0.1:${port}/json/version`);
+                if (response.ok) return;
+              } catch {}
+              await sleep(250);
+            }
+            throw new Error('Chrome debugging endpoint did not become ready.');
+          }
+
+          async function createSession(port, viewport, token) {
+            const targetResponse = await fetch(`http://127.0.0.1:${port}/json/new?about%3Ablank`, { method: 'PUT' });
+            if (!targetResponse.ok) throw new Error(`Unable to create browser target: ${targetResponse.status}`);
+            const target = await targetResponse.json();
+            const session = new CDP(target.webSocketDebuggerUrl);
+            await session.connect();
+            await session.send('Page.enable');
+            await session.send('Runtime.enable');
+            await session.send('Network.enable');
+            await session.send('Network.setCacheDisabled', { cacheDisabled: true });
+            await session.send('Emulation.setDeviceMetricsOverride', {
+              width: viewport.width,
+              height: viewport.height,
+              deviceScaleFactor: 1,
+              mobile: viewport.mobile,
+              screenWidth: viewport.width,
+              screenHeight: viewport.height,
+            });
+            const loaded = session.wait('Page.loadEventFired');
+            const navigation = await session.send('Page.navigate', {
+              url: `${baseUrl}?nvx_readonly_browser=${token}`,
+            });
+            if (navigation.errorText) throw new Error(`Navigation failed: ${navigation.errorText}`);
+            await loaded;
+            await sleep(1800);
+            return session;
+          }
+
+          function assertCommon(label, state) {
+            const failures = [];
+            if (!state.triggerPresent) failures.push('trigger-absent');
+            if (state.href !== '#nvx-hubspot-form') failures.push(`href=${state.href}`);
+            if (state.modalFlag !== '0') failures.push(`data-modal=${state.modalFlag}`);
+            if (state.hasPopup !== null) failures.push(`aria-haspopup=${state.hasPopup}`);
+            if (state.modalPresent) failures.push('modal-present');
+            if (!state.formPresent) failures.push('form-section-absent');
+            if (state.scrollY < 100) failures.push(`scrollY=${state.scrollY}`);
+            if (Math.abs(state.formTop) > 260) failures.push(`formTop=${state.formTop}`);
+            if (failures.length) throw new Error(`${label}: ${failures.join(', ')}`);
+          }
+
+          const port = 9800 + crypto.randomInt(0, 150);
+          const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'nvx-prod-cta-readonly-'));
+          const chrome = spawn(locateChrome(), [
+            '--headless=new',
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--no-first-run',
+            '--no-default-browser-check',
+            `--remote-debugging-port=${port}`,
+            `--user-data-dir=${profile}`,
+            'about:blank',
+          ], { stdio: ['ignore', 'ignore', 'inherit'] });
+
+          const sessions = [];
+          try {
+            await waitForChrome(port);
+
+            const desktop = await createSession(port, { width: 1440, height: 1000, mobile: false }, `desktop-${Date.now()}`);
+            sessions.push(desktop);
+            const desktopState = await desktop.evaluate(`new Promise((resolve) => {
+              const trigger = document.getElementById('nvx-header-cta');
+              const initial = {
+                triggerPresent: !!trigger,
+                href: trigger?.getAttribute('href') || '',
+                modalFlag: trigger?.dataset.nvxValoracionModal || '',
+                hasPopup: trigger?.getAttribute('aria-haspopup'),
+                modalPresent: !!document.getElementById('nvx-valoracion-modal'),
+                formPresent: !!document.getElementById('nvx-hubspot-form'),
+              };
+              trigger?.click();
+              setTimeout(() => {
+                const form = document.getElementById('nvx-hubspot-form');
+                resolve({
+                  ...initial,
+                  currentUrl: location.href,
+                  scrollY: Math.round(window.scrollY),
+                  formTop: Math.round(form?.getBoundingClientRect().top || 9999),
+                });
+              }, 1300);
+            })`);
+            console.log(`DESKTOP_STATE=${JSON.stringify(desktopState)}`);
+            assertCommon('production desktop', desktopState);
+
+            const mobile = await createSession(port, { width: 390, height: 844, mobile: true }, `mobile-${Date.now()}`);
+            sessions.push(mobile);
+            const mobileState = await mobile.evaluate(`new Promise((resolve) => {
+              document.getElementById('nvx-hamburger-btn')?.click();
+              setTimeout(() => {
+                const trigger = document.getElementById('nvx-mobile-cta');
+                const initial = {
+                  triggerPresent: !!trigger,
+                  href: trigger?.getAttribute('href') || '',
+                  modalFlag: trigger?.dataset.nvxValoracionModal || '',
+                  hasPopup: trigger?.getAttribute('aria-haspopup'),
+                  modalPresent: !!document.getElementById('nvx-valoracion-modal'),
+                  formPresent: !!document.getElementById('nvx-hubspot-form'),
+                };
+                trigger?.click();
+                setTimeout(() => {
+                  const form = document.getElementById('nvx-hubspot-form');
+                  const nav = document.getElementById('nvx-mobile-nav');
+                  resolve({
+                    ...initial,
+                    currentUrl: location.href,
+                    scrollY: Math.round(window.scrollY),
+                    formTop: Math.round(form?.getBoundingClientRect().top || 9999),
+                    navOpen: !!nav?.classList.contains('is-open'),
+                    navHidden: nav?.getAttribute('aria-hidden'),
+                    hamburgerExpanded: document.getElementById('nvx-hamburger-btn')?.getAttribute('aria-expanded'),
+                    bodyOverflow: document.body.style.overflow,
+                  });
+                }, 1300);
+              }, 350);
+            })`);
+            console.log(`MOBILE_STATE=${JSON.stringify(mobileState)}`);
+            assertCommon('production mobile', mobileState);
+            if (mobileState.navOpen || mobileState.navHidden !== 'true' || mobileState.hamburgerExpanded !== 'false' || mobileState.bodyOverflow === 'hidden') {
+              throw new Error(`production mobile drawer invalid: ${JSON.stringify(mobileState)}`);
+            }
+
+            console.log('PRODUCTION_VALORACION_CTA_READONLY_OK desktop=pass mobile=pass');
+          } finally {
+            for (const session of sessions) {
+              try { session.ws?.close(); } catch {}
+            }
+            chrome.kill('SIGTERM');
+            await sleep(300);
+            fs.rmSync(profile, { recursive: true, force: true });
+          }
+          NODE
+          node /tmp/verify-production-cta-readonly.mjs 2>&1 \
+            | tee production-cta-readonly-evidence/browser-result.log
+          grep -Fq 'PRODUCTION_VALORACION_CTA_READONLY_OK' \
+            production-cta-readonly-evidence/browser-result.log
+
+      - name: Upload read-only evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        with:
+          name: production-cta-readonly-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: production-cta-readonly-evidence/
+          retention-days: 30
+          if-no-files-found: error

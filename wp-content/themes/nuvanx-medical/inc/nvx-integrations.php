@@ -16,6 +16,7 @@ if ( ! defined( 'NVX_PATH_OJERAS_SURCO_LAGRIMAL' ) ) {
 require_once __DIR__ . '/nvx-environment-flags.php';
 require_once __DIR__ . '/nvx-visual-system.php';
 require_once __DIR__ . '/nvx-external-visual-closure.php';
+require_once __DIR__ . '/nvx-governance-boilerplate.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
 require_once __DIR__ . '/nvx-strategy-pages.php';
 require_once __DIR__ . '/nvx-conversion-events.php';
@@ -83,9 +84,17 @@ function nvx_is_retired_legacy_route_request(): bool {
 
     $request_uri  = wp_unslash( (string) $_SERVER['REQUEST_URI'] );
     $request_path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
-    $slug         = trim( $request_path, '/' );
+    $path         = trim( (string) $request_path, '/' );
+    if ( '' === $path ) {
+        return false;
+    }
 
-    return '' !== $slug && in_array( $slug, nvx_retired_legacy_route_slugs(), true );
+    // Match full path or final segment (covers edge rewrites / trailing junk).
+    $parts = explode( '/', $path );
+    $slug  = (string) end( $parts );
+
+    $retired = nvx_retired_legacy_route_slugs();
+    return in_array( $path, $retired, true ) || in_array( $slug, $retired, true );
 }
 
 /** Prevent WordPress from guessing a replacement permalink for retired routes. */
@@ -96,6 +105,9 @@ add_filter( 'redirect_canonical', 'nvx_disable_retired_legacy_route_redirect', -
 
 /**
  * Serve an explicit 410 response for retired routes before canonical redirects.
+ *
+ * Intentionally avoids loading the theme 404/page-shell stack so a regression
+ * in header/footer/schema never turns a governed 410 into an HTTP 500.
  */
 function nvx_serve_retired_legacy_route(): void {
     if ( ! nvx_is_retired_legacy_route_request() ) {
@@ -112,21 +124,25 @@ function nvx_serve_retired_legacy_route(): void {
     status_header( 410 );
     nocache_headers();
     if ( ! headers_sent() ) {
+        header( 'Content-Type: text/html; charset=UTF-8', true );
         header( 'X-Robots-Tag: noindex, nofollow', true );
         header( 'X-NUVANX-Retired-Route: 1', true );
     }
 
-    $template = get_404_template();
-    if ( is_string( $template ) && '' !== $template ) {
-        include $template;
-        exit;
-    }
+    $title      = esc_html__( 'Contenido retirado', 'nuvanx-medical' );
+    $message    = esc_html__( 'Esta página ya no está disponible.', 'nuvanx-medical' );
+    $home       = esc_url( home_url( '/' ) );
+    $home_label = esc_html__( 'Volver al inicio', 'nuvanx-medical' );
 
-    wp_die(
-        esc_html__( 'Esta página ya no está disponible.', 'nuvanx-medical' ),
-        esc_html__( 'Contenido retirado', 'nuvanx-medical' ),
-        array( 'response' => 410 )
-    );
+    // Single write avoids multi-echo noise for scanners and keeps the response atomic.
+    echo '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">'
+        . '<meta name="robots" content="noindex,nofollow">'
+        . '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        . '<title>' . $title . '</title></head><body><main>'
+        . '<h1>' . $title . '</h1><p>' . $message . '</p>'
+        . '<p><a href="' . $home . '">' . $home_label . '</a></p>'
+        . '</main></body></html>';
+    exit;
 }
 add_action( 'template_redirect', 'nvx_serve_retired_legacy_route', -1000000 );
 
@@ -161,6 +177,74 @@ add_action(
     -999999
 );
 
+/** Whether an HTML fragment starts with an application/ld+json script. */
+function nvxThemeIsJsonLdScript( string $script ): bool {
+    if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
+        return false;
+    }
+
+    $processor = new WP_HTML_Tag_Processor( $script );
+    if ( ! $processor->next_tag( 'SCRIPT' ) ) {
+        return false;
+    }
+
+    $type = $processor->get_attribute( 'type' );
+    return is_string( $type ) && 'application/ld+json' === strtolower( trim( $type ) );
+}
+
+/** Whether a JSON-LD script contains Schema.org graph data. */
+function nvxThemeIsSchemaJsonLdScript( string $script ): bool {
+    return false !== stripos( $script, 'schema.org' )
+        || false !== stripos( $script, '@graph' )
+        || false !== stripos( $script, '"@type"' );
+}
+
+/**
+ * Remove non-Yoast Schema.org scripts with a bounded linear scan.
+ *
+ * @param string $html Public document HTML.
+ */
+function nvxThemeNormalizeSchemaScripts( string $html ): string {
+    $output = '';
+    $cursor = 0;
+    $length = strlen( $html );
+
+    while ( $cursor < $length ) {
+        $start = stripos( $html, '<script', $cursor );
+        if ( false === $start ) {
+            break;
+        }
+
+        $nameEnd = $start + 7;
+        $next    = $nameEnd < $length ? $html[ $nameEnd ] : '';
+        if ( '' !== $next && '>' !== $next && ! ctype_space( $next ) ) {
+            $output .= substr( $html, $cursor, $nameEnd - $cursor );
+            $cursor = $nameEnd;
+            continue;
+        }
+
+        $close = stripos( $html, '</script>', $nameEnd );
+        if ( false === $close ) {
+            break;
+        }
+
+        $end    = $close + 9;
+        $script = substr( $html, $start, $end - $start );
+        $output .= substr( $html, $cursor, $start - $cursor );
+
+        $isJsonLd = nvxThemeIsJsonLdScript( $script );
+        $isYoast  = false !== stripos( $script, 'yoast-schema-graph' );
+        $isSchema = nvxThemeIsSchemaJsonLdScript( $script );
+        if ( ! $isJsonLd || $isYoast || ! $isSchema ) {
+            $output .= $script;
+        }
+
+        $cursor = $end;
+    }
+
+    return $output . substr( $html, $cursor );
+}
+
 /**
  * Normalize public document markup and keep a single Yoast schema.org graph.
  *
@@ -191,28 +275,8 @@ function nvx_theme_normalize_public_document( string $html ): string {
         $html
     );
 
-    // Final head/body pass: only Yoast's yoast-schema-graph may emit Schema.org.
-    // Content filters strip embeds earlier; this catches residual head/widget/post leaks
-    // (e.g. BlogPosting + dangling #medicalclinic on science posts).
     if ( false !== stripos( $html, 'ld+json' ) ) {
-        $normalized = preg_replace_callback(
-            '/<script\b[^>]*type=["\']application\/ld\+json["\'][^>]*>[\s\S]*?<\/script>/iu',
-            static function ( array $match ): string {
-                $script = $match[0];
-                if ( false !== stripos( $script, 'yoast-schema-graph' ) ) {
-                    return $script;
-                }
-                if ( preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $script ) ) {
-                    return '';
-                }
-                return $script;
-            },
-            $html
-        );
-
-        if ( is_string( $normalized ) ) {
-            $html = $normalized;
-        }
+        $html = nvxThemeNormalizeSchemaScripts( $html );
     }
 
     return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );

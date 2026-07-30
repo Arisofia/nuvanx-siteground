@@ -17,6 +17,7 @@ dom_dump.html
 staging2-deployment-evidence/
 staging2-full-site-ui-audit/
 theme-hygiene-report.txt
+qa/graph-audit/
 
 # Artifacts
 *.zip

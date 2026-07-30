@@ -12,6 +12,7 @@ on:
       - 'scripts/wp/nvx-production-readiness-command.php'
       - 'scripts/wp/nvx-canonical-route-migration.php'
       - 'tools/deploy/deploy-to-staging2.sh'
+      - 'tools/deploy/nvx-purge-wp-caches.sh'
       - '.env.example'
       - '.gitignore'
       - '.github/workflows/theme-hygiene-gate.yml'
@@ -26,6 +27,7 @@ on:
       - 'scripts/wp/nvx-production-readiness-command.php'
       - 'scripts/wp/nvx-canonical-route-migration.php'
       - 'tools/deploy/deploy-to-staging2.sh'
+      - 'tools/deploy/nvx-purge-wp-caches.sh'
       - '.env.example'
       - '.gitignore'
       - '.github/workflows/theme-hygiene-gate.yml'
@@ -53,12 +55,16 @@ jobs:
         run: |
           set -euo pipefail
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
+          bash -n tools/deploy/nvx-purge-wp-caches.sh
           node --check scripts/theme-hygiene/test-theme-hygiene.mjs
           node --check scripts/theme-hygiene/test-canonical-route-contract.mjs
           node --check scripts/theme-hygiene/test-rest-pagination-contract.mjs
           node --check scripts/theme-hygiene/test-hero-layout-contract.mjs
           node --check scripts/theme-hygiene/test-entity-graph-contract.mjs
           node --check scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
+          node --check scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs
+          node --check scripts/theme-hygiene/test-cache-purge-contract.mjs
+          node --check scripts/theme-hygiene/test-audit-v3-contract.mjs
 
       - name: Lint runtime and migration PHP
         run: |
@@ -67,6 +73,10 @@ jobs:
             | xargs -0 -n 1 php -l
           php -l scripts/wp/nvx-production-readiness-command.php
           php -l scripts/wp/nvx-canonical-route-migration.php
+          php -l scripts/theme-hygiene/test-nvx-callable-contract.php
+
+      - name: Enforce NUVANX callable contract
+        run: php scripts/theme-hygiene/test-nvx-callable-contract.php
 
       - name: Enforce canonical theme hygiene
         run: node scripts/theme-hygiene/test-theme-hygiene.mjs
@@ -85,6 +95,15 @@ jobs:
 
       - name: Enforce runtime bootstrap contract
         run: node scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
+
+      - name: Enforce cache purge contract
+        run: node scripts/theme-hygiene/test-cache-purge-contract.mjs
+
+      - name: Enforce aesthetic treatment contract
+        run: node scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs
+
+      - name: Enforce audit v3 contract
+        run: node scripts/theme-hygiene/test-audit-v3-contract.mjs
 
       - name: Upload hygiene findings
         if: always()

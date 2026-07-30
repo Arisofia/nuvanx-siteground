@@ -554,8 +554,7 @@
 		max-height: 34rem;
 	}
 
-	.nvx-home-feature,
-	.nvx-home-feature__media {
+	.nvx-home-feature {
 		min-height: 34rem;
 	}
 
@@ -570,9 +569,6 @@
 		grid-row: auto;
 	}
 
-	.nvx-home-authority__media {
-		min-height: 34rem;
-	}
 }
 
 @media (max-width: 48rem) {
@@ -598,9 +594,7 @@
 		font-size: clamp(2.85rem, 12.5vw, 4.6rem);
 	}
 
-	.nvx-home-feature,
-	.nvx-home-feature__media,
-	.nvx-home-authority__media {
+	.nvx-home-feature {
 		min-height: 27rem;
 	}
 

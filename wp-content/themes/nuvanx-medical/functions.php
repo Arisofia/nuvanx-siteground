@@ -227,7 +227,6 @@ require_once get_template_directory() . '/inc/nvx-integrations.php';
 require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
 require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';
-require_once get_template_directory() . '/inc/nvx-hostile-conversion-engine.php';
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-portfolio-hub.php';
 require_once get_template_directory() . '/inc/nvx-anatomical-pages.php';
@@ -242,10 +241,7 @@ require_once get_template_directory() . '/inc/nvx-contacto-valoracion-page.php';
 require_once get_template_directory() . '/inc/nvx-laser-medicine-page.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-medicine-page.php';
 require_once get_template_directory() . '/inc/nvx-clinics-hub.php';
-require_once get_template_directory() . '/inc/nvx-dr-rivera-page.php';
 require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
-require_once get_template_directory() . '/inc/nvx-faq-catalog.php';
-require_once get_template_directory() . '/inc/nvx-evidence-panel.php';
 
 /** Load the cases renderer only after WordPress resolves the current route. */
 function nvxThemeLoadCasesPageModule(): void {

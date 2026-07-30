@@ -195,6 +195,33 @@ function nvx_endolift_price_from_eur() { return 798.60; }
 function nvx_endolift_price_papada_eur() { return 1064.80; }
 
 /**
+ * Reference PVP for Láser CO₂ facial session — used for "desde" schema/copy.
+ * Source of truth: nvx_tariff_catalog()['laser_co2']['facial']['pvp'].
+ *
+ * Restored Jul-2026: function was never defined; two call sites were silently
+ * skipped via function_exists() guards in nvx_schema_treatment_node_laser()
+ * and nvx_schema_offer_catalog(), leaving CO2 schema prices permanently empty.
+ *
+ * @return float
+ */
+function nvx_co2_price_facial_eur(): float {
+    $catalog = nvx_tariff_catalog();
+    return (float) ( $catalog['laser_co2']['facial']['pvp'] ?? 330.00 );
+}
+
+/**
+ * Reference PVP for Láser CO₂ corporal session.
+ * Source of truth: nvx_tariff_catalog()['laser_co2']['corporal']['pvp'].
+ *
+ * @return float
+ */
+function nvx_co2_price_body_eur(): float {
+    $catalog = nvx_tariff_catalog();
+    return (float) ( $catalog['laser_co2']['corporal']['pvp'] ?? 450.00 );
+}
+
+
+/**
  * Format a EUR amount for Spanish locale display (2 decimals: 1.064,80).
  *
  * @param int|float|string $amount   Amount in euros.
@@ -229,7 +256,7 @@ function nvx_schema_price_string( $amount ) {
  * }
  */
 function nvx_schema_page_registry() {
-    return array(
+    $registry = array(
         'clinics'    => array(
             'chamberi' => array(
                 'id'   => 1543,
@@ -293,6 +320,25 @@ function nvx_schema_page_registry() {
             ),
         ),
     );
+
+    // Facial injectables: path authoritative. MedicalProcedure graph is owned by
+    // nvx-aesthetic-treatment-schema.php (not laser/BTL node builders).
+    foreach (
+        array(
+            'lips_ha'          => '/labios-acido-hialuronico-madrid/',
+            'rhinomodeling_ha' => '/rinomodelacion-sin-cirugia-madrid/',
+            'tear_trough_ha'   => '/ojeras-surco-lagrimal-madrid/',
+            'biostimulators'   => '/bioestimuladores-colageno-madrid/',
+        ) as $key => $path
+    ) {
+        $registry['treatments'][ $key ] = array(
+            'id'     => 0,
+            'path'   => $path,
+            'schema' => 'MedicalProcedure',
+        );
+    }
+
+    return $registry;
 }
 
 /**
@@ -1420,25 +1466,31 @@ function nvx_schema_attach_publications( array &$graph, int $page_id, array $phy
 }
 
 /**
- * Link WebPage.mainEntity to a treatment @id when the page URL matches.
+ * Link WebPage.mainEntity to an entity @id when the page URL matches.
  *
- * @param array  $graph        Schema graph (by ref).
- * @param string $permalink    Treatment page permalink.
- * @param string $treatment_id Treatment node @id.
+ * This is the single graph-linking implementation shared by both schema passes.
+ *
+ * @param array  $graph     Schema graph.
+ * @param string $pageUrl   Canonical page URL.
+ * @param string $entityId  Entity node @id.
+ * @return array Updated schema graph.
  */
-function nvx_schema_link_webpage_main_entity( array &$graph, string $permalink, string $treatment_id ): void {
-    if ( '' === $permalink || '' === $treatment_id ) {
-        return;
+function nvxSchemaLinkWebpageMainEntity( array $graph, string $pageUrl, string $entityId ): array {
+    if ( '' === $pageUrl || '' === $entityId ) {
+        return $graph;
     }
-    $target = trailingslashit( $permalink );
+
+    $target = trailingslashit( $pageUrl );
     foreach ( $graph as $index => $piece ) {
         $types = isset( $piece['@type'] ) ? (array) $piece['@type'] : array();
         $url   = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
         if ( in_array( 'WebPage', $types, true ) && $url === $target ) {
-            $graph[ $index ]['mainEntity'] = array( '@id' => $treatment_id );
-            return;
+            $graph[ $index ]['mainEntity'] = array( '@id' => $entityId );
+            break;
         }
     }
+
+    return $graph;
 }
 
 /**
@@ -1453,7 +1505,7 @@ function nvx_schema_attach_treatment_and_faq( array &$graph, int $page_id, strin
         }
         $graph[] = $treatment;
         if ( ! empty( $treatment['@id'] ) && ! empty( $treatment['url'] ) ) {
-            nvx_schema_link_webpage_main_entity( $graph, (string) $treatment['url'], (string) $treatment['@id'] );
+            $graph = nvxSchemaLinkWebpageMainEntity( $graph, (string) $treatment['url'], (string) $treatment['@id'] );
         }
     }
 

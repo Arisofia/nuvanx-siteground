@@ -28,7 +28,8 @@ const valoracionTemplate = read('wp-content/themes/nuvanx-medical/templates/page
 const clinicsHub = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-clinics-hub-github.php');
 const valoracionPage = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-valoracion-github.php');
 const solutionsTemplate = read('wp-content/themes/nuvanx-medical/page-soluciones-medicas.php');
-const solutionsPage = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php');
+const solutionsPage = read('wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php')
+  + read('wp-content/themes/nuvanx-medical/inc/data/nvx-soluciones-medicas-groups.json');
 const solutionsCss = read('wp-content/themes/nuvanx-medical/assets/css/nvx-soluciones-medicas.css');
 const solutionsArt = read('wp-content/themes/nuvanx-medical/assets/images/nvx-solutions-hero-architecture.svg');
 const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');

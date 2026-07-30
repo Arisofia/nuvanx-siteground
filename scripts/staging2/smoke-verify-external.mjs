@@ -1,7 +1,15 @@
 #!/usr/bin/env node
 
+import { assertHtmlDeploySha, resolveExpectedDeploySha } from './nvx-deploy-sha.mjs';
+
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
-const expectedSha = process.env.DEPLOY_SHA || process.env.EXPECTED_SHA || '';
+let expectedSha = '';
+try {
+  expectedSha = resolveExpectedDeploySha(process.env);
+} catch (error) {
+  console.error(`ERROR: ${error instanceof Error ? error.message : String(error)}`);
+  process.exit(1);
+}
 const browserHeaders = {
   'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
   accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
@@ -24,10 +32,6 @@ if (!['https://staging2.nuvanx.com', 'https://nuvanx.com'].includes(baseUrl)) {
   console.error(`ERROR: refusing unexpected BASE_URL: ${baseUrl}`);
   process.exit(1);
 }
-if (expectedSha && !/^[0-9a-f]{40}$/.test(expectedSha)) {
-  console.error('ERROR: DEPLOY_SHA or EXPECTED_SHA must be a full lowercase 40-character SHA.');
-  process.exit(1);
-}
 
 const pages = [
   ['/soluciones-medicas/', ['Soluciones médicas para rostro, piel y contorno corporal.', 'Rostro y cuello', 'Contorno corporal', 'Cambios posgestacionales', 'Valoración de procedimientos previos']],
@@ -40,6 +44,14 @@ const pages = [
   ['/calidad-piel-firmeza-luminosidad-madrid/', ['Tratamiento médico para firmeza, densidad y calidad cutánea', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
   ['/cicatrices-acne-poros-textura-madrid/', ['Tratamiento médico de cicatrices, poros dilatados y textura cutánea', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
   ['/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', ['Tratamiento médico de manchas, rojeces y daño solar', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
+  ['/labios-acido-hialuronico-madrid/', ['nvx-treatment-page', 'Ácido hialurónico en labios en Madrid', 'Indicaciones: Qué tratamos', 'Precauciones: Cuándo no tratar']],
+  ['/rinomodelacion-sin-cirugia-madrid/', ['nvx-treatment-page', 'Rinomodelación con ácido hialurónico en Madrid', 'Indicaciones: Qué tratamos', 'Precauciones: Cuándo no tratar']],
+  ['/ojeras-surco-lagrimal-madrid/', ['nvx-treatment-page', 'Tratamiento de ojeras y surco lagrimal en Madrid', 'Indicaciones: Qué tratamos', 'Precauciones: Cuándo no tratar']],
+  ['/bioestimuladores-colageno-madrid/', ['nvx-treatment-page', 'Bioestimuladores de colágeno en Madrid', 'Indicaciones: Qué tratamos', 'Precauciones: Cuándo no tratar']],
+  ['/endolift-facial-papada-mandibula/', ['nvx-endolift-h1', 'Endolift', 'papada, mandíbula y cuello', 'nvx-brand-hero']],
+  ['/endolaser-corporal-grasa-localizada/', ['Endoláser corporal en Madrid', 'grasa localizada y mejor contorno', 'nvx-brand-hero']],
+  ['/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', ['Láser CO', 'textura, poros y cicatrices', 'nvx-brand-hero']],
+  ['/exion-btl/', ['EXION', 'BTL en Madrid', 'nvx-brand-hero']],
   ['/grasa-localizada-abdomen-flancos-madrid/', ['Grasa localizada en abdomen y flancos en Madrid', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
   ['/flacidez-grasa-localizada-brazos-madrid/', ['Flacidez y grasa localizada en brazos en Madrid', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
   ['/grasa-espalda-zona-sujetador-madrid/', ['Grasa de espalda y zona del sujetador en Madrid', 'Qué se valora', 'Cómo se decide el plan', 'Límites y cuándo derivamos']],
@@ -124,16 +136,6 @@ async function requestWithRetry(path, redirect = 'manual') {
   return { response: lastResponse, attempt: 4 };
 }
 
-function readMeta(html, name) {
-  const tags = [...html.matchAll(/<meta\b[^>]*>/gi)].map((match) => match[0]);
-  for (const tag of tags) {
-    const nameMatch = tag.match(/\bname\s*=\s*(["'])(.*?)\1/i);
-    if (nameMatch?.[2].toLowerCase() !== name.toLowerCase()) continue;
-    return tag.match(/\bcontent\s*=\s*(["'])(.*?)\1/i)?.[2] || '';
-  }
-  return '';
-}
-
 async function verifyRetiredRoute(sourcePath) {
   const { response, attempt } = await requestWithRetry(sourcePath);
   const location = response.headers.get('location') || '';
@@ -160,10 +162,8 @@ async function verifyPage(pagePath, markers) {
   for (const forbidden of forbiddenMarkers) {
     if (html.includes(forbidden)) findings.push(`${pagePath}: exposes forbidden marker: ${forbidden}`);
   }
-  if (expectedSha) {
-    const deployedSha = readMeta(html, 'nvx-deploy-sha');
-    if (deployedSha !== expectedSha) findings.push(`${pagePath}: served SHA ${deployedSha || 'absent'} instead of ${expectedSha}`);
-  }
+  const shaError = assertHtmlDeploySha(html, { expectedSha, pagePath });
+  if (shaError) findings.push(shaError);
   console.log(`CHECK page ${pagePath} status=${response.status} attempts=${attempt}`);
 }
 

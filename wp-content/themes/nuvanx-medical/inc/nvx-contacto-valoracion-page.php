@@ -224,7 +224,6 @@ function nvx_filter_valoracion_document_title( $title ) {
 
     return 'Consulta médica estética en Madrid | NUVANX';
 }
-add_filter( 'wpseo_title', 'nvx_filter_valoracion_document_title', 21 );
 
 /**
  * @param string $desc Description.
@@ -237,7 +236,13 @@ function nvx_filter_valoracion_metadesc( $desc ) {
 
     return 'Solicita una consulta médica estética en Chamberí o Salamanca–Goya. Diagnóstico, indicación y presupuesto individualizado.';
 }
-add_filter( 'wpseo_metadesc', 'nvx_filter_valoracion_metadesc', 21 );
+
+nvx_register_yoast_seo_filters(
+    'nvx_filter_valoracion_document_title',
+    'nvx_filter_valoracion_metadesc',
+    null,
+    21
+);
 
 /**
  * Yoast title for contacto.
@@ -252,7 +257,6 @@ function nvx_filter_contacto_document_title( $title ) {
 
     return 'Contacto NUVANX Madrid | Chamberí y Goya · Teléfonos y Direcciones';
 }
-add_filter( 'wpseo_title', 'nvx_filter_contacto_document_title', 21 );
 
 /**
  * @param string $desc Description.
@@ -265,4 +269,10 @@ function nvx_filter_contacto_metadesc( $desc ) {
 
     return 'Contacto NUVANX: Chamberí CS20144 (669 319 836) y Goya CS20073 (647 505 107). Valoración médica en /madrid/valoracion/.';
 }
-add_filter( 'wpseo_metadesc', 'nvx_filter_contacto_metadesc', 21 );
+
+nvx_register_yoast_seo_filters(
+    'nvx_filter_contacto_document_title',
+    'nvx_filter_contacto_metadesc',
+    null,
+    21
+);

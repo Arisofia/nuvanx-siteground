@@ -578,7 +578,7 @@
 }
 
 @media (max-width: 30em) {
-  .nvx-mobile-nav {
+  dialog.nvx-mobile-nav {
     padding-inline: var(--nvx-space-2);
   }
 

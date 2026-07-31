@@ -211,9 +211,9 @@ function nvx_seo_current_metadata( string $field, string $fallback = '' ): strin
  */
 function nvx_seo_is_nonproduction_environment(): bool {
     $host   = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
-    $public = in_array( strtolower( $host ), array( 'nuvanx.com', 'www.nuvanx.com', 'staging2.nuvanx.com' ), true );
+    $public = in_array( strtolower( $host ), array( 'nuvanx.com', 'www.nuvanx.com' ), true );
 
-    if ( $public ) {
+    if ( $public || ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) ) {
         return false;
     }
 

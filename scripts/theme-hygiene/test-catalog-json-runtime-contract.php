@@ -32,6 +32,9 @@ $themeInc = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc';
 require_once $themeInc . '/nvx-aesthetic-treatment-pages.php';
 require_once $themeInc . '/nvx-btl-detail-pages.php';
 require_once $themeInc . '/nvx-faq-catalog.php';
+require_once $themeInc . '/nvx-faq-content-v2.php';
+require_once $themeInc . '/nvx-seo-metadata.php';
+require_once $themeInc . '/nvx-treatment-hub-schema.php';
 require_once $themeInc . '/nvx-treatments-catalog.php';
 
 /**
@@ -91,6 +94,46 @@ nvx_contract_assert(
     'FAQ catalog content changed during JSON extraction.'
 );
 nvx_contract_assert_no_tokens($faq, 'faq');
+
+$homeFaq = nvx_home_faq_v2_catalog();
+nvx_contract_assert(
+    ($homeFaq[0]['id'] ?? null) === 'valoracion-medica',
+    'Homepage FAQ identifier changed during JSON extraction.'
+);
+nvx_contract_assert(
+    ($homeFaq[0]['q'] ?? null) === '¿Cómo se solicita una valoración médica en NUVANX?',
+    'Homepage FAQ content changed during JSON extraction.'
+);
+nvx_contract_assert_no_tokens($homeFaq, 'home-faq');
+
+$seo = nvx_seo_metadata_catalog();
+nvx_contract_assert(
+    ($seo['home']['title'] ?? null) === 'Medicina Estética Láser Madrid | Endolift y CO₂ | NUVANX',
+    'Homepage SEO title changed during JSON extraction.'
+);
+nvx_contract_assert_no_tokens($seo, 'seo');
+
+$blogSeo = nvx_seo_blog_post_metadata_catalog();
+nvx_contract_assert(
+    ($blogSeo['endolift-primeras-72-horas-que-esperar']['title'] ?? null) === 'Endolift: primeras 72 horas | Qué esperar',
+    'Blog SEO metadata changed during JSON extraction.'
+);
+nvx_contract_assert_no_tokens($blogSeo, 'blog-seo');
+
+$hubItems = nvx_treatment_hub_schema_items('org:test');
+nvx_contract_assert(
+    ($hubItems[0]['url'] ?? null) === 'home:/endolift-facial-papada-mandibula/',
+    'Treatment hub schema URL changed during JSON extraction.'
+);
+nvx_contract_assert(
+    ($hubItems[0]['item']['provider']['@id'] ?? null) === 'org:test',
+    'Treatment hub schema provider binding changed.'
+);
+nvx_contract_assert(
+    ($hubItems[0]['position'] ?? null) === 1,
+    'Treatment hub schema ordering changed.'
+);
+nvx_contract_assert_no_tokens($hubItems, 'treatment-hub-schema');
 
 $treatments = nvx_treatments_catalog_data();
 nvx_contract_assert(

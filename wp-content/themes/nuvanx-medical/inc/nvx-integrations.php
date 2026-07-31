@@ -115,6 +115,12 @@ function nvx_theme_normalize_public_document( string $html ): string {
 				$html
 			);
 		}
+
+		$html = (string) preg_replace(
+			'/<link\s+rel=["\']stylesheet["\']\s+id=["\']nvx-(?:mobile-hero-hierarchy|canonical-page-hero|full-site-ui-governance|editorial-coherence|site-coherence|ui-regressions|hero-layout-coherence|integrations)-css["\'][^>]*>/i',
+			'',
+			$html
+		);
 	}
 
 	if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {

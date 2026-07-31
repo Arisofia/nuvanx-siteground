@@ -1,0 +1,121 @@
+name: Integrate valuation form release fix once
+
+on:
+  push:
+    branches:
+      - fix/valoracion-form-release-20260731
+    paths:
+      - '.github/workflows/tmp-integrate-valoracion-form.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tmp-integrate-valoracion-form
+  cancel-in-progress: false
+
+jobs:
+  integrate:
+    if: github.repository == 'Arisofia/nuvanx-siteground' && github.ref == 'refs/heads/fix/valoracion-form-release-20260731'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout release-fix branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/valoracion-form-release-20260731
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: none
+
+      - name: Integrate managed valuation module
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file = Path(path)
+              source = file.read_text(encoding='utf-8')
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one occurrence, found {count}')
+              file.write_text(source.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'wp-content/themes/nuvanx-medical/functions.php',
+              "require_once get_template_directory() . '/inc/nvx-solutions-page.php';\nrequire_once get_template_directory() . '/inc/nvx-solutions-page.php';\n",
+              "require_once get_template_directory() . '/inc/nvx-solutions-page.php';\n"
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/functions.php',
+              "require_once get_template_directory() . '/inc/nvx-contacto-valoracion-page.php';\n",
+              "require_once get_template_directory() . '/inc/nvx-contacto-valoracion-page.php';\nrequire_once get_template_directory() . '/inc/nvx-valoracion-managed-page.php';\n"
+          )
+
+          duplicate = """\tif ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {
+          \t\t$has_managed_editorial = true;
+          \t}
+          \tif ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {
+          \t\t$has_managed_editorial = true;
+          \t}
+          """
+          replacement = """\tif ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {
+          \t\t$has_managed_editorial = true;
+          \t}
+          \tif ( ! $has_managed_editorial && function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
+          \t\t$has_managed_editorial = true;
+          \t}
+          """
+          replace_once(
+              'wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php',
+              duplicate,
+              replacement
+          )
+
+          replace_once(
+              '.github/workflows/theme-hygiene-gate.yml',
+              "          php scripts/theme-hygiene/test-page-render-helpers.php\n",
+              "          php scripts/theme-hygiene/test-page-render-helpers.php\n          php scripts/theme-hygiene/test-valoracion-form-contract.php\n"
+          )
+          PY
+
+      - name: Validate integrated release fix
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-valoracion-managed-page.php
+          php -l wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php
+          php -l wp-content/mu-plugins/nuvanx-contacto-hubspot-form.php
+          php -l scripts/theme-hygiene/test-valoracion-form-contract.php
+          bash -n tools/deploy/deploy-required-mu-plugins.sh
+          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n 1 php -l >/tmp/php-lint.log
+          php scripts/theme-hygiene/test-catalog-json-contract.php
+          php scripts/theme-hygiene/test-catalog-json-runtime-contract.php
+          php scripts/theme-hygiene/test-catalog-review-contract.php
+          php scripts/theme-hygiene/test-page-render-helpers.php
+          php scripts/theme-hygiene/test-valoracion-form-contract.php
+          node --check scripts/theme-hygiene/test-theme-hygiene.mjs
+          node scripts/theme-hygiene/test-theme-hygiene.mjs
+
+      - name: Commit integrated non-workflow changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add wp-content/themes/nuvanx-medical/functions.php
+          git add wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php
+          git add .github/workflows/theme-hygiene-gate.yml
+          git diff --cached --check
+          git commit -m 'fix(valoracion): integrate managed form release contracts'
+          git push origin HEAD:fix/valoracion-form-release-20260731

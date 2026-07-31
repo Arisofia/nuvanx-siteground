@@ -6,8 +6,9 @@ on:
     paths:
       - '.github/workflows/institutional-headers-form-qa.yml'
       - 'scripts/staging2/audit-institutional-headers-form.mjs'
-      - 'scripts/staging2/institutional-qa-edge-preload.mjs'
+      - 'scripts/staging2/institutional-qa-external-assets-preload.mjs'
       - 'scripts/staging2/visual-qa-common.mjs'
+      - 'scripts/staging2/visual-qa-edge-preload.mjs'
       - 'wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php'
       - 'wp-content/themes/nuvanx-medical/**'
 
@@ -23,7 +24,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
       BASE_URL: https://staging2.nuvanx.com
       EVIDENCE_DIR: institutional-headers-form-evidence
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
@@ -31,9 +31,17 @@ jobs:
       - name: Check out immutable PR head
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ env.EXPECTED_SHA }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Resolve deployed theme source SHA
+        run: |
+          set -euo pipefail
+          theme_sha="$(git log -1 --format=%H -- wp-content/themes/nuvanx-medical)"
+          [[ "$theme_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "EXPECTED_SHA=$theme_sha" >> "$GITHUB_ENV"
+          echo "Theme source SHA: $theme_sha"
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -44,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check scripts/staging2/audit-institutional-headers-form.mjs
-          node --check scripts/staging2/institutional-qa-edge-preload.mjs
+          node --check scripts/staging2/institutional-qa-external-assets-preload.mjs
           php -l wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php
 
       - name: Configure strict SiteGround SSH
@@ -89,13 +97,13 @@ jobs:
           for attempt in $(seq 1 90); do
             deployed="$(ssh nvx-staging2 "test -f '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true")"
             if [[ "$deployed" == "$EXPECTED_SHA" ]]; then
-              echo "Exact staging2 SHA ready: $deployed"
+              echo "Exact staging2 theme SHA ready: $deployed"
               exit 0
             fi
             echo "Waiting for $EXPECTED_SHA; current=${deployed:-absent}; attempt=$attempt"
             sleep 5
           done
-          echo "Timed out waiting for exact staging2 SHA $EXPECTED_SHA" >&2
+          echo "Timed out waiting for exact staging2 theme SHA $EXPECTED_SHA" >&2
           exit 1
 
       - name: Install governed valoración MU plugin
@@ -149,7 +157,9 @@ jobs:
 
       - name: Audit institutional headers and HubSpot form
         env:
-          NODE_OPTIONS: --import=${{ github.workspace }}/scripts/staging2/institutional-qa-edge-preload.mjs
+          NODE_OPTIONS: >-
+            --import=${{ github.workspace }}/scripts/staging2/visual-qa-edge-preload.mjs
+            --import=${{ github.workspace }}/scripts/staging2/institutional-qa-external-assets-preload.mjs
         run: |
           set -euo pipefail
           node scripts/staging2/audit-institutional-headers-form.mjs \

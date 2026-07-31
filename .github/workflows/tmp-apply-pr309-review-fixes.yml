@@ -1,0 +1,257 @@
+name: Apply PR 309 review fixes once
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - scripts/theme-hygiene/apply-pr309-review-fixes-once.py
+      - .github/workflows/tmp-apply-pr309-review-fixes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.event.pull_request.number == 309
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: refactor/sonar-legacy-duplication-phase2-20260731
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply reviewed transformations
+        run: python3 scripts/theme-hygiene/apply-pr309-review-fixes-once.py
+
+      - name: Add gettext extraction source generator
+        shell: bash
+        run: |
+          cat > scripts/theme-hygiene/generate-catalog-i18n-source.php <<'PHP'
+          <?php
+          /**
+           * Generate a temporary PHP source containing JSON-catalog translations.
+           *
+           * Usage:
+           * php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
+           * wp i18n make-pot wp-content/themes/nuvanx-medical languages/nuvanx-medical.pot --include=/tmp/nvx-catalog-i18n.php
+           */
+          declare(strict_types=1);
+
+          $data_dir = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc/data';
+          $strings  = array();
+
+          $collect = static function ($value) use (&$collect, &$strings): void {
+              if (is_array($value)) {
+                  foreach ($value as $item) {
+                      $collect($item);
+                  }
+                  return;
+              }
+
+              if (is_string($value) && str_starts_with($value, '@nvx-t:')) {
+                  $message = substr($value, 7);
+                  if ('' !== $message) {
+                      $strings[$message] = true;
+                  }
+              }
+          };
+
+          foreach (glob($data_dir . '/*.json') ?: array() as $path) {
+              $decoded = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+              $collect($decoded);
+          }
+
+          ksort($strings, SORT_NATURAL | SORT_FLAG_CASE);
+          echo "<?php\n";
+          echo "/** Generated extraction source. Do not load at runtime. */\n";
+          foreach (array_keys($strings) as $message) {
+              echo '__( ' . var_export($message, true) . ", 'nuvanx-medical' );\n";
+          }
+          PHP
+
+      - name: Update permanent catalog contracts
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          contract = Path('scripts/theme-hygiene/test-catalog-json-contract.php')
+          source = contract.read_text(encoding='utf-8')
+          source = source.replace("    'faq-catalog.json' => array(0),\n", '')
+          contract.write_text(source, encoding='utf-8')
+
+          page_test = Path('scripts/theme-hygiene/test-page-render-helpers.php')
+          source = page_test.read_text(encoding='utf-8')
+          source = source.replace(
+              "$division = '<div class=\"nvx-brand-hero__media\"><img src=\"division.jpg\" alt=\"\"></div>';\n",
+              "$division = '<div class=\"nvx-brand-hero__media\"><img src=\"division.jpg\" alt=\"\"></div>';\n"
+              "$nestedDivision = '<div class=\"nvx-brand-hero__media\"><div class=\"frame\"><img src=\"nested.jpg\" alt=\"\"></div></div>';\n",
+          )
+          needle = "nvx_page_helper_assert(\n    nvx_page_extract_brand_hero_media('<main>' . $division . '</main>') === $division,\n    'Div hero media extraction changed.'\n);\n"
+          replacement = needle + "nvx_page_helper_assert(\n    nvx_page_extract_brand_hero_media('<main>' . $nestedDivision . '</main>') === $nestedDivision,\n    'Nested div hero media extraction changed.'\n);\n"
+          if needle not in source:
+              raise SystemExit('Page helper assertion insertion point not found')
+          page_test.write_text(source.replace(needle, replacement, 1), encoding='utf-8')
+          PY
+
+          cat > scripts/theme-hygiene/test-catalog-review-contract.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+
+          define('ABSPATH', __DIR__ . '/');
+          define('WP_DEBUG', false);
+
+          $translation_calls = 0;
+          function __(string $text, ?string $domain = null): string {
+              global $translation_calls;
+              $translation_calls++;
+              return 'i18n:' . $text;
+          }
+          function home_url(string $path = ''): string { return 'home:' . $path; }
+          function nvx_btl_claim(string $key): string { return 'claim:' . $key; }
+          function add_filter(...$args): bool { return true; }
+
+          $inc = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc';
+          require_once $inc . '/nvx-catalog-json.php';
+          require_once $inc . '/nvx-faq-content-v2.php';
+          require_once $inc . '/nvx-faq-catalog.php';
+
+          function nvx_review_assert(bool $condition, string $message): void {
+              if (!$condition) {
+                  fwrite(STDERR, $message . "\n");
+                  exit(1);
+              }
+          }
+
+          $legacy_prefixes = array('@nvx-i18n:', '@nvx-home:', '@nvx-claim:');
+          foreach (glob($inc . '/data/*.json') ?: array() as $path) {
+              $raw = (string) file_get_contents($path);
+              foreach ($legacy_prefixes as $prefix) {
+                  nvx_review_assert(!str_contains($raw, $prefix), basename($path) . " contains legacy token {$prefix}");
+              }
+          }
+
+          $general = nvx_get_faq_catalog();
+          nvx_review_assert(11 === count($general), 'Global FAQ selection must contain eleven stable entries.');
+          nvx_review_assert(
+              str_contains($general[10]['a'] ?? '', 'ICOMEM 282864786'),
+              'Global and homepage medical-team FAQ must use the same approved registration text.'
+          );
+
+          $home = nvx_home_faq_v2_catalog();
+          $recovery = array_values(array_filter($home, static fn($item) => ($item['id'] ?? '') === 'recuperacion-real-laser'));
+          nvx_review_assert(1 === count($recovery), 'Recovery FAQ is missing.');
+          nvx_review_assert(
+              !str_contains($recovery[0]['a'], '70%') && !str_contains($recovery[0]['a'], 'garantizamos'),
+              'Recovery FAQ must not contain an unsupported quantified guarantee.'
+          );
+
+          $translation_calls = 0;
+          $invalid = nvx_catalog_resolve_tokens(
+              array(
+                  'translation' => '@nvx-i18n:not-valid***',
+                  'url' => '@nvx-home:not-valid***',
+                  'claim' => '@nvx-claim:not-valid***',
+              ),
+              static fn(string $key): string => 'claim:' . $key
+          );
+          nvx_review_assert(array('', '', '') === array_values($invalid), 'Invalid Base64 tokens must resolve safely.');
+          nvx_review_assert(0 === $translation_calls, 'Invalid translation tokens must not call gettext.');
+
+          $filtered = nvx_catalog_filter_records(
+              array(
+                  'valid' => array('slug' => 'ok', 'description' => 'ok'),
+                  'invalid' => array('slug' => 'missing-description'),
+              ),
+              array('slug', 'description'),
+              'contract-test'
+          );
+          nvx_review_assert(array('valid') === array_keys($filtered), 'Incomplete catalog records must be filtered.');
+
+          $treatment_data = json_decode(
+              (string) file_get_contents($inc . '/data/treatments-catalog.json'),
+              true,
+              512,
+              JSON_THROW_ON_ERROR
+          );
+          $meta = array();
+          foreach ($treatment_data as $section) {
+              foreach ($section['items'] ?? array() as $item) {
+                  $meta[] = substr((string) ($item['meta'] ?? ''), 0, 2);
+              }
+          }
+          nvx_review_assert(
+              array('01','02','03','04','05','06','07','08','09','10','11','12') === $meta,
+              'Treatment card numbering must be continuous.'
+          );
+
+          echo "Catalog review contract passed.\n";
+          PHP
+
+      - name: Extend Theme Hygiene gate
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/workflows/theme-hygiene-gate.yml')
+          source = path.read_text(encoding='utf-8')
+          old = "          php scripts/theme-hygiene/test-catalog-json-runtime-contract.php\n          php scripts/theme-hygiene/test-page-render-helpers.php\n"
+          new = (
+              "          php scripts/theme-hygiene/test-catalog-json-runtime-contract.php\n"
+              "          php scripts/theme-hygiene/test-catalog-review-contract.php\n"
+              "          php scripts/theme-hygiene/test-page-render-helpers.php\n"
+              "          php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php\n"
+              "          php -l /tmp/nvx-catalog-i18n.php\n"
+              "          grep -Fq 'Fototermólisis selectiva' /tmp/nvx-catalog-i18n.php\n"
+          )
+          if old not in source:
+              raise SystemExit('Theme Hygiene insertion point not found')
+          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+
+      - name: Validate all review fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n 1 php -l >/dev/null
+          php -l scripts/theme-hygiene/generate-catalog-i18n-source.php
+          php scripts/theme-hygiene/test-catalog-json-contract.php
+          php scripts/theme-hygiene/test-catalog-json-runtime-contract.php
+          php scripts/theme-hygiene/test-catalog-review-contract.php
+          php scripts/theme-hygiene/test-page-render-helpers.php
+          php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
+          php -l /tmp/nvx-catalog-i18n.php
+          grep -Fq 'Fototermólisis selectiva' /tmp/nvx-catalog-i18n.php
+          node scripts/theme-hygiene/test-theme-hygiene.mjs
+          test ! -e wp-content/themes/nuvanx-medical/inc/data/faq-catalog.json
+
+      - name: Commit reviewed fixes and remove one-shot files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "chatgpt-codex-connector[bot]"
+          git config user.email "chatgpt-codex-connector[bot]@users.noreply.github.com"
+          git rm .github/workflows/tmp-apply-pr309-review-fixes.yml
+          git rm scripts/theme-hygiene/apply-pr309-review-fixes-once.py
+          git add .github/workflows/theme-hygiene-gate.yml \
+                  scripts/theme-hygiene/generate-catalog-i18n-source.php \
+                  scripts/theme-hygiene/test-catalog-json-contract.php \
+                  scripts/theme-hygiene/test-catalog-review-contract.php \
+                  scripts/theme-hygiene/test-page-render-helpers.php \
+                  wp-content/themes/nuvanx-medical/inc/data \
+                  wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-medicine-page.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-pages.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-catalog-json.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-faq-catalog.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-faq-content-v2.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-laser-medicine-page.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-page-render-helpers.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-treatment-hub-schema.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-treatments-catalog.php
+          git commit -m "fix(quality): address catalog review findings"
+          git push origin HEAD:refactor/sonar-legacy-duplication-phase2-20260731

@@ -148,11 +148,11 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 			</div>
 		</section>
 
-		<section class="nvx-endolift-section nvx-section--cta-secondary" aria-label="<?php esc_attr_e( 'Reservar valoración médica', 'nuvanx-medical' ); ?>">
-			<div class="nvx-endolift-section__inner">
-				<p class="nvx-endolift-kicker"><?php esc_html_e( 'Atención telefónica directa', 'nuvanx-medical' ); ?></p>
-				<h2 class="nvx-endolift-heading"><?php esc_html_e( 'Llama a tu centro NUVANX más cercano', 'nuvanx-medical' ); ?></h2>
-				<p class="nvx-endolift-body nvx-endolift-body--measure"><?php esc_html_e( 'Atención directa para información sobre valoraciones, citas y localización de nuestras sedes.', 'nuvanx-medical' ); ?></p>
+		<section class="nvx-brand-section nvx-section--cta-secondary" aria-label="<?php esc_attr_e( 'Reservar valoración médica', 'nuvanx-medical' ); ?>">
+			<div class="nvx-container">
+				<p class="nvx-brand-kicker"><?php esc_html_e( 'Atención telefónica directa', 'nuvanx-medical' ); ?></p>
+				<h2 class="nvx-heading"><?php esc_html_e( 'Llama a tu centro NUVANX más cercano', 'nuvanx-medical' ); ?></h2>
+				<p class="nvx-body"><?php esc_html_e( 'Atención directa para información sobre valoraciones, citas y localización de nuestras sedes.', 'nuvanx-medical' ); ?></p>
 				<div class="nvx-cta-pair nvx-cta-group--centered">
 					<a href="<?php echo esc_url( 'tel:' . $chamberi_phone ); ?>" class="nvx-brand-btn nvx-brand-btn--secondary">
 						<?php echo esc_html( sprintf( __( 'Chamberí · %s', 'nuvanx-medical' ), $chamberi_tel_display ) ); ?>

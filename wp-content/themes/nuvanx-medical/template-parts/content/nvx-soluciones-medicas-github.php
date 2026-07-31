@@ -120,8 +120,10 @@ $method_steps = array(
 								<?php endif; ?>
 								<h3><?php echo esc_html( $solution['title'] ); ?></h3>
 								<dl>
-									<div><dt>Qué se valora</dt><dd><?php echo esc_html( $solution['question'] ); ?></dd></div>
-									<div><dt>Límites</dt><dd><?php echo esc_html( $solution['limit'] ); ?></dd></div>
+									<dt>Qué se valora</dt>
+									<dd><?php echo esc_html( $solution['question'] ); ?></dd>
+									<dt>Límites</dt>
+									<dd><?php echo esc_html( $solution['limit'] ); ?></dd>
 								</dl>
 							</div>
 							<a class="nvx-solutions-card__link" href="<?php echo esc_url( home_url( $solution['path'] ) ); ?>" aria-label="<?php echo esc_attr( 'Explorar solución: ' . $solution['title'] ); ?>">Explorar solución <span aria-hidden="true">→</span></a>

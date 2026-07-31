@@ -82,6 +82,20 @@ nvx_page_helper_assert(
     'Canonical section opening without modifiers changed.'
 );
 nvx_page_helper_assert(
+    strpos(
+        nvx_page_brand_section_open_markup('', 'plain-title', '', array('data bad' => 'x')),
+        'data bad'
+    ) === false,
+    'Invalid attribute names must be discarded.'
+);
+nvx_page_helper_assert(
+    strpos(
+        nvx_page_brand_section_open_markup('', 'plain-title', '', array('onclick' => 'alert(1)')),
+        'onclick'
+    ) === false,
+    'Event handler attributes must be discarded.'
+);
+nvx_page_helper_assert(
     nvx_page_brand_section_heading_markup('Kicker', 'heading-id', 'Heading')
         === '<p class="nvx-brand-kicker">Kicker</p><h2 id="heading-id" class="nvx-brand-title">Heading</h2>',
     'Canonical section heading markup changed.'

@@ -56,8 +56,12 @@ for (const x of ["is_page_template( 'page-tratamientos.php' )",'nvx_theme_owns_c
 if (native.includes('remove_action(')) fail('native style module: global action removal');
 
 const schema=read('inc/nvx-treatment-hub-schema.php');
-for (const x of ['wpseo_schema_graph','PercutaneousProcedure','NoninvasiveProcedure',"'ItemList'","$item['procedureType'] = array( '@id' =>","'numberOfItems'   => count( $items )"]) {
+const schemaDefinitions=read('inc/data/treatment-hub-schema.json');
+for (const x of ['wpseo_schema_graph',"'ItemList'","$item['procedureType'] = array( '@id' =>","'numberOfItems'   => count( $items )"]) {
   if (!schema.includes(x)) fail(`schema module: missing ${x}`);
+}
+for (const x of ['PercutaneousProcedure','NoninvasiveProcedure']) {
+  if (!schemaDefinitions.includes(x)) fail(`schema definitions: missing ${x}`);
 }
 if (/<script\b/i.test(schema)) fail('schema module: embedded script');
 

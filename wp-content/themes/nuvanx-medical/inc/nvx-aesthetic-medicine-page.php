@@ -181,7 +181,7 @@ function nvx_aesthetic_editorial_catalog(): array {
  */
 function nvx_aesthetic_diagnosis_section_markup(): string {
 	$raw     = nvx_aesthetic_editorial_catalog()['pillars'] ?? array();
-	$pillars = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'icon', 'title', 'body' ) ) : $raw;
+	$pillars = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'icon', 'title', 'body' ), 'aesthetic-medicine-page.json' ) : $raw;
 
 	$html  = '<section class="nvx-aes-section nvx-aes-diagnosis" aria-labelledby="nvx-aes-diagnosis-title">';
 	$html .= '<div class="nvx-aes-section__inner">';
@@ -241,7 +241,7 @@ function nvx_aesthetic_resolve_treatment_url( string $primary, array $alts = arr
  */
 function nvx_aesthetic_catalog_section_markup(): string {
 	$raw        = nvx_aesthetic_editorial_catalog()['treatments'] ?? array();
-	$treatments = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'n', 'icon', 'title', 'body', 'price', 'core', 'url' ) ) : $raw;
+	$treatments = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'n', 'icon', 'title', 'body', 'price', 'core', 'url' ), 'aesthetic-medicine-page.json' ) : $raw;
 
 	$html  = '<section class="nvx-aes-section nvx-aes-catalog" aria-labelledby="nvx-aes-catalog-title">';
 	$html .= '<div class="nvx-aes-section__inner">';
@@ -313,7 +313,7 @@ function nvx_aesthetic_faq_section_markup(): string {
 	$html .= '</figure></div></details>';
 
 	$raw  = nvx_aesthetic_editorial_catalog()['faqs'] ?? array();
-	$faqs = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'q', 'a' ) ) : $raw;
+	$faqs = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'q', 'a' ), 'aesthetic-medicine-page.json' ) : $raw;
 
 	foreach ( $faqs as $faq ) {
 		$html .= '<details class="nvx-brand-faq-item">';

@@ -35,6 +35,38 @@ function nvx_register_yoast_seo_filters( callable $title_cb, callable $desc_cb, 
 	}
 }
 
+function nvx_seed_staging_update_existing( WP_Post $page, string $meta_key_name, string $key ): void {
+    if ( '' === (string) get_post_meta( $page->ID, $meta_key_name, true ) ) {
+        update_post_meta( $page->ID, $meta_key_name, $key );
+    }
+    if ( '' === (string) get_post_meta( $page->ID, '_nvx_medical_review_status', true ) ) {
+        update_post_meta( $page->ID, '_nvx_medical_review_status', 'pending' );
+    }
+}
+
+function nvx_seed_staging_insert_new( array $entry, string $key, string $meta_key_name, string $content_html ): void {
+    $title = $entry['h1'] ?? ( $entry['title'] ?? '' );
+    $desc  = $entry['description'] ?? ( $entry['intro'] ?? '' );
+    $html  = str_replace( '{key}', $key, $content_html );
+
+    $post_id = wp_insert_post(
+        array(
+            'post_type'    => 'page',
+            'post_status'  => 'publish',
+            'post_title'   => $title,
+            'post_name'    => $entry['slug'],
+            'post_excerpt' => $desc,
+            'post_content' => $html,
+        ),
+        true
+    );
+
+    if ( ! is_wp_error( $post_id ) ) {
+        update_post_meta( (int) $post_id, $meta_key_name, $key );
+        update_post_meta( (int) $post_id, '_nvx_medical_review_status', 'pending' );
+    }
+}
+
 /**
  * Ensures governed pages exist in the WordPress database for the staging2 environment.
  *
@@ -56,34 +88,10 @@ function nvx_seed_staging_pages( array $catalog, string $meta_key_name, string $
 
 		$page = get_page_by_path( $entry['slug'], OBJECT, 'page' );
 		if ( $page instanceof WP_Post ) {
-			if ( '' === (string) get_post_meta( $page->ID, $meta_key_name, true ) ) {
-				update_post_meta( $page->ID, $meta_key_name, $key );
-			}
-			if ( '' === (string) get_post_meta( $page->ID, '_nvx_medical_review_status', true ) ) {
-				update_post_meta( $page->ID, '_nvx_medical_review_status', 'pending' );
-			}
+            nvx_seed_staging_update_existing( $page, $meta_key_name, $key );
 			continue;
 		}
 
-		$title = $entry['h1'] ?? ( $entry['title'] ?? '' );
-		$desc  = $entry['description'] ?? ( $entry['intro'] ?? '' );
-		$html  = str_replace( '{key}', $key, $content_html );
-
-		$post_id = wp_insert_post(
-			array(
-				'post_type'    => 'page',
-				'post_status'  => 'publish',
-				'post_title'   => $title,
-				'post_name'    => $entry['slug'],
-				'post_excerpt' => $desc,
-				'post_content' => $html,
-			),
-			true
-		);
-
-		if ( ! is_wp_error( $post_id ) ) {
-			update_post_meta( (int) $post_id, $meta_key_name, $key );
-			update_post_meta( (int) $post_id, '_nvx_medical_review_status', 'pending' );
-		}
+        nvx_seed_staging_insert_new( $entry, $key, $meta_key_name, $content_html );
 	}
 }

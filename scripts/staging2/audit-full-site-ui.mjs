@@ -118,6 +118,62 @@ function assertDocumentNavigation(route, navigationMeta) {
   };
 }
 
+function assertDocumentStateReady(state) {
+  if (state?.ready !== 'complete' || !state?.body || state?.sha !== expectedSha) {
+    const issues = [];
+    if (!state) issues.push('state absent');
+    else {
+      if (state.ready !== 'complete') issues.push(`readyState=${state.ready}`);
+      if (!state.body) issues.push('body missing');
+      if (state.sha !== expectedSha) issues.push(`SHA ${state.sha || 'absent'} instead of ${expectedSha}`);
+    }
+    throw new Error(issues.join(', '));
+  }
+}
+
+async function waitForDocumentReadyState(session, assertNoEarlyHttpFailure) {
+  let state = null;
+  for (let attempt = 1; attempt <= 60; attempt += 1) {
+    assertNoEarlyHttpFailure();
+    state = await session.call(() => ({
+      ready: document.readyState,
+      sha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',
+      body: Boolean(document.body),
+    }));
+    assertNoEarlyHttpFailure();
+    if (state.ready === 'complete' && state.sha === expectedSha && state.body) break;
+    if (attempt === 20 || attempt === 40) await session.send('Page.reload', { ignoreCache: true });
+    await sleep(500);
+  }
+  return state;
+}
+
+function collectNavigationMeta(documentRequests, documentResponses, topLoaderId, topFrameId, isTopLevelDocument) {
+  const lastResponse = documentResponses.findLast(isTopLevelDocument) || null;
+  const lastRequest = documentRequests.findLast(isTopLevelDocument) || null;
+  const navigationMeta = {
+    httpStatus: lastResponse?.response?.status ?? null,
+    finalUrl: lastResponse?.response?.url || lastRequest?.request?.url || null,
+    redirectChain: [],
+    loaderId: lastResponse?.loaderId || topLoaderId,
+    frameId: topFrameId,
+  };
+  const effectiveLoaderId = lastResponse?.loaderId || topLoaderId;
+  for (const request of documentRequests) {
+    if (
+      isTopLevelDocument(request)
+      && request.redirectResponse
+      && request.loaderId === effectiveLoaderId
+    ) {
+      navigationMeta.redirectChain.push({
+        url: request.redirectResponse.url,
+        status: request.redirectResponse.status,
+      });
+    }
+  }
+  return navigationMeta;
+}
+
 async function openPage(port, route, viewport) {
   const target = await createTarget(port);
   const session = new CDPSession(target.webSocketDebuggerUrl);
@@ -183,51 +239,16 @@ async function openPage(port, route, viewport) {
 
   let state = null;
   try {
-    for (let attempt = 1; attempt <= 60; attempt += 1) {
-      assertNoEarlyHttpFailure();
-      state = await session.call(() => ({
-        ready: document.readyState,
-        sha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',
-        body: Boolean(document.body),
-      }));
-      assertNoEarlyHttpFailure();
-      if (state.ready === 'complete' && state.sha === expectedSha && state.body) break;
-      if (attempt === 20 || attempt === 40) await session.send('Page.reload', { ignoreCache: true });
-      await sleep(500);
-    }
-    if (state?.ready !== 'complete' || !state?.body || state?.sha !== expectedSha) {
-      const issues = [];
-      if (!state) issues.push('state absent');
-      else {
-        if (state.ready !== 'complete') issues.push(`readyState=${state.ready}`);
-        if (!state.body) issues.push('body missing');
-        if (state.sha !== expectedSha) issues.push(`SHA ${state.sha || 'absent'} instead of ${expectedSha}`);
-      }
-      throw new Error(issues.join(', '));
-    }
+    state = await waitForDocumentReadyState(session, assertNoEarlyHttpFailure);
+    assertDocumentStateReady(state);
 
-    const lastResponse = documentResponses.findLast(isTopLevelDocument) || null;
-    const lastRequest = documentRequests.findLast(isTopLevelDocument) || null;
-    const navigationMeta = {
-      httpStatus: lastResponse?.response?.status ?? null,
-      finalUrl: lastResponse?.response?.url || lastRequest?.request?.url || null,
-      redirectChain: [],
-      loaderId: lastResponse?.loaderId || topLoaderId,
-      frameId: topFrameId,
-    };
-    const effectiveLoaderId = lastResponse?.loaderId || topLoaderId;
-    for (const request of documentRequests) {
-      if (
-        isTopLevelDocument(request)
-        && request.redirectResponse
-        && request.loaderId === effectiveLoaderId
-      ) {
-        navigationMeta.redirectChain.push({
-          url: request.redirectResponse.url,
-          status: request.redirectResponse.status,
-        });
-      }
-    }
+    const navigationMeta = collectNavigationMeta(
+      documentRequests,
+      documentResponses,
+      topLoaderId,
+      topFrameId,
+      isTopLevelDocument
+    );
 
     session.navigation = assertDocumentNavigation(route, navigationMeta);
 
@@ -246,7 +267,7 @@ async function discoverRoutes(session) {
     const discovered = new Set(seed);
     const counts = { pages: 0, posts: 0, categories: 0, skipped_links: 0 };
 
-    function readCollectionTotalPages(header, endpoint) {
+    const readCollectionTotalPages = (header, endpoint) => {
       if (header === null) return null;
       const totalPages = Number(header);
       if (!Number.isInteger(totalPages) || totalPages < 1) return null;
@@ -256,9 +277,9 @@ async function discoverRoutes(session) {
         );
       }
       return totalPages;
-    }
+    };
 
-    async function responseIsInvalidPage(response) {
+    const responseIsInvalidPage = async (response) => {
       if (response.status !== 400) return false;
       try {
         const payload = await response.json();
@@ -266,51 +287,51 @@ async function discoverRoutes(session) {
       } catch {
         return false;
       }
-    }
+    };
 
-    async function fetchWpCollectionBrowser(endpoint) {
+    const fetchWpCollectionPage = async (endpoint, page) => {
+      const separator = endpoint.includes('?') ? '&' : '?';
+      const response = await fetch(
+        `${endpoint}${separator}per_page=${perPage}&page=${page}`,
+        { credentials: 'same-origin' },
+      );
+      if (!response.ok) {
+        if (await responseIsInvalidPage(response)) return null;
+        throw new Error(`REST collection failed: ${endpoint}, page=${page}, status=${response.status}`);
+      }
+      const totalPages = readCollectionTotalPages(response.headers.get('X-WP-TotalPages'), endpoint);
+      const items = await response.json();
+      if (!Array.isArray(items)) {
+        throw new TypeError(`REST collection returned non-array payload: ${endpoint}, page=${page}`);
+      }
+      return { items, totalPages };
+    };
+
+    const fetchWpCollectionBrowser = async (endpoint) => {
       const collected = [];
       let page = 1;
       while (page <= maxPages + 1) {
-        const separator = endpoint.includes('?') ? '&' : '?';
-        const response = await fetch(
-          `${endpoint}${separator}per_page=${perPage}&page=${page}`,
-          { credentials: 'same-origin' },
-        );
-        if (!response.ok) {
-          if (await responseIsInvalidPage(response)) break;
-          throw new Error(
-            `REST collection failed: ${endpoint}, page=${page}, status=${response.status}`,
-          );
-        }
-
-        const totalPages = readCollectionTotalPages(
-          response.headers.get('X-WP-TotalPages'),
-          endpoint,
-        );
-        const items = await response.json();
-        if (!Array.isArray(items)) {
-          throw new TypeError(`REST collection returned non-array payload: ${endpoint}, page=${page}`);
-        }
-        if (items.length === 0) break;
+        const pageData = await fetchWpCollectionPage(endpoint, page);
+        if (!pageData || pageData.items.length === 0) break;
+        
         if (page > maxPages) {
           throw new Error(
             `REST collection exceeds inferred pagination cap: endpoint=${endpoint}, probePage=${page}, maxPages=${maxPages}`,
           );
         }
 
-        collected.push(...items);
-        if (totalPages !== null) {
-          if (page >= totalPages) break;
-        } else if (items.length < perPage) {
+        collected.push(...pageData.items);
+        if (pageData.totalPages !== null) {
+          if (page >= pageData.totalPages) break;
+        } else if (pageData.items.length < perPage) {
           break;
         }
         page += 1;
       }
       return collected;
-    }
+    };
 
-    function addDiscoveredLink(link) {
+    const addDiscoveredLink = (link) => {
       if (typeof link !== 'string' || link.trim() === '') {
         counts.skipped_links += 1;
         return;
@@ -522,7 +543,7 @@ async function inspectPage(session) {
   }, canonicalPalette);
 }
 
-function evaluateResult(scope, result) {
+function evaluateCoreAndRouting(scope, result) {
   if (result.httpStatus !== undefined && !isSuccessfulHttpStatus(result.httpStatus)) {
     fail(scope, `HTTP ${result.httpStatus} at ${result.finalUrl || result.url || 'unknown'}`);
   }
@@ -531,6 +552,9 @@ function evaluateResult(scope, result) {
   if (!result.mainVisible) fail(scope, 'main content is missing or hidden');
   if (!result.headerVisible) fail(scope, 'global header is missing or hidden');
   if (!result.footerVisible) fail(scope, 'global footer is missing or hidden');
+}
+
+function evaluateContentAndMetrics(scope, result) {
   if (result.h1.length !== 1 || !result.h1[0]) fail(scope, `expected one visible H1, found ${JSON.stringify(result.h1)}`);
   const headingContract = routeHeadingContracts.get(result.route);
   if (headingContract?.exact && result.h1[0] !== headingContract.exact) {
@@ -542,19 +566,28 @@ function evaluateResult(scope, result) {
   if (result.overflow > horizontalOverflowTolerance) {
     fail(scope, `horizontal overflow is ${result.overflow}px; sources=${JSON.stringify(result.overflowingElements)}`);
   }
+  if (result.duplicateIds.length) fail(scope, `duplicate IDs: ${result.duplicateIds.join(', ')}`);
+  if (result.shellIssues.length) fail(scope, `misaligned or oversized shells: ${JSON.stringify(result.shellIssues)}`);
+  if (result.oversizedMedia) fail(scope, `${result.oversizedMedia} media elements exceed the viewport`);
+  if (result.emptyAnchorParagraphs) fail(scope, `${result.emptyAnchorParagraphs} empty paragraphs remain inside links`);
+  if (result.emptyParagraphs) warn(scope, `${result.emptyParagraphs} visible empty paragraphs remain`);
+  if (result.headingJumps) warn(scope, `${result.headingJumps} heading-level jumps detected`);
+}
+
+function evaluateStylingAndA11y(scope, result) {
   if (!result.fontsReady || !result.playfairLoaded || !result.manropeLoaded) fail(scope, 'canonical web fonts did not finish loading');
   if (!String(result.bodyFont).toLowerCase().includes('manrope')) fail(scope, `body font is ${result.bodyFont}`);
   if (result.headingFontMismatches.length) fail(scope, `non-canonical heading fonts: ${result.headingFontMismatches.join(', ')}`);
-  if (result.duplicateIds.length) fail(scope, `duplicate IDs: ${result.duplicateIds.join(', ')}`);
-  if (result.shellIssues.length) fail(scope, `misaligned or oversized shells: ${JSON.stringify(result.shellIssues)}`);
   if (result.controlIssues.length) fail(scope, `conversion controls violate size/type/radius contract: ${JSON.stringify(result.controlIssues)}`);
-  if (result.oversizedMedia) fail(scope, `${result.oversizedMedia} media elements exceed the viewport`);
-  if (result.emptyAnchorParagraphs) fail(scope, `${result.emptyAnchorParagraphs} empty paragraphs remain inside links`);
   if (result.unnamedControls.length) fail(scope, `controls have no accessible name: ${result.unnamedControls.join(', ')}`);
   if (result.missingAlt.length) warn(scope, `${result.missingAlt.length} visible images have no alt attribute`);
-  if (result.headingJumps) warn(scope, `${result.headingJumps} heading-level jumps detected`);
-  if (result.emptyParagraphs) warn(scope, `${result.emptyParagraphs} visible empty paragraphs remain`);
   if (result.offPalette.length) warn(scope, `non-canonical computed colors: ${result.offPalette.join(', ')}`);
+}
+
+function evaluateResult(scope, result) {
+  evaluateCoreAndRouting(scope, result);
+  evaluateContentAndMetrics(scope, result);
+  evaluateStylingAndA11y(scope, result);
 }
 
 async function auditRoute(port, route, viewport) {

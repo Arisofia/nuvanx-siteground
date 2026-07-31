@@ -455,6 +455,24 @@ function nvxClinicsFindBrandSectionAncestor( DOMElement $flow ): ?DOMElement {
     return $brand_section;
 }
 
+function nvxClinicsShouldHoistFlow( DOMElement $flow, DOMXPath $xpath ): ?DOMElement {
+    if ( ! $flow->parentNode ) {
+        return null;
+    }
+
+    $brand_section = nvxClinicsFindBrandSectionAncestor( $flow );
+    if ( ! $brand_section instanceof DOMElement || ! $brand_section->parentNode ) {
+        return null;
+    }
+
+    $nested = $xpath->query( './/section', $flow );
+    if ( false === $nested || $nested->length < 1 ) {
+        return null;
+    }
+
+    return $brand_section;
+}
+
 /**
  * Hoist multi-section stacks out of a single outer brand-section shell so each
  * block gets the same pad-section rhythm as Goya / Chamberí.
@@ -476,18 +494,12 @@ function nvxClinicsHoistSectionStack( DOMXPath $xpath ): ?DOMElement {
     $first = null;
 
     foreach ( iterator_to_array( $flows ) as $flow ) {
-        if ( ! $flow instanceof DOMElement || ! $flow->parentNode ) {
+        if ( ! $flow instanceof DOMElement ) {
             continue;
         }
 
-        $brand_section = nvxClinicsFindBrandSectionAncestor( $flow );
-        if ( ! $brand_section instanceof DOMElement || ! $brand_section->parentNode ) {
-            continue;
-        }
-
-        // Only hoist when this outer section is a wrapper (contains nested sections).
-        $nested = $xpath->query( './/section', $flow );
-        if ( false === $nested || $nested->length < 1 ) {
+        $brand_section = nvxClinicsShouldHoistFlow( $flow, $xpath );
+        if ( ! $brand_section ) {
             continue;
         }
 
@@ -625,6 +637,25 @@ function nvxClinicsIsPhoneOrWhatsappLink( string $href, string $text ): bool {
  * @param DOMDocument $dom The document containing the clinic hub markup.
  * @param DOMXPath $xpath XPath evaluator for locating links within the document.
  */
+function nvxClinicsLinkIsMapAction( string $href, string $text ): bool {
+    return (bool) preg_match( '/(?:google\.com\/maps|maps\.app|google maps|abrir .+ maps)/iu', $href . ' ' . $text );
+}
+
+function nvxClinicsLinkIsSecondaryAction( string $href, string $text ): bool {
+    return (bool) preg_match( '/equipo|ver todos|explorar|catálogo|catalogo/iu', $text . ' ' . $href );
+}
+
+function nvxClinicsLinkIsPrimaryAction( string $text ): bool {
+    return (bool) preg_match( '/valoraci[oó]n|ver sede|reservar/iu', $text );
+}
+
+function nvxClinicsCardLinkNeedsDemotion( string $text, DOMElement $link ): bool {
+    if ( preg_match( '/^(ver|reservar|solicitar|abrir)\b/iu', $text ) ) {
+        return false;
+    }
+    return (bool) preg_match( '/\bnvx-brand-card\b/i', nvxClinicsAncestorClassBlob( $link ) );
+}
+
 /** Classify and style single CTA link node. */
 function nvxClinicsClassifySingleCtaLink( DOMElement $link, string $href, string $text, string $class ): void {
     $is_btn = (bool) preg_match( '/\b(nvx-brand-btn|nvx-button|nvx-btn)\b/i', $class );
@@ -652,25 +683,23 @@ function nvxClinicsClassifySingleCtaLink( DOMElement $link, string $href, string
         return;
     }
 
-    if ( preg_match( '/(?:google\.com\/maps|maps\.app|google maps|abrir .+ maps)/iu', $href . ' ' . $text ) ) {
+    if ( nvxClinicsLinkIsMapAction( $href, $text ) ) {
         nvxClinicsSetBrandButton( $link, 'secondary', array( 'nvx-clinic-map-cta' ) );
         return;
     }
 
-    if ( preg_match( '/equipo|ver todos|explorar|catálogo|catalogo/iu', $text . ' ' . $href ) ) {
+    if ( nvxClinicsLinkIsSecondaryAction( $href, $text ) ) {
         nvxClinicsSetBrandButton( $link, 'secondary' );
         return;
     }
 
-    if ( $is_btn && preg_match( '/valoraci[oó]n|ver sede|reservar/iu', $text ) ) {
+    if ( $is_btn && nvxClinicsLinkIsPrimaryAction( $text ) ) {
         nvxClinicsSetBrandButton( $link, 'primary' );
         return;
     }
 
-    if ( $is_btn && preg_match( '/\bnvx-brand-card\b/i', nvxClinicsAncestorClassBlob( $link ) ) ) {
-        if ( ! preg_match( '/^(ver|reservar|solicitar|abrir)\b/iu', $text ) ) {
-            nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
-        }
+    if ( $is_btn && nvxClinicsCardLinkNeedsDemotion( $text, $link ) ) {
+        nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
     }
 }
 
@@ -795,6 +824,22 @@ function nvxSedeStripLayoutInlineStyles( string $content ): string {
 }
 add_filter( 'the_content', 'nvxSedeStripLayoutInlineStyles', 28 );
 
+function nvxClinicsBindLocationBlock( DOMXPath $xpath, DOMElement $heading, array $config ): ?DOMElement {
+    $block = nvxClinicsNearestBlock( $heading );
+    if ( ! $block ) {
+        return null;
+    }
+    
+    $article = $xpath->query( 'ancestor::article[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-card ")][1]', $heading );
+    if ( $article && $article->length && $article->item( 0 ) instanceof DOMElement ) {
+        $block = $article->item( 0 );
+    }
+    
+    $block->setAttribute( 'id', $config['id'] );
+    $block->setAttribute( 'class', trim( $block->getAttribute( 'class' ) . ' nvx-clinic-location' ) );
+    return $block;
+}
+
 /** Identify location block elements for clinics. */
 function nvxClinicsIdentifyLocationBlocks( DOMXPath $xpath, array $clinics ): array {
     $blocks = array();
@@ -804,14 +849,8 @@ function nvxClinicsIdentifyLocationBlocks( DOMXPath $xpath, array $clinics ): ar
             if ( isset( $blocks[ $key ] ) || ! preg_match( $config['match'], $text ) ) {
                 continue;
             }
-            $block = nvxClinicsNearestBlock( $heading );
+            $block = nvxClinicsBindLocationBlock( $xpath, $heading, $config );
             if ( $block ) {
-                $article = $xpath->query( 'ancestor::article[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-card ")][1]', $heading );
-                if ( $article && $article->length && $article->item( 0 ) instanceof DOMElement ) {
-                    $block = $article->item( 0 );
-                }
-                $block->setAttribute( 'id', $config['id'] );
-                $block->setAttribute( 'class', trim( $block->getAttribute( 'class' ) . ' nvx-clinic-location' ) );
                 $blocks[ $key ] = $block;
             }
         }
@@ -850,6 +889,25 @@ function nvxClinicsProcessMapActions( DOMDocument $dom, DOMXPath $xpath, array $
     }
 }
 
+function nvxClinicsFindNavAnchorInPage( DOMElement $page ): ?DOMElement {
+    foreach ( $page->childNodes as $child ) {
+        if ( ! $child instanceof DOMElement ) {
+            continue;
+        }
+        $c = $child->getAttribute( 'class' );
+        if ( nvxClinicsClassHasAny( $c, array( 'nvx-brand-hero' ) ) ) {
+            continue;
+        }
+        if (
+            nvxClinicsClassHasAny( $c, array( 'nvx-brand-section', 'nvx-content-flow' ) )
+            || in_array( strtolower( $child->tagName ), array( 'section', 'nav' ), true )
+        ) {
+            return $child;
+        }
+    }
+    return null;
+}
+
 /** Resolve parent+before insertion point for clinic nav. */
 function nvxClinicsNavInsertionPoint( DOMXPath $xpath, ?DOMElement $hoisted, ?DOMElement $layout_root ): array {
 	$insert_parent = null;
@@ -858,22 +916,7 @@ function nvxClinicsNavInsertionPoint( DOMXPath $xpath, ?DOMElement $hoisted, ?DO
 	$page = $xpath->query( '//*[contains(concat(" ", normalize-space(@class), " "), " nvx-brand-page ")]' )->item( 0 );
 	if ( $page instanceof DOMElement ) {
 		$insert_parent = $page;
-		foreach ( $page->childNodes as $child ) {
-			if ( ! $child instanceof DOMElement ) {
-				continue;
-			}
-			$c = $child->getAttribute( 'class' );
-			if ( nvxClinicsClassHasAny( $c, array( 'nvx-brand-hero' ) ) ) {
-				continue;
-			}
-			if (
-				nvxClinicsClassHasAny( $c, array( 'nvx-brand-section', 'nvx-content-flow' ) )
-				|| in_array( strtolower( $child->tagName ), array( 'section', 'nav' ), true )
-			) {
-				$insert_before = $child;
-				break;
-			}
-		}
+		$insert_before = nvxClinicsFindNavAnchorInPage( $page );
 	} elseif ( $hoisted instanceof DOMElement && $hoisted->parentNode ) {
 		$insert_parent = $hoisted->parentNode;
 		$insert_before = $hoisted;

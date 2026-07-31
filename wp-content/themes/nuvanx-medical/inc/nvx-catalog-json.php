@@ -113,27 +113,27 @@ function nvx_catalog_resolve_tokens(
 	array $custom_resolvers = array(),
 	array $object_resolvers = array()
 ): array {
+	$prefixes = array(
+		'`@nvx-t`:' => static function ( string $payload ) {
+			return '' === $payload ? '' : __( $payload, 'nuvanx-medical' );
+		},
+		'`@nvx-url`:' => static function ( string $payload ) {
+			return home_url( $payload );
+		},
+		'`@nvx-i18n`:' => static function ( string $payload ) {
+			$decoded = nvx_catalog_decode_token_payload( $payload, 'translation' );
+			return null === $decoded || '' === $decoded ? '' : __( $decoded, 'nuvanx-medical' );
+		},
+		'`@nvx-home`:' => static function ( string $payload ) {
+			$decoded = nvx_catalog_decode_token_payload( $payload, 'home URL' );
+			return null === $decoded ? '' : home_url( $decoded );
+		},
+	);
+	$resolvers = $prefixes + $custom_resolvers;
+
 	return nvx_catalog_transform_values(
 		$catalog,
-		static function ( string $value ) use ( $claim_resolver, $custom_resolvers ) {
-			$prefixes = array(
-				'@nvx-t:' => static function ( string $payload ) {
-					return '' === $payload ? '' : __( $payload, 'nuvanx-medical' );
-				},
-				'@nvx-url:' => static function ( string $payload ) {
-					return home_url( $payload );
-				},
-				'@nvx-i18n:' => static function ( string $payload ) {
-					$decoded = nvx_catalog_decode_token_payload( $payload, 'translation' );
-					return null === $decoded || '' === $decoded ? '' : __( $decoded, 'nuvanx-medical' );
-				},
-				'@nvx-home:' => static function ( string $payload ) {
-					$decoded = nvx_catalog_decode_token_payload( $payload, 'home URL' );
-					return null === $decoded ? '' : home_url( $decoded );
-				},
-			);
-
-			$resolvers = $prefixes + $custom_resolvers;
+		static function ( string $value ) use ( $claim_resolver, $resolvers ) {
 			foreach ( $resolvers as $prefix => $resolver ) {
 				if ( 0 === strpos( $value, $prefix ) ) {
 					return $resolver( substr( $value, strlen( $prefix ) ) );

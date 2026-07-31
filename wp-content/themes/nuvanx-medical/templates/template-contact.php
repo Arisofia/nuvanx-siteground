@@ -38,9 +38,9 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 ?>
 
 <div class="nvx-brand-page nvx-page--contact">
-	<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero nvx-equipo-hero nvx-equipo-hero--copy-only" aria-labelledby="nvx-contact-h1" aria-label="<?php esc_attr_e( 'Contacto NUVANX', 'nuvanx-medical' ); ?>">
+	<section class="nvx-brand-hero nvx-brand-hero--contact" aria-labelledby="nvx-contact-h1" aria-label="<?php esc_attr_e( 'Contacto NUVANX', 'nuvanx-medical' ); ?>">
 		<div class="nvx-brand-hero__inner">
-			<div class="nvx-brand-hero__copy nvx-equipo-hero-copy">
+			<div class="nvx-brand-hero__copy">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'Clínicas NUVANX · Madrid', 'nuvanx-medical' ); ?></p>
 				<h1 id="nvx-contact-h1" class="nvx-brand-hero__title">
 					<?php esc_html_e( 'Clínicas NUVANX en Madrid: Chamberí y Salamanca–Goya', 'nuvanx-medical' ); ?>
@@ -48,7 +48,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 				<p class="nvx-brand-hero__lead">
 					<?php esc_html_e( 'Consulta direcciones, teléfonos, WhatsApp, horarios y cómo llegar. Para estudiar tu caso, solicita una valoración médica.', 'nuvanx-medical' ); ?>
 				</p>
-				<div class="nvx-cta-pair nvx-equipo-hero-ctas">
+				<div class="nvx-cta-pair">
 					<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-brand-btn--primary">
 						<?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?>
 					</a>
@@ -65,12 +65,12 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 		</div>
 	</section>
 
-	<div class="nvx-equipo-editorial nvx-endolift-editorial">
-		<section class="nvx-endolift-section nvx-section--nap" aria-label="<?php esc_attr_e( 'Sedes y datos de contacto', 'nuvanx-medical' ); ?>">
-			<div class="nvx-endolift-section__inner">
-				<p class="nvx-endolift-kicker"><?php esc_html_e( 'Sedes autorizadas', 'nuvanx-medical' ); ?></p>
-				<h2 class="nvx-endolift-heading"><?php esc_html_e( 'Datos de contacto y centros sanitarios', 'nuvanx-medical' ); ?></h2>
-				<p class="nvx-endolift-body nvx-endolift-body--measure"><?php esc_html_e( 'Centros de medicina estética autorizados por la Consejería de Sanidad de la Comunidad de Madrid.', 'nuvanx-medical' ); ?></p>
+	<div class="nvx-brand-section-wrap">
+		<section class="nvx-brand-section nvx-section--nap" aria-label="<?php esc_attr_e( 'Sedes y datos de contacto', 'nuvanx-medical' ); ?>">
+			<div class="nvx-container">
+				<p class="nvx-brand-kicker"><?php esc_html_e( 'Sedes autorizadas', 'nuvanx-medical' ); ?></p>
+				<h2 class="nvx-heading"><?php esc_html_e( 'Datos de contacto y centros sanitarios', 'nuvanx-medical' ); ?></h2>
+				<p class="nvx-brand-lead"><?php esc_html_e( 'Centros de medicina estética autorizados por la Consejería de Sanidad de la Comunidad de Madrid.', 'nuvanx-medical' ); ?></p>
 
 				<div class="nvx-clinics-grid">
 					<article class="nvx-clinic-card nvx-brand-card" itemscope itemtype="https://schema.org/MedicalClinic">

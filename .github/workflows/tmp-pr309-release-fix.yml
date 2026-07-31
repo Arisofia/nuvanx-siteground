@@ -1,0 +1,403 @@
+name: Fix PR 309 release blockers once
+
+on:
+  push:
+    branches:
+      - refactor/sonar-legacy-duplication-phase2-20260731
+    paths:
+      - '.github/workflows/tmp-pr309-release-fix.yml'
+
+concurrency:
+  group: tmp-pr309-release-fix
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  fix:
+    if: github.repository == 'Arisofia/nuvanx-siteground' && github.ref == 'refs/heads/refactor/sonar-legacy-duplication-phase2-20260731'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout exact PR branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: refactor/sonar-legacy-duplication-phase2-20260731
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: none
+
+      - name: Apply validated release fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          ROOT = Path('.')
+
+          def read(path: str) -> str:
+              return (ROOT / path).read_text(encoding='utf-8')
+
+          def write(path: str, content: str) -> None:
+              (ROOT / path).write_text(content, encoding='utf-8')
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              source = read(path)
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one occurrence, found {count}: {old[:120]!r}')
+              write(path, source.replace(old, new, 1))
+
+          # 1. Restore a clean, deterministic page-render helper contract.
+          write('scripts/theme-hygiene/test-page-render-helpers.php', r'''<?php
+          declare(strict_types=1);
+
+          define('ABSPATH', __DIR__ . '/');
+
+          function esc_attr(string $value): string {
+              return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+          }
+
+          require_once dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc/nvx-page-render-helpers.php';
+
+          function nvx_page_helper_assert(bool $condition, string $message): void {
+              if (!$condition) {
+                  fwrite(STDERR, $message . "\n");
+                  exit(1);
+              }
+          }
+
+          $figure = '<figure class="nvx-brand-hero__media"><img src="figure.jpg" alt=""></figure>';
+          $division = '<div class="nvx-brand-hero__media"><img src="division.jpg" alt=""></div>';
+          $nestedDivision = '<div class="nvx-brand-hero__media"><div class="frame"><img src="nested.jpg" alt=""></div></div>';
+
+          nvx_page_helper_assert(
+              nvx_page_extract_brand_hero_media('<main>' . $figure . '</main>') === $figure,
+              'Figure hero media extraction changed.'
+          );
+          nvx_page_helper_assert(
+              nvx_page_extract_brand_hero_media('<main>' . $division . '</main>') === $division,
+              'Div hero media extraction changed.'
+          );
+          nvx_page_helper_assert(
+              nvx_page_extract_brand_hero_media('<main>' . $nestedDivision . '</main>') === $nestedDivision,
+              'Nested div hero media extraction changed.'
+          );
+          nvx_page_helper_assert(
+              nvx_page_extract_brand_hero_media('<main>' . $division . $figure . '</main>') === $figure,
+              'Canonical figure media must keep precedence over the legacy div slot.'
+          );
+          nvx_page_helper_assert(
+              nvx_page_extract_brand_hero_media('<main>No media</main>') === '',
+              'Missing hero media must return an empty string.'
+          );
+
+          $existing = '<div class="nvx-brand-page nvx-brand-page--existing" data-page="one"><p>old</p></div>';
+          nvx_page_helper_assert(
+              nvx_page_render_brand_wrapper($existing, '<section>new</section>')
+                  === '<div class="nvx-brand-page nvx-brand-page--existing" data-page="one"><section>new</section></div>',
+              'Existing brand wrapper was not preserved.'
+          );
+          nvx_page_helper_assert(
+              nvx_page_render_brand_wrapper('<p>plain</p>', '<section>new</section>')
+                  === '<div class="nvx-brand-page"><section>new</section></div>',
+              'Default brand wrapper changed.'
+          );
+          nvx_page_helper_assert(
+              nvx_page_render_brand_wrapper('<p>plain</p>', '<section>new</section>', 'nvx-brand-page nvx-brand-page--laser')
+                  === '<div class="nvx-brand-page nvx-brand-page--laser"><section>new</section></div>',
+              'Explicit fallback brand wrapper changed.'
+          );
+
+          $fallbackContracts = array(
+              'nvx-endolift-page.php' => 'nvx-brand-page nvx-brand-page--endolift',
+              'nvx-endolaser-page.php' => 'nvx-brand-page nvx-brand-page--endolaser',
+              'nvx-co2-page.php' => 'nvx-brand-page nvx-brand-page--co2',
+          );
+          foreach ($fallbackContracts as $filename => $fallbackClass) {
+              $source = (string) file_get_contents(
+                  dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc/' . $filename
+              );
+              nvx_page_helper_assert(
+                  str_contains($source, "'" . $fallbackClass . "'"),
+                  $filename . ' must preserve its page-specific fallback wrapper.'
+              );
+          }
+
+          $sectionOpen = nvx_page_brand_section_open_markup(
+              'nvx-example',
+              'example-title',
+              'nvx-example-grid',
+              array('id' => 'example-section')
+          );
+          nvx_page_helper_assert(
+              $sectionOpen === '<section class="nvx-brand-section nvx-example" aria-labelledby="example-title" id="example-section"><div class="nvx-shell nvx-brand-section__inner nvx-example-grid">',
+              'Canonical section opening markup changed.'
+          );
+          nvx_page_helper_assert(
+              nvx_page_brand_section_open_markup('', 'plain-title')
+                  === '<section class="nvx-brand-section" aria-labelledby="plain-title"><div class="nvx-shell nvx-brand-section__inner">',
+              'Canonical section opening without modifiers changed.'
+          );
+          foreach (array('data bad', 'onclick', 'class', 'aria-labelledby') as $attribute) {
+              nvx_page_helper_assert(
+                  strpos(
+                      nvx_page_brand_section_open_markup('', 'plain-title', '', array($attribute => 'unsafe')),
+                      $attribute . '="unsafe"'
+                  ) === false,
+                  'Disallowed section attribute was not discarded: ' . $attribute
+              );
+          }
+          nvx_page_helper_assert(
+              nvx_page_brand_section_heading_markup('Kicker', 'heading-id', 'Heading')
+                  === '<p class="nvx-brand-kicker">Kicker</p><h2 id="heading-id" class="nvx-brand-title">Heading</h2>',
+              'Canonical section heading markup changed.'
+          );
+
+          echo "Page render helper contract passed.\n";
+          ''')
+
+          # 2. Exact extraction contract for every @nvx-t string.
+          write('scripts/theme-hygiene/test-catalog-i18n-source-contract.php', r'''<?php
+          declare(strict_types=1);
+
+          if ($argc !== 2 || !is_readable($argv[1])) {
+              fwrite(STDERR, "Usage: php test-catalog-i18n-source-contract.php <generated-source.php>\n");
+              exit(1);
+          }
+
+          $expected = array();
+          $collect = static function ($value) use (&$collect, &$expected): void {
+              if (is_array($value)) {
+                  foreach ($value as $item) {
+                      $collect($item);
+                  }
+                  return;
+              }
+              if (is_string($value) && str_starts_with($value, '@nvx-t:')) {
+                  $message = substr($value, strlen('@nvx-t:'));
+                  if ('' !== $message) {
+                      $expected[$message] = true;
+                  }
+              }
+          };
+
+          $dataDir = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc/data';
+          foreach (glob($dataDir . '/*.json') ?: array() as $path) {
+              $decoded = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+              $collect($decoded);
+          }
+
+          $captured = array();
+          function __(string $message, string $domain = 'default'): string {
+              global $captured;
+              if ('nuvanx-medical' === $domain && '' !== $message) {
+                  $captured[$message] = true;
+              }
+              return $message;
+          }
+
+          require $argv[1];
+
+          $expectedMessages = array_keys($expected);
+          $capturedMessages = array_keys($captured);
+          sort($expectedMessages, SORT_STRING);
+          sort($capturedMessages, SORT_STRING);
+
+          if ($expectedMessages !== $capturedMessages) {
+              $missing = array_values(array_diff($expectedMessages, $capturedMessages));
+              $extra = array_values(array_diff($capturedMessages, $expectedMessages));
+              fwrite(STDERR, 'Generated catalog i18n source mismatch.' . PHP_EOL);
+              fwrite(STDERR, 'Missing: ' . json_encode($missing, JSON_UNESCAPED_UNICODE) . PHP_EOL);
+              fwrite(STDERR, 'Unexpected: ' . json_encode($extra, JSON_UNESCAPED_UNICODE) . PHP_EOL);
+              exit(1);
+          }
+
+          echo "Catalog i18n source contract passed.\n";
+          ''')
+
+          # 3. Document the readable-token-only extraction contract.
+          replace_once(
+              'scripts/theme-hygiene/generate-catalog-i18n-source.php',
+              " * Pipe this output to a PHP file before running `wp i18n make-pot`.\n */",
+              " * Pipe this output to a PHP file before running `wp i18n make-pot`.\n *\n * Only readable `@nvx-t:` values are extracted. Legacy `@nvx-i18n:` Base64\n * tokens are forbidden by the catalog review contract and must not be added.\n */"
+          )
+
+          # 4. Deterministic resolver precedence and locale/resolver-aware caching.
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-catalog-json.php',
+              "\t$resolvers = $prefixes + $custom_resolvers;\n\n\treturn nvx_catalog_transform_values(",
+              "\t$resolvers = $prefixes + $custom_resolvers;\n\tuksort(\n\t\t$resolvers,\n\t\tstatic function ( string $left, string $right ): int {\n\t\t\treturn strlen( $right ) <=> strlen( $left );\n\t\t}\n\t);\n\n\treturn nvx_catalog_transform_values("
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-catalog-json.php',
+              "\t$key = '' === $cache_key ? basename( $filename ) : $cache_key;\n\tif ( ! array_key_exists( $key, $resolved ) ) {",
+              "\t$locale = '';\n\tif ( function_exists( 'determine_locale' ) ) {\n\t\t$locale = (string) determine_locale();\n\t}\n\tif ( '' === $locale && function_exists( 'get_locale' ) ) {\n\t\t$locale = (string) get_locale();\n\t}\n\n\t$custom_keys = array_keys( $custom_resolvers );\n\t$object_keys = array_keys( $object_resolvers );\n\tsort( $custom_keys, SORT_STRING );\n\tsort( $object_keys, SORT_STRING );\n\t$resolver_signature = implode( ',', $custom_keys )\n\t\t. '|' . implode( ',', $object_keys )\n\t\t. '|' . ( null === $claim_resolver ? '0' : '1' );\n\t$base_key = '' === $cache_key\n\t\t? basename( $filename ) . '|' . $resolver_signature\n\t\t: $cache_key;\n\t$key = $base_key . '|locale:' . $locale;\n\n\tif ( ! array_key_exists( $key, $resolved ) ) {"
+          )
+
+          # 5. Restore the intended legacy team-section fallback.
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php',
+              "\tif ( false === $offset ) {\n\t\t$marker = '<section class=\"nvx-brand-section nvx-equipo-staff\"';\n\t\t$offset = strpos( $content, $marker );\n\t}",
+              "\tif ( false === $offset ) {\n\t\t$marker = '<section class=\"nvx-endolift-section nvx-equipo-staff\"';\n\t\t$offset = strpos( $content, $marker );\n\t}"
+          )
+
+          # 6. Make wrapper fallback structural and whitelist only supported section attributes.
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-page-render-helpers.php',
+              "\tstring $fallback_class = ''\n): string {",
+              "\tstring $fallback_class = 'nvx-brand-page'\n): string {"
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-page-render-helpers.php',
+              "\tif ( '' !== $fallback_class ) {\n\t\treturn '<div class=\"' . esc_attr( $fallback_class ) . '\">' . $inner_markup . '</div>';\n\t}\n\n\treturn $inner_markup;",
+              "\tif ( '' === trim( $fallback_class ) ) {\n\t\t$fallback_class = 'nvx-brand-page';\n\t}\n\n\treturn '<div class=\"' . esc_attr( $fallback_class ) . '\">' . $inner_markup . '</div>';"
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-page-render-helpers.php',
+              "\t$html = '<section class=\"' . esc_attr( $section_classes ) . '\" aria-labelledby=\"' . esc_attr( $labelledby ) . '\"';\n\tforeach ( $section_attributes as $attribute => $value ) {\n\t\tif ( ! preg_match( '/^[a-zA-Z_:][a-zA-Z0-9:._-]*$/', $attribute ) ) {\n\t\t\tcontinue;\n\t\t}\n\t\t$html .= ' ' . $attribute . '=\"' . esc_attr( $value ) . '\"';\n\t}",
+              "\t$html = '<section class=\"' . esc_attr( $section_classes ) . '\" aria-labelledby=\"' . esc_attr( $labelledby ) . '\"';\n\t$allowed_attributes = array( 'id' );\n\tforeach ( $section_attributes as $attribute => $value ) {\n\t\tif ( ! is_string( $attribute ) || ! in_array( $attribute, $allowed_attributes, true ) ) {\n\t\t\tcontinue;\n\t\t}\n\t\t$html .= ' ' . $attribute . '=\"' . esc_attr( $value ) . '\"';\n\t}"
+          )
+
+          # 7. Explicit page-specific wrappers.
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-endolaser-page.php',
+              "\treturn nvx_page_render_brand_wrapper( $content, $hero . $body );",
+              "\treturn nvx_page_render_brand_wrapper(\n\t\t$content,\n\t\t$hero . $body,\n\t\t'nvx-brand-page nvx-brand-page--endolaser'\n\t);"
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-co2-page.php',
+              "if ( ! defined( 'ABSPATH' ) ) {\n\texit;\n}\n",
+              "if ( ! defined( 'ABSPATH' ) ) {\n\texit;\n}\n\nrequire_once __DIR__ . '/nvx-page-render-helpers.php';\n"
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-co2-page.php',
+              "\trequire_once __DIR__ . '/nvx-page-render-helpers.php';\n\t$media = nvx_page_extract_brand_hero_media( $content );",
+              "\t$media = nvx_page_extract_brand_hero_media( $content );"
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-co2-page.php',
+              "\treturn nvx_page_render_brand_wrapper( $content, $hero . $body );",
+              "\treturn nvx_page_render_brand_wrapper(\n\t\t$content,\n\t\t$hero . $body,\n\t\t'nvx-brand-page nvx-brand-page--co2'\n\t);"
+          )
+
+          # 8. Consolidate the four CO2 section openings/headings.
+          co2_sections = [
+              (
+                  "\t$html .= '<section class=\"nvx-brand-section nvx-co2-science\" aria-labelledby=\"nvx-co2-science-title\">';\n\t$html .= '<div class=\"nvx-shell nvx-brand-section__inner\">';\n\t$html .= '<p class=\"nvx-brand-kicker\">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';\n\t$html .= '<h2 id=\"nvx-co2-science-title\" class=\"nvx-brand-title\">' . esc_html__( 'La ciencia de la ablación fraccionada', 'nuvanx-medical' ) . '</h2>';",
+                  "\t$html .= nvx_page_brand_section_open_markup( 'nvx-co2-science', 'nvx-co2-science-title' );\n\t$html .= nvx_page_brand_section_heading_markup(\n\t\tesc_html__( 'Mecanismo', 'nuvanx-medical' ),\n\t\t'nvx-co2-science-title',\n\t\tesc_html__( 'La ciencia de la ablación fraccionada', 'nuvanx-medical' )\n\t);"
+              ),
+              (
+                  "\t$html .= '<section class=\"nvx-brand-section nvx-co2-indications\" aria-labelledby=\"nvx-co2-ind-title\">';\n\t$html .= '<div class=\"nvx-shell nvx-brand-section__inner\">';\n\t$html .= '<p class=\"nvx-brand-kicker\">' . esc_html__( 'Indicaciones', 'nuvanx-medical' ) . '</p>';\n\t$html .= '<h2 id=\"nvx-co2-ind-title\" class=\"nvx-brand-title\">' . esc_html__( 'Indicaciones terapéuticas principales', 'nuvanx-medical' ) . '</h2>';",
+                  "\t$html .= nvx_page_brand_section_open_markup( 'nvx-co2-indications', 'nvx-co2-ind-title' );\n\t$html .= nvx_page_brand_section_heading_markup(\n\t\tesc_html__( 'Indicaciones', 'nuvanx-medical' ),\n\t\t'nvx-co2-ind-title',\n\t\tesc_html__( 'Indicaciones terapéuticas principales', 'nuvanx-medical' )\n\t);"
+              ),
+              (
+                  "\t$html .= '<section class=\"nvx-brand-section nvx-co2-downtime\" aria-labelledby=\"nvx-co2-down-title\">';\n\t$html .= '<div class=\"nvx-shell nvx-brand-section__inner\">';\n\t$html .= '<p class=\"nvx-brand-kicker\">' . esc_html__( 'Downtime médico', 'nuvanx-medical' ) . '</p>';\n\t$html .= '<h2 id=\"nvx-co2-down-title\" class=\"nvx-brand-title\">' . esc_html__( 'Cronología real de la recuperación', 'nuvanx-medical' ) . '</h2>';",
+                  "\t$html .= nvx_page_brand_section_open_markup( 'nvx-co2-downtime', 'nvx-co2-down-title' );\n\t$html .= nvx_page_brand_section_heading_markup(\n\t\tesc_html__( 'Downtime médico', 'nuvanx-medical' ),\n\t\t'nvx-co2-down-title',\n\t\tesc_html__( 'Cronología real de la recuperación', 'nuvanx-medical' )\n\t);"
+              ),
+              (
+                  "\t$html .= '<section class=\"nvx-brand-section nvx-co2-pricing\" aria-labelledby=\"nvx-co2-price-title\" id=\"tarifas-co2\">';\n\t$html .= '<div class=\"nvx-shell nvx-brand-section__inner\">';\n\t$html .= '<p class=\"nvx-brand-kicker\">' . esc_html__( 'Tarifas públicas', 'nuvanx-medical' ) . '</p>';\n\t$html .= '<h2 id=\"nvx-co2-price-title\" class=\"nvx-brand-title\">' . esc_html__( 'PVP sesión Láser CO₂ (IVA incluido)', 'nuvanx-medical' ) . '</h2>';",
+                  "\t$html .= nvx_page_brand_section_open_markup(\n\t\t'nvx-co2-pricing',\n\t\t'nvx-co2-price-title',\n\t\t'',\n\t\tarray( 'id' => 'tarifas-co2' )\n\t);\n\t$html .= nvx_page_brand_section_heading_markup(\n\t\tesc_html__( 'Tarifas públicas', 'nuvanx-medical' ),\n\t\t'nvx-co2-price-title',\n\t\tesc_html__( 'PVP sesión Láser CO₂ (IVA incluido)', 'nuvanx-medical' )\n\t);"
+              ),
+          ]
+          for old, new in co2_sections:
+              replace_once('wp-content/themes/nuvanx-medical/inc/nvx-co2-page.php', old, new)
+
+          # 9. Validate every editable JSON record before public consumption.
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-treatment-pages.php',
+              "\t\t\tarray( 'slug', 'h1', 'description', 'faqs', 'schema' ),",
+              "\t\t\tarray(\n\t\t\t\t'slug',\n\t\t\t\t'kicker',\n\t\t\t\t'h1',\n\t\t\t\t'lead',\n\t\t\t\t'description',\n\t\t\t\t'diagnosis',\n\t\t\t\t'indications',\n\t\t\t\t'precautions',\n\t\t\t\t'mechanism',\n\t\t\t\t'process',\n\t\t\t\t'evolution',\n\t\t\t\t'risks',\n\t\t\t\t'combinations',\n\t\t\t\t'faqs',\n\t\t\t\t'schema',\n\t\t\t),"
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-faq-content-v2.php',
+              "\treturn nvx_catalog_json_resolved( 'home-faq-v2.json' );",
+              "\treturn nvx_catalog_filter_records(\n\t\tnvx_catalog_json_resolved( 'home-faq-v2.json' ),\n\t\tarray( 'id', 'q', 'a' ),\n\t\t'home-faq-v2.json'\n\t);"
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-treatment-hub-schema.php',
+              "\t// Raw JSON intentionally preserves the previous non-translated schema labels.\n\t$definitions = nvx_catalog_json_load( 'treatment-hub-schema.json' );",
+              "\t// Raw JSON intentionally preserves the previous non-translated schema labels.\n\t$definitions = nvx_catalog_filter_records(\n\t\tnvx_catalog_json_load( 'treatment-hub-schema.json' ),\n\t\tarray( 'path', 'types', 'key', 'name', 'description' ),\n\t\t'treatment-hub-schema.json'\n\t);"
+          )
+
+          # 10. Reuse balanced hero extraction and shared wrapper rendering for BTL pages.
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php',
+              "\t// Same media sources as Endolift / Endoláser / CO₂: content figure, then featured image.\n\t$media = '';\n\tif ( preg_match( '/<figure class=\"nvx-brand-hero__media\"[\\s\\S]*?<\\/figure>/iu', $content, $m ) ) {\n\t\t$media = $m[0];\n\t} elseif ( preg_match( '/<div class=\"nvx-brand-hero__media\"[\\s\\S]*?<\\/div>/iu', $content, $m ) ) {\n\t\t$media = $m[0];\n\t} elseif ( has_post_thumbnail() ) {",
+              "\t// Same media sources as Endolift / Endoláser / CO₂: content slot, then featured image.\n\t$media = nvx_page_extract_brand_hero_media( $content );\n\tif ( '' === $media && has_post_thumbnail() ) {"
+          )
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php',
+              "\tif ( preg_match( '/(<div class=\"nvx-brand-page[^\"]*\"[^>]*>)/iu', $content, $wrap ) ) {\n\t\t$open = $wrap[1];\n\t\t$mod  = 'nvx-brand-page--' . sanitize_html_class( $key );\n\t\tif ( false === strpos( $open, $mod ) ) {\n\t\t\t$open = preg_replace( '/\\bclass=([\"\\'])/u', 'class=$1' . $mod . ' ', $open, 1 ) ?? $open;\n\t\t}\n\t\treturn $open . $built . '</div>';\n\t}\n\n\treturn '<div class=\"nvx-brand-page nvx-brand-page--' . esc_attr( $key ) . '\">' . $built . '</div>';",
+              "\t$modifier = 'nvx-brand-page--' . sanitize_html_class( $key );\n\tif ( preg_match( '/(<div class=\"nvx-brand-page[^\"]*\"[^>]*>)/iu', $content, $wrap ) ) {\n\t\t$opening = $wrap[1];\n\t\tif ( false === strpos( $opening, $modifier ) ) {\n\t\t\t$updated = preg_replace( '/\\bclass=([\"\\'])/u', 'class=$1' . $modifier . ' ', $opening, 1 ) ?? $opening;\n\t\t\t$content = preg_replace( '/<div class=\"nvx-brand-page[^\"]*\"[^>]*>/iu', $updated, $content, 1 ) ?? $content;\n\t\t}\n\t}\n\n\treturn nvx_page_render_brand_wrapper(\n\t\t$content,\n\t\t$built,\n\t\t'nvx-brand-page ' . $modifier\n\t);"
+          )
+
+          # 11. Correct the hidden foreach formatting regression.
+          replace_once(
+              'wp-content/themes/nuvanx-medical/inc/nvx-contacto-valoracion-page.php',
+              "\t$html .= '<ol class=\"nvx-treatment-process__steps nvx-valoracion-steps\">';\tforeach ( nvx_valoracion_process_steps() as $step ) {\n\t\t$html .= '<li class=\"nvx-treatment-process__step\">';\n\t\t$html .= '<h3 class=\"nvx-treatment-process__step-title\">' . esc_html( $step['title'] ) . '</h3>';\n\t\t$html .= '<p class=\"nvx-body\">' . esc_html( $step['body'] ) . '</p>';\n\t\t$html .= '</li>';\t}",
+              "\t$html .= '<ol class=\"nvx-treatment-process__steps nvx-valoracion-steps\">';\n\tforeach ( nvx_valoracion_process_steps() as $step ) {\n\t\t$html .= '<li class=\"nvx-treatment-process__step\">';\n\t\t$html .= '<h3 class=\"nvx-treatment-process__step-title\">' . esc_html( $step['title'] ) . '</h3>';\n\t\t$html .= '<p class=\"nvx-body\">' . esc_html( $step['body'] ) . '</p>';\n\t\t$html .= '</li>';\n\t}"
+          )
+
+          # 12. Define the canonical body primitives used by migrated pages.
+          replace_once(
+              'wp-content/themes/nuvanx-medical/assets/css/nvx-components.css',
+              ".nvx-copy,.nvx-brand-body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}",
+              ".nvx-copy,.nvx-brand-body,.nvx-body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}\n.nvx-body{margin:0 0 var(--nvx-margin-body)}\n.nvx-body--measure{max-width:var(--nvx-measure)}"
+          )
+
+          # 13. Pin PHP in permanent CI and use the contextual extraction contract.
+          replace_once(
+              '.github/workflows/theme-hygiene-gate.yml',
+              "      - name: Lint all theme PHP\n",
+              "      - name: Set up PHP 8.2\n        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f\n        with:\n          php-version: '8.2'\n          coverage: none\n          tools: none\n\n      - name: Lint all theme PHP\n"
+          )
+          replace_once(
+              '.github/workflows/theme-hygiene-gate.yml',
+              "          grep -Fq 'Fototermólisis selectiva' /tmp/nvx-catalog-i18n.php",
+              "          php scripts/theme-hygiene/test-catalog-i18n-source-contract.php /tmp/nvx-catalog-i18n.php"
+          )
+          PY
+
+      - name: Validate all permanent contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l scripts/theme-hygiene/test-page-render-helpers.php
+          php -l scripts/theme-hygiene/test-catalog-i18n-source-contract.php
+          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n 1 php -l
+          php scripts/theme-hygiene/test-catalog-json-contract.php
+          php scripts/theme-hygiene/test-catalog-json-runtime-contract.php
+          php scripts/theme-hygiene/test-catalog-review-contract.php
+          php scripts/theme-hygiene/test-page-render-helpers.php
+          php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
+          php -l /tmp/nvx-catalog-i18n.php
+          php scripts/theme-hygiene/test-catalog-i18n-source-contract.php /tmp/nvx-catalog-i18n.php
+          node --check scripts/theme-hygiene/test-theme-hygiene.mjs
+          node scripts/theme-hygiene/test-theme-hygiene.mjs
+
+      - name: Commit fixes and remove one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/tmp-pr309-release-fix.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git diff --cached --quiet && {
+            echo 'No release fixes remained to commit.'
+            exit 0
+          }
+          git commit -m 'fix(release): close PR 309 production blockers'
+          git push origin HEAD:refactor/sonar-legacy-duplication-phase2-20260731

@@ -173,6 +173,9 @@ add_action(
 		echo '<link rel="preconnect" href="https://fonts.googleapis.com" />' . "\n";
 		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n";
 		echo '<link rel="preconnect" href="https://forms-eu1.hsforms.com" crossorigin />' . "\n";
+		echo '<link rel="preconnect" href="https://js-eu1.hsforms.net" crossorigin />' . "\n";
+		echo '<link rel="preload" as="font" href="https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggexSvfedN4.woff2" type="font/woff2" crossorigin />' . "\n";
+		echo '<link rel="preload" as="font" href="https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgEM86xQ.woff2" type="font/woff2" crossorigin />' . "\n";
 
 		if ( is_front_page() ) {
 			$poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );

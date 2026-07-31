@@ -216,8 +216,11 @@
   border-left: var(--nvx-border-focus) solid transparent;
 }
 
-.nvx-nav__list .sub-menu a::after,
-.nvx-nav__list .sub-menu a::before {
+.nvx-nav__list .sub-menu a::after {
+  display: none;
+}
+
+.nvx-nav__list .sub-menu li:not(.menu-item-has-children) > a::before {
   display: none;
 }
 

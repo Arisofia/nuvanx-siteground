@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened, labeled]
     paths:
       - '.github/workflows/institutional-headers-form-qa.yml'
-      - 'scripts/staging2/audit-institutional-headers-form.mjs'
+      - 'scripts/staging2/audit-institutional-headers-form-v2.mjs'
       - 'scripts/staging2/institutional-qa-external-assets-preload.mjs'
       - 'scripts/staging2/visual-qa-common.mjs'
       - 'scripts/staging2/visual-qa-edge-preload.mjs'
@@ -51,7 +51,7 @@ jobs:
       - name: Validate QA and MU-plugin syntax
         run: |
           set -euo pipefail
-          node --check scripts/staging2/audit-institutional-headers-form.mjs
+          node --check scripts/staging2/audit-institutional-headers-form-v2.mjs
           node --check scripts/staging2/institutional-qa-external-assets-preload.mjs
           php -l wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php
 
@@ -162,9 +162,9 @@ jobs:
             --import=${{ github.workspace }}/scripts/staging2/institutional-qa-external-assets-preload.mjs
         run: |
           set -euo pipefail
-          node scripts/staging2/audit-institutional-headers-form.mjs \
+          node scripts/staging2/audit-institutional-headers-form-v2.mjs \
             2>&1 | tee "$EVIDENCE_DIR/qa.log"
-          grep -Fq 'INSTITUTIONAL_HEADERS_FORM_QA_OK' "$EVIDENCE_DIR/qa.log"
+          grep -Fq 'INSTITUTIONAL_HEADERS_FORM_QA_V2_OK' "$EVIDENCE_DIR/qa.log"
 
       - name: Upload QA evidence
         if: always()

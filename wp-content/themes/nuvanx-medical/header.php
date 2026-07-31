@@ -30,7 +30,7 @@ $nvx_valoracion_cta_class = 'nvx-btn nvx-btn--primary' . ( $nvx_valoracion_cta_m
       <?php
       $logo_id = get_theme_mod( 'custom_logo' );
       if ( $logo_id ) :
-        echo wp_get_attachment_image( $logo_id, array( 150, 150 ), false, array( 'class' => 'nvx-logo__img', 'alt' => 'NUVANX', 'fetchpriority' => 'high' ) );
+        echo wp_get_attachment_image( $logo_id, 'thumbnail', false, array( 'class' => 'nvx-logo__img', 'alt' => 'NUVANX', 'fetchpriority' => 'high' ) );
       else :
         ?>
       <span class="nvx-logo__wordmark" aria-hidden="true">NUVANX</span>

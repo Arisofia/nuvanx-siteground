@@ -17,11 +17,11 @@ if ( ! defined( 'NVX_VALORACION_HS_FRAME_REGION' ) ) {
     define( 'NVX_VALORACION_HS_FRAME_REGION', 'eu1' );
 }
 
-function nvx_valoracion_native_hubspot_is_target_page(): bool {
+function nvxValoracionNativeHubspotIsTargetPage(): bool {
     return is_page( 2636 ) || is_page( 'valoracion' );
 }
 
-function nvx_valoracion_native_hubspot_mount_markup(): string {
+function nvxValoracionNativeHubspotMountMarkup(): string {
     $portal_id   = preg_replace( '/\D+/', '', (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
     $form_id     = strtolower( trim( (string) NVX_VALORACION_HS_FRAME_FORM_ID ) );
     $region      = preg_replace( '/[^a-z0-9-]/i', '', (string) NVX_VALORACION_HS_FRAME_REGION );
@@ -200,7 +200,7 @@ JS;
 }
 
 /** @return array{start:int,length:int}|null */
-function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?array {
+function nvxValoracionBalancedDivRange( string $html, int $open_offset ): ?array {
     if ( $open_offset < 0
         || ! preg_match( '/\G<div\b[^>]*>/i', $html, $opening, 0, $open_offset )
         || ! preg_match_all( '/<div\b[^>]*>|<\/div\s*>/i', $html, $tokens, PREG_OFFSET_CAPTURE, $open_offset )
@@ -223,7 +223,7 @@ function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?a
     return null;
 }
 
-function nvx_valoracion_remove_divs_by_class( string $html, string $class_token ): string {
+function nvxValoracionRemoveDivsByClass( string $html, string $class_token ): string {
     $pattern = '/<div\b(?=[^>]*\bclass=["\'][^"\']*\b'
         . preg_quote( $class_token, '/' )
         . '\b[^"\']*["\'])[^>]*>/i';
@@ -234,7 +234,7 @@ function nvx_valoracion_remove_divs_by_class( string $html, string $class_token 
 
     $ranges = array();
     foreach ( $matches[0] as $match ) {
-        $range = nvx_valoracion_balanced_div_range( $html, (int) $match[1] );
+        $range = nvxValoracionBalancedDivRange( $html, (int) $match[1] );
         if ( is_array( $range ) ) {
             $ranges[] = $range;
         }
@@ -246,7 +246,7 @@ function nvx_valoracion_remove_divs_by_class( string $html, string $class_token 
     return $html;
 }
 
-function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): string {
+function nvxValoracionNativeHubspotEnforceSingleMount( string $html ): string {
     $mount_pattern = '/<div\b[^>]*\bid=["\']nvx-hubspot-native-form["\'][^>]*>/i';
     if ( ! preg_match_all( $mount_pattern, $html, $mounts, PREG_OFFSET_CAPTURE ) || empty( $mounts[0] ) ) {
         return $html;
@@ -254,7 +254,7 @@ function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): str
 
     $ranges = array();
     foreach ( $mounts[0] as $mount ) {
-        $range = nvx_valoracion_balanced_div_range( $html, (int) $mount[1] );
+        $range = nvxValoracionBalancedDivRange( $html, (int) $mount[1] );
         if ( is_array( $range ) ) {
             $range['opening'] = (string) $mount[0];
             $ranges[]         = $range;
@@ -278,19 +278,19 @@ function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): str
 
     $html = preg_replace( '#<script\b[^>]*\bsrc=["\'][^"\']*hsforms\.net/[^"\']*["\'][^>]*>\s*</script>#iu', '', $html ) ?? $html;
     $html = preg_replace( '#<iframe\b[^>]*(?:hsforms|hubspot)[^>]*>[\s\S]*?</iframe>#iu', '', $html ) ?? $html;
-    $html = nvx_valoracion_remove_divs_by_class( $html, 'hs-form-frame' );
-    $html = nvx_valoracion_remove_divs_by_class( $html, 'hbspt-form' );
-    $html = nvx_valoracion_remove_divs_by_class( $html, 'nvx-hubspot-native-form-v2' );
+    $html = nvxValoracionRemoveDivsByClass( $html, 'hs-form-frame' );
+    $html = nvxValoracionRemoveDivsByClass( $html, 'hbspt-form' );
+    $html = nvxValoracionRemoveDivsByClass( $html, 'nvx-hubspot-native-form-v2' );
 
-    $canonical = $first_opening . nvx_valoracion_native_hubspot_mount_markup() . '</div>';
+    $canonical = $first_opening . nvxValoracionNativeHubspotMountMarkup() . '</div>';
     return str_replace( $marker, $canonical, $html );
 }
 
 add_action(
     'template_redirect',
     static function (): void {
-        if ( nvx_valoracion_native_hubspot_is_target_page() ) {
-            ob_start( 'nvx_valoracion_native_hubspot_enforce_single_mount' );
+        if ( nvxValoracionNativeHubspotIsTargetPage() ) {
+            ob_start( 'nvxValoracionNativeHubspotEnforceSingleMount' );
         }
     },
     1
@@ -299,7 +299,7 @@ add_action(
 add_action(
     'wp_footer',
     static function (): void {
-        if ( nvx_valoracion_native_hubspot_is_target_page() ) {
+        if ( nvxValoracionNativeHubspotIsTargetPage() ) {
             echo '<script>window.nuvanxValoracionForm=true;</script>' . "\n";
         }
     },

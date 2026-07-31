@@ -38,7 +38,7 @@ body.nvx-blog-context {
 }
 
 .nvx-blog-archive__title {
-  max-width: 16ch;
+  max-width: none;
   margin: 0 0 var(--nvx-margin-h1);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h1);

@@ -1,29 +1,32 @@
 name: Apply PR 305 review fixes
 
 on:
-  push:
-    branches:
-      - fix/institutional-headers-hubspot-form-20260731
+  pull_request:
+    types: [synchronize]
     paths:
-      - scripts/maintenance/apply-pr305-review-fixes.py.b64
+      - '.github/workflows/pr305-review-fixes.yml'
+      - 'scripts/maintenance/apply-pr305-review-fixes.py.b64'
 
 permissions:
   contents: write
 
 concurrency:
-  group: pr305-review-fixes
+  group: pr305-review-fixes-${{ github.event.pull_request.number }}
   cancel-in-progress: false
 
 jobs:
   apply:
-    if: github.actor == github.repository_owner
+    if: >-
+      github.event.pull_request.number == 305 &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login == github.repository_owner
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Check out review branch
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: fix/institutional-headers-hubspot-form-20260731
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
       - name: Apply deterministic review fixes

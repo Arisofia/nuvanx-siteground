@@ -6,8 +6,8 @@ on:
     paths:
       - '.github/workflows/institutional-headers-form-qa.yml'
       - 'scripts/staging2/audit-institutional-headers-form.mjs'
+      - 'scripts/staging2/institutional-qa-edge-preload.mjs'
       - 'scripts/staging2/visual-qa-common.mjs'
-      - 'scripts/staging2/visual-qa-edge-preload.mjs'
       - 'wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php'
       - 'wp-content/themes/nuvanx-medical/**'
 
@@ -44,6 +44,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check scripts/staging2/audit-institutional-headers-form.mjs
+          node --check scripts/staging2/institutional-qa-edge-preload.mjs
           php -l wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php
 
       - name: Configure strict SiteGround SSH
@@ -142,14 +143,13 @@ jobs:
           cd "$wp_root"
           wp cache flush || true
           wp sg purge || true
-          wp sg optimize purge || true
           echo "STAGING2_VALORACION_MU_PLUGIN_OK backup=$backup_dir"
           REMOTE
           grep -Fq 'STAGING2_VALORACION_MU_PLUGIN_OK' "$EVIDENCE_DIR/mu-plugin-install.log"
 
       - name: Audit institutional headers and HubSpot form
         env:
-          NODE_OPTIONS: --import=${{ github.workspace }}/scripts/staging2/visual-qa-edge-preload.mjs
+          NODE_OPTIONS: --import=${{ github.workspace }}/scripts/staging2/institutional-qa-edge-preload.mjs
         run: |
           set -euo pipefail
           node scripts/staging2/audit-institutional-headers-form.mjs \

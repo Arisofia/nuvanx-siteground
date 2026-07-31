@@ -37,98 +37,30 @@ function nvx_content_is_treatments_index( string $content ): bool {
  * @return array<int, array{key:string,label:string,items:array<int,array{meta:string,title:string,body:string,url:string}>}>
  */
 function nvx_treatments_catalog_data(): array {
-	return array(
-		array(
-			'key'   => 'remodelacion',
-			'label' => 'Remodelación láser y contorno',
-			'items' => array(
-				array(
-					'meta'  => '01 / Láser facial',
-					'title' => 'Endolift® Facial',
-					'body'  => 'Tensado progresivo del óvalo facial, la línea mandibular y la papada mediante microfibras ópticas estériles de 200 a 300 micras.',
-					'url'   => home_url( '/endolift-facial-papada-mandibula/' ),
-				),
-				array(
-					'meta'  => '02 / Láser corporal',
-					'title' => 'Endoláser Corporal',
-					'body'  => 'Reducción de grasa localizada y mejora de firmeza con protocolo láser progresivo, adaptado a la silueta y al diagnóstico médico.',
-					'url'   => home_url( '/endolaser-corporal-grasa-localizada/' ),
-				),
-			),
-		),
-		array(
-			'key'   => 'regeneracion',
-			'label' => 'Regeneración cutánea y calidad de piel',
-			'items' => array(
-				array(
-					'meta'  => '03 / Renovación cutánea',
-					'title' => 'Láser CO₂ Fraccionado',
-					'body'  => 'Vaporización fraccionada de alta precisión para textura, poros, cicatrices y rejuvenecimiento controlado de la piel.',
-					'url'   => home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ),
-				),
-				array(
-					'meta'  => '04 / Plataforma EXION®',
-					'title' => 'EXION® BTL (hub)',
-					'body'  => 'Plataforma médica con aplicadores Fractional RF, Face y Body. Cada modalidad tiene mecanismo, profundidad, recuperación y objetivos distintos; la indicación se define por diagnóstico.',
-					'url'   => home_url( '/exion-btl/' ),
-				),
-				array(
-					'meta'  => '05 / EXION® Face',
-					'title' => 'EXION® Face',
-					'body'  => 'Aplicador no invasivo de radiofrecuencia y ultrasonido para protocolos de calidad cutánea. Los parámetros y el número de sesiones se definen según diagnóstico y tolerancia.',
-					'url'   => home_url( '/exion-face/' ),
-				),
-				array(
-					'meta'  => '06 / EXION® Body',
-					'title' => 'EXION® Body',
-					'body'  => 'Aplicador corporal no invasivo para protocolos de firmeza, textura y contorno. No sustituye procedimientos de reducción de grasa ni trata obesidad.',
-					'url'   => home_url( '/exion-body/' ),
-				),
-				array(
-					'meta'  => '07 / EXION® Fractional',
-					'title' => 'EXION® Fractional RF',
-					'body'  => 'Radiofrecuencia fraccionada con microagujas para textura, poro y cicatrices seleccionadas. Profundidad, anestesia, cuidados y período de recuperación dependen del protocolo.',
-					'url'   => home_url( '/exion-fractional/' ),
-				),
-				array(
-					'meta'  => '08 / EMFUSION®',
-					'title' => 'EMFUSION®',
-					'body'  => 'Aplicador orientado al soporte de barrera y a la infusión cutánea según protocolo. No sustituye procedimientos médicos de energía ni tratamientos inyectables.',
-					'url'   => home_url( '/emfusion/' ),
-				),
-				array(
-					'meta'  => '09 / Luz pulsada médica',
-					'title' => 'BTL EXILITE™ IPL',
-					'body'  => 'Luz pulsada intensa para indicaciones pigmentarias, vasculares y calidad cutánea seleccionadas tras diagnóstico, fototipo y ajuste de parámetros.',
-					'url'   => home_url( '/btl-exilite-ipl-madrid/' ),
-				),
-			),
-		),
-		array(
-			'key'   => 'medicina',
-			'label' => 'Medicina estética y prevención',
-			'items' => array(
-				array(
-					'meta'  => '11 / Biomedicina estética',
-					'title' => 'Bioestimulación',
-					'body'  => 'Inducción de colágeno y calidad dérmica con criterio conservador, orientada a un aspecto descansado y natural.',
-					'url'   => home_url( '/medicina-estetica/' ),
-				),
-				array(
-					'meta'  => '12 / Armonización facial',
-					'title' => 'Ácido hialurónico',
-					'body'  => 'Volumen y soporte selectivos para armonizar facciones sin rigidizar la expresión, siempre tras valoración médica.',
-					'url'   => home_url( '/medicina-estetica/' ),
-				),
-				array(
-					'meta'  => '13 / Contorno nasal',
-					'title' => 'Rinomodelación',
-					'body'  => 'Refinamiento del perfil nasal sin quirófano, con planificación anatómica y expectativa realista de resultado.',
-					'url'   => home_url( '/estetica-avanzada/' ),
-				),
-			),
-		),
+	static $catalog = null;
+
+	if ( is_array( $catalog ) ) {
+		return $catalog;
+	}
+
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	$categories = nvx_catalog_filter_records(
+		nvx_catalog_json_resolved( 'treatments-catalog.json' ),
+		array( 'key', 'label', 'items' ),
+		'treatments-catalog.json:categories'
 	);
+
+	$catalog = array();
+	foreach ( $categories as $category ) {
+		$category['items'] = nvx_catalog_filter_records(
+			(array) $category['items'],
+			array( 'meta', 'title', 'body', 'url' ),
+			'treatments-catalog.json:items'
+		);
+		$catalog[] = $category;
+	}
+
+	return $catalog;
 }
 
 /** @return string[] */

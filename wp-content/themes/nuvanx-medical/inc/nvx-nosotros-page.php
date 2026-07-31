@@ -95,8 +95,8 @@ function nvx_nosotros_positioning_markup(): string {
 	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Posicionamiento', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-pos-title" class="nvx-heading">' . esc_html__( 'Criterio clínico antes que catálogo', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body nvx-endolift-body--measure">' . esc_html__( 'En NUVANX Medicina Estética Láser (Madrid) rechazamos la comercialización masiva y los protocolos estandarizados de la estética convencional. Operamos bajo el rigor de la medicina basada en la evidencia, la ingeniería tisular y el well-aging (envejecimiento saludable).', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-body nvx-endolift-body--measure">' . esc_html__( 'No aplicamos tratamientos por inercia: diagnosticamos cada anatomía de forma individual y precisa. Solo entonces prescribimos las soluciones tecnológicas más indicadas, sustentando cada decisión en mecanismos de acción celular comprobables.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'En NUVANX Medicina Estética Láser (Madrid) rechazamos la comercialización masiva y los protocolos estandarizados de la estética convencional. Operamos bajo el rigor de la medicina basada en la evidencia, la ingeniería tisular y el well-aging (envejecimiento saludable).', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'No aplicamos tratamientos por inercia: diagnosticamos cada anatomía de forma individual y precisa. Solo entonces prescribimos las soluciones tecnológicas más indicadas, sustentando cada decisión en mecanismos de acción celular comprobables.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></section>';
 
 	return $html;
@@ -140,7 +140,7 @@ function nvx_nosotros_platforms_markup(): string {
 	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Plataformas clínicas', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-tech-title" class="nvx-heading">' . esc_html__( 'Tecnología con evidencia, nunca por tendencia', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body nvx-endolift-body--measure">' . esc_html__( 'Incorporamos dispositivos con marcado CE y documentación técnica disponible. Se indican solo cuando la valoración clínica identifica un objetivo, una alternativa y un seguimiento apropiados.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Incorporamos dispositivos con marcado CE y documentación técnica disponible. Se indican solo cuando la valoración clínica identifica un objetivo, una alternativa y un seguimiento apropiados.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-endolaser-zone-list nvx-nosotros-platform-list">';
 
 	foreach ( nvx_nosotros_platforms_data() as $item ) {
@@ -191,7 +191,7 @@ function nvx_nosotros_clinics_markup(): string {
 	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-clinics-title" class="nvx-heading">' . esc_html__( 'Instalaciones autorizadas en Madrid', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body nvx-endolift-body--measure">' . esc_html__( 'Nuestras instalaciones cumplen la normativa sanitaria de la Comunidad de Madrid en dos sedes de excelencia:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Nuestras instalaciones cumplen la normativa sanitaria de la Comunidad de Madrid en dos sedes de excelencia:', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-contact-clinics">';
 
 	foreach ( $clinics as $clinic ) {
@@ -259,7 +259,7 @@ function nvx_nosotros_team_markup(): string {
 	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Cuadro médico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-team-title" class="nvx-heading">' . esc_html__( 'Excelencia hospitalaria e investigadora', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body nvx-endolift-body--measure">' . esc_html__( 'El mayor aval de NUVANX no es solo la tecnología, sino la trayectoria académica, investigadora y clínica del equipo. Resumen de autoridad; biografías completas en Equipo médico.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'El mayor aval de NUVANX no es solo la tecnología, sino la trayectoria académica, investigadora y clínica del equipo. Resumen de autoridad; biografías completas en Equipo médico.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-nosotros-team-grid">';
 
 	foreach ( $members as $m ) {

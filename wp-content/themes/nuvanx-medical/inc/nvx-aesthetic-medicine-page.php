@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/nvx-page-render-helpers.php';
+
 /**
  * Singular page context for aesthetic hub rewrite.
  */
@@ -38,17 +40,17 @@ function nvx_aesthetic_lookup_published_url( string $path ): ?string {
 		return $cache[ $path ];
 	}
 
-	$page = get_page_by_path( $path );
+	$found = null;
+	$page  = get_page_by_path( $path );
 	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
 		$url = get_permalink( $page );
 		if ( is_string( $url ) && '' !== $url ) {
-			$cache[ $path ] = $url;
-			return $url;
+			$found = $url;
 		}
 	}
 
-	$cache[ $path ] = null;
-	return null;
+	$cache[ $path ] = $found;
+	return $found;
 }
 
 
@@ -109,15 +111,18 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 			esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
 	);
 
+	$whatsapp = '';
 	if ( function_exists( 'nvx_cta_whatsapp_markup' ) ) {
-		$html .= nvx_cta_whatsapp_markup( 'nvx-brand-btn nvx-brand-btn--secondary' );
-	} else {
-		$html .= sprintf(
+		$whatsapp = nvx_cta_whatsapp_markup( 'nvx-brand-btn nvx-brand-btn--secondary' );
+	}
+	if ( '' === $whatsapp ) {
+		$whatsapp = sprintf(
 			'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
 			esc_url( 'https://wa.me/34669319836' ),
 			esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
 		);
 	}
+	$html .= $whatsapp;
 
 	$html .= '</div>';
 
@@ -140,26 +145,45 @@ function nvx_aesthetic_hero_copy_markup(): string {
 }
 
 /**
+ * Canonical static data for the aesthetic medicine editorial hub.
+ *
+ * @return array<string, array<mixed>>
+ */
+function nvx_aesthetic_editorial_catalog(): array {
+	static $catalog = null;
+
+	if ( is_array( $catalog ) ) {
+		return $catalog;
+	}
+
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	$catalog = nvx_catalog_json_resolved(
+		'aesthetic-medicine-page.json',
+		null,
+		array(),
+		array(
+			'@nvx-aesthetic-url' => static function ( $arguments ) {
+				$primary = is_array( $arguments ) && isset( $arguments['primary'] )
+					? (string) $arguments['primary']
+					: '';
+				$alts = is_array( $arguments ) && isset( $arguments['alts'] ) && is_array( $arguments['alts'] )
+					? $arguments['alts']
+					: array();
+				return nvx_aesthetic_resolve_treatment_url( $primary, $alts );
+			},
+		),
+		'aesthetic-medicine-page'
+	);
+
+	return $catalog;
+}
+
+/**
  * Diagnosis pillars section.
  */
 function nvx_aesthetic_diagnosis_section_markup(): string {
-	$pillars = array(
-		array(
-			'icon'  => 'support',
-			'title' => __( '1. Pérdida de soporte estructural', 'nuvanx-medical' ),
-			'body'  => __( 'Con el paso de los años, la reabsorción ósea y el desplazamiento de los compartimentos grasos profundos provocan la caída de los tejidos. Tratar una arruga de forma aislada sin restaurar este soporte óseo subyacente genera volúmenes artificiales y rostros pesados.', 'nuvanx-medical' ),
-		),
-		array(
-			'icon'  => 'express',
-			'title' => __( '2. Modulación de la expresión', 'nuvanx-medical' ),
-			'body'  => __( 'Estudiamos tu rostro en movimiento (estática y dinámica gesticular). La colocación de un inyectable debe respetar la contracción natural de la musculatura mímica facial, evitando congelar la mirada o alterar la sonrisa.', 'nuvanx-medical' ),
-		),
-		array(
-			'icon'  => 'rheology',
-			'title' => __( '3. Densidad y reología cutánea', 'nuvanx-medical' ),
-			'body'  => __( 'Analizamos el espesor dermoepidérmico y el nivel de elastosis. Estos factores ayudan a seleccionar las propiedades del material, el plano y la técnica, con límites y riesgos explicados antes de tratar.', 'nuvanx-medical' ),
-		),
-	);
+	$raw     = nvx_aesthetic_editorial_catalog()['pillars'] ?? array();
+	$pillars = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'icon', 'title', 'body' ), 'aesthetic-medicine-page.json' ) : $raw;
 
 	$html  = '<section class="nvx-aes-section nvx-aes-diagnosis" aria-labelledby="nvx-aes-diagnosis-title">';
 	$html .= '<div class="nvx-aes-section__inner">';
@@ -194,64 +218,32 @@ function nvx_aesthetic_resolve_treatment_url( string $primary, array $alts = arr
 		return $resolved[ $key ];
 	}
 
+	$found_url = null;
 	foreach ( array_merge( array( $primary ), $alts ) as $slug ) {
 		$slug = trim( (string) $slug, '/' );
-		if ( '' === $slug ) {
-			continue;
-		}
-		$found = nvx_aesthetic_lookup_published_url( $slug );
-		if ( null !== $found ) {
-			$resolved[ $key ] = $found;
-			return $found;
+		if ( '' !== $slug ) {
+			$found = nvx_aesthetic_lookup_published_url( $slug );
+			if ( null !== $found ) {
+				$found_url = $found;
+				break;
+			}
 		}
 	}
 
-	$resolved[ $key ] = home_url( '/' . trim( $primary, '/' ) . '/' );
-	return $resolved[ $key ];
+	if ( null === $found_url ) {
+		$found_url = home_url( '/' . trim( $primary, '/' ) . '/' );
+	}
+
+	$resolved[ $key ] = $found_url;
+	return $found_url;
 }
 
 /**
  * Facial catalog cards.
  */
 function nvx_aesthetic_catalog_section_markup(): string {
-	$treatments = array(
-		array(
-			'n'     => '01',
-			'icon'  => 'lips',
-			'title' => __( 'Labios de proporción natural · Perfilado e hidratación', 'nuvanx-medical' ),
-			'body'  => __( 'Reestablecemos la definición del arco de Cupido, las columnas del filtrum y el volumen del bermellón respetando la anatomía original del paciente. Seleccionamos geles de ácido hialurónico con alta cohesividad y elasticidad adaptada para que el labio se mueva de forma natural con el habla y la sonrisa.', 'nuvanx-medical' ),
-			'price' => __( 'Desde 290 €', 'nuvanx-medical' ),
-			'core'  => __( 'Labios delgados, pérdida de volumen por envejecimiento o asimetrías severas.', 'nuvanx-medical' ),
-			'url'   => nvx_aesthetic_resolve_treatment_url( 'labios-acido-hialuronico-madrid', array( 'labios', 'acido-hialuronico-labios', 'tratamiento-labios' ) ),
-		),
-		array(
-			'n'     => '02',
-			'icon'  => 'nose',
-			'title' => __( 'Rinomodelación sin cirugía · Armonización del perfil', 'nuvanx-medical' ),
-			'body'  => __( 'Corrección de irregularidades en el dorso nasal (caballete) y elevación sutil de la punta mediante la infiltración precisa de ácido hialurónico de alta densidad en el plano supraperiosteal. Un procedimiento de alta precisión que armoniza el perfil sin los tiempos de baja de una cirugía.', 'nuvanx-medical' ),
-			'price' => __( 'Desde 380 €', 'nuvanx-medical' ),
-			'core'  => __( 'Desviaciones leves del dorso nasal o puntas caídas. No sustituye a la rinoplastia quirúrgica.', 'nuvanx-medical' ),
-			'url'   => nvx_aesthetic_resolve_treatment_url( 'rinomodelacion-sin-cirugia-madrid', array( 'rinomodelacion', 'rinomodelacion-sin-cirugia' ) ),
-		),
-		array(
-			'n'     => '03',
-			'icon'  => 'eye',
-			'title' => __( 'Rejuvenecimiento de la mirada · Corrección del surco lagrimal', 'nuvanx-medical' ),
-			'body'  => __( 'Tratamiento estructural del hundimiento de la ojera mediante la infiltración profunda de ácido hialurónico específico para la zona periocular. El objetivo es eliminar el aspecto de cansancio visual de forma segura, reduciendo la sombra de la ojera y proyectando la luz en el tercio medio.', 'nuvanx-medical' ),
-			'price' => __( 'Tras valoración médica personalizada', 'nuvanx-medical' ),
-			'core'  => __( 'Ojeras hundidas o surco lagrimal marcado. Requiere dermis de calidad y ausencia de bolsas grasas.', 'nuvanx-medical' ),
-			'url'   => nvx_aesthetic_resolve_treatment_url( 'ojeras-surco-lagrimal-madrid', array( 'ojeras', 'tratamiento-ojeras', 'surco-lagrimal' ) ),
-		),
-		array(
-			'n'     => '04',
-			'icon'  => 'regen',
-			'title' => __( 'Bioestimulación dérmica · Firmeza sin volumen', 'nuvanx-medical' ),
-			'body'  => __( 'Protocolos inductores de colágeno mediante la infiltración de ácido poliláctico (Sculptra®) o hidroxiapatita de calcio (Radiesse®). Estos principios activos desencadenan una respuesta celular en la dermis profunda que estimula a los fibroblastos a producir nuevas fibras elásticas, tensando el tejido sin añadir volumen artificial al rostro.', 'nuvanx-medical' ),
-			'price' => __( 'Estimuladores de colágeno desde 490 €', 'nuvanx-medical' ),
-			'core'  => __( 'Flacidez moderada, pérdida de elasticidad y piel desvitalizada.', 'nuvanx-medical' ),
-			'url'   => nvx_aesthetic_resolve_treatment_url( 'bioestimuladores-colageno-madrid', array( 'bioestimulacion', 'bioestimuladores', 'sculptra', 'radiesse' ) ),
-		),
-	);
+	$raw        = nvx_aesthetic_editorial_catalog()['treatments'] ?? array();
+	$treatments = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'n', 'icon', 'title', 'body', 'price', 'core', 'url' ), 'aesthetic-medicine-page.json' ) : $raw;
 
 	$html  = '<section class="nvx-aes-section nvx-aes-catalog" aria-labelledby="nvx-aes-catalog-title">';
 	$html .= '<div class="nvx-aes-section__inner">';
@@ -322,16 +314,8 @@ function nvx_aesthetic_faq_section_markup(): string {
 	$html .= '<figcaption class="nvx-aes-formula__cap">' . esc_html__( 'Donde σ₀ representa la amplitud del esfuerzo mecánico aplicado, γ₀ es la amplitud de la deformación resultante, y δ corresponde al ángulo de fase del gel. Un gel con alto G′ ofrece gran resistencia a la deformación y capacidad de elevación: lo indicamos en planos profundos y supraperiosteales (mandíbula, pómulos). En labios u ojeras seleccionamos G′ bajo y alta cohesividad para integración imperceptible sin migración.', 'nuvanx-medical' ) . '</figcaption>';
 	$html .= '</figure></div></details>';
 
-	$faqs = array(
-		array(
-			'q' => __( '¿Qué es la bioestimulación con PDRN (ADN de salmón) y en qué se diferencia de los rellenos de ácido hialurónico?', 'nuvanx-medical' ),
-			'a' => __( 'El Polidesoxirribonucleótido (PDRN), comúnmente conocido como ADN de salmón, actúa a nivel celular profundo. A diferencia de los rellenos de ácido hialurónico, cuya función es mecánica (aportar volumen y captar agua), el PDRN se une de forma selectiva a los receptores de adenosina A2A de los fibroblastos, acelerando la síntesis de colágeno, promoviendo la angiogénesis y reparando el ADN dañado por la radiación ultravioleta. Es un tratamiento regenerativo para densificar la piel desde dentro, sin aportar volumen volumétrico.', 'nuvanx-medical' ),
-		),
-		array(
-			'q' => __( '¿Qué es el efecto Tyndall en el tratamiento de ojeras y cómo lo previene el equipo médico de NUVANX?', 'nuvanx-medical' ),
-			'a' => __( 'El efecto Tyndall es una complicación estética menor que ocurre cuando la luz incide sobre un depósito de ácido hialurónico colocado demasiado superficial en la piel ultrafina de la ojera, provocando una coloración azulada o grisácea. En Chamberí y Goya lo prevenimos depositando el producto en plano profundo, inmediatamente por encima del periostio, con microcánulas romas, y seleccionando geles con nula capacidad de retención de agua y bajísima dispersión de luz, para un resultado invisible y natural.', 'nuvanx-medical' ),
-		),
-	);
+	$raw  = nvx_aesthetic_editorial_catalog()['faqs'] ?? array();
+	$faqs = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'q', 'a' ), 'aesthetic-medicine-page.json' ) : $raw;
 
 	foreach ( $faqs as $faq ) {
 		$html .= '<details class="nvx-brand-faq-item">';
@@ -358,16 +342,6 @@ function nvx_aesthetic_editorial_body_markup(): string {
 }
 
 /**
- * Extract existing hero media markup when present.
- */
-function nvx_aesthetic_extract_hero_media( string $content ): string {
-	if ( preg_match( '/<(?:figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/(?:figure|div)>/iu', $content, $m ) ) {
-		return $m[0];
-	}
-	return '';
-}
-
-/**
  * Rebuild Medicina Estética hub page.
  */
 function nvx_content_restructure_aesthetic_medicine_page( string $content ): string {
@@ -375,7 +349,7 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 		return $content;
 	}
 
-	$media = nvx_aesthetic_extract_hero_media( $content );
+	$media = function_exists( 'nvx_page_extract_brand_hero_media' ) ? nvx_page_extract_brand_hero_media( $content ) : '';
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--medical nvx-aes-hero" aria-labelledby="nvx-med-h1" aria-label="' . esc_attr__( 'Medicina estética NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
@@ -385,6 +359,10 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 
 	$body = nvx_aesthetic_editorial_body_markup();
 	$out  = $hero . $body;
+
+	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
+		return nvx_page_render_brand_wrapper( $content, $out, 'nvx-brand-page nvx-brand-page--medicina-estetica' );
+	}
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		$out = $wrap[1] . $out . '</div>';

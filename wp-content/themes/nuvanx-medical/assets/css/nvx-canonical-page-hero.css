@@ -1,16 +1,21 @@
 /* NUVANX canonical institutional page header.
- * Applied by the governed DOM transformer to the selected hub and authority pages.
- * One structure, one height, one type scale and one responsive behavior.
+ * One structure, one exact responsive geometry and one type hierarchy.
  */
 
-.nvx-canonical-page-hero {
+.nvx-canonical-page-hero,
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero,
+html body.nvx-site-coherent-page .nvx-canonical-page-hero,
+html body.nvx-blog-context .nvx-canonical-page-hero,
+html body .nvx-page--contact > .nvx-brand-hero {
   position: relative;
   isolation: isolate;
-  display: block;
+  display: flex;
   width: 100%;
   max-width: none;
-  min-height: clamp(34rem, 62vw, 46rem);
+  min-height: 50rem;
+  flex-direction: column;
   margin: 0;
+  padding: 0;
   background: var(--nvx-ink);
   background-image: none;
   color: var(--nvx-light);
@@ -19,37 +24,50 @@
 
 .nvx-canonical-page-hero .nvx-brand-hero__inner,
 .nvx-canonical-page-hero .nvx-page-hero__inner,
-.nvx-canonical-page-hero .nvx-hero__inner {
+.nvx-canonical-page-hero .nvx-hero__inner,
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero > .nvx-brand-hero__inner,
+html body.nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-brand-hero__inner,
+html body.nvx-blog-context .nvx-canonical-page-hero > .nvx-brand-hero__inner,
+html body .nvx-page--contact > .nvx-brand-hero > .nvx-brand-hero__inner {
   position: relative;
   inset: auto;
-  display: block;
+  display: flex;
   width: 100%;
   max-width: none;
   min-height: inherit;
-  height: auto;
+  flex: 1 1 auto;
+  flex-direction: column;
   margin: 0;
   padding: 0;
 }
 
 .nvx-canonical-page-hero .nvx-brand-hero__media,
-.nvx-canonical-page-hero .nvx-page-hero__media {
+.nvx-canonical-page-hero .nvx-page-hero__media,
+.nvx-canonical-page-hero .nvx-hero__media,
+html body .nvx-page--contact > .nvx-brand-hero .nvx-brand-hero__media,
+html body .nvx-page--contact > .nvx-brand-hero .nvx-page-hero__media,
+html body .nvx-page--contact > .nvx-brand-hero .nvx-hero__media {
   display: none;
 }
 
-.nvx-canonical-page-hero .nvx-editorial-hero__copy {
+.nvx-canonical-page-hero .nvx-editorial-hero__copy,
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+html body.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+html body.nvx-blog-context .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+html body .nvx-page--contact > .nvx-brand-hero .nvx-editorial-hero__copy {
   position: relative;
   z-index: 2;
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
-  gap: 0;
   width: min(100%, var(--nvx-shell));
   max-width: var(--nvx-shell);
-  min-height: inherit;
-  height: auto;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0;
   margin-inline: auto;
-  padding: clamp(8rem, 13vw, 11rem) var(--nvx-gutter-inner) clamp(3.5rem, 6vw, 5rem);
+  padding: 8rem var(--nvx-gutter-inner) 5rem;
   box-sizing: border-box;
 }
 
@@ -63,7 +81,11 @@
 }
 
 .nvx-canonical-page-hero .nvx-eyebrow,
-.nvx-canonical-page-hero .nvx-brand-kicker {
+.nvx-canonical-page-hero .nvx-brand-kicker,
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero .nvx-eyebrow,
+html body.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-eyebrow,
+html body.nvx-blog-context .nvx-canonical-page-hero .nvx-eyebrow,
+html body .nvx-page--contact > .nvx-brand-hero .nvx-eyebrow {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
@@ -86,11 +108,15 @@
 }
 
 .nvx-canonical-page-hero .nvx-heading,
-.nvx-canonical-page-hero h1 {
+.nvx-canonical-page-hero h1,
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero h1,
+html body.nvx-site-coherent-page .nvx-canonical-page-hero h1,
+html body.nvx-blog-context .nvx-canonical-page-hero h1,
+html body .nvx-page--contact > .nvx-brand-hero h1 {
   max-width: 18ch;
   margin: 0;
   font-family: var(--nvx-serif);
-  font-size: clamp(3rem, 5.2vw, 5rem);
+  font-size: clamp(3rem, 6vw, 5rem);
   font-weight: 400;
   line-height: 1;
   letter-spacing: var(--nvx-track-h1);
@@ -98,24 +124,34 @@
   text-wrap: balance;
 }
 
-.nvx-canonical-page-hero .nvx-cta-cluster,
-.nvx-canonical-page-hero .nvx-brand-actions,
-.nvx-canonical-page-hero .nvx-cta-pair-ctas {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--nvx-space-2);
-  margin-top: clamp(var(--nvx-space-4), 4vw, var(--nvx-space-5));
-}
-
-.nvx-canonical-page-hero .nvx-brand-meta {
+.nvx-canonical-page-hero .nvx-brand-meta,
+.nvx-canonical-page-hero .nvx-lead,
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero :is(.nvx-brand-meta, .nvx-lead),
+html body.nvx-site-coherent-page .nvx-canonical-page-hero :is(.nvx-brand-meta, .nvx-lead),
+html body.nvx-blog-context .nvx-canonical-page-hero :is(.nvx-brand-meta, .nvx-lead),
+html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-brand-meta, .nvx-lead) {
   width: min(100%, 58rem);
+  max-width: 58rem;
   margin: var(--nvx-space-4) 0 0;
   padding-top: var(--nvx-space-3);
-  border-top: 1px solid var(--nvx-border-on-dark-55);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-border-on-dark-55);
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-small, 0.875rem);
+  font-size: var(--nvx-type-small);
+  font-weight: var(--nvx-fw-regular);
   line-height: 1.55;
   color: var(--nvx-text-on-dark-90);
+}
+
+.nvx-canonical-page-hero .nvx-cta-cluster,
+.nvx-canonical-page-hero .nvx-brand-actions,
+.nvx-canonical-page-hero .nvx-cta-pair-ctas,
+.nvx-canonical-page-hero .nvx-cta-group,
+html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-cta-cluster, .nvx-brand-actions, .nvx-cta-pair-ctas, .nvx-cta-group) {
+  display: flex;
+  width: auto;
+  flex-flow: row wrap;
+  gap: var(--nvx-space-2);
+  margin-top: var(--nvx-space-5);
 }
 
 .nvx-canonical-page-hero .nvx-blog-hero__meta {
@@ -139,33 +175,42 @@
 }
 
 @media (max-width: 680px) {
-  .nvx-canonical-page-hero {
-    min-height: 31rem;
+  .nvx-canonical-page-hero,
+  html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero,
+  html body.nvx-site-coherent-page .nvx-canonical-page-hero,
+  html body.nvx-blog-context .nvx-canonical-page-hero,
+  html body .nvx-page--contact > .nvx-brand-hero {
+    min-height: 48rem;
   }
 
-  .nvx-canonical-page-hero .nvx-editorial-hero__copy {
-    min-height: 31rem;
-    padding: clamp(6.5rem, 24vw, 8rem) var(--nvx-gutter-inner) var(--nvx-space-5);
+  .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+  html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+  html body.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+  html body.nvx-blog-context .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+  html body .nvx-page--contact > .nvx-brand-hero .nvx-editorial-hero__copy {
+    padding: 6.5rem var(--nvx-gutter-inner) var(--nvx-space-5);
   }
 
   .nvx-canonical-page-hero .nvx-heading,
-  .nvx-canonical-page-hero h1 {
+  .nvx-canonical-page-hero h1,
+  html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero h1,
+  html body.nvx-site-coherent-page .nvx-canonical-page-hero h1,
+  html body.nvx-blog-context .nvx-canonical-page-hero h1,
+  html body .nvx-page--contact > .nvx-brand-hero h1 {
     max-width: 19ch;
-    font-size: clamp(2.45rem, 10.5vw, 2.75rem);
+    font-size: 2.75rem;
     line-height: 1.02;
   }
 
-  .nvx-canonical-page-hero .nvx-cta-cluster,
-  .nvx-canonical-page-hero .nvx-brand-actions,
-  .nvx-canonical-page-hero .nvx-cta-pair-ctas {
+  .nvx-canonical-page-hero :is(.nvx-cta-cluster, .nvx-brand-actions, .nvx-cta-pair-ctas, .nvx-cta-group),
+  html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-cta-cluster, .nvx-brand-actions, .nvx-cta-pair-ctas, .nvx-cta-group) {
     display: grid;
     grid-template-columns: 1fr;
     width: 100%;
   }
 
-  .nvx-canonical-page-hero .nvx-button,
-  .nvx-canonical-page-hero .nvx-btn,
-  .nvx-canonical-page-hero .nvx-brand-btn {
+  .nvx-canonical-page-hero :is(.nvx-button, .nvx-btn, .nvx-brand-btn),
+  html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-button, .nvx-btn, .nvx-brand-btn) {
     width: 100%;
   }
 }

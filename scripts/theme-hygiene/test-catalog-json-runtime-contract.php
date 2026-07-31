@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 define('ABSPATH', __DIR__ . '/');
 
+class WP_Post {
+    public string $post_status = 'publish';
+}
+
 function __(string $text, ?string $domain = null): string {
     return 'i18n:' . $text;
 }
@@ -13,6 +17,14 @@ function home_url(string $path = ''): string {
 
 function nvx_btl_claim(string $key): string {
     return 'claim:' . $key;
+}
+
+function get_page_by_path(string $path) {
+    return null;
+}
+
+function get_permalink($page): string {
+    return '';
 }
 
 function add_filter(...$args): bool {
@@ -30,9 +42,11 @@ function add_shortcode(...$args): bool {
 $themeInc = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc';
 
 require_once $themeInc . '/nvx-aesthetic-treatment-pages.php';
+require_once $themeInc . '/nvx-aesthetic-medicine-page.php';
 require_once $themeInc . '/nvx-btl-detail-pages.php';
 require_once $themeInc . '/nvx-faq-catalog.php';
 require_once $themeInc . '/nvx-faq-content-v2.php';
+require_once $themeInc . '/nvx-laser-medicine-page.php';
 require_once $themeInc . '/nvx-seo-metadata.php';
 require_once $themeInc . '/nvx-treatment-hub-schema.php';
 require_once $themeInc . '/nvx-treatments-catalog.php';
@@ -66,12 +80,23 @@ function nvx_contract_assert_no_tokens($value, string $path = 'catalog'): void {
     }
 }
 
-$aesthetic = nvx_aesthetic_treatment_catalog();
+$aestheticTreatments = nvx_aesthetic_treatment_catalog();
 nvx_contract_assert(
-    ($aesthetic['lips_ha']['slug'] ?? null) === 'labios-acido-hialuronico-madrid',
-    'Aesthetic catalog slug changed during JSON extraction.'
+    ($aestheticTreatments['lips_ha']['slug'] ?? null) === 'labios-acido-hialuronico-madrid',
+    'Aesthetic treatment catalog slug changed during JSON extraction.'
 );
-nvx_contract_assert_no_tokens($aesthetic, 'aesthetic');
+nvx_contract_assert_no_tokens($aestheticTreatments, 'aesthetic-treatments');
+
+$aestheticHub = nvx_aesthetic_editorial_catalog();
+nvx_contract_assert(
+    ($aestheticHub['pillars'][0]['title'] ?? null) === 'i18n:1. Pérdida de soporte estructural',
+    'Aesthetic hub pillar changed during JSON extraction.'
+);
+nvx_contract_assert(
+    ($aestheticHub['treatments'][0]['url'] ?? null) === 'home:/labios-acido-hialuronico-madrid/',
+    'Aesthetic hub treatment URL did not preserve fallback resolution.'
+);
+nvx_contract_assert_no_tokens($aestheticHub, 'aesthetic-hub');
 
 $btl = nvx_btl_detail_registry();
 nvx_contract_assert(
@@ -105,6 +130,17 @@ nvx_contract_assert(
     'Homepage FAQ content changed during JSON extraction.'
 );
 nvx_contract_assert_no_tokens($homeFaq, 'home-faq');
+
+$laserHub = nvx_laser_editorial_catalog();
+nvx_contract_assert(
+    ($laserHub['pillars'][0]['title'] ?? null) === 'i18n:1. Fototermólisis selectiva',
+    'Laser hub pillar changed during JSON extraction.'
+);
+nvx_contract_assert(
+    ($laserHub['platforms'][0]['url'] ?? null) === 'home:/endolift-facial-papada-mandibula/',
+    'Laser hub platform URL did not preserve published-page fallback.'
+);
+nvx_contract_assert_no_tokens($laserHub, 'laser-hub');
 
 $seo = nvx_seo_metadata_catalog();
 nvx_contract_assert(

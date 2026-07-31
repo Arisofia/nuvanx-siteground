@@ -1,0 +1,188 @@
+name: Repair Sonar gate once
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - '.github/workflows/repair-sonar-gate-once.yml'
+      - '.sonar-repair-trigger'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    if: github.event_name == 'workflow_dispatch' || github.head_ref == 'refactor/sonar-duplication-20260731'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout corrective branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: refactor/sonar-duplication-20260731
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply minimal verified repair
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin master
+
+          # These three helper-only rewrites created new-code clones under Sonar CPD.
+          # Restore the validated baseline; keep the effective duplication reductions
+          # in structured data, BTL governance and shared visual QA utilities.
+          git checkout origin/master -- \
+            wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php \
+            wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php \
+            wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php
+
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          html_path = Path('wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php')
+          html = html_path.read_text()
+          old = '''\t\t\t\t\t\t\t\t<dl>\n\t\t\t\t\t\t\t\t\t<div><dt>Qué se valora</dt><dd><?php echo esc_html( $solution['question'] ); ?></dd></div>\n\t\t\t\t\t\t\t\t\t<div><dt>Límites</dt><dd><?php echo esc_html( $solution['limit'] ); ?></dd></div>\n\t\t\t\t\t\t\t\t</dl>'''
+          new = '''\t\t\t\t\t\t\t\t<dl>\n\t\t\t\t\t\t\t\t\t<dt>Qué se valora</dt>\n\t\t\t\t\t\t\t\t\t<dd><?php echo esc_html( $solution['question'] ); ?></dd>\n\t\t\t\t\t\t\t\t\t<dt>Límites</dt>\n\t\t\t\t\t\t\t\t\t<dd><?php echo esc_html( $solution['limit'] ); ?></dd>\n\t\t\t\t\t\t\t\t</dl>'''
+          if html.count(old) != 1:
+              raise SystemExit('Expected exactly one invalid description-list block')
+          html_path.write_text(html.replace(old, new))
+
+          clinics_path = Path('wp-content/themes/nuvanx-medical/inc/nvx-clinics-hub.php')
+          clinics = clinics_path.read_text()
+
+          should_pattern = re.compile(
+              r"function nvxClinicsShouldHoistFlow\( DOMElement \$flow, DOMXPath \$xpath \): \?DOMElement \{.*?\n\}\n\n(?=/\*\*\n \* Hoist)",
+              re.S,
+          )
+          should_replacement = '''function nvxClinicsShouldHoistFlow( DOMElement $flow, DOMXPath $xpath ): ?DOMElement {
+              $brand_section = null;
+
+              if ( $flow->parentNode ) {
+                  $candidate = nvxClinicsFindBrandSectionAncestor( $flow );
+                  if ( $candidate instanceof DOMElement && $candidate->parentNode ) {
+                      $nested = $xpath->query( './/section', $flow );
+                      if ( false !== $nested && $nested->length > 0 ) {
+                          $brand_section = $candidate;
+                      }
+                  }
+              }
+
+              return $brand_section;
+          }
+
+          '''
+          clinics, count = should_pattern.subn(should_replacement, clinics, count=1)
+          if count != 1:
+              raise SystemExit('Unable to replace nvxClinicsShouldHoistFlow')
+
+          classify_pattern = re.compile(
+              r"/\*\* Classify and style single CTA link node\. \*/\nfunction nvxClinicsClassifySingleCtaLink\(.*?\n\}\n\n(?=/\*\*\n \* Normalizes clinic hub call-to-action links)",
+              re.S,
+          )
+          classify_replacement = '''/** Determine the presentation treatment for one clinic CTA. */
+          function nvxClinicsCtaTreatment( DOMElement $link, string $href, string $text, bool $is_btn ): string {
+              $treatment = '';
+              $parent    = $link->parentNode;
+
+              if ( preg_match( '/^Solicitar\\s*$/iu', $text ) ) {
+                  $treatment = 'solicitar';
+              } elseif ( $parent instanceof DOMElement && in_array( strtolower( $parent->tagName ), array( 'h1', 'h2', 'h3', 'h4' ), true ) ) {
+                  $treatment = 'inline';
+              } elseif ( nvxClinicsIsPhoneOrWhatsappLink( $href, $text ) ) {
+                  $treatment = 'inline';
+              } elseif ( nvxClinicsLinkIsMapAction( $href, $text ) ) {
+                  $treatment = 'map';
+              } elseif ( nvxClinicsLinkIsSecondaryAction( $href, $text ) ) {
+                  $treatment = 'secondary';
+              } elseif ( $is_btn && nvxClinicsLinkIsPrimaryAction( $text ) ) {
+                  $treatment = 'primary';
+              } elseif ( $is_btn && nvxClinicsCardLinkNeedsDemotion( $text, $link ) ) {
+                  $treatment = 'inline';
+              }
+
+              return $treatment;
+          }
+
+          /** Classify and style single CTA link node. */
+          function nvxClinicsClassifySingleCtaLink( DOMElement $link, string $href, string $text, string $class ): void {
+              $is_btn    = (bool) preg_match( '/\\b(nvx-brand-btn|nvx-button|nvx-btn)\\b/i', $class );
+              $treatment = nvxClinicsCtaTreatment( $link, $href, $text, $is_btn );
+
+              switch ( $treatment ) {
+                  case 'solicitar':
+                      $link->nodeValue = 'Reservar valoración';
+                      nvxClinicsSetBrandButton( $link, 'primary' );
+                      if ( '' === $href || '#' === $href ) {
+                          $valoracion = function_exists( 'nvx_cta_valoracion_url' )
+                              ? nvx_cta_valoracion_url()
+                              : home_url( '/madrid/valoracion/' );
+                          $link->setAttribute( 'href', $valoracion );
+                      }
+                      break;
+                  case 'inline':
+                      nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
+                      break;
+                  case 'map':
+                      nvxClinicsSetBrandButton( $link, 'secondary', array( 'nvx-clinic-map-cta' ) );
+                      break;
+                  case 'secondary':
+                      nvxClinicsSetBrandButton( $link, 'secondary' );
+                      break;
+                  case 'primary':
+                      nvxClinicsSetBrandButton( $link, 'primary' );
+                      break;
+              }
+          }
+
+          '''
+          clinics, count = classify_pattern.subn(classify_replacement, clinics, count=1)
+          if count != 1:
+              raise SystemExit('Unable to replace nvxClinicsClassifySingleCtaLink')
+          clinics_path.write_text(clinics)
+          PY
+
+          rm -f \
+            .github/workflows/sonar-health-audit-once.yml \
+            .github/workflows/sonar-health-inventory-once.yml \
+            .github/workflows/repair-sonar-gate-once.yml \
+            .sonar-health-trigger \
+            .sonar-repair-trigger \
+            sonar-repo-inventory.txt
+
+      - name: Validate repaired source
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-clinics-hub.php
+          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php
+          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n 1 php -l >/tmp/php-lint.log
+          php scripts/theme-hygiene/test-nvx-callable-contract.php
+          node scripts/theme-hygiene/test-theme-hygiene.mjs
+          node scripts/theme-hygiene/test-canonical-route-contract.mjs
+          node scripts/theme-hygiene/test-rest-pagination-contract.mjs
+          node scripts/theme-hygiene/test-hero-layout-contract.mjs
+          node scripts/theme-hygiene/test-entity-graph-contract.mjs
+          node scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
+          git diff --check
+
+          test -z "$(git diff --name-only origin/master -- wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php)"
+          test -z "$(git diff --name-only origin/master -- wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php)"
+          test -z "$(git diff --name-only origin/master -- wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php)"
+          ! grep -q '<div><dt>' wp-content/themes/nuvanx-medical/template-parts/content/nvx-soluciones-medicas-github.php
+          test "$(grep -c 'return ' wp-content/themes/nuvanx-medical/inc/nvx-clinics-hub.php)" -gt 0
+
+      - name: Commit repaired branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'NUVANX Quality Automation'
+          git config user.email 'admin@nuvanx.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git commit -m 'fix(quality): clear Sonar reliability and duplication gates'
+          git push origin HEAD:refactor/sonar-duplication-20260731

@@ -57,6 +57,14 @@ nvx_page_helper_assert(
     'Fallback brand wrapper changed.'
 );
 
+$endoliftSource = (string) file_get_contents(
+    dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc/nvx-endolift-page.php'
+);
+nvx_page_helper_assert(
+    str_contains($endoliftSource, "'nvx-brand-page nvx-brand-page--endolift'"),
+    'Endolift caller must preserve its fallback brand wrapper.'
+);
+
 
 $sectionOpen = nvx_page_brand_section_open_markup(
     'nvx-example',

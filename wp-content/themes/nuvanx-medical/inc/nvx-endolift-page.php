@@ -401,6 +401,10 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 
 	$body = nvx_endolift_editorial_body_markup();
 
-	return nvx_page_render_brand_wrapper( $content, $hero . $body );
+	return nvx_page_render_brand_wrapper(
+		$content,
+		$hero . $body,
+		'nvx-brand-page nvx-brand-page--endolift'
+	);
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolift_page', 19 );

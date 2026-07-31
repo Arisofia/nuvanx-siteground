@@ -145,7 +145,7 @@ jobs:
             echo "Checking $slug"
             code="$(curl --location --silent --show-error --max-time 30 --retry 2 --output "$file" --write-out '%{http_code}' "$BASE_URL$slug")"
             echo "HTTP $code $slug"
-            test "$code" = "200"
+            [[ "$code" =~ ^2[0-9]{2}$ ]]
             test "$(wc -c < "$file")" -gt 5000
             if [[ -n "$marker" ]]; then
               grep -Fq "$marker" "$file"

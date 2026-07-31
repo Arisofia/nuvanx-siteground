@@ -23,7 +23,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Detect structural duplicate blocks
+      - name: Detect maximal structural duplicate blocks
         shell: bash
         run: |
           set -euo pipefail
@@ -52,95 +52,120 @@ jobs:
           STRING_RE = re.compile(r'''(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')''')
           NUMBER_RE = re.compile(r'(?<![A-Za-z_])\d+(?:\.\d+)?')
           VARIABLE_RE = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
+          IDENTIFIER_RE = re.compile(r'\b[A-Za-z_][A-Za-z0-9_]*\b')
           WS_RE = re.compile(r'\s+')
 
-          def normalize(line: str, structural: bool) -> str:
+          def normalize(line: str, mode: str) -> str:
               value = line.strip()
               if not value or value.startswith(('//', '#', '*', '/*', '*/')):
                   return ''
               value = STRING_RE.sub('STR', value)
               value = NUMBER_RE.sub('NUM', value)
-              if structural:
+              if mode in {'variables', 'shape'}:
                   value = VARIABLE_RE.sub('$VAR', value)
+              if mode == 'shape':
+                  protected = {
+                      'array', 'function', 'return', 'if', 'else', 'elseif', 'foreach', 'for', 'while',
+                      'true', 'false', 'null', 'new', 'static', 'const', 'class', 'extends', 'implements',
+                      'async', 'await', 'const', 'let', 'var', 'throw', 'try', 'catch', 'finally', 'typeof',
+                  }
+                  value = IDENTIFIER_RE.sub(lambda match: match.group(0) if match.group(0) in protected else 'ID', value)
               return WS_RE.sub(' ', value)
 
-          def logical_lines(path: Path, structural: bool):
-              result = []
+          def logical_lines(path: Path, mode: str):
+              rows = []
               for line_no, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
-                  value = normalize(line, structural)
-                  if value:
-                      result.append((line_no, value, line.strip()))
-              return result
+                  normalized = normalize(line, mode)
+                  if normalized:
+                      rows.append((line_no, normalized, line.strip()))
+              return rows
 
-          def collect(mode: str, structural: bool, min_lines: int = 8, max_lines: int = 28):
-              sequences = {}
-              index = defaultdict(list)
-              for file_name in FILES:
-                  path = Path(file_name)
-                  if not path.is_file():
+          def maximal_blocks(mode: str, minimum: int = 8, maximum: int = 80):
+              sequences = {
+                  file_name: logical_lines(Path(file_name), mode)
+                  for file_name in FILES
+                  if Path(file_name).is_file()
+              }
+              first_line_index = defaultdict(list)
+              for file_name, rows in sequences.items():
+                  for index, row in enumerate(rows):
+                      first_line_index[row[1]].append((file_name, index))
+
+              grouped = defaultdict(set)
+              for locations in first_line_index.values():
+                  if len(locations) < 2:
                       continue
-                  rows = logical_lines(path, structural)
-                  sequences[file_name] = rows
-                  for size in range(min_lines, min(max_lines, len(rows)) + 1):
-                      for start in range(0, len(rows) - size + 1):
-                          normalized = '\n'.join(row[1] for row in rows[start:start + size])
-                          digest = hashlib.sha256(normalized.encode()).hexdigest()
-                          index[(size, digest)].append((file_name, start))
+                  for left_pos in range(len(locations)):
+                      left_file, left_index = locations[left_pos]
+                      left_rows = sequences[left_file]
+                      for right_pos in range(left_pos + 1, len(locations)):
+                          right_file, right_index = locations[right_pos]
+                          right_rows = sequences[right_file]
+                          if left_file == right_file and abs(left_index - right_index) < minimum:
+                              continue
+                          if left_index > 0 and right_index > 0 and left_rows[left_index - 1][1] == right_rows[right_index - 1][1]:
+                              continue
+                          length = 0
+                          while (
+                              length < maximum
+                              and left_index + length < len(left_rows)
+                              and right_index + length < len(right_rows)
+                              and left_rows[left_index + length][1] == right_rows[right_index + length][1]
+                          ):
+                              length += 1
+                          if length < minimum:
+                              continue
+                          if left_file == right_file and left_index + length > right_index:
+                              continue
+                          signature = '\n'.join(row[1] for row in left_rows[left_index:left_index + length])
+                          digest = hashlib.sha256(signature.encode()).hexdigest()
+                          grouped[(length, digest)].update({(left_file, left_index), (right_file, right_index)})
 
               candidates = []
-              for (size, _digest), locations in index.items():
-                  unique = []
-                  seen = set()
-                  for location in locations:
-                      if location not in seen:
-                          unique.append(location)
-                          seen.add(location)
-                  if len(unique) < 2:
+              for (length, _digest), locations in grouped.items():
+                  if len(locations) < 2:
                       continue
-                  files = {location[0] for location in unique}
-                  starts = sorted(location[1] for location in unique)
-                  if len(files) == 1 and all(abs(a - b) < size for a, b in zip(starts, starts[1:])):
-                      continue
-                  candidates.append((size, unique))
-
+                  candidates.append((length, sorted(locations)))
               candidates.sort(key=lambda item: (item[0], len(item[1])), reverse=True)
+
               accepted = []
               occupied = defaultdict(list)
-              for size, locations in candidates:
-                  non_overlapping = []
+              per_file_count = defaultdict(int)
+              for length, locations in candidates:
+                  useful = []
                   for file_name, start in locations:
-                      end = start + size
+                      end = start + length
+                      if per_file_count[file_name] >= 8:
+                          continue
                       if any(start >= old_start and end <= old_end for old_start, old_end in occupied[file_name]):
                           continue
-                      non_overlapping.append((file_name, start))
-                  if len(non_overlapping) < 2:
+                      useful.append((file_name, start))
+                  if len(useful) < 2:
                       continue
-                  accepted.append((size, non_overlapping))
-                  for file_name, start in non_overlapping:
-                      occupied[file_name].append((start, start + size))
-                  if len(accepted) >= 30:
+                  accepted.append((length, useful))
+                  for file_name, start in useful:
+                      occupied[file_name].append((start, start + length))
+                      per_file_count[file_name] += 1
+                  if len(accepted) >= 50:
                       break
 
-              print(f'=== {mode} duplicate blocks ===')
+              print(f'=== {mode} maximal duplicate blocks ===')
               if not accepted:
                   print('No duplicate blocks found.')
                   return
-              for cluster_no, (size, locations) in enumerate(accepted, 1):
-                  print(f'\nCLUSTER {cluster_no}: logical_lines={size} occurrences={len(locations)}')
+              for cluster_no, (length, locations) in enumerate(accepted, 1):
+                  print(f'\nCLUSTER {cluster_no}: logical_lines={length} occurrences={len(locations)}')
                   for file_name, start in locations:
                       rows = sequences[file_name]
-                      first_line = rows[start][0]
-                      last_line = rows[start + size - 1][0]
-                      print(f'- {file_name}:{first_line}-{last_line}')
+                      print(f'- {file_name}:{rows[start][0]}-{rows[start + length - 1][0]}')
                   sample_file, sample_start = locations[0]
-                  sample_rows = sequences[sample_file][sample_start:sample_start + min(size, 12)]
                   print('  sample:')
-                  for row in sample_rows:
+                  for row in sequences[sample_file][sample_start:sample_start + min(length, 14)]:
                       print(f'    {row[2]}')
 
-          collect('literal-normalized', structural=False)
-          print()
-          collect('structural-variable-normalized', structural=True)
+          for mode in ('literal', 'variables', 'shape'):
+              maximal_blocks(mode)
+              print()
           PY
 
       - name: Upload duplicate report

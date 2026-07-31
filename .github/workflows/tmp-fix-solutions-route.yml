@@ -1,0 +1,124 @@
+name: Apply solutions route hotfix once
+
+on:
+  push:
+    branches:
+      - fix/solutions-route-release-20260731
+    paths:
+      - '.github/workflows/tmp-fix-solutions-route.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tmp-fix-solutions-route
+  cancel-in-progress: false
+
+jobs:
+  patch:
+    if: github.repository == 'Arisofia/nuvanx-siteground' && github.ref == 'refs/heads/fix/solutions-route-release-20260731'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout hotfix branch
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: fix/solutions-route-release-20260731
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: none
+
+      - name: Apply route integration and contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              file = Path(path)
+              source = file.read_text(encoding='utf-8')
+              count = source.count(old)
+              if count != 1:
+                  raise SystemExit(f'{path}: expected one occurrence, found {count}')
+              file.write_text(source.replace(old, new, 1), encoding='utf-8')
+
+          replace_once(
+              'wp-content/themes/nuvanx-medical/functions.php',
+              "require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';\n",
+              "require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';\nrequire_once get_template_directory() . '/inc/nvx-solutions-page.php';\n"
+          )
+
+          replace_once(
+              'wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php',
+              "\tif ( ! $has_managed_editorial && function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key() ) {\n\t\t$has_managed_editorial = true;\n\t}\n",
+              "\tif ( ! $has_managed_editorial && function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key() ) {\n\t\t$has_managed_editorial = true;\n\t}\n\tif ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {\n\t\t$has_managed_editorial = true;\n\t}\n"
+          )
+
+          replace_once(
+              'scripts/theme-hygiene/test-page-render-helpers.php',
+              "echo \"Page render helper contract passed.\\n\";\n",
+              """$solutionsModule = (string) file_get_contents(
+              dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc/nvx-solutions-page.php'
+          );
+          $pageShell = (string) file_get_contents(
+              dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php'
+          );
+          $functions = (string) file_get_contents(
+              dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/functions.php'
+          );
+          nvx_page_helper_assert(
+              str_contains($solutionsModule, "'soluciones-medicas' === $slug")
+                  && str_contains($solutionsModule, 'NUVANX_STRATEGY_PAGE:solutions')
+                  && str_contains($solutionsModule, "get_template_part( 'template-parts/content/nvx-soluciones-medicas-github' )"),
+              'Solutions route must resolve by slug/marker and render the canonical template.'
+          );
+          nvx_page_helper_assert(
+              str_contains($pageShell, "nvx_content_is_solutions_page( $content )"),
+              'Page shell must treat the solutions hub as managed editorial markup.'
+          );
+          nvx_page_helper_assert(
+              str_contains($functions, "require_once get_template_directory() . '/inc/nvx-solutions-page.php';"),
+              'Theme bootstrap must load the solutions page module.'
+          );
+
+          echo "Page render helper contract passed.\\n";
+          """
+          )
+          PY
+
+      - name: Validate hotfix and permanent contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-solutions-page.php
+          php -l wp-content/themes/nuvanx-medical/functions.php
+          php -l wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php
+          php -l scripts/theme-hygiene/test-page-render-helpers.php
+          php scripts/theme-hygiene/test-catalog-json-contract.php
+          php scripts/theme-hygiene/test-catalog-json-runtime-contract.php
+          php scripts/theme-hygiene/test-catalog-review-contract.php
+          php scripts/theme-hygiene/test-page-render-helpers.php
+          node scripts/theme-hygiene/test-theme-hygiene.mjs
+
+      - name: Commit non-workflow hotfix
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add wp-content/themes/nuvanx-medical/inc/nvx-solutions-page.php
+          git add wp-content/themes/nuvanx-medical/functions.php
+          git add wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php
+          git add scripts/theme-hygiene/test-page-render-helpers.php
+          git diff --cached --check
+          git commit -m 'fix(solutions): render canonical hub across environments'
+          git push origin HEAD:fix/solutions-route-release-20260731

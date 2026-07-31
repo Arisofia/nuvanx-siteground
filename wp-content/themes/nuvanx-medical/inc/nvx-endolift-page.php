@@ -427,12 +427,8 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 		return $content;
 	}
 
-	$media = '';
-	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
-		$media = $m[0];
-	} elseif ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
-		$media = $m[0];
-	}
+	require_once __DIR__ . '/nvx-page-render-helpers.php';
+	$media = nvx_page_extract_brand_hero_media( $content );
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero" aria-labelledby="nvx-endolift-h1" aria-label="' . esc_attr__( 'Endolift facial NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
@@ -442,10 +438,7 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 
 	$body = nvx_endolift_editorial_body_markup();
 
-	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
-		return $wrap[1] . $hero . $body . '</div>';
-	}
+	return nvx_page_render_brand_wrapper( $content, $hero . $body );
 
-	return $hero . $body;
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolift_page', 19 );

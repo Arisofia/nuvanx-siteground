@@ -349,19 +349,17 @@ add_action(
     100
 );
 
-add_action(
-    'wp_head',
-    function (): void {
-        echo '<script>window.FacebookSignal = window.FacebookSignal || { sendEvent: function(){} };</script>' . "\n";
-    },
-    0
-);
 
 add_filter(
     'script_loader_tag',
     function ( string $tag, string $handle ): string {
         if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
             return '';
+        }
+        if ( str_contains( $tag, 'hsforms.net' ) || str_contains( $tag, 'gsi/client' ) ) {
+            if ( ! str_contains( $tag, 'defer' ) ) {
+                $tag = str_replace( '<script ', '<script defer ', $tag );
+            }
         }
         return $tag;
     },

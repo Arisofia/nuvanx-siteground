@@ -19,6 +19,7 @@ $nvx_valoracion_cta_class = 'nvx-btn nvx-btn--primary' . ( $nvx_valoracion_cta_m
 <title><?php wp_title('|', true, 'right'); ?></title>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>window.FacebookSignal = window.FacebookSignal || { sendEvent: function(){} };</script>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <?php wp_head(); ?>
 </head>

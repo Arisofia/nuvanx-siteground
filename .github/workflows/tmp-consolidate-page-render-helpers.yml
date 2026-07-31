@@ -1,0 +1,51 @@
+name: Consolidate page render helpers once
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - scripts/theme-hygiene/consolidate-page-render-helpers-once.php
+      - .github/workflows/tmp-consolidate-page-render-helpers.yml
+
+permissions:
+  contents: write
+
+jobs:
+  consolidate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: refactor/sonar-legacy-duplication-phase2-20260731
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Consolidate duplicated render blocks
+        run: php scripts/theme-hygiene/consolidate-page-render-helpers-once.php
+
+      - name: Validate transformed renderers
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-page-render-helpers.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-endolift-page.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-endolaser-page.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-co2-page.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-laser-medicine-page.php
+          php scripts/theme-hygiene/test-page-render-helpers.php
+
+      - name: Commit consolidated renderers
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "chatgpt-codex-connector[bot]"
+          git config user.email "chatgpt-codex-connector[bot]@users.noreply.github.com"
+          git rm .github/workflows/tmp-consolidate-page-render-helpers.yml
+          git rm scripts/theme-hygiene/consolidate-page-render-helpers-once.php
+          git add wp-content/themes/nuvanx-medical/inc/nvx-endolift-page.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-endolaser-page.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-co2-page.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-laser-medicine-page.php
+          git commit -m "refactor(quality): consolidate canonical page render blocks"
+          git push origin HEAD:refactor/sonar-legacy-duplication-phase2-20260731

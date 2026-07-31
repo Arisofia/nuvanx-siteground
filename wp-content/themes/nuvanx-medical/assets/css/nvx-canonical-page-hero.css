@@ -268,13 +268,15 @@ html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-brand-meta, .nvx-lead) {
     line-height: 1.02;
   }
 
-  .nvx-canonical-page-hero :is(.nvx-cta-cluster, .nvx-brand-actions, .nvx-cta-pair-ctas, .nvx-cta-group) {
+  .nvx-canonical-page-hero :is(.nvx-cta-cluster, .nvx-brand-actions, .nvx-cta-pair-ctas, .nvx-cta-group),
+  html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-cta-cluster, .nvx-brand-actions, .nvx-cta-pair-ctas, .nvx-cta-group) {
     display: grid;
     grid-template-columns: 1fr;
     width: 100%;
   }
 
-  .nvx-canonical-page-hero :is(.nvx-button, .nvx-btn, .nvx-brand-btn) {
+  .nvx-canonical-page-hero :is(.nvx-button, .nvx-btn, .nvx-brand-btn),
+  html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-button, .nvx-btn, .nvx-brand-btn) {
     width: 100%;
   }
 }

@@ -20,7 +20,6 @@ if (!proxyMatch) {
 }
 
 const proxyUrl = new URL(proxyMatch[1]);
-const pacPath = path.join(os.tmpdir(), `nvx-institutional-${process.pid}.pac`);
 const wrapperPath = path.join(os.tmpdir(), `nvx-institutional-pac-chrome-${process.pid}`);
 const pacSource = [
   'function FindProxyForURL(url, host) {',
@@ -30,13 +29,18 @@ const pacSource = [
   '',
 ].join('\n');
 
-fs.writeFileSync(pacPath, pacSource, { mode: 0o600 });
+const shellEscape = "'\"'\"'";
+function quote(value) {
+  return `'${String(value).replaceAll("'", shellEscape)}'`;
+}
+
+const pacDataUrl = `data:application/x-ns-proxy-autoconfig;base64,${Buffer.from(pacSource, 'utf8').toString('base64')}`;
 fs.writeFileSync(
   wrapperPath,
   [
     '#!/usr/bin/env bash',
     'set -euo pipefail',
-    `exec ${JSON.stringify(realChrome)} --proxy-pac-url=${JSON.stringify(`file://${pacPath}`)} "$@"`,
+    `exec ${quote(realChrome)} --proxy-pac-url=${quote(pacDataUrl)} "$@"`,
     '',
   ].join('\n'),
   { mode: 0o700 },
@@ -45,7 +49,13 @@ fs.writeFileSync(
 process.env.CHROME_BIN = wrapperPath;
 console.error(`INSTITUTIONAL_QA_PAC_READY staging_proxy=${proxyUrl.host}`);
 
-process.once('exit', () => {
+let cleaned = false;
+function cleanup() {
+  if (cleaned) return;
+  cleaned = true;
   try { fs.unlinkSync(wrapperPath); } catch { /* absent */ }
-  try { fs.unlinkSync(pacPath); } catch { /* absent */ }
-});
+}
+process.once('exit', cleanup);
+process.once('SIGINT', () => { cleanup(); process.exit(1); });
+process.once('SIGTERM', () => { cleanup(); process.exit(1); });
+process.once('SIGHUP', () => { cleanup(); process.exit(1); });

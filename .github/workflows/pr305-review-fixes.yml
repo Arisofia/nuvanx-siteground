@@ -5,7 +5,7 @@ on:
     branches:
       - fix/institutional-headers-hubspot-form-20260731
     paths:
-      - scripts/maintenance/apply-pr305-review-fixes.py
+      - scripts/maintenance/apply-pr305-review-fixes.py.b64
 
 permissions:
   contents: write
@@ -27,7 +27,10 @@ jobs:
           fetch-depth: 0
 
       - name: Apply deterministic review fixes
-        run: python3 scripts/maintenance/apply-pr305-review-fixes.py
+        run: |
+          set -euo pipefail
+          base64 --decode scripts/maintenance/apply-pr305-review-fixes.py.b64 > /tmp/apply-pr305-review-fixes.py
+          python3 /tmp/apply-pr305-review-fixes.py
 
       - name: Validate modified sources
         run: |
@@ -42,15 +45,19 @@ jobs:
           assert 'max-height: 50rem;' not in css
           assert 'height: 48rem;' not in css
           assert 'max-height: 48rem;' not in css
-          assert css.count('Route layers load later') == 0
-          assert "nvxHubspotLoaded" in Path('wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php').read_text()
+          assert 'Route layers load later' not in css
+          plugin = Path('wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php').read_text()
+          assert 'nvxHubspotLoaded' in plugin
+          audit = Path('scripts/staging2/audit-institutional-headers-form-v3.mjs').read_text()
+          assert 'inlineFormCount > 1' in audit
           PY
 
       - name: Remove temporary automation and commit
         run: |
           set -euo pipefail
-          rm -f scripts/maintenance/apply-pr305-review-fixes.py
+          rm -f scripts/maintenance/apply-pr305-review-fixes.py.b64
           rm -f .github/workflows/pr305-review-fixes.yml
+          rm -f /tmp/apply-pr305-review-fixes.py
           git config user.name "Arisofia"
           git config user.email "246412546+Arisofia@users.noreply.github.com"
           git add -A

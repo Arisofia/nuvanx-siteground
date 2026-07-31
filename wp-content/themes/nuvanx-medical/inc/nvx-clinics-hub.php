@@ -706,6 +706,9 @@ function nvxClinicsClassifySingleCtaLink( DOMElement $link, string $href, string
         case 'primary':
             nvxClinicsSetBrandButton( $link, 'primary' );
             break;
+        default:
+            // No treatment means the existing link presentation is already appropriate.
+            break;
     }
 }
 

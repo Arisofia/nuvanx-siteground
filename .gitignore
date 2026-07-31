@@ -1,23 +1,27 @@
-# Node/JS dependencies
-node_modules/
-
-# Local environment files â€” never commit credentials or machine-specific values
+# Core WordPress y Entorno Sensible
+wp-config.php
 .env
-.env.*
-!.env.example
-!.env.*.example
+.htaccess
 
-# IDE and OS
-.vscode/
+# Directorios Dinámicos (NO rastrear)
+wp-content/uploads/
+wp-content/cache/
+wp-content/upgrade/
+wp-content/wflogs/
+
+# Plugins y Caché Específicos de NUVANX
+wp-content/uploads/siteground-optimizer-assets/
+wp-content/uploads/backwpup-*/
+wp-content/uploads/sb-instagram-feed-images/
+
+# Logs y Archivos de Sistema Operativo
+*.log
 .DS_Store
+Thumbs.db
+error_log
 
-# Temporary scripts and reports
-*.js
-dom_dump.html
-staging2-deployment-evidence/
-staging2-full-site-ui-audit/
-theme-hygiene-report.txt
-qa/graph-audit/
-
-# Artifacts
-*.zip
+# Entornos de Desarrollo Local, QA y Node
+node_modules/
+mcps/
+Nuvanx-System/
+qa/

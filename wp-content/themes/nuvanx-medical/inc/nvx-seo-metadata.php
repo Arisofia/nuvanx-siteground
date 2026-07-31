@@ -9,17 +9,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
-
-/**
- * Helper to build metadata array.
- */
-function nvx_meta_item( string $title, string $description ): array {
-    return array(
-        'title'       => $title,
-        'description' => $description,
-    );
+	exit;
 }
 
 /**
@@ -28,30 +18,68 @@ function nvx_meta_item( string $title, string $description ): array {
  * @return array<string, array{title:string,description:string}>
  */
 function nvx_seo_metadata_catalog(): array {
-    return array(
-        'home'         => nvx_meta_item( 'Medicina estética láser en Madrid | NUVANX', 'Medicina estética láser en Madrid con valoración médica, diagnóstico individual y tratamientos para rostro, piel y contorno corporal en NUVANX.' ),
-        'protocolos_signature' => nvx_meta_item( 'Protocolos Signature | NUVANX Madrid', 'Protocolos Signature de medicina estética en Madrid diseñados desde el diagnóstico anatómico, la indicación médica y el seguimiento individualizado.' ),
-        'clinicas'     => nvx_meta_item( 'Clínicas NUVANX Madrid | Exclusividad y Criterio Clínico', 'Tus tratamientos estéticos merecen respeto médico, no una cadena de montaje. Descubre las clínicas NUVANX en Chamberí y Salamanca-Goya.' ),
-        'chamberi'     => nvx_meta_item( 'Medicina Estética en Chamberí | Criterio Médico NUVANX', 'Clínica NUVANX Chamberí. Tecnología láser avanzada y diagnóstico clínico estricto para tratamientos médicos estéticos faciales y corporales en Madrid.' ),
-        'goya'         => nvx_meta_item( 'Medicina Estética Salamanca-Goya | NUVANX', 'Clínica NUVANX Salamanca-Goya. Tecnología láser avanzada y diagnóstico clínico estricto para tratamientos médicos estéticos en Madrid.' ),
-        'endolift'     => nvx_meta_item(
-            'Endolift® Facial Madrid — Papada, Mandíbula y Cuello | NUVANX',
-            'Endolift® facial en Madrid con plataforma Eufoton original. Indicación médica previa. Desde 798,60 € (ojeras). NUVANX Chamberí y Goya · Barrio Salamanca.'
-        ),
-        'endolaser'    => nvx_meta_item( 'Endoláser Corporal Madrid | Remodelación y Retracción Cutánea', 'Procedimiento médico mínimamente invasivo para adiposidad localizada y flacidez. Endoláser en NUVANX Madrid indicado tras valoración anatómica.' ),
-        'co2'          => nvx_meta_item( 'Láser CO2 Fraccionado Madrid | Tratamiento Médico de Cicatrices', 'Tratamiento médico con láser CO2 fraccionado para renovación epidérmica, cicatrices atróficas y textura irregular. Valoración en clínicas NUVANX Madrid.' ),
-        'exion'        => nvx_meta_item( 'Radiofrecuencia EXION Madrid | Regeneración y Firmeza', 'Protocolos médicos con plataforma EXION BTL en NUVANX Madrid. Estímulo de colágeno, ácido hialurónico y mejora de la tensión cutánea.' ),
-        'exilite'      => nvx_meta_item( 'IPL Médico Madrid | Fotorejuvenecimiento y Tratamiento de Lesiones', 'Luz pulsada intensa médica BTL EXILITE en NUVANX Madrid. Tratamiento indicado para alteraciones pigmentarias, eritema y fotodaño.' ),
-        'equipo'       => nvx_meta_item( 'Equipo Médico NUVANX | Especialistas en Láser Médico', 'El equipo médico de NUVANX realiza el diagnóstico clínico y aplica la tecnología láser. Atención especializada en nuestras clínicas de Madrid.' ),
-        'por_que_nuvanx' => nvx_meta_item( 'Por qué NUVANX | Criterio médico en Madrid', 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.' ),
-        'inversion'    => nvx_meta_item( 'Inversión en medicina estética | NUVANX Madrid', 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.' ),
-        'valoracion'   => nvx_meta_item( 'Consulta Médica Estética Madrid | Valoración Clínica NUVANX', 'Solicita una valoración médica en NUVANX Madrid. Diagnóstico clínico presencial para determinar el protocolo adecuado a tus necesidades anatómicas.' ),
-        'anti_fear_remodelacion' => nvx_meta_item(
-            'Remodelación corporal sin anestesia general en Madrid | NUVANX',
-            'Alternativa médica mínimamente invasiva a la liposucción tradicional. Endoláser y Endolift® en NUVANX Madrid cuando la anatomía lo permite, con anestesia local y recuperación ambulatoria.'
-        ),
-        'blog'         => nvx_meta_item( 'Blog NUVANX | Autoridad en Medicina Estética Láser', 'Educación médica directa y sin filtros. Desmontamos mitos sobre tratamientos estéticos, láseres y la industria masificada en nuestro blog NUVANX.' ),
-    );
+	return array(
+		'home'         => array(
+			'title'       => 'Medicina Estética Láser Madrid | Endolift y CO₂ | NUVANX',
+			'description' => 'Medicina estética láser en Madrid con equipo médico hospitalario. Endolift®, CO₂, EXION® BTL y well-aging en Chamberí y Salamanca–Goya.',
+		),
+		'tratamientos' => array(
+			'title'       => 'Tratamientos Medicina Estética Láser Madrid | NUVANX',
+			'description' => 'Tratamientos de medicina estética láser en Madrid: Endolift®, Láser CO₂, EXION® BTL, IPL y medicina facial con valoración clínica.',
+		),
+		'clinicas'     => array(
+			'title'       => 'Clínicas NUVANX Madrid | Chamberí y Salamanca–Goya',
+			'description' => 'Clínicas de medicina estética láser NUVANX en Chamberí y Salamanca–Goya. Direcciones, horarios, registros sanitarios y mapas.',
+		),
+		'chamberi'     => array(
+			'title'       => 'Medicina estética en Chamberí | NUVANX Madrid',
+			'description' => 'Clínica de medicina estética láser en Chamberí, Madrid. Equipo médico, registro sanitario CS20144 y valoración individualizada.',
+		),
+		'goya'         => array(
+			'title'       => 'Medicina estética en Salamanca–Goya | NUVANX',
+			'description' => 'Clínica de medicina estética láser en Salamanca–Goya, Madrid. Equipo médico, registro sanitario CS20073 y valoración individualizada.',
+		),
+		'endolift'     => array(
+			'title'       => 'Endolift® Facial Madrid | Precio y Resultados | NUVANX',
+			'description' => 'Endolift® facial en Madrid para papada, mandíbula y cuello. Tarifas por zona, indicaciones y recuperación. Valoración médica en NUVANX.',
+		),
+		'endolaser'    => array(
+			'title'       => 'Endoláser Corporal Madrid | Grasa y Firmeza | NUVANX',
+			'description' => 'Endoláser corporal en Madrid para grasa localizada y firmeza en abdomen, flancos, muslos y brazos. Valoración médica y presupuesto individualizado.',
+		),
+		'co2'          => array(
+			'title'       => 'Láser CO₂ Madrid | Cicatrices, Poros y Textura | NUVANX',
+			'description' => 'Láser CO₂ fraccionado en Madrid para cicatrices de acné, poros, textura y fotodaño. Recuperación estimada y tarifas en NUVANX.',
+		),
+		'exion'        => array(
+			'title'       => 'EXION® BTL Madrid | Face, Body y Fractional RF | NUVANX',
+			'description' => 'EXION® BTL en Madrid: Face, Body y Fractional RF. Modalidades seleccionadas según indicación clínica, zona y plan definido tras valoración médica.',
+		),
+		'exilite'      => array(
+			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y Rojeces | NUVANX',
+			'description' => 'IPL BTL EXILITE™ en Madrid para indicaciones pigmentarias, vasculares y calidad cutánea tras diagnóstico, fototipo y selección de parámetros.',
+		),
+		'equipo'       => array(
+			'title'       => 'Equipo Médico NUVANX Madrid | Criterio Clínico',
+			'description' => 'Equipo médico NUVANX en Madrid: colegiación, experiencia y áreas clínicas de los profesionales responsables de valoración y seguimiento.',
+		),
+		'por_que_nuvanx' => array(
+			'title'       => 'Por qué NUVANX | Criterio médico en Madrid',
+			'description' => 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.',
+		),
+		'inversion'    => array(
+			'title'       => 'Inversión en medicina estética | NUVANX Madrid',
+			'description' => 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.',
+		),
+		'valoracion'   => array(
+			'title'       => 'Consulta médica estética en Madrid | NUVANX',
+			'description' => 'Solicita una consulta médica estética en Chamberí o Salamanca–Goya. Diagnóstico, indicación y presupuesto individualizado.',
+		),
+		'blog'         => array(
+			'title'       => 'Blog NUVANX | Medicina estética láser Madrid',
+			'description' => 'Artículos de NUVANX sobre Endolift®, EXION® BTL, IPL, well-aging y criterio médico en clínicas de Madrid.',
+		),
+	);
 }
 
 /**
@@ -62,90 +90,97 @@ function nvx_seo_metadata_catalog(): array {
  * @return array<string, array{title:string,description:string}>
  */
 function nvx_seo_blog_post_metadata_catalog(): array {
-    return array(
-        'endolift-primeras-72-horas-que-esperar' => nvx_meta_item( 'Endolift: primeras 72 horas | Qué esperar', 'Qué es normal tras Endolift: inflamación, molestias y cuándo avisar. Guía de recuperación del protocolo clínico NUVANX en Madrid.' ),
-        'endolift-ciencia-laser-subdermico' => nvx_meta_item( 'Cómo funciona Endolift | Láser subdérmico', 'Física y biología del Endolift: cómo el láser bajo la piel estimula colágeno sin cirugía. Explicación médica clara de NUVANX.' ),
-        'endolift-vs-lifting-quirurgico-cuando-operarse' => nvx_meta_item( 'Endolift vs lifting quirúrgico | Madrid', 'Comparativa Endolift y lifting quirúrgico: invasividad, recuperación, resultados y cuándo valorar cirugía en NUVANX Madrid.' ),
-        'ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento' => nvx_meta_item( 'IPL BTL EXILITE™ Madrid | Manchas y rojeces', 'IPL médica BTL EXILITE™ en Madrid para manchas, rojeces, acné y fotorejuvenecimiento tras diagnóstico y fototipo.' ),
-        'exion-btl-fractional-rf-face-body' => nvx_meta_item( 'EXION® BTL Face, Body y Fractional RF', 'Diferencias entre EXION® Face, Body y Fractional RF: indicaciones, tolerancia y cuándo combinar tras valoración médica.' ),
-        'well-aging-48-cambios-hormonales-piel' => nvx_meta_item( 'Well-aging a los 48 | Cambios hormonales', 'Cómo cambian piel y colágeno cuando bajan los estrógenos. Guía de well-aging con criterio médico en NUVANX Madrid.' ),
-        'intrusismo-tratamientos-inyectables-riesgos' => nvx_meta_item( 'Intrusismo estético y rellenos | Riesgos', 'Riesgos del Botox y rellenos fuera de consulta médica: legalidad, complicaciones y por qué importa el criterio clínico.' ),
-    );
+	return array(
+		'endolift-primeras-72-horas-que-esperar' => array(
+			'title'       => 'Endolift: primeras 72 horas | Qué esperar',
+			'description' => 'Qué es normal tras Endolift: inflamación, molestias y cuándo avisar. Guía de recuperación del protocolo clínico NUVANX en Madrid.',
+		),
+		'endolift-ciencia-laser-subdermico' => array(
+			'title'       => 'Cómo funciona Endolift | Láser subdérmico',
+			'description' => 'Física y biología del Endolift: cómo el láser bajo la piel estimula colágeno sin cirugía. Explicación médica clara de NUVANX.',
+		),
+		'endolift-vs-lifting-quirurgico-cuando-operarse' => array(
+			'title'       => 'Endolift vs lifting quirúrgico | Madrid',
+			'description' => 'Comparativa Endolift y lifting quirúrgico: invasividad, recuperación, resultados y cuándo valorar cirugía en NUVANX Madrid.',
+		),
+		'ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento' => array(
+			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y rojeces',
+			'description' => 'IPL médica BTL EXILITE™ en Madrid para manchas, rojeces, acné y fotorejuvenecimiento tras diagnóstico y fototipo.',
+		),
+		'exion-btl-fractional-rf-face-body' => array(
+			'title'       => 'EXION® BTL Face, Body y Fractional RF',
+			'description' => 'Diferencias entre EXION® Face, Body y Fractional RF: indicaciones, tolerancia y cuándo combinar tras valoración médica.',
+		),
+		'well-aging-48-cambios-hormonales-piel' => array(
+			'title'       => 'Well-aging a los 48 | Cambios hormonales',
+			'description' => 'Cómo cambian piel y colágeno cuando bajan los estrógenos. Guía de well-aging con criterio médico en NUVANX Madrid.',
+		),
+		'intrusismo-tratamientos-inyectables-riesgos' => array(
+			'title'       => 'Intrusismo estético y rellenos | Riesgos',
+			'description' => 'Riesgos del Botox y rellenos fuera de consulta médica: legalidad, complicaciones y por qué importa el criterio clínico.',
+		),
+	);
 }
 
 /**
  * Normalize the current site path for metadata routing.
  */
 function nvx_seo_current_path(): string {
-    if ( function_exists( 'nvx_schema_current_path' ) ) {
-        return (string) nvx_schema_current_path( (int) get_queried_object_id() );
-    }
+	if ( function_exists( 'nvx_schema_current_path' ) ) {
+		return (string) nvx_schema_current_path( (int) get_queried_object_id() );
+	}
 
-    $uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
-    $uri = (string) strtok( $uri, '?' );
-    return '/' . trim( $uri, '/' ) . '/';
+	$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+	$uri = (string) strtok( $uri, '?' );
+	return '/' . trim( $uri, '/' ) . '/';
 }
 
 /**
  * Resolve the metadata key for the current request.
  */
 function nvx_seo_current_metadata_key(): ?string {
-    // Never lend a legitimate title/description to a not-found route.
-    if ( is_404() ) {
-        return null;
-    }
+	// Never lend a legitimate title/description to a not-found route.
+	if ( is_404() ) {
+		return null;
+	}
 
-    if ( is_front_page() ) {
-        return 'home';
-    }
+	if ( is_front_page() ) {
+		return 'home';
+	}
 
-    // Posts index (/blog/) — not the front page.
-    if ( is_home() && ! is_front_page() ) {
-        return 'blog';
-    }
+	// Posts index (/blog/) — not the front page.
+	if ( is_home() && ! is_front_page() ) {
+		return 'blog';
+	}
 
-    if ( function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
-        $treatment = nvx_schema_resolve_treatment_key( (int) get_queried_object_id() );
-        $map       = array(
-            'endolift_facial'    => 'endolift',
-            'endolaser_corporal' => 'endolaser',
-            'laser_co2'          => 'co2',
-            'exion_btl'          => 'exion',
-            'exilite_btl'        => 'exilite',
-        );
-        if ( isset( $map[ $treatment ] ) ) {
-            return $map[ $treatment ];
-        }
-    }
+	if ( function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
+		$treatment = nvx_schema_resolve_treatment_key( (int) get_queried_object_id() );
+		$map       = array(
+			'endolift_facial'    => 'endolift',
+			'endolaser_corporal' => 'endolaser',
+			'laser_co2'          => 'co2',
+			'exion_btl'          => 'exion',
+			'exilite_btl'        => 'exilite',
+		);
+		if ( isset( $map[ $treatment ] ) ) {
+			return $map[ $treatment ];
+		}
+	}
 
-    $path = nvx_seo_current_path();
-    $map  = array(
+	$path = nvx_seo_current_path();
+	$map  = array(
+		'/tratamientos/' => 'tratamientos',
+		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
+		'/medicina-estetica-chamberi/' => 'chamberi',
+		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
+		'/equipo-medico/' => 'equipo',
+		'/por-que-nuvanx/' => 'por_que_nuvanx',
+		'/inversion-medicina-estetica/' => 'inversion',
+		'/madrid/valoracion/' => 'valoracion',
+		'/blog/' => 'blog',
+	);
 
-        '/protocolos-signature/' => 'protocolos_signature',
-        '/remodelacion-corporal-laser-madrid/' => 'contour-architecture',
-        '/tratamiento-postparto-abdomen-contorno-corporal-madrid/' => 'post-maternity',
-        '/papada-definicion-mandibular-madrid/' => 'papada_mandibular',
-        '/calidad-piel-firmeza-luminosidad-madrid/' => 'calidad_piel',
-        '/cicatrices-acne-poros-textura-madrid/' => 'cicatrices_textura',
-        '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/' => 'manchas_rojeces',
-        '/grasa-localizada-abdomen-flancos-madrid/' => 'abdomen_flancos',
-        '/flacidez-grasa-localizada-brazos-madrid/' => 'brazos',
-        '/grasa-espalda-zona-sujetador-madrid/' => 'espalda',
-        '/flacidez-muslos-internos-subgluteo-madrid/' => 'muslos_subgluteo',
-        '/tratamiento-rodillas-grasa-flacidez-madrid/' => 'rodillas',
-        '/contorno-corporal-masculino-madrid/' => 'masculino',
-        '/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
-        '/medicina-estetica-chamberi/' => 'chamberi',
-        '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
-        '/equipo-medico/' => 'equipo',
-        '/por-que-nuvanx/' => 'por_que_nuvanx',
-        '/inversion-medicina-estetica/' => 'inversion',
-        '/madrid/valoracion/'                         => 'valoracion',
-        '/remodelacion-corporal-sin-anestesia-madrid/' => 'anti_fear_remodelacion',
-        '/blog/'                                      => 'blog',
-    );
-
-    return $map[ $path ] ?? null;
+	return $map[ $path ] ?? null;
 }
 
 /**
@@ -154,95 +189,81 @@ function nvx_seo_current_metadata_key(): ?string {
  * @return array{title?:string,description?:string}|null
  */
 function nvx_seo_current_blog_post_metadata(): ?array {
-    if ( ! is_singular( 'post' ) ) {
-        return null;
-    }
+	if ( ! is_singular( 'post' ) ) {
+		return null;
+	}
 
-    $slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-    if ( '' === $slug ) {
-        return null;
-    }
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	if ( '' === $slug ) {
+		return null;
+	}
 
-    $catalog = nvx_seo_blog_post_metadata_catalog();
-    return $catalog[ $slug ] ?? null;
+	$catalog = nvx_seo_blog_post_metadata_catalog();
+	return $catalog[ $slug ] ?? null;
 }
-
-/**
- * Resolves metadata value from the protocol catalog.
- */
-function nvx_seo_metadata_from_protocols( string $key, string $field ): ?string {
-    if ( ! function_exists( 'nvx_protocol_pages_catalog' ) ) {
-        return null;
-    }
-    $protocols = nvx_protocol_pages_catalog();
-    $prop = ( 'title' === $field ) ? 'seo_title' : ( ( 'description' === $field ) ? 'description' : '' );
-    if ( '' !== $prop && ! empty( $protocols[ $key ][ $prop ] ) ) {
-        return (string) $protocols[ $key ][ $prop ];
-    }
-    return null;
-}
-
-// nvx_seo_metadata_from_solutions() removed: nvx_solution_pages_catalog() was deleted in the
-// Jul-2026 SonarQube refactor. All solution-route metadata is now served by nvx_editorial_seo_current().
 
 /**
  * Return one canonical metadata value for the current page.
  */
 function nvx_seo_current_metadata( string $field, string $fallback = '' ): string {
-    $result = null;
-    $post_meta = nvx_seo_current_blog_post_metadata();
-    if ( is_array( $post_meta ) && ! empty( $post_meta[ $field ] ) ) {
-        $result = (string) $post_meta[ $field ];
-    } elseif ( function_exists( 'nvx_editorial_seo_current' ) && ( $editorial = nvx_editorial_seo_current() ) && is_array( $editorial ) && ! empty( $editorial[ $field ] ) ) {
-        $result = (string) $editorial[ $field ];
-    } else {
-        $key = nvx_seo_current_metadata_key();
-        if ( null !== $key ) {
-            $result = nvx_seo_metadata_from_protocols( $key, $field )
-                ?? ( ( $catalog = nvx_seo_metadata_catalog() ) && ! empty( $catalog[ $key ][ $field ] ) ? (string) $catalog[ $key ][ $field ] : null );
-        }
-    }
+	$post_meta = nvx_seo_current_blog_post_metadata();
+	if ( is_array( $post_meta ) && ! empty( $post_meta[ $field ] ) ) {
+		return (string) $post_meta[ $field ];
+	}
 
-    return $result ?? $fallback;
+	$key     = nvx_seo_current_metadata_key();
+	$catalog = nvx_seo_metadata_catalog();
+
+	if ( null === $key || empty( $catalog[ $key ][ $field ] ) ) {
+		return $fallback;
+	}
+
+	return (string) $catalog[ $key ][ $field ];
 }
 
 /**
  * Whether the current installation is not the public production host.
+ *
+ * Explicitly guards staging2 (staging2.nuvanx.com): even if WP_ENVIRONMENT_TYPE
+ * is set to 'production' or host detection varies, staging2 is a QA/review host
+ * and must always be treated as non-production to enforce noindex directives
+ * and prevent search engine indexing of pre-release content.
  */
 function nvx_seo_is_nonproduction_environment(): bool {
-    $host   = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
-    $public = in_array( strtolower( $host ), array( 'nuvanx.com', 'www.nuvanx.com' ), true );
+	// Staging2 must always be treated as non-production regardless of host or WP_ENVIRONMENT_TYPE.
+	if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) {
+		return true;
+	}
 
-    if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) {
-        return true;
-    }
+	$environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
+	$host        = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+	$public      = in_array( strtolower( $host ), array( 'nuvanx.com', 'www.nuvanx.com' ), true );
 
-    $environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
-    return ! $public || 'production' !== $environment;
+	return 'production' !== $environment || ! $public;
 }
 
 /**
  * Current page URL without query parameters.
  */
 function nvx_seo_current_canonical_url(): string {
-    if ( is_front_page() ) {
-        return home_url( '/' );
-    }
+	if ( is_front_page() ) {
+		return home_url( '/' );
+	}
 
-    $page_id = (int) get_queried_object_id();
-    if ( $page_id > 0 ) {
-        $url = get_permalink( $page_id );
-        if ( is_string( $url ) && '' !== $url ) {
-            return $url;
-        }
-    }
+	$page_id = (int) get_queried_object_id();
+	if ( $page_id > 0 ) {
+		$url = get_permalink( $page_id );
+		if ( is_string( $url ) && '' !== $url ) {
+			return $url;
+		}
+	}
 
-    return home_url( nvx_seo_current_path() );
+	return home_url( nvx_seo_current_path() );
 }
 
 /** Yoast and core title. */
 function nvx_seo_filter_title( $title ) {
-    return nvx_seo_current_metadata( 'title', (string) $title );
+	return nvx_seo_current_metadata( 'title', (string) $title );
 }
 add_filter( 'wpseo_title', 'nvx_seo_filter_title', 100 );
 add_filter( 'pre_get_document_title', 'nvx_seo_filter_title', 100 );
@@ -251,7 +272,7 @@ add_filter( 'wpseo_twitter_title', 'nvx_seo_filter_title', 100 );
 
 /** Yoast and social descriptions. */
 function nvx_seo_filter_description( $description ) {
-    return nvx_seo_current_metadata( 'description', (string) $description );
+	return nvx_seo_current_metadata( 'description', (string) $description );
 }
 add_filter( 'wpseo_metadesc', 'nvx_seo_filter_description', 100 );
 add_filter( 'wpseo_opengraph_desc', 'nvx_seo_filter_description', 100 );
@@ -261,16 +282,16 @@ add_filter( 'wpseo_twitter_description', 'nvx_seo_filter_description', 100 );
  * Keep canonical and Open Graph URLs on the current public host.
  */
 function nvx_seo_filter_canonical_url( $url ) {
-    if ( nvx_seo_is_nonproduction_environment() ) {
-        return $url;
-    }
+	if ( nvx_seo_is_nonproduction_environment() ) {
+		return $url;
+	}
 
-    // Keep blog posts and catalogued pages on the public host.
-    if ( null === nvx_seo_current_metadata_key() && null === nvx_seo_current_blog_post_metadata() ) {
-        return $url;
-    }
+	// Keep blog posts and catalogued pages on the public host.
+	if ( null === nvx_seo_current_metadata_key() && null === nvx_seo_current_blog_post_metadata() ) {
+		return $url;
+	}
 
-    return nvx_seo_current_canonical_url();
+	return nvx_seo_current_canonical_url();
 }
 add_filter( 'wpseo_canonical', 'nvx_seo_filter_canonical_url', 100 );
 add_filter( 'wpseo_opengraph_url', 'nvx_seo_filter_canonical_url', 100 );
@@ -279,24 +300,24 @@ add_filter( 'wpseo_opengraph_url', 'nvx_seo_filter_canonical_url', 100 );
  * Environment-aware Yoast robots policy.
  */
 function nvx_seo_filter_yoast_robots( $robots ) {
-    if ( nvx_seo_is_nonproduction_environment() ) {
-        return 'noindex, nofollow';
-    }
+	if ( nvx_seo_is_nonproduction_environment() ) {
+		return 'noindex, nofollow';
+	}
 
-    // Archive pages with a few repeating cards add no unique clinical value yet.
-    // Keep them crawlable through the linked articles, not as competing thin URLs.
-    if ( is_category() || is_tag() ) {
-        return 'noindex, follow';
-    }
+	// Archive pages with a few repeating cards add no unique clinical value yet.
+	// Keep them crawlable through the linked articles, not as competing thin URLs.
+	if ( is_category() || is_tag() ) {
+		return 'noindex, follow';
+	}
 
-    if ( null !== nvx_seo_current_metadata_key() ) {
-        $page_id = (int) get_queried_object_id();
-        if ( ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-            return 'index, follow';
-        }
-    }
+	if ( null !== nvx_seo_current_metadata_key() ) {
+		$page_id = (int) get_queried_object_id();
+		if ( ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
+			return 'index, follow';
+		}
+	}
 
-    return $robots;
+	return $robots;
 }
 add_filter( 'wpseo_robots', 'nvx_seo_filter_yoast_robots', 100 );
 
@@ -307,42 +328,42 @@ add_filter( 'wpseo_robots', 'nvx_seo_filter_yoast_robots', 100 );
  * @return array<string,bool>
  */
 function nvx_seo_filter_core_robots( array $robots ): array {
-    if ( nvx_seo_is_nonproduction_environment() ) {
-        $robots['noindex']  = true;
-        $robots['nofollow'] = true;
-        unset( $robots['index'], $robots['follow'] );
-        return $robots;
-    }
+	if ( nvx_seo_is_nonproduction_environment() ) {
+		$robots['noindex']  = true;
+		$robots['nofollow'] = true;
+		unset( $robots['index'], $robots['follow'] );
+		return $robots;
+	}
 
-    if ( is_category() || is_tag() ) {
-        $robots['noindex'] = true;
-        $robots['follow']  = true;
-        unset( $robots['index'], $robots['nofollow'] );
-        return $robots;
-    }
+	if ( is_category() || is_tag() ) {
+		$robots['noindex'] = true;
+		$robots['follow']  = true;
+		unset( $robots['index'], $robots['nofollow'] );
+		return $robots;
+	}
 
-    $page_id = (int) get_queried_object_id();
+	$page_id = (int) get_queried_object_id();
 
-    if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
-        $robots['noindex']  = true;
-        $robots['nofollow'] = true;
-        unset( $robots['index'], $robots['follow'] );
-        return $robots;
-    }
+	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
+		$robots['noindex']  = true;
+		$robots['nofollow'] = true;
+		unset( $robots['index'], $robots['follow'] );
+		return $robots;
+	}
 
-    if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-        $robots['noindex'] = true;
-        $robots['follow']  = true;
-        unset( $robots['index'], $robots['nofollow'] );
-        return $robots;
-    }
+	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
+		$robots['noindex'] = true;
+		$robots['follow']  = true;
+		unset( $robots['index'], $robots['nofollow'] );
+		return $robots;
+	}
 
-    if ( null !== nvx_seo_current_metadata_key() ) {
-        $robots['index']  = true;
-        $robots['follow'] = true;
-        unset( $robots['noindex'], $robots['nofollow'] );
-    }
+	if ( null !== nvx_seo_current_metadata_key() ) {
+		$robots['index']  = true;
+		$robots['follow'] = true;
+		unset( $robots['noindex'], $robots['nofollow'] );
+	}
 
-    return $robots;
+	return $robots;
 }
 add_filter( 'wp_robots', 'nvx_seo_filter_core_robots', 100 );

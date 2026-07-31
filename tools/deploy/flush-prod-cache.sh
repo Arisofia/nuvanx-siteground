@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# MUTATING: flushes WordPress + SiteGround caches. Requires --confirm.
+# MUTATING: flushes WordPress cache. Requires --confirm.
 set -Eeuo pipefail
 
 WP_ROOT=""
 CONFIRM=0
-NVX_TOOLS_DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -22,4 +21,5 @@ done
 cd "$WP_ROOT"
 wp option get siteurl
 wp theme list --status=active
-bash "$NVX_TOOLS_DEPLOY_DIR/nvx-purge-wp-caches.sh" --wp-root "$WP_ROOT" --label "Cache flushed for $WP_ROOT"
+wp cache flush
+echo "Cache flushed for $WP_ROOT"

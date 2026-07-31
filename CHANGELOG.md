@@ -1,26 +1,5 @@
 # Changelog
 
-## 2026.07.25
-- **Fix: Constant NVX_REGEX_WHITESPACE already defined**
-  - Centralized `NVX_REGEX_WHITESPACE` and `NVX_REGEX_WHITESPACE_U` in `functions.php` (single early definition).
-  - Removed duplicate define blocks from `nvx-clinics-hub.php` and `nvx-mobile-hero-hierarchy.php`.
-  - Eliminates PHP warnings during WP load / Staging2 deploy that were blocking the guarded deployment step.
-
-- **General cleanup — solo activo y necesario**
-  - Eliminado stub deprecado `docs/deployment.md`.
-  - Eliminado `scripts/deploy-production.sh` (superseded por `tools/deploy`).
-  - Eliminado `docs/ops/deployment-source-of-truth.md` (redundante).
-  - Limpiados dead links en `docs/operations/deployment.md` y `tools/deploy/README.md`.
-  - Actualizado `README.md` y VERSION a 2026.07.25.
-  - Repositorio reducido a componentes canónicos activos: theme, mu-plugins, deploy tools, gates CI, scripts de verificación y documentación operativa.
-
-## 2026.07.22
-- **Repo Cleanup Audit**
-  - Eliminados archivos PHP huérfanos (`nvx-home-content-v2.php`, `nvx-home-copy.php`).
-  - Eliminado bloque CSS redundante en `nvx-components.css`.
-  - Depurado el token `--nvx-hero-h` y unificado su valor.
-  - Corregida documentación y links obsoletos en el `README.md` y `docs/deployment.md`.
-
 ## 2026.07.21
 - **Deep clean — Quiet Luxury Médico**
   - Eliminado todo lenguaje temporal, legacy, patch, issue-ref y one-timer de comentarios de producción.

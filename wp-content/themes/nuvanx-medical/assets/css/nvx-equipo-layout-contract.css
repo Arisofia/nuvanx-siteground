@@ -1,9 +1,0 @@
-/* Equipo Médico editorial layout contract.
- * Four clinical scope items render as a balanced 2 × 2 grid on desktop.
- */
-
-@media (min-width: 48rem) {
-  .nvx-equipo-editorial .nvx-editorial-grid-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}

@@ -5,360 +5,227 @@
  * Schema canónico de clínicas: únicamente vía nvx-structured-data.php (Yoast graph).
  */
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
-
-/** Canonical public path for the ojeras / surco lagrimal treatment page. */
-if ( ! defined( 'NVX_PATH_OJERAS_SURCO_LAGRIMAL' ) ) {
-    define( 'NVX_PATH_OJERAS_SURCO_LAGRIMAL', '/ojeras-surco-lagrimal-madrid/' );
+	exit;
 }
 
 require_once __DIR__ . '/nvx-environment-flags.php';
-require_once __DIR__ . '/nvx-visual-system.php';
-require_once __DIR__ . '/nvx-external-visual-closure.php';
-require_once __DIR__ . '/nvx-governance-boilerplate.php';
+// require_once __DIR__ . '/nvx-visual-system.php';
+// require_once __DIR__ . '/nvx-external-visual-closure.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
 require_once __DIR__ . '/nvx-strategy-pages.php';
-require_once __DIR__ . '/nvx-conversion-events.php';
-require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
+// require_once __DIR__ . '/nvx-conversion-events.php';
+// require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 
-/** Prevent strategy pages from being written during normal web requests. */
-remove_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
-
-/**
- * Returns the governed retired/deferred-page contract shared by the
- * production-readiness and canonical-route migrations.
- *
- * @return array<string,array{status:string,target:string}>
- */
-function nvx_production_readiness_governed_pages(): array {
-    return array(
-        'liposculpt-air' => array(
-            'status' => 'trash',
-            'target' => '/remodelacion-corporal-laser-madrid/',
-        ),
-        'v-lift-awake' => array(
-            'status' => 'trash',
-            'target' => '/protocolos-signature/',
-        ),
-        'dr-javier-rivera-tejeda' => array(
-            'status' => 'trash',
-            'target' => '/equipo-medico/',
-        ),
-        'tratamientos' => array(
-            'status' => 'trash',
-            'target' => '/soluciones-medicas/',
-        ),
-        'eye-frame-rejuvenecimiento-mirada-madrid' => array(
-            'status' => 'draft',
-            'target' => NVX_PATH_OJERAS_SURCO_LAGRIMAL,
-        ),
-    );
-}
-
-/**
- * Slugs that are intentionally retired and must never be canonically guessed.
- *
- * @return string[]
- */
-function nvx_retired_legacy_route_slugs(): array {
-    return array(
-        'mas-informacion-sobre-las-cookies',
-        'politica-de-cookies',
-        'politica-de-privacidad',
-        'tratamiento-retirado',
-        'tratamientos',
-        'liposculpt-air',
-        'v-lift-awake',
-        'dr-javier-rivera-tejeda',
-        'eye-frame-rejuvenecimiento-mirada-madrid',
-        'eye-frame',
-    );
-}
-
-/** Determines whether the current request targets an intentionally retired route. */
-function nvx_is_retired_legacy_route_request(): bool {
-    if ( is_admin() || ! isset( $_SERVER['REQUEST_URI'] ) ) {
-        return false;
-    }
-
-    $request_uri  = wp_unslash( (string) $_SERVER['REQUEST_URI'] );
-    $request_path = (string) wp_parse_url( $request_uri, PHP_URL_PATH );
-    $path         = trim( (string) $request_path, '/' );
-    if ( '' === $path ) {
-        return false;
-    }
-
-    // Match full path or final segment (covers edge rewrites / trailing junk).
-    $parts = explode( '/', $path );
-    $slug  = (string) end( $parts );
-
-    $retired = nvx_retired_legacy_route_slugs();
-    return in_array( $path, $retired, true ) || in_array( $slug, $retired, true );
-}
-
-/** Prevent WordPress from guessing a replacement permalink for retired routes. */
-function nvx_disable_retired_legacy_route_redirect( $redirect_url ) {
-    return nvx_is_retired_legacy_route_request() ? false : $redirect_url;
-}
-add_filter( 'redirect_canonical', 'nvx_disable_retired_legacy_route_redirect', -999999, 1 );
-
-/**
- * Serve an explicit 410 response for retired routes before canonical redirects.
- *
- * Intentionally avoids loading the theme 404/page-shell stack so a regression
- * in header/footer/schema never turns a governed 410 into an HTTP 500.
- */
-function nvx_serve_retired_legacy_route(): void {
-    if ( ! nvx_is_retired_legacy_route_request() ) {
-        return;
-    }
-
-    remove_action( 'template_redirect', 'redirect_canonical' );
-
-    global $wp_query;
-    if ( $wp_query instanceof WP_Query ) {
-        $wp_query->set_404();
-    }
-
-    status_header( 410 );
-    nocache_headers();
-    if ( ! headers_sent() ) {
-        header( 'Content-Type: text/html; charset=UTF-8', true );
-        header( 'X-Robots-Tag: noindex, nofollow', true );
-        header( 'X-NUVANX-Retired-Route: 1', true );
-    }
-
-    $title      = esc_html__( 'Contenido retirado', 'nuvanx-medical' );
-    $message    = esc_html__( 'Esta página ya no está disponible.', 'nuvanx-medical' );
-    $home       = esc_url( home_url( '/' ) );
-    $home_label = esc_html__( 'Volver al inicio', 'nuvanx-medical' );
-
-    // Single write avoids multi-echo noise for scanners and keeps the response atomic.
-    echo '<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">'
-        . '<meta name="robots" content="noindex,nofollow">'
-        . '<meta name="viewport" content="width=device-width, initial-scale=1">'
-        . '<title>' . $title . '</title></head><body><main>'
-        . '<h1>' . $title . '</h1><p>' . $message . '</p>'
-        . '<p><a href="' . $home . '">' . $home_label . '</a></p>'
-        . '</main></body></html>';
-    exit;
-}
-add_action( 'template_redirect', 'nvx_serve_retired_legacy_route', -1000000 );
-
-/** Determines whether the current request is for the Goya clinic page. */
+/** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
-    if ( is_admin() ) {
-        return false;
-    }
-    if ( is_page( 1537 ) ) {
-        return true;
-    }
-    $path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '';
-    return '/' . trim( $path, '/' ) . '/' === '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/';
+	if ( is_admin() ) {
+		return false;
+	}
+	if ( is_page( 1537 ) ) {
+		return true;
+	}
+	$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '';
+	return '/' . trim( $path, '/' ) . '/' === '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/';
 }
 
 add_filter(
-    'redirect_canonical',
-    function ( $redirect_url ) {
-        return nvx_theme_is_goya_page() ? false : $redirect_url;
-    },
-    9999,
-    1
+	'redirect_canonical',
+	function ( $redirect_url ) {
+		return nvx_theme_is_goya_page() ? false : $redirect_url;
+	},
+	9999,
+	1
 );
 
 add_action(
-    'template_redirect',
-    function () {
-        if ( nvx_theme_is_goya_page() ) {
-            remove_action( 'template_redirect', 'redirect_canonical' );
-        }
-    },
-    -999999
+	'template_redirect',
+	function () {
+		if ( nvx_theme_is_goya_page() ) {
+			remove_action( 'template_redirect', 'redirect_canonical' );
+		}
+	},
+	-999999
 );
 
-/** Whether an HTML fragment starts with an application/ld+json script. */
-function nvxThemeIsJsonLdScript( string $script ): bool {
-    if ( ! class_exists( 'WP_HTML_Tag_Processor' ) ) {
-        return false;
-    }
-
-    $processor = new WP_HTML_Tag_Processor( $script );
-    if ( ! $processor->next_tag( 'SCRIPT' ) ) {
-        return false;
-    }
-
-    $type = $processor->get_attribute( 'type' );
-    return is_string( $type ) && 'application/ld+json' === strtolower( trim( $type ) );
-}
-
-/** Whether a JSON-LD script contains Schema.org graph data. */
-function nvxThemeIsSchemaJsonLdScript( string $script ): bool {
-    return false !== stripos( $script, 'schema.org' )
-        || false !== stripos( $script, '@graph' )
-        || false !== stripos( $script, '"@type"' );
-}
+/** Canonical privacy route. */
+add_action(
+	'template_redirect',
+	function () {
+		if ( is_admin() ) {
+			return;
+		}
+		$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '';
+		$norm = '/' . trim( $path, '/' ) . '/';
+		if ( '/politica-de-privacidad/' === $norm ) {
+			wp_safe_redirect( home_url( '/politica-privacidad/' ), 301 );
+			exit;
+		}
+	},
+	1
+);
 
 /**
- * Remove non-Yoast Schema.org scripts with a bounded linear scan.
+ * Normalize public document markup and remove duplicate front-page FAQ structured data.
  *
- * @param string $html Public document HTML.
- */
-function nvxThemeNormalizeSchemaScripts( string $html ): string {
-    $output = '';
-    $cursor = 0;
-    $length = strlen( $html );
-
-    while ( $cursor < $length ) {
-        $start = stripos( $html, '<script', $cursor );
-        if ( false === $start ) {
-            break;
-        }
-
-        $nameEnd = $start + 7;
-        $next    = $nameEnd < $length ? $html[ $nameEnd ] : '';
-        if ( '' !== $next && '>' !== $next && ! ctype_space( $next ) ) {
-            $output .= substr( $html, $cursor, $nameEnd - $cursor );
-            $cursor = $nameEnd;
-            continue;
-        }
-
-        $close = stripos( $html, '</script>', $nameEnd );
-        if ( false === $close ) {
-            break;
-        }
-
-        $end    = $close + 9;
-        $script = substr( $html, $start, $end - $start );
-        $output .= substr( $html, $cursor, $start - $cursor );
-
-        $isJsonLd = nvxThemeIsJsonLdScript( $script );
-        $isYoast  = false !== stripos( $script, 'yoast-schema-graph' );
-        $isSchema = nvxThemeIsSchemaJsonLdScript( $script );
-        if ( ! $isJsonLd || $isYoast || ! $isSchema ) {
-            $output .= $script;
-        }
-
-        $cursor = $end;
-    }
-
-    return $output . substr( $html, $cursor );
-}
-
-/**
- * Normalize public document markup and keep a single Yoast schema.org graph.
- *
- * Removes non-Yoast Schema.org application/ld+json blocks (embedded BlogPosting,
- * legacy MedicalClinic, FAQ dumps) while preserving the canonical yoast-schema-graph.
+ * @param string $html Rendered document markup.
+ * @return string
  */
 function nvx_theme_normalize_public_document( string $html ): string {
-    $html = (string) preg_replace(
-        '/<meta\s+name=["\']viewport["\'][^>]*>/i',
-        '<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
-        $html,
-        1
-    );
+	$html = (string) preg_replace(
+		'/<meta\s+name=["\']viewport["\'][^>]*>/i',
+		'<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
+		$html,
+		1
+	);
 
-    $html = str_ireplace(
-        array( 'NUVANX Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Couture Sculpt™', 'Contour Sculpt™' ),
-        'NUVANX Contour Architecture™',
-        $html
-    );
-    $html = str_replace(
-        array( '/eye-frame-rejuvenecimiento-mirada-madrid/', '/eye-frame/' ),
-        array( NVX_PATH_OJERAS_SURCO_LAGRIMAL, NVX_PATH_OJERAS_SURCO_LAGRIMAL ),
-        $html
-    );
-    $html = str_ireplace(
-        array( 'NUVANX Eye Frame™', 'Eye Frame™' ),
-        'Ojeras y surco lagrimal',
-        $html
-    );
+	if ( false !== stripos( $html, '2026/06/nvx-home-video-' ) ) {
+		$html = str_replace(
+			'/uploads/2026/06/nvx-home-video-',
+			'/uploads/2026/07/nvx-home-video-',
+			$html
+		);
+	}
 
-    if ( false !== stripos( $html, 'ld+json' ) ) {
-        $html = nvxThemeNormalizeSchemaScripts( $html );
-    }
+	if ( false !== stripos( $html, 'FacebookSignal' ) ) {
+		$html = (string) preg_replace(
+			'/<script\b[^>]*>[\s\S]*?FacebookSignal[\s\S]*?<\/script>/iu',
+			'',
+			$html
+		);
+		$html = (string) preg_replace( '/FacebookSignal\.[a-zA-Z0-9_\$]+\([^)]*\);?/i', '', $html );
+	}
 
-    return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
+	if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {
+		return $html;
+	}
+
+	$normalized = preg_replace_callback(
+		'/<script\b[^>]*type=["\']application\/ld\+json["\'][^>]*>[\s\S]*?<\/script>/iu',
+		static function ( array $match ): string {
+			$script = $match[0];
+			if ( false !== stripos( $script, 'yoast-schema-graph' ) ) {
+				return $script;
+			}
+			return false !== stripos( $script, 'FAQPage' ) ? '' : $script;
+		},
+		$html
+	);
+
+	if ( is_string( $normalized ) ) {
+		$html = $normalized;
+	}
+
+	return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
 }
 
 add_action(
-    'template_redirect',
-    function () {
-        if ( ! is_admin() ) {
-            ob_start( 'nvx_theme_normalize_public_document' );
-        }
-    },
-    0
+	'template_redirect',
+	function () {
+		if ( ! is_admin() ) {
+			ob_start( 'nvx_theme_normalize_public_document' );
+		}
+	},
+	0
 );
 
 require_once __DIR__ . '/nvx-structured-data.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
 require_once __DIR__ . '/nvx-page-hygiene.php';
-require_once __DIR__ . '/nvx-p0-publication-guard.php';
+// require_once __DIR__ . '/nvx-p0-publication-guard.php';
 require_once __DIR__ . '/nvx-seo-metadata.php';
-require_once __DIR__ . '/nvx-editorial-seo-extension.php';
 require_once __DIR__ . '/nvx-seo-production-readiness.php';
 require_once __DIR__ . '/nvx-contacto-audit-fixes.php';
 require_once __DIR__ . '/nvx-faq-content-v2.php';
 require_once __DIR__ . '/nvx-medical-review.php';
-require_once __DIR__ . '/nvx-publication-safeguards.php';
+// require_once __DIR__ . '/nvx-publication-safeguards.php';
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
-require_once __DIR__ . '/nvx-clinical-language.php';
+// require_once __DIR__ . '/nvx-clinical-language.php';
 require_once __DIR__ . '/nvx-blog-system.php';
-require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
-require_once __DIR__ . '/nvx-site-coherence.php';
-require_once __DIR__ . '/nvx-hero-layout-coherence.php';
-require_once __DIR__ . '/nvx-full-site-ui-governance.php';
-require_once __DIR__ . '/nvx-protocol-hub.php';
-require_once __DIR__ . '/nvx-protocol-pages.php';
-require_once __DIR__ . '/nvx-signature-phase-pages.php';
+// require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
+require_once __DIR__ . '/nvx-navigation-filters.php';
 
-/* GEO · Hreflang es-ES */
+/* Resource Hints & GEO · Hreflang es-ES */
 add_action(
-    'wp_head',
-    function (): void {
-        $current_url = is_front_page() ? home_url( '/' ) : home_url( wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ) );
-        echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( $current_url ) . '" />' . "\n";
-        echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";
-    },
-    1
+	'wp_head',
+	function (): void {
+		echo '<link rel="preconnect" href="https://fonts.googleapis.com" />' . "\n";
+		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n";
+		echo '<link rel="preconnect" href="https://forms-eu1.hsforms.com" crossorigin />' . "\n";
+
+		if ( is_front_page() ) {
+			$poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
+			echo '<link rel="preload" as="image" href="' . esc_url( $poster_url ) . '" fetchpriority="high" type="image/webp" />' . "\n";
+		}
+
+		$current_url = is_front_page() ? home_url( '/' ) : home_url( wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ) );
+		echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( $current_url ) . '" />' . "\n";
+		echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";
+	},
+	1
+);
+
+/* Clinical governance · retired treatment slugs */
+add_action(
+	'template_redirect',
+	function (): void {
+		$retired_slugs = array( 'tratamiento-retirado' );
+
+		if ( is_singular() && in_array( get_post_field( 'post_name', get_the_ID() ), $retired_slugs, true ) ) {
+			wp_safe_redirect( home_url( '/tratamientos/' ), 301 );
+			exit;
+		}
+	}
 );
 
 /* Security headers */
 add_action(
-    'send_headers',
-    function (): void {
-        if ( headers_sent() ) {
-            return;
-        }
-        header( 'X-Content-Type-Options: nosniff' );
-        header( 'X-Frame-Options: SAMEORIGIN' );
-        header( 'Referrer-Policy: strict-origin-when-cross-origin' );
-        header( 'Permissions-Policy: camera=(), microphone=(), geolocation=()' );
-    }
+	'send_headers',
+	function (): void {
+		if ( headers_sent() ) {
+			return;
+		}
+		header( 'X-Content-Type-Options: nosniff' );
+		header( 'X-Frame-Options: SAMEORIGIN' );
+		header( 'Referrer-Policy: strict-origin-when-cross-origin' );
+		header( 'Permissions-Policy: camera=(), microphone=(), geolocation=()' );
+	}
 );
 
+/* Meta Pixel & Site Kit · Dequeue unused scripts on public frontend */
 add_action(
-    'wp_enqueue_scripts',
-    function (): void {
-        $version = wp_get_theme()->get( 'Version' );
-        wp_enqueue_style( 'nvx-integrations', get_theme_file_uri( 'assets/css/nvx-integrations.css' ), array(), $version );
-    },
-    100
+	'wp_enqueue_scripts',
+	function (): void {
+		wp_dequeue_script( 'siteground-facebook-signal' );
+		wp_deregister_script( 'siteground-facebook-signal' );
+		wp_dequeue_script( 'googlesitekit-sign-in-with-google' );
+		wp_deregister_script( 'googlesitekit-sign-in-with-google' );
+	},
+	100
 );
-
 
 add_filter(
-    'script_loader_tag',
-    function ( string $tag, string $handle ): string {
-        if ( str_contains( $tag, 'hsforms.net' ) || str_contains( $tag, 'gsi/client' ) ) {
-            if ( ! str_contains( $tag, 'defer' ) ) {
-                $tag = str_replace( '<script ', '<script defer ', $tag );
-            }
-        }
-        return $tag;
-    },
-    10,
-    2
+	'script_loader_tag',
+	function ( string $tag, string $handle, string $src = '' ): string {
+		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
+			return '';
+		}
+
+		if ( is_admin() ) {
+			return $tag;
+		}
+
+		if ( str_contains( $src, 'accounts.google.com/gsi' ) || str_contains( $handle, 'sign-in-with-google' ) ) {
+			return '';
+		}
+
+		if ( 'nvx-hubspot-forms-embed' === $handle || str_contains( $src, 'hsforms.net' ) ) {
+			if ( false === strpos( $tag, 'defer' ) && false === strpos( $tag, 'async' ) ) {
+				return str_replace( ' src=', ' defer src=', $tag );
+			}
+		}
+
+		return $tag;
+	},
+	10,
+	3
 );

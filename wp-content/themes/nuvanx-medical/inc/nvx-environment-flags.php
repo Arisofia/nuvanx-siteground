@@ -1,61 +1,53 @@
 <?php
 /**
- * Environment-specific runtime services and deployment metadata.
+ * Environment-specific presentation and deployment flags.
  *
- * The environment classifier is shared by staging-only content safeguards and
- * must remain independent from temporary presentation features. Deploy workflows
- * stamp the exact checked-out commit into `.nvx-deploy-sha` so the rendered site
- * can prove which immutable revision is active.
+ * Production keeps the temporary hero blackout enabled by default until approved
+ * photography replaces every opening image. Staging2 disables it so the real
+ * hero media, contrast, CTA hierarchy and mobile crop can be reviewed safely.
+ *
+ * Deploy workflows stamp the exact checked-out commit into `.nvx-deploy-sha`.
+ * The public marker is intentionally non-secret and allows staging/production
+ * verification to prove which immutable revision is actually rendered.
  *
  * @package nuvanx-medical
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
-}
-
-require_once __DIR__ . '/nvx-runtime-compatibility.php';
-
-/**
- * Resolve the current WordPress host in web and WP-CLI contexts.
- *
- * The snake_case name is retained because this is a WordPress-facing helper and
- * existing runtime consumers use the established theme convention.
- */
-function nvx_environment_host(): string { // NOSONAR -- Intentional WordPress-compatible public API.
-    $host = wp_parse_url( home_url( '/' ), PHP_URL_HOST );
-    if ( ! is_string( $host ) || '' === $host ) {
-        $host = isset( $_SERVER['HTTP_HOST'] ) ? (string) $_SERVER['HTTP_HOST'] : '';
-    }
-
-    $host = strtolower( trim( $host ) );
-    $host = (string) preg_replace( '/:\d+$/', '', $host );
-
-    return $host;
+	exit;
 }
 
 /**
- * Whether WordPress is running on the protected staging2 environment.
+ * Whether the current request belongs to the staging2 review environment.
  *
- * The snake_case name deliberately matches the related WordPress filter and the
- * active staging-only consumers.
+ * Host-only: generic WP_ENVIRONMENT_TYPE=staging must NOT reveal media, so
+ * unrelated staging/preview hosts keep production-safe blackout behaviour.
  */
-function nvx_environment_is_staging2(): bool { // NOSONAR -- Intentional WordPress-compatible public API.
-    $host = nvx_environment_host();
+function nvx_environment_is_staging2(): bool {
+	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
+	$host = preg_replace( '/:\d+$/', '', $host );
+	if ( ! is_string( $host ) ) {
+		$host = '';
+	}
 
-    /**
-     * Filter staging2 detection without coupling it to presentation behavior.
-     *
-     * @param bool   $is_staging2 Whether the canonical staging2 host is active.
-     * @param string $host        Normalized WordPress host.
-     */
-    return (bool) apply_filters( 'nvx_environment_is_staging2', 'staging2.nuvanx.com' === $host, $host );
+	/**
+	 * Filter whether the request is treated as staging2.
+	 *
+	 * @param bool   $is_staging2 Detected host match.
+	 * @param string $host        Normalized HTTP host without port.
+	 */
+	return (bool) apply_filters( 'nvx_environment_is_staging2', 'staging2.nuvanx.com' === $host, $host );
 }
 
-/** Backward-compatible camelCase adapter used by older theme snapshots. */
-function nvxEnvironmentIsStaging2(): bool {
-    return nvx_environment_is_staging2();
+/**
+ * Reveal the underlying hero media on staging2 without changing production.
+ *
+ * @param bool $enabled Current blackout flag.
+ */
+function nvx_environment_filter_hero_blackout( bool $enabled ): bool {
+	return nvx_environment_is_staging2() ? false : $enabled;
 }
+add_filter( 'nvx_theme_hero_blackout_enabled', 'nvx_environment_filter_hero_blackout', 5 );
 
 /**
  * Resolve the exact deployed Git commit SHA.
@@ -63,54 +55,56 @@ function nvxEnvironmentIsStaging2(): bool {
  * Resolution order supports controlled host configuration while keeping the
  * workflow-generated marker as the normal source of truth.
  */
-function nvxEnvironmentDeploySha(): string {
-    static $resolved = null;
+function nvx_environment_deploy_sha(): string {
+	static $resolved = null;
 
-    if ( is_string( $resolved ) ) {
-        return $resolved;
-    }
+	if ( is_string( $resolved ) ) {
+		return $resolved;
+	}
 
-    $candidates = array();
-    if ( defined( 'NVX_DEPLOY_SHA' ) ) {
-        $candidates[] = (string) NVX_DEPLOY_SHA;
-    }
+	$candidates = array();
+	if ( defined( 'NVX_DEPLOY_SHA' ) ) {
+		$candidates[] = (string) NVX_DEPLOY_SHA;
+	}
 
-    $environment_sha = getenv( 'NVX_DEPLOY_SHA' );
-    if ( is_string( $environment_sha ) ) {
-        $candidates[] = $environment_sha;
-    }
+	$environment_sha = getenv( 'NVX_DEPLOY_SHA' );
+	if ( is_string( $environment_sha ) ) {
+		$candidates[] = $environment_sha;
+	}
 
-    $marker = get_template_directory() . '/.nvx-deploy-sha';
-    if ( is_readable( $marker ) ) {
-        $marker_sha = file_get_contents( $marker );
-        if ( is_string( $marker_sha ) ) {
-            $candidates[] = $marker_sha;
-        }
-    }
+	$marker = get_template_directory() . '/.nvx-deploy-sha';
+	if ( is_readable( $marker ) ) {
+		$marker_sha = file_get_contents( $marker );
+		if ( is_string( $marker_sha ) ) {
+			$candidates[] = $marker_sha;
+		}
+	}
 
-    foreach ( $candidates as $candidate ) {
-        $candidate = strtolower( trim( $candidate ) );
-        if ( 1 === preg_match( '/^[a-f0-9]{40}$/', $candidate ) ) {
-            $resolved = $candidate;
-            return $resolved;
-        }
-    }
+	foreach ( $candidates as $candidate ) {
+		$candidate = strtolower( trim( $candidate ) );
+		if ( 1 === preg_match( '/^[a-f0-9]{40}$/', $candidate ) ) {
+			$resolved = $candidate;
+			return $resolved;
+		}
+	}
 
-    $resolved = '';
-    return $resolved;
+	$resolved = '';
+	return $resolved;
 }
 
-/** Emit the immutable deployment marker in the rendered document head. */
-function nvxEnvironmentRenderDeploySha(): void {
-    if ( is_admin() ) {
-        return;
-    }
+/**
+ * Emit the immutable deployment marker in the rendered document head.
+ */
+function nvx_environment_render_deploy_sha(): void {
+	if ( is_admin() ) {
+		return;
+	}
 
-    $sha = nvxEnvironmentDeploySha();
-    if ( '' === $sha ) {
-        return;
-    }
+	$sha = nvx_environment_deploy_sha();
+	if ( '' === $sha ) {
+		return;
+	}
 
-    printf( "<meta name=\"nvx-deploy-sha\" content=\"%s\" />\n", esc_attr( $sha ) );
+	printf( "<meta name=\"nvx-deploy-sha\" content=\"%s\" />\n", esc_attr( $sha ) );
 }
-add_action( 'wp_head', 'nvxEnvironmentRenderDeploySha', 1 );
+add_action( 'wp_head', 'nvx_environment_render_deploy_sha', 1 );

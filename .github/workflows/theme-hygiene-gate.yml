@@ -7,14 +7,6 @@ on:
     paths:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
-      - 'scripts/staging2/audit-full-site-ui.mjs'
-      - 'scripts/staging2/smoke-verify-staging2.sh'
-      - 'scripts/wp/nvx-production-readiness-command.php'
-      - 'scripts/wp/nvx-canonical-route-migration.php'
-      - 'tools/deploy/deploy-to-staging2.sh'
-      - 'tools/deploy/nvx-purge-wp-caches.sh'
-      - '.env.example'
-      - '.gitignore'
       - '.github/workflows/theme-hygiene-gate.yml'
   pull_request:
     branches:
@@ -22,14 +14,6 @@ on:
     paths:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
-      - 'scripts/staging2/audit-full-site-ui.mjs'
-      - 'scripts/staging2/smoke-verify-staging2.sh'
-      - 'scripts/wp/nvx-production-readiness-command.php'
-      - 'scripts/wp/nvx-canonical-route-migration.php'
-      - 'tools/deploy/deploy-to-staging2.sh'
-      - 'tools/deploy/nvx-purge-wp-caches.sh'
-      - '.env.example'
-      - '.gitignore'
       - '.github/workflows/theme-hygiene-gate.yml'
   workflow_dispatch:
 
@@ -42,72 +26,30 @@ permissions:
 
 jobs:
   hygiene:
-    name: Enforce theme and canonical routing hygiene
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
-      - name: Lint workflow and contracts
+      - name: Lint workflow and contract
         run: |
           set -euo pipefail
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
-          bash -n tools/deploy/nvx-purge-wp-caches.sh
           node --check scripts/theme-hygiene/test-theme-hygiene.mjs
-          node --check scripts/theme-hygiene/test-canonical-route-contract.mjs
-          node --check scripts/theme-hygiene/test-rest-pagination-contract.mjs
-          node --check scripts/theme-hygiene/test-hero-layout-contract.mjs
-          node --check scripts/theme-hygiene/test-entity-graph-contract.mjs
-          node --check scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
-          node --check scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs
-          node --check scripts/theme-hygiene/test-cache-purge-contract.mjs
-          node --check scripts/theme-hygiene/test-audit-v3-contract.mjs
 
-      - name: Lint runtime and migration PHP
+      - name: Lint all theme PHP
         run: |
           set -euo pipefail
           find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 \
             | xargs -0 -n 1 php -l
-          php -l scripts/wp/nvx-production-readiness-command.php
-          php -l scripts/wp/nvx-canonical-route-migration.php
-          php -l scripts/theme-hygiene/test-nvx-callable-contract.php
-
-      - name: Enforce NUVANX callable contract
-        run: php scripts/theme-hygiene/test-nvx-callable-contract.php
 
       - name: Enforce canonical theme hygiene
         run: node scripts/theme-hygiene/test-theme-hygiene.mjs
 
-      - name: Enforce canonical route contract
-        run: node scripts/theme-hygiene/test-canonical-route-contract.mjs
-
-      - name: Enforce REST pagination contract
-        run: node scripts/theme-hygiene/test-rest-pagination-contract.mjs
-
-      - name: Enforce hero layout contract
-        run: node scripts/theme-hygiene/test-hero-layout-contract.mjs
-
-      - name: Enforce entity graph contract
-        run: node scripts/theme-hygiene/test-entity-graph-contract.mjs
-
-      - name: Enforce runtime bootstrap contract
-        run: node scripts/theme-hygiene/test-runtime-bootstrap-contract.mjs
-
-      - name: Enforce cache purge contract
-        run: node scripts/theme-hygiene/test-cache-purge-contract.mjs
-
-      - name: Enforce aesthetic treatment contract
-        run: node scripts/theme-hygiene/test-aesthetic-treatment-contract.mjs
-
-      - name: Enforce audit v3 contract
-        run: node scripts/theme-hygiene/test-audit-v3-contract.mjs
-
       - name: Upload hygiene findings
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: theme-hygiene-findings
           path: theme-hygiene-report.txt

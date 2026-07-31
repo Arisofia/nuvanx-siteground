@@ -1,22 +1,8 @@
 <?php
 defined( 'ABSPATH' ) || exit;
-
-$nvx_is_valoracion_landing = (
-  function_exists( 'nvx_theme_is_valoracion_form_page' )
-  && nvx_theme_is_valoracion_form_page()
-) || (
-  function_exists( 'nvx_theme_is_valoracion_landing' )
-  && nvx_theme_is_valoracion_landing()
-);
-$nvx_valoracion_cta_modal = ! $nvx_is_valoracion_landing;
-$nvx_valoracion_cta_href  = $nvx_is_valoracion_landing
-  ? '#nvx-hubspot-form'
-  : home_url( '/madrid/valoracion/' );
-$nvx_valoracion_cta_class = 'nvx-btn nvx-btn--primary' . ( $nvx_valoracion_cta_modal ? ' nvx-open-valoracion-modal' : '' );
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
-<title><?php wp_title('|', true, 'right'); ?></title>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,7 +16,7 @@ $nvx_valoracion_cta_class = 'nvx-btn nvx-btn--primary' . ( $nvx_valoracion_cta_m
       <?php
       $logo_id = get_theme_mod( 'custom_logo' );
       if ( $logo_id ) :
-        echo wp_get_attachment_image( $logo_id, 'thumbnail', false, array( 'class' => 'nvx-logo__img', 'alt' => 'NUVANX', 'fetchpriority' => 'high' ) );
+        echo wp_get_attachment_image( $logo_id, 'full', false, array( 'class' => 'nvx-logo__img', 'alt' => 'NUVANX' ) );
       else :
         ?>
       <span class="nvx-logo__wordmark" aria-hidden="true">NUVANX</span>
@@ -45,29 +31,22 @@ $nvx_valoracion_cta_class = 'nvx-btn nvx-btn--primary' . ( $nvx_valoracion_cta_m
           'menu_class'     => 'nvx-nav__list',
           'container'      => false,
           'items_wrap'     => '<ul class="%2$s">%3$s</ul>',
+          'fallback_cb'    => 'nvx_primary_menu_fallback',
           'add_li_class'   => 'nvx-nav__item',
         )
       );
       ?>
-      <a href="<?php echo esc_url( $nvx_valoracion_cta_href ); ?>" class="nvx-header__cta <?php echo esc_attr( $nvx_valoracion_cta_class ); ?>" id="nvx-header-cta" data-nvx-valoracion-modal="<?php echo $nvx_valoracion_cta_modal ? '1' : '0'; ?>"<?php echo $nvx_valoracion_cta_modal ? ' aria-haspopup="dialog"' : ''; ?>><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
+      <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-header__cta nvx-btn nvx-btn--primary nvx-open-valoracion-modal" id="nvx-header-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
     </nav>
     <button class="nvx-hamburger" id="nvx-hamburger-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="nvx-mobile-nav">
       <span></span><span></span><span></span>
     </button>
   </div>
 </header>
-<dialog id="nvx-mobile-nav" class="nvx-mobile-nav" aria-modal="true" aria-label="Menú móvil" aria-hidden="true">
+<div id="nvx-mobile-nav" class="nvx-mobile-nav" role="dialog" aria-modal="true" aria-label="Menú móvil" aria-hidden="true">
   <button class="nvx-mobile-nav__close" id="nvx-mobile-close" aria-label="Cerrar menú">&times;</button>
-  <?php
-  wp_nav_menu(
-    array(
-      'theme_location' => 'primary',
-      'menu_class'     => 'nvx-mobile-nav__list',
-      'container'      => false,
-    )
-  );
-  ?>
-  <a href="<?php echo esc_url( $nvx_valoracion_cta_href ); ?>" class="<?php echo esc_attr( $nvx_valoracion_cta_class ); ?>" id="nvx-mobile-cta" data-nvx-valoracion-modal="<?php echo $nvx_valoracion_cta_modal ? '1' : '0'; ?>"<?php echo $nvx_valoracion_cta_modal ? ' aria-haspopup="dialog"' : ''; ?>><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
-  <a href="<?php echo esc_url( nvx_cta_whatsapp_url() ); ?>" class="nvx-btn nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
-</dialog>
+  <?php wp_nav_menu( array( 'theme_location' => 'primary', 'menu_class' => 'nvx-mobile-nav__list', 'container' => false, 'fallback_cb' => false ) ); ?>
+  <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary nvx-open-valoracion-modal" id="nvx-mobile-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
+  <a href="https://wa.me/34669319836" class="nvx-btn nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
+</div>
 <main id="nvx-main" class="nvx-main" tabindex="-1">

@@ -66,3 +66,4 @@ function nvx_theme_dequeue_legacy_coherence_styles(): void {
 	}
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_dequeue_legacy_coherence_styles', 999 );
+add_action( 'wp_head', 'nvx_theme_dequeue_legacy_coherence_styles', 1 );

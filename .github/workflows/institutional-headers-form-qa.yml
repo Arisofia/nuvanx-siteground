@@ -24,6 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha }}
       BASE_URL: https://staging2.nuvanx.com
       EVIDENCE_DIR: institutional-headers-form-evidence
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
@@ -31,17 +32,9 @@ jobs:
       - name: Check out immutable PR head
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ env.EXPECTED_SHA }}
           fetch-depth: 0
           persist-credentials: false
-
-      - name: Resolve deployed theme source SHA
-        run: |
-          set -euo pipefail
-          theme_sha="$(git log -1 --format=%H -- wp-content/themes/nuvanx-medical)"
-          [[ "$theme_sha" =~ ^[0-9a-f]{40}$ ]]
-          echo "EXPECTED_SHA=$theme_sha" >> "$GITHUB_ENV"
-          echo "Theme source SHA: $theme_sha"
 
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -91,19 +84,19 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
 
-      - name: Wait for exact staging2 theme SHA
+      - name: Wait for exact staging2 PR SHA
         run: |
           set -euo pipefail
           for attempt in $(seq 1 90); do
             deployed="$(ssh nvx-staging2 "test -f '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true")"
             if [[ "$deployed" == "$EXPECTED_SHA" ]]; then
-              echo "Exact staging2 theme SHA ready: $deployed"
+              echo "Exact staging2 PR SHA ready: $deployed"
               exit 0
             fi
             echo "Waiting for $EXPECTED_SHA; current=${deployed:-absent}; attempt=$attempt"
             sleep 5
           done
-          echo "Timed out waiting for exact staging2 theme SHA $EXPECTED_SHA" >&2
+          echo "Timed out waiting for exact staging2 PR SHA $EXPECTED_SHA" >&2
           exit 1
 
       - name: Install governed valoración MU plugin

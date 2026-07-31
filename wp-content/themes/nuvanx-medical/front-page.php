@@ -85,7 +85,7 @@ ob_start();
             <figure class="nvx-home-hero__visual" aria-hidden="true">
                 <video id="nvx-home-hero-video" class="nvx-home-hero__video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_art_url ); ?>">
                     <source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
-                    <img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async">
+                    <img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async" fetchpriority="high">
                 </video>
             </figure>
             <button
@@ -162,7 +162,7 @@ ob_start();
                     <p class="nvx-home-solution-card__label"><?php echo esc_html( $solution['kicker'] ); ?></p>
                     <h3><?php echo esc_html( $solution['title'] ); ?></h3>
                     <p><?php echo esc_html( $solution['copy'] ); ?></p>
-                    <a href="<?php echo esc_url( home_url( $solution['url'] ) ); ?>">Explorar solución <span aria-hidden="true">→</span></a>
+                    <a href="<?php echo esc_url( home_url( $solution['url'] ) ); ?>" aria-label="<?php echo esc_attr( 'Explorar solución: ' . $solution['title'] ); ?>">Explorar solución <span aria-hidden="true">→</span></a>
                 </article>
             <?php endforeach; ?>
         </div>

@@ -18,68 +18,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array<string, array{title:string,description:string}>
  */
 function nvx_seo_metadata_catalog(): array {
-	return array(
-		'home'         => array(
-			'title'       => 'Medicina Estética Láser Madrid | Endolift y CO₂ | NUVANX',
-			'description' => 'Medicina estética láser en Madrid con equipo médico hospitalario. Endolift®, CO₂, EXION® BTL y well-aging en Chamberí y Salamanca–Goya.',
-		),
-		'tratamientos' => array(
-			'title'       => 'Tratamientos Medicina Estética Láser Madrid | NUVANX',
-			'description' => 'Tratamientos de medicina estética láser en Madrid: Endolift®, Láser CO₂, EXION® BTL, IPL y medicina facial con valoración clínica.',
-		),
-		'clinicas'     => array(
-			'title'       => 'Clínicas NUVANX Madrid | Chamberí y Salamanca–Goya',
-			'description' => 'Clínicas de medicina estética láser NUVANX en Chamberí y Salamanca–Goya. Direcciones, horarios, registros sanitarios y mapas.',
-		),
-		'chamberi'     => array(
-			'title'       => 'Medicina estética en Chamberí | NUVANX Madrid',
-			'description' => 'Clínica de medicina estética láser en Chamberí, Madrid. Equipo médico, registro sanitario CS20144 y valoración individualizada.',
-		),
-		'goya'         => array(
-			'title'       => 'Medicina estética en Salamanca–Goya | NUVANX',
-			'description' => 'Clínica de medicina estética láser en Salamanca–Goya, Madrid. Equipo médico, registro sanitario CS20073 y valoración individualizada.',
-		),
-		'endolift'     => array(
-			'title'       => 'Endolift® Facial Madrid | Precio y Resultados | NUVANX',
-			'description' => 'Endolift® facial en Madrid para papada, mandíbula y cuello. Tarifas por zona, indicaciones y recuperación. Valoración médica en NUVANX.',
-		),
-		'endolaser'    => array(
-			'title'       => 'Endoláser Corporal Madrid | Grasa y Firmeza | NUVANX',
-			'description' => 'Endoláser corporal en Madrid para grasa localizada y firmeza en abdomen, flancos, muslos y brazos. Valoración médica y presupuesto individualizado.',
-		),
-		'co2'          => array(
-			'title'       => 'Láser CO₂ Madrid | Cicatrices, Poros y Textura | NUVANX',
-			'description' => 'Láser CO₂ fraccionado en Madrid para cicatrices de acné, poros, textura y fotodaño. Recuperación estimada y tarifas en NUVANX.',
-		),
-		'exion'        => array(
-			'title'       => 'EXION® BTL Madrid | Face, Body y Fractional RF | NUVANX',
-			'description' => 'EXION® BTL en Madrid: Face, Body y Fractional RF. Modalidades seleccionadas según indicación clínica, zona y plan definido tras valoración médica.',
-		),
-		'exilite'      => array(
-			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y Rojeces | NUVANX',
-			'description' => 'IPL BTL EXILITE™ en Madrid para indicaciones pigmentarias, vasculares y calidad cutánea tras diagnóstico, fototipo y selección de parámetros.',
-		),
-		'equipo'       => array(
-			'title'       => 'Equipo Médico NUVANX Madrid | Criterio Clínico',
-			'description' => 'Equipo médico NUVANX en Madrid: colegiación, experiencia y áreas clínicas de los profesionales responsables de valoración y seguimiento.',
-		),
-		'por_que_nuvanx' => array(
-			'title'       => 'Por qué NUVANX | Criterio médico en Madrid',
-			'description' => 'Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid.',
-		),
-		'inversion'    => array(
-			'title'       => 'Inversión en medicina estética | NUVANX Madrid',
-			'description' => 'Tarifas orientativas verificadas y cómo se confirma un presupuesto de medicina estética tras la valoración médica presencial en NUVANX Madrid.',
-		),
-		'valoracion'   => array(
-			'title'       => 'Consulta médica estética en Madrid | NUVANX',
-			'description' => 'Solicita una consulta médica estética en Chamberí o Salamanca–Goya. Diagnóstico, indicación y presupuesto individualizado.',
-		),
-		'blog'         => array(
-			'title'       => 'Blog NUVANX | Medicina estética láser Madrid',
-			'description' => 'Artículos de NUVANX sobre Endolift®, EXION® BTL, IPL, well-aging y criterio médico en clínicas de Madrid.',
-		),
-	);
+	require_once __DIR__ . '/nvx-catalog-json.php';
+
+	return nvx_catalog_json_resolved( 'seo-metadata.json' );
 }
 
 /**
@@ -90,36 +31,9 @@ function nvx_seo_metadata_catalog(): array {
  * @return array<string, array{title:string,description:string}>
  */
 function nvx_seo_blog_post_metadata_catalog(): array {
-	return array(
-		'endolift-primeras-72-horas-que-esperar' => array(
-			'title'       => 'Endolift: primeras 72 horas | Qué esperar',
-			'description' => 'Qué es normal tras Endolift: inflamación, molestias y cuándo avisar. Guía de recuperación del protocolo clínico NUVANX en Madrid.',
-		),
-		'endolift-ciencia-laser-subdermico' => array(
-			'title'       => 'Cómo funciona Endolift | Láser subdérmico',
-			'description' => 'Física y biología del Endolift: cómo el láser bajo la piel estimula colágeno sin cirugía. Explicación médica clara de NUVANX.',
-		),
-		'endolift-vs-lifting-quirurgico-cuando-operarse' => array(
-			'title'       => 'Endolift vs lifting quirúrgico | Madrid',
-			'description' => 'Comparativa Endolift y lifting quirúrgico: invasividad, recuperación, resultados y cuándo valorar cirugía en NUVANX Madrid.',
-		),
-		'ipl-medica-btl-exilite-manchas-rojeces-acne-fotorejuvenecimiento' => array(
-			'title'       => 'IPL BTL EXILITE™ Madrid | Manchas y rojeces',
-			'description' => 'IPL médica BTL EXILITE™ en Madrid para manchas, rojeces, acné y fotorejuvenecimiento tras diagnóstico y fototipo.',
-		),
-		'exion-btl-fractional-rf-face-body' => array(
-			'title'       => 'EXION® BTL Face, Body y Fractional RF',
-			'description' => 'Diferencias entre EXION® Face, Body y Fractional RF: indicaciones, tolerancia y cuándo combinar tras valoración médica.',
-		),
-		'well-aging-48-cambios-hormonales-piel' => array(
-			'title'       => 'Well-aging a los 48 | Cambios hormonales',
-			'description' => 'Cómo cambian piel y colágeno cuando bajan los estrógenos. Guía de well-aging con criterio médico en NUVANX Madrid.',
-		),
-		'intrusismo-tratamientos-inyectables-riesgos' => array(
-			'title'       => 'Intrusismo estético y rellenos | Riesgos',
-			'description' => 'Riesgos del Botox y rellenos fuera de consulta médica: legalidad, complicaciones y por qué importa el criterio clínico.',
-		),
-	);
+	require_once __DIR__ . '/nvx-catalog-json.php';
+
+	return nvx_catalog_json_resolved( 'seo-blog-post-metadata.json' );
 }
 
 /**

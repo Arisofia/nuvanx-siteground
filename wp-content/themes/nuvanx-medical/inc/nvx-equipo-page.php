@@ -387,7 +387,7 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
  */
 function nvx_equipo_render_items_section( array $section ): string {
 	$section_id    = $section['id'] ?? '';
-	$section_class = trim( 'nvx-endolift-section ' . ( $section['class'] ?? '' ) );
+	$section_class = trim( 'nvx-brand-section ' . ( $section['class'] ?? '' ) );
 	$kicker        = $section['kicker'] ?? '';
 	$heading       = $section['heading'] ?? '';
 	$lead          = $section['lead'] ?? '';
@@ -497,15 +497,15 @@ function nvx_equipo_physician_authority_markup( array $config ): string {
 	$html .= '>';
 
 	// Profile layout (Portrait + intro copy)
-	$html .= '<section class="nvx-endolift-section nvx-equipo-profile" aria-labelledby="nvx-equipo-profile-title">';
-	$html .= '<div class="nvx-endolift-section__inner nvx-equipo-profile-layout">';
+	$html .= '<section class="nvx-brand-section nvx-equipo-profile" aria-labelledby="nvx-equipo-profile-title">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-equipo-profile-layout">';
 	$portrait = nvx_equipo_portrait_figure_markup( $config['media'] ?? '', $config['name'] ?? '' );
 	if ( '' !== $portrait ) {
 		$html .= $portrait;
 	}
 	$html .= '<div class="nvx-equipo-profile-layout__copy">';
 	if ( ! empty( $config['kicker'] ) ) {
-		$html .= '<p class="nvx-endolift-kicker">' . esc_html( $config['kicker'] ) . '</p>';
+		$html .= '<p class="nvx-brand-kicker">' . esc_html( $config['kicker'] ) . '</p>';
 	}
 	if ( ! empty( $config['h2'] ) ) {
 		$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-heading">' . esc_html( $config['h2'] ) . '</h2>';
@@ -530,8 +530,8 @@ function nvx_equipo_physician_authority_markup( array $config ): string {
 
 	// Quote section
 	if ( ! empty( $config['quote'] ) ) {
-		$html .= '<section class="nvx-endolift-section nvx-equipo-quote" aria-labelledby="nvx-equipo-quote-title">';
-		$html .= '<div class="nvx-endolift-section__inner">';
+		$html .= '<section class="nvx-brand-section nvx-equipo-quote" aria-labelledby="nvx-equipo-quote-title">';
+		$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 		$html .= '<h2 id="nvx-equipo-quote-title" class="screen-reader-text">' . esc_html__( 'Visión clínica', 'nuvanx-medical' ) . '</h2>';
 		$html .= '<blockquote class="nvx-equipo-blockquote">';
 		$html .= '<p>' . esc_html( $config['quote']['text'] ) . '</p>';

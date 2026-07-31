@@ -38,11 +38,29 @@ jobs:
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
           node --check scripts/theme-hygiene/test-theme-hygiene.mjs
 
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: none
+
       - name: Lint all theme PHP
         run: |
           set -euo pipefail
           find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 \
             | xargs -0 -n 1 php -l
+
+      - name: Validate runtime contracts
+        run: |
+          set -euo pipefail
+          php scripts/theme-hygiene/test-catalog-json-contract.php
+          php scripts/theme-hygiene/test-catalog-json-runtime-contract.php
+          php scripts/theme-hygiene/test-catalog-review-contract.php
+          php scripts/theme-hygiene/test-page-render-helpers.php
+          php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
+          php -l /tmp/nvx-catalog-i18n.php
+          php scripts/theme-hygiene/test-catalog-i18n-source-contract.php /tmp/nvx-catalog-i18n.php
 
       - name: Enforce canonical theme hygiene
         run: node scripts/theme-hygiene/test-theme-hygiene.mjs

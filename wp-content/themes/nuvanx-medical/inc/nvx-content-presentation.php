@@ -1277,7 +1277,7 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 		&& false === strpos( $content, 'nvx-equipo-' )
 		&& (
 			false !== strpos( $content, 'nvx-endolift-process' )
-			|| false !== strpos( $content, 'nvx-endolift-section' )
+			|| false !== strpos( $content, 'nvx-brand-section' )
 			|| false !== strpos( $content, 'Endolift' )
 		)
 	) {
@@ -1313,7 +1313,7 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 
 	// 3. How It Works / Process — skip when the page already documents process/downtime.
 	$has_process = preg_match(
-		'/nvx-method-section|nvx-endolift-process|nvx-co2-downtime|nvx-co2-timeline|nvx-treatment-process|Procedimiento, sesiones y cuidados/iu',
+		'/nvx-method-section|nvx-endolift-process|nvx-co2-downtime|nvx-treatment-process__steps|nvx-treatment-process|Procedimiento, sesiones y cuidados/iu',
 		$content
 	);
 	if ( ! $has_process ) {

@@ -70,6 +70,12 @@ while ( have_posts() ) :
 	if ( ! $has_managed_editorial && function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key() ) {
 		$has_managed_editorial = true;
 	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {
+		$has_managed_editorial = true;
+	}
 
 	$has_media = has_post_thumbnail();
 	// Theme-owned hero only when content does not already own the page hierarchy.

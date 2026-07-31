@@ -115,6 +115,12 @@ function nvx_theme_normalize_public_document( string $html ): string {
 				$html
 			);
 		}
+
+		$html = (string) preg_replace(
+			'/<link\s+rel=["\']stylesheet["\']\s+id=["\']nvx-(?:mobile-hero-hierarchy|canonical-page-hero|full-site-ui-governance|editorial-coherence|site-coherence|ui-regressions|hero-layout-coherence|integrations)-css["\'][^>]*>/i',
+			'',
+			$html
+		);
 	}
 
 	if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {
@@ -166,13 +172,16 @@ require_once __DIR__ . '/nvx-blog-system.php';
 // require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
 require_once __DIR__ . '/nvx-navigation-filters.php';
 
-/* Resource Hints & GEO · Hreflang es-ES */
 add_action(
 	'wp_head',
 	function (): void {
+		echo '<script>window.FacebookSignal=window.FacebookSignal||new Proxy(function(){},{get:function(){return function(){};},apply:function(){return function(){};}});</script>' . "\n";
 		echo '<link rel="preconnect" href="https://fonts.googleapis.com" />' . "\n";
 		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n";
 		echo '<link rel="preconnect" href="https://forms-eu1.hsforms.com" crossorigin />' . "\n";
+		echo '<link rel="preconnect" href="https://js-eu1.hsforms.net" crossorigin />' . "\n";
+		echo '<link rel="preload" as="font" href="https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggexSvfedN4.woff2" type="font/woff2" crossorigin />' . "\n";
+		echo '<link rel="preload" as="font" href="https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgEM86xQ.woff2" type="font/woff2" crossorigin />' . "\n";
 
 		if ( is_front_page() ) {
 			$poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );

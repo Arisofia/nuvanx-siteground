@@ -102,7 +102,7 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$id = $c['marker'];
 
 	// Hero.
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero ' . esc_attr( $c['marker'] ) . '-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--btl ' . esc_attr( $c['marker'] ) . '-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= '<div class="nvx-brand-hero__copy">';
 	$hero .= '<p class="nvx-brand-kicker">' . esc_html( $c['kicker'] ) . '</p>';

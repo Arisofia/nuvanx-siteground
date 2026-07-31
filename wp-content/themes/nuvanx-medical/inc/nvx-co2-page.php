@@ -207,7 +207,7 @@ function nvx_content_restructure_co2_page( string $content ): string {
 	require_once __DIR__ . '/nvx-page-render-helpers.php';
 	$media = nvx_page_extract_brand_hero_media( $content );
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero nvx-co2-hero" aria-labelledby="nvx-co2-h1" aria-label="' . esc_attr__( 'Láser CO₂ NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--co2 nvx-co2-hero" aria-labelledby="nvx-co2-h1" aria-label="' . esc_attr__( 'Láser CO₂ NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_co2_hero_copy_markup();
 	$hero .= $media;

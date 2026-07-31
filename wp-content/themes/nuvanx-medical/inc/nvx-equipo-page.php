@@ -366,10 +366,10 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 	}
 
 	$html  = '<section class="nvx-brand-section nvx-equipo-staff" aria-labelledby="nvx-equipo-staff-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
+	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Equipo clínico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-brand-title">' . esc_html__( 'Resto del equipo médico NUVANX', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Profesionales que atienden valoración, seguimiento y protocolos en Chamberí y Goya, junto a la dirección médica y al criterio científico de la clínica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-heading">' . esc_html__( 'Resto del equipo médico NUVANX', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-body">' . esc_html__( 'Profesionales que atienden valoración, seguimiento y protocolos en Chamberí y Goya, junto a la dirección médica y al criterio científico de la clínica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-equipo-staff-grid">';
 	foreach ( $other_cards as $card ) {
 		$card = nvx_equipo_normalize_staff_card( $card );
@@ -394,23 +394,23 @@ function nvx_equipo_render_items_section( array $section ): string {
 	$items         = $section['items'] ?? array();
 
 	$html  = '<section class="' . esc_attr( $section_class ) . '" aria-labelledby="' . esc_attr( $section_id ) . '">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
+	$html .= '<div class="nvx-container">';
 	if ( '' !== $kicker ) {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';
 	}
 	if ( '' !== $heading ) {
-		$html .= '<h2 id="' . esc_attr( $section_id ) . '" class="nvx-brand-title">' . esc_html( $heading ) . '</h2>';
+		$html .= '<h2 id="' . esc_attr( $section_id ) . '" class="nvx-heading">' . esc_html( $heading ) . '</h2>';
 	}
 	if ( '' !== $lead ) {
-		$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $lead ) . '</p>';
+		$html .= '<p class="nvx-body">' . esc_html( $lead ) . '</p>';
 	}
 
 	if ( ! empty( $items ) ) {
-		$html .= '<ul class="nvx-endolaser-zone-list">';
+		$html .= '<ul class="nvx-brand-card-grid">';
 		foreach ( $items as $item ) {
-			$html .= '<li class="nvx-endolaser-zone">';
+			$html .= '<li class="nvx-brand-card">';
 			if ( ! empty( $item['title'] ) ) {
-				$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ) . '</h3>';
+				$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $item['title'] ) . '</h3>';
 			}
 			if ( ! empty( $item['body'] ) ) {
 				$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
@@ -436,13 +436,13 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
 	$facts      = $config['facts'] ?? array();
 
 	$html  = '<section class="nvx-brand-section" aria-labelledby="' . esc_attr( $section_id ) . '">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-endolift-diagnosis__grid">';
-	$html .= '<div class="nvx-endolift-diagnosis__copy">';
+	$html .= '<div class="nvx-container nvx-equipo-diagnosis__grid">';
+	$html .= '<div class="nvx-equipo-diagnosis__copy">';
 	if ( '' !== $kicker ) {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';
 	}
 	if ( '' !== $heading ) {
-		$html .= '<h2 id="' . esc_attr( $section_id ) . '" class="nvx-brand-title">' . esc_html( $heading ) . '</h2>';
+		$html .= '<h2 id="' . esc_attr( $section_id ) . '" class="nvx-heading">' . esc_html( $heading ) . '</h2>';
 	}
 
 	foreach ( $paragraphs as $paragraph ) {
@@ -450,11 +450,11 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
 	}
 
 	if ( ! empty( $items ) ) {
-		$html .= '<ul class="nvx-endolaser-zone-list">';
+		$html .= '<ul class="nvx-brand-card-grid">';
 		foreach ( $items as $item ) {
-			$html .= '<li class="nvx-endolaser-zone">';
+			$html .= '<li class="nvx-brand-card">';
 			if ( ! empty( $item['title'] ) ) {
-				$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ) . '</h3>';
+				$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $item['title'] ) . '</h3>';
 			}
 			if ( ! empty( $item['body'] ) ) {
 				$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
@@ -508,7 +508,7 @@ function nvx_equipo_physician_authority_markup( array $config ): string {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $config['kicker'] ) . '</p>';
 	}
 	if ( ! empty( $config['h2'] ) ) {
-		$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-brand-title">' . esc_html( $config['h2'] ) . '</h2>';
+		$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-heading">' . esc_html( $config['h2'] ) . '</h2>';
 	}
 	if ( ! empty( $config['bio_paragraphs'] ) ) {
 		foreach ( $config['bio_paragraphs'] as $para ) {
@@ -833,7 +833,7 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 		$media = '';
 	}
 
-	$hero_classes = 'nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero nvx-equipo-hero';
+	$hero_classes = 'nvx-brand-hero nvx-brand-hero--equipo';
 	if ( '' === $media ) {
 		$hero_classes .= ' nvx-equipo-hero--copy-only';
 	}
@@ -846,7 +846,7 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	// Director → Dra. Ivon → Dr. Fabio → resto del equipo (CMS).
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
-	$body  = '<div class="nvx-equipo-editorial nvx-endolift-editorial">';
+	$body  = '<div class="nvx-brand-section-wrap">';
 	$body .= nvx_equipo_director_authority_markup( $staff['rivera_media'] );
 	$body .= nvx_equipo_ivon_authority_markup( $staff['ivon_media'] );
 	$body .= nvx_equipo_fabio_authority_markup( $staff['fabio_media'] ?? '' );

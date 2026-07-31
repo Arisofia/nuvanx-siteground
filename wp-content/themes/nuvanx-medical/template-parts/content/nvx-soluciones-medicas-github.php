@@ -67,8 +67,8 @@ $method_steps = array(
 				<p class="nvx-eyebrow">SOLUCIONES MÉDICAS · NUVANX MADRID</p>
 				<h1 id="nvx-solutions-title" class="nvx-heading">Soluciones médicas para rostro, piel y contorno corporal.</h1>
 				<p class="nvx-lead">La preocupación orienta la consulta. El diagnóstico define el tratamiento. Organizamos las soluciones por anatomía y por causa clínica, no por catálogo de máquinas. Antes de recomendar una tecnología diferenciamos grasa, laxitud, soporte, textura, pigmentación y otros componentes que pueden producir signos similares.</p>
-				<div class="nvx-cta-pair nvx-equipo-hero-ctas nvx-home-hero-ctas">
-					<a class="nvx-btn nvx-btn--primary" href="<?php echo esc_url( $valuation_url ); ?>">Solicitar valoración médica</a>
+				<div class="nvx-cta-pair">
+					<a class="nvx-brand-btn nvx-brand-btn--primary" href="<?php echo esc_url( $valuation_url ); ?>">Solicitar valoración médica</a>
 					<a class="nvx-btn nvx-btn--secondary" href="#mapa-soluciones">Explorar soluciones</a>
 				</div>
 				<p class="nvx-brand-meta">Diagnóstico individual · Indicación proporcionada · Seguimiento médico</p>

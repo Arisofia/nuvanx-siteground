@@ -350,10 +350,10 @@ function nvx_cristina_marquez_authority_markup(): string {
 	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
 
 	$html  = '<section class="nvx-brand-section nvx-equipo-profile nvx-equipo-cristina" id="physician-cristina-marquez" aria-labelledby="nvx-equipo-cristina-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-endolift-diagnosis__grid">';
-	$html .= '<div class="nvx-endolift-diagnosis__copy">';
+	$html .= '<div class="nvx-container nvx-equipo-diagnosis__grid">';
+	$html .= '<div class="nvx-equipo-diagnosis__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Radiología mamaria y medicina estética', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-cristina-title" class="nvx-brand-title">' . esc_html__( 'Dra. Cristina Márquez González', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 id="nvx-equipo-cristina-title" class="nvx-heading">' . esc_html__( 'Dra. Cristina Márquez González', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-body"><strong>' . esc_html__( 'Colegiada ICOMEM 282858861.', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Radióloga y médica estética, especialista en radiología mamaria y diagnóstico mamario avanzado, con práctica como facultativa especialista en HM Hospitales.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-body"><strong>' . esc_html__( 'Formación:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Licenciatura en Medicina · Especialización en Senología y Patología Mamaria · Máster en Medicina Estética.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-body">' . wp_kses(
@@ -415,6 +415,10 @@ function nvx_enrich_cristina_marquez_profile( string $content ): string {
 	$profile = nvx_cristina_marquez_authority_markup();
 	$marker  = '<section class="nvx-brand-section nvx-equipo-staff"';
 	$offset  = strpos( $content, $marker );
+	if ( false === $offset ) {
+		$marker = '<section class="nvx-brand-section nvx-equipo-staff"';
+		$offset = strpos( $content, $marker );
+	}
 
 	if ( false !== $offset ) {
 		return substr( $content, 0, $offset ) . $profile . substr( $content, $offset );

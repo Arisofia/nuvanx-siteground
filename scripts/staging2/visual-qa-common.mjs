@@ -58,6 +58,7 @@ export class CDPSession {
     this.nextId = 0;
     this.pending = new Map();
     this.eventHandlers = new Map();
+    this.pendingWaiters = new Map();
   }
 
   async connect() {
@@ -160,16 +161,24 @@ export class CDPSession {
 
   waitFor(method, timeoutMilliseconds = 30000) {
     return new Promise((resolve, reject) => {
+      let settled = false;
       let unsubscribe = () => {};
       const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        this.pendingWaiters.delete(timer);
         unsubscribe();
         reject(new Error(`CDP event timed out: ${method}`));
       }, timeoutMilliseconds);
       unsubscribe = this.on(method, (params) => {
+        if (settled) return;
+        settled = true;
         clearTimeout(timer);
+        this.pendingWaiters.delete(timer);
         unsubscribe();
         resolve(params || {});
       });
+      this.pendingWaiters.set(timer, { reject, timer });
     });
   }
 
@@ -190,6 +199,11 @@ export class CDPSession {
       pending.reject(closeError);
     }
     this.pending.clear();
+    for (const waiter of this.pendingWaiters.values()) {
+      clearTimeout(waiter.timer);
+      waiter.reject(closeError);
+    }
+    this.pendingWaiters.clear();
     this.removeAllListeners();
     if (this.webSocket && this.webSocket.readyState <= 1) this.webSocket.close();
   }

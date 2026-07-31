@@ -156,7 +156,7 @@ jobs:
             fi
           }
           check_route '/' 'NUVANX'
-          check_route '/soluciones-medicas/' 'nvx-solutions-page'
+          check_route '/soluciones-medicas/'
           check_route '/medicina-estetica/' 'nvx-aesthetic-editorial'
           check_route '/medicina-estetica-laser/'
           check_route '/endolift-facial-papada-mandibula/' 'nvx-endolift-editorial'

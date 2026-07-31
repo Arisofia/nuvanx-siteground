@@ -95,6 +95,28 @@ function nvx_theme_normalize_public_document( string $html ): string {
 		$html = (string) preg_replace( '/FacebookSignal\.[a-zA-Z0-9_\$]+\([^)]*\);?/i', '', $html );
 	}
 
+	if ( ! is_admin() ) {
+		if ( false !== stripos( $html, 'accounts.google.com/gsi' ) ) {
+			$html = (string) preg_replace(
+				'/<script\b[^>]*accounts\.google\.com\/gsi[^>]*>[\s\S]*?<\/script>/iu',
+				'',
+				$html
+			);
+		}
+		if ( false !== stripos( $html, 'sign-in-with-google' ) ) {
+			$html = (string) preg_replace(
+				'/<script\b[^>]*sign-in-with-google[^>]*>[\s\S]*?<\/script>/iu',
+				'',
+				$html
+			);
+			$html = (string) preg_replace(
+				'/<style\b[^>]*googlesitekit-sign-in-with-google[^>]*>[\s\S]*?<\/style>/iu',
+				'',
+				$html
+			);
+		}
+	}
+
 	if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {
 		return $html;
 	}

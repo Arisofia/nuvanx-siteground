@@ -1,0 +1,152 @@
+name: Sonar duplication audit once
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/sonar-duplication-audit-once.yml'
+      - 'wp-content/themes/nuvanx-medical/inc/**'
+      - 'scripts/staging2/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  duplicate-audit:
+    if: github.head_ref == 'refactor/sonar-duplication-20260731' || github.ref_name == 'refactor/sonar-duplication-20260731'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Detect structural duplicate blocks
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' | tee sonar-duplication-audit.txt
+          from __future__ import annotations
+
+          import hashlib
+          import re
+          from collections import defaultdict
+          from pathlib import Path
+
+          FILES = [
+              'wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php',
+              'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php',
+              'wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php',
+              'wp-content/themes/nuvanx-medical/inc/nvx-endolaser-page.php',
+              'wp-content/themes/nuvanx-medical/inc/nvx-btl-clinical-governance.php',
+              'scripts/staging2/visual-qa-common.mjs',
+              'wp-content/themes/nuvanx-medical/inc/nvx-aesthetic-medicine-page.php',
+              'scripts/staging2/capture-visual-qa.mjs',
+              'wp-content/themes/nuvanx-medical/inc/nvx-endolift-page.php',
+              'wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php',
+              'scripts/staging2/audit-full-site-ui.mjs',
+          ]
+
+          STRING_RE = re.compile(r'''(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')''')
+          NUMBER_RE = re.compile(r'(?<![A-Za-z_])\d+(?:\.\d+)?')
+          VARIABLE_RE = re.compile(r'\$[A-Za-z_][A-Za-z0-9_]*')
+          WS_RE = re.compile(r'\s+')
+
+          def normalize(line: str, structural: bool) -> str:
+              value = line.strip()
+              if not value or value.startswith(('//', '#', '*', '/*', '*/')):
+                  return ''
+              value = STRING_RE.sub('STR', value)
+              value = NUMBER_RE.sub('NUM', value)
+              if structural:
+                  value = VARIABLE_RE.sub('$VAR', value)
+              return WS_RE.sub(' ', value)
+
+          def logical_lines(path: Path, structural: bool):
+              result = []
+              for line_no, line in enumerate(path.read_text(encoding='utf-8').splitlines(), 1):
+                  value = normalize(line, structural)
+                  if value:
+                      result.append((line_no, value, line.strip()))
+              return result
+
+          def collect(mode: str, structural: bool, min_lines: int = 8, max_lines: int = 28):
+              sequences = {}
+              index = defaultdict(list)
+              for file_name in FILES:
+                  path = Path(file_name)
+                  if not path.is_file():
+                      continue
+                  rows = logical_lines(path, structural)
+                  sequences[file_name] = rows
+                  for size in range(min_lines, min(max_lines, len(rows)) + 1):
+                      for start in range(0, len(rows) - size + 1):
+                          normalized = '\n'.join(row[1] for row in rows[start:start + size])
+                          digest = hashlib.sha256(normalized.encode()).hexdigest()
+                          index[(size, digest)].append((file_name, start))
+
+              candidates = []
+              for (size, _digest), locations in index.items():
+                  unique = []
+                  seen = set()
+                  for location in locations:
+                      if location not in seen:
+                          unique.append(location)
+                          seen.add(location)
+                  if len(unique) < 2:
+                      continue
+                  files = {location[0] for location in unique}
+                  starts = sorted(location[1] for location in unique)
+                  if len(files) == 1 and all(abs(a - b) < size for a, b in zip(starts, starts[1:])):
+                      continue
+                  candidates.append((size, unique))
+
+              candidates.sort(key=lambda item: (item[0], len(item[1])), reverse=True)
+              accepted = []
+              occupied = defaultdict(list)
+              for size, locations in candidates:
+                  non_overlapping = []
+                  for file_name, start in locations:
+                      end = start + size
+                      if any(start >= old_start and end <= old_end for old_start, old_end in occupied[file_name]):
+                          continue
+                      non_overlapping.append((file_name, start))
+                  if len(non_overlapping) < 2:
+                      continue
+                  accepted.append((size, non_overlapping))
+                  for file_name, start in non_overlapping:
+                      occupied[file_name].append((start, start + size))
+                  if len(accepted) >= 30:
+                      break
+
+              print(f'=== {mode} duplicate blocks ===')
+              if not accepted:
+                  print('No duplicate blocks found.')
+                  return
+              for cluster_no, (size, locations) in enumerate(accepted, 1):
+                  print(f'\nCLUSTER {cluster_no}: logical_lines={size} occurrences={len(locations)}')
+                  for file_name, start in locations:
+                      rows = sequences[file_name]
+                      first_line = rows[start][0]
+                      last_line = rows[start + size - 1][0]
+                      print(f'- {file_name}:{first_line}-{last_line}')
+                  sample_file, sample_start = locations[0]
+                  sample_rows = sequences[sample_file][sample_start:sample_start + min(size, 12)]
+                  print('  sample:')
+                  for row in sample_rows:
+                      print(f'    {row[2]}')
+
+          collect('literal-normalized', structural=False)
+          print()
+          collect('structural-variable-normalized', structural=True)
+          PY
+
+      - name: Upload duplicate report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: sonar-duplication-audit
+          path: sonar-duplication-audit.txt
+          retention-days: 7
+          if-no-files-found: error

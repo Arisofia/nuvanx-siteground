@@ -70,7 +70,7 @@ const invalidPageTermination = Math.max(
   requestBlock.indexOf('if (await responseIsInvalidPage(response)) return null;'),
 );
 const httpFailure = requestBlock.indexOf('REST collection failed: ${endpoint}, page=${page}, status=${response.status}');
-const totalPagesRead = requestBlock.indexOf("response.headers.get('X-WP-TotalPages')");
+const totalPagesRead = requestBlock.search(/response\.headers\.get\(['"]X-WP-TotalPages['"]\)/);
 const payloadRead = requestBlock.indexOf('const items = await response.json()');
 const payloadShapeGuard = requestBlock.indexOf('if (!Array.isArray(items))');
 const pageResultReturn = requestBlock.indexOf('return { items, totalPages }');

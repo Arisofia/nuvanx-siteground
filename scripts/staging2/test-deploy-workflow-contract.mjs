@@ -1,0 +1,346 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const failures = [];
+const fail = (message) => failures.push(message);
+const file = (relative) => path.join(root, relative);
+const read = (relative) => {
+  const target = file(relative);
+  if (!fs.existsSync(target)) {
+    fail(`missing ${relative}`);
+    return '';
+  }
+  return fs.readFileSync(target, 'utf8');
+};
+
+const workflow = read('.github/workflows/deploy-staging2.yml');
+const deploy = read('tools/deploy/deploy-to-staging2.sh');
+const diagnostics = read('scripts/staging2/collect-staging2-diagnostics.sh');
+const migration = read('scripts/wp/nvx-production-readiness-command.php');
+const legacyMigration = read('scripts/wp/nvx-canonical-route-migration.php');
+const auditWorkflow = read('.github/workflows/full-site-ui-audit.yml');
+const fullSiteAudit = read('scripts/staging2/audit-full-site-ui.mjs');
+const pageHygiene = read('wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php');
+const smoke = read('scripts/staging2/smoke-verify-staging2.sh');
+const common = read('scripts/staging2/staging2-contract-common.mjs');
+const acceptance = read('scripts/staging2/verify-rendered-acceptance-ssh.mjs') + common;
+const visualQaCommon = read('scripts/staging2/visual-qa-common.mjs');
+const visualQa = read('scripts/staging2/capture-visual-qa.mjs') + visualQaCommon + common;
+const visualPreload = read('scripts/staging2/visual-qa-edge-preload.mjs');
+const integrations = read('wp-content/themes/nuvanx-medical/inc/nvx-integrations.php');
+const functions = read('wp-content/themes/nuvanx-medical/functions.php');
+const phasePages = read('wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php')
+  + read('wp-content/themes/nuvanx-medical/inc/data/nvx-signature-phase-catalog.json');
+const clinicalLanguage = read('wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php');
+const editorialSeo = read('wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php');
+const protocolHub = read('wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php');
+const protocolPages = read('wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php');
+const strategyPages = read('wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php');
+
+for (const forbidden of ['fetch(', 'node-fetch']) {
+  if (acceptance.includes(forbidden)) fail(`origin acceptance must not use direct Node HTTP transport: ${forbidden}`);
+}
+
+for (const marker of [
+  'workflow_dispatch:', 'pull_request:', "inputs.confirmation == 'DEPLOY_STAGING2'",
+  "contains(github.event.pull_request.labels.*.name, 'deploy-staging2')",
+  "github.event.action != 'labeled' || github.event.label.name == 'deploy-staging2'",
+  'PREFLIGHT_ONLY', 'DEPLOY_AND_MIGRATE', 'SMOKE_ONLY',
+  'cancel-in-progress: false', 'persist-credentials: false',
+  'StrictHostKeyChecking yes', 'STAGING2_SSH_KNOWN_HOSTS',
+  'git_sha must equal the selected workflow ref HEAD',
+  'BASE_URL=https://staging2.nuvanx.com EXPECTED_SHA=',
+  'expected_sha=$DEPLOY_SHA',
+  'scripts/staging2/nvx-deploy-sha.sh',
+  'tools/deploy/nvx-purge-wp-caches.sh',
+  'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
+  'scripts/staging2/capture-visual-qa.mjs',
+  'scripts/staging2/visual-qa-edge-preload.mjs',
+  'scripts/staging2/visual-qa-common.mjs',
+  'scripts/wp/nvx-canonical-route-migration.php',
+  'Canonical route migration applied.', 'Canonical route audit passed.',
+  'NODE_OPTIONS: --import=',
+  'Run rendered acceptance verification', 'RENDERED_ACCEPTANCE_OK',
+  'Run real browser visual QA', 'VISUAL_QA_OK',
+  'staging2-deployment-evidence', 'actions/upload-artifact@',
+]) if (!workflow.includes(marker)) fail(`workflow missing contract marker: ${marker}`);
+
+for (const forbidden of [
+  'ssh-keyscan', 'StrictHostKeyChecking no', 'persist-credentials: true',
+  '/home/customer/www/nuvanx.com/public_html', 'scripts/staging2/smoke-verify-external.mjs',
+  'scripts/staging2/capture-visual-qa-browser.mjs', 'cancel-in-progress: true',
+]) if (workflow.includes(forbidden)) fail(`workflow contains forbidden marker: ${forbidden}`);
+
+for (const marker of [
+  "EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'",
+  "EXPECTED_URL='https://staging2.nuvanx.com'",
+  "BACKUP_ROOT='/home/customer/backups-nuvanx/staging2'",
+  '--migration-script', '--canonical-migration-script', '--smoke-script', 'wp db export', 'wp db import',
+  'nvx production-readiness audit --allow-pending',
+  'nvx production-readiness apply --confirm=retire-prototypes',
+  'nvx legacy-routes audit --allow-pending',
+  'nvx legacy-routes apply --confirm=retire-legacy-routes',
+  'nvx legacy-routes audit',
+  'SMOKE_VERIFY_OK', 'ROLLBACK_COMPLETE', 'DEPLOY_STAGING2_OK',
+  'EXPECTED_SHA="$DEPLOY_SHA"',
+  'expected_sha=$DEPLOY_SHA',
+  'nvx-purge-wp-caches.sh',
+  'staging2_cache_purge=ok',
+]) if (!deploy.includes(marker)) fail(`deploy script missing contract marker: ${marker}`);
+
+const purgeHelper = read('tools/deploy/nvx-purge-wp-caches.sh');
+const deployShaJs = read('scripts/staging2/nvx-deploy-sha.mjs');
+const deployShaSh = read('scripts/staging2/nvx-deploy-sha.sh');
+for (const marker of [
+  'wp cache flush',
+  'echo "wp_cache_flush=ok"',
+  'wp sg purge',
+  'echo "sg_purge=ok"',
+  'rm -rf -- "${cache_targets[@]}"',
+  "cache_root='wp-content/cache'",
+  "! -name '.htaccess'",
+  'opcache=not-applicable-cli',
+  'sgo-cache',
+  'supercache',
+  'sg-cachepress',
+]) if (!purgeHelper.includes(marker)) fail(`shared purge helper missing marker: ${marker}`);
+for (const forbidden of [
+  'wp sg purge dynamic',
+  'wp sg purge memcached',
+  'nvx_run_optional_wp_command',
+  '|| true',
+  'wp-content/cache/*',
+  'opcache_reset',
+  "wp eval '",
+]) if (purgeHelper.includes(forbidden)) fail(`shared purge helper contains forbidden marker: ${forbidden}`);
+for (const marker of [
+  'export function extractDeployShaFromHtml',
+  'export function assertHtmlDeploySha',
+  'missing meta nvx-deploy-sha',
+  'served SHA',
+]) if (!deployShaJs.includes(marker)) fail(`shared deploy-sha JS missing marker: ${marker}`);
+for (const marker of [
+  'assert_html_deploy_sha()',
+  'NVX_DEPLOY_SHA_SH_LOADED=1',
+  'missing meta nvx-deploy-sha',
+  'served SHA',
+]) if (!deployShaSh.includes(marker)) fail(`shared deploy-sha shell missing marker: ${marker}`);
+if (!smoke.includes('assert_html_deploy_sha') || !smoke.includes('nvx-deploy-sha.sh')) {
+  fail('smoke shell must load and use shared assert_html_deploy_sha');
+}
+if (!acceptance.includes("from './nvx-deploy-sha.mjs'") && !acceptance.includes('from "./nvx-deploy-sha.mjs"')) {
+  fail('rendered acceptance must import shared nvx-deploy-sha.mjs');
+}
+
+for (const marker of [
+  "EXPECTED_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'",
+  "EXPECTED_URL='https://staging2.nuvanx.com'",
+  'wordpress.siteurl=', 'wordpress.home=', 'wordpress.active_theme=',
+  'wordpress.empty_trash_days=', 'wordpress.db_check=', 'STAGING2_PREFLIGHT_OK',
+]) if (!diagnostics.includes(marker)) fail(`diagnostics missing contract marker: ${marker}`);
+
+const phaseSlugs = [
+  'papada-definicion-mandibular-madrid', 'calidad-piel-firmeza-luminosidad-madrid',
+  'cicatrices-acne-poros-textura-madrid', 'manchas-rojeces-fotorejuvenecimiento-ipl-madrid',
+  'grasa-localizada-abdomen-flancos-madrid', 'flacidez-grasa-localizada-brazos-madrid',
+  'grasa-espalda-zona-sujetador-madrid', 'flacidez-muslos-internos-subgluteo-madrid',
+  'tratamiento-rodillas-grasa-flacidez-madrid', 'contorno-corporal-masculino-madrid',
+];
+for (const marker of [
+  'retire-prototypes', "'allow-pending'", '--allow-production', 'LOCK_OPTION',
+  'nvx_production_readiness_governed_pages', 'applyApprovedPages', 'applyGovernedPages',
+  'applyPrimaryMenu', 'canonicalMenuSignature', 'currentMenuSignature',
+  'wp_update_nav_menu_item', 'set_theme_mod', 'EMPTY_TRASH_DAYS', 'wp_trash_post',
+  "WP_CLI::add_command( 'nvx production-readiness'", "'soluciones-medicas' =>",
+  "'tratamiento-postparto-abdomen-contorno-corporal-madrid' =>", "'promote_draft' => true",
+]) if (!migration.includes(marker)) fail(`migration missing contract marker: ${marker}`);
+for (const slug of phaseSlugs) if (!migration.includes(`'${slug}' =>`)) fail(`migration missing approved phase slug: ${slug}`);
+if (/['"]post_status['"]\s*=>\s*['"]trash['"]/.test(migration)) fail('migration uses direct trash status update');
+
+for (const marker of [
+  'check_retired_route', 'check_target_page', 'LEGACY_ROUTES_RETIRED_OK',
+  '/mas-informacion-sobre-las-cookies/', '/politica-de-cookies/', '/politica-de-privacidad/',
+  '/tratamiento-retirado/', '/tratamientos/', '/liposculpt-air/', '/v-lift-awake/',
+  '/dr-javier-rivera-tejeda/', '/eye-frame-rejuvenecimiento-mirada-madrid/', '/eye-frame/',
+  "fetch_page '/soluciones-medicas/'", "fetch_page '/protocolos-signature/'",
+  "fetch_page '/remodelacion-corporal-laser-madrid/'",
+  "fetch_page '/tratamiento-postparto-abdomen-contorno-corporal-madrid/'",
+  "fetch_page '/endolift-facial-papada-mandibula/'",
+  "fetch_page '/endolaser-corporal-grasa-localizada/'",
+  "fetch_page '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/'",
+  "fetch_page '/exion-btl/'",
+  "MARKER_BRAND_HERO='nvx-brand-hero'",
+  'nvx-deploy-sha',
+  'EXPECTED_SHA',
+  'SMOKE_VERIFY_OK',
+]) if (!smoke.includes(marker)) fail(`smoke script missing contract marker: ${marker}`);
+for (const slug of phaseSlugs) if (!smoke.includes(`fetch_page '/${slug}/'`)) fail(`smoke missing phase page: ${slug}`);
+
+for (const marker of [
+  "spawnSync('/usr/bin/ssh'", 'STAGING2_SSH_ALIAS', 'transport=ssh',
+  'EXPECTED_SHA must be a full lowercase 40-character SHA',
+  '/remodelacion-corporal-laser-madrid/', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
+  '/endolift-facial-papada-mandibula/',
+  '/endolaser-corporal-grasa-localizada/',
+  '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
+  '/exion-btl/',
+  'technologyPageDefinitions',
+  'H1 mismatch:', 'parsed.canonicals.length !== 1', 'WebPage', 'Organization',
+  'presupuesto muy bajo', 'no usamos descuentos estacionales', 'el estándar de oro', 'absoluta discreción',
+  'report.json', 'RENDERED_ACCEPTANCE_OK',
+]) if (!acceptance.includes(marker)) fail(`origin acceptance missing marker: ${marker}`);
+for (const slug of phaseSlugs) if (!acceptance.includes(`/${slug}/`)) fail(`origin acceptance missing phase route: ${slug}`);
+if (!common.includes('export const technologyPageDefinitions')) {
+  fail('staging2-contract-common missing technologyPageDefinitions export');
+}
+for (const forbidden of ['wp option update', 'wp post update', 'wp db import', 'DELETE ']) {
+  if (acceptance.includes(forbidden)) fail(`origin acceptance contains mutating marker: ${forbidden}`);
+}
+
+for (const marker of [
+  'Google Chrome or Chromium is not installed', 'Page.captureScreenshot',
+  'captureBeyondViewport: true', 'screenshot is unexpectedly small',
+  'navigation-desktop-mega.png', 'navigation-mobile-drawer.png',
+  'Input.dispatchMouseEvent', "document.getElementById('nvx-hamburger-btn')?.click()",
+  'Protocolos Signature mobile accordion toggle', 'Contour Architecture nested mobile toggle',
+  'horizontal overflow', 'focus did not move to close button', 'Escape did not close drawer',
+  'Couture Sculpt', 'Contour Sculpt', 'Eye Frame', 'VISUAL_QA_OK',
+  'auditEquipoEditorial', 'editorial coherence stylesheet is not loaded',
+  'institutional page incorrectly received treatment block injections',
+  'const pages = [', "{ name: 'desktop'", "{ name: 'mobile'",
+]) if (!visualQa.includes(marker)) fail(`visual QA missing marker: ${marker}`);
+for (const slug of phaseSlugs) if (!visualQa.includes(`/${slug}/`)) fail(`visual QA missing phase route: ${slug}`);
+
+for (const marker of [
+  'const nativeFetch = globalThis.fetch',
+  "url.startsWith('https://staging2.nuvanx.com/')",
+  'return nativeFetch(input, init)',
+  'http.createServer',
+  "proxyServer.on('connect'",
+  'stream_socket_client',
+  'VISUAL_QA_SSH_BRIDGE_READY',
+  'VISUAL_QA_SSH_BRIDGE_UNAVAILABLE',
+  '--proxy-server=',
+  "'localhost;127.0.0.1'",
+]) {
+  if (!visualPreload.includes(marker)) fail(`visual QA preload missing marker: ${marker}`);
+}
+if (/url\.startsWith\(\s*['"]http:\/\/127\.0\.0\.1/.test(visualPreload)) {
+  fail('visual QA preload must not intercept the local Chrome DevTools endpoint');
+}
+for (const forbidden of ["'-D'", '--socks5-hostname', 'VISUAL_QA_SSH_PROXY_READY']) {
+  if (visualPreload.includes(forbidden)) fail(`visual QA preload retains prohibited SSH forwarding marker: ${forbidden}`);
+}
+
+for (const marker of ["'liposculpt-air'", "'v-lift-awake'", "'tratamientos'", "'target' => '/protocolos-signature/'"]) {
+  if (!integrations.includes(marker)) fail(`governed route contract missing marker: ${marker}`);
+}
+
+const extractPullRequestPaths = (yaml) => {
+  const match = yaml.match(/(?:^|\n)  pull_request:\n[\s\S]*?\n    paths:\n((?:      - .+\n)+)/);
+  if (!match) return [];
+  return match[1].trim().split('\n').map((line) => line.replace(/^\s*-\s*/, ''));
+};
+const deployPaths = extractPullRequestPaths(workflow);
+const auditPaths = extractPullRequestPaths(auditWorkflow);
+if (JSON.stringify(deployPaths) !== JSON.stringify(auditPaths)) fail('deploy and audit pull_request.paths are not aligned');
+if (fullSiteAudit.includes('authorizedRedirects')) fail('full-site audit retains a redirect allowlist');
+for (const [name, source] of [['page hygiene', pageHygiene], ['integrations', integrations]]) {
+  if (source.includes('wp_safe_redirect')) fail(`${name} retains a manual redirect`);
+}
+if (legacyMigration.includes('add_post_meta') && legacyMigration.includes('_wp_old_slug')) fail('legacy migration creates old-slug redirects');
+for (const marker of [
+  "WP_CLI::add_command( 'nvx legacy-routes'", 'Legacy route retirement applied.',
+  'Legacy route retirement audit passed.', "'_wp_old_slug'", 'wp_trash_post',
+]) if (!legacyMigration.includes(marker)) fail(`legacy migration missing marker: ${marker}`);
+
+const bootstrapSources = `${functions}\n${integrations}`;
+for (const moduleName of [
+  'nvx-navigation-filters.php',
+  'nvx-13-point-renderer.php',
+  'nvx-aesthetic-treatment-pages.php',
+  'nvx-protocol-hub.php',
+  'nvx-protocol-pages.php',
+  'nvx-signature-phase-pages.php',
+]) {
+  const occurrenceCount = bootstrapSources.split(moduleName).length - 1;
+  if (occurrenceCount !== 1) fail(`bootstrap must load ${moduleName} exactly once; found ${occurrenceCount}`);
+}
+
+for (const marker of [
+  'function nvx_protocol_pages_current_key', 'nvx_protocol_pages_catalog',
+  'remodelacion-corporal-laser-madrid', 'tratamiento-postparto-abdomen-contorno-corporal-madrid',
+]) if (!protocolPages.includes(marker)) fail(`protocol-page ownership missing marker: ${marker}`);
+
+for (const marker of [
+  'function nvx_signature_phase_catalog', 'function nvx_signature_phase_navigation_blueprint',
+  'NUVANX Contour Architecture™', 'NUVANX Profile Definition™', 'NUVANX Skin Architecture™',
+  'NUVANX Surface Renewal™', 'NUVANX Tone Correction™', 'Eye Frame',
+]) if (!phasePages.includes(marker)) fail(`phase-page module missing marker: ${marker}`);
+
+for (const marker of [
+  'nvx_clinical_language_prohibited_phrases', 'Sin bisturí ni puntos', 'Recuperación inmediata',
+  'Sin dolor', 'Sin riesgos', 'Resultados garantizados', 'Generalmente 3–4 sesiones',
+  'Reducción del dolor', 'Eritema reducido', 'Control térmico absoluto',
+  'presupuesto muy bajo', 'no usamos descuentos estacionales', 'el estándar de oro', 'absoluta discreción',
+]) if (!clinicalLanguage.toLowerCase().includes(marker.toLowerCase())) fail(`clinical language gate missing marker: ${marker}`);
+
+for (const marker of [
+  '/remodelacion-corporal-laser-madrid/',
+  'Remodelación corporal láser en Madrid | NUVANX Contour Architecture',
+]) if (!editorialSeo.includes(marker)) fail(`editorial SEO missing marker: ${marker}`);
+if (!protocolHub.includes('NUVANX Contour Architecture™')) fail('protocol hub does not use the canonical body protocol name');
+
+const controlledPublicContent = [protocolHub, protocolPages, strategyPages, phasePages].join('\n').toLowerCase();
+for (const forbidden of ['garantizar resultados', 'control térmico absoluto', 'sin huellas quirúrgicas evidentes', 'resultado definitivo']) {
+  if (controlledPublicContent.includes(forbidden)) fail(`controlled public content contains forbidden claim: ${forbidden}`);
+}
+
+for (const relative of [
+  'scripts/staging2/staging2-contract-common.mjs',
+  'scripts/staging2/verify-rendered-acceptance-ssh.mjs',
+  'scripts/staging2/visual-qa-edge-preload.mjs',
+  'scripts/staging2/capture-visual-qa.mjs',
+  'scripts/staging2/test-deploy-workflow-contract.mjs',
+  'scripts/staging2/audit-full-site-ui.mjs',
+]) {
+  const result = spawnSync(process.execPath, ['--check', file(relative)], { encoding: 'utf8' });
+  if (result.status !== 0) fail(`Node syntax failed for ${relative}: ${(result.stderr || result.stdout).trim()}`);
+}
+
+const phpFiles = [
+  'scripts/wp/nvx-production-readiness-command.php',
+  'scripts/wp/nvx-canonical-route-migration.php',
+  'wp-content/themes/nuvanx-medical/functions.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-integrations.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-page-hygiene.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-editorial-seo-extension.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-protocol-hub.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-protocol-pages.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php',
+  'wp-content/themes/nuvanx-medical/inc/nvx-clinical-language.php',
+];
+const skippedPhpFiles = [];
+for (const relative of phpFiles) {
+  const result = spawnSync('/usr/bin/php', ['-l', file(relative)], { encoding: 'utf8' });
+  if (result.error?.code === 'ENOENT') {
+    skippedPhpFiles.push(relative);
+    continue;
+  }
+  if (result.error || result.status !== 0) fail(`PHP lint failed for ${relative}: ${String(result.stderr || result.stdout || '').trim()}`);
+}
+if (skippedPhpFiles.length > 0) {
+  console.warn(`WARNING: php executable not available; skipped validation for ${skippedPhpFiles.length} file(s):`);
+  for (const skipped of skippedPhpFiles) console.warn(`  - ${skipped}`);
+}
+
+if (failures.length) {
+  console.error(`FAIL: ${failures.length} staging2 deployment contract finding(s)`);
+  for (const finding of failures) console.error(`- ${finding}`);
+  process.exit(1);
+}
+console.log('DEPLOY_WORKFLOW_CONTRACT_OK');

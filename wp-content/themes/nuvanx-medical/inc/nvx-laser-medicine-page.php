@@ -152,23 +152,8 @@ function nvxLaserEditorialBodyMarkup(): string {
     $html .= '<h2 id="nvx-laser-focus-title" class="nvx-laser-heading">' . esc_html__( 'La diferencia entre tecnología e indicación médica', 'nuvanx-medical' ) . '</h2>';
     $html .= '<div class="nvx-laser-focus-grid">';
 
-    $pillars = array(
-        array(
-            'icon'  => 'spectrum',
-            'title' => __( '1. Fototermólisis selectiva', 'nuvanx-medical' ),
-            'body'  => __( 'No aplicamos calor de forma indiscriminada. Seleccionamos longitudes de onda específicas para interactuar únicamente con los cromóforos diana de la piel (agua, melanina o colágeno), protegiendo el tejido sano circundante y optimizando los tiempos de recuperación.', 'nuvanx-medical' ),
-        ),
-        array(
-            'icon'  => 'dose',
-            'title' => __( '2. Dosificación personalizada', 'nuvanx-medical' ),
-            'body'  => __( 'Huimos de los parámetros automáticos de fábrica. Ajustamos de forma milimétrica la fluencia, el ancho de pulso y la entrega de energía térmica según el grosor dermoepidérmico, el fototipo de piel y la capacidad regenerativa de cada paciente.', 'nuvanx-medical' ),
-        ),
-        array(
-            'icon'  => 'nature',
-            'title' => __( '3. Resultados sin volumen', 'nuvanx-medical' ),
-            'body'  => __( 'Nuestro objetivo no es rellenar o alterar las facciones de manera artificial. Utilizamos la energía física para inducir una respuesta biológica natural: la neocolagénesis y el incremento de ácido hialurónico endógeno.', 'nuvanx-medical' ),
-        ),
-    );
+    $catalog = nvx_theme_load_json_catalog( 'nvx-laser-medicine-catalog.json' );
+    $pillars = $catalog['pillars'] ?? array();
 
     foreach ( $pillars as $pillar ) {
         $html .= '<article class="nvx-laser-pillar">';
@@ -187,53 +172,7 @@ function nvxLaserEditorialBodyMarkup(): string {
     $html .= '<h2 id="nvx-laser-platforms-title" class="nvx-laser-heading">' . esc_html__( 'Tecnologías médicas de precisión', 'nuvanx-medical' ) . '</h2>';
     $html .= '<div class="nvx-catalog-grid">';
 
-    $platforms = array(
-        array(
-            'n'       => '01',
-            'icon'    => 'fiber',
-            'title'   => __( 'Endolift® Facial · Reafirmación y perfilado', 'nuvanx-medical' ),
-            'body'    => __( 'Tratamiento de retracción tisular mínimamente invasivo que utiliza una microfibra óptica de silicio de entre 200 y 300 micras introducida directamente en la hipodermis superficial. Emplea una longitud de onda de 1470 nm para calentar de forma selectiva los septos fibrosos del SMAS y la grasa submentoniana, eliminando la flacidez de la papada y definiendo el óvalo facial sin cicatrices.', 'nuvanx-medical' ),
-            'goal'    => __( 'Redefinición mandibular y eliminación de adiposidad submentoniana.', 'nuvanx-medical' ),
-            'recover' => __( 'Edema leve durante 3–5 días; reincorporación social inmediata.', 'nuvanx-medical' ),
-            'url'     => nvx_laser_page_url( 'endolift-facial-papada-mandibula' ),
-        ),
-        array(
-            'n'       => '02',
-            'icon'    => 'rf',
-            'title'   => __( 'EXION® Face · Regeneración endógena facial', 'nuvanx-medical' ),
-            'body'    => __( 'RF monopolar + ultrasonido a microtemperaturas controladas para calidad de piel e hidratación. Alternativa a protocolos de daño térmico agresivo cuando el diagnóstico lo indica.', 'nuvanx-medical' ),
-            'goal'    => __( 'Redensificación, hidratación y firmeza leve–moderada facial.', 'nuvanx-medical' ),
-            'recover' => __( 'Downtime mínimo; eritema transitorio ocasional.', 'nuvanx-medical' ),
-            'url'     => nvx_laser_page_url( 'exion-face' ),
-        ),
-        array(
-            'n'       => '03',
-            'icon'    => 'rf',
-            'title'   => __( 'EXION® Body · Grasa localizada y tensado', 'nuvanx-medical' ),
-            'body'    => __( 'RF con refrigeración activa para adiposidad localizada y laxitud asociada. Se combina con endoláser cuando el espesor graso lo exige.', 'nuvanx-medical' ),
-            'goal'    => __( 'Contorno de flancos, abdomen y zonas de grasa + flacidez.', 'nuvanx-medical' ),
-            'recover' => __( 'Habitualmente sin baja social.', 'nuvanx-medical' ),
-            'url'     => nvx_laser_page_url( 'exion-body' ),
-        ),
-        array(
-            'n'       => '04',
-            'icon'    => 'rf',
-            'title'   => __( 'EXION® Fractional RF · Textura y cicatrices', 'nuvanx-medical' ),
-            'body'    => __( 'RF fraccionada con control de tejido para poro, textura y cicatrices superficiales, con plan de sesiones y downtime explícitos.', 'nuvanx-medical' ),
-            'goal'    => __( 'Refinamiento de textura y remodelado dérmico progresivo.', 'nuvanx-medical' ),
-            'recover' => __( 'Eritema 12–48 h según energía.', 'nuvanx-medical' ),
-            'url'     => nvx_laser_page_url( 'exion-fractional' ),
-        ),
-        array(
-            'n'       => '05',
-            'icon'    => 'co2',
-            'title'   => __( 'Láser CO₂ fraccionado · Textura y cicatrices', 'nuvanx-medical' ),
-            'body'    => __( 'Tratamiento fraccionado para cicatrices de acné, poros y textura irregular. La recuperación (eritema y descamación) se planifica según la profundidad del protocolo.', 'nuvanx-medical' ),
-            'goal'    => __( 'Mejorar cicatrices de acné, poros y signos de fotoenvejecimiento, cuando hay indicación.', 'nuvanx-medical' ),
-            'recover' => __( 'Suele implicar varios días de descamación y protección solar estricta (orientativo 5–7 días según plan).', 'nuvanx-medical' ),
-            'url'     => nvx_laser_page_url( 'laser-co2-fraccionado-madrid-textura-cicatrices-poro' ),
-        ),
-    );
+    $platforms = $catalog['platforms'] ?? array();
 
     foreach ( $platforms as $platform ) {
         $html .= '<article class="nvx-catalog-card">';
@@ -266,16 +205,7 @@ function nvxLaserEditorialBodyMarkup(): string {
     $html .= '<figcaption class="nvx-laser-formula__cap">' . esc_html__( 'Donde d representa el diámetro de la estructura celular objetivo (como un haz de colágeno o un vaso capilar) y α corresponde a la difusividad térmica del tejido. Al programar pulsos de energía extremadamente rápidos por debajo de este límite, el calor se confina en la diana biológica y se disipa antes de propagarse a las capas epidérmicas superficiales, reduciendo el riesgo de quemaduras y optimizando la seguridad del paciente.', 'nuvanx-medical' ) . '</figcaption>';
     $html .= '</figure></div></details>';
 
-    $faqs = array(
-        array(
-            'q' => __( '¿Cuándo es fisiológicamente visible el resultado de un tratamiento de tensado térmico por radiofrecuencia o láser subdérmico?', 'nuvanx-medical' ),
-            'a' => __( 'Aunque se produce un efecto tensor inmediato por la contracción elástica mecánica de las fibras de colágeno existentes debido al calor aplicado, la verdadera remodelación estructural sigue una cascada biológica de cicatrización controlada que requiere tiempo. Durante las primeras 72 horas se produce una fase inflamatoria subclínica que estimula la llegada de factores de crecimiento. A partir de la primera semana y hasta el tercer mes, se inicia la fase proliferativa, donde los fibroblastos sintetizan activamente colágeno tipo III, que posteriormente se consolida en colágeno tipo I (más denso y firme). Los resultados de firmeza, textura e hidratación profunda alcanzan su pico clínico de maduración entre los 90 y 120 días posteriores a la sesión.', 'nuvanx-medical' ),
-        ),
-        array(
-            'q' => __( '¿Por qué el diagnóstico médico previo en Chamberí y Goya es indispensable antes de aplicar cualquier tecnología láser?', 'nuvanx-medical' ),
-            'a' => __( 'No todas las pieles reaccionan igual ante la entrega de energía térmica. Pacientes con un fototipo de piel alto (pieles oscuras) presentan una mayor concentración de melanina epidérmica, lo que exige el uso de longitudes de onda largas y pulsos prolongados para evitar la hiperpigmentación postinflamatoria. Asimismo, si un paciente presenta una dermis extremadamente adelgazada o grados avanzados de elastosis solar, la capacidad de retracción de los tejidos se reduce, haciendo que tratamientos como el Endolift® tengan una eficacia limitada y sea aconsejable una derivación quirúrgica. En nuestras clínicas de Chamberí y Goya, evaluamos estas variables biológicas para confirmar la idoneidad clínica antes de encender cualquier equipo.', 'nuvanx-medical' ),
-        ),
-    );
+    $faqs = $catalog['faqs'] ?? array();
 
     foreach ( $faqs as $faq ) {
         $html .= '<details class="nvx-brand-faq-item">';

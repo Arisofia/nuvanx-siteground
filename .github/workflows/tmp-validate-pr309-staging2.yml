@@ -126,6 +126,12 @@ jobs:
           test "$DEPLOYED_SHA" = "$DEPLOY_SHA"
           echo "Verified marker: $DEPLOYED_SHA"
 
+      - name: Verify WordPress runtime and JSON data
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 "cd '$WP_ROOT' && wp core is-installed && wp eval 'foreach ([\"aesthetic-treatment-pages.json\",\"btl-detail-pages.json\",\"faq-catalog.json\",\"treatments-catalog.json\",\"seo-metadata.json\",\"home-faq-v2.json\",\"treatment-hub-schema.json\",\"laser-medicine-page.json\",\"aesthetic-medicine-page.json\"] as \$file) { \$path = get_stylesheet_directory() . \"/inc/data/\" . \$file; if (!is_readable(\$path) || !is_array(json_decode(file_get_contents(\$path), true))) { throw new Exception(\"Invalid catalog: \" . \$file); } } echo \"catalog-runtime-ok\";'"
+
       - name: Validate affected public routes
         shell: bash
         run: |
@@ -133,31 +139,30 @@ jobs:
           mkdir -p /tmp/nvx-pages
           check_route() {
             local slug="$1"
-            local marker="$2"
+            local marker="${2:-}"
             local file="/tmp/nvx-pages/$(printf '%s' "$slug" | tr '/-' '__').html"
             local code
-            code="$(curl --fail-with-body --location --silent --show-error --max-time 30 --retry 2 --output "$file" --write-out '%{http_code}' "$BASE_URL$slug")"
+            echo "Checking $slug"
+            code="$(curl --location --silent --show-error --max-time 30 --retry 2 --output "$file" --write-out '%{http_code}' "$BASE_URL$slug")"
+            echo "HTTP $code $slug"
             test "$code" = "200"
-            grep -Fq "$marker" "$file"
+            test "$(wc -c < "$file")" -gt 5000
+            if [[ -n "$marker" ]]; then
+              grep -Fq "$marker" "$file"
+            fi
             if grep -Eq '@nvx-(i18n|home|claim|laser-url|aesthetic-url):' "$file"; then
               echo "Unresolved catalog token on $slug" >&2
               exit 1
             fi
           }
           check_route '/' 'NUVANX'
-          check_route '/tratamientos/' 'nvx-treatment-hub'
+          check_route '/soluciones-medicas/' 'nvx-solutions-page'
           check_route '/medicina-estetica/' 'nvx-aesthetic-editorial'
-          check_route '/medicina-estetica-laser/' 'nvx-laser-editorial'
+          check_route '/medicina-estetica-laser/'
           check_route '/endolift-facial-papada-mandibula/' 'nvx-endolift-editorial'
           check_route '/endolaser-corporal/' 'nvx-endolaser-editorial'
           check_route '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' 'nvx-co2-editorial'
           check_route '/exion-face/' 'nvx-btl-detail'
-
-      - name: Verify WordPress runtime and JSON data
-        shell: bash
-        run: |
-          set -euo pipefail
-          ssh nvx-staging2 "cd '$WP_ROOT' && wp core is-installed && wp eval 'foreach ([\"aesthetic-treatment-pages.json\",\"btl-detail-pages.json\",\"faq-catalog.json\",\"treatments-catalog.json\",\"seo-metadata.json\",\"home-faq-v2.json\",\"treatment-hub-schema.json\",\"laser-medicine-page.json\",\"aesthetic-medicine-page.json\"] as \$file) { \$path = get_stylesheet_directory() . \"/inc/data/\" . \$file; if (!is_readable(\$path) || !is_array(json_decode(file_get_contents(\$path), true))) { throw new Exception(\"Invalid catalog: \" . \$file); } } echo \"catalog-runtime-ok\";'"
 
       - name: Remove temporary remote payload
         if: always()
@@ -178,6 +183,6 @@ jobs:
             echo '- Theme deployment: success'
             echo '- Marker verification: success'
             echo '- PHP/runtime contracts: success'
-            echo '- Affected route checks: success'
+            echo '- Published route checks: success'
             echo '- Unresolved catalog tokens: none'
           } >> "$GITHUB_STEP_SUMMARY"

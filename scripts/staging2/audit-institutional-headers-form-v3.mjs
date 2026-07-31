@@ -205,32 +205,74 @@ async function waitForForm(session) {
   return state;
 }
 
+function parseUrl(value, scope, label) {
+  try {
+    return new URL(value);
+  } catch {
+    fail(scope, `invalid ${label} URL: ${value || 'absent'}`);
+    return null;
+  }
+}
+
+function validateLoaderSource(state, scope) {
+  const source = parseUrl(state.loaderSrc, scope, 'loader');
+  if (!source) return;
+  if (source.hostname.toLowerCase() !== 'js.hsforms.net') fail(scope, `unexpected loader host: ${source.hostname}`);
+  if (source.pathname !== '/forms/embed/v2.js') fail(scope, `unexpected loader path: ${source.pathname}`);
+}
+
 function validateIframeSource(state, scope) {
-  let source;
-  try { source = new URL(state.iframeSrc); } catch { fail(scope, `invalid iframe URL: ${state.iframeSrc || 'absent'}`); return; }
-  if (!/^js-eu1\.hsforms\.net$/i.test(source.hostname)) fail(scope, `unexpected iframe host: ${source.hostname}`);
+  const source = parseUrl(state.iframeSrc, scope, 'iframe');
+  if (!source) return;
+  if (source.hostname.toLowerCase() !== 'js-eu1.hsforms.net') fail(scope, `unexpected iframe host: ${source.hostname}`);
   if (source.pathname !== '/ui-forms-embed-components-app/frame.html') fail(scope, `unexpected iframe path: ${source.pathname}`);
   if (source.searchParams.get('_hsPortalId') !== '147416356') fail(scope, 'HubSpot portal ID does not match');
   if (source.searchParams.get('_hsFormId') !== '5042522a-0bc5-4381-ac3e-5aee8649b69c') fail(scope, 'HubSpot form ID does not match');
 }
 
-function validateForm(state, scope, viewport) {
+function validateFormContract(state, scope) {
   if (state.deploySha !== config.expectedSha) fail(scope, `served SHA ${state.deploySha || 'absent'}`);
-  if (state.mountCount !== 1 || state.targetCount !== 1 || state.loaderCount !== 1) fail(scope, `mount/target/loader counts are ${state.mountCount}/${state.targetCount}/${state.loaderCount}`);
-  if (!/js\.hsforms\.net\/forms\/embed\/v2\.js/i.test(state.loaderSrc)) fail(scope, `unexpected loader URL: ${state.loaderSrc || 'absent'}`);
-  if (state.formState !== 'ready') fail(scope, `form state is ${state.formState || 'absent'}`);
-  if (state.iframeCount + state.inlineFormCount !== 1) fail(scope, `expected one render mode, found iframe=${state.iframeCount} inline=${state.inlineFormCount}`);
-  if (state.iframeCount === 1) {
-    if (!state.iframeVisible) fail(scope, 'HubSpot iframe is not visible');
-    if (state.iframeReadyMarker !== 'ready') fail(scope, `iframe ready marker is ${state.iframeReadyMarker || 'absent'}`);
-    if (state.iframeHeight < 700) fail(scope, `iframe height ${state.iframeHeight}px is below 700px`);
-    validateIframeSource(state, scope);
+  if (state.mountCount !== 1 || state.targetCount !== 1 || state.loaderCount !== 1) {
+    fail(scope, `mount/target/loader counts are ${state.mountCount}/${state.targetCount}/${state.loaderCount}`);
   }
-  if (state.inlineFormCount === 1 && (state.inlineFieldCount < 3 || !state.inlineSubmitVisible)) fail(scope, `inline form is incomplete; fields=${state.inlineFieldCount} submit=${state.inlineSubmitVisible}`);
+  if (state.formState !== 'ready') fail(scope, `form state is ${state.formState || 'absent'}`);
+  if (state.iframeCount + state.inlineFormCount !== 1) {
+    fail(scope, `expected one render mode, found iframe=${state.iframeCount} inline=${state.inlineFormCount}`);
+  }
+  validateLoaderSource(state, scope);
+}
+
+function validateIframeMode(state, scope) {
+  if (state.iframeCount !== 1) return;
+  if (!state.iframeVisible) fail(scope, 'HubSpot iframe is not visible');
+  if (state.iframeReadyMarker !== 'ready') fail(scope, `iframe ready marker is ${state.iframeReadyMarker || 'absent'}`);
+  if (state.iframeHeight < 700) fail(scope, `iframe height ${state.iframeHeight}px is below 700px`);
+  validateIframeSource(state, scope);
+}
+
+function validateInlineMode(state, scope) {
+  if (state.inlineFormCount !== 1) return;
+  if (state.inlineFieldCount < 3 || !state.inlineSubmitVisible) {
+    fail(scope, `inline form is incomplete; fields=${state.inlineFieldCount} submit=${state.inlineSubmitVisible}`);
+  }
+}
+
+function validateFormGeometry(state, scope, viewport) {
   const minimumWidth = viewport.mobile ? 270 : 700;
   if (state.renderedWidth < minimumWidth) fail(scope, `rendered form width ${state.renderedWidth}px is below ${minimumWidth}px`);
-  if (state.targetOverflow === 'hidden' || state.mountOverflow === 'hidden') fail(scope, `clipping detected target=${state.targetOverflow} mount=${state.mountOverflow}`);
-  if (state.targetBottom > state.mountBottom + 2 || state.mountBottom > state.sectionBottom + 2) fail(scope, 'form extends beyond its governed container');
+  if (state.targetOverflow === 'hidden' || state.mountOverflow === 'hidden') {
+    fail(scope, `clipping detected target=${state.targetOverflow} mount=${state.mountOverflow}`);
+  }
+  if (state.targetBottom > state.mountBottom + 2 || state.mountBottom > state.sectionBottom + 2) {
+    fail(scope, 'form extends beyond its governed container');
+  }
+}
+
+function validateForm(state, scope, viewport) {
+  validateFormContract(state, scope);
+  validateIframeMode(state, scope);
+  validateInlineMode(state, scope);
+  validateFormGeometry(state, scope, viewport);
 }
 
 async function auditForm(port) {

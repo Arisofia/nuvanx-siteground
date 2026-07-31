@@ -1,0 +1,350 @@
+name: Apply Sonar duplication refactor v2 once
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/apply-sonar-duplication-refactor-v2-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  refactor:
+    if: github.head_ref == 'refactor/sonar-duplication-20260731'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout refactor branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: refactor/sonar-duplication-20260731
+          fetch-depth: 0
+
+      - name: Consolidate repeated records and CDP utilities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from __future__ import annotations
+
+          import re
+          from pathlib import Path
+
+          def read(path):
+              return Path(path).read_text(encoding='utf-8')
+
+          def write(path, content):
+              Path(path).write_text(content, encoding='utf-8')
+
+          def insert_once(source, marker, insertion, label):
+              count = source.count(marker)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected one marker, found {count}')
+              return source.replace(marker, insertion + marker, 1)
+
+          def function_span(source, name):
+              start = source.find(f'function {name}')
+              if start < 0:
+                  raise SystemExit(f'missing function {name}')
+              opening = source.find('{', start)
+              depth = 0
+              quote = None
+              escaped = False
+              for index in range(opening, len(source)):
+                  char = source[index]
+                  if quote:
+                      if escaped:
+                          escaped = False
+                      elif char == '\\':
+                          escaped = True
+                      elif char == quote:
+                          quote = None
+                      continue
+                  if char in {'\'', '"'}:
+                      quote = char
+                  elif char == '{':
+                      depth += 1
+                  elif char == '}':
+                      depth -= 1
+                      if depth == 0:
+                          return start, index + 1
+              raise SystemExit(f'unbalanced function {name}')
+
+          # Structured-data record constructors.
+          path = 'wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php'
+          source = read(path)
+          source = insert_once(
+              source,
+              '/**\n * Official public PVP catalogue',
+              """/** Build one immutable public tariff row. */
+          function nvxTariffItem( string $label, float $pvp, string $group ): array {
+              return compact( 'label', 'pvp', 'group' );
+          }
+
+          """,
+              'tariff helper',
+          )
+          start, end = function_span(source, 'nvx_tariff_catalog')
+          block = source[start:end]
+          pattern = re.compile(
+              r"(?P<i>[ \t]*)'(?P<k>[^']+)'\s*=> array\(\n"
+              r"(?P=i)    'label'\s*=> (?P<label>[^\n]+),\n"
+              r"(?P=i)    'pvp'\s*=> (?P<pvp>\d+(?:\.\d+)?),\n"
+              r"(?P=i)    'group'\s*=> (?P<group>[^\n]+),\n"
+              r"(?P=i)\),"
+          )
+          block, count = pattern.subn(
+              lambda m: f"{m['i']}'{m['k']}' => nvxTariffItem( {m['label']}, {m['pvp']}, {m['group']} ),",
+              block,
+          )
+          if count != 24:
+              raise SystemExit(f'tariff records transformed={count}')
+          source = source[:start] + block + source[end:]
+          source = insert_once(
+              source,
+              'function nvx_schema_page_registry()',
+              """/** Build one canonical route registry entry. */
+          function nvxSchemaRouteEntry( int $id, string $path ): array {
+              return compact( 'id', 'path' );
+          }
+
+          /** Build one canonical treatment registry entry. */
+          function nvxSchemaTreatmentRegistryEntry( int $id, string $path, string $schema ): array {
+              return compact( 'id', 'path', 'schema' );
+          }
+
+          """,
+              'registry helpers',
+          )
+          start, end = function_span(source, 'nvx_schema_page_registry')
+          block = source[start:end]
+          treatment = re.compile(
+              r"(?P<i>[ \t]*)'(?P<k>[^']+)'\s*=> array\(\n"
+              r"(?P=i)    'id'\s*=> (?P<id>\d+),\n"
+              r"(?P=i)    'path'\s*=> (?P<path>'[^\n]+'),\n"
+              r"(?P=i)    'schema'\s*=> (?P<schema>'[^\n]+'),\n"
+              r"(?P=i)\),"
+          )
+          block, treatment_count = treatment.subn(
+              lambda m: f"{m['i']}'{m['k']}' => nvxSchemaTreatmentRegistryEntry( {m['id']}, {m['path']}, {m['schema']} ),",
+              block,
+          )
+          route = re.compile(
+              r"(?P<i>[ \t]*)'(?P<k>[^']+)'\s*=> array\(\n"
+              r"(?P=i)    'id'\s*=> (?P<id>\d+),\n"
+              r"(?P=i)    'path'\s*=> (?P<path>'[^\n]+'),\n"
+              r"(?P=i)\),"
+          )
+          block, route_count = route.subn(
+              lambda m: f"{m['i']}'{m['k']}' => nvxSchemaRouteEntry( {m['id']}, {m['path']} ),",
+              block,
+          )
+          if (treatment_count, route_count) != (9, 3):
+              raise SystemExit(f'registry treatments={treatment_count} routes={route_count}')
+          source = source[:start] + block + source[end:]
+          write(path, source)
+
+          # BTL source/governed record constructor.
+          path = 'wp-content/themes/nuvanx-medical/inc/nvx-btl-clinical-governance.php'
+          source = read(path)
+          source = insert_once(
+              source,
+              '/**\n * Shared claim library',
+              """/** Build one source-to-governed claim replacement. */
+          function nvxBtlClaimPair( string $source, string $governed ): array {
+              return compact( 'source', 'governed' );
+          }
+
+          """,
+              'BTL claim helper',
+          )
+          start, end = function_span(source, 'nvx_btl_claim_library')
+          block = source[start:end]
+          claims = re.compile(
+              r"(?P<i>[ \t]*)'(?P<k>[^']+)'\s*=> array\(\n"
+              r"(?P=i)    'source'\s*=> (?P<source>[^\n]+),\n"
+              r"(?P=i)    'governed'\s*=> (?P<governed>[^\n]+),\n"
+              r"(?P=i)\),"
+          )
+          block, claim_count = claims.subn(
+              lambda m: f"{m['i']}'{m['k']}' => nvxBtlClaimPair( {m['source']}, {m['governed']} ),",
+              block,
+          )
+          if claim_count < 20:
+              raise SystemExit(f'BTL claims transformed={claim_count}')
+          source = source[:start] + block + source[end:]
+          write(path, source)
+
+          # Content card records; rendering remains unchanged.
+          path = 'wp-content/themes/nuvanx-medical/inc/nvx-content-presentation.php'
+          source = read(path)
+          source = insert_once(
+              source,
+              '/**\n * Clinical values pillars',
+              """/** Build one icon-led content card. */
+          function nvxContentCard( string $icon, string $title, string $body ): array {
+              return compact( 'icon', 'title', 'body' );
+          }
+
+          """,
+              'content card helper',
+          )
+          cards = re.compile(
+              r"(?P<i>[ \t]*)array\(\n"
+              r"(?P=i)    'icon'\s*=> (?P<icon>[^\n]+),\n"
+              r"(?P=i)    'title'\s*=> (?P<title>[^\n]+),\n"
+              r"(?P=i)    'body'\s*=> (?P<body>[^\n]+),\n"
+              r"(?P=i)\),"
+          )
+          source, card_count = cards.subn(
+              lambda m: f"{m['i']}nvxContentCard( {m['icon']}, {m['title']}, {m['body']} ),",
+              source,
+          )
+          if card_count < 6:
+              raise SystemExit(f'content cards transformed={card_count}')
+          write(path, source)
+
+          # Equipo title/body records; rendering remains unchanged.
+          path = 'wp-content/themes/nuvanx-medical/inc/nvx-equipo-page.php'
+          source = read(path)
+          source = insert_once(
+              source,
+              'function nvx_equipo_director_authority_markup',
+              """/** Build one editorial title/body item. */
+          function nvxEquipoTextItem( string $title, string $body ): array {
+              return compact( 'title', 'body' );
+          }
+
+          """,
+              'equipo item helper',
+          )
+          items = re.compile(
+              r"(?P<i>[ \t]*)array\(\n"
+              r"(?P=i)    'title'\s*=> (?P<title>[^\n]+),\n"
+              r"(?P=i)    'body'\s*=> (?P<body>[^\n]+),\n"
+              r"(?P=i)\),"
+          )
+          source, item_count = items.subn(
+              lambda m: f"{m['i']}nvxEquipoTextItem( {m['title']}, {m['body']} ),",
+              source,
+          )
+          if item_count < 8:
+              raise SystemExit(f'equipo items transformed={item_count}')
+          write(path, source)
+
+          # Navigation leaf records.
+          path = 'wp-content/themes/nuvanx-medical/inc/nvx-navigation-filters.php'
+          source = read(path)
+          source = insert_once(
+              source,
+              '/**\n * Defines the canonical fallback navigation structure',
+              """/** Build one navigation leaf. */
+          function nvxNavigationItem( string $label, array $slugs ): array {
+              return compact( 'label', 'slugs' );
+          }
+
+          """,
+              'navigation helper',
+          )
+          leaves = re.compile(r"array\( 'label' => (?P<label>.+?), 'slugs' => (?P<slugs>array\( [^\n]*? \)) \),")
+          source, leaf_count = leaves.subn(
+              lambda m: f"nvxNavigationItem( {m['label']}, {m['slugs']} ),",
+              source,
+          )
+          if leaf_count < 20:
+              raise SystemExit(f'navigation leaves transformed={leaf_count}')
+          write(path, source)
+
+          # Capture script reuses the canonical visual QA transport.
+          common_path = 'scripts/staging2/visual-qa-common.mjs'
+          common = read(common_path)
+          old = """  async evaluate(expression) {
+              const result = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+          """
+          if common.count(old) != 1:
+              raise SystemExit('common evaluate marker mismatch')
+          new = """  waitFor(method, timeoutMilliseconds = 30000) {
+              return new Promise((resolve, reject) => {
+                let unsubscribe = () => {};
+                const timer = setTimeout(() => {
+                  unsubscribe();
+                  reject(new Error(`CDP event timed out: ${method}`));
+                }, timeoutMilliseconds);
+                unsubscribe = this.on(method, (params) => {
+                  clearTimeout(timer);
+                  unsubscribe();
+                  resolve(params || {});
+                });
+              });
+            }
+
+            async evaluate(expression, awaitPromise = true) {
+              const result = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise });
+          """
+          common = common.replace(old, new, 1)
+          write(common_path, common)
+
+          path = 'scripts/staging2/capture-visual-qa.mjs'
+          source = read(path)
+          source = insert_once(
+              source,
+              "import { phasePageDefinitions } from './staging2-contract-common.mjs';\n",
+              """import {
+            sleep,
+            safeName,
+            locateChrome,
+            CDPSession,
+            waitForChrome,
+            createTarget,
+            closeSession,
+          } from './visual-qa-common.mjs';
+          """,
+              'capture common import',
+          )
+          primitives = """const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+          const safeName = (value) => value.split('/').filter(Boolean).join('__') || 'home';
+
+          """
+          if source.count(primitives) != 1:
+              raise SystemExit('capture primitive block mismatch')
+          source = source.replace(primitives, '', 1)
+          locate_start = source.find('function locateChrome()')
+          fetch_start = source.find('async function fetchWithRetry', locate_start)
+          if locate_start < 0 or fetch_start < 0:
+              raise SystemExit('capture Chrome locator block mismatch')
+          source = source[:locate_start] + source[fetch_start:]
+          class_start = source.find('class CDPSession')
+          load_start = source.find('async function loadPage', class_start)
+          if class_start < 0 or load_start < 0:
+              raise SystemExit('capture CDP block mismatch')
+          source = source[:class_start] + source[load_start:]
+          write(path, source)
+          PY
+
+      - name: Validate transformed sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n 1 php -l
+          node --check scripts/staging2/visual-qa-common.mjs
+          node --check scripts/staging2/capture-visual-qa.mjs
+          node --check scripts/staging2/audit-full-site-ui.mjs
+          php scripts/theme-hygiene/test-nvx-callable-contract.php
+          node scripts/theme-hygiene/test-theme-hygiene.mjs
+          node scripts/theme-hygiene/test-rest-pagination-contract.mjs
+          git diff --check
+
+      - name: Commit validated refactor and remove temporary workflows
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/sonar-duplication-audit-once.yml
+          rm -f .github/workflows/apply-sonar-duplication-refactor-once.yml
+          rm -f .github/workflows/apply-sonar-duplication-refactor-v2-once.yml
+          git config user.name 'NUVANX Quality Bot'
+          git config user.email 'quality@nuvanx.com'
+          git add wp-content/themes/nuvanx-medical/inc scripts/staging2 .github/workflows
+          git diff --cached --check
+          git commit -m 'refactor(quality): consolidate repeated records and QA transport'
+          git push origin HEAD:refactor/sonar-duplication-20260731

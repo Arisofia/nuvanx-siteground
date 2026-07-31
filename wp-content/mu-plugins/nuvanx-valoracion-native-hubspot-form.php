@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NUVANX Valoración Native HubSpot Form
  * Description: Enforces one canonical HubSpot form on /madrid/valoracion/.
- * Version: 2026.07.31.3
+ * Version: 2026.07.31.4
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -135,7 +135,14 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
 
     var existing = document.querySelector('script[data-nvx-hubspot-loader="valoracion"]');
     if (existing) {
-      existing.addEventListener('load', mountForm, { once: true });
+      if (existing.dataset.nvxHubspotLoaded === 'true') {
+        mountForm();
+        return;
+      }
+      existing.addEventListener('load', function () {
+        existing.dataset.nvxHubspotLoaded = 'true';
+        mountForm();
+      }, { once: true });
       existing.addEventListener('error', function () {
         target.dataset.nvxHubspotState = 'sdk-error';
         setStatus('No ha sido posible conectar con el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
@@ -151,7 +158,10 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
     loader.type = 'text/javascript';
     loader.dataset.category = 'functional';
     loader.dataset.nvxHubspotLoader = 'valoracion';
-    loader.addEventListener('load', mountForm, { once: true });
+    loader.addEventListener('load', function () {
+      loader.dataset.nvxHubspotLoaded = 'true';
+      mountForm();
+    }, { once: true });
     loader.addEventListener('error', function () {
       target.dataset.nvxHubspotState = 'sdk-error';
       setStatus('No ha sido posible conectar con el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);

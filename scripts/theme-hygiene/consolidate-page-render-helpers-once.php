@@ -7,7 +7,7 @@ declare(strict_types=1);
 function nvx_consolidate_page_renderer(string $path, string $fallbackClass = ''): void {
     $source = (string) file_get_contents($path);
 
-    $mediaOffset = strpos($source, "$media = '';");
+    $mediaOffset = strpos($source, '$media = \'\';');
     if (false === $mediaOffset) {
         throw new RuntimeException("Hero media block not found in {$path}");
     }
@@ -27,7 +27,7 @@ function nvx_consolidate_page_renderer(string $path, string $fallbackClass = '')
         . $mediaReplacement
         . substr($source, $heroLineStart);
 
-    $bodyOffset = strpos($source, '$body =', $heroOffset - ($heroLineStart - $mediaLineStart));
+    $bodyOffset = strpos($source, '$body =', $mediaLineStart);
     if (false === $bodyOffset) {
         throw new RuntimeException("Body assembly not found in {$path}");
     }

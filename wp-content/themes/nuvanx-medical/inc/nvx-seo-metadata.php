@@ -210,11 +210,15 @@ function nvx_seo_current_metadata( string $field, string $fallback = '' ): strin
  * Whether the current installation is not the public production host.
  */
 function nvx_seo_is_nonproduction_environment(): bool {
-    $environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
-    $host        = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
-    $public      = in_array( strtolower( $host ), array( 'nuvanx.com', 'www.nuvanx.com' ), true );
+    $host   = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+    $public = in_array( strtolower( $host ), array( 'nuvanx.com', 'www.nuvanx.com', 'staging2.nuvanx.com' ), true );
 
-    return 'production' !== $environment || ! $public;
+    if ( $public ) {
+        return false;
+    }
+
+    $environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
+    return 'production' !== $environment;
 }
 
 /**

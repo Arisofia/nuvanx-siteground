@@ -188,7 +188,11 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 
 	$body = nvx_endolaser_editorial_body_markup();
 
-	return nvx_page_render_brand_wrapper( $content, $hero . $body );
+	return nvx_page_render_brand_wrapper(
+		$content,
+		$hero . $body,
+		'nvx-brand-page nvx-brand-page--endolaser'
+	);
 
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', 19 );

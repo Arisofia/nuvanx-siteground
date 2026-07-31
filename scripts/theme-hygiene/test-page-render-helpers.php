@@ -21,16 +21,6 @@ $division = '<div class="nvx-brand-hero__media"><img src="division.jpg" alt=""><
 $nestedDivision = '<div class="nvx-brand-hero__media"><div class="frame"><img src="nested.jpg" alt=""></div></div>';
 
 nvx_page_helper_assert(
-$figure = '<figure class="nvx-brand-hero__media"><img src="figure.jpg" alt=""></figure>';
-$division = '<div class="nvx-brand-hero__media"><img src="division.jpg" alt=""></div>';
-$nestedDivision = '<div class="nvx-brand-hero__media"><div class="frame"><img src="nested.jpg" alt=""></div></div>';
-
-nvx_page_helper_assert(
-$figure = '<figure class="nvx-brand-hero__media"><img src="figure.jpg" alt=""></figure>';
-$division = '<div class="nvx-brand-hero__media"><img src="division.jpg" alt=""></div>';
-$nestedDivision = '<div class="nvx-brand-hero__media"><div class="frame"><img src="nested.jpg" alt=""></div></div>';
-
-nvx_page_helper_assert(
     nvx_page_extract_brand_hero_media('<main>' . $figure . '</main>') === $figure,
     'Figure hero media extraction changed.'
 );
@@ -58,23 +48,30 @@ nvx_page_helper_assert(
     'Existing brand wrapper was not preserved.'
 );
 nvx_page_helper_assert(
-    nvx_page_render_brand_wrapper('<p>plain</p>', '<section>new</section>') === '<section>new</section>',
-    'Empty fallback must not create a wrapper.'
+    nvx_page_render_brand_wrapper('<p>plain</p>', '<section>new</section>')
+        === '<div class="nvx-brand-page"><section>new</section></div>',
+    'Default brand wrapper changed.'
 );
 nvx_page_helper_assert(
     nvx_page_render_brand_wrapper('<p>plain</p>', '<section>new</section>', 'nvx-brand-page nvx-brand-page--laser')
         === '<div class="nvx-brand-page nvx-brand-page--laser"><section>new</section></div>',
-    'Fallback brand wrapper changed.'
+    'Explicit fallback brand wrapper changed.'
 );
 
-$endoliftSource = (string) file_get_contents(
-    dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc/nvx-endolift-page.php'
+$fallbackContracts = array(
+    'nvx-endolift-page.php' => 'nvx-brand-page nvx-brand-page--endolift',
+    'nvx-endolaser-page.php' => 'nvx-brand-page nvx-brand-page--endolaser',
+    'nvx-co2-page.php' => 'nvx-brand-page nvx-brand-page--co2',
 );
-nvx_page_helper_assert(
-    str_contains($endoliftSource, "'nvx-brand-page nvx-brand-page--endolift'"),
-    'Endolift caller must preserve its fallback brand wrapper.'
-);
-
+foreach ($fallbackContracts as $filename => $fallbackClass) {
+    $source = (string) file_get_contents(
+        dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc/' . $filename
+    );
+    nvx_page_helper_assert(
+        str_contains($source, "'" . $fallbackClass . "'"),
+        $filename . ' must preserve its page-specific fallback wrapper.'
+    );
+}
 
 $sectionOpen = nvx_page_brand_section_open_markup(
     'nvx-example',
@@ -91,20 +88,15 @@ nvx_page_helper_assert(
         === '<section class="nvx-brand-section" aria-labelledby="plain-title"><div class="nvx-shell nvx-brand-section__inner">',
     'Canonical section opening without modifiers changed.'
 );
-nvx_page_helper_assert(
-    strpos(
-        nvx_page_brand_section_open_markup('', 'plain-title', '', array('data bad' => 'x')),
-        'data bad'
-    ) === false,
-    'Invalid attribute names must be discarded.'
-);
-nvx_page_helper_assert(
-    strpos(
-        nvx_page_brand_section_open_markup('', 'plain-title', '', array('onclick' => 'alert(1)')),
-        'onclick'
-    ) === false,
-    'Event handler attributes must be discarded.'
-);
+foreach (array('data bad', 'onclick', 'class', 'aria-labelledby') as $attribute) {
+    nvx_page_helper_assert(
+        strpos(
+            nvx_page_brand_section_open_markup('', 'plain-title', '', array($attribute => 'unsafe')),
+            $attribute . '="unsafe"'
+        ) === false,
+        'Disallowed section attribute was not discarded: ' . $attribute
+    );
+}
 nvx_page_helper_assert(
     nvx_page_brand_section_heading_markup('Kicker', 'heading-id', 'Heading')
         === '<p class="nvx-brand-kicker">Kicker</p><h2 id="heading-id" class="nvx-brand-title">Heading</h2>',

@@ -130,6 +130,12 @@ function nvx_catalog_resolve_tokens(
 		},
 	);
 	$resolvers = $prefixes + $custom_resolvers;
+	uksort(
+		$resolvers,
+		static function ( string $left, string $right ): int {
+			return strlen( $right ) <=> strlen( $left );
+		}
+	);
 
 	return nvx_catalog_transform_values(
 		$catalog,
@@ -173,7 +179,26 @@ function nvx_catalog_json_resolved(
 ): array {
 	static $resolved = array();
 
-	$key = '' === $cache_key ? basename( $filename ) : $cache_key;
+	$locale = '';
+	if ( function_exists( 'determine_locale' ) ) {
+		$locale = (string) determine_locale();
+	}
+	if ( '' === $locale && function_exists( 'get_locale' ) ) {
+		$locale = (string) get_locale();
+	}
+
+	$custom_keys = array_keys( $custom_resolvers );
+	$object_keys = array_keys( $object_resolvers );
+	sort( $custom_keys, SORT_STRING );
+	sort( $object_keys, SORT_STRING );
+	$resolver_signature = implode( ',', $custom_keys )
+		. '|' . implode( ',', $object_keys )
+		. '|' . ( null === $claim_resolver ? '0' : '1' );
+	$base_key = '' === $cache_key
+		? basename( $filename ) . '|' . $resolver_signature
+		: $cache_key;
+	$key = $base_key . '|locale:' . $locale;
+
 	if ( ! array_key_exists( $key, $resolved ) ) {
 		$resolved[ $key ] = nvx_catalog_resolve_tokens(
 			nvx_catalog_json_load( $filename ),

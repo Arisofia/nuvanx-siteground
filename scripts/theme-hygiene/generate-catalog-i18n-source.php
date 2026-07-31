@@ -3,6 +3,9 @@
  * Generate temporary PHP source containing JSON-catalog translations.
  *
  * Pipe this output to a PHP file before running `wp i18n make-pot`.
+ *
+ * Only readable `@nvx-t:` values are extracted. Legacy `@nvx-i18n:` Base64
+ * tokens are forbidden by the catalog review contract and must not be added.
  */
 declare(strict_types=1);
 

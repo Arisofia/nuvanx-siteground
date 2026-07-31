@@ -34,7 +34,11 @@ function nvx_treatment_hub_schema_items( string $organization_id ): array {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 
 	// Raw JSON intentionally preserves the previous non-translated schema labels.
-	$definitions = nvx_catalog_json_load( 'treatment-hub-schema.json' );
+	$definitions = nvx_catalog_filter_records(
+		nvx_catalog_json_load( 'treatment-hub-schema.json' ),
+		array( 'path', 'types', 'key', 'name', 'description' ),
+		'treatment-hub-schema.json'
+	);
 
 	$items = array();
 	foreach ( $definitions as $index => $definition ) {

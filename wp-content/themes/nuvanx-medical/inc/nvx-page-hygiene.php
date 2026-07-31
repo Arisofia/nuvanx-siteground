@@ -416,7 +416,7 @@ function nvx_enrich_cristina_marquez_profile( string $content ): string {
 	$marker  = '<section class="nvx-brand-section nvx-equipo-staff"';
 	$offset  = strpos( $content, $marker );
 	if ( false === $offset ) {
-		$marker = '<section class="nvx-brand-section nvx-equipo-staff"';
+		$marker = '<section class="nvx-endolift-section nvx-equipo-staff"';
 		$offset = strpos( $content, $marker );
 	}
 

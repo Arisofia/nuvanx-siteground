@@ -312,13 +312,9 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		return $content;
 	}
 
-	// Same media sources as Endolift / Endoláser / CO₂: content figure, then featured image.
-	$media = '';
-	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
-		$media = $m[0];
-	} elseif ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
-		$media = $m[0];
-	} elseif ( has_post_thumbnail() ) {
+	// Same media sources as Endolift / Endoláser / CO₂: content slot, then featured image.
+	$media = nvx_page_extract_brand_hero_media( $content );
+	if ( '' === $media && has_post_thumbnail() ) {
 		$thumb = get_the_post_thumbnail(
 			null,
 			'full',
@@ -344,16 +340,20 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		) ?? $built;
 	}
 
+	$modifier = 'nvx-brand-page--' . sanitize_html_class( $key );
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
-		$open = $wrap[1];
-		$mod  = 'nvx-brand-page--' . sanitize_html_class( $key );
-		if ( false === strpos( $open, $mod ) ) {
-			$open = preg_replace( '/\bclass=(["\'])/u', 'class=$1' . $mod . ' ', $open, 1 ) ?? $open;
+		$opening = $wrap[1];
+		if ( false === strpos( $opening, $modifier ) ) {
+			$updated = preg_replace( '/\bclass=(["\'])/u', 'class=$1' . $modifier . ' ', $opening, 1 ) ?? $opening;
+			$content = preg_replace( '/<div class="nvx-brand-page[^"]*"[^>]*>/iu', $updated, $content, 1 ) ?? $content;
 		}
-		return $open . $built . '</div>';
 	}
 
-	return '<div class="nvx-brand-page nvx-brand-page--' . esc_attr( $key ) . '">' . $built . '</div>';
+	return nvx_page_render_brand_wrapper(
+		$content,
+		$built,
+		'nvx-brand-page ' . $modifier
+	);
 }
 add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', 19 );
 

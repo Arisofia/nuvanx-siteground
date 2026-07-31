@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/nvx-page-render-helpers.php';
+
 /**
  * Singular context for CO₂ rewrite.
  */
@@ -105,19 +107,23 @@ function nvx_co2_editorial_body_markup(): string {
 	$html  = '<div class="nvx-co2-editorial nvx-endolift-editorial">';
 
 	// A. Science of fractional ablation.
-	$html .= '<section class="nvx-brand-section nvx-co2-science" aria-labelledby="nvx-co2-science-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Mecanismo', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-co2-science-title" class="nvx-brand-title">' . esc_html__( 'La ciencia de la ablación fraccionada', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-co2-science', 'nvx-co2-science-title' );
+	$html .= nvx_page_brand_section_heading_markup(
+		esc_html__( 'Mecanismo', 'nuvanx-medical' ),
+		'nvx-co2-science-title',
+		esc_html__( 'La ciencia de la ablación fraccionada', 'nuvanx-medical' )
+	);
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'El láser de dióxido de carbono (CO₂) fraccionado es un resurfacing ablativo de referencia en dermatología estética para renovar la arquitectura de la piel. No vaporiza toda la superficie de forma continua: emite microhaces que crean columnas térmicas de vaporización rodeadas de tejido sano.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Ese tejido peri-lesional acelera la curación y estimula una respuesta de neocolagénesis (colágeno tipo I y III). No es un peeling cosmético superficial: es una intervención de alto impacto que exige planificación médica y compromiso con el downtime.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></section>';
 
 	// B. Indications.
-	$html .= '<section class="nvx-brand-section nvx-co2-indications" aria-labelledby="nvx-co2-ind-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Indicaciones', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-co2-ind-title" class="nvx-brand-title">' . esc_html__( 'Indicaciones terapéuticas principales', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-co2-indications', 'nvx-co2-ind-title' );
+	$html .= nvx_page_brand_section_heading_markup(
+		esc_html__( 'Indicaciones', 'nuvanx-medical' ),
+		'nvx-co2-ind-title',
+		esc_html__( 'Indicaciones terapéuticas principales', 'nuvanx-medical' )
+	);
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'El equipo médico (dirección Dr. Rivera Tejeda) ajusta potencia, profundidad fraccional y densidad de haces según fototipo, objetivo y tolerancia al downtime.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-endolaser-zone-list">';
 	$inds = array(
@@ -143,10 +149,12 @@ function nvx_co2_editorial_body_markup(): string {
 	$html .= '</ul></div></section>';
 
 	// C. Recovery timeline (unique — not on Endolift FAQ).
-	$html .= '<section class="nvx-brand-section nvx-co2-downtime" aria-labelledby="nvx-co2-down-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Downtime médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-co2-down-title" class="nvx-brand-title">' . esc_html__( 'Cronología real de la recuperación', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-co2-downtime', 'nvx-co2-down-title' );
+	$html .= nvx_page_brand_section_heading_markup(
+		esc_html__( 'Downtime médico', 'nuvanx-medical' ),
+		'nvx-co2-down-title',
+		esc_html__( 'Cronología real de la recuperación', 'nuvanx-medical' )
+	);
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'El CO₂ fraccionado exige compromiso con la curación. Los plazos siguientes son orientativos y dependen de la profundidad del protocolo.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ol class="nvx-treatment-process__steps">';
 	$phases = array(
@@ -175,10 +183,17 @@ function nvx_co2_editorial_body_markup(): string {
 	$html .= '</ol></div></section>';
 
 	// D. PVP reference (clinic tariff — facial 330 / body 450).
-	$html .= '<section class="nvx-brand-section nvx-co2-pricing" aria-labelledby="nvx-co2-price-title" id="tarifas-co2">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Tarifas públicas', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-co2-price-title" class="nvx-brand-title">' . esc_html__( 'PVP sesión Láser CO₂ (IVA incluido)', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup(
+		'nvx-co2-pricing',
+		'nvx-co2-price-title',
+		'',
+		array( 'id' => 'tarifas-co2' )
+	);
+	$html .= nvx_page_brand_section_heading_markup(
+		esc_html__( 'Tarifas públicas', 'nuvanx-medical' ),
+		'nvx-co2-price-title',
+		esc_html__( 'PVP sesión Láser CO₂ (IVA incluido)', 'nuvanx-medical' )
+	);
 	$html .= '<div class="nvx-endolift-price-table-wrap">';
 	$html .= '<table class="nvx-endolift-price-table">';
 	$html .= '<caption class="nvx-endolift-price-table__cap">' . esc_html__( 'Tarifa clínica de referencia. Profundidad y zonas pueden modular el plan y el número de sesiones.', 'nuvanx-medical' ) . '</caption>';
@@ -204,7 +219,6 @@ function nvx_content_restructure_co2_page( string $content ): string {
 		return $content;
 	}
 
-	require_once __DIR__ . '/nvx-page-render-helpers.php';
 	$media = nvx_page_extract_brand_hero_media( $content );
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--co2 nvx-co2-hero" aria-labelledby="nvx-co2-h1" aria-label="' . esc_attr__( 'Láser CO₂ NUVANX', 'nuvanx-medical' ) . '">';
@@ -215,7 +229,11 @@ function nvx_content_restructure_co2_page( string $content ): string {
 
 	$body = nvx_co2_editorial_body_markup();
 
-	return nvx_page_render_brand_wrapper( $content, $hero . $body );
+	return nvx_page_render_brand_wrapper(
+		$content,
+		$hero . $body,
+		'nvx-brand-page nvx-brand-page--co2'
+	);
 
 }
 add_filter( 'the_content', 'nvx_content_restructure_co2_page', 19 );

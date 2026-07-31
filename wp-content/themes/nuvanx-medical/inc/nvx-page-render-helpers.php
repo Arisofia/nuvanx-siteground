@@ -47,17 +47,17 @@ function nvx_page_extract_brand_hero_media( string $content ): string {
 function nvx_page_render_brand_wrapper(
 	string $content,
 	string $inner_markup,
-	string $fallback_class = ''
+	string $fallback_class = 'nvx-brand-page'
 ): string {
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $matches ) ) {
 		return $matches[1] . $inner_markup . '</div>';
 	}
 
-	if ( '' !== $fallback_class ) {
-		return '<div class="' . esc_attr( $fallback_class ) . '">' . $inner_markup . '</div>';
+	if ( '' === trim( $fallback_class ) ) {
+		$fallback_class = 'nvx-brand-page';
 	}
 
-	return $inner_markup;
+	return '<div class="' . esc_attr( $fallback_class ) . '">' . $inner_markup . '</div>';
 }
 
 
@@ -87,8 +87,9 @@ function nvx_page_brand_section_open_markup(
 	}
 
 	$html = '<section class="' . esc_attr( $section_classes ) . '" aria-labelledby="' . esc_attr( $labelledby ) . '"';
+	$allowed_attributes = array( 'id' );
 	foreach ( $section_attributes as $attribute => $value ) {
-		if ( ! preg_match( '/^[a-zA-Z_:][a-zA-Z0-9:._-]*$/', $attribute ) ) {
+		if ( ! is_string( $attribute ) || ! in_array( $attribute, $allowed_attributes, true ) ) {
 			continue;
 		}
 		$html .= ' ' . $attribute . '="' . esc_attr( $value ) . '"';

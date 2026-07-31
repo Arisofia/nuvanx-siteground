@@ -15,7 +15,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_home_faq_v2_catalog(): array {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 
-	return nvx_catalog_json_resolved( 'home-faq-v2.json' );
+	return nvx_catalog_filter_records(
+		nvx_catalog_json_resolved( 'home-faq-v2.json' ),
+		array( 'id', 'q', 'a' ),
+		'home-faq-v2.json'
+	);
 }
 
 function nvx_home_faq_v2_markup(): string {

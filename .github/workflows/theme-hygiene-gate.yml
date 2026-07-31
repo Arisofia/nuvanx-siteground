@@ -44,11 +44,12 @@ jobs:
           find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 \
             | xargs -0 -n 1 php -l
 
-      - name: Validate catalog JSON contracts
+      - name: Validate runtime contracts
         run: |
           set -euo pipefail
           php scripts/theme-hygiene/test-catalog-json-contract.php
           php scripts/theme-hygiene/test-catalog-json-runtime-contract.php
+          php scripts/theme-hygiene/test-page-render-helpers.php
 
       - name: Enforce canonical theme hygiene
         run: node scripts/theme-hygiene/test-theme-hygiene.mjs

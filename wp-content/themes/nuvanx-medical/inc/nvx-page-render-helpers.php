@@ -59,3 +59,54 @@ function nvx_page_render_brand_wrapper(
 
 	return $inner_markup;
 }
+
+
+/**
+ * Open a canonical brand section and its inner shell.
+ *
+ * Callers keep translated copy in their own source and pass escaped markup.
+ *
+ * @param array<string,string> $section_attributes Additional safe attributes.
+ */
+function nvx_page_brand_section_open_markup(
+	string $section_class,
+	string $labelledby,
+	string $inner_extra_class = '',
+	array $section_attributes = array()
+): string {
+	$section_classes = 'nvx-brand-section';
+	$section_suffix  = trim( $section_class );
+	if ( '' !== $section_suffix ) {
+		$section_classes .= ' ' . $section_suffix;
+	}
+
+	$inner_classes = 'nvx-shell nvx-brand-section__inner';
+	$inner_suffix  = trim( $inner_extra_class );
+	if ( '' !== $inner_suffix ) {
+		$inner_classes .= ' ' . $inner_suffix;
+	}
+
+	$html = '<section class="' . esc_attr( $section_classes ) . '" aria-labelledby="' . esc_attr( $labelledby ) . '"';
+	foreach ( $section_attributes as $attribute => $value ) {
+		if ( ! preg_match( '/^[a-zA-Z_:][a-zA-Z0-9:._-]*$/', $attribute ) ) {
+			continue;
+		}
+		$html .= ' ' . $attribute . '="' . esc_attr( $value ) . '"';
+	}
+
+	return $html . '><div class="' . esc_attr( $inner_classes ) . '">';
+}
+
+/**
+ * Render the canonical kicker and H2 pair.
+ *
+ * The kicker and heading arguments must already be escaped by the caller.
+ */
+function nvx_page_brand_section_heading_markup(
+	string $kicker,
+	string $heading_id,
+	string $heading
+): string {
+	return '<p class="nvx-brand-kicker">' . $kicker . '</p>'
+		. '<h2 id="' . esc_attr( $heading_id ) . '" class="nvx-brand-title">' . $heading . '</h2>';
+}

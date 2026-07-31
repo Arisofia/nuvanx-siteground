@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/nvx-page-render-helpers.php';
+
 /**
  * Whether the current main query is a singular page suitable for rewrite.
  */
@@ -207,20 +209,16 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '</p>';
 
 	// A. Qué es (clinical framing; biophysics section keeps 1470 nm / formula detail).
-	$html .= '<section class="nvx-brand-section nvx-endolift-what" aria-labelledby="nvx-endolift-what-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'La técnica', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-what-title" class="nvx-brand-title">' . esc_html__( '¿Qué es el Endolift® facial y cómo altera la estructura anatómica?', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-what', 'nvx-endolift-what-title' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'La técnica', 'nuvanx-medical' ), 'nvx-endolift-what-title', esc_html__( '¿Qué es el Endolift® facial y cómo altera la estructura anatómica?', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'No es un cosmético tópico ni un calentamiento superficial. Es medicina intervencionista mínimamente invasiva: una microfibra óptica del orden de 200–300 micras se introduce bajo la piel y libera energía láser en el tejido subcutáneo.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Esa energía puede combinar, cuando hay indicación, reducción de grasa local en papada y línea mandibular, y retracción del tejido de soporte con estímulo de colágeno nuevo. El efecto es un tensado progresivo — no una resección quirúrgica de piel.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></section>';
 
 	// B. Indicaciones + diagnóstico diferencial (panel) — no price here.
-	$html .= '<section class="nvx-brand-section nvx-endolift-diagnosis" aria-labelledby="nvx-endolift-diagnosis-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-endolift-diagnosis__grid">';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-diagnosis', 'nvx-endolift-diagnosis-title', 'nvx-endolift-diagnosis__grid' );
 	$html .= '<div class="nvx-endolift-diagnosis__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Indicaciones clínicas', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-diagnosis-title" class="nvx-brand-title">' . esc_html__( 'Selección rigurosa del paciente ideal', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Indicaciones clínicas', 'nuvanx-medical' ), 'nvx-endolift-diagnosis-title', esc_html__( 'Selección rigurosa del paciente ideal', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body">' . esc_html__( 'El resultado depende sobre todo de una indicación correcta. Está orientado a flacidez leve–moderada del tercio inferior y cuello, y a grasa submentoniana moderada, cuando se busca remodelación estructural sin los riesgos y la baja de un lifting cérvicofacial.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-body">' . esc_html__( 'Se descarta en ptosis severa con pliegues marcados y exceso cutáneo evidente: la retracción térmica no sustituye a la resección quirúrgica. En ese caso se deriva a cirugía plástica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-body">' . esc_html__( 'Antes de programar, el diagnóstico diferencial separa laxitud del SMAS, adiposidad localizada o la combinación de ambas —eso calibra energía y vectores de la microfibra.', 'nuvanx-medical' ) . '</p>';
@@ -235,10 +233,8 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '</ul></aside></div></section>';
 
 	// C. Comparativa vs lifting (new — not elsewhere on page).
-	$html .= '<section class="nvx-brand-section nvx-endolift-compare" aria-labelledby="nvx-endolift-compare-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Comparativa clínica', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-compare-title" class="nvx-brand-title">' . esc_html__( 'Endolift® vs lifting cérvicofacial quirúrgico', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-compare', 'nvx-endolift-compare-title' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Comparativa clínica', 'nuvanx-medical' ), 'nvx-endolift-compare-title', esc_html__( 'Endolift® vs lifting cérvicofacial quirúrgico', 'nuvanx-medical' ) );
 	$html .= '<div class="nvx-endolift-compare-wrap">';
 	$html .= '<table class="nvx-endolift-compare-table">';
 	$html .= '<thead><tr>';
@@ -265,10 +261,8 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '</tbody></table></div></div></section>';
 
 	// D. Biofísica (detail layer — complements “qué es”, no rewrite of clinical intro).
-	$html .= '<section class="nvx-brand-section nvx-endolift-biophysics" aria-labelledby="nvx-endolift-bio-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'La biofísica', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-bio-title" class="nvx-brand-title">' . esc_html__( '1470 nm: deposición térmica controlada', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-biophysics', 'nvx-endolift-bio-title' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'La biofísica', 'nuvanx-medical' ), 'nvx-endolift-bio-title', esc_html__( '1470 nm: deposición térmica controlada', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Microfibras monouso de silicio (200–300 micras) y emisión a 1470 nm, con alto coeficiente de absorción en agua y lípidos. La energía se modela como deposición local de calor en el tejido subdérmico:', 'nuvanx-medical' ) . '</p>';
 
 	$html .= '<figure class="nvx-endolift-formula" aria-label="' . esc_attr__( 'Modelo de deposición térmica', 'nuvanx-medical' ) . '">';
@@ -280,10 +274,8 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '</div></section>';
 
 	// E. Proceso clínico (planimetría / tumescente / abanico / 60–90 min — no second FAQ recovery essay).
-	$html .= '<section class="nvx-brand-section nvx-endolift-process" aria-labelledby="nvx-endolift-process-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'El procedimiento en NUVANX', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-process-title" class="nvx-brand-title">' . esc_html__( 'Ejecución paso a paso', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-process', 'nvx-endolift-process-title' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'El procedimiento en NUVANX', 'nuvanx-medical' ), 'nvx-endolift-process-title', esc_html__( 'Ejecución paso a paso', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Duración habitual 60–90 minutos. El paciente sale por su propio pie. Recuperación social y dolor se detallan en la FAQ.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-endolift-process-grid">';
 
@@ -326,10 +318,8 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '</div></div></section>';
 
 	// E-Bis. Postoperatorio Real (SEO Capture for recovery pain/fears)
-	$html .= '<section class="nvx-brand-section nvx-endolift-postop" aria-labelledby="nvx-endolift-postop-title" id="postoperatorio-endolift">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Recuperación Transparente', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-postop-title" class="nvx-brand-title">' . esc_html__( 'Cómo es el postoperatorio real del Endolift® en Madrid (sin clichés)', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-postop', 'nvx-endolift-postop-title', '', array( 'id' => 'postoperatorio-endolift' ) );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Recuperación Transparente', 'nuvanx-medical' ), 'nvx-endolift-postop-title', esc_html__( 'Cómo es el postoperatorio real del Endolift® en Madrid (sin clichés)', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'A diferencia de una cirugía invasiva (como una liposucción tradicional o un lifting), el Endolift® no requiere quirófano ni anestesia general, pero esto no significa que no haya un proceso de recuperación. Esta es la verdad clínica sobre qué esperar día a día:', 'nuvanx-medical' ) . '</p>';
 	
 	$html .= '<ul class="nvx-endolift-price-includes nvx-endolift-postop-list">';
@@ -342,10 +332,8 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '</div></section>';
 
 	// F. Presupuesto Clínico — Valoración personalizada.
-	$html .= '<section class="nvx-brand-section nvx-endolift-investment" aria-labelledby="nvx-endolift-price-title" id="inversion-endolift">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Presupuesto médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-price-title" class="nvx-brand-title">' . esc_html__( 'Valoración y presupuesto Endolift® en NUVANX Madrid', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-investment', 'nvx-endolift-price-title', '', array( 'id' => 'inversion-endolift' ) );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Presupuesto médico', 'nuvanx-medical' ), 'nvx-endolift-price-title', esc_html__( 'Valoración y presupuesto Endolift® en NUVANX Madrid', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'El plan y presupuesto de Endolift® se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Cada tratamiento incluye:', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-endolift-price-includes">';
 	$html .= '<li>' . esc_html__( 'Valoración anatómica presencial y diagnóstico diferencial por el equipo médico', 'nuvanx-medical' ) . '</li>';
@@ -358,10 +346,8 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '</div></section>';
 
 	// G. FAQ — same Q/A as FAQPage schema (nvx_schema_faq_catalog endolift_facial).
-	$html .= '<section class="nvx-brand-section nvx-endolift-faq" aria-labelledby="nvx-endolift-faq-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Base de conocimiento', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolift-faq-title" class="nvx-brand-title">' . esc_html__( 'Preguntas clínicas frecuentes', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-faq', 'nvx-endolift-faq-title' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Base de conocimiento', 'nuvanx-medical' ), 'nvx-endolift-faq-title', esc_html__( 'Preguntas clínicas frecuentes', 'nuvanx-medical' ) );
 	$html .= '<div class="nvx-faq nvx-endolift-faq-list">';
 
 	// Shared catalog so HTML and JSON-LD never diverge.
@@ -405,12 +391,7 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 		return $content;
 	}
 
-	$media = '';
-	if ( preg_match( '/<figure class="nvx-brand-hero__media"[\s\S]*?<\/figure>/iu', $content, $m ) ) {
-		$media = $m[0];
-	} elseif ( preg_match( '/<div class="nvx-brand-hero__media"[\s\S]*?<\/div>/iu', $content, $m ) ) {
-		$media = $m[0];
-	}
+	$media = nvx_page_extract_brand_hero_media( $content );
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero" aria-labelledby="nvx-endolift-h1" aria-label="' . esc_attr__( 'Endolift facial NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
@@ -420,10 +401,6 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 
 	$body = nvx_endolift_editorial_body_markup();
 
-	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
-		return $wrap[1] . $hero . $body . '</div>';
-	}
-
-	return $hero . $body;
+	return nvx_page_render_brand_wrapper( $content, $hero . $body );
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolift_page', 19 );

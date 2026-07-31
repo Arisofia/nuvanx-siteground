@@ -12,6 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+require_once __DIR__ . '/nvx-page-render-helpers.php';
+
 /**
  * Singular context for Endoláser rewrite.
  */
@@ -91,10 +93,8 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html  = '<div class="nvx-endolaser-editorial nvx-endolift-editorial">';
 
 	// A. Intro + dual mechanism.
-	$html .= '<section class="nvx-brand-section nvx-endolaser-mechanism" aria-labelledby="nvx-endolaser-mech-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Laserlipólisis corporal', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolaser-mech-title" class="nvx-brand-title">' . esc_html__( 'Cómo actúa: grasa localizada y soporte de la piel', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-mechanism', 'nvx-endolaser-mech-title' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Laserlipólisis corporal', 'nuvanx-medical' ), 'nvx-endolaser-mech-title', esc_html__( 'Cómo actúa: grasa localizada y soporte de la piel', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'A diferencia de terapias solo de superficie o de frío que no abordan la flacidez, el Endoláser puede trabajar grasa y calidad de piel en un mismo acto médico ambulatorio, cuando hay indicación.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Bajo anestesia local se introduce una fibra láser en el tejido subcutáneo. La energía reduce de forma selectiva grasa en focos planificados (lipólisis). En paralelo, el calor en profundidad favorece la contracción de fibras de soporte, para limitar la sensación de “piel vacía” tras reducir volumen.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-endolift-effects">';
@@ -105,10 +105,8 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '</div></div></section>';
 
 	// B. Zonas.
-	$html .= '<section class="nvx-brand-section nvx-endolaser-zones" aria-labelledby="nvx-endolaser-zones-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Mapa clínico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolaser-zones-title" class="nvx-brand-title">' . esc_html__( 'Zonas anatómicas de alta respuesta', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-zones', 'nvx-endolaser-zones-title' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Mapa clínico', 'nuvanx-medical' ), 'nvx-endolaser-zones-title', esc_html__( 'Zonas anatómicas de alta respuesta', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Se valora idoneidad en grasa resistente a dieta y ejercicio, con flacidez leve–moderada asociada. La indicación es por focos, no por “adelgazamiento general”.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-endolaser-zone-list">';
 	$zones = array(
@@ -138,11 +136,9 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '</ul></div></section>';
 
 	// C. Exclusión.
-	$html .= '<section class="nvx-brand-section nvx-endolaser-exclusion" aria-labelledby="nvx-endolaser-excl-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-endolift-diagnosis__grid">';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-exclusion', 'nvx-endolaser-excl-title', 'nvx-endolift-diagnosis__grid' );
 	$html .= '<div class="nvx-endolift-diagnosis__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Criterio médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolaser-excl-title" class="nvx-brand-title">' . esc_html__( 'Criterios de exclusión y alternativas', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Criterio médico', 'nuvanx-medical' ), 'nvx-endolaser-excl-title', esc_html__( 'Criterios de exclusión y alternativas', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body">' . esc_html__( 'No está indicado para pérdida masiva de peso ni para tratar obesidad. El paciente óptimo mantiene peso estable y presenta acumulaciones grasas muy localizadas con flacidez leve a moderada.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p class="nvx-body">' . esc_html__( 'Exceso cutáneo drástico (faldones tras grandes pérdidas de peso) se deriva a evaluación de procedimientos excisionales (p. ej. abdominoplastia). El láser no sustituye a la resección quirúrgica de piel.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div>';
@@ -155,10 +151,8 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '</ul></aside></div></section>';
 
 	// D. Planificación / inversión (no precio fijo inventado).
-	$html .= '<section class="nvx-brand-section nvx-endolaser-planning" aria-labelledby="nvx-endolaser-plan-title" id="planificacion-endolaser">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Planificación', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-endolaser-plan-title" class="nvx-brand-title">' . esc_html__( 'Inversión y planificación por zonas', 'nuvanx-medical' ) . '</h2>';
+	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-planning', 'nvx-endolaser-plan-title', '', array( 'id' => 'planificacion-endolaser' ) );
+	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Planificación', 'nuvanx-medical' ), 'nvx-endolaser-plan-title', esc_html__( 'Inversión y planificación por zonas', 'nuvanx-medical' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'La superficie anatómica, el número de zonas, el tiempo de procedimiento ambulatorio y el material (incl. anestesia) varían caso a caso. Por eso el presupuesto se personaliza en consulta: no publicamos un “precio único corporal” que no reflejaría el mapa real.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-endolift-price-includes">';
 	$html .= '<li>' . esc_html__( 'Valoración de zonas, flacidez y estabilidad de peso', 'nuvanx-medical' ) . '</li>';
@@ -184,7 +178,6 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 		return $content;
 	}
 
-	require_once __DIR__ . '/nvx-page-render-helpers.php';
 	$media = nvx_page_extract_brand_hero_media( $content );
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--endolaser nvx-endolaser-hero" aria-labelledby="nvx-endolaser-h1" aria-label="' . esc_attr__( 'Endoláser corporal NUVANX', 'nuvanx-medical' ) . '">';

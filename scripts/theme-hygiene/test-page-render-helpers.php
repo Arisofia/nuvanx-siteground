@@ -19,7 +19,6 @@ function nvx_page_helper_assert(bool $condition, string $message): void {
 $figure = '<figure class="nvx-brand-hero__media"><img src="figure.jpg" alt=""></figure>';
 $division = '<div class="nvx-brand-hero__media"><img src="division.jpg" alt=""></div>';
 $nestedDivision = '<div class="nvx-brand-hero__media"><div class="frame"><img src="nested.jpg" alt=""></div></div>';
-$nestedDivision = '<div class="nvx-brand-hero__media"><div class="frame"><img src="nested.jpg" alt=""></div></div>';
 
 nvx_page_helper_assert(
     nvx_page_extract_brand_hero_media('<main>' . $figure . '</main>') === $figure,
@@ -28,10 +27,6 @@ nvx_page_helper_assert(
 nvx_page_helper_assert(
     nvx_page_extract_brand_hero_media('<main>' . $division . '</main>') === $division,
     'Div hero media extraction changed.'
-);
-nvx_page_helper_assert(
-    nvx_page_extract_brand_hero_media('<main>' . $nestedDivision . '</main>') === $nestedDivision,
-    'Nested div hero media extraction changed.'
 );
 nvx_page_helper_assert(
     nvx_page_extract_brand_hero_media('<main>' . $nestedDivision . '</main>') === $nestedDivision,
@@ -60,6 +55,28 @@ nvx_page_helper_assert(
     nvx_page_render_brand_wrapper('<p>plain</p>', '<section>new</section>', 'nvx-brand-page nvx-brand-page--laser')
         === '<div class="nvx-brand-page nvx-brand-page--laser"><section>new</section></div>',
     'Fallback brand wrapper changed.'
+);
+
+
+$sectionOpen = nvx_page_brand_section_open_markup(
+    'nvx-example',
+    'example-title',
+    'nvx-example-grid',
+    array('id' => 'example-section')
+);
+nvx_page_helper_assert(
+    $sectionOpen === '<section class="nvx-brand-section nvx-example" aria-labelledby="example-title" id="example-section"><div class="nvx-shell nvx-brand-section__inner nvx-example-grid">',
+    'Canonical section opening markup changed.'
+);
+nvx_page_helper_assert(
+    nvx_page_brand_section_open_markup('', 'plain-title')
+        === '<section class="nvx-brand-section" aria-labelledby="plain-title"><div class="nvx-shell nvx-brand-section__inner">',
+    'Canonical section opening without modifiers changed.'
+);
+nvx_page_helper_assert(
+    nvx_page_brand_section_heading_markup('Kicker', 'heading-id', 'Heading')
+        === '<p class="nvx-brand-kicker">Kicker</p><h2 id="heading-id" class="nvx-brand-title">Heading</h2>',
+    'Canonical section heading markup changed.'
 );
 
 echo "Page render helper contract passed.\n";

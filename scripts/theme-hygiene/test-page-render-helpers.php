@@ -18,6 +18,7 @@ function nvx_page_helper_assert(bool $condition, string $message): void {
 
 $figure = '<figure class="nvx-brand-hero__media"><img src="figure.jpg" alt=""></figure>';
 $division = '<div class="nvx-brand-hero__media"><img src="division.jpg" alt=""></div>';
+$nestedDivision = '<div class="nvx-brand-hero__media"><div class="frame"><img src="nested.jpg" alt=""></div></div>';
 
 nvx_page_helper_assert(
     nvx_page_extract_brand_hero_media('<main>' . $figure . '</main>') === $figure,
@@ -26,6 +27,10 @@ nvx_page_helper_assert(
 nvx_page_helper_assert(
     nvx_page_extract_brand_hero_media('<main>' . $division . '</main>') === $division,
     'Div hero media extraction changed.'
+);
+nvx_page_helper_assert(
+    nvx_page_extract_brand_hero_media('<main>' . $nestedDivision . '</main>') === $nestedDivision,
+    'Nested div hero media extraction changed.'
 );
 nvx_page_helper_assert(
     nvx_page_extract_brand_hero_media('<main>' . $division . $figure . '</main>') === $figure,

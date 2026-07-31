@@ -28,6 +28,10 @@ nvx_page_helper_assert(
     'Div hero media extraction changed.'
 );
 nvx_page_helper_assert(
+    nvx_page_extract_brand_hero_media('<main>' . $division . $figure . '</main>') === $figure,
+    'Canonical figure media must keep precedence over the legacy div slot.'
+);
+nvx_page_helper_assert(
     nvx_page_extract_brand_hero_media('<main>No media</main>') === '',
     'Missing hero media must return an empty string.'
 );

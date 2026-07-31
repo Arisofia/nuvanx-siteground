@@ -349,6 +349,14 @@ add_action(
     100
 );
 
+add_action(
+    'wp_head',
+    function (): void {
+        echo '<script>window.FacebookSignal = window.FacebookSignal || { sendEvent: function(){} };</script>' . "\n";
+    },
+    0
+);
+
 add_filter(
     'script_loader_tag',
     function ( string $tag, string $handle ): string {

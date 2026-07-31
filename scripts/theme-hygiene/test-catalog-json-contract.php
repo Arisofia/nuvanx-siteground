@@ -3,10 +3,12 @@ declare(strict_types=1);
 
 $dataDir = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc/data';
 $expectations = array(
+    'aesthetic-medicine-page.json' => array('pillars', 'treatments', 'faqs'),
     'aesthetic-treatment-pages.json' => array('lips_ha', 'rhinomodeling_ha', 'tear_trough_ha'),
     'btl-detail-pages.json' => array('exion-face', 'exion-body', 'exion-fractional', 'emfusion'),
     'faq-catalog.json' => array(0),
     'home-faq-v2.json' => array(0),
+    'laser-medicine-page.json' => array('pillars', 'platforms', 'faqs'),
     'seo-blog-post-metadata.json' => array('endolift-primeras-72-horas-que-esperar'),
     'seo-metadata.json' => array('home', 'tratamientos', 'clinicas'),
     'treatment-hub-schema.json' => array(0),

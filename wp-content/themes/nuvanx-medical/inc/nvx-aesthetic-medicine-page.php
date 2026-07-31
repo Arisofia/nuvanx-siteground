@@ -38,17 +38,17 @@ function nvx_aesthetic_lookup_published_url( string $path ): ?string {
 		return $cache[ $path ];
 	}
 
-	$page = get_page_by_path( $path );
+	$found = null;
+	$page  = get_page_by_path( $path );
 	if ( $page instanceof WP_Post && 'publish' === $page->post_status ) {
 		$url = get_permalink( $page );
 		if ( is_string( $url ) && '' !== $url ) {
-			$cache[ $path ] = $url;
-			return $url;
+			$found = $url;
 		}
 	}
 
-	$cache[ $path ] = null;
-	return null;
+	$cache[ $path ] = $found;
+	return $found;
 }
 
 
@@ -109,15 +109,18 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 			esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
 	);
 
+	$whatsapp = '';
 	if ( function_exists( 'nvx_cta_whatsapp_markup' ) ) {
-		$html .= nvx_cta_whatsapp_markup( 'nvx-brand-btn nvx-brand-btn--secondary' );
-	} else {
-		$html .= sprintf(
+		$whatsapp = nvx_cta_whatsapp_markup( 'nvx-brand-btn nvx-brand-btn--secondary' );
+	}
+	if ( '' === $whatsapp ) {
+		$whatsapp = sprintf(
 			'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
 			esc_url( 'https://wa.me/34669319836' ),
 			esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
 		);
 	}
+	$html .= $whatsapp;
 
 	$html .= '</div>';
 
@@ -177,7 +180,8 @@ function nvx_aesthetic_editorial_catalog(): array {
  * Diagnosis pillars section.
  */
 function nvx_aesthetic_diagnosis_section_markup(): string {
-	$pillars = nvx_aesthetic_editorial_catalog()['pillars'] ?? array();
+	$raw     = nvx_aesthetic_editorial_catalog()['pillars'] ?? array();
+	$pillars = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'icon', 'title', 'body' ) ) : $raw;
 
 	$html  = '<section class="nvx-aes-section nvx-aes-diagnosis" aria-labelledby="nvx-aes-diagnosis-title">';
 	$html .= '<div class="nvx-aes-section__inner">';
@@ -212,27 +216,32 @@ function nvx_aesthetic_resolve_treatment_url( string $primary, array $alts = arr
 		return $resolved[ $key ];
 	}
 
+	$found_url = null;
 	foreach ( array_merge( array( $primary ), $alts ) as $slug ) {
 		$slug = trim( (string) $slug, '/' );
-		if ( '' === $slug ) {
-			continue;
-		}
-		$found = nvx_aesthetic_lookup_published_url( $slug );
-		if ( null !== $found ) {
-			$resolved[ $key ] = $found;
-			return $found;
+		if ( '' !== $slug ) {
+			$found = nvx_aesthetic_lookup_published_url( $slug );
+			if ( null !== $found ) {
+				$found_url = $found;
+				break;
+			}
 		}
 	}
 
-	$resolved[ $key ] = home_url( '/' . trim( $primary, '/' ) . '/' );
-	return $resolved[ $key ];
+	if ( null === $found_url ) {
+		$found_url = home_url( '/' . trim( $primary, '/' ) . '/' );
+	}
+
+	$resolved[ $key ] = $found_url;
+	return $found_url;
 }
 
 /**
  * Facial catalog cards.
  */
 function nvx_aesthetic_catalog_section_markup(): string {
-	$treatments = nvx_aesthetic_editorial_catalog()['treatments'] ?? array();
+	$raw        = nvx_aesthetic_editorial_catalog()['treatments'] ?? array();
+	$treatments = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'n', 'icon', 'title', 'body', 'price', 'core', 'url' ) ) : $raw;
 
 	$html  = '<section class="nvx-aes-section nvx-aes-catalog" aria-labelledby="nvx-aes-catalog-title">';
 	$html .= '<div class="nvx-aes-section__inner">';
@@ -303,7 +312,8 @@ function nvx_aesthetic_faq_section_markup(): string {
 	$html .= '<figcaption class="nvx-aes-formula__cap">' . esc_html__( 'Donde σ₀ representa la amplitud del esfuerzo mecánico aplicado, γ₀ es la amplitud de la deformación resultante, y δ corresponde al ángulo de fase del gel. Un gel con alto G′ ofrece gran resistencia a la deformación y capacidad de elevación: lo indicamos en planos profundos y supraperiosteales (mandíbula, pómulos). En labios u ojeras seleccionamos G′ bajo y alta cohesividad para integración imperceptible sin migración.', 'nuvanx-medical' ) . '</figcaption>';
 	$html .= '</figure></div></details>';
 
-	$faqs = nvx_aesthetic_editorial_catalog()['faqs'] ?? array();
+	$raw  = nvx_aesthetic_editorial_catalog()['faqs'] ?? array();
+	$faqs = function_exists( 'nvx_catalog_filter_records' ) ? nvx_catalog_filter_records( $raw, array( 'q', 'a' ) ) : $raw;
 
 	foreach ( $faqs as $faq ) {
 		$html .= '<details class="nvx-brand-faq-item">';
@@ -330,16 +340,6 @@ function nvx_aesthetic_editorial_body_markup(): string {
 }
 
 /**
- * Extract existing hero media markup when present.
- */
-function nvx_aesthetic_extract_hero_media( string $content ): string {
-	if ( preg_match( '/<(?:figure|div) class="nvx-brand-hero__media"[\s\S]*?<\/(?:figure|div)>/iu', $content, $m ) ) {
-		return $m[0];
-	}
-	return '';
-}
-
-/**
  * Rebuild Medicina Estética hub page.
  */
 function nvx_content_restructure_aesthetic_medicine_page( string $content ): string {
@@ -347,7 +347,7 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 		return $content;
 	}
 
-	$media = nvx_aesthetic_extract_hero_media( $content );
+	$media = function_exists( 'nvx_page_extract_brand_hero_media' ) ? nvx_page_extract_brand_hero_media( $content ) : '';
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--medical nvx-aes-hero" aria-labelledby="nvx-med-h1" aria-label="' . esc_attr__( 'Medicina estética NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
@@ -357,6 +357,10 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 
 	$body = nvx_aesthetic_editorial_body_markup();
 	$out  = $hero . $body;
+
+	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
+		return nvx_page_render_brand_wrapper( $content, $out, 'nvx-brand-page nvx-brand-page--medicina-estetica' );
+	}
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		$out = $wrap[1] . $out . '</div>';

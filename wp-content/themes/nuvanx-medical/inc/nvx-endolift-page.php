@@ -32,7 +32,6 @@ function nvx_endolift_is_singular_context(): bool {
  * Anchors primarily on stable structural markers (aria-label / ids / brand classes).
  */
 function nvx_content_is_endolift_page( string $content ): bool {
-	// Already rewritten, or Endoláser page that reuses endolift layout classes.
 	if ( false !== strpos( $content, 'nvx-endolift-editorial' )
 		|| false !== strpos( $content, 'nvx-endolaser-editorial' )
 		|| false !== strpos( $content, 'nvx-co2-editorial' )
@@ -40,11 +39,7 @@ function nvx_content_is_endolift_page( string $content ): bool {
 		return false;
 	}
 
-	if ( ! nvx_endolift_is_singular_context() ) {
-		return false;
-	}
-
-	if ( is_front_page() || is_home() ) {
+	if ( ! nvx_endolift_is_singular_context() || is_front_page() || is_home() ) {
 		return false;
 	}
 
@@ -52,7 +47,6 @@ function nvx_content_is_endolift_page( string $content ): bool {
 		? nvx_schema_current_path( (int) get_queried_object_id() )
 		: '';
 
-	// Other treatment detail URLs must not become Endolift facial.
 	if ( is_string( $path ) && (
 		false !== strpos( $path, 'endolaser-corporal' )
 		|| false !== strpos( $path, 'laser-co2-fraccionado' )
@@ -62,23 +56,22 @@ function nvx_content_is_endolift_page( string $content ): bool {
 		return false;
 	}
 
+	$is_endolift = false;
 	if ( is_string( $path ) && false !== strpos( $path, 'endolift-facial' ) ) {
-		return true;
-	}
-
-	// Structural markers first (stable across copy edits).
-	if ( preg_match(
+		$is_endolift = true;
+	} elseif ( preg_match(
 		'/aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|class=["\'][^"\']*nvx-endolift-hero(?![^"\']*nvx-endolaser)(?![^"\']*nvx-co2)(?![^"\']*nvx-equipo)/iu',
 		$content
 	) ) {
-		return true;
-	}
-
-	// Fallback: known brand-page laser hero + Endolift product framing (not laser hub alone).
-	return (bool) preg_match(
+		$is_endolift = true;
+	} elseif ( preg_match(
 		'/nvx-brand-hero--laser[\s\S]{0,1200}Endolift®?[\s\S]{0,400}(papada|mand[ií]bul)/iu',
 		$content
-	);
+	) ) {
+		$is_endolift = true;
+	}
+
+	return $is_endolift;
 }
 
 /**
@@ -391,7 +384,7 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 		return $content;
 	}
 
-	$media = nvx_page_extract_brand_hero_media( $content );
+	$media = function_exists( 'nvx_page_extract_brand_hero_media' ) ? nvx_page_extract_brand_hero_media( $content ) : '';
 
 	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-endolift-hero" aria-labelledby="nvx-endolift-h1" aria-label="' . esc_attr__( 'Endolift facial NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
@@ -401,10 +394,14 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 
 	$body = nvx_endolift_editorial_body_markup();
 
-	return nvx_page_render_brand_wrapper(
-		$content,
-		$hero . $body,
-		'nvx-brand-page nvx-brand-page--endolift'
-	);
+	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
+		return nvx_page_render_brand_wrapper( $content, $hero . $body, 'nvx-brand-page nvx-brand-page--endolift' );
+	}
+
+	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
+		return $wrap[1] . $hero . $body . '</div>';
+	}
+
+	return $hero . $body;
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolift_page', 19 );

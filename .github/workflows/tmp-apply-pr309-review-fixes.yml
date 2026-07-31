@@ -5,6 +5,7 @@ on:
     branches:
       - master
     paths:
+      - scripts/theme-hygiene/normalize-pr309-review-inputs-once.py
       - scripts/theme-hygiene/apply-pr309-review-fixes-once.py
       - scripts/theme-hygiene/apply-pr309-review-contracts-once.sh
       - .github/workflows/tmp-apply-pr309-review-fixes.yml
@@ -23,6 +24,9 @@ jobs:
           ref: refactor/sonar-legacy-duplication-phase2-20260731
           fetch-depth: 0
           persist-credentials: true
+
+      - name: Normalize concurrent review input
+        run: python3 scripts/theme-hygiene/normalize-pr309-review-inputs-once.py
 
       - name: Apply reviewed product transformations
         run: python3 scripts/theme-hygiene/apply-pr309-review-fixes-once.py

@@ -14,16 +14,17 @@ if (!realChrome || !fs.existsSync(realChrome)) {
 }
 
 const wrapperSource = fs.readFileSync(existingWrapper, 'utf8');
-const proxyMatch = wrapperSource.match(/--proxy-server=(?:'|")?(http:\/\/127\.0\.0\.1:\d+)/);
+const proxyMatch = wrapperSource.match(/--proxy-server=['"]?(http:\/\/127\.0\.0\.1:\d+)/);
 if (!proxyMatch) {
   throw new Error('Unable to recover the local staging proxy URL.');
 }
 
 const proxyUrl = new URL(proxyMatch[1]);
 const wrapperPath = path.join(os.tmpdir(), `nvx-institutional-pac-chrome-${process.pid}`);
+const stagingProxy = `PROXY ${proxyUrl.hostname}:${proxyUrl.port}`;
 const pacSource = [
   'function FindProxyForURL(url, host) {',
-  `  if (host === ${JSON.stringify(stagingHost)}) return ${JSON.stringify(`PROXY ${proxyUrl.hostname}:${proxyUrl.port}`)};`,
+  `  if (host === ${JSON.stringify(stagingHost)}) return ${JSON.stringify(stagingProxy)};`,
   '  return "DIRECT";',
   '}',
   '',

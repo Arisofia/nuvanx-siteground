@@ -75,6 +75,30 @@ test('CDPSession dispatches and unsubscribes one-shot waiters', async () => {
   assert.equal(session.eventHandlers.get('Page.loadEventFired')?.size || 0, 0);
 });
 
+test('CDPSession rejects event waiters when the session closes', async () => {
+  const session = new CDPSession('ws://example.test');
+  const pending = session.waitFor('Page.loadEventFired', 1000);
+  const rejection = assert.rejects(pending, /CDP session closed before command completed/);
+  session.closeSocket();
+  await rejection;
+  assert.equal(session.pendingWaiters?.size || 0, 0);
+  assert.equal(session.eventHandlers.size, 0);
+});
+
+test('CDPSession.evaluate forwards awaitPromise parameter', async () => {
+  const session = new CDPSession('ws://example.test');
+  let outbound;
+  session.webSocket = {
+    readyState: 1,
+    send(payload) { outbound = JSON.parse(payload); },
+    close() {},
+  };
+  const pending = session.evaluate('Promise.resolve(1)', false);
+  assert.equal(outbound.params.awaitPromise, false);
+  session.handleMessage({ data: JSON.stringify({ id: outbound.id, result: { result: { value: 1 } } }) });
+  assert.equal(await pending, 1);
+});
+
 test('CDPSession.call serializes arguments into browser evaluation', async () => {
   const session = new CDPSession('ws://example.test');
   let expression = '';

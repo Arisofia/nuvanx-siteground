@@ -250,14 +250,14 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 .nvx-hubspot-form-section .nvx-title,
 .nvx-hubspot-form-section h2.nvx-title,
 .nvx-form-stage .nvx-title {
-  max-width: 16ch;
+  max-width: none;
   margin: 0 auto 0.75em;
   text-align: center;
   font-family: var(--nvx-serif);
-  font-size: clamp(var(--nvx-space-4), 4.2vw, 2.85rem);
+  font-size: var(--nvx-type-h2);
   font-weight: 400;
-  line-height: 1.12;
-  letter-spacing: -0.02em;
+  line-height: var(--nvx-lh-h2);
+  letter-spacing: var(--nvx-track-h2);
   color: var(--nvx-ink);
   text-wrap: balance;
 }
@@ -1188,41 +1188,19 @@ section.nvx-hero.nvx-hero-section{
     font-size: var(--nvx-type-kicker);
     line-height: var(--nvx-lh-kicker)}
 
-.nvx-brand-hero__copy .nvx-brand-hero__title{
-  margin: 0 0 0.65em;
-    max-width: 16ch;
-  color: var(--nvx-light);
-    text-wrap: balance;
-    font-size: clamp(1.875rem, 9vw, 2.375rem);
-    margin-bottom: var(--nvx-space-3);
-    line-height: 1.04}
-
-.nvx-brand-hero__copy h1{
-  margin: 0 0 0.65em;
-    max-width: 16ch;
-  color: var(--nvx-light);
-    text-wrap: balance;
-    font-size: clamp(1.875rem, 9vw, 2.375rem);
-    margin-bottom: var(--nvx-space-3);
-    line-height: 1.04}
-
-.nvx-page-hero__copy h1{
-  margin: 0 0 0.65em;
-    max-width: 16ch;
-  color: var(--nvx-light);
-    text-wrap: balance;
-    font-size: clamp(1.875rem, 9vw, 2.375rem);
-    margin-bottom: var(--nvx-space-3);
-    line-height: 1.04}
-
-.nvx-hero__copy h1{
-  margin: 0 0 0.65em;
-    max-width: 16ch;
-  color: var(--nvx-light);
-    text-wrap: balance;
-    font-size: clamp(1.875rem, 9vw, 2.375rem);
-    margin-bottom: var(--nvx-space-3);
-    line-height: 1.04}
+.nvx-brand-hero__copy .nvx-brand-hero__title,
+.nvx-brand-hero__copy h1,
+.nvx-page-hero__copy h1,
+.nvx-hero__copy h1 {
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h1);
+  font-weight: 400;
+  line-height: var(--nvx-lh-h1);
+  letter-spacing: var(--nvx-track-h1);
+  margin-bottom: var(--nvx-space-3);
+  max-width: none;
+  text-wrap: balance;
+}
 
 .nvx-brand-hero__copy .nvx-brand-meta{
     max-width: 42ch;

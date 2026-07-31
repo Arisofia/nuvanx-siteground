@@ -150,7 +150,7 @@
 
 /*
  * This file loads before several route-specific layers. These selectors keep
- * the canonical component authoritative without !important or page hacks.
+ * the canonical component authoritative through selector specificity.
  */
 html body.nvx-site-coherent-page .nvx-canonical-page-hero,
 html body.nvx-blog-context .nvx-canonical-page-hero,

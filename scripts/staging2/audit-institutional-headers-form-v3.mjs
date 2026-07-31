@@ -214,17 +214,24 @@ function parseUrl(value, scope, label) {
   }
 }
 
+function validateTrustedOrigin(source, scope, expectedOrigin, label) {
+  const hasCredentials = Boolean(source.username || source.password);
+  if (source.protocol !== 'https:' || source.origin !== expectedOrigin || source.port || hasCredentials) {
+    fail(scope, `unexpected ${label} origin: ${source.origin}`);
+  }
+}
+
 function validateLoaderSource(state, scope) {
   const source = parseUrl(state.loaderSrc, scope, 'loader');
   if (!source) return;
-  if (source.hostname.toLowerCase() !== 'js.hsforms.net') fail(scope, `unexpected loader host: ${source.hostname}`);
+  validateTrustedOrigin(source, scope, 'https://js.hsforms.net', 'loader');
   if (source.pathname !== '/forms/embed/v2.js') fail(scope, `unexpected loader path: ${source.pathname}`);
 }
 
 function validateIframeSource(state, scope) {
   const source = parseUrl(state.iframeSrc, scope, 'iframe');
   if (!source) return;
-  if (source.hostname.toLowerCase() !== 'js-eu1.hsforms.net') fail(scope, `unexpected iframe host: ${source.hostname}`);
+  validateTrustedOrigin(source, scope, 'https://js-eu1.hsforms.net', 'iframe');
   if (source.pathname !== '/ui-forms-embed-components-app/frame.html') fail(scope, `unexpected iframe path: ${source.pathname}`);
   if (source.searchParams.get('_hsPortalId') !== '147416356') fail(scope, 'HubSpot portal ID does not match');
   if (source.searchParams.get('_hsFormId') !== '5042522a-0bc5-4381-ac3e-5aee8649b69c') fail(scope, 'HubSpot form ID does not match');

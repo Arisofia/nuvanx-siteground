@@ -1,0 +1,46 @@
+name: Diagnose PR 309 Sonar bugs once
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - scripts/theme-hygiene/trigger-pr309-sonar-bug-diagnostic.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr309-sonar-bug-diagnostic
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    name: Query SonarCloud BUG issues
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Query open BUG issues for PR 309
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://sonarcloud.io/api/issues/search?componentKeys=Arisofia_nuvanx-siteground&pullRequest=309&resolved=false&types=BUG&ps=100'
+          curl --fail --silent --show-error --location "$url" -o /tmp/sonar-bugs.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          payload = json.loads(Path('/tmp/sonar-bugs.json').read_text(encoding='utf-8'))
+          issues = payload.get('issues', [])
+          print(f'OPEN_BUG_COUNT={len(issues)}')
+          for index, issue in enumerate(issues, 1):
+              component = issue.get('component', '')
+              path = component.split(':', 1)[-1]
+              location = issue.get('line') or issue.get('textRange', {}).get('startLine') or ''
+              print(f'BUG_{index}_KEY={issue.get("key", "")}')
+              print(f'BUG_{index}_RULE={issue.get("rule", "")}')
+              print(f'BUG_{index}_SEVERITY={issue.get("severity", "")}')
+              print(f'BUG_{index}_PATH={path}')
+              print(f'BUG_{index}_LINE={location}')
+              print(f'BUG_{index}_MESSAGE={issue.get("message", "")}')
+          PY

@@ -5,9 +5,6 @@ on:
     branches:
       - master
     paths:
-      - scripts/theme-hygiene/normalize-pr309-review-inputs-once.py
-      - scripts/theme-hygiene/apply-pr309-review-fixes-once.py
-      - scripts/theme-hygiene/apply-pr309-review-contracts-once.sh
       - .github/workflows/tmp-apply-pr309-review-fixes.yml
 
 permissions:
@@ -31,5 +28,38 @@ jobs:
       - name: Apply reviewed product transformations
         run: python3 scripts/theme-hygiene/apply-pr309-review-fixes-once.py
 
-      - name: Add contracts, validate and publish
+      - name: Remove workflow-scope writes from publisher
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/theme-hygiene/apply-pr309-review-contracts-once.sh')
+          source = path.read_text(encoding='utf-8')
+
+          start_marker = "python3 - <<'PY'\nfrom pathlib import Path\n\npath = Path('.github/workflows/theme-hygiene-gate.yml')"
+          start = source.find(start_marker)
+          end = source.find('\n\nfind wp-content', start)
+          if start < 0 or end < 0:
+              raise SystemExit('Theme Hygiene mutation block not found')
+          source = source[:start] + source[end + 2:]
+
+          source = source.replace(
+              "git rm .github/workflows/tmp-apply-pr309-review-fixes.yml\n",
+              '',
+          )
+          source = source.replace(
+              "git rm scripts/theme-hygiene/apply-pr309-review-contracts-once.sh\n",
+              "git rm scripts/theme-hygiene/apply-pr309-review-contracts-once.sh\n"
+              "git rm scripts/theme-hygiene/normalize-pr309-review-inputs-once.py\n",
+          )
+          source = source.replace(
+              "git add .github/workflows/theme-hygiene-gate.yml \\\n",
+              "git add ",
+          )
+
+          path.write_text(source, encoding='utf-8')
+          PY
+
+      - name: Add contracts, validate and publish product changes
         run: bash scripts/theme-hygiene/apply-pr309-review-contracts-once.sh

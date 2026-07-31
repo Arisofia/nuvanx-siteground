@@ -13,6 +13,7 @@ import {
   writeVisualQaReport,
 } from './visual-qa-common.mjs';
 
+// Keeps action-failure regression coverage on the exact final PR head.
 const config = resolveVisualQaConfig();
 assertVisualQaRuntime(config);
 fs.mkdirSync(config.evidenceDir, { recursive: true });

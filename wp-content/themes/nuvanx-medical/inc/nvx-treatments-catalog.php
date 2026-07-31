@@ -37,9 +37,30 @@ function nvx_content_is_treatments_index( string $content ): bool {
  * @return array<int, array{key:string,label:string,items:array<int,array{meta:string,title:string,body:string,url:string}>}>
  */
 function nvx_treatments_catalog_data(): array {
-	require_once __DIR__ . '/nvx-catalog-json.php';
+	static $catalog = null;
 
-	return nvx_catalog_json_resolved( 'treatments-catalog.json' );
+	if ( is_array( $catalog ) ) {
+		return $catalog;
+	}
+
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	$categories = nvx_catalog_filter_records(
+		nvx_catalog_json_resolved( 'treatments-catalog.json' ),
+		array( 'key', 'label', 'items' ),
+		'treatments-catalog.json:categories'
+	);
+
+	$catalog = array();
+	foreach ( $categories as $category ) {
+		$category['items'] = nvx_catalog_filter_records(
+			(array) $category['items'],
+			array( 'meta', 'title', 'body', 'url' ),
+			'treatments-catalog.json:items'
+		);
+		$catalog[] = $category;
+	}
+
+	return $catalog;
 }
 
 /** @return string[] */

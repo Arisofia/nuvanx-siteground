@@ -166,10 +166,10 @@ require_once __DIR__ . '/nvx-blog-system.php';
 // require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
 require_once __DIR__ . '/nvx-navigation-filters.php';
 
-/* Resource Hints & GEO · Hreflang es-ES */
 add_action(
 	'wp_head',
 	function (): void {
+		echo '<script>window.FacebookSignal=window.FacebookSignal||new Proxy(function(){},{get:function(){return function(){};},apply:function(){return function(){};}});</script>' . "\n";
 		echo '<link rel="preconnect" href="https://fonts.googleapis.com" />' . "\n";
 		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n";
 		echo '<link rel="preconnect" href="https://forms-eu1.hsforms.com" crossorigin />' . "\n";

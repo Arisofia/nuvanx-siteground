@@ -159,6 +159,63 @@ jobs:
             2>&1 | tee "$EVIDENCE_DIR/qa.log"
           grep -Fq 'INSTITUTIONAL_HEADERS_FORM_QA_V3_OK' "$EVIDENCE_DIR/qa.log"
 
+      - name: Restore governed valoración MU plugin
+        if: always()
+        run: |
+          set -euo pipefail
+          mkdir -p "$EVIDENCE_DIR"
+          cleanup_log="$EVIDENCE_DIR/mu-plugin-cleanup.log"
+          live="$WP_ROOT/wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php"
+          backup_root="/home/customer/backups-nuvanx/staging2"
+          backup="$backup_root/pre-valoracion-form-${GITHUB_RUN_ID}"
+
+          if [[ ! -f "$HOME/.ssh/config" ]]; then
+            echo "STAGING2_VALORACION_MU_PLUGIN_CLEANUP_SKIPPED reason=ssh-not-configured" | tee "$cleanup_log"
+            exit 0
+          fi
+
+          ssh nvx-staging2 "bash -s -- '$WP_ROOT' '$live' '$backup' '$backup_root'" <<'REMOTE' | tee "$cleanup_log"
+          set -Eeuo pipefail
+          wp_root="$1"
+          live_file="$2"
+          backup_dir="$3"
+          backup_root="$4"
+          restored=0
+
+          [[ "$wp_root" == '/home/customer/www/staging2.nuvanx.com/public_html' ]]
+          [[ "$backup_root" == '/home/customer/backups-nuvanx/staging2' ]]
+
+          if [[ -d "$backup_dir" ]]; then
+            if [[ -f "$backup_dir/plugin.php" ]]; then
+              install -m 0644 "$backup_dir/plugin.php" "$live_file"
+            else
+              rm -f "$live_file"
+            fi
+            rm -rf -- "$backup_dir"
+            restored=1
+          fi
+
+          if [[ -d "$backup_root" ]]; then
+            find "$backup_root" \
+              -mindepth 1 \
+              -maxdepth 1 \
+              -type d \
+              -name 'pre-valoracion-form-*' \
+              -mtime +14 \
+              -print \
+              -exec rm -rf -- {} +
+          fi
+
+          if [[ "$restored" -eq 1 ]]; then
+            cd "$wp_root"
+            wp cache flush || true
+            wp sg purge || true
+          fi
+
+          echo "STAGING2_VALORACION_MU_PLUGIN_CLEANUP_OK restored=$restored backup=$backup_dir"
+          REMOTE
+          grep -Fq 'STAGING2_VALORACION_MU_PLUGIN_CLEANUP_OK' "$cleanup_log"
+
       - name: Upload QA evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v4

@@ -94,18 +94,40 @@ function nvx_equipo_media_is_logo( string $html ): bool {
     );
 }
 
-/** Promote data-src to src for lazyloaded images. */
+/** Promote lazy attributes (src, srcset, sizes) to their native counterparts. */
 function nvx_equipo_promote_lazy_src( string $attrs ): string {
+    // 1. Promote data-src -> src
     if ( ( preg_match( '/\ssrc=["\']data:image\//i', $attrs ) || preg_match( '/\ssrc=["\']["\']/i', $attrs ) )
         && preg_match( '/\sdata-(?:src|lazy-src|original)=["\']([^"\']+)["\']/i', $attrs, $ds )
     ) {
         $real = esc_url( $ds[1] );
         if ( '' !== $real ) {
-            return preg_match( '/\ssrc=/i', $attrs )
+            $attrs = preg_match( '/\ssrc=/i', $attrs )
                 ? ( nvxContentPregReplaceKeep( '/\ssrc=["\'][^"\']*["\']/i', ' src="' . $real . '"', $attrs, 1 ) ?? $attrs )
                 : $attrs . ' src="' . $real . '"';
         }
     }
+    
+    // 2. Promote data-srcset -> srcset
+    if ( preg_match( '/\sdata-(?:srcset|lazy-srcset)=["\']([^"\']+)["\']/i', $attrs, $dset ) ) {
+        $real_srcset = esc_attr( $dset[1] );
+        if ( '' !== $real_srcset ) {
+            $attrs = preg_match( '/\ssrcset=/i', $attrs )
+                ? ( nvxContentPregReplaceKeep( '/\ssrcset=["\'][^"\']*["\']/i', ' srcset="' . $real_srcset . '"', $attrs, 1 ) ?? $attrs )
+                : $attrs . ' srcset="' . $real_srcset . '"';
+        }
+    }
+    
+    // 3. Promote data-sizes -> sizes
+    if ( preg_match( '/\sdata-(?:sizes|lazy-sizes)=["\']([^"\']+)["\']/i', $attrs, $dsizes ) ) {
+        $real_sizes = esc_attr( $dsizes[1] );
+        if ( '' !== $real_sizes ) {
+            $attrs = preg_match( '/\ssizes=/i', $attrs )
+                ? ( nvxContentPregReplaceKeep( '/\ssizes=["\'][^"\']*["\']/i', ' sizes="' . $real_sizes . '"', $attrs, 1 ) ?? $attrs )
+                : $attrs . ' sizes="' . $real_sizes . '"';
+        }
+    }
+    
     return $attrs;
 }
 

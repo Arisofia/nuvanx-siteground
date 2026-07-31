@@ -2,10 +2,12 @@
  * NUVANX site coherence layer.
  *
  * Owns only cross-route contracts that must remain identical:
- * - canonical technology and valoración headers;
  * - global conversion-button presentation;
  * - journal archive width and alignment;
- * - valoración landing layout.
+ * - valoración landing and third-party form containment.
+ *
+ * Institutional hero geometry lives exclusively in
+ * nvx-canonical-page-hero.css.
  */
 
 .nvx-button,
@@ -56,58 +58,6 @@
   border-color: var(--nvx-charcoal);
 }
 
-.nvx-site-coherent-page .nvx-canonical-page-hero,
-.nvx-site-coherent-page .nvx-brand-hero.nvx-canonical-page-hero,
-.nvx-site-coherent-page .nvx-editorial-hero.nvx-canonical-page-hero {
-  width: 100%;
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  background: var(--nvx-ink);
-  color: var(--nvx-light);
-  overflow: hidden;
-}
-
-.nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-brand-hero__inner,
-.nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-page-hero__inner,
-.nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-hero__inner {
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin-inline: auto;
-  padding: clamp(var(--nvx-space-8), 10vw, var(--nvx-space-12)) var(--nvx-gutter-inner);
-  box-sizing: border-box;
-}
-
-.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-editorial-hero__copy,
-.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-brand-hero__copy,
-.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-page-hero__copy {
-  display: grid;
-  max-width: min(100%, var(--nvx-measure-wide));
-  gap: var(--nvx-space-3);
-  align-content: center;
-}
-
-.nvx-site-coherent-page .nvx-canonical-page-hero h1,
-.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-heading,
-.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-ipl-h1,
-.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-strategy-title {
-  max-width: 18ch;
-  margin: 0;
-  color: var(--nvx-light);
-  font-family: var(--nvx-serif);
-  font-size: clamp(2.75rem, 6vw, 5rem);
-  font-weight: 400;
-  line-height: 1.02;
-  letter-spacing: var(--nvx-track-h1);
-  text-wrap: balance;
-}
-
-.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-eyebrow,
-.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-ipl-kicker {
-  margin: 0;
-  color: var(--nvx-accent-muted);
-}
-
 .nvx-site-coherent-page .nvx-hero-intro--coherent {
   width: 100%;
   padding-block: clamp(var(--nvx-space-5), 6vw, var(--nvx-space-8));
@@ -127,15 +77,6 @@
   width: 100%;
   max-width: 100%;
   overflow-x: clip;
-}
-
-.nvx-blog-archive__hero {
-  position: relative;
-  width: 100%;
-  margin: 0;
-  padding-block: clamp(var(--nvx-space-8), 10vw, var(--nvx-space-12));
-  background: var(--nvx-ink);
-  color: var(--nvx-light);
 }
 
 .nvx-blog-archive__body {
@@ -202,6 +143,24 @@
   margin-inline: auto;
 }
 
+.nvx-valoracion-page .nvx-form,
+.nvx-valoracion-page .nvx-hs-native-section,
+.nvx-valoracion-page .nvx-hs-native-box,
+.nvx-valoracion-page #nvx-hubspot-native-form,
+.nvx-valoracion-page .nvx-hubspot-native-form-v2,
+.nvx-valoracion-page .nvx-hubspot-v2-target {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.nvx-valoracion-page .nvx-hs-native-box {
+  width: min(100%, 52rem);
+  margin-inline: auto;
+  padding: clamp(var(--nvx-space-2), 3vw, var(--nvx-space-3));
+  overflow: visible;
+}
+
 .nvx-valoracion-page .hbspt-form,
 .nvx-valoracion-page .nvx-hs-lead-form {
   width: 100%;
@@ -213,6 +172,39 @@
   box-sizing: border-box;
 }
 
+.nvx-valoracion-page .nvx-hubspot-native-form-v2,
+.nvx-valoracion-page .nvx-hubspot-v2-target,
+.nvx-valoracion-page .hs-form-frame {
+  display: block;
+  min-height: 60rem;
+  overflow: visible;
+}
+
+.nvx-valoracion-page .nvx-hubspot-v2-target iframe,
+.nvx-valoracion-page .hs-form-frame iframe {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 60rem;
+  margin: 0;
+  border: 0;
+  overflow: visible;
+  box-sizing: border-box;
+}
+
+.nvx-valoracion-page .nvx-form-status {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-muted);
+  text-align: center;
+}
+
+.nvx-valoracion-page .nvx-form-status.is-error {
+  color: var(--nvx-ink);
+}
+
 @media (max-width: 56rem) {
   .nvx-blog-card {
     grid-column: 1 / -1;
@@ -222,10 +214,25 @@
     min-width: 0;
     padding-inline: var(--nvx-space-2);
   }
+}
 
-  .nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-brand-hero__inner,
-  .nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-page-hero__inner,
-  .nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-hero__inner {
-    padding-block: var(--nvx-space-8);
+@media (max-width: 680px) {
+  .nvx-valoracion-page .nvx-form-stage > *,
+  .nvx-valoracion-page .nvx-hubspot-form-section > *,
+  .nvx-valoracion-page #nvx-hubspot-form > * {
+    width: calc(100% - (var(--nvx-space-2) * 2));
+  }
+
+  .nvx-valoracion-page .nvx-hs-native-box {
+    width: 100%;
+    padding: var(--nvx-space-2);
+  }
+
+  .nvx-valoracion-page .nvx-hubspot-native-form-v2,
+  .nvx-valoracion-page .nvx-hubspot-v2-target,
+  .nvx-valoracion-page .hs-form-frame,
+  .nvx-valoracion-page .nvx-hubspot-v2-target iframe,
+  .nvx-valoracion-page .hs-form-frame iframe {
+    min-height: 72rem;
   }
 }

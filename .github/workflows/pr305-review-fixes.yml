@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: pr305-review-fixes-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   apply:
@@ -52,7 +52,7 @@ jobs:
           plugin = Path('wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php').read_text()
           assert 'nvxHubspotLoaded' in plugin
           audit = Path('scripts/staging2/audit-institutional-headers-form-v3.mjs').read_text()
-          assert 'inlineFormCount > 1' in audit
+          assert 'iframeCount + state.inlineFormCount !== 1' in audit
           PY
 
       - name: Remove temporary automation and commit

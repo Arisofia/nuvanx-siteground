@@ -21,12 +21,23 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return array<string, array<string, mixed>>
  */
 function nvx_aesthetic_treatment_catalog(): array {
+function nvx_aesthetic_treatment_catalog(): array {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 
-	return nvx_catalog_resolve_tokens(
+	$catalog = nvx_catalog_resolve_tokens(
 		nvx_catalog_json_load( 'aesthetic-treatment-pages.json' ),
 		null
 	);
+
+	$required = array( 'slug', 'h1', 'description', 'faqs', 'schema' );
+
+	return array_filter(
+		$catalog,
+		static function ( $entry ) use ( $required ) {
+			return is_array( $entry ) && array() === array_diff( $required, array_keys( $entry ) );
+		}
+	);
+}
 }
 
 /** Resolve a treatment key from slug or current singular page. */

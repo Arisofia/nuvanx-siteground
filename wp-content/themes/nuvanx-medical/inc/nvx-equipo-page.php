@@ -386,11 +386,6 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
  * @param array $config Physician configuration data.
  * @return string The rendered authority profile HTML.
  */
-/** Build one editorial title/body item. */
-function nvxEquipoTextItem( string $title, string $body ): array {
-    return compact( 'title', 'body' );
-}
-
 function nvx_equipo_physician_authority_markup( array $config ): string {
     $colegiado  = $config['colegiado'] ?? '';
     $doctoralia = $config['doctoralia'] ?? '';
@@ -438,10 +433,22 @@ function nvx_equipo_physician_authority_markup( array $config ): string {
     $html .= '<h2 id="nvx-equipo-scope-title" class="nvx-editorial-heading">' . esc_html__( 'Subespecialización y experiencia', 'nuvanx-medical' ) . '</h2>';
     $html .= '<ul class="nvx-editorial-grid-list">';
     $scopes = array(
-        nvxEquipoTextItem( __( 'Láser intersticial avanzado', 'nuvanx-medical' ), __( 'Endolift® y laserlipólisis para modificación estructural de grasa submentoniana y corporal en casos seleccionados.', 'nuvanx-medical' ) ),
-        nvxEquipoTextItem( __( 'Dermatología láser ablativa', 'nuvanx-medical' ), __( 'Láser CO₂ fraccionado orientado a secuelas de acné, textura y fotodaño, con planificación de downtime.', 'nuvanx-medical' ) ),
-        nvxEquipoTextItem( __( 'Arquitectura y geometría facial', 'nuvanx-medical' ), __( 'Restauración volumétrica con inductores de colágeno (p. ej. Radiesse®, Ellansé®) y neuromoduladores cuando el diagnóstico lo indica — tras tensar, no al revés.', 'nuvanx-medical' ) ),
-        nvxEquipoTextItem( __( 'Tricología médica', 'nuvanx-medical' ), __( 'Abordaje médico del cabello y cuero cabelludo dentro del alcance de la consulta especializada.', 'nuvanx-medical' ) ),
+        array(
+            'title' => __( 'Láser intersticial avanzado', 'nuvanx-medical' ),
+            'body'  => __( 'Endolift® y laserlipólisis para modificación estructural de grasa submentoniana y corporal en casos seleccionados.', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'Dermatología láser ablativa', 'nuvanx-medical' ),
+            'body'  => __( 'Láser CO₂ fraccionado orientado a secuelas de acné, textura y fotodaño, con planificación de downtime.', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'Arquitectura y geometría facial', 'nuvanx-medical' ),
+            'body'  => __( 'Restauración volumétrica con inductores de colágeno (p. ej. Radiesse®, Ellansé®) y neuromoduladores cuando el diagnóstico lo indica — tras tensar, no al revés.', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'Tricología médica', 'nuvanx-medical' ),
+            'body'  => __( 'Abordaje médico del cabello y cuero cabelludo dentro del alcance de la consulta especializada.', 'nuvanx-medical' ),
+        ),
     );
     foreach ( $scopes as $scope ) {
         $html .= '<li class="nvx-editorial-grid-item">';
@@ -525,10 +532,22 @@ function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
     $html .= '<h2 id="nvx-equipo-ivon-research-title" class="nvx-editorial-heading">' . esc_html__( 'Investigación, sociedades y academia', 'nuvanx-medical' ) . '</h2>';
     $html .= '<ul class="nvx-editorial-grid-list">';
     $items = array(
-        nvxEquipoTextItem( __( 'Real-World Evidence', 'nuvanx-medical' ), __( 'Investigadora clínica externa y consultora médica para OXON Epidemiology.', 'nuvanx-medical' ) ),
-        nvxEquipoTextItem( __( 'SEMEG y EuGMS', 'nuvanx-medical' ), __( 'Coordinadora científica de las Jornadas de Deterioro Cognitivo de la Sociedad Española de Medicina Geriátrica (SEMEG) y colaboración activa con la European Geriatric Medicine Society (EuGMS).', 'nuvanx-medical' ) ),
-        nvxEquipoTextItem( __( 'Universidad Europea de Madrid', 'nuvanx-medical' ), __( 'Profesora e investigadora en la UEM, vinculada al Hospital Vithas Madrid Arturo Soria. Formación continuada de facultativos, enfermería y TCAE en hospitales del SERMAS.', 'nuvanx-medical' ) ),
-        nvxEquipoTextItem( __( 'Obra escrita y publicaciones', 'nuvanx-medical' ), __( 'Coautora de obras bioéticas y clínicas como «El tormento de la inmortalidad sin juventud» y del «Manual de manejo de personas mayores que sufren caídas» (SEMEG), además de trabajos sobre cribado cognitivo temprano.', 'nuvanx-medical' ) ),
+        array(
+            'title' => __( 'Real-World Evidence', 'nuvanx-medical' ),
+            'body'  => __( 'Investigadora clínica externa y consultora médica para OXON Epidemiology.', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'SEMEG y EuGMS', 'nuvanx-medical' ),
+            'body'  => __( 'Coordinadora científica de las Jornadas de Deterioro Cognitivo de la Sociedad Española de Medicina Geriátrica (SEMEG) y colaboración activa con la European Geriatric Medicine Society (EuGMS).', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'Universidad Europea de Madrid', 'nuvanx-medical' ),
+            'body'  => __( 'Profesora e investigadora en la UEM, vinculada al Hospital Vithas Madrid Arturo Soria. Formación continuada de facultativos, enfermería y TCAE en hospitales del SERMAS.', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'Obra escrita y publicaciones', 'nuvanx-medical' ),
+            'body'  => __( 'Coautora de obras bioéticas y clínicas como «El tormento de la inmortalidad sin juventud» y del «Manual de manejo de personas mayores que sufren caídas» (SEMEG), además de trabajos sobre cribado cognitivo temprano.', 'nuvanx-medical' ),
+        ),
     );
     foreach ( $items as $item ) {
         $html .= '<li class="nvx-editorial-grid-item">';
@@ -592,9 +611,18 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
     $html .= '<h2 id="nvx-equipo-fabio-research-title" class="nvx-editorial-heading">' . esc_html__( 'Investigación, congresos y casos clínicos', 'nuvanx-medical' ) . '</h2>';
     $html .= '<ul class="nvx-editorial-grid-list">';
     $items = array(
-        nvxEquipoTextItem( __( 'CIBERFES y SEMEG', 'nuvanx-medical' ), __( 'Investigador activo asociado al CIBER de Fragilidad y Envejecimiento Saludable (CIBERFES) y colaborador de la Sociedad Española de Medicina Geriátrica (SEMEG).', 'nuvanx-medical' ) ),
-        nvxEquipoTextItem( __( 'Estudio Toledo · Envejecimiento saludable', 'nuvanx-medical' ), __( 'Trabajos que proponen el uso de la velocidad de onda de pulso (cf-PWV) para la detección temprana del deterioro cognitivo en el marco del Estudio Toledo para el Envejecimiento Saludable.', 'nuvanx-medical' ) ),
-        nvxEquipoTextItem( __( 'Casos y diagnóstico diferencial', 'nuvanx-medical' ), __( 'Coautoría en «¿Será una infección del tracto urinario?» (diagnósticos diferenciales entre delírium e infección en el anciano) e investigaciones sobre riesgo cardiovascular mal controlado, síncopes y fracturas de cadera.', 'nuvanx-medical' ) ),
+        array(
+            'title' => __( 'CIBERFES y SEMEG', 'nuvanx-medical' ),
+            'body'  => __( 'Investigador activo asociado al CIBER de Fragilidad y Envejecimiento Saludable (CIBERFES) y colaborador de la Sociedad Española de Medicina Geriátrica (SEMEG).', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'Estudio Toledo · Envejecimiento saludable', 'nuvanx-medical' ),
+            'body'  => __( 'Trabajos que proponen el uso de la velocidad de onda de pulso (cf-PWV) para la detección temprana del deterioro cognitivo en el marco del Estudio Toledo para el Envejecimiento Saludable.', 'nuvanx-medical' ),
+        ),
+        array(
+            'title' => __( 'Casos y diagnóstico diferencial', 'nuvanx-medical' ),
+            'body'  => __( 'Coautoría en «¿Será una infección del tracto urinario?» (diagnósticos diferenciales entre delírium e infección en el anciano) e investigaciones sobre riesgo cardiovascular mal controlado, síncopes y fracturas de cadera.', 'nuvanx-medical' ),
+        ),
     );
     foreach ( $items as $item ) {
         $html .= '<li class="nvx-editorial-grid-item">';

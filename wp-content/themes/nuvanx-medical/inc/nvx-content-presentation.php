@@ -199,20 +199,27 @@ function nvx_home_action_banner_markup(): string {
     return $html;
 }
 
-/** Build one icon-led content card. */
-function nvxContentCard( string $icon, string $title, string $body ): array {
-    return compact( 'icon', 'title', 'body' );
-}
-
 /**
  * Clinical values pillars (structured presentation of intro/criterio blocks).
  * Conversion CTAs move to the post-values action banner — clean UI, no inline links.
  */
 function nvx_values_section_markup(): string {
     $items = array(
-        nvxContentCard( 'shield', '1. Diagnóstico antes de tecnología', 'Cada protocolo comienza con una valoración médica de 15 a 30 minutos: calidad de piel, historial, objetivos y contraindicaciones. Solo se indica un tratamiento cuando existe una razón clínica para hacerlo.' ),
-        nvxContentCard( 'laser', '2. Equipamiento médico certificado', 'Trabajamos con plataformas médicas con marcado CE como DEKA Motus AZ+, Láser CO₂ fraccionado y EXION® BTL. La tecnología y sus parámetros se seleccionan según la anatomía y el objetivo de cada paciente.' ),
-        nvxContentCard( 'nature', '3. Resultados naturales y expectativa realista', 'El objetivo es mejorar firmeza, textura y definición respetando la expresión y la identidad del rostro. Antes de tratar, explicamos qué puede mejorar, qué límites existen y qué recuperación requiere cada protocolo.' ),
+        array(
+            'icon'  => 'shield',
+            'title' => '1. Diagnóstico antes de tecnología',
+            'body'  => 'Cada protocolo comienza con una valoración médica de 15 a 30 minutos: calidad de piel, historial, objetivos y contraindicaciones. Solo se indica un tratamiento cuando existe una razón clínica para hacerlo.',
+        ),
+        array(
+            'icon'  => 'laser',
+            'title' => '2. Equipamiento médico certificado',
+            'body'  => 'Trabajamos con plataformas médicas con marcado CE como DEKA Motus AZ+, Láser CO₂ fraccionado y EXION® BTL. La tecnología y sus parámetros se seleccionan según la anatomía y el objetivo de cada paciente.',
+        ),
+        array(
+            'icon'  => 'nature',
+            'title' => '3. Resultados naturales y expectativa realista',
+            'body'  => 'El objetivo es mejorar firmeza, textura y definición respetando la expresión y la identidad del rostro. Antes de tratar, explicamos qué puede mejorar, qué límites existen y qué recuperación requiere cada protocolo.',
+        ),
     );
 
     $html  = '<section class="nvx-brand-section nvx-brand-section--tight nvx-values-section" aria-label="Por qué NUVANX">';
@@ -242,9 +249,21 @@ function nvx_values_section_markup(): string {
  */
 function nvx_method_section_markup(): string {
     $items = array(
-        nvxContentCard( 'scan', 'Evaluación individual', 'Revisamos piel, anatomía, historial, objetivos y contraindicaciones antes de proponer un procedimiento.' ),
-        nvxContentCard( 'precision', 'Indicación y parámetros', 'Definimos tecnología, energía, profundidad y número de sesiones según el caso, no mediante configuraciones estándar.' ),
-        nvxContentCard( 'follow', 'Control de evolución', 'Programamos seguimiento según el tratamiento para valorar respuesta, recuperación y necesidad de ajustes.' ),
+        array(
+            'icon'  => 'scan',
+            'title' => 'Evaluación individual',
+            'body'  => 'Revisamos piel, anatomía, historial, objetivos y contraindicaciones antes de proponer un procedimiento.',
+        ),
+        array(
+            'icon'  => 'precision',
+            'title' => 'Indicación y parámetros',
+            'body'  => 'Definimos tecnología, energía, profundidad y número de sesiones según el caso, no mediante configuraciones estándar.',
+        ),
+        array(
+            'icon'  => 'follow',
+            'title' => 'Control de evolución',
+            'body'  => 'Programamos seguimiento según el tratamiento para valorar respuesta, recuperación y necesidad de ajustes.',
+        ),
     );
 
     $html  = '<section class="nvx-brand-section nvx-method-section" aria-label="Cómo trabajamos NUVANX">';

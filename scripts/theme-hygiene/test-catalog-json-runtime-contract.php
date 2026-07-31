@@ -19,11 +19,11 @@ function nvx_btl_claim(string $key): string {
     return 'claim:' . $key;
 }
 
-function get_page_by_path(string $path) {
+function get_page_by_path(string $path, $output = 'OBJECT', $post_type = 'page') {
     return null;
 }
 
-function get_permalink($page): string {
+function get_permalink($page = 0, bool $leavename = false): string {
     return '';
 }
 
@@ -66,6 +66,20 @@ function nvx_contract_assert(bool $condition, string $message): void {
  *
  * @param mixed $value
  */
+$pageByPathReflection = new ReflectionFunction('get_page_by_path');
+nvx_contract_assert(
+    3 === $pageByPathReflection->getNumberOfParameters()
+        && 1 === $pageByPathReflection->getNumberOfRequiredParameters(),
+    'get_page_by_path() test stub must match the WordPress callable arity.'
+);
+
+$permalinkReflection = new ReflectionFunction('get_permalink');
+nvx_contract_assert(
+    2 === $permalinkReflection->getNumberOfParameters()
+        && 0 === $permalinkReflection->getNumberOfRequiredParameters(),
+    'get_permalink() test stub must preserve optional WordPress arguments.'
+);
+
 function nvx_contract_assert_no_tokens($value, string $path = 'catalog'): void {
     if (is_array($value)) {
         foreach ($value as $key => $item) {

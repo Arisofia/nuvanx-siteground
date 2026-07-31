@@ -13,7 +13,6 @@ import {
   writeVisualQaReport,
 } from './visual-qa-common.mjs';
 
-// Binds action-failure regression coverage to the immutable PR head under test.
 const config = resolveVisualQaConfig();
 assertVisualQaRuntime(config);
 fs.mkdirSync(config.evidenceDir, { recursive: true });
@@ -23,74 +22,75 @@ report.institutional_headers = [];
 report.valoracion_form = [];
 
 const institutionalPages = [
-  ['/clinicas/', 'Clínicas NUVANX'],
+  ['/clinicas-de-medicina-estetica-nuvanx/', 'Clínicas de medicina estética láser en Madrid'],
+  ['/blog/', 'Medicina estética con criterio'],
+  ['/equipo-medico/', 'Equipo médico NUVANX: quién te valora y quién trata'],
+  ['/contacto/', 'Contacto NUVANX en Madrid'],
   ['/madrid/valoracion/', 'Valoración médica estética en Madrid'],
-  ['/equipo-medico/', 'Equipo médico'],
-  ['/blog/', 'Journal NUVANX'],
-  ['/contacto/', 'Contacto'],
 ];
-
 const viewports = [
   { name: 'desktop', width: 1440, height: 1000, mobile: false },
   { name: 'mobile', width: 390, height: 844, mobile: true },
 ];
+const loadPage = createGovernedLoadPage({ expectedSha: config.expectedSha });
+const nearlyEqual = (a, b, tolerance = 2) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= tolerance;
 
-const loadPageWithRetry = createGovernedLoadPage({
-  config,
-  attempts: 3,
-  retryDelayMs: 1500,
-  settleMs: 1600,
-});
+function retryUrl(url, attempt) {
+  if (attempt === 0) return url;
+  const candidate = new URL(url);
+  candidate.searchParams.set('nvx_qa_retry', `${Date.now()}-${attempt}`);
+  return candidate.toString();
+}
 
-function nearlyEqual(left, right, tolerance = 1) {
-  return Math.abs(left - right) <= tolerance;
+async function loadPageWithRetry(port, url, viewport, expectedH1) {
+  let lastError = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await loadPage(port, retryUrl(url, attempt), viewport, expectedH1);
+    } catch (error) {
+      lastError = error;
+      const message = error instanceof Error ? error.message : String(error);
+      if (attempt === 1 || !message.includes('governed page did not become ready')) throw error;
+      await sleep(750);
+    }
+  }
+  throw lastError || new Error('Governed page did not become ready.');
 }
 
 async function readHero(session) {
   return session.evaluate(`(() => {
-    const hero = document.querySelector('.nvx-canonical-page-hero, .nvx-page--contact > .nvx-brand-hero');
+    const hero = Array.from(document.querySelectorAll('.nvx-canonical-page-hero, .nvx-page--contact > .nvx-brand-hero')).find((node) => node.querySelector('h1')) || null;
     const copy = hero?.querySelector('.nvx-editorial-hero__copy');
     const h1 = hero?.querySelector('h1');
-    const eyebrow = hero?.querySelector('.nvx-eyebrow, .nvx-brand-kicker');
-    const meta = hero?.querySelector('.nvx-brand-meta, .nvx-lead');
-    const actions = hero?.querySelector('.nvx-cta-cluster, .nvx-brand-actions, .nvx-cta-pair-ctas, .nvx-cta-group');
+    const eyebrow = hero?.querySelector('.nvx-eyebrow');
     if (!hero || !copy || !h1 || !eyebrow) return { found: false };
+    const heroRect = hero.getBoundingClientRect();
+    const copyRect = copy.getBoundingClientRect();
     const heroStyle = getComputedStyle(hero);
     const copyStyle = getComputedStyle(copy);
     const h1Style = getComputedStyle(h1);
     const eyebrowStyle = getComputedStyle(eyebrow);
-    const metaStyle = meta ? getComputedStyle(meta) : null;
-    const actionsStyle = actions ? getComputedStyle(actions) : null;
-    const rect = hero.getBoundingClientRect();
-    const copyRect = copy.getBoundingClientRect();
     return {
       found: true,
-      heroWidth: rect.width,
-      heroHeight: rect.height,
-      heroLeft: rect.left,
-      heroTop: rect.top,
+      heroHeight: heroRect.height,
+      heroWidth: heroRect.width,
+      heroLeft: heroRect.left,
       heroBackground: heroStyle.backgroundColor,
       heroOverflow: heroStyle.overflow,
-      heroMinHeight: heroStyle.minHeight,
-      heroMaxHeight: heroStyle.maxHeight,
-      copyDisplay: copyStyle.display,
-      copyWidth: copyRect.width,
       copyHeight: copyRect.height,
+      copyWidth: copyRect.width,
       copyLeft: copyRect.left,
+      copyDisplay: copyStyle.display,
       copyJustify: copyStyle.justifyContent,
       copyPaddingTop: copyStyle.paddingTop,
       copyPaddingRight: copyStyle.paddingRight,
       copyPaddingBottom: copyStyle.paddingBottom,
       copyPaddingLeft: copyStyle.paddingLeft,
       h1Text: h1.textContent.trim(),
-      h1FontSize: h1Style.fontSize,
-      h1LineHeight: h1Style.lineHeight,
+      h1FontSize: Number.parseFloat(h1Style.fontSize),
+      h1LineHeight: Number.parseFloat(h1Style.lineHeight),
       h1Color: h1Style.color,
       eyebrowColor: eyebrowStyle.color,
-      metaDisplay: metaStyle?.display || '',
-      metaWidth: meta?.getBoundingClientRect().width || 0,
-      actionsDisplay: actionsStyle?.display || '',
-      actionsWidth: actions?.getBoundingClientRect().width || 0,
       overflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
       deploySha: document.querySelector('meta[name="nvx-deploy-sha"]')?.content || '',
     };
@@ -98,27 +98,24 @@ async function readHero(session) {
 }
 
 function validateHero(state, scope, expectedH1, viewport) {
-  if (!state.found) {
-    fail(scope, 'canonical hero, copy, H1 or eyebrow was not found');
-    return;
-  }
+  if (!state.found) { fail(scope, 'canonical hero structure was not found'); return; }
   if (state.deploySha !== config.expectedSha) fail(scope, `served SHA ${state.deploySha || 'absent'}`);
   if (state.h1Text !== expectedH1) fail(scope, `unexpected H1: ${state.h1Text || 'absent'}`);
-  if (state.heroWidth < viewport.width - 2) fail(scope, `hero width ${state.heroWidth}px does not fill ${viewport.width}px viewport`);
+  if (state.heroWidth < viewport.width - 2) fail(scope, `hero width ${state.heroWidth}px does not fill viewport`);
   if (state.heroOverflow !== 'hidden') fail(scope, `hero overflow is ${state.heroOverflow}`);
-  if (state.copyJustify !== 'flex-end') fail(scope, `copy justify-content is ${state.copyJustify}`);
+  if (state.copyDisplay !== 'flex' || state.copyJustify !== 'flex-end') fail(scope, `copy layout is ${state.copyDisplay}/${state.copyJustify}`);
   if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
 }
 
 function validateParity(states, viewport) {
-  const usable = states.filter((state) => state.found);
-  if (!usable.length) return;
-  const reference = usable[0];
-  for (const state of usable.slice(1)) {
+  const reference = states.find((state) => state.path === institutionalPages[0][0] && state.found);
+  if (!reference) { fail(`institutional parity ${viewport.name}`, 'Clinics reference hero was not available'); return; }
+  for (const state of states.filter((candidate) => candidate.found)) {
     const scope = `institutional parity ${state.path} ${viewport.name}`;
-    if (!nearlyEqual(state.heroHeight, reference.heroHeight, 2)) fail(scope, `hero height ${state.heroHeight}px differs from ${reference.heroHeight}px`);
-    if (!nearlyEqual(state.copyWidth, reference.copyWidth, 2)) fail(scope, `copy width ${state.copyWidth}px differs from ${reference.copyWidth}px`);
-    if (!nearlyEqual(state.copyLeft, reference.copyLeft, 2)) fail(scope, `copy left ${state.copyLeft}px differs from ${reference.copyLeft}px`);
+    for (const [key, tolerance] of [
+      ['heroHeight', 2], ['heroWidth', 2], ['heroLeft', 2], ['copyHeight', 2],
+      ['copyWidth', 2], ['copyLeft', 2], ['h1FontSize', 0.5], ['h1LineHeight', 0.5],
+    ]) if (!nearlyEqual(state[key], reference[key], tolerance)) fail(scope, `${key} ${state[key]} differs from ${reference[key]}`);
     for (const key of [
       'heroBackground', 'heroOverflow', 'copyDisplay', 'copyJustify',
       'copyPaddingTop', 'copyPaddingRight', 'copyPaddingBottom', 'copyPaddingLeft',

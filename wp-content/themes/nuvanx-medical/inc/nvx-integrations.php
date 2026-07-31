@@ -339,13 +339,9 @@ add_action(
     }
 );
 
-/* Meta Pixel · single-owner (dequeue SiteGround facebook-signal) */
 add_action(
     'wp_enqueue_scripts',
     function (): void {
-        wp_dequeue_script( 'siteground-facebook-signal' );
-        wp_deregister_script( 'siteground-facebook-signal' );
-
         $version = wp_get_theme()->get( 'Version' );
         wp_enqueue_style( 'nvx-integrations', get_theme_file_uri( 'assets/css/nvx-integrations.css' ), array(), $version );
     },

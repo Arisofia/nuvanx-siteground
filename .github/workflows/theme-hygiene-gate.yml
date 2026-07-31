@@ -49,7 +49,11 @@ jobs:
           set -euo pipefail
           php scripts/theme-hygiene/test-catalog-json-contract.php
           php scripts/theme-hygiene/test-catalog-json-runtime-contract.php
+          php scripts/theme-hygiene/test-catalog-review-contract.php
           php scripts/theme-hygiene/test-page-render-helpers.php
+          php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
+          php -l /tmp/nvx-catalog-i18n.php
+          grep -Fq 'Fototermólisis selectiva' /tmp/nvx-catalog-i18n.php
 
       - name: Enforce canonical theme hygiene
         run: node scripts/theme-hygiene/test-theme-hygiene.mjs

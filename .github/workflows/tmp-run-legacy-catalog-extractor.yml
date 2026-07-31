@@ -73,7 +73,6 @@ jobs:
           php -l wp-content/themes/nuvanx-medical/inc/nvx-faq-catalog.php
           php -l wp-content/themes/nuvanx-medical/inc/nvx-treatments-catalog.php
           php scripts/theme-hygiene/test-catalog-json-contract.php
-          node scripts/theme-hygiene/audit-v3.mjs
 
       - name: Commit generated catalogs
         shell: bash

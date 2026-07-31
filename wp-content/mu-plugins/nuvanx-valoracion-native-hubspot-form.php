@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NUVANX Valoración Native HubSpot Form
  * Description: Enforces one canonical HubSpot form on /madrid/valoracion/.
- * Version: 2026.07.31.1
+ * Version: 2026.07.31.2
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -17,18 +17,11 @@ if ( ! defined( 'NVX_VALORACION_HS_FRAME_REGION' ) ) {
     define( 'NVX_VALORACION_HS_FRAME_REGION', 'eu1' );
 }
 
-/** Whether the current request is the canonical assessment page. */
 function nvx_valoracion_native_hubspot_is_target_page(): bool {
     return is_page( 2636 ) || is_page( 'valoracion' );
 }
 
-/**
- * Canonical HubSpot mount.
- *
- * The v2 API receives an explicit target so the form cannot silently attach to
- * another `.hs-form-frame` instance. The loading message becomes a practical
- * fallback if the third-party script is unavailable.
- */
+/** Return the one governed HubSpot assessment-form mount. */
 function nvx_valoracion_native_hubspot_mount_markup(): string {
     $portal_id   = preg_replace( '/\D+/', '', (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
     $form_id     = strtolower( trim( (string) NVX_VALORACION_HS_FRAME_FORM_ID ) );
@@ -56,15 +49,14 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
             . '</p>';
     }
 
-    $script = <<<'JS'
+    $runtime = <<<'JS'
 <script>
 (function () {
   'use strict';
   var config = __NVX_CONFIG__;
   var target = document.getElementById('__NVX_TARGET__');
   var status = document.getElementById('__NVX_STATUS__');
-  var attempts = 0;
-  var maximumAttempts = 80;
+  var timeoutId = null;
 
   function setStatus(message, failed) {
     if (!status) return;
@@ -74,6 +66,7 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
   }
 
   function markReady(form) {
+    window.clearTimeout(timeoutId);
     if (target) target.dataset.nvxHubspotState = 'ready';
     if (status) status.hidden = true;
     var node = form && form[0] ? form[0] : form;
@@ -82,50 +75,83 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
     }
   }
 
-  function mount() {
+  function mountForm() {
     if (!target || target.dataset.nvxHubspotState === 'ready') return;
-    if (window.hbspt && window.hbspt.forms && typeof window.hbspt.forms.create === 'function') {
-      target.dataset.nvxHubspotState = 'mounting';
-      try {
-        window.hbspt.forms.create(Object.assign({}, config, {
-          onFormReady: markReady,
-          onFormSubmitted: function () {
-            if (target) target.dataset.nvxHubspotState = 'submitted';
-          }
-        }));
-      } catch (error) {
-        target.dataset.nvxHubspotState = 'error';
-        setStatus('No ha sido posible cargar el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
-      }
+    if (!(window.hbspt && window.hbspt.forms && typeof window.hbspt.forms.create === 'function')) {
+      if (target) target.dataset.nvxHubspotState = 'sdk-missing';
+      setStatus('No ha sido posible iniciar el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
       return;
     }
 
-    attempts += 1;
-    if (attempts >= maximumAttempts) {
-      if (target) target.dataset.nvxHubspotState = 'timeout';
-      setStatus('El formulario está tardando más de lo esperado. Puedes solicitar tu valoración desde la página de contacto.', true);
+    target.dataset.nvxHubspotState = 'mounting';
+    try {
+      window.hbspt.forms.create(Object.assign({}, config, {
+        onFormReady: markReady,
+        onFormSubmitted: function () {
+          target.dataset.nvxHubspotState = 'submitted';
+        }
+      }));
+      timeoutId = window.setTimeout(function () {
+        if (target.dataset.nvxHubspotState !== 'ready') {
+          target.dataset.nvxHubspotState = 'render-timeout';
+          setStatus('El formulario está tardando más de lo esperado. Puedes solicitar tu valoración desde la página de contacto.', true);
+        }
+      }, 20000);
+    } catch (error) {
+      target.dataset.nvxHubspotState = 'create-error';
+      setStatus('No ha sido posible cargar el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
+    }
+  }
+
+  function loadSdk() {
+    if (!target || target.dataset.nvxHubspotState === 'ready') return;
+    if (window.hbspt && window.hbspt.forms) {
+      mountForm();
       return;
     }
-    window.setTimeout(mount, 250);
+
+    var existing = document.querySelector('script[data-nvx-hubspot-loader="valoracion"]');
+    if (existing) {
+      existing.addEventListener('load', mountForm, { once: true });
+      existing.addEventListener('error', function () {
+        target.dataset.nvxHubspotState = 'sdk-error';
+        setStatus('No ha sido posible conectar con el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
+      }, { once: true });
+      return;
+    }
+
+    target.dataset.nvxHubspotState = 'sdk-loading';
+    var loader = document.createElement('script');
+    loader.src = 'https://js.hsforms.net/forms/embed/v2.js';
+    loader.async = true;
+    loader.charset = 'utf-8';
+    loader.type = 'text/javascript';
+    loader.dataset.category = 'functional';
+    loader.dataset.nvxHubspotLoader = 'valoracion';
+    loader.addEventListener('load', mountForm, { once: true });
+    loader.addEventListener('error', function () {
+      target.dataset.nvxHubspotState = 'sdk-error';
+      setStatus('No ha sido posible conectar con el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
+    }, { once: true });
+    document.head.appendChild(loader);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount, { once: true });
+    document.addEventListener('DOMContentLoaded', loadSdk, { once: true });
   } else {
-    mount();
+    loadSdk();
   }
 }());
 </script>
 JS;
 
-    $script = str_replace(
+    $runtime = str_replace(
         array( '__NVX_CONFIG__', '__NVX_TARGET__', '__NVX_STATUS__' ),
         array( $config, esc_js( $target_id ), esc_js( $status_id ) ),
-        $script
+        $runtime
     );
 
-    return '<script src="https://js.hsforms.net/forms/embed/v2.js" charset="utf-8" type="text/javascript" defer data-category="functional" data-nvx-hubspot-loader="valoracion"></script>'
-        . '<div class="nvx-hubspot-native-form-v2" data-nvx-hubspot-form="valoracion">'
+    return '<div class="nvx-hubspot-native-form-v2" data-nvx-hubspot-form="valoracion">'
         . '<p id="' . esc_attr( $status_id ) . '" class="nvx-form-status" role="status">'
         . esc_html__( 'Cargando el formulario de valoración médica…', 'nuvanx-medical' )
         . '</p>'
@@ -133,7 +159,7 @@ JS;
         . '<noscript><p class="nvx-form-status">'
         . esc_html__( 'Activa JavaScript para completar el formulario o utiliza nuestros canales de contacto.', 'nuvanx-medical' )
         . ' <a href="' . $contact_url . '">' . esc_html__( 'Ver contacto', 'nuvanx-medical' ) . '</a>.</p></noscript>'
-        . $script
+        . $runtime
         . '</div>'
         . '<p class="nvx-copy nvx-hubspot-privacy">'
         . esc_html__( 'Al facilitar tus datos aceptas la ', 'nuvanx-medical' )
@@ -166,7 +192,6 @@ function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?a
     return null;
 }
 
-/** Remove every balanced div whose class contains the requested token. */
 function nvx_valoracion_remove_divs_by_class( string $html, string $class_token ): string {
     $pattern = '/<div\b(?=[^>]*\bclass=["\'][^"\']*\b'
         . preg_quote( $class_token, '/' )
@@ -190,7 +215,6 @@ function nvx_valoracion_remove_divs_by_class( string $html, string $class_token 
     return $html;
 }
 
-/** Replace all historical HubSpot embeds with one canonical mount. */
 function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): string {
     $mount_pattern = '/<div\b[^>]*\bid=["\']nvx-hubspot-native-form["\'][^>]*>/i';
     if ( ! preg_match_all( $mount_pattern, $html, $mounts, PREG_OFFSET_CAPTURE ) || empty( $mounts[0] ) ) {

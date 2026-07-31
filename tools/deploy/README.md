@@ -5,8 +5,7 @@
 | Script | Purpose |
 |--------|---------|
 | `deploy-to-prod.sh` | Guard siteurl, backup prod, rsync theme from staging, copy form MU plugins only, strip `nvx-*.min.css`, purge cache |
-| `flush-prod-cache.sh` | Flush WordPress object cache (delegates to shared purge) |
-| `nvx-purge-wp-caches.sh` | Shared WP + SiteGround Dynamic/memcached/disk/opcache purge used by staging2 and production |
+| `flush-prod-cache.sh` | Flush WordPress object cache |
 
 Deployment workflows are intentionally absent from GitHub. Use this guarded
 host-level production path only after staging2 has been validated (see
@@ -20,6 +19,8 @@ NUVANX_CONFIRM=yes bash tools/deploy/deploy-to-prod.sh \
   --prod-root "$WP_PROD" \
   --staging-root "$WP_STG2" \
   --confirm
+
+BASE_URL=https://nuvanx.com bash scripts/ops/post-promote-verify.sh
 ```
 
 ```bash

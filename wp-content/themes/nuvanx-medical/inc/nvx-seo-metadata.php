@@ -20,9 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_seo_metadata_catalog(): array {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 
-	return nvx_catalog_resolve_tokens(
-		nvx_catalog_json_load( 'seo-metadata.json' )
-	);
+	return nvx_catalog_json_resolved( 'seo-metadata.json' );
 }
 
 /**
@@ -35,9 +33,7 @@ function nvx_seo_metadata_catalog(): array {
 function nvx_seo_blog_post_metadata_catalog(): array {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 
-	return nvx_catalog_resolve_tokens(
-		nvx_catalog_json_load( 'seo-blog-post-metadata.json' )
-	);
+	return nvx_catalog_json_resolved( 'seo-blog-post-metadata.json' );
 }
 
 /**

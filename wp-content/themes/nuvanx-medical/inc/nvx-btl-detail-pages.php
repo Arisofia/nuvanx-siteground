@@ -37,9 +37,12 @@ function nvx_btl_detail_is_singular(): bool {
 function nvx_btl_detail_registry(): array {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 
-	return nvx_catalog_resolve_tokens(
-		nvx_catalog_json_load( 'btl-detail-pages.json' ),
-		static function ( string $key ) { return nvx_btl_claim( $key ); }
+	return nvx_catalog_json_resolved(
+		'btl-detail-pages.json',
+		static function ( string $key ) { return nvx_btl_claim( $key ); },
+		array(),
+		array(),
+		'btl-detail-pages'
 	);
 }
 

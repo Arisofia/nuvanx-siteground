@@ -2,40 +2,63 @@
 /**
  * NUVANX · FAQ Catalog — Single source of truth
  *
- * Returns the canonical FAQ array used by:
- *   1. The visible HTML FAQ block (frontend)
- *   2. The Yoast FAQPage JSON-LD schema node
- *
- * Usage:
- *   $faqs = nvx_get_faq_catalog();
- *
- * To add or edit an FAQ entry, edit this file only.
- * Do NOT maintain separate copies in the Yoast SEO settings
- * or hardcode FAQ HTML elsewhere.
+ * The homepage FAQ JSON is the canonical source for visible FAQ and schema.
+ * This adapter selects the stable entries used by the compact global block.
  *
  * @package nuvanx-medical
- * @version 2.1.0
+ * @version 3.0.0
  */
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Returns the FAQ catalog as an array of ['q' => string, 'a' => string].
+ * Returns the global FAQ selection as ['q' => string, 'a' => string].
  *
  * @return array<int, array{q: string, a: string}>
  */
 function nvx_get_faq_catalog(): array {
-	require_once __DIR__ . '/nvx-catalog-json.php';
+	static $catalog = null;
 
-	return nvx_catalog_resolve_tokens(
-		nvx_catalog_json_load( 'faq-catalog.json' ),
-		null
+	if ( null !== $catalog ) {
+		return $catalog;
+	}
+
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	$source = nvx_catalog_json_resolved( 'home-faq-v2.json' );
+	$ids    = array(
+		'valoracion-medica',
+		'precio-endolift',
+		'duracion-endolift',
+		'sesiones-co2',
+		'tecnologia-medica',
+		'exion-btl',
+		'tratamiento-adecuado',
+		'recuperacion',
+		'diferencia-estetica',
+		'clinicas-madrid',
+		'equipo-medico',
 	);
+	$by_id = array();
+	foreach ( $source as $entry ) {
+		if ( is_array( $entry ) && isset( $entry['id'], $entry['q'], $entry['a'] ) ) {
+			$by_id[ $entry['id'] ] = $entry;
+		}
+	}
+
+	$catalog = array();
+	foreach ( $ids as $id ) {
+		if ( isset( $by_id[ $id ] ) ) {
+			$catalog[] = array(
+				'q' => $by_id[ $id ]['q'],
+				'a' => $by_id[ $id ]['a'],
+			);
+		}
+	}
+
+	return $catalog;
 }
 
-/**
- * Renders the FAQ section using the canonical FAQ catalog.
- */
+/** Renders the FAQ section using the canonical FAQ catalog. */
 function nvx_render_faq_block(): void {
 	$faqs = nvx_get_faq_catalog();
 	if ( empty( $faqs ) ) {
@@ -58,31 +81,29 @@ function nvx_render_faq_block(): void {
 /**
  * Builds the FAQPage JSON-LD schema for the site's FAQ catalog.
  *
- * @return array<string, mixed> The FAQPage schema with its canonical identifier and questions.
+ * @return array<string, mixed>
  */
 function nvx_get_faqpage_schema(): array {
 	$faqs        = nvx_get_faq_catalog();
-	$main_entity = [];
+	$main_entity = array();
 	foreach ( $faqs as $item ) {
-		$main_entity[] = [
+		$main_entity[] = array(
 			'@type'          => 'Question',
 			'name'           => $item['q'],
-			'acceptedAnswer' => [
+			'acceptedAnswer' => array(
 				'@type' => 'Answer',
 				'text'  => $item['a'],
-			],
-		];
+			),
+		);
 	}
-	return [
+	return array(
 		'@type'      => 'FAQPage',
 		'@id'        => home_url( '/#faqpage' ),
 		'mainEntity' => $main_entity,
-	];
+	);
 }
 
-/**
- * Inject FAQPage node into Yoast SEO graph on the front page.
- */
+/** Inject FAQPage node into Yoast SEO graph on the front page. */
 function nvx_inject_faqpage_schema_graph( array $data ): array {
 	if ( is_front_page() ) {
 		$data[] = nvx_get_faqpage_schema();

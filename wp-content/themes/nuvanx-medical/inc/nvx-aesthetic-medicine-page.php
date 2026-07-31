@@ -152,19 +152,22 @@ function nvx_aesthetic_editorial_catalog(): array {
 	}
 
 	require_once __DIR__ . '/nvx-catalog-json.php';
-	$catalog = nvx_catalog_resolve_tokens(
-		nvx_catalog_json_load( 'aesthetic-medicine-page.json' ),
+	$catalog = nvx_catalog_json_resolved(
+		'aesthetic-medicine-page.json',
 		null,
+		array(),
 		array(
-			'@nvx-aesthetic-url:' => static function ( string $payload ) {
-				$arguments = json_decode( (string) base64_decode( $payload, true ), true );
-				$primary   = is_array( $arguments ) && isset( $arguments[0] ) ? (string) $arguments[0] : '';
-				$alts      = is_array( $arguments ) && isset( $arguments[1] ) && is_array( $arguments[1] )
-					? $arguments[1]
+			'@nvx-aesthetic-url' => static function ( $arguments ) {
+				$primary = is_array( $arguments ) && isset( $arguments['primary'] )
+					? (string) $arguments['primary']
+					: '';
+				$alts = is_array( $arguments ) && isset( $arguments['alts'] ) && is_array( $arguments['alts'] )
+					? $arguments['alts']
 					: array();
 				return nvx_aesthetic_resolve_treatment_url( $primary, $alts );
 			},
-		)
+		),
+		'aesthetic-medicine-page'
 	);
 
 	return $catalog;

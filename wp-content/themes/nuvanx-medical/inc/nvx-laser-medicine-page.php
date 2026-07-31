@@ -150,14 +150,16 @@ function nvx_laser_editorial_catalog(): array {
 	}
 
 	require_once __DIR__ . '/nvx-catalog-json.php';
-	$catalog = nvx_catalog_resolve_tokens(
-		nvx_catalog_json_load( 'laser-medicine-page.json' ),
+	$catalog = nvx_catalog_json_resolved(
+		'laser-medicine-page.json',
 		null,
+		array(),
 		array(
-			'@nvx-laser-url:' => static function ( string $payload ) {
-				return nvx_laser_page_url( (string) base64_decode( $payload, true ) );
+			'@nvx-laser-url' => static function ( $path ) {
+				return nvx_laser_page_url( is_string( $path ) ? $path : '' );
 			},
-		)
+		),
+		'laser-medicine-page'
 	);
 
 	return $catalog;

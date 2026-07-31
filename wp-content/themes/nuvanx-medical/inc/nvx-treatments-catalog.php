@@ -39,10 +39,7 @@ function nvx_content_is_treatments_index( string $content ): bool {
 function nvx_treatments_catalog_data(): array {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 
-	return nvx_catalog_resolve_tokens(
-		nvx_catalog_json_load( 'treatments-catalog.json' ),
-		null
-	);
+	return nvx_catalog_json_resolved( 'treatments-catalog.json' );
 }
 
 /** @return string[] */

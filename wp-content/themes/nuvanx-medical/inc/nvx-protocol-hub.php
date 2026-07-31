@@ -32,7 +32,7 @@ function nvx_protocol_hub_card( string $title, string $body, string $path ): str
     }
     $html  = '<article class="nvx-catalog-card">';
     $html .= '<div class="nvx-catalog-card__main"><h3 class="nvx-catalog-card__title">' . esc_html( $title ) . '</h3><p class="nvx-catalog-card__body">' . esc_html( $body ) . '</p></div>';
-    $html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( $url ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . ' <span aria-hidden="true">→</span></a></article>';
+    $html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( $url ) . '" aria-label="' . esc_attr__( 'Ver protocolo:', 'nuvanx-medical' ) . ' ' . esc_attr( $title ) . '">' . esc_html__( 'Ver protocolo', 'nuvanx-medical' ) . ' <span aria-hidden="true">→</span></a></article>';
     return $html;
 }
 

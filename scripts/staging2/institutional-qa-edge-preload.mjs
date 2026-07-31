@@ -189,6 +189,9 @@ function cleanup() {
   try { fs.closeSync(logFd); } catch { /* already closed */ }
 }
 process.once('exit', cleanup);
+process.once('SIGINT', () => { cleanup(); process.exit(1); });
+process.once('SIGTERM', () => { cleanup(); process.exit(1); });
+process.once('SIGHUP', () => { cleanup(); process.exit(1); });
 
 const probe = spawnSync('/usr/bin/curl', [
   '--silent', '--show-error', '--fail', '--max-time', '45', '--noproxy', '',

@@ -30,6 +30,12 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
     $privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
     $contact_url = esc_url( home_url( '/contacto/' ) );
 
+    if ( ! preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $form_id ) ) {
+        return '<p class="nvx-form-status is-error" role="status">'
+            . esc_html__( 'El formulario no está disponible temporalmente. Contacta con la clínica para solicitar tu valoración.', 'nuvanx-medical' )
+            . '</p>';
+    }
+
     $config = wp_json_encode(
         array(
             'region'         => $region,
@@ -39,7 +45,7 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
             'locale'         => 'es',
             'formInstanceId' => 'nvx-valoracion-main',
         ),
-        JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
+        JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
     );
 
     if ( ! is_string( $config ) ) {

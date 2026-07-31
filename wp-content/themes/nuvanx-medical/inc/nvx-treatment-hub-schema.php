@@ -31,63 +31,9 @@ function nvx_treatment_hub_schema_upsert_node( array $graph, array $node ): arra
 
 /** Canonical services and procedures represented by the visible catalogue. */
 function nvx_treatment_hub_schema_items( string $organization_id ): array {
-	$definitions = array(
-		array(
-			'key'           => 'endolift-facial',
-			'name'          => 'Endolift® Facial',
-			'path'          => '/endolift-facial-papada-mandibula/',
-			'types'         => array( 'MedicalProcedure', 'Service' ),
-			'procedureType' => 'https://schema.org/PercutaneousProcedure',
-			'description'   => 'Técnica con microfibra láser subdérmica para abordar flacidez facial, papada y definición mandibular según valoración médica.',
-		),
-		array(
-			'key'           => 'endolaser-corporal',
-			'name'          => 'Endoláser Corporal',
-			'path'          => '/endolaser-corporal-grasa-localizada/',
-			'types'         => array( 'MedicalProcedure', 'Service' ),
-			'procedureType' => 'https://schema.org/PercutaneousProcedure',
-			'description'   => 'Procedimiento láser mínimamente invasivo para grasa localizada y retracción cutánea, indicado tras exploración médica.',
-		),
-		array(
-			'key'           => 'laser-co2-fraccionado',
-			'name'          => 'Láser CO₂ Fraccionado',
-			'path'          => '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-			'types'         => array( 'MedicalProcedure', 'Service' ),
-			'procedureType' => 'https://schema.org/NoninvasiveProcedure',
-			'description'   => 'Resurfacing fraccionado para textura, cicatrices, poros y fotodaño con parámetros y recuperación definidos por el médico.',
-		),
-		array(
-			'key'           => 'exion-btl',
-			'name'          => 'Plataforma EXION® BTL',
-			'path'          => '/exion-btl/',
-			'types'         => array( 'MedicalProcedure', 'Service' ),
-			'procedureType' => 'https://schema.org/NoninvasiveProcedure',
-			'description'   => 'Plataforma médica con aplicadores seleccionados según la zona, la calidad de la piel y el resultado esperado.',
-		),
-		array(
-			'key'         => 'medicina-estetica-facial',
-			'name'        => 'Medicina Estética Facial',
-			'path'        => '/medicina-estetica/',
-			'types'       => array( 'Service' ),
-			'description' => 'Servicio médico de planificación facial conservadora con técnicas seleccionadas tras diagnóstico individual.',
-		),
-		array(
-			'key'           => 'bioestimulacion-colageno',
-			'name'          => 'Bioestimulación de colágeno',
-			'path'          => '/medicina-estetica/',
-			'types'         => array( 'MedicalProcedure', 'Service' ),
-			'procedureType' => 'https://schema.org/PercutaneousProcedure',
-			'description'   => 'Protocolos de estimulación tisular definidos según la calidad cutánea, la indicación médica y los objetivos individuales.',
-		),
-		array(
-			'key'           => 'btl-exilite-ipl',
-			'name'          => 'BTL EXILITE™ IPL',
-			'path'          => '/btl-exilite-ipl-madrid/',
-			'types'         => array( 'MedicalProcedure', 'Service' ),
-			'procedureType' => 'https://schema.org/NoninvasiveProcedure',
-			'description'   => 'Luz pulsada médica con parámetros adaptados al fototipo y a la indicación clínica.',
-		),
-	);
+	require_once __DIR__ . '/nvx-catalog-json.php';
+
+	$definitions = nvx_catalog_json_load( 'treatment-hub-schema.json' );
 
 	$items = array();
 	foreach ( $definitions as $index => $definition ) {

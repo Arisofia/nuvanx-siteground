@@ -13,78 +13,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** @return array<int,array{id:string,q:string,a:string}> */
 function nvx_home_faq_v2_catalog(): array {
-    return array(
-        array(
-            'id' => 'valoracion-medica',
-            'q'  => '¿Cómo se solicita una valoración médica en NUVANX?',
-            'a'  => 'Puedes solicitar una valoración médica para revisar tu caso, confirmar si existe indicación y conocer las alternativas antes de decidir un tratamiento.',
-        ),
-        array(
-            'id' => 'precio-endolift',
-            'q'  => '¿Cuánto cuesta el Endolift® facial en NUVANX?',
-            'a'  => 'El presupuesto depende de la zona, la indicación y el plan médico. Se documenta por escrito tras la valoración anatómica presencial.',
-        ),
-        array(
-            'id' => 'duracion-endolift',
-            'q'  => '¿Cuánto duran los resultados del Endolift®?',
-            'a'  => 'La evolución depende de la indicación, la zona tratada, la calidad de piel y los hábitos. En consulta se explican los límites y el seguimiento esperable para tu caso; no existe una duración universal.',
-        ),
-        array(
-            'id' => 'sesiones-co2',
-            'q'  => '¿Cuántas sesiones necesita el láser CO₂ fraccionado?',
-            'a'  => 'El número de sesiones depende de la indicación, el fototipo, la profundidad y la respuesta clínica. El plan y el presupuesto se definen después de la valoración.',
-        ),
-        array(
-            'id' => 'tecnologia-medica',
-            'q'  => '¿Cómo se elige la tecnología en NUVANX?',
-            'a'  => 'La tecnología y sus parámetros se eligen tras la exploración, según la zona, el objetivo, los antecedentes y la indicación médica. No se recomienda una plataforma por tendencia o por una promesa comercial.',
-        ),
-        array(
-            'id' => 'exion-btl',
-            'q'  => '¿Qué ocurre si se valora una plataforma como EXION® BTL?',
-            'a'  => 'La disponibilidad, el aplicador y la indicación se confirman en consulta. El equipo explica qué alternativa puede tener sentido para el caso y los cuidados asociados antes de que decidas.',
-        ),
-        array(
-            'id' => 'tratamiento-adecuado',
-            'q'  => '¿Cómo sé qué tratamiento necesito?',
-            'a'  => 'Solo el médico puede determinarlo tras exploración. En NUVANX el diagnóstico evalúa piel, historial y objetivos antes de indicar Endolift®, CO₂, EXION®, IPL o una combinación. No se decide por teléfono ni por formulario.',
-        ),
-        array(
-            'id' => 'recuperacion',
-            'q'  => '¿Implican los tratamientos tiempo de recuperación?',
-            'a'  => 'Depende del protocolo, la zona, los parámetros y la respuesta individual. Antes de decidir se explican los cuidados, los posibles efectos y el período de recuperación esperable.',
-        ),
-        array(
-            'id' => 'diferencia-estetica',
-            'q'  => '¿Cuál es la diferencia entre NUVANX y una clínica de estética convencional?',
-            'a'  => 'NUVANX son centros sanitarios autorizados (CS20144 y CS20073) con equipo médico colegiado. Los tratamientos requieren indicación médica previa: si no está indicado para tu caso, no se realiza.',
-        ),
-        array(
-            'id' => 'clinicas-madrid',
-            'q'  => '¿Dónde están las clínicas NUVANX en Madrid?',
-            'a'  => 'Dos sedes: Chamberí (C/ Fernández de la Hoz 4, CS20144) y Salamanca–Goya (C/ Fernán González 26, CS20073). Puedes elegir sede al reservar la valoración.',
-        ),
-        array(
-            'id' => 'equipo-medico',
-            'q'  => '¿Quién forma el equipo médico de NUVANX?',
-            'a'  => 'Dirección médica del Dr. José Javier Rivera Tejeda (ICOMEM), con Dra. Ivon Yamileth Rivera Deras (well-aging / geriatría preventiva, FEA Hospital La Paz) y Dr. Fabio Augusto Quiñónez Bareiro (PhD, geriatría y paciente complejo), además del resto del equipo clínico.',
-        ),
-        array(
-            'id' => 'inyectables-trazabilidad',
-            'q'  => '¿Cómo sé que los inyectables que me aplican son productos originales?',
-            'a'  => 'En NUVANX, el Dr. Rivera abre el vial en su presencia en todo momento. El código de lote de cada producto queda registrado en su historial clínico. Trabajamos exclusivamente con Allergan (Juvederm®, Vistabel®) y Merz Aesthetics (Belotero®, Bocouture®) con distribución oficial en España. Si desea el certificado de proveedor, se lo facilitamos antes de firmar cualquier presupuesto.',
-        ),
-        array(
-            'id' => 'dolor-anestesia-laser',
-            'q'  => '¿Qué pasa con el dolor en tratamientos como EXION® Fractional RF o Endolift®?',
-            'a'  => 'No minimizamos el proceso. Los tratamientos de radiofrecuencia fraccionada o láser intersticial producen sensaciones intensas si no se aplica un protocolo anestésico adecuado. En NUVANX, todos los tratamientos de aparatología incluyen formulación magistral anestésica tópica de alta concentración aplicada con tiempo suficiente de acción. Para pacientes con baja tolerancia al dolor, el Dr. Rivera evalúa un protocolo de sedación consciente. La comodidad durante el procedimiento es parte del resultado, no un extra.',
-        ),
-        array(
-            'id' => 'recuperacion-real-laser',
-            'q'  => '¿Cómo es la recuperación real después de EXION® Fractional RF o láser CO₂ fraccionado?',
-            'a'  => 'Sí, hay unos días en los que no vas a estar en tu mejor momento — enrojecimiento tipo quemadura de sol, calor, y en las zonas más tratadas, alguna costra pequeña. No te lo vamos a maquillar como si fuera un día de spa, porque no lo es. Lo que sí hacemos es acompañarte esos días: un protocolo de cuidados post-sesión (con factores de crecimiento, mascarilla biológica y frío) pensado para que la piel se recupere lo más cómoda posible, y seguimiento médico por si algo no evoluciona como se espera.',
-        ),
-    );
+	static $catalog = null;
+	if ( null !== $catalog ) {
+		return $catalog;
+	}
+
+	$catalog = nvx_theme_load_json_catalog( 'nvx-home-faq-v2.json' );
+	return $catalog;
 }
 
 function nvx_home_faq_v2_markup(): string {

@@ -1,0 +1,37 @@
+[
+    {
+        "image": "/uploads/2026/07/Endolift-Papada.webp",
+        "alt": "Caso de paciente tratada con Endolift facial en perfil, papada y cuello",
+        "label": "CASO 01 · ENDOLIFT® FACIAL",
+        "title": "Perfil, papada y cuello",
+        "treatment": "Tratamiento orientado a mejorar la continuidad entre mandíbula y cuello y acompañar la firmeza de la zona submentoniana."
+    },
+    {
+        "image": "/uploads/2026/07/Endolift-Full-Face.webp",
+        "alt": "Caso de paciente tratada con Endolift facial integral",
+        "label": "CASO 02 · ENDOLIFT® FACIAL",
+        "title": "Abordaje facial integral",
+        "treatment": "Tratamiento facial planificado para trabajar calidad cutánea, soporte y armonía del tercio inferior sin alterar los rasgos."
+    },
+    {
+        "image": "/uploads/2026/07/Endolift-Brazos.webp",
+        "alt": "Caso de paciente tratada con Endolift corporal en brazos",
+        "label": "CASO 03 · ENDOLIFT® CORPORAL",
+        "title": "Brazos y continuidad con la axila",
+        "treatment": "Tratamiento corporal orientado al contorno y la firmeza de la cara posterior del brazo, según la calidad de la piel."
+    },
+    {
+        "image": "/uploads/2026/07/Endolift-Abdomen.webp",
+        "alt": "Caso de paciente tratada con Endolift corporal en abdomen y flancos",
+        "label": "CASO 04 · ENDOLIFT® CORPORAL",
+        "title": "Abdomen y flancos",
+        "treatment": "Tratamiento planificado por zonas después de valorar distribución de grasa localizada, flacidez y calidad cutánea."
+    },
+    {
+        "image": "/uploads/2026/07/Endolift-Espalda-Flancos-y-Sujetador.webp",
+        "alt": "Caso de paciente tratada con Endolift corporal en espalda y zona del sujetador",
+        "label": "CASO 05 · ENDOLIFT® CORPORAL",
+        "title": "Espalda y zona del sujetador",
+        "treatment": "Tratamiento dirigido a mejorar la continuidad del contorno en la espalda, adaptado al tejido y a la flacidez de la zona."
+    }
+]

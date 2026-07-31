@@ -158,8 +158,23 @@ export class CDPSession {
     });
   }
 
-  async evaluate(expression) {
-    const result = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+  waitFor(method, timeoutMilliseconds = 30000) {
+    return new Promise((resolve, reject) => {
+      let unsubscribe = () => {};
+      const timer = setTimeout(() => {
+        unsubscribe();
+        reject(new Error(`CDP event timed out: ${method}`));
+      }, timeoutMilliseconds);
+      unsubscribe = this.on(method, (params) => {
+        clearTimeout(timer);
+        unsubscribe();
+        resolve(params || {});
+      });
+    });
+  }
+
+  async evaluate(expression, awaitPromise = true) {
+    const result = await this.send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise });
     if (result.exceptionDetails) throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text || 'Browser evaluation failed.');
     return result.result?.value;
   }

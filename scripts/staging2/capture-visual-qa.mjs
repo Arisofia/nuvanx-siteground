@@ -4,6 +4,15 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
 
+import {
+  sleep,
+  safeName,
+  locateChrome,
+  CDPSession,
+  waitForChrome,
+  createTarget,
+  closeSession,
+} from './visual-qa-common.mjs';
 import { phasePageDefinitions } from './staging2-contract-common.mjs';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
@@ -50,29 +59,6 @@ const report = {
   findings,
 };
 const fail = (scope, message) => findings.push(`${scope}: ${message}`);
-const sleep = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
-const safeName = (value) => value.split('/').filter(Boolean).join('__') || 'home';
-
-function locateChrome() {
-  const candidates = [
-    process.env.CHROME_BIN,
-    'google-chrome-stable',
-    'google-chrome',
-    'chromium',
-    'chromium-browser',
-  ].filter(Boolean);
-  const searchPaths = (process.env.PATH || '').split(path.delimiter);
-
-  for (const candidate of candidates) {
-    if (candidate.includes(path.sep) && fs.existsSync(candidate)) return candidate;
-    for (const searchPath of searchPaths) {
-      const executable = path.join(searchPath, candidate);
-      if (fs.existsSync(executable)) return executable;
-    }
-  }
-  throw new Error('Google Chrome or Chromium is not installed on the runner.');
-}
-
 async function fetchWithRetry(url) {
   let lastStatus = 0;
   let lastBody = '';
@@ -89,130 +75,6 @@ async function fetchWithRetry(url) {
     await sleep(attempt * 1500);
   }
   throw new Error(`HTTP preflight failed with status ${lastStatus}; body marker=${lastBody.slice(0, 120).replace(/\s+/g, ' ')}`);
-}
-
-class CDPSession {
-  constructor(webSocketUrl) {
-    this.webSocketUrl = webSocketUrl;
-    this.webSocket = null;
-    this.nextId = 0;
-    this.pending = new Map();
-    this.waiters = new Map();
-  }
-
-  async connect() {
-    this.webSocket = new WebSocket(this.webSocketUrl);
-    await new Promise((resolve, reject) => {
-      const timer = setTimeout(() => reject(new Error('Timed out opening Chrome DevTools WebSocket.')), 10000);
-      this.webSocket.addEventListener('open', () => {
-        clearTimeout(timer);
-        resolve();
-      }, { once: true });
-      this.webSocket.addEventListener('error', () => {
-        clearTimeout(timer);
-        reject(new Error('Unable to open Chrome DevTools WebSocket.'));
-      }, { once: true });
-    });
-    this.webSocket.addEventListener('message', (event) => this.handleMessage(event));
-  }
-
-  handleMessage(event) {
-    const message = JSON.parse(String(event.data));
-    if (message.id && this.pending.has(message.id)) {
-      const pending = this.pending.get(message.id);
-      clearTimeout(pending.timer);
-      this.pending.delete(message.id);
-      if (message.error) {
-        pending.reject(new Error(`${message.error.message || 'CDP error'} (${message.error.code || 'unknown'})`));
-      } else {
-        pending.resolve(message.result || {});
-      }
-      return;
-    }
-
-    if (message.method && this.waiters.has(message.method)) {
-      const queue = this.waiters.get(message.method);
-      const waiter = queue.shift();
-      if (!queue.length) this.waiters.delete(message.method);
-      clearTimeout(waiter.timer);
-      waiter.resolve(message.params || {});
-    }
-  }
-
-  send(method, params = {}, timeoutMilliseconds = 30000) {
-    const id = ++this.nextId;
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        this.pending.delete(id);
-        reject(new Error(`CDP command timed out: ${method}`));
-      }, timeoutMilliseconds);
-      this.pending.set(id, { resolve, reject, timer });
-      this.webSocket.send(JSON.stringify({ id, method, params }));
-    });
-  }
-
-  waitFor(method, timeoutMilliseconds = 30000) {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        const queue = this.waiters.get(method) || [];
-        this.waiters.set(method, queue.filter((entry) => entry.timer !== timer));
-        reject(new Error(`CDP event timed out: ${method}`));
-      }, timeoutMilliseconds);
-      const queue = this.waiters.get(method) || [];
-      queue.push({ resolve, reject, timer });
-      this.waiters.set(method, queue);
-    });
-  }
-
-  async evaluate(expression, awaitPromise = true) {
-    const result = await this.send('Runtime.evaluate', {
-      expression,
-      returnByValue: true,
-      awaitPromise,
-    });
-    if (result.exceptionDetails) {
-      throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text || 'Browser evaluation failed.');
-    }
-    return result.result?.value;
-  }
-
-  call(functionSource, ...args) {
-    const serializedArgs = args.map((value) => JSON.stringify(value)).join(',');
-    return this.evaluate(`(${functionSource})(${serializedArgs})`);
-  }
-
-  closeSocket() {
-    if (this.webSocket && this.webSocket.readyState <= 1) this.webSocket.close();
-  }
-}
-
-async function waitForChrome(port) {
-  for (let attempt = 0; attempt < 80; attempt += 1) {
-    try {
-      const response = await fetch(`http://127.0.0.1:${port}/json/version`);
-      if (response.ok) return;
-    } catch {
-      // Chrome may still be starting.
-    }
-    await sleep(250);
-  }
-  throw new Error('Chrome DevTools endpoint did not become ready.');
-}
-
-async function createTarget(port) {
-  const response = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' });
-  if (!response.ok) throw new Error(`Unable to create Chrome target: HTTP ${response.status}`);
-  return response.json();
-}
-
-async function closeSession(session) {
-  if (!session) return;
-  try {
-    await session.send('Page.close', {}, 3000);
-  } catch {
-    // The target may already be closed.
-  }
-  session.closeSocket();
 }
 
 async function loadPage(port, url, viewport) {

@@ -1,0 +1,60 @@
+name: Fix shared visual contract once
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/fix-shared-visual-contract-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-contract:
+    if: github.head_ref == 'refactor/sonar-duplication-20260731'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: refactor/sonar-duplication-20260731
+          fetch-depth: 0
+
+      - name: Teach deployment contract about shared visual utilities
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          target = Path('scripts/staging2/test-deploy-workflow-contract.mjs')
+          source = target.read_text(encoding='utf-8')
+          old = """const common = read('scripts/staging2/staging2-contract-common.mjs');
+          const acceptance = read('scripts/staging2/verify-rendered-acceptance-ssh.mjs') + common;
+          const visualQa = read('scripts/staging2/capture-visual-qa.mjs') + common;
+          """
+          new = """const common = read('scripts/staging2/staging2-contract-common.mjs');
+          const acceptance = read('scripts/staging2/verify-rendered-acceptance-ssh.mjs') + common;
+          const visualQaCommon = read('scripts/staging2/visual-qa-common.mjs');
+          const visualQa = read('scripts/staging2/capture-visual-qa.mjs') + visualQaCommon + common;
+          """
+          if source.count(old) != 1:
+              raise SystemExit(f'expected one visual QA source block, found {source.count(old)}')
+          target.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+          node --check scripts/staging2/test-deploy-workflow-contract.mjs
+          node scripts/staging2/test-deploy-workflow-contract.mjs
+          git diff --check
+
+      - name: Commit and remove temporary workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/fix-shared-visual-contract-once.yml
+          git config user.name 'NUVANX Quality Bot'
+          git config user.email 'quality@nuvanx.com'
+          git add scripts/staging2/test-deploy-workflow-contract.mjs .github/workflows
+          git diff --cached --check
+          git commit -m 'test(staging2): validate shared visual QA transport'
+          git push origin HEAD:refactor/sonar-duplication-20260731

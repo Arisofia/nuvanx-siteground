@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NUVANX Valoración Native HubSpot Form
  * Description: Enforces one canonical HubSpot form on /madrid/valoracion/.
- * Version: 2026.07.31.2
+ * Version: 2026.07.31.3
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,7 +21,6 @@ function nvx_valoracion_native_hubspot_is_target_page(): bool {
     return is_page( 2636 ) || is_page( 'valoracion' );
 }
 
-/** Return the one governed HubSpot assessment-form mount. */
 function nvx_valoracion_native_hubspot_mount_markup(): string {
     $portal_id   = preg_replace( '/\D+/', '', (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
     $form_id     = strtolower( trim( (string) NVX_VALORACION_HS_FRAME_FORM_ID ) );
@@ -44,7 +43,7 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
     );
 
     if ( ! is_string( $config ) ) {
-        return '<p class="nvx-form-status" role="status">'
+        return '<p class="nvx-form-status is-error" role="status">'
             . esc_html__( 'El formulario no está disponible temporalmente. Contacta con la clínica para solicitar tu valoración.', 'nuvanx-medical' )
             . '</p>';
     }
@@ -57,6 +56,7 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
   var target = document.getElementById('__NVX_TARGET__');
   var status = document.getElementById('__NVX_STATUS__');
   var timeoutId = null;
+  var observer = null;
 
   function setStatus(message, failed) {
     if (!status) return;
@@ -65,8 +65,13 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
     status.classList.toggle('is-error', Boolean(failed));
   }
 
+  function containsRenderedForm() {
+    return Boolean(target && target.querySelector('iframe, form, .hs-form, .hbspt-form'));
+  }
+
   function markReady(form) {
     window.clearTimeout(timeoutId);
+    if (observer) observer.disconnect();
     if (target) target.dataset.nvxHubspotState = 'ready';
     if (status) status.hidden = true;
     var node = form && form[0] ? form[0] : form;
@@ -75,15 +80,25 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
     }
   }
 
+  function watchRenderedForm() {
+    if (!target || typeof MutationObserver !== 'function') return;
+    observer = new MutationObserver(function () {
+      if (containsRenderedForm()) markReady(target.querySelector('form, iframe'));
+    });
+    observer.observe(target, { childList: true, subtree: true });
+    if (containsRenderedForm()) markReady(target.querySelector('form, iframe'));
+  }
+
   function mountForm() {
     if (!target || target.dataset.nvxHubspotState === 'ready') return;
     if (!(window.hbspt && window.hbspt.forms && typeof window.hbspt.forms.create === 'function')) {
-      if (target) target.dataset.nvxHubspotState = 'sdk-missing';
+      target.dataset.nvxHubspotState = 'sdk-missing';
       setStatus('No ha sido posible iniciar el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
       return;
     }
 
     target.dataset.nvxHubspotState = 'mounting';
+    watchRenderedForm();
     try {
       window.hbspt.forms.create(Object.assign({}, config, {
         onFormReady: markReady,
@@ -92,10 +107,12 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
         }
       }));
       timeoutId = window.setTimeout(function () {
-        if (target.dataset.nvxHubspotState !== 'ready') {
-          target.dataset.nvxHubspotState = 'render-timeout';
-          setStatus('El formulario está tardando más de lo esperado. Puedes solicitar tu valoración desde la página de contacto.', true);
+        if (containsRenderedForm()) {
+          markReady(target.querySelector('form, iframe'));
+          return;
         }
+        target.dataset.nvxHubspotState = 'render-timeout';
+        setStatus('El formulario está tardando más de lo esperado. Puedes solicitar tu valoración desde la página de contacto.', true);
       }, 20000);
     } catch (error) {
       target.dataset.nvxHubspotState = 'create-error';
@@ -151,8 +168,7 @@ JS;
         $runtime
     );
 
-    return '<div class="nvx-hubspot-native-form-v2" data-nvx-hubspot-form="valoracion">'
-        . '<p id="' . esc_attr( $status_id ) . '" class="nvx-form-status" role="status">'
+    return '<p id="' . esc_attr( $status_id ) . '" class="nvx-form-status" role="status">'
         . esc_html__( 'Cargando el formulario de valoración médica…', 'nuvanx-medical' )
         . '</p>'
         . '<div id="' . esc_attr( $target_id ) . '" class="nvx-hubspot-v2-target" data-nvx-hubspot-state="pending"></div>'
@@ -160,7 +176,6 @@ JS;
         . esc_html__( 'Activa JavaScript para completar el formulario o utiliza nuestros canales de contacto.', 'nuvanx-medical' )
         . ' <a href="' . $contact_url . '">' . esc_html__( 'Ver contacto', 'nuvanx-medical' ) . '</a>.</p></noscript>'
         . $runtime
-        . '</div>'
         . '<p class="nvx-copy nvx-hubspot-privacy">'
         . esc_html__( 'Al facilitar tus datos aceptas la ', 'nuvanx-medical' )
         . '<a class="nvx-text-link" href="' . $privacy_url . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>. '

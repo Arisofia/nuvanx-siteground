@@ -1,0 +1,67 @@
+name: Run secondary catalog extractor once
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - scripts/theme-hygiene/externalize-secondary-catalogs-once.php
+      - .github/workflows/tmp-run-secondary-catalog-extractor.yml
+
+permissions:
+  contents: write
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: refactor/sonar-legacy-duplication-phase2-20260731
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Extract secondary catalog data
+        run: php scripts/theme-hygiene/externalize-secondary-catalogs-once.php
+
+      - name: Validate generated files
+        shell: bash
+        run: |
+          set -euo pipefail
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-faq-content-v2.php
+          php -l wp-content/themes/nuvanx-medical/inc/nvx-treatment-hub-schema.php
+          php -r '
+            $files = [
+              "seo-metadata.json",
+              "seo-blog-post-metadata.json",
+              "home-faq-v2.json",
+              "treatment-hub-schema.json",
+            ];
+            foreach ($files as $file) {
+              $path = "wp-content/themes/nuvanx-medical/inc/data/{$file}";
+              $data = json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+              if (!is_array($data) || $data === []) {
+                fwrite(STDERR, "Invalid generated catalog: {$file}\n");
+                exit(1);
+              }
+            }
+          '
+
+      - name: Commit generated catalogs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "chatgpt-codex-connector[bot]"
+          git config user.email "chatgpt-codex-connector[bot]@users.noreply.github.com"
+          git rm .github/workflows/tmp-run-secondary-catalog-extractor.yml
+          git rm scripts/theme-hygiene/externalize-secondary-catalogs-once.php
+          git add wp-content/themes/nuvanx-medical/inc/data/seo-metadata.json \
+                  wp-content/themes/nuvanx-medical/inc/data/seo-blog-post-metadata.json \
+                  wp-content/themes/nuvanx-medical/inc/data/home-faq-v2.json \
+                  wp-content/themes/nuvanx-medical/inc/data/treatment-hub-schema.json \
+                  wp-content/themes/nuvanx-medical/inc/nvx-seo-metadata.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-faq-content-v2.php \
+                  wp-content/themes/nuvanx-medical/inc/nvx-treatment-hub-schema.php
+          git commit -m "refactor(quality): externalize secondary catalog data"
+          git push origin HEAD:refactor/sonar-legacy-duplication-phase2-20260731

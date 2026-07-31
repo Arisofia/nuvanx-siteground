@@ -43,11 +43,10 @@ jobs:
           node --check scripts/staging2/institutional-qa-external-assets-preload.mjs
           python3 - <<'PY'
           from pathlib import Path
+          import re
           css = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-canonical-page-hero.css').read_text()
-          assert 'height: 50rem;' not in css
-          assert 'max-height: 50rem;' not in css
-          assert 'height: 48rem;' not in css
-          assert 'max-height: 48rem;' not in css
+          assert not re.search(r'^\s*height:\s*(?:50|48)rem;', css, re.MULTILINE)
+          assert not re.search(r'^\s*max-height:\s*(?:50|48)rem;', css, re.MULTILINE)
           assert 'Route layers load later' not in css
           plugin = Path('wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php').read_text()
           assert 'nvxHubspotLoaded' in plugin

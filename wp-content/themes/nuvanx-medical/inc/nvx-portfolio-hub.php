@@ -136,7 +136,7 @@ function nvx_treatments_catalog_markup(): string {
             $html .= '<p class="nvx-catalog-card__body">' . esc_html( $item['body'] ) . '</p>';
             $html .= '<p class="nvx-catalog-card__meta">' . esc_html( $item['meta'] ) . '</p>';
             $html .= '</div>';
-            $html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( $item['url'] ) . '">';
+            $html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( $item['url'] ) . '" aria-label="' . esc_attr__( 'Explorar protocolo:', 'nuvanx-medical' ) . ' ' . esc_attr( $item['title'] ) . '">';
             $html .= esc_html__( 'Explorar protocolo', 'nuvanx-medical' );
             $html .= ' <span aria-hidden="true">→</span></a>';
             $html .= '</article>';

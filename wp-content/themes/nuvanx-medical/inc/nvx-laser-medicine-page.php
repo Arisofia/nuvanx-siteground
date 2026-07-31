@@ -182,7 +182,7 @@ function nvxLaserEditorialBodyMarkup(): string {
         $html .= '<p class="nvx-catalog-card__meta"><strong>' . esc_html__( 'Objetivo clínico:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $platform['goal'] ) . '</p>';
         $html .= '<p class="nvx-catalog-card__meta"><strong>' . esc_html__( 'Recuperación:', 'nuvanx-medical' ) . '</strong> ' . esc_html( $platform['recover'] ) . '</p>';
         $html .= '</div>';
-        $html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( $platform['url'] ) . '">' . esc_html__( 'Ver protocolo clínico', 'nuvanx-medical' ) . ' <span aria-hidden="true">&rarr;</span></a>';
+        $html .= '<a class="nvx-catalog-card__cta" href="' . esc_url( $platform['url'] ) . '" aria-label="' . esc_attr__( 'Ver protocolo clínico:', 'nuvanx-medical' ) . ' ' . esc_attr( $platform['title'] ) . '">' . esc_html__( 'Ver protocolo clínico', 'nuvanx-medical' ) . ' <span aria-hidden="true">&rarr;</span></a>';
         $html .= '</article>';
     }
 

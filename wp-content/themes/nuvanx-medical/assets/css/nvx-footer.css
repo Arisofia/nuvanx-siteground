@@ -40,7 +40,7 @@
   line-height: var(--nvx-lh-kicker);
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
-  color: var(--nvx-text-on-dark-72);
+  color: var(--nvx-text-on-dark-90);
 }
 
 .nvx-cta-banner__actions > .nvx-btn--light {

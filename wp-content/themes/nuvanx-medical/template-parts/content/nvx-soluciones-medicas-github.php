@@ -124,7 +124,7 @@ $method_steps = array(
 									<div><dt>Límites</dt><dd><?php echo esc_html( $solution['limit'] ); ?></dd></div>
 								</dl>
 							</div>
-							<a class="nvx-solutions-card__link" href="<?php echo esc_url( home_url( $solution['path'] ) ); ?>">Explorar solución <span aria-hidden="true">→</span></a>
+							<a class="nvx-solutions-card__link" href="<?php echo esc_url( home_url( $solution['path'] ) ); ?>" aria-label="<?php echo esc_attr( 'Explorar solución: ' . $solution['title'] ); ?>">Explorar solución <span aria-hidden="true">→</span></a>
 						</article>
 					<?php endforeach; ?>
 				</div>

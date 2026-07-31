@@ -26,6 +26,11 @@ $division = '<div class="nvx-brand-hero__media"><img src="division.jpg" alt=""><
 $nestedDivision = '<div class="nvx-brand-hero__media"><div class="frame"><img src="nested.jpg" alt=""></div></div>';
 
 nvx_page_helper_assert(
+$figure = '<figure class="nvx-brand-hero__media"><img src="figure.jpg" alt=""></figure>';
+$division = '<div class="nvx-brand-hero__media"><img src="division.jpg" alt=""></div>';
+$nestedDivision = '<div class="nvx-brand-hero__media"><div class="frame"><img src="nested.jpg" alt=""></div></div>';
+
+nvx_page_helper_assert(
     nvx_page_extract_brand_hero_media('<main>' . $figure . '</main>') === $figure,
     'Figure hero media extraction changed.'
 );

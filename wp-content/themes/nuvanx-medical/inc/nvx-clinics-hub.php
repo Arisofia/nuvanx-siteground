@@ -456,18 +456,16 @@ function nvxClinicsFindBrandSectionAncestor( DOMElement $flow ): ?DOMElement {
 }
 
 function nvxClinicsShouldHoistFlow( DOMElement $flow, DOMXPath $xpath ): ?DOMElement {
-    if ( ! $flow->parentNode ) {
-        return null;
-    }
+    $brand_section = null;
 
-    $brand_section = nvxClinicsFindBrandSectionAncestor( $flow );
-    if ( ! $brand_section instanceof DOMElement || ! $brand_section->parentNode ) {
-        return null;
-    }
-
-    $nested = $xpath->query( './/section', $flow );
-    if ( false === $nested || $nested->length < 1 ) {
-        return null;
+    if ( $flow->parentNode ) {
+        $candidate = nvxClinicsFindBrandSectionAncestor( $flow );
+        if ( $candidate instanceof DOMElement && $candidate->parentNode ) {
+            $nested = $xpath->query( './/section', $flow );
+            if ( false !== $nested && $nested->length > 0 ) {
+                $brand_section = $candidate;
+            }
+        }
     }
 
     return $brand_section;
@@ -656,50 +654,58 @@ function nvxClinicsCardLinkNeedsDemotion( string $text, DOMElement $link ): bool
     return (bool) preg_match( '/\bnvx-brand-card\b/i', nvxClinicsAncestorClassBlob( $link ) );
 }
 
-/** Classify and style single CTA link node. */
-function nvxClinicsClassifySingleCtaLink( DOMElement $link, string $href, string $text, string $class ): void {
-    $is_btn = (bool) preg_match( '/\b(nvx-brand-btn|nvx-button|nvx-btn)\b/i', $class );
+/** Determine the presentation treatment for one clinic CTA. */
+function nvxClinicsCtaTreatment( DOMElement $link, string $href, string $text, bool $is_btn ): string {
+    $treatment = '';
+    $parent    = $link->parentNode;
 
     if ( preg_match( '/^Solicitar\s*$/iu', $text ) ) {
-        $link->nodeValue = 'Reservar valoración';
-        nvxClinicsSetBrandButton( $link, 'primary' );
-        if ( '' === $href || '#' === $href ) {
-            $valoracion = function_exists( 'nvx_cta_valoracion_url' )
-                ? nvx_cta_valoracion_url()
-                : home_url( '/madrid/valoracion/' );
-            $link->setAttribute( 'href', $valoracion );
-        }
-        return;
+        $treatment = 'solicitar';
+    } elseif ( $parent instanceof DOMElement && in_array( strtolower( $parent->tagName ), array( 'h1', 'h2', 'h3', 'h4' ), true ) ) {
+        $treatment = 'inline';
+    } elseif ( nvxClinicsIsPhoneOrWhatsappLink( $href, $text ) ) {
+        $treatment = 'inline';
+    } elseif ( nvxClinicsLinkIsMapAction( $href, $text ) ) {
+        $treatment = 'map';
+    } elseif ( nvxClinicsLinkIsSecondaryAction( $href, $text ) ) {
+        $treatment = 'secondary';
+    } elseif ( $is_btn && nvxClinicsLinkIsPrimaryAction( $text ) ) {
+        $treatment = 'primary';
+    } elseif ( $is_btn && nvxClinicsCardLinkNeedsDemotion( $text, $link ) ) {
+        $treatment = 'inline';
     }
 
-    $parent = $link->parentNode;
-    if ( $parent instanceof DOMElement && in_array( strtolower( $parent->tagName ), array( 'h1', 'h2', 'h3', 'h4' ), true ) ) {
-        nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
-        return;
-    }
+    return $treatment;
+}
 
-    if ( nvxClinicsIsPhoneOrWhatsappLink( $href, $text ) ) {
-        nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
-        return;
-    }
+/** Classify and style single CTA link node. */
+function nvxClinicsClassifySingleCtaLink( DOMElement $link, string $href, string $text, string $class ): void {
+    $is_btn    = (bool) preg_match( '/\b(nvx-brand-btn|nvx-button|nvx-btn)\b/i', $class );
+    $treatment = nvxClinicsCtaTreatment( $link, $href, $text, $is_btn );
 
-    if ( nvxClinicsLinkIsMapAction( $href, $text ) ) {
-        nvxClinicsSetBrandButton( $link, 'secondary', array( 'nvx-clinic-map-cta' ) );
-        return;
-    }
-
-    if ( nvxClinicsLinkIsSecondaryAction( $href, $text ) ) {
-        nvxClinicsSetBrandButton( $link, 'secondary' );
-        return;
-    }
-
-    if ( $is_btn && nvxClinicsLinkIsPrimaryAction( $text ) ) {
-        nvxClinicsSetBrandButton( $link, 'primary' );
-        return;
-    }
-
-    if ( $is_btn && nvxClinicsCardLinkNeedsDemotion( $text, $link ) ) {
-        nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
+    switch ( $treatment ) {
+        case 'solicitar':
+            $link->nodeValue = 'Reservar valoración';
+            nvxClinicsSetBrandButton( $link, 'primary' );
+            if ( '' === $href || '#' === $href ) {
+                $valoracion = function_exists( 'nvx_cta_valoracion_url' )
+                    ? nvx_cta_valoracion_url()
+                    : home_url( '/madrid/valoracion/' );
+                $link->setAttribute( 'href', $valoracion );
+            }
+            break;
+        case 'inline':
+            nvxClinicsStripButtonClasses( $link, 'nvx-brand-inline-link' );
+            break;
+        case 'map':
+            nvxClinicsSetBrandButton( $link, 'secondary', array( 'nvx-clinic-map-cta' ) );
+            break;
+        case 'secondary':
+            nvxClinicsSetBrandButton( $link, 'secondary' );
+            break;
+        case 'primary':
+            nvxClinicsSetBrandButton( $link, 'primary' );
+            break;
     }
 }
 

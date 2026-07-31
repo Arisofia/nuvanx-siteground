@@ -353,30 +353,40 @@ function nvxNavigationFilterMenuArgs( array $args ): array {
 }
 add_filter( 'wp_nav_menu_args', 'nvxNavigationFilterMenuArgs', 20 );
 
+function nvxNavigationIsItemDirectlyBlocked( $item ): bool {
+    $item_id   = isset( $item->ID ) ? (int) $item->ID : 0;
+    $object_id = isset( $item->object_id ) ? (int) $item->object_id : 0;
+    $object    = isset( $item->object ) ? (string) $item->object : '';
+
+    return $item_id > 0 && 'page' === $object && $object_id > 0 && 'publish' !== get_post_status( $object_id );
+}
+
+function nvxNavigationPropagateBlockedStatus( array $items, array &$blocked ): bool {
+    $changed = false;
+    foreach ( $items as $item ) {
+        $item_id = isset( $item->ID ) ? (int) $item->ID : 0;
+        $parent  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
+        if ( $item_id > 0 && $parent > 0 && isset( $blocked[ $parent ] ) && ! isset( $blocked[ $item_id ] ) ) {
+            $blocked[ $item_id ] = true;
+            $changed             = true;
+        }
+    }
+    return $changed;
+}
+
 /** Build set of blocked menu items including descendants of unpublished pages. */
 function nvxNavigationFindBlockedMenuItems( array $items ): array {
     $blocked = array();
     foreach ( $items as $item ) {
-        $item_id   = isset( $item->ID ) ? (int) $item->ID : 0;
-        $object_id = isset( $item->object_id ) ? (int) $item->object_id : 0;
-        $object    = isset( $item->object ) ? (string) $item->object : '';
-
-        if ( $item_id > 0 && 'page' === $object && $object_id > 0 && 'publish' !== get_post_status( $object_id ) ) {
+        if ( nvxNavigationIsItemDirectlyBlocked( $item ) ) {
+            $item_id = isset( $item->ID ) ? (int) $item->ID : 0;
             $blocked[ $item_id ] = true;
         }
     }
 
     $changed = true;
     while ( $changed ) {
-        $changed = false;
-        foreach ( $items as $item ) {
-            $item_id = isset( $item->ID ) ? (int) $item->ID : 0;
-            $parent  = isset( $item->menu_item_parent ) ? (int) $item->menu_item_parent : 0;
-            if ( $item_id > 0 && $parent > 0 && isset( $blocked[ $parent ] ) && ! isset( $blocked[ $item_id ] ) ) {
-                $blocked[ $item_id ] = true;
-                $changed             = true;
-            }
-        }
+        $changed = nvxNavigationPropagateBlockedStatus( $items, $blocked );
     }
     return $blocked;
 }

@@ -91,9 +91,9 @@ function nvxHomeFaqV2ReplaceCandidates( DOMElement $import, array $candidates, D
     }
 }
 
-function nvxHomeFaqV2Transform( string $content ): string {
+function nvxHomeFaqV2ShouldBypassTransform( string $content, ?string &$refreshed_content ): bool {
+    $refreshed_content = null;
     if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || ! is_front_page() || false !== strpos( $content, 'data-nvx-faq-source="canonical"' ) || ! class_exists( 'DOMDocument' ) ) {
-        // Allow refresh when already marked: rebuild markup.
         if ( is_front_page() && false !== strpos( $content, 'data-nvx-faq-source="canonical"' ) ) {
             $refreshed = preg_replace(
                 '/<section\b[^>]*\bid=["\']nvx-home-faq["\'][^>]*>[\s\S]*?<\/section>/iu',
@@ -101,9 +101,19 @@ function nvxHomeFaqV2Transform( string $content ): string {
                 $content,
                 1
             );
-            return is_string( $refreshed ) ? $refreshed : $content;
+            $refreshed_content = is_string( $refreshed ) ? $refreshed : $content;
+        } else {
+            $refreshed_content = $content;
         }
-        return $content;
+        return true;
+    }
+    return false;
+}
+
+function nvxHomeFaqV2Transform( string $content ): string {
+    $refreshed = null;
+    if ( nvxHomeFaqV2ShouldBypassTransform( $content, $refreshed ) ) {
+        return (string) $refreshed;
     }
 
     $previous = libxml_use_internal_errors( true );

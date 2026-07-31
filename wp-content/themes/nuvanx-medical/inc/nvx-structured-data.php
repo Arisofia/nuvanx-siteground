@@ -427,6 +427,37 @@ function nvx_schema_is_sede_template( $page_id ) {
     return (bool) preg_match( '#(^|/)page-sede\.php$#', $slug );
 }
 
+function nvx_schema_resolve_clinic_keys_from_meta( int $page_id, array $registry ): array {
+    if ( $page_id <= 0 ) {
+        return array();
+    }
+    $meta = strtolower( trim( (string) get_post_meta( $page_id, '_nvx_clinic_branch', true ) ) );
+    if ( 'all' === $meta || 'both' === $meta ) {
+        return array_keys( $registry['clinics'] );
+    } elseif ( isset( $registry['clinics'][ $meta ] ) ) {
+        return array( $meta );
+    }
+    return array();
+}
+
+function nvx_schema_resolve_clinic_keys_from_registry( int $page_id, string $path, array $registry ): array {
+    $matched = array();
+    foreach ( $registry['clinics'] as $key => $entry ) {
+        if ( (int) $entry['id'] === $page_id || nvx_schema_path_matches( $path, $entry['path'] ) ) {
+            $matched[] = $key;
+        }
+    }
+    return ! empty( $matched ) ? array_values( array_unique( $matched ) ) : array();
+}
+
+function nvx_schema_resolve_clinic_keys_from_hub( int $page_id, string $path, array $registry ): array {
+    $hub = $registry['clinic_hub'];
+    if ( (int) $hub['id'] === $page_id || nvx_schema_path_matches( $path, $hub['path'] ) || nvx_schema_is_sede_template( $page_id ) ) {
+        return array_keys( $registry['clinics'] );
+    }
+    return array();
+}
+
 /**
  * Resolve which clinic branch keys apply on the current page.
  *
@@ -443,33 +474,14 @@ function nvx_schema_resolve_clinic_keys( $page_id ) {
         return array_keys( $registry['clinics'] );
     }
 
-    $keys = array();
-    if ( $page_id > 0 ) {
-        $meta = strtolower( trim( (string) get_post_meta( $page_id, '_nvx_clinic_branch', true ) ) );
-        if ( 'all' === $meta || 'both' === $meta ) {
-            $keys = array_keys( $registry['clinics'] );
-        } elseif ( isset( $registry['clinics'][ $meta ] ) ) {
-            $keys = array( $meta );
-        }
+    $keys = nvx_schema_resolve_clinic_keys_from_meta( (int) $page_id, $registry );
+    
+    if ( empty( $keys ) ) {
+        $keys = nvx_schema_resolve_clinic_keys_from_registry( (int) $page_id, $path, $registry );
     }
 
     if ( empty( $keys ) ) {
-        $matched = array();
-        foreach ( $registry['clinics'] as $key => $entry ) {
-            if ( (int) $entry['id'] === $page_id || nvx_schema_path_matches( $path, $entry['path'] ) ) {
-                $matched[] = $key;
-            }
-        }
-        if ( ! empty( $matched ) ) {
-            $keys = array_values( array_unique( $matched ) );
-        }
-    }
-
-    if ( empty( $keys ) ) {
-        $hub = $registry['clinic_hub'];
-        if ( (int) $hub['id'] === $page_id || nvx_schema_path_matches( $path, $hub['path'] ) || nvx_schema_is_sede_template( $page_id ) ) {
-            $keys = array_keys( $registry['clinics'] );
-        }
+        $keys = nvx_schema_resolve_clinic_keys_from_hub( (int) $page_id, $path, $registry );
     }
 
     return $keys;

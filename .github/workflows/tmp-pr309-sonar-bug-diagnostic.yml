@@ -1,0 +1,78 @@
+name: Verify PR 309 Sonar bugs once
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths:
+      - scripts/theme-hygiene/trigger-pr309-sonar-bug-diagnostic.txt
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr309-sonar-bug-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Verify SonarCloud BUG resolution
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Poll SonarCloud PR analysis
+        shell: bash
+        run: |
+          set -euo pipefail
+          issues_url='https://sonarcloud.io/api/issues/search?componentKeys=Arisofia_nuvanx-siteground&pullRequest=309&resolved=false&types=BUG&ps=100'
+          gate_url='https://sonarcloud.io/api/qualitygates/project_status?projectKey=Arisofia_nuvanx-siteground&pullRequest=309'
+
+          for attempt in $(seq 1 12); do
+            curl --fail --silent --show-error --location "$issues_url" -o /tmp/sonar-bugs.json
+            curl --fail --silent --show-error --location "$gate_url" -o /tmp/sonar-gate.json
+            bug_count="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('/tmp/sonar-bugs.json').read_text(encoding='utf-8'))
+          print(len(payload.get('issues', [])))
+          PY
+          )"
+            gate_status="$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path('/tmp/sonar-gate.json').read_text(encoding='utf-8'))
+          print(payload.get('projectStatus', {}).get('status', 'UNKNOWN'))
+          PY
+          )"
+            echo "ATTEMPT=${attempt} OPEN_BUG_COUNT=${bug_count} QUALITY_GATE=${gate_status}"
+            if [ "$bug_count" = '0' ]; then
+              break
+            fi
+            sleep 15
+          done
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          issues = json.loads(Path('/tmp/sonar-bugs.json').read_text(encoding='utf-8')).get('issues', [])
+          gate = json.loads(Path('/tmp/sonar-gate.json').read_text(encoding='utf-8')).get('projectStatus', {})
+          print(f'FINAL_OPEN_BUG_COUNT={len(issues)}')
+          print(f'FINAL_QUALITY_GATE={gate.get("status", "UNKNOWN")}')
+          for condition in gate.get('conditions', []):
+              print(
+                  'CONDITION '
+                  f'metric={condition.get("metricKey", "")} '
+                  f'status={condition.get("status", "")} '
+                  f'value={condition.get("actualValue", "")} '
+                  f'threshold={condition.get("errorThreshold", "")}'
+              )
+          for index, issue in enumerate(issues, 1):
+              component = issue.get('component', '')
+              path = component.split(':', 1)[-1]
+              line = issue.get('line') or issue.get('textRange', {}).get('startLine') or ''
+              print(
+                  f'BUG_{index} rule={issue.get("rule", "")} '
+                  f'path={path} line={line} message={issue.get("message", "")}'
+              )
+          PY

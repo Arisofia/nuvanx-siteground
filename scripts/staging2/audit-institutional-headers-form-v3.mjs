@@ -96,7 +96,7 @@ async function connectBrowser(port) {
 }
 
 async function readHero(session) {
-  return session.evaluate(String.raw`(() => {
+  return session.evaluate(`(() => {
     const hero = Array.from(document.querySelectorAll('.nvx-canonical-page-hero, .nvx-page--contact > .nvx-brand-hero')).find((node) => node.querySelector('h1')) || null;
     const copy = hero?.querySelector('.nvx-editorial-hero__copy');
     const h1 = hero?.querySelector('h1');
@@ -135,17 +135,32 @@ async function readHero(session) {
   })()`);
 }
 
-function compareHero(reference, state, scope) {
-  for (const [key, tolerance] of [
-    ['heroHeight', 2], ['heroWidth', 2], ['heroLeft', 2], ['copyHeight', 2],
-    ['copyWidth', 2], ['copyLeft', 2], ['h1FontSize', 0.5], ['h1LineHeight', 0.5],
-  ]) if (!nearlyEqual(state[key], reference[key], tolerance)) fail(scope, `${key} ${state[key]} differs from ${reference[key]}`);
+function validateHeroState(state, scope, expectedH1, viewport) {
+  if (!state.found) { fail(scope, 'canonical hero structure was not found'); return; }
+  if (state.deploySha !== config.expectedSha) fail(scope, `served SHA ${state.deploySha || 'absent'}`);
+  if (state.h1Text !== expectedH1) fail(scope, `unexpected H1: ${state.h1Text || 'absent'}`);
+  if (state.heroWidth < viewport.width - 2) fail(scope, `hero width ${state.heroWidth}px does not fill viewport`);
+  if (state.heroOverflow !== 'hidden') fail(scope, `hero overflow is ${state.heroOverflow}`);
+  if (state.copyDisplay !== 'flex' || state.copyJustify !== 'flex-end') fail(scope, `copy layout is ${state.copyDisplay}/${state.copyJustify}`);
+  if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
+}
 
-  for (const key of [
-    'heroBackground', 'heroOverflow', 'copyDisplay', 'copyJustify',
-    'copyPaddingTop', 'copyPaddingRight', 'copyPaddingBottom', 'copyPaddingLeft',
-    'h1Color', 'eyebrowColor',
-  ]) if (state[key] !== reference[key]) fail(scope, `${key} ${state[key]} differs from ${reference[key]}`);
+function auditParity(states, viewport) {
+  const reference = states.find((state) => state.path === institutionalPages[0][0] && state.found);
+  if (!reference) { fail(`institutional parity ${viewport.name}`, 'Clinics reference hero was not available'); return; }
+  for (const state of states.filter((candidate) => candidate.found)) {
+    const scope = `institutional parity ${state.path} ${viewport.name}`;
+    for (const [key, tolerance] of [
+      ['heroHeight', 2], ['heroWidth', 2], ['heroLeft', 2], ['copyHeight', 2],
+      ['copyWidth', 2], ['copyLeft', 2], ['h1FontSize', 0.5], ['h1LineHeight', 0.5],
+    ]) if (!nearlyEqual(state[key], reference[key], tolerance)) fail(scope, `${key} ${state[key]} differs from ${reference[key]}`);
+
+    for (const key of [
+      'heroBackground', 'heroOverflow', 'copyDisplay', 'copyJustify',
+      'copyPaddingTop', 'copyPaddingRight', 'copyPaddingBottom', 'copyPaddingLeft',
+      'h1Color', 'eyebrowColor',
+    ]) if (state[key] !== reference[key]) fail(scope, `${key} ${state[key]} differs from ${reference[key]}`);
+  }
 }
 
 async function auditHeaders(port) {
@@ -160,31 +175,24 @@ async function auditHeaders(port) {
         Object.assign(state, { path: pagePath, viewport: viewport.name });
         states.push(state);
         report.institutional_headers.push(state);
-        if (!state.found) { fail(scope, 'canonical hero structure was not found'); continue; }
-        if (state.deploySha !== config.expectedSha) fail(scope, `served SHA ${state.deploySha || 'absent'}`);
-        if (state.h1Text !== expectedH1) fail(scope, `unexpected H1: ${state.h1Text || 'absent'}`);
-        if (state.heroWidth < viewport.width - 2) fail(scope, `hero width ${state.heroWidth}px does not fill viewport`);
-        if (state.heroOverflow !== 'hidden') fail(scope, `hero overflow is ${state.heroOverflow}`);
-        if (state.copyDisplay !== 'flex' || state.copyJustify !== 'flex-end') fail(scope, `copy layout is ${state.copyDisplay}/${state.copyJustify}`);
-        if (state.overflow > 2) fail(scope, `horizontal overflow is ${state.overflow}px`);
+        validateHeroState(state, scope, expectedH1, viewport);
       } catch (error) {
         fail(scope, error instanceof Error ? error.message : String(error));
       } finally {
         await closeSession(session);
       }
     }
-    const reference = states.find((state) => state.path === institutionalPages[0][0] && state.found);
-    if (!reference) { fail(`institutional parity ${viewport.name}`, 'Clinics reference hero was not available'); continue; }
-    for (const state of states.filter((candidate) => candidate.found)) compareHero(reference, state, `institutional parity ${state.path} ${viewport.name}`);
+    auditParity(states, viewport);
   }
 }
 
 async function readParentForm(session) {
-  return session.evaluate(String.raw`(() => {
+  return session.evaluate(`(() => {
     const section = document.getElementById('nvx-hubspot-form');
     const mount = document.getElementById('nvx-hubspot-native-form');
     const target = document.getElementById('nvx-hubspot-v2-target');
     const iframe = target?.querySelector('iframe');
+    const inlineForm = target?.querySelector('form');
     const sr = section?.getBoundingClientRect();
     const mr = mount?.getBoundingClientRect();
     const tr = target?.getBoundingClientRect();
@@ -196,6 +204,7 @@ async function readParentForm(session) {
       loaderSrc: document.querySelector('script[data-nvx-hubspot-loader="valoracion"]')?.src || '',
       formState: target?.dataset.nvxHubspotState || '',
       iframeCount: target?.querySelectorAll('iframe').length || 0,
+      inlineFormCount: target?.querySelectorAll('form').length || 0,
       iframeSrc: iframe?.src || '',
       iframeVisible: !!iframe && getComputedStyle(iframe).display !== 'none' && fr.width > 0 && fr.height > 0,
       iframeWidth: fr?.width || 0,
@@ -245,7 +254,7 @@ async function inspectHubSpotTarget(browser, iframeSrc) {
   let state = null;
   for (let attempt = 0; attempt < 80; attempt += 1) {
     const evaluation = await browser.send('Runtime.evaluate', {
-      expression: String.raw`(() => {
+      expression: `(() => {
         const visible = (node) => {
           const style = getComputedStyle(node);
           const rect = node.getBoundingClientRect();
@@ -291,7 +300,9 @@ async function auditForm(port, browser) {
       if (parent.mountCount !== 1 || parent.targetCount !== 1 || parent.loaderCount !== 1) fail(scope, `mount/target/loader counts are ${parent.mountCount}/${parent.targetCount}/${parent.loaderCount}`);
       if (!/js\.hsforms\.net\/forms\/embed\/v2\.js/i.test(parent.loaderSrc)) fail(scope, `unexpected loader URL: ${parent.loaderSrc || 'absent'}`);
       if (parent.formState !== 'ready') fail(scope, `form state is ${parent.formState || 'absent'}`);
-      if (parent.iframeCount !== 1 || !parent.iframeVisible) fail(scope, 'one visible HubSpot iframe was not rendered');
+      if (parent.iframeCount !== 1) fail(scope, `expected exactly 1 iframe, found ${parent.iframeCount}`);
+      if (parent.inlineFormCount !== 1) fail(scope, `expected exactly 1 inline form mount, found ${parent.inlineFormCount}`);
+      if (!parent.iframeVisible) fail(scope, 'HubSpot iframe is not visible');
       const minimumWidth = viewport.mobile ? 270 : 700;
       if (parent.iframeWidth < minimumWidth) fail(scope, `iframe width ${parent.iframeWidth}px is below ${minimumWidth}px`);
       if (parent.iframeHeight < 700) fail(scope, `iframe height ${parent.iframeHeight}px is below 700px`);

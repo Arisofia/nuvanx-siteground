@@ -213,12 +213,12 @@ function nvx_seo_is_nonproduction_environment(): bool {
     $host   = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
     $public = in_array( strtolower( $host ), array( 'nuvanx.com', 'www.nuvanx.com' ), true );
 
-    if ( $public || ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) ) {
-        return false;
+    if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) {
+        return true;
     }
 
     $environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
-    return 'production' !== $environment;
+    return ! $public || 'production' !== $environment;
 }
 
 /**

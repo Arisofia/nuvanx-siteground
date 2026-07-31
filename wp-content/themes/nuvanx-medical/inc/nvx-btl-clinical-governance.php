@@ -45,9 +45,16 @@ function nvx_btl_is_governed_request(): bool {
     return in_array( $slug, nvx_btl_governed_slugs(), true );
 }
 
-/** Build one source-to-governed claim replacement. */
+/**
+ * Build one source-to-governed claim replacement.
+ *
+ * @return array{source: string, governed: string}
+ */
 function nvxBtlClaimPair( string $source, string $governed ): array {
-    return compact( 'source', 'governed' );
+    return array(
+        'source'   => $source,
+        'governed' => $governed,
+    );
 }
 
 /**

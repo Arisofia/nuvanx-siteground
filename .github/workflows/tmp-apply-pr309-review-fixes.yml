@@ -42,7 +42,7 @@ jobs:
           )
           source = source.replace(
               "git rm scripts/theme-hygiene/apply-pr309-review-contracts-once.sh\n",
-              "git rm scripts/theme-hygiene/apply-pr309-review-contracts-once.sh\n"
+              "git rm -f scripts/theme-hygiene/apply-pr309-review-contracts-once.sh\n"
               "git rm scripts/theme-hygiene/normalize-pr309-review-inputs-once.py\n",
           )
           source = source.replace(

@@ -57,14 +57,22 @@ function nvx_catalog_transform_values( $value, callable $transform ) {
 /**
  * Resolve tokens captured from WordPress-aware catalog declarations.
  *
- * @param array<mixed>  $catalog Catalog data.
- * @param callable|null $claim_resolver Optional BTL claim resolver.
+ * Custom resolvers receive the encoded token payload and may reconstruct
+ * page-specific values without coupling the shared loader to page modules.
+ *
+ * @param array<mixed>            $catalog Catalog data.
+ * @param callable|null           $claim_resolver Optional BTL claim resolver.
+ * @param array<string, callable> $custom_resolvers Optional prefix resolvers.
  * @return array<mixed>
  */
-function nvx_catalog_resolve_tokens( array $catalog, ?callable $claim_resolver = null ): array {
+function nvx_catalog_resolve_tokens(
+    array $catalog,
+    ?callable $claim_resolver = null,
+    array $custom_resolvers = array()
+): array {
     return nvx_catalog_transform_values(
         $catalog,
-        static function ( string $value ) use ( $claim_resolver ) {
+        static function ( string $value ) use ( $claim_resolver, $custom_resolvers ) {
             $prefixes = array(
                 '@nvx-i18n:' => static function ( string $payload ) {
                     return __( (string) base64_decode( $payload, true ), 'nuvanx-medical' );
@@ -74,8 +82,8 @@ function nvx_catalog_resolve_tokens( array $catalog, ?callable $claim_resolver =
                 },
             );
 
-            foreach ( $prefixes as $prefix => $resolver ) {
-                if ( 0 === strpos( $value, $prefix ) ) {
+            foreach ( array_merge( $prefixes, $custom_resolvers ) as $prefix => $resolver ) {
+                if ( is_callable( $resolver ) && 0 === strpos( $value, $prefix ) ) {
                     return $resolver( substr( $value, strlen( $prefix ) ) );
                 }
             }

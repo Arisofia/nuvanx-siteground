@@ -1,0 +1,228 @@
+name: Release fb557b8 to staging2 once
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/tmp-release-fb557b8-staging2.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-fb557b8-staging2
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.repository == 'Arisofia/nuvanx-siteground' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: staging2
+      url: https://staging2.nuvanx.com
+    env:
+      DEPLOY_SHA: fb557b8cffabb3041b00d7887a2167d1eaf9bf8f
+      WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      BASE_URL: https://staging2.nuvanx.com
+    steps:
+      - name: Checkout master history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout immutable release SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git fetch --no-tags origin master
+          git cat-file -e "${DEPLOY_SHA}^{commit}"
+          git merge-base --is-ancestor "$DEPLOY_SHA" origin/master
+          git checkout --detach "$DEPLOY_SHA"
+          test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
+
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
+        with:
+          php-version: '8.2'
+          coverage: none
+          tools: none
+
+      - name: Validate immutable release locally
+        shell: bash
+        run: |
+          set -euo pipefail
+          find wp-content/themes/nuvanx-medical -type f -name '*.php' -print0 | xargs -0 -n 1 php -l >/tmp/php-lint.log
+          php scripts/theme-hygiene/test-catalog-json-contract.php
+          php scripts/theme-hygiene/test-catalog-json-runtime-contract.php
+          php scripts/theme-hygiene/test-catalog-review-contract.php
+          php scripts/theme-hygiene/test-page-render-helpers.php
+          php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
+          php -l /tmp/nvx-catalog-i18n.php
+          php scripts/theme-hygiene/test-catalog-i18n-source-contract.php /tmp/nvx-catalog-i18n.php
+          node --check scripts/theme-hygiene/test-theme-hygiene.mjs
+          node scripts/theme-hygiene/test-theme-hygiene.mjs
+          bash -n tools/deploy/deploy-to-staging2.sh
+
+      - name: Configure strict SSH authentication
+        shell: bash
+        env:
+          STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          STAGING2_SSH_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          STAGING2_SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          STAGING2_SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          STAGING2_SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${STAGING2_SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${STAGING2_SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${STAGING2_SSH_PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]]
+          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]
+          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
+          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName $STAGING2_SSH_HOST
+            User $STAGING2_SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Verify staging2 identity and content prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"
+          test "$(ssh nvx-staging2 "cd '$WP_ROOT' && wp option get siteurl")" = "$BASE_URL"
+          test "$(ssh nvx-staging2 "cd '$WP_ROOT' && wp option get home")" = "$BASE_URL"
+          test "$(ssh nvx-staging2 "cd '$WP_ROOT' && wp theme list --status=active --field=name")" = 'nuvanx-medical'
+          test "$(ssh nvx-staging2 "cd '$WP_ROOT' && wp post list --post_type=page --post_status=publish --name=exion-face --format=count")" = '1'
+          test "$(ssh nvx-staging2 "cd '$WP_ROOT' && wp post list --post_type=page --post_status=publish --name=soluciones-medicas --format=count")" = '1'
+
+      - name: Upload immutable release payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_RELEASE="$WP_ROOT/wp-content/.nuvanx-deployments/${DEPLOY_SHA}-${GITHUB_RUN_ID}"
+          echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme'"
+          rsync -az --delete \
+            --exclude='.git' \
+            --exclude='php_errorlog' \
+            --exclude='*.log' \
+            --exclude='_archive*' \
+            --exclude='_disabled*' \
+            --exclude='*.bak*' \
+            wp-content/themes/nuvanx-medical/ \
+            "nvx-staging2:$REMOTE_RELEASE/theme/"
+          rsync -az tools/deploy/deploy-to-staging2.sh "nvx-staging2:$REMOTE_RELEASE/deploy-to-staging2.sh"
+
+      - name: Execute guarded staging2 deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm"
+
+      - name: Verify deployed marker
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(ssh nvx-staging2 "tr -d '\r\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")" = "$DEPLOY_SHA"
+
+      - name: P0 rendered acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmpdir="$(mktemp -d)"
+          trap 'rm -rf "$tmpdir"' EXIT
+
+          fetch_route() {
+            local route="$1"
+            local name="$2"
+            local file="$tmpdir/$name.html"
+            local code
+            code="$(curl -sS -L --retry 5 --retry-all-errors --connect-timeout 15 --max-time 60 -o "$file" -w '%{http_code}' "$BASE_URL$route?nvx_release=$DEPLOY_SHA")"
+            test "$code" = '200' || { echo "$route returned $code" >&2; return 1; }
+            grep -Fq "<meta name=\"nvx-deploy-sha\" content=\"$DEPLOY_SHA\"" "$file"
+            grep -Eiq "<meta name=['\"]robots['\"] content=['\"][^'\"]*noindex[^'\"]*nofollow" "$file"
+            grep -Fq '<h1' "$file"
+            ! grep -Eiq 'Fatal error|Parse error|Uncaught Error|Página no encontrada|Page not found' "$file"
+            ! grep -Fq '@nvx-' "$file"
+          }
+
+          fetch_route '/' home
+          grep -Fq 'nvx-home-v3' "$tmpdir/home.html"
+
+          fetch_route '/soluciones-medicas/' solutions
+          grep -Fq 'nvx-solutions-page' "$tmpdir/solutions.html"
+          grep -Fq 'mapa-soluciones' "$tmpdir/solutions.html"
+          test "$(grep -o 'class=\"nvx-solutions-group nvx-solutions-group--' "$tmpdir/solutions.html" | wc -l | tr -d ' ')" = '4'
+          test "$(grep -o 'class=\"nvx-solutions-card\"' "$tmpdir/solutions.html" | wc -l | tr -d ' ')" = '14'
+          grep -Fq 'Papada y línea mandibular' "$tmpdir/solutions.html"
+          grep -Fq 'Valoración de procedimientos previos' "$tmpdir/solutions.html"
+
+          fetch_route '/medicina-estetica/' aesthetic
+          grep -Fq 'nvx-aesthetic-editorial' "$tmpdir/aesthetic.html"
+          grep -Fq 'nvx-med-h1' "$tmpdir/aesthetic.html"
+
+          fetch_route '/medicina-estetica-laser/' laser
+          grep -Fq 'nvx-tecnologia-h1' "$tmpdir/laser.html"
+          grep -Fq 'Tecnologías disponibles en NUVANX' "$tmpdir/laser.html"
+
+          fetch_route '/endolift-facial-papada-mandibula/' endolift
+          grep -Fq 'nvx-endolift-h1' "$tmpdir/endolift.html"
+
+          fetch_route '/endolaser-corporal-grasa-localizada/' endolaser
+          grep -Fq 'nvx-endolaser-h1' "$tmpdir/endolaser.html"
+
+          fetch_route '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' co2
+          grep -Fq 'nvx-co2-h1' "$tmpdir/co2.html"
+
+          fetch_route '/exion-face/' exion
+          grep -Fq 'nvx-exion-face-h1' "$tmpdir/exion.html"
+          grep -Fq 'EXION® Face en Madrid' "$tmpdir/exion.html"
+
+          fetch_route '/madrid/valoracion/' valoracion
+          grep -Fq 'nvx-valoracion-main' "$tmpdir/valoracion.html"
+          grep -Fq 'nvx-hubspot-form' "$tmpdir/valoracion.html"
+
+          echo 'STAGING2_P0_ACCEPTANCE_OK'
+
+      - name: Remove temporary remote payload
+        if: always()
+        shell: bash
+        run: |
+          if [[ -n "${REMOTE_RELEASE:-}" ]]; then
+            ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'" || true
+          fi
+
+      - name: Write deployment summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Immutable staging2 release'
+            echo
+            echo "- SHA: \`$DEPLOY_SHA\`"
+            echo "- Result: \`${{ job.status }}\`"
+            echo '- Preflight: PHP lint + all catalog/runtime/review/render contracts'
+            echo '- Safety: strict SSH + pre-deploy theme backup + guarded rollback'
+            echo '- Acceptance: exact marker + noindex/nofollow + nine P0 routes + 4 groups + 14 cards'
+          } >> "$GITHUB_STEP_SUMMARY"

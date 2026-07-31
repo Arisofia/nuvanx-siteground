@@ -131,6 +131,7 @@ function connectExternal(target, clientSocket, head) {
   const upstream = net.connect({ host: target.host, port: target.port });
   upstream.setTimeout(30000);
   upstream.once('connect', () => {
+    upstream.setTimeout(0);
     clientSocket.write('HTTP/1.1 200 Connection Established\r\nProxy-Agent: NUVANX-Institutional-QA\r\n\r\n');
     if (head.length) upstream.write(head);
     clientSocket.pipe(upstream);

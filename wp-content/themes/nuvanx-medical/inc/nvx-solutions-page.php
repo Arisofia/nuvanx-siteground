@@ -13,6 +13,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Load one versioned theme JSON catalog.
+ *
+ * The solutions template historically called this helper even though the
+ * implementation and its source catalog were not committed. Keep the narrow
+ * compatibility function here and delegate to the canonical validated loader.
+ *
+ * @return array<mixed>
+ */
+function nvx_theme_load_json_catalog( string $filename ): array {
+	require_once __DIR__ . '/nvx-catalog-json.php';
+
+	return nvx_catalog_json_load( $filename );
+}
+
+/**
  * Whether the current request/content belongs to the medical solutions hub.
  */
 function nvx_content_is_solutions_page( string $content = '' ): bool {

@@ -13,8 +13,8 @@
 }
 
 .nvx-cta-banner__title {
-  max-width: 14ch;
-  margin: 0 0 var(--nvx-margin-h2);
+  max-width: min(100%, 36ch);
+  margin: 0 auto var(--nvx-margin-h2);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h2);
   font-weight: var(--nvx-fw-heading);
@@ -25,7 +25,7 @@
 
 .nvx-cta-banner__sub {
   max-width: var(--nvx-measure-lead);
-  margin: 0 0 var(--nvx-space-4);
+  margin: 0 auto var(--nvx-space-4);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
   line-height: var(--nvx-lh-body);

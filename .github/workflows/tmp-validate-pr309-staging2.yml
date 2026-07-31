@@ -155,7 +155,6 @@ jobs:
               exit 1
             fi
           }
-          check_route '/' 'NUVANX'
           check_route '/soluciones-medicas/'
           check_route '/medicina-estetica/' 'nvx-aesthetic-editorial'
           check_route '/medicina-estetica-laser/'

@@ -1,0 +1,92 @@
+[
+    {
+        "key": "remodelacion",
+        "label": "Remodelación láser y contorno",
+        "items": [
+            {
+                "meta": "01 / Láser facial",
+                "title": "Endolift® Facial",
+                "body": "Tensado progresivo del óvalo facial, la línea mandibular y la papada mediante microfibras ópticas estériles de 200 a 300 micras.",
+                "url": "@nvx-home:L2VuZG9saWZ0LWZhY2lhbC1wYXBhZGEtbWFuZGlidWxhLw=="
+            },
+            {
+                "meta": "02 / Láser corporal",
+                "title": "Endoláser Corporal",
+                "body": "Reducción de grasa localizada y mejora de firmeza con protocolo láser progresivo, adaptado a la silueta y al diagnóstico médico.",
+                "url": "@nvx-home:L2VuZG9sYXNlci1jb3Jwb3JhbC1ncmFzYS1sb2NhbGl6YWRhLw=="
+            }
+        ]
+    },
+    {
+        "key": "regeneracion",
+        "label": "Regeneración cutánea y calidad de piel",
+        "items": [
+            {
+                "meta": "03 / Renovación cutánea",
+                "title": "Láser CO₂ Fraccionado",
+                "body": "Vaporización fraccionada de alta precisión para textura, poros, cicatrices y rejuvenecimiento controlado de la piel.",
+                "url": "@nvx-home:L2xhc2VyLWNvMi1mcmFjY2lvbmFkby1tYWRyaWQtdGV4dHVyYS1jaWNhdHJpY2VzLXBvcm8v"
+            },
+            {
+                "meta": "04 / Plataforma EXION®",
+                "title": "EXION® BTL (hub)",
+                "body": "Plataforma médica con aplicadores Fractional RF, Face y Body. Cada modalidad tiene mecanismo, profundidad, recuperación y objetivos distintos; la indicación se define por diagnóstico.",
+                "url": "@nvx-home:L2V4aW9uLWJ0bC8="
+            },
+            {
+                "meta": "05 / EXION® Face",
+                "title": "EXION® Face",
+                "body": "Aplicador no invasivo de radiofrecuencia y ultrasonido para protocolos de calidad cutánea. Los parámetros y el número de sesiones se definen según diagnóstico y tolerancia.",
+                "url": "@nvx-home:L2V4aW9uLWZhY2Uv"
+            },
+            {
+                "meta": "06 / EXION® Body",
+                "title": "EXION® Body",
+                "body": "Aplicador corporal no invasivo para protocolos de firmeza, textura y contorno. No sustituye procedimientos de reducción de grasa ni trata obesidad.",
+                "url": "@nvx-home:L2V4aW9uLWJvZHkv"
+            },
+            {
+                "meta": "07 / EXION® Fractional",
+                "title": "EXION® Fractional RF",
+                "body": "Radiofrecuencia fraccionada con microagujas para textura, poro y cicatrices seleccionadas. Profundidad, anestesia, cuidados y período de recuperación dependen del protocolo.",
+                "url": "@nvx-home:L2V4aW9uLWZyYWN0aW9uYWwv"
+            },
+            {
+                "meta": "08 / EMFUSION®",
+                "title": "EMFUSION®",
+                "body": "Aplicador orientado al soporte de barrera y a la infusión cutánea según protocolo. No sustituye procedimientos médicos de energía ni tratamientos inyectables.",
+                "url": "@nvx-home:L2VtZnVzaW9uLw=="
+            },
+            {
+                "meta": "09 / Luz pulsada médica",
+                "title": "BTL EXILITE™ IPL",
+                "body": "Luz pulsada intensa para indicaciones pigmentarias, vasculares y calidad cutánea seleccionadas tras diagnóstico, fototipo y ajuste de parámetros.",
+                "url": "@nvx-home:L2J0bC1leGlsaXRlLWlwbC1tYWRyaWQv"
+            }
+        ]
+    },
+    {
+        "key": "medicina",
+        "label": "Medicina estética y prevención",
+        "items": [
+            {
+                "meta": "11 / Biomedicina estética",
+                "title": "Bioestimulación",
+                "body": "Inducción de colágeno y calidad dérmica con criterio conservador, orientada a un aspecto descansado y natural.",
+                "url": "@nvx-home:L21lZGljaW5hLWVzdGV0aWNhLw=="
+            },
+            {
+                "meta": "12 / Armonización facial",
+                "title": "Ácido hialurónico",
+                "body": "Volumen y soporte selectivos para armonizar facciones sin rigidizar la expresión, siempre tras valoración médica.",
+                "url": "@nvx-home:L21lZGljaW5hLWVzdGV0aWNhLw=="
+            },
+            {
+                "meta": "13 / Contorno nasal",
+                "title": "Rinomodelación",
+                "body": "Refinamiento del perfil nasal sin quirófano, con planificación anatómica y expectativa realista de resultado.",
+                "url": "@nvx-home:L2VzdGV0aWNhLWF2YW56YWRhLw=="
+            }
+        ]
+    }
+]

@@ -1,0 +1,390 @@
+{
+    "exion-face": {
+        "path": "/exion-face/",
+        "key": "exion_face",
+        "kicker": "@nvx-i18n:RVhJT07CriBGYWNlIMK3IE5VVkFOWCBNYWRyaWQ=",
+        "h1": "@nvx-i18n:RVhJT07CriBGYWNlIGVuIE1hZHJpZDogcmFkaW9mcmVjdWVuY2lhIHkgdWx0cmFzb25pZG8=",
+        "lead": "@nvx-i18n:QXBsaWNhZG9yIGRlIHJhZGlvZnJlY3VlbmNpYSB5IHVsdHJhc29uaWRvIHBhcmEgcHJvdG9jb2xvcyBkZSBjYWxpZGFkIGN1dMOhbmVhIGN1YW5kbyBleGlzdGUgaW5kaWNhY2nDs24gbcOpZGljYS4gTGEgZWxlY2Npw7NuIHZhbG9yYSB6b25hLCB0aXBvIGRlIHBpZWwsIGFudGVjZWRlbnRlcyB5IGV4cGVjdGF0aXZhcy4=",
+        "meta": "@nvx-i18n:Q2hhbWJlcsOtIMK3IEdveWEgwrcgSW5kaWNhY2nDs24gbcOpZGljYSBwZXJzb25hbGl6YWRh",
+        "aria": "@nvx-i18n:RVhJT04gRmFjZSBOVVZBTlg=",
+        "marker": "nvx-exion-face",
+        "yoast_title": "EXION® Face en Madrid | RF y ultrasonido | NUVANX",
+        "yoast_desc": "EXION® Face en Madrid: radiofrecuencia y ultrasonido para protocolos de calidad cutánea según valoración médica. Chamberí y Salamanca–Goya.",
+        "focuskw": "EXION Face Madrid",
+        "hub": "@nvx-home:L2V4aW9uLWJ0bC8=",
+        "combo": "",
+        "schema_name": "EXION® Face en Madrid",
+        "schema_type": "Protocolo médico facial con EXION® Face (RF monopolar + ultrasonido)",
+        "schema_desc": "Tratamiento médico de calidad de piel facial con plataforma EXION® Face: hipertermia controlada y ultrasonido terapéutico. Indicación tras valoración en NUVANX Madrid.",
+        "mechanism": {
+            "title": "@nvx-i18n:Q8OzbW8gZnVuY2lvbmEgRVhJT07CriBGYWNlOiBkb2JsZSBhY2Npw7NuIGJpb21lY8OhbmljYQ==",
+            "body": [
+                "@nvx-claim:ZXhpb25fZmFjZV9tZWNoX2ludHJv",
+                "@nvx-claim:ZXhpb25fZmFjZV9oYV8yMjQ="
+            ],
+            "items": [
+                {
+                    "title": "@nvx-i18n:UmFkaW9mcmVjdWVuY2lhIG1vbm9wb2xhciAofjQw4oCTNDIgwrBDIGVuIGRlcm1pcyk=",
+                    "body": "@nvx-i18n:QnVzY2EgaGlwZXJ0ZXJtaWEgY29udHJvbGFkYSB5IHJldmVyc2libGU6IGFjdGl2YWNpw7NuIGRlIHbDrWFzIGRlIGVzdHLDqXMgYWRhcHRhdGl2byAocC4gZWouIEhTUHMpLCBzZcOxYWxpemFjacOzbiBkZSBzw61udGVzaXMgZGUgbWF0cml6IHkgYXBvcnRlIGVuZXJnw6l0aWNvIGNlbHVsYXIuIE9iamV0aXZvOiByZW1vZGVsYWRvIGRlIGNvbMOhZ2VubyBkZSBjYWxpZGFkLCBubyBjaWNhdHJpY2lhbC4gRWwgcmFuZ28gdMOpcm1pY28gZXMgb3JpZW50YXRpdm8gZGUgcHJvdG9jb2xvLCBubyB1bmEgdGVtcGVyYXR1cmEgdW5pdmVyc2FsIGVuIGNhZGEgcGFjaWVudGUu"
+                },
+                {
+                    "title": "@nvx-i18n:VWx0cmFzb25pZG8gZGlyaWdpZG8gKFRVUyk=",
+                    "body": "@nvx-i18n:TWVjYW5vZXN0aW11bGFjacOzbiBubyBpbnZhc2l2YSBxdWUgY29tcGxlbWVudGEgbGEgUkY6IGZhdm9yZWNlIGNhc2NhZGFzIGRlIHNlw7FhbGl6YWNpw7NuIGVuIGZpYnJvYmxhc3RvcyB5IHPDrW50ZXNpcyBkZSBtYXRyaXogKMOhY2lkbyBoaWFsdXLDs25pY28sIGNvbMOhZ2VubywgZWxhc3RpbmEpIHNpbiBlbCBwZXJmaWwgZGUgY2F2aXRhY2nDs24gZGUgdWx0cmFzb25pZG9zIGRlIGFsdG8gcG9kZXIuIFNlIHVzYSBjb21vIGVzdMOtbXVsbywgbm8gY29tbyB0cmF1bWEgY29udHJvbGFkby4="
+                }
+            ]
+        },
+        "indications": [
+            {
+                "title": "@nvx-i18n:RW52ZWplY2ltaWVudG8gY3Jvbm9sw7NnaWNvIGxldmXigJNtb2RlcmFkbw==",
+                "body": "@nvx-i18n:UMOpcmRpZGEgcHJvZ3Jlc2l2YSBkZSBkZW5zaWRhZCB5IHR1cmdlbmNpYS4gRVhJT04gRmFjZSBwdWVkZSBjb250cmlidWlyIGEgcmVkZW5zaWZpY2FyIGxhIGRlcm1pcyBjdWFuZG8gZWwgZGlhZ27Ds3N0aWNvIGFwdW50YSBhIGTDqWZpY2l0IGRlIG1hdHJpeiBtw6FzIHF1ZSBhIGV4Y2VzbyBkZSBncmFzYSBvIHB0b3NpcyBzZXZlcmEu"
+            },
+            {
+                "title": "@nvx-i18n:RGVzaGlkcmF0YWNpw7NuIHkgcGllbCBhcGFnYWRh",
+                "body": "@nvx-i18n:Q3VhbmRvIHNlIGJ1c2NhIG1lam9yYXIgaGlkcmF0YWNpw7NuIHkgbHVtaW5vc2lkYWQgdsOtYSBlc3RpbXVsYWNpw7NuIGRlIG1hdHJpeiBlbmTDs2dlbmEsIGNvbiBidWVuYSB0b2xlcmFuY2lhIGVuIHBpZWxlcyBzZW5zaWJsZXMgc2Vnw7puIHZhbG9yYWNpw7NuLg=="
+            },
+            {
+                "title": "@nvx-i18n:UMOpcmRpZGEgZGUgdm9sdW1lbiBpbmNpcGllbnRlIChzaW4gcHRvc2lzIHNldmVyYSk=",
+                "body": "@nvx-i18n:Tm8gZXMgdW4gcmVsbGVubyBpbnllY3RhYmxlIG5pIHVuIGxpZnRpbmcuIFB1ZWRlIGF5dWRhciBhIGxhIHJlZGVuc2lmaWNhY2nDs24gY3VhbmRvIGVsIOKAnGRlc2hpbmNoYWRv4oCdIGVzIHByaW5jaXBhbG1lbnRlIGRlIG1hdHJpeiwgbm8gZGUgZGVmZWN0byBlc3RydWN0dXJhbCBwcm9mdW5kby4="
+            },
+            {
+                "title": "@nvx-i18n:UG9yb3MgeSB0ZXh0dXJhIGlycmVndWxhcg==",
+                "body": "@nvx-i18n:RWwgcmVtb2RlbGFkbyBkZSBjb2zDoWdlbm8geSBsYSBtZWpvcmEgZGUgY29tcGFjdGFjacOzbiBwdWVkZW4gcmVmaW5hciBhcGFyaWVuY2lhIGRlIHBvcm8geSB0ZXh0dXJhOyBlbiBjaWNhdHJpY2VzIHByb2Z1bmRhcyBzZSB2YWxvcmEgRnJhY3Rpb25hbCBSRiBvIENP4oKCLg=="
+            },
+            {
+                "title": "@nvx-i18n:QW50ZWNlZGVudGVzIGRlIHRyYXRhbWllbnRvcyBlbmVyZ8OpdGljb3M=",
+                "body": "@nvx-i18n:VHJhcyB1biB0cmF0YW1pZW50byBlbmVyZ8OpdGljbyBwcmV2aW8gc2UgcmVldmFsw7phbiB2b2x1bWVuLCB0ZXh0dXJhLCBzZW5zaWJpbGlkYWQgeSBvYmpldGl2byBhbnRlcyBkZSBpbmRpY2FyIHVuIG51ZXZvIHByb3RvY29sby4="
+            },
+            {
+                "title": "@nvx-i18n:TWFudGVuaW1pZW50byB3ZWxsLWFnaW5n",
+                "body": "@nvx-i18n:U2VyaWVzIGRlIHNlc2lvbmVzIHkgbWFudGVuaW1pZW50byBzZWfDum4gcmVzcHVlc3RhOyBjb21iaW5hYmxlIGNvbiBFTUZVU0lPTsKuIG8gaW5kdWN0b3JlcyBjdWFuZG8gZWwgbcOpZGljbyBsbyBpbmRpcXVlLg=="
+            }
+        ],
+        "compare": {
+            "title": "@nvx-i18n:Q8OzbW8gc2Ugc2VsZWNjaW9uYSB1biBwcm90b2NvbG8gZGUgY2FsaWRhZCBjdXTDoW5lYQ==",
+            "body": "@nvx-claim:ZXhpb25fZmFjZV9jb21wYXJl",
+            "link": "",
+            "label": ""
+        },
+        "process": [
+            {
+                "title": "@nvx-i18n:VmFsb3JhY2nDs24geSBwcm9jZWRpbWllbnRv",
+                "body": "@nvx-i18n:U2UgcmV2aXNhbiBmb3RvdGlwbywgZ3Jhc2EgZmFjaWFsLCBhbnRlY2VkZW50ZXMgZGUgdHJhdGFtaWVudG9zLCBzZW5zaWJpbGlkYWQgeSBleHBlY3RhdGl2YXMuIExhIHTDqWNuaWNhLCBlbCBjb25mb3J0IHkgbG9zIGN1aWRhZG9zIHNlIGV4cGxpY2FuIHNlZ8O6biBlbCBwcm90b2NvbG8gaW5kaWNhZG8u"
+            },
+            {
+                "title": "@nvx-i18n:U2VzaW9uZXMgb3JpZW50YXRpdmFz",
+                "body": "@nvx-i18n:UGllbCBtZWRpYSAzNeKAkzUwIGHDsW9zOiBhIG1lbnVkbyAzIHNlc2lvbmVzICh+NCBzZW1hbmFzKS4gRW52ZWplY2ltaWVudG8gbW9kZXJhZG86IDTigJM1LiBEYcOxbyBzb2xhciBhdmFuemFkbzogdmFsb3JhciA14oCTNiBvIGNvbWJpbmFjacOzbiAocC4gZWouIEVNRlVTSU9Owq4pLiBNYW50ZW5pbWllbnRvOiAxIHNlc2nDs24gY2FkYSAxMuKAkzE4IG1lc2VzIHNlZ8O6biByZXNwdWVzdGEuIEVsIG7Dum1lcm8gZmluYWwgbG8gZGVjaWRlIGVsIG3DqWRpY28u"
+            },
+            {
+                "title": "@nvx-i18n:Q3VpZGFkb3MgcG9zdGVyaW9yZXM=",
+                "body": "@nvx-i18n:SGlkcmF0YWNpw7NuIGhhYml0dWFsLiBQcmltZXJhcyA0OCBoOiBldml0YXIgc2F1bmEgeSBjYWxvciBpbnRlbnNvLiBGb3RvcHJvdGVjY2nDs24gU1BGIDMwKy4gRXZpdGFyIGV4Zm9saWFjacOzbiBtZWPDoW5pY2EgYWdyZXNpdmEgfjcgZMOtYXMuIFByZXN1cHVlc3RvIGNlcnJhZG8gdHJhcyBpbmRpY2FjacOzbi4="
+            },
+            {
+                "title": "@nvx-i18n:Q29udHJhaW5kaWNhY2lvbmVzIHJlbGF0aXZhcw==",
+                "body": "@nvx-i18n:SW1wbGFudGVzIG1ldMOhbGljb3MgZmFjaWFsZXMgcmVsZXZhbnRlcywgZW1iYXJhem8vbGFjdGFuY2lhIChwcmVjaXNpw7NuIGNsw61uaWNhKSwgZsOhcm1hY29zIGZvdG9zZW5zaWJsZXMgZGUgYWx0byBpbXBhY3RvLCBpbmZlY2Npb25lcyBhY3RpdmFzIGRlIHBpZWwuIEZvdG90aXBvcyBhbHRvczogcGVyZmlsIGhhYml0dWFsbWVudGUgZmF2b3JhYmxlOyBsYSBpbmRpY2FjacOzbiBlcyBzaWVtcHJlIG3DqWRpY2Eu"
+            }
+        ],
+        "faqs": [
+            {
+                "q": "@nvx-i18n:wr9RdcOpIGRhdG9zIHNlIHJldmlzYW4gYW50ZXMgZGUgaW5kaWNhciBFWElPTiBGYWNlPw==",
+                "a": "@nvx-i18n:U2UgcmV2aXNhbiBjYWxpZGFkIGRlIHBpZWwsIGFuYXRvbcOtYSwgYW50ZWNlZGVudGVzLCBvYmpldGl2bywgY29udHJhaW5kaWNhY2lvbmVzIHkgcGVyw61vZG8gZGUgcmVjdXBlcmFjacOzbiBhY2VwdGFibGUuIExvcyBkYXRvcyB0w6ljbmljb3Mgbm8gc2UgcHJlc2VudGFuIGNvbW8gdW5hIHByb21lc2EgZGUgcmVzdWx0YWRvIGluZGl2aWR1YWwu"
+            },
+            {
+                "q": "@nvx-i18n:wr9RdcOpIGFudGVjZWRlbnRlcyBkZWJlbiByZXZpc2Fyc2U/",
+                "a": "@nvx-i18n:VHJhdGFtaWVudG9zIHByZXZpb3MsIHNlbnNpYmlsaWRhZCwgY2FtYmlvcyBkZSB2b2x1bWVuLCBjaWNhdHJpY2VzLCBtZWRpY2FjacOzbiB5IG9iamV0aXZvcyBheXVkYW4gYSBkZWNpZGlyIHNpIHByb2NlZGUgdW4gcHJvdG9jb2xvIGVuZXJnw6l0aWNvIG8gdW5hIGFsdGVybmF0aXZhLg=="
+            },
+            {
+                "q": "@nvx-i18n:wr9DdcOhbnRhcyBzZXNpb25lcyBuZWNlc2l0bz8=",
+                "a": "@nvx-i18n:RGVwZW5kZSBkZSBlZGFkLCBjYWxpZGFkIGJhc2FsIHkgb2JqZXRpdm8uIFJhbmdvcyBvcmllbnRhdGl2b3M6IDMgc2VzaW9uZXMgZW4gcGllbCBtZWRpYTsgNOKAkzUgZW4gZW52ZWplY2ltaWVudG8gbW9kZXJhZG87IG3DoXMgbyBjb21iaW5hZG8gZW4gZGHDsW8gc29sYXIgc2V2ZXJvLiBNYW50ZW5pbWllbnRvIGNhZGEgMTLigJMxOCBtZXNlcyBzZWfDum4gZXZvbHVjacOzbi4gTm8gaGF5IHVuIG7Dum1lcm8gZmlqbyDigJxwYXJhIHRvZG9z4oCdLg=="
+            },
+            {
+                "q": "@nvx-i18n:wr9FcyBzZWd1cm8gZW4gZm90b3RpcG9zIGFsdG9zPw==",
+                "a": "@nvx-i18n:QWwgdHJhYmFqYXIgY29uIG1pY3JvdGVtcGVyYXR1cmFzIGNvbnRyb2xhZGFzLCBlbCBwZXJmaWwgaW5mbGFtYXRvcmlvIHB1ZWRlIGRpZmVyaXIgZGVsIGRlIHBpY29zIHTDqXJtaWNvcyBhbHRvcy4gRWwgcmllc2dvIGRlIFBJSCBkZXBlbmRlIGRlIGZvdG90aXBvLCBwYXLDoW1ldHJvcyB5IGN1aWRhZG9zOiBubyBzZSBnYXJhbnRpemEg4oCcY2VybyBQSUjigJ07IHPDrSBzZSBwbGFuaWZpY2EgY29uIGNyaXRlcmlvIG3DqWRpY28u"
+            },
+            {
+                "q": "@nvx-i18n:wr9EdWVsZT8=",
+                "a": "@nvx-i18n:TGEgc2Vuc2FjacOzbiBkZXBlbmRlIGRlIGxhIHpvbmEsIGxvcyBwYXLDoW1ldHJvcyB5IGxhIHNlbnNpYmlsaWRhZCBpbmRpdmlkdWFsLiBBbnRlcyBkZSBlbXBlemFyIHNlIGV4cGxpY2EgZWwgcHJvdG9jb2xvIGRlIGNvbmZvcnQgeSBjw7NtbyBjb211bmljYXIgY3VhbHF1aWVyIG1vbGVzdGlhLg=="
+            },
+            {
+                "q": "@nvx-i18n:wr9QdWVkbyBjb21iaW5hcmxvIGNvbiB0b3hpbmEgbyByZWxsZW5vcz8=",
+                "a": "@nvx-i18n:U8OtLCBjb24gc2VjdWVuY2lhIG3DqWRpY2EuIEVYSU9OIEZhY2Ugbm8gc3VzdGl0dXllIGF1dG9tw6F0aWNhbWVudGUgYSByZWxsZW5vczogbWVqb3JhIG1hdHJpeiBlIGhpZHJhdGFjacOzbjsgZWwgZMOpZmljaXQgZXN0cnVjdHVyYWwgcHVlZGUgc2VndWlyIHJlcXVpcmllbmRvIGluZHVjdG9yZXMgbyBIQSBpbnllY3RhYmxlLiBFbCBvcmRlbiBlIGludGVydmFsb3Mgc2UgZGVmaW5lbiBlbiB2YWxvcmFjacOzbi4="
+            },
+            {
+                "q": "@nvx-i18n:wr9DdcOhbmRvIHNlIHZlbiByZXN1bHRhZG9zPw==",
+                "a": "@nvx-i18n:TGEgcmVzcHVlc3RhIGVzIHByb2dyZXNpdmEgKHNlbWFuYXMpLCBubyDigJxhbnRlcy9kZXNwdcOpcyBkZWwgbWlzbW8gZMOtYeKAnS4gTG9zIGhpdG9zIGRlIDLigJMxMiBzZW1hbmFzIHNvbiBvcmllbnRhdGl2b3MgeSBkZXBlbmRlbiBkZWwgcHJvdG9jb2xvIHkgZGUgbGEgYmlvbG9nw61hIGluZGl2aWR1YWwu"
+            },
+            {
+                "q": "@nvx-i18n:wr9QdWVkbyBoYWNlcmxvIGVuIHZlcmFubz8=",
+                "a": "@nvx-i18n:RW4gbXVjaG9zIGNhc29zIHPDrSwgY29uIGZvdG9wcm90ZWNjacOzbiByaWd1cm9zYS4gU2UgaW5kaXZpZHVhbGl6YSBzZWfDum4gZm90b3RpcG8sIGV4cG9zaWNpw7NuIHkgb3Ryb3MgdHJhdGFtaWVudG9zIGNvbmN1cnJlbnRlcy4="
+            }
+        ]
+    },
+    "exion-body": {
+        "path": "/exion-body/",
+        "key": "exion_body",
+        "kicker": "@nvx-i18n:RVhJT07CriBCb2R5IMK3IE5VVkFOWCBNYWRyaWQ=",
+        "h1": "@nvx-i18n:RVhJT07CriBCb2R5IGVuIE1hZHJpZDogY29udG9ybm8gY29ycG9yYWwgeSBjYWxpZGFkIGN1dMOhbmVh",
+        "lead": "@nvx-i18n:UmFkaW9mcmVjdWVuY2lhIG1vbm9wb2xhciBjb24gcmVmcmlnZXJhY2nDs24gYWN0aXZhIHBhcmEgcHJvdG9jb2xvcyBkZSBjb250b3JubyBjb3Jwb3JhbCB5IGNhbGlkYWQgY3V0w6FuZWEgY3VhbmRvIGVsIGRpYWduw7NzdGljbyBsbyBwZXJtaXRlLg==",
+        "meta": "@nvx-i18n:Q2hhbWJlcsOtIMK3IEdveWEgwrcgQ29udG9ybm8gY29ycG9yYWwgY29uIGNyaXRlcmlvIG3DqWRpY28=",
+        "aria": "@nvx-i18n:RVhJT04gQm9keSBOVVZBTlg=",
+        "marker": "nvx-exion-body",
+        "yoast_title": "EXION Body Madrid | Grasa localizada y tensado | NUVANX",
+        "yoast_desc": "EXION® Body en NUVANX Madrid: radiofrecuencia con refrigeración activa para grasa localizada y calidad cutánea, según valoración médica. Chamberí y Goya.",
+        "focuskw": "EXION Body Madrid",
+        "hub": "@nvx-home:L2V4aW9uLWJ0bC8=",
+        "combo": "",
+        "schema_name": "EXION® Body en Madrid",
+        "schema_type": "Protocolo médico corporal con EXION® Body",
+        "schema_desc": "Tratamiento de contorno corporal con EXION® Body: estímulo térmico con refrigeración epidérmica para grasa localizada y calidad cutánea en NUVANX Madrid.",
+        "mechanism": {
+            "title": "@nvx-i18n:Q8OzbW8gZnVuY2lvbmEgRVhJT07CriBCb2R5",
+            "body": [
+                "@nvx-i18n:RWwgY2FiZXphbCBpbnRlZ3JhIHJlZnJpZ2VyYWNpw7NuIGFjdGl2YSBkZSBsYSBzdXBlcmZpY2llIHkgcmFkaW9mcmVjdWVuY2lhIG1vbm9wb2xhciBwcm9mdW5kYTogbGEgZXBpZGVybWlzIHNlIHByb3RlZ2UgbWllbnRyYXMgc2UgZGVwb3NpdGEgY2Fsb3IgZW4gaGlwb2Rlcm1pcyB5IGRlcm1pcy4=",
+                "@nvx-claim:ZXhpb25fYm9keV9idGxfMjI="
+            ],
+            "items": [
+                {
+                    "title": "@nvx-i18n:UmVmcmlnZXJhY2nDs24gYWN0aXZhIGVuIHN1cGVyZmljaWU=",
+                    "body": "@nvx-claim:ZXhpb25fYm9keV9jb29saW5n"
+                },
+                {
+                    "title": "@nvx-i18n:UkYgbW9ub3BvbGFyIHByb2Z1bmRhICh+NDDigJM0NSDCsEMgZW4gdGVqaWRvIG9iamV0aXZvKQ==",
+                    "body": "@nvx-i18n:RW4gcmFuZ29zIGRvY3VtZW50YWRvcyBzZSBidXNjYSBhcG9wdG9zaXMgcHJvZ3JhbWFkYSBkZSBhZGlwb2NpdG9zIHksIGVuIHBhcmFsZWxvLCBjb250cmFjY2nDs24vcmVtb2RlbGFkbyBkZSBjb2zDoWdlbm8uIEVsIHJhbmdvIGVzIGRlIHByb3RvY29sbyBldmFsdWFkbywgbm8gdW5hIHRlbXBlcmF0dXJhIGZpamEgZW4gY2FkYSBjdWVycG8u"
+                },
+                {
+                    "title": "@nvx-i18n:RWN1YWNpw7NuIGdyYXNhICsgcGllbA==",
+                    "body": "@nvx-i18n:RWwgb2JqZXRpdm8geSBsb3MgbMOtbWl0ZXMgc2UgZGVmaW5lbiB0cmFzIHZhbG9yYXIgZ3Jhc2EgbG9jYWxpemFkYSwgY2FsaWRhZCBjdXTDoW5lYSwgZXhjZXNvIGRlIHBpZWwsIGFudGVjZWRlbnRlcyB5IHBlcsOtb2RvIGRlIHJlY3VwZXJhY2nDs24gYWNlcHRhYmxlLg=="
+                }
+            ]
+        },
+        "indications": [
+            {
+                "title": "@nvx-i18n:QWRpcG9zaWRhZCBsb2NhbGl6YWRhIGxldmXigJNtb2RlcmFkYQ==",
+                "body": "@nvx-i18n:RmxhbmNvcywgYWJkb21lbiBpbmZlcmlvciB5IHBsaWVndWVzIHJlYmVsZGVzIGN1YW5kbyBubyBoYXkgaW5kaWNhY2nDs24gcHJpb3JpdGFyaWEgZGUgYWJkb21pbm9wbGFzdGlhIG8gbGlwb3N1Y2Npw7NuIG1heW9yLg=="
+            },
+            {
+                "title": "@nvx-i18n:RmxhY2lkZXogbGV2ZeKAk21vZGVyYWRhIGNvbiBvIHNpbiBncmFzYQ==",
+                "body": "@nvx-i18n:QnJhem9zLCBtdXNsb3MgaW50ZXJub3MgeSB6b25hcyBkb25kZSByZWR1Y2lyIHZvbHVtZW4gc2luIHRlbnNhciBkZWphcsOtYSBwaWVsIGxheGE7IHNlIHZhbG9yYSBSRiB2cyBsw6FzZXIgaW50ZXJzdGljaWFsIHNlZ8O6biBlc3Blc29yLg=="
+            },
+            {
+                "title": "@nvx-i18n:R3Jhc2EgeSBmbGFjaWRleiBjb21iaW5hZGFz",
+                "body": "@nvx-i18n:TGEgaW5kaWNhY2nDs24gc2UgdmFsb3JhIGN1YW5kbyBjb2V4aXN0ZW4gYWRpcG9zaWRhZCBsb2NhbGl6YWRhIHkgY2FtYmlvcyBkZSBjYWxpZGFkIGN1dMOhbmVhLg=="
+            },
+            {
+                "title": "@nvx-i18n:Q2VsdWxpdGlzIGdyYWRvIEnigJNJSSBjb24gYWRpcG9zaWRhZA==",
+                "body": "@nvx-i18n:TWVqb3JhIGRlIGNvbnRvcm5vIHkgY2FsaWRhZCBkZSBzdXBlcmZpY2llIGN1YW5kbyBlbCBjb21wb25lbnRlIGFkaXBvc28geSBsYSBsYXhpdHVkIHByZWRvbWluYW47IG5vIGVzIHRyYXRhbWllbnRvIGRlIGNlbHVsaXRpcyBzZXZlcmEgZXN0cnVjdHVyYWwgc29sYS4="
+            },
+            {
+                "title": "@nvx-i18n:UG9zdC1jcmlvbGlww7NsaXNpcw==",
+                "body": "@nvx-i18n:UGFjaWVudGVzIGNvbiBncmFzYSByZWR1Y2lkYSBwZXJvIGxheGl0dWQgcmVzaWR1YWw6IHNlIHJlb3JpZW50YSBhIHJldHJhY2Npw7NuIHkgY2FsaWRhZCwgbm8gYSBtw6FzIGZyw61vIHNpbiByZWV2YWx1YWNpw7NuLg=="
+            },
+            {
+                "title": "@nvx-i18n:Q29tYmluYWNpw7NuIGNvbiBlbmRvbMOhc2VyIChlc3Blc29yIGFsdG8p",
+                "body": "@nvx-i18n:RW4gYWRpcG9zaWRhZCA+fjTigJM1IGNtIHB1ZWRlIHByb3BvbmVyc2UgbGFzZXJsaXDDs2xpc2lzIHksIGVuIGZhc2UgcG9zdGVyaW9yICh+c2VtYW5hIDUrKSwgRVhJT04gQm9keSBwYXJhIGNvbnNvbGlkYXIgdGVuc2Fkby4gVW1icmFsIGUgaW50ZXJ2YWxvIHNvbiBjbMOtbmljb3Mu"
+            }
+        ],
+        "compare": {
+            "title": "@nvx-i18n:Q8OzbW8gc2UgdmFsb3JhIGVsIGNvbnRvcm5vIGNvcnBvcmFs",
+            "body": "@nvx-claim:ZXhpb25fYm9keV9jb21wYXJl",
+            "link": "",
+            "label": ""
+        },
+        "process": [
+            {
+                "title": "@nvx-i18n:VmFsb3JhY2nDs24geSBwcm9jZWRpbWllbnRv",
+                "body": "@nvx-i18n:RGlhZ27Ds3N0aWNvIGRlIHpvbmEsIHBsaWVndWUsIGZsYWNpZGV6IHkgZXhwZWN0YXRpdmFzIHJlYWxpc3RhcyBkZSBjb250b3JubyAobm8gZGUg4oCca2lsb3PigJ0pLiBTZXNpw7NuIDQ14oCTNjAgbWluIHNlZ8O6biDDoXJlYXMuIFNpbiBtaWNyb2FndWphcyBsYXJnYXMuIERvd250aW1lIGhhYml0dWFsIG51bG8gbyBtw61uaW1vOyBlcml0ZW1hIHBvc2libGUgZW4gaG9yYXMu"
+            },
+            {
+                "title": "@nvx-i18n:U2VzaW9uZXMgb3JpZW50YXRpdmFz",
+                "body": "@nvx-i18n:TGV2ZTogMuKAkzMuIE1vZGVyYWRhOiAz4oCTNC4gU2V2ZXJhOiB2YWxvcmFyIGVuZG9sw6FzZXIgKyBFWElPTiBlbiBzZWN1ZW5jaWEuIE1hbnRlbmltaWVudG8gY2FkYSAxOOKAkzI0IG1lc2VzIHNlZ8O6biBldm9sdWNpw7NuIHkgZXN0aWxvIGRlIHZpZGEuIE5vIGVzIHVuIHByb3RvY29sbyBkZSDigJx1bmEgc2VzacOzbiB5IGxpc3Rv4oCdIHBhcmEgdG9kb3Mu"
+            },
+            {
+                "title": "@nvx-i18n:Q3VpZGFkb3MgcG9zdGVyaW9yZXM=",
+                "body": "@nvx-i18n:QWN0aXZpZGFkIGhhYml0dWFsIGVuIGxhIG1heW9yw61hIGRlIGNhc29zOyBzZSBpbmRpdmlkdWFsaXphbiAyNOKAkzQ4IGggc2Vnw7puIHpvbmEgZSBpbnRlbnNpZGFkLiBIaWRyYXRhY2nDs24geSBow6FiaXRvcyBkZSBwZXNvIGVzdGFibGVzIGF5dWRhbiBhIG1hbnRlbmVyIGVsIGNvbnRvcm5vLg=="
+            },
+            {
+                "title": "@nvx-i18n:Q29udHJhaW5kaWNhY2lvbmVzIHkgbMOtbWl0ZXM=",
+                "body": "@nvx-i18n:RW1iYXJhem8vbGFjdGFuY2lhLCBtYXJjYXBhc29zIHUgb3Ryb3MgaW1wbGFudGVzIHJlbGV2YW50ZXMsIGluZmVjY2lvbmVzIGFjdGl2YXMsIGhlcm5pYXMgbm8gY29udHJvbGFkYXMgZW4gem9uYSwgZXhwZWN0YXRpdmFzIGRlIHDDqXJkaWRhIGRlIHBlc28gZ2xvYmFsLiBObyBzdXN0aXR1eWUgY2lydWfDrWEgY3VhbmRvIGVsIGV4Y2VzbyBjdXTDoW5lbyBvIGdyYXNvIGxvIGV4aWdlLg=="
+            }
+        ],
+        "related": [
+            {
+                "url": "@nvx-home:L2VuZG9sYXNlci1jb3Jwb3JhbC1ncmFzYS1sb2NhbGl6YWRhLw==",
+                "label": "@nvx-i18n:RW5kb2zDoXNlciBjb3Jwb3JhbCAoYWRpcG9zaWRhZCBkZSBtYXlvciBlc3Blc29yKQ=="
+            }
+        ],
+        "faqs": [
+            {
+                "q": "@nvx-i18n:wr9FWElPTiBCb2R5IGVsaW1pbmEgZ3Jhc2EgbyBzb2xvIHRlbnNhIGxhIHBpZWw/",
+                "a": "@nvx-i18n:QnVzY2EgYW1ib3MgZWZlY3RvcyBlbiB1biBtaXNtbyBwcm90b2NvbG86IGFjY2nDs24gc29icmUgYWRpcG9zaWRhZCBsb2NhbGl6YWRhIHkgcmVtb2RlbGFkbyBkZSBjb2zDoWdlbm8uIE5vIGVzIGxpcG9zdWNjacOzbiBxdWlyw7pyZ2ljYSBuaSB1biBtw6l0b2RvIGRlIHDDqXJkaWRhIGRlIHBlc28gY29ycG9yYWwu"
+            },
+            {
+                "q": "@nvx-i18n:wr9Qb3IgcXXDqSBsYSBjcmlvbGlww7NsaXNpcyBhIHZlY2VzIGRlamEgZmxhY2lkZXogcmVzaWR1YWw/",
+                "a": "@nvx-i18n:U2kgc2UgcmVkdWNlIHZvbHVtZW4gZ3Jhc28geSBsYSBwaWVsIG5vIHNlIGFkYXB0YSwgcHVlZGUgcXVlZGFyIGxheGl0dWQuIE5vIGVzIGluZXZpdGFibGUgZW4gdG9kb3MgbG9zIGNhc29zLCBwZXJvIGV4cGxpY2EgcG9yIHF1w6kgdmFsb3JhbW9zIGdyYXNhIHkgY2FsaWRhZCBjdXTDoW5lYSBqdW50b3Mu"
+            },
+            {
+                "q": "@nvx-i18n:wr9DdcOhbnRhcyBzZXNpb25lcyBuZWNlc2l0bz8=",
+                "a": "@nvx-i18n:UmFuZ29zIG9yaWVudGF0aXZvcyAy4oCTNCBzZWfDum4gc2V2ZXJpZGFkIHkgem9uYTsgY2Fzb3MgZGUgbWF5b3IgZXNwZXNvciBwdWVkZW4gcmVxdWVyaXIgZW5kb2zDoXNlciBwcmV2aW8uIEVsIHBsYW4gc2UgY2llcnJhIHRyYXMgZXhwbG9yYWNpw7NuLg=="
+            },
+            {
+                "q": "@nvx-i18n:wr9IYXkgaGVtYXRvbWFzIGNvbW8gY29uIG1pY3JvYWd1amFzPw==",
+                "a": "@nvx-i18n:Tm8gZXMgdW4gc2lzdGVtYSBkZSBwZXJmb3JhY2nDs24gY29uIGFndWphcyBsYXJnYXMuIEVsIGVyaXRlbWEsIHNpIGFwYXJlY2UsIHN1ZWxlIHJlc29sdmVyc2UgZW4gaG9yYXMsIGNvbiB2YXJpYWJpbGlkYWQgaW5kaXZpZHVhbC4="
+            },
+            {
+                "q": "@nvx-i18n:wr9QdWVkbyBjb21iaW5hcmxvIGNvbiBlamVyY2ljaW8gbyBkaWV0YT8=",
+                "a": "@nvx-i18n:U8OtLiBFWElPTiBCb2R5IG5vIHN1c3RpdHV5ZSBow6FiaXRvczogZXN0YWJpbGl6YXIgcGVzbyB5IGFjdGl2aWRhZCBtZWpvcmEgbGEgZHVyYWNpw7NuIGRlbCBjb250b3Juby4gVGFtcG9jbyDigJxxdWVtYeKAnSBraWxvcyBkZSBncmFzYSBzaXN0w6ltaWNhLg=="
+            },
+            {
+                "q": "@nvx-i18n:wr9DdcOhbmRvIGNvbWJpbmFyIGNvbiBsYXNlcmxpcMOzbGlzaXM/",
+                "a": "@nvx-i18n:RW4gZXNwZXNvcmVzIGFsdG9zIChvcmllbnRhdGl2byA+fjTigJM1IGNtKSBwdWVkZSBwcm9wb25lcnNlIGZhc2UgMSBjb24gZW5kb2zDoXNlciB5IGZhc2UgMiBjb24gRVhJT04gQm9keSBwYXJhIHRlbnNhZG8uIEludGVydmFsb3MgeSBjYW5kaWRhdHVyYSBzb24gbcOpZGljb3Mu"
+            },
+            {
+                "q": "@nvx-i18n:wr9Mb3MgcmVzdWx0YWRvcyBzb24gcGVybWFuZW50ZXM/",
+                "a": "@nvx-i18n:TGEgYXBvcHRvc2lzIGRlIGFkaXBvY2l0b3MgdHJhdGFkb3Mgbm8gcmVnZW5lcmEgZXNhcyBjw6lsdWxhcywgcGVybyB1biBhdW1lbnRvIGRlIHBlc28gcHVlZGUgY3JlYXIgZGVww7NzaXRvIGVuIG90cmFzIHpvbmFzLiBFbCBtYW50ZW5pbWllbnRvIHkgZWwgZXN0aWxvIGRlIHZpZGEgbWFyY2FuIGxhIGR1cmFjacOzbiBwcsOhY3RpY2EgZGVsIGNvbnRvcm5vLg=="
+            },
+            {
+                "q": "@nvx-i18n:wr9FcyBzZWd1cm8gZW4gZm90b3RpcG9zIGFsdG9zPw==",
+                "a": "@nvx-i18n:RWwgcGVyZmlsIHTDqXJtaWNvIGNvbnRyb2xhZG8geSBsYSByZWZyaWdlcmFjacOzbiBkZSBzdXBlcmZpY2llIGF5dWRhbiBhIHVuIHBsYW4gc2VndXJvLCBwZXJvIGxhIGluZGljYWNpw7NuIHkgbG9zIHBhcsOhbWV0cm9zIHNvbiBzaWVtcHJlIGluZGl2aWR1YWxlcy4="
+            }
+        ]
+    },
+    "exion-fractional": {
+        "path": "/exion-fractional/",
+        "key": "exion_fractional",
+        "kicker": "@nvx-i18n:RVhJT07CriBGcmFjdGlvbmFsIFJGIMK3IE5VVkFOWCBNYWRyaWQ=",
+        "h1": "@nvx-i18n:RVhJT07CriBGcmFjdGlvbmFsIFJGIGVuIE1hZHJpZDogYXJydWdhcyBwcm9mdW5kYXMsIGNpY2F0cmljZXMgeSB0ZXh0dXJh",
+        "lead": "@nvx-i18n:UmFkaW9mcmVjdWVuY2lhIGZyYWNjaW9uYWRhIGNvbiBtaWNyb2FndWphcyB5IGNvbnRyb2wgZGUgaW1wZWRhbmNpYSBwYXJhIHByb3RvY29sb3MgZGUgdGV4dHVyYSwgcG9yb3MgeSBjaWNhdHJpY2VzIHNlZ8O6biBkaWFnbsOzc3RpY28geSBmb3RvdGlwby4=",
+        "meta": "@nvx-i18n:Q2hhbWJlcsOtIMK3IEdveWEgwrcgVGV4dHVyYSB5IHJlbW9kZWxhZG8gZMOpcm1pY28=",
+        "aria": "@nvx-i18n:RVhJT04gRnJhY3Rpb25hbCBOVVZBTlg=",
+        "marker": "nvx-exion-fractional",
+        "yoast_title": "EXION Fractional RF Madrid | Textura y cicatrices | NUVANX",
+        "yoast_desc": "EXION® Fractional RF en Madrid: microagujas con control de impedancia para textura, poros y cicatrices según diagnóstico y fototipo.",
+        "focuskw": "EXION Fractional Madrid",
+        "hub": "@nvx-home:L2V4aW9uLWJ0bC8=",
+        "combo": "",
+        "schema_name": "EXION® Fractional RF en Madrid",
+        "schema_type": "Protocolo de radiofrecuencia fraccionada EXION®",
+        "schema_desc": "Remodelado de textura y dermis con EXION® Fractional RF en NUVANX Madrid tras valoración médica.",
+        "mechanism": {
+            "title": "@nvx-i18n:Q8OzbW8gZnVuY2lvbmEgRVhJT07CriBGcmFjdGlvbmFsIFJG",
+            "body": [
+                "@nvx-i18n:RW1pdGUgcmFkaW9mcmVjdWVuY2lhIGEgdHJhdsOpcyBkZSBtaWNyb2FndWphcyBjb24gY29udHJvbCBkZSBlbnRyZWdhIGVuZXJnw6l0aWNhLiBFbCBzaXN0ZW1hIGluY29ycG9yYSBmZWVkYmFjayBkZSBpbXBlZGFuY2lhIHBhcmEgYWp1c3RhciBsYSBjb2FndWxhY2nDs24gYWwgdGVqaWRvIHJlYWwsIG5vIHNvbG8gYSB1biBuw7ptZXJvIGZpam8gZGUgcGFzYWRhcyDigJxwb3Igc2kgYWNhc2/igJ0u",
+                "@nvx-i18n:QWd1amFzIG3DoXMgY29ydGFzIGNvbiBwcm95ZWNjacOzbiB0w6lybWljYSBleHRlbmRpZGEgcGVybWl0ZW4gYWxjYW56YXIgcHJvZnVuZGlkYWQgZGUgdHJhYmFqbyByZWxldmFudGUgcmVkdWNpZW5kbyB0cmF1bWEgbWVjw6FuaWNvIHN1cGVyZmljaWFsIHJlc3BlY3RvIGEgcHJvdG9jb2xvcyBkZSBhZ3VqYSBsYXJnYSBtdWx0aXBhc2FkYS4=",
+                "@nvx-i18n:T2JqZXRpdm8gY2zDrW5pY286IGNvYWd1bGFjacOzbiBjb250cm9sYWRhIGRlIGNvbMOhZ2VubyB5IHJlbm92YWNpw7NuIGRlIHRleHR1cmEgKHBvcm9zLCBjaWNhdHJpY2VzIHN1cGVyZmljaWFsZXMsIGFycnVnYXMgZmluYXMpIGNvbiBwbGFuIGRlIHNlc2lvbmVzIHJlYWxpc3RhLg=="
+            ]
+        },
+        "indications": [
+            {
+                "title": "@nvx-i18n:VGV4dHVyYSB5IHBvcm8=",
+                "body": "@nvx-i18n:UGllbCBpcnJlZ3VsYXIsIHBvcm8gZGlsYXRhZG8geSBmYWx0YSBkZSByZWZpbmFtaWVudG8gw7NwdGljbyBjdWFuZG8gbm8gYmFzdGEgdW4gcGVlbGluZyBzdXBlcmZpY2lhbC4="
+            },
+            {
+                "title": "@nvx-i18n:Q2ljYXRyaWNlcyBkZSBhY27DqSBsZXZlc+KAk21vZGVyYWRhcw==",
+                "body": "@nvx-i18n:RW4gYXRyw7NmaWNhcyBwcm9mdW5kYXMgcHVlZGUgY29tYmluYXJzZSBvIHByaW9yaXphcnNlIENP4oKCIGZyYWNjaW9uYWRvIHNlZ8O6biBwcm9mdW5kaWRhZCB5IGZvdG90aXBvLg=="
+            },
+            {
+                "title": "@nvx-i18n:QXJydWdhcyBmaW5hcyB5IGZsYWNpZGV6IGxvY2Fs",
+                "body": "@nvx-i18n:UmVtb2RlbGFkbyBkw6lybWljbyBwcm9ncmVzaXZvOyBubyBzdXN0aXR1eWUgdW4gbGlmdGluZyBjdWFuZG8gbGEgcHRvc2lzIGVzIGVzdHJ1Y3R1cmFsLg=="
+            },
+            {
+                "title": "@nvx-i18n:UGFjaWVudGVzIHF1ZSBubyB0b2xlcmFuIG11bHRpcGFzYWRhIGFncmVzaXZh",
+                "body": "@nvx-i18n:SGlzdG9yaWFsIGRlIFJGIGZyYWNjaW9uYWRhIGNvbiBoZW1hdG9tYXMgcHJvbG9uZ2Fkb3MgbyBhYmFuZG9ubyBwb3IgZG9sb3I6IHNlIHJlZXZhbMO6YSBlbmVyZ8OtYSB5IG7Dum1lcm8gZGUgcGFzZXMu"
+            }
+        ],
+        "compare": {
+            "title": "@nvx-i18n:Q8OzbW8gc2Ugc2VsZWNjaW9uYSBsYSByYWRpb2ZyZWN1ZW5jaWEgZnJhY2Npb25hZGE=",
+            "body": "@nvx-i18n:TGEgc2VsZWNjacOzbiBjb25zaWRlcmEgb2JqZXRpdm8sIGNhbGlkYWQgZGUgcGllbCwgcHJvZnVuZGlkYWQsIGZvdG90aXBvLCB0b2xlcmFuY2lhIHkgcGVyw61vZG8gZGUgcmVjdXBlcmFjacOzbiBhY2VwdGFibGUuIExhIGluZGljYWNpw7NuIHNlIGRlZmluZSBwb3IgZGlhZ27Ds3N0aWNvLCBubyBwb3IgdW5hIG1hcmNhLg==",
+            "link": "",
+            "label": ""
+        },
+        "process": [
+            "@nvx-i18n:TWFwYSBkZSB6b25hcywgZm90b3RpcG8geSBvYmpldGl2byAodGV4dHVyYSB2cyBjaWNhdHJpeiB2cyBmaXJtZXphKS4=",
+            "@nvx-i18n:U2VzaW9uZXMgc2Vnw7puIHNldmVyaWRhZCAoYSBtZW51ZG8gMuKAkzQpLiBJbnRlcnZhbG9zIGRlZmluaWRvcyBlbiBjb25zdWx0YS4=",
+            "@nvx-i18n:RG93bnRpbWUgdMOtcGljbzogZXJpdGVtYSAxMuKAkzQ4IGggc2Vnw7puIGVuZXJnw61hOyBzZSBleHBsaWNhIGFudGVzIGRlIGZpcm1hciBlbCBwbGFuLg==",
+            "@nvx-i18n:UHVlZGUgaW50ZWdyYXJzZSBlbiBwcm90b2NvbG9zIGNvbWJpbmFkb3MgY29uIEZhY2UgbyBFTUZVU0lPTsKuLg=="
+        ],
+        "faqs": [
+            {
+                "q": "@nvx-i18n:wr9FcyBsbyBtaXNtbyBxdWUgdW4gbMOhc2VyIENP4oKCPw==",
+                "a": "@nvx-i18n:Tm8uIEVsIENP4oKCIHZhcG9yaXphIGNvbHVtbmFzIGRlIHRlamlkbyAoYWJsYXRpdm8pLiBGcmFjdGlvbmFsIFJGIGNvYWd1bGEgcG9yIGNhbG9yIGNvbiBtaWNyb2FndWphczsgZG93bnRpbWUgeSBwcm9mdW5kaWRhZCBzZSBlbGlnZW4gZGlzdGludG8u"
+            },
+            {
+                "q": "@nvx-i18n:wr9DdcOhbnRhcyBwYXNhZGFzPw==",
+                "a": "@nvx-i18n:RWwgZGlzZcOxbyBzaW5nbGUtcGFzcyByZWR1Y2UgcGFzYWRhcyBpbm5lY2VzYXJpYXMgY3VhbmRvIGVsIGZlZWRiYWNrIGRlIHRlamlkbyBlcyBhZGVjdWFkbzsgZWwgbcOpZGljbyBwdWVkZSBtb2R1bGFyIHNlZ8O6biB6b25hLg=="
+            },
+            {
+                "q": "@nvx-i18n:wr9BbmVzdGVzaWE/",
+                "a": "@nvx-i18n:U2Vnw7puIGVuZXJnw61hIHkgem9uYTogdMOzcGljYSBvIHByb3RvY29sbyBkZSBjb25mb3J0IGRlZmluaWRvIGVuIHZhbG9yYWNpw7NuLg=="
+            }
+        ]
+    },
+    "emfusion": {
+        "path": "/emfusion/",
+        "key": "emfusion",
+        "kicker": "@nvx-i18n:RU1GVVNJT07CriDCtyBOVVZBTlggTWFkcmlk",
+        "h1": "@nvx-i18n:RU1GVVNJT07CriBlbiBNYWRyaWQ6IGhpZHJhdGFjacOzbiBwcm9mdW5kYSB5IGx1bWlub3NpZGFkIGN1dMOhbmVh",
+        "lead": "@nvx-i18n:VGVjbm9sb2fDrWEgRFlOQU1pUeKEoiBkZSBtaWNyb2NhbmFsZXMgYWPDunN0aWNvcyBwYXJhIGFwb3lhciBsYSBhcGxpY2FjacOzbiBkZSBhY3Rpdm9zLCBsYSBoaWRyYXRhY2nDs24geSBsYSBiYXJyZXJhIGN1dMOhbmVhIGN1YW5kbyBleGlzdGUgaW5kaWNhY2nDs24gbcOpZGljYS4=",
+        "meta": "@nvx-i18n:Q2hhbWJlcsOtIMK3IEdveWEgwrcgV2VsbC1hZ2luZyB5IHBpZWwgc2Vuc2libGU=",
+        "aria": "@nvx-i18n:RU1GVVNJT04gTlVWQU5Y",
+        "marker": "nvx-emfusion",
+        "yoast_title": "EMFUSION Madrid | Barrera cutánea e infusión | NUVANX",
+        "yoast_desc": "EMFUSION® en Madrid: microcanales acústicos DYNAMiQ™ para hidratación y apoyo a la barrera cutánea según valoración médica.",
+        "focuskw": "EMFUSION Madrid",
+        "hub": "@nvx-home:L2V4aW9uLWJ0bC8=",
+        "combo": "",
+        "schema_name": "EMFUSION® en Madrid",
+        "schema_type": "Protocolo de infusión cutánea EMFUSION®",
+        "schema_desc": "Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.",
+        "mechanism": {
+            "title": "@nvx-i18n:Q8OzbW8gZnVuY2lvbmEgRU1GVVNJT07CriAoRFlOQU1pUeKEoik=",
+            "body": [
+                "@nvx-i18n:Q29udmllcnRlIGVuZXJnw61hIGVuIG9uZGFzIG1lY8OhbmljYXMgcXVlIGdlbmVyYW4gbWljcm9jYW5hbGVzIHRlbXBvcmFsZXMgZW4gbGEgc3VwZXJmaWNpZSBjdXTDoW5lYSwgZmFjaWxpdGFuZG8gbGEgYXBsaWNhY2nDs24gZGUgYWN0aXZvcyBjb21vIGNlcmFtaWRhcyBvIGVjdG/DrW5hIHNlZ8O6biBlbCBwcm90b2NvbG8gaW5kaWNhZG8u",
+                "@nvx-i18n:RWwgb2JqZXRpdm8gbm8gZXMg4oCcbGltcGlhciBhIHByZXNpw7Nu4oCdLCBzaW5vIGFwb3lhciBsYSBiYXJyZXJhIHkgbGEgaGlkcmF0YWNpw7NuIGN1YW5kbyBlbCBkaWFnbsOzc3RpY28gbXVlc3RyYSBkZXNoaWRyYXRhY2nDs24sIGlycml0YWJpbGlkYWQgbyBuZWNlc2lkYWQgZGUgcG90ZW5jaWFyIGFjdGl2b3MgcG9zdC1wcm9jZWRpbWllbnRvLg==",
+                "@nvx-i18n:RGF0b3MgZGUgcmVmZXJlbmNpYSBkZWwgZmFicmljYW50ZSBkZXNjcmliZW4gcmVkdWNjaW9uZXMgcmVsZXZhbnRlcyBkZSBww6lyZGlkYSBkZSBhZ3VhIHRyYW5zZXBpZMOpcm1pY2EgZW4gbW9kZWxvcyBldmFsdWFkb3M7IHNlIGNvbnRleHR1YWxpemFuIGVuIGNvbnN1bHRhIHNpbiBjaWZyYXMgbcOhZ2ljYXMgcGVyc29uYWxpemFkYXMu"
+            ]
+        },
+        "indications": [
+            {
+                "title": "@nvx-i18n:UGllbCBkZXNoaWRyYXRhZGEgLyBiYXJyZXJhIGZyw6FnaWw=",
+                "body": "@nvx-i18n:VGlyYW50ZXosIGRlc2NhbWFjacOzbiBmaW5hIG8gc2Vuc2liaWxpZGFkIGRvbmRlIGxhIHN1Y2Npw7NuIGFncmVzaXZhIGVtcGVvcmEgbGEgYmFycmVyYS4="
+            },
+            {
+                "title": "@nvx-i18n:Um9zw6FjZWEgeSBwaWVsIHJlYWN0aXZhIChzZWxlY2Npb25hZGEp",
+                "body": "@nvx-i18n:U29sbyB0cmFzIGZpbHRyYXIgY29udHJhaW5kaWNhY2lvbmVzOyBwcm90b2NvbG9zIOKAnHNlbnNpdGl2ZeKAnSBjb24gYWN0aXZvcyBjYWxtYW50ZXMu"
+            },
+            {
+                "title": "@nvx-i18n:UG9zdC1FWElPTiAvIHBvc3QtbMOhc2Vy",
+                "body": "@nvx-i18n:RmFzZSBkZSBjb25zb2xpZGFjacOzbiBkZSBoaWRyYXRhY2nDs24geSBiYXJyZXJhIGRlbnRybyBkZSBwcm90b2NvbG9zIGNvbWJpbmFkb3MgTlVWQU5YLg=="
+            },
+            {
+                "title": "@nvx-i18n:Rm90b2Rhw7FvIHN1cGVyZmljaWFs",
+                "body": "@nvx-i18n:Q29tbyBhZHl1dmFudGUgZGUgY2FsaWRhZCBjdXTDoW5lYSwgbm8gY29tbyBzdXN0aXR1dG8gZGUgQ0/igoIgbyBGcmFjdGlvbmFsIGN1YW5kbyBoYXkgY2ljYXRyaXogcHJvZnVuZGEu"
+            }
+        ],
+        "compare": {
+            "title": "@nvx-i18n:Q8OzbW8gc2UgcGxhbnRlYSBlbCBjdWlkYWRvIGRlIGxhIGJhcnJlcmEgY3V0w6FuZWE=",
+            "body": "@nvx-i18n:TGEgc2VsZWNjacOzbiB2YWxvcmEgaGlkcmF0YWNpw7NuLCBzZW5zaWJpbGlkYWQsIGluZmxhbWFjacOzbiwgYWN0aXZvcyBjb21wYXRpYmxlcyB5IHRyYXRhbWllbnRvcyBwcmV2aW9zLiBFbCBvYmpldGl2byB5IGVsIHByb3RvY29sbyBzZSBkZWNpZGVuIGRlc3B1w6lzIGRlIGxhIGV4cGxvcmFjacOzbi4=",
+            "link": "",
+            "label": ""
+        },
+        "process": [
+            "@nvx-i18n:VmFsb3JhY2nDs24gZGUgYmFycmVyYSwgaW5mbGFtYWNpw7NuIHkgY29tcGF0aWJpbGlkYWQgZGUgYWN0aXZvcy4=",
+            "@nvx-i18n:UHJvdG9jb2xvcyB0aXBvIEh5ZHJhdGlvbiAvIFJlZ2VuZXJhdGlvbiAvIFNlbnNpdGl2ZSBzZWfDum4gY2Fzby4=",
+            "@nvx-i18n:U2VzaW9uZXMgY29ydGFzOyBkb3dudGltZSBoYWJpdHVhbCBtw61uaW1vLg==",
+            "@nvx-i18n:RnJlY3VlbnRlIGNvbW8gY29tcGxlbWVudG8gZGUgRVhJT04gRmFjZSBvIEZyYWN0aW9uYWwsIG5vIGNvbW8gbW9ub3RlcmFwaWEgbWlsYWdyb3NhLg=="
+        ],
+        "faqs": [
+            {
+                "q": "@nvx-i18n:wr9TdXN0aXR1eWUgYSB1biBmYWNpYWwgY29zbcOpdGljbz8=",
+                "a": "@nvx-i18n:RXMgdW4gcHJvY2VkaW1pZW50byBtw6lkaWNvIGRlIGluZnVzacOzbi9iYXJyZXJhIGRlbnRybyBkZSB1biBwbGFuOyBubyBlcyB1biDigJxnbG934oCdIGRlIGNhYmluYSBzaW4gZGlhZ27Ds3N0aWNvLg=="
+            },
+            {
+                "q": "@nvx-i18n:wr9QdWVkbyBtYXF1aWxsYXJtZSBkZXNwdcOpcz8=",
+                "a": "@nvx-i18n:SGFiaXR1YWxtZW50ZSBzw60gZW4gcG9jYXMgaG9yYXM7IHNlIGluZGljYW4gY3VpZGFkb3Mgc2Vnw7puIGFjdGl2b3MgdXNhZG9zLg=="
+            },
+            {
+                "q": "@nvx-i18n:wr9EdWVsZT8=",
+                "a": "@nvx-i18n:U2Vuc2FjacOzbiBkZSB2aWJyYWNpw7NuL2NhbG9yIGxldmUgZW4gbGEgbWF5b3LDrWEgZGUgcGFjaWVudGVzOyBubyBjb21wYXJhYmxlIGEgbXVsdGlwYXNhZGEgY29uIGFndWphIGxhcmdhLg=="
+            }
+        ]
+    }
+}

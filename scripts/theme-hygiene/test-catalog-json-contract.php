@@ -109,7 +109,7 @@ $solutionsModule = (string) file_get_contents($themeRoot . '/inc/nvx-solutions-p
 $solutionsTemplate = (string) file_get_contents(
     $themeRoot . '/template-parts/content/nvx-soluciones-medicas-github.php'
 );
-if (!str_contains($solutionsModule, "return nvx_catalog_json_load( $filename );")) {
+if (!str_contains($solutionsModule, 'return nvx_catalog_json_load( $filename );')) {
     fwrite(STDERR, "Solutions module is not delegated to the canonical JSON loader.\n");
     exit(1);
 }

@@ -140,12 +140,12 @@ function nvx_catalog_resolve_tokens(
 				}
 			}
 
-			if ( null !== $claim_resolver && 0 === strpos( $value, '@nvx-claim-key:' ) ) {
-				return $claim_resolver( substr( $value, 15 ) );
+			if ( null !== $claim_resolver && 0 === strpos( $value, '`@nvx-claim-key`:' ) ) {
+				return $claim_resolver( substr( $value, strlen( '`@nvx-claim-key`:' ) ) );
 			}
 
-			if ( null !== $claim_resolver && 0 === strpos( $value, '@nvx-claim:' ) ) {
-				$claim_key = nvx_catalog_decode_token_payload( substr( $value, 11 ), 'claim' );
+			if ( null !== $claim_resolver && 0 === strpos( $value, '`@nvx-claim`:' ) ) {
+				$claim_key = nvx_catalog_decode_token_payload( substr( $value, strlen( '`@nvx-claim`:' ) ), 'claim' );
 				return null === $claim_key || '' === $claim_key ? '' : $claim_resolver( $claim_key );
 			}
 

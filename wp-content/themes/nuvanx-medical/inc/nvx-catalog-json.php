@@ -24,11 +24,17 @@ function nvx_catalog_json_load( string $filename ): array {
 
     $path = __DIR__ . '/data/' . $safe_name;
     if ( ! is_readable( $path ) ) {
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+            error_log( sprintf( 'nvx: catálogo JSON no legible: %s', $safe_name ) );
+        }
         return array();
     }
 
     $decoded = json_decode( (string) file_get_contents( $path ), true );
     if ( ! is_array( $decoded ) ) {
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+            error_log( sprintf( 'nvx: catálogo JSON inválido: %s (%s)', $safe_name, json_last_error_msg() ) );
+        }
         return array();
     }
 

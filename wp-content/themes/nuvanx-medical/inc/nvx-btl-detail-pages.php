@@ -129,8 +129,12 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-endolift-editorial nvx-btl-detail-editorial">';
 
 	// Mechanism (same zone-list pattern as Endoláser / CO₂ — no page-exclusive layout).
+	$mech_title = trim( (string) ( $c['mechanism']['title'] ?? '' ) );
+	if ( '' === $mech_title ) {
+		$mech_title = __( 'Mecanismo de acción', 'nuvanx-medical' );
+	}
 	$body .= nvx_page_brand_section_open_markup( '', $id . '-mech' );
-	$body .= nvx_page_brand_section_heading_markup( esc_html__( 'Mecanismo', 'nuvanx-medical' ), $id . '-mech', esc_html( (string) ( $c['mechanism']['title'] ?? '' ) ) );
+	$body .= nvx_page_brand_section_heading_markup( esc_html__( 'Mecanismo', 'nuvanx-medical' ), $id . '-mech', esc_html( $mech_title ) );
 	foreach ( (array) ( $c['mechanism']['body'] ?? array() ) as $p ) {
 		$p = is_string( $p ) ? trim( $p ) : '';
 		if ( '' === $p ) {

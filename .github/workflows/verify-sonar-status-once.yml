@@ -15,41 +15,36 @@ jobs:
     if: github.head_ref == 'refactor/sonar-duplication-20260731'
     runs-on: ubuntu-24.04
     steps:
-      - name: Read public SonarQube Cloud project and PR status
+      - name: Read public SonarQube Cloud PR issues
         shell: bash
         run: |
           set -euo pipefail
           project='Arisofia_nuvanx-siteground'
           pull_request='308'
           base='https://sonarcloud.io/api'
-
-          query_scope() {
-            local scope="$1"
-            local suffix="$2"
-            curl --fail --silent --show-error --retry 4 --retry-all-errors \
-              "$base/qualitygates/project_status?projectKey=$project$suffix" > "gate-$scope.json"
-            curl --fail --silent --show-error --retry 4 --retry-all-errors \
-              "$base/measures/component?component=$project&metricKeys=alert_status,bugs,code_smells,duplicated_lines_density,duplicated_lines,coverage,ncloc$suffix" > "measures-$scope.json"
-            curl --fail --silent --show-error --retry 4 --retry-all-errors \
-              "$base/issues/search?componentKeys=$project&resolved=false&ps=1&p=1$suffix" > "issues-$scope.json"
-          }
-
-          query_scope overall ''
-          query_scope pr "&pullRequest=$pull_request"
-
+          curl --fail --silent --show-error --retry 4 --retry-all-errors \
+            "$base/qualitygates/project_status?projectKey=$project&pullRequest=$pull_request" > gate.json
+          curl --fail --silent --show-error --retry 4 --retry-all-errors \
+            "$base/issues/search?componentKeys=$project&resolved=false&ps=100&p=1&pullRequest=$pull_request&additionalFields=_all" > issues.json
           python3 - <<'PY'
           import json
 
-          for scope in ('overall', 'pr'):
-              gate = json.load(open(f'gate-{scope}.json', encoding='utf-8'))['projectStatus']
-              measures_payload = json.load(open(f'measures-{scope}.json', encoding='utf-8'))['component']
-              issues = json.load(open(f'issues-{scope}.json', encoding='utf-8'))
-              measures = {item['metric']: item.get('value') for item in measures_payload.get('measures', [])}
-              prefix = f'SONAR_{scope.upper()}_'
-              print(prefix + 'STATUS=' + gate.get('status', 'UNKNOWN'))
-              print(prefix + 'OPEN_ISSUES=' + str(issues.get('total', 'UNKNOWN')))
-              for key in ('alert_status', 'bugs', 'code_smells', 'duplicated_lines_density', 'duplicated_lines', 'coverage', 'ncloc'):
-                  print(prefix + key.upper() + '=' + str(measures.get(key, 'NO_DATA')))
-              for condition in gate.get('conditions', []):
-                  print(prefix + 'CONDITION=' + json.dumps(condition, ensure_ascii=False, sort_keys=True))
+          gate = json.load(open('gate.json', encoding='utf-8'))['projectStatus']
+          payload = json.load(open('issues.json', encoding='utf-8'))
+          print('SONAR_PR_STATUS=' + gate.get('status', 'UNKNOWN'))
+          print('SONAR_PR_OPEN_ISSUES=' + str(payload.get('total', 'UNKNOWN')))
+          for issue in payload.get('issues', []):
+              component = issue.get('component', '')
+              if ':' in component:
+                  component = component.split(':', 1)[1]
+              print('SONAR_PR_ISSUE=' + json.dumps({
+                  'key': issue.get('key'),
+                  'rule': issue.get('rule'),
+                  'severity': issue.get('severity'),
+                  'type': issue.get('type'),
+                  'component': component,
+                  'line': issue.get('line'),
+                  'message': issue.get('message'),
+                  'effort': issue.get('effort'),
+              }, ensure_ascii=False, sort_keys=True))
           PY

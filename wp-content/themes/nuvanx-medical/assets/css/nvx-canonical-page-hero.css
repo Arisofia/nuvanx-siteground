@@ -148,10 +148,8 @@
   max-width: 58rem;
 }
 
-/*
- * This file loads before several route-specific layers. These selectors keep
- * the canonical component authoritative through selector specificity.
- */
+/* Route layers load later; these governed selectors keep this component authoritative. */
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero,
 html body.nvx-site-coherent-page .nvx-canonical-page-hero,
 html body.nvx-blog-context .nvx-canonical-page-hero,
 html body .nvx-page--contact > .nvx-brand-hero {
@@ -169,6 +167,7 @@ html body .nvx-page--contact > .nvx-brand-hero {
   overflow: hidden;
 }
 
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero > .nvx-brand-hero__inner,
 html body.nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-brand-hero__inner,
 html body.nvx-blog-context .nvx-canonical-page-hero > .nvx-brand-hero__inner,
 html body .nvx-page--contact > .nvx-brand-hero > .nvx-brand-hero__inner {
@@ -182,6 +181,7 @@ html body .nvx-page--contact > .nvx-brand-hero > .nvx-brand-hero__inner {
   padding: 0;
 }
 
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero .nvx-editorial-hero__copy,
 html body.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-editorial-hero__copy,
 html body.nvx-blog-context .nvx-canonical-page-hero .nvx-editorial-hero__copy,
 html body .nvx-page--contact > .nvx-brand-hero .nvx-editorial-hero__copy {
@@ -200,6 +200,7 @@ html body .nvx-page--contact > .nvx-brand-hero .nvx-editorial-hero__copy {
   box-sizing: border-box;
 }
 
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero h1,
 html body.nvx-site-coherent-page .nvx-canonical-page-hero h1,
 html body.nvx-blog-context .nvx-canonical-page-hero h1,
 html body .nvx-page--contact > .nvx-brand-hero h1 {
@@ -214,6 +215,7 @@ html body .nvx-page--contact > .nvx-brand-hero h1 {
   text-wrap: balance;
 }
 
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero .nvx-eyebrow,
 html body.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-eyebrow,
 html body.nvx-blog-context .nvx-canonical-page-hero .nvx-eyebrow,
 html body .nvx-page--contact > .nvx-brand-hero .nvx-eyebrow {
@@ -221,6 +223,7 @@ html body .nvx-page--contact > .nvx-brand-hero .nvx-eyebrow {
   color: var(--nvx-accent-gold);
 }
 
+html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero :is(.nvx-brand-meta, .nvx-lead),
 html body.nvx-site-coherent-page .nvx-canonical-page-hero :is(.nvx-brand-meta, .nvx-lead),
 html body.nvx-blog-context .nvx-canonical-page-hero :is(.nvx-brand-meta, .nvx-lead),
 html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-brand-meta, .nvx-lead) {
@@ -237,6 +240,7 @@ html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-brand-meta, .nvx-lead) {
 
 @media (max-width: 680px) {
   .nvx-canonical-page-hero,
+  html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero,
   html body.nvx-site-coherent-page .nvx-canonical-page-hero,
   html body.nvx-blog-context .nvx-canonical-page-hero,
   html body .nvx-page--contact > .nvx-brand-hero {
@@ -246,6 +250,7 @@ html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-brand-meta, .nvx-lead) {
   }
 
   .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+  html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero .nvx-editorial-hero__copy,
   html body.nvx-site-coherent-page .nvx-canonical-page-hero .nvx-editorial-hero__copy,
   html body.nvx-blog-context .nvx-canonical-page-hero .nvx-editorial-hero__copy,
   html body .nvx-page--contact > .nvx-brand-hero .nvx-editorial-hero__copy {
@@ -256,6 +261,7 @@ html body .nvx-page--contact > .nvx-brand-hero :is(.nvx-brand-meta, .nvx-lead) {
 
   .nvx-canonical-page-hero .nvx-heading,
   .nvx-canonical-page-hero h1,
+  html body.nvx-site-coherent-page .nvx-brand-page > .nvx-canonical-page-hero h1,
   html body.nvx-site-coherent-page .nvx-canonical-page-hero h1,
   html body.nvx-blog-context .nvx-canonical-page-hero h1,
   html body .nvx-page--contact > .nvx-brand-hero h1 {

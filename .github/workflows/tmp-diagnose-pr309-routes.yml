@@ -53,15 +53,15 @@ jobs:
         run: |
           set -euo pipefail
           ssh nvx-staging2 "cd '$WP_ROOT' && wp post list --post_type=page --post_status=publish --fields=ID,post_name,post_title --format=csv" \
-            | grep -Ei 'tratamiento|medicina|endolift|endolaser|co2|exion|láser|laser' || true
+            | grep -Ei 'soluciones|tratamiento|medicina|endolift|endolaser|co2|exion|láser|laser' || true
 
-      - name: Report route status and markers
+      - name: Report route status, size and markers
         shell: bash
         run: |
           set -euo pipefail
           routes=(
             '/'
-            '/tratamientos/'
+            '/soluciones-medicas/'
             '/medicina-estetica/'
             '/medicina-estetica-laser/'
             '/endolift-facial-papada-mandibula/'
@@ -72,7 +72,8 @@ jobs:
           for slug in "${routes[@]}"; do
             file="/tmp/$(printf '%s' "$slug" | tr '/-' '__').html"
             code="$(curl --location --silent --show-error --max-time 30 --output "$file" --write-out '%{http_code}' "$BASE_URL$slug")"
+            size="$(wc -c < "$file")"
             title="$(grep -oPm1 '(?<=<title>)[^<]+' "$file" || true)"
-            markers="$(grep -Eo 'nvx-(treatment-hub|aesthetic-editorial|laser-editorial|endolift-editorial|endolaser-editorial|co2-editorial|btl-detail)' "$file" | sort -u | tr '\n' ',' || true)"
-            echo "$code $slug title=$title markers=$markers"
+            markers="$(grep -Eo 'nvx-(solutions-page|treatment-hub|aesthetic-editorial|laser-editorial|endolift-editorial|endolaser-editorial|co2-editorial|btl-detail)' "$file" | sort -u | tr '\n' ',' || true)"
+            echo "$code $slug bytes=$size title=$title markers=$markers"
           done

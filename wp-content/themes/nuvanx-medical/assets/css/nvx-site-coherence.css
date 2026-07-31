@@ -213,6 +213,137 @@
   box-sizing: border-box;
 }
 
+/* Institutional pages share one exact hero geometry and type hierarchy. */
+.nvx-brand-page--clinicas > .nvx-canonical-page-hero,
+.nvx-brand-page.nvx-valoracion-page > .nvx-canonical-page-hero,
+.nvx-equipo-editorial .nvx-canonical-page-hero,
+.nvx-blog-context .nvx-blog-archive__hero,
+.nvx-page--contact > .nvx-brand-hero {
+  position: relative;
+  isolation: isolate;
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-height: clamp(34rem, 62vw, 46rem);
+  height: auto;
+  margin: 0;
+  padding: 0;
+  background: var(--nvx-ink);
+  background-image: none;
+  color: var(--nvx-light);
+  overflow: hidden;
+}
+
+.nvx-brand-page--clinicas > .nvx-canonical-page-hero > .nvx-brand-hero__inner,
+.nvx-brand-page.nvx-valoracion-page > .nvx-canonical-page-hero > .nvx-brand-hero__inner,
+.nvx-equipo-editorial .nvx-canonical-page-hero > .nvx-brand-hero__inner,
+.nvx-blog-context .nvx-blog-archive__hero > .nvx-brand-hero__inner,
+.nvx-page--contact > .nvx-brand-hero > .nvx-brand-hero__inner {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: none;
+  min-height: inherit;
+  height: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.nvx-brand-page--clinicas .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+.nvx-brand-page.nvx-valoracion-page .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+.nvx-equipo-editorial .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+.nvx-blog-context .nvx-blog-archive__hero .nvx-editorial-hero__copy,
+.nvx-page--contact > .nvx-brand-hero .nvx-editorial-hero__copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: min(100%, var(--nvx-shell));
+  max-width: var(--nvx-shell);
+  min-height: inherit;
+  height: auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0;
+  margin-inline: auto;
+  padding: clamp(8rem, 13vw, 11rem) var(--nvx-gutter-inner) clamp(3.5rem, 6vw, 5rem);
+  box-sizing: border-box;
+}
+
+.nvx-brand-page--clinicas .nvx-canonical-page-hero .nvx-eyebrow,
+.nvx-brand-page.nvx-valoracion-page .nvx-canonical-page-hero .nvx-eyebrow,
+.nvx-equipo-editorial .nvx-canonical-page-hero .nvx-eyebrow,
+.nvx-blog-context .nvx-blog-archive__hero .nvx-eyebrow,
+.nvx-page--contact > .nvx-brand-hero .nvx-eyebrow {
+  margin: 0 0 var(--nvx-space-3);
+  color: var(--nvx-accent-gold);
+}
+
+.nvx-brand-page--clinicas .nvx-canonical-page-hero h1,
+.nvx-brand-page.nvx-valoracion-page .nvx-canonical-page-hero h1,
+.nvx-equipo-editorial .nvx-canonical-page-hero h1,
+.nvx-blog-context .nvx-blog-archive__hero h1,
+.nvx-page--contact > .nvx-brand-hero h1 {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--nvx-serif);
+  font-size: clamp(3rem, 5.2vw, 5rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: var(--nvx-track-h1);
+  color: var(--nvx-light);
+  text-wrap: balance;
+}
+
+.nvx-brand-page--clinicas .nvx-canonical-page-hero .nvx-brand-meta,
+.nvx-brand-page.nvx-valoracion-page .nvx-canonical-page-hero .nvx-brand-meta,
+.nvx-equipo-editorial .nvx-canonical-page-hero .nvx-brand-meta,
+.nvx-blog-context .nvx-blog-archive__hero .nvx-brand-meta,
+.nvx-page--contact > .nvx-brand-hero .nvx-lead {
+  width: min(100%, 58rem);
+  max-width: 58rem;
+  margin: var(--nvx-space-4) 0 0;
+  padding-top: var(--nvx-space-3);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-border-on-dark-55);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  line-height: 1.55;
+  color: var(--nvx-text-on-dark-90);
+}
+
+.nvx-brand-page--clinicas .nvx-canonical-page-hero .nvx-brand-actions,
+.nvx-brand-page.nvx-valoracion-page .nvx-canonical-page-hero .nvx-brand-actions,
+.nvx-equipo-editorial .nvx-canonical-page-hero .nvx-cta-pair-ctas,
+.nvx-page--contact > .nvx-brand-hero .nvx-cta-group {
+  display: flex;
+  width: auto;
+  flex-flow: row wrap;
+  gap: var(--nvx-space-2);
+  margin-top: clamp(var(--nvx-space-4), 4vw, var(--nvx-space-5));
+}
+
+/* HubSpot owns its dynamic iframe height; the page must never crop it. */
+.nvx-valoracion-page .nvx-hs-native-box {
+  width: min(100%, 52rem);
+  overflow: visible;
+}
+
+.nvx-valoracion-page .nvx-hubspot-native-form-v2,
+.nvx-valoracion-page .hs-form-frame {
+  display: block;
+  width: 100%;
+  min-height: 60rem;
+  overflow: visible;
+}
+
+.nvx-valoracion-page .hs-form-frame iframe {
+  display: block;
+  width: 100%;
+  min-height: 60rem;
+  border: 0;
+  overflow: visible;
+}
+
 @media (max-width: 56rem) {
   .nvx-blog-card {
     grid-column: 1 / -1;
@@ -227,5 +358,56 @@
   .nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-page-hero__inner,
   .nvx-site-coherent-page .nvx-canonical-page-hero > .nvx-hero__inner {
     padding-block: var(--nvx-space-8);
+  }
+}
+
+@media (max-width: 680px) {
+  .nvx-brand-page--clinicas > .nvx-canonical-page-hero,
+  .nvx-brand-page.nvx-valoracion-page > .nvx-canonical-page-hero,
+  .nvx-equipo-editorial .nvx-canonical-page-hero,
+  .nvx-blog-context .nvx-blog-archive__hero,
+  .nvx-page--contact > .nvx-brand-hero {
+    min-height: 31rem;
+  }
+
+  .nvx-brand-page--clinicas .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+  .nvx-brand-page.nvx-valoracion-page .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+  .nvx-equipo-editorial .nvx-canonical-page-hero .nvx-editorial-hero__copy,
+  .nvx-blog-context .nvx-blog-archive__hero .nvx-editorial-hero__copy,
+  .nvx-page--contact > .nvx-brand-hero .nvx-editorial-hero__copy {
+    min-height: 31rem;
+    padding: clamp(6.5rem, 24vw, 8rem) var(--nvx-gutter-inner) var(--nvx-space-5);
+  }
+
+  .nvx-brand-page--clinicas .nvx-canonical-page-hero h1,
+  .nvx-brand-page.nvx-valoracion-page .nvx-canonical-page-hero h1,
+  .nvx-equipo-editorial .nvx-canonical-page-hero h1,
+  .nvx-blog-context .nvx-blog-archive__hero h1,
+  .nvx-page--contact > .nvx-brand-hero h1 {
+    max-width: 19ch;
+    font-size: clamp(2.45rem, 10.5vw, 2.75rem);
+    line-height: 1.02;
+  }
+
+  .nvx-brand-page--clinicas .nvx-canonical-page-hero .nvx-brand-actions,
+  .nvx-brand-page.nvx-valoracion-page .nvx-canonical-page-hero .nvx-brand-actions,
+  .nvx-equipo-editorial .nvx-canonical-page-hero .nvx-cta-pair-ctas,
+  .nvx-page--contact > .nvx-brand-hero .nvx-cta-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .nvx-brand-page--clinicas .nvx-canonical-page-hero .nvx-brand-btn,
+  .nvx-brand-page.nvx-valoracion-page .nvx-canonical-page-hero .nvx-brand-btn,
+  .nvx-equipo-editorial .nvx-canonical-page-hero .nvx-btn,
+  .nvx-page--contact > .nvx-brand-hero .nvx-btn {
+    width: 100%;
+  }
+
+  .nvx-valoracion-page .nvx-hubspot-native-form-v2,
+  .nvx-valoracion-page .hs-form-frame,
+  .nvx-valoracion-page .hs-form-frame iframe {
+    min-height: 72rem;
   }
 }

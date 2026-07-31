@@ -45,6 +45,11 @@ function nvx_btl_is_governed_request(): bool {
     return in_array( $slug, nvx_btl_governed_slugs(), true );
 }
 
+/** Build one source-to-governed claim replacement. */
+function nvxBtlClaimPair( string $source, string $governed ): array {
+    return compact( 'source', 'governed' );
+}
+
 /**
  * Shared claim library: source text for page registry + governed public rewrite.
  *
@@ -63,94 +68,31 @@ function nvx_btl_claim_library(): array {
 
     $library = array(
         // EXION Face — product depth (authoritative for registry + gate).
-        'exion_face_mech_intro'  => array(
-            'source'   => 'EXION Face combina radiofrecuencia monopolar y ultrasonido terapéutico orientados a estimular fibroblastos y matriz extracelular, sin basarse en picos térmicos de 60–70 °C típicos de algunas plataformas de contracción intensa.',
-            'governed' => 'EXION Face combina radiofrecuencia monopolar y ultrasonido terapéutico orientados a estimular fibroblastos y matriz extracelular. La comparación con plataformas de mayor pico térmico depende del aplicador, los parámetros y la indicación.',
-        ),
-        'exion_face_ha_224'      => array(
-            'source'   => 'La documentación del fabricante comunica, en modelos evaluados, un aumento de hasta ~224% en marcadores de ácido hialurónico endógeno a ~4 semanas. Ese dato es de laboratorio/protocolo evaluado y no equivale a un resultado individual garantizado.',
-            'governed' => 'La documentación del fabricante describe cambios en marcadores de matriz cutánea en modelos evaluados. La evidencia aplicable, la indicación y la respuesta clínica deben valorarse de forma individual; no se comunica como porcentaje ni como resultado garantizado.',
-        ),
-        'exion_face_compare'     => array(
-            'source'   => 'HIFU y RF volumétrica de alto pico buscan contracción por desnaturalización intensa (picos frecuentemente citados ~60–70 °C). EXION Face prioriza regeneración a microtemperaturas más fisiológicas (~40–42 °C en protocolos evaluados), con perfil de tolerancia y downtime habitualmente más favorables. Temperatura, dolor, atrofia y “porcentajes de HA” no son transferibles 1:1 entre pacientes ni entre estudios. La comparativa clínica ampliada está en el Journal.',
-            'governed' => 'Las tecnologías energéticas se seleccionan por mecanismo, zona, fototipo, antecedentes, objetivo y período de recuperación aceptable. La indicación no se establece por una comparación comercial entre marcas.',
-        ),
+        'exion_face_mech_intro' => nvxBtlClaimPair( 'EXION Face combina radiofrecuencia monopolar y ultrasonido terapéutico orientados a estimular fibroblastos y matriz extracelular, sin basarse en picos térmicos de 60–70 °C típicos de algunas plataformas de contracción intensa.', 'EXION Face combina radiofrecuencia monopolar y ultrasonido terapéutico orientados a estimular fibroblastos y matriz extracelular. La comparación con plataformas de mayor pico térmico depende del aplicador, los parámetros y la indicación.' ),
+        'exion_face_ha_224' => nvxBtlClaimPair( 'La documentación del fabricante comunica, en modelos evaluados, un aumento de hasta ~224% en marcadores de ácido hialurónico endógeno a ~4 semanas. Ese dato es de laboratorio/protocolo evaluado y no equivale a un resultado individual garantizado.', 'La documentación del fabricante describe cambios en marcadores de matriz cutánea en modelos evaluados. La evidencia aplicable, la indicación y la respuesta clínica deben valorarse de forma individual; no se comunica como porcentaje ni como resultado garantizado.' ),
+        'exion_face_compare' => nvxBtlClaimPair( 'HIFU y RF volumétrica de alto pico buscan contracción por desnaturalización intensa (picos frecuentemente citados ~60–70 °C). EXION Face prioriza regeneración a microtemperaturas más fisiológicas (~40–42 °C en protocolos evaluados), con perfil de tolerancia y downtime habitualmente más favorables. Temperatura, dolor, atrofia y “porcentajes de HA” no son transferibles 1:1 entre pacientes ni entre estudios. La comparativa clínica ampliada está en el Journal.', 'Las tecnologías energéticas se seleccionan por mecanismo, zona, fototipo, antecedentes, objetivo y período de recuperación aceptable. La indicación no se establece por una comparación comercial entre marcas.' ),
         // EXION Body — product depth.
-        'exion_body_btl_22'      => array(
-            'source'   => 'BTL comunica, en series evaluadas, órdenes de magnitud del tipo hasta −22% de adiposidad y mejoras relevantes de laxitud. Son datos de condiciones de estudio; en NUVANX se individualizan por espesor, zona y calidad de piel.',
-            'governed' => 'La documentación técnica describe cambios en adiposidad en series evaluadas. No se publica un porcentaje porque depende de población, zona, protocolo y evaluación clínica, y no constituye un resultado individual garantizado.',
-        ),
-        'exion_body_compare'     => array(
-            'source'   => 'Criolipólisis reduce grasa localizada pero no tensa. Microagujas corporales tensan con más trauma y downtime. EXION Body busca grasa + calidad cutánea con mejor tolerancia en muchos protocolos. Frente a liposucción quirúrgica: menos invasivo, menos downtime, pero tampoco sustituye una cirugía mayor cuando el exceso es muy importante. Detalle y matices en el Journal y en la página de endoláser.',
-            'governed' => 'Los procedimientos para contorno corporal tienen mecanismos, límites y períodos de recuperación distintos. La elección se realiza tras explorar grasa localizada, calidad cutánea, exceso de piel y expectativas; una tecnología no sustituye una cirugía cuando ésta está indicada.',
-        ),
+        'exion_body_btl_22' => nvxBtlClaimPair( 'BTL comunica, en series evaluadas, órdenes de magnitud del tipo hasta −22% de adiposidad y mejoras relevantes de laxitud. Son datos de condiciones de estudio; en NUVANX se individualizan por espesor, zona y calidad de piel.', 'La documentación técnica describe cambios en adiposidad en series evaluadas. No se publica un porcentaje porque depende de población, zona, protocolo y evaluación clínica, y no constituye un resultado individual garantizado.' ),
+        'exion_body_compare' => nvxBtlClaimPair( 'Criolipólisis reduce grasa localizada pero no tensa. Microagujas corporales tensan con más trauma y downtime. EXION Body busca grasa + calidad cutánea con mejor tolerancia en muchos protocolos. Frente a liposucción quirúrgica: menos invasivo, menos downtime, pero tampoco sustituye una cirugía mayor cuando el exceso es muy importante. Detalle y matices en el Journal y en la página de endoláser.', 'Los procedimientos para contorno corporal tienen mecanismos, límites y períodos de recuperación distintos. La elección se realiza tras explorar grasa localizada, calidad cutánea, exceso de piel y expectativas; una tecnología no sustituye una cirugía cuando ésta está indicada.' ),
         // Neutral surface-cooling description (no unverified “lower burn risk” claim).
-        'exion_body_cooling'     => array(
-            'source'   => $btl_disclaimer,
-            'governed' => $btl_disclaimer,
-        ),
+        'exion_body_cooling' => nvxBtlClaimPair( $btl_disclaimer, $btl_disclaimer ),
         // Legacy / residual strings (rewrite-only if older HTML remains).
-        'legacy_face_mech'       => array(
-            'source'   => 'EXION Face combina radiofrecuencia monopolar y ultrasonido terapéutico en un protocolo orientado a estimular fibroblastos y matriz extracelular, no a necrosar tejido con picos térmicos de 60–70 °C.',
-            'governed' => 'EXION Face combina radiofrecuencia monopolar y ultrasonido terapéutico en un protocolo orientado a estimular fibroblastos y matriz extracelular sin recurrir a un daño térmico agresivo. La comparación con otras plataformas depende del aplicador, los parámetros y la indicación.',
-        ),
-        'legacy_face_ha'         => array(
-            'source'   => 'Documentación del fabricante describe, en modelos evaluados, incrementos de marcadores de ácido hialurónico endógeno del orden del 224% a ~4 semanas; en consulta se presentan como potencial de estimulación, no como promesa personalizada.',
-            'governed' => 'La documentación del fabricante describe cambios en marcadores de matriz cutánea en modelos evaluados. La evidencia aplicable y la respuesta clínica deben valorarse de forma individual; no se comunica como porcentaje ni como resultado garantizado.',
-        ),
-        'legacy_face_compare'    => array(
-            'source'   => 'HIFU y RF volumétrica de alto pico buscan contracción por desnaturalización intensa. EXION Face prioriza regeneración a temperaturas más fisiológicas, con mejor tolerancia y menor downtime. La comparativa clínica ampliada está en el blog médico.',
-            'governed' => 'Las tecnologías energéticas se seleccionan por mecanismo, zona, fototipo, antecedentes, objetivo y período de recuperación aceptable. La indicación no se establece por una comparación comercial entre marcas.',
-        ),
-        'legacy_body_22'         => array(
-            'source'   => 'Documentación BTL comunica órdenes de magnitud del tipo −22% adiposidad y mejoras relevantes de laxitud en series evaluadas; en NUVANX se individualiza por espesor graso, zona y calidad de piel.',
-            'governed' => 'La documentación técnica describe cambios en adiposidad en series evaluadas. No se publica un porcentaje porque depende de población, zona, protocolo y evaluación clínica, y no constituye un resultado individual garantizado.',
-        ),
-        'legacy_body_compare'    => array(
-            'source'   => 'La criolipólisis reduce grasa pero no tensa. Las microagujas corporales tensan con más trauma y downtime. EXION Body busca ambos efectos con mejor tolerancia. Detalle comparativo en el blog.',
-            'governed' => 'Los procedimientos corporales tienen mecanismos, límites y períodos de recuperación diferentes. La elección se realiza tras una valoración médica, sin convertir una comparación entre marcas en una recomendación comercial.',
-        ),
-        'legacy_body_needles'    => array(
-            'source'   => 'No es un sistema de perforación con agujas largas; el eritema, si aparece, suele resolverse en horas.',
-            'governed' => 'El aplicador no utiliza microagujas. Los posibles efectos y su evolución se explican antes de decidir, según el protocolo y la respuesta individual.',
-        ),
+        'legacy_face_mech' => nvxBtlClaimPair( 'EXION Face combina radiofrecuencia monopolar y ultrasonido terapéutico en un protocolo orientado a estimular fibroblastos y matriz extracelular, no a necrosar tejido con picos térmicos de 60–70 °C.', 'EXION Face combina radiofrecuencia monopolar y ultrasonido terapéutico en un protocolo orientado a estimular fibroblastos y matriz extracelular sin recurrir a un daño térmico agresivo. La comparación con otras plataformas depende del aplicador, los parámetros y la indicación.' ),
+        'legacy_face_ha' => nvxBtlClaimPair( 'Documentación del fabricante describe, en modelos evaluados, incrementos de marcadores de ácido hialurónico endógeno del orden del 224% a ~4 semanas; en consulta se presentan como potencial de estimulación, no como promesa personalizada.', 'La documentación del fabricante describe cambios en marcadores de matriz cutánea en modelos evaluados. La evidencia aplicable y la respuesta clínica deben valorarse de forma individual; no se comunica como porcentaje ni como resultado garantizado.' ),
+        'legacy_face_compare' => nvxBtlClaimPair( 'HIFU y RF volumétrica de alto pico buscan contracción por desnaturalización intensa. EXION Face prioriza regeneración a temperaturas más fisiológicas, con mejor tolerancia y menor downtime. La comparativa clínica ampliada está en el blog médico.', 'Las tecnologías energéticas se seleccionan por mecanismo, zona, fototipo, antecedentes, objetivo y período de recuperación aceptable. La indicación no se establece por una comparación comercial entre marcas.' ),
+        'legacy_body_22' => nvxBtlClaimPair( 'Documentación BTL comunica órdenes de magnitud del tipo −22% adiposidad y mejoras relevantes de laxitud en series evaluadas; en NUVANX se individualiza por espesor graso, zona y calidad de piel.', 'La documentación técnica describe cambios en adiposidad en series evaluadas. No se publica un porcentaje porque depende de población, zona, protocolo y evaluación clínica, y no constituye un resultado individual garantizado.' ),
+        'legacy_body_compare' => nvxBtlClaimPair( 'La criolipólisis reduce grasa pero no tensa. Las microagujas corporales tensan con más trauma y downtime. EXION Body busca ambos efectos con mejor tolerancia. Detalle comparativo en el blog.', 'Los procedimientos corporales tienen mecanismos, límites y períodos de recuperación diferentes. La elección se realiza tras una valoración médica, sin convertir una comparación entre marcas en una recomendación comercial.' ),
+        'legacy_body_needles' => nvxBtlClaimPair( 'No es un sistema de perforación con agujas largas; el eritema, si aparece, suele resolverse en horas.', 'El aplicador no utiliza microagujas. Los posibles efectos y su evolución se explican antes de decidir, según el protocolo y la respuesta individual.' ),
         // Soften residual risk phrasing if older cached HTML still emits it.
-        'legacy_body_burn_risk'  => array(
-            'source'   => 'Protege la epidermis mientras la RF trabaja en planos más profundos. Reduce el riesgo de quemadura superficial respecto a RF sin control de superficie adecuado.',
-            'governed' => $btl_disclaimer,
-        ),
-        'frac_lead_legacy'       => array(
-            'source'   => 'Microagujas más cortas y gradiente térmico extendido con feedback de tejido — textura, poros y cicatrices con menos pasadas y downtime más predecible que la RF fraccionada “a ciegas”.',
-            'governed' => 'EXION Fractional RF utiliza microagujas, control de impedancia y feedback tisular. Esa información permite explicar diferencias frente a sistemas sin retroalimentación en tiempo real, sin afirmar de forma universal menos dolor, menos pases o mejor recuperación.',
-        ),
-        'frac_needles_legacy'    => array(
-            'source'   => 'Agujas más cortas con proyección térmica extendida permiten alcanzar profundidad de trabajo relevante reduciendo trauma mecánico superficial respecto a protocolos de aguja larga multipasada.',
-            'governed' => 'La geometría de las microagujas y la proyección térmica pueden reducir el componente mecánico frente a determinados protocolos multipasada. La magnitud de esa diferencia depende del dispositivo, los parámetros y la técnica.',
-        ),
-        'frac_tolerate_title'    => array(
-            'source'   => 'Pacientes que no toleran multipasada agresiva',
-            'governed' => 'Pacientes con antecedentes de baja tolerancia a protocolos multipasada',
-        ),
-        'frac_hematoma_legacy'   => array(
-            'source'   => 'Historial de RF fraccionada con hematomas prolongados o abandono por dolor: se reevalúa energía y número de pases.',
-            'governed' => 'Ante tratamientos previos con dolor, hematomas o recuperación prolongada se revisan energía, analgesia, número de pases y alternativas.',
-        ),
-        'frac_downtime_legacy'   => array(
-            'source'   => 'Downtime típico: eritema 12–48 h según energía; se explica antes de firmar el plan.',
-            'governed' => 'El posible eritema y el período de recuperación se explican antes de decidir, según los parámetros y la respuesta individual. No se comunica un plazo garantizado.',
-        ),
-        'frac_single_pass'       => array(
-            'source'   => 'El diseño single-pass reduce pasadas innecesarias cuando el feedback de tejido es adecuado; el médico puede modular según zona.',
-            'governed' => 'El diseño single-pass y el feedback de impedancia pueden reducir pasadas adicionales en protocolos seleccionados. El profesional decide el número de pases según zona, respuesta y objetivo.',
-        ),
-        'emfusion_h1_legacy'     => array(
-            'source'   => 'EMFUSION® en Madrid: infusión cutánea y restauración de barrera sin succión agresiva',
-            'governed' => 'EMFUSION® en Madrid: infusión cutánea y apoyo a la barrera sin sistemas de succión',
-        ),
-        'emfusion_lead_legacy'   => array(
-            'source'   => 'Tecnología DYNAMiQ™ de microcanales acústicos para favorecer la penetración de activos y apoyar la homeostasis epidérmica — alternativa a vórtices de succión y microneedling cuando la barrera está comprometida.',
-            'governed' => 'La plataforma se valora dentro de un plan de cuidado cutáneo. La indicación, los activos y los cuidados se explican de forma individual antes de decidir.',
-        ),
+        'legacy_body_burn_risk' => nvxBtlClaimPair( 'Protege la epidermis mientras la RF trabaja en planos más profundos. Reduce el riesgo de quemadura superficial respecto a RF sin control de superficie adecuado.', $btl_disclaimer ),
+        'frac_lead_legacy' => nvxBtlClaimPair( 'Microagujas más cortas y gradiente térmico extendido con feedback de tejido — textura, poros y cicatrices con menos pasadas y downtime más predecible que la RF fraccionada “a ciegas”.', 'EXION Fractional RF utiliza microagujas, control de impedancia y feedback tisular. Esa información permite explicar diferencias frente a sistemas sin retroalimentación en tiempo real, sin afirmar de forma universal menos dolor, menos pases o mejor recuperación.' ),
+        'frac_needles_legacy' => nvxBtlClaimPair( 'Agujas más cortas con proyección térmica extendida permiten alcanzar profundidad de trabajo relevante reduciendo trauma mecánico superficial respecto a protocolos de aguja larga multipasada.', 'La geometría de las microagujas y la proyección térmica pueden reducir el componente mecánico frente a determinados protocolos multipasada. La magnitud de esa diferencia depende del dispositivo, los parámetros y la técnica.' ),
+        'frac_tolerate_title' => nvxBtlClaimPair( 'Pacientes que no toleran multipasada agresiva', 'Pacientes con antecedentes de baja tolerancia a protocolos multipasada' ),
+        'frac_hematoma_legacy' => nvxBtlClaimPair( 'Historial de RF fraccionada con hematomas prolongados o abandono por dolor: se reevalúa energía y número de pases.', 'Ante tratamientos previos con dolor, hematomas o recuperación prolongada se revisan energía, analgesia, número de pases y alternativas.' ),
+        'frac_downtime_legacy' => nvxBtlClaimPair( 'Downtime típico: eritema 12–48 h según energía; se explica antes de firmar el plan.', 'El posible eritema y el período de recuperación se explican antes de decidir, según los parámetros y la respuesta individual. No se comunica un plazo garantizado.' ),
+        'frac_single_pass' => nvxBtlClaimPair( 'El diseño single-pass reduce pasadas innecesarias cuando el feedback de tejido es adecuado; el médico puede modular según zona.', 'El diseño single-pass y el feedback de impedancia pueden reducir pasadas adicionales en protocolos seleccionados. El profesional decide el número de pases según zona, respuesta y objetivo.' ),
+        'emfusion_h1_legacy' => nvxBtlClaimPair( 'EMFUSION® en Madrid: infusión cutánea y restauración de barrera sin succión agresiva', 'EMFUSION® en Madrid: infusión cutánea y apoyo a la barrera sin sistemas de succión' ),
+        'emfusion_lead_legacy' => nvxBtlClaimPair( 'Tecnología DYNAMiQ™ de microcanales acústicos para favorecer la penetración de activos y apoyar la homeostasis epidérmica — alternativa a vórtices de succión y microneedling cuando la barrera está comprometida.', 'La plataforma se valora dentro de un plan de cuidado cutáneo. La indicación, los activos y los cuidados se explican de forma individual antes de decidir.' ),
     );
 
     return $library;

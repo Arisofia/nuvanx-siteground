@@ -39,6 +39,11 @@ if ( ! defined( 'NVX_SD_TEL_CHAMBERI' ) ) {
     define( 'NVX_SD_SOCIEDAD_SEMEG', 'Sociedad Española de Medicina Geriátrica (SEMEG)' );
 }
 
+/** Build one immutable public tariff row. */
+function nvxTariffItem( string $label, float $pvp, string $group ): array {
+    return compact( 'label', 'pvp', 'group' );
+}
+
 /**
  * Official public PVP catalogue (EUR, IVA 21% included).
  * Source: clinic tariff sheet. Never publish commission / internal cost notes.
@@ -52,130 +57,34 @@ if ( ! defined( 'NVX_SD_TEL_CHAMBERI' ) ) {
 function nvx_tariff_catalog() {
     return array(
         'endolift'       => array(
-            'ojeras'              => array(
-                'label' => 'Endolift® ojeras',
-                'pvp'   => 798.60,
-                'group' => 'facial',
-            ),
-            'papada'              => array(
-                'label' => 'Endolift® papada',
-                'pvp'   => 1064.80,
-                'group' => 'facial',
-            ),
-            'marcacion_mandibular' => array(
-                'label' => 'Endolift® marcación mandibular',
-                'pvp'   => 1064.80,
-                'group' => 'facial',
-            ),
-            'pomulos'             => array(
-                'label' => 'Endolift® pómulos',
-                'pvp'   => 1064.80,
-                'group' => 'facial',
-            ),
-            'cuello'              => array(
-                'label' => 'Cuello',
-                'pvp'   => 1197.90,
-                'group' => 'facial',
-            ),
-            'abdomen'             => array(
-                'label' => 'Endolift® zona abdomen',
-                'pvp'   => 1694.00,
-                'group' => 'corporal',
-            ),
-            'flancos'             => array(
-                'label' => 'Endolift® flancos',
-                'pvp'   => 1573.00,
-                'group' => 'corporal',
-            ),
-            'subescapular'        => array(
-                'label' => 'Endolift® subescapular / sujetador',
-                'pvp'   => 1391.50,
-                'group' => 'corporal',
-            ),
-            'brazos'              => array(
-                'label' => 'Endolift® brazos',
-                'pvp'   => 1331.00,
-                'group' => 'corporal',
-            ),
-            'rodillas'            => array(
-                'label' => 'Endolift® rodillas',
-                'pvp'   => 1197.90,
-                'group' => 'corporal',
-            ),
-            'muslos_internos'     => array(
-                'label' => 'Endolift® cara interna muslos',
-                'pvp'   => 1331.00,
-                'group' => 'corporal',
-            ),
-            'subgluteos'          => array(
-                'label' => 'Subglúteos (bananitos)',
-                'pvp'   => 1331.00,
-                'group' => 'corporal',
-            ),
-            'cartucheras'         => array(
-                'label' => 'Endolift® cartucheras',
-                'pvp'   => 1331.00,
-                'group' => 'corporal',
-            ),
+            'ojeras' => nvxTariffItem( 'Endolift® ojeras', 798.60, 'facial' ),
+            'papada' => nvxTariffItem( 'Endolift® papada', 1064.80, 'facial' ),
+            'marcacion_mandibular' => nvxTariffItem( 'Endolift® marcación mandibular', 1064.80, 'facial' ),
+            'pomulos' => nvxTariffItem( 'Endolift® pómulos', 1064.80, 'facial' ),
+            'cuello' => nvxTariffItem( 'Cuello', 1197.90, 'facial' ),
+            'abdomen' => nvxTariffItem( 'Endolift® zona abdomen', 1694.00, 'corporal' ),
+            'flancos' => nvxTariffItem( 'Endolift® flancos', 1573.00, 'corporal' ),
+            'subescapular' => nvxTariffItem( 'Endolift® subescapular / sujetador', 1391.50, 'corporal' ),
+            'brazos' => nvxTariffItem( 'Endolift® brazos', 1331.00, 'corporal' ),
+            'rodillas' => nvxTariffItem( 'Endolift® rodillas', 1197.90, 'corporal' ),
+            'muslos_internos' => nvxTariffItem( 'Endolift® cara interna muslos', 1331.00, 'corporal' ),
+            'subgluteos' => nvxTariffItem( 'Subglúteos (bananitos)', 1331.00, 'corporal' ),
+            'cartucheras' => nvxTariffItem( 'Endolift® cartucheras', 1331.00, 'corporal' ),
         ),
         'endolift_combo' => array(
-            'papada_cuello'        => array(
-                'label' => 'Papada y cuello',
-                'pvp'   => 1331.00,
-                'group' => 'facial',
-            ),
-            'marcacion_papada'     => array(
-                'label' => 'Marcación mandibular y papada',
-                'pvp'   => 1452.00,
-                'group' => 'facial',
-            ),
-            'full_face'            => array(
-                'label' => 'Endolift® Full Face (tercio medio, inferior y cuello)',
-                'pvp'   => 1694.00,
-                'group' => 'facial',
-            ),
-            'abdomen_flancos'      => array(
-                'label' => 'Abdomen y flancos',
-                'pvp'   => 2395.80,
-                'group' => 'corporal',
-            ),
-            'subgluteos_cartucheras' => array(
-                'label' => 'Subglúteos y cartucheras',
-                'pvp'   => 1633.50,
-                'group' => 'corporal',
-            ),
-            'muslos_rodilla'       => array(
-                'label' => 'Cara interna de muslos y rodilla',
-                'pvp'   => 1573.00,
-                'group' => 'corporal',
-            ),
-            'sujetador_brazos'     => array(
-                'label' => 'Zona sujetador y brazos',
-                'pvp'   => 1694.00,
-                'group' => 'corporal',
-            ),
-            'cartucheras_muslos'   => array(
-                'label' => 'Cartucheras y cara interna de muslos',
-                'pvp'   => 1815.00,
-                'group' => 'corporal',
-            ),
-            'cartucheras_subgluteos_muslos' => array(
-                'label' => 'Cartucheras, subglúteos y cara interna de muslos',
-                'pvp'   => 2286.90,
-                'group' => 'corporal',
-            ),
+            'papada_cuello' => nvxTariffItem( 'Papada y cuello', 1331.00, 'facial' ),
+            'marcacion_papada' => nvxTariffItem( 'Marcación mandibular y papada', 1452.00, 'facial' ),
+            'full_face' => nvxTariffItem( 'Endolift® Full Face (tercio medio, inferior y cuello)', 1694.00, 'facial' ),
+            'abdomen_flancos' => nvxTariffItem( 'Abdomen y flancos', 2395.80, 'corporal' ),
+            'subgluteos_cartucheras' => nvxTariffItem( 'Subglúteos y cartucheras', 1633.50, 'corporal' ),
+            'muslos_rodilla' => nvxTariffItem( 'Cara interna de muslos y rodilla', 1573.00, 'corporal' ),
+            'sujetador_brazos' => nvxTariffItem( 'Zona sujetador y brazos', 1694.00, 'corporal' ),
+            'cartucheras_muslos' => nvxTariffItem( 'Cartucheras y cara interna de muslos', 1815.00, 'corporal' ),
+            'cartucheras_subgluteos_muslos' => nvxTariffItem( 'Cartucheras, subglúteos y cara interna de muslos', 2286.90, 'corporal' ),
         ),
         'laser_co2'      => array(
-            'facial'   => array(
-                'label' => 'Sesión láser CO₂ facial',
-                'pvp'   => 330.00,
-                'group' => 'facial',
-            ),
-            'corporal' => array(
-                'label' => 'Sesión láser CO₂ corporal',
-                'pvp'   => 450.00,
-                'group' => 'corporal',
-            ),
+            'facial' => nvxTariffItem( 'Sesión láser CO₂ facial', 330.00, 'facial' ),
+            'corporal' => nvxTariffItem( 'Sesión láser CO₂ corporal', 450.00, 'corporal' ),
         ),
     );
 }
@@ -255,69 +164,34 @@ function nvx_schema_price_string( $amount ) {
  *   treatments: array<string, array{id:int, path:string, schema:string}>
  * }
  */
+/** Build one canonical route registry entry. */
+function nvxSchemaRouteEntry( int $id, string $path ): array {
+    return compact( 'id', 'path' );
+}
+
+/** Build one canonical treatment registry entry. */
+function nvxSchemaTreatmentRegistryEntry( int $id, string $path, string $schema ): array {
+    return compact( 'id', 'path', 'schema' );
+}
+
 function nvx_schema_page_registry() {
     $registry = array(
         'clinics'    => array(
-            'chamberi' => array(
-                'id'   => 1543,
-                'path' => '/medicina-estetica-chamberi/',
-            ),
-            'goya'     => array(
-                'id'   => 1537,
-                'path' => '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/',
-            ),
+            'chamberi' => nvxSchemaRouteEntry( 1543, '/medicina-estetica-chamberi/' ),
+            'goya' => nvxSchemaRouteEntry( 1537, '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ),
         ),
-        'clinic_hub' => array(
-            'id'   => 1399,
-            'path' => '/clinicas-de-medicina-estetica-nuvanx/',
-        ),
+        'clinic_hub' => nvxSchemaRouteEntry( 1399, '/clinicas-de-medicina-estetica-nuvanx/' ),
         'treatments' => array(
-            'endolift_facial'    => array(
-                'id'     => 1241,
-                'path'   => '/endolift-facial-papada-mandibula/',
-                'schema' => 'MedicalProcedure',
-            ),
+            'endolift_facial' => nvxSchemaTreatmentRegistryEntry( 1241, '/endolift-facial-papada-mandibula/', 'MedicalProcedure' ),
             // Path is authoritative when post ID moves between environments.
-            'endolaser_corporal' => array(
-                'id'     => 0,
-                'path'   => '/endolaser-corporal-grasa-localizada/',
-                'schema' => 'MedicalProcedure',
-            ),
-            'laser_co2'          => array(
-                'id'     => 0,
-                'path'   => '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-                'schema' => 'MedicalProcedure',
-            ),
-            'exion_btl'          => array(
-                'id'     => 2906,
-                'path'   => '/exion-btl/',
-                'schema' => 'Service',
-            ),
-            'exion_face'         => array(
-                'id'     => 0,
-                'path'   => '/exion-face/',
-                'schema' => 'Service',
-            ),
-            'exion_body'         => array(
-                'id'     => 0,
-                'path'   => '/exion-body/',
-                'schema' => 'Service',
-            ),
-            'exion_fractional'   => array(
-                'id'     => 0,
-                'path'   => '/exion-fractional/',
-                'schema' => 'Service',
-            ),
-            'emfusion'           => array(
-                'id'     => 0,
-                'path'   => '/emfusion/',
-                'schema' => 'Service',
-            ),
-            'exilite_btl'        => array(
-                'id'     => 0,
-                'path'   => '/btl-exilite-ipl-madrid/',
-                'schema' => 'Service',
-            ),
+            'endolaser_corporal' => nvxSchemaTreatmentRegistryEntry( 0, '/endolaser-corporal-grasa-localizada/', 'MedicalProcedure' ),
+            'laser_co2' => nvxSchemaTreatmentRegistryEntry( 0, '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', 'MedicalProcedure' ),
+            'exion_btl' => nvxSchemaTreatmentRegistryEntry( 2906, '/exion-btl/', 'Service' ),
+            'exion_face' => nvxSchemaTreatmentRegistryEntry( 0, '/exion-face/', 'Service' ),
+            'exion_body' => nvxSchemaTreatmentRegistryEntry( 0, '/exion-body/', 'Service' ),
+            'exion_fractional' => nvxSchemaTreatmentRegistryEntry( 0, '/exion-fractional/', 'Service' ),
+            'emfusion' => nvxSchemaTreatmentRegistryEntry( 0, '/emfusion/', 'Service' ),
+            'exilite_btl' => nvxSchemaTreatmentRegistryEntry( 0, '/btl-exilite-ipl-madrid/', 'Service' ),
         ),
     );
 

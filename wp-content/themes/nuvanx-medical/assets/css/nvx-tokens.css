@@ -12,21 +12,25 @@
   --nvx-charcoal: #1c1c1e;
   --nvx-surface-soft: #e5e5e3;
   --nvx-border-soft: #cecece;
-  --nvx-accent-muted: #333333;
+  --nvx-accent-muted: #4a4a4a;
 
   --nvx-text-body: #111111;
-  --nvx-text-muted: #5c5c5c;
+  --nvx-text-muted: #4a4a4a;
   --nvx-color-paper: var(--nvx-surface-base);
   --nvx-color-line: rgba(17, 17, 17, 0.16);
 
   /* Texto y bordes sobre superficies oscuras */
   --nvx-text-on-dark: var(--nvx-light);
+  --nvx-text-on-dark-92: rgba(247, 247, 245, 0.92);
   --nvx-text-on-dark-90: rgba(247, 247, 245, 0.90);
+  --nvx-text-on-dark-88: rgba(247, 247, 245, 0.88);
   --nvx-text-on-dark-82: rgba(247, 247, 245, 0.82);
-  --nvx-text-on-dark-78: rgba(247, 247, 245, 0.78);
-  --nvx-text-on-dark-72: rgba(247, 247, 245, 0.72);
+  --nvx-text-on-dark-78: rgba(247, 247, 245, 0.88);
+  --nvx-text-on-dark-72: rgba(247, 247, 245, 0.88);
   --nvx-border-on-dark-55: rgba(247, 247, 245, 0.55);
+  --nvx-border-on-dark-50: rgba(247, 247, 245, 0.50);
   --nvx-border-on-dark-45: rgba(247, 247, 245, 0.45);
+  --nvx-border-on-dark-42: rgba(247, 247, 245, 0.42);
   --nvx-ink-muted: rgba(17, 17, 17, 0.82);
 
   /* Form-stage */
@@ -35,12 +39,16 @@
   --nvx-form-stage-cool: #d4d4d2;
   --nvx-form-stage-fallback: #e5e5e3;
   --nvx-form-stage-image: none;
+  --nvx-form-overlay-top: rgba(247, 247, 245, 0.18);
+  --nvx-form-overlay-mid: rgba(247, 247, 245, 0.08);
+  --nvx-form-overlay-bottom: rgba(17, 17, 17, 0.06);
   --nvx-highlight-soft: rgba(247, 247, 245, 0.70);
 
   --nvx-shadow-min: 0 1px 2px rgba(26, 26, 26, 0.04);
   --nvx-shadow-soft: 0 16px 48px rgba(26, 26, 26, 0.06);
   --nvx-shadow-medium: 0 24px 64px rgba(26, 26, 26, 0.08);
   --nvx-shadow-button: 0 8px 24px rgba(26, 26, 26, 0.12);
+  --nvx-shadow-button-hover: 0 16px 32px rgba(26, 26, 26, 0.14);
   --nvx-accent-glow: rgba(252, 251, 248, 0.18);
 
   /* Escala de 8px */
@@ -50,9 +58,7 @@
   --nvx-space-4: 32px;
   --nvx-space-5: 40px;
   --nvx-space-6: 48px;
-  --nvx-space-7: 56px;
   --nvx-space-8: 64px;
-  --nvx-space-9: 72px;
   --nvx-space-10: 80px;
   --nvx-space-12: 96px;
 
@@ -66,8 +72,9 @@
 
   --nvx-gutter: clamp(32px, 6vw, 96px);
   --nvx-gutter-inner: clamp(24px, 4vw, 48px);
-
+  
   --nvx-accent-gold: #C1A68D;
+  --nvx-accent-gold-text: #735942;
 
   --nvx-margin-display: 32px;
   --nvx-margin-h1: 32px;
@@ -80,34 +87,41 @@
 
   /* Shell y lectura */
   --nvx-shell: min(1240px, calc(100vw - var(--nvx-gutter)));
+  --nvx-readable: min(820px, 100%);
   --nvx-measure: 68ch;
   --nvx-measure-lead: 56ch;
   --nvx-measure-wide: 72rem;
 
   /* Media */
   --nvx-media-max-h-featured: clamp(240px, 34vw, 400px);
-  --nvx-hero-h: clamp(560px, 82svh, 720px);
+  --nvx-hero-h: min(92svh, 980px);
 
   /* Component dimensions */
   --nvx-header-height: 80px;
   --nvx-header-height-mobile: 72px;
   --nvx-touch-target-min: 48px;
   --nvx-control-size: var(--nvx-touch-target-min);
+  --nvx-logo-height: 40px;
   --nvx-logo-height-mobile: 36px;
+  --nvx-logo-width: 168px;
   --nvx-logo-width-mobile: 152px;
   --nvx-submenu-min-width: 256px;
   --nvx-submenu-max-width: 320px;
 
   /* Icon dimensions and stroke */
   --nvx-icon-xs: 16px;
+  --nvx-icon-sm: 24px;
   --nvx-icon-md: 32px;
+  --nvx-icon-lg: 40px;
+  --nvx-icon-frame: 48px;
+  --nvx-icon-stroke: 1.5;
 
   --nvx-border-hairline: 1px;
-  --nvx-border-focus: 2px;
   --nvx-radius-pill: 999px;
   --nvx-radius-button: var(--nvx-radius-pill);
   --nvx-radius-card: 0;
   --nvx-radius-image: 0;
+  --nvx-organic-c: 0 0 0 0 / 0 0 0 0;
 
   --nvx-media-overlay: linear-gradient(
     180deg,
@@ -136,14 +150,14 @@
   --nvx-type-nav-compact: 0.68rem;
   --nvx-type-nav-submenu: 0.84rem;
   --nvx-type-nav-mobile: clamp(1.5rem, 6vw, 2.25rem);
-  --nvx-type-micro: 0.6875rem;
+  --nvx-type-micro:    0.6875rem;
   --nvx-type-caption2: 0.8125rem;
-  --nvx-type-lead-lg: 1.125rem;
+  --nvx-type-lead-lg:  1.125rem;
 
   --nvx-fw-regular: 400;
   --nvx-fw-heading: 500;
   --nvx-fw-medium: 600;
-  --nvx-fw-bold: 700;
+  --nvx-fw-bold:   700;
   --nvx-lh-display: 1.15;
   --nvx-lh-h1: 1.15;
   --nvx-lh-h2: 1.15;
@@ -175,10 +189,13 @@
   --nvx-index-number-track: 0.16em;
 
   /* Superficies oscuras editoriales */
-  --nvx-surface-dark: #111111;
-  --nvx-on-dark: #f7f7f5;
-  --nvx-on-dark-88: rgba(247, 247, 245, 0.88);
-  --nvx-on-dark-72: rgba(247, 247, 245, 0.72);
-  --nvx-on-dark-50: rgba(247, 247, 245, 0.50);
+  --nvx-surface-dark:  #111111;
+  --nvx-surface-dark-2: #1a1a1a;
+  --nvx-surface-dark-3: #222222;
+  --nvx-on-dark:       #f7f7f5;
+  --nvx-on-dark-88:    rgba(247, 247, 245, 0.88);
+  --nvx-on-dark-72:    rgba(247, 247, 245, 0.88);
+  --nvx-on-dark-50:    rgba(247, 247, 245, 0.50);
   --nvx-accent-line-dark: rgba(247, 247, 245, 0.10);
+  --nvx-accent-line-light: rgba(17, 17, 17, 0.08);
 }

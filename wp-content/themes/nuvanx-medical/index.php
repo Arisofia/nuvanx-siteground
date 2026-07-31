@@ -11,27 +11,21 @@ defined( 'ABSPATH' ) || exit;
 ob_start();
 ?>
 <div class="nvx-main nvx-page">
-    <?php if ( have_posts() ) : ?>
-        <?php
-        while ( have_posts() ) :
-            the_post();
-            ?>
-            <article <?php post_class( 'nvx-page-body nvx-shell' ); ?>>
-                <?php
-                if ( is_singular() ) {
-                    the_title( '<h1 class="nvx-heading">', '</h1>' );
-                } else {
-                    the_title( '<h2 class="nvx-heading"><a href="' . esc_url( get_permalink() ) . '">', '</a></h2>' );
-                }
-                ?>
-                <div class="nvx-copy entry-content">
-                    <?php the_content(); ?>
-                </div>
-            </article>
-        <?php endwhile; ?>
-    <?php else : ?>
-        <p class="nvx-copy"><?php esc_html_e( 'No se encontró contenido.', 'nuvanx-medical' ); ?></p>
-    <?php endif; ?>
+	<?php if ( have_posts() ) : ?>
+		<?php
+		while ( have_posts() ) :
+			the_post();
+			?>
+			<article <?php post_class( 'nvx-page-body nvx-shell' ); ?>>
+				<?php the_title( '<h1 class="nvx-heading">', '</h1>' ); ?>
+				<div class="nvx-copy entry-content">
+					<?php the_content(); ?>
+				</div>
+			</article>
+		<?php endwhile; ?>
+	<?php else : ?>
+		<p class="nvx-copy"><?php esc_html_e( 'No se encontró contenido.', 'nuvanx-medical' ); ?></p>
+	<?php endif; ?>
 </div>
 <?php
 $content = ob_get_clean();

@@ -55,11 +55,10 @@
 		var params = allowedParameters(parameters);
 
 		window.dataLayer = window.dataLayer || [];
-		window.dataLayer.push({
+		window.dataLayer.push(Object.assign({
 			event: signalName,
 			nvx_event_name: normalizedName,
-			...params
-		});
+		}, params));
 
 		window.gtag = window.gtag || function () {
 			window.dataLayer.push(arguments);
@@ -67,7 +66,7 @@
 		window.gtag('event', normalizedName, params);
 
 		document.dispatchEvent(new CustomEvent('nvx:conversion-event', {
-			detail: { event_name: normalizedName, ...params },
+			detail: Object.assign({ event_name: normalizedName }, params),
 		}));
 	}
 
@@ -78,7 +77,7 @@
 		if (!target) return;
 
 		var href = target.getAttribute('href') || '';
-		var dataEvent = target.dataset.gtag || '';
+		var dataEvent = target.getAttribute('data-gtag') || '';
 		var common = {
 			cta_region: regionFor(target),
 			cta_marker: dataEvent || 'selector',
@@ -88,7 +87,7 @@
 			target.matches('[data-gtag="click-reserve"], .nvx-open-valoracion-modal')
 			|| href.indexOf('/madrid/valoracion/') !== -1
 		) {
-			emit('reserve_click', { contact_method: 'reservation', ...common });
+			emit('reserve_click', Object.assign({ contact_method: 'reservation' }, common));
 			return;
 		}
 
@@ -96,7 +95,7 @@
 			target.matches('[data-gtag="click-whatsapp"]')
 			|| /(?:wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)/i.test(href)
 		) {
-			emit('whatsapp_click', { contact_method: 'whatsapp', ...common });
+			emit('whatsapp_click', Object.assign({ contact_method: 'whatsapp' }, common));
 			return;
 		}
 
@@ -129,7 +128,7 @@
 	}
 
 	function isAllowedHubSpotOrigin(origin) {
-		if (!origin) return false;
+		if (!origin || origin === 'null') return false;
 		try {
 			var host = new URL(origin).hostname.toLowerCase();
 			return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(host);

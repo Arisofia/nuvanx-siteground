@@ -62,8 +62,8 @@ echo "== Guard: siteurl/home/theme =="
   echo "staging siteurl=$siteurl theme=$theme"
   [[ "$siteurl" == 'https://staging2.nuvanx.com' ]] || { echo "ERROR: unexpected staging siteurl=$siteurl" >&2; exit 1; }
   [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: staging active theme is $theme" >&2; exit 1; }
-  [[ -f wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css ]]
-  [[ -f wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php ]]
+  test -f wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css
+  test -f wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php
 )
 
 DATE="$(date +%Y%m%d-%H%M%S)"
@@ -105,8 +105,11 @@ do
   fi
 done
 # Drop known legacy renamed copies if present.
-rm -f "$PROD_ROOT/wp-content/mu-plugins/"z*-nuvanx-valoracion-native-hubspot-form.php
-rm -f "$PROD_ROOT/wp-content/mu-plugins/"z*-nuvanx-contacto-hubspot-form.php
+rm -f \
+  "$PROD_ROOT/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-valoracion-native-hubspot-form.php" \
+  "$PROD_ROOT/wp-content/mu-plugins/zzzzzzzzzzzz-nuvanx-contacto-hubspot-form.php" \
+  "$PROD_ROOT/wp-content/mu-plugins/z-nuvanx-valoracion-native-hubspot-form.php" \
+  "$PROD_ROOT/wp-content/mu-plugins/z-nuvanx-contacto-hubspot-form.php"
 
 echo "== Remove stale theme min.css siblings =="
 find "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/css" \
@@ -125,14 +128,21 @@ for css_file in \
   nvx-footer.css \
   nvx-posts.css
 do
-  [[ -f "$CSS/$css_file" ]] || { echo "ERROR: missing $css_file after rsync" >&2; exit 1; }
+  test -f "$CSS/$css_file" || { echo "ERROR: missing $css_file after rsync" >&2; exit 1; }
 done
 grep -Fq 'nvx-patterns-editorial.css' "$PROD_ROOT/wp-content/themes/nuvanx-medical/functions.php"
-[[ -f "$PROD_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php" ]]
+test -f "$PROD_ROOT/wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php"
 
 echo "== Purge prod cache =="
-NVX_TOOLS_DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-bash "$NVX_TOOLS_DEPLOY_DIR/nvx-purge-wp-caches.sh" --wp-root "$PROD_ROOT" --label "prod_cache_purge=ok"
+(
+  cd "$PROD_ROOT"
+  wp cache flush || true
+  wp sg purge || true
+  rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
+  rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
+  rm -rf wp-content/cache/* 2>/dev/null || true
+  wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+)
 
 echo "== DONE backup=$BACKUP_DIR =="
 echo "PROMOTE_PROD_OK"

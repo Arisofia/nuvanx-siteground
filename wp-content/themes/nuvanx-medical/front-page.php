@@ -1,225 +1,190 @@
 <?php
 /**
- * Canonical editorial front page.
+ * Canonical front page template.
  *
- * Home is a GitHub-managed editorial cover. Its visible copy, structure and
- * hero artwork are versioned with the theme and deployed as one release.
+ * Complete theme-owned markup: no block-content dependency and no nested main
+ * landmark. Media URLs use the active WordPress content origin.
  *
  * @package nuvanx-medical
  */
 
 defined( 'ABSPATH' ) || exit;
 
-require_once get_template_directory() . '/inc/nvx-github-managed-page-state.php';
-nvxSyncGithubManagedPageState( (int) get_queried_object_id(), 'home' );
-
-$hero_art_url     = get_template_directory_uri() . '/assets/images/nvx-home-hero-contours.svg';
-$hero_video_url   = content_url( '/uploads/2026/06/nvx-home-video-portada-hero-12s-720p.mp4' );
-$remodelacion_url = '/remodelacion-corporal-laser-madrid/';
-
-$structure_css = 'assets/css/nvx-home-structure.css';
-wp_enqueue_style(
-    'nvx-home-structure',
-    get_template_directory_uri() . '/' . $structure_css,
-    array( 'nvx-home-v3' ),
-    nvx_asset_version( $structure_css )
-);
-
-$protocols = array(
-    array(
-        'number' => '01',
-        'label'  => 'Profile Definition™',
-        'title'  => 'Perfil y línea mandibular',
-        'copy'   => 'Analizamos el rostro de forma global: soporte óseo, distribución del volumen, laxitud y calidad de la piel. Solo después definimos qué técnica puede mejorar el contorno sin alterar tu expresión.',
-        'url'    => '/papada-definicion-mandibular-madrid/',
-    ),
-    array(
-        'number' => '02',
-        'label'  => 'Skin Architecture™',
-        'title'  => 'Firmeza y densidad de la piel',
-        'copy'   => 'Trabajamos sobre la estructura interna del tejido para mejorar su firmeza, elasticidad y calidad, evitando resultados rígidos, excesivos o artificiales.',
-        'url'    => '/calidad-piel-firmeza-luminosidad-madrid/',
-    ),
-    array(
-        'number' => '03',
-        'label'  => 'Surface Renewal™',
-        'title'  => 'Textura, poros, manchas y marcas',
-        'copy'   => 'Adaptamos cada tratamiento al fototipo, la sensibilidad y las necesidades reales de tu piel para renovar su superficie de forma progresiva y controlada.',
-        'url'    => '/cicatrices-acne-poros-textura-madrid/',
-    ),
-    array(
-        'number' => '04',
-        'label'  => 'Contour Architecture™',
-        'title'  => 'Silueta por unidades anatómicas',
-        'copy'   => 'No tratamos zonas de manera aislada. Estudiamos cómo se relacionan abdomen, flancos, espalda, brazos o muslos para mejorar la continuidad y la proporción del contorno corporal.',
-        'url'    => $remodelacion_url,
-    ),
-);
-
-$solutions = array(
-    array(
-        'kicker' => 'ROSTRO Y CUELLO',
-        'title'  => 'Definición sin perder tu expresión',
-        'copy'   => 'Valoramos definición, firmeza y soporte estructural preservando la identidad y la expresión natural de tu rostro.',
-        'url'    => '/papada-definicion-mandibular-madrid/',
-    ),
-    array(
-        'kicker' => 'PIEL Y TEXTURA',
-        'title'  => 'Tratar la causa, no solo lo visible',
-        'copy'   => 'Manchas, rojeces, poros, marcas y pérdida de luminosidad se abordan según el origen y las características de cada alteración.',
-        'url'    => '/calidad-piel-firmeza-luminosidad-madrid/',
-    ),
-    array(
-        'kicker' => 'CONTORNO CORPORAL',
-        'title'  => 'Proporción, firmeza y continuidad',
-        'copy'   => 'Estudiamos grasa localizada, laxitud y proporción dentro del conjunto de la silueta, no como áreas independientes.',
-        'url'    => $remodelacion_url,
-    ),
-);
+$hero_video_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
+$hero_poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
+$evidence_image  = content_url( '/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' );
 
 ob_start();
 ?>
-<div id="nvx-home-v3" class="nvx-home-v4 nvx-home-v5">
-    <section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
-        <div class="nvx-home-hero__media">
-            <figure class="nvx-home-hero__visual" aria-hidden="true">
-                <video id="nvx-home-hero-video" class="nvx-home-hero__video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_art_url ); ?>">
-                    <source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
-                    <img class="nvx-home-hero__art" src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="1600" height="1200" loading="eager" decoding="async" fetchpriority="high">
-                </video>
-            </figure>
-            <button
-                type="button"
-                class="nvx-home-hero__motion-toggle"
-                data-nvx-home-video-toggle
-                aria-controls="nvx-home-hero-video"
-                aria-pressed="true"
-                aria-label="Pausar vídeo de portada">
-                <span data-nvx-home-video-label>Pausar vídeo</span>
-            </button>
-        </div>
-        <div class="nvx-home-hero__copy">
-            <p class="nvx-home-eyebrow">NUVANX · MEDICINA ESTÉTICA LÁSER · MADRID</p>
-            <h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con rigor clínico y resultados naturales.</h1>
-            <p class="nvx-home-hero__lead">En NUVANX unimos experiencia médica, tecnología avanzada y una forma más serena de abordar los tratamientos. Estudiamos tu anatomía, la calidad de tu piel y la respuesta de tus tejidos para diseñar un plan personalizado, proporcionado y respetuoso con tu fisionomía.</p>
-            <div class="nvx-home-actions">
-                <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">Solicitar valoración médica</a>
-                <a href="<?php echo esc_url( home_url( '/soluciones-medicas/' ) ); ?>" class="nvx-home-text-link">Explorar soluciones</a>
-            </div>
-            <p class="nvx-home-hero__note">Diagnóstico individualizado · Plan clínico documentado · Seguimiento médico</p>
-        </div>
-    </section>
+<div id="nvx-home-v3" class="nvx-home-v3">
+	<section class="nvx-home-hero" aria-labelledby="nvx-home-hero-title">
+		<video id="nvx-home-hero-video" class="nvx-home-hero__video nvx-home-hero-video" autoplay muted loop playsinline preload="metadata" poster="<?php echo esc_url( $hero_poster_url ); ?>" aria-label="Experiencia NUVANX Medicina Estética Láser en Madrid">
+			<source src="<?php echo esc_url( $hero_video_url ); ?>" type="video/mp4">
+			<track kind="captions" src="" srclang="es" label="Español">
+		</video>
+		<div class="nvx-home-hero__content">
+			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina Estética. Madrid.</h1>
+			<p class="nvx-home-hero__lead">Protocolos de precisión para resultados naturales, según valoración médica.</p>
+			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">Iniciar valoración</a>
+		</div>
+	</section>
 
-    <section class="nvx-home-manifesto" aria-labelledby="nvx-home-manifesto-title">
-        <p class="nvx-home-eyebrow">EL DIAGNÓSTICO COMO PUNTO DE PARTIDA</p>
-        <h2 id="nvx-home-manifesto-title">Antes de recomendar un tratamiento, necesitamos entender qué está ocurriendo y por qué.</h2>
-        <p>Valoramos la calidad cutánea, la estructura facial o corporal, el grado de laxitud, la distribución del tejido y cualquier antecedente relevante. A partir de ese análisis decidimos qué puede aportar un beneficio real y qué no está indicado. Porque una buena medicina estética no consiste en hacer más, sino en elegir mejor.</p>
-    </section>
+	<section class="nvx-home-philosophy" aria-labelledby="nvx-home-philosophy-title">
+		<div class="nvx-home-philosophy__inner">
+			<p class="nvx-home-philosophy__title" id="nvx-home-philosophy-title">El primer paso es el diagnóstico.</p>
+			<p class="nvx-home-philosophy__lead">Cada protocolo comienza con una valoración médica individualizada. Sin suposiciones. Sin listas estándar. Si no hay indicación clínica, no hay tratamiento.</p>
+		</div>
+	</section>
 
-    <section class="nvx-home-feature" aria-labelledby="nvx-home-feature-title">
-        <div class="nvx-home-feature__copy">
-            <p class="nvx-home-eyebrow">REMODELACIÓN CORPORAL BASADA EN LA ANATOMÍA</p>
-            <h2 id="nvx-home-feature-title">Cada cuerpo responde de una forma diferente.</h2>
-            <p>Por eso, un tratamiento corporal no debería comenzar por una máquina, sino por una valoración anatómica completa. Estudiamos la grasa localizada, la firmeza de la piel y la continuidad entre las distintas zonas de la silueta para proponer cambios equilibrados y coherentes con tu cuerpo.</p>
-            <a href="<?php echo esc_url( home_url( $remodelacion_url ) ); ?>" class="nvx-home-text-link">Descubrir soluciones corporales</a>
-        </div>
-    </section>
+	<section class="nvx-home-standard" aria-labelledby="nvx-home-standard-title">
+		<header class="nvx-home-standard__header">
+			<h2 id="nvx-home-standard-title" class="nvx-home-standard__title">Intervención mínima. Planificación estructural.</h2>
+			<p class="nvx-home-standard__subtitle">Protocolos médicos definidos según anatomía, calidad del tejido y objetivos clínicos realistas.</p>
+		</header>
+		<div class="nvx-home-standard__grid">
+			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">I</span>
+				<h3 class="nvx-home-feature__title">Abordajes sin incisiones quirúrgicas amplias</h3>
+				<p class="nvx-home-feature__desc">Determinadas indicaciones pueden abordarse mediante microcánulas o fibra óptica, siempre tras exploración médica.</p>
+			</div>
+			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">II</span>
+				<h3 class="nvx-home-feature__title">Recuperación según el procedimiento</h3>
+				<p class="nvx-home-feature__desc">El tiempo de reincorporación depende del tratamiento, la zona, los parámetros utilizados y la respuesta individual.</p>
+			</div>
+			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">III</span>
+				<h3 class="nvx-home-feature__title">Anestesia adaptada a la indicación</h3>
+				<p class="nvx-home-feature__desc">Cuando procede, los tratamientos se realizan con anestesia local y seguimiento médico personalizado.</p>
+			</div>
+			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">IV</span>
+				<h3 class="nvx-home-feature__title">Tratamiento combinado del contorno</h3>
+				<p class="nvx-home-feature__desc">La reducción adiposa y la mejora de la firmeza pueden integrarse en un mismo plan cuando existe indicación.</p>
+			</div>
+			<div class="nvx-home-feature">
+				<span class="nvx-home-feature__number" aria-hidden="true">V</span>
+				<h3 class="nvx-home-feature__title">Evolución progresiva y seguimiento</h3>
+				<p class="nvx-home-feature__desc">La evolución se revisa en consulta y varía según el tratamiento, el tejido y los hábitos de cada paciente.</p>
+			</div>
+		</div>
+	</section>
 
-    <section class="nvx-home-protocols" aria-labelledby="nvx-home-protocols-title">
-        <header class="nvx-home-section-header">
-            <div>
-                <p class="nvx-home-eyebrow">PROTOCOLOS CLÍNICOS</p>
-                <h2 id="nvx-home-protocols-title">Una forma de organizar el diagnóstico y el tratamiento con mayor precisión.</h2>
-            </div>
-            <p>Sin fórmulas generales ni combinaciones innecesarias. Cada protocolo ordena la valoración, la indicación y la secuencia de tratamiento según lo que necesita cada persona.</p>
-        </header>
-        <div class="nvx-home-protocols__list">
-            <?php foreach ( $protocols as $protocol ) : ?>
-                <article class="nvx-home-protocol">
-                    <p class="nvx-home-protocol__number"><?php echo esc_html( $protocol['number'] ); ?></p>
-                    <div class="nvx-home-protocol__body">
-                        <p class="nvx-home-protocol__label"><?php echo esc_html( $protocol['label'] ); ?></p>
-                        <h3><?php echo esc_html( $protocol['title'] ); ?></h3>
-                        <p><?php echo esc_html( $protocol['copy'] ); ?></p>
-                    </div>
-                    <a href="<?php echo esc_url( home_url( $protocol['url'] ) ); ?>" class="nvx-home-protocol__link" aria-label="Conocer <?php echo esc_attr( $protocol['label'] ); ?>">→</a>
-                </article>
-            <?php endforeach; ?>
-        </div>
-    </section>
+	<section class="nvx-home-portfolio" aria-labelledby="nvx-home-portfolio-title">
+		<header class="nvx-home-portfolio__header">
+			<p id="nvx-home-portfolio-title" class="nvx-home-portfolio__title">Arquitectura anatómica</p>
+		</header>
+		<div class="nvx-home-portfolio__list">
+			<article class="nvx-home-portfolio__item">
+				<span class="nvx-home-portfolio__number" aria-hidden="true">01</span>
+				<h3 class="nvx-home-portfolio__name">Endolift® Facial</h3>
+				<p class="nvx-home-portfolio__desc">Retracción tisular y definición del contorno mandibular mediante láser subdérmico.</p>
+			</article>
+			<article class="nvx-home-portfolio__item">
+				<span class="nvx-home-portfolio__number" aria-hidden="true">02</span>
+				<h3 class="nvx-home-portfolio__name">Endoláser Corporal</h3>
+				<p class="nvx-home-portfolio__desc">Lipólisis láser focalizada para depósitos adiposos y flacidez.</p>
+			</article>
+			<article class="nvx-home-portfolio__item">
+				<span class="nvx-home-portfolio__number" aria-hidden="true">03</span>
+				<h3 class="nvx-home-portfolio__name">Láser CO₂ Fraccionado</h3>
+				<p class="nvx-home-portfolio__desc">Renovación fraccionada para abordar fotodaño, cicatrices y textura según parámetros médicos.</p>
+			</article>
+			<article class="nvx-home-portfolio__item">
+				<span class="nvx-home-portfolio__number" aria-hidden="true">04</span>
+				<h3 class="nvx-home-portfolio__name">Medicina Estética Facial</h3>
+				<p class="nvx-home-portfolio__desc">Planificación conservadora que respeta la identidad y las proporciones naturales.</p>
+			</article>
+			<article class="nvx-home-portfolio__item">
+				<span class="nvx-home-portfolio__number" aria-hidden="true">05</span>
+				<h3 class="nvx-home-portfolio__name">EXION® y tecnologías BTL</h3>
+				<p class="nvx-home-portfolio__desc">Protocolos para calidad cutánea, firmeza y tratamiento facial o corporal tras diagnóstico.</p>
+			</article>
+		</div>
+		<div class="nvx-home-portfolio__action">
+			<a href="<?php echo esc_url( home_url( '/tratamientos/' ) ); ?>" class="nvx-btn nvx-btn--secondary">Ver portafolio completo</a>
+		</div>
+	</section>
 
-    <section class="nvx-home-solutions" aria-labelledby="nvx-home-solutions-title">
-        <header class="nvx-home-section-header">
-            <div>
-                <p class="nvx-home-eyebrow">ÁREAS DE TRATAMIENTO</p>
-                <h2 id="nvx-home-solutions-title">La zona orienta la consulta. El diagnóstico define el tratamiento.</h2>
-            </div>
-            <p>No proponemos procedimientos innecesarios ni resultados que no podamos abordar de manera razonable y responsable.</p>
-        </header>
-        <div class="nvx-home-solutions__grid">
-            <?php foreach ( $solutions as $solution ) : ?>
-                <article class="nvx-home-solution-card">
-                    <p class="nvx-home-solution-card__label"><?php echo esc_html( $solution['kicker'] ); ?></p>
-                    <h3><?php echo esc_html( $solution['title'] ); ?></h3>
-                    <p><?php echo esc_html( $solution['copy'] ); ?></p>
-                    <a href="<?php echo esc_url( home_url( $solution['url'] ) ); ?>" aria-label="<?php echo esc_attr( 'Explorar solución: ' . $solution['title'] ); ?>">Explorar solución <span aria-hidden="true">→</span></a>
-                </article>
-            <?php endforeach; ?>
-        </div>
-    </section>
+	<section class="nvx-home-evidence" aria-labelledby="nvx-home-evidence-title">
+		<div class="nvx-home-evidence__grid">
+			<div class="nvx-home-evidence__image-col">
+				<img src="<?php echo esc_url( $evidence_image ); ?>" alt="Valoración médica personalizada en NUVANX Madrid" class="nvx-home-evidence__image" loading="lazy" decoding="async">
+			</div>
+			<div class="nvx-home-evidence__text-col">
+				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">Evidencia clínica</h2>
+				<p class="nvx-home-evidence__desc">Documentamos la evolución clínica con consentimiento y seguimiento médico, preservando la privacidad de cada paciente.</p>
+				<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-btn nvx-btn--secondary-on-dark">Explorar casos clínicos</a>
+			</div>
+		</div>
+	</section>
 
-    <section class="nvx-home-cases" aria-labelledby="nvx-home-cases-title">
-        <div>
-            <p class="nvx-home-eyebrow">RESULTADOS REALES, DOCUMENTADOS CON RIGOR</p>
-            <h2 id="nvx-home-cases-title">Una evolución clínica debe poder observarse con honestidad.</h2>
-        </div>
-        <div class="nvx-home-cases__copy">
-            <p>Documentamos el proceso manteniendo, siempre que es posible, condiciones comparables de iluminación, postura, encuadre y distancia. Sin filtros, sin distorsiones y sin presentar como resultado lo que no corresponde al cambio real del tejido.</p>
-            <a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-btn nvx-btn--secondary-on-dark">Ver casos clínicos</a>
-        </div>
-    </section>
+	<section class="nvx-home-team" aria-labelledby="nvx-home-team-title">
+		<div class="nvx-home-team__inner">
+			<div class="nvx-home-team__header">
+				<h2 id="nvx-home-team-title" class="nvx-home-team__title">Dirección y criterio médico</h2>
+				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-btn nvx-btn--secondary">Conocer al equipo médico</a>
+			</div>
+			<div class="nvx-home-team__content">
+				<p class="nvx-home-team__desc">El equipo integra experiencia clínica, valoración individual y seguimiento para seleccionar la tecnología adecuada en cada caso.</p>
+				<ul class="nvx-home-team__list">
+					<li><strong>Dr. José Javier Rivera Tejeda</strong> <span>Dirección médica. Endolift® y láser CO₂.</span></li>
+					<li><strong>Dra. Ivon Yamileth Rivera Deras</strong> <span>Medicina y well-aging.</span></li>
+					<li><strong>Dr. Fabio Augusto Quiñónez Bareiro</strong> <span>Medicina e investigación en fisiología del envejecimiento.</span></li>
+				</ul>
+			</div>
+		</div>
+	</section>
 
-    <section class="nvx-home-authority" aria-labelledby="nvx-home-authority-title">
-        <div class="nvx-home-authority__copy">
-            <p class="nvx-home-eyebrow">CONTINUIDAD ASISTENCIAL</p>
-            <h2 id="nvx-home-authority-title">Tu tratamiento sigue una misma línea médica.</h2>
-            <p>Desde la primera valoración hasta las revisiones posteriores, el equipo conoce tu diagnóstico, la indicación realizada, los parámetros utilizados y la evolución observada. Aquí no eres una sesión aislada, sino un proceso clínico que merece seguimiento, criterio y tiempo.</p>
-            <a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-home-text-link">Conocer al equipo médico</a>
-        </div>
-    </section>
+	<section class="nvx-home-seo" aria-labelledby="nvx-home-seo-title">
+		<div class="nvx-home-seo__inner">
+			<p id="nvx-home-seo-title" class="nvx-home-seo__title">Áreas de valoración y tratamiento</p>
+			<div class="nvx-home-seo__grid">
+				<div class="nvx-home-seo__col">
+					<h3 class="nvx-home-seo__col-title">Corporal</h3>
+					<ul class="nvx-home-seo__list">
+						<li><strong>Abdomen y flancos:</strong> valoración de grasa localizada y firmeza.</li>
+						<li><strong>Caderas y muslos:</strong> planificación del contorno según anatomía.</li>
+						<li><strong>Brazos, rodillas y espalda:</strong> protocolos ajustados al tejido.</li>
+						<li><strong>Calidad cutánea corporal:</strong> selección de tecnología según diagnóstico.</li>
+					</ul>
+				</div>
+				<div class="nvx-home-seo__col">
+					<h3 class="nvx-home-seo__col-title">Facial</h3>
+					<ul class="nvx-home-seo__list">
+						<li><strong>Tercio inferior:</strong> mandíbula, cuello y papada.</li>
+						<li><strong>Armonización:</strong> planificación conservadora de proporciones y soporte.</li>
+						<li><strong>Calidad de piel:</strong> textura, poros, cicatrices y fotodaño.</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</section>
 
-    <section class="nvx-home-locations" aria-labelledby="nvx-home-locations-title">
-        <header class="nvx-home-section-header">
-            <div>
-                <p class="nvx-home-eyebrow">CLÍNICAS NUVANX EN MADRID</p>
-                <h2 id="nvx-home-locations-title">Dos espacios privados. Un mismo estándar clínico.</h2>
-            </div>
-            <p>Entornos diseñados para ofrecer una atención médica tranquila, discreta y personalizada.</p>
-        </header>
-        <div class="nvx-home-locations__grid">
-            <article class="nvx-home-location">
-                <p class="nvx-home-location__code">CS20144</p>
-                <h3>Chamberí</h3>
-                <p>Un entorno orientado a la calma, la privacidad y la continuidad asistencial.</p>
-            </article>
-            <article class="nvx-home-location">
-                <p class="nvx-home-location__code">CS20073</p>
-                <h3>Salamanca–Goya</h3>
-                <p>Accesibilidad, precisión técnica y el mismo estándar médico de NUVANX.</p>
-            </article>
-        </div>
-    </section>
+	<section class="nvx-home-locations" aria-labelledby="nvx-home-locations-title">
+		<h2 id="nvx-home-locations-title" class="nvx-home-locations__title">Madrid. Dos sedes. Un único criterio médico.</h2>
+		<div class="nvx-home-locations__grid">
+			<div class="nvx-home-location">
+				<h3 class="nvx-home-location__name">Chamberí</h3>
+				<p class="nvx-home-location__desc">Serenidad y discreción.</p>
+				<span class="nvx-home-location__code">CS20144</span>
+			</div>
+			<div class="nvx-home-location">
+				<h3 class="nvx-home-location__name">Salamanca–Goya</h3>
+				<p class="nvx-home-location__desc">Accesibilidad y sofisticación.</p>
+				<span class="nvx-home-location__code">CS20073</span>
+			</div>
+		</div>
+	</section>
 
-    <section class="nvx-home-closure" aria-labelledby="nvx-home-closure-title">
-        <p class="nvx-home-eyebrow">TU PRIMERA VALORACIÓN</p>
-        <h2 id="nvx-home-closure-title">Entender qué necesitas antes de decidir qué hacer.</h2>
-        <p class="nvx-home-closure__desc">Durante la consulta recibirás un análisis personalizado de la zona que deseas tratar, una evaluación de la anatomía y la calidad del tejido, una explicación clara de las opciones que pueden estar indicadas y un presupuesto individualizado según el plan médico propuesto.</p>
-        <p class="nvx-home-closure__desc">También puede ocurrir que la mejor decisión sea no tratar, esperar o plantear una alternativa diferente. Esa recomendación forma parte de nuestro compromiso médico.</p>
-        <div class="nvx-home-closure__actions">
-            <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">Agendar valoración médica</a>
-            <a href="<?php echo esc_url( nvx_cta_whatsapp_url() ); ?>" class="nvx-btn nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Hablar por WhatsApp</a>
-        </div>
-    </section>
+	<section class="nvx-home-closure" aria-labelledby="nvx-home-closure-title">
+		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">Medicina estética con criterio clínico.</h2>
+		<p class="nvx-home-closure__desc">Plan individualizado. Precisión médica. Seguimiento según tu caso.</p>
+		<div class="nvx-home-closure__actions">
+			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">Definir mi plan clínico</a>
+			<a href="<?php echo esc_url( nvx_cta_whatsapp_url() ); ?>" class="nvx-btn nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
+		</div>
+	</section>
 </div>
 <?php
 $content = ob_get_clean();

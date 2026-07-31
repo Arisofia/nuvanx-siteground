@@ -82,8 +82,9 @@ function nvx_catalog_resolve_tokens(
                 },
             );
 
-            foreach ( array_merge( $prefixes, $custom_resolvers ) as $prefix => $resolver ) {
-                if ( is_callable( $resolver ) && 0 === strpos( $value, $prefix ) ) {
+            $resolvers = $prefixes + $custom_resolvers;
+            foreach ( $resolvers as $prefix => $resolver ) {
+                if ( 0 === strpos( $value, $prefix ) ) {
                     return $resolver( substr( $value, strlen( $prefix ) ) );
                 }
             }

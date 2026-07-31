@@ -2,7 +2,7 @@
 /**
  * Plugin Name: NUVANX Valoración Native HubSpot Form
  * Description: Enforces one canonical HubSpot form on /madrid/valoracion/.
- * Version: 2026.07.31.4
+ * Version: 2026.07.31.5
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,19 +21,19 @@ function nvxValoracionNativeHubspotIsTargetPage(): bool {
     return is_page( 2636 ) || is_page( 'valoracion' );
 }
 
-function nvxValoracionNativeHubspotMountMarkup(): string {
-    $portal_id   = preg_replace( '/\D+/', '', (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
-    $form_id     = strtolower( trim( (string) NVX_VALORACION_HS_FRAME_FORM_ID ) );
-    $region      = preg_replace( '/[^a-z0-9-]/i', '', (string) NVX_VALORACION_HS_FRAME_REGION );
-    $target_id   = 'nvx-hubspot-v2-target';
-    $status_id   = 'nvx-hubspot-v2-status';
-    $privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
-    $contact_url = esc_url( home_url( '/contacto/' ) );
+function nvxValoracionNativeHubspotErrorMarkup(): string {
+    return '<p class="nvx-form-status is-error" role="status">'
+        . esc_html__( 'El formulario no está disponible temporalmente. Contacta con la clínica para solicitar tu valoración.', 'nuvanx-medical' )
+        . '</p>';
+}
+
+function nvxValoracionNativeHubspotConfigJson( string $target_id ): ?string {
+    $portal_id = preg_replace( '/\D+/', '', (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
+    $form_id   = strtolower( trim( (string) NVX_VALORACION_HS_FRAME_FORM_ID ) );
+    $region    = preg_replace( '/[^a-z0-9-]/i', '', (string) NVX_VALORACION_HS_FRAME_REGION );
 
     if ( ! preg_match( '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $form_id ) ) {
-        return '<p class="nvx-form-status is-error" role="status">'
-            . esc_html__( 'El formulario no está disponible temporalmente. Contacta con la clínica para solicitar tu valoración.', 'nuvanx-medical' )
-            . '</p>';
+        return null;
     }
 
     $config = wp_json_encode(
@@ -48,12 +48,10 @@ function nvxValoracionNativeHubspotMountMarkup(): string {
         JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
     );
 
-    if ( ! is_string( $config ) ) {
-        return '<p class="nvx-form-status is-error" role="status">'
-            . esc_html__( 'El formulario no está disponible temporalmente. Contacta con la clínica para solicitar tu valoración.', 'nuvanx-medical' )
-            . '</p>';
-    }
+    return is_string( $config ) ? $config : null;
+}
 
+function nvxValoracionNativeHubspotRuntime( string $config, string $target_id, string $status_id ): string {
     $runtime = <<<'JS'
 <script>
 (function () {
@@ -126,6 +124,19 @@ function nvxValoracionNativeHubspotMountMarkup(): string {
     }
   }
 
+  function markSdkError() {
+    target.dataset.nvxHubspotState = 'sdk-error';
+    setStatus('No ha sido posible conectar con el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
+  }
+
+  function attachSdkListeners(loader) {
+    loader.addEventListener('load', function () {
+      loader.dataset.nvxHubspotLoaded = 'true';
+      mountForm();
+    }, { once: true });
+    loader.addEventListener('error', markSdkError, { once: true });
+  }
+
   function loadSdk() {
     if (!target || target.dataset.nvxHubspotState === 'ready') return;
     if (window.hbspt && window.hbspt.forms) {
@@ -139,14 +150,7 @@ function nvxValoracionNativeHubspotMountMarkup(): string {
         mountForm();
         return;
       }
-      existing.addEventListener('load', function () {
-        existing.dataset.nvxHubspotLoaded = 'true';
-        mountForm();
-      }, { once: true });
-      existing.addEventListener('error', function () {
-        target.dataset.nvxHubspotState = 'sdk-error';
-        setStatus('No ha sido posible conectar con el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
-      }, { once: true });
+      attachSdkListeners(existing);
       return;
     }
 
@@ -158,14 +162,7 @@ function nvxValoracionNativeHubspotMountMarkup(): string {
     loader.type = 'text/javascript';
     loader.dataset.category = 'functional';
     loader.dataset.nvxHubspotLoader = 'valoracion';
-    loader.addEventListener('load', function () {
-      loader.dataset.nvxHubspotLoaded = 'true';
-      mountForm();
-    }, { once: true });
-    loader.addEventListener('error', function () {
-      target.dataset.nvxHubspotState = 'sdk-error';
-      setStatus('No ha sido posible conectar con el formulario. Puedes solicitar tu valoración desde la página de contacto.', true);
-    }, { once: true });
+    attachSdkListeners(loader);
     document.head.appendChild(loader);
   }
 
@@ -178,11 +175,25 @@ function nvxValoracionNativeHubspotMountMarkup(): string {
 </script>
 JS;
 
-    $runtime = str_replace(
+    return str_replace(
         array( '__NVX_CONFIG__', '__NVX_TARGET__', '__NVX_STATUS__' ),
         array( $config, esc_js( $target_id ), esc_js( $status_id ) ),
         $runtime
     );
+}
+
+function nvxValoracionNativeHubspotMountMarkup(): string {
+    $target_id   = 'nvx-hubspot-v2-target';
+    $status_id   = 'nvx-hubspot-v2-status';
+    $privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
+    $contact_url = esc_url( home_url( '/contacto/' ) );
+    $config      = nvxValoracionNativeHubspotConfigJson( $target_id );
+
+    if ( null === $config ) {
+        return nvxValoracionNativeHubspotErrorMarkup();
+    }
+
+    $runtime = nvxValoracionNativeHubspotRuntime( $config, $target_id, $status_id );
 
     return '<p id="' . esc_attr( $status_id ) . '" class="nvx-form-status" role="status">'
         . esc_html__( 'Cargando el formulario de valoración médica…', 'nuvanx-medical' )
@@ -239,17 +250,23 @@ function nvxValoracionRemoveDivsByClass( string $html, string $class_token ): st
             $ranges[] = $range;
         }
     }
+    return nvxValoracionRemoveRanges( $html, $ranges );
+}
+
+/** @param array<int,array{start:int,length:int}> $ranges */
+function nvxValoracionRemoveRanges( string $html, array $ranges ): string {
     usort( $ranges, static fn( array $a, array $b ): int => $b['start'] <=> $a['start'] );
     foreach ( $ranges as $range ) {
-        $html = substr_replace( $html, '', $range['start'], $range['length'] );
+        $html = substr_replace( $html, '', (int) $range['start'], (int) $range['length'] );
     }
     return $html;
 }
 
-function nvxValoracionNativeHubspotEnforceSingleMount( string $html ): string {
+/** @return array<int,array{start:int,length:int,opening:string}> */
+function nvxValoracionMountRanges( string $html ): array {
     $mount_pattern = '/<div\b[^>]*\bid=["\']nvx-hubspot-native-form["\'][^>]*>/i';
-    if ( ! preg_match_all( $mount_pattern, $html, $mounts, PREG_OFFSET_CAPTURE ) || empty( $mounts[0] ) ) {
-        return $html;
+    if ( ! preg_match_all( $mount_pattern, $html, $mounts, PREG_OFFSET_CAPTURE ) ) {
+        return array();
     }
 
     $ranges = array();
@@ -260,29 +277,34 @@ function nvxValoracionNativeHubspotEnforceSingleMount( string $html ): string {
             $ranges[]         = $range;
         }
     }
+    usort( $ranges, static fn( array $a, array $b ): int => $a['start'] <=> $b['start'] );
+    return $ranges;
+}
+
+function nvxValoracionRemoveLegacyEmbeds( string $html ): string {
+    $html = preg_replace( '#<script\b[^>]*\bsrc=["\'][^"\']*hsforms\.net/[^"\']*["\'][^>]*>\s*</script>#iu', '', $html ) ?? $html;
+    $html = preg_replace( '#<iframe\b[^>]*(?:hsforms|hubspot)[^>]*>[\s\S]*?</iframe>#iu', '', $html ) ?? $html;
+
+    foreach ( array( 'hs-form-frame', 'hbspt-form', 'nvx-hubspot-native-form-v2' ) as $class_token ) {
+        $html = nvxValoracionRemoveDivsByClass( $html, $class_token );
+    }
+    return $html;
+}
+
+function nvxValoracionNativeHubspotEnforceSingleMount( string $html ): string {
+    $ranges = nvxValoracionMountRanges( $html );
     if ( empty( $ranges ) ) {
         return $html;
     }
 
-    usort( $ranges, static fn( array $a, array $b ): int => $a['start'] <=> $b['start'] );
     $first_offset  = (int) $ranges[0]['start'];
     $first_opening = (string) $ranges[0]['opening'];
     $marker        = '<!-- NVX_VALORACION_CANONICAL_MOUNT -->';
+    $html          = nvxValoracionRemoveRanges( $html, $ranges );
+    $html          = substr( $html, 0, $first_offset ) . $marker . substr( $html, $first_offset );
+    $html          = nvxValoracionRemoveLegacyEmbeds( $html );
+    $canonical     = $first_opening . nvxValoracionNativeHubspotMountMarkup() . '</div>';
 
-    $descending = $ranges;
-    usort( $descending, static fn( array $a, array $b ): int => $b['start'] <=> $a['start'] );
-    foreach ( $descending as $range ) {
-        $html = substr_replace( $html, '', (int) $range['start'], (int) $range['length'] );
-    }
-    $html = substr( $html, 0, $first_offset ) . $marker . substr( $html, $first_offset );
-
-    $html = preg_replace( '#<script\b[^>]*\bsrc=["\'][^"\']*hsforms\.net/[^"\']*["\'][^>]*>\s*</script>#iu', '', $html ) ?? $html;
-    $html = preg_replace( '#<iframe\b[^>]*(?:hsforms|hubspot)[^>]*>[\s\S]*?</iframe>#iu', '', $html ) ?? $html;
-    $html = nvxValoracionRemoveDivsByClass( $html, 'hs-form-frame' );
-    $html = nvxValoracionRemoveDivsByClass( $html, 'hbspt-form' );
-    $html = nvxValoracionRemoveDivsByClass( $html, 'nvx-hubspot-native-form-v2' );
-
-    $canonical = $first_opening . nvxValoracionNativeHubspotMountMarkup() . '</div>';
     return str_replace( $marker, $canonical, $html );
 }
 

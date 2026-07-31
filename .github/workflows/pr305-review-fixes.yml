@@ -1,0 +1,59 @@
+name: Apply PR 305 review fixes
+
+on:
+  push:
+    branches:
+      - fix/institutional-headers-hubspot-form-20260731
+    paths:
+      - scripts/maintenance/apply-pr305-review-fixes.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pr305-review-fixes
+  cancel-in-progress: false
+
+jobs:
+  apply:
+    if: github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out review branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: fix/institutional-headers-hubspot-form-20260731
+          fetch-depth: 0
+
+      - name: Apply deterministic review fixes
+        run: python3 scripts/maintenance/apply-pr305-review-fixes.py
+
+      - name: Validate modified sources
+        run: |
+          set -euo pipefail
+          php -l wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php
+          node --check scripts/staging2/audit-institutional-headers-form-v3.mjs
+          node --check scripts/staging2/institutional-qa-external-assets-preload.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          css = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-canonical-page-hero.css').read_text()
+          assert 'height: 50rem;' not in css
+          assert 'max-height: 50rem;' not in css
+          assert 'height: 48rem;' not in css
+          assert 'max-height: 48rem;' not in css
+          assert css.count('Route layers load later') == 0
+          assert "nvxHubspotLoaded" in Path('wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php').read_text()
+          PY
+
+      - name: Remove temporary automation and commit
+        run: |
+          set -euo pipefail
+          rm -f scripts/maintenance/apply-pr305-review-fixes.py
+          rm -f .github/workflows/pr305-review-fixes.yml
+          git config user.name "Arisofia"
+          git config user.email "246412546+Arisofia@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix(review): address remaining PR 305 findings"
+          git push origin HEAD:fix/institutional-headers-hubspot-form-20260731

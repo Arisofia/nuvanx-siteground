@@ -345,6 +345,9 @@ add_action(
     function (): void {
         wp_dequeue_script( 'siteground-facebook-signal' );
         wp_deregister_script( 'siteground-facebook-signal' );
+
+        $version = wp_get_theme()->get( 'Version' );
+        wp_enqueue_style( 'nvx-integrations', get_theme_file_uri( 'assets/css/nvx-integrations.css' ), array(), $version );
     },
     100
 );
@@ -353,9 +356,6 @@ add_action(
 add_filter(
     'script_loader_tag',
     function ( string $tag, string $handle ): string {
-        if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
-            return '';
-        }
         if ( str_contains( $tag, 'hsforms.net' ) || str_contains( $tag, 'gsi/client' ) ) {
             if ( ! str_contains( $tag, 'defer' ) ) {
                 $tag = str_replace( '<script ', '<script defer ', $tag );

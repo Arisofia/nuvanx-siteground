@@ -12,6 +12,10 @@ on:
       - 'wp-content/mu-plugins/nuvanx-valoracion-native-hubspot-form.php'
       - 'wp-content/themes/nuvanx-medical/**'
 
+concurrency:
+  group: institutional-headers-form-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -19,6 +23,7 @@ jobs:
   institutional-qa:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login == github.repository_owner &&
       contains(github.event.pull_request.labels.*.name, 'deploy-staging2') &&
       (github.event.action != 'labeled' || github.event.label.name == 'deploy-staging2')
     runs-on: ubuntu-latest
@@ -88,7 +93,11 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in $(seq 1 90); do
-            deployed="$(ssh nvx-staging2 "test -f '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true")"
+            if ! deployed="$(ssh nvx-staging2 "test -f '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' && tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha' || true")"; then
+              echo "SSH transport unavailable while waiting for $EXPECTED_SHA; attempt=$attempt" >&2
+              sleep 5
+              continue
+            fi
             if [[ "$deployed" == "$EXPECTED_SHA" ]]; then
               echo "Exact staging2 PR SHA ready: $deployed"
               exit 0

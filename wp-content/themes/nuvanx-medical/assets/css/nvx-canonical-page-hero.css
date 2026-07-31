@@ -8,9 +8,7 @@
   display: block;
   width: 100%;
   max-width: none;
-  height: 50rem;
   min-height: 50rem;
-  max-height: 50rem;
   margin: 0;
   padding: 0;
   background: var(--nvx-ink);

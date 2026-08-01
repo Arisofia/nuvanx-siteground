@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: write
+      workflows: write
     steps:
       - name: Checkout release-fix branch
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262

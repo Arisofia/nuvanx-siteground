@@ -244,23 +244,27 @@ function nvx_document_governance_apply_dimensions(
 function nvx_document_governance_add_dimensions_to_tag( string $tag ): string {
 	$has_width  = (bool) preg_match( '/\bwidth\s*=/iu', $tag );
 	$has_height = (bool) preg_match( '/\bheight\s*=/iu', $tag );
-	if ( $has_width && $has_height ) {
-		return $tag;
+	$normalized = $tag;
+
+	if ( ! ( $has_width && $has_height ) ) {
+		$src = nvx_document_governance_tag_attribute( $tag, 'src' );
+		if ( nvx_document_governance_is_same_origin_upload( $src ) ) {
+			$clean_src     = (string) strtok( $src, '?#' );
+			$attachment_id = nvx_document_governance_attachment_id( $clean_src );
+			list( $width, $height ) = nvx_document_governance_attachment_dimensions( $attachment_id, $clean_src );
+			if ( $attachment_id > 0 && $width > 0 && $height > 0 ) {
+				$normalized = nvx_document_governance_apply_dimensions(
+					$tag,
+					$has_width,
+					$has_height,
+					$width,
+					$height
+				);
+			}
+		}
 	}
 
-	$src = nvx_document_governance_tag_attribute( $tag, 'src' );
-	if ( ! nvx_document_governance_is_same_origin_upload( $src ) ) {
-		return $tag;
-	}
-
-	$clean_src     = (string) strtok( $src, '?#' );
-	$attachment_id = nvx_document_governance_attachment_id( $clean_src );
-	list( $width, $height ) = nvx_document_governance_attachment_dimensions( $attachment_id, $clean_src );
-	if ( $attachment_id <= 0 || $width <= 0 || $height <= 0 ) {
-		return $tag;
-	}
-
-	return nvx_document_governance_apply_dimensions( $tag, $has_width, $has_height, $width, $height );
+	return $normalized;
 }
 
 /**

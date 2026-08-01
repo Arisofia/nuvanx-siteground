@@ -29,13 +29,37 @@
     let wasOpen = false;
 
     function isOpen() {
-      return nav.classList.contains('is-open') || nav.getAttribute('aria-hidden') === 'false';
+      return (
+        nav.hasAttribute('open') ||
+        nav.classList.contains('is-open') ||
+        nav.getAttribute('aria-hidden') === 'false'
+      );
+    }
+
+    function closeNav() {
+      nav.classList.remove('is-open');
+      nav.removeAttribute('open');
+      nav.setAttribute('aria-hidden', 'true');
+      setInert(nav, true);
+      trigger.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
     }
 
     function synchronize() {
       const open = isOpen();
       const focusWasInside = nav.contains(document.activeElement);
       setInert(nav, !open);
+
+      if (open) {
+        if (!nav.hasAttribute('open')) nav.setAttribute('open', '');
+        if (!nav.classList.contains('is-open')) nav.classList.add('is-open');
+        if (nav.getAttribute('aria-hidden') !== 'false') {
+          nav.setAttribute('aria-hidden', 'false');
+        }
+      } else if (nav.hasAttribute('open') || nav.classList.contains('is-open')) {
+        nav.removeAttribute('open');
+        nav.classList.remove('is-open');
+      }
 
       if (open && !wasOpen) {
         window.setTimeout(function () {
@@ -64,16 +88,13 @@
 
     new MutationObserver(synchronize).observe(nav, {
       attributes: true,
-      attributeFilter: ['class', 'aria-hidden']
+      attributeFilter: ['class', 'aria-hidden', 'open']
     });
 
     nav.addEventListener('click', function (event) {
       const link = event.target?.closest?.('a[href]') || null;
       if (!link) return;
-      nav.classList.remove('is-open');
-      nav.setAttribute('aria-hidden', 'true');
-      trigger.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
+      closeNav();
     });
 
     document.addEventListener('keydown', function (event) {
@@ -82,12 +103,7 @@
       if (event.key === 'Escape') {
         event.preventDefault();
         if (close) close.click();
-        else {
-          nav.classList.remove('is-open');
-          nav.setAttribute('aria-hidden', 'true');
-          trigger.setAttribute('aria-expanded', 'false');
-          document.body.style.overflow = '';
-        }
+        else closeNav();
         return;
       }
 

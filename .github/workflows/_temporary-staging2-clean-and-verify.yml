@@ -103,6 +103,7 @@ jobs:
           for x in styles: print(x)
           if len(styles)<5 or 'nvx-base.css' not in s: raise SystemExit('CLEAN_ORIGIN_CSS_FAIL')
           s=s.replace('https://staging2.nuvanx.com/wp-content/themes/nuvanx-medical/', '/wp-content/themes/nuvanx-medical/')
+          s=re.sub(r'<script\b[^>]*>.*?</script>', '', s, flags=re.I|re.S)
           p.write_text(s,encoding='utf8')
           PY
       - name: Verify computed styles desktop and mobile

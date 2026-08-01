@@ -1,0 +1,144 @@
+name: Staging2 CSS origin diagnosis
+
+on:
+  push:
+    branches:
+      - fix/staging2-css-origin-diagnosis
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    if: github.repository == 'Arisofia/nuvanx-siteground'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Install browser runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright-core@1.55.0
+          test -x /usr/bin/chromium
+          mkdir -p evidence/site-root
+      - name: Configure SiteGround SSH
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/siteground_key"
+          chmod 600 "$HOME/.ssh/siteground_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host siteground-staging
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/siteground_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh siteground-staging 'printf "SSH_OK\n"'
+      - name: Capture SiteGround origin and CSS assets
+        run: |
+          set -euo pipefail
+          ssh siteground-staging 'bash -se' > evidence/siteground-origin.txt 2>&1 <<'REMOTE'
+          set -Eeuo pipefail
+          ROOT=/home/customer/www/staging2.nuvanx.com/public_html
+          cd "$ROOT"
+          printf 'SITEURL=%s\nHOME=%s\nTHEME=%s\n' "$(wp option get siteurl)" "$(wp option get home)" "$(wp theme list --status=active --field=name)"
+          echo '--- STYLE QUEUE ---'
+          wp eval '
+            do_action("wp_enqueue_scripts");
+            foreach (wp_styles()->queue as $handle) {
+              $obj = wp_styles()->registered[$handle] ?? null;
+              if ($obj) { echo $handle . "|" . $obj->src . "|deps=" . implode(",", $obj->deps) . "\\n"; }
+            }
+          '
+          echo '--- ORIGIN HTTP ---'
+          curl -ksS -D /tmp/nvx-origin-headers.txt -o /tmp/nvx-origin.html --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/
+          cat /tmp/nvx-origin-headers.txt
+          echo "HTML_BYTES=$(wc -c < /tmp/nvx-origin.html)"
+          grep -Eqi '<html|<body' /tmp/nvx-origin.html
+          if grep -q '/.well-known/sgcaptcha/' /tmp/nvx-origin.html; then echo 'ORIGIN_CAPTCHA=1'; exit 2; fi
+          echo 'ORIGIN_CAPTCHA=0'
+          echo '--- REFERENCED CSS ---'
+          python3 - <<'PY'
+          import re,html,subprocess
+          s=open('/tmp/nvx-origin.html',encoding='utf-8',errors='replace').read()
+          urls=[]
+          for tag in re.findall(r'<link\\b[^>]*>',s,re.I):
+            if not re.search(r'rel=["\\\'][^"\\\']*stylesheet',tag,re.I): continue
+            m=re.search(r'href=["\\\']([^"\\\']+)',tag,re.I)
+            if m: urls.append(html.unescape(m.group(1)))
+          for u in dict.fromkeys(urls):
+            if u.startswith('/'): u='https://staging2.nuvanx.com'+u
+            if not u.startswith('http'): continue
+            print('CSS_URL='+u)
+            out=subprocess.check_output(['curl','-ksS','-L','--resolve','staging2.nuvanx.com:443:127.0.0.1','-o','/tmp/nvx-one.css','-w','HTTP=%{http_code} TYPE=%{content_type} BYTES=%{size_download}',u],text=True)
+            print(out)
+            if not out.startswith('HTTP=200 TYPE=text/css'):
+              raise SystemExit('bad css response')
+          PY
+          echo 'ORIGIN_CSS_RESPONSES_OK=1'
+          rm -rf /tmp/nvx-site-root
+          mkdir -p /tmp/nvx-site-root/wp-content/themes/nuvanx-medical/assets
+          cp /tmp/nvx-origin.html /tmp/nvx-site-root/index.html
+          cp -a "$ROOT/wp-content/themes/nuvanx-medical/assets/css" /tmp/nvx-site-root/wp-content/themes/nuvanx-medical/assets/
+          tar -czf /tmp/nvx-origin-bundle.tgz -C /tmp/nvx-site-root .
+          REMOTE
+          scp siteground-staging:/tmp/nvx-origin-bundle.tgz evidence/origin-bundle.tgz
+      - name: Run browser against SiteGround origin snapshot
+        run: |
+          set -euo pipefail
+          tar -xzf evidence/origin-bundle.tgz -C evidence/site-root
+          python3 -m http.server 8765 --directory evidence/site-root >/tmp/nvx-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          node <<'NODE'
+          const { chromium } = require('playwright-core');
+          (async()=>{
+            const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
+            const page=await browser.newPage({viewport:{width:1440,height:1000}});
+            const failed=[]; page.on('requestfailed',r=>failed.push(r.url()));
+            const response=await page.goto('http://127.0.0.1:8765/',{waitUntil:'networkidle',timeout:60000});
+            const result=await page.evaluate(()=>{const b=getComputedStyle(document.body);const h=document.querySelector('h1');return {status:document.readyState,bodyMargin:b.margin,bodyFont:b.fontFamily,bodyDisplay:b.display,bodyBackground:b.backgroundColor,h1Font:h?getComputedStyle(h).fontFamily:null,h1Size:h?getComputedStyle(h).fontSize:null,styles:[...document.querySelectorAll('link[rel~="stylesheet"]')].map(x=>({href:x.href,sheet:!!x.sheet,rules:x.sheet?(()=>{try{return x.sheet.cssRules.length}catch(e){return -1}})():0}))}});
+            console.log(JSON.stringify({http:response?.status(),result,failed},null,2));
+            await page.screenshot({path:'evidence/origin-home-desktop.png',fullPage:true});
+            if(!response || response.status()!==200) throw new Error('origin snapshot failed');
+            if(result.bodyMargin==='8px') throw new Error('default body margin: CSS not applied');
+            if(result.bodyFont==='Times New Roman' || result.bodyFont==='serif') throw new Error('default typography: CSS not applied');
+            if(result.styles.some(x=>!x.sheet || x.rules===0)) throw new Error('stylesheet not parsed');
+            if(failed.some(x=>/\.css(?:\?|$)/i.test(x))) throw new Error('CSS request failed');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - name: Upload evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging2-css-origin-diagnosis-${{ github.run_id }}
+          path: evidence/
+          retention-days: 14
+          if-no-files-found: error

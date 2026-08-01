@@ -49,27 +49,34 @@ jobs:
             ConnectTimeout 15
           EOF
           chmod 600 "$HOME/.ssh/config"
-      - name: Inspect anomalous routes
+      - name: Inspect anomalous routes and fatal errors
         run: |
           set -euo pipefail
           ssh siteground-staging 'bash -se' <<'REMOTE'
           set -Eeuo pipefail
           ROOT=/home/customer/www/staging2.nuvanx.com/public_html
           cd "$ROOT"
-          for slug in soluciones-medicas medicina-estetica-chamberi; do
-            echo "--- WP $slug ---"
-            wp post list --name="$slug" --post_type=page --fields=ID,post_status,post_title,post_name --format=table || true
-          done
-          echo '--- URL RESPONSES ---'
+          echo '--- WP STATE ---'
+          wp post list --name=soluciones-medicas --post_type=page --fields=ID,post_status,post_title,post_name --format=table || true
+          wp post list --name=medicina-estetica-chamberi --post_type=page --fields=ID,post_status,post_title,post_name --format=table || true
+          echo '--- DEBUG SETTINGS ---'
+          wp config get WP_DEBUG --type=constant 2>&1 || true
+          wp config get WP_DEBUG_LOG --type=constant 2>&1 || true
+          echo '--- ROUTE RESPONSES ---'
           for path in /soluciones-medicas/ /medicina-estetica-chamberi/ /clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/; do
             echo "### $path"
             curl -ksS -D /tmp/nvx-route-headers -L --max-time 25 --resolve staging2.nuvanx.com:443:127.0.0.1 -o /tmp/nvx-route-body "https://staging2.nuvanx.com${path}"
             grep -Ei '^(HTTP/|location:|content-type:|content-length:|x-cache:|x-proxy-cache:|cache-control:)' /tmp/nvx-route-headers || true
             echo "BYTES=$(wc -c < /tmp/nvx-route-body | tr -d ' ')"
-            echo "H1=$(grep -Eio '<h1\b' /tmp/nvx-route-body | wc -l | tr -d ' ')"
-            echo "MAIN=$(grep -Eio '<main\b' /tmp/nvx-route-body | wc -l | tr -d ' ')"
-            echo "CSS=$(grep -Eio 'stylesheet' /tmp/nvx-route-body | wc -l | tr -d ' ')"
-            echo "NVX_BASE=$(grep -Eio 'nvx-base\.css' /tmp/nvx-route-body | wc -l | tr -d ' ')"
-            head -c 500 /tmp/nvx-route-body | tr '\n' ' '; echo
+            head -c 300 /tmp/nvx-route-body | tr '\n' ' '; echo
           done
+          echo '--- RECENT PHP FATALS ---'
+          for f in "$ROOT/wp-content/debug.log" "$ROOT/error_log" /home/customer/www/staging2.nuvanx.com/logs/error_log /home/customer/www/staging2.nuvanx.com/logs/staging2.nuvanx.com.error.log; do
+            if [[ -f "$f" ]]; then
+              echo "### $f"
+              tail -n 250 "$f" | grep -Ei 'fatal error|uncaught|parse error|typeerror|error:' | tail -n 80 || true
+            fi
+          done
+          echo '--- LOG FILES ---'
+          find /home/customer/www/staging2.nuvanx.com -maxdepth 4 -type f \( -name 'error_log' -o -name '*.log' \) -print 2>/dev/null | head -50 || true
           REMOTE

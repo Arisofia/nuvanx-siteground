@@ -53,6 +53,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p evidence/site-root
+          ssh siteground-staging 'cd /home/customer/www/staging2.nuvanx.com/public_html && wp plugin activate sg-cachepress && wp cache flush && wp sg purge'
           (cd wp-content/themes/nuvanx-medical && find . -type f -print0 | sort -z | xargs -0 sha256sum) > evidence/master-theme.sha256
           ssh siteground-staging "cd /home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical && find . -type f -print0 | sort -z | xargs -0 sha256sum" > evidence/staging2-theme.sha256
           grep -v '  \.\/.nvx-deploy-sha$' evidence/staging2-theme.sha256 > evidence/staging2-theme-normalized.sha256

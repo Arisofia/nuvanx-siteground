@@ -203,43 +203,64 @@ function nvx_document_governance_attachment_dimensions( int $attachment_id, stri
 }
 
 /**
+ * Whether an image src is a same-origin WordPress upload.
+ */
+function nvx_document_governance_is_same_origin_upload( string $src ): bool {
+	if ( '' === $src || false === strpos( $src, '/wp-content/uploads/' ) ) {
+		return false;
+	}
+
+	$site_host  = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
+	$image_host = strtolower( (string) wp_parse_url( $src, PHP_URL_HOST ) );
+
+	return '' === $image_host || $image_host === $site_host;
+}
+
+/**
+ * Append missing width/height attributes when dimensions are known.
+ */
+function nvx_document_governance_apply_dimensions(
+	string $tag,
+	bool $has_width,
+	bool $has_height,
+	int $width,
+	int $height
+): string {
+	$attributes = '';
+	if ( ! $has_width ) {
+		$attributes .= ' width="' . $width . '"';
+	}
+	if ( ! $has_height ) {
+		$attributes .= ' height="' . $height . '"';
+	}
+
+	$candidate = preg_replace( '/\s*\/?>$/u', $attributes . '$0', $tag, 1 );
+	return is_string( $candidate ) ? $candidate : $tag;
+}
+
+/**
  * Add intrinsic dimensions to one eligible image tag.
  */
 function nvx_document_governance_add_dimensions_to_tag( string $tag ): string {
 	$has_width  = (bool) preg_match( '/\bwidth\s*=/iu', $tag );
 	$has_height = (bool) preg_match( '/\bheight\s*=/iu', $tag );
-	$normalized = $tag;
-
-	if ( ! ( $has_width && $has_height ) ) {
-		$src        = nvx_document_governance_tag_attribute( $tag, 'src' );
-		$site_host  = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
-		$image_host = strtolower( (string) wp_parse_url( $src, PHP_URL_HOST ) );
-		$is_upload  = '' !== $src && false !== strpos( $src, '/wp-content/uploads/' );
-		$same_host  = '' === $image_host || $image_host === $site_host;
-
-		if ( $is_upload && $same_host ) {
-			$clean_src     = (string) strtok( $src, '?#' );
-			$attachment_id = nvx_document_governance_attachment_id( $clean_src );
-			list( $width, $height ) = nvx_document_governance_attachment_dimensions( $attachment_id, $clean_src );
-
-			if ( $attachment_id > 0 && $width > 0 && $height > 0 ) {
-				$attributes = '';
-				if ( ! $has_width ) {
-					$attributes .= ' width="' . $width . '"';
-				}
-				if ( ! $has_height ) {
-					$attributes .= ' height="' . $height . '"';
-				}
-
-				$candidate = preg_replace( '/\s*\/?>$/u', $attributes . '$0', $tag, 1 );
-				if ( is_string( $candidate ) ) {
-					$normalized = $candidate;
-				}
-			}
-		}
+	if ( $has_width && $has_height ) {
+		return $tag;
 	}
 
-	return $normalized;
+	$src = nvx_document_governance_tag_attribute( $tag, 'src' );
+	if ( ! nvx_document_governance_is_same_origin_upload( $src ) ) {
+		return $tag;
+	}
+
+	$clean_src     = (string) strtok( $src, '?#' );
+	$attachment_id = nvx_document_governance_attachment_id( $clean_src );
+	list( $width, $height ) = nvx_document_governance_attachment_dimensions( $attachment_id, $clean_src );
+	if ( $attachment_id <= 0 || $width <= 0 || $height <= 0 ) {
+		return $tag;
+	}
+
+	return nvx_document_governance_apply_dimensions( $tag, $has_width, $has_height, $width, $height );
 }
 
 /**

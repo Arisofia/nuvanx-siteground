@@ -34,11 +34,12 @@ function nvx_seo_current_canonical_url(): string { return 'https://staging2.nuva
 
 $root = dirname(__DIR__, 2);
 $modulePath = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php';
+$integrationsPath = $root . '/wp-content/themes/nuvanx-medical/inc/nvx-integrations.php';
 $headerPath = $root . '/wp-content/themes/nuvanx-medical/header.php';
 $cssPath = $root . '/wp-content/themes/nuvanx-medical/assets/css/nvx-accessibility-governance.css';
 $jsPath = $root . '/wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js';
 
-foreach (array($modulePath, $headerPath, $cssPath, $jsPath) as $path) {
+foreach (array($modulePath, $integrationsPath, $headerPath, $cssPath, $jsPath) as $path) {
     if (!is_readable($path)) {
         fwrite(STDERR, 'Missing global governance asset: ' . $path . "\n");
         exit(1);
@@ -55,6 +56,7 @@ function nvx_document_contract_assert(bool $condition, string $message): void {
 }
 
 $module = (string) file_get_contents($modulePath);
+$integrations = (string) file_get_contents($integrationsPath);
 $header = (string) file_get_contents($headerPath);
 $css = (string) file_get_contents($cssPath);
 $js = (string) file_get_contents($jsPath);
@@ -73,6 +75,14 @@ nvx_document_contract_assert(
         && str_contains($module, 'nvx_document_governance_add_image_dimensions')
         && str_contains($module, 'nvx_document_governance_normalize_head'),
     'The module must own lazy integrations, image dimensions and final metadata.'
+);
+nvx_document_contract_assert(
+    str_contains($integrations, "nvx_document_governance_remove_retired_scripts( $html )")
+        && !str_contains($integrations, '[\\s\\S]*?FacebookSignal[\\s\\S]*?')
+        && !str_contains($integrations, 'window.FacebookSignal=window.FacebookSignal')
+        && !str_contains($integrations, 'forms-eu1.hsforms.com')
+        && !str_contains($integrations, 'js-eu1.hsforms.net'),
+    'Legacy integrations must delegate safe cleanup and must not reintroduce cross-script deletion or eager HubSpot connections.'
 );
 nvx_document_contract_assert(
     str_contains($css, '--nvx-touch-target-min')

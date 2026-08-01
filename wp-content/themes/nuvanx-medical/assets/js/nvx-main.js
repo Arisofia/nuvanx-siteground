@@ -7,16 +7,24 @@
   var closeBtn = document.getElementById('nvx-mobile-close');
   if (ham && mobileNav) {
     ham.addEventListener('click', function () {
-      var isOpen = mobileNav.classList.toggle('is-open');
-      ham.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      mobileNav.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-      document.body.style.overflow = isOpen ? 'hidden' : '';
+      var willOpen = !mobileNav.classList.contains('is-open');
+      if (willOpen) {
+        mobileNav.removeAttribute('inert');
+        mobileNav.classList.add('is-open');
+      } else {
+        mobileNav.classList.remove('is-open');
+      }
+      ham.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      mobileNav.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+      if (!willOpen) mobileNav.setAttribute('inert', '');
+      document.body.style.overflow = willOpen ? 'hidden' : '';
     });
     if (closeBtn) {
       closeBtn.addEventListener('click', function () {
         mobileNav.classList.remove('is-open');
         ham.setAttribute('aria-expanded', 'false');
         mobileNav.setAttribute('aria-hidden', 'true');
+        mobileNav.setAttribute('inert', '');
         document.body.style.overflow = '';
       });
     }
@@ -84,6 +92,7 @@
       mobileNav.classList.remove('is-open');
       if (ham) ham.setAttribute('aria-expanded', 'false');
       mobileNav.setAttribute('aria-hidden', 'true');
+      mobileNav.setAttribute('inert', '');
     }
 
     /** Single source of truth: .is-open class (hidden/aria stay in sync here only). */

@@ -229,9 +229,11 @@ add_filter(
 			if ( str_contains( $src, 'accounts.google.com/gsi' ) || str_contains( $handle, 'sign-in-with-google' ) ) {
 				$filtered = '';
 			} elseif (
-			} elseif ( 'nvx-hubspot-forms-embed' === $handle || str_contains( $src, 'hsforms.net' ) ) {
-				$filtered = '';
-			}
+				( 'nvx-hubspot-forms-embed' === $handle || str_contains( $src, 'hsforms.net' ) )
+				&& false === strpos( $tag, 'defer' )
+				&& false === strpos( $tag, 'async' )
+			) {
+				$filtered = str_replace( ' src=', ' defer src=', $tag );
 			}
 		}
 

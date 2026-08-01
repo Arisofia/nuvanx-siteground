@@ -74,6 +74,8 @@ nvx_staging2_acceptance_assert(
         && $purgePosition < $successPosition,
     'Mandatory cache purge must execute before deployment success.'
 );
+$purgePosition = (int) $purgePosition;
+$successPosition = (int) $successPosition;
 
 $purgeBlock = substr($deployScript, $purgePosition, $successPosition - $purgePosition);
 nvx_staging2_acceptance_assert(

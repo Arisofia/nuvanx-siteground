@@ -24,7 +24,7 @@ function nvx_nosotros_is_singular_context(): bool {
 		return false;
 	}
 
-	return is_singular( 'page' ) || is_page();
+	return is_page();
 }
 
 /**

@@ -135,7 +135,7 @@ add_filter( 'wpseo_add_opengraph_images', 'nvx_contacto_add_yoast_opengraph_imag
  * callbacks and to enforce the final contact Open Graph image contract.
  */
 function nvx_canonical_schema_head_buffer_start(): void {
-	if ( is_admin() || ( ! is_front_page() && ! is_singular( 'page' ) ) ) {
+	if ( is_admin() || ( ! is_front_page() && ! is_page() ) ) {
 		return;
 	}
 

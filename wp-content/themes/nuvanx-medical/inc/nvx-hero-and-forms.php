@@ -181,7 +181,7 @@ function nvx_extract_balanced_element( string $html, int $open_pos, string $tag 
  * Landing valoración: form is the first content after the hero.
  */
 function nvx_theme_is_valoracion_landing(): bool {
-	if ( ! is_singular( 'page' ) ) {
+	if ( ! is_page() ) {
 		return false;
 	}
 	if ( 'templates/page-landing-valoracion.php' === (string) get_page_template_slug() ) {

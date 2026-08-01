@@ -9,7 +9,7 @@ $GLOBALS['nvx_test_cache'] = array();
 
 // WordPress stubs keep signature compatibility for the module under test.
 function add_action(...$args): bool {
-    return isset($args[0]);
+    return true;
 }
 function is_admin(): bool { return false; }
 function wp_doing_ajax(): bool { return false; }

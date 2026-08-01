@@ -55,7 +55,8 @@ jobs:
           mkdir -p evidence/site-root
           (cd wp-content/themes/nuvanx-medical && find . -type f -print0 | sort -z | xargs -0 sha256sum) > evidence/master-theme.sha256
           ssh siteground-staging "cd /home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical && find . -type f -print0 | sort -z | xargs -0 sha256sum" > evidence/staging2-theme.sha256
-          diff -u evidence/master-theme.sha256 evidence/staging2-theme.sha256
+          grep -v '  \.\/.nvx-deploy-sha$' evidence/staging2-theme.sha256 > evidence/staging2-theme-normalized.sha256
+          diff -u evidence/master-theme.sha256 evidence/staging2-theme-normalized.sha256
           ssh siteground-staging 'cd /home/customer/www/staging2.nuvanx.com/public_html && printf "SITEURL=%s HOME=%s THEME=%s\n" "$(wp option get siteurl)" "$(wp option get home)" "$(wp theme list --status=active --field=name)" && test -f wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php && grep -Fq "nvx_document_governance_start();" wp-content/themes/nuvanx-medical/header.php && wp db check --quiet && wp plugin is-active sg-cachepress'
           ssh siteground-staging 'curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/ -o /tmp/nvx-verified-home.html && python3 - <<"PY"
           import re

@@ -1,0 +1,104 @@
+#!/usr/bin/env node
+
+const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/+$/, '');
+const expectedSha = (process.env.EXPECTED_SHA || '').trim();
+const routes = [
+  '/',
+  '/contacto/',
+  '/soluciones-medicas/',
+  '/madrid/valoracion/',
+  '/medicina-estetica/',
+  '/medicina-estetica-laser/',
+  '/equipo-medico/',
+  '/clinicas-de-medicina-estetica-nuvanx/'
+];
+
+function count(html, pattern) {
+  return (html.match(pattern) || []).length;
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function attribute(tag, name) {
+  const match = tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, 'i'));
+  return match ? match[2] : '';
+}
+
+async function verifyRoute(route) {
+  const response = await fetch(`${baseUrl}${route}`, {
+    redirect: 'follow',
+    headers: {
+      'cache-control': 'no-cache',
+      pragma: 'no-cache',
+      'user-agent': 'NUVANX-Rendered-Document-Acceptance/1.0'
+    }
+  });
+  const html = await response.text();
+
+  assert(response.ok, `${route}: expected 2xx, received ${response.status}`);
+  assert(/^<!doctype html>/i.test(html.trimStart()), `${route}: missing HTML doctype`);
+  assert(/<html\b[^>]*\blang=["']es(?:-ES)?["']/i.test(html), `${route}: missing Spanish html lang`);
+  assert(count(html, /<meta\b[^>]*\bname=["']viewport["'][^>]*>/gi) === 1, `${route}: viewport must appear exactly once`);
+
+  const titles = [...html.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi)];
+  assert(titles.length === 1, `${route}: title must appear exactly once`);
+  assert(titles[0][1].replace(/<[^>]+>/g, '').trim().length > 0, `${route}: title must be non-empty`);
+
+  const descriptions = [...html.matchAll(/<meta\b(?=[^>]*\bname\s*=\s*(["'])description\1)[^>]*>/gi)];
+  assert(descriptions.length === 1, `${route}: meta description must appear exactly once`);
+  assert(attribute(descriptions[0][0], 'content').trim().length >= 40, `${route}: meta description is missing or too short`);
+
+  const canonicals = [...html.matchAll(/<link\b(?=[^>]*\brel\s*=\s*(["'])canonical\1)[^>]*>/gi)];
+  assert(canonicals.length === 1, `${route}: canonical must appear exactly once`);
+  assert(attribute(canonicals[0][0], 'href').startsWith(baseUrl), `${route}: canonical must use the staging2 host`);
+
+  assert(count(html, /<meta\b(?=[^>]*\bname\s*=\s*(["'])nvx-document-contract\1)[^>]*>/gi) === 1, `${route}: document contract marker missing`);
+  assert(/<main\b[^>]*>[\s\S]*\S[\s\S]*<\/main>/i.test(html), `${route}: main landmark is empty or missing`);
+  assert(!html.includes('NUVANX_STRATEGY_PAGE:'), `${route}: unresolved CMS strategy marker leaked into public HTML`);
+  assert(!html.includes('FacebookSignal'), `${route}: retired FacebookSignal runtime leaked into public HTML`);
+
+  const stylesheetCount = count(html, /<link\b(?=[^>]*\brel=["']stylesheet["'])[^>]*>/gi);
+  assert(stylesheetCount >= 5, `${route}: design-system stylesheets are missing (${stylesheetCount} found)`);
+  assert(html.includes('nvx-accessibility-governance'), `${route}: global accessibility stylesheet missing`);
+  assert(html.includes('nvx-runtime-governance'), `${route}: global runtime governance script missing`);
+
+  if (html.includes('googlesitekit-consent-mode')) {
+    assert(html.includes('_googlesitekitConsentCategoryMap'), `${route}: Site Kit consent script exists without its category map`);
+    assert(html.includes('_googlesitekitConsents'), `${route}: Site Kit consent script exists without its defaults`);
+  }
+
+  const xRobots = response.headers.get('x-robots-tag') || '';
+  assert(/noindex/i.test(xRobots), `${route}: staging2 X-Robots-Tag noindex guard missing`);
+  assert(/<meta\b(?=[^>]*\bname=["']robots["'])[^>]*noindex[^>]*>/i.test(html), `${route}: staging2 robots meta noindex guard missing`);
+
+  const shaMatch = html.match(/<meta\b[^>]*\bname=["']nvx-deploy-sha["'][^>]*\bcontent=["']([0-9a-f]{40})["'][^>]*>/i);
+  assert(shaMatch, `${route}: immutable deploy SHA marker missing`);
+  if (expectedSha) assert(shaMatch[1] === expectedSha, `${route}: deployed SHA ${shaMatch[1]} does not match ${expectedSha}`);
+
+  if ('/soluciones-medicas/' === route) {
+    assert(html.includes('nvx-solutions-page'), `${route}: canonical solutions hierarchy missing`);
+    assert(html.includes('nvx-soluciones-medicas.css'), `${route}: solutions stylesheet missing`);
+  }
+
+  if ('/' === route) {
+    const evidence = html.match(/<img\b[^>]*\bclass=["'][^"']*nvx-home-evidence__image[^"']*["'][^>]*>/i);
+    assert(evidence, `${route}: home evidence image missing`);
+    assert(/\bwidth=["']\d+["']/i.test(evidence[0]), `${route}: home evidence image width missing`);
+    assert(/\bheight=["']\d+["']/i.test(evidence[0]), `${route}: home evidence image height missing`);
+  }
+
+  if ('/madrid/valoracion/' !== route) {
+    assert(!/<script\b[^>]*\bsrc=["'][^"']*hsforms\.net[^"']*["'][^>]*>/i.test(html), `${route}: HubSpot embed must not load before user intent`);
+  }
+
+  return { route, sha: shaMatch[1], title: titles[0][1].replace(/<[^>]+>/g, '').trim() };
+}
+
+const results = [];
+for (const route of routes) results.push(await verifyRoute(route));
+
+const deployedShas = new Set(results.map((result) => result.sha));
+assert(deployedShas.size === 1, `Routes serve different deployment SHAs: ${[...deployedShas].join(', ')}`);
+console.log(JSON.stringify({ baseUrl, deployedSha: results[0].sha, routes: results }, null, 2));

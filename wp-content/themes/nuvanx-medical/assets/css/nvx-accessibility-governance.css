@@ -27,9 +27,13 @@
 }
 
 .nvx-nav__list .sub-menu a,
-.nvx-mobile-nav__list a,
-.nvx-footer a {
+.nvx-mobile-nav__list a {
   display: flex;
+  align-items: center;
+}
+
+.nvx-footer a {
+  display: inline-flex;
   align-items: center;
 }
 

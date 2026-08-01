@@ -1397,13 +1397,6 @@ figure.nvx-equipo-portrait{
   width: var(--nvx-shell);
   margin-inline: auto}
 
-.nvx-footer__inner{
-  display: grid;
-    grid-template-columns: 1fr;
-  gap: var(--nvx-gap-wide);
-  width: var(--nvx-shell);
-  margin-inline: auto;
-  padding-bottom: var(--nvx-space-8)}
 
 .nvx-footer__bottom{
   display: grid;

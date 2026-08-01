@@ -113,7 +113,7 @@ $functions = (string) file_get_contents(
     dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/functions.php'
 );
 nvx_page_helper_assert(
-    str_contains($solutionsModule, "'soluciones-medicas' === $slug")
+    str_contains($solutionsModule, "'soluciones-medicas' === \$slug")
         && str_contains($solutionsModule, 'NUVANX_STRATEGY_PAGE:solutions')
         && str_contains($solutionsModule, "get_template_part( 'template-parts/content/nvx-soluciones-medicas-github' )"),
     'Solutions route must resolve by slug/marker and render the canonical template.'
@@ -123,8 +123,8 @@ nvx_page_helper_assert(
     'Page shell must treat the solutions hub as managed editorial markup.'
 );
 nvx_page_helper_assert(
-    str_contains($functions, "require_once get_template_directory() . '/inc/nvx-solutions-page.php';"),
-    'Theme bootstrap must load the solutions page module.'
+    1 === substr_count($functions, "require_once get_template_directory() . '/inc/nvx-solutions-page.php';"),
+    'Theme bootstrap must load the solutions page module exactly once.'
 );
 
 echo "Page render helper contract passed.\n";

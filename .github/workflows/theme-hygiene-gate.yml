@@ -58,6 +58,7 @@ jobs:
           php scripts/theme-hygiene/test-catalog-json-runtime-contract.php
           php scripts/theme-hygiene/test-catalog-review-contract.php
           php scripts/theme-hygiene/test-page-render-helpers.php
+          php scripts/theme-hygiene/test-valoracion-form-contract.php
           php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
           php -l /tmp/nvx-catalog-i18n.php
           php scripts/theme-hygiene/test-catalog-i18n-source-contract.php /tmp/nvx-catalog-i18n.php

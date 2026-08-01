@@ -76,31 +76,29 @@ function nvx_hero_find_balanced_div_end( string $content, int $open_pos ): ?int 
  * Insert a hero media figure after the first hero __copy block, or at section start.
  */
 function nvx_hero_insert_media_figure( string $content, string $figure ): string {
+	$updated = $content;
+
 	// Locate first hero __copy opening tag.
 	if ( ! preg_match( '/class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)__copy[^"]*"/i', $content, $match, PREG_OFFSET_CAPTURE ) ) {
 		// No copy block: place media at the start of the first hero section.
-		$updated = preg_replace(
+		$candidate = preg_replace(
 			'/(<section\b[^>]*class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)[^"]*"[^>]*>)/i',
 			'$1' . $figure,
 			$content,
 			1
 		);
-		return is_string( $updated ) ? $updated : $content;
+		$updated = is_string( $candidate ) ? $candidate : $content;
+	} else {
+		$class_pos = (int) $match[0][1];
+		$open_pos  = strrpos( substr( $content, 0, $class_pos ), '<div' );
+		// Balance nested <div>…</div> so the figure is inserted AFTER the whole copy.
+		$end = false !== $open_pos ? nvx_hero_find_balanced_div_end( $content, $open_pos ) : null;
+		if ( null !== $end ) {
+			$updated = substr( $content, 0, $end ) . $figure . substr( $content, $end );
+		}
 	}
 
-	$class_pos = (int) $match[0][1];
-	$open_pos  = strrpos( substr( $content, 0, $class_pos ), '<div' );
-	if ( false === $open_pos ) {
-		return $content;
-	}
-
-	// Balance nested <div>…</div> so the figure is inserted AFTER the whole copy.
-	$end = nvx_hero_find_balanced_div_end( $content, $open_pos );
-	if ( null === $end ) {
-		return $content;
-	}
-
-	return substr( $content, 0, $end ) . $figure . substr( $content, $end );
+	return $updated;
 }
 
 /**

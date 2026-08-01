@@ -260,16 +260,12 @@ function nvx_btl_detail_has_compare_content( array $c ): bool {
 	$compare_link  = trim( (string) ( $c['compare']['link'] ?? '' ) );
 	$compare_label = trim( (string) ( $c['compare']['label'] ?? '' ) );
 
-	if ( '' !== $compare_title || '' !== $compare_body ) {
-		return true;
-	}
-	if ( '' !== $compare_link && '' !== $compare_label ) {
-		return true;
-	}
-	if ( ! empty( $c['related'] ) && is_array( $c['related'] ) ) {
-		return true;
-	}
-	return ! empty( $c['combo'] );
+	$has_title_body = '' !== $compare_title || '' !== $compare_body;
+	$has_link       = '' !== $compare_link && '' !== $compare_label;
+	$has_related    = ! empty( $c['related'] ) && is_array( $c['related'] );
+	$has_combo      = ! empty( $c['combo'] );
+
+	return $has_title_body || $has_link || $has_related || $has_combo;
 }
 
 /**

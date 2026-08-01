@@ -86,7 +86,7 @@ while ( have_posts() ) :
 	// Title-only header only if no content H1 and no theme/content/managed hero.
 	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
 	$classes          = array( 'nvx-page' );
-	if ( is_singular( 'post' ) ) {
+	if ( is_single() ) {
 		$classes[] = 'nvx-page--single';
 	}
 	if ( $show_theme_hero || $has_content_hero ) {
@@ -111,7 +111,7 @@ while ( have_posts() ) :
 					?>
 				</figure>
 				<div class="nvx-page-hero__copy">
-					<?php if ( is_singular( 'post' ) ) : ?>
+					<?php if ( is_single() ) : ?>
 						<?php
 						$cats = get_the_category();
 						if ( ! empty( $cats ) ) :
@@ -124,7 +124,7 @@ while ( have_posts() ) :
 						<p class="nvx-eyebrow"><?php esc_html_e( 'NUVANX', 'nuvanx-medical' ); ?></p>
 					<?php endif; ?>
 					<?php the_title( '<h1 id="nvx-page-hero-title-' . get_the_ID() . '" class="nvx-heading">', '</h1>' ); ?>
-					<?php if ( is_singular( 'post' ) ) : ?>
+					<?php if ( is_single() ) : ?>
 						<p class="nvx-lead">
 							<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
 							<?php if ( function_exists( 'nvx_reading_time' ) ) : ?>
@@ -139,7 +139,7 @@ while ( have_posts() ) :
 
 	<?php if ( $show_theme_title ) : ?>
 		<header class="nvx-page__header nvx-section-intro nvx-shell">
-			<?php if ( is_singular( 'post' ) ) : ?>
+			<?php if ( is_single() ) : ?>
 				<?php
 				$cats = get_the_category();
 				if ( ! empty( $cats ) ) :
@@ -148,7 +148,7 @@ while ( have_posts() ) :
 				<?php endif; ?>
 			<?php endif; ?>
 			<?php the_title( '<h1 class="nvx-heading">', '</h1>' ); ?>
-			<?php if ( is_singular( 'post' ) ) : ?>
+			<?php if ( is_single() ) : ?>
 				<p class="nvx-lead">
 					<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
 					<?php if ( function_exists( 'nvx_reading_time' ) ) : ?>
@@ -174,7 +174,7 @@ while ( have_posts() ) :
 		</div>
 	<?php endif; ?>
 
-	<?php if ( is_singular( 'post' ) ) : ?>
+	<?php if ( is_single() ) : ?>
 		<nav class="nvx-page__nav" aria-label="<?php esc_attr_e( 'Navegación entre artículos', 'nuvanx-medical' ); ?>">
 			<?php
 				$prev = get_previous_post();

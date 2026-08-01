@@ -730,7 +730,7 @@ function nvx_content_is_exion_hub(): bool {
 			return true;
 		}
 	}
-	if ( is_singular( 'page' ) ) {
+	if ( is_page() ) {
 		$slug = get_post_field( 'post_name', get_queried_object_id() );
 		return is_string( $slug ) && 'exion-btl' === $slug;
 	}
@@ -1396,7 +1396,7 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return $content;
 	}
-	if ( ! is_singular( 'page' ) && ! is_page() ) {
+	if ( ! is_page() ) {
 		return $content;
 	}
 

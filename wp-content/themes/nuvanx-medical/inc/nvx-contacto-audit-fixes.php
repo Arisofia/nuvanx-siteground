@@ -21,7 +21,7 @@ function nvx_contacto_audit_is_contact_page(): bool {
 		return nvx_is_contacto_page_request();
 	}
 
-	if ( ! is_singular( 'page' ) || is_front_page() ) {
+	if ( ! is_page() || is_front_page() ) {
 		return false;
 	}
 

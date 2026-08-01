@@ -28,7 +28,7 @@ function nvx_btl_detail_is_singular(): bool {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return false;
 	}
-	return is_singular( 'page' ) || is_page();
+	return is_page();
 }
 
 /**
@@ -59,7 +59,7 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 	}
 
 	// Never hijack posts (blogs share similar titles).
-	if ( is_singular( 'post' ) ) {
+	if ( is_single() ) {
 		return null;
 	}
 

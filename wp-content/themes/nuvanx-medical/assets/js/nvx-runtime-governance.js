@@ -68,7 +68,7 @@
     });
 
     nav.addEventListener('click', function (event) {
-      var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+      var link = event.target?.closest?.('a[href]') || null;
       if (!link) return;
       nav.classList.remove('is-open');
       nav.setAttribute('aria-hidden', 'true');
@@ -195,11 +195,11 @@
     document.addEventListener(
       'click',
       function (event) {
-        var link = event.target && event.target.closest ? event.target.closest('a') : null;
+        var link = event.target?.closest?.('a') || null;
         if (!link) return;
         if (
           link.classList.contains('nvx-open-valoracion-modal') ||
-          link.getAttribute('data-nvx-valoracion-modal') === '1'
+          link.dataset.nvxValoracionModal === '1'
         ) {
           loadHubSpot();
         }

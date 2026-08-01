@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/+$/, '');
+const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/+$/u, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const routes = [
   '/',
@@ -22,8 +22,17 @@ const canonicalStylesheetHandles = [
   'nvx-footer',
   'nvx-accessibility-governance'
 ];
+const expectedShaPattern = /^[0-9a-f]{40}$/u;
+const titlePattern = /<title\b[^>]*>([^<]*)<\/title>/giu;
+const descriptionPattern = /<meta\b(?=[^>]*\bname\s*=\s*(["'])description\1)[^>]*>/giu;
+const canonicalPattern = /<link\b(?=[^>]*\brel\s*=\s*(["'])canonical\1)[^>]*>/giu;
+const contractPattern = /<meta\b(?=[^>]*\bname\s*=\s*(["'])nvx-document-contract\1)[^>]*>/giu;
+const mainPattern = /<main\b[^>]*>[\s\S]*?\S[\s\S]*?<\/main>/iu;
+const shaPattern = /<meta\b[^>]*\bname=["']nvx-deploy-sha["'][^>]*\bcontent=["']([0-9a-f]{40})["'][^>]*>/iu;
+const evidenceImagePattern = /<img\b[^>]*\bclass=["'][^"']*nvx-home-evidence__image[^"']*["'][^>]*>/iu;
+const hubspotScriptPattern = /<script\b[^>]*\bsrc=["'][^"']*(?:hsforms\.net|hsforms\.com|hs-scripts\.com)[^"']*["'][^>]*>/iu;
 
-if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
+if (!expectedShaPattern.test(expectedSha)) {
   throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
 }
 
@@ -36,8 +45,13 @@ function assert(condition, message) {
 }
 
 function attribute(tag, name) {
-  const match = tag.match(new RegExp(`\\b${name}\\s*=\\s*(["'])(.*?)\\1`, 'i'));
+  const pattern = new RegExp(`\\b${name}\\s*=\\s*(["'])([^"']*)\\1`, 'iu');
+  const match = pattern.exec(tag);
   return match ? match[2] : '';
+}
+
+function matchAll(html, pattern) {
+  return [...html.matchAll(pattern)];
 }
 
 function delay(milliseconds) {
@@ -78,24 +92,24 @@ async function verifyRoute(route) {
   const html = await response.text();
 
   assert(response.ok, `${route}: expected 2xx, received ${response.status}`);
-  assert(/^<!doctype html>/i.test(html.trimStart()), `${route}: missing HTML doctype`);
-  assert(/<html\b[^>]*\blang=["']es(?:-ES)?["']/i.test(html), `${route}: missing Spanish html lang`);
-  assert(count(html, /<meta\b[^>]*\bname=["']viewport["'][^>]*>/gi) === 1, `${route}: viewport must appear exactly once`);
+  assert(/^<!doctype html>/iu.test(html.trimStart()), `${route}: missing HTML doctype`);
+  assert(/<html\b[^>]*\blang=["']es(?:-ES)?["']/iu.test(html), `${route}: missing Spanish html lang`);
+  assert(count(html, /<meta\b[^>]*\bname=["']viewport["'][^>]*>/giu) === 1, `${route}: viewport must appear exactly once`);
 
-  const titles = [...html.matchAll(/<title\b[^>]*>([\s\S]*?)<\/title>/gi)];
+  const titles = matchAll(html, titlePattern);
   assert(titles.length === 1, `${route}: title must appear exactly once`);
-  assert(titles[0][1].replace(/<[^>]+>/g, '').trim().length > 0, `${route}: title must be non-empty`);
+  assert(titles[0][1].trim().length > 0, `${route}: title must be non-empty`);
 
-  const descriptions = [...html.matchAll(/<meta\b(?=[^>]*\bname\s*=\s*(["'])description\1)[^>]*>/gi)];
+  const descriptions = matchAll(html, descriptionPattern);
   assert(descriptions.length === 1, `${route}: meta description must appear exactly once`);
   assert(attribute(descriptions[0][0], 'content').trim().length >= 40, `${route}: meta description is missing or too short`);
 
-  const canonicals = [...html.matchAll(/<link\b(?=[^>]*\brel\s*=\s*(["'])canonical\1)[^>]*>/gi)];
+  const canonicals = matchAll(html, canonicalPattern);
   assert(canonicals.length === 1, `${route}: canonical must appear exactly once`);
   assert(attribute(canonicals[0][0], 'href').startsWith(baseUrl), `${route}: canonical must use the staging2 host`);
 
-  assert(count(html, /<meta\b(?=[^>]*\bname\s*=\s*(["'])nvx-document-contract\1)[^>]*>/gi) === 1, `${route}: document contract marker missing`);
-  assert(/<main\b[^>]*>[\s\S]*\S[\s\S]*<\/main>/i.test(html), `${route}: main landmark is empty or missing`);
+  assert(count(html, contractPattern) === 1, `${route}: document contract marker missing`);
+  assert(mainPattern.test(html), `${route}: main landmark is empty or missing`);
   assert(!html.includes('NUVANX_STRATEGY_PAGE:'), `${route}: unresolved CMS strategy marker leaked into public HTML`);
   assert(!html.includes('FacebookSignal'), `${route}: retired FacebookSignal runtime leaked into public HTML`);
 
@@ -110,10 +124,10 @@ async function verifyRoute(route) {
   }
 
   const xRobots = response.headers.get('x-robots-tag') || '';
-  assert(/noindex/i.test(xRobots), `${route}: staging2 X-Robots-Tag noindex guard missing`);
-  assert(/<meta\b(?=[^>]*\bname=["']robots["'])[^>]*noindex[^>]*>/i.test(html), `${route}: staging2 robots meta noindex guard missing`);
+  assert(/noindex/iu.test(xRobots), `${route}: staging2 X-Robots-Tag noindex guard missing`);
+  assert(/<meta\b(?=[^>]*\bname=["']robots["'])[^>]*noindex[^>]*>/iu.test(html), `${route}: staging2 robots meta noindex guard missing`);
 
-  const shaMatch = html.match(/<meta\b[^>]*\bname=["']nvx-deploy-sha["'][^>]*\bcontent=["']([0-9a-f]{40})["'][^>]*>/i);
+  const shaMatch = shaPattern.exec(html);
   assert(shaMatch, `${route}: immutable deploy SHA marker missing`);
   assert(shaMatch[1] === expectedSha, `${route}: deployed SHA ${shaMatch[1]} does not match ${expectedSha}`);
 
@@ -123,18 +137,18 @@ async function verifyRoute(route) {
   }
 
   if ('/' === route) {
-    const evidence = html.match(/<img\b[^>]*\bclass=["'][^"']*nvx-home-evidence__image[^"']*["'][^>]*>/i);
+    const evidence = evidenceImagePattern.exec(html);
     assert(evidence, `${route}: home evidence image missing`);
-    assert(/\bwidth=["']\d+["']/i.test(evidence[0]), `${route}: home evidence image width missing`);
-    assert(/\bheight=["']\d+["']/i.test(evidence[0]), `${route}: home evidence image height missing`);
+    assert(/\bwidth=["']\d+["']/iu.test(evidence[0]), `${route}: home evidence image width missing`);
+    assert(/\bheight=["']\d+["']/iu.test(evidence[0]), `${route}: home evidence image height missing`);
   }
 
   assert(
-    !/<script\b[^>]*\bsrc=["'][^"']*(?:hsforms\.net|hsforms\.com|hs-scripts\.com)[^"']*["'][^>]*>/i.test(html),
+    !hubspotScriptPattern.test(html),
     `${route}: HubSpot embed must not load before explicit user intent`
   );
 
-  return { route, sha: shaMatch[1], title: titles[0][1].replace(/<[^>]+>/g, '').trim() };
+  return { route, sha: shaMatch[1], title: titles[0][1].trim() };
 }
 
 const results = [];

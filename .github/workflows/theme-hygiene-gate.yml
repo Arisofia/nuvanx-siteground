@@ -80,8 +80,7 @@ jobs:
           php scripts/theme-hygiene/test-valoracion-form-contract.php
           php scripts/theme-hygiene/test-document-governance.php
           php scripts/theme-hygiene/test-staging2-rendered-acceptance-contract.php
-          php scripts/theme-hygiene/test-global-governance-doc.php
-          php scripts/theme-hygiene/test-global-governance-checklist.php
+          php scripts/theme-hygiene/test-global-governance-docs.php
           php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
           php -l /tmp/nvx-catalog-i18n.php
           php scripts/theme-hygiene/test-catalog-i18n-source-contract.php /tmp/nvx-catalog-i18n.php

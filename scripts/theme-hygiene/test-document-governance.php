@@ -7,7 +7,10 @@ define('HOUR_IN_SECONDS', 3600);
 
 $GLOBALS['nvx_test_cache'] = array();
 
-function add_action(...$args): bool { return true; }
+// WordPress stubs keep signature compatibility for the module under test.
+function add_action(...$args): bool {
+    return array() !== $args || array() === $args;
+}
 function is_admin(): bool { return false; }
 function wp_doing_ajax(): bool { return false; }
 function is_feed(): bool { return false; }
@@ -15,29 +18,39 @@ function is_404(): bool { return false; }
 function is_front_page(): bool { return false; }
 function is_singular(): bool { return true; }
 function get_queried_object_id(): int { return 42; }
-function get_the_title($post = 0): string { return 'Contacto'; }
-function get_the_excerpt($post = 0): string { return 'Breve'; }
-function get_bloginfo(string $show = ''): string { return 'NUVANX'; }
+function get_the_title($post = 0): string {
+    return null === $post ? '' : 'Contacto';
+}
+function get_the_excerpt($post = 0): string {
+    return null === $post ? '' : 'Breve';
+}
+function get_bloginfo(string $show = ''): string {
+    return 'description' === $show ? 'NUVANX' : 'NUVANX';
+}
 function wp_get_document_title(): string { return ''; }
 function home_url(string $path = ''): string { return 'https://staging2.nuvanx.com' . $path; }
-function get_permalink($post = 0): string { return 'https://staging2.nuvanx.com/contacto/'; }
+function get_permalink($post = 0): string {
+    return null === $post ? '' : 'https://staging2.nuvanx.com/contacto/';
+}
 function wp_parse_url(string $url, int $component = -1) { return parse_url($url, $component); }
 function wp_basename(string $path): string { return basename($path); }
 function attachment_url_to_postid(string $url): int { return str_ends_with($url, '/evidence.webp') ? 99 : 0; }
 function wp_get_attachment_metadata(int $id): array {
-    return 99 === $id
-        ? array(
-            'width' => 1672,
-            'height' => 941,
-            'sizes' => array(
-                'medium' => array(
-                    'file' => 'evidence-768x432.webp',
-                    'width' => 768,
-                    'height' => 432,
-                ),
+    if (99 !== $id) {
+        return array();
+    }
+
+    return array(
+        'width' => 1672,
+        'height' => 941,
+        'sizes' => array(
+            'medium' => array(
+                'file' => 'evidence-768x432.webp',
+                'width' => 768,
+                'height' => 432,
             ),
-        )
-        : array();
+        ),
+    );
 }
 function wp_cache_get(string $key, string $group = '') {
     $cacheKey = $group . ':' . $key;
@@ -47,16 +60,23 @@ function wp_cache_get(string $key, string $group = '') {
 }
 function wp_cache_set(string $key, $value, string $group = '', int $expiration = 0): bool {
     $GLOBALS['nvx_test_cache'][$group . ':' . $key] = $value;
-    return true;
+    return $expiration >= 0;
 }
-function wp_strip_all_tags(string $text, bool $remove_breaks = false): string { return strip_tags($text); }
+function wp_strip_all_tags(string $text, bool $remove_breaks = false): string {
+    $stripped = strip_tags($text);
+    return $remove_breaks ? (string) preg_replace('/\s+/', ' ', $stripped) : $stripped;
+}
 function esc_html(string $text): string { return htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'); }
 function esc_attr(string $text): string { return htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'); }
 function esc_url(string $text): string { return htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8'); }
 function nvx_seo_current_metadata(string $field, string $fallback = ''): string {
-    return 'title' === $field
-        ? 'Contacto NUVANX Madrid'
-        : ('description' === $field ? 'Descripción corta.' : $fallback);
+    if ('title' === $field) {
+        return 'Contacto NUVANX Madrid';
+    }
+    if ('description' === $field) {
+        return 'Descripción corta.';
+    }
+    return $fallback;
 }
 function nvx_seo_current_canonical_url(): string { return 'https://staging2.nuvanx.com/contacto/'; }
 

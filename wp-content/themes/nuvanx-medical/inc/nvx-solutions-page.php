@@ -31,8 +31,9 @@ function nvx_theme_load_json_catalog( string $filename ): array {
  * Whether the current request/content belongs to the medical solutions hub.
  */
 function nvx_content_is_solutions_page( string $content = '' ): bool {
-	if ( is_page() ) {
-		$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	$queried_id = get_queried_object_id();
+	if ( is_page() && $queried_id && (int) get_the_ID() === (int) $queried_id ) {
+		$slug = (string) get_post_field( 'post_name', $queried_id );
 		if ( 'soluciones-medicas' === $slug ) {
 			return true;
 		}

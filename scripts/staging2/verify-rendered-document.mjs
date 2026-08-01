@@ -27,7 +27,8 @@ const titlePattern = /<title\b[^>]*>([^<]*)<\/title>/giu;
 const descriptionPattern = /<meta\b(?=[^>]*\bname\s*=\s*(["'])description\1)[^>]*>/giu;
 const canonicalPattern = /<link\b(?=[^>]*\brel\s*=\s*(["'])canonical\1)[^>]*>/giu;
 const contractPattern = /<meta\b(?=[^>]*\bname\s*=\s*(["'])nvx-document-contract\1)[^>]*>/giu;
-const mainPattern = /<main\b[^>]*>[\s\S]*?\S[\s\S]*?<\/main>/iu;
+const mainOpenPattern = /<main\b[^>]*>/iu;
+const mainClosePattern = /<\/main>/iu;
 const shaPattern = /<meta\b[^>]*\bname=["']nvx-deploy-sha["'][^>]*\bcontent=["']([0-9a-f]{40})["'][^>]*>/iu;
 const evidenceImagePattern = /<img\b[^>]*\bclass=["'][^"']*nvx-home-evidence__image[^"']*["'][^>]*>/iu;
 const hubspotScriptPattern = /<script\b[^>]*\bsrc=["'][^"']*(?:hsforms\.net|hsforms\.com|hs-scripts\.com)[^"']*["'][^>]*>/iu;
@@ -109,7 +110,14 @@ async function verifyRoute(route) {
   assert(attribute(canonicals[0][0], 'href').startsWith(baseUrl), `${route}: canonical must use the staging2 host`);
 
   assert(count(html, contractPattern) === 1, `${route}: document contract marker missing`);
-  assert(mainPattern.test(html), `${route}: main landmark is empty or missing`);
+  const mainOpen = mainOpenPattern.exec(html);
+  const mainClose = mainClosePattern.exec(html);
+  assert(
+    mainOpen && mainClose && mainClose.index > mainOpen.index + mainOpen[0].length,
+    `${route}: main landmark is empty or missing`
+  );
+  const mainBody = html.slice(mainOpen.index + mainOpen[0].length, mainClose.index);
+  assert(/\S/u.test(mainBody), `${route}: main landmark is empty or missing`);
   assert(!html.includes('NUVANX_STRATEGY_PAGE:'), `${route}: unresolved CMS strategy marker leaked into public HTML`);
   assert(!html.includes('FacebookSignal'), `${route}: retired FacebookSignal runtime leaked into public HTML`);
 

@@ -9,7 +9,7 @@ $GLOBALS['nvx_test_cache'] = array();
 
 // WordPress stubs keep signature compatibility for the module under test.
 function add_action(...$args): bool {
-    return array() !== $args || array() === $args;
+    return isset($args[0]);
 }
 function is_admin(): bool { return false; }
 function wp_doing_ajax(): bool { return false; }
@@ -19,18 +19,21 @@ function is_front_page(): bool { return false; }
 function is_singular(): bool { return true; }
 function get_queried_object_id(): int { return 42; }
 function get_the_title($post = 0): string {
-    return null === $post ? '' : 'Contacto';
+    return 'Contacto' . substr((string) $post, 0, 0);
 }
 function get_the_excerpt($post = 0): string {
-    return null === $post ? '' : 'Breve';
+    return 'Breve' . substr((string) $post, 0, 0);
 }
 function get_bloginfo(string $show = ''): string {
-    return 'description' === $show ? 'NUVANX' : 'NUVANX';
+    if ('description' === $show) {
+        return 'Clínica NUVANX';
+    }
+    return 'NUVANX' . substr($show, 0, 0);
 }
 function wp_get_document_title(): string { return ''; }
 function home_url(string $path = ''): string { return 'https://staging2.nuvanx.com' . $path; }
 function get_permalink($post = 0): string {
-    return null === $post ? '' : 'https://staging2.nuvanx.com/contacto/';
+    return 'https://staging2.nuvanx.com/contacto/' . substr((string) $post, 0, 0);
 }
 function wp_parse_url(string $url, int $component = -1) { return parse_url($url, $component); }
 function wp_basename(string $path): string { return basename($path); }

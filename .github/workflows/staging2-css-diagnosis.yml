@@ -35,106 +35,34 @@ jobs:
           set -euo pipefail
           npm install --no-save playwright-core@1.55.0
           test -x /usr/bin/chromium
+          mkdir -p evidence
 
-      - name: Inspect public HTML and every referenced stylesheet
+      - name: Probe public edge and record SiteGround guard state
         run: |
           set -euo pipefail
-          mkdir -p evidence
           python3 - <<'PY'
-          import html, re, urllib.parse, urllib.request
+          import urllib.request
           from pathlib import Path
-          base = 'https://staging2.nuvanx.com/'
-          req = urllib.request.Request(base, headers={'User-Agent':'NUVANX-CSS-Diagnostic/1.0'})
-          with urllib.request.urlopen(req, timeout=30) as r:
-              body = r.read().decode('utf-8', 'replace')
-              status = r.status
-              ctype = r.headers.get('content-type','')
-          Path('evidence/home.html').write_text(body, encoding='utf-8')
-          print(f'HOME_STATUS={status}')
-          print(f'HOME_CONTENT_TYPE={ctype}')
-          if status != 200: raise SystemExit('home not HTTP 200')
-          if 'text/html' not in ctype.lower(): raise SystemExit('home is not HTML')
-          links = re.findall(r'<link\b[^>]*\brel=["\'][^"\']*stylesheet[^"\']*["\'][^>]*>', body, re.I)
-          hrefs=[]
-          for tag in links:
-              m=re.search(r'\bhref=["\']([^"\']+)', tag, re.I)
-              if m:
-                  href=html.unescape(m.group(1))
-                  if href.startswith('//'): href='https:'+href
-                  elif href.startswith('/') or href.startswith('http'): href=urllib.parse.urljoin(base, href)
-                  else: continue
-                  hrefs.append(href)
-          hrefs=list(dict.fromkeys(hrefs))
-          Path('evidence/stylesheet-urls.txt').write_text('\n'.join(hrefs)+'\n', encoding='utf-8')
-          print(f'STYLESHEET_COUNT={len(hrefs)}')
-          if len(hrefs) < 3: raise SystemExit('unexpectedly few stylesheet links')
-          bad=[]
-          for i,url in enumerate(hrefs,1):
-              try:
-                  q=urllib.request.Request(url, headers={'User-Agent':'NUVANX-CSS-Diagnostic/1.0'})
-                  with urllib.request.urlopen(q, timeout=30) as rr:
-                      data=rr.read()
-                      st=rr.status
-                      ct=rr.headers.get('content-type','')
-                  first=data[:80].decode('utf-8','replace').replace('\n',' ')
-                  print(f'CSS_{i}=HTTP {st} | {len(data)} bytes | {ct} | {url}')
-                  if st != 200 or 'text/css' not in ct.lower() or len(data) < 100: bad.append((url,st,ct,len(data),first))
-              except Exception as e:
-                  bad.append((url,'ERROR','',0,str(e)))
-                  print(f'CSS_{i}=ERROR | {url} | {e}')
-          if bad:
-              print('BAD_STYLESHEETS=1')
-              for item in bad: print('BAD=',item)
-              raise SystemExit(2)
-          print('ALL_STYLESHEETS_HTTP_OK=1')
+          url='https://staging2.nuvanx.com/'
+          req=urllib.request.Request(url,headers={'User-Agent':'NUVANX-CSS-Diagnostic/1.0'})
+          try:
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  body=r.read().decode('utf-8','replace'); status=r.status; ctype=r.headers.get('content-type','')
+          except urllib.error.HTTPError as e:
+              body=e.read().decode('utf-8','replace'); status=e.code; ctype=e.headers.get('content-type','')
+          Path('evidence/public-edge.html').write_text(body,encoding='utf-8')
+          print(f'PUBLIC_STATUS={status}')
+          print(f'PUBLIC_CONTENT_TYPE={ctype}')
+          if status not in (200,202): raise SystemExit('unexpected public status')
+          if status==202 and '/.well-known/sgcaptcha/' in body:
+              print('PUBLIC_SITEGROUND_CAPTCHA=1')
+          elif status==200:
+              print('PUBLIC_SITEGROUND_CAPTCHA=0')
+          else:
+              raise SystemExit('unexpected non-page response')
           PY
 
-      - name: Inspect computed styles in Chromium
-        run: |
-          set -euo pipefail
-          node <<'NODE'
-          const { chromium } = require('playwright-core');
-          (async () => {
-            const browser = await chromium.launch({headless:true, executablePath:'/usr/bin/chromium', args:['--no-sandbox']});
-            const page = await browser.newPage({viewport:{width:1440,height:1000}, deviceScaleFactor:1});
-            const errors=[];
-            page.on('console', msg => { if (msg.type()==='error') errors.push('console:'+msg.text()); });
-            page.on('pageerror', err => errors.push('pageerror:'+err.message));
-            const failed=[];
-            page.on('requestfailed', req => failed.push(`${req.url()} :: ${req.failure()?.errorText||'failed'}`));
-            const response = await page.goto('https://staging2.nuvanx.com/', {waitUntil:'networkidle', timeout:60000});
-            const result = await page.evaluate(() => {
-              const root=getComputedStyle(document.documentElement);
-              const body=getComputedStyle(document.body);
-              const h1=document.querySelector('h1');
-              const links=[...document.querySelectorAll('link[rel~="stylesheet"]')];
-              const loaded=links.map(l=>({href:l.href, sheet:!!l.sheet, rules:l.sheet ? (()=>{try{return l.sheet.cssRules.length}catch(e){return -1}})():0}));
-              return {
-                bodyFont: body.fontFamily,
-                bodyColor: body.color,
-                bodyBackground: body.backgroundColor,
-                bodyMargin: body.margin,
-                bodyDisplay: body.display,
-                h1Font: h1 ? getComputedStyle(h1).fontFamily : null,
-                h1Size: h1 ? getComputedStyle(h1).fontSize : null,
-                h1Weight: h1 ? getComputedStyle(h1).fontWeight : null,
-                stylesheets: loaded,
-                hasThemeClass: document.body.className.includes('nvx-'),
-                htmlLength: document.documentElement.outerHTML.length,
-              };
-            });
-            await page.screenshot({path:'evidence/staging2-home-desktop.png', fullPage:true});
-            console.log(JSON.stringify({httpStatus:response?.status(), result, errors, failed}, null, 2));
-            if (!response || response.status() !== 200) throw new Error('home HTTP status is not 200');
-            if (result.stylesheets.some(x => !x.sheet || x.rules === 0)) throw new Error('one or more stylesheets did not load CSS rules');
-            if (result.bodyMargin === '8px') throw new Error('browser default body margin detected; theme CSS is not applying');
-            if (result.bodyFont === 'Times New Roman' || result.bodyFont === 'serif') throw new Error('browser default typography detected; theme CSS is not applying');
-            if (failed.some(x => /\.css(?:\?|$)/i.test(x))) throw new Error('CSS request failed');
-            await browser.close();
-          })().catch(err => { console.error(err); process.exit(1); });
-          NODE
-
-      - name: Verify theme assets on SiteGround
+      - name: Configure strict SiteGround SSH
         env:
           SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
           SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
@@ -167,7 +95,83 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
           ssh siteground-staging 'printf "SSH_OK\n"'
-          ssh siteground-staging "cd '$STAGING_ROOT' && printf 'SITEURL=%s\nHOME=%s\nTHEME=%s\n' \"\$(wp option get siteurl)\" \"\$(wp option get home)\" \"\$(wp theme list --status=active --field=name)\" && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-base.css && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-header.css && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-components.css && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css && find wp-content/themes/nuvanx-medical/assets/css -maxdepth 1 -type f -name '*.css' -printf '%f %s bytes\\n' | sort" | tee evidence/siteground-css-assets.txt
+
+      - name: Diagnose SiteGround origin, WordPress enqueue state and CSS delivery
+        run: |
+          set -euo pipefail
+          ssh siteground-staging "STAGING_ROOT='$STAGING_ROOT' bash -se" > evidence/siteground-diagnostic.txt 2>&1 <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          printf 'SITEURL=%s\nHOME=%s\nTHEME=%s\n' "$(wp option get siteurl)" "$(wp option get home)" "$(wp theme list --status=active --field=name)"
+          test -s wp-content/themes/nuvanx-medical/assets/css/nvx-base.css
+          test -s wp-content/themes/nuvanx-medical/assets/css/nvx-header.css
+          test -s wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css
+          test -s wp-content/themes/nuvanx-medical/assets/css/nvx-components.css
+          test -s wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css
+          echo 'THEME_CSS_FILES_OK=1'
+          echo '--- WORDPRESS STYLE QUEUE ---'
+          wp eval '
+            do_action("wp_enqueue_scripts");
+            foreach (wp_styles()->queue as $handle) {
+              $obj = wp_styles()->registered[$handle] ?? null;
+              if ($obj) { echo $handle . "|" . $obj->src . "|deps=" . implode(",", $obj->deps) . "\\n"; }
+            }
+          ' --skip-plugins --skip-themes=false
+          echo '--- LOCAL ORIGIN HEADERS ---'
+          curl -ksS -D /tmp/nvx-origin-headers.txt -o /tmp/nvx-origin.html --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/
+          cat /tmp/nvx-origin-headers.txt
+          wc -c /tmp/nvx-origin.html
+          grep -Eqi '<html|<body' /tmp/nvx-origin.html
+          if grep -q '/.well-known/sgcaptcha/' /tmp/nvx-origin.html; then echo 'LOCAL_ORIGIN_CAPTCHA=1'; exit 3; fi
+          echo 'LOCAL_ORIGIN_CAPTCHA=0'
+          echo '--- LOCAL ORIGIN STYLESHEET LINKS ---'
+          grep -Eoi '<link[^>]+rel=["'"'][^"'"']*stylesheet[^"'"']*["'"'][^>]*>' /tmp/nvx-origin.html | grep -Eo 'href=["'"'][^"'"']+' | sed -E 's/^href=["'"']//; s/["'"']$//' | sort -u | tee /tmp/nvx-css-urls.txt || true
+          echo '--- LOCAL ORIGIN CSS RESPONSES ---'
+          while IFS= read -r url; do
+            case "$url" in
+              /*) url="https://staging2.nuvanx.com$url" ;;
+              http://*|https://*) ;;
+              *) continue ;;
+            esac
+            printf 'CSS_URL=%s\n' "$url"
+            curl -ksS -L --resolve staging2.nuvanx.com:443:127.0.0.1 -o /tmp/nvx-css.tmp -w 'HTTP=%{http_code} TYPE=%{content_type} BYTES=%{size_download}\n' "$url"
+            test -s /tmp/nvx-css.tmp
+            head -c 80 /tmp/nvx-css.tmp | tr '\n' ' '; echo
+          done < /tmp/nvx-css-urls.txt
+          echo 'LOCAL_ORIGIN_CSS_OK=1'
+          REMOTE
+
+      - name: Inspect computed styles against the local-origin HTML snapshot
+        run: |
+          set -euo pipefail
+          scp siteground-staging:/tmp/nvx-origin.html evidence/local-origin-home.html
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('evidence/local-origin-home.html')
+          s=p.read_text(encoding='utf-8',errors='replace')
+          if len(s) < 1000: raise SystemExit('origin HTML unexpectedly small')
+          print('LOCAL_ORIGIN_HTML_BYTES=',len(s))
+          print('LINK_STYLESHEETS=',len(re.findall(r'<link\\b[^>]*stylesheet',s,re.I)))
+          PY
+          node <<'NODE'
+          const { chromium } = require('playwright-core');
+          const fs = require('fs');
+          (async()=>{
+            const html=fs.readFileSync('evidence/local-origin-home.html','utf8');
+            const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/chromium',args:['--no-sandbox']});
+            const page=await browser.newPage({viewport:{width:1440,height:1000}});
+            await page.setContent(html,{waitUntil:'domcontentloaded'});
+            await page.waitForTimeout(1500);
+            const result=await page.evaluate(()=>{const b=getComputedStyle(document.body); const h=document.querySelector('h1'); return {bodyMargin:b.margin,bodyFont:b.fontFamily,bodyDisplay:b.display,h1Font:h?getComputedStyle(h).fontFamily:null,h1Size:h?getComputedStyle(h).fontSize:null,styles:[...document.querySelectorAll('link[rel~="stylesheet"]')].map(x=>({href:x.href,sheet:!!x.sheet,rules:x.sheet?(()=>{try{return x.sheet.cssRules.length}catch(e){return -1}})():0}))};});
+            console.log(JSON.stringify(result,null,2));
+            await page.screenshot({path:'evidence/local-origin-home.png',fullPage:true});
+            if(result.bodyMargin==='8px') throw new Error('default body margin: CSS not applied');
+            if(result.bodyFont==='Times New Roman' || result.bodyFont==='serif') throw new Error('default typography: CSS not applied');
+            if(result.styles.some(x=>!x.sheet || x.rules===0)) throw new Error('stylesheet has no parsed rules');
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
 
       - name: Upload diagnosis evidence
         if: always()

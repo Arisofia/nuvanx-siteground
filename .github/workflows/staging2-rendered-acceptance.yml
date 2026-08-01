@@ -1,16 +1,11 @@
 name: Staging2 Rendered Acceptance
 
 on:
-  workflow_run:
-    workflows:
-      - Deploy Staging2 (manual)
-    types:
-      - completed
   workflow_dispatch:
     inputs:
       expected_sha:
-        description: 'Optional full deployed SHA to verify'
-        required: false
+        description: 'Full 40-character SHA currently deployed on staging2'
+        required: true
         type: string
 
 permissions:
@@ -22,14 +17,11 @@ concurrency:
 
 jobs:
   verify:
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
       BASE_URL: https://staging2.nuvanx.com
-      EXPECTED_SHA: ${{ github.event.inputs.expected_sha || '' }}
+      EXPECTED_SHA: ${{ inputs.expected_sha }}
     steps:
       - name: Checkout canonical acceptance contract
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
@@ -43,7 +35,6 @@ jobs:
           node-version: '22'
 
       - name: Validate expected SHA input
-        if: ${{ env.EXPECTED_SHA != '' }}
         shell: bash
         run: |
           set -euo pipefail

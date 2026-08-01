@@ -135,7 +135,7 @@ add_filter( 'wpseo_add_opengraph_images', 'nvx_contacto_add_yoast_opengraph_imag
  * callbacks and to enforce the final contact Open Graph image contract.
  */
 function nvx_canonical_schema_head_buffer_start(): void {
-	if ( is_admin() || ( ! is_front_page() && ! is_singular( 'page' ) ) ) {
+	if ( is_admin() || ( ! is_front_page() && ! is_page() ) ) {
 		return;
 	}
 
@@ -172,6 +172,43 @@ function nvx_contacto_enforce_final_og_image( string $html ): string {
 }
 
 /**
+ * Drop non-Yoast Schema.org application/ld+json script tags from a head buffer.
+ *
+ * @param array<int,string> $matches preg_replace_callback matches.
+ */
+function nvx_canonical_schema_filter_ldjson_script( array $matches ): string {
+	$tag     = isset( $matches[0] ) ? (string) $matches[0] : '';
+	$payload = isset( $matches[2] ) ? (string) $matches[2] : '';
+
+	if ( false !== stripos( $tag, 'yoast-schema-graph' ) ) {
+		return $tag;
+	}
+
+	if ( preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload ) ) {
+		return '';
+	}
+
+	return $tag;
+}
+
+/**
+ * Strip competing Schema.org JSON-LD from buffered head HTML.
+ */
+function nvx_canonical_schema_strip_non_yoast_ldjson( string $html ): string {
+	if ( false === stripos( $html, 'ld+json' ) ) {
+		return $html;
+	}
+
+	$schema_filtered = preg_replace_callback(
+		'#<script\b(?=[^>]*\btype\s*=\s*(["\'])application/ld\+json\1)[^>]*>([\s\S]*?)</script>#iu',
+		'nvx_canonical_schema_filter_ldjson_script',
+		$html
+	);
+
+	return is_string( $schema_filtered ) ? $schema_filtered : $html;
+}
+
+/**
  * Remove Schema.org JSON-LD scripts from wp_head unless they are Yoast's
  * canonical `yoast-schema-graph` block. Non-schema ld+json payloads are kept.
  */
@@ -192,32 +229,7 @@ function nvx_canonical_schema_head_buffer_end(): void {
 		return;
 	}
 
-	$filtered = $html;
-	if ( false !== stripos( $html, 'ld+json' ) ) {
-		$schema_filtered = preg_replace_callback(
-			'#<script\b(?=[^>]*\btype\s*=\s*(["\'])application/ld\+json\1)[^>]*>([\s\S]*?)</script>#iu',
-			static function ( array $matches ): string {
-				$tag     = isset( $matches[0] ) ? (string) $matches[0] : '';
-				$payload = isset( $matches[2] ) ? (string) $matches[2] : '';
-
-				if ( false !== stripos( $tag, 'yoast-schema-graph' ) ) {
-					return $tag;
-				}
-
-				if ( preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload ) ) {
-					return '';
-				}
-
-				return $tag;
-			},
-			$html
-		);
-
-		if ( is_string( $schema_filtered ) ) {
-			$filtered = $schema_filtered;
-		}
-	}
-
+	$filtered = nvx_canonical_schema_strip_non_yoast_ldjson( $html );
 	$filtered = nvx_contacto_enforce_final_og_image( $filtered );
 	echo $filtered; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 }

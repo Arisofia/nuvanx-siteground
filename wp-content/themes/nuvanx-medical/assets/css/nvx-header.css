@@ -193,13 +193,22 @@
   inset: 0;
   z-index: 9999;
   display: none;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  border: 0;
   min-height: 100dvh;
   flex-direction: column;
   overflow-y: auto;
   padding: var(--nvx-space-6) var(--nvx-gutter-inner);
   background: var(--nvx-light);
+  color: inherit;
 }
 
+.nvx-mobile-nav[open],
 .nvx-mobile-nav[aria-hidden="false"],
 .nvx-mobile-nav.is-open {
   display: flex;

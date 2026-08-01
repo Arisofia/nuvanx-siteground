@@ -5,19 +5,33 @@
   var ham = document.getElementById('nvx-hamburger-btn');
   var mobileNav = document.getElementById('nvx-mobile-nav');
   var closeBtn = document.getElementById('nvx-mobile-close');
+
+  function setMobileNavOpen(willOpen) {
+    if (!mobileNav) return;
+    if (willOpen) {
+      mobileNav.removeAttribute('inert');
+      mobileNav.classList.add('is-open');
+      mobileNav.setAttribute('open', '');
+      mobileNav.setAttribute('aria-hidden', 'false');
+    } else {
+      mobileNav.classList.remove('is-open');
+      mobileNav.removeAttribute('open');
+      mobileNav.setAttribute('aria-hidden', 'true');
+      mobileNav.setAttribute('inert', '');
+    }
+    if (ham) ham.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    document.body.style.overflow = willOpen ? 'hidden' : '';
+  }
+
   if (ham && mobileNav) {
     ham.addEventListener('click', function () {
-      var isOpen = mobileNav.classList.toggle('is-open');
-      ham.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      mobileNav.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-      document.body.style.overflow = isOpen ? 'hidden' : '';
+      var isCurrentlyOpen =
+        mobileNav.classList.contains('is-open') || mobileNav.hasAttribute('open');
+      setMobileNavOpen(!isCurrentlyOpen);
     });
     if (closeBtn) {
       closeBtn.addEventListener('click', function () {
-        mobileNav.classList.remove('is-open');
-        ham.setAttribute('aria-expanded', 'false');
-        mobileNav.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
+        setMobileNavOpen(false);
       });
     }
   }
@@ -80,10 +94,9 @@
     }
 
     function closeMobileNav() {
-      if (!mobileNav || !mobileNav.classList.contains('is-open')) return;
-      mobileNav.classList.remove('is-open');
-      if (ham) ham.setAttribute('aria-expanded', 'false');
-      mobileNav.setAttribute('aria-hidden', 'true');
+      if (!mobileNav) return;
+      if (!mobileNav.classList.contains('is-open') && !mobileNav.hasAttribute('open')) return;
+      setMobileNavOpen(false);
     }
 
     /** Single source of truth: .is-open class (hidden/aria stay in sync here only). */

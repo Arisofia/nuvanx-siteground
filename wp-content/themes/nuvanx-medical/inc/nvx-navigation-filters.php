@@ -62,6 +62,39 @@ function nvx_navigation_treatment_definitions(): array {
 }
 
 /**
+ * Resolve the first published page among candidate slugs.
+ *
+ * @param array<int,string> $slugs Candidate path slugs.
+ * @return array{slug:string,url:string,page_id:int}|null
+ */
+function nvx_navigation_resolve_published_slug( array $slugs ): ?array {
+	foreach ( $slugs as $candidate ) {
+		$slug = trim( (string) $candidate, '/' );
+		if ( '' === $slug ) {
+			continue;
+		}
+
+		$page = get_page_by_path( $slug, OBJECT, 'page' );
+		if ( ! $page instanceof WP_Post || 'publish' !== get_post_status( $page ) ) {
+			continue;
+		}
+
+		$url = get_permalink( $page );
+		if ( ! is_string( $url ) || '' === trim( $url ) ) {
+			continue;
+		}
+
+		return array(
+			'slug'    => $slug,
+			'url'     => $url,
+			'page_id' => (int) $page->ID,
+		);
+	}
+
+	return null;
+}
+
+/**
  * Resolve the treatment catalogue to published WordPress pages only.
  *
  * @return array<string, array{label:string, slug:string, url:string, page_id:int}>
@@ -83,33 +116,53 @@ function nvx_navigation_published_treatments(): array {
 			continue;
 		}
 
-		foreach ( $slugs as $candidate ) {
-			$slug = trim( (string) $candidate, '/' );
-			if ( '' === $slug ) {
-				continue;
-			}
-
-			$page = get_page_by_path( $slug, OBJECT, 'page' );
-			if ( ! $page instanceof WP_Post || 'publish' !== get_post_status( $page ) ) {
-				continue;
-			}
-
-			$url = get_permalink( $page );
-			if ( ! is_string( $url ) || '' === trim( $url ) ) {
-				continue;
-			}
-
-			$catalogue[ (string) $key ] = array(
-				'label'   => $label,
-				'slug'    => $slug,
-				'url'     => $url,
-				'page_id' => (int) $page->ID,
-			);
-			break;
+		$resolved = nvx_navigation_resolve_published_slug( $slugs );
+		if ( null === $resolved ) {
+			continue;
 		}
+
+		$catalogue[ (string) $key ] = array(
+			'label'   => $label,
+			'slug'    => $resolved['slug'],
+			'url'     => $resolved['url'],
+			'page_id' => $resolved['page_id'],
+		);
 	}
 
 	return $catalogue;
+}
+
+/**
+ * Render a primary-fallback menu item (optional children).
+ *
+ * @param array{url:string,label:string,children?:array<int,array{url:string,label:string}>} $item Menu item.
+ */
+function nvx_navigation_primary_fallback_item_html( array $item ): string {
+	$children     = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
+	$has_children = array() !== $children;
+	$li_class     = 'nvx-nav__item' . ( $has_children ? ' menu-item-has-children' : '' );
+
+	$html = sprintf(
+		'<li class="%1$s"><a class="nvx-nav__link" href="%2$s">%3$s</a>',
+		esc_attr( $li_class ),
+		esc_url( (string) $item['url'] ),
+		esc_html( (string) $item['label'] )
+	);
+
+	if ( $has_children ) {
+		$html .= '<ul class="sub-menu">';
+		foreach ( $children as $child ) {
+			$html .= sprintf(
+				'<li class="nvx-nav__item"><a class="nvx-nav__link" href="%1$s">%2$s</a></li>',
+				esc_url( (string) $child['url'] ),
+				esc_html( (string) $child['label'] )
+			);
+		}
+		$html .= '</ul>';
+	}
+
+	$html .= '</li>';
+	return $html;
 }
 
 /**
@@ -145,30 +198,7 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 
 	$html = '<ul' . $menu_id . ' class="' . esc_attr( $menu_class ) . '">';
 	foreach ( $items as $item ) {
-		$children     = isset( $item['children'] ) && is_array( $item['children'] ) ? $item['children'] : array();
-		$has_children = array() !== $children;
-		$li_class     = 'nvx-nav__item' . ( $has_children ? ' menu-item-has-children' : '' );
-
-		$html .= sprintf(
-			'<li class="%1$s"><a class="nvx-nav__link" href="%2$s">%3$s</a>',
-			esc_attr( $li_class ),
-			esc_url( (string) $item['url'] ),
-			esc_html( (string) $item['label'] )
-		);
-
-		if ( $has_children ) {
-			$html .= '<ul class="sub-menu">';
-			foreach ( $children as $child ) {
-				$html .= sprintf(
-					'<li class="nvx-nav__item"><a class="nvx-nav__link" href="%1$s">%2$s</a></li>',
-					esc_url( (string) $child['url'] ),
-					esc_html( (string) $child['label'] )
-				);
-			}
-			$html .= '</ul>';
-		}
-
-		$html .= '</li>';
+		$html .= nvx_navigation_primary_fallback_item_html( $item );
 	}
 	$html .= '</ul>';
 
@@ -227,6 +257,112 @@ function nvx_create_custom_menu_item( int $id, string $title, string $url, int $
 }
 
 /**
+ * Locate the Tratamientos parent menu item id and the max menu item id.
+ *
+ * @param array<int, WP_Post|stdClass> $items Menu items.
+ * @return array{parent_id:int,max_id:int}
+ */
+function nvx_navigation_find_tratamientos_parent( array $items ): array {
+	$tratamientos_id = 0;
+	$max_id          = 0;
+
+	foreach ( $items as $item ) {
+		$item_id = isset( $item->ID ) ? (int) $item->ID : 0;
+		$max_id  = max( $max_id, $item_id );
+
+		if (
+			( isset( $item->url ) && false !== strpos( (string) $item->url, '/tratamientos/' ) )
+			|| ( isset( $item->title ) && 'Tratamientos' === $item->title )
+		) {
+			$tratamientos_id = $item_id;
+		}
+	}
+
+	return array(
+		'parent_id' => $tratamientos_id,
+		'max_id'    => $max_id,
+	);
+}
+
+/**
+ * Collect existing child URLs and max order under a parent menu item.
+ *
+ * @param array<int, WP_Post|stdClass> $items Menu items.
+ * @return array{max_order:int,urls:array<string,true>}
+ */
+function nvx_navigation_collect_parent_children( array $items, int $parent_id ): array {
+	$max_child_order = 0;
+	$existing_urls   = array();
+
+	foreach ( $items as $item ) {
+		if ( ! isset( $item->menu_item_parent ) || (int) $item->menu_item_parent !== $parent_id ) {
+			continue;
+		}
+		$max_child_order = max( $max_child_order, isset( $item->menu_order ) ? (int) $item->menu_order : 0 );
+		if ( isset( $item->url ) && is_string( $item->url ) ) {
+			$existing_urls[ untrailingslashit( $item->url ) ] = true;
+		}
+	}
+
+	return array(
+		'max_order' => $max_child_order,
+		'urls'      => $existing_urls,
+	);
+}
+
+/**
+ * Ensure a menu item has the menu-item-has-children class.
+ *
+ * @param array<int, WP_Post|stdClass> $items Menu items.
+ * @return array<int, WP_Post|stdClass>
+ */
+function nvx_navigation_mark_has_children( array $items, int $parent_id ): array {
+	foreach ( $items as $item ) {
+		if ( ! isset( $item->ID ) || (int) $item->ID !== $parent_id ) {
+			continue;
+		}
+		$item->classes = isset( $item->classes ) && is_array( $item->classes ) ? $item->classes : array();
+		if ( ! in_array( 'menu-item-has-children', $item->classes, true ) ) {
+			$item->classes[] = 'menu-item-has-children';
+		}
+		break;
+	}
+	return $items;
+}
+
+/**
+ * Append missing published treatment children under Tratamientos.
+ *
+ * @param array<int, WP_Post|stdClass> $items Menu items.
+ * @param array<string, array{label:string, slug:string, url:string, page_id:int}> $published Published treatments.
+ * @return array{items:array<int, WP_Post|stdClass>,added:int}
+ */
+function nvx_navigation_append_treatment_children( array $items, array $published, int $parent_id, int $max_id ): array {
+	$child_state     = nvx_navigation_collect_parent_children( $items, $parent_id );
+	$max_child_order = $child_state['max_order'];
+	$existing_urls   = $child_state['urls'];
+	$added           = 0;
+
+	foreach ( $published as $page ) {
+		$normalized_url = untrailingslashit( $page['url'] );
+		if ( isset( $existing_urls[ $normalized_url ] ) ) {
+			continue;
+		}
+
+		$max_id++;
+		$max_child_order++;
+		$items[]                          = nvx_create_custom_menu_item( $max_id, $page['label'], $page['url'], $max_child_order, $parent_id, $page['page_id'] );
+		$existing_urls[ $normalized_url ] = true;
+		$added++;
+	}
+
+	return array(
+		'items' => $items,
+		'added' => $added,
+	);
+}
+
+/**
  * Dynamically inject published EXION/EMFUSION pages under Tratamientos.
  *
  * Database-managed menus receive only published routes. Existing children of
@@ -247,59 +383,21 @@ function nvx_add_exion_to_tratamientos_menu( $items, $args ) {
 		return $items;
 	}
 
-	$tratamientos_id = 0;
-	$max_id          = 0;
-	foreach ( $items as $item ) {
-		$item_id = isset( $item->ID ) ? (int) $item->ID : 0;
-		$max_id  = max( $max_id, $item_id );
-
-		if (
-			( isset( $item->url ) && false !== strpos( (string) $item->url, '/tratamientos/' ) )
-			|| ( isset( $item->title ) && 'Tratamientos' === $item->title )
-		) {
-			$tratamientos_id = $item_id;
-		}
-	}
-
-	if ( ! $tratamientos_id ) {
+	$parent = nvx_navigation_find_tratamientos_parent( $items );
+	if ( ! $parent['parent_id'] ) {
 		return $items;
 	}
 
-	$max_child_order = 0;
-	$existing_urls   = array();
-	foreach ( $items as $item ) {
-		if ( isset( $item->menu_item_parent ) && (int) $item->menu_item_parent === $tratamientos_id ) {
-			$max_child_order = max( $max_child_order, isset( $item->menu_order ) ? (int) $item->menu_order : 0 );
-			if ( isset( $item->url ) && is_string( $item->url ) ) {
-				$existing_urls[ untrailingslashit( $item->url ) ] = true;
-			}
-		}
-	}
+	$result = nvx_navigation_append_treatment_children(
+		$items,
+		$published,
+		$parent['parent_id'],
+		$parent['max_id']
+	);
+	$items  = $result['items'];
 
-	$added = 0;
-	foreach ( $published as $page ) {
-		$normalized_url = untrailingslashit( $page['url'] );
-		if ( isset( $existing_urls[ $normalized_url ] ) ) {
-			continue;
-		}
-
-		$max_id++;
-		$max_child_order++;
-		$items[]                           = nvx_create_custom_menu_item( $max_id, $page['label'], $page['url'], $max_child_order, $tratamientos_id, $page['page_id'] );
-		$existing_urls[ $normalized_url ] = true;
-		$added++;
-	}
-
-	if ( $added > 0 ) {
-		foreach ( $items as $item ) {
-			if ( isset( $item->ID ) && (int) $item->ID === $tratamientos_id ) {
-				$item->classes = isset( $item->classes ) && is_array( $item->classes ) ? $item->classes : array();
-				if ( ! in_array( 'menu-item-has-children', $item->classes, true ) ) {
-					$item->classes[] = 'menu-item-has-children';
-				}
-				break;
-			}
-		}
+	if ( $result['added'] > 0 ) {
+		$items = nvx_navigation_mark_has_children( $items, $parent['parent_id'] );
 	}
 
 	return $items;

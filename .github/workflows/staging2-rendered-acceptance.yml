@@ -1,0 +1,47 @@
+name: Staging2 Rendered Acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: 'Full 40-character SHA currently deployed on staging2'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging2-rendered-acceptance
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_URL: https://staging2.nuvanx.com
+      EXPECTED_SHA: ${{ inputs.expected_sha }}
+    steps:
+      - name: Checkout canonical acceptance contract
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+
+      - name: Validate expected SHA input
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo 'expected_sha must be a full lowercase 40-character SHA.' >&2
+            exit 1
+          }
+
+      - name: Verify rendered document, integrations and route consistency
+        run: node scripts/staging2/verify-rendered-document.mjs

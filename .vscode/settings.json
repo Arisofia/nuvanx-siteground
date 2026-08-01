@@ -1,0 +1,11 @@
+{
+  "sonarlint.connectedMode.project": {
+    "connectionId": "arisofia",
+    "projectKey": "Arisofia_nuvanx-siteground"
+  },
+  "sonarlint.analysisExcludesStandalone": "**/scripts/theme-hygiene/**,**/node_modules/**,**/.git/**",
+  "files.associations": {
+    "*.yml": "yaml",
+    "*.yaml": "yaml"
+  }
+}

@@ -51,4 +51,4 @@ jobs:
       - name: Audit active Code Snippets for head/style/output mutations
         run: |
           set -euo pipefail
-          ssh siteground-staging 'cd /home/customer/www/staging2.nuvanx.com/public_html && wp db query "SHOW TABLES LIKE \"%snippets%\"" --skip-column-names && wp db query "SELECT id,name,scope,active,priority,(code LIKE \"%wp_head%\") AS wp_head,(code LIKE \"%wp_print_styles%\") AS wp_print_styles,(code LIKE \"%style_loader_tag%\") AS style_loader,(code LIKE \"%remove_action%\") AS remove_action,(code LIKE \"%ob_start%\") AS ob_start FROM wp_snippets WHERE active=1 ORDER BY id" --format=table'
+          ssh siteground-staging 'cd /home/customer/www/staging2.nuvanx.com/public_html && wp db query "SELECT id,name,scope,active,priority,(code LIKE \"%wp_head%\") AS wp_head,(code LIKE \"%wp_print_styles%\") AS wp_print_styles,(code LIKE \"%style_loader_tag%\") AS style_loader,(code LIKE \"%remove_action%\") AS remove_action,(code LIKE \"%ob_start%\") AS ob_start FROM wp_snippets WHERE active=1 ORDER BY id" --skip-column-names'

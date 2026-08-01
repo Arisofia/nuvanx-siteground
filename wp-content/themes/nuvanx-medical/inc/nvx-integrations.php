@@ -206,39 +206,90 @@ add_action(
 	}
 );
 
-/* Meta Pixel & Site Kit · Dequeue unused scripts on public frontend */
+/**
+ * Whether a script src/handle is an eager HubSpot forms embed that must not download.
+ */
+function nvx_theme_is_eager_hubspot_embed( string $handle, string $src = '', string $tag = '' ): bool {
+	$blob = strtolower( $handle . ' ' . $src . ' ' . $tag );
+	return 'nvx-hubspot-forms-embed' === $handle
+		|| str_contains( $blob, 'hsforms.net' )
+		|| str_contains( $blob, 'hsforms.com' )
+		|| str_contains( $blob, 'hs-scripts.com' );
+}
+
+/* Meta Pixel, Site Kit GSI, and eager HubSpot · strip as early as possible */
 add_action(
 	'wp_enqueue_scripts',
-	function (): void {
+	static function (): void {
+		wp_dequeue_script( 'nvx-hubspot-forms-embed' );
+		wp_deregister_script( 'nvx-hubspot-forms-embed' );
+	},
+	1
+);
+
+add_action(
+	'wp_enqueue_scripts',
+	static function (): void {
 		wp_dequeue_script( 'siteground-facebook-signal' );
 		wp_deregister_script( 'siteground-facebook-signal' );
 		wp_dequeue_script( 'googlesitekit-sign-in-with-google' );
 		wp_deregister_script( 'googlesitekit-sign-in-with-google' );
+		wp_dequeue_script( 'nvx-hubspot-forms-embed' );
+		wp_deregister_script( 'nvx-hubspot-forms-embed' );
 	},
 	100
 );
 
 add_filter(
 	'script_loader_tag',
-	function ( string $tag, string $handle, string $src = '' ): string {
-		$filtered = $tag;
-
+	static function ( string $tag, string $handle, string $src = '' ): string {
 		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
-			$filtered = '';
-		} elseif ( ! is_admin() ) {
-			if ( str_contains( $src, 'accounts.google.com/gsi' ) || str_contains( $handle, 'sign-in-with-google' ) ) {
-				$filtered = '';
-			} elseif (
-				( 'nvx-hubspot-forms-embed' === $handle || str_contains( $src, 'hsforms.net' ) )
-				&& false === strpos( $tag, 'defer' )
-				&& false === strpos( $tag, 'async' )
-			) {
-				$filtered = str_replace( ' src=', ' defer src=', $tag );
-			}
+			return '';
 		}
 
-		return $filtered;
+		if ( is_admin() ) {
+			return $tag;
+		}
+
+		if ( str_contains( $src, 'accounts.google.com/gsi' ) || str_contains( $handle, 'sign-in-with-google' ) ) {
+			return '';
+		}
+
+		// Hard-block eager HubSpot embeds: defer still downloads the script.
+		if ( nvx_theme_is_eager_hubspot_embed( $handle, $src, $tag ) ) {
+			return '';
+		}
+
+		return $tag;
 	},
 	10,
 	3
+);
+
+add_filter(
+	'wp_resource_hints',
+	static function ( $urls, $relation_type ) {
+		if ( ! is_array( $urls ) ) {
+			return $urls;
+		}
+
+		$relation = (string) $relation_type;
+		if ( ! in_array( $relation, array( 'dns-prefetch', 'preconnect', 'prefetch', 'prerender' ), true ) ) {
+			return $urls;
+		}
+
+		return array_values(
+			array_filter(
+				$urls,
+				static function ( $url ): bool {
+					$href = is_array( $url ) ? (string) ( $url['href'] ?? '' ) : (string) $url;
+					$href = strtolower( $href );
+					return ! str_contains( $href, 'hsforms' )
+						&& ! str_contains( $href, 'hs-scripts.com' );
+				}
+			)
+		);
+	},
+	10,
+	2
 );

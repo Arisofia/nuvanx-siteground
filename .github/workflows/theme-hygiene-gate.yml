@@ -8,7 +8,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
       - 'scripts/staging2/verify-rendered-document.mjs'
-      - 'docs/operations/global-document-governance.md'
+      - 'docs/operations/global-document-governance*.md'
       - '.github/workflows/theme-hygiene-gate.yml'
   pull_request:
     branches:
@@ -17,7 +17,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
       - 'scripts/staging2/verify-rendered-document.mjs'
-      - 'docs/operations/global-document-governance.md'
+      - 'docs/operations/global-document-governance*.md'
       - '.github/workflows/theme-hygiene-gate.yml'
   workflow_dispatch:
 
@@ -69,6 +69,7 @@ jobs:
           php scripts/theme-hygiene/test-valoracion-form-contract.php
           php scripts/theme-hygiene/test-document-governance.php
           php scripts/theme-hygiene/test-global-governance-doc.php
+          php scripts/theme-hygiene/test-global-governance-checklist.php
           php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
           php -l /tmp/nvx-catalog-i18n.php
           php scripts/theme-hygiene/test-catalog-i18n-source-contract.php /tmp/nvx-catalog-i18n.php

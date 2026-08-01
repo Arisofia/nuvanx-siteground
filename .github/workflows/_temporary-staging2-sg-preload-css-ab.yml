@@ -67,7 +67,7 @@ jobs:
           import re,sys
           label=sys.argv[1]
           s=open('/tmp/nvx-sg-preload-'+label+'.html',encoding='utf8',errors='replace').read()
-          styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]
+          styles=[x for x in re.findall(r'<link\b[^>]*>',s,re.I) if re.search(r'rel=["\'][^"\']*stylesheet',x,re.I)]
           print(label+' HTML_BYTES='+str(len(s))+' STYLESHEET_TAGS='+str(len(styles))+' NVX_BASE='+str('nvx-base.css' in s))
           PY
           }
@@ -80,7 +80,7 @@ jobs:
             preload_count="$(python3 - <<'PY'
           import re
           s=open('/tmp/nvx-sg-preload-preload-disabled.html',encoding='utf8',errors='replace').read()
-          print(len([x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]))
+          print(len([x for x in re.findall(r'<link\b[^>]*>',s,re.I) if re.search(r'rel=["\'][^"\']*stylesheet',x,re.I)]))
           PY
           )"
             if (( preload_count >= 5 )) && grep -q 'nvx-base.css' /tmp/nvx-sg-preload-preload-disabled.html; then

@@ -98,8 +98,8 @@ jobs:
           python3 - <<'PY'
           import re
           s=open('/tmp/nvx-origin.html',encoding='utf-8',errors='replace').read()
-          tags=re.findall(r'<link\\b[^>]*>',s,re.I)
-          styles=[t for t in tags if re.search(r'rel=["\\\'][^"\\\']*stylesheet',t,re.I)]
+          tags=re.findall(r'<link\b[^>]*>',s,re.I)
+          styles=[t for t in tags if re.search(r'rel=["\'][^"\']*stylesheet',t,re.I)]
           print('STYLESHEET_TAG_COUNT='+str(len(styles)))
           for t in styles: print(t)
           PY
@@ -107,8 +107,8 @@ jobs:
           python3 - <<'PY'
           import re,html,subprocess
           s=open('/tmp/nvx-origin.html',encoding='utf-8',errors='replace').read()
-          for tag in re.findall(r'<link\\b[^>]*>',s,re.I):
-            if not re.search(r'rel=["\\\'][^"\\\']*stylesheet',tag,re.I): continue
+          for tag in re.findall(r'<link\b[^>]*>',s,re.I):
+            if not re.search(r'rel=["\'][^"\']*stylesheet',tag,re.I): continue
             m=re.search(r'href=["\\\']([^"\\\']+)',tag,re.I)
             if not m: continue
             u=html.unescape(m.group(1))

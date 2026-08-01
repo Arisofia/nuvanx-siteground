@@ -64,7 +64,7 @@ jobs:
           python3 - <<'PY'
           import re
           s=open('/tmp/nvx-before.html',encoding='utf8',errors='replace').read()
-          styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]
+          styles=[x for x in re.findall(r'<link\b[^>]*>',s,re.I) if re.search(r'rel=["\'][^"\']*stylesheet',x,re.I)]
           print('BEFORE_HTML_BYTES='+str(len(s)))
           print('BEFORE_STYLESHEET_TAGS='+str(len(styles)))
           print('BEFORE_NVX_BASE='+str('nvx-base.css' in s))
@@ -79,7 +79,7 @@ jobs:
           python3 - <<'PY'
           import re
           s=open('/tmp/nvx-after.html',encoding='utf8',errors='replace').read()
-          styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]
+          styles=[x for x in re.findall(r'<link\b[^>]*>',s,re.I) if re.search(r'rel=["\'][^"\']*stylesheet',x,re.I)]
           print('AFTER_HTML_BYTES='+str(len(s)))
           print('AFTER_STYLESHEET_TAGS='+str(len(styles)))
           print('AFTER_NVX_BASE='+str('nvx-base.css' in s))

@@ -89,7 +89,7 @@ jobs:
           ssh siteground-staging "curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/ -o /tmp/nvx-repaired-home.html && python3 - <<'PY'
           import re
           s=open('/tmp/nvx-repaired-home.html',encoding='utf8',errors='replace').read()
-          styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=[\"\\\'][^\"\\\']*stylesheet',x,re.I)]
+          styles=[x for x in re.findall(r'<link\b[^>]*>',s,re.I) if re.search(r'rel=["\'][^"\']*stylesheet',x,re.I)]
           print('REPAIRED_HTML_BYTES='+str(len(s)))
           print('REPAIRED_STYLESHEET_TAGS='+str(len(styles)))
           print('REPAIRED_NVX_BASE='+str('nvx-base.css' in s))

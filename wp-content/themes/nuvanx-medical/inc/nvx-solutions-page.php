@@ -47,8 +47,10 @@ function nvx_content_is_solutions_page( string $content = '' ): bool {
  * @param string $content Original page content.
  */
 function nvx_render_solutions_page( $content ): string {
-	$content = is_string( $content ) ? $content : '';
-	if ( is_admin() || ! is_singular( 'page' ) || ! nvx_content_is_solutions_page( $content ) ) {
+	static $rendered = false;
+	$content         = is_string( $content ) ? $content : '';
+
+	if ( $rendered || is_admin() || ! is_main_query() || ! is_singular( 'page' ) || ! nvx_content_is_solutions_page( $content ) ) {
 		return $content;
 	}
 
@@ -56,6 +58,12 @@ function nvx_render_solutions_page( $content ): string {
 	get_template_part( 'template-parts/content/nvx-soluciones-medicas-github' );
 	$markup = ob_get_clean();
 
-	return is_string( $markup ) && '' !== trim( $markup ) ? $markup : $content;
+	if ( ! is_string( $markup ) || '' === trim( $markup ) ) {
+		return $content;
+	}
+
+	$rendered = true;
+
+	return $markup;
 }
 add_filter( 'the_content', 'nvx_render_solutions_page', 11 );

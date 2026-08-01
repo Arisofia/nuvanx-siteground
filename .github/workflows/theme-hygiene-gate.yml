@@ -7,6 +7,7 @@ on:
     paths:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
+      - 'scripts/staging2/verify-rendered-document.mjs'
       - '.github/workflows/theme-hygiene-gate.yml'
   pull_request:
     branches:
@@ -14,6 +15,7 @@ on:
     paths:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
+      - 'scripts/staging2/verify-rendered-document.mjs'
       - '.github/workflows/theme-hygiene-gate.yml'
   workflow_dispatch:
 
@@ -31,12 +33,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          persist-credentials: false
 
-      - name: Lint workflow and contract
+      - name: Lint workflow and JavaScript contracts
         run: |
           set -euo pipefail
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
           node --check scripts/theme-hygiene/test-theme-hygiene.mjs
+          node --check scripts/staging2/verify-rendered-document.mjs
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
 
       - name: Set up PHP 8.2
         uses: shivammathur/setup-php@accd6127cb78bee3e8082180cb391013d204ef9f
@@ -59,6 +65,7 @@ jobs:
           php scripts/theme-hygiene/test-catalog-review-contract.php
           php scripts/theme-hygiene/test-page-render-helpers.php
           php scripts/theme-hygiene/test-valoracion-form-contract.php
+          php scripts/theme-hygiene/test-document-governance.php
           php scripts/theme-hygiene/generate-catalog-i18n-source.php > /tmp/nvx-catalog-i18n.php
           php -l /tmp/nvx-catalog-i18n.php
           php scripts/theme-hygiene/test-catalog-i18n-source-contract.php /tmp/nvx-catalog-i18n.php

@@ -1,0 +1,94 @@
+name: Temporary Staging2 SiteGround HTML CSS A-B
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Configure SiteGround SSH
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/siteground_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/siteground_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host siteground-staging
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/siteground_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+      - name: A-B SiteGround HTML optimization against stylesheet stripping
+        run: |
+          set -euo pipefail
+          ssh siteground-staging 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          ROOT=/home/customer/www/staging2.nuvanx.com/public_html
+          cd "$ROOT"
+          html_status="$(wp sg status html)"
+          preload_status="$(wp sg status html 2>/dev/null || true)"
+          echo "BEFORE_HTML_STATUS=$html_status"
+          echo "BEFORE_PRELOAD_STATUS=$preload_status"
+          probe() {
+            label="$1"
+            curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 "https://staging2.nuvanx.com/?nvx_sg_probe=${label}" -o "/tmp/nvx-sg-${label}.html"
+            python3 - "$label" <<'PY'
+          import re,sys
+          label=sys.argv[1]
+          s=open('/tmp/nvx-sg-'+label+'.html',encoding='utf8',errors='replace').read()
+          styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]
+          print(label+' HTML_BYTES='+str(len(s))+' STYLESHEET_TAGS='+str(len(styles))+' NVX_BASE='+str('nvx-base.css' in s))
+          PY
+          }
+          probe before
+          if [[ "$html_status" == 'enabled' ]]; then
+            wp sg optimize html disable
+            wp sg purge || true
+            probe html-disabled
+            html_disabled_count="$(python3 - <<'PY'
+          import re
+          s=open('/tmp/nvx-sg-html-disabled.html',encoding='utf8',errors='replace').read()
+          print(len([x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]))
+          PY
+          )"
+            if (( html_disabled_count >= 5 )) && grep -q 'nvx-base.css' /tmp/nvx-sg-html-disabled.html; then
+              echo 'ROOT_CAUSE=siteground-html-optimization'
+              echo 'REMEDIATION=html-optimization-disabled'
+              wp sg purge || true
+              exit 0
+            fi
+            wp sg optimize html enable
+            wp sg purge || true
+          fi
+          echo 'HTML_OPTIMIZATION_NOT_CAUSAL=1'
+          REMOTE

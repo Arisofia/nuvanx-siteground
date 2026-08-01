@@ -54,22 +54,55 @@ jobs:
             ConnectTimeout 15
           EOF
           chmod 600 "$HOME/.ssh/config"
-      - name: Capture origin HTML, WordPress style queue and CSS
+      - name: Capture origin HTML, runtime CSS state and CSS assets
         run: |
           set -euo pipefail
           ssh siteground-staging 'bash -se' > evidence/siteground-origin.txt 2>&1 <<'REMOTE'
           set -Eeuo pipefail
           ROOT=/home/customer/www/staging2.nuvanx.com/public_html
           cd "$ROOT"
+          DEBUG_PLUGIN="$ROOT/wp-content/mu-plugins/nvx-css-runtime-debug.php"
+          cat > "$DEBUG_PLUGIN" <<'PHP'
+          <?php
+          add_action('wp_enqueue_scripts', static function (): void {
+              $s = wp_styles();
+              file_put_contents('/tmp/nvx-css-runtime-state.log', "ENQUEUE=" . wp_json_encode(array('queue'=>$s->queue,'to_do'=>$s->to_do,'done'=>$s->done)) . "\n", FILE_APPEND);
+          }, 9999);
+          add_action('wp_head', static function (): void {
+              file_put_contents('/tmp/nvx-css-runtime-state.log', "WP_HEAD=1\n", FILE_APPEND);
+          }, 0);
+          add_action('wp_print_styles', static function (): void {
+              $s = wp_styles();
+              file_put_contents('/tmp/nvx-css-runtime-state.log', "PRINT_STYLES_BEFORE=" . wp_json_encode(array('queue'=>$s->queue,'to_do'=>$s->to_do,'done'=>$s->done)) . "\n", FILE_APPEND);
+          }, 0);
+          add_action('wp_print_styles', static function (): void {
+              $s = wp_styles();
+              file_put_contents('/tmp/nvx-css-runtime-state.log', "PRINT_STYLES_AFTER=" . wp_json_encode(array('queue'=>$s->queue,'to_do'=>$s->to_do,'done'=>$s->done)) . "\n", FILE_APPEND);
+          }, 9999);
+          PHP
+          rm -f /tmp/nvx-css-runtime-state.log
           printf 'SITEURL=%s\nHOME=%s\nTHEME=%s\n' "$(wp option get siteurl)" "$(wp option get home)" "$(wp theme list --status=active --field=name)"
-          echo '--- STYLE QUEUE ---'
+          echo '--- ACTIVE PLUGINS ---'
+          wp plugin list --status=active --field=name
+          echo '--- STYLE QUEUE (CLI HOOK) ---'
           wp eval 'do_action("wp_enqueue_scripts"); foreach (wp_styles()->queue as $h) { $o=wp_styles()->registered[$h]??null; if($o){echo $h."|".$o->src."|deps=".implode(",",$o->deps)."\\n";} }'
           echo '--- ORIGIN ---'
           curl -ksS -D /tmp/nvx-origin-headers.txt -o /tmp/nvx-origin.html --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/
           cat /tmp/nvx-origin-headers.txt
           echo "HTML_BYTES=$(wc -c < /tmp/nvx-origin.html)"
           grep -Eqi '<html|<body' /tmp/nvx-origin.html
-          grep -q '/.well-known/sgcaptcha/' /tmp/nvx-origin.html && { echo 'ORIGIN_CAPTCHA=1'; exit 2; } || echo 'ORIGIN_CAPTCHA=0'
+          grep -q '/.well-known/sgcaptcha/' /tmp/nvx-origin.html && { echo 'ORIGIN_CAPTCHA=1'; rm -f "$DEBUG_PLUGIN"; exit 2; } || echo 'ORIGIN_CAPTCHA=0'
+          echo '--- RUNTIME CSS HOOK STATE ---'
+          cat /tmp/nvx-css-runtime-state.log || true
+          echo '--- HTML STYLESHEET TAGS ---'
+          python3 - <<'PY'
+          import re
+          s=open('/tmp/nvx-origin.html',encoding='utf-8',errors='replace').read()
+          tags=re.findall(r'<link\\b[^>]*>',s,re.I)
+          styles=[t for t in tags if re.search(r'rel=["\\\'][^"\\\']*stylesheet',t,re.I)]
+          print('STYLESHEET_TAG_COUNT='+str(len(styles)))
+          for t in styles: print(t)
+          PY
           echo '--- CSS RESPONSES ---'
           python3 - <<'PY'
           import re,html,subprocess
@@ -86,6 +119,8 @@ jobs:
             if not out.startswith('HTTP=200 TYPE=text/css'): raise SystemExit(3)
           PY
           echo 'ORIGIN_CSS_OK=1'
+          rm -f "$DEBUG_PLUGIN"
+          rm -f /tmp/nvx-css-runtime-state.log
           rm -rf /tmp/nvx-site-root
           mkdir -p /tmp/nvx-site-root/wp-content/themes/nuvanx-medical/assets
           cp /tmp/nvx-origin.html /tmp/nvx-site-root/index.html

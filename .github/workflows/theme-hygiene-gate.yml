@@ -8,6 +8,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
       - 'scripts/staging2/verify-rendered-document.mjs'
+      - 'tools/deploy/deploy-to-staging2.sh'
       - 'docs/operations/global-document-governance*.md'
       - '.github/workflows/theme-hygiene-gate.yml'
       - '.github/workflows/deploy-staging2.yml'
@@ -19,6 +20,7 @@ on:
       - 'wp-content/themes/nuvanx-medical/**'
       - 'scripts/theme-hygiene/**'
       - 'scripts/staging2/verify-rendered-document.mjs'
+      - 'tools/deploy/deploy-to-staging2.sh'
       - 'docs/operations/global-document-governance*.md'
       - '.github/workflows/theme-hygiene-gate.yml'
       - '.github/workflows/deploy-staging2.yml'
@@ -42,15 +44,17 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Lint workflows and JavaScript contracts
+      - name: Lint workflows and runtime entrypoints
         run: |
           set -euo pipefail
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 \
             .github/workflows/theme-hygiene-gate.yml \
             .github/workflows/deploy-staging2.yml \
             .github/workflows/staging2-rendered-acceptance.yml
+          bash -n tools/deploy/deploy-to-staging2.sh
           node --check scripts/theme-hygiene/test-theme-hygiene.mjs
           node --check scripts/staging2/verify-rendered-document.mjs
+          node --check wp-content/themes/nuvanx-medical/assets/js/nvx-main.js
           node --check wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js
 
       - name: Set up PHP 8.2

@@ -145,6 +145,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # shellcheck disable=SC2029 -- WP_ROOT is intentionally validated and expanded on the trusted runner.
           ssh nvx-staging2 \
             "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"
 
@@ -154,6 +155,7 @@ jobs:
           set -euo pipefail
           REMOTE_RELEASE="$WP_ROOT/wp-content/.nuvanx-deployments/${DEPLOY_SHA}-${GITHUB_RUN_ID}"
           echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          # shellcheck disable=SC2029 -- REMOTE_RELEASE is composed from validated local deployment inputs.
           ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme' '$REMOTE_RELEASE/mu-plugins'"
           rsync -az --delete \
             --exclude='.git' \
@@ -183,6 +185,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # shellcheck disable=SC2029 -- all paths and SHA are validated locally before deliberate remote interpolation.
           ssh nvx-staging2 \
             "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm && NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$WP_ROOT' --source-mu '$REMOTE_RELEASE/mu-plugins' --confirm"
 
@@ -190,6 +193,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # shellcheck disable=SC2029 -- WP_ROOT is intentionally expanded on the trusted runner.
           deployed_sha="$(ssh nvx-staging2 "tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
           test "$deployed_sha" = "$DEPLOY_SHA"
           echo "Verified staging2 marker: $deployed_sha"
@@ -208,18 +212,20 @@ jobs:
       - name: Remove temporary remote payload
         if: always()
         shell: bash
-        run: ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'"
+        run: |
+          # shellcheck disable=SC2029 -- REMOTE_RELEASE is intentionally expanded on the trusted runner.
+          ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'"
 
       - name: Write deployment summary
         if: success()
         shell: bash
         run: |
           {
-            echo '## Staging2 deployment completed'
-            echo
-            echo "- SHA: \`$DEPLOY_SHA\`"
-            echo '- Target: `https://staging2.nuvanx.com`'
-            echo '- Scope: `wp-content/themes/nuvanx-medical` + required MU plugins (`nuvanx-valoracion-native-hubspot-form.php`, `nuvanx-contacto-hubspot-form.php`)'
-            echo '- Backup: created on the SiteGround host before synchronization'
-            echo '- Verification: deploy marker + complete rendered-document acceptance against the exact SHA'
+            printf '%s\n' '## Staging2 deployment completed'
+            printf '\n'
+            printf '%s\n' "- SHA: \`$DEPLOY_SHA\`"
+            printf '%s\n' "- Target: \`https://staging2.nuvanx.com\`"
+            printf '%s\n' "- Scope: \`wp-content/themes/nuvanx-medical\` + required MU plugins (\`nuvanx-valoracion-native-hubspot-form.php\`, \`nuvanx-contacto-hubspot-form.php\`)"
+            printf '%s\n' '- Backup: created on the SiteGround host before synchronization'
+            printf '%s\n' '- Verification: deploy marker + complete rendered-document acceptance against the exact SHA'
           } >> "$GITHUB_STEP_SUMMARY"

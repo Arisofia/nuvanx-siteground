@@ -9,12 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/nvx-environment-flags.php';
-// require_once __DIR__ . '/nvx-visual-system.php';
-// require_once __DIR__ . '/nvx-external-visual-closure.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
 require_once __DIR__ . '/nvx-strategy-pages.php';
-// require_once __DIR__ . '/nvx-conversion-events.php';
-// require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 
 /** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
@@ -154,17 +150,13 @@ add_action(
 require_once __DIR__ . '/nvx-structured-data.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
 require_once __DIR__ . '/nvx-page-hygiene.php';
-// require_once __DIR__ . '/nvx-p0-publication-guard.php';
 require_once __DIR__ . '/nvx-seo-metadata.php';
 require_once __DIR__ . '/nvx-seo-production-readiness.php';
 require_once __DIR__ . '/nvx-contacto-audit-fixes.php';
 require_once __DIR__ . '/nvx-faq-content-v2.php';
 require_once __DIR__ . '/nvx-medical-review.php';
-// require_once __DIR__ . '/nvx-publication-safeguards.php';
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
-// require_once __DIR__ . '/nvx-clinical-language.php';
 require_once __DIR__ . '/nvx-blog-system.php';
-// require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
 require_once __DIR__ . '/nvx-navigation-filters.php';
 
 add_action(
@@ -229,25 +221,23 @@ add_action(
 add_filter(
 	'script_loader_tag',
 	function ( string $tag, string $handle, string $src = '' ): string {
+		$filtered = $tag;
+
 		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
-			return '';
-		}
-
-		if ( is_admin() ) {
-			return $tag;
-		}
-
-		if ( str_contains( $src, 'accounts.google.com/gsi' ) || str_contains( $handle, 'sign-in-with-google' ) ) {
-			return '';
-		}
-
-		if ( 'nvx-hubspot-forms-embed' === $handle || str_contains( $src, 'hsforms.net' ) ) {
-			if ( false === strpos( $tag, 'defer' ) && false === strpos( $tag, 'async' ) ) {
-				return str_replace( ' src=', ' defer src=', $tag );
+			$filtered = '';
+		} elseif ( ! is_admin() ) {
+			if ( str_contains( $src, 'accounts.google.com/gsi' ) || str_contains( $handle, 'sign-in-with-google' ) ) {
+				$filtered = '';
+			} elseif (
+				( 'nvx-hubspot-forms-embed' === $handle || str_contains( $src, 'hsforms.net' ) )
+				&& false === strpos( $tag, 'defer' )
+				&& false === strpos( $tag, 'async' )
+			) {
+				$filtered = str_replace( ' src=', ' defer src=', $tag );
 			}
 		}
 
-		return $tag;
+		return $filtered;
 	},
 	10,
 	3

@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 
-const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/+$/u, '');
+function stripTrailingSlashes(value) {
+  let end = value.length;
+  while (end > 0 && value.charAt(end - 1) === '/') {
+    end -= 1;
+  }
+  return value.slice(0, end);
+}
+
+const baseUrl = stripTrailingSlashes(process.env.BASE_URL || 'https://staging2.nuvanx.com');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 const routes = [
   '/',
@@ -46,7 +54,7 @@ function assert(condition, message) {
 }
 
 function attribute(tag, name) {
-  const pattern = new RegExp(`\\b${name}\\s*=\\s*(["'])([^"']*)\\1`, 'iu');
+  const pattern = new RegExp(String.raw`\b${name}\s*=\s*(["'])([^"']*)\1`, 'iu');
   const match = pattern.exec(tag);
   return match ? match[2] : '';
 }

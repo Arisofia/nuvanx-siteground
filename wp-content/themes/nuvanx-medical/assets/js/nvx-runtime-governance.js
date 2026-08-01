@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var config = window.nvxRuntimeGovernance || {};
+  const config = window.nvxRuntimeGovernance || {};
 
   function setInert(element, inert) {
     if (!element) return;
@@ -21,25 +21,25 @@
   }
 
   function initMobileNavigationGovernance() {
-    var nav = document.getElementById(config.mobileNavId || 'nvx-mobile-nav');
-    var trigger = document.getElementById('nvx-hamburger-btn');
-    var close = document.getElementById('nvx-mobile-close');
+    const nav = document.getElementById(config.mobileNavId || 'nvx-mobile-nav');
+    const trigger = document.getElementById('nvx-hamburger-btn');
+    const close = document.getElementById('nvx-mobile-close');
     if (!nav || !trigger) return;
 
-    var wasOpen = false;
+    let wasOpen = false;
 
     function isOpen() {
       return nav.classList.contains('is-open') || nav.getAttribute('aria-hidden') === 'false';
     }
 
     function synchronize() {
-      var open = isOpen();
-      var focusWasInside = nav.contains(document.activeElement);
+      const open = isOpen();
+      const focusWasInside = nav.contains(document.activeElement);
       setInert(nav, !open);
 
       if (open && !wasOpen) {
         window.setTimeout(function () {
-          var target = close || focusableElements(nav)[0];
+          const target = close || focusableElements(nav)[0];
           if (target && typeof target.focus === 'function') target.focus();
         }, 0);
       }
@@ -68,7 +68,7 @@
     });
 
     nav.addEventListener('click', function (event) {
-      var link = event.target?.closest?.('a[href]') || null;
+      const link = event.target?.closest?.('a[href]') || null;
       if (!link) return;
       nav.classList.remove('is-open');
       nav.setAttribute('aria-hidden', 'true');
@@ -92,10 +92,10 @@
       }
 
       if (event.key !== 'Tab') return;
-      var focusables = focusableElements(nav);
+      const focusables = focusableElements(nav);
       if (!focusables.length) return;
-      var first = focusables[0];
-      var last = focusables[focusables.length - 1];
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
 
       if (!nav.contains(document.activeElement)) {
         event.preventDefault();
@@ -116,10 +116,10 @@
   function initLazyHubSpot() {
     if (!config.modalEnabled || !config.hubspotScriptUrl) return;
 
-    var modal = document.getElementById(config.modalId || 'nvx-valoracion-modal');
+    const modal = document.getElementById(config.modalId || 'nvx-valoracion-modal');
     if (!modal) return;
 
-    var promise = null;
+    let promise = null;
 
     function initializeForms() {
       modal.classList.remove('nvx-valoracion-modal--embed-error');
@@ -136,8 +136,8 @@
       if (promise) return promise;
 
       promise = new Promise(function (resolve, reject) {
-        var scriptId = config.hubspotScriptId || 'nvx-hubspot-forms-runtime';
-        var existing = document.getElementById(scriptId);
+        const scriptId = config.hubspotScriptId || 'nvx-hubspot-forms-runtime';
+        const existing = document.getElementById(scriptId);
         if (existing) {
           if (existing.dataset.nvxLoaded === '1') {
             initializeForms();
@@ -157,7 +157,7 @@
           return;
         }
 
-        var script = document.createElement('script');
+        const script = document.createElement('script');
         script.id = scriptId;
         script.src = config.hubspotScriptUrl;
         script.async = true;
@@ -195,7 +195,7 @@
     document.addEventListener(
       'click',
       function (event) {
-        var link = event.target?.closest?.('a') || null;
+        const link = event.target?.closest?.('a') || null;
         if (!link) return;
         if (
           link.classList.contains('nvx-open-valoracion-modal') ||

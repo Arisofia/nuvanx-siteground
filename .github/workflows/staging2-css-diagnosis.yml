@@ -1,6 +1,9 @@
 name: Staging2 CSS diagnosis
 
 on:
+  push:
+    branches:
+      - fix/staging2-css-load-diagnostic
   pull_request:
     branches: [master]
     types: [opened, synchronize, reopened]
@@ -20,7 +23,7 @@ env:
 
 jobs:
   diagnose:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/staging2-css-load-diagnostic'
+    if: github.repository == 'Arisofia/nuvanx-siteground' && (github.event_name == 'push' || github.head_ref == 'fix/staging2-css-load-diagnostic')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

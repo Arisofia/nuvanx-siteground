@@ -77,7 +77,7 @@ nvx_document_contract_assert(
     'The module must own lazy integrations, image dimensions and final metadata.'
 );
 nvx_document_contract_assert(
-    str_contains($integrations, "nvx_document_governance_remove_retired_scripts( $html )")
+    str_contains($integrations, 'nvx_document_governance_remove_retired_scripts( $html )')
         && !str_contains($integrations, '[\\s\\S]*?FacebookSignal[\\s\\S]*?')
         && !str_contains($integrations, 'window.FacebookSignal=window.FacebookSignal')
         && !str_contains($integrations, 'forms-eu1.hsforms.com')

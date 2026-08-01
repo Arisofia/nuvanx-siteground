@@ -77,7 +77,7 @@
 		if (!target) return;
 
 		var href = target.getAttribute('href') || '';
-		var dataEvent = target.getAttribute('data-gtag') || '';
+		var dataEvent = target.dataset.gtag || '';
 		var common = {
 			cta_region: regionFor(target),
 			cta_marker: dataEvent || 'selector',

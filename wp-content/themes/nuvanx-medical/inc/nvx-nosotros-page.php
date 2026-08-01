@@ -13,6 +13,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+const NVX_NOSOTROS_PATH       = '/nosotros/';
+const NVX_SOBRE_NOSOTROS_PATH = '/sobre-nosotros/';
+
 /**
  * Singular page context.
  */
@@ -21,7 +24,18 @@ function nvx_nosotros_is_singular_context(): bool {
 		return false;
 	}
 
-	return is_singular( 'page' ) || is_page();
+	return is_page();
+}
+
+/**
+ * Whether a path matches either canonical Sobre Nosotros route.
+ */
+function nvx_nosotros_path_matches( string $path ): bool {
+	return function_exists( 'nvx_schema_path_matches' )
+		&& (
+			nvx_schema_path_matches( $path, NVX_NOSOTROS_PATH )
+			|| nvx_schema_path_matches( $path, NVX_SOBRE_NOSOTROS_PATH )
+		);
 }
 
 /**
@@ -40,10 +54,8 @@ function nvx_content_is_nosotros_page( string $content ): bool {
 		? nvx_schema_current_path( (int) get_queried_object_id() )
 		: '';
 
-	if ( is_string( $path ) && function_exists( 'nvx_schema_path_matches' ) ) {
-		if ( nvx_schema_path_matches( $path, '/nosotros/' ) || nvx_schema_path_matches( $path, '/sobre-nosotros/' ) ) {
-			return true;
-		}
+	if ( is_string( $path ) && nvx_nosotros_path_matches( $path ) ) {
+		return true;
 	}
 
 	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
@@ -392,7 +404,7 @@ function nvx_filter_nosotros_document_title( $title ) {
 		return $title;
 	}
 	$path = nvx_schema_current_path( (int) get_queried_object_id() );
-	if ( ! nvx_schema_path_matches( $path, '/nosotros/' ) && ! nvx_schema_path_matches( $path, '/sobre-nosotros/' ) ) {
+	if ( ! nvx_nosotros_path_matches( $path ) ) {
 		return $title;
 	}
 	return 'Sobre Nosotros | Autoridad médica y transparencia · NUVANX Madrid';
@@ -410,7 +422,7 @@ function nvx_filter_nosotros_metadesc( $desc ) {
 		return $desc;
 	}
 	$path = nvx_schema_current_path( (int) get_queried_object_id() );
-	if ( ! nvx_schema_path_matches( $path, '/nosotros/' ) && ! nvx_schema_path_matches( $path, '/sobre-nosotros/' ) ) {
+	if ( ! nvx_nosotros_path_matches( $path ) ) {
 		return $desc;
 	}
 	return 'NUVANX Madrid: medicina estética láser con evidencia, well-aging e ingeniería tisular. Sedes Chamberí (CS20144) y Goya (CS20073). Cuadro médico colegiado y principios de transparencia.';

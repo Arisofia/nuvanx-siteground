@@ -35,7 +35,7 @@ function nvx_theme_is_blog_context(): bool {
 	}
 
 	return is_home()
-		|| is_singular( 'post' )
+		|| is_single()
 		|| is_category()
 		|| is_tag()
 		|| is_date()
@@ -80,12 +80,12 @@ add_filter( 'body_class', 'nvx_theme_blog_body_class' );
  * post content so historical entries inherit the same accessible hierarchy.
  */
 function nvx_theme_normalize_blog_headings( string $content ): string {
-	if ( ! is_singular( 'post' ) || false === stripos( $content, '<h1' ) ) {
+	if ( ! is_single() || false === stripos( $content, '<h1' ) ) {
 		return $content;
 	}
 
 	$content = (string) preg_replace( '/<h1(\b[^>]*)>/iu', '<h2$1>', $content );
-	return (string) preg_replace( '/<\/h1>/iu', '</h2>', $content );
+	return str_ireplace( '</h1>', '</h2>', $content );
 }
 add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', 8 );
 
@@ -150,7 +150,7 @@ function nvx_blog_medical_author( ?int $post_id = null ): array {
  * so mid-article copy mentioning “Autor” / “Fecha” is not removed.
  */
 function nvx_theme_strip_blog_content_bylines( string $content ): string {
-	if ( is_admin() || ! is_singular( 'post' ) || '' === trim( $content ) ) {
+	if ( is_admin() || ! is_single() || '' === trim( $content ) ) {
 		return $content;
 	}
 

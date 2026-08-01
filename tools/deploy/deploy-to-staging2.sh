@@ -53,17 +53,28 @@ done
 [[ -d "$WP_ROOT" ]] || fail "WordPress root does not exist: $WP_ROOT"
 [[ -f "$WP_ROOT/wp-config.php" ]] || fail 'wp-config.php not found in staging2 root'
 [[ -d "$SOURCE_THEME" ]] || fail "source theme does not exist: $SOURCE_THEME"
-[[ -f "$SOURCE_THEME/style.css" ]] || fail 'source theme is missing style.css'
-[[ -f "$SOURCE_THEME/functions.php" ]] || fail 'source theme is missing functions.php'
-[[ -f "$SOURCE_THEME/assets/css/nvx-fonts.css" ]] || fail 'source theme is missing nvx-fonts.css'
-[[ -f "$SOURCE_THEME/assets/css/nvx-tokens.css" ]] || fail 'source theme is missing nvx-tokens.css'
-[[ -f "$SOURCE_THEME/assets/css/nvx-base.css" ]] || fail 'source theme is missing nvx-base.css'
-[[ -f "$SOURCE_THEME/assets/css/nvx-site-layout.css" ]] || fail 'source theme is missing nvx-site-layout.css'
-[[ -f "$SOURCE_THEME/assets/css/nvx-components.css" ]] || fail 'source theme is missing nvx-components.css'
-[[ -f "$SOURCE_THEME/assets/css/nvx-patterns-editorial.css" ]] || fail 'source theme is missing nvx-patterns-editorial.css'
-[[ -f "$SOURCE_THEME/assets/css/nvx-header.css" ]] || fail 'source theme is missing nvx-header.css'
-[[ -f "$SOURCE_THEME/assets/css/nvx-footer.css" ]] || fail 'source theme is missing nvx-footer.css'
-[[ -f "$SOURCE_THEME/inc/nvx-blog-system.php" ]] || fail 'source theme is missing nvx-blog-system.php'
+
+SOURCE_REQUIRED_FILES=(
+  style.css
+  functions.php
+  header.php
+  assets/css/nvx-fonts.css
+  assets/css/nvx-tokens.css
+  assets/css/nvx-base.css
+  assets/css/nvx-site-layout.css
+  assets/css/nvx-components.css
+  assets/css/nvx-patterns-editorial.css
+  assets/css/nvx-header.css
+  assets/css/nvx-footer.css
+  assets/css/nvx-accessibility-governance.css
+  assets/js/nvx-runtime-governance.js
+  inc/nvx-blog-system.php
+  inc/nvx-document-governance.php
+)
+
+for required_file in "${SOURCE_REQUIRED_FILES[@]}"; do
+  [[ -f "$SOURCE_THEME/$required_file" ]] || fail "source theme is missing $required_file"
+done
 
 LIVE_THEME="$WP_ROOT/$THEME_REL"
 [[ -d "$LIVE_THEME" ]] || fail "live staging2 theme does not exist: $LIVE_THEME"
@@ -72,7 +83,7 @@ rollback() {
   local exit_code=$?
   trap - ERR
   if [[ "$MUTATION_STARTED" -eq 1 && -n "$BACKUP_DIR" && -f "$BACKUP_DIR/theme.tgz" ]]; then
-    echo 'ROLLBACK: restoring the pre-deploy staging2 theme' >&2
+    echo 'SAFETY_RESTORE: restoring the pre-deploy staging2 theme after rejected deployment' >&2
     rm -rf "$LIVE_THEME"
     tar -xzf "$BACKUP_DIR/theme.tgz" -C "$WP_ROOT"
     (
@@ -80,7 +91,7 @@ rollback() {
       wp cache flush || true
       wp sg purge || true
     )
-    echo "ROLLBACK_COMPLETE backup=$BACKUP_DIR" >&2
+    echo "SAFETY_RESTORE_COMPLETE backup=$BACKUP_DIR" >&2
   fi
   exit "$exit_code"
 }
@@ -121,9 +132,9 @@ MUTATION_STARTED=1
 echo '== Disable SiteGround asset transformations =='
 (
   cd "$WP_ROOT"
-  wp sg optimize css disable || true
-  wp sg optimize combine-css disable || true
-  wp sg optimize combine-js disable || true
+  wp sg optimize css disable
+  wp sg optimize combine-css disable
+  wp sg optimize combine-js disable
 )
 
 echo '== Synchronize theme to staging2 =='
@@ -139,37 +150,26 @@ rsync -a --delete \
   "$SOURCE_THEME/" \
   "$LIVE_THEME/"
 
-find "$LIVE_THEME/assets/css" -maxdepth 1 -type f -name 'nvx-*.min.css' -delete 2>/dev/null || true
+find "$LIVE_THEME/assets/css" -maxdepth 1 -type f -name 'nvx-*.min.css' -delete
 printf '%s\n' "$DEPLOY_SHA" > "$LIVE_THEME/.nvx-deploy-sha"
 
 echo '== Verify deployed files and marker =='
-for required_file in \
-  style.css \
-  functions.php \
-  assets/css/nvx-fonts.css \
-  assets/css/nvx-tokens.css \
-  assets/css/nvx-base.css \
-  assets/css/nvx-site-layout.css \
-  assets/css/nvx-components.css \
-  assets/css/nvx-patterns-editorial.css \
-  assets/css/nvx-header.css \
-  assets/css/nvx-footer.css \
-  inc/nvx-blog-system.php
-do
+for required_file in "${SOURCE_REQUIRED_FILES[@]}"; do
   [[ -f "$LIVE_THEME/$required_file" ]] || fail "deployed theme is missing $required_file"
 done
 [[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$DEPLOY_SHA" ]] || fail 'deployed SHA marker does not match'
 grep -Fq 'nvx-patterns-editorial.css' "$LIVE_THEME/functions.php" || fail 'functions.php does not enqueue the canonical editorial stylesheet'
+grep -Fq 'nvx_document_governance_start();' "$LIVE_THEME/header.php" || fail 'header.php does not start global document governance'
 
 echo '== Purge staging2 caches =='
 (
   cd "$WP_ROOT"
-  wp cache flush || true
-  wp sg purge || true
-  rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* 2>/dev/null || true
-  rm -rf wp-content/cache/sgo-cache/* 2>/dev/null || true
-  rm -rf wp-content/cache/* 2>/dev/null || true
-  wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }' || true
+  wp cache flush
+  wp sg purge
+  rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
+  rm -rf wp-content/cache/sgo-cache/*
+  rm -rf wp-content/cache/*
+  wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); echo "opcache=ok\n"; }'
 )
 
 trap - ERR

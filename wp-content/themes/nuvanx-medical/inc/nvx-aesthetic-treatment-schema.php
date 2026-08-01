@@ -24,6 +24,97 @@ function nvx_aesthetic_schema_upsert_node( array $graph, array $node ): array {
 	return $graph;
 }
 
+/**
+ * Map string names to Schema.org typed nodes.
+ *
+ * @param array<int,string> $names Display names.
+ * @return array<int,array{@type:string,name:string}>
+ */
+function nvx_aesthetic_schema_named_nodes( array $names, string $type ): array {
+	$nodes = array();
+	foreach ( $names as $name ) {
+		$nodes[] = array(
+			'@type' => $type,
+			'name'  => $name,
+		);
+	}
+	return $nodes;
+}
+
+/**
+ * Build the MedicalProcedure/Service node for a facial treatment page.
+ *
+ * @param array<string,mixed> $schema Schema catalog entry.
+ * @param array<string,mixed> $entry  Treatment catalog entry.
+ */
+function nvx_aesthetic_schema_procedure_node(
+	array $schema,
+	array $entry,
+	string $permalink,
+	string $organization_id
+): array {
+	return array(
+		'@type'             => array( 'MedicalProcedure', 'Service' ),
+		'@id'               => $permalink . '#medical-procedure',
+		'name'              => $schema['name'],
+		'alternateName'     => $schema['alternateName'],
+		'url'               => $permalink,
+		'mainEntityOfPage'  => array( '@id' => $permalink ),
+		'provider'          => array( '@id' => $organization_id ),
+		'description'       => $entry['description'],
+		'bodyLocation'      => $schema['bodyLocation'],
+		'procedureType'     => $schema['procedureType'],
+		'preparation'       => $schema['preparation'],
+		'howPerformed'      => $schema['howPerformed'],
+		'followup'          => $schema['followup'],
+		'indication'        => nvx_aesthetic_schema_named_nodes( (array) $schema['indications'], 'MedicalIndication' ),
+		'relevantCondition' => nvx_aesthetic_schema_named_nodes( (array) $schema['conditions'], 'MedicalCondition' ),
+		'areaServed'        => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
+	);
+}
+
+/**
+ * Build FAQ Question nodes for a treatment key.
+ *
+ * @param array<int,array{q:string,a:string}> $faqs FAQ catalogue rows.
+ * @return array<int,array<string,mixed>>
+ */
+function nvx_aesthetic_schema_faq_questions( array $faqs ): array {
+	$questions = array();
+	foreach ( $faqs as $faq ) {
+		$questions[] = array(
+			'@type'          => 'Question',
+			'name'           => $faq['q'],
+			'acceptedAnswer' => array(
+				'@type' => 'Answer',
+				'text'  => $faq['a'],
+			),
+		);
+	}
+	return $questions;
+}
+
+/**
+ * Point the matching WebPage node at the MedicalProcedure entity.
+ *
+ * @param array<int,array<string,mixed>> $graph Yoast graph.
+ * @return array<int,array<string,mixed>>
+ */
+function nvx_aesthetic_schema_link_webpage_main_entity( array $graph, string $permalink, string $procedure_id ): array {
+	foreach ( $graph as $index => $piece ) {
+		$types = isset( $piece['@type'] ) ? (array) $piece['@type'] : array();
+		if ( ! in_array( 'WebPage', $types, true ) || ! isset( $piece['url'] ) ) {
+			continue;
+		}
+		if ( trailingslashit( $piece['url'] ) !== trailingslashit( $permalink ) ) {
+			continue;
+		}
+		$graph[ $index ]['mainEntity'] = array( '@id' => $procedure_id );
+		break;
+	}
+	return $graph;
+}
+
 /** Add MedicalProcedure/Service and FAQPage to the existing Yoast block. */
 function nvx_aesthetic_treatment_extend_yoast_graph( $graph, $context = null ) {
 	unset( $context );
@@ -43,62 +134,20 @@ function nvx_aesthetic_treatment_extend_yoast_graph( $graph, $context = null ) {
 		return $graph;
 	}
 
-	$page_id      = get_queried_object_id();
-	$permalink    = get_permalink( $page_id );
-	$entry        = $catalog[ $key ];
-	$schema       = $schema_catalog[ $key ];
-	$organization = function_exists( 'nvx_schema_find_organization' )
+	$permalink       = get_permalink( get_queried_object_id() );
+	$organization    = function_exists( 'nvx_schema_find_organization' )
 		? nvx_schema_find_organization( $graph )
 		: array( 'id' => home_url( '/#/schema/organization/nuvanx' ) );
 	$organization_id = ! empty( $organization['id'] ) ? $organization['id'] : home_url( '/#/schema/organization/nuvanx' );
-
-	$indications = array();
-	foreach ( $schema['indications'] as $name ) {
-		$indications[] = array(
-			'@type' => 'MedicalIndication',
-			'name'  => $name,
-		);
-	}
-	$conditions = array();
-	foreach ( $schema['conditions'] as $name ) {
-		$conditions[] = array(
-			'@type' => 'MedicalCondition',
-			'name'  => $name,
-		);
-	}
-
-	$procedure_id = $permalink . '#medical-procedure';
-	$procedure    = array(
-		'@type'            => array( 'MedicalProcedure', 'Service' ),
-		'@id'              => $procedure_id,
-		'name'             => $schema['name'],
-		'alternateName'    => $schema['alternateName'],
-		'url'              => $permalink,
-		'mainEntityOfPage' => array( '@id' => $permalink ),
-		'provider'         => array( '@id' => $organization_id ),
-		'description'      => $entry['description'],
-		'bodyLocation'     => $schema['bodyLocation'],
-		'procedureType'    => $schema['procedureType'],
-		'preparation'      => $schema['preparation'],
-		'howPerformed'     => $schema['howPerformed'],
-		'followup'         => $schema['followup'],
-		'indication'       => $indications,
-		'relevantCondition'=> $conditions,
-		'areaServed'       => array( 'Madrid', 'Chamberí', 'Barrio de Salamanca', 'Goya' ),
+	$procedure       = nvx_aesthetic_schema_procedure_node(
+		$schema_catalog[ $key ],
+		$catalog[ $key ],
+		$permalink,
+		$organization_id
 	);
 	$graph = nvx_aesthetic_schema_upsert_node( $graph, $procedure );
 
-	$questions = array();
-	foreach ( $faq_catalog[ $key ] ?? array() as $faq ) {
-		$questions[] = array(
-			'@type'          => 'Question',
-			'name'           => $faq['q'],
-			'acceptedAnswer' => array(
-				'@type' => 'Answer',
-				'text'  => $faq['a'],
-			),
-		);
-	}
+	$questions = nvx_aesthetic_schema_faq_questions( $faq_catalog[ $key ] ?? array() );
 	if ( ! empty( $questions ) ) {
 		$graph = nvx_aesthetic_schema_upsert_node(
 			$graph,
@@ -111,13 +160,7 @@ function nvx_aesthetic_treatment_extend_yoast_graph( $graph, $context = null ) {
 		);
 	}
 
-	foreach ( $graph as $index => $piece ) {
-		$types = isset( $piece['@type'] ) ? (array) $piece['@type'] : array();
-		if ( in_array( 'WebPage', $types, true ) && isset( $piece['url'] ) && trailingslashit( $piece['url'] ) === trailingslashit( $permalink ) ) {
-			$graph[ $index ]['mainEntity'] = array( '@id' => $procedure_id );
-			break;
-		}
-	}
+	$graph = nvx_aesthetic_schema_link_webpage_main_entity( $graph, $permalink, $procedure['@id'] );
 
 	return array_values( $graph );
 }

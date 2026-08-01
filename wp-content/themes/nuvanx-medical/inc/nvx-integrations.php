@@ -9,12 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/nvx-environment-flags.php';
-// require_once __DIR__ . '/nvx-visual-system.php';
-// require_once __DIR__ . '/nvx-external-visual-closure.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
 require_once __DIR__ . '/nvx-strategy-pages.php';
-// require_once __DIR__ . '/nvx-conversion-events.php';
-// require_once __DIR__ . '/nvx-aesthetic-hub-governance.php';
 
 /** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
@@ -86,13 +82,8 @@ function nvx_theme_normalize_public_document( string $html ): string {
 		);
 	}
 
-	if ( false !== stripos( $html, 'FacebookSignal' ) ) {
-		$html = (string) preg_replace(
-			'/<script\b[^>]*>[\s\S]*?FacebookSignal[\s\S]*?<\/script>/iu',
-			'',
-			$html
-		);
-		$html = (string) preg_replace( '/FacebookSignal\.[a-zA-Z0-9_\$]+\([^)]*\);?/i', '', $html );
+	if ( function_exists( 'nvx_document_governance_remove_retired_scripts' ) ) {
+		$html = nvx_document_governance_remove_retired_scripts( $html );
 	}
 
 	if ( ! is_admin() ) {
@@ -159,27 +150,20 @@ add_action(
 require_once __DIR__ . '/nvx-structured-data.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
 require_once __DIR__ . '/nvx-page-hygiene.php';
-// require_once __DIR__ . '/nvx-p0-publication-guard.php';
 require_once __DIR__ . '/nvx-seo-metadata.php';
 require_once __DIR__ . '/nvx-seo-production-readiness.php';
 require_once __DIR__ . '/nvx-contacto-audit-fixes.php';
 require_once __DIR__ . '/nvx-faq-content-v2.php';
 require_once __DIR__ . '/nvx-medical-review.php';
-// require_once __DIR__ . '/nvx-publication-safeguards.php';
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';
-// require_once __DIR__ . '/nvx-clinical-language.php';
 require_once __DIR__ . '/nvx-blog-system.php';
-// require_once __DIR__ . '/nvx-mobile-hero-hierarchy.php';
 require_once __DIR__ . '/nvx-navigation-filters.php';
 
 add_action(
 	'wp_head',
 	function (): void {
-		echo '<script>window.FacebookSignal=window.FacebookSignal||new Proxy(function(){},{get:function(){return function(){};},apply:function(){return function(){};}});</script>' . "\n";
 		echo '<link rel="preconnect" href="https://fonts.googleapis.com" />' . "\n";
 		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n";
-		echo '<link rel="preconnect" href="https://forms-eu1.hsforms.com" crossorigin />' . "\n";
-		echo '<link rel="preconnect" href="https://js-eu1.hsforms.net" crossorigin />' . "\n";
 		echo '<link rel="preload" as="font" href="https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggexSvfedN4.woff2" type="font/woff2" crossorigin />' . "\n";
 		echo '<link rel="preload" as="font" href="https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgEM86xQ.woff2" type="font/woff2" crossorigin />' . "\n";
 
@@ -222,21 +206,43 @@ add_action(
 	}
 );
 
-/* Meta Pixel & Site Kit · Dequeue unused scripts on public frontend */
+/**
+ * Whether a script src/handle is an eager HubSpot forms embed that must not download.
+ */
+function nvx_theme_is_eager_hubspot_embed( string $handle, string $src = '', string $tag = '' ): bool {
+	$blob = strtolower( $handle . ' ' . $src . ' ' . $tag );
+	return 'nvx-hubspot-forms-embed' === $handle
+		|| str_contains( $blob, 'hsforms.net' )
+		|| str_contains( $blob, 'hsforms.com' )
+		|| str_contains( $blob, 'hs-scripts.com' );
+}
+
+/* Meta Pixel, Site Kit GSI, and eager HubSpot · strip as early as possible */
 add_action(
 	'wp_enqueue_scripts',
-	function (): void {
+	static function (): void {
+		wp_dequeue_script( 'nvx-hubspot-forms-embed' );
+		wp_deregister_script( 'nvx-hubspot-forms-embed' );
+	},
+	1
+);
+
+add_action(
+	'wp_enqueue_scripts',
+	static function (): void {
 		wp_dequeue_script( 'siteground-facebook-signal' );
 		wp_deregister_script( 'siteground-facebook-signal' );
 		wp_dequeue_script( 'googlesitekit-sign-in-with-google' );
 		wp_deregister_script( 'googlesitekit-sign-in-with-google' );
+		wp_dequeue_script( 'nvx-hubspot-forms-embed' );
+		wp_deregister_script( 'nvx-hubspot-forms-embed' );
 	},
 	100
 );
 
 add_filter(
 	'script_loader_tag',
-	function ( string $tag, string $handle, string $src = '' ): string {
+	static function ( string $tag, string $handle, string $src = '' ): string {
 		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
 			return '';
 		}
@@ -249,14 +255,41 @@ add_filter(
 			return '';
 		}
 
-		if ( 'nvx-hubspot-forms-embed' === $handle || str_contains( $src, 'hsforms.net' ) ) {
-			if ( false === strpos( $tag, 'defer' ) && false === strpos( $tag, 'async' ) ) {
-				return str_replace( ' src=', ' defer src=', $tag );
-			}
+		// Hard-block eager HubSpot embeds: defer still downloads the script.
+		if ( nvx_theme_is_eager_hubspot_embed( $handle, $src, $tag ) ) {
+			return '';
 		}
 
 		return $tag;
 	},
 	10,
 	3
+);
+
+add_filter(
+	'wp_resource_hints',
+	static function ( $urls, $relation_type ) {
+		if ( ! is_array( $urls ) ) {
+			return $urls;
+		}
+
+		$relation = (string) $relation_type;
+		if ( ! in_array( $relation, array( 'dns-prefetch', 'preconnect', 'prefetch', 'prerender' ), true ) ) {
+			return $urls;
+		}
+
+		return array_values(
+			array_filter(
+				$urls,
+				static function ( $url ): bool {
+					$href = is_array( $url ) ? (string) ( $url['href'] ?? '' ) : (string) $url;
+					$href = strtolower( $href );
+					return ! str_contains( $href, 'hsforms' )
+						&& ! str_contains( $href, 'hs-scripts.com' );
+				}
+			)
+		);
+	},
+	10,
+	2
 );

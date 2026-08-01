@@ -47,9 +47,8 @@ jobs:
           functions_path = Path('wp-content/themes/nuvanx-medical/functions.php')
           functions = functions_path.read_text(encoding='utf-8')
           solutions_line = "require_once get_template_directory() . '/inc/nvx-solutions-page.php';\n"
-          if functions.count(solutions_line) != 2:
-              raise SystemExit(f'Expected two solutions requires, found {functions.count(solutions_line)}')
-          functions = functions.replace(solutions_line + solutions_line, solutions_line, 1)
+          if functions.count(solutions_line) == 2:
+              functions = functions.replace(solutions_line + solutions_line, solutions_line, 1)
           contact_line = "require_once get_template_directory() . '/inc/nvx-contacto-valoracion-page.php';\n"
           managed_line = "require_once get_template_directory() . '/inc/nvx-valoracion-managed-page.php';\n"
           if managed_line not in functions:
@@ -66,9 +65,8 @@ jobs:
           \t\t$has_managed_editorial = true;
           \t}
           """
-          if shell.count(solutions_block) != 2:
-              raise SystemExit(f'Expected two solutions shell checks, found {shell.count(solutions_block)}')
-          shell = shell.replace(solutions_block + solutions_block, solutions_block, 1)
+          if shell.count(solutions_block) == 2:
+              shell = shell.replace(solutions_block + solutions_block, solutions_block, 1)
           valuation_block = """\tif ( ! $has_managed_editorial && function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
           \t\t$has_managed_editorial = true;
           \t}

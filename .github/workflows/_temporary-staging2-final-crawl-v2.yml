@@ -1,0 +1,105 @@
+name: Temporary Staging2 final sitemap crawl v2
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  crawl:
+    if: startsWith(github.head_ref, 'ops/final-staging2-crawl-v2') && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Configure SiteGround SSH
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/siteground_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/siteground_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host siteground-staging
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/siteground_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+      - name: Crawl canonical sitemap routes at SiteGround origin
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          ssh siteground-staging 'bash -se' > evidence/crawl.log 2>&1 <<'REMOTE'
+          set -Eeuo pipefail
+          python3 - <<'PY'
+          import re, subprocess, json
+          from urllib.parse import urljoin
+          BASE='https://staging2.nuvanx.com/'
+          RESOLVE=['--resolve','staging2.nuvanx.com:443:127.0.0.1']
+          def curl(url):
+              return subprocess.check_output(['curl','-ksS','-L','--max-time','25',*RESOLVE,url], text=True, stderr=subprocess.DEVNULL)
+          index=curl(urljoin(BASE,'wp-sitemap.xml'))
+          sitemaps=re.findall(r'<loc>([^<]+)</loc>',index,re.I)
+          urls=[]
+          for sm in sitemaps:
+              body=curl(sm)
+              urls.extend(re.findall(r'<loc>([^<]+)</loc>',body,re.I))
+          urls.append(BASE)
+          urls=sorted(set(urls))
+          results=[]
+          for url in urls:
+              try:
+                  body=curl(url)
+                  h1=bool(re.search(r'<h1\\b',body,re.I))
+                  main=bool(re.search(r'<main\\b',body,re.I))
+                  css=bool(re.search(r'<link[^>]+rel=["\\\'][^"\\\']*stylesheet',body,re.I))
+                  base=bool(re.search(r'nvx-base\\.css',body,re.I))
+                  status=200
+                  ok=h1 and main and css and base
+              except Exception as e:
+                  body=''; status=0; h1=main=css=base=False; ok=False
+              results.append({'url':url,'status':status,'h1':h1,'main':main,'css':css,'nvx_base':base,'ok':ok,'bytes':len(body)})
+          print('SITEMAPS='+str(len(sitemaps)))
+          print('ROUTES='+str(len(results)))
+          print('PASS='+str(sum(r['ok'] for r in results)))
+          print('FAIL='+str(sum(not r['ok'] for r in results)))
+          for r in results:
+              print(json.dumps(r,ensure_ascii=False))
+          if not results or any(not r['ok'] for r in results): raise SystemExit(2)
+          with open('/tmp/staging2-final-crawl.json','w') as f: json.dump(results,f,ensure_ascii=False,indent=2)
+          PY
+          REMOTE
+          scp siteground-staging:/tmp/staging2-final-crawl.json evidence/staging2-final-crawl.json
+          printf '%s\n' 'FINAL_SITEMAP_CRAWL_OK' > evidence/status.txt
+      - name: Upload final crawl evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging2-final-sitemap-crawl-${{ github.run_id }}
+          path: evidence/
+          retention-days: 14
+          if-no-files-found: error

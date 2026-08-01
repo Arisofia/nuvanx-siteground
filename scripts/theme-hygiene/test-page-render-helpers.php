@@ -112,11 +112,26 @@ $pageShell = (string) file_get_contents(
 $functions = (string) file_get_contents(
     dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/functions.php'
 );
+$solutionsCssPath = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/assets/css/nvx-soluciones-medicas.css';
+nvx_page_helper_assert(
+    is_readable($solutionsCssPath),
+    'Canonical medical solutions page stylesheet must exist.'
+);
 nvx_page_helper_assert(
     str_contains($solutionsModule, "'soluciones-medicas' === \$slug")
         && str_contains($solutionsModule, 'NUVANX_STRATEGY_PAGE:solutions')
         && str_contains($solutionsModule, "get_template_part( 'template-parts/content/nvx-soluciones-medicas-github' )"),
     'Solutions route must resolve by slug/marker and render the canonical template.'
+);
+nvx_page_helper_assert(
+    !str_contains($solutionsModule, 'static $rendered'),
+    'Solutions renderer must remain idempotent and avoid static single-render state.'
+);
+nvx_page_helper_assert(
+    str_contains($solutionsModule, 'function nvx_enqueue_solutions_page_assets()')
+        && str_contains($solutionsModule, "'nvx-soluciones-medicas'")
+        && str_contains($solutionsModule, "add_action( 'wp_enqueue_scripts', 'nvx_enqueue_solutions_page_assets', 20 )"),
+    'Solutions stylesheet must be conditionally enqueued on its canonical route.'
 );
 nvx_page_helper_assert(
     str_contains($pageShell, 'nvx_content_is_solutions_page( $content )'),

@@ -126,7 +126,7 @@ function nvx_document_governance_attachment_id( string $clean_src ): int {
 		return $resolved[ $clean_src ];
 	}
 
-	$cache_key = 'url_attachment_' . md5( $clean_src );
+	$cache_key = 'url_attachment_' . hash( 'sha256', $clean_src );
 	$cached    = wp_cache_get( $cache_key, 'nvx-document-governance' );
 	if ( false !== $cached ) {
 		$resolved[ $clean_src ] = (int) $cached;
@@ -136,7 +136,7 @@ function nvx_document_governance_attachment_id( string $clean_src ): int {
 	$attachment_id = attachment_url_to_postid( $clean_src );
 	if ( $attachment_id <= 0 ) {
 		$original_candidate = (string) preg_replace(
-			'/-[0-9]+x[0-9]+(?=\.[a-z0-9]+$)/iu',
+			'/-\d+x\d+(?=\.[a-z0-9]+$)/iu',
 			'',
 			$clean_src
 		);
@@ -157,6 +157,19 @@ function nvx_document_governance_attachment_id( string $clean_src ): int {
 }
 
 /**
+ * Read width/height integers from attachment metadata or a size entry.
+ *
+ * @param array<string,mixed> $source Metadata or size array.
+ * @return array{0:int,1:int}
+ */
+function nvx_document_governance_pair_dimensions( array $source ): array {
+	return array(
+		isset( $source['width'] ) ? (int) $source['width'] : 0,
+		isset( $source['height'] ) ? (int) $source['height'] : 0,
+	);
+}
+
+/**
  * Resolve dimensions for the exact original or derived attachment filename.
  *
  * @return array{0:int,1:int}
@@ -171,42 +184,40 @@ function nvx_document_governance_attachment_dimensions( int $attachment_id, stri
 	$sizes    = isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] )
 		? $metadata['sizes']
 		: array();
+	$source   = null;
 
 	foreach ( $sizes as $size ) {
-		if ( isset( $size['file'] ) && $basename === (string) $size['file'] ) {
-			return array(
-				isset( $size['width'] ) ? (int) $size['width'] : 0,
-				isset( $size['height'] ) ? (int) $size['height'] : 0,
-			);
+		if ( is_array( $size ) && isset( $size['file'] ) && $basename === (string) $size['file'] ) {
+			$source = $size;
+			break;
 		}
 	}
 
-	if ( preg_match( '/-[0-9]+x[0-9]+\.[a-z0-9]+$/iu', $basename ) ) {
-		return array( 0, 0 );
+	if ( null === $source && ! preg_match( '/-\d+x\d+\.[a-z0-9]+$/iu', $basename ) ) {
+		$source = $metadata;
 	}
 
-	return array(
-		isset( $metadata['width'] ) ? (int) $metadata['width'] : 0,
-		isset( $metadata['height'] ) ? (int) $metadata['height'] : 0,
-	);
+	return null === $source
+		? array( 0, 0 )
+		: nvx_document_governance_pair_dimensions( $source );
 }
 
 /**
  * Add intrinsic dimensions to one eligible image tag.
  */
 function nvx_document_governance_add_dimensions_to_tag( string $tag ): string {
-	if ( preg_match( '/\bwidth\s*=/iu', $tag ) && preg_match( '/\bheight\s*=/iu', $tag ) ) {
+	$has_width  = (bool) preg_match( '/\bwidth\s*=/iu', $tag );
+	$has_height = (bool) preg_match( '/\bheight\s*=/iu', $tag );
+	if ( $has_width && $has_height ) {
 		return $tag;
 	}
 
-	$src = nvx_document_governance_tag_attribute( $tag, 'src' );
-	if ( '' === $src || false === strpos( $src, '/wp-content/uploads/' ) ) {
-		return $tag;
-	}
-
+	$src        = nvx_document_governance_tag_attribute( $tag, 'src' );
 	$site_host  = strtolower( (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
 	$image_host = strtolower( (string) wp_parse_url( $src, PHP_URL_HOST ) );
-	if ( '' !== $image_host && $image_host !== $site_host ) {
+	$is_upload  = '' !== $src && false !== strpos( $src, '/wp-content/uploads/' );
+	$same_host  = '' === $image_host || $image_host === $site_host;
+	if ( ! $is_upload || ! $same_host ) {
 		return $tag;
 	}
 
@@ -218,10 +229,10 @@ function nvx_document_governance_add_dimensions_to_tag( string $tag ): string {
 	}
 
 	$attributes = '';
-	if ( ! preg_match( '/\bwidth\s*=/iu', $tag ) ) {
+	if ( ! $has_width ) {
 		$attributes .= ' width="' . $width . '"';
 	}
-	if ( ! preg_match( '/\bheight\s*=/iu', $tag ) ) {
+	if ( ! $has_height ) {
 		$attributes .= ' height="' . $height . '"';
 	}
 
@@ -354,19 +365,21 @@ function nvx_document_governance_description( string $existing_description, stri
  * Resolve the canonical URL without changing the staging robots policy.
  */
 function nvx_document_governance_canonical_url(): string {
+	$url = '';
+
 	if ( is_404() ) {
-		return '';
-	}
-	if ( function_exists( 'nvx_seo_current_canonical_url' ) ) {
-		return (string) nvx_seo_current_canonical_url();
-	}
-	if ( is_front_page() ) {
-		return home_url( '/' );
+		$url = '';
+	} elseif ( function_exists( 'nvx_seo_current_canonical_url' ) ) {
+		$url = (string) nvx_seo_current_canonical_url();
+	} elseif ( is_front_page() ) {
+		$url = home_url( '/' );
+	} else {
+		$page_id = (int) get_queried_object_id();
+		$permalink = $page_id > 0 ? get_permalink( $page_id ) : '';
+		$url = is_string( $permalink ) && '' !== $permalink ? $permalink : home_url( '/' );
 	}
 
-	$page_id = (int) get_queried_object_id();
-	$url     = $page_id > 0 ? get_permalink( $page_id ) : '';
-	return is_string( $url ) && '' !== $url ? $url : home_url( '/' );
+	return $url;
 }
 
 /**

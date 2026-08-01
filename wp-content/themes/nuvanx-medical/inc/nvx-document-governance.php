@@ -395,10 +395,18 @@ function nvx_document_governance_canonical_url(): string {
 	$url = '';
 
 	if ( is_404() ) {
-		$url = '';
-	} elseif ( function_exists( 'nvx_seo_current_canonical_url' ) ) {
-		$url = (string) nvx_seo_current_canonical_url();
-	} elseif ( is_front_page() ) {
+		return '';
+	}
+
+	if ( function_exists( 'nvx_seo_current_canonical_url' ) ) {
+		$url = trim( (string) nvx_seo_current_canonical_url() );
+	}
+
+	if ( '' !== $url ) {
+		return $url;
+	}
+
+	if ( is_front_page() ) {
 		$url = home_url( '/' );
 	} else {
 		$page_id = (int) get_queried_object_id();

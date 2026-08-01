@@ -12,6 +12,20 @@ const routes = [
   '/equipo-medico/',
   '/clinicas-de-medicina-estetica-nuvanx/'
 ];
+const canonicalStylesheetHandles = [
+  'nvx-tokens',
+  'nvx-base',
+  'nvx-layout',
+  'nvx-components',
+  'nvx-patterns',
+  'nvx-header',
+  'nvx-footer',
+  'nvx-accessibility-governance'
+];
+
+if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
+  throw new Error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
+}
 
 function count(html, pattern) {
   return (html.match(pattern) || []).length;
@@ -26,15 +40,41 @@ function attribute(tag, name) {
   return match ? match[2] : '';
 }
 
-async function verifyRoute(route) {
-  const response = await fetch(`${baseUrl}${route}`, {
-    redirect: 'follow',
-    headers: {
-      'cache-control': 'no-cache',
-      pragma: 'no-cache',
-      'user-agent': 'NUVANX-Rendered-Document-Acceptance/1.0'
+function delay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function fetchWithRetry(url, attempts = 3) {
+  let lastError = new Error(`No response received from ${url}`);
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        redirect: 'follow',
+        signal: AbortSignal.timeout(15000),
+        headers: {
+          'cache-control': 'no-cache, no-store, max-age=0',
+          pragma: 'no-cache',
+          'user-agent': 'NUVANX-Rendered-Document-Acceptance/1.0'
+        }
+      });
+
+      if (response.status < 500) return response;
+
+      await response.body?.cancel();
+      lastError = new Error(`${url}: transient upstream status ${response.status}`);
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
     }
-  });
+
+    if (attempt < attempts) await delay(attempt * 2500);
+  }
+
+  throw new Error(`${url}: request failed after ${attempts} attempts: ${lastError.message}`);
+}
+
+async function verifyRoute(route) {
+  const response = await fetchWithRetry(`${baseUrl}${route}`);
   const html = await response.text();
 
   assert(response.ok, `${route}: expected 2xx, received ${response.status}`);
@@ -59,9 +99,9 @@ async function verifyRoute(route) {
   assert(!html.includes('NUVANX_STRATEGY_PAGE:'), `${route}: unresolved CMS strategy marker leaked into public HTML`);
   assert(!html.includes('FacebookSignal'), `${route}: retired FacebookSignal runtime leaked into public HTML`);
 
-  const stylesheetCount = count(html, /<link\b(?=[^>]*\brel=["']stylesheet["'])[^>]*>/gi);
-  assert(stylesheetCount >= 5, `${route}: design-system stylesheets are missing (${stylesheetCount} found)`);
-  assert(html.includes('nvx-accessibility-governance'), `${route}: global accessibility stylesheet missing`);
+  for (const handle of canonicalStylesheetHandles) {
+    assert(html.includes(handle), `${route}: canonical stylesheet '${handle}' missing`);
+  }
   assert(html.includes('nvx-runtime-governance'), `${route}: global runtime governance script missing`);
 
   if (html.includes('googlesitekit-consent-mode')) {
@@ -75,7 +115,7 @@ async function verifyRoute(route) {
 
   const shaMatch = html.match(/<meta\b[^>]*\bname=["']nvx-deploy-sha["'][^>]*\bcontent=["']([0-9a-f]{40})["'][^>]*>/i);
   assert(shaMatch, `${route}: immutable deploy SHA marker missing`);
-  if (expectedSha) assert(shaMatch[1] === expectedSha, `${route}: deployed SHA ${shaMatch[1]} does not match ${expectedSha}`);
+  assert(shaMatch[1] === expectedSha, `${route}: deployed SHA ${shaMatch[1]} does not match ${expectedSha}`);
 
   if ('/soluciones-medicas/' === route) {
     assert(html.includes('nvx-solutions-page'), `${route}: canonical solutions hierarchy missing`);
@@ -89,15 +129,27 @@ async function verifyRoute(route) {
     assert(/\bheight=["']\d+["']/i.test(evidence[0]), `${route}: home evidence image height missing`);
   }
 
-  if ('/madrid/valoracion/' !== route) {
-    assert(!/<script\b[^>]*\bsrc=["'][^"']*hsforms\.net[^"']*["'][^>]*>/i.test(html), `${route}: HubSpot embed must not load before user intent`);
-  }
+  assert(
+    !/<script\b[^>]*\bsrc=["'][^"']*(?:hsforms\.net|hsforms\.com|hs-scripts\.com)[^"']*["'][^>]*>/i.test(html),
+    `${route}: HubSpot embed must not load before explicit user intent`
+  );
 
   return { route, sha: shaMatch[1], title: titles[0][1].replace(/<[^>]+>/g, '').trim() };
 }
 
 const results = [];
-for (const route of routes) results.push(await verifyRoute(route));
+const failures = [];
+for (const route of routes) {
+  try {
+    results.push(await verifyRoute(route));
+  } catch (error) {
+    failures.push(error instanceof Error ? error.message : `${route}: ${String(error)}`);
+  }
+}
+
+if (failures.length) {
+  throw new Error(`Rendered acceptance failed:\n- ${failures.join('\n- ')}`);
+}
 
 const deployedShas = new Set(results.map((result) => result.sha));
 assert(deployedShas.size === 1, `Routes serve different deployment SHAs: ${[...deployedShas].join(', ')}`);

@@ -19,8 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_valoracion_managed_page_markup(): string {
 	$valuation_url = home_url( '/madrid/valoracion/' );
 	$whatsapp_url  = 'https://wa.me/34669319836';
-	$form_id       = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
-	$portal_id     = '147416356';
+	$form_id       = defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+	$portal_id     = defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356';
 
 	$html  = '<div class="nvx-brand-page nvx-valoracion-page" id="nvx-valoracion-main" aria-labelledby="nvx-valoracion-h1">';
 	$html .= '<section class="nvx-brand-hero nvx-editorial-hero nvx-canonical-page-hero" aria-labelledby="nvx-valoracion-h1">';

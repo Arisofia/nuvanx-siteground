@@ -38,6 +38,10 @@ Same-origin WordPress attachment images missing intrinsic dimensions receive the
 
 ## Validation
 
-`Theme Hygiene Gate` validates source and runtime contracts before merge.
+`Theme Hygiene Gate` validates source, workflow and runtime contracts before merge.
 
-`Staging2 Rendered Acceptance` runs after a successful manual deployment and validates the rendered HTML of the critical route inventory. All checked routes must serve the same deployment SHA. A 2xx response alone is not release acceptance.
+The actual `Deploy Staging2 (manual)` deployment job executes rendered acceptance immediately after verifying the deployed marker. It passes the same immutable `DEPLOY_SHA` to the verifier, so a stale but internally consistent release cannot pass.
+
+`Staging2 Rendered Acceptance` is an independent manual revalidation workflow. It requires the operator to provide the full deployed SHA and cannot be triggered by pull-request-only deployment contract runs.
+
+Both paths validate the rendered HTML of the critical route inventory. All checked routes must serve the exact expected SHA. A 2xx response alone is not release acceptance.

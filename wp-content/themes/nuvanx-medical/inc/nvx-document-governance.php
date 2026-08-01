@@ -460,7 +460,14 @@ function nvx_document_governance_normalize_head( string $head, string $visible_t
 
 	$charset_pattern = '/<meta\b[^>]*charset\s*=\s*(["\'])?[^\s>"\']+\1?[^>]*>/iu';
 	if ( 1 === preg_match( $charset_pattern, $head ) ) {
-		$normalized = preg_replace( $charset_pattern, '$0' . $metadata, $head, 1 );
+		$normalized = preg_replace_callback(
+			$charset_pattern,
+			static function ( array $match ) use ( $metadata ): string {
+				return $match[0] . $metadata;
+			},
+			$head,
+			1
+		);
 		return is_string( $normalized ) ? $normalized : $metadata . $head;
 	}
 

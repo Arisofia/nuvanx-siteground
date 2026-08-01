@@ -43,7 +43,7 @@
   pointer-events: none;
 }
 
-@media (max-width: 72rem) {
+@media (max-width: 71.999rem) {
   .nvx-header .nvx-nav {
     display: none;
   }
@@ -52,8 +52,8 @@
     display: block;
   }
 
-  .nvx-mobile-nav[aria-hidden="false"],
-  .nvx-mobile-nav.is-open {
+  .nvx-mobile-nav[aria-hidden="false"]:not([inert]),
+  .nvx-mobile-nav.is-open:not([inert]) {
     display: flex;
   }
 
@@ -62,7 +62,7 @@
   }
 }
 
-@media (min-width: 72.001rem) {
+@media (min-width: 72rem) {
   .nvx-mobile-nav,
   .nvx-mobile-nav.is-open,
   .nvx-mobile-nav[aria-hidden="false"] {

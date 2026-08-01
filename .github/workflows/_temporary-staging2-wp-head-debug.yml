@@ -1,0 +1,91 @@
+name: Temporary Staging2 wp_head CSS debug
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Configure SiteGround SSH
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/siteground_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/siteground_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host siteground-staging
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/siteground_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+      - name: Inspect wp_head CSS lifecycle
+        run: |
+          set -euo pipefail
+          ssh siteground-staging 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          ROOT=/home/customer/www/staging2.nuvanx.com/public_html
+          DEBUG_PLUGIN="$ROOT/wp-content/mu-plugins/nvx-wp-head-debug.php"
+          LOG=/tmp/nvx-wp-head-debug.log
+          cat > "$DEBUG_PLUGIN" <<'PHP'
+          <?php
+          $nvx_log = static function ( string $line ): void { file_put_contents('/tmp/nvx-wp-head-debug.log', $line . "\n", FILE_APPEND); };
+          add_action('wp_enqueue_scripts', static function () use ($nvx_log): void {
+              $s=wp_styles(); $nvx_log('ENQUEUE queue='.wp_json_encode($s->queue).' to_do='.wp_json_encode($s->to_do).' done='.wp_json_encode($s->done));
+          }, 9999);
+          add_action('wp_head', static function () use ($nvx_log): void {
+              global $wp_filter;
+              $hook=$wp_filter['wp_head']??null; $rows=[];
+              if($hook && isset($hook->callbacks)) { foreach($hook->callbacks as $priority=>$callbacks) { foreach($callbacks as $cb) { $f=$cb['function']??null; if(is_string($f)){$name=$f;} elseif(is_array($f)){$name=(is_object($f[0])?get_class($f[0]):(string)$f[0]).'::'.(string)$f[1];} else {$name='closure';} $rows[]=$priority.':'.$name; } } }
+              $nvx_log('WP_HEAD_EARLY has_wp_print_styles='.(has_action('wp_head','wp_print_styles')!==false?'yes':'no').' has_wp_print_head_scripts='.(has_action('wp_head','wp_print_head_scripts')!==false?'yes':'no'));
+              $nvx_log('WP_HEAD_CALLBACKS='.wp_json_encode($rows));
+          }, 0);
+          add_action('wp_head', static function () use ($nvx_log): void {
+              $s=wp_styles(); $nvx_log('WP_HEAD_LATE queue='.wp_json_encode($s->queue).' to_do='.wp_json_encode($s->to_do).' done='.wp_json_encode($s->done).' did_wp_print_styles='.did_action('wp_print_styles'));
+          }, 99999);
+          PHP
+          rm -f "$LOG"
+          cd "$ROOT"
+          curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/ -o /tmp/nvx-wp-head.html
+          echo '--- DEBUG ---'
+          cat "$LOG"
+          echo '--- HTML CSS ---'
+          python3 - <<'PY'
+          import re
+          s=open('/tmp/nvx-wp-head.html',encoding='utf8',errors='replace').read()
+          styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]
+          print('HTML_BYTES='+str(len(s)))
+          print('STYLESHEET_TAGS='+str(len(styles)))
+          print('NVX_BASE='+str('nvx-base.css' in s))
+          PY
+          rm -f "$DEBUG_PLUGIN" "$LOG"
+          REMOTE

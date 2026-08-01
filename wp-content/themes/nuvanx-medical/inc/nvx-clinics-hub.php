@@ -655,7 +655,7 @@ function nvxClinicsCardLinkNeedsDemotion( string $text, DOMElement $link ): bool
 }
 
 /** Determine the presentation treatment for one clinic CTA. */
-function nvxClinicsCtaTreatment( DOMElement $link, string $href, string $text, bool $is_btn ): string {
+function nvxClinicsCtaTreatment( DOMElement $link, string $href, string $text, bool $isBtn ): string {
     $treatment = '';
     $parent    = $link->parentNode;
 
@@ -669,9 +669,9 @@ function nvxClinicsCtaTreatment( DOMElement $link, string $href, string $text, b
         $treatment = 'map';
     } elseif ( nvxClinicsLinkIsSecondaryAction( $href, $text ) ) {
         $treatment = 'secondary';
-    } elseif ( $is_btn && nvxClinicsLinkIsPrimaryAction( $text ) ) {
+    } elseif ( $isBtn && nvxClinicsLinkIsPrimaryAction( $text ) ) {
         $treatment = 'primary';
-    } elseif ( $is_btn && nvxClinicsCardLinkNeedsDemotion( $text, $link ) ) {
+    } elseif ( $isBtn && nvxClinicsCardLinkNeedsDemotion( $text, $link ) ) {
         $treatment = 'inline';
     }
 
@@ -680,8 +680,8 @@ function nvxClinicsCtaTreatment( DOMElement $link, string $href, string $text, b
 
 /** Classify and style single CTA link node. */
 function nvxClinicsClassifySingleCtaLink( DOMElement $link, string $href, string $text, string $class ): void {
-    $is_btn    = (bool) preg_match( '/\b(nvx-brand-btn|nvx-button|nvx-btn)\b/i', $class );
-    $treatment = nvxClinicsCtaTreatment( $link, $href, $text, $is_btn );
+    $isBtn     = (bool) preg_match( '/\b(nvx-brand-btn|nvx-button|nvx-btn)\b/i', $class );
+    $treatment = nvxClinicsCtaTreatment( $link, $href, $text, $isBtn );
 
     switch ( $treatment ) {
         case 'solicitar':

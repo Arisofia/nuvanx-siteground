@@ -20,7 +20,7 @@ jobs:
       - name: Install Chromium runtime
         run: |
           set -euo pipefail
-          npm install --no-save playwright-core@1.55.0
+          npm install --ignore-scripts --no-save playwright-core@1.55.0
           test -x /usr/bin/chromium
           mkdir -p evidence/site-root
       - name: Configure SiteGround SSH

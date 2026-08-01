@@ -102,7 +102,7 @@ jobs:
       - name: Verify desktop and mobile computed styles from repaired origin
         run: |
           set -euo pipefail
-          npm install --no-save playwright-core@1.55.0
+          npm install --ignore-scripts --no-save playwright-core@1.55.0
           test -x /usr/bin/chromium
           mkdir -p evidence/site-root
           tar -xzf evidence/repaired-origin.tgz -C evidence/site-root

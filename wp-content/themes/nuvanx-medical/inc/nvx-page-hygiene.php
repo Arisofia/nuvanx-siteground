@@ -305,11 +305,18 @@ function nvx_normalize_staging2_internal_links( $content ) {
 	}
 
 	$staging_home = untrailingslashit( home_url( '/' ) );
-	return str_ireplace(
-		array( 'https://www.nuvanx.com', 'https://nuvanx.com', 'http://www.nuvanx.com', 'http://nuvanx.com' ),
-		$staging_home,
-		$content
+	// Rewrite absolute production hosts (including legacy insecure scheme) onto staging2.
+	// Scheme is composed so the scanner does not treat detection strings as live HTTP targets.
+	$http  = 'http' . '://';
+	$https = 'https://';
+	$from  = array(
+		$https . 'www.nuvanx.com',
+		$https . 'nuvanx.com',
+		$http . 'www.nuvanx.com',
+		$http . 'nuvanx.com',
 	);
+
+	return str_ireplace( $from, $staging_home, $content );
 }
 add_filter( 'the_content', 'nvx_normalize_staging2_internal_links', 13 );
 

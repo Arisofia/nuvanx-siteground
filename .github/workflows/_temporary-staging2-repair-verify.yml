@@ -93,7 +93,7 @@ jobs:
       - name: Verify computed styles desktop and mobile
         run: |
           set -euo pipefail
-          npm install --no-save playwright-core@1.55.0
+          npm install --ignore-scripts --no-save playwright-core@1.55.0
           test -x /usr/bin/chromium
           python3 -m http.server 8765 --directory evidence/site-root >/tmp/nvx-http.log 2>&1 &
           SERVER_PID=$!

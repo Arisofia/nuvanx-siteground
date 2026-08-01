@@ -58,6 +58,7 @@ function nvx_document_governance_enqueue_assets(): void {
 		true
 	);
 
+	// Defense in depth: strip eager HubSpot even if another plugin re-enqueued it.
 	wp_dequeue_script( 'nvx-hubspot-forms-embed' );
 	wp_deregister_script( 'nvx-hubspot-forms-embed' );
 
@@ -83,6 +84,15 @@ function nvx_document_governance_enqueue_assets(): void {
 		'before'
 	);
 }
+
+/**
+ * Early HubSpot deregistration so the browser never sees an eager forms embed handle.
+ */
+function nvx_document_governance_strip_eager_hubspot(): void {
+	wp_dequeue_script( 'nvx-hubspot-forms-embed' );
+	wp_deregister_script( 'nvx-hubspot-forms-embed' );
+}
+add_action( 'wp_enqueue_scripts', 'nvx_document_governance_strip_eager_hubspot', 1 );
 add_action( 'wp_enqueue_scripts', 'nvx_document_governance_enqueue_assets', 100 );
 
 /**
@@ -234,7 +244,14 @@ function nvx_document_governance_apply_dimensions(
 		$attributes .= ' height="' . $height . '"';
 	}
 
-	$candidate = preg_replace( '/\s*\/?>$/u', $attributes . '$0', $tag, 1 );
+	$candidate = preg_replace_callback(
+		'/\s*\/?>$/u',
+		static function ( array $match ) use ( $attributes ): string {
+			return $attributes . $match[0];
+		},
+		$tag,
+		1
+	);
 	return is_string( $candidate ) ? $candidate : $tag;
 }
 
@@ -390,28 +407,26 @@ function nvx_document_governance_description( string $existing_description, stri
 
 /**
  * Resolve the canonical URL without changing the staging robots policy.
+ *
+ * Always returns a non-empty absolute URL for public HTML so the rendered
+ * document never ships without a canonical link.
  */
 function nvx_document_governance_canonical_url(): string {
-	$url = '';
+	$fallback = home_url( '/' );
+	$url      = '';
 
-	if ( is_404() ) {
-		return '';
-	}
-
-	if ( function_exists( 'nvx_seo_current_canonical_url' ) ) {
+	if ( ! is_404() && function_exists( 'nvx_seo_current_canonical_url' ) ) {
 		$url = trim( (string) nvx_seo_current_canonical_url() );
 	}
 
-	if ( '' !== $url ) {
-		return $url;
+	if ( '' === $url && ! is_404() && ! is_front_page() ) {
+		$page_id   = (int) get_queried_object_id();
+		$permalink = $page_id > 0 ? get_permalink( $page_id ) : '';
+		$url       = is_string( $permalink ) ? trim( $permalink ) : '';
 	}
 
-	if ( is_front_page() ) {
-		$url = home_url( '/' );
-	} else {
-		$page_id = (int) get_queried_object_id();
-		$permalink = $page_id > 0 ? get_permalink( $page_id ) : '';
-		$url = is_string( $permalink ) && '' !== $permalink ? $permalink : home_url( '/' );
+	if ( '' === $url ) {
+		$url = $fallback;
 	}
 
 	return $url;
@@ -444,18 +459,30 @@ function nvx_document_governance_normalize_head( string $head, string $visible_t
 	);
 	$canonical   = nvx_document_governance_canonical_url();
 
-	$head = (string) preg_replace( '/<title\b[^>]*>[\s\S]*?<\/title>/iu', '', $head );
-	$head = (string) preg_replace( '/<meta\b(?=[^>]*\bname\s*=\s*(["\'])description\1)[^>]*>/iu', '', $head );
-	$head = (string) preg_replace( '/<link\b(?=[^>]*\brel\s*=\s*(["\'])canonical\1)[^>]*>/iu', '', $head );
-	$head = (string) preg_replace( '/<meta\b(?=[^>]*\bname\s*=\s*(["\'])nvx-document-contract\1)[^>]*>/iu', '', $head );
-	$head = (string) preg_replace( '/<meta\b(?=[^>]*\bname\s*=\s*(["\'])viewport\1)[^>]*>/iu', '', $head );
+	// Literal removals (empty replacement) avoid backreference interpretation hazards.
+	$strip_patterns = array(
+		'/<title\b[^>]*>[\s\S]*?<\/title>/iu',
+		'/<meta\b(?=[^>]*\bname\s*=\s*(["\'])description\1)[^>]*>/iu',
+		'/<link\b(?=[^>]*\brel\s*=\s*(["\'])canonical\1)[^>]*>/iu',
+		'/<meta\b(?=[^>]*\bname\s*=\s*(["\'])nvx-document-contract\1)[^>]*>/iu',
+		'/<meta\b(?=[^>]*\bname\s*=\s*(["\'])viewport\1)[^>]*>/iu',
+	);
+	foreach ( $strip_patterns as $pattern ) {
+		$stripped = preg_replace_callback(
+			$pattern,
+			static function (): string {
+				return '';
+			},
+			$head
+		);
+		$head = is_string( $stripped ) ? $stripped : $head;
+	}
 
 	$metadata  = "\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n";
 	$metadata .= '<title>' . esc_html( $title ) . '</title>' . "\n";
 	$metadata .= '<meta name="description" content="' . esc_attr( $description ) . '" />' . "\n";
-	if ( '' !== $canonical ) {
-		$metadata .= '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
-	}
+	// Always emit exactly one canonical for public documents.
+	$metadata .= '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
 	$metadata .= '<meta name="nvx-document-contract" content="1" />' . "\n";
 
 	$charset_pattern = '/<meta\b[^>]*charset\s*=\s*(["\'])?[^\s>"\']+\1?[^>]*>/iu';
@@ -463,6 +490,7 @@ function nvx_document_governance_normalize_head( string $head, string $visible_t
 		$normalized = preg_replace_callback(
 			$charset_pattern,
 			static function ( array $match ) use ( $metadata ): string {
+				// Concatenate rather than using $0/$1 in the replacement string.
 				return $match[0] . $metadata;
 			},
 			$head,

@@ -131,6 +131,7 @@ nvx_document_contract_assert(
 nvx_document_contract_assert(
     str_contains($module, "wp_dequeue_script( 'nvx-hubspot-forms-embed' )")
         && str_contains($module, "wp_deregister_script( 'nvx-hubspot-forms-embed' )")
+        && str_contains($module, 'nvx_document_governance_strip_eager_hubspot')
         && str_contains($module, 'PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_REMOVABLE')
         && str_contains($module, 'nvx_document_governance_attachment_id')
         && str_contains($module, 'nvx_document_governance_attachment_dimensions')
@@ -140,11 +141,14 @@ nvx_document_contract_assert(
 );
 nvx_document_contract_assert(
     str_contains($integrations, 'nvx_document_governance_remove_retired_scripts( $html )')
+        && str_contains($integrations, 'nvx_theme_is_eager_hubspot_embed')
+        && str_contains($integrations, "return '';")
         && !str_contains($integrations, '[\\s\\S]*?FacebookSignal[\\s\\S]*?')
         && !str_contains($integrations, 'window.FacebookSignal=window.FacebookSignal')
         && !str_contains($integrations, 'forms-eu1.hsforms.com')
-        && !str_contains($integrations, 'js-eu1.hsforms.net'),
-    'Legacy integrations must delegate safe cleanup and must not reintroduce cross-script deletion or eager HubSpot connections.'
+        && !str_contains($integrations, 'js-eu1.hsforms.net')
+        && !str_contains($integrations, "str_replace( ' src=', ' defer src='"),
+    'Legacy integrations must hard-block eager HubSpot tags and must not reintroduce cross-script deletion.'
 );
 nvx_document_contract_assert(
     str_contains($css, '--nvx-touch-target-min')

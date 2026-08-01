@@ -34,6 +34,7 @@
 
     function synchronize() {
       var open = isOpen();
+      var focusWasInside = nav.contains(document.activeElement);
       setInert(nav, !open);
 
       if (open && !wasOpen) {
@@ -43,12 +44,23 @@
         }, 0);
       }
 
-      if (!open && wasOpen && typeof trigger.focus === 'function') trigger.focus();
+      if (!open && wasOpen && focusWasInside && typeof trigger.focus === 'function') {
+        trigger.focus();
+      }
       wasOpen = open;
     }
 
     setInert(nav, !isOpen());
     wasOpen = isOpen();
+
+    // Remove inert synchronously before the existing menu handler exposes the drawer.
+    trigger.addEventListener(
+      'click',
+      function () {
+        if (!isOpen()) setInert(nav, false);
+      },
+      true
+    );
 
     new MutationObserver(synchronize).observe(nav, {
       attributes: true,
@@ -85,6 +97,12 @@
       var first = focusables[0];
       var last = focusables[focusables.length - 1];
 
+      if (!nav.contains(document.activeElement)) {
+        event.preventDefault();
+        first.focus();
+        return;
+      }
+
       if (event.shiftKey && document.activeElement === first) {
         event.preventDefault();
         last.focus();
@@ -104,6 +122,7 @@
     var promise = null;
 
     function initializeForms() {
+      modal.classList.remove('nvx-valoracion-modal--embed-error');
       if (window.HubSpotForms && typeof window.HubSpotForms.initialize === 'function') {
         window.HubSpotForms.initialize();
       }
@@ -120,11 +139,21 @@
         var scriptId = config.hubspotScriptId || 'nvx-hubspot-forms-runtime';
         var existing = document.getElementById(scriptId);
         if (existing) {
+          if (existing.dataset.nvxLoaded === '1') {
+            initializeForms();
+            resolve();
+            return;
+          }
+
           existing.addEventListener('load', function () {
+            existing.dataset.nvxLoaded = '1';
             initializeForms();
             resolve();
           }, { once: true });
-          existing.addEventListener('error', reject, { once: true });
+          existing.addEventListener('error', function () {
+            existing.remove();
+            reject(new Error('Existing HubSpot form embed failed to load.'));
+          }, { once: true });
           return;
         }
 
@@ -132,12 +161,13 @@
         script.id = scriptId;
         script.src = config.hubspotScriptUrl;
         script.async = true;
-        script.defer = true;
         script.addEventListener('load', function () {
+          script.dataset.nvxLoaded = '1';
           initializeForms();
           resolve();
         }, { once: true });
         script.addEventListener('error', function () {
+          script.remove();
           modal.classList.add('nvx-valoracion-modal--embed-error');
           reject(new Error('HubSpot form embed failed to load.'));
         }, { once: true });
@@ -145,7 +175,8 @@
       });
 
       promise.catch(function () {
-        // The modal keeps its full-page fallback link when the embed is blocked.
+        // Allow a later retry. The modal retains its full-page fallback link.
+        promise = null;
       });
       return promise;
     }

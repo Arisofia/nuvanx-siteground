@@ -115,6 +115,8 @@ jobs:
           git add wp-content/themes/nuvanx-medical/functions.php
           git add wp-content/themes/nuvanx-medical/template-parts/content/nvx-page-shell.php
           git add .github/workflows/theme-hygiene-gate.yml
-          git diff --cached --check
-          git commit -m 'fix(valoracion): integrate managed form release contracts'
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          if ! git diff --cached --quiet; then
+            git diff --cached --check
+            git commit -m 'fix(valoracion): integrate managed form release contracts'
+            git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          fi

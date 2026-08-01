@@ -1,0 +1,76 @@
+name: Temporary Staging2 cache-bust CSS diagnostic
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Configure SiteGround SSH
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/siteground_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/siteground_key" "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host siteground-staging
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/siteground_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+      - name: Compare normal, cache-busted and no-cache origin responses
+        run: |
+          set -euo pipefail
+          ssh siteground-staging 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          base=https://staging2.nuvanx.com/
+          probe() {
+            name="$1"; shift
+            file="/tmp/nvx-cache-${name}.html"
+            headers="/tmp/nvx-cache-${name}.headers"
+            curl -ksS -D "$headers" -o "$file" --resolve staging2.nuvanx.com:443:127.0.0.1 "$@" "$base"
+            python3 - "$name" "$file" <<'PY'
+          import re,sys
+          name,file=sys.argv[1:]
+          s=open(file,encoding='utf8',errors='replace').read()
+          styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]
+          print(name+' HTML_BYTES='+str(len(s))+' STYLESHEET_TAGS='+str(len(styles))+' NVX_BASE='+str('nvx-base.css' in s))
+          PY
+            echo "--- ${name} HEADERS ---"
+            grep -Ei '^(HTTP/|cache-control:|age:|etag:|x-cache:|x-proxy-cache:|sg-|server:)' "$headers" || true
+          }
+          wp sg purge || true
+          probe normal
+          probe query '?nvx_css_probe=20260801T165700Z'
+          probe nocache -H 'Cache-Control: no-cache, no-store, max-age=0' -H 'Pragma: no-cache'
+          REMOTE

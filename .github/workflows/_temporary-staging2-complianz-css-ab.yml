@@ -74,11 +74,10 @@ jobs:
           s=open('/tmp/nvx-complianz-disabled.html',encoding='utf8',errors='replace').read()
           styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]
           print('DISABLED_STYLESHEET_TAGS='+str(len(styles))+' NVX_BASE='+str('nvx-base.css' in s))
-          if len(styles)>=5 and 'nvx-base.css' in s:
-            echo='ROOT_CAUSE=complianz-output-buffer'
-            print(echo)
-            print('REMEDIATION=disable-or-reconfigure-complianz-buffer')
-            raise SystemExit(0)
-          raise SystemExit('Complianz not causal')
+          print('COMPLIANZ_CAUSAL='+str(len(styles)>=5 and 'nvx-base.css' in s))
           PY
+          wp plugin activate "$plugin"
+          wp cache flush || true
+          wp sg purge || true
+          echo 'COMPLIANZ_RESTORED=1'
           REMOTE

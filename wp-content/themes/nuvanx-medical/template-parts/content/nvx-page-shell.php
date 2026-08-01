@@ -73,7 +73,7 @@ while ( have_posts() ) :
 	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {
 		$has_managed_editorial = true;
 	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {
+	if ( ! $has_managed_editorial && function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
 		$has_managed_editorial = true;
 	}
 

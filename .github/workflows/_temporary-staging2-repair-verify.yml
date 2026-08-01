@@ -67,17 +67,26 @@ jobs:
       - name: Verify origin CSS delivery
         run: |
           set -euo pipefail
-          ssh siteground-staging 'curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/ -o /tmp/nvx-verified-home.html && python3 - <<"PY"
+          ssh siteground-staging 'bash -se' <<'REMOTE'
+          set -Eeuo pipefail
+          ROOT=/home/customer/www/staging2.nuvanx.com/public_html
+          curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/ -o /tmp/nvx-verified-home.html
+          python3 - <<'PY'
           import re
-          s=open("/tmp/nvx-verified-home.html",encoding="utf8",errors="replace").read()
-          styles=[x for x in re.findall(r"<link\\b[^>]*>",s,re.I) if re.search(r"rel=[\"\\\'][^\"\\\']*stylesheet",x,re.I)]
-          print("HTML_BYTES="+str(len(s)))
-          print("STYLESHEET_TAGS="+str(len(styles)))
-          print("NVX_BASE="+str("nvx-base.css" in s))
+          s=open('/tmp/nvx-verified-home.html',encoding='utf8',errors='replace').read()
+          styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]
+          print('HTML_BYTES='+str(len(s)))
+          print('STYLESHEET_TAGS='+str(len(styles)))
+          print('NVX_BASE='+str('nvx-base.css' in s))
           for x in styles: print(x)
-          if len(styles)<5 or "nvx-base.css" not in s: raise SystemExit("CSS delivery still broken")
-          PY'
-          ssh siteground-staging 'rm -rf /tmp/nvx-verified-site-root && mkdir -p /tmp/nvx-verified-site-root/wp-content/themes/nuvanx-medical/assets && cp /tmp/nvx-verified-home.html /tmp/nvx-verified-site-root/index.html && cp -a /home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical/assets/css /tmp/nvx-verified-site-root/wp-content/themes/nuvanx-medical/assets/ && tar -czf /tmp/nvx-verified-origin.tgz -C /tmp/nvx-verified-site-root .'
+          if len(styles)<5 or 'nvx-base.css' not in s: raise SystemExit('CSS delivery still broken')
+          PY
+          rm -rf /tmp/nvx-verified-site-root
+          mkdir -p /tmp/nvx-verified-site-root/wp-content/themes/nuvanx-medical/assets
+          cp /tmp/nvx-verified-home.html /tmp/nvx-verified-site-root/index.html
+          cp -a "$ROOT/wp-content/themes/nuvanx-medical/assets/css" /tmp/nvx-verified-site-root/wp-content/themes/nuvanx-medical/assets/
+          tar -czf /tmp/nvx-verified-origin.tgz -C /tmp/nvx-verified-site-root .
+          REMOTE
           scp siteground-staging:/tmp/nvx-verified-origin.tgz evidence/verified-origin.tgz
           tar -xzf evidence/verified-origin.tgz -C evidence/site-root
           echo 'CSS_DELIVERY=OK'

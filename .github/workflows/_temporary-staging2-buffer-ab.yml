@@ -56,7 +56,9 @@ jobs:
           ROOT=/home/customer/www/staging2.nuvanx.com/public_html
           cd "$ROOT"
           test_variant() {
-            local name="$1" code="$2" plugin="$ROOT/wp-content/mu-plugins/nvx-buffer-ab-${name}.php"
+            local name="$1"
+            local code="$2"
+            local plugin="$ROOT/wp-content/mu-plugins/nvx-buffer-ab-${name}.php"
             cat > "$plugin" <<PHP
           <?php
           $code

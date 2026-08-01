@@ -10,6 +10,7 @@ on:
       - 'scripts/staging2/verify-rendered-document.mjs'
       - 'docs/operations/global-document-governance*.md'
       - '.github/workflows/theme-hygiene-gate.yml'
+      - '.github/workflows/staging2-rendered-acceptance.yml'
   pull_request:
     branches:
       - master
@@ -19,6 +20,7 @@ on:
       - 'scripts/staging2/verify-rendered-document.mjs'
       - 'docs/operations/global-document-governance*.md'
       - '.github/workflows/theme-hygiene-gate.yml'
+      - '.github/workflows/staging2-rendered-acceptance.yml'
   workflow_dispatch:
 
 concurrency:
@@ -38,10 +40,12 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Lint workflow and JavaScript contracts
+      - name: Lint workflows and JavaScript contracts
         run: |
           set -euo pipefail
-          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 .github/workflows/theme-hygiene-gate.yml
+          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 \
+            .github/workflows/theme-hygiene-gate.yml \
+            .github/workflows/staging2-rendered-acceptance.yml
           node --check scripts/theme-hygiene/test-theme-hygiene.mjs
           node --check scripts/staging2/verify-rendered-document.mjs
           node --check wp-content/themes/nuvanx-medical/assets/js/nvx-runtime-governance.js

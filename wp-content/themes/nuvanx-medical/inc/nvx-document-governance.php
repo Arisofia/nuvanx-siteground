@@ -242,8 +242,8 @@ function nvx_document_governance_apply_dimensions(
  * Add intrinsic dimensions to one eligible image tag.
  */
 function nvx_document_governance_add_dimensions_to_tag( string $tag ): string {
-	$has_width  = (bool) preg_match( '/\bwidth\s*=/iu', $tag );
-	$has_height = (bool) preg_match( '/\bheight\s*=/iu', $tag );
+	$has_width  = (bool) preg_match( '/(?:^|\s)width\s*=/iu', $tag );
+	$has_height = (bool) preg_match( '/(?:^|\s)height\s*=/iu', $tag );
 	$normalized = $tag;
 
 	if ( ! ( $has_width && $has_height ) ) {

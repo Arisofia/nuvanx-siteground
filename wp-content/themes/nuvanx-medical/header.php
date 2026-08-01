@@ -1,5 +1,8 @@
 <?php
 defined( 'ABSPATH' ) || exit;
+
+require_once __DIR__ . '/inc/nvx-document-governance.php';
+nvx_document_governance_start();
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
@@ -43,7 +46,7 @@ defined( 'ABSPATH' ) || exit;
     </button>
   </div>
 </header>
-<div id="nvx-mobile-nav" class="nvx-mobile-nav" role="dialog" aria-modal="true" aria-label="Menú móvil" aria-hidden="true">
+<div id="nvx-mobile-nav" class="nvx-mobile-nav" role="dialog" aria-modal="true" aria-label="Menú móvil" aria-hidden="true" inert>
   <button class="nvx-mobile-nav__close" id="nvx-mobile-close" aria-label="Cerrar menú">&times;</button>
   <?php wp_nav_menu( array( 'theme_location' => 'primary', 'menu_class' => 'nvx-mobile-nav__list', 'container' => false, 'fallback_cb' => false ) ); ?>
   <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary nvx-open-valoracion-modal" id="nvx-mobile-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>

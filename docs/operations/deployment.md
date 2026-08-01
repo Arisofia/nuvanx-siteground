@@ -9,10 +9,11 @@ through the GitHub Actions workflow **Deploy Staging2 (manual)**
 (`.github/workflows/deploy-staging2.yml`) using `workflow_dispatch` from the
 `master` branch.
 
-The workflow deploys only:
+The workflow deploys:
 
 ```text
 wp-content/themes/nuvanx-medical/
+wp-content/mu-plugins/ (required NUVANX MU plugins)
 ```
 
 It does not deploy to production, does not copy the database, does not replace

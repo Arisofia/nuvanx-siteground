@@ -37,6 +37,7 @@
   align-items: center;
 }
 
+.nvx-mobile-nav:not([open]),
 .nvx-mobile-nav[aria-hidden="true"],
 .nvx-mobile-nav[inert] {
   display: none;
@@ -52,6 +53,7 @@
     display: block;
   }
 
+  .nvx-mobile-nav[open]:not([inert]),
   .nvx-mobile-nav[aria-hidden="false"]:not([inert]),
   .nvx-mobile-nav.is-open:not([inert]) {
     display: flex;
@@ -64,6 +66,7 @@
 
 @media (min-width: 72rem) {
   .nvx-mobile-nav,
+  .nvx-mobile-nav[open],
   .nvx-mobile-nav.is-open,
   .nvx-mobile-nav[aria-hidden="false"] {
     display: none;

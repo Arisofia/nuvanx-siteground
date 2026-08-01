@@ -119,12 +119,13 @@ nvx_document_contract_assert(
     'The global document contract must start exactly once before the doctype.'
 );
 
-preg_match('/<div\b[^>]*\bid="nvx-mobile-nav"[^>]*>/i', $header, $navTag);
+preg_match('/<dialog\b[^>]*\bid="nvx-mobile-nav"[^>]*>/i', $header, $navTag);
 nvx_document_contract_assert(
     isset($navTag[0])
         && str_contains($navTag[0], 'aria-hidden="true"')
-        && 1 === preg_match('/\binert\b/i', $navTag[0]),
-    'The closed mobile navigation must be inert in the server-rendered DOM.'
+        && 1 === preg_match('/\binert\b/i', $navTag[0])
+        && !str_contains($navTag[0], 'role="dialog"'),
+    'The closed mobile navigation must be a native dialog that is inert in the server-rendered DOM.'
 );
 
 nvx_document_contract_assert(

@@ -70,7 +70,7 @@ jobs:
           print('BEFORE_NVX_BASE='+str('nvx-base.css' in s))
           PY
           echo '--- DISABLE SG CACHEPRESS TEMPORARILY ---'
-          wp plugin deactivate sg-cachepress
+          wp plugin deactivate sg-cachepress || true
           wp cache flush || true
           rm -rf wp-content/cache/sgo-cache/*
           rm -rf wp-content/uploads/siteground-optimizer-assets/*
@@ -86,9 +86,10 @@ jobs:
           for x in styles: print(x[:500])
           if not styles or 'nvx-base.css' not in s: raise SystemExit('CSS did not return after SG Optimizer deactivation')
           PY
-          echo '--- RESTORE SG CACHEPRESS ---'
-          wp plugin activate sg-cachepress
-          wp cache flush || true
-          wp sg purge || true
-          echo 'RESTORED_SG_CACHEPRESS=1'
           REMOTE
+      - name: Restore SiteGround Optimizer and purge staging2
+        if: always()
+        run: |
+          set -euo pipefail
+          ssh siteground-staging 'cd /home/customer/www/staging2.nuvanx.com/public_html && wp plugin activate sg-cachepress && wp cache flush && wp sg purge || true'
+          echo 'RESTORED_SG_CACHEPRESS=1'

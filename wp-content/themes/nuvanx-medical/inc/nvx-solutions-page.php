@@ -45,13 +45,15 @@ function nvx_content_is_solutions_page( string $content = '' ): bool {
 /**
  * Replace the CMS marker/body with the canonical theme-owned template.
  *
+ * Must remain idempotent so pre-body filter calls (e.g. SEO, excerpts) do not
+ * consume the single template render before visible body output.
+ *
  * @param string $content Original page content.
  */
 function nvx_render_solutions_page( $content ): string {
-	static $rendered = false;
-	$content         = is_string( $content ) ? $content : '';
+	$content = is_string( $content ) ? $content : '';
 
-	if ( $rendered || is_admin() || ! is_main_query() || ! is_singular( 'page' ) || ! nvx_content_is_solutions_page( $content ) ) {
+	if ( is_admin() || ! is_main_query() || ! is_singular( 'page' ) || ! nvx_content_is_solutions_page( $content ) ) {
 		return $content;
 	}
 
@@ -59,12 +61,33 @@ function nvx_render_solutions_page( $content ): string {
 	get_template_part( 'template-parts/content/nvx-soluciones-medicas-github' );
 	$markup = ob_get_clean();
 
-	if ( ! is_string( $markup ) || '' === trim( $markup ) ) {
-		return $content;
-	}
-
-	$rendered = true;
-
-	return $markup;
+	return is_string( $markup ) && '' !== trim( $markup ) ? $markup : $content;
 }
 add_filter( 'the_content', 'nvx_render_solutions_page', 11 );
+
+/**
+ * Enqueue the canonical medical solutions page stylesheet on its route.
+ */
+function nvx_enqueue_solutions_page_assets(): void {
+	if ( is_admin() || ! is_singular( 'page' ) || ! nvx_content_is_solutions_page() ) {
+		return;
+	}
+
+	$css_relative = '/assets/css/nvx-soluciones-medicas.css';
+	$css_path     = get_template_directory() . $css_relative;
+	if ( ! file_exists( $css_path ) ) {
+		return;
+	}
+
+	$version = function_exists( 'nvx_asset_version' )
+		? nvx_asset_version( $css_relative )
+		: ( (string) filemtime( $css_path ) );
+
+	wp_enqueue_style(
+		'nvx-soluciones-medicas',
+		get_template_directory_uri() . $css_relative,
+		array( 'nvx-components', 'nvx-patterns' ),
+		$version
+	);
+}
+add_action( 'wp_enqueue_scripts', 'nvx_enqueue_solutions_page_assets', 20 );

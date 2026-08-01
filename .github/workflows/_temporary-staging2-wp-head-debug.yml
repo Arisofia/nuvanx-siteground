@@ -48,7 +48,7 @@ jobs:
             ConnectTimeout 15
           EOF
           chmod 600 "$HOME/.ssh/config"
-      - name: Inspect wp_head CSS lifecycle
+      - name: Inspect wp_head CSS lifecycle and active output buffers
         run: |
           set -euo pipefail
           ssh siteground-staging 'bash -se' <<'REMOTE'
@@ -62,6 +62,9 @@ jobs:
           add_action('wp_enqueue_scripts', static function () use ($nvx_log): void {
               $s=wp_styles(); $nvx_log('ENQUEUE queue='.wp_json_encode($s->queue).' to_do='.wp_json_encode($s->to_do).' done='.wp_json_encode($s->done));
           }, 9999);
+          add_filter('style_loader_tag', static function ($html, $handle, $href, $media = '') use ($nvx_log): string {
+              $nvx_log('STYLE_FILTER handle='.$handle.' bytes='.strlen((string)$html)); return (string)$html;
+          }, PHP_INT_MAX, 4);
           add_action('wp_head', static function () use ($nvx_log): void {
               global $wp_filter;
               $hook=$wp_filter['wp_head']??null; $rows=[];
@@ -70,7 +73,9 @@ jobs:
               $nvx_log('WP_HEAD_CALLBACKS='.wp_json_encode($rows));
           }, 0);
           add_action('wp_head', static function () use ($nvx_log): void {
-              $s=wp_styles(); $nvx_log('WP_HEAD_LATE queue='.wp_json_encode($s->queue).' to_do='.wp_json_encode($s->to_do).' done='.wp_json_encode($s->done).' did_wp_print_styles='.did_action('wp_print_styles'));
+              $s=wp_styles(); $buf=(string)ob_get_contents();
+              $nvx_log('WP_HEAD_LATE queue='.wp_json_encode($s->queue).' to_do='.wp_json_encode($s->to_do).' done='.wp_json_encode($s->done).' did_wp_print_styles='.did_action('wp_print_styles'));
+              $nvx_log('OUTPUT_BUFFER level='.ob_get_level().' handlers='.wp_json_encode(ob_list_handlers()).' head_buffer_bytes='.strlen($buf).' head_buffer_has_nvx_base='.(strpos($buf,'nvx-base.css')!==false?'yes':'no').' head_buffer_stylesheet_tags='.substr_count(strtolower($buf),'rel="stylesheet"'));
           }, 99999);
           PHP
           rm -f "$LOG"

@@ -49,7 +49,7 @@ jobs:
             ConnectTimeout 15
           EOF
           chmod 600 "$HOME/.ssh/config"
-      - name: Verify full theme parity, CSS delivery and origin rendering
+      - name: Verify full theme parity
         run: |
           set -euo pipefail
           mkdir -p evidence/site-root
@@ -58,7 +58,15 @@ jobs:
           ssh siteground-staging "cd /home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical && find . -type f -print0 | sort -z | xargs -0 sha256sum" > evidence/staging2-theme.sha256
           grep -v '  \.\/.nvx-deploy-sha$' evidence/staging2-theme.sha256 > evidence/staging2-theme-normalized.sha256
           diff -u evidence/master-theme.sha256 evidence/staging2-theme-normalized.sha256
-          ssh siteground-staging 'cd /home/customer/www/staging2.nuvanx.com/public_html && printf "SITEURL=%s HOME=%s THEME=%s\n" "$(wp option get siteurl)" "$(wp option get home)" "$(wp theme list --status=active --field=name)" && test -f wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php && grep -Fq "nvx_document_governance_start();" wp-content/themes/nuvanx-medical/header.php && wp db check --quiet && wp plugin is-active sg-cachepress'
+          echo 'THEME_MANIFEST_PARITY=OK'
+      - name: Verify WordPress and critical theme files
+        run: |
+          set -euo pipefail
+          ssh siteground-staging 'cd /home/customer/www/staging2.nuvanx.com/public_html && printf "SITEURL=%s HOME=%s THEME=%s SG_CACHEPRESS=%s\n" "$(wp option get siteurl)" "$(wp option get home)" "$(wp theme list --status=active --field=name)" "$(wp plugin get sg-cachepress --field=status)" && test -f wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php && grep -F "nvx_document_governance_start();" wp-content/themes/nuvanx-medical/header.php && wp db check --quiet'
+          echo 'WORDPRESS_STATE=OK'
+      - name: Verify origin CSS delivery
+        run: |
+          set -euo pipefail
           ssh siteground-staging 'curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/ -o /tmp/nvx-verified-home.html && python3 - <<"PY"
           import re
           s=open("/tmp/nvx-verified-home.html",encoding="utf8",errors="replace").read()
@@ -72,7 +80,7 @@ jobs:
           ssh siteground-staging 'rm -rf /tmp/nvx-verified-site-root && mkdir -p /tmp/nvx-verified-site-root/wp-content/themes/nuvanx-medical/assets && cp /tmp/nvx-verified-home.html /tmp/nvx-verified-site-root/index.html && cp -a /home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical/assets/css /tmp/nvx-verified-site-root/wp-content/themes/nuvanx-medical/assets/ && tar -czf /tmp/nvx-verified-origin.tgz -C /tmp/nvx-verified-site-root .'
           scp siteground-staging:/tmp/nvx-verified-origin.tgz evidence/verified-origin.tgz
           tar -xzf evidence/verified-origin.tgz -C evidence/site-root
-          printf '%s\n' 'THEME_PARITY_OK' 'CSS_DELIVERY_OK' > evidence/status.txt
+          echo 'CSS_DELIVERY=OK'
       - name: Verify computed styles desktop and mobile
         run: |
           set -euo pipefail

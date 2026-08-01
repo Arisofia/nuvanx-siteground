@@ -923,24 +923,46 @@ function nvx_html_attrs_add_class( string $attrs, string $class_token ): string 
 }
 
 /**
- * Normalize body figures/images so every page shares the same media rules.
- * Heroes are left untouched (full-bleed stage) — extracted before body tagging.
+ * Normalize a doctor/portrait img tag (no body crop role).
+ *
+ * @param array<int,string> $im preg_replace_callback matches.
  */
-function nvx_content_normalize_body_media( string $content ): string {
-	// Protect hero media blocks so imgs inside never get nvx-media--body (was cutting heroes with a gray band).
-	$hero_slots = array();
-	$protected  = preg_replace_callback(
-		'/<((?:figure|div))\b([^>]*\bclass=["\'][^"\']*\bnvx-(?:brand|editorial|page)?-?hero__media\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/\1>/iu',
-		static function ( array $m ) use ( &$hero_slots ): string {
-			$key                = '<!--NVX_HERO_MEDIA_' . count( $hero_slots ) . '-->';
-			$hero_slots[ $key ] = $m[0];
-			return $key;
-		},
-		$content
-	);
-	$content = is_string( $protected ) ? $protected : $content;
+function nvx_content_normalize_doctor_img_tag( array $im ): string {
+	$a = $im[1];
+	if ( preg_match( '/nvx-logo|nvx-media--hero/i', $a ) ) {
+		return '<img' . $a . '>';
+	}
+	$a = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $a ) ?? $a;
+	$a = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $a ) ?? $a;
+	$a = nvx_html_attrs_add_class( $a, 'nvx-media' );
+	$a = nvx_html_attrs_add_class( $a, 'nvx-media--doctor' );
+	return '<img' . $a . '>';
+}
 
-	// Portraits + formula stages must not get body-figure margins / height:auto.
+/**
+ * Normalize a body-content img tag.
+ *
+ * @param array<int,string> $m preg_replace_callback matches.
+ */
+function nvx_content_normalize_body_img_tag( array $m ): string {
+	$attrs = $m[1];
+	if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero|nvx-media--doctor/i', $attrs ) ) {
+		return '<img' . $attrs . '>';
+	}
+
+	$attrs = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
+	// Strip accidental body role if ever re-processed on a hero path.
+	$attrs = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $attrs ) ?? $attrs;
+	$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
+	$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--body' );
+
+	return '<img' . $attrs . '>';
+}
+
+/**
+ * Tag body figures that are not portraits/formula stages.
+ */
+function nvx_content_tag_body_figures( string $content ): string {
 	$skip_figure = 'nvx-content-figure|nvx-endolift-formula|nvx-laser-formula|nvx-aes-formula|nvx-equipo-portrait|nvx-brand-card__media|nvx-brand-card__media--portrait';
 
 	$updated = preg_replace_callback(
@@ -954,11 +976,17 @@ function nvx_content_normalize_body_media( string $content ): string {
 		},
 		$content
 	);
-	$content = is_string( $updated ) ? $updated : $content;
 
-	// Protect team / card portrait frames (doctor role, not body landscape crop).
-	$team_slots = array();
-	$protected  = preg_replace_callback(
+	return is_string( $updated ) ? $updated : $content;
+}
+
+/**
+ * Protect team/card portrait frames and normalize their doctor media role.
+ *
+ * @param array<string,string> $team_slots Slot map filled by reference.
+ */
+function nvx_content_protect_team_media( string $content, array &$team_slots ): string {
+	$protected = preg_replace_callback(
 		'/<figure\b([^>]*\bclass=["\'][^"\']*\b(?:nvx-brand-card__media|nvx-equipo-portrait)\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/figure>/iu',
 		static function ( array $m ) use ( &$team_slots ): string {
 			$attrs = $m[1];
@@ -970,17 +998,7 @@ function nvx_content_normalize_body_media( string $content ): string {
 			$inner = preg_replace( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner ) ?? $inner;
 			$inner = preg_replace_callback(
 				'/<img\b([^>]*)>/iu',
-				static function ( array $im ): string {
-					$a = $im[1];
-					if ( preg_match( '/nvx-logo|nvx-media--hero/i', $a ) ) {
-						return '<img' . $a . '>';
-					}
-					$a = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $a ) ?? $a;
-					$a = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $a ) ?? $a;
-					$a = nvx_html_attrs_add_class( $a, 'nvx-media' );
-					$a = nvx_html_attrs_add_class( $a, 'nvx-media--doctor' );
-					return '<img' . $a . '>';
-				},
+				'nvx_content_normalize_doctor_img_tag',
 				$inner
 			);
 			$key                = '<!--NVX_TEAM_MEDIA_' . count( $team_slots ) . '-->';
@@ -989,24 +1007,44 @@ function nvx_content_normalize_body_media( string $content ): string {
 		},
 		$content
 	);
-	$content = is_string( $protected ) ? $protected : $content;
+
+	return is_string( $protected ) ? $protected : $content;
+}
+
+/**
+ * Protect hero media blocks so imgs inside never get nvx-media--body.
+ *
+ * @param array<string,string> $hero_slots Slot map filled by reference.
+ */
+function nvx_content_protect_hero_media( string $content, array &$hero_slots ): string {
+	$protected = preg_replace_callback(
+		'/<((?:figure|div))\b([^>]*\bclass=["\'][^"\']*\bnvx-(?:brand|editorial|page)?-?hero__media\b[^"\']*["\'][^>]*)>([\s\S]*?)<\/\1>/iu',
+		static function ( array $m ) use ( &$hero_slots ): string {
+			$key                = '<!--NVX_HERO_MEDIA_' . count( $hero_slots ) . '-->';
+			$hero_slots[ $key ] = $m[0];
+			return $key;
+		},
+		$content
+	);
+
+	return is_string( $protected ) ? $protected : $content;
+}
+
+/**
+ * Normalize body figures/images so every page shares the same media rules.
+ * Heroes are left untouched (full-bleed stage) — extracted before body tagging.
+ */
+function nvx_content_normalize_body_media( string $content ): string {
+	$hero_slots = array();
+	$content    = nvx_content_protect_hero_media( $content, $hero_slots );
+	$content    = nvx_content_tag_body_figures( $content );
+
+	$team_slots = array();
+	$content    = nvx_content_protect_team_media( $content, $team_slots );
 
 	$updated = preg_replace_callback(
 		'/<img\b([^>]*)>/iu',
-		static function ( array $m ): string {
-			$attrs = $m[1];
-			if ( preg_match( '/nvx-logo|nvx-home-hero|nvx-media--hero|nvx-media--doctor/i', $attrs ) ) {
-				return '<img' . $attrs . '>';
-			}
-
-			$attrs = preg_replace( '/\s+style=["\'][^"\']*["\']/i', '', $attrs ) ?? $attrs;
-			// Strip accidental body role if ever re-processed on a hero path.
-			$attrs = preg_replace( '/\s*nvx-media--body\s*/i', ' ', $attrs ) ?? $attrs;
-			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media' );
-			$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--body' );
-
-			return '<img' . $attrs . '>';
-		},
+		'nvx_content_normalize_body_img_tag',
 		$content
 	);
 	$content = is_string( $updated ) ? $updated : $content;
@@ -1288,20 +1326,25 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 }
 
 /**
- * Auto-inject shared treatment sections into real treatment pages that lack them.
+ * Whether the current content is a CO₂ page that must not receive generic FAQ.
  */
-function nvx_content_inject_global_treatment_sections( string $content ): string {
-	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
-		return $content;
-	}
-	if ( ! is_singular( 'page' ) && ! is_page() ) {
-		return $content;
-	}
-
-	if ( ! nvx_content_is_treatment_injection_target( $content ) ) {
-		return $content;
+function nvx_content_is_co2_treatment_page( string $content ): bool {
+	if (
+		false !== strpos( $content, 'nvx-co2-editorial' )
+		|| false !== strpos( $content, 'nvx-co2-hero' )
+		|| false !== strpos( $content, 'nvx-co2-downtime' )
+	) {
+		return true;
 	}
 
+	return function_exists( 'nvx_schema_resolve_treatment_key' )
+		&& 'laser_co2' === nvx_schema_resolve_treatment_key( (int) get_queried_object_id() );
+}
+
+/**
+ * Build optional shared treatment section injections for a page.
+ */
+function nvx_content_build_treatment_section_injections( string $content ): string {
 	$injections = '';
 
 	// 1. Before/After teaser (promotional gallery link — no numeric claims).
@@ -1323,17 +1366,17 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 	// 4. FAQ — only if the page has none. Skip CO₂: recovery is protocol-specific and
 	// already described on-page (do not inject generic “immediate return” answers).
 	$has_faq = preg_match( '/nvx-brand-faq-item|nvx-faq|nvx-generic-faq-list/iu', $content );
-	$is_co2  = (
-		false !== strpos( $content, 'nvx-co2-editorial' )
-		|| false !== strpos( $content, 'nvx-co2-hero' )
-		|| false !== strpos( $content, 'nvx-co2-downtime' )
-		|| ( function_exists( 'nvx_schema_resolve_treatment_key' )
-			&& 'laser_co2' === nvx_schema_resolve_treatment_key( (int) get_queried_object_id() ) )
-	);
-	if ( ! $has_faq && ! $is_co2 ) {
+	if ( ! $has_faq && ! nvx_content_is_co2_treatment_page( $content ) ) {
 		$injections .= nvx_generic_faq_markup();
 	}
 
+	return $injections;
+}
+
+/**
+ * Append injections before a trailing wrapper close, else at end of content.
+ */
+function nvx_content_append_injections( string $content, string $injections ): string {
 	if ( '' === $injections ) {
 		return $content;
 	}
@@ -1344,6 +1387,27 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 	}
 
 	return $content . $injections;
+}
+
+/**
+ * Auto-inject shared treatment sections into real treatment pages that lack them.
+ */
+function nvx_content_inject_global_treatment_sections( string $content ): string {
+	if ( is_admin() || is_feed() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return $content;
+	}
+	if ( ! is_singular( 'page' ) && ! is_page() ) {
+		return $content;
+	}
+
+	if ( ! nvx_content_is_treatment_injection_target( $content ) ) {
+		return $content;
+	}
+
+	return nvx_content_append_injections(
+		$content,
+		nvx_content_build_treatment_section_injections( $content )
+	);
 }
 add_filter( 'the_content', 'nvx_content_inject_global_treatment_sections', 21 );
 

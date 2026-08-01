@@ -11,25 +11,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Ensure content heroes that lack media use the featured image when available.
- * Inserts media as a SIBLING after the hero copy (never nested inside copy),
- * so kicker + title can overlay the image. Global — not a per-page patch.
+ * Featured-image figure markup for hero injection, or empty when unusable.
  */
-function nvx_ensure_hero_featured_media( string $content ): string {
-	if ( is_admin() || ! is_singular() || is_front_page() || ! has_post_thumbnail() ) {
-		return $content;
-	}
-
-	// Content already owns a media rail inside the hero.
-	if ( preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero|hero)__media/i', $content ) ) {
-		return $content;
-	}
-
-	// Only inject into known hero containers.
-	if ( ! preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero)|\bclass="[^"]*\bnvx-hero\b/i', $content ) ) {
-		return $content;
-	}
-
+function nvx_hero_featured_media_figure(): string {
 	$thumb = get_the_post_thumbnail(
 		null,
 		'full',
@@ -41,16 +25,57 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 	);
 
 	if ( ! $thumb ) {
-		return $content;
+		return '';
 	}
 
 	// Never inject site logo / brand mark as hero photography.
 	if ( preg_match( '/logo-nuvanx|nuvanx-web\.webp|\/logo[-_]|nvx-logo|site-logo|custom-logo/iu', $thumb ) ) {
-		return $content;
+		return '';
 	}
 
-	$figure = '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
+	return '<figure class="nvx-brand-hero__media">' . $thumb . '</figure>';
+}
 
+/**
+ * Find the end offset of a balanced <div> opened at $open_pos.
+ *
+ * @return int|null Offset after the matching closing tag.
+ */
+function nvx_hero_find_balanced_div_end( string $content, int $open_pos ): ?int {
+	$len   = strlen( $content );
+	$i     = $open_pos;
+	$depth = 0;
+
+	while ( $i < $len ) {
+		if ( ! preg_match( '/<\/?div\b[^>]*>/i', $content, $tag_match, PREG_OFFSET_CAPTURE, $i ) ) {
+			break;
+		}
+		$tag_pos = (int) $tag_match[0][1];
+		$tag     = $tag_match[0][0];
+		if ( $tag_pos > $i && 0 === $depth && $i !== $open_pos ) {
+			break;
+		}
+		$i = $tag_pos;
+		if ( 0 === strncasecmp( $tag, '</div', 5 ) ) {
+			--$depth;
+			$i += strlen( $tag );
+			if ( 0 === $depth ) {
+				return $i;
+			}
+			continue;
+		}
+		// Opening div (ignore malformed self-closing).
+		++$depth;
+		$i += strlen( $tag );
+	}
+
+	return null;
+}
+
+/**
+ * Insert a hero media figure after the first hero __copy block, or at section start.
+ */
+function nvx_hero_insert_media_figure( string $content, string $figure ): string {
 	// Locate first hero __copy opening tag.
 	if ( ! preg_match( '/class="[^"]*nvx-(?:brand-hero|editorial-hero|page-hero|hero)__copy[^"]*"/i', $content, $match, PREG_OFFSET_CAPTURE ) ) {
 		// No copy block: place media at the start of the first hero section.
@@ -70,40 +95,40 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 	}
 
 	// Balance nested <div>…</div> so the figure is inserted AFTER the whole copy.
-	$len   = strlen( $content );
-	$i     = $open_pos;
-	$depth = 0;
-	$end   = null;
-
-	while ( $i < $len ) {
-		if ( ! preg_match( '/<\/?div\b[^>]*>/i', $content, $tag_match, PREG_OFFSET_CAPTURE, $i ) ) {
-			break;
-		}
-		$tag_pos = (int) $tag_match[0][1];
-		$tag     = $tag_match[0][0];
-		if ( $tag_pos > $i && $depth === 0 && $i !== $open_pos ) {
-			break;
-		}
-		$i = $tag_pos;
-		if ( 0 === strncasecmp( $tag, '</div', 5 ) ) {
-			--$depth;
-			$i += strlen( $tag );
-			if ( 0 === $depth ) {
-				$end = $i;
-				break;
-			}
-			continue;
-		}
-		// Opening div (ignore malformed self-closing).
-		++$depth;
-		$i += strlen( $tag );
-	}
-
+	$end = nvx_hero_find_balanced_div_end( $content, $open_pos );
 	if ( null === $end ) {
 		return $content;
 	}
 
 	return substr( $content, 0, $end ) . $figure . substr( $content, $end );
+}
+
+/**
+ * Ensure content heroes that lack media use the featured image when available.
+ * Inserts media as a SIBLING after the hero copy (never nested inside copy),
+ * so kicker + title can overlay the image. Global — not a per-page patch.
+ */
+function nvx_ensure_hero_featured_media( string $content ): string {
+	if ( is_admin() || ! is_singular() || is_front_page() || ! has_post_thumbnail() ) {
+		return $content;
+	}
+
+	// Content already owns a media rail inside the hero.
+	if ( preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero|hero)__media/i', $content ) ) {
+		return $content;
+	}
+
+	// Only inject into known hero containers.
+	if ( ! preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero)|\bclass="[^"]*\bnvx-hero\b/i', $content ) ) {
+		return $content;
+	}
+
+	$figure = nvx_hero_featured_media_figure();
+	if ( '' === $figure ) {
+		return $content;
+	}
+
+	return nvx_hero_insert_media_figure( $content, $figure );
 }
 add_filter( 'the_content', 'nvx_ensure_hero_featured_media', 12 );
 

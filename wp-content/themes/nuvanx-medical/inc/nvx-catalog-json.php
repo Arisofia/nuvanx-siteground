@@ -96,6 +96,62 @@ function nvx_catalog_transform_values(
 }
 
 /**
+ * Built-in string-prefix resolvers (longest-prefix match applied later).
+ *
+ * @return array<string, callable>
+ */
+function nvx_catalog_builtin_token_resolvers(): array {
+	return array(
+		'@nvx-t:' => static function ( string $payload ) {
+			return '' === $payload ? '' : __( $payload, 'nuvanx-medical' );
+		},
+		'@nvx-url:' => static function ( string $payload ) {
+			return home_url( $payload );
+		},
+		'@nvx-i18n:' => static function ( string $payload ) {
+			$decoded = nvx_catalog_decode_token_payload( $payload, 'translation' );
+			return null === $decoded || '' === $decoded ? '' : __( $decoded, 'nuvanx-medical' );
+		},
+		'@nvx-home:' => static function ( string $payload ) {
+			$decoded = nvx_catalog_decode_token_payload( $payload, 'home URL' );
+			return null === $decoded ? '' : home_url( $decoded );
+		},
+	);
+}
+
+/**
+ * Resolve a single catalog string token via prefix resolvers and claim tokens.
+ *
+ * @param array<string, callable> $resolvers Prefix => resolver map (longest first).
+ */
+function nvx_catalog_resolve_token_value(
+	string $value,
+	?callable $claim_resolver,
+	array $resolvers
+): string {
+	foreach ( $resolvers as $prefix => $resolver ) {
+		if ( 0 === strpos( $value, $prefix ) ) {
+			return $resolver( substr( $value, strlen( $prefix ) ) );
+		}
+	}
+
+	if ( null === $claim_resolver ) {
+		return $value;
+	}
+
+	if ( 0 === strpos( $value, '@nvx-claim-key:' ) ) {
+		return $claim_resolver( substr( $value, strlen( '@nvx-claim-key:' ) ) );
+	}
+
+	if ( 0 === strpos( $value, '@nvx-claim:' ) ) {
+		$claim_key = nvx_catalog_decode_token_payload( substr( $value, strlen( '@nvx-claim:' ) ), 'claim' );
+		return null === $claim_key || '' === $claim_key ? '' : $claim_resolver( $claim_key );
+	}
+
+	return $value;
+}
+
+/**
  * Resolve WordPress-aware values captured in JSON catalogs.
  *
  * Base prefixes are reserved and cannot be replaced by custom resolvers.
@@ -113,23 +169,7 @@ function nvx_catalog_resolve_tokens(
 	array $custom_resolvers = array(),
 	array $object_resolvers = array()
 ): array {
-	$prefixes = array(
-		'@nvx-t:' => static function ( string $payload ) {
-			return '' === $payload ? '' : __( $payload, 'nuvanx-medical' );
-		},
-		'@nvx-url:' => static function ( string $payload ) {
-			return home_url( $payload );
-		},
-		'@nvx-i18n:' => static function ( string $payload ) {
-			$decoded = nvx_catalog_decode_token_payload( $payload, 'translation' );
-			return null === $decoded || '' === $decoded ? '' : __( $decoded, 'nuvanx-medical' );
-		},
-		'@nvx-home:' => static function ( string $payload ) {
-			$decoded = nvx_catalog_decode_token_payload( $payload, 'home URL' );
-			return null === $decoded ? '' : home_url( $decoded );
-		},
-	);
-	$resolvers = $prefixes + $custom_resolvers;
+	$resolvers = nvx_catalog_builtin_token_resolvers() + $custom_resolvers;
 	uksort(
 		$resolvers,
 		static function ( string $left, string $right ): int {
@@ -140,22 +180,7 @@ function nvx_catalog_resolve_tokens(
 	return nvx_catalog_transform_values(
 		$catalog,
 		static function ( string $value ) use ( $claim_resolver, $resolvers ) {
-			foreach ( $resolvers as $prefix => $resolver ) {
-				if ( 0 === strpos( $value, $prefix ) ) {
-					return $resolver( substr( $value, strlen( $prefix ) ) );
-				}
-			}
-
-			if ( null !== $claim_resolver && 0 === strpos( $value, '@nvx-claim-key:' ) ) {
-				return $claim_resolver( substr( $value, strlen( '@nvx-claim-key:' ) ) );
-			}
-
-			if ( null !== $claim_resolver && 0 === strpos( $value, '@nvx-claim:' ) ) {
-				$claim_key = nvx_catalog_decode_token_payload( substr( $value, strlen( '@nvx-claim:' ) ), 'claim' );
-				return null === $claim_key || '' === $claim_key ? '' : $claim_resolver( $claim_key );
-			}
-
-			return $value;
+			return nvx_catalog_resolve_token_value( $value, $claim_resolver, $resolvers );
 		},
 		$object_resolvers
 	);

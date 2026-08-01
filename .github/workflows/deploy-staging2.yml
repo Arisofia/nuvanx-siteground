@@ -145,7 +145,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # shellcheck disable=SC2029 -- WP_ROOT is intentionally validated and expanded on the trusted runner.
+          # WP_ROOT is validated locally before deliberate remote interpolation.
+          # shellcheck disable=SC2029
           ssh nvx-staging2 \
             "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"
 
@@ -155,7 +156,8 @@ jobs:
           set -euo pipefail
           REMOTE_RELEASE="$WP_ROOT/wp-content/.nuvanx-deployments/${DEPLOY_SHA}-${GITHUB_RUN_ID}"
           echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
-          # shellcheck disable=SC2029 -- REMOTE_RELEASE is composed from validated local deployment inputs.
+          # REMOTE_RELEASE is composed from validated local deployment inputs.
+          # shellcheck disable=SC2029
           ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme' '$REMOTE_RELEASE/mu-plugins'"
           rsync -az --delete \
             --exclude='.git' \
@@ -185,7 +187,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # shellcheck disable=SC2029 -- all paths and SHA are validated locally before deliberate remote interpolation.
+          # All paths and SHA are validated locally before deliberate remote interpolation.
+          # shellcheck disable=SC2029
           ssh nvx-staging2 \
             "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm && NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$WP_ROOT' --source-mu '$REMOTE_RELEASE/mu-plugins' --confirm"
 
@@ -193,7 +196,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # shellcheck disable=SC2029 -- WP_ROOT is intentionally expanded on the trusted runner.
+          # WP_ROOT is validated locally before deliberate remote interpolation.
+          # shellcheck disable=SC2029
           deployed_sha="$(ssh nvx-staging2 "tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
           test "$deployed_sha" = "$DEPLOY_SHA"
           echo "Verified staging2 marker: $deployed_sha"
@@ -213,7 +217,8 @@ jobs:
         if: always()
         shell: bash
         run: |
-          # shellcheck disable=SC2029 -- REMOTE_RELEASE is intentionally expanded on the trusted runner.
+          # REMOTE_RELEASE is validated locally before deliberate remote interpolation.
+          # shellcheck disable=SC2029
           ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'"
 
       - name: Write deployment summary

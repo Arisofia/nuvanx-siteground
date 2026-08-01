@@ -145,13 +145,15 @@ nvx_contract_assert(
 );
 nvx_contract_assert_no_tokens($homeFaq, 'home-faq');
 
+$endoliftHomeUrl = 'home:/endolift-facial-papada-mandibula/';
+
 $laserHub = nvx_laser_editorial_catalog();
 nvx_contract_assert(
     ($laserHub['pillars'][0]['title'] ?? null) === 'i18n:1. Fototermólisis selectiva',
     'Laser hub pillar changed during JSON extraction.'
 );
 nvx_contract_assert(
-    ($laserHub['platforms'][0]['url'] ?? null) === 'home:/endolift-facial-papada-mandibula/',
+    ($laserHub['platforms'][0]['url'] ?? null) === $endoliftHomeUrl,
     'Laser hub platform URL did not preserve published-page fallback.'
 );
 nvx_contract_assert_no_tokens($laserHub, 'laser-hub');
@@ -172,7 +174,7 @@ nvx_contract_assert_no_tokens($blogSeo, 'blog-seo');
 
 $hubItems = nvx_treatment_hub_schema_items('org:test');
 nvx_contract_assert(
-    ($hubItems[0]['url'] ?? null) === 'home:/endolift-facial-papada-mandibula/',
+    ($hubItems[0]['url'] ?? null) === $endoliftHomeUrl,
     'Treatment hub schema URL changed during JSON extraction.'
 );
 nvx_contract_assert(
@@ -187,7 +189,7 @@ nvx_contract_assert_no_tokens($hubItems, 'treatment-hub-schema');
 
 $treatments = nvx_treatments_catalog_data();
 nvx_contract_assert(
-    ($treatments[0]['items'][0]['url'] ?? null) === 'home:/endolift-facial-papada-mandibula/',
+    ($treatments[0]['items'][0]['url'] ?? null) === $endoliftHomeUrl,
     'Treatment URL token did not resolve through home_url().'
 );
 nvx_contract_assert_no_tokens($treatments, 'treatments');

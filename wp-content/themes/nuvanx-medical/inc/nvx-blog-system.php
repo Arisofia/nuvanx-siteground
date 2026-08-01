@@ -85,7 +85,7 @@ function nvx_theme_normalize_blog_headings( string $content ): string {
 	}
 
 	$content = (string) preg_replace( '/<h1(\b[^>]*)>/iu', '<h2$1>', $content );
-	return (string) preg_replace( '/<\/h1>/iu', '</h2>', $content );
+	return str_ireplace( '</h1>', '</h2>', $content );
 }
 add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', 8 );
 

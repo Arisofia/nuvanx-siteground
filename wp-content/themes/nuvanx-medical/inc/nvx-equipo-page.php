@@ -12,6 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+const NVX_EQUIPO_MEDIA_PATTERN = '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu';
+const NVX_EQUIPO_ICOMEM_PREFIX = 'ICOMEM ';
+
 /**
  * Singular context.
  */
@@ -248,24 +251,30 @@ function nvx_equipo_block_is_fabio( string $html ): bool {
 	return (bool) preg_match( '/Fabio|Qui[nñ][oó]nez|Bareiro/iu', $html );
 }
 
+/**
+ * Capture the first media fragment from a staff card when missing.
+ */
+function nvx_equipo_capture_media_if_empty( string $card, string &$media ): void {
+	if ( '' !== $media ) {
+		return;
+	}
+	if ( preg_match( NVX_EQUIPO_MEDIA_PATTERN, $card, $im ) ) {
+		$media = $im[0];
+	}
+}
+
 /** Categorize one staff card. */
 function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, string &$ivon_media, string &$fabio_media, array &$other_cards ): void {
 	if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
-		if ( '' === $rivera_media && preg_match( '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu', $card, $im ) ) {
-			$rivera_media = $im[0];
-		}
+		nvx_equipo_capture_media_if_empty( $card, $rivera_media );
 		return;
 	}
 	if ( nvx_equipo_block_is_ivon( $card ) ) {
-		if ( '' === $ivon_media && preg_match( '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu', $card, $im ) ) {
-			$ivon_media = $im[0];
-		}
+		nvx_equipo_capture_media_if_empty( $card, $ivon_media );
 		return;
 	}
 	if ( nvx_equipo_block_is_fabio( $card ) ) {
-		if ( '' === $fabio_media && preg_match( '/<figure\b[\s\S]*?<\/figure>|<img\b[^>]*>/iu', $card, $im ) ) {
-			$fabio_media = $im[0];
-		}
+		nvx_equipo_capture_media_if_empty( $card, $fabio_media );
 		return;
 	}
 	if ( nvx_equipo_is_person_staff_card( $card ) ) {
@@ -425,6 +434,51 @@ function nvx_equipo_render_items_section( array $section ): string {
 }
 
 /**
+ * Brand card grid from title/body item rows.
+ *
+ * @param array<int,array<string,mixed>> $items Card rows.
+ */
+function nvx_equipo_brand_card_grid_markup( array $items ): string {
+	if ( empty( $items ) ) {
+		return '';
+	}
+
+	$html = '<ul class="nvx-brand-card-grid">';
+	foreach ( $items as $item ) {
+		$html .= '<li class="nvx-brand-card">';
+		if ( ! empty( $item['title'] ) ) {
+			$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $item['title'] ) . '</h3>';
+		}
+		if ( ! empty( $item['body'] ) ) {
+			$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
+		}
+		$html .= '</li>';
+	}
+	$html .= '</ul>';
+	return $html;
+}
+
+/**
+ * Identity fact panel for split formation / docencia sections.
+ *
+ * @param array<int,array{label:string,val:string}> $facts Fact rows.
+ */
+function nvx_equipo_identity_facts_panel_markup( array $facts ): string {
+	if ( empty( $facts ) ) {
+		return '';
+	}
+
+	$html  = '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
+	$html .= '<p class="nvx-endolift-panel-label">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-endolift-panel-list">';
+	foreach ( $facts as $fact ) {
+		$html .= '<li><strong>' . esc_html( $fact['label'] ) . '</strong> — ' . esc_html( $fact['val'] ) . '</li>';
+	}
+	$html .= '</ul></aside>';
+	return $html;
+}
+
+/**
  * Renders a split formation / docencia section with identity fact panel.
  */
 function nvx_equipo_render_split_identity_section( array $config ): string {
@@ -449,34 +503,71 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
 		$html .= '<p class="nvx-body">' . esc_html( $paragraph ) . '</p>';
 	}
 
-	if ( ! empty( $items ) ) {
-		$html .= '<ul class="nvx-brand-card-grid">';
-		foreach ( $items as $item ) {
-			$html .= '<li class="nvx-brand-card">';
-			if ( ! empty( $item['title'] ) ) {
-				$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $item['title'] ) . '</h3>';
-			}
-			if ( ! empty( $item['body'] ) ) {
-				$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
-			}
-			$html .= '</li>';
-		}
-		$html .= '</ul>';
-	}
-
+	$html .= nvx_equipo_brand_card_grid_markup( $items );
 	$html .= '</div>';
-
-	if ( ! empty( $facts ) ) {
-		$html .= '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
-		$html .= '<p class="nvx-endolift-panel-label">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
-		$html .= '<ul class="nvx-endolift-panel-list">';
-		foreach ( $facts as $fact ) {
-			$html .= '<li><strong>' . esc_html( $fact['label'] ) . '</strong> — ' . esc_html( $fact['val'] ) . '</li>';
-		}
-		$html .= '</ul></aside>';
-	}
-
+	$html .= nvx_equipo_identity_facts_panel_markup( $facts );
 	$html .= '</div></section>';
+	return $html;
+}
+
+/**
+ * Profile layout (portrait + intro copy) for a physician authority block.
+ *
+ * @param array<string,mixed> $config Physician configuration data.
+ */
+function nvx_equipo_physician_profile_section_markup( array $config ): string {
+	$html  = '<section class="nvx-brand-section nvx-equipo-profile" aria-labelledby="nvx-equipo-profile-title">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-equipo-profile-layout">';
+	$portrait = nvx_equipo_portrait_figure_markup( $config['media'] ?? '', $config['name'] ?? '' );
+	if ( '' !== $portrait ) {
+		$html .= $portrait;
+	}
+	$html .= '<div class="nvx-equipo-profile-layout__copy">';
+	if ( ! empty( $config['kicker'] ) ) {
+		$html .= '<p class="nvx-brand-kicker">' . esc_html( $config['kicker'] ) . '</p>';
+	}
+	if ( ! empty( $config['h2'] ) ) {
+		$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-heading">' . esc_html( $config['h2'] ) . '</h2>';
+	}
+	if ( ! empty( $config['bio_paragraphs'] ) ) {
+		foreach ( $config['bio_paragraphs'] as $para ) {
+			$html .= '<p class="nvx-body">' . $para . '</p>';
+		}
+	}
+	$html .= '</div></div></section>';
+	return $html;
+}
+
+/**
+ * Middle sections (subspecialties, clinical activities, research, docencia split).
+ *
+ * @param array<int,array<string,mixed>> $sections Section configs.
+ */
+function nvx_equipo_physician_sections_markup( array $sections ): string {
+	$html = '';
+	foreach ( $sections as $sec ) {
+		if ( ! empty( $sec['type'] ) && 'split_identity' === $sec['type'] ) {
+			$html .= nvx_equipo_render_split_identity_section( $sec );
+			continue;
+		}
+		$html .= nvx_equipo_render_items_section( $sec );
+	}
+	return $html;
+}
+
+/**
+ * Quote section for a physician authority block.
+ *
+ * @param array{text:string,author:string} $quote Quote data.
+ */
+function nvx_equipo_physician_quote_section_markup( array $quote ): string {
+	$html  = '<section class="nvx-brand-section nvx-equipo-quote" aria-labelledby="nvx-equipo-quote-title">';
+	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
+	$html .= '<h2 id="nvx-equipo-quote-title" class="screen-reader-text">' . esc_html__( 'Visión clínica', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<blockquote class="nvx-equipo-blockquote">';
+	$html .= '<p>' . esc_html( $quote['text'] ) . '</p>';
+	$html .= '<footer>— ' . esc_html( $quote['author'] ) . '</footer>';
+	$html .= '</blockquote></div></section>';
 	return $html;
 }
 
@@ -496,47 +587,14 @@ function nvx_equipo_physician_authority_markup( array $config ): string {
 	}
 	$html .= '>';
 
-	// Profile layout (Portrait + intro copy)
-	$html .= '<section class="nvx-brand-section nvx-equipo-profile" aria-labelledby="nvx-equipo-profile-title">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-equipo-profile-layout">';
-	$portrait = nvx_equipo_portrait_figure_markup( $config['media'] ?? '', $config['name'] ?? '' );
-	if ( '' !== $portrait ) {
-		$html .= $portrait;
-	}
-	$html .= '<div class="nvx-equipo-profile-layout__copy">';
-	if ( ! empty( $config['kicker'] ) ) {
-		$html .= '<p class="nvx-brand-kicker">' . esc_html( $config['kicker'] ) . '</p>';
-	}
-	if ( ! empty( $config['h2'] ) ) {
-		$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-heading">' . esc_html( $config['h2'] ) . '</h2>';
-	}
-	if ( ! empty( $config['bio_paragraphs'] ) ) {
-		foreach ( $config['bio_paragraphs'] as $para ) {
-			$html .= '<p class="nvx-body">' . $para . '</p>';
-		}
-	}
-	$html .= '</div></div></section>';
+	$html .= nvx_equipo_physician_profile_section_markup( $config );
 
-	// Middle sections (subspecialties, clinical activities, research, docencia split)
 	if ( ! empty( $config['sections'] ) ) {
-		foreach ( $config['sections'] as $sec ) {
-			if ( ! empty( $sec['type'] ) && 'split_identity' === $sec['type'] ) {
-				$html .= nvx_equipo_render_split_identity_section( $sec );
-			} else {
-				$html .= nvx_equipo_render_items_section( $sec );
-			}
-		}
+		$html .= nvx_equipo_physician_sections_markup( $config['sections'] );
 	}
 
-	// Quote section
 	if ( ! empty( $config['quote'] ) ) {
-		$html .= '<section class="nvx-brand-section nvx-equipo-quote" aria-labelledby="nvx-equipo-quote-title">';
-		$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-		$html .= '<h2 id="nvx-equipo-quote-title" class="screen-reader-text">' . esc_html__( 'Visión clínica', 'nuvanx-medical' ) . '</h2>';
-		$html .= '<blockquote class="nvx-equipo-blockquote">';
-		$html .= '<p>' . esc_html( $config['quote']['text'] ) . '</p>';
-		$html .= '<footer>— ' . esc_html( $config['quote']['author'] ) . '</footer>';
-		$html .= '</blockquote></div></section>';
+		$html .= nvx_equipo_physician_quote_section_markup( $config['quote'] );
 	}
 
 	$html .= '</div>';
@@ -622,7 +680,7 @@ function nvx_equipo_director_authority_markup( string $rivera_media = '' ): stri
 					'facts'      => array(
 						array(
 							'label' => __( 'Colegiado', 'nuvanx-medical' ),
-							'val'   => 'ICOMEM ' . $colegiado,
+							'val'   => NVX_EQUIPO_ICOMEM_PREFIX . $colegiado,
 						),
 						array(
 							'label' => __( 'Cargo', 'nuvanx-medical' ),
@@ -706,7 +764,7 @@ function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 					'facts'   => array(
 						array(
 							'label' => __( 'Colegiada', 'nuvanx-medical' ),
-							'val'   => 'ICOMEM ' . $colegiado,
+							'val'   => NVX_EQUIPO_ICOMEM_PREFIX . $colegiado,
 						),
 						array(
 							'label' => __( 'Ámbito', 'nuvanx-medical' ),
@@ -791,7 +849,7 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
 					'facts'      => array(
 						array(
 							'label' => __( 'Colegiado', 'nuvanx-medical' ),
-							'val'   => 'ICOMEM ' . $colegiado,
+							'val'   => NVX_EQUIPO_ICOMEM_PREFIX . $colegiado,
 						),
 						array(
 							'label' => __( 'Ámbito', 'nuvanx-medical' ),

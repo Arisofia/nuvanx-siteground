@@ -220,6 +220,22 @@ function _nvx_seo_schema_enrich_organization( $graph, $organization_id ) {
 }
 
 /**
+ * Normalize dayOfWeek values inside a clinic openingHoursSpecification list.
+ *
+ * @param array<int,array<string,mixed>> $hours_list Opening hours rows.
+ * @return array<int,array<string,mixed>>
+ */
+function _nvx_seo_schema_normalize_clinic_hours( array $hours_list ): array {
+	foreach ( $hours_list as $hours_index => $hours ) {
+		if ( ! isset( $hours['dayOfWeek'] ) ) {
+			continue;
+		}
+		$hours_list[ $hours_index ]['dayOfWeek'] = nvx_seo_schema_normalize_days( $hours['dayOfWeek'] );
+	}
+	return $hours_list;
+}
+
+/**
  * Adds organization relationships and default metadata to MedicalClinic nodes.
  *
  * @param array  $graph           The Schema.org graph.
@@ -229,19 +245,21 @@ function _nvx_seo_schema_enrich_organization( $graph, $organization_id ) {
 function _nvx_seo_schema_enrich_clinics( $graph, $organization_id ) {
 	foreach ( $graph as $index => $piece ) {
 		$types = $piece['@type'] ?? array();
-		if ( nvx_seo_schema_has_type( $types, 'MedicalClinic' ) ) {
-			$graph[ $index ]['parentOrganization'] = array( '@id' => $organization_id );
-			$graph[ $index ]['priceRange']         = $graph[ $index ]['priceRange'] ?? '€€€';
-			$graph[ $index ]['medicalSpecialty']   = $graph[ $index ]['medicalSpecialty'] ?? array( 'Aesthetic Medicine', 'Laser Medicine' );
-
-			if ( ! empty( $graph[ $index ]['openingHoursSpecification'] ) && is_array( $graph[ $index ]['openingHoursSpecification'] ) ) {
-				foreach ( $graph[ $index ]['openingHoursSpecification'] as $hours_index => $hours ) {
-					if ( isset( $hours['dayOfWeek'] ) ) {
-						$graph[ $index ]['openingHoursSpecification'][ $hours_index ]['dayOfWeek'] = nvx_seo_schema_normalize_days( $hours['dayOfWeek'] );
-					}
-				}
-			}
+		if ( ! nvx_seo_schema_has_type( $types, 'MedicalClinic' ) ) {
+			continue;
 		}
+
+		$graph[ $index ]['parentOrganization'] = array( '@id' => $organization_id );
+		$graph[ $index ]['priceRange']         = $graph[ $index ]['priceRange'] ?? '€€€';
+		$graph[ $index ]['medicalSpecialty']   = $graph[ $index ]['medicalSpecialty'] ?? array( 'Aesthetic Medicine', 'Laser Medicine' );
+
+		if ( empty( $graph[ $index ]['openingHoursSpecification'] ) || ! is_array( $graph[ $index ]['openingHoursSpecification'] ) ) {
+			continue;
+		}
+
+		$graph[ $index ]['openingHoursSpecification'] = _nvx_seo_schema_normalize_clinic_hours(
+			$graph[ $index ]['openingHoursSpecification']
+		);
 	}
 	return $graph;
 }

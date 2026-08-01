@@ -56,41 +56,137 @@ jobs:
           ssh siteground-staging 'bash -se' > evidence/crawl.log 2>&1 <<'REMOTE'
           set -Eeuo pipefail
           python3 - <<'PY'
-          import re, subprocess, json
+          import json
+          import subprocess
+          from html import unescape
+          from html.parser import HTMLParser
           from urllib.parse import urljoin
-          BASE='https://staging2.nuvanx.com/'
-          RESOLVE=['--resolve','staging2.nuvanx.com:443:127.0.0.1']
-          def curl(url):
-              return subprocess.check_output(['curl','-ksS','-L','--max-time','25',*RESOLVE,url], text=True, stderr=subprocess.DEVNULL)
-          index=curl(urljoin(BASE,'wp-sitemap.xml'))
-          sitemaps=re.findall(r'<loc>([^<]+)</loc>',index,re.I)
-          urls=[]
-          for sm in sitemaps:
-              body=curl(sm)
-              urls.extend(re.findall(r'<loc>([^<]+)</loc>',body,re.I))
+
+          BASE = 'https://staging2.nuvanx.com/'
+          RESOLVE = ['--resolve', 'staging2.nuvanx.com:443:127.0.0.1']
+
+          class HtmlContractParser(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.h1 = 0
+                  self.main = 0
+                  self.stylesheets = 0
+                  self.nvx_base = 0
+
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+                  tag = tag.lower()
+                  if tag == 'h1':
+                      self.h1 += 1
+                  elif tag == 'main':
+                      self.main += 1
+                  elif tag == 'link':
+                      rel = {item.lower() for item in (attrs.get('rel') or '').split()}
+                      href = attrs.get('href') or ''
+                      if 'stylesheet' in rel:
+                          self.stylesheets += 1
+                          if 'nvx-base.css' in href:
+                              self.nvx_base += 1
+
+          def fetch(url):
+              proc = subprocess.run(
+                  ['curl', '-ksS', '-L', '--max-time', '25', *RESOLVE, '--write-out', '\\n%{http_code}', url],
+                  text=True,
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.PIPE,
+                  check=False,
+              )
+              if '\\n' not in proc.stdout:
+                  raise RuntimeError(f'No HTTP status returned for {url}: {proc.stderr.strip()}')
+              body, status_text = proc.stdout.rsplit('\\n', 1)
+              try:
+                  status = int(status_text)
+              except ValueError as exc:
+                  raise RuntimeError(f'Invalid HTTP status for {url}: {status_text!r}') from exc
+              if proc.returncode != 0:
+                  raise RuntimeError(f'curl failed for {url}: exit={proc.returncode} status={status}')
+              return status, body
+
+          status, index = fetch(urljoin(BASE, 'wp-sitemap.xml'))
+          if status != 200:
+              raise SystemExit(f'wp-sitemap.xml returned HTTP {status}')
+
+          sitemap_parser = HtmlContractParser()
+          sitemap_locs = []
+          marker = '<loc>'
+          lower_index = index.lower()
+          start = 0
+          while True:
+              left = lower_index.find(marker, start)
+              if left < 0:
+                  break
+              right = lower_index.find('</loc>', left)
+              if right < 0:
+                  break
+              sitemap_locs.append(unescape(index[left + len(marker):right].strip()))
+              start = right + 6
+
+          urls = []
+          for sitemap in sitemap_locs:
+              status, body = fetch(sitemap)
+              if status != 200:
+                  raise SystemExit(f'{sitemap} returned HTTP {status}')
+              lower_body = body.lower()
+              start = 0
+              while True:
+                  left = lower_body.find(marker, start)
+                  if left < 0:
+                      break
+                  right = lower_body.find('</loc>', left)
+                  if right < 0:
+                      break
+                  urls.append(unescape(body[left + len(marker):right].strip()))
+                  start = right + 6
+
           urls.append(BASE)
-          urls=sorted(set(urls))
-          results=[]
+          urls = sorted(set(urls))
+          results = []
+
           for url in urls:
               try:
-                  body=curl(url)
-                  h1=bool(re.search(r'<h1\\b',body,re.I))
-                  main=bool(re.search(r'<main\\b',body,re.I))
-                  css=bool(re.search(r'<link[^>]+rel=["\\\'][^"\\\']*stylesheet',body,re.I))
-                  base=bool(re.search(r'nvx-base\\.css',body,re.I))
-                  status=200
-                  ok=h1 and main and css and base
-              except Exception as e:
-                  body=''; status=0; h1=main=css=base=False; ok=False
-              results.append({'url':url,'status':status,'h1':h1,'main':main,'css':css,'nvx_base':base,'ok':ok,'bytes':len(body)})
-          print('SITEMAPS='+str(len(sitemaps)))
-          print('ROUTES='+str(len(results)))
-          print('PASS='+str(sum(r['ok'] for r in results)))
-          print('FAIL='+str(sum(not r['ok'] for r in results)))
-          for r in results:
-              print(json.dumps(r,ensure_ascii=False))
-          if not results or any(not r['ok'] for r in results): raise SystemExit(2)
-          with open('/tmp/staging2-final-crawl.json','w') as f: json.dump(results,f,ensure_ascii=False,indent=2)
+                  status, body = fetch(url)
+                  parser = HtmlContractParser()
+                  parser.feed(body)
+                  parser.close()
+                  h1 = parser.h1 > 0
+                  main = parser.main > 0
+                  css = parser.stylesheets > 0
+                  base = parser.nvx_base > 0
+                  ok = status == 200 and h1 and main and css and base
+              except Exception as exc:
+                  status = 0
+                  body = ''
+                  h1 = main = css = base = False
+                  ok = False
+                  print(f'ERROR url={url} error={exc}')
+              results.append({
+                  'url': url,
+                  'status': status,
+                  'h1': h1,
+                  'main': main,
+                  'css': css,
+                  'nvx_base': base,
+                  'ok': ok,
+                  'bytes': len(body),
+              })
+
+          print('SITEMAPS=' + str(len(sitemap_locs)))
+          print('ROUTES=' + str(len(results)))
+          print('PASS=' + str(sum(r['ok'] for r in results)))
+          print('FAIL=' + str(sum(not r['ok'] for r in results)))
+          for result in results:
+              print(json.dumps(result, ensure_ascii=False))
+
+          with open('/tmp/staging2-final-crawl.json', 'w', encoding='utf-8') as handle:
+              json.dump(results, handle, ensure_ascii=False, indent=2)
+
+          if not results or any(not r['ok'] for r in results):
+              raise SystemExit(2)
           PY
           REMOTE
           scp siteground-staging:/tmp/staging2-final-crawl.json evidence/staging2-final-crawl.json

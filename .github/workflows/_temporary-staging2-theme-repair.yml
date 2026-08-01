@@ -63,7 +63,7 @@ jobs:
           test -f tools/deploy/deploy-to-staging2.sh
           test -f wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php
           test -f wp-content/themes/nuvanx-medical/assets/css/nvx-base.css
-          tar -czf theme-canonical.tgz -C wp-content/themes nuvanx-medical
+          tar -czf theme-canonical.tgz -C wp-content/themes/nuvanx-medical .
           cp tools/deploy/deploy-to-staging2.sh evidence/deploy-to-staging2.sh
           (cd wp-content/themes/nuvanx-medical && find . -type f -print0 | sort -z | xargs -0 sha256sum) > evidence/theme-manifest.sha256
           echo "SOURCE_SHA=${{ github.event.pull_request.base.sha }}" | tee evidence/source.txt
@@ -77,12 +77,12 @@ jobs:
           ssh siteground-staging "mkdir -p '$REMOTE_RELEASE/theme' && chmod 700 '$REMOTE_RELEASE' '$REMOTE_RELEASE/theme'"
           scp theme-canonical.tgz evidence/deploy-to-staging2.sh siteground-staging:"$REMOTE_RELEASE/"
           ssh siteground-staging "cd '$REMOTE_RELEASE/theme' && tar -xzf ../theme-canonical.tgz"
-          ssh siteground-staging "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme/nuvanx-medical' --sha '$SOURCE_SHA' --confirm" | tee evidence/deploy.log
+          ssh siteground-staging "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$STAGING_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$SOURCE_SHA' --confirm" | tee evidence/deploy.log
           grep -Fq 'DEPLOY_STAGING2_OK' evidence/deploy.log
       - name: Verify complete theme parity and rendered CSS
         run: |
           set -euo pipefail
-          scp siteground-staging:"$STAGING_ROOT/wp-content/.nuvanx-deployments/theme-repair-$GITHUB_RUN_ID/theme/nuvanx-medical/.nvx-deploy-sha" evidence/remote-deploy-sha.txt
+          scp siteground-staging:"$STAGING_ROOT/wp-content/.nuvanx-deployments/theme-repair-$GITHUB_RUN_ID/theme/.nvx-deploy-sha" evidence/remote-deploy-sha.txt
           ssh siteground-staging "cd '$STAGING_ROOT/wp-content/themes/nuvanx-medical' && find . -type f -print0 | sort -z | xargs -0 sha256sum" > evidence/remote-theme-manifest.sha256
           diff -u evidence/theme-manifest.sha256 evidence/remote-theme-manifest.sha256
           ssh siteground-staging "cd '$STAGING_ROOT' && test -f wp-content/themes/nuvanx-medical/inc/nvx-document-governance.php && test -f wp-content/themes/nuvanx-medical/header.php && test \"\$(wp theme list --status=active --field=name)\" = 'nuvanx-medical' && wp db check --quiet && wp plugin is-active sg-cachepress"

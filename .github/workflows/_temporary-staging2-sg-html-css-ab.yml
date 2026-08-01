@@ -56,9 +56,7 @@ jobs:
           ROOT=/home/customer/www/staging2.nuvanx.com/public_html
           cd "$ROOT"
           html_status="$(wp sg status html)"
-          preload_status="$(wp sg status html 2>/dev/null || true)"
           echo "BEFORE_HTML_STATUS=$html_status"
-          echo "BEFORE_PRELOAD_STATUS=$preload_status"
           probe() {
             label="$1"
             curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 "https://staging2.nuvanx.com/?nvx_sg_probe=${label}" -o "/tmp/nvx-sg-${label}.html"
@@ -71,7 +69,7 @@ jobs:
           PY
           }
           probe before
-          if [[ "$html_status" == 'enabled' ]]; then
+          if grep -qi 'enabled' <<<"$html_status"; then
             wp sg optimize html disable
             wp sg purge || true
             probe html-disabled

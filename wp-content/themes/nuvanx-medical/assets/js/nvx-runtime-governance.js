@@ -1,0 +1,190 @@
+(function () {
+  'use strict';
+
+  var config = window.nvxRuntimeGovernance || {};
+
+  function setInert(element, inert) {
+    if (!element) return;
+    if (inert) element.setAttribute('inert', '');
+    else element.removeAttribute('inert');
+  }
+
+  function focusableElements(container) {
+    if (!container) return [];
+    return Array.prototype.slice.call(
+      container.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter(function (element) {
+      return !element.hasAttribute('hidden') && element.getAttribute('aria-hidden') !== 'true';
+    });
+  }
+
+  function initMobileNavigationGovernance() {
+    var nav = document.getElementById(config.mobileNavId || 'nvx-mobile-nav');
+    var trigger = document.getElementById('nvx-hamburger-btn');
+    var close = document.getElementById('nvx-mobile-close');
+    if (!nav || !trigger) return;
+
+    var wasOpen = false;
+
+    function isOpen() {
+      return nav.classList.contains('is-open') || nav.getAttribute('aria-hidden') === 'false';
+    }
+
+    function synchronize() {
+      var open = isOpen();
+      setInert(nav, !open);
+
+      if (open && !wasOpen) {
+        window.setTimeout(function () {
+          var target = close || focusableElements(nav)[0];
+          if (target && typeof target.focus === 'function') target.focus();
+        }, 0);
+      }
+
+      if (!open && wasOpen && typeof trigger.focus === 'function') trigger.focus();
+      wasOpen = open;
+    }
+
+    setInert(nav, !isOpen());
+    wasOpen = isOpen();
+
+    new MutationObserver(synchronize).observe(nav, {
+      attributes: true,
+      attributeFilter: ['class', 'aria-hidden']
+    });
+
+    nav.addEventListener('click', function (event) {
+      var link = event.target && event.target.closest ? event.target.closest('a[href]') : null;
+      if (!link) return;
+      nav.classList.remove('is-open');
+      nav.setAttribute('aria-hidden', 'true');
+      trigger.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    });
+
+    document.addEventListener('keydown', function (event) {
+      if (!isOpen()) return;
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        if (close) close.click();
+        else {
+          nav.classList.remove('is-open');
+          nav.setAttribute('aria-hidden', 'true');
+          trigger.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        }
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
+      var focusables = focusableElements(nav);
+      if (!focusables.length) return;
+      var first = focusables[0];
+      var last = focusables[focusables.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
+  function initLazyHubSpot() {
+    if (!config.modalEnabled || !config.hubspotScriptUrl) return;
+
+    var modal = document.getElementById(config.modalId || 'nvx-valoracion-modal');
+    if (!modal) return;
+
+    var promise = null;
+
+    function initializeForms() {
+      if (window.HubSpotForms && typeof window.HubSpotForms.initialize === 'function') {
+        window.HubSpotForms.initialize();
+      }
+    }
+
+    function loadHubSpot() {
+      if (window.HubSpotForms) {
+        initializeForms();
+        return Promise.resolve();
+      }
+      if (promise) return promise;
+
+      promise = new Promise(function (resolve, reject) {
+        var scriptId = config.hubspotScriptId || 'nvx-hubspot-forms-runtime';
+        var existing = document.getElementById(scriptId);
+        if (existing) {
+          existing.addEventListener('load', function () {
+            initializeForms();
+            resolve();
+          }, { once: true });
+          existing.addEventListener('error', reject, { once: true });
+          return;
+        }
+
+        var script = document.createElement('script');
+        script.id = scriptId;
+        script.src = config.hubspotScriptUrl;
+        script.async = true;
+        script.defer = true;
+        script.addEventListener('load', function () {
+          initializeForms();
+          resolve();
+        }, { once: true });
+        script.addEventListener('error', function () {
+          modal.classList.add('nvx-valoracion-modal--embed-error');
+          reject(new Error('HubSpot form embed failed to load.'));
+        }, { once: true });
+        document.head.appendChild(script);
+      });
+
+      promise.catch(function () {
+        // The modal keeps its full-page fallback link when the embed is blocked.
+      });
+      return promise;
+    }
+
+    function modalIsOpen() {
+      return modal.classList.contains('is-open') || modal.getAttribute('aria-hidden') === 'false';
+    }
+
+    new MutationObserver(function () {
+      if (modalIsOpen()) loadHubSpot();
+    }).observe(modal, {
+      attributes: true,
+      attributeFilter: ['class', 'aria-hidden', 'hidden']
+    });
+
+    document.addEventListener(
+      'click',
+      function (event) {
+        var link = event.target && event.target.closest ? event.target.closest('a') : null;
+        if (!link) return;
+        if (
+          link.classList.contains('nvx-open-valoracion-modal') ||
+          link.getAttribute('data-nvx-valoracion-modal') === '1'
+        ) {
+          loadHubSpot();
+        }
+      },
+      true
+    );
+  }
+
+  function initialize() {
+    initMobileNavigationGovernance();
+    initLazyHubSpot();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initialize, { once: true });
+  } else {
+    initialize();
+  }
+})();

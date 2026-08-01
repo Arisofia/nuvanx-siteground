@@ -56,8 +56,6 @@ jobs:
           set -Eeuo pipefail
           ROOT=/home/customer/www/staging2.nuvanx.com/public_html
           cd "$ROOT"
-          echo '--- TEMP MU PLUGINS BEFORE ---'
-          find wp-content/mu-plugins -maxdepth 1 -type f \( -name 'nvx-buffer-ab-*.php' -o -name 'nvx-css-runtime-debug.php' -o -name 'nvx-wp-head-debug.php' -o -name 'nvx-style-filter-debug.php' \) -print || true
           rm -f wp-content/mu-plugins/nvx-css-runtime-debug.php wp-content/mu-plugins/nvx-wp-head-debug.php wp-content/mu-plugins/nvx-style-filter-debug.php
           find wp-content/mu-plugins -maxdepth 1 -type f -name 'nvx-buffer-ab-*.php' -delete
           wp plugin activate sg-cachepress
@@ -68,14 +66,12 @@ jobs:
           wp sg optimize combine-js disable
           wp cache flush
           wp sg purge
-          echo '--- TEMP MU PLUGINS AFTER ---'
-          find wp-content/mu-plugins -maxdepth 1 -type f \( -name 'nvx-buffer-ab-*.php' -o -name 'nvx-css-runtime-debug.php' -o -name 'nvx-wp-head-debug.php' -o -name 'nvx-style-filter-debug.php' \) -print
           test -z "$(find wp-content/mu-plugins -maxdepth 1 -type f \( -name 'nvx-buffer-ab-*.php' -o -name 'nvx-css-runtime-debug.php' -o -name 'nvx-wp-head-debug.php' -o -name 'nvx-style-filter-debug.php' \) -print -quit)"
           wp plugin is-active sg-cachepress
           wp plugin is-active complianz-gdpr
           wp db check --quiet
           REMOTE
-      - name: Verify canonical theme parity and clean origin CSS
+      - name: Verify canonical theme parity and capture clean origin
         run: |
           set -euo pipefail
           mkdir -p evidence/site-root
@@ -86,16 +82,7 @@ jobs:
           ssh siteground-staging 'bash -se' <<'REMOTE'
           set -Eeuo pipefail
           ROOT=/home/customer/www/staging2.nuvanx.com/public_html
-          curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 https://staging2.nuvanx.com/?nvx_clean_verify=1 -o /tmp/nvx-clean-home.html
-          python3 - <<'PY'
-          import re
-          s=open('/tmp/nvx-clean-home.html',encoding='utf8',errors='replace').read()
-          styles=[x for x in re.findall(r'<link\\b[^>]*>',s,re.I) if re.search(r'rel=["\\\'][^"\\\']*stylesheet',x,re.I)]
-          print('HTML_BYTES='+str(len(s)))
-          print('STYLESHEET_TAGS='+str(len(styles)))
-          print('NVX_BASE='+str('nvx-base.css' in s))
-          for x in styles: print(x)
-          if len(styles)<5 or 'nvx-base.css' not in s: raise SystemExit('CLEAN_ORIGIN_CSS_FAIL')
+          curl -ksS --resolve staging2.nuvanx.com:443:127.0.0.1 'https://staging2.nuvanx.com/?nvx_clean_verify=1' -o /tmp/nvx-clean-home.html
           rm -rf /tmp/nvx-clean-site-root
           mkdir -p /tmp/nvx-clean-site-root/wp-content/themes/nuvanx-medical/assets
           cp /tmp/nvx-clean-home.html /tmp/nvx-clean-site-root/index.html
@@ -104,6 +91,17 @@ jobs:
           REMOTE
           scp siteground-staging:/tmp/nvx-clean-origin.tgz evidence/clean-origin.tgz
           tar -xzf evidence/clean-origin.tgz -C evidence/site-root
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          s=Path('evidence/site-root/index.html').read_text(encoding='utf8',errors='replace')
+          styles=[x for x in re.findall(r'<link\b[^>]*>',s,re.I) if re.search(r'rel=["\'][^"\']*stylesheet',x,re.I)]
+          print('HTML_BYTES='+str(len(s)))
+          print('STYLESHEET_TAGS='+str(len(styles)))
+          print('NVX_BASE='+str('nvx-base.css' in s))
+          for x in styles: print(x)
+          if len(styles)<5 or 'nvx-base.css' not in s: raise SystemExit('CLEAN_ORIGIN_CSS_FAIL')
+          PY
       - name: Verify computed styles desktop and mobile
         run: |
           set -euo pipefail

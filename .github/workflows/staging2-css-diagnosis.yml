@@ -1,0 +1,179 @@
+name: Staging2 CSS diagnosis
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/staging2-css-diagnosis.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging2-css-diagnosis
+  cancel-in-progress: true
+
+env:
+  STAGING_URL: https://staging2.nuvanx.com/
+  STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+
+jobs:
+  diagnose:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.head_ref == 'fix/staging2-css-load-diagnostic'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install browser runtime
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright-core@1.55.0
+          test -x /usr/bin/chromium
+
+      - name: Inspect public HTML and every referenced stylesheet
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          python3 - <<'PY'
+          import html, re, urllib.parse, urllib.request
+          from pathlib import Path
+          base = 'https://staging2.nuvanx.com/'
+          req = urllib.request.Request(base, headers={'User-Agent':'NUVANX-CSS-Diagnostic/1.0'})
+          with urllib.request.urlopen(req, timeout=30) as r:
+              body = r.read().decode('utf-8', 'replace')
+              status = r.status
+              ctype = r.headers.get('content-type','')
+          Path('evidence/home.html').write_text(body, encoding='utf-8')
+          print(f'HOME_STATUS={status}')
+          print(f'HOME_CONTENT_TYPE={ctype}')
+          if status != 200: raise SystemExit('home not HTTP 200')
+          if 'text/html' not in ctype.lower(): raise SystemExit('home is not HTML')
+          links = re.findall(r'<link\b[^>]*\brel=["\'][^"\']*stylesheet[^"\']*["\'][^>]*>', body, re.I)
+          hrefs=[]
+          for tag in links:
+              m=re.search(r'\bhref=["\']([^"\']+)', tag, re.I)
+              if m:
+                  href=html.unescape(m.group(1))
+                  if href.startswith('//'): href='https:'+href
+                  elif href.startswith('/') or href.startswith('http'): href=urllib.parse.urljoin(base, href)
+                  else: continue
+                  hrefs.append(href)
+          hrefs=list(dict.fromkeys(hrefs))
+          Path('evidence/stylesheet-urls.txt').write_text('\n'.join(hrefs)+'\n', encoding='utf-8')
+          print(f'STYLESHEET_COUNT={len(hrefs)}')
+          if len(hrefs) < 3: raise SystemExit('unexpectedly few stylesheet links')
+          bad=[]
+          for i,url in enumerate(hrefs,1):
+              try:
+                  q=urllib.request.Request(url, headers={'User-Agent':'NUVANX-CSS-Diagnostic/1.0'})
+                  with urllib.request.urlopen(q, timeout=30) as rr:
+                      data=rr.read()
+                      st=rr.status
+                      ct=rr.headers.get('content-type','')
+                  first=data[:80].decode('utf-8','replace').replace('\n',' ')
+                  print(f'CSS_{i}=HTTP {st} | {len(data)} bytes | {ct} | {url}')
+                  if st != 200 or 'text/css' not in ct.lower() or len(data) < 100: bad.append((url,st,ct,len(data),first))
+              except Exception as e:
+                  bad.append((url,'ERROR','',0,str(e)))
+                  print(f'CSS_{i}=ERROR | {url} | {e}')
+          if bad:
+              print('BAD_STYLESHEETS=1')
+              for item in bad: print('BAD=',item)
+              raise SystemExit(2)
+          print('ALL_STYLESHEETS_HTTP_OK=1')
+          PY
+
+      - name: Inspect computed styles in Chromium
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const { chromium } = require('playwright-core');
+          (async () => {
+            const browser = await chromium.launch({headless:true, executablePath:'/usr/bin/chromium', args:['--no-sandbox']});
+            const page = await browser.newPage({viewport:{width:1440,height:1000}, deviceScaleFactor:1});
+            const errors=[];
+            page.on('console', msg => { if (msg.type()==='error') errors.push('console:'+msg.text()); });
+            page.on('pageerror', err => errors.push('pageerror:'+err.message));
+            const failed=[];
+            page.on('requestfailed', req => failed.push(`${req.url()} :: ${req.failure()?.errorText||'failed'}`));
+            const response = await page.goto('https://staging2.nuvanx.com/', {waitUntil:'networkidle', timeout:60000});
+            const result = await page.evaluate(() => {
+              const root=getComputedStyle(document.documentElement);
+              const body=getComputedStyle(document.body);
+              const h1=document.querySelector('h1');
+              const links=[...document.querySelectorAll('link[rel~="stylesheet"]')];
+              const loaded=links.map(l=>({href:l.href, sheet:!!l.sheet, rules:l.sheet ? (()=>{try{return l.sheet.cssRules.length}catch(e){return -1}})():0}));
+              return {
+                bodyFont: body.fontFamily,
+                bodyColor: body.color,
+                bodyBackground: body.backgroundColor,
+                bodyMargin: body.margin,
+                bodyDisplay: body.display,
+                h1Font: h1 ? getComputedStyle(h1).fontFamily : null,
+                h1Size: h1 ? getComputedStyle(h1).fontSize : null,
+                h1Weight: h1 ? getComputedStyle(h1).fontWeight : null,
+                stylesheets: loaded,
+                hasThemeClass: document.body.className.includes('nvx-'),
+                htmlLength: document.documentElement.outerHTML.length,
+              };
+            });
+            await page.screenshot({path:'evidence/staging2-home-desktop.png', fullPage:true});
+            console.log(JSON.stringify({httpStatus:response?.status(), result, errors, failed}, null, 2));
+            if (!response || response.status() !== 200) throw new Error('home HTTP status is not 200');
+            if (result.stylesheets.some(x => !x.sheet || x.rules === 0)) throw new Error('one or more stylesheets did not load CSS rules');
+            if (result.bodyMargin === '8px') throw new Error('browser default body margin detected; theme CSS is not applying');
+            if (result.bodyFont === 'Times New Roman' || result.bodyFont === 'serif') throw new Error('browser default typography detected; theme CSS is not applying');
+            if (failed.some(x => /\.css(?:\?|$)/i.test(x))) throw new Error('CSS request failed');
+            await browser.close();
+          })().catch(err => { console.error(err); process.exit(1); });
+          NODE
+
+      - name: Verify theme assets on SiteGround
+        env:
+          SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          SSH_PORT_SECRET: ${{ secrets.STAGING2_SSH_PORT }}
+          SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${SSH_PORT_SECRET:-18765}"
+          mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/siteground_key"
+          chmod 600 "$HOME/.ssh/siteground_key"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host siteground-staging
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/siteground_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh siteground-staging 'printf "SSH_OK\n"'
+          ssh siteground-staging "cd '$STAGING_ROOT' && printf 'SITEURL=%s\nHOME=%s\nTHEME=%s\n' \"\$(wp option get siteurl)\" \"\$(wp option get home)\" \"\$(wp theme list --status=active --field=name)\" && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-base.css && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-header.css && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-tokens.css && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-components.css && test -s wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css && find wp-content/themes/nuvanx-medical/assets/css -maxdepth 1 -type f -name '*.css' -printf '%f %s bytes\\n' | sort" | tee evidence/siteground-css-assets.txt
+
+      - name: Upload diagnosis evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging2-css-diagnosis-${{ github.run_id }}
+          path: evidence/
+          retention-days: 14
+          if-no-files-found: error

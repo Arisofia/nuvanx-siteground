@@ -65,25 +65,25 @@ $method_steps = array(
 );
 ?>
 <div class="nvx-solutions-page" id="nvx-solutions-page">
-	<header class="nvx-brand-hero nvx-editorial-hero nvx-canonical-page-hero nvx-solutions-hero" aria-labelledby="nvx-solutions-title">
+	<section class="nvx-brand-hero" aria-labelledby="nvx-solutions-title">
 		<div class="nvx-brand-hero__inner">
-			<div class="nvx-editorial-hero__copy">
-				<p class="nvx-eyebrow">SOLUCIONES MÉDICAS · NUVANX MADRID</p>
-				<h1 id="nvx-solutions-title" class="nvx-heading">Soluciones médicas para rostro, piel y contorno corporal.</h1>
-				<p class="nvx-lead">La preocupación orienta la consulta. El diagnóstico define el tratamiento. Organizamos las soluciones por anatomía y por causa clínica, no por catálogo de máquinas. Antes de recomendar una tecnología diferenciamos grasa, laxitud, soporte, textura, pigmentación y otros componentes que pueden producir signos similares.</p>
-				<div class="nvx-cta-pair">
+			<?php if ( '' !== $hero_art_url ) : ?>
+			<figure class="nvx-brand-hero__media" aria-hidden="true">
+				<img src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="440" height="340" loading="eager" decoding="async">
+			</figure>
+			<?php endif; ?>
+			<div class="nvx-brand-hero__copy">
+				<p class="nvx-brand-kicker">SOLUCIONES MÉDICAS · NUVANX MADRID</p>
+				<h1 id="nvx-solutions-title" class="nvx-brand-hero__title">Soluciones médicas para rostro, piel y contorno corporal.</h1>
+				<p class="nvx-brand-hero__lead">La preocupación orienta la consulta. El diagnóstico define el tratamiento. Organizamos las soluciones por anatomía y por causa clínica, no por catálogo de máquinas. Antes de recomendar una tecnología diferenciamos grasa, laxitud, soporte, textura, pigmentación y otros componentes que pueden producir signos similares.</p>
+				<div class="nvx-brand-actions nvx-cta-pair">
 					<a class="nvx-brand-btn nvx-brand-btn--primary" href="<?php echo esc_url( $valuation_url ); ?>">Solicitar valoración médica</a>
 					<a class="nvx-btn nvx-btn--secondary" href="#mapa-soluciones">Explorar soluciones</a>
 				</div>
 				<p class="nvx-brand-meta">Diagnóstico individual · Indicación proporcionada · Seguimiento médico</p>
 			</div>
-			<?php if ( '' !== $hero_art_url ) : ?>
-			<figure class="nvx-brand-hero__media" aria-hidden="true">
-				<img src="<?php echo esc_url( $hero_art_url ); ?>" alt="Esquema de arquitectura anatómica NUVANX" width="440" height="340" loading="eager" decoding="async">
-			</figure>
-			<?php endif; ?>
 		</div>
-	</header>
+	</section>
 
 	<nav id="mapa-soluciones" class="nvx-solutions-nav" aria-label="Mapa de soluciones médicas">
 		<div class="nvx-solutions-shell nvx-solutions-nav__inner">

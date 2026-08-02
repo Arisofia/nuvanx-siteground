@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<header class="nvx-header<?php echo is_front_page() ? ' nvx-header--home' : ' nvx-header--interior'; ?>" role="banner" id="nvx-header">
+<header class="nvx-header" role="banner" id="nvx-header">
   <div class="nvx-header__inner">
     <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="nvx-logo" aria-label="NUVANX MEDICINA ESTÉTICA LÁSER — Inicio">
       <?php

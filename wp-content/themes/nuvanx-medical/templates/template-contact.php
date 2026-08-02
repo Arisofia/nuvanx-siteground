@@ -38,7 +38,7 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 ?>
 
 <div class="nvx-brand-page nvx-page--contact">
-	<section class="nvx-brand-hero nvx-brand-hero--contact" aria-labelledby="nvx-contact-h1" aria-label="<?php esc_attr_e( 'Contacto NUVANX', 'nuvanx-medical' ); ?>">
+	<section class="nvx-brand-hero" aria-labelledby="nvx-contact-h1" aria-label="<?php esc_attr_e( 'Contacto NUVANX', 'nuvanx-medical' ); ?>">
 		<div class="nvx-brand-hero__inner">
 			<div class="nvx-brand-hero__copy">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'Clínicas NUVANX · Madrid', 'nuvanx-medical' ); ?></p>

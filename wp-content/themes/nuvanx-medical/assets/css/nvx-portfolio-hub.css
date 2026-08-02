@@ -2,52 +2,7 @@
  * Portfolio hub (Tratamientos) layout for page-tratamientos.php.
  */
 
-/* =========================================================
-   SECCIÓN 01: HERO VIEWPORT
-   ========================================================= */
-.nvx-hub-hero {
-	position: relative;
-	width: 100vw;
-	max-width: 100vw;
-	min-height: 80vh;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background: var(--nvx-ink); /* Fondo sólido muy oscuro */
-	margin-top: calc(-1 * var(--nvx-header-height, 80px)); /* Flow under transparent header */
-	margin-left: calc(50% - 50vw);
-	text-align: center;
-}
-
-.nvx-hub-hero__content {
-	position: relative;
-	z-index: 2;
-	width: var(--nvx-shell);
-	max-width: 100%;
-	margin-inline: auto;
-	padding-inline: var(--nvx-gutter-inner);
-	color: var(--nvx-light);
-	padding-top: calc(var(--nvx-header-height, 80px) + var(--nvx-space-8));
-	padding-bottom: var(--nvx-space-8);
-}
-
-.nvx-hub-hero__title {
-	font-family: var(--nvx-serif);
-	font-size: var(--nvx-type-display);
-	line-height: 1.1;
-	font-weight: 300;
-	margin-bottom: var(--nvx-space-2);
-}
-
-.nvx-hub-hero__lead {
-	font-family: var(--nvx-sans);
-	font-size: var(--nvx-type-body);
-	font-weight: 300;
-	opacity: 0.9;
-	margin-bottom: var(--nvx-space-8);
-	max-width: var(--nvx-measure);
-	margin-inline: auto;
-}
+/* Hub opening stage uses global .nvx-brand-hero (nvx-patterns-editorial.css). */
 
 /* =========================================================
    SECCIÓN 02: MAPA ANATÓMICO (SEO)

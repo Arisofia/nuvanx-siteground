@@ -1,7 +1,7 @@
 /* NUVANX components — type primitives, cards, values, forms, CTAs
    Long-form measure + body figures live in nvx-site-layout.css (not here).
    Body inherits type from nvx-base; component classes own explicit roles. */
-.nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-ink)}
+.nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-light)}
 .nvx-heading,h1{margin:0 0 var(--nvx-margin-h1);font-family:var(--nvx-serif);font-size:var(--nvx-type-h1);font-weight:400;line-height:var(--nvx-lh-h1);letter-spacing:var(--nvx-track-h1);color:var(--nvx-ink)}
 .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
@@ -612,48 +612,8 @@ body.nvx-valoracion-modal-open{
   color: var(--nvx-text-body);
   background: var(--nvx-color-paper)}
 
-.nvx-brand-hero__media video{
-  max-width: none;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-  display: block;
-  max-height: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  object-fit: cover;
-  object-position: center;
-  background: transparent}
+/* Video embeds only on the front-page home stage (see nvx-home-v3.css). */
 
-.nvx-page-hero__media video{
-  max-width: none;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  inset: 0;
-  display: block;
-  max-height: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  object-fit: cover;
-  object-position: center;
-  background: transparent}
-
-.nvx-home-hero-video{
-  max-width: none;
-  width:100%;
-  height:100%;
-  position:absolute;
-  inset:0;
-  display:block;
-  object-fit:cover;
-  object-position:center;
-  border-radius:0}
 
 .nvx-endolift-section__inner{
   width: var(--nvx-shell);
@@ -1083,55 +1043,13 @@ article.nvx-page > .nvx-page-hero{
 
 .nvx-ba-teaser__cta{white-space:nowrap;width:100%}
 
-body.nvx-hero-blackout :where( .nvx-brand-hero, .nvx-editorial-hero, .nvx-page-hero, section.nvx-hero ) :is( .nvx-eyebrow, .nvx-brand-kicker, .nvx-kicker, .nvx-brand-meta ){
-  color:var(--nvx-text-on-dark-72)}
-
-.nvx-aes-hero :is( .nvx-eyebrow, .nvx-brand-kicker, .nvx-kicker, .nvx-brand-meta ){
-  color:var(--nvx-text-on-dark-72)}
-
 .nvx-page--contact .nvx-clinics-grid{
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
   gap: var(--nvx-gap-base);
   margin-top: var(--nvx-space-6)}
 
-section.nvx-hero{
-    --nvx-hero-h: clamp(560px, 82svh, 720px);
-  position: relative;
-  display: block;
-  align-items: stretch;
-  justify-content: flex-start;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  overflow: hidden;
-  background: var(--nvx-ink);
-    min-height: var(--nvx-hero-h);
-    height: var(--nvx-hero-h);
-  color: var(--nvx-light);
-  box-sizing: border-box}
-
-section.nvx-hero.nvx-hero-section{
-    --nvx-hero-h: clamp(560px, 82svh, 720px);
-  position: relative;
-  display: block;
-  align-items: stretch;
-  justify-content: flex-start;
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  overflow: hidden;
-  background: var(--nvx-ink);
-    min-height: var(--nvx-hero-h);
-    height: var(--nvx-hero-h);
-  color: var(--nvx-light);
-  box-sizing: border-box}
+/* section.nvx-hero / .nvx-brand-hero stage: owned by nvx-patterns-editorial.css */
 
 .nvx-brand-hero__copy .nvx-brand-kicker{
   color: var(--nvx-accent-muted);
@@ -1200,6 +1118,7 @@ section.nvx-hero.nvx-hero-section{
   letter-spacing: var(--nvx-track-h1);
   margin-bottom: var(--nvx-space-3);
   max-width: none;
+  color: var(--nvx-light);
   text-wrap: balance;
 }
 
@@ -1315,21 +1234,10 @@ figure.nvx-equipo-portrait{
   box-shadow: var(--nvx-shadow-min, 0 1px 2px var(--nvx-surface-soft));
   justify-self: start}
 
-.nvx-laser-hero.nvx-brand-hero{
-  background: var(--nvx-ink);
-  color: var(--nvx-text-on-dark);
-    padding-block: var(--nvx-pad-section)}
-
 .nvx-laser-focus-grid{
   display: grid;
     grid-template-columns: 1fr;
     gap: var(--nvx-space-4)}
-
-.nvx-aes-hero.nvx-brand-hero{
-  background: var(--nvx-ink);
-  color: var(--nvx-text-on-dark);
-    padding-block: var(--nvx-pad-section);
-  border-bottom: 1px solid var(--nvx-text-body)}
 
 .nvx-aes-focus-grid{
   display: grid;
@@ -1425,23 +1333,6 @@ figure.nvx-equipo-portrait{
   color: var(--nvx-text-muted); margin: 0}
 
 .nvx-footer__legal-nav{ justify-self: start}
-
-.nvx-home-video-frame{
-  position:absolute;
-  inset:0;
-  z-index:0;width:100%;height:100%;
-  margin:0;
-  padding:0;
-  overflow:hidden;
-  border-radius:0}
-
-.nvx-home-hero-stage .nvx-brand-hero__title{
-  margin:0;max-width:none;
-  font-family:var(--nvx-serif);
-  font-size:var(--nvx-type-display);
-  font-weight:var(--nvx-fw-heading);
-  line-height:var(--nvx-lh-display);
-  letter-spacing:var(--nvx-track-display)}
 
 .nvx-home-action-banner__title{
   margin:0 0 var(--nvx-space-2);max-width:none;

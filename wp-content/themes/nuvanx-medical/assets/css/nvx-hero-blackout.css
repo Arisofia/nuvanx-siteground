@@ -1,43 +1,4 @@
-/* Hero blackout — production control (body.nvx-hero-blackout).
- *
- * Solid ink opening stages. Photographic stills hidden in hero headers.
- * Video remains visible. Body, editorial and card media are out of scope.
- * Toggle: define('NVX_HERO_BLACKOUT', false) or filter nvx_theme_hero_blackout_enabled.
- *
- * Uses :is() for consolidation (same evergreen stack as the rest of the theme).
+/* Retired: sitewide hero blackout patch.
+ * Interior heroes use the single .nvx-brand-hero shell (nvx-patterns-editorial.css).
+ * Home video stage lives in nvx-home-v3.css only.
  */
-
-body.nvx-hero-blackout :is(
-  .nvx-brand-hero,
-  .nvx-editorial-hero,
-  .nvx-page-hero,
-  section.nvx-hero,
-  .nvx-blog-hero,
-  .nvx-home-hero-stage
-) {
-  background-color: var(--nvx-ink);
-  background-image: none;
-}
-
-/* Journal: hide opening featured-media slot (stills). */
-body.nvx-hero-blackout .nvx-blog-hero__media {
-  display: none;
-}
-
-/* Keep video visible (display:revert is ancestor-safe for non-hidden parents). */
-body.nvx-hero-blackout :is(
-  .nvx-brand-hero,
-  .nvx-editorial-hero,
-  .nvx-page-hero,
-  section.nvx-hero,
-  .nvx-home-hero-stage
-) video {
-  display: revert;
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Journal hero: text column spans full width when media is hidden. */
-body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-hero__copy {
-  grid-column: span 12;
-}

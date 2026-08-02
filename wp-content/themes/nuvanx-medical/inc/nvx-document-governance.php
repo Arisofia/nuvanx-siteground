@@ -25,7 +25,11 @@ function nvx_document_governance_start(): void {
 
 /**
  * Yoast may skip or duplicate canonical under staging noindex. Theme emits the
- * single public canonical from wp_head; suppress Yoast's copy.
+ * single public canonical from wp_head; suppress Yoast's copy as the final word
+ * on wpseo_canonical (priority PHP_INT_MAX so no peer filter can re-enable it).
+ *
+ * Staging production-host policy for social tags lives on wpseo_opengraph_url
+ * in nvx-staging2-canonical-closure.php — not on this filter.
  *
  * @param string|false $canonical Existing canonical.
  * @return false
@@ -34,7 +38,7 @@ function nvx_document_governance_suppress_yoast_canonical( $canonical ) {
 	unset( $canonical );
 	return false;
 }
-add_filter( 'wpseo_canonical', 'nvx_document_governance_suppress_yoast_canonical', 1000 );
+add_filter( 'wpseo_canonical', 'nvx_document_governance_suppress_yoast_canonical', PHP_INT_MAX );
 
 /**
  * Emit document contract pieces that used to be forced by the full-document
@@ -76,9 +80,8 @@ function nvx_document_governance_enqueue_assets(): void {
 		true
 	);
 
-	// Defense in depth: strip eager HubSpot even if another plugin re-enqueued it.
-	wp_dequeue_script( 'nvx-hubspot-forms-embed' );
-	wp_deregister_script( 'nvx-hubspot-forms-embed' );
+	// Eager HubSpot strip is owned solely by nvx-integrations.php
+	// (wp_enqueue_scripts + script_loader_tag).
 
 	$modal_enabled = function_exists( 'nvx_valoracion_modal_enabled' )
 		? nvx_valoracion_modal_enabled()
@@ -114,14 +117,6 @@ function nvx_document_governance_enqueue_assets(): void {
 	);
 }
 
-/**
- * Early HubSpot deregistration so the browser never sees an eager forms embed handle.
- */
-function nvx_document_governance_strip_eager_hubspot(): void {
-	wp_dequeue_script( 'nvx-hubspot-forms-embed' );
-	wp_deregister_script( 'nvx-hubspot-forms-embed' );
-}
-add_action( 'wp_enqueue_scripts', 'nvx_document_governance_strip_eager_hubspot', 1 );
 add_action( 'wp_enqueue_scripts', 'nvx_document_governance_enqueue_assets', 100 );
 
 /**

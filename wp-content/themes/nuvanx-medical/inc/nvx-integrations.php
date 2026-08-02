@@ -158,14 +158,12 @@ function nvx_theme_normalize_public_document( string $html ): string {
 	return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
 }
 
-// Public document rewrite is owned solely by nvx-document-governance.php
-// (header.php starts one buffer). nvx_theme_normalize_public_document() is
-// invoked from that callback so infrastructure cleanup and head contract share
-// a single output pipeline — no nested buffers, no route exceptions.
+// Public document head contract is owned solely by nvx-document-governance.php
+// (wp_head emission + Yoast suppress). Page hygiene is required once from
+// functions.php.
 
 require_once __DIR__ . '/nvx-structured-data.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
-require_once __DIR__ . '/nvx-page-hygiene.php';
 require_once __DIR__ . '/nvx-seo-metadata.php';
 require_once __DIR__ . '/nvx-seo-production-readiness.php';
 require_once __DIR__ . '/nvx-staging2-canonical-closure.php';
@@ -273,16 +271,10 @@ function nvx_theme_disable_public_facebook_pixel( $plugins ) {
 add_filter( 'option_active_plugins', 'nvx_theme_disable_public_facebook_pixel', 1 );
 add_filter( 'site_option_active_sitewide_plugins', 'nvx_theme_disable_public_facebook_pixel', 1 );
 
-/* Meta Pixel leftovers, Site Kit GSI, and eager HubSpot · strip as early as possible */
-add_action(
-	'wp_enqueue_scripts',
-	static function (): void {
-		wp_dequeue_script( 'nvx-hubspot-forms-embed' );
-		wp_deregister_script( 'nvx-hubspot-forms-embed' );
-	},
-	1
-);
-
+/*
+ * Single owner for eager third-party script strips on the public front end.
+ * HubSpot forms embed: one dequeue after normal enqueues (100) + script_loader_tag hard-block below.
+ */
 add_action(
 	'wp_enqueue_scripts',
 	static function (): void {

@@ -11,7 +11,16 @@ $GLOBALS['nvx_test_cache'] = array();
 function add_action(...$args): bool {
     return true;
 }
+function add_filter(...$args): bool {
+    return true;
+}
 function is_admin(): bool { return false; }
+function is_page($page = ''): bool {
+    return false;
+}
+function get_post_field(string $field, $post = null): string {
+    return '';
+}
 function wp_doing_ajax(): bool { return false; }
 function is_feed(): bool { return false; }
 function is_404(): bool { return false; }

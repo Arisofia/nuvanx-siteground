@@ -1,29 +1,43 @@
 /* NUVANX · Soluciones médicas
- * Canonical GitHub-owned layout for /soluciones-medicas/.
+ * Hub body layout only. Opening stage is global .nvx-brand-hero
+ * (nvx-patterns-editorial.css) — do not restyle or reset hero internals here.
  */
 
 .nvx-solutions-page {
   width: 100%;
-  overflow: clip;
   background: var(--nvx-light);
   color: var(--nvx-text-body);
   font-family: var(--nvx-sans);
 }
 
-.nvx-solutions-page,
-.nvx-solutions-page * {
+/* Never let page-local resets touch the global brand hero shell. */
+.nvx-solutions-page > *:not(.nvx-brand-hero) {
   box-sizing: border-box;
 }
 
-.nvx-solutions-page figure,
-.nvx-solutions-page h1,
-.nvx-solutions-page h2,
-.nvx-solutions-page h3,
-.nvx-solutions-page p,
-.nvx-solutions-page dl,
-.nvx-solutions-page dd,
-.nvx-solutions-page ol {
+.nvx-solutions-page .nvx-solutions-nav h2,
+.nvx-solutions-page .nvx-solutions-principle h2,
+.nvx-solutions-page .nvx-solutions-group h2,
+.nvx-solutions-page .nvx-solutions-group h3,
+.nvx-solutions-page .nvx-solutions-method h2,
+.nvx-solutions-page .nvx-solutions-method h3,
+.nvx-solutions-page .nvx-solutions-closure h2,
+.nvx-solutions-page .nvx-solutions-card p,
+.nvx-solutions-page .nvx-solutions-card dl,
+.nvx-solutions-page .nvx-solutions-card dd,
+.nvx-solutions-page .nvx-solutions-method ol,
+.nvx-solutions-page .nvx-solutions-principle p {
   margin: 0;
+}
+
+/* Full-bleed hero when solutions is rendered outside .nvx-page__content. */
+.nvx-solutions-page > .nvx-brand-hero {
+  position: relative;
+  display: block;
+  width: 100vw;
+  max-width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  overflow: hidden;
 }
 
 .nvx-solutions-shell {
@@ -42,37 +56,8 @@
 
 /* Solutions opening stage uses global .nvx-brand-hero. */
 
-.nvx-solutions-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--nvx-space-2);
+.nvx-solutions-closure .nvx-brand-actions {
   margin-top: var(--nvx-space-5);
-}
-
-.nvx-solutions-button {
-  display: inline-flex;
-  min-height: var(--nvx-touch-target-min);
-  align-items: center;
-  justify-content: center;
-  padding-inline: var(--nvx-space-4);
-  border: var(--nvx-border-hairline) solid var(--nvx-ink);
-  border-radius: var(--nvx-radius-button);
-  font-size: var(--nvx-type-button);
-  font-weight: var(--nvx-fw-bold);
-  letter-spacing: var(--nvx-track-button);
-  text-decoration: none;
-  text-transform: uppercase;
-}
-
-.nvx-solutions-button--primary {
-  background: var(--nvx-ink);
-  color: var(--nvx-light);
-}
-
-.nvx-solutions-button--secondary {
-  border-color: var(--nvx-border-on-dark-55);
-  color: var(--nvx-light);
 }
 
 .nvx-solutions-nav {

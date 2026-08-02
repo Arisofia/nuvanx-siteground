@@ -530,8 +530,14 @@ function nvx_document_governance_normalize_head( string $head, string $visible_t
  *
  * Single pipeline: infrastructure cleanup (integrations) then document contract
  * (title/description/canonical/viewport/images). Nested buffers are forbidden.
+ *
+ * Never returns an empty string when the buffer already holds a document: a
+ * failed rewrite (PCRE, partial handler, OPcache-stale edge) must not yield
+ * HTTP 200 with Content-Length 0.
  */
 function nvx_document_governance_normalize_document( string $html ): string {
+	$original = $html;
+
 	if ( '' === $html || false === stripos( $html, '<html' ) ) {
 		return $html;
 	}
@@ -542,6 +548,10 @@ function nvx_document_governance_normalize_document( string $html ): string {
 		$html = nvx_theme_normalize_public_document( $html );
 	} else {
 		$html = nvx_document_governance_remove_retired_scripts( $html );
+	}
+
+	if ( '' === $html ) {
+		return $original;
 	}
 
 	$html         = nvx_document_governance_add_image_dimensions( $html );
@@ -558,5 +568,10 @@ function nvx_document_governance_normalize_document( string $html ): string {
 		1
 	);
 
-	return is_string( $normalized ) ? $normalized : $html;
+	$result = is_string( $normalized ) ? $normalized : $html;
+	if ( '' === trim( $result ) && '' !== trim( $original ) ) {
+		return $original;
+	}
+
+	return $result;
 }

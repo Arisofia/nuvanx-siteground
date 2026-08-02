@@ -110,12 +110,18 @@ function nvx_laser_hero_ctas_markup(): string {
 }
 
 /**
- * Unified brand hero (no video, no CMS media).
+ * Unified brand hero — same shell as Endolift / medicina-estética (still media, no video).
  */
 function nvx_laser_hero_markup(): string {
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	$html  = '<section class="nvx-brand-hero" aria-labelledby="nvx-laser-h1">';
+	// Prefer featured image so this hub matches photo brand-heroes on peer routes.
+	$media = '';
+	if ( function_exists( 'nvx_hero_featured_media_figure' ) ) {
+		$media = nvx_hero_featured_media_figure();
+	}
+
+	$html  = '<section class="nvx-brand-hero" aria-labelledby="nvx-laser-h1" aria-label="' . esc_attr__( 'Medicina estética láser NUVANX', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-brand-hero__inner">';
 	$html .= '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Tecnología médica de precisión', 'nuvanx-medical' ) . '</p>';
@@ -130,7 +136,9 @@ function nvx_laser_hero_markup(): string {
 	) . '</p>';
 	$html .= nvx_laser_hero_ctas_markup();
 	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí (CS20144) · Salamanca–Goya (CS20073) · Indicación médica personalizada', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div></div></section>';
+	$html .= '</div>';
+	$html .= $media;
+	$html .= '</div></section>';
 
 	return $html;
 }
@@ -167,7 +175,8 @@ function nvx_laser_editorial_catalog(): array {
  * Full editorial body from theme JSON catalog.
  */
 function nvx_laser_editorial_body_markup(): string {
-	$html  = '<div class="nvx-laser-editorial">';
+	// Sections are direct children of .nvx-brand-page (same as Endolift / med hubs).
+	$html  = '';
 
 	$html .= '<section class="nvx-brand-section nvx-laser-focus" aria-labelledby="nvx-laser-focus-title">';
 	$html .= '<div class="nvx-brand-section__inner">';
@@ -248,7 +257,6 @@ function nvx_laser_editorial_body_markup(): string {
 	}
 
 	$html .= '</div></div></section>';
-	$html .= '</div>';
 
 	return $html;
 }
@@ -257,7 +265,7 @@ function nvx_laser_editorial_body_markup(): string {
  * Full theme-owned laser hub page markup.
  */
 function nvx_laser_hub_page_markup(): string {
-	return '<div class="nvx-brand-page nvx-laser-hub-page">'
+	return '<div class="nvx-brand-page nvx-brand-page--laser-hub">'
 		. nvx_laser_hero_markup()
 		. nvx_laser_editorial_body_markup()
 		. '</div>';

@@ -37,13 +37,35 @@
 
 /* Brand heroes inside content match home full-bleed, not shell box */
 .nvx-page__content .nvx-brand-hero,
-.nvx-brand-page > .nvx-brand-hero {
+.nvx-brand-page > .nvx-brand-hero,
+.nvx-page__content .nvx-brand-page > .nvx-brand-hero {
   position: relative;
   display: block;
   width: 100vw;
   max-width: 100vw;
   margin-inline: calc(50% - 50vw);
+  margin-block: 0;
   overflow: hidden;
+}
+
+/* Laser hub: same full-bleed hero contract as other brand-page routes */
+.nvx-brand-page--laser-hub > .nvx-brand-hero {
+  position: relative;
+  display: block;
+  width: 100vw;
+  max-width: 100vw;
+  margin-inline: calc(50% - 50vw);
+  margin-block: 0;
+  overflow: hidden;
+}
+
+/* Brand-page body sections: one vertical rhythm everywhere */
+.nvx-brand-page > .nvx-brand-section,
+.nvx-brand-page--laser-hub > .nvx-brand-section {
+  width: 100%;
+  margin: 0;
+  padding-block: var(--nvx-pad-section);
+  box-sizing: border-box;
 }
 
 /*

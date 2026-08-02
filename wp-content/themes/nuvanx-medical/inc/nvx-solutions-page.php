@@ -77,14 +77,12 @@ function nvx_solutions_hub_markup(): string {
 		return '';
 	}
 
-	$level_before = ob_get_level();
+	// Capture only this view. Never walk the buffer stack with ob_end_clean():
+	// that used to wipe the public document buffer and yield HTTP 200 + empty body.
 	ob_start();
 	// false = do not require_once; the partial is a view, not a symbol definition.
 	load_template( $template, false );
 	$markup = ob_get_clean();
-	while ( ob_get_level() > $level_before ) {
-		ob_end_clean();
-	}
 
 	return is_string( $markup ) ? $markup : '';
 }

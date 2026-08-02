@@ -22,6 +22,7 @@ jobs:
     env:
       BASE_URL: https://staging2.nuvanx.com
       EXPECTED_SHA: ${{ inputs.expected_sha }}
+      SSH_FETCH_HOST: nvx-staging2
     steps:
       - name: Checkout canonical acceptance contract
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -30,7 +31,7 @@ jobs:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
 
@@ -44,6 +45,61 @@ jobs:
             echo 'expected_sha must be a full lowercase 40-character SHA.' >&2
             exit 1
           }
+
+      - name: Configure strict SSH authentication
+        shell: bash
+        env:
+          STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          STAGING2_SSH_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          STAGING2_SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          STAGING2_SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          STAGING2_SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${STAGING2_SSH_HOST:?Missing STAGING2_SSH_HOST secret}"
+          : "${STAGING2_SSH_USER:?Missing STAGING2_SSH_USER secret}"
+          : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY secret}"
+          : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS secret}"
+
+          SSH_PORT="${STAGING2_SSH_PORT:-18765}"
+          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] || {
+            echo 'STAGING2_SSH_PORT must be numeric.' >&2
+            exit 1
+          }
+          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || {
+            echo 'STAGING2_SSH_HOST contains unsupported characters.' >&2
+            exit 1
+          }
+          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]] || {
+            echo 'STAGING2_SSH_USER contains unsupported characters.' >&2
+            exit 1
+          }
+
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
+          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts"
+
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName $STAGING2_SSH_HOST
+            User $STAGING2_SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Verify SSH reachability for rendered acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh -o ConnectTimeout=20 nvx-staging2 'command -v curl >/dev/null && command -v mktemp >/dev/null'
 
       - name: Verify rendered document, integrations and route consistency
         run: node scripts/staging2/verify-rendered-document.mjs

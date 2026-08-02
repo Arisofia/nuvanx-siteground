@@ -1,9 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
-
-// Document governance buffer starts on init priority 1 (outermost theme layer).
-// Do not start a second buffer here — nested rewrite buffers break SGO's single
-// ob_end_flush on routes like /soluciones-medicas/.
+// No theme-level document rewrite buffer: SiteGround Optimizer + Complianz own
+// the front-end buffer stack. Head contract is emitted via wp_head filters.
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>

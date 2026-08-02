@@ -10,33 +10,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Start the public-document buffer as the outermost theme-owned layer.
+ * Document rewrite no longer uses a theme output buffer.
  *
- * Must run before SiteGround Optimizer Parser (init priority 10). SGO's
- * end_buffer() calls ob_end_flush() once on the topmost buffer; when our
- * callback sat inside SGO (started from header.php), SGO flushed our layer
- * incorrectly and large routes like /soluciones-medicas/ could emit HTTP 200
- * with an empty body. Starting first makes governance the outermost rewrite
- * after plugin buffers finish bubbling up.
+ * SiteGround Optimizer + Complianz + core already own the front-end buffer
+ * stack. Inserting nvx_document_governance_normalize_document as another
+ * callback produced HTTP 200 + empty body on /soluciones-medicas/ (content sat
+ * in an inner buffer while the outer rewrite layer flushed empty). Head
+ * contract (title, description, canonical, document marker) is enforced via
+ * wp_head / Yoast filters instead of full-document preg rewrites.
  */
 function nvx_document_governance_start(): void {
-	static $started = false;
+	// Intentionally a no-op kept for call-site compatibility (header history).
+}
 
-	if (
-		$started
-		|| is_admin()
-		|| wp_doing_ajax()
-		|| ( defined( 'REST_REQUEST' ) && REST_REQUEST )
-		|| is_feed()
-	) {
+/**
+ * Emit exactly one document-contract marker when missing from plugins.
+ */
+function nvx_document_governance_print_contract_marker(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
 		return;
 	}
 
-	$started = true;
-	// Not CLEANABLE/REMOVABLE: third parties must not discard this layer mid-request.
-	ob_start( 'nvx_document_governance_normalize_document', 0 );
+	echo '<meta name="nvx-document-contract" content="1" />' . "\n";
 }
-add_action( 'init', 'nvx_document_governance_start', 1 );
+add_action( 'wp_head', 'nvx_document_governance_print_contract_marker', 2 );
 
 /**
  * Enqueue the platform accessibility/runtime layer and prevent eager HubSpot.

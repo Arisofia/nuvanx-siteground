@@ -12,7 +12,6 @@
         "yoast_desc": "EXION® Face en Madrid: radiofrecuencia y ultrasonido para protocolos de calidad cutánea según valoración médica. Chamberí y Salamanca–Goya.",
         "focuskw": "EXION Face Madrid",
         "hub": "@nvx-url:/exion-btl/",
-        "combo": "",
         "schema_name": "EXION® Face en Madrid",
         "schema_type": "Protocolo médico facial con EXION® Face (RF monopolar + ultrasonido)",
         "schema_desc": "Tratamiento médico de calidad de piel facial con plataforma EXION® Face: hipertermia controlada y ultrasonido terapéutico. Indicación tras valoración en NUVANX Madrid.",
@@ -61,9 +60,7 @@
         ],
         "compare": {
             "title": "@nvx-t:Cómo se selecciona un protocolo de calidad cutánea",
-            "body": "@nvx-claim-key:exion_face_compare",
-            "link": "",
-            "label": ""
+            "body": "@nvx-claim-key:exion_face_compare"
         },
         "process": [
             {
@@ -131,7 +128,6 @@
         "yoast_desc": "EXION® Body en NUVANX Madrid: radiofrecuencia con refrigeración activa para grasa localizada y calidad cutánea, según valoración médica. Chamberí y Goya.",
         "focuskw": "EXION Body Madrid",
         "hub": "@nvx-url:/exion-btl/",
-        "combo": "",
         "schema_name": "EXION® Body en Madrid",
         "schema_type": "Protocolo médico corporal con EXION® Body",
         "schema_desc": "Tratamiento de contorno corporal con EXION® Body: estímulo térmico con refrigeración epidérmica para grasa localizada y calidad cutánea en NUVANX Madrid.",
@@ -184,9 +180,7 @@
         ],
         "compare": {
             "title": "@nvx-t:Cómo se valora el contorno corporal",
-            "body": "@nvx-claim-key:exion_body_compare",
-            "link": "",
-            "label": ""
+            "body": "@nvx-claim-key:exion_body_compare"
         },
         "process": [
             {
@@ -260,7 +254,6 @@
         "yoast_desc": "EXION® Fractional RF en Madrid: microagujas con control de impedancia para textura, poros y cicatrices según diagnóstico y fototipo.",
         "focuskw": "EXION Fractional Madrid",
         "hub": "@nvx-url:/exion-btl/",
-        "combo": "",
         "schema_name": "EXION® Fractional RF en Madrid",
         "schema_type": "Protocolo de radiofrecuencia fraccionada EXION®",
         "schema_desc": "Remodelado de textura y dermis con EXION® Fractional RF en NUVANX Madrid tras valoración médica.",
@@ -292,9 +285,7 @@
         ],
         "compare": {
             "title": "@nvx-t:Cómo se selecciona la radiofrecuencia fraccionada",
-            "body": "@nvx-t:La selección considera objetivo, calidad de piel, profundidad, fototipo, tolerancia y período de recuperación aceptable. La indicación se define por diagnóstico, no por una marca.",
-            "link": "",
-            "label": ""
+            "body": "@nvx-t:La selección considera objetivo, calidad de piel, profundidad, fototipo, tolerancia y período de recuperación aceptable. La indicación se define por diagnóstico, no por una marca."
         },
         "process": [
             "@nvx-t:Mapa de zonas, fototipo y objetivo (textura vs cicatriz vs firmeza).",
@@ -330,7 +321,6 @@
         "yoast_desc": "EMFUSION® en Madrid: microcanales acústicos DYNAMiQ™ para hidratación y apoyo a la barrera cutánea según valoración médica.",
         "focuskw": "EMFUSION Madrid",
         "hub": "@nvx-url:/exion-btl/",
-        "combo": "",
         "schema_name": "EMFUSION® en Madrid",
         "schema_type": "Protocolo de infusión cutánea EMFUSION®",
         "schema_desc": "Infusión y soporte de barrera cutánea con EMFUSION® (DYNAMiQ™) en NUVANX Madrid tras valoración.",
@@ -362,9 +352,7 @@
         ],
         "compare": {
             "title": "@nvx-t:Cómo se plantea el cuidado de la barrera cutánea",
-            "body": "@nvx-t:La selección valora hidratación, sensibilidad, inflamación, activos compatibles y tratamientos previos. El objetivo y el protocolo se deciden después de la exploración.",
-            "link": "",
-            "label": ""
+            "body": "@nvx-t:La selección valora hidratación, sensibilidad, inflamación, activos compatibles y tratamientos previos. El objetivo y el protocolo se deciden después de la exploración."
         },
         "process": [
             "@nvx-t:Valoración de barrera, inflamación y compatibilidad de activos.",

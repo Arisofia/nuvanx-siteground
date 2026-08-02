@@ -64,7 +64,7 @@ function nvx_equipo_hero_copy_markup(): string {
 	$colegiado_ivon  = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 	$colegiado_fabio = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
 
-	$html  = '<div class="nvx-brand-hero__copy nvx-equipo-hero-copy">';
+	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Equipo médico', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-equipo-h1">' . esc_html__( 'Equipo médico NUVANX: quién te valora y quién trata', 'nuvanx-medical' ) . '</h1>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Médicos con práctica hospitalaria y consulta estética en Madrid. Dirección médica, well-aging y valoración clínica antes de cualquier protocolo láser.', 'nuvanx-medical' ) . '</p>';
@@ -79,7 +79,7 @@ function nvx_equipo_hero_copy_markup(): string {
 	) . '</p>';
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$html .= nvx_cta_pair_markup( 'nvx-equipo-hero-ctas nvx-home-hero-ctas' );
+		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
 	}
 
 	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí · Goya · Medicina basada en evidencia', 'nuvanx-medical' ) . '</p>';
@@ -891,12 +891,7 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 		$media = '';
 	}
 
-	$hero_classes = 'nvx-brand-hero nvx-brand-hero--equipo';
-	if ( '' === $media ) {
-		$hero_classes .= ' nvx-equipo-hero--copy-only';
-	}
-
-	$hero  = '<section class="' . esc_attr( $hero_classes ) . '" aria-labelledby="nvx-equipo-h1" aria-label="' . esc_attr__( 'Equipo médico NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-equipo-h1" aria-label="' . esc_attr__( 'Equipo médico NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_equipo_hero_copy_markup();
 	$hero .= $media;

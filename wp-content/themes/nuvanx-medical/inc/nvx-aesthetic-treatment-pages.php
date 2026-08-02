@@ -124,13 +124,13 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 	$entry = $catalog[ $key ];
 
 	$html  = '<div class="nvx-aesthetic-treatment nvx-aesthetic-treatment--' . esc_attr( $key ) . '">';
-	$html .= '<section class="nvx-brand-hero nvx-page-hero nvx-aesthetic-treatment__hero" aria-labelledby="nvx-aesthetic-treatment-h1"><div class="nvx-brand-hero__copy">';
+	$html .= '<section class="nvx-brand-hero" aria-labelledby="nvx-aesthetic-treatment-h1"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $entry['kicker'] ) . '</p>';
 	$html .= '<h1 id="nvx-aesthetic-treatment-h1" class="nvx-brand-hero__title">' . esc_html( $entry['h1'] ) . '</h1>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $entry['lead'] ) . '</p>';
-	$html .= ( function_exists( 'nvx_cta_pair_markup' ) ? nvx_cta_pair_markup( 'nvx-aesthetic-treatment__hero-ctas' ) : '' );
+	$html .= ( function_exists( 'nvx_cta_pair_markup' ) ? nvx_cta_pair_markup() : '' );
 	$html .= '<p class="nvx-brand-meta">Chamberí (CS20144) · Salamanca–Goya (CS20073) · Según valoración médica</p>';
-	$html .= '</div></section>';
+	$html .= '</div></div></section>';
 
 	$html .= '<aside class="nvx-aes-section nvx-aesthetic-treatment__review" aria-label="Estado de revisión médica"><div class="nvx-aes-section__inner"><p class="nvx-aes-body"><strong>Revisión médica pendiente.</strong> Esta página permanece bloqueada para publicación en producción hasta registrar revisor, fecha y aprobación clínica.</p></div></aside>';
 

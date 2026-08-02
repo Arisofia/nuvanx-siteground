@@ -699,11 +699,221 @@ function nvx_content_unify_ctas( string $content ): string {
  */
 function nvx_content_strip_hero_inline_styles( string $content ): string {
 	// Opening tags for hero stages / copy that may carry inline layout residue.
-	$hero_bits = 'nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage';
-	$copy_bits = 'nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy';
+	$hero_bits = 'nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage|nvx-ipl-hero';
+	$copy_bits = 'nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy|nvx-ipl-hero__copy';
 	$inner_bits = 'nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner';
 	$pattern    = '/(<(?:section|div)\b[^>]*\bclass="[^"]*\b(?:' . $hero_bits . '|' . $copy_bits . '|' . $inner_bits . ')\b[^"]*"[^>]*)\s+style="[^"]*"/iu';
 	$updated    = preg_replace( $pattern, '$1', $content );
+	return is_string( $updated ) ? $updated : $content;
+}
+
+/**
+ * Convert residual CMS IPL hero shell to the single interior brand hero.
+ *
+ * EXILITE and related CMS pages still store nvx-ipl-* markup with no theme CSS.
+ */
+function nvx_content_convert_ipl_hero_to_brand( string $content ): string {
+	if ( false === stripos( $content, 'nvx-ipl-hero' ) ) {
+		return $content;
+	}
+
+	$updated = preg_replace_callback(
+		'/<section\b([^>]*\bclass=(["\'])([^"\']*\bnvx-ipl-hero\b[^"\']*)\2[^>]*)>([\s\S]*?)<\/section>/iu',
+		static function ( array $m ): string {
+			$attrs = $m[1];
+			$inner = $m[4];
+
+			// Promote IPL BEM tokens inside the hero to brand-hero tokens.
+			$map = array(
+				'nvx-ipl-hero__copy'  => 'nvx-brand-hero__copy',
+				'nvx-ipl-hero__media' => 'nvx-brand-hero__media',
+				'nvx-ipl-kicker'      => 'nvx-brand-kicker',
+				'nvx-ipl-h1'          => 'nvx-brand-hero__title',
+				'nvx-ipl-lead'        => 'nvx-brand-hero__lead',
+				'nvx-ipl-meta'        => 'nvx-brand-meta',
+				'nvx-ipl-actions'     => 'nvx-cta-cluster',
+			);
+			foreach ( $map as $from => $to ) {
+				$inner = preg_replace( '/\b' . preg_quote( $from, '/' ) . '\b/u', $to, $inner ) ?? $inner;
+			}
+
+			// Drop figure body-role classes that break full-bleed cover.
+			$inner = preg_replace( '/\s*nvx-content-figure\s*/u', ' ', $inner ) ?? $inner;
+
+			// Preserve non-class attributes (aria-label, etc.).
+			$attrs = preg_replace( '/\s*class=(["\'])[^"\']*\1/iu', '', $attrs ) ?? $attrs;
+			$attrs = trim( $attrs );
+
+			$open = '<section class="nvx-brand-hero"';
+			if ( '' !== $attrs ) {
+				$open .= ' ' . $attrs;
+			}
+			$open .= '>';
+
+			// Ensure absolute stage inner wrapper when missing.
+			if ( false === stripos( $inner, 'nvx-brand-hero__inner' ) ) {
+				$inner = '<div class="nvx-brand-hero__inner">' . $inner . '</div>';
+			}
+
+			return $open . $inner . '</section>';
+		},
+		$content,
+		1
+	);
+
+	return is_string( $updated ) ? $updated : $content;
+}
+
+/**
+ * Map residual IPL body class tokens onto brand section primitives.
+ * Keeps CMS editorial body readable once the hero shell is unified.
+ */
+function nvx_content_map_ipl_body_to_brand( string $content ): string {
+	if ( false === stripos( $content, 'nvx-ipl-' ) ) {
+		return $content;
+	}
+
+	$map = array(
+		'nvx-ipl-editorial'     => 'nvx-brand-page',
+		'nvx-ipl-section--soft' => 'nvx-brand-section',
+		'nvx-ipl-section--ink'  => 'nvx-brand-section',
+		'nvx-ipl-section'       => 'nvx-brand-section',
+		'nvx-ipl-shell'         => 'nvx-brand-section__inner',
+		'nvx-ipl-intro'         => 'nvx-brand-intro',
+		'nvx-ipl-mechanism'     => 'nvx-brand-mechanism',
+		'nvx-ipl-faq'           => 'nvx-brand-faq',
+		'nvx-ipl-process'       => 'nvx-brand-process',
+		'nvx-ipl-facts'         => 'nvx-brand-facts',
+		'nvx-ipl-grid'          => 'nvx-brand-grid nvx-brand-grid--3',
+		'nvx-ipl-item'          => 'nvx-brand-card',
+		'nvx-ipl-index'         => 'nvx-brand-card__kicker',
+		'nvx-ipl-kicker'        => 'nvx-brand-kicker',
+		'nvx-ipl-h2'            => 'nvx-brand-title',
+		'nvx-ipl-h3'            => 'nvx-brand-card__title',
+		'nvx-ipl-copy'          => 'nvx-brand-copy',
+		'nvx-ipl-lead'          => 'nvx-brand-hero__lead',
+		'nvx-ipl-meta'          => 'nvx-brand-meta',
+		'nvx-ipl-actions'       => 'nvx-cta-cluster',
+	);
+
+	foreach ( $map as $from => $to ) {
+		$content = preg_replace( '/\b' . preg_quote( $from, '/' ) . '\b/u', $to, $content ) ?? $content;
+	}
+
+	return $content;
+}
+
+/**
+ * Collapse every interior hero shell to pure .nvx-brand-hero.
+ * Strips page modifiers (--laser/--medical/--btl/…) and legacy skin classes.
+ */
+function nvx_content_normalize_interior_hero_shells( string $content ): string {
+	if ( '' === trim( $content ) ) {
+		return $content;
+	}
+
+	$content = nvx_content_convert_ipl_hero_to_brand( $content );
+	$content = nvx_content_map_ipl_body_to_brand( $content );
+
+	// Normalize class attributes on sections/divs that carry a hero stage.
+	$updated = preg_replace_callback(
+		'/<((?:section|div))\b([^>]*\bclass=(["\'])([^"\']*)\3[^>]*)>/iu',
+		static function ( array $m ): string {
+			$tag   = $m[1];
+			$attrs = $m[2];
+			$quote = $m[3];
+			$class = $m[4];
+
+			$is_hero_stage = (bool) preg_match(
+				'/\b(?:nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-ipl-hero)\b/u',
+				$class
+			);
+			$is_hero_copy = (bool) preg_match(
+				'/\b(?:nvx-brand-hero__copy|nvx-editorial-hero__copy|nvx-page-hero__copy|nvx-hero__copy|nvx-ipl-hero__copy)\b/u',
+				$class
+			);
+			$is_hero_media = (bool) preg_match(
+				'/\b(?:nvx-brand-hero__media|nvx-page-hero__media|nvx-ipl-hero__media)\b/u',
+				$class
+			);
+			$is_hero_inner = (bool) preg_match(
+				'/\b(?:nvx-brand-hero__inner|nvx-page-hero__inner|nvx-hero__inner)\b/u',
+				$class
+			);
+
+			if ( ! $is_hero_stage && ! $is_hero_copy && ! $is_hero_media && ! $is_hero_inner ) {
+				return $m[0];
+			}
+
+			$tokens = preg_split( '/\s+/u', trim( $class ) ) ?: array();
+			$keep   = array();
+
+			foreach ( $tokens as $token ) {
+				if ( '' === $token ) {
+					continue;
+				}
+				// Drop BEM modifiers on the brand hero.
+				if ( preg_match( '/^nvx-brand-hero--/u', $token ) ) {
+					continue;
+				}
+				// Drop page-specific hero skins and copy modifiers.
+				if ( preg_match( '/^nvx-(?:endolift|endolaser|co2|aes|equipo|nosotros|ipl|btl|exilite|laser)(?:-hero(?:-copy)?|--copy-only)?$/u', $token ) ) {
+					continue;
+				}
+				if ( preg_match( '/-hero(?:-copy)?$/u', $token ) && 'nvx-brand-hero' !== $token && ! preg_match( '/^nvx-brand-hero__/u', $token ) ) {
+					// e.g. nvx-exion-hero, marker-hero leftovers.
+					if ( preg_match( '/^nvx-/u', $token ) ) {
+						continue;
+					}
+				}
+				// Canonicalize alternate stage names.
+				if ( in_array( $token, array( 'nvx-editorial-hero', 'nvx-page-hero', 'nvx-ipl-hero' ), true ) ) {
+					$token = 'nvx-brand-hero';
+				}
+				if ( in_array( $token, array( 'nvx-editorial-hero__copy', 'nvx-page-hero__copy', 'nvx-hero__copy', 'nvx-ipl-hero__copy' ), true ) ) {
+					$token = 'nvx-brand-hero__copy';
+				}
+				if ( in_array( $token, array( 'nvx-page-hero__media', 'nvx-ipl-hero__media' ), true ) ) {
+					$token = 'nvx-brand-hero__media';
+				}
+				if ( in_array( $token, array( 'nvx-page-hero__inner', 'nvx-hero__inner' ), true ) ) {
+					$token = 'nvx-brand-hero__inner';
+				}
+				// Skin copy suffixes like nvx-endolift-hero-copy already dropped above.
+				if ( preg_match( '/^nvx-(?:endolift|aes|equipo|co2|endolaser)-hero-copy$/u', $token ) ) {
+					continue;
+				}
+				$keep[] = $token;
+			}
+
+			// Ensure stage token exists when we rewrote a legacy stage.
+			if ( $is_hero_stage && ! in_array( 'nvx-brand-hero', $keep, true ) ) {
+				array_unshift( $keep, 'nvx-brand-hero' );
+			}
+			if ( $is_hero_copy && ! in_array( 'nvx-brand-hero__copy', $keep, true ) ) {
+				array_unshift( $keep, 'nvx-brand-hero__copy' );
+			}
+			if ( $is_hero_media && ! in_array( 'nvx-brand-hero__media', $keep, true ) ) {
+				array_unshift( $keep, 'nvx-brand-hero__media' );
+			}
+			if ( $is_hero_inner && ! in_array( 'nvx-brand-hero__inner', $keep, true ) ) {
+				array_unshift( $keep, 'nvx-brand-hero__inner' );
+			}
+
+			$keep      = array_values( array_unique( $keep ) );
+			$new_class = implode( ' ', $keep );
+			$attrs     = preg_replace(
+				'/\bclass=(["\'])[^"\']*\1/u',
+				'class=' . $quote . esc_attr( $new_class ) . $quote,
+				$attrs,
+				1
+			);
+
+			return '<' . $tag . ( is_string( $attrs ) ? $attrs : $m[2] ) . '>';
+		},
+		$content
+	);
+
 	return is_string( $updated ) ? $updated : $content;
 }
 
@@ -898,6 +1108,7 @@ function nvx_content_presentation_enhance( string $content ): string {
 	}
 
 	$content = nvx_content_strip_hero_inline_styles( $content );
+	$content = nvx_content_normalize_interior_hero_shells( $content );
 	$content = nvx_content_strip_duplicate_fachada( $content );
 	$content = nvx_content_normalize_body_media( $content );
 	// Values/method CMS residual transforms still apply on non-home routes that

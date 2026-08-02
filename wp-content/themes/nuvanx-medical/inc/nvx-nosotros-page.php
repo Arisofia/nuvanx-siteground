@@ -84,7 +84,7 @@ function nvx_nosotros_url( string $path ): string {
  * Hero copy.
  */
 function nvx_nosotros_hero_copy_markup(): string {
-	$html  = '<div class="nvx-brand-hero__copy nvx-nosotros-hero-copy">';
+	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Madrid', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-nosotros-h1">' . esc_html__( 'Sobre Nosotros: Autoridad Médica, Criterio Clínico y Transparencia', 'nuvanx-medical' ) . '</h1>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Medicina estética láser basada en evidencia, ingeniería tisular y well-aging — sin protocolos estandarizados ni inercia comercial.', 'nuvanx-medical' ) . '</p>';
@@ -368,12 +368,7 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 		$media = '';
 	}
 
-	$hero_classes = 'nvx-brand-hero nvx-brand-hero--nosotros';
-	if ( '' === $media ) {
-		$hero_classes .= ' nvx-nosotros-hero--copy-only';
-	}
-
-	$hero  = '<section class="' . esc_attr( $hero_classes ) . '" aria-labelledby="nvx-nosotros-h1" aria-label="' . esc_attr__( 'Sobre Nosotros NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-nosotros-h1" aria-label="' . esc_attr__( 'Sobre Nosotros NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_nosotros_hero_copy_markup();
 	$hero .= $media;

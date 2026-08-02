@@ -139,7 +139,7 @@ function nvx_btl_detail_zone_list_markup( array $items, string $tag = 'ul' ): st
  */
 function nvx_btl_detail_hero_markup( array $c ): string {
 	$id    = $c['marker'];
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--btl ' . esc_attr( $c['marker'] ) . '-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= '<div class="nvx-brand-hero__copy">';
 	$hero .= '<p class="nvx-brand-kicker">' . esc_html( $c['kicker'] ) . '</p>';
@@ -153,7 +153,7 @@ function nvx_btl_detail_hero_markup( array $c ): string {
 	$hero .= '</div></div>';
 	$hero .= '<p class="nvx-brand-hero__lead">' . esc_html( $c['lead'] ) . '</p>';
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$hero .= nvx_cta_pair_markup( $c['marker'] . '-hero-ctas nvx-home-hero-ctas' );
+		$hero .= nvx_cta_pair_markup();
 	}
 	$hero .= '<p class="nvx-brand-meta">' . esc_html( $c['meta'] ) . '</p>';
 	$hero .= '</div></div></section>';

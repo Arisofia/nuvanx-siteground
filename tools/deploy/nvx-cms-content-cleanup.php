@@ -5,9 +5,9 @@
  *
  * Usage (on SiteGround host, from WordPress root):
  *   wp eval-file tools/deploy/nvx-cms-content-cleanup.php
- *   NVX_CMS_CLEANUP_APPLY=1 wp eval-file tools/deploy/nvx-cms-content-cleanup.php
+ *   wp eval-file tools/deploy/nvx-cms-content-cleanup.php --confirm
  *
- * Default is dry-run (report only). Set NVX_CMS_CLEANUP_APPLY=1 to write.
+ * Default is dry-run (report only). Append --confirm to write and take a DB backup.
  *
  * Offline self-test (no WordPress):
  *   php tools/deploy/nvx-cms-content-cleanup.php --self-test
@@ -368,16 +368,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 // ---------------------------------------------------------------------------
 // WordPress host path: dry-run or apply against post_content.
 // ---------------------------------------------------------------------------
-$apply_env = getenv( 'NVX_CMS_CLEANUP_APPLY' );
-$apply     = ( '1' === $apply_env || 'yes' === strtolower( (string) $apply_env ) );
+$args_list = isset( $args ) && is_array( $args ) ? $args : array();
+$apply     = in_array( '--confirm', $args_list, true );
+
+if ( $apply && class_exists( 'WP_CLI' ) ) {
+	echo "Creating database backup before cleanup...\n";
+	WP_CLI::runcommand( 'db export nvx-cms-cleanup-backup-' . gmdate( 'Y-m-d-His' ) . '.sql' );
+}
 
 $q = new WP_Query(
 	array(
-		'post_type'              => array( 'page', 'post', 'revision' ),
-		'post_status'            => array( 'publish', 'draft', 'private', 'pending', 'future', 'trash', 'auto-draft' ),
+		'post_type'              => array( 'page', 'post' ),
+		'post_status'            => array( 'publish', 'draft', 'private', 'pending', 'future' ),
 		'posts_per_page'         => -1,
-		// Include revisions stored as separate rows.
-		// phpcs:ignore WordPressVIPMinimum.Performance.WPQueryParams.PostNotIn_post_status
 		'orderby'                => 'ID',
 		'order'                  => 'ASC',
 		'no_found_rows'          => true,
@@ -452,5 +455,5 @@ if ( count( $examples ) > 80 ) {
 }
 
 if ( ! $apply && $touched > 0 ) {
-	echo "Re-run with NVX_CMS_CLEANUP_APPLY=1 to write changes.\n";
+	echo "Re-run with --confirm to write changes and create a database backup.\n";
 }

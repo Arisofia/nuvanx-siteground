@@ -34,7 +34,9 @@ while ( have_posts() ) :
 	$content = is_string( $content ) ? $content : '';
 
 	// Raw CMS markers (authoring-time).
-	$has_content_h1   = (bool) preg_match( '/<h1\b|<!--\s*wp:heading\s+\{[^}]*"level"\s*:\s*1[^}]*\}/i', $content );
+	// Match a true level-1 heading only: bare <h1> or block comment with "level":1
+	// not followed by another digit (avoids false positives on "level":10+).
+	$has_content_h1   = (bool) preg_match( '/<h1\b|<!--\s*wp:heading\s+\{[^}]*"level"\s*:\s*1(?!\d)[^}]*\}/i', $content );
 	$has_content_hero = (bool) preg_match( '/nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-home-hero-stage/i', $content );
 
 	// Modules that inject a canonical hero + H1 via the_content even when CMS body is empty/legacy.
@@ -78,13 +80,20 @@ while ( have_posts() ) :
 	}
 
 	$has_media = has_post_thumbnail();
+	// Legal CMS pages own the document H1 via content (promoted in page-hygiene).
+	// Never inject a shell H1 there or the crawl contract sees duplicates.
+	$is_legal_page = is_page() && in_array(
+		(string) get_post_field( 'post_name', get_the_ID() ),
+		array( 'politica-privacidad', 'aviso-legal' ),
+		true
+	);
 	// Theme-owned hero only when content does not already own the page hierarchy.
 	// A raw content H1 is author-owned hierarchy even if it is not wrapped in a
 	// dedicated hero block. Rendering another shell H1 above it creates a
 	// duplicate primary heading on legal and legacy CMS pages.
-	$show_theme_hero = $has_media && ! $has_content_h1 && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
+	$show_theme_hero = $has_media && ! $has_content_h1 && ! $has_content_hero && ! $has_managed_editorial && ! $is_legal_page && ! is_front_page() && empty( $shell_skip_hdr );
 	// Title-only header only if no content H1 and no theme/content/managed hero.
-	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
+	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! $is_legal_page && ! is_front_page() && empty( $shell_skip_hdr );
 	$classes          = array( 'nvx-page' );
 	if ( is_single() ) {
 		$classes[] = 'nvx-page--single';

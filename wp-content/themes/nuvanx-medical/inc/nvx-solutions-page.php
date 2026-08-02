@@ -57,9 +57,25 @@ function nvx_render_solutions_page( $content ): string {
 		return $content;
 	}
 
-	ob_start();
-	get_template_part( 'template-parts/content/nvx-soluciones-medicas-github' );
-	$markup = ob_get_clean();
+	$template = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
+	if ( ! is_readable( $template ) ) {
+		return $content;
+	}
+
+	try {
+		ob_start();
+		// Prefer direct include so a missing template-part does not fail silently.
+		include $template;
+		$markup = ob_get_clean();
+	} catch ( Throwable $e ) {
+		if ( ob_get_level() > 0 ) {
+			ob_end_clean();
+		}
+		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+			error_log( 'NUVANX solutions page render failed: ' . $e->getMessage() );
+		}
+		return $content;
+	}
 
 	return is_string( $markup ) && '' !== trim( $markup ) ? $markup : $content;
 }

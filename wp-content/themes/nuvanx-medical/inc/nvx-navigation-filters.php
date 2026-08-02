@@ -195,7 +195,14 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 	}
 
 	$technology_children = array_values( nvx_navigation_published_treatments() );
-	$items               = array(
+
+	// Include Casos clínicos only when the page exists and is not noindex-gated.
+	$nvx_casos_id     = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
+	$nvx_casos_public = $nvx_casos_id > 0
+		&& ( ! function_exists( 'nvx_noindex_page_ids' )
+			|| ! in_array( $nvx_casos_id, nvx_noindex_page_ids(), true ) );
+
+	$items = array(
 		array( 'url' => home_url( '/' ), 'label' => __( 'Inicio', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/soluciones-medicas/' ), 'label' => __( 'Soluciones médicas', 'nuvanx-medical' ) ),
 		array(
@@ -208,12 +215,19 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 			'label'    => __( 'Tecnología', 'nuvanx-medical' ),
 			'children' => $technology_children,
 		),
-		array( 'url' => home_url( '/casos-de-pacientes/' ), 'label' => __( 'Casos clínicos', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/equipo-medico/' ), 'label' => __( 'Equipo médico', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/clinicas-de-medicina-estetica-nuvanx/' ), 'label' => __( 'Clínicas', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Journal', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/contacto/' ), 'label' => __( 'Contacto', 'nuvanx-medical' ) ),
 	);
+
+	if ( $nvx_casos_public ) {
+		// Splice after Tecnología (index 3) to maintain nav order.
+		array_splice( $items, 4, 0, array(
+			array( 'url' => home_url( '/casos-de-pacientes/' ), 'label' => __( 'Casos clínicos', 'nuvanx-medical' ) ),
+		) );
+	}
+
 	$menu_class = isset( $args['menu_class'] ) && '' !== trim( (string) $args['menu_class'] )
 		? trim( (string) $args['menu_class'] )
 		: 'nvx-nav__list';

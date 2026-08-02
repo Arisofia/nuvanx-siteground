@@ -135,7 +135,17 @@ ob_start();
 			<div class="nvx-home-evidence__text-col">
 				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">Evidencia clínica</h2>
 				<p class="nvx-home-evidence__desc">Documentamos la evolución clínica con consentimiento y seguimiento médico, preservando la privacidad de cada paciente.</p>
-				<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-btn nvx-btn--secondary-on-dark">Explorar casos clínicos</a>
+				<?php
+			$_nvx_casos_id     = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
+			$_nvx_casos_public = $_nvx_casos_id > 0
+				&& ( ! function_exists( 'nvx_noindex_page_ids' )
+					|| ! in_array( $_nvx_casos_id, nvx_noindex_page_ids(), true ) );
+			if ( $_nvx_casos_public ) :
+				?>
+				<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-btn nvx-btn--secondary-on-dark"><?php esc_html_e( 'Explorar casos clínicos', 'nuvanx-medical' ); ?></a>
+			<?php else : ?>
+				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-btn nvx-btn--secondary-on-dark"><?php esc_html_e( 'Conocer al equipo médico', 'nuvanx-medical' ); ?></a>
+			<?php endif; ?>
 			</div>
 		</div>
 	</section>

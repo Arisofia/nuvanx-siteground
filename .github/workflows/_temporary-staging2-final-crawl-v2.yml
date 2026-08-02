@@ -121,92 +121,133 @@ jobs:
                   raise RuntimeError(f'curl failed for {url}: exit={proc.returncode} status={status}')
               return status, body
 
-          status, index = fetch(urljoin(BASE, 'wp-sitemap.xml'))
-          if status != 200:
-              raise SystemExit(f'wp-sitemap.xml returned HTTP {status}')
-
-          sitemap_locs = []
-          marker = '<loc>'
-          lower_index = index.lower()
-          start = 0
-          while True:
-              left = lower_index.find(marker, start)
-              if left < 0:
-                  break
-              right = lower_index.find('</loc>', left)
-              if right < 0:
-                  break
-              sitemap_locs.append(unescape(index[left + len(marker):right].strip()))
-              start = right + 6
-
-          urls = []
-          for sitemap in sitemap_locs:
-              status, body = fetch(sitemap)
-              if status != 200:
-                  raise SystemExit(f'{sitemap} returned HTTP {status}')
-              lower_body = body.lower()
+          def locs_from_xml(xml_content):
+              locs = []
+              marker = '<loc>'
+              lower_xml = xml_content.lower()
               start = 0
               while True:
-                  left = lower_body.find(marker, start)
+                  left = lower_xml.find(marker, start)
                   if left < 0:
                       break
-                  right = lower_body.find('</loc>', left)
+                  right = lower_xml.find('</loc>', left)
                   if right < 0:
                       break
-                  urls.append(unescape(body[left + len(marker):right].strip()))
+                  locs.append(unescape(xml_content[left + len(marker):right].strip()))
                   start = right + 6
+              return locs
 
-          urls.append(BASE)
-          urls = sorted(set(urls))
-          results = []
+          def fetch(url):
+              parsed = urlparse(url)
+              if parsed.scheme.lower() != 'https' or parsed.netloc.lower() != 'staging2.nuvanx.com':
+                  raise ValueError(f'Invalid target URL scheme or authority: {url}')
 
-          for url in urls:
+              proc = subprocess.run(
+                  ['curl', '-ksS', '-L', '--max-time', '25', *RESOLVE, '--write-out', HTTP_MARKER + '%{http_code}\n%{url_effective}', url],
+                  text=True,
+                  stdout=subprocess.PIPE,
+                  stderr=subprocess.PIPE,
+                  check=False,
+              )
+              if HTTP_MARKER not in proc.stdout:
+                  raise RuntimeError(f'No HTTP status returned for {url}: {proc.stderr.strip()}')
+              body, meta = proc.stdout.rsplit(HTTP_MARKER, 1)
+              meta_lines = meta.strip().split('\n')
+              status_text = meta_lines[0] if meta_lines else ''
+              effective_url = meta_lines[1] if len(meta_lines) > 1 else url
+
               try:
-                  status, body = fetch(url)
-                  parser = HtmlContractParser()
-                  parser.feed(body)
-                  parser.close()
-                  h1 = parser.h1 > 0
-                  main = parser.main > 0
-                  css = parser.stylesheets > 0
-                  base = parser.nvx_base > 0
-                  ok = status == 200 and h1 and main and css and base
-              except Exception as exc:
-                  status = 0
-                  body = ''
-                  h1 = main = css = base = False
-                  ok = False
-                  print(f'ERROR url={url} error={exc}')
-              results.append({
-                  'url': url,
-                  'status': status,
-                  'h1': h1,
-                  'main': main,
-                  'css': css,
-                  'nvx_base': base,
-                  'ok': ok,
-                  'bytes': len(body),
-              })
+                  status = int(status_text)
+              except ValueError as exc:
+                  raise RuntimeError(f'Invalid HTTP status for {url}: {status_text!r}') from exc
 
-          print('SITEMAPS=' + str(len(sitemap_locs)))
-          print('ROUTES=' + str(len(results)))
-          print('PASS=' + str(sum(r['ok'] for r in results)))
-          print('FAIL=' + str(sum(not r['ok'] for r in results)))
-          for result in results:
-              print(json.dumps(result, ensure_ascii=False))
+              eff_parsed = urlparse(effective_url)
+              if eff_parsed.scheme.lower() != 'https' or eff_parsed.netloc.lower() != 'staging2.nuvanx.com':
+                  raise RuntimeError(f'Redirected to disallowed origin for {url}: {effective_url}')
 
-          with open('/tmp/staging2-final-crawl.json', 'w', encoding='utf-8') as handle:
-              json.dump(results, handle, ensure_ascii=False, indent=2)
+              if proc.returncode != 0:
+                  raise RuntimeError(f'curl failed for {url}: exit={proc.returncode} status={status}')
+              return status, body
 
-          if not results or any(not r['ok'] for r in results):
-              raise SystemExit(2)
+          try:
+              status, index = fetch(urljoin(BASE, 'wp-sitemap.xml'))
+              if status != 200:
+                  raise RuntimeError(f'wp-sitemap.xml returned HTTP {status}')
+
+              sitemap_locs = locs_from_xml(index)
+              if not sitemap_locs:
+                  raise RuntimeError('wp-sitemap.xml contains no valid <loc> tags')
+
+              urls = []
+              for sitemap in sitemap_locs:
+                  status, body = fetch(sitemap)
+                  if status != 200:
+                      raise RuntimeError(f'{sitemap} returned HTTP {status}')
+                  urls.extend(locs_from_xml(body))
+
+              urls.append(BASE)
+              urls = sorted(set(urls))
+              results = []
+
+              for url in urls:
+                  try:
+                      status, body = fetch(url)
+                      parser = HtmlContractParser()
+                      parser.feed(body)
+                      parser.close()
+                      h1 = parser.h1 > 0
+                      main = parser.main > 0
+                      css = parser.stylesheets > 0
+                      base = parser.nvx_base > 0
+                      ok = status == 200 and h1 and main and css and base
+                  except Exception as exc:
+                      status = 0
+                      body = ''
+                      h1 = main = css = base = False
+                      ok = False
+                      print(f'ERROR url={url} error={exc}')
+                  results.append({
+                      'url': url,
+                      'status': status,
+                      'h1': h1,
+                      'main': main,
+                      'css': css,
+                      'nvx_base': base,
+                      'ok': ok,
+                      'bytes': len(body),
+                  })
+
+              print('SITEMAPS=' + str(len(sitemap_locs)))
+              print('ROUTES=' + str(len(results)))
+              print('PASS=' + str(sum(r['ok'] for r in results)))
+              print('FAIL=' + str(sum(not r['ok'] for r in results)))
+              for result in results:
+                  print(json.dumps(result, ensure_ascii=False))
+
+              with open('/tmp/staging2-final-crawl.json', 'w', encoding='utf-8') as handle:
+                  json.dump(results, handle, ensure_ascii=False, indent=2)
+
+              if not results or any(not r['ok'] for r in results):
+                  sys.exit(2)
+          except Exception as top_exc:
+              error_results = [{'url': BASE, 'status': 0, 'h1': False, 'main': False, 'css': False, 'nvx_base': False, 'ok': False, 'bytes': 0, 'error': str(top_exc)}]
+              with open('/tmp/staging2-final-crawl.json', 'w', encoding='utf-8') as handle:
+                  json.dump(error_results, handle, ensure_ascii=False, indent=2)
+              print(f'CRAWL_FATAL_ERROR: {top_exc}')
+              sys.exit(2)
           PY
           REMOTE
-          scp siteground-staging:/tmp/staging2-final-crawl.json evidence/staging2-final-crawl.json
-          printf '%s\n' 'FINAL_SITEMAP_CRAWL_OK' > evidence/status.txt
+          SSH_EXIT=$?
+          scp siteground-staging:/tmp/staging2-final-crawl.json evidence/staging2-final-crawl.json || true
+          if [ "$SSH_EXIT" -eq 0 ] && [ -f evidence/staging2-final-crawl.json ]; then
+            printf '%s\n' 'FINAL_SITEMAP_CRAWL_OK' > evidence/status.txt
+          else
+            printf 'FINAL_SITEMAP_CRAWL_FAILED status=%s\n' "$SSH_EXIT" > evidence/status.txt
+            exit "$SSH_EXIT"
+          fi
       - name: Upload final crawl evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: staging2-final-sitemap-crawl-${{ github.run_id }}
           path: evidence/

@@ -172,7 +172,10 @@ function nvx_theme_disable_public_facebook_pixel( $plugins ) {
 	$is_map = array() !== $plugins && function_exists( 'array_is_list' ) && ! array_is_list( $plugins );
 	if ( $is_map ) {
 		foreach ( array_keys( $plugins ) as $plugin ) {
-			if ( is_string( $plugin ) && false !== strpos( $plugin, 'official-facebook-pixel/' ) ) {
+			if ( is_string( $plugin ) && (
+				false !== strpos( $plugin, 'facebook' ) ||
+				false !== strpos( $plugin, 'Facebook' )
+			) ) {
 				unset( $plugins[ $plugin ] );
 			}
 		}
@@ -184,13 +187,30 @@ function nvx_theme_disable_public_facebook_pixel( $plugins ) {
 			$plugins,
 			static function ( $plugin ): bool {
 				return ! is_string( $plugin )
-					|| false === strpos( $plugin, 'official-facebook-pixel/' );
+					|| ( false === strpos( $plugin, 'facebook' ) && false === strpos( $plugin, 'Facebook' ) );
 			}
 		)
 	);
 }
 add_filter( 'option_active_plugins', 'nvx_theme_disable_public_facebook_pixel', 1 );
 add_filter( 'site_option_active_sitewide_plugins', 'nvx_theme_disable_public_facebook_pixel', 1 );
+
+/**
+ * Fail-safe output buffer: guarantees FacebookSignal never leaks into public HTML.
+ */
+function nvx_theme_strip_facebook_signal_buffer(): void {
+	if ( is_admin() || ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() ) || ( function_exists( 'wp_doing_cron' ) && wp_doing_cron() ) ) {
+		return;
+	}
+	ob_start( static function ( string $buffer ): string {
+		if ( false !== strpos( $buffer, 'FacebookSignal' ) ) {
+			$buffer = preg_replace( '/<script\b[^>]*>[^<]*FacebookSignal[^<]*<\/script>/isu', '', $buffer );
+			$buffer = str_replace( 'FacebookSignal', '', $buffer );
+		}
+		return $buffer;
+	} );
+}
+add_action( 'template_redirect', 'nvx_theme_strip_facebook_signal_buffer', 0 );
 
 /**
  * Campaign attribution marker for Google Ads QA (absorbed from retired MU).

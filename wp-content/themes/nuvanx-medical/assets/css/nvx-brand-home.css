@@ -1,57 +1,96 @@
-body.home{background:var(--nvx-color-paper)}
-body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
-.nvx-home{overflow-x:clip;background:var(--nvx-color-paper);color:var(--nvx-ink)}
+/* NUVANX — Home brand surface and hero / benefits layout. */
+
+body.home {
+  background: var(--nvx-color-paper);
+}
+
+body.home .nvx-main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nvx-home {
+  overflow-x: clip;
+  background: var(--nvx-color-paper);
+  color: var(--nvx-ink);
+}
 
 /* Home hero: full-bleed video first; shared footprint with interior heroes. */
 .nvx-home-hero-stage .nvx-brand-hero__inner,
-.nvx-home-hero-stage .nvx-shell{
-  position:absolute;
-  inset:0;
-  display:block;
-  width:100%;
-  max-width:none;
-  height:100%;
-  margin:0;
-  padding:0;
+.nvx-home-hero-stage .nvx-shell {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 /* Hero CTA cluster — button visuals are owned by nvx-components.css. */
-.nvx-home-invitation{margin-top:var(--nvx-space-4)}
+.nvx-home-invitation {
+  margin-top: var(--nvx-space-4);
+}
 
 /* Post-values action banner — warm-neutral dark surface + canonical pill CTAs. */
-.nvx-home-action-banner__copy{max-width:55ch}
+.nvx-home-action-banner__copy {
+  max-width: 55ch;
+}
+
 .nvx-home-action-banner__kicker,
-.nvx-home-action-banner .nvx-brand-kicker{
-  margin:0 0 var(--nvx-space-2);
-  color:var(--nvx-text-on-dark-72);
+.nvx-home-action-banner .nvx-brand-kicker {
+  margin: 0 0 var(--nvx-space-2);
+  color: var(--nvx-text-on-dark-72);
 }
-.nvx-home-action-banner__text{
-  max-width:55ch;
-  margin:0;
-  font-family:var(--nvx-sans);
-  font-size:var(--nvx-type-body);
-  line-height:var(--nvx-lh-body);
-  color:var(--nvx-text-on-dark-82);
+
+.nvx-home-action-banner__text {
+  max-width: 55ch;
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-on-dark-82);
 }
-.nvx-home-action-banner__text strong{color:var(--nvx-light);font-weight:600}
-.nvx-home-action-banner__actions .nvx-button{width:100%}
 
+.nvx-home-action-banner__text strong {
+  color: var(--nvx-light);
+  font-weight: 600;
+}
 
+.nvx-home-action-banner__actions .nvx-button {
+  width: 100%;
+}
 
-@media(max-width:calc(var(--nvx-space-12) * 8)){
+/* Hero CTA cluster: stack buttons and center alignment on narrow viewports. */
+@media (max-width: calc(var(--nvx-space-12) * 8)) {
   .nvx-cta-cluster .nvx-button,
   .nvx-home-hero-ctas .nvx-brand-btn,
   .nvx-home-hero-ctas .nvx-button,
-  .nvx-home-hero-ctas .nvx-btn{
-    width:100%;
-    justify-content:center;
+  .nvx-home-hero-ctas .nvx-btn {
+    width: 100%;
+    justify-content: center;
   }
 }
 
-@media(max-width:680px){
-  .nvx-home-action-banner .nvx-button{width:100%}
+@media (max-width: 680px) {
+  .nvx-home-action-banner .nvx-button {
+    width: 100%;
+  }
 }
 
 /* Benefit row layout (icon/type chrome lives in nvx-components.css). */
-.nvx-benefits__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(calc(var(--nvx-space-1) * 37.5),1fr))}
-.nvx-benefit-item{display:flex;align-items:center}
+.nvx-benefits__grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(calc(var(--nvx-space-1) * 37.5), 1fr)
+  );
+}
+
+.nvx-benefit-item {
+  display: flex;
+  align-items: center;
+}

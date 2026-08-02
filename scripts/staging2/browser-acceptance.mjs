@@ -5,7 +5,7 @@ const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 
 if (!expectedSha || !/^[0-9a-f]{40}$/.test(expectedSha)) {
-  console.error('EXPECTED_SHA must be set to a full lowercase 40-character SHA.');
+  console.error(`EXPECTED_SHA must be set to a full lowercase 40-character SHA. Received: "${expectedSha}"`);
   process.exit(1);
 }
 

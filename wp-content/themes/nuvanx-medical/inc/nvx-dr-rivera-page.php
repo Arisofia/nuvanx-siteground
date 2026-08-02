@@ -49,35 +49,54 @@ function nvx_content_dr_rivera_hijack( string $content ): string {
 
 	$valuation_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : home_url( '/madrid/valoracion/' );
 
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	$data = nvx_catalog_json_resolved( 'dr-rivera-page.json' );
+
 	// E-E-A-T Avatar and Manifest
-	$avatar = esc_url( home_url( '/wp-content/themes/nuvanx-medical/assets/images/dr-rivera-avatar.jpg' ) );
+	$avatar = esc_url( home_url( $data['avatar'] ?? '/wp-content/themes/nuvanx-medical/assets/images/dr-rivera-avatar.jpg' ) );
 
 	$html  = '<div class="nvx-dr-rivera-editorial">';
 
 	$html .= '<div class="nvx-dr-rivera-header">';
-	$html .= '<img src="' . $avatar . '" alt="Dr. Javier Rivera Tejeda" class="nvx-dr-rivera-avatar" onerror="this.style.display=\'none\'">';
-	$html .= '<p class="nvx-brand-kicker nvx-dr-rivera-kicker">' . esc_html__( 'Dirección Médica NUVANX', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-dr-rivera-h1">' . esc_html__( 'Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead nvx-dr-rivera-lead">' . esc_html__( 'Nº Colegiado ICOMEM: 282864786 · Especialista en Medicina Estética Láser e Ingeniería Tisular', 'nuvanx-medical' ) . '</p>';
+	$html .= '<img src="' . $avatar . '" alt="' . esc_attr( $data['h1'] ?? 'Dr. Javier Rivera Tejeda' ) . '" class="nvx-dr-rivera-avatar" onerror="this.style.display=\'none\'">';
+	$html .= '<p class="nvx-brand-kicker nvx-dr-rivera-kicker">' . esc_html( $data['kicker'] ?? __( 'Dirección Médica NUVANX', 'nuvanx-medical' ) ) . '</p>';
+	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-dr-rivera-h1">' . esc_html( $data['h1'] ?? __( 'Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) ) . '</h1>';
+	$html .= '<p class="nvx-brand-hero__lead nvx-dr-rivera-lead">' . esc_html( $data['lead'] ?? __( 'Nº Colegiado ICOMEM: 282864786 · Especialista en Medicina Estética Láser e Ingeniería Tisular', 'nuvanx-medical' ) ) . '</p>';
 	$html .= '</div>';
 
 	// Manifiesto Clínico
-	$html .= '<blockquote class="nvx-blockquote">';
-	$html .= '<p>' . esc_html__( 'Mi criterio de indicación clínica es innegociable: si no hay razón médica objetiva para un tratamiento, no lo recomiendo. Hay clínicas que venden su catálogo de máquinas; en NUVANX, yo te vendo el diagnóstico anatómico.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</blockquote>';
+	if ( ! empty( $data['manifesto'] ) ) {
+		$html .= '<blockquote class="nvx-blockquote">';
+		$html .= '<p>' . esc_html( $data['manifesto'] ) . '</p>';
+		$html .= '</blockquote>';
+	}
 
-	$html .= '<div class="nvx-dr-rivera-body">';
-	$html .= '<p>' . esc_html__( 'Como Director Médico de NUVANX Medicina Estética Láser, mi enfoque se centra en la geriatría preventiva y la regeneración tisular sin procedimientos quirúrgicos invasivos. Personalmente ejecuto los tratamientos de alta complejidad energética y acompaño al paciente durante toda la curva de recuperación.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>';
+	if ( ! empty( $data['intro'] ) ) {
+		$html .= '<div class="nvx-dr-rivera-body">';
+		$html .= '<p>' . esc_html( $data['intro'] ) . '</p>';
+		$html .= '</div>';
+	}
 
-	// Procedimientos que ejecuta
-	$html .= '<h2 class="nvx-dr-rivera-list-title">' . esc_html__( 'Procedimientos de Alta Complejidad Ejecutados Personalmente:', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<ul class="nvx-dr-rivera-list">';
-	$html .= '<li><strong>' . esc_html__( 'Endolift® Facial y Corporal:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Laserlipólisis y retracción cutánea intersticial a 1470 nm.', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'Láser CO₂ Fraccionado Quirúrgico:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Resurfacing profundo para fotodaño severo y secuelas cicatriciales.', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'EXION® Fractional RF:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Radiofrecuencia fraccionada con impedancia en tiempo real para matriz extracelular.', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'Inyectables Estructurales (Allergan / Merz):', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Reposicionamiento volumétrico y neuromodulación bajo trazabilidad absoluta.', 'nuvanx-medical' ) . '</li>';
-	$html .= '</ul>';
+	if ( ! empty( $data['procedures'] ) && is_array( $data['procedures'] ) ) {
+		$html .= '<h2 class="nvx-dr-rivera-list-title">' . esc_html( $data['procedures_title'] ?? __( 'Procedimientos de Alta Complejidad Ejecutados Personalmente:', 'nuvanx-medical' ) ) . '</h2>';
+		$html .= '<ul class="nvx-dr-rivera-list">';
+		foreach ( $data['procedures'] as $proc ) {
+			$title = isset( $proc['title'] ) ? (string) $proc['title'] : '';
+			$body  = isset( $proc['body'] ) ? (string) $proc['body'] : '';
+			if ( '' === $title && '' === $body ) {
+				continue;
+			}
+			$html .= '<li>';
+			if ( '' !== $title ) {
+				$html .= '<strong>' . esc_html( $title ) . '</strong> ';
+			}
+			if ( '' !== $body ) {
+				$html .= esc_html( $body );
+			}
+			$html .= '</li>';
+		}
+		$html .= '</ul>';
+	}
 
 	// CTA
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {

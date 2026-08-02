@@ -1,0 +1,70 @@
+{
+    "hero": {
+        "kicker": "@nvx-t:NUVANX · Medicina estética láser",
+        "h1": "@nvx-t:Láser CO₂ fraccionado en Madrid: textura, poros y cicatrices de acné",
+        "byline_author": "@nvx-t:Escrito y revisado por Dr. Javier Rivera Tejeda",
+        "byline_title": "@nvx-t:Director médico NUVANX · Fecha de última revisión: julio 2026",
+        "lead": "@nvx-t:Protocolos de resurfacing fraccionado para mejorar irregularidades de textura y cicatrices, con un plan de recuperación realista (eritema y descamación según profundidad).",
+        "description": "@nvx-t:Parámetros de potencia, profundidad y densidad ajustados por el equipo médico. PVP sesión facial desde %s € (IVA incl.).",
+        "meta": "@nvx-t:Chamberí · Salamanca–Goya · No es un peeling cosmético superficial"
+    },
+    "science": {
+        "kicker": "@nvx-t:Mecanismo",
+        "title": "@nvx-t:La ciencia de la ablación fraccionada",
+        "body": [
+            "@nvx-t:El láser de dióxido de carbono (CO₂) fraccionado es un resurfacing ablativo de referencia en dermatología estética para renovar la arquitectura de la piel. No vaporiza toda la superficie de forma continua: emite microhaces que crean columnas térmicas de vaporización rodeadas de tejido sano.",
+            "@nvx-t:Ese tejido peri-lesional acelera la curación y estimula una respuesta de neocolagénesis (colágeno tipo I y III). No es un peeling cosmético superficial: es una intervención de alto impacto que exige planificación médica y compromiso con el downtime."
+        ]
+    },
+    "indications": {
+        "kicker": "@nvx-t:Indicaciones",
+        "title": "@nvx-t:Indicaciones terapéuticas principales",
+        "body": "@nvx-t:El equipo médico (dirección Dr. Rivera Tejeda) ajusta potencia, profundidad fraccional y densidad de haces según fototipo, objetivo y tolerancia al downtime.",
+        "items": [
+            {
+                "title": "@nvx-t:Cicatrices atróficas de acné",
+                "body": "@nvx-t:Elevación y remodelación de depresiones (boxcar, rolling) con fraccionamiento calibrado a la profundidad de la cicatriz."
+            },
+            {
+                "title": "@nvx-t:Poros dilatados y textura irregular",
+                "body": "@nvx-t:Nivelación de la superficie cutánea dañada por inflamación previa y mejora de la regularidad del relieve."
+            },
+            {
+                "title": "@nvx-t:Fotodaño y elastosis solar",
+                "body": "@nvx-t:Tratamiento de pigmento anómalo y piel asfixiada o envejecida por UV, orientado a luminosidad y calidad dérmica tras la regeneración."
+            }
+        ]
+    },
+    "downtime": {
+        "kicker": "@nvx-t:Downtime médico",
+        "title": "@nvx-t:Cronología real de la recuperación",
+        "body": "@nvx-t:El CO₂ fraccionado exige compromiso con la curación. Los plazos siguientes son orientativos y dependen de la profundidad del protocolo.",
+        "phases": [
+            {
+                "n": "01",
+                "title": "@nvx-t:Días 1 a 3",
+                "body": "@nvx-t:Eritema intenso (similar a quemadura solar fuerte), calor profundo y patrón punteado oscuro (columnas tratadas / debris microscópico)."
+            },
+            {
+                "n": "02",
+                "title": "@nvx-t:Días 4 a 7",
+                "body": "@nvx-t:Descamación activa: la epidermis tratada se desprende y aparece piel nueva, rosada e inmadura. No arrancar escamas."
+            },
+            {
+                "n": "03",
+                "title": "@nvx-t:Día 7 en adelante",
+                "body": "@nvx-t:Recuperación visual habitual. La remodelación de colágeno continúa en silencio 4–6 semanas (y meses) mejorando firmeza y textura."
+            }
+        ]
+    },
+    "pricing": {
+        "kicker": "@nvx-t:Tarifas públicas",
+        "title": "@nvx-t:PVP sesión Láser CO₂ (IVA incluido)",
+        "caption": "@nvx-t:Tarifa clínica de referencia. Profundidad y zonas pueden modular el plan y el número de sesiones.",
+        "col_session": "@nvx-t:Sesión",
+        "col_pvp": "@nvx-t:PVP",
+        "row_facial": "@nvx-t:Láser CO₂ facial",
+        "row_body": "@nvx-t:Láser CO₂ corporal",
+        "note": "@nvx-t:La indicación, el fototipo y el downtime esperable se confirman en valoración presencial antes de cualquier sesión."
+    }
+}

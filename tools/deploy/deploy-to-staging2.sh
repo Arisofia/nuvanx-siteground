@@ -136,13 +136,6 @@ printf '%s\n' "$DEPLOY_SHA" > "$BACKUP_DIR/intended-sha.txt"
 
 MUTATION_STARTED=1
 
-echo '== Disable SiteGround asset transformations =='
-(
-  cd "$WP_ROOT"
-  wp sg optimize css disable
-  wp sg optimize combine-css disable
-  wp sg optimize combine-js disable
-)
 
 echo '== Synchronize theme to staging2 =='
 rsync -a --delete \

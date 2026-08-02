@@ -8,7 +8,8 @@
 set -Eeuo pipefail
 
 PROD_ROOT=""
-STAGING_ROOT=""
+SOURCE_THEME=""
+SHA=""
 CONFIRM=0
 
 usage() {
@@ -16,12 +17,12 @@ usage() {
 Usage:
   deploy-to-prod.sh \
     --prod-root /absolute/prod/wp-root \
-    --staging-root /absolute/staging2/wp-root \
+    --source-theme /path/to/theme-build \
+    --sha <commit-sha> \
     --confirm
 
-Promotes the nuvanx-medical theme from staging2 to production without touching
-prod-only MU plugins, and resets SiteGround CSS/JS minify so public HTML enqueues
-canonical theme assets.
+Promotes the nuvanx-medical theme from the specified source-theme directory to production
+without touching prod-only MU plugins, and retains the canonical SG Optimizer settings.
 EOF
 }
 
@@ -35,7 +36,8 @@ require_confirm() {
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --prod-root) PROD_ROOT="$2"; shift 2 ;;
-    --staging-root) STAGING_ROOT="$2"; shift 2 ;;
+    --source-theme) SOURCE_THEME="$2"; shift 2 ;;
+    --sha) SHA="$2"; shift 2 ;;
     --confirm) CONFIRM=1; shift ;;
     *)
       usage
@@ -45,7 +47,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ -n "$PROD_ROOT" && -n "$STAGING_ROOT" ]] || {
+[[ -n "$PROD_ROOT" && -n "$SOURCE_THEME" && -n "$SHA" ]] || {
   usage
   exit 2
 }
@@ -58,8 +60,8 @@ require_confirm
   echo "ERROR: prod theme missing at $PROD_ROOT" >&2
   exit 1
 }
-[[ -d "$STAGING_ROOT/wp-content/themes/nuvanx-medical" ]] || {
-  echo "ERROR: staging theme missing at $STAGING_ROOT" >&2
+[[ -d "$SOURCE_THEME" ]] || {
+  echo "ERROR: source theme missing at $SOURCE_THEME" >&2
   exit 1
 }
 
@@ -75,20 +77,15 @@ echo "== Guard: prod siteurl/home/theme =="
   [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: active theme is $theme" >&2; exit 1; }
 )
 
-echo "== Guard: staging2 siteurl/theme and canonical assets =="
+echo "== Guard: canonical assets in source theme =="
 (
-  cd "$STAGING_ROOT"
-  siteurl="$(wp option get siteurl)"
-  theme="$(wp theme list --status=active --field=name)"
-  echo "staging siteurl=$siteurl theme=$theme"
-  [[ "$siteurl" == 'https://staging2.nuvanx.com' ]] || { echo "ERROR: unexpected staging siteurl=$siteurl" >&2; exit 1; }
-  [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: staging active theme is $theme" >&2; exit 1; }
-  [[ -f wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css ]] || {
-    echo "ERROR: missing nvx-patterns-editorial.css on staging2" >&2
+  cd "$SOURCE_THEME"
+  [[ -f assets/css/nvx-patterns-editorial.css ]] || {
+    echo "ERROR: missing nvx-patterns-editorial.css on source theme" >&2
     exit 1
   }
-  [[ -f wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php ]] || {
-    echo "ERROR: missing nvx-blog-system.php on staging2" >&2
+  [[ -f inc/nvx-blog-system.php ]] || {
+    echo "ERROR: missing nvx-blog-system.php on source theme" >&2
     exit 1
   }
 )
@@ -106,17 +103,12 @@ if [[ -d "$PROD_ROOT/wp-content/mu-plugins" ]]; then
   tar -czf "$BACKUP_DIR/mu-plugins.tgz" -C "$PROD_ROOT" wp-content/mu-plugins
 fi
 
-echo "== Disable SG CSS/JS minify/combine on prod =="
-(cd "$PROD_ROOT" && wp sg optimize css disable || true)
-(cd "$PROD_ROOT" && wp sg optimize combine-css disable || true)
-(cd "$PROD_ROOT" && wp sg optimize combine-js disable || true)
-
 echo "== Rsync theme (delete obsolete theme files) =="
 rsync -a --delete \
   --exclude='.git' --exclude='php_errorlog' --exclude='*.log' \
   --exclude='backups-nuvanx' --exclude='quarantine' \
   --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' \
-  "$STAGING_ROOT/wp-content/themes/nuvanx-medical/" \
+  "$SOURCE_THEME/" \
   "$PROD_ROOT/wp-content/themes/nuvanx-medical/"
 
 echo "== Retire absorbed MU plugins (logic now lives in the theme) =="

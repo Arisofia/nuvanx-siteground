@@ -12,7 +12,6 @@ defined( 'ABSPATH' ) || exit;
 // Static analyzers that only read this file do not see the runtime <title>; the
 // live document still has exactly one title after governance runs.
 ?>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>

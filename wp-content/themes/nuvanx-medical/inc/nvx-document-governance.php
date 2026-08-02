@@ -10,7 +10,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Start the innermost document buffer before the doctype is emitted.
+ * Start the public-document buffer as the outermost theme-owned layer.
+ *
+ * Must run before SiteGround Optimizer Parser (init priority 10). SGO's
+ * end_buffer() calls ob_end_flush() once on the topmost buffer; when our
+ * callback sat inside SGO (started from header.php), SGO flushed our layer
+ * incorrectly and large routes like /soluciones-medicas/ could emit HTTP 200
+ * with an empty body. Starting first makes governance the outermost rewrite
+ * after plugin buffers finish bubbling up.
  */
 function nvx_document_governance_start(): void {
 	static $started = false;
@@ -26,12 +33,10 @@ function nvx_document_governance_start(): void {
 	}
 
 	$started = true;
-	ob_start(
-		'nvx_document_governance_normalize_document',
-		0,
-		PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_REMOVABLE
-	);
+	// Not CLEANABLE/REMOVABLE: third parties must not discard this layer mid-request.
+	ob_start( 'nvx_document_governance_normalize_document', 0 );
 }
+add_action( 'init', 'nvx_document_governance_start', 1 );
 
 /**
  * Enqueue the platform accessibility/runtime layer and prevent eager HubSpot.

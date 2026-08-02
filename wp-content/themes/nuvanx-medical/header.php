@@ -1,13 +1,9 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-require_once __DIR__ . '/inc/nvx-document-governance.php';
-// Single public-document buffer for every front route (including /soluciones-medicas/).
-// Infrastructure cleanup lives in the same callback — never nest a second document
-// rewrite buffer (that pairing used to yield HTTP 200 + empty body on staging2).
-if ( function_exists( 'nvx_document_governance_start' ) ) {
-	nvx_document_governance_start();
-}
+// Document governance buffer starts on init priority 1 (outermost theme layer).
+// Do not start a second buffer here — nested rewrite buffers break SGO's single
+// ob_end_flush on routes like /soluciones-medicas/.
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>

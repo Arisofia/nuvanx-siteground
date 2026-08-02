@@ -54,7 +54,7 @@ while ( have_posts() ) :
 	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_co2_page' ) && nvx_content_is_co2_page( $content ) ) {
 		$has_managed_editorial = true;
 	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_laser_medicine_page' ) && nvx_content_is_laser_medicine_page( $content ) ) {
+	if ( ! $has_managed_editorial && function_exists( 'nvx_laser_is_hub_request' ) && nvx_laser_is_hub_request() ) {
 		$has_managed_editorial = true;
 	}
 	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_aesthetic_medicine_page' ) && nvx_content_is_aesthetic_medicine_page( $content ) ) {

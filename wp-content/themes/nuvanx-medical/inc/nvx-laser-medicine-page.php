@@ -1,9 +1,9 @@
 <?php
 /**
- * Medicina Estética Láser hub — high-authority editorial rebuild.
+ * Medicina Estética Láser hub — fully theme-owned.
  *
- * Wire-frame: Hero → Enfoque 3 columnas → Catálogo plataformas → FAQ AEO → Action banner.
- * Pattern-based (laser hub markers), not page-ID gated. Does not match Endolift detail pages.
+ * Route: /medicina-estetica-laser/ (slug-gated). CMS body is ignored.
+ * Wire-frame: unified .nvx-brand-hero → approach → platforms → FAQ.
  *
  * @package nuvanx-medical
  */
@@ -13,20 +13,44 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Singular page context for laser hub rewrite (avoids excerpts / archives).
+ * Whether the current request is the laser medicine hub page.
  */
-function nvx_laser_is_singular_context(): bool {
+function nvx_laser_is_hub_request(): bool {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return false;
 	}
+	if ( ! is_page() ) {
+		return false;
+	}
 
-	return is_singular( 'page' ) || is_page();
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	if ( 'medicina-estetica-laser' === $slug ) {
+		return true;
+	}
+
+	$path = function_exists( 'nvx_schema_current_path' )
+		? nvx_schema_current_path( (int) get_queried_object_id() )
+		: '';
+
+	return is_string( $path )
+		&& function_exists( 'nvx_schema_path_matches' )
+		&& nvx_schema_path_matches( $path, '/medicina-estetica-laser/' );
+}
+
+/**
+ * @deprecated Use nvx_laser_is_hub_request(); kept as the shell detection name.
+ *
+ * @param string $content Unused; ownership is route-based.
+ */
+function nvx_content_is_laser_medicine_page( string $content ): bool {
+	unset( $content );
+	return nvx_laser_is_hub_request();
 }
 
 /**
  * Resolve a public page URL by path, with home_url fallback.
  *
- * @param string $path Relative path without domain (e.g. endolift-facial-papada-mandibula).
+ * @param string $path Relative path without domain.
  */
 function nvx_laser_page_url( string $path ): string {
 	$path = trim( $path, '/' );
@@ -43,53 +67,25 @@ function nvx_laser_page_url( string $path ): string {
 }
 
 /**
- * Detect Medicina Estética Láser hub content before rewrite.
- * Prefers stable structural markers over free-text phrases.
- */
-function nvx_content_is_laser_medicine_page( string $content ): bool {
-	if ( false !== strpos( $content, 'nvx-laser-editorial' ) ) {
-		return false;
-	}
-
-	if ( ! nvx_laser_is_singular_context() ) {
-		return false;
-	}
-
-	// Exclude treatment detail pages that share laser hero modifiers.
-	if ( preg_match(
-		'/nvx-endolift-editorial|nvx-endolift-hero|nvx-endolaser-editorial|nvx-endolaser-hero|nvx-co2-editorial|nvx-co2-hero|aria-label=["\']Endolift facial NUVANX["\']|id=["\']nvx-endolift-h1["\']|id=["\']nvx-endolaser-h1["\']|id=["\']nvx-co2-h1["\']|nvx-brand-page--exion|aria-label=["\']EXION/iu',
-		$content
-	) ) {
-		return false;
-	}
-
-	// Stable structural markers only (wrapper class / hub ids / hub aria-label).
-	return (bool) preg_match(
-		'/class=["\'][^"\']*nvx-brand-page--laser|class=["\'][^"\']*nvx-laser-hero|id=["\']nvx-laser-h1["\']|aria-label=["\']Medicina estética láser NUVANX["\']/iu',
-		$content
-	);
-}
-
-/**
- * Linear premium icons — Champagne Bronce stroke 1.5px, 32×32 box.
+ * Linear premium icons — stroke 1.5px, 32×32 box.
  *
  * @param string $name Icon key.
  */
 function nvx_laser_icon( string $name ): string {
 	$icons = array(
-		'spectrum'  => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="16" cy="16" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M16 4v5M16 23v5M4 16h5M23 16h5M7.5 7.5l3.5 3.5M21 21l3.5 3.5M24.5 7.5 21 11M11 21l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'dose'      => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 22 16 6l10 16" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 22h12M12 26h8M14 30h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'nature'    => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M16 28V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 24c-6 0-10-3.5-10-8.5 6 0 10 3.5 10 8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M16 21c6 0 10-3.5 10-8.5-6 0-10 3.5-10 8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M11 10c3-3 6-4.5 9-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'fiber'     => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 24 16 6l4 3-10 18H6v-3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 10l4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'rf'        => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 22c3-7 5-10 8-10s5 3 8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 14c2-1.5 4-2.5 6-2.5s4 1 6 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="20" r="2" stroke="currentColor" stroke-width="1.5"/></svg>',
-		'co2'       => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="6" y="6" width="20" height="20" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M11 16h10M16 11v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="11" cy="11" r="1.25" stroke="currentColor" stroke-width="1.5"/><circle cx="21" cy="11" r="1.25" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="21" r="1.25" stroke="currentColor" stroke-width="1.5"/><circle cx="21" cy="21" r="1.25" stroke="currentColor" stroke-width="1.5"/></svg>',
+		'spectrum' => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="16" cy="16" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M16 4v5M16 23v5M4 16h5M23 16h5M7.5 7.5l3.5 3.5M21 21l3.5 3.5M24.5 7.5 21 11M11 21l-3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'dose'     => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 22 16 6l10 16" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 22h12M12 26h8M14 30h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'nature'   => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M16 28V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 24c-6 0-10-3.5-10-8.5 6 0 10 3.5 10 8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M16 21c6 0 10-3.5 10-8.5-6 0-10 3.5-10 8.5Z" stroke="currentColor" stroke-width="1.5"/><path d="M11 10c3-3 6-4.5 9-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'fiber'    => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M6 24 16 6l4 3-10 18H6v-3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M14 10l4 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'rf'       => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 22c3-7 5-10 8-10s5 3 8 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 14c2-1.5 4-2.5 6-2.5s4 1 6 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="16" cy="20" r="2" stroke="currentColor" stroke-width="1.5"/></svg>',
+		'co2'      => '<svg class="nvx-laser-icon" viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="6" y="6" width="20" height="20" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M11 16h10M16 11v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="11" cy="11" r="1.25" stroke="currentColor" stroke-width="1.5"/><circle cx="21" cy="11" r="1.25" stroke="currentColor" stroke-width="1.5"/><circle cx="11" cy="21" r="1.25" stroke="currentColor" stroke-width="1.5"/><circle cx="21" cy="21" r="1.25" stroke="currentColor" stroke-width="1.5"/></svg>',
 	);
 
 	return $icons[ $name ] ?? $icons['spectrum'];
 }
 
 /**
- * Hero dual CTA: valoración (primary) + sedes (secondary). No videoconsulta.
+ * Hero dual CTA: valoración + sedes.
  */
 function nvx_laser_hero_ctas_markup(): string {
 	$valoracion = function_exists( 'nvx_cta_valoracion_url' )
@@ -97,16 +93,16 @@ function nvx_laser_hero_ctas_markup(): string {
 		: home_url( '/madrid/valoracion/' );
 	$clinicas   = home_url( '/clinicas-de-medicina-estetica-nuvanx/' );
 
-	$html  = '<div class="nvx-cta-pair nvx-laser-hero-ctas">';
+	$html  = '<div class="nvx-brand-actions">';
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
-		esc_html__( 'Reservar valoración médica', 'nuvanx-medical' )
+		esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s">%2$s</a>',
 		esc_url( $clinicas ),
-		esc_html__( 'Ver centros en Madrid', 'nuvanx-medical' )
+		esc_html__( 'Ver clínicas en Madrid', 'nuvanx-medical' )
 	);
 	$html .= '</div>';
 
@@ -114,12 +110,14 @@ function nvx_laser_hero_ctas_markup(): string {
 }
 
 /**
- * Hero copy block.
+ * Unified brand hero (no video, no CMS media).
  */
-function nvx_laser_hero_copy_markup(): string {
+function nvx_laser_hero_markup(): string {
 	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
-	$html  = '<div class="nvx-brand-hero__copy nvx-laser-hero-copy">';
+	$html  = '<section class="nvx-brand-hero" aria-labelledby="nvx-laser-h1">';
+	$html .= '<div class="nvx-brand-hero__inner">';
+	$html .= '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Tecnología médica de precisión', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-laser-h1">' . esc_html__( 'Medicina Estética Láser Avanzada en Madrid', 'nuvanx-medical' ) . '</h1>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Plataformas de energía selectiva calibradas con rigor clínico para redefinir el contorno, restaurar la firmeza dermoepidérmica y renovar la textura de la piel sin cirugía.', 'nuvanx-medical' ) . '</p>';
@@ -132,7 +130,7 @@ function nvx_laser_hero_copy_markup(): string {
 	) . '</p>';
 	$html .= nvx_laser_hero_ctas_markup();
 	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí (CS20144) · Salamanca–Goya (CS20073) · Indicación médica personalizada', 'nuvanx-medical' ) . '</p>';
-	$html .= '</div>';
+	$html .= '</div></div></section>';
 
 	return $html;
 }
@@ -166,68 +164,69 @@ function nvx_laser_editorial_catalog(): array {
 }
 
 /**
- * Full editorial body.
+ * Full editorial body from theme JSON catalog.
  */
 function nvx_laser_editorial_body_markup(): string {
 	$html  = '<div class="nvx-laser-editorial">';
 
-	// B. Enfoque — 3 columnas.
-	$html .= '<section class="nvx-laser-section nvx-laser-focus" aria-labelledby="nvx-laser-focus-title">';
-	$html .= '<div class="nvx-laser-section__inner">';
-	$html .= '<p class="nvx-laser-kicker">' . esc_html__( 'El enfoque', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-laser-focus-title" class="nvx-laser-heading">' . esc_html__( 'La diferencia entre tecnología e indicación médica', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<section class="nvx-brand-section nvx-laser-focus" aria-labelledby="nvx-laser-focus-title">';
+	$html .= '<div class="nvx-brand-section__inner">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'El enfoque', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-laser-focus-title" class="nvx-brand-title">' . esc_html__( 'La diferencia entre tecnología e indicación médica', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-laser-focus-grid">';
 
 	$pillars = nvx_laser_editorial_catalog()['pillars'] ?? array();
-
 	foreach ( $pillars as $pillar ) {
+		if ( ! is_array( $pillar ) ) {
+			continue;
+		}
 		$html .= '<article class="nvx-laser-pillar">';
-		$html .= nvx_laser_icon( $pillar['icon'] );
-		$html .= '<h3 class="nvx-laser-pillar__title">' . esc_html( $pillar['title'] ) . '</h3>';
-		$html .= '<p class="nvx-laser-body">' . esc_html( $pillar['body'] ) . '</p>';
+		$html .= nvx_laser_icon( isset( $pillar['icon'] ) ? (string) $pillar['icon'] : 'spectrum' );
+		$html .= '<h3 class="nvx-laser-pillar__title">' . esc_html( (string) ( $pillar['title'] ?? '' ) ) . '</h3>';
+		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $pillar['body'] ?? '' ) ) . '</p>';
 		$html .= '</article>';
 	}
 
 	$html .= '</div></div></section>';
 
-	// C. Catálogo de plataformas clínicas.
-	$html .= '<section class="nvx-laser-section nvx-laser-platforms" aria-labelledby="nvx-laser-platforms-title">';
-	$html .= '<div class="nvx-laser-section__inner">';
-	$html .= '<p class="nvx-laser-kicker">' . esc_html__( 'Nuestras plataformas clínicas', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-laser-platforms-title" class="nvx-laser-heading">' . esc_html__( 'Tecnologías médicas de precisión', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<section class="nvx-brand-section nvx-laser-platforms" id="plataformas" aria-labelledby="nvx-laser-platforms-title">';
+	$html .= '<div class="nvx-brand-section__inner">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Nuestras plataformas clínicas', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-laser-platforms-title" class="nvx-brand-title">' . esc_html__( 'Tecnologías médicas de precisión', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-laser-platform-list">';
 
 	$platforms = nvx_laser_editorial_catalog()['platforms'] ?? array();
-
 	foreach ( $platforms as $platform ) {
+		if ( ! is_array( $platform ) ) {
+			continue;
+		}
+		$url = isset( $platform['url'] ) && is_string( $platform['url'] ) ? $platform['url'] : '#';
 		$html .= '<article class="nvx-laser-platform">';
 		$html .= '<div class="nvx-laser-platform__main">';
 		$html .= '<div class="nvx-laser-platform__head">';
-		$html .= nvx_laser_icon( $platform['icon'] );
-		$html .= '<p class="nvx-laser-platform__n">' . esc_html( $platform['n'] ) . '</p>';
+		$html .= nvx_laser_icon( isset( $platform['icon'] ) ? (string) $platform['icon'] : 'spectrum' );
+		$html .= '<p class="nvx-laser-platform__n">' . esc_html( (string) ( $platform['n'] ?? '' ) ) . '</p>';
 		$html .= '</div>';
-		$html .= '<h3 class="nvx-laser-platform__title">' . esc_html( $platform['title'] ) . '</h3>';
-		$html .= '<p class="nvx-laser-body">' . esc_html( $platform['body'] ) . '</p>';
-		$html .= '<p class="nvx-laser-platform__link-wrap"><a class="nvx-laser-platform__link" href="' . esc_url( $platform['url'] ) . '">' . esc_html__( 'Ver protocolo clínico', 'nuvanx-medical' ) . '</a></p>';
+		$html .= '<h3 class="nvx-laser-platform__title">' . esc_html( (string) ( $platform['title'] ?? '' ) ) . '</h3>';
+		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $platform['body'] ?? '' ) ) . '</p>';
+		$html .= '<p class="nvx-laser-platform__link-wrap"><a class="nvx-brand-inline-link" href="' . esc_url( $url ) . '">' . esc_html__( 'Ver protocolo clínico', 'nuvanx-medical' ) . '</a></p>';
 		$html .= '</div>';
 		$html .= '<aside class="nvx-laser-platform__meta" aria-label="' . esc_attr__( 'Indicación y recuperación', 'nuvanx-medical' ) . '">';
 		$html .= '<p class="nvx-laser-meta-label">' . esc_html__( 'Objetivo clínico', 'nuvanx-medical' ) . '</p>';
-		$html .= '<p class="nvx-laser-body">' . esc_html( $platform['goal'] ) . '</p>';
+		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $platform['goal'] ?? '' ) ) . '</p>';
 		$html .= '<p class="nvx-laser-meta-label nvx-laser-meta-label--spaced">' . esc_html__( 'Recuperación', 'nuvanx-medical' ) . '</p>';
-		$html .= '<p class="nvx-laser-body">' . esc_html( $platform['recover'] ) . '</p>';
+		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $platform['recover'] ?? '' ) ) . '</p>';
 		$html .= '</aside></article>';
 	}
 
 	$html .= '</div></div></section>';
 
-	// D. FAQ AEO.
-	$html .= '<section class="nvx-laser-section nvx-laser-faq" aria-labelledby="nvx-laser-faq-title">';
-	$html .= '<div class="nvx-laser-section__inner">';
-	$html .= '<p class="nvx-laser-kicker">' . esc_html__( 'Preguntas clínicas', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-laser-faq-title" class="nvx-laser-heading">' . esc_html__( 'Rigor biológico sobre medicina estética láser', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<section class="nvx-brand-section nvx-laser-faq" aria-labelledby="nvx-laser-faq-title">';
+	$html .= '<div class="nvx-brand-section__inner">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Preguntas clínicas', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h2 id="nvx-laser-faq-title" class="nvx-brand-title">' . esc_html__( 'Rigor biológico sobre medicina estética láser', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq nvx-laser-faq-list">';
 
-	// FAQ 1 with formula in structured markup (not raw LaTeX).
 	$html .= '<details class="nvx-brand-faq-item" open>';
 	$html .= '<summary><span>' . esc_html__( '¿Cómo funciona la fototermólisis selectiva y cómo evita el láser dañar la superficie de la piel?', 'nuvanx-medical' ) . '</span></summary>';
 	$html .= '<div class="nvx-brand-faq-content">';
@@ -238,43 +237,42 @@ function nvx_laser_editorial_body_markup(): string {
 	$html .= '</figure></div></details>';
 
 	$faqs = nvx_laser_editorial_catalog()['faqs'] ?? array();
-
 	foreach ( $faqs as $faq ) {
+		if ( ! is_array( $faq ) || empty( $faq['q'] ) || empty( $faq['a'] ) ) {
+			continue;
+		}
 		$html .= '<details class="nvx-brand-faq-item">';
-		$html .= '<summary><span>' . esc_html( $faq['q'] ) . '</span></summary>';
-		$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $faq['a'] ) . '</p></div>';
+		$html .= '<summary><span>' . esc_html( (string) $faq['q'] ) . '</span></summary>';
+		$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( (string) $faq['a'] ) . '</p></div>';
 		$html .= '</details>';
 	}
 
 	$html .= '</div></div></section>';
-
-	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php (not page-local).
-
 	$html .= '</div>';
 
 	return $html;
 }
 
 /**
- * Rebuild Medicina Estética Láser hub page.
+ * Full theme-owned laser hub page markup.
+ */
+function nvx_laser_hub_page_markup(): string {
+	return '<div class="nvx-brand-page nvx-laser-hub-page">'
+		. nvx_laser_hero_markup()
+		. nvx_laser_editorial_body_markup()
+		. '</div>';
+}
+
+/**
+ * Replace the laser hub route with theme-owned markup. CMS body is ignored.
+ *
+ * @param string $content Existing post content (unused on hub).
  */
 function nvx_content_restructure_laser_medicine_page( string $content ): string {
-	if ( ! nvx_content_is_laser_medicine_page( $content ) ) {
+	if ( ! nvx_laser_is_hub_request() ) {
 		return $content;
 	}
 
-	require_once __DIR__ . '/nvx-page-render-helpers.php';
-	$media = nvx_page_extract_brand_hero_media( $content );
-
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--laser nvx-laser-hero" aria-labelledby="nvx-laser-h1" aria-label="' . esc_attr__( 'Medicina estética láser NUVANX', 'nuvanx-medical' ) . '">';
-	$hero .= '<div class="nvx-brand-hero__inner">';
-	$hero .= nvx_laser_hero_copy_markup();
-	$hero .= $media;
-	$hero .= '</div></section>';
-
-	$body = nvx_laser_editorial_body_markup();
-
-	return nvx_page_render_brand_wrapper( $content, $hero . $body, 'nvx-brand-page nvx-brand-page--laser' );
-
+	return nvx_laser_hub_page_markup();
 }
 add_filter( 'the_content', 'nvx_content_restructure_laser_medicine_page', 19 );

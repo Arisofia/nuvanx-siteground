@@ -113,7 +113,7 @@ function nvx_laser_hero_markup(): string {
 		$media = nvx_hero_featured_media_figure();
 	}
 
-	$html  = '<section class="nvx-brand-hero" aria-labelledby="nvx-laser-h1" aria-label="' . esc_attr__( 'Medicina estética láser NUVANX', 'nuvanx-medical' ) . '">';
+	$html  = '<section class="nvx-brand-hero" aria-labelledby="nvx-laser-h1">';
 	$html .= '<div class="nvx-brand-hero__inner">';
 	$html .= '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Tecnología médica de precisión', 'nuvanx-medical' ) . '</p>';
@@ -177,15 +177,18 @@ function nvx_laser_editorial_body_markup(): string {
 	$html .= '<div class="nvx-laser-focus-grid">';
 
 	$pillars = nvx_laser_editorial_catalog()['pillars'] ?? array();
+	$pillar_idx = 0;
 	foreach ( $pillars as $pillar ) {
 		if ( ! is_array( $pillar ) ) {
 			continue;
 		}
-		$html .= '<article class="nvx-laser-pillar">';
+		$pid = 'nvx-laser-pillar-' . $pillar_idx;
+		$html .= '<article class="nvx-laser-pillar" aria-labelledby="' . esc_attr( $pid ) . '">';
 		$html .= nvx_laser_icon( isset( $pillar['icon'] ) ? (string) $pillar['icon'] : 'spectrum' );
-		$html .= '<h3 class="nvx-laser-pillar__title">' . esc_html( (string) ( $pillar['title'] ?? '' ) ) . '</h3>';
+		$html .= '<h3 id="' . esc_attr( $pid ) . '" class="nvx-laser-pillar__title">' . esc_html( (string) ( $pillar['title'] ?? '' ) ) . '</h3>';
 		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $pillar['body'] ?? '' ) ) . '</p>';
 		$html .= '</article>';
+		$pillar_idx++;
 	}
 
 	$html .= '</div></div></section>';
@@ -197,27 +200,32 @@ function nvx_laser_editorial_body_markup(): string {
 	$html .= '<div class="nvx-laser-platform-list">';
 
 	$platforms = nvx_laser_editorial_catalog()['platforms'] ?? array();
+	$plat_idx = 0;
 	foreach ( $platforms as $platform ) {
 		if ( ! is_array( $platform ) ) {
 			continue;
 		}
 		$url = isset( $platform['url'] ) && is_string( $platform['url'] ) ? $platform['url'] : '#';
-		$html .= '<article class="nvx-laser-platform">';
+		$plat_title = (string) ( $platform['title'] ?? '' );
+		$pid = 'nvx-laser-platform-' . $plat_idx;
+		
+		$html .= '<article class="nvx-laser-platform" aria-labelledby="' . esc_attr( $pid ) . '">';
 		$html .= '<div class="nvx-laser-platform__main">';
 		$html .= '<div class="nvx-laser-platform__head">';
 		$html .= nvx_laser_icon( isset( $platform['icon'] ) ? (string) $platform['icon'] : 'spectrum' );
 		$html .= '<p class="nvx-laser-platform__n">' . esc_html( (string) ( $platform['n'] ?? '' ) ) . '</p>';
 		$html .= '</div>';
-		$html .= '<h3 class="nvx-laser-platform__title">' . esc_html( (string) ( $platform['title'] ?? '' ) ) . '</h3>';
+		$html .= '<h3 id="' . esc_attr( $pid ) . '" class="nvx-laser-platform__title">' . esc_html( $plat_title ) . '</h3>';
 		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $platform['body'] ?? '' ) ) . '</p>';
-		$html .= '<p class="nvx-laser-platform__link-wrap"><a class="nvx-brand-inline-link" href="' . esc_url( $url ) . '">' . esc_html__( 'Ver protocolo clínico', 'nuvanx-medical' ) . '</a></p>';
+		$html .= '<p class="nvx-laser-platform__link-wrap"><a class="nvx-brand-inline-link" href="' . esc_url( $url ) . '" aria-label="' . esc_attr( sprintf( __( 'Ver protocolo clínico: %s', 'nuvanx-medical' ), $plat_title ) ) . '">' . esc_html__( 'Ver protocolo clínico', 'nuvanx-medical' ) . '</a></p>';
 		$html .= '</div>';
-		$html .= '<aside class="nvx-laser-platform__meta" aria-label="' . esc_attr__( 'Indicación y recuperación', 'nuvanx-medical' ) . '">';
+		$html .= '<aside class="nvx-laser-platform__meta" aria-label="' . esc_attr( sprintf( __( 'Indicación y recuperación: %s', 'nuvanx-medical' ), $plat_title ) ) . '">';
 		$html .= '<p class="nvx-laser-meta-label">' . esc_html__( 'Objetivo clínico', 'nuvanx-medical' ) . '</p>';
 		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $platform['goal'] ?? '' ) ) . '</p>';
 		$html .= '<p class="nvx-laser-meta-label nvx-laser-meta-label--spaced">' . esc_html__( 'Recuperación', 'nuvanx-medical' ) . '</p>';
 		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $platform['recover'] ?? '' ) ) . '</p>';
 		$html .= '</aside></article>';
+		$plat_idx++;
 	}
 
 	$html .= '</div></div></section>';
@@ -232,8 +240,8 @@ function nvx_laser_editorial_body_markup(): string {
 	$html .= '<summary><span>' . esc_html__( '¿Cómo funciona la fototermólisis selectiva y cómo evita el láser dañar la superficie de la piel?', 'nuvanx-medical' ) . '</span></summary>';
 	$html .= '<div class="nvx-brand-faq-content">';
 	$html .= '<p>' . esc_html__( 'El principio fundamental de la medicina estética láser en NUVANX es la fototermólisis selectiva. Consiste en la entrega de una longitud de onda de luz específica orientada a calentar un cromóforo diana (como la melanina en las manchas o el agua en las células de la dermis) sin dañar los tejidos circundantes. Para lograrlo, el ancho de pulso del láser debe ser estrictamente menor o igual al tiempo de relajación térmica del objetivo de tratamiento. El tiempo de relajación térmica (τᵣ) se define mediante la siguiente relación física:', 'nuvanx-medical' ) . '</p>';
-	$html .= '<figure class="nvx-laser-formula" aria-label="' . esc_attr__( 'Tiempo de relajación térmica', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-laser-formula__eq" role="math"><span class="nvx-laser-formula__tau">τ<sub>r</sub></span> = <span class="nvx-laser-formula__frac"><span class="nvx-laser-formula__num">d<sup>2</sup></span><span class="nvx-laser-formula__den">4α</span></span></p>';
+	$html .= '<figure class="nvx-laser-formula">';
+	$html .= '<p class="nvx-laser-formula__eq" aria-hidden="true"><span class="nvx-laser-formula__tau">τ<sub>r</sub></span> = <span class="nvx-laser-formula__frac"><span class="nvx-laser-formula__num">d<sup>2</sup></span><span class="nvx-laser-formula__den">4α</span></span></p>';
 	$html .= '<figcaption class="nvx-laser-formula__cap">' . esc_html__( 'Donde d representa el diámetro de la estructura celular objetivo (como un haz de colágeno o un vaso capilar) y α corresponde a la difusividad térmica del tejido. Al programar pulsos de energía extremadamente rápidos por debajo de este límite, el calor se confina en la diana biológica y se disipa antes de propagarse a las capas epidérmicas superficiales, reduciendo el riesgo de quemaduras y optimizando la seguridad del paciente.', 'nuvanx-medical' ) . '</figcaption>';
 	$html .= '</figure></div></details>';
 

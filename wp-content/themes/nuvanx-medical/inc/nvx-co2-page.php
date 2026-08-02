@@ -196,7 +196,7 @@ function nvx_content_restructure_co2_page( string $content ): string {
 
 	$media = nvx_page_extract_brand_hero_media( $content );
 
-	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-co2-h1" aria-label="' . esc_attr__( 'Láser CO₂ NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-co2-h1">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_co2_hero_copy_markup();
 	$hero .= $media;

@@ -211,8 +211,8 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['biophysics']['kicker'] ?? '' ), 'nvx-endolift-bio-title', esc_html( $data['biophysics']['title'] ?? '' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['biophysics']['body1'] ?? '' ) . '</p>';
 
-	$html .= '<figure class="nvx-endolift-formula" aria-label="' . esc_attr__( 'Modelo de deposición térmica', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-endolift-formula__eq" role="math"><span class="nvx-endolift-formula__q">Q</span> = <span class="nvx-endolift-formula__mu">μ<sub>a</sub></span> · <span class="nvx-endolift-formula__phi">Φ</span></p>';
+	$html .= '<figure class="nvx-endolift-formula">';
+	$html .= '<p class="nvx-endolift-formula__eq" aria-hidden="true"><span class="nvx-endolift-formula__q">Q</span> = <span class="nvx-endolift-formula__mu">μ<sub>a</sub></span> · <span class="nvx-endolift-formula__phi">Φ</span></p>';
 	$html .= '<figcaption class="nvx-endolift-formula__cap">' . esc_html( $data['biophysics']['caption'] ?? '' ) . '</figcaption>';
 	$html .= '</figure>';
 
@@ -225,13 +225,16 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['process']['body'] ?? '' ) . '</p>';
 	$html .= '<div class="nvx-endolift-process-grid">';
 
+	$step_idx = 0;
 	foreach ( $data['process']['steps'] ?? array() as $step ) {
-		$html .= '<article class="nvx-endolift-step">';
+		$sid = 'nvx-endolift-step-' . $step_idx;
+		$html .= '<article class="nvx-endolift-step" aria-labelledby="' . esc_attr( $sid ) . '">';
 		$html .= nvx_endolift_process_icon( $step['icon'] ?? 'assess' );
 		$html .= '<span class="nvx-endolift-step__n">' . esc_html( $step['n'] ?? '' ) . '</span>';
-		$html .= '<h3 class="nvx-endolift-step__title">' . esc_html( $step['title'] ?? '' ) . '</h3>';
+		$html .= '<h3 id="' . esc_attr( $sid ) . '" class="nvx-endolift-step__title">' . esc_html( $step['title'] ?? '' ) . '</h3>';
 		$html .= '<p class="nvx-body">' . esc_html( $step['body'] ?? '' ) . '</p>';
 		$html .= '</article>';
+		$step_idx++;
 	}
 
 	$html .= '</div></div></section>';
@@ -309,7 +312,7 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 
 	$media = function_exists( 'nvx_page_extract_brand_hero_media' ) ? nvx_page_extract_brand_hero_media( $content ) : '';
 
-	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-endolift-h1" aria-label="' . esc_attr__( 'Endolift facial NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-endolift-h1">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_endolift_hero_copy_markup();
 	$hero .= $media;

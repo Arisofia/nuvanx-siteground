@@ -121,7 +121,7 @@ function nvx_nosotros_positioning_markup(): string {
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-positioning" aria-labelledby="nvx-nosotros-pos-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $pos['kicker'] ?? '' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $pos['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-pos-title" class="nvx-heading">' . esc_html( $pos['title'] ?? '' ) . '</h2>';
 	foreach ( (array) ( $pos['body'] ?? array() ) as $p ) {
 		$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $p ) . '</p>';
@@ -140,7 +140,7 @@ function nvx_nosotros_platforms_markup(): string {
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-platforms" aria-labelledby="nvx-nosotros-tech-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $plat['kicker'] ?? '' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $plat['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-tech-title" class="nvx-heading">' . esc_html( $plat['title'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $plat['lead'] ?? '' ) . '</p>';
 	$html .= '<ul class="nvx-endolaser-zone-list nvx-nosotros-platform-list">';
@@ -180,14 +180,16 @@ function nvx_nosotros_clinics_markup(): string {
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-clinics" aria-labelledby="nvx-nosotros-clinics-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $c['kicker'] ?? '' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $c['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-clinics-title" class="nvx-heading">' . esc_html( $c['title'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $c['lead'] ?? '' ) . '</p>';
-	$html .= '<div class="nvx-contact-clinics">';
+	$html .= '<ul class="nvx-contact-clinics" role="list">';
 
 	foreach ( $clinics as $clinic ) {
-		$html .= '<article class="nvx-contact-clinic">';
-		$html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ?? '' ) . '</h3>';
+		$clinic_id = 'nvx-clinic-' . sanitize_title( $clinic['name'] ?? '' );
+		$html     .= '<li role="listitem">';
+		$html     .= '<article class="nvx-contact-clinic" aria-labelledby="' . esc_attr( $clinic_id ) . '">';
+		$html     .= '<h3 id="' . esc_attr( $clinic_id ) . '" class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ?? '' ) . '</h3>';
 		$html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html( $c['reg_label'] ?? '' ) . '</strong> — ' . esc_html( $clinic['reg'] ?? '' ) . '</p>';
 		$html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $clinic['address'] ?? '' ) . '</p>';
 		if ( ! empty( $clinic['phone'] ) && ! empty( $clinic['phone_href'] ) ) {
@@ -199,9 +201,10 @@ function nvx_nosotros_clinics_markup(): string {
 			$html .= '<p class="nvx-contact-clinic__days">' . esc_html( $clinic['days'] ) . '</p>';
 		}
 		$html .= '</article>';
+		$html .= '</li>';
 	}
 
-	$html .= '</div>';
+	$html .= '</ul>';
 	$clinicas = home_url( '/' . ( $c['hub_url'] ?? '' ) . '/' );
 	$html    .= '<p class="nvx-body"><a class="nvx-brand-inline-link" href="' . esc_url( $clinicas ) . '">' . esc_html( $c['hub_link_label'] ?? '' ) . '</a></p>';
 	$html    .= '</div></section>';
@@ -220,10 +223,10 @@ function nvx_nosotros_team_markup(): string {
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-team" aria-labelledby="nvx-nosotros-team-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $t['kicker'] ?? '' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $t['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-team-title" class="nvx-heading">' . esc_html( $t['title'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $t['lead'] ?? '' ) . '</p>';
-	$html .= '<div class="nvx-nosotros-team-grid">';
+	$html .= '<ul class="nvx-nosotros-team-grid" role="list">';
 
 	$index = 0;
 	foreach ( (array) ( $t['members'] ?? array() ) as $m ) {
@@ -240,20 +243,25 @@ function nvx_nosotros_team_markup(): string {
 			$col = ( 0 === $index ) ? '282864786' : ( ( 1 === $index ) ? '284621525' : '282877543' );
 		}
 
-		$html .= '<article class="nvx-nosotros-team-card">';
-		$html .= '<p class="nvx-brand-kicker">' . esc_html( $m['role'] ?? '' ) . '</p>';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $m['name'] ?? '' ) . '</h3>';
+		$member_id    = 'nvx-team-card-' . $index;
+		$bio_label    = esc_attr( ( $t['bio_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
+		$doc_label    = esc_attr( ( $t['doctoralia_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
+		$html .= '<li role="listitem">';
+		$html .= '<article class="nvx-nosotros-team-card" aria-labelledby="' . esc_attr( $member_id ) . '">';
+		$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $m['role'] ?? '' ) . '</p>';
+		$html .= '<h3 id="' . esc_attr( $member_id ) . '" class="nvx-endolaser-zone__title">' . esc_html( $m['name'] ?? '' ) . '</h3>';
 		$html .= '<p class="nvx-body"><strong>' . esc_html( $t['icomem_label'] ?? '' ) . '</strong> ' . esc_html( $col ) . '</p>';
 		$html .= '<p class="nvx-body">' . esc_html( $m['body'] ?? '' ) . '</p>';
-		$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo . '#' . ( $m['anchor'] ?? '' ) ) . '">' . esc_html( $t['bio_link_label'] ?? '' ) . '</a></p>';
+		$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo . '#' . ( $m['anchor'] ?? '' ) ) . '" aria-label="' . $bio_label . '">' . esc_html( $t['bio_link_label'] ?? '' ) . '</a></p>';
 		if ( ! empty( $m['doctoralia'] ) ) {
-			$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $m['doctoralia'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $t['doctoralia_link_label'] ?? '' ) . '</a></p>';
+			$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $m['doctoralia'] ) . '" target="_blank" rel="noopener noreferrer" aria-label="' . $doc_label . '">' . esc_html( $t['doctoralia_link_label'] ?? '' ) . '</a></p>';
 		}
 		$html .= '</article>';
+		$html .= '</li>';
 		$index++;
 	}
 
-	$html .= '</div>';
+	$html .= '</ul>';
 	$html .= '<p class="nvx-body"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo ) . '">' . esc_html( $t['hub_link_label'] ?? '' ) . '</a></p>';
 	$html .= '</div></section>';
 
@@ -269,9 +277,9 @@ function nvx_nosotros_principles_markup(): string {
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-principles" aria-labelledby="nvx-nosotros-principles-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html( $p['kicker'] ?? '' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $p['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-heading">' . esc_html( $p['title'] ?? '' ) . '</h2>';
-	$html .= '<ul class="nvx-endolaser-zone-list">';
+	$html .= '<ul class="nvx-endolaser-zone-list" role="list">';
 	foreach ( (array) ( $p['items'] ?? array() ) as $item ) {
 		$html .= '<li class="nvx-endolaser-zone">';
 		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ?? '' ) . '</h3>';
@@ -318,7 +326,8 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 		$media = '';
 	}
 
-	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-nosotros-h1" aria-label="' . esc_attr__( 'Sobre Nosotros NUVANX', 'nuvanx-medical' ) . '">';
+	// aria-labelledby is sufficient; aria-label is redundant and creates conflict for screen readers.
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-nosotros-h1">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_nosotros_hero_copy_markup();
 	$hero .= $media;

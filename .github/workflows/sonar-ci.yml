@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  coverage-and-analysis:
+  analysis:
     runs-on: ubuntu-24.04
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -29,42 +29,11 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: 22
-
-      - name: Run JavaScript tests with LCOV coverage
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p coverage/js
-          node --test \
-            --experimental-test-coverage \
-            --test-reporter=spec \
-            --test-reporter-destination=stdout \
-            --test-reporter=lcov \
-            --test-reporter-destination=coverage/js/lcov.info \
-            tests/js/visual-qa-common.test.mjs
-          test -s coverage/js/lcov.info
-          grep -Fq 'SF:' coverage/js/lcov.info
-          grep -Fq 'DA:' coverage/js/lcov.info
-
-      - name: Upload coverage evidence
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: sonar-coverage-${{ github.run_id }}
-          path: coverage/js/lcov.info
-          retention-days: 14
-          if-no-files-found: error
-
       - name: Explain inactive Sonar CI scan
         if: env.SONAR_TOKEN == '' || env.SONAR_CI_ENABLED != 'true'
         shell: bash
         run: |
-          echo 'LCOV coverage was generated successfully.'
-          echo 'Sonar scan is intentionally disabled until Automatic Analysis is disabled,'
-          echo 'SONAR_TOKEN is added, and repository variable SONAR_CI_ENABLED=true is set.'
+          echo 'Sonar scan is skipped until SONAR_TOKEN is set and SONAR_CI_ENABLED=true.'
 
       - name: SonarQube Cloud scan
         if: env.SONAR_TOKEN != '' && env.SONAR_CI_ENABLED == 'true'

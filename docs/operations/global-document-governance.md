@@ -38,8 +38,6 @@ Same-origin WordPress attachment images missing width/height receive registered 
 
 ## Validation
 
-`Theme Hygiene Gate` validates source, workflow and runtime contracts before merge.
-
 `Deploy Staging2 (manual)` runs rendered acceptance with `EXPECTED_SHA` equal to the immutable `DEPLOY_SHA` after the deploy marker is verified.
 
 `Staging2 Rendered Acceptance` is independent manual revalidation of a full deployed SHA.

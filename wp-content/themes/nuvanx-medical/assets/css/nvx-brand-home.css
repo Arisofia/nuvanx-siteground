@@ -52,10 +52,6 @@ body.home .nvx-main{width:100%;max-width:none;margin:0;padding:0}
   .nvx-home-action-banner .nvx-button{width:100%}
 }
 
-/* Shared hero contrast while this sitewide stylesheet owns hero CTA primitives. */
-
-/* Benefit layout only. Icon and typography presentation live in nvx-visual-system.php. */
+/* Benefit row layout (icon/type chrome lives in nvx-components.css). */
 .nvx-benefits__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(calc(var(--nvx-space-1) * 37.5),1fr))}
 .nvx-benefit-item{display:flex;align-items:center}
-
-/* Authority-page token closure — canonical rules in nvx-components.css. */

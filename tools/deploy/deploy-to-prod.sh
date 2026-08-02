@@ -92,18 +92,20 @@ rsync -a --delete \
   "$STAGING_ROOT/wp-content/themes/nuvanx-medical/" \
   "$PROD_ROOT/wp-content/themes/nuvanx-medical/"
 
-echo "== Rsync form MU plugins only (no --delete on whole mu-plugins) =="
+echo "== Retire absorbed MU plugins (logic now lives in the theme) =="
 mkdir -p "$PROD_ROOT/wp-content/mu-plugins"
 for mu in \
   nuvanx-valoracion-native-hubspot-form.php \
-  nuvanx-contacto-hubspot-form.php
+  nuvanx-contacto-hubspot-form.php \
+  nvx-disable-public-facebook-pixel.php \
+  nuvanx-google-attribution.php
 do
-  if [[ -f "$STAGING_ROOT/wp-content/mu-plugins/$mu" ]]; then
-    rsync -a \
-      "$STAGING_ROOT/wp-content/mu-plugins/$mu" \
-      "$PROD_ROOT/wp-content/mu-plugins/$mu"
-  fi
+  rm -f "$PROD_ROOT/wp-content/mu-plugins/$mu"
+  rm -f "$STAGING_ROOT/wp-content/mu-plugins/$mu"
 done
+# Drop empty attribution package if present.
+rm -rf "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution" \
+  "$STAGING_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
 
 echo "== Remove stale theme min.css siblings =="
 find "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/css" \

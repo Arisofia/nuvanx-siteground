@@ -194,7 +194,10 @@ add_filter( 'wpseo_opengraph_desc', 'nvx_seo_filter_description', 100 );
 add_filter( 'wpseo_twitter_description', 'nvx_seo_filter_description', 100 );
 
 /**
- * Keep canonical and Open Graph URLs on the current public host.
+ * Keep Open Graph URLs on the current public host (production).
+ *
+ * HTML link[rel=canonical] is emitted only by nvx-document-governance and
+ * Yoast's wpseo_canonical is suppressed there — do not re-hook that filter.
  */
 function nvx_seo_filter_canonical_url( $url ) {
 	if ( nvx_seo_is_nonproduction_environment() ) {
@@ -208,7 +211,6 @@ function nvx_seo_filter_canonical_url( $url ) {
 
 	return nvx_seo_current_canonical_url();
 }
-add_filter( 'wpseo_canonical', 'nvx_seo_filter_canonical_url', 100 );
 add_filter( 'wpseo_opengraph_url', 'nvx_seo_filter_canonical_url', 100 );
 
 /**

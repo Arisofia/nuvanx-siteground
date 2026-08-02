@@ -214,10 +214,9 @@
   display: flex;
 }
 
+/* Touch target size/padding owned by nvx-accessibility-governance.css */
 .nvx-mobile-nav__close {
   align-self: flex-end;
-  width: var(--nvx-control-size);
-  height: var(--nvx-control-size);
   border: 0;
   background: transparent;
   font-size: var(--nvx-space-4);

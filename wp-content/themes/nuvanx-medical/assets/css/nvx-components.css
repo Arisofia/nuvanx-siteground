@@ -1488,15 +1488,13 @@ figure.nvx-equipo-portrait{
   vertical-align: middle;
 }
 
-/* Icono de pilar (values, method-col) */
-.nvx-value__icon,
-.nvx-method-col__icon {
+/* Icono de pilar (values). method-col icon lives in nvx-patterns-editorial.css */
+.nvx-value__icon {
   display: flex;
   align-items: center;
   margin-block-end: var(--nvx-space-2);
 }
-.nvx-value__icon svg,
-.nvx-method-col__icon svg {
+.nvx-value__icon svg {
   width: var(--nvx-icon-md);
   height: var(--nvx-icon-md);
   color: var(--nvx-ink);

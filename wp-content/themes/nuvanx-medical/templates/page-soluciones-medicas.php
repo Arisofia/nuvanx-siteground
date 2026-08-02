@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 // Fail closed with visible diagnostics if the canonical partial is missing.
 $partial = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
 
-// header.php owns the single public-document buffer. This template only
+// Document head contract is owned by nvx-document-governance. This template only
 // captures the solutions partial (local view buffer), never a second document rewrite.
 
 get_header();

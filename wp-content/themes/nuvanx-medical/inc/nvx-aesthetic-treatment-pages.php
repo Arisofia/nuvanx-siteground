@@ -189,7 +189,7 @@ function nvx_aesthetic_treatment_filter_canonical( $canonical ) {
 	$entry = nvx_aesthetic_treatment_current_entry();
 	return null === $entry ? $canonical : home_url( '/' . $entry['slug'] . '/' );
 }
-add_filter( 'wpseo_canonical', 'nvx_aesthetic_treatment_filter_canonical', 90 );
+// HTML canonical: nvx-document-governance only. OG URL may still be adjusted.
 add_filter( 'wpseo_opengraph_url', 'nvx_aesthetic_treatment_filter_canonical', 90 );
 
 function nvx_aesthetic_treatment_document_title( array $parts ): array {

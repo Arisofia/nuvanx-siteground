@@ -3,13 +3,13 @@ wp-config.php
 .env
 .htaccess
 
-# Directorios Din·micos (NO rastrear)
+# Directorios Din√°micos (NO rastrear)
 wp-content/uploads/
 wp-content/cache/
 wp-content/upgrade/
 wp-content/wflogs/
 
-# Plugins y CachÈ EspecÌficos de NUVANX
+# Plugins y Cach√© Espec√≠ficos de NUVANX
 wp-content/uploads/siteground-optimizer-assets/
 wp-content/uploads/backwpup-*/
 wp-content/uploads/sb-instagram-feed-images/
@@ -25,6 +25,3 @@ node_modules/
 mcps/
 Nuvanx-System/
 qa/
-
-# Capturas QA locales
-images/

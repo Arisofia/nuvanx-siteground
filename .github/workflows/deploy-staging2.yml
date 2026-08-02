@@ -54,6 +54,7 @@ jobs:
           set -euo pipefail
           bash -n tools/deploy/deploy-to-staging2.sh
           node --check scripts/staging2/browser-acceptance.mjs
+          find wp-content/themes/nuvanx-medical/ -name "*.php" -print0 | xargs -0 -n1 php -l
 
   deploy:
     name: Deploy immutable SHA to staging2

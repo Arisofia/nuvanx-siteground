@@ -290,6 +290,38 @@ async function run() {
              issues.push('Missing standard CTA wrapper (.nvx-brand-actions) inside Hero copy');
           }
         }
+        
+        // 4. Managed module verification — detecta exactamente la regresión de 67dfc5e
+        const managedModuleRoutes = {
+          '/protocolos-signature/': '.nvx-signature-hub, .nvx-strategy-intro',
+          '/por-que-nuvanx/': '.nvx-strategy-page, .nvx-strategy-intro',
+          '/inversion-medicina-estetica/': '.nvx-strategy-page, .nvx-strategy-intro',
+          '/endolift-facial-papada-mandibula/': '.nvx-brand-page--endolift',
+          '/flacidez-grasa-localizada-brazos-madrid/': '.nvx-aesthetic-treatment',
+          '/exion-face/': '.nvx-btl-evidence-note, .nvx-btl-detail'
+        };
+        if (managedModuleRoutes[route]) {
+          const expectedSelector = managedModuleRoutes[route];
+          const hasManagedModule = await page.locator(expectedSelector).count() > 0;
+          if (!hasManagedModule) {
+            issues.push(`Managed module selector missing — page likely fell back to generic page.php template (expected: ${expectedSelector})`);
+          }
+        }
+
+        // 5. Schema graph — confirma que el nodo raíz de entidad médica existe, no solo "algún" ld+json
+        if (!isRedirectExpected && !is404Expected) {
+          const schemaTypes = await page.evaluate(() => {
+            const scripts = Array.from(document.querySelectorAll('script.yoast-schema-graph, script[type="application/ld+json"]'));
+            return scripts.flatMap(s => {
+              try { return (JSON.parse(s.textContent)['@graph'] || []).map(n => n['@type']); }
+              catch { return []; }
+            });
+          });
+          const flatTypes = schemaTypes.flat();
+          if (route === '/' && !flatTypes.some(t => String(t).includes('MedicalOrganization'))) {
+            issues.push('Missing MedicalOrganization node in schema graph — nvx-structured-data.php may not be loaded');
+          }
+        }
       }
 
       // Staging2 must retain meta and HTTP noindex protection

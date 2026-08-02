@@ -48,7 +48,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 				<p class="nvx-brand-hero__lead">
 					<?php esc_html_e( 'Consulta direcciones, teléfonos, WhatsApp, horarios y cómo llegar. Para estudiar tu caso, solicita una valoración médica.', 'nuvanx-medical' ); ?>
 				</p>
-				<div class="nvx-cta-pair">
+				<div class="nvx-brand-actions">
 					<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-brand-btn--primary">
 						<?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?>
 					</a>

@@ -869,10 +869,14 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	$body .= nvx_equipo_other_staff_section_markup( $staff['other_cards'] );
 	$body .= '</div>';
 
+	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
+		return nvx_page_render_brand_wrapper( $content, $hero . $body, 'nvx-brand-page nvx-brand-page--equipo' );
+	}
+
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		return $wrap[1] . $hero . $body . '</div>';
 	}
 
-	return $hero . $body;
+	return '<div class="nvx-brand-page nvx-brand-page--equipo">' . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_equipo_page', 19 );

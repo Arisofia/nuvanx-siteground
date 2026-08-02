@@ -151,10 +151,15 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	}
 
 	$environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
-	$host        = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
-	$public      = in_array( strtolower( $host ), array( 'nuvanx.com', 'www.nuvanx.com' ), true );
+	
+	$home_host   = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
+	$req_host    = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
+	$req_host    = preg_replace( '/:\d+$/', '', $req_host );
 
-	return 'production' !== $environment || ! $public;
+	$public_home = in_array( strtolower( $home_host ), array( 'nuvanx.com', 'www.nuvanx.com' ), true );
+	$public_req  = in_array( $req_host, array( 'nuvanx.com', 'www.nuvanx.com' ), true );
+
+	return 'production' !== $environment || ! $public_home || ! $public_req || false !== strpos( (string) $req_host, '.sg-host.com' );
 }
 
 /**

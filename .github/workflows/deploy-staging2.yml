@@ -190,15 +190,7 @@ jobs:
             --exclude='*.bak*' \
             wp-content/themes/nuvanx-medical/ \
             "nvx-staging2:$REMOTE_RELEASE/theme/"
-          rsync -az --delete \
-            --exclude='.git' \
-            --exclude='php_errorlog' \
-            --exclude='*.log' \
-            --exclude='_archive*' \
-            --exclude='_disabled*' \
-            --exclude='*.bak*' \
-            wp-content/mu-plugins/ \
-            "nvx-staging2:$REMOTE_RELEASE/mu-plugins/"
+
           rsync -az tools/deploy/deploy-to-staging2.sh \
             "nvx-staging2:$REMOTE_RELEASE/deploy-to-staging2.sh"
           rsync -az tools/deploy/deploy-required-mu-plugins.sh \
@@ -212,7 +204,7 @@ jobs:
           # All paths and SHA are validated locally before deliberate remote interpolation.
           # shellcheck disable=SC2029
           ssh nvx-staging2 \
-            "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm && NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$WP_ROOT' --source-mu '$REMOTE_RELEASE/mu-plugins' --confirm"
+            "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm && NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$WP_ROOT' --confirm"
 
       - name: Verify deployed marker
         shell: bash

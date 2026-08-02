@@ -81,19 +81,32 @@ function nvx_nosotros_url( string $path ): string {
 }
 
 /**
+ * Registry of Nosotros page content.
+ *
+ * @return array<string, mixed>
+ */
+function nvx_nosotros_registry(): array {
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	return nvx_catalog_json_resolved( 'nosotros-page.json' );
+}
+
+/**
  * Hero copy.
  */
 function nvx_nosotros_hero_copy_markup(): string {
+	$data = nvx_nosotros_registry();
+	$hero = $data['hero'] ?? array();
+
 	$html  = '<div class="nvx-brand-hero__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Madrid', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-nosotros-h1">' . esc_html__( 'Sobre Nosotros: Autoridad Médica, Criterio Clínico y Transparencia', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Medicina estética láser basada en evidencia, ingeniería tisular y well-aging — sin protocolos estandarizados ni inercia comercial.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $hero['kicker'] ?? '' ) . '</p>';
+	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-nosotros-h1">' . esc_html( $hero['h1'] ?? '' ) . '</h1>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $hero['lead'] ?? '' ) . '</p>';
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$html .= nvx_cta_pair_markup( 'nvx-nosotros-hero-ctas nvx-home-hero-ctas' );
 	}
 
-	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí · Goya · Registros sanitarios CS20144 y CS20073', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-meta">' . esc_html( $hero['meta'] ?? '' ) . '</p>';
 	$html .= '</div>';
 
 	return $html;
@@ -103,74 +116,50 @@ function nvx_nosotros_hero_copy_markup(): string {
  * Positioning intro.
  */
 function nvx_nosotros_positioning_markup(): string {
+	$data = nvx_nosotros_registry();
+	$pos  = $data['positioning'] ?? array();
+
 	$html  = '<section class="nvx-brand-section nvx-nosotros-positioning" aria-labelledby="nvx-nosotros-pos-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Posicionamiento', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-pos-title" class="nvx-heading">' . esc_html__( 'Criterio clínico antes que catálogo', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'En NUVANX Medicina Estética Láser (Madrid) rechazamos la comercialización masiva y los protocolos estandarizados de la estética convencional. Operamos bajo el rigor de la medicina basada en la evidencia, la ingeniería tisular y el well-aging (envejecimiento saludable).', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'No aplicamos tratamientos por inercia: diagnosticamos cada anatomía de forma individual y precisa. Solo entonces prescribimos las soluciones tecnológicas más indicadas, sustentando cada decisión en mecanismos de acción celular comprobables.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $pos['kicker'] ?? '' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-pos-title" class="nvx-heading">' . esc_html( $pos['title'] ?? '' ) . '</h2>';
+	foreach ( (array) ( $pos['body'] ?? array() ) as $p ) {
+		$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $p ) . '</p>';
+	}
 	$html .= '</div></section>';
 
 	return $html;
 }
 
 /**
- * Platform positioning cards (not full treatment encyclopedia).
- *
- * @return array<int, array{title:string,body:string,url:?string}>
- */
-function nvx_nosotros_platforms_data(): array {
-	return array(
-		array(
-			'title' => __( 'Endolift® — láser intersticial 1470 nm', 'nuvanx-medical' ),
-			'body'  => __( 'Tecnología mínimamente invasiva que, a 1470 nm, actúa de forma selectiva sobre agua y grasa subcutánea. Mediante microfibra óptica estéril de 200–300 micras se induce lipólisis selectiva y se estimula neocolagénesis con retracción estructural, sin incisiones de lifting clásico.', 'nuvanx-medical' ),
-			'url'   => nvx_nosotros_url( 'endolift-facial-papada-mandibula' ),
-		),
-		array(
-			'title' => __( 'EXION® — radiofrecuencia fraccionada y ultrasonido', 'nuvanx-medical' ),
-			'body'  => __( 'Plataforma que combina radiofrecuencia monopolar y ultrasonido focalizado (TUS), con control de profundidad orientado a dermis profunda. Estudios preclínicos de referencia describen un incremento de la producción endógena de ácido hialurónico del orden del 224% en el modelo evaluado; la indicación y el número de sesiones se definen siempre tras valoración médica.', 'nuvanx-medical' ),
-			'url'   => nvx_nosotros_url( 'exion-btl' ),
-		),
-		array(
-			'title' => __( 'EMFUSION® — restauración de barrera DYNAMiQ™', 'nuvanx-medical' ),
-			'body'  => __( 'Sistema de infusión cutánea con tecnología DYNAMiQ™ que convierte energía eléctrica en ondas mecánicas y crea microcanales temporales para favorecer la penetración de activos (p. ej. ceramidas y ectoína). Datos de referencia del fabricante describen una reducción relevante de la pérdida de agua transepidérmica y mejor absorción de nutrientes; se indica solo cuando el tejido lo justifica.', 'nuvanx-medical' ),
-			'url'   => null,
-		),
-		array(
-			'title' => __( 'Láser CO₂ fraccionado, laserlipólisis y modelado subdérmico', 'nuvanx-medical' ),
-			'body'  => __( 'Sistemas de alta precisión térmica para resurfacing y corrección de cicatrices atróficas (CO₂ fraccionado) y para modelado subdérmico / laserlipólisis corporal en casos seleccionados. Se activan únicamente cuando el diagnóstico anticipa una respuesta clínica real y predecible.', 'nuvanx-medical' ),
-			'url'   => nvx_nosotros_url( 'laser-co2-fraccionado-madrid-textura-cicatrices-poro' ),
-		),
-	);
-}
-
-/**
  * Platforms section markup.
  */
 function nvx_nosotros_platforms_markup(): string {
+	$data = nvx_nosotros_registry();
+	$plat = $data['platforms'] ?? array();
+
 	$html  = '<section class="nvx-brand-section nvx-nosotros-platforms" aria-labelledby="nvx-nosotros-tech-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Plataformas clínicas', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-tech-title" class="nvx-heading">' . esc_html__( 'Tecnología con evidencia, nunca por tendencia', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Incorporamos dispositivos con marcado CE y documentación técnica disponible. Se indican solo cuando la valoración clínica identifica un objetivo, una alternativa y un seguimiento apropiados.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $plat['kicker'] ?? '' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-tech-title" class="nvx-heading">' . esc_html( $plat['title'] ?? '' ) . '</h2>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $plat['lead'] ?? '' ) . '</p>';
 	$html .= '<ul class="nvx-endolaser-zone-list nvx-nosotros-platform-list">';
 
-	foreach ( nvx_nosotros_platforms_data() as $item ) {
+	foreach ( (array) ( $plat['items'] ?? array() ) as $item ) {
 		$html .= '<li class="nvx-endolaser-zone">';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ) . '</h3>';
-		$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
+		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ?? '' ) . '</h3>';
+		$html .= '<p class="nvx-body">' . esc_html( $item['body'] ?? '' ) . '</p>';
 		if ( ! empty( $item['url'] ) ) {
-			$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $item['url'] ) . '">' . esc_html__( 'Saber más', 'nuvanx-medical' ) . '</a></p>';
+			$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( nvx_nosotros_url( $item['url'] ) ) . '">' . esc_html( $plat['learn_more'] ?? '' ) . '</a></p>';
 		}
 		$html .= '</li>';
 	}
 
-	// Secondary link to endoláser corporal (laserlipolysis body detail).
-	$endolaser = nvx_nosotros_url( 'endolaser-corporal-grasa-localizada' );
+	$rel_url = nvx_nosotros_url( (string) ( $plat['related']['url'] ?? '' ) );
 	$html     .= '<li class="nvx-endolaser-zone nvx-nosotros-platform-related">';
-	$html     .= '<h3 class="nvx-endolaser-zone__title">' . esc_html__( 'Endoláser corporal', 'nuvanx-medical' ) . '</h3>';
-	$html     .= '<p class="nvx-body">' . esc_html__( 'Protocolo de laserlipólisis corporal para adiposidad localizada con retracción térmica asociada, documentado en página propia.', 'nuvanx-medical' ) . '</p>';
-	$html     .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $endolaser ) . '">' . esc_html__( 'Ver Endoláser corporal', 'nuvanx-medical' ) . '</a></p>';
+	$html     .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $plat['related']['title'] ?? '' ) . '</h3>';
+	$html     .= '<p class="nvx-body">' . esc_html( $plat['related']['body'] ?? '' ) . '</p>';
+	$html     .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $rel_url ) . '">' . esc_html( $plat['related']['label'] ?? '' ) . '</a></p>';
 	$html     .= '</li>';
 
 	$html .= '</ul></div></section>';
@@ -182,35 +171,25 @@ function nvx_nosotros_platforms_markup(): string {
  * Clinics NAP (reuse contact data when available).
  */
 function nvx_nosotros_clinics_markup(): string {
+	$data = nvx_nosotros_registry();
+	$c    = $data['clinics'] ?? array();
+
 	$clinics = function_exists( 'nvx_contact_clinics_nap' )
 		? nvx_contact_clinics_nap()
-		: array(
-			array(
-				'name'    => 'Centro Clínico NUVANX Chamberí',
-				'reg'     => 'CS20144',
-				'address' => 'Calle de Fernández de la Hoz, 4, 28010 Madrid',
-				'phone'   => '669 319 836',
-			),
-			array(
-				'name'    => 'Centro Clínico NUVANX Salamanca / Goya',
-				'reg'     => 'CS20073',
-				'address' => 'Calle de Fernán González, 26, 28009 Madrid',
-				'phone'   => '647 505 107',
-			),
-		);
+		: ( $c['fallback_clinics'] ?? array() );
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-clinics" aria-labelledby="nvx-nosotros-clinics-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-clinics-title" class="nvx-heading">' . esc_html__( 'Instalaciones autorizadas en Madrid', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Nuestras instalaciones cumplen la normativa sanitaria de la Comunidad de Madrid en dos sedes de excelencia:', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $c['kicker'] ?? '' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-clinics-title" class="nvx-heading">' . esc_html( $c['title'] ?? '' ) . '</h2>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $c['lead'] ?? '' ) . '</p>';
 	$html .= '<div class="nvx-contact-clinics">';
 
 	foreach ( $clinics as $clinic ) {
 		$html .= '<article class="nvx-contact-clinic">';
-		$html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ) . '</h3>';
-		$html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html__( 'Registro sanitario', 'nuvanx-medical' ) . '</strong> — ' . esc_html( $clinic['reg'] ) . '</p>';
-		$html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $clinic['address'] ) . '</p>';
+		$html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ?? '' ) . '</h3>';
+		$html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html( $c['reg_label'] ?? '' ) . '</strong> — ' . esc_html( $clinic['reg'] ?? '' ) . '</p>';
+		$html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $clinic['address'] ?? '' ) . '</p>';
 		if ( ! empty( $clinic['phone'] ) && ! empty( $clinic['phone_href'] ) ) {
 			$html .= '<p class="nvx-contact-clinic__phone"><a class="nvx-brand-inline-link" href="tel:' . esc_attr( $clinic['phone_href'] ) . '">' . esc_html( $clinic['phone'] ) . '</a></p>';
 		} elseif ( ! empty( $clinic['phone'] ) ) {
@@ -223,8 +202,8 @@ function nvx_nosotros_clinics_markup(): string {
 	}
 
 	$html .= '</div>';
-	$clinicas = home_url( '/clinicas-de-medicina-estetica-nuvanx/' );
-	$html    .= '<p class="nvx-body"><a class="nvx-brand-inline-link" href="' . esc_url( $clinicas ) . '">' . esc_html__( 'Ver clínicas NUVANX', 'nuvanx-medical' ) . '</a></p>';
+	$clinicas = home_url( '/' . ( $c['hub_url'] ?? '' ) . '/' );
+	$html    .= '<p class="nvx-body"><a class="nvx-brand-inline-link" href="' . esc_url( $clinicas ) . '">' . esc_html( $c['hub_link_label'] ?? '' ) . '</a></p>';
 	$html    .= '</div></section>';
 
 	return $html;
@@ -234,61 +213,48 @@ function nvx_nosotros_clinics_markup(): string {
  * Short medical board — colegiados visibles; full bios live on /equipo-medico/.
  */
 function nvx_nosotros_team_markup(): string {
-	$dir   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
-	$ivon  = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
-	$fabio = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
-	$equipo = home_url( '/equipo-medico/' );
-	$doctoralia = 'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid';
+	$data = nvx_nosotros_registry();
+	$t    = $data['team'] ?? array();
 
-	$members = array(
-		array(
-			'name'  => __( 'Dr. José Javier Rivera Tejeda', 'nuvanx-medical' ),
-			'role'  => __( 'Director médico', 'nuvanx-medical' ),
-			'col'   => $dir,
-			'body'  => __( 'Especialista en medicina estética avanzada, láser intervencionista (Endolift®) y tricología. Perfil público con reseñas verificadas en Doctoralia.', 'nuvanx-medical' ),
-			'anchor'=> $equipo . '#physician-rivera-tejeda',
-			'extra' => $doctoralia,
-		),
-		array(
-			'name'  => __( 'Dra. Ivon Yamileth Rivera Deras', 'nuvanx-medical' ),
-			'role'  => __( 'Well-aging y geriatría preventiva', 'nuvanx-medical' ),
-			'col'   => $ivon,
-			'body'  => __( 'Referente en longevidad y well-aging. FEA en Hospital Universitario La Paz; investigación y sociedades científicas (SEMEG / EuGMS).', 'nuvanx-medical' ),
-			'anchor'=> $equipo . '#physician-rivera-deras',
-			'extra' => '',
-		),
-		array(
-			'name'  => __( 'Dr. Fabio Augusto Quiñónez Bareiro', 'nuvanx-medical' ),
-			'role'  => __( 'Geriatría y paciente complejo', 'nuvanx-medical' ),
-			'col'   => $fabio,
-			'body'  => __( 'Especialista en geriatría, gerontología y paciente complejo. Trayectoria hospitalaria (SERMAS / SESCAM), CIBERFES y docencia universitaria.', 'nuvanx-medical' ),
-			'anchor'=> $equipo . '#physician-quinonez-bareiro',
-			'extra' => '',
-		),
-	);
+	$equipo = home_url( '/' . ( $t['hub_url'] ?? '' ) . '/' );
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-team" aria-labelledby="nvx-nosotros-team-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Cuadro médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-team-title" class="nvx-heading">' . esc_html__( 'Excelencia hospitalaria e investigadora', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'El mayor aval de NUVANX no es solo la tecnología, sino la trayectoria académica, investigadora y clínica del equipo. Resumen de autoridad; biografías completas en Equipo médico.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $t['kicker'] ?? '' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-team-title" class="nvx-heading">' . esc_html( $t['title'] ?? '' ) . '</h2>';
+	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $t['lead'] ?? '' ) . '</p>';
 	$html .= '<div class="nvx-nosotros-team-grid">';
 
-	foreach ( $members as $m ) {
+	$index = 0;
+	foreach ( (array) ( $t['members'] ?? array() ) as $m ) {
+		$col = '';
+		if ( 0 === $index && defined( 'NVX_DIRECTOR_COLEGIADO' ) ) {
+			$col = NVX_DIRECTOR_COLEGIADO;
+		} elseif ( 1 === $index && defined( 'NVX_IVON_COLEGIADO' ) ) {
+			$col = NVX_IVON_COLEGIADO;
+		} elseif ( 2 === $index && defined( 'NVX_FABIO_COLEGIADO' ) ) {
+			$col = NVX_FABIO_COLEGIADO;
+		}
+		if ( '' === $col ) {
+			// Fallbacks based on position in legacy hardcode
+			$col = ( 0 === $index ) ? '282864786' : ( ( 1 === $index ) ? '284621525' : '282877543' );
+		}
+
 		$html .= '<article class="nvx-nosotros-team-card">';
-		$html .= '<p class="nvx-brand-kicker">' . esc_html( $m['role'] ) . '</p>';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $m['name'] ) . '</h3>';
-		$html .= '<p class="nvx-body"><strong>' . esc_html__( 'ICOMEM', 'nuvanx-medical' ) . '</strong> ' . esc_html( $m['col'] ) . '</p>';
-		$html .= '<p class="nvx-body">' . esc_html( $m['body'] ) . '</p>';
-		$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $m['anchor'] ) . '">' . esc_html__( 'Ver biografía completa', 'nuvanx-medical' ) . '</a></p>';
-		if ( '' !== $m['extra'] ) {
-			$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $m['extra'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html__( 'Perfil en Doctoralia', 'nuvanx-medical' ) . '</a></p>';
+		$html .= '<p class="nvx-brand-kicker">' . esc_html( $m['role'] ?? '' ) . '</p>';
+		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $m['name'] ?? '' ) . '</h3>';
+		$html .= '<p class="nvx-body"><strong>' . esc_html( $t['icomem_label'] ?? '' ) . '</strong> ' . esc_html( $col ) . '</p>';
+		$html .= '<p class="nvx-body">' . esc_html( $m['body'] ?? '' ) . '</p>';
+		$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo . '#' . ( $m['anchor'] ?? '' ) ) . '">' . esc_html( $t['bio_link_label'] ?? '' ) . '</a></p>';
+		if ( ! empty( $m['doctoralia'] ) ) {
+			$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $m['doctoralia'] ) . '" target="_blank" rel="noopener noreferrer">' . esc_html( $t['doctoralia_link_label'] ?? '' ) . '</a></p>';
 		}
 		$html .= '</article>';
+		$index++;
 	}
 
 	$html .= '</div>';
-	$html .= '<p class="nvx-body"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo ) . '">' . esc_html__( 'Conocer al equipo médico completo', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '<p class="nvx-body"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo ) . '">' . esc_html( $t['hub_link_label'] ?? '' ) . '</a></p>';
 	$html .= '</div></section>';
 
 	return $html;
@@ -298,34 +264,18 @@ function nvx_nosotros_team_markup(): string {
  * Non-negotiable medical principles.
  */
 function nvx_nosotros_principles_markup(): string {
-	$items = array(
-		array(
-			'title' => __( 'Diagnóstico tisular estricto', 'nuvanx-medical' ),
-			'body'  => __( 'Ningún láser se enciende sin indicación médica. Evaluamos calidad dérmica, grado de ptosis y anatomía facial o corporal. Si el caso requiere cirugía, lo comunicamos con honestidad y derivamos al especialista correspondiente.', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'Transparencia transaccional', 'nuvanx-medical' ),
-			'body'  => __( 'Rangos de inversión claros y presupuestos médicos cerrados tras la valoración, sin costes ocultos. La claridad sustituye al hermetismo tradicional del sector.', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'Tecnología con evidencia', 'nuvanx-medical' ),
-			'body'  => __( 'Solo incorporamos dispositivos con certificación CE y respaldo en estudios clínicos publicados. Nunca por tendencia de mercado.', 'nuvanx-medical' ),
-		),
-		array(
-			'title' => __( 'Seguimiento médico reglado', 'nuvanx-medical' ),
-			'body'  => __( 'Monitorizamos la evolución y la respuesta celular a corto, medio y largo plazo. La responsabilidad clínica no termina al salir de la consulta.', 'nuvanx-medical' ),
-		),
-	);
+	$data = nvx_nosotros_registry();
+	$p    = $data['principles'] ?? array();
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-principles" aria-labelledby="nvx-nosotros-principles-title">';
 	$html .= '<div class="nvx-container">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Principios', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-heading">' . esc_html__( 'Principios médicos innegociables', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html( $p['kicker'] ?? '' ) . '</p>';
+	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-heading">' . esc_html( $p['title'] ?? '' ) . '</h2>';
 	$html .= '<ul class="nvx-endolaser-zone-list">';
-	foreach ( $items as $item ) {
+	foreach ( (array) ( $p['items'] ?? array() ) as $item ) {
 		$html .= '<li class="nvx-endolaser-zone">';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ) . '</h3>';
-		$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
+		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $item['title'] ?? '' ) . '</h3>';
+		$html .= '<p class="nvx-body">' . esc_html( $item['body'] ?? '' ) . '</p>';
 		$html .= '</li>';
 	}
 	$html .= '</ul></div></section>';
@@ -402,7 +352,7 @@ function nvx_filter_nosotros_document_title( $title ) {
 	if ( ! nvx_nosotros_path_matches( $path ) ) {
 		return $title;
 	}
-	return 'Sobre Nosotros | Autoridad médica y transparencia · NUVANX Madrid';
+	return nvx_nosotros_registry()['yoast_title'] ?? $title;
 }
 add_filter( 'wpseo_title', 'nvx_filter_nosotros_document_title', 21 );
 
@@ -420,6 +370,6 @@ function nvx_filter_nosotros_metadesc( $desc ) {
 	if ( ! nvx_nosotros_path_matches( $path ) ) {
 		return $desc;
 	}
-	return 'NUVANX Madrid: medicina estética láser con evidencia, well-aging e ingeniería tisular. Sedes Chamberí (CS20144) y Goya (CS20073). Cuadro médico colegiado y principios de transparencia.';
+	return nvx_nosotros_registry()['yoast_desc'] ?? $desc;
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_nosotros_metadesc', 21 );

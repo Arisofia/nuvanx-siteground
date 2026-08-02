@@ -259,6 +259,10 @@ add_filter(
 			return '';
 		}
 
+		if ( ! is_admin() && str_contains( $tag, '<script' ) && ! str_contains( $tag, 'defer' ) && ! str_contains( $tag, 'async' ) && ! str_contains( $tag, 'type="application/ld+json"' ) && ! str_contains( $tag, 'type="application/json"' ) ) {
+			return str_replace( '<script ', '<script defer ', $tag );
+		}
+
 		return $tag;
 	},
 	10,

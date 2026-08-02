@@ -177,13 +177,25 @@ function nvx_theme_scripts(): void {
 		);
 	}
 
-	wp_enqueue_script( 'nvx-main', $uri . '/assets/js/nvx-main.js', array(), nvx_asset_version( 'assets/js/nvx-main.js' ), true );
+	wp_enqueue_script(
+		'nvx-main',
+		$uri . '/assets/js/nvx-main.js',
+		array(),
+		nvx_asset_version( 'assets/js/nvx-main.js' ),
+		array(
+			'in_footer' => true,
+			'strategy'  => 'defer',
+		)
+	);
 	wp_enqueue_script(
 		'nvx-conversion-events',
 		$uri . '/assets/js/nvx-conversion-events.js',
 		array(),
 		nvx_asset_version( 'assets/js/nvx-conversion-events.js' ),
-		true
+		array(
+			'in_footer' => true,
+			'strategy'  => 'defer',
+		)
 	);
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_scripts' );

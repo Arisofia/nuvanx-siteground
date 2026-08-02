@@ -5,14 +5,22 @@ define('ABSPATH', __DIR__ . '/');
 define('WP_DEBUG', false);
 
 $translation_calls = 0;
-function __(string $text, ?string $domain = null): string {
-    global $translation_calls;
-    $translation_calls++;
-    return 'i18n:' . $text;
+if (!function_exists('__')) {
+    function __(string $text, ?string $domain = null): string {
+        global $translation_calls;
+        $translation_calls++;
+        return 'i18n:' . $text;
+    }
 }
-function home_url(string $path = ''): string { return 'home:' . $path; }
-function nvx_btl_claim(string $key): string { return 'claim:' . $key; }
-function add_filter(...$args): bool { return true; }
+if (!function_exists('home_url')) {
+    function home_url(string $path = ''): string { return 'home:' . $path; }
+}
+if (!function_exists('nvx_btl_claim')) {
+    function nvx_btl_claim(string $key): string { return 'claim:' . $key; }
+}
+if (!function_exists('add_filter')) {
+    function add_filter(...$args): bool { return true; }
+}
 
 $inc = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc';
 require_once $inc . '/nvx-catalog-json.php';

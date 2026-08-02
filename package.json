@@ -1,0 +1,13 @@
+{
+  "name": "nuvanx-medical",
+  "version": "1.0.0",
+  "description": "NUVANX Medical Theme",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  },
+  "scripts": {
+    "test:acceptance": "node scripts/staging2/browser-acceptance.mjs"
+  }
+}

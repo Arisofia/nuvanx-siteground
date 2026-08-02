@@ -104,7 +104,7 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 		? nvx_cta_valoracion_url()
 		: home_url( '/madrid/valoracion/' );
 
-	$html  = '<div class="nvx-cta-pair nvx-aes-hero-ctas">';
+	$html  = '<div class="nvx-brand-actions">';
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
@@ -133,7 +133,7 @@ function nvx_aesthetic_hero_ctas_markup(): string {
  * Hero copy.
  */
 function nvx_aesthetic_hero_copy_markup(): string {
-	$html  = '<div class="nvx-brand-hero__copy nvx-aes-hero-copy">';
+	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Madrid', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-med-h1">' . esc_html__( 'Medicina Estética Avanzada con Criterio Clínico', 'nuvanx-medical' ) . '</h1>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Restauramos el soporte estructural, la turgencia y la armonía del rostro mediante procedimientos médicos inyectables y regenerativos de alta precisión. Sin alterar tu identidad y guiados exclusivamente por el diagnóstico personalizado de nuestro equipo médico.', 'nuvanx-medical' ) . '</p>';
@@ -351,7 +351,7 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 
 	$media = function_exists( 'nvx_page_extract_brand_hero_media' ) ? nvx_page_extract_brand_hero_media( $content ) : '';
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--medical nvx-aes-hero" aria-labelledby="nvx-med-h1" aria-label="' . esc_attr__( 'Medicina estética NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-med-h1" aria-label="' . esc_attr__( 'Medicina estética NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_aesthetic_hero_copy_markup();
 	$hero .= $media;

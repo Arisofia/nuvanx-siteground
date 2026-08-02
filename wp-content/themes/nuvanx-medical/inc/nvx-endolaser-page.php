@@ -63,7 +63,7 @@ function nvx_content_is_endolaser_page( string $content ): bool {
  * Hero copy.
  */
 function nvx_endolaser_hero_copy_markup(): string {
-	$html  = '<div class="nvx-brand-hero__copy nvx-endolaser-hero-copy">';
+	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'NUVANX · Medicina estética láser', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolaser-h1">' . esc_html__( 'Endoláser corporal en Madrid: grasa localizada y mejor contorno', 'nuvanx-medical' ) . '</h1>';
 	
@@ -77,7 +77,7 @@ function nvx_endolaser_hero_copy_markup(): string {
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html__( 'No es un tratamiento de obesidad ni de pérdida masiva de peso. No es liposucción. Es un protocolo ambulatorio con criterios de inclusión y exclusión.', 'nuvanx-medical' ) . '</p>';
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$html .= nvx_cta_pair_markup( 'nvx-endolaser-hero-ctas nvx-home-hero-ctas' );
+		$html .= nvx_cta_pair_markup();
 	}
 
 	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Chamberí · Salamanca–Goya · Plan por zonas · Valoración presencial', 'nuvanx-medical' ) . '</p>';
@@ -180,7 +180,7 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 
 	$media = nvx_page_extract_brand_hero_media( $content );
 
-	$hero  = '<section class="nvx-brand-hero nvx-brand-hero--endolaser nvx-endolaser-hero" aria-labelledby="nvx-endolaser-h1" aria-label="' . esc_attr__( 'Endoláser corporal NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-endolaser-h1" aria-label="' . esc_attr__( 'Endoláser corporal NUVANX', 'nuvanx-medical' ) . '">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_endolaser_hero_copy_markup();
 	$hero .= $media;

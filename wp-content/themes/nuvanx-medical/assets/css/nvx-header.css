@@ -1,5 +1,7 @@
-/* Header + primary nav. Tokens only — no page-exclusive layout. */
+/* NUVANX — Header & primary navigation
+   Tokens-only header: estructura y comportamiento del nav global. */
 
+/* Logo lockup */
 .nvx-logo {
   display: inline-flex;
   flex: 0 0 auto;
@@ -27,6 +29,7 @@
   color: var(--nvx-text-muted);
 }
 
+/* Primary nav list */
 .nvx-nav__list {
   display: flex;
   min-width: 0;
@@ -45,6 +48,7 @@
   overflow: visible;
 }
 
+/* Top-level nav links */
 .nvx-nav__link,
 .nvx-nav__list > li > a {
   position: relative;
@@ -63,6 +67,7 @@
   white-space: nowrap;
 }
 
+/* Underline affordance */
 .nvx-nav__link::after,
 .nvx-nav__list > li > a::after {
   content: "";
@@ -86,6 +91,7 @@
   transform: scaleX(1);
 }
 
+/* Submenus (desktop) */
 .nvx-nav__list .sub-menu {
   position: absolute;
   top: 100%;
@@ -116,6 +122,7 @@
   height: var(--nvx-space-2);
 }
 
+/* Align dropdowns at the right edge for the last items */
 .nvx-nav__list > li:nth-last-child(-n + 2) > .sub-menu {
   left: auto;
   right: 0;
@@ -128,6 +135,7 @@
   pointer-events: auto;
 }
 
+/* Nested submenus */
 .nvx-nav__list .sub-menu .sub-menu {
   top: 0;
   left: 100%;
@@ -171,6 +179,7 @@
   background: var(--nvx-surface-soft);
 }
 
+/* Header CTA button container */
 .nvx-header__cta {
   flex: 0 0 auto;
   min-height: var(--nvx-control-size);
@@ -180,6 +189,7 @@
   white-space: nowrap;
 }
 
+/* Hamburger icon (bars); size/touch target unificado en nvx-accessibility-governance.css */
 .nvx-hamburger span {
   display: block;
   width: 100%;
@@ -188,6 +198,7 @@
   background: var(--nvx-ink);
 }
 
+/* Mobile nav drawer */
 .nvx-mobile-nav {
   position: fixed;
   inset: 0;
@@ -214,7 +225,7 @@
   display: flex;
 }
 
-/* Touch target size/padding owned by nvx-accessibility-governance.css */
+/* Touch target size/padding owned por nvx-accessibility-governance.css */
 .nvx-mobile-nav__close {
   align-self: flex-end;
   border: 0;
@@ -224,6 +235,7 @@
   color: var(--nvx-ink);
 }
 
+/* Mobile nav list */
 .nvx-mobile-nav__list {
   display: grid;
   gap: 0;

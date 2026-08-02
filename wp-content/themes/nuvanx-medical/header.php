@@ -2,10 +2,21 @@
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/inc/nvx-document-governance.php';
-// Skip nested document-governance buffer on solutions hub: staging2 has returned
-// empty HTTP 200 bodies for that slug when both rewrite buffers are active.
-// Fallback meta is emitted via nvx_document_governance_print_fallback_meta().
-if ( ! function_exists( 'nvx_document_governance_is_solutions_hub' ) || ! nvx_document_governance_is_solutions_hub() ) {
+// Full document-governance rewrite buffers have returned empty HTTP 200 bodies on
+// /soluciones-medicas/ when nested with the integrations buffer. Use the full
+// rewrite everywhere else; on the solutions hub run only retired-script cleanup
+// (FacebookSignal) while meta falls back to wp_head emitters.
+if ( function_exists( 'nvx_document_governance_is_solutions_hub' ) && nvx_document_governance_is_solutions_hub() ) {
+	if ( function_exists( 'nvx_document_governance_remove_retired_scripts' ) ) {
+		ob_start(
+			static function ( string $html ): string {
+				return nvx_document_governance_remove_retired_scripts( $html );
+			},
+			0,
+			PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_REMOVABLE
+		);
+	}
+} else {
 	nvx_document_governance_start();
 }
 ?><!doctype html>

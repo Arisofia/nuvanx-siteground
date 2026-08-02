@@ -281,6 +281,7 @@ require_once get_template_directory() . '/inc/nvx-jsonld-content.php';
 require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
 require_once get_template_directory() . '/inc/nvx-structured-data.php';
 require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';
+require_once get_template_directory() . '/inc/nvx-catalog-json.php';
 require_once get_template_directory() . '/inc/nvx-strategy-pages.php';
 require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';

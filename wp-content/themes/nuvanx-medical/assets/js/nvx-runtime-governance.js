@@ -118,6 +118,130 @@
     });
   }
 
+  function initValoracionModalGovernance() {
+    const cfg = window.nvxValoracionModal || {};
+    if (cfg.enabled === false) return;
+
+    const modal = document.getElementById(cfg.modalId || 'nvx-valoracion-modal');
+    if (!modal || typeof modal.showModal !== 'function') return;
+
+    let lastFocus = null;
+    const DEFAULT_VALORACION_PATH = '/madrid/valoracion/';
+    const pageUrl = (cfg.pageUrl || DEFAULT_VALORACION_PATH).replace(/\/?$/, '/');
+
+    function normalizePath(pathname) {
+      return (pathname || '').replace(/\/+$/, '') + '/';
+    }
+
+    let pagePath;
+    try {
+      pagePath = normalizePath(new URL(pageUrl, window.location.origin).pathname);
+    } catch (err) {
+      pagePath = normalizePath(DEFAULT_VALORACION_PATH);
+    }
+
+    function isValoracionHref(href) {
+      if (!href) return false;
+      try {
+        const u = new URL(href, window.location.origin);
+        const path = normalizePath(u.pathname);
+        if (path === pagePath) return true;
+        return (
+          path.indexOf(DEFAULT_VALORACION_PATH) !== -1 ||
+          path.indexOf('/valoracion/') !== -1 ||
+          path === '/consulta-medica/' ||
+          path === '/consultamedica/'
+        );
+      } catch (err) {
+        return /valoraci[oó]n|consulta-medica|consultamedica/i.test(href);
+      }
+    }
+
+    function closeMobileNav() {
+      const mobileNav = document.getElementById(config.mobileNavId || 'nvx-mobile-nav');
+      if (mobileNav && document.getElementById('nvx-mobile-close')) {
+        const closeBtn = document.getElementById('nvx-mobile-close');
+        if (mobileNav.classList.contains('is-open') || mobileNav.hasAttribute('open')) {
+           closeBtn.click();
+        }
+      }
+    }
+
+    function openModal(trigger) {
+      if (!modal) return;
+      lastFocus = trigger || document.activeElement;
+      closeMobileNav();
+      modal.showModal();
+      document.body.classList.add('nvx-valoracion-modal-open');
+      document.body.style.overflow = 'hidden';
+
+      try {
+        if (window.HubSpotForms && typeof window.HubSpotForms.initialize === 'function') {
+          window.HubSpotForms.initialize();
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    function closeModal() {
+      if (!modal) return;
+      modal.close();
+      document.body.classList.remove('nvx-valoracion-modal-open');
+      document.body.style.overflow = '';
+      if (lastFocus && typeof lastFocus.focus === 'function') {
+        lastFocus.focus();
+      }
+      lastFocus = null;
+    }
+
+    function shouldIntercept(el) {
+      if (!el || el.tagName !== 'A') return false;
+      if (el.getAttribute('data-nvx-valoracion-modal') === '0') return false;
+      if (el.classList.contains('nvx-open-valoracion-modal')) return true;
+      if (el.getAttribute('data-nvx-valoracion-modal') === '1') return true;
+      if (el.id === 'nvx-header-cta' || el.id === 'nvx-footer-cta' || el.id === 'nvx-mobile-cta') return true;
+      
+      const href = el.getAttribute('href') || '';
+      if (!isValoracionHref(href)) return false;
+      const cls = el.className || '';
+      if (
+        /\bnvx-(btn|button|brand-btn)\b/.test(cls) ||
+        el.closest('.nvx-cta-banner, .nvx-brand-actions, .nvx-home-hero-ctas, .nvx-cta-pair, .nvx-home-action-banner')
+      ) {
+        return true;
+      }
+      return false;
+    }
+
+    document.addEventListener('click', function (e) {
+      const a = e.target && e.target.closest ? e.target.closest('a') : null;
+      if (!shouldIntercept(a)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      openModal(a);
+    }, true);
+
+    modal.addEventListener('click', function (e) {
+      // Close when clicking on backdrop or close button
+      const isBackdrop = e.target.classList && e.target.classList.contains('nvx-valoracion-modal__backdrop');
+      const isCloseBtn = e.target.closest && e.target.closest('[data-nvx-valoracion-modal-close]');
+      if (isBackdrop || isCloseBtn) {
+        e.preventDefault();
+        closeModal();
+      }
+    });
+    
+    modal.addEventListener('close', function() {
+       closeModal();
+    });
+
+    window.nvxOpenValoracionModal = function () {
+      openModal(document.activeElement);
+    };
+    window.nvxCloseValoracionModal = closeModal;
+  }
+
   function resolveHubSpotScriptUrl() {
     if (config.hubspotScriptUrl) return String(config.hubspotScriptUrl);
 
@@ -278,6 +402,7 @@
 
   function initialize() {
     initMobileNavigationGovernance();
+    initValoracionModalGovernance();
     initLazyHubSpot();
   }
 

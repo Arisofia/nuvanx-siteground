@@ -97,8 +97,6 @@ jobs:
           set -euo pipefail
           ssh -o ConnectTimeout=20 nvx-staging2 'command -v curl >/dev/null && command -v mktemp >/dev/null'
           ssh -f -N -D 1080 -o ConnectTimeout=20 nvx-staging2
-          echo "HTTP_PROXY=socks5://127.0.0.1:1080" >> "$GITHUB_ENV"
-          echo "HTTPS_PROXY=socks5://127.0.0.1:1080" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: npm ci
@@ -107,6 +105,9 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Verify rendered document, integrations and route consistency
+        env:
+          HTTP_PROXY: socks5://127.0.0.1:1080
+          HTTPS_PROXY: socks5://127.0.0.1:1080
         run: node scripts/staging2/browser-acceptance.mjs
 
       - name: Upload Browser Acceptance Artifacts

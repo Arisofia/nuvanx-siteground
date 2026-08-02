@@ -113,21 +113,12 @@ function nvx_valoracion_modal_render(): void {
 add_action( 'wp_footer', 'nvx_valoracion_modal_render', 25 );
 
 /**
- * Enqueue HubSpot embed + flag for main.js.
+ * Modal HubSpot assets are demand-loaded by nvx-runtime-governance.js after
+ * explicit user intent. Never enqueue the forms embed on the server — eager
+ * registration is stripped by governance and can also cause consent/optimizer
+ * scanners to drop the runtime-governance handle from the rendered document.
  */
 function nvx_valoracion_modal_assets(): void {
-	if ( ! nvx_valoracion_modal_enabled() ) {
-		return;
-	}
-
-	$cfg = nvx_valoracion_modal_hubspot_config();
-
-	wp_enqueue_script(
-		'nvx-hubspot-forms-embed',
-		$cfg['script_url'],
-		array(),
-		null,
-		true
-	);
+	// Intentionally empty: keep the hook for back-compat with older call sites.
 }
 add_action( 'wp_enqueue_scripts', 'nvx_valoracion_modal_assets', 30 );

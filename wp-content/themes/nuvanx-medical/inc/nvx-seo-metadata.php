@@ -84,6 +84,7 @@ function nvx_seo_current_metadata_key(): ?string {
 	$path = nvx_seo_current_path();
 	$map  = array(
 		'/tratamientos/' => 'tratamientos',
+		'/soluciones-medicas/' => 'soluciones',
 		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
 		'/medicina-estetica-chamberi/' => 'chamberi',
 		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',

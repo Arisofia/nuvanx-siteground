@@ -22,14 +22,14 @@ function nvx_valoracion_native_hubspot_is_target_page(): bool {
 }
 
 function nvx_valoracion_native_hubspot_mount_markup(): string {
-	$portal_id     = esc_attr( NVX_VALORACION_HS_FRAME_PORTAL_ID );
-	$form_id       = esc_attr( NVX_VALORACION_HS_FRAME_FORM_ID );
-	$region        = esc_attr( NVX_VALORACION_HS_FRAME_REGION );
-	$portal_script = esc_url( 'https://js-eu1.hsforms.net/forms/embed/' . NVX_VALORACION_HS_FRAME_PORTAL_ID . '.js' );
-	$privacy_url   = esc_url( home_url( '/politica-privacidad/' ) );
+	$portal_id   = esc_attr( NVX_VALORACION_HS_FRAME_PORTAL_ID );
+	$form_id     = esc_attr( NVX_VALORACION_HS_FRAME_FORM_ID );
+	$region      = esc_attr( NVX_VALORACION_HS_FRAME_REGION );
+	$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
 
-	return '<script src="' . $portal_script . '" defer></script>'
-		. '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '"></div>'
+	// Do not emit an eager HubSpot <script>: nvx-runtime-governance.js demand-loads
+	// the embed after explicit user intent (or when the page mount is activated).
+	return '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
 		. '<p class="nvx-copy nvx-hubspot-privacy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . $privacy_url . '">Política de privacidad</a>.</p>';
 }
 

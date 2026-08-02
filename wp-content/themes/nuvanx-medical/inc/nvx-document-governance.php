@@ -65,22 +65,33 @@ function nvx_document_governance_enqueue_assets(): void {
 	$modal_enabled = function_exists( 'nvx_valoracion_modal_enabled' )
 		? nvx_valoracion_modal_enabled()
 		: false;
-	$config        = array(
+	// Never emit a full hsforms URL in server HTML: consent/optimizer scanners
+	// treat any inline mention of that domain as an eager marketing embed and can
+	// drop the entire runtime-governance handle from modal-enabled routes.
+	$config = array(
 		'modalEnabled'     => $modal_enabled,
 		'modalId'          => 'nvx-valoracion-modal',
 		'mobileNavId'      => 'nvx-mobile-nav',
 		'hubspotScriptId'  => 'nvx-hubspot-forms-runtime',
-		'hubspotScriptUrl' => '',
+		'hubspotPortalId'  => '',
+		'hubspotRegion'    => 'eu1',
+		'hubspotPageMount' => true,
 	);
 
-	if ( $modal_enabled && function_exists( 'nvx_valoracion_modal_hubspot_config' ) ) {
-		$hubspot                    = nvx_valoracion_modal_hubspot_config();
-		$config['hubspotScriptUrl'] = isset( $hubspot['script_url'] ) ? (string) $hubspot['script_url'] : '';
+	if ( function_exists( 'nvx_valoracion_modal_hubspot_config' ) ) {
+		$hubspot = nvx_valoracion_modal_hubspot_config();
+		$config['hubspotPortalId'] = isset( $hubspot['portal_id'] ) ? (string) $hubspot['portal_id'] : '';
+		$config['hubspotRegion']   = isset( $hubspot['region'] ) ? (string) $hubspot['region'] : 'eu1';
+	}
+
+	$encoded = wp_json_encode( $config, JSON_UNESCAPED_SLASHES );
+	if ( ! is_string( $encoded ) ) {
+		$encoded = '{}';
 	}
 
 	wp_add_inline_script(
 		'nvx-runtime-governance',
-		'window.nvxRuntimeGovernance=' . wp_json_encode( $config, JSON_UNESCAPED_SLASHES ) . ';',
+		'window.nvxRuntimeGovernance=' . $encoded . ';',
 		'before'
 	);
 }
@@ -94,6 +105,36 @@ function nvx_document_governance_strip_eager_hubspot(): void {
 }
 add_action( 'wp_enqueue_scripts', 'nvx_document_governance_strip_eager_hubspot', 1 );
 add_action( 'wp_enqueue_scripts', 'nvx_document_governance_enqueue_assets', 100 );
+
+/**
+ * Whether the current front request is the solutions hub that cannot use nested
+ * document output buffers (staging2 PHP-FPM returned empty HTTP 200 bodies).
+ */
+function nvx_document_governance_is_solutions_hub(): bool {
+	return ! is_admin()
+		&& is_page()
+		&& 'soluciones-medicas' === (string) get_post_field( 'post_name', get_queried_object_id() );
+}
+
+/**
+ * Emit required head metadata on routes that cannot run the document buffer.
+ *
+ * /soluciones-medicas/ skips nested output-buffer callbacks. Without this fallback
+ * the page would ship without description, canonical, or the document-contract marker.
+ */
+function nvx_document_governance_print_fallback_meta(): void {
+	if ( ! nvx_document_governance_is_solutions_hub() ) {
+		return;
+	}
+
+	$description = nvx_document_governance_description( '', '' );
+	$canonical   = nvx_document_governance_canonical_url();
+
+	echo '<meta name="description" content="' . esc_attr( $description ) . '" />' . "\n";
+	echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
+	echo '<meta name="nvx-document-contract" content="1" />' . "\n";
+}
+add_action( 'wp_head', 'nvx_document_governance_print_fallback_meta', 2 );
 
 /**
  * Remove only the individual script element that owns a retired integration.

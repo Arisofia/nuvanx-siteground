@@ -34,10 +34,9 @@ function nvx_contacto_hubspot_form_markup(): string {
 
 	$portal_id = preg_replace( '/\D+/', '', (string) NVX_CONTACTO_HS_PORTAL_ID );
 	$region    = preg_replace( '/[^a-z0-9-]/i', '', (string) NVX_CONTACTO_HS_REGION );
-	$script    = 'https://js-' . $region . '.hsforms.net/forms/embed/' . $portal_id . '.js';
 
-	return '<script src="' . esc_url( $script ) . '" defer></script>'
-		. '<div class="hs-form-frame" data-region="' . esc_attr( $region ) . '" data-form-id="' . esc_attr( $form_id ) . '" data-portal-id="' . esc_attr( $portal_id ) . '"></div>'
+	// Demand-loaded by nvx-runtime-governance.js — never emit an eager HubSpot script.
+	return '<div class="hs-form-frame" data-region="' . esc_attr( $region ) . '" data-form-id="' . esc_attr( $form_id ) . '" data-portal-id="' . esc_attr( $portal_id ) . '" data-nvx-hubspot-lazy="1"></div>'
 		. '<p class="nvx-form__privacy-note">' . esc_html__( 'Al enviar tus datos aceptas la', 'nuvanx-medical' ) . ' '
 		. '<a href="' . esc_url( home_url( '/politica-privacidad/' ) ) . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>.</p>';
 }

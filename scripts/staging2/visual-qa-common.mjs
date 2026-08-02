@@ -9,7 +9,7 @@ export const DEFAULT_VISUAL_QA_USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64
 export const MIN_SCREENSHOT_BYTES = 15000;
 
 export const pages = [
-  ['/', 'Medicina Estética. Madrid.'],
+  ['/', 'Medicina estética con rigor clínico y resultados naturales.'],
   ['/casos-de-pacientes/', 'Casos de pacientes y tratamientos realizados en NUVANX'],
   ['/soluciones-medicas/', 'Soluciones médicas para rostro, piel y contorno corporal.'],
   ['/protocolos-signature/', 'Protocolos Signature: Medicina estética de diagnóstico.'],

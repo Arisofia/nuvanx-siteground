@@ -238,6 +238,8 @@ add_action(
 		wp_deregister_script( 'googlesitekit-sign-in-with-google' );
 		wp_dequeue_script( 'nvx-hubspot-forms-embed' );
 		wp_deregister_script( 'nvx-hubspot-forms-embed' );
+		wp_dequeue_script( 'leadin-script-loader-js' );
+		wp_deregister_script( 'leadin-script-loader-js' );
 	},
 	100
 );
@@ -306,6 +308,9 @@ add_action(
 		$buffer = preg_replace( '/<script[^>]*>.*?fb_pxl_code.*?<\/script>/is', '', $buffer ) ?? $buffer;
 		$buffer = preg_replace( '/<script[^>]*src=[^>]*facebook[^>]*><\/script>/is', '', $buffer ) ?? $buffer;
 		$buffer = preg_replace( '/<script[^>]*src=[^>]*meta[^>]*><\/script>/is', '', $buffer ) ?? $buffer;
+		$buffer = preg_replace( '/<!--\s*Start of HubSpot Embed Code\s*-->.*?<!--\s*End of HubSpot Embed Code\s*-->/is', '', $buffer ) ?? $buffer;
+		$buffer = preg_replace( '/<script[^>]*src=[^>]*hs-scripts\.com[^>]*><\/script>/is', '', $buffer ) ?? $buffer;
+		$buffer = preg_replace( '/<script[^>]*src=[^>]*hsforms\.(net|com)[^>]*><\/script>/is', '', $buffer ) ?? $buffer;
 
 		if ( ob_get_level() > 0 ) {
 			ob_end_clean();

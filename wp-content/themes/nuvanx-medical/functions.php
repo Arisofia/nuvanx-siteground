@@ -21,8 +21,8 @@ if ( ! defined( 'NVX_REGEX_WHITESPACE_U' ) ) {
 
 /** Register theme supports and navigation locations. */
 function nvx_theme_setup(): void {
-	// Document <title> is printed once in header.php via wp_get_document_title()
-	// so static analysis and the live document share a single, filterable title.
+	// Title is emitted once via title-tag + document-governance normalizer.
+	add_theme_support( 'title-tag' );
 	add_theme_support( 'post-thumbnails' );
 	add_theme_support( 'custom-logo' );
 	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );

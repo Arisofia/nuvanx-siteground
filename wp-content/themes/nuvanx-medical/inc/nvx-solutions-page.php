@@ -66,6 +66,30 @@ function nvx_solutions_template_include( string $template ): string {
 add_filter( 'template_include', 'nvx_solutions_template_include', 99 );
 
 /**
+ * Render the GitHub-owned solutions hub partial to a string.
+ *
+ * Uses load_template() so the view can execute on every call (include_once would
+ * skip the second render and leave the dedicated page template empty).
+ */
+function nvx_solutions_hub_markup(): string {
+	$template = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
+	if ( ! is_readable( $template ) ) {
+		return '';
+	}
+
+	$level_before = ob_get_level();
+	ob_start();
+	// false = do not require_once; the partial is a view, not a symbol definition.
+	load_template( $template, false );
+	$markup = ob_get_clean();
+	while ( ob_get_level() > $level_before ) {
+		ob_end_clean();
+	}
+
+	return is_string( $markup ) ? $markup : '';
+}
+
+/**
  * Replace the CMS marker/body with the canonical theme-owned template.
  *
  * Kept for non-template contexts (excerpts, SEO, secondary loops) and as a
@@ -85,21 +109,8 @@ function nvx_render_solutions_page( $content ): string {
 		return $content;
 	}
 
-	$template = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
-	if ( ! is_readable( $template ) ) {
-		return $content;
-	}
-
-	$level_before = ob_get_level();
-	ob_start();
-	include_once $template;
-	$markup = ob_get_clean();
-	// Never leave an orphan buffer if include aborted early.
-	while ( ob_get_level() > $level_before ) {
-		ob_end_clean();
-	}
-
-	return is_string( $markup ) && '' !== trim( $markup ) ? $markup : $content;
+	$markup = nvx_solutions_hub_markup();
+	return '' !== trim( $markup ) ? $markup : $content;
 }
 add_filter( 'the_content', 'nvx_render_solutions_page', 11 );
 

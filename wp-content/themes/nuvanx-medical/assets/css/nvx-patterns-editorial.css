@@ -1486,3 +1486,55 @@ section.nvx-hero {
 /* Endolift Page */
 .nvx-endolift-postop-list { margin-top: var(--nvx-space-4); margin-bottom: var(--nvx-space-4); }
 
+
+/* CTA Banner (migrated from nvx-footer.css) */
+.nvx-cta-banner {
+  padding-block: var(--nvx-pad-section-tight);
+  background: var(--nvx-charcoal);
+  color: var(--nvx-light);
+  text-align: center;
+}
+
+.nvx-cta-banner__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--nvx-space-2);
+}
+
+.nvx-cta-banner__title {
+  max-width: min(100%, 36ch);
+  margin: 0 auto var(--nvx-margin-h2);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h2);
+  font-weight: var(--nvx-fw-heading);
+  line-height: var(--nvx-lh-h2);
+  letter-spacing: var(--nvx-track-h2);
+  color: var(--nvx-light);
+}
+
+.nvx-cta-banner__sub {
+  max-width: var(--nvx-measure-lead);
+  margin: 0 auto var(--nvx-space-4);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-on-dark-88);
+}
+
+.nvx-cta-banner__kicker {
+  margin-bottom: var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: 600;
+  line-height: var(--nvx-lh-kicker);
+  letter-spacing: var(--nvx-track-kicker);
+  text-transform: uppercase;
+  color: var(--nvx-text-on-dark-88);
+}
+
+.nvx-cta-banner__actions > .nvx-btn--light {
+  font-weight: 600;
+  letter-spacing: var(--nvx-track-kicker);
+  text-transform: uppercase;
+}

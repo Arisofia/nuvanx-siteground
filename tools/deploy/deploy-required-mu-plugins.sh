@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
-# MUTATING: NUVANX no longer ships required form/attribution MU plugins.
-# Form mount, contact SEO safeguards, Meta Pixel front-end disable, and Google
-# attribution markers live in the active theme (nuvanx-medical).
+# MUTATING: guarded clean-up of retired MU plugins.
+# NUVANX no longer ships required form/attribution MU plugins; all form mounts,
+# contact SEO safeguards, Meta Pixel front-end disable, and Google attribution
+# markers live in the active theme (nuvanx-medical).
 #
-# This script remains as a no-op guard so older workflows do not fail: it only
-# verifies the WordPress root identity and removes retired MU plugin basenames
-# if they are still present on disk.
+# This script is a compatibility guard for existing workflows:
+# - verifies WordPress root identity, URL and active theme
+# - removes retired MU plugin basenames if they are still present on disk
+# - never copies new MU plugins or changes ownership of responsibilities
 set -Eeuo pipefail
 
 ENVIRONMENT=''
 WP_ROOT=''
-SOURCE_MU=''
 CONFIRM=0
 
 RETIRED_MU_PLUGINS=(
@@ -26,11 +27,11 @@ Usage:
   deploy-required-mu-plugins.sh \
     --environment staging2|production \
     --wp-root /absolute/wordpress/root \
-    --source-mu /absolute/source/mu-plugins \
     --confirm
 
-Note: source-mu is accepted for workflow compatibility but is no longer copied.
-Theme owns form/SEO/pixel/attribution behavior.
+Note: This script only validates the WordPress root and removes retired MU plugin
+files when present. The active theme (nuvanx-medical) owns form, SEO, pixel and
+attribution behavior.
 EOF
 }
 
@@ -43,7 +44,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --environment) ENVIRONMENT="${2:-}"; shift 2 ;;
     --wp-root) WP_ROOT="${2:-}"; shift 2 ;;
-    --source-mu) SOURCE_MU="${2:-}"; shift 2 ;;
+    --source-mu) shift 2 ;; # legacy flag accepted but ignored
     --confirm) CONFIRM=1; shift ;;
     *) usage; fail "unknown argument: $1" ;;
   esac

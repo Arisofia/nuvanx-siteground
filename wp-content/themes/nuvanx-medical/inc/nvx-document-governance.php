@@ -117,20 +117,38 @@ function nvx_document_governance_is_solutions_hub(): bool {
 }
 
 /**
- * Emit the document-contract marker on routes that cannot run the document buffer.
+ * Emit head pieces that the document buffer would own on routes that skip it.
  *
- * /soluciones-medicas/ skips nested output-buffer callbacks. Title, description and
- * canonical are provided by the SEO catalogue / Yoast filters once the page is
- * catalogued — re-emitting them here would produce duplicate meta tags.
+ * /soluciones-medicas/ skips nested output-buffer callbacks. Yoast reliably emits
+ * the catalogue description for this hub, but does not always emit a canonical
+ * (especially under staging noindex). We therefore emit exactly one canonical and
+ * the document-contract marker — never a second meta description.
  */
 function nvx_document_governance_print_fallback_meta(): void {
 	if ( ! nvx_document_governance_is_solutions_hub() ) {
 		return;
 	}
 
+	$canonical = nvx_document_governance_canonical_url();
+	echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
 	echo '<meta name="nvx-document-contract" content="1" />' . "\n";
 }
 add_action( 'wp_head', 'nvx_document_governance_print_fallback_meta', 2 );
+
+/**
+ * Prevent a second Yoast canonical on the solutions hub (we emit the only one).
+ *
+ * @param string|false $canonical Existing Yoast canonical.
+ * @return string|false
+ */
+function nvx_document_governance_suppress_duplicate_solutions_canonical( $canonical ) {
+	if ( function_exists( 'nvx_document_governance_is_solutions_hub' ) && nvx_document_governance_is_solutions_hub() ) {
+		return false;
+	}
+
+	return $canonical;
+}
+add_filter( 'wpseo_canonical', 'nvx_document_governance_suppress_duplicate_solutions_canonical', 1000 );
 
 /**
  * Remove only the individual script element that owns a retired integration.

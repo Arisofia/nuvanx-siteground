@@ -230,8 +230,9 @@ jobs:
           EXPECTED_SHA: ${{ env.DEPLOY_SHA }}
         run: |
           set -euo pipefail
-          # Allow SiteGround dynamic/file caches to settle after the remote purge.
-          sleep 10
+          # Allow SiteGround dynamic/file caches and edge settle after the remote purge.
+          # Edge occasionally answers early probes with HTTP 202 placeholders.
+          sleep 25
           node scripts/staging2/verify-rendered-document.mjs
 
       - name: Remove temporary remote payload

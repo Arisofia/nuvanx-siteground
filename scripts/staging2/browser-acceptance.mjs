@@ -60,6 +60,25 @@ const routes = [
   '/equipo-medico-clinica-goya/'
 ];
 
+async function safeGoto(page, url) {
+  const maxAttempts = 3;
+  let attempt = 1;
+  while (attempt <= maxAttempts) {
+    try {
+      return await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    } catch (e) {
+      const msg = String(e.message || '');
+      if (msg.includes('ERR_SOCKS_CONNECTION_FAILED') && attempt < maxAttempts) {
+        console.warn(`Goto failed with ERR_SOCKS_CONNECTION_FAILED (attempt ${attempt}/${maxAttempts}); retrying...`);
+        attempt++;
+        continue;
+      }
+      throw e;
+    }
+  }
+  throw new Error(`Failed to goto ${url} after ${maxAttempts} attempts (ERR_SOCKS_CONNECTION_FAILED)`);
+}
+
 async function run() {
   console.log(`Starting Browser Acceptance Tests against ${baseUrl} with EXPECTED_SHA=${expectedSha}...`);
   // Use SOCKS5 proxy if running in CI to bypass SiteGround edge blocking
@@ -143,7 +162,7 @@ async function run() {
     });
 
     try {
-      const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      const response = await safeGoto(page, url);
       mainResponseStatus = response ? response.status() : 0;
       finalUrl = page.url();
 

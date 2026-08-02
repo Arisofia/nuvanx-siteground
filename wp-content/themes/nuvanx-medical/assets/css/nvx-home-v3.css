@@ -16,7 +16,7 @@
 	align-items: center;
 	overflow: hidden;
 	background: var(--nvx-ink);
-	margin-top: calc(-1 * var(--nvx-header-height, 80px)); /* Flow under transparent header */
+	/* Header is sticky + opaque (#nvx-header): hero starts below it in normal flow. */
 	margin-left: calc(50% - 50vw);
 }
 
@@ -39,7 +39,6 @@
 	margin-inline: auto;
 	padding-inline: var(--nvx-gutter-inner);
 	color: var(--nvx-light);
-	padding-top: var(--nvx-header-height, 80px);
 }
 
 .nvx-home-hero__title {

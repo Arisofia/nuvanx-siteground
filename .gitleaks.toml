@@ -1,0 +1,30 @@
+title = "Nuvanx gitleaks config"
+
+[extend]
+
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key"
+regex = '''(?i)(api_key|apikey|auth_token|access_token)["'\s:=]*[0-9a-zA-Z\-]{16,}'''
+tags = ["key", "api", "generic"]
+
+[[rules]]
+id = "ssh-private-key"
+description = "SSH private key"
+regex = '''-----BEGIN (RSA|DSA|OPENSSH) PRIVATE KEY-----'''
+tags = ["key", "ssh"]
+
+[[rules]]
+id = "google-ads-credentials"
+description = "Google Ads client secret/id"
+regex = '''(?i)(GOOGLE_ADS_CLIENT_SECRET|GOOGLE_ADS_CLIENT_ID)["'\s:=]*[0-9a-zA-Z\-\_\.]{16,}'''
+tags = ["key", "google", "ads"]
+
+[allowlist]
+description = "Allowlist non-secret patterns"
+regexes = [
+  '''AUTH_KEY''',
+  '''SECURE_AUTH_KEY''',
+  '''LOGGED_IN_KEY''',
+  '''NONCE_KEY'''
+]

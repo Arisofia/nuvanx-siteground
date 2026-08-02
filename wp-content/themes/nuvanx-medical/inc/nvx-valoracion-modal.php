@@ -73,7 +73,7 @@ function nvx_valoracion_modal_markup(): string {
 		? nvx_cta_valoracion_url()
 		: home_url( '/madrid/valoracion/' );
 
-	$html  = '<div id="nvx-valoracion-modal" class="nvx-valoracion-modal" role="dialog" aria-modal="true" aria-labelledby="nvx-valoracion-modal-title" aria-hidden="true" hidden>';
+	$html  = '<dialog id="nvx-valoracion-modal" class="nvx-valoracion-modal" aria-labelledby="nvx-valoracion-modal-title">';
 	$html .= '<div class="nvx-valoracion-modal__backdrop" data-nvx-valoracion-modal-close tabindex="-1"></div>';
 	$html .= '<div class="nvx-valoracion-modal__panel" role="document">';
 	$html .= '<button type="button" class="nvx-valoracion-modal__close" data-nvx-valoracion-modal-close aria-label="' . esc_attr__( 'Cerrar formulario', 'nuvanx-medical' ) . '">&times;</button>';
@@ -89,7 +89,7 @@ function nvx_valoracion_modal_markup(): string {
 		'<a class="nvx-text-link" href="' . esc_url( $privacy ) . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>'
 	) . '</p>';
 	$html .= '<p class="nvx-valoracion-modal__fallback"><a class="nvx-text-link" href="' . esc_url( $page ) . '">' . esc_html__( 'Abrir página de valoración completa', 'nuvanx-medical' ) . '</a></p>';
-	$html .= '</div></div>';
+	$html .= '</div></dialog>';
 
 	return $html;
 }

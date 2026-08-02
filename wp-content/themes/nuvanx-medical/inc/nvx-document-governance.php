@@ -24,19 +24,26 @@ function nvx_document_governance_start(): void {
 }
 
 /**
+ * Yoast may skip or duplicate canonical under staging noindex. Theme emits the
+ * single public canonical from wp_head; suppress Yoast's copy.
+ *
+ * @param string|false $canonical Existing canonical.
+ * @return false
+ */
+function nvx_document_governance_suppress_yoast_canonical( $canonical ) {
+	unset( $canonical );
+	return false;
+}
+add_filter( 'wpseo_canonical', 'nvx_document_governance_suppress_yoast_canonical', 1000 );
+
+/**
  * Emit document contract pieces that used to be forced by the full-document
  * rewrite buffer: contract marker + exactly one canonical.
- *
- * Yoast on staging often skips canonical under noindex; acceptance still
- * requires a staging host canonical on every public route.
  */
 function nvx_document_governance_print_head_contract(): void {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
 		return;
 	}
-
-	// Prevent a second Yoast canonical when we emit the authoritative one.
-	add_filter( 'wpseo_canonical', '__return_false', 1000 );
 
 	$canonical = nvx_document_governance_canonical_url();
 	echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";

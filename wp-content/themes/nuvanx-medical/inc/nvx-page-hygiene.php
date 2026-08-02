@@ -258,7 +258,7 @@ add_filter( 'wpseo_sitemap_entry', 'nvx_filter_sitemap_entry_sensitive_pages', 2
  *
  * Theme-rendered pages already use clean strings; this catches residual
  * post_content / shortcode output without rewriting clinical claims. It runs
- * after route-specific renderers so a legacy phrase cannot be reintroduced by
+ * after route-specific renderers so a retired phrase cannot be reintroduced by
  * a managed page module later in the_content.
  *
  * @param string $content HTML content.
@@ -270,7 +270,7 @@ function nvx_public_content_text_hygiene( $content ) {
 	}
 
 	$replacements = array(
-		// Brand / product typo seen in legacy CMS titles.
+		// Brand / product typo seen in CMS titles.
 		'EXILITET' => 'EXILITE™',
 		'Exilitet' => 'EXILITE™',
 		// Empty brand slogans.
@@ -318,7 +318,7 @@ add_filter( 'wpseo_opengraph_desc', 'nvx_public_content_text_hygiene', 240 );
 add_filter( 'wpseo_twitter_description', 'nvx_public_content_text_hygiene', 240 );
 
 /**
- * Keep QA on staging2 inside the same environment when legacy CMS copy uses
+ * Keep QA on staging2 inside the same environment when CMS copy uses
  * absolute production URLs. Production keeps its public URLs untouched.
  */
 function nvx_normalize_staging2_internal_links( $content ) {
@@ -469,7 +469,7 @@ function nvx_apply_production_business_rules( $content ) {
 		$content = preg_replace( '/<div[^>]*class="[^"]*hbspt-form[^"]*"[^>]*>.*?<\/div>/is', '', $content ) ?? $content;
 	}
 
-	// 4. Valoración (2636): Keep only the first legacy hbspt-form found inside post_content.
+	// 4. Valoración (2636): Keep only the first hbspt-form found inside post_content.
 	if ( 2636 === $page_id ) {
 		$count   = 0;
 		$content = preg_replace_callback(

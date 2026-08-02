@@ -54,17 +54,6 @@ function nvx_catalog_json_load( string $filename ): array {
 	return $decoded;
 }
 
-/** Decode a legacy Base64 token without passing invalid data to WordPress APIs. */
-function nvx_catalog_decode_token_payload( string $payload, string $token_type ): ?string {
-	$decoded = base64_decode( $payload, true );
-	if ( false === $decoded ) {
-		nvx_catalog_log_error( sprintf( 'Invalid %s token payload.', $token_type ) );
-		return null;
-	}
-
-	return $decoded;
-}
-
 /**
  * Transform catalog values while preserving keys and nesting.
  *
@@ -108,14 +97,6 @@ function nvx_catalog_builtin_token_resolvers(): array {
 		'@nvx-url:' => static function ( string $payload ) {
 			return home_url( $payload );
 		},
-		'@nvx-i18n:' => static function ( string $payload ) {
-			$decoded = nvx_catalog_decode_token_payload( $payload, 'translation' );
-			return null === $decoded || '' === $decoded ? '' : __( $decoded, 'nuvanx-medical' );
-		},
-		'@nvx-home:' => static function ( string $payload ) {
-			$decoded = nvx_catalog_decode_token_payload( $payload, 'home URL' );
-			return null === $decoded ? '' : home_url( $decoded );
-		},
 	);
 }
 
@@ -138,13 +119,8 @@ function nvx_catalog_resolve_token_value(
 		}
 	}
 
-	if ( $resolved === $value && null !== $claim_resolver ) {
-		if ( 0 === strpos( $value, '@nvx-claim-key:' ) ) {
-			$resolved = $claim_resolver( substr( $value, strlen( '@nvx-claim-key:' ) ) );
-		} elseif ( 0 === strpos( $value, '@nvx-claim:' ) ) {
-			$claim_key = nvx_catalog_decode_token_payload( substr( $value, strlen( '@nvx-claim:' ) ), 'claim' );
-			$resolved  = ( null === $claim_key || '' === $claim_key ) ? '' : $claim_resolver( $claim_key );
-		}
+	if ( $resolved === $value && null !== $claim_resolver && 0 === strpos( $value, '@nvx-claim-key:' ) ) {
+		$resolved = $claim_resolver( substr( $value, strlen( '@nvx-claim-key:' ) ) );
 	}
 
 	return $resolved;
@@ -153,8 +129,7 @@ function nvx_catalog_resolve_token_value(
 /**
  * Resolve WordPress-aware values captured in JSON catalogs.
  *
- * Base prefixes are reserved and cannot be replaced by custom resolvers.
- * Legacy Base64 tokens remain supported for backwards compatibility only.
+ * Supported string prefixes: @nvx-t: (i18n), @nvx-url: (home_url), @nvx-claim-key: (BTL claims).
  *
  * @param array<mixed>            $catalog Catalog data.
  * @param callable|null           $claim_resolver Optional BTL claim resolver.

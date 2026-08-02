@@ -39,7 +39,7 @@ while ( have_posts() ) :
 	$has_content_h1   = (bool) preg_match( '/<h1\b|<!--\s*wp:heading\s+\{[^}]*"level"\s*:\s*1(?!\d)[^}]*\}/i', $content );
 	$has_content_hero = (bool) preg_match( '/nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-home-hero-stage/i', $content );
 
-	// Modules that inject a canonical hero + H1 via the_content even when CMS body is empty/legacy.
+	// Modules that inject a canonical hero + H1 via the_content even when CMS body is empty.
 	// Without this, the shell prints a second H1 (e.g. EXION Body / Face / EMFUSION).
 	$has_managed_editorial = false;
 	if ( function_exists( 'nvx_btl_detail_current_key' ) && null !== nvx_btl_detail_current_key( $content ) ) {
@@ -90,7 +90,7 @@ while ( have_posts() ) :
 	// Theme-owned hero only when content does not already own the page hierarchy.
 	// A raw content H1 is author-owned hierarchy even if it is not wrapped in a
 	// dedicated hero block. Rendering another shell H1 above it creates a
-	// duplicate primary heading on legal and legacy CMS pages.
+	// duplicate primary heading on legal and CMS pages.
 	$show_theme_hero = $has_media && ! $has_content_h1 && ! $has_content_hero && ! $has_managed_editorial && ! $is_legal_page && ! is_front_page() && empty( $shell_skip_hdr );
 	// Title-only header only if no content H1 and no theme/content/managed hero.
 	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! $is_legal_page && ! is_front_page() && empty( $shell_skip_hdr );

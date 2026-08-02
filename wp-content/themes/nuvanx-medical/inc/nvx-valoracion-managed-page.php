@@ -53,7 +53,7 @@ function nvx_valoracion_managed_page_markup(): string {
 }
 
 /**
- * Replace any legacy body or CMS marker with the canonical managed landing.
+ * Replace any prior body or CMS marker with the canonical managed landing.
  *
  * @param string $content Original page content.
  */

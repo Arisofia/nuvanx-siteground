@@ -178,7 +178,7 @@ function nvx_signature_contour_nav_children(): array {
 }
 
 /**
- * Updates navigation routes for legacy Contour or post-maternity labels.
+ * Updates navigation routes for Contour or post-maternity labels.
  *
  * @param array $child The navigation child to update.
  * @return array The updated navigation child.
@@ -234,10 +234,10 @@ function nvx_signature_phase_navigation_blueprint( array $blueprint ): array {
 add_filter( 'nvx_navigation_primary_blueprint', 'nvx_signature_phase_navigation_blueprint', 30 );
 
 /**
- * Replaces legacy product names with the approved public product name.
+ * Replaces retired product names with the approved public product name.
  *
  * @param string $content Content containing product names to normalize.
- * @return string Content with legacy product names replaced by the approved public product name.
+ * @return string Content with retired product names replaced by the approved public product name.
  */
 function nvx_signature_phase_normalize_public_names( string $content ): string {
 	return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), NVX_CONTOUR_ARCHITECTURE, $content );

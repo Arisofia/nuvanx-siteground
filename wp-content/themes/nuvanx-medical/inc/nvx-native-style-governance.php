@@ -43,13 +43,16 @@ function nvx_theme_dequeue_native_block_styles(): void {
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_dequeue_native_block_styles', 100 );
 
-/** Dequeue obsolete legacy coherence stylesheet handles left in DB or plugin enqueues. */
-function nvx_theme_dequeue_legacy_coherence_styles(): void {
+/**
+ * Dequeue stylesheet handles that are no longer shipped with the theme.
+ * Prevents broken enqueues stored in the database or third-party plugins.
+ */
+function nvx_theme_dequeue_retired_stylesheet_handles(): void {
 	if ( is_admin() ) {
 		return;
 	}
 
-	$legacy_handles = array(
+	$handles = array(
 		'nvx-mobile-hero-hierarchy',
 		'nvx-canonical-page-hero',
 		'nvx-full-site-ui-governance',
@@ -60,10 +63,10 @@ function nvx_theme_dequeue_legacy_coherence_styles(): void {
 		'nvx-integrations',
 	);
 
-	foreach ( $legacy_handles as $handle ) {
+	foreach ( $handles as $handle ) {
 		wp_dequeue_style( $handle );
 		wp_deregister_style( $handle );
 	}
 }
-add_action( 'wp_enqueue_scripts', 'nvx_theme_dequeue_legacy_coherence_styles', 999 );
-add_action( 'wp_head', 'nvx_theme_dequeue_legacy_coherence_styles', 1 );
+add_action( 'wp_enqueue_scripts', 'nvx_theme_dequeue_retired_stylesheet_handles', 999 );
+add_action( 'wp_head', 'nvx_theme_dequeue_retired_stylesheet_handles', 1 );

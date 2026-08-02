@@ -76,7 +76,7 @@ function nvx_theme_blog_body_class( array $classes ): array {
 add_filter( 'body_class', 'nvx_theme_blog_body_class' );
 
 /**
- * The article template owns the only H1. Demote legacy H1 tags saved inside old
+ * The article template owns the only H1. Demote extra H1 tags saved inside older
  * post content so historical entries inherit the same accessible hierarchy.
  */
 function nvx_theme_normalize_blog_headings( string $content ): string {
@@ -166,7 +166,7 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 	$head  = $parts[0] ?? $content;
 	$tail  = $parts[1] ?? '';
 
-	// Legacy short preamble: Autor: … (optionally Fecha/Lectura on same paragraph).
+	// Short preamble: Autor: … (optionally Fecha/Lectura on same paragraph).
 	$head = (string) preg_replace(
 		'/<p\b[^>]*>\s*(?:<strong>)?\s*Autor\s*:?\s*(?:<\/strong>)?\s*[^<]{0,160}(?:Fecha\s*:[^<]{0,80})?(?:Lectura\s*:[^<]{0,40})?\s*<\/p>/iu',
 		'',

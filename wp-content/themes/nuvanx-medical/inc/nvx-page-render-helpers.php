@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Extract a balanced legacy div media slot without truncating nested markup. */
+/** Extract a balanced div media slot without truncating nested markup. */
 function nvx_page_extract_brand_hero_div( string $content ): string {
 	if ( ! preg_match( '/<div class="nvx-brand-hero__media"[^>]*>/iu', $content, $opening, PREG_OFFSET_CAPTURE ) ) {
 		return '';

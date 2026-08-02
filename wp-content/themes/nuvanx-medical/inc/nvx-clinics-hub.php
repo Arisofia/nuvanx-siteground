@@ -118,7 +118,7 @@ function nvxClinicsReadableMeasureClasses(): array {
 }
 
 /**
- * CMS / legacy wrapper classes where inline layout styles may be stripped on Sede pages.
+ * CMS wrapper classes where inline layout styles may be stripped on Sede pages.
  * Editors can keep custom styles on other elements; only these get cleaned.
  *
  * @return string[]
@@ -336,7 +336,7 @@ function nvxClinicsPromoteBareSections( DOMXPath $xpath ): void {
 function nvxClinicsNormalizeLayout( DOMXPath $xpath ): ?DOMElement {
     $readable = nvxClinicsReadableMeasureClasses();
     $flow     = nvxClinicsFlowClasses();
-    // Match either readable measure or legacy/current flow class.
+    // Match either readable measure or alternate flow class.
     $parts = array();
     foreach ( array_merge( $readable, $flow ) as $token ) {
         $parts[] = 'contains(concat(" ", normalize-space(@class), " "), " ' . $token . ' ")';
@@ -395,7 +395,7 @@ function nvxClinicsShouldUnwrapDivGroup( DOMElement $div, array $protected ): bo
         }
     }
 
-    // Need multiple sections (or aria-labelledby legacy grouping of sections).
+    // Need multiple sections (or aria-labelledby grouping of sections).
     $has_aria_group = $div->hasAttribute( 'aria-labelledby' );
     if ( count( $section_children ) < 2 && ! ( $has_aria_group && count( $section_children ) >= 1 ) ) {
         return false;
@@ -408,7 +408,7 @@ function nvxClinicsShouldUnwrapDivGroup( DOMElement $div, array $protected ): bo
 }
 
 /**
- * Unwrap anonymous divs that only group sections (legacy CMS).
+ * Unwrap anonymous divs that only group sections (CMS residue).
  */
 function nvxClinicsUnwrapSectionGroups( DOMXPath $xpath ): void {
     $divs = $xpath->query( '//div' );

@@ -75,12 +75,9 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 		if ( false !== strpos( $content, $cfg['marker'] . '-editorial' ) ) {
 			return null; // already rebuilt
 		}
-		// Accept both canonical ids (nvx-exion-body-h1) and legacy double-prefixed ones.
 		if (
 			false !== strpos( $content, 'id="' . $cfg['marker'] . '-h1"' )
 			|| false !== strpos( $content, "id='{$cfg['marker']}-h1'" )
-			|| false !== strpos( $content, 'id="nvx-' . $cfg['marker'] . '-h1"' )
-			|| false !== strpos( $content, "id='nvx-{$cfg['marker']}-h1'" )
 		) {
 			return $slug;
 		}

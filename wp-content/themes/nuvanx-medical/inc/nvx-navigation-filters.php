@@ -179,12 +179,18 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 	$signature_children = array();
 	if ( function_exists( 'nvx_signature_contour_nav_children' ) ) {
 		foreach ( nvx_signature_contour_nav_children() as $child ) {
-			if ( empty( $child['url'] ) || empty( $child['label'] ) ) {
+			$label = isset( $child['label'] ) ? trim( (string) $child['label'] ) : '';
+			$slugs = isset( $child['slugs'] ) && is_array( $child['slugs'] ) ? $child['slugs'] : array();
+			if ( '' === $label || array() === $slugs ) {
+				continue;
+			}
+			$resolved = nvx_navigation_resolve_published_slug( $slugs );
+			if ( null === $resolved ) {
 				continue;
 			}
 			$signature_children[] = array(
-				'url'   => (string) $child['url'],
-				'label' => (string) $child['label'],
+				'url'   => $resolved['url'],
+				'label' => $label,
 			);
 		}
 	}

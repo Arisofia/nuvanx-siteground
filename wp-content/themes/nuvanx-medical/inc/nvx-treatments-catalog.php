@@ -138,8 +138,6 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 
 	$catalog = nvx_treatments_catalog_markup();
 	$cloud   = nvx_treatments_logo_cloud_markup();
-	// Strip CMS close bands; do not inject a page-local CTA (footer owns it).
-	$close_cta = '';
 
 	$content = preg_replace(
 		'/<section\b[^>]*aria-label="Catálogo de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
@@ -185,22 +183,6 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 		$content,
 		1
 	) ?? $content;
-
-	$content = preg_replace(
-		'/<section\b[^>]*class="[^"]*nvx-brand-section--cta[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
-		$close_cta,
-		$content,
-		1,
-		$count_cta
-	) ?? $content;
-	if ( ! $count_cta ) {
-		$content = preg_replace(
-			'/<section\b[^>]*aria-label="Consulta médica personalizada NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
-			$close_cta,
-			$content,
-			1
-		) ?? $content;
-	}
 
 	$links  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="Enlaces de interés">';
 	$links .= '<div class="nvx-shell nvx-brand-section__inner">';

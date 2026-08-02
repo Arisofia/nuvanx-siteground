@@ -256,6 +256,7 @@ function nvx_theme_blog_index_markup(): string {
 }
 add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
 
+require_once get_template_directory() . '/inc/nvx-document-governance.php';
 require_once get_template_directory() . '/inc/nvx-hero-and-forms.php';
 require_once get_template_directory() . '/inc/nvx-integrations.php';
 require_once get_template_directory() . '/inc/nvx-native-style-governance.php';

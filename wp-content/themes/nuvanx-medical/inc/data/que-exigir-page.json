@@ -1,0 +1,40 @@
+{
+  "hero": {
+    "h1": "@nvx-t:Qué exigir por escrito antes de operarte en una clínica estética de Madrid"
+  },
+  "byline": {
+    "author": "@nvx-t:Escrito y firmado por Dr. Javier Rivera Tejeda",
+    "title": "@nvx-t:Director médico NUVANX · Nº Col. ICOMEM: 282864786"
+  },
+  "intro": {
+    "bold": "@nvx-t:Escribo esto porque lo que voy a contarte ha perjudicado a pacientes en clínicas de este mismo barrio.",
+    "text": "@nvx-t:La medicina estética y la cirugía plástica en Madrid se han llenado de franquicias y clínicas \"low-cost\" que invierten más en marketing que en protocolos médicos. Si estás valorando una intervención, antes de dar una señal económica, exige que te documenten por escrito los siguientes 5 puntos. Tu salud y tu resultado dependen de ello."
+  },
+  "sections": [
+    {
+      "title": "@nvx-t:1. El contrato clínico: la técnica exacta",
+      "body": "@nvx-t:Huye de términos comerciales como \"liposucción avanzada\" o \"lifting sin cirugía flash\". El documento médico debe especificar la técnica real (p. ej., \"Laserlipólisis subcutánea con fibra de 600 µm a 1470 nm\"). Además, debe constar el nombre y número de colegiado del médico que ejecutará el procedimiento. ¿Qué ocurre si el médico principal \"no puede\" intervenir ese día? El contrato debe protegerte contra la rotación de plantilla."
+    },
+    {
+      "title": "@nvx-t:2. La anestesia: quién y cómo",
+      "body": "@nvx-t:La diferencia entre sedación consciente y anestesia general no es trivial. Pregunta abiertamente si el procedimiento requiere un anestesista cualificado en quirófano o si se realiza con sedación oral/tópica en sala blanca. En NUVANX, por ejemplo, evitamos la anestesia general realizando procedimientos mínimamente invasivos (Endolift®) que solo requieren anestesia local y/o sedación consciente."
+    },
+    {
+      "title": "@nvx-t:3. Casos clínicos reales, no de catálogo",
+      "body": "@nvx-t:Es habitual que algunas clínicas enseñen catálogos fotográficos proporcionados por el fabricante de la máquina (la marca del láser o de los inyectables). Exige ver casos de \"Antes y Después\" realizados específicamente por el médico que te va a tratar, no fotos de stock o de la franquicia central."
+    },
+    {
+      "title": "@nvx-t:4. Cómo distinguir reseñas infladas",
+      "body": "@nvx-t:Revisa la brecha entre las plataformas. Si una clínica tiene 4.9 en Google (donde a menudo se pide la reseña en recepción a cambio de un descuento) pero un 2.5 en Trustpilot o foros independientes, cuidado. Una clínica con autoridad no te pide una reseña antes de ver el resultado final de tu tratamiento."
+    },
+    {
+      "title": "@nvx-t:5. El presupuesto cerrado y desglosado",
+      "body": "@nvx-t:¿Incluye el seguimiento? ¿Y las prendas de presoterapia (fajas) o la medicación postoperatoria? Un presupuesto clínico profesional no tiene \"costes ocultos\" ni caduca en 24 horas para forzarte a decidir."
+    }
+  ],
+  "cta": {
+    "title": "@nvx-t:La transparencia clínica no es un lujo, es tu derecho",
+    "text": "@nvx-t:En NUVANX, firmamos el protocolo exacto y el presupuesto cerrado antes de cualquier procedimiento. Si quieres revisar cómo lo hacemos o buscas una segunda opinión objetiva sobre tu caso, agenda una valoración médica.",
+    "fallback_btn": "@nvx-t:Iniciar mi valoración médica"
+  }
+}

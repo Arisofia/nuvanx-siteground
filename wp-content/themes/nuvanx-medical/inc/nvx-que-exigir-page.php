@@ -47,56 +47,45 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 		return $content;
 	}
 
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	$data = nvx_catalog_json_resolved( 'que-exigir-page.json' );
+
 	$valuation_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : home_url( '/madrid/valoracion/' );
 
 	$html  = '<div class="nvx-que-exigir-editorial">';
 	
 	// Hero
-	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-que-exigir-h1">' . esc_html__( 'Qué exigir por escrito antes de operarte en una clínica estética de Madrid', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-que-exigir-h1">' . esc_html( $data['hero']['h1'] ?? '' ) . '</h1>';
 	
 	// E-E-A-T Byline
 	$html .= '<div class="nvx-medical-byline nvx-medical-byline--border">';
 	$html .= '<div class="nvx-medical-byline__text">';
-	$html .= '<strong>' . esc_html__( 'Escrito y firmado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
-	$html .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Nº Col. ICOMEM: 282864786', 'nuvanx-medical' ) . '</span>';
+	$html .= '<strong>' . esc_html( $data['byline']['author'] ?? '' ) . '</strong><br>';
+	$html .= '<span class="nvx-medical-byline__title">' . esc_html( $data['byline']['title'] ?? '' ) . '</span>';
 	$html .= '</div></div>';
 
 	$html .= '<div class="nvx-que-exigir-body">';
 	
 	// Intro
-	$html .= '<p><strong>' . esc_html__( 'Escribo esto porque lo que voy a contarte ha perjudicado a pacientes en clínicas de este mismo barrio.', 'nuvanx-medical' ) . '</strong></p>';
-	$html .= '<p>' . esc_html__( 'La medicina estética y la cirugía plástica en Madrid se han llenado de franquicias y clínicas "low-cost" que invierten más en marketing que en protocolos médicos. Si estás valorando una intervención, antes de dar una señal económica, exige que te documenten por escrito los siguientes 5 puntos. Tu salud y tu resultado dependen de ello.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><strong>' . esc_html( $data['intro']['bold'] ?? '' ) . '</strong></p>';
+	$html .= '<p>' . esc_html( $data['intro']['text'] ?? '' ) . '</p>';
 
-	// 1. El contrato clínico
-	$html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '1. El contrato clínico: la técnica exacta', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'Huye de términos comerciales como "liposucción avanzada" o "lifting sin cirugía flash". El documento médico debe especificar la técnica real (p. ej., "Laserlipólisis subcutánea con fibra de 600 µm a 1470 nm"). Además, debe constar el nombre y número de colegiado del médico que ejecutará el procedimiento. ¿Qué ocurre si el médico principal "no puede" intervenir ese día? El contrato debe protegerte contra la rotación de plantilla.', 'nuvanx-medical' ) . '</p>';
-
-	// 2. La anestesia
-	$html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '2. La anestesia: quién y cómo', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'La diferencia entre sedación consciente y anestesia general no es trivial. Pregunta abiertamente si el procedimiento requiere un anestesista cualificado en quirófano o si se realiza con sedación oral/tópica en sala blanca. En NUVANX, por ejemplo, evitamos la anestesia general realizando procedimientos mínimamente invasivos (Endolift®) que solo requieren anestesia local y/o sedación consciente.', 'nuvanx-medical' ) . '</p>';
-
-	// 3. Fotos Antes y Después
-	$html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '3. Casos clínicos reales, no de catálogo', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'Es habitual que algunas clínicas enseñen catálogos fotográficos proporcionados por el fabricante de la máquina (la marca del láser o de los inyectables). Exige ver casos de "Antes y Después" realizados específicamente por el médico que te va a tratar, no fotos de stock o de la franquicia central.', 'nuvanx-medical' ) . '</p>';
-
-	// 4. Las Reseñas
-	$html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '4. Cómo distinguir reseñas infladas', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( 'Revisa la brecha entre las plataformas. Si una clínica tiene 4.9 en Google (donde a menudo se pide la reseña en recepción a cambio de un descuento) pero un 2.5 en Trustpilot o foros independientes, cuidado. Una clínica con autoridad no te pide una reseña antes de ver el resultado final de tu tratamiento.', 'nuvanx-medical' ) . '</p>';
-
-	// 5. Presupuesto cerrado
-	$html .= '<h2 class="nvx-que-exigir-h2">' . esc_html__( '5. El presupuesto cerrado y desglosado', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p>' . esc_html__( '¿Incluye el seguimiento? ¿Y las prendas de presoterapia (fajas) o la medicación postoperatoria? Un presupuesto clínico profesional no tiene "costes ocultos" ni caduca en 24 horas para forzarte a decidir.', 'nuvanx-medical' ) . '</p>';
+	// Sections
+	foreach ( (array) ( $data['sections'] ?? array() ) as $sec ) {
+		$html .= '<h2 class="nvx-que-exigir-h2">' . esc_html( $sec['title'] ?? '' ) . '</h2>';
+		$html .= '<p>' . esc_html( $sec['body'] ?? '' ) . '</p>';
+	}
 
 	$html .= '<hr class="nvx-que-exigir-hr">';
 	
 	// CTA Block
 	$html .= '<div class="nvx-que-exigir-cta-box">';
-	$html .= '<h3 class="nvx-que-exigir-cta-title">' . esc_html__( 'La transparencia clínica no es un lujo, es tu derecho', 'nuvanx-medical' ) . '</h3>';
-	$html .= '<p class="nvx-que-exigir-cta-text">' . esc_html__( 'En NUVANX, firmamos el protocolo exacto y el presupuesto cerrado antes de cualquier procedimiento. Si quieres revisar cómo lo hacemos o buscas una segunda opinión objetiva sobre tu caso, agenda una valoración médica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h3 class="nvx-que-exigir-cta-title">' . esc_html( $data['cta']['title'] ?? '' ) . '</h3>';
+	$html .= '<p class="nvx-que-exigir-cta-text">' . esc_html( $data['cta']['text'] ?? '' ) . '</p>';
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$html .= nvx_cta_pair_markup( 'nvx-que-exigir-hero-ctas nvx-home-hero-ctas' );
 	} else {
-		$html .= '<a href="' . esc_url( $valuation_url ) . '" class="nvx-button">' . esc_html__( 'Iniciar mi valoración médica', 'nuvanx-medical' ) . '</a>';
+		$html .= '<a href="' . esc_url( $valuation_url ) . '" class="nvx-button">' . esc_html( $data['cta']['fallback_btn'] ?? '' ) . '</a>';
 	}
 	$html .= '</div>';
 
@@ -105,3 +94,4 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 	return $html;
 }
 add_filter( 'the_content', 'nvx_content_que_exigir_hijack', 122 );
+

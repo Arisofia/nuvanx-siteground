@@ -74,6 +74,7 @@ SOURCE_REQUIRED_FILES=(
   templates/page-soluciones-medicas.php
   inc/nvx-blog-system.php
   inc/nvx-document-governance.php
+  inc/nvx-page-hygiene.php
   inc/nvx-solutions-page.php
   inc/nvx-clinics-hub.php
 )

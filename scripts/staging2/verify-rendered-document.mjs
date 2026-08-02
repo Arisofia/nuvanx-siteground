@@ -105,15 +105,17 @@ async function verifyRoute(route) {
   assert(/<html\b[^>]*\blang=["']es(?:-ES)?["']/iu.test(html), `${route}: missing Spanish html lang`);
   assert(count(html, /<meta\b[^>]*\bname=["']viewport["'][^>]*>/giu) === 1, `${route}: viewport must appear exactly once`);
 
-  const titles = matchAll(html, titlePattern);
+  const headHtml = (/<head\b[^>]*>([\s\S]*?)<\/head>/iu.exec(html) || [])[1] || html;
+
+  const titles = matchAll(headHtml, titlePattern);
   assert(titles.length === 1, `${route}: title must appear exactly once`);
   assert(titles[0][1].trim().length > 0, `${route}: title must be non-empty`);
 
-  const descriptions = matchAll(html, descriptionPattern);
+  const descriptions = matchAll(headHtml, descriptionPattern);
   assert(descriptions.length === 1, `${route}: meta description must appear exactly once`);
   assert(attribute(descriptions[0][0], 'content').trim().length >= 40, `${route}: meta description is missing or too short`);
 
-  const canonicals = matchAll(html, canonicalPattern);
+  const canonicals = matchAll(headHtml, canonicalPattern);
   assert(canonicals.length === 1, `${route}: canonical must appear exactly once`);
   assert(attribute(canonicals[0][0], 'href').startsWith(baseUrl), `${route}: canonical must use the staging2 host`);
 

@@ -1,10 +1,17 @@
 name: Code Quality (Lint)
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
       - master
   pull_request:
+
+concurrency:
+  group: ci-quality-${{ github.ref }}
+  cancel-in-progress: true
 
 # SonarCloud analysis runs via SonarCloud Automatic Analysis (the "SonarCloud Code
 # Analysis" check), not a CI scanner job here: SonarCloud rejects CI-based analysis

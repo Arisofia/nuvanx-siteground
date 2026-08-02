@@ -158,7 +158,24 @@ function nvx_theme_disable_public_facebook_pixel( $plugins ) {
 	if ( ! is_array( $plugins ) ) {
 		return $plugins;
 	}
-	if ( is_admin() || wp_doing_cron() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+
+	// Keep available in wp-admin / CLI for configuration.
+	if (
+		( function_exists( 'is_admin' ) && is_admin() && ! ( function_exists( 'wp_doing_ajax' ) && wp_doing_ajax() ) )
+		|| ( function_exists( 'wp_doing_cron' ) && wp_doing_cron() )
+		|| ( defined( 'WP_CLI' ) && WP_CLI )
+	) {
+		return $plugins;
+	}
+
+	// Sitewide plugins use plugin => timestamp map.
+	$is_map = array() !== $plugins && function_exists( 'array_is_list' ) && ! array_is_list( $plugins );
+	if ( $is_map ) {
+		foreach ( array_keys( $plugins ) as $plugin ) {
+			if ( is_string( $plugin ) && false !== strpos( $plugin, 'official-facebook-pixel/' ) ) {
+				unset( $plugins[ $plugin ] );
+			}
+		}
 		return $plugins;
 	}
 
@@ -174,6 +191,17 @@ function nvx_theme_disable_public_facebook_pixel( $plugins ) {
 }
 add_filter( 'option_active_plugins', 'nvx_theme_disable_public_facebook_pixel', 1 );
 add_filter( 'site_option_active_sitewide_plugins', 'nvx_theme_disable_public_facebook_pixel', 1 );
+
+/**
+ * Campaign attribution marker for Google Ads QA (absorbed from retired MU).
+ */
+function nvx_theme_print_google_attribution_meta(): void {
+	if ( is_admin() ) {
+		return;
+	}
+	echo '<meta name="nuvanx-google-attribution" content="enabled" />' . "\n";
+}
+add_action( 'wp_head', 'nvx_theme_print_google_attribution_meta', 3 );
 
 /*
  * Single owner for eager third-party script strips on the public front end.

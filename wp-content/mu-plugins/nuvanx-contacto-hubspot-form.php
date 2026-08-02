@@ -173,6 +173,10 @@ function nvx_contacto_enforce_final_og_image( string $html ): string {
 /**
  * Drop non-Yoast Schema.org application/ld+json script tags from a head buffer.
  *
+ * Content-body stripping lives in the theme (nvx-jsonld-content.php →
+ * the_content @5). This MU only rewrites the wp_head slice so Yoast's
+ * yoast-schema-graph remains the sole head Schema.org block.
+ *
  * @param array<int,string> $matches preg_replace_callback matches.
  */
 function nvx_canonical_schema_filter_ldjson_script( array $matches ): string {
@@ -181,6 +185,11 @@ function nvx_canonical_schema_filter_ldjson_script( array $matches ): string {
 
 	if ( false !== stripos( $tag, 'yoast-schema-graph' ) ) {
 		return $tag;
+	}
+
+	// Prefer theme helper when loaded (same schema.org / @type detection).
+	if ( function_exists( 'nvx_jsonld_is_schema_org_payload' ) ) {
+		return nvx_jsonld_is_schema_org_payload( $payload ) ? '' : $tag;
 	}
 
 	if ( preg_match( '/schema\.org|@graph\b|"@type"\s*:/i', $payload ) ) {
@@ -198,8 +207,13 @@ function nvx_canonical_schema_strip_non_yoast_ldjson( string $html ): string {
 		return $html;
 	}
 
+	// Prefer shared theme pattern when available (MU runs head buffer after theme load).
+	$pattern = function_exists( 'nvx_jsonld_script_pattern' )
+		? nvx_jsonld_script_pattern()
+		: '#<script\b(?=[^>]*\btype\s*=\s*(["\'])application/ld\+json\1)[^>]*>([\s\S]*?)</script>#iu';
+
 	$schema_filtered = preg_replace_callback(
-		'#<script\b(?=[^>]*\btype\s*=\s*(["\'])application/ld\+json\1)[^>]*>([\s\S]*?)</script>#iu',
+		$pattern,
 		'nvx_canonical_schema_filter_ldjson_script',
 		$html
 	);

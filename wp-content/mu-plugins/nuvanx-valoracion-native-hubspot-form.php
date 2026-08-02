@@ -129,12 +129,5 @@ add_action(
 	1
 );
 
-add_action(
-	'wp_footer',
-	static function (): void {
-		if ( nvx_valoracion_native_hubspot_is_target_page() ) {
-			echo '<script>window.nuvanxValoracionForm=true;</script>' . "\n";
-		}
-	},
-	20
-);
+// No footer flag: window.nuvanxValoracionForm was never read by theme or MU JS.
+// HubSpot demand-load is owned by nvx-runtime-governance.js + data-nvx-hubspot-lazy.

@@ -85,6 +85,10 @@ function nvx_should_strip_embedded_jsonld() {
 /**
  * Filter callback: strip Schema.org JSON-LD from the_content on pages only.
  *
+ * Hooked from nvx-structured-data.php (the_content priority 5). Head-level
+ * Yoast exclusivity is a separate MU concern (wp_head buffer in
+ * nuvanx-contacto-hubspot-form.php) and reuses these helpers when loaded.
+ *
  * @param string $content Post content HTML.
  * @return string
  */

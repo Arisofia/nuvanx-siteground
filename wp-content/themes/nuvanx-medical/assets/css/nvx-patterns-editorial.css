@@ -211,8 +211,9 @@
 }
 
 .nvx-method-col__icon svg {
-  width: var(--nvx-space-4);
-  height: var(--nvx-space-4);
+  /* Icon scale token — not spacing; keeps parity with .nvx-value__icon */
+  width: var(--nvx-icon-md);
+  height: var(--nvx-icon-md);
 }
 
 .nvx-method-col__title {

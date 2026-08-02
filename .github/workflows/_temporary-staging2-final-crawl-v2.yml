@@ -73,7 +73,7 @@ jobs:
           import subprocess
           from html import unescape
           from html.parser import HTMLParser
-          from urllib.parse import urljoin
+          from urllib.parse import urljoin, urlparse
 
           BASE = 'https://staging2.nuvanx.com/'
           RESOLVE = ['--resolve', 'staging2.nuvanx.com:443:127.0.0.1']
@@ -101,25 +101,6 @@ jobs:
                           self.stylesheets += 1
                           if 'nvx-base.css' in href:
                               self.nvx_base += 1
-
-          def fetch(url):
-              proc = subprocess.run(
-                  ['curl', '-ksS', '-L', '--max-time', '25', *RESOLVE, '--write-out', HTTP_MARKER + '%{http_code}', url],
-                  text=True,
-                  stdout=subprocess.PIPE,
-                  stderr=subprocess.PIPE,
-                  check=False,
-              )
-              if HTTP_MARKER not in proc.stdout:
-                  raise RuntimeError(f'No HTTP status returned for {url}: {proc.stderr.strip()}')
-              body, status_text = proc.stdout.rsplit(HTTP_MARKER, 1)
-              try:
-                  status = int(status_text)
-              except ValueError as exc:
-                  raise RuntimeError(f'Invalid HTTP status for {url}: {status_text!r}') from exc
-              if proc.returncode != 0:
-                  raise RuntimeError(f'curl failed for {url}: exit={proc.returncode} status={status}')
-              return status, body
 
           def locs_from_xml(xml_content):
               locs = []

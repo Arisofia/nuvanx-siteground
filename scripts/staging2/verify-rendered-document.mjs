@@ -67,38 +67,49 @@ function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-async function fetchHtmlWithRetry(url, attempts = 5) {
+async function fetchHtmlWithRetry(url, attempts = 8) {
   let lastError = new Error(`No response received from ${url}`);
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
       const response = await fetch(url, {
         redirect: 'follow',
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(20000),
         headers: {
           'cache-control': 'no-cache, no-store, max-age=0',
           pragma: 'no-cache',
-          'user-agent': 'NUVANX-Rendered-Document-Acceptance/1.0'
+          // Browser-like UA: SiteGround edge occasionally answers GitHub runner
+          // custom agents with HTTP 202 placeholder bodies after cache purge.
+          'user-agent':
+            'Mozilla/5.0 (compatible; NUVANX-Rendered-Document-Acceptance/1.1; +https://nuvanx.com)',
+          accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8'
         }
       });
 
       const html = await response.text();
+      const hasDoctype = /^<!doctype html>/iu.test(html.trimStart());
+      const bodyLooksComplete = hasDoctype && html.length >= 800;
 
-      // Post-deploy cache purges can briefly return empty or truncated bodies.
-      if (response.status >= 500) {
-        lastError = new Error(`${url}: transient upstream status ${response.status}`);
-      } else if (response.ok && (!/^<!doctype html>/iu.test(html.trimStart()) || html.length < 800)) {
+      // Post-deploy: Soft WAF/edge placeholders (202), upstream errors, and
+      // truncated bodies are retryable rather than hard acceptance failures.
+      if (response.status === 202 || response.status === 203 || response.status >= 500) {
+        lastError = new Error(
+          `${url}: transient upstream status ${response.status} (length=${html.length})`
+        );
+      } else if (response.ok && !bodyLooksComplete) {
         lastError = new Error(
           `${url}: incomplete HTML body after deploy (status=${response.status}, length=${html.length})`
         );
-      } else {
+      } else if (response.ok && bodyLooksComplete) {
         return { response, html };
+      } else {
+        lastError = new Error(`${url}: unexpected status ${response.status} (length=${html.length})`);
       }
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
     }
 
-    if (attempt < attempts) await delay(attempt * 2500);
+    if (attempt < attempts) await delay(attempt * 3000);
   }
 
   throw new Error(`${url}: request failed after ${attempts} attempts: ${lastError.message}`);

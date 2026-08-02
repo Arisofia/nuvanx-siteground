@@ -57,10 +57,18 @@ add_action( 'template_redirect', 'nvx_redirect_superseded_legal_pages', 1 );
 /**
  * Transactional pages that must not pass PageRank via links (noindex + nofollow).
  *
+ * Resolved by slug so IDs may differ across environments.
+ *
  * @return int[]
  */
 function nvx_nofollow_page_ids() {
-	$ids = array( 78 ); // Solicitud recibida — thank-you / transactional.
+	$ids = array();
+	$thank_you = function_exists( 'nvx_page_id_by_slug' )
+		? nvx_page_id_by_slug( 'gracias' )
+		: 0;
+	if ( $thank_you > 0 ) {
+		$ids[] = $thank_you;
+	}
 
 	/**
 	 * Filter page IDs that receive noindex, nofollow.
@@ -71,16 +79,27 @@ function nvx_nofollow_page_ids() {
 }
 
 /**
- * Force 404 on patient cases gallery (ID 2645) to avoid empty galleries online.
+ * Force 404 on patient cases gallery until explicitly marked publication-ready.
  */
 function nvx_force_404_empty_cases() {
-	if ( is_page( 2645 ) && '1' !== (string) get_post_meta( 2645, '_nvx_cases_publication_ready', true ) ) {
-		global $wp_query;
-		$wp_query->set_404();
-		status_header( 404 );
-		nocache_headers();
-		// Do not exit: WordPress must still select and render its 404 template.
+	if ( ! is_page() ) {
+		return;
 	}
+	$cases_id = function_exists( 'nvx_page_id_by_slug' )
+		? nvx_page_id_by_slug( 'casos-de-pacientes' )
+		: 0;
+	if ( $cases_id <= 0 || (int) get_queried_object_id() !== $cases_id ) {
+		return;
+	}
+	if ( '1' === (string) get_post_meta( $cases_id, '_nvx_cases_publication_ready', true ) ) {
+		return;
+	}
+
+	global $wp_query;
+	$wp_query->set_404();
+	status_header( 404 );
+	nocache_headers();
+	// Do not exit: WordPress must still select and render its 404 template.
 }
 add_action( 'template_redirect', 'nvx_force_404_empty_cases', 1 );
 
@@ -165,8 +184,11 @@ function nvx_noindex_page_ids() {
 	}
 
 	// Casos de pacientes: only index after explicit editorial meta.
-	if ( '1' !== (string) get_post_meta( 2645, '_nvx_cases_publication_ready', true ) ) {
-		$ids[] = 2645;
+	$cases_id = function_exists( 'nvx_page_id_by_slug' )
+		? nvx_page_id_by_slug( 'casos-de-pacientes' )
+		: 0;
+	if ( $cases_id > 0 && '1' !== (string) get_post_meta( $cases_id, '_nvx_cases_publication_ready', true ) ) {
+		$ids[] = $cases_id;
 	}
 
 	/**
@@ -293,19 +315,11 @@ function nvx_public_content_text_hygiene( $content ) {
 	$content = preg_replace( '/\bpresupuestos?\s+personalizados?\b/iu', 'presupuesto individualizado tras la valoración médica', $content ) ?? $content;
 	$content = preg_replace( '/\bsin\s+compromiso\b/iu', 'sin obligación de continuar con un tratamiento', $content ) ?? $content;
 
-	// Endolift conflation fixes.
-	$content = preg_replace( '/(Endolift®?\s*)Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', '$1Técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content ) ?? $content;
-	$content = preg_replace( '/Firmeza\s+Endolift®?\s+Radiofrecuencia\s+monopolar\s+para\s+firmeza\s+sin\s+cirug[ií]a/iu', 'Endolift®: técnica láser subdérmica para firmeza facial, indicada tras valoración médica', $content ) ?? $content;
-	$content = preg_replace( '/Endolift®?\s+(?:es|como|mediante)\s+(?:una\s+)?radiofrecuencia\s+monopolar/iu', 'Endolift® es una técnica láser subdérmica', $content ) ?? $content;
-	$content = preg_replace( '/define\s+Endolift®?\s+como\s+radiofrecuencia\s+monopolar/iu', 'describe Endolift® como técnica láser subdérmica', $content ) ?? $content;
+	// Endolift≠radiofrecuencia clinical conflations were corrected at source in CMS
+	// (staging2 audit: zero remaining "Endolift es/como radiofrecuencia" matches).
+	// Do not reintroduce per-request clinical rewrites here — fix post_content instead.
 
-	// Critical clinical fix for Clínicas NUVANX (ID 1399) or any residual conflation.
-	if ( 1399 === (int) get_queried_object_id() ) {
-		$content = preg_replace( '/(Endolift®?)[^\.]*(?:es|como|mediante)?\s*(?:una\s+)?radiofrecuencia[^\.]*/iu', '$1 (tecnología láser subdérmica de 1470 nm)', $content ) ?? $content;
-		$content = preg_replace( '/\bradiofrecuencia\s+Endolift\b/iu', 'láser subdérmico Endolift', $content ) ?? $content;
-	}
-
-	// Valoración CTA fixes.
+	// Valoración CTA fixes (residual incomplete CMS labels).
 	$content = preg_replace( '/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $content ) ?? $content;
 
 	return $content;
@@ -460,7 +474,41 @@ function nvx_enrich_cristina_marquez_profile( string $content ): string {
 }
 
 /**
- * Runtime publication safeguards for P0 business rules.
+ * Resolve a published page ID by slug (environment-safe; no hard-coded IDs).
+ */
+function nvx_page_id_by_slug( string $slug ): int {
+	static $cache = array();
+	$slug         = trim( $slug, '/' );
+	if ( '' === $slug ) {
+		return 0;
+	}
+	if ( array_key_exists( $slug, $cache ) ) {
+		return $cache[ $slug ];
+	}
+	$page = get_page_by_path( $slug, OBJECT, 'page' );
+	$cache[ $slug ] = $page instanceof WP_Post ? (int) $page->ID : 0;
+	return $cache[ $slug ];
+}
+
+/**
+ * Whether the current main request is one of the given page slugs.
+ *
+ * @param string|string[] $slugs Page slug or list of slugs.
+ */
+function nvx_is_page_slug( $slugs ): bool {
+	if ( ! is_page() ) {
+		return false;
+	}
+	$current = (string) get_post_field( 'post_name', get_queried_object_id() );
+	$slugs   = (array) $slugs;
+	return in_array( $current, $slugs, true );
+}
+
+/**
+ * Runtime publication safeguards for residual CMS body only.
+ *
+ * Contacto and valoración are theme-template owned (no the_content HubSpot).
+ * Legal/equipo still accept CMS body and need structural contracts here.
  *
  * @param string $content HTML content.
  * @return string
@@ -470,48 +518,21 @@ function nvx_apply_production_business_rules( $content ) {
 		return $content;
 	}
 
-	$page_id = (int) get_queried_object_id();
-
-	// 3. Contacto (14): Strip HubSpot forms and scripts found inside post_content.
-	if ( 14 === $page_id ) {
-		$content = preg_replace( '/<script[^>]*hsforms\.net[^>]*><\/script>/i', '', $content ) ?? $content;
-		$content = preg_replace( '/<div[^>]*class="[^"]*hbspt-form[^"]*"[^>]*>.*?<\/div>/is', '', $content ) ?? $content;
-	}
-
-	// 4. Valoración (2636): Keep only the first hbspt-form found inside post_content.
-	if ( 2636 === $page_id ) {
-		$count   = 0;
-		$content = preg_replace_callback(
-			'/<div[^>]*class="[^"]*hbspt-form[^"]*"[^>]*>.*?<\/div>/is',
-			static function ( array $matches ) use ( &$count ): string {
-				$count++;
-				return 1 === $count ? $matches[0] : '';
-			},
-			$content
-		) ?? $content;
-	}
-
-	// 5. Privacidad y Aviso Legal: approved copy plus explicit regulatory context.
-	// Prefer slug matching so environment-specific page IDs cannot skip the contract.
-	$legal_slug = is_page() ? (string) get_post_field( 'post_name', $page_id ) : '';
-	$is_legal   = in_array( $page_id, array( 3, 20 ), true )
-		|| in_array( $legal_slug, array( 'politica-privacidad', 'aviso-legal' ), true );
-	if ( $is_legal ) {
+	// Privacidad y Aviso Legal: regulatory context + single H1 (slug-based).
+	if ( nvx_is_page_slug( array( 'politica-privacidad', 'aviso-legal' ) ) ) {
 		$content = preg_replace( '/<div\b[^>]*\bnvx-legal-placeholder\b[^>]*>[\s\S]*?<\/div>/iu', '', $content ) ?? $content;
 		if ( false === strpos( $content, 'El artículo 13 del RGPD' ) ) {
 			$content .= nvx_legal_framework_note_markup();
 		}
-		// Document contract: public legal pages must expose exactly one H1.
-		// CMS copy often titles the page with H2; promote the first H2 when no H1 exists.
 		$content = nvx_legal_ensure_document_h1( $content );
 	}
 
-	// 6. Equipo Médico (1575): canonical profile, credentials, formation and Doctoralia source.
-	if ( 1575 === $page_id ) {
+	// Equipo médico: canonical Cristina profile (slug-based; was hard-coded ID 1575).
+	if ( nvx_is_page_slug( 'equipo-medico' ) ) {
 		$content = nvx_enrich_cristina_marquez_profile( $content );
 	}
 
-	// 7. EXION Precios y FAQ: Strip unapproved Morpheus8 comparatives and explicit pricing in EXION pages.
+	// EXION pages: strip unapproved Morpheus8 comparatives and bare euro prices in copy.
 	if ( false !== stripos( $content, 'EXION' ) || false !== stripos( $content, 'Morpheus' ) ) {
 		$content = preg_replace( '/<details[^>]*>.*?Morpheus.*?<\/details>/is', '', $content ) ?? $content;
 		$content = preg_replace( '/(EXION[^<]*?)\b\d{3,4}\s*€/i', '$1 (Presupuesto tras valoración)', $content ) ?? $content;

@@ -107,48 +107,16 @@ add_action( 'wp_enqueue_scripts', 'nvx_document_governance_strip_eager_hubspot',
 add_action( 'wp_enqueue_scripts', 'nvx_document_governance_enqueue_assets', 100 );
 
 /**
- * Whether the current front request is the solutions hub that cannot use nested
- * document output buffers (staging2 PHP-FPM returned empty HTTP 200 bodies).
+ * Whether the current front request is the medical solutions hub.
+ *
+ * Used only for route-specific template/content decisions — not for skipping
+ * the document buffer (all public routes share one rewrite pipeline).
  */
 function nvx_document_governance_is_solutions_hub(): bool {
 	return ! is_admin()
 		&& is_page()
 		&& 'soluciones-medicas' === (string) get_post_field( 'post_name', get_queried_object_id() );
 }
-
-/**
- * Emit head pieces that the document buffer would own on routes that skip it.
- *
- * /soluciones-medicas/ skips nested output-buffer callbacks. Yoast reliably emits
- * the catalogue description for this hub, but does not always emit a canonical
- * (especially under staging noindex). We therefore emit exactly one canonical and
- * the document-contract marker — never a second meta description.
- */
-function nvx_document_governance_print_fallback_meta(): void {
-	if ( ! nvx_document_governance_is_solutions_hub() ) {
-		return;
-	}
-
-	$canonical = nvx_document_governance_canonical_url();
-	echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
-	echo '<meta name="nvx-document-contract" content="1" />' . "\n";
-}
-add_action( 'wp_head', 'nvx_document_governance_print_fallback_meta', 2 );
-
-/**
- * Prevent a second Yoast canonical on the solutions hub (we emit the only one).
- *
- * @param string|false $canonical Existing Yoast canonical.
- * @return string|false
- */
-function nvx_document_governance_suppress_duplicate_solutions_canonical( $canonical ) {
-	if ( function_exists( 'nvx_document_governance_is_solutions_hub' ) && nvx_document_governance_is_solutions_hub() ) {
-		return false;
-	}
-
-	return $canonical;
-}
-add_filter( 'wpseo_canonical', 'nvx_document_governance_suppress_duplicate_solutions_canonical', 1000 );
 
 /**
  * Remove only the individual script element that owns a retired integration.
@@ -559,13 +527,23 @@ function nvx_document_governance_normalize_head( string $head, string $visible_t
 
 /**
  * Final public-document callback.
+ *
+ * Single pipeline: infrastructure cleanup (integrations) then document contract
+ * (title/description/canonical/viewport/images). Nested buffers are forbidden.
  */
 function nvx_document_governance_normalize_document( string $html ): string {
 	if ( '' === $html || false === stripos( $html, '<html' ) ) {
 		return $html;
 	}
 
-	$html         = nvx_document_governance_remove_retired_scripts( $html );
+	// Theme infrastructure normalizer (viewport, retired scripts, GSI strip, FAQ).
+	// Defined in nvx-integrations.php; optional so early header load stays safe.
+	if ( function_exists( 'nvx_theme_normalize_public_document' ) ) {
+		$html = nvx_theme_normalize_public_document( $html );
+	} else {
+		$html = nvx_document_governance_remove_retired_scripts( $html );
+	}
+
 	$html         = nvx_document_governance_add_image_dimensions( $html );
 	$visible_text = nvx_document_governance_visible_main_text( $html );
 

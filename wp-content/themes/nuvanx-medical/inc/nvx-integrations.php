@@ -138,22 +138,10 @@ function nvx_theme_normalize_public_document( string $html ): string {
 	return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
 }
 
-add_action(
-	'template_redirect',
-	function () {
-		if ( is_admin() ) {
-			return;
-		}
-		// /soluciones-medicas/ has produced HTTP 200 + empty body under nested
-		// output-buffer callbacks on staging2 PHP-FPM. Skip document rewrite
-		// buffers on that route so the dedicated template can flush HTML.
-		if ( is_page() && 'soluciones-medicas' === (string) get_post_field( 'post_name', get_queried_object_id() ) ) {
-			return;
-		}
-		ob_start( 'nvx_theme_normalize_public_document' );
-	},
-	0
-);
+// Public document rewrite is owned solely by nvx-document-governance.php
+// (header.php starts one buffer). nvx_theme_normalize_public_document() is
+// invoked from that callback so infrastructure cleanup and head contract share
+// a single output pipeline — no nested buffers, no route exceptions.
 
 require_once __DIR__ . '/nvx-structured-data.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';

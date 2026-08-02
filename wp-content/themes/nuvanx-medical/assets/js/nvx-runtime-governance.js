@@ -20,6 +20,11 @@
     });
   }
 
+  /**
+   * A11y layer only. Open/close and class/aria state belong to nvx-main.js
+   * (same DOM ids). This module keeps inert + focus trap + Escape in sync
+   * without re-implementing the menu controller.
+   */
   function initMobileNavigationGovernance() {
     const nav = document.getElementById(config.mobileNavId || 'nvx-mobile-nav');
     const trigger = document.getElementById('nvx-hamburger-btn');
@@ -29,37 +34,22 @@
     let wasOpen = false;
 
     function isOpen() {
-      return (
-        nav.hasAttribute('open') ||
-        nav.classList.contains('is-open') ||
-        nav.getAttribute('aria-hidden') === 'false'
-      );
+      return nav.classList.contains('is-open') || nav.hasAttribute('open');
     }
 
-    function closeNav() {
-      nav.classList.remove('is-open');
-      nav.removeAttribute('open');
-      nav.setAttribute('aria-hidden', 'true');
+    /** Prefer main.js close handler so body overflow / aria stay consistent. */
+    function requestClose() {
+      if (close && typeof close.click === 'function') {
+        close.click();
+        return;
+      }
       setInert(nav, true);
-      trigger.setAttribute('aria-expanded', 'false');
-      document.body.style.overflow = '';
     }
 
-    function synchronize() {
+    function synchronizeA11y() {
       const open = isOpen();
       const focusWasInside = nav.contains(document.activeElement);
       setInert(nav, !open);
-
-      if (open) {
-        if (!nav.hasAttribute('open')) nav.setAttribute('open', '');
-        if (!nav.classList.contains('is-open')) nav.classList.add('is-open');
-        if (nav.getAttribute('aria-hidden') !== 'false') {
-          nav.setAttribute('aria-hidden', 'false');
-        }
-      } else if (nav.hasAttribute('open') || nav.classList.contains('is-open')) {
-        nav.removeAttribute('open');
-        nav.classList.remove('is-open');
-      }
 
       if (open && !wasOpen) {
         window.setTimeout(function () {
@@ -77,7 +67,7 @@
     setInert(nav, !isOpen());
     wasOpen = isOpen();
 
-    // Remove inert synchronously before the existing menu handler exposes the drawer.
+    // Clear inert before main.js opens the drawer (main runs on bubble phase).
     trigger.addEventListener(
       'click',
       function () {
@@ -86,15 +76,15 @@
       true
     );
 
-    new MutationObserver(synchronize).observe(nav, {
+    new MutationObserver(synchronizeA11y).observe(nav, {
       attributes: true,
-      attributeFilter: ['class', 'aria-hidden', 'open']
+      attributeFilter: ['class', 'open']
     });
 
     nav.addEventListener('click', function (event) {
       const link = event.target?.closest?.('a[href]') || null;
       if (!link) return;
-      closeNav();
+      requestClose();
     });
 
     document.addEventListener('keydown', function (event) {
@@ -102,8 +92,7 @@
 
       if (event.key === 'Escape') {
         event.preventDefault();
-        if (close) close.click();
-        else closeNav();
+        requestClose();
         return;
       }
 

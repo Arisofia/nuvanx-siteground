@@ -20,7 +20,12 @@
       mobileNav.setAttribute('inert', '');
     }
     if (ham) ham.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-    document.body.style.overflow = willOpen ? 'hidden' : '';
+    // Keep scroll lock if the valoración modal is open.
+    if (willOpen) {
+      document.body.style.overflow = 'hidden';
+    } else if (!document.body.classList.contains('nvx-valoracion-modal-open')) {
+      document.body.style.overflow = '';
+    }
   }
 
   if (ham && mobileNav) {
@@ -52,11 +57,13 @@
   });
 
   /* --- Valoración modal (header / mobile / CTAs) --- */
-  (function initValoracionModal() {
-    var cfg = window.nvxValoracionModal;
-    if (!cfg || cfg.enabled === false) return;
+  function initValoracionModal() {
+    // Boot object is emitted by nvx-valoracion-modal.php before this handle.
+    // DOM shell presence is the final gate (not printed when enabled=false).
+    var cfg = window.nvxValoracionModal || {};
+    if (cfg.enabled === false) return;
 
-    var modal = document.getElementById('nvx-valoracion-modal');
+    var modal = document.getElementById(cfg.modalId || 'nvx-valoracion-modal');
     if (!modal) return;
 
     var lastFocus = null;
@@ -234,5 +241,11 @@
       openModal(document.activeElement);
     };
     window.nvxCloseValoracionModal = closeModal;
-  })();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initValoracionModal, { once: true });
+  } else {
+    initValoracionModal();
+  }
 })();

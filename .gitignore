@@ -20,20 +20,8 @@ wp-content/uploads/sb-instagram-feed-images/
 Thumbs.db
 error_log
 
-# Backups de despliegue y exportaciones de BD
-wp-content/backups-nuvanx/
-tools/deploy/*.sql
-tools/deploy/*.bak
-tools/deploy/nvx-cms-content-cleanup-backup-*.sql
-*.sql.gz
-
 # Entornos de Desarrollo Local, QA y Node
 node_modules/
 mcps/
 Nuvanx-System/
 qa/
-
-# Capturas de pantalla QA locales en la raíz (evitar commit de screenshots de prueba)
-images/*.png
-images/*.jpg
-images/*.jpeg

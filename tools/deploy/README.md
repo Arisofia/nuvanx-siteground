@@ -1,15 +1,21 @@
 # Deployment helpers
 
-**Mutating scripts — require `--confirm` or `NUVANX_CONFIRM=yes`.**
+Mutating scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 
 | Script | Purpose |
 |--------|---------|
-| `deploy-to-prod.sh` | Guard siteurl, backup prod, rsync theme from staging, copy form MU plugins only, strip `nvx-*.min.css`, purge cache |
-| `flush-prod-cache.sh` | Flush WordPress object cache |
+| `deploy-to-staging2.sh` | Guard Staging2 identity, lint, backup, rsync theme, stamp SHA, purge caches |
+| `deploy-required-mu-plugins.sh` | Deploy required NUVANX MU plugins (staging2 or production) |
+| `deploy-to-prod.sh` | Promote theme from staging disk to production; copy form MU plugins only |
+| `flush-prod-cache.sh` | Flush WordPress object cache for a given root |
 
-Deployment workflows are intentionally absent from GitHub. Use this guarded
-host-level production path only after staging2 has been validated (see
-[docs/operations/deployment.md](../../docs/operations/deployment.md)).
+Staging2 deploy is driven by GitHub Actions (`.github/workflows/deploy-staging2.yml`). Production promote remains host-level only. See [docs/operations/deployment.md](../../docs/operations/deployment.md).
+
+## Staging2 (via GitHub)
+
+Use **Deploy Staging2 (manual)** with a full SHA and confirmation `DEPLOY_STAGING2`.
+
+## Production (on SiteGround host)
 
 ```bash
 export WP_PROD=/home/customer/www/nuvanx.com/public_html
@@ -19,8 +25,6 @@ NUVANX_CONFIRM=yes bash tools/deploy/deploy-to-prod.sh \
   --prod-root "$WP_PROD" \
   --staging-root "$WP_STG2" \
   --confirm
-
-BASE_URL=https://nuvanx.com bash scripts/ops/post-promote-verify.sh
 ```
 
 ```bash

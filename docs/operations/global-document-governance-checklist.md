@@ -2,42 +2,42 @@
 
 ## Before merge
 
-- Theme PHP lint passes.
-- JavaScript syntax checks pass.
-- All three governance workflows pass `actionlint`.
-- Document governance runtime contract passes twice to prove idempotence.
-- The exact-SHA Staging2 acceptance contract passes.
-- Existing catalog, rendering and valoración contracts remain green.
-- The branch is based on the current `master` without historical merge commits.
+- Theme PHP lint passes
+- JavaScript syntax checks pass
+- Permanent workflows pass `actionlint` in Theme Hygiene Gate
+- Document governance runtime contract passes (including double-normalize idempotence)
+- Staging2 exact-SHA acceptance contract source is present
+- Catalog, rendering and valoración contracts remain green
+- Branch is based on current `master`
 
 ## Staging2 deployment
 
-- Deploy one full 40-character SHA already contained in `master`.
-- Verify the theme deployment marker.
-- Purge WordPress, SiteGround dynamic and browser-facing asset caches.
-- The deployment job must run complete rendered acceptance with `EXPECTED_SHA` equal to its own immutable `DEPLOY_SHA`.
-- Do not accept a successful deployment until this exact-SHA verification completes.
-- Use `Staging2 Rendered Acceptance` only for independent manual revalidation, always supplying the full deployed SHA.
+- Deploy one full 40-character SHA already contained in `master`
+- Verify the theme deployment marker
+- Purge WordPress and SiteGround caches
+- Deployment job runs complete rendered acceptance with `EXPECTED_SHA` equal to `DEPLOY_SHA`
+- Do not treat deploy as successful until exact-SHA verification completes
+- Use `Staging2 Rendered Acceptance` only for independent revalidation with the full deployed SHA
 
 ## Rendered acceptance
 
-- Home, Contacto, Soluciones, Valoración, medical hubs, Equipo and Clínicas return 2xx.
-- Every route renders exactly one title, description, canonical and viewport.
-- Every route serves the expected deployment SHA.
-- Staging2 remains protected by meta and HTTP noindex directives.
-- Site Kit consent bootstrap variables survive document normalization.
-- No retired FacebookSignal runtime or unresolved CMS marker reaches the browser.
-- HubSpot is absent from initial non-form page scripts and loads only after user intent.
-- The Home evidence image contains intrinsic dimensions.
-- Soluciones renders its canonical hierarchy and dedicated stylesheet.
+- Home, Contacto, Soluciones, Valoración, medical hubs, Equipo and Clínicas return 2xx
+- Every route renders exactly one title, description, canonical and viewport
+- Every route serves the expected deployment SHA
+- Staging2 remains protected by meta and HTTP noindex
+- Site Kit consent bootstrap survives document normalization when present
+- No FacebookSignal or unresolved CMS strategy marker in public HTML
+- HubSpot is absent from initial HTML scripts and loads only after user intent
+- Home evidence image has intrinsic dimensions
+- Soluciones renders its hierarchy and dedicated stylesheet
 
 ## Browser validation
 
-- Run Lighthouse mobile on Home and Contacto after caches are purged.
-- Confirm no consent-mode exception in the browser console.
-- Confirm desktop navigation, mobile drawer, Escape, Tab containment and focus restoration.
-- Confirm the valoración modal loads its form after an explicit CTA action and retains its full-page fallback.
+- Lighthouse mobile on Home and Contacto after cache purge
+- No consent-mode exception in the browser console
+- Desktop navigation and mobile drawer (Escape, Tab containment, focus restore)
+- Valoración modal loads the form after an explicit CTA and keeps the full-page fallback
 
 ## Promotion rule
 
-Production promotion is prohibited until the exact Staging2 SHA passes the complete rendered acceptance and browser validation. No page-level override, manual CSS injection or rollback branch is an acceptable substitute.
+Production promotion is prohibited until the exact Staging2 SHA passes complete rendered acceptance and browser validation. No page-level override or ad-hoc CSS injection substitutes for that gate.

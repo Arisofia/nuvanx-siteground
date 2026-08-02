@@ -1,32 +1,40 @@
 # NUVANX repository
 
-Canonical SiteGround deployment source for the NUVANX WordPress site.
+Canonical source for the NUVANX WordPress site on SiteGround.
 
-## Current structure
+## Structure
 
-- [wp-content/themes/nuvanx-medical](wp-content/themes/nuvanx-medical): production theme (single source of truth).
-- [wp-content/mu-plugins](wp-content/mu-plugins): site-specific must-use plugins.
-- [tools/audit](tools/audit): read-only audit helpers.
-- [tools/deploy](tools/deploy): deployment helpers; see [docs/operations/deployment.md](docs/operations/deployment.md).
-- [tools/migrations](tools/migrations): migration utilities.
-- [docs](docs): operational documentation and design system notes.
+| Path | Role |
+|------|------|
+| `wp-content/themes/nuvanx-medical/` | Canonical production theme |
+| `wp-content/mu-plugins/` | Required NUVANX must-use plugins |
+| `tools/deploy/` | Host-level deploy and cache scripts |
+| `scripts/theme-hygiene/` | CI contract tests for theme and docs |
+| `scripts/staging2/` | Staging2 rendered acceptance and visual helpers |
+| `.github/workflows/` | Permanent CI and deploy workflows |
+| `docs/` | Architecture and operations documentation |
 
-## Repository access
+Only one theme is tracked: `nuvanx-medical`.
 
-Configure the canonical Git remote, GitHub CLI, and non-interactive authentication
-with the [GitHub access bootstrap](docs/github-access-bootstrap.md). Credentials are
-provided at runtime and are never committed to the repository.
+## Workflows
 
-## Security incidents
+| Workflow | Purpose |
+|----------|---------|
+| **Theme Hygiene Gate** | Lint, PHP/JS contracts, theme hygiene before merge |
+| **Deploy Staging2 (manual)** | Immutable SHA deploy to `staging2.nuvanx.com` + rendered acceptance |
+| **Staging2 Rendered Acceptance** | Manual revalidation of a deployed SHA |
+| **SonarQube Cloud CI** | JS coverage and optional Sonar scan |
 
-Dated incident reports live under [docs/security/](docs/security/). Name new reports `INCIDENT-YYYY-MM-DD.md`.
+A push to `master` does not deploy. Staging2 requires an explicit workflow run with a full 40-character SHA and confirmation `DEPLOY_STAGING2`.
 
-Current:
+## Documentation
 
-- [docs/security/INCIDENT-2026-07-15.md](docs/security/INCIDENT-2026-07-15.md) — repository secret-exposure incident; containment and remediation.
+- [Architecture](docs/architecture.md)
+- [Deployment operations](docs/operations/deployment.md)
+- [Document governance](docs/operations/global-document-governance.md)
+- [Governance checklist](docs/operations/global-document-governance-checklist.md)
+- [Deploy helpers](tools/deploy/README.md)
 
-## Safety note
+## Safety
 
-The production baseline should be verified from the active WordPress installation and SiteGround environment before syncing.
-Repository hygiene is validated by CI before promotion.
-Only one theme is tracked: `nuvanx-medical`. No draft themes, audit archives, historical CSS snapshots, WordPress language packs (`wp-content/languages/`), or Divi/ET runtime cache (`wp-content/et-cache/`) are kept in this repository.
+Confirm the active WordPress installation and SiteGround environment before any host-level promotion. Production promotion is manual and host-authorized only after Staging2 rendered acceptance passes for the exact SHA.

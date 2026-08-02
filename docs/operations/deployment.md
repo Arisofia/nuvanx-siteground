@@ -1,108 +1,77 @@
 # Deployment operations
 
-Deployment and migration scripts require explicit confirmation.
+Mutating deploy scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 
-## Staging2 (manual, protected GitHub workflow)
+## Identity
 
-A push to `master` **does not deploy** to Staging2. Deployment is available only
-through the GitHub Actions workflow **Deploy Staging2 (manual)**
-(`.github/workflows/deploy-staging2.yml`) using `workflow_dispatch` from the
-`master` branch.
+- Canonical branch: `master`
+- Deployment identity: full lowercase 40-character Git SHA
+- Staging2: `https://staging2.nuvanx.com`
+- Production: `https://nuvanx.com`
 
-The workflow deploys:
+Branch names and tags may select a checkout. They are never proof of what is live. The live marker is:
+
+```text
+wp-content/themes/nuvanx-medical/.nvx-deploy-sha
+```
+
+exposed as:
+
+```html
+<meta name="nvx-deploy-sha" content="<40-character-sha>" />
+```
+
+## Staging2 (manual GitHub workflow)
+
+Push to `master` does **not** deploy. Use **Actions → Deploy Staging2 (manual)** (`.github/workflows/deploy-staging2.yml`) with `workflow_dispatch` from `master`.
+
+### Scope
 
 ```text
 wp-content/themes/nuvanx-medical/
-wp-content/mu-plugins/ (required NUVANX MU plugins)
+wp-content/mu-plugins/   (required NUVANX MU plugins only)
 ```
 
-It does not deploy to production, does not copy the database, does not replace
-the complete WordPress tree and cannot run from a normal push or pull request.
-Pull requests execute only the non-mutating workflow contract test.
+The workflow does not deploy production, does not copy the database, and does not replace the full WordPress tree. Pull requests only run the non-mutating contract job.
 
-### Required GitHub environment and secrets
+### Environment secrets (`staging2`)
 
-Create or retain a protected GitHub Environment named `staging2`. Require manual
-approval there when repository governance supports it. Store these values as
-environment secrets, never in repository files:
-
-- `STAGING2_SSH_HOST`: SiteGround SSH hostname.
-- `STAGING2_SSH_PORT`: SiteGround SSH port; normally `18765`.
-- `STAGING2_SSH_USER`: SiteGround SSH username.
-- `STAGING2_SSH_PRIVATE_KEY`: private key authorized by SiteGround.
-- `STAGING2_SSH_KNOWN_HOSTS`: pinned `known_hosts` entry for the exact host and
-  port. Generate and verify it from a trusted operator workstation; the workflow
-  intentionally refuses runtime `ssh-keyscan` trust.
-
-The private key must not require an interactive passphrase because GitHub Actions
-uses SSH `BatchMode`. Restrict the corresponding server-side key to the staging
-account whenever SiteGround permits it.
+| Secret | Purpose |
+|--------|---------|
+| `STAGING2_SSH_HOST` | SiteGround SSH hostname |
+| `STAGING2_SSH_PORT` | SSH port (normally `18765`) |
+| `STAGING2_SSH_USER` | SSH username |
+| `STAGING2_SSH_PRIVATE_KEY` | BatchMode private key (no passphrase) |
+| `STAGING2_SSH_KNOWN_HOSTS` | Pinned host key; no runtime `ssh-keyscan` |
 
 ### Run a deployment
 
-1. Merge and validate the intended change in `master`.
-2. Copy the complete 40-character commit SHA.
-3. Open **Actions → Deploy Staging2 (manual) → Run workflow**.
-4. Select branch `master`.
-5. Enter the immutable SHA in `git_sha`.
-6. Select `DEPLOY_STAGING2` in the confirmation field.
-7. Approve the protected `staging2` environment when prompted.
+1. Merge the change into `master`.
+2. Copy the full 40-character SHA (no trailing spaces).
+3. Run **Deploy Staging2 (manual)** on `master`.
+4. Set `git_sha` to that SHA.
+5. Set confirmation to `DEPLOY_STAGING2`.
+6. Approve the protected `staging2` environment when prompted.
 
-The workflow rejects any SHA that is not contained in `origin/master`.
+The workflow refuses any SHA not contained in `origin/master`.
 
-### Remote safety sequence
+### Remote sequence
 
-The workflow uploads the selected theme snapshot to an isolated directory under:
+1. Upload an isolated release under  
+   `/home/customer/www/staging2.nuvanx.com/public_html/wp-content/.nuvanx-deployments/<sha>-<run_id>/`
+2. Run `tools/deploy/deploy-to-staging2.sh` (root/URL/theme guards, PHP lint, backup, rsync, SHA stamp, cache purge).
+3. Run `tools/deploy/deploy-required-mu-plugins.sh` for Staging2.
+4. Verify the remote `.nvx-deploy-sha` marker.
+5. Run `scripts/staging2/verify-rendered-document.mjs` against `https://staging2.nuvanx.com` with `EXPECTED_SHA` equal to the deployed SHA.
+6. Remove the temporary remote release directory.
 
-```text
-/home/customer/www/staging2.nuvanx.com/public_html/wp-content/.nuvanx-deployments/
-```
+Success criteria: remote marker match + full rendered acceptance green.
 
-It then runs `tools/deploy/deploy-to-staging2.sh`, which:
+## Production (host-level only)
 
-1. Confirms the exact Staging2 filesystem root, `siteurl`, `home` and active theme.
-2. Lints all PHP files in the uploaded theme.
-3. Creates a timestamped theme backup under
-   `wp-content/backups-nuvanx/pre-staging2-*`.
-4. Synchronizes the theme using `rsync --delete`.
-5. Writes the selected SHA to `.nvx-deploy-sha`.
-6. Purges WordPress, SiteGround and opcode caches.
-7. Automatically restores the backup if a post-mutation command fails.
-8. Runs `scripts/staging2/smoke-verify-staging2.sh` from the GitHub runner.
+Production is **manual**. The Staging2 workflow never writes to `nuvanx.com`.
 
-A successful run emits `DEPLOY_STAGING2_OK` and records the SHA in the Actions
-summary. The temporary upload is always removed at the end of the workflow, regardless of success or failure.
-
-### Host-authorized fallback
-
-When GitHub Actions or SSH secrets are unavailable, an authorized SiteGround
-operator may still upload the intended theme manually to:
-
-```text
-/home/customer/www/staging2.nuvanx.com/public_html/wp-content/themes/nuvanx-medical/
-```
-
-After the upload, run the SHA stamp, cache purge and smoke verification described
-by the repository scripts. Do not infer a deployment merely from a merge to
-GitHub.
-
-## Deploy (production)
-
-Production is **manual only**. The Staging2 workflow does not contain the
-production root and cannot promote code to `nuvanx.com`. After Staging2 validation,
-an authorized operator may promote a known-good SHA using the host-level procedure:
-
-1. Validate Staging2: smoke green + visual QA.
-2. Run the guarded promotion command below from the host with the confirmed
-   staging and production roots.
-3. Run `post-promote-verify` against `https://nuvanx.com`.
-
-The production script creates a theme and selected MU-plugin backup under
-`wp-content/backups-nuvanx/pre-sync-TIMESTAMP/` before synchronization.
-
-### SSH / on-server alternative
-
-When already on the SiteGround host with both trees and `wp-cli`:
+After Staging2 is green for a SHA, on the SiteGround host with both trees and `wp-cli`:
 
 ```bash
 export WP_PROD=/home/customer/www/nuvanx.com/public_html
@@ -114,24 +83,14 @@ NUVANX_CONFIRM=yes bash tools/deploy/deploy-to-prod.sh \
   --confirm
 ```
 
-Notes:
+That script:
 
-- Rsyncs **theme** with `--delete`.
-- Copies only the NUVANX form MU plugins; it does not wipe other MU plugins.
-- Disables SiteGround CSS minify/combine and deletes stale `nvx-*.min.css`.
-- Guards: production `siteurl`/`home` must be `https://nuvanx.com`; staging must
-  be Staging2.
+- rsyncs the theme with `--delete`
+- copies only the required NUVANX form MU plugins
+- disables SiteGround CSS minify/combine and removes stale `nvx-*.min.css`
+- requires production `siteurl`/`home` = `https://nuvanx.com` and staging = Staging2
 
-### Post-promote verification (read-only)
-
-```bash
-BASE_URL=https://nuvanx.com bash scripts/ops/post-promote-verify.sh
-BASE_URL=https://nuvanx.com bash scripts/staging2/smoke-verify-staging2.sh
-```
-
-Expect `POST_PROMOTE_VERIFY_OK` and `SMOKE_VERIFY_OK`.
-
-## Cache flush
+### Production cache flush
 
 ```bash
 NUVANX_CONFIRM=yes bash tools/deploy/flush-prod-cache.sh \
@@ -139,12 +98,15 @@ NUVANX_CONFIRM=yes bash tools/deploy/flush-prod-cache.sh \
   --confirm
 ```
 
-## Migrations
+### Staging2 verification (required before promote)
 
-See [tools/migrations/README.md](../../tools/migrations/README.md). Never run
-migrations in CI.
+```bash
+BASE_URL=https://staging2.nuvanx.com EXPECTED_SHA=<40-char-sha> \
+  node scripts/staging2/verify-rendered-document.mjs
+```
 
-## Pre-deploy audit
+After production promote, confirm the production theme marker and critical routes manually; the Staging2 acceptance script enforces Staging2 noindex policy and is not a production smoke suite.
 
-Run read-only checks from [tools/audit/README.md](../../tools/audit/README.md)
-against Staging2 first.
+## Release record
+
+Each release should record: Git SHA, workflow run URL, active theme, `siteurl`/`home`, PHP/WordPress versions, MU plugins, backup path, rendered-acceptance result, rollback target. Never write secret values into docs or HTML.

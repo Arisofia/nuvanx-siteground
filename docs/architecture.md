@@ -1,10 +1,18 @@
-# Arquitectura del repositorio
+# Repository architecture
 
-Este repositorio debe ser la fuente canónica del sitio NUVANX desplegado en SiteGround.
+This repository is the canonical source for the NUVANX site on SiteGround.
 
-## Principios
-- Un solo tema canónico: wp-content/themes/nuvanx-medical
-- Lógica de integración de HubSpot y atribución en mu-plugins
-- CSS fuente de verdad en archivos sin minificar
-- Build reproducible para generar artefactos .min.css
-- Validaciones automáticas por PHP y CSS
+## Principles
+
+- One theme: `wp-content/themes/nuvanx-medical`
+- Form and attribution integrations live in `wp-content/mu-plugins`
+- Public CSS is enqueued from versioned theme source files
+- Staging2 identity is the full 40-character Git SHA in `.nvx-deploy-sha` and the public `nvx-deploy-sha` meta tag
+- Theme Hygiene Gate and Staging2 rendered acceptance are release gates
+
+## Runtime layers
+
+1. **Theme PHP** — page rendering, SEO catalogue, document governance
+2. **MU plugins** — valoración and contacto HubSpot mounts
+3. **Front-end assets** — design-system CSS and `nvx-runtime-governance.js`
+4. **Deploy scripts** — guarded rsync and cache purge on SiteGround

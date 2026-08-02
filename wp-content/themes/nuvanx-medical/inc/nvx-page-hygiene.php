@@ -36,15 +36,20 @@ function nvx_legal_ensure_document_h1( string $content ): string {
 /**
  * Redirect superseded cookie documents to the Complianz EU statement (page 577).
  */
-function nvx_redirect_superseded_legal_pages() {
-	if ( ! is_page() ) {
+function nvx_redirect_superseded_legal_pages(): void {
+	if ( ( defined( 'WP_CLI' ) && WP_CLI ) || is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
 		return;
 	}
 
-	$page_id = (int) get_queried_object_id();
+	$page_id = is_page() ? (int) get_queried_object_id() : 0;
+	$uri     = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$path    = trim( (string) wp_parse_url( $uri, PHP_URL_PATH ), '/' );
 
-	if ( in_array( $page_id, array( 18, 31 ), true ) ) {
-		$target = get_permalink( 577 );
+	if ( in_array( $page_id, array( 18, 31 ), true ) || in_array( $path, array( 'politica-de-cookies', 'mas-informacion-sobre-las-cookies' ), true ) ) {
+		$target = function_exists( 'get_permalink' ) ? get_permalink( 577 ) : '';
+		if ( ! is_string( $target ) || '' === $target ) {
+			$target = home_url( '/politica-de-cookies-ue/' );
+		}
 
 		if ( is_string( $target ) && '' !== $target ) {
 			wp_safe_redirect( $target, 301, 'NUVANX' );

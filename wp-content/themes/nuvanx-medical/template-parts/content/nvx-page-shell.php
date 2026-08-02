@@ -72,6 +72,12 @@ while ( have_posts() ) :
 	if ( ! $has_managed_editorial && function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key() ) {
 		$has_managed_editorial = true;
 	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_signature_phase_current_key' ) && null !== nvx_signature_phase_current_key() ) {
+		$has_managed_editorial = true;
+	}
+	if ( ! $has_managed_editorial && function_exists( 'nvx_signature_hub_current_key' ) && null !== nvx_signature_hub_current_key( $content ) ) {
+		$has_managed_editorial = true;
+	}
 	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {
 		$has_managed_editorial = true;
 	}

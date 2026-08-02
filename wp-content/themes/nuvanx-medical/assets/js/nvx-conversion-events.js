@@ -141,14 +141,14 @@
 
 	window.addEventListener('hs-form-event:on-submission:success', function (event) {
 		var detail = event && event.detail ? event.detail : {};
-		trackSuccessfulSubmission(detail.formId || '', 'hubspot_v4');
+		trackSuccessfulSubmission(detail.formId || '', 'hubspot_form_event');
 	});
 
 	window.addEventListener('message', function (event) {
 		if (!isAllowedHubSpotOrigin(event.origin)) return;
 		var data = event.data || {};
 		if (data.type !== 'hsFormCallback' || data.eventName !== 'onFormSubmitted') return;
-		trackSuccessfulSubmission(data.id || '', 'hubspot_legacy');
+		trackSuccessfulSubmission(data.id || '', 'hubspot_post_message');
 	});
 
 	window.NUVANXConversionEvents = Object.freeze({

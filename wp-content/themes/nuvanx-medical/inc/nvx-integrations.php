@@ -194,6 +194,17 @@ add_filter( 'option_active_plugins', 'nvx_theme_disable_public_facebook_pixel', 
 add_filter( 'site_option_active_sitewide_plugins', 'nvx_theme_disable_public_facebook_pixel', 1 );
 
 /**
+ * Safely stub FacebookSignal if stripped to prevent frontend console ReferenceError.
+ */
+function nvx_theme_stub_facebook_signal(): void {
+	if ( is_admin() ) {
+		return;
+	}
+	echo '<script id="nvx-facebook-signal-stub">window.FacebookSignal=window.FacebookSignal||{init:function(){},send:function(){},event:function(){},grantConsent:function(){},revokeConsent:function(){}};</script>' . "\n";
+}
+add_action( 'wp_head', 'nvx_theme_stub_facebook_signal', 1 );
+
+/**
  * Campaign attribution marker for Google Ads QA (absorbed from retired MU).
  */
 function nvx_theme_print_google_attribution_meta(): void {

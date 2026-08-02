@@ -103,7 +103,7 @@ function nvx_nosotros_hero_copy_markup(): string {
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $hero['lead'] ?? '' ) . '</p>';
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$html .= nvx_cta_pair_markup( 'nvx-nosotros-hero-ctas nvx-home-hero-ctas' );
+		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
 	}
 
 	$html .= '<p class="nvx-brand-meta">' . esc_html( $hero['meta'] ?? '' ) . '</p>';

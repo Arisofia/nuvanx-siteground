@@ -43,10 +43,33 @@ function nvx_content_is_solutions_page( string $content = '' ): bool {
 }
 
 /**
+ * Force the dedicated solutions template for the public hub route.
+ *
+ * Prefer the page template over the_content injection: nested output buffers
+ * on this route have produced HTTP 200 with an empty body on staging2.
+ *
+ * @param string $template Resolved template path.
+ */
+function nvx_solutions_template_include( string $template ): string {
+	if ( is_admin() || ! is_page() ) {
+		return $template;
+	}
+
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	if ( 'soluciones-medicas' !== $slug ) {
+		return $template;
+	}
+
+	$dedicated = get_template_directory() . '/templates/page-soluciones-medicas.php';
+	return is_readable( $dedicated ) ? $dedicated : $template;
+}
+add_filter( 'template_include', 'nvx_solutions_template_include', 99 );
+
+/**
  * Replace the CMS marker/body with the canonical theme-owned template.
  *
- * Must remain idempotent so pre-body filter calls (e.g. SEO, excerpts) do not
- * consume the single template render before visible body output.
+ * Kept for non-template contexts (excerpts, SEO, secondary loops) and as a
+ * fallback when the dedicated page template is unavailable.
  *
  * @param string $content Original page content.
  */
@@ -57,24 +80,23 @@ function nvx_render_solutions_page( $content ): string {
 		return $content;
 	}
 
+	// Dedicated page template already rendered the hub.
+	if ( function_exists( 'is_page_template' ) && is_page_template( 'templates/page-soluciones-medicas.php' ) ) {
+		return $content;
+	}
+
 	$template = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
 	if ( ! is_readable( $template ) ) {
 		return $content;
 	}
 
-	try {
-		ob_start();
-		// Prefer direct include so a missing template-part does not fail silently.
-		include $template;
-		$markup = ob_get_clean();
-	} catch ( Throwable $e ) {
-		if ( ob_get_level() > 0 ) {
-			ob_end_clean();
-		}
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'NUVANX solutions page render failed: ' . $e->getMessage() );
-		}
-		return $content;
+	$level_before = ob_get_level();
+	ob_start();
+	include $template;
+	$markup = ob_get_clean();
+	// Never leave an orphan buffer if include aborted early.
+	while ( ob_get_level() > $level_before ) {
+		ob_end_clean();
 	}
 
 	return is_string( $markup ) && '' !== trim( $markup ) ? $markup : $content;

@@ -17,7 +17,7 @@ $hero_art_path = get_template_directory() . $hero_art_rel;
 $hero_art_url  = is_readable( $hero_art_path )
 	? get_template_directory_uri() . $hero_art_rel
 	: '';
-$contour_arch  = 'Contour Architecture™';
+$contour_arch  = "Contour Architecture\u{2122}";
 
 $solution_groups = array();
 $decoded         = function_exists( 'nvx_theme_load_json_catalog' )

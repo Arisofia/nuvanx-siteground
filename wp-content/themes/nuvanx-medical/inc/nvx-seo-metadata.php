@@ -234,9 +234,15 @@ function nvx_seo_filter_yoast_robots( $robots ) {
 
 	if ( null !== nvx_seo_current_metadata_key() ) {
 		$page_id = (int) get_queried_object_id();
-		if ( ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-			return 'index, follow';
+		$has_noindex = function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true );
+		$has_nofollow = function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true );
+
+		// Respect explicit noindex or nofollow pages instead of forcing index, follow.
+		if ( $has_noindex || $has_nofollow ) {
+			return $robots;
 		}
+
+		return 'index, follow';
 	}
 
 	return $robots;

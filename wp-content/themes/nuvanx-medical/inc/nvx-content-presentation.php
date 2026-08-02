@@ -463,160 +463,8 @@ function nvx_content_enrich_treatment_cards( string $content ): string {
 		$content
 	);
 
-	// Strip residual “desde X € / PVP” price fragments that may remain in CMS card bodies on front.
-	if ( is_front_page() ) {
-		$content = preg_replace(
-			'/\s*(?:Tarifa[s]?\s+de\s+referencia\s+)?desde\s+[\d.,]+\s*€[^.<]*(?:\.|$)/iu',
-			'',
-			$content
-		) ?? $content;
-		$content = preg_replace(
-			'/\s*Papada\s*\/\s*marcación mandibular:\s*[\d.,]+\s*€[^.<]*(?:\.|$)/iu',
-			'',
-			$content
-		) ?? $content;
-		$content = preg_replace(
-			'/\s*\(PVP[^)]*\)\.?/iu',
-			'',
-			$content
-		) ?? $content;
-	}
-
 	return is_string( $content ) ? $content : '';
 }
-
-
-
-/**
- * Ensure front page has one protocols block after Cómo trabajamos (or after values banner).
- */
-function nvx_content_ensure_home_protocols( string $content ): string {
-	if ( ! is_front_page() ) {
-		return $content;
-	}
-
-	// The protocols section has been removed from the homepage.
-	// Strip any existing prior protocols blocks.
-	$content = preg_replace( '/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu', '', $content ) ?? $content;
-	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Protocolos Médicos Especializados(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
-
-	return $content;
-}
-
-/**
- * Homepage team strip — surfaces the 3-physician hospital team (audit v2 differentiator).
- */
-function nvx_home_team_strip_markup(): string {
-	$equipo  = home_url( '/equipo-medico/' );
-	$director = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
-	$ivon     = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
-	$fabio    = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
-	$dr_jose  = sprintf( __( 'Dr. José Javier Rivera Tejeda (ICOMEM %s): Director Médico especialista en Endolift® y tratamientos con láser CO₂.', 'nuvanx-medical' ), $director );
-	$dra_ivon = sprintf( __( 'Dra. Ivon Yamileth Rivera Deras (ICOMEM %s): Médico Especialista (FEA) en el Hospital La Paz, experta en well-aging y geriatría preventiva.', 'nuvanx-medical' ), $ivon );
-	$dr_fabio = sprintf( __( 'Dr. Fabio Augusto Quiñónez Bareiro (ICOMEM %s): Doctor por la UAM e investigador en el CIBERFES, especializado en la fisiología del envejecimiento y el paciente complejo.', 'nuvanx-medical' ), $fabio );
-
-	$html  = '<section class="nvx-brand-section nvx-home-team-strip" id="nvx-home-team" aria-labelledby="nvx-home-team-title" data-nvx-home-block="team">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Equipo médico', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-home-team-title" class="nvx-brand-title">' . esc_html__( 'Experiencia clínica hospitalaria aplicada a la estética', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En NUVANX, la excelencia no es solo una promesa; es el resultado de un equipo médico con trayectoria directa en el entorno hospitalario.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html( $dr_jose ) . '<br><br>' . esc_html( $dra_ivon ) . '<br><br>' . esc_html( $dr_fabio ) . '</p>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'Abordamos el cuidado de la piel con exploración clínica, expectativas realistas y seguimiento médico cuando está indicado.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-home-team-strip__cta"><a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $equipo ) . '">' . esc_html__( 'Conocer al equipo médico', 'nuvanx-medical' ) . '</a></p>';
-	$html .= '</div></section>';
-	return $html;
-}
-
-/**
- * Homepage well-aging pillar (unique vs pure aesthetic competitors).
- */
-function nvx_home_wellaging_strip_markup(): string {
-	$html  = '<section class="nvx-brand-section nvx-home-wellaging" id="nvx-home-wellaging" aria-labelledby="nvx-home-wellaging-title" data-nvx-home-block="wellaging">';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Well-aging', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-home-wellaging-title" class="nvx-brand-title">' . esc_html__( 'Medicina del envejecimiento: salud desde el interior', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-		'No nos limitamos a la apariencia superficial. Unimos el cuidado de la piel con la geriatría preventiva y el estudio de la longevidad, un enfoque clínico global que va mucho más allá de la estética convencional. Entendemos que mejorar la piel implica tratar el tejido profundo que envejece. Por eso, nuestro equipo está formado en la fisiología médica del cuerpo humano, no solo en el manejo de máquinas.',
-		'nuvanx-medical'
-	) . '</p>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-			'Diseñamos cada tratamiento de láser, inductores de colágeno y medicina regenerativa con criterio médico. La indicación, los límites y el seguimiento se explican de forma individual antes de decidir.',
-		'nuvanx-medical'
-	) . '</p>';
-	$html .= '</div></section>';
-	return $html;
-}
-
-/**
- * Ensure home has team + well-aging strips after protocols (or after method).
- */
-function nvx_content_ensure_home_team_wellaging( string $content ): string {
-	if ( ! is_front_page() ) {
-		return $content;
-	}
-
-	// Remove duplicated CMS blocks that are replaced by the canonical team strip.
-	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Liderazgo y Experiencia(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
-	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Registro sanitario(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
-
-	$team = nvx_home_team_strip_markup();
-	$well = nvx_home_wellaging_strip_markup();
-
-	// Refresh existing blocks.
-	if ( false !== strpos( $content, 'id="nvx-home-team"' ) || false !== strpos( $content, "id='nvx-home-team'" ) ) {
-		$content = preg_replace(
-			'/<section\b[^>]*\bid=["\']nvx-home-team["\'][^>]*>[\s\S]*?<\/section>/iu',
-			$team,
-			$content,
-			1
-		) ?? $content;
-	}
-	if ( false !== strpos( $content, 'id="nvx-home-wellaging"' ) || false !== strpos( $content, "id='nvx-home-wellaging'" ) ) {
-		$content = preg_replace(
-			'/<section\b[^>]*\bid=["\']nvx-home-wellaging["\'][^>]*>[\s\S]*?<\/section>/iu',
-			$well,
-			$content,
-			1
-		) ?? $content;
-	}
-
-	$need_team = false === strpos( $content, 'id="nvx-home-team"' ) && false === strpos( $content, "id='nvx-home-team'" );
-	$need_well = false === strpos( $content, 'id="nvx-home-wellaging"' ) && false === strpos( $content, "id='nvx-home-wellaging'" );
-	if ( ! $need_team && ! $need_well ) {
-		return $content;
-	}
-
-	$insert = ( $need_team ? $team : '' ) . ( $need_well ? $well : '' );
-
-	// After protocols.
-	$count   = 0;
-	$updated = preg_replace(
-		'/(<section\b[^>]*\bid=["\']nvx-home-protocols["\'][^>]*>[\s\S]*?<\/section>)/iu',
-		'$1' . $insert,
-		$content,
-		1,
-		$count
-	);
-	if ( is_string( $updated ) && $count > 0 ) {
-		return $updated;
-	}
-
-	// After method section.
-	$count   = 0;
-	$updated = preg_replace(
-		'/(<section\b[^>]*\bnvx-method-section\b[^>]*>[\s\S]*?<\/section>)/iu',
-		'$1' . $insert,
-		$content,
-		1,
-		$count
-	);
-	if ( is_string( $updated ) && $count > 0 ) {
-		return $updated;
-	}
-
-	return $content . $insert;
-}
-add_filter( 'the_content', 'nvx_content_ensure_home_team_wellaging', 125 );
 
 /**
  * Director E-E-A-T wherever the Rivera card / leadership copy appears.
@@ -1050,9 +898,10 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_strip_hero_inline_styles( $content );
 	$content = nvx_content_strip_duplicate_fachada( $content );
 	$content = nvx_content_normalize_body_media( $content );
+	// Values/method CMS residual transforms still apply on non-home routes that
+	// pass post_content through the_content. Front page is theme-owned (shell).
 	$content = nvx_content_replace_values_sections( $content );
 	$content = nvx_content_replace_method_sections( $content );
-	$content = nvx_content_ensure_home_protocols( $content );
 	$content = nvx_content_enrich_treatment_cards( $content );
 	$content = nvx_content_enhance_director_blocks( $content );
 	$content = nvx_content_rewrite_morpheus_faq( $content );

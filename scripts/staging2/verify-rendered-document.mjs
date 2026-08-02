@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
+
 function stripTrailingSlashes(value) {
   let end = value.length;
   while (end > 0 && value.charAt(end - 1) === '/') {
@@ -10,6 +15,9 @@ function stripTrailingSlashes(value) {
 
 const baseUrl = stripTrailingSlashes(process.env.BASE_URL || 'https://staging2.nuvanx.com');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
+// When set (e.g. nvx-staging2), HTML is fetched via SSH curl on the SiteGround
+// host so GitHub runner IPs are not blocked by edge WAF (403/202 placeholders).
+const sshFetchHost = (process.env.SSH_FETCH_HOST || '').trim();
 const routes = [
   '/',
   '/contacto/',
@@ -67,40 +75,122 @@ function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-async function fetchHtmlWithRetry(url, attempts = 8) {
+function shellSingleQuote(value) {
+  return `'${String(value).replace(/'/g, `'\\''`)}'`;
+}
+
+function parseCurlHeaderBlock(headerText) {
+  const headers = new Map();
+  for (const line of headerText.split(/\r?\n/u)) {
+    const separator = line.indexOf(':');
+    if (separator <= 0) continue;
+    const name = line.slice(0, separator).trim().toLowerCase();
+    const value = line.slice(separator + 1).trim();
+    if (name) headers.set(name, value);
+  }
+  return {
+    get(name) {
+      return headers.get(String(name).toLowerCase()) || null;
+    }
+  };
+}
+
+function makeResponse(status, headerText) {
+  return {
+    status,
+    ok: status >= 200 && status < 300,
+    headers: parseCurlHeaderBlock(headerText)
+  };
+}
+
+/**
+ * Fetch rendered HTML from the SiteGround host so the request never leaves
+ * GitHub-hosted runner IPs (SiteGround edge returns 403/202 to those IPs).
+ */
+async function fetchHtmlViaSsh(url) {
+  const remoteScript = [
+    'set -euo pipefail',
+    'tmp=$(mktemp)',
+    'hdr=$(mktemp)',
+    `code=$(curl -sS -L --max-time 25 -A ${shellSingleQuote(
+      'Mozilla/5.0 (compatible; NUVANX-Rendered-Document-Acceptance/1.2)'
+    )} -H ${shellSingleQuote('cache-control: no-cache, no-store, max-age=0')} -H ${shellSingleQuote(
+      'accept: text/html,application/xhtml+xml;q=0.9,*/*;q=0.8'
+    )} -o "$tmp" -D "$hdr" -w '%{http_code}' ${shellSingleQuote(url)})`,
+    'printf \'%s\\n\' "$code"',
+    'printf \'---NVX_HDR---\\n\'',
+    'cat "$hdr"',
+    'printf \'---NVX_BODY---\\n\'',
+    'cat "$tmp"',
+    'rm -f "$tmp" "$hdr"'
+  ].join('; ');
+
+  const { stdout } = await execFileAsync('ssh', [sshFetchHost, remoteScript], {
+    maxBuffer: 12 * 1024 * 1024,
+    timeout: 45000,
+    windowsHide: true
+  });
+
+  const headerMarker = '---NVX_HDR---\n';
+  const bodyMarker = '---NVX_BODY---\n';
+  const headerIndex = stdout.indexOf(headerMarker);
+  const bodyIndex = stdout.indexOf(bodyMarker);
+  if (headerIndex < 0 || bodyIndex < 0 || bodyIndex < headerIndex) {
+    throw new Error(`${url}: malformed SSH curl response envelope`);
+  }
+
+  const statusLine = stdout.slice(0, headerIndex).trim();
+  const status = Number.parseInt(statusLine, 10);
+  if (!Number.isFinite(status)) {
+    throw new Error(`${url}: missing HTTP status from SSH curl (got ${JSON.stringify(statusLine)})`);
+  }
+
+  const headerText = stdout.slice(headerIndex + headerMarker.length, bodyIndex);
+  const html = stdout.slice(bodyIndex + bodyMarker.length);
+  return { response: makeResponse(status, headerText), html };
+}
+
+async function fetchHtmlDirect(url) {
+  const response = await fetch(url, {
+    redirect: 'follow',
+    signal: AbortSignal.timeout(20000),
+    headers: {
+      'cache-control': 'no-cache, no-store, max-age=0',
+      pragma: 'no-cache',
+      'user-agent': 'Mozilla/5.0 (compatible; NUVANX-Rendered-Document-Acceptance/1.2; +https://nuvanx.com)',
+      accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8'
+    }
+  });
+  const html = await response.text();
+  return { response, html };
+}
+
+function isCompleteDocument(html) {
+  return /^<!doctype html>/iu.test(html.trimStart()) && html.length >= 800;
+}
+
+function isRetryableStatus(status) {
+  return status === 202 || status === 203 || status === 403 || status === 429 || status >= 500;
+}
+
+async function fetchHtmlWithRetry(url, attempts = 6) {
   let lastError = new Error(`No response received from ${url}`);
+  const transport = sshFetchHost ? 'ssh' : 'direct';
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     try {
-      const response = await fetch(url, {
-        redirect: 'follow',
-        signal: AbortSignal.timeout(20000),
-        headers: {
-          'cache-control': 'no-cache, no-store, max-age=0',
-          pragma: 'no-cache',
-          // Browser-like UA: SiteGround edge occasionally answers GitHub runner
-          // custom agents with HTTP 202 placeholder bodies after cache purge.
-          'user-agent':
-            'Mozilla/5.0 (compatible; NUVANX-Rendered-Document-Acceptance/1.1; +https://nuvanx.com)',
-          accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8'
-        }
-      });
+      const { response, html } = sshFetchHost ? await fetchHtmlViaSsh(url) : await fetchHtmlDirect(url);
+      const complete = isCompleteDocument(html);
 
-      const html = await response.text();
-      const hasDoctype = /^<!doctype html>/iu.test(html.trimStart());
-      const bodyLooksComplete = hasDoctype && html.length >= 800;
-
-      // Post-deploy: Soft WAF/edge placeholders (202), upstream errors, and
-      // truncated bodies are retryable rather than hard acceptance failures.
-      if (response.status === 202 || response.status === 203 || response.status >= 500) {
+      if (isRetryableStatus(response.status)) {
         lastError = new Error(
-          `${url}: transient upstream status ${response.status} (length=${html.length})`
+          `${url}: transient ${transport} status ${response.status} (length=${html.length})`
         );
-      } else if (response.ok && !bodyLooksComplete) {
+      } else if (response.ok && !complete) {
         lastError = new Error(
           `${url}: incomplete HTML body after deploy (status=${response.status}, length=${html.length})`
         );
-      } else if (response.ok && bodyLooksComplete) {
+      } else if (response.ok && complete) {
         return { response, html };
       } else {
         lastError = new Error(`${url}: unexpected status ${response.status} (length=${html.length})`);
@@ -109,10 +199,10 @@ async function fetchHtmlWithRetry(url, attempts = 8) {
       lastError = error instanceof Error ? error : new Error(String(error));
     }
 
-    if (attempt < attempts) await delay(attempt * 3000);
+    if (attempt < attempts) await delay(attempt * 2000);
   }
 
-  throw new Error(`${url}: request failed after ${attempts} attempts: ${lastError.message}`);
+  throw new Error(`${url}: request failed after ${attempts} ${transport} attempts: ${lastError.message}`);
 }
 
 async function verifyRoute(route) {

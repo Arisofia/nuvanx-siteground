@@ -37,16 +37,16 @@ php tools/deploy/nvx-cms-content-cleanup.php --self-test
 
 ## Branching & Release Policy
 
-- `master`: Main source of truth for production code. Pushing to `master` does **NOT** trigger automatic deployments; it only enables the optional SonarQube Cloud CI workflow when configured.
-- Feature/Audit branches: created off `master` (e.g., `review/final-audit`) and merged via Pull Request.
+- `master`: Main source of truth for production code. A push to `master` triggers the Staging2 deployment workflow; it does **not** promote code to production.
+- Pull requests: the Staging2 workflow validates the deployment contract, while the actual deployment job runs only for `master`.
+- Production promotion remains manual and host-authorized only after Staging2 rendered acceptance passes for the exact SHA.
 
 ## Workflows & Secrets
 
 | Workflow | Purpose |
 |----------|---------|
-| **Deploy Staging2 (manual)** | Immutable SHA deploy to `staging2.nuvanx.com` + rendered acceptance |
-| **Staging2 Rendered Acceptance** | Manual revalidation of a deployed SHA |
-| **SonarQube Cloud CI** | Optional Sonar scan when token and flag are enabled |
+| **Deploy Staging2** | Validates deployment contracts on pull requests and deploys an immutable SHA to `staging2.nuvanx.com` on `master` |
+| **Staging2 Rendered Acceptance** | Automatically validates the rendered deployment after a successful Staging2 deployment |
 
 ### GitHub Actions Secrets Configured
 
@@ -58,12 +58,12 @@ php tools/deploy/nvx-cms-content-cleanup.php --self-test
 
 ## Deployment Checklist
 
-1. Merge PR into `master` and obtain the full 40-character Git commit SHA for the deployment target (`git_sha`).
-2. Navigate to GitHub Actions -> **Deploy Staging2 (manual)**.
-3. Select `master` branch, paste the 40-character `git_sha`, set confirmation to `DEPLOY_STAGING2`, and launch.
-4. For the **Staging2 Rendered Acceptance** workflow, use the full `expected_sha` from the deployment target and verify the rendered acceptance result on `staging2.nuvanx.com`.
-5. Verify the deployment by checking the HTTP status and Content-Type for `/robots.txt` and `/sitemap.xml` (including the redirect behavior from `/sitemap.xml` to `/sitemap_index.xml`).
-6. Perform manual QA on `staging2.nuvanx.com`.
+1. Merge the validated change into `master` and record the resulting full 40-character Git commit SHA.
+2. Allow **Deploy Staging2** to validate the deployment contract and deploy that immutable SHA to `staging2.nuvanx.com`.
+3. Confirm that **Staging2 Rendered Acceptance** completes successfully for the exact deployed SHA.
+4. Verify the deployment by checking the HTTP status and Content-Type for `/robots.txt` and `/sitemap.xml` (including the redirect behavior from `/sitemap.xml` to `/sitemap_index.xml`).
+5. Perform manual QA on `staging2.nuvanx.com`.
+6. Only after Staging2 acceptance and manual QA pass, consider the separate manual production promotion process.
 
 ## Public Integrations Note
 

@@ -1,10 +1,13 @@
 /* ============================================
-   NUVANX — Tipografías Oficiales (Web)
+   NUVANX — Tipografías oficiales (web)
    Única opción activa: Playfair Display + Manrope
    Julio 2026
    ============================================ */
+
+/* Primary UI / body type and display / serif titles.
+   Mapped to vars used across tokens/components/layout. */
 :root {
-	--nvx-font-primary: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
-	--nvx-font-display: 'Playfair Display', Georgia, serif;
+  --nvx-font-primary: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  --nvx-font-display: 'Playfair Display', Georgia, serif;
 }
 

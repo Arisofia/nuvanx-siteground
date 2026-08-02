@@ -46,7 +46,9 @@ function nvx_is_contacto_page_request(): bool {
 		return false;
 	}
 
-	if ( 'templates/page-contacto.php' === (string) get_page_template_slug() ) {
+	$tpl = (string) get_page_template_slug();
+	// Canonical: page-contacto.php. Legacy template-contact.php still detected until DB meta is rewritten.
+	if ( in_array( $tpl, array( 'templates/page-contacto.php', 'templates/template-contact.php' ), true ) ) {
 		return true;
 	}
 
@@ -261,3 +263,253 @@ function nvx_filter_contacto_metadesc( $desc ) {
 	return 'Contacto NUVANX: Chamberí CS20144 (669 319 836) y Goya CS20073 (647 505 107). Valoración médica en /madrid/valoracion/.';
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_contacto_metadesc', 21 );
+
+/**
+ * Social preview image for /contacto/.
+ *
+ * @param mixed $image Yoast image URL.
+ * @return string
+ */
+function nvx_filter_contacto_social_image( $image ): string {
+	if ( ! nvx_is_contacto_page_request() ) {
+		return (string) $image;
+	}
+
+	return home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' );
+}
+add_filter( 'wpseo_opengraph_image', 'nvx_filter_contacto_social_image', 100 );
+add_filter( 'wpseo_twitter_image', 'nvx_filter_contacto_social_image', 100 );
+
+/**
+ * Open Graph / Twitter title — same string as SERP title.
+ *
+ * @param mixed $title Title.
+ * @return string
+ */
+function nvx_filter_contacto_social_title( $title ): string {
+	if ( ! nvx_is_contacto_page_request() ) {
+		return (string) $title;
+	}
+
+	return (string) nvx_filter_contacto_document_title( $title );
+}
+add_filter( 'wpseo_opengraph_title', 'nvx_filter_contacto_social_title', 110 );
+add_filter( 'wpseo_twitter_title', 'nvx_filter_contacto_social_title', 110 );
+
+/**
+ * Open Graph / Twitter description — same string as meta description.
+ *
+ * @param mixed $description Description.
+ * @return string
+ */
+function nvx_filter_contacto_social_description( $description ): string {
+	if ( ! nvx_is_contacto_page_request() ) {
+		return (string) $description;
+	}
+
+	return (string) nvx_filter_contacto_metadesc( $description );
+}
+add_filter( 'wpseo_opengraph_desc', 'nvx_filter_contacto_social_description', 110 );
+add_filter( 'wpseo_twitter_description', 'nvx_filter_contacto_social_description', 110 );
+
+/**
+ * Normalize organization finder payload to a usable index/id pair.
+ *
+ * @param mixed $organization Finder result.
+ * @return array{id:string,index:int|null}
+ */
+function nvx_contacto_normalize_organization( $organization ): array {
+	if ( ! is_array( $organization ) ) {
+		$organization = array();
+	}
+
+	$org_id = ( isset( $organization['id'] ) && is_string( $organization['id'] ) && '' !== $organization['id'] )
+		? $organization['id']
+		: home_url( '/#/schema/organization/nuvanx' );
+	$org_index = array_key_exists( 'index', $organization ) ? $organization['index'] : null;
+	if ( null !== $org_index && ! is_int( $org_index ) && ! ( is_string( $org_index ) && ctype_digit( (string) $org_index ) ) ) {
+		$org_index = null;
+	}
+	if ( is_string( $org_index ) ) {
+		$org_index = (int) $org_index;
+	}
+
+	return array(
+		'id'    => $org_id,
+		'index' => $org_index,
+	);
+}
+
+/**
+ * Ensure the graph has an Organization node; append a minimal one when missing.
+ *
+ * @param array<int,array<string,mixed>> $graph Yoast graph.
+ * @return array{0:array<int,array<string,mixed>>,1:int|null,2:string}
+ */
+function nvx_contacto_ensure_organization_node( array $graph, string $org_id, $org_index ): array {
+	if ( null !== $org_index ) {
+		return array( $graph, $org_index, $org_id );
+	}
+
+	$graph[] = array(
+		'@type' => array( 'Organization', 'MedicalOrganization' ),
+		'@id'   => $org_id,
+		'name'  => 'NUVANX Medicina Estética Láser',
+		'url'   => home_url( '/' ),
+	);
+
+	return array( $graph, array_key_last( $graph ), $org_id );
+}
+
+/**
+ * Collect existing @id values from graph pieces.
+ *
+ * @param array<int,mixed> $graph Yoast graph.
+ * @return array<int,string>
+ */
+function nvx_contacto_graph_ids( array $graph ): array {
+	$existing_ids = array();
+	foreach ( $graph as $piece ) {
+		if ( is_array( $piece ) && ! empty( $piece['@id'] ) ) {
+			$existing_ids[] = (string) $piece['@id'];
+		}
+	}
+	return $existing_ids;
+}
+
+/**
+ * Append missing clinic nodes and return subOrganization refs.
+ *
+ * @param array<int,array<string,mixed>>    $graph        Yoast graph.
+ * @param array<string,array<string,mixed>> $clinics      Clinic map.
+ * @param array<int,string>                 $existing_ids Existing @id values.
+ * @return array{0:array<int,array<string,mixed>>,1:array<int,array{@id:string}>}
+ */
+function nvx_contacto_append_clinic_nodes( array $graph, array $clinics, array $existing_ids, string $org_id ): array {
+	$clinic_refs = array();
+	foreach ( array( 'chamberi', 'goya' ) as $key ) {
+		if ( empty( $clinics[ $key ]['@id'] ) ) {
+			continue;
+		}
+
+		$clinic_refs[] = array( '@id' => $clinics[ $key ]['@id'] );
+		if ( in_array( $clinics[ $key ]['@id'], $existing_ids, true ) ) {
+			continue;
+		}
+
+		$clinic                       = $clinics[ $key ];
+		$clinic['parentOrganization'] = array( '@id' => $org_id );
+		$graph[]                      = $clinic;
+	}
+
+	return array( $graph, $clinic_refs );
+}
+
+/**
+ * Merge clinic refs into the organization subOrganization property.
+ *
+ * @param array<int,array<string,mixed>>  $graph       Yoast graph.
+ * @param array<int,array{@id:string}> $clinic_refs Clinic references.
+ * @return array<int,array<string,mixed>>
+ */
+function nvx_contacto_merge_org_clinic_refs( array $graph, $org_index, array $clinic_refs ): array {
+	if ( null === $org_index || ! isset( $graph[ $org_index ] ) || ! is_array( $graph[ $org_index ] ) ) {
+		return $graph;
+	}
+
+	if ( function_exists( 'nvx_schema_add_type' ) ) {
+		$graph[ $org_index ]['@type'] = nvx_schema_add_type( $graph[ $org_index ]['@type'] ?? 'Organization', 'MedicalOrganization' );
+	}
+
+	$existing_refs = isset( $graph[ $org_index ]['subOrganization'] )
+		? (array) $graph[ $org_index ]['subOrganization']
+		: array();
+	$merged_refs   = array();
+	foreach ( array_merge( $existing_refs, $clinic_refs ) as $reference ) {
+		if ( is_array( $reference ) && ! empty( $reference['@id'] ) ) {
+			$merged_refs[ (string) $reference['@id'] ] = array( '@id' => (string) $reference['@id'] );
+		}
+	}
+	$graph[ $org_index ]['subOrganization'] = array_values( $merged_refs );
+
+	return $graph;
+}
+
+/**
+ * Add both canonical MedicalClinic branches to the /contacto/ Yoast graph.
+ *
+ * @param array $graph   Yoast schema graph.
+ * @param mixed $context Unused context.
+ * @return array
+ */
+function nvx_filter_contacto_schema_graph( $graph, $context ) {
+	unset( $context );
+
+	if (
+		! nvx_is_contacto_page_request()
+		|| ! is_array( $graph )
+		|| ! function_exists( 'nvx_schema_clinics' )
+		|| ! function_exists( 'nvx_schema_find_organization' )
+	) {
+		return $graph;
+	}
+
+	$clinics      = nvx_schema_clinics();
+	$organization = nvx_contacto_normalize_organization( nvx_schema_find_organization( $graph ) );
+	list( $graph, $org_index, $org_id ) = nvx_contacto_ensure_organization_node(
+		$graph,
+		$organization['id'],
+		$organization['index']
+	);
+
+	list( $graph, $clinic_refs ) = nvx_contacto_append_clinic_nodes(
+		$graph,
+		$clinics,
+		nvx_contacto_graph_ids( $graph ),
+		$org_id
+	);
+
+	return nvx_contacto_merge_org_clinic_refs( $graph, $org_index, $clinic_refs );
+}
+add_filter( 'wpseo_schema_graph', 'nvx_filter_contacto_schema_graph', 30, 2 );
+
+/**
+ * Map retired template path to the single contact template file.
+ *
+ * @param string $template Resolved template path.
+ * @return string
+ */
+function nvx_contacto_resolve_legacy_template( string $template ): string {
+	if ( false === strpos( $template, 'template-contact.php' ) ) {
+		return $template;
+	}
+
+	$canonical = get_template_directory() . '/templates/page-contacto.php';
+	return is_readable( $canonical ) ? $canonical : $template;
+}
+add_filter( 'page_template', 'nvx_contacto_resolve_legacy_template', 5 );
+
+/**
+ * Rewrite legacy _wp_page_template meta to the canonical contact template slug.
+ */
+function nvx_contacto_migrate_legacy_template_meta(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+	if ( ! is_singular( 'page' ) ) {
+		return;
+	}
+
+	$page_id = (int) get_queried_object_id();
+	if ( $page_id <= 0 ) {
+		return;
+	}
+
+	$slug = (string) get_page_template_slug( $page_id );
+	if ( 'templates/template-contact.php' !== $slug ) {
+		return;
+	}
+
+	update_post_meta( $page_id, '_wp_page_template', 'templates/page-contacto.php' );
+}
+add_action( 'template_redirect', 'nvx_contacto_migrate_legacy_template_meta', 0 );

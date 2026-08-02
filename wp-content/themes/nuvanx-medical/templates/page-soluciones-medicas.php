@@ -4,7 +4,7 @@
  * Template Post Type: page
  *
  * Dedicated route template for /soluciones-medicas/.
- * Renders the GitHub-owned hub markup without the_content filters.
+ * Renders the theme-owned hub markup without the_content filters.
  *
  * @package nuvanx-medical
  */
@@ -12,7 +12,7 @@
 defined( 'ABSPATH' ) || exit;
 
 // Fail closed with visible diagnostics if the canonical partial is missing.
-$partial = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
+$partial = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas.php';
 
 // Document head contract is owned by nvx-document-governance. This template only
 // captures the solutions partial (local view buffer), never a second document rewrite.

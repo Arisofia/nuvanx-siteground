@@ -20,8 +20,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * single public canonical from wp_head; suppress Yoast's copy as the final word
  * on wpseo_canonical (priority PHP_INT_MAX so no peer filter can re-enable it).
  *
- * Staging production-host policy for social tags lives on wpseo_opengraph_url
- * in nvx-staging2-canonical-closure.php — not on this filter.
+ * Non-production Open Graph host policy is owned below
+ * (nvx_document_governance_nonproduction_opengraph_url) — not on this filter.
  *
  * @param string|false $canonical Existing canonical.
  * @return false
@@ -31,6 +31,72 @@ function nvx_document_governance_suppress_yoast_canonical( $canonical ) {
 	return false;
 }
 add_filter( 'wpseo_canonical', 'nvx_document_governance_suppress_yoast_canonical', PHP_INT_MAX );
+
+/**
+ * Whether the current strategy route is approved for publication.
+ */
+function nvx_document_governance_is_approved_strategy_route(): bool {
+	if ( ! function_exists( 'nvx_strategy_current_page_key' ) || ! function_exists( 'nvx_strategy_page_catalog' ) ) {
+		return false;
+	}
+
+	$key     = nvx_strategy_current_page_key();
+	$catalog = nvx_strategy_page_catalog();
+
+	return null !== $key
+		&& 'approved_for_publication' === ( $catalog[ $key ]['review_status'] ?? null );
+}
+
+/**
+ * Production-host URL for social previews on non-production environments.
+ *
+ * Staging stays noindex; approved public routes may still expose the production
+ * URL for Open Graph. Protected working-name routes return empty.
+ */
+function nvx_document_governance_production_public_url(): string {
+	$is_strategy_page = function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key();
+	$is_protected     = $is_strategy_page && ! nvx_document_governance_is_approved_strategy_route();
+
+	if ( $is_protected || is_404() || is_search() || is_preview() ) {
+		return '';
+	}
+
+	if ( ! is_front_page() && ! is_home() && ! is_singular() ) {
+		return '';
+	}
+
+	if ( function_exists( 'nvx_seo_current_path' ) ) {
+		$path = nvx_seo_current_path();
+	} else {
+		$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+		$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	}
+
+	$path = '/' . trim( (string) $path, '/' );
+	if ( '/' !== $path ) {
+		$path .= '/';
+	}
+
+	return 'https://nuvanx.com' . $path;
+}
+
+/**
+ * Open Graph URL on non-production: point social previews at the production host
+ * for approved routes. HTML link[rel=canonical] remains owned by this module's
+ * wp_head emission — never re-attach production host policy to wpseo_canonical.
+ *
+ * @param mixed $url Yoast Open Graph URL.
+ * @return mixed
+ */
+function nvx_document_governance_nonproduction_opengraph_url( $url ) {
+	if ( ! function_exists( 'nvx_seo_is_nonproduction_environment' ) || ! nvx_seo_is_nonproduction_environment() ) {
+		return $url;
+	}
+
+	$production = nvx_document_governance_production_public_url();
+	return '' !== $production ? $production : $url;
+}
+add_filter( 'wpseo_opengraph_url', 'nvx_document_governance_nonproduction_opengraph_url', 1000 );
 
 /**
  * Resolve the canonical URL without changing the staging robots policy.

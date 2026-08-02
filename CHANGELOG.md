@@ -2,11 +2,11 @@
 
 All notable changes to the NUVANX codebase are documented in this file.
 
-## [Unreleased] - `review/final-audit`
+## [Unreleased]
 
 ### Added
 - Repository documentation enhancements: added prerequisites, secret inventory, local validation commands, and step-by-step deployment checklist to `README.md`.
-- Expanded `.gitignore` rule coverage for `.sql`, `.bak`, `.zip`, and deployment backup paths (`wp-content/backups-nuvanx/`).
+- Refined `.gitignore` rule coverage for scoped backup paths (`tools/deploy/*.sql`, `tools/deploy/*.bak`, `wp-content/backups-nuvanx/`) and QA screenshots (`images/*.png`).
 
 ### Fixed / Cleaned (Recent Audit Refactors)
 - `bf4245d`: Code hygiene — removed duplicate docblock and normalized indentation in `nvx_remove_unverified_quantitative_trust_badges` (`inc/nvx-page-hygiene.php`).

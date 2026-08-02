@@ -115,8 +115,9 @@ $js = (string) file_get_contents($jsPath);
 nvx_document_contract_assert(
     1 === substr_count($header, "require_once __DIR__ . '/inc/nvx-document-governance.php';")
         && 1 === substr_count($header, 'nvx_document_governance_start();')
-        && strpos($header, 'nvx_document_governance_start();') < strpos($header, '<!doctype html>'),
-    'The global document contract must start exactly once before the doctype.'
+        && str_contains($header, 'nvx_document_governance_remove_retired_scripts')
+        && strpos($header, 'nvx_document_governance_is_solutions_hub') < strpos($header, '<!doctype html>'),
+    'The global document contract must start before the doctype, with solutions-hub script cleanup.'
 );
 
 preg_match('/<dialog\b[^>]*\bid="nvx-mobile-nav"[^>]*>/i', $header, $navTag);

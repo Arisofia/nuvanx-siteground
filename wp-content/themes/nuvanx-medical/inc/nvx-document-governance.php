@@ -24,16 +24,25 @@ function nvx_document_governance_start(): void {
 }
 
 /**
- * Emit exactly one document-contract marker when missing from plugins.
+ * Emit document contract pieces that used to be forced by the full-document
+ * rewrite buffer: contract marker + exactly one canonical.
+ *
+ * Yoast on staging often skips canonical under noindex; acceptance still
+ * requires a staging host canonical on every public route.
  */
-function nvx_document_governance_print_contract_marker(): void {
+function nvx_document_governance_print_head_contract(): void {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
 		return;
 	}
 
+	// Prevent a second Yoast canonical when we emit the authoritative one.
+	add_filter( 'wpseo_canonical', '__return_false', 1000 );
+
+	$canonical = nvx_document_governance_canonical_url();
+	echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
 	echo '<meta name="nvx-document-contract" content="1" />' . "\n";
 }
-add_action( 'wp_head', 'nvx_document_governance_print_contract_marker', 2 );
+add_action( 'wp_head', 'nvx_document_governance_print_head_contract', 2 );
 
 /**
  * Enqueue the platform accessibility/runtime layer and prevent eager HubSpot.

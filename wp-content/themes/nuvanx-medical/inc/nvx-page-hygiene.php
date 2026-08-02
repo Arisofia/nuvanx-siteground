@@ -12,6 +12,28 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Ensure legal CMS pages expose a single document H1 for accessibility/crawl contracts.
+ *
+ * When the body has no H1, promote the first H2 (typical legal title pattern) to H1.
+ *
+ * @param string $content Filtered post content.
+ * @return string
+ */
+function nvx_legal_ensure_document_h1( string $content ): string {
+	if ( '' === trim( $content ) || (bool) preg_match( '/<h1\b/i', $content ) ) {
+		return $content;
+	}
+
+	$promoted = preg_replace( '/<h2(\b[^>]*)>/i', '<h1$1>', $content, 1 );
+	if ( ! is_string( $promoted ) || $promoted === $content ) {
+		return $content;
+	}
+
+	$closed = preg_replace( '/<\/h2>/i', '</h1>', $promoted, 1 );
+	return is_string( $closed ) ? $closed : $promoted;
+}
+
+/**
  * Redirect superseded cookie documents to the Complianz EU statement (page 577).
  */
 function nvx_redirect_superseded_legal_pages() {
@@ -460,12 +482,19 @@ function nvx_apply_production_business_rules( $content ) {
 		) ?? $content;
 	}
 
-	// 5. Privacidad y Aviso Legal (3, 20): approved copy plus explicit regulatory context.
-	if ( in_array( $page_id, array( 3, 20 ), true ) ) {
+	// 5. Privacidad y Aviso Legal: approved copy plus explicit regulatory context.
+	// Prefer slug matching so environment-specific page IDs cannot skip the contract.
+	$legal_slug = is_page() ? (string) get_post_field( 'post_name', $page_id ) : '';
+	$is_legal   = in_array( $page_id, array( 3, 20 ), true )
+		|| in_array( $legal_slug, array( 'politica-privacidad', 'aviso-legal' ), true );
+	if ( $is_legal ) {
 		$content = preg_replace( '/<div\b[^>]*\bnvx-legal-placeholder\b[^>]*>[\s\S]*?<\/div>/iu', '', $content ) ?? $content;
 		if ( false === strpos( $content, 'El artículo 13 del RGPD' ) ) {
 			$content .= nvx_legal_framework_note_markup();
 		}
+		// Document contract: public legal pages must expose exactly one H1.
+		// CMS copy often titles the page with H2; promote the first H2 when no H1 exists.
+		$content = nvx_legal_ensure_document_h1( $content );
 	}
 
 	// 6. Equipo Médico (1575): canonical profile, credentials, formation and Doctoralia source.

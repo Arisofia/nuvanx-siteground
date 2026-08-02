@@ -68,8 +68,13 @@ SOURCE_REQUIRED_FILES=(
   assets/css/nvx-footer.css
   assets/css/nvx-accessibility-governance.css
   assets/js/nvx-runtime-governance.js
+  assets/css/nvx-soluciones-medicas.css
+  assets/images/nvx-solutions-hero-architecture.svg
+  template-parts/content/nvx-soluciones-medicas-github.php
   inc/nvx-blog-system.php
   inc/nvx-document-governance.php
+  inc/nvx-solutions-page.php
+  inc/nvx-clinics-hub.php
 )
 
 for required_file in "${SOURCE_REQUIRED_FILES[@]}"; do

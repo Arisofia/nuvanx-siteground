@@ -10,17 +10,17 @@
 
 - Deploy one full 40-character SHA already contained in `master`
 - Verify the theme deployment marker
-- Purge WordPress and SiteGround caches
+- Purge WordPress caches
 - Deployment job runs complete rendered acceptance with `EXPECTED_SHA` equal to `DEPLOY_SHA`
-- Do not treat deploy as successful until exact-SHA verification completes
+- Do not treat deploy as successful hasta que la verificación de SHA exacta termine en éxito
 - Use `Staging2 Rendered Acceptance` only for independent revalidation with the full deployed SHA
 
 ## Rendered acceptance
 
-- Home, Contacto, Soluciones, Valoración, medical hubs, Equipo and Clínicas return 2xx
-- Every route renders exactly one title, description, canonical and viewport
-- Every route serves the expected deployment SHA
-- Staging2 remains protected by meta and HTTP noindex
-- Site Kit consent bootstrap survives document normalization when present
-- No FacebookSignal or unresolved CMS strategy marker in public HTML
-- HubSpot is absent from initial HTML scripts and loads only after user intent
+- Home, Contacto, Soluciones, Valoración, medical hubs, Equipo y Clínicas devuelven 2xx
+- Cada ruta renderiza exactamente un `<title>`, una descripción, un canonical y un viewport
+- Cada ruta sirve el SHA de despliegue esperado
+- Staging2 permanece protegido por meta y HTTP `noindex`
+- Site Kit consent bootstrap sobrevive la normalización del documento cuando está presente
+- No hay FacebookSignal ni marcadores de estrategia CMS sin resolver en el HTML público
+- HubSpot está ausente de los scripts iniciales del HTML y solo carga tras intención del usuario

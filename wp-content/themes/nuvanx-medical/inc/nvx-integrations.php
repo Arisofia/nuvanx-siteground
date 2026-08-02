@@ -11,6 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once __DIR__ . '/nvx-environment-flags.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
 require_once __DIR__ . '/nvx-strategy-pages.php';
+require_once __DIR__ . '/nvx-signature-phase-pages.php';
 
 /** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
@@ -159,6 +160,7 @@ require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
 require_once __DIR__ . '/nvx-page-hygiene.php';
 require_once __DIR__ . '/nvx-seo-metadata.php';
 require_once __DIR__ . '/nvx-seo-production-readiness.php';
+require_once __DIR__ . '/nvx-staging2-canonical-closure.php';
 require_once __DIR__ . '/nvx-contacto-audit-fixes.php';
 require_once __DIR__ . '/nvx-faq-content-v2.php';
 require_once __DIR__ . '/nvx-medical-review.php';

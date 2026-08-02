@@ -281,4 +281,4 @@ require_once get_template_directory() . '/inc/nvx-clinics-hub.php';
 require_once get_template_directory() . '/inc/nvx-dr-rivera-page.php';
 require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
 require_once get_template_directory() . '/inc/nvx-page-hygiene.php';
-require_once get_template_directory() . '/inc/nvx-faq-catalog.php';
+// Home FAQ schema owner: inc/nvx-faq-content-v2.php (loaded via nvx-integrations).

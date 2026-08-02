@@ -124,7 +124,9 @@ function nvx_content_strip_page_closing_ctas( string $content ): string {
 	// Only prevent in-content duplicates of the site-wide footer CTA band.
 	$patterns = array(
 		'/<section\b[^>]*\bid=["\']nvx-site-closing-cta["\'][^>]*>[\s\S]{0,4000}?<\/section>/iu',
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-cta-banner\b[^"\']*["\'][^>]*>[\s\S]{0,4000}?\bid=["\']nvx-footer-cta["\'][\s\S]{0,2000}?<\/section>/iu',
+		// id may sit on the open tag (common CMS export) or nested in the body.
+		'/<section\b(?=[^>]*\bnvx-cta-banner\b)(?=[^>]*\bid=["\']nvx-footer-cta["\'])[^>]*>[\s\S]*?<\/section>/iu',
+		'/<section\b(?=[^>]*\bnvx-cta-banner\b)[^>]*>[\s\S]{0,4000}?\bid=["\']nvx-footer-cta["\'][\s\S]{0,2000}?<\/section>/iu',
 	);
 
 	foreach ( $patterns as $pattern ) {

@@ -4,19 +4,14 @@
  * that theme strippers currently neutralize at render time.
  *
  * Usage (on SiteGround host, from WordPress root):
- *   wp eval-file nvx-cms-content-cleanup.php
- *   NVX_CMS_CLEANUP_APPLY=1 wp eval-file nvx-cms-content-cleanup.php
+ *   wp eval-file tools/deploy/nvx-cms-content-cleanup.php
+ *   NVX_CMS_CLEANUP_APPLY=1 wp eval-file tools/deploy/nvx-cms-content-cleanup.php
  *
  * Default is dry-run (report only). Set NVX_CMS_CLEANUP_APPLY=1 to write.
+ *
+ * Offline self-test (no WordPress):
+ *   php tools/deploy/nvx-cms-content-cleanup.php --self-test
  */
-
-if ( ! defined( 'ABSPATH' ) ) {
-	fwrite( STDERR, "Run via: wp eval-file nvx-cms-content-cleanup.php\n" );
-	exit( 1 );
-}
-
-$apply_env = getenv( 'NVX_CMS_CLEANUP_APPLY' );
-$apply     = ( '1' === $apply_env || 'yes' === strtolower( (string) $apply_env ) );
 
 /**
  * Patterns that mirror (or supersede) runtime strippers.
@@ -38,6 +33,16 @@ function nvx_cms_cleanup_rules(): array {
 		array(
 			'id'      => 'v3_intro_section',
 			'pattern' => '/<section\b[^>]*class="[^"]*nvx-v3-intro[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
+			'replace' => '',
+		),
+		array(
+			'id'      => 'home_editorial_section',
+			'pattern' => '/<section\b[^>]*class="[^"]*nvx-home-editorial[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
+			'replace' => '',
+		),
+		array(
+			'id'      => 'home_protocols_section',
+			'pattern' => '/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu',
 			'replace' => '',
 		),
 		array(
@@ -81,13 +86,24 @@ function nvx_cms_cleanup_rules(): array {
 			'replace' => '',
 		),
 		array(
+			// id may sit on the open tag or deeper in the section body.
 			'id'      => 'footer_cta_banner_duplicate',
-			'pattern' => '/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-cta-banner\b[^"\']*["\'][^>]*>[\s\S]{0,4000}?\bid=["\']nvx-footer-cta["\'][\s\S]{0,2000}?<\/section>/iu',
+			'pattern' => '/<section\b(?=[^>]*\bnvx-cta-banner\b)(?=[^>]*\bid=["\']nvx-footer-cta["\'])[^>]*>[\s\S]*?<\/section>/iu',
+			'replace' => '',
+		),
+		array(
+			'id'      => 'footer_cta_banner_duplicate_nested',
+			'pattern' => '/<section\b(?=[^>]*\bnvx-cta-banner\b)[^>]*>[\s\S]{0,4000}?\bid=["\']nvx-footer-cta["\'][\s\S]{0,2000}?<\/section>/iu',
 			'replace' => '',
 		),
 		array(
 			'id'      => 'brand_section_cta',
 			'pattern' => '/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-section--cta\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
+			'replace' => '',
+		),
+		array(
+			'id'      => 'legal_placeholder',
+			'pattern' => '/<div\b[^>]*\bnvx-legal-placeholder\b[^>]*>[\s\S]*?<\/div>/iu',
 			'replace' => '',
 		),
 		array(
@@ -105,11 +121,37 @@ function nvx_cms_cleanup_rules(): array {
 			'pattern' => '/Eye Frame/iu',
 			'replace' => 'Profile Definition',
 		),
+		// Claim/copy hygiene mirrored from nvx_public_content_text_hygiene (safe rewrites).
+		array(
+			'id'      => 'claim_valoracion_medica_gratuita',
+			'pattern' => '/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu',
+			'replace' => 'valoración médica',
+		),
+		array(
+			'id'      => 'claim_valoracion_gratuita',
+			'pattern' => '/\bvaloraci[oó]n\s+gratuita\b/iu',
+			'replace' => 'valoración médica',
+		),
+		array(
+			'id'      => 'claim_valoracion_gratis',
+			'pattern' => '/\bvaloraci[oó]n\s+gratis\b/iu',
+			'replace' => 'valoración médica',
+		),
+		array(
+			'id'      => 'claim_consulta_gratuita',
+			'pattern' => '/\bconsulta\s+(?:m[eé]dica\s+)?gratuita\b/iu',
+			'replace' => 'consulta médica',
+		),
+		array(
+			'id'      => 'claim_sin_compromiso',
+			'pattern' => '/\bsin\s+compromiso\b/iu',
+			'replace' => 'sin obligación de continuar con un tratamiento',
+		),
 	);
 }
 
 /**
- * Class-token rewrites (same map as nvx_content_strip_versioned_class_tokens).
+ * Class-token rewrites (retired versioned home shells).
  *
  * @return array<string, string>
  */
@@ -168,9 +210,170 @@ function nvx_cms_cleanup_apply( string $html ): array {
 	);
 }
 
+/**
+ * Offline fixture self-test (no WordPress bootstrap).
+ *
+ * @return int Exit code (0 = pass).
+ */
+function nvx_cms_cleanup_self_test(): int {
+	$fixture = <<<'HTML'
+<div class="nvx-editorial-home-v4 nvx-v3-shell">
+<section class="nvx-v3-metodo"><p>old method</p></section>
+<section class="nvx-home-metodo"><p>old home method</p></section>
+<section class="nvx-v3-intro"><p>old intro</p></section>
+<section class="nvx-home-editorial"><p>old editorial</p></section>
+<section class="nvx-home-protocols"><p>protocols</p></section>
+<div class="nvx-cta-pair nvx-values__cta"><a href="#">CTA</a></div>
+<section class="nvx-endolift-action"><p>close</p></section>
+<section class="nvx-catalog-close"><p>close</p></section>
+<section class="nvx-laser-action"><p>close</p></section>
+<section class="nvx-aes-action"><p>close</p></section>
+<section class="nvx-home-cta-final-band"><p>band</p></section>
+<section class="nvx-home-cta-final"><p>final</p></section>
+<section id="nvx-site-closing-cta"><p>site close</p></section>
+<section class="nvx-cta-banner" id="nvx-footer-cta"><p>footer band</p></section>
+<section class="nvx-brand-section--cta"><p>brand cta</p></section>
+<div class="nvx-legal-placeholder"><p>legal</p></div>
+<p>Couture Sculpt and Contour Sculpt and Eye Frame</p>
+<p>valoración médica gratuita y valoración gratuita y valoración gratis</p>
+<p>consulta gratuita sin compromiso</p>
+<section class="nvx-v3-tratamientos nvx-v3-faq">cards</section>
+</div>
+HTML;
+
+	$result   = nvx_cms_cleanup_apply( $fixture );
+	$required = array(
+		'v3_metodo_section',
+		'home_metodo_section',
+		'v3_intro_section',
+		'home_editorial_section',
+		'home_protocols_section',
+		'values_dual_cta',
+		'page_closing_endolift',
+		'page_closing_catalog',
+		'page_closing_laser',
+		'page_closing_aes',
+		'home_cta_final_band',
+		'home_cta_final',
+		'site_closing_cta_in_content',
+		// Either same-tag or nested-id form of the footer CTA band.
+		// (Only one is expected to fire for a given fixture.)
+		'brand_section_cta',
+		'legal_placeholder',
+		'retired_product_couture',
+		'retired_product_contour_sculpt',
+		'retired_product_eye_frame',
+		'claim_valoracion_medica_gratuita',
+		'claim_valoracion_gratuita',
+		'claim_valoracion_gratis',
+		'claim_consulta_gratuita',
+		'claim_sin_compromiso',
+		'class:nvx-editorial-home-v4',
+		'class:nvx-v3-shell',
+		'class:nvx-v3-tratamientos',
+		'class:nvx-v3-faq',
+	);
+
+	$missing = array();
+	foreach ( $required as $id ) {
+		if ( empty( $result['hits'][ $id ] ) ) {
+			$missing[] = $id;
+		}
+	}
+	if (
+		empty( $result['hits']['footer_cta_banner_duplicate'] )
+		&& empty( $result['hits']['footer_cta_banner_duplicate_nested'] )
+	) {
+		$missing[] = 'footer_cta_banner_duplicate|nested';
+	}
+
+	$leaks = array();
+	foreach (
+		array(
+			'nvx-v3-metodo',
+			'nvx-home-metodo',
+			'nvx-v3-intro',
+			'nvx-home-editorial',
+			'nvx-home-protocols',
+			'nvx-values__cta',
+			'nvx-endolift-action',
+			'nvx-site-closing-cta',
+			'Couture Sculpt',
+			'Contour Sculpt',
+			'Eye Frame',
+			'gratuita',
+			'sin compromiso',
+			'nvx-editorial-home-v4',
+			'nvx-v3-shell',
+			'nvx-v3-faq',
+		) as $needle
+	) {
+		if ( false !== stripos( $result['html'], $needle ) ) {
+			$leaks[] = $needle;
+		}
+	}
+
+	// Expected replacements remain.
+	if ( false === strpos( $result['html'], 'Contour Architecture' ) ) {
+		$missing[] = 'replace:Contour Architecture';
+	}
+	if ( false === strpos( $result['html'], 'Profile Definition' ) ) {
+		$missing[] = 'replace:Profile Definition';
+	}
+	if ( false === strpos( $result['html'], 'nvx-home-tratamientos' ) ) {
+		$missing[] = 'replace:nvx-home-tratamientos';
+	}
+	if ( false === strpos( $result['html'], 'sin obligación de continuar con un tratamiento' ) ) {
+		$missing[] = 'replace:sin obligación';
+	}
+
+	echo "NUVANX CMS cleanup self-test\n";
+	echo 'hits=' . wp_json_encode( $result['hits'], JSON_UNESCAPED_UNICODE ) . "\n";
+
+	if ( $missing || $leaks ) {
+		echo 'FAIL missing_hits=' . wp_json_encode( $missing ) . "\n";
+		echo 'FAIL residual_needles=' . wp_json_encode( $leaks ) . "\n";
+		return 1;
+	}
+
+	echo "PASS all required rules fired and residual needles cleared\n";
+	return 0;
+}
+
+// ---------------------------------------------------------------------------
+// CLI entry: offline self-test without WordPress.
+// ---------------------------------------------------------------------------
+if ( ! defined( 'ABSPATH' ) ) {
+	$argv_list = isset( $argv ) && is_array( $argv ) ? $argv : array();
+	if ( in_array( '--self-test', $argv_list, true ) ) {
+		if ( ! function_exists( 'wp_json_encode' ) ) {
+			/**
+			 * Minimal polyfill for offline self-test.
+			 *
+			 * @param mixed $data Data.
+			 * @param int   $flags Flags.
+			 */
+			function wp_json_encode( $data, $flags = 0 ) {
+				return json_encode( $data, $flags );
+			}
+		}
+		exit( nvx_cms_cleanup_self_test() );
+	}
+
+	fwrite( STDERR, "Run via: wp eval-file tools/deploy/nvx-cms-content-cleanup.php\n" );
+	fwrite( STDERR, "Or offline: php tools/deploy/nvx-cms-content-cleanup.php --self-test\n" );
+	exit( 1 );
+}
+
+// ---------------------------------------------------------------------------
+// WordPress host path: dry-run or apply against post_content.
+// ---------------------------------------------------------------------------
+$apply_env = getenv( 'NVX_CMS_CLEANUP_APPLY' );
+$apply     = ( '1' === $apply_env || 'yes' === strtolower( (string) $apply_env ) );
+
 $q = new WP_Query(
 	array(
-		'post_type' => array( 'page', 'post', 'revision' ),
+		'post_type'              => array( 'page', 'post', 'revision' ),
 		'post_status'            => array( 'publish', 'draft', 'private', 'pending', 'future', 'trash', 'auto-draft' ),
 		'posts_per_page'         => -1,
 		// Include revisions stored as separate rows.
@@ -239,7 +442,7 @@ foreach ( $q->posts as $post ) {
 }
 
 echo "scanned={$scanned} dirty={$touched} updated={$updated}\n";
-echo "hit_totals=" . wp_json_encode( $hit_sum, JSON_UNESCAPED_UNICODE ) . "\n";
+echo 'hit_totals=' . wp_json_encode( $hit_sum, JSON_UNESCAPED_UNICODE ) . "\n";
 echo "examples:\n";
 foreach ( array_slice( $examples, 0, 80 ) as $line ) {
 	echo $line . "\n";
@@ -249,5 +452,5 @@ if ( count( $examples ) > 80 ) {
 }
 
 if ( ! $apply && $touched > 0 ) {
-	echo "Re-run with -- --apply to write changes.\n";
+	echo "Re-run with NVX_CMS_CLEANUP_APPLY=1 to write changes.\n";
 }

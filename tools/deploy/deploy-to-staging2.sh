@@ -71,6 +71,7 @@ SOURCE_REQUIRED_FILES=(
   assets/css/nvx-soluciones-medicas.css
   assets/images/nvx-solutions-hero-architecture.svg
   template-parts/content/nvx-soluciones-medicas-github.php
+  templates/page-soluciones-medicas.php
   inc/nvx-blog-system.php
   inc/nvx-document-governance.php
   inc/nvx-solutions-page.php

@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 /**
  * Site-wide valoración form modal.
  *
@@ -82,17 +83,10 @@ function nvx_valoracion_modal_markup(): string {
 	$html .= '<div id="nvx-valoracion-modal-form" class="nvx-valoracion-modal__form nvx-hubspot-form-section" data-nvx-valoracion-modal-form>';
 	$html .= '<div class="hs-form-frame" data-region="' . esc_attr( $cfg['region'] ) . '" data-form-id="' . esc_attr( $cfg['form_id'] ) . '" data-portal-id="' . esc_attr( $cfg['portal_id'] ) . '"></div>';
 	$html .= '</div>';
-	$html .= '<p class="nvx-valoracion-modal__legal">' . wp_kses(
-		sprintf(
-			__( 'Al enviar aceptas la <a class="nvx-text-link" href="%s">Política de privacidad</a>.', 'nuvanx-medical' ),
-			$privacy
-		),
-		array(
-			'a' => array(
-				'class' => true,
-				'href'  => true,
-			),
-		)
+	$html .= '<p class="nvx-valoracion-modal__legal">' . sprintf(
+		/* translators: %s: Enlace a la política de privacidad */
+		esc_html__( 'Al enviar aceptas la %s.', 'nuvanx-medical' ),
+		'<a class="nvx-text-link" href="' . esc_url( $privacy ) . '">' . esc_html__( 'Política de privacidad', 'nuvanx-medical' ) . '</a>'
 	) . '</p>';
 	$html .= '<p class="nvx-valoracion-modal__fallback"><a class="nvx-text-link" href="' . esc_url( $page ) . '">' . esc_html__( 'Abrir página de valoración completa', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></div>';

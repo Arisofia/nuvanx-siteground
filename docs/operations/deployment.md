@@ -21,9 +21,9 @@ exposed as:
 <meta name="nvx-deploy-sha" content="<40-character-sha>" />
 ```
 
-## Staging2 (manual GitHub workflow)
+## Staging2 (automated GitHub workflow)
 
-Push to `master` does **not** deploy. Use **Actions → Deploy Staging2 (manual)** (`.github/workflows/deploy-staging2.yml`) with `workflow_dispatch` from `master`.
+Push to `master` automatically triggers the **Deploy Staging2** workflow (`.github/workflows/deploy-staging2.yml`).
 
 ### Scope
 
@@ -47,13 +47,8 @@ The workflow does not deploy production, does not copy the database, and does no
 ### Run a deployment
 
 1. Merge the change into `master`.
-2. Copy the full 40-character SHA (no trailing spaces).
-3. Run **Deploy Staging2 (manual)** on `master`.
-4. Set `git_sha` to that SHA.
-5. Set confirmation to `DEPLOY_STAGING2`.
-6. Approve the protected `staging2` environment when prompted.
-
-The workflow refuses any SHA not contained in `origin/master`.
+2. The workflow automatically runs on push. If running manually, set `git_sha` (or `DEPLOY_SHA` input) to the full 40-character SHA.
+3. The workflow refuses any SHA not contained in `origin/master`.
 
 ### Remote sequence
 
@@ -62,10 +57,10 @@ The workflow refuses any SHA not contained in `origin/master`.
 2. Run `tools/deploy/deploy-to-staging2.sh` (root/URL/theme guards, PHP lint, backup, rsync, SHA stamp, cache purge).
 3. Run `tools/deploy/deploy-required-mu-plugins.sh` for Staging2.
 4. Verify the remote `.nvx-deploy-sha` marker.
-5. Run `scripts/staging2/verify-rendered-document.mjs` with `EXPECTED_SHA` equal to the deployed SHA. In GitHub Actions the HTML is fetched via SSH (`SSH_FETCH_HOST`) from the SiteGround host so runner IPs are not blocked by edge 403/202 responses.
+5. The separate `staging2-rendered-acceptance.yml` workflow triggers automatically, running `scripts/staging2/browser-acceptance.mjs` against the deployed SHA.
 6. Remove the temporary remote release directory.
 
-Success criteria: remote marker match + full rendered acceptance green.
+Success criteria: remote marker match + full browser acceptance green.
 
 ## Production (host-level only)
 
@@ -101,12 +96,11 @@ NUVANX_CONFIRM=yes bash tools/deploy/flush-prod-cache.sh \
 ### Staging2 verification (required before promote)
 
 ```bash
-BASE_URL=https://staging2.nuvanx.com EXPECTED_SHA=<40-char-sha> \
-  node scripts/staging2/verify-rendered-document.mjs
+BASE_URL=https://staging2.nuvanx.com node scripts/staging2/browser-acceptance.mjs
 ```
 
 After production promote, confirm the production theme marker and critical routes manually; the Staging2 acceptance script enforces Staging2 noindex policy and is not a production smoke suite.
 
 ## Release record
 
-Each release should record: Git SHA, workflow run URL, active theme, `siteurl`/`home`, PHP/WordPress versions, MU plugins, backup path, rendered-acceptance result, rollback target. Never write secret values into docs or HTML.
+Each release should record: Git SHA, workflow run URL, active theme, `siteurl`/`home`, PHP/WordPress versions, MU plugins, backup path, browser-acceptance result, rollback target. Never write secret values into docs or HTML.

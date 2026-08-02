@@ -108,6 +108,8 @@ function makeResponse(status, headerText) {
  * GitHub-hosted runner IPs (SiteGround edge returns 403/202 to those IPs).
  */
 async function fetchHtmlViaSsh(url) {
+  // Markers must not start with "-" as the printf format string: bash printf
+  // treats leading dashes as options (error: "printf: --: invalid option").
   const remoteScript = [
     'set -euo pipefail',
     'tmp=$(mktemp)',
@@ -118,9 +120,9 @@ async function fetchHtmlViaSsh(url) {
       'accept: text/html,application/xhtml+xml;q=0.9,*/*;q=0.8'
     )} -o "$tmp" -D "$hdr" -w '%{http_code}' ${shellSingleQuote(url)})`,
     'printf \'%s\\n\' "$code"',
-    'printf \'---NVX_HDR---\\n\'',
+    'printf \'%s\\n\' \'NVX_HDR_BEGIN\'',
     'cat "$hdr"',
-    'printf \'---NVX_BODY---\\n\'',
+    'printf \'%s\\n\' \'NVX_BODY_BEGIN\'',
     'cat "$tmp"',
     'rm -f "$tmp" "$hdr"'
   ].join('; ');
@@ -131,8 +133,8 @@ async function fetchHtmlViaSsh(url) {
     windowsHide: true
   });
 
-  const headerMarker = '---NVX_HDR---\n';
-  const bodyMarker = '---NVX_BODY---\n';
+  const headerMarker = 'NVX_HDR_BEGIN\n';
+  const bodyMarker = 'NVX_BODY_BEGIN\n';
   const headerIndex = stdout.indexOf(headerMarker);
   const bodyIndex = stdout.indexOf(bodyMarker);
   if (headerIndex < 0 || bodyIndex < 0 || bodyIndex < headerIndex) {

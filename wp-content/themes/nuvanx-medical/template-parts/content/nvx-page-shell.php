@@ -107,7 +107,7 @@ while ( have_posts() ) :
 	if ( is_single() ) {
 		$classes[] = 'nvx-page--single';
 	}
-	if ( $show_theme_hero || $has_content_hero ) {
+	if ( $show_theme_hero || $has_content_hero || $has_managed_editorial ) {
 		$classes[] = 'nvx-page--has-hero';
 	}
 	?>

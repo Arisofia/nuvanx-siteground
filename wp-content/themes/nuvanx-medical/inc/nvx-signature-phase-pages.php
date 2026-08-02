@@ -24,7 +24,9 @@ if ( ! defined( 'NVX_CONTOUR_ARCHITECTURE' ) ) {
  * @return array<string, array<string, mixed>>
  */
 function nvx_signature_phase_catalog_specs(): array {
-	return nvx_theme_load_json_catalog( 'nvx-signature-phase-catalog.json' );
+	require_once __DIR__ . '/nvx-catalog-json.php';
+
+	return nvx_catalog_json_load( 'nvx-signature-phase-catalog.json' );
 }
 
 /**

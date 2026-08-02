@@ -81,18 +81,12 @@ jobs:
           printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts"
 
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-staging2
-            HostName $STAGING2_SSH_HOST
-            User $STAGING2_SSH_USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/staging2_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-          EOF
+          printf 'Host nvx-staging2\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile %s/.ssh/staging2_key\n  IdentitiesOnly yes\n  BatchMode yes\n  StrictHostKeyChecking yes\n  UserKnownHostsFile %s/.ssh/known_hosts\n  ConnectTimeout 15\n' \
+            "$STAGING2_SSH_HOST" \
+            "$STAGING2_SSH_USER" \
+            "$SSH_PORT" \
+            "$HOME" \
+            "$HOME" > "$HOME/.ssh/config"
           chmod 600 "$HOME/.ssh/config"
 
       - name: Verify SSH reachability for rendered acceptance

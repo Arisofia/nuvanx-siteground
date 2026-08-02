@@ -129,18 +129,12 @@ jobs:
           printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts"
 
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-staging2
-            HostName $STAGING2_SSH_HOST
-            User $STAGING2_SSH_USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/staging2_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-          EOF
+          printf 'Host nvx-staging2\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile %s/.ssh/staging2_key\n  IdentitiesOnly yes\n  BatchMode yes\n  StrictHostKeyChecking yes\n  UserKnownHostsFile %s/.ssh/known_hosts\n  ConnectTimeout 15\n' \
+            "$STAGING2_SSH_HOST" \
+            "$STAGING2_SSH_USER" \
+            "$SSH_PORT" \
+            "$HOME" \
+            "$HOME" > "$HOME/.ssh/config"
           chmod 600 "$HOME/.ssh/config"
 
       - name: Verify SiteGround staging2 target
@@ -237,6 +231,36 @@ jobs:
           sleep 8
           node scripts/staging2/verify-rendered-document.mjs
 
+      - name: Configure SSH for cleanup
+        if: always()
+        shell: bash
+        env:
+          STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          STAGING2_SSH_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          STAGING2_SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          STAGING2_SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          STAGING2_SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          if [[ -n "${STAGING2_SSH_PRIVATE_KEY:-}" ]]; then
+            printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
+            chmod 600 "$HOME/.ssh/staging2_key"
+          fi
+          if [[ -n "${STAGING2_SSH_KNOWN_HOSTS:-}" ]]; then
+            printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+            chmod 600 "$HOME/.ssh/known_hosts"
+          fi
+
+          printf 'Host nvx-staging2\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile %s/.ssh/staging2_key\n  IdentitiesOnly yes\n  BatchMode yes\n  StrictHostKeyChecking yes\n  UserKnownHostsFile %s/.ssh/known_hosts\n  ConnectTimeout 15\n' \
+            "${STAGING2_SSH_HOST:-staging2.nuvanx.com}" \
+            "${STAGING2_SSH_USER:-customer}" \
+            "${STAGING2_SSH_PORT:-18765}" \
+            "$HOME" \
+            "$HOME" > "$HOME/.ssh/config"
+          chmod 600 "$HOME/.ssh/config"
+
       - name: Remove temporary remote payload
         if: always()
         shell: bash
@@ -250,6 +274,10 @@ jobs:
           fi
           if [[ ! -f "$HOME/.ssh/config" ]] || ! grep -q 'Host nvx-staging2' "$HOME/.ssh/config" 2>/dev/null; then
             echo 'SSH host nvx-staging2 is not configured; skipping cleanup.'
+            exit 0
+          fi
+          if [[ ! -f "$HOME/.ssh/staging2_key" ]]; then
+            echo 'SSH private key not available; skipping cleanup.'
             exit 0
           fi
           # REMOTE_RELEASE is validated locally before deliberate remote interpolation.

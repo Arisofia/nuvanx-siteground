@@ -9,10 +9,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/nvx-environment-flags.php';
-require_once __DIR__ . '/nvx-aesthetic-treatment-pages.php';
-require_once __DIR__ . '/nvx-strategy-pages.php';
-require_once __DIR__ . '/nvx-signature-phase-pages.php';
-
 /** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
@@ -80,17 +76,8 @@ add_action(
 // eager script/style strips use dequeue + script_loader_tag below. Page hygiene
 // is required once from functions.php.
 
-require_once __DIR__ . '/nvx-structured-data.php';
-require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
-require_once __DIR__ . '/nvx-seo-metadata.php';
-require_once __DIR__ . '/nvx-seo-production-readiness.php';
 // Contact SEO/schema: nvx-contacto-valoracion-page.php (loaded from functions.php).
 // Non-production OG host policy: nvx-document-governance.php.
-require_once __DIR__ . '/nvx-faq-content-v2.php';
-require_once __DIR__ . '/nvx-medical-review.php';
-require_once __DIR__ . '/nvx-btl-clinical-governance.php';
-require_once __DIR__ . '/nvx-blog-system.php';
-require_once __DIR__ . '/nvx-navigation-filters.php';
 
 add_action(
 	'wp_head',

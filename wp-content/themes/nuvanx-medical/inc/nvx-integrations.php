@@ -280,47 +280,6 @@ add_filter(
 	3
 );
 
-add_action(
-	'template_redirect',
-	static function (): void {
-		if ( is_admin() || wp_doing_ajax() || wp_doing_cron() ) {
-			return;
-		}
-		ob_start();
-	},
-	0
-);
-
-add_action(
-	'shutdown',
-	static function (): void {
-		if ( is_admin() || wp_doing_ajax() || wp_doing_cron() ) {
-			return;
-		}
-
-		$buffer = ob_get_level() > 0 ? ob_get_contents() : '';
-		if ( ! is_string( $buffer ) || '' === $buffer ) {
-			return;
-		}
-
-		$buffer = str_replace( 'FacebookSignal', '', $buffer );
-		$buffer = preg_replace( '/<!--\s*Meta Pixel Event Code\s*-->.*?<!--\s*End Meta Pixel Event Code\s*-->/is', '', $buffer ) ?? $buffer;
-		$buffer = preg_replace( '/<div id="fb-pxl-ajax-code"><\/div>/i', '', $buffer ) ?? $buffer;
-		$buffer = preg_replace( '/<script[^>]*>.*?fb_pxl_code.*?<\/script>/is', '', $buffer ) ?? $buffer;
-		$buffer = preg_replace( '/<script[^>]*src=[^>]*facebook[^>]*><\/script>/is', '', $buffer ) ?? $buffer;
-		$buffer = preg_replace( '/<script[^>]*src=[^>]*meta[^>]*><\/script>/is', '', $buffer ) ?? $buffer;
-		$buffer = preg_replace( '/<!--\s*Start of HubSpot Embed Code\s*-->.*?<!--\s*End of HubSpot Embed Code\s*-->/is', '', $buffer ) ?? $buffer;
-		$buffer = preg_replace( '/<script[^>]*src=[^>]*hs-scripts\.com[^>]*><\/script>/is', '', $buffer ) ?? $buffer;
-		$buffer = preg_replace( '/<script[^>]*src=[^>]*hsforms\.(net|com)[^>]*><\/script>/is', '', $buffer ) ?? $buffer;
-
-		if ( ob_get_level() > 0 ) {
-			ob_end_clean();
-		}
-		echo $buffer;
-	},
-	999999
-);
-
 add_filter(
 	'wp_resource_hints',
 	static function ( $urls, $relation_type ) {

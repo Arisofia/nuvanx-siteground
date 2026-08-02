@@ -251,6 +251,45 @@ async function run() {
         if (heroCount === 0) issues.push('Missing hero section');
         if (ctaCount === 0) issues.push('Missing CTA (.nvx-btn / .nvx-button)');
         if (rogueJsonLdCount > 0) issues.push(`Found ${rogueJsonLdCount} rogue JSON-LD script(s) outside Yoast graph`);
+        
+        // --- Editorial / Visual QA Invariants ---
+        
+        // 1. NAP Icons
+        const isNapPage = ['/contacto/', '/clinicas-de-medicina-estetica-nuvanx/'].includes(route) || route.includes('medicina-estetica-chamberi') || route.includes('goya-barrio-salamanca');
+        if (isNapPage) {
+          const hasLocationIcon = await page.locator('svg use[*|href="#icon-location"], svg use[href="#icon-location"]').count() > 0;
+          const hasPhoneIcon = await page.locator('svg use[*|href="#icon-phone"], svg use[href="#icon-phone"]').count() > 0;
+          if (!hasLocationIcon) issues.push('Missing mandatory NAP icon: #icon-location');
+          if (!hasPhoneIcon) issues.push('Missing mandatory NAP icon: #icon-phone');
+        }
+        
+        // 2. Clinic / Hub Wrappers
+        const clinicalRoutes = [
+          '/endolift-facial-papada-mandibula/', '/endolaser-corporal-grasa-localizada/', '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
+          '/exion-btl/', '/exion-face/', '/exion-fractional/', '/btl-exilite-ipl-madrid/', '/bioestimuladores-colageno-madrid/',
+          '/ojeras-surco-lagrimal-madrid/', '/rinomodelacion-sin-cirugia-madrid/', '/labios-acido-hialuronico-madrid/',
+          '/remodelacion-corporal-laser-madrid/', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
+          '/papada-definicion-mandibular-madrid/', '/calidad-piel-firmeza-luminosidad-madrid/', '/cicatrices-acne-poros-textura-madrid/',
+          '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', '/grasa-localizada-abdomen-flancos-madrid/',
+          '/flacidez-grasa-localizada-brazos-madrid/', '/grasa-espalda-zona-sujetador-madrid/', '/flacidez-muslos-internos-subgluteo-madrid/',
+          '/tratamiento-rodillas-grasa-flacidez-madrid/', '/contorno-corporal-masculino-madrid/'
+        ];
+        const isClinicOrHubPage = clinicalRoutes.includes(route) || ['/clinicas-de-medicina-estetica-nuvanx/', '/contacto/', '/equipo-medico/', '/nosotros/', '/medicina-estetica-laser/'].includes(route);
+        if (isClinicOrHubPage) {
+          const hasWrappedHero = await page.locator('.nvx-brand-page .nvx-brand-hero, .nvx-brand-page > .nvx-brand-hero, .nvx-brand-page > * > .nvx-brand-hero').count() > 0;
+          if (!hasWrappedHero) {
+            issues.push('Hero structure violation: .nvx-brand-hero is not wrapped inside .nvx-brand-page');
+          }
+        }
+        
+        // 3. Strategic Page CTAs
+        const isStrategicPage = ['/', '/nosotros/', '/contacto/', '/madrid/valoracion/', '/clinicas-de-medicina-estetica-nuvanx/', '/medicina-estetica-laser/'].includes(route);
+        if (isStrategicPage) {
+          const hasActions = await page.locator('.nvx-brand-hero__copy .nvx-brand-actions, .nvx-home-hero__copy .nvx-brand-actions').count() > 0;
+          if (!hasActions) {
+             issues.push('Missing standard CTA wrapper (.nvx-brand-actions) inside Hero copy');
+          }
+        }
       }
 
       // Staging2 must retain meta and HTTP noindex protection

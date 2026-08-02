@@ -270,5 +270,7 @@ require_once get_template_directory() . '/inc/nvx-aesthetic-medicine-page.php';
 require_once get_template_directory() . '/inc/nvx-clinics-hub.php';
 require_once get_template_directory() . '/inc/nvx-dr-rivera-page.php';
 require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
+require_once get_template_directory() . '/inc/nvx-document-governance.php';
+require_once get_template_directory() . '/inc/nvx-page-hygiene.php';
 require_once get_template_directory() . '/inc/nvx-faq-catalog.php';
 require_once get_template_directory() . '/inc/nvx-evidence-panel.php';

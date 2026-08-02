@@ -16,16 +16,16 @@ wp-content/uploads/sb-instagram-feed-images/
 
 # Logs y Archivos de Sistema Operativo
 *.log
-*.bak
-*.sql
-*.zip
 .DS_Store
 Thumbs.db
 error_log
 
-# Backups de despliegue y herramientas
+# Backups de despliegue y exportaciones de BD
 wp-content/backups-nuvanx/
+tools/deploy/*.sql
+tools/deploy/*.bak
 tools/deploy/nvx-cms-content-cleanup-backup-*.sql
+*.sql.gz
 
 # Entornos de Desarrollo Local, QA y Node
 node_modules/
@@ -33,5 +33,7 @@ mcps/
 Nuvanx-System/
 qa/
 
-# Capturas QA locales (no versionar imagenes de prueba temporales)
-images/
+# Capturas de pantalla QA locales en la raíz (evitar commit de screenshots de prueba)
+images/*.png
+images/*.jpg
+images/*.jpeg

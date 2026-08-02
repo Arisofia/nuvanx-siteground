@@ -14,6 +14,7 @@ MUTATION_STARTED=0
 REQUIRED_MU_PLUGINS=(
   'nuvanx-valoracion-native-hubspot-form.php'
   'nuvanx-contacto-hubspot-form.php'
+  'nvx-disable-public-facebook-pixel.php'
 )
 
 usage() {

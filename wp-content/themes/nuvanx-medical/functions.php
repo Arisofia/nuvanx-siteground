@@ -283,6 +283,24 @@ require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';
 require_once get_template_directory() . '/inc/nvx-content-presentation.php';
 require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';
+
+// Módulos explícitos de SEO, Schema, Entorno y Páginas Estratégicas
+require_once get_template_directory() . '/inc/nvx-environment-flags.php';
+require_once get_template_directory() . '/inc/nvx-13-point-renderer.php';
+require_once get_template_directory() . '/inc/nvx-page-render-helpers.php';
+require_once get_template_directory() . '/inc/nvx-jsonld-content.php';
+require_once get_template_directory() . '/inc/nvx-structured-data.php';
+require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
+require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';
+require_once get_template_directory() . '/inc/nvx-medical-review.php';
+require_once get_template_directory() . '/inc/nvx-btl-clinical-governance.php';
+require_once get_template_directory() . '/inc/nvx-faq-content-v2.php';
+require_once get_template_directory() . '/inc/nvx-blog-system.php';
+require_once get_template_directory() . '/inc/nvx-navigation-filters.php';
+require_once get_template_directory() . '/inc/nvx-strategy-pages.php';
+require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
+require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';
+require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-schema.php';
 require_once get_template_directory() . '/inc/nvx-solutions-page.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
 require_once get_template_directory() . '/inc/nvx-endolaser-page.php';

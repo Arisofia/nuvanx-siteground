@@ -12,7 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-require_once __DIR__ . '/nvx-13-point-renderer.php';
 
 if ( ! defined( 'NVX_CONTOUR_ARCHITECTURE' ) ) {
 	define( 'NVX_CONTOUR_ARCHITECTURE', 'NUVANX Contour Architecture™' );

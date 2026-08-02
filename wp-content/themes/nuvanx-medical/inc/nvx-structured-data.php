@@ -15,7 +15,6 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once __DIR__ . '/nvx-jsonld-content.php';
 
 /**
  * Editorial review month label for Endolift byline (update with clinical review).

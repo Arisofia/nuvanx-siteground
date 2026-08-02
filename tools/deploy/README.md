@@ -4,11 +4,11 @@ Mutating scripts require `--confirm` or `NUVANX_CONFIRM=yes`.
 
 | Script | Purpose |
 |--------|---------|
-| `deploy-to-staging2.sh` | Guard Staging2 identity, lint, backup, rsync theme, stamp SHA, purge caches |
-| `deploy-required-mu-plugins.sh` | Deploy required NUVANX MU plugins (staging2 or production) |
-| `deploy-to-prod.sh` | Promote theme from staging disk to production; copy form MU plugins only |
-| `flush-prod-cache.sh` | Flush WordPress object cache for a given root |
-| `nvx-cms-content-cleanup.php` | Dry-run / apply residual CMS block + claim rewrites in `post_content` |
+| `deploy-to-staging2.sh` | Guard Staging2 identity, PHP lint, backup, rsync theme, stamp SHA, purge caches |
+| `deploy-required-mu-plugins.sh` | Validate WordPress root identity and retire absorbed MU plugins (theme owns form/SEO/pixel/attribution) |
+| `deploy-to-prod.sh` | Promote nuvanx-medical theme from staging2 disk to production; retire absorbed MU plugins; reset canonical CSS stack |
+| `flush-prod-cache.sh` | Flush WordPress and SiteGround optimizer caches for the production root |
+| `nvx-cms-content-cleanup.php` | Dry-run / apply residual CMS block + claim rewrites in `post_content` (host-level one-shot cleanup) |
 
 ## CMS content cleanup (host)
 
@@ -18,11 +18,11 @@ From the WordPress root on staging2 (preferred) or production:
 # Offline rule engine check (no DB):
 php tools/deploy/nvx-cms-content-cleanup.php --self-test
 
-# Dry-run against all pages/posts/revisions:
+# Dry-run against all pages/posts:
 wp eval-file tools/deploy/nvx-cms-content-cleanup.php
 
-# Apply after reviewing hit_totals:
-NVX_CMS_CLEANUP_APPLY=1 wp eval-file tools/deploy/nvx-cms-content-cleanup.php
+# Apply after reviewing hit_totals and examples:
+wp eval-file tools/deploy/nvx-cms-content-cleanup.php --confirm
 ```
 
 Only remove matching theme strippers after dry-run reports `dirty=0` (or after a successful APPLY that leaves zero residual hits).

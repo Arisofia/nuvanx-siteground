@@ -62,7 +62,7 @@ The workflow refuses any SHA not contained in `origin/master`.
 2. Run `tools/deploy/deploy-to-staging2.sh` (root/URL/theme guards, PHP lint, backup, rsync, SHA stamp, cache purge).
 3. Run `tools/deploy/deploy-required-mu-plugins.sh` for Staging2.
 4. Verify the remote `.nvx-deploy-sha` marker.
-5. Run `scripts/staging2/verify-rendered-document.mjs` against `https://staging2.nuvanx.com` with `EXPECTED_SHA` equal to the deployed SHA.
+5. Run `scripts/staging2/verify-rendered-document.mjs` with `EXPECTED_SHA` equal to the deployed SHA. In GitHub Actions the HTML is fetched via SSH (`SSH_FETCH_HOST`) from the SiteGround host so runner IPs are not blocked by edge 403/202 responses.
 6. Remove the temporary remote release directory.
 
 Success criteria: remote marker match + full rendered acceptance green.

@@ -228,11 +228,13 @@ jobs:
         env:
           BASE_URL: https://staging2.nuvanx.com
           EXPECTED_SHA: ${{ env.DEPLOY_SHA }}
+          # Fetch HTML from the SiteGround host itself. GitHub runner egress IPs
+          # are frequently answered with 403/202 placeholders by SiteGround edge.
+          SSH_FETCH_HOST: nvx-staging2
         run: |
           set -euo pipefail
-          # Allow SiteGround dynamic/file caches and edge settle after the remote purge.
-          # Edge occasionally answers early probes with HTTP 202 placeholders.
-          sleep 25
+          # Marker is already verified; brief settle for post-purge page assembly.
+          sleep 8
           node scripts/staging2/verify-rendered-document.mjs
 
       - name: Remove temporary remote payload

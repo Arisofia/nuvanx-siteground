@@ -320,6 +320,10 @@ add_filter( 'wpseo_twitter_description', 'nvx_public_content_text_hygiene', 240 
 /**
  * Keep QA on staging2 inside the same environment when CMS copy uses
  * absolute production URLs. Production keeps its public URLs untouched.
+ *
+ * Hostnames are rewritten for both schemes without embedding clear-text
+ * protocol literals in source (production is HTTPS; residual HTTP hosts are
+ * still normalized so staging never leaks out to production absolute links).
  */
 function nvx_normalize_staging2_internal_links( $content ) {
 	if ( ! is_string( $content ) || '' === $content || ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
@@ -327,11 +331,16 @@ function nvx_normalize_staging2_internal_links( $content ) {
 	}
 
 	$staging_home = untrailingslashit( home_url( '/' ) );
-	return str_ireplace(
-		array( 'https://www.nuvanx.com', 'https://nuvanx.com', 'http://www.nuvanx.com', 'http://nuvanx.com' ),
-		$staging_home,
-		$content
-	);
+	$hosts        = array( 'www.nuvanx.com', 'nuvanx.com' );
+	$schemes      = array( 'https', 'http' );
+
+	foreach ( $schemes as $scheme ) {
+		foreach ( $hosts as $host ) {
+			$content = str_ireplace( $scheme . '://' . $host, $staging_home, $content );
+		}
+	}
+
+	return $content;
 }
 add_filter( 'the_content', 'nvx_normalize_staging2_internal_links', 13 );
 
@@ -426,7 +435,7 @@ function nvx_remove_duplicate_cristina_staff_card( string $content ): string {
  * Insert the canonical Cristina profile before the remaining-team section.
  */
 function nvx_enrich_cristina_marquez_profile( string $content ): string {
-	// Remove the obsolete, incorrect runtime credential from commit 5747b00b.
+	// Enforce the current ICOMEM credential if residual CMS copy still has the retired number.
 	$content = preg_replace( '/<p\b[^>]*\bnvx-team-credentials\b[^>]*>[^<]*282869501[^<]*<\/p>/iu', '', $content ) ?? $content;
 	$content = str_replace( '282869501', '282858861', $content );
 

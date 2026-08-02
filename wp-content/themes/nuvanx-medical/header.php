@@ -24,6 +24,7 @@ if ( function_exists( 'nvx_document_governance_is_solutions_hub' ) && nvx_docume
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><?php echo esc_html( wp_get_document_title() ); ?></title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <?php wp_head(); ?>
 </head>

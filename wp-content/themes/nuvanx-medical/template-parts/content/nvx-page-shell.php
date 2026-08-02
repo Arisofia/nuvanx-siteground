@@ -178,11 +178,11 @@ while ( have_posts() ) :
 	<?php if ( empty( $shell_no_wrap ) ) : ?>
 		<div class="entry-content nvx-page__content nvx-prose">
 	<?php endif; ?>
-		<?php 
+		<?php
 		if ( ! empty( $shell_content ) ) {
 			echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source.
 		} else {
-			the_content(); 
+			the_content();
 		}
 		?>
 	<?php if ( empty( $shell_no_wrap ) ) : ?>

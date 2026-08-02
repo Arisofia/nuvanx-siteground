@@ -14,12 +14,9 @@ defined( 'ABSPATH' ) || exit;
 // Fail closed with visible diagnostics if the canonical partial is missing.
 $partial = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
 
-// Avoid nested output-buffer callbacks on this route: they have produced
-// HTTP 200 + Content-Length 0 for this slug under staging2 PHP-FPM.
-if ( function_exists( 'nvx_document_governance_start' ) ) {
-	// header.php always starts governance; nothing to disable here beyond
-	// ensuring we do not add additional buffers ourselves.
-}
+// Do not nest extra document buffers on this route: nested buffers have
+// produced HTTP 200 + Content-Length 0 under staging2 PHP-FPM for this slug.
+// header.php owns governance buffering; this template only captures the partial.
 
 get_header();
 
@@ -29,7 +26,7 @@ if ( is_readable( $partial ) ) {
 	// Capture partial without touching outer document buffers.
 	$level = ob_get_level();
 	ob_start();
-	include $partial;
+	include_once $partial;
 	$markup = (string) ob_get_clean();
 	while ( ob_get_level() > $level ) {
 		ob_end_clean();

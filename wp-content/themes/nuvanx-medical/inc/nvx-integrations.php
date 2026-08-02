@@ -61,106 +61,10 @@ add_action(
 	1
 );
 
-/**
- * Apply preg_replace without ever collapsing a failed match to "".
- *
- * Casting null (PCRE error / backtrack limit) to string yields empty output and
- * was observed as HTTP 200 + Content-Length 0 on large public documents.
- *
- * @param string|string[] $pattern Pattern.
- * @param string|string[] $replacement Replacement.
- * @param string          $subject Subject.
- * @param int             $limit Limit.
- */
-function nvx_safe_preg_replace( $pattern, $replacement, string $subject, int $limit = -1 ): string {
-	$result = preg_replace( $pattern, $replacement, $subject, $limit );
-	return is_string( $result ) ? $result : $subject;
-}
-
-/**
- * Normalize public document markup and remove duplicate front-page FAQ structured data.
- *
- * @param string $html Rendered document markup.
- * @return string
- */
-function nvx_theme_normalize_public_document( string $html ): string {
-	if ( '' === $html ) {
-		return $html;
-	}
-
-	$html = nvx_safe_preg_replace(
-		'/<meta\s+name=["\']viewport["\'][^>]*>/i',
-		'<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
-		$html,
-		1
-	);
-
-	if ( false !== stripos( $html, '2026/06/nvx-home-video-' ) ) {
-		$html = str_replace(
-			'/uploads/2026/06/nvx-home-video-',
-			'/uploads/2026/07/nvx-home-video-',
-			$html
-		);
-	}
-
-	if ( function_exists( 'nvx_document_governance_remove_retired_scripts' ) ) {
-		$html = nvx_document_governance_remove_retired_scripts( $html );
-	}
-
-	if ( ! is_admin() ) {
-		if ( false !== stripos( $html, 'accounts.google.com/gsi' ) ) {
-			$html = nvx_safe_preg_replace(
-				'/<script\b[^>]*accounts\.google\.com\/gsi[^>]*>[\s\S]*?<\/script>/iu',
-				'',
-				$html
-			);
-		}
-		if ( false !== stripos( $html, 'sign-in-with-google' ) ) {
-			$html = nvx_safe_preg_replace(
-				'/<script\b[^>]*sign-in-with-google[^>]*>[\s\S]*?<\/script>/iu',
-				'',
-				$html
-			);
-			$html = nvx_safe_preg_replace(
-				'/<style\b[^>]*googlesitekit-sign-in-with-google[^>]*>[\s\S]*?<\/style>/iu',
-				'',
-				$html
-			);
-		}
-
-		$html = nvx_safe_preg_replace(
-			'/<link\s+rel=["\']stylesheet["\']\s+id=["\']nvx-(?:mobile-hero-hierarchy|canonical-page-hero|full-site-ui-governance|editorial-coherence|site-coherence|ui-regressions|hero-layout-coherence|integrations)-css["\'][^>]*>/i',
-			'',
-			$html
-		);
-	}
-
-	if ( ! is_front_page() || false === stripos( $html, 'FAQPage' ) ) {
-		return $html;
-	}
-
-	$normalized = preg_replace_callback(
-		'/<script\b[^>]*type=["\']application\/ld\+json["\'][^>]*>[\s\S]*?<\/script>/iu',
-		static function ( array $match ): string {
-			$script = $match[0];
-			if ( false !== stripos( $script, 'yoast-schema-graph' ) ) {
-				return $script;
-			}
-			return false !== stripos( $script, 'FAQPage' ) ? '' : $script;
-		},
-		$html
-	);
-
-	if ( is_string( $normalized ) ) {
-		$html = $normalized;
-	}
-
-	return str_replace( '<!-- NUVANX_HOME_UNIFIED_FAQ_SCHEMA -->', '', $html );
-}
-
 // Public document head contract is owned solely by nvx-document-governance.php
-// (wp_head emission + Yoast suppress). Page hygiene is required once from
-// functions.php.
+// (wp_head emission + Yoast suppress). Full-document buffer rewrites were retired;
+// eager script/style strips use dequeue + script_loader_tag below. Page hygiene
+// is required once from functions.php.
 
 require_once __DIR__ . '/nvx-structured-data.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';

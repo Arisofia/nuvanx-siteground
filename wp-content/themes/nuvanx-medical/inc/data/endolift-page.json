@@ -1,0 +1,102 @@
+{
+    "hero": {
+        "kicker": "@nvx-t:NUVANX · Medicina estética láser",
+        "h1": "@nvx-t:Endolift® en Madrid: papada, mandíbula y cuello sin quirófano",
+        "byline_author": "@nvx-t:Escrito y revisado por Dr. Javier Rivera Tejeda",
+        "byline_title": "@nvx-t:Director médico NUVANX · Fecha de última revisión: julio 2026",
+        "lead": "@nvx-t:Tratamiento subdérmico de precisión para tensado tisular y reducción de grasa localizada. Indicación médica y presupuesto cerrado tras la primera valoración en Chamberí o Salamanca.",
+        "description": "@nvx-t:Valoración por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %s). Indicación, comparación con cirugía, protocolo personalizado y recuperación realista — antes de decidir.",
+        "meta": "@nvx-t:Papada · Marcación mandibular · Óvalo facial · Chamberí · Salamanca–Goya"
+    },
+    "review": {
+        "text": "@nvx-t:Documento clínico redactado y revisado de forma independiente por el Dr. José Javier Rivera Tejeda (Nº Col. ICOMEM %1$s). Última revisión científica: %2$s.",
+        "link": "@nvx-t:Ver equipo médico"
+    },
+    "what": {
+        "kicker": "@nvx-t:La técnica",
+        "title": "@nvx-t:¿Qué es el Endolift® facial y cómo altera la estructura anatómica?",
+        "body": [
+            "@nvx-t:No es un cosmético tópico ni un calentamiento superficial. Es medicina intervencionista mínimamente invasiva: una microfibra óptica del orden de 200–300 micras se introduce bajo la piel y libera energía láser en el tejido subcutáneo.",
+            "@nvx-t:Esa energía puede combinar, cuando hay indicación, reducción de grasa local en papada y línea mandibular, y retracción del tejido de soporte con estímulo de colágeno nuevo. El efecto es un tensado progresivo — no una resección quirúrgica de piel."
+        ]
+    },
+    "diagnosis": {
+        "kicker": "@nvx-t:Indicaciones clínicas",
+        "title": "@nvx-t:Selección rigurosa del paciente ideal",
+        "body": [
+            "@nvx-t:El resultado depende sobre todo de una indicación correcta. Está orientado a flacidez leve–moderada del tercio inferior y cuello, y a grasa submentoniana moderada, cuando se busca remodelación estructural sin los riesgos y la baja de un lifting cérvicofacial.",
+            "@nvx-t:Se descarta en ptosis severa con pliegues marcados y exceso cutáneo evidente: la retracción térmica no sustituye a la resección quirúrgica. En ese caso se deriva a cirugía plástica.",
+            "@nvx-t:Antes de programar, el diagnóstico diferencial separa laxitud del SMAS, adiposidad localizada o la combinación de ambas —eso calibra energía y vectores de la microfibra."
+        ],
+        "panel_title": "@nvx-t:Diagnóstico diferencial",
+        "panel_items": [
+            { "title": "@nvx-t:Laxitud / SMAS", "body": "@nvx-t:Retracción del tejido conectivo y tensado del contorno mandibular." },
+            { "title": "@nvx-t:Adiposidad submentoniana", "body": "@nvx-t:Laserlipólisis selectiva de grasa localizada en la papada." },
+            { "title": "@nvx-t:Combinación", "body": "@nvx-t:Protocolo mixto con vectores y energía calibrados en consulta." },
+            { "title": "@nvx-t:Exclusión", "body": "@nvx-t:Ptosis severa / exceso de piel: derivación quirúrgica." }
+        ]
+    },
+    "compare": {
+        "kicker": "@nvx-t:Comparativa clínica",
+        "title": "@nvx-t:Endolift® vs lifting cérvicofacial quirúrgico",
+        "col_param": "@nvx-t:Parámetro",
+        "col_endo": "@nvx-t:Endolift® (láser intersticial)",
+        "col_lift": "@nvx-t:Lifting cérvicofacial",
+        "rows": [
+            { "param": "@nvx-t:Naturaleza", "endo": "@nvx-t:Mínimamente invasiva (microfibra, sin cortes de resección)", "lift": "@nvx-t:Invasiva (resección y reposicionamiento tisular)" },
+            { "param": "@nvx-t:Incisiones", "endo": "@nvx-t:Microperforaciones sin sutura de lifting", "lift": "@nvx-t:Incisiones periauriculares; cicatriz residual posible" },
+            { "param": "@nvx-t:Anestesia", "endo": "@nvx-t:Local infiltrativa en consulta", "lift": "@nvx-t:General o sedación profunda habitual" },
+            { "param": "@nvx-t:Entorno", "endo": "@nvx-t:Ambulatorio en cabina médica", "lift": "@nvx-t:Quirófano; a menudo ingreso" },
+            { "param": "@nvx-t:Baja social", "endo": "@nvx-t:3–7 días de edema/inflamación moderada", "lift": "@nvx-t:15–21 días de curación inicial típica" },
+            { "param": "@nvx-t:Expresión facial", "endo": "@nvx-t:Preserva la identidad anatómica natural", "lift": "@nvx-t:Riesgo de alteración mecánica de la expresión" },
+            { "param": "@nvx-t:Evolución del resultado", "endo": "@nvx-t:Progresiva; pico de colágeno ~3–6 meses", "lift": "@nvx-t:Estructural tras remitir el edema postquirúrgico" }
+        ]
+    },
+    "biophysics": {
+        "kicker": "@nvx-t:La biofísica",
+        "title": "@nvx-t:1470 nm: deposición térmica controlada",
+        "body1": "@nvx-t:Microfibras monouso de silicio (200–300 micras) y emisión a 1470 nm, con alto coeficiente de absorción en agua y lípidos. La energía se modela como deposición local de calor en el tejido subdérmico:",
+        "caption": "@nvx-t:Q: calor local; μₐ: coeficiente de absorción a 1470 nm; Φ: fluencia transmitida por la microfibra.",
+        "body2": "@nvx-t:En rango térmico de ~60–80 °C en dermis reticular y septos, se produce desnaturalización del colágeno (contracción SMAS) y laserlipólisis de adipocitos, sin lesionar la epidermis de forma quirúrgica."
+    },
+    "process": {
+        "kicker": "@nvx-t:El procedimiento en NUVANX",
+        "title": "@nvx-t:Ejecución paso a paso",
+        "body": "@nvx-t:Duración habitual 60–90 minutos. El paciente sale por su propio pie. Recuperación social y dolor se detallan en la FAQ.",
+        "steps": [
+            { "icon": "assess", "n": "01", "title": "@nvx-t:Planimetría y marcaje", "body": "@nvx-t:Mapeo de líneas de tensión y compartimentos grasos; definición de vectores y parámetros antes de la fibra." },
+            { "icon": "anesthesia", "n": "02", "title": "@nvx-t:Anestesia local tumescente", "body": "@nvx-t:Infiltración en puntos de entrada para confort. Sensación de calor y presión, no dolor agudo." },
+            { "icon": "procedure", "n": "03", "title": "@nvx-t:Vectorización láser", "body": "@nvx-t:Patrón subdérmico en abanico con microfibra monouso a 1470 nm según el mapa clínico." },
+            { "icon": "recover", "n": "04", "title": "@nvx-t:Alta y seguimiento", "body": "@nvx-t:Ambulatorio. Edema 3–7 días habitual; reincorporación típica en menos de 24 h. Revisiones protocolizadas (p. ej. semanas 4 y 8)." }
+        ]
+    },
+    "postop": {
+        "kicker": "@nvx-t:Recuperación Transparente",
+        "title": "@nvx-t:Cómo es el postoperatorio real del Endolift® en Madrid (sin clichés)",
+        "body": "@nvx-t:A diferencia de una cirugía invasiva (como una liposucción tradicional o un lifting), el Endolift® no requiere quirófano ni anestesia general, pero esto no significa que no haya un proceso de recuperación. Esta es la verdad clínica sobre qué esperar día a día:",
+        "items": [
+            { "title": "@nvx-t:Días 1 a 3 (Inflamación):", "body": "@nvx-t:Es normal sentir la zona tratada inflamada, ligeramente acartonada y sensible al tacto. Pueden aparecer pequeños hematomas en los puntos de entrada de la fibra láser. No minimizamos el proceso: el disconfort existe, pero se controla con nuestra pauta analgésica oral estandarizada." },
+            { "title": "@nvx-t:Semana 1 (Recuperación Social):", "body": "@nvx-t:La inflamación inicial cede considerablemente. A nivel social, puedes salir a cenar o retomar reuniones sin que sea evidente que te has sometido a un procedimiento médico, aunque tú seguirás notando la zona en proceso de curación." },
+            { "title": "@nvx-t:Semanas 2 a 4 (Retracción Tisular):", "body": "@nvx-t:El tejido comienza su remodelación interna profunda. Las molestias físicas desaparecen casi por completo y empiezas a notar la piel visiblemente más firme y adherida al plano profundo." },
+            { "title": "@nvx-t:Meses 2 a 3 (Resultado Real):", "body": "@nvx-t:El pico máximo de neo-colagénesis se alcanza en este punto. El contorno mandibular, la papada o la zona tratada muestran su resultado clínico real." }
+        ],
+        "note": "@nvx-t:Antes del procedimiento, se te entrega un protocolo escrito con tu teléfono directo de seguimiento. Agenda tu valoración médica y te explicamos exactamente qué esperar en tu anatomía."
+    },
+    "investment": {
+        "kicker": "@nvx-t:Presupuesto médico",
+        "title": "@nvx-t:Valoración y presupuesto Endolift® en NUVANX Madrid",
+        "body": "@nvx-t:El plan y presupuesto de Endolift® se determinan tras la valoración médica presencial en Chamberí o Salamanca–Goya. Cada tratamiento incluye:",
+        "items": [
+            "@nvx-t:Valoración anatómica presencial y diagnóstico diferencial por el equipo médico",
+            "@nvx-t:Honorarios médicos de la intervención",
+            "@nvx-t:Fibra óptica láser monouso y material fungible de uso exclusivo",
+            "@nvx-t:Revisiones clínicas protocolizadas (semanas 4, 8 y seguimiento posterior)",
+            "@nvx-t:Orientación farmacológica del postoperatorio y teléfono directo de atención"
+        ],
+        "note": "@nvx-t:Presupuesto cerrado sin sorpresas tras la consulta de valoración."
+    },
+    "faq": {
+        "kicker": "@nvx-t:Base de conocimiento",
+        "title": "@nvx-t:Preguntas clínicas frecuentes"
+    }
+}

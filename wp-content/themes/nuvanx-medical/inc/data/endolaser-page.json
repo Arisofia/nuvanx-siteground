@@ -1,0 +1,78 @@
+{
+    "hero": {
+        "kicker": "@nvx-t:NUVANX · Medicina estética láser",
+        "h1": "@nvx-t:Endoláser corporal en Madrid: grasa localizada y mejor contorno",
+        "byline_author": "@nvx-t:Escrito y revisado por Dr. Javier Rivera Tejeda",
+        "byline_title": "@nvx-t:Director médico NUVANX · Fecha de última revisión: julio 2026",
+        "lead": "@nvx-t:Láser médico para focos de grasa localizada con componente de flacidez leve–moderada (abdomen, flancos, muslos, brazos…), tras valoración y plan por zonas.",
+        "description": "@nvx-t:No es un tratamiento de obesidad ni de pérdida masiva de peso. No es liposucción. Es un protocolo ambulatorio con criterios de inclusión y exclusión.",
+        "meta": "@nvx-t:Chamberí · Salamanca–Goya · Plan por zonas · Valoración presencial"
+    },
+    "mechanism": {
+        "kicker": "@nvx-t:Laserlipólisis corporal",
+        "title": "@nvx-t:Cómo actúa: grasa localizada y soporte de la piel",
+        "body": [
+            "@nvx-t:A diferencia de terapias solo de superficie o de frío que no abordan la flacidez, el Endoláser puede trabajar grasa y calidad de piel en un mismo acto médico ambulatorio, cuando hay indicación.",
+            "@nvx-t:Bajo anestesia local se introduce una fibra láser en el tejido subcutáneo. La energía reduce de forma selectiva grasa en focos planificados (lipólisis). En paralelo, el calor en profundidad favorece la contracción de fibras de soporte, para limitar la sensación de “piel vacía” tras reducir volumen."
+        ],
+        "effects": [
+            {
+                "title": "@nvx-t:Lipólisis láser",
+                "body": "@nvx-t:Reducción selectiva de grasa en focos localizados planificados por el médico (no es adelgazamiento general)."
+            },
+            {
+                "title": "@nvx-t:Retracción y soporte dérmico",
+                "body": "@nvx-t:Contracción térmica de fibras y estímulo de remodelación para acompañar la pérdida de volumen con mayor firmeza."
+            }
+        ]
+    },
+    "zones": {
+        "kicker": "@nvx-t:Mapa clínico",
+        "title": "@nvx-t:Zonas anatómicas de alta respuesta",
+        "body": "@nvx-t:Se valora idoneidad en grasa resistente a dieta y ejercicio, con flacidez leve–moderada asociada. La indicación es por focos, no por “adelgazamiento general”.",
+        "items": [
+            {
+                "title": "@nvx-t:Abdomen y flancos",
+                "body": "@nvx-t:Cinturón adiposo periumbilical y redefinición de contorno de cintura cuando hay grasa localizada con buena candidatura cutánea."
+            },
+            {
+                "title": "@nvx-t:Cara interna de muslos y rodillas",
+                "body": "@nvx-t:Volumen local que genera fricción y descolgamiento medial leve–moderado, tras excluir exceso cutáneo severo."
+            },
+            {
+                "title": "@nvx-t:Brazos (cara posterior)",
+                "body": "@nvx-t:Grasa y flacidez pendular en la cara posterior del brazo (“brazos de murciélago”) en casos seleccionados."
+            },
+            {
+                "title": "@nvx-t:Región submandibular",
+                "body": "@nvx-t:Papada fibrosa o grasa submentoniana corporal-facial de contorno; si el objetivo es solo facial, puede valorarse Endolift® facial en su página dedicada."
+            }
+        ]
+    },
+    "exclusion": {
+        "kicker": "@nvx-t:Criterio médico",
+        "title": "@nvx-t:Criterios de exclusión y alternativas",
+        "body": [
+            "@nvx-t:No está indicado para pérdida masiva de peso ni para tratar obesidad. El paciente óptimo mantiene peso estable y presenta acumulaciones grasas muy localizadas con flacidez leve a moderada.",
+            "@nvx-t:Exceso cutáneo drástico (faldones tras grandes pérdidas de peso) se deriva a evaluación de procedimientos excisionales (p. ej. abdominoplastia). El láser no sustituye a la resección quirúrgica de piel."
+        ],
+        "panel_title": "@nvx-t:Candidatura",
+        "panel_items": [
+            { "title": "@nvx-t:Sí", "body": "@nvx-t:Peso estable + grasa focal + flacidez leve–moderada." },
+            { "title": "@nvx-t:No", "body": "@nvx-t:Obesidad / pérdida de peso sistémica como objetivo." },
+            { "title": "@nvx-t:Derivar", "body": "@nvx-t:Exceso cutáneo severo → cirugía excisional." }
+        ]
+    },
+    "planning": {
+        "kicker": "@nvx-t:Planificación",
+        "title": "@nvx-t:Inversión y planificación por zonas",
+        "body": "@nvx-t:La superficie anatómica, el número de zonas, el tiempo de procedimiento ambulatorio y el material (incl. anestesia) varían caso a caso. Por eso el presupuesto se personaliza en consulta: no publicamos un “precio único corporal” que no reflejaría el mapa real.",
+        "items": [
+            "@nvx-t:Valoración de zonas, flacidez y estabilidad de peso",
+            "@nvx-t:Estimación de extensión de la cuadrícula láser y duración ambulatoria",
+            "@nvx-t:Presupuesto documentado antes del procedimiento",
+            "@nvx-t:Seguimiento clínico según protocolo de la zona tratada"
+        ],
+        "note": "@nvx-t:Para papada y óvalo facial con protocolo facial dedicado, consulta la página de Endolift® facial (tarifas PVP faciales publicadas allí)."
+    }
+}

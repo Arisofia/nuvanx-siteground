@@ -8,6 +8,12 @@ on:
       - completed
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      expected_sha:
+        description: 'Deployment SHA to verify'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -24,7 +30,7 @@ jobs:
     timeout-minutes: 15
     env:
       BASE_URL: https://staging2.nuvanx.com
-      EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+      EXPECTED_SHA: ${{ inputs.expected_sha || github.event.workflow_run.head_sha || github.sha }}
       SSH_FETCH_HOST: nvx-staging2
       # Forzar modo no interactivo en herramientas comunes
       CI: true

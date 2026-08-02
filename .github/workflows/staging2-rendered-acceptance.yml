@@ -18,24 +18,28 @@ concurrency:
 
 jobs:
   verify:
+    # Solo corre si el workflow de despliegue terminó en éxito
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     env:
       BASE_URL: https://staging2.nuvanx.com
       EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
       SSH_FETCH_HOST: nvx-staging2
+      # Forzar modo no interactivo en herramientas comunes
+      CI: true
     steps:
       - name: Checkout canonical acceptance contract
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Validate expected SHA input
         shell: bash
@@ -44,7 +48,7 @@ jobs:
           EXPECTED_SHA="$(printf '%s' "$EXPECTED_SHA" | tr -d '[:space:]')"
           echo "EXPECTED_SHA=$EXPECTED_SHA" >> "$GITHUB_ENV"
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]] || {
-            echo 'expected_sha must be a full lowercase 40-character SHA.' >&2
+            echo 'EXPECTED_SHA must be a full lowercase 40-character SHA.' >&2
             exit 1
           }
 
@@ -79,27 +83,43 @@ jobs:
 
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
-          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts"
 
-          printf 'Host nvx-staging2\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile %s/.ssh/staging2_key\n  IdentitiesOnly yes\n  BatchMode yes\n  StrictHostKeyChecking yes\n  UserKnownHostsFile %s/.ssh/known_hosts\n  ConnectTimeout 15\n' \
-            "$STAGING2_SSH_HOST" \
-            "$STAGING2_SSH_USER" \
-            "$SSH_PORT" \
-            "$HOME" \
-            "$HOME" > "$HOME/.ssh/config"
+          # Clave privada
+          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
+          chmod 600 "$HOME/.ssh/staging2_key"
+
+          # Known hosts estricto
+          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+          # Config de SSH endurecida
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName $STAGING2_SSH_HOST
+            User $STAGING2_SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
           chmod 600 "$HOME/.ssh/config"
 
       - name: Verify SSH reachability and start SOCKS5 proxy
         shell: bash
         run: |
           set -euo pipefail
+          # Verifica que existan utilidades mínimas en el remoto
           ssh -o ConnectTimeout=20 nvx-staging2 'command -v curl >/dev/null && command -v mktemp >/dev/null'
-          ssh -f -N -D 1080 -o ConnectTimeout=20 nvx-staging2
+          # Inicia proxy SOCKS5 en background
+          ssh -f -N -D 1080 -o ExitOnForwardFailure=yes -o ConnectTimeout=20 nvx-staging2
 
       - name: Install dependencies
         run: npm ci
+        env:
+          NODE_ENV: test
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
@@ -116,5 +136,5 @@ jobs:
         with:
           name: staging2-browser-acceptance-artifacts
           path: artifacts/
+          if-no-files-found: ignore
           retention-days: 7
-

@@ -35,7 +35,8 @@ if ( is_readable( $partial ) ) {
 		ob_end_clean();
 	}
 	if ( '' !== trim( $markup ) ) {
-		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		// Partial builds HTML with escaped helpers; do not re-escape compound markup.
+		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- composed from escaped theme partial.
 	} else {
 		echo '<div class="nvx-shell"><h1 class="nvx-heading">Soluciones médicas</h1><p>Plantilla de soluciones vacía.</p></div>';
 	}

@@ -17,7 +17,7 @@ $shell_no_wrap   = get_query_var( 'nvx_shell_no_wrapper' );
 if ( ! empty( $shell_content ) && ! is_singular() ) {
 	?>
 	<main class="nvx-main">
-		<?php echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+		<?php echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source. ?>
 	</main>
 	<?php
 	get_footer();
@@ -174,7 +174,7 @@ while ( have_posts() ) :
 	<?php endif; ?>
 		<?php 
 		if ( ! empty( $shell_content ) ) {
-			echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source.
 		} else {
 			the_content(); 
 		}

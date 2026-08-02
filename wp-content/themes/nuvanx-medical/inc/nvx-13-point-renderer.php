@@ -198,18 +198,6 @@ function nvx_render_13_point_matrix( array $data ): string {
 }
 
 /**
- * Build one FAQ pair for editorial catalogues (q/a).
- *
- * @return array{q:string,a:string}
- */
-function nvx_editorial_faq( string $question, string $answer ): array {
-    return array(
-        'q' => $question,
-        'a' => $answer,
-    );
-}
-
-/**
  * Matches a request slug against a catalog array.
  */
 function nvx_match_catalog_page( string $slug, array $catalog ): ?array {

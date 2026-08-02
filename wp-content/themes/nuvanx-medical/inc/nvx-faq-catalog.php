@@ -58,26 +58,6 @@ function nvx_get_faq_catalog(): array {
 	return $catalog;
 }
 
-/** Renders the FAQ section using the canonical FAQ catalog. */
-function nvx_render_faq_block(): void {
-	$faqs = nvx_get_faq_catalog();
-	if ( empty( $faqs ) ) {
-		return;
-	}
-	echo '<section class="nvx-faq" aria-labelledby="nvx-faq-heading">';
-	echo '<h2 id="nvx-faq-heading">' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
-	echo '<p class="nvx-faq__intro">' . esc_html__( 'Información clara antes de decidir', 'nuvanx-medical' ) . '</p>';
-	echo '<dl class="nvx-faq__list">';
-	foreach ( $faqs as $item ) {
-		echo '<div class="nvx-faq__item">';
-		echo '<dt class="nvx-faq__question">' . esc_html( $item['q'] ) . '</dt>';
-		echo '<dd class="nvx-faq__answer">' . esc_html( $item['a'] ) . '</dd>';
-		echo '</div>';
-	}
-	echo '</dl>';
-	echo '</section>';
-}
-
 /**
  * Builds the FAQPage JSON-LD schema for the site's FAQ catalog.
  *

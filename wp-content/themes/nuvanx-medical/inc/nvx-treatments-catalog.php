@@ -130,7 +130,7 @@ function nvx_treatments_logo_cloud_markup(): string {
 }
 
 
-/** Replace legacy catalogue, collaborator, summary and CTA blocks. */
+/** Replace prior catalogue, collaborator, summary and CTA blocks. */
 function nvx_content_restructure_treatments_index( string $content ): string {
 	if ( ! nvx_content_is_treatments_index( $content ) ) {
 		return $content;
@@ -138,7 +138,7 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 
 	$catalog = nvx_treatments_catalog_markup();
 	$cloud   = nvx_treatments_logo_cloud_markup();
-	// Strip legacy CMS close bands; do not inject a page-local CTA (footer owns it).
+	// Strip CMS close bands; do not inject a page-local CTA (footer owns it).
 	$close_cta = '';
 
 	$content = preg_replace(

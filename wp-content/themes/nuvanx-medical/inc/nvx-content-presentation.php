@@ -114,7 +114,7 @@ function nvx_site_closing_cta_markup(): string {
  *
  * Patterns are intentionally narrow:
  * - known page-module closing class tokens
- * - legacy soft CTAs only when they carry conversion copy/chrome
+ * - prior soft CTAs only when they carry conversion copy/chrome
  * - in-content duplicates of the site closing banner (id / footer-cta hook)
  *
  * @param string $content HTML.
@@ -134,7 +134,7 @@ function nvx_content_strip_page_closing_ctas( string $content ): string {
 		'/<section\b[^>]*\bid=["\']nvx-site-closing-cta["\'][^>]*>[\s\S]{0,4000}?<\/section>/iu',
 		// Duplicate pre-footer banner only when it carries the footer CTA hook.
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-cta-banner\b[^"\']*["\'][^>]*>[\s\S]{0,4000}?\bid=["\']nvx-footer-cta["\'][\s\S]{0,2000}?<\/section>/iu',
-		// Legacy CMS soft CTA: require conversion signal inside a bounded block.
+		// CMS soft CTA: require conversion signal inside a bounded block.
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-section--cta\b[^"\']*["\'][^>]*>[\s\S]{0,4000}?(?:valoraci[oó]n|Reservar|consulta m[eé]dica|nvx-brand-btn|nvx-btn)[\s\S]{0,4000}?<\/section>/iu',
 	);
 
@@ -300,7 +300,7 @@ function nvx_content_replace_values_sections( string $content ): string {
 
 	$replacement = nvx_values_section_markup();
 	$patterns    = array(
-		// Legacy home editorial intro.
+		// Home editorial intro residue.
 		'/<section\b[^>]*class="[^"]*nvx-home-editorial[^"]*"[^>]*>[\s\S]*?<\/section>/i',
 		// Generic v3 intro blocks with continuous prose (same role).
 		'/<section\b[^>]*class="[^"]*nvx-v3-intro[^"]*"[^>]*>[\s\S]*?<\/section>/i',
@@ -338,16 +338,16 @@ function nvx_content_post_values_banner_pattern_with_id(): string {
 }
 
 /**
- * Pattern: legacy shell with data attribute only (same rigid shape).
+ * Pattern: post-values banner shell without the canonical id (data attribute only).
  */
-function nvx_content_post_values_banner_pattern_legacy(): string {
+function nvx_content_post_values_banner_pattern_data_only(): string {
 	return '/<div\b[^>]*\bdata-nvx-action-banner=["\']post-values["\'][^>]*>\s*<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-action-banner\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>\s*<\/div>/iu';
 }
 
 /**
- * Pattern: legacy values dual-CTA pair only (not other .nvx-cta-pair blocks).
+ * Pattern: values dual-CTA pair only (not other .nvx-cta-pair blocks).
  */
-function nvx_content_values_legacy_cta_pattern(): string {
+function nvx_content_values_cta_pair_pattern(): string {
 	return '/\s*<div class="nvx-cta-pair nvx-values__cta"[^>]*>[\s\S]*?<\/div>/iu';
 }
 
@@ -363,7 +363,7 @@ function nvx_content_values_section_pattern(): string {
  */
 function nvx_content_strip_post_values_action_banner( string $content ): string {
 	$content = nvx_content_preg_replace_keep( nvx_content_post_values_banner_pattern_with_id(), '', $content );
-	return nvx_content_preg_replace_keep( nvx_content_post_values_banner_pattern_legacy(), '', $content );
+	return nvx_content_preg_replace_keep( nvx_content_post_values_banner_pattern_data_only(), '', $content );
 }
 
 /**
@@ -381,8 +381,8 @@ function nvx_content_has_post_values_action_banner( string $content ): bool {
  * Patterns are named helpers scoped to known ids/classes only.
  */
 function nvx_content_ensure_post_values_action_banner( string $content ): string {
-	// Legacy dual CTA under values pillars only.
-	$content = nvx_content_preg_replace_keep( nvx_content_values_legacy_cta_pattern(), '', $content, 1 );
+	// Remove dual CTA under values pillars before re-inserting the current banner.
+	$content = nvx_content_preg_replace_keep( nvx_content_values_cta_pair_pattern(), '', $content, 1 );
 
 	// Refresh: drop previous canonical banner then re-insert current markup.
 	$content = nvx_content_strip_post_values_action_banner( $content );
@@ -419,15 +419,14 @@ function nvx_content_ensure_post_values_action_banner( string $content ): string
 }
 
 /**
- * Legacy / CMS method section patterns (pre-transform markup).
+ * Non-canonical method section patterns (old class names or unmarked CMS blocks).
  *
  * @return string[]
  */
-function nvx_content_method_legacy_patterns(): array {
+function nvx_content_method_obsolete_patterns(): array {
 	return array(
 		'/<section\b[^>]*class="[^"]*nvx-v3-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
 		'/<section\b[^>]*class="[^"]*nvx-home-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
-		// CMS copies that use aria-label Cómo trabajamos but are not yet our columns markup.
 		'/<section\b(?![^>]*\bnvx-method-section\b)[^>]*aria-label="[^"]*Cómo trabajamos[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
 	);
 }
@@ -436,8 +435,7 @@ function nvx_content_method_legacy_patterns(): array {
  * Strip leftover method sections after one canonical block is present.
  */
 function nvx_content_strip_extra_method_sections( string $content ): string {
-	// Drop any remaining legacy CMS method blocks.
-	foreach ( nvx_content_method_legacy_patterns() as $pattern ) {
+	foreach ( nvx_content_method_obsolete_patterns() as $pattern ) {
 		$content = nvx_content_preg_replace_keep( $pattern, '', $content );
 	}
 
@@ -468,7 +466,7 @@ function nvx_content_replace_method_sections( string $content ): string {
 	$replaced    = false;
 
 	// One replacement only (first match wins), then strip siblings.
-	foreach ( nvx_content_method_legacy_patterns() as $pattern ) {
+	foreach ( nvx_content_method_obsolete_patterns() as $pattern ) {
 		$count   = 0;
 		$updated = preg_replace( $pattern, $replacement, $content, 1, $count );
 		if ( is_string( $updated ) && $count > 0 ) {
@@ -541,7 +539,7 @@ function nvx_content_ensure_home_protocols( string $content ): string {
 	}
 
 	// The protocols section has been removed from the homepage.
-	// Strip any existing canonical or legacy protocols blocks.
+	// Strip any existing prior protocols blocks.
 	$content = preg_replace( '/<section\b[^>]*\bnvx-home-protocols\b[^>]*>[\s\S]*?<\/section>/iu', '', $content ) ?? $content;
 	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Protocolos Médicos Especializados(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
 
@@ -600,7 +598,7 @@ function nvx_content_ensure_home_team_wellaging( string $content ): string {
 		return $content;
 	}
 
-	// Remove legacy duplicated CMS blocks that are replaced by the canonical team strip.
+	// Remove duplicated CMS blocks that are replaced by the canonical team strip.
 	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Liderazgo y Experiencia(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
 	$content = preg_replace( '/<section\b[^>]*>(?:(?!<\/section>)[\s\S])*?Registro sanitario(?:(?!<\/section>)[\s\S])*?<\/section>/iu', '', $content ) ?? $content;
 
@@ -704,7 +702,7 @@ function nvx_content_enhance_director_blocks( string $content ): string {
 }
 
 /**
- * Remove legacy branded-comparison FAQs until their evidence and legal review
+ * Remove branded-comparison FAQs until their evidence and legal review
  * are completed. Product pages should answer patient questions, not attack
  * alternatives by name.
  */
@@ -893,7 +891,7 @@ function nvx_content_unify_ctas( string $content ): string {
  * the important flag (CSS Gate).
  */
 function nvx_content_strip_hero_inline_styles( string $content ): string {
-	// Opening tags for hero stages / copy that may carry legacy inline layout.
+	// Opening tags for hero stages / copy that may carry inline layout residue.
 	$hero_bits = 'nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage';
 	$copy_bits = 'nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy';
 	$inner_bits = 'nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner';

@@ -103,8 +103,8 @@ function nvx_medical_review_byline_markup( array $record ): string {
 	return $html;
 }
 
-/** Remove legacy unconditional bylines from generated content. */
-function nvx_medical_review_strip_legacy_bylines( string $content ): string {
+/** Remove unconditional bylines so a single provenance block can be re-injected. */
+function nvx_medical_review_strip_unconditional_bylines( string $content ): string {
 	$pattern = '#<div\b[^>]*\bclass=["\'][^"\']*\bnvx-medical-byline\b[^"\']*["\'][^>]*>[\s\S]*?</div>\s*</div>#iu';
 	$clean   = preg_replace( $pattern, '', $content );
 
@@ -125,7 +125,7 @@ function nvx_medical_review_enforce_visible_provenance( string $content ): strin
 		return $content;
 	}
 
-	$content = nvx_medical_review_strip_legacy_bylines( $content );
+	$content = nvx_medical_review_strip_unconditional_bylines( $content );
 	$record  = nvx_medical_review_record();
 	if ( null === $record ) {
 		return $content;

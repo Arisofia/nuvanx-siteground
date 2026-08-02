@@ -12,11 +12,6 @@
 defined( 'ABSPATH' ) || exit;
 
 $valuation_url = home_url( '/madrid/valoracion/' );
-$hero_art_rel  = '/assets/images/nvx-solutions-hero-architecture.svg';
-$hero_art_path = get_template_directory() . $hero_art_rel;
-$hero_art_url  = is_readable( $hero_art_path )
-	? get_template_directory_uri() . $hero_art_rel
-	: '';
 $contour_arch  = "Contour Architecture\u{2122}";
 
 $solution_groups = array();
@@ -64,21 +59,16 @@ $method_steps = array(
 	),
 );
 ?>
-<div class="nvx-solutions-page" id="nvx-solutions-page">
+<div class="nvx-brand-page nvx-solutions-page" id="nvx-solutions-page">
 	<section class="nvx-brand-hero" aria-labelledby="nvx-solutions-title">
 		<div class="nvx-brand-hero__inner">
-			<?php if ( '' !== $hero_art_url ) : ?>
-			<figure class="nvx-brand-hero__media" aria-hidden="true">
-				<img src="<?php echo esc_url( $hero_art_url ); ?>" alt="" width="440" height="340" loading="eager" decoding="async">
-			</figure>
-			<?php endif; ?>
 			<div class="nvx-brand-hero__copy">
 				<p class="nvx-brand-kicker">SOLUCIONES MÉDICAS · NUVANX MADRID</p>
 				<h1 id="nvx-solutions-title" class="nvx-brand-hero__title">Soluciones médicas para rostro, piel y contorno corporal.</h1>
 				<p class="nvx-brand-hero__lead">La preocupación orienta la consulta. El diagnóstico define el tratamiento. Organizamos las soluciones por anatomía y por causa clínica, no por catálogo de máquinas. Antes de recomendar una tecnología diferenciamos grasa, laxitud, soporte, textura, pigmentación y otros componentes que pueden producir signos similares.</p>
-				<div class="nvx-brand-actions nvx-cta-pair">
+				<div class="nvx-brand-actions">
 					<a class="nvx-brand-btn nvx-brand-btn--primary" href="<?php echo esc_url( $valuation_url ); ?>">Solicitar valoración médica</a>
-					<a class="nvx-btn nvx-btn--secondary" href="#mapa-soluciones">Explorar soluciones</a>
+					<a class="nvx-brand-btn nvx-brand-btn--secondary" href="#mapa-soluciones">Explorar soluciones</a>
 				</div>
 				<p class="nvx-brand-meta">Diagnóstico individual · Indicación proporcionada · Seguimiento médico</p>
 			</div>
@@ -161,9 +151,9 @@ $method_steps = array(
 			<p class="nvx-solutions-eyebrow">TU PRIMERA VALORACIÓN</p>
 			<h2 id="nvx-solutions-closure-title">No necesitas elegir un tratamiento antes de consultar.</h2>
 			<p>Cuéntanos qué zona o cambio quieres valorar. El equipo médico estudiará la causa, las alternativas razonables y los límites antes de proponer cualquier procedimiento.</p>
-			<div class="nvx-solutions-actions">
-				<a class="nvx-solutions-button nvx-solutions-button--primary" href="<?php echo esc_url( $valuation_url ); ?>">Solicitar valoración médica</a>
-				<a class="nvx-solutions-button nvx-solutions-button--secondary" href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>">Conocer al equipo médico</a>
+			<div class="nvx-brand-actions">
+				<a class="nvx-brand-btn nvx-brand-btn--primary" href="<?php echo esc_url( $valuation_url ); ?>">Solicitar valoración médica</a>
+				<a class="nvx-brand-btn nvx-brand-btn--secondary" href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>">Conocer al equipo médico</a>
 			</div>
 		</div>
 	</section>

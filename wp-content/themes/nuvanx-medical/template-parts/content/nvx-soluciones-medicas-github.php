@@ -12,7 +12,11 @@
 defined( 'ABSPATH' ) || exit;
 
 $valuation_url = home_url( '/madrid/valoracion/' );
-$hero_art_url  = get_template_directory_uri() . '/assets/images/nvx-solutions-hero-architecture.svg';
+$hero_art_rel  = '/assets/images/nvx-solutions-hero-architecture.svg';
+$hero_art_path = get_template_directory() . $hero_art_rel;
+$hero_art_url  = is_readable( $hero_art_path )
+	? get_template_directory_uri() . $hero_art_rel
+	: '';
 $contour_arch  = 'Contour Architecture™';
 
 $solution_groups = array();
@@ -73,9 +77,11 @@ $method_steps = array(
 				</div>
 				<p class="nvx-brand-meta">Diagnóstico individual · Indicación proporcionada · Seguimiento médico</p>
 			</div>
+			<?php if ( '' !== $hero_art_url ) : ?>
 			<figure class="nvx-brand-hero__media" aria-hidden="true">
 				<img src="<?php echo esc_url( $hero_art_url ); ?>" alt="Esquema de arquitectura anatómica NUVANX" width="440" height="340" loading="eager" decoding="async">
 			</figure>
+			<?php endif; ?>
 		</div>
 	</header>
 

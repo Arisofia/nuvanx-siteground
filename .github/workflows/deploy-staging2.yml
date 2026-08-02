@@ -9,7 +9,7 @@ on:
       - '.github/workflows/staging2-rendered-acceptance.yml'
       - 'tools/deploy/deploy-to-staging2.sh'
       - 'tools/deploy/deploy-required-mu-plugins.sh'
-      - 'scripts/staging2/verify-rendered-document.mjs'
+      - 'scripts/staging2/browser-acceptance.mjs'
       - 'wp-content/themes/nuvanx-medical/**'
       - 'wp-content/mu-plugins/**'
       - 'docs/operations/deployment.md'
@@ -19,7 +19,7 @@ on:
       - '.github/workflows/staging2-rendered-acceptance.yml'
       - 'tools/deploy/deploy-to-staging2.sh'
       - 'tools/deploy/deploy-required-mu-plugins.sh'
-      - 'scripts/staging2/verify-rendered-document.mjs'
+      - 'scripts/staging2/browser-acceptance.mjs'
       - 'wp-content/themes/nuvanx-medical/**'
       - 'wp-content/mu-plugins/**'
       - 'docs/operations/deployment.md'
@@ -51,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           bash -n tools/deploy/deploy-to-staging2.sh
-          node --check scripts/staging2/verify-rendered-document.mjs
+          node --check scripts/staging2/browser-acceptance.mjs
 
   deploy:
     name: Deploy immutable SHA to staging2
@@ -211,24 +211,6 @@ jobs:
           deployed_sha="$(ssh nvx-staging2 "tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
           test "$deployed_sha" = "$DEPLOY_SHA"
           echo "Verified staging2 marker: $deployed_sha"
-
-      - name: Set up Node.js for rendered acceptance
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          node-version: '22'
-
-      - name: Run complete rendered acceptance for deployed SHA
-        env:
-          BASE_URL: https://staging2.nuvanx.com
-          EXPECTED_SHA: ${{ env.DEPLOY_SHA }}
-          # Fetch HTML from the SiteGround host itself. GitHub runner egress IPs
-          # are frequently answered with 403/202 placeholders by SiteGround edge.
-          SSH_FETCH_HOST: nvx-staging2
-        run: |
-          set -euo pipefail
-          # Marker is already verified; brief settle for post-purge page assembly.
-          sleep 8
-          node scripts/staging2/verify-rendered-document.mjs
 
       - name: Configure SSH for cleanup
         if: always()

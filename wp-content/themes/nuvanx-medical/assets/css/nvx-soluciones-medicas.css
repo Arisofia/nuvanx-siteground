@@ -40,13 +40,7 @@
   text-transform: uppercase;
 }
 
-.nvx-solutions-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
-  min-height: var(--nvx-hero-h);
-  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  background: var(--nvx-surface-base);
-}
+/* Solutions opening stage uses global .nvx-brand-hero. */
 
 .nvx-solutions-actions {
   display: flex;
@@ -410,7 +404,6 @@
 }
 
 @media (max-width: 70rem) {
-  .nvx-solutions-hero,
   .nvx-solutions-principle__grid {
     grid-template-columns: 1fr;
   }

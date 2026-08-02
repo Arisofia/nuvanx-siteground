@@ -2,10 +2,6 @@
 /**
  * Environment-specific presentation and deployment flags.
  *
- * Production keeps the temporary hero blackout enabled by default until approved
- * photography replaces every opening image. Staging2 disables it so the real
- * hero media, contrast, CTA hierarchy and mobile crop can be reviewed safely.
- *
  * Deploy workflows stamp the exact checked-out commit into `.nvx-deploy-sha`.
  * The public marker is intentionally non-secret and allows staging/production
  * verification to prove which immutable revision is actually rendered.
@@ -20,8 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Whether the current request belongs to the staging2 review environment.
  *
- * Host-only: generic WP_ENVIRONMENT_TYPE=staging must NOT reveal media, so
- * unrelated staging/preview hosts keep production-safe blackout behaviour.
+ * Host-only match for staging2.nuvanx.com.
  */
 function nvx_environment_is_staging2(): bool {
 	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
@@ -38,16 +33,6 @@ function nvx_environment_is_staging2(): bool {
 	 */
 	return (bool) apply_filters( 'nvx_environment_is_staging2', 'staging2.nuvanx.com' === $host, $host );
 }
-
-/**
- * Reveal the underlying hero media on staging2 without changing production.
- *
- * @param bool $enabled Current blackout flag.
- */
-function nvx_environment_filter_hero_blackout( bool $enabled ): bool {
-	return nvx_environment_is_staging2() ? false : $enabled;
-}
-add_filter( 'nvx_theme_hero_blackout_enabled', 'nvx_environment_filter_hero_blackout', 5 );
 
 /**
  * Resolve the exact deployed Git commit SHA.

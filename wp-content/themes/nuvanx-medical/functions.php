@@ -155,14 +155,8 @@ function nvx_theme_scripts(): void {
 		wp_enqueue_style( 'nvx-portfolio-hub', $css . 'nvx-portfolio-hub.css', array( 'nvx-components' ), nvx_asset_version( 'assets/css/nvx-portfolio-hub.css' ) );
 	}
 
-	if ( nvx_theme_hero_blackout_enabled() ) {
-		wp_enqueue_style(
-			'nvx-hero-blackout',
-			$css . 'nvx-hero-blackout.css',
-			array( 'nvx-home' ),
-			nvx_asset_version( 'assets/css/nvx-hero-blackout.css' )
-		);
-	}
+	// Hero blackout patch retired: interior pages share one .nvx-brand-hero shell;
+	// only the front page owns a video stage (nvx-home-v3 + nvx-home-video.js).
 
 	wp_enqueue_script( 'nvx-main', $uri . '/assets/js/nvx-main.js', array(), nvx_asset_version( 'assets/js/nvx-main.js' ), true );
 	wp_enqueue_script(
@@ -174,26 +168,6 @@ function nvx_theme_scripts(): void {
 	);
 }
 add_action( 'wp_enqueue_scripts', 'nvx_theme_scripts' );
-
-/** Whether the sitewide ink hero treatment is enabled. */
-function nvx_theme_hero_blackout_enabled(): bool {
-	$enabled = true;
-	if ( defined( 'NVX_HERO_BLACKOUT' ) ) {
-		$enabled = (bool) NVX_HERO_BLACKOUT;
-	}
-
-	return (bool) apply_filters( 'nvx_theme_hero_blackout_enabled', $enabled );
-}
-
-/** Add the hero-blackout state class when enabled. */
-function nvx_theme_hero_blackout_body_class( array $classes ): array {
-	if ( nvx_theme_hero_blackout_enabled() ) {
-		$classes[] = 'nvx-hero-blackout';
-	}
-
-	return array_values( array_unique( $classes ) );
-}
-add_filter( 'body_class', 'nvx_theme_hero_blackout_body_class' );
 
 /** Estimate reading time for editorial posts. */
 function nvx_reading_time( $post_id = null ): string {

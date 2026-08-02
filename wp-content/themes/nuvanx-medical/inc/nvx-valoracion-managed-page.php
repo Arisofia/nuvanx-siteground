@@ -23,12 +23,12 @@ function nvx_valoracion_managed_page_markup(): string {
 	$portal_id     = defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ? NVX_VALORACION_HS_FRAME_PORTAL_ID : '147416356';
 
 	$html  = '<div class="nvx-brand-page nvx-valoracion-page" id="nvx-valoracion-main" aria-labelledby="nvx-valoracion-h1">';
-	$html .= '<section class="nvx-brand-hero nvx-editorial-hero nvx-canonical-page-hero" aria-labelledby="nvx-valoracion-h1">';
+	$html .= '<section class="nvx-brand-hero" aria-labelledby="nvx-valoracion-h1">';
 	$html .= '<div class="nvx-brand-hero__inner">';
-	$html .= '<div class="nvx-editorial-hero__copy">';
-	$html .= '<p class="nvx-eyebrow">' . esc_html__( 'VALORACIÓN MÉDICA · MADRID', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h1 id="nvx-valoracion-h1" class="nvx-heading">' . esc_html__( 'Valoración médica estética en Madrid', 'nuvanx-medical' ) . '</h1>';
-	$html .= '<p class="nvx-brand-meta">' . esc_html__( 'Revisamos anatomía, calidad de piel, antecedentes y expectativas antes de indicar un tratamiento facial o corporal.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<div class="nvx-brand-hero__copy">';
+	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'VALORACIÓN MÉDICA · MADRID', 'nuvanx-medical' ) . '</p>';
+	$html .= '<h1 id="nvx-valoracion-h1" class="nvx-brand-hero__title">' . esc_html__( 'Valoración médica estética en Madrid', 'nuvanx-medical' ) . '</h1>';
+	$html .= '<p class="nvx-brand-hero__lead">' . esc_html__( 'Revisamos anatomía, calidad de piel, antecedentes y expectativas antes de indicar un tratamiento facial o corporal.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<div class="nvx-brand-actions">';
 	$html .= '<a class="nvx-brand-btn nvx-brand-btn--primary" href="#nvx-hubspot-form">' . esc_html__( 'Completar solicitud', 'nuvanx-medical' ) . '</a>';
 	$html .= '<a class="nvx-brand-btn nvx-brand-btn--secondary" href="' . esc_url( $whatsapp_url ) . '" target="_blank" rel="nofollow noopener">' . esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' ) . '</a>';

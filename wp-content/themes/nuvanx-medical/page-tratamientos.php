@@ -12,11 +12,16 @@ defined( 'ABSPATH' ) || exit;
 ob_start();
 ?>
 <div id="nvx-hub" class="nvx-hub">
-	<section class="nvx-hub-hero" aria-labelledby="nvx-hub-hero-title">
-		<div class="nvx-hub-hero__content">
-			<h1 id="nvx-hub-hero-title" class="nvx-hub-hero__title">Portafolio clínico.</h1>
-			<p class="nvx-hub-hero__lead">Anatomía, diagnóstico y tecnología. El protocolo se adapta al tejido, nunca a la inversa.</p>
-			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">Iniciar valoración médica</a>
+	<section class="nvx-brand-hero" aria-labelledby="nvx-hub-hero-title">
+		<div class="nvx-brand-hero__inner">
+			<div class="nvx-brand-hero__copy">
+				<p class="nvx-brand-kicker"><?php esc_html_e( 'Portafolio NUVANX', 'nuvanx-medical' ); ?></p>
+				<h1 id="nvx-hub-hero-title" class="nvx-brand-hero__title">Portafolio clínico.</h1>
+				<p class="nvx-brand-hero__lead">Anatomía, diagnóstico y tecnología. El protocolo se adapta al tejido, nunca a la inversa.</p>
+				<div class="nvx-brand-actions">
+					<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary"><?php esc_html_e( 'Iniciar valoración médica', 'nuvanx-medical' ); ?></a>
+				</div>
+			</div>
 		</div>
 	</section>
 

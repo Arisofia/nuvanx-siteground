@@ -173,8 +173,9 @@ nvx_document_contract_assert(
 nvx_document_contract_assert(
     str_contains($module, 'hubspotPortalId')
         && str_contains($module, 'nvx_document_governance_print_fallback_meta')
+        && str_contains($module, 'nvx-document-contract')
         && !str_contains($module, "'hubspotScriptUrl' =>"),
-    'Server config must not embed a full HubSpot script URL; solutions fallback meta is required.'
+    'Server config must not embed a full HubSpot script URL; solutions fallback must emit the document contract marker.'
 );
 
 $input = '<!doctype html><html lang="es"><head>'

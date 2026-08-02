@@ -117,21 +117,17 @@ function nvx_document_governance_is_solutions_hub(): bool {
 }
 
 /**
- * Emit required head metadata on routes that cannot run the document buffer.
+ * Emit the document-contract marker on routes that cannot run the document buffer.
  *
- * /soluciones-medicas/ skips nested output-buffer callbacks. Without this fallback
- * the page would ship without description, canonical, or the document-contract marker.
+ * /soluciones-medicas/ skips nested output-buffer callbacks. Title, description and
+ * canonical are provided by the SEO catalogue / Yoast filters once the page is
+ * catalogued — re-emitting them here would produce duplicate meta tags.
  */
 function nvx_document_governance_print_fallback_meta(): void {
 	if ( ! nvx_document_governance_is_solutions_hub() ) {
 		return;
 	}
 
-	$description = nvx_document_governance_description( '', '' );
-	$canonical   = nvx_document_governance_canonical_url();
-
-	echo '<meta name="description" content="' . esc_attr( $description ) . '" />' . "\n";
-	echo '<link rel="canonical" href="' . esc_url( $canonical ) . '" />' . "\n";
 	echo '<meta name="nvx-document-contract" content="1" />' . "\n";
 }
 add_action( 'wp_head', 'nvx_document_governance_print_fallback_meta', 2 );

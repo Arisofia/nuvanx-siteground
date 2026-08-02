@@ -2,21 +2,10 @@
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/inc/nvx-document-governance.php';
-// Full document-governance rewrite buffers have returned empty HTTP 200 bodies on
-// /soluciones-medicas/ when nested with the integrations buffer. Use the full
-// rewrite everywhere else; on the solutions hub run only retired-script cleanup
-// (FacebookSignal) while meta falls back to wp_head emitters.
-if ( function_exists( 'nvx_document_governance_is_solutions_hub' ) && nvx_document_governance_is_solutions_hub() ) {
-	if ( function_exists( 'nvx_document_governance_remove_retired_scripts' ) ) {
-		ob_start(
-			static function ( string $html ): string {
-				return nvx_document_governance_remove_retired_scripts( $html );
-			},
-			0,
-			PHP_OUTPUT_HANDLER_CLEANABLE | PHP_OUTPUT_HANDLER_REMOVABLE
-		);
-	}
-} else {
+// Single public-document buffer for every front route (including /soluciones-medicas/).
+// Infrastructure cleanup lives in the same callback — never nest a second document
+// rewrite buffer (that pairing used to yield HTTP 200 + empty body on staging2).
+if ( function_exists( 'nvx_document_governance_start' ) ) {
 	nvx_document_governance_start();
 }
 ?><!doctype html>

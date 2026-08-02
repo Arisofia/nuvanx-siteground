@@ -45,8 +45,8 @@ function nvx_content_is_solutions_page( string $content = '' ): bool {
 /**
  * Force the dedicated solutions template for the public hub route.
  *
- * Prefer the page template over the_content injection: nested output buffers
- * on this route have produced HTTP 200 with an empty body on staging2.
+ * Prefer the dedicated page template over the_content injection so the hub
+ * markup is versioned in Git and independent of CMS post_content.
  *
  * @param string $template Resolved template path.
  */

@@ -101,6 +101,44 @@ function nvx_valoracion_modal_markup(): string {
 }
 
 /**
+ * Boot config for nvx-main.js (must run before the main handle).
+ *
+ * Historically only window.nvxRuntimeGovernance was emitted (after nvx-main), so
+ * initValoracionModal always saw cfg as undefined and never bound open handlers.
+ */
+function nvx_valoracion_modal_enqueue_boot_config(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
+		return;
+	}
+
+	if ( ! wp_script_is( 'nvx-main', 'enqueued' ) && ! wp_script_is( 'nvx-main', 'registered' ) ) {
+		return;
+	}
+
+	$page_url = function_exists( 'nvx_cta_valoracion_url' )
+		? nvx_cta_valoracion_url()
+		: home_url( '/madrid/valoracion/' );
+
+	$config = array(
+		'enabled'  => nvx_valoracion_modal_enabled(),
+		'pageUrl'  => $page_url,
+		'modalId'  => 'nvx-valoracion-modal',
+	);
+
+	$encoded = wp_json_encode( $config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );
+	if ( ! is_string( $encoded ) ) {
+		$encoded = '{"enabled":false}';
+	}
+
+	wp_add_inline_script(
+		'nvx-main',
+		'window.nvxValoracionModal=' . $encoded . ';',
+		'before'
+	);
+}
+add_action( 'wp_enqueue_scripts', 'nvx_valoracion_modal_enqueue_boot_config', 30 );
+
+/**
  * Print modal shell in footer on eligible public pages.
  */
 function nvx_valoracion_modal_render(): void {
@@ -111,4 +149,5 @@ function nvx_valoracion_modal_render(): void {
 	// Modal HTML is built with esc_attr / esc_html / esc_url / wp_kses only.
 	echo nvx_valoracion_modal_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in nvx_valoracion_modal_markup().
 }
-add_action( 'wp_footer', 'nvx_valoracion_modal_render', 25 );
+// Before wp_print_footer_scripts (20) so nvx-main can bind to #nvx-valoracion-modal.
+add_action( 'wp_footer', 'nvx_valoracion_modal_render', 5 );

@@ -14,9 +14,8 @@ defined( 'ABSPATH' ) || exit;
 // Fail closed with visible diagnostics if the canonical partial is missing.
 $partial = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
 
-// Do not nest extra document buffers on this route: nested buffers have
-// produced HTTP 200 + Content-Length 0 under staging2 PHP-FPM for this slug.
-// header.php owns governance buffering; this template only captures the partial.
+// header.php owns the single public-document buffer. This template only
+// captures the solutions partial (local view buffer), never a second document rewrite.
 
 get_header();
 

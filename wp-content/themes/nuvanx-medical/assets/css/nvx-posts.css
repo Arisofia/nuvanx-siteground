@@ -17,46 +17,7 @@ body.nvx-blog-context {
   color: var(--nvx-text-body);
 }
 
-/* Archive hero */
-
-.nvx-blog-archive__hero::after {
-  content: "";
-  position: absolute;
-  inset: auto 0 0;
-  height: var(--nvx-space-1);
-  background: var(--nvx-accent-muted);
-  opacity: 0.65;
-}
-
-.nvx-blog-archive__hero-inner {
-  position: relative;
-  z-index: 1;
-}
-
-.nvx-blog-archive__hero .nvx-eyebrow {
-  color: var(--nvx-text-on-dark-72);
-}
-
-.nvx-blog-archive__title {
-  max-width: none;
-  margin: 0 0 var(--nvx-margin-h1);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h1);
-  font-weight: 400;
-  line-height: var(--nvx-lh-h1);
-  letter-spacing: var(--nvx-track-h1);
-  color: var(--nvx-text-on-dark);
-  text-wrap: balance;
-}
-
-.nvx-blog-archive__lead {
-  max-width: var(--nvx-measure-lead);
-  margin: 0;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-lead);
-  line-height: var(--nvx-lh-lead);
-  color: var(--nvx-text-on-dark-82);
-}
+/* Archive opening stage uses global .nvx-brand-hero. */
 
 /* Archive grid and cards */
 .nvx-blog-grid {

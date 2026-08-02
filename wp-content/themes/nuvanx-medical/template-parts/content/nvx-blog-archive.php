@@ -45,14 +45,16 @@ $topics = get_categories(
 	)
 );
 ?>
-<section class="nvx-blog-archive" aria-labelledby="nvx-blog-archive-title">
-	<header class="nvx-blog-archive__hero">
-		<div class="nvx-shell nvx-blog-archive__hero-inner">
-			<p class="nvx-eyebrow"><?php echo esc_html( $eyebrow ); ?></p>
-			<h1 id="nvx-blog-archive-title" class="nvx-blog-archive__title"><?php echo esc_html( $title ); ?></h1>
-			<p class="nvx-blog-archive__lead"><?php echo esc_html( $lead ); ?></p>
+<div class="nvx-blog-archive">
+	<section class="nvx-brand-hero" aria-labelledby="nvx-blog-archive-title">
+		<div class="nvx-brand-hero__inner">
+			<div class="nvx-brand-hero__copy">
+				<p class="nvx-brand-kicker"><?php echo esc_html( $eyebrow ); ?></p>
+				<h1 id="nvx-blog-archive-title" class="nvx-brand-hero__title"><?php echo esc_html( $title ); ?></h1>
+				<p class="nvx-brand-hero__lead"><?php echo esc_html( $lead ); ?></p>
+			</div>
 		</div>
-	</header>
+	</section>
 
 	<div class="nvx-blog-archive__body">
 		<div class="nvx-shell">
@@ -117,4 +119,4 @@ $topics = get_categories(
 			<?php endif; ?>
 		</div>
 	</div>
-</section>
+</div>

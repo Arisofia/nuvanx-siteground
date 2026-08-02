@@ -12,7 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 define( 'NVX_THEME_VERSION', '2.0.0-plata-pulida-canonical' );
 
 // Shared regex constants — defined once, early, for all theme modules.
-// Accidentally removed in 7d3ab73f; required by nvx-clinics-hub.php (sede 500s).
 if ( ! defined( 'NVX_REGEX_WHITESPACE' ) ) {
 	define( 'NVX_REGEX_WHITESPACE', '/\s+/' );
 }
@@ -22,7 +21,8 @@ if ( ! defined( 'NVX_REGEX_WHITESPACE_U' ) ) {
 
 /** Register theme supports and navigation locations. */
 function nvx_theme_setup(): void {
-	add_theme_support( 'title-tag' );
+	// Document <title> is printed once in header.php via wp_get_document_title()
+	// so static analysis and the live document share a single, filterable title.
 	add_theme_support( 'post-thumbnails' );
 	add_theme_support( 'custom-logo' );
 	add_theme_support( 'html5', array( 'search-form', 'comment-form', 'comment-list', 'gallery', 'caption', 'style', 'script' ) );

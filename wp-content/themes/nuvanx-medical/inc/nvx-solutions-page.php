@@ -92,7 +92,7 @@ function nvx_render_solutions_page( $content ): string {
 
 	$level_before = ob_get_level();
 	ob_start();
-	include $template;
+	include_once $template;
 	$markup = ob_get_clean();
 	// Never leave an orphan buffer if include aborted early.
 	while ( ob_get_level() > $level_before ) {

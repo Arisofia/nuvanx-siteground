@@ -214,7 +214,11 @@ jobs:
         env:
           BASE_URL: https://staging2.nuvanx.com
           EXPECTED_SHA: ${{ env.DEPLOY_SHA }}
-        run: node scripts/staging2/verify-rendered-document.mjs
+        run: |
+          set -euo pipefail
+          # Allow SiteGround dynamic/file caches to settle after the remote purge.
+          sleep 10
+          node scripts/staging2/verify-rendered-document.mjs
 
       - name: Remove temporary remote payload
         if: always()

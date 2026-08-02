@@ -276,9 +276,9 @@ function nvx_signature_phase_seo_description( $description ) {
 	return (string) $page['seo_desc'];
 }
 
-nvx_register_yoast_seo_filters(
-	'nvx_signature_phase_seo_title',
-	'nvx_signature_phase_seo_description',
-	null,
-	90
-);
+add_filter( 'wpseo_title', 'nvx_signature_phase_seo_title', 90 );
+add_filter( 'wpseo_metadesc', 'nvx_signature_phase_seo_description', 90 );
+add_filter( 'wpseo_opengraph_title', 'nvx_signature_phase_seo_title', 90 );
+add_filter( 'wpseo_opengraph_desc', 'nvx_signature_phase_seo_description', 90 );
+add_filter( 'wpseo_twitter_title', 'nvx_signature_phase_seo_title', 90 );
+add_filter( 'wpseo_twitter_description', 'nvx_signature_phase_seo_description', 90 );

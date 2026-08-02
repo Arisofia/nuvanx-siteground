@@ -11,6 +11,7 @@ $expectations = array(
     'nvx-soluciones-medicas-groups.json' => array(0),
     'seo-blog-post-metadata.json' => array('endolift-primeras-72-horas-que-esperar'),
     'seo-metadata.json' => array('home', 'tratamientos', 'clinicas'),
+    'nvx-signature-phase-catalog.json' => array('profile-definition', 'skin-architecture', 'surface-renewal'),
     'treatment-hub-schema.json' => array(0),
     'treatments-catalog.json' => array(0),
 );

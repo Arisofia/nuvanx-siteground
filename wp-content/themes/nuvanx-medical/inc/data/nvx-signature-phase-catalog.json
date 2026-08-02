@@ -1,0 +1,272 @@
+{
+  "profile-definition": {
+    "phase": 1,
+    "slug": "papada-definicion-mandibular-madrid",
+    "title": "Tratamiento médico de papada y definición mandibular en Madrid.",
+    "kicker": "NUVANX PROFILE DEFINITION™",
+    "lead": "Valoración médica de papada, cuello, mandíbula y mentón para distinguir grasa submentoniana, laxitud cutánea, soporte estructural y proporción facial antes de indicar una técnica.",
+    "intro": "Papada, cuello y mandíbula forman una misma unidad visual, pero no siempre comparten la misma causa. El plan se diseña después de separar tejido adiposo, calidad de piel y estructura.",
+    "assessment": [
+      "Distribución y espesor de la grasa submentoniana.",
+      "Laxitud del cuello y calidad cutánea.",
+      "Continuidad entre mentón, mandíbula y cuello.",
+      "Proyección del mentón, asimetrías y tratamientos previos."
+    ],
+    "technology": [
+      "Endolift® facial cuando existe indicación para grasa localizada o laxitud.",
+      "EXION® Face u otras modalidades cuando el componente predominante es dérmico.",
+      "Medicina inyectable cuando el objetivo depende de soporte o proporción y existe indicación."
+    ],
+    "limits": [
+      "El exceso importante de piel puede requerir valoración quirúrgica.",
+      "Una alteración principalmente ósea no se corrige con energía sobre grasa o piel.",
+      "No se promete una línea mandibular estándar ni un cambio idéntico entre pacientes."
+    ],
+    "seo_title": "Papada y definición mandibular Madrid | NUVANX",
+    "seo_desc": "Valoración médica de papada, cuello y mandíbula en Madrid para diferenciar grasa, laxitud y soporte antes de indicar Endolift® u otra opción.",
+    "protocol": "NUVANX Profile Definition™"
+  },
+  "skin-architecture": {
+    "phase": 1,
+    "slug": "calidad-piel-firmeza-luminosidad-madrid",
+    "title": "Tratamiento médico para firmeza, densidad y calidad cutánea.",
+    "kicker": "NUVANX SKIN ARCHITECTURE™",
+    "lead": "Plan médico para valorar densidad, hidratación, firmeza, textura y luminosidad sin asumir que todos los signos de envejecimiento cutáneo requieren la misma tecnología.",
+    "intro": "La calidad de piel depende de capas y mecanismos diferentes. Se revisan fototipo, sensibilidad, antecedentes, pérdida de firmeza, textura y tolerancia al período de recuperación.",
+    "assessment": [
+      "Firmeza y densidad dérmica.",
+      "Hidratación, luminosidad y uniformidad visual.",
+      "Textura, poros y líneas finas.",
+      "Fototipo, sensibilidad y procedimientos anteriores."
+    ],
+    "technology": [
+      "EXION® Face según diagnóstico y parámetros individualizados.",
+      "EMFUSION® cuando se integra en un plan de calidad cutánea.",
+      "Bioestimulación, IPL o láser fraccionado cuando el componente clínico lo justifica."
+    ],
+    "limits": [
+      "No sustituye procedimientos dirigidos a pérdida de volumen o soporte estructural.",
+      "El número de sesiones y la evolución dependen del diagnóstico y la respuesta individual.",
+      "Las lesiones sospechosas requieren evaluación dermatológica antes de aplicar energía."
+    ],
+    "seo_title": "Calidad y firmeza de la piel Madrid | NUVANX",
+    "seo_desc": "Tratamiento médico para calidad, firmeza y luminosidad de la piel en Madrid con tecnología seleccionada tras diagnóstico, fototipo y valoración.",
+    "protocol": "NUVANX Skin Architecture™"
+  },
+  "surface-renewal": {
+    "phase": 1,
+    "slug": "cicatrices-acne-poros-textura-madrid",
+    "title": "Tratamiento médico de cicatrices, poros dilatados y textura cutánea.",
+    "kicker": "NUVANX SURFACE RENEWAL™",
+    "lead": "Diagnóstico de cicatrices, poros, arrugas finas, estrías y alteraciones de textura para seleccionar profundidad, energía y secuencia con criterios de seguridad.",
+    "intro": "No todas las cicatrices son iguales. La morfología, profundidad, fototipo, actividad inflamatoria y riesgo de pigmentación condicionan el plan.",
+    "assessment": [
+      "Tipo, profundidad y distribución de las cicatrices.",
+      "Poros, textura y líneas finas asociadas.",
+      "Actividad de acné o inflamación residual.",
+      "Fototipo y riesgo de pigmentación postinflamatoria."
+    ],
+    "technology": [
+      "Láser CO₂ fraccionado cuando la indicación y el fototipo lo permiten.",
+      "EXION® Fractional RF cuando la profundidad y el período de recuperación aconsejan esta modalidad.",
+      "IPL u otras medidas cuando existe un componente vascular o pigmentario diferenciado."
+    ],
+    "limits": [
+      "Las cicatrices profundas pueden requerir un plan combinado o derivación.",
+      "No se garantiza la eliminación completa de una cicatriz o poro.",
+      "El tratamiento se pospone cuando existe infección, inflamación activa o contraindicación."
+    ],
+    "seo_title": "Cicatrices de acné, poros y textura Madrid | NUVANX",
+    "seo_desc": "Tratamiento de cicatrices de acné, poros y textura en Madrid con CO₂ o Fractional RF según morfología, fototipo y valoración médica.",
+    "protocol": "NUVANX Surface Renewal™"
+  },
+  "tone-correction": {
+    "phase": 1,
+    "slug": "manchas-rojeces-fotorejuvenecimiento-ipl-madrid",
+    "title": "Tratamiento médico de manchas, rojeces y daño solar.",
+    "kicker": "NUVANX TONE CORRECTION™",
+    "lead": "Valoración de alteraciones pigmentarias y vasculares para diferenciar léntigos, rojeces, telangiectasias, melasma y pigmentación postinflamatoria antes de aplicar luz o láser.",
+    "intro": "Una mancha no debe tratarse solo por su color. El diagnóstico, el fototipo y la estabilidad de la lesión determinan si existe indicación para IPL, cuidado domiciliario o derivación.",
+    "assessment": [
+      "Tipo, localización y evolución de la pigmentación.",
+      "Componente vascular, eritema o telangiectasias.",
+      "Fototipo, exposición solar y medicación fotosensibilizante.",
+      "Antecedentes de melasma o pigmentación postinflamatoria."
+    ],
+    "technology": [
+      "BTL EXILITE™ IPL con parámetros seleccionados según diagnóstico y fototipo.",
+      "EMFUSION® y plan domiciliario cuando aportan valor como soporte.",
+      "Derivación dermatológica cuando la lesión no debe tratarse como una alteración estética."
+    ],
+    "limits": [
+      "No se fija un número estándar de sesiones antes de la valoración.",
+      "El melasma y otras alteraciones complejas pueden requerir control prolongado.",
+      "No se aplica luz o láser sobre una lesión pigmentada no diagnosticada."
+    ],
+    "seo_title": "Manchas, rojeces y fotodaño Madrid | NUVANX",
+    "seo_desc": "Tratamiento de manchas, rojeces y fotodaño en Madrid con IPL seleccionada según diagnóstico, fototipo y valoración médica.",
+    "protocol": "NUVANX Tone Correction™"
+  },
+  "abdomen-flancos": {
+    "phase": 2,
+    "slug": "grasa-localizada-abdomen-flancos-madrid",
+    "title": "Esa grasa del abdomen que no se va ni a dieta ni a gimnasio.",
+    "kicker": "contour_upper",
+    "lead": "El cuerpo guarda reservas en sitios muy concretos, y para muchas personas el abdomen bajo y los \"michelines\" son los últimos en irse, hagas lo que hagas. No es falta de disciplina — es cómo funciona tu cuerpo.",
+    "intro": "Aquí hay algo que casi nadie te va a explicar en otra clínica: no toda la grasa del abdomen es tratable. La que se pellizca, sí. La que está detrás del músculo (la que da tripa dura, no blanda), no — ni con láser, ni con nada estético. Si es esa, te lo decimos, en vez de cobrarte por algo que no va a funcionar.",
+    "assessment": [
+      "Abdomen superior e inferior.",
+      "Flancos, cintura y espalda baja.",
+      "Grasa subcutánea frente a volumen visceral.",
+      "Laxitud, cicatrices y sospecha de diástasis o hernia."
+    ],
+    "technology": [
+      "Endoláser corporal cuando existe una indicación focal.",
+      "EXION® Body u otras modalidades cuando corresponde actuar sobre calidad tisular.",
+      "Láser fraccionado cuando el problema principal es superficie o cicatriz."
+    ],
+    "limits": [
+      "No es un tratamiento para pérdida general de peso.",
+      "La grasa visceral no se trata con una intervención estética focal.",
+      "Diástasis, hernia o exceso importante de piel pueden requerir derivación."
+    ],
+    "seo_title": "Grasa localizada abdomen y flancos Madrid | NUVANX",
+    "seo_desc": "Valoración de grasa localizada, laxitud y pared abdominal en abdomen y flancos en Madrid dentro de NUVANX Contour Architecture™.",
+    "protocol": "contour_mixed"
+  },
+  "brazos": {
+    "phase": 2,
+    "slug": "flacidez-grasa-localizada-brazos-madrid",
+    "title": "Para que la manga caiga bien — sin que la piel quede colgando después.",
+    "kicker": "contour_upper",
+    "lead": "Estudio del brazo completo y su relación con axila anterior y torso para separar grasa localizada, laxitud y calidad del tejido.",
+    "intro": "Lo que se conoce como \"alas de murciélago\" puede ser piel floja, puede ser grasa, o (lo más normal) las dos cosas juntas. Y aquí está la trampa: si solo quitas la grasa y no trabajas la piel, puede quedar peor que antes. Por eso miramos las dos cosas.",
+    "assessment": [
+      "Distribución de grasa y espesor del tejido.",
+      "Laxitud de la cara posterior e interna.",
+      "Continuidad con axila anterior y torso.",
+      "Asimetrías, cicatrices y reserva cutánea."
+    ],
+    "technology": [
+      "Endoláser corporal cuando predomina grasa localizada susceptible de tratamiento.",
+      "Endolift corporal o EXION® Body cuando la calidad cutánea tiene una indicación específica.",
+      "Plan combinado solo cuando cada modalidad responde a un componente distinto."
+    ],
+    "limits": [
+      "La laxitud intensa puede no responder adecuadamente sin cirugía.",
+      "No se promete un brazo estándar ni una reducción determinada.",
+      "La indicación depende de anatomía, salud y expectativas compatibles."
+    ],
+    "seo_title": "Flacidez y grasa localizada brazos Madrid | NUVANX",
+    "seo_desc": "Tratamiento de flacidez y grasa localizada en brazos en Madrid con valoración de brazo, axila y torso antes de seleccionar tecnología.",
+    "protocol": "contour_mixed"
+  },
+  "espalda": {
+    "phase": 2,
+    "slug": "grasa-espalda-zona-sujetador-madrid",
+    "title": "El pliegue que marca la ropa, aunque tu peso esté bien.",
+    "kicker": "contour_upper",
+    "lead": "Valoración de espalda superior, zona del sujetador, flancos y brazos como una continuidad anatómica, diferenciando pliegues por grasa, laxitud y ajuste de la prenda.",
+    "intro": "Ese pliegue bajo el sujetador no siempre es solo grasa — a veces es que la piel de ahí ya no sujeta como antes. Miramos cuál de las dos cosas es la tuya antes de proponerte nada.",
+    "assessment": [
+      "Espalda superior y zona del sujetador.",
+      "Relación con brazos, axila y flancos.",
+      "Grasa localizada frente a laxitud cutánea.",
+      "Postura, asimetrías y procedimientos previos."
+    ],
+    "technology": [
+      "Endoláser corporal para unidades focales con indicación.",
+      "Modalidades de calidad cutánea cuando la laxitud es el componente tratable.",
+      "Plan de continuidad solo si cada zona aporta una mejora clínicamente justificable."
+    ],
+    "limits": [
+      "La prenda y la postura pueden producir pliegues sin indicación médica.",
+      "No se añaden zonas por venta cruzada.",
+      "El exceso cutáneo importante puede requerir otra vía."
+    ],
+    "seo_title": "Grasa espalda y zona del sujetador Madrid | NUVANX",
+    "seo_desc": "Valoración de grasa y laxitud en espalda y zona del sujetador en Madrid, considerando continuidad con brazos y flancos.",
+    "protocol": "contour_mixed"
+  },
+  "muslos": {
+    "phase": 2,
+    "slug": "flacidez-muslos-internos-subgluteo-madrid",
+    "title": "La piel más delicada del cuerpo merece el abordaje más cuidadoso.",
+    "kicker": "contour_upper",
+    "lead": "Diagnóstico de muslo interno, cara externa, región subglútea y transición con rodilla para diferenciar grasa localizada, laxitud y celulitis estructural.",
+    "intro": "Ese pliegue bajo el glúteo no está ahí por accidente — sostiene el propio glúteo. Si se reduce sin cuidado, el glúteo cae. Por eso aquí se trata con mucha delicadeza, nunca a lo bruto.",
+    "assessment": [
+      "Muslo interno y externo.",
+      "Región subglútea y transición glúteo-muslo.",
+      "Laxitud, grasa localizada y celulitis estructural.",
+      "Continuidad con rodillas y cadera."
+    ],
+    "technology": [
+      "Endoláser corporal cuando predomina grasa localizada focal.",
+      "EXION® Body u otra modalidad cuando existe indicación de calidad cutánea.",
+      "Derivación o no intervención cuando el problema no corresponde a la oferta médico-estética."
+    ],
+    "limits": [
+      "La celulitis requiere un diagnóstico distinto de la grasa localizada.",
+      "La laxitud intensa o el exceso cutáneo pueden requerir cirugía.",
+      "No se promete una separación o forma estándar de los muslos."
+    ],
+    "seo_title": "Flacidez muslos internos y subglúteo Madrid | NUVANX",
+    "seo_desc": "Valoración de flacidez, grasa y continuidad en muslos internos y región subglútea en Madrid dentro de Contour Architecture™.",
+    "protocol": "contour_mixed"
+  },
+  "rodillas": {
+    "phase": 2,
+    "slug": "tratamiento-rodillas-grasa-flacidez-madrid",
+    "title": "Una zona pequeña que cambia toda la línea de la pierna.",
+    "kicker": "contour_upper",
+    "lead": "Valoración de la cara interna y superior de la rodilla dentro de la continuidad del muslo y la pierna, con atención a grasa localizada, laxitud y anatomía funcional.",
+    "intro": "El volumen encima de la rodilla casi nunca depende de tu peso — es más una cuestión de genética. Y como la piel de ahí se mueve constantemente al doblar la pierna, con los años tiende a aflojarse. Por eso no basta con quitar grasa: hay que tensar también.",
+    "assessment": [
+      "Distribución focal de grasa alrededor de la rodilla.",
+      "Laxitud y grosor cutáneo.",
+      "Continuidad con muslo interno y pierna.",
+      "Asimetrías, edema y antecedentes vasculares."
+    ],
+    "technology": [
+      "Modalidad láser o térmica solo cuando la anatomía permite una indicación segura.",
+      "Plan combinado con muslo interno únicamente por continuidad clínica.",
+      "Derivación cuando el volumen corresponde a edema, articulación u otra causa."
+    ],
+    "limits": [
+      "No se trata dolor articular ni patología vascular.",
+      "La zona exige una indicación focal y parámetros conservadores.",
+      "No se promete eliminar todo el volumen visible."
+    ],
+    "seo_title": "Grasa localizada y flacidez rodillas Madrid | NUVANX",
+    "seo_desc": "Valoración de grasa localizada y flacidez en rodillas en Madrid, diferenciando tejido estético de causas articulares, vasculares o edema.",
+    "protocol": "contour_mixed"
+  },
+  "male-contour": {
+    "phase": 2,
+    "slug": "contorno-corporal-masculino-madrid",
+    "title": "Pensado para el cuerpo de un hombre, no adaptado del de una mujer.",
+    "kicker": "contour_upper",
+    "lead": "Plan médico para abdomen, cintura, pecho, espalda o perfil masculino según distribución de grasa, calidad cutánea, proporción y objetivos individuales.",
+    "intro": "La grasa se acumula distinto en un hombre — más densa, más resistente, en zonas distintas. Y en la cara, perder el ángulo de la mandíbula cambia toda la expresión. No cogemos un tratamiento pensado para mujer y lo \"adaptamos\" — el punto de partida es otro desde el principio.",
+    "assessment": [
+      "Abdomen, cintura y espalda.",
+      "Pecho y relación con el torso.",
+      "Mandíbula y perfil cuando la consulta es facial.",
+      "Grasa localizada, laxitud y objetivos anatómicos."
+    ],
+    "technology": [
+      "Endoláser corporal o Endolift® según zona e indicación.",
+      "EXION® Body o Face cuando la calidad tisular forma parte del plan.",
+      "Medicina inyectable o derivación cuando el componente principal no es grasa o laxitud."
+    ],
+    "limits": [
+      "No se ofrece una definición abdominal artificial o garantizada.",
+      "El tratamiento focal no sustituye pérdida de peso, entrenamiento ni cirugía cuando esta es la vía adecuada.",
+      "Cada zona se presupuesta solo si tiene indicación documentada."
+    ],
+    "seo_title": "Contorno corporal masculino Madrid | NUVANX",
+    "seo_desc": "Contorno corporal masculino en Madrid para abdomen, cintura, espalda o perfil, con diagnóstico y tecnología seleccionada tras valoración.",
+    "protocol": "contour_mixed"
+  }
+}

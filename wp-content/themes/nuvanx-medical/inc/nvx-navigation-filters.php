@@ -176,17 +176,37 @@ function nvx_navigation_primary_fallback_item_html( array $item ): string {
  * @return string|null
  */
 function nvx_navigation_primary_fallback( array $args = array() ) {
-	$treatments = array_values( nvx_navigation_published_treatments() );
-	$items      = array(
+	$signature_children = array();
+	if ( function_exists( 'nvx_signature_contour_nav_children' ) ) {
+		foreach ( nvx_signature_contour_nav_children() as $child ) {
+			if ( empty( $child['url'] ) || empty( $child['label'] ) ) {
+				continue;
+			}
+			$signature_children[] = array(
+				'url'   => (string) $child['url'],
+				'label' => (string) $child['label'],
+			);
+		}
+	}
+
+	$technology_children = array_values( nvx_navigation_published_treatments() );
+	$items               = array(
 		array( 'url' => home_url( '/' ), 'label' => __( 'Inicio', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/soluciones-medicas/' ), 'label' => __( 'Soluciones médicas', 'nuvanx-medical' ) ),
+		array(
+			'url'      => home_url( '/protocolos-signature/' ),
+			'label'    => __( 'Protocolos Signature', 'nuvanx-medical' ),
+			'children' => $signature_children,
+		),
 		array(
 			'url'      => home_url( '/tratamientos/' ),
-			'label'    => __( 'Tratamientos', 'nuvanx-medical' ),
-			'children' => $treatments,
+			'label'    => __( 'Tecnología', 'nuvanx-medical' ),
+			'children' => $technology_children,
 		),
+		array( 'url' => home_url( '/casos-de-pacientes/' ), 'label' => __( 'Casos clínicos', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/equipo-medico/' ), 'label' => __( 'Equipo médico', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/clinicas-de-medicina-estetica-nuvanx/' ), 'label' => __( 'Clínicas', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Blog', 'nuvanx-medical' ) ),
+		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Journal', 'nuvanx-medical' ) ),
 		array( 'url' => home_url( '/contacto/' ), 'label' => __( 'Contacto', 'nuvanx-medical' ) ),
 	);
 	$menu_class = isset( $args['menu_class'] ) && '' !== trim( (string) $args['menu_class'] )

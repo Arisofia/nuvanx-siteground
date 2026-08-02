@@ -21,9 +21,9 @@ $nvx_footer_published_treatments = function_exists( 'nvx_navigation_published_tr
 	? nvx_navigation_published_treatments()
 	: array();
 $nvx_cases_id = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
-$nvx_cases_public = $nvx_cases_id <= 0
-	|| ! function_exists( 'nvx_noindex_page_ids' )
-	|| ! in_array( $nvx_cases_id, nvx_noindex_page_ids(), true );
+$nvx_cases_public = $nvx_cases_id > 0
+	&& ( ! function_exists( 'nvx_noindex_page_ids' )
+		|| ! in_array( $nvx_cases_id, nvx_noindex_page_ids(), true ) );
 $nvx_why_nuvanx_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'why_nuvanx' ) : '';
 $nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';
 ?>
@@ -166,13 +166,13 @@ $nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_stra
 					</a>
 				</li>
 
-					<?php if ( $nvx_cases_public ) : ?>
-						<li>
-							<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>">
-								Casos de pacientes
-							</a>
-						</li>
-					<?php endif; ?>
+				<?php if ( $nvx_cases_public ) : ?>
+					<li>
+						<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>">
+							Casos de pacientes
+						</a>
+					</li>
+				<?php endif; ?>
 
 				<li>
 					<a href="<?php echo esc_url( home_url( '/blog/' ) ); ?>">

@@ -22,6 +22,9 @@ $clinics = function_exists( 'nvx_schema_clinics' ) ? nvx_schema_clinics() : arra
 $chamberi_phone = ! empty( $clinics['chamberi']['telephone'] ) ? (string) $clinics['chamberi']['telephone'] : '+34669319836';
 $goya_phone     = ! empty( $clinics['goya']['telephone'] ) ? (string) $clinics['goya']['telephone'] : '+34647505107';
 
+$chamberi_wa = ltrim( $chamberi_phone, '+' );
+$goya_wa     = ltrim( $goya_phone, '+' );
+
 $chamberi_tel_display = trim( chunk_split( (string) preg_replace( '/^\+34/', '', $chamberi_phone ), 3, ' ' ) );
 $goya_tel_display     = trim( chunk_split( (string) preg_replace( '/^\+34/', '', $goya_phone ), 3, ' ' ) );
 
@@ -49,7 +52,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 					<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-brand-btn--primary">
 						<?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?>
 					</a>
-					<a href="https://wa.me/34669319836"
+					<a href="https://wa.me/<?php echo esc_attr( $chamberi_wa ); ?>"
 						class="nvx-brand-btn nvx-brand-btn--secondary"
 						rel="noopener noreferrer"
 						target="_blank"
@@ -86,7 +89,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 							<li>
 								<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-phone"/></svg>
 								<a href="<?php echo esc_url( 'tel:' . $chamberi_phone ); ?>" itemprop="telephone"><?php echo esc_html( $chamberi_tel_display ); ?></a>
-								· <a href="https://wa.me/34669319836" rel="noopener noreferrer" target="_blank">WhatsApp</a>
+								· <a href="https://wa.me/<?php echo esc_attr( $chamberi_wa ); ?>" rel="noopener noreferrer" target="_blank">WhatsApp</a>
 							</li>
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-clock"/></svg><?php esc_html_e( 'Horario de clínica: lunes a viernes, 12:00–20:00; sábados, 10:00–18:00', 'nuvanx-medical' ); ?></li>
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-doctor"/></svg><?php esc_html_e( 'El Dr. Rivera atiende en Chamberí los martes y jueves.', 'nuvanx-medical' ); ?></li>
@@ -112,7 +115,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 							<li>
 								<svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-phone"/></svg>
 								<a href="<?php echo esc_url( 'tel:' . $goya_phone ); ?>" itemprop="telephone"><?php echo esc_html( $goya_tel_display ); ?></a>
-								· <a href="https://wa.me/34647505107" rel="noopener noreferrer" target="_blank">WhatsApp</a>
+								· <a href="https://wa.me/<?php echo esc_attr( $goya_wa ); ?>" rel="noopener noreferrer" target="_blank">WhatsApp</a>
 							</li>
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-clock"/></svg><?php esc_html_e( 'Horario de clínica: lunes a viernes, 11:00–20:00', 'nuvanx-medical' ); ?></li>
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-doctor"/></svg><?php esc_html_e( 'El Dr. Rivera atiende en Salamanca–Goya los miércoles.', 'nuvanx-medical' ); ?></li>

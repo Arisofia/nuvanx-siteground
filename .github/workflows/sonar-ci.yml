@@ -41,7 +41,6 @@ jobs:
           mkdir -p coverage/js
           node --test \
             --experimental-test-coverage \
-            --test-coverage-include='scripts/staging2/visual-qa-common.mjs' \
             --test-reporter=spec \
             --test-reporter-destination=stdout \
             --test-reporter=lcov \

@@ -67,7 +67,7 @@ function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
-async function fetchWithRetry(url, attempts = 3) {
+async function fetchHtmlWithRetry(url, attempts = 5) {
   let lastError = new Error(`No response received from ${url}`);
 
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
@@ -82,10 +82,18 @@ async function fetchWithRetry(url, attempts = 3) {
         }
       });
 
-      if (response.status < 500) return response;
+      const html = await response.text();
 
-      await response.body?.cancel();
-      lastError = new Error(`${url}: transient upstream status ${response.status}`);
+      // Post-deploy cache purges can briefly return empty or truncated bodies.
+      if (response.status >= 500) {
+        lastError = new Error(`${url}: transient upstream status ${response.status}`);
+      } else if (response.ok && (!/^<!doctype html>/iu.test(html.trimStart()) || html.length < 800)) {
+        lastError = new Error(
+          `${url}: incomplete HTML body after deploy (status=${response.status}, length=${html.length})`
+        );
+      } else {
+        return { response, html };
+      }
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
     }
@@ -97,8 +105,7 @@ async function fetchWithRetry(url, attempts = 3) {
 }
 
 async function verifyRoute(route) {
-  const response = await fetchWithRetry(`${baseUrl}${route}`);
-  const html = await response.text();
+  const { response, html } = await fetchHtmlWithRetry(`${baseUrl}${route}`);
 
   assert(response.ok, `${route}: expected 2xx, received ${response.status}`);
   assert(/^<!doctype html>/iu.test(html.trimStart()), `${route}: missing HTML doctype`);

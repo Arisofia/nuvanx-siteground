@@ -2,7 +2,13 @@
 defined( 'ABSPATH' ) || exit;
 
 require_once __DIR__ . '/inc/nvx-document-governance.php';
-nvx_document_governance_start();
+// Skip nested document-governance buffer on solutions hub: staging2 has returned
+// empty HTTP 200 bodies for that slug when both rewrite buffers are active.
+$nvx_skip_document_buffer = is_page()
+	&& 'soluciones-medicas' === (string) get_post_field( 'post_name', get_queried_object_id() );
+if ( ! $nvx_skip_document_buffer ) {
+	nvx_document_governance_start();
+}
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>

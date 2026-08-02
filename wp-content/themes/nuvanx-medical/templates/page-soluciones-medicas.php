@@ -3,26 +3,44 @@
  * Template Name: Soluciones médicas
  * Template Post Type: page
  *
- * Dedicated route template so /soluciones-medicas/ does not depend on the_content
- * filter timing (which has produced empty 200 responses on staging2).
+ * Dedicated route template for /soluciones-medicas/.
+ * Renders the GitHub-owned hub markup without the_content filters.
  *
  * @package nuvanx-medical
  */
 
 defined( 'ABSPATH' ) || exit;
 
-// header.php already opens <main id="nvx-main">; do not nest a second main.
+// Fail closed with visible diagnostics if the canonical partial is missing.
+$partial = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
+
+// Avoid nested output-buffer callbacks on this route: they have produced
+// HTTP 200 + Content-Length 0 for this slug under staging2 PHP-FPM.
+if ( function_exists( 'nvx_document_governance_start' ) ) {
+	// header.php always starts governance; nothing to disable here beyond
+	// ensuring we do not add additional buffers ourselves.
+}
+
 get_header();
-?>
-	<article <?php post_class( 'nvx-page nvx-page--solutions' ); ?>>
-		<?php
-		$template = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
-		if ( is_readable( $template ) ) {
-			include $template;
-		} else {
-			echo '<div class="nvx-shell"><h1 class="nvx-heading">' . esc_html__( 'Soluciones médicas', 'nuvanx-medical' ) . '</h1></div>';
-		}
-		?>
-	</article>
-<?php
+
+echo "\n<!-- nvx-solutions-template-active -->\n";
+
+if ( is_readable( $partial ) ) {
+	// Capture partial without touching outer document buffers.
+	$level = ob_get_level();
+	ob_start();
+	include $partial;
+	$markup = (string) ob_get_clean();
+	while ( ob_get_level() > $level ) {
+		ob_end_clean();
+	}
+	if ( '' !== trim( $markup ) ) {
+		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	} else {
+		echo '<div class="nvx-shell"><h1 class="nvx-heading">Soluciones médicas</h1><p>Plantilla de soluciones vacía.</p></div>';
+	}
+} else {
+	echo '<div class="nvx-shell"><h1 class="nvx-heading">Soluciones médicas</h1><p>Falta el partial versionado de soluciones.</p></div>';
+}
+
 get_footer();

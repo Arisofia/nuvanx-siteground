@@ -588,12 +588,11 @@ add_filter( 'the_content', 'nvx_apply_production_business_rules', 99 );
  * @param string $content Post content.
  * @return string
  */
-if ( ! function_exists( 'nvx_remove_unverified_quantitative_trust_badges' ) ) {
-	/**
-	 * @param string $content Post content.
-	 * @return string
-	 */
-	function nvx_remove_unverified_quantitative_trust_badges( string $content ): string {
+/**
+ * @param string $content Post content.
+ * @return string
+ */
+function nvx_remove_unverified_quantitative_trust_badges( string $content ): string {
 		if ( false === strpos( $content, 'nvx-trust-badges' ) ) {
 			return $content;
 		}
@@ -607,4 +606,3 @@ if ( ! function_exists( 'nvx_remove_unverified_quantitative_trust_badges' ) ) {
 		return is_string( $filtered ) ? $filtered : $content;
 	}
 	add_filter( 'the_content', 'nvx_remove_unverified_quantitative_trust_badges', 22 );
-}

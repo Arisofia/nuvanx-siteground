@@ -232,7 +232,7 @@ function nvx_theme_blog_index_markup(): string {
 			'posts_per_page'      => 12,
 			'ignore_sticky_posts' => true,
 			'post__not_in'        => $excluded_post_ids,
-			'paged'               => max( 1, (int) get_query_var( 'paged' ) ),
+			'paged'               => max( 1, (int) get_query_var( 'paged' ), (int) get_query_var( 'page' ) ),
 		)
 	);
 

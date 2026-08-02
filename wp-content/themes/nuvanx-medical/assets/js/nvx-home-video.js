@@ -1,4 +1,6 @@
 (function () {
+  'use strict';
+
   function startHomeVideo() {
     var video = document.getElementById('nvx-home-hero-video');
     if (!video) return;

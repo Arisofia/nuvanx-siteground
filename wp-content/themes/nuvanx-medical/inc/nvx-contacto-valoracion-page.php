@@ -285,14 +285,16 @@ add_filter( 'wpseo_twitter_image', 'nvx_filter_contacto_social_image', 100 );
  *
  * @return array{url:string,width:int,height:int,type:string,alt:string}
  */
-function nvx_contacto_opengraph_image_meta(): array {
-	return array(
-		'url'    => home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' ),
-		'width'  => 1672,
-		'height' => 941,
-		'type'   => 'image/webp',
-		'alt'    => 'Consulta médica personalizada NUVANX Madrid',
-	);
+if ( ! function_exists( 'nvx_contacto_opengraph_image_meta' ) ) {
+	function nvx_contacto_opengraph_image_meta(): array {
+		return array(
+			'url'    => home_url( '/wp-content/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' ),
+			'width'  => 1672,
+			'height' => 941,
+			'type'   => 'image/webp',
+			'alt'    => 'Consulta médica personalizada NUVANX Madrid',
+		);
+	}
 }
 
 /**
@@ -300,63 +302,67 @@ function nvx_contacto_opengraph_image_meta(): array {
  *
  * @param mixed $image_container Yoast Open Graph image container.
  */
-function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
-	if ( ! nvx_is_contacto_page_request() || ! is_object( $image_container ) ) {
-		return;
-	}
+if ( ! function_exists( 'nvx_contacto_add_yoast_opengraph_image' ) ) {
+	function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
+		if ( ! nvx_is_contacto_page_request() || ! is_object( $image_container ) ) {
+			return;
+		}
 
-	$meta      = nvx_contacto_opengraph_image_meta();
-	$image_url = $meta['url'];
-	$image_id  = function_exists( 'attachment_url_to_postid' ) ? (int) attachment_url_to_postid( $image_url ) : 0;
+		$meta      = nvx_contacto_opengraph_image_meta();
+		$image_url = $meta['url'];
+		$image_id  = function_exists( 'attachment_url_to_postid' ) ? (int) attachment_url_to_postid( $image_url ) : 0;
 
-	if ( $image_id > 0 && method_exists( $image_container, 'add_image_by_id' ) ) {
-		$image_container->add_image_by_id( $image_id );
-		return;
-	}
+		if ( $image_id > 0 && method_exists( $image_container, 'add_image_by_id' ) ) {
+			$image_container->add_image_by_id( $image_id );
+			return;
+		}
 
-	if ( method_exists( $image_container, 'add_image_by_url' ) ) {
-		$image_container->add_image_by_url( $image_url );
-		return;
-	}
+		if ( method_exists( $image_container, 'add_image_by_url' ) ) {
+			$image_container->add_image_by_url( $image_url );
+			return;
+		}
 
-	if ( method_exists( $image_container, 'add_image' ) ) {
-		$image_container->add_image(
-			array(
-				'url'    => $image_url,
-				'width'  => (int) $meta['width'],
-				'height' => (int) $meta['height'],
-				'type'   => $meta['type'],
-				'alt'    => $meta['alt'],
-				'path'   => $image_url,
-			)
-		);
+		if ( method_exists( $image_container, 'add_image' ) ) {
+			$image_container->add_image(
+				array(
+					'url'    => $image_url,
+					'width'  => (int) $meta['width'],
+					'height' => (int) $meta['height'],
+					'type'   => $meta['type'],
+					'alt'    => $meta['alt'],
+					'path'   => $image_url,
+				)
+			);
+		}
 	}
+	add_filter( 'wpseo_add_opengraph_images', 'nvx_contacto_add_yoast_opengraph_image', 100 );
 }
-add_filter( 'wpseo_add_opengraph_images', 'nvx_contacto_add_yoast_opengraph_image', 100 );
 
 /**
  * Final head-output safeguard for contact og:image when Yoast omits tags.
  */
-function nvx_contacto_enforce_final_og_image( string $html ): string {
-	if (
-		! nvx_is_contacto_page_request()
-		|| preg_match( '/<meta\b[^>]*\bproperty\s*=\s*(["\'])og:image\1/i', $html )
-	) {
-		return $html;
+if ( ! function_exists( 'nvx_contacto_enforce_final_og_image' ) ) {
+	function nvx_contacto_enforce_final_og_image( string $html ): string {
+		if (
+			! nvx_is_contacto_page_request()
+			|| preg_match( '/<meta\b[^>]*\bproperty\s*=\s*(["\'])og:image\1/i', $html )
+		) {
+			return $html;
+		}
+
+		$meta      = nvx_contacto_opengraph_image_meta();
+		$image_url = esc_url( $meta['url'] );
+		$tags      = '<meta property="og:image" content="' . $image_url . '" />'
+			. '<meta property="og:image:secure_url" content="' . $image_url . '" />'
+			. '<meta property="og:image:width" content="' . (int) $meta['width'] . '" />'
+			. '<meta property="og:image:height" content="' . (int) $meta['height'] . '" />'
+			. '<meta property="og:image:type" content="' . esc_attr( $meta['type'] ) . '" />'
+			. '<meta property="og:image:alt" content="' . esc_attr( $meta['alt'] ) . '" />';
+
+		$with_tags = preg_replace( '/(?=<meta\b[^>]*\bname\s*=\s*(["\'])twitter:card\1)/i', $tags, $html, 1 );
+
+		return is_string( $with_tags ) && $with_tags !== $html ? $with_tags : $html . $tags;
 	}
-
-	$meta      = nvx_contacto_opengraph_image_meta();
-	$image_url = esc_url( $meta['url'] );
-	$tags      = '<meta property="og:image" content="' . $image_url . '" />'
-		. '<meta property="og:image:secure_url" content="' . $image_url . '" />'
-		. '<meta property="og:image:width" content="' . (int) $meta['width'] . '" />'
-		. '<meta property="og:image:height" content="' . (int) $meta['height'] . '" />'
-		. '<meta property="og:image:type" content="' . esc_attr( $meta['type'] ) . '" />'
-		. '<meta property="og:image:alt" content="' . esc_attr( $meta['alt'] ) . '" />';
-
-	$with_tags = preg_replace( '/(?=<meta\b[^>]*\bname\s*=\s*(["\'])twitter:card\1)/i', $tags, $html, 1 );
-
-	return is_string( $with_tags ) && $with_tags !== $html ? $with_tags : $html . $tags;
 }
 
 /**

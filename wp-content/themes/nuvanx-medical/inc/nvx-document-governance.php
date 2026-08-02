@@ -145,6 +145,10 @@ add_action( 'wp_head', 'nvx_document_governance_print_head_contract', 2 );
  * enforce contact og:image when Yoast omits it. Scoped to head only.
  */
 function nvx_document_governance_head_buffer_start(): void {
+	// Skip if retired MU still owns the same buffer this request.
+	if ( function_exists( 'nvx_canonical_schema_head_buffer_start' ) ) {
+		return;
+	}
 	if ( is_admin() || ( ! is_front_page() && ! is_page() ) ) {
 		return;
 	}

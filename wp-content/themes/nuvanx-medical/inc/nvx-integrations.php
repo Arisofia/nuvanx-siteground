@@ -243,7 +243,37 @@ function nvx_theme_is_eager_hubspot_embed( string $handle, string $src = '', str
 		|| str_contains( $src_lower, 'hs-scripts.com' );
 }
 
-/* Meta Pixel, Site Kit GSI, and eager HubSpot · strip as early as possible */
+/**
+ * Keep official Meta Pixel (FacebookSignal) off public HTML.
+ *
+ * Stripping via full-document buffer was a workaround. Deactivate the plugin
+ * for front requests so FacebookSignal never enqueues (acceptance rejects it).
+ *
+ * @param mixed $plugins Active plugin basenames.
+ * @return mixed
+ */
+function nvx_theme_disable_public_facebook_pixel( $plugins ) {
+	if ( ! is_array( $plugins ) ) {
+		return $plugins;
+	}
+	if ( is_admin() || wp_doing_cron() || ( defined( 'WP_CLI' ) && WP_CLI ) ) {
+		return $plugins;
+	}
+
+	return array_values(
+		array_filter(
+			$plugins,
+			static function ( $plugin ): bool {
+				return ! is_string( $plugin )
+					|| false === strpos( $plugin, 'official-facebook-pixel/' );
+			}
+		)
+	);
+}
+add_filter( 'option_active_plugins', 'nvx_theme_disable_public_facebook_pixel', 1 );
+add_filter( 'site_option_active_sitewide_plugins', 'nvx_theme_disable_public_facebook_pixel', 1 );
+
+/* Meta Pixel leftovers, Site Kit GSI, and eager HubSpot · strip as early as possible */
 add_action(
 	'wp_enqueue_scripts',
 	static function (): void {
@@ -258,6 +288,8 @@ add_action(
 	static function (): void {
 		wp_dequeue_script( 'siteground-facebook-signal' );
 		wp_deregister_script( 'siteground-facebook-signal' );
+		wp_dequeue_script( 'facebook-for-wordpress-pixel' );
+		wp_deregister_script( 'facebook-for-wordpress-pixel' );
 		wp_dequeue_script( 'googlesitekit-sign-in-with-google' );
 		wp_deregister_script( 'googlesitekit-sign-in-with-google' );
 		wp_dequeue_script( 'nvx-hubspot-forms-embed' );
@@ -269,7 +301,12 @@ add_action(
 add_filter(
 	'script_loader_tag',
 	static function ( string $tag, string $handle, string $src = '' ): string {
-		if ( str_contains( $handle, 'facebook-signal' ) || str_contains( $tag, 'facebook-signal' ) ) {
+		if (
+			str_contains( $handle, 'facebook-signal' )
+			|| str_contains( $handle, 'facebook-for-wordpress' )
+			|| str_contains( $tag, 'facebook-signal' )
+			|| str_contains( $tag, 'FacebookSignal' )
+		) {
 			return '';
 		}
 

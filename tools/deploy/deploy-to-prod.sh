@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# MUTATING: promote nuvanx-medical theme (+ form MU plugins) from staging disk to production.
+# MUTATING: promote nuvanx-medical theme from staging2 disk to production.
 # Requires --confirm or NUVANX_CONFIRM=yes. Prefer running on the SiteGround host with wp-cli.
 #
 # Does NOT rsync the entire mu-plugins tree (would delete prod-only plugins).
@@ -10,6 +10,20 @@ set -Eeuo pipefail
 PROD_ROOT=""
 STAGING_ROOT=""
 CONFIRM=0
+
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  deploy-to-prod.sh \
+    --prod-root /absolute/prod/wp-root \
+    --staging-root /absolute/staging2/wp-root \
+    --confirm
+
+Promotes the nuvanx-medical theme from staging2 to production without touching
+prod-only MU plugins, and resets SiteGround CSS/JS minify so public HTML enqueues
+canonical theme assets.
+EOF
+}
 
 require_confirm() {
   [[ "$CONFIRM" -eq 1 || "${NUVANX_CONFIRM:-}" == "yes" ]] || {
@@ -23,14 +37,19 @@ while [[ $# -gt 0 ]]; do
     --prod-root) PROD_ROOT="$2"; shift 2 ;;
     --staging-root) STAGING_ROOT="$2"; shift 2 ;;
     --confirm) CONFIRM=1; shift ;;
-    *) echo "Unknown arg: $1" >&2; exit 2 ;;
+    *)
+      usage
+      echo "Unknown arg: $1" >&2
+      exit 2
+      ;;
   esac
 done
 
 [[ -n "$PROD_ROOT" && -n "$STAGING_ROOT" ]] || {
-  echo "Usage: $0 --prod-root PATH --staging-root PATH --confirm" >&2
+  usage
   exit 2
 }
+
 command -v wp >/dev/null 2>&1 || { echo "wp-cli required" >&2; exit 2; }
 command -v rsync >/dev/null 2>&1 || { echo "rsync required" >&2; exit 2; }
 require_confirm
@@ -44,7 +63,7 @@ require_confirm
   exit 1
 }
 
-echo "== Guard: siteurl/home/theme =="
+echo "== Guard: prod siteurl/home/theme =="
 (
   cd "$PROD_ROOT"
   siteurl="$(wp option get siteurl)"
@@ -55,6 +74,8 @@ echo "== Guard: siteurl/home/theme =="
   [[ "$home" == 'https://nuvanx.com' ]] || { echo "ERROR: unexpected prod home=$home" >&2; exit 1; }
   [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: active theme is $theme" >&2; exit 1; }
 )
+
+echo "== Guard: staging2 siteurl/theme and canonical assets =="
 (
   cd "$STAGING_ROOT"
   siteurl="$(wp option get siteurl)"
@@ -62,8 +83,14 @@ echo "== Guard: siteurl/home/theme =="
   echo "staging siteurl=$siteurl theme=$theme"
   [[ "$siteurl" == 'https://staging2.nuvanx.com' ]] || { echo "ERROR: unexpected staging siteurl=$siteurl" >&2; exit 1; }
   [[ "$theme" == 'nuvanx-medical' ]] || { echo "ERROR: staging active theme is $theme" >&2; exit 1; }
-  [[ -f wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css ]]
-  [[ -f wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php ]]
+  [[ -f wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css ]] || {
+    echo "ERROR: missing nvx-patterns-editorial.css on staging2" >&2
+    exit 1
+  }
+  [[ -f wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php ]] || {
+    echo "ERROR: missing nvx-blog-system.php on staging2" >&2
+    exit 1
+  }
 )
 
 DATE="$(date +%Y%m%d-%H%M%S)"
@@ -107,7 +134,7 @@ done
 rm -rf "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution" \
   "$STAGING_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
 
-echo "== Remove stale theme min.css siblings =="
+echo "== Remove stale theme min.css siblings on prod =="
 find "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/css" \
   -maxdepth 1 -type f -name 'nvx-*.min.css' -delete 2>/dev/null || true
 

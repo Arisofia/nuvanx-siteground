@@ -13,12 +13,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Load one versioned theme JSON catalog.
+ * Load one versioned theme JSON catalog (canonical theme-wide helper).
  *
- * The solutions template historically called this helper even though the
- * implementation and its source catalog were not committed. Keep the narrow
- * compatibility function here and delegate to the canonical validated loader.
+ * Delegates to nvx_catalog_json_load so Signature, solutions and other
+ * catalogues share one validation path.
  *
+ * @param string $filename Basename under inc/data/.
  * @return array<mixed>
  */
 function nvx_theme_load_json_catalog( string $filename ): array {

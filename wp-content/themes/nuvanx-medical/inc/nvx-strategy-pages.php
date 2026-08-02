@@ -275,21 +275,6 @@ function nvx_strategy_verified_investment_groups(): array {
 }
 
 /**
- * Flat list for legacy callers. Kept for backward compatibility.
- *
- * @return array<int,array{label:string,price:string}>
- */
-function nvx_strategy_verified_investment_rows(): array {
-	$rows = array();
-	foreach ( nvx_strategy_verified_investment_groups() as $group ) {
-		foreach ( $group as $row ) {
-			$rows[] = $row;
-		}
-	}
-	return $rows;
-}
-
-/**
  * Render one price-table section for a group of tariff rows.
  *
  * @param string                          $heading  Section H2 text.

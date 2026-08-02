@@ -209,50 +209,6 @@ function nvx_editorial_faq( string $question, string $answer ): array {
     );
 }
 
-if ( ! function_exists( 'nvx_theme_load_json_catalog' ) ) {
-	/**
-	 * Load a versioned JSON catalogue under the theme (cached per basename).
-	 *
-	 * Prefer nvx_catalog_json_load when available; this definition remains for
-	 * Signature-phase modules restored from the governed catalogue era.
-	 *
-	 * @param string $path_or_basename Absolute path or basename under inc/data/.
-	 * @return array<string|int, mixed>
-	 */
-	function nvx_theme_load_json_catalog( string $path_or_basename ): array {
-		if ( function_exists( 'nvx_catalog_json_load' ) && ! preg_match( '#^([a-zA-Z]:[\\\\/]|/)#', $path_or_basename ) ) {
-			return nvx_catalog_json_load( $path_or_basename );
-		}
-
-		static $cache = array();
-
-		$key = $path_or_basename;
-		if ( isset( $cache[ $key ] ) ) {
-			return $cache[ $key ];
-		}
-
-		$path = $path_or_basename;
-		if ( ! preg_match( '#^([a-zA-Z]:[\\\\/]|/)#', $path_or_basename ) ) {
-			$path = __DIR__ . '/data/' . ltrim( str_replace( '\\', '/', $path_or_basename ), '/' );
-		}
-
-		if ( ! is_readable( $path ) ) {
-			$cache[ $key ] = array();
-			return $cache[ $key ];
-		}
-
-		$raw = file_get_contents( $path );
-		if ( false === $raw || '' === $raw ) {
-			$cache[ $key ] = array();
-			return $cache[ $key ];
-		}
-
-		$decoded       = json_decode( $raw, true );
-		$cache[ $key ] = is_array( $decoded ) ? $decoded : array();
-		return $cache[ $key ];
-	}
-}
-
 /**
  * Matches a request slug against a catalog array.
  */

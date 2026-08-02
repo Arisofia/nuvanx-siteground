@@ -168,9 +168,8 @@ function nvx_navigation_primary_fallback_item_html( array $item ): string {
 /**
  * Published-route-aware primary menu fallback.
  *
- * Replaces the legacy fallback through wp_nav_menu_args without changing the
- * public header contract. Treatment children are present only when their page
- * exists and is published.
+ * Primary menu fallback when no assigned menu exists. Children are present only
+ * when their WordPress page exists and is published.
  *
  * @param array<string, mixed> $args wp_nav_menu arguments.
  * @return string|null

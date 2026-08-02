@@ -9,7 +9,6 @@ Canonical source for the NUVANX WordPress site on SiteGround.
 | `wp-content/themes/nuvanx-medical/` | Canonical production theme |
 | `wp-content/mu-plugins/` | Required NUVANX must-use plugins |
 | `tools/deploy/` | Host-level deploy and cache scripts |
-| `scripts/theme-hygiene/` | CI contract tests for theme and docs |
 | `scripts/staging2/` | Staging2 rendered acceptance and visual helpers |
 | `.github/workflows/` | Permanent CI and deploy workflows |
 | `docs/` | Architecture and operations documentation |
@@ -20,10 +19,9 @@ Only one theme is tracked: `nuvanx-medical`.
 
 | Workflow | Purpose |
 |----------|---------|
-| **Theme Hygiene Gate** | Lint, PHP/JS contracts, theme hygiene before merge |
 | **Deploy Staging2 (manual)** | Immutable SHA deploy to `staging2.nuvanx.com` + rendered acceptance |
 | **Staging2 Rendered Acceptance** | Manual revalidation of a deployed SHA |
-| **SonarQube Cloud CI** | JS coverage and optional Sonar scan |
+| **SonarQube Cloud CI** | Optional Sonar scan when token and flag are enabled |
 
 A push to `master` does not deploy. Staging2 requires an explicit workflow run with a full 40-character SHA and confirmation `DEPLOY_STAGING2`.
 

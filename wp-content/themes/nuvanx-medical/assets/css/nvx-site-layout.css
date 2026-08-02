@@ -249,14 +249,7 @@
   border-top: 1px solid transparent;
 }
 
-/* ── Layout utility contract (DB/Gutenberg may still use these classes) ──
-   Protected by CSS Gate. Do not remove without DB inventory + migration.
-   See docs/design-system/LAYOUT-UTILITY-CONTRACT.md */
-
+/* Reading measure utility used by long-form CMS and theme markup. */
 .nvx-prose {
   width: min(100%, var(--nvx-measure));
 }
-
-
-
-

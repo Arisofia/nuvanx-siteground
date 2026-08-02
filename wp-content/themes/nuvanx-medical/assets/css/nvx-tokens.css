@@ -25,8 +25,8 @@
   --nvx-text-on-dark-90: rgba(247, 247, 245, 0.90);
   --nvx-text-on-dark-88: rgba(247, 247, 245, 0.88);
   --nvx-text-on-dark-82: rgba(247, 247, 245, 0.82);
-  --nvx-text-on-dark-78: rgba(247, 247, 245, 0.88);
-  --nvx-text-on-dark-72: rgba(247, 247, 245, 0.88);
+  --nvx-text-on-dark-78: rgba(247, 247, 245, 0.78);
+  --nvx-text-on-dark-72: rgba(247, 247, 245, 0.72);
   --nvx-border-on-dark-55: rgba(247, 247, 245, 0.55);
   --nvx-border-on-dark-50: rgba(247, 247, 245, 0.50);
   --nvx-border-on-dark-45: rgba(247, 247, 245, 0.45);
@@ -194,7 +194,7 @@
   --nvx-surface-dark-3: #222222;
   --nvx-on-dark:       #f7f7f5;
   --nvx-on-dark-88:    rgba(247, 247, 245, 0.88);
-  --nvx-on-dark-72:    rgba(247, 247, 245, 0.88);
+  --nvx-on-dark-72:    rgba(247, 247, 245, 0.72);
   --nvx-on-dark-50:    rgba(247, 247, 245, 0.50);
   --nvx-accent-line-dark: rgba(247, 247, 245, 0.10);
   --nvx-accent-line-light: rgba(17, 17, 17, 0.08);

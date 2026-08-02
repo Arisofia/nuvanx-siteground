@@ -36,3 +36,8 @@ body.nvx-hero-blackout :is(
   visibility: visible;
   opacity: 1;
 }
+
+/* Journal hero: text column spans full width when media is hidden. */
+body.nvx-hero-blackout .nvx-blog-hero:not(.nvx-blog-hero--text-only) .nvx-blog-hero__copy {
+  grid-column: span 12;
+}

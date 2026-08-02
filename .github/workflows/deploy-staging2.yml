@@ -150,8 +150,23 @@ jobs:
           set -euo pipefail
           # WP_ROOT is validated locally before deliberate remote interpolation.
           # shellcheck disable=SC2029
-          ssh nvx-staging2 \
-            "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"
+          # SiteGround SSH is occasionally briefly unreachable from Actions runners.
+          attempt=1
+          max_attempts=5
+          while true; do
+            if ssh -o ConnectTimeout=20 nvx-staging2 \
+              "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
+              echo "SiteGround staging2 target verified (attempt ${attempt})."
+              break
+            fi
+            if [[ "$attempt" -ge "$max_attempts" ]]; then
+              echo "SiteGround SSH verification failed after ${max_attempts} attempts." >&2
+              exit 1
+            fi
+            echo "SSH verify attempt ${attempt}/${max_attempts} failed; retrying..." >&2
+            sleep $((attempt * 4))
+            attempt=$((attempt + 1))
+          done
 
       - name: Upload immutable release payload
         shell: bash

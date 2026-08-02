@@ -3,22 +3,29 @@ wp-config.php
 .env
 .htaccess
 
-# Directorios Din·micos (NO rastrear)
+# Directorios Din√°micos (NO rastrear)
 wp-content/uploads/
 wp-content/cache/
 wp-content/upgrade/
 wp-content/wflogs/
 
-# Plugins y CachÈ EspecÌficos de NUVANX
+# Plugins y Cach√© Espec√≠ficos de NUVANX
 wp-content/uploads/siteground-optimizer-assets/
 wp-content/uploads/backwpup-*/
 wp-content/uploads/sb-instagram-feed-images/
 
 # Logs y Archivos de Sistema Operativo
 *.log
+*.bak
+*.sql
+*.zip
 .DS_Store
 Thumbs.db
 error_log
+
+# Backups de despliegue y herramientas
+wp-content/backups-nuvanx/
+tools/deploy/nvx-cms-content-cleanup-backup-*.sql
 
 # Entornos de Desarrollo Local, QA y Node
 node_modules/
@@ -26,5 +33,5 @@ mcps/
 Nuvanx-System/
 qa/
 
-# Capturas QA locales
+# Capturas QA locales (no versionar imagenes de prueba temporales)
 images/

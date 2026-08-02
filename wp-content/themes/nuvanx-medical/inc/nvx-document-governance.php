@@ -282,7 +282,7 @@ function nvx_document_governance_enqueue_assets(): void {
 		$config['hubspotRegion']   = isset( $hubspot['region'] ) ? (string) $hubspot['region'] : 'eu1';
 	}
 
-	$encoded = wp_json_encode( $config, JSON_UNESCAPED_SLASHES );
+	$encoded = wp_json_encode( $config, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP );
 	if ( ! is_string( $encoded ) ) {
 		$encoded = '{}';
 	}

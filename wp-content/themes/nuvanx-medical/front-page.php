@@ -109,7 +109,28 @@ ob_start();
 	<section class="nvx-home-evidence" aria-labelledby="nvx-home-evidence-title">
 		<div class="nvx-home-evidence__grid">
 			<div class="nvx-home-evidence__image-col">
-				<img src="<?php echo esc_url( $evidence_image ); ?>" alt="Valoración médica personalizada en NUVANX Madrid" class="nvx-home-evidence__image" loading="lazy" decoding="async">
+				<?php
+				// Intrinsic size from the asset file (no runtime document rewrite).
+				$evidence_w = 1200;
+				$evidence_h = 800;
+				$evidence_path = WP_CONTENT_DIR . '/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp';
+				if ( is_readable( $evidence_path ) ) {
+					$evidence_size = @getimagesize( $evidence_path );
+					if ( is_array( $evidence_size ) && ! empty( $evidence_size[0] ) && ! empty( $evidence_size[1] ) ) {
+						$evidence_w = (int) $evidence_size[0];
+						$evidence_h = (int) $evidence_size[1];
+					}
+				}
+				?>
+				<img
+					src="<?php echo esc_url( $evidence_image ); ?>"
+					alt="Valoración médica personalizada en NUVANX Madrid"
+					class="nvx-home-evidence__image"
+					width="<?php echo esc_attr( (string) $evidence_w ); ?>"
+					height="<?php echo esc_attr( (string) $evidence_h ); ?>"
+					loading="lazy"
+					decoding="async"
+				>
 			</div>
 			<div class="nvx-home-evidence__text-col">
 				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">Evidencia clínica</h2>

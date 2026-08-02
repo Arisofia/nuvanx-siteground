@@ -215,13 +215,22 @@ add_action(
 
 /**
  * Whether a script src/handle is an eager HubSpot forms embed that must not download.
+ *
+ * Only the handle and primary src are inspected. Matching against the full tag
+ * body is unsafe: inline configuration or optimizer rewrites can mention
+ * hsforms domains without being an eager embed, and would drop legitimate
+ * runtime scripts.
  */
 function nvx_theme_is_eager_hubspot_embed( string $handle, string $src = '', string $tag = '' ): bool {
-	$blob = strtolower( $handle . ' ' . $src . ' ' . $tag );
-	return 'nvx-hubspot-forms-embed' === $handle
-		|| str_contains( $blob, 'hsforms.net' )
-		|| str_contains( $blob, 'hsforms.com' )
-		|| str_contains( $blob, 'hs-scripts.com' );
+	unset( $tag );
+	if ( 'nvx-hubspot-forms-embed' === $handle ) {
+		return true;
+	}
+
+	$src_lower = strtolower( $src );
+	return str_contains( $src_lower, 'hsforms.net' )
+		|| str_contains( $src_lower, 'hsforms.com' )
+		|| str_contains( $src_lower, 'hs-scripts.com' );
 }
 
 /* Meta Pixel, Site Kit GSI, and eager HubSpot · strip as early as possible */

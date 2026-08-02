@@ -165,8 +165,16 @@ nvx_document_contract_assert(
         && str_contains($js, '!nav.contains(document.activeElement)')
         && str_contains($js, "existing.dataset.nvxLoaded === '1'")
         && str_contains($js, 'promise = null')
-        && str_contains($js, "document.createElement('script')"),
+        && str_contains($js, "document.createElement('script')")
+        && str_contains($js, 'resolveHubSpotScriptUrl')
+        && str_contains($js, 'hubspotPortalId'),
     'The runtime must govern complete focus containment and retryable demand-loaded HubSpot.'
+);
+nvx_document_contract_assert(
+    str_contains($module, 'hubspotPortalId')
+        && str_contains($module, 'nvx_document_governance_print_fallback_meta')
+        && !str_contains($module, "'hubspotScriptUrl' =>"),
+    'Server config must not embed a full HubSpot script URL; solutions fallback meta is required.'
 );
 
 $input = '<!doctype html><html lang="es"><head>'

@@ -4,9 +4,8 @@ defined( 'ABSPATH' ) || exit;
 require_once __DIR__ . '/inc/nvx-document-governance.php';
 // Skip nested document-governance buffer on solutions hub: staging2 has returned
 // empty HTTP 200 bodies for that slug when both rewrite buffers are active.
-$nvx_skip_document_buffer = is_page()
-	&& 'soluciones-medicas' === (string) get_post_field( 'post_name', get_queried_object_id() );
-if ( ! $nvx_skip_document_buffer ) {
+// Fallback meta is emitted via nvx_document_governance_print_fallback_meta().
+if ( ! function_exists( 'nvx_document_governance_is_solutions_hub' ) || ! nvx_document_governance_is_solutions_hub() ) {
 	nvx_document_governance_start();
 }
 ?><!doctype html>

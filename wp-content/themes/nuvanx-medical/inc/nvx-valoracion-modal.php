@@ -108,17 +108,7 @@ function nvx_valoracion_modal_render(): void {
 		return;
 	}
 
-	echo nvx_valoracion_modal_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+	// Modal HTML is built with esc_attr / esc_html / esc_url / wp_kses only.
+	echo nvx_valoracion_modal_markup(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escaped in nvx_valoracion_modal_markup().
 }
 add_action( 'wp_footer', 'nvx_valoracion_modal_render', 25 );
-
-/**
- * Modal HubSpot assets are demand-loaded by nvx-runtime-governance.js after
- * explicit user intent. Never enqueue the forms embed on the server — eager
- * registration is stripped by governance and can also cause consent/optimizer
- * scanners to drop the runtime-governance handle from the rendered document.
- */
-function nvx_valoracion_modal_assets(): void {
-	// Intentionally empty: keep the hook for back-compat with older call sites.
-}
-add_action( 'wp_enqueue_scripts', 'nvx_valoracion_modal_assets', 30 );

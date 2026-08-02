@@ -132,50 +132,6 @@ function nvx_endolift_hero_copy_markup(): string {
 /**
  * Full editorial body after hero.
  */
-/**
- * Public PVP table markup for Endolift facial (+ face combos). Body zones omitted on this page.
- *
- * @return string
- */
-function nvx_endolift_price_table_markup(): string {
-	if ( ! function_exists( 'nvx_tariff_catalog' ) ) {
-		return '';
-	}
-
-	$catalog = nvx_tariff_catalog();
-	$rows    = array();
-
-	foreach ( $catalog['endolift'] as $row ) {
-		if ( 'facial' === $row['group'] ) {
-			$rows[] = $row;
-		}
-	}
-	foreach ( $catalog['endolift_combo'] as $row ) {
-		if ( 'facial' === $row['group'] ) {
-			$rows[] = $row;
-		}
-	}
-
-	$html  = '<div class="nvx-endolift-price-table-wrap">';
-	$html .= '<table class="nvx-endolift-price-table">';
-	$html .= '<caption class="nvx-endolift-price-table__cap">' . esc_html__( 'PVP con IVA incluido (21 %). Presupuesto definitivo tras valoración.', 'nuvanx-medical' ) . '</caption>';
-	$html .= '<thead><tr>';
-	$html .= '<th scope="col">' . esc_html__( 'Tratamiento', 'nuvanx-medical' ) . '</th>';
-	$html .= '<th scope="col">' . esc_html__( 'PVP', 'nuvanx-medical' ) . '</th>';
-	$html .= '</tr></thead><tbody>';
-
-	foreach ( $rows as $row ) {
-		$html .= '<tr>';
-		$html .= '<th scope="row">' . esc_html( $row['label'] ) . '</th>';
-		$html .= '<td>' . esc_html( nvx_format_price_eur( $row['pvp'] ) ) . '&nbsp;€</td>';
-		$html .= '</tr>';
-	}
-
-	$html .= '</tbody></table></div>';
-
-	return $html;
-}
-
 function nvx_endolift_editorial_body_markup(): string {
 	$colegiado    = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$price_from   = function_exists( 'nvx_endolift_price_from_eur' ) ? nvx_endolift_price_from_eur() : 798.60;

@@ -106,6 +106,11 @@ function makeResponse(status, headerText) {
 /**
  * Fetch rendered HTML from the SiteGround host so the request never leaves
  * GitHub-hosted runner IPs (SiteGround edge returns 403/202 to those IPs).
+ *
+ * Do not set a custom User-Agent on the remote curl: SiteGround returns a
+ * static 403 Forbidden page (~75KB, title "403 - Forbidden") for bot-like and
+ * many non-default UAs even from origin. curl's default UA returns 200 with
+ * the real WordPress document.
  */
 async function fetchHtmlViaSsh(url) {
   // Markers must not start with "-" as the printf format string: bash printf
@@ -114,9 +119,10 @@ async function fetchHtmlViaSsh(url) {
     'set -euo pipefail',
     'tmp=$(mktemp)',
     'hdr=$(mktemp)',
-    `code=$(curl -sS -L --max-time 25 -A ${shellSingleQuote(
-      'Mozilla/5.0 (compatible; NUVANX-Rendered-Document-Acceptance/1.2)'
-    )} -H ${shellSingleQuote('cache-control: no-cache, no-store, max-age=0')} -H ${shellSingleQuote(
+    // No -A: default curl UA is required for SiteGround origin 200 responses.
+    `code=$(curl -sS -L --max-time 25 -H ${shellSingleQuote(
+      'cache-control: no-cache, no-store, max-age=0'
+    )} -H ${shellSingleQuote(
       'accept: text/html,application/xhtml+xml;q=0.9,*/*;q=0.8'
     )} -o "$tmp" -D "$hdr" -w '%{http_code}' ${shellSingleQuote(url)})`,
     'printf \'%s\\n\' "$code"',

@@ -105,9 +105,12 @@ function nvx_endolaser_editorial_body_markup(): string {
 		$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $paragraph ) . '</p>';
 	}
 	$html .= '<div class="nvx-endolift-effects">';
+	$eff_idx = 0;
 	foreach ( $data['mechanism']['effects'] ?? array() as $effect ) {
-		$html .= '<article class="nvx-endolift-effect"><h3 class="nvx-endolift-effect__title">' . esc_html( $effect['title'] ?? '' ) . '</h3>';
+		$eid = 'nvx-endolaser-effect-' . $eff_idx;
+		$html .= '<article class="nvx-endolift-effect" aria-labelledby="' . esc_attr( $eid ) . '"><h3 id="' . esc_attr( $eid ) . '" class="nvx-endolift-effect__title">' . esc_html( $effect['title'] ?? '' ) . '</h3>';
 		$html .= '<p class="nvx-body">' . esc_html( $effect['body'] ?? '' ) . '</p></article>';
+		$eff_idx++;
 	}
 	$html .= '</div></div></section>';
 
@@ -169,7 +172,7 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 
 	$media = nvx_page_extract_brand_hero_media( $content );
 
-	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-endolaser-h1" aria-label="' . esc_attr__( 'Endoláser corporal NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-endolaser-h1">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_endolaser_hero_copy_markup();
 	$hero .= $media;

@@ -230,7 +230,7 @@ function nvx_equipo_portrait_figure_markup( string $media, string $label ): stri
 		return '';
 	}
 
-	return '<figure class="nvx-equipo-portrait" aria-label="' . esc_attr( $label ) . '">' . $img . '</figure>';
+	return '<figure class="nvx-equipo-portrait">' . $img . '</figure>';
 }
 
 /**
@@ -421,7 +421,7 @@ function nvx_equipo_render_items_section( array $section ): string {
 	}
 
 	if ( ! empty( $items ) ) {
-		$html .= '<ul class="nvx-brand-card-grid">';
+		$html .= '<ul class="nvx-brand-card-grid" role="list">';
 		foreach ( $items as $item ) {
 			$html .= '<li class="nvx-brand-card">';
 			if ( ! empty( $item['title'] ) ) {
@@ -449,7 +449,7 @@ function nvx_equipo_brand_card_grid_markup( array $items ): string {
 		return '';
 	}
 
-	$html = '<ul class="nvx-brand-card-grid">';
+	$html = '<ul class="nvx-brand-card-grid" role="list">';
 	foreach ( $items as $item ) {
 		$html .= '<li class="nvx-brand-card">';
 		if ( ! empty( $item['title'] ) ) {
@@ -475,7 +475,7 @@ function nvx_equipo_identity_facts_panel_markup( array $facts ): string {
 	}
 
 	$html  = '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-endolift-panel-label">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-endolift-panel-label" aria-hidden="true">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-endolift-panel-list">';
 	foreach ( $facts as $fact ) {
 		$html .= '<li><strong>' . esc_html( $fact['label'] ) . '</strong> — ' . esc_html( $fact['val'] ) . '</li>';
@@ -522,7 +522,10 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
  * @param array<string,mixed> $config Physician configuration data.
  */
 function nvx_equipo_physician_profile_section_markup( array $config ): string {
-	$html  = '<section class="nvx-brand-section nvx-equipo-profile" aria-labelledby="nvx-equipo-profile-title">';
+	$h2_id = $config['h2_id'] ?? 'nvx-equipo-profile-' . sanitize_title($config['name'] ?? 'doc');
+	$aria_attr = !empty($config['h2']) ? 'aria-labelledby="' . esc_attr($h2_id) . '"' : 'aria-label="' . esc_attr($config['name'] ?? 'Perfil médico') . '"';
+
+	$html  = '<section class="nvx-brand-section nvx-equipo-profile" ' . $aria_attr . '>';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-equipo-profile-layout">';
 	$portrait = nvx_equipo_portrait_figure_markup( $config['media'] ?? '', $config['name'] ?? '' );
 	if ( '' !== $portrait ) {
@@ -533,7 +536,7 @@ function nvx_equipo_physician_profile_section_markup( array $config ): string {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $config['kicker'] ) . '</p>';
 	}
 	if ( ! empty( $config['h2'] ) ) {
-		$html .= '<h2 id="nvx-equipo-profile-title" class="nvx-heading">' . esc_html( $config['h2'] ) . '</h2>';
+		$html .= '<h2 id="' . esc_attr( $h2_id ) . '" class="nvx-heading">' . esc_html( $config['h2'] ) . '</h2>';
 	}
 	if ( ! empty( $config['bio_paragraphs'] ) ) {
 		foreach ( $config['bio_paragraphs'] as $para ) {
@@ -567,9 +570,10 @@ function nvx_equipo_physician_sections_markup( array $sections ): string {
  * @param array{text:string,author:string} $quote Quote data.
  */
 function nvx_equipo_physician_quote_section_markup( array $quote ): string {
-	$html  = '<section class="nvx-brand-section nvx-equipo-quote" aria-labelledby="nvx-equipo-quote-title">';
+	$h2_id = 'nvx-equipo-quote-title-' . sanitize_title($quote['author']);
+	$html  = '<section class="nvx-brand-section nvx-equipo-quote" aria-labelledby="' . esc_attr( $h2_id ) . '">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<h2 id="nvx-equipo-quote-title" class="screen-reader-text">' . esc_html__( 'Visión clínica', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<h2 id="' . esc_attr( $h2_id ) . '" class="screen-reader-text">' . esc_html__( 'Visión clínica', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<blockquote class="nvx-equipo-blockquote">';
 	$html .= '<p>' . esc_html( $quote['text'] ) . '</p>';
 	$html .= '<footer>— ' . esc_html( $quote['author'] ) . '</footer>';
@@ -850,7 +854,7 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 		$media = '';
 	}
 
-	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-equipo-h1" aria-label="' . esc_attr__( 'Equipo médico NUVANX', 'nuvanx-medical' ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="nvx-equipo-h1">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= nvx_equipo_hero_copy_markup();
 	$hero .= $media;

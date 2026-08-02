@@ -82,7 +82,7 @@ async function run() {
   const consoleErrors = [];
   const networkErrors = [];
   const csvRows = [
-    'URL,Status,FinalURL,Canonical,H1,Title,JS_Errors,Network_Errors,Meta_Deploy_SHA,HTML_Lang,Main_Exists,Noindex_Meta,Noindex_HTTP,HubSpot_Initial,FacebookSignal_Initial'
+    'URL,Status,FinalURL,Canonical,H1,Title,JS_Errors,Network_Errors,Meta_Deploy_SHA,HTML_Lang,Main_Exists,Noindex_Meta,Noindex_HTTP,HubSpot_Initial,FacebookSignal_Initial,ThirdPartySrc,RogueJsonLd,HeroCount,CtaCount'
   ];
   let totalFailures = 0;
 
@@ -102,6 +102,10 @@ async function run() {
     let httpNoindexHeader = '';
     let hasInitialHubspot = false;
     let hasInitialFacebookSignal = false;
+    let hasRogueThirdPartySrc = false;
+    let rogueJsonLdCount = 0;
+    let heroCount = 0;
+    let ctaCount = 0;
 
     page.on('console', msg => {
       if (msg.type() === 'error' || msg.type() === 'warning') {
@@ -169,6 +173,17 @@ async function run() {
       hasInitialHubspot = initialScripts.some(text => /hubspot/i.test(text));
       hasInitialFacebookSignal = initialScripts.some(text => /facebook.*signal/i.test(text));
       
+      const scriptSrcs = await page.locator('script[src]').evaluateAll(els => els.map(el => el.getAttribute('src') || ''));
+      hasRogueThirdPartySrc = scriptSrcs.some(src => /hsforms|hubspot|hs-scripts\.com|facebook|fbevents/i.test(src));
+
+      // Hero and CTAs
+      heroCount = await page.locator('.nvx-brand-hero, .nvx-home-hero, .nvx-blog-hero, .nvx-strategy-intro').count();
+      // On 404 the H1 acts as minimal hero.
+      ctaCount = await page.locator('a.nvx-btn, a.nvx-button').count();
+
+      // JSON-LD
+      rogueJsonLdCount = await page.locator('script[type="application/ld+json"]:not(.yoast-schema-graph)').count();
+      
       const isRedirectExpected = ['/politica-de-cookies/', '/mas-informacion-sobre-las-cookies/', '/medicina-estetica-goya-barrio-salamanca/'].includes(route);
       const is404Expected = ['/equipo-medico-clinica-goya/'].includes(route);
       const isGated = ['/casos-de-pacientes/'].includes(route);
@@ -198,8 +213,8 @@ async function run() {
         issues.push('Missing or empty <title>');
       }
 
-      if (!is404Expected && !isRedirectExpected && !htmlLang) {
-        issues.push('Missing html[lang] attribute');
+      if (!is404Expected && !isRedirectExpected && htmlLang !== 'es-ES') {
+        issues.push(`Expected html[lang]="es-ES", got "${htmlLang}"`);
       }
 
       if (!is404Expected && !isRedirectExpected && !mainExists) {
@@ -213,6 +228,10 @@ async function run() {
         } else if (metaDeploySha !== expectedSha) {
           issues.push(`Deployment SHA mismatch: meta nvx-deploy-sha=${metaDeploySha}, expected=${expectedSha}`);
         }
+        
+        if (heroCount === 0) issues.push('Missing hero section');
+        if (ctaCount === 0) issues.push('Missing CTA (.nvx-btn / .nvx-button)');
+        if (rogueJsonLdCount > 0) issues.push(`Found ${rogueJsonLdCount} rogue JSON-LD script(s) outside Yoast graph`);
       }
 
       // Staging2 must retain meta and HTTP noindex protection
@@ -230,6 +249,9 @@ async function run() {
       }
       if (hasInitialFacebookSignal) {
         issues.push('FacebookSignal present in initial HTML; must not reach the browser');
+      }
+      if (hasRogueThirdPartySrc) {
+        issues.push('Rogue third-party script src (HubSpot/Facebook) found on initial load');
       }
 
       if (currentConsoleErrors.length > 0) {
@@ -255,11 +277,15 @@ async function run() {
         hasNoindexMeta,
         httpNoindexHeader,
         hasInitialHubspot,
-        hasInitialFacebookSignal
+        hasInitialFacebookSignal,
+        hasRogueThirdPartySrc,
+        rogueJsonLdCount,
+        heroCount,
+        ctaCount
       });
 
       csvRows.push(
-        `${route},${mainResponseStatus},${finalUrl},${canonical},${h1Count},"${title.replace(/"/g, '""')}",${currentConsoleErrors.length},${currentNetworkErrors.length},${metaDeploySha},${htmlLang},${mainExists},${hasNoindexMeta},${httpNoindexHeader},${hasInitialHubspot},${hasInitialFacebookSignal}`
+        `${route},${mainResponseStatus},${finalUrl},${canonical},${h1Count},"${title.replace(/"/g, '""')}",${currentConsoleErrors.length},${currentNetworkErrors.length},${metaDeploySha},${htmlLang},${mainExists},${hasNoindexMeta},${httpNoindexHeader},${hasInitialHubspot},${hasInitialFacebookSignal},${hasRogueThirdPartySrc},${rogueJsonLdCount},${heroCount},${ctaCount}`
       );
 
       if (issues.length > 0) {

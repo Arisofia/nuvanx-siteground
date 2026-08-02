@@ -139,18 +139,18 @@ function nvx_btl_detail_zone_list_markup( array $items, string $tag = 'ul' ): st
  */
 function nvx_btl_detail_hero_markup( array $c ): string {
 	$id    = $c['marker'];
-	$hero  = '<section class="nvx-brand-hero" aria-labelledby="' . esc_attr( $id ) . '-h1" aria-label="' . esc_attr( $c['aria'] ) . '">';
+	$hero  = '<section class="nvx-brand-hero" aria-labelledby="' . esc_attr( $id ) . '-h1">';
 	$hero .= '<div class="nvx-brand-hero__inner">';
 	$hero .= '<div class="nvx-brand-hero__copy">';
 	$hero .= '<p class="nvx-brand-kicker">' . esc_html( $c['kicker'] ) . '</p>';
 	$hero .= '<h1 class="nvx-brand-hero__title" id="' . esc_attr( $id ) . '-h1">' . esc_html( $c['h1'] ) . '</h1>';
 
 	// E-E-A-T Medical Authority Byline
-	$hero .= '<div class="nvx-medical-byline">';
+	$hero .= '<address class="nvx-medical-byline">';
 	$hero .= '<div class="nvx-medical-byline__text">';
 	$hero .= '<strong>' . esc_html__( 'Escrito y revisado por Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) . '</strong><br>';
 	$hero .= '<span class="nvx-medical-byline__title">' . esc_html__( 'Director médico NUVANX · Fecha de revisión: julio 2026', 'nuvanx-medical' ) . '</span>';
-	$hero .= '</div></div>';
+	$hero .= '</div></address>';
 	$hero .= '<p class="nvx-brand-hero__lead">' . esc_html( $c['lead'] ) . '</p>';
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$hero .= nvx_cta_pair_markup();
@@ -286,9 +286,10 @@ function nvx_btl_detail_compare_markup( array $c ): string {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
 		$html .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="nvx-brand-title">' . esc_html( $compare_title ) . '</h2>';
 	} else {
-		$html  = '<section class="nvx-brand-section" aria-label="' . esc_attr__( 'Criterio diferencial', 'nuvanx-medical' ) . '">';
+		$html  = '<section class="nvx-brand-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
 		$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 		$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
+		$html .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="screen-reader-text">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</h2>';
 	}
 
 	if ( '' !== $compare_body ) {
@@ -356,7 +357,7 @@ function nvx_btl_detail_faq_markup( array $c ): string {
 			continue;
 		}
 		$html .= '<details class="nvx-brand-faq-item">';
-		$html .= '<summary>' . esc_html( $q ) . '</summary>';
+		$html .= '<summary><span>' . esc_html( $q ) . '</span></summary>';
 		$html .= '<div class="nvx-brand-faq-content"><p>' . esc_html( $a ) . '</p></div>';
 		$html .= '</details>';
 	}

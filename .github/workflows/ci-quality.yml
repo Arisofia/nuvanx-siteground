@@ -1,4 +1,4 @@
-name: Code Quality (Sonar & Lint)
+name: Code Quality (Lint)
 
 on:
   push:
@@ -6,6 +6,9 @@ on:
       - master
   pull_request:
 
+# SonarCloud analysis runs via SonarCloud Automatic Analysis (the "SonarCloud Code
+# Analysis" check), not a CI scanner job here: SonarCloud rejects CI-based analysis
+# while Automatic Analysis is enabled ("Not authorized or project not found").
 jobs:
   lint:
     name: PHP Syntax Lint
@@ -20,17 +23,3 @@ jobs:
       - name: Run PHP Parallel Lint
         run: |
           parallel-lint --exclude vendor --exclude node_modules .
-          
-  sonarcloud:
-    name: SonarQube Analysis
-    runs-on: ubuntu-latest
-    needs: lint
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

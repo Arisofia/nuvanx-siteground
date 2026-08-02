@@ -170,7 +170,7 @@ grep -Fq 'nvx-patterns-editorial.css' "$LIVE_THEME/functions.php" || fail 'funct
 # assets). Full-document rewrite buffers were removed: they emptied
 # /soluciones-medicas/ under SiteGround Optimizer's buffer stack.
 grep -Fq 'nvx-document-governance.php' "$LIVE_THEME/functions.php" || fail 'functions.php does not load document governance'
-grep -Fq 'nvx_document_governance_print_contract_marker' "$LIVE_THEME/inc/nvx-document-governance.php" || fail 'document governance missing contract marker emitter'
+grep -Fq 'nvx_document_governance_print_head_contract' "$LIVE_THEME/inc/nvx-document-governance.php" || fail 'document governance missing head contract emitter'
 grep -Fq 'window.nvxValoracionModal' "$LIVE_THEME/inc/nvx-valoracion-modal.php" || fail 'valoracion modal boot config is missing'
 
 echo '== Purge staging2 caches =='

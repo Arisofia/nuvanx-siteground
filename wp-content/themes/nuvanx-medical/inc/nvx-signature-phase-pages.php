@@ -153,9 +153,395 @@ function nvx_signature_phase_markup( array $page ): string {
 
 nvx_register_catalog_content_filter( 'nvx_signature_phase_catalog', 22, 'nvx_signature_phase_markup' );
 
+/**
+ * Signature architecture hubs (index + Contour + Post-Maternity).
+ *
+ * These pages are thin CMS shells with protocol markers; the theme owns the
+ * full editorial markup and internal links into the governed catalog.
+ *
+ * @return array<string, array{
+ *   slug:string,
+ *   marker?:string,
+ *   h1:string,
+ *   kicker:string,
+ *   lead:string,
+ *   intro:string,
+ *   seo_title:string,
+ *   seo_desc:string,
+ *   kind:string
+ * }>
+ */
+function nvx_signature_hub_catalog(): array {
+	$contour = defined( 'NVX_CONTOUR_ARCHITECTURE' ) ? NVX_CONTOUR_ARCHITECTURE : 'NUVANX Contour Architecture™';
+
+	return array(
+		'signature-index'      => array(
+			'slug'      => 'protocolos-signature',
+			'marker'    => 'NUVANX_PROTOCOL_HUB',
+			'kind'      => 'index',
+			'kicker'    => 'NUVANX · Protocolos Signature · Madrid',
+			'h1'        => 'Protocolos Signature: medicina estética de diagnóstico.',
+			'lead'      => 'Cada protocolo organiza la decisión clínica alrededor de un objetivo. No son paquetes cerrados ni combinaciones automáticas: la tecnología se elige después de valorar anatomía, tejido y expectativas.',
+			'intro'     => 'Los Protocolos Signature conectan diagnóstico, modalidad y seguimiento. El nombre del protocolo ordena la conversación; la indicación, el número de sesiones, la recuperación y el presupuesto se confirman en consulta.',
+			'seo_title' => 'Protocolos Signature Madrid | NUVANX',
+			'seo_desc'  => 'Protocolos Signature NUVANX en Madrid: rutas clínicas de diagnóstico para contorno, calidad de piel, textura, tono y perfil facial.',
+		),
+		'contour-architecture' => array(
+			'slug'      => 'remodelacion-corporal-laser-madrid',
+			'marker'    => 'NUVANX_PROTOCOL_PAGE:contour-architecture',
+			'kind'      => 'contour',
+			'kicker'    => $contour,
+			'h1'        => 'Remodelación corporal láser diseñada según tu anatomía.',
+			'lead'      => 'Contour Architecture™ evalúa grasa localizada, laxitud y continuidad entre zonas antes de indicar una tecnología. El plan se diseña por anatomía, no por una lista de aparatos.',
+			'intro'     => 'Abdomen, flancos, brazos, espalda, muslos, rodillas o contorno masculino pueden formar parte del mismo marco de decisión. Cada zona se presupuesta solo si tiene indicación documentada tras la exploración.',
+			'seo_title' => 'Remodelación corporal láser Madrid | Contour Architecture™',
+			'seo_desc'  => 'Remodelación corporal láser en Madrid con NUVANX Contour Architecture™: valoración por zonas de grasa, laxitud y continuidad anatómica.',
+		),
+		'post-maternity'       => array(
+			'slug'      => 'tratamiento-postparto-abdomen-contorno-corporal-madrid',
+			'marker'    => 'NUVANX_PROTOCOL_PAGE:post-maternity',
+			'kind'      => 'post-maternity',
+			'kicker'    => 'NUVANX Post-Maternity Contour™',
+			'h1'        => 'Tratamiento postparto: abdomen y contorno corporal en Madrid.',
+			'lead'      => 'Lectura respetuosa de abdomen, flancos y calidad del tejido después del embarazo. Se separa grasa subcutánea, laxitud, diástasis y expectativas realistas antes de proponer cualquier modalidad.',
+			'intro'     => 'El postparto no es un protocolo estándar. La valoración considera lactancia, tiempo desde el parto, pared abdominal, cicatrices y disponibilidad de recuperación. Si no hay indicación proporcionada, se explica la alternativa o la espera.',
+			'seo_title' => 'Tratamiento postparto abdomen y contorno Madrid | NUVANX',
+			'seo_desc'  => 'Valoración postparto de abdomen y contorno corporal en Madrid: grasa, laxitud y pared abdominal con criterio clínico antes de indicar tratamiento.',
+		),
+	);
+}
+
+/**
+ * Resolve the Signature hub key for the current page (slug or CMS marker).
+ */
+function nvx_signature_hub_current_key( ?string $content = null ): ?string {
+	if ( ! is_page() || is_404() ) {
+		return null;
+	}
+
+	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
+	foreach ( nvx_signature_hub_catalog() as $key => $hub ) {
+		if ( isset( $hub['slug'] ) && $hub['slug'] === $slug ) {
+			return $key;
+		}
+	}
+
+	if ( null === $content ) {
+		$content = (string) get_post_field( 'post_content', get_queried_object_id() );
+	}
+	if ( '' === $content ) {
+		return null;
+	}
+	foreach ( nvx_signature_hub_catalog() as $key => $hub ) {
+		$marker = isset( $hub['marker'] ) ? (string) $hub['marker'] : '';
+		if ( '' !== $marker && false !== strpos( $content, $marker ) ) {
+			return $key;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Published URL for a Signature catalog or hub slug when the page exists.
+ */
+function nvx_signature_published_url( string $slug ): string {
+	$slug = trim( $slug, '/' );
+	if ( '' === $slug ) {
+		return '';
+	}
+	$page = get_page_by_path( $slug );
+	if ( $page && 'publish' === get_post_status( $page ) ) {
+		return (string) get_permalink( $page );
+	}
+	return home_url( '/' . $slug . '/' );
+}
+
+/**
+ * Card grid markup for Signature hub listings.
+ *
+ * @param array<int, array{kicker?:string,title:string,body:string,url:string,cta?:string}> $cards
+ */
+function nvx_signature_hub_cards_markup( array $cards, string $section_title, string $section_kicker = '' ): string {
+	$html  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="' . esc_attr( $section_title ) . '">';
+	$html .= '<div class="nvx-brand-section__inner">';
+	if ( '' !== $section_kicker ) {
+		$html .= '<p class="nvx-brand-kicker">' . esc_html( $section_kicker ) . '</p>';
+	}
+	$html .= '<h2 class="nvx-brand-title">' . esc_html( $section_title ) . '</h2>';
+	$html .= '<div class="nvx-brand-grid nvx-brand-grid--3">';
+	foreach ( $cards as $card ) {
+		$title = (string) ( $card['title'] ?? '' );
+		$body  = (string) ( $card['body'] ?? '' );
+		$url   = (string) ( $card['url'] ?? '' );
+		$cta   = (string) ( $card['cta'] ?? __( 'Explorar protocolo', 'nuvanx-medical' ) );
+		if ( '' === $title || '' === $url ) {
+			continue;
+		}
+		$html .= '<article class="nvx-brand-card">';
+		if ( ! empty( $card['kicker'] ) ) {
+			$html .= '<p class="nvx-brand-card__kicker">' . esc_html( (string) $card['kicker'] ) . '</p>';
+		}
+		$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $title ) . '</h3>';
+		$html .= '<p class="nvx-brand-card__body">' . esc_html( $body ) . '</p>';
+		$html .= '<a class="nvx-brand-card__cta" href="' . esc_url( $url ) . '">' . esc_html( $cta ) . '</a>';
+		$html .= '</article>';
+	}
+	$html .= '</div></div></section>';
+	return $html;
+}
+
+/**
+ * Cards for Phase 1 facial / skin Signature protocols from the catalog.
+ *
+ * @return array<int, array{kicker:string,title:string,body:string,url:string,cta:string}>
+ */
+function nvx_signature_hub_phase1_cards(): array {
+	$cards = array();
+	foreach ( nvx_signature_phase_catalog() as $page ) {
+		if ( 1 !== (int) ( $page['phase'] ?? 0 ) ) {
+			continue;
+		}
+		$slug = (string) ( $page['slug'] ?? '' );
+		if ( '' === $slug ) {
+			continue;
+		}
+		$cards[] = array(
+			'kicker' => (string) ( $page['protocol'] ?? $page['kicker'] ?? '' ),
+			'title'  => (string) ( $page['title'] ?? '' ),
+			'body'   => (string) ( $page['lead'] ?? '' ),
+			'url'    => nvx_signature_published_url( $slug ),
+			'cta'    => __( 'Explorar protocolo', 'nuvanx-medical' ),
+		);
+	}
+	return $cards;
+}
+
+/**
+ * Cards for Contour Architecture body zones (Phase 2 catalog + nav labels).
+ *
+ * @return array<int, array{kicker:string,title:string,body:string,url:string,cta:string}>
+ */
+function nvx_signature_hub_contour_cards(): array {
+	$by_slug = array();
+	foreach ( nvx_signature_phase_catalog() as $page ) {
+		if ( 2 !== (int) ( $page['phase'] ?? 0 ) ) {
+			continue;
+		}
+		$slug = (string) ( $page['slug'] ?? '' );
+		if ( '' === $slug ) {
+			continue;
+		}
+		$by_slug[ $slug ] = $page;
+	}
+
+	$cards = array();
+	foreach ( nvx_signature_contour_nav_children() as $child ) {
+		$label = (string) ( $child['label'] ?? '' );
+		$slugs = isset( $child['slugs'] ) && is_array( $child['slugs'] ) ? $child['slugs'] : array();
+		$slug  = isset( $slugs[0] ) ? (string) $slugs[0] : '';
+		if ( '' === $slug ) {
+			continue;
+		}
+		$page  = $by_slug[ $slug ] ?? null;
+		$title = $label;
+		$body  = '';
+		if ( is_array( $page ) ) {
+			$title = $label;
+			$body  = (string) ( $page['lead'] ?? $page['intro'] ?? '' );
+		}
+		$cards[] = array(
+			'kicker' => defined( 'NVX_CONTOUR_ARCHITECTURE' ) ? NVX_CONTOUR_ARCHITECTURE : 'Contour Architecture™',
+			'title'  => $title,
+			'body'   => $body,
+			'url'    => nvx_signature_published_url( $slug ),
+			'cta'    => __( 'Valorar esta zona', 'nuvanx-medical' ),
+		);
+	}
+	return $cards;
+}
+
+/**
+ * Shared hero + closing CTA for Signature hubs.
+ *
+ * @param array<string, string> $hub
+ */
+function nvx_signature_hub_shell_open( array $hub ): string {
+	$html  = '<article class="nvx-brand-page nvx-brand-page--signature nvx-signature-hub" data-nvx-signature-hub="' . esc_attr( (string) ( $hub['kind'] ?? '' ) ) . '">';
+	$html .= '<header class="nvx-strategy-intro">';
+	$html .= '<p class="nvx-eyebrow">' . esc_html( (string) ( $hub['kicker'] ?? '' ) ) . '</p>';
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html( (string) ( $hub['h1'] ?? '' ) ) . '</h1>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $hub['lead'] ?? '' ) ) . '</p>';
+	$html .= '<p>' . esc_html( (string) ( $hub['intro'] ?? '' ) ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
+	if ( 'index' !== ( $hub['kind'] ?? '' ) ) {
+		$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Ver todos los Protocolos Signature', 'nuvanx-medical' ) . '</a>';
+	}
+	$html .= '</p>';
+	$html .= '<p class="nvx-brand-microcopy">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</header>';
+	return $html;
+}
+
+/** Closing valuation band for Signature hubs. */
+function nvx_signature_hub_shell_close(): string {
+	$html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
+	$html .= '<h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html__( 'La valoración revisa antecedentes, anatomía, tejido predominante, tratamientos previos y expectativas. Si no existe una indicación proporcionada, se explica la alternativa, la derivación o la decisión de no intervenir.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</div></section></article>';
+	return $html;
+}
+
+/**
+ * Full markup for a Signature hub page.
+ *
+ * @param array<string, string> $hub
+ */
+function nvx_signature_hub_markup( array $hub ): string {
+	$kind = (string) ( $hub['kind'] ?? '' );
+	$html = nvx_signature_hub_shell_open( $hub );
+
+	if ( 'index' === $kind ) {
+		$html .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
+		$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Qué significa Signature', 'nuvanx-medical' ) . '</p>';
+		$html .= '<h2 class="nvx-brand-title">' . esc_html__( 'Una ruta de decisión, no un paquete cerrado', 'nuvanx-medical' ) . '</h2>';
+		$html .= '<p>' . esc_html__( 'Cada protocolo parte de una necesidad clínica concreta y puede integrar consulta, preparación de la piel, tecnología, procedimiento médico y seguimiento. El nombre del protocolo ordena la conversación, pero no determina por sí solo qué tratamiento se realizará.', 'nuvanx-medical' ) . '</p>';
+		$html .= '</div></section>';
+
+		// Architecture hubs first.
+		$architecture_cards = array(
+			array(
+				'kicker' => 'Contorno corporal',
+				'title'  => defined( 'NVX_CONTOUR_ARCHITECTURE' ) ? NVX_CONTOUR_ARCHITECTURE : 'NUVANX Contour Architecture™',
+				'body'   => 'Evaluación de grasa localizada, firmeza y proporción para definir un abordaje corporal coherente por zonas.',
+				'url'    => nvx_signature_published_url( 'remodelacion-corporal-laser-madrid' ),
+				'cta'    => __( 'Explorar contorno corporal', 'nuvanx-medical' ),
+			),
+			array(
+				'kicker' => 'Cambios posgestacionales',
+				'title'  => 'NUVANX Post-Maternity Contour™',
+				'body'   => 'Lectura respetuosa de abdomen, flancos y calidad del tejido después del embarazo, sin prometer una transformación estándar.',
+				'url'    => nvx_signature_published_url( 'tratamiento-postparto-abdomen-contorno-corporal-madrid' ),
+				'cta'    => __( 'Consultar valoración posgestacional', 'nuvanx-medical' ),
+			),
+		);
+		$html .= nvx_signature_hub_cards_markup( $architecture_cards, 'Arquitecturas clínicas', 'Protocolos de contorno' );
+		$html .= nvx_signature_hub_cards_markup( nvx_signature_hub_phase1_cards(), 'Protocolos de rostro y piel', 'Fase 1' );
+	} elseif ( 'contour' === $kind ) {
+		$html .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
+		$html .= '<h2>' . esc_html__( 'Cómo se decide el plan corporal', 'nuvanx-medical' ) . '</h2>';
+		$html .= '<p>' . esc_html__( 'El médico identifica el componente predominante (grasa subcutánea, laxitud, calidad cutánea), revisa zonas contiguas y descarta problemas que no deben abordarse con medicina estética: grasa visceral, diástasis significativa, hernia o exceso cutáneo que requiera otra vía.', 'nuvanx-medical' ) . '</p>';
+		$html .= '</div></section>';
+		$html .= nvx_signature_hub_cards_markup( nvx_signature_hub_contour_cards(), 'Zonas de valoración', 'Contour Architecture™' );
+	} elseif ( 'post-maternity' === $kind ) {
+		$html .= nvx_signature_phase_list(
+			'Qué se valora en postparto',
+			array(
+				'Tiempo desde el parto, lactancia y estado general de salud.',
+				'Abdomen superior e inferior, flancos y continuidad con la espalda.',
+				'Grasa subcutánea frente a cambios de pared abdominal o sospecha de diástasis.',
+				'Calidad cutánea, cicatrices y disponibilidad real de recuperación.',
+			)
+		);
+		$html .= nvx_signature_phase_list(
+			'Límites y cuándo esperamos o derivamos',
+			array(
+				'No es un protocolo de “recuperar el cuerpo de antes” en un plazo fijo.',
+				'La grasa visceral y la diástasis con indicación quirúrgica no se resuelven con un tratamiento estético focal.',
+				'Si el momento clínico no es adecuado, se propone espera o derivación en lugar de intervenir.',
+			),
+			'nvx-strategy-checklist nvx-strategy-checklist--no'
+		);
+		$related = array(
+			array(
+				'kicker' => 'Zona relacionada',
+				'title'  => 'Abdomen y flancos',
+				'body'   => 'Cuando el componente principal es grasa subcutánea localizada tras la valoración.',
+				'url'    => nvx_signature_published_url( 'grasa-localizada-abdomen-flancos-madrid' ),
+				'cta'    => __( 'Ver valoración de abdomen', 'nuvanx-medical' ),
+			),
+			array(
+				'kicker' => 'Marco corporal',
+				'title'  => defined( 'NVX_CONTOUR_ARCHITECTURE' ) ? NVX_CONTOUR_ARCHITECTURE : 'Contour Architecture™',
+				'body'   => 'Visión por zonas de contorno cuando el plan no se limita al abdomen postparto.',
+				'url'    => nvx_signature_published_url( 'remodelacion-corporal-laser-madrid' ),
+				'cta'    => __( 'Explorar contorno corporal', 'nuvanx-medical' ),
+			),
+		);
+		$html .= nvx_signature_hub_cards_markup( $related, 'Rutas relacionadas', 'Continuidad clínica' );
+	}
+
+	$html .= nvx_signature_hub_shell_close();
+	return $html;
+}
+
+/** Replace thin CMS hub shells with theme-owned Signature hub markup. */
+function nvx_signature_hub_filter_content( string $content ): string {
+	if ( is_admin() || ! is_main_query() || ! in_the_loop() || ! is_page() ) {
+		return $content;
+	}
+	$key = nvx_signature_hub_current_key( $content );
+	if ( null === $key ) {
+		return $content;
+	}
+	$hub = nvx_signature_hub_catalog()[ $key ] ?? null;
+	if ( ! is_array( $hub ) ) {
+		return $content;
+	}
+	$markup = nvx_signature_hub_markup( $hub );
+	return '' === $markup ? $content : $markup;
+}
+add_filter( 'the_content', 'nvx_signature_hub_filter_content', 21 );
+
+/**
+ * Free short legacy paths that were captured by media attachments or missing pages.
+ *
+ * /remodelacion-corporal/ was owned by attachment media → Yoast redirected to the .webp file.
+ * /postparto/ has no page; the governed hub uses the long clinical slug.
+ */
+function nvx_signature_redirect_legacy_hub_paths(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+
+	$request_path = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_parse_url( (string) $_SERVER['REQUEST_URI'], PHP_URL_PATH ) : '';
+	$request_path = trim( $request_path, '/' );
+	if ( '' === $request_path || false !== strpos( $request_path, 'wp-content/uploads' ) ) {
+		return;
+	}
+
+	$map = array(
+		'remodelacion-corporal' => '/remodelacion-corporal-laser-madrid/',
+		'postparto'             => '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
+	);
+	if ( ! isset( $map[ $request_path ] ) ) {
+		return;
+	}
+
+	// A real published page may own the short slug later; do not override it.
+	$page = get_page_by_path( $request_path );
+	if ( $page && 'publish' === get_post_status( $page ) && 'page' === $page->post_type ) {
+		return;
+	}
+
+	// Attachment or 404 on the short slug → governed Contour / Post-Maternity hub.
+	if ( is_attachment() || is_404() || is_singular( 'attachment' ) ) {
+		wp_safe_redirect( home_url( $map[ $request_path ] ), 301 );
+		exit;
+	}
+
+	// Fallback when the query resolved oddly but the path still matches.
+	if ( ! is_page() ) {
+		wp_safe_redirect( home_url( $map[ $request_path ] ), 301 );
+		exit;
+	}
+}
+add_action( 'template_redirect', 'nvx_signature_redirect_legacy_hub_paths', 0 );
+
 /** Suppress the generic shell title because this module renders the canonical H1. */
 function nvx_signature_phase_prepare_shell(): void {
-	if ( null !== nvx_signature_phase_current_key() ) {
+	if ( null !== nvx_signature_phase_current_key() || null !== nvx_signature_hub_current_key() ) {
 		set_query_var( 'nvx_shell_skip_header', true );
 	}
 }
@@ -244,14 +630,29 @@ function nvx_signature_phase_normalize_public_names( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_signature_phase_normalize_public_names', 219 );
 
-/** Resolve metadata for the current governed landing page. */
+/** Resolve metadata for the current governed landing page (detail or hub). */
 function nvx_signature_phase_current_metadata(): ?array {
 	$key = nvx_signature_phase_current_key();
-	if ( null === $key ) {
+	if ( null !== $key ) {
+		$catalog = nvx_signature_phase_catalog();
+		return $catalog[ $key ] ?? null;
+	}
+
+	$hub_key = nvx_signature_hub_current_key();
+	if ( null === $hub_key ) {
 		return null;
 	}
-	$catalog = nvx_signature_phase_catalog();
-	return $catalog[ $key ] ?? null;
+	$hub = nvx_signature_hub_catalog()[ $hub_key ] ?? null;
+	if ( ! is_array( $hub ) ) {
+		return null;
+	}
+
+	// Normalize hub fields to the same SEO keys as detail pages.
+	return array(
+		'seo_title' => (string) ( $hub['seo_title'] ?? '' ),
+		'seo_desc'  => (string) ( $hub['seo_desc'] ?? '' ),
+		'title'     => (string) ( $hub['h1'] ?? '' ),
+	);
 }
 
 /**

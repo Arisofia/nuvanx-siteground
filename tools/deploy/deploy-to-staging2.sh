@@ -166,7 +166,12 @@ for required_file in "${SOURCE_REQUIRED_FILES[@]}"; do
 done
 [[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$DEPLOY_SHA" ]] || fail 'deployed SHA marker does not match'
 grep -Fq 'nvx-patterns-editorial.css' "$LIVE_THEME/functions.php" || fail 'functions.php does not enqueue the canonical editorial stylesheet'
-grep -Fq 'nvx_document_governance_start();' "$LIVE_THEME/header.php" || fail 'header.php does not start global document governance'
+# Document contract is owned by nvx-document-governance.php (wp_head marker +
+# assets). Full-document rewrite buffers were removed: they emptied
+# /soluciones-medicas/ under SiteGround Optimizer's buffer stack.
+grep -Fq 'nvx-document-governance.php' "$LIVE_THEME/functions.php" || fail 'functions.php does not load document governance'
+grep -Fq 'nvx_document_governance_print_contract_marker' "$LIVE_THEME/inc/nvx-document-governance.php" || fail 'document governance missing contract marker emitter'
+grep -Fq 'window.nvxValoracionModal' "$LIVE_THEME/inc/nvx-valoracion-modal.php" || fail 'valoracion modal boot config is missing'
 
 echo '== Purge staging2 caches =='
 (

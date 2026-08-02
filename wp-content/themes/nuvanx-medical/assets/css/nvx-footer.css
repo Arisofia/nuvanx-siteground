@@ -1,53 +1,6 @@
-.nvx-cta-banner {
-  padding-block: var(--nvx-pad-section-tight);
-  background: var(--nvx-charcoal);
-  color: var(--nvx-light);
-  text-align: center;
-}
-
-.nvx-cta-banner__actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--nvx-space-2);
-}
-
-.nvx-cta-banner__title {
-  max-width: min(100%, 36ch);
-  margin: 0 auto var(--nvx-margin-h2);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h2);
-  font-weight: var(--nvx-fw-heading);
-  line-height: var(--nvx-lh-h2);
-  letter-spacing: var(--nvx-track-h2);
-  color: var(--nvx-light);
-}
-
-.nvx-cta-banner__sub {
-  max-width: var(--nvx-measure-lead);
-  margin: 0 auto var(--nvx-space-4);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-text-on-dark-88);
-}
-
-.nvx-cta-banner__kicker {
-  margin-bottom: var(--nvx-space-2);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-kicker);
-  font-weight: 600;
-  line-height: var(--nvx-lh-kicker);
-  letter-spacing: var(--nvx-track-kicker);
-  text-transform: uppercase;
-  color: var(--nvx-text-on-dark-88);
-}
-
-.nvx-cta-banner__actions > .nvx-btn--light {
-  font-weight: 600;
-  letter-spacing: var(--nvx-track-kicker);
-  text-transform: uppercase;
-}
+/* NUVANX — Footer layout
+   Sistema unificado: CTA banner editorial vive en nvx-patterns-editorial.css.
+   Este archivo solo gobierna estructura y spacing del pie. */
 
 .nvx-footer {
   padding-top: var(--nvx-pad-section-tight);
@@ -70,6 +23,7 @@
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
+/* Logo + columnas de footer (contenido editorial vive en markup / componentes) */
 .nvx-footer__logo,
 .nvx-footer__col {
   grid-column: span 3;
@@ -80,6 +34,7 @@
   display: inline-flex;
 }
 
+/* Títulos de columna: usan rol de kicker tipográfico del sistema. */
 .nvx-footer__col-title {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-sans);
@@ -91,6 +46,7 @@
   color: var(--nvx-accent-muted);
 }
 
+/* Listas de enlaces: layout y spacing; tipografía y estados vienen de nvx-components / nvx-accessibility-governance. */
 .nvx-footer__links,
 .nvx-footer__legal-links {
   display: grid;
@@ -125,6 +81,7 @@
   color: var(--nvx-text-muted);
 }
 
+/* Responsive footer grid */
 @media (max-width: 980px) {
   .nvx-footer__logo {
     grid-column: 1 / -1;

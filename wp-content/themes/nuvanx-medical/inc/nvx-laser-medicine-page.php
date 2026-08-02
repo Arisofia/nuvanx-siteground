@@ -37,15 +37,7 @@ function nvx_laser_is_hub_request(): bool {
 		&& nvx_schema_path_matches( $path, '/medicina-estetica-laser/' );
 }
 
-/**
- * @deprecated Use nvx_laser_is_hub_request(); kept as the shell detection name.
- *
- * @param string $content Unused; ownership is route-based.
- */
-function nvx_content_is_laser_medicine_page( string $content ): bool {
-	unset( $content );
-	return nvx_laser_is_hub_request();
-}
+
 
 /**
  * Resolve a public page URL by path, with home_url fallback.

@@ -193,11 +193,7 @@ section.nvx-hero {
   margin: 0 0 var(--nvx-gap-wide, var(--nvx-space-4));
 }
 
-/* Home specialized protocols — clinical stack, no price chrome */
-.nvx-home-protocols .nvx-brand-title {
-  max-width: 22ch;
-  margin-bottom: var(--nvx-gap-wide, var(--nvx-space-4));
-}
+
 
 .nvx-home-protocol {
   max-width: min(100%, 68ch);

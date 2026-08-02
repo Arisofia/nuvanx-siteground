@@ -29,29 +29,36 @@ function nvx_catalog_json_load( string $filename ): array {
 		return $catalogs[ $safe_name ];
 	}
 
-	$path    = __DIR__ . '/data/' . $safe_name;
-	$decoded = array();
+	$path = __DIR__ . '/data/' . $safe_name;
+	$result = [
+		'_error' => false,
+	];
 
-	if ( ! is_readable( $path ) ) {
-		nvx_catalog_log_error( sprintf( 'JSON catalog is not readable: %s', $safe_name ) );
-	} else {
-		$raw = file_get_contents( $path );
-		if ( false === $raw ) {
-			nvx_catalog_log_error( sprintf( 'JSON catalog could not be read: %s', $safe_name ) );
-		} else {
-			$candidate = json_decode( $raw, true );
-			if ( is_array( $candidate ) ) {
-				$decoded = $candidate;
-			} else {
-				nvx_catalog_log_error(
-					sprintf( 'Invalid JSON catalog %s: %s', $safe_name, json_last_error_msg() )
-				);
-			}
-		}
+	if ( ! file_exists( $path ) ) {
+		error_log( sprintf( '[nvx_catalog_json_load] Missing JSON file: %s', $path ) );
+		$result['_error'] = 'missing_file';
+		$catalogs[ $safe_name ] = $result;
+		return $result;
 	}
 
-	$catalogs[ $safe_name ] = $decoded;
-	return $decoded;
+	$json = file_get_contents( $path );
+	$data = json_decode( $json, true );
+
+	if ( json_last_error() !== JSON_ERROR_NONE || ! is_array( $data ) ) {
+		error_log(
+			sprintf(
+				'[nvx_catalog_json_load] Malformed JSON "%s": %s',
+				$path,
+				json_last_error_msg()
+			)
+		);
+		$result['_error'] = 'malformed_json';
+		$catalogs[ $safe_name ] = $result;
+		return $result;
+	}
+
+	$catalogs[ $safe_name ] = array_merge( $result, $data );
+	return $catalogs[ $safe_name ];
 }
 
 /**

@@ -1445,6 +1445,33 @@ function nvx_extend_yoast_schema_graph( $graph ) {
 add_filter( 'wpseo_schema_graph', 'nvx_extend_yoast_schema_graph', 20, 1 );
 
 /**
+ * Deduplicate Schema.org @id entries across the graph.
+ *
+ * @param array $graph Yoast Schema graph.
+ * @return array
+ */
+function nvx_schema_deduplicate_ids( $graph ) {
+    if ( ! is_array( $graph ) ) {
+        return $graph;
+    }
+
+    $seen = array();
+    foreach ( $graph as $key => $node ) {
+        if ( isset( $node['@id'] ) && is_string( $node['@id'] ) ) {
+            $id = $node['@id'];
+            if ( isset( $seen[ $id ] ) ) {
+                unset( $graph[ $key ] );
+            } else {
+                $seen[ $id ] = true;
+            }
+        }
+    }
+
+    return array_values( $graph );
+}
+add_filter( 'wpseo_schema_graph', 'nvx_schema_deduplicate_ids', PHP_INT_MAX, 1 );
+
+/**
  * Home document title — laser clinic intent (Yoast).
  *
  * @param string $title Current title.

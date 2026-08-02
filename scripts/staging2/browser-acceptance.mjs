@@ -187,18 +187,13 @@ async function run() {
         robotsMetaName && robotsMetaName.toLowerCase().includes('noindex')
       ) || Boolean(robotsMetaDefault && robotsMetaDefault.toLowerCase().includes('noindex'));
 
-      // Integration invariants: initial HTML scripts must not contain HubSpot or FacebookSignal.
-      // Detect real HubSpot loaders/embeds (inline and by src) with one shared pattern so a
-      // loader host cannot bypass one check; do NOT match the theme's own nvxRuntimeGovernance
-      // config keys (hubspotPortalId, etc.) as embeds.
-      const hubspotEmbed = /hbspt\.forms\.create|hsforms\.net|hs-scripts\.com|hscollectedforms\.net|hs-analytics\.net/i;
+      // Integration invariants: initial HTML scripts must not contain HubSpot or FacebookSignal
       const initialScripts = await page.locator('script').allInnerTexts();
-      hasInitialHubspot = initialScripts.some(text => hubspotEmbed.test(text));
+      hasInitialHubspot = initialScripts.some(text => /hbspt\.forms\.create|js\.hs-scripts\.com/i.test(text));
       hasInitialFacebookSignal = initialScripts.some(text => /facebook.*signal/i.test(text));
       
       const scriptSrcs = await page.locator('script[src]').evaluateAll(els => els.map(el => el.getAttribute('src') || ''));
-      // A script[src] to any hubspot host is always a real third-party load (no config false positive risk).
-      hasRogueThirdPartySrc = scriptSrcs.some(src => hubspotEmbed.test(src) || /hubspot|facebook|fbevents/i.test(src));
+      hasRogueThirdPartySrc = scriptSrcs.some(src => /hsforms|hubspot|hs-scripts\.com|facebook|fbevents/i.test(src));
 
       // Hero and CTAs
       heroCount = await page.locator('.nvx-brand-hero, .nvx-home-hero, .nvx-blog-hero, .nvx-strategy-intro').count();

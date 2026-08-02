@@ -6,52 +6,56 @@
   var mobileNav = document.getElementById('nvx-mobile-nav');
   var closeBtn = document.getElementById('nvx-mobile-close');
 
-  function setMobileNavOpen(willOpen) {
-    if (!mobileNav) return;
-    if (willOpen) {
-      mobileNav.removeAttribute('inert');
-      mobileNav.classList.add('is-open');
-      mobileNav.setAttribute('open', '');
-      mobileNav.setAttribute('aria-hidden', 'false');
-    } else {
-      mobileNav.classList.remove('is-open');
-      mobileNav.removeAttribute('open');
-      mobileNav.setAttribute('aria-hidden', 'true');
-      mobileNav.setAttribute('inert', '');
-    }
-    if (ham) ham.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-    // Keep scroll lock if the valoración modal is open.
-    if (willOpen) {
+  if (mobileNav && mobileNav instanceof HTMLDialogElement) {
+    function openNav() {
+      if (typeof mobileNav.showModal === 'function') {
+        mobileNav.showModal();
+      } else {
+        mobileNav.setAttribute('open', 'open');
+      }
+      if (ham) ham.setAttribute('aria-expanded', 'true');
       document.body.style.overflow = 'hidden';
-    } else if (!document.body.classList.contains('nvx-valoracion-modal-open')) {
-      document.body.style.overflow = '';
     }
-  }
 
-  if (ham && mobileNav) {
-    ham.addEventListener('click', function () {
-      var isCurrentlyOpen =
-        mobileNav.classList.contains('is-open') || mobileNav.hasAttribute('open');
-      setMobileNavOpen(!isCurrentlyOpen);
-    });
-    if (closeBtn) {
-      closeBtn.addEventListener('click', function () {
-        setMobileNavOpen(false);
-      });
+    function closeNav() {
+      if (typeof mobileNav.close === 'function') {
+        mobileNav.close();
+      } else {
+        mobileNav.removeAttribute('open');
+      }
+      if (ham) ham.setAttribute('aria-expanded', 'false');
+      if (!document.body.classList.contains('nvx-valoracion-modal-open')) {
+        document.body.style.overflow = '';
+      }
     }
+
+    if (ham) {
+      ham.addEventListener('click', openNav);
+    }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeNav);
+    }
+    mobileNav.addEventListener('cancel', closeNav);
   }
 
   /* FAQ: native <details>/<summary> (.nvx-faq / .nvx-brand-faq-*) — no JS. */
 
   /* --- Smooth scroll en anclas --- */
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     a.addEventListener('click', function (e) {
       var href = a.getAttribute('href');
       if (!href || href === '#') return;
-      var target = document.querySelector(href);
+      var targetId = href.slice(1);
+      var target = document.getElementById(targetId);
       if (target) {
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (prefersReducedMotion) {
+          target.scrollIntoView();
+        } else {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
       }
     });
   });

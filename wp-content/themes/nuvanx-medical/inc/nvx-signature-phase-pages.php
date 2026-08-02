@@ -12,8 +12,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Provides nvx_register_catalog_content_filter(), invoked at file scope below.
-require_once __DIR__ . '/nvx-13-point-renderer.php';
 
 if ( ! defined( 'NVX_CONTOUR_ARCHITECTURE' ) ) {
 	define( 'NVX_CONTOUR_ARCHITECTURE', 'NUVANX Contour Architecture™' );
@@ -166,7 +164,7 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html .= '<h1 class="nvx-strategy-title">' . esc_html( (string) $page['title'] ) . '</h1>';
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
 	$html      .= '<p class="nvx-brand-lead">' . esc_html( (string) $page['lead'] ) . '</p><p>' . esc_html( (string) $page['intro'] ) . '</p>';
-	$html      .= '<p><a class="nvx-btn nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
+	$html      .= '<p><a class="nvx-button nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
 	$html      .= '<p class="nvx-brand-microcopy">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p></header>';
 	$html      .= nvx_signature_phase_list( 'Qué se valora', (array) $page['assessment'] );
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Cómo se decide el plan', 'nuvanx-medical' ) . '</h2>';
@@ -176,11 +174,14 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= nvx_signature_phase_list( 'Límites y cuándo derivamos', (array) $page['limits'], 'nvx-strategy-checklist nvx-strategy-checklist--no' );
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
 	$html      .= '<p>' . esc_html__( 'La valoración revisa antecedentes, anatomía, tejido predominante, tratamientos previos, expectativas y disponibilidad para cuidados. Si no existe una indicación proporcionada, se explica la alternativa, la derivación o la decisión de no intervenir.', 'nuvanx-medical' ) . '</p>';
-	$html      .= '<p><a class="nvx-btn nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a> <a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Explorar Protocolos Signature', 'nuvanx-medical' ) . '</a></p></div></section></article>';
+	$html      .= '<p><a class="nvx-button nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a> <a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Explorar Protocolos Signature', 'nuvanx-medical' ) . '</a></p></div></section></article>';
 	return $html;
 }
-
-nvx_register_catalog_content_filter( 'nvx_signature_phase_catalog', 22, 'nvx_signature_phase_markup' );
+add_action( 'after_setup_theme', function () {
+	if ( function_exists( 'nvx_register_catalog_content_filter' ) ) {
+		nvx_register_catalog_content_filter( 'nvx_signature_phase_catalog', 22, 'nvx_signature_phase_markup' );
+	}
+} );
 
 /**
  * Signature architecture hubs (index + Contour + Post-Maternity).
@@ -422,7 +423,7 @@ function nvx_signature_hub_shell_open( array $hub ): string {
 	$html      .= '<h1 class="nvx-strategy-title">' . esc_html( (string) ( $hub['h1'] ?? '' ) ) . '</h1>';
 	$html      .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $hub['lead'] ?? '' ) ) . '</p>';
 	$html      .= '<p>' . esc_html( (string) ( $hub['intro'] ?? '' ) ) . '</p>';
-	$html      .= '<p><a class="nvx-btn nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
+	$html      .= '<p><a class="nvx-button nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
 	if ( 'index' !== ( $hub['kind'] ?? '' ) ) {
 		$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Ver todos los Protocolos Signature', 'nuvanx-medical' ) . '</a>';
 	}
@@ -437,7 +438,7 @@ function nvx_signature_hub_shell_close(): string {
 	$html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
 	$html .= '<h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p>' . esc_html__( 'La valoración revisa antecedentes, anatomía, tejido predominante, tratamientos previos y expectativas. Si no existe una indicación proporcionada, se explica la alternativa, la derivación o la decisión de no intervenir.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p><a class="nvx-btn nvx-btn--primary" href="' . esc_url( nvx_signature_valoracion_url() ) . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '<p><a class="nvx-button nvx-btn--primary" href="' . esc_url( nvx_signature_valoracion_url() ) . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</div></section></article>';
 	return $html;
 }

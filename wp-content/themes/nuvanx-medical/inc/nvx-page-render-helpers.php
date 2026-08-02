@@ -9,6 +9,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Devuelve el "dueño" lógico de la página actual.
+ *
+ * Los módulos pueden engancharse al filtro 'nvx_page_owner' para declararse
+ * propietarios en función del contexto (is_page(), is_singular(), etc.).
+ */
+function nvx_get_page_owner() {
+	/**
+	 * Filtro que permite a los módulos declarar la propiedad de la página.
+	 *
+	 * Debe devolver un identificador estable de propietario (string) o null.
+	 */
+	$owner = apply_filters( 'nvx_page_owner', null );
+
+	return $owner;
+}
+
 /** Extract a balanced div media slot without truncating nested markup. */
 function nvx_page_extract_brand_hero_div( string $content ): string {
 	if ( ! preg_match( '/<div class="nvx-brand-hero__media"[^>]*>/iu', $content, $opening, PREG_OFFSET_CAPTURE ) ) {
@@ -111,3 +128,17 @@ function nvx_page_brand_section_heading_markup(
 	return '<p class="nvx-brand-kicker">' . $kicker . '</p>'
 		. '<h2 id="' . esc_attr( $heading_id ) . '" class="nvx-brand-title">' . $heading . '</h2>';
 }
+
+/**
+ * Devuelve si la p�gina actual utiliza el page-shell de NUVANX.
+ */
+function nvx_has_page_shell(): bool {
+    // Si tiene 'nvx_page_owner', asumimos que est� gobernado por el shell u otro orquestador que necesita su propio <main>.
+    if ( function_exists( 'nvx_get_page_owner' ) && ! empty( nvx_get_page_owner() ) ) {
+        return true;
+    }
+
+    // Otras comprobaciones de plantillas
+    return is_page() || is_single() || is_404();
+}
+

@@ -150,16 +150,11 @@ function nvx_seo_is_nonproduction_environment(): bool {
 		return true;
 	}
 
-	$environment = function_exists( 'wp_get_environment_type' ) ? wp_get_environment_type() : 'production';
-	
-	$home_host   = (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST );
-	$req_host    = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
-	$req_host    = preg_replace( '/:\d+$/', '', $req_host );
-
-	$public_home = in_array( strtolower( $home_host ), array( 'nuvanx.com', 'www.nuvanx.com' ), true );
-	$public_req  = in_array( $req_host, array( 'nuvanx.com', 'www.nuvanx.com' ), true );
-
-	return 'production' !== $environment || ! $public_home || ! $public_req || false !== strpos( (string) $req_host, '.sg-host.com' );
+	if ( defined( 'NVX_ENV' ) ) {
+		return NVX_ENV !== 'production';
+	}
+	// No NVX_ENV defined: assume production to avoid accidental noindex.
+	return false;
 }
 
 /**
@@ -234,15 +229,9 @@ function nvx_seo_filter_yoast_robots( $robots ) {
 
 	if ( null !== nvx_seo_current_metadata_key() ) {
 		$page_id = (int) get_queried_object_id();
-		$has_noindex = function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true );
-		$has_nofollow = function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true );
-
-		// Respect explicit noindex or nofollow pages instead of forcing index, follow.
-		if ( $has_noindex || $has_nofollow ) {
-			return $robots;
+		if ( ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
+			return 'index, follow';
 		}
-
-		return 'index, follow';
 	}
 
 	return $robots;

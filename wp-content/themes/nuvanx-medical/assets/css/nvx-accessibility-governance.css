@@ -1,19 +1,5 @@
 /* NUVANX global interaction and accessibility contract. */
 
-.nvx-skip-link {
-  position: absolute;
-  top: -40px;
-  left: 0;
-  z-index: 10000;
-  padding: 8px 16px;
-  background: #fff;
-  color: #111;
-}
-
-.nvx-skip-link:focus {
-  top: 0;
-}
-
 .nvx-hamburger,
 .nvx-mobile-nav__close {
   width: var(--nvx-touch-target-min, 48px);

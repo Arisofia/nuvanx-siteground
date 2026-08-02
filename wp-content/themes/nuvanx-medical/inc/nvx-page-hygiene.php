@@ -55,6 +55,45 @@ function nvx_redirect_superseded_legal_pages() {
 add_action( 'template_redirect', 'nvx_redirect_superseded_legal_pages', 1 );
 
 /**
+ * Canonical valoración landing is /madrid/valoracion/.
+ *
+ * Bare /valoracion and accented /valoración (404 otherwise) redirect early
+ * from the request path so accents never depend on page lookup.
+ */
+function nvx_redirect_valoracion_aliases(): void {
+	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+		return;
+	}
+
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+	$path = (string) wp_parse_url( $uri, PHP_URL_PATH );
+	$path = '/' . trim( rawurldecode( $path ), '/' ) . '/';
+	$path = function_exists( 'mb_strtolower' ) ? mb_strtolower( $path, 'UTF-8' ) : strtolower( $path );
+
+	$aliases = array(
+		'/valoracion/',
+		'/valoración/',
+		'/consulta-medica/',
+		'/consulta-médica/',
+		'/consultamedica/',
+	);
+
+	if ( ! in_array( $path, $aliases, true ) ) {
+		return;
+	}
+
+	// Already on the nested canonical path.
+	if ( 0 === strpos( $path, '/madrid/valoracion/' ) ) {
+		return;
+	}
+
+	$target = home_url( '/madrid/valoracion/' );
+	wp_safe_redirect( $target, 301, 'NUVANX' );
+	exit;
+}
+add_action( 'template_redirect', 'nvx_redirect_valoracion_aliases', 0 );
+
+/**
  * Transactional pages that must not pass PageRank via links (noindex + nofollow).
  *
  * Resolved by slug so IDs may differ across environments.

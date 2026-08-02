@@ -32,9 +32,6 @@ $chamberi_maps = ! empty( $clinics['chamberi']['hasMap'] )
 $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 	? (string) $clinics['goya']['hasMap']
 	: 'https://www.google.com/maps/search/?api=1&query=NUVANX%20C%2F%20de%20Fern%C3%A1n%20Gonz%C3%A1lez%2026%2028009%20Madrid';
-
-$chamberi_embed = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fernández de la Hoz 4, 28010 Madrid, Spain' ) . '&z=16&output=embed';
-$goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fernán González 26, 28009 Madrid, Spain' ) . '&z=16&output=embed';
 ?>
 
 <div class="nvx-brand-page nvx-page--contact">
@@ -94,16 +91,6 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-clock"/></svg><?php esc_html_e( 'Horario de clínica: lunes a viernes, 12:00–20:00; sábados, 10:00–18:00', 'nuvanx-medical' ); ?></li>
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-doctor"/></svg><?php esc_html_e( 'El Dr. Rivera atiende en Chamberí los martes y jueves.', 'nuvanx-medical' ); ?></li>
 						</ul>
-						<div class="nvx-clinic-card__map" aria-label="<?php esc_attr_e( 'Mapa NUVANX Chamberí', 'nuvanx-medical' ); ?>">
-							<iframe
-								title="<?php esc_attr_e( 'Cómo llegar a NUVANX Chamberí — Calle Fernández de la Hoz 4', 'nuvanx-medical' ); ?>"
-								src="<?php echo esc_url( $chamberi_embed ); ?>"
-								width="100%"
-								height="260"
-								allowfullscreen=""
-								loading="lazy"
-								referrerpolicy="no-referrer-when-downgrade"></iframe>
-						</div>
 						<a href="<?php echo esc_url( $chamberi_maps ); ?>" class="nvx-brand-btn nvx-brand-btn--secondary" rel="noopener noreferrer" target="_blank">
 							<?php esc_html_e( 'Cómo llegar', 'nuvanx-medical' ); ?>
 						</a>
@@ -130,16 +117,6 @@ $goya_embed     = 'https://maps.google.com/maps?q=' . rawurlencode( 'Calle de Fe
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-clock"/></svg><?php esc_html_e( 'Horario de clínica: lunes a viernes, 11:00–20:00', 'nuvanx-medical' ); ?></li>
 							<li><svg class="nvx-icon" aria-hidden="true" width="16" height="16"><use href="#icon-doctor"/></svg><?php esc_html_e( 'El Dr. Rivera atiende en Salamanca–Goya los miércoles.', 'nuvanx-medical' ); ?></li>
 						</ul>
-						<div class="nvx-clinic-card__map" aria-label="<?php esc_attr_e( 'Mapa NUVANX Salamanca–Goya', 'nuvanx-medical' ); ?>">
-							<iframe
-								title="<?php esc_attr_e( 'Cómo llegar a NUVANX Salamanca–Goya — Calle Fernán González 26', 'nuvanx-medical' ); ?>"
-								src="<?php echo esc_url( $goya_embed ); ?>"
-								width="100%"
-								height="260"
-								allowfullscreen=""
-								loading="lazy"
-								referrerpolicy="no-referrer-when-downgrade"></iframe>
-						</div>
 						<a href="<?php echo esc_url( $goya_maps ); ?>" class="nvx-brand-btn nvx-brand-btn--secondary" rel="noopener noreferrer" target="_blank">
 							<?php esc_html_e( 'Cómo llegar', 'nuvanx-medical' ); ?>
 						</a>

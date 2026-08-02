@@ -7,36 +7,52 @@ class WP_Post {
     public string $post_status = 'publish';
 }
 
-function __(string $text, ?string $domain = null): string {
-    return 'i18n:' . $text;
+if (!function_exists('__')) {
+    function __(string $text, ?string $domain = null): string {
+        return 'i18n:' . $text;
+    }
 }
 
-function home_url(string $path = ''): string {
-    return 'home:' . $path;
+if (!function_exists('home_url')) {
+    function home_url(string $path = ''): string {
+        return 'home:' . $path;
+    }
 }
 
-function nvx_btl_claim(string $key): string {
-    return 'claim:' . $key;
+if (!function_exists('nvx_btl_claim')) {
+    function nvx_btl_claim(string $key): string {
+        return 'claim:' . $key;
+    }
 }
 
-function get_page_by_path(string $path, $output = 'OBJECT', $post_type = 'page') {
-    return null;
+if (!function_exists('get_page_by_path')) {
+    function get_page_by_path(string $path, $output = 'OBJECT', $post_type = 'page') {
+        return null;
+    }
 }
 
-function get_permalink($page = 0, bool $leavename = false): string {
-    return '';
+if (!function_exists('get_permalink')) {
+    function get_permalink($page = 0, bool $leavename = false): string {
+        return '';
+    }
 }
 
-function add_filter(...$args): bool {
-    return true;
+if (!function_exists('add_filter')) {
+    function add_filter(...$args): bool {
+        return true;
+    }
 }
 
-function add_action(...$args): bool {
-    return true;
+if (!function_exists('add_action')) {
+    function add_action(...$args): bool {
+        return true;
+    }
 }
 
-function add_shortcode(...$args): bool {
-    return true;
+if (!function_exists('add_shortcode')) {
+    function add_shortcode(...$args): bool {
+        return true;
+    }
 }
 
 $themeInc = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/inc';

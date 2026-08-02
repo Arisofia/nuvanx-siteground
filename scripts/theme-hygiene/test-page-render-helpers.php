@@ -120,7 +120,14 @@ nvx_page_helper_assert(
 nvx_page_helper_assert(
     str_contains($solutionsModule, "'soluciones-medicas' === \$slug")
         && str_contains($solutionsModule, 'NUVANX_STRATEGY_PAGE:solutions')
-        && str_contains($solutionsModule, "get_template_part( 'template-parts/content/nvx-soluciones-medicas-github' )"),
+        && str_contains($solutionsModule, 'nvx-soluciones-medicas-github.php')
+        && (
+            str_contains($solutionsModule, "get_template_part( 'template-parts/content/nvx-soluciones-medicas-github' )")
+            || (
+                str_contains($solutionsModule, 'nvx_solutions_template_include')
+                && str_contains($solutionsModule, 'templates/page-soluciones-medicas.php')
+            )
+        ),
     'Solutions route must resolve by slug/marker and render the canonical template.'
 );
 nvx_page_helper_assert(
@@ -132,6 +139,12 @@ nvx_page_helper_assert(
         && str_contains($solutionsModule, "'nvx-soluciones-medicas'")
         && str_contains($solutionsModule, "add_action( 'wp_enqueue_scripts', 'nvx_enqueue_solutions_page_assets', 20 )"),
     'Solutions stylesheet must be conditionally enqueued on its canonical route.'
+);
+$solutionsPageTemplate = dirname(__DIR__, 2) . '/wp-content/themes/nuvanx-medical/templates/page-soluciones-medicas.php';
+nvx_page_helper_assert(
+    is_readable($solutionsPageTemplate)
+        && str_contains((string) file_get_contents($solutionsPageTemplate), 'nvx-soluciones-medicas-github.php'),
+    'Dedicated solutions page template must include the GitHub-owned hub partial.'
 );
 nvx_page_helper_assert(
     str_contains($pageShell, 'nvx_content_is_solutions_page( $content )'),

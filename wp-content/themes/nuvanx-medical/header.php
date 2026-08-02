@@ -23,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
       <?php
       $logo_id = get_theme_mod( 'custom_logo' );
       if ( $logo_id ) :
-        echo wp_get_attachment_image( $logo_id, 'full', false, array( 'class' => 'nvx-logo__img', 'alt' => 'NUVANX' ) );
+        echo wp_get_attachment_image( $logo_id, 'medium', false, array( 'class' => 'nvx-logo__img', 'alt' => 'NUVANX', 'width' => '160', 'height' => '154' ) );
       else :
         ?>
       <span class="nvx-logo__wordmark" aria-hidden="true">NUVANX</span>

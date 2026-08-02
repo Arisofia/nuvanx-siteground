@@ -275,6 +275,13 @@ function nvx_theme_blog_index_markup(): string {
 }
 add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
 
+/**
+ * Nota de gobernanza de carga:
+ *
+ * - El orden de inclusión en este archivo NO es semántico.
+ * - Cada módulo es responsable de incluir explícitamente sus dependencias
+ *   (require_once/inc) en lugar de depender de efectos laterales de carga.
+ */
 // Módulos explícitos de SEO, Schema, Entorno y Páginas Estratégicas
 require_once get_template_directory() . '/inc/nvx-environment-flags.php';
 require_once get_template_directory() . '/inc/nvx-jsonld-content.php';

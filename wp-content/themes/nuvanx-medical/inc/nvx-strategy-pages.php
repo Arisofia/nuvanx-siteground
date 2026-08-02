@@ -365,10 +365,23 @@ function nvx_strategy_page_markup( string $key ): string {
 	return nvx_strategy_protocol_review_markup( $key );
 }
 
+add_filter( 'nvx_page_owner', function( $owner ) {
+	if ( ! empty( $owner ) ) return $owner;
+	if ( function_exists('nvx_strategy_current_page_key') && null !== nvx_strategy_current_page_key() ) {
+		return 'nvx_strategy_pages';
+	}
+	return $owner;
+});
+
 /**
  * Use a stable, theme-owned rendering path rather than editable CMS fragments.
  */
 function nvx_strategy_page_content_filter( string $content ): string {
+	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
+	if ( $owner !== 'nvx_strategy_pages' ) {
+		return $content;
+	}
+
 	if ( is_admin() || ! is_main_query() || ! in_the_loop() ) {
 		return $content;
 	}

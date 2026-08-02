@@ -95,12 +95,12 @@ function nvx_site_closing_cta_markup(): string {
 	$html .= '</div>';
 	$html .= '<div class="nvx-cta-pair nvx-cta-banner__actions">';
 	$html .= sprintf(
-		'<a class="nvx-btn nvx-btn--light nvx-open-valoracion-modal" id="nvx-footer-cta" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',
+		'<a class="nvx-button nvx-btn--light nvx-open-valoracion-modal" id="nvx-footer-cta" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',
 		esc_url( $valoracion ),
 		esc_html__( 'Iniciar mi valoración médica', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
-		'<a class="nvx-btn nvx-btn--secondary-on-dark" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+		'<a class="nvx-button nvx-btn--secondary-on-dark" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
 		esc_url( $whatsapp ),
 		esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
 	);
@@ -1165,7 +1165,7 @@ function nvx_before_after_teaser_markup(): string {
 	$html .= '</div>';
 	$html .= '<div class="nvx-ba-teaser__cta">';
 	$html .= sprintf(
-		'<a href="%1$s" class="nvx-btn nvx-btn--light">%2$s</a>',
+		'<a href="%1$s" class="nvx-button nvx-btn--light">%2$s</a>',
 		esc_url( $url ),
 		esc_html__( 'Ver galería de resultados', 'nuvanx-medical' )
 	);

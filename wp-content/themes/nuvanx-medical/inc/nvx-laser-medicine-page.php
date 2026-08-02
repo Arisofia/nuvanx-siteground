@@ -276,8 +276,17 @@ function nvx_laser_hub_page_markup(): string {
  *
  * @param string $content Existing post content (unused on hub).
  */
+add_filter( 'nvx_page_owner', function( $owner ) {
+	if ( ! empty( $owner ) ) return $owner;
+	if ( function_exists('nvx_laser_is_hub_request') && nvx_laser_is_hub_request() ) {
+		return 'nvx_laser_medicine_page';
+	}
+	return $owner;
+});
+
 function nvx_content_restructure_laser_medicine_page( string $content ): string {
-	if ( ! nvx_laser_is_hub_request() ) {
+	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
+	if ( $owner !== 'nvx_laser_medicine_page' ) {
 		return $content;
 	}
 

@@ -344,8 +344,19 @@ function nvx_aesthetic_editorial_body_markup(): string {
 /**
  * Rebuild Medicina Estética hub page.
  */
+add_filter( 'nvx_page_owner', function( $owner ) {
+	if ( ! empty( $owner ) ) return $owner;
+	global $post;
+	$content = $post ? $post->post_content : '';
+	if ( function_exists('nvx_content_is_aesthetic_medicine_page') && nvx_content_is_aesthetic_medicine_page( $content ) ) {
+		return 'nvx_aesthetic_medicine_page';
+	}
+	return $owner;
+});
+
 function nvx_content_restructure_aesthetic_medicine_page( string $content ): string {
-	if ( ! nvx_content_is_aesthetic_medicine_page( $content ) ) {
+	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
+	if ( $owner !== 'nvx_aesthetic_medicine_page' ) {
 		return $content;
 	}
 

@@ -3,6 +3,15 @@ wp-config.php
 .env
 .htaccess
 
+# Secrets and archives
+*.pem
+*.key
+id_*
+*.sql
+*.tgz
+*.zip
+*.gz
+
 # Directorios Dinámicos (NO rastrear)
 wp-content/uploads/
 wp-content/cache/

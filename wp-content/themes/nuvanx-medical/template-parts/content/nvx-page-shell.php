@@ -26,6 +26,13 @@ if ( ! empty( $shell_content ) ) {
 	rewind_posts();
 }
 
+$is_main_owner = ( ! function_exists( 'nvx_has_page_shell' ) || ! nvx_has_page_shell() );
+if ( $is_main_owner ) {
+    echo '<main id="nvx-main" class="nvx-main" tabindex="-1">' . "\n";
+} else {
+    echo '<div class="nvx-main-shell">' . "\n";
+}
+
 while ( have_posts() ) :
 	the_post();
 	$content = get_post_field( 'post_content', get_the_ID() );
@@ -40,50 +47,11 @@ while ( have_posts() ) :
 	// Modules that inject a canonical hero + H1 via the_content even when CMS body is empty.
 	// Without this, the shell prints a second H1 (e.g. EXION Body / Face / EMFUSION).
 	$has_managed_editorial = false;
-	if ( function_exists( 'nvx_btl_detail_current_key' ) && null !== nvx_btl_detail_current_key( $content ) ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_endolift_page' ) && nvx_content_is_endolift_page( $content ) ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_endolaser_page' ) && nvx_content_is_endolaser_page( $content ) ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_co2_page' ) && nvx_content_is_co2_page( $content ) ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_laser_is_hub_request' ) && nvx_laser_is_hub_request() ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_aesthetic_medicine_page' ) && nvx_content_is_aesthetic_medicine_page( $content ) ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_equipo_page' ) && nvx_content_is_equipo_page( $content ) ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_nosotros_page' ) && nvx_content_is_nosotros_page( $content ) ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_aesthetic_treatment_current_key' ) && null !== nvx_aesthetic_treatment_current_key() ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key() ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_signature_phase_current_key' ) && null !== nvx_signature_phase_current_key() ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_signature_hub_current_key' ) && null !== nvx_signature_hub_current_key( $content ) ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_content_is_solutions_page' ) && nvx_content_is_solutions_page( $content ) ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
-		$has_managed_editorial = true;
-	}
-	if ( ! $has_managed_editorial && function_exists( 'nvxIsClinicsHub' ) && nvxIsClinicsHub() ) {
-		$has_managed_editorial = true;
+	if ( function_exists( 'nvx_get_page_owner' ) ) {
+		$owner = nvx_get_page_owner();
+		if ( ! empty( $owner ) ) {
+			$has_managed_editorial = true;
+		}
 	}
 
 	$has_media = has_post_thumbnail();
@@ -220,5 +188,11 @@ while ( have_posts() ) :
 </article>
 	<?php
 endwhile;
+
+if ( $is_main_owner ) {
+    echo '</main>' . "\n";
+} else {
+    echo '</div>' . "\n";
+}
 
 get_footer();

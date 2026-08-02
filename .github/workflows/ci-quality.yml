@@ -1,7 +1,4 @@
-name: Code Quality (Lint)
-
-permissions:
-  contents: read
+name: Code Quality (Sonar & Lint)
 
 on:
   push:
@@ -9,13 +6,6 @@ on:
       - master
   pull_request:
 
-concurrency:
-  group: ci-quality-${{ github.ref }}
-  cancel-in-progress: true
-
-# SonarCloud analysis runs via SonarCloud Automatic Analysis (the "SonarCloud Code
-# Analysis" check), not a CI scanner job here: SonarCloud rejects CI-based analysis
-# while Automatic Analysis is enabled ("Not authorized or project not found").
 jobs:
   lint:
     name: PHP Syntax Lint
@@ -30,3 +20,98 @@ jobs:
       - name: Run PHP Parallel Lint
         run: |
           parallel-lint --exclude vendor --exclude node_modules .
+
+  secrets-scan:
+    name: Secrets Scan (gitleaks)
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run gitleaks
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          args: detect --source . --no-banner
+
+  shellcheck:
+    name: Shell Script Lint
+    runs-on: ubuntu-latest
+    needs: secrets-scan
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+      - name: Run shellcheck
+        run: |
+          if [ -d scripts ]; then
+            find scripts -type f -name '*.sh' -print0 | while IFS= read -r -d '' file; do
+              echo "Shellchecking $file"
+              shellcheck "$file"
+            done
+          else
+            echo "No scripts directory found; skipping shellcheck"
+          fi
+
+  validate-json:
+    name: Validate JSON catalogs
+    runs-on: ubuntu-latest
+    needs: shellcheck
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+      - name: Validate inc/data JSON files
+        run: |
+          if [ -d inc/data ]; then
+            find inc/data -type f -name '*.json' -print0 | while IFS= read -r -d '' file; do
+              echo "Validating $file"
+              jq . "$file" > /dev/null
+            done
+          else
+            echo "inc/data directory not found; skipping JSON validation"
+          fi
+
+  frontend-tests:
+    name: Frontend Acceptance (Playwright)
+    runs-on: ubuntu-latest
+    needs: validate-json
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          elif [ -f package.json ]; then
+            npm install
+          else
+            echo "No package.json found; skipping frontend tests"
+            exit 0
+          fi
+      - name: Install Playwright browsers
+        run: |
+          npx playwright install --with-deps
+      - name: Run Playwright tests
+        run: |
+          npx playwright test
+
+  sonarcloud:
+    name: SonarQube Analysis
+    runs-on: ubuntu-latest
+    needs: frontend-tests
+    if: ${{ secrets.SONAR_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

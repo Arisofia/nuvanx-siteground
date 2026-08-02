@@ -83,17 +83,21 @@ add_action(
 	'wp_head',
 	function (): void {
 		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n";
-		echo '<link rel="preload" as="font" href="https://fonts.gstatic.com/s/manrope/v20/xn7gYHE41ni1AdIRggexSvfedN4.woff2" type="font/woff2" crossorigin />' . "\n";
-		echo '<link rel="preload" as="font" href="https://fonts.gstatic.com/s/playfairdisplay/v40/nuFiD-vYSZviVYUb_rj3ij__anPXDTzYgEM86xQ.woff2" type="font/woff2" crossorigin />' . "\n";
+		/* Preloads de Google Fonts eliminados; dejamos que wp_enqueue_style gestione la carga.
+		 * Ver Playwright tests para garantizar que las fuentes de marca se aplican correctamente. */
 
 		if ( is_front_page() ) {
 			$poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
 			echo '<link rel="preload" as="image" href="' . esc_url( $poster_url ) . '" fetchpriority="high" type="image/webp" />' . "\n";
 		}
 
-		$current_url = function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : ( is_front_page() ? home_url( '/' ) : home_url( wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ) ) );
-		echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( $current_url ) . '" />' . "\n";
-		echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";
+		if ( ! is_404() && ! is_search() ) {
+			$current_url = function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : ( is_front_page() ? home_url( '/' ) : home_url( wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ) ) );
+			if ( '' !== $current_url ) {
+				echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( $current_url ) . '" />' . "\n";
+				echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";
+			}
+		}
 	},
 	1
 );

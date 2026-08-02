@@ -24,13 +24,11 @@ echo "\n<!-- nvx-solutions-template-active -->\n";
 $markup = function_exists( 'nvx_solutions_hub_markup' ) ? nvx_solutions_hub_markup() : '';
 if ( '' === trim( $markup ) && is_readable( $partial ) ) {
 	// Fallback if the helper is unavailable: load the view without require_once.
-	$level = ob_get_level();
+	// Pair ob_start/ob_get_clean only — do not climb/clean outer document buffers.
 	ob_start();
 	load_template( $partial, false );
-	$markup = (string) ob_get_clean();
-	while ( ob_get_level() > $level ) {
-		ob_end_clean();
-	}
+	$captured = ob_get_clean();
+	$markup   = is_string( $captured ) ? $captured : '';
 }
 
 if ( '' !== trim( $markup ) ) {

@@ -62,13 +62,33 @@ add_action(
 );
 
 /**
+ * Apply preg_replace without ever collapsing a failed match to "".
+ *
+ * Casting null (PCRE error / backtrack limit) to string yields empty output and
+ * was observed as HTTP 200 + Content-Length 0 on large public documents.
+ *
+ * @param string|string[] $pattern Pattern.
+ * @param string|string[] $replacement Replacement.
+ * @param string          $subject Subject.
+ * @param int             $limit Limit.
+ */
+function nvx_safe_preg_replace( $pattern, $replacement, string $subject, int $limit = -1 ): string {
+	$result = preg_replace( $pattern, $replacement, $subject, $limit );
+	return is_string( $result ) ? $result : $subject;
+}
+
+/**
  * Normalize public document markup and remove duplicate front-page FAQ structured data.
  *
  * @param string $html Rendered document markup.
  * @return string
  */
 function nvx_theme_normalize_public_document( string $html ): string {
-	$html = (string) preg_replace(
+	if ( '' === $html ) {
+		return $html;
+	}
+
+	$html = nvx_safe_preg_replace(
 		'/<meta\s+name=["\']viewport["\'][^>]*>/i',
 		'<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
 		$html,
@@ -89,26 +109,26 @@ function nvx_theme_normalize_public_document( string $html ): string {
 
 	if ( ! is_admin() ) {
 		if ( false !== stripos( $html, 'accounts.google.com/gsi' ) ) {
-			$html = (string) preg_replace(
+			$html = nvx_safe_preg_replace(
 				'/<script\b[^>]*accounts\.google\.com\/gsi[^>]*>[\s\S]*?<\/script>/iu',
 				'',
 				$html
 			);
 		}
 		if ( false !== stripos( $html, 'sign-in-with-google' ) ) {
-			$html = (string) preg_replace(
+			$html = nvx_safe_preg_replace(
 				'/<script\b[^>]*sign-in-with-google[^>]*>[\s\S]*?<\/script>/iu',
 				'',
 				$html
 			);
-			$html = (string) preg_replace(
+			$html = nvx_safe_preg_replace(
 				'/<style\b[^>]*googlesitekit-sign-in-with-google[^>]*>[\s\S]*?<\/style>/iu',
 				'',
 				$html
 			);
 		}
 
-		$html = (string) preg_replace(
+		$html = nvx_safe_preg_replace(
 			'/<link\s+rel=["\']stylesheet["\']\s+id=["\']nvx-(?:mobile-hero-hierarchy|canonical-page-hero|full-site-ui-governance|editorial-coherence|site-coherence|ui-regressions|hero-layout-coherence|integrations)-css["\'][^>]*>/i',
 			'',
 			$html

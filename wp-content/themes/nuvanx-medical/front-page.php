@@ -23,16 +23,16 @@ ob_start();
 			<track kind="captions" src="" srclang="es" label="Español">
 		</video>
 		<div class="nvx-home-hero__content">
-			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con rigor clínico y resultados naturales.</h1>
-			<p class="nvx-home-hero__lead">Protocolos de precisión para resultados naturales, según valoración médica.</p>
+			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con criterio. Madrid.</h1>
+			<p class="nvx-home-hero__lead">Antes de recomendar nada, escuchamos qué te preocupa y entendemos qué tendría sentido mejorar en tu caso.</p>
 			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-btn nvx-btn--primary">Iniciar valoración</a>
 		</div>
 	</section>
 
 	<section class="nvx-home-philosophy" aria-labelledby="nvx-home-philosophy-title">
 		<div class="nvx-home-philosophy__inner">
-			<p class="nvx-home-philosophy__title" id="nvx-home-philosophy-title">El primer paso es el diagnóstico.</p>
-			<p class="nvx-home-philosophy__lead">Cada protocolo comienza con una valoración médica individualizada. Sin suposiciones. Sin listas estándar. Si no hay indicación clínica, no hay tratamiento.</p>
+			<p class="nvx-home-philosophy__title" id="nvx-home-philosophy-title">No tratamos una imagen aislada. Tratamos a una persona, con su historia y sus prioridades.</p>
+			<p class="nvx-home-philosophy__lead">Cada protocolo comienza con una valoración médica individual. Si no está indicado para ti, te lo diremos con la misma claridad.</p>
 		</div>
 	</section>
 
@@ -133,8 +133,8 @@ ob_start();
 				>
 			</div>
 			<div class="nvx-home-evidence__text-col">
-				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">Evidencia clínica</h2>
-				<p class="nvx-home-evidence__desc">Documentamos la evolución clínica con consentimiento y seguimiento médico, preservando la privacidad de cada paciente.</p>
+				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">La evolución necesita contexto, no promesas rápidas.</h2>
+				<p class="nvx-home-evidence__desc">Un resultado sólo tiene sentido si se entiende de dónde partimos. Por eso documentamos nuestros casos con criterio médico: sin filtros, en la misma postura y bajo la misma luz.</p>
 				<?php
 			$_nvx_casos_id     = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
 			$_nvx_casos_public = $_nvx_casos_id > 0

@@ -16,9 +16,9 @@ $shell_no_wrap   = get_query_var( 'nvx_shell_no_wrapper' );
 
 if ( ! empty( $shell_content ) && ! is_singular() ) {
 	?>
-	<main class="nvx-main">
+	<div class="nvx-main nvx-shell-managed">
 		<?php echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source. ?>
-	</main>
+	</div>
 	<?php
 	get_footer();
 	return;

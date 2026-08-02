@@ -189,7 +189,8 @@ async function run() {
 
       // Integration invariants: initial HTML scripts must not contain HubSpot or FacebookSignal
       const initialScripts = await page.locator('script').allInnerTexts();
-      hasInitialHubspot = initialScripts.some(text => /hubspot/i.test(text));
+      // Do not match the theme's nvxRuntimeGovernance config keys as HubSpot embeds.
+      hasInitialHubspot = initialScripts.some(text => /hbspt\.forms\.create|js\.hsforms\.net|js\.hs-scripts\.com|js\.hscollectedforms\.net/i.test(text));
       hasInitialFacebookSignal = initialScripts.some(text => /facebook.*signal/i.test(text));
       
       const scriptSrcs = await page.locator('script[src]').evaluateAll(els => els.map(el => el.getAttribute('src') || ''));

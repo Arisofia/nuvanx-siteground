@@ -121,21 +121,10 @@ function nvx_site_closing_cta_markup(): string {
  * @return string
  */
 function nvx_content_strip_page_closing_ctas( string $content ): string {
-	// Exact module closers (page-local class tokens, not generic sections).
+	// Only prevent in-content duplicates of the site-wide footer CTA band.
 	$patterns = array(
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-endolift-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-catalog-close\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-laser-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-aes-action\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
-		'/<div\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final-band\b[^"\']*["\'][^>]*>[\s\S]*?<\/div>/iu',
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-home-cta-final\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
-		// Explicit in-content copy of the site-wide closing band.
 		'/<section\b[^>]*\bid=["\']nvx-site-closing-cta["\'][^>]*>[\s\S]{0,4000}?<\/section>/iu',
-		// Duplicate pre-footer banner only when it carries the footer CTA hook.
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-cta-banner\b[^"\']*["\'][^>]*>[\s\S]{0,4000}?\bid=["\']nvx-footer-cta["\'][\s\S]{0,2000}?<\/section>/iu',
-		// CMS soft CTA: require conversion signal inside a bounded block.
-		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-section--cta\b[^"\']*["\'][^>]*>[\s\S]{0,4000}?(?:valoraci[oó]n|Reservar|consulta m[eé]dica|nvx-brand-btn|nvx-btn)[\s\S]{0,4000}?<\/section>/iu',
 	);
 
 	foreach ( $patterns as $pattern ) {
@@ -299,18 +288,16 @@ function nvx_content_replace_values_sections( string $content ): string {
 	}
 
 	$replacement = nvx_values_section_markup();
-	$patterns    = array(
-		// Home editorial intro residue.
+	// Replace residual home editorial intro blocks with the structured values section.
+	$updated     = preg_replace(
 		'/<section\b[^>]*class="[^"]*nvx-home-editorial[^"]*"[^>]*>[\s\S]*?<\/section>/i',
-		// Generic v3 intro blocks with continuous prose (same role).
-		'/<section\b[^>]*class="[^"]*nvx-v3-intro[^"]*"[^>]*>[\s\S]*?<\/section>/i',
+		$replacement,
+		$content,
+		1,
+		$count
 	);
-
-	foreach ( $patterns as $pattern ) {
-		$updated = preg_replace( $pattern, $replacement, $content, 1, $count );
-		if ( is_string( $updated ) && $count > 0 ) {
-			$content = $updated;
-		}
+	if ( is_string( $updated ) && $count > 0 ) {
+		$content = $updated;
 	}
 
 	return nvx_content_ensure_post_values_action_banner( $content );
@@ -419,33 +406,14 @@ function nvx_content_ensure_post_values_action_banner( string $content ): string
 }
 
 /**
- * Non-canonical method section patterns (old class names or unmarked CMS blocks).
- *
- * @return string[]
- */
-function nvx_content_method_obsolete_patterns(): array {
-	return array(
-		'/<section\b[^>]*class="[^"]*nvx-v3-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
-		'/<section\b[^>]*class="[^"]*nvx-home-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/i',
-		'/<section\b(?![^>]*\bnvx-method-section\b)[^>]*aria-label="[^"]*Cómo trabajamos[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
-	);
-}
-
-/**
- * Strip leftover method sections after one canonical block is present.
+ * Keep only the first canonical method section; remove further copies.
  */
 function nvx_content_strip_extra_method_sections( string $content ): string {
-	foreach ( nvx_content_method_obsolete_patterns() as $pattern ) {
-		$content = nvx_content_preg_replace_keep( $pattern, '', $content );
-	}
-
-	// Keep only the first canonical method section; remove further copies.
 	$seen = 0;
 	$updated = preg_replace_callback(
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-method-section\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		static function ( array $m ) use ( &$seen ): string {
-			$seen++;
-			return ( 1 === $seen ) ? $m[0] : '';
+			$seen++;			return ( 1 === $seen ) ? $m[0] : '';
 		},
 		$content
 	);
@@ -457,27 +425,16 @@ function nvx_content_strip_extra_method_sections( string $content ): string {
  * Replace numbered method lists with icon columns — at most one block on the page.
  */
 function nvx_content_replace_method_sections( string $content ): string {
-	// Already transformed: still dedupe if CMS + filter left two copies.
 	if ( false !== strpos( $content, 'nvx-method-section' ) || false !== strpos( $content, 'nvx-method-columns' ) ) {
 		return nvx_content_strip_extra_method_sections( $content );
 	}
 
-	$replacement = nvx_method_section_markup();
-	$replaced    = false;
-
-	// One replacement only (first match wins), then strip siblings.
-	foreach ( nvx_content_method_obsolete_patterns() as $pattern ) {
-		$count   = 0;
-		$updated = preg_replace( $pattern, $replacement, $content, 1, $count );
-		if ( is_string( $updated ) && $count > 0 ) {
-			$content  = $updated;
-			$replaced = true;
-			break;
-		}
-	}
-
-	if ( $replaced ) {
-		$content = nvx_content_strip_extra_method_sections( $content );
+	// Insert canonical method block when CMS still has an unlabeled "Cómo trabajamos" section.
+	$pattern = '/<section\b(?![^>]*\bnvx-method-section\b)[^>]*aria-label="[^"]*Cómo trabajamos[^"]*"[^>]*>[\s\S]*?<\/section>/iu';
+	$count   = 0;
+	$updated = preg_replace( $pattern, nvx_method_section_markup(), $content, 1, $count );
+	if ( is_string( $updated ) && $count > 0 ) {
+		return nvx_content_strip_extra_method_sections( $updated );
 	}
 
 	return $content;
@@ -1080,50 +1037,6 @@ function nvx_content_strip_duplicate_fachada( string $content ): string {
 	return is_string( $updated ) ? $updated : $content;
 }
 
-/**
- * Rewrite CMS versioned class tokens to canonical names (no v3/v4 layers).
- *
- * @param string $content HTML.
- * @return string
- */
-function nvx_content_strip_versioned_class_tokens( string $content ): string {
-	$map = array(
-		'nvx-editorial-home-v4' => '',
-		'nvx-v3-shell'          => 'nvx-shell',
-		'nvx-v3-intro'          => '',
-		'nvx-v3-metodo'         => '',
-		'nvx-v3-tratamientos'   => 'nvx-home-tratamientos',
-		'nvx-v3-direccion'      => 'nvx-home-direccion',
-		'nvx-v3-cta-final'      => 'nvx-home-cta-final',
-		'nvx-v3-faq'            => '',
-	);
-
-	foreach ( $map as $from => $to ) {
-		// Whole class token only (not substrings of longer BEM names).
-		$pattern = '/(?<=[\s"\'])' . preg_quote( $from, '/' ) . '(?=[\s"\'])/u';
-		$content = preg_replace( $pattern, $to, $content ) ?? $content;
-	}
-
-	// Collapse leftover double spaces inside class attributes.
-	$content = preg_replace_callback(
-		'/\bclass=(["\'])([^"\']*)\1/u',
-		static function ( array $m ): string {
-			$q     = $m[1];
-			$clean = preg_replace( '/\s+/u', ' ', trim( $m[2] ) ) ?? $m[2];
-			return 'class=' . $q . $clean . $q;
-		},
-		$content
-	) ?? $content;
-
-	return $content;
-}
-
-/**
- * Global content presentation pipeline (all singular + front content).
- *
- * @param string $content HTML.
- * @return string
- */
 function nvx_content_presentation_enhance( string $content ): string {
 	if ( is_admin() || '' === trim( $content ) ) {
 		return $content;
@@ -1144,7 +1057,6 @@ function nvx_content_presentation_enhance( string $content ): string {
 	$content = nvx_content_enhance_director_blocks( $content );
 	$content = nvx_content_rewrite_morpheus_faq( $content );
 	$content = nvx_content_unify_ctas( $content );
-	$content = nvx_content_strip_versioned_class_tokens( $content );
 	// Closing CTA strip runs once at priority 99 (after page modules at ~19 rebuild content).
 
 	return $content;

@@ -38,16 +38,18 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out repository
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Validate workflow and deployment contracts
+        shell: bash
         run: |
           set -euo pipefail
           bash -n tools/deploy/deploy-to-staging2.sh
@@ -58,16 +60,17 @@ jobs:
     needs: contract
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     environment:
       name: staging2
       url: https://staging2.nuvanx.com
     env:
       DEPLOY_SHA: ${{ github.sha }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      CI: true
     steps:
       - name: Check out master history
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        uses: actions/checkout@v4
         with:
           ref: master
           fetch-depth: 0
@@ -77,11 +80,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Trim accidental whitespace/newlines from workflow_dispatch input.
+          # Trim accidental whitespace/newlines from inputs.
           DEPLOY_SHA="$(printf '%s' "$DEPLOY_SHA" | tr -d '[:space:]')"
           echo "DEPLOY_SHA=$DEPLOY_SHA" >> "$GITHUB_ENV"
           [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || {
-            echo 'git_sha must be a full lowercase 40-character SHA.' >&2
+            echo 'DEPLOY_SHA must be a full lowercase 40-character SHA.' >&2
             exit 1
           }
           git fetch --no-tags origin master
@@ -124,16 +127,25 @@ jobs:
 
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
-          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
-          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts"
 
-          printf 'Host nvx-staging2\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile %s/.ssh/staging2_key\n  IdentitiesOnly yes\n  BatchMode yes\n  StrictHostKeyChecking yes\n  UserKnownHostsFile %s/.ssh/known_hosts\n  ConnectTimeout 15\n' \
-            "$STAGING2_SSH_HOST" \
-            "$STAGING2_SSH_USER" \
-            "$SSH_PORT" \
-            "$HOME" \
-            "$HOME" > "$HOME/.ssh/config"
+          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
+          chmod 600 "$HOME/.ssh/staging2_key"
+
+          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName $STAGING2_SSH_HOST
+            User $STAGING2_SSH_USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
           chmod 600 "$HOME/.ssh/config"
 
       - name: Verify SiteGround staging2 target
@@ -142,7 +154,6 @@ jobs:
           set -euo pipefail
           # WP_ROOT is validated locally before deliberate remote interpolation.
           # shellcheck disable=SC2029
-          # SiteGround SSH is occasionally briefly unreachable from Actions runners.
           attempt=1
           max_attempts=5
           while true; do
@@ -225,21 +236,29 @@ jobs:
           set -euo pipefail
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
+
           if [[ -n "${STAGING2_SSH_PRIVATE_KEY:-}" ]]; then
             printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
             chmod 600 "$HOME/.ssh/staging2_key"
           fi
+
           if [[ -n "${STAGING2_SSH_KNOWN_HOSTS:-}" ]]; then
             printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
             chmod 600 "$HOME/.ssh/known_hosts"
           fi
 
-          printf 'Host nvx-staging2\n  HostName %s\n  User %s\n  Port %s\n  IdentityFile %s/.ssh/staging2_key\n  IdentitiesOnly yes\n  BatchMode yes\n  StrictHostKeyChecking yes\n  UserKnownHostsFile %s/.ssh/known_hosts\n  ConnectTimeout 15\n' \
-            "${STAGING2_SSH_HOST:-staging2.nuvanx.com}" \
-            "${STAGING2_SSH_USER:-customer}" \
-            "${STAGING2_SSH_PORT:-18765}" \
-            "$HOME" \
-            "$HOME" > "$HOME/.ssh/config"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName ${STAGING2_SSH_HOST:-staging2.nuvanx.com}
+            User ${STAGING2_SSH_USER:-customer}
+            Port ${STAGING2_SSH_PORT:-18765}
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 15
+          EOF
           chmod 600 "$HOME/.ssh/config"
 
       - name: Remove temporary remote payload

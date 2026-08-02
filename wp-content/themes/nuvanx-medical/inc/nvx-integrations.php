@@ -26,6 +26,20 @@ function nvx_theme_is_goya_page(): bool {
 }
 
 add_filter(
+	'language_attributes',
+	function( $output ) {
+		if ( false !== strpos( $output, 'lang="es"' ) && false === strpos( $output, 'lang="es-ES"' ) ) {
+			return str_replace( 'lang="es"', 'lang="es-ES"', $output );
+		}
+		if ( '' === $output || false === strpos( $output, 'lang=' ) ) {
+			return $output . ' lang="es-ES"';
+		}
+		return $output;
+	},
+	999
+);
+
+add_filter(
 	'redirect_canonical',
 	function ( $redirect_url ) {
 		return nvx_theme_is_goya_page() ? false : $redirect_url;

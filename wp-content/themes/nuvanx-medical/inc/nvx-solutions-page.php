@@ -72,7 +72,7 @@ add_filter( 'template_include', 'nvx_solutions_template_include', 99 );
  * skip the second render and leave the dedicated page template empty).
  */
 function nvx_solutions_hub_markup(): string {
-	$template = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas-github.php';
+	$template = get_template_directory() . '/template-parts/content/nvx-soluciones-medicas.php';
 	if ( ! is_readable( $template ) ) {
 		return '';
 	}

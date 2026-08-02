@@ -1,6 +1,6 @@
 <?php
 /**
- * GitHub-managed medical solutions hub.
+ * Medical solutions hub markup.
  *
  * WordPress provides routing and metadata only. Visible structure for
  * /soluciones-medicas/ is versioned here; clinical solution groups live in

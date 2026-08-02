@@ -70,8 +70,8 @@ require_once __DIR__ . '/nvx-structured-data.php';
 require_once __DIR__ . '/nvx-aesthetic-treatment-schema.php';
 require_once __DIR__ . '/nvx-seo-metadata.php';
 require_once __DIR__ . '/nvx-seo-production-readiness.php';
-require_once __DIR__ . '/nvx-staging2-canonical-closure.php';
-require_once __DIR__ . '/nvx-contacto-audit-fixes.php';
+// Contact SEO/schema: nvx-contacto-valoracion-page.php (loaded from functions.php).
+// Non-production OG host policy: nvx-document-governance.php.
 require_once __DIR__ . '/nvx-faq-content-v2.php';
 require_once __DIR__ . '/nvx-medical-review.php';
 require_once __DIR__ . '/nvx-btl-clinical-governance.php';

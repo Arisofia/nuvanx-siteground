@@ -54,7 +54,7 @@ function nvx_contacto_opengraph_image_meta(): array {
  * @param mixed $image_container Yoast Open Graph image container.
  */
 function nvx_contacto_add_yoast_opengraph_image( $image_container ): void {
-	if ( ! function_exists( 'nvx_contacto_audit_is_contact_page' ) || ! nvx_contacto_audit_is_contact_page() ) {
+	if ( ! function_exists( 'nvx_is_contacto_page_request' ) || ! nvx_is_contacto_page_request() ) {
 		return;
 	}
 
@@ -115,8 +115,8 @@ add_action( 'wp_head', 'nvx_canonical_schema_head_buffer_start', -9999 );
  */
 function nvx_contacto_enforce_final_og_image( string $html ): string {
 	if (
-		! function_exists( 'nvx_contacto_audit_is_contact_page' )
-		|| ! nvx_contacto_audit_is_contact_page()
+		! function_exists( 'nvx_is_contacto_page_request' )
+		|| ! nvx_is_contacto_page_request()
 		|| preg_match( '/<meta\b[^>]*\bproperty\s*=\s*(["\'])og:image\1/i', $html )
 	) {
 		return $html;

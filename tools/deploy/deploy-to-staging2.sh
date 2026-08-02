@@ -70,7 +70,7 @@ SOURCE_REQUIRED_FILES=(
   assets/js/nvx-runtime-governance.js
   assets/css/nvx-soluciones-medicas.css
   assets/images/nvx-solutions-hero-architecture.svg
-  template-parts/content/nvx-soluciones-medicas-github.php
+  template-parts/content/nvx-soluciones-medicas.php
   templates/page-soluciones-medicas.php
   inc/nvx-blog-system.php
   inc/nvx-document-governance.php

@@ -22,21 +22,23 @@ get_header();
 
 echo "\n<!-- nvx-solutions-template-active -->\n";
 
-if ( is_readable( $partial ) ) {
-	// Capture partial without touching outer document buffers.
+$markup = function_exists( 'nvx_solutions_hub_markup' ) ? nvx_solutions_hub_markup() : '';
+if ( '' === trim( $markup ) && is_readable( $partial ) ) {
+	// Fallback if the helper is unavailable: load the view without require_once.
 	$level = ob_get_level();
 	ob_start();
-	include_once $partial;
+	load_template( $partial, false );
 	$markup = (string) ob_get_clean();
 	while ( ob_get_level() > $level ) {
 		ob_end_clean();
 	}
-	if ( '' !== trim( $markup ) ) {
-		// Partial builds HTML with escaped helpers; do not re-escape compound markup.
-		echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- composed from escaped theme partial.
-	} else {
-		echo '<div class="nvx-shell"><h1 class="nvx-heading">Soluciones médicas</h1><p>Plantilla de soluciones vacía.</p></div>';
-	}
+}
+
+if ( '' !== trim( $markup ) ) {
+	// Partial builds HTML with escaped helpers; do not re-escape compound markup.
+	echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- composed from escaped theme partial.
+} elseif ( is_readable( $partial ) ) {
+	echo '<div class="nvx-shell"><h1 class="nvx-heading">Soluciones médicas</h1><p>Plantilla de soluciones vacía.</p></div>';
 } else {
 	echo '<div class="nvx-shell"><h1 class="nvx-heading">Soluciones médicas</h1><p>Falta el partial versionado de soluciones.</p></div>';
 }

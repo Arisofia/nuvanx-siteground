@@ -84,6 +84,9 @@ while ( have_posts() ) :
 	if ( ! $has_managed_editorial && function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
 		$has_managed_editorial = true;
 	}
+	if ( ! $has_managed_editorial && function_exists( 'nvxIsClinicsHub' ) && nvxIsClinicsHub() ) {
+		$has_managed_editorial = true;
+	}
 
 	$has_media = has_post_thumbnail();
 	// Legal CMS pages own the document H1 via content (promoted in page-hygiene).

@@ -63,7 +63,7 @@ function nvx_content_is_aesthetic_medicine_page( string $content ): bool {
 	if ( false === strpos( $content, 'nvx-aesthetic-editorial' )
 		&& nvx_aesthetic_is_singular_context()
 		&& ! preg_match(
-			'/nvx-laser-hub-page|nvx-laser-editorial|id=["\']nvx-laser-h1["\']|nvx-endolift-editorial|nvx-endolift-hero/iu',
+			'/nvx-laser-hub-page|nvx-brand-page--laser-hub|nvx-laser-editorial|id=["\']nvx-laser-h1["\']|nvx-endolift-editorial|nvx-endolift-hero/iu',
 			$content
 		)
 	) {

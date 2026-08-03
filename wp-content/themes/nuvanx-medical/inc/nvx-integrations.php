@@ -303,14 +303,14 @@ add_filter(
 				// Remove Facebook Signal scripts and noscript tags
 				$buffer = preg_replace( '/<script[^>]*facebook[^>]*>.*?<\/script>/is', '', $buffer );
 				$buffer = preg_replace( '/<noscript[^>]*>.*?facebook.*?<\/noscript>/is', '', $buffer );
-				
+
 				// Remove Facebook Pixel initialization
 				$buffer = preg_replace( '/<!--.*?Facebook Pixel.*?-->/is', '', $buffer );
 				$buffer = preg_replace( '/<!--.*?Meta Pixel.*?-->/is', '', $buffer );
-				
+
 				// Remove _fbp cookie setting scripts
 				$buffer = preg_replace( '/_fbp\s*=.*?;/is', '', $buffer );
-				
+
 				return $buffer;
 			}
 		);

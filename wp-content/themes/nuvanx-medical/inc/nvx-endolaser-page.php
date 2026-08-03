@@ -206,5 +206,5 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 	);
 
 }
-add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
 

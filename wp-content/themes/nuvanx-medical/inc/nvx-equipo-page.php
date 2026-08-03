@@ -325,6 +325,17 @@ function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, 
 }
 
 /**
+ * Extracts a unique identity key from a staff card to avoid deduplication failures due to whitespace.
+ */
+function nvx_equipo_card_identity_key( string $card ): string {
+	if ( preg_match( '/<h[2-6][^>]*>(.*?)<\/h[2-6]>/iu', $card, $m ) ) {
+		return md5( strtolower( trim( wp_strip_all_tags( $m[1] ) ) ) );
+	}
+	// Fallback to hashing the raw card if no heading is found.
+	return md5( trim( $card ) );
+}
+
+/**
  * Extracts and categorizes unique staff cards from CMS content.
  *
  * @param string $content CMS content containing staff cards.
@@ -346,8 +357,9 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 	foreach ( $patterns as $pattern ) {
 		if ( preg_match_all( $pattern, $content, $m ) && ! empty( $m[0] ) ) {
 			foreach ( $m[0] as $card ) {
-				if ( ! isset( $found[ $card ] ) ) {
-					$found[ $card ] = true;
+				$identity_key = nvx_equipo_card_identity_key( $card );
+				if ( ! isset( $found[ $identity_key ] ) ) {
+					$found[ $identity_key ] = true;
 					nvx_equipo_categorize_staff_card( $card, $rivera_media, $ivon_media, $fabio_media, $cristina_media, $other_cards );
 				}
 			}
@@ -978,5 +990,5 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	return '<div class="nvx-brand-page nvx-brand-page--equipo">' . $hero . $body . '</div>';
 }
-add_filter( 'the_content', 'nvx_content_restructure_equipo_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_equipo_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
 

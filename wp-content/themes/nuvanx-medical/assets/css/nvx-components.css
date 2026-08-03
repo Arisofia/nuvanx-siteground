@@ -358,6 +358,15 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 }
 
 /* —— Valoración modal (global CTA, keeps page context) —— */
+.nvx-valoracion-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+}
 .nvx-valoracion-modal:not([open]) {
   display: none;
 }
@@ -988,15 +997,7 @@ article.nvx-page > .nvx-page-hero{
   transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
   resize: vertical}
 
-.nvx-valoracion-modal{
-  position:fixed;
-  inset:0;
-  z-index:3000;
-  z-index:3000;
-    align-items:flex-end;
-  justify-content:center;
-    padding:0;
-  box-sizing:border-box}
+
 
 .nvx-valoracion-modal__panel{
   position:relative;

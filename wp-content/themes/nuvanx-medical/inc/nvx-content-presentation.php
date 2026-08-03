@@ -20,14 +20,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Backwards compatibility: define constants if not already set (fallback to config)
 if ( ! defined( 'NVX_DIRECTOR_COLEGIADO' ) ) {
-	define( 'NVX_DIRECTOR_COLEGIADO', '282864786' );
+	define( 'NVX_DIRECTOR_COLEGIADO', nvx_medical_colegiado( 'director' ) ?: '282864786' );
 }
 if ( ! defined( 'NVX_IVON_COLEGIADO' ) ) {
-	define( 'NVX_IVON_COLEGIADO', '284621525' );
+	define( 'NVX_IVON_COLEGIADO', nvx_medical_colegiado( 'ivon' ) ?: '284621525' );
 }
 if ( ! defined( 'NVX_FABIO_COLEGIADO' ) ) {
-	define( 'NVX_FABIO_COLEGIADO', '282877543' );
+	define( 'NVX_FABIO_COLEGIADO', nvx_medical_colegiado( 'fabio' ) ?: '282877543' );
 }
 
 /**
@@ -41,7 +42,7 @@ function nvx_cta_valoracion_url(): string {
  * @return string
  */
 function nvx_cta_whatsapp_url(): string {
-	return 'https://wa.me/34669319836';
+	return nvx_whatsapp_url( 'primary' );
 }
 
 
@@ -178,7 +179,7 @@ function nvx_home_action_banner_markup(): string {
 	$html .= sprintf(
 		'<a class="nvx-button nvx-button--light nvx-home-action-banner__cta nvx-open-valoracion-modal" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',
 		esc_url( $valoracion ),
-			esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
+		esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
 		'<a class="nvx-button nvx-button--secondary-on-dark nvx-home-action-banner__cta" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
@@ -292,7 +293,7 @@ function nvx_content_replace_values_sections( string $content ): string {
 	$replacement = nvx_values_section_markup();
 	// TODO(legacy-guard): Remove once nvx-cms-content-cleanup.php --confirm has run on production.
 	// Strip residual home editorial intro blocks (nvx-home-editorial class retired from markup).
-	$updated     = preg_replace(
+	$updated = preg_replace(
 		'/<section\b[^>]*class="[^"]*nvx-home-editorial[^"]*"[^>]*>[\s\S]*?<\/section>/i',
 		$replacement,
 		$content,
@@ -384,8 +385,8 @@ function nvx_content_ensure_post_values_action_banner( string $content ): string
 		return $content;
 	}
 
-	$banner = nvx_home_action_banner_markup();
-	$count  = 0;
+	$banner  = nvx_home_action_banner_markup();
+	$count   = 0;
 	$updated = nvx_content_preg_replace_keep(
 		nvx_content_values_section_pattern(),
 		'$1' . $banner,
@@ -414,11 +415,12 @@ function nvx_content_ensure_post_values_action_banner( string $content ): string
  * Keep only the first canonical method section; remove further copies.
  */
 function nvx_content_strip_extra_method_sections( string $content ): string {
-	$seen = 0;
+	$seen    = 0;
 	$updated = preg_replace_callback(
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-method-section\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		static function ( array $m ) use ( &$seen ): string {
-			$seen++;			return ( 1 === $seen ) ? $m[0] : '';
+			$seen++;
+			return ( 1 === $seen ) ? $m[0] : '';
 		},
 		$content
 	);
@@ -554,7 +556,7 @@ function nvx_exion_investment_markup(): string {
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Inversión', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-exion-investment-title" class="nvx-brand-title">' . esc_html__( 'Precio de EXION® BTL en NUVANX', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-			'El PVP de EXION® no se publica como tarifa fija online porque depende del aplicador (Face, Body o Fractional RF), de la zona, del número de sesiones y de si se combina con otros protocolos. El presupuesto se documenta por escrito tras la valoración médica.',
+		'El PVP de EXION® no se publica como tarifa fija online porque depende del aplicador (Face, Body o Fractional RF), de la zona, del número de sesiones y de si se combina con otros protocolos. El presupuesto se documenta por escrito tras la valoración médica.',
 		'nuvanx-medical'
 	) . '</p>';
 	$html .= '<ul class="nvx-brand-list nvx-exion-investment__factors">';
@@ -704,8 +706,8 @@ function nvx_content_unify_ctas( string $content ): string {
  */
 function nvx_content_strip_hero_inline_styles( string $content ): string {
 	// Opening tags for hero stages / copy that may carry inline layout residue.
-	$hero_bits = 'nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage|nvx-ipl-hero';
-	$copy_bits = 'nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy|nvx-ipl-hero__copy';
+	$hero_bits  = 'nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-hero|nvx-home-hero-stage|nvx-ipl-hero';
+	$copy_bits  = 'nvx-brand-hero__copy|nvx-hero__copy|nvx-page-hero__copy|nvx-editorial-hero__copy|nvx-ipl-hero__copy';
 	$inner_bits = 'nvx-brand-hero__inner|nvx-hero__inner|nvx-page-hero__inner';
 	$pattern    = '/(<(?:section|div)\b[^>]*\bclass="[^"]*\b(?:' . $hero_bits . '|' . $copy_bits . '|' . $inner_bits . ')\b[^"]*"[^>]*)\s+style="[^"]*"/iu';
 	$updated    = preg_replace( $pattern, '$1', $content );
@@ -833,7 +835,7 @@ function nvx_content_normalize_interior_hero_shells( string $content ): string {
 				'/\b(?:nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-ipl-hero)\b/u',
 				$class
 			);
-			$is_hero_copy = (bool) preg_match(
+			$is_hero_copy  = (bool) preg_match(
 				'/\b(?:nvx-brand-hero__copy|nvx-editorial-hero__copy|nvx-page-hero__copy|nvx-hero__copy|nvx-ipl-hero__copy)\b/u',
 				$class
 			);
@@ -1014,9 +1016,9 @@ function nvx_content_protect_team_media( string $content, array &$team_slots ): 
 			if ( false !== stripos( $attrs, 'nvx-brand-card__media' ) ) {
 				$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-brand-card__media--portrait' );
 			}
-			$inner = $m[2];
-			$inner = preg_replace( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner ) ?? $inner;
-			$inner = preg_replace_callback(
+			$inner              = $m[2];
+			$inner              = preg_replace( '/\bnvx-media--body\b/i', 'nvx-media--doctor', $inner ) ?? $inner;
+			$inner              = preg_replace_callback(
 				'/<img\b([^>]*)>/iu',
 				'nvx_content_normalize_doctor_img_tag',
 				$inner
@@ -1206,7 +1208,7 @@ function nvx_generic_faq_markup(): string {
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<h2 class="nvx-brand-title" id="nvx-generic-faq-title">' . esc_html__( 'Preguntas Frecuentes', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq nvx-generic-faq-list">';
-	
+
 	$faqs = array(
 		array( '¿Duele el procedimiento?', 'La percepción varía según el umbral personal y la zona. Según el protocolo pueden usarse anestesia local, frío o cremas tópicas para mejorar el confort; la experiencia se valora de forma individual en consulta.' ),
 		array( '¿Cuánta recuperación necesito?', 'Depende del tratamiento, la intensidad del protocolo y tu respuesta individual. Algunos procedimientos permiten retomar la actividad habitual con rapidez; otros (por ejemplo, láser ablativo) implican eritema, descamación o varios días de curación. La pauta exacta se define en la valoración y el consentimiento.' ),
@@ -1215,13 +1217,13 @@ function nvx_generic_faq_markup(): string {
 	);
 
 	foreach ( $faqs as $i => $faq ) {
-		$open = ( 0 === $i ) ? ' open' : '';
+		$open  = ( 0 === $i ) ? ' open' : '';
 		$html .= '<details class="nvx-brand-faq-item"' . $open . '>';
 		$html .= '<summary><span>' . esc_html( $faq[0] ) . '</span><span class="nvx-brand-faq-icon"></span></summary>';
 		$html .= '<div class="nvx-brand-faq-item__body"><p>' . esc_html( $faq[1] ) . '</p></div>';
 		$html .= '</details>';
 	}
-	
+
 	$html .= '</div></div></section>';
 	return $html;
 }

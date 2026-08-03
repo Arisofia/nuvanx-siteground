@@ -168,7 +168,7 @@ function nvx_laser_editorial_catalog(): array {
  */
 function nvx_laser_editorial_body_markup(): string {
 	// Sections are direct children of .nvx-brand-page (same as Endolift / med hubs).
-	$html  = '';
+	$html = '';
 
 	$html .= '<section class="nvx-brand-section nvx-laser-focus" aria-labelledby="nvx-laser-focus-title">';
 	$html .= '<div class="nvx-brand-section__inner">';
@@ -176,19 +176,19 @@ function nvx_laser_editorial_body_markup(): string {
 	$html .= '<h2 id="nvx-laser-focus-title" class="nvx-brand-title">' . esc_html__( 'La diferencia entre tecnología e indicación médica', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-laser-focus-grid">';
 
-	$pillars = nvx_laser_editorial_catalog()['pillars'] ?? array();
+	$pillars    = nvx_laser_editorial_catalog()['pillars'] ?? array();
 	$pillar_idx = 0;
 	foreach ( $pillars as $pillar ) {
 		if ( ! is_array( $pillar ) ) {
 			continue;
 		}
-		$pid = 'nvx-laser-pillar-' . $pillar_idx;
+		$pid   = 'nvx-laser-pillar-' . $pillar_idx;
 		$html .= '<article class="nvx-laser-pillar" aria-labelledby="' . esc_attr( $pid ) . '">';
 		$html .= nvx_laser_icon( isset( $pillar['icon'] ) ? (string) $pillar['icon'] : 'spectrum' );
 		$html .= '<h3 id="' . esc_attr( $pid ) . '" class="nvx-laser-pillar__title">' . esc_html( (string) ( $pillar['title'] ?? '' ) ) . '</h3>';
 		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $pillar['body'] ?? '' ) ) . '</p>';
 		$html .= '</article>';
-		$pillar_idx++;
+		++$pillar_idx;
 	}
 
 	$html .= '</div></div></section>';
@@ -200,15 +200,15 @@ function nvx_laser_editorial_body_markup(): string {
 	$html .= '<div class="nvx-laser-platform-list">';
 
 	$platforms = nvx_laser_editorial_catalog()['platforms'] ?? array();
-	$plat_idx = 0;
+	$plat_idx  = 0;
 	foreach ( $platforms as $platform ) {
 		if ( ! is_array( $platform ) ) {
 			continue;
 		}
-		$url = isset( $platform['url'] ) && is_string( $platform['url'] ) ? $platform['url'] : '#';
+		$url        = isset( $platform['url'] ) && is_string( $platform['url'] ) ? $platform['url'] : '#';
 		$plat_title = (string) ( $platform['title'] ?? '' );
-		$pid = 'nvx-laser-platform-' . $plat_idx;
-		
+		$pid        = 'nvx-laser-platform-' . $plat_idx;
+
 		$html .= '<article class="nvx-laser-platform" aria-labelledby="' . esc_attr( $pid ) . '">';
 		$html .= '<div class="nvx-laser-platform__main">';
 		$html .= '<div class="nvx-laser-platform__head">';
@@ -225,7 +225,7 @@ function nvx_laser_editorial_body_markup(): string {
 		$html .= '<p class="nvx-laser-meta-label nvx-laser-meta-label--spaced">' . esc_html__( 'Recuperación', 'nuvanx-medical' ) . '</p>';
 		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $platform['recover'] ?? '' ) ) . '</p>';
 		$html .= '</aside></article>';
-		$plat_idx++;
+		++$plat_idx;
 	}
 
 	$html .= '</div></div></section>';
@@ -276,13 +276,17 @@ function nvx_laser_hub_page_markup(): string {
  *
  * @param string $content Existing post content (unused on hub).
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) { return $owner; }
-	if ( function_exists('nvx_laser_is_hub_request') && nvx_laser_is_hub_request() ) {
-		return 'nvx_laser_medicine_page';
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner; }
+		if ( function_exists( 'nvx_laser_is_hub_request' ) && nvx_laser_is_hub_request() ) {
+			return 'nvx_laser_medicine_page';
+		}
+		return $owner;
 	}
-	return $owner;
-});
+);
 
 function nvx_content_restructure_laser_medicine_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
@@ -293,4 +297,3 @@ function nvx_content_restructure_laser_medicine_page( string $content ): string 
 	return nvx_laser_hub_page_markup();
 }
 add_filter( 'the_content', 'nvx_content_restructure_laser_medicine_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
-

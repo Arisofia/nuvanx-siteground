@@ -9,7 +9,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 /**
@@ -19,17 +19,17 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return string HTML markup for the hero section.
  */
 function nvx_render_matrix_hero( array $data ): string {
-    $html = '<header class="nvx-strategy-intro">';
-    if ( ! empty( $data['kicker'] ) ) {
-        $html .= '<p class="nvx-eyebrow">' . esc_html( $data['kicker'] ) . '</p>';
-    }
-    $html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ?? $data['title'] ?? '' ) . '</h1>';
-    if ( ! empty( $data['lead'] ) ) {
-        $html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
-    }
-    $html .= '<p><a class="nvx-button nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
-    $html .= '</header>';
-    return $html;
+	$html = '<header class="nvx-strategy-intro">';
+	if ( ! empty( $data['kicker'] ) ) {
+		$html .= '<p class="nvx-eyebrow">' . esc_html( $data['kicker'] ) . '</p>';
+	}
+	$html .= '<h1 class="nvx-strategy-title">' . esc_html( $data['h1'] ?? $data['title'] ?? '' ) . '</h1>';
+	if ( ! empty( $data['lead'] ) ) {
+		$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
+	}
+	$html .= '<p><a class="nvx-button nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '</header>';
+	return $html;
 }
 
 /**
@@ -40,11 +40,11 @@ function nvx_render_matrix_hero( array $data ): string {
  * @return string HTML markup for the text section.
  */
 function nvx_render_matrix_text_section( string $heading, string $content ): string {
-    $html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
-    $html .= '<h2>' . esc_html( $heading ) . '</h2>';
-    $html .= '<p>' . esc_html( $content ) . '</p>';
-    $html .= '</div></section>';
-    return $html;
+	$html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
+	$html .= '<h2>' . esc_html( $heading ) . '</h2>';
+	$html .= '<p>' . esc_html( $content ) . '</p>';
+	$html .= '</div></section>';
+	return $html;
 }
 
 /**
@@ -56,14 +56,14 @@ function nvx_render_matrix_text_section( string $heading, string $content ): str
  * @return string HTML markup for the list section.
  */
 function nvx_render_matrix_list_section( string $heading, array $items, string $list_tag = 'ul' ): string {
-    $html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
-    $html .= '<h2>' . esc_html( $heading ) . '</h2>';
-    $html .= '<' . esc_attr( $list_tag ) . ' class="nvx-brand-list">';
-    foreach ( $items as $item ) {
-        $html .= '<li>' . esc_html( $item ) . '</li>';
-    }
-    $html .= '</' . esc_attr( $list_tag ) . '></div></section>';
-    return $html;
+	$html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
+	$html .= '<h2>' . esc_html( $heading ) . '</h2>';
+	$html .= '<' . esc_attr( $list_tag ) . ' class="nvx-brand-list">';
+	foreach ( $items as $item ) {
+		$html .= '<li>' . esc_html( $item ) . '</li>';
+	}
+	$html .= '</' . esc_attr( $list_tag ) . '></div></section>';
+	return $html;
 }
 
 /**
@@ -73,34 +73,34 @@ function nvx_render_matrix_list_section( string $heading, array $items, string $
  * @return string HTML markup for the evolution section, or empty string if no evolution data.
  */
 function nvx_render_matrix_evolution_section( array $data ): string {
-    if ( empty( $data['evolution'] ) ) {
-        return '';
-    }
+	if ( empty( $data['evolution'] ) ) {
+		return '';
+	}
 
-    $html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
-    $html .= '<h2>' . esc_html__( 'Evolución y seguridad', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<p>' . esc_html( $data['evolution'] ) . '</p>';
+	$html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
+	$html .= '<h2>' . esc_html__( 'Evolución y seguridad', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<p>' . esc_html( $data['evolution'] ) . '</p>';
 
-    if ( ! empty( $data['risks'] ) && is_array( $data['risks'] ) ) {
-        $html .= '<h3>' . esc_html__( 'Riesgos que deben explicarse', 'nuvanx-medical' ) . '</h3>';
-        $html .= '<ul class="nvx-brand-list">';
-        foreach ( $data['risks'] as $risk ) {
-            $html .= '<li>' . esc_html( $risk ) . '</li>';
-        }
-        $html .= '</ul>';
-    }
+	if ( ! empty( $data['risks'] ) && is_array( $data['risks'] ) ) {
+		$html .= '<h3>' . esc_html__( 'Riesgos que deben explicarse', 'nuvanx-medical' ) . '</h3>';
+		$html .= '<ul class="nvx-brand-list">';
+		foreach ( $data['risks'] as $risk ) {
+			$html .= '<li>' . esc_html( $risk ) . '</li>';
+		}
+		$html .= '</ul>';
+	}
 
-    if ( ! empty( $data['combinations'] ) && is_array( $data['combinations'] ) ) {
-        $html .= '<h3>' . esc_html__( 'Combinaciones posibles', 'nuvanx-medical' ) . '</h3>';
-        $html .= '<ul class="nvx-brand-list">';
-        foreach ( $data['combinations'] as $comb ) {
-            $html .= '<li>' . esc_html( $comb ) . '</li>';
-        }
-        $html .= '</ul>';
-    }
+	if ( ! empty( $data['combinations'] ) && is_array( $data['combinations'] ) ) {
+		$html .= '<h3>' . esc_html__( 'Combinaciones posibles', 'nuvanx-medical' ) . '</h3>';
+		$html .= '<ul class="nvx-brand-list">';
+		foreach ( $data['combinations'] as $comb ) {
+			$html .= '<li>' . esc_html( $comb ) . '</li>';
+		}
+		$html .= '</ul>';
+	}
 
-    $html .= '</div></section>';
-    return $html;
+	$html .= '</div></section>';
+	return $html;
 }
 
 /**
@@ -110,73 +110,73 @@ function nvx_render_matrix_evolution_section( array $data ): string {
  * @return string HTML markup for the FAQs section, or empty string if no FAQs.
  */
 function nvx_render_matrix_faqs_section( array $faqs ): string {
-    if ( empty( $faqs ) || ! is_array( $faqs ) ) {
-        return '';
-    }
+	if ( empty( $faqs ) || ! is_array( $faqs ) ) {
+		return '';
+	}
 
-    $html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
-    $html .= '<h2>' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
-    $html .= '<div class="nvx-faq-accordion">';
-    foreach ( $faqs as $faq ) {
-        $html .= '<details class="nvx-faq-item">';
-        $html .= '<summary class="nvx-faq-question">' . esc_html( $faq['q'] ) . '</summary>';
-        $html .= '<div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div>';
-        $html .= '</details>';
-    }
-    $html .= '</div></div></section>';
-    return $html;
+	$html  = '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
+	$html .= '<h2>' . esc_html__( 'Preguntas frecuentes', 'nuvanx-medical' ) . '</h2>';
+	$html .= '<div class="nvx-faq-accordion">';
+	foreach ( $faqs as $faq ) {
+		$html .= '<details class="nvx-faq-item">';
+		$html .= '<summary class="nvx-faq-question">' . esc_html( $faq['q'] ) . '</summary>';
+		$html .= '<div class="nvx-faq-answer"><p>' . esc_html( $faq['a'] ) . '</p></div>';
+		$html .= '</details>';
+	}
+	$html .= '</div></div></section>';
+	return $html;
 }
 
 /**
  * Render diagnosis and mechanism sections.
  */
 function nvx_render_matrix_sections_primary( array $data ): string {
-    $html = '';
+	$html = '';
 
-    if ( ! empty( $data['diagnosis'] ) ) {
-        $heading = ! empty( $data['diagnosis_heading'] ) ? $data['diagnosis_heading'] : __( 'El valor del diagnóstico médico', 'nuvanx-medical' );
-        $html   .= nvx_render_matrix_text_section( $heading, $data['diagnosis'] );
-    }
+	if ( ! empty( $data['diagnosis'] ) ) {
+		$heading = ! empty( $data['diagnosis_heading'] ) ? $data['diagnosis_heading'] : __( 'El valor del diagnóstico médico', 'nuvanx-medical' );
+		$html   .= nvx_render_matrix_text_section( $heading, $data['diagnosis'] );
+	}
 
-    if ( ! empty( $data['mechanism'] ) ) {
-        $heading = ! empty( $data['mechanism_heading'] ) ? $data['mechanism_heading'] : __( 'Mecanismo de acción', 'nuvanx-medical' );
-        $html   .= is_array( $data['mechanism'] )
-            ? nvx_render_matrix_list_section( $heading, $data['mechanism'] )
-            : nvx_render_matrix_text_section( $heading, $data['mechanism'] );
-    }
+	if ( ! empty( $data['mechanism'] ) ) {
+		$heading = ! empty( $data['mechanism_heading'] ) ? $data['mechanism_heading'] : __( 'Mecanismo de acción', 'nuvanx-medical' );
+		$html   .= is_array( $data['mechanism'] )
+			? nvx_render_matrix_list_section( $heading, $data['mechanism'] )
+			: nvx_render_matrix_text_section( $heading, $data['mechanism'] );
+	}
 
-    return $html;
+	return $html;
 }
 
 /**
  * Render indications, precautions, and process sections.
  */
 function nvx_render_matrix_sections_secondary( array $data ): string {
-    $html = '';
+	$html = '';
 
-    if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
-        $heading = ! empty( $data['indications_heading'] ) ? $data['indications_heading'] : __( 'Indicaciones: Qué tratamos', 'nuvanx-medical' );
-        $html   .= nvx_render_matrix_list_section( $heading, $data['indications'], 'ul' );
-    }
+	if ( ! empty( $data['indications'] ) && is_array( $data['indications'] ) ) {
+		$heading = ! empty( $data['indications_heading'] ) ? $data['indications_heading'] : __( 'Indicaciones: Qué tratamos', 'nuvanx-medical' );
+		$html   .= nvx_render_matrix_list_section( $heading, $data['indications'], 'ul' );
+	}
 
-    if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
-        $heading = ! empty( $data['precautions_heading'] ) ? $data['precautions_heading'] : __( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' );
-        $html   .= nvx_render_matrix_list_section( $heading, $data['precautions'], 'ul' );
-    }
+	if ( ! empty( $data['precautions'] ) && is_array( $data['precautions'] ) ) {
+		$heading = ! empty( $data['precautions_heading'] ) ? $data['precautions_heading'] : __( 'Precauciones: Cuándo no tratar', 'nuvanx-medical' );
+		$html   .= nvx_render_matrix_list_section( $heading, $data['precautions'], 'ul' );
+	}
 
-    if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
-        $heading = ! empty( $data['process_heading'] ) ? $data['process_heading'] : __( 'Proceso en clínica', 'nuvanx-medical' );
-        $html   .= nvx_render_matrix_list_section( $heading, $data['process'], 'ol' );
-    }
+	if ( ! empty( $data['process'] ) && is_array( $data['process'] ) ) {
+		$heading = ! empty( $data['process_heading'] ) ? $data['process_heading'] : __( 'Proceso en clínica', 'nuvanx-medical' );
+		$html   .= nvx_render_matrix_list_section( $heading, $data['process'], 'ol' );
+	}
 
-    return $html;
+	return $html;
 }
 
 /**
  * Render matrix core sections (diagnosis, mechanism, indications, precautions, process).
  */
 function nvx_render_matrix_sections( array $data ): string {
-    return nvx_render_matrix_sections_primary( $data ) . nvx_render_matrix_sections_secondary( $data );
+	return nvx_render_matrix_sections_primary( $data ) . nvx_render_matrix_sections_secondary( $data );
 }
 
 /**
@@ -188,68 +188,67 @@ function nvx_render_matrix_sections( array $data ): string {
  * @return string Extracted and validated HTML block.
  */
 function nvx_render_13_point_matrix( array $data ): string {
-    $html  = '<article class="nvx-brand-page nvx-treatment-page nvx-protocol-page">';
-    $html .= nvx_render_matrix_hero( $data );
-    $html .= nvx_render_matrix_sections( $data );
-    $html .= nvx_render_matrix_evolution_section( $data );
-    $html .= nvx_render_matrix_faqs_section( $data['faqs'] ?? array() );
-    $html .= '</article>';
-    return $html;
+	$html  = '<article class="nvx-brand-page nvx-treatment-page nvx-protocol-page">';
+	$html .= nvx_render_matrix_hero( $data );
+	$html .= nvx_render_matrix_sections( $data );
+	$html .= nvx_render_matrix_evolution_section( $data );
+	$html .= nvx_render_matrix_faqs_section( $data['faqs'] ?? array() );
+	$html .= '</article>';
+	return $html;
 }
 
 /**
  * Matches a request slug against a catalog array.
  */
 function nvx_match_catalog_page( string $slug, array $catalog ): ?array {
-    foreach ( $catalog as $page ) {
-        $slug_value = (string) ( $page['slug'] ?? '' );
-        if ( '' === $slug_value ) {
-            continue;
-        }
-        $catalog_slug_parts = explode( '/', $slug_value );
-        $catalog_final_slug = end( $catalog_slug_parts );
-        if ( $catalog_final_slug !== $slug ) {
-            continue;
-        }
-        $review_status = (string) ( $page['review_status'] ?? 'approved_for_publication' );
-        if ( 'approved_for_publication' === $review_status ) {
-            return (array) $page;
-        }
-    }
-    return null;
+	foreach ( $catalog as $page ) {
+		$slug_value = (string) ( $page['slug'] ?? '' );
+		if ( '' === $slug_value ) {
+			continue;
+		}
+		$catalog_slug_parts = explode( '/', $slug_value );
+		$catalog_final_slug = end( $catalog_slug_parts );
+		if ( $catalog_final_slug !== $slug ) {
+			continue;
+		}
+		$review_status = (string) ( $page['review_status'] ?? 'approved_for_publication' );
+		if ( 'approved_for_publication' === $review_status ) {
+			return (array) $page;
+		}
+	}
+	return null;
 }
 
 /**
  * Registra un catálogo de páginas en the_content de forma centralizada.
  *
- * @param callable $catalog_callback Callback que devuelve un catálogo tipo array<string, array<string,mixed>>.
- * @param int      $priority         Prioridad del hook de contenido (por defecto 22).
+ * @param callable      $catalog_callback Callback que devuelve un catálogo tipo array<string, array<string,mixed>>.
+ * @param int           $priority         Prioridad del hook de contenido (por defecto 22).
  * @param callable|null $render_callback Opcional. Función que renderiza la página (por defecto nvx_render_13_point_matrix).
  */
 function nvx_register_catalog_content_filter( callable $catalog_callback, int $priority = 22, ?callable $render_callback = null ): void {
-    if ( null === $render_callback ) {
-        $render_callback = 'nvx_render_13_point_matrix';
-    }
+	if ( null === $render_callback ) {
+		$render_callback = 'nvx_render_13_point_matrix';
+	}
 
-    add_filter(
-        'the_content',
-        static function( string $content ) use ( $catalog_callback, $render_callback ): string {
-            if ( is_admin() || ! is_main_query() || ! in_the_loop() || ! is_page() ) {
-                return $content;
-            }
+	add_filter(
+		'the_content',
+		static function ( string $content ) use ( $catalog_callback, $render_callback ): string {
+			if ( is_admin() || ! is_main_query() || ! in_the_loop() || ! is_page() ) {
+				return $content;
+			}
 
-            $slug    = (string) get_post_field( 'post_name', get_queried_object_id() );
-            $catalog = (array) call_user_func( $catalog_callback );
-            $matched = nvx_match_catalog_page( $slug, $catalog );
+			$slug    = (string) get_post_field( 'post_name', get_queried_object_id() );
+			$catalog = (array) call_user_func( $catalog_callback );
+			$matched = nvx_match_catalog_page( $slug, $catalog );
 
-            if ( null !== $matched ) {
-                $markup = call_user_func( $render_callback, $matched );
-                return '' === $markup ? $content : $markup;
-            }
+			if ( null !== $matched ) {
+				$markup = call_user_func( $render_callback, $matched );
+				return '' === $markup ? $content : $markup;
+			}
 
-            return $content;
-        },
-        $priority
-    );
+			return $content;
+		},
+		$priority
+	);
 }
-

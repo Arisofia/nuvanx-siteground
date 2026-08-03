@@ -67,11 +67,11 @@ function nvx_content_is_endolaser_page( string $content ): bool {
 function nvx_endolaser_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolaser-page.json' )['hero'] ?? array();
-	
+
 	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolaser-h1">' . esc_html( $data['h1'] ?? '' ) . '</h1>';
-	
+
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
 	$html .= '<div class="nvx-medical-byline__text">';
@@ -101,8 +101,8 @@ function nvx_endolaser_hero_copy_markup(): string {
 function nvx_endolaser_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolaser-page.json' );
-	
-	$html  = '<div class="nvx-endolaser-editorial nvx-brand-editorial">';
+
+	$html = '<div class="nvx-endolaser-editorial nvx-brand-editorial">';
 
 	// A. Intro + dual mechanism.
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-mechanism', 'nvx-endolaser-mech-title' );
@@ -110,13 +110,13 @@ function nvx_endolaser_editorial_body_markup(): string {
 	foreach ( $data['mechanism']['body'] ?? array() as $paragraph ) {
 		$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $paragraph ) . '</p>';
 	}
-	$html .= '<div class="nvx-endolift-effects">';
+	$html   .= '<div class="nvx-endolift-effects">';
 	$eff_idx = 0;
 	foreach ( $data['mechanism']['effects'] ?? array() as $effect ) {
-		$eid = 'nvx-endolaser-effect-' . $eff_idx;
+		$eid   = 'nvx-endolaser-effect-' . $eff_idx;
 		$html .= '<article class="nvx-endolift-effect" aria-labelledby="' . esc_attr( $eid ) . '"><h3 id="' . esc_attr( $eid ) . '" class="nvx-endolift-effect__title">' . esc_html( $effect['title'] ?? '' ) . '</h3>';
 		$html .= '<p class="nvx-body">' . esc_html( $effect['body'] ?? '' ) . '</p></article>';
-		$eff_idx++;
+		++$eff_idx;
 	}
 	$html .= '</div></div></section>';
 
@@ -171,17 +171,20 @@ function nvx_endolaser_editorial_body_markup(): string {
 /**
  * Rebuild Endoláser page content.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) {
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		global $post;
+		$content = $post ? $post->post_content : '';
+		if ( function_exists( 'nvx_content_is_endolaser_page' ) && nvx_content_is_endolaser_page( $content ) ) {
+			return 'nvx_endolaser_page';
+		}
 		return $owner;
 	}
-	global $post;
-	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_content_is_endolaser_page') && nvx_content_is_endolaser_page( $content ) ) {
-		return 'nvx_endolaser_page';
-	}
-	return $owner;
-});
+);
 
 function nvx_content_restructure_endolaser_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
@@ -204,7 +207,5 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 		$hero . $body,
 		'nvx-brand-page nvx-brand-page--endolaser'
 	);
-
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
-

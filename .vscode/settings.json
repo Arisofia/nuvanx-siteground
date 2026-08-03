@@ -12,5 +12,7 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll": "always"
-  }
+  },
+  "codeium.aggressiveShutdown": false,
+  "codeium.disableSupercomplete": true
 }

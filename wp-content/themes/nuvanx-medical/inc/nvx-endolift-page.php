@@ -81,10 +81,10 @@ function nvx_content_is_endolift_page( string $content ): bool {
  */
 function nvx_endolift_process_icon( string $name ): string {
 	$icons = array(
-		'assess'      => '<svg class="nvx-endolift-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="22" cy="22" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M30 30 40 40" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M18 22h8M22 18v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'anesthesia'  => '<svg class="nvx-endolift-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M18 8h12v8l4 6v18H14V22l4-6V8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M18 16h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'procedure'   => '<svg class="nvx-endolift-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 34 28 8l10 6-18 26H10v-6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M24 14l10 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-		'recover'     => '<svg class="nvx-endolift-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 28c4-10 8-14 12-14s8 4 12 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 18c3-2 5-3 8-3s5 1 8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="30" r="3" stroke="currentColor" stroke-width="1.5"/></svg>',
+		'assess'     => '<svg class="nvx-endolift-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="22" cy="22" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M30 30 40 40" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M18 22h8M22 18v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'anesthesia' => '<svg class="nvx-endolift-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M18 8h12v8l4 6v18H14V22l4-6V8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M18 16h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'procedure'  => '<svg class="nvx-endolift-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M10 34 28 8l10 6-18 26H10v-6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M24 14l10 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+		'recover'    => '<svg class="nvx-endolift-step__icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 28c4-10 8-14 12-14s8 4 12 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M16 18c3-2 5-3 8-3s5 1 8 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="30" r="3" stroke="currentColor" stroke-width="1.5"/></svg>',
 	);
 
 	return $icons[ $name ] ?? $icons['assess'];
@@ -98,7 +98,7 @@ function nvx_endolift_process_icon( string $name ): string {
 function nvx_endolift_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolift-page.json' )['hero'] ?? array();
-	
+
 	$colegiado   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$price_label = function_exists( 'nvx_format_price_eur' )
 		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
@@ -107,7 +107,7 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html( $data['h1'] ?? '' ) . '</h1>';
-	
+
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
 	$html .= '<div class="nvx-medical-byline__text">';
@@ -144,14 +144,14 @@ function nvx_endolift_hero_copy_markup(): string {
 function nvx_endolift_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolift-page.json' );
-	
+
 	$colegiado    = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$price_from   = function_exists( 'nvx_endolift_price_from_eur' ) ? nvx_endolift_price_from_eur() : 798.60;
 	$price_label  = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( $price_from ) : number_format_i18n( $price_from, 2 );
 	$review_label = defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ? NVX_ENDOLIFT_REVIEW_LABEL : 'julio 2026';
 	$equipo_url   = home_url( '/equipo-medico/' );
 
-	$html  = '<div class="nvx-endolift-editorial">';
+	$html = '<div class="nvx-endolift-editorial">';
 
 	// Clinical review byline — E-E-A-T (visible + matches schema reviewedBy).
 	$html .= '<p class="nvx-endolift-reviewed">';
@@ -230,14 +230,14 @@ function nvx_endolift_editorial_body_markup(): string {
 
 	$step_idx = 0;
 	foreach ( $data['process']['steps'] ?? array() as $step ) {
-		$sid = 'nvx-endolift-step-' . $step_idx;
+		$sid   = 'nvx-endolift-step-' . $step_idx;
 		$html .= '<article class="nvx-endolift-step" aria-labelledby="' . esc_attr( $sid ) . '">';
 		$html .= nvx_endolift_process_icon( $step['icon'] ?? 'assess' );
 		$html .= '<span class="nvx-endolift-step__n">' . esc_html( $step['n'] ?? '' ) . '</span>';
 		$html .= '<h3 id="' . esc_attr( $sid ) . '" class="nvx-endolift-step__title">' . esc_html( $step['title'] ?? '' ) . '</h3>';
 		$html .= '<p class="nvx-body">' . esc_html( $step['body'] ?? '' ) . '</p>';
 		$html .= '</article>';
-		$step_idx++;
+		++$step_idx;
 	}
 
 	$html .= '</div></div></section>';
@@ -246,7 +246,7 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-postop', 'nvx-endolift-postop-title', '', array( 'id' => 'postoperatorio-endolift' ) );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['postop']['kicker'] ?? '' ), 'nvx-endolift-postop-title', esc_html( $data['postop']['title'] ?? '' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['postop']['body'] ?? '' ) . '</p>';
-	
+
 	$html .= '<ul class="nvx-endolift-price-includes nvx-endolift-postop-list">';
 	foreach ( $data['postop']['items'] ?? array() as $item ) {
 		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> ' . esc_html( $item['body'] ?? '' ) . '</li>';
@@ -308,17 +308,20 @@ function nvx_endolift_editorial_body_markup(): string {
 /**
  * Rebuild Endolift page: authority hero + diagnosis + biophysics + process + FAQ + CTA.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) {
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		global $post;
+		$content = $post ? $post->post_content : '';
+		if ( function_exists( 'nvx_content_is_endolift_page' ) && nvx_content_is_endolift_page( $content ) ) {
+			return 'nvx_endolift_page';
+		}
 		return $owner;
 	}
-	global $post;
-	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_content_is_endolift_page') && nvx_content_is_endolift_page( $content ) ) {
-		return 'nvx_endolift_page';
-	}
-	return $owner;
-});
+);
 
 function nvx_content_restructure_endolift_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
@@ -347,4 +350,3 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 	return '<div class="nvx-brand-page nvx-brand-page--endolift">' . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolift_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
-

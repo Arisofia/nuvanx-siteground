@@ -159,13 +159,17 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 	return $html . '</div>';
 }
 
-add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) { return $owner; }
-	if ( function_exists('nvx_aesthetic_treatment_current_key') && null !== nvx_aesthetic_treatment_current_key() ) {
-		return 'nvx_aesthetic_treatment_pages';
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner; }
+		if ( function_exists( 'nvx_aesthetic_treatment_current_key' ) && null !== nvx_aesthetic_treatment_current_key() ) {
+			return 'nvx_aesthetic_treatment_pages';
+		}
+		return $owner;
 	}
-	return $owner;
-});
+);
 
 /** Replace marker content with the canonical versioned page. */
 function nvx_aesthetic_treatment_filter_content( string $content ): string {
@@ -252,4 +256,3 @@ function nvx_aesthetic_treatment_seed_staging_pages(): void {
 	}
 }
 add_action( 'init', 'nvx_aesthetic_treatment_seed_staging_pages', 30 );
-

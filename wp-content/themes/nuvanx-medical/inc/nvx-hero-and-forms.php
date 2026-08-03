@@ -87,7 +87,7 @@ function nvx_hero_insert_media_figure( string $content, string $figure ): string
 			$content,
 			1
 		);
-		$updated = is_string( $candidate ) ? $candidate : $content;
+		$updated   = is_string( $candidate ) ? $candidate : $content;
 	} else {
 		$class_pos = (int) $match[0][1];
 		$open_pos  = strrpos( substr( $content, 0, $class_pos ), '<div' );
@@ -136,15 +136,15 @@ add_filter( 'the_content', 'nvx_ensure_hero_featured_media', 12 );
  * @return string|null Full element markup including open/close tags.
  */
 function nvx_extract_balanced_element( string $html, int $open_pos, string $tag ): ?string {
-	$tag   = strtolower( $tag );
-	$len   = strlen( $html );
-	$open  = '<' . $tag;
+	$tag  = strtolower( $tag );
+	$len  = strlen( $html );
+	$open = '<' . $tag;
 	if ( $open_pos < 0 || $open_pos >= $len || 0 !== strncasecmp( substr( $html, $open_pos, strlen( $open ) ), $open, strlen( $open ) ) ) {
 		return null;
 	}
 
-	$depth = 0;
-	$i     = $open_pos;
+	$depth   = 0;
+	$i       = $open_pos;
 	$pattern = '/<\/?' . preg_quote( $tag, '/' ) . '\b[^>]*>/i';
 
 	while ( $i < $len ) {
@@ -285,11 +285,12 @@ function nvx_valoracion_form_stage_class( string $content ): string {
 }
 add_filter( 'the_content', 'nvx_valoracion_form_stage_class', 15 );
 
-/* ═══════════════════════════════════════════════════════════
-   Valoración HubSpot mount (absorbed from retired MU plugin)
-   Single canonical lazy frame; no eager hsforms <script>.
-   function_exists guards allow one-release coexistence until MU is removed.
-   ═══════════════════════════════════════════════════════════ */
+/*
+═══════════════════════════════════════════════════════════
+	Valoración HubSpot mount (absorbed from retired MU plugin)
+	Single canonical lazy frame; no eager hsforms <script>.
+	function_exists guards allow one-release coexistence until MU is removed.
+	═══════════════════════════════════════════════════════════ */
 
 if ( ! defined( 'NVX_VALORACION_HS_FRAME_PORTAL_ID' ) ) {
 	define( 'NVX_VALORACION_HS_FRAME_PORTAL_ID', '147416356' );
@@ -305,25 +306,25 @@ if ( ! defined( 'NVX_VALORACION_HS_FRAME_REGION' ) ) {
  * Whether the current request is the canonical valoración form route.
  */
 if ( ! function_exists( 'nvx_valoracion_native_hubspot_is_target_page' ) ) {
-function nvx_valoracion_native_hubspot_is_target_page(): bool {
-	if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
-		return true;
+	function nvx_valoracion_native_hubspot_is_target_page(): bool {
+		if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
+			return true;
+		}
+		return is_page( 2636 ) || is_page( 'valoracion' );
 	}
-	return is_page( 2636 ) || is_page( 'valoracion' );
-}
 
-/**
- * Lazy HubSpot mount markup (demand-loaded by nvx-runtime-governance.js).
- */
-function nvx_valoracion_native_hubspot_mount_markup(): string {
-	$portal_id   = esc_attr( (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
-	$form_id     = esc_attr( (string) NVX_VALORACION_HS_FRAME_FORM_ID );
-	$region      = esc_attr( (string) NVX_VALORACION_HS_FRAME_REGION );
-	$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
+	/**
+	 * Lazy HubSpot mount markup (demand-loaded by nvx-runtime-governance.js).
+	 */
+	function nvx_valoracion_native_hubspot_mount_markup(): string {
+		$portal_id   = esc_attr( (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
+		$form_id     = esc_attr( (string) NVX_VALORACION_HS_FRAME_FORM_ID );
+		$region      = esc_attr( (string) NVX_VALORACION_HS_FRAME_REGION );
+		$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
 
-	return '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
+		return '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
 		. '<p class="nvx-copy nvx-hubspot-privacy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . $privacy_url . '">Política de privacidad</a>.</p>';
-}
+	}
 
 
 }

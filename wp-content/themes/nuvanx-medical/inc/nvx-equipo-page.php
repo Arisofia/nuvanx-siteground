@@ -64,7 +64,7 @@ function nvx_content_is_equipo_page( string $content ): bool {
 function nvx_equipo_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['hero'] ?? array();
-	
+
 	$colegiado_dir   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$colegiado_ivon  = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 	$colegiado_fabio = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
@@ -300,7 +300,7 @@ function nvx_equipo_capture_media_if_empty( string $card, string &$media ): void
  * @param string &$ivon_media Captured media for Ivon Rivera Deras.
  * @param string &$fabio_media Captured media for Fabio Quiñónez Bareiro.
  * @param string &$cristina_media Captured media for Cristina Márquez González.
- * @param array &$other_cards Collection of staff cards that do not match an authority profile.
+ * @param array  &$other_cards Collection of staff cards that do not match an authority profile.
  */
 function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, string &$ivon_media, string &$fabio_media, string &$cristina_media, array &$other_cards ): void {
 	if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
@@ -431,7 +431,7 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 	if ( empty( $other_cards ) ) {
 		return '';
 	}
-	
+
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['equipo_staff'] ?? array();
 
@@ -586,11 +586,11 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
  * @param array<string,mixed> $config Physician configuration data.
  */
 function nvx_equipo_physician_profile_section_markup( array $config ): string {
-	$h2_id = $config['h2_id'] ?? 'nvx-equipo-profile-' . sanitize_title($config['name'] ?? 'doc');
-	$aria_attr = !empty($config['h2']) ? 'aria-labelledby="' . esc_attr($h2_id) . '"' : 'aria-label="' . esc_attr($config['name'] ?? 'Perfil médico') . '"';
+	$h2_id     = $config['h2_id'] ?? 'nvx-equipo-profile-' . sanitize_title( $config['name'] ?? 'doc' );
+	$aria_attr = ! empty( $config['h2'] ) ? 'aria-labelledby="' . esc_attr( $h2_id ) . '"' : 'aria-label="' . esc_attr( $config['name'] ?? 'Perfil médico' ) . '"';
 
-	$html  = '<section class="nvx-brand-section nvx-equipo-profile" ' . $aria_attr . '>';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-equipo-profile-layout">';
+	$html     = '<section class="nvx-brand-section nvx-equipo-profile" ' . $aria_attr . '>';
+	$html    .= '<div class="nvx-shell nvx-brand-section__inner nvx-equipo-profile-layout">';
 	$portrait = nvx_equipo_portrait_figure_markup( $config['media'] ?? '', $config['name'] ?? '' );
 	if ( '' !== $portrait ) {
 		$html .= $portrait;
@@ -683,7 +683,7 @@ function nvx_equipo_physician_authority_markup( array $config ): string {
 function nvx_equipo_director_authority_markup( string $rivera_media = '' ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['rivera'] ?? array();
-	
+
 	$colegiado  = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$doctoralia = 'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid';
 
@@ -767,7 +767,7 @@ function nvx_equipo_director_authority_markup( string $rivera_media = '' ): stri
 function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['ivon'] ?? array();
-	
+
 	$colegiado = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 
 	return nvx_equipo_physician_authority_markup(
@@ -833,7 +833,7 @@ function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['fabio'] ?? array();
-	
+
 	$colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
 
 	return nvx_equipo_physician_authority_markup(
@@ -904,13 +904,13 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
  */
 function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
-	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['cristina'] ?? array();
+	$data       = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['cristina'] ?? array();
 	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
 
 	// Bio paragraphs carry theme-owned inline HTML (<strong>, <a>). Wrap in
 	// wp_kses with the same allowlist used by the director profile and drop any
 	// empty entries so a missing catalog key never renders empty <p> tags.
-	$kses_bio = array(
+	$kses_bio       = array(
 		'strong' => array(),
 		'a'      => array(
 			'class'  => true,
@@ -919,16 +919,20 @@ function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): st
 			'rel'    => true,
 		),
 	);
-	$bio_paragraphs = array_values( array_filter( array_map(
-		static function ( $paragraph ) use ( $kses_bio ): string {
-			return wp_kses( (string) $paragraph, $kses_bio );
-		},
-		array(
-			$data['bio_paragraphs'][0] ?? '',
-			$data['bio_paragraphs'][1] ?? '',
-			sprintf( $data['bio_paragraphs'][2] ?? '', esc_url( $doctoralia ) ),
+	$bio_paragraphs = array_values(
+		array_filter(
+			array_map(
+				static function ( $paragraph ) use ( $kses_bio ): string {
+					return wp_kses( (string) $paragraph, $kses_bio );
+				},
+				array(
+					$data['bio_paragraphs'][0] ?? '',
+					$data['bio_paragraphs'][1] ?? '',
+					sprintf( $data['bio_paragraphs'][2] ?? '', esc_url( $doctoralia ) ),
+				)
+			)
 		)
-	) ) );
+	);
 
 	return nvx_equipo_physician_authority_markup(
 		array(
@@ -947,7 +951,7 @@ function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): st
 					'heading'    => '',
 					'paragraphs' => array(),
 					'facts'      => $data['facts'] ?? array(),
-				)
+				),
 			),
 		)
 	);
@@ -956,17 +960,20 @@ function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): st
 /**
  * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) {
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		global $post;
+		$content = $post ? $post->post_content : '';
+		if ( function_exists( 'nvx_content_is_equipo_page' ) && nvx_content_is_equipo_page( $content ) ) {
+			return 'nvx_equipo_page';
+		}
 		return $owner;
 	}
-	global $post;
-	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_content_is_equipo_page') && nvx_content_is_equipo_page( $content ) ) {
-		return 'nvx_equipo_page';
-	}
-	return $owner;
-});
+);
 
 /**
  * Rebuilds the medical-team page with branded hero content, authority profiles, and remaining staff cards.
@@ -1020,4 +1027,3 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	return '<div class="nvx-brand-page nvx-brand-page--equipo">' . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_equipo_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
-

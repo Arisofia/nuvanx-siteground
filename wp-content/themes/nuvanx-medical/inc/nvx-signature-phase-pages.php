@@ -158,9 +158,9 @@ function nvx_signature_phase_list( string $title, array $items, string $class = 
  * @return string The generated landing page HTML.
  */
 function nvx_signature_phase_markup( array $page ): string {
-	$html  = '<article class="nvx-brand-page nvx-treatment-page nvx-protocol-page nvx-signature-phase-page">';
-	$html .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">' . esc_html( (string) $page['kicker'] ) . '</p>';
-	$html .= '<h1 class="nvx-strategy-title">' . esc_html( (string) $page['title'] ) . '</h1>';
+	$html       = '<article class="nvx-brand-page nvx-treatment-page nvx-protocol-page nvx-signature-phase-page">';
+	$html      .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">' . esc_html( (string) $page['kicker'] ) . '</p>';
+	$html      .= '<h1 class="nvx-strategy-title">' . esc_html( (string) $page['title'] ) . '</h1>';
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
 	$html      .= '<p class="nvx-brand-lead">' . esc_html( (string) $page['lead'] ) . '</p><p>' . esc_html( (string) $page['intro'] ) . '</p>';
 	$html      .= '<p><a class="nvx-button nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
@@ -176,11 +176,14 @@ function nvx_signature_phase_markup( array $page ): string {
 	$html      .= '<p><a class="nvx-button nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a> <a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Explorar Protocolos Signature', 'nuvanx-medical' ) . '</a></p></div></section></article>';
 	return $html;
 }
-add_action( 'after_setup_theme', function () {
-	if ( function_exists( 'nvx_register_catalog_content_filter' ) ) {
-		nvx_register_catalog_content_filter( 'nvx_signature_phase_catalog', 22, 'nvx_signature_phase_markup' );
+add_action(
+	'after_setup_theme',
+	function () {
+		if ( function_exists( 'nvx_register_catalog_content_filter' ) ) {
+			nvx_register_catalog_content_filter( 'nvx_signature_phase_catalog', 22, 'nvx_signature_phase_markup' );
+		}
 	}
-} );
+);
 
 /**
  * Signature architecture hubs (index + Contour + Post-Maternity).
@@ -330,7 +333,7 @@ function nvx_signature_hub_cards_markup( array $cards, string $section_title, st
 			continue;
 		}
 		$card_id = 'signature-card-' . sanitize_title( $title );
-		$html .= '<article class="nvx-brand-card" role="listitem" aria-labelledby="' . esc_attr( $card_id ) . '">';
+		$html   .= '<article class="nvx-brand-card" role="listitem" aria-labelledby="' . esc_attr( $card_id ) . '">';
 		if ( ! empty( $card['kicker'] ) ) {
 			$html .= '<p class="nvx-brand-card__kicker">' . esc_html( (string) $card['kicker'] ) . '</p>';
 		}
@@ -396,8 +399,8 @@ function nvx_signature_hub_contour_cards(): array {
 		if ( '' === $slug ) {
 			continue;
 		}
-		$page = $by_slug[ $slug ] ?? null;
-		$body = is_array( $page ) ? (string) ( $page['lead'] ?? $page['intro'] ?? '' ) : '';
+		$page    = $by_slug[ $slug ] ?? null;
+		$body    = is_array( $page ) ? (string) ( $page['lead'] ?? $page['intro'] ?? '' ) : '';
 		$cards[] = array(
 			'kicker' => $kicker,
 			'title'  => $label,
@@ -475,8 +478,8 @@ function nvx_signature_hub_markup( array $hub ): string {
 				'cta'    => __( 'Consultar valoración posgestacional', 'nuvanx-medical' ),
 			),
 		);
-		$html .= nvx_signature_hub_cards_markup( $architecture_cards, 'Arquitecturas clínicas', 'Protocolos de contorno' );
-		$html .= nvx_signature_hub_cards_markup( nvx_signature_hub_phase1_cards(), 'Protocolos de rostro y piel', 'Fase 1' );
+		$html              .= nvx_signature_hub_cards_markup( $architecture_cards, 'Arquitecturas clínicas', 'Protocolos de contorno' );
+		$html              .= nvx_signature_hub_cards_markup( nvx_signature_hub_phase1_cards(), 'Protocolos de rostro y piel', 'Fase 1' );
 	} elseif ( 'contour' === $kind ) {
 		$html .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner">';
 		$html .= '<h2>' . esc_html__( 'Cómo se decide el plan corporal', 'nuvanx-medical' ) . '</h2>';
@@ -484,7 +487,7 @@ function nvx_signature_hub_markup( array $hub ): string {
 		$html .= '</div></section>';
 		$html .= nvx_signature_hub_cards_markup( nvx_signature_hub_contour_cards(), 'Zonas de valoración', nvx_signature_contour_label_short() );
 	} elseif ( 'post-maternity' === $kind ) {
-		$html .= nvx_signature_phase_list(
+		$html   .= nvx_signature_phase_list(
 			'Qué se valora en postparto',
 			array(
 				'Tiempo desde el parto, lactancia y estado general de salud.',
@@ -493,7 +496,7 @@ function nvx_signature_hub_markup( array $hub ): string {
 				'Calidad cutánea, cicatrices y disponibilidad real de recuperación.',
 			)
 		);
-		$html .= nvx_signature_phase_list(
+		$html   .= nvx_signature_phase_list(
 			'Límites y cuándo esperamos o derivamos',
 			array(
 				'No es un protocolo de “recuperar el cuerpo de antes” en un plazo fijo.',
@@ -518,7 +521,7 @@ function nvx_signature_hub_markup( array $hub ): string {
 				'cta'    => __( 'Explorar contorno corporal', 'nuvanx-medical' ),
 			),
 		);
-		$html .= nvx_signature_hub_cards_markup( $related, 'Rutas relacionadas', 'Continuidad clínica' );
+		$html   .= nvx_signature_hub_cards_markup( $related, 'Rutas relacionadas', 'Continuidad clínica' );
 	}
 
 	$html .= nvx_signature_hub_shell_close();
@@ -615,12 +618,30 @@ add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
  */
 function nvx_signature_contour_nav_children(): array {
 	return array(
-		array( 'label' => 'Abdomen y flancos', 'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ) ),
-		array( 'label' => 'Brazos y axila', 'slugs' => array( 'flacidez-grasa-localizada-brazos-madrid' ) ),
-		array( 'label' => 'Espalda y zona del sujetador', 'slugs' => array( 'grasa-espalda-zona-sujetador-madrid' ) ),
-		array( 'label' => 'Muslos y región subglútea', 'slugs' => array( 'flacidez-muslos-internos-subgluteo-madrid' ) ),
-		array( 'label' => 'Rodillas', 'slugs' => array( 'tratamiento-rodillas-grasa-flacidez-madrid' ) ),
-		array( 'label' => 'Contorno masculino', 'slugs' => array( 'contorno-corporal-masculino-madrid' ) ),
+		array(
+			'label' => 'Abdomen y flancos',
+			'slugs' => array( 'grasa-localizada-abdomen-flancos-madrid' ),
+		),
+		array(
+			'label' => 'Brazos y axila',
+			'slugs' => array( 'flacidez-grasa-localizada-brazos-madrid' ),
+		),
+		array(
+			'label' => 'Espalda y zona del sujetador',
+			'slugs' => array( 'grasa-espalda-zona-sujetador-madrid' ),
+		),
+		array(
+			'label' => 'Muslos y región subglútea',
+			'slugs' => array( 'flacidez-muslos-internos-subgluteo-madrid' ),
+		),
+		array(
+			'label' => 'Rodillas',
+			'slugs' => array( 'tratamiento-rodillas-grasa-flacidez-madrid' ),
+		),
+		array(
+			'label' => 'Contorno masculino',
+			'slugs' => array( 'contorno-corporal-masculino-madrid' ),
+		),
 	);
 }
 

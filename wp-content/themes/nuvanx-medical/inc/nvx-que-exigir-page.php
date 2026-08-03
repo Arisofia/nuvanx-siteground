@@ -52,11 +52,11 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 
 	$valuation_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : home_url( '/madrid/valoracion/' );
 
-	$html  = '<div class="nvx-que-exigir-editorial">';
-	
+	$html = '<div class="nvx-que-exigir-editorial">';
+
 	// Hero
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-que-exigir-h1">' . esc_html( $data['hero']['h1'] ?? '' ) . '</h1>';
-	
+
 	// E-E-A-T Byline
 	$html .= '<div class="nvx-medical-byline nvx-medical-byline--border">';
 	$html .= '<div class="nvx-medical-byline__text">';
@@ -65,7 +65,7 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 	$html .= '</div></div>';
 
 	$html .= '<div class="nvx-que-exigir-body">';
-	
+
 	// Intro
 	$html .= '<p><strong>' . esc_html( $data['intro']['bold'] ?? '' ) . '</strong></p>';
 	$html .= '<p>' . esc_html( $data['intro']['text'] ?? '' ) . '</p>';
@@ -77,7 +77,7 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 	}
 
 	$html .= '<hr class="nvx-que-exigir-hr">';
-	
+
 	// CTA Block
 	$html .= '<div class="nvx-que-exigir-cta-box">';
 	$html .= '<h3 class="nvx-que-exigir-cta-title">' . esc_html( $data['cta']['title'] ?? '' ) . '</h3>';
@@ -94,4 +94,3 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 	return $html;
 }
 add_filter( 'the_content', 'nvx_content_que_exigir_hijack', 122 );
-

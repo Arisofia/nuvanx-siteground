@@ -201,6 +201,15 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   outline: none;
 }
 
+.nvx-faq summary:focus-visible,
+.nvx-brand-faq-accordion summary:focus-visible,
+.nvx-home-faq-editorial summary:focus-visible {
+  color: var(--nvx-charcoal);
+  outline: 2px solid var(--nvx-ink);
+  outline-offset: 2px;
+  border-radius: calc(var(--nvx-space-1) / 2);
+}
+
 .nvx-faq summary span,
 .nvx-brand-faq-accordion summary span,
 .nvx-home-faq-editorial summary span {
@@ -601,7 +610,8 @@ body.nvx-valoracion-modal-open{
   max-width: 100%;
   width: 100%;
   margin: 0;
-  padding: 0}
+  padding: 0;
+  scroll-margin-top: var(--nvx-header-height)}
 
 .nvx-page{
   overflow-x: clip;

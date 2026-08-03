@@ -50,6 +50,7 @@
         "types": [
             "Service"
         ],
+        "procedureType": "MedicalProcedure",
         "description": "Servicio médico de planificación facial conservadora con técnicas seleccionadas tras diagnóstico individual."
     },
     {

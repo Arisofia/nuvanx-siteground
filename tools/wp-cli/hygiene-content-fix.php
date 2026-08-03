@@ -127,7 +127,7 @@ try {
 			$new_content = preg_replace( '/<\/h2>/iu', '</h1>', $new_content, 1 );
 			if ( $new_content !== $post->post_content ) {
 				$post->post_content = $new_content;
-				wp_update_post( $post );
+				wp_update_post( wp_slash( (array) $post ) );
 				WP_CLI::success( "Fixed H1 for {$post->post_name}" );
 			}
 		}

@@ -63,10 +63,17 @@ jobs:
           STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
         run: |
           set -euo pipefail
-          # Resolve origin IP from the SSH host (same machine serves the site)
-          ORIGIN_IP=$(dig +short "$STAGING2_SSH_HOST" | grep -E '^[0-9]+\.' | tail -n1)
+          : "${STAGING2_SSH_HOST:?Missing STAGING2_SSH_HOST secret}"
+          [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || {
+            echo "::error::STAGING2_SSH_HOST contains unsupported characters."
+            exit 1
+          }
+          # Resolve origin IP (dig with getent fallback)
+          ORIGIN_IP=$(dig +short "$STAGING2_SSH_HOST" | grep -E '^[0-9]+\.' | tail -n1 || true)
           if [[ -z "$ORIGIN_IP" ]]; then
-            # SSH_HOST might already be an IP
+            ORIGIN_IP=$(getent hosts "$STAGING2_SSH_HOST" | awk '{print $1}' | head -n1 || true)
+          fi
+          if [[ -z "$ORIGIN_IP" ]]; then
             if [[ "$STAGING2_SSH_HOST" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
               ORIGIN_IP="$STAGING2_SSH_HOST"
             else

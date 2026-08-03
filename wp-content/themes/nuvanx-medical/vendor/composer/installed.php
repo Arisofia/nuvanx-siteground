@@ -3,7 +3,7 @@
         'name' => 'nuvanx/nuvanx-medical-theme',
         'pretty_version' => 'dev-master',
         'version' => 'dev-master',
-        'reference' => '9b3650032aeee5aa27d744b4362be56e6a6ab14b',
+        'reference' => 'ebe8c1e82e6b12324052853ad129e15829bc5beb',
         'type' => 'wordpress-theme',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'nuvanx/nuvanx-medical-theme' => array(
             'pretty_version' => 'dev-master',
             'version' => 'dev-master',
-            'reference' => '9b3650032aeee5aa27d744b4362be56e6a6ab14b',
+            'reference' => 'ebe8c1e82e6b12324052853ad129e15829bc5beb',
             'type' => 'wordpress-theme',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

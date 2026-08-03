@@ -103,9 +103,9 @@ function nvx_btl_detail_zone_item_markup( array $item ): string {
 		return '';
 	}
 
-	$html = '<li class="nvx-endolaser-zone">';
-	if ( '' !== $title ) {
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $title ) . '</h3>';
+	$html = '<li class="nvx-feature-zone">';
+	if ( $title ) {
+		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $title ) . '</h3>';
 	}
 	if ( '' !== $text ) {
 		$html .= '<p class="nvx-body">' . esc_html( $text ) . '</p>';
@@ -121,7 +121,7 @@ function nvx_btl_detail_zone_item_markup( array $item ): string {
  * @param string           $tag   List tag (ul|ol).
  */
 function nvx_btl_detail_zone_list_markup( array $items, string $tag = 'ul' ): string {
-	$html = '<' . $tag . ' class="nvx-endolaser-zone-list">';
+	$html = '<' . $tag . ' class="nvx-feature-zone-list">';
 	foreach ( $items as $item ) {
 		if ( ! is_array( $item ) ) {
 			continue;
@@ -317,7 +317,7 @@ function nvx_btl_detail_process_step_markup( $step ): string {
 	if ( '' === $text ) {
 		return '';
 	}
-	return '<li class="nvx-endolaser-zone"><p class="nvx-body">' . esc_html( $text ) . '</p></li>';
+	return '<li class="nvx-feature-zone"><p class="nvx-body">' . esc_html( $text ) . '</p></li>';
 }
 
 /**
@@ -329,7 +329,7 @@ function nvx_btl_detail_process_markup( array $c ): string {
 	$id    = $c['marker'];
 	$html  = nvx_page_brand_section_open_markup( '', $id . '-proc' );
 	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Proceso médico', 'nuvanx-medical' ), $id . '-proc', esc_html__( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ) );
-	$html .= '<ol class="nvx-endolaser-zone-list">';
+	$html .= '<ol class="nvx-feature-zone-list">';
 	foreach ( (array) ( $c['process'] ?? array() ) as $step ) {
 		$html .= nvx_btl_detail_process_step_markup( $step );
 	}

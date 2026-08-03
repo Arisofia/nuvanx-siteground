@@ -439,9 +439,9 @@ function nvx_cristina_marquez_authority_markup(): string {
 		)
 	) . '</p>';
 	$html .= '</div>';
-	$html .= '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Identidad profesional de la Dra. Cristina Márquez González', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-endolift-panel-label">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-endolift-panel-list">';
+	$html .= '<aside class="nvx-fact-panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
+	$html .= '<p class="nvx-fact-panel__label" aria-hidden="true">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-fact-panel__list">';
 	$html .= '<li><strong>' . esc_html__( 'Colegiada', 'nuvanx-medical' ) . '</strong> — ICOMEM 282858861</li>';
 	$html .= '<li><strong>' . esc_html__( 'Especialidades', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Radiología · Medicina estética', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li><strong>' . esc_html__( 'Área clínica', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Radiología mamaria · Senología', 'nuvanx-medical' ) . '</li>';

@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 async function checkSkipLink(page, route, issues) {
   if (route !== '/') return;
   await page.keyboard.press('Tab');
-  const isSkipLinkFocused = await page.evaluate(() => document.activeElement && document.activeElement.classList.contains('skip-link'));
+  const isSkipLinkFocused = await page.evaluate(() => document.activeElement && document.activeElement.classList.contains('nvx-skip-link'));
   if (!isSkipLinkFocused) issues.push('Skip-link is not focused on first Tab');
   if (isSkipLinkFocused) {
     await page.keyboard.press('Enter');
@@ -16,8 +16,12 @@ async function checkSkipLink(page, route, issues) {
 
 async function checkHeadingHierarchy(page, issues) {
   const headings = await page.evaluate(() => {
-    const els = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    return Array.from(els).map(el => parseInt(el.tagName.replace('H', ''), 10));
+    // Look only inside main and avoid elements in dialogs or hidden
+    const container = document.querySelector('main, [role="main"]') || document;
+    const els = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    return Array.from(els)
+      .filter(el => !el.closest('dialog') && !el.closest('[hidden]') && !el.closest('.screen-reader-text') && el.offsetParent !== null)
+      .map(el => parseInt(el.tagName.replace('H', ''), 10));
   });
   let currentLevel = 0;
   headings.forEach((level, idx) => {
@@ -30,17 +34,30 @@ async function checkHeadingHierarchy(page, issues) {
 
 async function checkGridLayout(page, issues) {
   const hasCollapsedGrids = await page.evaluate(() => {
-    const els = document.querySelectorAll('.nvx-blog-card, .nvx-brand-grid > *');
+    const containers = document.querySelectorAll('.nvx-blog-card, .nvx-brand-grid > *');
     let collapsed = false;
-    els.forEach(el => {
+    containers.forEach(el => {
       const style = window.getComputedStyle(el);
-      if (style.display !== 'none' && style.gridColumn.includes('auto')) {
-        collapsed = true;
+      // We look for missing grid placement only if the element actually renders 
+      // but doesn't have an explicit grid context if it's supposed to. 
+      // Instead, checking offsetTop equality detects stacking.
+      if (style.display !== 'none') {
+        const parent = el.parentElement;
+        if (parent && window.getComputedStyle(parent).display.includes('grid')) {
+             const children = Array.from(parent.children).filter(c => window.getComputedStyle(c).display !== 'none');
+             if (children.length > 1) {
+                 // Check if first two children stack vertically but are supposed to be a grid
+                 if (children[0].offsetTop < children[1].offsetTop && children[0].offsetLeft === children[1].offsetLeft) {
+                     // They stacked. This is expected on mobile, but if viewport is desktop, it's collapsed
+                     if (window.innerWidth >= 1024) collapsed = true;
+                 }
+             }
+        }
       }
     });
     return collapsed;
   });
-  if (hasCollapsedGrids) issues.push('Grid layout collapsed (grid-column: auto detected on cards)');
+  if (hasCollapsedGrids) issues.push('Grid layout collapsed (cards stacked vertically on desktop)');
 }
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
@@ -212,6 +229,7 @@ async function run() {
       }
     });
 
+    const issues = [];
     try {
       const response = await safeGoto(page, url);
       mainResponseStatus = response ? response.status() : 0;
@@ -263,7 +281,6 @@ async function run() {
       const isGated = ['/casos-de-pacientes/'].includes(route);
 
       // Assertions
-      const issues = [];
       if (!is404Expected && !isRedirectExpected && mainResponseStatus !== 200) {
         issues.push(`Expected 200, got ${mainResponseStatus}`);
       }

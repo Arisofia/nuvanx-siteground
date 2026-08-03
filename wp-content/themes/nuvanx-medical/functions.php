@@ -276,41 +276,48 @@ function nvx_theme_blog_index_markup(): string {
 add_shortcode( 'nvx_blog_index', 'nvx_theme_blog_index_markup' );
 
 /**
- * Nota de gobernanza de carga:
+ * Theme Bootstrap Sequence
  *
- * - El orden de inclusión en este archivo NO es semántico.
- * - Cada módulo es responsable de incluir explícitamente sus dependencias
- *   (require_once/inc) en lugar de depender de efectos laterales de carga.
+ * 1. Infrastructure & Helpers
+ * 2. Data & SEO Governance
+ * 3. Core UI Components
+ * 4. Page Templates & Editorial Modules
  */
-// Módulos explícitos de SEO, Schema, Entorno y Páginas Estratégicas
+
+// 1. Infrastructure & Helpers
+require_once get_template_directory() . '/inc/nvx-business-config.php';
 require_once get_template_directory() . '/inc/nvx-environment-flags.php';
+require_once get_template_directory() . '/inc/nvx-page-render-helpers.php';
+require_once get_template_directory() . '/inc/nvx-document-governance.php';
+require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
+require_once get_template_directory() . '/inc/nvx-page-hygiene.php';
+require_once get_template_directory() . '/inc/nvx-integrations.php';
+
+// 2. Data & SEO Governance
+require_once get_template_directory() . '/inc/nvx-catalog-json.php';
 require_once get_template_directory() . '/inc/nvx-jsonld-content.php';
 require_once get_template_directory() . '/inc/nvx-seo-metadata.php';
-require_once get_template_directory() . '/inc/nvx-structured-data.php';
 require_once get_template_directory() . '/inc/nvx-seo-production-readiness.php';
-require_once get_template_directory() . '/inc/nvx-catalog-json.php';
+require_once get_template_directory() . '/inc/nvx-structured-data.php';
+
+// 3. Core UI Components
+require_once get_template_directory() . '/inc/nvx-content-presentation.php';
+require_once get_template_directory() . '/inc/nvx-hero-and-forms.php';
+require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
+require_once get_template_directory() . '/inc/nvx-navigation-filters.php';
+
+// 4. Page Templates & Editorial Modules
 require_once get_template_directory() . '/inc/nvx-strategy-pages.php';
 require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-schema.php';
 require_once get_template_directory() . '/inc/nvx-blog-system.php';
 require_once get_template_directory() . '/inc/nvx-13-point-renderer.php';
-require_once get_template_directory() . '/inc/nvx-page-render-helpers.php';
 require_once get_template_directory() . '/inc/nvx-medical-review.php';
 require_once get_template_directory() . '/inc/nvx-btl-clinical-governance.php';
 require_once get_template_directory() . '/inc/nvx-faq-content-v2.php';
-require_once get_template_directory() . '/inc/nvx-navigation-filters.php';
-
-require_once get_template_directory() . '/inc/nvx-document-governance.php';
-require_once get_template_directory() . '/inc/nvx-hero-and-forms.php';
-require_once get_template_directory() . '/inc/nvx-integrations.php';
-require_once get_template_directory() . '/inc/nvx-native-style-governance.php';
 require_once get_template_directory() . '/inc/nvx-treatment-hub-schema.php';
-require_once get_template_directory() . '/inc/nvx-content-presentation.php';
-require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-treatments-catalog.php';
-
-
 require_once get_template_directory() . '/inc/nvx-solutions-page.php';
 require_once get_template_directory() . '/inc/nvx-endolift-page.php';
 require_once get_template_directory() . '/inc/nvx-endolaser-page.php';
@@ -325,4 +332,3 @@ require_once get_template_directory() . '/inc/nvx-aesthetic-medicine-page.php';
 require_once get_template_directory() . '/inc/nvx-clinics-hub.php';
 require_once get_template_directory() . '/inc/nvx-dr-rivera-page.php';
 require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
-require_once get_template_directory() . '/inc/nvx-page-hygiene.php';

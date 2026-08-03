@@ -23,9 +23,7 @@ if ( ! defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ) {
     define( 'NVX_ENDOLIFT_REVIEW_LABEL', 'julio 2026' );
 }
 
-if ( ! defined( 'NVX_SD_TEL_CHAMBERI' ) ) {
-    define( 'NVX_SD_TEL_CHAMBERI', '+34669319836' );
-    define( 'NVX_SD_EMAIL_MAIN', 'info@nuvanx.com' );
+if ( ! defined( 'NVX_SD_ID_MEDICAL_PROCEDURE' ) ) {
     define( 'NVX_SD_ID_MEDICAL_PROCEDURE', '#medical-procedure' );
     define( 'NVX_SD_ENDOLIFT_FACIAL', 'Endolift® facial' );
     define( 'NVX_SD_ID_SERVICE', '#service' );
@@ -423,28 +421,32 @@ function nvx_schema_add_type( $types, $type ) {
  */
 function nvx_schema_clinics() {
     $registry = nvx_schema_page_registry();
+    $config   = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
+
+    $ch = isset( $config['chamberi'] ) ? $config['chamberi'] : array();
+    $go = isset( $config['goya'] ) ? $config['goya'] : array();
 
     return array(
         'chamberi' => array(
             '@type'      => 'MedicalClinic',
             '@id'        => home_url( '/#/schema/medical-clinic/chamberi' ),
-            'name'       => 'NUVANX Medicina Estética Láser — Chamberí',
+            'name'       => $ch['name'] ?? 'NUVANX Medicina Estética Láser — Chamberí',
             'branchCode' => 'chamberi',
             'url'        => home_url( $registry['clinics']['chamberi']['path'] ),
-            'telephone'  => NVX_SD_TEL_CHAMBERI,
-            'email'      => NVX_SD_EMAIL_MAIN,
+            'telephone'  => $ch['phone_href'] ?? '+34669319836',
+            'email'      => 'info@nuvanx.com',
             'address'    => array(
                 '@type'           => 'PostalAddress',
-                'streetAddress'   => 'Calle de Fernández de la Hoz, 4, Bajo Derecha',
-                'addressLocality' => 'Madrid',
+                'streetAddress'   => $ch['address'] ?? 'Calle de Fernández de la Hoz, 4, Bajo Derecha',
+                'addressLocality' => $ch['locality'] ?? 'Madrid',
                 'addressRegion'   => 'Comunidad de Madrid',
-                'postalCode'      => '28010',
+                'postalCode'      => $ch['postal_code'] ?? '28010',
                 'addressCountry'  => 'ES',
             ),
             'identifier' => array(
                 '@type'      => 'PropertyValue',
                 'propertyID' => 'Registro sanitario de la Comunidad de Madrid',
-                'value'      => 'CS20144',
+                'value'      => $ch['reg'] ?? 'CS20144',
             ),
             'hasMap'      => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20C%2F%20de%20Fern%C3%A1ndez%20de%20la%20Hoz%204%2028010%20Madrid',
             'areaServed'  => array( 'Chamberí', 'Almagro', 'Trafalgar', 'Madrid' ),
@@ -469,23 +471,23 @@ function nvx_schema_clinics() {
         'goya'      => array(
             '@type'      => 'MedicalClinic',
             '@id'        => home_url( '/#/schema/medical-clinic/goya' ),
-            'name'       => 'NUVANX Medicina Estética Láser — Goya · Barrio Salamanca',
+            'name'       => $go['name'] ?? 'NUVANX Medicina Estética Láser — Goya · Barrio Salamanca',
             'branchCode' => 'goya',
             'url'        => home_url( $registry['clinics']['goya']['path'] ),
-            'telephone'  => '+34647505107',
+            'telephone'  => $go['phone_href'] ?? '+34647505107',
             'email'      => 'info@nuvanx.com',
             'address'    => array(
                 '@type'           => 'PostalAddress',
-                'streetAddress'   => 'Calle de Fernán González, 26',
-                'addressLocality' => 'Madrid',
+                'streetAddress'   => $go['address'] ?? 'Calle de Fernán González, 26',
+                'addressLocality' => $go['locality'] ?? 'Madrid',
                 'addressRegion'   => 'Comunidad de Madrid',
-                'postalCode'      => '28009',
+                'postalCode'      => $go['postal_code'] ?? '28009',
                 'addressCountry'  => 'ES',
             ),
             'identifier' => array(
                 '@type'      => 'PropertyValue',
                 'propertyID' => 'Registro sanitario de la Comunidad de Madrid',
-                'value'      => 'CS20073',
+                'value'      => $go['reg'] ?? 'CS20073',
             ),
             'hasMap'      => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Goya%20C%2F%20de%20Fern%C3%A1n%20Gonz%C3%A1lez%2026%2028009%20Madrid',
             'areaServed'  => array( 'Goya', 'Barrio de Salamanca', 'Lista', 'Recoletos', 'Madrid' ),

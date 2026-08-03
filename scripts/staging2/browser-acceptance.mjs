@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs/promises';
 
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
@@ -104,7 +105,7 @@ async function run() {
   const consoleErrors = [];
   const networkErrors = [];
   const csvRows = [
-    'URL,Status,FinalURL,Canonical,H1,Title,JS_Errors,Network_Errors,Meta_Deploy_SHA,HTML_Lang,Main_Exists,Noindex_Meta,Noindex_HTTP,HubSpot_Initial,FacebookSignal_Initial,ThirdPartySrc,RogueJsonLd,HeroCount,CtaCount'
+    'URL,Status,FinalURL,Canonical,H1,Title,JS_Errors,Network_Errors,Meta_Deploy_SHA,HTML_Lang,Main_Exists,Noindex_Meta,Noindex_HTTP,HubSpot_Initial,FacebookSignal_Initial,ThirdPartySrc,RogueJsonLd,HeroCount,CtaCount,A11yViolations'
   ];
   let totalFailures = 0;
 
@@ -128,6 +129,7 @@ async function run() {
     let rogueJsonLdCount = 0;
     let heroCount = 0;
     let ctaCount = 0;
+    let a11yViolationsCount = 0;
 
     page.on('console', msg => {
       if (msg.type() === 'error' || msg.type() === 'warning') {
@@ -325,6 +327,20 @@ async function run() {
             issues.push('Missing MedicalOrganization node in schema graph — nvx-structured-data.php may not be loaded');
           }
         }
+        
+        // 6. Axe-core accessibility scan
+        try {
+          const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+          const violations = accessibilityScanResults.violations || [];
+          a11yViolationsCount = violations.length;
+          if (a11yViolationsCount > 0) {
+            // Log as issue but don't strictly fail the build yet for a11y, or fail if we want strict mode.
+            // Let's add it to issues so it fails the build, enforcing a11y baseline.
+            issues.push(`A11y: Found ${a11yViolationsCount} accessibility violations (e.g. ${violations[0].id})`);
+          }
+        } catch (axeErr) {
+          console.warn(`Axe-core failed on ${route}:`, axeErr.message);
+        }
       }
 
       // Staging2 must retain meta and HTTP noindex protection
@@ -378,7 +394,7 @@ async function run() {
       });
 
       csvRows.push(
-        `${route},${mainResponseStatus},${finalUrl},${canonical},${h1Count},"${title.replace(/"/g, '""')}",${currentConsoleErrors.length},${currentNetworkErrors.length},${metaDeploySha},${htmlLang},${mainExists},${hasNoindexMeta},${httpNoindexHeader},${hasInitialHubspot},${hasInitialFacebookSignal},${hasRogueThirdPartySrc},${rogueJsonLdCount},${heroCount},${ctaCount}`
+        `${route},${mainResponseStatus},${finalUrl},${canonical},${h1Count},"${title.replace(/"/g, '""')}",${currentConsoleErrors.length},${currentNetworkErrors.length},${metaDeploySha},${htmlLang},${mainExists},${hasNoindexMeta},${httpNoindexHeader},${hasInitialHubspot},${hasInitialFacebookSignal},${hasRogueThirdPartySrc},${rogueJsonLdCount},${heroCount},${ctaCount},${a11yViolationsCount}`
       );
 
       if (issues.length > 0) {

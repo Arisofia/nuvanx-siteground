@@ -73,24 +73,28 @@ function nvx_is_contacto_page_request(): bool {
  * @return array<int, array{name:string,reg:string,address:string,phone:string,phone_href:string,days:string}>
  */
 function nvx_contact_clinics_nap(): array {
-	return array(
-		array(
-			'name'       => 'Centro Clínico NUVANX Chamberí',
-			'reg'        => 'CS20144',
-			'address'    => 'Calle de Fernández de la Hoz, 4, Bajo Derecha, 28010, Madrid',
-			'phone'      => '669 319 836',
-			'phone_href' => '+34669319836',
-			'days'       => 'Martes y jueves',
-		),
-		array(
-			'name'       => 'Centro Clínico NUVANX Salamanca / Goya',
-			'reg'        => 'CS20073',
-			'address'    => 'Calle de Fernán González, 26, 28009, Madrid',
-			'phone'      => '647 505 107',
-			'phone_href' => '+34647505107',
-			'days'       => 'Miércoles',
-		),
-	);
+	if ( ! function_exists( 'nvx_get_clinics_config' ) ) {
+		return array();
+	}
+	
+	$clinics = nvx_get_clinics_config();
+	$nap = array();
+	
+	foreach ( array( 'chamberi', 'goya' ) as $key ) {
+		if ( isset( $clinics[ $key ] ) ) {
+			$c = $clinics[ $key ];
+			$nap[] = array(
+				'name'       => $c['name'],
+				'reg'        => $c['reg'],
+				'address'    => sprintf( '%s, %s, %s', $c['address'], $c['postal_code'], $c['locality'] ),
+				'phone'      => $c['phone'],
+				'phone_href' => $c['phone_href'],
+				'days'       => $c['days'],
+			);
+		}
+	}
+	
+	return $nap;
 }
 
 /**

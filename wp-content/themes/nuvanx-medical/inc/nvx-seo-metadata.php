@@ -227,11 +227,18 @@ function nvx_seo_filter_yoast_robots( $robots ) {
 		return 'noindex, follow';
 	}
 
+	$page_id = (int) get_queried_object_id();
+
+	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
+		return 'noindex, nofollow';
+	}
+
+	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
+		return 'noindex, follow';
+	}
+
 	if ( null !== nvx_seo_current_metadata_key() ) {
-		$page_id = (int) get_queried_object_id();
-		if ( ! function_exists( 'nvx_noindex_page_ids' ) || ! in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-			return 'index, follow';
-		}
+		return 'index, follow';
 	}
 
 	return $robots;

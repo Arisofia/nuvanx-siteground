@@ -194,11 +194,11 @@ async function run() {
 
       // Integration invariants: initial HTML scripts must not contain HubSpot or FacebookSignal
       const initialScripts = await page.locator('script').allInnerTexts();
-      hasInitialHubspot = initialScripts.some(text => /hbspt\.forms\.create|js\.hs-scripts\.com/i.test(text));
+      hasInitialHubspot = initialScripts.some(text => /hbspt\.forms\.create|js\.hs-scripts\.com|hubspotEmbed|hscollectedforms\.net|hs-analytics\.net/i.test(text));
       hasInitialFacebookSignal = initialScripts.some(text => /facebook.*signal/i.test(text));
       
       const scriptSrcs = await page.locator('script[src]').evaluateAll(els => els.map(el => el.getAttribute('src') || ''));
-      hasRogueThirdPartySrc = scriptSrcs.some(src => /hsforms|hubspot|hs-scripts\.com|facebook|fbevents/i.test(src));
+      hasRogueThirdPartySrc = scriptSrcs.some(src => /hsforms|hubspot|hs-scripts\.com|hscollectedforms\.net|hs-analytics\.net|facebook|fbevents/i.test(src));
 
       // Hero and CTAs
       heroCount = await page.locator('.nvx-brand-hero, .nvx-home-hero, .nvx-blog-hero, .nvx-strategy-intro').count();
@@ -414,7 +414,7 @@ async function run() {
       console.error(`❌ ${route} FATAL: ${e.message}`);
       totalFailures++;
       auditResults.push({ route, fatal: e.message });
-      csvRows.push(`${route},FATAL,,,,,,`);
+      csvRows.push(`${route},FATAL${','.repeat(19)}`);
     } finally {
       await page.close();
     }

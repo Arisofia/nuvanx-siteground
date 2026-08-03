@@ -182,9 +182,9 @@ function nvx_endolift_editorial_body_markup(): string {
 		$html .= '<p class="nvx-body">' . esc_html( $paragraph ) . '</p>';
 	}
 	$html .= '</div>';
-	$html .= '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Criterio de diagnóstico', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-endolift-panel-label">' . esc_html( $data['diagnosis']['panel_title'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-endolift-panel-list">';
+	$html .= '<aside class="nvx-fact-panel" aria-label="' . esc_attr__( 'Criterio de diagnóstico', 'nuvanx-medical' ) . '">';
+	$html .= '<p class="nvx-fact-panel__label">' . esc_html( $data['diagnosis']['panel_title'] ?? '' ) . '</p>';
+	$html .= '<ul class="nvx-fact-panel__list">';
 	foreach ( $data['diagnosis']['panel_items'] ?? array() as $item ) {
 		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> — ' . esc_html( $item['body'] ?? '' ) . '</li>';
 	}

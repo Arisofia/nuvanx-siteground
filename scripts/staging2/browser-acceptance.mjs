@@ -184,7 +184,43 @@ async function run() {
       const canonical = await page.locator('link[rel="canonical"]').getAttribute('href').catch(() => null);
 
       htmlLang = (await page.locator('html').getAttribute('lang').catch(() => null)) || '';
-      mainExists = (await page.locator('main').count()) > 0;
+      mainExists = (await page.locator('main').count()) === 1;
+
+      // Skip-link functional test (only run on root to save time)
+      if (route === '/') {
+        await page.keyboard.press('Tab');
+        const isSkipLinkFocused = await page.evaluate(() => document.activeElement && document.activeElement.classList.contains('skip-link'));
+        if (!isSkipLinkFocused) issues.push('Skip-link is not focused on first Tab');
+        if (isSkipLinkFocused) {
+          await page.keyboard.press('Enter');
+          const isMainFocused = await page.evaluate(() => document.activeElement && document.activeElement.id === 'nvx-main');
+          if (!isMainFocused) issues.push('Skip-link did not move focus to #nvx-main');
+        }
+      }
+
+      // Heading hierarchy without skips
+      const headings = await page.evaluate(() => {
+        const els = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        return Array.from(els).map(el => parseInt(el.tagName.replace('H', ''), 10));
+      });
+      let currentLevel = 0;
+      headings.forEach((level, idx) => {
+        if (currentLevel > 0 && level > currentLevel + 1) {
+          issues.push(`Heading hierarchy skip detected: H${currentLevel} followed by H${level} at index ${idx}`);
+        }
+        currentLevel = level;
+      });
+
+      // Grid layout not collapsed
+      const hasCollapsedGrids = await page.evaluate(() => {
+        const els = document.querySelectorAll('.nvx-blog-card, .nvx-brand-grid > *');
+        let collapsed = false;
+        els.forEach(el => {
+          if (window.getComputedStyle(el).gridColumn === 'auto') collapsed = true;
+        });
+        return collapsed;
+      });
+      if (hasCollapsedGrids) issues.push('Grid layout collapsed (grid-column: auto detected on cards)');
 
       // Deployment SHA marker in the document
       metaDeploySha =

@@ -487,9 +487,9 @@ function nvx_equipo_identity_facts_panel_markup( array $facts ): string {
 		return '';
 	}
 
-	$html  = '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-endolift-panel-label" aria-hidden="true">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-endolift-panel-list">';
+	$html  = '<aside class="nvx-fact-panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
+	$html .= '<p class="nvx-fact-panel__label" aria-hidden="true">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-fact-panel__list">';
 	foreach ( $facts as $fact ) {
 		$html .= '<li><strong>' . esc_html( $fact['label'] ) . '</strong> — ' . esc_html( $fact['val'] ) . '</li>';
 	}

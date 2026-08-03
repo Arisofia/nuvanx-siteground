@@ -243,29 +243,7 @@ function nvx_noindex_page_ids() {
 	return array_values( array_unique( array_map( 'intval', apply_filters( 'nvx_noindex_page_ids', $ids ) ) ) );
 }
 
-/**
- * Keep transactional and incomplete evidence pages out of search results.
- *
- * Page 78 (thank-you): noindex, nofollow — do not follow outbound links.
- * Other noindex IDs (e.g. casos until ready): noindex, follow.
- *
- * @param string $robots Existing Yoast robots directive.
- * @return string
- */
-function nvx_sensitive_page_robots( $robots ) {
-	$page_id = (int) get_queried_object_id();
 
-	if ( in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
-		return 'noindex, nofollow';
-	}
-
-	if ( in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-		return 'noindex, follow';
-	}
-
-	return $robots;
-}
-add_filter( 'wpseo_robots', 'nvx_sensitive_page_robots', 20 );
 
 /**
  * Exclude sensitive pages from the Yoast XML sitemap by post ID list.

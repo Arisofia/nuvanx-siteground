@@ -119,13 +119,13 @@ function nvx_endolaser_editorial_body_markup(): string {
 	$html .= '</div></div></section>';
 
 	// B. Zonas.
-	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-zones', 'nvx-endolaser-zones-title' );
-	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['zones']['kicker'] ?? '' ), 'nvx-endolaser-zones-title', esc_html( $data['zones']['title'] ?? '' ) );
+	$html .= nvx_page_brand_section_open_markup( 'nvx-feature-zones', 'nvx-feature-zones-title' );
+	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['zones']['kicker'] ?? '' ), 'nvx-feature-zones-title', esc_html( $data['zones']['title'] ?? '' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['zones']['body'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-endolaser-zone-list">';
+	$html .= '<ul class="nvx-feature-zone-list">';
 	foreach ( $data['zones']['items'] ?? array() as $zone ) {
-		$html .= '<li class="nvx-endolaser-zone">';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $zone['title'] ?? '' ) . '</h3>';
+		$html .= '<li class="nvx-feature-zone">';
+		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $zone['title'] ?? '' ) . '</h3>';
 		$html .= '<p class="nvx-body">' . esc_html( $zone['body'] ?? '' ) . '</p>';
 		$html .= '</li>';
 	}

@@ -6,9 +6,12 @@
   "type": "module",
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
     "playwright": "^1.50.0"
   },
   "scripts": {
-    "test:acceptance": "node scripts/staging2/browser-acceptance.mjs"
+    "test:acceptance": "node scripts/staging2/browser-acceptance.mjs",
+    "lint": "eslint scripts/staging2/browser-acceptance.mjs"
   }
 }

@@ -1389,21 +1389,3 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 	);
 }
 add_filter( 'the_content', 'nvx_content_inject_global_treatment_sections', 21 );
-
-// Backward-compatible aliases (older home helpers).
-if ( ! function_exists( 'nvx_home_valoracion_url' ) ) {
-	/**
-	 * @return string
-	 */
-	function nvx_home_valoracion_url(): string {
-		return nvx_cta_valoracion_url();
-	}
-}
-if ( ! function_exists( 'nvx_home_whatsapp_url' ) ) {
-	/**
-	 * @return string
-	 */
-	function nvx_home_whatsapp_url(): string {
-		return nvx_cta_whatsapp_url();
-	}
-}

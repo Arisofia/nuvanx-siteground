@@ -163,7 +163,7 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 
 	// Split at first H2 so loose patterns never touch body sections.
 	$parts = preg_split( '/(?=<h2\b)/iu', $content, 2 );
-	$head  = $parts[0] ?? $content;
+	$head  = ( is_array( $parts ) && isset( $parts[0] ) ) ? $parts[0] : $content;
 	$tail  = $parts[1] ?? '';
 
 	// Short preamble: Autor: … (optionally Fecha/Lectura on same paragraph).

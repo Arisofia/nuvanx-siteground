@@ -307,12 +307,12 @@ require_once get_template_directory() . '/inc/nvx-valoracion-modal.php';
 require_once get_template_directory() . '/inc/nvx-navigation-filters.php';
 
 // 4. Page Templates & Editorial Modules
+require_once get_template_directory() . '/inc/nvx-13-point-renderer.php';
 require_once get_template_directory() . '/inc/nvx-strategy-pages.php';
 require_once get_template_directory() . '/inc/nvx-signature-phase-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-pages.php';
 require_once get_template_directory() . '/inc/nvx-aesthetic-treatment-schema.php';
 require_once get_template_directory() . '/inc/nvx-blog-system.php';
-require_once get_template_directory() . '/inc/nvx-13-point-renderer.php';
 require_once get_template_directory() . '/inc/nvx-medical-review.php';
 require_once get_template_directory() . '/inc/nvx-btl-clinical-governance.php';
 require_once get_template_directory() . '/inc/nvx-faq-content-v2.php';

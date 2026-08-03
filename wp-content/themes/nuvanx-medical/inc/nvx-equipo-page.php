@@ -551,7 +551,15 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
 	$items      = $config['items'] ?? array();
 	$facts      = $config['facts'] ?? array();
 
-	$html  = '<section class="nvx-brand-section" aria-labelledby="' . esc_attr( $section_id ) . '">';
+	// Only label by the heading id when the heading is actually rendered;
+	// otherwise fall back to aria-label so aria-labelledby never dangles.
+	if ( '' !== $heading ) {
+		$aria_attr = 'aria-labelledby="' . esc_attr( $section_id ) . '"';
+	} else {
+		$aria_attr = 'aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '"';
+	}
+
+	$html  = '<section class="nvx-brand-section" ' . $aria_attr . '>';
 	$html .= '<div class="nvx-container nvx-equipo-diagnosis__grid">';
 	$html .= '<div class="nvx-equipo-diagnosis__copy">';
 	if ( '' !== $kicker ) {

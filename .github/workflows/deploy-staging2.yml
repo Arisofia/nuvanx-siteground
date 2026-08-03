@@ -228,6 +228,16 @@ jobs:
           set -euo pipefail
           ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
 
+      - name: Purge caches after content sanitization
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The deploy script purges caches before this hygiene pass, so the
+          # sanitized DB/JSON could otherwise be served stale until the next
+          # purge. Mirror the deploy-to-staging2.sh purge sequence here.
+          # shellcheck disable=SC2029
+          ssh nvx-staging2 "cd '$WP_ROOT' && wp cache flush && wp sg purge && rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/* && wp eval 'if (function_exists(\"opcache_reset\")) { opcache_reset(); }'"
+
       - name: Verify content hygiene
         shell: bash
         run: |

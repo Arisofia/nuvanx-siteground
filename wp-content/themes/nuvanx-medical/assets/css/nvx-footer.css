@@ -214,6 +214,9 @@
   .nvx-footer__col > .nvx-footer__col-content {
     padding-bottom: var(--nvx-space-3);
   }
+  /* Columns render open by default (server-side, no-JS desktop fallback); on
+     mobile the native accordion collapses them. Hide content unless the user
+     opens the <details>, so the mobile accordion still works with `open`. */
   .nvx-footer__col:not([open]) > .nvx-footer__col-content {
     display: none;
   }

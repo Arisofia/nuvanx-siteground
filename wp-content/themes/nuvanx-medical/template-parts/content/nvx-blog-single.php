@@ -90,6 +90,7 @@ while ( have_posts() ) :
 							array(
 								'loading'       => 'eager',
 								'fetchpriority' => 'high',
+								'alt'           => the_title_attribute( array( 'echo' => false ) ),
 							)
 						);
 						?>

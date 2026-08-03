@@ -313,7 +313,7 @@ function nvx_nosotros_editorial_body_markup(): string {
  * Rebuild nosotros page content once.
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) return $owner;
+	if ( ! empty( $owner ) ) { return $owner; }
 	global $post;
 	$content = $post ? $post->post_content : '';
 	if ( function_exists('nvx_content_is_nosotros_page') && nvx_content_is_nosotros_page( $content ) ) {
@@ -395,3 +395,4 @@ function nvx_filter_nosotros_metadesc( $desc ) {
 	return nvx_nosotros_registry()['yoast_desc'] ?? $desc;
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_nosotros_metadesc', 21 );
+

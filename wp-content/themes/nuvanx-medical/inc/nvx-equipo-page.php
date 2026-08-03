@@ -849,7 +849,7 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
  * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) return $owner;
+	if ( ! empty( $owner ) ) { return $owner; }
 	global $post;
 	$content = $post ? $post->post_content : '';
 	if ( function_exists('nvx_content_is_equipo_page') && nvx_content_is_equipo_page( $content ) ) {
@@ -903,3 +903,4 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	return '<div class="nvx-brand-page nvx-brand-page--equipo">' . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_equipo_page', 19 );
+

@@ -121,7 +121,7 @@ async function checkOrphanClasses(page, issues) {
       try {
         const sheet = document.styleSheets[i];
         extractClasses(sheet.cssRules);
-      } catch (e) {
+      } catch {
         // Cross-origin stylesheet access might throw
       }
     }
@@ -263,22 +263,22 @@ async function run() {
     const url = `${baseUrl}${route}`;
     console.log(`Navigating to ${url}...`);
     
-    let mainResponseStatus = 0;
-    let finalUrl = '';
+    let mainResponseStatus;
+    let finalUrl;
     const issues = [];
     const currentConsoleErrors = [];
     const currentNetworkErrors = [];
-    let metaDeploySha = '';
-    let htmlLang = '';
-    let mainExists = false;
-    let hasNoindexMeta = false;
+    let metaDeploySha;
+    let htmlLang;
+    let mainExists;
+    let hasNoindexMeta;
     let httpNoindexHeader = '';
-    let hasInitialHubspot = false;
-    let hasInitialFacebookSignal = false;
-    let hasRogueThirdPartySrc = false;
-    let rogueJsonLdCount = 0;
-    let heroCount = 0;
-    let ctaCount = 0;
+    let hasInitialHubspot;
+    let hasInitialFacebookSignal;
+    let hasRogueThirdPartySrc;
+    let rogueJsonLdCount;
+    let heroCount;
+    let ctaCount;
     let a11yViolationsCount = 0;
 
     page.on('console', msg => {
@@ -365,7 +365,6 @@ async function run() {
       
       const isRedirectExpected = ['/politica-de-cookies/', '/mas-informacion-sobre-las-cookies/', '/medicina-estetica-goya-barrio-salamanca/'].includes(route);
       const is404Expected = ['/equipo-medico-clinica-goya/'].includes(route);
-      const isGated = ['/casos-de-pacientes/'].includes(route);
 
       // Assertions
       if (!is404Expected && !isRedirectExpected && mainResponseStatus !== 200) {

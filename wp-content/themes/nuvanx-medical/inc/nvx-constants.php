@@ -36,7 +36,7 @@ const NVX_HOOK_PRIO_MODULE_RENDER  = 16;
 /**
  * Secondary feature module injection (e.g. CO2 editorial restructure).
  */
-const NVX_HOOK_PRIO_CO2_MODULE     = 19;
+const NVX_HOOK_PRIO_MODULE_RESTRUCTURE     = 19;
 
 /**
  * Trust badge stripping or authority injection.

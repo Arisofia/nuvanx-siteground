@@ -63,16 +63,22 @@
   /* --- Footer Desktop <details> Fix --- */
   var footerCols = document.querySelectorAll('.nvx-footer__col');
   if (footerCols.length > 0) {
+    // Columns are rendered <details open> so desktop stays navigable without JS.
+    // On desktop keep them open; on mobile collapse them so the native accordion
+    // starts closed. If JS never runs, mobile degrades to open (content visible)
+    // rather than desktop hiding content behind a non-clickable summary.
     var footerMql = window.matchMedia('(min-width: 641px)');
     var handleFooterResize = function(e) {
-      if (e.matches) {
-        footerCols.forEach(function(col) {
+      footerCols.forEach(function(col) {
+        if (e.matches) {
           col.setAttribute('open', '');
-        });
-      }
+        } else {
+          col.removeAttribute('open');
+        }
+      });
     };
     footerMql.addEventListener('change', handleFooterResize);
-    if (footerMql.matches) handleFooterResize(footerMql);
+    handleFooterResize(footerMql);
 
     footerCols.forEach(function(col) {
       var summary = col.querySelector('summary');

@@ -210,7 +210,7 @@ function nvx_schema_page_registry() {
 
         if ( 'clinics' === $group && $schema_id ) {
             $registry['clinics'][ $schema_id ] = nvxSchemaRouteEntry( $id, $path );
-        } elseif ( 'clinic_hub' === $group ) {
+        } elseif ( 'clinic_hub' === $group && empty( $registry['clinic_hub'] ) ) {
             $registry['clinic_hub'] = nvxSchemaRouteEntry( $id, $path );
         } elseif ( 'treatments' === $group && $schema_id ) {
             $registry['treatments'][ $schema_id ] = nvxSchemaTreatmentRegistryEntry( $id, $path, $schema_type );

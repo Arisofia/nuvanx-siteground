@@ -120,7 +120,12 @@ jobs:
           # Verifica que existan utilidades mínimas en el remoto
           ssh -o ConnectTimeout=20 nvx-staging2 'command -v curl >/dev/null && command -v mktemp >/dev/null'
           # El proxy SOCKS5 es requerido para evitar bloqueos del WAF/Edge de SiteGround
-          ssh -f -N -D 1080 -o ExitOnForwardFailure=yes -o ConnectTimeout=20 nvx-staging2
+          ssh -f -N -D 1080 \
+            -o ExitOnForwardFailure=yes \
+            -o ConnectTimeout=20 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=4 \
+            nvx-staging2
 
       - name: Install dependencies
         run: npm ci
@@ -129,6 +134,27 @@ jobs:
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
+
+      - name: Verify SOCKS5 proxy is alive
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --max-time 10 --proxy socks5://127.0.0.1:1080 -s -o /dev/null -w '%{http_code}' "$BASE_URL" | grep -q '^[23]' || {
+            echo '::error::SOCKS5 proxy on :1080 is not forwarding traffic to staging2.'
+            # Attempt to re-establish
+            ssh -f -N -D 1080 \
+              -o ExitOnForwardFailure=yes \
+              -o ConnectTimeout=20 \
+              -o ServerAliveInterval=15 \
+              -o ServerAliveCountMax=4 \
+              nvx-staging2
+            sleep 2
+            curl --max-time 10 --proxy socks5://127.0.0.1:1080 -s -o /dev/null -w '%{http_code}' "$BASE_URL" | grep -q '^[23]' || {
+              echo '::error::SOCKS5 proxy re-establishment failed. Aborting.'
+              exit 1
+            }
+          }
+          echo 'SOCKS5 proxy verified — staging2 reachable.'
 
       - name: Verify rendered document, integrations and route consistency
         env:

@@ -83,6 +83,8 @@ function nvx_equipo_hero_copy_markup(): string {
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
+	} else {
+		$html .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a></div>';
 	}
 
 	$html .= '<p class="nvx-brand-meta">' . esc_html( $data['meta'] ?? '' ) . '</p>';
@@ -154,9 +156,10 @@ function nvx_equipo_promote_lazy_src( string $attrs ): string {
  * Normalize a portrait snippet to a single clean <img> (doctor crop).
  *
  * @param string $media Figure or img HTML from CMS.
+ * @param string $label Optional portrait label for alt text fallback.
  * @return string Safe img markup or empty.
  */
-function nvx_equipo_clean_portrait_img( string $media ): string {
+function nvx_equipo_clean_portrait_img( string $media, string $label = '' ): string {
 	if ( '' === trim( $media ) || nvx_equipo_media_is_logo( $media ) ) {
 		return '';
 	}
@@ -181,6 +184,10 @@ function nvx_equipo_clean_portrait_img( string $media ): string {
 		$attrs = nvx_html_attrs_add_class( $attrs, 'nvx-media--doctor' );
 	} elseif ( ! preg_match( '/\bclass=/i', $attrs ) ) {
 		$attrs .= ' class="nvx-media nvx-media--doctor"';
+	}
+
+	if ( '' !== $label && ! preg_match( '/\balt=/i', $attrs ) ) {
+		$attrs .= ' alt="' . esc_attr( 'Retrato de ' . $label ) . '"';
 	}
 
 	return '<img' . $attrs . ' loading="lazy" decoding="async">';
@@ -225,7 +232,7 @@ function nvx_equipo_is_person_staff_card( string $card ): bool {
  * Portrait frame markup for authority profiles.
  */
 function nvx_equipo_portrait_figure_markup( string $media, string $label ): string {
-	$img = nvx_equipo_clean_portrait_img( $media );
+	$img = nvx_equipo_clean_portrait_img( $media, $label );
 	if ( '' === $img ) {
 		return '';
 	}
@@ -571,9 +578,8 @@ function nvx_equipo_physician_sections_markup( array $sections ): string {
  */
 function nvx_equipo_physician_quote_section_markup( array $quote ): string {
 	$h2_id = 'nvx-equipo-quote-title-' . sanitize_title($quote['author']);
-	$html  = '<section class="nvx-brand-section nvx-equipo-quote" aria-labelledby="' . esc_attr( $h2_id ) . '">';
+	$html  = '<section class="nvx-brand-section nvx-equipo-quote" aria-label="' . esc_attr__( 'Visión clínica', 'nuvanx-medical' ) . '">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$html .= '<h2 id="' . esc_attr( $h2_id ) . '" class="screen-reader-text">' . esc_html__( 'Visión clínica', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<blockquote class="nvx-equipo-blockquote">';
 	$html .= '<p>' . esc_html( $quote['text'] ) . '</p>';
 	$html .= '<footer>— ' . esc_html( $quote['author'] ) . '</footer>';

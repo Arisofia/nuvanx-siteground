@@ -213,10 +213,9 @@ function nvx_exclude_quarantined_comparison_posts( WP_Query $query ): void {
 add_action( 'pre_get_posts', 'nvx_exclude_quarantined_comparison_posts', 30 );
 
 /**
- * Post IDs that must stay out of the public index (sitemap + robots).
- * Includes nofollow IDs plus incomplete evidence pages (noindex, follow).
+ * Collects page and post IDs that should be excluded from public indexing.
  *
- * @return int[]
+ * @return int[] Unique IDs excluded from sitemaps and other public index listings.
  */
 function nvx_noindex_page_ids() {
 	$ids = nvx_nofollow_page_ids();
@@ -243,29 +242,7 @@ function nvx_noindex_page_ids() {
 	return array_values( array_unique( array_map( 'intval', apply_filters( 'nvx_noindex_page_ids', $ids ) ) ) );
 }
 
-/**
- * Keep transactional and incomplete evidence pages out of search results.
- *
- * Page 78 (thank-you): noindex, nofollow — do not follow outbound links.
- * Other noindex IDs (e.g. casos until ready): noindex, follow.
- *
- * @param string $robots Existing Yoast robots directive.
- * @return string
- */
-function nvx_sensitive_page_robots( $robots ) {
-	$page_id = (int) get_queried_object_id();
 
-	if ( in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
-		return 'noindex, nofollow';
-	}
-
-	if ( in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-		return 'noindex, follow';
-	}
-
-	return $robots;
-}
-add_filter( 'wpseo_robots', 'nvx_sensitive_page_robots', 20 );
 
 /**
  * Exclude sensitive pages from the Yoast XML sitemap by post ID list.

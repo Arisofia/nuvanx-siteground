@@ -477,14 +477,14 @@ section.nvx-hero {
   max-width: 65ch;
 }
 
-.nvx-endolift-diagnosis__panel {
+.nvx-fact-panel {
   padding: var(--nvx-space-4);
   border: 1px solid var(--nvx-color-line);
   border-radius: var(--nvx-radius-card);
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
-.nvx-endolift-panel-label {
+.nvx-fact-panel__label {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
@@ -494,7 +494,7 @@ section.nvx-hero {
   color: var(--nvx-accent-muted);
 }
 
-.nvx-endolift-panel-list {
+.nvx-fact-panel__list {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -502,14 +502,14 @@ section.nvx-hero {
   gap: var(--nvx-space-3);
 }
 
-.nvx-endolift-panel-list li {
+.nvx-fact-panel__list li {
   font-family: var(--nvx-sans);
   font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--nvx-text-body);
 }
 
-.nvx-endolift-panel-list strong {
+.nvx-fact-panel__list strong {
   color: var(--nvx-ink);
   font-weight: var(--nvx-fw-medium);
 }
@@ -647,7 +647,7 @@ section.nvx-hero {
   margin: 0;
 }
 
-.nvx-nosotros-team-card .nvx-endolaser-zone__title,
+.nvx-nosotros-team-card .nvx-feature-zone__title,
 .nvx-nosotros-team-card .nvx-endolift-body {
   margin: 0;
 }
@@ -928,7 +928,7 @@ section.nvx-hero {
 }
 
 /* Endoláser corporal — zone list (reuses endolift section rhythm) */
-.nvx-endolaser-zone-list {
+.nvx-feature-zone-list {
   list-style: none;
   margin: var(--nvx-space-4) 0 0;
   padding: 0;
@@ -937,13 +937,13 @@ section.nvx-hero {
   max-width: 68ch;
 }
 
-.nvx-endolaser-zone {
+.nvx-feature-zone {
   margin: 0;
   padding-top: var(--nvx-space-3);
   border-top: 1px solid var(--nvx-color-line);
 }
 
-.nvx-endolaser-zone__title {
+.nvx-feature-zone__title {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);

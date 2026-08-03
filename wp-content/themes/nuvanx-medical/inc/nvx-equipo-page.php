@@ -478,18 +478,19 @@ function nvx_equipo_brand_card_grid_markup( array $items ): string {
 }
 
 /**
- * Identity fact panel for split formation / docencia sections.
+ * Builds an identity facts panel from labeled professional facts.
  *
- * @param array<int,array{label:string,val:string}> $facts Fact rows.
+ * @param array<int,array{label:string,val:string}> $facts Fact rows to display.
+ * @return string The rendered facts panel, or an empty string when no facts are provided.
  */
 function nvx_equipo_identity_facts_panel_markup( array $facts ): string {
 	if ( empty( $facts ) ) {
 		return '';
 	}
 
-	$html  = '<aside class="nvx-endolift-diagnosis__panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-endolift-panel-label" aria-hidden="true">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-endolift-panel-list">';
+	$html  = '<aside class="nvx-fact-panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
+	$html .= '<p class="nvx-fact-panel__label" aria-hidden="true">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
+	$html .= '<ul class="nvx-fact-panel__list">';
 	foreach ( $facts as $fact ) {
 		$html .= '<li><strong>' . esc_html( $fact['label'] ) . '</strong> — ' . esc_html( $fact['val'] ) . '</li>';
 	}

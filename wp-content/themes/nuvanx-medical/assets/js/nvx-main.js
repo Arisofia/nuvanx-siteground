@@ -60,5 +60,33 @@
     });
   });
 
+  /* --- Footer Desktop <details> Fix --- */
+  var footerCols = document.querySelectorAll('.nvx-footer__col');
+  if (footerCols.length > 0) {
+    var footerMql = window.matchMedia('(min-width: 641px)');
+    var handleFooterResize = function(e) {
+      if (e.matches) {
+        footerCols.forEach(function(col) {
+          col.setAttribute('open', '');
+        });
+      }
+    };
+    footerMql.addEventListener('change', handleFooterResize);
+    if (footerMql.matches) handleFooterResize(footerMql);
+
+    footerCols.forEach(function(col) {
+      var summary = col.querySelector('summary');
+      if (summary) {
+        summary.addEventListener('click', function(e) {
+          if (window.innerWidth > 640) e.preventDefault();
+        });
+        summary.addEventListener('keydown', function(e) {
+          if (window.innerWidth > 640 && (e.key === 'Enter' || e.key === ' ')) {
+            e.preventDefault();
+          }
+        });
+      }
+    });
+  }
 
 })();

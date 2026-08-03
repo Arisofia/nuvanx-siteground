@@ -269,6 +269,38 @@ add_filter(
 	3
 );
 
+/**
+ * Strip FacebookSignal and other unwanted third-party scripts from final HTML output.
+ * This catches scripts injected via buffer optimization (e.g., SiteGround Optimizer)
+ * that bypass WordPress enqueue hooks.
+ */
+add_filter(
+	'template_redirect',
+	static function (): void {
+		if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return;
+		}
+
+		ob_start(
+			static function ( string $buffer ): string {
+				// Remove Facebook Signal scripts and noscript tags
+				$buffer = preg_replace( '/<script[^>]*facebook[^>]*>.*?<\/script>/is', '', $buffer );
+				$buffer = preg_replace( '/<noscript[^>]*>.*?facebook.*?<\/noscript>/is', '', $buffer );
+				
+				// Remove Facebook Pixel initialization
+				$buffer = preg_replace( '/<!--.*?Facebook Pixel.*?-->/is', '', $buffer );
+				$buffer = preg_replace( '/<!--.*?Meta Pixel.*?-->/is', '', $buffer );
+				
+				// Remove _fbp cookie setting scripts
+				$buffer = preg_replace( '/_fbp\s*=.*?;/is', '', $buffer );
+				
+				return $buffer;
+			}
+		);
+	},
+	999999
+);
+
 add_filter(
 	'wp_resource_hints',
 	static function ( $urls, $relation_type ) {

@@ -11,25 +11,43 @@ if ( ! class_exists( 'WP_CLI' ) ) {
 
 WP_CLI::line( 'Starting content hygiene fix...' );
 
-$str_reps = array(
-	'EXILITET'                                             => 'EXILITE™',
-	'Exilitet'                                             => 'EXILITE™',
-	'Tu mejor versión empieza aquí.'                       => 'Reserva 15–30 min de valoración médica.',
-	'Tu mejor versión empieza aquí'                        => 'Reserva 15–30 min de valoración médica',
-	'enfoque médico premium'                               => 'misma dirección médica que Chamberí',
-	'Medicina estética en Goya con enfoque médico premium' => 'Medicina estética láser en Goya–Barrio de Salamanca (CS20073)',
-);
+/**
+ * Returns the literal replacement map for hygiene content.
+ *
+ * Defined as a function (not a script-scope variable) so it resolves reliably
+ * under `wp eval-file`, which executes this file inside a function scope where
+ * `global` would not see script-level variables.
+ *
+ * @return array<string, string> Literal search => replace pairs.
+ */
+function nvx_hygiene_str_reps() {
+	return array(
+		'EXILITET'                                             => 'EXILITE™',
+		'Exilitet'                                             => 'EXILITE™',
+		'Tu mejor versión empieza aquí.'                       => 'Reserva 15–30 min de valoración médica.',
+		'Tu mejor versión empieza aquí'                        => 'Reserva 15–30 min de valoración médica',
+		'enfoque médico premium'                               => 'misma dirección médica que Chamberí',
+		'Medicina estética en Goya con enfoque médico premium' => 'Medicina estética láser en Goya–Barrio de Salamanca (CS20073)',
+	);
+}
 
-$regex_reps = array(
-	'/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu' => 'valoración médica',
-	'/\bvaloraci[oó]n\s+gratuita\b/iu'             => 'valoración médica',
-	'/\bvaloraci[oó]n\s+gratis\b/iu'               => 'valoración médica',
-	'/\bconsulta\s+(?:m[eé]dica\s+)?gratuita\b/iu' => 'consulta médica',
-	'/\bconsulta\s+gratis\b/iu'                    => 'consulta médica',
-	'/\bpresupuestos?\s+personalizados?\b/iu'      => 'presupuesto individualizado tras la valoración médica',
-	'/\bsin\s+compromiso\b/iu'                     => 'sin obligación de continuar con un tratamiento',
-	'/\bSolicitar\.(?=\s|<|$)/u'                   => 'Solicitar valoración médica',
-);
+/**
+ * Returns the regex replacement map for hygiene content.
+ *
+ * @return array<string, string> Regex pattern => replacement pairs.
+ */
+function nvx_hygiene_regex_reps() {
+	return array(
+		'/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu' => 'valoración médica',
+		'/\bvaloraci[oó]n\s+gratuita\b/iu'             => 'valoración médica',
+		'/\bvaloraci[oó]n\s+gratis\b/iu'               => 'valoración médica',
+		'/\bconsulta\s+(?:m[eé]dica\s+)?gratuita\b/iu' => 'consulta médica',
+		'/\bconsulta\s+gratis\b/iu'                    => 'consulta médica',
+		'/\bpresupuestos?\s+personalizados?\b/iu'      => 'presupuesto individualizado tras la valoración médica',
+		'/\bsin\s+compromiso\b/iu'                     => 'sin obligación de continuar con un tratamiento',
+		'/\bSolicitar\.(?=\s|<|$)/u'                   => 'Solicitar valoración médica',
+	);
+}
 
 /**
  * Applies configured literal and regular-expression replacements to a non-empty string.
@@ -38,16 +56,22 @@ $regex_reps = array(
  * @return mixed The updated string, or the original value for other values and empty strings.
  */
 function nvx_apply_hygiene_replacements( $content ) {
-	global $str_reps, $regex_reps;
 	if ( ! is_string( $content ) || '' === $content ) {
 		return $content;
 	}
-	$content = str_replace( array_keys( $str_reps ), array_values( $str_reps ), $content );
+	$str_reps   = nvx_hygiene_str_reps();
+	$regex_reps = nvx_hygiene_regex_reps();
+	$content    = str_replace( array_keys( $str_reps ), array_values( $str_reps ), $content );
 	foreach ( $regex_reps as $pattern => $replacement ) {
 		$content = preg_replace( $pattern, $replacement, $content ) ?? $content;
 	}
 	return $content;
 }
+
+// Disable KSES so wp_update_post() does not strip legitimate but "disallowed"
+// markup (embedded clinic maps, iframes, etc.) from saved content. Without this
+// the sanitizer would permanently delete that HTML with no backup.
+kses_remove_filters();
 
 // 1. Process Database (wp_posts)
 WP_CLI::line( 'Processing wp_posts...' );
@@ -113,6 +137,9 @@ WP_CLI::line( 'Processing JSON catalogs...' );
 $theme_dir = get_template_directory();
 $json_dir  = $theme_dir . '/inc/data';
 $json_files = glob( $json_dir . '/*.json' );
+if ( false === $json_files ) {
+	$json_files = array();
+}
 $json_updated_count = 0;
 
 /**
@@ -144,20 +171,37 @@ function nvx_recursive_hygiene( $data ) {
 
 foreach ( $json_files as $file ) {
 	$content = file_get_contents( $file );
-	$data = json_decode( $content, true );
+	if ( false === $content ) {
+		WP_CLI::warning( "Could not read {$file}" );
+		continue;
+	}
+
+	// Decode to objects (not associative arrays) so empty objects stay as `{}`
+	// on re-encode instead of silently becoming `[]`, which would change the
+	// deployed file contract (e.g. routes.json "/madrid/": {}).
+	$data = json_decode( $content, false );
 	if ( json_last_error() !== JSON_ERROR_NONE ) {
 		WP_CLI::warning( "Invalid JSON in {$file}" );
 		continue;
 	}
 
-	$new_data = nvx_recursive_hygiene( $data );
+	$new_data    = nvx_recursive_hygiene( $data );
 	$new_content = wp_json_encode( $new_data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-	
-	if ( $new_content !== $content ) {
+	if ( false === $new_content ) {
+		WP_CLI::warning( "Could not encode {$file}" );
+		continue;
+	}
+
+	// Compare only the hygiene-relevant payload, not formatting, so files are
+	// rewritten only when actual text changed (avoids reformat-only churn).
+	if ( nvx_apply_hygiene_replacements( $content ) !== $content ) {
 		file_put_contents( $file, $new_content );
 		$json_updated_count++;
 	}
 }
 WP_CLI::success( "Updated {$json_updated_count} JSON files." );
+
+// Restore KSES filters removed before the DB writes.
+kses_init_filters();
 
 WP_CLI::success( 'Hygiene content fix completed.' );

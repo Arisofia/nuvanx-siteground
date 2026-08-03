@@ -135,10 +135,10 @@ function nvx_co2_editorial_body_markup(): string {
 		esc_html( $data['indications']['title'] ?? '' )
 	);
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['indications']['body'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-endolaser-zone-list">';
-	foreach ( $data['indications']['items'] ?? array() as $ind ) {
-		$html .= '<li class="nvx-endolaser-zone">';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $ind['title'] ?? '' ) . '</h3>';
+	$html .= '<ul class="nvx-feature-zone-list">';
+	foreach ( (array) ( $data['indications']['items'] ?? array() ) as $ind ) {
+		$html .= '<li class="nvx-feature-zone">';
+		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $ind['title'] ?? '' ) . '</h3>';
 		$html .= '<p class="nvx-body">' . esc_html( $ind['body'] ?? '' ) . '</p>';
 		$html .= '</li>';
 	}

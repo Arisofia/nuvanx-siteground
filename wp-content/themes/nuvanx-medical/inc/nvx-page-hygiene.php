@@ -213,10 +213,9 @@ function nvx_exclude_quarantined_comparison_posts( WP_Query $query ): void {
 add_action( 'pre_get_posts', 'nvx_exclude_quarantined_comparison_posts', 30 );
 
 /**
- * Post IDs that must stay out of the public index (sitemap + robots).
- * Includes nofollow IDs plus incomplete evidence pages (noindex, follow).
+ * Collects page and post IDs that should be excluded from public indexing.
  *
- * @return int[]
+ * @return int[] Unique IDs excluded from sitemaps and other public index listings.
  */
 function nvx_noindex_page_ids() {
 	$ids = nvx_nofollow_page_ids();

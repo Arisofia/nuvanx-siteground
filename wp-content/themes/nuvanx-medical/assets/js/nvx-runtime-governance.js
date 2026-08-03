@@ -242,6 +242,10 @@
     window.nvxCloseValoracionModal = closeModal;
   }
 
+  /**
+   * Resolves the HubSpot forms script URL from configuration or an embedded form frame.
+   * @return {string} The HubSpot script URL, or an empty string when no portal ID is available.
+   */
   function resolveHubSpotScriptUrl() {
     if (config.hubspotScriptUrl) return String(config.hubspotScriptUrl);
 

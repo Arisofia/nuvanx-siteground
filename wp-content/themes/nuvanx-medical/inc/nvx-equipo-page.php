@@ -478,9 +478,10 @@ function nvx_equipo_brand_card_grid_markup( array $items ): string {
 }
 
 /**
- * Identity fact panel for split formation / docencia sections.
+ * Builds an identity facts panel from labeled professional facts.
  *
- * @param array<int,array{label:string,val:string}> $facts Fact rows.
+ * @param array<int,array{label:string,val:string}> $facts Fact rows to display.
+ * @return string The rendered facts panel, or an empty string when no facts are provided.
  */
 function nvx_equipo_identity_facts_panel_markup( array $facts ): string {
 	if ( empty( $facts ) ) {

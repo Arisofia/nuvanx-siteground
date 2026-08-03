@@ -17,7 +17,7 @@ function nvx_theme_is_goya_page(): bool {
 	if ( is_page( 1537 ) ) {
 		return true;
 	}
-	$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '';
+	$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '?' ) : '';
 	return '/' . trim( $path, '/' ) . '/' === '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/';
 }
 
@@ -61,7 +61,7 @@ add_action(
 		if ( is_admin() ) {
 			return;
 		}
-		$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( (string) $_SERVER['REQUEST_URI'], '?' ) : '';
+		$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '?' ) : '';
 		$norm = '/' . trim( $path, '/' ) . '/';
 		if ( '/politica-de-privacidad/' === $norm ) {
 			wp_safe_redirect( home_url( '/politica-privacidad/' ), 301 );
@@ -93,7 +93,7 @@ add_action(
 		}
 
 		if ( ! is_404() && ! is_search() ) {
-			$current_url = function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : ( is_front_page() ? home_url( '/' ) : home_url( wp_parse_url( $_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH ) ) );
+			$current_url = function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : ( is_front_page() ? home_url( '/' ) : home_url( wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_PATH ) ) );
 			if ( '' !== $current_url ) {
 				echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( $current_url ) . '" />' . "\n";
 				echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";
@@ -286,14 +286,14 @@ add_filter(
 				// Remove Facebook Signal scripts and noscript tags
 				$buffer = preg_replace( '/<script[^>]*facebook[^>]*>.*?<\/script>/is', '', $buffer );
 				$buffer = preg_replace( '/<noscript[^>]*>.*?facebook.*?<\/noscript>/is', '', $buffer );
-				
+
 				// Remove Facebook Pixel initialization
 				$buffer = preg_replace( '/<!--.*?Facebook Pixel.*?-->/is', '', $buffer );
 				$buffer = preg_replace( '/<!--.*?Meta Pixel.*?-->/is', '', $buffer );
-				
+
 				// Remove _fbp cookie setting scripts
 				$buffer = preg_replace( '/_fbp\s*=.*?;/is', '', $buffer );
-				
+
 				return $buffer;
 			}
 		);

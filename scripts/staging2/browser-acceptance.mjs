@@ -68,56 +68,9 @@ if (!expectedSha || !/^[0-9a-f]{40}$/.test(expectedSha)) {
   process.exit(1);
 }
 
-const routes = [
-  '/',
-  '/madrid/',
-  '/madrid/valoracion/',
-  '/soluciones-medicas/',
-  '/protocolos-signature/',
-  '/por-que-nuvanx/',
-  '/inversion-medicina-estetica/',
-  '/nosotros/',
-  '/equipo-medico/',
-  '/contacto/',
-  '/blog/',
-  '/clinicas-de-medicina-estetica-nuvanx/',
-  '/medicina-estetica-chamberi/',
-  '/medicina-estetica-goya-barrio-salamanca/',
-  '/endolift-facial-papada-mandibula/',
-  '/endolaser-corporal-grasa-localizada/',
-  '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-  '/exion-btl/',
-  '/exion-face/',
-  '/exion-fractional/',
-  '/btl-exilite-ipl-madrid/',
-  '/medicina-estetica-laser/',
-  '/medicina-estetica/',
-  '/estetica-avanzada/',
-  '/bioestimuladores-colageno-madrid/',
-  '/ojeras-surco-lagrimal-madrid/',
-  '/rinomodelacion-sin-cirugia-madrid/',
-  '/labios-acido-hialuronico-madrid/',
-  '/remodelacion-corporal-laser-madrid/',
-  '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
-  '/papada-definicion-mandibular-madrid/',
-  '/calidad-piel-firmeza-luminosidad-madrid/',
-  '/cicatrices-acne-poros-textura-madrid/',
-  '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/',
-  '/grasa-localizada-abdomen-flancos-madrid/',
-  '/flacidez-grasa-localizada-brazos-madrid/',
-  '/grasa-espalda-zona-sujetador-madrid/',
-  '/flacidez-muslos-internos-subgluteo-madrid/',
-  '/tratamiento-rodillas-grasa-flacidez-madrid/',
-  '/contorno-corporal-masculino-madrid/',
-  '/gracias/',
-  '/politica-de-cookies-ue/',
-  '/politica-privacidad/',
-  '/aviso-legal/',
-  '/politica-de-cookies/',
-  '/mas-informacion-sobre-las-cookies/',
-  '/casos-de-pacientes/',
-  '/equipo-medico-clinica-goya/'
-];
+const routesJsonPath = new URL('../../wp-content/themes/nuvanx-medical/inc/data/routes.json', import.meta.url);
+const routesRaw = await fs.readFile(routesJsonPath, 'utf8');
+const routes = Object.keys(JSON.parse(routesRaw));
 
 async function safeGoto(page, url) {
   const maxAttempts = 3;

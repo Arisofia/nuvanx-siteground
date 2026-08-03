@@ -113,7 +113,7 @@ function nvx_co2_editorial_body_markup(): string {
 		? nvx_format_price_eur( $catalog['laser_co2']['corporal']['pvp'] )
 		: number_format_i18n( 450, 2 );
 
-	$html  = '<div class="nvx-co2-editorial nvx-endolift-editorial">';
+	$html  = '<div class="nvx-co2-editorial nvx-brand-editorial">';
 
 	// A. Science of fractional ablation.
 	$html .= nvx_page_brand_section_open_markup( 'nvx-co2-science', 'nvx-co2-science-title' );

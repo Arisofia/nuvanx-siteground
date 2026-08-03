@@ -328,11 +328,13 @@ function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, 
  * Extracts a unique identity key from a staff card to avoid deduplication failures due to whitespace.
  */
 function nvx_equipo_card_identity_key( string $card ): string {
+	// Non-cryptographic dedup key only (array key for $found). SHA-256 avoids the
+	// weak-hash static-analysis flag on MD5 while keeping collisions negligible.
 	if ( preg_match( '/<h[2-6][^>]*>(.*?)<\/h[2-6]>/iu', $card, $m ) ) {
-		return md5( strtolower( trim( wp_strip_all_tags( $m[1] ) ) ) );
+		return hash( 'sha256', strtolower( trim( wp_strip_all_tags( $m[1] ) ) ) );
 	}
 	// Fallback to hashing the raw card if no heading is found.
-	return md5( trim( $card ) );
+	return hash( 'sha256', trim( $card ) );
 }
 
 /**

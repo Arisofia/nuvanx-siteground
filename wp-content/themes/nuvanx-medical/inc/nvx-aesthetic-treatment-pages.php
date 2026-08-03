@@ -128,11 +128,13 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $entry['kicker'] ) . '</p>';
 	$html .= '<h1 id="nvx-aesthetic-treatment-h1" class="nvx-brand-hero__title">' . esc_html( $entry['h1'] ) . '</h1>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $entry['lead'] ) . '</p>';
-	$html .= ( function_exists( 'nvx_cta_pair_markup' ) ? nvx_cta_pair_markup() : '' );
+	$html .= ( function_exists( 'nvx_cta_pair_markup' ) ? nvx_cta_pair_markup() : '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a>' );
 	$html .= '<p class="nvx-brand-meta">Chamberí (CS20144) · Salamanca–Goya (CS20073) · Según valoración médica</p>';
 	$html .= '</div></div></section>';
 
-	$html .= '<aside class="nvx-aes-section nvx-aesthetic-treatment__review" aria-label="Estado de revisión médica"><div class="nvx-aes-section__inner"><p class="nvx-aes-body"><strong>Revisión médica pendiente.</strong> Esta página permanece bloqueada para publicación en producción hasta registrar revisor, fecha y aprobación clínica.</p></div></aside>';
+	if ( function_exists( 'nvx_environment_is_staging2' ) && nvx_environment_is_staging2() ) {
+		$html .= '<aside class="nvx-aes-section nvx-aesthetic-treatment__review" aria-label="Estado de revisión médica"><div class="nvx-aes-section__inner"><p class="nvx-aes-body"><strong>Revisión médica pendiente.</strong> Esta página permanece bloqueada para publicación en producción hasta registrar revisor, fecha y aprobación clínica.</p></div></aside>';
+	}
 
 	$html .= '<section class="nvx-aes-section" aria-labelledby="nvx-aesthetic-diagnosis-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Diagnóstico</p><h2 id="nvx-aesthetic-diagnosis-title" class="nvx-aes-heading">Qué problema aborda y cuándo no debe tratarse</h2><p class="nvx-aes-body nvx-aes-body--lead">' . esc_html( $entry['diagnosis'] ) . '</p><div class="nvx-aes-card-grid"><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Indicaciones seleccionadas</h3>' . nvx_aesthetic_treatment_list_markup( $entry['indications'] ) . '</article><article class="nvx-aes-card"><h3 class="nvx-aes-card__title">Precauciones y no indicación</h3>' . nvx_aesthetic_treatment_list_markup( $entry['precautions'] ) . '</article></div></div></section>';
 

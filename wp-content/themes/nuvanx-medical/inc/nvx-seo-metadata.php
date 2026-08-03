@@ -50,7 +50,9 @@ function nvx_seo_current_path(): string {
 }
 
 /**
- * Resolve the metadata key for the current request.
+ * Resolves the catalog metadata key for the current request path.
+ *
+ * @return string|null The metadata key, or null when the request is not catalogued or is a 404 response.
  */
 function nvx_seo_current_metadata_key(): ?string {
 	// Never lend a legitimate title/description to a not-found route.

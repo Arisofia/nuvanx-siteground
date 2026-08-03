@@ -32,10 +32,10 @@ $regex_reps = array(
 );
 
 /**
- * Applies configured hygiene text replacements to content.
+ * Applies configured literal and regular-expression replacements to a non-empty string.
  *
- * @param mixed $content The content to update.
- * @return mixed The content with replacements applied, or the original value when it is not a non-empty string.
+ * @param mixed $content The value to process.
+ * @return mixed The updated string, or the original value for other values and empty strings.
  */
 function nvx_apply_hygiene_replacements( $content ) {
 	global $str_reps, $regex_reps;

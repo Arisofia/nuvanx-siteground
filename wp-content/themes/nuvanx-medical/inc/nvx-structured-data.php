@@ -166,7 +166,14 @@ function nvxSchemaRouteEntry( int $id, string $path ): array {
     return compact( 'id', 'path' );
 }
 
-/** Build one canonical treatment registry entry. */
+/** Build one canonical treatment registry entry.
+ *
+ * @param int $id The page identifier.
+ * @param string $path The treatment page path.
+ * @param string $schema The treatment schema key.
+ *
+ * @return array The treatment registry entry.
+ */
 function nvxSchemaTreatmentRegistryEntry( int $id, string $path, string $schema ): array {
     return compact( 'id', 'path', 'schema' );
 }

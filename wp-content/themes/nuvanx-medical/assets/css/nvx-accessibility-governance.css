@@ -93,7 +93,7 @@
 /* ── Global Skip Link ─────────────────── */
 .nvx-skip-link {
   position: absolute;
-  top: -60px;
+  top: calc(var(--nvx-header-height) * -0.75);
   left: var(--nvx-space-1, 8px);
   z-index: 10000;
   padding: var(--nvx-space-1) var(--nvx-space-2);
@@ -106,7 +106,7 @@
 .nvx-skip-link:focus {
   top: var(--nvx-space-1, 8px);
   outline: 2px solid var(--nvx-ink);
-  outline-offset: 2px;
+  outline-offset: var(--nvx-outline-offset);
 }
 @media (prefers-reduced-motion: reduce) {
   .nvx-skip-link { transition: none; }

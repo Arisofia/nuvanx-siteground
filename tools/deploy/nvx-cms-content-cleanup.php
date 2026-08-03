@@ -14,9 +14,9 @@
  */
 
 /**
- * Patterns that mirror (or supersede) runtime strippers.
+ * Defines the regular-expression rules used to remove or replace retired CMS content and copy.
  *
- * @return array<int, array{id:string, pattern:string, replace:string}>
+ * @return array<int, array{id:string, pattern:string, replace:string}> Cleanup rules with identifiers, patterns, and replacement text.
  */
 function nvx_cms_cleanup_rules(): array {
 	return array(

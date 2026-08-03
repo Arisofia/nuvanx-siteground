@@ -1,9 +1,8 @@
 import { test, expect } from '@playwright/test';
 import { AxeBuilder } from '@axe-core/playwright';
+import { CRITICAL_ROUTES } from './routes-critical';
 
-const routes = ['/', '/contacto/', '/blog/', '/404-expected-slug/'];
-
-for (const path of routes) {
+for (const path of CRITICAL_ROUTES) {
   test(`axe-core accessibility on ${path}`, async ({ page }) => {
     await page.goto(path);
     const results = await new AxeBuilder({ page })

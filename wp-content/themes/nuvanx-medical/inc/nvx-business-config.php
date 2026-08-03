@@ -26,11 +26,11 @@ function nvx_get_clinics_config(): array {
 			'locality'      => 'Madrid',
 			'phone'         => '669 319 836',
 			'phone_href'    => '+34669319836',
-			'whatsapp_href' => 'https://wa.me/34669319836',
+			'whatsapp_href' => nvx_whatsapp_url( 'chamberi' ),
 			'hours'         => 'lunes a viernes, 12:00–20:00; sábados, 10:00–18:00',
 			'days'          => 'Martes y jueves',
 		),
-		'goya' => array(
+		'goya'     => array(
 			'name'          => 'Centro Clínico NUVANX Salamanca / Goya',
 			'reg'           => 'CS20073',
 			'address'       => 'Calle de Fernán González, 26',
@@ -38,7 +38,7 @@ function nvx_get_clinics_config(): array {
 			'locality'      => 'Madrid',
 			'phone'         => '647 505 107',
 			'phone_href'    => '+34647505107',
-			'whatsapp_href' => 'https://wa.me/34647505107',
+			'whatsapp_href' => nvx_whatsapp_url( 'goya' ),
 			'hours'         => 'lunes a viernes, 11:00–20:00',
 			'days'          => 'Miércoles',
 		),

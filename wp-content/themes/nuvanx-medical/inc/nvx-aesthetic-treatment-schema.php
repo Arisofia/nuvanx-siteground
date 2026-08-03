@@ -145,7 +145,7 @@ function nvx_aesthetic_treatment_extend_yoast_graph( $graph, $context = null ) {
 		$permalink,
 		$organization_id
 	);
-	$graph = nvx_aesthetic_schema_upsert_node( $graph, $procedure );
+	$graph           = nvx_aesthetic_schema_upsert_node( $graph, $procedure );
 
 	$questions = nvx_aesthetic_schema_faq_questions( $faq_catalog[ $key ] ?? array() );
 	if ( ! empty( $questions ) ) {

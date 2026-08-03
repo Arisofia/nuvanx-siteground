@@ -103,7 +103,7 @@ function nvx_page_brand_section_open_markup(
 		$inner_classes .= ' ' . $inner_suffix;
 	}
 
-	$html = '<section class="' . esc_attr( $section_classes ) . '" aria-labelledby="' . esc_attr( $labelledby ) . '"';
+	$html               = '<section class="' . esc_attr( $section_classes ) . '" aria-labelledby="' . esc_attr( $labelledby ) . '"';
 	$allowed_attributes = array( 'id' );
 	foreach ( $section_attributes as $attribute => $value ) {
 		if ( ! is_string( $attribute ) || ! in_array( $attribute, $allowed_attributes, true ) ) {
@@ -133,12 +133,11 @@ function nvx_page_brand_section_heading_markup(
  * Devuelve si la página actual utiliza el page-shell de NUVANX.
  */
 function nvx_has_page_shell(): bool {
-    // Si tiene 'nvx_page_owner', asumimos que está gobernado por el shell u otro orquestador que necesita su propio <main>.
-    if ( function_exists( 'nvx_get_page_owner' ) && ! empty( nvx_get_page_owner() ) ) {
-        return true;
-    }
+	// Si tiene 'nvx_page_owner', asumimos que está gobernado por el shell u otro orquestador que necesita su propio <main>.
+	if ( function_exists( 'nvx_get_page_owner' ) && ! empty( nvx_get_page_owner() ) ) {
+		return true;
+	}
 
-    // Otras comprobaciones de plantillas
-    return is_page() || is_single() || is_404();
+	// Otras comprobaciones de plantillas
+	return is_page() || is_single() || is_404();
 }
-

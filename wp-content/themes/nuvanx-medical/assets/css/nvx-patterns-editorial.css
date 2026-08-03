@@ -891,8 +891,8 @@ section.nvx-hero {
 
 .screen-reader-text {
   position: absolute;
-  width: 1px;
-  height: 1px;
+  width: var(--nvx-border-hairline);
+  height: var(--nvx-border-hairline);
   padding: 0;
   margin: calc(var(--nvx-border-hairline) * -1);
   overflow: hidden;

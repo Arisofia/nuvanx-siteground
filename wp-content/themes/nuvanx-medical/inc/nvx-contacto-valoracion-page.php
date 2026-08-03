@@ -76,13 +76,13 @@ function nvx_contact_clinics_nap(): array {
 	if ( ! function_exists( 'nvx_get_clinics_config' ) ) {
 		return array();
 	}
-	
+
 	$clinics = nvx_get_clinics_config();
-	$nap = array();
-	
+	$nap     = array();
+
 	foreach ( array( 'chamberi', 'goya' ) as $key ) {
 		if ( isset( $clinics[ $key ] ) ) {
-			$c = $clinics[ $key ];
+			$c     = $clinics[ $key ];
 			$nap[] = array(
 				'name'       => $c['name'],
 				'reg'        => $c['reg'],
@@ -93,7 +93,7 @@ function nvx_contact_clinics_nap(): array {
 			);
 		}
 	}
-	
+
 	return $nap;
 }
 
@@ -133,7 +133,7 @@ function nvx_contact_privacy_disclaimer_markup(): string {
  * Clinics NAP cards markup.
  */
 function nvx_contact_clinics_markup(): string {
-	$html  = '<div class="nvx-contact-clinics">';
+	$html = '<div class="nvx-contact-clinics">';
 	foreach ( nvx_contact_clinics_nap() as $clinic ) {
 		$html .= '<article class="nvx-contact-clinic">';
 		$html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ) . '</h3>';
@@ -267,7 +267,7 @@ function nvx_filter_contacto_metadesc( $desc ) {
 	}
 
 	$config = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
-	
+
 	$cham_reg = ! empty( $config['chamberi']['reg'] ) ? $config['chamberi']['reg'] : 'CS20144';
 	$cham_ph  = ! empty( $config['chamberi']['phone'] ) ? $config['chamberi']['phone'] : '669 319 836';
 	$goya_reg = ! empty( $config['goya']['reg'] ) ? $config['goya']['reg'] : 'CS20073';
@@ -427,7 +427,7 @@ function nvx_contacto_normalize_organization( $organization ): array {
 		$organization = array();
 	}
 
-	$org_id = ( isset( $organization['id'] ) && is_string( $organization['id'] ) && '' !== $organization['id'] )
+	$org_id    = ( isset( $organization['id'] ) && is_string( $organization['id'] ) && '' !== $organization['id'] )
 		? $organization['id']
 		: home_url( '/#/schema/organization/nuvanx' );
 	$org_index = array_key_exists( 'index', $organization ) ? $organization['index'] : null;
@@ -512,8 +512,8 @@ function nvx_contacto_append_clinic_nodes( array $graph, array $clinics, array $
 /**
  * Merge clinic refs into the organization subOrganization property.
  *
- * @param array<int,array<string,mixed>>  $graph       Yoast graph.
- * @param array<int,array{@id:string}> $clinic_refs Clinic references.
+ * @param array<int,array<string,mixed>> $graph       Yoast graph.
+ * @param array<int,array{@id:string}>   $clinic_refs Clinic references.
  * @return array<int,array<string,mixed>>
  */
 function nvx_contacto_merge_org_clinic_refs( array $graph, $org_index, array $clinic_refs ): array {
@@ -558,8 +558,8 @@ function nvx_filter_contacto_schema_graph( $graph, $context ) {
 		return $graph;
 	}
 
-	$clinics      = nvx_schema_clinics();
-	$organization = nvx_contacto_normalize_organization( nvx_schema_find_organization( $graph ) );
+	$clinics                            = nvx_schema_clinics();
+	$organization                       = nvx_contacto_normalize_organization( nvx_schema_find_organization( $graph ) );
 	list( $graph, $org_index, $org_id ) = nvx_contacto_ensure_organization_node(
 		$graph,
 		$organization['id'],

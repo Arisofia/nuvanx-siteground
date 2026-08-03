@@ -58,10 +58,10 @@ function nvx_content_dr_rivera_hijack( string $content ): string {
 	// E-E-A-T Avatar and Manifest
 	$avatar = esc_url( home_url( $data['avatar'] ?? '/wp-content/themes/nuvanx-medical/assets/images/dr-rivera-avatar.jpg' ) );
 
-	$html  = '<div class="nvx-dr-rivera-editorial">';
+	$html = '<div class="nvx-dr-rivera-editorial">';
 
 	$html .= '<div class="nvx-dr-rivera-header">';
-	
+
 	$avatar_path = ABSPATH . ltrim( wp_parse_url( $avatar, PHP_URL_PATH ), '/' );
 	if ( is_readable( $avatar_path ) ) {
 		$html .= '<img src="' . $avatar . '" alt="' . esc_attr( $data['h1'] ?? 'Dr. Javier Rivera Tejeda' ) . '" class="nvx-dr-rivera-avatar" width="160" height="160" loading="lazy" decoding="async">';

@@ -49,7 +49,8 @@ while ( have_posts() ) :
 						<span class="nvx-blog-hero__author">
 							<?php esc_html_e( 'Autor', 'nuvanx-medical' ); ?>:
 							<?php if ( ! empty( $author['url'] ) ) : ?>
-								<a class="nvx-blog-hero__author-link" href="<?php echo esc_url( $author['url'] ); ?>"><?php echo esc_html( $author['name'] ); ?></a><?php
+								<a class="nvx-blog-hero__author-link" href="<?php echo esc_url( $author['url'] ); ?>"><?php echo esc_html( $author['name'] ); ?></a>
+								<?php
 							else :
 								echo esc_html( $author['name'] );
 							endif;

@@ -25,11 +25,11 @@ function nvx_navigation_treatment_definitions(): array {
 	return apply_filters(
 		'nvx_navigation_treatment_definitions',
 		array(
-			'exion-face' => array(
+			'exion-face'       => array(
 				'label' => 'EXION Face',
 				'slugs' => array( 'exion-face' ),
 			),
-			'exion-body' => array(
+			'exion-body'       => array(
 				'label' => 'EXION Body',
 				'slugs' => array( 'exion-body' ),
 			),
@@ -37,7 +37,7 @@ function nvx_navigation_treatment_definitions(): array {
 				'label' => 'EXION Fractional',
 				'slugs' => array( 'exion-fractional' ),
 			),
-			'emfusion' => array(
+			'emfusion'         => array(
 				'label' => 'EMFUSION',
 				'slugs' => array( 'emfusion' ),
 			),
@@ -45,15 +45,15 @@ function nvx_navigation_treatment_definitions(): array {
 				'label' => 'Bioestimuladores de Colágeno',
 				'slugs' => array( 'bioestimuladores-colageno-madrid' ),
 			),
-			'ojeras' => array(
+			'ojeras'           => array(
 				'label' => 'Ojeras y Surco Lagrimal',
 				'slugs' => array( 'ojeras-surco-lagrimal-madrid' ),
 			),
-			'rinomodelacion' => array(
+			'rinomodelacion'   => array(
 				'label' => 'Rinomodelación sin Cirugía',
 				'slugs' => array( 'rinomodelacion-sin-cirugia-madrid' ),
 			),
-			'labios' => array(
+			'labios'           => array(
 				'label' => 'Labios con Ácido Hialurónico',
 				'slugs' => array( 'labios-acido-hialuronico-madrid' ),
 			),
@@ -203,8 +203,14 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 			|| ! in_array( $nvx_casos_id, nvx_noindex_page_ids(), true ) );
 
 	$items = array(
-		array( 'url' => home_url( '/' ), 'label' => __( 'Inicio', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/soluciones-medicas/' ), 'label' => __( 'Soluciones médicas', 'nuvanx-medical' ) ),
+		array(
+			'url'   => home_url( '/' ),
+			'label' => __( 'Inicio', 'nuvanx-medical' ),
+		),
+		array(
+			'url'   => home_url( '/soluciones-medicas/' ),
+			'label' => __( 'Soluciones médicas', 'nuvanx-medical' ),
+		),
 		array(
 			'url'      => home_url( '/protocolos-signature/' ),
 			'label'    => __( 'Protocolos Signature', 'nuvanx-medical' ),
@@ -215,17 +221,37 @@ function nvx_navigation_primary_fallback( array $args = array() ) {
 			'label'    => __( 'Tecnología', 'nuvanx-medical' ),
 			'children' => $technology_children,
 		),
-		array( 'url' => home_url( '/equipo-medico/' ), 'label' => __( 'Equipo médico', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/clinicas-de-medicina-estetica-nuvanx/' ), 'label' => __( 'Clínicas', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/blog/' ), 'label' => __( 'Journal', 'nuvanx-medical' ) ),
-		array( 'url' => home_url( '/contacto/' ), 'label' => __( 'Contacto', 'nuvanx-medical' ) ),
+		array(
+			'url'   => home_url( '/equipo-medico/' ),
+			'label' => __( 'Equipo médico', 'nuvanx-medical' ),
+		),
+		array(
+			'url'   => home_url( '/clinicas-de-medicina-estetica-nuvanx/' ),
+			'label' => __( 'Clínicas', 'nuvanx-medical' ),
+		),
+		array(
+			'url'   => home_url( '/blog/' ),
+			'label' => __( 'Journal', 'nuvanx-medical' ),
+		),
+		array(
+			'url'   => home_url( '/contacto/' ),
+			'label' => __( 'Contacto', 'nuvanx-medical' ),
+		),
 	);
 
 	if ( $nvx_casos_public ) {
 		// Splice after Tecnología (index 3) to maintain nav order.
-		array_splice( $items, 4, 0, array(
-			array( 'url' => home_url( '/casos-de-pacientes/' ), 'label' => __( 'Casos clínicos', 'nuvanx-medical' ) ),
-		) );
+		array_splice(
+			$items,
+			4,
+			0,
+			array(
+				array(
+					'url'   => home_url( '/casos-de-pacientes/' ),
+					'label' => __( 'Casos clínicos', 'nuvanx-medical' ),
+				),
+			)
+		);
 	}
 
 	$menu_class = isset( $args['menu_class'] ) && '' !== trim( (string) $args['menu_class'] )
@@ -372,7 +398,7 @@ function nvx_navigation_mark_has_children( array $items, int $parent_id ): array
 /**
  * Append missing published treatment children under Tratamientos.
  *
- * @param array<int, WP_Post|stdClass> $items Menu items.
+ * @param array<int, WP_Post|stdClass>                                             $items Menu items.
  * @param array<string, array{label:string, slug:string, url:string, page_id:int}> $published Published treatments.
  * @return array{items:array<int, WP_Post|stdClass>,added:int}
  */
@@ -388,11 +414,11 @@ function nvx_navigation_append_treatment_children( array $items, array $publishe
 			continue;
 		}
 
-		$max_id++;
-		$max_child_order++;
+		++$max_id;
+		++$max_child_order;
 		$items[]                          = nvx_create_custom_menu_item( $max_id, $page['label'], $page['url'], $max_child_order, $parent_id, $page['page_id'] );
 		$existing_urls[ $normalized_url ] = true;
-		$added++;
+		++$added;
 	}
 
 	return array(

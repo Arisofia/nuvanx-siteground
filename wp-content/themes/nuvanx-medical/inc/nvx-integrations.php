@@ -9,21 +9,38 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/nvx-environment-flags.php';
+
+/**
+ * Returns the normalized request path from REQUEST_URI.
+ *
+ * Unslashes and URL-sanitizes $_SERVER['REQUEST_URI'], then strips the query
+ * string. Percent-encoded octets are preserved (unlike sanitize_text_field()).
+ *
+ * @return string Path without query string, or '' when REQUEST_URI is unset.
+ */
+function nvx_theme_request_path(): string {
+	if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
+		return '';
+	}
+	$raw = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
+	return (string) strtok( $raw, '?' );
+}
+
 /** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
 		return false;
 	}
-	if ( is_page( 1537 ) ) {
+	if ( is_page( 1537 ) ) { // Goya Sede page ID
 		return true;
 	}
-	$path = isset( $_SERVER['REQUEST_URI'] ) ? (string) strtok( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '?' ) : '';
+	$path = nvx_theme_request_path();
 	return '/' . trim( $path, '/' ) . '/' === '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/';
 }
 
 add_filter(
 	'language_attributes',
-	function( $output ) {
+	function ( $output ) {
 		if ( false !== strpos( $output, 'lang="es"' ) && false === strpos( $output, 'lang="es-ES"' ) ) {
 			return str_replace( 'lang="es"', 'lang="es-ES"', $output );
 		}
@@ -61,7 +78,7 @@ add_action(
 		if ( is_admin() ) {
 			return;
 		}
-		$path = isset( $_SERVER['REQUEST_URI'] ) ? (string) strtok( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '?' ) : '';
+		$path = nvx_theme_request_path();
 		$norm = '/' . trim( $path, '/' ) . '/';
 		if ( '/politica-de-privacidad/' === $norm ) {
 			wp_safe_redirect( home_url( '/politica-privacidad/' ), 301 );
@@ -83,7 +100,8 @@ add_action(
 	'wp_head',
 	function (): void {
 		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n";
-		/* Preloads de Google Fonts eliminados; dejamos que wp_enqueue_style gestione la carga.
+		/*
+		Preloads de Google Fonts eliminados; dejamos que wp_enqueue_style gestione la carga.
 		 * Ver Playwright tests para garantizar que las fuentes de marca se aplican correctamente. */
 
 		if ( is_front_page() ) {
@@ -92,7 +110,7 @@ add_action(
 		}
 
 		if ( ! is_404() && ! is_search() ) {
-			$current_url = function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : ( is_front_page() ? home_url( '/' ) : home_url( (string) wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_PATH ) ) );
+			$current_url = function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : ( is_front_page() ? home_url( '/' ) : home_url( nvx_theme_request_path() ?: '/' ) );
 			if ( '' !== $current_url ) {
 				echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( $current_url ) . '" />' . "\n";
 				echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";
@@ -266,6 +284,38 @@ add_filter(
 	},
 	10,
 	3
+);
+
+/**
+ * Strip FacebookSignal and other unwanted third-party scripts from final HTML output.
+ * This catches scripts injected via buffer optimization (e.g., SiteGround Optimizer)
+ * that bypass WordPress enqueue hooks.
+ */
+add_filter(
+	'template_redirect',
+	static function (): void {
+		if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) ) {
+			return;
+		}
+
+		ob_start(
+			static function ( string $buffer ): string {
+				// Remove Facebook Signal scripts and noscript tags
+				$buffer = preg_replace( '/<script[^>]*facebook[^>]*>.*?<\/script>/is', '', $buffer );
+				$buffer = preg_replace( '/<noscript[^>]*>.*?facebook.*?<\/noscript>/is', '', $buffer );
+				
+				// Remove Facebook Pixel initialization
+				$buffer = preg_replace( '/<!--.*?Facebook Pixel.*?-->/is', '', $buffer );
+				$buffer = preg_replace( '/<!--.*?Meta Pixel.*?-->/is', '', $buffer );
+				
+				// Remove _fbp cookie setting scripts
+				$buffer = preg_replace( '/_fbp\s*=.*?;/is', '', $buffer );
+				
+				return $buffer;
+			}
+		);
+	},
+	999999
 );
 
 add_filter(

@@ -62,7 +62,7 @@ function nvx_content_is_co2_page( string $content ): bool {
  */
 function nvx_co2_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
-	$data = nvx_catalog_json_resolved( 'laser-co2-page.json' )['hero'] ?? array();
+	$data         = nvx_catalog_json_resolved( 'laser-co2-page.json' )['hero'] ?? array();
 	$price_facial = function_exists( 'nvx_tariff_catalog' )
 		? nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] )
 		: number_format_i18n( 330, 2 );
@@ -70,7 +70,7 @@ function nvx_co2_hero_copy_markup(): string {
 	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-co2-h1">' . esc_html( $data['h1'] ?? '' ) . '</h1>';
-	
+
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
 	$html .= '<div class="nvx-medical-byline__text">';
@@ -99,12 +99,14 @@ function nvx_co2_hero_copy_markup(): string {
 }
 
 /**
- * Editorial body.
+ * Builds the CO₂ laser treatment editorial body markup, including treatment information, recovery phases, and pricing.
+ *
+ * @return string The generated editorial HTML.
  */
 function nvx_co2_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'laser-co2-page.json' );
-	
+
 	$catalog      = function_exists( 'nvx_tariff_catalog' ) ? nvx_tariff_catalog() : array();
 	$price_facial = ! empty( $catalog['laser_co2']['facial']['pvp'] )
 		? nvx_format_price_eur( $catalog['laser_co2']['facial']['pvp'] )
@@ -113,7 +115,7 @@ function nvx_co2_editorial_body_markup(): string {
 		? nvx_format_price_eur( $catalog['laser_co2']['corporal']['pvp'] )
 		: number_format_i18n( 450, 2 );
 
-	$html  = '<div class="nvx-co2-editorial nvx-brand-editorial">';
+	$html = '<div class="nvx-co2-editorial nvx-brand-editorial">';
 
 	// A. Science of fractional ablation.
 	$html .= nvx_page_brand_section_open_markup( 'nvx-co2-science', 'nvx-co2-science-title' );
@@ -193,16 +195,26 @@ function nvx_co2_editorial_body_markup(): string {
 /**
  * Rebuild CO₂ page.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) return $owner;
-	global $post;
-	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_content_is_co2_page') && nvx_content_is_co2_page( $content ) ) {
-		return 'nvx_co2_page';
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner; }
+		global $post;
+		$content = $post ? $post->post_content : '';
+		if ( function_exists( 'nvx_content_is_co2_page' ) && nvx_content_is_co2_page( $content ) ) {
+			return 'nvx_co2_page';
+		}
+		return $owner;
 	}
-	return $owner;
-});
+);
 
+/**
+ * Rebuilds owned CO₂ page content with its branded hero and editorial layout.
+ *
+ * @param string $content The existing page content, including any extracted hero media.
+ * @return string The branded CO₂ page content, or the original content when the page is not owned by the CO₂ module.
+ */
 function nvx_content_restructure_co2_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
 	if ( $owner !== 'nvx_co2_page' ) {
@@ -224,6 +236,5 @@ function nvx_content_restructure_co2_page( string $content ): string {
 		$hero . $body,
 		'nvx-brand-page nvx-brand-page--co2'
 	);
-
 }
-add_filter( 'the_content', 'nvx_content_restructure_co2_page', NVX_HOOK_PRIO_CO2_MODULE );
+add_filter( 'the_content', 'nvx_content_restructure_co2_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );

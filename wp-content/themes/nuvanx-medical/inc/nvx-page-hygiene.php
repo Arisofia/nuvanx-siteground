@@ -86,7 +86,7 @@ add_action( 'template_redirect', 'nvx_redirect_valoracion_aliases', 0 );
  * @return int[]
  */
 function nvx_nofollow_page_ids() {
-	$ids = array();
+	$ids       = array();
 	$thank_you = function_exists( 'nvx_page_id_by_slug' )
 		? nvx_page_id_by_slug( 'gracias' )
 		: 0;
@@ -255,12 +255,12 @@ function nvx_exclude_sensitive_pages_from_core_sitemap( $args, $post_type ) {
 add_filter( 'wp_sitemaps_posts_query_args', 'nvx_exclude_sensitive_pages_from_core_sitemap', 10, 2 );
 
 /**
- * Belt-and-suspenders: drop sitemap entries for sensitive pages.
+ * Filters sitemap entries for content marked as noindex.
  *
- * @param array|false $url  Sitemap URL array or false to exclude.
- * @param string      $type Object type.
- * @param WP_Post     $post Post object.
- * @return array|false
+ * @param array|false $url Sitemap URL data.
+ * @param string      $type Sitemap object type.
+ * @param WP_Post     $post Content associated with the sitemap entry.
+ * @return array|false The sitemap URL data, or false when the content is marked as noindex.
  */
 function nvx_filter_sitemap_entry_sensitive_pages( $url, $type, $post ) {
 	unset( $type );
@@ -279,12 +279,10 @@ add_filter( 'wpseo_sitemap_entry', 'nvx_filter_sitemap_entry_sensitive_pages', 2
 
 
 /**
- * Keep QA on staging2 inside the same environment when CMS copy uses
- * absolute production URLs. Production keeps its public URLs untouched.
+ * Rewrites absolute production URLs to the current staging host on staging2.
  *
- * Hostnames are rewritten for both schemes without embedding clear-text
- * protocol literals in source (production is HTTPS; residual HTTP hosts are
- * still normalized so staging never leaks out to production absolute links).
+ * @param mixed $content Content whose production URLs should be rewritten.
+ * @return mixed The content with production URLs rewritten, or the original value when rewriting is not applicable.
  */
 function nvx_normalize_staging2_internal_links( $content ) {
 	if ( ! is_string( $content ) || '' === $content || ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
@@ -349,15 +347,16 @@ function nvx_page_id_by_slug( string $slug ): int {
 	if ( array_key_exists( $slug, $cache ) ) {
 		return $cache[ $slug ];
 	}
-	$page = get_page_by_path( $slug, OBJECT, 'page' );
+	$page           = get_page_by_path( $slug, OBJECT, 'page' );
 	$cache[ $slug ] = $page instanceof WP_Post ? (int) $page->ID : 0;
 	return $cache[ $slug ];
 }
 
 /**
- * Whether the current main request is one of the given page slugs.
+ * Determines whether the current page has one of the specified slugs.
  *
- * @param string|string[] $slugs Page slug or list of slugs.
+ * @param string|string[] $slugs Page slug or list of page slugs to match.
+ * @return bool True if the current page slug matches one of the specified slugs, false otherwise.
  */
 function nvx_is_page_slug( $slugs ): bool {
 	if ( ! is_page() ) {
@@ -369,13 +368,10 @@ function nvx_is_page_slug( $slugs ): bool {
 }
 
 /**
- * Runtime publication safeguards for residual CMS body only.
+ * Applies production safeguards to legal and EXION-related page content.
  *
- * Contacto and valoración are theme-template owned (no the_content HubSpot).
- * Legal/equipo still accept CMS body and need structural contracts here.
- *
- * @param string $content HTML content.
- * @return string
+ * @param string $content HTML content to process.
+ * @return string The content with legal placeholders removed, regulatory context added to applicable pages, and Morpheus comparisons or unapproved EXION prices replaced.
  */
 function nvx_apply_production_business_rules( $content ) {
 	if ( ! is_string( $content ) || '' === trim( $content ) ) {
@@ -401,11 +397,10 @@ function nvx_apply_production_business_rules( $content ) {
 add_filter( 'the_content', 'nvx_apply_production_business_rules', NVX_HOOK_PRIO_BUSINESS_RULES );
 
 /**
- * Remove quantitative trust badges until every figure has approved evidence.
- * Absorbed from retired contacto MU plugin (sitewide content hygiene).
+ * Removes quantitative trust-badge sections from content.
  *
  * @param string $content Post content.
- * @return string
+ * @return string Content without quantitative trust-badge sections.
  */
 function nvx_remove_unverified_quantitative_trust_badges( string $content ): string {
 	if ( false === strpos( $content, 'nvx-trust-badges' ) ) {

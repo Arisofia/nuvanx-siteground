@@ -47,7 +47,8 @@
   font-size: var(--nvx-type-micro);
   font-weight: var(--nvx-fw-regular);
   letter-spacing: 0.1em;
-  color: var(--nvx-border-on-dark-45);
+  /* 45% alpha on #111 fails WCAG AA (~3.3:1); 72% clears it (~6.5:1). */
+  color: var(--nvx-on-dark-72);
 }
 .nvx-footer__logo-sedes {
   margin-top: var(--nvx-space-4);
@@ -72,7 +73,8 @@
   font-weight: var(--nvx-fw-bold);
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
-  color: var(--nvx-border-on-dark-45);
+  /* 45% alpha on #111 fails WCAG AA (~3.3:1); 72% clears it (~6.5:1). */
+  color: var(--nvx-on-dark-72);
   list-style: none;
   cursor: default;
 }

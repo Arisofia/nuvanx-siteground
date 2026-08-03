@@ -897,6 +897,29 @@ function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): st
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['cristina'] ?? array();
 	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
 
+	// Bio paragraphs carry theme-owned inline HTML (<strong>, <a>). Wrap in
+	// wp_kses with the same allowlist used by the director profile and drop any
+	// empty entries so a missing catalog key never renders empty <p> tags.
+	$kses_bio = array(
+		'strong' => array(),
+		'a'      => array(
+			'class'  => true,
+			'href'   => true,
+			'target' => true,
+			'rel'    => true,
+		),
+	);
+	$bio_paragraphs = array_values( array_filter( array_map(
+		static function ( $paragraph ) use ( $kses_bio ): string {
+			return wp_kses( (string) $paragraph, $kses_bio );
+		},
+		array(
+			$data['bio_paragraphs'][0] ?? '',
+			$data['bio_paragraphs'][1] ?? '',
+			sprintf( $data['bio_paragraphs'][2] ?? '', esc_url( $doctoralia ) ),
+		)
+	) ) );
+
 	return nvx_equipo_physician_authority_markup(
 		array(
 			'wrapper_class'  => 'nvx-equipo-cristina',
@@ -905,11 +928,7 @@ function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): st
 			'name'           => $data['name'] ?? '',
 			'kicker'         => $data['kicker'] ?? '',
 			'h2'             => $data['h2'] ?? '',
-			'bio_paragraphs' => array(
-				$data['bio_paragraphs'][0] ?? '',
-				$data['bio_paragraphs'][1] ?? '',
-				sprintf( $data['bio_paragraphs'][2] ?? '', esc_url( $doctoralia ) ),
-			),
+			'bio_paragraphs' => $bio_paragraphs,
 			'sections'       => array(
 				array(
 					'type'       => 'split_identity',

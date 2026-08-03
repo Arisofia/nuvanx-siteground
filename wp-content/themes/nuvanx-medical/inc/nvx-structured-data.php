@@ -228,13 +228,16 @@ function nvx_schema_page_registry() {
     // consumers (nvx_schema_clinics, nvx_schema_resolve_clinic_keys_from_hub)
     // read fixed keys without isset() guards. Guarantee the structure exists so
     // the schema graph never emits empty url/@id or triggers undefined-key warnings.
-    if ( empty( $registry['clinics']['chamberi'] ) ) {
+    // Validate the path (not just the entry) so a malformed route with an empty
+    // path still falls back to the canonical value; nvx_schema_clinics() feeds
+    // these paths directly into home_url().
+    if ( empty( $registry['clinics']['chamberi']['path'] ) ) {
         $registry['clinics']['chamberi'] = nvxSchemaRouteEntry( 1543, '/medicina-estetica-chamberi/' );
     }
-    if ( empty( $registry['clinics']['goya'] ) ) {
+    if ( empty( $registry['clinics']['goya']['path'] ) ) {
         $registry['clinics']['goya'] = nvxSchemaRouteEntry( 1537, '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' );
     }
-    if ( empty( $registry['clinic_hub'] ) ) {
+    if ( empty( $registry['clinic_hub']['path'] ) ) {
         $registry['clinic_hub'] = nvxSchemaRouteEntry( 1399, '/clinicas-de-medicina-estetica-nuvanx/' );
     }
 

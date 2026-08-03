@@ -5,26 +5,26 @@ on:
     branches:
       - master
     paths:
-      - '.github/workflows/deploy-staging2.yml'
-      - '.github/workflows/staging2-rendered-acceptance.yml'
-      - 'tools/deploy/deploy-to-staging2.sh'
-      - 'tools/deploy/deploy-required-mu-plugins.sh'
-      - 'tools/wp-cli/hygiene-content-fix.php'
-      - 'scripts/staging2/browser-acceptance.mjs'
-      - 'wp-content/themes/nuvanx-medical/**'
-      - 'wp-content/mu-plugins/**'
-      - 'docs/operations/deployment.md'
+      - ".github/workflows/deploy-staging2.yml"
+      - ".github/workflows/staging2-rendered-acceptance.yml"
+      - "tools/deploy/deploy-to-staging2.sh"
+      - "tools/deploy/deploy-required-mu-plugins.sh"
+      - "tools/wp-cli/hygiene-content-fix.php"
+      - "scripts/staging2/browser-acceptance.mjs"
+      - "wp-content/themes/nuvanx-medical/**"
+      - "wp-content/mu-plugins/**"
+      - "docs/operations/deployment.md"
   pull_request:
     paths:
-      - '.github/workflows/deploy-staging2.yml'
-      - '.github/workflows/staging2-rendered-acceptance.yml'
-      - 'tools/deploy/deploy-to-staging2.sh'
-      - 'tools/deploy/deploy-required-mu-plugins.sh'
-      - 'tools/wp-cli/hygiene-content-fix.php'
-      - 'scripts/staging2/browser-acceptance.mjs'
-      - 'wp-content/themes/nuvanx-medical/**'
-      - 'wp-content/mu-plugins/**'
-      - 'docs/operations/deployment.md'
+      - ".github/workflows/deploy-staging2.yml"
+      - ".github/workflows/staging2-rendered-acceptance.yml"
+      - "tools/deploy/deploy-to-staging2.sh"
+      - "tools/deploy/deploy-required-mu-plugins.sh"
+      - "tools/wp-cli/hygiene-content-fix.php"
+      - "scripts/staging2/browser-acceptance.mjs"
+      - "wp-content/themes/nuvanx-medical/**"
+      - "wp-content/mu-plugins/**"
+      - "docs/operations/deployment.md"
 
 permissions:
   contents: read
@@ -47,8 +47,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Validate workflow and deployment contracts
         shell: bash

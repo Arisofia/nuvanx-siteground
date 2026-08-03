@@ -199,14 +199,12 @@ foreach ( $json_files as $file ) {
 
 	// Compare only the hygiene-relevant payload, not formatting, so files are
 	// rewritten only when actual text changed (avoids reformat-only churn).
-	if ( nvx_apply_hygiene_replacements( $content ) !== $content ) {
+	$old_content_normalized = wp_json_encode( $data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+	if ( $new_content !== $old_content_normalized ) {
 		file_put_contents( $file, $new_content );
 		$json_updated_count++;
 	}
 }
 WP_CLI::success( "Updated {$json_updated_count} JSON files." );
-
-// Restore KSES filters removed before the DB writes.
-kses_init_filters();
 
 WP_CLI::success( 'Hygiene content fix completed.' );

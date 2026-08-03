@@ -220,8 +220,7 @@ jobs:
         run: |
           set -euo pipefail
           # Check JSON for unreplaced patterns. If grep finds something, it will exit 0 and ! will invert it to fail the job.
-          ssh nvx-staging2 "cd '$WP_ROOT' && ! grep -E -i 'valoraci[oó]n (gratis|gratuita)|EXILITET|enfoque médico premium' wp-content/themes/nuvanx-medical/inc/data/*.json"
-
+          ssh nvx-staging2 "cd '$WP_ROOT' && ! grep -E -i 'valoraci[oó]n( m[eé]dica)? (gratis|gratuita)|consulta (m[eé]dica )?(gratis|gratuita)|sin compromiso|Tu mejor versi[oó]n empieza aqu[ií]|EXILITET|enfoque m[eé]dico premium' wp-content/themes/nuvanx-medical/inc/data/*.json"
       - name: Verify deployed marker
         shell: bash
         run: |

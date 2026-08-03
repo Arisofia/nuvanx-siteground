@@ -250,7 +250,8 @@
     if (config.hubspotScriptUrl) return String(config.hubspotScriptUrl);
 
     var frame = document.querySelector('.hs-form-frame[data-portal-id]');
-    var portalIdStr = config.hubspotPortalId || (frame ? frame.getAttribute('data-portal-id') : '');
+    if (!frame && !config.hubspotPortalId) return '';
+    var portalIdStr = config.hubspotPortalId || frame.getAttribute('data-portal-id');
     var portalId = String(portalIdStr || '').replace(/\D+/g, '');
     if (!portalId) return '';
 

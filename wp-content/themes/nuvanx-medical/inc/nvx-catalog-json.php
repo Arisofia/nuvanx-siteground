@@ -29,14 +29,14 @@ function nvx_catalog_json_load( string $filename ): array {
 		return $catalogs[ $safe_name ];
 	}
 
-	$path = __DIR__ . '/data/' . $safe_name;
-	$result = [
+	$path   = __DIR__ . '/data/' . $safe_name;
+	$result = array(
 		'_error' => false,
-	];
+	);
 
 	if ( ! file_exists( $path ) ) {
 		error_log( sprintf( '[nvx_catalog_json_load] Missing JSON file: %s', $path ) );
-		$result['_error'] = 'missing_file';
+		$result['_error']       = 'missing_file';
 		$catalogs[ $safe_name ] = $result;
 		return $result;
 	}
@@ -52,7 +52,7 @@ function nvx_catalog_json_load( string $filename ): array {
 				json_last_error_msg()
 			)
 		);
-		$result['_error'] = 'malformed_json';
+		$result['_error']       = 'malformed_json';
 		$catalogs[ $safe_name ] = $result;
 		return $result;
 	}
@@ -98,7 +98,7 @@ function nvx_catalog_transform_values(
  */
 function nvx_catalog_builtin_token_resolvers(): array {
 	return array(
-		'@nvx-t:' => static function ( string $payload ) {
+		'@nvx-t:'   => static function ( string $payload ) {
 			return '' === $payload ? '' : __( $payload, 'nuvanx-medical' );
 		},
 		'@nvx-url:' => static function ( string $payload ) {
@@ -200,10 +200,10 @@ function nvx_catalog_json_resolved(
 	$resolver_signature = implode( ',', $custom_keys )
 		. '|' . implode( ',', $object_keys )
 		. '|' . ( null === $claim_resolver ? '0' : '1' );
-	$base_key = '' === $cache_key
+	$base_key           = '' === $cache_key
 		? basename( $filename ) . '|' . $resolver_signature
 		: $cache_key;
-	$key = $base_key . '|locale:' . $locale;
+	$key                = $base_key . '|locale:' . $locale;
 
 	if ( ! array_key_exists( $key, $resolved ) ) {
 		$resolved[ $key ] = nvx_catalog_resolve_tokens(
@@ -220,7 +220,7 @@ function nvx_catalog_json_resolved(
 /**
  * Retain only catalog records that contain every required key.
  *
- * @param array<mixed>  $catalog Catalog records.
+ * @param array<mixed>      $catalog Catalog records.
  * @param array<int,string> $required_keys Required keys.
  * @return array<mixed>
  */

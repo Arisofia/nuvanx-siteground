@@ -10,9 +10,9 @@
 
 get_header();
 
-$shell_content   = get_query_var( 'nvx_shell_content' );
-$shell_skip_hdr  = get_query_var( 'nvx_shell_skip_header' );
-$shell_no_wrap   = get_query_var( 'nvx_shell_no_wrapper' );
+$shell_content  = get_query_var( 'nvx_shell_content' );
+$shell_skip_hdr = get_query_var( 'nvx_shell_skip_header' );
+$shell_no_wrap  = get_query_var( 'nvx_shell_no_wrapper' );
 
 if ( ! empty( $shell_content ) && ! is_singular() ) {
 	?>
@@ -26,12 +26,9 @@ if ( ! empty( $shell_content ) ) {
 	rewind_posts();
 }
 
-$is_main_owner = ( ! function_exists( 'nvx_has_page_shell' ) || ! nvx_has_page_shell() );
-if ( $is_main_owner ) {
-    echo '<main id="nvx-main" class="nvx-main" tabindex="-1">' . "\n";
-} else {
-    echo '<div class="nvx-main-shell">' . "\n";
-}
+// Header.php already provides <main id="nvx-main" class="nvx-main" role="main"> and .nvx-brand-page wrapper
+// This shell only needs the inner content wrapper for consistency
+echo '<div class="nvx-main-shell">' . "\n";
 
 while ( have_posts() ) :
 	the_post();
@@ -161,38 +158,35 @@ while ( have_posts() ) :
 	<?php if ( is_single() ) : ?>
 		<nav class="nvx-page__nav" aria-label="<?php esc_attr_e( 'Navegación entre artículos', 'nuvanx-medical' ); ?>">
 			<?php
-				$prev = get_previous_post();
-				$next = get_next_post();
+				$prev                 = get_previous_post();
+				$next                 = get_next_post();
 				$quarantined_post_ids = function_exists( 'nvx_quarantined_comparison_post_ids' )
 					? nvx_quarantined_comparison_post_ids()
 					: array();
-				if ( $prev && in_array( (int) $prev->ID, $quarantined_post_ids, true ) ) {
-					$prev = null;
-				}
-				if ( $next && in_array( (int) $next->ID, $quarantined_post_ids, true ) ) {
-					$next = null;
-				}
-				if ( $prev ) {
-					?>
+			if ( $prev && in_array( (int) $prev->ID, $quarantined_post_ids, true ) ) {
+				$prev = null;
+			}
+			if ( $next && in_array( (int) $next->ID, $quarantined_post_ids, true ) ) {
+				$next = null;
+			}
+			if ( $prev ) {
+				?>
 				<a class="nvx-text-link" href="<?php echo esc_url( get_permalink( $prev ) ); ?>" rel="prev">&larr; <?php echo esc_html( get_the_title( $prev ) ); ?></a>
 					<?php
-				}
-				if ( $next ) {
-					?>
+			}
+			if ( $next ) {
+				?>
 				<a class="nvx-text-link" href="<?php echo esc_url( get_permalink( $next ) ); ?>" rel="next"><?php echo esc_html( get_the_title( $next ) ); ?> &rarr;</a>
 					<?php
-				}
-				?>
+			}
+			?>
 		</nav>
 	<?php endif; ?>
 </article>
 	<?php
 endwhile;
 
-if ( $is_main_owner ) {
-    echo '</main>' . "\n";
-} else {
-    echo '</div>' . "\n";
-}
+// Close the inner content wrapper (main is closed in footer.php)
+echo '</div>' . "\n";
 
 get_footer();

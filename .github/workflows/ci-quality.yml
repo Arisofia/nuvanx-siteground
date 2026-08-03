@@ -30,3 +30,41 @@ jobs:
       - name: Run PHP Parallel Lint
         run: |
           parallel-lint --exclude vendor --exclude node_modules .
+
+  phpcs:
+    name: PHP_CodeSniffer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer, phpcs
+      - name: Install dependencies
+        run: |
+          cd wp-content/themes/nuvanx-medical
+          composer install --no-interaction
+      - name: Run PHPCS
+        run: |
+          cd wp-content/themes/nuvanx-medical
+          ./vendor/bin/phpcs --standard=phpcs.xml.dist --report=summary
+
+  phpstan:
+    name: PHPStan Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer, phpstan
+      - name: Install dependencies
+        run: |
+          cd wp-content/themes/nuvanx-medical
+          composer install --no-interaction
+      - name: Run PHPStan
+        run: |
+          cd wp-content/themes/nuvanx-medical
+          ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G

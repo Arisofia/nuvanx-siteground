@@ -5,24 +5,34 @@ on:
     branches:
       - master
     paths:
-      - '.github/workflows/deploy-staging2.yml'
-      - '.github/workflows/staging2-rendered-acceptance.yml'
-      - 'tools/deploy/deploy-to-staging2.sh'
-      - 'tools/deploy/deploy-required-mu-plugins.sh'
-      - 'scripts/staging2/browser-acceptance.mjs'
-      - 'wp-content/themes/nuvanx-medical/**'
-      - 'wp-content/mu-plugins/**'
-      - 'docs/operations/deployment.md'
+      - ".github/workflows/deploy-staging2.yml"
+      - ".github/workflows/staging2-rendered-acceptance.yml"
+      - ".github/actions/destroy-ssh-identity/action.yml"
+      - "tools/deploy/deploy-to-staging2.sh"
+      - "tools/deploy/deploy-required-mu-plugins.sh"
+      - "tools/wp-cli/hygiene-content-fix.php"
+      - "scripts/staging2/browser-acceptance.mjs"
+      - "eslint.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - "wp-content/themes/nuvanx-medical/**"
+      - "wp-content/mu-plugins/**"
+      - "docs/operations/deployment.md"
   pull_request:
     paths:
-      - '.github/workflows/deploy-staging2.yml'
-      - '.github/workflows/staging2-rendered-acceptance.yml'
-      - 'tools/deploy/deploy-to-staging2.sh'
-      - 'tools/deploy/deploy-required-mu-plugins.sh'
-      - 'scripts/staging2/browser-acceptance.mjs'
-      - 'wp-content/themes/nuvanx-medical/**'
-      - 'wp-content/mu-plugins/**'
-      - 'docs/operations/deployment.md'
+      - ".github/workflows/deploy-staging2.yml"
+      - ".github/workflows/staging2-rendered-acceptance.yml"
+      - ".github/actions/destroy-ssh-identity/action.yml"
+      - "tools/deploy/deploy-to-staging2.sh"
+      - "tools/deploy/deploy-required-mu-plugins.sh"
+      - "tools/wp-cli/hygiene-content-fix.php"
+      - "scripts/staging2/browser-acceptance.mjs"
+      - "eslint.config.js"
+      - "package.json"
+      - "package-lock.json"
+      - "wp-content/themes/nuvanx-medical/**"
+      - "wp-content/mu-plugins/**"
+      - "docs/operations/deployment.md"
 
 permissions:
   contents: read
@@ -45,15 +55,18 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Validate workflow and deployment contracts
         shell: bash
         run: |
           set -euo pipefail
           bash -n tools/deploy/deploy-to-staging2.sh
-          npm ci
+          # --ignore-scripts blocks dependency lifecycle scripts (supply-chain
+          # hardening). Safe here: the contract job only runs ESLint, which needs
+          # no install-time scripts.
+          npm ci --ignore-scripts
           npm run lint
           find wp-content/themes/nuvanx-medical/ -name "*.php" -print0 | xargs -0 -n1 php -l
 
@@ -215,13 +228,39 @@ jobs:
           set -euo pipefail
           ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
 
+      - name: Purge caches after content sanitization
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The deploy script purges caches before this hygiene pass, so the
+          # sanitized DB/JSON could otherwise be served stale until the next
+          # purge. Mirror the deploy-to-staging2.sh purge sequence here.
+          # shellcheck disable=SC2029
+          ssh nvx-staging2 "cd '$WP_ROOT' && wp cache flush && wp sg purge && rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/* && wp eval 'if (function_exists(\"opcache_reset\")) { opcache_reset(); }'"
+
       - name: Verify content hygiene
         shell: bash
         run: |
           set -euo pipefail
-          # Check JSON for unreplaced patterns. If grep finds something, it will exit 0 and ! will invert it to fail the job.
-          ssh nvx-staging2 "cd '$WP_ROOT' && ! grep -E -i 'valoraci[oó]n (gratis|gratuita)|EXILITET|enfoque médico premium' wp-content/themes/nuvanx-medical/inc/data/*.json"
-
+          # Capture grep's exit status explicitly: 0 = banned phrase found (fail),
+          # 1 = clean (pass), 2 = grep error such as a missing glob or unreadable
+          # files (fail). A bare `! grep` would treat that error as success.
+          # shellcheck disable=SC2029
+          status=0
+          ssh nvx-staging2 "cd '$WP_ROOT' && grep -E -i -r 'valoraci[oó]n( m[eé]dica)? (gratis|gratuita)|consulta (m[eé]dica )?(gratis|gratuita)|sin compromiso|Tu mejor versi[oó]n empieza aqu[ií]|EXILITET|enfoque m[eé]dico premium' wp-content/themes/nuvanx-medical/inc/data/*.json" || status=$?
+          case "$status" in
+            0)
+              echo 'Content hygiene failed: banned phrases still present in theme JSON.' >&2
+              exit 1
+              ;;
+            1)
+              echo 'Content hygiene verified: no banned phrases in theme JSON.'
+              ;;
+            *)
+              echo "Content hygiene check errored (grep exit $status); JSON files may be missing or unreadable." >&2
+              exit 1
+              ;;
+          esac
       - name: Verify deployed marker
         shell: bash
         run: |
@@ -297,10 +336,7 @@ jobs:
 
       - name: Securely destroy SSH identity
         if: always()
-        shell: bash
-        run: |
-          shred -u "$HOME/.ssh/staging2_key" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts" 2>/dev/null || rm -f "$HOME/.ssh/staging2_key" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"
-
+        uses: ./.github/actions/destroy-ssh-identity
 
       - name: Write deployment summary
         if: success()

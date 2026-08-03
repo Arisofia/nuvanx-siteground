@@ -191,4 +191,11 @@
   --nvx-on-dark-50:    rgba(247, 247, 245, 0.50);
   --nvx-accent-line-dark: rgba(247, 247, 245, 0.10);
 
+
+/* Additional design tokens added during migration */
+--nvx-outline-offset: 2px;
+--nvx-catalog-width: 900px;
+--nvx-section-tight-width: 800px;
+--nvx-modal-min-height: 120px;
+
 }

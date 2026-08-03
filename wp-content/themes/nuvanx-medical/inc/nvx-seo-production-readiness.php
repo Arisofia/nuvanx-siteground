@@ -206,10 +206,13 @@ function _nvx_seo_schema_enrich_organization( $graph, $organization_id ) {
 
 	$organization = function_exists( 'nvx_schema_find_organization' )
 		? nvx_schema_find_organization( $graph )
-		: array( 'index' => null, 'id' => $organization_id );
+		: array(
+			'index' => null,
+			'id'    => $organization_id,
+		);
 
 	if ( null !== $organization['index'] && isset( $graph[ $organization['index'] ] ) ) {
-		$index = $organization['index'];
+		$index                    = $organization['index'];
 		$graph[ $index ]['@type'] = nvx_seo_schema_add_type( $graph[ $index ]['@type'] ?? array(), 'MedicalOrganization' );
 		if ( ! empty( $clinic_refs ) ) {
 			$graph[ $index ]['department'] = $clinic_refs;
@@ -273,14 +276,14 @@ function _nvx_seo_schema_enrich_clinics( $graph, $organization_id ) {
  * @return array{0: array, 1: string} The updated graph and the promoted procedure identifier (can be an empty string when there is no matching service or missing @id).
  */
 function _nvx_seo_schema_promote_services( $graph, $current_url, $page_id ) {
-	$current_key = function_exists( 'nvx_schema_resolve_treatment_key' ) ? nvx_schema_resolve_treatment_key( $page_id ) : null;
+	$current_key      = function_exists( 'nvx_schema_resolve_treatment_key' ) ? nvx_schema_resolve_treatment_key( $page_id ) : null;
 	$noninvasive_keys = array( 'exion_btl', 'exion_face', 'exion_body', 'exion_fractional', 'emfusion', 'exilite_btl' );
 	$main_entity_id   = '';
 
 	foreach ( $graph as $index => $piece ) {
-		$types = $piece['@type'] ?? array();
+		$types     = $piece['@type'] ?? array();
 		$piece_url = isset( $piece['url'] ) ? trailingslashit( (string) $piece['url'] ) : '';
-		
+
 		if (
 			null !== $current_key
 			&& in_array( $current_key, $noninvasive_keys, true )
@@ -335,9 +338,12 @@ function nvx_seo_production_readiness_schema_graph( $graph, $context = null ) {
 		return $graph;
 	}
 
-	$organization = function_exists( 'nvx_schema_find_organization' )
+	$organization    = function_exists( 'nvx_schema_find_organization' )
 		? nvx_schema_find_organization( $graph )
-		: array( 'index' => null, 'id' => home_url( '/#/schema/organization/nuvanx' ) );
+		: array(
+			'index' => null,
+			'id'    => home_url( '/#/schema/organization/nuvanx' ),
+		);
 	$organization_id = ! empty( $organization['id'] ) ? (string) $organization['id'] : home_url( '/#/schema/organization/nuvanx' );
 
 	$graph = _nvx_seo_schema_enrich_organization( $graph, $organization_id );

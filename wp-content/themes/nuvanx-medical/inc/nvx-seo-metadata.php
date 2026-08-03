@@ -44,13 +44,16 @@ function nvx_seo_current_path(): string {
 		return (string) nvx_schema_current_path( (int) get_queried_object_id() );
 	}
 
-	$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
-	$uri = (string) strtok( $uri, '?' );
-	return '/' . trim( $uri, '/' ) . '/';
+	$uri     = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+	$uri     = (string) strtok( $uri, '?' );
+	$trimmed = trim( $uri, '/' );
+	return '' !== $trimmed ? '/' . $trimmed . '/' : '/';
 }
 
 /**
- * Resolve the metadata key for the current request.
+ * Resolves the catalog metadata key for the current request path.
+ *
+ * @return string|null The metadata key, or null when the request is not catalogued or is a 404 response.
  */
 function nvx_seo_current_metadata_key(): ?string {
 	// Never lend a legitimate title/description to a not-found route.
@@ -192,10 +195,9 @@ function nvx_seo_filter_canonical_url( $url ) {
 add_filter( 'wpseo_opengraph_url', 'nvx_seo_filter_canonical_url', 100 );
 
 /**
- * Centralized robots policy logic.
- * Returns the appropriate NVX_ROBOTS_* directive based on the current context.
+ * Determines the robots indexing and crawling policy for the current request.
  *
- * @return int NVX_ROBOTS_* constant.
+ * @return int The applicable `NVX_ROBOTS_*` policy constant.
  */
 function nvx_seo_resolve_robots_policy(): int {
 	if ( nvx_seo_is_nonproduction_environment() ) {
@@ -226,10 +228,10 @@ function nvx_seo_resolve_robots_policy(): int {
 }
 
 /**
- * Environment-aware robots policy, adapting to both Yoast (string) and Core (array) formats.
+ * Applies the resolved robots policy to Yoast and Core robots values.
  *
- * @param string|array<string,bool> $robots Original robots directives.
- * @return string|array<string,bool>
+ * @param string|array $robots Incoming robots value.
+ * @return string|array
  */
 function nvx_seo_filter_robots( $robots ) {
 	$policy = nvx_seo_resolve_robots_policy();
@@ -238,29 +240,24 @@ function nvx_seo_filter_robots( $robots ) {
 		return $robots;
 	}
 
+	$directives = array(
+		NVX_ROBOTS_NOINDEX_NOFOLLOW => array( 'noindex', 'nofollow' ),
+		NVX_ROBOTS_NOINDEX_FOLLOW   => array( 'noindex', 'follow' ),
+		NVX_ROBOTS_INDEX_FOLLOW     => array( 'index', 'follow' ),
+	);
+
+	if ( ! isset( $directives[ $policy ] ) ) {
+		return $robots;
+	}
+
 	if ( is_string( $robots ) ) {
-		if ( NVX_ROBOTS_NOINDEX_NOFOLLOW === $policy ) {
-			return 'noindex, nofollow';
-		}
-		if ( NVX_ROBOTS_NOINDEX_FOLLOW === $policy ) {
-			return 'noindex, follow';
-		}
-		if ( NVX_ROBOTS_INDEX_FOLLOW === $policy ) {
-			return 'index, follow';
-		}
-	} elseif ( is_array( $robots ) ) {
-		if ( NVX_ROBOTS_NOINDEX_NOFOLLOW === $policy ) {
-			$robots['noindex']  = true;
-			$robots['nofollow'] = true;
-			unset( $robots['index'], $robots['follow'] );
-		} elseif ( NVX_ROBOTS_NOINDEX_FOLLOW === $policy ) {
-			$robots['noindex'] = true;
-			$robots['follow']  = true;
-			unset( $robots['index'], $robots['nofollow'] );
-		} elseif ( NVX_ROBOTS_INDEX_FOLLOW === $policy ) {
-			$robots['index']  = true;
-			$robots['follow'] = true;
-			unset( $robots['noindex'], $robots['nofollow'] );
+		return implode( ', ', $directives[ $policy ] );
+	}
+
+	if ( is_array( $robots ) ) {
+		unset( $robots['index'], $robots['follow'], $robots['noindex'], $robots['nofollow'] );
+		foreach ( $directives[ $policy ] as $directive ) {
+			$robots[ $directive ] = true;
 		}
 	}
 

@@ -18,54 +18,73 @@ defined( 'ABSPATH' ) || exit;
 <?php wp_body_open(); ?>
 <a class="nvx-skip-link" href="#nvx-main"><?php esc_html_e( 'Saltar al contenido principal', 'nuvanx-medical' ); ?></a>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
-  <symbol id="icon-location" viewBox="0 0 24 24">
-    <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-  </symbol>
-  <symbol id="icon-phone" viewBox="0 0 24 24">
-    <path fill="currentColor" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
-  </symbol>
+	<symbol id="icon-location" viewBox="0 0 24 24">
+	<path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+	</symbol>
+	<symbol id="icon-phone" viewBox="0 0 24 24">
+	<path fill="currentColor" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+	</symbol>
 </svg>
 <?php if ( ! ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) ) : ?>
 <header class="nvx-header" role="banner" id="nvx-header">
-  <div class="nvx-header__inner">
-    <a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="nvx-logo" aria-label="NUVANX MEDICINA ESTÉTICA LÁSER — Inicio">
-      <?php
-      $logo_id = get_theme_mod( 'custom_logo' );
-      if ( $logo_id ) :
-        echo wp_get_attachment_image( $logo_id, 'medium', false, array( 'class' => 'nvx-logo__img', 'alt' => 'NUVANX', 'width' => '160', 'height' => '154' ) );
-      else :
-        ?>
-      <span class="nvx-logo__wordmark" aria-hidden="true">NUVANX</span>
-      <span class="nvx-logo__tagline" aria-hidden="true">MEDICINA ESTÉTICA LÁSER</span>
-      <?php endif; ?>
-    </a>
-    <nav class="nvx-nav" aria-label="Menú principal">
-      <?php
-      wp_nav_menu(
-        array(
-          'theme_location' => 'primary',
-          'menu_class'     => 'nvx-nav__list',
-          'container'      => false,
-          'items_wrap'     => '<ul class="%2$s">%3$s</ul>',
-          'fallback_cb'    => 'nvx_primary_menu_fallback',
-          'add_li_class'   => 'nvx-nav__item',
-        )
-      );
-      ?>
-      <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-header__cta nvx-button nvx-btn--primary nvx-open-valoracion-modal" id="nvx-header-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
-    </nav>
-    <button class="nvx-hamburger" id="nvx-hamburger-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="nvx-mobile-nav">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
+	<div class="nvx-header__inner">
+	<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="nvx-logo" aria-label="NUVANX MEDICINA ESTÉTICA LÁSER — Inicio">
+		<?php
+		$logo_id = get_theme_mod( 'custom_logo' );
+		if ( $logo_id ) :
+			echo wp_get_attachment_image(
+				$logo_id,
+				'medium',
+				false,
+				array(
+					'class'  => 'nvx-logo__img',
+					'alt'    => 'NUVANX',
+					'width'  => '160',
+					'height' => '154',
+				)
+			);
+		else :
+			?>
+		<span class="nvx-logo__wordmark" aria-hidden="true">NUVANX</span>
+		<span class="nvx-logo__tagline" aria-hidden="true">MEDICINA ESTÉTICA LÁSER</span>
+		<?php endif; ?>
+	</a>
+	<nav class="nvx-nav" aria-label="Menú principal">
+		<?php
+		wp_nav_menu(
+			array(
+				'theme_location' => 'primary',
+				'menu_class'     => 'nvx-nav__list',
+				'container'      => false,
+				'items_wrap'     => '<ul class="%2$s">%3$s</ul>',
+				'fallback_cb'    => 'nvx_primary_menu_fallback',
+				'add_li_class'   => 'nvx-nav__item',
+			)
+		);
+		?>
+		<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-header__cta nvx-button nvx-btn--primary nvx-open-valoracion-modal" id="nvx-header-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
+	</nav>
+	<button class="nvx-hamburger" id="nvx-hamburger-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="nvx-mobile-nav">
+		<span></span><span></span><span></span>
+	</button>
+	</div>
 </header>
 <dialog id="nvx-mobile-nav" class="nvx-mobile-nav" aria-label="Menú móvil">
-  <button class="nvx-mobile-nav__close" id="nvx-mobile-close" aria-label="Cerrar menú" type="button">&times;</button>
-  <?php wp_nav_menu( array( 'theme_location' => 'primary', 'menu_class' => 'nvx-mobile-nav__list', 'container' => false, 'fallback_cb' => false ) ); ?>
-  <a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-button nvx-btn--primary nvx-open-valoracion-modal" id="nvx-mobile-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
-  <a href="https://wa.me/34669319836" class="nvx-button nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
+	<button class="nvx-mobile-nav__close" id="nvx-mobile-close" aria-label="Cerrar menú" type="button">&times;</button>
+	<?php
+	wp_nav_menu(
+		array(
+			'theme_location' => 'primary',
+			'menu_class'     => 'nvx-mobile-nav__list',
+			'container'      => false,
+			'fallback_cb'    => false,
+		)
+	);
+	?>
+	<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-button nvx-btn--primary nvx-open-valoracion-modal" id="nvx-mobile-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
+	<a href="<?php echo esc_url( nvx_whatsapp_url( 'primary' ) ); ?>" class="nvx-button nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
 </dialog>
 <?php endif; ?>
-<?php if ( ! function_exists( 'nvx_has_page_shell' ) || ! nvx_has_page_shell() ) : ?>
-<main id="nvx-main" class="nvx-main" tabindex="-1">
-<?php endif; ?>
+
+<main id="nvx-main" class="nvx-main" role="main" tabindex="-1">
+	<div class="nvx-brand-page">

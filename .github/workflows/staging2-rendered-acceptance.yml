@@ -81,7 +81,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          HTTP_CODE=$(curl --max-time 15 -s -o /dev/null -w '%{http_code}' -k "$BASE_URL" || true)
+          HTTP_CODE=$(curl --max-time 15 -s -o /dev/null -w '%{http_code}' "$BASE_URL" || true)
           if [[ ! "$HTTP_CODE" =~ ^[23] ]]; then
             echo "::error::Origin server not responding. HTTP Code: ${HTTP_CODE:-none}"
             exit 1

@@ -256,8 +256,10 @@ function nvx_filter_contacto_document_title( $title ) {
 add_filter( 'wpseo_title', 'nvx_filter_contacto_document_title', 21 );
 
 /**
- * @param string $desc Description.
- * @return string
+ * Generates the contact page meta description with clinic registration numbers and phone numbers.
+ *
+ * @param string $desc The original meta description.
+ * @return string The generated contact page meta description or the original description for other pages.
  */
 function nvx_filter_contacto_metadesc( $desc ) {
 	if ( ! nvx_is_contacto_page_request() ) {

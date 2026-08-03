@@ -115,7 +115,12 @@ function nvx_aesthetic_treatment_cta_markup(): string {
 	return '<section class="nvx-aes-section nvx-aesthetic-treatment__cta" aria-labelledby="nvx-aesthetic-treatment-cta-title"><div class="nvx-aes-section__inner"><p class="nvx-aes-kicker">Valoración médica</p><h2 id="nvx-aesthetic-treatment-cta-title" class="nvx-aes-heading">Diagnóstico antes que producto</h2><p class="nvx-aes-body nvx-aes-body--lead">La indicación, el material, el plano y el presupuesto se confirman después de explorar la anatomía, los antecedentes y los objetivos.</p>' . $buttons . '</div></section>';
 }
 
-/** Render complete page body from the canonical catalogue. */
+/**
+ * Renders the complete HTML body for a canonical aesthetic treatment page.
+ *
+ * @param string $key The catalogue key identifying the treatment.
+ * @return string The rendered page HTML, or an empty string when the treatment is unavailable.
+ */
 function nvx_aesthetic_treatment_render( string $key ): string {
 	$catalog = nvx_aesthetic_treatment_catalog();
 	if ( empty( $catalog[ $key ] ) ) {

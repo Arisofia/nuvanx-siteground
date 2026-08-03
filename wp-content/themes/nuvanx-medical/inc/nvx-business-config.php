@@ -12,9 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Returns the canonical business configuration.
+ * Provides the canonical configuration for each clinic.
  *
- * @return array<string, array{name:string,reg:string,address:string,postal_code:string,locality:string,phone:string,phone_href:string,days:string}>
+ * @return array<string, array{name: string, reg: string, address: string, postal_code: string, locality: string, phone: string, phone_href: string, whatsapp_href: string, hours: string, days: string}>
  */
 function nvx_get_clinics_config(): array {
 	return array(

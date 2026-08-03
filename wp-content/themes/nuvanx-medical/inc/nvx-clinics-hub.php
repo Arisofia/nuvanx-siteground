@@ -1001,7 +1001,9 @@ function nvx_clinics_hub_phone_display( string $e164 ): string {
 }
 
 /**
- * Theme-owned clinics hub page (unified .nvx-brand-hero, no video, no map iframes).
+ * Builds the canonical NUVANX clinics hub markup with clinic details, contact links, directions, and valuation calls to action.
+ *
+ * @return string The complete rendered clinics hub HTML.
  */
 function nvx_clinics_hub_page_markup(): string {
 	$clinics  = function_exists( 'nvx_schema_clinics' ) ? nvx_schema_clinics() : array();

@@ -145,10 +145,7 @@ function nvx_endolift_editorial_body_markup(): string {
 	
 	$colegiado    = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$price_from   = function_exists( 'nvx_endolift_price_from_eur' ) ? nvx_endolift_price_from_eur() : 798.60;
-	$price_papada = function_exists( 'nvx_endolift_price_papada_eur' ) ? nvx_endolift_price_papada_eur() : 1064.80;
-	$price_raw    = function_exists( 'nvx_schema_price_string' ) ? nvx_schema_price_string( $price_from ) : '798.60';
 	$price_label  = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( $price_from ) : number_format_i18n( $price_from, 2 );
-	$papada_label = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( $price_papada ) : number_format_i18n( $price_papada, 2 );
 	$review_label = defined( 'NVX_ENDOLIFT_REVIEW_LABEL' ) ? NVX_ENDOLIFT_REVIEW_LABEL : 'julio 2026';
 	$equipo_url   = home_url( '/equipo-medico/' );
 

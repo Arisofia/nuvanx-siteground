@@ -26,5 +26,8 @@ regexes = [
   '''AUTH_KEY''',
   '''SECURE_AUTH_KEY''',
   '''LOGGED_IN_KEY''',
-  '''NONCE_KEY'''
+  '''NONCE_KEY''',
+  '''NVX_VALORACION_HS_FRAME_FORM_ID''',
+  '''5042522a-0bc5-4381-ac3e-5aee8649b69c''',
+  '''NVX_VALORACION_HS_FRAME_PORTAL_ID'''
 ]

@@ -81,6 +81,16 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
  * a single 1/12 track and look like a broken two-column layout (Goya ubicación/FAQ).
  * Editorial pairs stack full-width; team cards keep multi-column spans.
  */
+.nvx-brand-grid--2 > * { grid-column: span 6; }
+.nvx-brand-grid--3 > * { grid-column: span 4; }
+.nvx-brand-grid--4 > * { grid-column: span 3; }
+@media (max-width: 980px) {
+  .nvx-brand-grid--3 > * { grid-column: span 6; }
+  .nvx-brand-grid--4 > * { grid-column: span 6; }
+}
+@media (max-width: 640px) {
+  .nvx-brand-grid--2 > *, .nvx-brand-grid--3 > *, .nvx-brand-grid--4 > * { grid-column: 1 / -1; }
+}
 /* Cards — chrome + parts centralized here (not split with site-layout) */
 .nvx-brand-card__media{margin:calc(-1 * var(--nvx-pad-card)) calc(-1 * var(--nvx-pad-card)) var(--nvx-space-3);overflow:hidden;border-radius:var(--nvx-radius-card) var(--nvx-radius-card) 0 0;background:var(--nvx-surface-base)}
 .nvx-brand-card__media img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:0}
@@ -358,8 +368,20 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 }
 
 /* —— Valoración modal (global CTA, keeps page context) —— */
-.nvx-valoracion-modal.is-open{
-  display:flex;
+.nvx-valoracion-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  box-sizing: border-box;
+}
+.nvx-valoracion-modal:not([open]) {
+  display: none;
+}
+.nvx-valoracion-modal[open] {
+  display: flex;
 }
 .nvx-valoracion-modal__backdrop{
   position:absolute;
@@ -985,15 +1007,7 @@ article.nvx-page > .nvx-page-hero{
   transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
   resize: vertical}
 
-.nvx-valoracion-modal{
-  position:fixed;
-  inset:0;
-  z-index:3000;
-  display:none;
-    align-items:flex-end;
-  justify-content:center;
-    padding:0;
-  box-sizing:border-box}
+
 
 .nvx-valoracion-modal__panel{
   position:relative;

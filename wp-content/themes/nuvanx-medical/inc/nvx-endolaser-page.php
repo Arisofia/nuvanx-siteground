@@ -60,7 +60,9 @@ function nvx_content_is_endolaser_page( string $content ): bool {
 }
 
 /**
- * Hero copy.
+ * Builds the Endoláser hero copy markup from the page catalog data.
+ *
+ * @return string The rendered hero copy HTML.
  */
 function nvx_endolaser_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
@@ -80,7 +82,9 @@ function nvx_endolaser_hero_copy_markup(): string {
 	$html .= '<p class="nvx-brand-hero__description">' . esc_html( $data['description'] ?? '' ) . '</p>';
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
-		$html .= nvx_cta_pair_markup();
+		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
+	} else {
+		$html .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a></div>';
 	}
 
 	$html .= '<p class="nvx-brand-meta">' . esc_html( $data['meta'] ?? '' ) . '</p>';

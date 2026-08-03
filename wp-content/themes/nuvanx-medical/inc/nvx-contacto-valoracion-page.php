@@ -256,15 +256,30 @@ function nvx_filter_contacto_document_title( $title ) {
 add_filter( 'wpseo_title', 'nvx_filter_contacto_document_title', 21 );
 
 /**
- * @param string $desc Description.
- * @return string
+ * Generates the contact page meta description with clinic registration numbers and phone numbers.
+ *
+ * @param string $desc The original meta description.
+ * @return string The generated contact page meta description or the original description for other pages.
  */
 function nvx_filter_contacto_metadesc( $desc ) {
 	if ( ! nvx_is_contacto_page_request() ) {
 		return $desc;
 	}
 
-	return 'Contacto NUVANX: Chamberí CS20144 (669 319 836) y Goya CS20073 (647 505 107). Valoración médica en /madrid/valoracion/.';
+	$config = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
+	
+	$cham_reg = ! empty( $config['chamberi']['reg'] ) ? $config['chamberi']['reg'] : 'CS20144';
+	$cham_ph  = ! empty( $config['chamberi']['phone'] ) ? $config['chamberi']['phone'] : '669 319 836';
+	$goya_reg = ! empty( $config['goya']['reg'] ) ? $config['goya']['reg'] : 'CS20073';
+	$goya_ph  = ! empty( $config['goya']['phone'] ) ? $config['goya']['phone'] : '647 505 107';
+
+	return sprintf(
+		'Contacto NUVANX: Chamberí %s (%s) y Goya %s (%s). Valoración médica en /madrid/valoracion/.',
+		$cham_reg,
+		$cham_ph,
+		$goya_reg,
+		$goya_ph
+	);
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_contacto_metadesc', 21 );
 

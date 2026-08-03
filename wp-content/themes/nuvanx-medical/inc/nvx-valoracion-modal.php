@@ -14,7 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Whether the modal should load on this front request.
+ * Determines whether the valuation modal is enabled for the current request.
+ *
+ * @return bool True if the modal is enabled for the request, false otherwise.
  */
 function nvx_valoracion_modal_enabled(): bool {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {
@@ -23,8 +25,7 @@ function nvx_valoracion_modal_enabled(): bool {
 
 	// Contacto is contractually form-free: direct links route to the full landing.
 	if (
-		is_page( 14 )
-		|| is_page( 'contacto' )
+		is_page( 'contacto' )
 		|| ( function_exists( 'nvx_is_contacto_page_request' ) && nvx_is_contacto_page_request() )
 	) {
 		return false;

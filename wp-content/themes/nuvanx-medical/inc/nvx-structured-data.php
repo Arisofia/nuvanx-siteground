@@ -219,6 +219,20 @@ function nvx_schema_page_registry() {
         }
     }
 
+    // Canonical fallbacks: if routes.json is missing/malformed, downstream
+    // consumers (nvx_schema_clinics, nvx_schema_resolve_clinic_keys_from_hub)
+    // read fixed keys without isset() guards. Guarantee the structure exists so
+    // the schema graph never emits empty url/@id or triggers undefined-key warnings.
+    if ( empty( $registry['clinics']['chamberi'] ) ) {
+        $registry['clinics']['chamberi'] = nvxSchemaRouteEntry( 1543, '/medicina-estetica-chamberi/' );
+    }
+    if ( empty( $registry['clinics']['goya'] ) ) {
+        $registry['clinics']['goya'] = nvxSchemaRouteEntry( 1537, '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' );
+    }
+    if ( empty( $registry['clinic_hub'] ) ) {
+        $registry['clinic_hub'] = nvxSchemaRouteEntry( 1399, '/clinicas-de-medicina-estetica-nuvanx/' );
+    }
+
     return $registry;
 }
 

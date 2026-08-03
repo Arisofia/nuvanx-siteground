@@ -283,7 +283,9 @@ function nvx_nosotros_principles_markup(): string {
 	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $p['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-heading">' . esc_html( $p['title'] ?? '' ) . '</h2>';
-	$html .= '<ul class="nvx-feature-zone-list">';
+	// list-style:none drops list semantics in Safari/VoiceOver; keep explicit
+	// role="list" for parity with the neighbouring clinics and team lists.
+	$html .= '<ul class="nvx-feature-zone-list" role="list">';
 	foreach ( (array) ( $p['items'] ?? array() ) as $item ) {
 		$html .= '<li class="nvx-feature-zone">';
 		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $item['title'] ?? '' ) . '</h3>';

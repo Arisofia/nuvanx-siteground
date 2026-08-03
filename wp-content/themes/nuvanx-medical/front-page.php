@@ -207,7 +207,7 @@ ob_start();
 		<p class="nvx-home-closure__desc">Plan individualizado. Precisión médica. Seguimiento según tu caso.</p>
 		<div class="nvx-home-closure__actions">
 			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-button nvx-btn--primary">Definir mi plan clínico</a>
-			<a href="<?php echo esc_url( nvx_cta_whatsapp_url() ); ?>" class="nvx-button nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
+			<a href="<?php echo esc_url( ( function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '#' ) ); ?>" class="nvx-button nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
 		</div>
 	</section>
 </div>

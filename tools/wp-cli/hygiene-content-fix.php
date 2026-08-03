@@ -91,10 +91,10 @@ WP_CLI::success( "Updated {$db_updated_count} posts in database." );
 // 2. Fix H1 in Legal Documents
 WP_CLI::line( 'Fixing H1 in legal documents...' );
 $legal_posts = get_posts( array(
-	'name'        => array( 'politica-privacidad', 'aviso-legal' ),
-	'post_type'   => 'page',
-	'post_status' => 'any',
-	'numberposts' => -1,
+	'post_name__in' => array( 'politica-privacidad', 'aviso-legal' ),
+	'post_type'     => 'page',
+	'post_status'   => 'any',
+	'numberposts'   => -1,
 ) );
 foreach ( $legal_posts as $post ) {
 	if ( false === stripos( $post->post_content, '<h1' ) ) {

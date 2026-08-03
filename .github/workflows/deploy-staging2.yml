@@ -55,7 +55,10 @@ jobs:
         run: |
           set -euo pipefail
           bash -n tools/deploy/deploy-to-staging2.sh
-          npm ci
+          # --ignore-scripts blocks dependency lifecycle scripts (supply-chain
+          # hardening). Safe here: the contract job only runs ESLint, which needs
+          # no install-time scripts.
+          npm ci --ignore-scripts
           npm run lint
           find wp-content/themes/nuvanx-medical/ -name "*.php" -print0 | xargs -0 -n1 php -l
 

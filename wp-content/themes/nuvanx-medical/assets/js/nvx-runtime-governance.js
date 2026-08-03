@@ -244,7 +244,7 @@
 
   /**
    * Resolves the HubSpot forms script URL from configuration or an embedded form frame.
-   * @return {string} The HubSpot script URL, or an empty string when no portal ID is available.
+   * @return {string} The configured or derived HubSpot script URL, or an empty string when no valid portal ID is available.
    */
   function resolveHubSpotScriptUrl() {
     if (config.hubspotScriptUrl) return String(config.hubspotScriptUrl);

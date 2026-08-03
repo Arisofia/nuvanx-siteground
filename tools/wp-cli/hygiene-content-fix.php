@@ -31,6 +31,12 @@ $regex_reps = array(
 	'/\bSolicitar\.(?=\s|<|$)/u'                   => 'Solicitar valoración médica',
 );
 
+/**
+ * Applies configured hygiene text replacements to content.
+ *
+ * @param mixed $content The content to update.
+ * @return mixed The content with replacements applied, or the original value when it is not a non-empty string.
+ */
 function nvx_apply_hygiene_replacements( $content ) {
 	global $str_reps, $regex_reps;
 	if ( ! is_string( $content ) || '' === $content ) {
@@ -109,6 +115,12 @@ $json_dir  = $theme_dir . '/inc/data';
 $json_files = glob( $json_dir . '/*.json' );
 $json_updated_count = 0;
 
+/**
+ * Applies hygiene content replacements recursively to strings in nested data.
+ *
+ * @param mixed $data The value to process.
+ * @return mixed The processed data with non-string values preserved.
+ */
 function nvx_recursive_hygiene( $data ) {
 	if ( is_string( $data ) ) {
 		return nvx_apply_hygiene_replacements( $data );

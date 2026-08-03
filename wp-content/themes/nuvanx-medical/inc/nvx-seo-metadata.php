@@ -192,10 +192,9 @@ function nvx_seo_filter_canonical_url( $url ) {
 add_filter( 'wpseo_opengraph_url', 'nvx_seo_filter_canonical_url', 100 );
 
 /**
- * Centralized robots policy logic.
- * Returns the appropriate NVX_ROBOTS_* directive based on the current context.
+ * Determines the robots indexing and crawling policy for the current request.
  *
- * @return int NVX_ROBOTS_* constant.
+ * @return int The applicable `NVX_ROBOTS_*` policy constant.
  */
 function nvx_seo_resolve_robots_policy(): int {
 	if ( nvx_seo_is_nonproduction_environment() ) {
@@ -226,10 +225,10 @@ function nvx_seo_resolve_robots_policy(): int {
 }
 
 /**
- * Environment-aware robots policy, adapting to both Yoast (string) and Core (array) formats.
+ * Applies the resolved SEO robots policy to Yoast or WordPress Core directives.
  *
- * @param string|array<string,bool> $robots Original robots directives.
- * @return string|array<string,bool>
+ * @param string|array<string, bool> $robots Original robots directives.
+ * @return string|array<string, bool> The resolved robots directives, or the original directives when policy inheritance applies.
  */
 function nvx_seo_filter_robots( $robots ) {
 	$policy = nvx_seo_resolve_robots_policy();

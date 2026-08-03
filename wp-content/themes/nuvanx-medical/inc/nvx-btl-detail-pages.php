@@ -115,10 +115,11 @@ function nvx_btl_detail_zone_item_markup( array $item ): string {
 }
 
 /**
- * Render a list of titled zone items.
+ * Renders a list of titled feature-zone items.
  *
- * @param array<int,mixed> $items Zone items.
- * @param string           $tag   List tag (ul|ol).
+ * @param array<int, mixed> $items Items to render.
+ * @param string            $tag   HTML list tag, such as `ul` or `ol`.
+ * @return string The rendered HTML list.
  */
 function nvx_btl_detail_zone_list_markup( array $items, string $tag = 'ul' ): string {
 	$html = '<' . $tag . ' class="nvx-feature-zone-list">';
@@ -304,9 +305,10 @@ function nvx_btl_detail_compare_markup( array $c ): string {
 }
 
 /**
- * Single process step (string or titled array).
+ * Formats a process step for display in the process list.
  *
- * @param mixed $step Process step.
+ * @param mixed $step A process step represented by text or a titled item array.
+ * @return string The rendered process-step markup, or an empty string for blank input.
  */
 function nvx_btl_detail_process_step_markup( $step ): string {
 	if ( is_array( $step ) ) {

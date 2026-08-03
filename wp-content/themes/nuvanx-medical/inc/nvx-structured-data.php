@@ -171,6 +171,11 @@ function nvxSchemaTreatmentRegistryEntry( int $id, string $path, string $schema 
     return compact( 'id', 'path', 'schema' );
 }
 
+/**
+ * Builds the Schema.org route registry for clinics, the clinic hub, and treatments.
+ *
+ * @return array The registry containing resolved clinic, clinic hub, and treatment route entries.
+ */
 function nvx_schema_page_registry() {
     $registry = array(
         'clinics'    => array(),

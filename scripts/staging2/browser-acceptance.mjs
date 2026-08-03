@@ -2,6 +2,12 @@ import { chromium } from 'playwright';
 import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs/promises';
 
+/**
+ * Verifies that the home page skip link receives focus first and moves focus to the main content.
+ * @param {object} page - The Playwright page instance.
+ * @param {string} route - The route being tested.
+ * @param {string[]} issues - Collection to which validation issues are appended.
+ */
 async function checkSkipLink(page, route, issues) {
   if (route !== '/') return;
   await page.keyboard.press('Tab');
@@ -14,6 +20,11 @@ async function checkSkipLink(page, route, issues) {
   }
 }
 
+/**
+ * Checks the visible heading hierarchy in the main content and records skipped levels.
+ * @param {import('playwright').Page} page - The page whose heading structure is inspected.
+ * @param {string[]} issues - Collection to which detected hierarchy issues are added.
+ */
 async function checkHeadingHierarchy(page, issues) {
   const headings = await page.evaluate(() => {
     // Look only inside main and avoid elements in dialogs or hidden
@@ -32,6 +43,11 @@ async function checkHeadingHierarchy(page, issues) {
   });
 }
 
+/**
+ * Detects desktop grid layouts whose visible items are stacked vertically and records an issue when found.
+ * @param {import('playwright').Page} page - The page to inspect.
+ * @param {string[]} issues - Collection to which detected layout issues are added.
+ */
 async function checkGridLayout(page, issues) {
   const hasCollapsedGrids = await page.evaluate(() => {
     const containers = document.querySelectorAll('.nvx-blog-card, .nvx-brand-grid > *');
@@ -62,6 +78,11 @@ async function checkGridLayout(page, issues) {
   if (hasCollapsedGrids) issues.push('Grid layout collapsed (cards stacked vertically on desktop)');
 }
 
+/**
+ * Detects `nvx-*` classes used in the page without matching CSS rules and records them as issues.
+ * @param {import('playwright').Page} page - The page to inspect.
+ * @param {string[]} issues - The collection to which detected issues are added.
+ */
 async function checkOrphanClasses(page, issues) {
   const orphanClasses = await page.evaluate(() => {
     const allElements = document.querySelectorAll('*');
@@ -115,6 +136,11 @@ async function checkOrphanClasses(page, issues) {
   }
 }
 
+/**
+ * Checks hero dimensions and vertical gaps between main sections, adding detected layout issues to the provided collection.
+ * @param {import('playwright').Page} page - The page to inspect.
+ * @param {string[]} issues - The collection to which detected issues are appended.
+ */
 async function checkSpacing(page, issues) {
   const spacingIssues = await page.evaluate(() => {
     const errs = [];
@@ -166,6 +192,12 @@ const routesJsonPath = new URL('../../wp-content/themes/nuvanx-medical/inc/data/
 const routesRaw = await fs.readFile(routesJsonPath, 'utf8');
 const routes = Object.keys(JSON.parse(routesRaw));
 
+/**
+ * Navigates to a URL with retries for connection and timeout failures.
+ * @param {import('playwright').Page} page - The Playwright page used for navigation.
+ * @param {string} url - The destination URL.
+ * @return {Promise<import('playwright').Response | null>} The navigation response, or `null` when no response is available.
+ */
 async function safeGoto(page, url) {
   const maxAttempts = 5;
   let attempt = 1;

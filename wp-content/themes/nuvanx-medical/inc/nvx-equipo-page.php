@@ -275,7 +275,10 @@ function nvx_equipo_block_is_cristina( string $html ): bool {
 }
 
 /**
- * Capture the first media fragment from a staff card when missing.
+ * Captures the first matching media fragment from a staff card when no media has been captured.
+ *
+ * @param string $card Staff card markup to inspect.
+ * @param string &$media Variable receiving the captured media fragment.
  */
 function nvx_equipo_capture_media_if_empty( string $card, string &$media ): void {
 	if ( '' !== $media ) {
@@ -286,6 +289,16 @@ function nvx_equipo_capture_media_if_empty( string $card, string &$media ): void
 	}
 }
 
+/**
+ * Categorizes a staff card by authority profile or preserves it as an additional clinician card.
+ *
+ * @param string $card The staff card markup to categorize.
+ * @param string &$rivera_media Captured media for José Javier Rivera Tejeda.
+ * @param string &$ivon_media Captured media for Ivon Rivera Deras.
+ * @param string &$fabio_media Captured media for Fabio Quiñónez Bareiro.
+ * @param string &$cristina_media Captured media for Cristina Márquez González.
+ * @param array &$other_cards Collection of staff cards that do not match an authority profile.
+ */
 function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, string &$ivon_media, string &$fabio_media, string &$cristina_media, array &$other_cards ): void {
 	if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
 		nvx_equipo_capture_media_if_empty( $card, $rivera_media );
@@ -309,10 +322,10 @@ function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, 
 }
 
 /**
- * Extract staff cards from CMS: director, Dra. Ivon, Dr. Fabio, Dra. Cristina, rest of team.
+ * Extracts and categorizes unique staff cards from CMS content.
  *
- * @param string $content CMS content.
- * @return array{rivera_media:string,ivon_media:string,fabio_media:string,cristina_media:string,other_cards:string[]}
+ * @param string $content CMS content containing staff cards.
+ * @return array{rivera_media:string,ivon_media:string,fabio_media:string,cristina_media:string,other_cards:string[]} Recognized portrait media and remaining staff cards.
  */
 function nvx_equipo_extract_staff_cards( string $content ): array {
 	$other_cards    = array();
@@ -789,7 +802,7 @@ function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 /**
  * Builds the editorial authority profile for Dr. Fabio Augusto Quiñónez Bareiro.
  *
- * @param string $fabio_media Optional portrait media extracted from CMS staff card.
+ * @param string $fabio_media Optional portrait media extracted from the CMS staff card.
  * @return string The rendered HTML markup for the profile.
  */
 function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
@@ -911,6 +924,12 @@ add_filter( 'nvx_page_owner', function( $owner ) {
 	return $owner;
 });
 
+/**
+ * Rebuilds the medical-team page with branded hero content, authority profiles, and remaining staff cards.
+ *
+ * @param string $content The original page content.
+ * @return string The rebuilt page content for the assigned team page, or the original content when the page is not owned by the team-page renderer.
+ */
 function nvx_content_restructure_equipo_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
 	if ( $owner !== 'nvx_equipo_page' ) {

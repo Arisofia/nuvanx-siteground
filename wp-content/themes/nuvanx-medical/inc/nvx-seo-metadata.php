@@ -46,7 +46,8 @@ function nvx_seo_current_path(): string {
 
 	$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
 	$uri = (string) strtok( $uri, '?' );
-	return '/' . trim( $uri, '/' ) . '/';
+	$trimmed = trim( $uri, '/' );
+	return '' !== $trimmed ? '/' . $trimmed . '/' : '/';
 }
 
 /**

@@ -94,7 +94,9 @@ function nvx_endolaser_hero_copy_markup(): string {
 }
 
 /**
- * Editorial body (no facial Endolift encyclopedia, no fixed € inventado).
+ * Generates the Endoláser editorial body markup, including treatment mechanisms, zones, candidacy guidance, and planning information.
+ *
+ * @return string The escaped HTML markup for the editorial body.
  */
 function nvx_endolaser_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';

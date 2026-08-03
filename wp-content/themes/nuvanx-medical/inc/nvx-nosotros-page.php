@@ -271,7 +271,9 @@ function nvx_nosotros_team_markup(): string {
 }
 
 /**
- * Non-negotiable medical principles.
+ * Builds the medical principles section markup.
+ *
+ * @return string The escaped HTML markup for the medical principles section.
  */
 function nvx_nosotros_principles_markup(): string {
 	$data = nvx_nosotros_registry();

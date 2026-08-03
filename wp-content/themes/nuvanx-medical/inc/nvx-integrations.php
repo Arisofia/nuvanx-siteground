@@ -9,7 +9,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/nvx-environment-flags.php';
-/** Goya sede: evita bucle redirect_canonical. */
+/**
+ * Determines whether the current public request targets the Goya clinic page.
+ *
+ * @return bool `true` if the request targets the Goya clinic page, `false` otherwise.
+ */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
 		return false;

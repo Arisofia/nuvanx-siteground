@@ -208,30 +208,6 @@ function nvx_seo_resolve_robots_policy(): int {
 	if ( is_category() || is_tag() ) {
 		return NVX_ROBOTS_NOINDEX_FOLLOW;
 	}
-
-	$page_id = (int) get_queried_object_id();
-
-	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
-		return NVX_ROBOTS_NOINDEX_NOFOLLOW;
-	}
-
-	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-		return NVX_ROBOTS_NOINDEX_FOLLOW;
-	}
-
-	if ( null !== nvx_seo_current_metadata_key() ) {
-		return NVX_ROBOTS_INDEX_FOLLOW;
-	}
-
-	return NVX_ROBOTS_INHERIT;
-}
-
-/**
- * Applies the resolved SEO robots policy to Yoast or WordPress Core directives.
- *
- * @param string|array<string, bool> $robots Original robots directives.
- * @return string|array<string, bool> The resolved robots directives, or the original directives when policy inheritance applies.
- */
 function nvx_seo_filter_robots( $robots ) {
 	$policy = nvx_seo_resolve_robots_policy();
 
@@ -239,29 +215,24 @@ function nvx_seo_filter_robots( $robots ) {
 		return $robots;
 	}
 
+	$directives = array(
+		NVX_ROBOTS_NOINDEX_NOFOLLOW => array( 'noindex', 'nofollow' ),
+		NVX_ROBOTS_NOINDEX_FOLLOW   => array( 'noindex', 'follow' ),
+		NVX_ROBOTS_INDEX_FOLLOW     => array( 'index', 'follow' ),
+	);
+
+	if ( ! isset( $directives[ $policy ] ) ) {
+		return $robots;
+	}
+
 	if ( is_string( $robots ) ) {
-		if ( NVX_ROBOTS_NOINDEX_NOFOLLOW === $policy ) {
-			return 'noindex, nofollow';
-		}
-		if ( NVX_ROBOTS_NOINDEX_FOLLOW === $policy ) {
-			return 'noindex, follow';
-		}
-		if ( NVX_ROBOTS_INDEX_FOLLOW === $policy ) {
-			return 'index, follow';
-		}
-	} elseif ( is_array( $robots ) ) {
-		if ( NVX_ROBOTS_NOINDEX_NOFOLLOW === $policy ) {
-			$robots['noindex']  = true;
-			$robots['nofollow'] = true;
-			unset( $robots['index'], $robots['follow'] );
-		} elseif ( NVX_ROBOTS_NOINDEX_FOLLOW === $policy ) {
-			$robots['noindex'] = true;
-			$robots['follow']  = true;
-			unset( $robots['index'], $robots['nofollow'] );
-		} elseif ( NVX_ROBOTS_INDEX_FOLLOW === $policy ) {
-			$robots['index']  = true;
-			$robots['follow'] = true;
-			unset( $robots['noindex'], $robots['nofollow'] );
+		return implode( ', ', $directives[ $policy ] );
+	}
+
+	if ( is_array( $robots ) ) {
+		unset( $robots['index'], $robots['follow'], $robots['noindex'], $robots['nofollow'] );
+		foreach ( $directives[ $policy ] as $directive ) {
+			$robots[ $directive ] = true;
 		}
 	}
 

@@ -249,14 +249,14 @@
   function resolveHubSpotScriptUrl() {
     if (config.hubspotScriptUrl) return String(config.hubspotScriptUrl);
 
-    var frame = document.querySelector('.hs-form-frame[data-portal-id]');
+    const frame = document.querySelector('.hs-form-frame[data-portal-id]');
     if (!frame && !config.hubspotPortalId) return '';
-    var portalIdStr = config.hubspotPortalId || frame.getAttribute('data-portal-id');
-    var portalId = String(portalIdStr || '').replace(/\D+/g, '');
+    const portalIdStr = config.hubspotPortalId || frame.dataset.portalId;
+    const portalId = String(portalIdStr || '').replace(/\D+/g, '');
     if (!portalId) return '';
 
-    var regionStr = config.hubspotRegion || (frame ? frame.getAttribute('data-region') : 'eu1');
-    var region = String(regionStr || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1';
+    const regionStr = config.hubspotRegion || (frame ? frame.dataset.region : 'eu1');
+    const region = String(regionStr || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1';
     return 'https://js-' + region + '.hsforms.net/forms/embed/' + portalId + '.js';
   }
 

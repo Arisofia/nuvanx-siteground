@@ -850,7 +850,9 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
  * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) return $owner;
+	if ( ! empty( $owner ) ) {
+		return $owner;
+	}
 	global $post;
 	$content = $post ? $post->post_content : '';
 	if ( function_exists('nvx_content_is_equipo_page') && nvx_content_is_equipo_page( $content ) ) {

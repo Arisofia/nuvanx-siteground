@@ -197,9 +197,9 @@
 
     function shouldIntercept(el) {
       if (!el || el.tagName !== 'A') return false;
-      if (el.getAttribute('data-nvx-valoracion-modal') === '0') return false;
+      if (el.dataset.nvxValoracionModal === '0') return false;
       if (el.classList.contains('nvx-open-valoracion-modal')) return true;
-      if (el.getAttribute('data-nvx-valoracion-modal') === '1') return true;
+      if (el.dataset.nvxValoracionModal === '1') return true;
       if (el.id === 'nvx-header-cta' || el.id === 'nvx-footer-cta' || el.id === 'nvx-mobile-cta') return true;
       
       const href = el.getAttribute('href') || '';

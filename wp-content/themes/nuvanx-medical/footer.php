@@ -64,10 +64,9 @@ $nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '64
 								$nvx_col_b_items[] = $treatment;
 							}
 						}
-						foreach ( $nvx_col_a_items as $treatment ) :
-						?>
+						foreach ( $nvx_col_a_items as $treatment ) { ?>
 						<li><a href="<?php echo esc_url( (string) $treatment['url'] ); ?>"><?php echo esc_html( (string) $treatment['label'] ); ?></a></li>
-						<?php endforeach; ?>
+						<?php } ?>
 					</ul>
 					<ul class="nvx-footer__links">
 						<?php foreach ( $nvx_col_b_items as $treatment ) : ?>

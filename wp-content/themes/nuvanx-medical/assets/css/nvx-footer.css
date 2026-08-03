@@ -1,159 +1,263 @@
-/* NUVANX — Footer layout
-   Sistema unificado: CTA banner editorial vive en nvx-patterns-editorial.css.
-   Este archivo solo gobierna estructura y spacing del pie. */
-
+/* NUVANX — Footer dark editorial
+   Fondo oscuro, acordeones nativos en móvil, grid 2fr/4fr/2fr/2fr en desktop.
+   Fuente de verdad visual: Figma sección 03 (Footer). */
+/* ── Base ──────────────────────────────────────────────────── */
 .nvx-footer {
-  padding-top: var(--nvx-pad-section-tight);
-  background: var(--nvx-surface-base);
-  color: var(--nvx-text-body);
-  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  background: var(--nvx-surface-dark);
+  color: var(--nvx-on-dark-72);
+  padding: 0;
 }
-
+.nvx-footer a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.nvx-footer a:hover,
+.nvx-footer a:focus-visible {
+  color: var(--nvx-on-dark);
+}
+/* ── Inner grid ───────────────────────────────────────────── */
 .nvx-footer__inner {
   display: grid;
+  grid-template-columns: 2fr 4fr 2fr 2fr;
+  gap: var(--nvx-space-6);
   width: var(--nvx-shell);
   max-width: 100%;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--nvx-space-6) var(--nvx-space-4);
   margin-inline: auto;
-  margin-bottom: var(--nvx-space-4);
-  padding-inline: var(--nvx-gutter-inner);
-  padding-bottom: var(--nvx-space-6);
+  padding: var(--nvx-space-8) var(--nvx-gutter-inner) 0;
   box-sizing: border-box;
-  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
-
-/* Logo + columnas de footer (contenido editorial vive en markup / componentes) */
-.nvx-footer__logo,
-.nvx-footer__col {
-  grid-column: span 3;
+/* ── Logo ─────────────────────────────────────────────────── */
+.nvx-footer__logo {
   min-width: 0;
 }
-
 .nvx-footer__logo .nvx-logo {
   display: inline-flex;
+  flex-direction: column;
+  gap: var(--nvx-space-1);
 }
-
-/* Títulos de columna: usan rol de kicker tipográfico del sistema. */
-.nvx-footer__col-title {
-  margin: 0 0 var(--nvx-space-2);
+.nvx-footer__logo .nvx-logo__wordmark {
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: var(--nvx-fw-regular);
+  color: var(--nvx-on-dark);
+}
+.nvx-footer__logo .nvx-logo__tagline {
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-kicker);
-  font-weight: 600;
-  line-height: var(--nvx-lh-kicker);
+  font-size: var(--nvx-type-micro);
+  font-weight: var(--nvx-fw-regular);
+  letter-spacing: 0.1em;
+  color: var(--nvx-border-on-dark-45);
+}
+.nvx-footer__logo-sedes {
+  margin-top: var(--nvx-space-4);
+  padding-top: var(--nvx-space-3);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-on-dark-50);
+}
+/* ── Columnas (details nativo) ────────────────────────────── */
+.nvx-footer__col {
+  min-width: 0;
+}
+/* summary = título de columna */
+.nvx-footer__col > summary {
+  display: block;
+  margin: 0 0 var(--nvx-space-3);
+  padding: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-micro);
+  font-weight: var(--nvx-fw-bold);
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
-  color: var(--nvx-accent-muted);
+  color: var(--nvx-border-on-dark-45);
+  list-style: none;
+  cursor: default;
 }
-
-/* Listas de enlaces: layout y spacing; tipografía y estados vienen de nvx-components / nvx-accessibility-governance. */
-.nvx-footer__links,
-.nvx-footer__legal-links {
+.nvx-footer__col > summary::-webkit-details-marker { display: none; }
+.nvx-footer__col > summary::marker { content: ""; }
+/* ── Links ────────────────────────────────────────────────── */
+.nvx-footer__links {
   display: grid;
   gap: var(--nvx-space-1);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-
-.nvx-footer a {
-  color: inherit;
-  text-decoration: none;
-}
-
 .nvx-footer__links a {
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-small);
-  line-height: var(--nvx-lh-caption);
+  font-size: var(--nvx-type-caption2);
+  font-weight: var(--nvx-fw-regular);
+  line-height: var(--nvx-lh-nav);
+  color: var(--nvx-on-dark-72);
 }
-
-.nvx-footer__links a:hover,
-.nvx-footer__links a:focus-visible,
-.nvx-footer__legal-links a:hover,
-.nvx-footer__legal-links a:focus-visible {
-  color: var(--nvx-ink);
+/* Teléfonos: más peso y opacidad */
+.nvx-footer__links a[href^="tel:"] {
+  font-weight: var(--nvx-fw-heading);
+  color: var(--nvx-on-dark-88);
 }
-
+/* Tratamientos: sub-grid de 2 columnas */
+.nvx-footer__treatments-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 var(--nvx-space-4);
+}
+/* ── Bottom bar ───────────────────────────────────────────── */
+.nvx-footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--nvx-space-2);
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  margin-top: var(--nvx-space-6);
+  padding: var(--nvx-space-3) var(--nvx-gutter-inner) var(--nvx-space-4);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+  box-sizing: border-box;
+}
+.nvx-footer__tagline {
+  display: none;
+}
+.nvx-footer__legal {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-micro);
+  color: var(--nvx-on-dark-50);
+}
+.nvx-footer__legal-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--nvx-space-3);
+}
+.nvx-footer__legal-links {
+  display: flex;
+  gap: var(--nvx-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 .nvx-footer__legal-links a {
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption);
-  line-height: var(--nvx-lh-caption);
-  color: var(--nvx-text-muted);
+  font-size: var(--nvx-type-micro);
+  color: var(--nvx-on-dark-50);
 }
-
-/* Responsive footer grid */
+.nvx-footer__registrations {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-micro);
+  letter-spacing: var(--nvx-track-caption);
+  color: var(--nvx-on-dark-50);
+  margin: 0;
+}
+.nvx-footer__bottom-separator {
+  color: var(--nvx-accent-line-dark);
+  font-size: var(--nvx-type-caption);
+  user-select: none;
+}
+/* ── Tablet (≤980px) ──────────────────────────────────────── */
 @media (max-width: 980px) {
+  .nvx-footer__inner {
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--nvx-space-5);
+    padding-top: var(--nvx-space-6);
+  }
   .nvx-footer__logo {
     grid-column: 1 / -1;
+    margin-bottom: var(--nvx-space-1);
+    padding-bottom: var(--nvx-space-4);
+    border-bottom: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
   }
-
-  .nvx-footer__col {
-    grid-column: span 4;
+  .nvx-footer__logo-sedes {
+    display: none;
   }
 }
-
+/* ── Móvil (≤640px) — acordeones nativos ──────────────────── */
 @media (max-width: 640px) {
   .nvx-footer__inner {
-    gap: var(--nvx-space-4);
+    display: block;
+    padding: var(--nvx-space-6) var(--nvx-gutter-inner) 0;
   }
-
-  .nvx-footer__logo,
+  .nvx-footer__logo {
+    margin-bottom: var(--nvx-space-4);
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+  .nvx-footer__logo-sedes {
+    display: none;
+  }
+  /* Acordeones: cada columna es un <details> */
   .nvx-footer__col {
-    grid-column: 1 / -1;
+    border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+  }
+  .nvx-footer__col > summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0;
+    padding: var(--nvx-space-2) 0;
+    cursor: pointer;
+  }
+  .nvx-footer__col > summary::after {
+    content: "+";
+    font-family: var(--nvx-sans);
+    font-size: var(--nvx-type-h3);
+    font-weight: var(--nvx-fw-regular);
+    line-height: var(--nvx-lh-nav);
+    color: var(--nvx-on-dark-50);
+  }
+  .nvx-footer__col[open] > summary::after {
+    content: "−";
+  }
+  .nvx-footer__col > .nvx-footer__col-content {
+    padding-bottom: var(--nvx-space-3);
+  }
+  .nvx-footer__col:not([open]) > .nvx-footer__col-content {
+    display: none;
+  }
+  /* Tratamientos: 1 columna en móvil */
+  .nvx-footer__treatments-grid {
+    grid-template-columns: 1fr;
+  }
+  .nvx-footer__col:last-of-type {
+    border-bottom: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+  }
+  /* Bottom bar: stack vertical */
+  .nvx-footer__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--nvx-space-2);
+    margin-top: var(--nvx-space-4);
+  }
+  .nvx-footer__legal-nav {
+    flex-wrap: wrap;
   }
 }
-
-.nvx-footer__bottom {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--nvx-space-2) var(--nvx-gap-base);
-  align-items: center;
-  width: var(--nvx-shell);
-  margin-inline: auto;
-  padding-block: var(--nvx-space-3);
-  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
+/* ── Desktop (≥641px): forzar <details> abierto ───────────── */
+@media (min-width: 641px) {
+  .nvx-footer__col > .nvx-footer__col-content {
+    display: block !important;
+  }
+  .nvx-footer__col > summary {
+    pointer-events: none;
+  }
+  .nvx-footer__col > summary::after {
+    display: none;
+  }
 }
-
-.nvx-footer__tagline {
-  grid-column: 1 / -1;
-  margin: 0;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: var(--nvx-track-caption);
-  text-transform: uppercase;
-  color: var(--nvx-text-muted);
-}
-
-.nvx-footer__registrations {
-  grid-column: 1 / -1;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption);
-  line-height: var(--nvx-lh-caption);
-  color: var(--nvx-text-muted);
-  margin: 0;
-}
-
-.nvx-footer__legal-nav {
-  justify-self: start;
-}
-
-/* Footer minimal — landing de valoración: solo enlace legal, sin heredar el layout del footer completo. */
+/* ── Footer minimal (valoración landing) ──────────────────── */
 .nvx-footer--minimal {
-  padding-top: 0;
-  background: var(--nvx-surface-base);
-  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  padding: 0;
+  background: var(--nvx-surface-dark);
 }
 .nvx-footer--minimal .nvx-footer__bottom {
   display: flex;
   justify-content: center;
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin-inline: auto;
-  padding-block: var(--nvx-space-3);
-  padding-inline: var(--nvx-gutter-inner);
-  border-top: 0;            /* anula el border-top que viene del default */
-  box-sizing: border-box;
+  margin-top: 0;
+  padding: var(--nvx-space-3) var(--nvx-gutter-inner);
+  border-top: 0;
 }
 .nvx-footer--minimal .nvx-footer__legal-nav {
   justify-self: center;

@@ -181,16 +181,8 @@ function nvx_document_governance_enqueue_assets(): void {
 		'modalId'          => 'nvx-valoracion-modal',
 		'mobileNavId'      => 'nvx-mobile-nav',
 		'hubspotScriptId'  => 'nvx-hubspot-forms-runtime',
-		'hubspotPortalId'  => '',
-		'hubspotRegion'    => 'eu1',
 		'hubspotPageMount' => true,
 	);
-
-	if ( function_exists( 'nvx_valoracion_modal_hubspot_config' ) ) {
-		$hubspot = nvx_valoracion_modal_hubspot_config();
-		$config['hubspotPortalId'] = isset( $hubspot['portal_id'] ) ? (string) $hubspot['portal_id'] : '';
-		$config['hubspotRegion']   = isset( $hubspot['region'] ) ? (string) $hubspot['region'] : 'eu1';
-	}
 
 	$encoded = wp_json_encode( $config, JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP );
 	if ( ! is_string( $encoded ) ) {

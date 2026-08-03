@@ -179,9 +179,9 @@ $nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '64
 			</ul>
 			<span class="nvx-footer__bottom-separator" aria-hidden="true">·</span>
 			<p class="nvx-footer__registrations">
-				<?php echo esc_html( $nvx_cham['reg'] ); ?>
+				<?php echo esc_html( 'Chamberí · Centro sanitario autorizado ' . $nvx_cham['reg'] ); ?>
 				<span aria-hidden="true"> · </span>
-				<?php echo esc_html( $nvx_goya['reg'] ); ?>
+				<?php echo esc_html( 'Salamanca · Centro sanitario autorizado ' . $nvx_goya['reg'] ); ?>
 			</p>
 		</nav>
 	</div>

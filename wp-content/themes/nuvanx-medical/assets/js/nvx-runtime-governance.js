@@ -242,13 +242,21 @@
     window.nvxCloseValoracionModal = closeModal;
   }
 
+  /**
+   * Resolves the HubSpot forms script URL from configuration or an embedded form frame.
+   * @return {string} The HubSpot script URL, or an empty string when no portal ID is available.
+   */
   function resolveHubSpotScriptUrl() {
     if (config.hubspotScriptUrl) return String(config.hubspotScriptUrl);
 
-    const portalId = String(config.hubspotPortalId || '').replace(/\D+/g, '');
+    var frame = document.querySelector('.hs-form-frame[data-portal-id]');
+    if (!frame && !config.hubspotPortalId) return '';
+    var portalIdStr = config.hubspotPortalId || frame.getAttribute('data-portal-id');
+    var portalId = String(portalIdStr || '').replace(/\D+/g, '');
     if (!portalId) return '';
 
-    const region = String(config.hubspotRegion || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1';
+    var regionStr = config.hubspotRegion || (frame ? frame.getAttribute('data-region') : 'eu1');
+    var region = String(regionStr || 'eu1').replace(/[^a-z0-9-]/gi, '') || 'eu1';
     return 'https://js-' + region + '.hsforms.net/forms/embed/' + portalId + '.js';
   }
 

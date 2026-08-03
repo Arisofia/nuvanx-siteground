@@ -26,12 +26,9 @@ if ( ! empty( $shell_content ) ) {
 	rewind_posts();
 }
 
-$is_main_owner = ( ! function_exists( 'nvx_has_page_shell' ) || ! nvx_has_page_shell() );
-if ( $is_main_owner ) {
-	echo '<main id="nvx-main" class="nvx-main" tabindex="-1">' . "\n";
-} else {
-	echo '<div class="nvx-main-shell">' . "\n";
-}
+// Header.php already provides <main id="nvx-main" class="nvx-main" role="main"> and .nvx-brand-page wrapper
+// This shell only needs the inner content wrapper for consistency
+echo '<div class="nvx-main-shell">' . "\n";
 
 while ( have_posts() ) :
 	the_post();
@@ -189,10 +186,7 @@ while ( have_posts() ) :
 	<?php
 endwhile;
 
-if ( $is_main_owner ) {
-	echo '</main>' . "\n";
-} else {
-	echo '</div>' . "\n";
-}
+// Close the inner content wrapper (main is closed in footer.php)
+echo '</div>' . "\n";
 
 get_footer();

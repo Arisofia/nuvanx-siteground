@@ -255,12 +255,12 @@ function nvx_exclude_sensitive_pages_from_core_sitemap( $args, $post_type ) {
 add_filter( 'wp_sitemaps_posts_query_args', 'nvx_exclude_sensitive_pages_from_core_sitemap', 10, 2 );
 
 /**
- * Excludes sensitive pages from sitemap entries.
+ * Filters sitemap entries for content marked as noindex.
  *
- * @param array|false $url Sitemap URL data or false to exclude the entry.
+ * @param array|false $url Sitemap URL data.
  * @param string      $type Sitemap object type.
- * @param WP_Post     $post Post associated with the sitemap entry.
- * @return array|false The original sitemap URL data, or false for sensitive pages.
+ * @param WP_Post     $post Content associated with the sitemap entry.
+ * @return array|false The sitemap URL data, or false when the content is marked as noindex.
  */
 function nvx_filter_sitemap_entry_sensitive_pages( $url, $type, $post ) {
 	unset( $type );
@@ -353,9 +353,10 @@ function nvx_page_id_by_slug( string $slug ): int {
 }
 
 /**
- * Whether the current main request is one of the given page slugs.
+ * Determines whether the current page has one of the specified slugs.
  *
- * @param string|string[] $slugs Page slug or list of slugs.
+ * @param string|string[] $slugs Page slug or list of page slugs to match.
+ * @return bool True if the current page slug matches one of the specified slugs, false otherwise.
  */
 function nvx_is_page_slug( $slugs ): bool {
 	if ( ! is_page() ) {
@@ -367,10 +368,10 @@ function nvx_is_page_slug( $slugs ): bool {
 }
 
 /**
- * Applies production content safeguards to legal and EXION-related page content.
+ * Applies production safeguards to legal and EXION-related page content.
  *
  * @param string $content HTML content to process.
- * @return string The content with legal placeholders removed, regulatory context added, and restricted comparative or pricing content replaced where applicable.
+ * @return string The content with legal placeholders removed, regulatory context added to applicable pages, and Morpheus comparisons or unapproved EXION prices replaced.
  */
 function nvx_apply_production_business_rules( $content ) {
 	if ( ! is_string( $content ) || '' === trim( $content ) ) {

@@ -92,9 +92,10 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 }
 
 /**
- * Render a titled zone/list item (title + body).
+ * Renders a titled body item for a feature zone.
  *
- * @param array<string,mixed> $item Item with optional title/body.
+ * @param array<string,mixed> $item Item containing an optional title and body.
+ * @return string The rendered list item, or an empty string when both values are empty.
  */
 function nvx_btl_detail_zone_item_markup( array $item ): string {
 	$title = trim( (string) ( $item['title'] ?? '' ) );
@@ -267,9 +268,10 @@ function nvx_btl_detail_has_compare_content( array $c ): bool {
 }
 
 /**
- * Compare / criterio diferencial section (optional).
+ * Renders the optional differential-criteria section with comparison, combination-protocol, and related links.
  *
- * @param array<string,mixed> $c Registry entry.
+ * @param array<string,mixed> $c Registry entry containing comparison section data.
+ * @return string The rendered section markup, or an empty string when no comparison content exists.
  */
 function nvx_btl_detail_compare_markup( array $c ): string {
 	if ( ! nvx_btl_detail_has_compare_content( $c ) ) {
@@ -368,7 +370,10 @@ function nvx_btl_detail_faq_markup( array $c ): string {
 }
 
 /**
- * Build full editorial markup for a detail key.
+ * Builds the complete editorial markup for a BTL detail page.
+ *
+ * @param string $key The registry key identifying the detail page.
+ * @return string The generated hero and editorial section markup, or an empty string when the key is not registered.
  */
 function nvx_btl_detail_page_markup( string $key ): string {
 	$reg = nvx_btl_detail_registry();

@@ -268,7 +268,10 @@ function nvx_equipo_block_is_fabio( string $html ): bool {
 }
 
 /**
- * Whether a card/block is Dra. Cristina Márquez González.
+ * Determines whether a card or block identifies Dra. Cristina Márquez González.
+ *
+ * @param string $html The card or block markup to inspect.
+ * @return bool `true` if the markup contains Cristina Márquez González's name, `false` otherwise.
  */
 function nvx_equipo_block_is_cristina( string $html ): bool {
 	return (bool) preg_match( '/Cristina\s+M[áa]rquez(?:\s+Gonz[áa]lez)?/iu', $html );

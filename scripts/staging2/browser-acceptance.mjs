@@ -44,7 +44,7 @@ async function checkHeadingHierarchy(page, issues) {
 }
 
 /**
- * Detects desktop grid layouts whose visible items are stacked vertically and records an issue when found.
+ * Detects desktop grid layouts whose visible items are stacked vertically and records a layout issue when found.
  * @param {import('playwright').Page} page - The page to inspect.
  * @param {string[]} issues - Collection to which detected layout issues are added.
  */
@@ -98,6 +98,10 @@ async function checkOrphanClasses(page, issues) {
     if (usedClasses.size === 0) return [];
 
     const cssRulesClasses = new Set();
+    /**
+     * Collects `nvx-*` class names from CSS rules and nested rule groups.
+     * @param {CSSRuleList} rules - The CSS rules to inspect.
+     */
     function extractClasses(rules) {
       if (!rules) return;
       for (let j = 0; j < rules.length; j++) {
@@ -193,10 +197,11 @@ const routesRaw = await fs.readFile(routesJsonPath, 'utf8');
 const routes = Object.keys(JSON.parse(routesRaw));
 
 /**
- * Navigates to a URL with retries for connection and timeout failures.
+ * Navigates to a URL, retrying connection and timeout failures.
  * @param {import('playwright').Page} page - The Playwright page used for navigation.
  * @param {string} url - The destination URL.
- * @return {Promise<import('playwright').Response | null>} The navigation response, or `null` when no response is available.
+ * @returns {Promise<import('playwright').Response | null>} The navigation response, or `null` when no response is available.
+ * @throws {Error} If navigation fails with a non-retryable error or after all retry attempts.
  */
 async function safeGoto(page, url) {
   const maxAttempts = 5;
@@ -225,7 +230,7 @@ async function safeGoto(page, url) {
 /**
  * Runs browser acceptance tests for all configured routes and writes audit artifacts.
  *
- * Exits the process with status 1 when any route fails its acceptance checks.
+ * Exits the process with status 1 if any route fails its acceptance checks or encounters a fatal error.
  */
 async function run() {
   console.log(`Starting Browser Acceptance Tests against ${baseUrl} with EXPECTED_SHA=${expectedSha}...`);

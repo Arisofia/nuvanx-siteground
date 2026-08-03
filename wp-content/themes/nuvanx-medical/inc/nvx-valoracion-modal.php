@@ -23,8 +23,7 @@ function nvx_valoracion_modal_enabled(): bool {
 
 	// Contacto is contractually form-free: direct links route to the full landing.
 	if (
-		is_page( 14 )
-		|| is_page( 'contacto' )
+		is_page( 'contacto' )
 		|| ( function_exists( 'nvx_is_contacto_page_request' ) && nvx_is_contacto_page_request() )
 	) {
 		return false;

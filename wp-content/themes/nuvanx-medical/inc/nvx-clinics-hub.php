@@ -1017,8 +1017,8 @@ function nvx_clinics_hub_page_markup(): string {
 
 	$chamberi_phone = ! empty( $clinics['chamberi']['telephone'] ) ? (string) $clinics['chamberi']['telephone'] : '+34669319836';
 	$goya_phone     = ! empty( $clinics['goya']['telephone'] ) ? (string) $clinics['goya']['telephone'] : '+34647505107';
-	$chamberi_maps  = ! empty( $config['chamberi']['map_url'] ) ? (string) $config['chamberi']['map_url'] : ( ! empty( $clinics['chamberi']['hasMap'] ) ? (string) $clinics['chamberi']['hasMap'] : nvxClinicsMapUrl( 'chamberi' ) );
-	$goya_maps      = ! empty( $config['goya']['map_url'] ) ? (string) $config['goya']['map_url'] : ( ! empty( $clinics['goya']['hasMap'] ) ? (string) $clinics['goya']['hasMap'] : nvxClinicsMapUrl( 'goya' ) );
+	$chamberi_maps  = ! empty( $clinics['chamberi']['hasMap'] ) ? (string) $clinics['chamberi']['hasMap'] : nvxClinicsMapUrl( 'chamberi' );
+	$goya_maps      = ! empty( $clinics['goya']['hasMap'] ) ? (string) $clinics['goya']['hasMap'] : nvxClinicsMapUrl( 'goya' );
 	$chamberi_url   = home_url( $chamberi_path );
 	$goya_url       = home_url( $goya_path );
 	$valoracion     = home_url( '/madrid/valoracion/' );

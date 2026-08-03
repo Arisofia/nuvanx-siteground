@@ -99,7 +99,9 @@ function nvx_co2_hero_copy_markup(): string {
 }
 
 /**
- * Editorial body.
+ * Builds the CO₂ laser treatment editorial body markup.
+ *
+ * @return string The generated editorial HTML, including treatment information, recovery phases, and pricing.
  */
 function nvx_co2_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
@@ -203,6 +205,12 @@ add_filter( 'nvx_page_owner', function( $owner ) {
 	return $owner;
 });
 
+/**
+ * Rebuilds the CO₂ page content with its branded hero and editorial layout.
+ *
+ * @param string $content The existing page content, including any extracted hero media.
+ * @return string The branded CO₂ page content, or the original content when the page is not owned by the CO₂ module.
+ */
 function nvx_content_restructure_co2_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
 	if ( $owner !== 'nvx_co2_page' ) {

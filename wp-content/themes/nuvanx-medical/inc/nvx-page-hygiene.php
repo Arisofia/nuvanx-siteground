@@ -255,12 +255,12 @@ function nvx_exclude_sensitive_pages_from_core_sitemap( $args, $post_type ) {
 add_filter( 'wp_sitemaps_posts_query_args', 'nvx_exclude_sensitive_pages_from_core_sitemap', 10, 2 );
 
 /**
- * Belt-and-suspenders: drop sitemap entries for sensitive pages.
+ * Excludes sensitive pages from sitemap entries.
  *
- * @param array|false $url  Sitemap URL array or false to exclude.
- * @param string      $type Object type.
- * @param WP_Post     $post Post object.
- * @return array|false
+ * @param array|false $url Sitemap URL data or false to exclude the entry.
+ * @param string      $type Sitemap object type.
+ * @param WP_Post     $post Post associated with the sitemap entry.
+ * @return array|false The original sitemap URL data, or false for sensitive pages.
  */
 function nvx_filter_sitemap_entry_sensitive_pages( $url, $type, $post ) {
 	unset( $type );
@@ -279,12 +279,10 @@ add_filter( 'wpseo_sitemap_entry', 'nvx_filter_sitemap_entry_sensitive_pages', 2
 
 
 /**
- * Keep QA on staging2 inside the same environment when CMS copy uses
- * absolute production URLs. Production keeps its public URLs untouched.
+ * Rewrites absolute production URLs to the current staging host on staging2.
  *
- * Hostnames are rewritten for both schemes without embedding clear-text
- * protocol literals in source (production is HTTPS; residual HTTP hosts are
- * still normalized so staging never leaks out to production absolute links).
+ * @param mixed $content Content whose production URLs should be rewritten.
+ * @return mixed The content with production URLs rewritten, or the original value when rewriting is not applicable.
  */
 function nvx_normalize_staging2_internal_links( $content ) {
 	if ( ! is_string( $content ) || '' === $content || ! function_exists( 'nvx_environment_is_staging2' ) || ! nvx_environment_is_staging2() ) {
@@ -369,13 +367,10 @@ function nvx_is_page_slug( $slugs ): bool {
 }
 
 /**
- * Runtime publication safeguards for residual CMS body only.
+ * Applies production content safeguards to legal and EXION-related page content.
  *
- * Contacto and valoración are theme-template owned (no the_content HubSpot).
- * Legal/equipo still accept CMS body and need structural contracts here.
- *
- * @param string $content HTML content.
- * @return string
+ * @param string $content HTML content to process.
+ * @return string The content with legal placeholders removed, regulatory context added, and restricted comparative or pricing content replaced where applicable.
  */
 function nvx_apply_production_business_rules( $content ) {
 	if ( ! is_string( $content ) || '' === trim( $content ) ) {
@@ -401,11 +396,10 @@ function nvx_apply_production_business_rules( $content ) {
 add_filter( 'the_content', 'nvx_apply_production_business_rules', NVX_HOOK_PRIO_BUSINESS_RULES );
 
 /**
- * Remove quantitative trust badges until every figure has approved evidence.
- * Absorbed from retired contacto MU plugin (sitewide content hygiene).
+ * Removes quantitative trust-badge sections from content.
  *
  * @param string $content Post content.
- * @return string
+ * @return string Content without quantitative trust-badge sections.
  */
 function nvx_remove_unverified_quantitative_trust_badges( string $content ): string {
 	if ( false === strpos( $content, 'nvx-trust-badges' ) ) {

@@ -358,8 +358,11 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
 }
 
 /* —— Valoración modal (global CTA, keeps page context) —— */
-.nvx-valoracion-modal.is-open{
-  display:flex;
+.nvx-valoracion-modal:not([open]) {
+  display: none;
+}
+.nvx-valoracion-modal[open] {
+  display: flex;
 }
 .nvx-valoracion-modal__backdrop{
   position:absolute;
@@ -989,7 +992,7 @@ article.nvx-page > .nvx-page-hero{
   position:fixed;
   inset:0;
   z-index:3000;
-  display:none;
+  z-index:3000;
     align-items:flex-end;
   justify-content:center;
     padding:0;

@@ -268,6 +268,13 @@ function nvx_equipo_block_is_fabio( string $html ): bool {
 }
 
 /**
+ * Whether a card/block is Dra. Cristina Márquez González.
+ */
+function nvx_equipo_block_is_cristina( string $html ): bool {
+	return (bool) preg_match( '/Cristina\s+M[áa]rquez(?:\s+Gonz[áa]lez)?/iu', $html );
+}
+
+/**
  * Capture the first media fragment from a staff card when missing.
  */
 function nvx_equipo_capture_media_if_empty( string $card, string &$media ): void {
@@ -279,8 +286,7 @@ function nvx_equipo_capture_media_if_empty( string $card, string &$media ): void
 	}
 }
 
-/** Categorize one staff card. */
-function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, string &$ivon_media, string &$fabio_media, array &$other_cards ): void {
+function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, string &$ivon_media, string &$fabio_media, string &$cristina_media, array &$other_cards ): void {
 	if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
 		nvx_equipo_capture_media_if_empty( $card, $rivera_media );
 		return;
@@ -293,22 +299,27 @@ function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, 
 		nvx_equipo_capture_media_if_empty( $card, $fabio_media );
 		return;
 	}
+	if ( nvx_equipo_block_is_cristina( $card ) ) {
+		nvx_equipo_capture_media_if_empty( $card, $cristina_media );
+		return;
+	}
 	if ( nvx_equipo_is_person_staff_card( $card ) ) {
 		$other_cards[] = $card;
 	}
 }
 
 /**
- * Extract staff cards from CMS: director, Dra. Ivon, Dr. Fabio, rest of team.
+ * Extract staff cards from CMS: director, Dra. Ivon, Dr. Fabio, Dra. Cristina, rest of team.
  *
  * @param string $content CMS content.
- * @return array{rivera_media:string,ivon_media:string,fabio_media:string,other_cards:string[]}
+ * @return array{rivera_media:string,ivon_media:string,fabio_media:string,cristina_media:string,other_cards:string[]}
  */
 function nvx_equipo_extract_staff_cards( string $content ): array {
-	$other_cards  = array();
-	$rivera_media = '';
-	$ivon_media   = '';
-	$fabio_media  = '';
+	$other_cards    = array();
+	$rivera_media   = '';
+	$ivon_media     = '';
+	$fabio_media    = '';
+	$cristina_media = '';
 
 	$patterns = array(
 		'/<article\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/article>/iu',
@@ -318,20 +329,21 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 	$found = array();
 	foreach ( $patterns as $pattern ) {
 		if ( preg_match_all( $pattern, $content, $m ) && ! empty( $m[0] ) ) {
-			$found = $m[0];
-			break;
+			foreach ( $m[0] as $card ) {
+				if ( ! isset( $found[ $card ] ) ) {
+					$found[ $card ] = true;
+					nvx_equipo_categorize_staff_card( $card, $rivera_media, $ivon_media, $fabio_media, $cristina_media, $other_cards );
+				}
+			}
 		}
 	}
 
-	foreach ( $found as $card ) {
-		nvx_equipo_categorize_staff_card( $card, $rivera_media, $ivon_media, $fabio_media, $other_cards );
-	}
-
 	return array(
-		'rivera_media' => $rivera_media,
-		'ivon_media'   => $ivon_media,
-		'fabio_media'  => $fabio_media,
-		'other_cards'  => $other_cards,
+		'rivera_media'   => $rivera_media,
+		'ivon_media'     => $ivon_media,
+		'fabio_media'    => $fabio_media,
+		'cristina_media' => $cristina_media,
+		'other_cards'    => $other_cards,
 	);
 }
 
@@ -847,6 +859,44 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
 }
 
 /**
+ * Builds the authority profile for Dra. Cristina Márquez González.
+ *
+ * @param string $cristina_media Optional portrait media extracted from CMS staff card.
+ * @return string The rendered HTML markup for the profile.
+ */
+function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): string {
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['cristina'] ?? array();
+	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
+
+	return nvx_equipo_physician_authority_markup(
+		array(
+			'wrapper_class'  => 'nvx-equipo-cristina',
+			'wrapper_id'     => 'physician-cristina-marquez',
+			'media'          => $cristina_media,
+			'name'           => $data['name'] ?? '',
+			'kicker'         => $data['kicker'] ?? '',
+			'h2'             => $data['h2'] ?? '',
+			'bio_paragraphs' => array(
+				$data['bio_paragraphs'][0] ?? '',
+				$data['bio_paragraphs'][1] ?? '',
+				sprintf( $data['bio_paragraphs'][2] ?? '', esc_url( $doctoralia ) ),
+			),
+			'sections'       => array(
+				array(
+					'type'       => 'split_identity',
+					'id'         => 'nvx-equipo-cristina-identity',
+					'kicker'     => '',
+					'heading'    => '',
+					'paragraphs' => array(),
+					'facts'      => $data['facts'] ?? array(),
+				)
+			),
+		)
+	);
+}
+
+/**
  * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
@@ -886,12 +936,13 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	$hero .= $media;
 	$hero .= '</div></section>';
 
-	// Director → Dra. Ivon → Dr. Fabio → resto del equipo (CMS).
+	// Director → Dra. Ivon → Dr. Fabio → Dra. Cristina → resto del equipo (CMS).
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
 	$body  = '<div class="nvx-brand-section-wrap">';
 	$body .= nvx_equipo_director_authority_markup( $staff['rivera_media'] );
 	$body .= nvx_equipo_ivon_authority_markup( $staff['ivon_media'] );
 	$body .= nvx_equipo_fabio_authority_markup( $staff['fabio_media'] ?? '' );
+	$body .= nvx_equipo_cristina_authority_markup( $staff['cristina_media'] ?? '' );
 	$body .= nvx_equipo_other_staff_section_markup( $staff['other_cards'] );
 	$body .= '</div>';
 

@@ -1,0 +1,13 @@
+﻿chore: P3 cleanups (dead code, regex, BOM, JSON colegiado, CI hardening)
+
+Remove unused $price_papada/$price_raw/$papada_label from endolift editorial body
+Use concise \D instead of [^0-9] in WhatsApp phone regex (SonarCloud)
+Remove BOM from ci-quality.yml
+Add permissions: contents: read, pull-requests: read to security-gate.yml
+Move colegiado numbers from positional index to explicit JSON data
+
+Explicitly out of scope (blocked until acceptance green / Figma):
+- CROSS-01 (BEM vocabulary unification) — requires render validation
+- UX-052 (robots filter consolidation) — SEO risk without per-route validation
+- Spacing/footer tokens — waiting for Figma reference
+- CSS retired handles (nvx-native-style-governance.php) — deliberate safety net, not dead code

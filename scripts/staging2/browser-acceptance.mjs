@@ -17,7 +17,7 @@ async function checkSkipLink(page, route, issues) {
 async function checkHeadingHierarchy(page, issues) {
   const headings = await page.evaluate(() => {
     // Look only inside main and avoid elements in dialogs or hidden
-    const container = document.querySelector('main, [role="main"]') || document;
+    const container = document.querySelector('#nvx-main, main, [role="main"]') || document;
     const els = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
     return Array.from(els)
       .filter(el => !el.closest('dialog') && !el.closest('[hidden]') && !el.closest('.screen-reader-text') && el.offsetParent !== null)
@@ -47,7 +47,9 @@ async function checkGridLayout(page, issues) {
              const children = Array.from(parent.children).filter(c => window.getComputedStyle(c).display !== 'none');
              if (children.length > 1) {
                  // Check if first two children stack vertically but are supposed to be a grid
-                 if (children[0].offsetTop < children[1].offsetTop && children[0].offsetLeft === children[1].offsetLeft) {
+                 const r0 = children[0].getBoundingClientRect();
+                 const r1 = children[1].getBoundingClientRect();
+                 if (r0.bottom <= r1.top && r0.left === r1.left) {
                      // They stacked. This is expected on mobile, but if viewport is desktop, it's collapsed
                      if (window.innerWidth >= 1024) collapsed = true;
                  }
@@ -226,6 +228,7 @@ async function run() {
     
     let mainResponseStatus = 0;
     let finalUrl = '';
+    const issues = [];
     const currentConsoleErrors = [];
     const currentNetworkErrors = [];
     let metaDeploySha = '';
@@ -275,8 +278,6 @@ async function run() {
         httpNoindexHeader = xRobots;
       }
     });
-
-    const issues = [];
     try {
       const response = await safeGoto(page, url);
       mainResponseStatus = response ? response.status() : 0;

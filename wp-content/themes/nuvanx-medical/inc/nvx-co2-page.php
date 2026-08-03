@@ -226,4 +226,4 @@ function nvx_content_restructure_co2_page( string $content ): string {
 	);
 
 }
-add_filter( 'the_content', 'nvx_content_restructure_co2_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_co2_page', NVX_HOOK_PRIO_CO2_MODULE );

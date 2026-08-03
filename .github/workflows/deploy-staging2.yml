@@ -196,6 +196,8 @@ jobs:
             "nvx-staging2:$REMOTE_RELEASE/deploy-to-staging2.sh"
           rsync -az tools/deploy/deploy-required-mu-plugins.sh \
             "nvx-staging2:$REMOTE_RELEASE/deploy-required-mu-plugins.sh"
+          rsync -az tools/wp-cli/hygiene-content-fix.php \
+            "nvx-staging2:$REMOTE_RELEASE/hygiene-content-fix.php"
 
       - name: Execute guarded remote deployment
         id: remote_deploy
@@ -206,6 +208,19 @@ jobs:
           # shellcheck disable=SC2029
           ssh nvx-staging2 \
             "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm && NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$WP_ROOT' --confirm"
+
+      - name: Sanitize content in DB and JSON (WP-CLI)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
+
+      - name: Verify content hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Check JSON for unreplaced patterns. If grep finds something, it will exit 0 and ! will invert it to fail the job.
+          ssh nvx-staging2 "cd '$WP_ROOT' && ! grep -E -i 'valoraci[oó]n (gratis|gratuita)|EXILITET|enfoque médico premium' wp-content/themes/nuvanx-medical/inc/data/*.json"
 
       - name: Verify deployed marker
         shell: bash
@@ -278,8 +293,14 @@ jobs:
           # shellcheck disable=SC2029
           ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'" || {
             echo "Cleanup SSH failed (non-fatal for early aborts)." >&2
-            exit 0
           }
+
+      - name: Securely destroy SSH identity
+        if: always()
+        shell: bash
+        run: |
+          shred -u "$HOME/.ssh/staging2_key" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts" 2>/dev/null || rm -f "$HOME/.ssh/staging2_key" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"
+
 
       - name: Write deployment summary
         if: success()

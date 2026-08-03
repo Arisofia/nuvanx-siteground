@@ -302,7 +302,7 @@ async function run() {
           '/por-que-nuvanx/': '.nvx-strategy-page, .nvx-strategy-intro',
           '/inversion-medicina-estetica/': '.nvx-strategy-page, .nvx-strategy-intro',
           '/endolift-facial-papada-mandibula/': '.nvx-brand-page--endolift',
-          '/flacidez-grasa-localizada-brazos-madrid/': '.nvx-aesthetic-treatment',
+          '/flacidez-grasa-localizada-brazos-madrid/': '.nvx-signature-phase-page',
           '/exion-face/': '.nvx-btl-evidence-note, .nvx-btl-detail'
         };
         if (managedModuleRoutes[route]) {

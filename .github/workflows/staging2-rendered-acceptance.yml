@@ -31,9 +31,6 @@ jobs:
     env:
       BASE_URL: https://staging2.nuvanx.com
       EXPECTED_SHA: ${{ inputs.expected_sha || github.event.workflow_run.head_sha || github.sha }}
-      SSH_FETCH_HOST: nvx-staging2
-      SSH_SOCKS5_PROXY_CMD: >-
-        ssh -f -N -D 1080 -o ExitOnForwardFailure=yes -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=4 nvx-staging2
       # Forzar modo no interactivo en herramientas comunes
       CI: true
     steps:
@@ -60,69 +57,43 @@ jobs:
             exit 1
           }
 
-      - name: Configure strict SSH authentication
+      - name: Bypass SiteGround edge via origin host
         shell: bash
         env:
           STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
-          STAGING2_SSH_PORT: ${{ secrets.STAGING2_SSH_PORT }}
-          STAGING2_SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
-          STAGING2_SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
-          STAGING2_SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
         run: |
           set -euo pipefail
           : "${STAGING2_SSH_HOST:?Missing STAGING2_SSH_HOST secret}"
-          : "${STAGING2_SSH_USER:?Missing STAGING2_SSH_USER secret}"
-          : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY secret}"
-          : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS secret}"
-
-          SSH_PORT="${STAGING2_SSH_PORT:-18765}"
-          [[ "$SSH_PORT" =~ ^[0-9]{1,5}$ ]] || {
-            echo 'STAGING2_SSH_PORT must be numeric.' >&2
-            exit 1
-          }
           [[ "$STAGING2_SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]] || {
-            echo 'STAGING2_SSH_HOST contains unsupported characters.' >&2
+            echo "::error::STAGING2_SSH_HOST contains unsupported characters."
             exit 1
           }
-          [[ "$STAGING2_SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]] || {
-            echo 'STAGING2_SSH_USER contains unsupported characters.' >&2
-            exit 1
-          }
+          # Resolve origin IP (dig with getent fallback)
+          ORIGIN_IP=$(dig +short "$STAGING2_SSH_HOST" | grep -E '^[0-9]+\.' | tail -n1 || true)
+          if [[ -z "$ORIGIN_IP" ]]; then
+            ORIGIN_IP=$(getent hosts "$STAGING2_SSH_HOST" | awk '{print $1}' | head -n1 || true)
+          fi
+          if [[ -z "$ORIGIN_IP" ]]; then
+            if [[ "$STAGING2_SSH_HOST" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              ORIGIN_IP="$STAGING2_SSH_HOST"
+            else
+              echo "::error::Cannot resolve origin IP from STAGING2_SSH_HOST"
+              exit 1
+            fi
+          fi
+          echo "$ORIGIN_IP staging2.nuvanx.com" | sudo tee -a /etc/hosts
+          echo "Origin bypass configured: staging2.nuvanx.com → $ORIGIN_IP"
 
-          mkdir -p "$HOME/.ssh"
-          chmod 700 "$HOME/.ssh"
-
-          # Clave privada
-          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
-          chmod 600 "$HOME/.ssh/staging2_key"
-
-          # Known hosts estricto
-          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
-          chmod 600 "$HOME/.ssh/known_hosts"
-
-          # Config de SSH endurecida
-          cat > "$HOME/.ssh/config" <<EOF
-          Host nvx-staging2
-            HostName $STAGING2_SSH_HOST
-            User $STAGING2_SSH_USER
-            Port $SSH_PORT
-            IdentityFile $HOME/.ssh/staging2_key
-            IdentitiesOnly yes
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 15
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-
-      - name: Verify SSH reachability and start SOCKS5 proxy
+      - name: Verify origin connectivity
         shell: bash
         run: |
           set -euo pipefail
-          # Verifica que existan utilidades mínimas en el remoto
-          ssh -o ConnectTimeout=20 nvx-staging2 'command -v curl >/dev/null && command -v mktemp >/dev/null'
-          # El proxy SOCKS5 es requerido para evitar bloqueos del WAF/Edge de SiteGround
-          $SSH_SOCKS5_PROXY_CMD
+          HTTP_CODE=$(curl --max-time 15 -s -o /dev/null -w '%{http_code}' "$BASE_URL" || true)
+          if [[ ! "$HTTP_CODE" =~ ^[23] ]]; then
+            echo "::error::Origin server not responding. HTTP Code: ${HTTP_CODE:-none}"
+            exit 1
+          fi
+          echo "Origin server verified — staging2 reachable directly. HTTP Code: $HTTP_CODE"
 
       - name: Install dependencies
         run: npm ci
@@ -132,28 +103,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Verify SOCKS5 proxy is alive
-        shell: bash
-        run: |
-          set -euo pipefail
-          HTTP_CODE=$(curl --max-time 10 --proxy socks5://127.0.0.1:1080 -s -o /dev/null -w '%{http_code}' "$BASE_URL" || true)
-          if [[ ! "$HTTP_CODE" =~ ^[23] ]]; then
-            echo "::error::SOCKS5 proxy on :1080 is not forwarding traffic to staging2. HTTP Code: ${HTTP_CODE:-none}"
-            # Attempt to re-establish
-            $SSH_SOCKS5_PROXY_CMD
-            sleep 2
-            RE_HTTP_CODE=$(curl --max-time 10 --proxy socks5://127.0.0.1:1080 -s -o /dev/null -w '%{http_code}' "$BASE_URL" || true)
-            if [[ ! "$RE_HTTP_CODE" =~ ^[23] ]]; then
-              echo "::error::SOCKS5 proxy re-establishment failed. Aborting. HTTP Code: ${RE_HTTP_CODE:-none}"
-              exit 1
-            fi
-          fi
-          echo 'SOCKS5 proxy verified — staging2 reachable.'
+
 
       - name: Verify rendered document, integrations and route consistency
-        env:
-          HTTP_PROXY: socks5://127.0.0.1:1080
-          HTTPS_PROXY: socks5://127.0.0.1:1080
         run: node scripts/staging2/browser-acceptance.mjs
 
       - name: Upload Browser Acceptance Artifacts

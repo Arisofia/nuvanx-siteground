@@ -208,6 +208,24 @@ function nvx_seo_resolve_robots_policy(): int {
 	if ( is_category() || is_tag() ) {
 		return NVX_ROBOTS_NOINDEX_FOLLOW;
 	}
+
+	$page_id = (int) get_queried_object_id();
+
+	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
+		return NVX_ROBOTS_NOINDEX_NOFOLLOW;
+	}
+
+	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
+		return NVX_ROBOTS_NOINDEX_FOLLOW;
+	}
+
+	if ( null !== nvx_seo_current_metadata_key() ) {
+		return NVX_ROBOTS_INDEX_FOLLOW;
+	}
+
+	return NVX_ROBOTS_INHERIT;
+}
+
 function nvx_seo_filter_robots( $robots ) {
 	$policy = nvx_seo_resolve_robots_policy();
 

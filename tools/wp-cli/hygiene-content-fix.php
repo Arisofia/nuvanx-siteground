@@ -73,63 +73,68 @@ function nvx_apply_hygiene_replacements( $content ) {
 // the sanitizer would permanently delete that HTML with no backup.
 kses_remove_filters();
 
-// 1. Process Database (wp_posts)
-WP_CLI::line( 'Processing wp_posts...' );
-global $wpdb;
-$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('post', 'page')" );
-$db_updated_count = 0;
+try {
+	// 1. Process Database (wp_posts)
+	WP_CLI::line( 'Processing wp_posts...' );
+	global $wpdb;
+	$post_ids = $wpdb->get_col( "SELECT ID FROM {$wpdb->posts} WHERE post_type IN ('post', 'page')" );
+	$db_updated_count = 0;
 
-foreach ( $post_ids as $id ) {
-	$post = get_post( $id );
-	if ( ! $post ) {
-		continue;
-	}
+	foreach ( $post_ids as $id ) {
+		$post = get_post( $id );
+		if ( ! $post ) {
+			continue;
+		}
 
-	$needs_update = false;
-	
-	$new_content = nvx_apply_hygiene_replacements( $post->post_content );
-	if ( $new_content !== $post->post_content ) {
-		$post->post_content = $new_content;
-		$needs_update = true;
-	}
-
-	$new_title = nvx_apply_hygiene_replacements( $post->post_title );
-	if ( $new_title !== $post->post_title ) {
-		$post->post_title = $new_title;
-		$needs_update = true;
-	}
-
-	$new_excerpt = nvx_apply_hygiene_replacements( $post->post_excerpt );
-	if ( $new_excerpt !== $post->post_excerpt ) {
-		$post->post_excerpt = $new_excerpt;
-		$needs_update = true;
-	}
-
-	if ( $needs_update ) {
-		wp_update_post( $post );
-		$db_updated_count++;
-	}
-}
-WP_CLI::success( "Updated {$db_updated_count} posts in database." );
-
-// 2. Fix H1 in Legal Documents
-WP_CLI::line( 'Fixing H1 in legal documents...' );
-$legal_posts = get_posts( array(
-	'post_name__in' => array( 'politica-privacidad', 'aviso-legal' ),
-	'post_type'     => 'page',
-	'post_status'   => 'any',
-	'numberposts'   => -1,
-) );
-foreach ( $legal_posts as $post ) {
-	if ( false === stripos( $post->post_content, '<h1' ) ) {
-		$new_content = preg_replace( '/<h2\b/iu', '<h1', $post->post_content, 1 );
-		$new_content = preg_replace( '/<\/h2>/iu', '</h1>', $new_content, 1 );
+		$needs_update = false;
+		
+		$new_content = nvx_apply_hygiene_replacements( $post->post_content );
 		if ( $new_content !== $post->post_content ) {
 			$post->post_content = $new_content;
+			$needs_update = true;
+		}
+
+		$new_title = nvx_apply_hygiene_replacements( $post->post_title );
+		if ( $new_title !== $post->post_title ) {
+			$post->post_title = $new_title;
+			$needs_update = true;
+		}
+
+		$new_excerpt = nvx_apply_hygiene_replacements( $post->post_excerpt );
+		if ( $new_excerpt !== $post->post_excerpt ) {
+			$post->post_excerpt = $new_excerpt;
+			$needs_update = true;
+		}
+
+		if ( $needs_update ) {
 			wp_update_post( $post );
-			WP_CLI::success( "Fixed H1 for {$post->post_name}" );
+			$db_updated_count++;
 		}
 	}
+	WP_CLI::success( "Updated {$db_updated_count} posts in database." );
+
+	// 2. Fix H1 in Legal Documents
+	WP_CLI::line( 'Fixing H1 in legal documents...' );
+	$legal_posts = get_posts( array(
+		'post_name__in' => array( 'politica-privacidad', 'aviso-legal' ),
+		'post_type'     => 'page',
+		'post_status'   => 'any',
+		'numberposts'   => -1,
+	) );
+	foreach ( $legal_posts as $post ) {
+		if ( false === stripos( $post->post_content, '<h1' ) ) {
+			$new_content = preg_replace( '/<h2\b/iu', '<h1', $post->post_content, 1 );
+			$new_content = preg_replace( '/<\/h2>/iu', '</h1>', $new_content, 1 );
+			if ( $new_content !== $post->post_content ) {
+				$post->post_content = $new_content;
+				wp_update_post( $post );
+				WP_CLI::success( "Fixed H1 for {$post->post_name}" );
+			}
+		}
+	}
+} finally {
+	// Restore KSES filters removed before DB writes.
+	kses_init_filters();
 }
 
 // 3. Process JSON Catalogs

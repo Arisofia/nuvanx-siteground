@@ -207,3 +207,4 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', 19 );
+

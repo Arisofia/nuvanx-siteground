@@ -28,7 +28,6 @@ function nvx_get_clinics_config(): array {
 			'phone_href'    => '+34669319836',
 			'whatsapp_href' => 'https://wa.me/34669319836',
 			'hours'         => 'lunes a viernes, 12:00–20:00; sábados, 10:00–18:00',
-			'map_url'       => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20Chamber%C3%AD%20Madrid',
 			'days'          => 'Martes y jueves',
 		),
 		'goya' => array(
@@ -41,7 +40,6 @@ function nvx_get_clinics_config(): array {
 			'phone_href'    => '+34647505107',
 			'whatsapp_href' => 'https://wa.me/34647505107',
 			'hours'         => 'lunes a viernes, 11:00–20:00',
-			'map_url'       => 'https://www.google.com/maps/search/?api=1&query=NUVANX%20Medicina%20Est%C3%A9tica%20L%C3%A1ser%20Salamanca%20Goya%20Madrid',
 			'days'          => 'Miércoles',
 		),
 	);

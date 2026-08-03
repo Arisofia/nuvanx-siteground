@@ -60,6 +60,98 @@ async function checkGridLayout(page, issues) {
   if (hasCollapsedGrids) issues.push('Grid layout collapsed (cards stacked vertically on desktop)');
 }
 
+async function checkOrphanClasses(page, issues) {
+  const orphanClasses = await page.evaluate(() => {
+    const allElements = document.querySelectorAll('*');
+    const usedClasses = new Set();
+    allElements.forEach(el => {
+      el.classList.forEach(cls => {
+        if (cls.startsWith('nvx-')) {
+          usedClasses.add(cls);
+        }
+      });
+    });
+    
+    if (usedClasses.size === 0) return [];
+
+    const cssRulesClasses = new Set();
+    function extractClasses(rules) {
+      if (!rules) return;
+      for (let j = 0; j < rules.length; j++) {
+        const rule = rules[j];
+        if (rule.selectorText) {
+          const matches = rule.selectorText.match(/\.nvx-[a-zA-Z0-9_-]+/g);
+          if (matches) {
+            matches.forEach(m => cssRulesClasses.add(m.substring(1)));
+          }
+        } else if (rule.cssRules) {
+          extractClasses(rule.cssRules);
+        }
+      }
+    }
+
+    for (let i = 0; i < document.styleSheets.length; i++) {
+      try {
+        const sheet = document.styleSheets[i];
+        extractClasses(sheet.cssRules);
+      } catch (e) {
+        // Cross-origin stylesheet access might throw
+      }
+    }
+
+    const orphans = [];
+    usedClasses.forEach(cls => {
+      if (!cssRulesClasses.has(cls)) {
+        orphans.push(cls);
+      }
+    });
+    return orphans;
+  });
+
+  if (orphanClasses.length > 0) {
+    issues.push(`Orphan classes found (no CSS rules): ${orphanClasses.join(', ')}`);
+  }
+}
+
+async function checkSpacing(page, issues) {
+  const spacingIssues = await page.evaluate(() => {
+    const errs = [];
+    const hero = document.querySelector('.nvx-brand-hero, .nvx-page-header, .nvx-hero');
+    if (hero) {
+      const height = hero.getBoundingClientRect().height;
+      // Depending on screen size, anything above 1600px is likely a broken layout
+      if (height > 1600) {
+        errs.push(`Hero section height is excessively large (${height}px)`);
+      }
+      if (height === 0) {
+        errs.push('Hero section is collapsed (0px height)');
+      }
+    }
+
+    const sections = document.querySelectorAll('main > section');
+    for (let i = 0; i < sections.length - 1; i++) {
+      const current = sections[i];
+      const next = sections[i + 1];
+      
+      const currentRect = current.getBoundingClientRect();
+      const nextRect = next.getBoundingClientRect();
+      
+      if (currentRect.height > 0 && nextRect.height > 0 && nextRect.top > currentRect.bottom) {
+        const gap = Math.round(nextRect.top - currentRect.bottom);
+        // Arbitrary max gap: if more than 400px of pure empty whitespace exists between sections, it's likely a bug
+        if (gap > 400) {
+          errs.push(`Excessive vertical gap (${gap}px) between sections`);
+        }
+      }
+    }
+    return errs;
+  });
+
+  if (spacingIssues.length > 0) {
+    spacingIssues.forEach(err => issues.push(err));
+  }
+}
+
 const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 
@@ -73,18 +165,20 @@ const routesRaw = await fs.readFile(routesJsonPath, 'utf8');
 const routes = Object.keys(JSON.parse(routesRaw));
 
 async function safeGoto(page, url) {
-  const maxAttempts = 3;
+  const maxAttempts = 5;
   let attempt = 1;
   while (attempt <= maxAttempts) {
     try {
-      return await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      return await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 35000 });
     } catch (e) {
       const msg = String(e.message || '');
       if (
         (msg.includes('ERR_SOCKS_CONNECTION_FAILED') || msg.includes('ERR_CONNECTION_') || msg.includes('Timeout'))
         && attempt < maxAttempts
       ) {
-        console.warn(`Goto failed with network/timeout error (attempt ${attempt}/${maxAttempts}): ${msg.split('\n')[0]}. Retrying...`);
+        const delay = attempt * 2000;
+        console.warn(`Goto failed with network/timeout error (attempt ${attempt}/${maxAttempts}): ${msg.split('\n')[0]}. Retrying in ${delay}ms...`);
+        await page.waitForTimeout(delay);
         attempt++;
         continue;
       }
@@ -201,6 +295,8 @@ async function run() {
       await checkSkipLink(page, route, issues);
       await checkHeadingHierarchy(page, issues);
       await checkGridLayout(page, issues);
+      await checkOrphanClasses(page, issues);
+      await checkSpacing(page, issues);
 
       // Deployment SHA marker in the document
       metaDeploySha =

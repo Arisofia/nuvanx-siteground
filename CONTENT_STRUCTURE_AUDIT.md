@@ -16,7 +16,7 @@
 ```php
 <p class="nvx-brand-kicker">Clínicas NUVANX · Madrid</p>
 <h1 id="nvx-contact-h1" class="nvx-brand-hero__title">
-    Clínicas NUVANX en Madrid: Chamberí y Salamanca–Goyo
+    Clínicas NUVANX en Madrid: Chamberí y Salamanca–Goya
 </h1>
 ```
 

@@ -39,7 +39,7 @@ const NVX_HOOK_PRIO_MODULE_RENDER  = 16;
 const NVX_HOOK_PRIO_CO2_MODULE     = 19;
 
 /**
- * Trust badge stripping or authority injection (Cristina is at 99 inside apply_production_business_rules).
+ * Trust badge stripping or authority injection.
  */
 const NVX_HOOK_PRIO_TRUST_BADGES   = 22;
 

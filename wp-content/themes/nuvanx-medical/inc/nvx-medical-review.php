@@ -136,7 +136,7 @@ function nvx_medical_review_enforce_visible_provenance( string $content ): strin
 
 	return is_string( $updated ) ? $updated : $content;
 }
-add_filter( 'the_content', 'nvx_medical_review_enforce_visible_provenance', 144 );
+add_filter( 'the_content', 'nvx_medical_review_enforce_visible_provenance', NVX_HOOK_PRIO_MEDICAL_REVIEW );
 
 /** Test whether a schema type contains WebPage. */
 function nvx_medical_review_schema_has_type( $types, string $type ): bool {

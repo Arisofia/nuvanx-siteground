@@ -65,4 +65,4 @@ function nvx_render_managed_valoracion_page( $content ): string {
 
 	return nvx_valoracion_managed_page_markup();
 }
-add_filter( 'the_content', 'nvx_render_managed_valoracion_page', 10 );
+add_filter( 'the_content', 'nvx_render_managed_valoracion_page', NVX_HOOK_PRIO_VALORACION_MANAGED );

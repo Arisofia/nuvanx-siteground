@@ -346,4 +346,4 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 
 	return '<div class="nvx-brand-page nvx-brand-page--endolift">' . $hero . $body . '</div>';
 }
-add_filter( 'the_content', 'nvx_content_restructure_endolift_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_endolift_page', NVX_HOOK_PRIO_ENDOLIFT );

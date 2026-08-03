@@ -389,7 +389,7 @@ function nvx_strategy_page_content_filter( string $content ): string {
 	$key = nvx_strategy_current_page_key();
 	return null === $key ? $content : nvx_strategy_page_markup( $key );
 }
-add_filter( 'the_content', 'nvx_strategy_page_content_filter', 82 );
+add_filter( 'the_content', 'nvx_strategy_page_content_filter', NVX_HOOK_PRIO_STRATEGY_PAGES );
 
 /**
  * Create reviewable pages only in staging2. Production requires a deliberate

@@ -210,7 +210,7 @@ function nvx_content_enhance_valoracion_page( string $content ): string {
 
 	return $intro . $content;
 }
-add_filter( 'the_content', 'nvx_content_enhance_valoracion_page', 16 );
+add_filter( 'the_content', 'nvx_content_enhance_valoracion_page', NVX_HOOK_PRIO_VALORACION_ENHANCE );
 
 /**
  * Yoast title for valoración.

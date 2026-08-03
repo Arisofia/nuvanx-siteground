@@ -99,7 +99,9 @@ function nvx_co2_hero_copy_markup(): string {
 }
 
 /**
- * Editorial body.
+ * Builds the CO₂ laser treatment editorial body markup, including treatment information, recovery phases, and pricing.
+ *
+ * @return string The generated editorial HTML.
  */
 function nvx_co2_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
@@ -113,7 +115,7 @@ function nvx_co2_editorial_body_markup(): string {
 		? nvx_format_price_eur( $catalog['laser_co2']['corporal']['pvp'] )
 		: number_format_i18n( 450, 2 );
 
-	$html  = '<div class="nvx-co2-editorial nvx-endolift-editorial">';
+	$html  = '<div class="nvx-co2-editorial nvx-brand-editorial">';
 
 	// A. Science of fractional ablation.
 	$html .= nvx_page_brand_section_open_markup( 'nvx-co2-science', 'nvx-co2-science-title' );
@@ -135,10 +137,10 @@ function nvx_co2_editorial_body_markup(): string {
 		esc_html( $data['indications']['title'] ?? '' )
 	);
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['indications']['body'] ?? '' ) . '</p>';
-	$html .= '<ul class="nvx-endolaser-zone-list">';
-	foreach ( $data['indications']['items'] ?? array() as $ind ) {
-		$html .= '<li class="nvx-endolaser-zone">';
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $ind['title'] ?? '' ) . '</h3>';
+	$html .= '<ul class="nvx-feature-zone-list">';
+	foreach ( (array) ( $data['indications']['items'] ?? array() ) as $ind ) {
+		$html .= '<li class="nvx-feature-zone">';
+		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $ind['title'] ?? '' ) . '</h3>';
 		$html .= '<p class="nvx-body">' . esc_html( $ind['body'] ?? '' ) . '</p>';
 		$html .= '</li>';
 	}
@@ -203,6 +205,12 @@ add_filter( 'nvx_page_owner', function( $owner ) {
 	return $owner;
 });
 
+/**
+ * Rebuilds owned CO₂ page content with its branded hero and editorial layout.
+ *
+ * @param string $content The existing page content, including any extracted hero media.
+ * @return string The branded CO₂ page content, or the original content when the page is not owned by the CO₂ module.
+ */
 function nvx_content_restructure_co2_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
 	if ( $owner !== 'nvx_co2_page' ) {
@@ -226,5 +234,4 @@ function nvx_content_restructure_co2_page( string $content ): string {
 	);
 
 }
-add_filter( 'the_content', 'nvx_content_restructure_co2_page', 19 );
-
+add_filter( 'the_content', 'nvx_content_restructure_co2_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );

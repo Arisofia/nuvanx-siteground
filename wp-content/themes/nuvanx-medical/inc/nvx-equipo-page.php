@@ -268,7 +268,20 @@ function nvx_equipo_block_is_fabio( string $html ): bool {
 }
 
 /**
- * Capture the first media fragment from a staff card when missing.
+ * Determines whether a card or block identifies Dra. Cristina Márquez González.
+ *
+ * @param string $html The card or block markup to inspect.
+ * @return bool `true` if the markup contains Cristina Márquez González's name, `false` otherwise.
+ */
+function nvx_equipo_block_is_cristina( string $html ): bool {
+	return (bool) preg_match( '/Cristina\s+M[áa]rquez(?:\s+Gonz[áa]lez)?/iu', $html );
+}
+
+/**
+ * Captures the first matching media fragment from a staff card when no media has been captured.
+ *
+ * @param string $card Staff card markup to inspect.
+ * @param string &$media Variable receiving the captured media fragment.
  */
 function nvx_equipo_capture_media_if_empty( string $card, string &$media ): void {
 	if ( '' !== $media ) {
@@ -279,8 +292,17 @@ function nvx_equipo_capture_media_if_empty( string $card, string &$media ): void
 	}
 }
 
-/** Categorize one staff card. */
-function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, string &$ivon_media, string &$fabio_media, array &$other_cards ): void {
+/**
+ * Categorizes a staff card by authority profile or preserves it as an additional clinician card.
+ *
+ * @param string $card The staff card markup to categorize.
+ * @param string &$rivera_media Captured media for José Javier Rivera Tejeda.
+ * @param string &$ivon_media Captured media for Ivon Rivera Deras.
+ * @param string &$fabio_media Captured media for Fabio Quiñónez Bareiro.
+ * @param string &$cristina_media Captured media for Cristina Márquez González.
+ * @param array &$other_cards Collection of staff cards that do not match an authority profile.
+ */
+function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, string &$ivon_media, string &$fabio_media, string &$cristina_media, array &$other_cards ): void {
 	if ( nvx_equipo_block_is_rivera_tejeda( $card ) ) {
 		nvx_equipo_capture_media_if_empty( $card, $rivera_media );
 		return;
@@ -293,22 +315,40 @@ function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, 
 		nvx_equipo_capture_media_if_empty( $card, $fabio_media );
 		return;
 	}
+	if ( nvx_equipo_block_is_cristina( $card ) ) {
+		nvx_equipo_capture_media_if_empty( $card, $cristina_media );
+		return;
+	}
 	if ( nvx_equipo_is_person_staff_card( $card ) ) {
 		$other_cards[] = $card;
 	}
 }
 
 /**
- * Extract staff cards from CMS: director, Dra. Ivon, Dr. Fabio, rest of team.
+ * Extracts a unique identity key from a staff card to avoid deduplication failures due to whitespace.
+ */
+function nvx_equipo_card_identity_key( string $card ): string {
+	// Non-cryptographic dedup key only (array key for $found). SHA-256 avoids the
+	// weak-hash static-analysis flag on MD5 while keeping collisions negligible.
+	if ( preg_match( '/<h[2-6][^>]*>(.*?)<\/h[2-6]>/iu', $card, $m ) ) {
+		return hash( 'sha256', strtolower( trim( wp_strip_all_tags( $m[1] ) ) ) );
+	}
+	// Fallback to hashing the raw card if no heading is found.
+	return hash( 'sha256', trim( $card ) );
+}
+
+/**
+ * Extracts and categorizes unique staff cards from CMS content.
  *
- * @param string $content CMS content.
- * @return array{rivera_media:string,ivon_media:string,fabio_media:string,other_cards:string[]}
+ * @param string $content CMS content containing staff cards.
+ * @return array{rivera_media:string,ivon_media:string,fabio_media:string,cristina_media:string,other_cards:string[]} Recognized portrait media and remaining staff cards.
  */
 function nvx_equipo_extract_staff_cards( string $content ): array {
-	$other_cards  = array();
-	$rivera_media = '';
-	$ivon_media   = '';
-	$fabio_media  = '';
+	$other_cards    = array();
+	$rivera_media   = '';
+	$ivon_media     = '';
+	$fabio_media    = '';
+	$cristina_media = '';
 
 	$patterns = array(
 		'/<article\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/article>/iu',
@@ -318,20 +358,22 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 	$found = array();
 	foreach ( $patterns as $pattern ) {
 		if ( preg_match_all( $pattern, $content, $m ) && ! empty( $m[0] ) ) {
-			$found = $m[0];
-			break;
+			foreach ( $m[0] as $card ) {
+				$identity_key = nvx_equipo_card_identity_key( $card );
+				if ( ! isset( $found[ $identity_key ] ) ) {
+					$found[ $identity_key ] = true;
+					nvx_equipo_categorize_staff_card( $card, $rivera_media, $ivon_media, $fabio_media, $cristina_media, $other_cards );
+				}
+			}
 		}
 	}
 
-	foreach ( $found as $card ) {
-		nvx_equipo_categorize_staff_card( $card, $rivera_media, $ivon_media, $fabio_media, $other_cards );
-	}
-
 	return array(
-		'rivera_media' => $rivera_media,
-		'ivon_media'   => $ivon_media,
-		'fabio_media'  => $fabio_media,
-		'other_cards'  => $other_cards,
+		'rivera_media'   => $rivera_media,
+		'ivon_media'     => $ivon_media,
+		'fabio_media'    => $fabio_media,
+		'cristina_media' => $cristina_media,
+		'other_cards'    => $other_cards,
 	);
 }
 
@@ -509,7 +551,15 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
 	$items      = $config['items'] ?? array();
 	$facts      = $config['facts'] ?? array();
 
-	$html  = '<section class="nvx-brand-section" aria-labelledby="' . esc_attr( $section_id ) . '">';
+	// Only label by the heading id when the heading is actually rendered;
+	// otherwise fall back to aria-label so aria-labelledby never dangles.
+	if ( '' !== $heading ) {
+		$aria_attr = 'aria-labelledby="' . esc_attr( $section_id ) . '"';
+	} else {
+		$aria_attr = 'aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '"';
+	}
+
+	$html  = '<section class="nvx-brand-section" ' . $aria_attr . '>';
 	$html .= '<div class="nvx-container nvx-equipo-diagnosis__grid">';
 	$html .= '<div class="nvx-equipo-diagnosis__copy">';
 	if ( '' !== $kicker ) {
@@ -777,7 +827,7 @@ function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 /**
  * Builds the editorial authority profile for Dr. Fabio Augusto Quiñónez Bareiro.
  *
- * @param string $fabio_media Optional portrait media extracted from CMS staff card.
+ * @param string $fabio_media Optional portrait media extracted from the CMS staff card.
  * @return string The rendered HTML markup for the profile.
  */
 function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
@@ -847,10 +897,69 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
 }
 
 /**
+ * Builds the authority profile for Dra. Cristina Márquez González.
+ *
+ * @param string $cristina_media Optional portrait media extracted from CMS staff card.
+ * @return string The rendered HTML markup for the profile.
+ */
+function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): string {
+	require_once __DIR__ . '/nvx-catalog-json.php';
+	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['cristina'] ?? array();
+	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
+
+	// Bio paragraphs carry theme-owned inline HTML (<strong>, <a>). Wrap in
+	// wp_kses with the same allowlist used by the director profile and drop any
+	// empty entries so a missing catalog key never renders empty <p> tags.
+	$kses_bio = array(
+		'strong' => array(),
+		'a'      => array(
+			'class'  => true,
+			'href'   => true,
+			'target' => true,
+			'rel'    => true,
+		),
+	);
+	$bio_paragraphs = array_values( array_filter( array_map(
+		static function ( $paragraph ) use ( $kses_bio ): string {
+			return wp_kses( (string) $paragraph, $kses_bio );
+		},
+		array(
+			$data['bio_paragraphs'][0] ?? '',
+			$data['bio_paragraphs'][1] ?? '',
+			sprintf( $data['bio_paragraphs'][2] ?? '', esc_url( $doctoralia ) ),
+		)
+	) ) );
+
+	return nvx_equipo_physician_authority_markup(
+		array(
+			'wrapper_class'  => 'nvx-equipo-cristina',
+			'wrapper_id'     => 'physician-cristina-marquez',
+			'media'          => $cristina_media,
+			'name'           => $data['name'] ?? '',
+			'kicker'         => $data['kicker'] ?? '',
+			'h2'             => $data['h2'] ?? '',
+			'bio_paragraphs' => $bio_paragraphs,
+			'sections'       => array(
+				array(
+					'type'       => 'split_identity',
+					'id'         => 'nvx-equipo-cristina-identity',
+					'kicker'     => '',
+					'heading'    => '',
+					'paragraphs' => array(),
+					'facts'      => $data['facts'] ?? array(),
+				)
+			),
+		)
+	);
+}
+
+/**
  * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) { return $owner; }
+	if ( ! empty( $owner ) ) {
+		return $owner;
+	}
 	global $post;
 	$content = $post ? $post->post_content : '';
 	if ( function_exists('nvx_content_is_equipo_page') && nvx_content_is_equipo_page( $content ) ) {
@@ -859,6 +968,12 @@ add_filter( 'nvx_page_owner', function( $owner ) {
 	return $owner;
 });
 
+/**
+ * Rebuilds the medical-team page with branded hero content, authority profiles, and remaining staff cards.
+ *
+ * @param string $content The original page content.
+ * @return string The rebuilt page content for the assigned team page, or the original content when the page is not owned by the team-page renderer.
+ */
 function nvx_content_restructure_equipo_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
 	if ( $owner !== 'nvx_equipo_page' ) {
@@ -884,12 +999,13 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	$hero .= $media;
 	$hero .= '</div></section>';
 
-	// Director → Dra. Ivon → Dr. Fabio → resto del equipo (CMS).
+	// Director → Dra. Ivon → Dr. Fabio → Dra. Cristina → resto del equipo (CMS).
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
 	$body  = '<div class="nvx-brand-section-wrap">';
 	$body .= nvx_equipo_director_authority_markup( $staff['rivera_media'] );
 	$body .= nvx_equipo_ivon_authority_markup( $staff['ivon_media'] );
 	$body .= nvx_equipo_fabio_authority_markup( $staff['fabio_media'] ?? '' );
+	$body .= nvx_equipo_cristina_authority_markup( $staff['cristina_media'] ?? '' );
 	$body .= nvx_equipo_other_staff_section_markup( $staff['other_cards'] );
 	$body .= '</div>';
 
@@ -903,5 +1019,5 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	return '<div class="nvx-brand-page nvx-brand-page--equipo">' . $hero . $body . '</div>';
 }
-add_filter( 'the_content', 'nvx_content_restructure_equipo_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_equipo_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
 

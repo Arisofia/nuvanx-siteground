@@ -102,7 +102,7 @@ function nvx_endolaser_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolaser-page.json' );
 	
-	$html  = '<div class="nvx-endolaser-editorial nvx-endolift-editorial">';
+	$html  = '<div class="nvx-endolaser-editorial nvx-brand-editorial">';
 
 	// A. Intro + dual mechanism.
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-mechanism', 'nvx-endolaser-mech-title' );
@@ -172,7 +172,9 @@ function nvx_endolaser_editorial_body_markup(): string {
  * Rebuild Endoláser page content.
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) { return $owner; }
+	if ( ! empty( $owner ) ) {
+		return $owner;
+	}
 	global $post;
 	$content = $post ? $post->post_content : '';
 	if ( function_exists('nvx_content_is_endolaser_page') && nvx_content_is_endolaser_page( $content ) ) {
@@ -204,5 +206,5 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 	);
 
 }
-add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
 

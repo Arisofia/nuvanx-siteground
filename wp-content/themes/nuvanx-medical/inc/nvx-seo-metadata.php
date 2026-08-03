@@ -46,11 +46,14 @@ function nvx_seo_current_path(): string {
 
 	$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
 	$uri = (string) strtok( $uri, '?' );
-	return '/' . trim( $uri, '/' ) . '/';
+	$trimmed = trim( $uri, '/' );
+	return '' !== $trimmed ? '/' . $trimmed . '/' : '/';
 }
 
 /**
- * Resolve the metadata key for the current request.
+ * Resolves the catalog metadata key for the current request path.
+ *
+ * @return string|null The metadata key, or null when the request is not catalogued or is a 404 response.
  */
 function nvx_seo_current_metadata_key(): ?string {
 	// Never lend a legitimate title/description to a not-found route.
@@ -58,44 +61,16 @@ function nvx_seo_current_metadata_key(): ?string {
 		return null;
 	}
 
-	if ( is_front_page() ) {
-		return 'home';
-	}
+	$path = nvx_seo_current_path();
 
-	// Posts index (/blog/) — not the front page.
-	if ( is_home() && ! is_front_page() ) {
-		return 'blog';
-	}
-
-	if ( function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
-		$treatment = nvx_schema_resolve_treatment_key( (int) get_queried_object_id() );
-		$map       = array(
-			'endolift_facial'    => 'endolift',
-			'endolaser_corporal' => 'endolaser',
-			'laser_co2'          => 'co2',
-			'exion_btl'          => 'exion',
-			'exilite_btl'        => 'exilite',
-		);
-		if ( isset( $map[ $treatment ] ) ) {
-			return $map[ $treatment ];
+	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
+		$routes = nvx_catalog_json_resolved( 'routes.json' );
+		if ( isset( $routes[ $path ]['seo_id'] ) ) {
+			return $routes[ $path ]['seo_id'];
 		}
 	}
 
-	$path = nvx_seo_current_path();
-	$map  = array(
-		'/tratamientos/' => 'tratamientos',
-		'/soluciones-medicas/' => 'soluciones',
-		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
-		'/medicina-estetica-chamberi/' => 'chamberi',
-		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
-		'/equipo-medico/' => 'equipo',
-		'/por-que-nuvanx/' => 'por_que_nuvanx',
-		'/inversion-medicina-estetica/' => 'inversion',
-		'/madrid/valoracion/' => 'valoracion',
-		'/blog/' => 'blog',
-	);
-
-	return $map[ $path ] ?? null;
+	return null;
 }
 
 /**
@@ -220,83 +195,76 @@ function nvx_seo_filter_canonical_url( $url ) {
 add_filter( 'wpseo_opengraph_url', 'nvx_seo_filter_canonical_url', 100 );
 
 /**
- * Environment-aware Yoast robots policy.
+ * Determines the robots indexing and crawling policy for the current request.
+ *
+ * @return int The applicable `NVX_ROBOTS_*` policy constant.
  */
-function nvx_seo_filter_yoast_robots( $robots ) {
+function nvx_seo_resolve_robots_policy(): int {
 	if ( nvx_seo_is_nonproduction_environment() ) {
-		return 'noindex, nofollow';
+		return NVX_ROBOTS_NOINDEX_NOFOLLOW;
 	}
 
 	// Archive pages with a few repeating cards add no unique clinical value yet.
 	// Keep them crawlable through the linked articles, not as competing thin URLs.
 	if ( is_category() || is_tag() ) {
-		return 'noindex, follow';
+		return NVX_ROBOTS_NOINDEX_FOLLOW;
 	}
 
 	$page_id = (int) get_queried_object_id();
 
 	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
-		return 'noindex, nofollow';
+		return NVX_ROBOTS_NOINDEX_NOFOLLOW;
 	}
 
 	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-		return 'noindex, follow';
+		return NVX_ROBOTS_NOINDEX_FOLLOW;
 	}
 
 	if ( null !== nvx_seo_current_metadata_key() ) {
-		return 'index, follow';
+		return NVX_ROBOTS_INDEX_FOLLOW;
 	}
 
-	return $robots;
+	return NVX_ROBOTS_INHERIT;
 }
-add_filter( 'wpseo_robots', 'nvx_seo_filter_yoast_robots', 100 );
 
 /**
- * Environment-aware WordPress robots array for non-Yoast consumers.
+ * Applies the resolved robots policy to Yoast and Core robots values.
  *
- * @param array<string,bool> $robots Robots directives.
- * @return array<string,bool>
+ * @param string|array $robots Incoming robots value.
+ * @return string|array
  */
-function nvx_seo_filter_core_robots( array $robots ): array {
-	if ( nvx_seo_is_nonproduction_environment() ) {
-		$robots['noindex']  = true;
-		$robots['nofollow'] = true;
-		unset( $robots['index'], $robots['follow'] );
+function nvx_seo_filter_robots( $robots ) {
+	$policy = nvx_seo_resolve_robots_policy();
+
+	if ( NVX_ROBOTS_INHERIT === $policy ) {
 		return $robots;
 	}
 
-	if ( is_category() || is_tag() ) {
-		$robots['noindex'] = true;
-		$robots['follow']  = true;
-		unset( $robots['index'], $robots['nofollow'] );
+	$directives = array(
+		NVX_ROBOTS_NOINDEX_NOFOLLOW => array( 'noindex', 'nofollow' ),
+		NVX_ROBOTS_NOINDEX_FOLLOW   => array( 'noindex', 'follow' ),
+		NVX_ROBOTS_INDEX_FOLLOW     => array( 'index', 'follow' ),
+	);
+
+	if ( ! isset( $directives[ $policy ] ) ) {
 		return $robots;
 	}
 
-	$page_id = (int) get_queried_object_id();
-
-	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
-		$robots['noindex']  = true;
-		$robots['nofollow'] = true;
-		unset( $robots['index'], $robots['follow'] );
-		return $robots;
+	if ( is_string( $robots ) ) {
+		return implode( ', ', $directives[ $policy ] );
 	}
 
-	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-		$robots['noindex'] = true;
-		$robots['follow']  = true;
-		unset( $robots['index'], $robots['nofollow'] );
-		return $robots;
-	}
-
-	if ( null !== nvx_seo_current_metadata_key() ) {
-		$robots['index']  = true;
-		$robots['follow'] = true;
-		unset( $robots['noindex'], $robots['nofollow'] );
+	if ( is_array( $robots ) ) {
+		unset( $robots['index'], $robots['follow'], $robots['noindex'], $robots['nofollow'] );
+		foreach ( $directives[ $policy ] as $directive ) {
+			$robots[ $directive ] = true;
+		}
 	}
 
 	return $robots;
 }
-add_filter( 'wp_robots', 'nvx_seo_filter_core_robots', 100 );
+add_filter( 'wpseo_robots', 'nvx_seo_filter_robots', 100 );
+add_filter( 'wp_robots', 'nvx_seo_filter_robots', 100 );
 
 /**
  * Harden non-production environments by emitting HTTP X-Robots-Tag.

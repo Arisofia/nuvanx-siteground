@@ -283,6 +283,8 @@ function nvx_nosotros_principles_markup(): string {
 	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $p['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-heading">' . esc_html( $p['title'] ?? '' ) . '</h2>';
+	// list-style:none drops list semantics in Safari/VoiceOver; keep explicit
+	// role="list" for parity with the neighbouring clinics and team lists.
 	$html .= '<ul class="nvx-feature-zone-list" role="list">';
 	foreach ( (array) ( $p['items'] ?? array() ) as $item ) {
 		$html .= '<li class="nvx-feature-zone">';
@@ -315,7 +317,9 @@ function nvx_nosotros_editorial_body_markup(): string {
  * Rebuild nosotros page content once.
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) { return $owner; }
+	if ( ! empty( $owner ) ) {
+		return $owner;
+	}
 	global $post;
 	$content = $post ? $post->post_content : '';
 	if ( function_exists('nvx_content_is_nosotros_page') && nvx_content_is_nosotros_page( $content ) ) {
@@ -360,7 +364,7 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 
 	return '<div class="nvx-brand-page nvx-brand-page--nosotros">' . $hero . $body . '</div>';
 }
-add_filter( 'the_content', 'nvx_content_restructure_nosotros_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_nosotros_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
 
 /**
  * Document title for nosotros.

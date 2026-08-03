@@ -14,9 +14,9 @@
  */
 
 /**
- * Patterns that mirror (or supersede) runtime strippers.
+ * Defines the regular-expression rules used to remove or replace retired CMS content and copy.
  *
- * @return array<int, array{id:string, pattern:string, replace:string}>
+ * @return array<int, array{id:string, pattern:string, replace:string}> Cleanup rules with identifiers, patterns, and replacement text.
  */
 function nvx_cms_cleanup_rules(): array {
 	return array(
@@ -146,6 +146,21 @@ function nvx_cms_cleanup_rules(): array {
 			'id'      => 'claim_sin_compromiso',
 			'pattern' => '/\bsin\s+compromiso\b/iu',
 			'replace' => 'sin obligación de continuar con un tratamiento',
+		),
+		array(
+			'id'      => 'typo_exilitet',
+			'pattern' => '/\bEXILITET\b/iu',
+			'replace' => 'EXILITE™',
+		),
+		array(
+			'id'      => 'slogan_mejor_version',
+			'pattern' => '/Tu mejor versi[oó]n empieza aqu[ií]\.?/iu',
+			'replace' => 'Reserva 15–30 min de valoración médica.',
+		),
+		array(
+			'id'      => 'vague_sede_framing',
+			'pattern' => '/enfoque m[eé]dico premium/iu',
+			'replace' => 'misma dirección médica que Chamberí',
 		),
 	);
 }

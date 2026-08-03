@@ -1227,7 +1227,8 @@ article.nvx-page > .nvx-page-hero{
   padding: 0;
   list-style: none}
 
-.nvx-endolift-diagnosis__grid{
+.nvx-endolift-diagnosis__grid,
+.nvx-equipo-diagnosis__grid{
   display: grid;
     grid-template-columns: 1fr;
   gap: var(--nvx-space-4);

@@ -168,47 +168,77 @@ function nvxSchemaRouteEntry( int $id, string $path ): array {
     return compact( 'id', 'path' );
 }
 
-/** Build one canonical treatment registry entry. */
+/** Build one canonical treatment registry entry.
+ *
+ * @param int $id The page identifier.
+ * @param string $path The treatment page path.
+ * @param string $schema The treatment schema key.
+ *
+ * @return array The treatment registry entry.
+ */
 function nvxSchemaTreatmentRegistryEntry( int $id, string $path, string $schema ): array {
     return compact( 'id', 'path', 'schema' );
 }
 
+/**
+ * Builds the Schema.org route registry for clinics, the clinic hub, and treatments.
+ *
+ * @return array The registry containing resolved clinic, clinic hub, and treatment route entries.
+ */
 function nvx_schema_page_registry() {
     $registry = array(
-        'clinics'    => array(
-            'chamberi' => nvxSchemaRouteEntry( 1543, '/medicina-estetica-chamberi/' ),
-            'goya' => nvxSchemaRouteEntry( 1537, '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' ),
-        ),
-        'clinic_hub' => nvxSchemaRouteEntry( 1399, '/clinicas-de-medicina-estetica-nuvanx/' ),
-        'treatments' => array(
-            'endolift_facial' => nvxSchemaTreatmentRegistryEntry( 1241, '/endolift-facial-papada-mandibula/', 'MedicalProcedure' ),
-            // Path is authoritative when post ID moves between environments.
-            'endolaser_corporal' => nvxSchemaTreatmentRegistryEntry( 0, '/endolaser-corporal-grasa-localizada/', 'MedicalProcedure' ),
-            'laser_co2' => nvxSchemaTreatmentRegistryEntry( 0, '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/', 'MedicalProcedure' ),
-            'exion_btl' => nvxSchemaTreatmentRegistryEntry( 2906, '/exion-btl/', 'Service' ),
-            'exion_face' => nvxSchemaTreatmentRegistryEntry( 0, '/exion-face/', 'Service' ),
-            'exion_body' => nvxSchemaTreatmentRegistryEntry( 0, '/exion-body/', 'Service' ),
-            'exion_fractional' => nvxSchemaTreatmentRegistryEntry( 0, '/exion-fractional/', 'Service' ),
-            'emfusion' => nvxSchemaTreatmentRegistryEntry( 0, '/emfusion/', 'Service' ),
-            'exilite_btl' => nvxSchemaTreatmentRegistryEntry( 0, '/btl-exilite-ipl-madrid/', 'Service' ),
-        ),
+        'clinics'    => array(),
+        'clinic_hub' => array(),
+        'treatments' => array(),
     );
 
-    // Facial injectables: path authoritative. MedicalProcedure graph is owned by
-    // nvx-aesthetic-treatment-schema.php (not laser/BTL node builders).
-    foreach (
-        array(
-            'lips_ha'          => '/labios-acido-hialuronico-madrid/',
-            'rhinomodeling_ha' => '/rinomodelacion-sin-cirugia-madrid/',
-            'tear_trough_ha'   => '/ojeras-surco-lagrimal-madrid/',
-            'biostimulators'   => '/bioestimuladores-colageno-madrid/',
-        ) as $key => $path
-    ) {
-        $registry['treatments'][ $key ] = array(
-            'id'     => 0,
-            'path'   => $path,
-            'schema' => 'MedicalProcedure',
-        );
+    $routes = function_exists( 'nvx_catalog_json_resolved' )
+        ? nvx_catalog_json_resolved( 'routes.json' )
+        : array();
+
+    foreach ( $routes as $path => $config ) {
+        // Skip the loader's synthetic keys (e.g. '_error') whose value is not
+        // a route config array; accessing offsets on them warns under PHP 8.
+        if ( ! is_array( $config ) || ( is_string( $path ) && 0 === strpos( $path, '_' ) ) ) {
+            continue;
+        }
+        $group = $config['schema_group'] ?? '';
+        if ( ! $group ) {
+            continue;
+        }
+        
+        if ( isset( $config['route_alias'] ) ) {
+            continue;
+        }
+
+        $id = isset( $config['post_id'] ) ? (int) $config['post_id'] : 0;
+        $schema_id = $config['schema_id'] ?? '';
+        $schema_type = $config['schema_type'] ?? 'MedicalProcedure';
+
+        if ( 'clinics' === $group && $schema_id ) {
+            $registry['clinics'][ $schema_id ] = nvxSchemaRouteEntry( $id, $path );
+        } elseif ( 'clinic_hub' === $group && empty( $registry['clinic_hub'] ) ) {
+            $registry['clinic_hub'] = nvxSchemaRouteEntry( $id, $path );
+        } elseif ( 'treatments' === $group && $schema_id ) {
+            $registry['treatments'][ $schema_id ] = nvxSchemaTreatmentRegistryEntry( $id, $path, $schema_type );
+        }
+    }
+
+    // Canonical fallbacks: if routes.json is missing/malformed, downstream
+    // consumers (nvx_schema_clinics, nvx_schema_resolve_clinic_keys_from_hub)
+    // read fixed keys without isset() guards. Guarantee the structure exists so
+    // the schema graph never emits empty url/@id or triggers undefined-key warnings.
+    // Validate the path (not just the entry) so a malformed route with an empty
+    // path still falls back to the canonical value; nvx_schema_clinics() feeds
+    // these paths directly into home_url().
+    if ( empty( $registry['clinics']['chamberi']['path'] ) ) {
+        $registry['clinics']['chamberi'] = nvxSchemaRouteEntry( 1543, '/medicina-estetica-chamberi/' );
+    }
+    if ( empty( $registry['clinics']['goya']['path'] ) ) {
+        $registry['clinics']['goya'] = nvxSchemaRouteEntry( 1537, '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' );
+    }
+    if ( empty( $registry['clinic_hub']['path'] ) ) {
+        $registry['clinic_hub'] = nvxSchemaRouteEntry( 1399, '/clinicas-de-medicina-estetica-nuvanx/' );
     }
 
     return $registry;

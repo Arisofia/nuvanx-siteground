@@ -26,8 +26,8 @@ function nvx_hygiene_str_reps() {
 		'Exilitet'                                             => 'EXILITE™',
 		'Tu mejor versión empieza aquí.'                       => 'Reserva 15–30 min de valoración médica.',
 		'Tu mejor versión empieza aquí'                        => 'Reserva 15–30 min de valoración médica',
-		'enfoque médico premium'                               => 'misma dirección médica que Chamberí',
 		'Medicina estética en Goya con enfoque médico premium' => 'Medicina estética láser en Goya–Barrio de Salamanca (CS20073)',
+		'enfoque médico premium'                               => 'misma dirección médica que Chamberí',
 	);
 }
 

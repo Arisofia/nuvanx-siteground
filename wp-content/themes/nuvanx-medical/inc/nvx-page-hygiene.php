@@ -11,27 +11,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Ensure legal CMS pages expose a single document H1 for accessibility/crawl contracts.
- *
- * When the body has no H1, promote the first H2 (typical legal title pattern) to H1.
- *
- * @param string $content Filtered post content.
- * @return string
- */
-function nvx_legal_ensure_document_h1( string $content ): string {
-	if ( '' === trim( $content ) || (bool) preg_match( '/<h1\b/i', $content ) ) {
-		return $content;
-	}
 
-	$promoted = preg_replace( '/<h2(\b[^>]*)>/i', '<h1$1>', $content, 1 );
-	if ( ! is_string( $promoted ) || $promoted === $content ) {
-		return $content;
-	}
-
-	$closed = preg_replace( '/<\/h2>/i', '</h1>', $promoted, 1 );
-	return is_string( $closed ) ? $closed : $promoted;
-}
 
 /**
  * Redirect superseded cookie documents to the Complianz EU statement (page 577).
@@ -296,61 +276,7 @@ function nvx_filter_sitemap_entry_sensitive_pages( $url, $type, $post ) {
 }
 add_filter( 'wpseo_sitemap_entry', 'nvx_filter_sitemap_entry_sensitive_pages', 20, 3 );
 
-/**
- * Lightweight public HTML hygiene: typos and clichés in inherited CMS content.
- *
- * Theme-rendered pages already use clean strings; this catches residual
- * post_content / shortcode output without rewriting clinical claims. It runs
- * after route-specific renderers so a retired phrase cannot be reintroduced by
- * a managed page module later in the_content.
- *
- * @param string $content HTML content.
- * @return string
- */
-function nvx_public_content_text_hygiene( $content ) {
-	if ( is_admin() || ! is_string( $content ) || '' === $content ) {
-		return $content;
-	}
 
-	$replacements = array(
-		// Brand / product typo seen in CMS titles.
-		'EXILITET' => 'EXILITE™',
-		'Exilitet' => 'EXILITE™',
-		// Empty brand slogans.
-		'Tu mejor versión empieza aquí.' => 'Reserva 15–30 min de valoración médica.',
-		'Tu mejor versión empieza aquí'  => 'Reserva 15–30 min de valoración médica',
-		// Vague sede framing.
-		'enfoque médico premium'                             => 'misma dirección médica que Chamberí',
-		'Medicina estética en Goya con enfoque médico premium' => 'Medicina estética láser en Goya–Barrio de Salamanca (CS20073)',
-	);
-
-	$content = str_replace( array_keys( $replacements ), array_values( $replacements ), $content );
-
-	// Do not advertise a price condition that is not confirmed in this source.
-	$valuation_label = 'valoración médica';
-	$content         = preg_replace( '/\bvaloraci[oó]n\s+m[eé]dica\s+gratuita\b/iu', $valuation_label, $content ) ?? $content;
-	$content         = preg_replace( '/\bvaloraci[oó]n\s+gratuita\b/iu', $valuation_label, $content ) ?? $content;
-	$content         = preg_replace( '/\bvaloraci[oó]n\s+gratis\b/iu', $valuation_label, $content ) ?? $content;
-	$content = preg_replace( '/\bconsulta\s+(?:m[eé]dica\s+)?gratuita\b/iu', 'consulta médica', $content ) ?? $content;
-	$content = preg_replace( '/\bconsulta\s+gratis\b/iu', 'consulta médica', $content ) ?? $content;
-	$content = preg_replace( '/\bpresupuestos?\s+personalizados?\b/iu', 'presupuesto individualizado tras la valoración médica', $content ) ?? $content;
-	$content = preg_replace( '/\bsin\s+compromiso\b/iu', 'sin obligación de continuar con un tratamiento', $content ) ?? $content;
-
-	// Endolift≠radiofrecuencia clinical conflations were corrected at source in CMS
-	// (staging2 audit: zero remaining "Endolift es/como radiofrecuencia" matches).
-	// Do not reintroduce per-request clinical rewrites here — fix post_content instead.
-
-	// Valoración CTA fixes (residual incomplete CMS labels).
-	$content = preg_replace( '/\bSolicitar\.(?=\s|<|$)/u', 'Solicitar valoración médica', $content ) ?? $content;
-
-	return $content;
-}
-// Keep this after all page-specific builders (the valoración module runs at 16).
-add_filter( 'the_content', 'nvx_public_content_text_hygiene', 240 );
-add_filter( 'the_title', 'nvx_public_content_text_hygiene', 240 );
-add_filter( 'wpseo_metadesc', 'nvx_public_content_text_hygiene', 240 );
-add_filter( 'wpseo_opengraph_desc', 'nvx_public_content_text_hygiene', 240 );
-add_filter( 'wpseo_twitter_description', 'nvx_public_content_text_hygiene', 240 );
 
 /**
  * Keep QA on staging2 inside the same environment when CMS copy uses
@@ -377,7 +303,7 @@ function nvx_normalize_staging2_internal_links( $content ) {
 
 	return $content;
 }
-add_filter( 'the_content', 'nvx_normalize_staging2_internal_links', 13 );
+add_filter( 'the_content', 'nvx_normalize_staging2_internal_links', NVX_HOOK_PRIO_INTERNAL_LINKS );
 
 /**
  * Remove sensitive pages (e.g., Casos de pacientes ID 2645) from all navigation menus automatically.
@@ -410,89 +336,6 @@ function nvx_legal_framework_note_markup(): string {
 		. '</strong> ' . esc_html( $message ) . '</p></aside>';
 }
 
-/**
- * Public, source-linked authority profile for Dra. Cristina Márquez González.
- */
-function nvx_cristina_marquez_authority_markup(): string {
-	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
-
-	$html  = '<section class="nvx-brand-section nvx-equipo-profile nvx-equipo-cristina" id="physician-cristina-marquez" aria-labelledby="nvx-equipo-cristina-title">';
-	$html .= '<div class="nvx-container nvx-equipo-diagnosis__grid">';
-	$html .= '<div class="nvx-equipo-diagnosis__copy">';
-	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Radiología mamaria y medicina estética', 'nuvanx-medical' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-cristina-title" class="nvx-heading">' . esc_html__( 'Dra. Cristina Márquez González', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<p class="nvx-body"><strong>' . esc_html__( 'Colegiada ICOMEM 282858861.', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Radióloga y médica estética, especialista en radiología mamaria y diagnóstico mamario avanzado, con práctica como facultativa especialista en HM Hospitales.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-body"><strong>' . esc_html__( 'Formación:', 'nuvanx-medical' ) . '</strong> ' . esc_html__( 'Licenciatura en Medicina · Especialización en Senología y Patología Mamaria · Máster en Medicina Estética.', 'nuvanx-medical' ) . '</p>';
-	$html .= '<p class="nvx-body">' . wp_kses(
-		sprintf(
-			/* translators: %s: Doctoralia profile URL. */
-			__( 'Su <a class="nvx-brand-inline-link" href="%s" target="_blank" rel="noopener noreferrer">perfil profesional y opiniones en Doctoralia</a> permiten consultar públicamente su especialidad, colegiación, formación y actividad asistencial.', 'nuvanx-medical' ),
-			esc_url( $doctoralia )
-		),
-		array(
-			'a' => array(
-				'class'  => true,
-				'href'   => true,
-				'target' => true,
-				'rel'    => true,
-			),
-		)
-	) . '</p>';
-	$html .= '</div>';
-	$html .= '<aside class="nvx-fact-panel" aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '">';
-	$html .= '<p class="nvx-fact-panel__label" aria-hidden="true">' . esc_html__( 'Identidad', 'nuvanx-medical' ) . '</p>';
-	$html .= '<ul class="nvx-fact-panel__list">';
-	$html .= '<li><strong>' . esc_html__( 'Colegiada', 'nuvanx-medical' ) . '</strong> — ICOMEM 282858861</li>';
-	$html .= '<li><strong>' . esc_html__( 'Especialidades', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Radiología · Medicina estética', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'Área clínica', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Radiología mamaria · Senología', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><strong>' . esc_html__( 'Sede NUVANX', 'nuvanx-medical' ) . '</strong> — ' . esc_html__( 'Goya · Barrio Salamanca', 'nuvanx-medical' ) . '</li>';
-	$html .= '</ul></aside></div></section>';
-
-	return $html;
-}
-
-/**
- * Remove a short CMS card for Cristina before adding the canonical authority profile.
- */
-function nvx_remove_duplicate_cristina_staff_card( string $content ): string {
-	$name_pattern = '/Cristina\s+M[áa]rquez(?:\s+Gonz[áa]lez)?/iu';
-
-	return (string) preg_replace_callback(
-		'/<(article|div)\b[^>]*\bclass=["\'][^"\']*\bnvx-brand-card\b[^"\']*["\'][^>]*>[\s\S]*?<\/\1>/iu',
-		static function ( array $matches ) use ( $name_pattern ): string {
-			return preg_match( $name_pattern, $matches[0] ) ? '' : $matches[0];
-		},
-		$content
-	);
-}
-
-/**
- * Insert the canonical Cristina profile before the remaining-team section.
- */
-function nvx_enrich_cristina_marquez_profile( string $content ): string {
-	// Enforce the current ICOMEM credential if residual CMS copy still has the retired number.
-	$content = preg_replace( '/<p\b[^>]*\bnvx-team-credentials\b[^>]*>[^<]*282869501[^<]*<\/p>/iu', '', $content ) ?? $content;
-	$content = str_replace( '282869501', '282858861', $content );
-
-	if ( false !== strpos( $content, 'physician-cristina-marquez' ) ) {
-		return $content;
-	}
-
-	$content = nvx_remove_duplicate_cristina_staff_card( $content );
-	$profile = nvx_cristina_marquez_authority_markup();
-	$marker  = '<section class="nvx-brand-section nvx-equipo-staff"';
-	$offset  = strpos( $content, $marker );
-	if ( false === $offset ) {
-		$marker = '<section class="nvx-endolift-section nvx-equipo-staff"';
-		$offset = strpos( $content, $marker );
-	}
-
-	if ( false !== $offset ) {
-		return substr( $content, 0, $offset ) . $profile . substr( $content, $offset );
-	}
-
-	return $content . $profile;
-}
 
 /**
  * Resolve a published page ID by slug (environment-safe; no hard-coded IDs).
@@ -545,12 +388,6 @@ function nvx_apply_production_business_rules( $content ) {
 		if ( false === strpos( $content, 'El artículo 13 del RGPD' ) ) {
 			$content .= nvx_legal_framework_note_markup();
 		}
-		$content = nvx_legal_ensure_document_h1( $content );
-	}
-
-	// Equipo médico: canonical Cristina profile (slug-based; was hard-coded ID 1575).
-	if ( nvx_is_page_slug( 'equipo-medico' ) ) {
-		$content = nvx_enrich_cristina_marquez_profile( $content );
 	}
 
 	// EXION pages: strip unapproved Morpheus8 comparatives and bare euro prices in copy.
@@ -561,7 +398,7 @@ function nvx_apply_production_business_rules( $content ) {
 
 	return $content;
 }
-add_filter( 'the_content', 'nvx_apply_production_business_rules', 99 );
+add_filter( 'the_content', 'nvx_apply_production_business_rules', NVX_HOOK_PRIO_BUSINESS_RULES );
 
 /**
  * Remove quantitative trust badges until every figure has approved evidence.
@@ -583,4 +420,4 @@ function nvx_remove_unverified_quantitative_trust_badges( string $content ): str
 
 	return is_string( $filtered ) ? $filtered : $content;
 }
-add_filter( 'the_content', 'nvx_remove_unverified_quantitative_trust_badges', 22 );
+add_filter( 'the_content', 'nvx_remove_unverified_quantitative_trust_badges', NVX_HOOK_PRIO_TRUST_BADGES );

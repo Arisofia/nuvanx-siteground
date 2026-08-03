@@ -147,6 +147,21 @@ function nvx_cms_cleanup_rules(): array {
 			'pattern' => '/\bsin\s+compromiso\b/iu',
 			'replace' => 'sin obligación de continuar con un tratamiento',
 		),
+		array(
+			'id'      => 'typo_exilitet',
+			'pattern' => '/\bEXILITET\b/iu',
+			'replace' => 'EXILITE™',
+		),
+		array(
+			'id'      => 'slogan_mejor_version',
+			'pattern' => '/Tu mejor versi[oó]n empieza aqu[ií]\.?/iu',
+			'replace' => 'Reserva 15–30 min de valoración médica.',
+		),
+		array(
+			'id'      => 'vague_sede_framing',
+			'pattern' => '/enfoque m[eé]dico premium/iu',
+			'replace' => 'misma dirección médica que Chamberí',
+		),
 	);
 }
 

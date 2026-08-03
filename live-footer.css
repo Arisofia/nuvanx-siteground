@@ -1,0 +1,160 @@
+/* NUVANX — Footer layout
+   Sistema unificado: CTA banner editorial vive en nvx-patterns-editorial.css.
+   Este archivo solo gobierna estructura y spacing del pie. */
+
+.nvx-footer {
+  padding-top: var(--nvx-pad-section-tight);
+  background: var(--nvx-surface-base);
+  color: var(--nvx-text-body);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+
+.nvx-footer__inner {
+  display: grid;
+  width: var(--nvx-shell);
+  max-width: 100%;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--nvx-space-6) var(--nvx-space-4);
+  margin-inline: auto;
+  margin-bottom: var(--nvx-space-4);
+  padding-inline: var(--nvx-gutter-inner);
+  padding-bottom: var(--nvx-space-6);
+  box-sizing: border-box;
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+
+/* Logo + columnas de footer (contenido editorial vive en markup / componentes) */
+.nvx-footer__logo,
+.nvx-footer__col {
+  grid-column: span 3;
+  min-width: 0;
+}
+
+.nvx-footer__logo .nvx-logo {
+  display: inline-flex;
+}
+
+/* Títulos de columna: usan rol de kicker tipográfico del sistema. */
+.nvx-footer__col-title {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-kicker);
+  font-weight: 600;
+  line-height: var(--nvx-lh-kicker);
+  letter-spacing: var(--nvx-track-kicker);
+  text-transform: uppercase;
+  color: var(--nvx-accent-muted);
+}
+
+/* Listas de enlaces: layout y spacing; tipografía y estados vienen de nvx-components / nvx-accessibility-governance. */
+.nvx-footer__links,
+.nvx-footer__legal-links {
+  display: grid;
+  gap: var(--nvx-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nvx-footer a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nvx-footer__links a {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  line-height: var(--nvx-lh-caption);
+}
+
+.nvx-footer__links a:hover,
+.nvx-footer__links a:focus-visible,
+.nvx-footer__legal-links a:hover,
+.nvx-footer__legal-links a:focus-visible {
+  color: var(--nvx-ink);
+}
+
+.nvx-footer__legal-links a {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  line-height: var(--nvx-lh-caption);
+  color: var(--nvx-text-muted);
+}
+
+/* Responsive footer grid */
+@media (max-width: 980px) {
+  .nvx-footer__logo {
+    grid-column: 1 / -1;
+  }
+
+  .nvx-footer__col {
+    grid-column: span 4;
+  }
+}
+
+@media (max-width: 640px) {
+  .nvx-footer__inner {
+    gap: var(--nvx-space-4);
+  }
+
+  .nvx-footer__logo,
+  .nvx-footer__col {
+    grid-column: 1 / -1;
+  }
+}
+
+.nvx-footer__bottom {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--nvx-space-2) var(--nvx-gap-base);
+  align-items: center;
+  width: var(--nvx-shell);
+  margin-inline: auto;
+  padding-block: var(--nvx-space-3);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+
+.nvx-footer__tagline {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  font-weight: var(--nvx-fw-medium);
+  letter-spacing: var(--nvx-track-caption);
+  text-transform: uppercase;
+  color: var(--nvx-text-muted);
+}
+
+.nvx-footer__registrations {
+  grid-column: 1 / -1;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  line-height: var(--nvx-lh-caption);
+  color: var(--nvx-text-muted);
+  margin: 0;
+}
+
+.nvx-footer__legal-nav {
+  justify-self: start;
+}
+
+/* Footer minimal — landing de valoración: solo enlace legal, sin heredar el layout del footer completo. */
+.nvx-footer--minimal {
+  padding-top: 0;
+  background: var(--nvx-surface-base);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+.nvx-footer--minimal .nvx-footer__bottom {
+  display: flex;
+  justify-content: center;
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-block: var(--nvx-space-3);
+  padding-inline: var(--nvx-gutter-inner);
+  border-top: 0;            /* anula el border-top que viene del default */
+  box-sizing: border-box;
+}
+.nvx-footer--minimal .nvx-footer__legal-nav {
+  justify-self: center;
+}

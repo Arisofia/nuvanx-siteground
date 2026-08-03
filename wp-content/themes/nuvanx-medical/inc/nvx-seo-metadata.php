@@ -192,83 +192,82 @@ function nvx_seo_filter_canonical_url( $url ) {
 add_filter( 'wpseo_opengraph_url', 'nvx_seo_filter_canonical_url', 100 );
 
 /**
- * Environment-aware Yoast robots policy.
+ * Centralized robots policy logic.
+ * Returns the appropriate NVX_ROBOTS_* directive based on the current context.
+ *
+ * @return int NVX_ROBOTS_* constant.
  */
-function nvx_seo_filter_yoast_robots( $robots ) {
+function nvx_seo_resolve_robots_policy(): int {
 	if ( nvx_seo_is_nonproduction_environment() ) {
-		return 'noindex, nofollow';
+		return NVX_ROBOTS_NOINDEX_NOFOLLOW;
 	}
 
 	// Archive pages with a few repeating cards add no unique clinical value yet.
 	// Keep them crawlable through the linked articles, not as competing thin URLs.
 	if ( is_category() || is_tag() ) {
-		return 'noindex, follow';
+		return NVX_ROBOTS_NOINDEX_FOLLOW;
 	}
 
 	$page_id = (int) get_queried_object_id();
 
 	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
-		return 'noindex, nofollow';
+		return NVX_ROBOTS_NOINDEX_NOFOLLOW;
 	}
 
 	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-		return 'noindex, follow';
+		return NVX_ROBOTS_NOINDEX_FOLLOW;
 	}
 
 	if ( null !== nvx_seo_current_metadata_key() ) {
-		return 'index, follow';
+		return NVX_ROBOTS_INDEX_FOLLOW;
 	}
 
-	return $robots;
+	return NVX_ROBOTS_INHERIT;
 }
-add_filter( 'wpseo_robots', 'nvx_seo_filter_yoast_robots', 100 );
 
 /**
- * Environment-aware WordPress robots array for non-Yoast consumers.
+ * Environment-aware robots policy, adapting to both Yoast (string) and Core (array) formats.
  *
- * @param array<string,bool> $robots Robots directives.
- * @return array<string,bool>
+ * @param string|array<string,bool> $robots Original robots directives.
+ * @return string|array<string,bool>
  */
-function nvx_seo_filter_core_robots( array $robots ): array {
-	if ( nvx_seo_is_nonproduction_environment() ) {
-		$robots['noindex']  = true;
-		$robots['nofollow'] = true;
-		unset( $robots['index'], $robots['follow'] );
+function nvx_seo_filter_robots( $robots ) {
+	$policy = nvx_seo_resolve_robots_policy();
+
+	if ( NVX_ROBOTS_INHERIT === $policy ) {
 		return $robots;
 	}
 
-	if ( is_category() || is_tag() ) {
-		$robots['noindex'] = true;
-		$robots['follow']  = true;
-		unset( $robots['index'], $robots['nofollow'] );
-		return $robots;
-	}
-
-	$page_id = (int) get_queried_object_id();
-
-	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
-		$robots['noindex']  = true;
-		$robots['nofollow'] = true;
-		unset( $robots['index'], $robots['follow'] );
-		return $robots;
-	}
-
-	if ( function_exists( 'nvx_noindex_page_ids' ) && in_array( $page_id, nvx_noindex_page_ids(), true ) ) {
-		$robots['noindex'] = true;
-		$robots['follow']  = true;
-		unset( $robots['index'], $robots['nofollow'] );
-		return $robots;
-	}
-
-	if ( null !== nvx_seo_current_metadata_key() ) {
-		$robots['index']  = true;
-		$robots['follow'] = true;
-		unset( $robots['noindex'], $robots['nofollow'] );
+	if ( is_string( $robots ) ) {
+		if ( NVX_ROBOTS_NOINDEX_NOFOLLOW === $policy ) {
+			return 'noindex, nofollow';
+		}
+		if ( NVX_ROBOTS_NOINDEX_FOLLOW === $policy ) {
+			return 'noindex, follow';
+		}
+		if ( NVX_ROBOTS_INDEX_FOLLOW === $policy ) {
+			return 'index, follow';
+		}
+	} elseif ( is_array( $robots ) ) {
+		if ( NVX_ROBOTS_NOINDEX_NOFOLLOW === $policy ) {
+			$robots['noindex']  = true;
+			$robots['nofollow'] = true;
+			unset( $robots['index'], $robots['follow'] );
+		} elseif ( NVX_ROBOTS_NOINDEX_FOLLOW === $policy ) {
+			$robots['noindex'] = true;
+			$robots['follow']  = true;
+			unset( $robots['index'], $robots['nofollow'] );
+		} elseif ( NVX_ROBOTS_INDEX_FOLLOW === $policy ) {
+			$robots['index']  = true;
+			$robots['follow'] = true;
+			unset( $robots['noindex'], $robots['nofollow'] );
+		}
 	}
 
 	return $robots;
 }
-add_filter( 'wp_robots', 'nvx_seo_filter_core_robots', 100 );
+add_filter( 'wpseo_robots', 'nvx_seo_filter_robots', 100 );
+add_filter( 'wp_robots', 'nvx_seo_filter_robots', 100 );
 
 /**
  * Harden non-production environments by emitting HTTP X-Robots-Tag.

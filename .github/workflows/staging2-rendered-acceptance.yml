@@ -164,3 +164,9 @@ jobs:
           path: artifacts/
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Securely destroy SSH identity
+        if: always()
+        shell: bash
+        run: |
+          shred -u "$HOME/.ssh/staging2_key" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts" 2>/dev/null || rm -f "$HOME/.ssh/staging2_key" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"

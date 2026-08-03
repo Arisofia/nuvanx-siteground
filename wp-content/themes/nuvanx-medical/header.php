@@ -66,6 +66,6 @@ defined( 'ABSPATH' ) || exit;
   <a href="https://wa.me/34669319836" class="nvx-button nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
 </dialog>
 <?php endif; ?>
-<?php if ( ! function_exists( 'nvx_has_page_shell' ) || ! nvx_has_page_shell() ) : ?>
-<main id="nvx-main" class="nvx-main" tabindex="-1">
-<?php endif; ?>
+
+<main id="nvx-main" class="nvx-main" role="main" tabindex="-1">
+	<div class="nvx-brand-page">

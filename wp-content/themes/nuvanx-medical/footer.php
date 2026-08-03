@@ -8,7 +8,8 @@
 defined( 'ABSPATH' ) || exit;
 ?>
 
-</main>
+	</div><!-- .nvx-brand-page -->
+</main><!-- #nvx-main -->
 
 <?php
 // Single site-wide closing CTA (same on home, tratamientos, equipo, blogs…).
@@ -55,25 +56,17 @@ $nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '64
 						<li><a href="<?php echo esc_url( home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ) ); ?>">Láser CO₂ fraccionado</a></li>
 						<li><a href="<?php echo esc_url( home_url( '/exion-btl/' ) ); ?>">EXION® BTL</a></li>
 						<?php
-						$nvx_col_a_items = array();
-						$nvx_col_b_items = array();
-						foreach ( $nvx_footer_published_treatments as $index => $treatment ) {
-							if ( $index < 7 ) {
-								$nvx_col_a_items[] = $treatment;
-							} else {
-								$nvx_col_b_items[] = $treatment;
-							}
-						}
-						// NOSONAR: False positive for missing braces (braces are split across PHP tags).
-						foreach ( $nvx_col_a_items as $treatment ) {
-						?>
-						<li><a href="<?php echo esc_url( (string) $treatment['url'] ); ?>"><?php echo esc_html( (string) $treatment['label'] ); ?></a></li>
-						<?php } ?>
+						// Split treatments into two columns.
+						$split_at = 7;
+						foreach ( $nvx_footer_published_treatments as $index => $treatment ) :
+							if ( 0 === $index ) : ?>
 					</ul>
 					<ul class="nvx-footer__links">
-						<?php foreach ( $nvx_col_b_items as $treatment ) { ?>
+							<?php endif; ?>
 							<li><a href="<?php echo esc_url( (string) $treatment['url'] ); ?>"><?php echo esc_html( (string) $treatment['label'] ); ?></a></li>
-						<?php } ?>
+						<?php endforeach; ?>
+					</ul>
+						?>
 						<li><a href="<?php echo esc_url( home_url( '/btl-exilite-ipl-madrid/' ) ); ?>">BTL EXILITE™ IPL</a></li>
 						<li><a href="<?php echo esc_url( home_url( '/tratamientos/' ) ); ?>"><?php esc_html_e( 'Ver todos →', 'nuvanx-medical' ); ?></a></li>
 					</ul>

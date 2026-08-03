@@ -231,7 +231,7 @@ async function safeGoto(page, url) {
       const delay = attempt * 2000;
       // Stop if the backoff wait alone would blow the global budget.
       if (Date.now() + delay >= deadline) {
-        throw new Error(`Failed to goto ${url}: exhausted ${totalBudgetMs}ms retry budget during backoff after attempt ${attempt}.`);
+        throw new Error(`Failed to goto ${url}: exhausted ${totalBudgetMs}ms retry budget during backoff after attempt ${attempt}.`, { cause: e });
       }
       console.warn(`Goto failed with network/timeout error (attempt ${attempt}/${maxAttempts}): ${msg.split('\n')[0]}. Retrying in ${delay}ms...`);
       await page.waitForTimeout(delay);

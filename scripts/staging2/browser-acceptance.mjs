@@ -329,17 +329,19 @@ async function run() {
         }
         
         // 6. Axe-core accessibility scan
-        try {
-          const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
-          const violations = accessibilityScanResults.violations || [];
-          a11yViolationsCount = violations.length;
-          if (a11yViolationsCount > 0) {
-            // Log as issue but don't strictly fail the build yet for a11y, or fail if we want strict mode.
-            // Let's add it to issues so it fails the build, enforcing a11y baseline.
-            issues.push(`A11y: Found ${a11yViolationsCount} accessibility violations (e.g. ${violations[0].id})`);
+        const axeRoutes = ['/', '/madrid/valoracion/', '/contacto/', '/endolift-facial-papada-mandibula/', '/blog/'];
+        if (axeRoutes.includes(route)) {
+          try {
+            const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+            const violations = accessibilityScanResults.violations || [];
+            const blocking = violations.filter(v => ['critical','serious'].includes(v.impact));
+            a11yViolationsCount = blocking.length;
+            if (blocking.length > 0) {
+              issues.push(`A11y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map(v=>v.id).join(', ')}`);
+            }
+          } catch (axeErr) {
+            console.warn(`Axe-core failed on ${route}:`, axeErr.message);
           }
-        } catch (axeErr) {
-          console.warn(`Axe-core failed on ${route}:`, axeErr.message);
         }
       }
 

@@ -252,6 +252,12 @@
     return 'https://js-' + region + '.hsforms.net/forms/embed/' + portalId + '.js';
   }
 
+  /**
+   * Lazily loads HubSpot Forms when an eligible modal or page form mount is activated.
+   *
+   * Reuses an existing or in-progress script load, initializes available forms after loading,
+   * and retries after load failures.
+   */
   function initLazyHubSpot() {
     const scriptUrl = resolveHubSpotScriptUrl();
     if (!scriptUrl) return;
@@ -329,14 +335,14 @@
 
     if (hasModal) {
       function modalIsOpen() {
-        return modal.classList.contains('is-open') || modal.getAttribute('aria-hidden') === 'false';
+        return modal.hasAttribute('open');
       }
 
       new MutationObserver(function () {
         if (modalIsOpen()) loadHubSpot();
       }).observe(modal, {
         attributes: true,
-        attributeFilter: ['class', 'aria-hidden', 'hidden']
+        attributeFilter: ['open']
       });
 
       document.addEventListener(

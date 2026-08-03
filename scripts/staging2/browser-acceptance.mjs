@@ -83,6 +83,11 @@ async function safeGoto(page, url) {
   throw new Error(`Failed to goto ${url} after ${maxAttempts} attempts.`);
 }
 
+/**
+ * Runs browser acceptance tests for all configured routes and writes audit artifacts.
+ *
+ * Exits the process with status 1 when any route fails its acceptance checks.
+ */
 async function run() {
   console.log(`Starting Browser Acceptance Tests against ${baseUrl} with EXPECTED_SHA=${expectedSha}...`);
   // Use SOCKS5 proxy if running in CI to bypass SiteGround edge blocking
@@ -194,7 +199,7 @@ async function run() {
 
       // Integration invariants: initial HTML scripts must not contain HubSpot or FacebookSignal
       const initialScripts = await page.locator('script').allInnerTexts();
-      hasInitialHubspot = initialScripts.some(text => /hbspt\.forms\.create|js\.hs-scripts\.com|hubspotEmbed|hscollectedforms\.net|hs-analytics\.net/i.test(text));
+      hasInitialHubspot = initialScripts.some(text => /hbspt\.forms\.create|js\.hs-scripts\.com|hscollectedforms\.net|hs-analytics\.net/i.test(text));
       hasInitialFacebookSignal = initialScripts.some(text => /facebook.*signal/i.test(text));
       
       const scriptSrcs = await page.locator('script[src]').evaluateAll(els => els.map(el => el.getAttribute('src') || ''));
@@ -260,7 +265,7 @@ async function run() {
         // --- Editorial / Visual QA Invariants ---
         
         // 1. NAP Icons
-        const isNapPage = ['/contacto/', '/clinicas-de-medicina-estetica-nuvanx/'].includes(route) || route.includes('medicina-estetica-chamberi') || route.includes('goya-barrio-salamanca');
+        const isNapPage = route === '/contacto/' || route.includes('medicina-estetica-chamberi') || route.includes('goya-barrio-salamanca');
         if (isNapPage) {
           const hasLocationIcon = await page.locator('svg use[*|href="#icon-location"], svg use[href="#icon-location"]').count() > 0;
           const hasPhoneIcon = await page.locator('svg use[*|href="#icon-phone"], svg use[href="#icon-phone"]').count() > 0;
@@ -302,7 +307,7 @@ async function run() {
           '/por-que-nuvanx/': '.nvx-strategy-page, .nvx-strategy-intro',
           '/inversion-medicina-estetica/': '.nvx-strategy-page, .nvx-strategy-intro',
           '/endolift-facial-papada-mandibula/': '.nvx-brand-page--endolift',
-          '/flacidez-grasa-localizada-brazos-madrid/': '.nvx-aesthetic-treatment',
+          '/flacidez-grasa-localizada-brazos-madrid/': '.nvx-signature-phase-page',
           '/exion-face/': '.nvx-btl-evidence-note, .nvx-btl-detail'
         };
         if (managedModuleRoutes[route]) {

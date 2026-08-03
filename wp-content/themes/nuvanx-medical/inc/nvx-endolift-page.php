@@ -91,7 +91,9 @@ function nvx_endolift_process_icon( string $name ): string {
 }
 
 /**
- * Hero copy: authority + dual CTA (valoración + WhatsApp).
+ * Builds the Endolift hero copy with medical authority details, descriptive content, calls to action, and metadata.
+ *
+ * @return string The rendered hero copy markup.
  */
 function nvx_endolift_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
@@ -123,6 +125,8 @@ function nvx_endolift_hero_copy_markup(): string {
 
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$html .= nvx_cta_pair_markup( 'nvx-brand-actions' );
+	} else {
+		$html .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a></div>';
 	}
 
 	$html .= '<p class="nvx-brand-meta">' . esc_html( $data['meta'] ?? '' ) . '</p>';

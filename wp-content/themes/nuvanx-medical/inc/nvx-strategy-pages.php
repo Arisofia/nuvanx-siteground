@@ -366,7 +366,7 @@ function nvx_strategy_page_markup( string $key ): string {
 }
 
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) return $owner;
+	if ( ! empty( $owner ) ) { return $owner; }
 	if ( function_exists('nvx_strategy_current_page_key') && null !== nvx_strategy_current_page_key() ) {
 		return 'nvx_strategy_pages';
 	}
@@ -424,3 +424,4 @@ function nvx_strategy_seed_staging2_pages(): void {
 	}
 }
 add_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
+

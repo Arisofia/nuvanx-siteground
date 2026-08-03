@@ -304,7 +304,7 @@ if ( ! defined( 'NVX_VALORACION_HS_FRAME_REGION' ) ) {
 /**
  * Whether the current request is the canonical valoración form route.
  */
-if ( ! function_exists( 'nvx_valoracion_native_hubspot_is_target_page' ) ) :
+if ( ! function_exists( 'nvx_valoracion_native_hubspot_is_target_page' ) ) {
 function nvx_valoracion_native_hubspot_is_target_page(): bool {
 	if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
 		return true;
@@ -326,7 +326,7 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
 }
 
 
-endif;
+}
 
 // If MU still present this request, still ensure theme does not double-register the buffer.
 // (MU owns the callback until disk retirement completes.)

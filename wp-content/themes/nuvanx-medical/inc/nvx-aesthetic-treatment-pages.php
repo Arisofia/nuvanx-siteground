@@ -160,7 +160,7 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 }
 
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) return $owner;
+	if ( ! empty( $owner ) ) { return $owner; }
 	if ( function_exists('nvx_aesthetic_treatment_current_key') && null !== nvx_aesthetic_treatment_current_key() ) {
 		return 'nvx_aesthetic_treatment_pages';
 	}
@@ -252,3 +252,4 @@ function nvx_aesthetic_treatment_seed_staging_pages(): void {
 	}
 }
 add_action( 'init', 'nvx_aesthetic_treatment_seed_staging_pages', 30 );
+

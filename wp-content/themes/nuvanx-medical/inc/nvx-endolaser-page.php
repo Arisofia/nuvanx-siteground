@@ -170,7 +170,7 @@ function nvx_endolaser_editorial_body_markup(): string {
  * Rebuild Endoláser page content.
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) return $owner;
+	if ( ! empty( $owner ) ) { return $owner; }
 	global $post;
 	$content = $post ? $post->post_content : '';
 	if ( function_exists('nvx_content_is_endolaser_page') && nvx_content_is_endolaser_page( $content ) ) {
@@ -203,3 +203,4 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', 19 );
+

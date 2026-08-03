@@ -99,3 +99,5 @@ function nvx_filter_strip_embedded_jsonld( $content ) {
 
 	return nvx_strip_embedded_jsonld_html( $content );
 }
+add_filter( 'the_content', 'nvx_filter_strip_embedded_jsonld', 5 );
+

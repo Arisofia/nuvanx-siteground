@@ -1471,10 +1471,4 @@ function nvx_schema_deduplicate_ids( $graph ) {
 }
 add_filter( 'wpseo_schema_graph', 'nvx_schema_deduplicate_ids', PHP_INT_MAX, 1 );
 
-/**
- * Home document title — laser clinic intent (Yoast).
- *
- * @param string $title Current title.
- * @return string
- */
-add_filter( 'the_content', 'nvx_filter_strip_embedded_jsonld', 5 );
+

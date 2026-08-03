@@ -284,3 +284,15 @@ function nvx_seo_filter_core_robots( array $robots ): array {
 	return $robots;
 }
 add_filter( 'wp_robots', 'nvx_seo_filter_core_robots', 100 );
+
+/**
+ * Harden non-production environments by emitting HTTP X-Robots-Tag.
+ * This ensures noindex/nofollow applies globally at the network layer,
+ * preempting any HTML parsing or plugin-level filter bypasses.
+ */
+function nvx_seo_enforce_http_robots_header() {
+	if ( nvx_seo_is_nonproduction_environment() && ! headers_sent() ) {
+		header( 'X-Robots-Tag: noindex, nofollow', true );
+	}
+}
+add_action( 'send_headers', 'nvx_seo_enforce_http_robots_header', 1 );

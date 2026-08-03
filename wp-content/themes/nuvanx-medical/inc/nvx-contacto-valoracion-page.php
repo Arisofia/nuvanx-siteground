@@ -134,8 +134,8 @@ function nvx_contact_clinics_markup(): string {
 		$html .= '<article class="nvx-contact-clinic">';
 		$html .= '<h3 class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ) . '</h3>';
 		$html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html__( 'Registro sanitario', 'nuvanx-medical' ) . ':</strong> ' . esc_html( $clinic['reg'] ) . '</p>';
-		$html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $clinic['address'] ) . '</p>';
-		$html .= '<p class="nvx-contact-clinic__phone"><strong>' . esc_html__( 'Teléfono / WhatsApp', 'nuvanx-medical' ) . ':</strong> ';
+		$html .= '<p class="nvx-contact-clinic__addr"><svg class="nvx-icon" aria-hidden="true"><use href="#icon-location"></use></svg> ' . esc_html( $clinic['address'] ) . '</p>';
+		$html .= '<p class="nvx-contact-clinic__phone"><svg class="nvx-icon" aria-hidden="true"><use href="#icon-phone"></use></svg> <strong>' . esc_html__( 'Teléfono / WhatsApp', 'nuvanx-medical' ) . ':</strong> ';
 		$html .= '<a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $clinic['phone_href'] ) . '">' . esc_html( $clinic['phone'] ) . '</a></p>';
 		$html .= '<p class="nvx-contact-clinic__days"><strong>' . esc_html__( 'Consulta médica directa', 'nuvanx-medical' ) . ':</strong> ' . esc_html( $clinic['days'] ) . '</p>';
 		$html .= '</article>';

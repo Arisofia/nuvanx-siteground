@@ -329,14 +329,14 @@
 
     if (hasModal) {
       function modalIsOpen() {
-        return modal.classList.contains('is-open') || modal.getAttribute('aria-hidden') === 'false';
+        return modal.hasAttribute('open');
       }
 
       new MutationObserver(function () {
         if (modalIsOpen()) loadHubSpot();
       }).observe(modal, {
         attributes: true,
-        attributeFilter: ['class', 'aria-hidden', 'hidden']
+        attributeFilter: ['open']
       });
 
       document.addEventListener(

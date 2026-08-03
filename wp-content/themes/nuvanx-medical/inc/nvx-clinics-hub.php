@@ -1004,8 +1004,9 @@ function nvx_clinics_hub_phone_display( string $e164 ): string {
  * Theme-owned clinics hub page (unified .nvx-brand-hero, no video, no map iframes).
  */
 function nvx_clinics_hub_page_markup(): string {
-	$clinics = function_exists( 'nvx_schema_clinics' ) ? nvx_schema_clinics() : array();
+	$clinics  = function_exists( 'nvx_schema_clinics' ) ? nvx_schema_clinics() : array();
 	$registry = function_exists( 'nvx_schema_page_registry' ) ? nvx_schema_page_registry() : array();
+	$config   = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
 
 	$chamberi_path = isset( $registry['clinics']['chamberi']['path'] )
 		? (string) $registry['clinics']['chamberi']['path']
@@ -1016,8 +1017,8 @@ function nvx_clinics_hub_page_markup(): string {
 
 	$chamberi_phone = ! empty( $clinics['chamberi']['telephone'] ) ? (string) $clinics['chamberi']['telephone'] : '+34669319836';
 	$goya_phone     = ! empty( $clinics['goya']['telephone'] ) ? (string) $clinics['goya']['telephone'] : '+34647505107';
-	$chamberi_maps  = ! empty( $clinics['chamberi']['hasMap'] ) ? (string) $clinics['chamberi']['hasMap'] : nvxClinicsMapUrl( 'chamberi' );
-	$goya_maps      = ! empty( $clinics['goya']['hasMap'] ) ? (string) $clinics['goya']['hasMap'] : nvxClinicsMapUrl( 'goya' );
+	$chamberi_maps  = ! empty( $config['chamberi']['map_url'] ) ? (string) $config['chamberi']['map_url'] : ( ! empty( $clinics['chamberi']['hasMap'] ) ? (string) $clinics['chamberi']['hasMap'] : nvxClinicsMapUrl( 'chamberi' ) );
+	$goya_maps      = ! empty( $config['goya']['map_url'] ) ? (string) $config['goya']['map_url'] : ( ! empty( $clinics['goya']['hasMap'] ) ? (string) $clinics['goya']['hasMap'] : nvxClinicsMapUrl( 'goya' ) );
 	$chamberi_url   = home_url( $chamberi_path );
 	$goya_url       = home_url( $goya_path );
 	$valoracion     = home_url( '/madrid/valoracion/' );
@@ -1025,8 +1026,15 @@ function nvx_clinics_hub_page_markup(): string {
 	$chamberi_tel_disp = nvx_clinics_hub_phone_display( $chamberi_phone );
 	$goya_tel_disp     = nvx_clinics_hub_phone_display( $goya_phone );
 
-	$chamberi_wa = 'https://wa.me/' . preg_replace( '/[^0-9]/', '', $chamberi_phone );
-	$goya_wa     = 'https://wa.me/' . preg_replace( '/[^0-9]/', '', $goya_phone );
+	$chamberi_wa = ! empty( $config['chamberi']['whatsapp_href'] ) ? (string) $config['chamberi']['whatsapp_href'] : 'https://wa.me/' . preg_replace( '/[^0-9]/', '', $chamberi_phone );
+	$goya_wa     = ! empty( $config['goya']['whatsapp_href'] ) ? (string) $config['goya']['whatsapp_href'] : 'https://wa.me/' . preg_replace( '/[^0-9]/', '', $goya_phone );
+
+	$chamberi_hours = ! empty( $config['chamberi']['hours'] ) ? (string) $config['chamberi']['hours'] : 'lunes a viernes, 12:00–20:00; sábados, 10:00–18:00';
+	$goya_hours     = ! empty( $config['goya']['hours'] ) ? (string) $config['goya']['hours'] : 'lunes a viernes, 11:00–20:00';
+
+	$chamberi_addr = ! empty( $config['chamberi']['address'] ) ? sprintf( '%s, %s %s', $config['chamberi']['address'], $config['chamberi']['postal_code'], $config['chamberi']['locality'] ) : 'Calle de Fernández de la Hoz, 4, Bajo Derecha, 28010 Madrid';
+	$goya_addr     = ! empty( $config['goya']['address'] ) ? sprintf( '%s, %s %s', $config['goya']['address'], $config['goya']['postal_code'], $config['goya']['locality'] ) : 'Calle de Fernán González, 26, 28009 Madrid';
+
 
 	$html  = '<div class="nvx-brand-page nvx-clinics-hub-page">';
 	$html .= '<section class="nvx-brand-hero" aria-labelledby="nvx-clinics-hub-h1">';
@@ -1054,9 +1062,9 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '<h2 id="nvx-clinic-chamberi-title" class="nvx-brand-title">' . esc_html__( 'Centro Clínico NUVANX Chamberí', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'A dos minutos de la Plaza de Olavide. Valoración, Endolift®, láser CO₂ y seguimiento en un centro autorizado por la Comunidad de Madrid.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-brand-list" role="list">';
-	$html .= '<li>' . esc_html__( 'Calle de Fernández de la Hoz, 4, Bajo Derecha, 28010 Madrid', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html( $chamberi_addr ) . '</li>';
 	$html .= '<li><a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $chamberi_phone ) . '">' . esc_html( $chamberi_tel_disp ) . '</a> · <a class="nvx-brand-inline-link" href="' . esc_url( $chamberi_wa ) . '" rel="noopener noreferrer" target="_blank">WhatsApp</a></li>';
-	$html .= '<li>' . esc_html__( 'Horario: lunes a viernes, 12:00–20:00; sábados, 10:00–18:00', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Horario:', 'nuvanx-medical' ) . ' ' . esc_html( $chamberi_hours ) . '</li>';
 	$html .= '<li>' . esc_html__( 'El Dr. Rivera atiende en Chamberí los martes y jueves.', 'nuvanx-medical' ) . '</li>';
 	$html .= '</ul>';
 	$html .= '<div class="nvx-brand-actions">';
@@ -1071,9 +1079,9 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '<h2 id="nvx-clinic-goya-title" class="nvx-brand-title">' . esc_html__( 'Centro Clínico NUVANX Salamanca–Goya', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En el Barrio de Salamanca. Misma dirección médica y protocolos que Chamberí, con atención y valoración en sede propia.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-brand-list" role="list">';
-	$html .= '<li>' . esc_html__( 'Calle de Fernán González, 26, 28009 Madrid', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html( $goya_addr ) . '</li>';
 	$html .= '<li><a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $goya_phone ) . '">' . esc_html( $goya_tel_disp ) . '</a> · <a class="nvx-brand-inline-link" href="' . esc_url( $goya_wa ) . '" rel="noopener noreferrer" target="_blank">WhatsApp</a></li>';
-	$html .= '<li>' . esc_html__( 'Horario: lunes a viernes, 11:00–20:00', 'nuvanx-medical' ) . '</li>';
+	$html .= '<li>' . esc_html__( 'Horario:', 'nuvanx-medical' ) . ' ' . esc_html( $goya_hours ) . '</li>';
 	$html .= '<li>' . esc_html__( 'El Dr. Rivera atiende en Salamanca–Goya los miércoles.', 'nuvanx-medical' ) . '</li>';
 	$html .= '</ul>';
 	$html .= '<div class="nvx-brand-actions">';

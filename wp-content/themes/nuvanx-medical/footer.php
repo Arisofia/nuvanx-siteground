@@ -28,6 +28,7 @@ $nvx_why_nuvanx_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_stra
 $nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';
 ?>
 
+<?php if ( ! ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) ) : ?>
 <footer class="nvx-footer" role="contentinfo">
 	<div class="nvx-footer__inner">
 
@@ -238,6 +239,7 @@ $nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_stra
 
 	</div>
 </footer>
+<?php endif; ?>
 
 <?php wp_footer(); ?>
 

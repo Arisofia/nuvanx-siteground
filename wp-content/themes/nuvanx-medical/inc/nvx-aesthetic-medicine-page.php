@@ -383,4 +383,4 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 
 	return $out;
 }
-add_filter( 'the_content', 'nvx_content_restructure_aesthetic_medicine_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_aesthetic_medicine_page', NVX_HOOK_PRIO_AESTHETIC_MEDICINE );

@@ -55,25 +55,19 @@ $nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '64
 						<li><a href="<?php echo esc_url( home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ) ); ?>">Láser CO₂ fraccionado</a></li>
 						<li><a href="<?php echo esc_url( home_url( '/exion-btl/' ) ); ?>">EXION® BTL</a></li>
 						<?php
-						$nvx_col_a_items = array();
-						$nvx_col_b_items = array();
-						foreach ( $nvx_footer_published_treatments as $index => $treatment ) {
-							if ( $index < 7 ) {
-								$nvx_col_a_items[] = $treatment;
-							} else {
-								$nvx_col_b_items[] = $treatment;
-							}
-						}
-						// NOSONAR: False positive for missing braces (braces are split across PHP tags).
-						foreach ( $nvx_col_a_items as $treatment ) {
+						$nvx_treatments = array_values( $nvx_footer_published_treatments );
+						$nvx_split_at   = (int) ceil( count( $nvx_treatments ) / 2 );
+						$nvx_col_one    = array_slice( $nvx_treatments, 0, $nvx_split_at );
+						$nvx_col_two    = array_slice( $nvx_treatments, $nvx_split_at );
 						?>
-						<li><a href="<?php echo esc_url( (string) $treatment['url'] ); ?>"><?php echo esc_html( (string) $treatment['label'] ); ?></a></li>
-						<?php } ?>
+						<?php foreach ( $nvx_col_one as $nvx_treatment ) : ?>
+						<li><a href="<?php echo esc_url( (string) $nvx_treatment['url'] ); ?>"><?php echo esc_html( (string) $nvx_treatment['label'] ); ?></a></li>
+						<?php endforeach; ?>
 					</ul>
 					<ul class="nvx-footer__links">
-						<?php foreach ( $nvx_col_b_items as $treatment ) { ?>
-							<li><a href="<?php echo esc_url( (string) $treatment['url'] ); ?>"><?php echo esc_html( (string) $treatment['label'] ); ?></a></li>
-						<?php } ?>
+						<?php foreach ( $nvx_col_two as $nvx_treatment ) : ?>
+						<li><a href="<?php echo esc_url( (string) $nvx_treatment['url'] ); ?>"><?php echo esc_html( (string) $nvx_treatment['label'] ); ?></a></li>
+						<?php endforeach; ?>
 						<li><a href="<?php echo esc_url( home_url( '/btl-exilite-ipl-madrid/' ) ); ?>">BTL EXILITE™ IPL</a></li>
 						<li><a href="<?php echo esc_url( home_url( '/tratamientos/' ) ); ?>"><?php esc_html_e( 'Ver todos →', 'nuvanx-medical' ); ?></a></li>
 					</ul>

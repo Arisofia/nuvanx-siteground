@@ -1,6 +1,12 @@
 <?php
 /**
- * Global application constants.
+ * Global registry for the_content filter priorities.
+ *
+ * This file maps all hook priorities to named constants to provide a deterministic,
+ * self-documenting execution graph without magic numbers.
+ *
+ * NOTE: This scope currently covers ONLY 	he_content filters. Other priority
+ * graphs (e.g. wpseo_metadesc, template_include) are deferred as future technical debt.
  *
  * @package nuvanx-medical
  */
@@ -9,43 +15,58 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// -----------------------------------------------------------------------------
-// Robots Policy Directives
-// -----------------------------------------------------------------------------
+// Early Content Modifiers
+const NVX_HOOK_PRIO_JSONLD_STRIP            = 5;
+const NVX_HOOK_PRIO_BLOG_HEADINGS           = 8;
+const NVX_HOOK_PRIO_BLOG_BYLINES            = 9;
 
-const NVX_ROBOTS_INHERIT         = 0;
-const NVX_ROBOTS_INDEX_FOLLOW    = 1;
-const NVX_ROBOTS_NOINDEX_FOLLOW  = 2;
-const NVX_ROBOTS_NOINDEX_NOFOLLOW = 3;
+// Page & Hub Rendering
+const NVX_HOOK_PRIO_VALORACION_MANAGED      = 10;
+const NVX_HOOK_PRIO_CLINICS_HUB             = 11;
+const NVX_HOOK_PRIO_SOLUTIONS_PAGE          = 11;
+const NVX_HOOK_PRIO_HERO_MEDIA              = 12;
 
-// -----------------------------------------------------------------------------
-// Filter Priorities for `the_content`
-// -----------------------------------------------------------------------------
-// Establishes a predictable sequence for content transformations and modules.
+// Internal Links & Form Hooks
+const NVX_HOOK_PRIO_INTERNAL_LINKS          = 13;
+const NVX_HOOK_PRIO_VALORACION_FORM_FIRST   = 14;
+const NVX_HOOK_PRIO_VALORACION_FORM_CLASS   = 15;
+const NVX_HOOK_PRIO_VALORACION_ENHANCE      = 16;
+const NVX_HOOK_PRIO_TREATMENTS_INDEX        = 18;
 
-/**
- * Early substitutions, host normalization (staging2).
- */
-const NVX_HOOK_PRIO_INTERNAL_LINKS = 13;
+// Specific Restructuradores (Block 19)
+const NVX_HOOK_PRIO_AESTHETIC_MEDICINE      = 19;
+const NVX_HOOK_PRIO_BTL_DETAIL              = 19;
+const NVX_HOOK_PRIO_CO2_MODULE              = 19;
+const NVX_HOOK_PRIO_ENDOLASER               = 19;
+const NVX_HOOK_PRIO_ENDOLIFT                = 19;
+const NVX_HOOK_PRIO_EQUIPO                  = 19;
+const NVX_HOOK_PRIO_LASER_MEDICINE          = 19;
+const NVX_HOOK_PRIO_NOSOTROS                = 19;
 
-/**
- * Main feature module injection (e.g. Valuation form).
- */
-const NVX_HOOK_PRIO_MODULE_RENDER  = 16;
+// Global Enhancements
+const NVX_HOOK_PRIO_PRESENTATION_ENHANCE    = 20;
+const NVX_HOOK_PRIO_GLOBAL_TREATMENT        = 21;
+const NVX_HOOK_PRIO_SIGNATURE_HUB           = 21;
+const NVX_HOOK_PRIO_TRUST_BADGES            = 22;
 
-/**
- * Secondary feature module injection (e.g. CO2 editorial restructure).
- */
-const NVX_HOOK_PRIO_CO2_MODULE     = 19;
+// Layout Cleanups
+const NVX_HOOK_PRIO_SEDE_INLINE_STYLES      = 28;
+const NVX_HOOK_PRIO_CLINICS_ENHANCE         = 30;
 
-/**
- * Trust badge stripping or authority injection (Cristina is at 99 inside apply_production_business_rules).
- */
-const NVX_HOOK_PRIO_TRUST_BADGES   = 22;
+// High Priority Overrides
+const NVX_HOOK_PRIO_AESTHETIC_TREATMENT     = 80;
+const NVX_HOOK_PRIO_STRATEGY_PAGES          = 82;
 
-/**
- * General production business rules.
- */
-const NVX_HOOK_PRIO_BUSINESS_RULES = 99;
+// Governance & Rules (Block 99-101 deterministic order)
+const NVX_HOOK_PRIO_BUSINESS_RULES          = 99;
+const NVX_HOOK_PRIO_STRIP_PAGE_CTAS         = 100;
+const NVX_HOOK_PRIO_BTL_GOVERNANCE          = 101;
 
+// Late Hijacks & Enforcements
+const NVX_HOOK_PRIO_DR_RIVERA               = 121;
+const NVX_HOOK_PRIO_QUE_EXIGIR              = 122;
+const NVX_HOOK_PRIO_EXION_INVESTMENT        = 126;
+const NVX_HOOK_PRIO_MEDICAL_REVIEW          = 144;
 
+// Extreme Late Normalization
+const NVX_HOOK_PRIO_SIGNATURE_NAMES         = 219;

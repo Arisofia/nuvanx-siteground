@@ -162,6 +162,32 @@ function nvx_cms_cleanup_rules(): array {
 			'pattern' => '/enfoque m[eé]dico premium/iu',
 			'replace' => 'misma dirección médica que Chamberí',
 		),
+		// CTA Normalizations from nvx_content_unify_ctas
+		array(
+			'id'      => 'cta_valoracion_personalizada',
+			'pattern' => '/Solicitar (?:valoraci[oó]n|consulta) m[eé]dica personalizada/iu',
+			'replace' => 'Iniciar mi valoración médica',
+		),
+		array(
+			'id'      => 'cta_valoracion',
+			'pattern' => '/(?:Solicitar|Agenda tu) (?:valoraci[oó]n|consulta)(?: m[eé]dica)?(?: gratuita)?/iu',
+			'replace' => 'Iniciar mi valoración médica',
+		),
+		array(
+			'id'      => 'cta_cita',
+			'pattern' => '/(?:Pedir|Reservar) cita/iu',
+			'replace' => 'Iniciar mi valoración médica',
+		),
+		array(
+			'id'      => 'cta_info',
+			'pattern' => '/Solicitar informaci[oó]n/iu',
+			'replace' => 'Iniciar mi valoración médica',
+		),
+		array(
+			'id'      => 'cta_whatsapp',
+			'pattern' => '/Explorar tratamientos exclusivos/iu',
+			'replace' => 'Contactar por WhatsApp',
+		),
 	);
 }
 

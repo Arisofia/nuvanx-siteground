@@ -460,7 +460,7 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		'nvx-brand-page ' . $modifier
 	);
 }
-add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', NVX_HOOK_PRIO_BTL_DETAIL );
 
 /**
  * Yoast title for BTL detail pages.

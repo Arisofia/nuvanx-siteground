@@ -93,5 +93,5 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 
 	return $html;
 }
-add_filter( 'the_content', 'nvx_content_que_exigir_hijack', 122 );
+add_filter( 'the_content', 'nvx_content_que_exigir_hijack', NVX_HOOK_PRIO_QUE_EXIGIR );
 

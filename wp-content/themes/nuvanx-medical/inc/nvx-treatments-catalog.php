@@ -203,4 +203,4 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 
 	return is_string( $content ) ? $content : '';
 }
-add_filter( 'the_content', 'nvx_content_restructure_treatments_index', 18 );
+add_filter( 'the_content', 'nvx_content_restructure_treatments_index', NVX_HOOK_PRIO_TREATMENTS_INDEX );

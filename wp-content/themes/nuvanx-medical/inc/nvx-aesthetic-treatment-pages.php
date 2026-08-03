@@ -180,7 +180,7 @@ function nvx_aesthetic_treatment_filter_content( string $content ): string {
 	$key = nvx_aesthetic_treatment_current_key();
 	return null === $key ? $content : nvx_aesthetic_treatment_render( $key );
 }
-add_filter( 'the_content', 'nvx_aesthetic_treatment_filter_content', 80 );
+add_filter( 'the_content', 'nvx_aesthetic_treatment_filter_content', NVX_HOOK_PRIO_AESTHETIC_TREATMENT );
 
 /** Canonical SEO metadata for the four pages. */
 function nvx_aesthetic_treatment_current_entry(): ?array {

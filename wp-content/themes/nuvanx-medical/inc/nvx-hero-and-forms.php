@@ -128,7 +128,7 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 
 	return nvx_hero_insert_media_figure( $content, $figure );
 }
-add_filter( 'the_content', 'nvx_ensure_hero_featured_media', 12 );
+add_filter( 'the_content', 'nvx_ensure_hero_featured_media', NVX_HOOK_PRIO_HERO_MEDIA );
 
 /**
  * Extract a balanced HTML element starting at $open_pos (must point at "<tag").
@@ -231,7 +231,7 @@ function nvx_valoracion_form_first( string $content ): string {
 	// Skip optional whitespace / injected media siblings already inside hero.
 	return substr( $without, 0, $hero_end ) . $form . substr( $without, $hero_end );
 }
-add_filter( 'the_content', 'nvx_valoracion_form_first', 14 );
+add_filter( 'the_content', 'nvx_valoracion_form_first', NVX_HOOK_PRIO_VALORACION_FORM_FIRST );
 
 /**
  * Valoración form stage: use featured/header image as section atmosphere.
@@ -283,7 +283,7 @@ function nvx_valoracion_form_stage_class( string $content ): string {
 		1
 	) ?: $content;
 }
-add_filter( 'the_content', 'nvx_valoracion_form_stage_class', 15 );
+add_filter( 'the_content', 'nvx_valoracion_form_stage_class', NVX_HOOK_PRIO_VALORACION_FORM_CLASS );
 
 /* ═══════════════════════════════════════════════════════════
    Valoración HubSpot mount (absorbed from retired MU plugin)

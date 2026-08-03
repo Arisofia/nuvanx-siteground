@@ -102,3 +102,59 @@
     grid-column: 1 / -1;
   }
 }
+
+.nvx-footer__bottom {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--nvx-space-2) var(--nvx-gap-base);
+  align-items: center;
+  width: var(--nvx-shell);
+  margin-inline: auto;
+  padding-block: var(--nvx-space-3);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+
+.nvx-footer__tagline {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  font-weight: var(--nvx-fw-medium);
+  letter-spacing: var(--nvx-track-caption);
+  text-transform: uppercase;
+  color: var(--nvx-text-muted);
+}
+
+.nvx-footer__registrations {
+  grid-column: 1 / -1;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-caption);
+  line-height: var(--nvx-lh-caption);
+  color: var(--nvx-text-muted);
+  margin: 0;
+}
+
+.nvx-footer__legal-nav {
+  justify-self: start;
+}
+
+/* Footer minimal — landing de valoración: solo enlace legal, sin heredar el layout del footer completo. */
+.nvx-footer--minimal {
+  padding-top: 0;
+  background: var(--nvx-surface-base);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+.nvx-footer--minimal .nvx-footer__bottom {
+  display: flex;
+  justify-content: center;
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-block: var(--nvx-space-3);
+  padding-inline: var(--nvx-gutter-inner);
+  border-top: 0;            /* anula el border-top que viene del default */
+  box-sizing: border-box;
+}
+.nvx-footer--minimal .nvx-footer__legal-nav {
+  justify-self: center;
+}

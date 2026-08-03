@@ -1315,35 +1315,6 @@ figure.nvx-equipo-portrait{
   margin-inline: auto}
 
 
-.nvx-footer__bottom{
-  display: grid;
-    grid-template-columns: 1fr;
-  gap: var(--nvx-space-2) var(--nvx-gap-base);
-  align-items: center;
-  width: var(--nvx-shell);
-  margin-inline: auto;
-  padding-block: var(--nvx-space-3);
-  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line)}
-
-.nvx-footer__tagline{
-  grid-column: 1 / -1;
-  margin: 0;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: var(--nvx-track-caption);
-  text-transform: uppercase;
-  color: var(--nvx-text-muted)}
-
-.nvx-footer__registrations{
-  grid-column: 1 / -1;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption);
-  line-height: var(--nvx-lh-caption);
-  color: var(--nvx-text-muted); margin: 0}
-
-.nvx-footer__legal-nav{ justify-self: start}
-
 .nvx-home-action-banner__title{
   margin:0 0 var(--nvx-space-2);max-width:none;
   font-family:var(--nvx-serif);

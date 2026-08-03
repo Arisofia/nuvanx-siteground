@@ -1025,6 +1025,9 @@ function nvx_clinics_hub_page_markup(): string {
 	$chamberi_tel_disp = nvx_clinics_hub_phone_display( $chamberi_phone );
 	$goya_tel_disp     = nvx_clinics_hub_phone_display( $goya_phone );
 
+	$chamberi_wa = 'https://wa.me/' . preg_replace( '/[^0-9]/', '', $chamberi_phone );
+	$goya_wa     = 'https://wa.me/' . preg_replace( '/[^0-9]/', '', $goya_phone );
+
 	$html  = '<div class="nvx-brand-page nvx-clinics-hub-page">';
 	$html .= '<section class="nvx-brand-hero" aria-labelledby="nvx-clinics-hub-h1">';
 	$html .= '<div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy">';
@@ -1052,7 +1055,7 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'A dos minutos de la Plaza de Olavide. Valoración, Endolift®, láser CO₂ y seguimiento en un centro autorizado por la Comunidad de Madrid.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-brand-list" role="list">';
 	$html .= '<li>' . esc_html__( 'Calle de Fernández de la Hoz, 4, Bajo Derecha, 28010 Madrid', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $chamberi_phone ) . '">' . esc_html( $chamberi_tel_disp ) . '</a> · <a class="nvx-brand-inline-link" href="https://wa.me/34669319836" rel="noopener noreferrer" target="_blank">WhatsApp</a></li>';
+	$html .= '<li><a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $chamberi_phone ) . '">' . esc_html( $chamberi_tel_disp ) . '</a> · <a class="nvx-brand-inline-link" href="' . esc_url( $chamberi_wa ) . '" rel="noopener noreferrer" target="_blank">WhatsApp</a></li>';
 	$html .= '<li>' . esc_html__( 'Horario: lunes a viernes, 12:00–20:00; sábados, 10:00–18:00', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li>' . esc_html__( 'El Dr. Rivera atiende en Chamberí los martes y jueves.', 'nuvanx-medical' ) . '</li>';
 	$html .= '</ul>';
@@ -1069,7 +1072,7 @@ function nvx_clinics_hub_page_markup(): string {
 	$html .= '<p class="nvx-brand-lead">' . esc_html__( 'En el Barrio de Salamanca. Misma dirección médica y protocolos que Chamberí, con atención y valoración en sede propia.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<ul class="nvx-brand-list" role="list">';
 	$html .= '<li>' . esc_html__( 'Calle de Fernán González, 26, 28009 Madrid', 'nuvanx-medical' ) . '</li>';
-	$html .= '<li><a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $goya_phone ) . '">' . esc_html( $goya_tel_disp ) . '</a> · <a class="nvx-brand-inline-link" href="https://wa.me/34647505107" rel="noopener noreferrer" target="_blank">WhatsApp</a></li>';
+	$html .= '<li><a class="nvx-brand-inline-link" href="' . esc_url( 'tel:' . $goya_phone ) . '">' . esc_html( $goya_tel_disp ) . '</a> · <a class="nvx-brand-inline-link" href="' . esc_url( $goya_wa ) . '" rel="noopener noreferrer" target="_blank">WhatsApp</a></li>';
 	$html .= '<li>' . esc_html__( 'Horario: lunes a viernes, 11:00–20:00', 'nuvanx-medical' ) . '</li>';
 	$html .= '<li>' . esc_html__( 'El Dr. Rivera atiende en Salamanca–Goya los miércoles.', 'nuvanx-medical' ) . '</li>';
 	$html .= '</ul>';

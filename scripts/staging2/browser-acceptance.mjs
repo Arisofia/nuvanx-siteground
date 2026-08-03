@@ -205,23 +205,37 @@ const routes = Object.keys(JSON.parse(routesRaw));
  */
 async function safeGoto(page, url) {
   const maxAttempts = 5;
+  const perAttemptTimeout = 35000;
+  // Global budget caps total wall-clock time per URL, covering both navigation
+  // timeouts and inter-attempt backoff, so retries can never exceed it even in
+  // the worst case (5 consecutive timeouts + growing delays).
+  const totalBudgetMs = 90000;
+  const deadline = Date.now() + totalBudgetMs;
   let attempt = 1;
   while (attempt <= maxAttempts) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) {
+      throw new Error(`Failed to goto ${url}: exhausted ${totalBudgetMs}ms retry budget after ${attempt - 1} attempts.`);
+    }
     try {
-      return await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 35000 });
+      return await page.goto(url, {
+        waitUntil: 'domcontentloaded',
+        timeout: Math.min(perAttemptTimeout, remaining)
+      });
     } catch (e) {
       const msg = String(e.message || '');
-      if (
-        (msg.includes('ERR_SOCKS_CONNECTION_FAILED') || msg.includes('ERR_CONNECTION_') || msg.includes('Timeout'))
-        && attempt < maxAttempts
-      ) {
-        const delay = attempt * 2000;
-        console.warn(`Goto failed with network/timeout error (attempt ${attempt}/${maxAttempts}): ${msg.split('\n')[0]}. Retrying in ${delay}ms...`);
-        await page.waitForTimeout(delay);
-        attempt++;
-        continue;
+      const isRetryable = msg.includes('ERR_SOCKS_CONNECTION_FAILED') || msg.includes('ERR_CONNECTION_') || msg.includes('Timeout');
+      if (!isRetryable || attempt >= maxAttempts) {
+        throw e;
       }
-      throw e;
+      const delay = attempt * 2000;
+      // Stop if the backoff wait alone would blow the global budget.
+      if (Date.now() + delay >= deadline) {
+        throw new Error(`Failed to goto ${url}: exhausted ${totalBudgetMs}ms retry budget during backoff after attempt ${attempt}.`);
+      }
+      console.warn(`Goto failed with network/timeout error (attempt ${attempt}/${maxAttempts}): ${msg.split('\n')[0]}. Retrying in ${delay}ms...`);
+      await page.waitForTimeout(delay);
+      attempt++;
     }
   }
   throw new Error(`Failed to goto ${url} after ${maxAttempts} attempts.`);

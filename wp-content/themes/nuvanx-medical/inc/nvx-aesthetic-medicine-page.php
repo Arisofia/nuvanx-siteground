@@ -108,7 +108,7 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 	$html .= sprintf(
 		'<a class="nvx-brand-btn nvx-brand-btn--primary" href="%1$s">%2$s</a>',
 		esc_url( $valoracion ),
-			esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
+		esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
 	);
 
 	$whatsapp = '';
@@ -118,7 +118,7 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 	if ( '' === $whatsapp ) {
 		$whatsapp = sprintf(
 			'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
-			esc_url( 'https://wa.me/34669319836' ),
+			esc_url( nvx_whatsapp_url( 'primary' ) ),
 			esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
 		);
 	}
@@ -344,15 +344,19 @@ function nvx_aesthetic_editorial_body_markup(): string {
 /**
  * Rebuild Medicina Estética hub page.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) { return $owner; }
-	global $post;
-	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_content_is_aesthetic_medicine_page') && nvx_content_is_aesthetic_medicine_page( $content ) ) {
-		return 'nvx_aesthetic_medicine_page';
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner; }
+		global $post;
+		$content = $post ? $post->post_content : '';
+		if ( function_exists( 'nvx_content_is_aesthetic_medicine_page' ) && nvx_content_is_aesthetic_medicine_page( $content ) ) {
+			return 'nvx_aesthetic_medicine_page';
+		}
+		return $owner;
 	}
-	return $owner;
-});
+);
 
 function nvx_content_restructure_aesthetic_medicine_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
@@ -384,4 +388,3 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 	return $out;
 }
 add_filter( 'the_content', 'nvx_content_restructure_aesthetic_medicine_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
-

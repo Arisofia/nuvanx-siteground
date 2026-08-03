@@ -105,7 +105,7 @@ add_filter( 'wpseo_opengraph_url', 'nvx_document_governance_nonproduction_opengr
  * document never ships without a canonical link.
  */
 function nvx_document_governance_canonical_url(): string {
-	$url      = '';
+	$url = '';
 
 	if ( ! is_404() && function_exists( 'nvx_seo_current_canonical_url' ) ) {
 		$url = trim( (string) nvx_seo_current_canonical_url() );

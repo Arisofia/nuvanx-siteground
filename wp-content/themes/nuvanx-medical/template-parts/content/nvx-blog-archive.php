@@ -9,8 +9,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $eyebrow = __( 'NUVANX Journal', 'nuvanx-medical' );
-$title    = __( 'Medicina estética con criterio', 'nuvanx-medical' );
-$lead     = __( 'Análisis médicos sobre tecnología láser, calidad de piel, well-aging, seguridad y decisiones terapéuticas en Madrid.', 'nuvanx-medical' );
+$title   = __( 'Medicina estética con criterio', 'nuvanx-medical' );
+$lead    = __( 'Análisis médicos sobre tecnología láser, calidad de piel, well-aging, seguridad y decisiones terapéuticas en Madrid.', 'nuvanx-medical' );
 
 if ( is_search() ) {
 	$title = sprintf(

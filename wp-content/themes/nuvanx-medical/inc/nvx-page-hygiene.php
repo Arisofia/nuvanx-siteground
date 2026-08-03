@@ -86,7 +86,7 @@ add_action( 'template_redirect', 'nvx_redirect_valoracion_aliases', 0 );
  * @return int[]
  */
 function nvx_nofollow_page_ids() {
-	$ids = array();
+	$ids       = array();
 	$thank_you = function_exists( 'nvx_page_id_by_slug' )
 		? nvx_page_id_by_slug( 'gracias' )
 		: 0;
@@ -347,7 +347,7 @@ function nvx_page_id_by_slug( string $slug ): int {
 	if ( array_key_exists( $slug, $cache ) ) {
 		return $cache[ $slug ];
 	}
-	$page = get_page_by_path( $slug, OBJECT, 'page' );
+	$page           = get_page_by_path( $slug, OBJECT, 'page' );
 	$cache[ $slug ] = $page instanceof WP_Post ? (int) $page->ID : 0;
 	return $cache[ $slug ];
 }

@@ -21,15 +21,23 @@ if ( function_exists( 'nvx_theme_show_cta_banner' ) && nvx_theme_show_cta_banner
 $nvx_footer_published_treatments = function_exists( 'nvx_navigation_published_treatments' )
 	? nvx_navigation_published_treatments()
 	: array();
-$nvx_cases_id = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
-$nvx_cases_public = $nvx_cases_id > 0
+$nvx_cases_id                    = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
+$nvx_cases_public                = $nvx_cases_id > 0
 	&& ( ! function_exists( 'nvx_noindex_page_ids' )
 		|| ! in_array( $nvx_cases_id, nvx_noindex_page_ids(), true ) );
-$nvx_why_nuvanx_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'why_nuvanx' ) : '';
-$nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';
-$nvx_cfg = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
-$nvx_cham = isset( $nvx_cfg['chamberi'] ) ? $nvx_cfg['chamberi'] : array( 'phone' => '669 319 836', 'phone_href' => '+34669319836', 'reg' => 'CS20144' );
-$nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '647 505 107', 'phone_href' => '+34647505107', 'reg' => 'CS20073' );
+$nvx_why_nuvanx_url              = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'why_nuvanx' ) : '';
+$nvx_investment_url              = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';
+$nvx_cfg                         = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
+$nvx_cham                        = isset( $nvx_cfg['chamberi'] ) ? $nvx_cfg['chamberi'] : array(
+	'phone'      => '669 319 836',
+	'phone_href' => '+34669319836',
+	'reg'        => 'CS20144',
+);
+$nvx_goya                        = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array(
+	'phone'      => '647 505 107',
+	'phone_href' => '+34647505107',
+	'reg'        => 'CS20073',
+);
 ?>
 
 <?php if ( ! ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) ) : ?>
@@ -59,7 +67,8 @@ $nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '64
 						// Split treatments into two columns.
 						$split_at = 7;
 						foreach ( $nvx_footer_published_treatments as $index => $treatment ) :
-							if ( 0 === $index ) : ?>
+							if ( 0 === $index ) :
+								?>
 					</ul>
 					<ul class="nvx-footer__links">
 							<?php endif; ?>

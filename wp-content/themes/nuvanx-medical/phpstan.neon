@@ -1,0 +1,23 @@
+parameters:
+    level: 0
+    paths:
+        - .
+    excludePaths:
+        - vendor
+        - node_modules
+        - tests
+    ignoreErrors:
+        # Ignore WordPress global variables
+        - '#Undefined variable: \$wpdb#'
+        - '#Undefined variable: \$wp_query#'
+        - '#Undefined variable: \$post#'
+        # Ignore WordPress function definitions
+        - '#Function .+ not found#'
+        # Ignore strict types issues during migration
+        - '#Strict comparison using === between#'
+        # Ignore missing includes for WordPress functions
+        - '#Include or file#'
+        # Ignore missing typehints from arrays
+        - identifier: missingType.iterableValue
+        # Ignore missing typehints from generics
+        - identifier: missingType.generics

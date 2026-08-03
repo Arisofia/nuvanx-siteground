@@ -23,7 +23,7 @@ function nvx_theme_is_goya_page(): bool {
 
 add_filter(
 	'language_attributes',
-	function( $output ) {
+	function ( $output ) {
 		if ( false !== strpos( $output, 'lang="es"' ) && false === strpos( $output, 'lang="es-ES"' ) ) {
 			return str_replace( 'lang="es"', 'lang="es-ES"', $output );
 		}
@@ -83,7 +83,8 @@ add_action(
 	'wp_head',
 	function (): void {
 		echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />' . "\n";
-		/* Preloads de Google Fonts eliminados; dejamos que wp_enqueue_style gestione la carga.
+		/*
+		Preloads de Google Fonts eliminados; dejamos que wp_enqueue_style gestione la carga.
 		 * Ver Playwright tests para garantizar que las fuentes de marca se aplican correctamente. */
 
 		if ( is_front_page() ) {

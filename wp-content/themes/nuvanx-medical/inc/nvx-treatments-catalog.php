@@ -57,7 +57,7 @@ function nvx_treatments_catalog_data(): array {
 			array( 'meta', 'title', 'body', 'url' ),
 			'treatments-catalog.json:items'
 		);
-		$catalog[] = $category;
+		$catalog[]         = $category;
 	}
 
 	return $catalog;

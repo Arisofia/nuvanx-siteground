@@ -160,11 +160,11 @@ function nvx_nosotros_platforms_markup(): string {
 	}
 
 	$rel_url = nvx_nosotros_url( (string) ( $plat['related']['url'] ?? '' ) );
-	$html     .= '<li class="nvx-feature-zone nvx-nosotros-platform-related">';
-	$html     .= '<h3 class="nvx-feature-zone__title">' . esc_html( $plat['related']['title'] ?? '' ) . '</h3>';
-	$html     .= '<p class="nvx-body">' . esc_html( $plat['related']['body'] ?? '' ) . '</p>';
-	$html     .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $rel_url ) . '">' . esc_html( $plat['related']['label'] ?? '' ) . '</a></p>';
-	$html     .= '</li>';
+	$html   .= '<li class="nvx-feature-zone nvx-nosotros-platform-related">';
+	$html   .= '<h3 class="nvx-feature-zone__title">' . esc_html( $plat['related']['title'] ?? '' ) . '</h3>';
+	$html   .= '<p class="nvx-body">' . esc_html( $plat['related']['body'] ?? '' ) . '</p>';
+	$html   .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $rel_url ) . '">' . esc_html( $plat['related']['label'] ?? '' ) . '</a></p>';
+	$html   .= '</li>';
 
 	$html .= '</ul></div></section>';
 
@@ -194,8 +194,8 @@ function nvx_nosotros_clinics_markup(): string {
 		$html     .= '<li role="listitem">';
 		$html     .= '<article class="nvx-contact-clinic" aria-labelledby="' . esc_attr( $clinic_id ) . '">';
 		$html     .= '<h3 id="' . esc_attr( $clinic_id ) . '" class="nvx-contact-clinic__name">' . esc_html( $clinic['name'] ?? '' ) . '</h3>';
-		$html .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html( $c['reg_label'] ?? '' ) . '</strong> — ' . esc_html( $clinic['reg'] ?? '' ) . '</p>';
-		$html .= '<p class="nvx-contact-clinic__addr">' . esc_html( $clinic['address'] ?? '' ) . '</p>';
+		$html     .= '<p class="nvx-contact-clinic__reg"><strong>' . esc_html( $c['reg_label'] ?? '' ) . '</strong> — ' . esc_html( $clinic['reg'] ?? '' ) . '</p>';
+		$html     .= '<p class="nvx-contact-clinic__addr">' . esc_html( $clinic['address'] ?? '' ) . '</p>';
 		if ( ! empty( $clinic['phone'] ) && ! empty( $clinic['phone_href'] ) ) {
 			$html .= '<p class="nvx-contact-clinic__phone"><a class="nvx-brand-inline-link" href="tel:' . esc_attr( $clinic['phone_href'] ) . '">' . esc_html( $clinic['phone'] ) . '</a></p>';
 		} elseif ( ! empty( $clinic['phone'] ) ) {
@@ -208,7 +208,7 @@ function nvx_nosotros_clinics_markup(): string {
 		$html .= '</li>';
 	}
 
-	$html .= '</ul>';
+	$html    .= '</ul>';
 	$clinicas = home_url( '/' . ( $c['hub_url'] ?? '' ) . '/' );
 	$html    .= '<p class="nvx-body"><a class="nvx-brand-inline-link" href="' . esc_url( $clinicas ) . '">' . esc_html( $c['hub_link_label'] ?? '' ) . '</a></p>';
 	$html    .= '</div></section>';
@@ -245,22 +245,22 @@ function nvx_nosotros_team_markup(): string {
 			$col = NVX_FABIO_COLEGIADO;
 		}
 
-		$member_id    = 'nvx-team-card-' . $index;
-		$bio_label    = esc_attr( ( $t['bio_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
-		$doc_label    = esc_attr( ( $t['doctoralia_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
-		$html .= '<li role="listitem">';
-		$html .= '<article class="nvx-nosotros-team-card" aria-labelledby="' . esc_attr( $member_id ) . '">';
-		$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $m['role'] ?? '' ) . '</p>';
-		$html .= '<h3 id="' . esc_attr( $member_id ) . '" class="nvx-feature-zone__title">' . esc_html( $m['name'] ?? '' ) . '</h3>';
-		$html .= '<p class="nvx-body"><strong>' . esc_html( $t['icomem_label'] ?? '' ) . '</strong> ' . esc_html( $col ) . '</p>';
-		$html .= '<p class="nvx-body">' . esc_html( $m['body'] ?? '' ) . '</p>';
-		$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo . '#' . ( $m['anchor'] ?? '' ) ) . '" aria-label="' . $bio_label . '">' . esc_html( $t['bio_link_label'] ?? '' ) . '</a></p>';
+		$member_id = 'nvx-team-card-' . $index;
+		$bio_label = esc_attr( ( $t['bio_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
+		$doc_label = esc_attr( ( $t['doctoralia_link_label'] ?? '' ) . ': ' . ( $m['name'] ?? '' ) );
+		$html     .= '<li role="listitem">';
+		$html     .= '<article class="nvx-nosotros-team-card" aria-labelledby="' . esc_attr( $member_id ) . '">';
+		$html     .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $m['role'] ?? '' ) . '</p>';
+		$html     .= '<h3 id="' . esc_attr( $member_id ) . '" class="nvx-feature-zone__title">' . esc_html( $m['name'] ?? '' ) . '</h3>';
+		$html     .= '<p class="nvx-body"><strong>' . esc_html( $t['icomem_label'] ?? '' ) . '</strong> ' . esc_html( $col ) . '</p>';
+		$html     .= '<p class="nvx-body">' . esc_html( $m['body'] ?? '' ) . '</p>';
+		$html     .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $equipo . '#' . ( $m['anchor'] ?? '' ) ) . '" aria-label="' . $bio_label . '">' . esc_html( $t['bio_link_label'] ?? '' ) . '</a></p>';
 		if ( ! empty( $m['doctoralia'] ) ) {
 			$html .= '<p class="nvx-nosotros-platform-link"><a class="nvx-brand-inline-link" href="' . esc_url( $m['doctoralia'] ) . '" target="_blank" rel="noopener noreferrer" aria-label="' . $doc_label . '">' . esc_html( $t['doctoralia_link_label'] ?? '' ) . '</a></p>';
 		}
 		$html .= '</article>';
 		$html .= '</li>';
-		$index++;
+		++$index;
 	}
 
 	$html .= '</ul>';
@@ -316,17 +316,20 @@ function nvx_nosotros_editorial_body_markup(): string {
 /**
  * Rebuild nosotros page content once.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) {
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		global $post;
+		$content = $post ? $post->post_content : '';
+		if ( function_exists( 'nvx_content_is_nosotros_page' ) && nvx_content_is_nosotros_page( $content ) ) {
+			return 'nvx_nosotros_page';
+		}
 		return $owner;
 	}
-	global $post;
-	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_content_is_nosotros_page') && nvx_content_is_nosotros_page( $content ) ) {
-		return 'nvx_nosotros_page';
-	}
-	return $owner;
-});
+);
 
 function nvx_content_restructure_nosotros_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;
@@ -401,4 +404,3 @@ function nvx_filter_nosotros_metadesc( $desc ) {
 	return nvx_nosotros_registry()['yoast_desc'] ?? $desc;
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_nosotros_metadesc', 21 );
-

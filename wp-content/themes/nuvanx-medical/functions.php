@@ -22,6 +22,7 @@ if ( ! defined( 'NVX_REGEX_WHITESPACE_U' ) ) {
 }
 
 require_once __DIR__ . '/inc/nvx-constants.php';
+require_once __DIR__ . '/inc/nvx-config-helpers.php';
 
 /** Register theme supports and navigation locations. */
 function nvx_theme_setup(): void {
@@ -257,8 +258,8 @@ function nvx_theme_blog_index_markup(): string {
 	$output = '<div class="nvx-brand-grid">';
 	while ( $query->have_posts() ) {
 		$query->the_post();
-		$title   = get_the_title();
-		$aria    = sprintf(
+		$title = get_the_title();
+		$aria  = sprintf(
 			/* translators: %s: post title */
 			__( 'Leer más sobre %s', 'nuvanx-medical' ),
 			$title

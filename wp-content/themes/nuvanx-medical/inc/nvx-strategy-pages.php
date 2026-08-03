@@ -18,12 +18,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 function nvx_strategy_page_catalog(): array {
 	return array(
-		'why_nuvanx' => array(
+		'why_nuvanx'     => array(
 			'slug'          => 'por-que-nuvanx',
 			'title'         => 'Por qué NUVANX',
 			'review_status' => 'approved_for_publication',
 		),
-		'investment'  => array(
+		'investment'     => array(
 			'slug'          => 'inversion-medicina-estetica',
 			'title'         => 'Inversión en medicina estética',
 			'review_status' => 'approved_for_publication',
@@ -33,7 +33,7 @@ function nvx_strategy_page_catalog(): array {
 			'title'         => 'LipoSculpt-Air™',
 			'review_status' => 'pending_medical_legal',
 		),
-		'v_lift_awake' => array(
+		'v_lift_awake'   => array(
 			'slug'          => 'v-lift-awake',
 			'title'         => 'V-Lift Awake™',
 			'review_status' => 'pending_medical_legal',
@@ -176,10 +176,10 @@ function nvx_strategy_why_nuvanx_markup(): string {
  * Append catalog rows for the given keys into an investment group.
  *
  * @param array<string,array<int,array{label:string,price:string}>> $groups Groups map.
- * @param array<string,array<string,mixed>>                        $bucket Catalog bucket.
- * @param array<int,string>                                        $keys   Catalog keys to include.
- * @param string                                                   $group  Destination group key.
- * @param string                                                   $label_suffix Optional label suffix.
+ * @param array<string,array<string,mixed>>                         $bucket Catalog bucket.
+ * @param array<int,string>                                         $keys   Catalog keys to include.
+ * @param string                                                    $group  Destination group key.
+ * @param string                                                    $label_suffix Optional label suffix.
  * @return array<string,array<int,array{label:string,price:string}>>
  */
 function nvx_strategy_append_investment_rows(
@@ -193,7 +193,7 @@ function nvx_strategy_append_investment_rows(
 		if ( ! isset( $bucket[ $key ] ) ) {
 			continue;
 		}
-		$item = $bucket[ $key ];
+		$item               = $bucket[ $key ];
 		$groups[ $group ][] = array(
 			'label' => $item['label'] . $label_suffix,
 			'price' => nvx_format_price_eur( $item['pvp'] ) . ' €',
@@ -206,7 +206,7 @@ function nvx_strategy_append_investment_rows(
  * Append verified CO₂ laser tariff rows.
  *
  * @param array<string,array<int,array{label:string,price:string}>> $groups Groups map.
- * @param array<string,mixed>                                      $catalog Full tariff catalog.
+ * @param array<string,mixed>                                       $catalog Full tariff catalog.
  * @return array<string,array<int,array{label:string,price:string}>>
  */
 function nvx_strategy_append_laser_co2_rows( array $groups, array $catalog ): array {
@@ -277,7 +277,7 @@ function nvx_strategy_verified_investment_groups(): array {
 /**
  * Render one price-table section for a group of tariff rows.
  *
- * @param string                          $heading  Section H2 text.
+ * @param string                                      $heading  Section H2 text.
  * @param array<int,array{label:string,price:string}> $rows  Tariff rows.
  * @return string
  */
@@ -286,7 +286,7 @@ function nvx_strategy_investment_table_section( string $heading, array $rows ): 
 		return '';
 	}
 
-	$hid = sanitize_title( $heading );
+	$hid   = sanitize_title( $heading );
 	$html  = '<section class="nvx-brand-section" aria-labelledby="' . esc_attr( $hid ) . '">';
 	$html .= '<h2 id="' . esc_attr( $hid ) . '">' . esc_html( $heading ) . '</h2>';
 	$html .= '<div class="nvx-endolift-price-table-wrap"><table class="nvx-endolift-price-table">';
@@ -316,9 +316,9 @@ function nvx_strategy_investment_markup(): string {
 
 	if ( ! empty( $groups ) ) {
 		$group_labels = array(
-			'endolift_facial'  => 'Endolift® facial — zonas y combinaciones',
+			'endolift_facial'   => 'Endolift® facial — zonas y combinaciones',
 			'endolift_corporal' => 'Endolift® corporal — zonas y combinaciones',
-			'laser_co2'        => 'Láser CO₂ fraccionado',
+			'laser_co2'         => 'Láser CO₂ fraccionado',
 		);
 		foreach ( $group_labels as $key => $label ) {
 			if ( ! empty( $groups[ $key ] ) ) {
@@ -365,13 +365,17 @@ function nvx_strategy_page_markup( string $key ): string {
 	return nvx_strategy_protocol_review_markup( $key );
 }
 
-add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) { return $owner; }
-	if ( function_exists('nvx_strategy_current_page_key') && null !== nvx_strategy_current_page_key() ) {
-		return 'nvx_strategy_pages';
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner; }
+		if ( function_exists( 'nvx_strategy_current_page_key' ) && null !== nvx_strategy_current_page_key() ) {
+			return 'nvx_strategy_pages';
+		}
+		return $owner;
 	}
-	return $owner;
-});
+);
 
 /**
  * Use a stable, theme-owned rendering path rather than editable CMS fragments.
@@ -424,4 +428,3 @@ function nvx_strategy_seed_staging2_pages(): void {
 	}
 }
 add_action( 'init', 'nvx_strategy_seed_staging2_pages', 31 );
-

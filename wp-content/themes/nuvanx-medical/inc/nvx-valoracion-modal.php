@@ -115,9 +115,9 @@ function nvx_valoracion_modal_enqueue_boot_config(): void {
 		: home_url( '/madrid/valoracion/' );
 
 	$config = array(
-		'enabled'  => nvx_valoracion_modal_enabled(),
-		'pageUrl'  => $page_url,
-		'modalId'  => 'nvx-valoracion-modal',
+		'enabled' => nvx_valoracion_modal_enabled(),
+		'pageUrl' => $page_url,
+		'modalId' => 'nvx-valoracion-modal',
 	);
 
 	$encoded = wp_json_encode( $config, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE );

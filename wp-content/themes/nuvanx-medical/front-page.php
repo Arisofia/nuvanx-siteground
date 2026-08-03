@@ -11,10 +11,10 @@
 defined( 'ABSPATH' ) || exit;
 
 $hero_video_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
-$poster_id  = get_theme_mod( 'nvx_home_video_poster_id' );
+$poster_id       = get_theme_mod( 'nvx_home_video_poster_id' );
 $hero_poster_url = $poster_id
-    ? wp_get_attachment_image_url( $poster_id, 'full' )
-    : get_stylesheet_directory_uri() . '/assets/img/nvx-home-video-default-poster.webp';
+	? wp_get_attachment_image_url( $poster_id, 'full' )
+	: get_stylesheet_directory_uri() . '/assets/img/nvx-home-video-default-poster.webp';
 $evidence_image  = content_url( '/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' );
 
 ob_start();
@@ -130,14 +130,14 @@ ob_start();
 				<h2 id="nvx-home-evidence-title" class="nvx-home-evidence__title">La evolución necesita contexto, no promesas rápidas.</h2>
 				<p class="nvx-home-evidence__desc">Un resultado sólo tiene sentido si se entiende de dónde partimos. Por eso documentamos nuestros casos con criterio médico: sin filtros, en la misma postura y bajo la misma luz.</p>
 				<?php
-			$_nvx_casos_id     = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
-			$_nvx_casos_public = $_nvx_casos_id > 0
+				$_nvx_casos_id     = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
+				$_nvx_casos_public = $_nvx_casos_id > 0
 				&& ( ! function_exists( 'nvx_noindex_page_ids' )
 					|| ! in_array( $_nvx_casos_id, nvx_noindex_page_ids(), true ) );
-			if ( $_nvx_casos_public ) :
-				?>
+				if ( $_nvx_casos_public ) :
+					?>
 				<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-button nvx-btn--secondary-on-dark"><?php esc_html_e( 'Explorar casos clínicos', 'nuvanx-medical' ); ?></a>
-			<?php else : ?>
+				<?php else : ?>
 				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-button nvx-btn--secondary-on-dark"><?php esc_html_e( 'Conocer al equipo médico', 'nuvanx-medical' ); ?></a>
 			<?php endif; ?>
 			</div>

@@ -44,8 +44,8 @@ function nvx_seo_current_path(): string {
 		return (string) nvx_schema_current_path( (int) get_queried_object_id() );
 	}
 
-	$uri = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
-	$uri = (string) strtok( $uri, '?' );
+	$uri     = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '/';
+	$uri     = (string) strtok( $uri, '?' );
 	$trimmed = trim( $uri, '/' );
 	return '' !== $trimmed ? '/' . $trimmed . '/' : '/';
 }

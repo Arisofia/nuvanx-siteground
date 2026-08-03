@@ -80,6 +80,7 @@
         "role": "@nvx-t:Director médico",
         "body": "@nvx-t:Especialista en medicina estética avanzada, láser intervencionista (Endolift®) y tricología. Perfil público con reseñas verificadas en Doctoralia.",
         "anchor": "physician-rivera-tejeda",
+        "colegiado": "282864786",
         "doctoralia": "https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid"
       },
       {
@@ -87,6 +88,7 @@
         "role": "@nvx-t:Well-aging y geriatría preventiva",
         "body": "@nvx-t:Referente en longevidad y well-aging. FEA en Hospital Universitario La Paz; investigación y sociedades científicas (SEMEG / EuGMS).",
         "anchor": "physician-rivera-deras",
+        "colegiado": "284621525",
         "doctoralia": ""
       },
       {
@@ -94,6 +96,7 @@
         "role": "@nvx-t:Geriatría y paciente complejo",
         "body": "@nvx-t:Especialista en geriatría, gerontología y paciente complejo. Trayectoria hospitalaria (SERMAS / SESCAM), CIBERFES y docencia universitaria.",
         "anchor": "physician-quinonez-bareiro",
+        "colegiado": "282877543",
         "doctoralia": ""
       }
     ],

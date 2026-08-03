@@ -1,5 +1,9 @@
 name: "security-gate"
 
+permissions:
+  contents: read
+  pull-requests: read
+
 on:
   pull_request:
     types: [opened, synchronize, reopened]

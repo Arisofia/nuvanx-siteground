@@ -55,18 +55,19 @@ $nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '64
 						<li><a href="<?php echo esc_url( home_url( '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/' ) ); ?>">Láser CO₂ fraccionado</a></li>
 						<li><a href="<?php echo esc_url( home_url( '/exion-btl/' ) ); ?>">EXION® BTL</a></li>
 						<?php
-						$nvx_col_a_done = true;
+						$nvx_col_a_items = array();
 						$nvx_col_b_items = array();
-						foreach ( $nvx_footer_published_treatments as $treatment ) :
-							if ( $nvx_col_a_done && count( $nvx_col_b_items ) < 7 ) :
+						foreach ( $nvx_footer_published_treatments as $index => $treatment ) {
+							if ( $index < 7 ) {
+								$nvx_col_a_items[] = $treatment;
+							} else {
 								$nvx_col_b_items[] = $treatment;
-							else :
+							}
+						}
+						foreach ( $nvx_col_a_items as $treatment ) :
 						?>
 						<li><a href="<?php echo esc_url( (string) $treatment['url'] ); ?>"><?php echo esc_html( (string) $treatment['label'] ); ?></a></li>
-						<?php
-							endif;
-						endforeach;
-						?>
+						<?php endforeach; ?>
 					</ul>
 					<ul class="nvx-footer__links">
 						<?php foreach ( $nvx_col_b_items as $treatment ) : ?>

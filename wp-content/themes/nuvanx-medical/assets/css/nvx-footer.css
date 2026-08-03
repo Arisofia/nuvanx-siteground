@@ -1,10 +1,10 @@
 /* NUVANX — Footer dark editorial
-   Fondo #0f0f0e, acordeones nativos en móvil, grid 2fr/4fr/2fr/2fr en desktop.
+   Fondo oscuro, acordeones nativos en móvil, grid 2fr/4fr/2fr/2fr en desktop.
    Fuente de verdad visual: Figma sección 03 (Footer). */
 /* ── Base ──────────────────────────────────────────────────── */
 .nvx-footer {
-  background: #0f0f0e;
-  color: rgba(247, 247, 245, 0.6);
+  background: var(--nvx-surface-dark);
+  color: var(--nvx-on-dark-72);
   padding: 0;
 }
 .nvx-footer a {
@@ -14,17 +14,17 @@
 }
 .nvx-footer a:hover,
 .nvx-footer a:focus-visible {
-  color: rgba(247, 247, 245, 0.9);
+  color: var(--nvx-on-dark);
 }
 /* ── Inner grid ───────────────────────────────────────────── */
 .nvx-footer__inner {
   display: grid;
   grid-template-columns: 2fr 4fr 2fr 2fr;
-  gap: 48px;
+  gap: var(--nvx-space-6);
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding: 64px var(--nvx-gutter-inner) 0;
+  padding: var(--nvx-space-8) var(--nvx-gutter-inner) 0;
   box-sizing: border-box;
 }
 /* ── Logo ─────────────────────────────────────────────────── */
@@ -34,29 +34,29 @@
 .nvx-footer__logo .nvx-logo {
   display: inline-flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--nvx-space-1);
 }
 .nvx-footer__logo .nvx-logo__wordmark {
   font-family: var(--nvx-serif);
-  font-size: 22px;
-  font-weight: 400;
-  color: #f7f7f5;
+  font-size: var(--nvx-type-h3);
+  font-weight: var(--nvx-fw-regular);
+  color: var(--nvx-on-dark);
 }
 .nvx-footer__logo .nvx-logo__tagline {
   font-family: var(--nvx-sans);
-  font-size: 11px;
-  font-weight: 300;
+  font-size: var(--nvx-type-micro);
+  font-weight: var(--nvx-fw-regular);
   letter-spacing: 0.1em;
-  color: rgba(247, 247, 245, 0.45);
+  color: var(--nvx-border-on-dark-45);
 }
 .nvx-footer__logo-sedes {
-  margin-top: 28px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: var(--nvx-space-4);
+  padding-top: var(--nvx-space-3);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
   font-family: var(--nvx-sans);
-  font-size: 12px;
-  line-height: 1.7;
-  color: rgba(247, 247, 245, 0.35);
+  font-size: var(--nvx-type-caption);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-on-dark-50);
 }
 /* ── Columnas (details nativo) ────────────────────────────── */
 .nvx-footer__col {
@@ -65,14 +65,14 @@
 /* summary = título de columna */
 .nvx-footer__col > summary {
   display: block;
-  margin: 0 0 18px;
+  margin: 0 0 var(--nvx-space-3);
   padding: 0;
   font-family: var(--nvx-sans);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: var(--nvx-type-micro);
+  font-weight: var(--nvx-fw-bold);
+  letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
-  color: rgba(247, 247, 245, 0.45);
+  color: var(--nvx-border-on-dark-45);
   list-style: none;
   cursor: default;
 }
@@ -81,28 +81,28 @@
 /* ── Links ────────────────────────────────────────────────── */
 .nvx-footer__links {
   display: grid;
-  gap: 10px;
+  gap: var(--nvx-space-1);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .nvx-footer__links a {
   font-family: var(--nvx-sans);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1;
-  color: rgba(247, 247, 245, 0.6);
+  font-size: var(--nvx-type-caption2);
+  font-weight: var(--nvx-fw-regular);
+  line-height: var(--nvx-lh-nav);
+  color: var(--nvx-on-dark-72);
 }
 /* Teléfonos: más peso y opacidad */
 .nvx-footer__links a[href^="tel:"] {
-  font-weight: 500;
-  color: rgba(247, 247, 245, 0.85);
+  font-weight: var(--nvx-fw-heading);
+  color: var(--nvx-on-dark-88);
 }
 /* Tratamientos: sub-grid de 2 columnas */
 .nvx-footer__treatments-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0 32px;
+  gap: 0 var(--nvx-space-4);
 }
 /* ── Bottom bar ───────────────────────────────────────────── */
 .nvx-footer__bottom {
@@ -110,65 +110,65 @@
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: var(--nvx-space-2);
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  margin-top: 48px;
-  padding: 20px var(--nvx-gutter-inner) 28px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: var(--nvx-space-6);
+  padding: var(--nvx-space-3) var(--nvx-gutter-inner) var(--nvx-space-4);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
   box-sizing: border-box;
 }
 .nvx-footer__tagline {
-  display: none;  /* Figma no muestra tagline en bottom bar */
+  display: none;
 }
 .nvx-footer__legal {
   margin: 0;
   font-family: var(--nvx-sans);
-  font-size: 11px;
-  color: rgba(247, 247, 245, 0.32);
+  font-size: var(--nvx-type-micro);
+  color: var(--nvx-on-dark-50);
 }
 .nvx-footer__legal-nav {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: var(--nvx-space-3);
 }
 .nvx-footer__legal-links {
   display: flex;
-  gap: 20px;
+  gap: var(--nvx-space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .nvx-footer__legal-links a {
   font-family: var(--nvx-sans);
-  font-size: 11px;
-  color: rgba(247, 247, 245, 0.32);
+  font-size: var(--nvx-type-micro);
+  color: var(--nvx-on-dark-50);
 }
 .nvx-footer__registrations {
   font-family: var(--nvx-sans);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  color: rgba(247, 247, 245, 0.22);
+  font-size: var(--nvx-type-micro);
+  letter-spacing: var(--nvx-track-caption);
+  color: var(--nvx-on-dark-50);
   margin: 0;
 }
 .nvx-footer__bottom-separator {
-  color: rgba(255, 255, 255, 0.15);
-  font-size: 12px;
+  color: var(--nvx-accent-line-dark);
+  font-size: var(--nvx-type-caption);
   user-select: none;
 }
 /* ── Tablet (≤980px) ──────────────────────────────────────── */
 @media (max-width: 980px) {
   .nvx-footer__inner {
     grid-template-columns: 2fr 1fr 1fr;
-    gap: 40px;
-    padding-top: 48px;
+    gap: var(--nvx-space-5);
+    padding-top: var(--nvx-space-6);
   }
   .nvx-footer__logo {
     grid-column: 1 / -1;
-    margin-bottom: 8px;
-    padding-bottom: 28px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: var(--nvx-space-1);
+    padding-bottom: var(--nvx-space-4);
+    border-bottom: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
   }
   .nvx-footer__logo-sedes {
     display: none;
@@ -178,10 +178,10 @@
 @media (max-width: 640px) {
   .nvx-footer__inner {
     display: block;
-    padding: 48px var(--nvx-gutter-inner) 0;
+    padding: var(--nvx-space-6) var(--nvx-gutter-inner) 0;
   }
   .nvx-footer__logo {
-    margin-bottom: 32px;
+    margin-bottom: var(--nvx-space-4);
     padding-bottom: 0;
     border-bottom: 0;
   }
@@ -190,29 +190,29 @@
   }
   /* Acordeones: cada columna es un <details> */
   .nvx-footer__col {
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
   }
   .nvx-footer__col > summary {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin: 0;
-    padding: 18px 0;
+    padding: var(--nvx-space-2) 0;
     cursor: pointer;
   }
   .nvx-footer__col > summary::after {
     content: "+";
     font-family: var(--nvx-sans);
-    font-size: 20px;
-    font-weight: 300;
-    line-height: 1;
-    color: rgba(247, 247, 245, 0.3);
+    font-size: var(--nvx-type-h3);
+    font-weight: var(--nvx-fw-regular);
+    line-height: var(--nvx-lh-nav);
+    color: var(--nvx-on-dark-50);
   }
   .nvx-footer__col[open] > summary::after {
     content: "−";
   }
   .nvx-footer__col > .nvx-footer__col-content {
-    padding-bottom: 20px;
+    padding-bottom: var(--nvx-space-3);
   }
   .nvx-footer__col:not([open]) > .nvx-footer__col-content {
     display: none;
@@ -222,14 +222,14 @@
     grid-template-columns: 1fr;
   }
   .nvx-footer__col:last-of-type {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
   }
   /* Bottom bar: stack vertical */
   .nvx-footer__bottom {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
-    margin-top: 32px;
+    gap: var(--nvx-space-2);
+    margin-top: var(--nvx-space-4);
   }
   .nvx-footer__legal-nav {
     flex-wrap: wrap;
@@ -250,7 +250,7 @@
 /* ── Footer minimal (valoración landing) ──────────────────── */
 .nvx-footer--minimal {
   padding: 0;
-  background: #0f0f0e;
+  background: var(--nvx-surface-dark);
 }
 .nvx-footer--minimal .nvx-footer__bottom {
   display: flex;

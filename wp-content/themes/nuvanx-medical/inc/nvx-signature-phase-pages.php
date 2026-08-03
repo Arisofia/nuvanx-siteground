@@ -50,7 +50,6 @@ function nvx_signature_valoracion_url(): string {
  * @return array<string, array<string, mixed>>
  */
 function nvx_signature_phase_catalog_specs(): array {
-	require_once __DIR__ . '/nvx-catalog-json.php';
 
 	return nvx_catalog_json_load( 'nvx-signature-phase-catalog.json' );
 }

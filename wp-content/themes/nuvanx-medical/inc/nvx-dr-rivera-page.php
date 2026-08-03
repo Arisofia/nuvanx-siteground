@@ -58,7 +58,7 @@ function nvx_content_dr_rivera_hijack( string $content ): string {
 	$html  = '<div class="nvx-dr-rivera-editorial">';
 
 	$html .= '<div class="nvx-dr-rivera-header">';
-	$html .= '<img src="' . $avatar . '" alt="' . esc_attr( $data['h1'] ?? 'Dr. Javier Rivera Tejeda' ) . '" class="nvx-dr-rivera-avatar" onerror="this.style.display=\'none\'; this.setAttribute(\'aria-hidden\', \'true\');">';
+	$html .= '<img src="' . $avatar . '" alt="' . esc_attr( $data['h1'] ?? 'Dr. Javier Rivera Tejeda' ) . '" class="nvx-dr-rivera-avatar" width="160" height="160" loading="lazy" decoding="async">';
 	$html .= '<p class="nvx-brand-kicker nvx-dr-rivera-kicker">' . esc_html( $data['kicker'] ?? __( 'Dirección Médica NUVANX', 'nuvanx-medical' ) ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-dr-rivera-h1">' . esc_html( $data['h1'] ?? __( 'Dr. Javier Rivera Tejeda', 'nuvanx-medical' ) ) . '</h1>';
 	$html .= '<p class="nvx-brand-hero__lead nvx-dr-rivera-lead">' . esc_html( $data['lead'] ?? __( 'Nº Colegiado ICOMEM: 282864786 · Especialista en Medicina Estética Láser e Ingeniería Tisular', 'nuvanx-medical' ) ) . '</p>';

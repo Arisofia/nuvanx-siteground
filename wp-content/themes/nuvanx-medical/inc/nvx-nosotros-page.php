@@ -217,7 +217,9 @@ function nvx_nosotros_clinics_markup(): string {
 }
 
 /**
- * Short medical board — colegiados visibles; full bios live on /equipo-medico/.
+ * Renders a concise medical team section with registration details, biographies, and related links.
+ *
+ * @return string The generated team section HTML.
  */
 function nvx_nosotros_team_markup(): string {
 	$data = nvx_nosotros_registry();

@@ -137,7 +137,9 @@ function nvx_endolift_hero_copy_markup(): string {
 
 
 /**
- * Full editorial body after hero.
+ * Builds the Endolift editorial body markup, including clinical information, treatment details, pricing, recovery guidance, and FAQs.
+ *
+ * @return string The rendered editorial body HTML.
  */
 function nvx_endolift_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';

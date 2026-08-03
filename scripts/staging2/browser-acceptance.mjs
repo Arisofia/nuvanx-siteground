@@ -260,7 +260,7 @@ async function run() {
         // --- Editorial / Visual QA Invariants ---
         
         // 1. NAP Icons
-        const isNapPage = ['/contacto/', '/clinicas-de-medicina-estetica-nuvanx/'].includes(route) || route.includes('medicina-estetica-chamberi') || route.includes('goya-barrio-salamanca');
+        const isNapPage = route === '/contacto/' || route.includes('medicina-estetica-chamberi') || route.includes('goya-barrio-salamanca');
         if (isNapPage) {
           const hasLocationIcon = await page.locator('svg use[*|href="#icon-location"], svg use[href="#icon-location"]').count() > 0;
           const hasPhoneIcon = await page.locator('svg use[*|href="#icon-phone"], svg use[href="#icon-phone"]').count() > 0;

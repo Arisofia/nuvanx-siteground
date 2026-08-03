@@ -192,7 +192,7 @@ function nvx_schema_page_registry() {
         'treatments' => array(),
     );
 
-    $routes = function_exists( 'nvx_catalog_json_resolved' ) 
+    $routes = function_exists( 'nvx_catalog_json_resolved' )
         ? nvx_catalog_json_resolved( 'routes.json' )
         : array();
 

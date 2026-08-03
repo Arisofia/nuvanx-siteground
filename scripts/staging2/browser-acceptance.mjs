@@ -68,15 +68,18 @@ async function safeGoto(page, url) {
       return await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
     } catch (e) {
       const msg = String(e.message || '');
-      if (msg.includes('ERR_SOCKS_CONNECTION_FAILED') && attempt < maxAttempts) {
-        console.warn(`Goto failed with ERR_SOCKS_CONNECTION_FAILED (attempt ${attempt}/${maxAttempts}); retrying...`);
+      if (
+        (msg.includes('ERR_SOCKS_CONNECTION_FAILED') || msg.includes('ERR_CONNECTION_') || msg.includes('Timeout'))
+        && attempt < maxAttempts
+      ) {
+        console.warn(`Goto failed with network/timeout error (attempt ${attempt}/${maxAttempts}): ${msg.split('\n')[0]}. Retrying...`);
         attempt++;
         continue;
       }
       throw e;
     }
   }
-  throw new Error(`Failed to goto ${url} after ${maxAttempts} attempts (ERR_SOCKS_CONNECTION_FAILED)`);
+  throw new Error(`Failed to goto ${url} after ${maxAttempts} attempts.`);
 }
 
 async function run() {

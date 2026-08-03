@@ -106,7 +106,7 @@
 .nvx-skip-link:focus {
   top: var(--nvx-space-1, 8px);
   outline: 2px solid var(--nvx-ink);
-  outline-offset: var(--nvx-outline-offset);
+  outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {
   .nvx-skip-link { transition: none; }

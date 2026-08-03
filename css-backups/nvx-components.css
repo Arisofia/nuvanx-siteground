@@ -17,17 +17,6 @@
 figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:var(--nvx-type-caption);font-weight:300;line-height:var(--nvx-lh-caption);color:var(--nvx-text-muted)}
 .nvx-text-link{color:var(--nvx-ink);text-decoration:underline;text-underline-offset:calc(var(--nvx-space-1) / 2);font-family:var(--nvx-sans)}
 .nvx-text-link:hover,.nvx-text-link:focus-visible{color:var(--nvx-accent-muted)}
-/* Icon SVG dimensioning — critical fix for oversized icons */
-svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
-  width: var(--nvx-icon-sm);
-  height: var(--nvx-icon-sm);
-  display: inline-block;
-  vertical-align: middle;
-}
-.icon-whatsapp {
-  width: var(--nvx-icon-md);
-  height: var(--nvx-icon-md);
-}
 /* Canonical conversion button: one shape, type scale and interaction contract. */
 
 .nvx-button--primary, .nvx-btn--primary, .nvx-brand-btn--primary {
@@ -359,7 +348,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
 .nvx-hs-native-box .nvx-text-link {
   color: var(--nvx-ink);
   text-decoration: underline;
-  text-decoration-thickness: var(--nvx-border-hairline);
+  text-decoration-thickness: 1px;
   text-underline-offset: 0.18em;
 }
 

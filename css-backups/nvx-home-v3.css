@@ -452,7 +452,7 @@
 	display: grid;
 	grid-template-columns: 1fr;
 	gap: var(--nvx-space-8);
-	max-width: var(--nvx-section-tight-width);
+	max-width: 800px;
 	margin: 0 auto;
 	padding-inline: var(--nvx-gutter-inner);
 	text-align: center;

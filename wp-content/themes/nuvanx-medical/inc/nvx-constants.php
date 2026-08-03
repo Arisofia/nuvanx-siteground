@@ -2,6 +2,13 @@
 /**
  * Global application constants.
  *
+ * This file maps all hook priorities to named constants to provide a
+ * deterministic, self-documenting execution graph without magic numbers.
+ *
+ * NOTE: This scope currently covers ONLY the_content filters. Other priority
+ * graphs (e.g. wpseo_metadesc, template_include) are deferred as future
+ * technical debt.
+ *
  * @package nuvanx-medical
  */
 

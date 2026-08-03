@@ -59,15 +59,15 @@
   --nvx-space-12: 96px;
 
   --nvx-gap-base: clamp(24px, 2.4vw, 32px);
-  --nvx-gap-wide: clamp(32px, 4vw, 48px);
-  --nvx-gap-section: clamp(48px, 6vw, 96px);
+  --nvx-gap-wide: clamp(24px, 3vw, 40px);
+  --nvx-gap-section: clamp(24px, 4vw, 48px);
 
-  --nvx-pad-card: clamp(24px, 3vw, 40px);
-  --nvx-pad-section: clamp(80px, 8vw, 120px);
-  --nvx-pad-section-tight: clamp(48px, 5vw, 64px);
+  --nvx-pad-card: clamp(20px, 2.5vw, 32px);
+  --nvx-pad-section: clamp(48px, 6vw, 96px);
+  --nvx-pad-section-tight: clamp(32px, 4vw, 64px);
 
   --nvx-gutter: clamp(32px, 6vw, 96px);
-  --nvx-gutter-inner: clamp(24px, 4vw, 48px);
+  --nvx-gutter-inner: clamp(24px, 5vw, 48px);
   
   --nvx-accent-gold: #C1A68D;
   --nvx-accent-gold-text: #735942;

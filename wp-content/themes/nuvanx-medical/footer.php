@@ -26,6 +26,9 @@ $nvx_cases_public = $nvx_cases_id > 0
 		|| ! in_array( $nvx_cases_id, nvx_noindex_page_ids(), true ) );
 $nvx_why_nuvanx_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'why_nuvanx' ) : '';
 $nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';
+$nvx_cfg = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
+$nvx_cham = isset( $nvx_cfg['chamberi'] ) ? $nvx_cfg['chamberi'] : array( 'phone' => '669 319 836', 'phone_href' => '+34669319836', 'reg' => 'CS20144' );
+$nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '647 505 107', 'phone_href' => '+34647505107', 'reg' => 'CS20073' );
 ?>
 
 <?php if ( ! ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) ) : ?>
@@ -120,14 +123,14 @@ $nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_stra
 				</li>
 
 				<li>
-					<a href="tel:+34669319836">
-						Chamberí · 669 319 836
+					<a href="tel:<?php echo esc_attr( $nvx_cham['phone_href'] ); ?>">
+						Chamberí · <?php echo esc_html( $nvx_cham['phone'] ); ?>
 					</a>
 				</li>
 
 				<li>
-					<a href="tel:+34647505107">
-						Goya · 647 505 107
+					<a href="tel:<?php echo esc_attr( $nvx_goya['phone_href'] ); ?>">
+						Goya · <?php echo esc_html( $nvx_goya['phone'] ); ?>
 					</a>
 				</li>
 			</ul>
@@ -232,11 +235,25 @@ $nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_stra
 		</nav>
 
 		<p class="nvx-footer__registrations">
-			Chamberí · Centro sanitario autorizado CS20144
+			Chamberí · Centro sanitario autorizado <?php echo esc_html( $nvx_cham['reg'] ); ?>
 			<span aria-hidden="true"> · </span>
-			Salamanca–Goya · Centro sanitario autorizado CS20073
+			Salamanca–Goya · Centro sanitario autorizado <?php echo esc_html( $nvx_goya['reg'] ); ?>
 		</p>
 
+	</div>
+</footer>
+<?php else : ?>
+<footer class="nvx-footer nvx-footer--minimal" role="contentinfo">
+	<div class="nvx-footer__bottom">
+		<nav class="nvx-footer__legal-nav" aria-label="<?php esc_attr_e( 'Información legal', 'nuvanx-medical' ); ?>">
+			<ul class="nvx-footer__legal-links">
+				<li>
+					<a href="<?php echo esc_url( home_url( '/politica-privacidad/' ) ); ?>">
+						Política de privacidad
+					</a>
+				</li>
+			</ul>
+		</nav>
 	</div>
 </footer>
 <?php endif; ?>

@@ -212,6 +212,13 @@ function nvx_seo_resolve_robots_policy(): int {
 	$page_id = (int) get_queried_object_id();
 
 	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
+	if ( is_category() || is_tag() ) {
+		return NVX_ROBOTS_NOINDEX_FOLLOW;
+	}
+
+	$page_id = (int) get_queried_object_id();
+
+	if ( function_exists( 'nvx_nofollow_page_ids' ) && in_array( $page_id, nvx_nofollow_page_ids(), true ) ) {
 		return NVX_ROBOTS_NOINDEX_NOFOLLOW;
 	}
 
@@ -226,6 +233,12 @@ function nvx_seo_resolve_robots_policy(): int {
 	return NVX_ROBOTS_INHERIT;
 }
 
+/**
+ * Applies the resolved robots policy to Yoast and Core robots values.
+ *
+ * @param string|array $robots Incoming robots value.
+ * @return string|array
+ */
 function nvx_seo_filter_robots( $robots ) {
 	$policy = nvx_seo_resolve_robots_policy();
 

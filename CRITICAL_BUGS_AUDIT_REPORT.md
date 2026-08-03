@@ -207,6 +207,7 @@ async function handleCookieConsent(page) {
 | P1-3 | ✅ CORREGIDO | `browser-acceptance.mjs` | Gestiona banner cookies |
 | P3-8 | ✅ COMPLETADO | `browser-acceptance.mjs` | Añade aserciones preventivas |
 | P3-10 | ✅ COMPLETADO | Este documento | Documenta causas raíz |
+| Estructura <main> | ✅ CORREGIDO | `nvx-page-shell.php` | Elimina duplicación de <main> |
 
 ---
 

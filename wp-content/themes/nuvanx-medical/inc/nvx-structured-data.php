@@ -15,7 +15,9 @@
 
 defined( 'ABSPATH' ) || exit;
 
-
+if ( ! defined( 'NVX_CONTACT_EMAIL' ) ) {
+	define( 'NVX_CONTACT_EMAIL', 'info@nuvanx.com' );
+}
 /**
  * Editorial review month label for Endolift byline (update with clinical review).
  */
@@ -442,7 +444,7 @@ function nvx_schema_clinics() {
             'branchCode' => 'chamberi',
             'url'        => home_url( $registry['clinics']['chamberi']['path'] ),
             'telephone'  => $ch['phone_href'] ?? '+34669319836',
-            'email'      => 'info@nuvanx.com',
+            'email'      => NVX_CONTACT_EMAIL,
             'address'    => array(
                 '@type'           => 'PostalAddress',
                 'streetAddress'   => $ch['address'] ?? 'Calle de Fernández de la Hoz, 4, Bajo Derecha',
@@ -483,7 +485,7 @@ function nvx_schema_clinics() {
             'branchCode' => 'goya',
             'url'        => home_url( $registry['clinics']['goya']['path'] ),
             'telephone'  => $go['phone_href'] ?? '+34647505107',
-            'email'      => 'info@nuvanx.com',
+            'email'      => NVX_CONTACT_EMAIL,
             'address'    => array(
                 '@type'           => 'PostalAddress',
                 'streetAddress'   => $go['address'] ?? 'Calle de Fernán González, 26',
@@ -1204,7 +1206,7 @@ function nvx_schema_enrich_organization( array &$graph, int $index, array $all_c
     $graph[ $index ]['alternateName']          = array( 'NUVANX', 'NUVANX Madrid', 'NUVANX Medicina Estética Láser Madrid' );
     $graph[ $index ]['url']                    = home_url( '/' );
     $graph[ $index ]['description']            = 'Centro médico de medicina estética láser y well-aging en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con dirección médica y criterio científico (geriatría preventiva / longevidad).';
-    $graph[ $index ]['email']                  = 'info@nuvanx.com';
+    $graph[ $index ]['email']                  = NVX_CONTACT_EMAIL;
     $graph[ $index ]['telephone']              = $chamberi_tel;
     $graph[ $index ]['priceRange']             = '€€€';
     $graph[ $index ]['isAcceptingNewPatients'] = true;

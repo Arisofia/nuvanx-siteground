@@ -399,3 +399,4 @@ function nvx_filter_nosotros_metadesc( $desc ) {
 	return nvx_nosotros_registry()['yoast_desc'] ?? $desc;
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_nosotros_metadesc', 21 );
+

@@ -277,7 +277,7 @@ function nvx_laser_hub_page_markup(): string {
  * @param string $content Existing post content (unused on hub).
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) return $owner;
+	if ( ! empty( $owner ) ) { return $owner; }
 	if ( function_exists('nvx_laser_is_hub_request') && nvx_laser_is_hub_request() ) {
 		return 'nvx_laser_medicine_page';
 	}
@@ -293,3 +293,4 @@ function nvx_content_restructure_laser_medicine_page( string $content ): string 
 	return nvx_laser_hub_page_markup();
 }
 add_filter( 'the_content', 'nvx_content_restructure_laser_medicine_page', 19 );
+

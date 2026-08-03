@@ -150,6 +150,12 @@ function nvx_seo_is_nonproduction_environment(): bool {
 		return true;
 	}
 
+	// SiteGround preview/staging hosts must never be indexable.
+	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( (string) $_SERVER['HTTP_HOST'] ) : '';
+	if ( false !== strpos( $host, '.sg-host.com' ) || false !== strpos( $host, 'staging' ) ) {
+		return true;
+	}
+
 	if ( defined( 'NVX_ENV' ) ) {
 		return NVX_ENV !== 'production';
 	}

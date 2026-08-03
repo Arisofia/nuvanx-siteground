@@ -1187,13 +1187,17 @@ function nvx_schema_build_physicians( int $page_id, string $org_id ): array {
  * Enriches the main Organization node in Yoast schema graph.
  */
 function nvx_schema_enrich_organization( array &$graph, int $index, array $all_clinics, array $physicians ): void {
+    $cfg = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
+    $chamberi_tel = $cfg['chamberi']['phone_href'] ?? '+34669319836';
+    $goya_tel     = $cfg['goya']['phone_href'] ?? '+34647505107';
+
     $graph[ $index ]['@type']                  = nvx_schema_add_type( $graph[ $index ]['@type'], 'MedicalOrganization' );
     $graph[ $index ]['name']                   = 'NUVANX Medicina Estética Láser';
     $graph[ $index ]['alternateName']          = array( 'NUVANX', 'NUVANX Madrid', 'NUVANX Medicina Estética Láser Madrid' );
     $graph[ $index ]['url']                    = home_url( '/' );
     $graph[ $index ]['description']            = 'Centro médico de medicina estética láser y well-aging en Madrid (Chamberí y Goya · Barrio Salamanca). Protocolos Endolift®, endoláser, Láser CO₂ y EXION® BTL con dirección médica y criterio científico (geriatría preventiva / longevidad).';
-    $graph[ $index ]['email']                  = NVX_SD_EMAIL_MAIN;
-    $graph[ $index ]['telephone']              = NVX_SD_TEL_CHAMBERI;
+    $graph[ $index ]['email']                  = 'info@nuvanx.com';
+    $graph[ $index ]['telephone']              = $chamberi_tel;
     $graph[ $index ]['priceRange']             = '€€€';
     $graph[ $index ]['isAcceptingNewPatients'] = true;
     $graph[ $index ]['address']                = array( $all_clinics['chamberi']['address'], $all_clinics['goya']['address'] );
@@ -1201,14 +1205,14 @@ function nvx_schema_enrich_organization( array &$graph, int $index, array $all_c
         array(
             '@type'             => 'ContactPoint',
             'contactType'       => 'Citas — Chamberí',
-            'telephone'         => NVX_SD_TEL_CHAMBERI,
+            'telephone'         => $chamberi_tel,
             'areaServed'        => 'ES',
             'availableLanguage' => array( 'es', 'en' ),
         ),
         array(
             '@type'             => 'ContactPoint',
             'contactType'       => 'Citas — Goya · Barrio Salamanca',
-            'telephone'         => '+34647505107',
+            'telephone'         => $goya_tel,
             'areaServed'        => 'ES',
             'availableLanguage' => array( 'es', 'en' ),
         ),

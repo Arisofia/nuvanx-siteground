@@ -133,7 +133,7 @@ function nvx_aesthetic_treatment_render( string $key ): string {
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $entry['kicker'] ) . '</p>';
 	$html .= '<h1 id="nvx-aesthetic-treatment-h1" class="nvx-brand-hero__title">' . esc_html( $entry['h1'] ) . '</h1>';
 	$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $entry['lead'] ) . '</p>';
-	$html .= ( function_exists( 'nvx_cta_pair_markup' ) ? nvx_cta_pair_markup() : '<a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a>' );
+	$html .= ( function_exists( 'nvx_cta_pair_markup' ) ? nvx_cta_pair_markup( 'nvx-brand-actions' ) : '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Reservar valoración médica', 'nuvanx-medical' ) . '</a></div>' );
 	$html .= '<p class="nvx-brand-meta">Chamberí (CS20144) · Salamanca–Goya (CS20073) · Según valoración médica</p>';
 	$html .= '</div></div></section>';
 

@@ -9,22 +9,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/nvx-environment-flags.php';
-
-/**
- * Returns the normalized request path from REQUEST_URI.
- *
- * Unslashes and URL-sanitizes $_SERVER['REQUEST_URI'], then strips the query
- * string. Percent-encoded octets are preserved (unlike sanitize_text_field()).
- *
- * @return string Path without query string, or '' when REQUEST_URI is unset.
- */
-function nvx_theme_request_path(): string {
-	if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
-		return '';
-	}
-	$raw = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
-	return (string) strtok( $raw, '?' );
-}
 /** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
@@ -33,7 +17,12 @@ function nvx_theme_is_goya_page(): bool {
 	if ( is_page( 1537 ) ) {
 		return true;
 	}
-	$path = nvx_theme_request_path();
+	// Use direct server var access here; nvx_theme_request_path() is not yet defined
+	// when this file is first loaded. It will be defined before the hooks run.
+	$path = isset( $_SERVER['REQUEST_URI'] )
+		? (string) strtok( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '?' )
+		: '';
+
 	return '/' . trim( $path, '/' ) . '/' === '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/';
 }
 
@@ -69,6 +58,22 @@ add_action(
 	},
 	-999999
 );
+
+/**
+ * Returns the normalized request path from REQUEST_URI.
+ *
+ * Unslashes and URL-sanitizes $_SERVER['REQUEST_URI'], then strips the query
+ * string. Percent-encoded octets are preserved (unlike sanitize_text_field()).
+ *
+ * @return string Path without query string, or '' when REQUEST_URI is unset.
+ */
+function nvx_theme_request_path(): string {
+	if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
+		return '';
+	}
+	$raw = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
+	return (string) strtok( $raw, '?' );
+}
 
 /** Canonical privacy route. */
 add_action(

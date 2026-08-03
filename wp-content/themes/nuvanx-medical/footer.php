@@ -45,7 +45,7 @@ $nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '64
 			</a>
 			<p class="nvx-footer__logo-sedes">Madrid · Chamberí<br>Madrid · Salamanca</p>
 		</div>
-		<details class="nvx-footer__col">
+		<details class="nvx-footer__col" open>
 			<summary><?php esc_html_e( 'Tratamientos', 'nuvanx-medical' ); ?></summary>
 			<div class="nvx-footer__col-content">
 				<div class="nvx-footer__treatments-grid">
@@ -81,7 +81,7 @@ $nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '64
 			</div>
 		</details>
 		
-		<details class="nvx-footer__col">
+		<details class="nvx-footer__col" open>
 			<summary><?php esc_html_e( 'Clínicas', 'nuvanx-medical' ); ?></summary>
 			<div class="nvx-footer__col-content">
 				<ul class="nvx-footer__links">
@@ -114,7 +114,7 @@ $nvx_goya = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] : array( 'phone' => '64
 			</div>
 		</details>
 		
-		<details class="nvx-footer__col">
+		<details class="nvx-footer__col" open>
 			<summary><?php esc_html_e( 'NUVANX', 'nuvanx-medical' ); ?></summary>
 			<div class="nvx-footer__col-content">
 				<ul class="nvx-footer__links">

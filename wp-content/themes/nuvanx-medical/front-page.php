@@ -112,17 +112,9 @@ ob_start();
 		<div class="nvx-home-evidence__grid">
 			<div class="nvx-home-evidence__image-col">
 				<?php
-				// Intrinsic size from the asset file (no runtime document rewrite).
-				$evidence_w = 1200;
-				$evidence_h = 800;
-				$evidence_path = WP_CONTENT_DIR . '/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp';
-				if ( is_readable( $evidence_path ) ) {
-					$evidence_size = @getimagesize( $evidence_path );
-					if ( is_array( $evidence_size ) && ! empty( $evidence_size[0] ) && ! empty( $evidence_size[1] ) ) {
-						$evidence_w = (int) $evidence_size[0];
-						$evidence_h = (int) $evidence_size[1];
-					}
-				}
+				// Intrinsic size from the asset file (hardcoded to prevent I/O on every request).
+				$evidence_w = 1672;
+				$evidence_h = 941;
 				?>
 				<img
 					src="<?php echo esc_url( $evidence_image ); ?>"

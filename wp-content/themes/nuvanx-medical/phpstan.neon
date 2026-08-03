@@ -1,3 +1,6 @@
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+
 parameters:
     level: 0
     paths:
@@ -7,17 +10,5 @@ parameters:
         - node_modules
         - tests
     ignoreErrors:
-        # Ignore WordPress global variables
-        - '#Undefined variable: \$wpdb#'
-        - '#Undefined variable: \$wp_query#'
-        - '#Undefined variable: \$post#'
-        # Ignore WordPress function definitions
-        - '#Function .+ not found#'
-        # Ignore strict types issues during migration
-        - '#Strict comparison using === between#'
-        # Ignore missing includes for WordPress functions
-        - '#Include or file#'
-        # Ignore missing typehints from arrays
-        - identifier: missingType.iterableValue
-        # Ignore missing typehints from generics
-        - identifier: missingType.generics
+        # Ignore filter callback return issues (common in WordPress when modifying objects by reference)
+        - '#Filter callback return statement is missing#'

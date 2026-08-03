@@ -67,4 +67,4 @@ jobs:
       - name: Run PHPStan
         run: |
           cd wp-content/themes/nuvanx-medical
-          ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=512M
+          ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G

@@ -107,7 +107,7 @@ try {
 		}
 
 		if ( $needs_update ) {
-			wp_update_post( $post );
+			wp_update_post( wp_slash( (array) $post ) );
 			$db_updated_count++;
 		}
 	}

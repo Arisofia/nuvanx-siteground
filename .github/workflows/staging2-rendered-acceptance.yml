@@ -113,14 +113,14 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
 
-      - name: Verify SSH reachability (SOCKS5 proxy disabled)
+      - name: Verify SSH reachability and start SOCKS5 proxy
         shell: bash
         run: |
           set -euo pipefail
           # Verifica que existan utilidades mínimas en el remoto
           ssh -o ConnectTimeout=20 nvx-staging2 'command -v curl >/dev/null && command -v mktemp >/dev/null'
-          # El proxy SOCKS5 se ha deshabilitado para probar la conexión directa
-          # ssh -f -N -D 1080 -o ExitOnForwardFailure=yes -o ConnectTimeout=20 nvx-staging2
+          # El proxy SOCKS5 es requerido para evitar bloqueos del WAF/Edge de SiteGround
+          ssh -f -N -D 1080 -o ExitOnForwardFailure=yes -o ConnectTimeout=20 nvx-staging2
 
       - name: Install dependencies
         run: npm ci
@@ -131,9 +131,9 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Verify rendered document, integrations and route consistency
-        # env:
-        #   HTTP_PROXY: socks5://127.0.0.1:1080
-        #   HTTPS_PROXY: socks5://127.0.0.1:1080
+        env:
+          HTTP_PROXY: socks5://127.0.0.1:1080
+          HTTPS_PROXY: socks5://127.0.0.1:1080
         run: node scripts/staging2/browser-acceptance.mjs
 
       - name: Upload Browser Acceptance Artifacts

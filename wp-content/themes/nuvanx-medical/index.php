@@ -17,7 +17,7 @@ ob_start();
 			the_post();
 			?>
 			<article <?php post_class( 'nvx-page-body nvx-shell' ); ?>>
-				<?php the_title( '<h1 class="nvx-heading">', '</h1>' ); ?>
+				<?php the_title( '<h2 class="nvx-heading">', '</h2>' ); ?>
 				<div class="nvx-copy entry-content">
 					<?php the_content(); ?>
 				</div>

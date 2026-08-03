@@ -79,7 +79,7 @@
   cursor: default;
 }
 .nvx-footer__col > summary::-webkit-details-marker { display: none; }
-.nvx-footer__col > summary::marker { content: ""; }
+.nvx-footer__col > summary::marker { display: none; content: ""; }
 /* ── Links ────────────────────────────────────────────────── */
 .nvx-footer__links {
   display: grid;

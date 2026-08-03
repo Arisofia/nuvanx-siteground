@@ -5,11 +5,11 @@ import fs from 'node:fs/promises';
 async function checkSkipLink(page, route, issues) {
   if (route !== '/') return;
   await page.keyboard.press('Tab');
-  const isSkipLinkFocused = await page.evaluate(() => document.activeElement && document.activeElement.classList.contains('nvx-skip-link'));
+  const isSkipLinkFocused = await page.evaluate(() => document.activeElement?.classList.contains('nvx-skip-link'));
   if (!isSkipLinkFocused) issues.push('Skip-link is not focused on first Tab');
   if (isSkipLinkFocused) {
     await page.keyboard.press('Enter');
-    const isMainFocused = await page.evaluate(() => document.activeElement && document.activeElement.id === 'nvx-main');
+    const isMainFocused = await page.evaluate(() => document.activeElement?.id === 'nvx-main');
     if (!isMainFocused) issues.push('Skip-link did not move focus to #nvx-main');
   }
 }
@@ -21,7 +21,7 @@ async function checkHeadingHierarchy(page, issues) {
     const els = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
     return Array.from(els)
       .filter(el => !el.closest('dialog') && !el.closest('[hidden]') && !el.closest('.screen-reader-text') && el.offsetParent !== null)
-      .map(el => parseInt(el.tagName.replace('H', ''), 10));
+      .map(el => Number.parseInt(el.tagName.replace('H', ''), 10));
   });
   let currentLevel = 0;
   headings.forEach((level, idx) => {

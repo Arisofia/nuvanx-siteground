@@ -283,7 +283,7 @@ function nvx_nosotros_principles_markup(): string {
 	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $p['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-heading">' . esc_html( $p['title'] ?? '' ) . '</h2>';
-	$html .= '<ul class="nvx-feature-zone-list" role="list">';
+	$html .= '<ul class="nvx-feature-zone-list">';
 	foreach ( (array) ( $p['items'] ?? array() ) as $item ) {
 		$html .= '<li class="nvx-feature-zone">';
 		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $item['title'] ?? '' ) . '</h3>';
@@ -315,7 +315,9 @@ function nvx_nosotros_editorial_body_markup(): string {
  * Rebuild nosotros page content once.
  */
 add_filter( 'nvx_page_owner', function( $owner ) {
-	if ( ! empty( $owner ) ) return $owner;
+	if ( ! empty( $owner ) ) {
+		return $owner;
+	}
 	global $post;
 	$content = $post ? $post->post_content : '';
 	if ( function_exists('nvx_content_is_nosotros_page') && nvx_content_is_nosotros_page( $content ) ) {

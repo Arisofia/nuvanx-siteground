@@ -584,7 +584,6 @@ function nvx_equipo_physician_sections_markup( array $sections ): string {
  * @return string The rendered quote section markup.
  */
 function nvx_equipo_physician_quote_section_markup( array $quote ): string {
-	$h2_id = 'nvx-equipo-quote-title-' . sanitize_title($quote['author']);
 	$html  = '<section class="nvx-brand-section nvx-equipo-quote" aria-label="' . esc_attr( sprintf( __( 'Visión clínica de %s', 'nuvanx-medical' ), $quote['author'] ) ) . '">';
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<blockquote class="nvx-equipo-blockquote">';

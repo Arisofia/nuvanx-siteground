@@ -92,9 +92,10 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 }
 
 /**
- * Render a titled zone/list item (title + body).
+ * Renders a titled body item for a feature zone.
  *
- * @param array<string,mixed> $item Item with optional title/body.
+ * @param array<string,mixed> $item Item containing an optional title and body.
+ * @return string The rendered list item, or an empty string when both values are empty.
  */
 function nvx_btl_detail_zone_item_markup( array $item ): string {
 	$title = trim( (string) ( $item['title'] ?? '' ) );
@@ -103,9 +104,9 @@ function nvx_btl_detail_zone_item_markup( array $item ): string {
 		return '';
 	}
 
-	$html = '<li class="nvx-endolaser-zone">';
+	$html = '<li class="nvx-feature-zone">';
 	if ( '' !== $title ) {
-		$html .= '<h3 class="nvx-endolaser-zone__title">' . esc_html( $title ) . '</h3>';
+		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $title ) . '</h3>';
 	}
 	if ( '' !== $text ) {
 		$html .= '<p class="nvx-body">' . esc_html( $text ) . '</p>';
@@ -115,13 +116,14 @@ function nvx_btl_detail_zone_item_markup( array $item ): string {
 }
 
 /**
- * Render a list of titled zone items.
+ * Renders a list of titled feature-zone items.
  *
- * @param array<int,mixed> $items Zone items.
- * @param string           $tag   List tag (ul|ol).
+ * @param array<int, mixed> $items Items to render.
+ * @param string            $tag   HTML list tag, such as `ul` or `ol`.
+ * @return string The rendered HTML list.
  */
 function nvx_btl_detail_zone_list_markup( array $items, string $tag = 'ul' ): string {
-	$html = '<' . $tag . ' class="nvx-endolaser-zone-list">';
+	$html = '<' . $tag . ' class="nvx-feature-zone-list">';
 	foreach ( $items as $item ) {
 		if ( ! is_array( $item ) ) {
 			continue;
@@ -266,9 +268,10 @@ function nvx_btl_detail_has_compare_content( array $c ): bool {
 }
 
 /**
- * Compare / criterio diferencial section (optional).
+ * Renders the optional differential-criteria section with comparison, combination-protocol, and related links.
  *
- * @param array<string,mixed> $c Registry entry.
+ * @param array<string,mixed> $c Registry entry containing comparison section data.
+ * @return string The rendered section markup, or an empty string when no comparison content exists.
  */
 function nvx_btl_detail_compare_markup( array $c ): string {
 	if ( ! nvx_btl_detail_has_compare_content( $c ) ) {
@@ -304,9 +307,10 @@ function nvx_btl_detail_compare_markup( array $c ): string {
 }
 
 /**
- * Single process step (string or titled array).
+ * Formats a process step for display in the process list.
  *
- * @param mixed $step Process step.
+ * @param mixed $step A process step represented by text or a titled item array.
+ * @return string The rendered process-step markup, or an empty string for blank input.
  */
 function nvx_btl_detail_process_step_markup( $step ): string {
 	if ( is_array( $step ) ) {
@@ -317,7 +321,7 @@ function nvx_btl_detail_process_step_markup( $step ): string {
 	if ( '' === $text ) {
 		return '';
 	}
-	return '<li class="nvx-endolaser-zone"><p class="nvx-body">' . esc_html( $text ) . '</p></li>';
+	return '<li class="nvx-feature-zone"><p class="nvx-body">' . esc_html( $text ) . '</p></li>';
 }
 
 /**
@@ -329,7 +333,7 @@ function nvx_btl_detail_process_markup( array $c ): string {
 	$id    = $c['marker'];
 	$html  = nvx_page_brand_section_open_markup( '', $id . '-proc' );
 	$html .= nvx_page_brand_section_heading_markup( esc_html__( 'Proceso médico', 'nuvanx-medical' ), $id . '-proc', esc_html__( 'Procedimiento, sesiones y cuidados', 'nuvanx-medical' ) );
-	$html .= '<ol class="nvx-endolaser-zone-list">';
+	$html .= '<ol class="nvx-feature-zone-list">';
 	foreach ( (array) ( $c['process'] ?? array() ) as $step ) {
 		$html .= nvx_btl_detail_process_step_markup( $step );
 	}
@@ -366,7 +370,10 @@ function nvx_btl_detail_faq_markup( array $c ): string {
 }
 
 /**
- * Build full editorial markup for a detail key.
+ * Builds the complete editorial markup for a BTL detail page.
+ *
+ * @param string $key The registry key identifying the detail page.
+ * @return string The generated hero and editorial section markup, or an empty string when the key is not registered.
  */
 function nvx_btl_detail_page_markup( string $key ): string {
 	$reg = nvx_btl_detail_registry();
@@ -376,7 +383,7 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$c = $reg[ $key ];
 
 	$hero  = nvx_btl_detail_hero_markup( $c );
-	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-endolift-editorial nvx-btl-detail-editorial">';
+	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-brand-editorial nvx-btl-detail-editorial">';
 	$body .= nvx_btl_detail_mechanism_markup( $c );
 	$body .= nvx_btl_detail_indications_markup( $c );
 	$body .= nvx_btl_detail_compare_markup( $c );
@@ -460,7 +467,7 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		'nvx-brand-page ' . $modifier
 	);
 }
-add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', 19 );
+add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
 
 /**
  * Yoast title for BTL detail pages.

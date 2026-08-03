@@ -116,3 +116,7 @@ jobs:
           path: artifacts/
           if-no-files-found: ignore
           retention-days: 7
+
+      - name: Securely destroy SSH identity
+        if: always()
+        uses: ./.github/actions/destroy-ssh-identity

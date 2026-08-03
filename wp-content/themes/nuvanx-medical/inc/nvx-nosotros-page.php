@@ -217,7 +217,9 @@ function nvx_nosotros_clinics_markup(): string {
 }
 
 /**
- * Short medical board — colegiados visibles; full bios live on /equipo-medico/.
+ * Renders a concise medical team section with registration details, biographies, and related links.
+ *
+ * @return string The generated team section HTML.
  */
 function nvx_nosotros_team_markup(): string {
 	$data = nvx_nosotros_registry();
@@ -234,17 +236,13 @@ function nvx_nosotros_team_markup(): string {
 
 	$index = 0;
 	foreach ( (array) ( $t['members'] ?? array() ) as $m ) {
-		$col = '';
+		$col = $m['colegiado'] ?? '';
 		if ( 0 === $index && defined( 'NVX_DIRECTOR_COLEGIADO' ) ) {
 			$col = NVX_DIRECTOR_COLEGIADO;
 		} elseif ( 1 === $index && defined( 'NVX_IVON_COLEGIADO' ) ) {
 			$col = NVX_IVON_COLEGIADO;
 		} elseif ( 2 === $index && defined( 'NVX_FABIO_COLEGIADO' ) ) {
 			$col = NVX_FABIO_COLEGIADO;
-		}
-		if ( '' === $col ) {
-			// Fallbacks based on position in legacy hardcode
-			$col = ( 0 === $index ) ? '282864786' : ( ( 1 === $index ) ? '284621525' : '282877543' );
 		}
 
 		$member_id    = 'nvx-team-card-' . $index;

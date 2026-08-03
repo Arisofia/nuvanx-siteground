@@ -58,44 +58,16 @@ function nvx_seo_current_metadata_key(): ?string {
 		return null;
 	}
 
-	if ( is_front_page() ) {
-		return 'home';
-	}
+	$path = nvx_seo_current_path();
 
-	// Posts index (/blog/) — not the front page.
-	if ( is_home() && ! is_front_page() ) {
-		return 'blog';
-	}
-
-	if ( function_exists( 'nvx_schema_resolve_treatment_key' ) ) {
-		$treatment = nvx_schema_resolve_treatment_key( (int) get_queried_object_id() );
-		$map       = array(
-			'endolift_facial'    => 'endolift',
-			'endolaser_corporal' => 'endolaser',
-			'laser_co2'          => 'co2',
-			'exion_btl'          => 'exion',
-			'exilite_btl'        => 'exilite',
-		);
-		if ( isset( $map[ $treatment ] ) ) {
-			return $map[ $treatment ];
+	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
+		$routes = nvx_catalog_json_resolved( 'routes.json' );
+		if ( isset( $routes[ $path ]['seo_id'] ) ) {
+			return $routes[ $path ]['seo_id'];
 		}
 	}
 
-	$path = nvx_seo_current_path();
-	$map  = array(
-		'/tratamientos/' => 'tratamientos',
-		'/soluciones-medicas/' => 'soluciones',
-		'/clinicas-de-medicina-estetica-nuvanx/' => 'clinicas',
-		'/medicina-estetica-chamberi/' => 'chamberi',
-		'/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/' => 'goya',
-		'/equipo-medico/' => 'equipo',
-		'/por-que-nuvanx/' => 'por_que_nuvanx',
-		'/inversion-medicina-estetica/' => 'inversion',
-		'/madrid/valoracion/' => 'valoracion',
-		'/blog/' => 'blog',
-	);
-
-	return $map[ $path ] ?? null;
+	return null;
 }
 
 /**

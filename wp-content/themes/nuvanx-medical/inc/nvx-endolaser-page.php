@@ -102,7 +102,7 @@ function nvx_endolaser_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolaser-page.json' );
 	
-	$html  = '<div class="nvx-endolaser-editorial nvx-endolift-editorial">';
+	$html  = '<div class="nvx-endolaser-editorial nvx-brand-editorial">';
 
 	// A. Intro + dual mechanism.
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolaser-mechanism', 'nvx-endolaser-mech-title' );

@@ -1,0 +1,184 @@
+{
+  "/": {
+    "seo_id": "home"
+  },
+  "/madrid/": {},
+  "/madrid/valoracion/": {
+    "seo_id": "valoracion"
+  },
+  "/soluciones-medicas/": {
+    "seo_id": "soluciones"
+  },
+  "/protocolos-signature/": {},
+  "/por-que-nuvanx/": {
+    "seo_id": "por_que_nuvanx"
+  },
+  "/inversion-medicina-estetica/": {
+    "seo_id": "inversion"
+  },
+  "/nosotros/": {},
+  "/equipo-medico/": {
+    "seo_id": "equipo"
+  },
+  "/contacto/": {},
+  "/blog/": {
+    "seo_id": "blog"
+  },
+  "/clinicas-de-medicina-estetica-nuvanx/": {
+    "seo_id": "clinicas",
+    "schema_group": "clinic_hub",
+    "post_id": 1399
+  },
+  "/medicina-estetica-chamberi/": {
+    "seo_id": "chamberi",
+    "schema_group": "clinics",
+    "schema_id": "chamberi",
+    "post_id": 1543
+  },
+  "/medicina-estetica-goya-barrio-salamanca/": {
+    "route_alias": "/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/"
+  },
+  "/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/": {
+    "seo_id": "goya",
+    "schema_group": "clinics",
+    "schema_id": "goya",
+    "post_id": 1537
+  },
+  "/endolift-facial-papada-mandibula/": {
+    "seo_id": "endolift",
+    "schema_group": "treatments",
+    "schema_id": "endolift_facial",
+    "post_id": 1241,
+    "schema_type": "MedicalProcedure"
+  },
+  "/endolaser-corporal-grasa-localizada/": {
+    "seo_id": "endolaser",
+    "schema_group": "treatments",
+    "schema_id": "endolaser_corporal",
+    "post_id": 0,
+    "schema_type": "MedicalProcedure"
+  },
+  "/laser-co2-fraccionado-madrid-textura-cicatrices-poro/": {
+    "seo_id": "co2",
+    "schema_group": "treatments",
+    "schema_id": "laser_co2",
+    "post_id": 0,
+    "schema_type": "MedicalProcedure"
+  },
+  "/exion-btl/": {
+    "seo_id": "exion",
+    "schema_group": "treatments",
+    "schema_id": "exion_btl",
+    "post_id": 2906,
+    "schema_type": "Service"
+  },
+  "/exion-face/": {
+    "schema_group": "treatments",
+    "schema_id": "exion_face",
+    "post_id": 0,
+    "schema_type": "Service"
+  },
+  "/exion-fractional/": {
+    "schema_group": "treatments",
+    "schema_id": "exion_fractional",
+    "post_id": 0,
+    "schema_type": "Service"
+  },
+  "/exion-body/": {
+    "schema_group": "treatments",
+    "schema_id": "exion_body",
+    "post_id": 0,
+    "schema_type": "Service"
+  },
+  "/emfusion/": {
+    "schema_group": "treatments",
+    "schema_id": "emfusion",
+    "post_id": 0,
+    "schema_type": "Service"
+  },
+  "/btl-exilite-ipl-madrid/": {
+    "seo_id": "exilite",
+    "schema_group": "treatments",
+    "schema_id": "exilite_btl",
+    "post_id": 0,
+    "schema_type": "Service"
+  },
+  "/medicina-estetica-laser/": {},
+  "/medicina-estetica/": {},
+  "/estetica-avanzada/": {},
+  "/bioestimuladores-colageno-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "collagen_bio"
+  },
+  "/ojeras-surco-lagrimal-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "dark_circles_ha"
+  },
+  "/rinomodelacion-sin-cirugia-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "rhinomodeling_ha"
+  },
+  "/labios-acido-hialuronico-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "lips_ha"
+  },
+  "/remodelacion-corporal-laser-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "body_contouring_laser"
+  },
+  "/tratamiento-postparto-abdomen-contorno-corporal-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "postpartum"
+  },
+  "/papada-definicion-mandibular-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "double_chin"
+  },
+  "/calidad-piel-firmeza-luminosidad-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "skin_quality"
+  },
+  "/cicatrices-acne-poros-textura-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "acne_scars"
+  },
+  "/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "pigmentation"
+  },
+  "/grasa-localizada-abdomen-flancos-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "local_fat_abdomen"
+  },
+  "/flacidez-grasa-localizada-brazos-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "arms_fat_laxity"
+  },
+  "/grasa-espalda-zona-sujetador-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "back_fat"
+  },
+  "/flacidez-muslos-internos-subgluteo-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "inner_thighs"
+  },
+  "/tratamiento-rodillas-grasa-flacidez-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "knees"
+  },
+  "/contorno-corporal-masculino-madrid/": {
+    "schema_group": "treatments",
+    "schema_id": "male_body_contouring"
+  },
+  "/gracias/": {},
+  "/politica-de-cookies-ue/": {},
+  "/politica-privacidad/": {},
+  "/aviso-legal/": {},
+  "/politica-de-cookies/": {},
+  "/mas-informacion-sobre-las-cookies/": {},
+  "/casos-de-pacientes/": {},
+  "/equipo-medico-clinica-goya/": {},
+  "/tratamientos/": {
+    "seo_id": "tratamientos"
+  }
+}

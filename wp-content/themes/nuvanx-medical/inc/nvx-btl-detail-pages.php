@@ -376,7 +376,7 @@ function nvx_btl_detail_page_markup( string $key ): string {
 	$c = $reg[ $key ];
 
 	$hero  = nvx_btl_detail_hero_markup( $c );
-	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-endolift-editorial nvx-btl-detail-editorial">';
+	$body  = '<div class="' . esc_attr( $c['marker'] ) . '-editorial nvx-brand-editorial nvx-btl-detail-editorial">';
 	$body .= nvx_btl_detail_mechanism_markup( $c );
 	$body .= nvx_btl_detail_indications_markup( $c );
 	$body .= nvx_btl_detail_compare_markup( $c );

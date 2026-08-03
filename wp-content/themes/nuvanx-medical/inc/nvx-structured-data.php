@@ -197,6 +197,11 @@ function nvx_schema_page_registry() {
         : array();
 
     foreach ( $routes as $path => $config ) {
+        // Skip the loader's synthetic keys (e.g. '_error') whose value is not
+        // a route config array; accessing offsets on them warns under PHP 8.
+        if ( ! is_array( $config ) || ( is_string( $path ) && 0 === strpos( $path, '_' ) ) ) {
+            continue;
+        }
         $group = $config['schema_group'] ?? '';
         if ( ! $group ) {
             continue;

@@ -68,7 +68,7 @@ $nvx_goya                        = isset( $nvx_cfg['goya'] ) ? $nvx_cfg['goya'] 
 						$split_at = 7;
 						foreach ( $nvx_footer_published_treatments as $index => $treatment ) :
 							if ( 0 === $index ) :
-								?>
+	
 					</ul>
 					<ul class="nvx-footer__links">
 							<?php endif; ?>

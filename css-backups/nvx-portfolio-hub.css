@@ -106,7 +106,7 @@
 }
 
 .nvx-hub-catalog__list {
-	max-width: var(--nvx-catalog-width);
+	max-width: 900px;
 	margin: 0 auto;
 	padding-inline: var(--nvx-gutter-inner);
 	display: flex;

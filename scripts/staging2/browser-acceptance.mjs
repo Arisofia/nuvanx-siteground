@@ -145,6 +145,70 @@ async function checkOrphanClasses(page, issues) {
 }
 
 /**
+ * Detects PHP code leaks in rendered HTML (critical security/quality issue).
+ * @param {import('playwright').Page} page - The page to inspect.
+ * @param {string[]} issues - Collection to which detected issues are added.
+ */
+async function checkPhpLeaks(page, issues) {
+  const htmlContent = await page.content();
+  if (htmlContent.includes('?>')) {
+    issues.push('CRITICAL: PHP closing tag (?>) visible in rendered HTML - code leak detected');
+  }
+  if (htmlContent.includes('<?php')) {
+    issues.push('CRITICAL: PHP opening tag (<?php) visible in rendered HTML - code leak detected');
+  }
+}
+
+/**
+ * Validates H1 presence and content (critical for SEO/accessibility).
+ * @param {import('playwright').Page} page - The page to inspect.
+ * @param {string[]} issues - Collection to which detected issues are added.
+ */
+async function checkH1Validation(page, issues) {
+  const h1Count = await page.locator('h1').count();
+  if (h1Count === 0) {
+    issues.push('CRITICAL: No H1 element found on page');
+  } else if (h1Count > 1) {
+    issues.push(`WARNING: Multiple H1 elements found (${h1Count}) - should be exactly 1`);
+  } else {
+    const h1Text = await page.locator('h1').textContent();
+    if (!h1Text || h1Text.trim() === '') {
+      issues.push('CRITICAL: H1 element exists but is empty');
+    }
+  }
+}
+
+/**
+ * Validates icon dimensions (prevents oversized icons breaking layout).
+ * @param {import('playwright').Page} page - The page to inspect.
+ * @param {string[]} issues - Collection to which detected issues are added.
+ */
+async function checkIconDimensions(page, issues) {
+  const oversizedIcons = await page.evaluate(() => {
+    const oversized = [];
+    const icons = document.querySelectorAll('svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon');
+    icons.forEach(icon => {
+      const rect = icon.getBoundingClientRect();
+      if (rect.height > 80 || rect.width > 80) {
+        oversized.push({
+          height: Math.round(rect.height),
+          width: Math.round(rect.width),
+          class: icon.className
+        });
+      }
+    });
+    return oversized;
+  });
+  
+  if (oversizedIcons.length > 0) {
+    issues.push(`CRITICAL: ${oversizedIcons.length} oversized icon(s) detected (>80px) - layout breaking bug`);
+    oversizedIcons.forEach(icon => {
+      console.warn(`  - Icon ${icon.class}: ${icon.width}x${icon.height}px`);
+    });
+  }
+}
+
+/**
  * Checks hero dimensions and vertical gaps between main sections, adding detected layout issues to the provided collection.
  * @param {import('playwright').Page} page - The page to inspect.
  * @param {string[]} issues - The collection to which detected issues are appended.
@@ -246,6 +310,49 @@ async function safeGoto(page, url) {
 }
 
 /**
+ * Handles cookie consent banner by attempting to accept or dismiss it.
+ * @param {import('playwright').Page} page - The Playwright page instance.
+ */
+async function handleCookieConsent(page) {
+  try {
+    // Wait for cookie banner to appear (up to 3 seconds)
+    const cookieSelectors = [
+      'button:has-text("Aceptar")',
+      'button:has-text("Accept")', 
+      'button:has-text("Accept cookies")',
+      'button:has-text("Accept all")',
+      'button:has-text("Acepto")',
+      'button.cookie-consent-accept',
+      'button[data-testid="cookie-accept"]',
+      'button#cookie-accept',
+      'button.cc-accept',
+      'button.js-cookie-consent-accept'
+    ];
+    
+    for (const selector of cookieSelectors) {
+      try {
+        const element = await page.locator(selector).first();
+        if (await element.isVisible({ timeout: 1000 })) {
+          await element.click({ timeout: 3000 });
+          console.log('✓ Cookie consent handled via selector:', selector);
+          await page.waitForTimeout(500); // Wait for banner to close
+          return true;
+        }
+      } catch {
+        // Selector not found or not visible, try next
+        continue;
+      }
+    }
+    
+    console.log('ℹ No cookie consent banner found or not visible');
+    return false;
+  } catch (error) {
+    console.warn('⚠️ Cookie consent handling failed:', error.message);
+    return false;
+  }
+}
+
+/**
  * Runs browser acceptance tests for all configured routes and writes audit artifacts.
  *
  * Exits the process with status 1 if any route fails its acceptance checks or encounters a fatal error.
@@ -338,6 +445,9 @@ async function run() {
       mainResponseStatus = response ? response.status() : 0;
       finalUrl = page.url();
 
+      // Handle cookie consent banner before running validations
+      await handleCookieConsent(page);
+
       // Wait a bit for JS to execute (like HubSpot)
       await page.waitForTimeout(2000);
 
@@ -353,6 +463,11 @@ async function run() {
       await checkGridLayout(page, issues);
       await checkOrphanClasses(page, issues);
       await checkSpacing(page, issues);
+      
+      // Critical automated assertions for regression prevention
+      await checkPhpLeaks(page, issues);
+      await checkH1Validation(page, issues);
+      await checkIconDimensions(page, issues);
 
       // Deployment SHA marker in the document
       metaDeploySha =

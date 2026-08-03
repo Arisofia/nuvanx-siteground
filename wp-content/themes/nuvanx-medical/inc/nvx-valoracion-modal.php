@@ -14,7 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Whether the modal should load on this front request.
+ * Determines whether the valuation modal is enabled for the current request.
+ *
+ * @return bool True if the modal is enabled for the request, false otherwise.
  */
 function nvx_valoracion_modal_enabled(): bool {
 	if ( is_admin() || wp_doing_ajax() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || is_feed() ) {

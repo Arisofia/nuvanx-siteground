@@ -91,7 +91,9 @@ function nvx_nosotros_registry(): array {
 }
 
 /**
- * Hero copy.
+ * Builds the hero copy markup for the Nosotros page, including its heading, supporting text, metadata, and valuation call to action.
+ *
+ * @return string The escaped hero copy HTML.
  */
 function nvx_nosotros_hero_copy_markup(): string {
 	$data = nvx_nosotros_registry();

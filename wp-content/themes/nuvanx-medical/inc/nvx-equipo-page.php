@@ -57,7 +57,9 @@ function nvx_content_is_equipo_page( string $content ): bool {
 }
 
 /**
- * Hero.
+ * Builds the medical team page hero copy and calls to action.
+ *
+ * @return string The rendered hero markup.
  */
 function nvx_equipo_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
@@ -153,11 +155,11 @@ function nvx_equipo_promote_lazy_src( string $attrs ): string {
 }
 
 /**
- * Normalize a portrait snippet to a single clean <img> (doctor crop).
+ * Cleans CMS portrait markup and returns a single lazy-loaded doctor portrait image.
  *
- * @param string $media Figure or img HTML from CMS.
- * @param string $label Optional portrait label for alt text fallback.
- * @return string Safe img markup or empty.
+ * @param string $media Figure or image HTML from the CMS.
+ * @param string $label Optional physician name used for a fallback alt attribute.
+ * @return string Cleaned image markup, or an empty string when no usable portrait is found.
  */
 function nvx_equipo_clean_portrait_img( string $media, string $label = '' ): string {
 	if ( '' === trim( $media ) || nvx_equipo_media_is_logo( $media ) ) {
@@ -229,7 +231,11 @@ function nvx_equipo_is_person_staff_card( string $card ): bool {
 }
 
 /**
- * Portrait frame markup for authority profiles.
+ * Wraps a cleaned physician portrait in a figure element.
+ *
+ * @param string $media The source portrait markup.
+ * @param string $label The physician name used for fallback image text.
+ * @return string Portrait figure markup, or an empty string when no valid portrait is available.
  */
 function nvx_equipo_portrait_figure_markup( string $media, string $label ): string {
 	$img = nvx_equipo_clean_portrait_img( $media, $label );
@@ -572,9 +578,10 @@ function nvx_equipo_physician_sections_markup( array $sections ): string {
 }
 
 /**
- * Quote section for a physician authority block.
+ * Renders a physician's clinical-vision quote section.
  *
- * @param array{text:string,author:string} $quote Quote data.
+ * @param array{text:string,author:string} $quote Quote text and physician attribution.
+ * @return string The rendered quote section markup.
  */
 function nvx_equipo_physician_quote_section_markup( array $quote ): string {
 	$h2_id = 'nvx-equipo-quote-title-' . sanitize_title($quote['author']);

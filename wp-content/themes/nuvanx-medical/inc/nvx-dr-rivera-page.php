@@ -40,7 +40,10 @@ function nvx_content_is_dr_rivera_page( string $content ): bool {
 }
 
 /**
- * Replace content with Dr. Rivera authority page.
+ * Replaces matching page content with Dr. Rivera's authority-page markup.
+ *
+ * @param string $content The original page content.
+ * @return string The generated authority-page markup, or the original content when the page does not match.
  */
 function nvx_content_dr_rivera_hijack( string $content ): string {
 	if ( ! nvx_content_is_dr_rivera_page( $content ) ) {

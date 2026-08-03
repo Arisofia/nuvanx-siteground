@@ -91,7 +91,9 @@ function nvx_endolift_process_icon( string $name ): string {
 }
 
 /**
- * Hero copy: authority + dual CTA (valoración + WhatsApp).
+ * Builds the Endolift hero copy with medical authority details, descriptive content, calls to action, and metadata.
+ *
+ * @return string The rendered hero copy markup.
  */
 function nvx_endolift_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';

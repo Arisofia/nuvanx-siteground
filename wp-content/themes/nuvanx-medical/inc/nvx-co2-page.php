@@ -56,7 +56,9 @@ function nvx_content_is_co2_page( string $content ): bool {
 }
 
 /**
- * Hero copy.
+ * Builds the CO₂ laser treatment hero copy markup.
+ *
+ * @return string The escaped hero copy HTML.
  */
 function nvx_co2_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';

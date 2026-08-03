@@ -83,6 +83,11 @@ async function safeGoto(page, url) {
   throw new Error(`Failed to goto ${url} after ${maxAttempts} attempts.`);
 }
 
+/**
+ * Runs browser acceptance tests for all configured routes and writes audit artifacts.
+ *
+ * Exits the process with status 1 when any route fails its acceptance checks.
+ */
 async function run() {
   console.log(`Starting Browser Acceptance Tests against ${baseUrl} with EXPECTED_SHA=${expectedSha}...`);
   // Use SOCKS5 proxy if running in CI to bypass SiteGround edge blocking

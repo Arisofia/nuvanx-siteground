@@ -6,7 +6,6 @@ on:
       - master
     paths:
       - ".github/workflows/deploy-staging2.yml"
-      - ".github/workflows/staging2-rendered-acceptance.yml"
       - ".github/actions/destroy-ssh-identity/action.yml"
       - "tools/deploy/deploy-to-staging2.sh"
       - "tools/deploy/deploy-required-mu-plugins.sh"
@@ -24,7 +23,6 @@ on:
   pull_request:
     paths:
       - ".github/workflows/deploy-staging2.yml"
-      - ".github/workflows/staging2-rendered-acceptance.yml"
       - ".github/actions/destroy-ssh-identity/action.yml"
       - "tools/deploy/deploy-to-staging2.sh"
       - "tools/deploy/deploy-required-mu-plugins.sh"

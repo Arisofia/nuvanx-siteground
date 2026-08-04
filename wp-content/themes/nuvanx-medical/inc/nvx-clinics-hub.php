@@ -1210,7 +1210,11 @@ add_filter(
 			return $owner;
 		}
 		if ( function_exists( 'nvxIsClinicsHub' ) && nvxIsClinicsHub() ) {
-			return 'nvx_clinics_hub';
+			global $post;
+			$content = ( $post && is_string( $post->post_content ) ) ? $post->post_content : '';
+			if ( nvx_clinics_hub_is_managed_content( $content ) ) {
+				return 'nvx_clinics_hub';
+			}
 		}
 		return $owner;
 	},

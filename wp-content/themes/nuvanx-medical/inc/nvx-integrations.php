@@ -9,15 +9,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once __DIR__ . '/nvx-environment-flags.php';
+
+/**
+ * Returns the normalized request path from REQUEST_URI.
+ *
+ * Unslashes and URL-sanitizes $_SERVER['REQUEST_URI'], then strips the query
+ * string. Percent-encoded octets are preserved (unlike sanitize_text_field()).
+ *
+ * @return string Path without query string, or '' when REQUEST_URI is unset.
+ */
+function nvx_theme_request_path(): string {
+	if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
+		return '';
+	}
+	$raw = esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ) );
+	return (string) strtok( $raw, '?' );
+}
+
 /** Goya sede: evita bucle redirect_canonical. */
 function nvx_theme_is_goya_page(): bool {
 	if ( is_admin() ) {
 		return false;
 	}
-	if ( is_page( 1537 ) ) {
+	if ( is_page( 1537 ) ) { // Goya Sede page ID
 		return true;
 	}
-	$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '?' ) : '';
+	$path = nvx_theme_request_path();
 	return '/' . trim( $path, '/' ) . '/' === '/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/';
 }
 
@@ -61,7 +78,7 @@ add_action(
 		if ( is_admin() ) {
 			return;
 		}
-		$path = isset( $_SERVER['REQUEST_URI'] ) ? strtok( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ), '?' ) : '';
+		$path = nvx_theme_request_path();
 		$norm = '/' . trim( $path, '/' ) . '/';
 		if ( '/politica-de-privacidad/' === $norm ) {
 			wp_safe_redirect( home_url( '/politica-privacidad/' ), 301 );
@@ -93,7 +110,13 @@ add_action(
 		}
 
 		if ( ! is_404() && ! is_search() ) {
-			$current_url = function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : ( is_front_page() ? home_url( '/' ) : home_url( wp_parse_url( esc_url_raw( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ) ), PHP_URL_PATH ) ) );
+			if ( function_exists( 'nvx_document_governance_canonical_url' ) ) {
+				$current_url = nvx_document_governance_canonical_url();
+			} elseif ( is_front_page() ) {
+				$current_url = home_url( '/' );
+			} else {
+				$current_url = home_url( nvx_theme_request_path() ?: '/' );
+			}
 			if ( '' !== $current_url ) {
 				echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( $current_url ) . '" />' . "\n";
 				echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";

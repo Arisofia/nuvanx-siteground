@@ -120,11 +120,9 @@ for mu in \
   nuvanx-google-attribution.php
 do
   rm -f "$PROD_ROOT/wp-content/mu-plugins/$mu"
-  rm -f "$STAGING_ROOT/wp-content/mu-plugins/$mu"
 done
 # Drop empty attribution package if present.
-rm -rf "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution" \
-  "$STAGING_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
+rm -rf "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
 
 echo "== Remove stale theme min.css siblings on prod =="
 find "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/css" \

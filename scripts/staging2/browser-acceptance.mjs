@@ -614,20 +614,17 @@ async function run() {
           }
         }
         
-        // 6. Axe-core accessibility scan
-        const axeRoutes = ['/', '/madrid/valoracion/', '/contacto/', '/endolift-facial-papada-mandibula/', '/blog/'];
-        if (axeRoutes.includes(route)) {
-          try {
-            const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
-            const violations = accessibilityScanResults.violations || [];
-            const blocking = violations.filter(v => ['critical','serious'].includes(v.impact));
-            a11yViolationsCount = blocking.length;
-            if (blocking.length > 0) {
-              issues.push(`A11y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map(v=>v.id).join(', ')}`);
-            }
-          } catch (axeErr) {
-            console.warn(`Axe-core failed on ${route}:`, axeErr.message);
+        // 6. Axe-core accessibility scan (all routes)
+        try {
+          const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+          const violations = accessibilityScanResults.violations || [];
+          const blocking = violations.filter(v => ['critical','serious'].includes(v.impact));
+          a11yViolationsCount = blocking.length;
+          if (blocking.length > 0) {
+            issues.push(`A11y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map(v=>v.id).join(', ')}`);
           }
+        } catch (axeErr) {
+          console.warn(`Axe-core failed on ${route}:`, axeErr.message);
         }
       }
 
@@ -681,9 +678,32 @@ async function run() {
         ctaCount
       });
 
-      csvRows.push(
-        `${route},${mainResponseStatus},${finalUrl},${canonical},${h1Count},"${title.replace(/"/g, '""')}",${currentConsoleErrors.length},${currentNetworkErrors.length},${metaDeploySha},${htmlLang},${mainExists},${hasNoindexMeta},${httpNoindexHeader},${hasInitialHubspot},${hasInitialFacebookSignal},${hasRogueThirdPartySrc},${rogueJsonLdCount},${heroCount},${ctaCount},${a11yViolationsCount}`
+      // Build CSV row safely escaping quotes and newlines (RFC 4180)
+      const csvRow = [
+        route || '',
+        mainResponseStatus || '',
+        finalUrl || '',
+        canonical || '',
+        h1Count || 0,
+        title || '',
+        currentConsoleErrors.length || 0,
+        currentNetworkErrors.length || 0,
+        metaDeploySha || '',
+        htmlLang || '',
+        mainExists ? '1' : '0',
+        hasNoindexMeta ? '1' : '0',
+        httpNoindexHeader || '',
+        hasInitialHubspot ? '1' : '0',
+        hasInitialFacebookSignal ? '1' : '0',
+        hasRogueThirdPartySrc ? '1' : '0',
+        rogueJsonLdCount || 0,
+        heroCount || 0,
+        ctaCount || 0,
+        a11yViolationsCount || 0
+      ].map(value =>
+        `"${String(value ?? '').replaceAll('\r\n', ' ').replaceAll('\n', ' ').replaceAll('"', '""')}"`
       );
+      csvRows.push(csvRow.join(','));
 
       if (issues.length > 0) {
         console.error(`❌ ${route} FAILED:`);

@@ -544,7 +544,7 @@ function nvx_signature_hub_filter_content( string $content ): string {
 	$markup = nvx_signature_hub_markup( $hub );
 	return '' !== $markup ? $markup : $content;
 }
-add_filter( 'the_content', 'nvx_signature_hub_filter_content', 21 );
+add_filter( 'the_content', 'nvx_signature_hub_filter_content', NVX_HOOK_PRIO_SIGNATURE_HUB );
 
 /**
  * Canonical short-path map for Contour and Post-Maternity public hubs.
@@ -712,7 +712,7 @@ add_filter( 'nvx_navigation_primary_blueprint', 'nvx_signature_phase_navigation_
 function nvx_signature_phase_normalize_public_names( string $content ): string {
 	return str_ireplace( array( 'Couture Sculpt™', 'NUVANX Contour Sculpt™', 'Contour Sculpt™' ), NVX_CONTOUR_ARCHITECTURE, $content );
 }
-add_filter( 'the_content', 'nvx_signature_phase_normalize_public_names', 219 );
+add_filter( 'the_content', 'nvx_signature_phase_normalize_public_names', NVX_HOOK_PRIO_SIGNATURE_NAMES );
 
 /** Resolve metadata for the current governed landing page (detail or hub). */
 function nvx_signature_phase_current_metadata(): ?array {

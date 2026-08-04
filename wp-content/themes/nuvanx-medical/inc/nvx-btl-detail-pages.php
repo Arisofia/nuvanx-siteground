@@ -93,10 +93,9 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 }
 
 /**
- * Renders a titled body item for a feature zone.
+ * Render a titled zone/list item (title + body).
  *
- * @param array<string,mixed> $item Item containing an optional title and body.
- * @return string The rendered list item, or an empty string when both values are empty.
+ * @param array<string,mixed> $item Item with optional title/body.
  */
 function nvx_btl_detail_zone_item_markup( array $item ): string {
 	$title = trim( (string) ( $item['title'] ?? '' ) );
@@ -117,11 +116,10 @@ function nvx_btl_detail_zone_item_markup( array $item ): string {
 }
 
 /**
- * Renders a list of titled feature-zone items.
+ * Render a list of titled zone items.
  *
- * @param array<int, mixed> $items Items to render.
- * @param string            $tag   HTML list tag, such as `ul` or `ol`.
- * @return string The rendered HTML list.
+ * @param array<int,mixed> $items Zone items.
+ * @param string           $tag   List tag (ul|ol).
  */
 function nvx_btl_detail_zone_list_markup( array $items, string $tag = 'ul' ): string {
 	$html = '<' . $tag . ' class="nvx-feature-zone-list">';
@@ -269,10 +267,9 @@ function nvx_btl_detail_has_compare_content( array $c ): bool {
 }
 
 /**
- * Renders the optional differential-criteria section with comparison, combination-protocol, and related links.
+ * Compare / criterio diferencial section (optional).
  *
- * @param array<string,mixed> $c Registry entry containing comparison section data.
- * @return string The rendered section markup, or an empty string when no comparison content exists.
+ * @param array<string,mixed> $c Registry entry.
  */
 function nvx_btl_detail_compare_markup( array $c ): string {
 	if ( ! nvx_btl_detail_has_compare_content( $c ) ) {
@@ -308,10 +305,9 @@ function nvx_btl_detail_compare_markup( array $c ): string {
 }
 
 /**
- * Formats a process step for display in the process list.
+ * Single process step (string or titled array).
  *
- * @param mixed $step A process step represented by text or a titled item array.
- * @return string The rendered process-step markup, or an empty string for blank input.
+ * @param mixed $step Process step.
  */
 function nvx_btl_detail_process_step_markup( $step ): string {
 	if ( is_array( $step ) ) {
@@ -371,10 +367,7 @@ function nvx_btl_detail_faq_markup( array $c ): string {
 }
 
 /**
- * Builds the complete editorial markup for a BTL detail page.
- *
- * @param string $key The registry key identifying the detail page.
- * @return string The generated hero and editorial section markup, or an empty string when the key is not registered.
+ * Build full editorial markup for a detail key.
  */
 function nvx_btl_detail_page_markup( string $key ): string {
 	$reg = nvx_btl_detail_registry();
@@ -403,7 +396,8 @@ add_filter(
 	'nvx_page_owner',
 	function ( $owner ) {
 		if ( ! empty( $owner ) ) {
-			return $owner; }
+			return $owner;
+		}
 		global $post;
 		$content = $post ? $post->post_content : '';
 		if ( function_exists( 'nvx_btl_detail_current_key' ) && null !== nvx_btl_detail_current_key( $content ) ) {
@@ -472,7 +466,7 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		'nvx-brand-page ' . $modifier
 	);
 }
-add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
+add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', NVX_HOOK_PRIO_BTL_DETAIL );
 
 /**
  * Yoast title for BTL detail pages.

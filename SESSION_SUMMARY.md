@@ -1,14 +1,14 @@
 # Estado Completo de Pendientes - Nuvanx SiteGround
 
 ## Resumen Numérico
-- **Código DONE (falta validar):** 5 (foco #2, contraste #1, hero #3, centrado #4, sintaxis #5)
+- **Código DONE (falta validar):** 4 (foco #2, contraste #1, hero #3, centrado #4)
 - **Código no-accionar (por diseño):** 2 ✅ (documentado en commit 85ffa2ff)
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
 - **Contenido/CMS:** 0 ✅ (VALIDATED por informe estético + foto Fabio es CMS)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
 - **Editorial:** 1 (numeración romana)
-- **Falsos positivos cerrados:** 7
-- **Total pendientes reales:** 6 (5 validar + 1 editorial)
+- **Falsos positivos cerrados:** 8 (+ H1 cookies redirects 301)
+- **Total pendientes reales:** 5 (4 validar + 1 editorial)
 
 ---
 
@@ -19,10 +19,10 @@ Bloqueo compartido: las verificaciones 1-4 requieren navegador real con caché S
 | # | Pendiente | Ubicación | Verificación pendiente |
 |---|-----------|-----------|------------------------|
 | 1 | Token --nvx-on-dark-92 → --nvx-on-dark-88 | nvx-components.css (.nvx-brand-section--dark .nvx-brand-body--dense) | Contraste legible en sección oscura |
-| 2 | Fallback --nvx-border-focus, 2px | nvx-soluciones-medicas.css:387 | Outline de foco con Tab en /soluciones-medicas/ |
-| 3 | Hero full-bleed restaurado (94612c5f) | nvx-patterns-editorial.css:8-27 | Altura + fondo + edge-to-edge en /endolift-facial-papada-mandibula/ |
+| 2 | Fallback --nvx-border-focus, 2px | nvx-soluciones-medicas.css:387 | Outline de foco con Tab en /soluciones-medicas/ (requiere confirmación Tab explícito) |
+| 3 | Hero full-bleed restaurado (94612c5f) | nvx-site-layout.css:44-55 | Verificar en navegador real maximizado (>1280px) - NO reabrir por detección automática |
 | 4 | por-que-nuvanx centrado (nvx-shell) | nvx-strategy-pages.php:128 | Contenido centrado, no flush-left |
-| 5 | Error sintaxis CSS línea 854 (fb967e54) | nvx-patterns-editorial.css | stylelint limpio |
+| 5 | Error sintaxis CSS línea 854 (fb967e54) | nvx-patterns-editorial.css | ✅ VALIDATED (stylelint limpio) |
 
 **Commits relevantes:**
 - 4f977333 - fix(css): fix undefined CSS tokens for contrast and accessibility ✅
@@ -114,13 +114,29 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 | Inyectables "sin section__inner" | Usan .nvx-aes-section__inner con gutter (nvx-components.css:664-669). Falso positivo del script |
 | ~30 URLs "inconsistente" 202 | Robot Challenge no detectado actualmente (devuelve 200) |
 | routes.json IDs "sin actualizar" | Irrelevante — path-first, nadie usa el campo |
+| H1 cookies "duplicados" | Falso positivo - politica-de-cookies y mas-informacion-sobre-las-cookies redirigen 301 a /politica-de-cookies-ue/ (nvx-page-hygiene.php:19-40). Es consolidación legal intencional, no duplicación real. |
 
 ---
 
 ## Orden de Ataque Recomendado
 
-1. **#1-5 verificaciones VALIDATED** — navegador real + caché purgada (foco, contraste, hero, centrado, sintaxis)
+1. **#1-4 verificaciones VALIDATED** — navegador real + caché purgada (foco, contraste, hero, centrado)
 2. **#15** — decisión editorial (numeración romana I-V vs 01-05)
+
+**Advertencias críticas:**
+
+**Hero Full-Bleed (#3):**
+- NO reabrir por detección automática - es falso positivo recurrente
+- La "detección automática" reportó el hero roto cuando era viewport 1280px de Playwright
+- El full-bleed funciona por diseño en nvx-site-layout.css:44-55
+- Verificación válida: navegador real maximizado (>1280px) donde margin-inline negativo es visible
+- NO tocar nvx-patterns-editorial.css para el hero - ya causó regresión (bb4a6133 revertido por 94612c5f)
+
+**Migración a producción:**
+- NO hacer volcado completo de BD - IDs de post difieren entre entornos
+- Migrar solo posts faltantes (exion-body, emfusion, tratamientos) - ya migrados vía SSH wp CLI
+- Robot Challenge de producción NO resuelto por migración - es config SiteGround WAF, no contenido
+- Resolver Robot Challenge en panel SiteGround de producción independientemente
 
 **Nota sobre commit 85ffa2ff:**
 - Solo agregó comentarios de documentación en nvx-site-layout.css (líneas 45-46)

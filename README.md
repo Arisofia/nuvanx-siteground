@@ -33,6 +33,11 @@ bash -n tools/deploy/deploy-to-staging2.sh
 
 # Test CMS cleanup in dry-run mode offline
 php tools/deploy/nvx-cms-content-cleanup.php --self-test
+
+# Run CSS/PHP linting
+node scripts/lint/no-hardcoded-colors.mjs
+node scripts/lint/no-hardcoded-fontsize.mjs
+node scripts/lint/no-inline-layout-styles.mjs
 ```
 
 ## Branching & Release Policy
@@ -45,8 +50,9 @@ php tools/deploy/nvx-cms-content-cleanup.php --self-test
 
 | Workflow | Purpose |
 |----------|---------|
+| **Code Quality (Lint)** | PHP syntax, PHPCS, PHPStan, and custom CSS/PHP linting |
 | **Deploy Staging2** | Validates deployment contracts on pull requests and deploys an immutable SHA to `staging2.nuvanx.com` on `master` |
-| **Staging2 Rendered Acceptance** | Automatically validates the rendered deployment after a successful Staging2 deployment |
+| **Deploy** | Production deployment with E2E Playwright testing and atomic SiteGround sync |
 
 ### GitHub Actions Secrets Configured
 

@@ -1,5 +1,8 @@
 # 🎨 Guía de Diseño Unificado NUVANX
 
+**Última actualización:** 2026-08-04  
+**Estado:** Sistema de diseño con contrato técnico enforceable via CI
+
 ## 📋 Principios Fundamentales
 
 ### 1. Sistema de Estructura de Página
@@ -187,12 +190,13 @@ svg, .nvx-icon {
 ## 🚫 Errores Comunes a Evitar
 
 ### ❌ NO HACER
-- Usar colores hexadecimales hardcoded
-- Usar tamaños de fuente hardcoded
+- Usar colores hexadecimales hardcoded (detectado por CI)
+- Usar tamaños de fuente hardcoded (detectado por CI)
 - Usar dimensiones de iconos hardcoded
 - Crear estilos específicos por página cuando existe componente global
 - Ignorar tokens CSS del sistema de diseño
 - Usar diferentes patrones de hero para páginas similares
+- Usar estilos inline con propiedades de layout (detectado por CI)
 
 ### ✅ SI HACER
 - Usar siempre tokens CSS del sistema
@@ -201,6 +205,40 @@ svg, .nvx-icon {
 - Validar que las 13 secciones estén presentes en tratamientos
 - Usar clases de componentes globales
 - Seguir el patrón de `nvx-brand-hero` para páginas generales
+- Ejecutar lints locales antes de commit
+- Respetar el contrato de layout (header/footer wrappers)
+
+---
+
+## 🔧 Contracto Técnico Enforceable
+
+### Linting Automático
+El sistema de diseño está protegido por scripts de linting que se ejecutan en CI:
+
+```bash
+# Lint CSS para colores hardcoded
+node scripts/lint/no-hardcoded-colors.mjs
+
+# Lint CSS para tamaños de fuente hardcoded  
+node scripts/lint/no-hardcoded-fontsize.mjs
+
+# Lint PHP para estilos inline peligrosos
+node scripts/lint/no-inline-layout-styles.mjs
+```
+
+### Contrato de Layout
+- **header.php**: Siempre abre `<main id="nvx-main" class="nvx-main" role="main" tabindex="-1">` y `<div class="nvx-brand-page">`
+- **footer.php**: Siempre cierra `</div><!-- .nvx-brand-page -->` y `</main>`
+- **Templates**: Confían en el wrapper global del header, no duplican wrappers
+- Excepciones permitidas con marcadores: `/* nvx-allow-font-px */` y `// nvx-allow-inline-style`
+
+### Integración CI
+Los lints se ejecutan en:
+- `ci-quality.yml` - Quality checks en PRs y pushes
+- `deploy-staging2.yml` - Antes de despliegue a staging2
+- `deploy.yml` - Antes de despliegue a producción
+
+Esto asegura que el sistema de diseño se cumpla automáticamente antes de cualquier despliegue.
 
 ---
 

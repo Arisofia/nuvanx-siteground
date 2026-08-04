@@ -4,16 +4,43 @@ All notable changes to the NUVANX codebase are documented in this file.
 
 ## [Unreleased]
 
-### Added
+### Added - Quality & Automation (2026-08-04)
 
-- Repository documentation enhancements: added prerequisites, secret inventory, local validation commands, and step-by-step deployment checklist to `README.md`.
-- Standardized `.gitignore` rules to keep standard environment boundaries without masking repository artifacts.
+- **CSS/PHP Linting Pipeline**:
+  - `no-hardcoded-colors.mjs`: Detects hardcoded hex colors in CSS, ignores tokens, shadows, and legitimate use cases
+  - `no-hardcoded-fontsize.mjs`: Detects hardcoded px font-size values, allows exception markers
+  - `no-inline-layout-styles.mjs`: Detects dangerous inline styles (margin, padding, font-size, color) in PHP
+  - All lints integrated into CI workflows (ci-quality.yml, deploy-staging2.yml, deploy.yml)
+  - Fail-fast before expensive browser tests
 
-### Fixed / Cleaned (Recent Audit Refactors)
+- **Layout Contract Enforcement**:
+  - `header.php`: Always opens `<main id="nvx-main" class="nvx-main" role="main" tabindex="-1">` and `<div class="nvx-brand-page">`
+  - `footer.php`: Now properly closes both wrappers (was missing closure)
+  - Templates verified: page-landing-valoracion.php and page-sede.php trust global wrapper
+  - No duplicate nvx-brand-page wrappers across codebase
 
-- `bf4245d`: Code hygiene — removed duplicate docblock and normalized indentation in `nvx_remove_unverified_quantitative_trust_badges` (`inc/nvx-page-hygiene.php`).
-- `3c1d267`: Theme pagination & safety — added `page` query var fallback in `nvx_blog_index` shortcode (`functions.php`) and removed legacy MU plugin function existence guards.
-- `13b8f8c`: Asset cleanup — removed unused `nvx-hero-blackout.css` stylesheet.
-- `ad886e4`: Navigation hygiene — force-gated `casos-de-pacientes` 404 links dynamically.
-- `a8b023d`: Repository hygiene — purged QA screenshot binaries from git history and added `images/` to `.gitignore`.
-- `775ef38`: Code hygiene — removed dead PHP helper functions, unused CSS variables from `nvx-tokens.css`, and orphan CSS selectors.
+- **Hidden Pages Validation**:
+  - `validate-hidden-pages.mjs`: Scans for pages not in main menu but with routing
+  - Validates legal pages (aviso-legal, politica-privacidad, politica-cookies)
+  - Validates treatment pages and functional pages
+  - Documents all hidden pages and their access patterns
+
+### Changed - Design System Updates
+
+- **DESIGN_GUIDE.md**: Updated with official 13-point system and component patterns
+- **README.md**: Added linting commands and updated workflow documentation
+- Documentation cleanup: Removed temporary audit reports and legacy documentation files
+
+### Technical Debt Resolution
+
+- **PHP Code Quality**: Resolved PHPCS and PHPStan errors
+- **CSS Migration**: Hardcoded values migrated to CSS tokens via migration script
+- **Icon Sizing**: Fixed SVG icon dimensions to use CSS tokens consistently
+- **DOM Structure**: Corrected conditional duplication of `<main>` elements
+
+### Fixed - Critical Issues
+
+- **PHP Code Leak**: Removed problematic `?>` tag from footer.php
+- **FacebookSignal Integration**: Added HTML output filter to strip from final output
+- **H1/Meta Title Duplication**: Identified and documented duplication between Contact and Clinics pages
+- **Third-Party Scripts**: Audited FacebookSignal and HubSpot integrations

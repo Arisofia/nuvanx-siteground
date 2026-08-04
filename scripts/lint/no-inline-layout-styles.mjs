@@ -1,0 +1,153 @@
+#!/usr/bin/env node
+/**
+ * Lint script to detect dangerous inline styles in PHP files.
+ * 
+ * This script scans PHP files for:
+ * - Inline style attributes with layout properties (margin, padding, font-size, color)
+ * - style="..." patterns that should be in CSS classes instead
+ * 
+ * Violations are reported and the script exits with error code 1.
+ */
+
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const THEME_DIR = path.join(__dirname, '../../wp-content/themes/nuvanx-medical');
+
+// Dangerous CSS properties that should not be inline
+const DANGEROUS_PROPERTIES = [
+  'margin',
+  'padding',
+  'font-size',
+  'color',
+  'background',
+  'width',
+  'height',
+  'display',
+  'position',
+  'top',
+  'left',
+  'right',
+  'bottom',
+];
+
+// Pattern for inline style attributes
+const INLINE_STYLE_PATTERN = /style\s*=\s*["']([^"']+)["']/gi;
+
+async function scanFile(filePath) {
+  const content = await fs.readFile(filePath, 'utf-8');
+  const lines = content.split('\n');
+  const violations = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const lineNum = i + 1;
+
+    // Skip comments
+    if (line.trim().startsWith('//') || line.trim().startsWith('/*')) continue;
+
+    // Skip SVG fallback for hidden attribute (legitimate use case)
+    if (line.includes('hidden') && line.includes('display:none')) continue;
+
+    const matches = line.matchAll(INLINE_STYLE_PATTERN);
+    for (const match of matches) {
+      const styleContent = match[1];
+      
+      // Check if style contains dangerous properties
+      const hasDangerousProperty = DANGEROUS_PROPERTIES.some(prop => 
+        styleContent.toLowerCase().includes(prop)
+      );
+
+      if (hasDangerousProperty) {
+        violations.push({
+          line: lineNum,
+          file: path.relative(THEME_DIR, filePath),
+          match: match[0],
+          properties: DANGEROUS_PROPERTIES.filter(prop => 
+            styleContent.toLowerCase().includes(prop)
+          ),
+          context: line.trim()
+        });
+      }
+    }
+  }
+
+  return violations;
+}
+
+async function scanDirectory(dir, extensions = ['.php']) {
+  const violations = [];
+  const files = [];
+
+  async function scanDir(currentDir) {
+    const entries = await fs.readdir(currentDir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(currentDir, entry.name);
+      
+      if (entry.isDirectory()) {
+        // Skip node_modules and vendor directories
+        if (entry.name !== 'node_modules' && entry.name !== 'vendor') {
+          await scanDir(fullPath);
+        }
+      } else if (extensions.includes(path.extname(entry.name))) {
+        files.push(fullPath);
+      }
+    }
+  }
+
+  await scanDir(dir);
+
+  for (const file of files) {
+    const fileViolations = await scanFile(file);
+    violations.push(...fileViolations);
+  }
+
+  return violations;
+}
+
+async function main() {
+  console.log('🚫 Scanning PHP files for dangerous inline styles...');
+  console.log(`📁 Directory: ${THEME_DIR}`);
+
+  const violations = await scanDirectory(THEME_DIR);
+
+  if (violations.length === 0) {
+    console.log('✅ No dangerous inline styles found');
+    process.exit(0);
+  }
+
+  console.log(`\n❌ Found ${violations.length} dangerous inline style violations:\n`);
+
+  // Group by file
+  const byFile = {};
+  violations.forEach(v => {
+    if (!byFile[v.file]) byFile[v.file] = [];
+    byFile[v.file].push(v);
+  });
+
+  for (const [file, fileViolations] of Object.entries(byFile)) {
+    console.log(`📄 ${file}:`);
+    fileViolations.forEach(v => {
+      console.log(`   Line ${v.line}: ${v.match}`);
+      console.log(`   Dangerous properties: ${v.properties.join(', ')}`);
+      console.log(`   Context: ${v.context.substring(0, 80)}...`);
+    });
+    console.log('');
+  }
+
+  console.log('💡 REMEDY: Move inline styles to CSS classes');
+  console.log('   Replace: style="margin: 10px; padding: 20px;"');
+  console.log('   With: class="my-spacing-class"');
+  console.log('   And define the class in your CSS file');
+
+  console.log('\n❌ Dangerous inline styles found: exiting with error code');
+  process.exit(1);
+}
+
+main().catch(err => {
+  console.error('❌ Error:', err);
+  process.exit(1);
+});

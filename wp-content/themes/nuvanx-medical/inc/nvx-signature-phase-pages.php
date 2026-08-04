@@ -616,6 +616,23 @@ function nvx_signature_phase_prepare_shell(): void {
 }
 add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
 
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		if ( null !== nvx_signature_phase_current_key() ) {
+			return 'nvx_signature_phase_page';
+		}
+		if ( null !== nvx_signature_hub_current_key() ) {
+			return 'nvx_signature_hub_page';
+		}
+		return $owner;
+	}
+);
+
+
 /**
  * Contour Architecture child routes for the primary navigation mega-menu.
  *

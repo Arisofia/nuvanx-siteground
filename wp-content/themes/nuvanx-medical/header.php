@@ -88,4 +88,6 @@ defined( 'ABSPATH' ) || exit;
 <?php endif; ?>
 
 <main id="nvx-main" class="nvx-main" role="main" tabindex="-1">
-	<div class="nvx-brand-page">
+	<?php if ( ! function_exists( 'nvx_has_custom_brand_wrapper' ) || ! nvx_has_custom_brand_wrapper() ) : ?>
+		<div class="nvx-brand-page">
+	<?php endif; ?>

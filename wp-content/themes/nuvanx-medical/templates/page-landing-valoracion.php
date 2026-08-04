@@ -22,8 +22,8 @@ $goya_wa     = ! empty( $config['goya']['whatsapp_href'] ) ? $config['goya']['wh
 get_header();
 ?>
 
-<div class="nvx-brand-page nvx-valoracion-page">
-	<section class="nvx-brand-hero" aria-labelledby="nvx-valoracion-hero-title">
+<!-- Content goes inside .nvx-brand-page wrapper from header.php -->
+<section class="nvx-brand-hero" aria-labelledby="nvx-valoracion-hero-title">
 		<div class="nvx-brand-hero__inner">
 			<div class="nvx-brand-hero__copy">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'VALORACIÓN MÉDICA · NUVANX MADRID', 'nuvanx-medical' ); ?></p>
@@ -97,6 +97,5 @@ get_header();
 	<div class="entry-content nvx-page__content nvx-prose">
 		<?php the_content(); ?>
 	</div>
-</div>
 
 <?php get_footer(); ?>

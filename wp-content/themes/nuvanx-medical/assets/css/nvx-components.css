@@ -3,6 +3,16 @@
    Body inherits type from nvx-base; component classes own explicit roles. */
 .nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-light)}
 .nvx-heading,h1{margin:0 0 var(--nvx-margin-h1);font-family:var(--nvx-serif);font-size:var(--nvx-type-h1);font-weight:400;line-height:var(--nvx-lh-h1);letter-spacing:var(--nvx-track-h1);color:var(--nvx-ink)}
+
+/* Improve H1 hierarchy on small screens to prevent excessive vertical space */
+@media (max-width: 640px) {
+  .nvx-brand-hero__title,
+  .nvx-heading,
+  h1 {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    line-height: 1.15;
+  }
+}
 .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
 .nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:var(--nvx-fw-medium);line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-accent-muted)}
@@ -35,6 +45,10 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
   height: 60px !important;
   max-width: 60px !important;
   max-height: 60px !important;
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 1000 !important;
 }
 
 .joinchat__button svg,
@@ -52,6 +66,17 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
 .joinchat__qr canvas {
   max-width: 200px !important;
   height: auto !important;
+}
+
+/* Footer padding to avoid WhatsApp button overlap */
+.nvx-footer {
+  padding-bottom: 80px;
+}
+
+@media (min-width: 768px) {
+  .nvx-footer {
+    padding-bottom: 0;
+  }
 }
 
 /* Canonical conversion button: one shape, type scale and interaction contract. */

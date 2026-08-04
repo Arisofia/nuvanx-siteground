@@ -4,12 +4,9 @@
   "description": "NUVANX Medical Aesthetics Theme",
   "main": "index.php",
   "scripts": {
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
     "lint": "eslint scripts/staging2/browser-acceptance.mjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.45.0",
     "eslint": "^9.0.0"
   }
 }

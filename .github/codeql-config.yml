@@ -3,4 +3,3 @@ name: "CodeQL config"
 paths-ignore:
   - '**/vendor/**'
   - '**/node_modules/**'
-  - 'css-backups/**'

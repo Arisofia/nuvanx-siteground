@@ -171,37 +171,58 @@ function nvx_cms_cleanup_rules(): array {
 	$val_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : '/valoracion/';
 	$wa_lbl  = 'Contactar por WhatsApp';
 	$wa_url  = function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '/contacto-whatsapp/';
-	$tpl     = '<a$1href="%s"$2>%s</a>';
 
 	$cta_rules = array(
-		array(
-			'id'      => 'cta_valoracion_personalizada',
-			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar (?:valoraci[oó]n|consulta) m[eé]dica personalizada\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_url( $val_url ), $val_lbl ),
+		nvx_cms_cta_link_rule(
+			'cta_valoracion_personalizada',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar (?:valoraci[oó]n|consulta) m[eé]dica personalizada\s*<\/a>/iu',
+			esc_url( $val_url ),
+			$val_lbl
 		),
-		array(
-			'id'      => 'cta_valoracion',
-			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Solicitar|Agenda tu) (?:valoraci[oó]n|consulta)(?: m[eé]dica)?(?: gratuita)?\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_url( $val_url ), $val_lbl ),
+		nvx_cms_cta_link_rule(
+			'cta_valoracion',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Solicitar|Agenda tu) (?:valoraci[oó]n|consulta)(?: m[eé]dica)?(?: gratuita)?\s*<\/a>/iu',
+			esc_url( $val_url ),
+			$val_lbl
 		),
-		array(
-			'id'      => 'cta_cita',
-			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Pedir|Reservar) cita\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_url( $val_url ), $val_lbl ),
+		nvx_cms_cta_link_rule(
+			'cta_cita',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Pedir|Reservar) cita\s*<\/a>/iu',
+			esc_url( $val_url ),
+			$val_lbl
 		),
-		array(
-			'id'      => 'cta_info',
-			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar informaci[oó]n\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_url( $val_url ), $val_lbl ),
+		nvx_cms_cta_link_rule(
+			'cta_info',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar informaci[oó]n\s*<\/a>/iu',
+			esc_url( $val_url ),
+			$val_lbl
 		),
-		array(
-			'id'      => 'cta_whatsapp',
-			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Explorar tratamientos exclusivos\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_url( $wa_url ), $wa_lbl ),
+		nvx_cms_cta_link_rule(
+			'cta_whatsapp',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Explorar tratamientos exclusivos\s*<\/a>/iu',
+			esc_url( $wa_url ),
+			$wa_lbl
 		),
 	);
 
 	return array_merge( $rules, $cta_rules );
+}
+
+/**
+ * Build a single CTA link-normalisation rule entry.
+ *
+ * @param string $id      Rule identifier.
+ * @param string $pattern Regex pattern (PCRE).
+ * @param string $href    Target href, already URL-escaped.
+ * @param string $label   Visible link label (plain text).
+ * @return array{id:string, pattern:string, replace:string}
+ */
+function nvx_cms_cta_link_rule( string $id, string $pattern, string $href, string $label ): array {
+	return array(
+		'id'      => $id,
+		'pattern' => $pattern,
+		'replace' => '<a$1href="' . $href . '"$2>' . $label . '</a>',
+	);
 }
 
 /**
@@ -396,16 +417,17 @@ HTML;
 	}
 
 	// Verify CTA link normalizations.
-	if ( false === strpos( $result['html'], '<a href="/valoracion/">Solicitar valoración médica personalizada</a>' ) ) {
+	$expected_val_anchor = '<a href="/valoracion/">Iniciar mi valoración médica</a>';
+	if ( false === strpos( $result['html'], $expected_val_anchor ) ) {
 		$missing[] = 'replace:cta_valoracion_personalizada';
 	}
-	if ( false === strpos( $result['html'], '<a href="/valoracion/">Solicitar valoración médica personalizada</a>' ) ) {
+	if ( false === strpos( $result['html'], $expected_val_anchor ) ) {
 		$missing[] = 'replace:cta_valoracion';
 	}
-	if ( false === strpos( $result['html'], '<a href="/valoracion/">Solicitar valoración médica personalizada</a>' ) ) {
+	if ( false === strpos( $result['html'], $expected_val_anchor ) ) {
 		$missing[] = 'replace:cta_cita';
 	}
-	if ( false === strpos( $result['html'], '<a href="/valoracion/">Solicitar valoración médica personalizada</a>' ) ) {
+	if ( false === strpos( $result['html'], $expected_val_anchor ) ) {
 		$missing[] = 'replace:cta_info';
 	}
 	if ( false === strpos( $result['html'], '<a href="/contacto-whatsapp/">Contactar por WhatsApp</a>' ) ) {

@@ -116,11 +116,11 @@ function nvx_remove_duplicate_hero_from_content( string $content ): string {
 	$template = get_page_template_slug();
 	if ( $template && '' !== $template ) {
 		if ( in_array( $template, array( 'page-landing-valoracion.php', 'page-sede.php', 'page-soluciones-medicas.php' ), true ) ) {
-			// Remove hero sections from content
-			$content = preg_replace( '/<section[^>]*nvx-brand-hero[^>]*>.*?<\/section>/is', '', $content );
-			// Also remove page-hero and editorial-hero variants
-			$content = preg_replace( '/<section[^>]*nvx-page-hero[^>]*>.*?<\/section>/is', '', $content );
-			$content = preg_replace( '/<section[^>]*nvx-editorial-hero[^>]*>.*?<\/section>/is', '', $content );
+			// Remove ALL hero sections from the_content for these templates
+			// Pattern A templates have their own heroes in PHP
+			$content = preg_replace( '/<section[^>]*class="[^"]*\bnvx-brand-hero\b[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+			$content = preg_replace( '/<section[^>]*class="[^"]*\bnvx-page-hero\b[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+			$content = preg_replace( '/<section[^>]*class="[^"]*\bnvx-editorial-hero\b[^"]*"[^>]*>.*?<\/section>/is', '', $content );
 		}
 	}
 

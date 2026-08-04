@@ -678,14 +678,14 @@ async function run() {
         ctaCount
       });
 
-      // Build CSV row safely escaping quotes and newlines
+      // Build CSV row safely escaping quotes and newlines (RFC 4180)
       const csvRow = [
         route || '',
         mainResponseStatus || '',
         finalUrl || '',
         canonical || '',
         h1Count || 0,
-        `"${(title || '').replace(/"/g, '""')}"`,
+        title || '',
         currentConsoleErrors.length || 0,
         currentNetworkErrors.length || 0,
         metaDeploySha || '',
@@ -700,15 +700,9 @@ async function run() {
         heroCount || 0,
         ctaCount || 0,
         a11yViolationsCount || 0
-      ].map(v => {
-        // Don't replace commas inside the already-escaped title quotes.
-        // Actually, replacing commas with semicolons for everything except title is safer.
-        let str = String(v).replace(/\r?\n/g, ' ');
-        if (!str.startsWith('"')) {
-          str = str.replace(/,/g, ';');
-        }
-        return str;
-      });
+      ].map(value =>
+        `"${String(value ?? '').replaceAll('\r\n', ' ').replaceAll('\n', ' ').replaceAll('"', '""')}"`
+      );
       csvRows.push(csvRow.join(','));
 
       if (issues.length > 0) {

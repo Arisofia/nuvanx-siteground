@@ -852,7 +852,7 @@ section.nvx-hero {
 .nvx-equipo-staff-grid figure.nvx-brand-card__media.nvx-content-figure {
   display: block;
   margin: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
-  margin-block: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2);
+  margin-block: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
   width: auto;
   max-width: none;
   aspect-ratio: 5 / 6;

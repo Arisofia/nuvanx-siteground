@@ -1125,6 +1125,12 @@ function nvx_clinics_hub_render_managed( string $content ): string {
 		return $content;
 	}
 
+	// Skip if using templates/page-sede.php (has its own hero)
+	$template = get_page_template_slug();
+	if ( $template && 'templates/page-sede.php' === $template ) {
+		return $content;
+	}
+
 	return nvx_clinics_hub_page_markup();
 }
 add_filter( 'the_content', 'nvx_clinics_hub_render_managed', NVX_HOOK_PRIO_CLINICS_HUB );

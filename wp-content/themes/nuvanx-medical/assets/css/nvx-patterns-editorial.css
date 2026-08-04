@@ -108,7 +108,7 @@ section.nvx-hero {
 .nvx-hero__copy::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -50px;
   z-index: 0;
   pointer-events: none;
   background: var(--nvx-media-overlay);

@@ -145,8 +145,12 @@ function nvx_signature_phase_current_key(): ?string {
 function nvx_signature_phase_list( string $title, array $items, string $class = '' ): string {
 	$html  = '<section class="nvx-brand-section ' . esc_attr( $class ) . '"><div class="nvx-brand-section__inner">';
 	$html .= '<h2>' . esc_html( $title ) . '</h2><ul class="nvx-check-list">';
+	$roman_numerals = array( 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X' );
+	$idx = 0;
 	foreach ( $items as $item ) {
-		$html .= '<li>' . esc_html( (string) $item ) . '</li>';
+		$number = isset( $roman_numerals[ $idx ] ) ? $roman_numerals[ $idx ] : ( $idx + 1 );
+		$html .= '<li><span class="nvx-signature-list-number" aria-hidden="true">' . esc_html( $number ) . '</span> ' . esc_html( (string) $item ) . '</li>';
+		$idx++;
 	}
 	return $html . '</ul></div></section>';
 }

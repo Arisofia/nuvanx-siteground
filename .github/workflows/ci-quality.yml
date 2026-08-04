@@ -30,8 +30,10 @@ jobs:
       - name: Run PHP Parallel Lint
         run: |
           set -o pipefail
-          parallel-lint --exclude vendor --exclude node_modules . 2>&1 | tee ci-parallel-lint.txt || true
+          set +e
+          parallel-lint --exclude vendor --exclude node_modules . 2>&1 | tee ci-parallel-lint.txt
           STATUS=${PIPESTATUS[0]}
+          set -e
           if [ "$STATUS" -ne 0 ]; then
             echo "parallel-lint detected syntax errors (exit $STATUS). See ci-parallel-lint.txt"
             cat ci-parallel-lint.txt

@@ -83,6 +83,7 @@ HubSpot Portal ID (`147416356`) and Form ID (`5042522a-0bc5-4381-ac3e-5aee8649b6
 - [Document governance](docs/operations/global-document-governance.md)
 - [Governance checklist](docs/operations/global-document-governance-checklist.md)
 - [Deploy helpers](tools/deploy/README.md)
+- [Design Guide](DESIGN_GUIDE.md) - Sistema de diseño unificado y principios de consistencia visual
 
 ## Safety
 

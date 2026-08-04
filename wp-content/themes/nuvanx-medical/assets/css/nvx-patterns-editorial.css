@@ -762,6 +762,21 @@ section.nvx-hero {
   padding-block: 0;
 }
 
+.nvx-equipo-profile-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-6);
+}
+
+@media (min-width: 769px) {
+  .nvx-equipo-profile-layout {
+    display: grid;
+    grid-template-columns: 14rem 1fr;
+    gap: var(--nvx-space-10);
+    align-items: start;
+  }
+}
+
 .nvx-equipo-profile-layout__copy {
   min-width: 0;
   max-width: 68ch;
@@ -1129,6 +1144,27 @@ section.nvx-hero {
   font-weight: 400;
   line-height: var(--nvx-lh-h2);
   color: var(--nvx-ink);
+}
+
+.nvx-laser-platform {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nvx-space-4);
+}
+
+@media (min-width: 769px) {
+  .nvx-laser-platform {
+    display: grid;
+    grid-template-columns: 1fr 18rem;
+    gap: var(--nvx-space-8);
+    align-items: start;
+  }
+}
+
+.nvx-laser-platform__head {
+  display: flex;
+  align-items: center;
+  gap: var(--nvx-space-2);
 }
 
 .nvx-laser-body {

@@ -1554,7 +1554,7 @@ figure.nvx-equipo-portrait{
 /* Improved text contrast for dense content in dark sections */
 .nvx-brand-section--dark .nvx-brand-body--dense,
 .nvx-brand-section--dark .nvx-copy--dense {
-  color: var(--nvx-on-dark-92);
+  color: var(--nvx-on-dark-88);
   line-height: 1.7;
 }
 

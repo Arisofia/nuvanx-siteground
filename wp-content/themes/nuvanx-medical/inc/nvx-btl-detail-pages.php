@@ -400,7 +400,7 @@ add_filter(
 		}
 		global $post;
 		$content = $post ? $post->post_content : '';
-		if ( function_exists( '' ) && null !== nvx_btl_detail_current_key( $content ) ) {
+		if ( function_exists( 'nvx_btl_detail_current_key' ) && null !== nvx_btl_detail_current_key( $content ) ) {
 			return 'nvx_btl_detail_page';
 		}
 		return $owner;

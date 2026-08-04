@@ -282,7 +282,7 @@ add_filter(
 		if ( ! empty( $owner ) ) {
 			return $owner;
 		}
-		if ( function_exists( '' ) && nvx_laser_is_hub_request() ) {
+		if ( function_exists( 'nvx_laser_is_hub_request' ) && nvx_laser_is_hub_request() ) {
 			return 'nvx_laser_medicine_page';
 		}
 		return $owner;

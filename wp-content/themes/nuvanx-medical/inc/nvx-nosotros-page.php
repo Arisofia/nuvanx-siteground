@@ -322,7 +322,7 @@ add_filter(
 		}
 		global $post;
 		$content = $post ? $post->post_content : '';
-		if ( function_exists( '' ) && nvx_content_is_nosotros_page( $content ) ) {
+		if ( function_exists( 'nvx_content_is_nosotros_page' ) && nvx_content_is_nosotros_page( $content ) ) {
 			return 'nvx_nosotros_page';
 		}
 		return $owner;

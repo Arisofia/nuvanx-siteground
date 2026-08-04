@@ -19,7 +19,7 @@
  * @return array<int, array{id:string, pattern:string, replace:string}> Cleanup rules with identifiers, patterns, and replacement text.
  */
 function nvx_cms_cleanup_rules(): array {
-	return array(
+	$rules = array(
 		array(
 			'id'      => 'v3_metodo_section',
 			'pattern' => '/<section\b[^>]*class="[^"]*nvx-v3-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/iu',
@@ -162,6 +162,66 @@ function nvx_cms_cleanup_rules(): array {
 			'pattern' => '/enfoque m[eé]dico premium/iu',
 			'replace' => 'misma dirección médica que Chamberí',
 		),
+		// CTA Normalizations from nvx_content_unify_ctas
+		// Note: We use a shared constant label to avoid duplicating "Iniciar mi valoración médica".
+		// Note: The CMS rules rewrite both the label and the href of the anchor.
+	);
+
+	$val_lbl = 'Iniciar mi valoración médica';
+	$val_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : '/valoracion/';
+	$wa_lbl  = 'Contactar por WhatsApp';
+	$wa_url  = function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '/contacto-whatsapp/';
+
+	$cta_rules = array(
+		nvx_cms_cta_link_rule(
+			'cta_valoracion_personalizada',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar (?:valoraci[oó]n|consulta) m[eé]dica personalizada\s*<\/a>/iu',
+			esc_url( $val_url ),
+			$val_lbl
+		),
+		nvx_cms_cta_link_rule(
+			'cta_valoracion',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Solicitar|Agenda tu) (?:valoraci[oó]n|consulta)(?: m[eé]dica)?(?: gratuita)?\s*<\/a>/iu',
+			esc_url( $val_url ),
+			$val_lbl
+		),
+		nvx_cms_cta_link_rule(
+			'cta_cita',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Pedir|Reservar) cita\s*<\/a>/iu',
+			esc_url( $val_url ),
+			$val_lbl
+		),
+		nvx_cms_cta_link_rule(
+			'cta_info',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar informaci[oó]n\s*<\/a>/iu',
+			esc_url( $val_url ),
+			$val_lbl
+		),
+		nvx_cms_cta_link_rule(
+			'cta_whatsapp',
+			'/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Explorar tratamientos exclusivos\s*<\/a>/iu',
+			esc_url( $wa_url ),
+			$wa_lbl
+		),
+	);
+
+	return array_merge( $rules, $cta_rules );
+}
+
+/**
+ * Build a single CTA link-normalisation rule entry.
+ *
+ * @param string $id      Rule identifier.
+ * @param string $pattern Regex pattern (PCRE).
+ * @param string $href    Target href, already URL-escaped.
+ * @param string $label   Visible link label (plain text).
+ * @return array{id:string, pattern:string, replace:string}
+ */
+function nvx_cms_cta_link_rule( string $id, string $pattern, string $href, string $label ): array {
+	return array(
+		'id'      => $id,
+		'pattern' => $pattern,
+		'replace' => '<a$1href="' . $href . '"$2>' . $label . '</a>',
 	);
 }
 
@@ -189,9 +249,13 @@ function nvx_cms_class_token_map(): array {
  * @return array{html:string, hits:array<string,int>}
  */
 function nvx_cms_cleanup_apply( string $html ): array {
+	static $cached_rules = null;
+	if ( null === $cached_rules ) {
+		$cached_rules = nvx_cms_cleanup_rules();
+	}
 	$hits = array();
 
-	foreach ( nvx_cms_cleanup_rules() as $rule ) {
+	foreach ( $cached_rules as $rule ) {
 		$count = 0;
 		$html  = preg_replace( $rule['pattern'], $rule['replace'], $html, -1, $count ) ?? $html;
 		if ( $count > 0 ) {
@@ -252,6 +316,11 @@ function nvx_cms_cleanup_self_test(): int {
 <p>Couture Sculpt and Contour Sculpt and Eye Frame</p>
 <p>valoración médica gratuita y valoración gratuita y valoración gratis</p>
 <p>consulta gratuita sin compromiso</p>
+<a href="#">Solicitar valoración médica personalizada</a>
+<a href="#">Agenda tu consulta médica gratuita</a>
+<a href="#">Reservar cita</a>
+<a href="#">Solicitar información</a>
+<a href="#">Explorar tratamientos exclusivos</a>
 <section class="nvx-v3-tratamientos nvx-v3-faq">cards</section>
 </div>
 HTML;
@@ -283,6 +352,11 @@ HTML;
 		'claim_valoracion_gratis',
 		'claim_consulta_gratuita',
 		'claim_sin_compromiso',
+		'cta_valoracion_personalizada',
+		'cta_valoracion',
+		'cta_cita',
+		'cta_info',
+		'cta_whatsapp',
 		'class:nvx-editorial-home-v4',
 		'class:nvx-v3-shell',
 		'class:nvx-v3-tratamientos',
@@ -342,6 +416,14 @@ HTML;
 		$missing[] = 'replace:sin obligación';
 	}
 
+	// Verify CTA link normalizations: all 4 valoracion rules should rewrite to the same normalized label.
+	if ( 4 !== substr_count( $result['html'], '>Iniciar mi valoración médica</a>' ) ) {
+		$missing[] = 'replace:cta_valoracion_links';
+	}
+	if ( false === strpos( $result['html'], '>Contactar por WhatsApp</a>' ) ) {
+		$missing[] = 'replace:cta_whatsapp';
+	}
+
 	echo "NUVANX CMS cleanup self-test\n";
 	echo 'hits=' . wp_json_encode( $result['hits'], JSON_UNESCAPED_UNICODE ) . "\n";
 
@@ -370,6 +452,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 			 */
 			function wp_json_encode( $data, $flags = 0 ) {
 				return json_encode( $data, $flags );
+			}
+		}
+		if ( ! function_exists( 'esc_attr' ) ) {
+			function esc_attr( $text ) {
+				return htmlspecialchars( (string) $text, ENT_QUOTES );
+			}
+		}
+		if ( ! function_exists( 'esc_url' ) ) {
+			function esc_url( $url ) {
+				return (string) $url;
 			}
 		}
 		exit( nvx_cms_cleanup_self_test() );

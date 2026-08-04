@@ -44,6 +44,22 @@ jobs:
           name: parallel-lint-output
           path: ci-parallel-lint.txt
 
+  custom-lints:
+    name: Custom CSS/PHP Lints
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run color lint
+        run: node scripts/lint/no-hardcoded-colors.mjs
+      - name: Run font-size lint
+        run: node scripts/lint/no-hardcoded-fontsize.mjs
+      - name: Run inline styles lint
+        run: node scripts/lint/no-inline-layout-styles.mjs
+
   phpcs:
     name: PHP_CodeSniffer
     runs-on: ubuntu-latest

@@ -27,7 +27,7 @@ body.nvx-blog-context {
 /* Archive grid and cards */
 .nvx-blog-grid {
 	display: grid;
-	grid-template-columns: repeat(12, minmax(0, 1fr));
+	grid-template-columns: repeat(12, minmax(280px, 1fr));
 	gap: var(--nvx-border-hairline);
 	background: var(--nvx-color-line);
 	align-items: stretch;
@@ -115,7 +115,7 @@ body.nvx-blog-context {
 }
 
 .nvx-blog-card__excerpt {
-  margin-bottom: var(--nvx-space-4);
+  margin-bottom: var(--nvx-space-6);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
   line-height: var(--nvx-lh-body);

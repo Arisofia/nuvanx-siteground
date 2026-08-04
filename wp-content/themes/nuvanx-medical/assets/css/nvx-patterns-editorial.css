@@ -625,6 +625,12 @@ section.nvx-hero {
   max-width: var(--nvx-measure-wide, 72rem);
 }
 
+/* Stronger overlay for Nosotros hero to improve text legibility on light backgrounds */
+.nvx-nosotros-hero--copy-only .nvx-brand-hero__copy::before {
+  background: var(--nvx-media-overlay-strong);
+  opacity: 1;
+}
+
 .nvx-nosotros-team-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));

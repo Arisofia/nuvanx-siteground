@@ -521,12 +521,12 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
 	$items      = $config['items'] ?? array();
 	$facts      = $config['facts'] ?? array();
 
-	$html  = '<section class="nvx-brand-section" aria-labelledby="' . esc_attr( $section_id ) . '">';
 	$aria_attr = ( '' !== $heading )
 		? 'aria-labelledby="' . esc_attr( $section_id ) . '"'
 		: 'aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '"';
 
 	$html  = '<section class="nvx-brand-section" ' . $aria_attr . '>';
+	$html .= '<div class="nvx-container nvx-equipo-diagnosis__grid">';
 	$html .= '<div class="nvx-equipo-diagnosis__copy">';
 	if ( '' !== $kicker ) {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';

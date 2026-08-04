@@ -649,6 +649,21 @@ body.nvx-valoracion-modal-open{
     padding-block: var(--nvx-pad-section-tight);
   }
 }
+
+/* Signature protocol hero: ensure dark background and proper alignment */
+.nvx-signature-phase-page .nvx-brand-hero {
+  background: var(--nvx-ink);
+}
+
+.nvx-signature-phase-page .nvx-brand-hero__copy {
+  background: transparent;
+  text-align: left;
+  max-width: var(--nvx-measure, 68ch);
+}
+
+.nvx-signature-phase-page .nvx-brand-hero__copy::before {
+  display: none;
+}
 /* CONTACT CLINIC CARDS — canonical editorial grid */
 .nvx-page--contact .nvx-section--contact-hero {
   background: var(--nvx-surface-base);

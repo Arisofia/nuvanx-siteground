@@ -1010,6 +1010,10 @@ function nvx_clinics_hub_phone_display( string $e164 ): string {
  * @return string The complete rendered clinics hub HTML.
  */
 function nvx_clinics_hub_page_markup(): string {
+	// Global flag to prevent duplicate hero media injection from nvx_ensure_hero_featured_media
+	global $nvx_page_shell_has_hero;
+	$nvx_page_shell_has_hero = true;
+
 	$clinics  = function_exists( 'nvx_schema_clinics' ) ? nvx_schema_clinics() : array();
 	$registry = function_exists( 'nvx_schema_page_registry' ) ? nvx_schema_page_registry() : array();
 	$config   = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();

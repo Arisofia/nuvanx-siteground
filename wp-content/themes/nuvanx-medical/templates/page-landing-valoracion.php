@@ -19,6 +19,10 @@ $goya_phone     = ! empty( $clinics['goya']['telephone'] ) ? (string) $clinics['
 $chamberi_wa = ! empty( $config['chamberi']['whatsapp_href'] ) ? $config['chamberi']['whatsapp_href'] : 'https://wa.me/' . preg_replace( '/\D/', '', $chamberi_phone );
 $goya_wa     = ! empty( $config['goya']['whatsapp_href'] ) ? $config['goya']['whatsapp_href'] : 'https://wa.me/' . preg_replace( '/\D/', '', $goya_phone );
 
+// Global flag to prevent duplicate hero media injection from nvx_ensure_hero_featured_media
+global $nvx_page_shell_has_hero;
+$nvx_page_shell_has_hero = true;
+
 get_header();
 ?>
 

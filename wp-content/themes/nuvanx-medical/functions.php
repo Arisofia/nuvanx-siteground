@@ -24,6 +24,7 @@ if ( ! defined( 'NVX_REGEX_WHITESPACE_U' ) ) {
 require_once __DIR__ . '/inc/nvx-constants.php';
 require_once __DIR__ . '/inc/nvx-config-helpers.php';
 
+
 /** Register theme supports and navigation locations. */
 function nvx_theme_setup(): void {
 	add_theme_support( 'title-tag' );

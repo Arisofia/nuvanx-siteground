@@ -835,7 +835,7 @@ function nvxSedeStripLayoutInlineStyles( string $content ): string {
 		$content
 	) ?? $content;
 }
-add_filter( 'the_content', 'nvxSedeStripLayoutInlineStyles', 28 );
+add_filter( 'the_content', 'nvxSedeStripLayoutInlineStyles', NVX_HOOK_PRIO_SEDE_INLINE_STYLES );
 
 function nvxClinicsBindLocationBlock( DOMXPath $xpath, DOMElement $heading, array $config ): ?DOMElement {
 	$block = nvxClinicsNearestBlock( $heading );
@@ -1123,7 +1123,7 @@ function nvx_clinics_hub_render_managed( string $content ): string {
 
 	return nvx_clinics_hub_page_markup();
 }
-add_filter( 'the_content', 'nvx_clinics_hub_render_managed', 11 );
+add_filter( 'the_content', 'nvx_clinics_hub_render_managed', NVX_HOOK_PRIO_CLINICS_HUB );
 
 /**
  * Enhances residual CMS clinics markup (legacy path) with layout pipeline.
@@ -1189,4 +1189,4 @@ function nvxClinicsHubEnhance( string $content ): string {
 	}
 	return $output ?: $content;
 }
-add_filter( 'the_content', 'nvxClinicsHubEnhance', 30 );
+add_filter( 'the_content', 'nvxClinicsHubEnhance', NVX_HOOK_PRIO_CLINICS_ENHANCE );

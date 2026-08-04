@@ -29,7 +29,20 @@ jobs:
           tools: parallel-lint
       - name: Run PHP Parallel Lint
         run: |
-          parallel-lint --exclude vendor --exclude node_modules .
+          set -o pipefail
+          parallel-lint --exclude vendor --exclude node_modules . 2>&1 | tee ci-parallel-lint.txt || true
+          STATUS=${PIPESTATUS[0]}
+          if [ "$STATUS" -ne 0 ]; then
+            echo "parallel-lint detected syntax errors (exit $STATUS). See ci-parallel-lint.txt"
+            cat ci-parallel-lint.txt
+            exit $STATUS
+          fi
+      - name: Upload parallel-lint output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallel-lint-output
+          path: ci-parallel-lint.txt
 
   phpcs:
     name: PHP_CodeSniffer
@@ -45,7 +58,7 @@ jobs:
         run: |
           cd wp-content/themes/nuvanx-medical
           composer install --no-interaction
-      - name: Run PHPCS
+      - name: Run PHP_CodeSniffer
         run: |
           cd wp-content/themes/nuvanx-medical
           ./vendor/bin/phpcs --standard=phpcs.xml.dist --report=summary
@@ -64,7 +77,21 @@ jobs:
         run: |
           cd wp-content/themes/nuvanx-medical
           composer install --no-interaction
-      - name: Run PHPStan
+      - name: PHPStan info
         run: |
           cd wp-content/themes/nuvanx-medical
-          ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G
+          ./vendor/bin/phpstan --version
+          echo "Analyzing these files:"
+          git ls-files -- . | sed -n '1,200p'
+      - name: Run PHPStan (produce report artifact)
+        run: |
+          set -o pipefail
+          cd wp-content/themes/nuvanx-medical
+          # run with appropriate memory limit and produce a text report
+          ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G | tee phpstan-report.txt
+      - name: Upload PHPStan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpstan-report
+          path: wp-content/themes/nuvanx-medical/phpstan-report.txt

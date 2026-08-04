@@ -283,8 +283,6 @@ function nvx_nosotros_principles_markup(): string {
 	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $p['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-heading">' . esc_html( $p['title'] ?? '' ) . '</h2>';
-	// list-style:none drops list semantics in Safari/VoiceOver; keep explicit
-	// role="list" for parity with the neighbouring clinics and team lists.
 	$html .= '<ul class="nvx-feature-zone-list" role="list">';
 	foreach ( (array) ( $p['items'] ?? array() ) as $item ) {
 		$html .= '<li class="nvx-feature-zone">';
@@ -367,7 +365,7 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 
 	return '<div class="nvx-brand-page nvx-brand-page--nosotros">' . $hero . $body . '</div>';
 }
-add_filter( 'the_content', 'nvx_content_restructure_nosotros_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
+add_filter( 'the_content', 'nvx_content_restructure_nosotros_page', NVX_HOOK_PRIO_NOSOTROS );
 
 /**
  * Document title for nosotros.

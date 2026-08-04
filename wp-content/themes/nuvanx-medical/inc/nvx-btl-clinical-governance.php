@@ -124,7 +124,7 @@ function nvx_btl_govern_rendered_content( string $content ): string {
 
 	return $governed;
 }
-add_filter( 'the_content', 'nvx_btl_govern_rendered_content', 99 );
+add_filter( 'the_content', 'nvx_btl_govern_rendered_content', NVX_HOOK_PRIO_BTL_GOVERNANCE );
 
 /**
  * Keep search snippets precise on BTL detail routes.

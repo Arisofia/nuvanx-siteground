@@ -125,6 +125,14 @@
     rgba(26, 26, 26, 0.85) 100%
   );
 
+  --nvx-media-overlay-strong: linear-gradient(
+    180deg,
+    rgba(26, 26, 26, 0.6) 0%,
+    rgba(26, 26, 26, 0.65) 28%,
+    rgba(26, 26, 26, 0.75) 58%,
+    rgba(26, 26, 26, 0.9) 100%
+  );
+
   /* ========== TIPOGRAFÍA OFICIAL ÚNICA ========== */
   --nvx-serif: "Playfair Display", Georgia, "Times New Roman", serif;
   --nvx-sans: "Manrope", "Helvetica Neue", Arial, sans-serif;

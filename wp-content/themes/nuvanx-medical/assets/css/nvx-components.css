@@ -28,6 +28,32 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
   width: var(--nvx-icon-md);
   height: var(--nvx-icon-md);
 }
+
+/* WhatsApp floating plugin containment (creame-whatsapp-me / Joinchat) */
+.joinchat__button {
+  width: 60px !important;
+  height: 60px !important;
+  max-width: 60px !important;
+  max-height: 60px !important;
+}
+
+.joinchat__button svg,
+.joinchat__button img,
+.joinchat__icon svg,
+.joinchat__icon img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 60px !important;
+  max-height: 60px !important;
+  display: block !important;
+}
+
+.joinchat__qr img,
+.joinchat__qr canvas {
+  max-width: 200px !important;
+  height: auto !important;
+}
+
 /* Canonical conversion button: one shape, type scale and interaction contract. */
 
 .nvx-button--primary, .nvx-btn--primary, .nvx-brand-btn--primary {

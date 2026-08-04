@@ -69,13 +69,13 @@ jobs:
           cd wp-content/themes/nuvanx-medical
           ./vendor/bin/phpstan --version
           echo "Analyzing these files:"
-          git ls-files wp-content/themes/nuvanx-medical | sed -n '1,200p'
+          git ls-files -- . | sed -n '1,200p'
       - name: Run PHPStan (produce report artifact)
         run: |
           set -o pipefail
           cd wp-content/themes/nuvanx-medical
-          # run with higher memory in case of memory issues and produce a text report
-          ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=2G | tee phpstan-report.txt
+          # run with appropriate memory limit and produce a text report
+          ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G | tee phpstan-report.txt
       - name: Upload PHPStan report
         if: always()
         uses: actions/upload-artifact@v4

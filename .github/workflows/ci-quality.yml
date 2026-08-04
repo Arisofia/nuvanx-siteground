@@ -74,10 +74,23 @@ jobs:
         run: |
           cd wp-content/themes/nuvanx-medical
           composer install --no-interaction
-      - name: Run PHP_CodeSniffer
+      - name: Run PHP_CodeSniffer (produce report artifact)
         run: |
+          set -o pipefail
           cd wp-content/themes/nuvanx-medical
-          ./vendor/bin/phpcs --standard=phpcs.xml.dist --report=summary
+          ./vendor/bin/phpcs --standard=phpcs.xml.dist --report=summary 2>&1 | tee ci-phpcs.txt || true
+          STATUS=${PIPESTATUS[0]}
+          if [ "$STATUS" -ne 0 ]; then
+            echo "phpcs found coding standard violations (exit $STATUS). See ci-phpcs.txt"
+            cat ci-phpcs.txt
+            exit $STATUS
+          fi
+      - name: Upload PHPCS report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpcs-report
+          path: wp-content/themes/nuvanx-medical/ci-phpcs.txt
 
   phpstan:
     name: PHPStan Static Analysis

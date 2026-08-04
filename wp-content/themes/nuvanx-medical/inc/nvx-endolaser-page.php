@@ -171,13 +171,13 @@ function nvx_endolaser_editorial_body_markup(): string {
 /**
  * Rebuild Endoláser page content.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
+add_filter( 'nvx_page_owner', function ( $owner ) {
 	if ( ! empty( $owner ) ) {
 		return $owner;
 	}
 	global $post;
 	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_content_is_endolaser_page') && nvx_content_is_endolaser_page( $content ) ) {
+	if ( function_exists( '' ) && nvx_content_is_endolaser_page( $content ) ) {
 		return 'nvx_endolaser_page';
 	}
 	return $owner;

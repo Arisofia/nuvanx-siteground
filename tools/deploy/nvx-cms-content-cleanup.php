@@ -291,6 +291,11 @@ function nvx_cms_cleanup_self_test(): int {
 <p>Couture Sculpt and Contour Sculpt and Eye Frame</p>
 <p>valoración médica gratuita y valoración gratuita y valoración gratis</p>
 <p>consulta gratuita sin compromiso</p>
+<a href="#">Solicitar valoración médica personalizada</a>
+<a href="#">Agenda tu consulta médica gratuita</a>
+<a href="#">Reservar cita</a>
+<a href="#">Solicitar información</a>
+<a href="#">Explorar tratamientos exclusivos</a>
 <section class="nvx-v3-tratamientos nvx-v3-faq">cards</section>
 </div>
 HTML;
@@ -322,6 +327,11 @@ HTML;
 		'claim_valoracion_gratis',
 		'claim_consulta_gratuita',
 		'claim_sin_compromiso',
+		'cta_valoracion_personalizada',
+		'cta_valoracion',
+		'cta_cita',
+		'cta_info',
+		'cta_whatsapp',
 		'class:nvx-editorial-home-v4',
 		'class:nvx-v3-shell',
 		'class:nvx-v3-tratamientos',
@@ -379,6 +389,23 @@ HTML;
 	}
 	if ( false === strpos( $result['html'], 'sin obligación de continuar con un tratamiento' ) ) {
 		$missing[] = 'replace:sin obligación';
+	}
+
+	// Verify CTA link normalizations.
+	if ( false === strpos( $result['html'], '<a href="/valoracion/">Solicitar valoración médica personalizada</a>' ) ) {
+		$missing[] = 'replace:cta_valoracion_personalizada';
+	}
+	if ( false === strpos( $result['html'], '<a href="/valoracion/">Solicitar valoración médica personalizada</a>' ) ) {
+		$missing[] = 'replace:cta_valoracion';
+	}
+	if ( false === strpos( $result['html'], '<a href="/valoracion/">Solicitar valoración médica personalizada</a>' ) ) {
+		$missing[] = 'replace:cta_cita';
+	}
+	if ( false === strpos( $result['html'], '<a href="/valoracion/">Solicitar valoración médica personalizada</a>' ) ) {
+		$missing[] = 'replace:cta_info';
+	}
+	if ( false === strpos( $result['html'], '<a href="/contacto-whatsapp/">Contactar por WhatsApp</a>' ) ) {
+		$missing[] = 'replace:cta_whatsapp';
 	}
 
 	echo "NUVANX CMS cleanup self-test\n";

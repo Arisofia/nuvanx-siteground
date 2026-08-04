@@ -52,7 +52,7 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 
 	$valuation_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : home_url( '/madrid/valoracion/' );
 
-	$html  = '<div class="nvx-que-exigir-editorial">';
+	$html = '<div class="nvx-que-exigir-editorial">';
 
 	// Hero
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-que-exigir-h1">' . esc_html( $data['hero']['h1'] ?? '' ) . '</h1>';
@@ -94,4 +94,3 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 	return $html;
 }
 add_filter( 'the_content', 'nvx_content_que_exigir_hijack', NVX_HOOK_PRIO_QUE_EXIGIR );
-

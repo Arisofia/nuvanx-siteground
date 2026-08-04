@@ -566,11 +566,11 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
  * @param array<string,mixed> $config Physician configuration data.
  */
 function nvx_equipo_physician_profile_section_markup( array $config ): string {
-	$h2_id = $config['h2_id'] ?? 'nvx-equipo-profile-' . sanitize_title($config['name'] ?? 'doc');
-	$aria_attr = !empty($config['h2']) ? 'aria-labelledby="' . esc_attr($h2_id) . '"' : 'aria-label="' . esc_attr($config['name'] ?? 'Perfil médico') . '"';
+	$h2_id     = $config['h2_id'] ?? 'nvx-equipo-profile-' . sanitize_title( $config['name'] ?? 'doc' );
+	$aria_attr = ! empty( $config['h2'] ) ? 'aria-labelledby="' . esc_attr( $h2_id ) . '"' : 'aria-label="' . esc_attr( $config['name'] ?? 'Perfil médico' ) . '"';
 
-	$html  = '<section class="nvx-brand-section nvx-equipo-profile" ' . $aria_attr . '>';
-	$html .= '<div class="nvx-shell nvx-brand-section__inner nvx-equipo-profile-layout">';
+	$html     = '<section class="nvx-brand-section nvx-equipo-profile" ' . $aria_attr . '>';
+	$html    .= '<div class="nvx-shell nvx-brand-section__inner nvx-equipo-profile-layout">';
 	$portrait = nvx_equipo_portrait_figure_markup( $config['media'] ?? '', $config['name'] ?? '' );
 	if ( '' !== $portrait ) {
 		$html .= $portrait;
@@ -884,7 +884,7 @@ function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
  */
 function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
-	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['cristina'] ?? array();
+	$data       = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['cristina'] ?? array();
 	$doctoralia = 'https://www.doctoralia.es/cristina-marquez-gonzalez-2/radiologo-medico-estetico/madrid';
 
 	return nvx_equipo_physician_authority_markup(
@@ -928,7 +928,7 @@ function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): st
 					'heading'    => '',
 					'paragraphs' => array(),
 					'facts'      => $data['facts'] ?? array(),
-				)
+				),
 			),
 		)
 	);
@@ -937,17 +937,20 @@ function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): st
 /**
  * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
  */
-add_filter( 'nvx_page_owner', function ( $owner ) {
-	if ( ! empty( $owner ) ) {
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		global $post;
+		$content = $post ? $post->post_content : '';
+		if ( function_exists( 'nvx_content_is_equipo_page' ) && nvx_content_is_equipo_page( $content ) ) {
+			return 'nvx_equipo_page';
+		}
 		return $owner;
 	}
-	global $post;
-	$content = $post ? $post->post_content : '';
-	if ( function_exists( 'nvx_content_is_equipo_page' ) && nvx_content_is_equipo_page( $content ) ) {
-		return 'nvx_equipo_page';
-	}
-	return $owner;
-});
+);
 
 function nvx_content_restructure_equipo_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;

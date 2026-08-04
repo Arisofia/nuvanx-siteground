@@ -41,7 +41,8 @@ function nvx_btl_detail_registry(): array {
 
 	return nvx_catalog_json_resolved(
 		'btl-detail-pages.json',
-		static function ( string $key ) { return nvx_btl_claim( $key ); },
+		static function ( string $key ) {
+			return nvx_btl_claim( $key ); },
 		array(),
 		array(),
 		'btl-detail-pages'
@@ -281,7 +282,7 @@ function nvx_btl_detail_compare_markup( array $c ): string {
 
 	// Prefer aria-labelledby only when the heading (and its id) is rendered.
 	if ( '' !== $compare_title ) {
-		$html = '<section class="nvx-brand-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
+		$html  = '<section class="nvx-brand-section" aria-labelledby="' . esc_attr( $id ) . '-cmp">';
 		$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 		$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Criterio diferencial', 'nuvanx-medical' ) . '</p>';
 		$html .= '<h2 id="' . esc_attr( $id ) . '-cmp" class="nvx-brand-title">' . esc_html( $compare_title ) . '</h2>';
@@ -391,17 +392,20 @@ function nvx_btl_detail_page_markup( string $key ): string {
 /**
  * Restructure the_content for BTL detail pages.
  */
-add_filter( 'nvx_page_owner', function ( $owner ) {
-	if ( ! empty( $owner ) ) {
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		global $post;
+		$content = $post ? $post->post_content : '';
+		if ( function_exists( '' ) && null !== nvx_btl_detail_current_key( $content ) ) {
+			return 'nvx_btl_detail_page';
+		}
 		return $owner;
 	}
-	global $post;
-	$content = $post ? $post->post_content : '';
-	if ( function_exists( '' ) && null !== nvx_btl_detail_current_key( $content ) ) {
-		return 'nvx_btl_detail_page';
-	}
-	return $owner;
-});
+);
 
 function nvx_content_restructure_btl_detail_page( string $content ): string {
 	$owner = function_exists( 'nvx_get_page_owner' ) ? nvx_get_page_owner() : null;

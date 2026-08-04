@@ -102,59 +102,6 @@ function nvx_hero_insert_media_figure( string $content, string $figure ): string
 }
 
 /**
- * Remove duplicate hero sections from Pattern A templates.
- * These templates have custom heroes in PHP and also call the_content()
- * which may contain a hero from the CMS. This filter removes the CMS hero
- * to prevent duplication.
- */
-function nvx_remove_duplicate_hero_from_content( string $content ): string {
-	if ( is_admin() || ! is_singular() ) {
-		return $content;
-	}
-
-	// Only apply to Pattern A templates
-	$template = get_page_template_slug();
-	if ( $template && '' !== $template ) {
-		if ( in_array( $template, array( 'page-landing-valoracion.php', 'page-sede.php', 'page-soluciones-medicas.php' ), true ) ) {
-			// Remove ALL hero sections from the_content for these templates
-			// Pattern A templates have their own heroes in PHP
-			// Try multiple regex patterns to match different HTML structures
-			$content = preg_replace( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-			$content = preg_replace( '/<section[^>]*class="[^"]*nvx-page-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-			$content = preg_replace( '/<section[^>]*class="[^"]*nvx-editorial-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-		}
-	}
-
-	// Also apply to clinic hub pages that use nvx_clinics_hub_render_managed
-	$current_url = $_SERVER['REQUEST_URI'] ?? '';
-	if ( strpos( $current_url, '/clinicas-de-medicina-estetica-nuvanx/' ) !== false ||
-	     strpos( $current_url, '/medicina-estetica-chamberi/' ) !== false ||
-	     strpos( $current_url, '/medicina-estetica-goya-barrio-salamanca/' ) !== false ) {
-		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-page-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-editorial-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-	}
-
-	// Also apply to /madrid/valoracion/ via URL check
-	if ( strpos( $current_url, '/madrid/valoracion/' ) !== false ) {
-		// Count heroes before removal
-		$hero_count_before = preg_match_all( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>/is', $content, $matches );
-		error_log( 'nvx_remove_duplicate_hero_from_content: /madrid/valoracion/ - heroes before: ' . $hero_count_before );
-
-		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-page-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-editorial-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-
-		// Count heroes after removal
-		$hero_count_after = preg_match_all( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>/is', $content, $matches );
-		error_log( 'nvx_remove_duplicate_hero_from_content: /madrid/valoracion/ - heroes after: ' . $hero_count_after );
-	}
-
-	return $content;
-}
-add_filter( 'the_content', 'nvx_remove_duplicate_hero_from_content', 1 );
-
-/**
  * Ensure content heroes that lack media use the featured image when available.
  * Inserts media as a SIBLING after the hero copy (never nested inside copy),
  * so kicker + title can overlay the image. Global — not a per-page patch.
@@ -162,15 +109,6 @@ add_filter( 'the_content', 'nvx_remove_duplicate_hero_from_content', 1 );
 function nvx_ensure_hero_featured_media( string $content ): string {
 	if ( is_admin() || ! is_singular() || is_front_page() || ! has_post_thumbnail() ) {
 		return $content;
-	}
-
-	// Skip for Pattern A templates that have custom heroes in PHP
-	// These templates inject their own hero and also call the_content()
-	$template = get_page_template_slug();
-	if ( $template && '' !== $template ) {
-		if ( in_array( $template, array( 'page-landing-valoracion.php', 'page-sede.php', 'page-soluciones-medicas.php' ), true ) ) {
-			return $content;
-		}
 	}
 
 	// Skip for pages using nvx-clinics-hub (custom hero injection)

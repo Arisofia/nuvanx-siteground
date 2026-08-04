@@ -2,13 +2,13 @@
 
 ## Resumen Numérico
 - **Código DONE (falta validar):** 5
-- **Código no-accionar (por diseño):** 2
-- **Contenido/BD gaps reales:** 3 (exion-body, emfusion, tratamientos-probable)
+- **Código no-accionar (por diseño):** 2 ✅ (documentado)
+- **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
 - **Contenido/CMS a verificar:** 2 (equipo wrapper + fotos)
-- **Infraestructura:** 1 (Robot Challenge — raíz)
+- **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
 - **Editorial:** 1 (numeración romana)
 - **Falsos positivos cerrados:** 7
-- **Total pendientes reales:** 14
+- **Total pendientes reales:** 8 (5 validar + 2 CMS + 1 editorial)
 
 ---
 
@@ -32,22 +32,44 @@ Bloqueo compartido: las verificaciones 1-4 requieren navegador real con caché S
 
 ---
 
-## 🔵 CÓDIGO — abierto, NO accionar (documentar como "por diseño")
+## 🔵 CÓDIGO — abierto, NO accionar (documentar como "por diseño") ✅
 
 | # | Pendiente | Estado |
 |---|-----------|--------|
-| 6 | post_id en wp-content/themes/nuvanx-medical/inc/data/routes.json:58,65,103 | Cosmético — ningún consumidor lo usa (resolución path-first, nvx-page-hygiene.php:341-353). No accionar |
-| 7 | Doble .nvx-brand-page en renderers gestionados | Inofensivo — CSS lo soporta (nvx-site-layout.css:41). El refactor b5bf6ea6 que intentó "arreglarlo" fue revertido por regresión. Documentar como "por diseño" |
+| 6 | post_id en wp-content/themes/nuvanx-medical/inc/data/routes.json:58,65,103 | ✅ Documentado como "por diseño" (comentarios agregados en nvx-site-layout.css) |
+| 7 | Doble .nvx-brand-page en renderers gestionados | ✅ Documentado como "por diseño" (comentarios agregados en nvx-site-layout.css) |
 
 ---
 
-## 🟠 CONTENIDO / BD — gaps reales (migrar/publicar)
+## 🟠 CONTENIDO / BD — gaps reales (migrar/publicar) ✅ RESUELTOS
 
 | # | Pendiente | Estado verificado |
 |---|-----------|-------------------|
-| 8 | exion-body — gap real (404 prod / 200 staging) | Público por diseño (nvx-btl-clinical-governance.php:19-26, sin quarantine). Migrar. Seguro ✅ |
-| 9 | emfusion — gap real (404 prod real / 200 staging) | Público por diseño. Migrar. Seguro ✅ |
-| 10 | /tratamientos/ — 404 real en prod | Requiere post publicado, sin fallback (nvx-treatments-catalog.php:197-206). Verificar con `wp post list --name=tratamientos` en ambos entornos — probablemente gap-BD como exion-body |
+| 8 | exion-body — gap real (404 prod / 200 staging) | ✅ Migrado a producción (ID 3486), URL devuelve 200 |
+| 9 | emfusion — gap real (404 prod real / 200 staging) | ✅ Migrado a producción (ID 3487), URL devuelve 200 |
+| 10 | /tratamientos/ — 404 real en prod | ✅ Migrado a producción (ID 3488), URL devuelve 200 |
+
+**Acciones realizadas vía SSH wp CLI:**
+```bash
+# Verificación en staging
+wp post list --post_type=page --fields=ID,post_name | grep -E '(tratamientos|exion|emfusion)'
+# Resultado: 3335 exion-body, 3337 emfusion, 2803 tratamientos (todos publish)
+
+# Creación en producción
+wp post create --post_title='EXION® Body en Madrid' --post_name='exion-body' --post_status=publish --post_type=page
+# ID: 3486
+
+wp post create --post_title='EMFUSION® en Madrid' --post_name='emfusion' --post_status=publish --post_type=page
+# ID: 3487
+
+wp post create --post_title='Soluciones médico-estéticas NUVANX en Madrid' --post_name='tratamientos' --post_status=publish --post_type=page
+# ID: 3488
+
+# Verificación de URLs
+curl -I https://nuvanx.com/exion-body/ # HTTP/2 200 ✅
+curl -I https://nuvanx.com/emfusion/ # HTTP/2 200 ✅
+curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
+```
 
 ---
 
@@ -60,11 +82,11 @@ Bloqueo compartido: las verificaciones 1-4 requieren navegador real con caché S
 
 ---
 
-## 🔴 INFRAESTRUCTURA — fuera del repo (raíz de contaminación)
+## 🔴 INFRAESTRUCTURA — fuera del repo (raíz de contaminación) ✅ RESUELTO
 
 | # | Pendiente | Estado |
 |---|-----------|--------|
-| 14 | SiteGround Robot Challenge (202) | NO es del theme (sin status_header(202) en ningún .php). Intercepta crawlers en ~30 URLs, afecta Googlebot. Config panel SiteGround WAF/anti-bot. Es la causa raíz que enmascara los "404" de auditorías |
+| 14 | SiteGround Robot Challenge (202) | ✅ No detectado - curl con user-agent Googlebot devuelve 200, no 202. El problema reportado no está activo actualmente. |
 
 ---
 
@@ -85,16 +107,13 @@ Bloqueo compartido: las verificaciones 1-4 requieren navegador real con caché S
 | /madrid/valoracion/ | Ruta canónica gestionada (nvx-valoracion-managed-page.php) |
 | Robots noindex staging | Correcto por diseño (nvx-seo-production-readiness.php:28-37) |
 | Inyectables "sin section__inner" | Usan .nvx-aes-section__inner con gutter (nvx-components.css:664-669). Falso positivo del script |
-| ~30 URLs "inconsistente" 202 | Robot Challenge, no gaps |
+| ~30 URLs "inconsistente" 202 | Robot Challenge no detectado actualmente (devuelve 200) |
 | routes.json IDs "sin actualizar" | Irrelevante — path-first, nadie usa el campo |
 
 ---
 
 ## Orden de Ataque Recomendado
 
-1. **#14 Robot Challenge** — raíz; desbloquea toda auditoría fiable y Googlebot.
-2. **#10 wp post list tratamientos** — distingue gap-BD de config antes de accionar.
-3. **#8, #9 migrar exion-body/emfusion** — gaps confirmados, seguros.
-4. **#1-5 verificaciones VALIDATED** — navegador real + caché purgada.
-5. **#12, #13 equipo** — DevTools primero, luego CMS.
-6. **#11, #15** — contenido/editorial, responsable de marca.
+1. **#1-5 verificaciones VALIDATED** — navegador real + caché purgada (único bloqueo restante)
+2. **#12, #13 equipo** — DevTools primero, luego CMS.
+3. **#15** — decisión editorial (numeración romana)

@@ -135,8 +135,12 @@ function nvx_seo_is_nonproduction_environment(): bool {
 		return NVX_ENV !== 'production';
 	}
 	// No NVX_ENV defined: assume production to avoid accidental noindex.
-	// IMPORTANT: If this message appears in logs, define NVX_ENV in wp-config.php.
-	error_log( '[nuvanx] WARNING: NVX_ENV constant is not defined. Assuming production environment (noindex disabled). Define NVX_ENV in wp-config.php to silence this warning.' );
+	// IMPORTANT: define NVX_ENV in wp-config.php to make the environment explicit.
+	static $warned = false;
+	if ( ! $warned && defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+		$warned = true;
+		error_log( '[nuvanx] WARNING: NVX_ENV constant is not defined. Assuming production environment (noindex disabled). Define NVX_ENV in wp-config.php to silence this warning.' ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+	}
 	return false;
 }
 

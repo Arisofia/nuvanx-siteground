@@ -309,6 +309,19 @@ function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, 
 }
 
 /**
+ * Generate an identity key from the card's heading, falling back to full HTML hash.
+ * 
+ * @param string $card HTML card.
+ * @return string Identity hash.
+ */
+function nvx_equipo_card_identity_key( string $card ): string {
+	if ( preg_match( '/<h[2-6][^>]*>(.*?)<\/h[2-6]>/iu', $card, $m ) ) {
+		return hash( 'sha256', strtolower( trim( wp_strip_all_tags( $m[1] ) ) ) );
+	}
+	return hash( 'sha256', trim( $card ) );
+}
+
+/**
  * Extract staff cards from CMS: director, Dra. Ivon, Dr. Fabio, Dra. Cristina, rest of team.
  *
  * @param string $content CMS content.
@@ -330,8 +343,9 @@ function nvx_equipo_extract_staff_cards( string $content ): array {
 	foreach ( $patterns as $pattern ) {
 		if ( preg_match_all( $pattern, $content, $m ) && ! empty( $m[0] ) ) {
 			foreach ( $m[0] as $card ) {
-				if ( ! isset( $found[ $card ] ) ) {
-					$found[ $card ] = true;
+				$identity_key = nvx_equipo_card_identity_key( $card );
+				if ( ! isset( $found[ $identity_key ] ) ) {
+					$found[ $identity_key ] = true;
 					nvx_equipo_categorize_staff_card( $card, $rivera_media, $ivon_media, $fabio_media, $cristina_media, $other_cards );
 				}
 			}
@@ -881,10 +895,30 @@ function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): st
 			'name'           => $data['name'] ?? '',
 			'kicker'         => $data['kicker'] ?? '',
 			'h2'             => $data['h2'] ?? '',
-			'bio_paragraphs' => array(
-				$data['bio_paragraphs'][0] ?? '',
-				$data['bio_paragraphs'][1] ?? '',
-				sprintf( $data['bio_paragraphs'][2] ?? '', esc_url( $doctoralia ) ),
+			'bio_paragraphs' => array_values(
+				array_filter(
+					array_map(
+						static function ( $paragraph ): string {
+							return wp_kses(
+								(string) $paragraph,
+								array(
+									'strong' => array(),
+									'a'      => array(
+										'class'  => true,
+										'href'   => true,
+										'target' => true,
+										'rel'    => true,
+									),
+								)
+							);
+						},
+						array(
+							$data['bio_paragraphs'][0] ?? '',
+							$data['bio_paragraphs'][1] ?? '',
+							sprintf( $data['bio_paragraphs'][2] ?? '', esc_url( $doctoralia ) ),
+						)
+					)
+				)
 			),
 			'sections'       => array(
 				array(

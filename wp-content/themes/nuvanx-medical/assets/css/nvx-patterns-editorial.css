@@ -376,6 +376,21 @@ section.nvx-hero {
   overflow: hidden;
 }
 
+/* Make catalog cards equal height in grid */
+.nvx-catalog-grid {
+  align-items: stretch;
+}
+
+.nvx-catalog-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.nvx-catalog-card__cta {
+  margin-top: auto;
+}
+
 .nvx-catalog-card:hover .nvx-catalog-card__cta,
 .nvx-catalog-card:focus-within .nvx-catalog-card__cta {
   color: var(--nvx-charcoal);
@@ -527,7 +542,7 @@ section.nvx-hero {
 .nvx-endolift-formula__eq {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-serif);
-  font-size: clamp(var(--nvx-space-4), 4vw, 2.75rem);
+  font-size: clamp(1.5rem, 5vw, 2.75rem);
   letter-spacing: 0.04em;
   color: var(--nvx-text-on-dark);
 }
@@ -1198,7 +1213,7 @@ section.nvx-hero {
 .nvx-laser-formula__eq {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-serif);
-  font-size: clamp(calc(var(--nvx-space-1) * 3.5), 3.5vw, var(--nvx-space-5));
+  font-size: clamp(1.375rem, 4vw, var(--nvx-space-5));
   letter-spacing: 0.04em;
   color: var(--nvx-text-on-dark);
 }
@@ -1426,7 +1441,7 @@ section.nvx-hero {
 .nvx-aes-formula__eq {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-serif);
-  font-size: clamp(var(--nvx-space-3), 3vw, 2.25rem);
+  font-size: clamp(1.25rem, 3.5vw, 2.25rem);
   letter-spacing: 0.03em;
   color: var(--nvx-text-on-dark);
 }

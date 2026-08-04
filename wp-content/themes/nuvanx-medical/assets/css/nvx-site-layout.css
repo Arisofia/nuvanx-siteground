@@ -74,6 +74,14 @@
   box-sizing: border-box;
 }
 
+/* Reduce section spacing on mobile to prevent excessive scrolling */
+@media (max-width: 768px) {
+  .nvx-brand-page > .nvx-brand-section,
+  .nvx-brand-page--laser-hub > .nvx-brand-section {
+    padding-block: var(--nvx-pad-section-tight);
+  }
+}
+
 /*
  * Post-hero clinical intro is emitted as a normal brand-section
  * (.nvx-hero-intro) so gutters match Chamberí / hub / treatment sections.

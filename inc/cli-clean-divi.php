@@ -13,7 +13,7 @@
  * @version 1.0.0
  */
 
-declare(strict_types=1);
+// declare(strict_types=1); // Removed for WP-CLI eval-file compatibility
 
 if (!defined('WP_CLI') || !WP_CLI) {
     return;
@@ -40,10 +40,10 @@ final class NVX_Divi_Cleaner_Command {
      *     wp nvx clean-divi --dry-run
      *     wp nvx clean-divi --post-type=page --batch-size=20
      */
-    public function __invoke(array $args, array $assoc_args): void {
-        $dry_run    = isset($assoc_args['dry-run']);
-        $post_types = explode(',', $assoc_args['post-type'] ?? 'page,post');
-        $batch_size = (int) ($assoc_args['batch-size'] ?? 50);
+    public function __invoke($args, $assoc_args) {
+        $dry_run    = isset($assoc_args['dry-run']) || getenv('DRY_RUN') === '1';
+        $post_types = explode(',', $assoc_args['post-type'] ?? getenv('POST_TYPES') ?? 'page,post');
+        $batch_size = (int) ($assoc_args['batch-size'] ?? getenv('BATCH_SIZE') ?? 50);
 
         WP_CLI::line(WP_CLI::colorize('%YIniciando análisis de shortcodes Divi...%n'));
         if ($dry_run) {

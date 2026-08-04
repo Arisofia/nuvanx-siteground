@@ -139,26 +139,26 @@ jobs:
       - name: Configurar Clave SSH para SiteGround
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.SG_SSH_KEY }}
+          ssh-private-key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
 
       - name: Añadir Host de SiteGround a Known Hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -p ${{ secrets.SG_SSH_PORT || 18765 }} -H ${{ secrets.SG_SSH_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.PROD_SSH_PORT || 18765 }} -H ${{ secrets.PROD_SSH_HOST }} >> ~/.ssh/known_hosts
 
       - name: Sincronización de Archivos vía RSYNC (Staging / Production)
         run: |
           rsync -avz --delete \
-            -e "ssh -p ${{ secrets.SG_SSH_PORT || 18765 }}" \
+            -e "ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }}" \
             --exclude='.git*' \
             --exclude='.github*' \
             --exclude='node_modules*' \
             --exclude='tests*' \
             --exclude='playwright*' \
             --exclude='*.log' \
-            ./ ${{ secrets.SG_SSH_USER }}@${{ secrets.SG_SSH_HOST }}:${{ secrets.SG_TARGET_DIR }}
+            ./ ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:${{ secrets.PROD_WP_PATH }}/wp-content/themes/nuvanx/
 
       - name: Purgar Caché del Servidor vía WP-CLI (SiteGround Optimizer)
         run: |
-          ssh -p ${{ secrets.SG_SSH_PORT || 18765 }} ${{ secrets.SG_SSH_USER }}@${{ secrets.SG_SSH_HOST }} \
-            "wp siteground cache purge --type=all --path=${{ secrets.SG_WP_PATH }}"
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "wp siteground cache purge --type=all --path=${{ secrets.PROD_WP_PATH }}"

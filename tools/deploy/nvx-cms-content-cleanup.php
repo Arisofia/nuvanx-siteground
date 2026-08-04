@@ -19,7 +19,7 @@
  * @return array<int, array{id:string, pattern:string, replace:string}> Cleanup rules with identifiers, patterns, and replacement text.
  */
 function nvx_cms_cleanup_rules(): array {
-	return array(
+	$rules = array(
 		array(
 			'id'      => 'v3_metodo_section',
 			'pattern' => '/<section\b[^>]*class="[^"]*nvx-v3-metodo[^"]*"[^>]*>[\s\S]*?<\/section>/iu',

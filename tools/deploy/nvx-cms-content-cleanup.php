@@ -163,32 +163,44 @@ function nvx_cms_cleanup_rules(): array {
 			'replace' => 'misma dirección médica que Chamberí',
 		),
 		// CTA Normalizations from nvx_content_unify_ctas
+		// Note: We use a shared constant label to avoid duplicating "Iniciar mi valoración médica".
+		// Note: The CMS rules rewrite both the label and the href of the anchor.
+	);
+
+	$val_lbl = 'Iniciar mi valoración médica';
+	$val_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : '/valoracion/';
+	$wa_lbl  = 'Contactar por WhatsApp';
+	$wa_url  = function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '/contacto-whatsapp/';
+
+	$cta_rules = array(
 		array(
 			'id'      => 'cta_valoracion_personalizada',
-			'pattern' => '/Solicitar (?:valoraci[oó]n|consulta) m[eé]dica personalizada/iu',
-			'replace' => 'Iniciar mi valoración médica',
+			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar (?:valoraci[oó]n|consulta) m[eé]dica personalizada\s*<\/a>/iu',
+			'replace' => '<a$1href="' . esc_attr( $val_url ) . '"$2>' . $val_lbl . '</a>',
 		),
 		array(
 			'id'      => 'cta_valoracion',
-			'pattern' => '/(?:Solicitar|Agenda tu) (?:valoraci[oó]n|consulta)(?: m[eé]dica)?(?: gratuita)?/iu',
-			'replace' => 'Iniciar mi valoración médica',
+			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Solicitar|Agenda tu) (?:valoraci[oó]n|consulta)(?: m[eé]dica)?(?: gratuita)?\s*<\/a>/iu',
+			'replace' => '<a$1href="' . esc_attr( $val_url ) . '"$2>' . $val_lbl . '</a>',
 		),
 		array(
 			'id'      => 'cta_cita',
-			'pattern' => '/(?:Pedir|Reservar) cita/iu',
-			'replace' => 'Iniciar mi valoración médica',
+			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Pedir|Reservar) cita\s*<\/a>/iu',
+			'replace' => '<a$1href="' . esc_attr( $val_url ) . '"$2>' . $val_lbl . '</a>',
 		),
 		array(
 			'id'      => 'cta_info',
-			'pattern' => '/Solicitar informaci[oó]n/iu',
-			'replace' => 'Iniciar mi valoración médica',
+			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar informaci[oó]n\s*<\/a>/iu',
+			'replace' => '<a$1href="' . esc_attr( $val_url ) . '"$2>' . $val_lbl . '</a>',
 		),
 		array(
 			'id'      => 'cta_whatsapp',
-			'pattern' => '/Explorar tratamientos exclusivos/iu',
-			'replace' => 'Contactar por WhatsApp',
+			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Explorar tratamientos exclusivos\s*<\/a>/iu',
+			'replace' => '<a$1href="' . esc_attr( $wa_url ) . '"$2>' . $wa_lbl . '</a>',
 		),
 	);
+
+	return array_merge( $rules, $cta_rules );
 }
 
 /**

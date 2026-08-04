@@ -84,7 +84,7 @@ add_filter( 'the_content', 'nvx_render_managed_valoracion_page', NVX_HOOK_PRIO_V
 add_filter(
 	'nvx_page_owner',
 	function ( $owner ) {
-		if ( ! empty( $owner ) ) {
+		if ( ! empty( $owner ) || is_admin() ) {
 			return $owner;
 		}
 		if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {

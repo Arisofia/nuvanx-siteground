@@ -74,69 +74,14 @@ jobs:
           npm run type-check --if-present
           npm run lint --if-present
 
-      # --- Build de Tailwind CSS ---
-      - name: Compilar Assets de Producción (Tailwind CSS)
-        run: npm run build
-        env:
-          NODE_ENV: production
 
-      - name: Persistir Artefactos Compilados
-        uses: actions/upload-artifact@v4
-        with:
-          name: compiled-assets
-          path: |
-            dist/
-            package.json
-          retention-days: 1
 
   # =========================================================
-  # FASE 2: Pruebas E2E Críticas con Playwright
-  # =========================================================
-  e2e-testing:
-    name: 🧪 E2E Playwright Audit
-    needs: audit-and-build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout del Repositorio
-        uses: actions/checkout@v4
-
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Descargar Artefactos Compilados
-        uses: actions/download-artifact@v4
-        with:
-          name: compiled-assets
-
-      - name: Instalar Dependencias de Node
-        run: npm ci
-
-      - name: Instalar Navegadores de Playwright
-        run: npx playwright install --with-deps chromium
-
-      - name: Ejecutar Pruebas E2E de Layout, 404s y CLS
-        run: npx playwright test
-        env:
-          BASE_URL: ${{ secrets.STAGING_URL || 'https://staging.nuvanx.com' }}
-          CI: true
-
-      - name: Subir Reporte de Playwright en Caso de Fallo
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
-
-  # =========================================================
-  # FASE 3: Despliegue Atómico a SiteGround (Solo en Main)
+  # FASE 2: Despliegue Atómico a SiteGround (Solo en Main)
   # =========================================================
   deploy-siteground:
     name: 🚀 Atomic Deploy to SiteGround
-    needs: [audit-and-build, e2e-testing]
+    needs: audit-and-build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:

@@ -250,6 +250,9 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 	</div>
 </footer>
 
+		</div><!-- .nvx-brand-page -->
+	</main>
+
 <?php wp_footer(); ?>
 
 </body>

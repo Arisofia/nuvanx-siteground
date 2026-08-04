@@ -12,6 +12,9 @@ on:
       - "tools/deploy/deploy-required-mu-plugins.sh"
       - "tools/wp-cli/hygiene-content-fix.php"
       - "scripts/staging2/browser-acceptance.mjs"
+      - "scripts/lint/no-hardcoded-colors.mjs"
+      - "scripts/lint/no-hardcoded-fontsize.mjs"
+      - "scripts/lint/no-inline-layout-styles.mjs"
       - "eslint.config.js"
       - "package.json"
       - "package-lock.json"
@@ -27,6 +30,9 @@ on:
       - "tools/deploy/deploy-required-mu-plugins.sh"
       - "tools/wp-cli/hygiene-content-fix.php"
       - "scripts/staging2/browser-acceptance.mjs"
+      - "scripts/lint/no-hardcoded-colors.mjs"
+      - "scripts/lint/no-hardcoded-fontsize.mjs"
+      - "scripts/lint/no-inline-layout-styles.mjs"
       - "eslint.config.js"
       - "package.json"
       - "package-lock.json"
@@ -69,6 +75,15 @@ jobs:
           npm ci --ignore-scripts
           npm run lint
           find wp-content/themes/nuvanx-medical/ -name "*.php" -print0 | xargs -0 -n1 php -l
+
+      - name: Lint CSS colors
+        run: node scripts/lint/no-hardcoded-colors.mjs
+
+      - name: Lint CSS font-size
+        run: node scripts/lint/no-hardcoded-fontsize.mjs
+
+      - name: Lint inline layout styles
+        run: node scripts/lint/no-inline-layout-styles.mjs
 
   deploy:
     name: Deploy immutable SHA to staging2

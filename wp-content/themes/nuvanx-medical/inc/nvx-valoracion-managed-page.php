@@ -81,7 +81,7 @@ add_filter(
 		if ( ! empty( $owner ) ) {
 			return $owner;
 		}
-		if ( function_exists( 'nvx_theme_is_valoracion_landing' ) && nvx_theme_is_valoracion_landing() ) {
+		if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
 			return 'nvx_valoracion_managed';
 		}
 		return $owner;

@@ -17,6 +17,11 @@ body.nvx-blog-context {
   color: var(--nvx-text-body);
 }
 
+/* Compensate for fixed header if present */
+.nvx-blog-single article {
+  padding-top: var(--nvx-space-2);
+}
+
 /* Archive opening stage uses global .nvx-brand-hero. */
 
 /* Archive grid and cards */

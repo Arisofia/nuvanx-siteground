@@ -163,7 +163,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 		. '<p>Este procedimiento no es habitual en el sector. Lo describimos porque creemos que debería serlo.</p>'
 		. '</section>';
 
-	$html .= '<section class="nvx-brand-section" aria-labelledby="why-centros"><h2 id="why-centros">Atención en centros sanitarios autorizados</h2><p>NUVANX atiende en Chamberí (CS20144) y Salamanca–Goya (CS20073), con equipo médico colegiado.</p><p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a> <a class="nvx-brand-inline-link" href="' . $team_url . '">Conocer al equipo médico</a>';
+	$html .= '<section class="nvx-brand-section" aria-labelledby="why-centros"><h2 id="why-centros">Atención en centros sanitarios autorizados</h2><p>NUVANX atiende en Chamberí (CS20144) y Salamanca–Goya (CS20073), con equipo médico colegiado.</p><p><a class="nvx-brand-btn" href="' . $valuation_url . '">Solicitar valoración médica</a> <a class="nvx-brand-inline-link" href="' . $team_url . '">Conocer al equipo médico</a>';
 	if ( '' !== $investment ) {
 		$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( $investment ) . '">Consultar inversión orientativa</a>';
 	}
@@ -342,7 +342,7 @@ function nvx_strategy_investment_markup(): string {
 		. '</section>';
 
 	$html .= '<section class="nvx-brand-section" aria-label="' . esc_attr__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '">'
-		. '<p><a class="nvx-button" href="' . $valuation_url . '">Solicitar valoración médica</a></p>'
+		. '<p><a class="nvx-brand-btn" href="' . $valuation_url . '">Solicitar valoración médica</a></p>'
 		. '</section>';
 
 	$html .= '</article>';

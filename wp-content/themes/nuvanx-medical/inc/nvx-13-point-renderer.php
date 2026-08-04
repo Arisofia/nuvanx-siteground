@@ -27,7 +27,7 @@ function nvx_render_matrix_hero( array $data ): string {
 	if ( ! empty( $data['lead'] ) ) {
 		$html .= '<p class="nvx-brand-lead">' . esc_html( $data['lead'] ) . '</p>';
 	}
-	$html .= '<p><a class="nvx-button nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
+	$html .= '<p><a class="nvx-brand-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></p>';
 	$html .= '</header>';
 	return $html;
 }

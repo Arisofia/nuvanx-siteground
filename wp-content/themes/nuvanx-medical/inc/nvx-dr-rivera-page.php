@@ -112,7 +112,7 @@ function nvx_content_dr_rivera_hijack( string $content ): string {
 		$html .= nvx_cta_pair_markup( 'nvx-dr-rivera-hero-ctas nvx-home-hero-ctas' );
 		$html .= '</div>';
 	} else {
-		$html .= '<p class="nvx-dr-rivera-cta"><a href="' . esc_url( $valuation_url ) . '" class="nvx-button">' . esc_html__( 'Iniciar mi valoración médica', 'nuvanx-medical' ) . '</a></p>';
+		$html .= '<p class="nvx-dr-rivera-cta"><a href="' . esc_url( $valuation_url ) . '" class="nvx-brand-btn">' . esc_html__( 'Iniciar mi valoración médica', 'nuvanx-medical' ) . '</a></p>';
 	}
 
 	$html .= '</div>';

@@ -85,7 +85,7 @@ function nvx_content_que_exigir_hijack( string $content ): string {
 	if ( function_exists( 'nvx_cta_pair_markup' ) ) {
 		$html .= nvx_cta_pair_markup( 'nvx-que-exigir-hero-ctas nvx-home-hero-ctas' );
 	} else {
-		$html .= '<a href="' . esc_url( $valuation_url ) . '" class="nvx-button">' . esc_html( $data['cta']['fallback_btn'] ?? '' ) . '</a>';
+		$html .= '<a href="' . esc_url( $valuation_url ) . '" class="nvx-brand-btn">' . esc_html( $data['cta']['fallback_btn'] ?? '' ) . '</a>';
 	}
 	$html .= '</div>';
 

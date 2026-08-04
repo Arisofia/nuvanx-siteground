@@ -103,7 +103,7 @@ $topics = get_categories(
 				<div class="nvx-blog-empty">
 					<h2 class="nvx-brand-title"><?php esc_html_e( 'No se encontraron artículos', 'nuvanx-medical' ); ?></h2>
 					<p class="nvx-copy"><?php esc_html_e( 'Prueba con otro tema o vuelve al Journal completo.', 'nuvanx-medical' ); ?></p>
-					<a class="nvx-button nvx-button--primary" href="<?php echo esc_url( home_url( '/blog/' ) ); ?>"><?php esc_html_e( 'Ver todos los artículos', 'nuvanx-medical' ); ?></a>
+					<a class="nvx-brand-btn nvx-brand-btn--primary" href="<?php echo esc_url( home_url( '/blog/' ) ); ?>"><?php esc_html_e( 'Ver todos los artículos', 'nuvanx-medical' ); ?></a>
 				</div>
 			<?php endif; ?>
 

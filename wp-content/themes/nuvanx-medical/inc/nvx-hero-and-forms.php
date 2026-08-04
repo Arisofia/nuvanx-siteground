@@ -111,6 +111,14 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 		return $content;
 	}
 
+	// Skip for pages that use nvx-page-shell with hero media
+	// The shell already handles hero with featured image (lines 79-93 in nvx-page-shell.php)
+	// This filter is only for content-managed heroes that lack media
+	global $nvx_page_shell_has_hero;
+	if ( isset( $nvx_page_shell_has_hero ) && $nvx_page_shell_has_hero ) {
+		return $content;
+	}
+
 	// Content already owns a media rail inside the hero.
 	if ( preg_match( '/nvx-(?:brand-hero|editorial-hero|page-hero|hero)__media/i', $content ) ) {
 		return $content;

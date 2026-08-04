@@ -118,7 +118,7 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 	if ( '' === $whatsapp ) {
 		$whatsapp = sprintf(
 			'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
-			esc_url( 'https://wa.me/34669319836' ),
+			esc_url( function_exists( 'nvx_whatsapp_url' ) ? nvx_whatsapp_url( 'primary' ) : 'https://wa.me/34669319836' ),
 			esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
 		);
 	}

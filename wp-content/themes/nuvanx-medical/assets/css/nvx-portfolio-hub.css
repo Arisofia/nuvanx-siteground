@@ -66,7 +66,7 @@
 	font-weight: 600;
 	color: var(--nvx-ink);
 	padding-bottom: var(--nvx-space-2);
-	border-bottom: 1px solid var(--nvx-color-line);
+	border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
 .nvx-hub-region__list {
@@ -205,7 +205,7 @@
 	justify-content: center;
 	align-items: center;
 	gap: var(--nvx-space-6);
-	opacity: 0.4; /* Gris muy claro / Discreto */
+	opacity: 0.55; /* Gris muy claro / Discreto */
 	filter: grayscale(100%);
 }
 

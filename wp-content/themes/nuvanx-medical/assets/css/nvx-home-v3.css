@@ -163,7 +163,7 @@
 .nvx-home-feature__title {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-body);
-	font-weight: 600;
+	font-weight: var(--nvx-fw-medium);
 	color: var(--nvx-ink);
 }
 
@@ -210,7 +210,7 @@
 	grid-template-columns: 1fr;
 	gap: var(--nvx-space-1);
 	padding-block: var(--nvx-space-6);
-	border-bottom: 1px solid var(--nvx-color-line);
+	border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
 @media (min-width: 768px) {
@@ -222,14 +222,14 @@
 }
 
 .nvx-home-portfolio__item:first-child {
-	border-top: 1px solid var(--nvx-color-line);
+	border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
 .nvx-home-portfolio__number {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-small);
 	color: var(--nvx-accent-gold-text);
-	font-weight: 600;
+	font-weight: var(--nvx-fw-medium);
 }
 
 .nvx-home-portfolio__name {
@@ -353,14 +353,14 @@
 
 .nvx-home-team__list li {
 	padding-block: var(--nvx-space-2);
-	border-bottom: 1px solid var(--nvx-color-line);
+	border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-small);
 }
 
 .nvx-home-team__list li strong {
 	color: var(--nvx-ink);
-	font-weight: 600;
+	font-weight: var(--nvx-fw-medium);
 	margin-right: var(--nvx-space-1);
 }
 
@@ -374,7 +374,7 @@
 .nvx-home-seo {
 	padding-block: var(--nvx-pad-section);
 	background: var(--nvx-surface-base);
-	border-top: 1px solid var(--nvx-color-line);
+	border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
 .nvx-home-seo__inner {
@@ -407,7 +407,7 @@
 .nvx-home-seo__col-title {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-small);
-	font-weight: 600;
+	font-weight: var(--nvx-fw-medium);
 	color: var(--nvx-ink);
 	margin-bottom: var(--nvx-space-2);
 }
@@ -467,7 +467,7 @@
 .nvx-home-location__name {
 	font-family: var(--nvx-sans);
 	font-size: var(--nvx-type-body);
-	font-weight: 600;
+	font-weight: var(--nvx-fw-medium);
 	color: var(--nvx-ink);
 	margin-bottom: var(--nvx-space-1);
 }

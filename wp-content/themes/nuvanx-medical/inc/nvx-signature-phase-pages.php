@@ -159,12 +159,13 @@ function nvx_signature_phase_list( string $title, array $items, string $class = 
  */
 function nvx_signature_phase_markup( array $page ): string {
 	$html       = '<article class="nvx-brand-page nvx-treatment-page nvx-protocol-page nvx-signature-phase-page">';
-	$html      .= '<header class="nvx-strategy-intro"><p class="nvx-eyebrow">' . esc_html( (string) $page['kicker'] ) . '</p>';
-	$html      .= '<h1 class="nvx-strategy-title">' . esc_html( (string) $page['title'] ) . '</h1>';
+	$html      .= '<section class="nvx-brand-hero" aria-labelledby="nvx-signature-title"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy">';
+	$html      .= '<p class="nvx-brand-kicker">' . esc_html( (string) $page['kicker'] ) . '</p>';
+	$html      .= '<h1 id="nvx-signature-title" class="nvx-brand-hero__title">' . esc_html( (string) $page['title'] ) . '</h1>';
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
-	$html      .= '<p class="nvx-brand-lead">' . esc_html( (string) $page['lead'] ) . '</p><p>' . esc_html( (string) $page['intro'] ) . '</p>';
-	$html      .= '<p><a class="nvx-button nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></p>';
-	$html      .= '<p class="nvx-brand-microcopy">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p></header>';
+	$html      .= '<p class="nvx-brand-hero__lead">' . esc_html( (string) $page['lead'] ) . '</p><p>' . esc_html( (string) $page['intro'] ) . '</p>';
+	$html      .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica privada', 'nuvanx-medical' ) . '</a></div>';
+	$html      .= '<p class="nvx-brand-meta">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p></div></div></section>';
 	$html      .= nvx_signature_phase_list( 'Qué se valora', (array) $page['assessment'] );
 	$html      .= '<section class="nvx-brand-section"><div class="nvx-brand-section__inner"><h2>' . esc_html__( 'Cómo se decide el plan', 'nuvanx-medical' ) . '</h2>';
 	$html      .= '<p>' . esc_html__( 'El médico identifica el componente predominante, revisa zonas contiguas y descarta problemas que no deben abordarse con medicina estética. Solo entonces se selecciona una modalidad y se documentan alternativas, cuidados y seguimiento.', 'nuvanx-medical' ) . '</p>';

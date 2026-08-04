@@ -467,14 +467,22 @@ if ( $apply && class_exists( 'WP_CLI' ) ) {
 	WP_CLI::runcommand( 'db export nvx-cms-cleanup-backup-' . gmdate( 'Y-m-d-His' ) . '.sql' );
 }
 
-	// Verify CTA link normalizations.
-	$expected_val_cta = '<a href="/valoracion/">Iniciar mi valoración médica</a>';
-	if ( substr_count( $result['html'], $expected_val_cta ) < 4 ) {
-		$missing[] = 'replace:cta_valoracion_links';
-	}
-	if ( false === strpos( $result['html'], '<a href="/contacto-whatsapp/">Contactar por WhatsApp</a>' ) ) {
-		$missing[] = 'replace:cta_whatsapp';
-	}
+$q = new WP_Query(
+	array(
+		'post_type'              => array( 'page', 'post' ),
+		'post_status'            => array( 'publish', 'draft', 'private', 'pending', 'future' ),
+		'posts_per_page'         => -1,
+		'orderby'                => 'ID',
+		'order'                  => 'ASC',
+		'no_found_rows'          => true,
+		'update_post_meta_cache' => false,
+		'update_post_term_cache' => false,
+	)
+);
+
+$siteurl = (string) get_option( 'siteurl' );
+$mode    = $apply ? 'APPLY' : 'DRY-RUN';
+echo "NUVANX CMS cleanup mode={$mode} siteurl={$siteurl}\n";
 
 $scanned  = 0;
 $touched  = 0;

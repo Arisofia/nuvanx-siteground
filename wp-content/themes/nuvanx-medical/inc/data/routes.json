@@ -55,14 +55,14 @@
     "seo_id": "endolaser",
     "schema_group": "treatments",
     "schema_id": "endolaser_corporal",
-    "post_id": 0,
+    "post_id": 1200,
     "schema_type": "MedicalProcedure"
   },
   "/laser-co2-fraccionado-madrid-textura-cicatrices-poro/": {
     "seo_id": "co2",
     "schema_group": "treatments",
     "schema_id": "laser_co2",
-    "post_id": 0,
+    "post_id": 2017,
     "schema_type": "MedicalProcedure"
   },
   "/exion-btl/": {
@@ -100,7 +100,7 @@
     "seo_id": "exilite",
     "schema_group": "treatments",
     "schema_id": "exilite_btl",
-    "post_id": 0,
+    "post_id": 3055,
     "schema_type": "Service"
   },
   "/medicina-estetica-laser/": {},

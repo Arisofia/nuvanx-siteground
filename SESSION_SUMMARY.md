@@ -1,14 +1,14 @@
 # Estado Completo de Pendientes - Nuvanx SiteGround
 
 ## Resumen Numérico
-- **Código DONE (falta validar):** 5
-- **Código no-accionar (por diseño):** 2 ✅ (documentado)
+- **Código DONE (falta validar):** 5 (foco #2, contraste #1, hero #3, centrado #4, sintaxis #5)
+- **Código no-accionar (por diseño):** 2 ✅ (documentado en commit 85ffa2ff)
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
-- **Contenido/CMS a verificar:** 2 (equipo wrapper + fotos)
+- **Contenido/CMS:** 0 ✅ (VALIDATED por informe estético + foto Fabio es CMS)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
 - **Editorial:** 1 (numeración romana)
 - **Falsos positivos cerrados:** 7
-- **Total pendientes reales:** 8 (5 validar + 2 CMS + 1 editorial)
+- **Total pendientes reales:** 6 (5 validar + 1 editorial)
 
 ---
 
@@ -73,12 +73,17 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 ---
 
-## 🟠 CONTENIDO / CMS — verificar antes de accionar
+## 🟠 CONTENIDO / CMS — verificar antes de accionar ✅ VALIDATED
 
 | # | Pendiente | Estado |
 |---|-----------|--------|
-| 12 | /equipo-medico/ wrapper CMS | Viene del post_content reutilizado (nvx-page-render-helpers.php:69-71). Editar post 1575 solo si DevTools confirma problema. El wrapper es inofensivo |
-| 13 | /equipo-medico/ fotos grandes | Falta contenedor .nvx-equipo-staff-grid (reglas de hijos existen en nvx-patterns-editorial.css:818-881). Verificar en navegador real; fix CMS o CSS del contenedor |
+| 12 | /equipo-medico/ wrapper CMS | ✅ VALIDATED por informe estético (wrapper correcto con márgenes uniformes) |
+| 13 | /equipo-medico/ fotos grandes | ✅ VALIDATED por informe estético (grid fluido, rejilla se comporta correctamente) |
+
+**Nota adicional - Foto Dr. Fabio:**
+- Estado: CMS - subir imagen al WordPress admin
+- Código correcto: nvx-equipo-page.php:240-247,813 degrada correctamente a texto-sin-foto
+- El renderer maneja el caso exactamente como describe el informe (no es bug de código)
 
 ---
 
@@ -114,6 +119,11 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 ## Orden de Ataque Recomendado
 
-1. **#1-5 verificaciones VALIDATED** — navegador real + caché purgada (único bloqueo restante)
-2. **#12, #13 equipo** — DevTools primero, luego CMS.
-3. **#15** — decisión editorial (numeración romana)
+1. **#1-5 verificaciones VALIDATED** — navegador real + caché purgada (foco, contraste, hero, centrado, sintaxis)
+2. **#15** — decisión editorial (numeración romana I-V vs 01-05)
+
+**Nota sobre commit 85ffa2ff:**
+- Solo agregó comentarios de documentación en nvx-site-layout.css (líneas 45-46)
+- No hay cambios funcionales que afecten al hero full-bleed
+- El comentario documenta el doble .nvx-brand-page nesting como "by design"
+- Verificado con git show 85ffa2ff - seguro para hero full-bleed

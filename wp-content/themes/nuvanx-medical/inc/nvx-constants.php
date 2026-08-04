@@ -5,7 +5,7 @@
  * This file maps all hook priorities to named constants to provide a deterministic,
  * self-documenting execution graph without magic numbers.
  *
- * NOTE: This scope currently covers ONLY 	he_content filters. Other priority
+ * NOTE: This scope currently covers ONLY the_content filters. Other priority
  * graphs (e.g. wpseo_metadesc, template_include) are deferred as future technical debt.
  *
  * @package nuvanx-medical
@@ -14,6 +14,14 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// -----------------------------------------------------------------------------
+// Robots Policy Directives
+// -----------------------------------------------------------------------------
+const NVX_ROBOTS_INHERIT          = 0;
+const NVX_ROBOTS_INDEX_FOLLOW     = 1;
+const NVX_ROBOTS_NOINDEX_FOLLOW   = 2;
+const NVX_ROBOTS_NOINDEX_NOFOLLOW = 3;
 
 // Early Content Modifiers
 const NVX_HOOK_PRIO_JSONLD_STRIP            = 5;
@@ -57,10 +65,10 @@ const NVX_HOOK_PRIO_CLINICS_ENHANCE         = 30;
 const NVX_HOOK_PRIO_AESTHETIC_TREATMENT     = 80;
 const NVX_HOOK_PRIO_STRATEGY_PAGES          = 82;
 
-// Governance & Rules (Block 99-101 deterministic order)
+// Governance & Rules (Block 99)
 const NVX_HOOK_PRIO_BUSINESS_RULES          = 99;
-const NVX_HOOK_PRIO_STRIP_PAGE_CTAS         = 100;
-const NVX_HOOK_PRIO_BTL_GOVERNANCE          = 101;
+const NVX_HOOK_PRIO_STRIP_PAGE_CTAS         = 99;
+const NVX_HOOK_PRIO_BTL_GOVERNANCE          = 99;
 
 // Late Hijacks & Enforcements
 const NVX_HOOK_PRIO_DR_RIVERA               = 121;

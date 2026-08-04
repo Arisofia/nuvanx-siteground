@@ -87,7 +87,7 @@ function nvx_theme_normalize_blog_headings( string $content ): string {
 	$content = (string) preg_replace( '/<h1(\b[^>]*)>/iu', '<h2$1>', $content );
 	return str_ireplace( '</h1>', '</h2>', $content );
 }
-add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', 8 );
+add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', NVX_HOOK_PRIO_BLOG_HEADINGS );
 
 /**
  * Canonical medical author for journal (E-E-A-T). Not the WP login display name.
@@ -197,4 +197,4 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 
 	return $content;
 }
-add_filter( 'the_content', 'nvx_theme_strip_blog_content_bylines', 9 );
+add_filter( 'the_content', 'nvx_theme_strip_blog_content_bylines', NVX_HOOK_PRIO_BLOG_BYLINES );

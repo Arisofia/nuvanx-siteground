@@ -110,7 +110,13 @@ add_action(
 		}
 
 		if ( ! is_404() && ! is_search() ) {
-			$current_url = function_exists( 'nvx_document_governance_canonical_url' ) ? nvx_document_governance_canonical_url() : ( is_front_page() ? home_url( '/' ) : home_url( nvx_theme_request_path() ?: '/' ) );
+			if ( function_exists( 'nvx_document_governance_canonical_url' ) ) {
+				$current_url = nvx_document_governance_canonical_url();
+			} elseif ( is_front_page() ) {
+				$current_url = home_url( '/' );
+			} else {
+				$current_url = home_url( nvx_theme_request_path() ?: '/' );
+			}
 			if ( '' !== $current_url ) {
 				echo '<link rel="alternate" hreflang="es-ES" href="' . esc_url( $current_url ) . '" />' . "\n";
 				echo '<link rel="alternate" hreflang="x-default" href="' . esc_url( $current_url ) . '" />' . "\n";

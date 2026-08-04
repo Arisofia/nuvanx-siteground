@@ -208,4 +208,4 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 		'nvx-brand-page nvx-brand-page--endolaser'
 	);
 }
-add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
+add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', NVX_HOOK_PRIO_ENDOLASER );

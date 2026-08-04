@@ -118,7 +118,7 @@ function nvx_aesthetic_hero_ctas_markup(): string {
 	if ( '' === $whatsapp ) {
 		$whatsapp = sprintf(
 			'<a class="nvx-brand-btn nvx-brand-btn--secondary" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
-			esc_url( nvx_whatsapp_url( 'primary' ) ),
+			esc_url( function_exists( 'nvx_whatsapp_url' ) ? nvx_whatsapp_url( 'primary' ) : 'https://wa.me/34669319836' ),
 			esc_html__( 'Contactar por WhatsApp', 'nuvanx-medical' )
 		);
 	}
@@ -348,7 +348,8 @@ add_filter(
 	'nvx_page_owner',
 	function ( $owner ) {
 		if ( ! empty( $owner ) ) {
-			return $owner; }
+			return $owner;
+		}
 		global $post;
 		$content = $post ? $post->post_content : '';
 		if ( function_exists( 'nvx_content_is_aesthetic_medicine_page' ) && nvx_content_is_aesthetic_medicine_page( $content ) ) {
@@ -387,4 +388,4 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 
 	return $out;
 }
-add_filter( 'the_content', 'nvx_content_restructure_aesthetic_medicine_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );
+add_filter( 'the_content', 'nvx_content_restructure_aesthetic_medicine_page', NVX_HOOK_PRIO_AESTHETIC_MEDICINE );

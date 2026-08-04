@@ -35,3 +35,8 @@ mcps/
 Nuvanx-System/
 qa/
 artifacts/
+parallel-lint.phar
+
+php/
+test.php
+composer.phar

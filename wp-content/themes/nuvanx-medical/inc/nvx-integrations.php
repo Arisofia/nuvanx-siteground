@@ -306,16 +306,32 @@ add_filter(
 
 		ob_start(
 			static function ( string $buffer ): string {
-				// Remove Facebook Signal scripts and noscript tags
-				$buffer = preg_replace( '/<script[^>]*facebook[^>]*>.*?<\/script>/is', '', $buffer );
-				$buffer = preg_replace( '/<noscript[^>]*>.*?facebook.*?<\/noscript>/is', '', $buffer );
+				if ( '' === trim( $buffer ) ) {
+					return $buffer;
+				}
 
-				// Remove Facebook Pixel initialization
-				$buffer = preg_replace( '/<!--.*?Facebook Pixel.*?-->/is', '', $buffer );
-				$buffer = preg_replace( '/<!--.*?Meta Pixel.*?-->/is', '', $buffer );
+				// Remove Facebook Signal scripts and noscript tags
+				$cleaned = preg_replace( '/<script[^>]*facebook[^>]*>.*?<\/script>/is', '', $buffer );
+				if ( is_string( $cleaned ) ) {
+					$buffer = $cleaned;
+				}
+
+				$cleaned = preg_replace( '/<noscript[^>]*>.*?facebook.*?<\/noscript>/is', '', $buffer );
+				if ( is_string( $cleaned ) ) {
+					$buffer = $cleaned;
+				}
+
+				// Remove Facebook / Meta Pixel initialization comments (anchored to comment start)
+				$cleaned = preg_replace( '/<!--\s*(?:Facebook|Meta)\s+Pixel.*?-->/is', '', $buffer );
+				if ( is_string( $cleaned ) ) {
+					$buffer = $cleaned;
+				}
 
 				// Remove _fbp cookie setting scripts
-				$buffer = preg_replace( '/_fbp\s*=.*?;/is', '', $buffer );
+				$cleaned = preg_replace( '/_fbp\s*=.*?;/is', '', $buffer );
+				if ( is_string( $cleaned ) ) {
+					$buffer = $cleaned;
+				}
 
 				return $buffer;
 			}

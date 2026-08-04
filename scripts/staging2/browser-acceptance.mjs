@@ -614,20 +614,17 @@ async function run() {
           }
         }
         
-        // 6. Axe-core accessibility scan
-        const axeRoutes = ['/', '/madrid/valoracion/', '/contacto/', '/endolift-facial-papada-mandibula/', '/blog/'];
-        if (axeRoutes.includes(route)) {
-          try {
-            const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
-            const violations = accessibilityScanResults.violations || [];
-            const blocking = violations.filter(v => ['critical','serious'].includes(v.impact));
-            a11yViolationsCount = blocking.length;
-            if (blocking.length > 0) {
-              issues.push(`A11y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map(v=>v.id).join(', ')}`);
-            }
-          } catch (axeErr) {
-            console.warn(`Axe-core failed on ${route}:`, axeErr.message);
+        // 6. Axe-core accessibility scan (all routes)
+        try {
+          const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+          const violations = accessibilityScanResults.violations || [];
+          const blocking = violations.filter(v => ['critical','serious'].includes(v.impact));
+          a11yViolationsCount = blocking.length;
+          if (blocking.length > 0) {
+            issues.push(`A11y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map(v=>v.id).join(', ')}`);
           }
+        } catch (axeErr) {
+          console.warn(`Axe-core failed on ${route}:`, axeErr.message);
         }
       }
 

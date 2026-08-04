@@ -228,9 +228,13 @@ function nvx_cms_class_token_map(): array {
  * @return array{html:string, hits:array<string,int>}
  */
 function nvx_cms_cleanup_apply( string $html ): array {
+	static $cached_rules = null;
+	if ( null === $cached_rules ) {
+		$cached_rules = nvx_cms_cleanup_rules();
+	}
 	$hits = array();
 
-	foreach ( nvx_cms_cleanup_rules() as $rule ) {
+	foreach ( $cached_rules as $rule ) {
 		$count = 0;
 		$html  = preg_replace( $rule['pattern'], $rule['replace'], $html, -1, $count ) ?? $html;
 		if ( $count > 0 ) {

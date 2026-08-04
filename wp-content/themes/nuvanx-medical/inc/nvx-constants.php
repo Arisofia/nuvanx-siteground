@@ -2,11 +2,19 @@
 /**
  * Global registry for the_content filter priorities.
  *
- * This file maps all hook priorities to named constants to provide a deterministic,
- * self-documenting execution graph without magic numbers.
+ * This file maps all hook priorities to named constants to provide a
+ * self-documenting record of hook priorities without magic numbers.
+ *
+ * ARCHITECTURE NOTE — Collisions are intentional and load-order dependent:
+ * Several groups of constants share the same integer value (e.g. block-19
+ * restructuradores, block-99 governance, block-21 signature). Within each
+ * group, WordPress executes callbacks in the order they were registered via
+ * add_filter(), which is determined by the require_once sequence in
+ * functions.php. Renaming files or reordering the bootstrap WILL silently
+ * change render order. To achieve true determinism, space these values apart.
  *
  * NOTE: This scope currently covers ONLY the_content filters. Other priority
- * graphs (e.g. wpseo_metadesc, template_include) are deferred as future technical debt.
+ * graphs (e.g. wpseo_metadesc, template_include) are deferred as future debt.
  *
  * @package nuvanx-medical
  */

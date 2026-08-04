@@ -8,7 +8,8 @@
     "dev": "tailwindcss -i ./src/css/input.css -o ./dist/css/main.css --watch",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'No lint script configured'"
   },
   "devDependencies": {
     "@playwright/test": "^1.45.0",

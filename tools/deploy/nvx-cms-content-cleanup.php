@@ -411,6 +411,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 				return json_encode( $data, $flags );
 			}
 		}
+		if ( ! function_exists( 'esc_attr' ) ) {
+			function esc_attr( $text ) {
+				return htmlspecialchars( (string) $text, ENT_QUOTES );
+			}
+		}
+		if ( ! function_exists( 'esc_url' ) ) {
+			function esc_url( $url ) {
+				return (string) $url;
+			}
+		}
 		exit( nvx_cms_cleanup_self_test() );
 	}
 

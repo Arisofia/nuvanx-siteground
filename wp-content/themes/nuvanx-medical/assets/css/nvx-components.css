@@ -1,7 +1,7 @@
 /* NUVANX components — type primitives, cards, values, forms, CTAs
    Long-form measure + body figures live in nvx-site-layout.css (not here).
    Body inherits type from nvx-base; component classes own explicit roles. */
-.nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-light)}
+.nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-light);text-shadow:0 2px 8px rgba(0,0,0,0.4)}
 .nvx-heading,h1{margin:0 0 var(--nvx-margin-h1);font-family:var(--nvx-serif);font-size:var(--nvx-type-h1);font-weight:400;line-height:var(--nvx-lh-h1);letter-spacing:var(--nvx-track-h1);color:var(--nvx-ink)}
 
 /* Improve H1 hierarchy on small screens to prevent excessive vertical space */
@@ -1268,15 +1268,15 @@ article.nvx-page > .nvx-page-hero{
 
 .nvx-brand-hero__copy .nvx-brand-btn{
     width: 100%;
-    max-width: 280px}
+    max-width: 350px}
 
 .nvx-brand-hero__copy .nvx-button{
     width: 100%;
-    max-width: 280px}
+    max-width: 350px}
 
 .nvx-brand-hero__copy .nvx-btn{
     width: 100%;
-    max-width: 280px}
+    max-width: 350px}
 
 .nvx-method-columns{
   display: grid;
@@ -1513,6 +1513,99 @@ figure.nvx-equipo-portrait{
   margin-bottom: var(--nvx-space-3);
 }
 
+/* Standardized pricing table component */
+.nvx-pricing-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--nvx-space-4) 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  overflow: hidden;
+}
+
+.nvx-pricing-table th,
+.nvx-pricing-table td {
+  padding: var(--nvx-space-3) var(--nvx-space-4);
+  text-align: left;
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
+}
+
+.nvx-pricing-table th {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  font-weight: var(--nvx-fw-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--nvx-surface-soft);
+  color: var(--nvx-ink);
+}
+
+.nvx-pricing-table tr:last-child td {
+  border-bottom: none;
+}
+
+.nvx-pricing-table td:last-child {
+  font-weight: var(--nvx-fw-medium);
+  color: var(--nvx-ink);
+}
+
+/* Standardized recovery timeline component */
+.nvx-recovery-timeline {
+  margin: var(--nvx-space-4) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nvx-recovery-timeline__item {
+  position: relative;
+  padding-left: var(--nvx-space-6);
+  margin-bottom: var(--nvx-space-4);
+}
+
+.nvx-recovery-timeline__item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--nvx-accent-muted);
+}
+
+.nvx-recovery-timeline__item::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 14px;
+  bottom: calc(-1 * var(--nvx-space-4) + 6px);
+  width: 2px;
+  background: var(--nvx-color-line);
+}
+
+.nvx-recovery-timeline__item:last-child::after {
+  display: none;
+}
+
+.nvx-recovery-timeline__period {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  font-weight: var(--nvx-fw-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--nvx-accent-muted);
+  margin-bottom: var(--nvx-space-1);
+}
+
+.nvx-recovery-timeline__content {
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
 /* =========================================================
    SECCIONES EDITORIALES (DARK MODE & MID TONE)
    ========================================================= */
@@ -1520,6 +1613,7 @@ figure.nvx-equipo-portrait{
 /* Sección oscura editorial */
 .nvx-brand-section--dark {
   background: var(--nvx-surface-dark);
+  background-image: var(--nvx-surface-dark-texture);
   color: var(--nvx-on-dark);
 }
 .nvx-brand-section--dark .nvx-brand-title,

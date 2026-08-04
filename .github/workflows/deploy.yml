@@ -158,7 +158,9 @@ jobs:
             --exclude='*.log' \
             ./ ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:${{ secrets.PROD_WP_PATH }}/wp-content/themes/nuvanx/
 
-      - name: Purgar Caché del Servidor vía WP-CLI (SiteGround Optimizer)
+      - name: Purgar Caché del Servidor (Método alternativo)
         run: |
           ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
-            "wp siteground cache purge --type=all --path=${{ secrets.PROD_WP_PATH }}"
+            "cd ${{ secrets.PROD_WP_PATH }} && \
+             wp cache flush && \
+             find wp-content/uploads/siteground-optimizer-assets -name '*.min.css' -delete -o -name '*.min.js' -delete -o -name 'combined-*' -delete || true"

@@ -41,6 +41,7 @@ defined( 'ABSPATH' ) || exit;
 					'alt'    => 'NUVANX',
 					'width'  => '160',
 					'height' => '154',
+					'sizes'  => '160px',
 				)
 			);
 		else :

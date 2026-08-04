@@ -85,9 +85,10 @@ while ( have_posts() ) :
 					the_post_thumbnail(
 						'full',
 						array(
-							'class'   => 'nvx-media nvx-media--hero',
-							'alt'     => the_title_attribute( array( 'echo' => false ) ),
-							'loading' => 'eager',
+							'class'         => 'nvx-media nvx-media--hero',
+							'alt'           => the_title_attribute( array( 'echo' => false ) ),
+							'loading'       => 'eager',
+							'fetchpriority' => 'high',
 						)
 					);
 					?>

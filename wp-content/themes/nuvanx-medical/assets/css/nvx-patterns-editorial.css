@@ -5,7 +5,6 @@
    no page-specific patches, no important flags, no embeds.
    ═══════════════════════════════════════════════════════════ */
 
-.nvx-brand-hero,
 .nvx-page-hero,
 .nvx-editorial-hero,
 section.nvx-hero {
@@ -25,6 +24,8 @@ section.nvx-hero {
   color: var(--nvx-light);
   box-sizing: border-box;
 }
+
+/* nvx-brand-hero full-bleed is handled by nvx-site-layout.css */
 
 .nvx-brand-hero .nvx-brand-hero__inner,
 .nvx-page-hero .nvx-page-hero__inner,

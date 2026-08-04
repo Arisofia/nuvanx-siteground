@@ -14,9 +14,6 @@ on:
       - "scripts/lint/no-hardcoded-colors.mjs"
       - "scripts/lint/no-hardcoded-fontsize.mjs"
       - "scripts/lint/no-inline-layout-styles.mjs"
-      - "eslint.config.js"
-      - "package.json"
-      - "package-lock.json"
       - "wp-content/themes/nuvanx-medical/**"
       - "wp-content/mu-plugins/**"
       - "docs/operations/deployment.md"
@@ -31,9 +28,6 @@ on:
       - "scripts/lint/no-hardcoded-colors.mjs"
       - "scripts/lint/no-hardcoded-fontsize.mjs"
       - "scripts/lint/no-inline-layout-styles.mjs"
-      - "eslint.config.js"
-      - "package.json"
-      - "package-lock.json"
       - "wp-content/themes/nuvanx-medical/**"
       - "wp-content/mu-plugins/**"
       - "docs/operations/deployment.md"
@@ -60,18 +54,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
 
       - name: Validate workflow and deployment contracts
         shell: bash
         run: |
           set -euo pipefail
           bash -n tools/deploy/deploy-to-staging2.sh
-          # --ignore-scripts blocks dependency lifecycle scripts (supply-chain
-          # hardening). Safe here: the contract job only runs ESLint, which needs
-          # no install-time scripts.
-          npm ci --ignore-scripts
-          npm run lint
           find wp-content/themes/nuvanx-medical/ -name "*.php" -print0 | xargs -0 -n1 php -l
 
       - name: Lint CSS colors

@@ -18,6 +18,12 @@
   padding: 0;
 }
 
+/* Ensure consistent top spacing after hero for all page types */
+.nvx-page__content > .nvx-brand-section:first-of-type,
+.nvx-brand-page > .nvx-brand-section:first-of-type {
+  padding-top: var(--nvx-space-8);
+}
+
 /* Theme hero is a direct child of article (outside shell) */
 
 /* Body sections after a full-bleed hero keep readable gutters */

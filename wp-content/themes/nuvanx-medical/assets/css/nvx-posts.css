@@ -514,6 +514,7 @@ body.nvx-blog-context {
 .nvx-blog-hero__copy {
   grid-column: span 12;
   min-width: 0;
+  padding-block: var(--nvx-space-8);
 }
 
 .nvx-blog-hero--text-only .nvx-blog-hero__copy {

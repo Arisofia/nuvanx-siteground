@@ -1,6 +1,7 @@
 # Core WordPress y Entorno Sensible
 wp-config.php
 .env
+.env.local
 .htaccess
 
 # Secrets and archives

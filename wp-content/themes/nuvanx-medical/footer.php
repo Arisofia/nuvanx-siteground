@@ -20,12 +20,12 @@ if ( function_exists( 'nvx_theme_show_cta_banner' ) && nvx_theme_show_cta_banner
 $nvx_footer_published_treatments = function_exists( 'nvx_navigation_published_treatments' )
 	? nvx_navigation_published_treatments()
 	: array();
-$nvx_cases_id = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
-$nvx_cases_public = $nvx_cases_id > 0
+$nvx_cases_id                    = function_exists( 'nvx_page_id_by_slug' ) ? nvx_page_id_by_slug( 'casos-de-pacientes' ) : 0;
+$nvx_cases_public                = $nvx_cases_id > 0
 	&& ( ! function_exists( 'nvx_noindex_page_ids' )
 		|| ! in_array( $nvx_cases_id, nvx_noindex_page_ids(), true ) );
-$nvx_why_nuvanx_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'why_nuvanx' ) : '';
-$nvx_investment_url = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';
+$nvx_why_nuvanx_url              = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'why_nuvanx' ) : '';
+$nvx_investment_url              = function_exists( 'nvx_strategy_published_url' ) ? nvx_strategy_published_url( 'investment' ) : '';
 
 $nvx_col_one = array();
 $nvx_col_two = array();

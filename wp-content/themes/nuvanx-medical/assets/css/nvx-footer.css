@@ -1,269 +1,189 @@
-/* NUVANX — Footer dark editorial
-   Fondo oscuro, acordeones nativos en móvil, grid 2fr/4fr/2fr/2fr en desktop.
-   Fuente de verdad visual: Figma sección 03 (Footer). */
+/* NUVANX — Footer compacto elegante
+   Diseño minimalista y compacto manteniendo todo el contenido
+   Secciones horizontales compactas en lugar de columnas verticales */
 /* ── Base ──────────────────────────────────────────────────── */
 .nvx-footer {
   background: var(--nvx-surface-dark);
   color: var(--nvx-on-dark-72);
   padding: 0;
 }
+
 .nvx-footer a {
   color: inherit;
   text-decoration: none;
   transition: color 0.15s ease;
 }
+
 .nvx-footer a:hover,
 .nvx-footer a:focus-visible {
   color: var(--nvx-on-dark);
 }
-/* ── Inner grid ───────────────────────────────────────────── */
+
+/* ── Inner container ───────────────────────────────────── */
 .nvx-footer__inner {
-  display: grid;
-  grid-template-columns: 2fr 4fr 2fr 2fr;
-  gap: var(--nvx-space-6);
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding: var(--nvx-space-8) var(--nvx-gutter-inner) 0;
+  padding: var(--nvx-space-6) var(--nvx-gutter-inner);
   box-sizing: border-box;
 }
-/* ── Logo ─────────────────────────────────────────────────── */
-.nvx-footer__logo {
-  min-width: 0;
+
+/* ── Brand (logo compacto) ─────────────────────────────── */
+.nvx-footer__brand {
+  margin-bottom: var(--nvx-space-4);
 }
-.nvx-footer__logo .nvx-logo {
+
+.nvx-footer__brand .nvx-logo {
   display: inline-flex;
   flex-direction: column;
   gap: var(--nvx-space-1);
 }
-.nvx-footer__logo .nvx-logo__wordmark {
+
+.nvx-footer__brand .nvx-logo__wordmark {
   font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h3);
+  font-size: var(--nvx-type-h2);
   font-weight: var(--nvx-fw-regular);
   color: var(--nvx-on-dark);
 }
-.nvx-footer__logo .nvx-logo__tagline {
+
+.nvx-footer__brand .nvx-logo__tagline {
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-micro);
+  font-size: var(--nvx-type-small);
   font-weight: var(--nvx-fw-regular);
-  letter-spacing: 0.1em;
-  /* 45% alpha on #111 fails WCAG AA (~3.3:1); 72% clears it (~6.5:1). */
+  letter-spacing: 0.05em;
   color: var(--nvx-on-dark-72);
 }
-.nvx-footer__logo-sedes {
-  margin-top: var(--nvx-space-4);
-  padding-top: var(--nvx-space-3);
-  border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-on-dark-50);
+
+/* ── Main content grid compacto ─────────────────────────── */
+.nvx-footer__main {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--nvx-space-6);
+  margin-bottom: var(--nvx-space-6);
 }
-/* ── Columnas (details nativo) ────────────────────────────── */
-.nvx-footer__col {
+
+/* ── Secciones compactas ────────────────────────────────── */
+.nvx-footer__section {
   min-width: 0;
 }
-/* summary = título de columna */
-.nvx-footer__col > summary {
-  display: block;
-  margin: 0 0 var(--nvx-space-3);
-  padding: 0;
+
+.nvx-footer__section-title {
+  margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-micro);
+  font-size: var(--nvx-type-caption);
   font-weight: var(--nvx-fw-bold);
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
-  /* 45% alpha on #111 fails WCAG AA (~3.3:1); 72% clears it (~6.5:1). */
   color: var(--nvx-on-dark-72);
-  list-style: none;
-  cursor: default;
 }
-.nvx-footer__col > summary::-webkit-details-marker { display: none; }
-.nvx-footer__col > summary::marker { display: none; content: ""; }
-/* ── Links ────────────────────────────────────────────────── */
-.nvx-footer__links {
-  display: grid;
-  gap: var(--nvx-space-1);
+
+/* ── Links compactos (inline en lugar de lista) ───────────── */
+.nvx-footer__links-compact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nvx-space-2) var(--nvx-space-3);
   margin: 0;
   padding: 0;
-  list-style: none;
 }
-.nvx-footer__links a {
+
+.nvx-footer__links-compact a {
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption2);
+  font-size: var(--nvx-type-small);
   font-weight: var(--nvx-fw-regular);
-  line-height: var(--nvx-lh-nav);
+  line-height: var(--nvx-lh-body);
   color: var(--nvx-on-dark-72);
 }
-/* Teléfonos: más peso y opacidad */
-.nvx-footer__links a[href^="tel:"] {
-  font-weight: var(--nvx-fw-heading);
+
+/* Teléfonos: más peso */
+.nvx-footer__links-compact a[href^="tel:"] {
+  font-weight: var(--nvx-fw-medium);
   color: var(--nvx-on-dark-88);
 }
-/* Tratamientos: sub-grid de 2 columnas */
-.nvx-footer__treatments-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0 var(--nvx-space-4);
-}
-/* ── Bottom bar ───────────────────────────────────────────── */
+
+/* ── Bottom bar compacta ───────────────────────────────────── */
 .nvx-footer__bottom {
+  border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+}
+
+.nvx-footer__bottom-inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding: var(--nvx-space-4) var(--nvx-gutter-inner);
+  box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
   gap: var(--nvx-space-2);
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin-inline: auto;
-  margin-top: var(--nvx-space-6);
-  padding: var(--nvx-space-3) var(--nvx-gutter-inner) var(--nvx-space-4);
-  border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
-  box-sizing: border-box;
 }
-.nvx-footer__tagline {
-  display: none;
-}
-.nvx-footer__legal {
+
+.nvx-footer__copyright {
   margin: 0;
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-micro);
+  font-size: var(--nvx-type-caption);
   color: var(--nvx-on-dark-50);
 }
+
 .nvx-footer__legal-nav {
   display: flex;
   align-items: center;
-  gap: var(--nvx-space-3);
+  gap: var(--nvx-space-2);
 }
-.nvx-footer__legal-links {
-  display: flex;
-  gap: var(--nvx-space-3);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.nvx-footer__legal-links a {
+
+.nvx-footer__legal-nav a {
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-micro);
+  font-size: var(--nvx-type-caption);
   color: var(--nvx-on-dark-50);
 }
+
 .nvx-footer__registrations {
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-micro);
+  font-size: var(--nvx-type-caption);
   letter-spacing: var(--nvx-track-caption);
   color: var(--nvx-on-dark-50);
   margin: 0;
 }
-.nvx-footer__bottom-separator {
-  color: var(--nvx-accent-line-dark);
-  font-size: var(--nvx-type-caption);
-  user-select: none;
-}
-/* ── Tablet (≤980px) ──────────────────────────────────────── */
-@media (max-width: 980px) {
-  .nvx-footer__inner {
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: var(--nvx-space-5);
-    padding-top: var(--nvx-space-6);
-  }
-  .nvx-footer__logo {
-    grid-column: 1 / -1;
-    margin-bottom: var(--nvx-space-1);
-    padding-bottom: var(--nvx-space-4);
-    border-bottom: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
-  }
-  .nvx-footer__logo-sedes {
-    display: none;
-  }
-}
-/* ── Móvil (≤640px) — acordeones nativos ──────────────────── */
-@media (max-width: 640px) {
-  .nvx-footer__inner {
-    display: block;
-    padding: var(--nvx-space-6) var(--nvx-gutter-inner) 0;
-  }
-  .nvx-footer__logo {
-    margin-bottom: var(--nvx-space-4);
-    padding-bottom: 0;
-    border-bottom: 0;
-  }
-  .nvx-footer__logo-sedes {
-    display: none;
-  }
-  /* Acordeones: cada columna es un <details> */
-  .nvx-footer__col {
-    border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
-  }
-  .nvx-footer__col > summary {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 0;
-    padding: var(--nvx-space-2) 0;
-    cursor: pointer;
-  }
-  .nvx-footer__col > summary::after {
-    content: "+";
-    font-family: var(--nvx-sans);
-    font-size: var(--nvx-type-h3);
-    font-weight: var(--nvx-fw-regular);
-    line-height: var(--nvx-lh-nav);
-    color: var(--nvx-on-dark-50);
-  }
-  .nvx-footer__col[open] > summary::after {
-    content: "−";
-  }
-  .nvx-footer__col > .nvx-footer__col-content {
-    padding-bottom: var(--nvx-space-3);
-  }
-  /* Columns render open by default (server-side, no-JS desktop fallback); on
-     mobile the native accordion collapses them. Hide content unless the user
-     opens the <details>, so the mobile accordion still works with `open`. */
-  .nvx-footer__col:not([open]) > .nvx-footer__col-content {
-    display: none;
-  }
-  /* Tratamientos: 1 columna en móvil */
-  .nvx-footer__treatments-grid {
+
+/* ── Tablet (≤768px) ──────────────────────────────────────── */
+@media (max-width: 768px) {
+  .nvx-footer__main {
     grid-template-columns: 1fr;
+    gap: var(--nvx-space-4);
   }
-  .nvx-footer__col:last-of-type {
-    border-bottom: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
-  }
-  /* Bottom bar: stack vertical */
-  .nvx-footer__bottom {
+
+  .nvx-footer__bottom-inner {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--nvx-space-2);
-    margin-top: var(--nvx-space-4);
-  }
-  .nvx-footer__legal-nav {
-    flex-wrap: wrap;
   }
 }
-/* ── Desktop (≥641px): forzar <details> abierto ───────────── */
-@media (min-width: 641px) {
-  .nvx-footer__col > .nvx-footer__col-content {
-    display: block !important;
+
+/* ── Móvil (≤480px) ──────────────────────────────────────── */
+@media (max-width: 480px) {
+  .nvx-footer__inner {
+    padding: var(--nvx-space-4) var(--nvx-gutter-inner);
   }
-  .nvx-footer__col > summary {
-    pointer-events: none;
+
+  .nvx-footer__main {
+    gap: var(--nvx-space-3);
   }
-  .nvx-footer__col > summary::after {
-    display: none;
+
+  .nvx-footer__links-compact {
+    gap: var(--nvx-space-1) var(--nvx-space-2);
+  }
+
+  .nvx-footer__bottom-inner {
+    padding: var(--nvx-space-3) var(--nvx-gutter-inner);
   }
 }
+
 /* ── Footer minimal (valoración landing) ──────────────────── */
-.nvx-footer--minimal {
-  padding: 0;
-  background: var(--nvx-surface-dark);
+.nvx-footer--minimal .nvx-footer__main {
+  display: none;
 }
+
 .nvx-footer--minimal .nvx-footer__bottom {
-  display: flex;
-  justify-content: center;
-  margin-top: 0;
-  padding: var(--nvx-space-3) var(--nvx-gutter-inner);
-  border-top: 0;
-}
-.nvx-footer--minimal .nvx-footer__legal-nav {
-  justify-self: center;
+  border-top: none;
+  padding-top: var(--nvx-space-2);
 }

@@ -681,9 +681,38 @@ async function run() {
         ctaCount
       });
 
-      csvRows.push(
-        `${route},${mainResponseStatus},${finalUrl},${canonical},${h1Count},"${title.replace(/"/g, '""')}",${currentConsoleErrors.length},${currentNetworkErrors.length},${metaDeploySha},${htmlLang},${mainExists},${hasNoindexMeta},${httpNoindexHeader},${hasInitialHubspot},${hasInitialFacebookSignal},${hasRogueThirdPartySrc},${rogueJsonLdCount},${heroCount},${ctaCount},${a11yViolationsCount}`
-      );
+      // Build CSV row safely escaping quotes and newlines
+      const csvRow = [
+        route || '',
+        mainResponseStatus || '',
+        finalUrl || '',
+        canonical || '',
+        h1Count || 0,
+        `"${(title || '').replace(/"/g, '""')}"`,
+        currentConsoleErrors.length || 0,
+        currentNetworkErrors.length || 0,
+        metaDeploySha || '',
+        htmlLang || '',
+        mainExists ? '1' : '0',
+        hasNoindexMeta ? '1' : '0',
+        httpNoindexHeader || '',
+        hasInitialHubspot ? '1' : '0',
+        hasInitialFacebookSignal ? '1' : '0',
+        hasRogueThirdPartySrc ? '1' : '0',
+        rogueJsonLdCount || 0,
+        heroCount || 0,
+        ctaCount || 0,
+        a11yViolationsCount || 0
+      ].map(v => {
+        // Don't replace commas inside the already-escaped title quotes.
+        // Actually, replacing commas with semicolons for everything except title is safer.
+        let str = String(v).replace(/\r?\n/g, ' ');
+        if (!str.startsWith('"')) {
+          str = str.replace(/,/g, ';');
+        }
+        return str;
+      });
+      csvRows.push(csvRow.join(','));
 
       if (issues.length > 0) {
         console.error(`❌ ${route} FAILED:`);

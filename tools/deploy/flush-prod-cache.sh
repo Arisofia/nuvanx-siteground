@@ -34,8 +34,8 @@ done
   exit 2
 }
 
-if [[ ! -d "$WP_ROOT" ]]; then
-    echo "ERROR: WP_ROOT directory not found: $WP_ROOT" >&2
+if [[ ! -d "$WP_ROOT" || ! -f "$WP_ROOT/wp-config.php" ]]; then
+    echo "ERROR: WP_ROOT is not a valid WordPress directory (missing wp-config.php): $WP_ROOT" >&2
     exit 1
 fi
 

@@ -16,7 +16,7 @@
 4. Update GitHub Secret `STAGING2_SSH_KNOWN_HOSTS` if host key changed
 5. Test deployment with new credentials
 6. Remove old SSH key from SiteGround server
-7. Document rotation (rotation log is maintained privately)
+7. Document key rotation in the private infrastructure password manager / DevOps vault.
 
 **Emergency Rotation:**
 - If key compromise is suspected, rotate immediately

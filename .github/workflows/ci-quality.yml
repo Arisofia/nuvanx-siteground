@@ -77,6 +77,7 @@ jobs:
           # run with higher memory in case of memory issues and produce a text report
           ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=2G | tee phpstan-report.txt
       - name: Upload PHPStan report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: phpstan-report

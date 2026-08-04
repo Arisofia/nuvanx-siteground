@@ -1474,6 +1474,45 @@ figure.nvx-equipo-portrait{
   color: var(--nvx-ink);
 }
 
+/* Critical risk alert styling for medical warnings */
+.nvx-alert--critical {
+  margin: var(--nvx-space-4) 0;
+  padding: var(--nvx-space-3) var(--nvx-space-4);
+  border-left: 4px solid var(--nvx-charcoal);
+  background: var(--nvx-surface-base);
+  border-radius: var(--nvx-radius-card);
+}
+
+.nvx-alert--critical .nvx-alert__title {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  font-weight: var(--nvx-fw-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--nvx-charcoal);
+}
+
+.nvx-alert--critical .nvx-alert__body {
+  margin: 0;
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-text-body);
+}
+
+/* Improved text contrast for dense content in dark sections */
+.nvx-brand-section--dark .nvx-brand-body--dense,
+.nvx-brand-section--dark .nvx-copy--dense {
+  color: var(--nvx-on-dark-92);
+  line-height: 1.7;
+}
+
+.nvx-brand-section--dark .nvx-brand-body--dense p,
+.nvx-brand-section--dark .nvx-copy--dense p {
+  margin-bottom: var(--nvx-space-3);
+}
+
 /* =========================================================
    SECCIONES EDITORIALES (DARK MODE & MID TONE)
    ========================================================= */

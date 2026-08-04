@@ -82,6 +82,13 @@
   }
 }
 
+/* Reduce vertical spacing in numbered lists on desktop for compact layouts */
+@media (min-width: 769px) {
+  .nvx-brand-section ol {
+    row-gap: var(--nvx-space-3);
+  }
+}
+
 /*
  * Post-hero clinical intro is emitted as a normal brand-section
  * (.nvx-hero-intro) so gutters match Chamberí / hub / treatment sections.

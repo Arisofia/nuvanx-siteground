@@ -103,6 +103,14 @@ if [[ -d "$PROD_ROOT/wp-content/mu-plugins" ]]; then
   tar -czf "$BACKUP_DIR/mu-plugins.tgz" -C "$PROD_ROOT" wp-content/mu-plugins
 fi
 
+echo "== Rsync theme (delete obsolete theme files) =="
+rsync -a --delete \
+  --exclude='.git' --exclude='php_errorlog' --exclude='*.log' \
+  --exclude='backups-nuvanx' --exclude='quarantine' \
+  --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' \
+  "$SOURCE_THEME/" \
+  "$PROD_ROOT/wp-content/themes/nuvanx-medical/"
+
 echo "== Retire absorbed MU plugins (logic now lives in the theme) =="
 mkdir -p "$PROD_ROOT/wp-content/mu-plugins"
 for mu in \
@@ -115,14 +123,6 @@ do
 done
 # Drop empty attribution package if present.
 rm -rf "$PROD_ROOT/wp-content/mu-plugins/nuvanx-google-attribution"
-
-echo "== Rsync theme (delete obsolete theme files) =="
-rsync -a --delete \
-  --exclude='.git' --exclude='php_errorlog' --exclude='*.log' \
-  --exclude='backups-nuvanx' --exclude='quarantine' \
-  --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' \
-  "$SOURCE_THEME/" \
-  "$PROD_ROOT/wp-content/themes/nuvanx-medical/"
 
 echo "== Remove stale theme min.css siblings on prod =="
 find "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/css" \

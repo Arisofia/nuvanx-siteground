@@ -5,7 +5,7 @@
 .nvx-heading,h1{margin:0 0 var(--nvx-margin-h1);font-family:var(--nvx-serif);font-size:var(--nvx-type-h1);font-weight:400;line-height:var(--nvx-lh-h1);letter-spacing:var(--nvx-track-h1);color:var(--nvx-ink)}
 .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
-.nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:600;line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-accent-muted)}
+.nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:var(--nvx-fw-medium);line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-accent-muted)}
 /* Copy roles only — bare `p` inherits from body (base.css) to avoid fighting layout measure rules */
 .nvx-copy,.nvx-brand-body,.nvx-body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:400;line-height:var(--nvx-lh-body);color:var(--nvx-text-body)}
 .nvx-body{margin:0 0 var(--nvx-margin-body)}
@@ -157,7 +157,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
   justify-content:space-between;
   margin-top:var(--nvx-space-8);
   padding-top:var(--nvx-space-4);
-  border-top:1px solid var(--nvx-color-line);
+  border-top:var(--nvx-border-hairline) solid var(--nvx-color-line);
   font-family:var(--nvx-sans);
   font-size:var(--nvx-type-body);
 }
@@ -174,12 +174,12 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
    Live markup: .nvx-faq, .nvx-brand-faq-*, .nvx-home-faq-editorial */
 .nvx-faq, .nvx-brand-faq-accordion {
   margin: 0;
-  border-top: 1px solid var(--nvx-color-line);
+  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
 .nvx-faq .nvx-brand-faq-item, .nvx-brand-faq-accordion .nvx-brand-faq-item, .nvx-home-faq-editorial .nvx-brand-faq-item {
   margin: 0;
-  border-bottom: 1px solid var(--nvx-color-line);
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   background: transparent;
   transition: background-color 180ms ease;
 }
@@ -330,7 +330,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
   min-height: calc(var(--nvx-space-1) * 6.75);
   margin: 0;
   padding: calc(var(--nvx-space-1) * 1.75) calc(var(--nvx-space-1) * 2.25);
-  border: 1px solid var(--nvx-surface-base);
+  border: var(--nvx-border-hairline) solid var(--nvx-surface-base);
   border-radius: calc(var(--nvx-space-1) * 1.75);
   background: var(--nvx-surface-base);
   color: var(--nvx-ink);
@@ -478,7 +478,7 @@ body.nvx-valoracion-modal-open{
 
 
 /* Clinics hub navigation — issue #46 */
-.nvx-clinics-nav{border-block:1px solid var(--nvx-color-line);background:var(--nvx-surface-base)}
+.nvx-clinics-nav{border-block:var(--nvx-border-hairline) solid var(--nvx-color-line);background:var(--nvx-surface-base)}
 .nvx-clinics-nav__link:hover{border-color:currentColor}
 .nvx-clinic-map-cta:focus-visible{outline:2px solid var(--nvx-ink);outline-offset:calc(var(--nvx-space-1) / 2)}
 .nvx-clinic-location__actions{margin-top:var(--nvx-space-4)}
@@ -492,7 +492,7 @@ body.nvx-valoracion-modal-open{
 .nvx-treatment-process__inner{max-width:var(--nvx-shell);margin-inline:auto;padding-inline:var(--nvx-gutter)}
 .nvx-treatment-process__kicker{font-family:var(--nvx-sans);font-size:var(--nvx-type-small);font-weight:600;letter-spacing:var(--nvx-track-button);text-transform:uppercase;color:var(--nvx-accent-muted);margin:0 0 var(--nvx-space-2)}
 .nvx-treatment-process__title{font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);color:var(--nvx-ink);margin:0 0 var(--nvx-space-4);max-width:28ch}
-.nvx-treatment-process__step{counter-increment:nvx-steps;display:grid;gap:var(--nvx-space-2);padding:var(--nvx-space-4);background:var(--nvx-light);border:1px solid var(--nvx-color-line);border-radius:var(--nvx-radius-card)}
+.nvx-treatment-process__step{counter-increment:nvx-steps;display:grid;gap:var(--nvx-space-2);padding:var(--nvx-space-4);background:var(--nvx-light);border:var(--nvx-border-hairline) solid var(--nvx-color-line);border-radius:var(--nvx-radius-card)}
 .nvx-treatment-process__step::before{content:counter(nvx-steps,decimal-leading-zero);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);color:var(--nvx-accent-muted);line-height:1}
 .nvx-treatment-process__step-title{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:700;color:var(--nvx-ink);margin:0}
 .nvx-treatment-process__step-body{font-family:var(--nvx-sans);font-size:var(--nvx-type-body);line-height:var(--nvx-lh-body);color:var(--nvx-text-body);margin:0}
@@ -712,7 +712,7 @@ article.nvx-page > .nvx-page-hero{
     padding-block: var(--nvx-pad-section);
   background: var(--nvx-light);
   color: var(--nvx-ink);
-  border-bottom: 1px solid var(--nvx-color-line)}
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line)}
 
 .nvx-brand-section--tight{padding-block:var(--nvx-pad-section-tight)}
 
@@ -820,7 +820,7 @@ article.nvx-page > .nvx-page-hero{
     grid-column: 1 / -1;
   min-width: 0;
   padding:var(--nvx-pad-card);
-  border:1px solid var(--nvx-color-line);
+  border:var(--nvx-border-hairline) solid var(--nvx-color-line);
   border-radius:var(--nvx-radius-card);
   background:var(--nvx-light);
   box-shadow:var(--nvx-shadow-min)}
@@ -864,23 +864,23 @@ article.nvx-page > .nvx-page-hero{
 
 .nvx-home-faq-editorial{
   margin: 0;
-  border-top: 1px solid var(--nvx-color-line);margin-top:var(--nvx-gap-wide)}
+  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);margin-top:var(--nvx-gap-wide)}
 
 .nvx-faq details{
   margin: 0;
-  border-bottom: 1px solid var(--nvx-color-line);
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   background: transparent;
     transition: none}
 
 .nvx-brand-faq-accordion details{
   margin: 0;
-  border-bottom: 1px solid var(--nvx-color-line);
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   background: transparent;
     transition: none}
 
 .nvx-home-faq-editorial details{
   margin: 0;
-  border-bottom: 1px solid var(--nvx-color-line);
+  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   background: transparent;
     transition: none}
 
@@ -996,7 +996,7 @@ article.nvx-page > .nvx-page-hero{
   width: min(100%, 34rem);
   margin-inline: auto;
     padding: var(--nvx-space-3) calc(var(--nvx-space-1) * 2.5);
-  border: 1px solid var(--nvx-surface-soft);
+  border: var(--nvx-border-hairline) solid var(--nvx-surface-soft);
     border-radius: var(--nvx-radius-card);
   background: var(--nvx-light);
   box-shadow: var(--nvx-shadow-medium)}
@@ -1007,7 +1007,7 @@ article.nvx-page > .nvx-page-hero{
   min-height: calc(var(--nvx-space-6) * 2.5);
   margin: 0;
   padding: calc(var(--nvx-space-1) * 1.75) calc(var(--nvx-space-1) * 2.25);
-  border: 1px solid var(--nvx-surface-base);
+  border: var(--nvx-border-hairline) solid var(--nvx-surface-base);
   border-radius: calc(var(--nvx-space-1) * 1.75);
   background: var(--nvx-surface-base);
   color: var(--nvx-ink);
@@ -1028,7 +1028,7 @@ article.nvx-page > .nvx-page-hero{
   overflow:auto;
   margin:0;
     padding:calc(var(--nvx-space-1) * 2.5) 1rem calc(var(--nvx-space-1) * 3.5);
-  border:1px solid var(--nvx-color-line);
+  border:var(--nvx-border-hairline) solid var(--nvx-color-line);
     border-radius:var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) 0 0;
   background:var(--nvx-light);
   box-shadow:var(--nvx-shadow-button-hover, 0 var(--nvx-space-2) var(--nvx-space-5) var(--nvx-border-soft));

@@ -87,7 +87,7 @@ function nvx_theme_normalize_blog_headings( string $content ): string {
 	$content = (string) preg_replace( '/<h1(\b[^>]*)>/iu', '<h2$1>', $content );
 	return str_ireplace( '</h1>', '</h2>', $content );
 }
-add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', NVX_HOOK_PRIO_BLOG_HEADINGS );
+add_filter( 'the_content', 'nvx_theme_normalize_blog_headings', 8 );
 
 /**
  * Canonical medical author for journal (E-E-A-T). Not the WP login display name.
@@ -163,7 +163,7 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 
 	// Split at first H2 so loose patterns never touch body sections.
 	$parts = preg_split( '/(?=<h2\b)/iu', $content, 2 );
-	$head  = $parts[0] ?? $content;
+	$head  = ( is_array( $parts ) && isset( $parts[0] ) ) ? $parts[0] : $content;
 	$tail  = $parts[1] ?? '';
 
 	// Short preamble: Autor: … (optionally Fecha/Lectura on same paragraph).
@@ -197,4 +197,4 @@ function nvx_theme_strip_blog_content_bylines( string $content ): string {
 
 	return $content;
 }
-add_filter( 'the_content', 'nvx_theme_strip_blog_content_bylines', NVX_HOOK_PRIO_BLOG_BYLINES );
+add_filter( 'the_content', 'nvx_theme_strip_blog_content_bylines', 9 );

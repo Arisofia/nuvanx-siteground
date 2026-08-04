@@ -15,7 +15,7 @@
 .nvx-logo__wordmark {
   font-family: var(--nvx-sans);
   font-size: var(--nvx-space-2);
-  font-weight: 600;
+  font-weight: var(--nvx-fw-medium);
   line-height: var(--nvx-lh-nav);
   letter-spacing: 0.24em;
 }
@@ -58,7 +58,7 @@
   padding-block: var(--nvx-space-1);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-nav);
-  font-weight: 600;
+  font-weight: var(--nvx-fw-medium);
   line-height: var(--nvx-lh-nav);
   letter-spacing: var(--nvx-track-nav);
   text-transform: uppercase;
@@ -160,7 +160,7 @@
   padding: var(--nvx-space-2) var(--nvx-space-3);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-nav-submenu);
-  font-weight: 500;
+  font-weight: var(--nvx-fw-heading);
   line-height: var(--nvx-lh-nav-submenu);
   letter-spacing: var(--nvx-track-nav-submenu);
   text-transform: none;

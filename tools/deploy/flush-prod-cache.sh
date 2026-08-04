@@ -34,6 +34,11 @@ done
   exit 2
 }
 
+if [[ ! -d "$WP_ROOT" ]]; then
+    echo "ERROR: WP_ROOT directory not found: $WP_ROOT" >&2
+    exit 1
+fi
+
 cd "$WP_ROOT"
 
 siteurl="$(wp option get siteurl)"

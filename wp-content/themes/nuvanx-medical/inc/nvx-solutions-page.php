@@ -12,6 +12,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+if ( ! function_exists( 'str_contains' ) ) {
+	function str_contains( string $haystack, string $needle ): bool {
+		return '' === $needle || false !== strpos( $haystack, $needle );
+	}
+}
+
 /**
  * Load one versioned theme JSON catalog (canonical theme-wide helper).
  *
@@ -110,7 +116,7 @@ function nvx_render_solutions_page( $content ): string {
 	$markup = nvx_solutions_hub_markup();
 	return '' !== trim( $markup ) ? $markup : $content;
 }
-add_filter( 'the_content', 'nvx_render_solutions_page', NVX_HOOK_PRIO_SOLUTIONS_PAGE );
+add_filter( 'the_content', 'nvx_render_solutions_page', 11 );
 
 /**
  * Enqueue the canonical medical solutions page stylesheet on its route.

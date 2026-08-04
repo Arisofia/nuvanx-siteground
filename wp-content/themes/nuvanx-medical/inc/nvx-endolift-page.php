@@ -99,10 +99,7 @@ function nvx_endolift_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolift-page.json' )['hero'] ?? array();
 
-	$colegiado   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
-	$price_label = function_exists( 'nvx_format_price_eur' )
-		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
-		: number_format_i18n( 798.60, 2 );
+	$colegiado = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 
 	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
@@ -349,4 +346,4 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 
 	return '<div class="nvx-brand-page nvx-brand-page--endolift">' . $hero . $body . '</div>';
 }
-add_filter( 'the_content', 'nvx_content_restructure_endolift_page', NVX_HOOK_PRIO_ENDOLIFT );
+add_filter( 'the_content', 'nvx_content_restructure_endolift_page', NVX_HOOK_PRIO_MODULE_RESTRUCTURE );

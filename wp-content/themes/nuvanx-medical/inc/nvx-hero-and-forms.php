@@ -118,15 +118,26 @@ function nvx_remove_duplicate_hero_from_content( string $content ): string {
 		if ( in_array( $template, array( 'page-landing-valoracion.php', 'page-sede.php', 'page-soluciones-medicas.php' ), true ) ) {
 			// Remove ALL hero sections from the_content for these templates
 			// Pattern A templates have their own heroes in PHP
-			$content = preg_replace( '/<section[^>]*class="[^"]*\bnvx-brand-hero\b[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-			$content = preg_replace( '/<section[^>]*class="[^"]*\bnvx-page-hero\b[^"]*"[^>]*>.*?<\/section>/is', '', $content );
-			$content = preg_replace( '/<section[^>]*class="[^"]*\bnvx-editorial-hero\b[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+			// Try multiple regex patterns to match different HTML structures
+			$content = preg_replace( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+			$content = preg_replace( '/<section[^>]*class="[^"]*nvx-page-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+			$content = preg_replace( '/<section[^>]*class="[^"]*nvx-editorial-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
 		}
+	}
+
+	// Also apply to clinic hub pages that use nvx_clinics_hub_render_managed
+	$current_url = $_SERVER['REQUEST_URI'] ?? '';
+	if ( strpos( $current_url, '/clinicas-de-medicina-estetica-nuvanx/' ) !== false ||
+	     strpos( $current_url, '/medicina-estetica-chamberi/' ) !== false ||
+	     strpos( $current_url, '/medicina-estetica-goya-barrio-salamanca/' ) !== false ) {
+		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-page-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-editorial-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
 	}
 
 	return $content;
 }
-add_filter( 'the_content', 'nvx_remove_duplicate_hero_from_content', 15 );
+add_filter( 'the_content', 'nvx_remove_duplicate_hero_from_content', 1 );
 
 /**
  * Ensure content heroes that lack media use the featured image when available.

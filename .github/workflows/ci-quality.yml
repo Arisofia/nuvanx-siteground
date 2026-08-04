@@ -29,7 +29,20 @@ jobs:
           tools: parallel-lint
       - name: Run PHP Parallel Lint
         run: |
-          parallel-lint --exclude vendor --exclude node_modules .
+          set -o pipefail
+          parallel-lint --exclude vendor --exclude node_modules . 2>&1 | tee ci-parallel-lint.txt
+          STATUS=${PIPESTATUS[0]}
+          if [ "$STATUS" -ne 0 ]; then
+            echo "parallel-lint detected syntax errors (exit $STATUS). See ci-parallel-lint.txt"
+            cat ci-parallel-lint.txt
+            exit $STATUS
+          fi
+      - name: Upload parallel-lint output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: parallel-lint-output
+          path: ci-parallel-lint.txt
 
   phpcs:
     name: PHP_CodeSniffer

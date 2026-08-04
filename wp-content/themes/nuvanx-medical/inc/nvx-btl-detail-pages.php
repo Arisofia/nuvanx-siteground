@@ -104,7 +104,7 @@ function nvx_btl_detail_zone_item_markup( array $item ): string {
 	}
 
 	$html = '<li class="nvx-feature-zone">';
-	if ( $title ) {
+	if ( '' !== $title ) {
 		$html .= '<h3 class="nvx-feature-zone__title">' . esc_html( $title ) . '</h3>';
 	}
 	if ( '' !== $text ) {

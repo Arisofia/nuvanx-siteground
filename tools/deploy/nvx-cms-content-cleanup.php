@@ -171,32 +171,33 @@ function nvx_cms_cleanup_rules(): array {
 	$val_url = function_exists( 'nvx_cta_valoracion_url' ) ? nvx_cta_valoracion_url() : '/valoracion/';
 	$wa_lbl  = 'Contactar por WhatsApp';
 	$wa_url  = function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '/contacto-whatsapp/';
+	$tpl     = '<a$1href="%s"$2>%s</a>';
 
 	$cta_rules = array(
 		array(
 			'id'      => 'cta_valoracion_personalizada',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar (?:valoraci[oó]n|consulta) m[eé]dica personalizada\s*<\/a>/iu',
-			'replace' => '<a$1href="' . esc_attr( $val_url ) . '"$2>' . $val_lbl . '</a>',
+			'replace' => sprintf( $tpl, esc_attr( $val_url ), $val_lbl ),
 		),
 		array(
 			'id'      => 'cta_valoracion',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Solicitar|Agenda tu) (?:valoraci[oó]n|consulta)(?: m[eé]dica)?(?: gratuita)?\s*<\/a>/iu',
-			'replace' => '<a$1href="' . esc_attr( $val_url ) . '"$2>' . $val_lbl . '</a>',
+			'replace' => sprintf( $tpl, esc_attr( $val_url ), $val_lbl ),
 		),
 		array(
 			'id'      => 'cta_cita',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Pedir|Reservar) cita\s*<\/a>/iu',
-			'replace' => '<a$1href="' . esc_attr( $val_url ) . '"$2>' . $val_lbl . '</a>',
+			'replace' => sprintf( $tpl, esc_attr( $val_url ), $val_lbl ),
 		),
 		array(
 			'id'      => 'cta_info',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar informaci[oó]n\s*<\/a>/iu',
-			'replace' => '<a$1href="' . esc_attr( $val_url ) . '"$2>' . $val_lbl . '</a>',
+			'replace' => sprintf( $tpl, esc_attr( $val_url ), $val_lbl ),
 		),
 		array(
 			'id'      => 'cta_whatsapp',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Explorar tratamientos exclusivos\s*<\/a>/iu',
-			'replace' => '<a$1href="' . esc_attr( $wa_url ) . '"$2>' . $wa_lbl . '</a>',
+			'replace' => sprintf( $tpl, esc_attr( $wa_url ), $wa_lbl ),
 		),
 	);
 

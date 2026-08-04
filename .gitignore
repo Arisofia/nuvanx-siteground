@@ -36,3 +36,15 @@ mcps/
 Nuvanx-System/
 qa/
 artifacts/
+
+# Testing and Playwright
+tests/
+playwright-report/
+test-results/
+playwright.config.ts
+
+# Node.js
+package.json
+package-lock.json
+node_modules/
+eslint.config.js

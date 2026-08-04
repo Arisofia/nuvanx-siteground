@@ -21,13 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'NVX_DIRECTOR_COLEGIADO' ) ) {
-	define( 'NVX_DIRECTOR_COLEGIADO', '282864786' );
+	define( 'NVX_DIRECTOR_COLEGIADO', nvx_medical_colegiado( 'director' ) );
 }
 if ( ! defined( 'NVX_IVON_COLEGIADO' ) ) {
-	define( 'NVX_IVON_COLEGIADO', '284621525' );
+	define( 'NVX_IVON_COLEGIADO', nvx_medical_colegiado( 'ivon' ) );
 }
 if ( ! defined( 'NVX_FABIO_COLEGIADO' ) ) {
-	define( 'NVX_FABIO_COLEGIADO', '282877543' );
+	define( 'NVX_FABIO_COLEGIADO', nvx_medical_colegiado( 'fabio' ) );
 }
 
 /**
@@ -41,7 +41,7 @@ function nvx_cta_valoracion_url(): string {
  * @return string
  */
 function nvx_cta_whatsapp_url(): string {
-	return 'https://wa.me/34669319836';
+	return nvx_whatsapp_url( 'primary' );
 }
 
 

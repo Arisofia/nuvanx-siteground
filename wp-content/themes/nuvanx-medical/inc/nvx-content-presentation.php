@@ -21,13 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'NVX_DIRECTOR_COLEGIADO' ) ) {
-	define( 'NVX_DIRECTOR_COLEGIADO', nvx_medical_colegiado( 'director' ) );
+	define( 'NVX_DIRECTOR_COLEGIADO', nvx_medical_colegiado( 'director' ) ?: '282864786' );
 }
 if ( ! defined( 'NVX_IVON_COLEGIADO' ) ) {
-	define( 'NVX_IVON_COLEGIADO', nvx_medical_colegiado( 'ivon' ) );
+	define( 'NVX_IVON_COLEGIADO', nvx_medical_colegiado( 'ivon' ) ?: '284621525' );
 }
 if ( ! defined( 'NVX_FABIO_COLEGIADO' ) ) {
-	define( 'NVX_FABIO_COLEGIADO', nvx_medical_colegiado( 'fabio' ) );
+	define( 'NVX_FABIO_COLEGIADO', nvx_medical_colegiado( 'fabio' ) ?: '282877543' );
 }
 
 /**

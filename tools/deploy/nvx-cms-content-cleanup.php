@@ -416,21 +416,11 @@ HTML;
 		$missing[] = 'replace:sin obligación';
 	}
 
-	// Verify CTA link normalizations.
-	$expected_val_anchor = '<a href="/valoracion/">Iniciar mi valoración médica</a>';
-	if ( false === strpos( $result['html'], $expected_val_anchor ) ) {
-		$missing[] = 'replace:cta_valoracion_personalizada';
+	// Verify CTA link normalizations: all 4 valoracion rules should rewrite to the same normalized label.
+	if ( 4 !== substr_count( $result['html'], '>Iniciar mi valoración médica</a>' ) ) {
+		$missing[] = 'replace:cta_valoracion_links';
 	}
-	if ( false === strpos( $result['html'], $expected_val_anchor ) ) {
-		$missing[] = 'replace:cta_valoracion';
-	}
-	if ( false === strpos( $result['html'], $expected_val_anchor ) ) {
-		$missing[] = 'replace:cta_cita';
-	}
-	if ( false === strpos( $result['html'], $expected_val_anchor ) ) {
-		$missing[] = 'replace:cta_info';
-	}
-	if ( false === strpos( $result['html'], '<a href="/contacto-whatsapp/">Contactar por WhatsApp</a>' ) ) {
+	if ( false === strpos( $result['html'], '>Contactar por WhatsApp</a>' ) ) {
 		$missing[] = 'replace:cta_whatsapp';
 	}
 

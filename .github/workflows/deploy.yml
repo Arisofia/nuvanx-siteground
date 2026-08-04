@@ -1,0 +1,164 @@
+name: Production Gate & Atomic Deploy to SiteGround
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =========================================================
+  # FASE 1: Auditoría de Código, Sintaxis & Compilación Assets
+  # =========================================================
+  audit-and-build:
+    name: 🛡️ Audit, Lint & Asset Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Entorno PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl
+          tools: php-cs-fixer
+
+      - name: Configurar Entorno Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # --- Cache de Dependencias ---
+      - name: Cache de Composer Dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-composer-
+
+      - name: Instalar Dependencias PHP
+        run: |
+          if [ -f "composer.json" ]; then
+            composer install --no-interaction --prefer-dist --optimize-autoloader
+          fi
+
+      - name: Instalar Dependencias Node.js
+        run: npm ci
+
+      # --- Linters & Verificación de Tipos ---
+      - name: Validar Sintaxis PHP (AST Check)
+        run: |
+          find . -type f -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" -print0 | xargs -0 -n1 php -l
+
+      - name: Verificar Tipos TypeScript & Linter
+        run: |
+          npm run type-check --if-present
+          npm run lint --if-present
+
+      # --- Build de Tailwind CSS ---
+      - name: Compilar Assets de Producción (Tailwind CSS)
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Persistir Artefactos Compilados
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiled-assets
+          path: |
+            dist/
+            package.json
+          retention-days: 1
+
+  # =========================================================
+  # FASE 2: Pruebas E2E Críticas con Playwright
+  # =========================================================
+  e2e-testing:
+    name: 🧪 E2E Playwright Audit
+    needs: audit-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Descargar Artefactos Compilados
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-assets
+
+      - name: Instalar Dependencias de Node
+        run: npm ci
+
+      - name: Instalar Navegadores de Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Ejecutar Pruebas E2E de Layout, 404s y CLS
+        run: npx playwright test
+        env:
+          BASE_URL: ${{ secrets.STAGING_URL || 'https://staging.nuvanx.com' }}
+          CI: true
+
+      - name: Subir Reporte de Playwright en Caso de Fallo
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # =========================================================
+  # FASE 3: Despliegue Atómico a SiteGround (Solo en Main)
+  # =========================================================
+  deploy-siteground:
+    name: 🚀 Atomic Deploy to SiteGround
+    needs: [audit-and-build, e2e-testing]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Descargar Assets Compilados (Tailwind)
+        uses: actions/download-artifact@v4
+        with:
+          name: compiled-assets
+
+      - name: Configurar Clave SSH para SiteGround
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SG_SSH_KEY }}
+
+      - name: Añadir Host de SiteGround a Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.SG_SSH_PORT || 18765 }} -H ${{ secrets.SG_SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sincronización de Archivos vía RSYNC (Staging / Production)
+        run: |
+          rsync -avz --delete \
+            -e "ssh -p ${{ secrets.SG_SSH_PORT || 18765 }}" \
+            --exclude='.git*' \
+            --exclude='.github*' \
+            --exclude='node_modules*' \
+            --exclude='tests*' \
+            --exclude='playwright*' \
+            --exclude='*.log' \
+            ./ ${{ secrets.SG_SSH_USER }}@${{ secrets.SG_SSH_HOST }}:${{ secrets.SG_TARGET_DIR }}
+
+      - name: Purgar Caché del Servidor vía WP-CLI (SiteGround Optimizer)
+        run: |
+          ssh -p ${{ secrets.SG_SSH_PORT || 18765 }} ${{ secrets.SG_SSH_USER }}@${{ secrets.SG_SSH_HOST }} \
+            "wp siteground cache purge --type=all --path=${{ secrets.SG_WP_PATH }}"

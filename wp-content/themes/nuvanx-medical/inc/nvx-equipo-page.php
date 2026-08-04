@@ -937,13 +937,13 @@ function nvx_equipo_cristina_authority_markup( string $cristina_media = '' ): st
 /**
  * Rebuild equipo page: dual authority profiles + preserve other CMS clinicians.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
+add_filter( 'nvx_page_owner', function ( $owner ) {
 	if ( ! empty( $owner ) ) {
 		return $owner;
 	}
 	global $post;
 	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_content_is_equipo_page') && nvx_content_is_equipo_page( $content ) ) {
+	if ( function_exists( 'nvx_content_is_equipo_page' ) && nvx_content_is_equipo_page( $content ) ) {
 		return 'nvx_equipo_page';
 	}
 	return $owner;

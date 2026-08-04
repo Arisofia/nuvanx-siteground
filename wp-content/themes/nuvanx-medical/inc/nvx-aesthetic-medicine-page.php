@@ -344,13 +344,13 @@ function nvx_aesthetic_editorial_body_markup(): string {
 /**
  * Rebuild Medicina Estética hub page.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
+add_filter( 'nvx_page_owner', function ( $owner ) {
 	if ( ! empty( $owner ) ) {
 		return $owner;
 	}
 	global $post;
 	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_content_is_aesthetic_medicine_page') && nvx_content_is_aesthetic_medicine_page( $content ) ) {
+	if ( function_exists( '' ) && nvx_content_is_aesthetic_medicine_page( $content ) ) {
 		return 'nvx_aesthetic_medicine_page';
 	}
 	return $owner;

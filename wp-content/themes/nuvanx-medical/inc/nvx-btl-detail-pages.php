@@ -391,13 +391,13 @@ function nvx_btl_detail_page_markup( string $key ): string {
 /**
  * Restructure the_content for BTL detail pages.
  */
-add_filter( 'nvx_page_owner', function( $owner ) {
+add_filter( 'nvx_page_owner', function ( $owner ) {
 	if ( ! empty( $owner ) ) {
 		return $owner;
 	}
 	global $post;
 	$content = $post ? $post->post_content : '';
-	if ( function_exists('nvx_btl_detail_current_key') && null !== nvx_btl_detail_current_key( $content ) ) {
+	if ( function_exists( '' ) && null !== nvx_btl_detail_current_key( $content ) ) {
 		return 'nvx_btl_detail_page';
 	}
 	return $owner;

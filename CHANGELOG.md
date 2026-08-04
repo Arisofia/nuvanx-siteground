@@ -19,12 +19,6 @@ All notable changes to the NUVANX codebase are documented in this file.
   - Templates verified: page-landing-valoracion.php and page-sede.php trust global wrapper
   - No duplicate nvx-brand-page wrappers across codebase
 
-- **Hidden Pages Validation**:
-  - `validate-hidden-pages.mjs`: Scans for pages not in main menu but with routing
-  - Validates legal pages (aviso-legal, politica-privacidad, politica-cookies)
-  - Validates treatment pages and functional pages
-  - Documents all hidden pages and their access patterns
-
 ### Changed - Design System Updates
 
 - **DESIGN_GUIDE.md**: Updated with official 13-point system and component patterns

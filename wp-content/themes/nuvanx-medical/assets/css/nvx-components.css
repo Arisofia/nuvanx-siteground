@@ -109,7 +109,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
 
 .nvx-media{display:block;width:100%;height:auto;border-radius:var(--nvx-radius-image)}
 .nvx-media--hero{height:100%;object-fit:cover;border-radius:0}
-.nvx-media--doctor{aspect-ratio:5/6;object-fit:cover}
+.nvx-media--doctor{aspect-ratio:5/6;object-fit:cover;max-height:600px;min-height:400px;object-position:center top}
 /* Body content images: natural height, same radius as cards/figures */
 .nvx-media--body{width:100%;height:auto;max-height:var(--nvx-media-max-h-featured);object-fit:cover;border-radius:var(--nvx-radius-image)}
 .nvx-brand-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--nvx-gap-base);align-items:stretch;margin-block:var(--nvx-space-4) var(--nvx-space-8)}

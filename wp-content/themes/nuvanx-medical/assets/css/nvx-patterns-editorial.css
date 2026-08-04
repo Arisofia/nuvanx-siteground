@@ -768,6 +768,7 @@ section.nvx-hero {
   display: flex;
   flex-direction: column;
   gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
+  text-align: left;
 }
 
 .nvx-equipo-profile-layout__copy .nvx-endolift-kicker {
@@ -791,7 +792,7 @@ section.nvx-hero {
   margin-block: 0;
   margin-inline: 0;
   width: 100%;
-  max-width: 18rem;
+  max-width: 14rem;
   aspect-ratio: 2 / 3;
   overflow: hidden;
   border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5));

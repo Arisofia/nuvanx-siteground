@@ -121,7 +121,6 @@ rsync -a --delete \
   --exclude='.git' --exclude='php_errorlog' --exclude='*.log' \
   --exclude='backups-nuvanx' --exclude='quarantine' \
   --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' \
-  --exclude='nuvanx-google-attribution' \
   "$SOURCE_THEME/" \
   "$PROD_ROOT/wp-content/themes/nuvanx-medical/"
 

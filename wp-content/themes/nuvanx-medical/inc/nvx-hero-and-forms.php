@@ -111,9 +111,22 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 		return $content;
 	}
 
-	// Skip for pages that use nvx-page-shell with hero media
-	// The shell already handles hero with featured image (lines 79-93 in nvx-page-shell.php)
-	// This filter is only for content-managed heroes that lack media
+	// Skip for Pattern A templates that have custom heroes in PHP
+	// These templates inject their own hero and also call the_content()
+	$template = get_page_template_slug();
+	if ( $template && '' !== $template ) {
+		if ( in_array( $template, array( 'page-landing-valoracion.php', 'page-sede.php', 'page-soluciones-medicas.php' ), true ) ) {
+			return $content;
+		}
+	}
+
+	// Skip for pages using nvx-clinics-hub (custom hero injection)
+	// Detect by checking if content has clinic-hub-specific markers
+	if ( function_exists( 'nvx_clinics_hub_page_markup' ) && has_shortcode( $content, 'nvx_clinics_hub' ) ) {
+		return $content;
+	}
+
+	// Skip if global flag is set (nvx-page-shell with hero media)
 	global $nvx_page_shell_has_hero;
 	if ( isset( $nvx_page_shell_has_hero ) && $nvx_page_shell_has_hero ) {
 		return $content;

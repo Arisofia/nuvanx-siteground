@@ -634,6 +634,21 @@ body.nvx-valoracion-modal-open{
   margin-right: var(--nvx-space-2);
   font-weight: 300;
 }
+
+/* Signature protocol pages: consistent section spacing */
+.nvx-signature-phase-page > .nvx-brand-section {
+  padding-block: var(--nvx-pad-section);
+}
+
+.nvx-signature-phase-page > .nvx-brand-section:first-of-type {
+  padding-top: var(--nvx-space-8);
+}
+
+@media (max-width: 768px) {
+  .nvx-signature-phase-page > .nvx-brand-section {
+    padding-block: var(--nvx-pad-section-tight);
+  }
+}
 /* CONTACT CLINIC CARDS — canonical editorial grid */
 .nvx-page--contact .nvx-section--contact-hero {
   background: var(--nvx-surface-base);

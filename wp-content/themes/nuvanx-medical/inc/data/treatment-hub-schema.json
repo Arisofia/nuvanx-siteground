@@ -48,9 +48,10 @@
         "name": "Medicina Estética Facial",
         "path": "/medicina-estetica/",
         "types": [
+            "MedicalProcedure",
             "Service"
         ],
-        "procedureType": "MedicalProcedure",
+        "procedureType": "https://schema.org/NoninvasiveProcedure",
         "description": "Servicio médico de planificación facial conservadora con técnicas seleccionadas tras diagnóstico individual."
     },
     {

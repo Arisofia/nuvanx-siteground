@@ -82,7 +82,7 @@ defined( 'ABSPATH' ) || exit;
 	);
 	?>
 	<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-button nvx-btn--primary nvx-open-valoracion-modal" id="nvx-mobile-cta" data-nvx-valoracion-modal="1" aria-haspopup="dialog"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
-	<a href="<?php echo ( function_exists( 'nvx_whatsapp_url' ) ? esc_url( nvx_whatsapp_url( 'primary' ) ) : '#' ); ?>" class="nvx-button nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
+	<a href="<?php echo function_exists( 'nvx_whatsapp_url' ) ? esc_url( nvx_whatsapp_url( 'primary' ) ) : '#'; ?>" class="nvx-button nvx-btn--secondary" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'Contactar por WhatsApp', 'nuvanx-medical' ); ?></a>
 </dialog>
 <?php endif; ?>
 

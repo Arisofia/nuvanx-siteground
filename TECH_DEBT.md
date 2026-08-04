@@ -48,7 +48,7 @@ Files that should be refactored into smaller, focused modules:
   - **Target structure:** `inc/equipo-page/*.php`
 
 ### 4. Test Coverage Gaps
-> **Note (2026-08):** Routes listed below are now covered in tests/routes-critical.ts. This section is pending cleanup.
+> **Note (2026-08):** Routes listed below are now covered in `wp-content/themes/nuvanx-medical/tests/routes-critical.ts` and executed across `a11y.spec.ts`, `visual-regression.spec.ts`, and `seo-extended.spec.ts`. This section is pending cleanup.
 
 **Current Coverage:** Limited to 4 routes in a11y.spec.ts, 2 routes in visual.spec.ts
 

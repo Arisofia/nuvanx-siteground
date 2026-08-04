@@ -10,14 +10,14 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Devuelve el "dueño" lógico de la página actual.
+ * Devuelve el "dueÃ±o" lÃ³gico de la pÃ¡gina actual.
  *
- * Los módulos pueden engancharse al filtro 'nvx_page_owner' para declararse
- * propietarios en función del contexto (is_page(), is_singular(), etc.).
+ * Los mÃ³dulos pueden engancharse al filtro 'nvx_page_owner' para declararse
+ * propietarios en funciÃ³n del contexto (is_page(), is_singular(), etc.).
  */
 function nvx_get_page_owner() {
 	/**
-	 * Filtro que permite a los módulos declarar la propiedad de la página.
+	 * Filtro que permite a los mÃ³dulos declarar la propiedad de la pÃ¡gina.
 	 *
 	 * Debe devolver un identificador estable de propietario (string) o null.
 	 */
@@ -130,14 +130,46 @@ function nvx_page_brand_section_heading_markup(
 }
 
 /**
- * Devuelve si la p�gina actual utiliza el page-shell de NUVANX.
+ * Devuelve si la página actual utiliza el page-shell de NUVANX.
  */
 function nvx_has_page_shell(): bool {
-	// Si tiene 'nvx_page_owner', asumimos que est� gobernado por el shell u otro orquestador que necesita su propio <main>.
+	// Si tiene 'nvx_page_owner', asumimos que está gobernado por el shell u otro orquestador que necesita su propio <main>.
 	if ( function_exists( 'nvx_get_page_owner' ) && ! empty( nvx_get_page_owner() ) ) {
 		return true;
 	}
 
 	// Otras comprobaciones de plantillas
 	return is_page() || is_single() || is_404();
+}
+
+/**
+ * Devuelve si la página actual utiliza un wrapper de marca personalizado en lugar del contenedor genérico.
+ */
+function nvx_has_custom_brand_wrapper(): bool {
+	if ( ! function_exists( 'nvx_get_page_owner' ) ) {
+		return false;
+	}
+
+	$owner = nvx_get_page_owner();
+	if ( empty( $owner ) ) {
+		return false;
+	}
+
+	$custom_brand_owners = array(
+		'nvx_equipo_page',
+		'nvx_nosotros_page',
+		'nvx_laser_hub',
+		'nvx_endolift_page',
+		'nvx_endolaser_page',
+		'nvx_co2_page',
+		'nvx_clinics_hub',
+		'nvx_aesthetic_medicine_page',
+		'nvx_btl_detail_page',
+		'nvx_aesthetic_treatment_pages',
+		'nvx_signature_phase_page',
+		'nvx_signature_hub_page',
+		'nvx_valoracion_managed_page',
+	);
+
+	return in_array( $owner, $custom_brand_owners, true );
 }

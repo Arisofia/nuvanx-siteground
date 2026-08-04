@@ -217,6 +217,11 @@
   max-width: 22ch;
 }
 
+.nvx-main .nvx-brand-page :is(h2, .nvx-brand-title, .nvx-aes-heading, .nvx-laser-heading) {
+  max-width: none;
+}
+
+
 /* Section intro (blog index, title-only pages) */
 .nvx-section-intro {
   margin-bottom: var(--nvx-gap-section);

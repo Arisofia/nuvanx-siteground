@@ -601,6 +601,14 @@ body.nvx-valoracion-modal-open{
   content: "✕";
   color: var(--nvx-text-muted);
 }
+
+.nvx-signature-list-number {
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h2);
+  color: var(--nvx-accent-gold-text);
+  margin-right: var(--nvx-space-2);
+  font-weight: 300;
+}
 /* CONTACT CLINIC CARDS — canonical editorial grid */
 .nvx-page--contact .nvx-section--contact-hero {
   background: var(--nvx-surface-base);

@@ -48,3 +48,7 @@ package.json
 package-lock.json
 node_modules/
 eslint.config.js
+
+# Legacy directories (cleaned up)
+inc/
+scratch/

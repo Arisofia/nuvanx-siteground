@@ -25,6 +25,17 @@ All notable changes to the NUVANX codebase are documented in this file.
 - **README.md**: Added linting commands and updated workflow documentation
 - Documentation cleanup: Removed temporary audit reports and legacy documentation files
 
+### Removed - Legacy Files and Dependencies
+
+- **PHP Legacy Files**: Removed inc/ directory (ai-telemetry-wrapper.php, assets-loader.php, cli-clean-divi.php) - legacy Divi migration files
+- **Root Theme Files**: Removed page.php and single.php from root (duplicates of theme files)
+- **Scratch Directory**: Removed scratch/refactor.php (temporary development file)
+- **Node.js Dependencies**: Removed package.json, package-lock.json, eslint.config.js
+- **Playwright Infrastructure**: Removed tests/, playwright.config.ts, TypeScript test files
+- **CSS Build Process**: Removed src/, css-backups/, Tailwind CSS configuration
+- **Testing Artifacts**: Removed screenshots, test reports PNG files
+- **Validation Scripts**: Removed validate-hidden-pages.mjs, migrate-css-tokens.js
+
 ### Technical Debt Resolution
 
 - **PHP Code Quality**: Resolved PHPCS and PHPStan errors

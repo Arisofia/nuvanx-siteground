@@ -135,6 +135,13 @@ function nvx_remove_duplicate_hero_from_content( string $content ): string {
 		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-editorial-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
 	}
 
+	// Also apply to /madrid/valoracion/ via URL check
+	if ( strpos( $current_url, '/madrid/valoracion/' ) !== false ) {
+		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-page-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-editorial-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+	}
+
 	return $content;
 }
 add_filter( 'the_content', 'nvx_remove_duplicate_hero_from_content', 1 );

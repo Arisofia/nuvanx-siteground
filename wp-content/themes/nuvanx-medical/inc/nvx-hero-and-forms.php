@@ -102,6 +102,33 @@ function nvx_hero_insert_media_figure( string $content, string $figure ): string
 }
 
 /**
+ * Remove duplicate hero sections from Pattern A templates.
+ * These templates have custom heroes in PHP and also call the_content()
+ * which may contain a hero from the CMS. This filter removes the CMS hero
+ * to prevent duplication.
+ */
+function nvx_remove_duplicate_hero_from_content( string $content ): string {
+	if ( is_admin() || ! is_singular() ) {
+		return $content;
+	}
+
+	// Only apply to Pattern A templates
+	$template = get_page_template_slug();
+	if ( $template && '' !== $template ) {
+		if ( in_array( $template, array( 'page-landing-valoracion.php', 'page-sede.php', 'page-soluciones-medicas.php' ), true ) ) {
+			// Remove hero sections from content
+			$content = preg_replace( '/<section[^>]*nvx-brand-hero[^>]*>.*?<\/section>/is', '', $content );
+			// Also remove page-hero and editorial-hero variants
+			$content = preg_replace( '/<section[^>]*nvx-page-hero[^>]*>.*?<\/section>/is', '', $content );
+			$content = preg_replace( '/<section[^>]*nvx-editorial-hero[^>]*>.*?<\/section>/is', '', $content );
+		}
+	}
+
+	return $content;
+}
+add_filter( 'the_content', 'nvx_remove_duplicate_hero_from_content', 15 );
+
+/**
  * Ensure content heroes that lack media use the featured image when available.
  * Inserts media as a SIBLING after the hero copy (never nested inside copy),
  * so kicker + title can overlay the image. Global — not a per-page patch.

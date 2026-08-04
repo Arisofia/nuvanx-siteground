@@ -1194,3 +1194,25 @@ function nvxClinicsHubEnhance( string $content ): string {
 	return $output ?: $content;
 }
 add_filter( 'the_content', 'nvxClinicsHubEnhance', NVX_HOOK_PRIO_CLINICS_ENHANCE );
+
+/**
+ * Register clinics hub as page owner to prevent shell hero duplication.
+ *
+ * When the shell evaluates $has_managed_editorial in nvx-page-shell.php,
+ * this filter ensures clinics hub pages are recognized as managed,
+ * preventing the shell from rendering its own hero in addition to
+ * the renderer's hero.
+ */
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		if ( function_exists( 'nvxIsClinicsHub' ) && nvxIsClinicsHub() ) {
+			return 'nvx_clinics_hub';
+		}
+		return $owner;
+	},
+	10
+);

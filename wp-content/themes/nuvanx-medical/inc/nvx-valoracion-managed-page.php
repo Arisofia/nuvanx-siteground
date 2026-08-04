@@ -66,3 +66,25 @@ function nvx_render_managed_valoracion_page( $content ): string {
 	return nvx_valoracion_managed_page_markup();
 }
 add_filter( 'the_content', 'nvx_render_managed_valoracion_page', NVX_HOOK_PRIO_VALORACION_MANAGED );
+
+/**
+ * Register valoración page as page owner to prevent shell hero duplication.
+ *
+ * When the shell evaluates $has_managed_editorial in nvx-page-shell.php,
+ * this filter ensures valoración pages are recognized as managed,
+ * preventing the shell from rendering its own hero in addition to
+ * the renderer's hero.
+ */
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) ) {
+			return $owner;
+		}
+		if ( function_exists( 'nvx_theme_is_valoracion_landing' ) && nvx_theme_is_valoracion_landing() ) {
+			return 'nvx_valoracion_managed';
+		}
+		return $owner;
+	},
+	10
+);

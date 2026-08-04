@@ -60,6 +60,15 @@ jobs:
         run: |
           find . -type f -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" -print0 | xargs -0 -n1 php -l
 
+      - name: Lint CSS colors
+        run: node scripts/lint/no-hardcoded-colors.mjs
+
+      - name: Lint CSS font-size
+        run: node scripts/lint/no-hardcoded-fontsize.mjs
+
+      - name: Lint inline layout styles
+        run: node scripts/lint/no-inline-layout-styles.mjs
+
       - name: Verificar Tipos TypeScript & Linter
         run: |
           npm run type-check --if-present

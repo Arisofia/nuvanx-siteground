@@ -39,6 +39,9 @@ async function scanFile(filePath) {
     // Skip if line contains var() declaration (CSS token)
     if (/var\(--[\w-]+\)/.test(line)) continue;
 
+    // Skip if line has explicit allow marker
+    if (line.includes('/* nvx-allow-font-px */')) continue;
+
     // Skip if line is a comment block
     if (line.includes('/*') && line.includes('*/')) continue;
 

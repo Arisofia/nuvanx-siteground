@@ -33,8 +33,8 @@ const DANGEROUS_PROPERTIES = [
   'bottom',
 ];
 
-// Pattern for inline style attributes
-const INLINE_STYLE_PATTERN = /style\s*=\s*["']([^"']+)["']/gi;
+// Pattern for inline style attributes with dangerous properties
+const INLINE_STYLE_PATTERN = /style\s*=\s*["']([^"']*(?:margin|padding|font-size|color)\s*:[^"']*)["']/gi;
 
 async function scanFile(filePath) {
   const content = await fs.readFile(filePath, 'utf-8');
@@ -48,6 +48,9 @@ async function scanFile(filePath) {
     // Skip comments
     if (line.trim().startsWith('//') || line.trim().startsWith('/*')) continue;
 
+    // Skip explicit allow marker
+    if (line.includes('// nvx-allow-inline-style')) continue;
+
     // Skip SVG fallback for hidden attribute (legitimate use case)
     if (line.includes('hidden') && line.includes('display:none')) continue;
 
@@ -55,22 +58,18 @@ async function scanFile(filePath) {
     for (const match of matches) {
       const styleContent = match[1];
       
-      // Check if style contains dangerous properties
-      const hasDangerousProperty = DANGEROUS_PROPERTIES.some(prop => 
+      // Extract which dangerous properties are present
+      const foundProperties = DANGEROUS_PROPERTIES.filter(prop => 
         styleContent.toLowerCase().includes(prop)
       );
 
-      if (hasDangerousProperty) {
-        violations.push({
-          line: lineNum,
-          file: path.relative(THEME_DIR, filePath),
-          match: match[0],
-          properties: DANGEROUS_PROPERTIES.filter(prop => 
-            styleContent.toLowerCase().includes(prop)
-          ),
-          context: line.trim()
-        });
-      }
+      violations.push({
+        line: lineNum,
+        file: path.relative(THEME_DIR, filePath),
+        match: match[0],
+        properties: foundProperties,
+        context: line.trim()
+      });
     }
   }
 

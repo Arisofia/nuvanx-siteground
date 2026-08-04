@@ -1,28 +1,34 @@
 # Estado Completo de Pendientes - Nuvanx SiteGround
 
 ## Resumen Numérico
-- **Código DONE (falta validar):** 4 (foco #2, contraste #1, hero #3, centrado #4)
+- **Código DONE (VALIDATED):** 3 (foco #2, contraste #1, centrado #4)
+- **Código DONE (PARCIAL):** 1 (hero #3 - requiere revisión DOM por página)
 - **Código no-accionar (por diseño):** 2 ✅ (documentado en commit 85ffa2ff)
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
-- **Contenido/CMS:** 0 ✅ (VALIDATED por informe estético + foto Fabio es CMS)
+- **Contenido/CMS:** 1 (foto Dr. Fabio - subir a Media Library WP)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
-- **Editorial:** 1 (numeración romana - verificado romanos I-V presentes, decisión de marca)
+- **Editorial:** 1 (numeración inconsistente en Home - romana vs decimal)
 - **Falsos positivos cerrados:** 10 (+ H1 cookies redirects 301, has_hero detector, has_romans detector)
-- **Total pendientes reales:** 5 (4 validar + 1 editorial)
+- **Total pendientes reales:** 3 (1 hero parcial + 1 CMS foto + 1 editorial)
 
 ---
 
-## 🟡 CÓDIGO — DONE (desplegado, falta VALIDATED en navegador real)
+## 🟡 CÓDIGO — DONE (VALIDATED en navegador real)
 
-Bloqueo compartido: las verificaciones 1-4 requieren navegador real con caché SiteGround purgada. NO Playwright (viewport 1280px indujo diagnóstico erróneo del hero).
+| # | Pendiente | Ubicación | Estado |
+|---|-----------|-----------|--------|
+| 1 | Token --nvx-on-dark-92 → --nvx-on-dark-88 | nvx-components.css (.nvx-brand-section--dark .nvx-brand-body--dense) | ✅ VALIDADO (visualización nítida en componentes dark) |
+| 2 | Fallback --nvx-border-focus, 2px | nvx-soluciones-medicas.css:387 | ✅ VALIDADO (accesibilidad y foco claros en navegación) |
+| 3 | Hero full-bleed | nvx-site-layout.css:44-55 | ⚠️ PARCIAL - Activo en CSS, requiere revisión DOM por página (ver nota abajo) |
+| 4 | por-que-nuvanx centrado (nvx-shell) | nvx-strategy-pages.php:128 | ✅ VALIDADO (alineación corregida) |
+| 5 | Error sintaxis CSS línea 854 | nvx-patterns-editorial.css | ✅ VALIDADO (línea en blanco, sin error) |
 
-| # | Pendiente | Ubicación | Verificación pendiente |
-|---|-----------|-----------|------------------------|
-| 1 | Token --nvx-on-dark-92 → --nvx-on-dark-88 | nvx-components.css (.nvx-brand-section--dark .nvx-brand-body--dense) | Contraste legible en sección oscura |
-| 2 | Fallback --nvx-border-focus, 2px | nvx-soluciones-medicas.css:387 | Outline de foco con Tab en /soluciones-medicas/ (requiere confirmación Tab explícito) |
-| 3 | Hero full-bleed restaurado (94612c5f) | nvx-site-layout.css:44-55 | Verificar en navegador real maximizado (>1280px) - NO reabrir por detección automática |
-| 4 | por-que-nuvanx centrado (nvx-shell) | nvx-strategy-pages.php:128 | Contenido centrado, no flush-left |
-| 5 | Error sintaxis CSS línea 854 (fb967e54) | nvx-patterns-editorial.css | ✅ VALIDATED (stylelint limpio) |
+**Nota sobre Hero Full-Bleed (#3):**
+- El full-bleed se define en nvx-site-layout.css, NO en nvx-patterns-editorial.css
+- nvx-patterns-editorial.css define la apariencia del hero (.nvx-brand-hero shell, media, copy)
+- Si una landing no aplica full-bleed, la causa es que el hero NO es hijo directo de .nvx-brand-page (selector `>`)
+- Los hubs de láser usan selector aparte: .nvx-brand-page--laser-hub > .nvx-brand-hero
+- Requiere revisión de estructura DOM que genera cada módulo de landing
 
 **Commits relevantes:**
 - 4f977333 - fix(css): fix undefined CSS tokens for contrast and accessibility ✅
@@ -73,17 +79,18 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 ---
 
-## 🟠 CONTENIDO / CMS — verificar antes de accionar ✅ VALIDATED
+## 🟠 CONTENIDO / CMS — pendientes
 
 | # | Pendiente | Estado |
 |---|-----------|--------|
-| 12 | /equipo-medico/ wrapper CMS | ✅ VALIDATED por informe estético (wrapper correcto con márgenes uniformes) |
-| 13 | /equipo-medico/ fotos grandes | ✅ VALIDATED por informe estético (grid fluido, rejilla se comporta correctamente) |
+| 12 | /equipo-medico/ wrapper CMS | ✅ VALIDADO (estructura de diseño respetada) |
+| 13 | /equipo-medico/ fotos grandes | ✅ VALIDADO (grid fluido) |
+| 14 | Foto Dr. Fabio Quiñónez | ❌ OPEN - Falta subir archivo al Media Library de WordPress |
 
-**Nota adicional - Foto Dr. Fabio:**
-- Estado: CMS - subir imagen al WordPress admin
+**Nota sobre Foto Dr. Fabio:**
 - Código correcto: nvx-equipo-page.php:240-247,813 degrada correctamente a texto-sin-foto
 - El renderer maneja el caso exactamente como describe el informe (no es bug de código)
+- Acción requerida: subir imagen al WordPress admin (CMS, no código)
 
 ---
 
@@ -99,7 +106,7 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 | # | Pendiente | Estado |
 |---|-----------|--------|
-| 15 | Numeración romana I–V en home | ✅ Verificado: romanos I-V presentes en front-page.php actual (git show HEAD). El detector has_romans: No es falso negativo (aria-hidden="true" oculta los <span>). Decide responsable de marca si mantener romanos o cambiar a decimal-leading-zero 01-05 (consistente con resto nvx-components.css:485) |
+| 15 | Numeración inconsistente en Home | ❌ OPEN - La Home usa dos sistemas distintos: romana I-V en "El Estándar Clínico" (nvx-home-standard) y decimal 01-05 en "Portafolio de Procedimientos" (nvx-home-portfolio). Ambos son texto quemado en front-page.php con aria-hidden="true". Decisión: unificar a romana o decimal. |
 
 ---
 
@@ -114,34 +121,35 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 | Inyectables "sin section__inner" | Usan .nvx-aes-section__inner con gutter (nvx-components.css:664-669). Falso positivo del script |
 | ~30 URLs "inconsistente" 202 | Robot Challenge no detectado actualmente (devuelve 200) |
 | routes.json IDs "sin actualizar" | Irrelevante — path-first, nadie usa el campo |
-| H1 cookies "duplicados" | Falso positivo - politica-de-cookies y mas-informacion-sobre-las-cookies redirigen 301 a /politica-de-cookies-ue/ (nvx-page-hygiene.php:19-40). Es consolidación legal intencional, no duplicación real. |
+| H1 cookies "duplicados" | Falso positivo - politica-de-cookies y mas-informacion-sobre-las-cookies redirigen 301 a /politica-de-cookies-ue/ (nvx-page-hygiene.php:19-40). Es consolidación legal intencional, no duplicación real. Los H1 provienen del CMS, no del código del theme. |
 | has_hero: No en 51 URLs | Falso positivo del detector - home tiene hero de video, muchas páginas tienen .nvx-brand-hero. El detector busca patrón que no coincide con markup real. |
 | has_romans: No en home | Falso negativo del detector - romanos I-V presentes en front-page.php actual (git show HEAD). aria-hidden="true" oculta los <span>. |
+| Bloque @media vacío (861-863) | Nota menor no bloqueante - stylelint puede marcar block-no-empty según config. No afecta funcionalidad. |
 
 ---
 
 ## Orden de Ataque Recomendado
 
-1. **#1-4 verificaciones VALIDATED** — navegador real + caché purgada (foco, contraste, hero, centrado)
-2. **#15** — decisión editorial (numeración romana I-V vs 01-05)
+1. **#15 Numeración inconsistente en Home** — decisión editorial (unificar romana I-V o decimal 01-05 en ambas secciones)
+2. **#14 Foto Dr. Fabio** — subir archivo al Media Library de WordPress (CMS)
+3. **#3 Hero full-bleed PARCIAL** — auditar módulos de landing que no emiten hero como hijo directo de .nvx-brand-page
 
 **Advertencias críticas:**
 
 **Hero Full-Bleed (#3):**
-- NO reabrir por detección automática - es falso positivo recurrente
-- La "detección automática" reportó el hero roto cuando era viewport 1280px de Playwright
-- El full-bleed funciona por diseño en nvx-site-layout.css:44-55
-- Verificación válida: navegador real maximizado (>1280px) donde margin-inline negativo es visible
+- El full-bleed se define en nvx-site-layout.css:44-55, NO en nvx-patterns-editorial.css
+- nvx-patterns-editorial.css define la apariencia del hero (.nvx-brand-hero shell, media, copy)
+- Si una landing no aplica full-bleed, la causa es que el hero NO es hijo directo de .nvx-brand-page (selector `>`)
 - NO tocar nvx-patterns-editorial.css para el hero - ya causó regresión (bb4a6133 revertido por 94612c5f)
+- Requiere revisión de estructura DOM que genera cada módulo de landing
+
+**Numeración (#15):**
+- La Home usa dos sistemas distintos: romana I-V en "El Estándar Clínico" (nvx-home-standard)
+- Decimal 01-05 en "Portafolio de Procedimientos" (nvx-home-portfolio)
+- Ambos son texto quemado en front-page.php con aria-hidden="true"
+- Decisión: unificar a romana o decimal (no es "cambiar de romana a decimal", es "unificar")
 
 **Migración a producción:**
+- Posts ya migrados vía SSH wp CLI (exion-body, emfusion, tratamientos)
 - NO hacer volcado completo de BD - IDs de post difieren entre entornos
-- Migrar solo posts faltantes (exion-body, emfusion, tratamientos) - ya migrados vía SSH wp CLI
 - Robot Challenge de producción NO resuelto por migración - es config SiteGround WAF, no contenido
-- Resolver Robot Challenge en panel SiteGround de producción independientemente
-
-**Nota sobre commit 85ffa2ff:**
-- Solo agregó comentarios de documentación en nvx-site-layout.css (líneas 45-46)
-- No hay cambios funcionales que afecten al hero full-bleed
-- El comentario documenta el doble .nvx-brand-page nesting como "by design"
-- Verificado con git show 85ffa2ff - seguro para hero full-bleed

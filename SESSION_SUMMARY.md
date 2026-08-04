@@ -6,8 +6,8 @@
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
 - **Contenido/CMS:** 0 ✅ (VALIDATED por informe estético + foto Fabio es CMS)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
-- **Editorial:** 1 (numeración romana)
-- **Falsos positivos cerrados:** 8 (+ H1 cookies redirects 301)
+- **Editorial:** 1 (numeración romana - verificado romanos I-V presentes, decisión de marca)
+- **Falsos positivos cerrados:** 10 (+ H1 cookies redirects 301, has_hero detector, has_romans detector)
 - **Total pendientes reales:** 5 (4 validar + 1 editorial)
 
 ---
@@ -99,7 +99,7 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 | # | Pendiente | Estado |
 |---|-----------|--------|
-| 15 | Numeración romana I–V en home | front-page.php:48-68 vs 01,02 (decimal-leading-zero) del resto (nvx-components.css:485). Decide responsable de marca |
+| 15 | Numeración romana I–V en home | ✅ Verificado: romanos I-V presentes en front-page.php actual (git show HEAD). El detector has_romans: No es falso negativo (aria-hidden="true" oculta los <span>). Decide responsable de marca si mantener romanos o cambiar a decimal-leading-zero 01-05 (consistente con resto nvx-components.css:485) |
 
 ---
 
@@ -115,6 +115,8 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 | ~30 URLs "inconsistente" 202 | Robot Challenge no detectado actualmente (devuelve 200) |
 | routes.json IDs "sin actualizar" | Irrelevante — path-first, nadie usa el campo |
 | H1 cookies "duplicados" | Falso positivo - politica-de-cookies y mas-informacion-sobre-las-cookies redirigen 301 a /politica-de-cookies-ue/ (nvx-page-hygiene.php:19-40). Es consolidación legal intencional, no duplicación real. |
+| has_hero: No en 51 URLs | Falso positivo del detector - home tiene hero de video, muchas páginas tienen .nvx-brand-hero. El detector busca patrón que no coincide con markup real. |
+| has_romans: No en home | Falso negativo del detector - romanos I-V presentes en front-page.php actual (git show HEAD). aria-hidden="true" oculta los <span>. |
 
 ---
 

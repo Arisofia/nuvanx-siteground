@@ -48,9 +48,8 @@ get_header();
 		</div>
 	</section>
 
-	<div class="nvx-brand-section-wrap">
 		<section class="nvx-brand-section" aria-label="<?php esc_attr_e( 'Proceso de valoración', 'nuvanx-medical' ); ?>">
-			<div class="nvx-container">
+			<div class="nvx-brand-section__inner">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'NUESTRO MÉTODO', 'nuvanx-medical' ); ?></p>
 				<h2 class="nvx-heading"><?php esc_html_e( 'Cómo funciona la valoración', 'nuvanx-medical' ); ?></h2>
 				<p class="nvx-brand-lead">
@@ -93,7 +92,6 @@ get_header();
 			</div>
 		</section>
 	</div>
-
 	<div class="entry-content nvx-page__content nvx-prose">
 		<?php the_content(); ?>
 	</div>

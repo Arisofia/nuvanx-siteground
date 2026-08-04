@@ -177,27 +177,27 @@ function nvx_cms_cleanup_rules(): array {
 		array(
 			'id'      => 'cta_valoracion_personalizada',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar (?:valoraci[oó]n|consulta) m[eé]dica personalizada\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_attr( $val_url ), $val_lbl ),
+			'replace' => sprintf( $tpl, esc_url( $val_url ), $val_lbl ),
 		),
 		array(
 			'id'      => 'cta_valoracion',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Solicitar|Agenda tu) (?:valoraci[oó]n|consulta)(?: m[eé]dica)?(?: gratuita)?\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_attr( $val_url ), $val_lbl ),
+			'replace' => sprintf( $tpl, esc_url( $val_url ), $val_lbl ),
 		),
 		array(
 			'id'      => 'cta_cita',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*(?:Pedir|Reservar) cita\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_attr( $val_url ), $val_lbl ),
+			'replace' => sprintf( $tpl, esc_url( $val_url ), $val_lbl ),
 		),
 		array(
 			'id'      => 'cta_info',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Solicitar informaci[oó]n\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_attr( $val_url ), $val_lbl ),
+			'replace' => sprintf( $tpl, esc_url( $val_url ), $val_lbl ),
 		),
 		array(
 			'id'      => 'cta_whatsapp',
 			'pattern' => '/<a\b([^>]*)href=["\'][^"\']*["\']([^>]*)>\s*Explorar tratamientos exclusivos\s*<\/a>/iu',
-			'replace' => sprintf( $tpl, esc_attr( $wa_url ), $wa_lbl ),
+			'replace' => sprintf( $tpl, esc_url( $wa_url ), $wa_lbl ),
 		),
 	);
 

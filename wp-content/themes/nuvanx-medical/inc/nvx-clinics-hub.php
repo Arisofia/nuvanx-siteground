@@ -1222,6 +1222,10 @@ add_filter(
 				return 'nvx_clinics_hub';
 			}
 		}
+		// Also register owner for sede pages (Chamberí, Goya) to prevent shell hero duplication
+		if ( function_exists( 'nvxIsSedeTemplate' ) && nvxIsSedeTemplate() ) {
+			return 'nvx_clinics_hub';
+		}
 		return $owner;
 	},
 	10

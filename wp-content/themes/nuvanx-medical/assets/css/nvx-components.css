@@ -1242,13 +1242,16 @@ article.nvx-page > .nvx-page-hero{
     gap: var(--nvx-space-1)}
 
 .nvx-brand-hero__copy .nvx-brand-btn{
-    width: 100%}
+    width: 100%;
+    max-width: 280px}
 
 .nvx-brand-hero__copy .nvx-button{
-    width: 100%}
+    width: 100%;
+    max-width: 280px}
 
 .nvx-brand-hero__copy .nvx-btn{
-    width: 100%}
+    width: 100%;
+    max-width: 280px}
 
 .nvx-method-columns{
   display: grid;

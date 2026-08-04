@@ -122,11 +122,8 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 	</div>
 </footer>
 
-	<?php if ( ! function_exists( 'nvx_has_custom_brand_wrapper' ) || ! nvx_has_custom_brand_wrapper() ) : ?>
 		</div><!-- .nvx-brand-page -->
-	<?php endif; ?>
 	</main>
-
 
 <?php wp_footer(); ?>
 

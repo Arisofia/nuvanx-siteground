@@ -98,7 +98,7 @@ function nvx_endolift_process_icon( string $name ): string {
 function nvx_endolift_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolift-page.json' )['hero'] ?? array();
-	
+
 	$colegiado   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$price_label = function_exists( 'nvx_format_price_eur' )
 		? nvx_format_price_eur( nvx_endolift_price_from_eur() )
@@ -107,7 +107,7 @@ function nvx_endolift_hero_copy_markup(): string {
 	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolift-h1">' . esc_html( $data['h1'] ?? '' ) . '</h1>';
-	
+
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
 	$html .= '<div class="nvx-medical-byline__text">';
@@ -144,7 +144,7 @@ function nvx_endolift_hero_copy_markup(): string {
 function nvx_endolift_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolift-page.json' );
-	
+
 	$colegiado    = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$price_from   = function_exists( 'nvx_endolift_price_from_eur' ) ? nvx_endolift_price_from_eur() : 798.60;
 	$price_label  = function_exists( 'nvx_format_price_eur' ) ? nvx_format_price_eur( $price_from ) : number_format_i18n( $price_from, 2 );
@@ -246,7 +246,7 @@ function nvx_endolift_editorial_body_markup(): string {
 	$html .= nvx_page_brand_section_open_markup( 'nvx-endolift-postop', 'nvx-endolift-postop-title', '', array( 'id' => 'postoperatorio-endolift' ) );
 	$html .= nvx_page_brand_section_heading_markup( esc_html( $data['postop']['kicker'] ?? '' ), 'nvx-endolift-postop-title', esc_html( $data['postop']['title'] ?? '' ) );
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $data['postop']['body'] ?? '' ) . '</p>';
-	
+
 	$html .= '<ul class="nvx-endolift-price-includes nvx-endolift-postop-list">';
 	foreach ( $data['postop']['items'] ?? array() as $item ) {
 		$html .= '<li><strong>' . esc_html( $item['title'] ?? '' ) . '</strong> ' . esc_html( $item['body'] ?? '' ) . '</li>';

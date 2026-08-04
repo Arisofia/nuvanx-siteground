@@ -208,7 +208,7 @@ function nvx_laser_editorial_body_markup(): string {
 		$url = isset( $platform['url'] ) && is_string( $platform['url'] ) ? $platform['url'] : '#';
 		$plat_title = (string) ( $platform['title'] ?? '' );
 		$pid = 'nvx-laser-platform-' . $plat_idx;
-		
+
 		$html .= '<article class="nvx-laser-platform" aria-labelledby="' . esc_attr( $pid ) . '">';
 		$html .= '<div class="nvx-laser-platform__main">';
 		$html .= '<div class="nvx-laser-platform__head">';

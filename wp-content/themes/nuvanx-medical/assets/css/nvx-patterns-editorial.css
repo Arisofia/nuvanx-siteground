@@ -836,7 +836,7 @@ section.nvx-hero {
 .nvx-equipo-staff-grid figure.nvx-brand-card__media.nvx-content-figure {
   display: block;
   margin: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
-  margin-block: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
+  margin-block: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2);
   width: auto;
   max-width: none;
   aspect-ratio: 5 / 6;
@@ -878,6 +878,35 @@ section.nvx-hero {
 
 .nvx-equipo-staff-grid .nvx-brand-card__body + .nvx-brand-card__body {
   margin-top: 0;
+}
+
+@media (min-width: 960px) {
+  /* Remaining clinical team (typically 3 after authority profiles) */
+}
+
+/* Equipo — clinical quote */
+.nvx-equipo-blockquote {
+  margin: 0 0 var(--nvx-space-4);
+  max-width: 40rem;
+  padding: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-5));
+  border-left: calc(var(--nvx-space-1) * 0.375) solid var(--nvx-accent-muted);
+  background: var(--nvx-surface-base, var(--nvx-color-paper));
+}
+
+.nvx-equipo-blockquote p {
+  margin: 0 0 var(--nvx-space-3);
+  font-family: var(--nvx-serif);
+  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--nvx-ink);
+}
+
+.nvx-equipo-blockquote footer {
+  font-family: var(--nvx-sans);
+  font-size: 0.875rem;
+  letter-spacing: 0.04em;
+  color: var(--nvx-text-muted, var(--nvx-text-body));
 }
 
 

@@ -52,3 +52,6 @@ eslint.config.js
 # Legacy directories (cleaned up)
 inc/
 scratch/
+
+# Legacy scripts (cleaned up)
+scripts/audit-*.sh

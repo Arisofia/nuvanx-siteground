@@ -276,12 +276,13 @@ function nvx_valoracion_form_stage_class( string $content ): string {
 		return $updated;
 	}
 
-	return preg_replace(
+	$replaced = preg_replace(
 		'/(<section\b[^>]*\bclass=["\'])([^"\']*nvx-hubspot-form-section[^"\']*)(["\'])/i',
 		'$1$2 nvx-form-stage$3',
 		$content,
 		1
-	) ?: $content;
+	);
+	return $replaced ? $replaced : $content;
 }
 add_filter( 'the_content', 'nvx_valoracion_form_stage_class', NVX_HOOK_PRIO_VALORACION_FORM_CLASS );
 

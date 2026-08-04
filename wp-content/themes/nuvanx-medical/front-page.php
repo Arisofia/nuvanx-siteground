@@ -27,7 +27,7 @@ ob_start();
 		<div class="nvx-home-hero__content">
 			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con criterio. Madrid.</h1>
 			<p class="nvx-home-hero__lead">Antes de recomendar nada, escuchamos qué te preocupa y entendemos qué tendría sentido mejorar en tu caso.</p>
-			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-button nvx-btn--primary">Iniciar valoración</a>
+			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Iniciar valoración</a>
 		</div>
 	</section>
 
@@ -104,7 +104,7 @@ ob_start();
 			</article>
 		</div>
 		<div class="nvx-home-portfolio__action">
-			<a href="<?php echo esc_url( home_url( '/tratamientos/' ) ); ?>" class="nvx-button nvx-btn--secondary">Ver portafolio completo</a>
+			<a href="<?php echo esc_url( home_url( '/tratamientos/' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary">Ver portafolio completo</a>
 		</div>
 	</section>
 
@@ -136,9 +136,9 @@ ob_start();
 					|| ! in_array( $_nvx_casos_id, nvx_noindex_page_ids(), true ) );
 				if ( $_nvx_casos_public ) :
 					?>
-				<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-button nvx-btn--secondary-on-dark"><?php esc_html_e( 'Explorar casos clínicos', 'nuvanx-medical' ); ?></a>
+				<a href="<?php echo esc_url( home_url( '/casos-de-pacientes/' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark"><?php esc_html_e( 'Explorar casos clínicos', 'nuvanx-medical' ); ?></a>
 				<?php else : ?>
-				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-button nvx-btn--secondary-on-dark"><?php esc_html_e( 'Conocer al equipo médico', 'nuvanx-medical' ); ?></a>
+				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark"><?php esc_html_e( 'Conocer al equipo médico', 'nuvanx-medical' ); ?></a>
 			<?php endif; ?>
 			</div>
 		</div>
@@ -148,7 +148,7 @@ ob_start();
 		<div class="nvx-home-team__inner">
 			<div class="nvx-home-team__header">
 				<h2 id="nvx-home-team-title" class="nvx-home-team__title">Dirección y criterio médico</h2>
-				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-button nvx-btn--secondary">Conocer al equipo médico</a>
+				<a href="<?php echo esc_url( home_url( '/equipo-medico/' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary">Conocer al equipo médico</a>
 			</div>
 			<div class="nvx-home-team__content">
 				<p class="nvx-home-team__desc">El equipo integra experiencia clínica, valoración individual y seguimiento para seleccionar la tecnología adecuada en cada caso.</p>
@@ -206,8 +206,8 @@ ob_start();
 		<h2 id="nvx-home-closure-title" class="nvx-home-closure__title">Medicina estética con criterio clínico.</h2>
 		<p class="nvx-home-closure__desc">Plan individualizado. Precisión médica. Seguimiento según tu caso.</p>
 		<div class="nvx-home-closure__actions">
-			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-button nvx-btn--primary">Definir mi plan clínico</a>
-			<a href="<?php echo esc_url( ( function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '#' ) ); ?>" class="nvx-button nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
+			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Definir mi plan clínico</a>
+			<a href="<?php echo esc_url( ( function_exists( 'nvx_cta_whatsapp_url' ) ? nvx_cta_whatsapp_url() : '#' ) ); ?>" class="nvx-brand-btn nvx-btn--secondary-on-dark" target="_blank" rel="noopener noreferrer">Contactar por WhatsApp</a>
 		</div>
 	</section>
 </div>

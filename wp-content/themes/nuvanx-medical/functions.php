@@ -269,7 +269,7 @@ function nvx_theme_blog_index_markup(): string {
 		$output .= '<p class="nvx-brand-card__kicker">' . esc_html( get_the_date() ) . '</p>';
 		$output .= '<h2 class="nvx-brand-card__title"><a href="' . esc_url( get_permalink() ) . '">' . esc_html( $title ) . '</a></h2>';
 		$output .= '<div class="nvx-brand-card__body">' . wp_kses_post( get_the_excerpt() ) . '</div>';
-		$output .= '<a href="' . esc_url( get_permalink() ) . '" class="nvx-button nvx-button--secondary" aria-label="' . esc_attr( $aria ) . '">' . esc_html__( 'Leer más', 'nuvanx-medical' ) . '</a>';
+		$output .= '<a href="' . esc_url( get_permalink() ) . '" class="nvx-brand-btn nvx-brand-btn--secondary" aria-label="' . esc_attr( $aria ) . '">' . esc_html__( 'Leer más', 'nuvanx-medical' ) . '</a>';
 		$output .= '</article>';
 	}
 	$output .= '</div>';

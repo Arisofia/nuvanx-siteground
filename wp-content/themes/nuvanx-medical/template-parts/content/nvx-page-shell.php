@@ -78,6 +78,7 @@ while ( have_posts() ) :
 
 	<?php if ( $show_theme_hero ) : ?>
 		<section class="nvx-brand-hero" aria-labelledby="nvx-page-hero-title-<?php the_ID(); ?>">
+			<?php $nvx_page_shell_has_hero = true; ?>
 			<div class="nvx-brand-hero__inner">
 				<figure class="nvx-brand-hero__media">
 					<?php

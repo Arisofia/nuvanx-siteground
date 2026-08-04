@@ -14,7 +14,7 @@ ob_start();
 		<h1 class="nvx-heading"><?php esc_html_e( 'Página no encontrada', 'nuvanx-medical' ); ?></h1>
 		<p class="nvx-lead"><?php esc_html_e( 'La página que buscas no existe o ha sido movida.', 'nuvanx-medical' ); ?></p>
 		<p>
-			<a class="nvx-button nvx-button--primary" href="<?php echo esc_url( home_url( '/' ) ); ?>">
+			<a class="nvx-brand-btn nvx-brand-btn--primary" href="<?php echo esc_url( home_url( '/' ) ); ?>">
 				<?php esc_html_e( 'Volver al inicio', 'nuvanx-medical' ); ?>
 			</a>
 		</p>

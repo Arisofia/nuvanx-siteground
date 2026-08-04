@@ -137,9 +137,17 @@ function nvx_remove_duplicate_hero_from_content( string $content ): string {
 
 	// Also apply to /madrid/valoracion/ via URL check
 	if ( strpos( $current_url, '/madrid/valoracion/' ) !== false ) {
+		// Count heroes before removal
+		$hero_count_before = preg_match_all( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>/is', $content, $matches );
+		error_log( 'nvx_remove_duplicate_hero_from_content: /madrid/valoracion/ - heroes before: ' . $hero_count_before );
+
 		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
 		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-page-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
 		$content = preg_replace( '/<section[^>]*class="[^"]*nvx-editorial-hero[^"]*"[^>]*>.*?<\/section>/is', '', $content );
+
+		// Count heroes after removal
+		$hero_count_after = preg_match_all( '/<section[^>]*class="[^"]*nvx-brand-hero[^"]*"[^>]*>/is', $content, $matches );
+		error_log( 'nvx_remove_duplicate_hero_from_content: /madrid/valoracion/ - heroes after: ' . $hero_count_after );
 	}
 
 	return $content;

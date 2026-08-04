@@ -65,9 +65,8 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 		</div>
 	</section>
 
-	<div class="nvx-brand-section-wrap">
 		<section class="nvx-brand-section nvx-section--nap" aria-label="<?php esc_attr_e( 'Sedes y datos de contacto', 'nuvanx-medical' ); ?>">
-			<div class="nvx-container">
+			<div class="nvx-brand-section__inner">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'Sedes autorizadas', 'nuvanx-medical' ); ?></p>
 				<h2 class="nvx-heading"><?php esc_html_e( 'Datos de contacto y centros sanitarios', 'nuvanx-medical' ); ?></h2>
 				<p class="nvx-brand-lead"><?php esc_html_e( 'Centros de medicina estética autorizados por la Consejería de Sanidad de la Comunidad de Madrid.', 'nuvanx-medical' ); ?></p>
@@ -129,7 +128,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 		</section>
 
 		<section class="nvx-brand-section nvx-section--cta-secondary" aria-label="<?php esc_attr_e( 'Reservar valoración médica', 'nuvanx-medical' ); ?>">
-			<div class="nvx-container">
+			<div class="nvx-brand-section__inner">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'Atención telefónica directa', 'nuvanx-medical' ); ?></p>
 				<h2 class="nvx-heading"><?php esc_html_e( 'Llama a tu centro NUVANX más cercano', 'nuvanx-medical' ); ?></h2>
 				<p class="nvx-body"><?php esc_html_e( 'Atención directa para información sobre valoraciones, citas y localización de nuestras sedes.', 'nuvanx-medical' ); ?></p>
@@ -146,8 +145,6 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 				</div>
 			</div>
 		</section>
-	</div>
-</div>
 
 <?php
 $content = ob_get_clean();

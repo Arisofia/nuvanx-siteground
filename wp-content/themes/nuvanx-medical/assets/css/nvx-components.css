@@ -40,11 +40,15 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
 }
 
 /* WhatsApp floating plugin containment (creame-whatsapp-me / Joinchat) */
+.joinchat {
+  --joinchat-button-size: 60px;
+}
+
 .joinchat__button {
-  width: 60px !important;
-  height: 60px !important;
-  max-width: 60px !important;
-  max-height: 60px !important;
+  width: var(--joinchat-button-size) !important;
+  height: var(--joinchat-button-size) !important;
+  max-width: var(--joinchat-button-size) !important;
+  max-height: var(--joinchat-button-size) !important;
   position: fixed !important;
   bottom: 20px !important;
   right: 20px !important;
@@ -53,13 +57,29 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon {
 
 .joinchat__button svg,
 .joinchat__button img,
+.joinchat__button__open svg,
+.joinchat__button__open img,
 .joinchat__icon svg,
 .joinchat__icon img {
   width: 100% !important;
   height: 100% !important;
+  max-width: var(--joinchat-button-size) !important;
+  max-height: var(--joinchat-button-size) !important;
+  display: block !important;
+}
+
+.joinchat__wa {
+  width: 120px !important;
+  height: 28px !important;
+  max-width: 120px !important;
+  max-height: 28px !important;
+}
+
+.joinchat__open__icon {
+  width: 60px !important;
+  height: 60px !important;
   max-width: 60px !important;
   max-height: 60px !important;
-  display: block !important;
 }
 
 .joinchat__qr img,

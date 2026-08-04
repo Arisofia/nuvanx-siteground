@@ -39,11 +39,15 @@ body {
 
 img,
 video,
-picture,
-svg {
+picture {
   display: block;
   max-width: 100%;
   height: auto;
+}
+
+svg {
+  display: block;
+  max-width: 100%;
 }
 
 /* Form controls inherit typography; buttons keep visual contract from tokens/components. */

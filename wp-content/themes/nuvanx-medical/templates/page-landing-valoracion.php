@@ -11,7 +11,7 @@
 defined( 'ABSPATH' ) || exit;
 
 $clinics = function_exists( 'nvx_schema_clinics' ) ? nvx_schema_clinics() : array();
-$config = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
+$config  = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config() : array();
 
 $chamberi_phone = ! empty( $clinics['chamberi']['telephone'] ) ? (string) $clinics['chamberi']['telephone'] : '+34669319836';
 $goya_phone     = ! empty( $clinics['goya']['telephone'] ) ? (string) $clinics['goya']['telephone'] : '+34647505107';

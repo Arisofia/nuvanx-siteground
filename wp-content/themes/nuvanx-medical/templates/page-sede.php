@@ -17,23 +17,23 @@ $config   = function_exists( 'nvx_get_clinics_config' ) ? nvx_get_clinics_config
 
 // Determine which clinic this page represents based on URL/slug
 $current_slug = get_post_field( 'post_name', get_the_ID() );
-$clinic_key = 'chamberi'; // Default
+$clinic_key   = 'chamberi'; // Default
 
 if ( strpos( $current_slug, 'goya' ) !== false || strpos( $current_slug, 'salamanca' ) !== false ) {
 	$clinic_key = 'goya';
 }
 
-$clinic_data = $clinics[ $clinic_key ] ?? array();
+$clinic_data   = $clinics[ $clinic_key ] ?? array();
 $clinic_config = $config[ $clinic_key ] ?? array();
 
-$clinic_name = ! empty( $clinic_data['name'] ) ? $clinic_data['name'] : ( 'chamberi' === $clinic_key ? 'Centro Clínico NUVANX Chamberí' : 'Centro Clínico NUVANX Salamanca–Goya' );
+$clinic_name    = ! empty( $clinic_data['name'] ) ? $clinic_data['name'] : ( 'chamberi' === $clinic_key ? 'Centro Clínico NUVANX Chamberí' : 'Centro Clínico NUVANX Salamanca–Goya' );
 $clinic_address = ! empty( $clinic_config['address'] ) ? sprintf( '%s, %s %s', $clinic_config['address'], $clinic_config['postal_code'], $clinic_config['locality'] ) : '';
-$clinic_phone = ! empty( $clinic_data['telephone'] ) ? $clinic_data['telephone'] : '';
-$clinic_hours = ! empty( $clinic_config['hours'] ) ? $clinic_config['hours'] : '';
-$clinic_maps = ! empty( $clinic_data['hasMap'] ) ? $clinic_data['hasMap'] : '';
+$clinic_phone   = ! empty( $clinic_data['telephone'] ) ? $clinic_data['telephone'] : '';
+$clinic_hours   = ! empty( $clinic_config['hours'] ) ? $clinic_config['hours'] : '';
+$clinic_maps    = ! empty( $clinic_data['hasMap'] ) ? $clinic_data['hasMap'] : '';
 
-$phone_display = ! empty( $clinic_phone ) ? trim( chunk_split( preg_replace( '/^\+34/', '', $clinic_phone ), 3, ' ' ) ) : '';
-$whatsapp_url = ! empty( $clinic_config['whatsapp_href'] ) ? $clinic_config['whatsapp_href'] : ( ! empty( $clinic_phone ) ? 'https://wa.me/' . preg_replace( '/\D/', '', $clinic_phone ) : '' );
+$phone_display  = ! empty( $clinic_phone ) ? trim( chunk_split( preg_replace( '/^\+34/', '', $clinic_phone ), 3, ' ' ) ) : '';
+$whatsapp_url   = ! empty( $clinic_config['whatsapp_href'] ) ? $clinic_config['whatsapp_href'] : ( ! empty( $clinic_phone ) ? 'https://wa.me/' . preg_replace( '/\D/', '', $clinic_phone ) : '' );
 $valoracion_url = home_url( '/madrid/valoracion/' );
 
 get_header();

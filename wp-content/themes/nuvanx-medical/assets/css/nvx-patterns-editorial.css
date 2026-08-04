@@ -1474,6 +1474,102 @@ section.nvx-hero {
   text-align: left;
 }
 
+/* Compact clinical cases grid for better variety display */
+.nvx-cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--nvx-space-3);
+}
+
+.nvx-cases-card {
+  display: flex;
+  flex-direction: column;
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-card);
+  background: var(--nvx-light);
+  overflow: hidden;
+}
+
+.nvx-cases-card__media {
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  background: var(--nvx-surface-base);
+}
+
+.nvx-cases-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.nvx-cases-card__content {
+  padding: var(--nvx-space-3);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.nvx-cases-card__title {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  line-height: var(--nvx-lh-h3);
+  color: var(--nvx-ink);
+}
+
+.nvx-cases-card__meta {
+  margin-top: auto;
+  padding-top: var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-small);
+  color: var(--nvx-text-muted);
+}
+
+/* Larger blog filters for better visibility */
+.nvx-blog-filters {
+  margin: var(--nvx-space-6) 0;
+  padding: var(--nvx-space-3);
+  background: var(--nvx-surface-base);
+  border-radius: var(--nvx-radius-card);
+}
+
+.nvx-blog-filters__label {
+  display: block;
+  margin-bottom: var(--nvx-space-2);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  font-weight: var(--nvx-fw-medium);
+  color: var(--nvx-ink);
+}
+
+.nvx-blog-filters__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nvx-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nvx-blog-filters__item a {
+  display: inline-block;
+  padding: var(--nvx-space-1) var(--nvx-space-3);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  text-decoration: none;
+  color: var(--nvx-text-body);
+  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
+  border-radius: var(--nvx-radius-pill);
+  transition: all 160ms ease;
+}
+
+.nvx-blog-filters__item a:hover,
+.nvx-blog-filters__item a:focus-visible {
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+  border-color: var(--nvx-ink);
+}
+
 
 
 

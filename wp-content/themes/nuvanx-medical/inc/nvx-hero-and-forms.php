@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Featured-image figure markup for hero injection, or empty when unusable.
  */
-function nvx_hero_featured_media_figure(): string {
+function nvxHeroFeaturedMediaFigure(): string {
 	$thumb = get_the_post_thumbnail(
 		null,
 		'full',
@@ -41,7 +41,7 @@ function nvx_hero_featured_media_figure(): string {
  *
  * @return int|null Offset after the matching closing tag.
  */
-function nvx_hero_find_balanced_div_end( string $content, int $open_pos ): ?int {
+function nvxHeroFindBalancedDivEnd( string $content, int $open_pos ): ?int {
 	$len   = strlen( $content );
 	$i     = $open_pos;
 	$depth = 0;
@@ -75,7 +75,7 @@ function nvx_hero_find_balanced_div_end( string $content, int $open_pos ): ?int 
 /**
  * Insert a hero media figure after the first hero __copy block, or at section start.
  */
-function nvx_hero_insert_media_figure( string $content, string $figure ): string {
+function nvxHeroInsertMediaFigure( string $content, string $figure ): string {
 	$updated = $content;
 
 	// Locate first hero __copy opening tag.
@@ -92,7 +92,7 @@ function nvx_hero_insert_media_figure( string $content, string $figure ): string
 		$class_pos = (int) $match[0][1];
 		$open_pos  = strrpos( substr( $content, 0, $class_pos ), '<div' );
 		// Balance nested <div>…</div> so the figure is inserted AFTER the whole copy.
-		$end = false !== $open_pos ? nvx_hero_find_balanced_div_end( $content, $open_pos ) : null;
+		$end = false !== $open_pos ? nvxHeroFindBalancedDivEnd( $content, $open_pos ) : null;
 		if ( null !== $end ) {
 			$updated = substr( $content, 0, $end ) . $figure . substr( $content, $end );
 		}
@@ -106,7 +106,7 @@ function nvx_hero_insert_media_figure( string $content, string $figure ): string
  * Inserts media as a SIBLING after the hero copy (never nested inside copy),
  * so kicker + title can overlay the image. Global — not a per-page patch.
  */
-function nvx_ensure_hero_featured_media( string $content ): string {
+function nvxEnsureHeroFeaturedMedia( string $content ): string {
 	if ( is_admin() || ! is_singular() || is_front_page() || ! has_post_thumbnail() ) {
 		return $content;
 	}
@@ -121,21 +121,21 @@ function nvx_ensure_hero_featured_media( string $content ): string {
 		return $content;
 	}
 
-	$figure = nvx_hero_featured_media_figure();
+	$figure = nvxHeroFeaturedMediaFigure();
 	if ( '' === $figure ) {
 		return $content;
 	}
 
-	return nvx_hero_insert_media_figure( $content, $figure );
+	return nvxHeroInsertMediaFigure( $content, $figure );
 }
-add_filter( 'the_content', 'nvx_ensure_hero_featured_media', 12 );
+add_filter( 'the_content', 'nvxEnsureHeroFeaturedMedia', 12 );
 
 /**
  * Extract a balanced HTML element starting at $open_pos (must point at "<tag").
  *
  * @return string|null Full element markup including open/close tags.
  */
-function nvx_extract_balanced_element( string $html, int $open_pos, string $tag ): ?string {
+function nvxExtractBalancedElement( string $html, int $open_pos, string $tag ): ?string {
 	$tag  = strtolower( $tag );
 	$len  = strlen( $html );
 	$open = '<' . $tag;
@@ -180,7 +180,7 @@ function nvx_extract_balanced_element( string $html, int $open_pos, string $tag 
 /**
  * Landing valoración: form is the first content after the hero.
  */
-function nvx_theme_is_valoracion_landing(): bool {
+function nvxThemeIsValoracionLanding(): bool {
 	if ( ! is_page() ) {
 		return false;
 	}
@@ -193,9 +193,10 @@ function nvx_theme_is_valoracion_landing(): bool {
 
 /**
  * Move #nvx-hubspot-form section to sit immediately after the page hero.
+ * Refactored: early return guards reduce nesting, extract-process-reinsert pattern.
  */
-function nvx_valoracion_form_first( string $content ): string {
-	if ( is_admin() || ! nvx_theme_is_valoracion_landing() ) {
+function nvxValoracionFormFirst( string $content ): string {
+	if ( is_admin() || ! nvxThemeIsValoracionLanding() ) {
 		return $content;
 	}
 
@@ -204,16 +205,15 @@ function nvx_valoracion_form_first( string $content ): string {
 	}
 
 	$form_start = (int) $match[0][1];
-	$form       = nvx_extract_balanced_element( $content, $form_start, 'section' );
+	$form       = nvxExtractBalancedElement( $content, $form_start, 'section' );
 	if ( ! is_string( $form ) || $form === '' ) {
 		return $content;
 	}
 
-	// Already first body block after hero? Detect adjacency.
 	$without = substr( $content, 0, $form_start ) . substr( $content, $form_start + strlen( $form ) );
 
+	// No hero: put form first inside main page wrapper if present.
 	if ( ! preg_match( '/<section\b[^>]*class=["\'][^"\']*nvx-(?:hero|page-hero|brand-hero)[^"\']*["\'][^>]*>/i', $without, $hero_match, PREG_OFFSET_CAPTURE ) ) {
-		// No hero: put form first inside main page wrapper if present.
 		if ( preg_match( '/id=["\']nvx-valoracion-main["\'][^>]*>/i', $without, $wrap, PREG_OFFSET_CAPTURE ) ) {
 			$pos = (int) $wrap[0][1] + strlen( $wrap[0][0] );
 			return substr( $without, 0, $pos ) . $form . substr( $without, $pos );
@@ -222,28 +222,26 @@ function nvx_valoracion_form_first( string $content ): string {
 	}
 
 	$hero_start = (int) $hero_match[0][1];
-	$hero       = nvx_extract_balanced_element( $without, $hero_start, 'section' );
+	$hero       = nvxExtractBalancedElement( $without, $hero_start, 'section' );
 	if ( ! is_string( $hero ) || $hero === '' ) {
 		return $content;
 	}
 
 	$hero_end = $hero_start + strlen( $hero );
-	// Skip optional whitespace / injected media siblings already inside hero.
 	return substr( $without, 0, $hero_end ) . $form . substr( $without, $hero_end );
 }
-add_filter( 'the_content', 'nvx_valoracion_form_first', 14 );
+add_filter( 'the_content', 'nvxValoracionFormFirst', 14 );
 
 /**
  * Valoración form stage: use featured/header image as section atmosphere.
  */
-function nvx_valoracion_form_stage_image_css(): void {
-	if ( ! nvx_theme_is_valoracion_landing() ) {
+function nvxValoracionFormStageImageCss(): void {
+	if ( ! nvxThemeIsValoracionLanding() ) {
 		return;
 	}
 
 	$image_url = get_the_post_thumbnail_url( get_queried_object_id(), 'full' );
 	if ( ! is_string( $image_url ) || $image_url === '' ) {
-		// Fallback to known header media filename when present in media library.
 		$image_url = content_url( 'uploads/2026/07/fondo-formulario.webp' );
 	}
 
@@ -254,13 +252,13 @@ function nvx_valoracion_form_stage_image_css(): void {
 
 	wp_add_inline_style( 'nvx-layout', $css );
 }
-add_action( 'wp_enqueue_scripts', 'nvx_valoracion_form_stage_image_css', 30 );
+add_action( 'wp_enqueue_scripts', 'nvxValoracionFormStageImageCss', 30 );
 
 /**
  * Mark the valoración form section for stage styling.
  */
-function nvx_valoracion_form_stage_class( string $content ): string {
-	if ( is_admin() || ! nvx_theme_is_valoracion_landing() ) {
+function nvxValoracionFormStageClass( string $content ): string {
+	if ( is_admin() || ! nvxThemeIsValoracionLanding() ) {
 		return $content;
 	}
 
@@ -283,7 +281,7 @@ function nvx_valoracion_form_stage_class( string $content ): string {
 		1
 	) ?: $content;
 }
-add_filter( 'the_content', 'nvx_valoracion_form_stage_class', 15 );
+add_filter( 'the_content', 'nvxValoracionFormStageClass', 15 );
 
 /*
 ═══════════════════════════════════════════════════════════
@@ -305,31 +303,34 @@ if ( ! defined( 'NVX_VALORACION_HS_FRAME_REGION' ) ) {
 /**
  * Whether the current request is the canonical valoración form route.
  */
-<<<<<<< Updated upstream
-if ( ! function_exists( 'nvx_valoracion_native_hubspot_is_target_page' ) ) {
-	function nvx_valoracion_native_hubspot_is_target_page(): bool {
+if ( ! function_exists( 'nvxValoracionNativeHubspotIsTargetPage' ) ) {
+	/**
+	 * Check if this is the target page for native HubSpot form.
+	 */
+	function nvxValoracionNativeHubspotIsTargetPage(): bool {
 		if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
 			return true;
-=======
-if ( ! function_exists( 'nvx_valoracion_native_hubspot_is_target_page' ) ) :
-function nvx_valoracion_native_hubspot_is_target_page(): bool {
-	if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
-		return true;
+		}
+		return is_page( 2636 ) || is_page( 'valoracion' );
 	}
-	return is_page( 2636 ) || is_page( 'valoracion' );
 }
 
 /**
  * Lazy HubSpot mount markup (demand-loaded by nvx-runtime-governance.js).
  */
-function nvx_valoracion_native_hubspot_mount_markup(): string {
-	$portal_id   = esc_attr( (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
-	$form_id     = esc_attr( (string) NVX_VALORACION_HS_FRAME_FORM_ID );
-	$region      = esc_attr( (string) NVX_VALORACION_HS_FRAME_REGION );
-	$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
+if ( ! function_exists( 'nvxValoracionNativeHubspotMountMarkup' ) ) {
+	/**
+	 * Generate the markup for the native HubSpot form mount.
+	 */
+	function nvxValoracionNativeHubspotMountMarkup(): string {
+		$portal_id   = esc_attr( (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
+		$form_id     = esc_attr( (string) NVX_VALORACION_HS_FRAME_FORM_ID );
+		$region      = esc_attr( (string) NVX_VALORACION_HS_FRAME_REGION );
+		$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
 
-	return '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
-		. '<p class="nvx-copy nvx-hubspot-privacy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . $privacy_url . '">Política de privacidad</a>.</p>';
+		return '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
+			. '<p class="nvx-copy nvx-hubspot-privacy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . $privacy_url . '">Política de privacidad</a>.</p>';
+	}
 }
 
 /**
@@ -337,7 +338,7 @@ function nvx_valoracion_native_hubspot_mount_markup(): string {
  *
  * @return array{start:int,length:int}|null
  */
-function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?array {
+function nvxValoracionBalancedDivRange( string $html, int $open_offset ): ?array {
 	if ( $open_offset < 0 || ! preg_match( '/\G<div\b[^>]*>/i', $html, $opening, 0, $open_offset ) ) {
 		return null;
 	}
@@ -363,7 +364,7 @@ function nvx_valoracion_balanced_div_range( string $html, int $open_offset ): ?a
 /**
  * Remove balanced divs that carry a given class token.
  */
-function nvx_valoracion_remove_divs_by_class( string $html, string $class_token ): string {
+function nvxValoracionRemoveDivsByClass( string $html, string $class_token ): string {
 	$pattern = '/<div\b(?=[^>]*\bclass=["\'][^"\']*\b'
 		. preg_quote( $class_token, '/' )
 		. '\b[^"\']*["\'])[^>]*>/i';
@@ -374,7 +375,7 @@ function nvx_valoracion_remove_divs_by_class( string $html, string $class_token 
 
 	$ranges = array();
 	foreach ( $matches[0] as $match ) {
-		$range = nvx_valoracion_balanced_div_range( $html, (int) $match[1] );
+		$range = nvxValoracionBalancedDivRange( $html, (int) $match[1] );
 		if ( is_array( $range ) ) {
 			$ranges[] = $range;
 		}
@@ -394,7 +395,7 @@ function nvx_valoracion_remove_divs_by_class( string $html, string $class_token 
 /**
  * Keep a single canonical HubSpot mount on the valoración page output.
  */
-function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): string {
+function nvxValoracionNativeHubspotEnforceSingleMount( string $html ): string {
 	$mount_pattern = '/<div\b[^>]*\bid=["\']nvx-hubspot-native-form["\'][^>]*>/i';
 	if ( ! preg_match_all( $mount_pattern, $html, $mounts, PREG_OFFSET_CAPTURE ) || empty( $mounts[0] ) ) {
 		return $html;
@@ -402,7 +403,7 @@ function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): str
 
 	$ranges = array();
 	foreach ( $mounts[0] as $mount ) {
-		$range = nvx_valoracion_balanced_div_range( $html, (int) $mount[1] );
+		$range = nvxValoracionBalancedDivRange( $html, (int) $mount[1] );
 		if ( is_array( $range ) ) {
 			$range['opening'] = (string) $mount[0];
 			$ranges[]         = $range;
@@ -438,38 +439,18 @@ function nvx_valoracion_native_hubspot_enforce_single_mount( string $html ): str
 	$html     = is_string( $stripped ) ? $stripped : $html;
 	$stripped = preg_replace( '#<iframe\b[^>]*(?:hsforms|hubspot)[^>]*>[\s\S]*?</iframe>#iu', '', $html );
 	$html     = is_string( $stripped ) ? $stripped : $html;
-	$html     = nvx_valoracion_remove_divs_by_class( $html, 'hs-form-frame' );
-	$html     = nvx_valoracion_remove_divs_by_class( $html, 'hbspt-form' );
+	$html     = nvxValoracionRemoveDivsByClass( $html, 'hs-form-frame' );
+	$html     = nvxValoracionRemoveDivsByClass( $html, 'hbspt-form' );
 
-	$canonical = $first_opening . nvx_valoracion_native_hubspot_mount_markup() . '</div>';
+	$canonical = $first_opening . nvxValoracionNativeHubspotMountMarkup() . '</div>';
 	return str_replace( $marker, $canonical, $html );
 }
 
 add_action(
 	'template_redirect',
 	static function (): void {
-		if ( nvx_valoracion_native_hubspot_is_target_page() ) {
-			ob_start( 'nvx_valoracion_native_hubspot_enforce_single_mount' );
->>>>>>> Stashed changes
+		if ( function_exists( 'nvxValoracionNativeHubspotIsTargetPage' ) && nvxValoracionNativeHubspotIsTargetPage() ) {
+			ob_start( 'nvxValoracionNativeHubspotEnforceSingleMount' );
 		}
-		return is_page( 2636 ) || is_page( 'valoracion' );
 	}
-
-	/**
-	 * Lazy HubSpot mount markup (demand-loaded by nvx-runtime-governance.js).
-	 */
-	function nvx_valoracion_native_hubspot_mount_markup(): string {
-		$portal_id   = esc_attr( (string) NVX_VALORACION_HS_FRAME_PORTAL_ID );
-		$form_id     = esc_attr( (string) NVX_VALORACION_HS_FRAME_FORM_ID );
-		$region      = esc_attr( (string) NVX_VALORACION_HS_FRAME_REGION );
-		$privacy_url = esc_url( home_url( '/politica-privacidad/' ) );
-
-		return '<div class="hs-form-frame" data-region="' . $region . '" data-form-id="' . $form_id . '" data-portal-id="' . $portal_id . '" data-nvx-hubspot-lazy="1"></div>'
-		. '<p class="nvx-copy nvx-hubspot-privacy">Al facilitar tus datos aceptas la <a class="nvx-text-link" href="' . $privacy_url . '">Política de privacidad</a>.</p>';
-	}
-
-
-}
-
-// If MU still present this request, still ensure theme does not double-register the buffer.
-// (MU owns the callback until disk retirement completes.)
+);

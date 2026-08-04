@@ -456,7 +456,10 @@ async function run() {
       const canonical = await page.locator('link[rel="canonical"]').getAttribute('href').catch(() => null);
 
       htmlLang = (await page.locator('html').getAttribute('lang').catch(() => null)) || '';
-      mainExists = (await page.locator('main, [role="main"]').count()) === 1;
+      // Reinforced contract: main landmark must have id="nvx-main" (used by skip-link)
+      const mainLocator = page.locator('main#nvx-main, [role="main"]#nvx-main');
+      const mainCount = await mainLocator.count();
+      mainExists = mainCount === 1;
 
       await checkSkipLink(page, route, issues);
       await checkHeadingHierarchy(page, issues);
@@ -498,6 +501,9 @@ async function run() {
       
       const isRedirectExpected = ['/politica-de-cookies/', '/mas-informacion-sobre-las-cookies/', '/medicina-estetica-goya-barrio-salamanca/'].includes(route);
       const is404Expected = ['/equipo-medico-clinica-goya/'].includes(route);
+      const isHome = route === '/';
+      const isTreatment = route.startsWith('/tratamientos/') || route.includes('/well-aging');
+      const isGeneralPage = !isHome && !isTreatment && !is404Expected && !isRedirectExpected && !route.includes('/wp-json');
 
       // Assertions
       if (!is404Expected && !isRedirectExpected && mainResponseStatus !== 200) {
@@ -529,6 +535,14 @@ async function run() {
 
       if (!is404Expected && !isRedirectExpected && !mainExists) {
         issues.push('Missing <main> landmark');
+      }
+
+      // Canonical hero check for general pages (not home, not treatments)
+      if (isGeneralPage) {
+        const hasBrandHeroInPage = await page.locator('.nvx-brand-page .nvx-brand-hero').count() > 0;
+        if (!hasBrandHeroInPage) {
+          issues.push('General page missing canonical hero (.nvx-brand-hero inside .nvx-brand-page)');
+        }
       }
 
       // SHA invariants: every checked route must serve the expected deployment SHA marker

@@ -52,6 +52,14 @@
 - Workflow Deploy Staging2 funciona
 - Necesita verificar qué está "quemado" en vs que es dinámico
 
+### 4. Brecha entre Guía y Contrato Técnico Ejecutable
+**Estado:** Identificado, pendiente de implementación
+- La guía existe como documento pero no está "endurecida" como contrato técnico
+- Falta enforcement automático en CI/CD
+- Falta auditoría automática de 13 puntos
+- Falta lint de CSS para detectar hardcoded values
+- Falta integración de guía ↔ acceptance tests
+
 ---
 
 ## 📋 Sistema de 13 Puntos Oficial
@@ -93,17 +101,32 @@ El sistema oficial de 13 puntos está implementado en `inc/nvx-13-point-renderer
 
 ## 🔍 Próximos Pasos Recomendados
 
-1. **Investigación visual de headers diferentes**
+### Inmediatos (Contrato Técnico)
+1. **Implementar reglas automáticas en browser-acceptance.mjs:**
+   - Verificar nvx-brand-hero en páginas generales
+   - Auditoría de 13 puntos en páginas de tratamiento
+   - Detección de colores/tamaños hardcoded
+   - Validación de integraciones de terceros
+   - Verificación de estructura DOM
+
+2. **Implementar scripts de lint:**
+   - Script Node/grep para bloquear hex codes en CSS
+   - Script para bloquear tamaños px hardcoded
+   - Verificación de inline styles peligrosos
+
+### Investigación Visual
+3. **Investigación visual de headers diferentes**
    - Abrir URLs mencionadas en browser
    - Comparar diseños de headers
    - Identificar inconsistencias específicas
 
-2. **Investigación de fondos**
+4. **Investigación de fondos**
    - Verificar qué fondos no son visibles
    - Revisar contrasto y colores
    - Corregir problemas CSS
 
-3. **Verificación de despliegue completo**
+### Verificación de Despliegue
+5. **Verificación de despliegue completo**
    - Asegurar que todos los cambios llegan al sitio
    - Verificar que no hay cambios "quemados" que no se actualizan
    - Documentar flujo de despliegue

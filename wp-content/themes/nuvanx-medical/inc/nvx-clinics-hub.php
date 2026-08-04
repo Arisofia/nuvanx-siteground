@@ -1206,7 +1206,7 @@ add_filter( 'the_content', 'nvxClinicsHubEnhance', NVX_HOOK_PRIO_CLINICS_ENHANCE
 add_filter(
 	'nvx_page_owner',
 	function ( $owner ) {
-		if ( ! empty( $owner ) ) {
+		if ( ! empty( $owner ) || is_admin() ) {
 			return $owner;
 		}
 		if ( function_exists( 'nvxIsClinicsHub' ) && nvxIsClinicsHub() ) {

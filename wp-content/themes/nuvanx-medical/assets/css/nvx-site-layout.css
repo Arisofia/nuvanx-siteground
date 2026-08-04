@@ -42,6 +42,8 @@
 }
 
 /* Brand heroes inside content match home full-bleed, not shell box */
+/* NOTE: Double .nvx-brand-page nesting is supported by CSS and is "by design" */
+/* The refactor b5bf6ea6 that attempted to "fix" this was reverted due to regression */
 .nvx-page__content .nvx-brand-hero,
 .nvx-brand-page > .nvx-brand-hero,
 .nvx-page__content .nvx-brand-page > .nvx-brand-hero {

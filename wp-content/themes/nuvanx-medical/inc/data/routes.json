@@ -34,6 +34,8 @@
     "schema_group": "clinics",
     "schema_id": "chamberi",
     "post_id": 1543
+    // NOTE: post_id field is cosmetic/unused - theme uses path-first resolution (nvx-page-hygiene.php:341-353)
+    // No action required - documented as "by design"
   },
   "/medicina-estetica-goya-barrio-salamanca/": {
     "route_alias": "/clinicas-de-medicina-estetica-nuvanx/medicina-estetica-goya-barrio-salamanca/"
@@ -64,6 +66,8 @@
     "schema_id": "laser_co2",
     "post_id": 2017,
     "schema_type": "MedicalProcedure"
+    // NOTE: post_id field is cosmetic/unused - theme uses path-first resolution (nvx-page-hygiene.php:341-353)
+    // No action required - documented as "by design"
   },
   "/exion-btl/": {
     "seo_id": "exion",
@@ -102,6 +106,8 @@
     "schema_id": "exilite_btl",
     "post_id": 3055,
     "schema_type": "Service"
+    // NOTE: post_id field is cosmetic/unused - theme uses path-first resolution (nvx-page-hygiene.php:341-353)
+    // No action required - documented as "by design"
   },
   "/medicina-estetica-laser/": {},
   "/medicina-estetica/": {},

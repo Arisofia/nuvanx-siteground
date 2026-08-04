@@ -17,6 +17,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Build the canonical valuation page before form-order and HubSpot MU filters.
  */
 function nvx_valoracion_managed_page_markup(): string {
+	// Hero image-free by design: block the featured-image injection performed by
+	// nvx_ensure_hero_featured_media (the_content prio 12). The managed renderer
+	// runs earlier (prio 10), so setting the flag here short-circuits that filter.
+	global $nvx_page_shell_has_hero;
+	$nvx_page_shell_has_hero = true;
+
 	$valuation_url = home_url( '/madrid/valoracion/' );
 	$whatsapp_url  = nvx_whatsapp_url( 'primary' );
 	$form_id       = defined( 'NVX_VALORACION_HS_FRAME_FORM_ID' ) ? NVX_VALORACION_HS_FRAME_FORM_ID : '5042522a-0bc5-4381-ac3e-5aee8649b69c';
@@ -66,3 +72,25 @@ function nvx_render_managed_valoracion_page( $content ): string {
 	return nvx_valoracion_managed_page_markup();
 }
 add_filter( 'the_content', 'nvx_render_managed_valoracion_page', NVX_HOOK_PRIO_VALORACION_MANAGED );
+
+/**
+ * Register valoración page as page owner to prevent shell hero duplication.
+ *
+ * When the shell evaluates $has_managed_editorial in nvx-page-shell.php,
+ * this filter ensures valoración pages are recognized as managed,
+ * preventing the shell from rendering its own hero in addition to
+ * the renderer's hero.
+ */
+add_filter(
+	'nvx_page_owner',
+	function ( $owner ) {
+		if ( ! empty( $owner ) || is_admin() ) {
+			return $owner;
+		}
+		if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
+			return 'nvx_valoracion_managed';
+		}
+		return $owner;
+	},
+	10
+);

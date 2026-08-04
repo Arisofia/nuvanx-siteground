@@ -64,7 +64,7 @@ function nvx_content_is_equipo_page( string $content ): bool {
 function nvx_equipo_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['hero'] ?? array();
-	
+
 	$colegiado_dir   = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$colegiado_ivon  = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 	$colegiado_fabio = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
@@ -310,7 +310,7 @@ function nvx_equipo_categorize_staff_card( string $card, string &$rivera_media, 
 
 /**
  * Generate an identity key from the card's heading, falling back to full HTML hash.
- * 
+ *
  * @param string $card HTML card.
  * @return string Identity hash.
  */
@@ -415,7 +415,7 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 	if ( empty( $other_cards ) ) {
 		return '';
 	}
-	
+
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['equipo_staff'] ?? array();
 
@@ -663,7 +663,7 @@ function nvx_equipo_physician_authority_markup( array $config ): string {
 function nvx_equipo_director_authority_markup( string $rivera_media = '' ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['rivera'] ?? array();
-	
+
 	$colegiado  = defined( 'NVX_DIRECTOR_COLEGIADO' ) ? NVX_DIRECTOR_COLEGIADO : '282864786';
 	$doctoralia = 'https://www.doctoralia.es/jose-javier-rivera-tejeda/medico-estetico/madrid';
 
@@ -747,7 +747,7 @@ function nvx_equipo_director_authority_markup( string $rivera_media = '' ): stri
 function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['ivon'] ?? array();
-	
+
 	$colegiado = defined( 'NVX_IVON_COLEGIADO' ) ? NVX_IVON_COLEGIADO : '284621525';
 
 	return nvx_equipo_physician_authority_markup(
@@ -813,7 +813,7 @@ function nvx_equipo_ivon_authority_markup( string $ivon_media = '' ): string {
 function nvx_equipo_fabio_authority_markup( string $fabio_media = '' ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['fabio'] ?? array();
-	
+
 	$colegiado = defined( 'NVX_FABIO_COLEGIADO' ) ? NVX_FABIO_COLEGIADO : '282877543';
 
 	return nvx_equipo_physician_authority_markup(

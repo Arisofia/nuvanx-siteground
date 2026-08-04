@@ -178,7 +178,7 @@ function nvx_home_action_banner_markup(): string {
 	$html .= sprintf(
 		'<a class="nvx-button nvx-button--light nvx-home-action-banner__cta nvx-open-valoracion-modal" href="%1$s" data-nvx-valoracion-modal="1" aria-haspopup="dialog">%2$s</a>',
 		esc_url( $valoracion ),
-			esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
+		esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' )
 	);
 	$html .= sprintf(
 		'<a class="nvx-button nvx-button--secondary-on-dark nvx-home-action-banner__cta" href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
@@ -418,7 +418,8 @@ function nvx_content_strip_extra_method_sections( string $content ): string {
 	$updated = preg_replace_callback(
 		'/<section\b[^>]*\bclass=["\'][^"\']*\bnvx-method-section\b[^"\']*["\'][^>]*>[\s\S]*?<\/section>/iu',
 		static function ( array $m ) use ( &$seen ): string {
-			$seen++;			return ( 1 === $seen ) ? $m[0] : '';
+			$seen++;
+			return ( 1 === $seen ) ? $m[0] : '';
 		},
 		$content
 	);
@@ -554,7 +555,7 @@ function nvx_exion_investment_markup(): string {
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Inversión', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-exion-investment-title" class="nvx-brand-title">' . esc_html__( 'Precio de EXION® BTL en NUVANX', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-brand-lead">' . esc_html__(
-			'El PVP de EXION® no se publica como tarifa fija online porque depende del aplicador (Face, Body o Fractional RF), de la zona, del número de sesiones y de si se combina con otros protocolos. El presupuesto se documenta por escrito tras la valoración médica.',
+		'El PVP de EXION® no se publica como tarifa fija online porque depende del aplicador (Face, Body o Fractional RF), de la zona, del número de sesiones y de si se combina con otros protocolos. El presupuesto se documenta por escrito tras la valoración médica.',
 		'nuvanx-medical'
 	) . '</p>';
 	$html .= '<ul class="nvx-brand-list nvx-exion-investment__factors">';
@@ -1206,7 +1207,7 @@ function nvx_generic_faq_markup(): string {
 	$html .= '<div class="nvx-shell nvx-brand-section__inner">';
 	$html .= '<h2 class="nvx-brand-title" id="nvx-generic-faq-title">' . esc_html__( 'Preguntas Frecuentes', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<div class="nvx-faq nvx-generic-faq-list">';
-	
+
 	$faqs = array(
 		array( '¿Duele el procedimiento?', 'La percepción varía según el umbral personal y la zona. Según el protocolo pueden usarse anestesia local, frío o cremas tópicas para mejorar el confort; la experiencia se valora de forma individual en consulta.' ),
 		array( '¿Cuánta recuperación necesito?', 'Depende del tratamiento, la intensidad del protocolo y tu respuesta individual. Algunos procedimientos permiten retomar la actividad habitual con rapidez; otros (por ejemplo, láser ablativo) implican eritema, descamación o varios días de curación. La pauta exacta se define en la valoración y el consentimiento.' ),
@@ -1221,7 +1222,7 @@ function nvx_generic_faq_markup(): string {
 		$html .= '<div class="nvx-brand-faq-item__body"><p>' . esc_html( $faq[1] ) . '</p></div>';
 		$html .= '</details>';
 	}
-	
+
 	$html .= '</div></div></section>';
 	return $html;
 }

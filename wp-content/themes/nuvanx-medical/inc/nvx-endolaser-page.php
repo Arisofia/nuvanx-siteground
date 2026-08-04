@@ -67,11 +67,11 @@ function nvx_content_is_endolaser_page( string $content ): bool {
 function nvx_endolaser_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolaser-page.json' )['hero'] ?? array();
-	
+
 	$html  = '<div class="nvx-brand-hero__copy">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
 	$html .= '<h1 class="nvx-brand-hero__title" id="nvx-endolaser-h1">' . esc_html( $data['h1'] ?? '' ) . '</h1>';
-	
+
 	// E-E-A-T Medical Authority Byline
 	$html .= '<div class="nvx-medical-byline">';
 	$html .= '<div class="nvx-medical-byline__text">';
@@ -101,7 +101,7 @@ function nvx_endolaser_hero_copy_markup(): string {
 function nvx_endolaser_editorial_body_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'endolaser-page.json' );
-	
+
 	$html  = '<div class="nvx-endolaser-editorial nvx-brand-editorial">';
 
 	// A. Intro + dual mechanism.

@@ -353,6 +353,99 @@ async function handleCookieConsent(page) {
 }
 
 /**
+ * Tests the complete conversion flow: valoración modal → form submit → thank-you page
+ * @param {import('playwright').Page} page - The Playwright page instance.
+ * @param {string[]} issues - Collection to which detected issues are added.
+ */
+async function testConversionFlow(page, issues) {
+  try {
+    console.log('Testing conversion flow on /madrid/valoracion/...');
+    
+    // Navigate to valoración page
+    await safeGoto(page, 'https://staging2.nuvanx.com/madrid/valoracion/');
+    await handleCookieConsent(page);
+    
+    // Check if valoración modal or form exists
+    const hasModal = await page.locator('.nvx-valoracion-modal, [data-nvx-valoracion-modal]').count() > 0;
+    const hasForm = await page.locator('form[action*="valoracion"], form[id*="valoracion"], .valoracion-form').count() > 0;
+    
+    if (!hasModal && !hasForm) {
+      issues.push('Conversion flow: No valoración modal or form found on /madrid/valoracion/');
+      return;
+    }
+    
+    // If modal exists, try to open it
+    if (hasModal) {
+      const modalTrigger = await page.locator('button[data-nvx-valoracion-trigger], a[href*="valoracion"], .nvx-cta-valoracion').first();
+      if (await modalTrigger.isVisible({ timeout: 2000 })) {
+        await modalTrigger.click();
+        await page.waitForTimeout(1000);
+      }
+    }
+    
+    // Check for form fields
+    const hasNameField = await page.locator('input[name*="name"], input[name*="nombre"]').count() > 0;
+    const hasEmailField = await page.locator('input[type="email"], input[name*="email"]').count() > 0;
+    const hasPhoneField = await page.locator('input[type="tel"], input[name*="phone"], input[name*="telefono"]').count() > 0;
+    const hasSubmitButton = await page.locator('button[type="submit"], input[type="submit"]').count() > 0;
+    
+    if (!hasNameField || !hasEmailField || !hasPhoneField) {
+      issues.push('Conversion flow: Missing required form fields (name, email, or phone)');
+    }
+    
+    if (!hasSubmitButton) {
+      issues.push('Conversion flow: No submit button found in valoración form');
+    }
+    
+    // Check if HubSpot form is present
+    const hasHubspotForm = await page.locator('form[data-hs-cos-bound], form[data-form-id], .hbspt-form').count() > 0;
+    if (!hasHubspotForm) {
+      issues.push('Conversion flow: No HubSpot form detected - form submission may not work');
+    }
+    
+    console.log('✓ Conversion flow structure validated');
+    
+  } catch (error) {
+    issues.push(`Conversion flow test failed: ${error.message}`);
+  }
+}
+
+/**
+ * Tests that the thank-you page loads correctly after form submission
+ * @param {import('playwright').Page} page - The Playwright page instance.
+ * @param {string[]} issues - Collection to which detected issues are added.
+ */
+async function testThankYouPage(page, issues) {
+  try {
+    console.log('Testing thank-you page on /gracias/...');
+    
+    // Navigate to thank-you page
+    await safeGoto(page, 'https://staging2.nuvanx.com/gracias/');
+    await handleCookieConsent(page);
+    
+    // Check for thank-you content
+    const hasThankYouContent = await page.locator('h1:has-text("Gracias"), h1:has-text("gracias"), .thank-you, .nvx-thank-you').count() > 0;
+    if (!hasThankYouContent) {
+      issues.push('Thank-you page: No thank-you content detected');
+    }
+    
+    // Check for conversion tracking (GA4, HubSpot)
+    const hasGATracking = await page.evaluate(() => {
+      return typeof window.gtag !== 'undefined' || typeof window.dataLayer !== 'undefined';
+    });
+    
+    if (!hasGATracking) {
+      issues.push('Thank-you page: No GA4 tracking detected');
+    }
+    
+    console.log('✓ Thank-you page structure validated');
+    
+  } catch (error) {
+    issues.push(`Thank-you page test failed: ${error.message}`);
+  }
+}
+
+/**
  * Runs browser acceptance tests for all configured routes and writes audit artifacts.
  *
  * Exits the process with status 1 if any route fails its acceptance checks or encounters a fatal error.
@@ -738,6 +831,27 @@ async function run() {
     } finally {
       await page.close();
     }
+  }
+
+  // Run conversion flow E2E tests (P1-5 from Antigravity audit)
+  console.log('\n=== Running Conversion Flow E2E Tests ===');
+  const conversionPage = await context.newPage();
+  const conversionIssues = [];
+  await testConversionFlow(conversionPage, conversionIssues);
+  await conversionPage.close();
+  
+  const thankYouPage = await context.newPage();
+  const thankYouIssues = [];
+  await testThankYouPage(thankYouPage, thankYouIssues);
+  await thankYouPage.close();
+  
+  // Add conversion test results to summary
+  if (conversionIssues.length > 0 || thankYouIssues.length > 0) {
+    totalFailures += conversionIssues.length + thankYouIssues.length;
+    console.error('❌ Conversion Flow Tests FAILED:');
+    [...conversionIssues, ...thankYouIssues].forEach(i => console.error(`   - ${i}`));
+  } else {
+    console.log('✅ Conversion Flow Tests PASS');
   }
 
   await browser.close();

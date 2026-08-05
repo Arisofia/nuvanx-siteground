@@ -124,7 +124,7 @@ function nvx_nosotros_positioning_markup(): string {
 	$pos  = $data['positioning'] ?? array();
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-positioning" aria-labelledby="nvx-nosotros-pos-title">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $pos['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-pos-title" class="nvx-heading">' . esc_html( $pos['title'] ?? '' ) . '</h2>';
 	foreach ( (array) ( $pos['body'] ?? array() ) as $p ) {
@@ -143,7 +143,7 @@ function nvx_nosotros_platforms_markup(): string {
 	$plat = $data['platforms'] ?? array();
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-platforms" aria-labelledby="nvx-nosotros-tech-title">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $plat['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-tech-title" class="nvx-heading">' . esc_html( $plat['title'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $plat['lead'] ?? '' ) . '</p>';
@@ -183,7 +183,7 @@ function nvx_nosotros_clinics_markup(): string {
 		: ( $c['fallback_clinics'] ?? array() );
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-clinics" aria-labelledby="nvx-nosotros-clinics-title">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $c['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-clinics-title" class="nvx-heading">' . esc_html( $c['title'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $c['lead'] ?? '' ) . '</p>';
@@ -228,7 +228,7 @@ function nvx_nosotros_team_markup(): string {
 	$equipo = home_url( '/' . ( $t['hub_url'] ?? '' ) . '/' );
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-team" aria-labelledby="nvx-nosotros-team-title">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $t['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-team-title" class="nvx-heading">' . esc_html( $t['title'] ?? '' ) . '</h2>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html( $t['lead'] ?? '' ) . '</p>';
@@ -280,7 +280,7 @@ function nvx_nosotros_principles_markup(): string {
 	$p    = $data['principles'] ?? array();
 
 	$html  = '<section class="nvx-brand-section nvx-nosotros-principles" aria-labelledby="nvx-nosotros-principles-title">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker" aria-hidden="true">' . esc_html( $p['kicker'] ?? '' ) . '</p>';
 	$html .= '<h2 id="nvx-nosotros-principles-title" class="nvx-heading">' . esc_html( $p['title'] ?? '' ) . '</h2>';
 	$html .= '<ul class="nvx-feature-zone-list" role="list">';

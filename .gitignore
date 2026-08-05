@@ -53,5 +53,8 @@ eslint.config.js
 inc/
 scratch/
 
+# Exception: allow schema files
+!wp-content/themes/nuvanx-medical/inc/data/routes.schema.json
+
 # Legacy scripts (cleaned up)
 scripts/audit-*.sh

@@ -591,7 +591,8 @@ body.nvx-valoracion-modal-open{
    Uses nvx-strategy-intro (not nvx-brand-hero) to avoid full-bleed layout. */
 .nvx-strategy-intro {
   padding-block: var(--nvx-space-8) var(--nvx-space-6);
-  max-width: var(--nvx-measure, 68ch);
+  max-width: var(--nvx-shell);
+  margin-inline: auto;
   background: var(--nvx-ink);
 }
 .nvx-strategy-intro .nvx-brand-kicker,
@@ -682,7 +683,8 @@ body.nvx-valoracion-modal-open{
 .nvx-signature-phase-page .nvx-brand-hero__copy {
   background: transparent;
   text-align: left;
-  max-width: var(--nvx-measure, 68ch);
+  max-width: var(--nvx-shell);
+  margin-inline: auto;
 }
 
 .nvx-signature-phase-page .nvx-brand-hero__copy::before {

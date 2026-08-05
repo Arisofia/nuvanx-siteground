@@ -786,10 +786,10 @@ async function run() {
           const blocking = violations.filter(v => ['critical','serious'].includes(v.impact));
           a11yViolationsCount = blocking.length;
           if (blocking.length > 0) {
-            issues.push(`A11y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map(v=>v.id).join(', ')}`);
+            issues.push(`A11Y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map(v=>v.id).join(', ')}`);
           }
         } catch (axeErr) {
-          console.warn(`Axe-core failed on ${route}:`, axeErr.message);
+          issues.push(`A11Y: axe-core failed to run: ${axeErr.message}`);
         }
       }
 

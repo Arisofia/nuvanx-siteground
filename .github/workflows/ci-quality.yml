@@ -59,6 +59,10 @@ jobs:
         run: node scripts/lint/no-hardcoded-fontsize.mjs
       - name: Run inline styles lint
         run: node scripts/lint/no-inline-layout-styles.mjs
+      - name: Validate routes.json schema
+        run: |
+          npm install -g ajv-cli
+          ajv validate -s wp-content/themes/nuvanx-medical/inc/data/routes.schema.json -d wp-content/themes/nuvanx-medical/inc/data/routes.json
 
   phpcs:
     name: PHP_CodeSniffer

@@ -16,13 +16,23 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Load configuration from JSON
+ * Load site configuration from config.json using the cached theme loader.
+ *
+ * Delegates to nvx_catalog_json_resolved() when available (registers a static
+ * in-process cache) so the JSON file is read at most once per request.
+ *
+ * @return array<string, mixed>
  */
-function nvx_get_config() {
-	$config_file = get_template_directory() . '/inc/data/config.json';
-	if ( file_exists( $config_file ) ) {
-		$config = json_decode( file_get_contents( $config_file ), true );
-		return is_array( $config ) ? $config : array();
+function nvx_get_config(): array {
+	if ( function_exists( 'nvx_catalog_json_resolved' ) ) {
+		$cfg = nvx_catalog_json_resolved( 'config.json' );
+		return is_array( $cfg ) ? $cfg : array();
+	}
+	// Fallback: direct read only when the loader is not yet available.
+	$path = get_template_directory() . '/inc/data/config.json';
+	if ( is_readable( $path ) ) {
+		$decoded = json_decode( (string) file_get_contents( $path ), true );
+		return is_array( $decoded ) ? $decoded : array();
 	}
 	return array();
 }

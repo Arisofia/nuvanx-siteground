@@ -218,10 +218,22 @@ body.nvx-blog-context {
   color: var(--nvx-text-on-dark);
 }
 
-/* Single article hero - diseño elegante sin imágenes ni overlay */
+/* Single article hero - diseño elegante con imagen a pantalla completa */
 .nvx-blog-hero {
+  position: relative;
+  min-height: 60vh;
   background: var(--nvx-ink);
   animation: fadeInUp 600ms ease;
+  overflow: hidden;
+}
+
+.nvx-blog-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--nvx-media-overlay);
+  pointer-events: none;
+  z-index: 1;
 }
 
 @keyframes fadeInUp {
@@ -236,18 +248,43 @@ body.nvx-blog-context {
 }
 
 .nvx-blog-hero__media {
-  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  z-index: 0;
 }
 
-.nvx-blog-hero__copy::before {
-  display: none;
+.nvx-blog-hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
+.nvx-blog-hero__copy {
+  position: relative;
+  z-index: 2;
+  padding: var(--nvx-pad-section) var(--nvx-gutter-inner);
+  max-width: var(--nvx-shell);
+  margin: 0 auto;
+  color: var(--nvx-light);
 }
 
 .nvx-blog-hero__inner {
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: var(--nvx-gap-wide);
+  grid-template-columns: 1fr;
+  gap: 0;
   align-items: center;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .nvx-blog-hero__category {
@@ -260,13 +297,13 @@ body.nvx-blog-context {
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
   text-decoration: none;
-  color: var(--nvx-text-on-dark-72);
+  color: var(--nvx-accent-gold-text);
   transition: color 160ms ease, opacity 160ms ease;
 }
 
 .nvx-blog-hero__category:hover,
 .nvx-blog-hero__category:focus-visible {
-  color: var(--nvx-text-on-dark);
+  color: var(--nvx-light);
   text-decoration: underline;
   text-underline-offset: calc(var(--nvx-space-1, 8px) / 2);
 }
@@ -278,7 +315,7 @@ body.nvx-blog-context {
   font-size: var(--nvx-type-lead);
   line-height: 1.6;
   letter-spacing: 0.01em;
-  color: var(--nvx-text-on-dark-82);
+  color: var(--nvx-surface-soft);
 }
 
 .nvx-blog-hero__meta > * + *::before {
@@ -299,7 +336,23 @@ body.nvx-blog-context {
 }
 
 .nvx-blog-hero__media {
-  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  z-index: 0;
+}
+
+.nvx-blog-hero__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  margin: 0;
+  padding: 0;
 }
 
 /* Long-form article stage - diseño elegante */
@@ -616,7 +669,7 @@ body.nvx-blog-context {
   font-weight: 400;
   line-height: var(--nvx-lh-h1);
   letter-spacing: var(--nvx-track-h1);
-  color: var(--nvx-text-on-dark);
+  color: var(--nvx-light);
   text-wrap: balance;
 }
 

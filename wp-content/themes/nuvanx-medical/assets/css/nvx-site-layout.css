@@ -1,21 +1,12 @@
 /* Page frame is full-bleed so heroes match the home video edge-to-edge.
    Gutters live on section inners / readable columns — not on the page shell. */
-.nvx-shell, .nvx-brand-section__inner, .nvx-header__inner,
-article, .nvx-page, .nvx-blog-single, .nvx-blog-article {
+.nvx-shell, .nvx-brand-section__inner, .nvx-header__inner, .nvx-page__content, .entry-content {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
   transition: padding-inline 300ms ease;
-}
-
-/* Asegurar alineación del contenido principal */
-.nvx-main, main, .nvx-main-shell {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
 }
 
 /* Page content frame: diseño elegante con mejor prose */

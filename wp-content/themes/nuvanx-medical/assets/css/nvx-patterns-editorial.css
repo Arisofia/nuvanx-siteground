@@ -512,23 +512,6 @@ body.home .nvx-home-hero__title {
   margin-top: var(--nvx-space-2);
   color: var(--nvx-text-on-dark-88);
 }
-
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-}
-
-  margin: 0 0 var(--nvx-space-2);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-kicker);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: var(--nvx-track-wide);
-  text-transform: uppercase;
-  color: var(--nvx-accent-muted);
-}
-
-  margin: 0 0 var(--nvx-space-4);
-  max-width: 22ch;
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h2);
   font-weight: 400;
   line-height: var(--nvx-lh-h2);
   color: var(--nvx-ink);
@@ -595,25 +578,6 @@ body.home .nvx-home-hero__title {
   font-size: clamp(1.5rem, 5vw, 2.75rem);
   letter-spacing: 0.04em;
   color: var(--nvx-text-on-dark);
-}
-
-  margin: 0 auto;
-  max-width: 52ch;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption2);
-  line-height: 1.55;
-  color: var(--nvx-text-on-dark-78);
-}
-
-  padding-top: var(--nvx-space-3);
-  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
-}
-
-  margin: 0 0 var(--nvx-space-2);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h3);
-  font-weight: 400;
-  color: var(--nvx-ink);
 }
 
 /* Step stroke icons — same size/weight as laser/aes brand icons sitewide. */
@@ -803,25 +767,6 @@ body.home .nvx-home-hero__title {
   }
 }
 
-  min-width: 0;
-  max-width: 68ch;
-  display: flex;
-  flex-direction: column;
-  gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
-  text-align: left;
-}
-
-  margin-bottom: 0;
-}
-
-  max-width: 28ch;
-  margin-bottom: 0;
-}
-
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
 /* Portrait frame — win over .nvx-content-figure body media rules */
   display: block;
   margin: 0;
@@ -849,67 +794,12 @@ body.home .nvx-home-hero__title {
 }
 
 /* Staff grid: equal cards, portrait frames, no span-4 leak from team class */
-  padding-block: clamp(var(--nvx-space-4), 5vw, 56px);
-}
-
-  grid-column: auto;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-width: 0;
-  margin: 0;
-  gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
-}
-
-  display: block;
-  margin: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
-  margin-block: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
-  width: auto;
-  max-width: none;
-  aspect-ratio: 5 / 6;
-  max-height: none;
-  overflow: hidden;
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-  border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) 0 0;
-}
-
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-height: 400px;
-  max-width: none;
-  aspect-ratio: auto;
-  object-fit: cover;
-  object-position: center top;
-  border-radius: 0;
-}
-
-  margin: 0;
-}
-
-  margin: 0;
-  text-align: left;
-}
-
-  flex: 1 1 auto;
-  margin: 0;
-  text-align: left;
-}
-
-  margin-top: 0;
-}
 
 @media (min-width: 960px) {
   /* Remaining clinical team (typically 3 after authority profiles) */
 }
 
 /* Equipo — clinical quote */
-  margin: 0 0 var(--nvx-space-4);
-  max-width: 40rem;
-  padding: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-5));
-  border-left: calc(var(--nvx-space-1) * 0.375) solid var(--nvx-accent-muted);
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-}
 
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-serif);
@@ -959,12 +849,6 @@ body.home .nvx-home-hero__title {
 /* CO₂ recovery timeline */
 .nvx-co2-timeline {
   list-style: none;
-  margin: var(--nvx-space-4) 0 0;
-  padding: 0;
-  display: grid;
-  gap: clamp(var(--nvx-space-3), 3vw, 32px);
-  max-width: 68ch;
-  counter-reset: none;
 }
 
 .nvx-co2-timeline__item {

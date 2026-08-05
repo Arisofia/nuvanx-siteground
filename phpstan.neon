@@ -1,0 +1,23 @@
+parameters:
+  level: 4
+  paths:
+    - wp-content/themes/nuvanx-medical
+  excludePaths:
+    - vendor/
+    - node_modules/
+    - wp-admin/
+    - wp-includes/
+    - wp-content/plugins/
+    - wp-content/mu-plugins/
+  ignoreErrors:
+    # WordPress stubs & external dependencies
+    - '#Undefined class (Composer|PHPCSStandards|WordPress|WP_)#'
+    - '#Undefined namespace (Composer|Symfony|PHPCSStandards|WordPress)#'
+    - '#Call to (static )?method.*on unknown class#'
+    - '#Parameter #\d+ of method .* expects .* but [^i]#'
+    # Yoast SEO and WP-specific hooks
+    - '#Undefined method.*wpseo#'
+    - '#Call to undefined function (wp_|do_|apply_)#'
+    # Known WordPress incompatibilities
+    - '#Property.*PHP_CodeSniffer#'
+    - '#Method.*::.*\(\) (should return|never returns|with type)#'

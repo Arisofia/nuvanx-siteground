@@ -3,16 +3,6 @@
    Body inherits type from nvx-base; component classes own explicit roles. */
 .nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-light);text-shadow:0 2px 8px var(--nvx-ink-muted)}
 .nvx-heading,h1{margin:0 0 var(--nvx-margin-h1);font-family:var(--nvx-serif);font-size:var(--nvx-type-h1);font-weight:400;line-height:var(--nvx-lh-h1);letter-spacing:var(--nvx-track-h1);color:var(--nvx-ink)}
-
-/* Improve H1 hierarchy on small screens to prevent excessive vertical space */
-@media (max-width: 640px) {
-  .nvx-brand-hero__title,
-  .nvx-heading,
-  h1 {
-    font-size: clamp(1.5rem, 6vw, 2rem);
-    line-height: 1.15;
-  }
-}
 .nvx-brand-title,h2{margin:0 0 var(--nvx-margin-h2);font-family:var(--nvx-serif);font-size:var(--nvx-type-h2);font-weight:400;line-height:var(--nvx-lh-h2);letter-spacing:var(--nvx-track-h2);color:var(--nvx-ink)}
 .nvx-brand-subtitle,h3{margin:0 0 var(--nvx-margin-h3);font-family:var(--nvx-serif);font-size:var(--nvx-type-h3);font-weight:400;line-height:var(--nvx-lh-h3);letter-spacing:var(--nvx-track-h3);color:var(--nvx-ink)}
 .nvx-eyebrow,.nvx-brand-kicker,.nvx-brand-card__kicker{margin:0 0 var(--nvx-margin-kicker);font-family:var(--nvx-sans);font-size:var(--nvx-type-kicker);font-weight:var(--nvx-fw-medium);line-height:var(--nvx-lh-kicker);letter-spacing:var(--nvx-track-kicker);text-transform:uppercase;color:var(--nvx-accent-muted)}
@@ -32,13 +22,6 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   margin: var(--nvx-space-4) 0;
   padding-left: var(--nvx-space-4);
   max-width: 68ch;
-}
-
-@media (max-width: 768px) {
-  .nvx-brand-section ul, .nvx-brand-section ol {
-    padding-left: var(--nvx-space-3);
-    max-width: 100%;
-  }
 }
 
 .nvx-brand-section li {
@@ -147,12 +130,6 @@ a[href*="whatsapp"]:hover {
   color: var(--nvx-ink);
   text-decoration: underline;
   text-underline-offset: calc(var(--nvx-space-1) / 2);
-}
-
-@media (max-width: 768px) {
-  .nvx-clinic-card__data a {
-    padding: var(--nvx-space-1) 0;
-  }
 }
 
 /* Icon SVG dimensioning — global icon sizing */
@@ -675,37 +652,6 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   box-shadow: none;
 }
 
-/* Responsive HubSpot form */
-@media (max-width: 768px) {
-  .nvx-hs-lead-form,
-  .nvx-hubspot-form-section form.nvx-hs-lead-form,
-  .nvx-hubspot-form-section .hs-form,
-  .nvx-hubspot-form-section form.hs-form {
-    padding: var(--nvx-space-4);
-    gap: var(--nvx-space-3);
-  }
-  
-  .nvx-hubspot-form-section .hs-input, 
-  .nvx-hs-lead-form .hs-input, 
-  .nvx-hubspot-form-section input.hs-input, 
-  .nvx-hubspot-form-section input[type="text"], 
-  .nvx-hubspot-form-section input[type="email"], 
-  .nvx-hubspot-form-section input[type="tel"], 
-  .nvx-hubspot-form-section input[type="number"], 
-  .nvx-hubspot-form-section select.hs-input {
-    padding: var(--nvx-space-2) var(--nvx-space-3);
-    font-size: var(--nvx-type-body);
-  }
-  
-  .nvx-hubspot-form-section textarea.hs-input {
-    min-height: 100px;
-  }
-  
-  .nvx-hs-lead-form input[type="submit"] {
-    padding: var(--nvx-space-3) var(--nvx-space-4);
-  }
-}
-
 /* HubSpot embed frame: keep card width, soft frame */
 .nvx-hubspot-form-section .hs-form-frame {
   width: 100%;
@@ -984,11 +930,6 @@ body.nvx-valoracion-modal-open{
   margin: 0;
   padding: 0;
   list-style: none;
-}
-
-.nvx-page--contact .nvx-clinic-card__data li {
-  display: block;
-  margin: 0;
 }
 
 /* Iconos en listas de datos (global, no solo contacto) - diseño elegante */

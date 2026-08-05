@@ -160,45 +160,6 @@
   margin: 0;
 }
 
-/* ── Tablet (≤768px) - diseño elegante responsive ────────── */
-@media (max-width: 768px) {
-  .nvx-footer__inner {
-    padding: var(--nvx-space-6) var(--nvx-gutter-inner);
-  }
-
-  .nvx-footer__main {
-    grid-template-columns: 1fr;
-    gap: var(--nvx-space-6);
-  }
-
-  .nvx-footer__bottom-inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--nvx-space-3);
-    padding: var(--nvx-space-4) var(--nvx-gutter-inner);
-  }
-}
-
-/* ── Móvil (≤480px) - minimalismo elegante ────────────────── */
-@media (max-width: 480px) {
-  .nvx-footer__inner {
-    padding: var(--nvx-space-5) var(--nvx-gutter-inner);
-  }
-
-  .nvx-footer__main {
-    gap: var(--nvx-space-4);
-  }
-
-  .nvx-footer__links-compact {
-    gap: var(--nvx-space-1) var(--nvx-space-3);
-  }
-
-  .nvx-footer__bottom-inner {
-    padding: var(--nvx-space-4) var(--nvx-gutter-inner);
-    gap: var(--nvx-space-2);
-  }
-}
-
 /* ── Footer minimal (valoración landing) ──────────────────── */
 .nvx-footer--minimal .nvx-footer__main {
   display: none;

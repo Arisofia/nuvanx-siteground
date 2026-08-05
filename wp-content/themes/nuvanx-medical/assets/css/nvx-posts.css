@@ -21,28 +21,6 @@
 	background: var(--nvx-light);
 	transition: transform 160ms ease, box-shadow 160ms ease;
 }
-@media (max-width: 980px) {
-  .nvx-blog-card { grid-column: span 6; }
-}
-@media (max-width: 640px) {
-  .nvx-blog-card { grid-column: 1 / -1; }
-  
-  .nvx-blog-prose p,
-  .nvx-blog-prose ul,
-  .nvx-blog-prose ol {
-    max-width: 100%;
-  }
-  
-  .nvx-blog-prose ul,
-  .nvx-blog-prose ol {
-    padding-left: var(--nvx-space-3);
-  }
-  
-  .nvx-blog-hero__excerpt {
-    max-width: 100%;
-  }
-}
-
 .nvx-blog-card:hover,
 .nvx-blog-card:focus-within {
   transform: translateY(calc(var(--nvx-space-1, 8px) * -0.5));

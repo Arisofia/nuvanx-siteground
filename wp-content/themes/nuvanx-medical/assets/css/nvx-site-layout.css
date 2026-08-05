@@ -88,29 +88,6 @@
   box-sizing: border-box;
 }
 
-/* Reduce section spacing on mobile to prevent excessive scrolling */
-@media (max-width: 768px) {
-  .nvx-brand-page > .nvx-brand-section {
-    padding-block: var(--nvx-pad-section-tight);
-  }
-  
-  .nvx-shell, .nvx-brand-section__inner {
-    padding-inline: var(--nvx-space-4);
-  }
-  
-  .nvx-page__content > .nvx-brand-section:first-of-type,
-  .nvx-brand-page > .nvx-brand-section:first-of-type {
-    padding-top: var(--nvx-space-6);
-  }
-}
-
-/* Reduce vertical spacing in numbered lists on desktop for compact layouts */
-@media (min-width: 769px) {
-  .nvx-brand-section ol {
-    row-gap: var(--nvx-space-3);
-  }
-}
-
 /*
  * Post-hero clinical intro is emitted as a normal brand-section
  * (.nvx-hero-intro) so gutters match Chamberí / hub / treatment sections.

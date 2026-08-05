@@ -9,15 +9,14 @@
 .nvx-page-hero,
 .nvx-editorial-hero,
 section.nvx-hero {
-  --nvx-hero-h: clamp(520px, 72svh, 680px);
   position: relative;
   display: block;
   width: 100%;
   max-width: none;
-  min-height: var(--nvx-hero-h);
-  height: var(--nvx-hero-h);
+  min-height: auto;
+  height: auto;
   margin: 0;
-  padding: 0;
+  padding: var(--nvx-space-8) 0;
   border: 0;
   border-radius: 0;
   overflow: hidden;
@@ -26,20 +25,12 @@ section.nvx-hero {
   box-sizing: border-box;
 }
 
-/* Reducir altura para páginas sin media visual (todas excepto home) */
-body:not(.home) .nvx-brand-hero,
-body:not(.home) .nvx-page-hero,
-body:not(.home) .nvx-editorial-hero,
-body:not(.home) section.nvx-hero {
-  min-height: auto;
-  height: auto;
-  padding-block: var(--nvx-space-8);
-}
-
-/* Home mantiene su altura completa con !important */
+/* Home es la única excepción con altura completa */
 body.home .nvx-home-hero {
-  min-height: var(--nvx-hero-h) !important;
-  height: var(--nvx-hero-h) !important;
+  --nvx-hero-h: clamp(520px, 72svh, 680px);
+  min-height: var(--nvx-hero-h);
+  height: var(--nvx-hero-h);
+  padding: 0;
 }
 
 /* nvx-brand-hero full-bleed width/margin handled by nvx-site-layout.css */
@@ -61,30 +52,25 @@ body.home .nvx-home-hero {
   box-sizing: border-box;
 }
 
-/* Hero media oculto - eliminar imágenes de encabezados (todas las páginas menos home) */
-body:not(.home) .nvx-brand-hero__media,
-body:not(.home) .nvx-page-hero__media,
-body:not(.home) .nvx-editorial-hero__media,
-body:not(.home) .nvx-hero__media,
-body:not(.home) .nvx-brand-hero .nvx-brand-hero__media,
-body:not(.home) .nvx-page-hero .nvx-brand-hero__media,
-body:not(.home) .nvx-hero .nvx-brand-hero__media,
-body:not(.home) .nvx-brand-hero__copy > .nvx-brand-hero__media,
-body:not(.home) .nvx-hero__copy > .nvx-brand-hero__media,
-body:not(.home) .nvx-page-hero__copy > .nvx-brand-hero__media,
-body:not(.home) .nvx-hero__copy > .nvx-page-hero__media,
-body:not(.home) .nvx-brand-hero__copy > figure,
-body:not(.home) .nvx-page-hero__copy > figure,
-body:not(.home) .nvx-hero__copy > figure,
-body:not(.home) figure.nvx-brand-hero__media,
-body:not(.home) figure.nvx-page-hero__media,
-body:not(.home) figure.nvx-hero__media {
+/* Hero media oculto - eliminar imágenes de encabezados */
+.nvx-brand-hero__media,
+.nvx-page-hero__media,
+.nvx-editorial-hero__media,
+.nvx-hero__media,
+.nvx-brand-hero .nvx-brand-hero__media,
+.nvx-page-hero .nvx-brand-hero__media,
+.nvx-hero .nvx-brand-hero__media,
+.nvx-brand-hero__copy > .nvx-brand-hero__media,
+.nvx-hero__copy > .nvx-brand-hero__media,
+.nvx-page-hero__copy > .nvx-brand-hero__media,
+.nvx-hero__copy > .nvx-page-hero__media,
+.nvx-brand-hero__copy > figure,
+.nvx-page-hero__copy > figure,
+.nvx-hero__copy > figure,
+figure.nvx-brand-hero__media,
+figure.nvx-page-hero__media,
+figure.nvx-hero__media {
   display: none;
-}
-
-/* Home mantiene su video hero con !important */
-body.home .nvx-home-hero__video {
-  display: block !important;
 }
 
 /* Eliminar cualquier elemento vacío o transparente en heroes */

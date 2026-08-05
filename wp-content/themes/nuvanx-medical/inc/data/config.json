@@ -1,5 +1,30 @@
 {
   "contact": {
-    "email": "info@nuvanx.com"
+    "email": "info@nuvanx.com",
+    "whatsapp": {
+      "primary": "34669319836",
+      "chamberi": "34669319836",
+      "goya": "34647505107"
+    }
+  },
+  "medical_staff": {
+    "directors": [
+      {
+        "id": "director",
+        "name": "Director Médico",
+        "colegiado": "282864786"
+      },
+      {
+        "id": "ivon",
+        "name": "Ivón",
+        "colegiado": "284621525"
+      },
+      {
+        "id": "fabio",
+        "name": "Fabio",
+        "colegiado": "282877543"
+      }
+    ]
   }
 }
+

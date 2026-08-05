@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "patternProperties": {
+    "^/.*": {
+      "type": "object",
+      "description": "Route configuration",
+      "properties": {
+        "seo_id": {
+          "type": "string",
+          "description": "SEO identifier for metadata lookup"
+        },
+        "schema_group": {
+          "type": "string",
+          "enum": ["treatments", "strategic", "clinics", "clinic_hub", "other"],
+          "description": "Schema group for structured data"
+        },
+        "schema_id": {
+          "type": "string",
+          "description": "Schema identifier within group"
+        },
+        "schema_type": {
+          "type": "string",
+          "enum": ["MedicalProcedure", "Service", "MedicalOrganization", "Physician", "FAQPage"],
+          "description": "Schema.org type"
+        },
+        "post_id": {
+          "type": "integer",
+          "description": "WordPress post ID (0 if not mapped)"
+        },
+        "route_alias": {
+          "type": "string",
+          "description": "Alternative route path for this entry"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

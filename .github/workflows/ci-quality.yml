@@ -69,14 +69,28 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          tools: phpcs
-      - name: Install WordPress Coding Standards
+          tools: composer, phpcs
+      - name: Install dependencies
         run: |
-          composer global require wp-coding-standards/wpcs
-          phpcs --config-set installed_paths ~/.composer/vendor/wp-coding-standards/wpcs
-      - name: Run PHP_CodeSniffer
+          cd wp-content/themes/nuvanx-medical
+          composer install --no-interaction
+      - name: Run PHP_CodeSniffer (produce report artifact)
         run: |
-          phpcs --standard=WordPress --extensions=php --ignore=vendor/,node_modules/ wp-content/themes/nuvanx-medical/
+          set -o pipefail
+          cd wp-content/themes/nuvanx-medical
+          ./vendor/bin/phpcs --standard=phpcs.xml.dist --report=summary 2>&1 | tee ci-phpcs.txt || true
+          STATUS=${PIPESTATUS[0]}
+          if [ "$STATUS" -ne 0 ]; then
+            echo "phpcs found coding standard violations (exit $STATUS). See ci-phpcs.txt"
+            cat ci-phpcs.txt
+            exit $STATUS
+          fi
+      - name: Upload PHPCS report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpcs-report
+          path: wp-content/themes/nuvanx-medical/ci-phpcs.txt
 
   phpstan:
     name: PHPStan Static Analysis
@@ -87,7 +101,26 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          tools: phpstan
-      - name: Run PHPStan
+          tools: composer, phpstan
+      - name: Install dependencies
         run: |
-          phpstan analyse --level=5 --error-format=table wp-content/themes/nuvanx-medical/
+          cd wp-content/themes/nuvanx-medical
+          composer install --no-interaction
+      - name: PHPStan info
+        run: |
+          cd wp-content/themes/nuvanx-medical
+          ./vendor/bin/phpstan --version
+          echo "Analyzing these files:"
+          git ls-files -- . | sed -n '1,200p'
+      - name: Run PHPStan (produce report artifact)
+        run: |
+          set -o pipefail
+          cd wp-content/themes/nuvanx-medical
+          # run with appropriate memory limit and produce a text report
+          ./vendor/bin/phpstan analyse --configuration=phpstan.neon --error-format=table --no-progress --memory-limit=1G | tee phpstan-report.txt
+      - name: Upload PHPStan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpstan-report
+          path: wp-content/themes/nuvanx-medical/phpstan-report.txt

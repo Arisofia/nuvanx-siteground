@@ -45,7 +45,7 @@ $topics = get_categories(
 	)
 );
 ?>
-<div class="nvx-brand-page nvx-blog-archive-page">
+<div class="nvx-brand-page ">
 	<section class="nvx-brand-hero" aria-labelledby="nvx-blog-archive-title">
 		<div class="nvx-brand-hero__inner">
 			<div class="nvx-brand-hero__copy">
@@ -57,7 +57,7 @@ $topics = get_categories(
 	</section>
 
 	<div class="nvx-blog-archive__body">
-		<div class="nvx-shell">
+		<div class="nvx-brand-section__inner">
 			<?php if ( have_posts() ) : ?>
 				<div class="nvx-blog-grid">
 					<?php

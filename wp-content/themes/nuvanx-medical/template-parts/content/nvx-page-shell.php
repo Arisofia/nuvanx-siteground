@@ -127,12 +127,12 @@ while ( have_posts() ) :
 				$cats = get_the_category();
 				if ( ! empty( $cats ) ) :
 					?>
-					<p class="nvx-eyebrow"><?php echo esc_html( $cats[0]->name ); ?></p>
+					<p class="nvx-brand-kicker"><?php echo esc_html( $cats[0]->name ); ?></p>
 				<?php endif; ?>
 			<?php endif; ?>
-			<?php the_title( '<h1 class="nvx-heading">', '</h1>' ); ?>
+			<?php the_title( '<h1 class="nvx-brand-title">', '</h1>' ); ?>
 			<?php if ( is_single() ) : ?>
-				<p class="nvx-lead">
+				<p class="nvx-brand-lead">
 					<time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><?php echo esc_html( get_the_date() ); ?></time>
 					<?php if ( function_exists( 'nvx_reading_time' ) ) : ?>
 						<span aria-hidden="true"> · </span><?php echo esc_html( nvx_reading_time() ); ?> de lectura

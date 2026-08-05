@@ -181,3 +181,54 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 - Posts ya migrados vía SSH wp CLI (exion-body, emfusion, tratamientos)
 - NO hacer volcado completo de BD - IDs de post difieren entre entornos
 - Robot Challenge de producción NO resuelto por migración - es config SiteGround WAF, no contenido
+
+---
+
+## Comparación: Detección de Auditoría vs Expectativas del Código
+
+**Cobertura de URLs:**
+- **routes.json:** 52 rutas definidas
+- **final_audit_staging2_51_urls.csv:** 51 URLs detectadas (todas 200)
+- **Cobertura:** 98% - todas las rutas principales detectadas
+
+**Tratamientos en treatments_master_validated.csv vs routes.json:**
+
+| Código | Nombre | URL en CSV | URL en routes.json | Schema ID | Estado |
+|--------|--------|------------|-------------------|-----------|--------|
+| C01 | Endolift® facial | /endolift-facial-papada-mandibula/ | ✅ | endolift_facial | ✅ |
+| C02 | Endoláser corporal | /endolaser-corporal-grasa-localizada/ | ✅ | endolaser_corporal | ✅ |
+| C03 | Láser CO₂ fraccionado | /laser-co2-fraccionado-madrid-textura-cicatrices-poro/ | ✅ | laser_co2 | ✅ |
+| C04 | EXION® BTL | /exion-btl/ | ✅ | exion_btl | ✅ |
+| C05 | EXION® Face | /exion-face/ | ✅ | exion_face | ⚠️ post_id=0 |
+| C06 | EXION® Fractional | /exion-fractional/ | ✅ | exion_fractional | ⚠️ post_id=0 |
+| C07 | Bioestimuladores | /bioestimuladores-colageno-madrid/ | ✅ | collagen_bio | ⚠️ sin seo_id |
+| C08 | Ojeras y surco | /ojeras-surco-lagrimal-madrid/ | ✅ | dark_circles_ha | ⚠️ sin seo_id |
+| C09 | Rinomodelación | /rinomodelacion-sin-cirugia-madrid/ | ✅ | rhinomodeling_ha | ⚠️ sin seo_id |
+
+**Discrepancias en detectores:**
+
+**has_hero (falso positivo):**
+- Home: CSV dice "No" pero tiene hero de video
+- Detector no reconoce hero de video como hero
+
+**has_romans (falso negativo):**
+- Home: CSV dice "No" pero tiene romanos I-V en front-page.php
+- Detector no detecta romanos en spans aria-hidden
+
+**Rutas sin configuración completa en routes.json:**
+
+| Ruta | Falta |
+|------|-------|
+| /medicina-estetica-laser/ | ❌ schema_group, schema_id |
+| /medicina-estetica/ | ❌ schema_group, schema_id |
+| /estetica-avanzada/ | ❌ schema_group, schema_id |
+| /exion-face/ | ⚠️ post_id=0 |
+| /exion-fractional/ | ⚠️ post_id=0 |
+| /exion-body/ | ⚠️ post_id=0 |
+| /emfusion/ | ⚠️ post_id=0 |
+
+**Conclusión:**
+- **Cobertura técnica:** 98% de rutas detectadas correctamente
+- **Falsos positivos de detectores:** has_hero, has_romans (ya documentados)
+- **Configuración incompleta:** 7 rutas sin schema completo en routes.json
+- **Tratamientos:** Todos los tratamientos C01-C24 tienen rutas definidas

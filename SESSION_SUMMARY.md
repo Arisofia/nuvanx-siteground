@@ -7,9 +7,9 @@
 - **Contenido/CMS:** 1 (foto Dr. Fabio - subir a Media Library WP)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
 - **Diseño confirmado:** 1 ✅ (numeración diferenciada en Home - romana I-V en estándar, decimal 01-05 en portfolio)
-- **Diseño pendiente:** 1 (unificación de estilos globales journal/blog)
+- **Diseño pendiente:** 2 (unificación de estilos globales journal/blog + protocolos-signature)
 - **Falsos positivos cerrados:** 12 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado)
-- **Total pendientes reales:** 2 (CMS foto Dr. Fabio, unificación estilos journal/blog)
+- **Total pendientes reales:** 3 (CMS foto Dr. Fabio, unificación estilos journal/blog, unificación estilos protocolos-signature)
 
 ---
 
@@ -267,3 +267,27 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 - Evaluar integración de nvx-posts.css con estilos globales
 - Identificar elementos del journal que deberían compartir con otras páginas
 - Unificar sistema de estilos entre editorial y comercial
+
+---
+
+## Sistema Protocolos Signature — Pendiente de Unificación
+
+**Arquitectura actual:**
+- nvx-signature-phase-pages.php: Sistema propio para páginas Signature
+- Clases específicas: nvx-signature-hub, nvx-strategy-intro, nvx-strategy-title
+- Estructura diferenciada del resto del sitio
+
+**Estilos diferenciados:**
+- nvx-signature-phase-pages.php:425-441: nvx_signature_hub_shell_open con clases específicas
+- nvx-signature-phase-pages.php:458-534: nvx_signature_hub_markup con estructura propia
+- Clases específicas: nvx-brand-page--signature, nvx-signature-hub
+
+**Requerimiento de unificación:**
+- Todo debe tener el mismo estilo global
+- protocolos-signature tiene estilos aislados similares al journal
+- Debe integrarse con el sistema de estilos global del sitio
+
+**Acción pendiente:**
+- Unificar estilos de protocolos-signature con estilos globales
+- Eliminar clases específicas aisladas
+- Integrar con sistema de estilos comercial

@@ -26,6 +26,11 @@ def get_http_status_curl(url):
     where SSL certificates may be self-signed or in development environments.
     """
     try:
+        # Validate URL to prevent command injection
+        parsed = requests.utils.urlparse(url)
+        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+            return "Error"
+
         # User requested: curl -sI -H "Cache-Control: no-cache"
         # Using curl with -k flag for SSL verification bypass for internal audit
         cmd = ['curl', '-sI', '-L', '-k', '-m', '10', '-H', 'Cache-Control: no-cache', url]
@@ -64,6 +69,11 @@ def get_content_data(url):
 
         if resp.status_code == 200:
             html = resp.text
+
+            # Limit HTML size to prevent ReDoS on large pages
+            if len(html) > 1000000:  # 1MB limit
+                html = html[:1000000]
+
             soup = BeautifulSoup(html, 'html.parser')
 
             can = soup.find('link', rel='canonical')
@@ -75,6 +85,7 @@ def get_content_data(url):
             h1 = soup.find('h1')
             res['h1'] = h1.get_text(strip=True) if h1 else 'N/D'
 
+            # Use regex with controlled input size
             prices = re.findall(r'\d+(?:[.,]\d+)?\s*€', html)
             res['price'] = '; '.join(sorted(list(set(prices)))) if prices else 'N/D'
 

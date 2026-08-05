@@ -35,9 +35,9 @@ if ( '' !== trim( $markup ) ) {
 	// Partial builds HTML with escaped helpers; do not re-escape compound markup.
 	echo $markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- composed from escaped theme partial.
 } elseif ( is_readable( $partial ) ) {
-	echo '<div class="nvx-shell"><h1 class="nvx-heading">Soluciones médicas</h1><p>Plantilla de soluciones vacía.</p></div>';
+	echo '<div class="nvx-brand-section__inner"><h1 class="nvx-brand-title">Soluciones médicas</h1><p>Plantilla de soluciones vacía.</p></div>';
 } else {
-	echo '<div class="nvx-shell"><h1 class="nvx-heading">Soluciones médicas</h1><p>Falta el partial versionado de soluciones.</p></div>';
+	echo '<div class="nvx-brand-section__inner"><h1 class="nvx-brand-title">Soluciones médicas</h1><p>Falta el partial versionado de soluciones.</p></div>';
 }
 
 get_footer();

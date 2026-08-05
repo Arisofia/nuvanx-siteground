@@ -407,13 +407,13 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
  */
 
 /* FAQ accordion — quiet luxury (native details/summary).
-   Live markup: .nvx-faq, .nvx-brand-faq-*, .nvx-home-faq-editorial */
+   Live markup: .nvx-faq, .nvx-brand-faq-* */
 .nvx-faq, .nvx-brand-faq-accordion {
   margin: 0;
   border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
-.nvx-faq .nvx-brand-faq-item, .nvx-brand-faq-accordion .nvx-brand-faq-item, .nvx-home-faq-editorial .nvx-brand-faq-item {
+.nvx-faq .nvx-brand-faq-item, .nvx-brand-faq-accordion .nvx-brand-faq-item {
   margin: 0;
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   background: transparent;
@@ -423,21 +423,17 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 .nvx-faq details[open],
 .nvx-faq .nvx-brand-faq-item[open],
 .nvx-brand-faq-accordion details[open],
-.nvx-brand-faq-accordion .nvx-brand-faq-item[open],
-.nvx-home-faq-editorial details[open],
-.nvx-home-faq-editorial .nvx-brand-faq-item[open] {
+.nvx-brand-faq-accordion .nvx-brand-faq-item[open] {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
 .nvx-faq summary::-webkit-details-marker,
-.nvx-brand-faq-accordion summary::-webkit-details-marker,
-.nvx-home-faq-editorial summary::-webkit-details-marker {
+.nvx-brand-faq-accordion summary::-webkit-details-marker {
   display: none;
 }
 
 .nvx-faq summary::marker,
-.nvx-brand-faq-accordion summary::marker,
-.nvx-home-faq-editorial summary::marker {
+.nvx-brand-faq-accordion summary::marker {
   content: "";
 }
 
@@ -446,21 +442,18 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 .nvx-faq details[open] > summary::after,
 .nvx-faq .nvx-brand-faq-item[open] > summary::after,
 .nvx-brand-faq-accordion details[open] > summary::after,
-.nvx-brand-faq-accordion .nvx-brand-faq-item[open] > summary::after,
-.nvx-home-faq-editorial details[open] > summary::after,
-.nvx-home-faq-editorial .nvx-brand-faq-item[open] > summary::after {
+.nvx-brand-faq-accordion .nvx-brand-faq-item[open] > summary::after {
   margin-top: calc(var(--nvx-space-1) * -0.25);
   transform: rotate(225deg);
 }
 
-.nvx-faq summary:hover, .nvx-brand-faq-accordion summary:hover, .nvx-home-faq-editorial summary:hover {
+.nvx-faq summary:hover, .nvx-brand-faq-accordion summary:hover {
   color: var(--nvx-charcoal, var(--nvx-charcoal));
   outline: none;
 }
 
 .nvx-faq summary:focus-visible,
-.nvx-brand-faq-accordion summary:focus-visible,
-.nvx-home-faq-editorial summary:focus-visible {
+.nvx-brand-faq-accordion summary:focus-visible {
   color: var(--nvx-charcoal);
   outline: 2px solid var(--nvx-ink);
   outline-offset: var(--nvx-outline-offset);
@@ -468,8 +461,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 }
 
 .nvx-faq summary span,
-.nvx-brand-faq-accordion summary span,
-.nvx-home-faq-editorial summary span {
+.nvx-brand-faq-accordion summary span {
   display: block;
   max-width: 52ch;
   padding-right: var(--nvx-space-2);
@@ -477,8 +469,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 
 .nvx-faq details > div,
 .nvx-faq .nvx-brand-faq-content,
-.nvx-brand-faq-accordion .nvx-brand-faq-content,
-.nvx-home-faq-editorial .nvx-brand-faq-content {
+.nvx-brand-faq-accordion .nvx-brand-faq-content {
   max-width: var(--nvx-measure, 68ch);
   margin: 0;
   padding: 0 0 var(--nvx-space-4);
@@ -491,16 +482,14 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 
 .nvx-faq details > div p,
 .nvx-faq .nvx-brand-faq-content p,
-.nvx-brand-faq-accordion .nvx-brand-faq-content p,
-.nvx-home-faq-editorial .nvx-brand-faq-content p {
+.nvx-brand-faq-accordion .nvx-brand-faq-content p {
   margin: 0 0 var(--nvx-space-2);
   max-width: var(--nvx-measure, 68ch);
 }
 
 .nvx-faq details > div p:last-child,
 .nvx-faq .nvx-brand-faq-content p:last-child,
-.nvx-brand-faq-accordion .nvx-brand-faq-content p:last-child,
-.nvx-home-faq-editorial .nvx-brand-faq-content p:last-child {
+.nvx-brand-faq-accordion .nvx-brand-faq-content p:last-child {
   margin-bottom: 0;
 }
 
@@ -1088,13 +1077,6 @@ body.nvx-valoracion-modal-open{
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box}
 
-.nvx-home-action-banner-shell{
-  width:var(--nvx-shell);
-  max-width:100%;
-  padding-inline:var(--nvx-space-3);
-  box-sizing:border-box;
-  margin:var(--nvx-space-8) auto 0}
-
 article.nvx-page > .nvx-page-hero{
   width: 100%;
   margin: 0}
@@ -1264,10 +1246,6 @@ article.nvx-page > .nvx-page-hero{
   display: block;
   margin-bottom: var(--nvx-space-2, var(--nvx-space-2))}
 
-.nvx-home-faq-editorial{
-  margin: 0;
-  border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);margin-top:var(--nvx-gap-wide)}
-
 .nvx-faq details{
   margin: 0;
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
@@ -1275,12 +1253,6 @@ article.nvx-page > .nvx-page-hero{
     transition: none}
 
 .nvx-brand-faq-accordion details{
-  margin: 0;
-  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  background: transparent;
-    transition: none}
-
-.nvx-home-faq-editorial details{
   margin: 0;
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   background: transparent;
@@ -1304,23 +1276,6 @@ article.nvx-page > .nvx-page-hero{
     padding-block: var(--nvx-space-2)}
 
 .nvx-brand-faq-accordion summary{
-  position: relative;
-  display: block;
-  margin: 0;
-  padding: var(--nvx-space-3) calc(var(--nvx-space-3) + calc(var(--nvx-space-1) * 1.5)) var(--nvx-space-3) 0;
-  list-style: none;
-  font-family: var(--nvx-serif);
-    font-size: clamp(1.125rem, 4.2vw, 1.35rem);
-  font-weight: 400;
-  line-height: var(--nvx-lh-h3);
-  letter-spacing: var(--nvx-track-h3, -0.01em);
-  color: var(--nvx-ink);
-  cursor: pointer;
-  text-wrap: balance;
-  transition: color 160ms ease;
-    padding-block: var(--nvx-space-2)}
-
-.nvx-home-faq-editorial summary{
   position: relative;
   display: block;
   margin: 0;
@@ -1363,19 +1318,6 @@ article.nvx-page > .nvx-page-hero{
   transform: rotate(45deg);
     transition: none}
 
-.nvx-home-faq-editorial summary::after{
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 0;
-  width: calc(var(--nvx-space-1) * 1.5);
-  height: calc(var(--nvx-space-1) * 1.5);
-  margin-top: calc(var(--nvx-space-1) * -0.75);
-  border-right: calc(var(--nvx-border-hairline) * 1.5) solid var(--nvx-accent-muted, var(--nvx-text-muted));
-  border-bottom: calc(var(--nvx-border-hairline) * 1.5) solid var(--nvx-accent-muted, var(--nvx-text-muted));
-  transform: rotate(45deg);
-    transition: none}
-
 .nvx-faq summary:focus-visible{
   color: var(--nvx-charcoal, var(--nvx-charcoal));
   outline: none;
@@ -1383,12 +1325,6 @@ article.nvx-page > .nvx-page-hero{
   border-radius: calc(var(--nvx-space-1) / 2)}
 
 .nvx-brand-faq-accordion summary:focus-visible{
-  color: var(--nvx-charcoal, var(--nvx-charcoal));
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--nvx-accent-glow, var(--nvx-border-soft));
-  border-radius: calc(var(--nvx-space-1) / 2)}
-
-.nvx-home-faq-editorial summary:focus-visible{
   color: var(--nvx-charcoal, var(--nvx-charcoal));
   outline: none;
   box-shadow: inset 0 0 0 2px var(--nvx-accent-glow, var(--nvx-border-soft));
@@ -1745,15 +1681,6 @@ figure.nvx-equipo-portrait{
   width: var(--nvx-shell);
   margin-inline: auto}
 
-
-.nvx-home-action-banner__title{
-  margin:0 0 var(--nvx-space-2);max-width:none;
-  font-family:var(--nvx-serif);
-  font-size:var(--nvx-type-h2);
-  font-weight:var(--nvx-fw-heading);
-  line-height:var(--nvx-lh-h2);
-  letter-spacing:var(--nvx-track-h2);
-  color:var(--nvx-light)}
 
 .nvx-hero-context__lead{
     max-width: 65ch;

@@ -158,7 +158,7 @@ jobs:
             IdentityFile $HOME/.ssh/staging2_key
             IdentitiesOnly yes
             BatchMode yes
-            StrictHostKeyChecking no
+            StrictHostKeyChecking yes
             UserKnownHostsFile $HOME/.ssh/known_hosts
             ConnectTimeout 30
             ServerAliveInterval 60

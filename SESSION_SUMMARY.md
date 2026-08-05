@@ -7,8 +7,9 @@
 - **Contenido/CMS:** 1 (foto Dr. Fabio - subir a Media Library WP)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
 - **Diseño confirmado:** 1 ✅ (numeración diferenciada en Home - romana I-V en estándar, decimal 01-05 en portfolio)
+- **Diseño pendiente:** 1 (unificación de estilos globales journal/blog)
 - **Falsos positivos cerrados:** 12 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado)
-- **Total pendientes reales:** 1 (CMS foto Dr. Fabio)
+- **Total pendientes reales:** 2 (CMS foto Dr. Fabio, unificación estilos journal/blog)
 
 ---
 
@@ -221,28 +222,33 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 ---
 
-## Verificación Playwright — staging2.nuvanx.com/
+## Verificación Playwright — staging2.nuvanx.com/ (INCONCLUSO)
 
-**Verificado en DOM renderizado (Playwright):**
+**Verificado en código fuente (repo):**
+- ✅ <video class="nvx-home-hero__video"> en front-page.php:24-26
+- ✅ <span aria-hidden="true">I</span> en front-page.php:48,53,58,63,68
+
+**Observado en DOM renderizado (Playwright):**
 - ✅ Romanos I-V existen en HTML final (snapshot refs e67, e71, e75, e79, e83)
 - ❌ Video hero NO existe en HTML final (sin elemento <video>)
 - ❌ Atributo aria-hidden="true" NO está en los romanos del HTML final
 
-**Diagnóstico de detectores:**
-- **has_romans detector (falso negativo):** Los romanos I-V SÍ están en el HTML, pero sin aria-hidden="true". El detector busca el atributo, no el texto.
-- **has_hero detector (correcto):** No hay <video class="nvx-home-hero__video"> en el HTML renderizado, aunque está en front-page.php:24-26.
-
 **Discrepancia código vs render:**
-- Código fuente: front-page.php tiene <video class="nvx-home-hero__video"> y <span aria-hidden="true">I</span>
-- HTML renderizado: Romanos I-V existen pero sin aria-hidden; video no existe
-- Esto sugiere que el hero de video está condicionalmente deshabilitado o el atributo aria-hidden se remueve en runtime
+- Código fuente tiene <video> y <span aria-hidden="true"> como literales estáticos
+- HTML renderizado tiene romanos sin aria-hidden y sin video
+- Esto indica posible desincronización: staging2 podría no estar sirviendo este front-page.php o este commit
+
+**Diagnóstico pendiente:**
+- Requiere confirmar qué plantilla/commit sirve staging2 para la home
+- Posible explicación: staging2 usa página estática asignada como front page (Settings → Reading)
+- Sin confirmar sincronización entorno/código, no es válido concluir sobre detectores has_hero/has_romans
 
 ---
 
-## Sistema Editorial (Journal/Blog) — Diseño Intencional
+## Sistema Editorial (Journal/Blog) — Pendiente de Unificación
 
-**Diseño arquitectónico:**
-- El sistema editorial (journal/blog) está diseñado como una capa aislada del sistema comercial
+**Arquitectura actual:**
+- El sistema editorial (journal/blog) está diseñado como capa aislada del sistema comercial
 - nvx-blog-system.php:5-7: "Keeps the editorial layer isolated from commercial pages"
 - nvx-blog-system.php:48-66: Carga nvx-posts.css específicamente para contexto de blog
 - nvx-blog-system.php:69-76: Añade clase body 'nvx-blog-context' para reglas scoped
@@ -252,7 +258,12 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 - nvx-blog-single.php: Template con estructura editorial propia (hero, meta, prose, footer)
 - Clases específicas: nvx-blog-article, nvx-blog-hero, nvx-blog-prose
 
-**Conclusión:**
-- La diferencia de estilos entre journal y resto del sitio es **diseño intencional**
-- El sistema editorial mantiene su propia identidad visual separada del sistema comercial
-- No es un bug ni inconsistencia, sino arquitectura por diseño
+**Requerimiento de unificación:**
+- Todo debe tener el mismo estilo global
+- Algunos elementos del journal deberían estar en otras páginas
+- El aislamiento actual de estilos es problemático
+
+**Acción pendiente:**
+- Evaluar integración de nvx-posts.css con estilos globales
+- Identificar elementos del journal que deberían compartir con otras páginas
+- Unificar sistema de estilos entre editorial y comercial

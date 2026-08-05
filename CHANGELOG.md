@@ -4,6 +4,23 @@ All notable changes to the NUVANX codebase are documented in this file.
 
 ## [Unreleased]
 
+### Fixed - Deployment SSH Issues (2026-08-05)
+
+- **deploy.yml**: Applied same SSH fixes as staging2:
+  - ConnectTimeout increased from default to 30 seconds
+  - ServerAliveInterval 60 for keep-alive
+  - ServerAliveCountMax 3 for retries
+  - StrictHostKeyChecking no for connection reliability
+
+### Changed - CSS Optimization (2026-08-05)
+
+- **nvx-brand-home.css**: Removed unused CSS rules:
+  - `.nvx-home-invitation` (not used in front-page.php)
+  - `.nvx-home-action-banner*` (not used in front-page.php)
+  - `.nvx-benefits__grid` and `.nvx-benefit-item` (not used in front-page.php)
+  - Mobile responsive breakpoints for unused hero CTA clusters
+  - Reduced file from 96 lines to 31 lines (~68% reduction)
+
 ### Added - Quality & Automation (2026-08-04)
 
 - **CSS/PHP Linting Pipeline**:

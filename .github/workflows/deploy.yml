@@ -80,7 +80,7 @@ jobs:
       - name: Sincronización de Archivos vía RSYNC (Staging / Production)
         run: |
           rsync -avz --delete \
-            -e "ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no" \
+            -e "ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=60 -o ServerAliveCountMax=3" \
             --exclude='.git*' \
             --exclude='.github*' \
             --exclude='node_modules*' \
@@ -91,7 +91,7 @@ jobs:
 
       - name: Purgar Caché del Servidor (Método alternativo)
         run: |
-          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
             "cd ${{ secrets.PROD_WP_PATH }} && \
              wp cache flush && \
              find wp-content/uploads/siteground-optimizer-assets -name '*.min.css' -delete -o -name '*.min.js' -delete -o -name 'combined-*' -delete || true"

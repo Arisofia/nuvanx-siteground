@@ -136,7 +136,7 @@
     let pagePath;
     try {
       pagePath = normalizePath(new URL(pageUrl, window.location.origin).pathname);
-    } catch (err) {
+    } catch (_err) {
       pagePath = normalizePath(DEFAULT_VALORACION_PATH);
     }
 
@@ -152,7 +152,7 @@
           path === '/consulta-medica/' ||
           path === '/consultamedica/'
         );
-      } catch (err) {
+      } catch (_err) {
         return /valoraci[oó]n|consulta-medica|consultamedica/i.test(href);
       }
     }
@@ -179,7 +179,7 @@
         if (window.HubSpotForms && typeof window.HubSpotForms.initialize === 'function') {
           window.HubSpotForms.initialize();
         }
-      } catch (e) {
+      } catch (_e) {
         // ignore
       }
     }

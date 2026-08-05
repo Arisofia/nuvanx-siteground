@@ -1,11 +1,10 @@
 <?php
-declare(strict_types=1);
-
 /**
  * NUVANX Medical theme bootstrap.
  *
  * @package nuvanx-medical
  */
+declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -141,7 +140,12 @@ function nvx_theme_show_cta_banner(): bool {
 	return true;
 }
 
-/** Filemtime asset version with a theme-version fallback. */
+/**
+ * Filemtime asset version with a theme-version fallback.
+ *
+ * @param string $relative_path Relative path to the asset.
+ * @return string Asset version.
+ */
 function nvx_asset_version( string $relative_path ): string {
 	$path = get_template_directory() . '/' . ltrim( $relative_path, '/' );
 	return is_readable( $path ) ? (string) filemtime( $path ) : NVX_THEME_VERSION;

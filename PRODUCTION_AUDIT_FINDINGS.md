@@ -25,25 +25,68 @@
 
 ---
 
-## 2. routes.json - Localización en Producción
+## 2. Estructura de Directorios - Validación Completa
 
-### ✅ Resultado: ENCONTRADO
-**Ruta en servidor:** `./wp-content/themes/nuvanx/wp-content/themes/nuvanx-medical/inc/data/routes.json`
+### ✅ Resultado: ESTRUCTURA DUPLICADA CONFIRMADA PERO NO CRÍTICA
 
-### ⚠️ Hallazgo Crítico
-**Ruta duplicada en estructura de directorios:**
-- `wp-content/themes/nuvanx/wp-content/themes/nuvanx-medical/`
-- Esto indica una estructura de directorios anidada incorrecta
+**Temas en producción:**
+- `nuvanx-medical` (ACTIVO) - Tema principal en uso
+- `nuvanx-medical-wpvibe-backup` (inactivo)
+- `nuvanx-medical-wpvibe-draft` (inactivo)
+- `nuvanx-editorial-2026` (inactivo)
+- `nuvanx` (no registrado en WordPress) - Directorio con contenido duplicado
+
+**Estructura duplicada detectada:**
+- `wp-content/themes/nuvanx-medical/` (TEMA ACTIVO - 100% funcional)
+- `wp-content/themes/nuvanx/wp-content/themes/nuvanx-medical/` (COPIA NO USADA)
+
+### ⚠️ Análisis de Impacto
+
+**Estado funcional:** ✅ SIN IMPACTO OPERATIVO
+- WordPress usa correctamente `nuvanx-medical` como tema activo
+- El directorio duplicado NO está registrado como tema en WordPress
+- No hay conflicto de resolución de archivos
+
+**Origen probable:**
+- Error en proceso de deploy anterior
+- Copia manual incorrecta del repo
+- Script de despliegue con error de rutas
+
+**Diferencias detectadas:**
+- Directorio activo tiene archivos minificados (.min.css)
+- Directorio activo tiene archivos específicos (ai-telemetry-wrapper.php, .DS_Store)
+- Directorio duplicado es una versión desactualizada/parcial
+
+### 📋 Acción Requerida
+**PENDIENTE MEDIA PRIORIDAD:** Limpiar directorio duplicado
+- Eliminar `wp-content/themes/nuvanx/` (no usado por WordPress)
+- Verificar scripts de deploy para evitar recurrencia
+- Validar que no hay dependencias ocultas
+
+---
+
+## 3. routes.json - Localización en Producción
+
+### ✅ Resultado: ENCONTRADO Y VALIDADO
+**Ruta en servidor activo:** `./wp-content/themes/nuvanx-medical/inc/data/routes.json`
+**Ruta duplicada:** `./wp-content/themes/nuvanx/wp-content/themes/nuvanx-medical/inc/data/routes.json` (NO USADA)
 
 ### 📊 Comparación vs Repo Local
 El archivo en producción es **casi idéntico** al del repo local, con excepciones:
 - Algunos entries de producción tienen `seo_id` que el repo local no tenía
 - Estructura JSON es consistente
+- Archivo activo es el correcto (wp-content/themes/nuvanx-medical/)
+
+### ✅ Validación de Funcionamiento
+**Sistema de resolución:** PATH-first (según código PHP nvx-structured-data.php)
+- `post_id: 0` para EXION/EMFUSION es INTENCIONAL
+- Sistema usa PATH como resolución primaria
+- post_id es fallback secundario (documentado como "by design")
 
 ### 📋 Acción Requerida
-**PENDIENTE:** Investigar estructura de directorios duplicada
-- Verificar si hay themes duplicados o instalación incorrecta
-- Confirmar que el archivo correcto está siendo usado
+**COMPLETADO:** Validar que routes.json correcto está siendo usado
+- Confirmado: WordPress usa el archivo en tema activo
+- No requiere acción adicional
 
 ---
 
@@ -145,19 +188,20 @@ El catálogo de 22 tratamientos está **completamente publicado** en producción
 ## 6. Recomendaciones de Acción
 
 ### Prioridad ALTA
-1. **Investigar estructura de directorios duplicada** en producción
-2. **Actualizar metadatos de foto Dr. Fabio** (IDs 3099/3098)
-3. **Validar que routes.json correcto está siendo usado**
+1. ~~Investigar estructura de directorios duplicada~~ ✅ COMPLETADO - Sin impacto operativo
+2. **Actualizar metadatos de foto Dr. Fabio** (IDs 3099/3098) - Requiere WordPress admin
+3. ~~Validar que routes.json correcto está siendo usado~~ ✅ COMPLETADO - Confirmado funcionamiento correcto
 
 ### Prioridad MEDIA
-1. **Descargar dump de DB** para análisis offline
-2. **Validar consistencia** entre routes.json y páginas publicadas
-3. **Verificar SEO metadata** en todas las páginas de tratamiento
+1. **Limpiar directorio duplicado** `wp-content/themes/nuvanx/` - No usado por WordPress
+2. **Descargar dump de DB** para análisis offline - Disponible en servidor
+3. **Validar consistencia** entre routes.json y páginas publicadas ✅ COMPLETADO
+4. **Verificar SEO metadata** en todas las páginas de tratamiento ✅ COMPLETADO (optimización SEO realizada)
 
 ### Prioridad BAJA
-1. **Auditoría completa de estructura de directorios**
-2. **Verificar archivos duplicados o obsoletos**
-3. **Limpiar temporales del servidor**
+1. **Auditoría completa de estructura de directorios** - Parcialmente completada
+2. **Verificar archivos duplicados o obsoletos** - Identificados, limpieza pendiente
+3. **Limpiar temporales del servidor** - Opcional
 
 ---
 

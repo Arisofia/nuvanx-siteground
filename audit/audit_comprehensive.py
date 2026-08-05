@@ -18,17 +18,22 @@ STAG_BASE = "https://staging2.nuvanx.com"
 
 def get_status_curl(url):
     try:
-        # User requested: curl -sI -H "Cache-Control: no-cache"
-        cmd = ['curl', '-sI', '-L', '-k', '-m', '10', '-H', 'Cache-Control: no-cache', url]
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=12)
-        if proc.returncode == 0:
-            lines = proc.stdout.replace('\r', '').splitlines()
-            status_lines = [l for l in lines if l.startswith("HTTP/")]
-            if status_lines:
-                return status_lines[-1].split()[1]
-        return "Error"
-    except:
+        parsed = requests.utils.urlparse(url)
+        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+            return "Error"
+
+        headers = {"Cache-Control": "no-cache"}
+        resp = requests.head(url, headers=headers, allow_redirects=True, timeout=10, verify=False)
+
+        # Some endpoints do not support HEAD consistently
+        if resp.status_code in (405, 501):
+            resp = requests.get(url, headers=headers, allow_redirects=True, timeout=10, verify=False)
+
+        return str(resp.status_code)
+    except requests.Timeout:
         return "Timeout"
+    except requests.RequestException:
+        return "Error"
 
 def get_content_data(url):
     res = {

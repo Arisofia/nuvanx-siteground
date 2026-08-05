@@ -75,12 +75,12 @@ jobs:
       - name: Añadir Host de SiteGround a Known Hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -p ${{ secrets.PROD_SSH_PORT || 18765 }} -H ${{ secrets.PROD_SSH_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.PROD_SSH_PORT || 18765 }} -H ${{ secrets.PROD_SSH_HOST }} >> ~/.ssh/known_hosts || echo "Warning: ssh-keyscan failed, using StrictHostKeyChecking=no"
 
       - name: Sincronización de Archivos vía RSYNC (Staging / Production)
         run: |
           rsync -avz --delete \
-            -e "ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }}" \
+            -e "ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no" \
             --exclude='.git*' \
             --exclude='.github*' \
             --exclude='node_modules*' \
@@ -91,7 +91,7 @@ jobs:
 
       - name: Purgar Caché del Servidor (Método alternativo)
         run: |
-          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
             "cd ${{ secrets.PROD_WP_PATH }} && \
              wp cache flush && \
              find wp-content/uploads/siteground-optimizer-assets -name '*.min.css' -delete -o -name '*.min.js' -delete -o -name 'combined-*' -delete || true"

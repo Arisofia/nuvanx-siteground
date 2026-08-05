@@ -1262,6 +1262,7 @@ function nvx_content_is_treatment_injection_target( string $content ): bool {
 		'nvx-btl-editorial',
 		'nvx-aesthetic-editorial',
 		'nvx-laser-hub-page',
+		'nvx-brand-page--laser-hub',
 		'nvx-laser-editorial',
 		'nvx-brand-page--medicina-estetica',
 		'nvx-brand-page--exion',

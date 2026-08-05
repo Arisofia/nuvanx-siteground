@@ -170,11 +170,11 @@ function nvx_laser_editorial_body_markup(): string {
 	// Sections are direct children of .nvx-brand-page (same as Endolift / med hubs).
 	$html = '';
 
-	$html .= '<section class="nvx-brand-section" aria-labelledby="nvx-laser-focus-title">';
+	$html .= '<section class="nvx-brand-section nvx-laser-focus" aria-labelledby="nvx-laser-focus-title">';
 	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'El enfoque', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-laser-focus-title" class="nvx-brand-title">' . esc_html__( 'La diferencia entre tecnología e indicación médica', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<div class="nvx-brand-grid nvx-brand-grid--3">';
+	$html .= '<div class="nvx-laser-focus-grid">';
 
 	$pillars    = nvx_laser_editorial_catalog()['pillars'] ?? array();
 	$pillar_idx = 0;
@@ -183,9 +183,9 @@ function nvx_laser_editorial_body_markup(): string {
 			continue;
 		}
 		$pid   = 'nvx-laser-pillar-' . $pillar_idx;
-		$html .= '<article class="nvx-brand-card" aria-labelledby="' . esc_attr( $pid ) . '">';
+		$html .= '<article class="nvx-laser-pillar" aria-labelledby="' . esc_attr( $pid ) . '">';
 		$html .= nvx_laser_icon( isset( $pillar['icon'] ) ? (string) $pillar['icon'] : 'spectrum' );
-		$html .= '<h3 id="' . esc_attr( $pid ) . '" class="nvx-brand-subtitle">' . esc_html( (string) ( $pillar['title'] ?? '' ) ) . '</h3>';
+		$html .= '<h3 id="' . esc_attr( $pid ) . '" class="nvx-laser-pillar__title">' . esc_html( (string) ( $pillar['title'] ?? '' ) ) . '</h3>';
 		$html .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $pillar['body'] ?? '' ) ) . '</p>';
 		$html .= '</article>';
 		++$pillar_idx;
@@ -193,11 +193,11 @@ function nvx_laser_editorial_body_markup(): string {
 
 	$html .= '</div></div></section>';
 
-	$html .= '<section class="nvx-brand-section" id="plataformas" aria-labelledby="nvx-laser-platforms-title">';
+	$html .= '<section class="nvx-brand-section nvx-laser-platforms" id="plataformas" aria-labelledby="nvx-laser-platforms-title">';
 	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Nuestras plataformas clínicas', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-laser-platforms-title" class="nvx-brand-title">' . esc_html__( 'Tecnologías médicas de precisión', 'nuvanx-medical' ) . '</h2>';
-	$html .= '<div class="nvx-brand-grid nvx-brand-grid--2">';
+	$html .= '<div class="nvx-laser-platform-list">';
 
 	$platforms = nvx_laser_editorial_catalog()['platforms'] ?? array();
 	$plat_idx  = 0;
@@ -265,7 +265,7 @@ function nvx_laser_editorial_body_markup(): string {
  * Full theme-owned laser hub page markup.
  */
 function nvx_laser_hub_page_markup(): string {
-	return '<div class="nvx-brand-page">'
+	return '<div class="nvx-brand-page nvx-brand-page--laser-hub">'
 		. nvx_laser_hero_markup()
 		. nvx_laser_editorial_body_markup()
 		. '</div>';

@@ -419,12 +419,12 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['equipo_staff'] ?? array();
 
-	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-equipo-staff-title">';
-	$html .= '<div class="nvx-brand-section__inner">';
+	$html  = '<section class="nvx-brand-section nvx-equipo-staff" aria-labelledby="nvx-equipo-staff-title">';
+	$html .= '<div class="nvx-container">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-brand-title">' . esc_html( $data['title'] ?? '' ) . '</h2>';
-	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['body'] ?? '' ) . '</p>';
-	$html .= '<div class="nvx-brand-grid nvx-brand-grid--3">';
+	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-heading">' . esc_html( $data['title'] ?? '' ) . '</h2>';
+	$html .= '<p class="nvx-body">' . esc_html( $data['body'] ?? '' ) . '</p>';
+	$html .= '<div class="nvx-equipo-staff-grid">';
 	foreach ( $other_cards as $card ) {
 		$card = nvx_equipo_normalize_staff_card( $card );
 		if ( '' !== $card ) {
@@ -448,30 +448,30 @@ function nvx_equipo_render_items_section( array $section ): string {
 	$items         = $section['items'] ?? array();
 
 	$html  = '<section class="' . esc_attr( $section_class ) . '" aria-labelledby="' . esc_attr( $section_id ) . '">';
-	$html .= '<div class="nvx-brand-section__inner">';
+	$html .= '<div class="nvx-container">';
 	if ( '' !== $kicker ) {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';
 	}
 	if ( '' !== $heading ) {
-		$html .= '<h2 id="' . esc_attr( $section_id ) . '" class="nvx-brand-title">' . esc_html( $heading ) . '</h2>';
+		$html .= '<h2 id="' . esc_attr( $section_id ) . '" class="nvx-heading">' . esc_html( $heading ) . '</h2>';
 	}
 	if ( '' !== $lead ) {
-		$html .= '<p class="nvx-brand-lead">' . esc_html( $lead ) . '</p>';
+		$html .= '<p class="nvx-body">' . esc_html( $lead ) . '</p>';
 	}
 
 	if ( ! empty( $items ) ) {
-		$html .= '<div class="nvx-brand-grid nvx-brand-grid--2">';
+		$html .= '<ul class="nvx-brand-card-grid" role="list">';
 		foreach ( $items as $item ) {
-			$html .= '<div class="nvx-brand-card">';
+			$html .= '<li class="nvx-brand-card">';
 			if ( ! empty( $item['title'] ) ) {
-				$html .= '<h3 class="nvx-brand-subtitle">' . esc_html( $item['title'] ) . '</h3>';
+				$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $item['title'] ) . '</h3>';
 			}
 			if ( ! empty( $item['body'] ) ) {
-				$html .= '<p class="nvx-brand-lead">' . esc_html( $item['body'] ) . '</p>';
+				$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
 			}
-			$html .= '</div>';
+			$html .= '</li>';
 		}
-		$html .= '</div>';
+		$html .= '</ul>';
 	}
 
 	$html .= '</div></section>';
@@ -540,7 +540,7 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
 		: 'aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '"';
 
 	$html  = '<section class="nvx-brand-section" ' . $aria_attr . '>';
-	$html .= '<div class="nvx-brand-section__inner nvx-equipo-diagnosis__grid">';
+	$html .= '<div class="nvx-container nvx-equipo-diagnosis__grid">';
 	$html .= '<div class="nvx-equipo-diagnosis__copy">';
 	if ( '' !== $kicker ) {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';
@@ -988,13 +988,13 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 	$body .= '</div>';
 
 	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
-		return nvx_page_render_brand_wrapper( $content, $hero . $body, 'nvx-brand-page' );
+		return nvx_page_render_brand_wrapper( $content, $hero . $body, 'nvx-brand-page nvx-brand-page--equipo' );
 	}
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		return $wrap[1] . $hero . $body . '</div>';
 	}
 
-	return '<div class="nvx-brand-page">' . $hero . $body . '</div>';
+	return '<div class="nvx-brand-page nvx-brand-page--equipo">' . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_equipo_page', NVX_HOOK_PRIO_EQUIPO );

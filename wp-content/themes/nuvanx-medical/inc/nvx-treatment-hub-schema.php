@@ -12,13 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Replace a graph node by @id or append it. Delegates to nvx_schema_upsert_node if available. */
+/** Replace a graph node by @id or append it. */
 function nvx_treatment_hub_schema_upsert_node( array $graph, array $node ): array {
-	if ( function_exists( 'nvx_schema_upsert_node' ) ) {
-		return nvx_schema_upsert_node( $graph, $node );
-	}
-
-	$id = isset( $node['id'] ) ? (string) $node['@id'] : '';
+	$id = isset( $node['@id'] ) ? (string) $node['@id'] : '';
 
 	if ( '' !== $id ) {
 		foreach ( $graph as $index => $piece ) {

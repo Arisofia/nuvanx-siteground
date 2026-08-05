@@ -69,12 +69,6 @@ function nvx_render_managed_valoracion_page( $content ): string {
 		return $content;
 	}
 
-	// Skip if using templates/page-landing-valoracion.php (has its own hero)
-	$template = get_page_template_slug();
-	if ( $template && 'templates/page-landing-valoracion.php' === $template ) {
-		return $content;
-	}
-
 	return nvx_valoracion_managed_page_markup();
 }
 add_filter( 'the_content', 'nvx_render_managed_valoracion_page', NVX_HOOK_PRIO_VALORACION_MANAGED );

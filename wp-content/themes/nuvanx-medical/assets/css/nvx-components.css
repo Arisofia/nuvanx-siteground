@@ -27,6 +27,41 @@
 figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:var(--nvx-type-caption);font-weight:300;line-height:var(--nvx-lh-caption);color:var(--nvx-text-muted)}
 .nvx-text-link{color:var(--nvx-ink);text-decoration:underline;text-underline-offset:calc(var(--nvx-space-1) / 2);font-family:var(--nvx-sans)}
 .nvx-text-link:hover,.nvx-text-link:focus-visible{color:var(--nvx-accent-muted)}
+/* Listas - diseño elegante y responsive */
+.nvx-brand-section ul, .nvx-brand-section ol {
+  margin: var(--nvx-space-4) 0;
+  padding-left: var(--nvx-space-4);
+  max-width: 68ch;
+}
+
+@media (max-width: 768px) {
+  .nvx-brand-section ul, .nvx-brand-section ol {
+    padding-left: var(--nvx-space-3);
+    max-width: 100%;
+  }
+}
+
+.nvx-brand-section li {
+  margin-bottom: var(--nvx-space-2);
+  line-height: 1.7;
+  color: var(--nvx-text-body);
+  transition: color 160ms ease;
+}
+
+.nvx-brand-section li:hover {
+  color: var(--nvx-accent-muted);
+}
+
+.nvx-brand-section li::marker {
+  color: var(--nvx-accent-muted);
+  font-weight: var(--nvx-fw-medium);
+}
+
+.nvx-brand-section li strong {
+  color: var(--nvx-ink);
+  font-weight: var(--nvx-fw-medium);
+}
+
 /* Icon SVG dimensioning — global icon sizing */
 svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   width: var(--nvx-icon-sm);
@@ -53,6 +88,12 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   font-size: var(--nvx-type-body);
   font-weight: var(--nvx-fw-medium);
   margin-bottom: var(--nvx-space-2);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.nvx-brand-card:hover .nvx-brand-card__number {
+  transform: scale(1.1);
+  box-shadow: var(--nvx-shadow-soft);
 }
 
 /* WhatsApp floating plugin containment (creame-whatsapp-me / Joinchat) */
@@ -168,11 +209,20 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   box-shadow: none;
 }
 
-.nvx-media{display:block;width:100%;height:auto;border-radius:var(--nvx-radius-image)}
+/* Media e imágenes - diseño elegante */
+.nvx-media{display:block;width:100%;height:auto;border-radius:var(--nvx-radius-image);transition:transform 300ms ease, box-shadow 300ms ease}
+.nvx-media:hover{transform:scale(1.02);box-shadow:var(--nvx-shadow-soft)}
 .nvx-media--hero{height:100%;object-fit:cover;border-radius:0}
 .nvx-media--doctor{aspect-ratio:5/6;object-fit:cover;max-height:600px;min-height:400px;object-position:center top}
 /* Body content images: natural height, same radius as cards/figures */
 .nvx-media--body{width:100%;height:auto;max-height:var(--nvx-media-max-h-featured);object-fit:cover;border-radius:var(--nvx-radius-image)}
+
+@media (max-width: 768px) {
+  .nvx-media--doctor {
+    max-height: 400px;
+    min-height: 300px;
+  }
+}
 .nvx-brand-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:var(--nvx-gap-base);align-items:stretch;margin-block:var(--nvx-space-4) var(--nvx-space-8)}
 /*
  * CMS still emits --2 / --3. Without these rules, bare children auto-place into
@@ -750,7 +800,7 @@ body.nvx-valoracion-modal-open{
   margin: 0;
 }
 
-/* Iconos en listas de datos (global, no solo contacto) */
+/* Iconos en listas de datos (global, no solo contacto) - diseño elegante */
 .nvx-clinic-card__data .nvx-icon,
 .nvx-brand-card__data .nvx-icon {
   width: var(--nvx-icon-xs);
@@ -758,6 +808,13 @@ body.nvx-valoracion-modal-open{
   margin-right: var(--nvx-space-1);
   color: var(--nvx-accent-muted);
   vertical-align: text-bottom;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.nvx-clinic-card__data .nvx-icon:hover,
+.nvx-brand-card__data .nvx-icon:hover {
+  color: var(--nvx-ink);
+  transform: scale(1.1);
 }
 
 .nvx-page--contact .nvx-clinic-card__map {
@@ -896,15 +953,15 @@ article.nvx-page > .nvx-page-hero{
   background: var(--button-hover-bg);
   color: var(--button-hover-color);
   border-color: var(--button-hover-border);
-    transform: none;
-  box-shadow: var(--nvx-shadow-button)}
+  transform: translateY(-2px);
+  box-shadow: var(--nvx-shadow-button-hover)}
 
 .nvx-button:focus-visible{
   background: var(--button-hover-bg);
   color: var(--button-hover-color);
   border-color: var(--button-hover-border);
-    transform: none;
-  box-shadow: var(--nvx-shadow-button);
+  transform: translateY(-2px);
+  box-shadow: var(--nvx-shadow-button-hover);
   outline: 2px solid var(--button-focus);
   outline-offset: calc(var(--nvx-space-1) * 0.375)}
 

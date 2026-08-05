@@ -188,15 +188,15 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 **routes.json (wp-content/themes/nuvanx-medical/inc/data/routes.json):**
 - 52 rutas definidas
-- C01 (Endolift): post_id=1241, schema_id=endolift_facial ✅
-- C02 (Endolaser): post_id=1200, schema_id=endolaser_corporal ✅
-- C03 (CO₂): post_id=2017, schema_id=laser_co2 ✅
-- C04 (EXION BTL): post_id=2906, schema_id=exion_btl ✅
-- C05 (EXION Face): post_id=0, schema_id=exion_face ⚠️
-- C06 (EXION Fractional): post_id=0, schema_id=exion_fractional ⚠️
-- C07 (Bioestimuladores): schema_id=collagen_bio ⚠️
-- C08 (Ojeras): schema_id=dark_circles_ha ⚠️
-- C09 (Rinomodelación): schema_id=rhinomodeling_ha ⚠️
+- C01 (Endolift): post_id=1241, schema_id=endolift_facial ✅ (verificado en routes.json:53)
+- C02 (Endolaser): post_id=1200, schema_id=endolaser_corporal ✅ (verificado en routes.json:60)
+- C03 (CO₂): post_id=2017, schema_id=laser_co2 ✅ (verificado en routes.json:67)
+- C04 (EXION BTL): post_id=2906, schema_id=exion_btl ✅ (verificado en routes.json:76)
+- C05 (EXION Face): post_id=0, schema_id=exion_face ⚠️ (verificado en routes.json:82)
+- C06 (EXION Fractional): post_id=0, schema_id=exion_fractional ⚠️ (verificado en routes.json:88)
+- C07 (Bioestimuladores): schema_id=collagen_bio ⚠️ (verificado en routes.json:117)
+- C08 (Ojeras): schema_id=dark_circles_ha ⚠️ (verificado en routes.json:121)
+- C09 (Rinomodelación): schema_id=rhinomodeling_ha ⚠️ (verificado en routes.json:125)
 
 **Rutas sin configuración completa:**
 - /medicina-estetica-laser/ (sin schema_group/schema_id)

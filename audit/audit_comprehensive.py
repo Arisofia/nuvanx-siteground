@@ -32,7 +32,7 @@ def get_status_curl(url):
         return str(resp.status_code)
     except requests.Timeout:
         return "Timeout"
-    except requests.RequestException:
+    except Exception:
         return "Error"
 
 def get_content_data(url):

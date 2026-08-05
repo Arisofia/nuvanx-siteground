@@ -1,0 +1,46 @@
+name: Staging2 Acceptance Tests
+
+on:
+  workflow_run:
+    workflows: ["Deploy Staging2"]
+    types:
+      - completed
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    name: Browser Acceptance Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          cd scripts/staging2
+          npm ci
+
+      - name: Run browser acceptance tests
+        env:
+          STAGING2_URL: https://staging2.nuvanx.com
+        run: |
+          cd scripts/staging2
+          node browser-acceptance.mjs
+
+      - name: Upload acceptance test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-results
+          path: scripts/staging2/acceptance-results.json

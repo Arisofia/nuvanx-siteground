@@ -22,7 +22,7 @@ while ( have_posts() ) :
 	?>
 	<article id="post-<?php the_ID(); ?>" <?php post_class( 'nvx-blog-article' ); ?>>
 		<header class="<?php echo esc_attr( $hero_class ); ?>" aria-labelledby="nvx-blog-title-<?php the_ID(); ?>">
-			<div class="nvx-shell nvx-blog-hero__inner">
+			<div class="nvx-brand-section__inner nvx-blog-hero__inner">
 				<div class="nvx-blog-hero__copy">
 					<?php if ( $primary instanceof WP_Term ) : ?>
 						<a class="nvx-blog-hero__category" href="<?php echo esc_url( get_category_link( $primary->term_id ) ); ?>"><?php echo esc_html( $primary->name ); ?></a>

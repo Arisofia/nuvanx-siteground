@@ -21,7 +21,7 @@
     },
     "endolift": {
         "title": "Endolift® Facial Madrid | Precio y Resultados | NUVANX",
-        "description": "Endolift® facial en Madrid para papada, mandíbula y cuello. Tarifas por zona y valoración médica en NUVANX."
+        "description": "Endolift® facial en Madrid para papada, mandíbula y cuello. Tarifas por zona, indicaciones y recuperación. Valoración médica en NUVANX."
     },
     "endolaser": {
         "title": "Endoláser Corporal Madrid | Grasa y Firmeza | NUVANX",
@@ -33,11 +33,11 @@
     },
     "exion": {
         "title": "EXION® BTL Madrid | Face, Body y Fractional RF | NUVANX",
-        "description": "EXION® BTL en Madrid: Face, Body y Fractional RF. Modalidades según indicación y plan tras valoración médica."
+        "description": "EXION® BTL en Madrid: Face, Body y Fractional RF. Modalidades seleccionadas según indicación clínica, zona y plan definido tras valoración médica."
     },
     "exilite": {
         "title": "IPL BTL EXILITE™ Madrid | Manchas y Rojeces | NUVANX",
-        "description": "IPL BTL EXILITE™ en Madrid para indicaciones pigmentarias, vasculares y calidad cutánea tras diagnóstico y fototipo."
+        "description": "IPL BTL EXILITE™ en Madrid para indicaciones pigmentarias, vasculares y calidad cutánea tras diagnóstico, fototipo y selección de parámetros."
     },
     "equipo": {
         "title": "Equipo Médico NUVANX Madrid | Criterio Clínico",
@@ -45,7 +45,7 @@
     },
     "por_que_nuvanx": {
         "title": "Por qué NUVANX | Criterio médico en Madrid",
-        "description": "Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara y centros sanitarios en Madrid."
+        "description": "Cómo decide NUVANX una indicación en medicina estética: valoración médica, información clara, seguimiento y centros sanitarios autorizados en Madrid."
     },
     "inversion": {
         "title": "Inversión en medicina estética | NUVANX Madrid",
@@ -62,81 +62,5 @@
     "blog": {
         "title": "Blog NUVANX | Medicina estética láser Madrid",
         "description": "Artículos de NUVANX sobre Endolift®, EXION® BTL, IPL, well-aging y criterio médico en clínicas de Madrid."
-    },
-    "madrid": {
-        "title": "Medicina Estética Láser Madrid | Valoración NUVANX",
-        "description": "Medicina estética láser en Madrid con equipo médico hospitalario. Consulta en Chamberí y Salamanca–Goya para Endolift®, CO₂ y EXION®."
-    },
-    "nosotros": {
-        "title": "Sobre NUVANX | Medicina Estética Láser Madrid",
-        "description": "Conoce NUVANX: medicina estética láser con criterio médico en Madrid. Historia, valores y enfoque en seguridad y resultados."
-    },
-    "contacto": {
-        "title": "Contacto NUVANX Madrid | Cita Medicina Estética",
-        "description": "Contacta con NUVANX en Madrid para consulta de medicina estética láser. Teléfono, email y formularios de contacto en Chamberí y Salamanca–Goya."
-    },
-    "protocolos_signature": {
-        "title": "Protocolos Signature NUVANX | Tratamientos Láser",
-        "description": "Protocolos Signature NUVANX: estándares clínicos para Endolift®, EXION® BTL y tratamientos láser con seguridad y eficacia comprobada."
-    },
-    "medicina_estetica_laser": {
-        "title": "Medicina Estética Láser Madrid | Tratamientos NUVANX",
-        "description": "Medicina estética láser en Madrid: Endolift®, CO₂, EXION® BTL y tratamientos faciales y corporales con valoración médica individualizada."
-    },
-    "medicina_estetica": {
-        "title": "Medicina Estética Madrid | Criterio Médico NUVANX",
-        "description": "Medicina estética en Madrid con criterio médico: tratamientos láser, rellenos y peelings con diagnóstico y seguimiento profesional."
-    },
-    "estetica_avanzada": {
-        "title": "Estética Avanzada Madrid | Tecnologías Láser NUVANX",
-        "description": "Estética avanzada en Madrid: tecnologías láser de última generación para rejuvenecimiento facial y corporal con equipo médico especializado."
-    },
-    "lips_ha": {
-        "title": "Ácido hialurónico labios Madrid | NUVANX",
-        "description": "Valoración médica para hidratación, perfilado o corrección de asimetrías labiales con ácido hialurónico en Madrid según anatomía y objetivos."
-    },
-    "rhinomodeling_ha": {
-        "title": "Rinomodelación con ácido hialurónico Madrid | NUVANX",
-        "description": "Corrección médica no quirúrgica de irregularidades del perfil nasal con ácido hialurónico en Madrid con evaluación anatómica y vascular previa."
-    },
-    "collagen_bio": {
-        "title": "Bioestimuladores de colágeno Madrid | NUVANX",
-        "description": "Bioestimuladores de colágeno en Madrid para firmeza y calidad cutánea. Valoración médica para indicación individualizada según fototipo y objetivos."
-    },
-    "dark_circles_ha": {
-        "title": "Ojeras y surco lagrimal Madrid | NUVANX",
-        "description": "Tratamiento de ojeras y surco lagrimal en Madrid con ácido hialurónico. Valoración médica para anatomía orbital y expectativas realistas."
-    },
-    "double_chin": {
-        "title": "Papada y definición mandibular Madrid | NUVANX",
-        "description": "Tratamiento de papada y definición mandibular en Madrid con Endolift® o medicina estética. Valoración médica para contorno facial."
-    },
-    "skin_quality": {
-        "title": "Calidad piel firmeza luminosidad Madrid | NUVANX",
-        "description": "Tratamientos para calidad de piel, firmeza y luminosidad en Madrid. Valoración médica para fototipo y objetivos individuales."
-    },
-    "acne_scars": {
-        "title": "Cicatrices acné poros textura Madrid | NUVANX",
-        "description": "Tratamiento de cicatrices de acné, poros y textura en Madrid con láser CO₂ fraccionado. Valoración médica para tipo de piel."
-    },
-    "pigmentation": {
-        "title": "Manchas rojeces fotorejuvenecimiento IPL Madrid | NUVANX",
-        "description": "IPL médica BTL EXILITE™ en Madrid para manchas, rojeces y fotorejuvenecimiento. Diagnóstico previo y selección de parámetros."
-    },
-    "exion_face": {
-        "title": "EXION® Face en Madrid | RF y ultrasonido | NUVANX",
-        "description": "EXION® Face en Madrid: radiofrecuencia y ultrasonido microcorriente para calidad cutánea y rejuvenecimiento facial con valoración médica."
-    },
-    "exion_body": {
-        "title": "EXION® Body en Madrid | Contorno corporal | NUVANX",
-        "description": "EXION® Body en Madrid para remodelación corporal, firmeza y contorno. Valoración médica para zonas corporales específicas."
-    },
-    "exion_fractional": {
-        "title": "EXION® Fractional RF en Madrid | Textura piel | NUVANX",
-        "description": "EXION® Fractional RF en Madrid para textura de piel, cicatrices y fotodaño. Valoración médica según fototipo y objetivos."
-    },
-    "emfusion": {
-        "title": "EMFUSION en Madrid | Calidad cutánea | NUVANX",
-        "description": "EMFUSION en Madrid para calidad cutánea y luminosidad. Valoración médica para indicación individualizada según tipo de piel."
     }
 }

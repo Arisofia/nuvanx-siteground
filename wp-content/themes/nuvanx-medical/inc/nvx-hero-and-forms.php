@@ -102,6 +102,8 @@ function nvx_hero_insert_media_figure( string $content, string $figure ): string
 }
 
 /**
+
+/**
  * Ensure content heroes that lack media use the featured image when available.
  * Inserts media as a SIBLING after the hero copy (never nested inside copy),
  * so kicker + title can overlay the image. Global — not a per-page patch.

@@ -125,7 +125,7 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$team_url      = esc_url( home_url( '/equipo-medico/' ) );
 	$investment    = nvx_strategy_published_url( 'investment' );
 
-	$html  = '<article class="nvx-brand-readable nvx-strategy-page nvx-shell">';
+	$html  = '<article class="nvx-brand-readable nvx-strategy-page">';
 	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">Criterio médico NUVANX</p>';
 	$html .= '<h1 class="nvx-strategy-title">El diagnóstico precede a la indicación.</h1>';
 	$html .= '<p class="nvx-brand-lead">Madrid. Medicina estética láser y well-aging. Un único criterio médico desde la primera valoración hasta el alta.</p></header>';

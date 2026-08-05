@@ -234,7 +234,7 @@ function nvx_content_restructure_co2_page( string $content ): string {
 	return nvx_page_render_brand_wrapper(
 		$content,
 		$hero . $body,
-		'nvx-brand-page '
+		'nvx-brand-page nvx-brand-page--co2'
 	);
 }
 add_filter( 'the_content', 'nvx_content_restructure_co2_page', NVX_HOOK_PRIO_CO2_MODULE );

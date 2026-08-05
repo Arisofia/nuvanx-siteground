@@ -424,9 +424,9 @@ function nvx_signature_hub_contour_cards(): array {
  */
 function nvx_signature_hub_shell_open( array $hub ): string {
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
-	$html       = '<article class="nvx-brand-page  nvx-signature-hub" data-nvx-signature-hub="' . esc_attr( (string) ( $hub['kind'] ?? '' ) ) . '">';
-	$html      .= '<header class="nvx-brand-section__inner nvx-strategy-intro">';
-	$html      .= '<p class="nvx-brand-kicker">' . esc_html( (string) ( $hub['kicker'] ?? '' ) ) . '</p>';
+	$html       = '<article class="nvx-brand-page nvx-brand-page--signature nvx-signature-hub" data-nvx-signature-hub="' . esc_attr( (string) ( $hub['kind'] ?? '' ) ) . '">';
+	$html      .= '<header class="nvx-strategy-intro">';
+	$html      .= '<p class="nvx-eyebrow">' . esc_html( (string) ( $hub['kicker'] ?? '' ) ) . '</p>';
 	$html      .= '<h1 class="nvx-strategy-title">' . esc_html( (string) ( $hub['h1'] ?? '' ) ) . '</h1>';
 	$html      .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $hub['lead'] ?? '' ) ) . '</p>';
 	$html      .= '<p>' . esc_html( (string) ( $hub['intro'] ?? '' ) ) . '</p>';

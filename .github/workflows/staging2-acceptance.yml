@@ -29,7 +29,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd scripts/staging2
-          npm ci
+          npm install
           npx playwright install --with-deps chromium
 
       - name: Run browser acceptance tests

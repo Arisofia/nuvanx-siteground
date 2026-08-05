@@ -14,5 +14,21 @@
     "source.fixAll": "always"
   },
   "codeium.aggressiveShutdown": false,
-  "codeium.disableSupercomplete": true
+  "codeium.disableSupercomplete": true,
+  "php.validate.executablePath": "/opt/homebrew/bin/php",
+  "php.stubs": [
+    "wp-content/themes/nuvanx-medical/vendor/php-stubs/wordpress-stubs"
+  ],
+  "intelephense.files.exclude": [
+    "**/.git/**",
+    "**/.svn/**",
+    "**/.hg/**",
+    "**/CVS/**",
+    "**/.DS_Store/**",
+    "**/node_modules/**",
+    "**/vendor/**/{Test,tests}/**"
+  ],
+  "intelephense.stubs": [
+    "wordpress"
+  ]
 }

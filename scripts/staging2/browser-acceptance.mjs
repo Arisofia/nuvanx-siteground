@@ -645,7 +645,7 @@ async function run() {
       // Hero and CTAs
       heroCount = await page.locator('.nvx-brand-hero, .nvx-home-hero, .nvx-blog-hero, .nvx-strategy-intro').count();
       // On 404 the H1 acts as minimal hero.
-      ctaCount = await page.locator('a.nvx-btn, a.nvx-button').count();
+      ctaCount = await page.locator('a.nvx-btn, a.nvx-button, a.nvx-brand-btn, button.nvx-btn, button.nvx-button, button.nvx-brand-btn').count();
 
       // JSON-LD
       rogueJsonLdCount = await page.locator('script[type="application/ld+json"]:not(.yoast-schema-graph)').count();
@@ -705,7 +705,7 @@ async function run() {
         }
         
         if (heroCount === 0) issues.push('Missing hero section');
-        if (ctaCount === 0) issues.push('Missing CTA (.nvx-btn / .nvx-button)');
+        if (ctaCount === 0) issues.push('Missing CTA (.nvx-btn / .nvx-button / .nvx-brand-btn)');
         if (rogueJsonLdCount > 0) issues.push(`Found ${rogueJsonLdCount} rogue JSON-LD script(s) outside Yoast graph`);
         
         // --- Editorial / Visual QA Invariants ---

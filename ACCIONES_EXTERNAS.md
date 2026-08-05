@@ -30,6 +30,33 @@ Las siguientes correcciones requieren acceso a sistemas externos (navegador real
 
 ## 🟠 PRIORIDAD MEDIA - WordPress Admin
 
+### #14 Foto Dr. Fabio Quiñónez - Subir a Media Library
+**Estado actual:** Foto ausente en página /equipo-medico/
+**Ubicación código:** nvx-equipo-page.php:240-247,813 (degrada correctamente a texto-sin-foto)
+**Impacto:** El código es correcto, pero el activo no está en el CMS
+
+**Acción requerida:**
+1. Acceder a WordPress admin (staging2 o producción según flujo)
+2. Navegar a Media > Library
+3. Verificar si existe foto del Dr. Fabio Quiñónez
+4. Si NO existe:
+   - Subir foto oficial (según criterio de la clínica)
+   - Asignarla a la ficha de equipo correspondiente
+5. Si existe pero no se muestra:
+   - Asociar la imagen al campo correcto (ACF / bloque)
+   - Revisar que el template de equipo (nvx-equipo-*) la esté renderizando
+6. Verificar en front-end que la foto aparece junto a los demás especialistas
+
+**Páginas donde debería aparecer:**
+- /equipo-medico/ (página principal de equipo)
+- Cualquier página de protocolo donde se le mencione
+
+**Nota:**
+- El renderer maneja el caso exactamente como describe el informe (no es bug de código)
+- Esta acción es puramente de CMS (subir imagen), no requiere cambios de código
+
+---
+
 ### #8 exion-body - Migrar post a producción
 **Estado actual:** 404 en prod / 200 en staging
 **Causa:** post_id: 0 en routes.json (línea 90)
@@ -199,12 +226,13 @@ wp post list --name=tratamientos --field=ID
 
 ## Orden de Ejecución Recomendado
 
-1. **#14 Robot Challenge** (SiteGround panel) - desbloquea auditoría fiable
-2. **#10 /tratamientos/** (wp CLI en servidor) - distingue gap-BD de config
-3. **#8, #9 exion-body/emfusion** (WordPress admin) - gaps confirmados, seguros
-4. **#1-5 Verificaciones VALIDATED** (navegador real + caché purgada)
-5. **#12, #13 /equipo-medico/** (navegador real + DevTools)
-6. **#6, #7, #15** - documentación/decisión editorial
+1. **#14 Foto Dr. Fabio** (WordPress admin) - subir imagen a Media Library
+2. **#14 Robot Challenge** (SiteGround panel) - desbloquea auditoría fiable
+3. **#10 /tratamientos/** (wp CLI en servidor) - distingue gap-BD de config
+4. **#8, #9 exion-body/emfusion** (WordPress admin) - gaps confirmados, seguros
+5. **#1-5 Verificaciones VALIDATED** (navegador real + caché purgada)
+6. **#12, #13 /equipo-medico/** (navegador real + DevTools)
+7. **#6, #7, #15** - documentación/decisión editorial
 
 ---
 

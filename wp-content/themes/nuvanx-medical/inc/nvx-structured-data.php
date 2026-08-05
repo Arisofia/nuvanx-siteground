@@ -15,8 +15,21 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Load configuration from JSON
+ */
+function nvx_get_config() {
+	$config_file = get_template_directory() . '/inc/data/config.json';
+	if ( file_exists( $config_file ) ) {
+		$config = json_decode( file_get_contents( $config_file ), true );
+		return is_array( $config ) ? $config : array();
+	}
+	return array();
+}
+
 if ( ! defined( 'NVX_CONTACT_EMAIL' ) ) {
-	define( 'NVX_CONTACT_EMAIL', 'info@nuvanx.com' );
+	$config = nvx_get_config();
+	define( 'NVX_CONTACT_EMAIL', $config['contact']['email'] ?? 'info@nuvanx.com' );
 }
 /**
  * Editorial review month label for Endolift byline (update with clinical review).
@@ -44,8 +57,21 @@ function nvxTariffItem( string $label, float $pvp, string $group ): array {
 }
 
 /**
+ * Load tariff catalog from JSON
+ */
+function nvx_get_tariff_catalog() {
+	$catalog_file = get_template_directory() . '/inc/data/tariff-catalog.json';
+	if ( file_exists( $catalog_file ) ) {
+		$catalog = json_decode( file_get_contents( $catalog_file ), true );
+		return is_array( $catalog ) ? $catalog : array();
+	}
+	return array();
+}
+
+/**
  * Official public PVP catalogue (EUR, IVA 21% included).
  * Source: clinic tariff sheet. Never publish commission / internal cost notes.
+ * Now loaded from JSON tariff-catalog.json for single source of truth.
  *
  * @return array{
  *   endolift: array<string, array{label:string,pvp:float,group:string}>,
@@ -54,38 +80,22 @@ function nvxTariffItem( string $label, float $pvp, string $group ): array {
  * }
  */
 function nvx_tariff_catalog() {
-	return array(
-		'endolift'       => array(
-			'ojeras'               => nvxTariffItem( 'Endolift® ojeras', 798.60, 'facial' ),
-			'papada'               => nvxTariffItem( 'Endolift® papada', 1064.80, 'facial' ),
-			'marcacion_mandibular' => nvxTariffItem( 'Endolift® marcación mandibular', 1064.80, 'facial' ),
-			'pomulos'              => nvxTariffItem( 'Endolift® pómulos', 1064.80, 'facial' ),
-			'cuello'               => nvxTariffItem( 'Cuello', 1197.90, 'facial' ),
-			'abdomen'              => nvxTariffItem( 'Endolift® zona abdomen', 1694.00, 'corporal' ),
-			'flancos'              => nvxTariffItem( 'Endolift® flancos', 1573.00, 'corporal' ),
-			'subescapular'         => nvxTariffItem( 'Endolift® subescapular / sujetador', 1391.50, 'corporal' ),
-			'brazos'               => nvxTariffItem( 'Endolift® brazos', 1331.00, 'corporal' ),
-			'rodillas'             => nvxTariffItem( 'Endolift® rodillas', 1197.90, 'corporal' ),
-			'muslos_internos'      => nvxTariffItem( 'Endolift® cara interna muslos', 1331.00, 'corporal' ),
-			'subgluteos'           => nvxTariffItem( 'Subglúteos (bananitos)', 1331.00, 'corporal' ),
-			'cartucheras'          => nvxTariffItem( 'Endolift® cartucheras', 1331.00, 'corporal' ),
-		),
-		'endolift_combo' => array(
-			'papada_cuello'                 => nvxTariffItem( 'Papada y cuello', 1331.00, 'facial' ),
-			'marcacion_papada'              => nvxTariffItem( 'Marcación mandibular y papada', 1452.00, 'facial' ),
-			'full_face'                     => nvxTariffItem( 'Endolift® Full Face (tercio medio, inferior y cuello)', 1694.00, 'facial' ),
-			'abdomen_flancos'               => nvxTariffItem( 'Abdomen y flancos', 2395.80, 'corporal' ),
-			'subgluteos_cartucheras'        => nvxTariffItem( 'Subglúteos y cartucheras', 1633.50, 'corporal' ),
-			'muslos_rodilla'                => nvxTariffItem( 'Cara interna de muslos y rodilla', 1573.00, 'corporal' ),
-			'sujetador_brazos'              => nvxTariffItem( 'Zona sujetador y brazos', 1694.00, 'corporal' ),
-			'cartucheras_muslos'            => nvxTariffItem( 'Cartucheras y cara interna de muslos', 1815.00, 'corporal' ),
-			'cartucheras_subgluteos_muslos' => nvxTariffItem( 'Cartucheras, subglúteos y cara interna de muslos', 2286.90, 'corporal' ),
-		),
-		'laser_co2'      => array(
-			'facial'   => nvxTariffItem( 'Sesión láser CO₂ facial', 330.00, 'facial' ),
-			'corporal' => nvxTariffItem( 'Sesión láser CO₂ corporal', 450.00, 'corporal' ),
-		),
-	);
+	$catalog = nvx_get_tariff_catalog();
+
+	// Convert JSON format to legacy PHP format for backward compatibility
+	$result = array();
+	foreach ( $catalog as $category => $items ) {
+		$result[ $category ] = array();
+		foreach ( $items as $key => $item ) {
+			$result[ $category ][ $key ] = nvxTariffItem(
+				$item['label'],
+				(float) $item['pvp'],
+				$item['group']
+			);
+		}
+	}
+
+	return $result;
 }
 
 /**

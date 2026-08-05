@@ -184,24 +184,20 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 ---
 
-## Estado Verificado — Configuración de Rutas y Schema
+## Limitación Técnica — routes.json
 
-**routes.json (wp-content/themes/nuvanx-medical/inc/data/routes.json):**
-- 52 rutas definidas
-- C01 (Endolift): post_id=1241, schema_id=endolift_facial ✅ (verificado en routes.json:53)
-- C02 (Endolaser): post_id=1200, schema_id=endolaser_corporal ✅ (verificado en routes.json:60)
-- C03 (CO₂): post_id=2017, schema_id=laser_co2 ✅ (verificado en routes.json:67)
-- C04 (EXION BTL): post_id=2906, schema_id=exion_btl ✅ (verificado en routes.json:76)
-- C05 (EXION Face): post_id=0, schema_id=exion_face ⚠️ (verificado en routes.json:82)
-- C06 (EXION Fractional): post_id=0, schema_id=exion_fractional ⚠️ (verificado en routes.json:88)
-- C07 (Bioestimuladores): schema_id=collagen_bio ⚠️ (verificado en routes.json:117)
-- C08 (Ojeras): schema_id=dark_circles_ha ⚠️ (verificado en routes.json:121)
-- C09 (Rinomodelación): schema_id=rhinomodeling_ha ⚠️ (verificado en routes.json:125)
+**Estado actual:**
+- El código del tema espera un archivo `routes.json` en runtime vía `nvx_catalog_json_resolved('routes.json')` (nvx-structured-data.php:197)
+- El archivo `routes.json` no está versionado en este repositorio
+- No se pueden verificar desde aquí los `post_id`, `schema_group` ni `schema_id` referenciados
+- Las referencias a `routes.json` en informes de auditoría son **pendientes de verificación contra el archivo real en entorno**
 
-**Rutas sin configuración completa:**
-- /medicina-estetica-laser/ (sin schema_group/schema_id)
-- /medicina-estetica/ (sin schema_group/schema_id)
-- /estetica-avanzada/ (sin schema_group/schema_id)
-- /exion-face/, /exion-fractional/, /exion-body/, /emfusion/ (post_id=0)
+**Verificado en código fuente:**
+- Path-first resolution: nvx-structured-data.php:401-414 (el tema resuelve por path, no depende de post_id)
+- post_id=0 es aceptable: nvx-structured-data.php:216 (usa 0 como fallback)
+- schema_id=rhinomodeling_ha existe: aesthetic-treatment-pages.json:79 (en archivo distinto, no en routes.json)
 
-**Nota:** post_id=0 en routes.json es aceptable según nvx-structured-data.php:216 (usa 0 como fallback). El tema usa path-first resolution (nvx-page-hygiene.php:341-353).
+**Para completar la verificación:**
+- Requiere acceso al archivo `routes.json` real en el entorno (staging2/producción)
+- Posible ubicación: wp-content/uploads/, carpeta generada por build, o similar
+- Una vez localizado, verificar vía SSH: `find . -name "routes.json"` y `cat path/to/routes.json`

@@ -32,8 +32,7 @@ def get_http_status_curl(url):
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=12)
         if proc.returncode == 0:
             lines = proc.stdout.replace('\r', '').splitlines()
-            status_lines = [l for l in lines if l.startswith("HTTP/")]
-            if status_lines:
+            if status_lines := [l for l in lines if l.startswith("HTTP/")]:
                 return status_lines[-1].split()[1]
         return "Error"
     except:

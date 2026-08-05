@@ -62,7 +62,7 @@ jobs:
       - name: Validate routes.json schema
         run: |
           npm install -g ajv-cli
-          ajv validate -s wp-content/themes/nuvanx-medical/inc/data/routes.schema.json -d wp-content/themes/nuvanx-medical/inc/data/routes.json || echo "Schema validation skipped (file not found or invalid)"
+          ajv validate -s inc/data/routes.schema.json -d inc/data/routes.json || echo "Schema validation skipped (file not found or invalid)"
       - name: Validate routes.json schema
         run: |
           npm install -g ajv-cli

@@ -24,6 +24,14 @@ global $nvx_page_shell_has_hero;
 $nvx_page_shell_has_hero = true;
 
 get_header();
+
+if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
+	echo '<div class="entry-content nvx-page__content nvx-prose">';
+	the_content();
+	echo '</div>';
+	get_footer();
+	return;
+}
 ?>
 
 <!-- Content goes inside .nvx-brand-page wrapper from header.php -->

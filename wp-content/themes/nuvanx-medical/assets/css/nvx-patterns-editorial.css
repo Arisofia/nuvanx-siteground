@@ -169,13 +169,27 @@ figure.nvx-hero__media {
 
 /* Overlay type — diseño elegante con mejor tipografía */
 
-.nvx-brand-hero__copy .nvx-title, .nvx-brand-hero__copy .nvx-heading, .nvx-editorial-hero__copy h1, .nvx-page-hero__copy .nvx-title, .nvx-hero__copy .nvx-title {
+/* Títulos en páginas interiores */
+body:not(.home) .nvx-brand-hero__copy .nvx-title,
+body:not(.home) .nvx-brand-hero__copy .nvx-heading,
+body:not(.home) .nvx-editorial-hero__copy h1,
+body:not(.home) .nvx-page-hero__copy .nvx-title,
+body:not(.home) .nvx-hero__copy .nvx-title {
   margin: 0 0 0.85em;
   max-width: 48ch;
   color: var(--nvx-light);
   text-wrap: balance;
   letter-spacing: normal;
   line-height: 1.1;
+}
+
+/* Títulos en home mantienen su estilo original */
+body.home .nvx-home-hero__title {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-display);
+  line-height: 1.1;
+  font-weight: 300;
 }
 
 .nvx-brand-hero__copy .nvx-brand-hero__lead, .nvx-brand-hero__copy .nvx-brand-hero__description, .nvx-brand-hero__copy .nvx-lead, .nvx-brand-hero__copy .nvx-subtitle, .nvx-brand-hero__copy .nvx-hero-subtitle, .nvx-editorial-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-subtitle, .nvx-page-hero__copy .nvx-hero-subtitle, .nvx-hero__copy .nvx-subtitle, .nvx-hero__copy .nvx-hero-subtitle, .nvx-hero__copy p {

@@ -61,7 +61,7 @@ jobs:
   deploy-siteground:
     name: 🚀 Atomic Deploy to SiteGround
     needs: audit-and-build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del Repositorio

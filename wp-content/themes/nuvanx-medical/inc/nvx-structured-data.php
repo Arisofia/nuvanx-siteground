@@ -38,6 +38,23 @@ if ( ! defined( 'NVX_SD_ID_MEDICAL_PROCEDURE' ) ) {
 	define( 'NVX_SD_SOCIEDAD_SEMEG', 'Sociedad Española de Medicina Geriátrica (SEMEG)' );
 }
 
+/** Replace a graph node by @id or append it. */
+function nvx_schema_upsert_node( array $graph, array $node ): array {
+	$id = isset( $node['@id'] ) ? (string) $node['@id'] : '';
+
+	if ( '' !== $id ) {
+		foreach ( $graph as $index => $piece ) {
+			if ( isset( $piece['@id'] ) && $id === (string) $piece['@id'] ) {
+				$graph[ $index ] = $node;
+				return $graph;
+			}
+		}
+	}
+
+	$graph[] = $node;
+	return $graph;
+}
+
 /** Build one immutable public tariff row. */
 function nvxTariffItem( string $label, float $pvp, string $group ): array {
 	return compact( 'label', 'pvp', 'group' );

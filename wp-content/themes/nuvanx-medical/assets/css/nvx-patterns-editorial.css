@@ -925,18 +925,6 @@ section.nvx-hero {
   letter-spacing: 0.04em;
   color: var(--nvx-text-muted, var(--nvx-text-body));
 }
-
-
-
-@media (min-width: 960px) {
-  /* Remaining clinical team (typically 3 after authority profiles) */
-}
-
-
-
-/* Equipo — clinical quote */
-.nvx-equipo-blockquote {
-  margin: 0 0 var(--nvx-space-4);
   max-width: 40rem;
   padding: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-5));
   border-left: calc(var(--nvx-space-1) * 0.375) solid var(--nvx-accent-muted);

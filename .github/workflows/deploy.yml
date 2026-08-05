@@ -84,7 +84,7 @@ jobs:
   deploy-siteground:
     name: 🚀 Atomic Deploy to SiteGround
     needs: [audit-and-build, e2e-tests]
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push' && false  # TEMPORARY: blocks auto-deploy until acceptance is green
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del Repositorio
@@ -108,6 +108,24 @@ jobs:
             exit 1
           fi
           echo "Found successful Deploy Staging2 run id: $ok — proceeding with deploy"
+
+      - name: Ensure NVX_ENV defined for production
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+          PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT || 18765 }}
+          PROD_SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          echo "Checking NVX_ENV is defined in production wp-config.php..."
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes -o ConnectTimeout=30 \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "cd ${{ secrets.PROD_WP_PATH }} && \
+             if ! grep -E \"define\\(\\s*'NVX_ENV'\" wp-config.php; then \
+               echo 'ERROR: NVX_ENV not defined in production wp-config.php; aborting deploy' >&2; \
+               exit 1; \
+             fi && \
+             echo '✓ NVX_ENV is defined in production wp-config.php'"
 
       - name: Configurar Clave SSH para SiteGround
         uses: webfactory/ssh-agent@v0.9.0

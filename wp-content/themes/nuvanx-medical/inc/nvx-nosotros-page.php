@@ -64,7 +64,7 @@ function nvx_content_is_nosotros_page( string $content ): bool {
 	}
 
 	return (bool) preg_match(
-		'/class=["\'][^"\']*\bnvx-brand-page--nosotros\b|id=["\']nvx-nosotros-h1["\']|aria-label=["\']Sobre Nosotros NUVANX["\']/iu',
+		'/class=["\'][^"\']*\b\b|id=["\']nvx-nosotros-h1["\']|aria-label=["\']Sobre Nosotros NUVANX["\']/iu',
 		$content
 	);
 }
@@ -357,13 +357,13 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		$open = $wrap[1];
-		if ( false === strpos( $open, 'nvx-brand-page--nosotros' ) ) {
-			$open = preg_replace( '/\bclass=(["\'])/u', 'class=$1nvx-brand-page--nosotros ', $open, 1 ) ?? $open;
+		if ( false === strpos( $open, '' ) ) {
+			$open = preg_replace( '/\bclass=(["\'])/u', 'class=$1 ', $open, 1 ) ?? $open;
 		}
 		return $open . $hero . $body . '</div>';
 	}
 
-	return '<div class="nvx-brand-page nvx-brand-page--nosotros">' . $hero . $body . '</div>';
+	return '<div class="nvx-brand-page ">' . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_nosotros_page', NVX_HOOK_PRIO_NOSOTROS );
 

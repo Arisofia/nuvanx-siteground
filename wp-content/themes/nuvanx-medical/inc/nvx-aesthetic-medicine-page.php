@@ -69,7 +69,7 @@ function nvx_content_is_aesthetic_medicine_page( string $content ): bool {
 	) {
 		// Stable structural markers for /medicina-estetica/.
 		$is_hub = (bool) preg_match(
-			'/class=["\'][^"\']*nvx-brand-page--medicina-estetica|id=["\']nvx-med-h1["\']|aria-label=["\']Medicina estética NUVANX["\']/iu',
+			'/class=["\'][^"\']*|id=["\']nvx-med-h1["\']|aria-label=["\']Medicina estética NUVANX["\']/iu',
 			$content
 		);
 	}
@@ -377,13 +377,13 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 	$out  = $hero . $body;
 
 	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
-		return nvx_page_render_brand_wrapper( $content, $out, 'nvx-brand-page nvx-brand-page--medicina-estetica' );
+		return nvx_page_render_brand_wrapper( $content, $out, 'nvx-brand-page ' );
 	}
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		$out = $wrap[1] . $out . '</div>';
 	} else {
-		$out = '<div class="nvx-brand-page nvx-brand-page--medicina-estetica">' . $out . '</div>';
+		$out = '<div class="nvx-brand-page ">' . $out . '</div>';
 	}
 
 	return $out;

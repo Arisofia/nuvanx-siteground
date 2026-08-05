@@ -1,14 +1,15 @@
 # Estado Completo de Pendientes - Nuvanx SiteGround
 
 ## Resumen Numérico
-- **Código DONE (VALIDATED):** 4 (foco #2, contraste #1, centrado #4, hero CSS/DOM #3)
-- **Código no-accionar (por diseño):** 3 ✅ (numeración romana/decimal, nvx-posts.css, protocolos-signature)
+- **Código DONE (VALIDATED):** 3 (foco #2, contraste #1, centrado #4)
+- **Código pendiente de verificar:** 1 (hero CSS/DOM #3 - depende de confirmación sincronización entorno/código)
+- **Código no-accionar (por diseño):** 4 ✅ (numeración romana/decimal, nvx-posts.css, protocolos-signature, BTL detail pages)
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
 - **Contenido/CMS:** 1 (foto Dr. Fabio - subir a Media Library WP)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
-- **Diseño confirmado:** 2 ✅ (numeración diferenciada en Home + protocolos-signature usa clases globales)
-- **Problemas específicos:** 1 (alineación inconsistente: equipo-medico izquierda vs blog derecha - requiere síntoma observable)
+- **Diseño confirmado:** 3 ✅ (numeración diferenciada en Home + protocolos-signature usa clases globales + BTL usa clases globales)
 - **Falsos positivos cerrados:** 13 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado, nvx-posts.css diseño intencional, protocolos-signature diseño intencional)
+- **Ítems abiertos no resueltos:** 4 (routes.json no verificable, Playwright inconcluso, Foto Dr. Fabio CMS, Control Tower/CSVs)
 - **Total pendientes reales:** 1 (CMS foto Dr. Fabio)
 
 ---
@@ -17,17 +18,26 @@
 
 | # | Pendiente | Ubicación | Estado |
 |---|-----------|-----------|--------|
-| 1 | Token --nvx-on-dark-92 → --nvx-on-dark-88 | nvx-components.css (.nvx-brand-section--dark .nvx-brand-body--dense) | ✅ VALIDADO (visualización nítida en componentes dark) |
-| 2 | Fallback --nvx-border-focus, 2px | nvx-soluciones-medicas.css:387 | ✅ VALIDADO (accesibilidad y foco claros en navegación) |
-| 3 | Hero full-bleed | nvx-site-layout.css:44-55 | ✅ VALIDADO (CSS/DOM verificados con scripts: verify-hero-css.mjs, verify-dom-structure.mjs) |
-| 4 | por-que-nuvanx centrado (nvx-shell) | nvx-strategy-pages.php:128 | ✅ VALIDADO (alineación corregida) |
-| 5 | Error sintaxis CSS línea 854 | nvx-patterns-editorial.css | ✅ VALIDADO (línea en blanco, sin error) |
+| 1 | Token --nvx-on-dark-92 → --nvx-on-dark-88 | wp-content/themes/nuvanx-medical/assets/css/nvx-components.css (.nvx-brand-section--dark .nvx-brand-body--dense) | ✅ VALIDADO (visualización nítida en componentes dark) |
+| 2 | Fallback --nvx-border-focus, 2px | wp-content/themes/nuvanx-medical/assets/css/nvx-soluciones-medicas.css:387 | ✅ VALIDADO (accesibilidad y foco claros en navegación) |
+| 3 | Centrado de elementos | wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css:44-55 | ✅ VALIDADO (max-width y auto-margin verificados) |
+| 4 | por-que-nuvanx centrado (nvx-shell) | wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php:128 | ✅ VALIDADO (alineación corregida) |
+| 5 | Error sintaxis CSS línea 854 | wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css | ✅ VALIDADO (línea en blanco, sin error) |
 
-**Verificación Hero Full-Bleed (#3):**
+---
+
+## 🟠 CÓDIGO — PENDIENTE DE VERIFICAR
+
+| # | Pendiente | Ubicación | Estado |
+|---|-----------|-----------|--------|
+| 1 | Hero full-bleed | wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css:44-55 | ⚠️ PENDIENTE (CSS/DOM verificados con scripts, pero requiere confirmación sincronización entorno/código en staging2) |
+
+**Verificación Hero Full-Bleed:**
 - ✅ CSS verificado: verify-hero-css.mjs - heroExists=true, brandPageExists=true, pageContentExists=true
 - ✅ DOM verificado: verify-dom-structure.mjs - estructura correcta con nvx-brand-page como primer hijo
-- El full-bleed se define en nvx-site-layout.css:44-55, NO en nvx-patterns-editorial.css
-- nvx-patterns-editorial.css define la apariencia del hero (.nvx-brand-hero shell, media, copy)
+- El full-bleed se define en wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css:44-55, NO en wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css
+- wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css define la apariencia del hero (.nvx-brand-hero shell, media, copy)
+- ⚠️ Requiere confirmación: staging2 puede no estar sirviendo este commit (Playwright mostró <video> ausente y aria-hidden faltante que el código sí tiene)
 
 **Commits relevantes:**
 - 4f977333 - fix(css): fix undefined CSS tokens for contrast and accessibility ✅
@@ -225,8 +235,8 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 ## Verificación Playwright — staging2.nuvanx.com/ (INCONCLUSO)
 
 **Verificado en código fuente (repo):**
-- ✅ <video class="nvx-home-hero__video"> en front-page.php:24-26
-- ✅ <span aria-hidden="true">I</span> en front-page.php:48,53,58,63,68
+- ✅ <video class="nvx-home-hero__video"> en wp-content/themes/nuvanx-medical/front-page.php:24-26
+- ✅ <span aria-hidden="true">I</span> en wp-content/themes/nuvanx-medical/front-page.php:48,53,58,63,68
 
 **Observado en DOM renderizado (Playwright):**
 - ✅ Romanos I-V existen en HTML final (snapshot refs e67, e71, e75, e79, e83)
@@ -249,13 +259,13 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 **Arquitectura actual:**
 - El sistema editorial (journal/blog) está diseñado como capa aislada del sistema comercial
-- nvx-blog-system.php:5-7: "Keeps the editorial layer isolated from commercial pages"
-- nvx-blog-system.php:48-66: Carga nvx-posts.css específicamente para contexto de blog
-- nvx-blog-system.php:69-76: Añade clase body 'nvx-blog-context' para reglas scoped
+- wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php:5-7: "Keeps the editorial layer isolated from commercial pages"
+- wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php:48-66: Carga nvx-posts.css específicamente para contexto de blog
+- wp-content/themes/nuvanx-medical/inc/nvx-blog-system.php:69-76: Añade clase body 'nvx-blog-context' para reglas scoped
 
 **Estilos diferenciados:**
-- nvx-posts.css: Sistema de estilos específico para posts/journal
-- nvx-blog-single.php: Template con estructura editorial propia (hero, meta, prose, footer)
+- wp-content/themes/nuvanx-medical/assets/css/nvx-posts.css: Sistema de estilos específico para posts/journal
+- wp-content/themes/nuvanx-medical/template-parts/content/nvx-blog-single.php: Template con estructura editorial propia (hero, meta, prose, footer)
 - Clases específicas: nvx-blog-article, nvx-blog-hero, nvx-blog-prose
 
 **Conclusión:**
@@ -268,13 +278,13 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 ## Sistema Protocolos Signature — Diseño Intencional
 
 **Arquitectura actual:**
-- nvx-signature-phase-pages.php:161: Usa clases globales nvx-brand-page y nvx-treatment-page
+- wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php:161: Usa clases globales nvx-brand-page y nvx-treatment-page
 - nvx-signature-phase-page es solo un modificador añadido encima, no un sistema paralelo
-- nvx-strategy-intro está en nvx-components.css:509 (CSS global del tema)
+- nvx-strategy-intro está en wp-content/themes/nuvanx-medical/assets/css/nvx-components.css:509 (CSS global del tema)
 
 **Evidencia de integración global:**
-- nvx-components.css:508: "Uses nvx-strategy-intro (not nvx-brand-hero) to avoid full-bleed layout"
-- nvx-strategy-intro es compartido entre múltiples renderers (nvx-strategy-pages.php, nvx-13-point-renderer.php)
+- wp-content/themes/nuvanx-medical/assets/css/nvx-components.css:508: "Uses nvx-strategy-intro (not nvx-brand-hero) to avoid full-bleed layout"
+- nvx-strategy-intro es compartido entre múltiples renderers (wp-content/themes/nuvanx-medical/inc/nvx-strategy-pages.php, wp-content/themes/nuvanx-medical/inc/nvx-13-point-renderer.php)
 - La clase distinta es intencional y documentada para evitar layout full-bleed
 
 **Conclusión:**
@@ -286,18 +296,43 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 ## Problemas Específicos — Requieren Síntoma Observable
 
-**Alineación inconsistente:**
-- equipo-medico vs blog: alineación opuesta reportada
-- Requiere URL concreta y síntoma observable específico para investigar
-- Sin evidencia observable, no se puede confirmar como problema real
-
 **BTL detail pages (EXION/EMFUSION):**
-- nvx-btl-detail-pages.php:62-65 excluye explícitamente posts (is_single())
-- nvx-btl-detail-pages.php:31 solo actúa en páginas (is_page())
+- wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php:62-65 excluye explícitamente posts (is_single())
+- wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php:31 solo actúa en páginas (is_page())
 - Usa clases globales nvx-brand-page, nvx-brand-hero (comercial, no journal)
-- nvx-btl-detail-pages.php:149-154: byline E-E-A-T nvx-medical-byline es diseño intencional para autoridad médica
+- wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php:149-154: byline E-E-A-T nvx-medical-byline es diseño intencional para autoridad médica
 - No usa capa de journal — el propio código la separa a propósito
 
 **Criterio:**
 - No se marca nada como "pendiente de unificación" sin síntoma observable en URL concreta
 - Esto evita acumular trabajo inventado sobre decisiones de arquitectura que funcionan como se diseñaron
+
+---
+
+## Ítems Abiertos No Resueltos — No Son Diseño Intencional
+
+**routes.json no verificable:**
+- Archivo no versionado en el repo, cargado en runtime
+- post_id de C01–C09 nunca se confirmaron desde el código
+- No es "validado", es "no comprobable desde el código"
+- Requiere acceso externo para verificar datos
+
+**Playwright inconcluso por desincronización entorno/código:**
+- Hipótesis fuerte: staging2 puede no estar sirviendo este commit
+- Sin <video> y sin aria-hidden que el código sí tiene en wp-content/themes/nuvanx-medical/front-page.php
+- Si esto es cierto, invalida cualquier verificación hecha por navegador
+- Incluye verificaciones de "otro diseño" en equipo-medico y BTL
+
+**Foto Dr. Fabio (CMS):**
+- Único pendiente real declarado
+- Requiere subir foto a Media Library WP
+- Documentado con comandos WP-CLI
+
+**Control Tower / CSVs:**
+- Pertenece a otro repositorio/proyecto, no a arisofia/nuvanx-siteground
+- Archivos externos en /audit/ no verificables desde el repo
+
+**Prioridad para cerrar de verdad:**
+- Confirmar qué commit y qué plantilla sirve staging2
+- Este único dato resuelve o reabre a la vez: Playwright, equipo-medico, BTL
+- Es el eslabón del que cuelga casi todo lo demás

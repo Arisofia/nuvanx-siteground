@@ -2,26 +2,6 @@
  * Uses canonical tokens only; no page-builder or WordPress core CSS dependency.
  */
 
-body.nvx-blog-context {
-  background: var(--nvx-color-paper);
-}
-
-.nvx-blog-index,
-.nvx-blog-single {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow-x: clip;
-  background: var(--nvx-color-paper);
-  color: var(--nvx-text-body);
-}
-
-/* Compensate for fixed header if present */
-.nvx-blog-single article {
-  padding-top: var(--nvx-space-2);
-}
-
 /* Archive opening stage uses global .nvx-brand-hero. */
 
 /* Archive grid and cards */

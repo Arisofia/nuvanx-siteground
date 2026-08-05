@@ -1,31 +1,7 @@
 /* NUVANX — Home brand surface and hero layout. */
 
-body.home {
-  background: var(--nvx-color-paper);
-}
-
-body.home .nvx-main {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-}
-
 .nvx-home {
   overflow-x: clip;
   background: var(--nvx-color-paper);
   color: var(--nvx-ink);
-}
-
-/* Home hero: full-bleed video first; shared footprint with interior heroes. */
-.nvx-home-hero-stage .nvx-brand-hero__inner,
-.nvx-home-hero-stage .nvx-shell {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  max-width: none;
-  height: 100%;
-  margin: 0;
-  padding: 0;
 }

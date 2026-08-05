@@ -1,6 +1,6 @@
-/* NUVANX — Footer compacto elegante
-   Diseño minimalista y compacto manteniendo todo el contenido
-   Secciones horizontales compactas en lugar de columnas verticales */
+/* NUVANX — Footer minimalista elegante
+   Diseño minimalista premium manteniendo toda la información
+   Espaciado generoso y tipografía refinada para elegancia */
 /* ── Base ──────────────────────────────────────────────────── */
 .nvx-footer {
   background: var(--nvx-surface-dark);
@@ -19,24 +19,29 @@
   color: var(--nvx-on-dark);
 }
 
-/* ── Inner container ───────────────────────────────────── */
+/* ── Inner container - diseño elegante con más spacing */
 .nvx-footer__inner {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding: var(--nvx-space-6) var(--nvx-gutter-inner);
+  padding: var(--nvx-space-8) var(--nvx-gutter-inner);
   box-sizing: border-box;
 }
 
-/* ── Brand (logo compacto) ─────────────────────────────── */
+/* ── Brand (logo elegante) ─────────────────────────────── */
 .nvx-footer__brand {
-  margin-bottom: var(--nvx-space-4);
+  margin-bottom: var(--nvx-space-6);
 }
 
 .nvx-footer__brand .nvx-logo {
   display: inline-flex;
   flex-direction: column;
   gap: var(--nvx-space-1);
+  transition: opacity 160ms ease;
+}
+
+.nvx-footer__brand .nvx-logo:hover {
+  opacity: 0.8;
 }
 
 .nvx-footer__brand .nvx-logo__wordmark {
@@ -44,44 +49,46 @@
   font-size: var(--nvx-type-h2);
   font-weight: var(--nvx-fw-regular);
   color: var(--nvx-on-dark);
+  letter-spacing: -0.01em;
 }
 
 .nvx-footer__brand .nvx-logo__tagline {
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-small);
   font-weight: var(--nvx-fw-regular);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   color: var(--nvx-on-dark-72);
 }
 
-/* ── Main content grid compacto ─────────────────────────── */
+/* ── Main content grid elegante ─────────────────────────── */
 .nvx-footer__main {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--nvx-space-6);
-  margin-bottom: var(--nvx-space-6);
+  gap: var(--nvx-space-8);
+  margin-bottom: var(--nvx-space-8);
 }
 
-/* ── Secciones compactas ────────────────────────────────── */
+/* ── Secciones elegantes ────────────────────────────────── */
 .nvx-footer__section {
   min-width: 0;
 }
 
 .nvx-footer__section-title {
-  margin: 0 0 var(--nvx-space-2);
+  margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-caption);
   font-weight: var(--nvx-fw-bold);
   letter-spacing: var(--nvx-track-kicker);
   text-transform: uppercase;
   color: var(--nvx-on-dark-72);
+  opacity: 0.9;
 }
 
-/* ── Links compactos (inline en lugar de lista) ───────────── */
+/* ── Links elegantes (inline para minimalismo) ───────────── */
 .nvx-footer__links-compact {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--nvx-space-2) var(--nvx-space-3);
+  gap: var(--nvx-space-2) var(--nvx-space-4);
   margin: 0;
   padding: 0;
 }
@@ -92,30 +99,38 @@
   font-weight: var(--nvx-fw-regular);
   line-height: var(--nvx-lh-body);
   color: var(--nvx-on-dark-72);
+  transition: color 160ms ease, opacity 160ms ease;
 }
 
-/* Teléfonos: más peso */
+.nvx-footer__links-compact a:hover,
+.nvx-footer__links-compact a:focus-visible {
+  color: var(--nvx-on-dark);
+  opacity: 1;
+}
+
+/* Teléfonos: más peso elegante */
 .nvx-footer__links-compact a[href^="tel:"] {
   font-weight: var(--nvx-fw-medium);
   color: var(--nvx-on-dark-88);
 }
 
-/* ── Bottom bar compacta ───────────────────────────────────── */
+/* ── Bottom bar elegante ───────────────────────────────────── */
 .nvx-footer__bottom {
   border-top: var(--nvx-border-hairline) solid var(--nvx-accent-line-dark);
+  padding-top: var(--nvx-space-4);
 }
 
 .nvx-footer__bottom-inner {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;
-  padding: var(--nvx-space-4) var(--nvx-gutter-inner);
+  padding: var(--nvx-space-6) var(--nvx-gutter-inner);
   box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: var(--nvx-space-2);
+  gap: var(--nvx-space-3);
 }
 
 .nvx-footer__copyright {
@@ -145,36 +160,42 @@
   margin: 0;
 }
 
-/* ── Tablet (≤768px) ──────────────────────────────────────── */
+/* ── Tablet (≤768px) - diseño elegante responsive ────────── */
 @media (max-width: 768px) {
+  .nvx-footer__inner {
+    padding: var(--nvx-space-6) var(--nvx-gutter-inner);
+  }
+
   .nvx-footer__main {
     grid-template-columns: 1fr;
-    gap: var(--nvx-space-4);
+    gap: var(--nvx-space-6);
   }
 
   .nvx-footer__bottom-inner {
     flex-direction: column;
     align-items: flex-start;
-    gap: var(--nvx-space-2);
+    gap: var(--nvx-space-3);
+    padding: var(--nvx-space-4) var(--nvx-gutter-inner);
   }
 }
 
-/* ── Móvil (≤480px) ──────────────────────────────────────── */
+/* ── Móvil (≤480px) - minimalismo elegante ────────────────── */
 @media (max-width: 480px) {
   .nvx-footer__inner {
-    padding: var(--nvx-space-4) var(--nvx-gutter-inner);
+    padding: var(--nvx-space-5) var(--nvx-gutter-inner);
   }
 
   .nvx-footer__main {
-    gap: var(--nvx-space-3);
+    gap: var(--nvx-space-4);
   }
 
   .nvx-footer__links-compact {
-    gap: var(--nvx-space-1) var(--nvx-space-2);
+    gap: var(--nvx-space-1) var(--nvx-space-3);
   }
 
   .nvx-footer__bottom-inner {
-    padding: var(--nvx-space-3) var(--nvx-gutter-inner);
+    padding: var(--nvx-space-4) var(--nvx-gutter-inner);
+    gap: var(--nvx-space-2);
   }
 }
 

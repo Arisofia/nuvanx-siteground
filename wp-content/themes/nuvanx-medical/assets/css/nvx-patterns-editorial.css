@@ -26,6 +26,15 @@ section.nvx-hero {
   box-sizing: border-box;
 }
 
+/* Reducir altura para páginas sin media visual (todas excepto home) */
+body:not(.home) .nvx-brand-hero,
+body:not(.home) .nvx-page-hero,
+body:not(.home) .nvx-editorial-hero {
+  min-height: auto;
+  height: auto;
+  padding-block: var(--nvx-space-8);
+}
+
 /* nvx-brand-hero full-bleed width/margin handled by nvx-site-layout.css */
 
 .nvx-brand-hero .nvx-brand-hero__inner,
@@ -46,8 +55,40 @@ section.nvx-hero {
 }
 
 /* Hero media oculto - eliminar imágenes de encabezados */
-.nvx-brand-hero__media, .nvx-page-hero__media, .nvx-brand-hero .nvx-brand-hero__media, .nvx-page-hero .nvx-brand-hero__media, .nvx-hero .nvx-brand-hero__media, .nvx-brand-hero__copy > .nvx-brand-hero__media, .nvx-hero__copy > .nvx-brand-hero__media, .nvx-page-hero__copy > .nvx-brand-hero__media, .nvx-hero__copy > .nvx-page-hero__media {
+.nvx-brand-hero__media,
+.nvx-page-hero__media,
+.nvx-editorial-hero__media,
+.nvx-hero__media,
+.nvx-brand-hero .nvx-brand-hero__media,
+.nvx-page-hero .nvx-brand-hero__media,
+.nvx-hero .nvx-brand-hero__media,
+.nvx-brand-hero__copy > .nvx-brand-hero__media,
+.nvx-hero__copy > .nvx-brand-hero__media,
+.nvx-page-hero__copy > .nvx-brand-hero__media,
+.nvx-hero__copy > .nvx-page-hero__media,
+.nvx-brand-hero__copy > figure,
+.nvx-page-hero__copy > figure,
+.nvx-hero__copy > figure,
+figure.nvx-brand-hero__media,
+figure.nvx-page-hero__media,
+figure.nvx-hero__media {
+  display: none !important;
+}
+
+/* Eliminar cualquier elemento vacío o transparente en heroes */
+.nvx-brand-hero__inner:empty,
+.nvx-page-hero__inner:empty,
+.nvx-editorial-hero__inner:empty,
+.nvx-hero__inner:empty {
   display: none;
+}
+
+/* Asegurar que los heroes sin media no tengan dimensiones extrañas */
+.nvx-brand-hero:not(:has(.nvx-brand-hero__copy)),
+.nvx-page-hero:not(:has(.nvx-page-hero__copy)),
+.nvx-editorial-hero:not(:has(.nvx-editorial-hero__copy)) {
+  min-height: auto;
+  height: auto;
 }
 
 /* Hero media always wins over body media roles (prevents gray crop line). */

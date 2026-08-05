@@ -6,9 +6,10 @@
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
+  transition: padding-inline 300ms ease;
 }
 
-/* Page content frame: no extra shell wrapper — gutters on section inners only. */
+/* Page content frame: diseño elegante con mejor prose */
 
 /* Content is full-width so heroes fill the viewport like home video */
 .nvx-page__content.nvx-prose {
@@ -16,20 +17,42 @@
   max-width: none;
   margin: 0;
   padding: 0;
+  line-height: 1.7;
+  font-size: var(--nvx-type-body);
+  color: var(--nvx-text-body);
 }
 
-/* Ensure consistent top spacing after hero for all page types */
+.nvx-page__content.nvx-prose p {
+  margin-bottom: var(--nvx-space-4);
+  max-width: 68ch;
+}
+
+.nvx-page__content.nvx-prose h2 {
+  margin-top: var(--nvx-space-8);
+  margin-bottom: var(--nvx-space-3);
+  color: var(--nvx-ink);
+}
+
+.nvx-page__content.nvx-prose h3 {
+  margin-top: var(--nvx-space-6);
+  margin-bottom: var(--nvx-space-2);
+  color: var(--nvx-charcoal);
+}
+
+/* Ensure consistent top spacing after hero for all page types - más elegante */
 .nvx-page__content > .nvx-brand-section:first-of-type,
 .nvx-brand-page > .nvx-brand-section:first-of-type {
-  padding-top: var(--nvx-space-8);
+  padding-top: var(--nvx-space-10);
 }
 
 /* Theme hero is a direct child of article (outside shell) */
 
-/* Body sections after a full-bleed hero keep readable gutters */
+/* Body sections after a full-bleed hero keep readable gutters - diseño elegante */
 .nvx-page__content .nvx-brand-section,
 .nvx-brand-page > .nvx-brand-section {
   width: 100%;
+  padding-block: var(--nvx-pad-section);
+  transition: padding-block 300ms ease;
 }
 
 .nvx-page__content .nvx-brand-section__inner,
@@ -68,6 +91,15 @@
 @media (max-width: 768px) {
   .nvx-brand-page > .nvx-brand-section {
     padding-block: var(--nvx-pad-section-tight);
+  }
+  
+  .nvx-shell, .nvx-brand-section__inner {
+    padding-inline: var(--nvx-space-4);
+  }
+  
+  .nvx-page__content > .nvx-brand-section:first-of-type,
+  .nvx-brand-page > .nvx-brand-section:first-of-type {
+    padding-top: var(--nvx-space-6);
   }
 }
 

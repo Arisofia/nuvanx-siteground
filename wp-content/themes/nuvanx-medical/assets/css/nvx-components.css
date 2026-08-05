@@ -189,8 +189,13 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 @media (max-width: 640px) {
   .nvx-brand-grid--2 > *, .nvx-brand-grid--3 > *, .nvx-brand-grid--4 > * { grid-column: 1 / -1; }
 }
-/* Cards — chrome + parts centralized here (not split with site-layout) */
-.nvx-brand-card__number{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--nvx-ink);color:var(--nvx-light);font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:var(--nvx-fw-medium);margin-bottom:var(--nvx-space-2)}
+/* Cards — chrome + parts centralized here con diseño elegante */
+.nvx-brand-card__number{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:var(--nvx-ink);color:var(--nvx-light);font-family:var(--nvx-sans);font-size:var(--nvx-type-body);font-weight:var(--nvx-fw-medium);margin-bottom:var(--nvx-space-2);transition:transform 160ms ease, box-shadow 160ms ease}
+
+.nvx-brand-card:hover .nvx-brand-card__number {
+  transform: scale(1.1);
+  box-shadow: var(--nvx-shadow-soft);
+}
 .nvx-brand-card__media{margin:calc(-1 * var(--nvx-pad-card)) calc(-1 * var(--nvx-pad-card)) var(--nvx-space-3);overflow:hidden;border-radius:var(--nvx-radius-card) var(--nvx-radius-card) 0 0;background:var(--nvx-surface-base)}
 .nvx-brand-card__media img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:0}
 /* Team / staff portraits — vertical frame, not landscape body crop */

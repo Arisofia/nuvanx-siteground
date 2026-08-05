@@ -82,7 +82,7 @@ section.nvx-hero {
   display: none;
 }
 
-/* Copy column: same shell for every interior page. */
+/* Copy column: mismo shell elegante para cada página interior. */
 .nvx-brand-hero__copy,
 .nvx-editorial-hero__copy,
 .nvx-page-hero__copy,
@@ -101,6 +101,18 @@ section.nvx-hero {
   padding-block: var(--nvx-space-8);
   padding-inline: var(--nvx-gutter-inner);
   color: var(--nvx-light);
+  animation: fadeInUp 600ms ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .nvx-brand-hero__copy::before,
@@ -130,18 +142,22 @@ section.nvx-hero {
   margin-top: 0;
 }
 
-/* Overlay type — beat base ink colors via later cascade + higher specificity */
+/* Overlay type — diseño elegante con mejor tipografía */
 
 .nvx-brand-hero__copy .nvx-title, .nvx-brand-hero__copy .nvx-heading, .nvx-editorial-hero__copy h1, .nvx-page-hero__copy .nvx-title, .nvx-hero__copy .nvx-title {
-  margin: 0 0 0.65em;
-  max-width: 22ch;
+  margin: 0 0 0.85em;
+  max-width: 24ch;
   color: var(--nvx-light);
   text-wrap: balance;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
 }
 
 .nvx-brand-hero__copy .nvx-brand-hero__lead, .nvx-brand-hero__copy .nvx-brand-hero__description, .nvx-brand-hero__copy .nvx-lead, .nvx-brand-hero__copy .nvx-subtitle, .nvx-brand-hero__copy .nvx-hero-subtitle, .nvx-editorial-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-lead, .nvx-page-hero__copy .nvx-subtitle, .nvx-page-hero__copy .nvx-hero-subtitle, .nvx-hero__copy .nvx-subtitle, .nvx-hero__copy .nvx-hero-subtitle, .nvx-hero__copy p {
-  max-width: 42ch;
+  max-width: 48ch;
   color: var(--nvx-text-on-dark-90);
+  line-height: 1.6;
+  letter-spacing: 0.01em;
 }
 
 .nvx-brand-hero__copy .nvx-page__cta {

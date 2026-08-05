@@ -1,0 +1,10 @@
+﻿filtro,valores
+Prioridad,P1 / P2 / P3 / N/D
+Sede,Chamberí / Salamanca–Goya / Ambas / N/D
+Categoría,Tecnología / Protocolo Signature / Contour / Medicina estética
+Situación,no_aparece / aparece_no_convierte / aparece_convierte_bien / N/D
+Demanda,alta / media / baja / N/D
+Ticket,alto / medio / bajo / N/D
+Competencia,alta / media / baja / N/D
+GEO/AI,menciona_nuvanx / menciona_competidores / no_menciona_nadie / no_testado
+Estado de validación,verificado / parcial / N/D

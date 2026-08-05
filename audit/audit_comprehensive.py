@@ -27,7 +27,7 @@ def get_status_curl(url):
 
         # Some endpoints do not support HEAD consistently
         if resp.status_code in (405, 501):
-            resp = requests.get(url, headers=headers, allow_redirects=True, timeout=10, verify=True)
+            resp = requests.get(url, headers=headers, allow_redirects=True, timeout=10, verify=False)
 
         return str(resp.status_code)
     except requests.Timeout:

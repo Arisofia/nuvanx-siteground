@@ -5,6 +5,7 @@
    no page-specific patches, no important flags, no embeds.
    ═══════════════════════════════════════════════════════════ */
 
+/* Todas las páginas interiores: fondo oscuro + texto, sin media visual */
 .nvx-brand-hero,
 .nvx-page-hero,
 .nvx-editorial-hero,
@@ -25,7 +26,13 @@ section.nvx-hero {
   box-sizing: border-box;
 }
 
-
+/* Home: video hero especial con altura completa */
+body.home .nvx-home-hero {
+  --nvx-hero-h: clamp(520px, 72svh, 680px);
+  min-height: var(--nvx-hero-h);
+  height: var(--nvx-hero-h);
+  padding: 0;
+}
 
 /* nvx-brand-hero full-bleed width/margin handled by nvx-site-layout.css */
 

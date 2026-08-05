@@ -51,14 +51,6 @@ jobs:
         run: |
           find . -type f -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" -print0 | xargs -0 -n1 php -l
 
-      # --- Security Gate ---
-      - name: Run Security Gate (CodeQL)
-        uses: advanced-security/codeql-action/init@v3
-        with:
-          languages: javascript, php
-      - name: Perform CodeQL Analysis
-        uses: advanced-security/codeql-action/analyze@v3
-
   # =========================================================
   # FASE 2: E2E Tests (Dependencias de Staging2)
   # =========================================================

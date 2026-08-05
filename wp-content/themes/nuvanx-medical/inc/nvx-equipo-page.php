@@ -419,12 +419,12 @@ function nvx_equipo_other_staff_section_markup( array $other_cards ): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data = nvx_catalog_json_resolved( 'equipo-medico-page.json' )['equipo_staff'] ?? array();
 
-	$html  = '<section class="nvx-brand-section nvx-equipo-staff" aria-labelledby="nvx-equipo-staff-title">';
-	$html .= '<div class="nvx-container">';
+	$html  = '<section class="nvx-brand-section" aria-labelledby="nvx-equipo-staff-title">';
+	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ?? '' ) . '</p>';
-	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-heading">' . esc_html( $data['title'] ?? '' ) . '</h2>';
-	$html .= '<p class="nvx-body">' . esc_html( $data['body'] ?? '' ) . '</p>';
-	$html .= '<div class="nvx-equipo-staff-grid">';
+	$html .= '<h2 id="nvx-equipo-staff-title" class="nvx-brand-title">' . esc_html( $data['title'] ?? '' ) . '</h2>';
+	$html .= '<p class="nvx-brand-lead">' . esc_html( $data['body'] ?? '' ) . '</p>';
+	$html .= '<div class="nvx-brand-grid nvx-brand-grid--3">';
 	foreach ( $other_cards as $card ) {
 		$card = nvx_equipo_normalize_staff_card( $card );
 		if ( '' !== $card ) {
@@ -448,30 +448,30 @@ function nvx_equipo_render_items_section( array $section ): string {
 	$items         = $section['items'] ?? array();
 
 	$html  = '<section class="' . esc_attr( $section_class ) . '" aria-labelledby="' . esc_attr( $section_id ) . '">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-brand-section__inner">';
 	if ( '' !== $kicker ) {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';
 	}
 	if ( '' !== $heading ) {
-		$html .= '<h2 id="' . esc_attr( $section_id ) . '" class="nvx-heading">' . esc_html( $heading ) . '</h2>';
+		$html .= '<h2 id="' . esc_attr( $section_id ) . '" class="nvx-brand-title">' . esc_html( $heading ) . '</h2>';
 	}
 	if ( '' !== $lead ) {
-		$html .= '<p class="nvx-body">' . esc_html( $lead ) . '</p>';
+		$html .= '<p class="nvx-brand-lead">' . esc_html( $lead ) . '</p>';
 	}
 
 	if ( ! empty( $items ) ) {
-		$html .= '<ul class="nvx-brand-card-grid" role="list">';
+		$html .= '<div class="nvx-brand-grid nvx-brand-grid--2">';
 		foreach ( $items as $item ) {
-			$html .= '<li class="nvx-brand-card">';
+			$html .= '<div class="nvx-brand-card">';
 			if ( ! empty( $item['title'] ) ) {
-				$html .= '<h3 class="nvx-brand-card__title">' . esc_html( $item['title'] ) . '</h3>';
+				$html .= '<h3 class="nvx-brand-subtitle">' . esc_html( $item['title'] ) . '</h3>';
 			}
 			if ( ! empty( $item['body'] ) ) {
-				$html .= '<p class="nvx-body">' . esc_html( $item['body'] ) . '</p>';
+				$html .= '<p class="nvx-brand-lead">' . esc_html( $item['body'] ) . '</p>';
 			}
-			$html .= '</li>';
+			$html .= '</div>';
 		}
-		$html .= '</ul>';
+		$html .= '</div>';
 	}
 
 	$html .= '</div></section>';

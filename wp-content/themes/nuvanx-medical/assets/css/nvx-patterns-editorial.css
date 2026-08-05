@@ -32,7 +32,6 @@ section.nvx-hero {
 .nvx-page-hero .nvx-page-hero__inner,
 .nvx-page-hero .nvx-hero__inner,
 .nvx-hero .nvx-hero__inner,
-.nvx-hero .nvx-container,
 .nvx-brand-hero .nvx-shell {
   display: block;
   position: absolute;
@@ -712,41 +711,29 @@ section.nvx-hero {
 }
 
 /* Equipo page structure — aligned profiles + staff */
-.nvx-equipo-editorial {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
 /* Text-only hero when featured image is logo / missing */
-.nvx-equipo-hero--copy-only .nvx-brand-hero__inner {
   grid-template-columns: minmax(0, 1fr);
   max-width: var(--nvx-measure-wide, 72rem);
 }
 
-.nvx-equipo-editorial > .nvx-equipo-director,
-.nvx-equipo-editorial > .nvx-equipo-ivon,
-.nvx-equipo-editorial > .nvx-equipo-fabio {
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
 /* Stack authority sections with consistent vertical rhythm */
-.nvx-equipo-director,
-.nvx-equipo-ivon,
-.nvx-equipo-fabio {
   display: flex;
   flex-direction: column;
   gap: 0;
   padding-block: var(--nvx-pad-section);
 }
 
-.nvx-equipo-director > .nvx-endolift-section,
-.nvx-equipo-ivon > .nvx-endolift-section,
-.nvx-equipo-fabio > .nvx-endolift-section {
   padding-block: 0;
 }
 
-.nvx-equipo-profile-layout {
   display: flex;
   flex-direction: column;
   gap: var(--nvx-space-6);
@@ -761,7 +748,6 @@ section.nvx-hero {
   }
 }
 
-.nvx-equipo-profile-layout__copy {
   min-width: 0;
   max-width: 68ch;
   display: flex;
@@ -770,22 +756,18 @@ section.nvx-hero {
   text-align: left;
 }
 
-.nvx-equipo-profile-layout__copy .nvx-endolift-kicker {
   margin-bottom: 0;
 }
 
-.nvx-equipo-profile-layout__copy .nvx-endolift-heading {
   max-width: 28ch;
   margin-bottom: 0;
 }
 
-.nvx-equipo-profile-layout__copy .nvx-endolift-body {
   margin-top: 0;
   margin-bottom: 0;
 }
 
 /* Portrait frame — win over .nvx-content-figure body media rules */
-.nvx-equipo-portrait.nvx-content-figure {
   display: block;
   margin: 0;
   margin-block: 0;
@@ -800,9 +782,6 @@ section.nvx-hero {
   justify-self: start;
 }
 
-.nvx-equipo-portrait img,
-.nvx-equipo-portrait .nvx-media--doctor,
-.nvx-equipo-portrait.nvx-content-figure img {
   display: block;
   width: 100%;
   height: 100%;
@@ -815,12 +794,9 @@ section.nvx-hero {
 }
 
 /* Staff grid: equal cards, portrait frames, no span-4 leak from team class */
-.nvx-equipo-staff {
   padding-block: clamp(var(--nvx-space-4), 5vw, 56px);
 }
 
-.nvx-equipo-staff-grid .nvx-brand-card,
-.nvx-equipo-staff-grid .nvx-brand-card--team {
   grid-column: auto;
   display: flex;
   flex-direction: column;
@@ -830,9 +806,6 @@ section.nvx-hero {
   gap: var(--nvx-space-2, calc(var(--nvx-space-1) * 1.5));
 }
 
-.nvx-equipo-staff-grid .nvx-brand-card__media,
-.nvx-equipo-staff-grid .nvx-brand-card__media--portrait,
-.nvx-equipo-staff-grid figure.nvx-brand-card__media.nvx-content-figure {
   display: block;
   margin: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
   margin-block: calc(-1 * var(--nvx-pad-card, calc(var(--nvx-space-1) * 2.5))) var(--nvx-space-3, var(--nvx-space-2));
@@ -845,10 +818,6 @@ section.nvx-hero {
   border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5)) 0 0;
 }
 
-.nvx-equipo-staff-grid .nvx-brand-card__media img,
-.nvx-equipo-staff-grid .nvx-brand-card__media--portrait img,
-.nvx-equipo-staff-grid img.nvx-media--doctor,
-.nvx-equipo-staff-grid .nvx-content-figure img {
   display: block;
   width: 100%;
   height: 100%;
@@ -860,22 +829,18 @@ section.nvx-hero {
   border-radius: 0;
 }
 
-.nvx-equipo-staff-grid .nvx-brand-card__kicker {
   margin: 0;
 }
 
-.nvx-equipo-staff-grid .nvx-brand-card__title {
   margin: 0;
   text-align: left;
 }
 
-.nvx-equipo-staff-grid .nvx-brand-card__body {
   flex: 1 1 auto;
   margin: 0;
   text-align: left;
 }
 
-.nvx-equipo-staff-grid .nvx-brand-card__body + .nvx-brand-card__body {
   margin-top: 0;
 }
 
@@ -884,7 +849,6 @@ section.nvx-hero {
 }
 
 /* Equipo — clinical quote */
-.nvx-equipo-blockquote {
   margin: 0 0 var(--nvx-space-4);
   max-width: 40rem;
   padding: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-5));
@@ -892,7 +856,6 @@ section.nvx-hero {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
-.nvx-equipo-blockquote p {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-serif);
   font-size: clamp(1.15rem, 2.2vw, 1.35rem);
@@ -901,7 +864,6 @@ section.nvx-hero {
   color: var(--nvx-ink);
 }
 
-.nvx-equipo-blockquote footer {
   font-family: var(--nvx-sans);
   font-size: 0.875rem;
   letter-spacing: 0.04em;
@@ -913,7 +875,6 @@ section.nvx-hero {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
-.nvx-equipo-blockquote p {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-serif);
   font-size: clamp(1.15rem, 2.2vw, 1.35rem);
@@ -922,7 +883,6 @@ section.nvx-hero {
   color: var(--nvx-ink);
 }
 
-.nvx-equipo-blockquote footer {
   font-family: var(--nvx-sans);
   font-size: 0.875rem;
   letter-spacing: 0.04em;

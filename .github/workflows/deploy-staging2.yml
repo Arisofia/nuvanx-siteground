@@ -274,6 +274,16 @@ jobs:
           test "$deployed_sha" = "$DEPLOY_SHA"
           echo "Verified staging2 marker: $deployed_sha"
 
+      - name: Run browser acceptance tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Running browser acceptance tests against staging2..."
+          cd scripts/staging2
+          npm ci
+          node browser-acceptance.mjs
+          echo "Acceptance tests passed successfully."
+
       - name: Configure SSH for cleanup
         if: always()
         shell: bash

@@ -27,7 +27,7 @@
 figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:var(--nvx-type-caption);font-weight:300;line-height:var(--nvx-lh-caption);color:var(--nvx-text-muted)}
 .nvx-text-link{color:var(--nvx-ink);text-decoration:underline;text-underline-offset:calc(var(--nvx-space-1) / 2);font-family:var(--nvx-sans)}
 .nvx-text-link:hover,.nvx-text-link:focus-visible{color:var(--nvx-accent-muted)}
-/* Icon SVG dimensioning — critical fix for oversized icons */
+/* Icon SVG dimensioning — global icon sizing */
 svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   width: var(--nvx-icon-sm);
   height: var(--nvx-icon-sm);
@@ -37,6 +37,22 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 .icon-whatsapp {
   width: var(--nvx-icon-md);
   height: var(--nvx-icon-md);
+}
+
+/* Numerales globales para tarjetas (no solo landing-valoracion) */
+.nvx-brand-card__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--nvx-ink);
+  color: var(--nvx-light);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  font-weight: var(--nvx-fw-medium);
+  margin-bottom: var(--nvx-space-2);
 }
 
 /* WhatsApp floating plugin containment (creame-whatsapp-me / Joinchat) */
@@ -729,7 +745,9 @@ body.nvx-valoracion-modal-open{
   margin: 0;
 }
 
-.nvx-page--contact .nvx-clinic-card__data .nvx-icon {
+/* Iconos en listas de datos (global, no solo contacto) */
+.nvx-clinic-card__data .nvx-icon,
+.nvx-brand-card__data .nvx-icon {
   width: var(--nvx-icon-xs);
   height: var(--nvx-icon-xs);
   margin-right: var(--nvx-space-1);

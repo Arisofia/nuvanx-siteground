@@ -125,9 +125,11 @@ for i, slug in enumerate(SLUGS):
 
     p_status = get_http_status_curl(p_url)
     s_status = get_http_status_curl(s_url)
-    
-    p_content = get_content_data(p_url) if p_status == '200' else get_content_data(p_url) # try anyway if 200 was missed by curl
-    s_content = get_content_data(s_url) if s_status == '200' else get_content_data(s_url)
+
+    # Always fetch content regardless of status
+    # This helps catch cases where curl status check might be incorrect
+    p_content = get_content_data(p_url)
+    s_content = get_content_data(s_url)
     
     # Recalculate status if content fetch succeeded
     # (Sometimes curl -sI fails but requests.get works)

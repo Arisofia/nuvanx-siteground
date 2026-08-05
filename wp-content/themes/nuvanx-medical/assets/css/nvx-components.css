@@ -660,7 +660,11 @@ body.nvx-valoracion-modal-open{
   font-weight: 300;
 }
 
-/* Signature protocol pages: consistent section spacing */
+/* Signature protocol pages: consistent section spacing and background */
+.nvx-signature-hub {
+  background: var(--nvx-ink);
+}
+
 .nvx-signature-phase-page > .nvx-brand-section {
   padding-block: var(--nvx-pad-section);
 }

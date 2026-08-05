@@ -6,9 +6,10 @@ parameters:
     paths:
         - .
     excludePaths:
-        - vendor
-        - node_modules
-        - tests
+        analyseAndScan:
+            - vendor
+            - node_modules (?)
+            - tests (?)
     ignoreErrors:
         # Ignore filter callback return issues (common in WordPress when modifying objects by reference)
         - '#Filter callback return statement is missing#'

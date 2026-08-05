@@ -276,11 +276,15 @@ jobs:
 
       - name: Run browser acceptance tests
         shell: bash
+        env:
+          EXPECTED_SHA: ${{ github.sha }}
+          BASE_URL: https://staging2.nuvanx.com
         run: |
           set -euo pipefail
           echo "Running browser acceptance tests against staging2..."
           cd scripts/staging2
           npm ci
+          npx playwright install --with-deps chromium
           node browser-acceptance.mjs
           echo "Acceptance tests passed successfully."
 

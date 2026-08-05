@@ -51,16 +51,47 @@ jobs:
         run: |
           find . -type f -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" -print0 | xargs -0 -n1 php -l
 
-
-
-
+      # --- Security Gate ---
+      - name: Run Security Gate (CodeQL)
+        uses: advanced-security/codeql-action/init@v3
+        with:
+          languages: javascript, php
+      - name: Perform CodeQL Analysis
+        uses: advanced-security/codeql-action/analyze@v3
 
   # =========================================================
-  # FASE 2: Despliegue Atómico a SiteGround (Solo en Main)
+  # FASE 2: E2E Tests (Dependencias de Staging2)
+  # =========================================================
+  e2e-tests:
+    name: 🧪 E2E Acceptance Tests
+    needs: audit-and-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E Tests against Production
+        env:
+          BASE_URL: ${{ secrets.PROD_BASE_URL || 'https://nuvanx.com' }}
+          EXPECTED_SHA: ${{ github.sha }}
+        run: |
+          cd scripts/staging2
+          node browser-acceptance.mjs
+
+  # =========================================================
+  # FASE 3: Despliegue Atómico a SiteGround (Solo en Main)
   # =========================================================
   deploy-siteground:
     name: 🚀 Atomic Deploy to SiteGround
-    needs: audit-and-build
+    needs: [audit-and-build, e2e-tests]
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -72,26 +103,45 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
 
-      - name: Añadir Host de SiteGround a Known Hosts
+      - name: Añadir Host de SiteGround a Known Hosts with StrictHostKeyChecking
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -p ${{ secrets.PROD_SSH_PORT || 18765 }} -H ${{ secrets.PROD_SSH_HOST }} >> ~/.ssh/known_hosts || echo "Warning: ssh-keyscan failed, using StrictHostKeyChecking=no"
+          ssh-keyscan -p ${{ secrets.PROD_SSH_PORT || 18765 }} -H ${{ secrets.PROD_SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Sincronización de Archivos vía RSYNC (Staging / Production)
+      - name: Upload theme to production server (temporary location)
         run: |
-          rsync -avz --delete \
-            -e "ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=60 -o ServerAliveCountMax=3" \
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "mkdir -p /tmp/nuvanx-medical-build"
+          rsync -avz \
+            -e "ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes" \
             --exclude='.git*' \
             --exclude='.github*' \
             --exclude='node_modules*' \
             --exclude='tests*' \
             --exclude='playwright*' \
             --exclude='*.log' \
-            ./ ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:${{ secrets.PROD_WP_PATH }}/wp-content/themes/nuvanx/
+            ./wp-content/themes/nuvanx-medical/ \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/tmp/nuvanx-medical-build/
 
-      - name: Purgar Caché del Servidor (Método alternativo)
+      - name: Upload deploy script to production server
         run: |
-          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
-            "cd ${{ secrets.PROD_WP_PATH }} && \
-             wp cache flush && \
-             find wp-content/uploads/siteground-optimizer-assets -name '*.min.css' -delete -o -name '*.min.js' -delete -o -name 'combined-*' -delete || true"
+          scp -P ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes \
+            tools/deploy/deploy-to-prod.sh \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/tmp/
+
+      - name: Execute deployment using deploy-to-prod.sh script
+        run: |
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "bash /tmp/deploy-to-prod.sh \
+              --prod-root ${{ secrets.PROD_WP_PATH }} \
+              --source-theme /tmp/nuvanx-medical-build \
+              --sha ${{ github.sha }} \
+              --confirm"
+
+      - name: Cleanup temporary files
+        run: |
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes \
+            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
+            "rm -f /tmp/deploy-to-prod.sh && rm -rf /tmp/nuvanx-medical-build"

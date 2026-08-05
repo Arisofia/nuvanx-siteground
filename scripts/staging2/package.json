@@ -1,0 +1,13 @@
+{
+  "name": "nuvanx-staging2-acceptance",
+  "version": "1.0.0",
+  "description": "Browser acceptance tests for staging2",
+  "type": "module",
+  "scripts": {
+    "test": "node browser-acceptance.mjs"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.0",
+    "playwright": "^1.48.0"
+  }
+}

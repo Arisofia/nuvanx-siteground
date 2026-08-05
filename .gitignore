@@ -46,6 +46,8 @@ playwright.config.ts
 # Node.js
 package.json
 package-lock.json
+!scripts/staging2/package.json
+!scripts/staging2/package-lock.json
 node_modules/
 eslint.config.js
 

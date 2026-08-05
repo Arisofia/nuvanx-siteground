@@ -13,7 +13,7 @@
 
 /* Content is full-width so heroes fill the viewport like home video */
 .nvx-page__content.nvx-prose,
-.entry-content, .nvx-blog-prose, .nvx-prose {
+.entry-content, .nvx-prose {
   width: 100%;
   max-width: none;
   margin: 0;
@@ -21,15 +21,6 @@
   line-height: 1.7;
   font-size: var(--nvx-type-body);
   color: var(--nvx-text-body);
-}
-
-/* Asegurar que todos los contenedores de contenido tengan el mismo ancho */
-.nvx-page__content, .entry-content, .nvx-blog-article__stage {
-  width: 100%;
-  max-width: var(--nvx-shell);
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
 }
 
 .nvx-page__content.nvx-prose p {

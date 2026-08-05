@@ -31,12 +31,12 @@ body:not(.home) .nvx-brand-hero,
 body:not(.home) .nvx-page-hero,
 body:not(.home) .nvx-editorial-hero,
 body:not(.home) section.nvx-hero {
-  min-height: auto !important;
-  height: auto !important;
-  padding-block: var(--nvx-space-8) !important;
+  min-height: auto;
+  height: auto;
+  padding-block: var(--nvx-space-8);
 }
 
-/* Home mantiene su altura completa */
+/* Home mantiene su altura completa con !important */
 body.home .nvx-home-hero {
   min-height: var(--nvx-hero-h) !important;
   height: var(--nvx-hero-h) !important;
@@ -79,10 +79,10 @@ body:not(.home) .nvx-hero__copy > figure,
 body:not(.home) figure.nvx-brand-hero__media,
 body:not(.home) figure.nvx-page-hero__media,
 body:not(.home) figure.nvx-hero__media {
-  display: none !important;
+  display: none;
 }
 
-/* Home mantiene su video hero */
+/* Home mantiene su video hero con !important */
 body.home .nvx-home-hero__video {
   display: block !important;
 }

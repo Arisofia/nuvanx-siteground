@@ -353,6 +353,85 @@ async function handleCookieConsent(page) {
 }
 
 /**
+ * Tests mobile viewport responsiveness for critical routes
+ * @param {import('playwright').Page} page - The Playwright page instance.
+ * @param {string} route - The route being tested.
+ * @param {string[]} issues - Collection to which detected issues are added.
+ */
+async function testMobileViewport(page, route, issues) {
+  try {
+    console.log(`Testing mobile viewport (375px) for ${route}...`);
+    
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    
+    // Navigate and wait for load
+    await safeGoto(page, `${baseUrl}${route}`);
+    await handleCookieConsent(page);
+    
+    // Check for mobile menu
+    const hasMobileMenu = await page.locator('.nvx-mobile-menu, [data-nvx-mobile-menu], .mobile-menu-toggle').count() > 0;
+    if (!hasMobileMenu && route !== '/') {
+      issues.push(`Mobile viewport: No mobile menu toggle found on ${route}`);
+    }
+    
+    // Check if hero is responsive
+    const hero = await page.locator('.nvx-brand-hero, .nvx-home-hero').first();
+    if (await hero.isVisible()) {
+      const heroBox = await hero.boundingBox();
+      if (heroBox && heroBox.width > 375) {
+        issues.push(`Mobile viewport: Hero width (${heroBox.width}px) exceeds viewport width (375px) on ${route}`);
+      }
+    }
+    
+    console.log('✓ Mobile viewport validated');
+    
+  } catch (error) {
+    issues.push(`Mobile viewport test failed for ${route}: ${error.message}`);
+  }
+}
+
+
+/**
+ * Tests mobile viewport responsiveness for critical routes
+ * @param {import('playwright').Page} page - The Playwright page instance.
+ * @param {string} route - The route being tested.
+ * @param {string[]} issues - Collection to which detected issues are added.
+ */
+async function testMobileViewport(page, route, issues) {
+  try {
+    console.log(`Testing mobile viewport (375px) for ${route}...`);
+    
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+    
+    // Navigate and wait for load
+    await safeGoto(page, `${baseUrl}${route}`);
+    await handleCookieConsent(page);
+    
+    // Check for mobile menu
+    const hasMobileMenu = await page.locator('.nvx-mobile-menu, [data-nvx-mobile-menu], .mobile-menu-toggle').count() > 0;
+    if (!hasMobileMenu && route !== '/') {
+      issues.push(`Mobile viewport: No mobile menu toggle found on ${route}`);
+    }
+    
+    // Check if hero is responsive
+    const hero = await page.locator('.nvx-brand-hero, .nvx-home-hero').first();
+    if (await hero.isVisible()) {
+      const heroBox = await hero.boundingBox();
+      if (heroBox && heroBox.width > 375) {
+        issues.push(`Mobile viewport: Hero width (${heroBox.width}px) exceeds viewport width (375px) on ${route}`);
+      }
+    }
+    
+    console.log('✓ Mobile viewport validated');
+    
+  } catch (error) {
+    issues.push(`Mobile viewport test failed for ${route}: ${error.message}`);
+  }
+}
+
+/**
  * Tests the complete conversion flow: valoración modal → form submit → thank-you page
  * @param {import('playwright').Page} page - The Playwright page instance.
  * @param {string[]} issues - Collection to which detected issues are added.
@@ -852,6 +931,23 @@ async function run() {
     [...conversionIssues, ...thankYouIssues].forEach(i => console.error(`   - ${i}`));
   } else {
     console.log('✅ Conversion Flow Tests PASS');
+  }
+
+  // Run mobile viewport tests for critical routes (P2-7 from Antigravity audit)
+  console.log('\n=== Running Mobile Viewport Tests (375px) ===');
+  const mobileCriticalRoutes = ['/', '/endolift-facial-papada-mandibula/', '/contacto/', '/madrid/valoracion/'];
+  for (const route of mobileCriticalRoutes) {
+    const mobilePage = await context.newPage();
+    const mobileIssues = [];
+    await testMobileViewport(mobilePage, route, mobileIssues);
+    if (mobileIssues.length > 0) {
+      totalFailures += mobileIssues.length;
+      console.error(`❌ Mobile viewport FAILED for ${route}:`);
+      mobileIssues.forEach(i => console.error(`   - ${i}`));
+    } else {
+      console.log(`✅ Mobile viewport PASS for ${route}`);
+    }
+    await mobilePage.close();
   }
 
   await browser.close();

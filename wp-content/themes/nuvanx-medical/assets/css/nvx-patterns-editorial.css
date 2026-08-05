@@ -498,8 +498,6 @@ body.home .nvx-home-hero__title {
 
 
 
-
-
 /* ═══════════════════════════════════════════════════════════
    ENDOLIFT EDITORIAL PAGE — authority flow
    Treatment surfaces use the canonical palette tokens.
@@ -511,20 +509,6 @@ body.home .nvx-home-hero__title {
   max-width: 48ch;
   margin-top: var(--nvx-space-2);
   color: var(--nvx-text-on-dark-88);
-}
-  font-weight: 400;
-  line-height: var(--nvx-lh-h2);
-  color: var(--nvx-ink);
-}
-
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-text-body);
-}
-
-  max-width: 65ch;
 }
 
 .nvx-fact-panel {
@@ -564,76 +548,11 @@ body.home .nvx-home-hero__title {
   font-weight: var(--nvx-fw-medium);
 }
 
-  margin: var(--nvx-space-6) 0;
-  padding: var(--nvx-space-5) var(--nvx-space-4);
-  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  border-radius: var(--nvx-radius-card);
-  background: var(--nvx-ink);
-  color: var(--nvx-text-on-dark);
-  text-align: center;
-}
-
-  margin: 0 0 var(--nvx-space-2);
-  font-family: var(--nvx-serif);
-  font-size: clamp(1.5rem, 5vw, 2.75rem);
-  letter-spacing: 0.04em;
-  color: var(--nvx-text-on-dark);
-}
-
 /* Step stroke icons — same size/weight as laser/aes brand icons sitewide. */
-
-  width: 100%;
-  height: 100%;
-  display: block;
-}
 
 /* Step index (01, 02…) — single typography across hubs (see global step-n block). */
 
-  margin: 0 0 var(--nvx-space-2);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h3);
-  font-weight: 400;
-}
-
-  margin-top: var(--nvx-space-4);
-}
-
 /* Clinical review byline (E-E-A-T) */
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin: 0 auto var(--nvx-space-4);
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-small, 0.875rem);
-  line-height: 1.5;
-  color: var(--nvx-text-muted, var(--nvx-text-body));
-}
-
-/* Transparent investment block — GEO cite target */
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-}
-
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: clamp(var(--nvx-space-4), 4vw, 2.75rem);
-  font-weight: 400;
-  line-height: 1.1;
-  color: var(--nvx-ink);
-  letter-spacing: -0.02em;
-}
-
-  margin: var(--nvx-space-3) 0;
-  padding-left: calc(var(--nvx-space-1) * 2.5);
-  max-width: 48ch;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-text-body);
-}
-
-  margin-bottom: var(--nvx-space-2);
-}
 
 /* Blog long-form tables/prose: nvx-posts.css (Journal stack). */
 
@@ -730,33 +649,10 @@ body.home .nvx-home-hero__title {
 }
 
 /* Equipo page structure — aligned profiles + staff */
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
 
 /* Text-only hero when featured image is logo / missing */
-  grid-template-columns: minmax(0, 1fr);
-  max-width: var(--nvx-measure-wide, 72rem);
-}
-
-  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
-}
 
 /* Stack authority sections with consistent vertical rhythm */
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding-block: var(--nvx-pad-section);
-}
-
-  padding-block: 0;
-}
-
-  display: flex;
-  flex-direction: column;
-  gap: var(--nvx-space-6);
-}
 
 @media (min-width: 769px) {
   .nvx-equipo-profile-layout {
@@ -768,71 +664,10 @@ body.home .nvx-home-hero__title {
 }
 
 /* Portrait frame — win over .nvx-content-figure body media rules */
-  display: block;
-  margin: 0;
-  margin-block: 0;
-  margin-inline: 0;
-  width: 100%;
-  max-width: 14rem;
-  aspect-ratio: 2 / 3;
-  overflow: hidden;
-  border-radius: var(--nvx-radius-card, calc(var(--nvx-space-1) * 1.5));
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-  box-shadow: var(--nvx-shadow-min, 0 1px 2px var(--nvx-surface-soft));
-  justify-self: start;
-}
-
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-height: 400px;
-  max-width: none;
-  aspect-ratio: 2 / 3;
-  object-fit: cover;
-  object-position: center top;
-  border-radius: 0;
-}
 
 /* Staff grid: equal cards, portrait frames, no span-4 leak from team class */
 
-@media (min-width: 960px) {
-  /* Remaining clinical team (typically 3 after authority profiles) */
-}
-
 /* Equipo — clinical quote */
-
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
-  font-weight: 400;
-  line-height: 1.45;
-  color: var(--nvx-ink);
-}
-
-  font-family: var(--nvx-sans);
-  font-size: 0.875rem;
-  letter-spacing: 0.04em;
-  color: var(--nvx-text-muted, var(--nvx-text-body));
-}
-  max-width: 40rem;
-  padding: clamp(calc(var(--nvx-space-1) * 3.5), 4vw, var(--nvx-space-5));
-  border-left: calc(var(--nvx-space-1) * 0.375) solid var(--nvx-accent-muted);
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-}
-
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: clamp(1.15rem, 2.2vw, 1.35rem);
-  font-weight: 400;
-  line-height: 1.45;
-  color: var(--nvx-ink);
-}
-
-  font-family: var(--nvx-sans);
-  font-size: 0.875rem;
-  letter-spacing: 0.04em;
-  color: var(--nvx-text-muted, var(--nvx-text-body));
-}
 
 .screen-reader-text {
   position: absolute;
@@ -892,82 +727,8 @@ body.home .nvx-home-hero__title {
 }
 
 /* Comparative table Endolift vs surgery */
-  margin: var(--nvx-space-4) 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-  width: 100%;
-  max-width: 52rem;
-  border-collapse: collapse;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body, var(--nvx-space-2));
-  line-height: 1.45;
-  color: var(--nvx-ink);
-}
-
-  padding: calc(var(--nvx-space-1) * 1.5) var(--nvx-space-2);
-  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  text-align: left;
-  vertical-align: top;
-}
-
-  font-size: calc(var(--nvx-space-1) * 1.5);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--nvx-text-muted, var(--nvx-text-body));
-  border-bottom-color: var(--nvx-ink);
-}
-
-  font-weight: var(--nvx-fw-medium);
-  white-space: nowrap;
-}
 
 /* Official PVP table — readable, no retail chrome */
-  margin: var(--nvx-space-4) 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-  width: 100%;
-  max-width: 40rem;
-  border-collapse: collapse;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body, var(--nvx-space-2));
-  line-height: 1.4;
-  color: var(--nvx-ink);
-}
-
-  caption-side: bottom;
-  padding-top: var(--nvx-space-2);
-  text-align: left;
-  font-size: var(--nvx-type-small, 0.875rem);
-  color: var(--nvx-text-muted, var(--nvx-text-body));
-}
-
-  padding: calc(var(--nvx-space-1) * 1.5) var(--nvx-space-2);
-  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  text-align: left;
-  vertical-align: top;
-}
-
-  font-size: calc(var(--nvx-space-1) * 1.5);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--nvx-text-muted, var(--nvx-text-body));
-  border-bottom-color: var(--nvx-ink);
-}
-
-  font-weight: 400;
-  color: var(--nvx-ink);
-}
-
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  font-weight: 500;
-}
 
 /* Action banner: exactamente var(--nvx-space-12) bajo FAQs */
 
@@ -978,9 +739,6 @@ body.home .nvx-home-hero__title {
    Surfaces use the canonical NUVANX palette tokens.
    Section pad: var(--nvx-space-12) mobile / 120px desktop · var(--nvx-space-1) system
    ═══════════════════════════════════════════════════════════ */
-
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-}
 
 /* Laser page classes now use global classes for consistency */
 .nvx-laser-kicker,
@@ -1057,11 +815,6 @@ body.home .nvx-home-hero__title {
   color: var(--nvx-ink);
 }
 
-  display: flex;
-  flex-direction: column;
-  gap: var(--nvx-space-4);
-}
-
 @media (min-width: 769px) {
   .nvx-laser-platform {
     display: grid;
@@ -1071,131 +824,13 @@ body.home .nvx-home-hero__title {
   }
 }
 
-  display: flex;
-  align-items: center;
-  gap: var(--nvx-space-2);
-}
-
 /* Replaced by global .nvx-body */
-
-  width: 100%;
-  height: 100%;
-  display: block;
-}
 
 /* Enfoque — 3 columnas, gutter var(--nvx-space-4) */
 
-  padding-top: var(--nvx-space-2);
-  border-top: var(--nvx-border-hairline) solid var(--nvx-border-soft);
-}
-
-  margin: 0 0 var(--nvx-space-2);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h3);
-  font-weight: 400;
-  color: var(--nvx-ink);
-}
-
 /* Plataformas — tarjeta asimétrica, gutter var(--nvx-space-6) */
-  display: grid;
-  gap: var(--nvx-space-6);
-}
-
-  display: flex;
-  align-items: center;
-  gap: var(--nvx-space-2);
-  margin-bottom: var(--nvx-space-2);
-}
-
-  margin-bottom: 0;
-}
-
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: var(--nvx-type-h3);
-  font-weight: 400;
-  color: var(--nvx-ink);
-}
-
-  margin: var(--nvx-space-3) 0 0;
-}
-
-  font-family: var(--nvx-sans);
-  font-size: calc(var(--nvx-space-1) * 1.5);
-  font-weight: var(--nvx-fw-medium);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-decoration: underline;
-  text-underline-offset: calc(var(--nvx-space-1) / 2);
-  color: var(--nvx-ink);
-}
-
-  color: var(--nvx-accent-muted);
-}
-
-  padding: var(--nvx-space-4);
-  background: var(--nvx-surface-base, var(--nvx-color-paper));
-  border: var(--nvx-border-hairline) solid var(--nvx-surface-soft);
-}
-
-  margin: 0 0 var(--nvx-space-1);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-micro);
-  font-weight: var(--nvx-fw-bold);
-  letter-spacing: var(--nvx-track-data);
-  text-transform: uppercase;
-  color: var(--nvx-accent-muted);
-}
-
-  margin-bottom: 0;
-}
-
-  margin-top: var(--nvx-space-3);
-}
-
-  margin-top: var(--nvx-space-4);
-}
-
-  margin: var(--nvx-space-4) 0 0;
-  padding: var(--nvx-space-5) var(--nvx-space-4);
-  background: var(--nvx-ink);
-  border: var(--nvx-border-hairline) solid var(--nvx-color-line);
-  border-radius: var(--nvx-radius-card, 2px);
-  text-align: center;
-}
-
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-serif);
-  font-size: clamp(1.375rem, 4vw, var(--nvx-space-5));
-  letter-spacing: 0.04em;
-  color: var(--nvx-text-on-dark);
-}
-
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  vertical-align: middle;
-  line-height: 1.15;
-}
-
-  padding: 0 0.35em 0.15em;
-  border-bottom: 1px solid var(--nvx-highlight-soft);
-}
-
-  padding: 0.15em 0.35em 0;
-}
-
-  margin: 0 auto;
-  max-width: 58ch;
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-caption2);
-  line-height: 1.6;
-  color: var(--nvx-text-on-dark-78);
-  text-align: left;
-}
 
 /* Action banner — var(--nvx-space-12) gap after FAQs */
-
 
 
 
@@ -1522,7 +1157,6 @@ body.home .nvx-home-hero__title {
 
 
 
-
 /* E-E-A-T Medical Byline */
 .nvx-medical-byline { display: flex; align-items: center; gap: calc(var(--nvx-space-1) * 1.5); margin-top: var(--nvx-space-2); margin-bottom: var(--nvx-space-3); font-size: 0.875rem; color: var(--nvx-text-muted); }
 .nvx-medical-byline--border { padding-bottom: var(--nvx-space-2); border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line); margin-bottom: var(--nvx-space-4); }
@@ -1550,6 +1184,7 @@ body.home .nvx-home-hero__title {
 .nvx-que-exigir-cta-text { margin-bottom: var(--nvx-space-4); }
 
 /* Endolift Page */
+
 
 
 /* CTA Banner (migrated from nvx-footer.css) */

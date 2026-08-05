@@ -592,13 +592,17 @@ body.nvx-valoracion-modal-open{
 .nvx-strategy-intro {
   padding-block: var(--nvx-space-8) var(--nvx-space-6);
   max-width: var(--nvx-measure, 68ch);
+  background: var(--nvx-ink);
 }
-.nvx-strategy-intro .nvx-brand-kicker {
+.nvx-strategy-intro .nvx-brand-kicker,
+.nvx-strategy-intro .nvx-eyebrow {
   margin: 0 0 var(--nvx-space-2);
+  color: var(--nvx-accent-muted);
 }
 .nvx-strategy-intro .nvx-brand-lead {
   margin: var(--nvx-space-3) 0 0;
   max-width: var(--nvx-measure-lead);
+  color: var(--nvx-text-on-dark-72);
 }
 .nvx-strategy-title {
   margin: 0 0 var(--nvx-space-2);
@@ -607,7 +611,7 @@ body.nvx-valoracion-modal-open{
   font-weight: var(--nvx-fw-heading);
   line-height: var(--nvx-lh-h1);
   letter-spacing: var(--nvx-track-h1);
-  color: var(--nvx-ink);
+  color: var(--nvx-light);
   max-width: 22ch;
   text-wrap: balance;
 }

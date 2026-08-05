@@ -459,11 +459,9 @@ section.nvx-hero {
   color: var(--nvx-text-on-dark-88);
 }
 
-.nvx-endolift-biophysics {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
-.nvx-endolift-kicker {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
@@ -473,7 +471,6 @@ section.nvx-hero {
   color: var(--nvx-accent-muted);
 }
 
-.nvx-endolift-heading {
   margin: 0 0 var(--nvx-space-4);
   max-width: 22ch;
   font-family: var(--nvx-serif);
@@ -483,7 +480,6 @@ section.nvx-hero {
   color: var(--nvx-ink);
 }
 
-.nvx-endolift-body {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-body);
@@ -491,7 +487,6 @@ section.nvx-hero {
   color: var(--nvx-text-body);
 }
 
-.nvx-endolift-body--measure {
   max-width: 65ch;
 }
 
@@ -532,7 +527,6 @@ section.nvx-hero {
   font-weight: var(--nvx-fw-medium);
 }
 
-.nvx-endolift-formula {
   margin: var(--nvx-space-6) 0;
   padding: var(--nvx-space-5) var(--nvx-space-4);
   border: var(--nvx-border-hairline) solid var(--nvx-color-line);
@@ -542,7 +536,6 @@ section.nvx-hero {
   text-align: center;
 }
 
-.nvx-endolift-formula__eq {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-serif);
   font-size: clamp(1.5rem, 5vw, 2.75rem);
@@ -550,7 +543,6 @@ section.nvx-hero {
   color: var(--nvx-text-on-dark);
 }
 
-.nvx-endolift-formula__cap {
   margin: 0 auto;
   max-width: 52ch;
   font-family: var(--nvx-sans);
@@ -559,12 +551,10 @@ section.nvx-hero {
   color: var(--nvx-text-on-dark-78);
 }
 
-.nvx-endolift-effect {
   padding-top: var(--nvx-space-3);
   border-top: var(--nvx-border-hairline) solid var(--nvx-color-line);
 }
 
-.nvx-endolift-effect__title {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
@@ -574,7 +564,6 @@ section.nvx-hero {
 
 /* Step stroke icons — same size/weight as laser/aes brand icons sitewide. */
 
-.nvx-endolift-step__icon svg {
   width: 100%;
   height: 100%;
   display: block;
@@ -582,19 +571,16 @@ section.nvx-hero {
 
 /* Step index (01, 02…) — single typography across hubs (see global step-n block). */
 
-.nvx-endolift-step__title {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
   font-weight: 400;
 }
 
-.nvx-endolift-faq-list {
   margin-top: var(--nvx-space-4);
 }
 
 /* Clinical review byline (E-E-A-T) */
-.nvx-endolift-reviewed {
   width: var(--nvx-shell);
   max-width: 100%;
   margin: 0 auto var(--nvx-space-4);
@@ -607,11 +593,9 @@ section.nvx-hero {
 }
 
 /* Transparent investment block — GEO cite target */
-.nvx-endolift-investment {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
-.nvx-endolift-price {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-serif);
   font-size: clamp(var(--nvx-space-4), 4vw, 2.75rem);
@@ -621,7 +605,6 @@ section.nvx-hero {
   letter-spacing: -0.02em;
 }
 
-.nvx-endolift-price-includes {
   margin: var(--nvx-space-3) 0;
   padding-left: calc(var(--nvx-space-1) * 2.5);
   max-width: 48ch;
@@ -631,7 +614,6 @@ section.nvx-hero {
   color: var(--nvx-text-body);
 }
 
-.nvx-endolift-price-includes li {
   margin-bottom: var(--nvx-space-2);
 }
 
@@ -1011,13 +993,11 @@ section.nvx-hero {
 }
 
 /* Comparative table Endolift vs surgery */
-.nvx-endolift-compare-wrap {
   margin: var(--nvx-space-4) 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.nvx-endolift-compare-table {
   width: 100%;
   max-width: 52rem;
   border-collapse: collapse;
@@ -1027,15 +1007,12 @@ section.nvx-hero {
   color: var(--nvx-ink);
 }
 
-.nvx-endolift-compare-table th,
-.nvx-endolift-compare-table td {
   padding: calc(var(--nvx-space-1) * 1.5) var(--nvx-space-2);
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   text-align: left;
   vertical-align: top;
 }
 
-.nvx-endolift-compare-table thead th {
   font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: var(--nvx-fw-medium);
   letter-spacing: 0.06em;
@@ -1044,19 +1021,16 @@ section.nvx-hero {
   border-bottom-color: var(--nvx-ink);
 }
 
-.nvx-endolift-compare-table tbody th {
   font-weight: var(--nvx-fw-medium);
   white-space: nowrap;
 }
 
 /* Official PVP table — readable, no retail chrome */
-.nvx-endolift-price-table-wrap {
   margin: var(--nvx-space-4) 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.nvx-endolift-price-table {
   width: 100%;
   max-width: 40rem;
   border-collapse: collapse;
@@ -1066,7 +1040,6 @@ section.nvx-hero {
   color: var(--nvx-ink);
 }
 
-.nvx-endolift-price-table__cap {
   caption-side: bottom;
   padding-top: var(--nvx-space-2);
   text-align: left;
@@ -1074,15 +1047,12 @@ section.nvx-hero {
   color: var(--nvx-text-muted, var(--nvx-text-body));
 }
 
-.nvx-endolift-price-table th,
-.nvx-endolift-price-table td {
   padding: calc(var(--nvx-space-1) * 1.5) var(--nvx-space-2);
   border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line);
   text-align: left;
   vertical-align: top;
 }
 
-.nvx-endolift-price-table thead th {
   font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: var(--nvx-fw-medium);
   letter-spacing: 0.06em;
@@ -1091,12 +1061,10 @@ section.nvx-hero {
   border-bottom-color: var(--nvx-ink);
 }
 
-.nvx-endolift-price-table tbody th {
   font-weight: 400;
   color: var(--nvx-ink);
 }
 
-.nvx-endolift-price-table tbody td {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   font-weight: 500;
@@ -1112,11 +1080,12 @@ section.nvx-hero {
    Section pad: var(--nvx-space-12) mobile / 120px desktop · var(--nvx-space-1) system
    ═══════════════════════════════════════════════════════════ */
 
-.nvx-laser-platforms {
   background: var(--nvx-surface-base, var(--nvx-color-paper));
 }
 
-.nvx-laser-kicker {
+/* Laser page classes now use global classes for consistency */
+.nvx-laser-kicker,
+.nvx-brand-kicker {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-kicker);
@@ -1126,7 +1095,8 @@ section.nvx-hero {
   color: var(--nvx-accent-muted);
 }
 
-.nvx-laser-heading {
+.nvx-laser-heading,
+.nvx-brand-title {
   margin: 0 0 var(--nvx-space-6);
   max-width: 22ch;
   font-family: var(--nvx-serif);
@@ -1136,7 +1106,58 @@ section.nvx-hero {
   color: var(--nvx-ink);
 }
 
-.nvx-laser-platform {
+.nvx-laser-body,
+.nvx-body {
+  margin: 0 0 var(--nvx-space-3);
+  font-family: var(--nvx-sans);
+  font-size: var(--nvx-type-body);
+  line-height: var(--nvx-lh-body);
+  color: var(--nvx-ink-muted);
+}
+
+.nvx-laser-focus-grid {
+  display: grid;
+  gap: var(--nvx-space-6);
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.nvx-laser-pillar,
+.nvx-brand-card {
+  padding: var(--nvx-space-4);
+  background: var(--nvx-surface-base, var(--nvx-color-paper));
+  border: var(--nvx-border-hairline) solid var(--nvx-border-soft);
+}
+
+.nvx-laser-pillar__title,
+.nvx-brand-subtitle {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  color: var(--nvx-ink);
+}
+
+.nvx-laser-platform-list {
+  display: grid;
+  gap: var(--nvx-space-6);
+}
+
+.nvx-laser-platform,
+.nvx-brand-card {
+  padding: var(--nvx-space-4);
+  background: var(--nvx-surface-base, var(--nvx-color-paper));
+  border: var(--nvx-border-hairline) solid var(--nvx-border-soft);
+}
+
+.nvx-laser-platform__title,
+.nvx-brand-subtitle {
+  margin: 0 0 var(--nvx-space-2);
+  font-family: var(--nvx-serif);
+  font-size: var(--nvx-type-h3);
+  font-weight: 400;
+  color: var(--nvx-ink);
+}
+
   display: flex;
   flex-direction: column;
   gap: var(--nvx-space-4);
@@ -1151,21 +1172,13 @@ section.nvx-hero {
   }
 }
 
-.nvx-laser-platform__head {
   display: flex;
   align-items: center;
   gap: var(--nvx-space-2);
 }
 
-.nvx-laser-body {
-  margin: 0 0 var(--nvx-space-3);
-  font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-body);
-  line-height: var(--nvx-lh-body);
-  color: var(--nvx-ink-muted);
-}
+/* Replaced by global .nvx-body */
 
-.nvx-laser-icon svg {
   width: 100%;
   height: 100%;
   display: block;
@@ -1173,12 +1186,10 @@ section.nvx-hero {
 
 /* Enfoque — 3 columnas, gutter var(--nvx-space-4) */
 
-.nvx-laser-pillar {
   padding-top: var(--nvx-space-2);
   border-top: var(--nvx-border-hairline) solid var(--nvx-border-soft);
 }
 
-.nvx-laser-pillar__title {
   margin: 0 0 var(--nvx-space-2);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
@@ -1187,23 +1198,19 @@ section.nvx-hero {
 }
 
 /* Plataformas — tarjeta asimétrica, gutter var(--nvx-space-6) */
-.nvx-laser-platform-list {
   display: grid;
   gap: var(--nvx-space-6);
 }
 
-.nvx-laser-platform__head {
   display: flex;
   align-items: center;
   gap: var(--nvx-space-2);
   margin-bottom: var(--nvx-space-2);
 }
 
-.nvx-laser-platform__head .nvx-laser-icon {
   margin-bottom: 0;
 }
 
-.nvx-laser-platform__title {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-serif);
   font-size: var(--nvx-type-h3);
@@ -1211,11 +1218,9 @@ section.nvx-hero {
   color: var(--nvx-ink);
 }
 
-.nvx-laser-platform__link-wrap {
   margin: var(--nvx-space-3) 0 0;
 }
 
-.nvx-laser-platform__link {
   font-family: var(--nvx-sans);
   font-size: calc(var(--nvx-space-1) * 1.5);
   font-weight: var(--nvx-fw-medium);
@@ -1226,18 +1231,14 @@ section.nvx-hero {
   color: var(--nvx-ink);
 }
 
-.nvx-laser-platform__link:hover,
-.nvx-laser-platform__link:focus-visible {
   color: var(--nvx-accent-muted);
 }
 
-.nvx-laser-platform__meta {
   padding: var(--nvx-space-4);
   background: var(--nvx-surface-base, var(--nvx-color-paper));
   border: var(--nvx-border-hairline) solid var(--nvx-surface-soft);
 }
 
-.nvx-laser-meta-label {
   margin: 0 0 var(--nvx-space-1);
   font-family: var(--nvx-sans);
   font-size: var(--nvx-type-micro);
@@ -1247,19 +1248,15 @@ section.nvx-hero {
   color: var(--nvx-accent-muted);
 }
 
-.nvx-laser-platform__meta .nvx-laser-body:last-child {
   margin-bottom: 0;
 }
 
-.nvx-laser-meta-label--spaced {
   margin-top: var(--nvx-space-3);
 }
 
-.nvx-laser-faq-list {
   margin-top: var(--nvx-space-4);
 }
 
-.nvx-laser-formula {
   margin: var(--nvx-space-4) 0 0;
   padding: var(--nvx-space-5) var(--nvx-space-4);
   background: var(--nvx-ink);
@@ -1268,7 +1265,6 @@ section.nvx-hero {
   text-align: center;
 }
 
-.nvx-laser-formula__eq {
   margin: 0 0 var(--nvx-space-3);
   font-family: var(--nvx-serif);
   font-size: clamp(1.375rem, 4vw, var(--nvx-space-5));
@@ -1276,7 +1272,6 @@ section.nvx-hero {
   color: var(--nvx-text-on-dark);
 }
 
-.nvx-laser-formula__frac {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -1284,16 +1279,13 @@ section.nvx-hero {
   line-height: 1.15;
 }
 
-.nvx-laser-formula__num {
   padding: 0 0.35em 0.15em;
   border-bottom: 1px solid var(--nvx-highlight-soft);
 }
 
-.nvx-laser-formula__den {
   padding: 0.15em 0.35em 0;
 }
 
-.nvx-laser-formula__cap {
   margin: 0 auto;
   max-width: 58ch;
   font-family: var(--nvx-sans);
@@ -1659,7 +1651,6 @@ section.nvx-hero {
 .nvx-que-exigir-cta-text { margin-bottom: var(--nvx-space-4); }
 
 /* Endolift Page */
-.nvx-endolift-postop-list { margin-top: var(--nvx-space-4); margin-bottom: var(--nvx-space-4); }
 
 
 /* CTA Banner (migrated from nvx-footer.css) */

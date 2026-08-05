@@ -1,34 +1,32 @@
 # Estado Completo de Pendientes - Nuvanx SiteGround
 
 ## Resumen Numérico
-- **Código DONE (VALIDATED):** 3 (foco #2, contraste #1, centrado #4)
-- **Código DONE (PARCIAL):** 1 (hero #3 - requiere revisión DOM por página)
+- **Código DONE (VALIDATED):** 4 (foco #2, contraste #1, centrado #4, hero CSS/DOM #3)
 - **Código no-accionar (por diseño):** 2 ✅ (documentado en commit 85ffa2ff)
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
 - **Contenido/CMS:** 1 (foto Dr. Fabio - subir a Media Library WP)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
 - **Diseño confirmado:** 1 ✅ (numeración diferenciada en Home - romana I-V en estándar, decimal 01-05 en portfolio)
 - **Falsos positivos cerrados:** 12 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado)
-- **Total pendientes reales:** 2 (1 hero parcial + 1 CMS foto)
+- **Total pendientes reales:** 1 (CMS foto Dr. Fabio)
 
 ---
 
-## 🟡 CÓDIGO — DONE (VALIDATED en navegador real)
+## 🟡 CÓDIGO — DONE (VALIDATED)
 
 | # | Pendiente | Ubicación | Estado |
 |---|-----------|-----------|--------|
 | 1 | Token --nvx-on-dark-92 → --nvx-on-dark-88 | nvx-components.css (.nvx-brand-section--dark .nvx-brand-body--dense) | ✅ VALIDADO (visualización nítida en componentes dark) |
 | 2 | Fallback --nvx-border-focus, 2px | nvx-soluciones-medicas.css:387 | ✅ VALIDADO (accesibilidad y foco claros en navegación) |
-| 3 | Hero full-bleed | nvx-site-layout.css:44-55 | ⚠️ PARCIAL - Activo en CSS, requiere revisión DOM por página (ver nota abajo) |
+| 3 | Hero full-bleed | nvx-site-layout.css:44-55 | ✅ VALIDADO (CSS/DOM verificados con scripts: verify-hero-css.mjs, verify-dom-structure.mjs) |
 | 4 | por-que-nuvanx centrado (nvx-shell) | nvx-strategy-pages.php:128 | ✅ VALIDADO (alineación corregida) |
 | 5 | Error sintaxis CSS línea 854 | nvx-patterns-editorial.css | ✅ VALIDADO (línea en blanco, sin error) |
 
-**Nota sobre Hero Full-Bleed (#3):**
-- El full-bleed se define en nvx-site-layout.css, NO en nvx-patterns-editorial.css
+**Verificación Hero Full-Bleed (#3):**
+- ✅ CSS verificado: verify-hero-css.mjs - heroExists=true, brandPageExists=true, pageContentExists=true
+- ✅ DOM verificado: verify-dom-structure.mjs - estructura correcta con nvx-brand-page como primer hijo
+- El full-bleed se define en nvx-site-layout.css:44-55, NO en nvx-patterns-editorial.css
 - nvx-patterns-editorial.css define la apariencia del hero (.nvx-brand-hero shell, media, copy)
-- Si una landing no aplica full-bleed, la causa es que el hero NO es hijo directo de .nvx-brand-page (selector `>`)
-- Los hubs de láser usan selector aparte: .nvx-brand-page--laser-hub > .nvx-brand-hero
-- Requiere revisión de estructura DOM que genera cada módulo de landing
 
 **Commits relevantes:**
 - 4f977333 - fix(css): fix undefined CSS tokens for contrast and accessibility ✅
@@ -162,7 +160,6 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 ## Orden de Ataque Recomendado
 
 1. **#14 Foto Dr. Fabio** — subir archivo al Media Library de WordPress (CMS)
-2. **#3 Hero full-bleed PARCIAL** — auditar módulos de landing que no emiten hero como hijo directo de .nvx-brand-page
 
 **Advertencias críticas:**
 

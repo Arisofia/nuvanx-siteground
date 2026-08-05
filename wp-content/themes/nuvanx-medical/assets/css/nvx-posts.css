@@ -28,7 +28,7 @@ body.nvx-blog-context {
 .nvx-blog-grid {
 	display: grid;
 	grid-template-columns: repeat(12, minmax(280px, 1fr));
-	gap: var(--nvx-border-hairline);
+	gap: var(--nvx-gap-base);
 	background: var(--nvx-color-line);
 	align-items: stretch;
 }

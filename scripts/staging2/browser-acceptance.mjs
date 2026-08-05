@@ -362,7 +362,7 @@ async function testConversionFlow(page, issues) {
     console.log('Testing conversion flow on /madrid/valoracion/...');
     
     // Navigate to valoración page
-    await safeGoto(page, 'https://staging2.nuvanx.com/madrid/valoracion/');
+    await safeGoto(page, `${baseUrl}/madrid/valoracion/`);
     await handleCookieConsent(page);
     
     // Check if valoración modal or form exists
@@ -420,7 +420,7 @@ async function testThankYouPage(page, issues) {
     console.log('Testing thank-you page on /gracias/...');
     
     // Navigate to thank-you page
-    await safeGoto(page, 'https://staging2.nuvanx.com/gracias/');
+    await safeGoto(page, `${baseUrl}/gracias/`);
     await handleCookieConsent(page);
     
     // Check for thank-you content

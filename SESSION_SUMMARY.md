@@ -1,17 +1,17 @@
 # Estado Completo de Pendientes - Nuvanx SiteGround
 
 ## Resumen Numérico
-- **Código DONE (VALIDATED):** 3 (foco #2, contraste #1, centrado #4)
+- **Código DONE (VALIDATED):** 4 (foco #2, contraste #1, centrado #4, journal/blog hero background)
 - **Código pendiente de verificar:** 1 (hero CSS/DOM #3 - depende de confirmación sincronización entorno/código)
 - **Código no-accionar (por diseño):** 4 ✅ (numeración romana/decimal, nvx-posts.css, protocolos-signature, BTL detail pages)
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
 - **Contenido/CMS:** 1 (foto Dr. Fabio - subir a Media Library WP)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
-- **Diseño confirmado:** 3 ✅ (numeración diferenciada en Home + protocolos-signature usa clases globales + BTL usa clases globales)
-- **Falsos positivos cerrados:** 13 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado, nvx-posts.css diseño intencional, protocolos-signature diseño intencional)
-- **Problemas específicos:** 1 (journal/blog contraste y márgenes - con síntoma observable en URLs concretas)
+- **Diseño confirmado:** 4 ✅ (numeración diferenciada en Home + protocolos-signature usa clases globales + BTL usa clases globales + equipo médico retratos verticales intencionales)
+- **Falsos positivos cerrados:** 14 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado, nvx-posts.css diseño intencional, protocolos-signature diseño intencional, protocolos signature fotos - no hay fotos en diseño)
+- **Problemas específicos:** 0 ✅ (journal/blog contraste corregido + protocolos signature/equipo médico fotos - diseño intencional)
 - **Ítems abiertos no resueltos:** 4 (routes.json no verificable, Playwright inconcluso, Foto Dr. Fabio CMS, Control Tower/CSVs)
-- **Total pendientes reales:** 2 (CMS foto Dr. Fabio + journal/blog contraste y márgenes)
+- **Total pendientes reales:** 1 (CMS foto Dr. Fabio)
 
 ---
 
@@ -304,7 +304,21 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
   - wp-content/themes/nuvanx-medical/assets/css/nvx-posts.css:215-241 define texto para fondo oscuro (--nvx-text-on-dark-72, --nvx-text-on-dark-82, --nvx-text-on-dark)
   - wp-content/themes/nuvanx-medical/assets/css/nvx-posts.css:9-18 define `.nvx-blog-single` con `width: 100%`, `max-width: 100%`, `margin: 0`, `padding: 0` (full-bleed intencional)
   - Falta definición de fondo oscuro para `.nvx-blog-hero` en nvx-posts.css
-- **Acción pendiente:** Agregar `background: var(--nvx-ink);` a `.nvx-blog-hero` y evaluar si se requiere contenedor con márgenes para el contenido
+- **Acción completada:** Agregado `background: var(--nvx-ink);` a `.nvx-blog-hero` en nvx-posts.css (commit a20cb915)
+
+**Protocolos Signature — Alineación y tamaño de fotos:**
+- **URLs afectadas:** https://staging2.nuvanx.com/protocolos-signature/, https://staging2.nuvanx.com/tratamiento-postparto-abdomen-contorno-corporal-madrid/, https://staging2.nuvanx.com/remodelacion-corporal-laser-madrid/
+- **Síntoma observable:** No se observan fotos visibles en el viewport principal de estas páginas. Son páginas de contenido editorial/navegación sin imágenes prominentes.
+- **Causa raíz:** Estas páginas no tienen fotos en el diseño actual - son páginas de texto y navegación.
+- **Estado:** No hay problema de alineación/tamaño de fotos en estas URLs específicas.
+
+**Equipo Médico — Alineación y tamaño de fotos:**
+- **URL afectada:** https://staging2.nuvanx.com/equipo-medico/
+- **Síntoma observable:** Fotos de médicos visibles con diseño de retrato vertical (aspect-ratio 5/6)
+- **Causa raíz:**
+  - wp-content/themes/nuvanx-medical/assets/css/nvx-components.css:157 define `.nvx-media--doctor` con `aspect-ratio: 5/6; object-fit: cover; max-height: 600px; min-height: 400px; object-position: center top;`
+  - wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css:774-779 define `.nvx-equipo-profile-layout` con grid de 14rem para foto y 1fr para contenido
+- **Estado:** Las fotos están diseñadas intencionalmente como retratos verticales con las dimensiones especificadas. No se observan fotos "demasiado grandes" o mal alineadas en el diseño actual.
 
 **BTL detail pages (EXION/EMFUSION):**
 - wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php:62-65 excluye explícitamente posts (is_single())

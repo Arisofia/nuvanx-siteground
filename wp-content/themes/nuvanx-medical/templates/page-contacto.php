@@ -37,7 +37,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 	: 'https://www.google.com/maps/search/?api=1&query=NUVANX%20C%2F%20de%20Fern%C3%A1n%20Gonz%C3%A1lez%2026%2028009%20Madrid';
 ?>
 
-<div class="nvx-brand-page nvx-page--contact">
+<div class="nvx-brand-page">
 	<section class="nvx-brand-hero" aria-labelledby="nvx-contact-h1" aria-label="<?php esc_attr_e( 'Contacto NUVANX', 'nuvanx-medical' ); ?>">
 		<div class="nvx-brand-hero__inner">
 			<div class="nvx-brand-hero__copy">
@@ -65,13 +65,13 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 		</div>
 	</section>
 
-		<section class="nvx-brand-section nvx-section--nap" aria-label="<?php esc_attr_e( 'Sedes y datos de contacto', 'nuvanx-medical' ); ?>">
+		<section class="nvx-brand-section" aria-label="<?php esc_attr_e( 'Sedes y datos de contacto', 'nuvanx-medical' ); ?>">
 			<div class="nvx-brand-section__inner">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'Sedes autorizadas', 'nuvanx-medical' ); ?></p>
-				<h2 class="nvx-heading"><?php esc_html_e( 'Datos de contacto y centros sanitarios', 'nuvanx-medical' ); ?></h2>
+				<h2 class="nvx-brand-title"><?php esc_html_e( 'Datos de contacto y centros sanitarios', 'nuvanx-medical' ); ?></h2>
 				<p class="nvx-brand-lead"><?php esc_html_e( 'Centros de medicina estética autorizados por la Consejería de Sanidad de la Comunidad de Madrid.', 'nuvanx-medical' ); ?></p>
 
-				<div class="nvx-clinics-grid">
+				<div class="nvx-brand-grid nvx-brand-grid--2">
 					<article class="nvx-clinic-card nvx-brand-card" itemscope itemtype="https://schema.org/MedicalClinic">
 						<meta itemprop="identifier" content="CS20144">
 						<header class="nvx-clinic-card__header">
@@ -130,7 +130,7 @@ $goya_maps = ! empty( $clinics['goya']['hasMap'] )
 		<section class="nvx-brand-section nvx-section--cta-secondary" aria-label="<?php esc_attr_e( 'Reservar valoración médica', 'nuvanx-medical' ); ?>">
 			<div class="nvx-brand-section__inner">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'Atención telefónica directa', 'nuvanx-medical' ); ?></p>
-				<h2 class="nvx-heading"><?php esc_html_e( 'Llama a tu centro NUVANX más cercano', 'nuvanx-medical' ); ?></h2>
+				<h2 class="nvx-brand-title"><?php esc_html_e( 'Llama a tu centro NUVANX más cercano', 'nuvanx-medical' ); ?></h2>
 				<p class="nvx-body"><?php esc_html_e( 'Atención directa para información sobre valoraciones, citas y localización de nuestras sedes.', 'nuvanx-medical' ); ?></p>
 				<div class="nvx-cta-pair nvx-cta-group--centered">
 					<a href="<?php echo esc_url( 'tel:' . $chamberi_phone ); ?>" class="nvx-brand-btn nvx-brand-btn--secondary">

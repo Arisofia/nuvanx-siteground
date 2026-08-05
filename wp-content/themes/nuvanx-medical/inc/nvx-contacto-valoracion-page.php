@@ -154,7 +154,7 @@ function nvx_contact_clinics_markup(): string {
  */
 function nvx_valoracion_intro_markup(): string {
 	$html  = '<section class="nvx-brand-section nvx-valoracion-intro" id="nvx-valoracion-intro" aria-labelledby="nvx-valoracion-intro-title">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Primer paso', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-valoracion-intro-title" class="nvx-heading">' . esc_html__( 'Una consulta médica para orientar tu caso', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p class="nvx-body nvx-body--measure">' . esc_html__( 'Antes de proponer un láser o un protocolo, hay que confirmar si existe indicación. La consulta médica estética se realiza de forma presencial en Chamberí o Salamanca–Goya.', 'nuvanx-medical' ) . '</p>';
@@ -172,7 +172,7 @@ function nvx_valoracion_intro_markup(): string {
 
 	// Compact NAP under process (phones secondary; form is primary CTA).
 	$html .= '<section class="nvx-brand-section nvx-valoracion-locations" aria-labelledby="nvx-valoracion-loc-title">';
-	$html .= '<div class="nvx-container">';
+	$html .= '<div class="nvx-brand-section__inner">';
 	$html .= '<p class="nvx-brand-kicker">' . esc_html__( 'Sedes', 'nuvanx-medical' ) . '</p>';
 	$html .= '<h2 id="nvx-valoracion-loc-title" class="nvx-heading">' . esc_html__( 'Ubicaciones autorizadas por Sanidad', 'nuvanx-medical' ) . '</h2>';
 	$html .= nvx_contact_clinics_markup();

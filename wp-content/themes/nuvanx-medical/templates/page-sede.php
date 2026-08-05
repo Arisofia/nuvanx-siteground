@@ -77,7 +77,7 @@ get_header();
 		<section class="nvx-brand-section" aria-label="<?php esc_attr_e( 'Información de la sede', 'nuvanx-medical' ); ?>">
 			<div class="nvx-brand-section__inner">
 				<p class="nvx-brand-kicker"><?php esc_html_e( 'Datos de contacto', 'nuvanx-medical' ); ?></p>
-				<h2 class="nvx-heading"><?php esc_html_e( 'Ubicación y horarios', 'nuvanx-medical' ); ?></h2>
+				<h2 class="nvx-brand-title"><?php esc_html_e( 'Ubicación y horarios', 'nuvanx-medical' ); ?></h2>
 				
 				<div class="nvx-brand-grid nvx-brand-grid--2">
 					<div class="nvx-brand-card">

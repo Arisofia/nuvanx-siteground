@@ -540,7 +540,7 @@ function nvx_equipo_render_split_identity_section( array $config ): string {
 		: 'aria-label="' . esc_attr__( 'Identidad profesional', 'nuvanx-medical' ) . '"';
 
 	$html  = '<section class="nvx-brand-section" ' . $aria_attr . '>';
-	$html .= '<div class="nvx-container nvx-equipo-diagnosis__grid">';
+	$html .= '<div class="nvx-brand-section__inner nvx-equipo-diagnosis__grid">';
 	$html .= '<div class="nvx-equipo-diagnosis__copy">';
 	if ( '' !== $kicker ) {
 		$html .= '<p class="nvx-brand-kicker">' . esc_html( $kicker ) . '</p>';

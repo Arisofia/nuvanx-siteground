@@ -236,3 +236,23 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 - Código fuente: front-page.php tiene <video class="nvx-home-hero__video"> y <span aria-hidden="true">I</span>
 - HTML renderizado: Romanos I-V existen pero sin aria-hidden; video no existe
 - Esto sugiere que el hero de video está condicionalmente deshabilitado o el atributo aria-hidden se remueve en runtime
+
+---
+
+## Sistema Editorial (Journal/Blog) — Diseño Intencional
+
+**Diseño arquitectónico:**
+- El sistema editorial (journal/blog) está diseñado como una capa aislada del sistema comercial
+- nvx-blog-system.php:5-7: "Keeps the editorial layer isolated from commercial pages"
+- nvx-blog-system.php:48-66: Carga nvx-posts.css específicamente para contexto de blog
+- nvx-blog-system.php:69-76: Añade clase body 'nvx-blog-context' para reglas scoped
+
+**Estilos diferenciados:**
+- nvx-posts.css: Sistema de estilos específico para posts/journal
+- nvx-blog-single.php: Template con estructura editorial propia (hero, meta, prose, footer)
+- Clases específicas: nvx-blog-article, nvx-blog-hero, nvx-blog-prose
+
+**Conclusión:**
+- La diferencia de estilos entre journal y resto del sitio es **diseño intencional**
+- El sistema editorial mantiene su propia identidad visual separada del sistema comercial
+- No es un bug ni inconsistencia, sino arquitectura por diseño

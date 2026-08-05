@@ -7,8 +7,8 @@
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
 - **Contenido/CMS:** 1 (foto Dr. Fabio - subir a Media Library WP)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
-- **Editorial:** 0 (numeración marcada como diseño intencional a validar con marca)
-- **Falsos positivos cerrados:** 11 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional)
+- **Diseño confirmado:** 1 ✅ (numeración diferenciada en Home - romana I-V en estándar, decimal 01-05 en portfolio)
+- **Falsos positivos cerrados:** 12 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado)
 - **Total pendientes reales:** 2 (1 hero parcial + 1 CMS foto)
 
 ---
@@ -102,11 +102,11 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 ---
 
-## ⚪ DECISIÓN EDITORIAL — no técnica
+## ⚪ DECISIÓN EDITORIAL — confirmada ✅
 
 | # | Pendiente | Estado |
 |---|-----------|--------|
-| 15 | Numeración inconsistente en Home | ⚠️ DISEÑO INTENCIONAL A VALIDAR - La Home usa dos sistemas distintos: romana I-V en "El Estándar Clínico" (nvx-home-standard, principios/método) y decimal 01-05 en "Portafolio de Procedimientos" (nvx-home-portfolio, catálogo de tratamientos). Las secciones son semánticamente distintas. La diferencia puede ser intencional (dos lenguajes visuales para dos tipos de contenido). Confirmar con responsable de marca antes de unificar. |
+| 15 | Numeración diferenciada en Home | ✅ DISEÑO CONFIRMADO - Se mantiene la diferenciación intencional: romana I-V en nvx-home-standard (bloque editorial/conceptual) y decimal 01-05 en nvx-home-portfolio (bloque estructurado/índice). No se unificará. |
 
 ---
 
@@ -125,7 +125,7 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 | has_hero: No en 51 URLs | Falso positivo del detector - home tiene hero de video, muchas páginas tienen .nvx-brand-hero. El detector busca patrón que no coincide con markup real. |
 | has_romans: No en home | Falso negativo del detector - romanos I-V presentes en front-page.php actual (git show HEAD). aria-hidden="true" oculta los <span>. |
 | Bloque @media vacío (861-863) | Nota menor no bloqueante - stylelint puede marcar block-no-empty según config. No afecta funcionalidad. |
-| Numeración inconsistente Home | Diseño intencional a validar - romana I-V en nvx-home-standard (principios/método) y decimal 01-05 en nvx-home-portfolio (catálogo de tratamientos). Las secciones son semánticamente distintas. Confirmar con responsable de marca antes de unificar. |
+| Numeración diferenciada Home | ✅ DISEÑO CONFIRMADO - Romana I-V en nvx-home-standard (bloque editorial/conceptual) y decimal 01-05 en nvx-home-portfolio (bloque estructurado/índice). Decisión tomada: mantener diferenciación intencional. Etiquetado como "Diferenciación visual intencional: editorial vs portfolio". |
 
 ---
 
@@ -150,11 +150,12 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 **Criterio operativo**
 
-- No se prepara todavía un plan de unificación de numeración (romana vs decimal) ni se altera el layout de heroes.
-- Cualquier cambio en estos puntos se hará **solo después de una decisión explícita de diseño/marca**, para evitar regresiones estéticas o de intención editorial.
-- Cuando haya decisión (p.ej. "unificar todo a 01–05" o "mantener romanos en estándar y decimales en portfolio"), se preparará un plan de edición minimal:
-  - editar solo los 5 literales en la sección correspondiente de `wp-content/themes/nuvanx-medical/front-page.php`,
-  - sin tocar CSS ni mecánicas de full-bleed.
+- **Decisión tomada:** Mantener la diferenciación intencional de numeración (romana I-V en nvx-home-standard, decimal 01-05 en nvx-home-portfolio).
+- No se preparará plan de unificación numérica salvo decisión explícita de marca en contra.
+- Los literales en `wp-content/themes/nuvanx-medical/front-page.php` se consideran parte del diseño confirmado:
+  - Líneas 48,53,58,63,68 (romana I-V) - nvx-home-standard
+  - Líneas 81,86,91,96,101 (decimal 01-05) - nvx-home-portfolio
+- Esta decisión está etiquetada como "Diferenciación visual intencional: editorial vs portfolio" para evitar que futuros linters humanos lo marquen como inconsistencia a corregir.
 
 ---
 
@@ -162,7 +163,6 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 1. **#14 Foto Dr. Fabio** — subir archivo al Media Library de WordPress (CMS)
 2. **#3 Hero full-bleed PARCIAL** — auditar módulos de landing que no emiten hero como hijo directo de .nvx-brand-page
-3. **#15 Numeración inconsistente en Home** — validar con responsable de marca (diseño intencional a confirmar)
 
 **Advertencias críticas:**
 

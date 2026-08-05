@@ -74,12 +74,17 @@ function nvx_seo_schema_has_type( $types, string $type ): bool {
 
 /**
  * Inserts a schema graph node or replaces an existing node with the same identifier.
+ * Delegates to nvx_schema_upsert_node if available.
  *
  * @param array $graph The schema graph.
  * @param array $node The node to insert or replace.
  * @return array The updated schema graph.
  */
 function nvx_seo_schema_upsert_node( array $graph, array $node ): array {
+	if ( function_exists( 'nvx_schema_upsert_node' ) ) {
+		return nvx_schema_upsert_node( $graph, $node );
+	}
+
 	$id = isset( $node['@id'] ) ? (string) $node['@id'] : '';
 	if ( '' !== $id ) {
 		foreach ( $graph as $index => $piece ) {

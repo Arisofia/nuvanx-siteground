@@ -291,6 +291,13 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 - Requiere URL concreta y síntoma observable específico para investigar
 - Sin evidencia observable, no se puede confirmar como problema real
 
+**BTL detail pages (EXION/EMFUSION):**
+- nvx-btl-detail-pages.php:62-65 excluye explícitamente posts (is_single())
+- nvx-btl-detail-pages.php:31 solo actúa en páginas (is_page())
+- Usa clases globales nvx-brand-page, nvx-brand-hero (comercial, no journal)
+- nvx-btl-detail-pages.php:149-154: byline E-E-A-T nvx-medical-byline es diseño intencional para autoridad médica
+- No usa capa de journal — el propio código la separa a propósito
+
 **Criterio:**
 - No se marca nada como "pendiente de unificación" sin síntoma observable en URL concreta
 - Esto evita acumular trabajo inventado sobre decisiones de arquitectura que funcionan como se diseñaron

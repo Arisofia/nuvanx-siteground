@@ -14,6 +14,19 @@
   z-index: 1000;
 }
 
+/* Header full-bleed como heroes y contenido principal */
+.nvx-header__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nvx-space-4);
+}
+
 /* Header inner container - mismo ancho que footer y cuerpo */
 .nvx-header__inner {
   width: var(--nvx-shell);

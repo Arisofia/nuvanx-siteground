@@ -218,7 +218,7 @@ body.nvx-blog-context {
   color: var(--nvx-text-on-dark);
 }
 
-/* Single article hero - diseño elegante */
+/* Single article hero - diseño elegante sin imágenes ni overlay */
 .nvx-blog-hero {
   background: var(--nvx-ink);
   animation: fadeInUp 600ms ease;
@@ -233,6 +233,14 @@ body.nvx-blog-context {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.nvx-blog-hero__media {
+  display: none;
+}
+
+.nvx-blog-hero__copy::before {
+  display: none;
 }
 
 .nvx-blog-hero__inner {
@@ -290,19 +298,8 @@ body.nvx-blog-context {
   color: var(--nvx-light);
 }
 
-.nvx-blog-hero__media img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  object-fit: cover;
-  border-radius: var(--nvx-radius-image);
-  transition: transform 300ms ease, box-shadow 300ms ease;
-}
-
-.nvx-blog-hero__media img:hover {
-  transform: scale(1.02);
-  box-shadow: var(--nvx-shadow-soft);
+.nvx-blog-hero__media {
+  display: none;
 }
 
 /* Long-form article stage - diseño elegante */

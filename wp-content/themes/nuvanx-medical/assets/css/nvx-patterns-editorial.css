@@ -45,19 +45,9 @@ section.nvx-hero {
   box-sizing: border-box;
 }
 
+/* Hero media oculto - eliminar imágenes de encabezados */
 .nvx-brand-hero__media, .nvx-page-hero__media, .nvx-brand-hero .nvx-brand-hero__media, .nvx-page-hero .nvx-brand-hero__media, .nvx-hero .nvx-brand-hero__media, .nvx-brand-hero__copy > .nvx-brand-hero__media, .nvx-hero__copy > .nvx-brand-hero__media, .nvx-page-hero__copy > .nvx-brand-hero__media, .nvx-hero__copy > .nvx-page-hero__media {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  overflow: hidden;
-  background: var(--nvx-ink);
+  display: none;
 }
 
 /* Hero media always wins over body media roles (prevents gray crop line). */
@@ -119,12 +109,7 @@ section.nvx-hero {
 .nvx-editorial-hero__copy::before,
 .nvx-page-hero__copy::before,
 .nvx-hero__copy::before {
-  content: "";
-  position: absolute;
-  inset: -50px;
-  z-index: 0;
-  pointer-events: none;
-  background: var(--nvx-media-overlay);
+  display: none;
 }
 
 .nvx-brand-hero__copy > *,

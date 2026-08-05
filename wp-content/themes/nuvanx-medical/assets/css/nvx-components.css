@@ -57,9 +57,102 @@ figcaption{margin-top:var(--nvx-space-2);font-family:var(--nvx-sans);font-size:v
   font-weight: var(--nvx-fw-medium);
 }
 
-.nvx-brand-section li strong {
+/* Links externos minimalistas elegantes */
+.nvx-external-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nvx-space-1);
   color: var(--nvx-ink);
-  font-weight: var(--nvx-fw-medium);
+  text-decoration: none;
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+.nvx-external-link:hover,
+.nvx-external-link:focus-visible {
+  color: var(--nvx-accent-muted);
+  opacity: 1;
+}
+
+.nvx-external-link::after {
+  content: "↗";
+  font-size: 0.8em;
+  opacity: 0.6;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.nvx-external-link:hover::after {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+/* Links a Google Maps */
+a[href*="google.com/maps"],
+a[href*="maps.google.com"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nvx-space-1);
+  color: var(--nvx-accent-muted);
+  text-decoration: none;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+a[href*="google.com/maps"]:hover,
+a[href*="maps.google.com"]:hover {
+  color: var(--nvx-ink);
+  transform: translateX(2px);
+}
+
+/* Links a Doctoralia */
+a[href*="doctoralia"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nvx-space-1);
+  color: var(--nvx-accent-muted);
+  text-decoration: none;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+a[href*="doctoralia"]:hover {
+  color: var(--nvx-ink);
+  transform: translateX(2px);
+}
+
+/* Links a WhatsApp */
+a[href*="wa.me"],
+a[href*="whatsapp"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nvx-space-1);
+  color: var(--nvx-accent-muted);
+  text-decoration: none;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+a[href*="wa.me"]:hover,
+a[href*="whatsapp"]:hover {
+  color: #25D366;
+  transform: translateX(2px);
+}
+
+/* Links en clinic cards */
+.nvx-clinic-card__data a {
+  color: var(--nvx-accent-muted);
+  text-decoration: none;
+  transition: color 160ms ease, opacity 160ms ease;
+}
+
+.nvx-clinic-card__data a:hover,
+.nvx-clinic-card__data a:focus-visible {
+  color: var(--nvx-ink);
+  text-decoration: underline;
+  text-underline-offset: calc(var(--nvx-space-1) / 2);
+}
+
+@media (max-width: 768px) {
+  .nvx-clinic-card__data a {
+    padding: var(--nvx-space-1) 0;
+  }
 }
 
 /* Icon SVG dimensioning — global icon sizing */

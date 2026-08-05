@@ -63,8 +63,8 @@ function nvx_content_is_co2_page( string $content ): bool {
 function nvx_co2_hero_copy_markup(): string {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 	$data         = nvx_catalog_json_resolved( 'laser-co2-page.json' )['hero'] ?? array();
-	$price_facial = function_exists( 'nvx_tariff_catalog' )
-		? nvx_format_price_eur( nvx_tariff_catalog()['laser_co2']['facial']['pvp'] )
+	$price_facial = function_exists( 'nvx_co2_price_facial_eur' )
+		? nvx_format_price_eur( nvx_co2_price_facial_eur() )
 		: number_format_i18n( 330, 2 );
 
 	$html  = '<div class="nvx-brand-hero__copy">';

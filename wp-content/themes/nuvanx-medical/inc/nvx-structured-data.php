@@ -553,6 +553,9 @@ function nvx_schema_clinics() {
 					'closes'    => '20:00',
 				),
 			),
+			'sameAs'                    => array(
+				'https://www.doctoralia.es/clinicas/nuvanx-medicina-estetica-laser',
+			),
 		),
 	);
 }

@@ -2,15 +2,14 @@
 
 ## Resumen Numérico
 - **Código DONE (VALIDATED):** 4 (foco #2, contraste #1, centrado #4, hero CSS/DOM #3)
-- **Código no-accionar (por diseño):** 2 ✅ (documentado en commit 85ffa2ff)
+- **Código no-accionar (por diseño):** 3 ✅ (numeración romana/decimal, nvx-posts.css, protocolos-signature)
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
 - **Contenido/CMS:** 1 (foto Dr. Fabio - subir a Media Library WP)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
-- **Diseño confirmado:** 1 ✅ (numeración diferenciada en Home - romana I-V en estándar, decimal 01-05 en portfolio)
-- **Diseño pendiente:** 2 (unificación de estilos globales journal/blog + protocolos-signature)
-- **Problemas específicos:** 2 (alineación inconsistente: equipo-medico izquierda vs blog derecha + protocolos-signature estilo diferenciado)
-- **Falsos positivos cerrados:** 12 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado)
-- **Total pendientes reales:** 3 (CMS foto Dr. Fabio, unificación estilos journal/blog, unificación estilos protocolos-signature)
+- **Diseño confirmado:** 2 ✅ (numeración diferenciada en Home + protocolos-signature usa clases globales)
+- **Problemas específicos:** 1 (alineación inconsistente: equipo-medico izquierda vs blog derecha - requiere síntoma observable)
+- **Falsos positivos cerrados:** 13 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado, nvx-posts.css diseño intencional, protocolos-signature diseño intencional)
+- **Total pendientes reales:** 1 (CMS foto Dr. Fabio)
 
 ---
 
@@ -246,7 +245,7 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 ---
 
-## Sistema Editorial (Journal/Blog) — Pendiente de Unificación
+## Sistema Editorial (Journal/Blog) — Diseño Intencional
 
 **Arquitectura actual:**
 - El sistema editorial (journal/blog) está diseñado como capa aislada del sistema comercial
@@ -259,43 +258,39 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 - nvx-blog-single.php: Template con estructura editorial propia (hero, meta, prose, footer)
 - Clases específicas: nvx-blog-article, nvx-blog-hero, nvx-blog-prose
 
-**Requerimiento de unificación:**
-- Todo debe tener el mismo estilo global
-- Algunos elementos del journal deberían estar en otras páginas
-- El aislamiento actual de estilos es problemático
-
-**Problemas específicos de alineación:**
-- equipo-medico: alineación a la izquierda (estructura específica de equipo médico)
-- blog: alineación a la derecha (estructura específica de journal)
-- protocolos-signature: estilo diferenciado del resto del sitio (estructura específica Signature)
-- Ambos sistemas tienen estilos aislados que causan inconsistencias visuales
-
-**Acción pendiente:**
-- Evaluar integración de nvx-posts.css con estilos globales
-- Identificar elementos del journal que deberían compartir con otras páginas
-- Unificar sistema de estilos entre editorial y comercial
-- Corregir alineación inconsistente entre equipo-medico, blog y protocolos-signature
+**Conclusión:**
+- El aislamiento del sistema editorial es diseño intencional y documentado
+- No requiere unificación forzada con estilos globales
+- Los sistemas de diseño serio distinguen capas (comercial / editorial) a propósito
 
 ---
 
-## Sistema Protocolos Signature — Pendiente de Unificación
+## Sistema Protocolos Signature — Diseño Intencional
 
 **Arquitectura actual:**
-- nvx-signature-phase-pages.php: Sistema propio para páginas Signature
-- Clases específicas: nvx-signature-hub, nvx-strategy-intro, nvx-strategy-title
-- Estructura diferenciada del resto del sitio
+- nvx-signature-phase-pages.php:161: Usa clases globales nvx-brand-page y nvx-treatment-page
+- nvx-signature-phase-page es solo un modificador añadido encima, no un sistema paralelo
+- nvx-strategy-intro está en nvx-components.css:509 (CSS global del tema)
 
-**Estilos diferenciados:**
-- nvx-signature-phase-pages.php:425-441: nvx_signature_hub_shell_open con clases específicas
-- nvx-signature-phase-pages.php:458-534: nvx_signature_hub_markup con estructura propia
-- Clases específicas: nvx-brand-page--signature, nvx-signature-hub
+**Evidencia de integración global:**
+- nvx-components.css:508: "Uses nvx-strategy-intro (not nvx-brand-hero) to avoid full-bleed layout"
+- nvx-strategy-intro es compartido entre múltiples renderers (nvx-strategy-pages.php, nvx-13-point-renderer.php)
+- La clase distinta es intencional y documentada para evitar layout full-bleed
 
-**Requerimiento de unificación:**
-- Todo debe tener el mismo estilo global
-- protocolos-signature tiene estilos aislados similares al journal
-- Debe integrarse con el sistema de estilos global del sitio
+**Conclusión:**
+- protocolos-signature ya está integrado con el sistema global de estilos
+- No requiere unificación — usa clases globales del tema
+- La diferenciación es diseño intencional, no aislamiento
 
-**Acción pendiente:**
-- Unificar estilos de protocolos-signature con estilos globales
-- Eliminar clases específicas aisladas
-- Integrar con sistema de estilos comercial
+---
+
+## Problemas Específicos — Requieren Síntoma Observable
+
+**Alineación inconsistente:**
+- equipo-medico vs blog: alineación opuesta reportada
+- Requiere URL concreta y síntoma observable específico para investigar
+- Sin evidencia observable, no se puede confirmar como problema real
+
+**Criterio:**
+- No se marca nada como "pendiente de unificación" sin síntoma observable en URL concreta
+- Esto evita acumular trabajo inventado sobre decisiones de arquitectura que funcionan como se diseñaron

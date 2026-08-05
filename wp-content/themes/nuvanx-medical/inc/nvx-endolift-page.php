@@ -337,13 +337,13 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 	$body = nvx_endolift_editorial_body_markup();
 
 	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
-		return nvx_page_render_brand_wrapper( $content, $hero . $body, 'nvx-brand-page nvx-brand-page--endolift' );
+		return nvx_page_render_brand_wrapper( $content, $hero . $body, 'nvx-brand-page ' );
 	}
 
 	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
 		return $wrap[1] . $hero . $body . '</div>';
 	}
 
-	return '<div class="nvx-brand-page nvx-brand-page--endolift">' . $hero . $body . '</div>';
+	return '<div class="nvx-brand-page ">' . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolift_page', 21 );

@@ -129,6 +129,35 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 ---
 
+## Estado Verificado — Hero, Numeración y Layout
+
+**Home — numeración de bloques**
+
+- En `wp-content/themes/nuvanx-medical/front-page.php` hay dos lenguajes visuales distintos:
+  - Bloque `nvx-home-standard`: numerales romanos I–V, literales hardcodeados en líneas 48,53,58,63,68.
+  - Bloque `nvx-home-portfolio`: numerales decimales 01–05, literales hardcodeados en líneas 81,86,91,96,101.
+- Cada bloque usa clases CSS diferentes; no es el mismo componente con configuración inconsistente.
+- Conclusión: la numeración actual es un **diseño intencional** que debe validarse con marca antes de unificar; no se trata de un bug automático a corregir sin preguntar.
+
+**Hero full-bleed**
+
+- El comportamiento full-bleed del hero está definido en `wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css`, no en `nvx-patterns-editorial.css`.
+- Bloques relevantes:
+  - `nvx-site-layout.css:14–19`: full-bleed del contenido de página (`.nvx-page__content.nvx-prose`).
+  - `nvx-site-layout.css:44–55`: comentario "full-bleed" en :44, selector de brand hero en :45–47 (tres selectores combinados: `.nvx-page__content .nvx-brand-hero`, `.nvx-brand-page > .nvx-brand-hero`, `.nvx-page__content .nvx-brand-page > .nvx-brand-hero`) y propiedades clave (`width: 100vw`, `max-width: 100vw`, `margin-inline: calc(50% - 50vw)`) en :50–52.
+  - `nvx-site-layout.css:57–66`: segundo bloque equivalente para el hub de láser.
+- No existe ninguna definición de full-bleed en `nvx-patterns-editorial.css`; la corrección de atribución en el informe es correcta.
+
+**Criterio operativo**
+
+- No se prepara todavía un plan de unificación de numeración (romana vs decimal) ni se altera el layout de heroes.
+- Cualquier cambio en estos puntos se hará **solo después de una decisión explícita de diseño/marca**, para evitar regresiones estéticas o de intención editorial.
+- Cuando haya decisión (p.ej. "unificar todo a 01–05" o "mantener romanos en estándar y decimales en portfolio"), se preparará un plan de edición minimal:
+  - editar solo los 5 literales en la sección correspondiente de `wp-content/themes/nuvanx-medical/front-page.php`,
+  - sin tocar CSS ni mecánicas de full-bleed.
+
+---
+
 ## Orden de Ataque Recomendado
 
 1. **#14 Foto Dr. Fabio** — subir archivo al Media Library de WordPress (CMS)

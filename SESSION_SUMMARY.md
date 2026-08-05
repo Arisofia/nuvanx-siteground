@@ -201,3 +201,21 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 - Requiere acceso al archivo `routes.json` real en el entorno (staging2/producción)
 - Posible ubicación: wp-content/uploads/, carpeta generada por build, o similar
 - Una vez localizado, verificar vía SSH: `find . -name "routes.json"` y `cat path/to/routes.json`
+
+---
+
+## Validaciones Realizadas desde el Repositorio
+
+**Confirmado (verificable en código fuente):**
+- ✅ Slugs de tratamientos: /endolift-facial-papada-mandibula/, /endolaser-corporal-grasa-localizada/, /exion-face/ (footer.php:53-54, treatments-catalog.json)
+- ✅ Romanos I-V en home: front-page.php:48,53,58,63,68 (spans con aria-hidden="true")
+- ✅ Hero de video en home: front-page.php:24-26 (.nvx-home-hero__video)
+- ✅ Path-first resolution: nvx-structured-data.php:401-414 (resolución por path, no depende de post_id)
+- ✅ post_id=0 fallback: nvx-structured-data.php:216 (usa 0 como fallback si no existe post_id)
+- ✅ schema_id=rhinomodeling_ha: aesthetic-treatment-pages.json:79 (en archivo distinto, no en routes.json)
+
+**No verificable desde el repo (requiere acceso externo):**
+- ⚠️ post_id en routes.json (archivo no versionado en el repo)
+- ⚠️ schema_group/schema_id en routes.json (archivo no versionado en el repo)
+- ⚠️ Datos de CSV de auditoría (archivos externos en /audit/)
+- ⚠️ Detectores has_hero/has_romans (herramientas externas no en el repo)

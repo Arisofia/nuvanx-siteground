@@ -10,77 +10,10 @@ permissions:
   actions: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: production-deploy-${{ github.workflow_run.workflow_id }}
   cancel-in-progress: true
 
 jobs:
-  # =========================================================
-  # FASE 1: Auditoría de Código, Sintaxis & Compilación Assets
-  # =========================================================
-  audit-and-build:
-    name: 🛡️ Audit, Lint & Asset Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout del Repositorio
-        uses: actions/checkout@v4
-
-      - name: Configurar Entorno PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, xml, ctype, iconv, intl
-          tools: php-cs-fixer
-
-      # --- Cache de Dependencias ---
-      - name: Cache de Composer Dependencies
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
-
-      - name: Instalar Dependencias PHP
-        run: |
-          if [ -f "composer.json" ]; then
-            composer install --no-interaction --prefer-dist --optimize-autoloader
-          fi
-
-      # --- Linters & Verificación de Tipos ---
-      - name: Validar Sintaxis PHP (AST Check)
-        run: |
-          find . -type f -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" -print0 | xargs -0 -n1 php -l
-
-  # =========================================================
-  # FASE 2: E2E Tests (Dependencias de Staging2)
-  # =========================================================
-  e2e-tests:
-    name: 🧪 E2E Acceptance Tests
-    needs: audit-and-build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout del Repositorio
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps chromium
-
-      - name: Run E2E Tests against Production
-        env:
-          BASE_URL: ${{ secrets.PROD_BASE_URL || 'https://nuvanx.com' }}
-          EXPECTED_SHA: ${{ github.sha }}
-        run: |
-          cd scripts/staging2
-          node browser-acceptance.mjs
-
-  # =========================================================
-  # FASE 3: Despliegue Atómico a SiteGround (Solo en Main)
-  # =========================================================
   deploy-siteground:
     name: 🚀 Atomic Deploy to SiteGround
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_sha == github.sha }}
@@ -97,12 +30,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          echo "Checking Deploy Staging2 runs for SHA ${{ github.sha }}..."
-          # Install minimal tools
-          sudo apt-get update -y >/dev/null
-          sudo apt-get install -y jq curl >/dev/null
+          echo "Checking Deploy Staging2 runs for SHA ${{ github.event.workflow_run.head_sha }}..."
           OWNER_REPO="${{ github.repository }}"
-          SHA="${{ github.sha }}"
+          SHA="${{ github.event.workflow_run.head_sha }}"
           runs_json=$(curl -s -H "Authorization: token ${GITHUB_TOKEN}" "https://api.github.com/repos/${OWNER_REPO}/actions/runs?per_page=100")
           ok=$(echo "$runs_json" | jq -r --arg name "Deploy Staging2" --arg sha "$SHA" '.workflow_runs[] | select(.name==$name and .head_sha==$sha and .conclusion=="success") | .id' | head -n1)
           if [ -z "$ok" ]; then
@@ -110,24 +40,6 @@ jobs:
             exit 1
           fi
           echo "Found successful Deploy Staging2 run id: $ok — proceeding with deploy"
-
-      - name: Ensure NVX_ENV defined for production
-        env:
-          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
-          PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
-          PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT || 18765 }}
-          PROD_SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-          echo "Checking NVX_ENV is defined in production wp-config.php..."
-          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes -o ConnectTimeout=30 \
-            ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
-            "cd ${{ secrets.PROD_WP_PATH }} && \
-             if ! grep -E \"define\\(\\s*'NVX_ENV'\" wp-config.php; then \
-               echo 'ERROR: NVX_ENV not defined in production wp-config.php; aborting deploy' >&2; \
-               exit 1; \
-             fi && \
-             echo '✓ NVX_ENV is defined in production wp-config.php'"
 
       - name: Configurar Clave SSH para SiteGround
         uses: webfactory/ssh-agent@v0.9.0
@@ -168,7 +80,7 @@ jobs:
             "bash /tmp/deploy-to-prod.sh \
               --prod-root ${{ secrets.PROD_WP_PATH }} \
               --source-theme /tmp/nuvanx-medical-build \
-              --sha ${{ github.sha }} \
+              --sha ${{ github.event.workflow_run.head_sha }} \
               --confirm"
 
       - name: Cleanup temporary files

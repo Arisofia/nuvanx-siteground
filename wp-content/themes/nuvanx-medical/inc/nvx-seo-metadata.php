@@ -134,10 +134,18 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	if ( defined( 'NVX_ENV' ) ) {
 		return NVX_ENV !== 'production';
 	}
-	// No NVX_ENV defined: assume production to avoid accidental noindex.
-	// IMPORTANT: If this message appears in logs, define NVX_ENV in wp-config.php.
-	error_log( '[nuvanx] WARNING: NVX_ENV constant is not defined. Assuming production environment (noindex disabled). Define NVX_ENV in wp-config.php to silence this warning.' );
-	return false;
+	
+	// Local development environments (localhost, 127.0.0.1, local domains)
+	if ( in_array( $host, array( 'localhost', '127.0.0.1', 'nuvanx.local', 'nuvanx.test' ), true ) ) {
+		return true;
+	}
+	
+	// No NVX_ENV defined and not in known non-production hosts:
+	// FAIL SAFE (noindex) rather than FAIL OPEN (index) to prevent accidental indexing
+	// This is a safety-first approach: better to temporarily noindex a production page
+	// than to accidentally index a staging/development page.
+	error_log( '[nuvanx] CRITICAL: NVX_ENV constant is not defined and host is not recognized. Assuming non-production environment (noindex enabled) for safety. Define NVX_ENV=production in wp-config.php for production hosts.' );
+	return true;
 }
 
 /**

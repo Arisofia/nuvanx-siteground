@@ -179,6 +179,23 @@ async function checkH1Validation(page, issues) {
 }
 
 /**
+ * Validates image alt attributes for accessibility.
+ * @param {import('playwright').Page} page - The page to inspect.
+ * @param {string[]} issues - Collection to which detected issues are added.
+ */
+async function checkImageAlts(page, issues) {
+  const imagesWithoutAlt = await page.evaluate(() => {
+    return Array.from(document.querySelectorAll('img'))
+      .filter(img => !img.hasAttribute('alt') || img.getAttribute('alt').trim() === '')
+      .slice(0, 20)
+      .map(img => img.currentSrc || img.src || img.outerHTML);
+  });
+  if (imagesWithoutAlt.length > 0) {
+    issues.push(`A11Y: ${imagesWithoutAlt.length} image(s) missing alt text or with empty alt (examples: ${imagesWithoutAlt.slice(0,3).join(' | ')})`);
+  }
+}
+
+/**
  * Validates icon dimensions (prevents oversized icons breaking layout).
  * @param {import('playwright').Page} page - The page to inspect.
  * @param {string[]} issues - Collection to which detected issues are added.
@@ -603,6 +620,7 @@ async function run() {
       // Critical automated assertions for regression prevention
       await checkPhpLeaks(page, issues);
       await checkH1Validation(page, issues);
+      await checkImageAlts(page, issues);
       await checkIconDimensions(page, issues);
 
       // Deployment SHA marker in the document

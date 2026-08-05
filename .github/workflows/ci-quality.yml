@@ -59,13 +59,21 @@ jobs:
         run: node scripts/lint/no-hardcoded-fontsize.mjs
       - name: Run inline styles lint
         run: node scripts/lint/no-inline-layout-styles.mjs
-      - name: Validate routes.json schema
+      - name: Validate routes.json schema (guarded)
         run: |
-          if [ -f wp-content/themes/nuvanx-medical/inc/data/routes.schema.json ] && [ -f wp-content/themes/nuvanx-medical/inc/data/routes.json ]; then
-            npm install -g ajv-cli
-            ajv validate -s wp-content/themes/nuvanx-medical/inc/data/routes.schema.json -d wp-content/themes/nuvanx-medical/inc/data/routes.json
+          SCHEMA=wp-content/themes/nuvanx-medical/inc/data/routes.schema.json
+          DATA=wp-content/themes/nuvanx-medical/inc/data/routes.json
+
+          if [ -f "$SCHEMA" ] && [ -f "$DATA" ]; then
+            # Prefer npx if ajv-cli is present as a devDependency, otherwise install globally
+            if command -v npx >/dev/null 2>&1 && npx --no-install ajv-cli --version >/dev/null 2>&1; then
+              npx ajv-cli validate -s "$SCHEMA" -d "$DATA"
+            else
+              npm install -g ajv-cli
+              ajv validate -s "$SCHEMA" -d "$DATA"
+            fi
           else
-            echo "Skipping routes.json schema validation: schema or data file not found"
+            echo "Skipping routes.json schema validation: schema or data file not found ($SCHEMA or $DATA)"
           fi
 
   phpcs:

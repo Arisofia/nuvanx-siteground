@@ -1,7 +1,7 @@
 /* NUVANX components — type primitives, cards, values, forms, CTAs
    Long-form measure + body figures live in nvx-site-layout.css (not here).
    Body inherits type from nvx-base; component classes own explicit roles. */
-.nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-light);text-shadow:0 2px 8px var(--nvx-ink-muted)}
+.nvx-brand-hero__title{margin:0 0 var(--nvx-margin-display);font-family:var(--nvx-serif);font-size:var(--nvx-type-display);font-weight:400;line-height:var(--nvx-lh-display);letter-spacing:var(--nvx-track-display);color:var(--nvx-ink)}
 .nvx-heading,h1{margin:0 0 var(--nvx-margin-h1);font-family:var(--nvx-serif);font-size:var(--nvx-type-h1);font-weight:400;line-height:var(--nvx-lh-h1);letter-spacing:var(--nvx-track-h1);color:var(--nvx-ink)}
 
 /* Improve H1 hierarchy on small screens to prevent excessive vertical space */

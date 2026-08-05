@@ -5,7 +5,7 @@
    no page-specific patches, no important flags, no embeds.
    ═══════════════════════════════════════════════════════════ */
 
-/* Todas las páginas interiores: fondo oscuro + texto, sin media visual */
+/* Todas las páginas interiores: sin fondo específico, solo la home tiene video hero */
 .nvx-brand-hero,
 .nvx-page-hero,
 .nvx-editorial-hero,
@@ -21,8 +21,8 @@ section.nvx-hero {
   border: 0;
   border-radius: 0;
   overflow: hidden;
-  background: var(--nvx-ink);
-  color: var(--nvx-light);
+  background: transparent;
+  color: var(--nvx-ink);
   box-sizing: border-box;
 }
 

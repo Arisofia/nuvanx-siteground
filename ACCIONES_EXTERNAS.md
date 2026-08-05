@@ -30,22 +30,47 @@ Las siguientes correcciones requieren acceso a sistemas externos (navegador real
 
 ## 🟠 PRIORIDAD MEDIA - WordPress Admin
 
-### #14 Foto Dr. Fabio Quiñónez - Subir a Media Library
+### #14 Foto Dr. Fabio Quiñónez - Verificar/Subir a Media Library
 **Estado actual:** Foto ausente en página /equipo-medico/
 **Ubicación código:** nvx-equipo-page.php:240-247,813 (degrada correctamente a texto-sin-foto)
 **Impacto:** El código es correcto, pero el activo no está en el CMS
 
+**Credenciales requeridas:**
+- Host del servidor SSH (ej: ssh.nuvanx.com o IP)
+- Usuario SSH
+- Ruta de WordPress (ej: /home/usuario/public_html)
+- Entorno (staging2 preferible)
+
+**Comandos WP-CLI para verificar:**
+
+```bash
+# Conectar al servidor
+ssh USUARIO@HOST
+
+# Navegar a la instalación de WordPress
+cd /home/usuario/public_html  # ajustar según ruta real
+
+# Verificar que WP-CLI está disponible
+wp --info
+
+# Buscar media relacionada con "Fabio"
+wp media list --search=Fabio --fields=ID,post_title,guid
+
+# Variantes de búsqueda si no aparece
+wp media list --search="Fabio" --fields=ID,post_title,guid
+wp media list --search="Quiñónez" --fields=ID,post_title,guid
+wp media list --search="Dr." --fields=ID,post_title,guid
+```
+
 **Acción requerida:**
-1. Acceder a WordPress admin (staging2 o producción según flujo)
-2. Navegar a Media > Library
-3. Verificar si existe foto del Dr. Fabio Quiñónez
-4. Si NO existe:
+1. Si la foto NO existe en Media Library:
+   - Acceder a WordPress admin (Media > Library)
    - Subir foto oficial (según criterio de la clínica)
    - Asignarla a la ficha de equipo correspondiente
-5. Si existe pero no se muestra:
+2. Si existe pero no se muestra:
    - Asociar la imagen al campo correcto (ACF / bloque)
    - Revisar que el template de equipo (nvx-equipo-*) la esté renderizando
-6. Verificar en front-end que la foto aparece junto a los demás especialistas
+3. Verificar en front-end que la foto aparece junto a los demás especialistas
 
 **Páginas donde debería aparecer:**
 - /equipo-medico/ (página principal de equipo)

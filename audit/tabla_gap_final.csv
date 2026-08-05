@@ -1,0 +1,5 @@
+ID,Slug,Estado Prod,Estado Staging,Acción
+C01,/tratamientos/,404 Real,200 OK,Corregir configuración/contenido
+C19,/exion-body/,404 Real,200 OK,Migrar (Gap Real)
+C20,/emfusion/,404 Real,200 OK,Migrar (Gap Real)
+INFRA,Todo el sitio,202 Challenge,N/A,Resolver SiteGround Anti-bot

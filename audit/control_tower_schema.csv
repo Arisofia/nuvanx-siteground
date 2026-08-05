@@ -1,0 +1,12 @@
+﻿tabla,campo,definicion,tipo,obligatorio
+treatments_master_validated,catalogue_key,Clave interna de conciliación de producción; no sustituye T01–T22.,Identificador temporal,No
+treatments_master_validated,treatment_id,ID original T01–T22 procedente del inventario histórico.,Identificador estable de negocio,Sí
+treatments_master_validated,url_produccion,URL canonical de producción validada.,URL,No
+treatments_master_validated,last_validated,Fecha ISO de la última comprobación.,Fecha,No
+treatments_opportunity,catalogue_key / treatment_id,Relación 1:1 con el master mediante el ID original cuando se facilite.,Clave foránea,No
+treatments_opportunity,"demanda, ticket, conversion_estado, competencia_fuerza",Inputs de oportunidad; no calcular score si falta cualquiera.,Enum / N/D,No
+treatments_opportunity,opportunity_score,Producto de cuatro scores sólo con evidencia completa; en este corte es N/D.,Número 1–81 / N/D,No
+treatments_opportunity,situacion_actual,"A/B/C/D mediante no_aparece, aparece_no_convierte, aparece_convierte_bien o N/D.",Enum,No
+action_tracker,catalogue_key / treatment_id,Relación N:1 con oportunidad y master.,Clave foránea,No
+action_tracker,action_id,ID único de acción.,Identificador,No
+evidence_sources,source_id / URL / captura,Fuentes fechadas para cada campo verificable.,Relación 1:N,No

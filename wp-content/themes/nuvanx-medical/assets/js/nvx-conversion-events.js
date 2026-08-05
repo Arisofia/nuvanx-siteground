@@ -132,7 +132,7 @@
 		try {
 			var host = new URL(origin).hostname.toLowerCase();
 			return /(^|\.)(hubspot\.com|hsforms\.com|hsforms\.net)$/.test(host);
-		} catch (error) {
+		} catch (_error) {
 			return false;
 		}
 	}

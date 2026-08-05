@@ -1,13 +1,13 @@
 name: Production Gate & Atomic Deploy to SiteGround
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+  workflow_run:
+    workflows: ["Deploy Staging2"]
+    types: [completed]
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -83,12 +83,14 @@ jobs:
   # =========================================================
   deploy-siteground:
     name: 🚀 Atomic Deploy to SiteGround
-    needs: [audit-and-build, e2e-tests]
-    if: github.ref == 'refs/heads/master' && github.event_name == 'push' && false  # TEMPORARY: blocks auto-deploy until acceptance is green
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_sha == github.sha }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout del Repositorio
+      - name: Checkout deployment commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
 
       - name: Verify staging2 acceptance passed for this SHA
         env:

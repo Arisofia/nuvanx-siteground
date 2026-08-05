@@ -76,6 +76,26 @@ jobs:
             echo "Skipping routes.json schema validation: schema or data file not found ($SCHEMA or $DATA)"
           fi
 
+  secret-history-scan:
+    name: Secret history scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install gitleaks
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/zricethezav/gitleaks/master/install.sh | bash -s -- -b /usr/local/bin
+      - name: Run gitleaks over repo history
+        run: |
+          gitleaks detect --source . --config .github/gitleaks-config.yml --redact --report-path gitleaks-report.json || true
+      - name: Upload gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+
   phpcs:
     name: PHP_CodeSniffer
     runs-on: ubuntu-latest

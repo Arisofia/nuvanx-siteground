@@ -218,4 +218,21 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 - ⚠️ post_id en routes.json (archivo no versionado en el repo)
 - ⚠️ schema_group/schema_id en routes.json (archivo no versionado en el repo)
 - ⚠️ Datos de CSV de auditoría (archivos externos en /audit/)
-- ⚠️ Detectores has_hero/has_romans (herramientas externas no en el repo)
+
+---
+
+## Verificación Playwright — staging2.nuvanx.com/
+
+**Verificado en DOM renderizado (Playwright):**
+- ✅ Romanos I-V existen en HTML final (snapshot refs e67, e71, e75, e79, e83)
+- ❌ Video hero NO existe en HTML final (sin elemento <video>)
+- ❌ Atributo aria-hidden="true" NO está en los romanos del HTML final
+
+**Diagnóstico de detectores:**
+- **has_romans detector (falso negativo):** Los romanos I-V SÍ están en el HTML, pero sin aria-hidden="true". El detector busca el atributo, no el texto.
+- **has_hero detector (correcto):** No hay <video class="nvx-home-hero__video"> en el HTML renderizado, aunque está en front-page.php:24-26.
+
+**Discrepancia código vs render:**
+- Código fuente: front-page.php tiene <video class="nvx-home-hero__video"> y <span aria-hidden="true">I</span>
+- HTML renderizado: Romanos I-V existen pero sin aria-hidden; video no existe
+- Esto sugiere que el hero de video está condicionalmente deshabilitado o el atributo aria-hidden se remueve en runtime

@@ -7,9 +7,9 @@
 - **Contenido/BD gaps reales:** 0 ✅ (migrados a producción)
 - **Contenido/CMS:** 1 (foto Dr. Fabio - subir a Media Library WP)
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
-- **Editorial:** 1 (numeración inconsistente en Home - romana vs decimal)
-- **Falsos positivos cerrados:** 10 (+ H1 cookies redirects 301, has_hero detector, has_romans detector)
-- **Total pendientes reales:** 3 (1 hero parcial + 1 CMS foto + 1 editorial)
+- **Editorial:** 0 (numeración marcada como diseño intencional a validar con marca)
+- **Falsos positivos cerrados:** 11 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional)
+- **Total pendientes reales:** 2 (1 hero parcial + 1 CMS foto)
 
 ---
 
@@ -106,7 +106,7 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 
 | # | Pendiente | Estado |
 |---|-----------|--------|
-| 15 | Numeración inconsistente en Home | ❌ OPEN - La Home usa dos sistemas distintos: romana I-V en "El Estándar Clínico" (nvx-home-standard) y decimal 01-05 en "Portafolio de Procedimientos" (nvx-home-portfolio). Ambos son texto quemado en front-page.php con aria-hidden="true". Decisión: unificar a romana o decimal. |
+| 15 | Numeración inconsistente en Home | ⚠️ DISEÑO INTENCIONAL A VALIDAR - La Home usa dos sistemas distintos: romana I-V en "El Estándar Clínico" (nvx-home-standard, principios/método) y decimal 01-05 en "Portafolio de Procedimientos" (nvx-home-portfolio, catálogo de tratamientos). Las secciones son semánticamente distintas. La diferencia puede ser intencional (dos lenguajes visuales para dos tipos de contenido). Confirmar con responsable de marca antes de unificar. |
 
 ---
 
@@ -125,14 +125,15 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 | has_hero: No en 51 URLs | Falso positivo del detector - home tiene hero de video, muchas páginas tienen .nvx-brand-hero. El detector busca patrón que no coincide con markup real. |
 | has_romans: No en home | Falso negativo del detector - romanos I-V presentes en front-page.php actual (git show HEAD). aria-hidden="true" oculta los <span>. |
 | Bloque @media vacío (861-863) | Nota menor no bloqueante - stylelint puede marcar block-no-empty según config. No afecta funcionalidad. |
+| Numeración inconsistente Home | Diseño intencional a validar - romana I-V en nvx-home-standard (principios/método) y decimal 01-05 en nvx-home-portfolio (catálogo de tratamientos). Las secciones son semánticamente distintas. Confirmar con responsable de marca antes de unificar. |
 
 ---
 
 ## Orden de Ataque Recomendado
 
-1. **#15 Numeración inconsistente en Home** — decisión editorial (unificar romana I-V o decimal 01-05 en ambas secciones)
-2. **#14 Foto Dr. Fabio** — subir archivo al Media Library de WordPress (CMS)
-3. **#3 Hero full-bleed PARCIAL** — auditar módulos de landing que no emiten hero como hijo directo de .nvx-brand-page
+1. **#14 Foto Dr. Fabio** — subir archivo al Media Library de WordPress (CMS)
+2. **#3 Hero full-bleed PARCIAL** — auditar módulos de landing que no emiten hero como hijo directo de .nvx-brand-page
+3. **#15 Numeración inconsistente en Home** — validar con responsable de marca (diseño intencional a confirmar)
 
 **Advertencias críticas:**
 
@@ -144,10 +145,11 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 - Requiere revisión de estructura DOM que genera cada módulo de landing
 
 **Numeración (#15):**
-- La Home usa dos sistemas distintos: romana I-V en "El Estándar Clínico" (nvx-home-standard)
-- Decimal 01-05 en "Portafolio de Procedimientos" (nvx-home-portfolio)
-- Ambos son texto quemado en front-page.php con aria-hidden="true"
-- Decisión: unificar a romana o decimal (no es "cambiar de romana a decimal", es "unificar")
+- La Home usa dos sistemas distintos: romana I-V en "El Estándar Clínico" (nvx-home-standard, principios/método)
+- Decimal 01-05 en "Portafolio de Procedimientos" (nvx-home-portfolio, catálogo de tratamientos)
+- Las secciones son semánticamente distintas (principios vs catálogo)
+- La diferencia puede ser intencional (dos lenguajes visuales para dos tipos de contenido)
+- Confirmar con responsable de marca antes de unificar - puede ser diseño intencional
 
 **Migración a producción:**
 - Posts ya migrados vía SSH wp CLI (exion-body, emfusion, tratamientos)

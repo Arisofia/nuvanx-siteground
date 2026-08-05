@@ -8,7 +8,7 @@
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
 - **Diseño confirmado:** 1 ✅ (numeración diferenciada en Home - romana I-V en estándar, decimal 01-05 en portfolio)
 - **Diseño pendiente:** 2 (unificación de estilos globales journal/blog + protocolos-signature)
-- **Problemas específicos:** 1 (alineación inconsistente: equipo-medico izquierda vs blog derecha)
+- **Problemas específicos:** 2 (alineación inconsistente: equipo-medico izquierda vs blog derecha + protocolos-signature estilo diferenciado)
 - **Falsos positivos cerrados:** 12 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado)
 - **Total pendientes reales:** 3 (CMS foto Dr. Fabio, unificación estilos journal/blog, unificación estilos protocolos-signature)
 
@@ -267,13 +267,14 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 **Problemas específicos de alineación:**
 - equipo-medico: alineación a la izquierda (estructura específica de equipo médico)
 - blog: alineación a la derecha (estructura específica de journal)
+- protocolos-signature: estilo diferenciado del resto del sitio (estructura específica Signature)
 - Ambos sistemas tienen estilos aislados que causan inconsistencias visuales
 
 **Acción pendiente:**
 - Evaluar integración de nvx-posts.css con estilos globales
 - Identificar elementos del journal que deberían compartir con otras páginas
 - Unificar sistema de estilos entre editorial y comercial
-- Corregir alineación inconsistente entre equipo-medico y blog
+- Corregir alineación inconsistente entre equipo-medico, blog y protocolos-signature
 
 ---
 

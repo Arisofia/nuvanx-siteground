@@ -2,25 +2,33 @@
   "/": {
     "seo_id": "home"
   },
-  "/madrid/": {},
+  "/madrid/": {
+    "seo_id": "madrid"
+  },
   "/madrid/valoracion/": {
     "seo_id": "valoracion"
   },
   "/soluciones-medicas/": {
     "seo_id": "soluciones"
   },
-  "/protocolos-signature/": {},
+  "/protocolos-signature/": {
+    "seo_id": "protocolos_signature"
+  },
   "/por-que-nuvanx/": {
     "seo_id": "por_que_nuvanx"
   },
   "/inversion-medicina-estetica/": {
     "seo_id": "inversion"
   },
-  "/nosotros/": {},
+  "/nosotros/": {
+    "seo_id": "nosotros"
+  },
   "/equipo-medico/": {
     "seo_id": "equipo"
   },
-  "/contacto/": {},
+  "/contacto/": {
+    "seo_id": "contacto"
+  },
   "/blog/": {
     "seo_id": "blog"
   },
@@ -76,25 +84,29 @@
     "schema_group": "treatments",
     "schema_id": "exion_face",
     "post_id": 0,
-    "schema_type": "Service"
+    "schema_type": "Service",
+    "seo_id": "exion_face"
   },
   "/exion-fractional/": {
     "schema_group": "treatments",
     "schema_id": "exion_fractional",
     "post_id": 0,
-    "schema_type": "Service"
+    "schema_type": "Service",
+    "seo_id": "exion_fractional"
   },
   "/exion-body/": {
     "schema_group": "treatments",
     "schema_id": "exion_body",
     "post_id": 0,
-    "schema_type": "Service"
+    "schema_type": "Service",
+    "seo_id": "exion_body"
   },
   "/emfusion/": {
     "schema_group": "treatments",
     "schema_id": "emfusion",
     "post_id": 0,
-    "schema_type": "Service"
+    "schema_type": "Service",
+    "seo_id": "emfusion"
   },
   "/btl-exilite-ipl-madrid/": {
     "seo_id": "exilite",
@@ -103,24 +115,34 @@
     "post_id": 3055,
     "schema_type": "Service"
   },
-  "/medicina-estetica-laser/": {},
-  "/medicina-estetica/": {},
-  "/estetica-avanzada/": {},
+  "/medicina-estetica-laser/": {
+    "seo_id": "medicina_estetica_laser"
+  },
+  "/medicina-estetica/": {
+    "seo_id": "medicina_estetica"
+  },
+  "/estetica-avanzada/": {
+    "seo_id": "estetica_avanzada"
+  },
   "/bioestimuladores-colageno-madrid/": {
     "schema_group": "treatments",
-    "schema_id": "collagen_bio"
+    "schema_id": "collagen_bio",
+    "seo_id": "collagen_bio"
   },
   "/ojeras-surco-lagrimal-madrid/": {
     "schema_group": "treatments",
-    "schema_id": "dark_circles_ha"
+    "schema_id": "dark_circles_ha",
+    "seo_id": "dark_circles_ha"
   },
   "/rinomodelacion-sin-cirugia-madrid/": {
     "schema_group": "treatments",
-    "schema_id": "rhinomodeling_ha"
+    "schema_id": "rhinomodeling_ha",
+    "seo_id": "rhinomodeling_ha"
   },
   "/labios-acido-hialuronico-madrid/": {
     "schema_group": "treatments",
-    "schema_id": "lips_ha"
+    "schema_id": "lips_ha",
+    "seo_id": "lips_ha"
   },
   "/remodelacion-corporal-laser-madrid/": {
     "schema_group": "treatments",
@@ -132,19 +154,23 @@
   },
   "/papada-definicion-mandibular-madrid/": {
     "schema_group": "treatments",
-    "schema_id": "double_chin"
+    "schema_id": "double_chin",
+    "seo_id": "double_chin"
   },
   "/calidad-piel-firmeza-luminosidad-madrid/": {
     "schema_group": "treatments",
-    "schema_id": "skin_quality"
+    "schema_id": "skin_quality",
+    "seo_id": "skin_quality"
   },
   "/cicatrices-acne-poros-textura-madrid/": {
     "schema_group": "treatments",
-    "schema_id": "acne_scars"
+    "schema_id": "acne_scars",
+    "seo_id": "acne_scars"
   },
   "/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/": {
     "schema_group": "treatments",
-    "schema_id": "pigmentation"
+    "schema_id": "pigmentation",
+    "seo_id": "pigmentation"
   },
   "/grasa-localizada-abdomen-flancos-madrid/": {
     "schema_group": "treatments",

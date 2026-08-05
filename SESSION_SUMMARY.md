@@ -9,8 +9,9 @@
 - **Infraestructura:** 0 ✅ (Robot Challenge no detectado - devuelve 200)
 - **Diseño confirmado:** 3 ✅ (numeración diferenciada en Home + protocolos-signature usa clases globales + BTL usa clases globales)
 - **Falsos positivos cerrados:** 13 (+ H1 cookies redirects 301, has_hero detector, has_romans detector, numeración diseño intencional, numeración diseño confirmado, nvx-posts.css diseño intencional, protocolos-signature diseño intencional)
+- **Problemas específicos:** 1 (journal/blog contraste y márgenes - con síntoma observable en URLs concretas)
 - **Ítems abiertos no resueltos:** 4 (routes.json no verificable, Playwright inconcluso, Foto Dr. Fabio CMS, Control Tower/CSVs)
-- **Total pendientes reales:** 1 (CMS foto Dr. Fabio)
+- **Total pendientes reales:** 2 (CMS foto Dr. Fabio + journal/blog contraste y márgenes)
 
 ---
 
@@ -295,6 +296,15 @@ curl -I https://nuvanx.com/tratamientos/ # HTTP/2 200 ✅
 ---
 
 ## Problemas Específicos — Requieren Síntoma Observable
+
+**Sistema Editorial (Journal/Blog) — Contraste y márgenes:**
+- **URLs afectadas:** https://staging2.nuvanx.com/exion-btl-fractional-rf-face-body/, https://staging2.nuvanx.com/combinar-exion-endolift-emfusion-plan-medico/, https://staging2.nuvanx.com/endolift-primeras-72-horas-que-esperar/, https://staging2.nuvanx.com/emfusion-limpieza-profunda-microneedling-diferencias/, https://staging2.nuvanx.com/well-aging-48-cambios-hormonales-piel/
+- **Síntoma observable:** Encabezado con fondo claro y letras claras (sin contraste), contenido se va a las orillas sin márgenes
+- **Causa raíz:**
+  - wp-content/themes/nuvanx-medical/assets/css/nvx-posts.css:215-241 define texto para fondo oscuro (--nvx-text-on-dark-72, --nvx-text-on-dark-82, --nvx-text-on-dark)
+  - wp-content/themes/nuvanx-medical/assets/css/nvx-posts.css:9-18 define `.nvx-blog-single` con `width: 100%`, `max-width: 100%`, `margin: 0`, `padding: 0` (full-bleed intencional)
+  - Falta definición de fondo oscuro para `.nvx-blog-hero` en nvx-posts.css
+- **Acción pendiente:** Agregar `background: var(--nvx-ink);` a `.nvx-blog-hero` y evaluar si se requiere contenedor con márgenes para el contenido
 
 **BTL detail pages (EXION/EMFUSION):**
 - wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php:62-65 excluye explícitamente posts (is_single())

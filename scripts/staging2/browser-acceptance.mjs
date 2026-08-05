@@ -705,7 +705,7 @@ async function run() {
         }
         
         if (heroCount === 0) issues.push('Missing hero section');
-        if (ctaCount === 0) issues.push('Missing CTA (.nvx-btn / .nvx-button / .nvx-brand-btn)');
+        if (ctaCount === 0) issues.push('Missing CTA (expanded selector includes brand-actions, valoracion, whatsapp links)');
         if (rogueJsonLdCount > 0) issues.push(`Found ${rogueJsonLdCount} rogue JSON-LD script(s) outside Yoast graph`);
         
         // --- Editorial / Visual QA Invariants ---

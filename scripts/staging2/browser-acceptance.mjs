@@ -789,7 +789,19 @@ async function run() {
             issues.push(`A11Y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map(v=>v.id).join(', ')}`);
           }
         } catch (axeErr) {
-          issues.push(`A11Y: axe-core failed to run: ${axeErr.message}`);
+          // Make axe failure blocking: record error and capture page for debugging
+          const safeName = route.replace(/\//g, '_').replace(/^_+|_+$/g,'') || 'root';
+          const timestamp = Date.now();
+          const screenshotPath = `artifacts/axe-failure-${safeName}-${timestamp}.png`;
+          const htmlPath = `artifacts/axe-failure-${safeName}-${timestamp}.html`;
+          try {
+            await page.screenshot({ path: screenshotPath, fullPage: true });
+            const html = await page.content();
+            await fs.writeFile(htmlPath, html, 'utf8');
+            issues.push(`A11Y: axe-core failed to run: ${axeErr.message} — screenshot: ${screenshotPath}, html: ${htmlPath}`);
+          } catch (captureErr) {
+            issues.push(`A11Y: axe-core failed: ${axeErr.message}; additionally failed to capture artifacts: ${captureErr.message}`);
+          }
         }
       }
 

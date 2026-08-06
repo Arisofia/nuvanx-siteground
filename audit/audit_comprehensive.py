@@ -45,66 +45,22 @@ def is_safe_audit_url(url):
         return False
     return True
 
-def get_http_status(url, session=SESSION):
-    """
-    Get HTTP status using requests with SSL verification for internal audit purposes.
-    """
-    try:
-        # Strict validation to prevent unsafe URL usage
-        if not is_safe_audit_url(url):
-            return "Error"
-
-        resp = session.head(
-            url,
-            headers={"Cache-Control": "no-cache"},
-            allow_redirects=False,  # Disable automatic redirects for SSRF protection
-            timeout=10,
-            verify=VERIFY_SSL,
-        )
-        
-        # Follow redirects manually with SSRF protection
-        max_redirects = 5
-        redirect_count = 0
-        current_url = url
-        current_status = str(resp.status_code)
-        
-        while resp.is_redirect and redirect_count < max_redirects:
-            redirect_count += 1
-            location = resp.headers['Location']
-            
-            # Make location absolute if relative
-            loc_parsed = requests.utils.urlparse(location)
-            if not loc_parsed.scheme or not loc_parsed.netloc:
-                location = requests.utils.urljoin(current_url, location)
-            
-            # Validate redirect destination against allowlist
-            if not is_safe_audit_url(location):
-                return "Error"  # Redirect to unsafe destination
-            
-            # Follow redirect
-            current_url = location
-            resp = session.head(
-                current_url,
-                headers={"Cache-Control": "no-cache"},
-                allow_redirects=False,
-                timeout=10,
-                verify=VERIFY_SSL,
-            )
-            current_status = str(resp.status_code)
-        
-        if resp.is_redirect:
-            return "Error"
-
-        return current_status
-    except requests.exceptions.Timeout:
-        return "Timeout"
-    except requests.exceptions.RequestException:
-        return "Error"
-    except Exception:
-        return "Error"  # Catch any unexpected errors but label as "Error" not "Timeout"
-
 TYPE_KEY = '@type'
 GRAPH_KEY = '@graph'
+
+def _extract_types_from_obj(data):
+    types = []
+    if not isinstance(data, dict):
+        return types
+    if TYPE_KEY in data:
+        t = data[TYPE_KEY]
+        types.extend(t if isinstance(t, list) else [t])
+    if GRAPH_KEY in data and isinstance(data[GRAPH_KEY], list):
+        for item in data[GRAPH_KEY]:
+            if isinstance(item, dict) and TYPE_KEY in item:
+                t = item[TYPE_KEY]
+                types.extend(t if isinstance(t, list) else [t])
+    return types
 
 def _parse_schema_types(soup):
     scripts = soup.find_all('script', type='application/ld+json')
@@ -114,24 +70,77 @@ def _parse_schema_types(soup):
             continue
         try:
             data = json.loads(s.string)
-            if isinstance(data, dict):
-                if TYPE_KEY in data:
-                    t = data[TYPE_KEY]
-                    if isinstance(t, list):
-                        types.extend(t)
-                    else:
-                        types.append(t)
-                if GRAPH_KEY in data and isinstance(data[GRAPH_KEY], list):
-                    for item in data[GRAPH_KEY]:
-                        if isinstance(item, dict) and TYPE_KEY in item:
-                            t = item[TYPE_KEY]
-                            if isinstance(t, list):
-                                types.extend(t)
-                            else:
-                                types.append(t)
+            types.extend(_extract_types_from_obj(data))
         except Exception:
             continue
     return '; '.join(sorted(set(types))) if types else 'N/D'
+
+def _follow_redirects_safely(session, url, method="get", stream=False):
+    fetch = session.get if method == "get" else session.head
+    kwargs = {"verify": VERIFY_SSL, "timeout": 10, "headers": {'Cache-Control': 'no-cache'}, "allow_redirects": False}
+    if stream:
+        kwargs["stream"] = True
+
+    resp = fetch(url, **kwargs)
+    max_redirects = 5
+    redirect_count = 0
+    current_url = url
+
+    while resp.is_redirect and redirect_count < max_redirects:
+        redirect_count += 1
+        location = resp.headers['Location']
+        if stream:
+            resp.close()
+
+        loc_parsed = requests.utils.urlparse(location)
+        if not loc_parsed.scheme or not loc_parsed.netloc:
+            location = requests.utils.urljoin(current_url, location)
+
+        if not is_safe_audit_url(location):
+            return None
+
+        current_url = location
+        resp = fetch(current_url, **kwargs)
+
+    if resp.is_redirect:
+        if stream:
+            resp.close()
+        return None
+
+    return resp
+
+def get_http_status(url, session=SESSION):
+    """
+    Get HTTP status using requests with SSL verification for internal audit purposes.
+    """
+    if not is_safe_audit_url(url):
+        return "Error"
+    try:
+        resp = _follow_redirects_safely(session, url, method="head", stream=False)
+        return str(resp.status_code) if resp else "Error"
+    except requests.exceptions.Timeout:
+        return "Timeout"
+    except Exception:
+        return "Error"
+
+def _parse_html_fields(html):
+    if len(html) > 1000000:
+        html = html[:1000000]
+    soup = BeautifulSoup(html, 'html.parser')
+    can = soup.find('link', rel='canonical')
+    rob = soup.find('meta', attrs={'name': 'robots'})
+    h1 = soup.find('h1')
+    prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3}){0,3}\s*€', html)
+
+    return {
+        'canonical': can['href'] if can else 'N/D',
+        'robots': rob['content'] if rob else 'N/D',
+        'h1': h1.get_text(strip=True) if h1 else 'N/D',
+        'price': '; '.join(sorted(set(prices))) if prices else 'N/D',
+        'faq': 'Sí' if 'FAQPage' in html else 'No',
+        'doctor': 'Dr. José Javier Rivera Tejeda' if 'Rivera' in html else 'N/D',
+        'schema_type': _parse_schema_types(soup)
+    }
 
 def get_content_data(url, session=SESSION):
     """
@@ -147,79 +156,13 @@ def get_content_data(url, session=SESSION):
         'schema_type': 'N/D'
     }
     if not is_safe_audit_url(url):
-        print(f"Error: URL rejected by safe audit allowlist: {url}")
         return dict.fromkeys(res, 'Error')
     try:
-        resp = session.get(
-            url,
-            verify=VERIFY_SSL,
-            timeout=10,
-            headers={'Cache-Control': 'no-cache'},
-            allow_redirects=False,
-            stream=True,
-        )
-
-        max_redirects = 5
-        redirect_count = 0
-        current_url = url
-
-        while resp.is_redirect and redirect_count < max_redirects:
-            redirect_count += 1
-            location = resp.headers['Location']
-            resp.close()
-
-            loc_parsed = requests.utils.urlparse(location)
-            if not loc_parsed.scheme or not loc_parsed.netloc:
-                location = requests.utils.urljoin(current_url, location)
-
-            if not is_safe_audit_url(location):
-                print(f"Error: Redirect target rejected by safe audit allowlist: {location}")
-                return dict.fromkeys(res, 'Error')
-
-            current_url = location
-            resp = session.get(
-                current_url,
-                verify=VERIFY_SSL,
-                timeout=10,
-                headers={'Cache-Control': 'no-cache'},
-                allow_redirects=False,
-                stream=True,
-            )
-
-        if resp.is_redirect:
-            resp.close()
-            print(f"Error: Redirect limit ({max_redirects}) exceeded for {url}")
+        resp = _follow_redirects_safely(session, url, method="get", stream=True)
+        if not resp:
             return dict.fromkeys(res, 'Error')
-
         if resp.status_code == 200:
-            html = resp.text
-
-            # Limit HTML size to prevent ReDoS on large pages
-            if len(html) > 1000000:  # 1MB limit
-                html = html[:1000000]
-
-            soup = BeautifulSoup(html, 'html.parser')
-
-            can = soup.find('link', rel='canonical')
-            res['canonical'] = can['href'] if can else 'N/D'
-
-            rob = soup.find('meta', attrs={'name': 'robots'})
-            res['robots'] = rob['content'] if rob else 'N/D'
-
-            h1 = soup.find('h1')
-            res['h1'] = h1.get_text(strip=True) if h1 else 'N/D'
-
-            # Extract prices safely using strictly bounded quantifiers to guarantee O(N) ReDoS immunity (CWE-1333 / py/polynomial-redos)
-            prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3}){0,3}\s*€', html)
-            res['price'] = '; '.join(sorted(set(prices))) if prices else 'N/D'
-
-            res['faq'] = 'Sí' if 'FAQPage' in html else 'No'
-
-            if 'Rivera' in html:
-                res['doctor'] = 'Dr. José Javier Rivera Tejeda'
-
-            res['schema_type'] = _parse_schema_types(soup)
-        # Non-200 responses (e.g., 404) return N/D defaults so status column records HTTP code and drift is properly classified
+            return _parse_html_fields(resp.text)
     except Exception as e:
         print(f"Error fetching content from {url}: {e}")
         return dict.fromkeys(res, 'Error')

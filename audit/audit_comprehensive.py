@@ -125,14 +125,13 @@ def _parse_schema_types(soup):
             continue
     return '; '.join(sorted(set(types))) if types else 'N/D'
 
-def _follow_redirects_safely(session, url, method="get", stream=False):
+def _follow_redirects_safely(session, url, stream=True):
     session = session or SESSION
-    fetch = session.get if method == "get" else session.head
     kwargs = {"verify": VERIFY_SSL, "timeout": 10, "headers": {'Cache-Control': 'no-cache'}, "allow_redirects": False}
     if stream:
         kwargs["stream"] = True
 
-    resp = fetch(url, **kwargs)
+    resp = session.get(url, **kwargs)
     max_redirects = 5
     redirect_count = 0
     current_url = url
@@ -153,7 +152,7 @@ def _follow_redirects_safely(session, url, method="get", stream=False):
 
         resp.close()
         current_url = location
-        resp = fetch(current_url, **kwargs)
+        resp = session.get(current_url, **kwargs)
 
     return resp
 

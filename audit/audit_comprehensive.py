@@ -21,6 +21,13 @@ import os
 import re
 from contextlib import suppress
 
+# Use stderr for warnings to avoid interfering with stdout consumption
+def _warn(message):
+    print(f"WARNING: {message}", file=sys.stderr)
+
+def _info(message):
+    print(f"INFO: {message}", file=sys.stderr)
+
 DEFAULT_OUT_DIR = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 SAFE_AUDIT_BASE_DIR = Path('/home/ubuntu').resolve()
 
@@ -33,8 +40,18 @@ def _resolve_safe_out_dir():
     # Rechazar entradas claramente peligrosas antes de construir paths.
     # Solo permitir rutas con caracteres esperados para este contexto.
     if '\x00' in raw_out_dir:
-        print(
-            f"WARNING: Ignorando AUDIT_OUT_DIR con caracteres no permitidos. "
+        _warn(
+            f"Ignorando AUDIT_OUT_DIR con caracteres no permitidos. "
+            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+        )
+        return DEFAULT_OUT_DIR
+    
+    # Additional security checks for path input
+    # Reject paths with suspicious patterns
+    suspicious_patterns = ['<', '>', '|', '&', ';', '$', '`', '(', ')']
+    if any(pattern in raw_out_dir for pattern in suspicious_patterns):
+        _warn(
+            f"Ignorando AUDIT_OUT_DIR con patrones sospechosos: {raw_out_dir}. "
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR
@@ -49,46 +66,47 @@ def _resolve_safe_out_dir():
         return DEFAULT_OUT_DIR
 
     if '..' in Path(raw_out_dir).parts:
-        print(
-            f"WARNING: Ignorando AUDIT_OUT_DIR con segmentos no permitidos: {raw_out_dir}. "
+        _warn(
+            f"Ignorando AUDIT_OUT_DIR con segmentos no permitidos: {raw_out_dir}. "
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR
 
+    # Validate path before expansion to prevent path traversal
     try:
         candidate = Path(raw_out_dir).expanduser().resolve()
-    except (OSError, RuntimeError, ValueError):
-        print(
-            f"WARNING: Ignorando AUDIT_OUT_DIR inválido: {raw_out_dir}. "
+    except (OSError, ValueError) as e:
+        _warn(
+            f"Error al procesar AUDIT_OUT_DIR: {e}. "
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR
-
-    try:
-        candidate.relative_to(SAFE_AUDIT_BASE_DIR)
+    
+    # Ensure the resolved path is within the safe base directory
+    if candidate == SAFE_AUDIT_BASE_DIR or SAFE_AUDIT_BASE_DIR in candidate.parents:
         return candidate
-    except ValueError:
-        print(
-            f"WARNING: Ignorando AUDIT_OUT_DIR no seguro: {raw_out_dir}. "
-            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
-        )
-        return DEFAULT_OUT_DIR
+
+    _warn(
+        f"Ignorando AUDIT_OUT_DIR no seguro: {raw_out_dir}. "
+        f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+    )
+    return DEFAULT_OUT_DIR
 
 OUT = _resolve_safe_out_dir()
 
 def load_slugs():
     routes_file = OUT / 'staging_routes.json'
     if not routes_file.exists():
-        print(f"Aviso: El archivo de rutas {routes_file} no existe. No hay rutas para auditar.")
+        _info(f"El archivo de rutas {routes_file} no existe. No hay rutas para auditar.")
         return []
     try:
         with open(routes_file, encoding='utf-8') as f:
             data = json.load(f)
     except (OSError, ValueError) as err:
-        print(f"Aviso: No se pudo leer {routes_file}: {err}. No hay rutas para auditar.")
+        _info(f"No se pudo leer {routes_file}: {err}. No hay rutas para auditar.")
         return []
     if not isinstance(data, list) or not all(isinstance(s, str) for s in data):
-        print(f"Aviso: Formato inesperado en {routes_file} (se esperaba lista de strings). No hay rutas para auditar.")
+        _info(f"Formato inesperado en {routes_file} (se esperaba lista de strings). No hay rutas para auditar.")
         return []
     return data
 
@@ -97,7 +115,7 @@ STAG_BASE = "https://staging2.nuvanx.com"
 ALLOWED_AUDIT_HOSTS = {"nuvanx.com", "staging2.nuvanx.com"}
 VERIFY_SSL = os.environ.get("AUDIT_VERIFY_SSL", "").strip().lower() != "false"
 if not VERIFY_SSL:
-    print("WARNING: AUDIT_VERIFY_SSL=false is active. TLS certificate verification is disabled for this audit run.")
+    _warn("AUDIT_VERIFY_SSL=false is active. TLS certificate verification is disabled for this audit run.")
     with suppress(Exception):
         import urllib3
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -201,7 +219,7 @@ def _follow_redirects_safely(session, url, stream=True):
         resp = session.get(current_url, **kwargs)
 
     if resp.is_redirect and redirect_count >= max_redirects:
-        print(f"Aviso: Límite de redirecciones ({max_redirects}) alcanzado para {url}")
+        _info(f"Límite de redirecciones ({max_redirects}) alcanzado para {url}")
 
     return resp
 
@@ -398,7 +416,7 @@ def fetch_url_audit_data(url, session=None):
                 try:
                     content = _parse_html_fields(html)
                 except Exception as parse_err:
-                    print(f"Aviso: Error de estructura HTML al parsear {url}: {parse_err}")
+                    _info(f"Error de estructura HTML al parsear {url}: {parse_err}")
             else:
                 content = dict(default_content)
         finally:

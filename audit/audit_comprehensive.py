@@ -23,6 +23,8 @@ PROD_BASE = "https://nuvanx.com"
 STAG_BASE = "https://staging2.nuvanx.com"
 ALLOWED_AUDIT_HOSTS = {"nuvanx.com", "staging2.nuvanx.com"}
 VERIFY_SSL = os.environ.get("AUDIT_VERIFY_SSL", "true").lower() == "true"
+if not VERIFY_SSL:
+    print("WARNING: AUDIT_VERIFY_SSL=false is active. TLS certificate verification is disabled for this audit run.")
 
 SESSION = requests.Session()
 SESSION.trust_env = False  # Disable implicit authentication from .netrc globally for audit

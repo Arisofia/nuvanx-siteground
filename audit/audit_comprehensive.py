@@ -162,8 +162,18 @@ def fetch_url_audit_data(url, session=SESSION):
         return "Error", dict.fromkeys(default_content, 'Error')
 
 def get_http_status(url, session=SESSION):
-    status, _ = fetch_url_audit_data(url, session=session)
-    return status
+    """
+    Get HTTP status using a lightweight HEAD request with SSL verification.
+    """
+    if not is_safe_audit_url(url):
+        return "Error"
+    try:
+        resp = _follow_redirects_safely(session, url, method="head", stream=False)
+        return str(resp.status_code) if resp else "Error"
+    except requests.exceptions.Timeout:
+        return "Timeout"
+    except Exception:
+        return "Error"
 
 def get_content_data(url, session=SESSION):
     _, content = fetch_url_audit_data(url, session=session)

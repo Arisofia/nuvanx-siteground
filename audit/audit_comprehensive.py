@@ -67,7 +67,7 @@ def get_http_status(url, session=SESSION):
             redirect_count += 1
             location = resp.headers.get('Location')
             if not location:
-                break
+                return "Error"
             
             # Make location absolute if relative
             loc_parsed = requests.utils.urlparse(location)
@@ -89,6 +89,9 @@ def get_http_status(url, session=SESSION):
             )
             current_status = str(resp.status_code)
         
+        if resp.is_redirect:
+            return "Error"
+
         return current_status
     except requests.exceptions.Timeout:
         return "Timeout"

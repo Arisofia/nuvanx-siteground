@@ -115,6 +115,7 @@ def get_content_data(url):
         'schema_type': 'N/D'
     }
     if not is_safe_audit_url(url):
+        print(f"Error: URL rejected by safe audit allowlist: {url}")
         return res
     try:
         # SSL verification disabled for internal audit purposes
@@ -147,7 +148,7 @@ def get_content_data(url):
             res['h1'] = h1.get_text(strip=True) if h1 else 'N/D'
 
             # Extract prices safely using bounded quantifiers to prevent ReDoS (CWE-1333 / py/polynomial-redos)
-            prices = re.findall(r'\b\d{1,6}(?:[.,]\d{1,2})?\s*€', html)
+            prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3})?\s*€', html)
             res['price'] = '; '.join(sorted(list(set(prices)))) if prices else 'N/D'
 
             res['faq'] = 'Sí' if 'FAQPage' in html else 'No'
@@ -201,10 +202,6 @@ for i, slug in enumerate(SLUGS):
     # This helps catch cases where HTTP status check might be incomplete
     p_content = get_content_data(p_url)
     s_content = get_content_data(s_url)
-    
-    # Recalculate status if content fetch succeeded
-    # (Sometimes HEAD fails but requests.get works)
-    # But for /tratamientos/ we must prioritize the status check as requested.
     
     gap_tipo = get_gap_tipo(p_status, s_status)
     

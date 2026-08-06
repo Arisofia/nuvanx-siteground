@@ -2,7 +2,7 @@ name: Production Gate & Atomic Deploy to SiteGround
 
 on:
   workflow_run:
-    workflows: ["Deploy Staging2"]
+    workflows: ['Deploy Staging2']
     types: [completed]
 
 permissions:
@@ -10,7 +10,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: production-deploy-${{ github.workflow_run.workflow_id }}
+  group: production-deploy-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:

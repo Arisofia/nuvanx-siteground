@@ -4,13 +4,7 @@ from pathlib import Path
 import re
 from bs4 import BeautifulSoup
 import requests
-import urllib3
-from urllib3.exceptions import InsecureRequestWarning
 import os
-import warnings
-
-# Disable SSL warnings for internal audit requests
-warnings.simplefilter("ignore", InsecureRequestWarning)
 
 OUT = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 with open(OUT / 'staging_routes.json', 'r') as f:

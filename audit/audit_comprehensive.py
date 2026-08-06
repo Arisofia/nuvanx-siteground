@@ -302,11 +302,16 @@ def fetch_url_audit_data(url, session=None):
         if resp is None:
             return "Error", dict(default_content)
 
+        status = "Error"
+        content = dict(default_content)
         try:
             status = str(resp.status_code)
             if resp.status_code == 200:
-                html = _read_bounded_response_text(resp)
-                content = _parse_html_fields(html)
+                try:
+                    html = _read_bounded_response_text(resp)
+                    content = _parse_html_fields(html)
+                except Exception as parse_err:
+                    print(f"Aviso: Error al parsear campos HTML de {url}: {parse_err}")
             else:
                 content = dict(default_content)
         finally:
@@ -316,7 +321,7 @@ def fetch_url_audit_data(url, session=None):
     except requests.exceptions.Timeout:
         return "Timeout", dict(default_content)
     except Exception as e:
-        print(f"Error fetching {url}: {e}")
+        print(f"Error en la petición a {url}: {e}")
         return "Error", dict(default_content)
 
 def get_gap_tipo(p_status, s_status):

@@ -317,7 +317,7 @@ jobs:
           name: browser-acceptance-results
           path: scripts/staging2/artifacts/
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Configure SSH for cleanup
         if: always()

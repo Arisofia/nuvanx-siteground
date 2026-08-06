@@ -8,6 +8,7 @@ import requests
 import urllib3
 import ssl
 from urllib3.exceptions import InsecureRequestWarning, SSLError
+import os
 
 # Disable SSL warnings globally for internal audit purposes
 # This is intentional for development/staging environments with self-signed certificates
@@ -38,8 +39,8 @@ def is_safe_audit_url(url):
 
 def get_http_status_curl(url):
     """
-    Get HTTP status using curl with SSL verification bypass for internal audit purposes.
-    Note: -k flag bypasses SSL verification - this is intentional for internal audit scripts
+    Get HTTP status using requests with SSL verification bypass for internal audit purposes.
+    Note: verify=False bypasses SSL verification - this is intentional for internal audit scripts
     where SSL certificates may be self-signed or in development environments.
     """
     try:
@@ -47,17 +48,60 @@ def get_http_status_curl(url):
         if not is_safe_audit_url(url):
             return "Error"
 
-        # User requested: curl -sI -H "Cache-Control: no-cache"
-        # Using curl with -k flag for SSL verification bypass for internal audit
-        cmd = ['curl', '-sI', '-L', '-k', '-m', '10', '-H', 'Cache-Control: no-cache', url]
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=12)
-        if proc.returncode == 0:
-            lines = proc.stdout.replace('\r', '').splitlines()
-            if status_lines := [l for l in lines if l.startswith("HTTP/")]:
-                return status_lines[-1].split()[1]
-        return "Error"
-    except:
+        # Use requests.head instead of curl subprocess
+        # verify=False is intentional for internal audit with self-signed certificates
+        # trust_env=False disables implicit authentication from .netrc
+        resp = requests.head(
+            url,
+            headers={"Cache-Control": "no-cache"},
+            allow_redirects=False,  # Disable automatic redirects for SSRF protection
+            timeout=10,
+            verify=False,
+            trust_env=False,  # Disable implicit authentication
+        )
+        
+        # Follow redirects manually with SSRF protection
+        max_redirects = 5
+        redirect_count = 0
+        current_url = url
+        current_status = str(resp.status_code)
+        
+        while resp.is_redirect and redirect_count < max_redirects:
+            redirect_count += 1
+            location = resp.headers.get('Location')
+            if not location:
+                break
+            
+            # Make location absolute if relative
+            if location.startswith('/'):
+                parsed = requests.utils.urlparse(current_url)
+                location = f"{parsed.scheme}://{parsed.netloc}{location}"
+            elif not location.startswith(('http://', 'https://')):
+                location = requests.utils.urljoin(current_url, location)
+            
+            # Validate redirect destination against allowlist
+            if not is_safe_audit_url(location):
+                return "Error"  # Redirect to unsafe destination
+            
+            # Follow redirect
+            current_url = location
+            resp = requests.head(
+                current_url,
+                headers={"Cache-Control": "no-cache"},
+                allow_redirects=False,
+                timeout=10,
+                verify=False,
+                trust_env=False,
+            )
+            current_status = str(resp.status_code)
+        
+        return current_status
+    except requests.exceptions.Timeout:
         return "Timeout"
+    except requests.exceptions.RequestException:
+        return "Error"
+    except Exception:
+        return "Error"  # Catch any unexpected errors but label as "Error" not "Timeout"
 
 def get_content_data(url):
     """
@@ -76,7 +120,14 @@ def get_content_data(url):
     try:
         # SSL verification disabled for internal audit purposes
         # This is intentional for development/staging environments
-        resp = requests.get(url, verify=False, timeout=10, headers={'Cache-Control': 'no-cache'})
+        # trust_env=False disables implicit authentication from .netrc
+        resp = requests.get(
+            url,
+            verify=False,
+            timeout=10,
+            headers={'Cache-Control': 'no-cache'},
+            trust_env=False,  # Disable implicit authentication
+        )
 
         if resp.status_code == 200:
             html = resp.text

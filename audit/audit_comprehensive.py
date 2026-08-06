@@ -150,11 +150,14 @@ def fetch_url_audit_data(url, session=None):
         if not resp:
             return "Error", dict.fromkeys(default_content, 'Error')
 
-        status = str(resp.status_code)
-        if resp.status_code == 200:
-            content = _parse_html_fields(resp.text)
-        else:
-            content = default_content
+        try:
+            status = str(resp.status_code)
+            if resp.status_code == 200:
+                content = _parse_html_fields(resp.text)
+            else:
+                content = dict(default_content)
+        finally:
+            resp.close()
 
         return status, content
     except requests.exceptions.Timeout:
@@ -172,7 +175,12 @@ def get_http_status(url, session=None):
         return "Error"
     try:
         resp = _follow_redirects_safely(session, url, method="head", stream=False)
-        return str(resp.status_code) if resp else "Error"
+        if not resp:
+            return "Error"
+        try:
+            return str(resp.status_code)
+        finally:
+            resp.close()
     except requests.exceptions.Timeout:
         return "Timeout"
     except Exception:

@@ -187,7 +187,9 @@ def _resolve_response_encoding(resp, raw_bytes):
     if encoding and encoding.lower() not in ('iso-8859-1', 'latin-1'):
         return encoding
     sniffed = _sniff_meta_charset(raw_bytes[:4096].lower())
-    return sniffed or 'utf-8'
+    if sniffed:
+        return sniffed
+    return 'utf-8'
 
 def _read_bounded_response_text(resp, max_bytes=1000000):
     chunks = []

@@ -48,18 +48,21 @@ def is_safe_audit_url(url):
 TYPE_KEY = '@type'
 GRAPH_KEY = '@graph'
 
+def _get_type_list(node):
+    if not isinstance(node, dict) or TYPE_KEY not in node:
+        return []
+    val = node[TYPE_KEY]
+    return val if isinstance(val, list) else [val]
+
 def _extract_types_from_obj(data):
     types = []
     if not isinstance(data, dict):
         return types
-    if TYPE_KEY in data:
-        t = data[TYPE_KEY]
-        types.extend(t if isinstance(t, list) else [t])
-    if GRAPH_KEY in data and isinstance(data[GRAPH_KEY], list):
-        for item in data[GRAPH_KEY]:
-            if isinstance(item, dict) and TYPE_KEY in item:
-                t = item[TYPE_KEY]
-                types.extend(t if isinstance(t, list) else [t])
+    types.extend(_get_type_list(data))
+    graph = data.get(GRAPH_KEY)
+    if isinstance(graph, list):
+        for item in graph:
+            types.extend(_get_type_list(item))
     return types
 
 def _parse_schema_types(soup):
@@ -127,10 +130,22 @@ def _parse_html_fields(html):
     h1 = soup.find('h1')
     prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3}){0,3}\s*€', html)
 
+    canonical_val = 'N/D'
+    if can is not None:
+        canonical_val = can.get('href') or 'N/D'
+
+    robots_val = 'N/D'
+    if rob is not None:
+        robots_val = rob.get('content') or 'N/D'
+
+    h1_val = 'N/D'
+    if h1 is not None:
+        h1_val = h1.get_text(strip=True) or 'N/D'
+
     return {
-        'canonical': can.get('href', 'N/D') if can else 'N/D',
-        'robots': rob.get('content', 'N/D') if rob else 'N/D',
-        'h1': h1.get_text(strip=True) if h1 else 'N/D',
+        'canonical': canonical_val,
+        'robots': robots_val,
+        'h1': h1_val,
         'price': '; '.join(sorted(set(prices))) if prices else 'N/D',
         'faq': 'Sí' if 'FAQPage' in html else 'No',
         'doctor': 'Dr. José Javier Rivera Tejeda' if 'Rivera' in html else 'N/D',

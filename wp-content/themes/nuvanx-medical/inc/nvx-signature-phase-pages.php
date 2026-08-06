@@ -432,10 +432,10 @@ function nvx_signature_hub_shell_open( array $hub ): string {
 	$html      .= '<p class="nvx-brand-hero__description">' . esc_html( (string) ( $hub['intro'] ?? '' ) ) . '</p>';
 	$html      .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
 	if ( 'index' !== ( $hub['kind'] ?? '' ) ) {
-		$html .= ' <a class="nvx-brand-inline-link nvx-brand-inline-link--light" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Ver todos los Protocolos Signature', 'nuvanx-medical' ) . '</a>';
+		$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Ver todos los Protocolos Signature', 'nuvanx-medical' ) . '</a>';
 	}
 	$html .= '</div>';
-	$html .= '<p class="nvx-brand-microcopy nvx-brand-microcopy--dark">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '<p class="nvx-brand-microcopy">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p>';
 	$html .= '</div></div></section>';
 	return $html;
 }

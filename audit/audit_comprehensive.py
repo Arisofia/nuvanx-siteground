@@ -18,6 +18,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 import requests
 import os
+from contextlib import suppress
 
 DEFAULT_OUT_DIR = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 SAFE_AUDIT_BASE_DIR = Path('/home/ubuntu').resolve()

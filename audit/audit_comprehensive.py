@@ -18,6 +18,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 import requests
 import os
+import re
 from contextlib import suppress
 
 DEFAULT_OUT_DIR = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
@@ -34,6 +35,15 @@ def _resolve_safe_out_dir():
     if '\x00' in raw_out_dir:
         print(
             f"WARNING: Ignorando AUDIT_OUT_DIR con caracteres no permitidos. "
+            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+        )
+        return DEFAULT_OUT_DIR
+
+    # Permitir únicamente caracteres esperados en rutas locales.
+    # Evita caracteres de control y otros símbolos inesperados.
+    if not re.fullmatch(r"[A-Za-z0-9._/\-~]+", raw_out_dir):
+        print(
+            f"WARNING: Ignorando AUDIT_OUT_DIR con formato no permitido: {raw_out_dir}. "
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR

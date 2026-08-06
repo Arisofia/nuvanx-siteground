@@ -21,13 +21,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 function nvx_render_matrix_hero( array $data ): string {
 	$html = '<section class="nvx-brand-hero"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy">';
 	if ( ! empty( $data['kicker'] ) ) {
-		$html .= '<p class="nvx-eyebrow">' . esc_html( $data['kicker'] ) . '</p>';
+		$html .= '<p class="nvx-brand-kicker">' . esc_html( $data['kicker'] ) . '</p>';
 	}
 	$html .= '<h1 class="nvx-brand-hero__title">' . esc_html( $data['h1'] ?? $data['title'] ?? '' ) . '</h1>';
 	if ( ! empty( $data['lead'] ) ) {
 		$html .= '<p class="nvx-brand-hero__lead">' . esc_html( $data['lead'] ) . '</p>';
 	}
-	$html .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></div>';
+	$html .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( home_url( '/madrid/valoracion/' ) ) . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a></div>';
 	$html .= '</div></div></section>';
 	return $html;
 }

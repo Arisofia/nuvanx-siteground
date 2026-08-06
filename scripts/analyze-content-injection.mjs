@@ -178,10 +178,9 @@ function analyzeComplianzReferences() {
 
   for (const file of phpFiles) {
     const content = readPHPFile(file);
-    if (content) {
-      if (content.toLowerCase().includes('complianz')) {
-        complianzCount++;
-        filesWithComplianz.push(file.replace(THEME_DIR, ''));
+    if (content && content.toLowerCase().includes('complianz')) {
+      complianzCount++;
+      filesWithComplianz.push(file.replace(THEME_DIR, ''));
       }
     }
   }
@@ -238,11 +237,7 @@ function analyzeMUPlugins() {
       // Analizar cada MU plugin
       for (const plugin of plugins) {
         const content = readPHPFile(join(muDir, plugin));
-        if (content) {
-          if (
-            content.includes('add_filter') ||
-            content.includes('add_action')
-          ) {
+        if (content && (content.includes('add_filter') || content.includes('add_action'))) {
             warning(
               `${plugin} contiene hooks/filtros que pueden inyectar contenido`
             );

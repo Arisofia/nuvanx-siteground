@@ -25,6 +25,23 @@ def _resolve_safe_out_dir():
     if not raw_out_dir:
         return DEFAULT_OUT_DIR
 
+    raw_out_dir = raw_out_dir.strip()
+    # Rechazar entradas claramente peligrosas antes de construir paths.
+    # Solo permitir rutas con caracteres esperados para este contexto.
+    if '\x00' in raw_out_dir or not re.fullmatch(r"[A-Za-z0-9._/\-~]+", raw_out_dir):
+        print(
+            f"WARNING: Ignorando AUDIT_OUT_DIR con formato no permitido: {raw_out_dir}. "
+            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+        )
+        return DEFAULT_OUT_DIR
+
+    if '..' in Path(raw_out_dir).parts:
+        print(
+            f"WARNING: Ignorando AUDIT_OUT_DIR con segmentos no permitidos: {raw_out_dir}. "
+            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+        )
+        return DEFAULT_OUT_DIR
+
     candidate = Path(raw_out_dir).expanduser().resolve()
     if candidate == SAFE_AUDIT_BASE_DIR or SAFE_AUDIT_BASE_DIR in candidate.parents:
         return candidate

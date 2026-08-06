@@ -126,7 +126,8 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	}
 
 	// SiteGround preview/staging hosts must never be indexable.
-	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( (string) $_SERVER['HTTP_HOST'] ) : '';
+	$raw_host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( (string) $_SERVER['HTTP_HOST'] ) : '';
+	$host     = (string) preg_replace( '/:\d+$/', '', $raw_host );
 	if ( false !== strpos( $host, '.sg-host.com' ) || false !== strpos( $host, 'staging' ) ) {
 		return true;
 	}

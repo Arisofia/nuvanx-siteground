@@ -210,8 +210,8 @@ def get_content_data(url, session=SESSION):
             h1 = soup.find('h1')
             res['h1'] = h1.get_text(strip=True) if h1 else 'N/D'
 
-            # Extract prices safely using bounded quantifiers to prevent ReDoS (CWE-1333 / py/polynomial-redos)
-            prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3})*\s*€', html)
+            # Extract prices safely using strictly bounded quantifiers to guarantee O(N) ReDoS immunity (CWE-1333 / py/polynomial-redos)
+            prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3}){0,3}\s*€', html)
             res['price'] = '; '.join(sorted(set(prices))) if prices else 'N/D'
 
             res['faq'] = 'Sí' if 'FAQPage' in html else 'No'

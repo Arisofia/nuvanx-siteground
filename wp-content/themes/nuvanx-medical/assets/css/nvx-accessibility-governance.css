@@ -107,6 +107,7 @@
   top: var(--nvx-space-1, 8px);
   outline: 2px solid var(--nvx-ink);
   outline-offset: var(--nvx-outline-offset, 2px);
+  z-index: 10001;
 }
 @media (prefers-reduced-motion: reduce) {
   .nvx-skip-link { transition: none; }

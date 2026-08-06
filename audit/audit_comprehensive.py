@@ -45,16 +45,15 @@ def get_http_status(url):
         if not is_safe_audit_url(url):
             return "Error"
 
-        # Use requests.head instead of curl subprocess
-        # verify=False is intentional for internal audit with self-signed certificates
-        # trust_env=False disables implicit authentication from .netrc
-        resp = requests.head(
+        session = requests.Session()
+        session.trust_env = False  # Disable implicit authentication from .netrc
+
+        resp = session.head(
             url,
             headers={"Cache-Control": "no-cache"},
             allow_redirects=False,  # Disable automatic redirects for SSRF protection
             timeout=10,
             verify=False,
-            trust_env=False,  # Disable implicit authentication
         )
         
         # Follow redirects manually with SSRF protection
@@ -73,7 +72,7 @@ def get_http_status(url):
             if location.startswith('/'):
                 parsed = requests.utils.urlparse(current_url)
                 location = f"{parsed.scheme}://{parsed.netloc}{location}"
-            elif not location.startswith(('http://', 'https://')):
+            elif not requests.utils.urlparse(location).scheme:
                 location = requests.utils.urljoin(current_url, location)
             
             # Validate redirect destination against allowlist
@@ -82,13 +81,12 @@ def get_http_status(url):
             
             # Follow redirect
             current_url = location
-            resp = requests.head(
+            resp = session.head(
                 current_url,
                 headers={"Cache-Control": "no-cache"},
                 allow_redirects=False,
                 timeout=10,
                 verify=False,
-                trust_env=False,
             )
             current_status = str(resp.status_code)
         
@@ -116,19 +114,17 @@ def get_content_data(url):
     }
     if not is_safe_audit_url(url):
         print(f"Error: URL rejected by safe audit allowlist: {url}")
-        return {k: 'Error' for k in res}
+        return dict.fromkeys(res, 'Error')
     try:
-        # SSL verification disabled for internal audit purposes
-        # This is intentional for development/staging environments
-        # trust_env=False disables implicit authentication from .netrc
-        # allow_redirects=False with manual loop prevents SSRF via redirect targets
-        resp = requests.get(
+        session = requests.Session()
+        session.trust_env = False  # Disable implicit authentication from .netrc
+
+        resp = session.get(
             url,
             verify=False,
             timeout=10,
             headers={'Cache-Control': 'no-cache'},
             allow_redirects=False,
-            trust_env=False,  # Disable implicit authentication
         )
 
         max_redirects = 5
@@ -144,26 +140,25 @@ def get_content_data(url):
             if location.startswith('/'):
                 parsed = requests.utils.urlparse(current_url)
                 location = f"{parsed.scheme}://{parsed.netloc}{location}"
-            elif not location.startswith(('http://', 'https://')):
+            elif not requests.utils.urlparse(location).scheme:
                 location = requests.utils.urljoin(current_url, location)
 
             if not is_safe_audit_url(location):
                 print(f"Error: Redirect target rejected by safe audit allowlist: {location}")
-                return {k: 'Error' for k in res}
+                return dict.fromkeys(res, 'Error')
 
             current_url = location
-            resp = requests.get(
+            resp = session.get(
                 current_url,
-                verify=True,
+                verify=False,
                 timeout=10,
                 headers={'Cache-Control': 'no-cache'},
                 allow_redirects=False,
-                trust_env=False,
             )
 
         if resp.is_redirect:
             print(f"Error: Redirect limit ({max_redirects}) exceeded for {url}")
-            return {k: 'Error' for k in res}
+            return dict.fromkeys(res, 'Error')
 
         if resp.status_code == 200:
             html = resp.text

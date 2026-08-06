@@ -158,6 +158,37 @@ def _follow_redirects_safely(session, url, stream=True):
 
     return resp
 
+def _sniff_meta_charset(head_bytes):
+    meta_idx = head_bytes.find(b'<meta')
+    while meta_idx != -1:
+        meta_end = head_bytes.find(b'>', meta_idx)
+        if meta_end == -1:
+            break
+        meta_tag = head_bytes[meta_idx:meta_end]
+        charset_idx = meta_tag.find(b'charset=')
+        if charset_idx != -1:
+            snippet = meta_tag[charset_idx + 8:charset_idx + 40].lstrip(b'"\'')
+            charset_bytes = bytearray()
+            for b in snippet:
+                if (ord('a') <= b <= ord('z')) or (ord('0') <= b <= ord('9')) or b in (ord('-'), ord('_')):
+                    charset_bytes.append(b)
+                else:
+                    break
+            if charset_bytes:
+                try:
+                    return charset_bytes.decode('ascii')
+                except Exception:
+                    pass
+        meta_idx = head_bytes.find(b'<meta', meta_end)
+    return None
+
+def _resolve_response_encoding(resp, raw_bytes):
+    encoding = resp.encoding
+    if encoding and encoding.lower() not in ('iso-8859-1', 'latin-1'):
+        return encoding
+    sniffed = _sniff_meta_charset(raw_bytes[:4096].lower())
+    return sniffed or 'utf-8'
+
 def _read_bounded_response_text(resp, max_bytes=1000000):
     chunks = []
     total_bytes = 0
@@ -167,38 +198,8 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
         if total_bytes >= max_bytes:
             break
     raw_bytes = b''.join(chunks)[:max_bytes]
-    encoding = resp.encoding
-    header_encoding = encoding
-    if not encoding or encoding.lower() in ('iso-8859-1', 'latin-1'):
-        encoding = None
-        # Sniff HTML meta charset without polynomial regex by checking head_bytes directly
-        head_bytes = raw_bytes[:4096].lower()
-        # Look specifically for <meta ... charset= to avoid matching scripts/links
-        meta_idx = head_bytes.find(b'<meta')
-        while meta_idx != -1:
-            meta_end = head_bytes.find(b'>', meta_idx)
-            if meta_end == -1:
-                break
-            meta_tag = head_bytes[meta_idx:meta_end]
-            charset_idx = meta_tag.find(b'charset=')
-            if charset_idx != -1:
-                snippet = meta_tag[charset_idx + 8:charset_idx + 40].lstrip(b'"\'')
-                charset_bytes = bytearray()
-                for b in snippet:
-                    if (ord('a') <= b <= ord('z')) or (ord('0') <= b <= ord('9')) or b in (ord('-'), ord('_')):
-                        charset_bytes.append(b)
-                    else:
-                        break
-                if charset_bytes:
-                    try:
-                        encoding = charset_bytes.decode('ascii')
-                        break
-                    except Exception:
-                        encoding = None
-            meta_idx = head_bytes.find(b'<meta', meta_end)
-        if not encoding:
-            encoding = 'utf-8' if header_encoding else 'utf-8'
-    # Drain remaining unread socket bytes up to a small limit so HTTP connection can be safely returned to urllib3 pool
+    encoding = _resolve_response_encoding(resp, raw_bytes)
+    
     try:
         if not resp.raw.closed:
             resp.raw.read(65536)

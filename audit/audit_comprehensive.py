@@ -170,12 +170,12 @@ def fetch_url_audit_data(url, session=None):
         'schema_type': 'N/D'
     }
     if not is_safe_audit_url(url):
-        return "Error", dict.fromkeys(default_content, 'Error')
+        return "Error", dict(default_content)
 
     try:
         resp = _follow_redirects_safely(session, url, method="get", stream=True)
         if not resp:
-            return "Error", dict.fromkeys(default_content, 'Error')
+            return "Error", dict(default_content)
 
         try:
             status = str(resp.status_code)
@@ -189,10 +189,10 @@ def fetch_url_audit_data(url, session=None):
 
         return status, content
     except requests.exceptions.Timeout:
-        return "Timeout", dict.fromkeys(default_content, 'Error')
+        return "Timeout", dict(default_content)
     except Exception as e:
         print(f"Error fetching {url}: {e}")
-        return "Error", dict.fromkeys(default_content, 'Error')
+        return "Error", dict(default_content)
 
 def get_http_status(url, session=None):
     """

@@ -30,9 +30,9 @@ def _resolve_safe_out_dir():
     raw_out_dir = raw_out_dir.strip()
     # Rechazar entradas claramente peligrosas antes de construir paths.
     # Solo permitir rutas con caracteres esperados para este contexto.
-    if '\x00' in raw_out_dir or not re.fullmatch(r"[A-Za-z0-9._/\-~]+", raw_out_dir):
+    if '\x00' in raw_out_dir:
         print(
-            f"WARNING: Ignorando AUDIT_OUT_DIR con formato no permitido: {raw_out_dir}. "
+            f"WARNING: Ignorando AUDIT_OUT_DIR con caracteres no permitidos. "
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR
@@ -61,13 +61,21 @@ def load_slugs():
     if not routes_file.exists():
         print(f"Aviso: El archivo de rutas {routes_file} no existe. No hay rutas para auditar.")
         return []
-    with open(routes_file, 'r', encoding='utf-8') as f:
-        return json.load(f)
+    try:
+        with open(routes_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except (OSError, ValueError) as err:
+        print(f"Aviso: No se pudo leer {routes_file}: {err}. No hay rutas para auditar.")
+        return []
+    if not isinstance(data, list) or not all(isinstance(s, str) for s in data):
+        print(f"Aviso: Formato inesperado en {routes_file} (se esperaba lista de strings). No hay rutas para auditar.")
+        return []
+    return data
 
 PROD_BASE = "https://nuvanx.com"
 STAG_BASE = "https://staging2.nuvanx.com"
 ALLOWED_AUDIT_HOSTS = {"nuvanx.com", "staging2.nuvanx.com"}
-VERIFY_SSL = os.environ.get("AUDIT_VERIFY_SSL", "true").lower() == "true"
+VERIFY_SSL = os.environ.get("AUDIT_VERIFY_SSL", "").strip().lower() != "false"
 if not VERIFY_SSL:
     print("WARNING: AUDIT_VERIFY_SSL=false is active. TLS certificate verification is disabled for this audit run.")
     try:
@@ -104,6 +112,11 @@ def _get_type_list(node):
 
 def _extract_types_from_obj(data):
     types = []
+    if isinstance(data, list):
+        # Top-level JSON-LD array: process each element
+        for item in data:
+            types.extend(_extract_types_from_obj(item))
+        return types
     if not isinstance(data, dict):
         return types
     types.extend(_get_type_list(data))
@@ -316,10 +329,13 @@ def fetch_url_audit_data(url, session=None):
             if resp.status_code == 200:
                 try:
                     html = _read_bounded_response_text(resp)
+                except requests.exceptions.ReadTimeout as rt_err:
+                    print(f"Timeout leyendo cuerpo de {url}: {rt_err}")
+                    return "Timeout", dict(default_content)
                 except (requests.exceptions.RequestException, OSError) as net_err:
                     print(f"Error de red/streaming al leer cuerpo de {url}: {net_err}")
                     return "Error", dict(default_content)
-                
+
                 try:
                     content = _parse_html_fields(html)
                 except Exception as parse_err:
@@ -359,25 +375,30 @@ def run_audit():
         
         gap_tipo = get_gap_tipo(p_status, s_status)
         
+        def _sanitize_csv(val):
+            s = str(val)
+            if s.startswith(('=', '+', '-', '@', '\t', '\r')):
+                return "'" + s
+            return s
         row = {
-            'slug': slug,
-            'gap_tipo': gap_tipo,
-            'prod_status': p_status,
-            'stag_status': s_status,
-            'prod_h1': p_content['h1'],
-            'stag_h1': s_content['h1'],
-            'prod_price': p_content['price'],
-            'stag_price': s_content['price'],
-            'prod_faq': p_content['faq'],
-            'stag_faq': s_content['faq'],
-            'prod_canonical': p_content['canonical'],
-            'stag_canonical': s_content['canonical'],
-            'prod_robots': p_content['robots'],
-            'stag_robots': s_content['robots'],
-            'prod_doctor': p_content['doctor'],
-            'stag_doctor': s_content['doctor'],
-            'prod_schema': p_content['schema_type'],
-            'stag_schema': s_content['schema_type']
+            'slug': _sanitize_csv(slug),
+            'gap_tipo': _sanitize_csv(gap_tipo),
+            'prod_status': _sanitize_csv(p_status),
+            'stag_status': _sanitize_csv(s_status),
+            'prod_h1': _sanitize_csv(p_content['h1']),
+            'stag_h1': _sanitize_csv(s_content['h1']),
+            'prod_price': _sanitize_csv(p_content['price']),
+            'stag_price': _sanitize_csv(s_content['price']),
+            'prod_faq': _sanitize_csv(p_content['faq']),
+            'stag_faq': _sanitize_csv(s_content['faq']),
+            'prod_canonical': _sanitize_csv(p_content['canonical']),
+            'stag_canonical': _sanitize_csv(s_content['canonical']),
+            'prod_robots': _sanitize_csv(p_content['robots']),
+            'stag_robots': _sanitize_csv(s_content['robots']),
+            'prod_doctor': _sanitize_csv(p_content['doctor']),
+            'stag_doctor': _sanitize_csv(s_content['doctor']),
+            'prod_schema': _sanitize_csv(p_content['schema_type']),
+            'stag_schema': _sanitize_csv(s_content['schema_type'])
         }
         results.append(row)
         

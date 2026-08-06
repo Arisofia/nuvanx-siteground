@@ -67,6 +67,7 @@ Success criteria: remote marker match + full browser acceptance green.
 When a push to `master` completes the **Deploy Staging2** workflow successfully, the **Production Gate & Atomic Deploy to SiteGround** workflow (`.github/workflows/deploy.yml`) is automatically triggered.
 
 ### Automated Production Flow
+
 1. Verification that `Deploy Staging2` passed for the current Git SHA.
 2. Checkout of code and SSH connection to SiteGround via secret `PROD_SSH_PRIVATE_KEY`.
 3. Upload of theme files to `/tmp/nuvanx-medical-build`.

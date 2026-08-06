@@ -117,14 +117,6 @@
   box-sizing: border-box;
 }
 
-/* Strategy intro section needs responsive width */
-.nvx-strategy-intro {
-  width: var(--nvx-shell);
-  max-width: 100%;
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
-}
 
 /*
  * Post-hero clinical intro is emitted as a normal brand-section

@@ -121,7 +121,8 @@ def get_content_data(url, session=SESSION):
             redirect_count += 1
             location = resp.headers.get('Location')
             if not location:
-                break
+                print(f"Error: Redirect response missing Location header for {url}")
+                return dict.fromkeys(res, 'Error')
 
             loc_parsed = requests.utils.urlparse(location)
             if not loc_parsed.scheme or not loc_parsed.netloc:
@@ -141,10 +142,7 @@ def get_content_data(url, session=SESSION):
             )
 
         if resp.is_redirect:
-            if redirect_count >= max_redirects:
-                print(f"Error: Redirect limit ({max_redirects}) exceeded for {url}")
-            else:
-                print(f"Error: Redirect response missing Location header for {url}")
+            print(f"Error: Redirect limit ({max_redirects}) exceeded for {url}")
             return dict.fromkeys(res, 'Error')
 
         if resp.status_code == 200:

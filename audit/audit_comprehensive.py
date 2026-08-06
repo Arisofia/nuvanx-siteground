@@ -13,6 +13,7 @@ Environment Variables:
 """
 import json
 import csv
+import sys
 from pathlib import Path
 from bs4 import BeautifulSoup
 import requests
@@ -61,7 +62,7 @@ def load_slugs():
         print(f"Aviso: El archivo de rutas {routes_file} no existe. No hay rutas para auditar.")
         return []
     try:
-        with open(routes_file, 'r', encoding='utf-8') as f:
+        with open(routes_file, encoding='utf-8') as f:
             data = json.load(f)
     except (OSError, ValueError) as err:
         print(f"Aviso: No se pudo leer {routes_file}: {err}. No hay rutas para auditar.")
@@ -368,6 +369,9 @@ def get_gap_tipo(p_status, s_status):
 
 def run_audit():
     slugs = load_slugs()
+    if not slugs:
+        print("No se encontraron rutas para auditar. Verifique AUDIT_OUT_DIR y que staging_routes.json exista y sea válido.")
+        sys.exit(1)
     results = []
     print(f"Iniciando auditoría robusta de {len(slugs)} URLs...")
 

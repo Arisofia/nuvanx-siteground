@@ -12,7 +12,7 @@ get_header();
 
 $shell_content  = get_query_var( 'nvx_shell_content' );
 $shell_skip_hdr = get_query_var( 'nvx_shell_skip_header' );
-$shell_no_wrap  = get_query_var( 'nvx_shell_no_wrapper' );
+$shell_with_wrap = get_query_var( 'nvx_shell_with_wrapper' );
 
 if ( ! empty( $shell_content ) && ! is_singular() ) {
 	?>
@@ -28,8 +28,8 @@ if ( ! empty( $shell_content ) ) {
 
 // Header.php already provides <main id="nvx-main" class="nvx-main" role="main"> and .nvx-brand-page wrapper
 // Content renders directly without additional wrapper for consistency with custom templates
-// Only add nvx-main-shell wrapper when nvx_shell_no_wrapper is not set
-if ( empty( $shell_no_wrap ) ) {
+// Only add nvx-main-shell wrapper when nvx_shell_with_wrapper is set (for home page only)
+if ( ! empty( $shell_with_wrap ) ) {
 	echo '<div class="nvx-main-shell">' . "\n";
 }
 
@@ -152,7 +152,7 @@ while ( have_posts() ) :
 	<?php endif; ?>
 
 	<?php
-	$no_prose_wrap = ! empty( $shell_no_wrap ) || $has_managed_editorial;
+	$no_prose_wrap = empty( $shell_with_wrap ) || $has_managed_editorial;
 	if ( ! $no_prose_wrap ) :
 		?>
 		<div class="entry-content nvx-page__content nvx-prose">
@@ -200,7 +200,7 @@ while ( have_posts() ) :
 endwhile;
 
 // Close nvx-main-shell wrapper conditionally if it was opened
-if ( empty( $shell_no_wrap ) ) {
+if ( ! empty( $shell_with_wrap ) ) {
 	echo "</div>\n";
 }
 

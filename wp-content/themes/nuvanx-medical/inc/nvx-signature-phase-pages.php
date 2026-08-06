@@ -755,6 +755,12 @@ function nvx_signature_phase_seo_title( $title ) {
 	return (string) $page['seo_title'];
 }
 
+/**
+ * Get SEO description from Signature phase metadata.
+ *
+ * @param string $description The default description.
+ * @return string The SEO description from metadata or the default.
+ */
 function nvx_signature_phase_seo_description( $description ) {
 	$page = nvx_signature_phase_current_metadata();
 	if ( ! is_array( $page ) || empty( $page['seo_desc'] ) ) {

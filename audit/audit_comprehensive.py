@@ -210,8 +210,19 @@ def _sniff_meta_charset(head_bytes):
 
 def _resolve_response_encoding(resp, raw_bytes):
     encoding = resp.encoding
-    if encoding and encoding.lower() not in ('iso-8859-1', 'latin-1'):
-        return encoding
+    if encoding:
+        enc_lower = encoding.lower()
+        if enc_lower not in ('iso-8859-1', 'latin-1'):
+            # Unambiguous non-default charset from server — trust it.
+            return encoding
+        # iso-8859-1/latin-1: could be an explicit server declaration or the
+        # RFC HTTP/1.1 default that requests injects when no charset is present.
+        # Distinguish by inspecting the raw Content-Type header directly.
+        content_type = resp.headers.get('Content-Type', '')
+        if 'charset=' in content_type.lower():
+            # Server explicitly declared charset=iso-8859-1 — honor it.
+            return encoding
+    # No charset in Content-Type (requests defaulted to iso-8859-1): sniff <meta> then utf-8.
     sniffed = _sniff_meta_charset(raw_bytes[:4096].lower())
     if sniffed:
         return sniffed

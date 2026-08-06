@@ -41,10 +41,21 @@ HEADERS = {
 
 def _parse_html_content(text, soup):
     """Extract and parse HTML content fields."""
-    res = {
-        'canonical': can['href'] if (can := soup.find('link', rel='canonical')) else 'N/D',
-        'robots': rob['content'] if (rob := soup.find('meta', attrs={'name': 'robots'})) else 'N/D'
-    }
+    res = {}
+    
+    # Canonical
+    can = soup.find('link', rel='canonical')
+    canonical_val = 'N/D'
+    if can is not None:
+        canonical_val = can.get('href') or 'N/D'
+    res['canonical'] = canonical_val
+    
+    # Robots
+    rob = soup.find('meta', attrs={'name': 'robots'})
+    robots_val = 'N/D'
+    if rob is not None:
+        robots_val = rob.get('content') or 'N/D'
+    res['robots'] = robots_val
     
     # H1
     h1 = soup.find('h1')

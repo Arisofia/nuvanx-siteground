@@ -18,6 +18,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 import requests
 import os
+from contextlib import suppress
 
 DEFAULT_OUT_DIR = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 SAFE_AUDIT_BASE_DIR = Path('/home/ubuntu').resolve()
@@ -78,11 +79,9 @@ ALLOWED_AUDIT_HOSTS = {"nuvanx.com", "staging2.nuvanx.com"}
 VERIFY_SSL = os.environ.get("AUDIT_VERIFY_SSL", "").strip().lower() != "false"
 if not VERIFY_SSL:
     print("WARNING: AUDIT_VERIFY_SSL=false is active. TLS certificate verification is disabled for this audit run.")
-    try:
+    with suppress(Exception):
         import urllib3
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    except Exception:
-        pass
 
 SESSION = requests.Session()
 # Disable implicit authentication from .netrc and unvetted proxies by default for security
@@ -98,10 +97,7 @@ def is_safe_audit_url(url):
         return False
     if parsed.params or parsed.query or parsed.fragment:
         return False
-    host = parsed.hostname.lower()
-    if host not in ALLOWED_AUDIT_HOSTS:
-        return False
-    return True
+    return parsed.hostname.lower() in ALLOWED_AUDIT_HOSTS
 
 TYPE_KEY = '@type'
 GRAPH_KEY = '@graph'
@@ -192,10 +188,8 @@ def _parse_charset_from_tag(meta_tag):
         else:
             break
     if charset_bytes:
-        try:
+        with suppress(Exception):
             return charset_bytes.decode('ascii')
-        except Exception:
-            pass
     return None
 
 def _sniff_meta_charset(head_bytes):
@@ -212,8 +206,7 @@ def _sniff_meta_charset(head_bytes):
     return None
 
 def _resolve_response_encoding(resp, raw_bytes):
-    encoding = resp.encoding
-    if encoding:
+    if encoding := resp.encoding:
         enc_lower = encoding.lower()
         if enc_lower not in ('iso-8859-1', 'latin-1'):
             # Unambiguous non-default charset from server — trust it.
@@ -221,8 +214,7 @@ def _resolve_response_encoding(resp, raw_bytes):
         # iso-8859-1/latin-1: could be an explicit server declaration or the
         # RFC HTTP/1.1 default that requests injects when no charset is present.
         # Distinguish by inspecting the raw Content-Type header directly.
-        content_type = resp.headers.get('Content-Type', '')
-        if 'charset=' in content_type.lower():
+        if 'charset=' in resp.headers.get('Content-Type', '').lower():
             # Server explicitly declared charset=iso-8859-1 — honor it.
             return encoding
     # No charset in Content-Type (requests defaulted to iso-8859-1): sniff <meta> then utf-8.
@@ -239,7 +231,8 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
         total_bytes += len(chunk)
         if total_bytes >= max_bytes:
             break
-    raw_bytes = b''.join(chunks)[:max_bytes]
+    else:
+        raw_bytes = b''.join(chunks)[:max_bytes]
     encoding = _resolve_response_encoding(resp, raw_bytes)
     try:
         return raw_bytes.decode(encoding, errors='replace')
@@ -282,8 +275,14 @@ def _extract_prices_linearly(html):
 
 def _parse_html_fields(html):
     soup = BeautifulSoup(html, 'html.parser')
-    can = soup.find('link', rel='canonical')
-    rob = soup.find('meta', attrs={'name': 'robots'})
+    if can := soup.find('link', rel='canonical'):
+        canonical = can.get('href')
+    else:
+        canonical = None
+    if rob := soup.find('meta', attrs={'name': 'robots'}):
+        robots = rob.get('content')
+    else:
+        robots = None
     h1 = soup.find('h1')
     prices = _extract_prices_linearly(html)
 
@@ -363,10 +362,16 @@ def fetch_url_audit_data(url, session=None):
         return "Error", dict(default_content)
 
 def get_gap_tipo(p_status, s_status):
-    if p_status == '404' and s_status == '404': return 'contenido_falta_ambos'
-    if p_status == '404' and s_status == '200': return 'drift_falta_produccion'
-    if p_status == '200' and s_status == '404': return 'drift_falta_staging'
-    if p_status == '200' and s_status == '200': return 'coincide'
+    if p_status == '404':
+        if s_status == '404':
+            return 'contenido_falta_ambos'
+        elif s_status == '200':
+            return 'drift_falta_produccion'
+    elif p_status == '200':
+        if s_status == '404':
+            return 'drift_falta_staging'
+        elif s_status == '200':
+            return 'coincide'
     return 'inconsistente'
 
 def run_audit():
@@ -385,7 +390,6 @@ def run_audit():
 
         p_status, p_content = fetch_url_audit_data(p_url)
         s_status, s_content = fetch_url_audit_data(s_url)
-        
         gap_tipo = get_gap_tipo(p_status, s_status)
         
         def _sanitize_csv(val):
@@ -420,18 +424,18 @@ def run_audit():
             last_10 = results[-10:]
             summary = {
                 'acumulado_total': {
-                    'coincide': sum(1 for r in results if r['gap_tipo'] == 'coincide'),
-                    'drift_falta_produccion': sum(1 for r in results if r['gap_tipo'] == 'drift_falta_produccion'),
-                    'drift_falta_staging': sum(1 for r in results if r['gap_tipo'] == 'drift_falta_staging'),
-                    'contenido_falta_ambos': sum(1 for r in results if r['gap_tipo'] == 'contenido_falta_ambos'),
-                    'inconsistente': sum(1 for r in results if r['gap_tipo'] == 'inconsistente')
+                    'coincide': sum(r['gap_tipo'] == 'coincide' for r in results),
+                    'drift_falta_produccion': sum(r['gap_tipo'] == 'drift_falta_produccion' for r in results),
+                    'drift_falta_staging': sum(r['gap_tipo'] == 'drift_falta_staging' for r in results),
+                    'contenido_falta_ambos': sum(r['gap_tipo'] == 'contenido_falta_ambos' for r in results),
+                    'inconsistente': sum(r['gap_tipo'] == 'inconsistente' for r in results)
                 },
                 'ultimo_bloque_10': {
-                    'coincide': sum(1 for r in last_10 if r['gap_tipo'] == 'coincide'),
-                    'drift_falta_produccion': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_produccion'),
-                    'drift_falta_staging': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_staging'),
-                    'contenido_falta_ambos': sum(1 for r in last_10 if r['gap_tipo'] == 'contenido_falta_ambos'),
-                    'inconsistente': sum(1 for r in last_10 if r['gap_tipo'] == 'inconsistente')
+                    'coincide': sum(r['gap_tipo'] == 'coincide' for r in last_10),
+                    'drift_falta_produccion': sum(r['gap_tipo'] == 'drift_falta_produccion' for r in last_10),
+                    'drift_falta_staging': sum(r['gap_tipo'] == 'drift_falta_staging' for r in last_10),
+                    'contenido_falta_ambos': sum(r['gap_tipo'] == 'contenido_falta_ambos' for r in last_10),
+                    'inconsistente': sum(r['gap_tipo'] == 'inconsistente' for r in last_10)
                 }
             }
             print(json.dumps(summary, indent=2))

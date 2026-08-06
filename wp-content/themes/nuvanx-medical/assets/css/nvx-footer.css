@@ -209,8 +209,8 @@
 
 /* ── Responsive: collapse 3-column grid to 1 column on mobile ── */
 @media (max-width: 768px) {
-  .nvx-footer__main {
-    grid-template-columns: 1fr;
+  .nvx-footer .nvx-footer__main {
+    grid-template-columns: 1fr !important;
     gap: var(--nvx-space-6);
   }
 }

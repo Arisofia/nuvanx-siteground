@@ -161,6 +161,10 @@ def get_content_data(url):
                 trust_env=False,
             )
 
+        if resp.is_redirect:
+            print(f"Error: Redirect limit ({max_redirects}) exceeded for {url}")
+            return {k: 'Error' for k in res}
+
         if resp.status_code == 200:
             html = resp.text
 
@@ -180,7 +184,7 @@ def get_content_data(url):
             res['h1'] = h1.get_text(strip=True) if h1 else 'N/D'
 
             # Extract prices safely using bounded quantifiers to prevent ReDoS (CWE-1333 / py/polynomial-redos)
-            prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3})?\s*€', html)
+            prices = re.findall(r'\b\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?\s*€|\b\d{1,7}(?:[.,]\d{1,3})?\s*€', html)
             res['price'] = '; '.join(sorted(list(set(prices)))) if prices else 'N/D'
 
             res['faq'] = 'Sí' if 'FAQPage' in html else 'No'

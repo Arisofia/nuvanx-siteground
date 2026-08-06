@@ -37,23 +37,27 @@ def is_safe_audit_url(url):
 
 def get_http_status_curl(url):
     """
-    Get HTTP status using curl with SSL verification bypass for internal audit purposes.
-    Note: -k flag bypasses SSL verification - this is intentional for internal audit scripts
-    where SSL certificates may be self-signed or in development environments.
+    Get HTTP status for internal audit purposes.
+    SSL verification is intentionally bypassed for internal environments
+    where certificates may be self-signed or otherwise not trusted.
     """
     try:
-        # Strict validation to prevent unsafe command arguments
+        # Strict validation to prevent unsafe URL usage
         if not is_safe_audit_url(url):
             return "Error"
 
-        # User requested: curl -sI -H "Cache-Control: no-cache"
-        # Using curl with -k flag for SSL verification bypass for internal audit
-        cmd = ['curl', '-sI', '-L', '-k', '-m', '10', '-H', 'Cache-Control: no-cache', url]
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=12)
-        if proc.returncode == 0:
-            lines = proc.stdout.replace('\r', '').splitlines()
-            if status_lines := [l for l in lines if l.startswith("HTTP/")]:
-                return status_lines[-1].split()[1]
+        urllib3.disable_warnings(InsecureRequestWarning)
+        resp = requests.head(
+            url,
+            headers={"Cache-Control": "no-cache"},
+            allow_redirects=True,
+            timeout=10,
+            verify=False,
+        )
+        return str(resp.status_code)
+    except requests.exceptions.Timeout:
+        return "Timeout"
+    except requests.exceptions.RequestException:
         return "Error"
     except:
         return "Timeout"

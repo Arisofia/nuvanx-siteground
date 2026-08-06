@@ -3,6 +3,7 @@ import json
 import csv
 from pathlib import Path
 import concurrent.futures
+from contextlib import suppress
 
 OUT = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 with open(OUT / 'staging_routes.json', 'r') as f:
@@ -24,14 +25,9 @@ def get_status(url):
         if result.returncode == 0:
             # Buscar el último código HTTP (en caso de redirecciones)
             lines = result.stdout.splitlines()
-            status = "N/D"
-            for line in reversed(lines):
-                if line.startswith("HTTP/"):
-                    status = line.split()[1]
-                    break
-            return status
+            return next((line.split()[1] for line in reversed(lines) if line.startswith("HTTP/")), "N/D")
         return "Error"
-    except:
+    except Exception:
         return "Timeout"
 
 def process_slug(slug):

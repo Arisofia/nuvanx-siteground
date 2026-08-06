@@ -106,13 +106,10 @@ def _follow_redirects_safely(session, url, method="get", stream=False):
             location = requests.utils.urljoin(current_url, location)
 
         if not is_safe_audit_url(location):
-            if stream:
-                resp.close()
+            resp.close()
             return None
 
-        if stream:
-            resp.close()
-
+        resp.close()
         current_url = location
         resp = fetch(current_url, **kwargs)
 

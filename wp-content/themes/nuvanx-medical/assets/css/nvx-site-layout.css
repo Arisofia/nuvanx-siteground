@@ -1,6 +1,6 @@
 /* Page frame is full-bleed so heroes match the home video edge-to-edge.
    Gutters live on section inners / readable columns — not on the page shell. */
-.nvx-shell, .nvx-brand-section__inner, .nvx-header__inner, .nvx-page__content, .entry-content {
+.nvx-shell, .nvx-brand-section__inner, .nvx-page__content, .entry-content {
   width: var(--nvx-shell);
   max-width: 100%;
   margin-inline: auto;

@@ -1568,28 +1568,7 @@ figure.nvx-equipo-portrait{
 
 .nvx-que-exigir-hr{ margin: var(--nvx-space-6) 0; border: 0; border-top: 1px solid var(--nvx-border-soft);border-top-color:var(--nvx-color-line)}
 
-#nvx-header{
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  width: 100%;
-    min-height: var(--nvx-header-height-mobile);
-  overflow: visible;
-  background: var(--nvx-light);
-  border-bottom: var(--nvx-border-hairline) solid var(--nvx-color-line)}
 
-.nvx-header__inner{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--nvx-space-3);
-  width: var(--nvx-shell);
-  max-width: 100%;
-    min-height: var(--nvx-header-height-mobile);
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
-  box-sizing: border-box;
-  overflow: visible}
 
 .nvx-logo__img{
   display: block;

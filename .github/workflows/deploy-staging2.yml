@@ -8,6 +8,8 @@ on:
       - ".github/workflows/deploy-staging2.yml"
       - ".github/actions/destroy-ssh-identity/action.yml"
       - "tools/deploy/deploy-to-staging2.sh"
+      - "wp-content/themes/nuvanx-medical/assets/css/nvx-site-layout.css"
+  workflow_dispatch:
       - "tools/deploy/deploy-required-mu-plugins.sh"
       - "tools/wp-cli/hygiene-content-fix.php"
       - "scripts/staging2/browser-acceptance.mjs"

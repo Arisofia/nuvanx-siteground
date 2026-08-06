@@ -421,6 +421,9 @@ def run_audit():
     results = []
     print(f"Iniciando auditoría robusta de {len(slugs)} URLs...")
 
+    # Create output directory once at the start
+    OUT.mkdir(parents=True, exist_ok=True)
+
     for i, slug in enumerate(slugs):
         p_url = f"{PROD_BASE.rstrip('/')}/{slug.lstrip('/')}"
         s_url = f"{STAG_BASE.rstrip('/')}/{slug.lstrip('/')}"
@@ -479,7 +482,6 @@ def run_audit():
                 }
             }
             print(json.dumps(summary, indent=2))
-            OUT.mkdir(parents=True, exist_ok=True)
             with (OUT / 'nuvanx_drift_partial.csv').open('w', encoding='utf-8-sig', newline='') as f:
                 writer = csv.DictWriter(f, fieldnames=row.keys())
                 writer.writeheader()
@@ -487,7 +489,6 @@ def run_audit():
             print("Resultados parciales guardados.\n")
 
     if results:
-        OUT.mkdir(parents=True, exist_ok=True)
         with (OUT / 'nuvanx_drift_final.csv').open('w', encoding='utf-8-sig', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=results[0].keys())
             writer.writeheader()

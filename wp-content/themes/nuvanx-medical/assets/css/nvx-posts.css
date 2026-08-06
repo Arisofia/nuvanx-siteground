@@ -6,20 +6,22 @@
 
 /* Archive grid and cards */
 .nvx-blog-grid {
-	display: grid;
-	grid-template-columns: repeat(12, minmax(280px, 1fr));
-	gap: var(--nvx-gap-base);
-	background: var(--nvx-color-line);
-	align-items: stretch;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(280px, 1fr));
+  gap: var(--nvx-gap-base);
+  background: var(--nvx-color-line);
+  align-items: stretch;
 }
 
 .nvx-blog-card {
-	grid-column: span 4;
-	display: flex;
-	flex-direction: column;
-	min-width: 0;
-	background: var(--nvx-light);
-	transition: transform 160ms ease, box-shadow 160ms ease;
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--nvx-light);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 .nvx-blog-card:hover,
 .nvx-blog-card:focus-within {
@@ -206,10 +208,10 @@
   grid-template-columns: 1fr;
   gap: 0;
   align-items: center;
-  width: 100%;
+  width: var(--nvx-shell);
   max-width: 100%;
-  margin: 0;
-  padding: 0;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
 }
 
 .nvx-blog-hero__category {
@@ -223,7 +225,9 @@
   text-transform: uppercase;
   text-decoration: none;
   color: var(--nvx-text-on-dark-72);
-  transition: color 160ms ease, opacity 160ms ease;
+  transition:
+    color 160ms ease,
+    opacity 160ms ease;
 }
 
 .nvx-blog-hero__category:hover,
@@ -244,7 +248,7 @@
 }
 
 .nvx-blog-hero__meta > * + *::before {
-  content: "·";
+  content: '·';
   margin-right: var(--nvx-space-2);
   color: var(--nvx-border-on-dark-45);
 }
@@ -338,7 +342,9 @@
   text-decoration-color: var(--nvx-accent-muted);
   text-decoration-thickness: var(--nvx-border-hairline);
   text-underline-offset: calc(var(--nvx-space-1, 8px) / 2);
-  transition: color 160ms ease, text-decoration-color 160ms ease;
+  transition:
+    color 160ms ease,
+    text-decoration-color 160ms ease;
 }
 
 .nvx-blog-prose a:hover,
@@ -555,7 +561,7 @@
 
 .nvx-blog-card__date::before,
 .nvx-blog-card__reading::before {
-  content: "·";
+  content: '·';
   margin-right: var(--nvx-space-1);
   color: var(--nvx-border-soft);
 }
@@ -588,8 +594,8 @@
 }
 
 .nvx-blog-article__shell {
-  width: 100%;
-  max-width: none;
+  width: var(--nvx-shell);
+  max-width: 100%;
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
@@ -658,4 +664,3 @@
 .nvx-blog-nav__item--next {
   text-align: left;
 }
-

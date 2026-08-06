@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 <?php wp_head(); ?>
 </head>
 <body <?php body_class(); ?>>
-<a class="nvx-skip-link" href="#nvx-main" tabindex="1"><?php esc_html_e( 'Saltar al contenido principal', 'nuvanx-medical' ); ?></a>
+<a class="nvx-skip-link" href="#nvx-main"><?php esc_html_e( 'Saltar al contenido principal', 'nuvanx-medical' ); ?></a>
 <?php wp_body_open(); ?>
 <svg xmlns="http://www.w3.org/2000/svg" hidden style="display:none">
 	<symbol id="icon-location" viewBox="0 0 24 24">

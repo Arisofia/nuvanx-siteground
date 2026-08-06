@@ -269,7 +269,7 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
 }
 
 .nvx-button--secondary-on-dark, .nvx-btn--secondary-on-dark {
-  --button-bg: transparent;
+  --button-bg: var(--nvx-charcoal);
   --button-color: var(--nvx-light);
   --button-border: var(--nvx-border-on-dark-55);
   --button-hover-bg: var(--nvx-light);

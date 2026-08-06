@@ -63,9 +63,9 @@ while ( have_posts() ) :
 	// A raw content H1 is author-owned hierarchy even if it is not wrapped in a
 	// dedicated hero block. Rendering another shell H1 above it creates a
 	// duplicate primary heading on legal and CMS pages.
-	$show_theme_hero = $has_media && ! $has_content_h1 && ! $has_content_hero && ! $has_managed_editorial && ! $is_legal_page && ! is_front_page() && empty( $shell_skip_hdr );
+	$show_theme_hero = $has_media && ! $has_content_h1 && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
 	// Title-only header only if no content H1 and no theme/content/managed hero.
-	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! $is_legal_page && ! is_front_page() && empty( $shell_skip_hdr );
+	$show_theme_title = ! $has_content_h1 && ! $show_theme_hero && ! $has_content_hero && ! $has_managed_editorial && ! is_front_page() && empty( $shell_skip_hdr );
 	$classes          = array( 'nvx-page' );
 	if ( is_single() ) {
 		$classes[] = 'nvx-page--single';

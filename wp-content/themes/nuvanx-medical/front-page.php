@@ -27,7 +27,9 @@ ob_start();
 		<div class="nvx-home-hero__content">
 			<h1 id="nvx-home-hero-title" class="nvx-home-hero__title">Medicina estética con criterio. Madrid.</h1>
 			<p class="nvx-home-hero__lead">Antes de recomendar nada, escuchamos qué te preocupa y entendemos qué tendría sentido mejorar en tu caso.</p>
-			<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Iniciar valoración</a>
+			<div class="nvx-brand-actions">
+				<a href="<?php echo esc_url( home_url( '/madrid/valoracion/' ) ); ?>" class="nvx-brand-btn nvx-btn--primary">Iniciar valoración</a>
+			</div>
 		</div>
 	</section>
 

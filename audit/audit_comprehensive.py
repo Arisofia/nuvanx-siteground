@@ -87,6 +87,15 @@ SESSION = requests.Session()
 SESSION.trust_env = os.environ.get("AUDIT_TRUST_ENV", "false").lower() == "true"
 
 def is_safe_audit_url(url):
+    """
+    Determine whether a URL is permitted for the route audit.
+    
+    Parameters:
+    	url (str): URL to validate.
+    
+    Returns:
+    	bool: `true` if the URL uses HTTP or HTTPS, contains no credentials, parameters, query, or fragment, and targets an allowed audit host; `false` otherwise.
+    """
     parsed = requests.utils.urlparse(url)
     if parsed.scheme not in ("http", "https"):
         return False
@@ -177,6 +186,15 @@ def _follow_redirects_safely(session, url, stream=True):
     return resp
 
 def _parse_charset_from_tag(meta_tag):
+    """
+    Extracts the character encoding name from a meta tag byte string.
+    
+    Parameters:
+    	meta_tag (bytes): Meta tag content to inspect.
+    
+    Returns:
+    	str or None: The decoded character encoding name, or `None` when no valid encoding is found.
+    """
     charset_idx = meta_tag.find(b'charset=')
     if charset_idx == -1:
         return None
@@ -193,6 +211,14 @@ def _parse_charset_from_tag(meta_tag):
     return None
 
 def _sniff_meta_charset(head_bytes):
+    """Extracts the first character encoding declared by an HTML meta tag.
+    
+    Parameters:
+    	head_bytes (bytes): The initial HTML bytes to inspect.
+    
+    Returns:
+    	str or None: The declared character encoding, or `None` when no encoding is found.
+    """
     meta_idx = head_bytes.find(b'<meta')
     while meta_idx != -1:
         meta_end = head_bytes.find(b'>', meta_idx)
@@ -206,6 +232,16 @@ def _sniff_meta_charset(head_bytes):
     return None
 
 def _resolve_response_encoding(resp, raw_bytes):
+    """
+    Resolve the character encoding used to decode a response body.
+    
+    Parameters:
+        resp: Response object containing the inferred encoding and headers.
+        raw_bytes (bytes): Raw response content used for early HTML charset detection.
+    
+    Returns:
+        str: The response-declared encoding, a detected HTML meta charset, or UTF-8.
+    """
     if encoding := resp.encoding:
         enc_lower = encoding.lower()
         if enc_lower not in ('iso-8859-1', 'latin-1'):

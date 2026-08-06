@@ -154,7 +154,7 @@ def get_content_data(url):
             current_url = location
             resp = requests.get(
                 current_url,
-                verify=False,
+                verify=True,
                 timeout=10,
                 headers={'Cache-Control': 'no-cache'},
                 allow_redirects=False,

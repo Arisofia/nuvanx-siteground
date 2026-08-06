@@ -129,13 +129,17 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
     raw_bytes = b''.join(chunks)[:max_bytes]
     encoding = resp.encoding
     if not encoding or encoding.lower() in ('iso-8859-1', 'latin-1'):
-        # Sniff HTML meta charset tag first, then apparent_encoding, fallback to utf-8
-        meta_match = re.search(rb'<meta[^>]+charset=["\']?([a-zA-Z0-9_-]+)', raw_bytes, re.IGNORECASE)
-        if meta_match:
-            try:
-                encoding = meta_match.group(1).decode('ascii')
-            except Exception:
-                encoding = None
+        # Sniff HTML meta charset without polynomial regex by checking head_bytes directly
+        head_bytes = raw_bytes[:4096].lower()
+        idx = head_bytes.find(b'charset=')
+        if idx != -1:
+            snippet = head_bytes[idx:idx + 64]
+            match = re.search(rb'charset=["\']?([a-z0-9_-]{2,32})', snippet)
+            if match:
+                try:
+                    encoding = match.group(1).decode('ascii')
+                except Exception:
+                    encoding = None
         if not encoding:
             encoding = 'utf-8'
     try:

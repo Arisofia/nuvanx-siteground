@@ -36,48 +36,30 @@ def _resolve_safe_out_dir():
         return DEFAULT_OUT_DIR
 
     raw_out_dir = raw_out_dir.strip()
-    # Rechazar entradas claramente peligrosas antes de construir paths.
-    # Solo permitir rutas con caracteres esperados para este contexto.
+    # Rechazar bytes NUL que romperían las llamadas al sistema de ficheros.
     if '\x00' in raw_out_dir:
         _warn(
             f"Ignorando AUDIT_OUT_DIR con caracteres no permitidos. "
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR
-    
-    # Additional security checks for path input
-    # Reject paths with suspicious patterns
-    suspicious_patterns = ['<', '>', '|', '&', ';', '$', '`', '(', ')']
-    if any(pattern in raw_out_dir for pattern in suspicious_patterns):
-        _warn(
-            f"Ignorando AUDIT_OUT_DIR con patrones sospechosos: {raw_out_dir}. "
-            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
-        )
-        return DEFAULT_OUT_DIR
 
-    if '..' in Path(raw_out_dir).parts:
-        _warn(
-            f"Ignorando AUDIT_OUT_DIR con segmentos no permitidos: {raw_out_dir}. "
-            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
-        )
-        return DEFAULT_OUT_DIR
-
-    # Validate path before expansion to prevent path traversal
+    # Canonicalizar y confinar dentro del directorio base seguro.
     try:
         candidate = Path(raw_out_dir).expanduser().resolve()
-        # Verify the resolved path is within the safe base directory using relative_to
-        # This satisfies CodeQL py/path-injection rule by checking containment before use
-        # and reconstructing the safe path explicitly
-        relative_path = candidate.relative_to(SAFE_AUDIT_BASE_DIR)
-        candidate = SAFE_AUDIT_BASE_DIR / relative_path
-    except (OSError, ValueError, RuntimeError):
+        # relative_to lanza ValueError si candidate no está bajo la base.
+        relative = candidate.relative_to(SAFE_AUDIT_BASE_DIR)
+    except (OSError, RuntimeError, ValueError):
         _warn(
-            f"Ignorando AUDIT_OUT_DIR no seguro: {raw_out_dir}. "
+            f"Ignorando AUDIT_OUT_DIR no seguro o inválido: {raw_out_dir}. "
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR
-    
-    return candidate
+
+    # Reconstruir la ruta a partir de la base de confianza + el segmento validado.
+    # Esto ayuda a que CodeQL reconozca la sanitización (la ruta usada aguas
+    # abajo deriva de una constante segura, no del valor crudo del usuario).
+    return SAFE_AUDIT_BASE_DIR / relative
 
 OUT = _resolve_safe_out_dir()
 

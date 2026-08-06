@@ -136,11 +136,6 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	if ( defined( 'NVX_ENV' ) ) {
 		return NVX_ENV !== 'production';
 	}
-
-	// Known public production domain host
-	if ( 'nuvanx.com' === $host || 'www.nuvanx.com' === $host ) {
-		return false;
-	}
 	
 	// Local development environments (localhost, 127.0.0.1, local domains)
 	if ( in_array( $host, array( 'localhost', '127.0.0.1', 'nuvanx.local', 'nuvanx.test' ), true ) ) {

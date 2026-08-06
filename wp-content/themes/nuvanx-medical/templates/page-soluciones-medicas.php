@@ -17,7 +17,7 @@ $partial = get_template_directory() . '/template-parts/content/nvx-soluciones-me
 // Document head contract is owned by nvx-document-governance. This template only
 // captures the solutions partial (local view buffer), never a second document rewrite.
 
-get_header();
+ob_start();
 
 echo "\n<!-- nvx-solutions-template-active -->\n";
 
@@ -40,4 +40,8 @@ if ( '' !== trim( $markup ) ) {
 	echo '<div class="nvx-brand-section__inner"><h1 class="nvx-brand-title">Soluciones médicas</h1><p>Falta el partial versionado de soluciones.</p></div>';
 }
 
-get_footer();
+$content = ob_get_clean();
+
+set_query_var( 'nvx_shell_content', $content );
+set_query_var( 'nvx_shell_skip_header', true );
+get_template_part( 'template-parts/content/nvx-page-shell' );

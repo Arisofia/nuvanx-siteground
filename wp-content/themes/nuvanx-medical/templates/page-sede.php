@@ -36,7 +36,7 @@ $phone_display  = ! empty( $clinic_phone ) ? trim( chunk_split( preg_replace( '/
 $whatsapp_url   = ! empty( $clinic_config['whatsapp_href'] ) ? $clinic_config['whatsapp_href'] : ( ! empty( $clinic_phone ) ? 'https://wa.me/' . preg_replace( '/\D/', '', $clinic_phone ) : '' );
 $valoracion_url = home_url( '/madrid/valoracion/' );
 
-get_header();
+ob_start();
 ?>
 
 <!-- Content goes inside .nvx-brand-page wrapper from header.php -->
@@ -124,4 +124,9 @@ get_header();
 		<?php the_content(); ?>
 	</div>
 
-<?php get_footer(); ?>
+<?php
+$content = ob_get_clean();
+
+set_query_var( 'nvx_shell_content', $content );
+set_query_var( 'nvx_shell_skip_header', true );
+get_template_part( 'template-parts/content/nvx-page-shell' ); ?>

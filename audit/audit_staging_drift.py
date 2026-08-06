@@ -93,11 +93,10 @@ def audit_url(base_url, slug):
 def get_gap_tipo(prod_val, stag_val):
     if prod_val == 'N/D':
         return 'contenido_falta_ambos' if stag_val == 'N/D' else 'drift_falta_produccion'
-    if prod_val != 'N/D':
-        if stag_val == 'N/D':
-            return 'drift_falta_staging'
-        if prod_val == stag_val:
-            return 'coincide'
+    if stag_val == 'N/D':
+        return 'drift_falta_staging'
+    if prod_val == stag_val:
+        return 'coincide'
     return 'diferente'
 
 # Cargar datos previos de producción si existen

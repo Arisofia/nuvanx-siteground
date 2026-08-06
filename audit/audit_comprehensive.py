@@ -220,6 +220,8 @@ def get_content_data(url, session=SESSION):
                 res['doctor'] = 'Dr. José Javier Rivera Tejeda'
 
             res['schema_type'] = _parse_schema_types(soup)
+        else:
+            return dict.fromkeys(res, 'Error')
     except Exception as e:
         print(f"Error fetching content from {url}: {e}")
     return res

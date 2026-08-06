@@ -197,6 +197,12 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
             meta_idx = head_bytes.find(b'<meta', meta_end)
         if not encoding:
             encoding = 'utf-8' if header_encoding else 'utf-8'
+    # Drain remaining unread socket bytes up to a small limit so HTTP connection can be safely returned to urllib3 pool
+    try:
+        if not resp.raw.closed:
+            resp.raw.read(65536)
+    except Exception:
+        pass
     try:
         return raw_bytes.decode(encoding, errors='replace')
     except Exception:

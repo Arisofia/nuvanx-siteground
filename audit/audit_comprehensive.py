@@ -5,7 +5,6 @@ import re
 from bs4 import BeautifulSoup
 import requests
 import urllib3
-import ssl
 from urllib3.exceptions import InsecureRequestWarning
 import os
 import warnings

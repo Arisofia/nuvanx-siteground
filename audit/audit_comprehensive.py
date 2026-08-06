@@ -146,8 +146,8 @@ def get_content_data(url):
             h1 = soup.find('h1')
             res['h1'] = h1.get_text(strip=True) if h1 else 'N/D'
 
-            # Use regex with controlled input size
-            prices = re.findall(r'\d+(?:[.,]\d+)?\s*€', html)
+            # Extract prices safely using bounded quantifiers to prevent ReDoS (CWE-1333 / py/polynomial-redos)
+            prices = re.findall(r'\b\d{1,6}(?:[.,]\d{1,2})?\s*€', html)
             res['price'] = '; '.join(sorted(list(set(prices)))) if prices else 'N/D'
 
             res['faq'] = 'Sí' if 'FAQPage' in html else 'No'

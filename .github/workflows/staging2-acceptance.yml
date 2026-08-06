@@ -1,12 +1,7 @@
 name: Staging2 Acceptance Tests
 
 on:
-  workflow_run:
-    workflows: ["Deploy Staging2"]
-    types:
-      - completed
-    branches:
-      - master
+  workflow_dispatch:
 
 permissions:
   contents: read

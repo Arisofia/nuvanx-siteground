@@ -97,7 +97,9 @@ def _follow_redirects_safely(session, url, method="get", stream=False):
 
     while resp.is_redirect and redirect_count < max_redirects:
         redirect_count += 1
-        location = resp.headers['Location']
+        location = resp.headers.get('Location')
+        if not location:
+            break
 
         loc_parsed = requests.utils.urlparse(location)
         if not loc_parsed.scheme or not loc_parsed.netloc:

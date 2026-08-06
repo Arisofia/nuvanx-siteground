@@ -199,8 +199,7 @@ def _sniff_meta_charset(head_bytes):
         if meta_end == -1:
             break
         meta_tag = head_bytes[meta_idx:meta_end]
-        charset = _parse_charset_from_tag(meta_tag)
-        if charset:
+        if charset := _parse_charset_from_tag(meta_tag):
             return charset
         meta_idx = head_bytes.find(b'<meta', meta_end)
     return None
@@ -218,10 +217,7 @@ def _resolve_response_encoding(resp, raw_bytes):
             # Server explicitly declared charset=iso-8859-1 — honor it.
             return encoding
     # No charset in Content-Type (requests defaulted to iso-8859-1): sniff <meta> then utf-8.
-    sniffed = _sniff_meta_charset(raw_bytes[:4096].lower())
-    if sniffed:
-        return sniffed
-    return 'utf-8'
+    return sniffed if (sniffed := _sniff_meta_charset(raw_bytes[:4096].lower())) else 'utf-8'
 
 def _read_bounded_response_text(resp, max_bytes=1000000):
     chunks = []
@@ -233,6 +229,16 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
             break
     else:
         raw_bytes = b''.join(chunks)[:max_bytes]
+
+def _read_response_body_safely(resp, url, default_content):
+    try:
+        return _read_bounded_response_text(resp)
+    except requests.exceptions.ReadTimeout as rt_err:
+        print(f"Timeout leyendo cuerpo de {url}: {rt_err}")
+        return None
+    except (requests.exceptions.RequestException, OSError) as net_err:
+        print(f"Error de red/streaming al leer cuerpo de {url}: {net_err}")
+        return None
     encoding = _resolve_response_encoding(resp, raw_bytes)
     try:
         return raw_bytes.decode(encoding, errors='replace')
@@ -267,8 +273,7 @@ def _extract_prices_linearly(html):
         if euro_idx == -1:
             break
         snippet = html[max(0, euro_idx - 50):euro_idx].rstrip()
-        price = _parse_single_price(snippet)
-        if price:
+        if price := _parse_single_price(snippet):
             prices.append(price)
         start = euro_idx + 1
     return prices
@@ -279,20 +284,12 @@ def _parse_html_fields(html):
         canonical = can.get('href')
     else:
         canonical = None
-    if rob := soup.find('meta', attrs={'name': 'robots'}):
-        robots = rob.get('content')
-    else:
-        robots = None
+    robots = rob.get('content') if (rob := soup.find('meta', attrs={'name': 'robots'})) else None
     h1 = soup.find('h1')
     prices = _extract_prices_linearly(html)
 
-    canonical_val = 'N/D'
-    if can is not None:
-        canonical_val = can.get('href') or 'N/D'
-
-    robots_val = 'N/D'
-    if rob is not None:
-        robots_val = rob.get('content') or 'N/D'
+    canonical_val = can.get('href') or 'N/D' if can is not None else 'N/D'
+    robots_val = rob.get('content') or 'N/D' if rob is not None else 'N/D'
 
     h1_val = 'N/D'
     if h1 is not None:
@@ -336,13 +333,8 @@ def fetch_url_audit_data(url, session=None):
         try:
             status = str(resp.status_code)
             if resp.status_code == 200:
-                try:
-                    html = _read_bounded_response_text(resp)
-                except requests.exceptions.ReadTimeout as rt_err:
-                    print(f"Timeout leyendo cuerpo de {url}: {rt_err}")
-                    return "Timeout", dict(default_content)
-                except (requests.exceptions.RequestException, OSError) as net_err:
-                    print(f"Error de red/streaming al leer cuerpo de {url}: {net_err}")
+                html = _read_response_body_safely(resp, url, default_content)
+                if html is None:
                     return "Error", dict(default_content)
 
                 try:

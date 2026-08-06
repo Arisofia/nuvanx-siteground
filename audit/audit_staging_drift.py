@@ -4,6 +4,7 @@ import csv
 import json
 from pathlib import Path
 import re
+from contextlib import suppress
 
 OUT = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 OUT.mkdir(parents=True, exist_ok=True)
@@ -38,6 +39,49 @@ HEADERS = {
     'Cache-Control': 'no-cache'
 }
 
+def _parse_html_content(text, soup):
+    """Extract and parse HTML content fields."""
+    res = {}
+    
+    # Canonical
+    can = soup.find('link', rel='canonical')
+    res['canonical'] = can['href'] if can else 'N/D'
+    
+    # Robots
+    rob = soup.find('meta', attrs={'name': 'robots'})
+    res['robots'] = rob['content'] if rob else 'N/D'
+    
+    # H1
+    h1 = soup.find('h1')
+    res['h1'] = h1.get_text(strip=True) if h1 else 'N/D'
+    
+    # Price (heuristic)
+    prices = re.findall(r'\d+(?:[.,]\d+)?\s*€', text)
+    res['price'] = '; '.join(list(set(prices))) if prices else 'N/D'
+    
+    # FAQ Schema
+    res['faq'] = 'Sí' if 'FAQPage' in text else 'No'
+    
+    # Doctor (heuristic)
+    if 'Rivera' in text:
+        res['doctor'] = 'Dr. José Javier Rivera Tejeda'
+    else:
+        res['doctor'] = 'N/D'
+    
+    # Schema Type
+    scripts = soup.find_all('script', type='application/ld+json')
+    types = []
+    for s in scripts:
+        with suppress(Exception):
+            data = json.loads(s.string)
+            if isinstance(data, dict):
+                if '@type' in data: types.append(data['@type'])
+                if '@graph' in data:
+                    types.extend(item['@type'] for item in data['@graph'] if '@type' in item)
+    res['schema_type'] = '; '.join(list(set(types))) if types else 'N/D'
+    
+    return res
+
 def audit_url(base_url, slug):
     url = f"{base_url.rstrip('/')}/{slug}"
     res = {'url': url, 'status': 'N/D', 'canonical': 'N/D', 'robots': 'N/D', 'h1': 'N/D', 'price': 'N/D', 'faq': 'No', 'doctor': 'N/D', 'schema_type': 'N/D'}
@@ -47,55 +91,24 @@ def audit_url(base_url, slug):
         res['status'] = str(response.status_code)
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
-            
-            # Canonical
-            can = soup.find('link', rel='canonical')
-            res['canonical'] = can['href'] if can else 'N/D'
-            
-            # Robots
-            rob = soup.find('meta', attrs={'name': 'robots'})
-            res['robots'] = rob['content'] if rob else 'N/D'
-            
-            # H1
-            h1 = soup.find('h1')
-            res['h1'] = h1.get_text(strip=True) if h1 else 'N/D'
-            
-            # Price (heuristic)
-            text = response.text
-            prices = re.findall(r'\d+(?:[.,]\d+)?\s*€', text)
-            res['price'] = '; '.join(list(set(prices))) if prices else 'N/D'
-            
-            # FAQ Schema
-            res['faq'] = 'Sí' if 'FAQPage' in text else 'No'
-            
-            # Doctor (heuristic)
-            if 'Rivera' in text:
-                res['doctor'] = 'Dr. José Javier Rivera Tejeda'
-            
-            # Schema Type
-            scripts = soup.find_all('script', type='application/ld+json')
-            types = []
-            for s in scripts:
-                try:
-                    data = json.loads(s.string)
-                    if isinstance(data, dict):
-                        if '@type' in data: types.append(data['@type'])
-                        if '@graph' in data:
-                            for item in data['@graph']:
-                                if '@type' in item: types.append(item['@type'])
-                except: continue
-            res['schema_type'] = '; '.join(list(set(types))) if types else 'N/D'
+            res.update(_parse_html_content(response.text, soup))
             
     except Exception as e:
-        res['status'] = f"Error: {str(e)}"
+        res['status'] = "Error"
     
     return res
 
 def get_gap_tipo(prod_val, stag_val):
-    if prod_val == 'N/D' and stag_val == 'N/D': return 'contenido_falta_ambos'
-    if prod_val == 'N/D' and stag_val != 'N/D': return 'drift_falta_produccion'
-    if prod_val != 'N/D' and stag_val == 'N/D': return 'drift_falta_staging'
-    if prod_val == stag_val: return 'coincide'
+    if prod_val == 'N/D':
+        if stag_val == 'N/D':
+            return 'contenido_falta_ambos'
+        elif stag_val != 'N/D':
+            return 'drift_falta_produccion'
+    elif prod_val != 'N/D':
+        if stag_val == 'N/D':
+            return 'drift_falta_staging'
+        elif prod_val == stag_val:
+            return 'coincide'
     return 'diferente'
 
 # Cargar datos previos de producción si existen

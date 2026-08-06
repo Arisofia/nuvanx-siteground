@@ -2,6 +2,8 @@
 Comprehensive Audit Script for NUVANX Production & Staging Route Synchronization
 
 Environment Variables:
+  AUDIT_OUT_DIR (default: "/home/ubuntu/nuvanx_audit_2026-08-04")
+    Directory containing 'staging_routes.json' and destination for output CSV files.
   AUDIT_VERIFY_SSL (default: "true")
     Set to "false" (e.g., AUDIT_VERIFY_SSL=false python3 audit/audit_comprehensive.py)
     to bypass SSL certificate verification if auditing staging environments with
@@ -366,6 +368,7 @@ def run_audit():
                 }
             }
             print(json.dumps(summary, indent=2))
+            OUT.mkdir(parents=True, exist_ok=True)
             with (OUT / 'nuvanx_drift_partial.csv').open('w', encoding='utf-8-sig', newline='') as f:
                 writer = csv.DictWriter(f, fieldnames=row.keys())
                 writer.writeheader()
@@ -373,6 +376,7 @@ def run_audit():
             print("Resultados parciales guardados.\n")
 
     if results:
+        OUT.mkdir(parents=True, exist_ok=True)
         with (OUT / 'nuvanx_drift_final.csv').open('w', encoding='utf-8-sig', newline='') as f:
             writer = csv.DictWriter(f, fieldnames=results[0].keys())
             writer.writeheader()

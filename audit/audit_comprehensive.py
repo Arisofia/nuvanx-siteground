@@ -75,22 +75,23 @@ def _resolve_safe_out_dir():
     # Validate path before expansion to prevent path traversal
     try:
         candidate = Path(raw_out_dir).expanduser().resolve()
-    except (OSError, ValueError) as e:
+        # Verify the resolved path is within the safe base directory using relative_to
+        # This satisfies CodeQL py/path-injection rule by checking containment before use
+        candidate.relative_to(SAFE_AUDIT_BASE_DIR)
+    except (OSError, ValueError):
         _warn(
-            f"Error al procesar AUDIT_OUT_DIR: {e}. "
+            f"Error al procesar AUDIT_OUT_DIR: {raw_out_dir}. "
+            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+        )
+        return DEFAULT_OUT_DIR
+    except ValueError:
+        _warn(
+            f"Ignorando AUDIT_OUT_DIR no seguro: {raw_out_dir}. "
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR
     
-    # Ensure the resolved path is within the safe base directory
-    if candidate == SAFE_AUDIT_BASE_DIR or SAFE_AUDIT_BASE_DIR in candidate.parents:
-        return candidate
-
-    _warn(
-        f"Ignorando AUDIT_OUT_DIR no seguro: {raw_out_dir}. "
-        f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
-    )
-    return DEFAULT_OUT_DIR
+    return candidate
 
 OUT = _resolve_safe_out_dir()
 

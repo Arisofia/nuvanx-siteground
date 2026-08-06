@@ -114,6 +114,12 @@ while ( have_posts() ) :
 								<span aria-hidden="true"> · </span><?php echo esc_html( nvx_reading_time() ); ?> de lectura
 							<?php endif; ?>
 						</p>
+					<?php else : ?>
+						<div class="nvx-brand-actions">
+							<?php if ( function_exists( 'nvx_signature_valoracion_url' ) ) : ?>
+								<a href="<?php echo esc_url( nvx_signature_valoracion_url() ); ?>" class="nvx-brand-btn nvx-brand-btn--primary"><?php esc_html_e( 'Solicitar valoración médica', 'nuvanx-medical' ); ?></a>
+							<?php endif; ?>
+						</div>
 					<?php endif; ?>
 				</div>
 			</div>

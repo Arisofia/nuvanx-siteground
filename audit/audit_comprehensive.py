@@ -70,9 +70,7 @@ def get_http_status(url, session=SESSION):
         
         while resp.is_redirect and redirect_count < max_redirects:
             redirect_count += 1
-            location = resp.headers.get('Location')
-            if not location:
-                return "Error"
+            location = resp.headers['Location']
             
             # Make location absolute if relative
             loc_parsed = requests.utils.urlparse(location)
@@ -167,11 +165,8 @@ def get_content_data(url, session=SESSION):
 
         while resp.is_redirect and redirect_count < max_redirects:
             redirect_count += 1
-            location = resp.headers.get('Location')
+            location = resp.headers['Location']
             resp.close()
-            if not location:
-                print(f"Error: Redirect response missing Location header for {url}")
-                return dict.fromkeys(res, 'Error')
 
             loc_parsed = requests.utils.urlparse(location)
             if not loc_parsed.scheme or not loc_parsed.netloc:

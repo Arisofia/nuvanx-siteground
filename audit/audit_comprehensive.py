@@ -144,7 +144,9 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
             break
     raw_bytes = b''.join(chunks)[:max_bytes]
     encoding = resp.encoding
+    header_encoding = encoding
     if not encoding or encoding.lower() in ('iso-8859-1', 'latin-1'):
+        encoding = None
         # Sniff HTML meta charset without polynomial regex by checking head_bytes directly
         head_bytes = raw_bytes[:4096].lower()
         idx = head_bytes.find(b'charset=')
@@ -157,7 +159,7 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
                 except Exception:
                     encoding = None
         if not encoding:
-            encoding = 'utf-8'
+            encoding = 'utf-8' if header_encoding else 'utf-8'
     try:
         return raw_bytes.decode(encoding, errors='replace')
     except Exception:

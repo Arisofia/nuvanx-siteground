@@ -309,9 +309,14 @@ def fetch_url_audit_data(url, session=None):
             if resp.status_code == 200:
                 try:
                     html = _read_bounded_response_text(resp)
+                except (requests.exceptions.RequestException, OSError) as net_err:
+                    print(f"Error de red/streaming al leer cuerpo de {url}: {net_err}")
+                    return "Error", dict(default_content)
+                
+                try:
                     content = _parse_html_fields(html)
                 except Exception as parse_err:
-                    print(f"Aviso: Error al parsear campos HTML de {url}: {parse_err}")
+                    print(f"Aviso: Error de estructura HTML al parsear {url}: {parse_err}")
             else:
                 content = dict(default_content)
         finally:

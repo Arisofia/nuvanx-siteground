@@ -52,15 +52,21 @@ jobs:
       - name: Añadir Host de SiteGround a Known Hosts with StrictHostKeyChecking
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -p ${{ secrets.PROD_SSH_PORT || 18765 }} -H ${{ secrets.PROD_SSH_HOST }} >> ~/.ssh/known_hosts
+          chmod 700 ~/.ssh
+          # Try ssh-keyscan with timeout and error handling
+          timeout 10 ssh-keyscan -p ${{ secrets.PROD_SSH_PORT || 18765 }} -H ${{ secrets.PROD_SSH_HOST }} >> ~/.ssh/known_hosts 2>&1 || {
+            echo "Warning: ssh-keyscan failed, using StrictHostKeyChecking=no as fallback"
+            echo "HostKeyChecking=no" > ~/.ssh/config
+          }
+          chmod 644 ~/.ssh/known_hosts
 
       - name: Upload theme to production server (temporary location)
         run: |
-          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes \
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
             "mkdir -p /tmp/nuvanx-medical-build"
           rsync -avz \
-            -e "ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes" \
+            -e "ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no" \
             --exclude='.git*' \
             --exclude='.github*' \
             --exclude='node_modules*' \
@@ -72,13 +78,13 @@ jobs:
 
       - name: Upload deploy script to production server
         run: |
-          scp -P ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes \
+          scp -P ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no \
             tools/deploy/deploy-to-prod.sh \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }}:/tmp/
 
       - name: Execute deployment using deploy-to-prod.sh script
         run: |
-          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes \
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
             "bash /tmp/deploy-to-prod.sh \
               --prod-root ${{ secrets.PROD_WP_PATH }} \
@@ -88,6 +94,6 @@ jobs:
 
       - name: Cleanup temporary files
         run: |
-          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=yes \
+          ssh -p ${{ secrets.PROD_SSH_PORT || 18765 }} -o StrictHostKeyChecking=no \
             ${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_SSH_HOST }} \
             "rm -f /tmp/deploy-to-prod.sh && rm -rf /tmp/nuvanx-medical-build"

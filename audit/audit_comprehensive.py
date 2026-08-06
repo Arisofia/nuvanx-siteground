@@ -250,6 +250,9 @@ def _parse_single_price(snippet):
     num_str = ''.join(reversed(num_chars)).strip('.,')
     if not num_str:
         return None
+    # Reject malformed runs with consecutive separators (e.g. "1,,2", "1..2", "1.,2")
+    if any(a in num_str for a in (',,', '..', '.,', ',.')):
+        return None
     dots_commas = num_str.count('.') + num_str.count(',')
     if dots_commas <= 2 and any(c.isdigit() for c in num_str):
         return f"{num_str} €"

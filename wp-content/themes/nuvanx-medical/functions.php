@@ -344,22 +344,3 @@ require_once get_template_directory() . '/inc/nvx-aesthetic-medicine-page.php';
 require_once get_template_directory() . '/inc/nvx-clinics-hub.php';
 require_once get_template_directory() . '/inc/nvx-dr-rivera-page.php';
 require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
-
-/** Remove .nvx-main-shell wrapper injected by SiteGround Optimizer cache. */
-add_action( 'template_redirect', function() {
-	if ( ! is_admin() ) {
-		ob_start( function( $buffer ) {
-			// Log for debugging
-			error_log( 'NVX: Output buffer filter running, buffer length: ' . strlen( $buffer ) );
-			error_log( 'NVX: Before replace, nvx-main-shell count: ' . substr_count( $buffer, 'nvx-main-shell' ) );
-			
-			// Remove the opening and closing nvx-main-shell div tags with balanced matching
-			$pattern = '/<div class="nvx-main-shell"[^>]*>([\s\S]*?)<\/div>/';
-			$buffer = preg_replace( $pattern, '$1', $buffer );
-			
-			error_log( 'NVX: After replace, nvx-main-shell count: ' . substr_count( $buffer, 'nvx-main-shell' ) );
-			
-			return $buffer;
-		}, 999 );
-	}
-}, 999 );

@@ -20,6 +20,7 @@ with open(OUT / 'staging_routes.json', 'r') as f:
 PROD_BASE = "https://nuvanx.com"
 STAG_BASE = "https://staging2.nuvanx.com"
 ALLOWED_AUDIT_HOSTS = {"nuvanx.com", "staging2.nuvanx.com"}
+VERIFY_SSL = os.environ.get("AUDIT_VERIFY_SSL", "true").lower() == "true"
 
 def is_safe_audit_url(url):
     parsed = requests.utils.urlparse(url)
@@ -36,9 +37,7 @@ def is_safe_audit_url(url):
 
 def get_http_status(url):
     """
-    Get HTTP status using requests with SSL verification bypass for internal audit purposes.
-    Note: verify=False bypasses SSL verification - this is intentional for internal audit scripts
-    where SSL certificates may be self-signed or in development environments.
+    Get HTTP status using requests with SSL verification for internal audit purposes.
     """
     try:
         # Strict validation to prevent unsafe URL usage
@@ -53,7 +52,7 @@ def get_http_status(url):
             headers={"Cache-Control": "no-cache"},
             allow_redirects=False,  # Disable automatic redirects for SSRF protection
             timeout=10,
-            verify=False,
+            verify=VERIFY_SSL,
         )
         
         # Follow redirects manually with SSRF protection
@@ -86,7 +85,7 @@ def get_http_status(url):
                 headers={"Cache-Control": "no-cache"},
                 allow_redirects=False,
                 timeout=10,
-                verify=False,
+                verify=VERIFY_SSL,
             )
             current_status = str(resp.status_code)
         
@@ -100,8 +99,7 @@ def get_http_status(url):
 
 def get_content_data(url):
     """
-    Get content data from URL with SSL verification disabled for internal audit purposes.
-    This is intentional for development/staging environments with self-signed certificates.
+    Get content data from URL for internal audit purposes.
     """
     res = {
         'canonical': 'N/D',
@@ -121,7 +119,7 @@ def get_content_data(url):
 
         resp = session.get(
             url,
-            verify=False,
+            verify=VERIFY_SSL,
             timeout=10,
             headers={'Cache-Control': 'no-cache'},
             allow_redirects=False,
@@ -150,7 +148,7 @@ def get_content_data(url):
             current_url = location
             resp = session.get(
                 current_url,
-                verify=False,
+                verify=VERIFY_SSL,
                 timeout=10,
                 headers={'Cache-Control': 'no-cache'},
                 allow_redirects=False,
@@ -179,7 +177,7 @@ def get_content_data(url):
             res['h1'] = h1.get_text(strip=True) if h1 else 'N/D'
 
             # Extract prices safely using bounded quantifiers to prevent ReDoS (CWE-1333 / py/polynomial-redos)
-            prices = re.findall(r'\b\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?\s*€|\b\d{1,7}(?:[.,]\d{1,3})?\s*€', html)
+            prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3})*\s*€', html)
             res['price'] = '; '.join(sorted(list(set(prices)))) if prices else 'N/D'
 
             res['faq'] = 'Sí' if 'FAQPage' in html else 'No'

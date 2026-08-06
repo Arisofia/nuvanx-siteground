@@ -88,14 +88,14 @@
   box-sizing: border-box;
 }
 
-/* Ensure signature pages have responsive container */
+/* Ensure signature pages follow the global 100% page container contract */
 .nvx-brand-page--signature,
 .nvx-signature-hub,
 .nvx-signature-phase-page {
   width: 100%;
-  max-width: var(--nvx-shell);
-  margin-inline: auto;
-  padding-inline: var(--nvx-gutter-inner);
+  max-width: 100%;
+  margin-inline: 0;
+  padding-inline: 0;
   box-sizing: border-box;
 }
 

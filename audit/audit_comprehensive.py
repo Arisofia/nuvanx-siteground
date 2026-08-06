@@ -168,11 +168,19 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
         head_bytes = raw_bytes[:4096].lower()
         idx = head_bytes.find(b'charset=')
         if idx != -1:
-            snippet = head_bytes[idx:idx + 64]
-            match = re.search(rb'charset=["\']?([a-z0-9_-]{2,32})', snippet)
-            if match:
+            snippet = head_bytes[idx + 8:idx + 40]
+            # Strip quotes if present
+            snippet = snippet.lstrip(b'"\'')
+            # Extract ascii charset chars linearly
+            charset_bytes = bytearray()
+            for b in snippet:
+                if (ord('a') <= b <= ord('z')) or (ord('0') <= b <= ord('9')) or b in (ord('-'), ord('_')):
+                    charset_bytes.append(b)
+                else:
+                    break
+            if charset_bytes:
                 try:
-                    encoding = match.group(1).decode('ascii')
+                    encoding = charset_bytes.decode('ascii')
                 except Exception:
                     encoding = None
         if not encoding:

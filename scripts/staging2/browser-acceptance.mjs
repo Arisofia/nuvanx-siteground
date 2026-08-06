@@ -850,9 +850,17 @@ async function run() {
       const isHome = route === '/';
       const isTreatment =
         route.startsWith('/tratamientos/') || route.includes('/well-aging');
+      const isLegalPage = [
+        '/politica-privacidad/',
+        '/aviso-legal/',
+        '/politica-de-cookies-ue/',
+        '/politica-de-cookies/',
+        '/mas-informacion-sobre-las-cookies/',
+      ].includes(route);
       const isGeneralPage =
         !isHome &&
         !isTreatment &&
+        !isLegalPage &&
         !is404Expected &&
         !isRedirectExpected &&
         !route.includes('/wp-json');

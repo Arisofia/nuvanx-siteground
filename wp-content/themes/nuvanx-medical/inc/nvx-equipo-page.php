@@ -979,21 +979,13 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 
 	// Director → Dra. Ivon → Dr. Fabio → Dra. Cristina → resto del equipo (CMS).
 	// Closing valoración CTA: site-wide nvx-cta-banner in footer.php.
-	$body  = '<div class="nvx-brand-section-wrap">';
+	$body  = '<div class="entry-content nvx-page__content nvx-prose">';
 	$body .= nvx_equipo_director_authority_markup( $staff['rivera_media'] );
 	$body .= nvx_equipo_ivon_authority_markup( $staff['ivon_media'] );
 	$body .= nvx_equipo_fabio_authority_markup( $staff['fabio_media'] ?? '' );
 	$body .= nvx_equipo_cristina_authority_markup( $staff['cristina_media'] ?? '' );
 	$body .= nvx_equipo_other_staff_section_markup( $staff['other_cards'] );
 	$body .= '</div>';
-
-	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
-		return nvx_page_render_brand_wrapper( $content, $hero . $body, 'nvx-brand-page nvx-brand-page--equipo' );
-	}
-
-	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
-		return $wrap[1] . $hero . $body . '</div>';
-	}
 
 	// Return content directly without wrapping to avoid duplicate nvx-brand-page
 	return $hero . $body;

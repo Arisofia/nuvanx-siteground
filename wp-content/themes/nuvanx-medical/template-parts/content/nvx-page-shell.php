@@ -114,7 +114,6 @@ while ( have_posts() ) :
 								<span aria-hidden="true"> · </span><?php echo esc_html( nvx_reading_time() ); ?> de lectura
 							<?php endif; ?>
 						</p>
-					<?php endif; ?>
 					<?php else : ?>
 						<div class="nvx-brand-actions">
 							<?php if ( function_exists( 'nvx_signature_valoracion_url' ) ) : ?>

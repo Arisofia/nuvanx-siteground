@@ -37,6 +37,16 @@ def _resolve_safe_out_dir():
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR
+    
+    # Additional security checks for path input
+    # Reject paths with suspicious patterns
+    suspicious_patterns = ['<', '>', '|', '&', ';', '$', '`', '(', ')']
+    if any(pattern in raw_out_dir for pattern in suspicious_patterns):
+        print(
+            f"WARNING: Ignorando AUDIT_OUT_DIR con patrones sospechosos: {raw_out_dir}. "
+            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+        )
+        return DEFAULT_OUT_DIR
 
     if '..' in Path(raw_out_dir).parts:
         print(
@@ -45,7 +55,17 @@ def _resolve_safe_out_dir():
         )
         return DEFAULT_OUT_DIR
 
-    candidate = Path(raw_out_dir).expanduser().resolve()
+    # Validate path before expansion to prevent path traversal
+    try:
+        candidate = Path(raw_out_dir).expanduser().resolve()
+    except (OSError, ValueError) as e:
+        print(
+            f"WARNING: Error al procesar AUDIT_OUT_DIR: {e}. "
+            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+        )
+        return DEFAULT_OUT_DIR
+    
+    # Ensure the resolved path is within the safe base directory
     if candidate == SAFE_AUDIT_BASE_DIR or SAFE_AUDIT_BASE_DIR in candidate.parents:
         return candidate
 

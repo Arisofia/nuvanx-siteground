@@ -109,44 +109,12 @@ def _follow_redirects_safely(session, url, method="get", stream=False):
 
     return resp
 
-def get_http_status(url, session=SESSION):
+def fetch_url_audit_data(url, session=SESSION):
     """
-    Get HTTP status using requests with SSL verification for internal audit purposes.
+    Fetches status and content data in a single HTTP pass per URL.
+    Returns (status_code_str, content_dict).
     """
-    if not is_safe_audit_url(url):
-        return "Error"
-    try:
-        resp = _follow_redirects_safely(session, url, method="head", stream=False)
-        return str(resp.status_code) if resp else "Error"
-    except requests.exceptions.Timeout:
-        return "Timeout"
-    except Exception:
-        return "Error"
-
-def _parse_html_fields(html):
-    if len(html) > 1000000:
-        html = html[:1000000]
-    soup = BeautifulSoup(html, 'html.parser')
-    can = soup.find('link', rel='canonical')
-    rob = soup.find('meta', attrs={'name': 'robots'})
-    h1 = soup.find('h1')
-    prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3}){0,3}\s*€', html)
-
-    return {
-        'canonical': can['href'] if can else 'N/D',
-        'robots': rob['content'] if rob else 'N/D',
-        'h1': h1.get_text(strip=True) if h1 else 'N/D',
-        'price': '; '.join(sorted(set(prices))) if prices else 'N/D',
-        'faq': 'Sí' if 'FAQPage' in html else 'No',
-        'doctor': 'Dr. José Javier Rivera Tejeda' if 'Rivera' in html else 'N/D',
-        'schema_type': _parse_schema_types(soup)
-    }
-
-def get_content_data(url, session=SESSION):
-    """
-    Get content data from URL for internal audit purposes.
-    """
-    res = {
+    default_content = {
         'canonical': 'N/D',
         'robots': 'N/D',
         'h1': 'N/D',
@@ -156,17 +124,33 @@ def get_content_data(url, session=SESSION):
         'schema_type': 'N/D'
     }
     if not is_safe_audit_url(url):
-        return dict.fromkeys(res, 'Error')
+        return "Error", dict.fromkeys(default_content, 'Error')
+
     try:
         resp = _follow_redirects_safely(session, url, method="get", stream=True)
         if not resp:
-            return dict.fromkeys(res, 'Error')
+            return "Error", dict.fromkeys(default_content, 'Error')
+
+        status = str(resp.status_code)
         if resp.status_code == 200:
-            return _parse_html_fields(resp.text)
+            content = _parse_html_fields(resp.text)
+        else:
+            content = default_content
+
+        return status, content
+    except requests.exceptions.Timeout:
+        return "Timeout", dict.fromkeys(default_content, 'Error')
     except Exception as e:
-        print(f"Error fetching content from {url}: {e}")
-        return dict.fromkeys(res, 'Error')
-    return res
+        print(f"Error fetching {url}: {e}")
+        return "Error", dict.fromkeys(default_content, 'Error')
+
+def get_http_status(url, session=SESSION):
+    status, _ = fetch_url_audit_data(url, session=session)
+    return status
+
+def get_content_data(url, session=SESSION):
+    _, content = fetch_url_audit_data(url, session=session)
+    return content
 
 def get_gap_tipo(p_status, s_status):
     if p_status == '404' and s_status == '404': return 'contenido_falta_ambos'
@@ -184,13 +168,8 @@ for i, slug in enumerate(SLUGS):
     
     print(f"Auditando ({i+1}/{len(SLUGS)}): /{slug}")
 
-    p_status = get_http_status(p_url)
-    s_status = get_http_status(s_url)
-
-    # Always fetch content regardless of status
-    # This helps catch cases where HTTP status check might be incomplete
-    p_content = get_content_data(p_url)
-    s_content = get_content_data(s_url)
+    p_status, p_content = fetch_url_audit_data(p_url)
+    s_status, s_content = fetch_url_audit_data(s_url)
     
     gap_tipo = get_gap_tipo(p_status, s_status)
     

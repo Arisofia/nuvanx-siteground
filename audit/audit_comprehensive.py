@@ -214,7 +214,7 @@ def fetch_url_audit_data(url, session=None):
 
     try:
         resp = _follow_redirects_safely(session, url, method="get", stream=True)
-        if not resp:
+        if resp is None:
             return "Error", dict(default_content)
 
         try:

@@ -30,13 +30,21 @@ def _info(message):
 DEFAULT_OUT_DIR = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 SAFE_AUDIT_BASE_DIR = Path('/home/ubuntu').resolve()
 
+# Allowlist of safe subdirectories that can be selected via AUDIT_OUT_DIR
+# Only these specific directories are permitted - user input is used only as selector
+SAFE_SUBDIRS = {
+    'nuvanx_audit_2026-08-04': DEFAULT_OUT_DIR,
+    'nuvanx_audit': SAFE_AUDIT_BASE_DIR / 'nuvanx_audit',
+    'audit': SAFE_AUDIT_BASE_DIR / 'audit',
+}
+
 def _resolve_safe_out_dir():
     raw_out_dir = os.environ.get("AUDIT_OUT_DIR")
     if not raw_out_dir:
         return DEFAULT_OUT_DIR
 
     raw_out_dir = raw_out_dir.strip()
-    # Rechazar bytes NUL que romperían las llamadas al sistema de ficheros.
+    # Reject NUL bytes that would break filesystem calls
     if '\x00' in raw_out_dir:
         _warn(
             f"Ignorando AUDIT_OUT_DIR con caracteres no permitidos. "
@@ -44,22 +52,22 @@ def _resolve_safe_out_dir():
         )
         return DEFAULT_OUT_DIR
 
-    # Canonicalizar y confinar dentro del directorio base seguro.
-    try:
-        candidate = Path(raw_out_dir).expanduser().resolve()
-        # relative_to lanza ValueError si candidate no está bajo la base.
-        relative = candidate.relative_to(SAFE_AUDIT_BASE_DIR)
-    except (OSError, RuntimeError, ValueError):
+    # Extract just the directory name from the path for selection
+    # User input is used ONLY as a selector from our allowlist
+    path_obj = Path(raw_out_dir)
+    dir_name = path_obj.name  # Get last component for selection
+
+    # Select from allowlist - if not found, use default
+    # This ensures only predefined constant paths are ever used
+    selected_dir = SAFE_SUBDIRS.get(dir_name)
+    if selected_dir is None:
         _warn(
-            f"Ignorando AUDIT_OUT_DIR no seguro o inválido: {raw_out_dir}. "
+            f"Ignorando AUDIT_OUT_DIR no permitido: {raw_out_dir}. "
             f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
         )
         return DEFAULT_OUT_DIR
 
-    # Reconstruir la ruta a partir de la base de confianza + el segmento validado.
-    # Esto ayuda a que CodeQL reconozca la sanitización (la ruta usada aguas
-    # abajo deriva de una constante segura, no del valor crudo del usuario).
-    return SAFE_AUDIT_BASE_DIR / relative
+    return selected_dir
 
 OUT = _resolve_safe_out_dir()
 

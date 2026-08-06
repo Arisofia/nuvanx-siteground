@@ -128,8 +128,8 @@ def _parse_html_fields(html):
     prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3}){0,3}\s*€', html)
 
     return {
-        'canonical': can['href'] if can else 'N/D',
-        'robots': rob['content'] if rob else 'N/D',
+        'canonical': can.get('href', 'N/D') if can else 'N/D',
+        'robots': rob.get('content', 'N/D') if rob else 'N/D',
         'h1': h1.get_text(strip=True) if h1 else 'N/D',
         'price': '; '.join(sorted(set(prices))) if prices else 'N/D',
         'faq': 'Sí' if 'FAQPage' in html else 'No',

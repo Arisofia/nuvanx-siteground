@@ -430,7 +430,7 @@ function nvx_signature_hub_shell_open( array $hub ): string {
 	$html      .= '<h1 id="nvx-signature-hub-h1" class="nvx-brand-hero__title">' . esc_html( (string) ( $hub['h1'] ?? '' ) ) . '</h1>';
 	$html      .= '<p class="nvx-brand-hero__lead">' . esc_html( (string) ( $hub['lead'] ?? '' ) ) . '</p>';
 	$html      .= '<p class="nvx-brand-hero__description">' . esc_html( (string) ( $hub['intro'] ?? '' ) ) . '</p>';
-	$html      .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
+	$html      .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
 	if ( 'index' !== ( $hub['kind'] ?? '' ) ) {
 		$html .= ' <a class="nvx-brand-inline-link nvx-brand-inline-link--light" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Ver todos los Protocolos Signature', 'nuvanx-medical' ) . '</a>';
 	}

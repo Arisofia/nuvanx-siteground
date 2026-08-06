@@ -80,6 +80,11 @@
   overflow: hidden;
 }
 
+/* Fallback dark ink background for all brand heroes inside .nvx-brand-page */
+.nvx-brand-page .nvx-brand-hero {
+  background: var(--nvx-ink);
+}
+
 /* Brand-page body sections: one vertical rhythm everywhere */
 .nvx-brand-page > .nvx-brand-section {
   width: 100%;

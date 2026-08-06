@@ -425,18 +425,18 @@ function nvx_signature_hub_contour_cards(): array {
 function nvx_signature_hub_shell_open( array $hub ): string {
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
 	$html       = '<article class="nvx-brand-page nvx-brand-page--signature nvx-signature-hub" data-nvx-signature-hub="' . esc_attr( (string) ( $hub['kind'] ?? '' ) ) . '">';
-	$html      .= '<header class="nvx-strategy-intro">';
+	$html      .= '<section class="nvx-brand-hero"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy">';
 	$html      .= '<p class="nvx-eyebrow">' . esc_html( (string) ( $hub['kicker'] ?? '' ) ) . '</p>';
-	$html      .= '<h1 class="nvx-strategy-title">' . esc_html( (string) ( $hub['h1'] ?? '' ) ) . '</h1>';
-	$html      .= '<p class="nvx-brand-lead">' . esc_html( (string) ( $hub['lead'] ?? '' ) ) . '</p>';
-	$html      .= '<p>' . esc_html( (string) ( $hub['intro'] ?? '' ) ) . '</p>';
-	$html      .= '<p><a class="nvx-brand-btn nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
+	$html      .= '<h1 class="nvx-brand-hero__title">' . esc_html( (string) ( $hub['h1'] ?? '' ) ) . '</h1>';
+	$html      .= '<p class="nvx-brand-hero__lead">' . esc_html( (string) ( $hub['lead'] ?? '' ) ) . '</p>';
+	$html      .= '<p class="nvx-brand-hero__description">' . esc_html( (string) ( $hub['intro'] ?? '' ) ) . '</p>';
+	$html      .= '<div class="nvx-brand-actions"><a class="nvx-brand-btn nvx-btn--primary" href="' . $valoracion . '">' . esc_html__( 'Solicitar valoración médica', 'nuvanx-medical' ) . '</a>';
 	if ( 'index' !== ( $hub['kind'] ?? '' ) ) {
-		$html .= ' <a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Ver todos los Protocolos Signature', 'nuvanx-medical' ) . '</a>';
+		$html .= ' <a class="nvx-brand-inline-link" style="color: var(--nvx-light);" href="' . esc_url( home_url( '/protocolos-signature/' ) ) . '">' . esc_html__( 'Ver todos los Protocolos Signature', 'nuvanx-medical' ) . '</a>';
 	}
-	$html .= '</p>';
-	$html .= '<p class="nvx-brand-microcopy">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p>';
-	$html .= '</header>';
+	$html .= '</div>';
+	$html .= '<p class="nvx-brand-microcopy" style="color: var(--nvx-border-on-dark);">' . esc_html__( 'La indicación, la tecnología, el número de sesiones, el período de recuperación y el presupuesto se confirman después de la exploración médica.', 'nuvanx-medical' ) . '</p>';
+	$html .= '</div></div></section>';
 	return $html;
 }
 

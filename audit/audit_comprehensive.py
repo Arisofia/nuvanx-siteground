@@ -18,6 +18,22 @@ with open(OUT / 'staging_routes.json', 'r') as f:
 
 PROD_BASE = "https://nuvanx.com"
 STAG_BASE = "https://staging2.nuvanx.com"
+ALLOWED_AUDIT_HOSTS = {"nuvanx.com", "staging2.nuvanx.com"}
+
+def is_safe_audit_url(url):
+    parsed = requests.utils.urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        return False
+    if not parsed.netloc or not parsed.hostname:
+        return False
+    if parsed.username or parsed.password:
+        return False
+    if parsed.params or parsed.query or parsed.fragment:
+        return False
+    host = parsed.hostname.lower()
+    if host not in ALLOWED_AUDIT_HOSTS:
+        return False
+    return True
 
 def get_http_status_curl(url):
     """
@@ -26,9 +42,8 @@ def get_http_status_curl(url):
     where SSL certificates may be self-signed or in development environments.
     """
     try:
-        # Validate URL to prevent command injection
-        parsed = requests.utils.urlparse(url)
-        if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        # Strict validation to prevent unsafe command arguments
+        if not is_safe_audit_url(url):
             return "Error"
 
         # User requested: curl -sI -H "Cache-Control: no-cache"

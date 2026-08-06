@@ -142,10 +142,14 @@ def _follow_redirects_safely(session, url, stream=True):
         redirect_count += 1
         location = resp.headers.get('Location')
         if not location:
+            # is_redirect guarantees Location exists in requests, so this is defensive only
             break
 
         loc_parsed = requests.utils.urlparse(location)
-        if not loc_parsed.scheme or not loc_parsed.netloc:
+        # Only treat as absolute URL if scheme is explicitly http or https.
+        # urlparse treats 'precios:2/page' as having scheme 'precios', so we
+        # must not rely on the presence of any scheme — only known-safe ones.
+        if loc_parsed.scheme not in ('http', 'https'):
             location = requests.utils.urljoin(current_url, location)
 
         if not is_safe_audit_url(location):
@@ -155,6 +159,9 @@ def _follow_redirects_safely(session, url, stream=True):
         resp.close()
         current_url = location
         resp = session.get(current_url, **kwargs)
+
+    if resp.is_redirect and redirect_count >= max_redirects:
+        print(f"Aviso: Límite de redirecciones ({max_redirects}) alcanzado para {url}")
 
     return resp
 

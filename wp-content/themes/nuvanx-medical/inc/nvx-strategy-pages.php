@@ -108,9 +108,9 @@ function nvx_strategy_protocol_review_markup( string $key ): string {
 	}
 
 	return '<article class="nvx-brand-readable nvx-strategy-page nvx-strategy-page--review nvx-shell">'
-		. '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">NUVANX · revisión clínica y jurídica</p>'
-		. '<h1 class="nvx-strategy-title">' . esc_html( $page['title'] ) . '</h1>'
-		. '<p class="nvx-brand-lead">Protocolo en evaluación. Esta denominación de trabajo no constituye una técnica ofrecida, una indicación médica ni una promesa de resultado.</p></header>'
+		. '<section class="nvx-brand-hero"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy"><p class="nvx-eyebrow">NUVANX · revisión clínica y jurídica</p>'
+		. '<h1 class="nvx-brand-hero__title">' . esc_html( $page['title'] ) . '</h1>'
+		. '<p class="nvx-brand-hero__lead">Protocolo en evaluación. Esta denominación de trabajo no constituye una técnica ofrecida, una indicación médica ni una promesa de resultado.</p></div></div></section>'
 		. '<section class="nvx-brand-section" aria-labelledby="rev-antes"><h2 id="rev-antes">Antes de cualquier publicación</h2>'
 		. '<p>La Dirección Médica debe documentar técnica, indicación, contraindicaciones, seguridad, seguimiento y profesional responsable. La denominación también requiere validación jurídica y registral.</p>'
 		. '<p>Hasta entonces, esta página permanece fuera de navegación pública, buscadores y campañas.</p></section>'
@@ -126,9 +126,9 @@ function nvx_strategy_why_nuvanx_markup(): string {
 	$investment    = nvx_strategy_published_url( 'investment' );
 
 	$html  = '<article class="nvx-brand-readable nvx-strategy-page">';
-	$html .= '<header class="nvx-strategy-intro"><p class="nvx-brand-kicker">Criterio médico NUVANX</p>';
-	$html .= '<h1 class="nvx-strategy-title">El diagnóstico precede a la indicación.</h1>';
-	$html .= '<p class="nvx-brand-lead">Madrid. Medicina estética láser y well-aging. Un único criterio médico desde la primera valoración hasta el alta.</p></header>';
+	$html .= '<section class="nvx-brand-hero"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy"><p class="nvx-eyebrow">Criterio médico NUVANX</p>';
+	$html .= '<h1 class="nvx-brand-hero__title">El diagnóstico precede a la indicación.</h1>';
+	$html .= '<p class="nvx-brand-hero__lead">Madrid. Medicina estética láser y well-aging. Un único criterio médico desde la primera valoración hasta el alta.</p></div></div></section>';
 
 	$html .= '<section class="nvx-brand-section" aria-labelledby="why-diag"><h2 id="why-diag">Diagnóstico antes de tecnología</h2><p>Revisamos anatomía, antecedentes, objetivos, contraindicaciones y expectativas. Solo entonces se valora si procede tratar, esperar, derivar o no intervenir.</p></section>';
 	$html .= '<section class="nvx-brand-section" aria-labelledby="why-claridad"><h2 id="why-claridad">Claridad antes de decidir</h2><p>El plan explica la alternativa propuesta, sus límites, cuidados, posibles efectos y presupuesto. La decisión se toma con información comprensible y con tiempo para resolver dudas.</p></section>';

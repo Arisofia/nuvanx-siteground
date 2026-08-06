@@ -144,12 +144,33 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
     except Exception:
         return raw_bytes.decode('utf-8', errors='replace')
 
+def _extract_prices_linearly(html):
+    prices = []
+    start = 0
+    while True:
+        euro_idx = html.find('€', start)
+        if euro_idx == -1:
+            break
+        snippet = html[max(0, euro_idx - 25):euro_idx].rstrip()
+        num_chars = []
+        for char in reversed(snippet):
+            if char.isdigit() or char in '.,':
+                num_chars.append(char)
+            else:
+                break
+        if num_chars:
+            num_str = ''.join(reversed(num_chars)).strip('.,')
+            if num_str:
+                prices.append(f"{num_str} €")
+        start = euro_idx + 1
+    return prices
+
 def _parse_html_fields(html):
     soup = BeautifulSoup(html, 'html.parser')
     can = soup.find('link', rel='canonical')
     rob = soup.find('meta', attrs={'name': 'robots'})
     h1 = soup.find('h1')
-    prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3}){0,3}\s*€', html)
+    prices = _extract_prices_linearly(html)
 
     canonical_val = 'N/D'
     if can is not None:

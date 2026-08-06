@@ -126,7 +126,7 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	}
 
 	// SiteGround preview/staging hosts must never be indexable.
-	$raw_host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( (string) $_SERVER['HTTP_HOST'] ) : '';
+	$raw_host    = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
 	// parse_url correctly strips the port from both 'host:port' and '[::1]:port' (IPv6) forms.
 	$parsed_host = parse_url( 'http://' . $raw_host, PHP_URL_HOST );
 	$host        = ( $parsed_host !== false && $parsed_host !== null ) ? $parsed_host : $raw_host;

@@ -19,11 +19,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Host-only match for staging2.nuvanx.com.
  */
 function nvx_environment_is_staging2(): bool {
-	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
-	$host = preg_replace( '/:\d+$/', '', $host );
-	if ( ! is_string( $host ) ) {
-		$host = '';
-	}
+	$raw_host    = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
+	$parsed_host = parse_url( 'http://' . $raw_host, PHP_URL_HOST );
+	$host        = ( $parsed_host !== false && $parsed_host !== null ) ? $parsed_host : $raw_host;
 
 	/**
 	 * Filter whether the request is treated as staging2.

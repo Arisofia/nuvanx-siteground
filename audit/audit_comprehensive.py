@@ -158,6 +158,24 @@ def _follow_redirects_safely(session, url, stream=True):
 
     return resp
 
+def _parse_charset_from_tag(meta_tag):
+    charset_idx = meta_tag.find(b'charset=')
+    if charset_idx == -1:
+        return None
+    snippet = meta_tag[charset_idx + 8:charset_idx + 40].lstrip(b'"\'')
+    charset_bytes = bytearray()
+    for b in snippet:
+        if (ord('a') <= b <= ord('z')) or (ord('0') <= b <= ord('9')) or b in (ord('-'), ord('_')):
+            charset_bytes.append(b)
+        else:
+            break
+    if charset_bytes:
+        try:
+            return charset_bytes.decode('ascii')
+        except Exception:
+            pass
+    return None
+
 def _sniff_meta_charset(head_bytes):
     meta_idx = head_bytes.find(b'<meta')
     while meta_idx != -1:
@@ -165,20 +183,9 @@ def _sniff_meta_charset(head_bytes):
         if meta_end == -1:
             break
         meta_tag = head_bytes[meta_idx:meta_end]
-        charset_idx = meta_tag.find(b'charset=')
-        if charset_idx != -1:
-            snippet = meta_tag[charset_idx + 8:charset_idx + 40].lstrip(b'"\'')
-            charset_bytes = bytearray()
-            for b in snippet:
-                if (ord('a') <= b <= ord('z')) or (ord('0') <= b <= ord('9')) or b in (ord('-'), ord('_')):
-                    charset_bytes.append(b)
-                else:
-                    break
-            if charset_bytes:
-                try:
-                    return charset_bytes.decode('ascii')
-                except Exception:
-                    pass
+        charset = _parse_charset_from_tag(meta_tag)
+        if charset:
+            return charset
         meta_idx = head_bytes.find(b'<meta', meta_end)
     return None
 

@@ -102,12 +102,14 @@
   border: var(--nvx-border-hairline) solid var(--nvx-ink);
   text-decoration: none;
   transition: top 0.15s ease;
+  outline: none;
 }
 .nvx-skip-link:focus {
   top: var(--nvx-space-1, 8px);
-  outline: 2px solid var(--nvx-ink);
-  outline-offset: var(--nvx-outline-offset, 2px);
+  outline: 3px solid var(--nvx-ink);
+  outline-offset: 2px;
   z-index: 10002;
+  box-shadow: 0 0 0 2px var(--nvx-light);
 }
 @media (prefers-reduced-motion: reduce) {
   .nvx-skip-link { transition: none; }

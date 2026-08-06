@@ -28,6 +28,10 @@ if ( ! empty( $shell_content ) ) {
 
 // Header.php already provides <main id="nvx-main" class="nvx-main" role="main"> and .nvx-brand-page wrapper
 // Content renders directly without additional wrapper for consistency with custom templates
+// Only add nvx-main-shell wrapper when nvx_shell_no_wrapper is not set
+if ( empty( $shell_no_wrap ) ) {
+	echo '<div class="nvx-main-shell">' . "\n";
+}
 
 while ( have_posts() ) :
 	the_post();
@@ -194,5 +198,10 @@ while ( have_posts() ) :
 </article>
 	<?php
 endwhile;
+
+// Close nvx-main-shell wrapper conditionally if it was opened
+if ( empty( $shell_no_wrap ) ) {
+	echo "</div>\n";
+}
 
 get_footer();

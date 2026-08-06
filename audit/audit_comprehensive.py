@@ -34,7 +34,7 @@ def is_safe_audit_url(url):
         return False
     return True
 
-def get_http_status_curl(url):
+def get_http_status(url):
     """
     Get HTTP status using requests with SSL verification bypass for internal audit purposes.
     Note: verify=False bypasses SSL verification - this is intentional for internal audit scripts
@@ -114,6 +114,8 @@ def get_content_data(url):
         'doctor': 'N/D',
         'schema_type': 'N/D'
     }
+    if not is_safe_audit_url(url):
+        return res
     try:
         # SSL verification disabled for internal audit purposes
         # This is intentional for development/staging environments
@@ -192,8 +194,8 @@ for i, slug in enumerate(SLUGS):
     
     print(f"Auditando ({i+1}/{len(SLUGS)}): /{slug}")
 
-    p_status = get_http_status_curl(p_url)
-    s_status = get_http_status_curl(s_url)
+    p_status = get_http_status(p_url)
+    s_status = get_http_status(s_url)
 
     # Always fetch content regardless of status
     # This helps catch cases where HTTP status check might be incomplete

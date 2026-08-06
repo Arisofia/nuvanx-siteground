@@ -239,6 +239,28 @@ def _read_response_body_safely(resp, url, default_content):
     except (requests.exceptions.RequestException, OSError) as net_err:
         print(f"Error de red/streaming al leer cuerpo de {url}: {net_err}")
         return None
+
+def _process_response(resp, url, default_content):
+    """Process HTTP response and extract status and content."""
+    status = "Error"
+    content = dict(default_content)
+    try:
+        status = str(resp.status_code)
+        if resp.status_code == 200:
+            html = _read_response_body_safely(resp, url, default_content)
+            if html is None:
+                return "Error", dict(default_content)
+
+            try:
+                content = _parse_html_fields(html)
+            except Exception as parse_err:
+                print(f"Aviso: Error de estructura HTML al parsear {url}: {parse_err}")
+        else:
+            content = dict(default_content)
+    finally:
+        resp.close()
+
+    return status, content
     encoding = _resolve_response_encoding(resp, raw_bytes)
     try:
         return raw_bytes.decode(encoding, errors='replace')
@@ -280,10 +302,7 @@ def _extract_prices_linearly(html):
 
 def _parse_html_fields(html):
     soup = BeautifulSoup(html, 'html.parser')
-    if can := soup.find('link', rel='canonical'):
-        canonical = can.get('href')
-    else:
-        canonical = None
+    canonical = can.get('href') if (can := soup.find('link', rel='canonical')) else None
     robots = rob.get('content') if (rob := soup.find('meta', attrs={'name': 'robots'})) else None
     h1 = soup.find('h1')
     prices = _extract_prices_linearly(html)
@@ -328,24 +347,7 @@ def fetch_url_audit_data(url, session=None):
         if resp is None:
             return "Error", dict(default_content)
 
-        status = "Error"
-        content = dict(default_content)
-        try:
-            status = str(resp.status_code)
-            if resp.status_code == 200:
-                html = _read_response_body_safely(resp, url, default_content)
-                if html is None:
-                    return "Error", dict(default_content)
-
-                try:
-                    content = _parse_html_fields(html)
-                except Exception as parse_err:
-                    print(f"Aviso: Error de estructura HTML al parsear {url}: {parse_err}")
-            else:
-                content = dict(default_content)
-        finally:
-            resp.close()
-
+        status, content = _process_response(resp, url, default_content)
         return status, content
     except requests.exceptions.Timeout:
         return "Timeout", dict(default_content)
@@ -366,6 +368,12 @@ def get_gap_tipo(p_status, s_status):
             return 'coincide'
     return 'inconsistente'
 
+def _sanitize_csv(val):
+    s = str(val)
+    if s.startswith(('=', '+', '-', '@', '\t', '\r')):
+        return f"'{s}"
+    return s
+
 def run_audit():
     slugs = load_slugs()
     if not slugs:
@@ -384,11 +392,6 @@ def run_audit():
         s_status, s_content = fetch_url_audit_data(s_url)
         gap_tipo = get_gap_tipo(p_status, s_status)
         
-        def _sanitize_csv(val):
-            s = str(val)
-            if s.startswith(('=', '+', '-', '@', '\t', '\r')):
-                return "'" + s
-            return s
         row = {
             'slug': _sanitize_csv(slug),
             'gap_tipo': _sanitize_csv(gap_tipo),

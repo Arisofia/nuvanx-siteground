@@ -11,12 +11,17 @@ import fs from 'node:fs/promises';
 async function checkSkipLink(page, route, issues) {
   if (route !== '/') return;
   await page.keyboard.press('Tab');
-  const isSkipLinkFocused = await page.evaluate(() => document.activeElement?.classList.contains('nvx-skip-link'));
+  const isSkipLinkFocused = await page.evaluate(() =>
+    document.activeElement?.classList.contains('nvx-skip-link')
+  );
   if (!isSkipLinkFocused) issues.push('Skip-link is not focused on first Tab');
   if (isSkipLinkFocused) {
     await page.keyboard.press('Enter');
-    const isMainFocused = await page.evaluate(() => document.activeElement?.id === 'nvx-main');
-    if (!isMainFocused) issues.push('Skip-link did not move focus to #nvx-main');
+    const isMainFocused = await page.evaluate(
+      () => document.activeElement?.id === 'nvx-main'
+    );
+    if (!isMainFocused)
+      issues.push('Skip-link did not move focus to #nvx-main');
   }
 }
 
@@ -28,16 +33,25 @@ async function checkSkipLink(page, route, issues) {
 async function checkHeadingHierarchy(page, issues) {
   const headings = await page.evaluate(() => {
     // Look only inside main and avoid elements in dialogs or hidden
-    const container = document.querySelector('#nvx-main, main, [role="main"]') || document;
+    const container =
+      document.querySelector('#nvx-main, main, [role="main"]') || document;
     const els = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
     return Array.from(els)
-      .filter(el => !el.closest('dialog') && !el.closest('[hidden]') && !el.closest('.screen-reader-text') && el.offsetParent !== null)
-      .map(el => Number.parseInt(el.tagName.replace('H', ''), 10));
+      .filter(
+        (el) =>
+          !el.closest('dialog') &&
+          !el.closest('[hidden]') &&
+          !el.closest('.screen-reader-text') &&
+          el.offsetParent !== null
+      )
+      .map((el) => Number.parseInt(el.tagName.replace('H', ''), 10));
   });
   let currentLevel = 0;
   headings.forEach((level, idx) => {
     if (currentLevel > 0 && level > currentLevel + 1) {
-      issues.push(`Heading hierarchy skip detected: H${currentLevel} followed by H${level} at index ${idx}`);
+      issues.push(
+        `Heading hierarchy skip detected: H${currentLevel} followed by H${level} at index ${idx}`
+      );
     }
     currentLevel = level;
   });
@@ -50,32 +64,40 @@ async function checkHeadingHierarchy(page, issues) {
  */
 async function checkGridLayout(page, issues) {
   const hasCollapsedGrids = await page.evaluate(() => {
-    const containers = document.querySelectorAll('.nvx-blog-card, .nvx-brand-grid > *');
+    const containers = document.querySelectorAll(
+      '.nvx-blog-card, .nvx-brand-grid > *'
+    );
     let collapsed = false;
-    containers.forEach(el => {
+    containers.forEach((el) => {
       const style = window.getComputedStyle(el);
-      // We look for missing grid placement only if the element actually renders 
-      // but doesn't have an explicit grid context if it's supposed to. 
+      // We look for missing grid placement only if the element actually renders
+      // but doesn't have an explicit grid context if it's supposed to.
       // Instead, checking offsetTop equality detects stacking.
       if (style.display !== 'none') {
         const parent = el.parentElement;
-        if (parent && window.getComputedStyle(parent).display.includes('grid')) {
-             const children = Array.from(parent.children).filter(c => window.getComputedStyle(c).display !== 'none');
-             if (children.length > 1) {
-                 // Check if first two children stack vertically but are supposed to be a grid
-                 const r0 = children[0].getBoundingClientRect();
-                 const r1 = children[1].getBoundingClientRect();
-                 if (r0.bottom <= r1.top && r0.left === r1.left) {
-                     // They stacked. This is expected on mobile, but if viewport is desktop, it's collapsed
-                     if (window.innerWidth >= 1024) collapsed = true;
-                 }
-             }
+        if (
+          parent &&
+          window.getComputedStyle(parent).display.includes('grid')
+        ) {
+          const children = Array.from(parent.children).filter(
+            (c) => window.getComputedStyle(c).display !== 'none'
+          );
+          if (children.length > 1) {
+            // Check if first two children stack vertically but are supposed to be a grid
+            const r0 = children[0].getBoundingClientRect();
+            const r1 = children[1].getBoundingClientRect();
+            if (r0.bottom <= r1.top && r0.left === r1.left) {
+              // They stacked. This is expected on mobile, but if viewport is desktop, it's collapsed
+              if (window.innerWidth >= 1024) collapsed = true;
+            }
+          }
         }
       }
     });
     return collapsed;
   });
-  if (hasCollapsedGrids) issues.push('Grid layout collapsed (cards stacked vertically on desktop)');
+  if (hasCollapsedGrids)
+    issues.push('Grid layout collapsed (cards stacked vertically on desktop)');
 }
 
 /**
@@ -87,14 +109,14 @@ async function checkOrphanClasses(page, issues) {
   const orphanClasses = await page.evaluate(() => {
     const allElements = document.querySelectorAll('*');
     const usedClasses = new Set();
-    allElements.forEach(el => {
-      el.classList.forEach(cls => {
+    allElements.forEach((el) => {
+      el.classList.forEach((cls) => {
         if (cls.startsWith('nvx-')) {
           usedClasses.add(cls);
         }
       });
     });
-    
+
     if (usedClasses.size === 0) return [];
 
     const cssRulesClasses = new Set();
@@ -109,7 +131,7 @@ async function checkOrphanClasses(page, issues) {
         if (rule.selectorText) {
           const matches = rule.selectorText.match(/\.nvx-[a-zA-Z0-9_-]+/g);
           if (matches) {
-            matches.forEach(m => cssRulesClasses.add(m.substring(1)));
+            matches.forEach((m) => cssRulesClasses.add(m.substring(1)));
           }
         } else if (rule.cssRules) {
           extractClasses(rule.cssRules);
@@ -127,7 +149,7 @@ async function checkOrphanClasses(page, issues) {
     }
 
     const orphans = [];
-    usedClasses.forEach(cls => {
+    usedClasses.forEach((cls) => {
       if (!cssRulesClasses.has(cls)) {
         orphans.push(cls);
       }
@@ -140,7 +162,9 @@ async function checkOrphanClasses(page, issues) {
   // CSS rule by design. Emitting these as failures would turn the acceptance run
   // red on every route, so report them as a warning instead of pushing to issues.
   if (orphanClasses.length > 0) {
-    console.warn(`⚠️ Orphan nvx-* classes without CSS rules (non-blocking): ${orphanClasses.join(', ')}`);
+    console.warn(
+      `⚠️ Orphan nvx-* classes without CSS rules (non-blocking): ${orphanClasses.join(', ')}`
+    );
   }
 }
 
@@ -152,10 +176,14 @@ async function checkOrphanClasses(page, issues) {
 async function checkPhpLeaks(page, issues) {
   const htmlContent = await page.content();
   if (htmlContent.includes('?>')) {
-    issues.push('CRITICAL: PHP closing tag (?>) visible in rendered HTML - code leak detected');
+    issues.push(
+      'CRITICAL: PHP closing tag (?>) visible in rendered HTML - code leak detected'
+    );
   }
   if (htmlContent.includes('<?php')) {
-    issues.push('CRITICAL: PHP opening tag (<?php) visible in rendered HTML - code leak detected');
+    issues.push(
+      'CRITICAL: PHP opening tag (<?php) visible in rendered HTML - code leak detected'
+    );
   }
 }
 
@@ -169,7 +197,9 @@ async function checkH1Validation(page, issues) {
   if (h1Count === 0) {
     issues.push('CRITICAL: No H1 element found on page');
   } else if (h1Count > 1) {
-    issues.push(`WARNING: Multiple H1 elements found (${h1Count}) - should be exactly 1`);
+    issues.push(
+      `WARNING: Multiple H1 elements found (${h1Count}) - should be exactly 1`
+    );
   } else {
     const h1Text = await page.locator('h1').textContent();
     if (!h1Text || h1Text.trim() === '') {
@@ -186,12 +216,17 @@ async function checkH1Validation(page, issues) {
 async function checkImageAlts(page, issues) {
   const imagesWithoutAlt = await page.evaluate(() => {
     return Array.from(document.querySelectorAll('img'))
-      .filter(img => !img.hasAttribute('alt') || img.getAttribute('alt').trim() === '')
+      .filter(
+        (img) =>
+          !img.hasAttribute('alt') || img.getAttribute('alt').trim() === ''
+      )
       .slice(0, 20)
-      .map(img => img.currentSrc || img.src || img.outerHTML);
+      .map((img) => img.currentSrc || img.src || img.outerHTML);
   });
   if (imagesWithoutAlt.length > 0) {
-    issues.push(`A11Y: ${imagesWithoutAlt.length} image(s) missing alt text or with empty alt (examples: ${imagesWithoutAlt.slice(0,3).join(' | ')})`);
+    issues.push(
+      `A11Y: ${imagesWithoutAlt.length} image(s) missing alt text or with empty alt (examples: ${imagesWithoutAlt.slice(0, 3).join(' | ')})`
+    );
   }
 }
 
@@ -203,23 +238,27 @@ async function checkImageAlts(page, issues) {
 async function checkIconDimensions(page, issues) {
   const oversizedIcons = await page.evaluate(() => {
     const oversized = [];
-    const icons = document.querySelectorAll('svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon');
-    icons.forEach(icon => {
+    const icons = document.querySelectorAll(
+      'svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon'
+    );
+    icons.forEach((icon) => {
       const rect = icon.getBoundingClientRect();
       if (rect.height > 80 || rect.width > 80) {
         oversized.push({
           height: Math.round(rect.height),
           width: Math.round(rect.width),
-          class: icon.className
+          class: icon.className,
         });
       }
     });
     return oversized;
   });
-  
+
   if (oversizedIcons.length > 0) {
-    issues.push(`CRITICAL: ${oversizedIcons.length} oversized icon(s) detected (>80px) - layout breaking bug`);
-    oversizedIcons.forEach(icon => {
+    issues.push(
+      `CRITICAL: ${oversizedIcons.length} oversized icon(s) detected (>80px) - layout breaking bug`
+    );
+    oversizedIcons.forEach((icon) => {
       console.warn(`  - Icon ${icon.class}: ${icon.width}x${icon.height}px`);
     });
   }
@@ -233,9 +272,11 @@ async function checkIconDimensions(page, issues) {
 async function checkSpacing(page, issues) {
   const spacingIssues = await page.evaluate(() => {
     const errs = [];
-    const hero = document.querySelector('.nvx-brand-hero, .nvx-page-header, .nvx-hero');
+    const hero = document.querySelector(
+      '.nvx-brand-hero, .nvx-page-header, .nvx-hero'
+    );
     if (hero) {
-      const height = hero.getBoundingClientRect().height;
+      const { height } = hero.getBoundingClientRect();
       // Depending on screen size, anything above 1600px is likely a broken layout
       if (height > 1600) {
         errs.push(`Hero section height is excessively large (${height}px)`);
@@ -249,11 +290,15 @@ async function checkSpacing(page, issues) {
     for (let i = 0; i < sections.length - 1; i++) {
       const current = sections[i];
       const next = sections[i + 1];
-      
+
       const currentRect = current.getBoundingClientRect();
       const nextRect = next.getBoundingClientRect();
-      
-      if (currentRect.height > 0 && nextRect.height > 0 && nextRect.top > currentRect.bottom) {
+
+      if (
+        currentRect.height > 0 &&
+        nextRect.height > 0 &&
+        nextRect.top > currentRect.bottom
+      ) {
         const gap = Math.round(nextRect.top - currentRect.bottom);
         // Arbitrary max gap: if more than 400px of pure empty whitespace exists between sections, it's likely a bug
         if (gap > 400) {
@@ -265,19 +310,27 @@ async function checkSpacing(page, issues) {
   });
 
   if (spacingIssues.length > 0) {
-    spacingIssues.forEach(err => issues.push(err));
+    spacingIssues.forEach((err) => issues.push(err));
   }
 }
 
-const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(/\/$/, '');
+const baseUrl = (process.env.BASE_URL || 'https://staging2.nuvanx.com').replace(
+  /\/$/,
+  ''
+);
 const expectedSha = (process.env.EXPECTED_SHA || '').trim();
 
 if (!expectedSha || !/^[0-9a-f]{40}$/.test(expectedSha)) {
-  console.error(`EXPECTED_SHA must be set to a full lowercase 40-character SHA. Received: "${expectedSha}"`);
+  console.error(
+    `EXPECTED_SHA must be set to a full lowercase 40-character SHA. Received: "${expectedSha}"`
+  );
   process.exit(1);
 }
 
-const routesJsonPath = new URL('../../wp-content/themes/nuvanx-medical/inc/data/routes.json', import.meta.url);
+const routesJsonPath = new URL(
+  '../../wp-content/themes/nuvanx-medical/inc/data/routes.json',
+  import.meta.url
+);
 const routesRaw = await fs.readFile(routesJsonPath, 'utf8');
 const routes = Object.keys(JSON.parse(routesRaw));
 
@@ -300,25 +353,35 @@ async function safeGoto(page, url) {
   while (attempt <= maxAttempts) {
     const remaining = deadline - Date.now();
     if (remaining <= 0) {
-      throw new Error(`Failed to goto ${url}: exhausted ${totalBudgetMs}ms retry budget after ${attempt - 1} attempts.`);
+      throw new Error(
+        `Failed to goto ${url}: exhausted ${totalBudgetMs}ms retry budget after ${attempt - 1} attempts.`
+      );
     }
     try {
       return await page.goto(url, {
         waitUntil: 'domcontentloaded',
-        timeout: Math.min(perAttemptTimeout, remaining)
+        timeout: Math.min(perAttemptTimeout, remaining),
       });
     } catch (e) {
       const msg = String(e.message || '');
-      const isRetryable = msg.includes('ERR_SOCKS_CONNECTION_FAILED') || msg.includes('ERR_CONNECTION_') || msg.includes('Timeout');
+      const isRetryable =
+        msg.includes('ERR_SOCKS_CONNECTION_FAILED') ||
+        msg.includes('ERR_CONNECTION_') ||
+        msg.includes('Timeout');
       if (!isRetryable || attempt >= maxAttempts) {
         throw e;
       }
       const delay = attempt * 2000;
       // Stop if the backoff wait alone would blow the global budget.
       if (Date.now() + delay >= deadline) {
-        throw new Error(`Failed to goto ${url}: exhausted ${totalBudgetMs}ms retry budget during backoff after attempt ${attempt}.`, { cause: e });
+        throw new Error(
+          `Failed to goto ${url}: exhausted ${totalBudgetMs}ms retry budget during backoff after attempt ${attempt}.`,
+          { cause: e }
+        );
       }
-      console.warn(`Goto failed with network/timeout error (attempt ${attempt}/${maxAttempts}): ${msg.split('\n')[0]}. Retrying in ${delay}ms...`);
+      console.warn(
+        `Goto failed with network/timeout error (attempt ${attempt}/${maxAttempts}): ${msg.split('\n')[0]}. Retrying in ${delay}ms...`
+      );
       await page.waitForTimeout(delay);
       attempt++;
     }
@@ -335,7 +398,7 @@ async function handleCookieConsent(page) {
     // Wait for cookie banner to appear (up to 3 seconds)
     const cookieSelectors = [
       'button:has-text("Aceptar")',
-      'button:has-text("Accept")', 
+      'button:has-text("Accept")',
       'button:has-text("Accept cookies")',
       'button:has-text("Accept all")',
       'button:has-text("Acepto")',
@@ -343,9 +406,9 @@ async function handleCookieConsent(page) {
       'button[data-testid="cookie-accept"]',
       'button#cookie-accept',
       'button.cc-accept',
-      'button.js-cookie-consent-accept'
+      'button.js-cookie-consent-accept',
     ];
-    
+
     for (const selector of cookieSelectors) {
       try {
         const element = await page.locator(selector).first();
@@ -360,7 +423,7 @@ async function handleCookieConsent(page) {
         continue;
       }
     }
-    
+
     console.log('ℹ No cookie consent banner found or not visible');
     return false;
   } catch (error) {
@@ -378,36 +441,41 @@ async function handleCookieConsent(page) {
 async function testMobileViewport(page, route, issues) {
   try {
     console.log(`Testing mobile viewport (375px) for ${route}...`);
-    
+
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
-    
+
     // Navigate and wait for load
     await safeGoto(page, `${baseUrl}${route}`);
     await handleCookieConsent(page);
-    
+
     // Check for mobile menu
-    const hasMobileMenu = await page.locator('.nvx-mobile-menu, [data-nvx-mobile-menu], .mobile-menu-toggle, button[aria-label*="menu"], button[aria-label*="Menu"], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]').count() > 0;
+    const hasMobileMenu =
+      (await page
+        .locator(
+          '.nvx-mobile-menu, [data-nvx-mobile-menu], .mobile-menu-toggle, button[aria-label*="menu"], button[aria-label*="Menu"], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]'
+        )
+        .count()) > 0;
     if (!hasMobileMenu && route !== '/') {
       issues.push(`Mobile viewport: No mobile menu toggle found on ${route}`);
     }
-    
+
     // Check if hero is responsive
     const hero = await page.locator('.nvx-brand-hero, .nvx-home-hero').first();
     if (await hero.isVisible()) {
       const heroBox = await hero.boundingBox();
       if (heroBox && heroBox.width > 375) {
-        issues.push(`Mobile viewport: Hero width (${heroBox.width}px) exceeds viewport width (375px) on ${route}`);
+        issues.push(
+          `Mobile viewport: Hero width (${heroBox.width}px) exceeds viewport width (375px) on ${route}`
+        );
       }
     }
-    
+
     console.log('✓ Mobile viewport validated');
-    
   } catch (error) {
     issues.push(`Mobile viewport test failed for ${route}: ${error.message}`);
   }
 }
-
 
 /**
  * Tests the complete conversion flow: valoración modal → form submit → thank-you page
@@ -417,55 +485,115 @@ async function testMobileViewport(page, route, issues) {
 async function testConversionFlow(page, issues) {
   try {
     console.log('Testing conversion flow on /madrid/valoracion/...');
-    
+
     // Navigate to valoración page
     await safeGoto(page, `${baseUrl}/madrid/valoracion/`);
     await handleCookieConsent(page);
-    
+
     // Check if valoración modal or form exists
-    const hasModal = await page.locator('.nvx-valoracion-modal, [data-nvx-valoracion-modal]').count() > 0;
-    const hasForm = await page.locator('form[action*="valoracion"], form[id*="valoracion"], .valoracion-form, .hs-form-frame, [data-nvx-hubspot-native="1"], #nvx-hubspot-native-form, .nvx-hubspot-form-section').count() > 0;
-    
+    const hasModal =
+      (await page
+        .locator('.nvx-valoracion-modal, [data-nvx-valoracion-modal]')
+        .count()) > 0;
+    const hasForm =
+      (await page
+        .locator(
+          'form[action*="valoracion"], form[id*="valoracion"], .valoracion-form, .hs-form-frame, [data-nvx-hubspot-native="1"], #nvx-hubspot-native-form, .nvx-hubspot-form-section'
+        )
+        .count()) > 0;
+
     if (!hasModal && !hasForm) {
-      issues.push('Conversion flow: No valoración modal or form found on /madrid/valoracion/');
+      issues.push(
+        'Conversion flow: No valoración modal or form found on /madrid/valoracion/'
+      );
       return;
     }
-    
+
     // If modal exists, try to open it
     if (hasModal) {
-      const modalTrigger = await page.locator('button[data-nvx-valoracion-trigger], a[href*="valoracion"], .nvx-cta-valoracion').first();
+      const modalTrigger = await page
+        .locator(
+          'button[data-nvx-valoracion-trigger], a[href*="valoracion"], .nvx-cta-valoracion'
+        )
+        .first();
       if (await modalTrigger.isVisible({ timeout: 2000 })) {
         await modalTrigger.click();
         await page.waitForTimeout(1000);
       }
     }
-    
+
     // Give HubSpot runtime JS time to initialize and inject the form / iframe
     await page.waitForTimeout(2000);
-    
+
     // Check main page and nested frames for form inputs
-    let hasNameField = await page.locator('input[name*="name"], input[name*="nombre"], input[name*="firstname"]').count() > 0;
-    let hasEmailField = await page.locator('input[type="email"], input[name*="email"]').count() > 0;
-    let hasPhoneField = await page.locator('input[type="tel"], input[name*="phone"], input[name*="telefono"], input[name*="mobilephone"]').count() > 0;
-    let hasSubmitButton = await page.locator('button[type="submit"], input[type="submit"], .hs-button, input.hs-button').count() > 0;
-    
+    let hasNameField =
+      (await page
+        .locator(
+          'input[name*="name"], input[name*="nombre"], input[name*="firstname"]'
+        )
+        .count()) > 0;
+    let hasEmailField =
+      (await page
+        .locator('input[type="email"], input[name*="email"]')
+        .count()) > 0;
+    let hasPhoneField =
+      (await page
+        .locator(
+          'input[type="tel"], input[name*="phone"], input[name*="telefono"], input[name*="mobilephone"]'
+        )
+        .count()) > 0;
+    let hasSubmitButton =
+      (await page
+        .locator(
+          'button[type="submit"], input[type="submit"], .hs-button, input.hs-button'
+        )
+        .count()) > 0;
+
     if (!hasNameField || !hasEmailField || !hasPhoneField || !hasSubmitButton) {
       for (const frame of page.frames()) {
-        if (!hasNameField) hasNameField = await frame.locator('input[name*="name"], input[name*="nombre"], input[name*="firstname"]').count() > 0;
-        if (!hasEmailField) hasEmailField = await frame.locator('input[type="email"], input[name*="email"]').count() > 0;
-        if (!hasPhoneField) hasPhoneField = await frame.locator('input[type="tel"], input[name*="phone"], input[name*="telefono"], input[name*="mobilephone"]').count() > 0;
-        if (!hasSubmitButton) hasSubmitButton = await frame.locator('button[type="submit"], input[type="submit"], .hs-button, input.hs-button').count() > 0;
+        if (!hasNameField)
+          hasNameField =
+            (await frame
+              .locator(
+                'input[name*="name"], input[name*="nombre"], input[name*="firstname"]'
+              )
+              .count()) > 0;
+        if (!hasEmailField)
+          hasEmailField =
+            (await frame
+              .locator('input[type="email"], input[name*="email"]')
+              .count()) > 0;
+        if (!hasPhoneField)
+          hasPhoneField =
+            (await frame
+              .locator(
+                'input[type="tel"], input[name*="phone"], input[name*="telefono"], input[name*="mobilephone"]'
+              )
+              .count()) > 0;
+        if (!hasSubmitButton)
+          hasSubmitButton =
+            (await frame
+              .locator(
+                'button[type="submit"], input[type="submit"], .hs-button, input.hs-button'
+              )
+              .count()) > 0;
       }
     }
-    
+
     // Check if HubSpot form container or iframe is present
-    const hasHubspotForm = await page.locator('form[data-hs-cos-bound], form[data-form-id], .hbspt-form, .hs-form-frame, [data-nvx-hubspot-native="1"], #nvx-hubspot-native-form, iframe[src*="hsforms"]').count() > 0;
+    const hasHubspotForm =
+      (await page
+        .locator(
+          'form[data-hs-cos-bound], form[data-form-id], .hbspt-form, .hs-form-frame, [data-nvx-hubspot-native="1"], #nvx-hubspot-native-form, iframe[src*="hsforms"]'
+        )
+        .count()) > 0;
     if (!hasHubspotForm) {
-      issues.push('Conversion flow: No HubSpot form container detected on /madrid/valoracion/');
+      issues.push(
+        'Conversion flow: No HubSpot form container detected on /madrid/valoracion/'
+      );
     }
-    
+
     console.log('✓ Conversion flow structure validated');
-    
   } catch (error) {
     issues.push(`Conversion flow test failed: ${error.message}`);
   }
@@ -479,28 +607,35 @@ async function testConversionFlow(page, issues) {
 async function testThankYouPage(page, issues) {
   try {
     console.log('Testing thank-you page on /gracias/...');
-    
+
     // Navigate to thank-you page
     await safeGoto(page, `${baseUrl}/gracias/`);
     await handleCookieConsent(page);
-    
+
     // Check for thank-you content
-    const hasThankYouContent = await page.locator('h1:has-text("Gracias"), h1:has-text("gracias"), .thank-you, .nvx-thank-you').count() > 0;
+    const hasThankYouContent =
+      (await page
+        .locator(
+          'h1:has-text("Gracias"), h1:has-text("gracias"), .thank-you, .nvx-thank-you'
+        )
+        .count()) > 0;
     if (!hasThankYouContent) {
       issues.push('Thank-you page: No thank-you content detected');
     }
-    
+
     // Check for conversion tracking (GA4, HubSpot)
     const hasGATracking = await page.evaluate(() => {
-      return typeof window.gtag !== 'undefined' || typeof window.dataLayer !== 'undefined';
+      return (
+        typeof window.gtag !== 'undefined' ||
+        typeof window.dataLayer !== 'undefined'
+      );
     });
-    
+
     if (!hasGATracking) {
       issues.push('Thank-you page: No GA4 tracking detected');
     }
-    
+
     console.log('✓ Thank-you page structure validated');
-    
   } catch (error) {
     issues.push(`Thank-you page test failed: ${error.message}`);
   }
@@ -512,11 +647,13 @@ async function testThankYouPage(page, issues) {
  * Exits the process with status 1 if any route fails its acceptance checks or encounters a fatal error.
  */
 async function run() {
-  console.log(`Starting Browser Acceptance Tests against ${baseUrl} with EXPECTED_SHA=${expectedSha}...`);
+  console.log(
+    `Starting Browser Acceptance Tests against ${baseUrl} with EXPECTED_SHA=${expectedSha}...`
+  );
   // Use SOCKS5 proxy if running in CI to bypass SiteGround edge blocking
   const browserArgs = {
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   };
   if (process.env.HTTP_PROXY) {
     browserArgs.proxy = { server: process.env.HTTP_PROXY };
@@ -525,15 +662,16 @@ async function run() {
 
   const browser = await chromium.launch(browserArgs);
   const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-    ignoreHTTPSErrors: true
+    userAgent:
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+    ignoreHTTPSErrors: true,
   });
 
   const auditResults = [];
   const consoleErrors = [];
   const networkErrors = [];
   const csvRows = [
-    'URL,Status,FinalURL,Canonical,H1,Title,JS_Errors,Network_Errors,Meta_Deploy_SHA,HTML_Lang,Main_Exists,Noindex_Meta,Noindex_HTTP,HubSpot_Initial,FacebookSignal_Initial,ThirdPartySrc,RogueJsonLd,HeroCount,CtaCount,A11yViolations'
+    'URL,Status,FinalURL,Canonical,H1,Title,JS_Errors,Network_Errors,Meta_Deploy_SHA,HTML_Lang,Main_Exists,Noindex_Meta,Noindex_HTTP,HubSpot_Initial,FacebookSignal_Initial,ThirdPartySrc,RogueJsonLd,HeroCount,CtaCount,A11yViolations',
   ];
   let totalFailures = 0;
 
@@ -541,7 +679,7 @@ async function run() {
     const page = await context.newPage();
     const url = `${baseUrl}${route}`;
     console.log(`Navigating to ${url}...`);
-    
+
     let mainResponseStatus;
     let finalUrl;
     const issues = [];
@@ -560,7 +698,7 @@ async function run() {
     let ctaCount;
     let a11yViolationsCount = 0;
 
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       if (msg.type() === 'error' || msg.type() === 'warning') {
         const text = msg.text();
         if (text.includes('Failed to load resource')) return; // Handled by network requests
@@ -568,28 +706,34 @@ async function run() {
       }
     });
 
-    page.on('pageerror', exception => {
+    page.on('pageerror', (exception) => {
       currentConsoleErrors.push({ type: 'uncaught', text: exception.message });
     });
 
-    page.on('requestfailed', request => {
+    page.on('requestfailed', (request) => {
       currentNetworkErrors.push({
         url: request.url(),
-        error: request.failure()?.errorText || 'Unknown failure'
+        error: request.failure()?.errorText || 'Unknown failure',
       });
     });
 
-    page.on('response', response => {
+    page.on('response', (response) => {
       // Track non-OK responses, except the main 404 we explicitly expect for some routes
-      if (!response.ok() && response.status() >= 400 && response.status() !== 404) {
+      if (
+        !response.ok() &&
+        response.status() >= 400 &&
+        response.status() !== 404
+      ) {
         currentNetworkErrors.push({
           url: response.url(),
-          status: response.status()
+          status: response.status(),
         });
       }
 
       // Capture HTTP noindex-related headers for Staging2 protection checks
-      const xRobots = response.headers()['x-robots-tag'] || response.headers()['X-Robots-Tag'];
+      const xRobots =
+        response.headers()['x-robots-tag'] ||
+        response.headers()['X-Robots-Tag'];
       if (xRobots && !httpNoindexHeader) {
         httpNoindexHeader = xRobots;
       }
@@ -607,9 +751,16 @@ async function run() {
 
       const title = await page.title();
       const h1Count = await page.locator('h1').count();
-      const canonical = await page.locator('link[rel="canonical"]').getAttribute('href').catch(() => null);
+      const canonical = await page
+        .locator('link[rel="canonical"]')
+        .getAttribute('href')
+        .catch(() => null);
 
-      htmlLang = (await page.locator('html').getAttribute('lang').catch(() => null)) || '';
+      htmlLang =
+        (await page
+          .locator('html')
+          .getAttribute('lang')
+          .catch(() => null)) || '';
       // Reinforced contract: main landmark must have id="nvx-main" (used by skip-link)
       const mainLocator = page.locator('main#nvx-main, [role="main"]#nvx-main');
       const mainCount = await mainLocator.count();
@@ -620,7 +771,7 @@ async function run() {
       await checkGridLayout(page, issues);
       await checkOrphanClasses(page, issues);
       await checkSpacing(page, issues);
-      
+
       // Critical automated assertions for regression prevention
       await checkPhpLeaks(page, issues);
       await checkH1Validation(page, issues);
@@ -629,36 +780,82 @@ async function run() {
 
       // Deployment SHA marker in the document
       metaDeploySha =
-        (await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(() => null)) || '';
+        (await page
+          .locator('meta[name="nvx-deploy-sha"]')
+          .getAttribute('content')
+          .catch(() => null)) || '';
 
       // Staging2 meta noindex protection
-      const robotsMetaName = await page.locator('meta[name="robots"]').getAttribute('content').catch(() => null);
-      const robotsMetaDefault = await page.locator('meta[content*="noindex"]').getAttribute('content').catch(() => null);
-      hasNoindexMeta = Boolean(
-        robotsMetaName && robotsMetaName.toLowerCase().includes('noindex')
-      ) || Boolean(robotsMetaDefault && robotsMetaDefault.toLowerCase().includes('noindex'));
+      const robotsMetaName = await page
+        .locator('meta[name="robots"]')
+        .getAttribute('content')
+        .catch(() => null);
+      const robotsMetaDefault = await page
+        .locator('meta[content*="noindex"]')
+        .getAttribute('content')
+        .catch(() => null);
+      hasNoindexMeta =
+        Boolean(
+          robotsMetaName && robotsMetaName.toLowerCase().includes('noindex')
+        ) ||
+        Boolean(
+          robotsMetaDefault &&
+          robotsMetaDefault.toLowerCase().includes('noindex')
+        );
 
       // Integration invariants: initial HTML scripts must not contain HubSpot or FacebookSignal
       const initialScripts = await page.locator('script').allInnerTexts();
-      hasInitialHubspot = initialScripts.some(text => /hbspt\.forms\.create|js\.hs-scripts\.com|hscollectedforms\.net|hs-analytics\.net/i.test(text));
-      hasInitialFacebookSignal = initialScripts.some(text => /facebook.*signal/i.test(text));
-      
-      const scriptSrcs = await page.locator('script[src]').evaluateAll(els => els.map(el => el.getAttribute('src') || ''));
-      hasRogueThirdPartySrc = scriptSrcs.some(src => /hsforms|hubspot|hs-scripts\.com|hscollectedforms\.net|hs-analytics\.net|facebook|fbevents/i.test(src));
+      hasInitialHubspot = initialScripts.some((text) =>
+        /hbspt\.forms\.create|js\.hs-scripts\.com|hscollectedforms\.net|hs-analytics\.net/i.test(
+          text
+        )
+      );
+      hasInitialFacebookSignal = initialScripts.some((text) =>
+        /facebook.*signal/i.test(text)
+      );
+
+      const scriptSrcs = await page
+        .locator('script[src]')
+        .evaluateAll((els) => els.map((el) => el.getAttribute('src') || ''));
+      hasRogueThirdPartySrc = scriptSrcs.some((src) =>
+        /hsforms|hubspot|hs-scripts\.com|hscollectedforms\.net|hs-analytics\.net|facebook|fbevents/i.test(
+          src
+        )
+      );
 
       // Hero and CTAs
-      heroCount = await page.locator('.nvx-brand-hero, .nvx-home-hero, .nvx-blog-hero, .nvx-strategy-intro').count();
+      heroCount = await page
+        .locator(
+          '.nvx-brand-hero, .nvx-home-hero, .nvx-blog-hero, .nvx-strategy-intro'
+        )
+        .count();
       // On 404 the H1 acts as minimal hero.
-      ctaCount = await page.locator('a.nvx-btn, a.nvx-button, a.nvx-brand-btn, button.nvx-btn, button.nvx-button, button.nvx-brand-btn, .nvx-brand-actions a, .nvx-actions a, a[href*="valoracion"], a[href*="wa.me"], a[href*="whatsapp"]').count();
+      ctaCount = await page
+        .locator(
+          'a.nvx-btn, a.nvx-button, a.nvx-brand-btn, button.nvx-btn, button.nvx-button, button.nvx-brand-btn, .nvx-brand-actions a, .nvx-actions a, a[href*="valoracion"], a[href*="wa.me"], a[href*="whatsapp"]'
+        )
+        .count();
 
       // JSON-LD
-      rogueJsonLdCount = await page.locator('script[type="application/ld+json"]:not(.yoast-schema-graph)').count();
-      
-      const isRedirectExpected = ['/politica-de-cookies/', '/mas-informacion-sobre-las-cookies/', '/medicina-estetica-goya-barrio-salamanca/'].includes(route);
+      rogueJsonLdCount = await page
+        .locator('script[type="application/ld+json"]:not(.yoast-schema-graph)')
+        .count();
+
+      const isRedirectExpected = [
+        '/politica-de-cookies/',
+        '/mas-informacion-sobre-las-cookies/',
+        '/medicina-estetica-goya-barrio-salamanca/',
+      ].includes(route);
       const is404Expected = ['/equipo-medico-clinica-goya/'].includes(route);
       const isHome = route === '/';
-      const isTreatment = route.startsWith('/tratamientos/') || route.includes('/well-aging');
-      const isGeneralPage = !isHome && !isTreatment && !is404Expected && !isRedirectExpected && !route.includes('/wp-json');
+      const isTreatment =
+        route.startsWith('/tratamientos/') || route.includes('/well-aging');
+      const isGeneralPage =
+        !isHome &&
+        !isTreatment &&
+        !is404Expected &&
+        !isRedirectExpected &&
+        !route.includes('/wp-json');
 
       // Assertions
       if (!is404Expected && !isRedirectExpected && mainResponseStatus !== 200) {
@@ -668,8 +865,10 @@ async function run() {
         issues.push(`Expected 404, got ${mainResponseStatus}`);
       }
       if (isRedirectExpected) {
-        if (finalUrl === url) issues.push('Expected redirect, but URL did not change');
-        if (mainResponseStatus === 404) issues.push('Redirect route returned 404');
+        if (finalUrl === url)
+          issues.push('Expected redirect, but URL did not change');
+        if (mainResponseStatus === 404)
+          issues.push('Redirect route returned 404');
       }
 
       if (!is404Expected && !isRedirectExpected && h1Count !== 1) {
@@ -694,9 +893,12 @@ async function run() {
 
       // Canonical hero check for general pages (not home, not treatments)
       if (isGeneralPage) {
-        const hasBrandHeroInPage = await page.locator('.nvx-brand-page .nvx-brand-hero').count() > 0;
+        const hasBrandHeroInPage =
+          (await page.locator('.nvx-brand-page .nvx-brand-hero').count()) > 0;
         if (!hasBrandHeroInPage) {
-          issues.push('General page missing canonical hero (.nvx-brand-hero inside .nvx-brand-page)');
+          issues.push(
+            'General page missing canonical hero (.nvx-brand-hero inside .nvx-brand-page)'
+          );
         }
       }
 
@@ -705,96 +907,189 @@ async function run() {
         if (!metaDeploySha) {
           issues.push('Missing meta[name="nvx-deploy-sha"] marker');
         } else if (metaDeploySha !== expectedSha) {
-          issues.push(`Deployment SHA mismatch: meta nvx-deploy-sha=${metaDeploySha}, expected=${expectedSha}`);
+          issues.push(
+            `Deployment SHA mismatch: meta nvx-deploy-sha=${metaDeploySha}, expected=${expectedSha}`
+          );
         }
-        
+
         if (heroCount === 0) issues.push('Missing hero section');
-        if (ctaCount === 0) issues.push('Missing CTA (expanded selector includes brand-actions, valoracion, whatsapp links)');
-        if (rogueJsonLdCount > 0) issues.push(`Found ${rogueJsonLdCount} rogue JSON-LD script(s) outside Yoast graph`);
-        
+        if (ctaCount === 0)
+          issues.push(
+            'Missing CTA (expanded selector includes brand-actions, valoracion, whatsapp links)'
+          );
+        if (rogueJsonLdCount > 0)
+          issues.push(
+            `Found ${rogueJsonLdCount} rogue JSON-LD script(s) outside Yoast graph`
+          );
+
         // --- Editorial / Visual QA Invariants ---
-        
+
         // 1. NAP Icons
-        const isNapPage = route === '/contacto/' || route.includes('medicina-estetica-chamberi') || route.includes('goya-barrio-salamanca');
+        const isNapPage =
+          route === '/contacto/' ||
+          route.includes('medicina-estetica-chamberi') ||
+          route.includes('goya-barrio-salamanca');
         if (isNapPage) {
-          const hasLocationIcon = await page.locator('svg use[*|href*="icon-location"], svg use[href*="icon-location"], symbol#icon-location').count() > 0;
-          const hasPhoneIcon = await page.locator('svg use[*|href*="icon-phone"], svg use[href*="icon-phone"], symbol#icon-phone').count() > 0;
-          if (!hasLocationIcon) issues.push('Missing mandatory NAP icon: #icon-location');
-          if (!hasPhoneIcon) issues.push('Missing mandatory NAP icon: #icon-phone');
+          const hasLocationIcon =
+            (await page
+              .locator(
+                'svg use[*|href*="icon-location"], svg use[href*="icon-location"], symbol#icon-location'
+              )
+              .count()) > 0;
+          const hasPhoneIcon =
+            (await page
+              .locator(
+                'svg use[*|href*="icon-phone"], svg use[href*="icon-phone"], symbol#icon-phone'
+              )
+              .count()) > 0;
+          if (!hasLocationIcon)
+            issues.push('Missing mandatory NAP icon: #icon-location');
+          if (!hasPhoneIcon)
+            issues.push('Missing mandatory NAP icon: #icon-phone');
         }
-        
+
         // 2. Clinic / Hub Wrappers
         const clinicalRoutes = [
-          '/endolift-facial-papada-mandibula/', '/endolaser-corporal-grasa-localizada/', '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
-          '/exion-btl/', '/exion-face/', '/exion-fractional/', '/btl-exilite-ipl-madrid/', '/bioestimuladores-colageno-madrid/',
-          '/ojeras-surco-lagrimal-madrid/', '/rinomodelacion-sin-cirugia-madrid/', '/labios-acido-hialuronico-madrid/',
-          '/remodelacion-corporal-laser-madrid/', '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
-          '/papada-definicion-mandibular-madrid/', '/calidad-piel-firmeza-luminosidad-madrid/', '/cicatrices-acne-poros-textura-madrid/',
-          '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/', '/grasa-localizada-abdomen-flancos-madrid/',
-          '/flacidez-grasa-localizada-brazos-madrid/', '/grasa-espalda-zona-sujetador-madrid/', '/flacidez-muslos-internos-subgluteo-madrid/',
-          '/tratamiento-rodillas-grasa-flacidez-madrid/', '/contorno-corporal-masculino-madrid/'
+          '/endolift-facial-papada-mandibula/',
+          '/endolaser-corporal-grasa-localizada/',
+          '/laser-co2-fraccionado-madrid-textura-cicatrices-poro/',
+          '/exion-btl/',
+          '/exion-face/',
+          '/exion-fractional/',
+          '/btl-exilite-ipl-madrid/',
+          '/bioestimuladores-colageno-madrid/',
+          '/ojeras-surco-lagrimal-madrid/',
+          '/rinomodelacion-sin-cirugia-madrid/',
+          '/labios-acido-hialuronico-madrid/',
+          '/remodelacion-corporal-laser-madrid/',
+          '/tratamiento-postparto-abdomen-contorno-corporal-madrid/',
+          '/papada-definicion-mandibular-madrid/',
+          '/calidad-piel-firmeza-luminosidad-madrid/',
+          '/cicatrices-acne-poros-textura-madrid/',
+          '/manchas-rojeces-fotorejuvenecimiento-ipl-madrid/',
+          '/grasa-localizada-abdomen-flancos-madrid/',
+          '/flacidez-grasa-localizada-brazos-madrid/',
+          '/grasa-espalda-zona-sujetador-madrid/',
+          '/flacidez-muslos-internos-subgluteo-madrid/',
+          '/tratamiento-rodillas-grasa-flacidez-madrid/',
+          '/contorno-corporal-masculino-madrid/',
         ];
-        const isClinicOrHubPage = clinicalRoutes.includes(route) || ['/clinicas-de-medicina-estetica-nuvanx/', '/contacto/', '/equipo-medico/', '/nosotros/', '/medicina-estetica-laser/'].includes(route);
+        const isClinicOrHubPage =
+          clinicalRoutes.includes(route) ||
+          [
+            '/clinicas-de-medicina-estetica-nuvanx/',
+            '/contacto/',
+            '/equipo-medico/',
+            '/nosotros/',
+            '/medicina-estetica-laser/',
+          ].includes(route);
         if (isClinicOrHubPage) {
-          const hasWrappedHero = await page.locator('.nvx-brand-page .nvx-brand-hero, .nvx-brand-page > .nvx-brand-hero, .nvx-brand-page > * > .nvx-brand-hero').count() > 0;
+          const hasWrappedHero =
+            (await page
+              .locator(
+                '.nvx-brand-page .nvx-brand-hero, .nvx-brand-page > .nvx-brand-hero, .nvx-brand-page > * > .nvx-brand-hero'
+              )
+              .count()) > 0;
           if (!hasWrappedHero) {
-            issues.push('Hero structure violation: .nvx-brand-hero is not wrapped inside .nvx-brand-page');
+            issues.push(
+              'Hero structure violation: .nvx-brand-hero is not wrapped inside .nvx-brand-page'
+            );
           }
         }
-        
+
         // 3. Strategic Page CTAs
-        const isStrategicPage = ['/', '/nosotros/', '/contacto/', '/madrid/valoracion/', '/clinicas-de-medicina-estetica-nuvanx/', '/medicina-estetica-laser/'].includes(route);
+        const isStrategicPage = [
+          '/',
+          '/nosotros/',
+          '/contacto/',
+          '/madrid/valoracion/',
+          '/clinicas-de-medicina-estetica-nuvanx/',
+          '/medicina-estetica-laser/',
+        ].includes(route);
         if (isStrategicPage) {
-          const hasActions = await page.locator('.nvx-brand-hero__copy .nvx-brand-actions, .nvx-home-hero__copy .nvx-brand-actions').count() > 0;
+          const hasActions =
+            (await page
+              .locator(
+                '.nvx-brand-hero__copy .nvx-brand-actions, .nvx-home-hero__copy .nvx-brand-actions'
+              )
+              .count()) > 0;
           if (!hasActions) {
-             issues.push('Missing standard CTA wrapper (.nvx-brand-actions) inside Hero copy');
+            issues.push(
+              'Missing standard CTA wrapper (.nvx-brand-actions) inside Hero copy'
+            );
           }
         }
-        
+
         // 4. Managed module verification — detecta exactamente la regresión de 67dfc5e
         const managedModuleRoutes = {
           '/protocolos-signature/': '.nvx-signature-hub, .nvx-strategy-intro',
           '/por-que-nuvanx/': '.nvx-strategy-page, .nvx-strategy-intro',
-          '/inversion-medicina-estetica/': '.nvx-strategy-page, .nvx-strategy-intro',
+          '/inversion-medicina-estetica/':
+            '.nvx-strategy-page, .nvx-strategy-intro',
           '/endolift-facial-papada-mandibula/': '.nvx-brand-page--endolift',
-          '/flacidez-grasa-localizada-brazos-madrid/': '.nvx-signature-phase-page',
-          '/exion-face/': '.nvx-btl-evidence-note, .nvx-btl-detail'
+          '/flacidez-grasa-localizada-brazos-madrid/':
+            '.nvx-signature-phase-page',
+          '/exion-face/': '.nvx-btl-evidence-note, .nvx-btl-detail',
         };
         if (managedModuleRoutes[route]) {
           const expectedSelector = managedModuleRoutes[route];
-          const hasManagedModule = await page.locator(expectedSelector).count() > 0;
+          const hasManagedModule =
+            (await page.locator(expectedSelector).count()) > 0;
           if (!hasManagedModule) {
-            issues.push(`Managed module selector missing — page likely fell back to generic page.php template (expected: ${expectedSelector})`);
+            issues.push(
+              `Managed module selector missing — page likely fell back to generic page.php template (expected: ${expectedSelector})`
+            );
           }
         }
 
         // 5. Schema graph — confirma que el nodo raíz de entidad médica existe, no solo "algún" ld+json
         if (!isRedirectExpected && !is404Expected) {
           const schemaTypes = await page.evaluate(() => {
-            const scripts = Array.from(document.querySelectorAll('script.yoast-schema-graph, script[type="application/ld+json"]'));
-            return scripts.flatMap(s => {
-              try { return (JSON.parse(s.textContent)['@graph'] || []).map(n => n['@type']); }
-              catch { return []; }
+            const scripts = Array.from(
+              document.querySelectorAll(
+                'script.yoast-schema-graph, script[type="application/ld+json"]'
+              )
+            );
+            return scripts.flatMap((s) => {
+              try {
+                return (JSON.parse(s.textContent)['@graph'] || []).map(
+                  (n) => n['@type']
+                );
+              } catch {
+                return [];
+              }
             });
           });
           const flatTypes = schemaTypes.flat();
-          if (route === '/' && !flatTypes.some(t => String(t).includes('MedicalOrganization'))) {
-            issues.push('Missing MedicalOrganization node in schema graph — nvx-structured-data.php may not be loaded');
+          if (
+            route === '/' &&
+            !flatTypes.some((t) => String(t).includes('MedicalOrganization'))
+          ) {
+            issues.push(
+              'Missing MedicalOrganization node in schema graph — nvx-structured-data.php may not be loaded'
+            );
           }
         }
-        
+
         // 6. Axe-core accessibility scan (all routes)
         try {
-          const accessibilityScanResults = await new AxeBuilder({ page }).analyze();
+          const accessibilityScanResults = await new AxeBuilder({
+            page,
+          }).analyze();
           const violations = accessibilityScanResults.violations || [];
-          const blocking = violations.filter(v => ['critical','serious'].includes(v.impact));
+          const blocking = violations.filter((v) =>
+            ['critical', 'serious'].includes(v.impact)
+          );
           a11yViolationsCount = blocking.length;
           if (blocking.length > 0) {
-            issues.push(`A11Y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map(v=>v.id).join(', ')}`);
+            issues.push(
+              `A11Y: Found ${blocking.length} accessibility violations (critical/serious): ${blocking.map((v) => v.id).join(', ')}`
+            );
           }
         } catch (axeErr) {
           // Make axe failure blocking: record error and capture page for debugging
-          const safeName = route.replace(/\//g, '_').replace(/^_+|_+$/g,'') || 'root';
+          const safeName =
+            route.replace(/\//g, '_').replace(/^_+|_+$/g, '') || 'root';
           const timestamp = Date.now();
           const screenshotPath = `artifacts/axe-failure-${safeName}-${timestamp}.png`;
           const htmlPath = `artifacts/axe-failure-${safeName}-${timestamp}.html`;
@@ -802,9 +1097,13 @@ async function run() {
             await page.screenshot({ path: screenshotPath, fullPage: true });
             const html = await page.content();
             await fs.writeFile(htmlPath, html, 'utf8');
-            issues.push(`A11Y: axe-core failed to run: ${axeErr.message} — screenshot: ${screenshotPath}, html: ${htmlPath}`);
+            issues.push(
+              `A11Y: axe-core failed to run: ${axeErr.message} — screenshot: ${screenshotPath}, html: ${htmlPath}`
+            );
           } catch (captureErr) {
-            issues.push(`A11Y: axe-core failed: ${axeErr.message}; additionally failed to capture artifacts: ${captureErr.message}`);
+            issues.push(
+              `A11Y: axe-core failed: ${axeErr.message}; additionally failed to capture artifacts: ${captureErr.message}`
+            );
           }
         }
       }
@@ -814,26 +1113,36 @@ async function run() {
         const httpTag = (httpNoindexHeader || '').toLowerCase();
         const hasHttpNoindex = httpTag.includes('noindex');
         if (!hasNoindexMeta && !hasHttpNoindex) {
-          issues.push('Staging2 route is missing meta or HTTP noindex protection');
+          issues.push(
+            'Staging2 route is missing meta or HTTP noindex protection'
+          );
         }
       }
 
       // Integration invariants: HubSpot and FacebookSignal must not be in initial HTML scripts
       if (hasInitialHubspot) {
-        issues.push('HubSpot found in initial HTML scripts; must be demand-loaded after user intent');
+        issues.push(
+          'HubSpot found in initial HTML scripts; must be demand-loaded after user intent'
+        );
       }
       if (hasInitialFacebookSignal) {
-        issues.push('FacebookSignal present in initial HTML; must not reach the browser');
+        issues.push(
+          'FacebookSignal present in initial HTML; must not reach the browser'
+        );
       }
       if (hasRogueThirdPartySrc) {
-        issues.push('Rogue third-party script src (HubSpot/Facebook) found on initial load');
+        issues.push(
+          'Rogue third-party script src (HubSpot/Facebook) found on initial load'
+        );
       }
 
       if (currentConsoleErrors.length > 0) {
         issues.push(`${currentConsoleErrors.length} JS/Console errors`);
       }
       if (currentNetworkErrors.length > 0) {
-        issues.push(`${currentNetworkErrors.length} network errors (assets/API)`);
+        issues.push(
+          `${currentNetworkErrors.length} network errors (assets/API)`
+        );
       }
 
       auditResults.push({
@@ -856,7 +1165,7 @@ async function run() {
         hasRogueThirdPartySrc,
         rogueJsonLdCount,
         heroCount,
-        ctaCount
+        ctaCount,
       });
 
       // Build CSV row safely escaping quotes and newlines (RFC 4180)
@@ -880,23 +1189,28 @@ async function run() {
         rogueJsonLdCount || 0,
         heroCount || 0,
         ctaCount || 0,
-        a11yViolationsCount || 0
-      ].map(value =>
-        `"${String(value ?? '').replaceAll('\r\n', ' ').replaceAll('\n', ' ').replaceAll('"', '""')}"`
+        a11yViolationsCount || 0,
+      ].map(
+        (value) =>
+          `"${String(value ?? '')
+            .replaceAll('\r\n', ' ')
+            .replaceAll('\n', ' ')
+            .replaceAll('"', '""')}"`
       );
       csvRows.push(csvRow.join(','));
 
       if (issues.length > 0) {
         console.error(`❌ ${route} FAILED:`);
-        issues.forEach(i => console.error(`   - ${i}`));
+        issues.forEach((i) => console.error(`   - ${i}`));
         totalFailures++;
       } else {
         console.log(`✅ ${route} PASS`);
       }
-      
-      if (currentConsoleErrors.length) consoleErrors.push({ route, errors: currentConsoleErrors });
-      if (currentNetworkErrors.length) networkErrors.push({ route, errors: currentNetworkErrors });
 
+      if (currentConsoleErrors.length)
+        consoleErrors.push({ route, errors: currentConsoleErrors });
+      if (currentNetworkErrors.length)
+        networkErrors.push({ route, errors: currentNetworkErrors });
     } catch (e) {
       console.error(`❌ ${route} FATAL: ${e.message}`);
       totalFailures++;
@@ -913,24 +1227,31 @@ async function run() {
   const conversionIssues = [];
   await testConversionFlow(conversionPage, conversionIssues);
   await conversionPage.close();
-  
+
   const thankYouPage = await context.newPage();
   const thankYouIssues = [];
   await testThankYouPage(thankYouPage, thankYouIssues);
   await thankYouPage.close();
-  
+
   // Add conversion test results to summary
   if (conversionIssues.length > 0 || thankYouIssues.length > 0) {
     totalFailures += conversionIssues.length + thankYouIssues.length;
     console.error('❌ Conversion Flow Tests FAILED:');
-    [...conversionIssues, ...thankYouIssues].forEach(i => console.error(`   - ${i}`));
+    [...conversionIssues, ...thankYouIssues].forEach((i) =>
+      console.error(`   - ${i}`)
+    );
   } else {
     console.log('✅ Conversion Flow Tests PASS');
   }
 
   // Run mobile viewport tests for critical routes (P2-7 from Antigravity audit)
   console.log('\n=== Running Mobile Viewport Tests (375px) ===');
-  const mobileCriticalRoutes = ['/', '/endolift-facial-papada-mandibula/', '/contacto/', '/madrid/valoracion/'];
+  const mobileCriticalRoutes = [
+    '/',
+    '/endolift-facial-papada-mandibula/',
+    '/contacto/',
+    '/madrid/valoracion/',
+  ];
   for (const route of mobileCriticalRoutes) {
     const mobilePage = await context.newPage();
     const mobileIssues = [];
@@ -938,7 +1259,7 @@ async function run() {
     if (mobileIssues.length > 0) {
       totalFailures += mobileIssues.length;
       console.error(`❌ Mobile viewport FAILED for ${route}:`);
-      mobileIssues.forEach(i => console.error(`   - ${i}`));
+      mobileIssues.forEach((i) => console.error(`   - ${i}`));
     } else {
       console.log(`✅ Mobile viewport PASS for ${route}`);
     }
@@ -949,16 +1270,27 @@ async function run() {
 
   // Write Artifacts
   await fs.mkdir('artifacts', { recursive: true });
-  await fs.writeFile('artifacts/staging2-audit.json', JSON.stringify(auditResults, null, 2));
-  await fs.writeFile('artifacts/staging2-console-errors.json', JSON.stringify(consoleErrors, null, 2));
-  await fs.writeFile('artifacts/staging2-network-errors.json', JSON.stringify(networkErrors, null, 2));
+  await fs.writeFile(
+    'artifacts/staging2-audit.json',
+    JSON.stringify(auditResults, null, 2)
+  );
+  await fs.writeFile(
+    'artifacts/staging2-console-errors.json',
+    JSON.stringify(consoleErrors, null, 2)
+  );
+  await fs.writeFile(
+    'artifacts/staging2-network-errors.json',
+    JSON.stringify(networkErrors, null, 2)
+  );
   await fs.writeFile('artifacts/staging2-audit.csv', csvRows.join('\n'));
-  
+
   let summaryMd = `# Staging2 Browser Acceptance Summary\n\nBase URL: ${baseUrl}\nExpected SHA: ${expectedSha}\nTotal Routes: ${routes.length}\nFailures: ${totalFailures}\n\n`;
   if (totalFailures === 0) {
-    summaryMd += '✅ All routes passed strict document, integration and noindex invariants.\n';
+    summaryMd +=
+      '✅ All routes passed strict document, integration and noindex invariants.\n';
   } else {
-    summaryMd += '❌ Failures detected in document/integration invariants or SHA/noindex checks.\n';
+    summaryMd +=
+      '❌ Failures detected in document/integration invariants or SHA/noindex checks.\n';
   }
   await fs.writeFile('artifacts/staging2-summary.md', summaryMd);
 
@@ -968,7 +1300,7 @@ async function run() {
   }
 }
 
-run().catch(e => {
+run().catch((e) => {
   console.error('Fatal execution error:', e);
   process.exit(1);
 });

@@ -8,7 +8,8 @@
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
-const THEME_DIR = '/Users/MARIA/Desktop/nuvanx-siteground/wp-content/themes/nuvanx-medical';
+const THEME_DIR =
+  '/Users/MARIA/Desktop/nuvanx-siteground/wp-content/themes/nuvanx-medical';
 
 const GREEN = '\x1b[32m';
 const RED = '\x1b[31m';
@@ -42,40 +43,44 @@ function readPHPFile(filePath) {
 // Buscar todas las referencias a add_filter y add_action
 function analyzeHooksAndFilters() {
   log('\n=== Análisis de Hooks y Filtros ===', YELLOW);
-  
+
   const phpFiles = [];
-  
+
   function searchInDir(dir) {
     const entries = readdirSync(dir);
     for (const entry of entries) {
       const fullPath = join(dir, entry);
       const stat = statSync(fullPath);
-      
-      if (stat.isDirectory() && !entry.includes('.') && !entry.includes('vendor')) {
+
+      if (
+        stat.isDirectory() &&
+        !entry.includes('.') &&
+        !entry.includes('vendor')
+      ) {
         searchInDir(fullPath);
       } else if (entry.endsWith('.php') && !entry.includes('vendor')) {
         phpFiles.push(fullPath);
       }
     }
   }
-  
+
   searchInDir(THEME_DIR);
-  
+
   let addFilterCount = 0;
   let addActionCount = 0;
   let theContentFilterCount = 0;
   let wpHeadFilterCount = 0;
   let wpFooterFilterCount = 0;
-  
+
   for (const file of phpFiles) {
     const content = readPHPFile(file);
     if (content) {
       const filters = (content.match(/add_filter\(/g) || []).length;
       const actions = (content.match(/add_action\(/g) || []).length;
-      
+
       addFilterCount += filters;
       addActionCount += actions;
-      
+
       if (content.includes('the_content')) {
         theContentFilterCount++;
       }
@@ -87,7 +92,7 @@ function analyzeHooksAndFilters() {
       }
     }
   }
-  
+
   success(`Total add_filter encontrados: ${addFilterCount}`);
   success(`Total add_action encontrados: ${addActionCount}`);
   success(`Filtros que afectan the_content: ${theContentFilterCount}`);
@@ -98,41 +103,43 @@ function analyzeHooksAndFilters() {
 // Buscar referencias a SiteGround
 function analyzeSiteGroundReferences() {
   log('\n=== Referencias a SiteGround ===', YELLOW);
-  
+
   const phpFiles = [];
-  
+
   function searchInDir(dir) {
     const entries = readdirSync(dir);
     for (const entry of entries) {
       const fullPath = join(dir, entry);
       const stat = statSync(fullPath);
-      
-      if (stat.isDirectory() && !entry.includes('.') && !entry.includes('vendor')) {
+
+      if (
+        stat.isDirectory() &&
+        !entry.includes('.') &&
+        !entry.includes('vendor')
+      ) {
         searchInDir(fullPath);
       } else if (entry.endsWith('.php') && !entry.includes('vendor')) {
         phpFiles.push(fullPath);
       }
     }
   }
-  
+
   searchInDir(THEME_DIR);
-  
+
   let siteGroundCount = 0;
   const filesWithSiteGround = [];
-  
+
   for (const file of phpFiles) {
     const content = readPHPFile(file);
-    if (content) {
-      if (content.toLowerCase().includes('siteground')) {
-        siteGroundCount++;
-        filesWithSiteGround.push(file.replace(THEME_DIR, ''));
-      }
+    if (content && content.toLowerCase().includes('siteground')) {
+      siteGroundCount++;
+      filesWithSiteGround.push(file.replace(THEME_DIR, ''));
     }
   }
-  
+
   if (siteGroundCount > 0) {
     warning(`Encontradas ${siteGroundCount} referencias a SiteGround`);
-    filesWithSiteGround.forEach(f => {
+    filesWithSiteGround.forEach((f) => {
       log(`  - ${f}`, YELLOW);
     });
   } else {
@@ -143,28 +150,32 @@ function analyzeSiteGroundReferences() {
 // Buscar referencias a Complianz
 function analyzeComplianzReferences() {
   log('\n=== Referencias a Complianz ===', YELLOW);
-  
+
   const phpFiles = [];
-  
+
   function searchInDir(dir) {
     const entries = readdirSync(dir);
     for (const entry of entries) {
       const fullPath = join(dir, entry);
       const stat = statSync(fullPath);
-      
-      if (stat.isDirectory() && !entry.includes('.') && !entry.includes('vendor')) {
+
+      if (
+        stat.isDirectory() &&
+        !entry.includes('.') &&
+        !entry.includes('vendor')
+      ) {
         searchInDir(fullPath);
       } else if (entry.endsWith('.php') && !entry.includes('vendor')) {
         phpFiles.push(fullPath);
       }
     }
   }
-  
+
   searchInDir(THEME_DIR);
-  
+
   let complianzCount = 0;
   const filesWithComplianz = [];
-  
+
   for (const file of phpFiles) {
     const content = readPHPFile(file);
     if (content) {
@@ -174,10 +185,10 @@ function analyzeComplianzReferences() {
       }
     }
   }
-  
+
   if (complianzCount > 0) {
     warning(`Encontradas ${complianzCount} referencias a Complianz`);
-    filesWithComplianz.forEach(f => {
+    filesWithComplianz.forEach((f) => {
       log(`  - ${f}`, YELLOW);
     });
   } else {
@@ -188,7 +199,7 @@ function analyzeComplianzReferences() {
 // Buscar buffer rewrites
 function analyzeBufferRewrites() {
   log('\n=== Análisis de Buffer Rewrites ===', YELLOW);
-  
+
   const headerPHP = readPHPFile(join(THEME_DIR, 'header.php'));
   if (headerPHP) {
     if (headerPHP.includes('ob_start') || headerPHP.includes('ob_get_clean')) {
@@ -196,8 +207,11 @@ function analyzeBufferRewrites() {
     } else {
       success('header.php NO usa buffer functions');
     }
-    
-    if (headerPHP.includes('SiteGround') || headerPHP.includes('SG Optimizer')) {
+
+    if (
+      headerPHP.includes('SiteGround') ||
+      headerPHP.includes('SG Optimizer')
+    ) {
       error('header.php tiene referencias a SiteGround Optimizer');
     } else {
       success('header.php NO tiene referencias a SiteGround Optimizer');
@@ -208,25 +222,30 @@ function analyzeBufferRewrites() {
 // Analizar MU plugins
 function analyzeMUPlugins() {
   log('\n=== Análisis de MU Plugins ===', YELLOW);
-  
+
   const muDir = '/Users/MARIA/Desktop/nuvanx-siteground/wp-content/mu-plugins';
-  
+
   try {
     const stat = statSync(muDir);
     if (stat.isDirectory()) {
-      const plugins = readdirSync(muDir).filter(f => f.endsWith('.php'));
-      
+      const plugins = readdirSync(muDir).filter((f) => f.endsWith('.php'));
+
       log(`MU Plugins encontrados: ${plugins.length}`, YELLOW);
-      plugins.forEach(p => {
+      plugins.forEach((p) => {
         log(`  - ${p}`, YELLOW);
       });
-      
+
       // Analizar cada MU plugin
       for (const plugin of plugins) {
         const content = readPHPFile(join(muDir, plugin));
         if (content) {
-          if (content.includes('add_filter') || content.includes('add_action')) {
-            warning(`${plugin} contiene hooks/filtros que pueden inyectar contenido`);
+          if (
+            content.includes('add_filter') ||
+            content.includes('add_action')
+          ) {
+            warning(
+              `${plugin} contiene hooks/filtros que pueden inyectar contenido`
+            );
           }
         }
       }
@@ -240,19 +259,34 @@ function analyzeMUPlugins() {
 
 // Ejecutar análisis
 function main() {
-  log('╔════════════════════════════════════════════════════════════════════╗', YELLOW);
-  log('║   Análisis de Inyección de Contenido por WordPress/SiteGround          ║', YELLOW);
-  log('╚════════════════════════════════════════════════════════════════════╝', YELLOW);
-  
+  log(
+    '╔════════════════════════════════════════════════════════════════════╗',
+    YELLOW
+  );
+  log(
+    '║   Análisis de Inyección de Contenido por WordPress/SiteGround          ║',
+    YELLOW
+  );
+  log(
+    '╚════════════════════════════════════════════════════════════════════╝',
+    YELLOW
+  );
+
   analyzeHooksAndFilters();
   analyzeSiteGroundReferences();
   analyzeComplianzReferences();
   analyzeBufferRewrites();
   analyzeMUPlugins();
-  
+
   log('\n=== Análisis Completado ===', GREEN);
-  log('\nNOTA: Este análisis solo cubre el theme. Para información completa sobre', YELLOW);
-  log('plugins activos de WordPress/SiteGround, revisa el panel de administración.', YELLOW);
+  log(
+    '\nNOTA: Este análisis solo cubre el theme. Para información completa sobre',
+    YELLOW
+  );
+  log(
+    'plugins activos de WordPress/SiteGround, revisa el panel de administración.',
+    YELLOW
+  );
 }
 
 main();

@@ -102,6 +102,36 @@ def get_http_status(url, session=SESSION):
     except Exception:
         return "Error"  # Catch any unexpected errors but label as "Error" not "Timeout"
 
+TYPE_KEY = '@type'
+GRAPH_KEY = '@graph'
+
+def _parse_schema_types(soup):
+    scripts = soup.find_all('script', type='application/ld+json')
+    types = []
+    for s in scripts:
+        if not s.string:
+            continue
+        try:
+            data = json.loads(s.string)
+            if isinstance(data, dict):
+                if TYPE_KEY in data:
+                    t = data[TYPE_KEY]
+                    if isinstance(t, list):
+                        types.extend(t)
+                    else:
+                        types.append(t)
+                if GRAPH_KEY in data and isinstance(data[GRAPH_KEY], list):
+                    for item in data[GRAPH_KEY]:
+                        if isinstance(item, dict) and TYPE_KEY in item:
+                            t = item[TYPE_KEY]
+                            if isinstance(t, list):
+                                types.extend(t)
+                            else:
+                                types.append(t)
+        except Exception:
+            continue
+    return '; '.join(sorted(set(types))) if types else 'N/D'
+
 def get_content_data(url, session=SESSION):
     """
     Get content data from URL for internal audit purposes.
@@ -179,34 +209,16 @@ def get_content_data(url, session=SESSION):
 
             # Extract prices safely using bounded quantifiers to prevent ReDoS (CWE-1333 / py/polynomial-redos)
             prices = re.findall(r'\b\d{1,7}(?:[.,]\d{1,3})*\s*€', html)
-            res['price'] = '; '.join(sorted(list(set(prices)))) if prices else 'N/D'
+            res['price'] = '; '.join(sorted(set(prices))) if prices else 'N/D'
 
             res['faq'] = 'Sí' if 'FAQPage' in html else 'No'
 
             if 'Rivera' in html:
                 res['doctor'] = 'Dr. José Javier Rivera Tejeda'
 
-            scripts = soup.find_all('script', type='application/ld+json')
-            types = []
-            for s in scripts:
-                try:
-                    data = json.loads(s.string)
-                    if isinstance(data, dict):
-                        if '@type' in data:
-                            t = data['@type']
-                            if isinstance(t, list): types.extend(t)
-                            else: types.append(t)
-                        if '@graph' in data:
-                            for item in data['@graph']:
-                                if '@type' in item:
-                                    t = item['@type']
-                                    if isinstance(t, list): types.extend(t)
-                                    else: types.append(t)
-                except: continue
-            res['schema_type'] = '; '.join(sorted(list(set(types)))) if types else 'N/D'
+            res['schema_type'] = _parse_schema_types(soup)
     except Exception as e:
         print(f"Error fetching content from {url}: {e}")
-        pass
     return res
 
 def get_gap_tipo(p_status, s_status):
@@ -259,12 +271,13 @@ for i, slug in enumerate(SLUGS):
     
     if (i + 1) % 10 == 0:
         print(f"\n--- CORTE PROGRESO: {i+1} PÁGINAS ---")
+        last_10 = results[-10:]
         summary = {
-            'coincide': sum(1 for r in results[-10:] if r['gap_tipo'] == 'coincide'),
-            'drift_falta_produccion': sum(1 for r in results[-10:] if r['gap_tipo'] == 'drift_falta_produccion'),
-            'drift_falta_staging': sum(1 for r in results[-10:] if r['gap_tipo'] == 'drift_falta_staging'),
-            'contenido_falta_ambos': sum(1 for r in results[-10:] if r['gap_tipo'] == 'contenido_falta_ambos'),
-            'inconsistente': sum(1 for r in results[-10:] if r['gap_tipo'] == 'inconsistente')
+            'coincide': sum(1 for r in last_10 if r['gap_tipo'] == 'coincide'),
+            'drift_falta_produccion': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_produccion'),
+            'drift_falta_staging': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_staging'),
+            'contenido_falta_ambos': sum(1 for r in last_10 if r['gap_tipo'] == 'contenido_falta_ambos'),
+            'inconsistente': sum(1 for r in last_10 if r['gap_tipo'] == 'inconsistente')
         }
         print(json.dumps(summary, indent=2))
         with (OUT / 'nuvanx_drift_partial.csv').open('w', encoding='utf-8-sig', newline='') as f:

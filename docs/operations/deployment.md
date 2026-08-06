@@ -62,11 +62,21 @@ The workflow does not deploy production, does not copy the database, and does no
 
 Success criteria: remote marker match + full browser acceptance green.
 
-## Production (host-level only)
+## Production (automated GitHub workflow)
 
-Production is **manual**. The Staging2 workflow never writes to `nuvanx.com`.
+When a push to `master` completes the **Deploy Staging2** workflow successfully, the **Production Gate & Atomic Deploy to SiteGround** workflow (`.github/workflows/deploy.yml`) is automatically triggered.
 
-After Staging2 is green for a SHA, on the SiteGround host with both trees and `wp-cli`:
+### Automated Production Flow
+
+1. Verification that `Deploy Staging2` passed for the current Git SHA.
+2. Checkout of code and SSH connection to SiteGround via secret `PROD_SSH_PRIVATE_KEY`.
+3. Upload of theme files to `/tmp/nuvanx-medical-build`.
+4. Execution of `tools/deploy/deploy-to-prod.sh` with `--confirm`.
+5. Automatic cleanup of temporary release files.
+
+### Host-level emergency manual deploy
+
+If manual host-level deployment is ever required directly on SiteGround:
 
 ```bash
 export WP_PROD=/home/customer/www/nuvanx.com/public_html

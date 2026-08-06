@@ -126,8 +126,11 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	}
 
 	// SiteGround preview/staging hosts must never be indexable.
-	$host = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( (string) $_SERVER['HTTP_HOST'] ) : '';
-	if ( false !== strpos( $host, '.sg-host.com' ) || false !== strpos( $host, 'staging' ) ) {
+	$raw_host    = isset( $_SERVER['HTTP_HOST'] ) ? strtolower( trim( (string) $_SERVER['HTTP_HOST'] ) ) : '';
+	// parse_url correctly strips the port from both 'host:port' and '[::1]:port' (IPv6) forms.
+	$parsed_host = parse_url( 'http://' . $raw_host, PHP_URL_HOST );
+	$host        = ( $parsed_host !== false && $parsed_host !== null ) ? $parsed_host : $raw_host;
+	if ( false !== strpos( $raw_host, '.sg-host.com' ) || false !== strpos( $raw_host, 'staging' ) || false !== strpos( $host, '.sg-host.com' ) || false !== strpos( $host, 'staging' ) ) {
 		return true;
 	}
 
@@ -142,8 +145,6 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	
 	// No NVX_ENV defined and not in known non-production hosts:
 	// FAIL SAFE (noindex) rather than FAIL OPEN (index) to prevent accidental indexing
-	// This is a safety-first approach: better to temporarily noindex a production page
-	// than to accidentally index a staging/development page.
 	error_log( '[nuvanx] CRITICAL: NVX_ENV constant is not defined and host is not recognized. Assuming non-production environment (noindex enabled) for safety. Define NVX_ENV=production in wp-config.php for production hosts.' );
 	return true;
 }

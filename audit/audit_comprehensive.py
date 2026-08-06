@@ -158,6 +158,7 @@ def get_content_data(url, session=SESSION):
             timeout=10,
             headers={'Cache-Control': 'no-cache'},
             allow_redirects=False,
+            stream=True,
         )
 
         max_redirects = 5
@@ -167,6 +168,7 @@ def get_content_data(url, session=SESSION):
         while resp.is_redirect and redirect_count < max_redirects:
             redirect_count += 1
             location = resp.headers.get('Location')
+            resp.close()
             if not location:
                 print(f"Error: Redirect response missing Location header for {url}")
                 return dict.fromkeys(res, 'Error')
@@ -186,9 +188,11 @@ def get_content_data(url, session=SESSION):
                 timeout=10,
                 headers={'Cache-Control': 'no-cache'},
                 allow_redirects=False,
+                stream=True,
             )
 
         if resp.is_redirect:
+            resp.close()
             print(f"Error: Redirect limit ({max_redirects}) exceeded for {url}")
             return dict.fromkeys(res, 'Error')
 

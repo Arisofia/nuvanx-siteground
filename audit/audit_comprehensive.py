@@ -251,7 +251,7 @@ def run_audit():
         p_url = f"{PROD_BASE.rstrip('/')}/{slug.lstrip('/')}"
         s_url = f"{STAG_BASE.rstrip('/')}/{slug.lstrip('/')}"
         
-        print(f"Auditando ({i+1}/{len(SLUGS)}): /{slug}")
+        print(f"Auditando ({i+1}/{len(slugs)}): /{slug}")
 
         p_status, p_content = fetch_url_audit_data(p_url)
         s_status, s_content = fetch_url_audit_data(s_url)

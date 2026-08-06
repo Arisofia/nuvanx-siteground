@@ -41,7 +41,9 @@
   /* FAQ: native <details>/<summary> (.nvx-faq / .nvx-brand-faq-*) — no JS. */
 
   /* --- Smooth scroll en anclas --- */
-  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var prefersReducedMotion = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+  ).matches;
 
   document.querySelectorAll('a[href^="#"]').forEach(function (a) {
     a.addEventListener('click', function (e) {
@@ -56,6 +58,12 @@
         } else {
           target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+        // Move keyboard/AT focus to the target (critical for the skip-link:
+        // preventDefault() above stops the browser's native fragment-focus
+        // behavior, so it must be restored manually here).
+        if (typeof target.focus === 'function') {
+          target.focus({ preventScroll: true });
+        }
       }
     });
   });
@@ -68,8 +76,8 @@
     // starts closed. If JS never runs, mobile degrades to open (content visible)
     // rather than desktop hiding content behind a non-clickable summary.
     var footerMql = window.matchMedia('(min-width: 641px)');
-    var handleFooterResize = function(e) {
-      footerCols.forEach(function(col) {
+    var handleFooterResize = function (e) {
+      footerCols.forEach(function (col) {
         if (e.matches) {
           col.setAttribute('open', '');
         } else {
@@ -80,13 +88,13 @@
     footerMql.addEventListener('change', handleFooterResize);
     handleFooterResize(footerMql);
 
-    footerCols.forEach(function(col) {
+    footerCols.forEach(function (col) {
       var summary = col.querySelector('summary');
       if (summary) {
-        summary.addEventListener('click', function(e) {
+        summary.addEventListener('click', function (e) {
           if (window.innerWidth > 640) e.preventDefault();
         });
-        summary.addEventListener('keydown', function(e) {
+        summary.addEventListener('keydown', function (e) {
           if (window.innerWidth > 640 && (e.key === 'Enter' || e.key === ' ')) {
             e.preventDefault();
           }
@@ -94,5 +102,4 @@
       }
     });
   }
-
 })();

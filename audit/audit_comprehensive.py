@@ -96,6 +96,8 @@ def is_safe_audit_url(url):
         return False
     if parsed.username or parsed.password:
         return False
+    if parsed.params or parsed.query or parsed.fragment:
+        return False
     host = parsed.hostname.lower()
     if host not in ALLOWED_AUDIT_HOSTS:
         return False

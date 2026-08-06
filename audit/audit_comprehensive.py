@@ -120,7 +120,9 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
         if total_bytes >= max_bytes:
             break
     raw_bytes = b''.join(chunks)[:max_bytes]
-    encoding = resp.encoding or 'utf-8'
+    encoding = resp.encoding
+    if not encoding or encoding.lower() in ('ISO-8859-1', 'latin-1'):
+        encoding = getattr(resp, 'apparent_encoding', None) or 'utf-8'
     return raw_bytes.decode(encoding, errors='replace')
 
 def _parse_html_fields(html):

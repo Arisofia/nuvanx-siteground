@@ -124,7 +124,7 @@ a[href*="whatsapp"] {
 
 a[href*="wa.me"]:hover,
 a[href*="whatsapp"]:hover {
-  color: #25D366;
+  color: var(--nvx-accent-success);
   transform: translateX(2px);
 }
 

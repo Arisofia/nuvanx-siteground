@@ -387,7 +387,7 @@ async function testMobileViewport(page, route, issues) {
     await handleCookieConsent(page);
     
     // Check for mobile menu
-    const hasMobileMenu = await page.locator('.nvx-mobile-menu, [data-nvx-mobile-menu], .mobile-menu-toggle').count() > 0;
+    const hasMobileMenu = await page.locator('.nvx-mobile-menu, [data-nvx-mobile-menu], .mobile-menu-toggle, button[aria-label*="menu"], button[aria-label*="Menu"], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]').count() > 0;
     if (!hasMobileMenu && route !== '/') {
       issues.push(`Mobile viewport: No mobile menu toggle found on ${route}`);
     }

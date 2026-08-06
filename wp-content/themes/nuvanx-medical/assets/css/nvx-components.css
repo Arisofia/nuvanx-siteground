@@ -268,6 +268,15 @@ svg, .icon-whatsapp, .nvx-laser-icon, .nvx-endolift-step__icon, .nvx-icon {
   --button-focus: var(--nvx-light);
 }
 
+/* Inline link color variants for dark backgrounds */
+.nvx-brand-inline-link--light {
+  color: var(--nvx-light);
+}
+
+.nvx-brand-microcopy--dark {
+  color: var(--nvx-border-on-dark);
+}
+
 .nvx-button--secondary-on-dark, .nvx-btn--secondary-on-dark {
   --button-bg: var(--nvx-charcoal);
   --button-color: var(--nvx-light);

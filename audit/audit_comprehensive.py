@@ -44,52 +44,50 @@ def get_http_status(url):
         if not is_safe_audit_url(url):
             return "Error"
 
-        session = requests.Session()
-        session.trust_env = False  # Disable implicit authentication from .netrc
+        with requests.Session() as session:
+            session.trust_env = False  # Disable implicit authentication from .netrc
 
-        resp = session.head(
-            url,
-            headers={"Cache-Control": "no-cache"},
-            allow_redirects=False,  # Disable automatic redirects for SSRF protection
-            timeout=10,
-            verify=VERIFY_SSL,
-        )
-        
-        # Follow redirects manually with SSRF protection
-        max_redirects = 5
-        redirect_count = 0
-        current_url = url
-        current_status = str(resp.status_code)
-        
-        while resp.is_redirect and redirect_count < max_redirects:
-            redirect_count += 1
-            location = resp.headers.get('Location')
-            if not location:
-                break
-            
-            # Make location absolute if relative
-            if location.startswith('/'):
-                parsed = requests.utils.urlparse(current_url)
-                location = f"{parsed.scheme}://{parsed.netloc}{location}"
-            elif not requests.utils.urlparse(location).scheme:
-                location = requests.utils.urljoin(current_url, location)
-            
-            # Validate redirect destination against allowlist
-            if not is_safe_audit_url(location):
-                return "Error"  # Redirect to unsafe destination
-            
-            # Follow redirect
-            current_url = location
             resp = session.head(
-                current_url,
+                url,
                 headers={"Cache-Control": "no-cache"},
-                allow_redirects=False,
+                allow_redirects=False,  # Disable automatic redirects for SSRF protection
                 timeout=10,
                 verify=VERIFY_SSL,
             )
+            
+            # Follow redirects manually with SSRF protection
+            max_redirects = 5
+            redirect_count = 0
+            current_url = url
             current_status = str(resp.status_code)
-        
-        return current_status
+            
+            while resp.is_redirect and redirect_count < max_redirects:
+                redirect_count += 1
+                location = resp.headers.get('Location')
+                if not location:
+                    break
+                
+                # Make location absolute if relative
+                loc_parsed = requests.utils.urlparse(location)
+                if not loc_parsed.scheme or not loc_parsed.netloc:
+                    location = requests.utils.urljoin(current_url, location)
+                
+                # Validate redirect destination against allowlist
+                if not is_safe_audit_url(location):
+                    return "Error"  # Redirect to unsafe destination
+                
+                # Follow redirect
+                current_url = location
+                resp = session.head(
+                    current_url,
+                    headers={"Cache-Control": "no-cache"},
+                    allow_redirects=False,
+                    timeout=10,
+                    verify=VERIFY_SSL,
+                )
+                current_status = str(resp.status_code)
+            
+            return current_status
     except requests.exceptions.Timeout:
         return "Timeout"
     except requests.exceptions.RequestException:
@@ -114,49 +112,50 @@ def get_content_data(url):
         print(f"Error: URL rejected by safe audit allowlist: {url}")
         return dict.fromkeys(res, 'Error')
     try:
-        session = requests.Session()
-        session.trust_env = False  # Disable implicit authentication from .netrc
+        with requests.Session() as session:
+            session.trust_env = False  # Disable implicit authentication from .netrc
 
-        resp = session.get(
-            url,
-            verify=VERIFY_SSL,
-            timeout=10,
-            headers={'Cache-Control': 'no-cache'},
-            allow_redirects=False,
-        )
-
-        max_redirects = 5
-        redirect_count = 0
-        current_url = url
-
-        while resp.is_redirect and redirect_count < max_redirects:
-            redirect_count += 1
-            location = resp.headers.get('Location')
-            if not location:
-                break
-
-            if location.startswith('/'):
-                parsed = requests.utils.urlparse(current_url)
-                location = f"{parsed.scheme}://{parsed.netloc}{location}"
-            elif not requests.utils.urlparse(location).scheme:
-                location = requests.utils.urljoin(current_url, location)
-
-            if not is_safe_audit_url(location):
-                print(f"Error: Redirect target rejected by safe audit allowlist: {location}")
-                return dict.fromkeys(res, 'Error')
-
-            current_url = location
             resp = session.get(
-                current_url,
+                url,
                 verify=VERIFY_SSL,
                 timeout=10,
                 headers={'Cache-Control': 'no-cache'},
                 allow_redirects=False,
             )
 
-        if resp.is_redirect:
-            print(f"Error: Redirect limit ({max_redirects}) exceeded for {url}")
-            return dict.fromkeys(res, 'Error')
+            max_redirects = 5
+            redirect_count = 0
+            current_url = url
+
+            while resp.is_redirect and redirect_count < max_redirects:
+                redirect_count += 1
+                location = resp.headers.get('Location')
+                if not location:
+                    break
+
+                loc_parsed = requests.utils.urlparse(location)
+                if not loc_parsed.scheme or not loc_parsed.netloc:
+                    location = requests.utils.urljoin(current_url, location)
+
+                if not is_safe_audit_url(location):
+                    print(f"Error: Redirect target rejected by safe audit allowlist: {location}")
+                    return dict.fromkeys(res, 'Error')
+
+                current_url = location
+                resp = session.get(
+                    current_url,
+                    verify=VERIFY_SSL,
+                    timeout=10,
+                    headers={'Cache-Control': 'no-cache'},
+                    allow_redirects=False,
+                )
+
+            if resp.is_redirect:
+                if redirect_count >= max_redirects:
+                    print(f"Error: Redirect limit ({max_redirects}) exceeded for {url}")
+                else:
+                    print(f"Error: Redirect response missing Location header for {url}")
+                return dict.fromkeys(res, 'Error')
 
         if resp.status_code == 200:
             html = resp.text

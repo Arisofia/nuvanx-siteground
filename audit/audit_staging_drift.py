@@ -44,6 +44,7 @@ def _parse_html_content(text, soup):
     res = {
         'canonical': can['href'] if (can := soup.find('link', rel='canonical')) else 'N/D',
         'robots': rob['content'] if (rob := soup.find('meta', attrs={'name': 'robots'})) else 'N/D'
+    }
     
     # H1
     h1 = soup.find('h1')

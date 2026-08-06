@@ -126,9 +126,20 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
             break
     raw_bytes = b''.join(chunks)[:max_bytes]
     encoding = resp.encoding
-    if not encoding or encoding.lower() in ('ISO-8859-1', 'latin-1'):
-        encoding = getattr(resp, 'apparent_encoding', None) or 'utf-8'
-    return raw_bytes.decode(encoding, errors='replace')
+    if not encoding or encoding.lower() in ('iso-8859-1', 'latin-1'):
+        # Sniff HTML meta charset tag first, then apparent_encoding, fallback to utf-8
+        meta_match = re.search(rb'<meta[^>]+charset=["\']?([a-zA-Z0-9_-]+)', raw_bytes, re.IGNORECASE)
+        if meta_match:
+            try:
+                encoding = meta_match.group(1).decode('ascii')
+            except Exception:
+                encoding = None
+        if not encoding:
+            encoding = getattr(resp, 'apparent_encoding', None) or 'utf-8'
+    try:
+        return raw_bytes.decode(encoding, errors='replace')
+    except Exception:
+        return raw_bytes.decode('utf-8', errors='replace')
 
 def _parse_html_fields(html):
     soup = BeautifulSoup(html, 'html.parser')

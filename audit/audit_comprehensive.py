@@ -1,3 +1,12 @@
+"""
+Comprehensive Audit Script for NUVANX Production & Staging Route Synchronization
+
+Environment Variables:
+  AUDIT_VERIFY_SSL (default: "true")
+    Set to "false" (e.g., AUDIT_VERIFY_SSL=false python3 audit/audit_comprehensive.py)
+    to bypass SSL certificate verification if auditing staging environments with
+    self-signed or untrusted TLS certificates.
+"""
 import json
 import csv
 from pathlib import Path

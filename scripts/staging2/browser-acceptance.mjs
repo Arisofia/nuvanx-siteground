@@ -440,6 +440,9 @@ async function testConversionFlow(page, issues) {
       }
     }
     
+    // Wait for the form to render (HubSpot injects an iframe or native form)
+    await page.waitForSelector('input[name*="name"], input[name*="nombre"], input[type="email"]', { state: 'attached', timeout: 10000 }).catch(() => {});
+    
     // Check for form fields
     const hasNameField = await page.locator('input[name*="name"], input[name*="nombre"]').count() > 0;
     const hasEmailField = await page.locator('input[type="email"], input[name*="email"]').count() > 0;

@@ -88,26 +88,22 @@ def _follow_redirects_safely(session, url, method="get", stream=False):
 
     while resp.is_redirect and redirect_count < max_redirects:
         redirect_count += 1
-        location = resp.headers.get('Location')
-        if not location:
-            break
-        if stream:
-            resp.close()
+        location = resp.headers['Location']
 
         loc_parsed = requests.utils.urlparse(location)
         if not loc_parsed.scheme or not loc_parsed.netloc:
             location = requests.utils.urljoin(current_url, location)
 
         if not is_safe_audit_url(location):
+            if stream:
+                resp.close()
             return None
+
+        if stream:
+            resp.close()
 
         current_url = location
         resp = fetch(current_url, **kwargs)
-
-    if resp.is_redirect:
-        if stream:
-            resp.close()
-        return None
 
     return resp
 

@@ -995,6 +995,7 @@ function nvx_content_restructure_equipo_page( string $content ): string {
 		return $wrap[1] . $hero . $body . '</div>';
 	}
 
-	return '<div class="nvx-brand-page nvx-brand-page--equipo">' . $hero . $body . '</div>';
+	// Return content directly without wrapping to avoid duplicate nvx-brand-page
+	return $hero . $body;
 }
 add_filter( 'the_content', 'nvx_content_restructure_equipo_page', NVX_HOOK_PRIO_EQUIPO );

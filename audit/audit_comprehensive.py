@@ -212,6 +212,23 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
     except Exception:
         return raw_bytes.decode('utf-8', errors='replace')
 
+def _parse_single_price(snippet):
+    num_chars = []
+    for char in reversed(snippet):
+        if char.isdigit() or char in '.,':
+            num_chars.append(char)
+        else:
+            break
+    if not num_chars:
+        return None
+    num_str = ''.join(reversed(num_chars)).strip('.,')
+    if not num_str:
+        return None
+    dots_commas = num_str.count('.') + num_str.count(',')
+    if dots_commas <= 2 and any(c.isdigit() for c in num_str):
+        return f"{num_str} €"
+    return None
+
 def _extract_prices_linearly(html):
     prices = []
     start = 0
@@ -219,21 +236,10 @@ def _extract_prices_linearly(html):
         euro_idx = html.find('€', start)
         if euro_idx == -1:
             break
-        # Expand window backwards to avoid truncating long numbers
         snippet = html[max(0, euro_idx - 50):euro_idx].rstrip()
-        num_chars = []
-        for char in reversed(snippet):
-            if char.isdigit() or char in '.,':
-                num_chars.append(char)
-            else:
-                break
-        if num_chars:
-            num_str = ''.join(reversed(num_chars)).strip('.,')
-            # Validate number format: digits with at most one decimal separator (dot or comma)
-            if num_str:
-                dots_commas = num_str.count('.') + num_str.count(',')
-                if dots_commas <= 2 and any(c.isdigit() for c in num_str):
-                    prices.append(f"{num_str} €")
+        price = _parse_single_price(snippet)
+        if price:
+            prices.append(price)
         start = euro_idx + 1
     return prices
 

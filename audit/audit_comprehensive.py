@@ -291,9 +291,11 @@ for i, slug in enumerate(SLUGS):
             writer.writerows(results)
         print("Resultados parciales guardados.\n")
 
-with (OUT / 'nuvanx_drift_final.csv').open('w', encoding='utf-8-sig', newline='') as f:
-    writer = csv.DictWriter(f, fieldnames=results[0].keys())
-    writer.writeheader()
-    writer.writerows(results)
-
-print("Auditoría integral completada exitosamente.")
+if results:
+    with (OUT / 'nuvanx_drift_final.csv').open('w', encoding='utf-8-sig', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=results[0].keys())
+        writer.writeheader()
+        writer.writerows(results)
+    print("Auditoría integral completada exitosamente.")
+else:
+    print("No se procesaron rutas (la lista de rutas estaba vacía). Auditoría finalizada sin crear CSV.")

@@ -4,10 +4,7 @@ permissions:
   contents: read
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-quality-${{ github.ref }}

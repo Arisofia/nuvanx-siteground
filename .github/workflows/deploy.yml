@@ -1,9 +1,7 @@
 name: Production Gate & Atomic Deploy to SiteGround
 
 on:
-  workflow_run:
-    workflows: ['Deploy Staging2']
-    types: [completed]
+  workflow_dispatch:
 
 permissions:
   contents: read

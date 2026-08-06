@@ -6,6 +6,8 @@ Environment Variables:
     Set to "false" (e.g., AUDIT_VERIFY_SSL=false python3 audit/audit_comprehensive.py)
     to bypass SSL certificate verification if auditing staging environments with
     self-signed or untrusted TLS certificates.
+  AUDIT_TRUST_ENV (default: "true")
+    Set to "false" to disable reading proxies (HTTP_PROXY, HTTPS_PROXY) and .netrc credentials.
 """
 import json
 import csv
@@ -27,7 +29,8 @@ if not VERIFY_SSL:
     print("WARNING: AUDIT_VERIFY_SSL=false is active. TLS certificate verification is disabled for this audit run.")
 
 SESSION = requests.Session()
-SESSION.trust_env = False  # Disable implicit authentication from .netrc globally for audit
+# Preserve environment proxy (HTTP_PROXY) and CA bundle (REQUESTS_CA_BUNDLE) settings by default
+SESSION.trust_env = os.environ.get("AUDIT_TRUST_ENV", "true").lower() == "true"
 
 def is_safe_audit_url(url):
     parsed = requests.utils.urlparse(url)

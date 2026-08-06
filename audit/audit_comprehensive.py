@@ -17,11 +17,13 @@ from bs4 import BeautifulSoup
 import requests
 import os
 
-OUT = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
+DEFAULT_OUT_DIR = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
+OUT = Path(os.environ.get("AUDIT_OUT_DIR", str(DEFAULT_OUT_DIR)))
 
 def load_slugs():
     routes_file = OUT / 'staging_routes.json'
     if not routes_file.exists():
+        print(f"Aviso: El archivo de rutas {routes_file} no existe. No hay rutas para auditar.")
         return []
     with open(routes_file, 'r', encoding='utf-8') as f:
         return json.load(f)

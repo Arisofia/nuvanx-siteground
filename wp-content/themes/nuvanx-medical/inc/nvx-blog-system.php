@@ -80,7 +80,7 @@ add_filter( 'body_class', 'nvx_theme_blog_body_class' );
  * post content so historical entries inherit the same accessible hierarchy.
  */
 function nvx_theme_normalize_blog_headings( string $content ): string {
-	if ( ! is_single() || false === stripos( $content, '<h1' ) ) {
+	if ( ! is_singular( 'post' ) || false === stripos( $content, '<h1' ) ) {
 		return $content;
 	}
 
@@ -150,7 +150,7 @@ function nvx_blog_medical_author( ?int $post_id = null ): array {
  * so mid-article copy mentioning “Autor” / “Fecha” is not removed.
  */
 function nvx_theme_strip_blog_content_bylines( string $content ): string {
-	if ( is_admin() || ! is_single() || '' === trim( $content ) ) {
+	if ( is_admin() || ! is_singular( 'post' ) || '' === trim( $content ) ) {
 		return $content;
 	}
 

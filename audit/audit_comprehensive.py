@@ -45,15 +45,24 @@ def _resolve_safe_out_dir():
         )
         return DEFAULT_OUT_DIR
 
-    candidate = Path(raw_out_dir).expanduser().resolve()
-    if candidate == SAFE_AUDIT_BASE_DIR or SAFE_AUDIT_BASE_DIR in candidate.parents:
-        return candidate
+    try:
+        candidate = Path(raw_out_dir).expanduser().resolve()
+    except (OSError, RuntimeError, ValueError):
+        print(
+            f"WARNING: Ignorando AUDIT_OUT_DIR inválido: {raw_out_dir}. "
+            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+        )
+        return DEFAULT_OUT_DIR
 
-    print(
-        f"WARNING: Ignorando AUDIT_OUT_DIR no seguro: {raw_out_dir}. "
-        f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
-    )
-    return DEFAULT_OUT_DIR
+    try:
+        candidate.relative_to(SAFE_AUDIT_BASE_DIR)
+        return candidate
+    except ValueError:
+        print(
+            f"WARNING: Ignorando AUDIT_OUT_DIR no seguro: {raw_out_dir}. "
+            f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+        )
+        return DEFAULT_OUT_DIR
 
 OUT = _resolve_safe_out_dir()
 

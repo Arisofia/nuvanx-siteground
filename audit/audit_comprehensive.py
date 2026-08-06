@@ -6,8 +6,8 @@ Environment Variables:
     Set to "false" (e.g., AUDIT_VERIFY_SSL=false python3 audit/audit_comprehensive.py)
     to bypass SSL certificate verification if auditing staging environments with
     self-signed or untrusted TLS certificates.
-  AUDIT_TRUST_ENV (default: "true")
-    Set to "false" to disable reading proxies (HTTP_PROXY, HTTPS_PROXY) and .netrc credentials.
+  AUDIT_TRUST_ENV (default: "false")
+    Set to "true" to enable reading system proxies (HTTP_PROXY, HTTPS_PROXY) and .netrc credentials.
 """
 import json
 import csv

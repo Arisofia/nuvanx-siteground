@@ -18,8 +18,13 @@ import requests
 import os
 
 OUT = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
-with open(OUT / 'staging_routes.json', 'r') as f:
-    SLUGS = json.load(f)
+
+def load_slugs():
+    routes_file = OUT / 'staging_routes.json'
+    if not routes_file.exists():
+        return []
+    with open(routes_file, 'r', encoding='utf-8') as f:
+        return json.load(f)
 
 PROD_BASE = "https://nuvanx.com"
 STAG_BASE = "https://staging2.nuvanx.com"
@@ -203,7 +208,7 @@ def get_http_status(url, session=None):
         return "Error"
     try:
         resp = _follow_redirects_safely(session, url, method="head", stream=False)
-        if not resp:
+        if resp is None:
             return "Error"
         try:
             return str(resp.status_code)
@@ -227,10 +232,11 @@ def get_gap_tipo(p_status, s_status):
     return 'inconsistente'
 
 def run_audit():
+    slugs = load_slugs()
     results = []
-    print(f"Iniciando auditoría robusta de {len(SLUGS)} URLs...")
+    print(f"Iniciando auditoría robusta de {len(slugs)} URLs...")
 
-    for i, slug in enumerate(SLUGS):
+    for i, slug in enumerate(slugs):
         p_url = f"{PROD_BASE.rstrip('/')}/{slug.lstrip('/')}"
         s_url = f"{STAG_BASE.rstrip('/')}/{slug.lstrip('/')}"
         
@@ -264,7 +270,7 @@ def run_audit():
         results.append(row)
         
         if (i + 1) % 10 == 0:
-            print(f"\n--- CORTE PROGRESO ({i+1}/{len(SLUGS)} PÁGINAS) ---")
+            print(f"\n--- CORTE PROGRESO ({i+1}/{len(slugs)} PÁGINAS) ---")
             summary = {
                 'coincide': sum(1 for r in results if r['gap_tipo'] == 'coincide'),
                 'drift_falta_produccion': sum(1 for r in results if r['gap_tipo'] == 'drift_falta_produccion'),

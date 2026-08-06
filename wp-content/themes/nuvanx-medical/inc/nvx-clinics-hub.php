@@ -1121,9 +1121,6 @@ function nvx_clinics_hub_render_managed( string $content ): string {
 	if ( is_admin() || ! nvxIsClinicsHub() ) {
 		return $content;
 	}
-	if ( ! nvx_clinics_hub_is_managed_content( $content ) ) {
-		return $content;
-	}
 
 	return nvx_clinics_hub_page_markup();
 }

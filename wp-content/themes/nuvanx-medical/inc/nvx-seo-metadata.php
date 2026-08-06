@@ -134,6 +134,11 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	if ( defined( 'NVX_ENV' ) ) {
 		return NVX_ENV !== 'production';
 	}
+
+	// Known public production domain host
+	if ( 'nuvanx.com' === $host || 'www.nuvanx.com' === $host ) {
+		return false;
+	}
 	
 	// Local development environments (localhost, 127.0.0.1, local domains)
 	if ( in_array( $host, array( 'localhost', '127.0.0.1', 'nuvanx.local', 'nuvanx.test' ), true ) ) {
@@ -142,8 +147,6 @@ function nvx_seo_is_nonproduction_environment(): bool {
 	
 	// No NVX_ENV defined and not in known non-production hosts:
 	// FAIL SAFE (noindex) rather than FAIL OPEN (index) to prevent accidental indexing
-	// This is a safety-first approach: better to temporarily noindex a production page
-	// than to accidentally index a staging/development page.
 	error_log( '[nuvanx] CRITICAL: NVX_ENV constant is not defined and host is not recognized. Assuming non-production environment (noindex enabled) for safety. Define NVX_ENV=production in wp-config.php for production hosts.' );
 	return true;
 }

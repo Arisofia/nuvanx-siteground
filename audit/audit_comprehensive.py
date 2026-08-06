@@ -137,7 +137,7 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
             except Exception:
                 encoding = None
         if not encoding:
-            encoding = getattr(resp, 'apparent_encoding', None) or 'utf-8'
+            encoding = 'utf-8'
     try:
         return raw_bytes.decode(encoding, errors='replace')
     except Exception:

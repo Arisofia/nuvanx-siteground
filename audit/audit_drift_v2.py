@@ -25,15 +25,9 @@ HEADERS = {
 
 def _parse_html_content(text, soup):
     """Extract and parse HTML content fields."""
-    res = {}
-    
-    # Canonical
-    can = soup.find('link', rel='canonical')
-    res['canonical'] = can['href'] if can else 'N/D'
-    
-    # Robots
-    rob = soup.find('meta', attrs={'name': 'robots'})
-    res['robots'] = rob['content'] if rob else 'N/D'
+    res = {
+        'canonical': can['href'] if (can := soup.find('link', rel='canonical')) else 'N/D',
+        'robots': rob['content'] if (rob := soup.find('meta', attrs={'name': 'robots'})) else 'N/D'
     
     # H1
     h1 = soup.find('h1')
@@ -47,10 +41,7 @@ def _parse_html_content(text, soup):
     res['faq'] = 'Sí' if 'FAQPage' in text else 'No'
     
     # Doctor (heuristic)
-    if 'Rivera' in text:
-        res['doctor'] = 'Dr. José Javier Rivera Tejeda'
-    else:
-        res['doctor'] = 'N/D'
+    res['doctor'] = 'Dr. José Javier Rivera Tejeda' if 'Rivera' in text else 'N/D'
     
     # Schema Type
     scripts = soup.find_all('script', type='application/ld+json')
@@ -100,14 +91,11 @@ def audit_url(base_url, slug):
 
 def get_gap_tipo(prod_val, stag_val):
     if prod_val == 'N/D':
-        if stag_val == 'N/D':
-            return 'contenido_falta_ambos'
-        elif stag_val != 'N/D':
-            return 'drift_falta_produccion'
-    elif prod_val != 'N/D':
+        return 'contenido_falta_ambos' if stag_val == 'N/D' else 'drift_falta_produccion'
+    if prod_val != 'N/D':
         if stag_val == 'N/D':
             return 'drift_falta_staging'
-        elif prod_val == stag_val:
+        if prod_val == stag_val:
             return 'coincide'
     return 'diferente'
 

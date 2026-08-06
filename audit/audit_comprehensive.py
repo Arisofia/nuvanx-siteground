@@ -116,18 +116,50 @@ def get_content_data(url):
     }
     if not is_safe_audit_url(url):
         print(f"Error: URL rejected by safe audit allowlist: {url}")
-        return res
+        return {k: 'Error' for k in res}
     try:
         # SSL verification disabled for internal audit purposes
         # This is intentional for development/staging environments
         # trust_env=False disables implicit authentication from .netrc
+        # allow_redirects=False with manual loop prevents SSRF via redirect targets
         resp = requests.get(
             url,
             verify=False,
             timeout=10,
             headers={'Cache-Control': 'no-cache'},
+            allow_redirects=False,
             trust_env=False,  # Disable implicit authentication
         )
+
+        max_redirects = 5
+        redirect_count = 0
+        current_url = url
+
+        while resp.is_redirect and redirect_count < max_redirects:
+            redirect_count += 1
+            location = resp.headers.get('Location')
+            if not location:
+                break
+
+            if location.startswith('/'):
+                parsed = requests.utils.urlparse(current_url)
+                location = f"{parsed.scheme}://{parsed.netloc}{location}"
+            elif not location.startswith(('http://', 'https://')):
+                location = requests.utils.urljoin(current_url, location)
+
+            if not is_safe_audit_url(location):
+                print(f"Error: Redirect target rejected by safe audit allowlist: {location}")
+                return {k: 'Error' for k in res}
+
+            current_url = location
+            resp = requests.get(
+                current_url,
+                verify=False,
+                timeout=10,
+                headers={'Cache-Control': 'no-cache'},
+                allow_redirects=False,
+                trust_env=False,
+            )
 
         if resp.status_code == 200:
             html = resp.text

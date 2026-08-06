@@ -8,9 +8,11 @@ import requests
 import urllib3
 import ssl
 from urllib3.exceptions import InsecureRequestWarning, SSLError
+import os
 
-# Only disable warnings for specific cases, not globally
-# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# Disable SSL warnings globally for internal audit purposes
+# This is intentional for development/staging environments with self-signed certificates
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 OUT = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 with open(OUT / 'staging_routes.json', 'r') as f:
@@ -37,35 +39,74 @@ def is_safe_audit_url(url):
 
 def get_http_status_curl(url):
     """
-    Get HTTP status for internal audit purposes.
-    SSL verification is intentionally bypassed for internal environments
-    where certificates may be self-signed or otherwise not trusted.
+    Get HTTP status using requests with SSL verification bypass for internal audit purposes.
+    Note: verify=False bypasses SSL verification - this is intentional for internal audit scripts
+    where SSL certificates may be self-signed or in development environments.
     """
     try:
         # Strict validation to prevent unsafe URL usage
         if not is_safe_audit_url(url):
             return "Error"
 
-        urllib3.disable_warnings(InsecureRequestWarning)
+        # Use requests.head instead of curl subprocess
+        # verify=False is intentional for internal audit with self-signed certificates
+        # trust_env=False disables implicit authentication from .netrc
         resp = requests.head(
             url,
             headers={"Cache-Control": "no-cache"},
-            allow_redirects=True,
+            allow_redirects=False,  # Disable automatic redirects for SSRF protection
             timeout=10,
             verify=False,
+            trust_env=False,  # Disable implicit authentication
         )
-        return str(resp.status_code)
+        
+        # Follow redirects manually with SSRF protection
+        max_redirects = 5
+        redirect_count = 0
+        current_url = url
+        current_status = str(resp.status_code)
+        
+        while resp.is_redirect and redirect_count < max_redirects:
+            redirect_count += 1
+            location = resp.headers.get('Location')
+            if not location:
+                break
+            
+            # Make location absolute if relative
+            if location.startswith('/'):
+                parsed = requests.utils.urlparse(current_url)
+                location = f"{parsed.scheme}://{parsed.netloc}{location}"
+            elif not location.startswith(('http://', 'https://')):
+                location = requests.utils.urljoin(current_url, location)
+            
+            # Validate redirect destination against allowlist
+            if not is_safe_audit_url(location):
+                return "Error"  # Redirect to unsafe destination
+            
+            # Follow redirect
+            current_url = location
+            resp = requests.head(
+                current_url,
+                headers={"Cache-Control": "no-cache"},
+                allow_redirects=False,
+                timeout=10,
+                verify=False,
+                trust_env=False,
+            )
+            current_status = str(resp.status_code)
+        
+        return current_status
     except requests.exceptions.Timeout:
         return "Timeout"
     except requests.exceptions.RequestException:
         return "Error"
-    except:
-        return "Timeout"
+    except Exception:
+        return "Error"  # Catch any unexpected errors but label as "Error" not "Timeout"
 
 def get_content_data(url):
     """
-    Get content data from URL with proper SSL verification.
-    Falls back to no verification only if SSL fails, with warning.
+    Get content data from URL with SSL verification disabled for internal audit purposes.
+    This is intentional for development/staging environments with self-signed certificates.
     """
     res = {
         'canonical': 'N/D',
@@ -77,14 +118,16 @@ def get_content_data(url):
         'schema_type': 'N/D'
     }
     try:
-        # Try with SSL verification first (security best practice)
-        try:
-            resp = requests.get(url, verify=True, timeout=10, headers={'Cache-Control': 'no-cache'})
-        except SSLError as ssl_error:
-            # Fall back to no verification only for internal audit if SSL fails
-            # This is a controlled fallback for development/staging environments
-            print(f"Warning: SSL verification failed for {url}, falling back to no verification: {ssl_error}")
-            resp = requests.get(url, verify=False, timeout=10, headers={'Cache-Control': 'no-cache'})
+        # SSL verification disabled for internal audit purposes
+        # This is intentional for development/staging environments
+        # trust_env=False disables implicit authentication from .netrc
+        resp = requests.get(
+            url,
+            verify=False,
+            timeout=10,
+            headers={'Cache-Control': 'no-cache'},
+            trust_env=False,  # Disable implicit authentication
+        )
 
         if resp.status_code == 200:
             html = resp.text

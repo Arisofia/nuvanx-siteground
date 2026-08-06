@@ -216,31 +216,6 @@ def fetch_url_audit_data(url, session=None):
         print(f"Error fetching {url}: {e}")
         return "Error", dict(default_content)
 
-def get_http_status(url, session=None):
-    """
-    Get HTTP status using a lightweight HEAD request with SSL verification.
-    """
-    session = session or SESSION
-    if not is_safe_audit_url(url):
-        return "Error"
-    try:
-        resp = _follow_redirects_safely(session, url, method="head", stream=False)
-        if resp is None:
-            return "Error"
-        try:
-            return str(resp.status_code)
-        finally:
-            resp.close()
-    except requests.exceptions.Timeout:
-        return "Timeout"
-    except Exception:
-        return "Error"
-
-def get_content_data(url, session=None):
-    session = session or SESSION
-    _, content = fetch_url_audit_data(url, session=session)
-    return content
-
 def get_gap_tipo(p_status, s_status):
     if p_status == '404' and s_status == '404': return 'contenido_falta_ambos'
     if p_status == '404' and s_status == '200': return 'drift_falta_produccion'

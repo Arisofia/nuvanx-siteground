@@ -29,8 +29,8 @@ if not VERIFY_SSL:
     print("WARNING: AUDIT_VERIFY_SSL=false is active. TLS certificate verification is disabled for this audit run.")
 
 SESSION = requests.Session()
-# Preserve environment proxy (HTTP_PROXY) and CA bundle (REQUESTS_CA_BUNDLE) settings by default
-SESSION.trust_env = os.environ.get("AUDIT_TRUST_ENV", "true").lower() == "true"
+# Disable implicit authentication from .netrc and unvetted proxies by default for security
+SESSION.trust_env = os.environ.get("AUDIT_TRUST_ENV", "false").lower() == "true"
 
 def is_safe_audit_url(url):
     parsed = requests.utils.urlparse(url)
@@ -220,10 +220,10 @@ def get_content_data(url, session=SESSION):
                 res['doctor'] = 'Dr. José Javier Rivera Tejeda'
 
             res['schema_type'] = _parse_schema_types(soup)
-        else:
-            return dict.fromkeys(res, 'Error')
+        # Non-200 responses (e.g., 404) return N/D defaults so status column records HTTP code and drift is properly classified
     except Exception as e:
         print(f"Error fetching content from {url}: {e}")
+        return dict.fromkeys(res, 'Error')
     return res
 
 def get_gap_tipo(p_status, s_status):

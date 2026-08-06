@@ -18,7 +18,6 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 import requests
 import os
-from contextlib import suppress
 
 DEFAULT_OUT_DIR = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 SAFE_AUDIT_BASE_DIR = Path('/home/ubuntu').resolve()
@@ -79,9 +78,11 @@ ALLOWED_AUDIT_HOSTS = {"nuvanx.com", "staging2.nuvanx.com"}
 VERIFY_SSL = os.environ.get("AUDIT_VERIFY_SSL", "").strip().lower() != "false"
 if not VERIFY_SSL:
     print("WARNING: AUDIT_VERIFY_SSL=false is active. TLS certificate verification is disabled for this audit run.")
-    with suppress(Exception):
+    try:
         import urllib3
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    except Exception:
+        pass
 
 SESSION = requests.Session()
 # Disable implicit authentication from .netrc and unvetted proxies by default for security
@@ -97,7 +98,10 @@ def is_safe_audit_url(url):
         return False
     if parsed.params or parsed.query or parsed.fragment:
         return False
-    return parsed.hostname.lower() in ALLOWED_AUDIT_HOSTS
+    host = parsed.hostname.lower()
+    if host not in ALLOWED_AUDIT_HOSTS:
+        return False
+    return True
 
 TYPE_KEY = '@type'
 GRAPH_KEY = '@graph'
@@ -188,8 +192,10 @@ def _parse_charset_from_tag(meta_tag):
         else:
             break
     if charset_bytes:
-        with suppress(Exception):
+        try:
             return charset_bytes.decode('ascii')
+        except Exception:
+            pass
     return None
 
 def _sniff_meta_charset(head_bytes):
@@ -199,13 +205,15 @@ def _sniff_meta_charset(head_bytes):
         if meta_end == -1:
             break
         meta_tag = head_bytes[meta_idx:meta_end]
-        if charset := _parse_charset_from_tag(meta_tag):
+        charset = _parse_charset_from_tag(meta_tag)
+        if charset:
             return charset
         meta_idx = head_bytes.find(b'<meta', meta_end)
     return None
 
 def _resolve_response_encoding(resp, raw_bytes):
-    if encoding := resp.encoding:
+    encoding = resp.encoding
+    if encoding:
         enc_lower = encoding.lower()
         if enc_lower not in ('iso-8859-1', 'latin-1'):
             # Unambiguous non-default charset from server — trust it.
@@ -213,11 +221,15 @@ def _resolve_response_encoding(resp, raw_bytes):
         # iso-8859-1/latin-1: could be an explicit server declaration or the
         # RFC HTTP/1.1 default that requests injects when no charset is present.
         # Distinguish by inspecting the raw Content-Type header directly.
-        if 'charset=' in resp.headers.get('Content-Type', '').lower():
+        content_type = resp.headers.get('Content-Type', '')
+        if 'charset=' in content_type.lower():
             # Server explicitly declared charset=iso-8859-1 — honor it.
             return encoding
     # No charset in Content-Type (requests defaulted to iso-8859-1): sniff <meta> then utf-8.
-    return sniffed if (sniffed := _sniff_meta_charset(raw_bytes[:4096].lower())) else 'utf-8'
+    sniffed = _sniff_meta_charset(raw_bytes[:4096].lower())
+    if sniffed:
+        return sniffed
+    return 'utf-8'
 
 def _read_bounded_response_text(resp, max_bytes=1000000):
     chunks = []
@@ -227,40 +239,7 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
         total_bytes += len(chunk)
         if total_bytes >= max_bytes:
             break
-    else:
-        raw_bytes = b''.join(chunks)[:max_bytes]
-
-def _read_response_body_safely(resp, url, default_content):
-    try:
-        return _read_bounded_response_text(resp)
-    except requests.exceptions.ReadTimeout as rt_err:
-        print(f"Timeout leyendo cuerpo de {url}: {rt_err}")
-        return None
-    except (requests.exceptions.RequestException, OSError) as net_err:
-        print(f"Error de red/streaming al leer cuerpo de {url}: {net_err}")
-        return None
-
-def _process_response(resp, url, default_content):
-    """Process HTTP response and extract status and content."""
-    status = "Error"
-    content = dict(default_content)
-    try:
-        status = str(resp.status_code)
-        if resp.status_code == 200:
-            html = _read_response_body_safely(resp, url, default_content)
-            if html is None:
-                return "Error", dict(default_content)
-
-            try:
-                content = _parse_html_fields(html)
-            except Exception as parse_err:
-                print(f"Aviso: Error de estructura HTML al parsear {url}: {parse_err}")
-        else:
-            content = dict(default_content)
-    finally:
-        resp.close()
-
-    return status, content
+    raw_bytes = b''.join(chunks)[:max_bytes]
     encoding = _resolve_response_encoding(resp, raw_bytes)
     try:
         return raw_bytes.decode(encoding, errors='replace')
@@ -295,20 +274,26 @@ def _extract_prices_linearly(html):
         if euro_idx == -1:
             break
         snippet = html[max(0, euro_idx - 50):euro_idx].rstrip()
-        if price := _parse_single_price(snippet):
+        price = _parse_single_price(snippet)
+        if price:
             prices.append(price)
         start = euro_idx + 1
     return prices
 
 def _parse_html_fields(html):
     soup = BeautifulSoup(html, 'html.parser')
-    canonical = can.get('href') if (can := soup.find('link', rel='canonical')) else None
-    robots = rob.get('content') if (rob := soup.find('meta', attrs={'name': 'robots'})) else None
+    can = soup.find('link', rel='canonical')
+    rob = soup.find('meta', attrs={'name': 'robots'})
     h1 = soup.find('h1')
     prices = _extract_prices_linearly(html)
 
-    canonical_val = can.get('href') or 'N/D' if can is not None else 'N/D'
-    robots_val = rob.get('content') or 'N/D' if rob is not None else 'N/D'
+    canonical_val = 'N/D'
+    if can is not None:
+        canonical_val = can.get('href') or 'N/D'
+
+    robots_val = 'N/D'
+    if rob is not None:
+        robots_val = rob.get('content') or 'N/D'
 
     h1_val = 'N/D'
     if h1 is not None:
@@ -347,7 +332,29 @@ def fetch_url_audit_data(url, session=None):
         if resp is None:
             return "Error", dict(default_content)
 
-        status, content = _process_response(resp, url, default_content)
+        status = "Error"
+        content = dict(default_content)
+        try:
+            status = str(resp.status_code)
+            if resp.status_code == 200:
+                try:
+                    html = _read_bounded_response_text(resp)
+                except requests.exceptions.ReadTimeout as rt_err:
+                    print(f"Timeout leyendo cuerpo de {url}: {rt_err}")
+                    return "Timeout", dict(default_content)
+                except (requests.exceptions.RequestException, OSError) as net_err:
+                    print(f"Error de red/streaming al leer cuerpo de {url}: {net_err}")
+                    return "Error", dict(default_content)
+
+                try:
+                    content = _parse_html_fields(html)
+                except Exception as parse_err:
+                    print(f"Aviso: Error de estructura HTML al parsear {url}: {parse_err}")
+            else:
+                content = dict(default_content)
+        finally:
+            resp.close()
+
         return status, content
     except requests.exceptions.Timeout:
         return "Timeout", dict(default_content)
@@ -356,23 +363,11 @@ def fetch_url_audit_data(url, session=None):
         return "Error", dict(default_content)
 
 def get_gap_tipo(p_status, s_status):
-    if p_status == '404':
-        if s_status == '404':
-            return 'contenido_falta_ambos'
-        elif s_status == '200':
-            return 'drift_falta_produccion'
-    elif p_status == '200':
-        if s_status == '404':
-            return 'drift_falta_staging'
-        elif s_status == '200':
-            return 'coincide'
+    if p_status == '404' and s_status == '404': return 'contenido_falta_ambos'
+    if p_status == '404' and s_status == '200': return 'drift_falta_produccion'
+    if p_status == '200' and s_status == '404': return 'drift_falta_staging'
+    if p_status == '200' and s_status == '200': return 'coincide'
     return 'inconsistente'
-
-def _sanitize_csv(val):
-    s = str(val)
-    if s.startswith(('=', '+', '-', '@', '\t', '\r')):
-        return f"'{s}"
-    return s
 
 def run_audit():
     slugs = load_slugs()
@@ -390,8 +385,14 @@ def run_audit():
 
         p_status, p_content = fetch_url_audit_data(p_url)
         s_status, s_content = fetch_url_audit_data(s_url)
+        
         gap_tipo = get_gap_tipo(p_status, s_status)
         
+        def _sanitize_csv(val):
+            s = str(val)
+            if s.startswith(('=', '+', '-', '@', '\t', '\r')):
+                return "'" + s
+            return s
         row = {
             'slug': _sanitize_csv(slug),
             'gap_tipo': _sanitize_csv(gap_tipo),
@@ -419,18 +420,18 @@ def run_audit():
             last_10 = results[-10:]
             summary = {
                 'acumulado_total': {
-                    'coincide': sum(r['gap_tipo'] == 'coincide' for r in results),
-                    'drift_falta_produccion': sum(r['gap_tipo'] == 'drift_falta_produccion' for r in results),
-                    'drift_falta_staging': sum(r['gap_tipo'] == 'drift_falta_staging' for r in results),
-                    'contenido_falta_ambos': sum(r['gap_tipo'] == 'contenido_falta_ambos' for r in results),
-                    'inconsistente': sum(r['gap_tipo'] == 'inconsistente' for r in results)
+                    'coincide': sum(1 for r in results if r['gap_tipo'] == 'coincide'),
+                    'drift_falta_produccion': sum(1 for r in results if r['gap_tipo'] == 'drift_falta_produccion'),
+                    'drift_falta_staging': sum(1 for r in results if r['gap_tipo'] == 'drift_falta_staging'),
+                    'contenido_falta_ambos': sum(1 for r in results if r['gap_tipo'] == 'contenido_falta_ambos'),
+                    'inconsistente': sum(1 for r in results if r['gap_tipo'] == 'inconsistente')
                 },
                 'ultimo_bloque_10': {
-                    'coincide': sum(r['gap_tipo'] == 'coincide' for r in last_10),
-                    'drift_falta_produccion': sum(r['gap_tipo'] == 'drift_falta_produccion' for r in last_10),
-                    'drift_falta_staging': sum(r['gap_tipo'] == 'drift_falta_staging' for r in last_10),
-                    'contenido_falta_ambos': sum(r['gap_tipo'] == 'contenido_falta_ambos' for r in last_10),
-                    'inconsistente': sum(r['gap_tipo'] == 'inconsistente' for r in last_10)
+                    'coincide': sum(1 for r in last_10 if r['gap_tipo'] == 'coincide'),
+                    'drift_falta_produccion': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_produccion'),
+                    'drift_falta_staging': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_staging'),
+                    'contenido_falta_ambos': sum(1 for r in last_10 if r['gap_tipo'] == 'contenido_falta_ambos'),
+                    'inconsistente': sum(1 for r in last_10 if r['gap_tipo'] == 'inconsistente')
                 }
             }
             print(json.dumps(summary, indent=2))

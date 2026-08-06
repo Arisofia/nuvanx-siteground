@@ -23,13 +23,16 @@ $goya_wa     = ! empty( $config['goya']['whatsapp_href'] ) ? $config['goya']['wh
 global $nvx_page_shell_has_hero;
 $nvx_page_shell_has_hero = true;
 
-get_header();
+ob_start();
 
 if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_page_request() ) {
 	echo '<div class="entry-content nvx-page__content nvx-prose">';
 	the_content();
 	echo '</div>';
-	get_footer();
+	$content = ob_get_clean();
+	set_query_var( 'nvx_shell_content', $content );
+	set_query_var( 'nvx_shell_skip_header', true );
+	get_template_part( 'template-parts/content/nvx-page-shell' );
 	return;
 }
 ?>
@@ -105,7 +108,12 @@ if ( function_exists( 'nvx_is_valoracion_page_request' ) && nvx_is_valoracion_pa
 		</section>
 	</div>
 	<div class="entry-content nvx-page__content nvx-prose">
-		<?php the_content(); ?>
+		<?php  the_content(); ?>
 	</div>
 
-<?php get_footer(); ?>
+<?php
+$content = ob_get_clean();
+
+set_query_var( 'nvx_shell_content', $content );
+set_query_var( 'nvx_shell_skip_header', true );
+get_template_part( 'template-parts/content/nvx-page-shell' ); ?>

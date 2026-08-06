@@ -7,12 +7,12 @@ from bs4 import BeautifulSoup
 import requests
 import urllib3
 import ssl
-from urllib3.exceptions import InsecureRequestWarning, SSLError
+from urllib3.exceptions import InsecureRequestWarning
 import os
+import warnings
 
-# Disable SSL warnings globally for internal audit purposes
-# This is intentional for development/staging environments with self-signed certificates
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# Disable SSL warnings for internal audit requests
+warnings.simplefilter("ignore", InsecureRequestWarning)
 
 OUT = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 with open(OUT / 'staging_routes.json', 'r') as f:

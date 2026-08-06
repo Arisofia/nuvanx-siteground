@@ -56,6 +56,14 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Validate workflow and deployment contracts
         shell: bash
         run: |
@@ -283,6 +291,27 @@ jobs:
           test "$deployed_sha" = "$DEPLOY_SHA"
           echo "Verified staging2 marker: $deployed_sha"
 
+      - name: Set up Node.js for tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Cache Playwright binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('scripts/staging2/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: scripts/staging2/node_modules
+          key: ${{ runner.os }}-node-staging2-${{ hashFiles('scripts/staging2/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-staging2-
+
       - name: Run browser acceptance tests
         continue-on-error: true
         shell: bash
@@ -305,6 +334,7 @@ jobs:
           name: browser-acceptance-results
           path: scripts/staging2/playwright-report/
           retention-days: 7
+          if-no-files-found: warn
 
       - name: Configure SSH for cleanup
         if: always()

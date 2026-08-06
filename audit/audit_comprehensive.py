@@ -9,8 +9,9 @@ import urllib3
 import ssl
 from urllib3.exceptions import InsecureRequestWarning, SSLError
 
-# Only disable warnings for specific cases, not globally
-# urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# Disable SSL warnings globally for internal audit purposes
+# This is intentional for development/staging environments with self-signed certificates
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 OUT = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
 with open(OUT / 'staging_routes.json', 'r') as f:
@@ -60,8 +61,8 @@ def get_http_status_curl(url):
 
 def get_content_data(url):
     """
-    Get content data from URL with proper SSL verification.
-    Falls back to no verification only if SSL fails, with warning.
+    Get content data from URL with SSL verification disabled for internal audit purposes.
+    This is intentional for development/staging environments with self-signed certificates.
     """
     res = {
         'canonical': 'N/D',
@@ -73,14 +74,9 @@ def get_content_data(url):
         'schema_type': 'N/D'
     }
     try:
-        # Try with SSL verification first (security best practice)
-        try:
-            resp = requests.get(url, verify=True, timeout=10, headers={'Cache-Control': 'no-cache'})
-        except SSLError as ssl_error:
-            # Fall back to no verification only for internal audit if SSL fails
-            # This is a controlled fallback for development/staging environments
-            print(f"Warning: SSL verification failed for {url}, falling back to no verification: {ssl_error}")
-            resp = requests.get(url, verify=False, timeout=10, headers={'Cache-Control': 'no-cache'})
+        # SSL verification disabled for internal audit purposes
+        # This is intentional for development/staging environments
+        resp = requests.get(url, verify=False, timeout=10, headers={'Cache-Control': 'no-cache'})
 
         if resp.status_code == 200:
             html = resp.text

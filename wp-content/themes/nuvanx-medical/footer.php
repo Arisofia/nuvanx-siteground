@@ -132,8 +132,19 @@ if ( is_array( $nvx_footer_published_treatments ) && ! empty( $nvx_footer_publis
 	</div>
 </footer>
 
+<?php
+// Close nvx-brand-page wrapper only if it was opened in header.php
+$has_standard_wrapper = false;
+if (is_page()) {
+	$post_id = get_the_ID();
+	$content = get_post_field('post_content', $post_id);
+	$has_standard_wrapper = (bool) preg_match('/class=["\'][^"\']*entry-content[^"\']*nvx-prose/iu', $content);
+}
+
+if (!$has_standard_wrapper) :
+?>
 		</div><!-- .nvx-brand-page -->
-	</main>
+<?php endif; ?>
 
 <?php wp_footer(); ?>
 

@@ -424,7 +424,7 @@ function nvx_signature_hub_contour_cards(): array {
  */
 function nvx_signature_hub_shell_open( array $hub ): string {
 	$valoracion = esc_url( nvx_signature_valoracion_url() );
-	$html       = '<article class="nvx-brand-page nvx-brand-page--signature nvx-signature-hub" data-nvx-signature-hub="' . esc_attr( (string) ( $hub['kind'] ?? '' ) ) . '">';
+	$html       = '<div class="entry-content nvx-page__content nvx-prose">';
 	$html      .= '<section class="nvx-brand-hero" aria-labelledby="nvx-signature-hub-h1"><div class="nvx-brand-hero__inner"><div class="nvx-brand-hero__copy">';
 	$html      .= '<p class="nvx-brand-kicker">' . esc_html( (string) ( $hub['kicker'] ?? '' ) ) . '</p>';
 	$html      .= '<h1 id="nvx-signature-hub-h1" class="nvx-brand-hero__title">' . esc_html( (string) ( $hub['h1'] ?? '' ) ) . '</h1>';
@@ -446,7 +446,7 @@ function nvx_signature_hub_shell_close(): string {
 	$html .= '<h2>' . esc_html__( 'Tu primera valoración clínica', 'nuvanx-medical' ) . '</h2>';
 	$html .= '<p>' . esc_html__( 'La valoración revisa antecedentes, anatomía, tejido predominante, tratamientos previos y expectativas. Si no existe una indicación proporcionada, se explica la alternativa, la derivación o la decisión de no intervenir.', 'nuvanx-medical' ) . '</p>';
 	$html .= '<p><a class="nvx-brand-btn nvx-brand-btn--primary" href="' . esc_url( nvx_signature_valoracion_url() ) . '">' . esc_html__( 'Iniciar valoración médica', 'nuvanx-medical' ) . '</a></p>';
-	$html .= '</div></section></article>';
+	$html .= '</div></section></div>';
 	return $html;
 }
 
@@ -535,13 +535,15 @@ function nvx_signature_hub_markup( array $hub ): string {
 
 /** Replace thin CMS hub shells with theme-owned Signature hub markup. */
 function nvx_signature_hub_filter_content( string $content ): string {
-	$should_replace = ! is_admin() && is_main_query() && in_the_loop() && is_page();
-	if ( ! $should_replace ) {
+	// Check if this is the Protocolos Signature page by ID
+	$current_id = get_the_ID();
+	
+	if ( 3369 !== $current_id ) {
 		return $content;
 	}
-
-	$key = nvx_signature_hub_current_key( $content );
-	$hub = ( null !== $key ) ? ( nvx_signature_hub_catalog()[ $key ] ?? null ) : null;
+	
+	// Get the hub data directly for signature-index
+	$hub = nvx_signature_hub_catalog()['signature-index'] ?? null;
 	if ( ! is_array( $hub ) ) {
 		return $content;
 	}

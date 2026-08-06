@@ -376,16 +376,8 @@ function nvx_content_restructure_aesthetic_medicine_page( string $content ): str
 	$body = nvx_aesthetic_editorial_body_markup();
 	$out  = $hero . $body;
 
-	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
-		return nvx_page_render_brand_wrapper( $content, $out, 'nvx-brand-page nvx-brand-page--medicina-estetica' );
-	}
-
-	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
-		$out = $wrap[1] . $out . '</div>';
-	} else {
-		$out = '<div class="nvx-brand-page nvx-brand-page--medicina-estetica">' . $out . '</div>';
-	}
-
-	return $out;
+	// Use standard wrapper like soluciones-medicas for consistent margins
+	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
+	return $standard_wrapper . $out . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_aesthetic_medicine_page', NVX_HOOK_PRIO_AESTHETIC_MEDICINE );

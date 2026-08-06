@@ -152,21 +152,61 @@ while ( have_posts() ) :
 	<?php endif; ?>
 
 	<?php
-	$no_prose_wrap = empty( $shell_with_wrap ) || $has_managed_editorial;
-	if ( ! $no_prose_wrap ) :
-		?>
-		<div class="entry-content nvx-page__content nvx-prose">
-	<?php endif; ?>
-		<?php
-		if ( ! empty( $shell_content ) ) {
-			echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source.
+	// Check if post_content already has standard wrapper
+	$has_standard_wrapper = (bool) preg_match( '/class=["\'][^"\']*entry-content[^"\']*nvx-prose/iu', $content );
+	
+	// EXION BTL page needs standard prose wrapper for consistent margins
+	$is_exion_btl = is_page() && 'exion-btl' === get_post_field( 'post_name', get_the_ID() );
+	// Protocolos Signature page needs special handling
+	$is_signature_hub = is_page() && 'protocolos-signature' === get_post_field( 'post_name', get_the_ID() );
+	
+	// For Protocolos Signature, generate content dynamically
+	if ( $is_signature_hub ) {
+		if ( function_exists( 'nvx_signature_hub_markup' ) ) {
+			$hub = nvx_signature_hub_catalog()['signature-index'] ?? null;
+			if ( is_array( $hub ) ) {
+				echo nvx_signature_hub_markup( $hub ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source.
+			} else {
+				the_content();
+			}
 		} else {
 			the_content();
 		}
-		?>
-	<?php if ( ! $no_prose_wrap ) : ?>
-		</div>
-	<?php endif; ?>
+		$no_prose_wrap = true; // Skip the prose wrapper since content already has it
+	} else {
+		// Force prose wrap for EXION BTL regardless of other conditions
+		if ( $is_exion_btl ) {
+			$no_prose_wrap = false;
+		} else {
+			$no_prose_wrap = empty( $shell_with_wrap ) || $has_managed_editorial || $has_standard_wrapper;
+		}
+		
+		// If post_content already has the full standard wrapper, render it directly without additional processing
+		if ( $has_standard_wrapper && strpos($content, '<div class="entry-content nvx-page__content nvx-prose">') === 0 ) {
+			echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source.
+		} else {
+			if ( ! $no_prose_wrap ) {
+			?>
+				<div class="entry-content nvx-page__content nvx-prose">
+			<?php
+			}
+			?>
+				<?php
+				if ( ! empty( $shell_content ) ) {
+					echo $shell_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- theme-built HTML already escaped at source.
+				} else {
+					the_content();
+				}
+				?>
+			<?php
+			if ( ! $no_prose_wrap ) {
+			?>
+				</div>
+			<?php
+			}
+		}
+	}
+	?>
 
 	<?php if ( is_single() ) : ?>
 		<nav class="nvx-page__nav" aria-label="<?php esc_attr_e( 'Navegación entre artículos', 'nuvanx-medical' ); ?>">

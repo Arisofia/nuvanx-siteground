@@ -460,11 +460,9 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		}
 	}
 
-	return nvx_page_render_brand_wrapper(
-		$content,
-		$built,
-		'nvx-brand-page ' . $modifier
-	);
+	// Use standard wrapper like soluciones-medicas for consistent margins
+	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
+	return $standard_wrapper . $built . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_btl_detail_page', NVX_HOOK_PRIO_BTL_DETAIL );
 

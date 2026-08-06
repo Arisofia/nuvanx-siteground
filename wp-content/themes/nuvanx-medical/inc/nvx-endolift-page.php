@@ -336,14 +336,8 @@ function nvx_content_restructure_endolift_page( string $content ): string {
 
 	$body = nvx_endolift_editorial_body_markup();
 
-	if ( function_exists( 'nvx_page_render_brand_wrapper' ) ) {
-		return nvx_page_render_brand_wrapper( $content, $hero . $body, 'nvx-brand-page nvx-brand-page--endolift' );
-	}
-
-	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
-		return $wrap[1] . $hero . $body . '</div>';
-	}
-
-	return '<div class="nvx-brand-page nvx-brand-page--endolift">' . $hero . $body . '</div>';
+	// Use standard wrapper like soluciones-medicas for consistent margins
+	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
+	return $standard_wrapper . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolift_page', 21 );

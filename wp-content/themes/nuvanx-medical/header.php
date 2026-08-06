@@ -88,4 +88,17 @@ defined( 'ABSPATH' ) || exit;
 <?php endif; ?>
 
 <main id="nvx-main" class="nvx-main" role="main" tabindex="-1">
-	<div class="nvx-brand-page">
+	<?php
+	// Check if current page has standard wrapper in post_content
+	$has_standard_wrapper = false;
+	if (is_page()) {
+		$post_id = get_the_ID();
+		$content = get_post_field('post_content', $post_id);
+		$has_standard_wrapper = (bool) preg_match('/class=["\'][^"\']*entry-content[^"\']*nvx-prose/iu', $content);
+	}
+	
+	// Only add nvx-brand-page wrapper if post_content doesn't have standard wrapper
+	if (!$has_standard_wrapper) :
+	?>
+		<div class="nvx-brand-page">
+	<?php endif; ?>

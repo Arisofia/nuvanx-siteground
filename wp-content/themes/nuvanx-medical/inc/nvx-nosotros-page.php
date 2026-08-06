@@ -355,15 +355,9 @@ function nvx_content_restructure_nosotros_page( string $content ): string {
 
 	$body = nvx_nosotros_editorial_body_markup();
 
-	if ( preg_match( '/(<div class="nvx-brand-page[^"]*"[^>]*>)/iu', $content, $wrap ) ) {
-		$open = $wrap[1];
-		if ( false === strpos( $open, 'nvx-brand-page--nosotros' ) ) {
-			$open = preg_replace( '/\bclass=(["\'])/u', 'class=$1nvx-brand-page--nosotros ', $open, 1 ) ?? $open;
-		}
-		return $open . $hero . $body . '</div>';
-	}
-
-	return '<div class="nvx-brand-page nvx-brand-page--nosotros">' . $hero . $body . '</div>';
+	// Use standard wrapper like soluciones-medicas for consistent margins
+	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
+	return $standard_wrapper . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_nosotros_page', NVX_HOOK_PRIO_NOSOTROS );
 

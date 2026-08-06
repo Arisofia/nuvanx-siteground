@@ -202,10 +202,8 @@ function nvx_content_restructure_endolaser_page( string $content ): string {
 
 	$body = nvx_endolaser_editorial_body_markup();
 
-	return nvx_page_render_brand_wrapper(
-		$content,
-		$hero . $body,
-		'nvx-brand-page nvx-brand-page--endolaser'
-	);
+	// Use standard wrapper like soluciones-medicas for consistent margins
+	$standard_wrapper = '<div class="entry-content nvx-page__content nvx-prose">';
+	return $standard_wrapper . $hero . $body . '</div>';
 }
 add_filter( 'the_content', 'nvx_content_restructure_endolaser_page', NVX_HOOK_PRIO_ENDOLASER );

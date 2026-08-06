@@ -291,7 +291,7 @@ def fetch_url_audit_data(url, session=None):
         return "Error", dict(default_content)
 
     try:
-        resp = _follow_redirects_safely(session, url, method="get", stream=True)
+        resp = _follow_redirects_safely(session, url, stream=True)
         if resp is None:
             return "Error", dict(default_content)
 

@@ -349,9 +349,9 @@ require_once get_template_directory() . '/inc/nvx-que-exigir-page.php';
 add_action( 'template_redirect', function() {
 	if ( ! is_admin() ) {
 		ob_start( function( $buffer ) {
-			// Remove the opening and closing nvx-main-shell div tags
-			$buffer = preg_replace( '/<div class="nvx-main-shell"[^>]*>/', '', $buffer );
-			$buffer = preg_replace( '/<\/div>\s*(?=<\/div>\s*$)/', '', $buffer ); // Remove orphaned closing div
+			// Remove the opening and closing nvx-main-shell div tags with balanced matching
+			$pattern = '/<div class="nvx-main-shell"[^>]*>([\s\S]*?)<\/div>/';
+			$buffer = preg_replace( $pattern, '$1', $buffer );
 			return $buffer;
 		}, 999 );
 	}

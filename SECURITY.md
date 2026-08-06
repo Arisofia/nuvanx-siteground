@@ -26,6 +26,7 @@
 ## Security Incident Log
 
 ### July 2026 Incident & Remediation
+
 - **Incident Summary:** Detection of exposed credentials in historical git commits (`refs/pull/*/head` refs).
 - **Remediation Actions Taken:**
   1. Revoked and rotated DB credentials and SSH deployment keys on SiteGround.

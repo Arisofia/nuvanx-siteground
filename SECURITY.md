@@ -23,6 +23,16 @@
 - Revolve all related credentials (SiteGround, any services using same key)
 - Document incident in SECURITY.md
 
+## Security Incident Log
+
+### July 2026 Incident & Remediation
+- **Incident Summary:** Detection of exposed credentials in historical git commits (`refs/pull/*/head` refs).
+- **Remediation Actions Taken:**
+  1. Revoked and rotated DB credentials and SSH deployment keys on SiteGround.
+  2. Externalized all production configurations and secrets from codebase tracking.
+  3. Purged sensitive refs from `origin` repository.
+  4. Submitted GitHub Support Ticket to purge cached `refs/pull/*/head` objects on GitHub servers.
+
 ### Secret Management
 
 **GitHub Secrets (staging2):**

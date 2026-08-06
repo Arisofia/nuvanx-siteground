@@ -5,33 +5,33 @@ on:
     branches:
       - master
     paths:
-      - ".github/workflows/deploy-staging2.yml"
-      - ".github/actions/destroy-ssh-identity/action.yml"
-      - "tools/deploy/deploy-to-staging2.sh"
-      - "tools/deploy/deploy-required-mu-plugins.sh"
-      - "tools/wp-cli/hygiene-content-fix.php"
-      - "scripts/staging2/browser-acceptance.mjs"
-      - "scripts/lint/no-hardcoded-colors.mjs"
-      - "scripts/lint/no-hardcoded-fontsize.mjs"
-      - "scripts/lint/no-inline-layout-styles.mjs"
-      - "wp-content/themes/nuvanx-medical/**"
-      - "wp-content/mu-plugins/**"
-      - "docs/operations/deployment.md"
+      - '.github/workflows/deploy-staging2.yml'
+      - '.github/actions/destroy-ssh-identity/action.yml'
+      - 'tools/deploy/deploy-to-staging2.sh'
+      - 'tools/deploy/deploy-required-mu-plugins.sh'
+      - 'tools/wp-cli/hygiene-content-fix.php'
+      - 'scripts/staging2/browser-acceptance.mjs'
+      - 'scripts/lint/no-hardcoded-colors.mjs'
+      - 'scripts/lint/no-hardcoded-fontsize.mjs'
+      - 'scripts/lint/no-inline-layout-styles.mjs'
+      - 'wp-content/themes/nuvanx-medical/**'
+      - 'wp-content/mu-plugins/**'
+      - 'docs/operations/deployment.md'
   workflow_dispatch:
   pull_request:
     paths:
-      - ".github/workflows/deploy-staging2.yml"
-      - ".github/actions/destroy-ssh-identity/action.yml"
-      - "tools/deploy/deploy-to-staging2.sh"
-      - "tools/deploy/deploy-required-mu-plugins.sh"
-      - "tools/wp-cli/hygiene-content-fix.php"
-      - "scripts/staging2/browser-acceptance.mjs"
-      - "scripts/lint/no-hardcoded-colors.mjs"
-      - "scripts/lint/no-hardcoded-fontsize.mjs"
-      - "scripts/lint/no-inline-layout-styles.mjs"
-      - "wp-content/themes/nuvanx-medical/**"
-      - "wp-content/mu-plugins/**"
-      - "docs/operations/deployment.md"
+      - '.github/workflows/deploy-staging2.yml'
+      - '.github/actions/destroy-ssh-identity/action.yml'
+      - 'tools/deploy/deploy-to-staging2.sh'
+      - 'tools/deploy/deploy-required-mu-plugins.sh'
+      - 'tools/wp-cli/hygiene-content-fix.php'
+      - 'scripts/staging2/browser-acceptance.mjs'
+      - 'scripts/lint/no-hardcoded-colors.mjs'
+      - 'scripts/lint/no-hardcoded-fontsize.mjs'
+      - 'scripts/lint/no-inline-layout-styles.mjs'
+      - 'wp-content/themes/nuvanx-medical/**'
+      - 'wp-content/mu-plugins/**'
+      - 'docs/operations/deployment.md'
 
 permissions:
   contents: read
@@ -54,7 +54,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: '22'
 
       - name: Validate workflow and deployment contracts
         shell: bash
@@ -284,6 +284,7 @@ jobs:
           echo "Verified staging2 marker: $deployed_sha"
 
       - name: Run browser acceptance tests
+        continue-on-error: true
         shell: bash
         env:
           EXPECTED_SHA: ${{ github.sha }}
@@ -294,8 +295,16 @@ jobs:
           cd scripts/staging2
           npm install
           npx playwright install --with-deps chromium
-          node browser-acceptance.mjs || true
+          node browser-acceptance.mjs
           echo "Acceptance tests completed."
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-acceptance-results
+          path: scripts/staging2/playwright-report/
+          retention-days: 7
 
       - name: Configure SSH for cleanup
         if: always()

@@ -148,8 +148,10 @@ while ( have_posts() ) :
 		</header>
 	<?php endif; ?>
 
-	<?php // No shell/page wrapper div — gutters live on section inners (global design). ?>
-	<?php if ( empty( $shell_no_wrap ) ) : ?>
+	<?php
+	$no_prose_wrap = ! empty( $shell_no_wrap ) || $has_managed_editorial;
+	if ( ! $no_prose_wrap ) :
+		?>
 		<div class="entry-content nvx-page__content nvx-prose">
 	<?php endif; ?>
 		<?php
@@ -159,7 +161,7 @@ while ( have_posts() ) :
 			the_content();
 		}
 		?>
-	<?php if ( empty( $shell_no_wrap ) ) : ?>
+	<?php if ( ! $no_prose_wrap ) : ?>
 		</div>
 	<?php endif; ?>
 

@@ -35,7 +35,7 @@ function nvx_theme_is_blog_context(): bool {
 	}
 
 	return is_home()
-		|| is_single()
+		|| is_singular( 'post' )
 		|| is_category()
 		|| is_tag()
 		|| is_date()

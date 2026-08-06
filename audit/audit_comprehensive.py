@@ -76,6 +76,7 @@ def _parse_schema_types(soup):
     return '; '.join(sorted(set(types))) if types else 'N/D'
 
 def _follow_redirects_safely(session, url, method="get", stream=False):
+    session = session or SESSION
     fetch = session.get if method == "get" else session.head
     kwargs = {"verify": VERIFY_SSL, "timeout": 10, "headers": {'Cache-Control': 'no-cache'}, "allow_redirects": False}
     if stream:
@@ -126,11 +127,12 @@ def _parse_html_fields(html):
         'schema_type': _parse_schema_types(soup)
     }
 
-def fetch_url_audit_data(url, session=SESSION):
+def fetch_url_audit_data(url, session=None):
     """
     Fetches status and content data in a single HTTP pass per URL.
     Returns (status_code_str, content_dict).
     """
+    session = session or SESSION
     default_content = {
         'canonical': 'N/D',
         'robots': 'N/D',
@@ -161,10 +163,11 @@ def fetch_url_audit_data(url, session=SESSION):
         print(f"Error fetching {url}: {e}")
         return "Error", dict.fromkeys(default_content, 'Error')
 
-def get_http_status(url, session=SESSION):
+def get_http_status(url, session=None):
     """
     Get HTTP status using a lightweight HEAD request with SSL verification.
     """
+    session = session or SESSION
     if not is_safe_audit_url(url):
         return "Error"
     try:
@@ -175,7 +178,8 @@ def get_http_status(url, session=SESSION):
     except Exception:
         return "Error"
 
-def get_content_data(url, session=SESSION):
+def get_content_data(url, session=None):
+    session = session or SESSION
     _, content = fetch_url_audit_data(url, session=session)
     return content
 
@@ -186,64 +190,68 @@ def get_gap_tipo(p_status, s_status):
     if p_status == '200' and s_status == '200': return 'coincide'
     return 'inconsistente'
 
-results = []
-print(f"Iniciando auditoría robusta de {len(SLUGS)} URLs...")
+def run_audit():
+    results = []
+    print(f"Iniciando auditoría robusta de {len(SLUGS)} URLs...")
 
-for i, slug in enumerate(SLUGS):
-    p_url = f"{PROD_BASE.rstrip('/')}/{slug.lstrip('/')}"
-    s_url = f"{STAG_BASE.rstrip('/')}/{slug.lstrip('/')}"
-    
-    print(f"Auditando ({i+1}/{len(SLUGS)}): /{slug}")
+    for i, slug in enumerate(SLUGS):
+        p_url = f"{PROD_BASE.rstrip('/')}/{slug.lstrip('/')}"
+        s_url = f"{STAG_BASE.rstrip('/')}/{slug.lstrip('/')}"
+        
+        print(f"Auditando ({i+1}/{len(SLUGS)}): /{slug}")
 
-    p_status, p_content = fetch_url_audit_data(p_url)
-    s_status, s_content = fetch_url_audit_data(s_url)
-    
-    gap_tipo = get_gap_tipo(p_status, s_status)
-    
-    row = {
-        'slug': slug,
-        'gap_tipo': gap_tipo,
-        'prod_status': p_status,
-        'stag_status': s_status,
-        'prod_h1': p_content['h1'],
-        'stag_h1': s_content['h1'],
-        'prod_price': p_content['price'],
-        'stag_price': s_content['price'],
-        'prod_faq': p_content['faq'],
-        'stag_faq': s_content['faq'],
-        'prod_canonical': p_content['canonical'],
-        'stag_canonical': s_content['canonical'],
-        'prod_robots': p_content['robots'],
-        'stag_robots': s_content['robots'],
-        'prod_doctor': p_content['doctor'],
-        'stag_doctor': s_content['doctor'],
-        'prod_schema': p_content['schema_type'],
-        'stag_schema': s_content['schema_type']
-    }
-    results.append(row)
-    
-    if (i + 1) % 10 == 0:
-        print(f"\n--- CORTE PROGRESO: {i+1} PÁGINAS ---")
-        last_10 = results[-10:]
-        summary = {
-            'coincide': sum(1 for r in last_10 if r['gap_tipo'] == 'coincide'),
-            'drift_falta_produccion': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_produccion'),
-            'drift_falta_staging': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_staging'),
-            'contenido_falta_ambos': sum(1 for r in last_10 if r['gap_tipo'] == 'contenido_falta_ambos'),
-            'inconsistente': sum(1 for r in last_10 if r['gap_tipo'] == 'inconsistente')
+        p_status, p_content = fetch_url_audit_data(p_url)
+        s_status, s_content = fetch_url_audit_data(s_url)
+        
+        gap_tipo = get_gap_tipo(p_status, s_status)
+        
+        row = {
+            'slug': slug,
+            'gap_tipo': gap_tipo,
+            'prod_status': p_status,
+            'stag_status': s_status,
+            'prod_h1': p_content['h1'],
+            'stag_h1': s_content['h1'],
+            'prod_price': p_content['price'],
+            'stag_price': s_content['price'],
+            'prod_faq': p_content['faq'],
+            'stag_faq': s_content['faq'],
+            'prod_canonical': p_content['canonical'],
+            'stag_canonical': s_content['canonical'],
+            'prod_robots': p_content['robots'],
+            'stag_robots': s_content['robots'],
+            'prod_doctor': p_content['doctor'],
+            'stag_doctor': s_content['doctor'],
+            'prod_schema': p_content['schema_type'],
+            'stag_schema': s_content['schema_type']
         }
-        print(json.dumps(summary, indent=2))
-        with (OUT / 'nuvanx_drift_partial.csv').open('w', encoding='utf-8-sig', newline='') as f:
-            writer = csv.DictWriter(f, fieldnames=row.keys())
+        results.append(row)
+        
+        if (i + 1) % 10 == 0:
+            print(f"\n--- CORTE PROGRESO: {i+1} PÁGINAS ---")
+            last_10 = results[-10:]
+            summary = {
+                'coincide': sum(1 for r in last_10 if r['gap_tipo'] == 'coincide'),
+                'drift_falta_produccion': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_produccion'),
+                'drift_falta_staging': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_staging'),
+                'contenido_falta_ambos': sum(1 for r in last_10 if r['gap_tipo'] == 'contenido_falta_ambos'),
+                'inconsistente': sum(1 for r in last_10 if r['gap_tipo'] == 'inconsistente')
+            }
+            print(json.dumps(summary, indent=2))
+            with (OUT / 'nuvanx_drift_partial.csv').open('w', encoding='utf-8-sig', newline='') as f:
+                writer = csv.DictWriter(f, fieldnames=row.keys())
+                writer.writeheader()
+                writer.writerows(results)
+            print("Resultados parciales guardados.\n")
+
+    if results:
+        with (OUT / 'nuvanx_drift_final.csv').open('w', encoding='utf-8-sig', newline='') as f:
+            writer = csv.DictWriter(f, fieldnames=results[0].keys())
             writer.writeheader()
             writer.writerows(results)
-        print("Resultados parciales guardados.\n")
+        print("Auditoría integral completada exitosamente.")
+    else:
+        print("No se procesaron rutas (la lista de rutas estaba vacía). Auditoría finalizada sin crear CSV.")
 
-if results:
-    with (OUT / 'nuvanx_drift_final.csv').open('w', encoding='utf-8-sig', newline='') as f:
-        writer = csv.DictWriter(f, fieldnames=results[0].keys())
-        writer.writeheader()
-        writer.writerows(results)
-    print("Auditoría integral completada exitosamente.")
-else:
-    print("No se procesaron rutas (la lista de rutas estaba vacía). Auditoría finalizada sin crear CSV.")
+if __name__ == '__main__':
+    run_audit()

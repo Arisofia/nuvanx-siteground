@@ -78,11 +78,9 @@ ALLOWED_AUDIT_HOSTS = {"nuvanx.com", "staging2.nuvanx.com"}
 VERIFY_SSL = os.environ.get("AUDIT_VERIFY_SSL", "").strip().lower() != "false"
 if not VERIFY_SSL:
     print("WARNING: AUDIT_VERIFY_SSL=false is active. TLS certificate verification is disabled for this audit run.")
-    try:
+    with suppress(Exception):
         import urllib3
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    except Exception:
-        pass
 
 SESSION = requests.Session()
 # Disable implicit authentication from .netrc and unvetted proxies by default for security
@@ -99,9 +97,7 @@ def is_safe_audit_url(url):
     if parsed.params or parsed.query or parsed.fragment:
         return False
     host = parsed.hostname.lower()
-    if host not in ALLOWED_AUDIT_HOSTS:
-        return False
-    return True
+    return host in ALLOWED_AUDIT_HOSTS
 
 TYPE_KEY = '@type'
 GRAPH_KEY = '@graph'
@@ -192,10 +188,8 @@ def _parse_charset_from_tag(meta_tag):
         else:
             break
     if charset_bytes:
-        try:
+        with suppress(Exception):
             return charset_bytes.decode('ascii')
-        except Exception:
-            pass
     return None
 
 def _sniff_meta_charset(head_bytes):
@@ -212,8 +206,7 @@ def _sniff_meta_charset(head_bytes):
     return None
 
 def _resolve_response_encoding(resp, raw_bytes):
-    encoding = resp.encoding
-    if encoding:
+    if encoding := resp.encoding:
         enc_lower = encoding.lower()
         if enc_lower not in ('iso-8859-1', 'latin-1'):
             # Unambiguous non-default charset from server — trust it.

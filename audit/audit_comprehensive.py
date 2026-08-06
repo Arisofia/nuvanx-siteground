@@ -110,10 +110,11 @@ def _parse_schema_types(soup):
     scripts = soup.find_all('script', type='application/ld+json')
     types = []
     for s in scripts:
-        if not s.string:
+        raw_text = s.get_text(strip=True)
+        if not raw_text:
             continue
         try:
-            data = json.loads(s.string)
+            data = json.loads(raw_text)
             types.extend(_extract_types_from_obj(data))
         except Exception:
             continue

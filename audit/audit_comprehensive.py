@@ -227,12 +227,6 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
             break
     raw_bytes = b''.join(chunks)[:max_bytes]
     encoding = _resolve_response_encoding(resp, raw_bytes)
-    
-    try:
-        if not resp.raw.closed:
-            resp.raw.read(65536)
-    except Exception:
-        pass
     try:
         return raw_bytes.decode(encoding, errors='replace')
     except Exception:

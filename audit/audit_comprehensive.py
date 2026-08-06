@@ -166,23 +166,29 @@ def _read_bounded_response_text(resp, max_bytes=1000000):
         encoding = None
         # Sniff HTML meta charset without polynomial regex by checking head_bytes directly
         head_bytes = raw_bytes[:4096].lower()
-        idx = head_bytes.find(b'charset=')
-        if idx != -1:
-            snippet = head_bytes[idx + 8:idx + 40]
-            # Strip quotes if present
-            snippet = snippet.lstrip(b'"\'')
-            # Extract ascii charset chars linearly
-            charset_bytes = bytearray()
-            for b in snippet:
-                if (ord('a') <= b <= ord('z')) or (ord('0') <= b <= ord('9')) or b in (ord('-'), ord('_')):
-                    charset_bytes.append(b)
-                else:
-                    break
-            if charset_bytes:
-                try:
-                    encoding = charset_bytes.decode('ascii')
-                except Exception:
-                    encoding = None
+        # Look specifically for <meta ... charset= to avoid matching scripts/links
+        meta_idx = head_bytes.find(b'<meta')
+        while meta_idx != -1:
+            meta_end = head_bytes.find(b'>', meta_idx)
+            if meta_end == -1:
+                break
+            meta_tag = head_bytes[meta_idx:meta_end]
+            charset_idx = meta_tag.find(b'charset=')
+            if charset_idx != -1:
+                snippet = meta_tag[charset_idx + 8:charset_idx + 40].lstrip(b'"\'')
+                charset_bytes = bytearray()
+                for b in snippet:
+                    if (ord('a') <= b <= ord('z')) or (ord('0') <= b <= ord('9')) or b in (ord('-'), ord('_')):
+                        charset_bytes.append(b)
+                    else:
+                        break
+                if charset_bytes:
+                    try:
+                        encoding = charset_bytes.decode('ascii')
+                        break
+                    except Exception:
+                        encoding = None
+            meta_idx = head_bytes.find(b'<meta', meta_end)
         if not encoding:
             encoding = 'utf-8' if header_encoding else 'utf-8'
     try:

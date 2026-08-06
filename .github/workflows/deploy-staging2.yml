@@ -38,7 +38,7 @@ permissions:
 
 concurrency:
   group: staging2-deployment
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   contract:

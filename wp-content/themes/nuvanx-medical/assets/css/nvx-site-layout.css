@@ -88,6 +88,44 @@
   box-sizing: border-box;
 }
 
+/* Ensure signature pages have responsive container */
+.nvx-brand-page--signature,
+.nvx-signature-hub,
+.nvx-signature-phase-page {
+  width: 100%;
+  max-width: var(--nvx-shell);
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+.nvx-brand-page--signature > .nvx-brand-section,
+.nvx-signature-hub > .nvx-brand-section,
+.nvx-signature-phase-page > .nvx-brand-section {
+  width: 100%;
+  max-width: 100%;
+  padding-inline: 0;
+}
+
+.nvx-brand-page--signature > .nvx-brand-section > .nvx-brand-section__inner,
+.nvx-signature-hub > .nvx-brand-section > .nvx-brand-section__inner,
+.nvx-signature-phase-page > .nvx-brand-section > .nvx-brand-section__inner {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
+/* Strategy intro section needs responsive width */
+.nvx-strategy-intro {
+  width: var(--nvx-shell);
+  max-width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--nvx-gutter-inner);
+  box-sizing: border-box;
+}
+
 /*
  * Post-hero clinical intro is emitted as a normal brand-section
  * (.nvx-hero-intro) so gutters match Chamberí / hub / treatment sections.

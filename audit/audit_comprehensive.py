@@ -247,14 +247,13 @@ def run_audit():
         results.append(row)
         
         if (i + 1) % 10 == 0:
-            print(f"\n--- CORTE PROGRESO: {i+1} PÁGINAS ---")
-            last_10 = results[-10:]
+            print(f"\n--- CORTE PROGRESO ({i+1}/{len(SLUGS)} PÁGINAS) ---")
             summary = {
-                'coincide': sum(1 for r in last_10 if r['gap_tipo'] == 'coincide'),
-                'drift_falta_produccion': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_produccion'),
-                'drift_falta_staging': sum(1 for r in last_10 if r['gap_tipo'] == 'drift_falta_staging'),
-                'contenido_falta_ambos': sum(1 for r in last_10 if r['gap_tipo'] == 'contenido_falta_ambos'),
-                'inconsistente': sum(1 for r in last_10 if r['gap_tipo'] == 'inconsistente')
+                'coincide': sum(1 for r in results if r['gap_tipo'] == 'coincide'),
+                'drift_falta_produccion': sum(1 for r in results if r['gap_tipo'] == 'drift_falta_produccion'),
+                'drift_falta_staging': sum(1 for r in results if r['gap_tipo'] == 'drift_falta_staging'),
+                'contenido_falta_ambos': sum(1 for r in results if r['gap_tipo'] == 'contenido_falta_ambos'),
+                'inconsistente': sum(1 for r in results if r['gap_tipo'] == 'inconsistente')
             }
             print(json.dumps(summary, indent=2))
             with (OUT / 'nuvanx_drift_partial.csv').open('w', encoding='utf-8-sig', newline='') as f:

@@ -305,7 +305,7 @@ jobs:
           set -euo pipefail
           echo "Running browser acceptance tests against staging2..."
           cd scripts/staging2
-          npm ci
+          npm ci --ignore-scripts
           npx playwright install --with-deps chromium
           node browser-acceptance.mjs
           echo "Acceptance tests completed."

@@ -18,7 +18,24 @@ import requests
 import os
 
 DEFAULT_OUT_DIR = Path('/home/ubuntu/nuvanx_audit_2026-08-04')
-OUT = Path(os.environ.get("AUDIT_OUT_DIR", str(DEFAULT_OUT_DIR)))
+SAFE_AUDIT_BASE_DIR = Path('/home/ubuntu').resolve()
+
+def _resolve_safe_out_dir():
+    raw_out_dir = os.environ.get("AUDIT_OUT_DIR")
+    if not raw_out_dir:
+        return DEFAULT_OUT_DIR
+
+    candidate = Path(raw_out_dir).expanduser().resolve()
+    if candidate == SAFE_AUDIT_BASE_DIR or SAFE_AUDIT_BASE_DIR in candidate.parents:
+        return candidate
+
+    print(
+        f"WARNING: Ignorando AUDIT_OUT_DIR no seguro: {raw_out_dir}. "
+        f"Usando valor por defecto: {DEFAULT_OUT_DIR}"
+    )
+    return DEFAULT_OUT_DIR
+
+OUT = _resolve_safe_out_dir()
 
 def load_slugs():
     routes_file = OUT / 'staging_routes.json'

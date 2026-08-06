@@ -204,7 +204,8 @@ def _extract_prices_linearly(html):
         euro_idx = html.find('€', start)
         if euro_idx == -1:
             break
-        snippet = html[max(0, euro_idx - 25):euro_idx].rstrip()
+        # Expand window backwards to avoid truncating long numbers
+        snippet = html[max(0, euro_idx - 50):euro_idx].rstrip()
         num_chars = []
         for char in reversed(snippet):
             if char.isdigit() or char in '.,':
@@ -213,8 +214,11 @@ def _extract_prices_linearly(html):
                 break
         if num_chars:
             num_str = ''.join(reversed(num_chars)).strip('.,')
+            # Validate number format: digits with at most one decimal separator (dot or comma)
             if num_str:
-                prices.append(f"{num_str} €")
+                dots_commas = num_str.count('.') + num_str.count(',')
+                if dots_commas <= 2 and any(c.isdigit() for c in num_str):
+                    prices.append(f"{num_str} €")
         start = euro_idx + 1
     return prices
 

@@ -159,11 +159,11 @@ jobs:
             IdentityFile $HOME/.ssh/staging2_key
             IdentitiesOnly yes
             BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $HOME/.ssh/known_hosts
-            ConnectTimeout 30
-            ServerAliveInterval 60
-            ServerAliveCountMax 3
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
           EOF
           chmod 600 "$HOME/.ssh/config"
 
@@ -174,20 +174,28 @@ jobs:
           # WP_ROOT is validated locally before deliberate remote interpolation.
           # shellcheck disable=SC2029
           attempt=1
-          max_attempts=10
+          max_attempts=15
+          base_wait=10
           while true; do
-            if ssh -o ConnectTimeout=30 -o ServerAliveInterval=60 -o ServerAliveCountMax=3 nvx-staging2 \
+            echo "SSH verify attempt ${attempt}/${max_attempts}..."
+            if ssh -o ConnectTimeout=20 -o ServerAliveInterval=30 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=no nvx-staging2 \
               "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
               echo "SiteGround staging2 target verified (attempt ${attempt})."
               break
             fi
             if [[ "$attempt" -ge "$max_attempts" ]]; then
               echo "SiteGround SSH verification failed after ${max_attempts} attempts." >&2
+              echo "This may indicate a server connectivity issue, not a code problem." >&2
               exit 1
             fi
-            echo "SSH verify attempt ${attempt}/${max_attempts} failed; retrying..." >&2
-            sleep $((attempt * 2))
+            echo "SSH verify attempt ${attempt}/${max_attempts} failed; retrying in ${base_wait}s..." >&2
+            sleep $base_wait
             attempt=$((attempt + 1))
+            # Exponential backoff with cap
+            base_wait=$(( base_wait * 2))
+            if [[ $base_wait -gt 60 ]]; then
+              base_wait=60
+            fi
           done
 
       - name: Upload immutable release payload

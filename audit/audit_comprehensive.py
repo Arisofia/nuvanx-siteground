@@ -108,9 +108,19 @@ def _follow_redirects_safely(session, url, method="get", stream=False):
 
     return resp
 
+def _read_bounded_response_text(resp, max_bytes=1000000):
+    chunks = []
+    total_bytes = 0
+    for chunk in resp.iter_content(chunk_size=16384, decode_unicode=False):
+        chunks.append(chunk)
+        total_bytes += len(chunk)
+        if total_bytes >= max_bytes:
+            break
+    raw_bytes = b''.join(chunks)[:max_bytes]
+    encoding = resp.encoding or 'utf-8'
+    return raw_bytes.decode(encoding, errors='replace')
+
 def _parse_html_fields(html):
-    if len(html) > 1000000:
-        html = html[:1000000]
     soup = BeautifulSoup(html, 'html.parser')
     can = soup.find('link', rel='canonical')
     rob = soup.find('meta', attrs={'name': 'robots'})
@@ -153,7 +163,8 @@ def fetch_url_audit_data(url, session=None):
         try:
             status = str(resp.status_code)
             if resp.status_code == 200:
-                content = _parse_html_fields(resp.text)
+                html = _read_bounded_response_text(resp)
+                content = _parse_html_fields(html)
             else:
                 content = dict(default_content)
         finally:

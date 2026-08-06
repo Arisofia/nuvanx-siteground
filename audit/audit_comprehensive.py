@@ -1,4 +1,3 @@
-import subprocess
 import json
 import csv
 from pathlib import Path
@@ -29,8 +28,6 @@ def is_safe_audit_url(url):
     if not parsed.netloc or not parsed.hostname:
         return False
     if parsed.username or parsed.password:
-        return False
-    if parsed.params or parsed.query or parsed.fragment:
         return False
     host = parsed.hostname.lower()
     if host not in ALLOWED_AUDIT_HOSTS:
@@ -199,13 +196,13 @@ for i, slug in enumerate(SLUGS):
     s_status = get_http_status_curl(s_url)
 
     # Always fetch content regardless of status
-    # This helps catch cases where curl status check might be incorrect
+    # This helps catch cases where HTTP status check might be incomplete
     p_content = get_content_data(p_url)
     s_content = get_content_data(s_url)
     
     # Recalculate status if content fetch succeeded
-    # (Sometimes curl -sI fails but requests.get works)
-    # But for /tratamientos/ we must prioritize the curl check as requested.
+    # (Sometimes HEAD fails but requests.get works)
+    # But for /tratamientos/ we must prioritize the status check as requested.
     
     gap_tipo = get_gap_tipo(p_status, s_status)
     

@@ -14,7 +14,6 @@ Environment Variables:
 import json
 import csv
 from pathlib import Path
-import re
 from bs4 import BeautifulSoup
 import requests
 import os

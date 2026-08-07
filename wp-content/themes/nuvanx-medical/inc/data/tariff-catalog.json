@@ -1,0 +1,133 @@
+{
+  "endolift": {
+    "ojeras": {
+      "label": "Endolift® ojeras",
+      "pvp": 798.60,
+      "group": "facial"
+    },
+    "papada": {
+      "label": "Endolift® papada",
+      "pvp": 1064.80,
+      "group": "facial"
+    },
+    "marcacion_mandibular": {
+      "label": "Endolift® marcación mandibular",
+      "pvp": 1064.80,
+      "group": "facial"
+    },
+    "pomulos": {
+      "label": "Endolift® pómulos",
+      "pvp": 1064.80,
+      "group": "facial"
+    },
+    "cuello": {
+      "label": "Cuello",
+      "pvp": 1197.90,
+      "group": "facial"
+    },
+    "abdomen": {
+      "label": "Endolift® zona abdomen",
+      "pvp": 1694.00,
+      "group": "corporal"
+    },
+    "flancos": {
+      "label": "Endolift® flancos",
+      "pvp": 1573.00,
+      "group": "corporal"
+    },
+    "subescapular": {
+      "label": "Endolift® subescapular / sujetador",
+      "pvp": 1391.50,
+      "group": "corporal"
+    },
+    "brazos": {
+      "label": "Endolift® brazos",
+      "pvp": 1331.00,
+      "group": "corporal"
+    },
+    "rodillas": {
+      "label": "Endolift® rodillas",
+      "pvp": 1197.90,
+      "group": "corporal"
+    },
+    "muslos_internos": {
+      "label": "Endolift® cara interna muslos",
+      "pvp": 1331.00,
+      "group": "corporal"
+    },
+    "subgluteos": {
+      "label": "Subglúteos (bananitos)",
+      "pvp": 1331.00,
+      "group": "corporal"
+    },
+    "cartucheras": {
+      "label": "Endolift® cartucheras",
+      "pvp": 1331.00,
+      "group": "corporal"
+    }
+  },
+  "endolift_combo": {
+    "papada_cuello": {
+      "label": "Papada y cuello",
+      "pvp": 1331.00,
+      "group": "facial"
+    },
+    "marcacion_papada": {
+      "label": "Marcación mandibular y papada",
+      "pvp": 1452.00,
+      "group": "facial"
+    },
+    "full_face": {
+      "label": "Endolift® Full Face (tercio medio, inferior y cuello)",
+      "pvp": 1694.00,
+      "group": "facial"
+    },
+    "abdomen_flancos": {
+      "label": "Abdomen y flancos",
+      "pvp": 2395.80,
+      "group": "corporal"
+    },
+    "subgluteos_cartucheras": {
+      "label": "Subglúteos y cartucheras",
+      "pvp": 1633.50,
+      "group": "corporal"
+    },
+    "muslos_rodilla": {
+      "label": "Cara interna de muslos y rodilla",
+      "pvp": 1573.00,
+      "group": "corporal"
+    },
+    "sujetador_brazos": {
+      "label": "Zona sujetador y brazos",
+      "pvp": 1694.00,
+      "group": "corporal"
+    },
+    "cartucheras_muslos": {
+      "label": "Cartucheras y cara interna de muslos",
+      "pvp": 1815.00,
+      "group": "corporal"
+    }
+  },
+  "laser_co2": {
+    "cara_completa": {
+      "label": "Cara completa",
+      "pvp": 695.50,
+      "group": "facial"
+    },
+    "papada": {
+      "label": "Papada",
+      "pvp": 498.20,
+      "group": "facial"
+    },
+    "cuello": {
+      "label": "Cuello",
+      "pvp": 498.20,
+      "group": "facial"
+    },
+    "manos": {
+      "label": "Manos",
+      "pvp": 498.20,
+      "group": "facial"
+    }
+  }
+}

@@ -1,0 +1,66 @@
+name: Staging2 Integration State Probe
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-integration-state-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh; chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/k; chmod 600 ~/.ssh/k
+          printf '%s\n' "$KH" > ~/.ssh/known_hosts; chmod 600 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile ~/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 ~/.ssh/config
+      - name: Inspect staging isolation state
+        shell: bash
+        run: |
+          ssh nvx "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE'
+          set -u
+          cd "$STAGING_ROOT"
+          echo '=== active ==='
+          wp plugin list --status=active --fields=name,status --format=csv 2>/dev/null || true
+          echo '=== target statuses ==='
+          for p in klaviyo google-site-kit creame-whatsapp-me; do
+            if wp plugin is-active "$p" 2>/dev/null; then echo "$p=ACTIVE"; else echo "$p=INACTIVE"; fi
+          done
+          echo "isolation_mu=$(test -f wp-content/mu-plugins/000-nvx-staging-isolation.php && echo present || echo absent)"
+          echo "meta_dedupe_php=$(test -f wp-content/mu-plugins/nuvanx-meta-dedupe-event-id.php && echo present || echo absent)"
+          echo "meta_dedupe_disabled=$(test -f wp-content/mu-plugins/nuvanx-meta-dedupe-event-id.php.staging-disabled && echo present || echo absent)"
+          echo "meta_match_php=$(test -f wp-content/mu-plugins/nuvanx-meta-match-quality.php && echo present || echo absent)"
+          echo "meta_match_disabled=$(test -f wp-content/mu-plugins/nuvanx-meta-match-quality.php.staging-disabled && echo present || echo absent)"
+          echo '=== running wp processes ==='
+          ps -eo pid,etime,cmd | grep -E '[w]p (plugin|cron)|[p]hp.*wp-cli' | head -n 30 || true
+          REMOTE
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/k ~/.ssh/config ~/.ssh/known_hosts

@@ -407,8 +407,6 @@ async function handleCookieConsent(page) {
       'button#cookie-accept',
       'button.cc-accept',
       'button.js-cookie-consent-accept',
-      '.cmplz-accept',
-      'button.cmplz-btn.cmplz-accept',
     ];
 
     for (const selector of cookieSelectors) {
@@ -922,9 +920,7 @@ async function run() {
           );
         }
 
-        if (heroCount === 0 && !isLegalPage && route !== '/tratamientos/') {
-          issues.push('Missing hero section');
-        }
+        if (heroCount === 0) issues.push('Missing hero section');
         if (ctaCount === 0)
           issues.push(
             'Missing CTA (expanded selector includes brand-actions, valoracion, whatsapp links)'

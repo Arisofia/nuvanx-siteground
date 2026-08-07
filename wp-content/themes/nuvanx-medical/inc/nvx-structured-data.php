@@ -1572,18 +1572,3 @@ function nvx_schema_deduplicate_ids( $graph ) {
 	return array_values( $graph );
 }
 add_filter( 'wpseo_schema_graph', 'nvx_schema_deduplicate_ids', PHP_INT_MAX, 1 );
-
-/**
- * Remove manually injected JSON-LD scripts from post content to ensure
- * all structured data is strictly managed via the Yoast schema graph.
- *
- * @param string $content Post content.
- * @return string
- */
-function nvx_remove_rogue_json_ld( $content ) {
-	if ( ! is_string( $content ) || empty( $content ) ) {
-		return $content;
-	}
-	return preg_replace( '/<script\b[^>]*type=[\'"]application\/ld\+json[\'"][^>]*>.*?<\/script>/is', '', $content );
-}
-add_filter( 'the_content', 'nvx_remove_rogue_json_ld', 999 );

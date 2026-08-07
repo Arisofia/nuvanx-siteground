@@ -205,7 +205,10 @@ function nvx_btl_detail_mechanism_markup( array $c ): string {
 	if ( ! empty( $c['mechanism']['items'] ) && is_array( $c['mechanism']['items'] ) ) {
 		$html .= nvx_btl_detail_zone_list_markup( $c['mechanism']['items'], 'ul' );
 	}
-	$html .= '<p class="nvx-body"><a class="nvx-brand-inline-link" href="' . esc_url( $c['hub'] ) . '">' . esc_html__( 'Ver plataforma EXION® BTL (hub)', 'nuvanx-medical' ) . '</a></p>';
+	$hub_url = trim( (string) ( $c['hub'] ?? '' ) );
+	if ( '' !== $hub_url ) {
+		$html .= '<p class="nvx-body"><a class="nvx-brand-inline-link" href="' . esc_url( $hub_url ) . '">' . esc_html__( 'Ver plataforma EXION® BTL (hub)', 'nuvanx-medical' ) . '</a></p>';
+	}
 	$html .= '</div></section>';
 	return $html;
 }

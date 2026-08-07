@@ -211,7 +211,7 @@ async function collectGeometry(page) {
     const header = document.querySelector('header, .nvx-site-header, .nvx-header');
     const footer = document.querySelector('footer, .nvx-site-footer, .nvx-footer');
     const main = document.querySelector('main#nvx-main, main, [role="main"]');
-    const hero = document.querySelector('.nvx-home-hero, .nvx-brand-hero, .nvx-blog-hero, .nvx-page-header, .nvx-strategy-intro, [class*="hero"]');
+    const hero = document.querySelector('.nvx-home-hero, .nvx-brand-hero, .nvx-blog-hero, .nvx-page-header, .nvx-section-intro, .nvx-catalog__intro, .nvx-strategy-intro, [class*="hero"]');
     const nav = document.querySelector('header nav, .nvx-site-header nav, .nvx-header nav, .nvx-primary-nav');
     const video = document.querySelector('.nvx-home-hero video, video');
     const navToggleSelector = 'button[aria-label*="menu" i], button[data-nvx-menu-toggle], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]';
@@ -336,11 +336,11 @@ async function testResponsiveMenu(page, viewport, geometry, issues) {
 
   try {
     const beforeExpanded = await toggle.getAttribute('aria-expanded');
-    const beforeVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
+    const beforeVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
     await toggle.click({ timeout: 2500 });
     await page.waitForTimeout(220);
     const afterExpanded = await toggle.getAttribute('aria-expanded');
-    const afterVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
+    const afterVisibleMenuItems = await page.locator('header nav a:visible, .nvx-mobile-nav a:visible, .nvx-mobile-menu a:visible, [data-nvx-mobile-menu] a:visible').count();
 
     const ariaOpened = beforeExpanded !== 'true' && afterExpanded === 'true';
     const linksExposed = afterVisibleMenuItems > beforeVisibleMenuItems && afterVisibleMenuItems > 0;

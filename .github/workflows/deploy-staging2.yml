@@ -55,9 +55,6 @@ jobs:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 35
-    environment:
-      name: staging2
-      url: https://staging2.nuvanx.com
     env:
       DEPLOY_SHA: ${{ inputs.sha }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
@@ -218,7 +215,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging2 "cd '$WP_ROOT' && wp cache flush && wp sg purge && rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/* && wp eval 'if (function_exists(\"opcache_reset\")) { opcache_reset(); }'"
+          ssh nvx-staging2 "cd '$WP_ROOT' && wp cache flush && if wp help sg >/dev/null 2>&1; then wp sg purge; else echo 'siteground_wp_cli_purge=SKIPPED command_unavailable'; fi; rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/*; wp eval 'if (function_exists(\"opcache_reset\")) { opcache_reset(); }'"
 
       - name: Verify content hygiene
         shell: bash

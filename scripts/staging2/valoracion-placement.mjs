@@ -92,30 +92,61 @@ for (const viewport of viewports) {
   }
 
   // Dedicated valuation routes must not wait for scroll. The page renderer emits
-  // an eager activation event on window.load; verify the HubSpot form actually
-  // materializes inside the intended section rather than elsewhere in the DOM.
+  // an eager activation event on window.load; verify HubSpot materializes inside
+  // the intended section. Current HubSpot Forms v2 may render either legacy
+  // `.hbspt-form` markup or the newer cross-origin iframe embed.
   await page.waitForLoadState('load').catch(() => {});
   await page.waitForTimeout(250);
   const host = page.locator('#nvx-hubspot-form');
   await host.dispatchEvent('focusin').catch(() => {});
 
+  const mountedSelector = [
+    '#nvx-hubspot-form .hs-form-frame[data-hs-forms-root="true"] iframe[data-test-id^="embedded-form-"]',
+    '#nvx-hubspot-form .hbspt-form',
+    '#nvx-hubspot-form form.hs-form',
+  ].join(', ');
+
   let mounted = false;
   try {
-    await page.locator('#nvx-hubspot-form .hbspt-form, #nvx-hubspot-form form.hs-form, #nvx-hubspot-form form').first().waitFor({ state: 'attached', timeout: 12000 });
+    await page.locator(mountedSelector).first().waitFor({ state: 'attached', timeout: 12000 });
     mounted = true;
   } catch {
     mounted = false;
   }
   if (!mounted) issues.push('HubSpot form did not mount inside #nvx-hubspot-form within 12s');
 
-  const rogueMounts = await page.evaluate(() => {
+  const mountState = await page.evaluate(() => {
     const section = document.getElementById('nvx-hubspot-form');
-    return Array.from(document.querySelectorAll('.hbspt-form, form.hs-form')).filter((el) => !section?.contains(el)).length;
+    const expectedFormId = '5042522a-0bc5-4381-ac3e-5aee8649b69c';
+    const expectedPortalId = '147416356';
+    const embedded = section?.querySelector('.hs-form-frame[data-hs-forms-root="true"] iframe[data-test-id^="embedded-form-"]') || null;
+    const embeddedSrc = embedded?.getAttribute('src') || '';
+    const embeddedTestId = embedded?.getAttribute('data-test-id') || '';
+    const rogueLegacy = Array.from(document.querySelectorAll('.hbspt-form, form.hs-form')).filter((el) => !section?.contains(el)).length;
+    const rogueIframes = Array.from(document.querySelectorAll('iframe[data-test-id^="embedded-form-"]')).filter((el) => !section?.contains(el)).length;
+    return {
+      embedded: Boolean(embedded),
+      embeddedSrc,
+      embeddedTestId,
+      expectedIdentity: Boolean(
+        embedded &&
+        embeddedSrc.includes(`_hsPortalId=${expectedPortalId}`) &&
+        embeddedSrc.includes(`_hsFormId=${expectedFormId}`) &&
+        embeddedTestId.includes(expectedFormId)
+      ),
+      rogueMounts: rogueLegacy + rogueIframes,
+    };
   });
-  if (rogueMounts > 0) issues.push(`Found ${rogueMounts} HubSpot form mount(s) outside #nvx-hubspot-form`);
+
+  if (mountState.embedded && !mountState.expectedIdentity) {
+    issues.push('HubSpot iframe mounted with an unexpected portal/form identity');
+  }
+  if (mountState.rogueMounts > 0) {
+    issues.push(`Found ${mountState.rogueMounts} HubSpot form mount(s) outside #nvx-hubspot-form`);
+  }
 
   await page.screenshot({ path: path.join(outDir, `valoracion-${viewport.key}.jpg`), type: 'jpeg', quality: 78, fullPage: true });
-  results.push({ viewport, placement, mounted, rogueMounts, issues });
+  results.push({ viewport, placement, mounted, mountState, issues });
   console.log(`${issues.length ? 'FIX' : 'PASS'} /madrid/valoracion/ ${viewport.width}x${viewport.height}`);
   issues.forEach((issue) => console.error(`  ${issue}`));
   await context.close();

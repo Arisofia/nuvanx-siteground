@@ -189,11 +189,12 @@ jobs:
           set -euo pipefail
           ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm && NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$WP_ROOT' --confirm"
 
-      - name: Apply staging content hygiene
+      - name: Apply staging content hygiene and media recovery
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
+          ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/scripts/staging2/media-recovery.php'"
 
       - name: Purge staging caches with transient Speed Optimizer activation
         shell: bash

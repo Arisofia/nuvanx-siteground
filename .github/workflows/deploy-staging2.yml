@@ -7,6 +7,11 @@ on:
         description: Full commit SHA to deploy to staging2
         required: true
         type: string
+      run_block_c_acceptance:
+        description: Run the full 52 pages × 3 viewports Block C gate after a successful deploy
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -20,10 +25,11 @@ jobs:
     name: Deploy immutable SHA and verify Block A boundary
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     env:
       DEPLOY_SHA: ${{ inputs.sha }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      STAGING_PARENT: /home/customer/www/staging2.nuvanx.com
       PROD_ROOT: /home/customer/www/nuvanx.com/public_html
       BASE_URL: https://staging2.nuvanx.com
       EXPECTED_HOST: staging2.nuvanx.com
@@ -121,6 +127,35 @@ jobs:
           echo 'PREFLIGHT_ISOLATION=PASS'
           REMOTE
 
+      - name: Create pre-deploy rollback snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROLLBACK_DIR="$STAGING_PARENT/.nvx-rollback/${GITHUB_RUN_ID}-${DEPLOY_SHA}"
+          [[ "$ROLLBACK_DIR" == "$STAGING_PARENT/.nvx-rollback/"* ]]
+          echo "ROLLBACK_DIR=$ROLLBACK_DIR" >> "$GITHUB_ENV"
+          ssh nvx-staging2 "WP_ROOT='$WP_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          umask 077
+          mkdir -p "$ROLLBACK_DIR"
+          test ! -e "$ROLLBACK_DIR/theme.tgz"
+          tar -czf "$ROLLBACK_DIR/theme.tgz" -C "$WP_ROOT" wp-content/themes/nuvanx-medical
+          if [[ -d "$WP_ROOT/wp-content/mu-plugins" ]]; then
+            tar -czf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$WP_ROOT" wp-content/mu-plugins
+          fi
+          cd "$WP_ROOT"
+          wp db export "$ROLLBACK_DIR/staging-db.sql" --quiet
+          test -s "$ROLLBACK_DIR/theme.tgz"
+          test -s "$ROLLBACK_DIR/staging-db.sql"
+          if [[ -f wp-content/themes/nuvanx-medical/.nvx-deploy-sha ]]; then
+            tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha > "$ROLLBACK_DIR/previous-sha.txt"
+          else
+            : > "$ROLLBACK_DIR/previous-sha.txt"
+          fi
+          echo "ROLLBACK_SNAPSHOT=PASS path=$ROLLBACK_DIR"
+          REMOTE
+          echo 'STAGING_SNAPSHOT_READY=1' >> "$GITHUB_ENV"
+
       - name: Upload immutable release payload
         shell: bash
         run: |
@@ -132,6 +167,10 @@ jobs:
           rsync -az tools/deploy/deploy-to-staging2.sh "nvx-staging2:$REMOTE_RELEASE/deploy-to-staging2.sh"
           rsync -az tools/deploy/deploy-required-mu-plugins.sh "nvx-staging2:$REMOTE_RELEASE/deploy-required-mu-plugins.sh"
           rsync -az tools/wp-cli/hygiene-content-fix.php "nvx-staging2:$REMOTE_RELEASE/hygiene-content-fix.php"
+
+      - name: Arm rollback before staging mutation
+        shell: bash
+        run: echo 'STAGING_MUTATION_ARMED=1' >> "$GITHUB_ENV"
 
       - name: Execute guarded staging deployment
         shell: bash
@@ -153,7 +192,6 @@ jobs:
           set -Eeuo pipefail
           cd "$WP_ROOT"
           wp cache flush
-
           plugin_slug='sg-cachepress'
           if ! wp plugin is-installed "$plugin_slug" >/dev/null 2>&1; then
             echo 'Speed Optimizer is not installed; cannot purge SiteGround Dynamic Cache.' >&2
@@ -163,7 +201,6 @@ jobs:
             echo 'Speed Optimizer unexpectedly active before post-hygiene purge.' >&2
             exit 1
           fi
-
           restore_inactive() {
             set +e
             if wp plugin is-active "$plugin_slug" >/dev/null 2>&1; then
@@ -171,7 +208,6 @@ jobs:
             fi
           }
           trap restore_inactive EXIT
-
           wp plugin activate "$plugin_slug" --quiet
           wp plugin is-active "$plugin_slug"
           wp sg purge
@@ -182,7 +218,6 @@ jobs:
           fi
           trap - EXIT
           echo 'siteground_wp_cli_purge=PASS mode=transient-activation-restored-inactive'
-
           rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
           rm -rf wp-content/cache/sgo-cache/* wp-content/cache/*
           wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }'
@@ -262,6 +297,54 @@ jobs:
           echo 'PRODUCTION_UNCHANGED=PASS'
           REMOTE
 
+      - name: Roll back staging after failed deployment validation
+        if: ${{ failure() && env.STAGING_SNAPSHOT_READY == '1' && env.STAGING_MUTATION_ARMED == '1' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "ROLLBACK_TRIGGERED source=$ROLLBACK_DIR"
+          ssh nvx-staging2 "WP_ROOT='$WP_ROOT' ROLLBACK_DIR='$ROLLBACK_DIR' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          [[ "$ROLLBACK_DIR" == '/home/customer/www/staging2.nuvanx.com/.nvx-rollback/'* ]]
+          test -s "$ROLLBACK_DIR/theme.tgz"
+          test -s "$ROLLBACK_DIR/staging-db.sql"
+          rm -rf "$WP_ROOT/wp-content/themes/nuvanx-medical"
+          tar -xzf "$ROLLBACK_DIR/theme.tgz" -C "$WP_ROOT"
+          if [[ -f "$ROLLBACK_DIR/mu-plugins.tgz" ]]; then
+            rm -rf "$WP_ROOT/wp-content/mu-plugins"
+            tar -xzf "$ROLLBACK_DIR/mu-plugins.tgz" -C "$WP_ROOT"
+          fi
+          cd "$WP_ROOT"
+          wp db import "$ROLLBACK_DIR/staging-db.sql"
+          wp cache flush
+          plugin_slug='sg-cachepress'
+          if wp plugin is-installed "$plugin_slug" >/dev/null 2>&1; then
+            was_active=0
+            if wp plugin is-active "$plugin_slug" >/dev/null 2>&1; then
+              was_active=1
+            else
+              wp plugin activate "$plugin_slug" --quiet
+            fi
+            wp sg purge || true
+            if [[ "$was_active" -eq 0 ]]; then
+              wp plugin deactivate "$plugin_slug" --quiet || true
+            fi
+          fi
+          rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/*
+          wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          expected_previous="$(cat "$ROLLBACK_DIR/previous-sha.txt" 2>/dev/null || true)"
+          if [[ -n "$expected_previous" ]]; then
+            restored="$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
+            test "$restored" = "$expected_previous"
+            echo "ROLLBACK_RESTORED_SHA=$restored"
+          fi
+          echo 'ROLLBACK_STAGING=PASS'
+          REMOTE
+
       - name: Upload Block A boundary evidence
         if: always()
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
@@ -280,6 +363,15 @@ jobs:
             ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'" || true
           fi
 
+      - name: Remove successful rollback snapshot
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -n "${ROLLBACK_DIR:-}" ]]; then
+            ssh nvx-staging2 "case '$ROLLBACK_DIR' in '$STAGING_PARENT/.nvx-rollback/'*) rm -rf '$ROLLBACK_DIR' ;; *) exit 1 ;; esac"
+          fi
+
       - name: Destroy SSH identity
         if: always()
         shell: bash
@@ -295,7 +387,20 @@ jobs:
             echo "- SHA: \`$DEPLOY_SHA\`"
             echo '- Boundary: five required routes stayed on staging2, HTTP 200, noindex/nofollow, exact HTML SHA'
             echo '- Isolation: staging filesystem/DB/environment verified before and after deployment'
+            echo '- Failed post-deploy validations now trigger rollback of theme, MU plugins and staging DB snapshot'
             echo '- SiteGround Dynamic Cache: purged by transient Speed Optimizer activation and restored to inactive state'
             echo '- Production: read-only invariant verified unchanged'
-            echo '- Full 52 × 3 browser acceptance: intentionally deferred to Block C'
+            if [[ '${{ inputs.run_block_c_acceptance }}' == 'true' ]]; then
+              echo '- Block C: requested and will run only after this deploy job succeeds'
+            else
+              echo '- Block C: not requested for this deployment'
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
+
+  block_c_acceptance:
+    name: Run Block C only after successful staging deploy
+    needs: deploy
+    if: ${{ inputs.run_block_c_acceptance }}
+    uses: ./.github/workflows/staging2-acceptance.yml
+    with:
+      sha: ${{ inputs.sha }}

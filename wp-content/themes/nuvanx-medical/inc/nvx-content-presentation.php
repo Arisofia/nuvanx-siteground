@@ -1379,6 +1379,11 @@ function nvx_content_inject_global_treatment_sections( string $content ): string
 		return $content;
 	}
 
+	// Skip Protocolos Signature page (ID 3369) - content is managed by nvx-signature-phase-pages.php
+	if ( 3369 === get_queried_object_id() ) {
+		return $content;
+	}
+
 	if ( ! nvx_content_is_treatment_injection_target( $content ) ) {
 		return $content;
 	}

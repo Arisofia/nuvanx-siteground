@@ -52,11 +52,14 @@ node_modules/
 eslint.config.js
 
 # Legacy directories (cleaned up)
-inc/
 scratch/
 
-# Exception: allow schema files
+# Exception: allow schema files and specific inc files
 !wp-content/themes/nuvanx-medical/inc/data/routes.schema.json
+!wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php
+!wp-content/themes/nuvanx-medical/inc/nvx-seo-production-readiness.php
+!wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php
+!wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
 
 # Legacy scripts (cleaned up)
 scripts/audit-*.sh

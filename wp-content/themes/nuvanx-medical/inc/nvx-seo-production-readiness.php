@@ -155,7 +155,7 @@ function nvx_seo_schema_btl_faq_node( int $page_id ): ?array {
 	);
 	$slug     = isset( $slug_map[ $key ] ) ? $slug_map[ $key ] : '';
 	$registry = nvx_btl_detail_registry();
-	$faqs     = '' !== $slug && ! empty( $registry[ $slug ]['faqs'] ) ? $registry[ $slug ]['faqs'] : array();
+	$faqs     = '' !== $slug && ! empty( $registry[ $slug ] ) && is_array( $registry[ $slug ] ) && isset( $registry[ $slug ]['faqs'] ) ? $registry[ $slug ]['faqs'] : array();
 
 	if ( empty( $faqs ) ) {
 		return null;

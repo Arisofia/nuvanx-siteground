@@ -827,7 +827,7 @@ function nvx_schema_treatment_node_btl( string $key, string $permalink, string $
 		);
 		$slug     = $slug_map[ $key ] ?? '';
 		$reg      = nvx_btl_detail_registry();
-		if ( $slug && ! empty( $reg[ $slug ] ) ) {
+		if ( $slug && ! empty( $reg[ $slug ] ) && is_array( $reg[ $slug ] ) ) {
 			$cfg = $reg[ $slug ];
 			return array(
 				'@type'            => 'Service',

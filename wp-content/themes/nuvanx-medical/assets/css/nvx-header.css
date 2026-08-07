@@ -20,13 +20,14 @@
 .nvx-header__inner {
   width: var(--nvx-shell);
   max-width: 100%;
+  min-width: 0;
   margin-inline: auto;
   padding-inline: var(--nvx-gutter-inner);
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--nvx-space-4);
+  gap: var(--nvx-space-2);
 }
 
 /* Logo lockup - diseño más elegante */
@@ -62,12 +63,23 @@
   color: var(--nvx-text-muted);
 }
 
+/* Desktop nav is a shrinkable flex region inside the canonical shell. */
+.nvx-nav {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--nvx-space-1);
+}
+
 /* Primary nav list */
 .nvx-nav__list {
   display: flex;
+  flex: 0 1 auto;
   min-width: 0;
   align-items: center;
-  gap: var(--nvx-space-2);
+  gap: var(--nvx-space-1);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -77,21 +89,22 @@
 .nvx-nav__item,
 .nvx-nav__list > li {
   position: relative;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   overflow: visible;
 }
 
-/* Top-level nav links - diseño elegante con mejor spacing */
+/* Top-level nav links - compact enough to remain inside the shared 1240px shell. */
 .nvx-nav__link,
 .nvx-nav__list > li > a {
   position: relative;
   display: inline-flex;
   min-height: var(--nvx-control-size);
   align-items: center;
-  padding-inline: var(--nvx-space-3);
+  padding-inline: var(--nvx-space-2);
   padding-block: var(--nvx-space-2);
   font-family: var(--nvx-sans);
-  font-size: var(--nvx-type-nav);
+  font-size: var(--nvx-type-nav-compact);
   font-weight: var(--nvx-fw-medium);
   line-height: var(--nvx-lh-nav);
   letter-spacing: var(--nvx-track-nav);
@@ -205,7 +218,7 @@
 .nvx-header__cta {
   flex: 0 0 auto;
   min-height: var(--nvx-control-size);
-  padding-inline: var(--nvx-space-3);
+  padding-inline: var(--nvx-space-2);
   font-size: var(--nvx-type-nav-compact);
   letter-spacing: var(--nvx-track-nav-cta);
   white-space: nowrap;

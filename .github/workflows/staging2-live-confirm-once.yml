@@ -1,0 +1,97 @@
+name: Staging2 Live Confirm Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-live-confirm-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  confirm:
+    runs-on: ubuntu-latest
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      EXPECTED_PROOF: NUVANX_STAGING2_ROOT_OK_20260807
+    steps:
+      - name: Public edge from runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          for url in \
+            'https://staging2.nuvanx.com/nvx-vhost-proof.txt' \
+            'https://staging2.nuvanx.com/' \
+            'https://staging2.nuvanx.com/soluciones-medicas/' \
+            'https://staging2.nuvanx.com/equipo-medico/' \
+            'https://staging2.nuvanx.com/blog/' \
+            'https://staging2.nuvanx.com/endolift-primeras-72-horas-que-esperar/'
+          do
+            echo "=== $url ==="
+            curl -sS --max-time 20 -A 'NUVANX-Staging-Boundary/1.0' -D /tmp/h -o /tmp/b "$url" -w 'status=%{http_code} final=%{url_effective} size=%{size_download}\n' || true
+            grep -Ei '^(HTTP/|location:|server:|sg-captcha:|x-robots-tag:|x-redirect-by:|content-type:)' /tmp/h || true
+            printf 'body_prefix='; head -c 180 /tmp/b 2>/dev/null | tr '\n' ' '; echo
+          done
+
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          mkdir -p ~/.ssh; chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/k; chmod 600 ~/.ssh/k
+          printf '%s\n' "$KH" > ~/.ssh/known_hosts; chmod 600 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile ~/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Verify expected root and live response over SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "STAGING_ROOT='$STAGING_ROOT' EXPECTED_PROOF='$EXPECTED_PROOF' bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd "$STAGING_ROOT"
+          echo '=== filesystem proof ==='
+          test -f nvx-vhost-proof.txt || { echo 'proof_file=ABSENT'; exit 2; }
+          printf 'proof_file_content='; cat nvx-vhost-proof.txt; echo
+          if [ "$(cat nvx-vhost-proof.txt)" = "$EXPECTED_PROOF" ]; then echo 'proof_file_expected_match=YES'; else echo 'proof_file_expected_match=NO'; fi
+
+          echo '=== WordPress identity ==='
+          echo "db_name=$(wp config get DB_NAME)"
+          echo "home=$(wp option get home)"
+          echo "siteurl=$(wp option get siteurl)"
+          echo "blog_public=$(wp option get blog_public)"
+          echo "nvx_env=$(wp config get NVX_ENV 2>/dev/null || true)"
+          echo "wp_environment_type=$(wp config get WP_ENVIRONMENT_TYPE 2>/dev/null || true)"
+
+          echo '=== live proof from server ==='
+          curl -sS --max-time 20 -A 'NUVANX-Staging-Boundary/1.0' -D /tmp/h -o /tmp/b 'https://staging2.nuvanx.com/nvx-vhost-proof.txt' -w 'status=%{http_code} final=%{url_effective} size=%{size_download}\n' || true
+          grep -Ei '^(HTTP/|location:|server:|sg-captcha:|x-robots-tag:|x-redirect-by:|content-type:)' /tmp/h || true
+          printf 'live_proof_body='; cat /tmp/b 2>/dev/null | head -c 220; echo
+
+          echo '=== live home from server ==='
+          curl -sS --max-time 20 -A 'NUVANX-Staging-Boundary/1.0' -D /tmp/h2 -o /tmp/b2 'https://staging2.nuvanx.com/' -w 'status=%{http_code} final=%{url_effective} size=%{size_download}\n' || true
+          grep -Ei '^(HTTP/|location:|server:|sg-captcha:|x-robots-tag:|x-redirect-by:|content-type:)' /tmp/h2 || true
+          printf 'home_body_prefix='; head -c 180 /tmp/b2 2>/dev/null | tr '\n' ' '; echo
+          REMOTE
+
+      - name: Cleanup SSH
+        if: always()
+        run: rm -f ~/.ssh/k ~/.ssh/config ~/.ssh/known_hosts

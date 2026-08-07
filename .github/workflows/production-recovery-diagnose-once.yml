@@ -1,0 +1,87 @@
+name: Production Recovery Diagnose Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-recovery-diagnose-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      BACKUP_DIR: /home/customer/www/nuvanx.com/public_html/wp-content/backups-nuvanx/pre-prod-31222581791-1-5cac0c0f9c3d
+    steps:
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_key"; chmod 600 "$HOME/.ssh/prod_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Inspect production recovery state read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BACKUP_DIR='$BACKUP_DIR' bash -se" <<'REMOTE'
+          set -u
+          echo "LIVE_THEME_DIR=$([[ -d "$PROD_ROOT/wp-content/themes/nuvanx-medical" ]] && echo yes || echo no)"
+          if [[ -f "$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha" ]]; then
+            echo "LIVE_SHA=$(tr -d '\r\n' < "$PROD_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha")"
+          else
+            echo "LIVE_SHA=MISSING"
+          fi
+          echo "BACKUP_DIR_EXISTS=$([[ -d "$BACKUP_DIR" ]] && echo yes || echo no)"
+          echo "THEME_TGZ_EXISTS=$([[ -s "$BACKUP_DIR/theme.tgz" ]] && echo yes || echo no)"
+          if [[ -s "$BACKUP_DIR/theme.tgz" ]]; then
+            echo "THEME_TGZ_BYTES=$(wc -c < "$BACKUP_DIR/theme.tgz" | tr -d ' ')"
+            echo 'THEME_TGZ_HEAD_BEGIN'
+            tar -tzf "$BACKUP_DIR/theme.tgz" | head -n 8 || true
+            echo 'THEME_TGZ_HEAD_END'
+          fi
+          if [[ -f "$BACKUP_DIR/previous-sha.txt" ]]; then
+            echo "BACKUP_PREVIOUS_SHA=$(tr -d '\r\n' < "$BACKUP_DIR/previous-sha.txt")"
+          else
+            echo 'BACKUP_PREVIOUS_SHA_FILE=MISSING'
+          fi
+          echo "WP_STYLESHEET=$(cd "$PROD_ROOT" && wp option get stylesheet 2>/dev/null || echo ERROR)"
+          echo "WP_TEMPLATE=$(cd "$PROD_ROOT" && wp option get template 2>/dev/null || echo ERROR)"
+          echo "WP_ACTIVE_THEME=$(cd "$PROD_ROOT" && wp theme list --status=active --field=name 2>/dev/null || echo ERROR)"
+          echo 'THEME_DIRS_BEGIN'
+          find "$PROD_ROOT/wp-content/themes" -maxdepth 1 -mindepth 1 -type d -printf '%f\n' | sort | grep -E 'nuvanx|nvx' || true
+          echo 'THEME_DIRS_END'
+          REMOTE
+          status="$(curl -sS -o /tmp/prod.html -w '%{http_code}' --max-time 25 https://nuvanx.com/ || true)"
+          echo "PUBLIC_HTTP=$status"
+          grep -o 'name="nvx-deploy-sha"[^>]*' /tmp/prod.html 2>/dev/null | head -n1 || true
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

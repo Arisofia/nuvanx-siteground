@@ -18,6 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /** Detect the treatments index from stable structural markers. */
 function nvx_content_is_treatments_index( string $content ): bool {
+	if ( is_page() && 'tratamientos' === get_post_field( 'post_name', get_queried_object_id() ) ) {
+		return true;
+	}
+
 	if ( false !== strpos( $content, 'nvx-catalog' ) ) {
 		return false;
 	}
@@ -139,6 +143,20 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 	$catalog = nvx_treatments_catalog_markup();
 	$cloud   = nvx_treatments_logo_cloud_markup();
 
+	$links  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="Enlaces de interés">';
+	$links .= '<div class="nvx-shell nvx-brand-section__inner">';
+	$links .= '<p class="nvx-brand-body">' . esc_html__( 'Explora el ', 'nuvanx-medical' );
+	$links .= '<a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/equipo-medico/' ) ) . '">' . esc_html__( 'equipo médico', 'nuvanx-medical' ) . '</a>';
+	$links .= esc_html__( ', las ', 'nuvanx-medical' );
+	$links .= '<a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/' ) ) . '">' . esc_html__( 'clínicas', 'nuvanx-medical' ) . '</a>';
+	$links .= esc_html__( ' o el área de ', 'nuvanx-medical' );
+	$links .= '<a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/estetica-avanzada/' ) ) . '">' . esc_html__( 'estética avanzada', 'nuvanx-medical' ) . '</a>.';
+	$links .= '</p></div></section>';
+
+	if ( empty( trim( wp_strip_all_tags( $content ) ) ) ) {
+		return $catalog . $cloud . $links;
+	}
+
 	$content = preg_replace(
 		'/<section\b[^>]*aria-label="Catálogo de tratamientos NUVANX"[^>]*>[\s\S]*?<\/section>/iu',
 		$catalog,
@@ -184,15 +202,7 @@ function nvx_content_restructure_treatments_index( string $content ): string {
 		1
 	) ?? $content;
 
-	$links  = '<section class="nvx-brand-section nvx-brand-section--soft" aria-label="Enlaces de interés">';
-	$links .= '<div class="nvx-shell nvx-brand-section__inner">';
-	$links .= '<p class="nvx-brand-body">' . esc_html__( 'Explora el ', 'nuvanx-medical' );
-	$links .= '<a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/equipo-medico/' ) ) . '">' . esc_html__( 'equipo médico', 'nuvanx-medical' ) . '</a>';
-	$links .= esc_html__( ', las ', 'nuvanx-medical' );
-	$links .= '<a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/clinicas-de-medicina-estetica-nuvanx/' ) ) . '">' . esc_html__( 'clínicas', 'nuvanx-medical' ) . '</a>';
-	$links .= esc_html__( ' o el área de ', 'nuvanx-medical' );
-	$links .= '<a class="nvx-brand-inline-link" href="' . esc_url( home_url( '/estetica-avanzada/' ) ) . '">' . esc_html__( 'estética avanzada', 'nuvanx-medical' ) . '</a>.';
-	$links .= '</p></div></section>';
+
 
 	$content = preg_replace(
 		'/<section\b[^>]*aria-label="Enlaces de interés"[^>]*>[\s\S]*?<\/section>/iu',

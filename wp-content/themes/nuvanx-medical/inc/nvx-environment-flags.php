@@ -91,3 +91,32 @@ function nvx_environment_render_deploy_sha(): void {
 	printf( "<meta name=\"nvx-deploy-sha\" content=\"%s\" />\n", esc_attr( $sha ) );
 }
 add_action( 'wp_head', 'nvx_environment_render_deploy_sha', 1 );
+
+/**
+ * Rewrite staging uploads URLs to production to prevent broken images
+ * when the staging environment hasn't synced the latest media.
+ */
+function nvx_environment_fallback_staging_media( $content ) {
+	if ( nvx_environment_is_staging2() && is_string( $content ) ) {
+		return str_replace(
+			array( 'https://staging2.nuvanx.com/wp-content/uploads/', 'http://staging2.nuvanx.com/wp-content/uploads/' ),
+			'https://www.nuvanx.com/wp-content/uploads/',
+			$content
+		);
+	}
+	return $content;
+}
+add_filter( 'the_content', 'nvx_environment_fallback_staging_media', 999 );
+add_filter( 'wp_get_attachment_url', 'nvx_environment_fallback_staging_media', 999 );
+add_filter( 'content_url', 'nvx_environment_fallback_staging_media', 999 );
+add_filter( 'wp_calculate_image_srcset', function( $sources ) {
+	if ( ! nvx_environment_is_staging2() || ! is_array( $sources ) ) {
+		return $sources;
+	}
+	foreach ( $sources as &$source ) {
+		if ( isset( $source['url'] ) ) {
+			$source['url'] = nvx_environment_fallback_staging_media( $source['url'] );
+		}
+	}
+	return $sources;
+}, 999 );

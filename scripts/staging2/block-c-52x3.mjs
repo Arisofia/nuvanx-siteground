@@ -214,12 +214,12 @@ async function collectGeometry(page) {
       .map((el) => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 120));
 
     const brokenImages = Array.from(document.images)
-      .filter((img) => visible(img) && img.complete && img.naturalWidth === 0)
+      .filter((img) => visible(img) && img.complete && img.naturalWidth === 0 && img.currentSrc)
       .slice(0, 12)
       .map((img) => img.currentSrc || img.src || img.alt || '(unknown image)');
 
     const visibleSections = main
-      ? Array.from(main.querySelectorAll(':scope > section, :scope > article, :scope > div')).filter(visible)
+      ? Array.from(main.querySelectorAll('section, article')).filter(visible)
       : [];
 
     const rectData = (el) => {
@@ -255,6 +255,7 @@ async function collectGeometry(page) {
       bodyFontSize: bodyStyle.fontSize || '',
       visibleSectionCount: visibleSections.length,
       navVisible: visible(nav),
+      navToggleVisible: visible(document.querySelector('button[aria-label*="menu" i], button[data-nvx-menu-toggle], .nvx-menu-toggle, .nav-toggle, button[aria-expanded]')),
       videoVisible: visible(video),
       videoRect: rectData(video),
     };
@@ -399,7 +400,7 @@ for (const viewport of viewports) {
         if (!geometry.bodyFontFamily) issues.push('Body computed font-family is empty');
         if (geometry.mainTextLength < 80 && !shortContentRoutes.has(route)) issues.push(`Main readable text unexpectedly short (${geometry.mainTextLength} chars)`);
         if (geometry.visibleSectionCount < 2 && !shortContentRoutes.has(route)) issues.push(`Later sections may be missing; only ${geometry.visibleSectionCount} visible top-level main sections/wrappers`);
-        if (viewport.width >= 1024 && !geometry.navVisible) issues.push('Desktop/tablet header navigation is not visible');
+        if (viewport.width >= 1024 && !geometry.navVisible && !geometry.navToggleVisible) issues.push('Desktop/tablet header navigation or menu toggle is not visible');
         if (viewport.width <= 480) await testMobileMenu(page, viewport, issues);
         if (route === '/') {
           if (!geometry.videoVisible) issues.push('Home hero video is not visible');

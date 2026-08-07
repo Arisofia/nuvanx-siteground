@@ -42,7 +42,7 @@ while ( have_posts() ) :
 	// Match a true level-1 heading only: bare <h1> or block comment with "level":1
 	// not followed by another digit (avoids false positives on "level":10+).
 	$has_content_h1   = (bool) preg_match( '/<h1\b|<!--\s*wp:heading\s+\{[^}]*"level"\s*:\s*1(?!\d)[^}]*\}/i', $content );
-	$has_content_hero = (bool) preg_match( '/nvx-brand-hero|nvx-editorial-hero|nvx-page-hero|nvx-home-hero-stage|nvx-ipl-hero/i', $content );
+	$has_content_hero = (bool) preg_match( '/nvx-[a-z0-9\-]+-hero/i', $content );
 
 	// Modules that inject a canonical hero + H1 via the_content even when CMS body is empty.
 	// Without this, the shell prints a second H1 (e.g. EXION Body / Face / EMFUSION).

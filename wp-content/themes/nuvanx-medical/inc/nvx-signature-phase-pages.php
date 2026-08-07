@@ -600,6 +600,30 @@ function nvx_signature_phase_prepare_shell(): void {
 add_action( 'wp', 'nvx_signature_phase_prepare_shell', 5 );
 
 /**
+ * Injects the governed markup for Signature phase and hub pages.
+ */
+function nvx_signature_phase_inject_markup( string $content ): string {
+	$phase_key = nvx_signature_phase_current_key();
+	if ( null !== $phase_key ) {
+		$catalog = nvx_signature_phase_catalog();
+		if ( isset( $catalog[ $phase_key ] ) ) {
+			return nvx_signature_phase_markup( $catalog[ $phase_key ] );
+		}
+	}
+
+	$hub_key = nvx_signature_hub_current_key( $content );
+	if ( null !== $hub_key ) {
+		$hubs = nvx_signature_hub_catalog();
+		if ( isset( $hubs[ $hub_key ] ) ) {
+			return nvx_signature_hub_markup( $hubs[ $hub_key ] );
+		}
+	}
+
+	return $content;
+}
+add_filter( 'the_content', 'nvx_signature_phase_inject_markup', 20 );
+
+/**
  * Contour Architecture child routes for the primary navigation mega-menu.
  *
  * @return array<int, array{label:string,slugs:array<int,string>}>

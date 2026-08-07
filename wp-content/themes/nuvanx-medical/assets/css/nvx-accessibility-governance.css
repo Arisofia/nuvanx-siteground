@@ -47,8 +47,9 @@
 }
 
 /* Mobile breakpoint: hamburger visible, desktop nav hidden, drawer visible only when open and not inert. */
-@media (max-width: 71.999rem) {
-  .nvx-header .nvx-nav {
+@media (max-width: 89.999rem) {
+  .nvx-header .nvx-nav,
+  .nvx-header .nvx-header__cta {
     display: none;
   }
 
@@ -68,7 +69,7 @@
 }
 
 /* Desktop breakpoint: mobile drawer never rendered as an active navigation surface. */
-@media (min-width: 72rem) {
+@media (min-width: 90rem) {
   .nvx-mobile-nav,
   .nvx-mobile-nav[open],
   .nvx-mobile-nav.is-open,

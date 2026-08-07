@@ -1,0 +1,248 @@
+name: Staging2 Repair Pipeline Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-repair-pipeline-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact trigger head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Refuse concurrent master movement
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          remote="$(git ls-remote origin refs/heads/master | cut -f1)"
+          test "$remote" = "$GITHUB_SHA"
+
+      - name: Patch permanent staging QA and deploy safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          harness_path = Path('scripts/staging2/block-c-52x3.mjs')
+          harness = harness_path.read_text(encoding='utf-8')
+
+          start = harness.index('async function activateLazyImages(page) {')
+          end = harness.index('\nasync function collectGeometry(page) {', start)
+          new_activate = r'''async function activateLazyImages(page) {
+            await page.evaluate(async () => {
+              const root = document.documentElement;
+              const body = document.body;
+              const rootStyle = root.getAttribute('style');
+              const bodyStyle = body?.getAttribute('style') ?? null;
+              root.style.setProperty('scroll-behavior', 'auto', 'important');
+              if (body) body.style.setProperty('scroll-behavior', 'auto', 'important');
+
+              try {
+                const scrollingElement = document.scrollingElement || root;
+                const maxY = Math.max(0, scrollingElement.scrollHeight - window.innerHeight);
+                const step = Math.max(360, Math.floor(window.innerHeight * 0.8));
+                for (let y = 0; y <= maxY; y += step) {
+                  scrollingElement.scrollTop = y;
+                  await new Promise((resolve) => setTimeout(resolve, 45));
+                }
+                scrollingElement.scrollTop = maxY;
+                await new Promise((resolve) => setTimeout(resolve, 120));
+                scrollingElement.scrollTop = 0;
+                root.scrollTop = 0;
+                if (body) body.scrollTop = 0;
+                await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+                await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+              } finally {
+                if (rootStyle === null) root.removeAttribute('style');
+                else root.setAttribute('style', rootStyle);
+                if (body) {
+                  if (bodyStyle === null) body.removeAttribute('style');
+                  else body.setAttribute('style', bodyStyle);
+                }
+              }
+            }).catch(() => {});
+
+            await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+
+            let finalScrollY = Number.POSITIVE_INFINITY;
+            for (let attempt = 1; attempt <= 5; attempt += 1) {
+              finalScrollY = await page.evaluate(async () => {
+                const root = document.documentElement;
+                const body = document.body;
+                const rootStyle = root.getAttribute('style');
+                const bodyStyle = body?.getAttribute('style') ?? null;
+                root.style.setProperty('scroll-behavior', 'auto', 'important');
+                if (body) body.style.setProperty('scroll-behavior', 'auto', 'important');
+                try {
+                  const scrollingElement = document.scrollingElement || root;
+                  scrollingElement.scrollTop = 0;
+                  root.scrollTop = 0;
+                  if (body) body.scrollTop = 0;
+                  window.scrollTo(0, 0);
+                  await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+                  await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+                  return Math.round(window.scrollY || scrollingElement.scrollTop || 0);
+                } finally {
+                  if (rootStyle === null) root.removeAttribute('style');
+                  else root.setAttribute('style', rootStyle);
+                  if (body) {
+                    if (bodyStyle === null) body.removeAttribute('style');
+                    else body.setAttribute('style', bodyStyle);
+                  }
+                }
+              });
+              if (Math.abs(finalScrollY) <= 2) break;
+              await page.waitForTimeout(100 * attempt);
+            }
+
+            if (Math.abs(finalScrollY) > 2) {
+              throw new Error(`Unable to reset page to scrollY=0 after lazy-image activation (scrollY=${finalScrollY})`);
+            }
+            await page.waitForTimeout(100);
+          }
+          '''
+          harness = harness[:start] + new_activate + harness[end:]
+
+          listener_start = harness.index("    page.on('requestfailed', (request) => {")
+          listener_end = harness.index('\n\n    let response = null;', listener_start)
+          new_listeners = r'''    page.on('requestfailed', (request) => {
+              const target = request.url();
+              const resourceType = request.resourceType();
+              const failureText = request.failure()?.errorText || 'request failed';
+              const expectedClientMediaAbort = resourceType === 'media' && /ERR_ABORTED/i.test(failureText);
+
+              if (target.startsWith(baseUrl) && !expectedClientMediaAbort) {
+                networkErrors.push(`${target}: ${failureText}`);
+              }
+              if (resourceType === 'image') {
+                let hostname = '';
+                try {
+                  hostname = new URL(target).hostname;
+                } catch {
+                  hostname = '';
+                }
+                if (hostname === expectedHost) {
+                  imageHttpErrors.push(`${target}: ${failureText}`);
+                }
+              }
+            });
+            page.on('response', (resourceResponse) => {
+              const request = resourceResponse.request();
+              const resourceType = request.resourceType();
+              if (resourceType !== 'image' && resourceType !== 'media') return;
+              const target = resourceResponse.url();
+              let parsed = null;
+              try {
+                parsed = new URL(target);
+              } catch {
+                return;
+              }
+              if (parsed.hostname === expectedHost && resourceResponse.status() >= 400) {
+                const message = `${target}: HTTP ${resourceResponse.status()}`;
+                if (resourceType === 'image') imageHttpErrors.push(message);
+                else networkErrors.push(message);
+              }
+              if (
+                resourceType === 'image' &&
+                (parsed.hostname === 'nuvanx.com' || parsed.hostname === 'www.nuvanx.com') &&
+                parsed.pathname.includes('/wp-content/uploads/')
+              ) {
+                productionMediaLeaks.push(target);
+              }
+            });'''
+          harness = harness[:listener_start] + new_listeners + harness[listener_end:]
+
+          marker = '      viewportWidth: vw,\n'
+          if harness.count(marker) != 1:
+              raise SystemExit(f'Expected one viewportWidth marker, got {harness.count(marker)}')
+          harness = harness.replace(marker, marker + "      scrollY: Math.round(window.scrollY || doc.scrollTop || 0),\n", 1)
+          harness_path.write_text(harness, encoding='utf-8')
+
+          deploy_path = Path('.github/workflows/deploy-staging2.yml')
+          deploy = deploy_path.read_text(encoding='utf-8')
+
+          strict_anchor = '''          ssh nvx-staging2 "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"\n\n      - name: Verify staging isolation preflight'''
+          if deploy.count(strict_anchor) != 1:
+              raise SystemExit('Strict SSH/preflight anchor mismatch')
+          safety_step = '''          ssh nvx-staging2 "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"\n\n      - name: Enforce staging runtime safety\n        shell: bash\n        run: |\n          set -euo pipefail\n          ssh nvx-staging2 "WP_ROOT='$WP_ROOT' PROD_ROOT='$PROD_ROOT' RUN_ID='$GITHUB_RUN_ID' RUN_ATTEMPT='$GITHUB_RUN_ATTEMPT' bash -se" <<'REMOTE'\n          set -Eeuo pipefail\n          cd "$WP_ROOT"\n          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'\n          test "$(wp option get home)" = 'https://staging2.nuvanx.com'\n          debug_display_is_off() {\n            wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'\n          }\n          if ! debug_display_is_off; then\n            backup="$WP_ROOT/wp-config.php.pre-runtime-safety-${RUN_ID}-${RUN_ATTEMPT}"\n            test ! -e "$backup"\n            cp -p wp-config.php "$backup"\n            wp config set WP_DEBUG_DISPLAY false --raw\n            php -l wp-config.php >/dev/null\n            echo "STAGING_RUNTIME_CONFIG_BACKUP=$backup"\n          fi\n          debug_display_is_off\n          cd "$PROD_ROOT"\n          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'\n          test "$(wp option get home)" = 'https://nuvanx.com'\n          echo 'STAGING_RUNTIME_SAFETY=PASS debug_display=off'\n          REMOTE\n\n      - name: Verify staging isolation preflight'''
+          deploy = deploy.replace(strict_anchor, safety_step, 1)
+
+          preflight_anchor = '''          test "$(cd "$WP_ROOT" && wp config get WP_ENVIRONMENT_TYPE)" = 'staging'\n          if (cd "$WP_ROOT" && wp plugin is-active sg-cachepress); then'''
+          if deploy.count(preflight_anchor) != 1:
+              raise SystemExit('Preflight environment anchor mismatch')
+          preflight_new = '''          test "$(cd "$WP_ROOT" && wp config get WP_ENVIRONMENT_TYPE)" = 'staging'\n          (cd "$WP_ROOT" && wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);')\n          if (cd "$WP_ROOT" && wp plugin is-active sg-cachepress); then'''
+          deploy = deploy.replace(preflight_anchor, preflight_new, 1)
+
+          postflight_anchor = '''          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'\n          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'\n'''
+          if deploy.count(postflight_anchor) != 1:
+              raise SystemExit('Postflight environment anchor mismatch')
+          postflight_new = '''          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'\n          wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'\n          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'\n'''
+          deploy = deploy.replace(postflight_anchor, postflight_new, 1)
+
+          deploy = deploy.replace('      - name: Apply staging content hygiene and media recovery\n', '      - name: Apply staging content hygiene\n', 1)
+          media_eval = '''          ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/scripts/staging2/media-recovery.php'"\n'''
+          if deploy.count(media_eval) != 1:
+              raise SystemExit('Media recovery eval anchor mismatch')
+          deploy = deploy.replace(media_eval, '', 1)
+
+          summary_anchor = "            echo '- Isolation: staging filesystem/DB/environment verified before and after deployment'\n"
+          if deploy.count(summary_anchor) != 1:
+              raise SystemExit('Summary anchor mismatch')
+          deploy = deploy.replace(summary_anchor, summary_anchor + "            echo '- Runtime safety: WP_DEBUG_DISPLAY is explicitly false on staging'\n", 1)
+          deploy_path.write_text(deploy, encoding='utf-8')
+
+          boundary_path = Path('scripts/staging2/verify-staging-boundary.mjs')
+          boundary = boundary_path.read_text(encoding='utf-8')
+          chrome_ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+          if boundary.count(chrome_ua) != 1:
+              raise SystemExit(f'Expected one Chrome boundary UA, got {boundary.count(chrome_ua)}')
+          boundary = boundary.replace(chrome_ua, 'NUVANX-Staging-Boundary/1.0', 1)
+          boundary_path.write_text(boundary, encoding='utf-8')
+          PY
+
+          git rm -f --ignore-unmatch scripts/staging2/media-recovery.php
+          git rm -f --ignore-unmatch .github/workflows/staging2-hide-debug-once.yml
+          git rm -f --ignore-unmatch .github/workflows/staging2-repair-pipeline-once.yml
+
+      - name: Validate repaired files
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/staging2/block-c-52x3.mjs
+          node --check scripts/staging2/verify-staging-boundary.mjs
+          bash -n tools/deploy/deploy-to-staging2.sh
+          grep -q 'STAGING_RUNTIME_SAFETY=PASS' .github/workflows/deploy-staging2.yml
+          grep -q 'WP_DEBUG_DISPLAY false --raw' .github/workflows/deploy-staging2.yml
+          ! grep -q 'media-recovery' .github/workflows/deploy-staging2.yml
+          test ! -e scripts/staging2/media-recovery.php
+          grep -q 'NUVANX-Staging-Boundary/1.0' scripts/staging2/verify-staging-boundary.mjs
+          grep -q 'expectedClientMediaAbort' scripts/staging2/block-c-52x3.mjs
+          grep -q 'Unable to reset page to scrollY=0' scripts/staging2/block-c-52x3.mjs
+          git diff --check
+
+      - name: Commit repaired permanent state
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'NUVANX Staging QA'
+          git config user.email 'admin@nuvanx.com'
+          git add -A
+          git diff --cached --stat
+          git diff --cached --quiet && { echo 'No changes to commit' >&2; exit 1; }
+          remote="$(git ls-remote origin refs/heads/master | cut -f1)"
+          test "$remote" = "$GITHUB_SHA"
+          git commit -m 'fix(staging): harden Block C harness and runtime safety'
+          git push origin HEAD:master

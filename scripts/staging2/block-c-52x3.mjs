@@ -276,6 +276,10 @@ async function collectGeometry(page) {
 
     const mainText = (main?.innerText || '').replace(/\s+/g, ' ').trim();
     const bodyStyle = getComputedStyle(document.body);
+    const bodyText = document.body?.innerText || '';
+    const runtimeDiagnostics = Array.from(
+      new Set(bodyText.match(/(?:Warning|Deprecated|Fatal error|Notice):[^\n]*/g) || [])
+    ).slice(0, 12);
 
     return {
       viewportWidth: vw,
@@ -301,6 +305,7 @@ async function collectGeometry(page) {
       fontsStatus: document.fonts?.status || 'unknown',
       bodyFontFamily: bodyStyle.fontFamily || '',
       bodyFontSize: bodyStyle.fontSize || '',
+      runtimeDiagnostics,
       visibleSectionCount: visibleSections.length,
       navVisible: visible(nav),
       navToggleVisible,
@@ -485,6 +490,7 @@ for (const viewport of viewports) {
         if (!geometry.h1Text) issues.push('H1 is empty or unreadable');
         if (geometry.h1Clipped) issues.push('H1 is clipped/truncated by its container');
         if (geometry.h1Rect && (geometry.h1Rect.left < -2 || geometry.h1Rect.right > viewport.width + 2)) issues.push('H1 extends outside viewport');
+        if (geometry.h1Rect && geometry.h1Rect.top < -2) issues.push(`H1 starts above viewport (${geometry.h1Rect.top}px)`);
         if (geometry.horizontalOverflowPx > 2) issues.push(`Horizontal viewport overflow: ${geometry.horizontalOverflowPx}px`);
         if (geometry.headerRect && (geometry.headerRect.left < -2 || geometry.headerRect.right > viewport.width + 2)) issues.push('Header extends outside viewport bounds');
         if (geometry.footerRect && (geometry.footerRect.left < -2 || geometry.footerRect.right > viewport.width + 2)) issues.push('Footer extends outside viewport bounds');
@@ -497,6 +503,7 @@ for (const viewport of viewports) {
         if (productionMediaLeaks.length > 0) issues.push(`Staging media leaked to production host: ${[...new Set(productionMediaLeaks)].slice(0, 8).join(' | ')}`);
         if (geometry.fontsStatus !== 'loaded') issues.push(`Fonts did not reach loaded state (${geometry.fontsStatus})`);
         if (!geometry.bodyFontFamily) issues.push('Body computed font-family is empty');
+        if (geometry.runtimeDiagnostics?.length > 0) issues.push(`Visible PHP/runtime diagnostics: ${geometry.runtimeDiagnostics.join(' | ')}`);
         if (geometry.mainTextLength < 80 && !shortContentRoutes.has(route)) issues.push(`Main readable text unexpectedly short (${geometry.mainTextLength} chars)`);
         if (geometry.visibleSectionCount < 2 && geometry.mainTextLength < 400 && !shortContentRoutes.has(route)) issues.push(`Later sections may be missing; only ${geometry.visibleSectionCount} visible semantic sections and ${geometry.mainTextLength} chars`);
         if (viewport.width >= 1024 && !geometry.navVisible && !geometry.navToggleVisible) issues.push('Desktop/tablet header navigation or menu toggle is not visible');

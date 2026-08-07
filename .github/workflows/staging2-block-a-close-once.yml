@@ -1,0 +1,240 @@
+name: Staging2 Block A Close Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-block-a-close-once.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging2-deployment
+  cancel-in-progress: false
+
+jobs:
+  close:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      TARGET_SHA: 2e4c4deeda2cbb41bd7604e7e3c2b28a828a0374
+      WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      BASE_URL: https://staging2.nuvanx.com
+      EXPECTED_HOST: staging2.nuvanx.com
+      EXPECTED_SHA: 2e4c4deeda2cbb41bd7604e7e3c2b28a828a0374
+      CI: true
+    steps:
+      - name: Check out immutable candidate
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: 2e4c4deeda2cbb41bd7604e7e3c2b28a828a0374
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify candidate contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TARGET_SHA"
+          git fetch --no-tags origin master
+          git merge-base --is-ancestor "$TARGET_SHA" origin/master
+          bash -n tools/deploy/deploy-to-staging2.sh
+          find wp-content/themes/nuvanx-medical/ -path '*/vendor' -prune -o -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: scripts/staging2/package-lock.json
+
+      - name: Run static deployment gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/lint/no-hardcoded-colors.mjs
+          node scripts/lint/no-hardcoded-fontsize.mjs
+          node scripts/lint/no-inline-layout-styles.mjs
+
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/staging2_key"; chmod 600 "$HOME/.ssh/staging2_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+            ServerAliveInterval 30
+            ServerAliveCountMax 2
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          ssh nvx-staging2 "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"
+
+      - name: Verify isolation preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 "WP_ROOT='$WP_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          test ! -e /home/customer/www/staging2.nuvanx.com/nvx-vhost-proof.txt
+          test "$WP_ROOT" != "$PROD_ROOT"
+          test "$(cd "$WP_ROOT" && wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(cd "$PROD_ROOT" && wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(cd "$WP_ROOT" && wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(cd "$WP_ROOT" && wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(cd "$WP_ROOT" && wp option get blog_public)" = '0'
+          test "$(cd "$WP_ROOT" && wp config get NVX_ENV)" = 'staging'
+          test "$(cd "$WP_ROOT" && wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          echo 'PREFLIGHT_ISOLATION=PASS'
+          REMOTE
+
+      - name: Upload immutable release payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          REMOTE_RELEASE="$WP_ROOT/wp-content/.nuvanx-deployments/${TARGET_SHA}-${GITHUB_RUN_ID}"
+          echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
+          ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme' '$REMOTE_RELEASE/mu-plugins'"
+          rsync -az --delete --exclude='.git' --exclude='php_errorlog' --exclude='*.log' --exclude='_archive*' --exclude='_disabled*' --exclude='*.bak*' \
+            wp-content/themes/nuvanx-medical/ "nvx-staging2:$REMOTE_RELEASE/theme/"
+          rsync -az tools/deploy/deploy-to-staging2.sh "nvx-staging2:$REMOTE_RELEASE/deploy-to-staging2.sh"
+          rsync -az tools/deploy/deploy-required-mu-plugins.sh "nvx-staging2:$REMOTE_RELEASE/deploy-required-mu-plugins.sh"
+          rsync -az tools/wp-cli/hygiene-content-fix.php "nvx-staging2:$REMOTE_RELEASE/hygiene-content-fix.php"
+
+      - name: Execute guarded staging deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 \
+            "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$TARGET_SHA' --confirm && NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$WP_ROOT' --confirm"
+
+      - name: Apply staging content hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
+
+      - name: Purge staging caches capability-aware
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 "cd '$WP_ROOT' && wp cache flush && if wp help sg >/dev/null 2>&1; then wp sg purge; else echo 'siteground_wp_cli_purge=SKIPPED command_unavailable'; fi; rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/*; wp eval 'if (function_exists(\"opcache_reset\")) { opcache_reset(); }'"
+
+      - name: Verify exact deployed SHA and staging identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 "WP_ROOT='$WP_ROOT' TARGET_SHA='$TARGET_SHA' bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd "$WP_ROOT"
+          deployed="$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
+          test "$deployed" = "$TARGET_SHA"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://staging2.nuvanx.com'
+          test "$(wp option get blog_public)" = '0'
+          test "$(wp config get NVX_ENV)" = 'staging'
+          test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          echo "DEPLOYED_SHA=$deployed"
+          echo 'STAGING_IDENTITY=PASS'
+          REMOTE
+
+      - name: Verify content hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          status=0
+          ssh nvx-staging2 "cd '$WP_ROOT' && grep -E -i -r 'valoraci[oó]n( m[eé]dica)? (gratis|gratuita)|consulta (m[eé]dica )?(gratis|gratuita)|sin compromiso|Tu mejor versi[oó]n empieza aqu[ií]|EXILITET|enfoque m[eé]dico premium' wp-content/themes/nuvanx-medical/inc/data/*.json" || status=$?
+          case "$status" in
+            0) echo 'Content hygiene failed: banned phrases remain.' >&2; exit 1 ;;
+            1) echo 'CONTENT_HYGIENE=PASS' ;;
+            *) echo "Content hygiene grep error: $status" >&2; exit 1 ;;
+          esac
+
+      - name: Verify staging boundary against exact SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/staging2/verify-staging-boundary.mjs
+
+      - name: Validate page template integrity
+        shell: bash
+        env:
+          WORDPRESS_URL: https://staging2.nuvanx.com
+        run: |
+          set -euo pipefail
+          node scripts/validate-page-templates.mjs
+
+      - name: Install browser acceptance dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium
+
+      - name: Run browser acceptance against exact SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          node browser-acceptance.mjs
+
+      - name: Verify production unchanged read-only
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f "$HOME/.ssh/config"
+          ssh nvx-staging2 "PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          echo 'PRODUCTION_UNCHANGED=PASS'
+          REMOTE
+
+      - name: Upload Block A evidence
+        if: always()
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
+        with:
+          name: staging2-block-a-${{ env.TARGET_SHA }}
+          path: scripts/staging2/artifacts/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Remove temporary remote payload
+        if: always()
+        shell: bash
+        run: |
+          set +e
+          if [[ -n "${REMOTE_RELEASE:-}" ]] && [[ -f "$HOME/.ssh/config" ]]; then
+            ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'" || true
+          fi
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/staging2_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

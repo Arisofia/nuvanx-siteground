@@ -224,14 +224,14 @@
   white-space: nowrap;
 }
 
-.nvx-header__cta .nvx-brand-btn {
+.nvx-header__cta.nvx-brand-btn {
   border-radius: var(--nvx-radius-pill);
   padding: var(--nvx-space-2) var(--nvx-space-4);
   font-weight: var(--nvx-fw-medium);
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
-.nvx-header__cta .nvx-brand-btn:hover {
+.nvx-header__cta.nvx-brand-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--nvx-shadow-button-hover);
 }
@@ -324,4 +324,8 @@
   font-family: var(--nvx-sans);
   font-size: var(--nvx-space-2);
   line-height: var(--nvx-lh-nav-submenu);
+}
+
+.nvx-nav {
+  min-width: 0;
 }

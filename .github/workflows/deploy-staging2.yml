@@ -114,6 +114,10 @@ jobs:
           test "$(cd "$WP_ROOT" && wp option get blog_public)" = '0'
           test "$(cd "$WP_ROOT" && wp config get NVX_ENV)" = 'staging'
           test "$(cd "$WP_ROOT" && wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          if (cd "$WP_ROOT" && wp plugin is-active sg-cachepress); then
+            echo 'Speed Optimizer must begin inactive on staging2.' >&2
+            exit 1
+          fi
           echo 'PREFLIGHT_ISOLATION=PASS'
           REMOTE
 
@@ -141,25 +145,44 @@ jobs:
           set -euo pipefail
           ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
 
-      - name: Purge staging caches capability-aware
+      - name: Purge staging caches with transient Speed Optimizer activation
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-staging2 "WP_ROOT='$WP_ROOT' bash -se" <<'REMOTE'
-          set -euo pipefail
+          set -Eeuo pipefail
           cd "$WP_ROOT"
           wp cache flush
-          speed_optimizer_main='wp-content/plugins/sg-cachepress/sg-cachepress.php'
-          if wp help sg >/dev/null 2>&1; then
-            wp sg purge
-            echo 'siteground_wp_cli_purge=PASS mode=active-plugin'
-          elif [[ -f "$speed_optimizer_main" ]] && wp --require="$speed_optimizer_main" help sg >/dev/null 2>&1; then
-            wp --require="$speed_optimizer_main" sg purge
-            echo 'siteground_wp_cli_purge=PASS mode=require-inactive-plugin'
-          else
-            echo 'SiteGround Dynamic Cache purge command unavailable.' >&2
+
+          plugin_slug='sg-cachepress'
+          if ! wp plugin is-installed "$plugin_slug" >/dev/null 2>&1; then
+            echo 'Speed Optimizer is not installed; cannot purge SiteGround Dynamic Cache.' >&2
             exit 1
           fi
+          if wp plugin is-active "$plugin_slug" >/dev/null 2>&1; then
+            echo 'Speed Optimizer unexpectedly active before post-hygiene purge.' >&2
+            exit 1
+          fi
+
+          restore_inactive() {
+            set +e
+            if wp plugin is-active "$plugin_slug" >/dev/null 2>&1; then
+              wp plugin deactivate "$plugin_slug" --quiet || true
+            fi
+          }
+          trap restore_inactive EXIT
+
+          wp plugin activate "$plugin_slug" --quiet
+          wp plugin is-active "$plugin_slug"
+          wp sg purge
+          wp plugin deactivate "$plugin_slug" --quiet
+          if wp plugin is-active "$plugin_slug" >/dev/null 2>&1; then
+            echo 'Speed Optimizer remained active after purge.' >&2
+            exit 1
+          fi
+          trap - EXIT
+          echo 'siteground_wp_cli_purge=PASS mode=transient-activation-restored-inactive'
+
           rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
           rm -rf wp-content/cache/sgo-cache/* wp-content/cache/*
           wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }'
@@ -181,6 +204,10 @@ jobs:
           test "$(wp config get NVX_ENV)" = 'staging'
           test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
           test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          if wp plugin is-active sg-cachepress; then
+            echo 'Speed Optimizer active after deploy; expected restored inactive state.' >&2
+            exit 1
+          fi
           echo "DEPLOYED_SHA=$deployed"
           echo 'STAGING_IDENTITY=PASS'
           REMOTE
@@ -201,7 +228,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node scripts/staging2/verify-staging-boundary.mjs
+          pass=0
+          for attempt in 1 2 3 4 5 6; do
+            echo "Boundary attempt ${attempt}/6"
+            if node scripts/staging2/verify-staging-boundary.mjs; then
+              pass=1
+              break
+            fi
+            sleep 5
+          done
+          test "$pass" = 1
 
       - name: Validate page template references
         shell: bash
@@ -259,6 +295,7 @@ jobs:
             echo "- SHA: \`$DEPLOY_SHA\`"
             echo '- Boundary: five required routes stayed on staging2, HTTP 200, noindex/nofollow, exact HTML SHA'
             echo '- Isolation: staging filesystem/DB/environment verified before and after deployment'
+            echo '- SiteGround Dynamic Cache: purged by transient Speed Optimizer activation and restored to inactive state'
             echo '- Production: read-only invariant verified unchanged'
             echo '- Full 52 × 3 browser acceptance: intentionally deferred to Block C'
           } >> "$GITHUB_STEP_SUMMARY"

@@ -10,11 +10,16 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$hero_video_url  = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
-$poster_id       = get_theme_mod( 'nvx_home_video_poster_id' );
-$hero_poster_url = $poster_id
+$hero_video_url      = content_url( '/uploads/2026/07/nvx-home-video-portada-hero-12s-720p.mp4' );
+$canonical_poster_url = content_url( '/uploads/2026/07/nvx-home-video-portada-poster.webp' );
+$poster_id             = (int) get_theme_mod( 'nvx_home_video_poster_id', 0 );
+$poster_file           = $poster_id > 0 ? get_attached_file( $poster_id ) : '';
+$configured_poster_url = ( $poster_id > 0 && is_string( $poster_file ) && '' !== $poster_file && is_readable( $poster_file ) )
 	? wp_get_attachment_image_url( $poster_id, 'full' )
-	: get_stylesheet_directory_uri() . '/assets/img/nvx-home-video-default-poster.webp';
+	: '';
+$hero_poster_url       = is_string( $configured_poster_url ) && '' !== $configured_poster_url
+	? $configured_poster_url
+	: $canonical_poster_url;
 $evidence_image  = content_url( '/uploads/2026/07/consulta-medica-personalizada-nuvanx-madrid.webp' );
 
 ob_start();

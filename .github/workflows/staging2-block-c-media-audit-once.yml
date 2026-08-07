@@ -1,4 +1,4 @@
-name: Staging2 Block C Media Audit Once
+name: Staging2 Block C Media Recovery Once
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  audit:
+  recover:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -46,12 +46,15 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
 
-      - name: Audit exact Block C media paths read-only
+      - name: Restore exact verified Block C media to staging
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
-          set -euo pipefail
+          set -Eeuo pipefail
+          test "$STAGING_ROOT" = '/home/customer/www/staging2.nuvanx.com/public_html'
+          test "$PROD_ROOT" = '/home/customer/www/nuvanx.com/public_html'
+          test "$STAGING_ROOT" != "$PROD_ROOT"
           test "$(cd "$STAGING_ROOT" && wp config get DB_NAME)" = dbshcocboodiwr
           test "$(cd "$PROD_ROOT" && wp config get DB_NAME)" = db0ecrycwv2tgb
           paths=(
@@ -74,24 +77,45 @@ jobs:
             '2026/07/nvx-home-video-portada-hero-12s-720p.mp4'
             '2026/07/nvx-home-video-portada-poster.webp'
           )
-          prod_yes=0; prod_no=0; staging_yes=0; staging_no=0
+
+          # Fail before mutation unless every source exists in production.
           for rel in "${paths[@]}"; do
-            s="$STAGING_ROOT/wp-content/uploads/$rel"
-            p="$PROD_ROOT/wp-content/uploads/$rel"
-            se=NO; pe=NO; ss=''; ps=''; sb=0; pb=0
-            if [[ -f "$s" ]]; then se=YES; ss="$(sha256sum "$s"|awk '{print $1}')"; sb="$(wc -c < "$s"|tr -d ' ')"; staging_yes=$((staging_yes+1)); else staging_no=$((staging_no+1)); fi
-            if [[ -f "$p" ]]; then pe=YES; ps="$(sha256sum "$p"|awk '{print $1}')"; pb="$(wc -c < "$p"|tr -d ' ')"; prod_yes=$((prod_yes+1)); else prod_no=$((prod_no+1)); fi
-            echo "MEDIA rel=$rel staging=$se production=$pe staging_bytes=$sb production_bytes=$pb staging_sha=${ss:-NA} production_sha=${ps:-NA}"
+            src="$PROD_ROOT/wp-content/uploads/$rel"
+            test -f "$src" || { echo "MISSING_PRODUCTION_SOURCE rel=$rel" >&2; exit 2; }
           done
-          echo "THEME_FALLBACK staging=$([[ -f "$STAGING_ROOT/wp-content/themes/nuvanx-medical/assets/img/nvx-home-video-default-poster.webp" ]] && echo YES || echo NO) production=$([[ -f "$PROD_ROOT/wp-content/themes/nuvanx-medical/assets/img/nvx-home-video-default-poster.webp" ]] && echo YES || echo NO)"
+
+          copied=0; parity=0
+          for rel in "${paths[@]}"; do
+            src="$PROD_ROOT/wp-content/uploads/$rel"
+            dst="$STAGING_ROOT/wp-content/uploads/$rel"
+            src_sha="$(sha256sum "$src" | awk '{print $1}')"
+            mkdir -p "$(dirname "$dst")"
+            if [[ -f "$dst" ]]; then
+              dst_sha="$(sha256sum "$dst" | awk '{print $1}')"
+              test "$src_sha" = "$dst_sha" || { echo "REFUSING_DIFFERENT_STAGING_FILE rel=$rel staging_sha=$dst_sha production_sha=$src_sha" >&2; exit 3; }
+              echo "ALREADY_IN_PARITY rel=$rel sha=$src_sha"
+              parity=$((parity+1))
+            else
+              cp -p "$src" "$dst"
+              dst_sha="$(sha256sum "$dst" | awk '{print $1}')"
+              test "$src_sha" = "$dst_sha"
+              echo "COPIED rel=$rel sha=$dst_sha bytes=$(wc -c < "$dst" | tr -d ' ')"
+              copied=$((copied+1))
+            fi
+          done
+
+          # Complete verification after mutation.
+          for rel in "${paths[@]}"; do
+            src="$PROD_ROOT/wp-content/uploads/$rel"
+            dst="$STAGING_ROOT/wp-content/uploads/$rel"
+            test -f "$dst"
+            test "$(sha256sum "$src"|awk '{print $1}')" = "$(sha256sum "$dst"|awk '{print $1}')"
+          done
           cd "$STAGING_ROOT"
-          poster_id="$(wp eval 'echo (int) get_theme_mod("nvx_home_video_poster_id", 0);')"
-          echo "HOME_POSTER_THEME_MOD id=$poster_id"
-          if [[ "$poster_id" =~ ^[0-9]+$ ]] && [[ "$poster_id" -gt 0 ]]; then
-            echo "HOME_POSTER_ATTACHMENT rel=$(wp post meta get "$poster_id" _wp_attached_file 2>/dev/null || true) url=$(wp eval "echo wp_get_attachment_url($poster_id);" 2>/dev/null || true)"
-          fi
-          echo "MEDIA_AUDIT_SUMMARY staging_yes=$staging_yes staging_no=$staging_no production_yes=$prod_yes production_no=$prod_no"
-          echo 'MEDIA_AUDIT=PASS_READ_ONLY'
+          wp cache flush
+          echo "BLOCK_C_MEDIA_RECOVERY=PASS copied=$copied already_in_parity=$parity"
+          echo 'DATABASE_WRITE=NONE'
+          echo 'PRODUCTION_WRITE=NONE'
           REMOTE
 
       - name: Destroy SSH identity

@@ -1,0 +1,90 @@
+name: Diagnose Production Layout Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/diagnose-prod-layout-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: scripts/staging2/package-lock.json
+      - name: Install Playwright Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          npm ci --ignore-scripts
+          npx playwright install --with-deps chromium >/dev/null
+      - name: Inspect current production DOM and geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd scripts/staging2
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          const browser = await chromium.launch({headless:true,args:['--no-sandbox']});
+          const ctx = await browser.newContext({viewport:{width:1440,height:1100},ignoreHTTPSErrors:true});
+          const p = await ctx.newPage();
+
+          async function open(url){
+            const r=await p.goto(url,{waitUntil:'networkidle',timeout:45000});
+            console.log(`URL=${url} HTTP=${r?.status()}`);
+            await p.evaluate(async()=>{if(document.fonts?.ready) await document.fonts.ready;});
+            await p.waitForTimeout(500);
+          }
+
+          await open('https://nuvanx.com/equipo-medico/');
+          const team = await p.evaluate(()=>{
+            const imgs=[...document.images].filter(i=>/Francisco Geraldo|Yolanda Piñero/i.test(i.alt||''));
+            return imgs.map(img=>{
+              const r=img.getBoundingClientRect();
+              const fig=img.closest('figure');
+              const parent=img.parentElement;
+              const card=img.closest('article,section,div');
+              const cs=getComputedStyle(img);
+              return {
+                alt:img.alt,src:img.currentSrc||img.src,
+                rect:{x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.width),h:Math.round(r.height)},
+                natural:{w:img.naturalWidth,h:img.naturalHeight},
+                css:{display:cs.display,width:cs.width,maxWidth:cs.maxWidth,height:cs.height,objectFit:cs.objectFit},
+                figureClass:fig?.className||'',parentClass:parent?.className||'',closestClass:card?.className||'',
+                figureHTML:(fig?.outerHTML||parent?.outerHTML||'').slice(0,1800)
+              };
+            });
+          });
+          console.log('TEAM_IMAGES='+JSON.stringify(team));
+
+          await open('https://nuvanx.com/madrid/valoracion/');
+          const val = await p.evaluate(()=>{
+            const root=document.querySelector('#nvx-valoracion-main') || document.querySelector('article');
+            const hero=root?.querySelector(':scope > .nvx-valoracion-hero, :scope > .nvx-brand-hero, .nvx-valoracion-hero, .nvx-brand-hero');
+            const form=document.querySelector('#nvx-hubspot-form');
+            const order=[...(root?.children||[])].map((el,i)=>({i,tag:el.tagName,id:el.id,cls:el.className,txt:(el.textContent||'').trim().slice(0,80)}));
+            const rr=root?.getBoundingClientRect(), hr=hero?.getBoundingClientRect(), fr=form?.getBoundingClientRect();
+            const iframe=form?.querySelector('iframe[data-test-id^="embedded-form-"]');
+            return {
+              root:{id:root?.id,cls:root?.className,rect:rr?{y:Math.round(rr.y),h:Math.round(rr.height)}:null},
+              hero:{exists:!!hero,rect:hr?{y:Math.round(hr.y),h:Math.round(hr.height),bottom:Math.round(hr.bottom)}:null},
+              form:{exists:!!form,cls:form?.className,rect:fr?{y:Math.round(fr.y),h:Math.round(fr.height),top:Math.round(fr.top)}:null,iframe:!!iframe,html:(form?.outerHTML||'').slice(0,2500)},
+              rootChildren:order,
+              scrollY:window.scrollY
+            };
+          });
+          console.log('VALORACION='+JSON.stringify(val));
+          await browser.close();
+          NODE

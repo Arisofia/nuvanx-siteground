@@ -40,7 +40,6 @@ jobs:
           const browser = await chromium.launch({headless:true,args:['--no-sandbox']});
           const ctx = await browser.newContext({viewport:{width:1440,height:1100},ignoreHTTPSErrors:true});
           const p = await ctx.newPage();
-
           async function open(url){
             const r=await p.goto(url,{waitUntil:'networkidle',timeout:45000});
             console.log(`URL=${url} HTTP=${r?.status()}`);
@@ -49,42 +48,52 @@ jobs:
           }
 
           await open('https://nuvanx.com/equipo-medico/');
-          const team = await p.evaluate(()=>{
-            const imgs=[...document.images].filter(i=>/Francisco Geraldo|Yolanda Piñero/i.test(i.alt||''));
-            return imgs.map(img=>{
-              const r=img.getBoundingClientRect();
+          const team = await p.evaluate(()=>[...document.images]
+            .filter(i=>/Francisco Geraldo|Yolanda Piñero/i.test(i.alt||''))
+            .map(img=>{
               const fig=img.closest('figure');
-              const parent=img.parentElement;
-              const card=img.closest('article,section,div');
-              const cs=getComputedStyle(img);
+              const card=img.closest('.nvx-brand-card--team');
+              const grid=card?.parentElement;
+              const section=card?.closest('section');
+              const r=img.getBoundingClientRect(), cr=card?.getBoundingClientRect(), gr=grid?.getBoundingClientRect();
+              const cs=getComputedStyle(img), ccs=card?getComputedStyle(card):null, gcs=grid?getComputedStyle(grid):null;
               return {
-                alt:img.alt,src:img.currentSrc||img.src,
-                rect:{x:Math.round(r.x),y:Math.round(r.y),w:Math.round(r.width),h:Math.round(r.height)},
-                natural:{w:img.naturalWidth,h:img.naturalHeight},
-                css:{display:cs.display,width:cs.width,maxWidth:cs.maxWidth,height:cs.height,objectFit:cs.objectFit},
-                figureClass:fig?.className||'',parentClass:parent?.className||'',closestClass:card?.className||'',
-                figureHTML:(fig?.outerHTML||parent?.outerHTML||'').slice(0,1800)
+                alt:img.alt,
+                imgRect:{w:Math.round(r.width),h:Math.round(r.height)},
+                imgCSS:{width:cs.width,height:cs.height,maxWidth:cs.maxWidth,maxHeight:cs.maxHeight,minHeight:cs.minHeight,aspectRatio:cs.aspectRatio,objectFit:cs.objectFit},
+                figureClass:fig?.className||'',
+                card:{class:card?.className||'',rect:cr?{w:Math.round(cr.width),h:Math.round(cr.height)}:null,display:ccs?.display,gridColumn:ccs?.gridColumn},
+                grid:{tag:grid?.tagName,cls:grid?.className||'',rect:gr?{w:Math.round(gr.width),h:Math.round(gr.height)}:null,display:gcs?.display,columns:gcs?.gridTemplateColumns},
+                section:{id:section?.id||'',cls:section?.className||''},
+                cardHTML:(card?.outerHTML||'').slice(0,3200)
               };
-            });
-          });
-          console.log('TEAM_IMAGES='+JSON.stringify(team));
+            }));
+          console.log('TEAM_DETAIL='+JSON.stringify(team));
 
           await open('https://nuvanx.com/madrid/valoracion/');
           const val = await p.evaluate(()=>{
             const root=document.querySelector('#nvx-valoracion-main') || document.querySelector('article');
-            const hero=root?.querySelector(':scope > .nvx-valoracion-hero, :scope > .nvx-brand-hero, .nvx-valoracion-hero, .nvx-brand-hero');
+            const hero=root?.querySelector(':scope > .nvx-brand-hero, :scope > .nvx-valoracion-hero');
             const form=document.querySelector('#nvx-hubspot-form');
-            const order=[...(root?.children||[])].map((el,i)=>({i,tag:el.tagName,id:el.id,cls:el.className,txt:(el.textContent||'').trim().slice(0,80)}));
-            const rr=root?.getBoundingClientRect(), hr=hero?.getBoundingClientRect(), fr=form?.getBoundingClientRect();
             const iframe=form?.querySelector('iframe[data-test-id^="embedded-form-"]');
+            const rr=root?.getBoundingClientRect(), hr=hero?.getBoundingClientRect(), fr=form?.getBoundingClientRect(), ir=iframe?.getBoundingClientRect();
             return {
-              root:{id:root?.id,cls:root?.className,rect:rr?{y:Math.round(rr.y),h:Math.round(rr.height)}:null},
-              hero:{exists:!!hero,rect:hr?{y:Math.round(hr.y),h:Math.round(hr.height),bottom:Math.round(hr.bottom)}:null},
-              form:{exists:!!form,cls:form?.className,rect:fr?{y:Math.round(fr.y),h:Math.round(fr.height),top:Math.round(fr.top)}:null,iframe:!!iframe,html:(form?.outerHTML||'').slice(0,2500)},
-              rootChildren:order,
-              scrollY:window.scrollY
+              rootRect:rr?{top:Math.round(rr.top),height:Math.round(rr.height)}:null,
+              heroRect:hr?{top:Math.round(hr.top),height:Math.round(hr.height),bottom:Math.round(hr.bottom)}:null,
+              formRect:fr?{top:Math.round(fr.top),height:Math.round(fr.height),bottom:Math.round(fr.bottom)}:null,
+              iframeRect:ir?{top:Math.round(ir.top),height:Math.round(ir.height),width:Math.round(ir.width)}:null,
+              adjacent:!!(hero&&form&&hero.nextElementSibling===form),
+              order:[...(root?.children||[])].map((el,i)=>({i,tag:el.tagName,id:el.id,cls:el.className})),
+              formStyle:form?{display:getComputedStyle(form).display,visibility:getComputedStyle(form).visibility,opacity:getComputedStyle(form).opacity}:null
             };
           });
-          console.log('VALORACION='+JSON.stringify(val));
+          const frame = p.frames().find(f=>f.url().includes('ui-forms-embed-components-app/frame.html'));
+          let frameInfo={found:!!frame};
+          if(frame){
+            await frame.waitForLoadState('domcontentloaded').catch(()=>{});
+            await p.waitForTimeout(800);
+            frameInfo={found:true,url:frame.url(),inputs:await frame.locator('input,textarea,select').count().catch(()=>-1),buttons:await frame.locator('button,input[type="submit"]').count().catch(()=>-1),bodyText:(await frame.locator('body').innerText().catch(()=>'' )).trim().slice(0,500)};
+          }
+          console.log('VALORACION_DETAIL='+JSON.stringify({val,frameInfo}));
           await browser.close();
           NODE

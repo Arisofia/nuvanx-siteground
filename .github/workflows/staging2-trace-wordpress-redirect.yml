@@ -1,0 +1,91 @@
+name: Staging2 Trace WordPress Redirect
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-trace-wordpress-redirect.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+    steps:
+      - name: Configure SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh; chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/k; chmod 600 ~/.ssh/k
+          printf '%s\n' "$KH" > ~/.ssh/known_hosts; chmod 600 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile ~/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Trace one staging request
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "STAGING_ROOT='$STAGING_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd "$STAGING_ROOT"
+          token="nvxtrace${RANDOM}${RANDOM}"
+          tracer="wp-content/mu-plugins/000-nvx-redirect-trace.php"
+          logfile="/tmp/${token}.log"
+          cleanup(){ rm -f "$tracer" "$logfile" /tmp/nvx-th /tmp/nvx-tb; }
+          trap cleanup EXIT
+          cat > "$tracer" <<'PHP'
+          <?php
+          if (!defined('ABSPATH')) { exit; }
+          add_filter('wp_redirect', function($location, $status) {
+              $token = isset($_GET['nvx_redirect_trace']) ? preg_replace('/[^a-zA-Z0-9_-]/', '', (string) $_GET['nvx_redirect_trace']) : '';
+              if ($token === '') { return $location; }
+              $file = '/tmp/' . $token . '.log';
+              $lines = array();
+              $lines[] = 'location=' . $location;
+              $lines[] = 'status=' . $status;
+              foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 20) as $i => $frame) {
+                  $fn = ($frame['class'] ?? '') . ($frame['type'] ?? '') . ($frame['function'] ?? '');
+                  $src = ($frame['file'] ?? '') . ':' . ($frame['line'] ?? '');
+                  $lines[] = $i . ' ' . $fn . ' ' . $src;
+              }
+              file_put_contents($file, implode("\n", $lines) . "\n---\n", FILE_APPEND | LOCK_EX);
+              return $location;
+          }, PHP_INT_MIN, 2);
+          PHP
+          chmod 600 "$tracer"
+          echo "trace_token=$token"
+          curl -sS -D /tmp/nvx-th -o /tmp/nvx-tb "https://staging2.nuvanx.com/?nvx_redirect_trace=$token" -w 'status=%{http_code} final=%{url_effective}\n' || true
+          grep -Ei '^(HTTP/|location:|x-redirect-by:|x-robots-tag:|set-cookie:)' /tmp/nvx-th | head -n 60 || true
+          echo '=== redirect trace ==='
+          if test -s "$logfile"; then
+            sed "s#$STAGING_ROOT#STAGING_ROOT#g" "$logfile" | head -n 120
+          else
+            echo 'trace_log=EMPTY'
+          fi
+          echo '=== nuvanx-redirects source ==='
+          sed -n '1,100p' wp-content/mu-plugins/nuvanx-redirects.php 2>/dev/null || true
+          REMOTE
+
+      - name: Cleanup SSH
+        if: always()
+        run: rm -f ~/.ssh/k ~/.ssh/config ~/.ssh/known_hosts

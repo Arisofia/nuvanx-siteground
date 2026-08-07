@@ -1,0 +1,163 @@
+name: Staging2 Isolate Productive Integrations Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-isolate-integrations-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  isolate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+    steps:
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          mkdir -p ~/.ssh; chmod 700 ~/.ssh
+          printf '%s\n' "$KEY" > ~/.ssh/k; chmod 600 ~/.ssh/k
+          printf '%s\n' "$KH" > ~/.ssh/known_hosts; chmod 600 ~/.ssh/known_hosts
+          cat > ~/.ssh/config <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile ~/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile ~/.ssh/known_hosts
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Apply staging-only integration isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          fail(){ echo "FAIL: $*" >&2; exit 1; }
+          test "$STAGING_ROOT" != "$PROD_ROOT" || fail 'roots identical'
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr' || fail 'staging DB identity mismatch'
+          test "$(wp config get NVX_ENV)" = 'staging' || fail 'NVX_ENV is not staging'
+          test "$(cd "$PROD_ROOT" && wp config get DB_NAME)" = 'db0ecrycwv2tgb' || fail 'production DB identity mismatch'
+
+          echo '=== before active plugins ==='
+          wp plugin list --status=active --fields=name,status --format=csv
+
+          # Marketing/tracking plugins copied from production are not required for visual QA.
+          for plugin in klaviyo google-site-kit creame-whatsapp-me; do
+            if wp plugin is-active "$plugin"; then
+              wp plugin deactivate "$plugin" --quiet
+              echo "deactivated=$plugin"
+            else
+              echo "already_inactive=$plugin"
+            fi
+          done
+
+          # Block all WordPress-originated mail and common productive HTTP integrations
+          # only in staging. File lives in staging root, never production.
+          isolation='wp-content/mu-plugins/000-nvx-staging-isolation.php'
+          cat > "$isolation" <<'PHP'
+          <?php
+          /** NUVANX staging-only outbound isolation. */
+          if ( ! defined( 'ABSPATH' ) ) { exit; }
+          $nvx_env = defined( 'NVX_ENV' ) ? (string) NVX_ENV : '';
+          if ( 'staging' !== $nvx_env ) { return; }
+
+          // Prevent WordPress/application email from leaving staging.
+          add_filter( 'pre_wp_mail', static function ( $return, $atts ) {
+              unset( $atts );
+              return false;
+          }, PHP_INT_MIN, 2 );
+
+          // Block known productive API/webhook destinations while keeping normal
+          // WordPress update/QA HTTP available. No request payload is logged.
+          add_filter( 'pre_http_request', static function ( $pre, $args, $url ) {
+              unset( $args );
+              $host = strtolower( (string) wp_parse_url( (string) $url, PHP_URL_HOST ) );
+              if ( '' === $host ) { return $pre; }
+              $blocked = array(
+                  'api.hubapi.com', 'api.hsforms.com', 'forms.hsforms.com',
+                  'a.klaviyo.com', 'i.klaviyo.com', 'manage.kmail-lists.com',
+                  'graph.facebook.com', 'www.facebook.com', 'connect.facebook.net',
+                  'www.googletagmanager.com', 'www.google-analytics.com', 'analytics.google.com',
+                  'doctoralia.es', 'www.doctoralia.es',
+              );
+              foreach ( $blocked as $domain ) {
+                  if ( $host === $domain || str_ends_with( $host, '.' . $domain ) ) {
+                      return new WP_Error( 'nvx_staging_outbound_blocked', 'Outbound integration blocked in staging.' );
+                  }
+              }
+              return $pre;
+          }, PHP_INT_MIN, 3 );
+
+          // Belt-and-suspenders: if copied options reactivate plugins, hide these
+          // productive plugins on staging front/admin runtime.
+          add_filter( 'option_active_plugins', static function ( $plugins ) {
+              if ( ! is_array( $plugins ) ) { return $plugins; }
+              $blocked_slugs = array( 'klaviyo/', 'google-site-kit/', 'creame-whatsapp-me/' );
+              return array_values( array_filter( $plugins, static function ( $plugin ) use ( $blocked_slugs ) {
+                  foreach ( $blocked_slugs as $slug ) {
+                      if ( str_starts_with( (string) $plugin, $slug ) ) { return false; }
+                  }
+                  return true;
+              } ) );
+          }, PHP_INT_MIN );
+          PHP
+          chmod 644 "$isolation"
+          php -l "$isolation"
+
+          # Disable tracking-only MU modules copied from production. Preserve files
+          # for rollback; renaming .php prevents WordPress MU autoload.
+          for f in wp-content/mu-plugins/nuvanx-meta-dedupe-event-id.php wp-content/mu-plugins/nuvanx-meta-match-quality.php; do
+            if test -f "$f"; then
+              mv "$f" "$f.staging-disabled"
+              echo "mu_tracking_disabled=$f"
+            elif test -f "$f.staging-disabled"; then
+              echo "mu_tracking_already_disabled=$f"
+            fi
+          done
+
+          # WP cron is already disabled; remove copied productive scheduled hooks too.
+          for hook in nvx_doctoralia_social_proof_monthly_refresh googlesitekit_cron_conversion_reporting_events googlesitekit_cron_update_remote_features googlesitekit_email_reporting_monitor googlesitekit_email_reporting_initiator googlesitekit_cron_synchronize_ads_linked_data googlesitekit_email_reporting_cleanup; do
+            wp cron event delete "$hook" --all >/dev/null 2>&1 || true
+          done
+
+          echo '=== after active plugins ==='
+          wp plugin list --status=active --fields=name,status --format=csv
+          echo '=== isolation assertions ==='
+          for plugin in klaviyo google-site-kit creame-whatsapp-me; do
+            if wp plugin is-active "$plugin"; then fail "$plugin still active"; else echo "$plugin=DISABLED"; fi
+          done
+          test -f "$isolation" || fail 'staging isolation MU missing'
+          test ! -f wp-content/mu-plugins/nuvanx-meta-dedupe-event-id.php || fail 'Meta dedupe MU still autoloadable'
+          test ! -f wp-content/mu-plugins/nuvanx-meta-match-quality.php || fail 'Meta match MU still autoloadable'
+          test "$(wp config get DISABLE_WP_CRON 2>/dev/null || true)" = 'true' || fail 'DISABLE_WP_CRON not true'
+
+          # Verify production plugin state only; no production mutation.
+          echo '=== production non-mutation plugin check ==='
+          cd "$PROD_ROOT"
+          for plugin in klaviyo google-site-kit creame-whatsapp-me; do
+            if wp plugin is-active "$plugin"; then echo "production_${plugin}=ACTIVE"; else echo "production_${plugin}=INACTIVE"; fi
+          done
+          echo 'INTEGRATION_ISOLATION=PASS'
+          REMOTE
+
+      - name: Cleanup SSH
+        if: always()
+        run: rm -f ~/.ssh/k ~/.ssh/config ~/.ssh/known_hosts

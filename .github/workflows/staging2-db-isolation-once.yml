@@ -16,6 +16,9 @@ jobs:
   isolate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    environment:
+      name: staging2
+      url: https://staging2.nuvanx.com
     env:
       NEW_DB: dbshcocboodiwr
       NEW_USER: ucdduxjmx7puu

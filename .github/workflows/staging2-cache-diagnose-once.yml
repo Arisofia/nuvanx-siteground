@@ -14,6 +14,7 @@ jobs:
     timeout-minutes: 12
     env:
       EXPECTED_SHA: e7e7e25c87f61caca82504b4378289ac44879709
+      OLD_SHA: 2e4c4deeda2cbb41bd7604e7e3c2b28a828a0374
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
     steps:
       - name: Probe public cache headers and SHA variants
@@ -32,16 +33,20 @@ jobs:
               url="https://staging2.nuvanx.com${route}"
               args=(-sS --max-time 20 -A 'NUVANX-Staging-Boundary/1.0' -D /tmp/h -o /tmp/b)
               if [[ "$mode" == bust ]]; then
-                sep='?'; [[ "$url" == *'?'* ]] && sep='&'
-                url="${url}${sep}nvx_cache_probe=${EXPECTED_SHA:0:12}"
+                url="${url}?nvx_cache_probe=${EXPECTED_SHA:0:12}"
               elif [[ "$mode" == nocache ]]; then
                 args+=(-H 'Cache-Control: no-cache' -H 'Pragma: no-cache')
               fi
-              echo "=== route=$route mode=$mode url=$url ==="
+              echo "=== route=$route mode=$mode ==="
               curl "${args[@]}" "$url" -w 'status=%{http_code} final=%{url_effective} size=%{size_download}\n' || true
               grep -Ei '^(HTTP/|location:|server:|age:|cache-control:|x-proxy-cache:|x-sg-cdn:|x-cache:|cf-cache-status:|x-robots-tag:|vary:)' /tmp/h || true
-              sha="$(grep -Eio '<meta[^>]+name=["'"']nvx-deploy-sha["'"'][^>]+>' /tmp/b 2>/dev/null | head -1 | sed -E 's/.*content=["'"']([^"'"']+)["'"'].*/\1/' || true)"
-              echo "html_sha=${sha:-MISSING}"
+              if grep -Fq "$EXPECTED_SHA" /tmp/b; then
+                echo "html_sha=$EXPECTED_SHA"
+              elif grep -Fq "$OLD_SHA" /tmp/b; then
+                echo "html_sha=$OLD_SHA"
+              else
+                echo 'html_sha=MISSING_OR_OTHER'
+              fi
             done
           done
 
@@ -77,7 +82,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx "WP_ROOT='$WP_ROOT' EXPECTED_SHA='$EXPECTED_SHA' bash -se" <<'REMOTE'
+          ssh nvx "WP_ROOT='$WP_ROOT' EXPECTED_SHA='$EXPECTED_SHA' OLD_SHA='$OLD_SHA' bash -se" <<'REMOTE'
           set -euo pipefail
           cd "$WP_ROOT"
           echo "marker=$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
@@ -89,13 +94,18 @@ jobs:
           if wp help sg >/dev/null 2>&1; then echo 'wp_sg=AVAILABLE'; else echo 'wp_sg=UNAVAILABLE'; fi
           echo '=== cache directories ==='
           find wp-content/cache -maxdepth 2 -type f 2>/dev/null | head -20 || true
-          echo '=== response from origin host ==='
+          echo '=== response from server ==='
           for route in / /soluciones-medicas/ /equipo-medico/ /blog/ /endolift-primeras-72-horas-que-esperar/; do
             echo "--- $route"
             curl -sS --max-time 20 -A 'NUVANX-Staging-Boundary/1.0' -D /tmp/h -o /tmp/b "https://staging2.nuvanx.com${route}"
             grep -Ei '^(HTTP/|age:|cache-control:|x-proxy-cache:|x-sg-cdn:|x-cache:|x-robots-tag:)' /tmp/h || true
-            sha="$(grep -Eio '<meta[^>]+name=["'"']nvx-deploy-sha["'"'][^>]+>' /tmp/b 2>/dev/null | head -1 | sed -E 's/.*content=["'"']([^"'"']+)["'"'].*/\1/' || true)"
-            echo "html_sha=${sha:-MISSING}"
+            if grep -Fq "$EXPECTED_SHA" /tmp/b; then
+              echo "html_sha=$EXPECTED_SHA"
+            elif grep -Fq "$OLD_SHA" /tmp/b; then
+              echo "html_sha=$OLD_SHA"
+            else
+              echo 'html_sha=MISSING_OR_OTHER'
+            fi
           done
           REMOTE
 

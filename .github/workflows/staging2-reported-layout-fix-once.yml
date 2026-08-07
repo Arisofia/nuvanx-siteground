@@ -1,0 +1,24 @@
+name: Staging2 Reported Layout Fix Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-reported-layout-fix-once.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/deploy-staging2.yml
+    with:
+      sha: 6fb3bb8e4d1c2790b7d3e2e7f0a086944ddf8ed5
+      run_block_c_acceptance: true
+    secrets:
+      STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+      STAGING2_SSH_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+      STAGING2_SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+      STAGING2_SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+      STAGING2_SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}

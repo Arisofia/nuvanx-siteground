@@ -25,6 +25,12 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Validate page template integrity
+        env:
+          WORDPRESS_URL: https://staging2.nuvanx.com
+        run: |
+          node scripts/validate-page-templates.mjs
+
       - name: Install dependencies
         run: |
           cd scripts/staging2

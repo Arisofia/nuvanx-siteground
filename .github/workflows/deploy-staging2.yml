@@ -145,7 +145,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ssh nvx-staging2 "cd '$WP_ROOT' && wp cache flush && if wp help sg >/dev/null 2>&1; then wp sg purge; else echo 'siteground_wp_cli_purge=SKIPPED command_unavailable'; fi; rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/*; wp eval 'if (function_exists(\"opcache_reset\")) { opcache_reset(); }'"
+          ssh nvx-staging2 "WP_ROOT='$WP_ROOT' bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd "$WP_ROOT"
+          wp cache flush
+          speed_optimizer_main='wp-content/plugins/sg-cachepress/sg-cachepress.php'
+          if wp help sg >/dev/null 2>&1; then
+            wp sg purge
+            echo 'siteground_wp_cli_purge=PASS mode=active-plugin'
+          elif [[ -f "$speed_optimizer_main" ]] && wp --require="$speed_optimizer_main" help sg >/dev/null 2>&1; then
+            wp --require="$speed_optimizer_main" sg purge
+            echo 'siteground_wp_cli_purge=PASS mode=require-inactive-plugin'
+          else
+            echo 'SiteGround Dynamic Cache purge command unavailable.' >&2
+            exit 1
+          fi
+          rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
+          rm -rf wp-content/cache/sgo-cache/* wp-content/cache/*
+          wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }'
+          REMOTE
 
       - name: Verify exact deployed SHA and staging identity
         shell: bash

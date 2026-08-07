@@ -16,9 +16,6 @@ jobs:
   isolate:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    environment:
-      name: staging2
-      url: https://staging2.nuvanx.com
     env:
       NEW_DB: dbshcocboodiwr
       NEW_USER: ucdduxjmx7puu
@@ -78,7 +75,7 @@ jobs:
           STAGING2_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           set -euo pipefail
-          remote_pass_file="$HOME/.nvx-staging2-db-pass-${GITHUB_RUN_ID}"
+          remote_pass_file="/home/customer/.nvx-staging2-db-pass-${GITHUB_RUN_ID}"
           printf '%s' "$STAGING2_DB_PASSWORD" | ssh nvx-staging2-db-isolation "umask 077; cat > '$remote_pass_file'; chmod 600 '$remote_pass_file'"
           echo "REMOTE_PASS_FILE=$remote_pass_file" >> "$GITHUB_ENV"
 
@@ -271,10 +268,8 @@ jobs:
           set -euo pipefail
           for path in / /soluciones-medicas/ /equipo-medico/ /blog/ /endolift-primeras-72-horas-que-esperar/; do
             url="https://staging2.nuvanx.com${path}"
-            headers="$(mktemp)"
             body="$(mktemp)"
-            curl --silent --show-error --location --max-redirs 5 --dump-header "$headers" --output "$body" "$url"
-            final_url="$(curl --silent --show-error --location --max-redirs 5 --output /dev/null --write-out '%{url_effective}' "$url")"
+            final_url="$(curl --silent --show-error --location --max-redirs 5 --output "$body" --write-out '%{url_effective}' "$url")"
             status="$(curl --silent --show-error --location --max-redirs 5 --output /dev/null --write-out '%{http_code}' "$url")"
             final_host="$(printf '%s' "$final_url" | sed -E 's#^https?://([^/]+).*#\1#')"
             robots="$(grep -ioE '<meta[^>]+name=["'"']robots["'"'][^>]*>' "$body" | head -n 1 || true)"
@@ -283,7 +278,7 @@ jobs:
             test "$final_host" = 'staging2.nuvanx.com'
             printf '%s' "$robots" | grep -qi 'noindex'
             printf '%s' "$robots" | grep -qi 'nofollow'
-            rm -f "$headers" "$body"
+            rm -f "$body"
           done
 
       - name: Destroy SSH material

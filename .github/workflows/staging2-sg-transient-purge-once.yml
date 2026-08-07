@@ -1,0 +1,129 @@
+name: Staging2 SG Transient Purge Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-sg-transient-purge-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      EXPECTED_SHA: 2c4b0e999686240cc2150e1eb76c9ca40c9e7f51
+    steps:
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/k"; chmod 600 "$HOME/.ssh/k"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile $HOME/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Transiently activate Speed Optimizer and purge staging only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "WP_ROOT='$WP_ROOT' PROD_ROOT='$PROD_ROOT' EXPECTED_SHA='$EXPECTED_SHA' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$WP_ROOT"
+
+          test "$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)" = "$EXPECTED_SHA"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(cd "$PROD_ROOT" && wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+
+          if wp plugin is-active sg-cachepress; then
+            echo 'staging_plugin_initial=ACTIVE_UNEXPECTED'
+            exit 2
+          fi
+          echo 'staging_plugin_initial=INACTIVE'
+
+          prod_before='INACTIVE'
+          if (cd "$PROD_ROOT" && wp plugin is-active sg-cachepress); then prod_before='ACTIVE'; fi
+          echo "production_plugin_before=$prod_before"
+
+          restore_inactive() {
+            set +e
+            cd "$WP_ROOT"
+            if wp plugin is-active sg-cachepress; then
+              wp plugin deactivate sg-cachepress --quiet || true
+            fi
+          }
+          trap restore_inactive EXIT
+
+          wp plugin activate sg-cachepress --quiet
+          wp plugin is-active sg-cachepress
+          echo 'staging_plugin_transient=ACTIVE'
+
+          wp sg purge
+          echo 'staging_dynamic_cache_purge=COMMAND_SUCCESS'
+
+          wp plugin deactivate sg-cachepress --quiet
+          if wp plugin is-active sg-cachepress; then
+            echo 'staging_plugin_final=ACTIVE_ERROR'
+            exit 3
+          fi
+          echo 'staging_plugin_final=INACTIVE'
+
+          prod_after='INACTIVE'
+          if (cd "$PROD_ROOT" && wp plugin is-active sg-cachepress); then prod_after='ACTIVE'; fi
+          test "$prod_after" = "$prod_before"
+          echo "production_plugin_after=$prod_after"
+          echo 'PRODUCTION_PLUGIN_STATE_UNCHANGED=PASS'
+          trap - EXIT
+          REMOTE
+
+      - name: Verify plain URLs expose current SHA after purge
+        shell: bash
+        run: |
+          set -euo pipefail
+          routes=(
+            '/'
+            '/soluciones-medicas/'
+            '/equipo-medico/'
+            '/blog/'
+            '/endolift-primeras-72-horas-que-esperar/'
+          )
+          for route in "${routes[@]}"; do
+            echo "=== $route ==="
+            curl -sS --max-time 20 -A 'NUVANX-Staging-Boundary/1.0' -D /tmp/h -o /tmp/b "https://staging2.nuvanx.com${route}" -w 'status=%{http_code} final=%{url_effective}\n'
+            grep -Ei '^(HTTP/|x-proxy-cache:|x-robots-tag:|location:)' /tmp/h || true
+            status="$(awk 'toupper($1) ~ /^HTTP\// {s=$2} END {print s}' /tmp/h)"
+            test "$status" = '200'
+            grep -Fq "$EXPECTED_SHA" /tmp/b
+            ! grep -qi '^location: https://nuvanx.com' /tmp/h
+            grep -qi '^x-robots-tag:.*noindex' /tmp/h
+            grep -qi '^x-robots-tag:.*nofollow' /tmp/h
+            echo 'route_current_sha=PASS'
+          done
+          echo 'TRANSIENT_PURGE_EFFECTIVE=PASS'
+
+      - name: Cleanup SSH
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/k" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"

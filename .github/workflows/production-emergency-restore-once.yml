@@ -1,0 +1,99 @@
+name: Production Emergency Restore Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/production-emergency-restore-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+      BACKUP_DIR: /home/customer/www/nuvanx.com/public_html/wp-content/backups-nuvanx/pre-prod-31222581791-1-5cac0c0f9c3d
+    steps:
+      - name: Configure strict production SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.PROD_SSH_HOST }}
+          PORT: ${{ secrets.PROD_SSH_PORT }}
+          USER: ${{ secrets.PROD_SSH_USER }}
+          KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.PROD_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?Missing PROD_SSH_HOST}"; : "${USER:?Missing PROD_SSH_USER}"; : "${KEY:?Missing PROD_SSH_PRIVATE_KEY}"; : "${KH:?Missing PROD_SSH_KNOWN_HOSTS}"
+          SSH_PORT="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/prod_key"; chmod 600 "$HOME/.ssh/prod_key"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-prod
+            HostName $HOST
+            User $USER
+            Port $SSH_PORT
+            IdentityFile $HOME/.ssh/prod_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Restore previous production theme from mandatory snapshot
+        shell: bash
+        run: |
+          set -euo pipefail
+          previous_sha="$(ssh nvx-prod "PROD_ROOT='$PROD_ROOT' BACKUP_DIR='$BACKUP_DIR' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          test -s "$BACKUP_DIR/theme.tgz"
+          test -f "$BACKUP_DIR/previous-sha.txt"
+          LIVE_THEME="$PROD_ROOT/wp-content/themes/nuvanx-medical"
+          QUARANTINE="$PROD_ROOT/wp-content/themes/.nvx-emergency-quarantine-${RANDOM}-$$"
+          if [[ -e "$LIVE_THEME" ]]; then
+            mv "$LIVE_THEME" "$QUARANTINE"
+          fi
+          tar -xzf "$BACKUP_DIR/theme.tgz" -C "$PROD_ROOT"
+          test -d "$LIVE_THEME"
+          previous="$(tr -d '\r\n' < "$BACKUP_DIR/previous-sha.txt")"
+          if [[ -n "$previous" ]]; then
+            test -f "$LIVE_THEME/.nvx-deploy-sha"
+            test "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" = "$previous"
+          fi
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          test "$(wp option get siteurl)" = 'https://nuvanx.com'
+          test "$(wp option get blog_public)" = '1'
+          test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
+          wp cache flush || true
+          rm -rf wp-content/cache/* 2>/dev/null || true
+          wp eval 'if (function_exists("opcache_reset")) { opcache_reset(); }' || true
+          rm -rf "$QUARANTINE" 2>/dev/null || true
+          printf '%s\n' "$previous"
+          REMOTE
+          )"
+          previous_sha="$(printf '%s' "$previous_sha" | tail -n1 | tr -d '[:space:]')"
+          [[ "$previous_sha" =~ ^[0-9a-f]{40}$ ]]
+          echo "PREVIOUS_SHA=$previous_sha" >> "$GITHUB_ENV"
+          echo "PRODUCTION_THEME_RESTORE=PASS sha=$previous_sha"
+
+      - name: Verify restored production public boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="$(curl -sS -o /tmp/prod.html -w '%{http_code}' --max-time 25 https://nuvanx.com/)"
+          test "$status" = '200'
+          grep -Fq "$PREVIOUS_SHA" /tmp/prod.html
+          echo "PRODUCTION_PUBLIC_RESTORE=PASS sha=$PREVIOUS_SHA"
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/prod_key" "$HOME/.ssh/known_hosts" "$HOME/.ssh/config"

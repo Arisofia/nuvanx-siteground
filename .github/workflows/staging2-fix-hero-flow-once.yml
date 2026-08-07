@@ -1,0 +1,132 @@
+name: Staging2 Fix Hero Flow Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-fix-hero-flow-once.yml
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact trigger head
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: master
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Refuse concurrent master movement
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          remote="$(git ls-remote origin refs/heads/master | cut -f1)"
+          test "$remote" = "$GITHUB_SHA"
+
+      - name: Restore interior hero content to normal flow
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css')
+          s = p.read_text(encoding='utf-8')
+
+          old_inner = '''.nvx-brand-hero .nvx-brand-hero__inner,
+          .nvx-page-hero .nvx-page-hero__inner,
+          .nvx-page-hero .nvx-hero__inner,
+          .nvx-hero .nvx-hero__inner,
+          .nvx-brand-hero .nvx-shell {
+            display: block;
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            max-width: none;
+            min-height: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }'''.replace('          ', '')
+
+          new_inner = '''.nvx-brand-hero .nvx-brand-hero__inner,
+          .nvx-page-hero .nvx-page-hero__inner,
+          .nvx-page-hero .nvx-hero__inner,
+          .nvx-hero .nvx-hero__inner,
+          .nvx-brand-hero .nvx-shell {
+            display: block;
+            position: relative;
+            inset: auto;
+            width: 100%;
+            max-width: none;
+            min-height: 0;
+            height: auto;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }'''.replace('          ', '')
+
+          if s.count(old_inner) != 1:
+              raise SystemExit(f'Expected exactly one canonical hero-inner block; found {s.count(old_inner)}')
+          s = s.replace(old_inner, new_inner, 1)
+
+          old_copy = '''  min-height: 100%;
+          height: 100%;
+          margin-inline: auto;'''.replace('          ', '')
+          new_copy = '''  min-height: 0;
+          height: auto;
+          margin-inline: auto;'''.replace('          ', '')
+          if s.count(old_copy) != 1:
+              raise SystemExit(f'Expected exactly one hero-copy height block; found {s.count(old_copy)}')
+          s = s.replace(old_copy, new_copy, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+          grep -A20 -n '^\.nvx-brand-hero \.nvx-brand-hero__inner' wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css
+          grep -A18 -n '^\.nvx-brand-hero__copy,' wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css | head -30
+          git diff --check
+
+      - name: Validate targeted invariant
+        shell: bash
+        run: |
+          set -euo pipefail
+          css='wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css'
+          python - <<'PY'
+          from pathlib import Path
+          s = Path('wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css').read_text()
+          start = s.index('.nvx-brand-hero .nvx-brand-hero__inner,')
+          end = s.index('/* Hero media oculto', start)
+          inner = s[start:end]
+          assert 'position: relative;' in inner
+          assert 'height: auto;' in inner
+          assert 'min-height: 0;' in inner
+          assert 'position: absolute;' not in inner
+          copy_start = s.index('.nvx-brand-hero__copy,')
+          copy_end = s.index('@keyframes fadeInUp', copy_start)
+          copy = s[copy_start:copy_end]
+          assert 'height: auto;' in copy
+          assert 'min-height: 0;' in copy
+          assert 'height: 100%;' not in copy
+          PY
+
+      - name: Commit only the canonical hero CSS
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote="$(git ls-remote origin refs/heads/master | cut -f1)"
+          test "$remote" = "$GITHUB_SHA"
+          git config user.name 'NUVANX Staging QA'
+          git config user.email 'admin@nuvanx.com'
+          git add wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css
+          test "$(git diff --cached --name-only | wc -l | tr -d ' ')" = '1'
+          test "$(git diff --cached --name-only)" = 'wp-content/themes/nuvanx-medical/assets/css/nvx-patterns-editorial.css'
+          git commit -m 'fix(hero): restore interior hero content flow'
+          git push origin HEAD:master

@@ -39,14 +39,23 @@ function nvx_btl_detail_is_singular(): bool {
 function nvx_btl_detail_registry(): array {
 	require_once __DIR__ . '/nvx-catalog-json.php';
 
-	return nvx_catalog_json_resolved(
+	$reg = nvx_catalog_json_resolved(
 		'btl-detail-pages.json',
 		static function ( string $key ) {
-			return nvx_btl_claim( $key ); },
+			return nvx_btl_claim( $key );
+		},
 		array(),
 		array(),
 		'btl-detail-pages'
 	);
+
+	// El loader siempre inyecta '_error'. Hay que sacarlo y asegurar solo arrays.
+	if ( ! empty( $reg['_error'] ) ) {
+		return array();
+	}
+	unset( $reg['_error'] );
+
+	return array_filter( $reg, 'is_array' );
 }
 
 /**
@@ -56,6 +65,11 @@ function nvx_btl_detail_registry(): array {
  */
 function nvx_btl_detail_current_key( string $content = '' ): ?string {
 	if ( ! nvx_btl_detail_is_singular() || is_front_page() || is_home() ) {
+		return null;
+	}
+	
+	// Skip if content has a Protocolos Signature marker
+	if ( false !== strpos( $content, 'NUVANX_PROTOCOL_PAGE:' ) ) {
 		return null;
 	}
 
@@ -70,6 +84,11 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 	$path = is_string( $path ) ? $path : '';
 
 	foreach ( nvx_btl_detail_registry() as $slug => $cfg ) {
+		// Skip if cfg is not a valid array (catalog loading error)
+		if ( ! is_array( $cfg ) || empty( $cfg['path'] ) ) {
+			continue;
+		}
+		
 		if ( function_exists( 'nvx_schema_path_matches' ) && nvx_schema_path_matches( $path, $cfg['path'] ) ) {
 			return $slug;
 		}
@@ -85,7 +104,8 @@ function nvx_btl_detail_current_key( string $content = '' ): ?string {
 	}
 
 	$slug = (string) get_post_field( 'post_name', get_queried_object_id() );
-	if ( isset( nvx_btl_detail_registry()[ $slug ] ) ) {
+	$registry = nvx_btl_detail_registry();
+	if ( isset( $registry[ $slug ] ) && is_array( $registry[ $slug ] ) ) {
 		return $slug;
 	}
 
@@ -371,7 +391,7 @@ function nvx_btl_detail_faq_markup( array $c ): string {
  */
 function nvx_btl_detail_page_markup( string $key ): string {
 	$reg = nvx_btl_detail_registry();
-	if ( empty( $reg[ $key ] ) ) {
+	if ( empty( $reg[ $key ] ) || ! is_array( $reg[ $key ] ) ) {
 		return '';
 	}
 	$c = $reg[ $key ];
@@ -418,7 +438,11 @@ function nvx_content_restructure_btl_detail_page( string $content ): string {
 		return $content;
 	}
 
-	$cfg = nvx_btl_detail_registry()[ $key ];
+	$registry = nvx_btl_detail_registry();
+	if ( ! isset( $registry[ $key ] ) || ! is_array( $registry[ $key ] ) ) {
+		return $content;
+	}
+	$cfg = $registry[ $key ];
 	if ( false !== strpos( $content, $cfg['marker'] . '-editorial' ) ) {
 		return $content;
 	}
@@ -477,7 +501,11 @@ function nvx_filter_btl_detail_title( $title ) {
 	if ( null === $key ) {
 		return $title;
 	}
-	return nvx_btl_detail_registry()[ $key ]['yoast_title'];
+	$registry = nvx_btl_detail_registry();
+	if ( ! isset( $registry[ $key ] ) || ! is_array( $registry[ $key ] ) ) {
+		return $title;
+	}
+	return $registry[ $key ]['yoast_title'];
 }
 add_filter( 'wpseo_title', 'nvx_filter_btl_detail_title', 21 );
 
@@ -492,6 +520,10 @@ function nvx_filter_btl_detail_metadesc( $desc ) {
 	if ( null === $key ) {
 		return $desc;
 	}
-	return nvx_btl_detail_registry()[ $key ]['yoast_desc'];
+	$registry = nvx_btl_detail_registry();
+	if ( ! isset( $registry[ $key ] ) || ! is_array( $registry[ $key ] ) ) {
+		return $desc;
+	}
+	return $registry[ $key ]['yoast_desc'];
 }
 add_filter( 'wpseo_metadesc', 'nvx_filter_btl_detail_metadesc', 21 );

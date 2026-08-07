@@ -535,20 +535,27 @@ function nvx_signature_hub_markup( array $hub ): string {
 
 /** Replace thin CMS hub shells with theme-owned Signature hub markup. */
 function nvx_signature_hub_filter_content( string $content ): string {
-	// Check if this is the Protocolos Signature page by ID
-	$current_id = get_the_ID();
+	// Debug logging
+	error_log( 'nvx_signature_hub_filter_content CALLED. Content: ' . substr( $content, 0, 100 ) );
 	
-	if ( 3369 !== $current_id ) {
+	// Check if content contains the marker (more reliable than get_the_ID in some contexts)
+	if ( false === strpos( $content, '<!-- NUVANX_PROTOCOL_HUB -->' ) ) {
+		error_log( 'nvx_signature_hub_filter_content: Marker not found, returning original' );
 		return $content;
 	}
+	
+	error_log( 'nvx_signature_hub_filter_content: Marker found, generating markup' );
 	
 	// Get the hub data directly for signature-index
 	$hub = nvx_signature_hub_catalog()['signature-index'] ?? null;
 	if ( ! is_array( $hub ) ) {
+		error_log( 'nvx_signature_hub_filter_content: Hub not found, returning original' );
 		return $content;
 	}
 
 	$markup = nvx_signature_hub_markup( $hub );
+	error_log( 'nvx_signature_hub_filter_content: Generated markup length: ' . strlen( $markup ) );
+	
 	return '' !== $markup ? $markup : $content;
 }
 add_filter( 'the_content', 'nvx_signature_hub_filter_content', NVX_HOOK_PRIO_SIGNATURE_HUB );

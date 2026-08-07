@@ -1,0 +1,120 @@
+name: SiteGround DB Capability Probe
+
+on:
+  push:
+    paths:
+      - '.github/workflows/siteground-db-probe.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          STAGING2_SSH_HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          STAGING2_SSH_PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          STAGING2_SSH_USER: ${{ secrets.STAGING2_SSH_USER }}
+          STAGING2_SSH_PRIVATE_KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          STAGING2_SSH_KNOWN_HOSTS: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${STAGING2_SSH_HOST:?Missing STAGING2_SSH_HOST}"
+          : "${STAGING2_SSH_USER:?Missing STAGING2_SSH_USER}"
+          : "${STAGING2_SSH_PRIVATE_KEY:?Missing STAGING2_SSH_PRIVATE_KEY}"
+          : "${STAGING2_SSH_KNOWN_HOSTS:?Missing STAGING2_SSH_KNOWN_HOSTS}"
+          port="${STAGING2_SSH_PORT:-18765}"
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$STAGING2_SSH_PRIVATE_KEY" > "$HOME/.ssh/staging2_key"
+          chmod 600 "$HOME/.ssh/staging2_key"
+          printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx-staging2-probe
+            HostName $STAGING2_SSH_HOST
+            User $STAGING2_SSH_USER
+            Port $port
+            IdentityFile $HOME/.ssh/staging2_key
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Probe SiteGround and MySQL capabilities (read-only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2-probe 'bash -se' <<'REMOTE'
+          set -euo pipefail
+          STAGING_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
+          PROD_ROOT='/home/customer/www/nuvanx.com/public_html'
+
+          echo '=== filesystem ==='
+          printf 'staging_root_exists='; test -d "$STAGING_ROOT" && echo yes || echo no
+          printf 'prod_root_exists='; test -d "$PROD_ROOT" && echo yes || echo no
+          printf 'roots_distinct='; test "$STAGING_ROOT" != "$PROD_ROOT" && echo yes || echo no
+
+          echo '=== cli availability ==='
+          for cmd in wp mysql mysqldump php rsync; do
+            if command -v "$cmd" >/dev/null 2>&1; then
+              echo "$cmd=yes"
+            else
+              echo "$cmd=no"
+            fi
+          done
+
+          test -f "$STAGING_ROOT/wp-config.php"
+          test -f "$PROD_ROOT/wp-config.php"
+          command -v wp >/dev/null
+
+          staging_db="$(cd "$STAGING_ROOT" && wp config get DB_NAME)"
+          prod_db="$(cd "$PROD_ROOT" && wp config get DB_NAME)"
+
+          echo '=== wordpress identity ==='
+          echo "staging_db=$staging_db"
+          echo "prod_db=$prod_db"
+          if test "$staging_db" = "$prod_db"; then
+            echo 'db_isolation=FAIL_same_database'
+          else
+            echo 'db_isolation=PASS_distinct_database'
+          fi
+          echo "staging_siteurl=$(cd "$STAGING_ROOT" && wp option get siteurl)"
+          echo "staging_home=$(cd "$STAGING_ROOT" && wp option get home)"
+          echo "staging_blog_public=$(cd "$STAGING_ROOT" && wp option get blog_public)"
+          echo "staging_theme=$(cd "$STAGING_ROOT" && wp theme list --status=active --field=name)"
+
+          echo '=== mysql capability ==='
+          if command -v mysql >/dev/null 2>&1; then
+            grants="$(cd "$STAGING_ROOT" && wp db query 'SHOW GRANTS FOR CURRENT_USER' --skip-column-names 2>/dev/null || true)"
+            if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON \*\.\*|GRANT .*CREATE.* ON \*\.\*'; then
+              echo 'mysql_global_create_database_privilege=LIKELY_YES'
+            else
+              echo 'mysql_global_create_database_privilege=NO_EVIDENCE'
+            fi
+            if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON'; then
+              echo 'mysql_has_all_privileges_some_scope=yes'
+            else
+              echo 'mysql_has_all_privileges_some_scope=no'
+            fi
+          else
+            echo 'mysql_global_create_database_privilege=UNAVAILABLE_mysql_cli_missing'
+          fi
+
+          echo '=== result ==='
+          echo 'probe_mode=READ_ONLY'
+          REMOTE
+
+      - name: Destroy SSH material
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$HOME/.ssh/staging2_key" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"

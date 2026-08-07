@@ -66,17 +66,17 @@ jobs:
       - name: Validate required staging DB password secret
         shell: bash
         env:
-          STAGING2_DB_PASSWORD: ${{ secrets.STAGING2_DB_PASSWORD }}
+          STAGING2_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           set -euo pipefail
-          : "${STAGING2_DB_PASSWORD:?Missing STAGING2_DB_PASSWORD}"
+          : "${STAGING2_DB_PASSWORD:?Missing DB_PASSWORD}"
           test "${#STAGING2_DB_PASSWORD}" -ge 12
           echo 'staging_db_password_secret=present'
 
       - name: Transfer staging DB password securely
         shell: bash
         env:
-          STAGING2_DB_PASSWORD: ${{ secrets.STAGING2_DB_PASSWORD }}
+          STAGING2_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           set -euo pipefail
           remote_pass_file="$HOME/.nvx-staging2-db-pass-${GITHUB_RUN_ID}"

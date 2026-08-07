@@ -11,9 +11,19 @@ const routes = [
   '/blog/',
   '/endolift-primeras-72-horas-que-esperar/',
 ];
+const transientAttempts = Number.parseInt(process.env.STAGING_BOUNDARY_TRANSIENT_ATTEMPTS || '5', 10);
+const transientBaseDelayMs = Number.parseInt(process.env.STAGING_BOUNDARY_TRANSIENT_DELAY_MS || '3000', 10);
 
 if (!/^[0-9a-f]{40}$/.test(expectedSha)) {
   console.error('EXPECTED_SHA must be a full lowercase 40-character SHA.');
+  process.exit(1);
+}
+if (!Number.isInteger(transientAttempts) || transientAttempts < 1 || transientAttempts > 10) {
+  console.error('STAGING_BOUNDARY_TRANSIENT_ATTEMPTS must be an integer from 1 to 10.');
+  process.exit(1);
+}
+if (!Number.isInteger(transientBaseDelayMs) || transientBaseDelayMs < 250 || transientBaseDelayMs > 30000) {
+  console.error('STAGING_BOUNDARY_TRANSIENT_DELAY_MS must be an integer from 250 to 30000.');
   process.exit(1);
 }
 
@@ -31,23 +41,57 @@ function extractMetaContent(html, name) {
   return '';
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isTransientSiteGroundChallenge(response) {
+  if (response.status === 202 || response.status === 429 || response.status === 503) return true;
+  return Boolean(response.headers.get('sg-captcha'));
+}
+
+async function fetchWithTransientRetry(current, retryLog) {
+  let lastResponse;
+  for (let attempt = 1; attempt <= transientAttempts; attempt += 1) {
+    const response = await fetch(current, {
+      redirect: 'manual',
+      headers: {
+        'user-agent': 'NUVANX-Staging-Boundary/1.1',
+        accept: 'text/html,application/xhtml+xml',
+        'cache-control': 'no-cache',
+        pragma: 'no-cache',
+      },
+    });
+    lastResponse = response;
+
+    if (!isTransientSiteGroundChallenge(response)) return response;
+
+    retryLog.push({
+      attempt,
+      status: response.status,
+      sgCaptcha: response.headers.get('sg-captcha') || '',
+      url: current.toString(),
+    });
+
+    if (attempt < transientAttempts) {
+      await response.body?.cancel().catch(() => {});
+      await sleep(transientBaseDelayMs * attempt);
+    }
+  }
+  return lastResponse;
+}
+
 async function fetchSameHost(url, maxRedirects = 5) {
   let current = new URL(url);
   const hops = [];
+  const transientRetries = [];
 
   for (let i = 0; i <= maxRedirects; i += 1) {
     if (current.hostname !== expectedHost) {
       throw new Error(`Refusing cross-host request: ${current.hostname} != ${expectedHost}`);
     }
 
-    const response = await fetch(current, {
-      redirect: 'manual',
-      headers: {
-        'user-agent': 'NUVANX-Staging-Boundary/1.0',
-        accept: 'text/html,application/xhtml+xml',
-      },
-    });
-
+    const response = await fetchWithTransientRetry(current, transientRetries);
     const status = response.status;
     const location = response.headers.get('location');
     hops.push({ url: current.toString(), status, location });
@@ -64,7 +108,7 @@ async function fetchSameHost(url, maxRedirects = 5) {
       continue;
     }
 
-    return { response, finalUrl: current, hops };
+    return { response, finalUrl: current, hops, transientRetries };
   }
 
   throw new Error(`Too many redirects for ${url}`);
@@ -75,6 +119,8 @@ const report = {
   expectedHost,
   expectedSha,
   checkedAt: new Date().toISOString(),
+  transientAttempts,
+  transientBaseDelayMs,
   routes: [],
   failures: [],
 };
@@ -84,7 +130,7 @@ for (const route of routes) {
   const result = { route, requested, pass: false };
 
   try {
-    const { response, finalUrl, hops } = await fetchSameHost(requested);
+    const { response, finalUrl, hops, transientRetries } = await fetchSameHost(requested);
     const html = await response.text();
     const robots = extractMetaContent(html, 'robots');
     const deploySha = extractMetaContent(html, 'nvx-deploy-sha');
@@ -94,6 +140,7 @@ for (const route of routes) {
     result.finalUrl = finalUrl.toString();
     result.finalHost = finalUrl.hostname;
     result.redirects = hops;
+    result.transientRetries = transientRetries;
     result.robots = robots;
     result.xRobotsTag = xRobotsTag;
     result.deploySha = deploySha;
@@ -144,6 +191,10 @@ if (!report.pass) {
   process.exit(1);
 }
 
+const retryCount = report.routes.reduce(
+  (sum, route) => sum + (Array.isArray(route.transientRetries) ? route.transientRetries.length : 0),
+  0
+);
 console.log(
-  `Staging boundary PASS: ${routes.length} routes stayed on ${expectedHost}, are noindex/nofollow, and expose SHA ${expectedSha}.`
+  `Staging boundary PASS: ${routes.length} routes stayed on ${expectedHost}, are noindex/nofollow, expose SHA ${expectedSha}, transient_retries=${retryCount}.`
 );

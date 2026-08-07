@@ -31,22 +31,53 @@ fail() {
 }
 
 purge_siteground_cache_if_available() {
-  local speed_optimizer_main='wp-content/plugins/sg-cachepress/sg-cachepress.php'
+  local plugin_slug='sg-cachepress'
+  local was_active=0
+  local purge_ok=0
 
-  if wp help sg >/dev/null 2>&1; then
+  if wp plugin is-active "$plugin_slug" >/dev/null 2>&1; then
+    was_active=1
     wp sg purge
-    echo 'siteground_wp_cli_purge=PASS mode=active-plugin'
+    echo 'siteground_wp_cli_purge=PASS mode=already-active'
     return 0
   fi
 
-  if [[ -f "$speed_optimizer_main" ]] && wp --require="$speed_optimizer_main" help sg >/dev/null 2>&1; then
-    wp --require="$speed_optimizer_main" sg purge
-    echo 'siteground_wp_cli_purge=PASS mode=require-inactive-plugin'
-    return 0
+  if ! wp plugin is-installed "$plugin_slug" >/dev/null 2>&1; then
+    echo 'ERROR: SiteGround Speed Optimizer is not installed; cannot purge Dynamic Cache reproducibly.' >&2
+    return 1
   fi
 
-  echo 'ERROR: SiteGround Dynamic Cache is present but no supported WP-CLI purge command can be loaded.' >&2
-  return 1
+  # Loading the inactive plugin with --require exposes the command but does not
+  # invalidate the host Dynamic Cache. SiteGround only performs the real purge
+  # while Speed Optimizer is active. Activate it only for the purge, then return
+  # staging to its original inactive state.
+  wp plugin activate "$plugin_slug" --quiet
+  if ! wp plugin is-active "$plugin_slug" >/dev/null 2>&1; then
+    echo 'ERROR: Speed Optimizer did not become active for the transient purge.' >&2
+    return 1
+  fi
+
+  if wp sg purge; then
+    purge_ok=1
+  fi
+
+  wp plugin deactivate "$plugin_slug" --quiet || {
+    echo 'ERROR: failed to restore Speed Optimizer to its original inactive state.' >&2
+    return 1
+  }
+
+  if wp plugin is-active "$plugin_slug" >/dev/null 2>&1; then
+    echo 'ERROR: Speed Optimizer remained active after transient purge.' >&2
+    return 1
+  fi
+
+  [[ "$purge_ok" -eq 1 ]] || {
+    echo 'ERROR: SiteGround Dynamic Cache purge command failed.' >&2
+    return 1
+  }
+
+  [[ "$was_active" -eq 0 ]] || return 0
+  echo 'siteground_wp_cli_purge=PASS mode=transient-activation-restored-inactive'
 }
 
 while [[ $# -gt 0 ]]; do

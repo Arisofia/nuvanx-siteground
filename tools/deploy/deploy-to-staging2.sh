@@ -109,11 +109,19 @@ echo '== Guard staging2 identity =='
   cd "$WP_ROOT"
   siteurl="$(wp option get siteurl)"
   home="$(wp option get home)"
+  blog_public="$(wp option get blog_public)"
   theme="$(wp theme list --status=active --field=name)"
-  echo "siteurl=$siteurl home=$home active_theme=$theme"
+  nvx_env="$(wp eval 'echo defined("NVX_ENV") ? NVX_ENV : "";')"
+  wp_environment="$(wp eval 'echo function_exists("wp_get_environment_type") ? wp_get_environment_type() : "";')"
+
+  echo "siteurl=$siteurl home=$home active_theme=$theme blog_public=$blog_public nvx_env=$nvx_env wp_environment=$wp_environment"
+
   [[ "$siteurl" == "$EXPECTED_URL" ]] || fail "unexpected siteurl: $siteurl"
   [[ "$home" == "$EXPECTED_URL" ]] || fail "unexpected home URL: $home"
   [[ "$theme" == 'nuvanx-medical' ]] || fail "unexpected active theme: $theme"
+  [[ "$blog_public" == '0' ]] || fail "staging2 must have blog_public=0; got: $blog_public"
+  [[ "$nvx_env" == 'staging' ]] || fail "staging2 must define NVX_ENV=staging; got: ${nvx_env:-undefined}"
+  [[ "$wp_environment" == 'staging' ]] || fail "staging2 must report WP environment type staging; got: ${wp_environment:-undefined}"
 )
 
 echo '== Validate source PHP =='
@@ -135,7 +143,6 @@ tar -czf "$BACKUP_DIR/theme.tgz" -C "$WP_ROOT" "$THEME_REL"
 printf '%s\n' "$DEPLOY_SHA" > "$BACKUP_DIR/intended-sha.txt"
 
 MUTATION_STARTED=1
-
 
 echo '== Synchronize theme to staging2 =='
 rsync -a --delete \
@@ -159,8 +166,6 @@ for required_file in "${SOURCE_REQUIRED_FILES[@]}"; do
 done
 [[ "$(tr -d '\r\n' < "$LIVE_THEME/.nvx-deploy-sha")" == "$DEPLOY_SHA" ]] || fail 'deployed SHA marker does not match'
 grep -Fq 'nvx-patterns-editorial.css' "$LIVE_THEME/functions.php" || fail 'functions.php does not enqueue the canonical editorial stylesheet'
-# Document contract is owned by nvx-document-governance.php (wp_head marker +
-# assets).
 grep -Fq 'nvx-document-governance.php' "$LIVE_THEME/functions.php" || fail 'functions.php does not load document governance'
 grep -Fq 'nvx_document_governance_print_head_contract' "$LIVE_THEME/inc/nvx-document-governance.php" || fail 'document governance missing head contract emitter'
 grep -Fq 'window.nvxValoracionModal' "$LIVE_THEME/inc/nvx-valoracion-modal.php" || fail 'valoracion modal boot config is missing'

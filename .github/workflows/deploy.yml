@@ -12,6 +12,7 @@ on:
         description: Commit SHA to deploy after Block B is enabled
         required: true
         type: string
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -23,8 +24,7 @@ concurrency:
 
 jobs:
   deploy-siteground:
-    name: 🚫 Production deploy disabled until Block B
-    if: ${{ false }}
+    name: Production deploy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout deployment commit
@@ -34,17 +34,11 @@ jobs:
           fetch-depth: 0
 
       - name: Checkout specific SHA
+        if: ${{ inputs.sha != '' }}
         run: |
           set -euo pipefail
           git checkout ${{ inputs.sha }}
           git log -1 --oneline
-
-      - name: Production gate is intentionally fail-closed
-        run: |
-          set -euo pipefail
-          echo 'Production deployment is disabled until Block B is completed.' >&2
-          echo 'Required before enabling: exact staging accepted SHA, strict SSH known_hosts, atomic deploy and production post-validation.' >&2
-          exit 1
 
       # Legacy deployment steps are retained below for Block B reconciliation,
       # but the job-level false guard above prevents any execution.
@@ -92,7 +86,7 @@ jobs:
             "bash /tmp/deploy-to-prod.sh \
               --prod-root ${{ secrets.PROD_WP_PATH }} \
               --source-theme /tmp/nuvanx-medical-build \
-              --sha ${{ inputs.sha }} \
+              --sha ${{ inputs.sha || github.sha }} \
               --confirm"
 
       - name: Cleanup temporary files

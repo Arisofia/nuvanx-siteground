@@ -1,0 +1,78 @@
+name: Staging2 Hide Debug Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-hide-debug-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      STAGING_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+      PROD_ROOT: /home/customer/www/nuvanx.com/public_html
+    steps:
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          port="${PORT:-18765}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/k"; chmod 600 "$HOME/.ssh/k"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port $port
+            IdentityFile $HOME/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Disable public WordPress debug display on staging only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "STAGING_ROOT='$STAGING_ROOT' PROD_ROOT='$PROD_ROOT' RUN_ID='$GITHUB_RUN_ID' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$STAGING_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          backup="$STAGING_ROOT/wp-config.php.pre-debug-display-${RUN_ID}"
+          test ! -e "$backup"
+          cp -p wp-config.php "$backup"
+          wp config set WP_DEBUG_DISPLAY false --raw
+          test "$(wp config get WP_DEBUG_DISPLAY)" = 'false'
+          php -l wp-config.php >/dev/null
+          wp cache flush
+          echo "STAGING_WP_DEBUG=$(wp config get WP_DEBUG)"
+          echo "STAGING_WP_DEBUG_DISPLAY=$(wp config get WP_DEBUG_DISPLAY)"
+          echo "STAGING_CONFIG_BACKUP=$backup"
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          echo "PRODUCTION_WP_DEBUG_DISPLAY=$(wp config get WP_DEBUG_DISPLAY 2>/dev/null || echo UNDEFINED)"
+          echo 'STAGING_DEBUG_DISPLAY_FIX=PASS'
+          REMOTE
+
+      - name: Destroy SSH identity
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/k" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"

@@ -30,6 +30,15 @@ fail() {
   exit 1
 }
 
+purge_siteground_cache_if_available() {
+  if wp help sg >/dev/null 2>&1; then
+    wp sg purge
+    echo 'siteground_wp_cli_purge=PASS'
+  else
+    echo 'siteground_wp_cli_purge=SKIPPED command_unavailable'
+  fi
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --wp-root) WP_ROOT="${2:-}"; shift 2 ;;
@@ -96,7 +105,7 @@ rollback() {
     (
       cd "$WP_ROOT"
       wp cache flush || true
-      wp sg purge || true
+      purge_siteground_cache_if_available || true
     )
     echo "SAFETY_RESTORE_COMPLETE backup=$BACKUP_DIR" >&2
   fi
@@ -174,7 +183,7 @@ echo '== Purge staging2 caches =='
 (
   cd "$WP_ROOT"
   wp cache flush
-  wp sg purge
+  purge_siteground_cache_if_available
   rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-*
   rm -rf wp-content/cache/sgo-cache/*
   rm -rf wp-content/cache/*

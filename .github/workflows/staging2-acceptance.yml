@@ -4,50 +4,94 @@ on:
   workflow_dispatch:
     inputs:
       sha:
-        description: Commit SHA to validate
+        description: Full commit SHA to validate
         required: true
         type: string
 
 permissions:
   contents: read
 
+concurrency:
+  group: staging2-acceptance
+  cancel-in-progress: true
+
 jobs:
   acceptance:
     name: Browser Acceptance Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      BASE_URL: https://staging2.nuvanx.com
+      EXPECTED_HOST: staging2.nuvanx.com
+      EXPECTED_SHA: ${{ inputs.sha }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out master history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ inputs.sha }}
+          ref: master
+          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Validate immutable source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_SHA="$(printf '%s' "$EXPECTED_SHA" | tr -d '[:space:]')"
+          echo "EXPECTED_SHA=$EXPECTED_SHA" >> "$GITHUB_ENV"
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo 'sha input must be a full lowercase 40-character SHA.' >&2
+            exit 1
+          }
+          git fetch --no-tags origin master
+          git cat-file -e "${EXPECTED_SHA}^{commit}"
+          git merge-base --is-ancestor "$EXPECTED_SHA" origin/master || {
+            echo 'Refusing to validate a SHA that is not contained in origin/master.' >&2
+            exit 1
+          }
+          git checkout --detach "$EXPECTED_SHA"
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
         with:
           node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: scripts/staging2/package-lock.json
+
+      - name: Verify staging boundary before acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/staging2/verify-staging-boundary.mjs
 
       - name: Validate page template integrity
         env:
           WORDPRESS_URL: https://staging2.nuvanx.com
+        shell: bash
         run: |
+          set -euo pipefail
           node scripts/validate-page-templates.mjs
 
-      - name: Install dependencies
+      - name: Install browser-test dependencies
+        shell: bash
         run: |
+          set -euo pipefail
           cd scripts/staging2
-          npm install
+          npm ci --ignore-scripts
           npx playwright install --with-deps chromium
 
       - name: Run browser acceptance tests
-        env:
-          BASE_URL: https://staging2.nuvanx.com
-          EXPECTED_SHA: ${{ inputs.sha }}
+        shell: bash
         run: |
+          set -euo pipefail
           cd scripts/staging2
           node browser-acceptance.mjs
 
-      - name: Upload acceptance test results
+      - name: Upload acceptance evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
-          name: acceptance-results
-          path: scripts/staging2/acceptance-results.json
+          name: staging2-acceptance-${{ inputs.sha }}
+          path: scripts/staging2/artifacts/
+          retention-days: 14
+          if-no-files-found: error

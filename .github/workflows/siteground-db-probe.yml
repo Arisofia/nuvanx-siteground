@@ -34,7 +34,6 @@ jobs:
           chmod 600 "$HOME/.ssh/staging2_key"
           printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
-          test -s "$HOME/.ssh/known_hosts"
           cat > "$HOME/.ssh/config" <<EOF
           Host nvx-staging2-probe
             HostName $STAGING2_SSH_HOST
@@ -49,91 +48,68 @@ jobs:
           EOF
           chmod 600 "$HOME/.ssh/config"
 
-      - name: Probe SiteGround and MySQL capabilities (read-only)
+      - name: Probe account provisioning capabilities (read-only)
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-staging2-probe 'bash -se' <<'REMOTE'
-          set -euo pipefail
+          set -u
           STAGING_ROOT='/home/customer/www/staging2.nuvanx.com/public_html'
           PROD_ROOT='/home/customer/www/nuvanx.com/public_html'
 
-          echo '=== filesystem ==='
-          printf 'staging_root_exists='; test -d "$STAGING_ROOT" && echo yes || echo no
-          printf 'prod_root_exists='; test -d "$PROD_ROOT" && echo yes || echo no
-          printf 'roots_distinct='; test "$STAGING_ROOT" != "$PROD_ROOT" && echo yes || echo no
+          echo '=== filesystem / WordPress ==='
+          echo "staging_root_exists=$(test -d "$STAGING_ROOT" && echo yes || echo no)"
+          echo "prod_root_exists=$(test -d "$PROD_ROOT" && echo yes || echo no)"
+          echo "roots_distinct=$(test "$STAGING_ROOT" != "$PROD_ROOT" && echo yes || echo no)"
+          staging_db="$(cd "$STAGING_ROOT" && wp config get DB_NAME)"
+          prod_db="$(cd "$PROD_ROOT" && wp config get DB_NAME)"
+          echo "staging_db=$staging_db"
+          echo "prod_db=$prod_db"
+          echo "db_isolation=$(test "$staging_db" != "$prod_db" && echo PASS_distinct || echo FAIL_same)"
+          echo "staging_siteurl=$(cd "$STAGING_ROOT" && wp option get siteurl)"
+          echo "staging_home=$(cd "$STAGING_ROOT" && wp option get home)"
+          echo "staging_blog_public=$(cd "$STAGING_ROOT" && wp option get blog_public)"
 
-          echo '=== cli availability ==='
-          for cmd in wp mysql mysqldump php rsync siteground siteground-cli sg sgctl sitectl uapi whmapi1 cpapi2; do
-            if command -v "$cmd" >/dev/null 2>&1; then
-              echo "$cmd=yes"
+          echo '=== command availability ==='
+          for cmd in wp mysql mysqldump mysqladmin php rsync siteground siteground-cli sg sgctl sitectl uapi whmapi1 cpapi2; do
+            path="$(command -v "$cmd" 2>/dev/null || true)"
+            if test -n "$path"; then
+              echo "$cmd=yes:$path"
             else
               echo "$cmd=no"
             fi
           done
 
-          echo '=== likely provisioning binaries ==='
-          found=0
+          echo '=== sg identity ==='
+          sg_path="$(command -v sg 2>/dev/null || true)"
+          if test -n "$sg_path"; then
+            echo "sg_path=$sg_path"
+            (sg --help 2>&1 || true) | head -n 8
+          fi
+
+          echo '=== provisioning-name scan ==='
           for dir in /usr/local/bin /usr/bin /opt/bin "$HOME/bin"; do
             test -d "$dir" || continue
-            while IFS= read -r candidate; do
-              base="$(basename "$candidate")"
-              case "$base" in
-                *siteground*|sgctl|sitectl|uapi|whmapi1|cpapi2|*mysql*admin*)
-                  echo "provisioning_candidate=$candidate"
-                  found=1
-                  ;;
-              esac
-            done < <(find "$dir" -maxdepth 1 -type f -perm -u+x 2>/dev/null | sort)
+            ls -1 "$dir" 2>/dev/null | grep -E '^(siteground|siteground-cli|sgctl|sitectl|uapi|whmapi1|cpapi2|mysqladmin)$' || true
           done
-          if test "$found" -eq 0; then
-            echo 'provisioning_candidate=none_detected'
-          fi
 
-          test -f "$STAGING_ROOT/wp-config.php"
-          test -f "$PROD_ROOT/wp-config.php"
-          command -v wp >/dev/null
-
-          staging_db="$(cd "$STAGING_ROOT" && wp config get DB_NAME)"
-          prod_db="$(cd "$PROD_ROOT" && wp config get DB_NAME)"
-
-          echo '=== wordpress identity ==='
-          echo "staging_db=$staging_db"
-          echo "prod_db=$prod_db"
-          if test "$staging_db" = "$prod_db"; then
-            echo 'db_isolation=FAIL_same_database'
+          echo '=== mysql privilege classification ==='
+          grants="$(cd "$STAGING_ROOT" && wp db query 'SHOW GRANTS FOR CURRENT_USER' --skip-column-names 2>/dev/null || true)"
+          if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON \*\.\*|GRANT .*CREATE.* ON \*\.\*'; then
+            echo 'global_create_database=LIKELY_YES'
           else
-            echo 'db_isolation=PASS_distinct_database'
+            echo 'global_create_database=NO_EVIDENCE'
           fi
-          echo "staging_siteurl=$(cd "$STAGING_ROOT" && wp option get siteurl)"
-          echo "staging_home=$(cd "$STAGING_ROOT" && wp option get home)"
-          echo "staging_blog_public=$(cd "$STAGING_ROOT" && wp option get blog_public)"
-          echo "staging_theme=$(cd "$STAGING_ROOT" && wp theme list --status=active --field=name)"
-
-          echo '=== mysql capability ==='
-          if command -v mysql >/dev/null 2>&1; then
-            grants="$(cd "$STAGING_ROOT" && wp db query 'SHOW GRANTS FOR CURRENT_USER' --skip-column-names 2>/dev/null || true)"
-            if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON \*\.\*|GRANT .*CREATE.* ON \*\.\*'; then
-              echo 'mysql_global_create_database_privilege=LIKELY_YES'
-            else
-              echo 'mysql_global_create_database_privilege=NO_EVIDENCE'
-            fi
-            if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON \*\.\*|GRANT .*CREATE USER.* ON \*\.\*'; then
-              echo 'mysql_create_user_privilege=LIKELY_YES'
-            else
-              echo 'mysql_create_user_privilege=NO_EVIDENCE'
-            fi
-            if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON'; then
-              echo 'mysql_has_all_privileges_some_scope=yes'
-            else
-              echo 'mysql_has_all_privileges_some_scope=no'
-            fi
+          if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON \*\.\*|GRANT .*CREATE USER.* ON \*\.\*'; then
+            echo 'create_user=LIKELY_YES'
           else
-            echo 'mysql_global_create_database_privilege=UNAVAILABLE_mysql_cli_missing'
-            echo 'mysql_create_user_privilege=UNAVAILABLE_mysql_cli_missing'
+            echo 'create_user=NO_EVIDENCE'
           fi
-
-          echo '=== result ==='
+          if printf '%s\n' "$grants" | grep -Eq 'GRANT ALL PRIVILEGES ON'; then
+            echo 'all_privileges_some_scope=yes'
+          else
+            echo 'all_privileges_some_scope=no'
+          fi
           echo 'probe_mode=READ_ONLY'
           REMOTE
 

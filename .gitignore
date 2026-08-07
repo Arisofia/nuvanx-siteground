@@ -1,65 +1,65 @@
-# Core WordPress y Entorno Sensible
+# ============================================================
+# WordPress / environment secrets
+# ============================================================
+
 wp-config.php
 .env
 .env.local
 .htaccess
 
-# Secrets and archives
+# ============================================================
+# Secrets / private material
+# ============================================================
+
 *.pem
 *.key
 id_*
 *.sql
+
+# ============================================================
+# Archives / generated packages
+# ============================================================
+
 *.tgz
 *.zip
 *.gz
 
-# Directorios Dinámicos (NO rastrear)
+# ============================================================
+# WordPress runtime data
+# ============================================================
+
 wp-content/uploads/
 wp-content/cache/
 wp-content/upgrade/
 wp-content/wflogs/
 
-# Plugins y Caché Específicos de NUVANX
-wp-content/uploads/siteground-optimizer-assets/
-wp-content/uploads/backwpup-*/
-wp-content/uploads/sb-instagram-feed-images/
+# ============================================================
+# Logs / operating-system files
+# ============================================================
 
-# Logs y Archivos de Sistema Operativo
 *.log
+error_log
 .DS_Store
 Thumbs.db
-error_log
 
-# Entornos de Desarrollo Local, QA y Node
+# ============================================================
+# Local development only
+# ============================================================
+
 node_modules/
 mcps/
 Nuvanx-System/
-qa/
-artifacts/
 
-# Testing and Playwright
-tests/
+# ============================================================
+# Generated QA / test output
+# ============================================================
+
+artifacts/
 playwright-report/
 test-results/
-playwright.config.ts
 
-# Node.js
-package.json
-package-lock.json
-!scripts/staging2/package.json
-!scripts/staging2/package-lock.json
-node_modules/
-eslint.config.js
+# ============================================================
+# Local scratch space
+# ============================================================
 
-# Legacy directories (cleaned up)
 scratch/
-
-# Exception: allow schema files and specific inc files
-!wp-content/themes/nuvanx-medical/inc/data/routes.schema.json
-!wp-content/themes/nuvanx-medical/inc/nvx-btl-detail-pages.php
-!wp-content/themes/nuvanx-medical/inc/nvx-seo-production-readiness.php
-!wp-content/themes/nuvanx-medical/inc/nvx-structured-data.php
-!wp-content/themes/nuvanx-medical/inc/nvx-signature-phase-pages.php
-
-# Legacy scripts (cleaned up)
-scripts/audit-*.sh

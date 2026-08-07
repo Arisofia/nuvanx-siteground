@@ -39,11 +39,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check scripts/staging2/block-c-visual-qa.mjs
-          node -e "const r=require('./wp-content/themes/nuvanx-medical/inc/data/routes.json'); if(Object.keys(r).length!==52){throw new Error('Expected 52 routes, got '+Object.keys(r).length)}; console.log('routes=52');"
-          grep -Fq "1440, height: 1100" scripts/staging2/block-c-visual-qa.mjs
-          grep -Fq "1024, height: 768" scripts/staging2/block-c-visual-qa.mjs
-          grep -Fq "390, height: 844" scripts/staging2/block-c-visual-qa.mjs
+          node --check scripts/staging2/block-c-52x3.mjs
+          grep -Fq "1440, height: 1100" scripts/staging2/block-c-52x3.mjs
+          grep -Fq "1024, height: 768" scripts/staging2/block-c-52x3.mjs
+          grep -Fq "390, height: 844" scripts/staging2/block-c-52x3.mjs
+          grep -Fq "normalized.length !== 52" scripts/staging2/block-c-52x3.mjs
+          grep -Fq "totalCases !== 156" scripts/staging2/block-c-52x3.mjs
 
       - name: Install Playwright dependencies
         shell: bash
@@ -53,22 +54,27 @@ jobs:
           npm ci --ignore-scripts
           npx playwright install --with-deps chromium
 
-      - name: Run 52 routes × 3 exact viewports
+      - name: Run 52 published pages × 3 exact viewports
         id: block_c
         continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
-          node scripts/staging2/block-c-visual-qa.mjs 2>&1 | tee /tmp/block-c-run.log
+          node scripts/staging2/block-c-52x3.mjs 2>&1 | tee /tmp/block-c-run.log
+
+      - name: Copy console evidence into artifact tree
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p scripts/staging2/block-c-artifacts
+          cp /tmp/block-c-run.log scripts/staging2/block-c-artifacts/block-c-run.log 2>/dev/null || true
 
       - name: Upload Block C evidence
         if: always()
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
           name: staging2-block-c-baseline-13bf60a9b561d38e996eec59ad6868a3f45c48e3
-          path: |
-            scripts/staging2/block-c-artifacts/
-            /tmp/block-c-run.log
+          path: scripts/staging2/block-c-artifacts/
           retention-days: 14
           if-no-files-found: error
           compression-level: 6
@@ -78,7 +84,7 @@ jobs:
         run: |
           set -euo pipefail
           if [[ '${{ steps.block_c.outcome }}' != 'success' ]]; then
-            echo 'Block C baseline contains FIX/BLOCKED cases. See artifact for 156-case evidence.' >&2
+            echo 'Block C baseline contains FIX/BLOCKED cases. See artifact for all 156 cases.' >&2
             exit 1
           fi
           echo 'BLOCK_C_BASELINE=PASS'

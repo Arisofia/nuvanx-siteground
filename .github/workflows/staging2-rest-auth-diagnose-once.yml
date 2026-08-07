@@ -66,9 +66,9 @@ jobs:
           set -euo pipefail
           cd "$WP_ROOT"
           echo '=== WordPress identity ==='
-          echo "home=$(wp option get home)"
-          echo "siteurl=$(wp option get siteurl)"
-          echo "db=$(wp config get DB_NAME)"
+          echo "home=$(wp option get home || true)"
+          echo "siteurl=$(wp option get siteurl || true)"
+          echo "db=$(wp config get DB_NAME || true)"
           echo '=== htaccess auth directives ==='
           grep -Eni 'AuthType|AuthName|AuthUserFile|Require[[:space:]]+valid-user|Require[[:space:]]+user|SetEnvIf.*Authorization|RewriteRule.*wp-json|wp-json|REST' "$WP_ROOT/.htaccess" 2>/dev/null || true
           echo '=== parent htpasswd/htaccess candidates ==='
@@ -77,15 +77,15 @@ jobs:
           while IFS= read -r f; do
             echo "--- $f"
             grep -Eni 'AuthType|AuthName|AuthUserFile|Require[[:space:]]+valid-user|Require[[:space:]]+user|wp-json|REST' "$f" 2>/dev/null || true
-          done < <(find "$STAGING_PARENT" -maxdepth 3 -type f -name '.htaccess' 2>/dev/null)
+          done < <(find "$STAGING_PARENT" -maxdepth 3 -type f -name '.htaccess' 2>/dev/null || true)
           echo '=== active plugins ==='
-          wp plugin list --status=active --fields=name,status --format=csv
+          wp plugin list --status=active --fields=name,status --format=csv || true
           echo '=== mu plugins ==='
-          wp plugin list --status=must-use --fields=name,status --format=csv
+          wp plugin list --status=must-use --fields=name,status --format=csv || true
           echo '=== code references that can restrict REST ==='
           grep -RniE 'rest_authentication_errors|rest_enabled|wp-json|HTTP_AUTHORIZATION|PHP_AUTH_USER|WWW-Authenticate|status_header\([[:space:]]*401|wp_die.*401' wp-content/mu-plugins wp-content/plugins/code-snippets wp-content/themes/nuvanx-medical 2>/dev/null | head -120 || true
           echo '=== local WP REST resolution ==='
-          wp eval '$r = rest_do_request(new WP_REST_Request("GET", "/")); echo "rest_root_status=" . $r->get_status() . "\n"; $r2 = rest_do_request(new WP_REST_Request("GET", "/wp/v2/types")); echo "rest_types_status=" . $r2->get_status() . "\n";'
+          wp eval '$r = rest_do_request(new WP_REST_Request("GET", "/")); echo "rest_root_status=" . (is_wp_error($r) ? "error:" . $r->get_error_code() : (method_exists($r, "get_status") ? $r->get_status() : "unknown")) . "\n"; $r2 = rest_do_request(new WP_REST_Request("GET", "/wp/v2/types")); echo "rest_types_status=" . (is_wp_error($r2) ? "error:" . $r2->get_error_code() : (method_exists($r2, "get_status") ? $r2->get_status() : "unknown")) . "\n";' || true
           REMOTE
 
       - name: Cleanup SSH

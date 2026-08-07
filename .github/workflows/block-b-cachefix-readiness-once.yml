@@ -1,0 +1,18 @@
+name: Block B Cachefix Readiness Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/block-b-cachefix-readiness-once.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  readiness:
+    uses: ./.github/workflows/deploy.yml
+    with:
+      sha: 5cac0c0f9c3d9ef8fa9406208c5d9b8fd6fd7ef8
+    secrets: inherit

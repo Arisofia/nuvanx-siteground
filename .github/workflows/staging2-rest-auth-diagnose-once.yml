@@ -74,10 +74,10 @@ jobs:
           echo '=== parent htpasswd/htaccess candidates ==='
           find "$STAGING_PARENT" -maxdepth 2 -type f \( -name '.htaccess' -o -name '.htpasswd*' \) -printf '%p\n' 2>/dev/null || true
           echo '=== auth directives across staging htaccess files ==='
-          while IFS= read -r f; do
+          find "$STAGING_PARENT" -maxdepth 3 -type f -name '.htaccess' -print 2>/dev/null | while IFS= read -r f; do
             echo "--- $f"
             grep -Eni 'AuthType|AuthName|AuthUserFile|Require[[:space:]]+valid-user|Require[[:space:]]+user|wp-json|REST' "$f" 2>/dev/null || true
-          done < <(find "$STAGING_PARENT" -maxdepth 3 -type f -name '.htaccess' 2>/dev/null || true)
+          done
           echo '=== active plugins ==='
           wp plugin list --status=active --fields=name,status --format=csv || true
           echo '=== mu plugins ==='

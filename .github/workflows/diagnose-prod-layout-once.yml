@@ -1,4 +1,4 @@
-name: Diagnose Production Layout Once
+name: Validate Reported Layout Fixes Once
 
 on:
   push:
@@ -10,12 +10,16 @@ permissions:
   contents: read
 
 jobs:
-  diagnose:
+  validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
+    env:
+      BASE_URL: https://staging2.nuvanx.com
+      EXPECTED_SHA: 3b99fb5787d3b6f189503e82e20bf6b9e65e6c7e
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
+          ref: 3b99fb5787d3b6f189503e82e20bf6b9e65e6c7e
           fetch-depth: 1
           persist-credentials: false
       - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a
@@ -30,70 +34,95 @@ jobs:
           cd scripts/staging2
           npm ci --ignore-scripts
           npx playwright install --with-deps chromium >/dev/null
-      - name: Inspect current production DOM and geometry
+      - name: Assert equipo geometry and valoracion live form
         shell: bash
         run: |
           set -euo pipefail
           cd scripts/staging2
           node --input-type=module <<'NODE'
           import { chromium } from 'playwright';
-          const browser = await chromium.launch({headless:true,args:['--no-sandbox']});
-          const ctx = await browser.newContext({viewport:{width:1440,height:1100},ignoreHTTPSErrors:true});
-          const p = await ctx.newPage();
-          async function open(url){
-            const r=await p.goto(url,{waitUntil:'networkidle',timeout:45000});
-            console.log(`URL=${url} HTTP=${r?.status()}`);
-            await p.evaluate(async()=>{if(document.fonts?.ready) await document.fonts.ready;});
-            await p.waitForTimeout(500);
+          const base=process.env.BASE_URL;
+          const sha=process.env.EXPECTED_SHA;
+          const viewports=[
+            {name:'Desktop',width:1440,height:1100,maxTeamWidth:620},
+            {name:'Tablet',width:1024,height:768,maxTeamWidth:520},
+            {name:'Mobile',width:390,height:844,maxTeamWidth:390},
+          ];
+          const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+          let failures=[];
+
+          async function gotoWithRetry(page,path){
+            for(let attempt=1;attempt<=5;attempt++){
+              const r=await page.goto(base+path,{waitUntil:'domcontentloaded',timeout:45000});
+              const status=r?.status()||0;
+              const captcha=r?.headers()?.['sg-captcha']||'';
+              if(status!==202 && status!==429 && status!==503 && !captcha){
+                await page.waitForLoadState('networkidle',{timeout:15000}).catch(()=>{});
+                return r;
+              }
+              if(attempt===5) return r;
+              await page.waitForTimeout(2500*attempt);
+            }
           }
 
-          await open('https://nuvanx.com/equipo-medico/');
-          const team = await p.evaluate(()=>[...document.images]
-            .filter(i=>/Francisco Geraldo|Yolanda Piñero/i.test(i.alt||''))
-            .map(img=>{
-              const fig=img.closest('figure');
-              const card=img.closest('.nvx-brand-card--team');
-              const grid=card?.parentElement;
-              const section=card?.closest('section');
-              const r=img.getBoundingClientRect(), cr=card?.getBoundingClientRect(), gr=grid?.getBoundingClientRect();
-              const cs=getComputedStyle(img), ccs=card?getComputedStyle(card):null, gcs=grid?getComputedStyle(grid):null;
+          for(const vp of viewports){
+            const ctx=await browser.newContext({viewport:{width:vp.width,height:vp.height},ignoreHTTPSErrors:true});
+            const page=await ctx.newPage();
+
+            let r=await gotoWithRetry(page,'/equipo-medico/');
+            if(r?.status()!==200){failures.push(`${vp.name} equipo HTTP ${r?.status()}`); await ctx.close(); continue;}
+            const meta=await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(()=>null);
+            if(meta!==sha) failures.push(`${vp.name} equipo SHA ${meta}`);
+            const imgs=page.locator('img[alt="Francisco Geraldo"], img[alt="Yolanda Piñero"]');
+            if(await imgs.count()!==2) failures.push(`${vp.name} equipo expected 2 target images, got ${await imgs.count()}`);
+            for(let i=0;i<await imgs.count();i++){
+              await imgs.nth(i).scrollIntoViewIfNeeded();
+              await page.waitForTimeout(250);
+            }
+            const team=await page.evaluate(()=>{
+              const grid=document.querySelector('.nvx-equipo-staff-grid');
+              const gcs=grid?getComputedStyle(grid):null;
               return {
-                alt:img.alt,
-                imgRect:{w:Math.round(r.width),h:Math.round(r.height)},
-                imgCSS:{width:cs.width,height:cs.height,maxWidth:cs.maxWidth,maxHeight:cs.maxHeight,minHeight:cs.minHeight,aspectRatio:cs.aspectRatio,objectFit:cs.objectFit},
-                figureClass:fig?.className||'',
-                card:{class:card?.className||'',rect:cr?{w:Math.round(cr.width),h:Math.round(cr.height)}:null,display:ccs?.display,gridColumn:ccs?.gridColumn},
-                grid:{tag:grid?.tagName,cls:grid?.className||'',rect:gr?{w:Math.round(gr.width),h:Math.round(gr.height)}:null,display:gcs?.display,columns:gcs?.gridTemplateColumns},
-                section:{id:section?.id||'',cls:section?.className||''},
-                cardHTML:(card?.outerHTML||'').slice(0,3200)
+                gridDisplay:gcs?.display||'',
+                overflow:document.documentElement.scrollWidth-document.documentElement.clientWidth,
+                images:[...document.images].filter(i=>/Francisco Geraldo|Yolanda Piñero/i.test(i.alt||'')).map(img=>{
+                  const r=img.getBoundingClientRect(); const card=img.closest('.nvx-brand-card--team'); const cr=card?.getBoundingClientRect();
+                  return {alt:img.alt,w:Math.round(r.width),h:Math.round(r.height),cardW:Math.round(cr?.width||0),naturalW:img.naturalWidth,naturalH:img.naturalHeight};
+                })
               };
-            }));
-          console.log('TEAM_DETAIL='+JSON.stringify(team));
+            });
+            if(team.gridDisplay!=='grid') failures.push(`${vp.name} equipo grid display=${team.gridDisplay}`);
+            if(team.overflow>2) failures.push(`${vp.name} equipo horizontal overflow=${team.overflow}`);
+            for(const img of team.images){
+              if(img.w>vp.maxTeamWidth) failures.push(`${vp.name} ${img.alt} width ${img.w} > ${vp.maxTeamWidth}`);
+              if(img.naturalW<1 || img.naturalH<1) failures.push(`${vp.name} ${img.alt} image not loaded`);
+            }
+            console.log(`TEAM_${vp.name.toUpperCase()}=${JSON.stringify(team)}`);
 
-          await open('https://nuvanx.com/madrid/valoracion/');
-          const val = await p.evaluate(()=>{
-            const root=document.querySelector('#nvx-valoracion-main') || document.querySelector('article');
-            const hero=root?.querySelector(':scope > .nvx-brand-hero, :scope > .nvx-valoracion-hero');
-            const form=document.querySelector('#nvx-hubspot-form');
-            const iframe=form?.querySelector('iframe[data-test-id^="embedded-form-"]');
-            const rr=root?.getBoundingClientRect(), hr=hero?.getBoundingClientRect(), fr=form?.getBoundingClientRect(), ir=iframe?.getBoundingClientRect();
-            return {
-              rootRect:rr?{top:Math.round(rr.top),height:Math.round(rr.height)}:null,
-              heroRect:hr?{top:Math.round(hr.top),height:Math.round(hr.height),bottom:Math.round(hr.bottom)}:null,
-              formRect:fr?{top:Math.round(fr.top),height:Math.round(fr.height),bottom:Math.round(fr.bottom)}:null,
-              iframeRect:ir?{top:Math.round(ir.top),height:Math.round(ir.height),width:Math.round(ir.width)}:null,
-              adjacent:!!(hero&&form&&hero.nextElementSibling===form),
-              order:[...(root?.children||[])].map((el,i)=>({i,tag:el.tagName,id:el.id,cls:el.className})),
-              formStyle:form?{display:getComputedStyle(form).display,visibility:getComputedStyle(form).visibility,opacity:getComputedStyle(form).opacity}:null
-            };
-          });
-          const frame = p.frames().find(f=>f.url().includes('ui-forms-embed-components-app/frame.html'));
-          let frameInfo={found:!!frame};
-          if(frame){
-            await frame.waitForLoadState('domcontentloaded').catch(()=>{});
-            await p.waitForTimeout(800);
-            frameInfo={found:true,url:frame.url(),inputs:await frame.locator('input,textarea,select').count().catch(()=>-1),buttons:await frame.locator('button,input[type="submit"]').count().catch(()=>-1),bodyText:(await frame.locator('body').innerText().catch(()=>'' )).trim().slice(0,500)};
+            r=await gotoWithRetry(page,'/madrid/valoracion/');
+            if(r?.status()!==200){failures.push(`${vp.name} valoracion HTTP ${r?.status()}`); await ctx.close(); continue;}
+            const valMeta=await page.locator('meta[name="nvx-deploy-sha"]').getAttribute('content').catch(()=>null);
+            if(valMeta!==sha) failures.push(`${vp.name} valoracion SHA ${valMeta}`);
+            await page.locator('#nvx-hubspot-form').scrollIntoViewIfNeeded();
+            await page.waitForTimeout(1200);
+            const val=await page.evaluate(()=>{
+              const root=document.querySelector('#nvx-valoracion-main')||document.querySelector('article');
+              const hero=root?.querySelector(':scope > .nvx-brand-hero, :scope > .nvx-valoracion-hero');
+              const form=document.querySelector('#nvx-hubspot-form');
+              const fr=form?.getBoundingClientRect(); const hr=hero?.getBoundingClientRect();
+              const cs=form?getComputedStyle(form):null;
+              return {adjacent:!!(hero&&form&&hero.nextElementSibling===form),heroBottom:Math.round(hr?.bottom||0),formTop:Math.round(fr?.top||0),formHeight:Math.round(fr?.height||0),display:cs?.display||'',visibility:cs?.visibility||'',opacity:cs?.opacity||'',iframe:!!form?.querySelector('iframe[data-test-id^="embedded-form-"]')};
+            });
+            const frame=page.frames().find(f=>f.url().includes('ui-forms-embed-components-app/frame.html'));
+            const inputs=frame?await frame.locator('input,textarea,select').count().catch(()=>0):0;
+            const buttons=frame?await frame.locator('button,input[type="submit"]').count().catch(()=>0):0;
+            if(!val.adjacent) failures.push(`${vp.name} valoracion form is not directly after hero`);
+            if(val.display==='none'||val.visibility==='hidden'||val.opacity==='0'||val.formHeight<200) failures.push(`${vp.name} valoracion form not visibly rendered`);
+            if(!val.iframe||!frame||inputs<4||buttons<1) failures.push(`${vp.name} valoracion HubSpot not mounted inputs=${inputs} buttons=${buttons}`);
+            console.log(`VALORACION_${vp.name.toUpperCase()}=${JSON.stringify({...val,inputs,buttons})}`);
+            await ctx.close();
           }
-          console.log('VALORACION_DETAIL='+JSON.stringify({val,frameInfo}));
           await browser.close();
+          if(failures.length){console.error('TARGETED_VALIDATION=FAIL'); for(const f of failures) console.error('- '+f); process.exit(1);}
+          console.log('TARGETED_VALIDATION=PASS');
           NODE

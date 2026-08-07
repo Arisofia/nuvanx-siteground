@@ -117,6 +117,33 @@ jobs:
           chmod 600 "$HOME/.ssh/config"
           ssh nvx-staging2 "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"
 
+      - name: Enforce staging runtime safety
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx-staging2 "WP_ROOT='$WP_ROOT' PROD_ROOT='$PROD_ROOT' RUN_ID='$GITHUB_RUN_ID' RUN_ATTEMPT='$GITHUB_RUN_ATTEMPT' bash -se" <<'REMOTE'
+          set -Eeuo pipefail
+          cd "$WP_ROOT"
+          test "$(wp config get DB_NAME)" = 'dbshcocboodiwr'
+          test "$(wp option get home)" = 'https://staging2.nuvanx.com'
+          debug_display_is_off() {
+            wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'
+          }
+          if ! debug_display_is_off; then
+            backup="$WP_ROOT/wp-config.php.pre-runtime-safety-${RUN_ID}-${RUN_ATTEMPT}"
+            test ! -e "$backup"
+            cp -p wp-config.php "$backup"
+            wp config set WP_DEBUG_DISPLAY false --raw
+            php -l wp-config.php >/dev/null
+            echo "STAGING_RUNTIME_CONFIG_BACKUP=$backup"
+          fi
+          debug_display_is_off
+          cd "$PROD_ROOT"
+          test "$(wp config get DB_NAME)" = 'db0ecrycwv2tgb'
+          test "$(wp option get home)" = 'https://nuvanx.com'
+          echo 'STAGING_RUNTIME_SAFETY=PASS debug_display=off'
+          REMOTE
+
       - name: Verify staging isolation preflight
         shell: bash
         run: |
@@ -131,6 +158,7 @@ jobs:
           test "$(cd "$WP_ROOT" && wp option get blog_public)" = '0'
           test "$(cd "$WP_ROOT" && wp config get NVX_ENV)" = 'staging'
           test "$(cd "$WP_ROOT" && wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          (cd "$WP_ROOT" && wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);')
           if (cd "$WP_ROOT" && wp plugin is-active sg-cachepress); then
             echo 'Speed Optimizer must begin inactive on staging2.' >&2
             exit 1
@@ -189,12 +217,11 @@ jobs:
           set -euo pipefail
           ssh nvx-staging2 "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm && NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$WP_ROOT' --confirm"
 
-      - name: Apply staging content hygiene and media recovery
+      - name: Apply staging content hygiene
         shell: bash
         run: |
           set -euo pipefail
           ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/hygiene-content-fix.php'"
-          ssh nvx-staging2 "cd '$WP_ROOT' && wp eval-file '$REMOTE_RELEASE/scripts/staging2/media-recovery.php'"
 
       - name: Purge staging caches with transient Speed Optimizer activation
         shell: bash
@@ -250,6 +277,7 @@ jobs:
           test "$(wp option get blog_public)" = '0'
           test "$(wp config get NVX_ENV)" = 'staging'
           test "$(wp config get WP_ENVIRONMENT_TYPE)" = 'staging'
+          wp eval 'exit((defined("WP_DEBUG_DISPLAY") && WP_DEBUG_DISPLAY === false) ? 0 : 1);'
           test "$(wp theme list --status=active --field=name)" = 'nuvanx-medical'
           if wp plugin is-active sg-cachepress; then
             echo 'Speed Optimizer active after deploy; expected restored inactive state.' >&2
@@ -403,6 +431,7 @@ jobs:
             echo "- SHA: \`$DEPLOY_SHA\`"
             echo '- Boundary: five required routes stayed on staging2, HTTP 200, noindex/nofollow, exact HTML SHA'
             echo '- Isolation: staging filesystem/DB/environment verified before and after deployment'
+            echo '- Runtime safety: WP_DEBUG_DISPLAY is explicitly false on staging'
             echo '- Failed post-deploy validations trigger rollback of theme, MU plugins and staging DB snapshot'
             echo '- SiteGround Dynamic Cache: public 202 warm-up is retried, but only final HTTP 200 is accepted'
             echo '- Production: read-only invariant verified unchanged'

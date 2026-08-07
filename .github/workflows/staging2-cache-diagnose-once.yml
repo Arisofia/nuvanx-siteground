@@ -1,0 +1,105 @@
+name: Staging2 Cache Diagnose Once
+
+on:
+  push:
+    paths:
+      - '.github/workflows/staging2-cache-diagnose-once.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      EXPECTED_SHA: e7e7e25c87f61caca82504b4378289ac44879709
+      WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
+    steps:
+      - name: Probe public cache headers and SHA variants
+        shell: bash
+        run: |
+          set -euo pipefail
+          routes=(
+            '/'
+            '/soluciones-medicas/'
+            '/equipo-medico/'
+            '/blog/'
+            '/endolift-primeras-72-horas-que-esperar/'
+          )
+          for route in "${routes[@]}"; do
+            for mode in plain bust nocache; do
+              url="https://staging2.nuvanx.com${route}"
+              args=(-sS --max-time 20 -A 'NUVANX-Staging-Boundary/1.0' -D /tmp/h -o /tmp/b)
+              if [[ "$mode" == bust ]]; then
+                sep='?'; [[ "$url" == *'?'* ]] && sep='&'
+                url="${url}${sep}nvx_cache_probe=${EXPECTED_SHA:0:12}"
+              elif [[ "$mode" == nocache ]]; then
+                args+=(-H 'Cache-Control: no-cache' -H 'Pragma: no-cache')
+              fi
+              echo "=== route=$route mode=$mode url=$url ==="
+              curl "${args[@]}" "$url" -w 'status=%{http_code} final=%{url_effective} size=%{size_download}\n' || true
+              grep -Ei '^(HTTP/|location:|server:|age:|cache-control:|x-proxy-cache:|x-sg-cdn:|x-cache:|cf-cache-status:|x-robots-tag:|vary:)' /tmp/h || true
+              sha="$(grep -Eio '<meta[^>]+name=["'"']nvx-deploy-sha["'"'][^>]+>' /tmp/b 2>/dev/null | head -1 | sed -E 's/.*content=["'"']([^"'"']+)["'"'].*/\1/' || true)"
+              echo "html_sha=${sha:-MISSING}"
+            done
+          done
+
+      - name: Configure strict SSH
+        shell: bash
+        env:
+          HOST: ${{ secrets.STAGING2_SSH_HOST }}
+          PORT: ${{ secrets.STAGING2_SSH_PORT }}
+          USER: ${{ secrets.STAGING2_SSH_USER }}
+          KEY: ${{ secrets.STAGING2_SSH_PRIVATE_KEY }}
+          KH: ${{ secrets.STAGING2_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${HOST:?}"; : "${USER:?}"; : "${KEY:?}"; : "${KH:?}"
+          mkdir -p "$HOME/.ssh"; chmod 700 "$HOME/.ssh"
+          printf '%s\n' "$KEY" > "$HOME/.ssh/k"; chmod 600 "$HOME/.ssh/k"
+          printf '%s\n' "$KH" > "$HOME/.ssh/known_hosts"; chmod 600 "$HOME/.ssh/known_hosts"
+          cat > "$HOME/.ssh/config" <<EOF
+          Host nvx
+            HostName $HOST
+            User $USER
+            Port ${PORT:-18765}
+            IdentityFile $HOME/.ssh/k
+            IdentitiesOnly yes
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
+            ConnectTimeout 20
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+
+      - name: Inspect staging cache capabilities read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ssh nvx "WP_ROOT='$WP_ROOT' EXPECTED_SHA='$EXPECTED_SHA' bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd "$WP_ROOT"
+          echo "marker=$(tr -d '\r\n' < wp-content/themes/nuvanx-medical/.nvx-deploy-sha)"
+          echo '=== plugins matching SiteGround/cache ==='
+          wp plugin list --format=csv | grep -Ei 'siteground|speed|optimizer|cache|sg-cache' || true
+          echo '=== filesystem plugin candidates ==='
+          find wp-content/plugins -maxdepth 1 -mindepth 1 -type d -printf '%f\n' 2>/dev/null | grep -Ei 'siteground|speed|optimizer|cache|sg-cache' || true
+          echo '=== wp sg capability ==='
+          if wp help sg >/dev/null 2>&1; then echo 'wp_sg=AVAILABLE'; else echo 'wp_sg=UNAVAILABLE'; fi
+          echo '=== cache directories ==='
+          find wp-content/cache -maxdepth 2 -type f 2>/dev/null | head -20 || true
+          echo '=== response from origin host ==='
+          for route in / /soluciones-medicas/ /equipo-medico/ /blog/ /endolift-primeras-72-horas-que-esperar/; do
+            echo "--- $route"
+            curl -sS --max-time 20 -A 'NUVANX-Staging-Boundary/1.0' -D /tmp/h -o /tmp/b "https://staging2.nuvanx.com${route}"
+            grep -Ei '^(HTTP/|age:|cache-control:|x-proxy-cache:|x-sg-cdn:|x-cache:|x-robots-tag:)' /tmp/h || true
+            sha="$(grep -Eio '<meta[^>]+name=["'"']nvx-deploy-sha["'"'][^>]+>' /tmp/b 2>/dev/null | head -1 | sed -E 's/.*content=["'"']([^"'"']+)["'"'].*/\1/' || true)"
+            echo "html_sha=${sha:-MISSING}"
+          done
+          REMOTE
+
+      - name: Cleanup SSH
+        if: always()
+        shell: bash
+        run: rm -f "$HOME/.ssh/k" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts"

@@ -42,12 +42,12 @@ body.home .nvx-home-hero {
 .nvx-hero .nvx-hero__inner,
 .nvx-brand-hero .nvx-shell {
   display: block;
-  position: absolute;
-  inset: 0;
+  position: relative;
+  inset: auto;
   width: 100%;
   max-width: none;
-  min-height: 100%;
-  height: 100%;
+  min-height: 0;
+  height: auto;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -132,8 +132,8 @@ figure.nvx-hero__media {
   box-sizing: border-box;
   width: var(--nvx-shell);
   max-width: 100%;
-  min-height: 100%;
-  height: 100%;
+  min-height: 0;
+  height: auto;
   margin-inline: auto;
   padding-block: var(--nvx-space-8);
   padding-inline: var(--nvx-gutter-inner);

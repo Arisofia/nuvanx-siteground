@@ -13,14 +13,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-/** Whether the current request is the canonical treatments hub template. */
-function nvx_theme_is_treatments_hub(): bool {
-	return is_page_template( 'templates/page-tratamientos.php' ) 
-		|| is_page_template( 'page-tratamientos.php' )
-		|| is_page_template( 'templates/page-tratamiento.php' )
-		|| is_page_template( 'page-tratamiento.php' );
-}
-
 /** Whether the current request is the treatments hub page by slug. */
 function nvx_theme_is_treatments_hub_page(): bool {
 	return is_page() && 'tratamientos' === get_post_field( 'post_name', get_queried_object_id() );
@@ -28,7 +20,7 @@ function nvx_theme_is_treatments_hub_page(): bool {
 
 /** Whether the theme owns the complete body markup for the current page. */
 function nvx_theme_owns_complete_page_markup(): bool {
-	return is_front_page() || nvx_theme_is_treatments_hub() || nvx_theme_is_treatments_hub_page();
+	return is_front_page() || nvx_theme_is_treatments_hub_page();
 }
 
 /** Dequeue block styles only when the rendered page contains no block markup. */

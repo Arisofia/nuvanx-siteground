@@ -30,8 +30,10 @@ defined( 'ABSPATH' ) || exit;
 	<div class="nvx-header__inner">
 	<a href="<?php echo esc_url( home_url( '/' ) ); ?>" class="nvx-logo" aria-label="NUVANX MEDICINA ESTÉTICA LÁSER — Inicio">
 		<?php
-		$logo_id = get_theme_mod( 'custom_logo' );
-		if ( $logo_id ) :
+		$logo_id        = (int) get_theme_mod( 'custom_logo' );
+		$logo_file      = $logo_id > 0 ? get_attached_file( $logo_id ) : '';
+		$logo_available = is_string( $logo_file ) && '' !== $logo_file && is_readable( $logo_file );
+		if ( $logo_available ) :
 			echo wp_get_attachment_image(
 				$logo_id,
 				'medium',

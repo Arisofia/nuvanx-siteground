@@ -277,16 +277,36 @@
       
       if (window.hbspt && window.hbspt.forms && typeof window.hbspt.forms.create === 'function') {
         const frames = document.querySelectorAll('.hs-form-frame[data-form-id][data-portal-id]');
-        frames.forEach(function(frame) {
+        frames.forEach(function(frame, index) {
           if (frame.dataset.hsInitialized === '1') return;
+
+          // HubSpot Forms v2 expects `target` to be a CSS selector. Passing the
+          // DOM node itself causes HubSpot to fall back to an out-of-place mount
+          // (observed at the end of /madrid/valoracion/). Give every canonical
+          // frame a deterministic, collision-safe ID and target that selector.
+          if (!frame.id) {
+            let suffix = index + 1;
+            let frameId = 'nvx-hubspot-frame-' + suffix;
+            while (document.getElementById(frameId) && document.getElementById(frameId) !== frame) {
+              suffix += 1;
+              frameId = 'nvx-hubspot-frame-' + suffix;
+            }
+            frame.id = frameId;
+          }
+
           frame.dataset.hsInitialized = '1';
-          
-          window.hbspt.forms.create({
-            region: frame.dataset.region || config.hubspotRegion || 'eu1',
-            portalId: frame.dataset.portalId || config.hubspotPortalId,
-            formId: frame.dataset.formId || config.hubspotFormId,
-            target: frame
-          });
+
+          try {
+            window.hbspt.forms.create({
+              region: frame.dataset.region || config.hubspotRegion || 'eu1',
+              portalId: frame.dataset.portalId || config.hubspotPortalId,
+              formId: frame.dataset.formId || config.hubspotFormId,
+              target: '#' + frame.id
+            });
+          } catch (_err) {
+            delete frame.dataset.hsInitialized;
+            if (modal) modal.classList.add('nvx-valoracion-modal--embed-error');
+          }
         });
       }
     }

@@ -161,19 +161,71 @@ async function waitForVisualStability(page) {
 
 async function activateLazyImages(page) {
   await page.evaluate(async () => {
-    const scrollingElement = document.scrollingElement || document.documentElement;
-    const maxY = Math.max(0, scrollingElement.scrollHeight - window.innerHeight);
-    const step = Math.max(360, Math.floor(window.innerHeight * 0.8));
-    for (let y = 0; y <= maxY; y += step) {
-      window.scrollTo(0, y);
-      await new Promise((resolve) => setTimeout(resolve, 45));
+    const root = document.documentElement;
+    const body = document.body;
+    const rootStyle = root.getAttribute('style');
+    const bodyStyle = body?.getAttribute('style') ?? null;
+    root.style.setProperty('scroll-behavior', 'auto', 'important');
+    if (body) body.style.setProperty('scroll-behavior', 'auto', 'important');
+    try {
+      const scrollingElement = document.scrollingElement || root;
+      const maxY = Math.max(0, scrollingElement.scrollHeight - window.innerHeight);
+      const step = Math.max(360, Math.floor(window.innerHeight * 0.8));
+      for (let y = 0; y <= maxY; y += step) {
+        scrollingElement.scrollTop = y;
+        await new Promise((resolve) => setTimeout(resolve, 45));
+      }
+      scrollingElement.scrollTop = maxY;
+      await new Promise((resolve) => setTimeout(resolve, 120));
+      scrollingElement.scrollTop = 0;
+      root.scrollTop = 0;
+      if (body) body.scrollTop = 0;
+      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+      await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+    } finally {
+      if (rootStyle === null) root.removeAttribute('style');
+      else root.setAttribute('style', rootStyle);
+      if (body) {
+        if (bodyStyle === null) body.removeAttribute('style');
+        else body.setAttribute('style', bodyStyle);
+      }
     }
-    window.scrollTo(0, maxY);
-    await new Promise((resolve) => setTimeout(resolve, 120));
-    window.scrollTo(0, 0);
   }).catch(() => {});
   await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
-  await page.waitForTimeout(180);
+  let finalScrollY = Number.POSITIVE_INFINITY;
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
+    finalScrollY = await page.evaluate(async () => {
+      const root = document.documentElement;
+      const body = document.body;
+      const rootStyle = root.getAttribute('style');
+      const bodyStyle = body?.getAttribute('style') ?? null;
+      root.style.setProperty('scroll-behavior', 'auto', 'important');
+      if (body) body.style.setProperty('scroll-behavior', 'auto', 'important');
+      try {
+        const scrollingElement = document.scrollingElement || root;
+        scrollingElement.scrollTop = 0;
+        root.scrollTop = 0;
+        if (body) body.scrollTop = 0;
+        window.scrollTo(0, 0);
+        await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+        await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+        return Math.round(window.scrollY || scrollingElement.scrollTop || 0);
+      } finally {
+        if (rootStyle === null) root.removeAttribute('style');
+        else root.setAttribute('style', rootStyle);
+        if (body) {
+          if (bodyStyle === null) body.removeAttribute('style');
+          else body.setAttribute('style', bodyStyle);
+        }
+      }
+    });
+    if (Math.abs(finalScrollY) <= 2) break;
+    await page.waitForTimeout(100 * attempt);
+  }
+  if (Math.abs(finalScrollY) > 2) {
+    throw new Error(`Unable to reset page to scrollY=0 after lazy-image activation (scrollY=${finalScrollY})`);
+  }
+  await page.waitForTimeout(100);
 }
 
 async function collectGeometry(page) {
@@ -283,6 +335,7 @@ async function collectGeometry(page) {
 
     return {
       viewportWidth: vw,
+      scrollY: Math.round(window.scrollY || doc.scrollTop || 0),
       documentScrollWidth: Math.max(doc.scrollWidth, body?.scrollWidth || 0),
       horizontalOverflowPx: Math.max(0, Math.round(overflowAmount)),
       overflowCulprits: culprits,
@@ -405,24 +458,26 @@ for (const viewport of viewports) {
     page.on('pageerror', (error) => consoleErrors.push(error.message));
     page.on('requestfailed', (request) => {
       const target = request.url();
-      if (target.startsWith(baseUrl)) {
-        networkErrors.push(`${target}: ${request.failure()?.errorText || 'request failed'}`);
+      const resourceType = request.resourceType();
+      const failureText = request.failure()?.errorText || 'request failed';
+      const expectedClientMediaAbort = resourceType === 'media' && /ERR_ABORTED/i.test(failureText);
+      if (target.startsWith(baseUrl) && !expectedClientMediaAbort) {
+        networkErrors.push(`${target}: ${failureText}`);
       }
-      if (request.resourceType() === 'image') {
+      if (resourceType === 'image') {
         let hostname = '';
         try {
           hostname = new URL(target).hostname;
         } catch {
           hostname = '';
         }
-        if (hostname === expectedHost) {
-          imageHttpErrors.push(`${target}: ${request.failure()?.errorText || 'request failed'}`);
-        }
+        if (hostname === expectedHost) imageHttpErrors.push(`${target}: ${failureText}`);
       }
     });
     page.on('response', (resourceResponse) => {
       const request = resourceResponse.request();
-      if (request.resourceType() !== 'image') return;
+      const resourceType = request.resourceType();
+      if (resourceType !== 'image' && resourceType !== 'media') return;
       const target = resourceResponse.url();
       let parsed = null;
       try {
@@ -431,14 +486,15 @@ for (const viewport of viewports) {
         return;
       }
       if (parsed.hostname === expectedHost && resourceResponse.status() >= 400) {
-        imageHttpErrors.push(`${target}: HTTP ${resourceResponse.status()}`);
+        const message = `${target}: HTTP ${resourceResponse.status()}`;
+        if (resourceType === 'image') imageHttpErrors.push(message);
+        else networkErrors.push(message);
       }
       if (
+        resourceType === 'image' &&
         (parsed.hostname === 'nuvanx.com' || parsed.hostname === 'www.nuvanx.com') &&
         parsed.pathname.includes('/wp-content/uploads/')
-      ) {
-        productionMediaLeaks.push(target);
-      }
+      ) productionMediaLeaks.push(target);
     });
 
     let response = null;

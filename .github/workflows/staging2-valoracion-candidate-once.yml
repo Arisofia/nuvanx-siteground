@@ -1,0 +1,19 @@
+name: Staging2 Valoracion Candidate Once
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - .github/workflows/staging2-valoracion-candidate-once.yml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  deploy_candidate:
+    uses: ./.github/workflows/deploy-staging2.yml
+    with:
+      sha: 3195909187f5ab3678389d8cdd7cec75b0b2a5d9
+      run_block_c_acceptance: true
+    secrets: inherit

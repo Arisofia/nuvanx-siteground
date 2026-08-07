@@ -2,6 +2,11 @@ name: Staging2 Acceptance Tests
 
 on:
   workflow_dispatch:
+    inputs:
+      sha:
+        description: Commit SHA to validate
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -10,11 +15,10 @@ jobs:
   acceptance:
     name: Browser Acceptance Tests
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ inputs.sha }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,10 +34,10 @@ jobs:
       - name: Run browser acceptance tests
         env:
           BASE_URL: https://staging2.nuvanx.com
-          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          EXPECTED_SHA: ${{ inputs.sha }}
         run: |
           cd scripts/staging2
-          node browser-acceptance.mjs || true
+          node browser-acceptance.mjs
 
       - name: Upload acceptance test results
         if: always()

@@ -1,0 +1,67 @@
+name: Staging2 Antibot Probe Once
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/staging2-antibot-probe-once.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Record runner and probe public edge
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "RUNNER_NAME=$RUNNER_NAME"
+          echo "RUNNER_OS=$RUNNER_OS"
+          echo "GITHUB_RUN_ATTEMPT=$GITHUB_RUN_ATTEMPT"
+
+          probe() {
+            label="$1"; shift
+            headers="$(mktemp)"
+            body="$(mktemp)"
+            set +e
+            status="$(curl -sS -L --max-redirs 0 --connect-timeout 15 --max-time 30 -D "$headers" -o "$body" -w '%{http_code}' "$@" 'https://staging2.nuvanx.com/' 2>/tmp/curl.err)"
+            rc=$?
+            set -e
+            echo "=== $label ==="
+            echo "curl_rc=$rc status=$status"
+            grep -iE '^(HTTP/|server:|sg-captcha:|cache-control:|location:|content-type:|x-robots-tag:|cf-|x-cache:|age:)' "$headers" || true
+            echo "body_bytes=$(wc -c < "$body" | tr -d ' ')"
+            echo "body_markers=$(grep -Eio 'captcha|staging2|NUVANX|challenge' "$body" | sort -u | tr '\n' ',' || true)"
+            if [[ "$rc" -ne 0 ]]; then cat /tmp/curl.err || true; fi
+            rm -f "$headers" "$body"
+          }
+
+          probe boundary-http2 \
+            -A 'NUVANX-Staging-Boundary/1.0' \
+            -H 'Accept: text/html,application/xhtml+xml'
+
+          probe boundary-http1 \
+            --http1.1 \
+            -A 'NUVANX-Staging-Boundary/1.0' \
+            -H 'Accept: text/html,application/xhtml+xml'
+
+          probe chrome-minimal \
+            -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36' \
+            -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' \
+            -H 'Accept-Language: es-ES,es;q=0.9,en;q=0.7'
+
+          probe chrome-navigation \
+            --http1.1 \
+            -A 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36' \
+            -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' \
+            -H 'Accept-Language: es-ES,es;q=0.9,en;q=0.7' \
+            -H 'Sec-Fetch-Dest: document' \
+            -H 'Sec-Fetch-Mode: navigate' \
+            -H 'Sec-Fetch-Site: none' \
+            -H 'Upgrade-Insecure-Requests: 1'
+
+          probe curl-default

@@ -18,14 +18,14 @@ permissions:
 
 concurrency:
   group: staging2-deployment
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   deploy:
     name: Deploy immutable SHA and verify Block A boundary
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' && github.actor == 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 45
     env:
       DEPLOY_SHA: ${{ inputs.sha }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
@@ -264,13 +264,16 @@ jobs:
         run: |
           set -euo pipefail
           pass=0
-          for attempt in 1 2 3 4 5 6; do
-            echo "Boundary attempt ${attempt}/6"
+          for attempt in {1..12}; do
+            echo "Boundary attempt ${attempt}/12"
             if node scripts/staging2/verify-staging-boundary.mjs; then
               pass=1
               break
             fi
-            sleep 5
+            # SiteGround can transiently answer HTTP 202 immediately after a
+            # Dynamic Cache purge while the public edge is warming. Never
+            # accept 202 as PASS; only allow additional time for a final 200.
+            sleep 10
           done
           test "$pass" = 1
 
@@ -342,6 +345,7 @@ jobs:
             test "$restored" = "$expected_previous"
             echo "ROLLBACK_RESTORED_SHA=$restored"
           fi
+          rm -rf "$ROLLBACK_DIR"
           echo 'ROLLBACK_STAGING=PASS'
           REMOTE
 
@@ -387,8 +391,8 @@ jobs:
             echo "- SHA: \`$DEPLOY_SHA\`"
             echo '- Boundary: five required routes stayed on staging2, HTTP 200, noindex/nofollow, exact HTML SHA'
             echo '- Isolation: staging filesystem/DB/environment verified before and after deployment'
-            echo '- Failed post-deploy validations now trigger rollback of theme, MU plugins and staging DB snapshot'
-            echo '- SiteGround Dynamic Cache: purged by transient Speed Optimizer activation and restored to inactive state'
+            echo '- Failed post-deploy validations trigger rollback of theme, MU plugins and staging DB snapshot'
+            echo '- SiteGround Dynamic Cache: public 202 warm-up is retried, but only final HTTP 200 is accepted'
             echo '- Production: read-only invariant verified unchanged'
             if [[ '${{ inputs.run_block_c_acceptance }}' == 'true' ]]; then
               echo '- Block C: requested and will run only after this deploy job succeeds'

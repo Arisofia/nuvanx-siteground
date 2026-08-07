@@ -2,6 +2,11 @@ name: Deploy Staging2
 
 on:
   workflow_dispatch:
+    inputs:
+      sha:
+        description: Full commit SHA to deploy to staging2
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -19,6 +24,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
+          ref: master
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js
@@ -52,7 +59,7 @@ jobs:
       name: staging2
       url: https://staging2.nuvanx.com
     env:
-      DEPLOY_SHA: ${{ github.sha }}
+      DEPLOY_SHA: ${{ inputs.sha }}
       WP_ROOT: /home/customer/www/staging2.nuvanx.com/public_html
       CI: true
     steps:
@@ -67,7 +74,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Trim accidental whitespace/newlines from inputs.
           DEPLOY_SHA="$(printf '%s' "$DEPLOY_SHA" | tr -d '[:space:]')"
           echo "DEPLOY_SHA=$DEPLOY_SHA" >> "$GITHUB_ENV"
           [[ "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]] || {
@@ -82,6 +88,10 @@ jobs:
           }
           git checkout --detach "$DEPLOY_SHA"
           test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
+          test -f scripts/staging2/verify-staging-boundary.mjs || {
+            echo 'Selected SHA predates the mandatory staging boundary gate.' >&2
+            exit 1
+          }
 
       - name: Configure strict SSH authentication
         shell: bash
@@ -120,6 +130,7 @@ jobs:
 
           printf '%s\n' "$STAGING2_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
 
           cat > "$HOME/.ssh/config" <<EOF
           Host nvx-staging2
@@ -129,8 +140,8 @@ jobs:
             IdentityFile $HOME/.ssh/staging2_key
             IdentitiesOnly yes
             BatchMode yes
-            StrictHostKeyChecking no
-            UserKnownHostsFile /dev/null
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $HOME/.ssh/known_hosts
             ConnectTimeout 20
             ServerAliveInterval 30
             ServerAliveCountMax 2
@@ -141,14 +152,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # WP_ROOT is validated locally before deliberate remote interpolation.
-          # shellcheck disable=SC2029
           attempt=1
           max_attempts=15
           base_wait=10
           while true; do
             echo "SSH verify attempt ${attempt}/${max_attempts}..."
-            if ssh -o ConnectTimeout=20 -o ServerAliveInterval=30 -o ServerAliveCountMax=2 -o StrictHostKeyChecking=no nvx-staging2 \
+            if ssh -o ConnectTimeout=20 -o ServerAliveInterval=30 -o ServerAliveCountMax=2 nvx-staging2 \
               "test -d '$WP_ROOT' && test -f '$WP_ROOT/wp-config.php' && command -v wp >/dev/null && command -v rsync >/dev/null && command -v php >/dev/null"; then
               echo "SiteGround staging2 target verified (attempt ${attempt})."
               break
@@ -159,11 +168,10 @@ jobs:
               exit 1
             fi
             echo "SSH verify attempt ${attempt}/${max_attempts} failed; retrying in ${base_wait}s..." >&2
-            sleep $base_wait
+            sleep "$base_wait"
             attempt=$((attempt + 1))
-            # Exponential backoff with cap
-            base_wait=$(( base_wait * 2))
-            if [[ $base_wait -gt 60 ]]; then
+            base_wait=$((base_wait * 2))
+            if [[ "$base_wait" -gt 60 ]]; then
               base_wait=60
             fi
           done
@@ -174,8 +182,6 @@ jobs:
           set -euo pipefail
           REMOTE_RELEASE="$WP_ROOT/wp-content/.nuvanx-deployments/${DEPLOY_SHA}-${GITHUB_RUN_ID}"
           echo "REMOTE_RELEASE=$REMOTE_RELEASE" >> "$GITHUB_ENV"
-          # REMOTE_RELEASE is composed from validated local deployment inputs.
-          # shellcheck disable=SC2029
           ssh nvx-staging2 "mkdir -p '$REMOTE_RELEASE/theme' '$REMOTE_RELEASE/mu-plugins'"
           rsync -az --delete \
             --exclude='.git' \
@@ -199,8 +205,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # All paths and SHA are validated locally before deliberate remote interpolation.
-          # shellcheck disable=SC2029
           ssh nvx-staging2 \
             "NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-to-staging2.sh' --wp-root '$WP_ROOT' --source-theme '$REMOTE_RELEASE/theme' --sha '$DEPLOY_SHA' --confirm && NUVANX_CONFIRM=yes bash '$REMOTE_RELEASE/deploy-required-mu-plugins.sh' --environment staging2 --wp-root '$WP_ROOT' --confirm"
 
@@ -214,20 +218,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # The deploy script purges caches before this hygiene pass, so the
-          # sanitized DB/JSON could otherwise be served stale until the next
-          # purge. Mirror the deploy-to-staging2.sh purge sequence here.
-          # shellcheck disable=SC2029
           ssh nvx-staging2 "cd '$WP_ROOT' && wp cache flush && wp sg purge && rm -rf wp-content/uploads/siteground-optimizer-assets/siteground-optimizer-combined-* wp-content/cache/sgo-cache/* wp-content/cache/* && wp eval 'if (function_exists(\"opcache_reset\")) { opcache_reset(); }'"
 
       - name: Verify content hygiene
         shell: bash
         run: |
           set -euo pipefail
-          # Capture grep's exit status explicitly: 0 = banned phrase found (fail),
-          # 1 = clean (pass), 2 = grep error such as a missing glob or unreadable
-          # files (fail). A bare `! grep` would treat that error as success.
-          # shellcheck disable=SC2029
           status=0
           ssh nvx-staging2 "cd '$WP_ROOT' && grep -E -i -r 'valoraci[oó]n( m[eé]dica)? (gratis|gratuita)|consulta (m[eé]dica )?(gratis|gratuita)|sin compromiso|Tu mejor versi[oó]n empieza aqu[ií]|EXILITET|enfoque m[eé]dico premium' wp-content/themes/nuvanx-medical/inc/data/*.json" || status=$?
           case "$status" in
@@ -243,12 +239,11 @@ jobs:
               exit 1
               ;;
           esac
+
       - name: Verify deployed marker
         shell: bash
         run: |
           set -euo pipefail
-          # WP_ROOT is validated locally before deliberate remote interpolation.
-          # shellcheck disable=SC2029
           deployed_sha="$(ssh nvx-staging2 "tr -d '\\r\\n' < '$WP_ROOT/wp-content/themes/nuvanx-medical/.nvx-deploy-sha'")"
           test "$deployed_sha" = "$DEPLOY_SHA"
           echo "Verified staging2 marker: $deployed_sha"
@@ -260,6 +255,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: scripts/staging2/package-lock.json
 
+      - name: Verify staging boundary
+        shell: bash
+        env:
+          EXPECTED_SHA: ${{ env.DEPLOY_SHA }}
+          EXPECTED_HOST: staging2.nuvanx.com
+          BASE_URL: https://staging2.nuvanx.com
+        run: |
+          set -euo pipefail
+          node scripts/staging2/verify-staging-boundary.mjs
+
       - name: Cache Playwright binaries
         uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
@@ -269,10 +274,9 @@ jobs:
             ${{ runner.os }}-playwright-
 
       - name: Run browser acceptance tests
-        continue-on-error: true
         shell: bash
         env:
-          EXPECTED_SHA: ${{ github.sha }}
+          EXPECTED_SHA: ${{ env.DEPLOY_SHA }}
           BASE_URL: https://staging2.nuvanx.com
         run: |
           set -euo pipefail
@@ -287,10 +291,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874 # v4.4.0
         with:
-          name: browser-acceptance-results
+          name: browser-acceptance-results-${{ inputs.sha }}
           path: scripts/staging2/artifacts/
-          retention-days: 7
-          if-no-files-found: warn
+          retention-days: 14
+          if-no-files-found: error
 
       - name: Configure SSH for cleanup
         if: always()
@@ -335,8 +339,6 @@ jobs:
         shell: bash
         run: |
           set +e
-          # Skip cleanup when SSH was never configured (early validation failure)
-          # or when no remote payload path was published.
           if [[ -z "${REMOTE_RELEASE:-}" ]]; then
             echo 'No REMOTE_RELEASE path to remove; skipping cleanup.'
             exit 0
@@ -349,8 +351,6 @@ jobs:
             echo 'SSH private key not available; skipping cleanup.'
             exit 0
           fi
-          # REMOTE_RELEASE is validated locally before deliberate remote interpolation.
-          # shellcheck disable=SC2029
           ssh nvx-staging2 "rm -rf '$REMOTE_RELEASE'" || {
             echo "Cleanup SSH failed (non-fatal for early aborts)." >&2
           }
@@ -370,5 +370,5 @@ jobs:
             printf '%s\n' "- Target: \`https://staging2.nuvanx.com\`"
             printf '%s\n' "- Scope: \`wp-content/themes/nuvanx-medical\` + required MU plugins (\`nuvanx-valoracion-native-hubspot-form.php\`, \`nuvanx-contacto-hubspot-form.php\`)"
             printf '%s\n' '- Backup: created on the SiteGround host before synchronization'
-            printf '%s\n' '- Verification: deploy marker + complete rendered-document acceptance against the exact SHA'
+            printf '%s\n' '- Verification: strict SSH host key + deploy marker + staging boundary + rendered-document acceptance against the exact SHA'
           } >> "$GITHUB_STEP_SUMMARY"
